@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E077A645
-	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84F9529A9
+	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733962411; cv=none; b=fo/4QVdsK7Hjbz5Vu/luY440bCgMG1IL6u0xM2fhBcHJUzgKgGe343TiKSd3wWL8x1BL2thZcVlXEoQaSHCmyVAUhw5yCzHGNlAWwkvhlI9nR0zNVjPXvdERPYo71iWbc4z3rWVvLAdLE/ohAF/bEHTTPa/WrLV9ENDbLrFmeRM=
+	t=1733962413; cv=none; b=Hr6i6mcDwVkK6qbaJgYCA5DBsODgtDoRg6GKMfogFvUs+XcNmcr3NMzTECelNluKcmXF7WRmrGcXHiBIZ34QiA1QOwR0fnOU9Z0hI2AoSY+9O6Af2wB3IGBmd5lvzmU8FhN84tTuhEPVhlhQ77wlAE6zP3rMC9kuvfDOz1xcT28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733962411; c=relaxed/simple;
-	bh=Qk26vAf3RGmi6JFLg0XCOf0ve703pZb//BIXrpVVCrw=;
-	h=Date:To:From:Subject:Message-Id; b=XneMtnTn7vNmCByJDtp9fAdbNw7VB9Dtjt9OCakFF78NLsUIPE2slI9H7McsP/S8n9kofUtd8nZWa5no2UHnly/zwsTaQGbePeTpA0axVBOUDOsioXJ7v2JRYQNr+Djux/I8dSr1SSiKxDbn0FVcBCz9cXWnzEVHw2Kb28zkx8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ia+aaW+C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733962413; c=relaxed/simple;
+	bh=4tBjqPXEk1wTI3GI2h37EOHLmPMSjTibz8Bh5MKSOus=;
+	h=Date:To:From:Subject:Message-Id; b=QclFNYXVNXKHVsOVMBqmHxKkpG9EIWTExXuHTpM1XTH5IQJkL6ycvf0ooC6Fo/I2kLbzfLQHTp7D+cFrRyPzsn8Qn4o7b9r7s2vpVCUl56ZIMp3baTD8R4OMX/npEGI+77kedgxGaKx4ExeIgsfAYPG+PG/YE6aZzlRbNx7Bvy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dxPZzIWR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ia+aaW+C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACFDCC4CED2;
-	Thu, 12 Dec 2024 00:13:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dxPZzIWR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55DCAC4CED2;
+	Thu, 12 Dec 2024 00:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733962410;
-	bh=Qk26vAf3RGmi6JFLg0XCOf0ve703pZb//BIXrpVVCrw=;
+	s=korg; t=1733962413;
+	bh=4tBjqPXEk1wTI3GI2h37EOHLmPMSjTibz8Bh5MKSOus=;
 	h=Date:To:From:Subject:From;
-	b=Ia+aaW+CwO8zCgql8Axa1ikoS8p1Bj7akNVKORzw/0fRhWrAC8xS1En3wdZYZHyp8
-	 ZldscV9bt4v3vkWj3BWvIILtqIouOKQwnn3w5ZjnVH3mHUvtJ7lO/XIAYlq7I3lALw
-	 I3/tczLCTYBDPq+GAuHRnESWUA97BM6GlFSW9s9Y=
-Date: Wed, 11 Dec 2024 16:13:30 -0800
+	b=dxPZzIWRzmRvS3LEvfzJtZ+eXl4O94t8j2y3VwF1FYcgA2PCxtBOjRprDY1/U8AQh
+	 2VsiPJCIRiECSx7siPOCwlsqcvHomh04H2JZ3EICFEXZlw6mV5CVtJmNpFMxdDZeHW
+	 FCto4jSZyVlSofCRD3w2/NiiYEeF8JMCFrMZqKQc=
+Date: Wed, 11 Dec 2024 16:13:32 -0800
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yang@os.amperecomputing.com,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,riel@surriel.com,minchan@kernel.org,linux@armlinux.org.uk,leitao@debian.org,jcmvbkbc@gmail.com,jason.andryuk@amd.com,James.Bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,bp@alien8.de,bhelgaas@google.com,andreas@gaisler.com,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-powerpc-introduce-arch_mmap_hint.patch added to mm-unstable branch
-Message-Id: <20241212001330.ACFDCC4CED2@smtp.kernel.org>
+Subject: + mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch added to mm-unstable branch
+Message-Id: <20241212001333.55DCAC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: powerpc: introduce arch_mmap_hint()
+     Subject: mm: respect mmap hint before THP alignment if allocation is possible
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-powerpc-introduce-arch_mmap_hint.patch
+     mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-powerpc-introduce-arch_mmap_hint.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: powerpc: introduce arch_mmap_hint()
-Date: Wed, 11 Dec 2024 15:27:53 -0800
+Subject: mm: respect mmap hint before THP alignment if allocation is possible
+Date: Wed, 11 Dec 2024 15:27:54 -0800
 
-Introduce powerpc arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.  This
-is a preparatory patch, no functional change is introduced.
+Commit 249608ee4713 ("mm: respect mmap hint address when aligning for
+THP") fallsback to PAGE_SIZE alignment instead of THP alignment for
+anonymous mapping as long as a hint address is provided by the user --
+even if we weren't able to allocate the unmapped area at the hint address
+in the end.
 
-Link: https://lkml.kernel.org/r/20241211232754.1583023-16-kaleshsingh@google.com
+This was done to address the immediate regression in anonymous mappings
+where the hint address were being ignored in some cases; due to commit
+efa7df3e3bb5 ("mm: align larger anonymous mappings on THP boundaries").
+
+It was later pointed out that this issue also existed for file-backed
+mappings from file systems that use thp_get_unmapped_area() for their
+.get_unmapped_area() file operation.
+
+The same fix was not applied for file-backed mappings since it would mean
+any mmap requests that provide a hint address would be only
+PAGE_SIZE-aligned regardless of whether allocation was successful at the
+hint address or not.
+
+Instead, use arch_mmap_hint() to first attempt allocation at the hint
+address and fallback to THP alignment if there isn't sufficient VA space
+to satisfy the allocation at the hint address.
+
+Link: https://lkml.kernel.org/r/20241211232754.1583023-17-kaleshsingh@google.com
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -91,60 +111,53 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/slice.h |    1 
- arch/powerpc/mm/book3s64/slice.c           |   31 +++++++++++++++++++
- 2 files changed, 32 insertions(+)
+ mm/huge_memory.c |   17 ++++++++++-------
+ mm/mmap.c        |    1 -
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/64/slice.h~mm-powerpc-introduce-arch_mmap_hint
-+++ a/arch/powerpc/include/asm/book3s/64/slice.h
-@@ -10,6 +10,7 @@
- #endif
- #define HAVE_ARCH_UNMAPPED_AREA
- #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
-+#define HAVE_ARCH_MMAP_HINT
- #endif
+--- a/mm/huge_memory.c~mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible
++++ a/mm/huge_memory.c
+@@ -1097,6 +1097,16 @@ static unsigned long __thp_get_unmapped_
+ 	loff_t off_align = round_up(off, size);
+ 	unsigned long len_pad, ret, off_sub;
  
- #define SLICE_LOW_SHIFT		28
---- a/arch/powerpc/mm/book3s64/slice.c~mm-powerpc-introduce-arch_mmap_hint
-+++ a/arch/powerpc/mm/book3s64/slice.c
-@@ -647,6 +647,37 @@ static int file_to_psize(struct file *fi
- }
- #endif
++	/*
++	 * If allocation at the address hint succeeds; respect the hint and
++	 * don't try to align to THP boundary;
++	 *
++	 * Or if an the requested extent is invalid return the error immediately.
++	 */
++	addr = arch_mmap_hint(filp, addr, len, off, flags);
++	if (addr)
++		return addr;
++
+ 	if (!IS_ENABLED(CONFIG_64BIT) || in_compat_syscall())
+ 		return 0;
  
-+static unsigned long slice_mmap_hint(unsigned long addr, unsigned long len,
-+				     unsigned long flags, unsigned int psize)
-+{
-+	unsigned long hint_addr = slice_get_unmapped_area(addr, len, flags, psize, 0);
-+
-+	if (IS_ERR_VALUE(hint_addr) || hint_addr == PAGE_ALIGN(addr))
-+		return hint_addr;
-+
-+	return 0;
-+}
-+
-+unsigned long arch_mmap_hint(struct file *filp, unsigned long addr,
-+			     unsigned long len, unsigned long pgoff,
-+			     unsigned long flags)
-+{
-+	unsigned int psize;
-+
-+	if (!addr)
-+		return 0;
-+
-+	if (radix_enabled())
-+		return generic_mmap_hint(filp, addr, len, pgoff, flags);
-+
-+	if (filp && is_file_hugepages(filp))
-+		psize = file_to_psize(filp);
-+	else
-+		psize = mm_ctx_user_psize(&current->mm->context);
-+
-+	return slice_mmap_hint(addr, len, flags, psize);
-+}
-+
- unsigned long arch_get_unmapped_area(struct file *filp,
- 				     unsigned long addr,
- 				     unsigned long len,
+@@ -1117,13 +1127,6 @@ static unsigned long __thp_get_unmapped_
+ 	if (IS_ERR_VALUE(ret))
+ 		return 0;
+ 
+-	/*
+-	 * Do not try to align to THP boundary if allocation at the address
+-	 * hint succeeds.
+-	 */
+-	if (ret == addr)
+-		return addr;
+-
+ 	off_sub = (off - ret) & (size - 1);
+ 
+ 	if (test_bit(MMF_TOPDOWN, &current->mm->flags) && !off_sub)
+--- a/mm/mmap.c~mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible
++++ a/mm/mmap.c
+@@ -814,7 +814,6 @@ __get_unmapped_area(struct file *file, u
+ 	if (get_area) {
+ 		addr = get_area(file, addr, len, pgoff, flags);
+ 	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && !file
+-		   && !addr /* no hint */
+ 		   && IS_ALIGNED(len, PMD_SIZE)) {
+ 		/* Ensures that larger anonymous mappings are THP aligned. */
+ 		addr = thp_get_unmapped_area_vmflags(file, addr, len,
 _
 
 Patches currently in -mm which might be from kaleshsingh@google.com are
