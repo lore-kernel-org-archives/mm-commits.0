@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B91D11FC8
-	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6450A645
+	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733962400; cv=none; b=ohTLzwlEva+FCMgISY647PMfngtElNgr9B23PDK4HccCqT+c0thHLBbVa9y9vFvsbVky0+yLw+dBPbZ9+foSWN9u1Xl2aBQosxKunfFmQvVKuV2r1UtEZTxUk5BsxZL5kQTed4L/ID9A9gjlewtr+ssUW8guD/wGIcfB8Qn2eWg=
+	t=1733962403; cv=none; b=T4HBg6uzW6K/fn+QEPMVsGQM5zh0Jq0Twim+od/oSnrJPFRDqgkiCeaf6UddHD0lJHLlZdfpFesIV92+hZxa8Tepjer+0pmrd4tp8+/K6hspCseaewotWq/JPC5NRZQCo/82+ztg8HKNwptRZkUkEGZknfBQ0kHRLhqKhVJi2mM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733962400; c=relaxed/simple;
-	bh=bXGFd7hFXsTwvwsETEhe8j4Sqv9wgqC6yFbLVMxvBlA=;
-	h=Date:To:From:Subject:Message-Id; b=gpwkWh3U5/Q8QEwHDvEev1Nu0TrcY5beLWlqRa6VVw7mNP1qCV0YYQQyA7/sMdZgQjvvk+HdPJjiw2gUFeIQA/D8D1eS8L9sWS5rzmu/CUVRxdNQ6qajDUnh9jYQtqrWrgq+YSP0pxCicQMrnnJ7I6KdCjaEthZZ8tK7eXdMmxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sDoyCCUn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733962403; c=relaxed/simple;
+	bh=i040RUsCD3heltwWY2BFcKK+8k1Li3SSM3noqXCAcWk=;
+	h=Date:To:From:Subject:Message-Id; b=lFta0STZYtsoau/Lwy0YYaYd3T2Eu+6zO7nak1GQTYhwkaXSj/KNy2dg8g2qj2kBPfMd8qcUH9fH1nNgBq/FWbi3M54FYOHwCIoUgQyoYJuv3z3aTry6C5osoRuO9mAo790Mi5xwcnjIqhQYdgnp5Z1O5ePUrFh5grwyvcQ5Xu8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cX2xQLSJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sDoyCCUn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D5DAC4CED2;
-	Thu, 12 Dec 2024 00:13:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cX2xQLSJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3254DC4CED2;
+	Thu, 12 Dec 2024 00:13:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733962400;
-	bh=bXGFd7hFXsTwvwsETEhe8j4Sqv9wgqC6yFbLVMxvBlA=;
+	s=korg; t=1733962403;
+	bh=i040RUsCD3heltwWY2BFcKK+8k1Li3SSM3noqXCAcWk=;
 	h=Date:To:From:Subject:From;
-	b=sDoyCCUnqIdFkvyh0qKY8SbREbmciMpF4mmR8UO5Fo14G77A0/DN/akEEcHeETtev
-	 QZnsdV63S+ycCnlUVZUa8fY+wg3vvNwisKvZxlM0j4KB2P6Rxy4RSi7MOLftjYLnE8
-	 ujufFTFsLhDySF5bu1MsfoYBzYguhkxLmQ4wn3SA=
-Date: Wed, 11 Dec 2024 16:13:19 -0800
+	b=cX2xQLSJ2IWsQ/pB/fBUcgRUseSxkJvAi2Tdr3tGLM6B+5wSozzi2d0bzdQhOYP33
+	 EZ5yqdJYWDpKPWAm9xVrOyIhmkl0V7m2cazZHT64iPq7o55mNNXumUuvnGR6S3152F
+	 aQ1x0uYKNCKy234K1CZdoyt9FYHpMuNsGDnfAKn0=
+Date: Wed, 11 Dec 2024 16:13:22 -0800
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yang@os.amperecomputing.com,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,riel@surriel.com,minchan@kernel.org,linux@armlinux.org.uk,leitao@debian.org,jcmvbkbc@gmail.com,jason.andryuk@amd.com,James.Bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,bp@alien8.de,bhelgaas@google.com,andreas@gaisler.com,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sh-introduce-arch_mmap_hint.patch added to mm-unstable branch
-Message-Id: <20241212001320.8D5DAC4CED2@smtp.kernel.org>
+Subject: + mm-sparc32-introduce-arch_mmap_hint.patch added to mm-unstable branch
+Message-Id: <20241212001323.3254DC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: sh: introduce arch_mmap_hint()
+     Subject: mm: sparc32: introduce arch_mmap_hint()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sh-introduce-arch_mmap_hint.patch
+     mm-sparc32-introduce-arch_mmap_hint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sh-introduce-arch_mmap_hint.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparc32-introduce-arch_mmap_hint.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: sh: introduce arch_mmap_hint()
-Date: Wed, 11 Dec 2024 15:27:49 -0800
+Subject: mm: sparc32: introduce arch_mmap_hint()
+Date: Wed, 11 Dec 2024 15:27:50 -0800
 
-Introduce sh arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.  This is a
-preparatory patch, no functional change is introduced.
+Introduce sparc32 arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.
 
-Link: https://lkml.kernel.org/r/20241211232754.1583023-12-kaleshsingh@google.com
+If a sufficiently sized hole doesn't exist at the hint address, fallback
+to searching the entire valid VA space instead of only the VA space above
+the hint address.
+
+Link: https://lkml.kernel.org/r/20241211232754.1583023-13-kaleshsingh@google.com
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -91,137 +94,73 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/pgtable.h |    1 
- arch/sh/mm/mmap.c             |   87 ++++++++++++--------------------
- 2 files changed, 35 insertions(+), 53 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h |    1 
+ arch/sparc/kernel/sys_sparc_32.c    |   33 +++++++++++++++++---------
+ 2 files changed, 23 insertions(+), 11 deletions(-)
 
---- a/arch/sh/include/asm/pgtable.h~mm-sh-introduce-arch_mmap_hint
-+++ a/arch/sh/include/asm/pgtable.h
-@@ -149,5 +149,6 @@ static inline bool pte_access_permitted(
- /* arch/sh/mm/mmap.c */
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-sparc32-introduce-arch_mmap_hint
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -437,6 +437,7 @@ static inline int io_remap_pfn_range(str
+ 
+ /* We provide our own get_unmapped_area to cope with VA holes for userland */
  #define HAVE_ARCH_UNMAPPED_AREA
- #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
 +#define HAVE_ARCH_MMAP_HINT
  
- #endif /* __ASM_SH_PGTABLE_H */
---- a/arch/sh/mm/mmap.c~mm-sh-introduce-arch_mmap_hint
-+++ a/arch/sh/mm/mmap.c
-@@ -51,14 +51,14 @@ static inline unsigned long COLOUR_ALIGN
- 	return base + off;
+ #define pmd_pgtable(pmd)	((pgtable_t)__pmd_page(pmd))
+ 
+--- a/arch/sparc/kernel/sys_sparc_32.c~mm-sparc32-introduce-arch_mmap_hint
++++ a/arch/sparc/kernel/sys_sparc_32.c
+@@ -40,13 +40,17 @@ SYSCALL_DEFINE0(getpagesize)
+ 	return PAGE_SIZE; /* Possibly older binaries want 8192 on sun4's? */
  }
  
--unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
--	unsigned long len, unsigned long pgoff, unsigned long flags,
--	vm_flags_t vm_flags)
+-unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
 +unsigned long arch_mmap_hint(struct file *filp, unsigned long addr,
 +			     unsigned long len, unsigned long pgoff,
 +			     unsigned long flags)
  {
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	int do_colour_align;
 -	struct vm_unmapped_area_info info = {};
-+	bool do_colour_align;
+-	bool file_hugepage = false;
++	bool file_hugepage;
 +
-+	if (unlikely(len > TASK_SIZE))
++	/* See asm-sparc/uaccess.h */
++	if (len > TASK_SIZE - PAGE_SIZE)
 +		return -ENOMEM;
+ 
+-	if (filp && is_file_hugepages(filp))
+-		file_hugepage = true;
++	file_hugepage = filp && is_file_hugepages(filp);
  
  	if (flags & MAP_FIXED) {
  		/* We do not accept a shared mapping if it would violate
-@@ -70,24 +70,29 @@ unsigned long arch_get_unmapped_area(str
+@@ -58,14 +62,21 @@ unsigned long arch_get_unmapped_area(str
  		return addr;
  	}
  
--	if (unlikely(len > TASK_SIZE))
+-	/* See asm-sparc/uaccess.h */
+-	if (len > TASK_SIZE - PAGE_SIZE)
 -		return -ENOMEM;
-+	do_colour_align = filp || (flags & MAP_SHARED);
- 
--	do_colour_align = 0;
--	if (filp || (flags & MAP_SHARED))
--		do_colour_align = 1;
--
--	if (addr) {
--		if (do_colour_align)
--			addr = COLOUR_ALIGN(addr, pgoff);
--		else
--			addr = PAGE_ALIGN(addr);
--
--		vma = find_vma(mm, addr);
--		if (TASK_SIZE - len >= addr &&
--		    (!vma || addr + len <= vm_start_gap(vma)))
--			return addr;
--	}
-+	if (do_colour_align)
-+		addr = COLOUR_ALIGN(addr, pgoff);
-+	else
-+		addr = PAGE_ALIGN(addr);
-+
+-	if (!addr)
+-		addr = TASK_UNMAPPED_BASE;
 +	return generic_mmap_hint(filp, addr, len, pgoff, flags);
 +}
 +
-+
-+unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
-+	unsigned long len, unsigned long pgoff, unsigned long flags,
-+	vm_flags_t vm_flags)
++unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len,
++				     unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
 +{
 +	struct vm_unmapped_area_info info = {};
-+	bool do_colour_align;
++	bool file_hugepage = false;
 +
 +	addr = arch_mmap_hint(filp, addr, len, pgoff, flags);
 +	if (addr)
 +		return addr;
-+
-+	do_colour_align = filp || (flags & MAP_SHARED);
  
  	info.length = len;
- 	info.low_limit = TASK_UNMAPPED_BASE;
-@@ -102,41 +107,17 @@ arch_get_unmapped_area_topdown(struct fi
- 			  const unsigned long len, const unsigned long pgoff,
- 			  const unsigned long flags, vm_flags_t vm_flags)
- {
--	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
--	int do_colour_align;
- 	struct vm_unmapped_area_info info = {};
-+	bool do_colour_align;
- 
--	if (flags & MAP_FIXED) {
--		/* We do not accept a shared mapping if it would violate
--		 * cache aliasing constraints.
--		 */
--		if ((flags & MAP_SHARED) &&
--		    ((addr - (pgoff << PAGE_SHIFT)) & shm_align_mask))
--			return -EINVAL;
-+	/* requesting a specific address */
-+	addr = arch_mmap_hint(filp, addr, len, pgoff, flags);
-+	if (addr)
- 		return addr;
--	}
- 
--	if (unlikely(len > TASK_SIZE))
--		return -ENOMEM;
--
--	do_colour_align = 0;
--	if (filp || (flags & MAP_SHARED))
--		do_colour_align = 1;
--
--	/* requesting a specific address */
--	if (addr) {
--		if (do_colour_align)
--			addr = COLOUR_ALIGN(addr, pgoff);
--		else
--			addr = PAGE_ALIGN(addr);
--
--		vma = find_vma(mm, addr);
--		if (TASK_SIZE - len >= addr &&
--		    (!vma || addr + len <= vm_start_gap(vma)))
--			return addr;
--	}
-+	do_colour_align = filp || (flags & MAP_SHARED);
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
+-	info.low_limit = addr;
++	info.low_limit = TASK_UNMAPPED_BASE;
+ 	info.high_limit = TASK_SIZE;
+ 	if (!file_hugepage) {
+ 		info.align_mask = (flags & MAP_SHARED) ?
 _
 
 Patches currently in -mm which might be from kaleshsingh@google.com are
