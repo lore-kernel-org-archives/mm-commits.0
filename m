@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84F9529A9
-	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C4485464B
+	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 02:27:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733962413; cv=none; b=Hr6i6mcDwVkK6qbaJgYCA5DBsODgtDoRg6GKMfogFvUs+XcNmcr3NMzTECelNluKcmXF7WRmrGcXHiBIZ34QiA1QOwR0fnOU9Z0hI2AoSY+9O6Af2wB3IGBmd5lvzmU8FhN84tTuhEPVhlhQ77wlAE6zP3rMC9kuvfDOz1xcT28=
+	t=1733970477; cv=none; b=L33/3rz/0EOszy7sBHr8+7epjbtg2Yv8HJUcW75szG2NEFCuylgdiFZ0yuNBSY5Pm22yOgjWOLdnMR6Y0n7Jstwlpy7mXUANqI4WkUzUO8sGj0bM6Z/BecfvxsaxucNpLAoFun/q50/GwsE6lgWsnsfzcoulgT7hqbSCkeODjxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733962413; c=relaxed/simple;
-	bh=4tBjqPXEk1wTI3GI2h37EOHLmPMSjTibz8Bh5MKSOus=;
-	h=Date:To:From:Subject:Message-Id; b=QclFNYXVNXKHVsOVMBqmHxKkpG9EIWTExXuHTpM1XTH5IQJkL6ycvf0ooC6Fo/I2kLbzfLQHTp7D+cFrRyPzsn8Qn4o7b9r7s2vpVCUl56ZIMp3baTD8R4OMX/npEGI+77kedgxGaKx4ExeIgsfAYPG+PG/YE6aZzlRbNx7Bvy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dxPZzIWR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733970477; c=relaxed/simple;
+	bh=/yrfzJXuS+vyxUCg++8hBbj7Wb/f+GSgdKYRKH297G8=;
+	h=Date:To:From:Subject:Message-Id; b=PMXVTG3Nrq9n45i0Wl+rYXlPwcdQFjY6Z+oq90qNI7O73lAg7oPUKYExTooWLcDytebO07C2m0OSplPZzsG2L4dDHGCDK6c55L2+QU7H/aAu66Mgi0AtQBtfDieIyRhTVvCVNnGcjCz2wlzwVqrKWrziL7nS/pJVP/CRPKwxHEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vl+dljkX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dxPZzIWR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55DCAC4CED2;
-	Thu, 12 Dec 2024 00:13:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vl+dljkX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD749C4CED2;
+	Thu, 12 Dec 2024 02:27:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733962413;
-	bh=4tBjqPXEk1wTI3GI2h37EOHLmPMSjTibz8Bh5MKSOus=;
+	s=korg; t=1733970476;
+	bh=/yrfzJXuS+vyxUCg++8hBbj7Wb/f+GSgdKYRKH297G8=;
 	h=Date:To:From:Subject:From;
-	b=dxPZzIWRzmRvS3LEvfzJtZ+eXl4O94t8j2y3VwF1FYcgA2PCxtBOjRprDY1/U8AQh
-	 2VsiPJCIRiECSx7siPOCwlsqcvHomh04H2JZ3EICFEXZlw6mV5CVtJmNpFMxdDZeHW
-	 FCto4jSZyVlSofCRD3w2/NiiYEeF8JMCFrMZqKQc=
-Date: Wed, 11 Dec 2024 16:13:32 -0800
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yang@os.amperecomputing.com,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,riel@surriel.com,minchan@kernel.org,linux@armlinux.org.uk,leitao@debian.org,jcmvbkbc@gmail.com,jason.andryuk@amd.com,James.Bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,bp@alien8.de,bhelgaas@google.com,andreas@gaisler.com,kaleshsingh@google.com,akpm@linux-foundation.org
+	b=Vl+dljkXFkMoRINBhaFvV5GtsHJ54OXiZmiiqJWjwqqfNIhe7a8ojYTwFltt3P/Hp
+	 OusyUjPZuqPBSCxTLTkCxbyZQR2JDmNY/ii4qCnhK665e2GYNSDjqFcfuWBh/ONazW
+	 X6i2V7Fzy8qbgIzyzP+jkHnMBv5C3YBqfhmhU93c=
+Date: Wed, 11 Dec 2024 18:27:56 -0800
+To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,stern@rowland.harvard.edu,skhan@linuxfoundation.org,rbm@suse.com,npitre@baylibre.com,davidgow@google.com,andriy.shevchenko@linux.intel.com,luis.hernandez093@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch added to mm-unstable branch
-Message-Id: <20241212001333.55DCAC4CED2@smtp.kernel.org>
+Subject: + lib-math-add-int_sqrt-test-suite.patch added to mm-nonmm-unstable branch
+Message-Id: <20241212022756.CD749C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: respect mmap hint before THP alignment if allocation is possible
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch
+     Subject: lib/math: add int_sqrt test suite
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-math-add-int_sqrt-test-suite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_sqrt-test-suite.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,124 +58,145 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: respect mmap hint before THP alignment if allocation is possible
-Date: Wed, 11 Dec 2024 15:27:54 -0800
+From: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Subject: lib/math: add int_sqrt test suite
+Date: Wed, 11 Dec 2024 21:12:58 -0500
 
-Commit 249608ee4713 ("mm: respect mmap hint address when aligning for
-THP") fallsback to PAGE_SIZE alignment instead of THP alignment for
-anonymous mapping as long as a hint address is provided by the user --
-even if we weren't able to allocate the unmapped area at the hint address
-in the end.
+Adds test suite for integer based square root function.
 
-This was done to address the immediate regression in anonymous mappings
-where the hint address were being ignored in some cases; due to commit
-efa7df3e3bb5 ("mm: align larger anonymous mappings on THP boundaries").
+The test suite is designed to verify the correctness of the int_sqrt()
+math library function.
 
-It was later pointed out that this issue also existed for file-backed
-mappings from file systems that use thp_get_unmapped_area() for their
-.get_unmapped_area() file operation.
-
-The same fix was not applied for file-backed mappings since it would mean
-any mmap requests that provide a hint address would be only
-PAGE_SIZE-aligned regardless of whether allocation was successful at the
-hint address or not.
-
-Instead, use arch_mmap_hint() to first attempt allocation at the hint
-address and fallback to THP alignment if there isn't sufficient VA space
-to satisfy the allocation at the hint address.
-
-Link: https://lkml.kernel.org/r/20241211232754.1583023-17-kaleshsingh@google.com
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jason Andryuk <jason.andryuk@amd.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20241212021259.20591-1-luis.hernandez093@gmail.com
+Signed-off-by: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Nicolas Pitre <npitre@baylibre.com>
+Cc: Ricardo B. Marliere <rbm@suse.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   17 ++++++++++-------
- mm/mmap.c        |    1 -
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ lib/Kconfig.debug               |   15 ++++++
+ lib/math/Makefile               |    1 
+ lib/math/tests/Makefile         |    1 
+ lib/math/tests/int_sqrt_kunit.c |   66 ++++++++++++++++++++++++++++++
+ 4 files changed, 83 insertions(+)
 
---- a/mm/huge_memory.c~mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible
-+++ a/mm/huge_memory.c
-@@ -1097,6 +1097,16 @@ static unsigned long __thp_get_unmapped_
- 	loff_t off_align = round_up(off, size);
- 	unsigned long len_pad, ret, off_sub;
+--- a/lib/Kconfig.debug~lib-math-add-int_sqrt-test-suite
++++ a/lib/Kconfig.debug
+@@ -3174,6 +3174,21 @@ config INT_POW_TEST
  
-+	/*
-+	 * If allocation at the address hint succeeds; respect the hint and
-+	 * don't try to align to THP boundary;
-+	 *
-+	 * Or if an the requested extent is invalid return the error immediately.
-+	 */
-+	addr = arch_mmap_hint(filp, addr, len, off, flags);
-+	if (addr)
-+		return addr;
+ 	  If unsure, say N
+ 
++config INT_SQRT_KUNIT_TEST
++	tristate "Integer square root test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the int_sqrt() function,
++	  which performs square root calculation. The test suite checks
++	  various scenarios, including edge cases, to ensure correctness.
 +
- 	if (!IS_ENABLED(CONFIG_64BIT) || in_compat_syscall())
- 		return 0;
++	  Enabling this option will include tests that check various scenarios
++	  and edge cases to ensure the accuracy and reliability of the square root
++	  function.
++
++	  If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
  
-@@ -1117,13 +1127,6 @@ static unsigned long __thp_get_unmapped_
- 	if (IS_ERR_VALUE(ret))
- 		return 0;
+ config ARCH_USE_MEMTEST
+--- a/lib/math/Makefile~lib-math-add-int_sqrt-test-suite
++++ a/lib/math/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_INT_POW_TEST)  += tests/int
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
+ obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
++obj-y  += tests/
+diff --git a/lib/math/tests/int_sqrt_kunit.c a/lib/math/tests/int_sqrt_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/int_sqrt_kunit.c
+@@ -0,0 +1,66 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <kunit/test.h>
++#include <linux/limits.h>
++#include <linux/math.h>
++#include <linux/module.h>
++#include <linux/string.h>
++
++struct test_case_params {
++	unsigned long x;
++	unsigned long expected_result;
++	const char *name;
++};
++
++static const struct test_case_params params[] = {
++	{ 0, 0, "edge case: square root of 0" },
++	{ 1, 1, "perfect square: square root of 1" },
++	{ 2, 1, "non-perfect square: square root of 2" },
++	{ 3, 1, "non-perfect square: square root of 3" },
++	{ 4, 2, "perfect square: square root of 4" },
++	{ 5, 2, "non-perfect square: square root of 5" },
++	{ 6, 2, "non-perfect square: square root of 6" },
++	{ 7, 2, "non-perfect square: square root of 7" },
++	{ 8, 2, "non-perfect square: square root of 8" },
++	{ 9, 3, "perfect square: square root of 9" },
++	{ 15, 3, "non-perfect square: square root of 15 (N-1 from 16)" },
++	{ 16, 4, "perfect square: square root of 16" },
++	{ 17, 4, "non-perfect square: square root of 17 (N+1 from 16)" },
++	{ 80, 8, "non-perfect square: square root of 80 (N-1 from 81)" },
++	{ 81, 9, "perfect square: square root of 81" },
++	{ 82, 9, "non-perfect square: square root of 82 (N+1 from 81)" },
++	{ 255, 15, "non-perfect square: square root of 255 (N-1 from 256)" },
++	{ 256, 16, "perfect square: square root of 256" },
++	{ 257, 16, "non-perfect square: square root of 257 (N+1 from 256)" },
++	{ 2147483648, 46340, "large input: square root of 2147483648" },
++	{ 4294967295, 65535, "edge case: ULONG_MAX for 32-bit" },
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
++{
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(int_sqrt, params, get_desc);
++
++static void int_sqrt_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, int_sqrt(tc->x));
++}
++
++static struct kunit_case math_int_sqrt_test_cases[] = {
++	KUNIT_CASE_PARAM(int_sqrt_test, int_sqrt_gen_params),
++	{}
++};
++
++static struct kunit_suite int_sqrt_test_suite = {
++	.name = "math-int_sqrt",
++	.test_cases = math_int_sqrt_test_cases,
++};
++
++kunit_test_suites(&int_sqrt_test_suite);
++
++MODULE_DESCRIPTION("math.int_sqrt KUnit test suite");
++MODULE_LICENSE("GPL");
+--- a/lib/math/tests/Makefile~lib-math-add-int_sqrt-test-suite
++++ a/lib/math/tests/Makefile
+@@ -1,3 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
--	/*
--	 * Do not try to align to THP boundary if allocation at the address
--	 * hint succeeds.
--	 */
--	if (ret == addr)
--		return addr;
--
- 	off_sub = (off - ret) & (size - 1);
- 
- 	if (test_bit(MMF_TOPDOWN, &current->mm->flags) && !off_sub)
---- a/mm/mmap.c~mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible
-+++ a/mm/mmap.c
-@@ -814,7 +814,6 @@ __get_unmapped_area(struct file *file, u
- 	if (get_area) {
- 		addr = get_area(file, addr, len, pgoff, flags);
- 	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && !file
--		   && !addr /* no hint */
- 		   && IS_ALIGNED(len, PMD_SIZE)) {
- 		/* Ensures that larger anonymous mappings are THP aligned. */
- 		addr = thp_get_unmapped_area_vmflags(file, addr, len,
+ obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
++obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += int_sqrt_kunit.o
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from luis.hernandez093@gmail.com are
 
-mm-introduce-generic_mmap_hint.patch
-mm-x86-introduce-arch_mmap_hint.patch
-mm-arm-introduce-arch_mmap_hint.patch
-mm-alpha-introduce-arch_mmap_hint.patch
-mm-arc-use-generic_mmap_hint.patch
-mm-csky-introduce-arch_mmap_hint.patch
-mm-loongarch-introduce-arch_mmap_hint.patch
-mm-mips-introduce-arch_align_mmap_hint.patch
-mm-parisc-introduce-arch_align_mmap_hint.patch
-mm-s390-use-generic_mmap_hint.patch
-mm-sh-introduce-arch_mmap_hint.patch
-mm-sparc32-introduce-arch_mmap_hint.patch
-mm-sparc64-introduce-arch_mmap_hint.patch
-mm-xtensa-introduce-arch_mmap_hint.patch
-mm-powerpc-introduce-arch_mmap_hint.patch
-mm-respect-mmap-hint-before-thp-alignment-if-allocation-is-possible.patch
+lib-math-add-int_sqrt-test-suite.patch
 
