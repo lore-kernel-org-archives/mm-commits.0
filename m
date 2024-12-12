@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6450A645
-	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CAB9A2D
+	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 00:13:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733962403; cv=none; b=T4HBg6uzW6K/fn+QEPMVsGQM5zh0Jq0Twim+od/oSnrJPFRDqgkiCeaf6UddHD0lJHLlZdfpFesIV92+hZxa8Tepjer+0pmrd4tp8+/K6hspCseaewotWq/JPC5NRZQCo/82+ztg8HKNwptRZkUkEGZknfBQ0kHRLhqKhVJi2mM=
+	t=1733962406; cv=none; b=iYeWvNC/UFJ4mkgQYzPXsWWoafFyNaTozgH2NoAOgBh0fc97C9i3WpUYT5T9MDqmg4s0r4PpAGI2NI1q1EEQJve9Edc1V5VCbE0yvR3JrC4CvyRicTc/x/OLDenuPwlyQcshll05hqNyNXvtUsa/rwkogRvFE89MrqaqMJVbwn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733962403; c=relaxed/simple;
-	bh=i040RUsCD3heltwWY2BFcKK+8k1Li3SSM3noqXCAcWk=;
-	h=Date:To:From:Subject:Message-Id; b=lFta0STZYtsoau/Lwy0YYaYd3T2Eu+6zO7nak1GQTYhwkaXSj/KNy2dg8g2qj2kBPfMd8qcUH9fH1nNgBq/FWbi3M54FYOHwCIoUgQyoYJuv3z3aTry6C5osoRuO9mAo790Mi5xwcnjIqhQYdgnp5Z1O5ePUrFh5grwyvcQ5Xu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cX2xQLSJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733962406; c=relaxed/simple;
+	bh=fjDVXvPL0CE4dJakH+c5qc9T5E00Ll5p1tEW/NvF17g=;
+	h=Date:To:From:Subject:Message-Id; b=JD6CBFhPjzKHbAiGbZKz+WVVhoFjgojpVoaW5ZSQMFDr1+oqburk5dbKJwBIbnT6qLqaKt3qcqkJ95Akt8zVQKMoKC+lCfEtB/bdO4+/p6N6zObNSXykQQfRoBrPmRtat9TsriMxLG7AmPJZtfiUEScepsrizFv3bi2bmXZZRcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1086V/uR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cX2xQLSJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3254DC4CED2;
-	Thu, 12 Dec 2024 00:13:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1086V/uR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8046C4CED2;
+	Thu, 12 Dec 2024 00:13:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733962403;
-	bh=i040RUsCD3heltwWY2BFcKK+8k1Li3SSM3noqXCAcWk=;
+	s=korg; t=1733962405;
+	bh=fjDVXvPL0CE4dJakH+c5qc9T5E00Ll5p1tEW/NvF17g=;
 	h=Date:To:From:Subject:From;
-	b=cX2xQLSJ2IWsQ/pB/fBUcgRUseSxkJvAi2Tdr3tGLM6B+5wSozzi2d0bzdQhOYP33
-	 EZ5yqdJYWDpKPWAm9xVrOyIhmkl0V7m2cazZHT64iPq7o55mNNXumUuvnGR6S3152F
-	 aQ1x0uYKNCKy234K1CZdoyt9FYHpMuNsGDnfAKn0=
-Date: Wed, 11 Dec 2024 16:13:22 -0800
+	b=1086V/uRL1E1983x7Xcd3KaSRFPq6Sbkdsx+f/AQ3UMwxXykVT/eKy6Qj+JLHAeHh
+	 8rnmZt5uOBcjaaIjYQHAqWhdIbqKDctP9X1LlHA3TO3/zVc2hlLiaWRvfijIYk/6v4
+	 wqTKMvIA4NeebuHs4gp6+ZkmXAs49uy8a4hUrDMg=
+Date: Wed, 11 Dec 2024 16:13:25 -0800
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yang@os.amperecomputing.com,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,riel@surriel.com,minchan@kernel.org,linux@armlinux.org.uk,leitao@debian.org,jcmvbkbc@gmail.com,jason.andryuk@amd.com,James.Bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,bp@alien8.de,bhelgaas@google.com,andreas@gaisler.com,kaleshsingh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparc32-introduce-arch_mmap_hint.patch added to mm-unstable branch
-Message-Id: <20241212001323.3254DC4CED2@smtp.kernel.org>
+Subject: + mm-sparc64-introduce-arch_mmap_hint.patch added to mm-unstable branch
+Message-Id: <20241212001325.C8046C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: sparc32: introduce arch_mmap_hint()
+     Subject: mm: sparc64: introduce arch_mmap_hint()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparc32-introduce-arch_mmap_hint.patch
+     mm-sparc64-introduce-arch_mmap_hint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparc32-introduce-arch_mmap_hint.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparc64-introduce-arch_mmap_hint.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: sparc32: introduce arch_mmap_hint()
-Date: Wed, 11 Dec 2024 15:27:50 -0800
+Subject: mm: sparc64: introduce arch_mmap_hint()
+Date: Wed, 11 Dec 2024 15:27:51 -0800
 
-Introduce sparc32 arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.
+Introduce sparc64 arch_mmap_hint() and define HAVE_ARCH_MMAP_HINT.  This
+is a preparatory patch, no functional change is introduced.
 
-If a sufficiently sized hole doesn't exist at the hint address, fallback
-to searching the entire valid VA space instead of only the VA space above
-the hint address.
-
-Link: https://lkml.kernel.org/r/20241211232754.1583023-13-kaleshsingh@google.com
+Link: https://lkml.kernel.org/r/20241211232754.1583023-14-kaleshsingh@google.com
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
@@ -94,24 +91,24 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_32.h |    1 
- arch/sparc/kernel/sys_sparc_32.c    |   33 +++++++++++++++++---------
- 2 files changed, 23 insertions(+), 11 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |    1 
+ arch/sparc/kernel/sys_sparc_64.c    |  100 +++++++++-----------------
+ 2 files changed, 39 insertions(+), 62 deletions(-)
 
---- a/arch/sparc/include/asm/pgtable_32.h~mm-sparc32-introduce-arch_mmap_hint
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -437,6 +437,7 @@ static inline int io_remap_pfn_range(str
- 
- /* We provide our own get_unmapped_area to cope with VA holes for userland */
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-sparc64-introduce-arch_mmap_hint
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -1148,6 +1148,7 @@ static inline bool pte_access_permitted(
+  */
  #define HAVE_ARCH_UNMAPPED_AREA
+ #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
 +#define HAVE_ARCH_MMAP_HINT
  
- #define pmd_pgtable(pmd)	((pgtable_t)__pmd_page(pmd))
- 
---- a/arch/sparc/kernel/sys_sparc_32.c~mm-sparc32-introduce-arch_mmap_hint
-+++ a/arch/sparc/kernel/sys_sparc_32.c
-@@ -40,13 +40,17 @@ SYSCALL_DEFINE0(getpagesize)
- 	return PAGE_SIZE; /* Possibly older binaries want 8192 on sun4's? */
+ /* We provide a special get_unmapped_area for framebuffer mmaps to try and use
+  * the largest alignment possible such that larget PTEs can be used.
+--- a/arch/sparc/kernel/sys_sparc_64.c~mm-sparc64-introduce-arch_mmap_hint
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -98,17 +98,19 @@ static unsigned long get_align_mask(stru
+ 	return 0;
  }
  
 -unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
@@ -119,12 +116,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +			     unsigned long len, unsigned long pgoff,
 +			     unsigned long flags)
  {
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct * vma;
+-	unsigned long task_size = TASK_SIZE;
+-	int do_color_align;
 -	struct vm_unmapped_area_info info = {};
 -	bool file_hugepage = false;
++	unsigned long task_size;
++	bool do_color_align;
 +	bool file_hugepage;
 +
-+	/* See asm-sparc/uaccess.h */
-+	if (len > TASK_SIZE - PAGE_SIZE)
++	task_size = test_thread_flag(TIF_32BIT) ? STACK_TOP32 : TASK_SIZE;
++	if (unlikely(len > task_size || len >= VA_EXCLUDE_START))
 +		return -ENOMEM;
  
 -	if (filp && is_file_hugepages(filp))
@@ -133,15 +136,36 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	if (flags & MAP_FIXED) {
  		/* We do not accept a shared mapping if it would violate
-@@ -58,14 +62,21 @@ unsigned long arch_get_unmapped_area(str
+@@ -120,26 +122,29 @@ unsigned long arch_get_unmapped_area(str
  		return addr;
  	}
  
--	/* See asm-sparc/uaccess.h */
--	if (len > TASK_SIZE - PAGE_SIZE)
+-	if (test_thread_flag(TIF_32BIT))
+-		task_size = STACK_TOP32;
+-	if (unlikely(len > task_size || len >= VA_EXCLUDE_START))
 -		return -ENOMEM;
--	if (!addr)
--		addr = TASK_UNMAPPED_BASE;
++	do_color_align = (filp || (flags & MAP_SHARED)) && !file_hugepage;
+ 
+-	do_color_align = 0;
+-	if ((filp || (flags & MAP_SHARED)) && !file_hugepage)
+-		do_color_align = 1;
+-
+-	if (addr) {
+-		if (do_color_align)
+-			addr = COLOR_ALIGN(addr, pgoff);
+-		else
+-			addr = PAGE_ALIGN(addr);
+-
+-		vma = find_vma(mm, addr);
+-		if (task_size - len >= addr &&
+-		    (!vma || addr + len <= vm_start_gap(vma)))
+-			return addr;
+-	}
++	if (do_color_align)
++		addr = COLOR_ALIGN(addr, pgoff);
++	else
++		addr = PAGE_ALIGN(addr);
++
 +	return generic_mmap_hint(filp, addr, len, pgoff, flags);
 +}
 +
@@ -149,18 +173,73 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +				     unsigned long pgoff, unsigned long flags, vm_flags_t vm_flags)
 +{
 +	struct vm_unmapped_area_info info = {};
-+	bool file_hugepage = false;
++	unsigned long task_size;
++	bool file_hugepage;
 +
 +	addr = arch_mmap_hint(filp, addr, len, pgoff, flags);
 +	if (addr)
 +		return addr;
++
++	task_size = test_thread_flag(TIF_32BIT) ? STACK_TOP32 : TASK_SIZE;
++	file_hugepage = filp && is_file_hugepages(filp);
  
  	info.length = len;
--	info.low_limit = addr;
-+	info.low_limit = TASK_UNMAPPED_BASE;
- 	info.high_limit = TASK_SIZE;
- 	if (!file_hugepage) {
- 		info.align_mask = (flags & MAP_SHARED) ?
+ 	info.low_limit = TASK_UNMAPPED_BASE;
+@@ -164,49 +169,20 @@ arch_get_unmapped_area_topdown(struct fi
+ 			  const unsigned long len, const unsigned long pgoff,
+ 			  const unsigned long flags, vm_flags_t vm_flags)
+ {
+-	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+-	unsigned long task_size = STACK_TOP32;
+ 	unsigned long addr = addr0;
+-	int do_color_align;
+ 	struct vm_unmapped_area_info info = {};
+-	bool file_hugepage = false;
++	bool file_hugepage;
+ 
+ 	/* This should only ever run for 32-bit processes.  */
+ 	BUG_ON(!test_thread_flag(TIF_32BIT));
+ 
+-	if (filp && is_file_hugepages(filp))
+-		file_hugepage = true;
+-
+-	if (flags & MAP_FIXED) {
+-		/* We do not accept a shared mapping if it would violate
+-		 * cache aliasing constraints.
+-		 */
+-		if (!file_hugepage && (flags & MAP_SHARED) &&
+-		    ((addr - (pgoff << PAGE_SHIFT)) & (SHMLBA - 1)))
+-			return -EINVAL;
++	/* requesting a specific address */
++	addr = arch_mmap_hint(filp, addr, len, pgoff, flags);
++	if (addr)
+ 		return addr;
+-	}
+-
+-	if (unlikely(len > task_size))
+-		return -ENOMEM;
+ 
+-	do_color_align = 0;
+-	if ((filp || (flags & MAP_SHARED)) && !file_hugepage)
+-		do_color_align = 1;
+-
+-	/* requesting a specific address */
+-	if (addr) {
+-		if (do_color_align)
+-			addr = COLOR_ALIGN(addr, pgoff);
+-		else
+-			addr = PAGE_ALIGN(addr);
+-
+-		vma = find_vma(mm, addr);
+-		if (task_size - len >= addr &&
+-		    (!vma || addr + len <= vm_start_gap(vma)))
+-			return addr;
+-	}
++	file_hugepage = filp && is_file_hugepages(filp);
+ 
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
 _
 
 Patches currently in -mm which might be from kaleshsingh@google.com are
