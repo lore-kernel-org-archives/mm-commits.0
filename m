@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C4485464B
-	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 02:27:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC6991EBFE4
+	for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 07:18:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733970477; cv=none; b=L33/3rz/0EOszy7sBHr8+7epjbtg2Yv8HJUcW75szG2NEFCuylgdiFZ0yuNBSY5Pm22yOgjWOLdnMR6Y0n7Jstwlpy7mXUANqI4WkUzUO8sGj0bM6Z/BecfvxsaxucNpLAoFun/q50/GwsE6lgWsnsfzcoulgT7hqbSCkeODjxE=
+	t=1733987925; cv=none; b=WsnUgQjOn+eNsxM+pZtwAWCtaWXWdnggjRqa2qKIbOeHgLuztBvl40+Bbajjy+JstP2skCMkTbWE5AqNCfSziuff3i4mD1HVGwYE+LNHXIxP/DnTLG2B7DLnS40UE4SPsyFP92cIaRFRUirpPT08K77pm1aSjDRv//7YG/iONEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733970477; c=relaxed/simple;
-	bh=/yrfzJXuS+vyxUCg++8hBbj7Wb/f+GSgdKYRKH297G8=;
-	h=Date:To:From:Subject:Message-Id; b=PMXVTG3Nrq9n45i0Wl+rYXlPwcdQFjY6Z+oq90qNI7O73lAg7oPUKYExTooWLcDytebO07C2m0OSplPZzsG2L4dDHGCDK6c55L2+QU7H/aAu66Mgi0AtQBtfDieIyRhTVvCVNnGcjCz2wlzwVqrKWrziL7nS/pJVP/CRPKwxHEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vl+dljkX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733987925; c=relaxed/simple;
+	bh=dXj37UbWe3ZyghANCzzfn7aNTRdroCiLwiGXukNxhv0=;
+	h=Date:To:From:Subject:Message-Id; b=SWgjUSlrjVgrhfjKCEq77deKlTqhwQUk6Xa27QG77Rpz/TbDtku2Qn5G/fci0aPo+menxj6h7+PmAbXU9BCub1MtqNTSI2tHJ2Hazwx/OKL+qKPd6lWvkQCofHSlqj/W5prhtyw7ZS2duvnvy6AH7pkru07OZranOwoYETP1Oro=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f8mVXf4w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vl+dljkX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD749C4CED2;
-	Thu, 12 Dec 2024 02:27:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f8mVXf4w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D665AC4CECE;
+	Thu, 12 Dec 2024 07:18:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1733970476;
-	bh=/yrfzJXuS+vyxUCg++8hBbj7Wb/f+GSgdKYRKH297G8=;
+	s=korg; t=1733987924;
+	bh=dXj37UbWe3ZyghANCzzfn7aNTRdroCiLwiGXukNxhv0=;
 	h=Date:To:From:Subject:From;
-	b=Vl+dljkXFkMoRINBhaFvV5GtsHJ54OXiZmiiqJWjwqqfNIhe7a8ojYTwFltt3P/Hp
-	 OusyUjPZuqPBSCxTLTkCxbyZQR2JDmNY/ii4qCnhK665e2GYNSDjqFcfuWBh/ONazW
-	 X6i2V7Fzy8qbgIzyzP+jkHnMBv5C3YBqfhmhU93c=
-Date: Wed, 11 Dec 2024 18:27:56 -0800
+	b=f8mVXf4w9F3foXFLjPXEmUeypQN9RBAsNRw22kjIE9hLYbpgp27pZXNOhP7XQl2u0
+	 QMiNa8jhxKMoq+ahgWEh+dJ405oRTLjcYPQdll77yIlhqShVAaSj3EfWLnNsxfAfgB
+	 wouNy0K4L0fPeKdHPkNhwNadW4ptNmepkIxpOozE=
+Date: Wed, 11 Dec 2024 23:18:44 -0800
 To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,stern@rowland.harvard.edu,skhan@linuxfoundation.org,rbm@suse.com,npitre@baylibre.com,davidgow@google.com,andriy.shevchenko@linux.intel.com,luis.hernandez093@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-add-int_sqrt-test-suite.patch added to mm-nonmm-unstable branch
-Message-Id: <20241212022756.CD749C4CED2@smtp.kernel.org>
+Subject: [failures] lib-math-add-int_sqrt-test-suite.patch removed from -mm tree
+Message-Id: <20241212071844.D665AC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: lib/math: add int_sqrt test suite
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      lib-math-add-int_sqrt-test-suite.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_sqrt-test-suite.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
@@ -198,5 +182,4 @@ _
 
 Patches currently in -mm which might be from luis.hernandez093@gmail.com are
 
-lib-math-add-int_sqrt-test-suite.patch
 
