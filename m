@@ -1,96 +1,90 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F029917BB1C
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:28:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89836F30F
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 05:56:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734064091; cv=none; b=jUNCGAGccCeRw4a2kWcVWSXjPD4n+gVexst+RdaM6CbR742+SWvVrh20hE33LxlPmqzpMZWC2Uv73BX7NvSBzr+TO0lt1vCN9+GoY0iAVeKn7vplhi80cutUY8KoB2eXDwmO54HxRL9NvgJP5zXF4+9ilyTMwl3bAXOY7tqufzA=
+	t=1734069401; cv=none; b=ooUlx7HsJMBDcUUk3d8WOX9CCkyme3OqRsdvIKwkOlJAIT4ye++031o1Z6BCJLL22a2N5ayYgI8rwpIGKimTOv3oss7BmC9GYGR32rPWwOkz18/zmo0Vi4JcCkNiQiBOwJEW1maAZGuAdU00hd0sic+pRe91WzubIdwlz/+lR4Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734064091; c=relaxed/simple;
-	bh=C34HmViexd6pC4Q47HYURGyZS/KpgGPi0NINujjjSdU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z37hQgZ+InJfsoZN5mouVWxv/QCyLYq0AGsn/KFVCmmPNaW8PuzofpuXe6abT+05YbJWZShvLUFe0DPi6jjhLpvvHgAXEmmYaRje08XhQ56foNdJSBDg1RGo7YY6Qxjj/GgQsDmOQFMY0d+pCagwAdmfkgZYra82C8AVu6k6pbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=jBO+NfAd; arc=none smtp.client-ip=209.85.210.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1734069401; c=relaxed/simple;
+	bh=MKHg3mBnTwzwpY6Vjk1x9IP3qeRMtfj5sDx5y+a+noc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=TSDHQPTtELuSrIYC1ivL7U3HAO4B8WHixLfMwncYtazTHMIsAI55h3IADYfKyu+yh0AFo9MwC1e6y7zgZ7f0qL66lloxPa1M3x/W8HcY7A4yj92XYVZrrU+RBd4YTXopX3GQ/pZsEbN+omo5Uq+iyWXL8JoTId1g9DFThee39bI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dm7STScb; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="jBO+NfAd"
-Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-728e81257bfso1104267b3a.2
-        for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 20:28:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dm7STScb"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-215e2f17dfcso2225565ad.2
+        for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 21:56:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1734064089; x=1734668889; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=fycz0Jqpx4aOSEiJrWv0ZWbaFdp57efmCepw8Y45Yq8=;
-        b=jBO+NfAdkofSuFKlYMVV62oYCmR89Ehu4cEX31J87+nCYpfDou2VWKMTl39VVrNjNl
-         vGsavFgD92rBMK2Jt0+MY6hCsCYPZSoypbS9qcmbFI1p3dlObt+j7+PVVeGRYdTKA/za
-         SAXHnBKOoUIIoPm2dvBSkKA2jJ426QyNau8bI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1734064089; x=1734668889;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1734069399; x=1734674199; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=fycz0Jqpx4aOSEiJrWv0ZWbaFdp57efmCepw8Y45Yq8=;
-        b=URA8J7ik2KsJVQB3HnUk/vN0lo9vxMXSNepGvpyuzPeqRtKj+3qu/SjyoEyLpAI+4A
-         +Sb17g57Jd5ohIBeGFDiqEYn5yAZp+mz8oar4rHIPuH6oMR48ODHMM948lQC9DGYuii2
-         P8YfZIETUit9l6O0X05S1/U6KoqlA344i/3RFga6BUX3htcU15/+YtF+IMvpbfXhC2wm
-         Hc6VqtawDVS/lSk/KId9u5cKDgpaJYok6NEkdCUjyH8fnp5dYsA+3ww/HP471KNBYvmE
-         AhZ07Ct6h6rL/eDm0ACAct1Jcmc1PefQJ9oimnbfCR9FxWPWc1mLJCONfGss+leSlf7R
-         tHAA==
-X-Forwarded-Encrypted: i=1; AJvYcCWoeHUdexhRfrl49iIeLeotOgATOyw1iuMI8iA0iVIPW62hzEYOkYZC9N6UVwIPY6bQLZVoqxeB0nZe@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx3+0wuP9GEqAOcYS9V4ur9SB33sMnT4cZ42ofYoRA5kKAlbVqI
-	ai76oGFKINIupJ/p7p0ziuOVwLQ1dapYIkwp5oko30GMJjohMmDUM9aTTs81eQ==
-X-Gm-Gg: ASbGncuhvGeSHOLnA9KmFF1KhjLK+8eebqxdqhRGG/pnbWnn0atn9HlmuGpXYmxniHN
-	GYlSfVHielpT1dinMhIlfElucghyegR4fIKj9sDdIzQlPbcRYVCm0miEoW04ydtEVWe8Vv04vzR
-	1MaONE7aZuShlfgcc8ymJZg997IiCvi1Y8sTRfwa/NHVlRMJtfsQV1X+dIRYLREGES5JHQju0An
-	XnOq1Epyz7aZYN/QOIf7zaphLZiM07X7EDV9S/GRM6KK17KQxtcTZKVYbP0
-X-Google-Smtp-Source: AGHT+IERQzzg2q97AC1GoQrvJPFrX81ojeCfE22exlpUpT47fDXnKagocBJKz9dOsYdBVzGfWjozYg==
-X-Received: by 2002:a05:6a00:400d:b0:725:d956:aa6f with SMTP id d2e1a72fcca58-7290c117a24mr1975800b3a.5.1734064089267;
-        Thu, 12 Dec 2024 20:28:09 -0800 (PST)
-Received: from google.com ([2401:fa00:8f:203:2d7e:d20a:98ca:2039])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-725ec805ca1sm8218924b3a.195.2024.12.12.20.28.07
+        bh=Z28XVisFV3DgPWLWYjxK6NzmSsUs6T+jyXVcX7RX7Ug=;
+        b=dm7STScbmVomqsLW4Xpa+cY57GdpvN4JzmYwloiMZCXBzat0ppnh7PynU8PBkw2kWK
+         wvfhVKlpk2gKOx36VZRoXC7K6Mo+q20my/Xmiu8FqyktPByolRJRn7xuQHZPw8iSonMG
+         MVFW+IwMXNMqkQhK4xOcMlZPmMQkWE1XB8wotzAi50HhNIOI1icjsWQWTHty+0MmA5kZ
+         SWmkfNSfaWQ3bIVZQIaaS+Y3U9LPaZTKs+pnunZjRszguSmmyjApUryaBiFcjcap5OJU
+         j536J8SQ3UI5BiGRFFkUcoULA0A5r4QLdTQbdTxlu+ajRpho2TQ8uI06HwcFUbFkBFrH
+         Irgg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734069399; x=1734674199;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Z28XVisFV3DgPWLWYjxK6NzmSsUs6T+jyXVcX7RX7Ug=;
+        b=GuYPdvFpzQefNTWRrJfcRi2D/rThcXOHaZ3XxGJgIxDRh7ZzePricDoII7h59bJOFy
+         f+wMppaPajgy+enoHV421L+y/gKB8J4NvXgUGOmdRiNSUwaJlF74hBm3N/TO0Tt5VPS7
+         kYwKAl4akWWR3TaO30+gzpVixrxj8hegg7QfBVet0nAEcnVwUCMgky+2yewp998Y+aZS
+         d4J0OXeKgu/mWojN1TpzU/bQ3mVZ0sfyAgEMl4QY/VAZJUyBnH9ulqx0QJW41poYxJhA
+         /59SIaDk4yk/WobUib+AhkOHY+nwgY4/zYhO0pQZ+XcJdA7PAvtQ+Y0lqK/T55EeVaZT
+         QUWw==
+X-Forwarded-Encrypted: i=1; AJvYcCU79EyGIM0Big4H6vz4DvibXKwPPUfdyoobFMVAwnYhGRavZDUfbgEcdTsHUGXCihjAufEl27SSwFar@vger.kernel.org
+X-Gm-Message-State: AOJu0YzzsBQYnbpZmm2c31597Vq5A4kKslgoGQvABLYtL1FHnaga0Oxo
+	I3MqX03OyEG+Ci/FCRB1rpAVvQJqN60EDDBNt0Gs8QeylEbIxi/h
+X-Gm-Gg: ASbGnctSt/9bMqR9y3szbPHIfnQhu33ba2YPHiNYS3ZpmEBuVPTpIcyFISs0zhq73dZ
+	dNzqgaC6ZMolU2vLRibIuzhsj0igVetoijFqI9rUib4CQ71eeKQTWGrHC3JP+meYhk9uwwmLI4Q
+	GlylRAChzm/6qaTAlpdzApuntqqHeVrN1uVis0V49i0jDycqoAXtuhWMV5cusDYfTTSfWLiUc8r
+	Vfgya3s5ew44FXMyl4lESE5RmD6zX6y0Uj/I+xLuQX1H+lSq0Qpfqw9dobh
+X-Google-Smtp-Source: AGHT+IEffIDODZ5httXbUwfG/ZRIYYq17d+t8dtTr1FTHqEWJlg9awsyk/Cka4GQM0K6YeRJP+TQHQ==
+X-Received: by 2002:a17:90a:e70f:b0:2ee:6a70:c5d1 with SMTP id 98e67ed59e1d1-2f28fb5dbdfmr935372a91.3.1734069399190;
+        Thu, 12 Dec 2024 21:56:39 -0800 (PST)
+Received: from x1k.com ([175.42.19.220])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2f142daea53sm2332972a91.14.2024.12.12.21.56.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Dec 2024 20:28:08 -0800 (PST)
-Date: Fri, 13 Dec 2024 13:28:04 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: caiqingfu <baicaiaichibaicai@gmail.com>
-Cc: senozhatsky@chromium.org, akpm@linux-foundation.org, 
-	caiqingfu@ruijie.com.cn, minchan@kernel.org, mm-commits@vger.kernel.org
+        Thu, 12 Dec 2024 21:56:37 -0800 (PST)
+From: caiqingfu <baicaiaichibaicai@gmail.com>
+To: senozhatsky@chromium.org
+Cc: akpm@linux-foundation.org,
+	baicaiaichibaicai@gmail.com,
+	caiqingfu@ruijie.com.cn,
+	minchan@kernel.org,
+	mm-commits@vger.kernel.org
 Subject: Re: [PATCH] zram: panic when use ext4 over zram
-Message-ID: <5qmps6mcifydwtnsynxdtipaoerjrnjlpo6gztxfdryn37bvws@fp2xqjmiews5>
-References: <20241211110414.GF2091455@google.com>
- <20241212095530.162164-1-baicaiaichibaicai@gmail.com>
+Date: Fri, 13 Dec 2024 13:56:30 +0800
+Message-Id: <20241213055630.163185-1-baicaiaichibaicai@gmail.com>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <5qmps6mcifydwtnsynxdtipaoerjrnjlpo6gztxfdryn37bvws@fp2xqjmiews5>
+References: <5qmps6mcifydwtnsynxdtipaoerjrnjlpo6gztxfdryn37bvws@fp2xqjmiews5>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241212095530.162164-1-baicaiaichibaicai@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On (24/12/12 17:55), caiqingfu wrote:
-> > I see that somebody posted something similar on the bugzilla [1].  Is
-> > that person you, by any chance?  If so, can you please post your
-> > findings to linux kernel mailing list? E.g. linux-ext4@, Cc-ing
-> > linux-fsdevevl@ and linux-mm@ would be a good start.  Bugzilla is
-> > not used.
-> > 
-> > If this problem is in ext4 then I'd really prefer to address it there and
-> > drop this patch from zram, simply because it covers an issue in the upper
-> > layer.  And it's better to fix issues that to cover them.
-> > 
-> > [1] https://bugzilla.kernel.org/show_bug.cgi?id=219548
+> > In any case, zram should ensure that its data is not damaged
 > 
-> He is my colleague, he reported a bug
+> zram cannot ensure that, it's not zram's job.  Nothing stops
+> the buggy actor from modifiying the page at any random point,
+> zram might not even be able to decompress the page in the end,
+> it's not only the zs_handle allocation slow-path case.
 
-Oh, I see.
-
-> In any case, zram should ensure that its data is not damaged
-
-zram cannot ensure that, it's not zram's job.  Nothing stops
-the buggy actor from modifiying the page at any random point,
-zram might not even be able to decompress the page in the end,
-it's not only the zs_handle allocation slow-path case.
+What I mean is that if the length after recompression is longer than before,
+writing directly to zs_obj will cause the next zs_obj to be corrupted,
+eventually leading to panic. zram must ensure that its own zs_obj will not be
+written to overflow, not page.
