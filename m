@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D86775674E
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 02:56:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E06AF2AD14
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 03:07:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734058591; cv=none; b=bBHtrs717G69zyFuGvJQq7Wh2YTacXkBGc2o//vZY/fyjlEIcGasbcOpT91diIrFOI2qW4HxwHQNQvlJ2quyMNpwPkq0n6uGurKNnbE/27HSrpIdJrPvPU7t4rp4OIT+AMNhJVG+LpGNFhar5dxn0WAL2I7hia8nQn0WwMbzTOg=
+	t=1734059260; cv=none; b=A2pqfgacXsv/Phunyvyl92kbmEbO7jEl/rOEiN94CEWXXR52KldsZCcPwQgz5xtnN/PvyvVFquH4xdx2Z+jUDrsbvXPfmpwm0sahntmjQuGz/Qo27Hlh0jdymXPiXFVIIGQVTlG4ucPiuLQa6yhYwax6VmuIU9Yg23igYSmEUzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734058591; c=relaxed/simple;
-	bh=8K42qd98/yAn5STxTUNQNa3g/zp6NVtiO9I8kN2O80A=;
-	h=Date:To:From:Subject:Message-Id; b=ce2jxnfUZbKRqb6Pd9EjDWU7vr0icVDrLn39D7fyBr+gZw5Sx/rr8k+1trwa2E+t0GUK/YxBfo2aJv3Oc0XzIC91lV6b5NvOXXckTkv0gx/IPD/EzY2Ziuqv3QMNqYGBb+dzY6eHbflkHtKTXvxWnLjN7vkaX+DxNAbed2OHiis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d89IBPVh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734059260; c=relaxed/simple;
+	bh=OLJfyirchoIqNYBFebGGPhcupDS3yIzPCs4RkWEQEsk=;
+	h=Date:To:From:Subject:Message-Id; b=otclpey/uAAgK+PdZfGg7+cavGZC7Wf7foYxgb55f8B6KdxjW8rv1t456LtrDL3x2QBbdNTxccfJ7ABmYL+yYLpRRUN1JgSzp1xugvmakJ8tRVWkeCfRDmDbrY/mgI2Gt1fHfh2KukMdLAT1rjAkfB8NVJzhBKOqBg+15YNvMws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W74koKA9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d89IBPVh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A5E1C4CEDE;
-	Fri, 13 Dec 2024 02:56:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W74koKA9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D611C4CECE;
+	Fri, 13 Dec 2024 03:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734058590;
-	bh=8K42qd98/yAn5STxTUNQNa3g/zp6NVtiO9I8kN2O80A=;
+	s=korg; t=1734059259;
+	bh=OLJfyirchoIqNYBFebGGPhcupDS3yIzPCs4RkWEQEsk=;
 	h=Date:To:From:Subject:From;
-	b=d89IBPVhkz8y1Bkvy1w88abxSiyQx4P8eTk2Ho7jDW1oZXdMhTZHgIFZRYZ9ZFave
-	 UL0vjtooO8QevijZRO4R2zuGnENBnQK6wD6gPeBKq2nh14fMnk2lMnzcEkIiavgmXV
-	 jth5imWMCSuAMcD4TmloipwCpvuJ7iDUJLa7GXtk=
-Date: Thu, 12 Dec 2024 18:56:29 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=W74koKA99hXhLcxmxu9I7WmKgF4JeEDKmrbcr3vuHzYSxfPVOV8oUpuu/BkXyqOrK
+	 jU4AE47BjJZu0pX1FC2jcxviLGw+88VbEuMk2HQpI3z2ri3qJzHTaUcIbF2gOTuD61
+	 YHH+BSijaNj1Z5NxxcQX/RD8H0CK1jAyx70G2dMk=
+Date: Thu, 12 Dec 2024 19:07:38 -0800
+To: mm-commits@vger.kernel.org,xin@zytor.com,tglx@linutronix.de,rafael@kernel.org,rafael.j.wysocki@intel.com,mingo@redhat.com,mingo@kernel.org,lenb@kernel.org,kevinloughlin@google.com,julian.stecklina@cyberus-technology.de,Jason@zx2c4.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,arnd@arndb.de,ardb@kernel.org,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch added to mm-unstable branch
-Message-Id: <20241213025630.8A5E1C4CEDE@smtp.kernel.org>
+Subject: + mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch added to mm-unstable branch
+Message-Id: <20241213030739.4D611C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add comments to do_mmap(), mmap_region() and vm_mmap()
+     Subject: mm/early_ioremap: add null pointer checks to prevent NULL-pointer dereference
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
+     mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,172 +58,152 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add comments to do_mmap(), mmap_region() and vm_mmap()
-Date: Thu, 12 Dec 2024 11:31:52 +0000
+From: Guo Weikang <guoweikang.kernel@gmail.com>
+Subject: mm/early_ioremap: add null pointer checks to prevent NULL-pointer dereference
+Date: Thu, 12 Dec 2024 18:10:00 +0800
 
-It isn't always entirely clear to users the difference between do_mmap(),
-mmap_region() and vm_mmap(), so add comments to clarify what's going on in
-each.
+The early_ioremap interface can fail and return NULL in certain cases.  To
+prevent NULL-pointer dereference crashes, fixed issues in the acpi_extlog
+and copy_early_mem interfaces, improving robustness when handling early
+memory.
 
-This is compounded by the fact that we actually allow callers external to
-mm to invoke both do_mmap() and mmap_region() (!), the latter of which is
-really strictly speaking an internal memory mapping implementation detail.
-
-Link: https://lkml.kernel.org/r/20241212113152.28849-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20241212101004.1544070-1-guoweikang.kernel@gmail.com
+Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Julian Stecklina <julian.stecklina@cyberus-technology.de>
+Cc: Kevin Loughlin <kevinloughlin@google.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Xin Li (Intel) <xin@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   79 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- mm/util.c |   17 +++++++++++
- 2 files changed, 95 insertions(+), 1 deletion(-)
+ arch/x86/kernel/setup.c             |    5 ++++-
+ drivers/acpi/acpi_extlog.c          |   14 ++++++++++++++
+ include/asm-generic/early_ioremap.h |    2 +-
+ mm/early_ioremap.c                  |    8 +++++++-
+ 4 files changed, 26 insertions(+), 3 deletions(-)
 
---- a/mm/mmap.c~mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap
-+++ a/mm/mmap.c
-@@ -277,8 +277,62 @@ static inline bool file_mmap_ok(struct f
- 	return true;
- }
+--- a/arch/x86/kernel/setup.c~mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference
++++ a/arch/x86/kernel/setup.c
+@@ -259,6 +259,7 @@ static void __init relocate_initrd(void)
+ 	u64 ramdisk_image = get_ramdisk_image();
+ 	u64 ramdisk_size  = get_ramdisk_size();
+ 	u64 area_size     = PAGE_ALIGN(ramdisk_size);
++	int ret = 0;
  
--/*
-+/**
-+ * do_mmap() - Perform a userland memory mapping into the current process
-+ * address space of length @len with protection bits @prot, mmap flags @flags
-+ * (from which VMA flags will be inferred), and any additional VMA flags to
-+ * apply @vm_flags. If this is a file-backed mapping then the file is specified
-+ * in @file and page offset into the file via @pgoff.
-+ *
-+ * This function does not perform security checks on the file and assumes, if
-+ * @uf is non-NULL, the caller has provided a list head to track unmap events
-+ * for userfaultfd @uf.
-+ *
-+ * It also simply indicates whether memory population is required by setting
-+ * @populate, which must be non-NULL, expecting the caller to actually perform
-+ * this task itself if appropriate.
-+ *
-+ * This function will invoke architecture-specific (and if provided and
-+ * relevant, file system-specific) logic to determine the most appropriate
-+ * unmapped area in which to place the mapping if not MAP_FIXED.
-+ *
-+ * Callers which require userland mmap() behaviour should invoke vm_mmap(),
-+ * which is also exported for module use.
-+ *
-+ * Those which require this behaviour less security checks, userfaultfd and
-+ * populate behaviour, and who handle the mmap write lock themselves, should
-+ * call this function.
-+ *
-+ * Note that the returned address may reside within a merged VMA if an
-+ * appropriate merge were to take place, so it doesn't necessarily specify the
-+ * start of a VMA, rather only the start of a valid mapped range of length
-+ * @len bytes, rounded down to the nearest page size.
-+ *
-  * The caller must write-lock current->mm->mmap_lock.
-+ *
-+ * @file: An optional struct file pointer describing the file which is to be
-+ * mapped, if a file-backed mapping.
-+ * @addr: If non-zero, hints at (or if @flags has MAP_FIXED set, specifies) the
-+ * address at which to perform this mapping. See mmap (2) for details. Must be
-+ * page-aligned.
-+ * @len: The length of the mapping. Will be page-aligned and must be at least 1
-+ * page in size.
-+ * @prot: Protection bits describing access required to the mapping. See mmap
-+ * (2) for details.
-+ * @flags: Flags specifying how the mapping should be performed, see mmap (2)
-+ * for details.
-+ * @vm_flags: VMA flags which should be set by default, or 0 otherwise.
-+ * @pgoff: Page offset into the @file if file-backed, should be 0 otherwise.
-+ * @populate: A pointer to a value which will be set to 0 if no population of
-+ * the range is required, or the number of bytes to populate if it is. Must be
-+ * non-NULL. See mmap (2) for details as to under what circumstances population
-+ * of the range occurs.
-+ * @uf: An optional pointer to a list head to track userfaultfd unmap events
-+ * should unmapping events arise. If provided, it is up to the caller to manage
-+ * this.
-+ *
-+ * Returns: Either an error, or the address at which the requested mapping has
-+ * been performed.
+ 	/* We need to move the initrd down into directly mapped mem */
+ 	u64 relocated_ramdisk = memblock_phys_alloc_range(area_size, PAGE_SIZE, 0,
+@@ -272,7 +273,9 @@ static void __init relocate_initrd(void)
+ 	printk(KERN_INFO "Allocated new RAMDISK: [mem %#010llx-%#010llx]\n",
+ 	       relocated_ramdisk, relocated_ramdisk + ramdisk_size - 1);
+ 
+-	copy_from_early_mem((void *)initrd_start, ramdisk_image, ramdisk_size);
++	ret = copy_from_early_mem((void *)initrd_start, ramdisk_image, ramdisk_size);
++	if (ret)
++		panic("Copy RAMDISK failed\n");
+ 
+ 	printk(KERN_INFO "Move RAMDISK from [mem %#010llx-%#010llx] to"
+ 		" [mem %#010llx-%#010llx]\n",
+--- a/drivers/acpi/acpi_extlog.c~mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference
++++ a/drivers/acpi/acpi_extlog.c
+@@ -251,6 +251,10 @@ static int __init extlog_init(void)
+ 	}
+ 
+ 	extlog_l1_hdr = acpi_os_map_iomem(l1_dirbase, l1_hdr_size);
++	if (!extlog_l1_hdr) {
++		rc = -ENOMEM;
++		goto err_release_l1_hdr;
++	}
+ 	l1_head = (struct extlog_l1_head *)extlog_l1_hdr;
+ 	l1_size = l1_head->total_len;
+ 	l1_percpu_entry = l1_head->entries;
+@@ -268,6 +272,10 @@ static int __init extlog_init(void)
+ 		goto err;
+ 	}
+ 	extlog_l1_addr = acpi_os_map_iomem(l1_dirbase, l1_size);
++	if (!extlog_l1_addr) {
++		rc = -ENOMEM;
++		goto err_release_l1_dir;
++	}
+ 	l1_entry_base = (u64 *)((u8 *)extlog_l1_addr + l1_hdr_size);
+ 
+ 	/* remap elog table */
+@@ -279,6 +287,10 @@ static int __init extlog_init(void)
+ 		goto err_release_l1_dir;
+ 	}
+ 	elog_addr = acpi_os_map_iomem(elog_base, elog_size);
++	if (!elog_addr) {
++		rc = -ENOMEM;
++		goto err_release_elog;
++	}
+ 
+ 	rc = -ENOMEM;
+ 	/* allocate buffer to save elog record */
+@@ -300,6 +312,8 @@ err_release_l1_dir:
+ 	if (extlog_l1_addr)
+ 		acpi_os_unmap_iomem(extlog_l1_addr, l1_size);
+ 	release_mem_region(l1_dirbase, l1_size);
++err_release_l1_hdr:
++	release_mem_region(l1_dirbase, l1_hdr_size);
+ err:
+ 	pr_warn(FW_BUG "Extended error log disabled because of problems parsing f/w tables\n");
+ 	return rc;
+--- a/include/asm-generic/early_ioremap.h~mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference
++++ a/include/asm-generic/early_ioremap.h
+@@ -35,7 +35,7 @@ extern void early_ioremap_reset(void);
+ /*
+  * Early copy from unmapped memory to kernel mapped memory.
   */
- unsigned long do_mmap(struct file *file, unsigned long addr,
- 			unsigned long len, unsigned long prot,
-@@ -1018,6 +1072,29 @@ int do_munmap(struct mm_struct *mm, unsi
- 	return do_vmi_munmap(&vmi, mm, start, len, uf, false);
- }
+-extern void copy_from_early_mem(void *dest, phys_addr_t src,
++extern int copy_from_early_mem(void *dest, phys_addr_t src,
+ 				unsigned long size);
  
-+/**
-+ * mmap_region() - Actually perform the userland mapping of a VMA into
-+ * current->mm with known, aligned and overflow-checked @addr and @len, and
-+ * correctly determined VMA flags @vm_flags and page offset @pgoff.
-+ *
-+ * This is an internal memory management function, and should not be used
-+ * directly.
-+ *
-+ * The caller must write-lock current->mm->mmap_lock.
-+ *
-+ * @file: If a file-backed mapping, a pointer to the struct file describing the
-+ * file to be mapped, otherwise NULL.
-+ * @addr: The page-aligned address at which to perform the mapping.
-+ * @len: The page-aligned, non-zero, length of the mapping.
-+ * @vm_flags: The VMA flags which should be applied to the mapping.
-+ * @pgoff: If @file is specified, the page offset into the file, if not then
-+ * the virtual page offset in memory of the anonymous mapping.
-+ * @uf: Optionally, a pointer to a list head used for tracking userfaultfd unmap
-+ * events.
-+ *
-+ * Returns: Either an error, or the address at which the requested mapping has
-+ * been performed.
-+ */
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 			  unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
- 			  struct list_head *uf)
---- a/mm/util.c~mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap
-+++ a/mm/util.c
-@@ -587,6 +587,23 @@ unsigned long vm_mmap_pgoff(struct file
- 	return ret;
- }
+ #else
+--- a/mm/early_ioremap.c~mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference
++++ a/mm/early_ioremap.c
+@@ -245,7 +245,10 @@ early_memremap_prot(resource_size_t phys
  
+ #define MAX_MAP_CHUNK	(NR_FIX_BTMAPS << PAGE_SHIFT)
+ 
+-void __init copy_from_early_mem(void *dest, phys_addr_t src, unsigned long size)
 +/*
-+ * Perform a userland memory mapping into the current process address space. See
-+ * the comment for do_mmap() for more details on this operation in general.
-+ *
-+ * This differs from do_mmap() in that:
-+ *
-+ * a. An offset parameter is provided rather than pgoff, which is both checked
-+ *    for overflow and page alignment.
-+ * b. mmap locking is performed on the caller's behalf.
-+ * c. Userfaultfd unmap events and memory population are handled.
-+ *
-+ * This means that this function performs essentially the same work as if
-+ * userland were invoking mmap (2).
-+ *
-+ * Returns either an error, or the address at which the requested mapping has
-+ * been performed.
++ * If no empty slot, handle that and return -ENOMEM.
 + */
- unsigned long vm_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
- 	unsigned long flag, unsigned long offset)
++int __init copy_from_early_mem(void *dest, phys_addr_t src, unsigned long size)
+ {
+ 	unsigned long slop, clen;
+ 	char *p;
+@@ -256,12 +259,15 @@ void __init copy_from_early_mem(void *de
+ 		if (clen > MAX_MAP_CHUNK - slop)
+ 			clen = MAX_MAP_CHUNK - slop;
+ 		p = early_memremap(src & PAGE_MASK, clen + slop);
++		if (!p)
++			return -ENOMEM;
+ 		memcpy(dest, p + slop, clen);
+ 		early_memunmap(p, clen + slop);
+ 		dest += clen;
+ 		src += clen;
+ 		size -= clen;
+ 	}
++	return 0;
+ }
+ 
+ #else /* CONFIG_MMU */
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
 
-docs-mm-add-vma-locks-documentation.patch
-mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
-selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
-mm-correctly-reference-merged-vma.patch
-fork-avoid-inappropriate-uprobe-access-to-invalid-mm.patch
-mm-vma-move-brk-internals-to-mm-vmac.patch
-mm-vma-move-brk-internals-to-mm-vmac-fix.patch
-mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
-mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
-mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
-mm-vma-move-__vm_munmap-to-mm-vmac.patch
-selftests-mm-add-fork-cow-guard-page-test.patch
-mm-enforce-__must_check-on-vma-merge-and-split.patch
-mm-perform-all-memfd-seal-checks-in-a-single-place.patch
-mm-perform-all-memfd-seal-checks-in-a-single-place-fix.patch
-maintainers-update-memory-mapping-section.patch
-mm-assert-mmap-write-lock-held-on-do_mmap-mmap_region.patch
-mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
+mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing.patch
+mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch
 
