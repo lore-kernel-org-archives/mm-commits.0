@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32B3A1459EA;
-	Fri, 13 Dec 2024 04:13:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BEDE149E00
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:23:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734063191; cv=none; b=IxxzphEy4iLSsMvsC901aD8AQ8KZRePRHalPAVMEak01+xdtub9EHKySlBh//cwPHdvHAq2NbQ5KyWKR/FiOwIa6Avq+WBIgu/md1W7GDsfwaLF/t1hcgtWxSUwtRjnedkuEL7kgoYslHANM6PpuD9oNmydAktQ3JieMLW0RiZ0=
+	t=1734063787; cv=none; b=rcZhexQKP24sJpu/wmB+2+qG3HzbvLwgpjQCYBd8oLOOfRy5kCdMcmjIinOqJEPllk1DUTI+gZ6NKPqzfjT8bKgIgeZR3bDgX6yHclebkpWywU79+9uwWbklulKRKFpOK5nav5yYhjFts8pZ2Ov6cuNkDS0pz6LmRBZI44v2aAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734063191; c=relaxed/simple;
-	bh=FVOSKvHjdMqdpUwOdhEquny2EJt+xZan/P8d4+oyGHY=;
-	h=Date:To:From:Subject:Message-Id; b=jXN+YXvPupoUFqP5yiJxXTRpvDtl8rbuLY5kOWNfxTC7l5P5MR/GUaml8AzWx1q/MiScHHYtdl3V8XjmE4QpX79WeTpBOUcTnKYJn5d5vkarUTC4KNa1r6AaSXJiRnpa4+6zHwsVVx7tRB6+Y1UnoKN/yaIUYJCwOElYfUpPtnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mp7E8GSJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734063787; c=relaxed/simple;
+	bh=5HEtm60SfUNKZeJclV4UMJwK9KR2UPd4s3vXyTUOpRg=;
+	h=Date:To:From:Subject:Message-Id; b=OueqgwlYEcIaWqP+ymNcTbWX6TFziP3lBz2/C8HROhcMaCCNOHdcM07tjomUUZTXWhaZXaTLDczgvnjm1BejOw9J6e94mnyWUFLiv3mXPE0i9c+Yesu2KDGBmRFqXz3X6XFE366dMgsN+UNlkGq84yExEcE329LncxclqRFtX/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3ao1YMQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mp7E8GSJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A6FC4CED2;
-	Fri, 13 Dec 2024 04:13:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3ao1YMQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F183DC4CED1;
+	Fri, 13 Dec 2024 04:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734063190;
-	bh=FVOSKvHjdMqdpUwOdhEquny2EJt+xZan/P8d4+oyGHY=;
+	s=korg; t=1734063787;
+	bh=5HEtm60SfUNKZeJclV4UMJwK9KR2UPd4s3vXyTUOpRg=;
 	h=Date:To:From:Subject:From;
-	b=Mp7E8GSJuAjGnzhp/+gstZ1XABsYBoFxyPQwmbzZxhkdshnQ062746xRzuVB6gdd8
-	 7QcOb9ZwFbR2+Hjb9vf6j6kpZkv73o8MdXsP2w8L1IF0rVPT9QJ+AMJ7CS89UBzDcP
-	 wlbcQ8zUI+JGDUvlAj85VcXvSAluwMUtsVIFx81o=
-Date: Thu, 12 Dec 2024 20:13:10 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,stable@vger.kernel.org,oliver.sang@intel.com,kent.overstreet@linux.dev,00107082@163.com,akpm@linux-foundation.org
+	b=u3ao1YMQ2pACUOm917p04OdfSLKqzIpSLahL1lvvzdNGZOLh/36JgB2ugQ/tbRBSO
+	 sCVnyAAqU+B1nOk+BYoqRRHSjxP1llLafbqtynF0x9B3AlY/Nl3SfCY13NLoh/fEJ4
+	 HawLVIqRCLqQMwy+eDRYf1q6d+5GXX4xnbhKc79Q=
+Date: Thu, 12 Dec 2024 20:23:06 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,greearb@candelatech.com,ahuang12@lenovo.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-codetag-clear-tags-before-swap.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241213041310.A8A6FC4CED2@smtp.kernel.org>
+Subject: + alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241213042306.F183DC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/codetag: clear tags before swap
+     Subject: mm/alloc_tag: fix panic when CONFIG_KASAN enabled and CONFIG_KASAN_VMALLOC not enabled
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-codetag-clear-tags-before-swap.patch
+     alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-codetag-clear-tags-before-swap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,135 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Wang <00107082@163.com>
-Subject: mm/codetag: clear tags before swap
-Date: Fri, 13 Dec 2024 09:33:32 +0800
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/alloc_tag: fix panic when CONFIG_KASAN enabled and CONFIG_KASAN_VMALLOC not enabled
+Date: Thu, 12 Dec 2024 15:21:26 +0800
 
-When CONFIG_MEM_ALLOC_PROFILING_DEBUG is set, kernel WARN would be
-triggered when calling __alloc_tag_ref_set() during swap:
+When CONFIG_KASAN is enabled but CONFIG_KASAN_VMALLOC is not enabled, we
+may encounter a panic during system boot.
 
-	alloc_tag was not cleared (got tag for mm/filemap.c:1951)
-	WARNING: CPU: 0 PID: 816 at ./include/linux/alloc_tag.h...
+Because we haven't allocated pages and created mappings for the shadow
+memory corresponding to module allocation tags region,similar to how it is
+done for execmem_vmalloc.
 
-Clear code tags before swap can fix the warning. And this patch also fix
-a potential invalid address dereference in alloc_tag_add_check() when
-CONFIG_MEM_ALLOC_PROFILING_DEBUG is set and ref->ct is CODETAG_EMPTY,
-which is defined as ((void *)1).
+The memory for module allocation tags is allocated on demand, therefore we
+need to allocate shadow memory on demand as well in MODULE_ALIGN blocks.
 
-Link: https://lkml.kernel.org/r/20241213013332.89910-1-00107082@163.com
-Fixes: 51f43d5d82ed ("mm/codetag: swap tags when migrate pages")
-Signed-off-by: David Wang <00107082@163.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202412112227.df61ebb-lkp@intel.com
+Here is the log for panic:
+
+[   18.349421] BUG: unable to handle page fault for address: fffffbfff8092000
+[   18.350016] #PF: supervisor read access in kernel mode
+[   18.350459] #PF: error_code(0x0000) - not-present page
+[   18.350904] PGD 20fe52067 P4D 219dc8067 PUD 219dc4067 PMD 102495067 PTE 0
+[   18.351484] Oops: Oops: 0000 [#1] PREEMPT SMP KASAN NOPTI
+[   18.351961] CPU: 5 UID: 0 PID: 1 Comm: systemd Not tainted 6.13.0-rc1+ #3
+[   18.352533] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+[   18.353494] RIP: 0010:kasan_check_range+0xba/0x1b0
+[   18.353931] Code: 8d 5a 07 4c 0f 49 da 49 c1 fb 03 45 85 db 0f 84 dd 00 00 00 45 89 db 4a 8d 14 d8 eb 0d 48 83 c0 08 48 39 c2 0f 84 c1 00 00 00 <48> 83 38 00 74 ed 48 8d 50 08 eb 0d 48 83 c0 01 48 39 d0 0f 84 90
+[   18.355484] RSP: 0018:ff11000101877958 EFLAGS: 00010206
+[   18.355937] RAX: fffffbfff8092000 RBX: fffffbfff809201e RCX: ffffffff82a7ceac
+[   18.356542] RDX: fffffbfff8092018 RSI: 00000000000000f0 RDI: ffffffffc0490000
+[   18.357153] RBP: fffffbfff8092000 R08: 0000000000000001 R09: fffffbfff809201d
+[   18.357756] R10: ffffffffc04900ef R11: 0000000000000003 R12: ffffffffc0490000
+[   18.358365] R13: ff11000101877b48 R14: ffffffffc0490000 R15: 000000000000002c
+[   18.358968] FS:  00007f9bd13c5940(0000) GS:ff110001eb480000(0000) knlGS:0000000000000000
+[   18.359648] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   18.360178] CR2: fffffbfff8092000 CR3: 0000000109214004 CR4: 0000000000771ef0
+[   18.360790] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[   18.361404] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[   18.362020] PKRU: 55555554
+[   18.362261] Call Trace:
+[   18.362481]  <TASK>
+[   18.362671]  ? __die+0x23/0x70
+[   18.362964]  ? page_fault_oops+0xc2/0x160
+[   18.363318]  ? exc_page_fault+0xad/0xc0
+[   18.363680]  ? asm_exc_page_fault+0x26/0x30
+[   18.364056]  ? move_module+0x3cc/0x8a0
+[   18.364398]  ? kasan_check_range+0xba/0x1b0
+[   18.364755]  __asan_memcpy+0x3c/0x60
+[   18.365074]  move_module+0x3cc/0x8a0
+[   18.365386]  layout_and_allocate.constprop.0+0x3d5/0x720
+[   18.365841]  ? early_mod_check+0x3dc/0x510
+[   18.366195]  load_module+0x72/0x1850
+[   18.366509]  ? __pfx_kernel_read_file+0x10/0x10
+[   18.366918]  ? vm_mmap_pgoff+0x21c/0x2d0
+[   18.367262]  init_module_from_file+0xd1/0x130
+[   18.367638]  ? __pfx_init_module_from_file+0x10/0x10
+[   18.368073]  ? __pfx__raw_spin_lock+0x10/0x10
+[   18.368456]  ? __pfx_cred_has_capability.isra.0+0x10/0x10
+[   18.368938]  idempotent_init_module+0x22c/0x790
+[   18.369332]  ? simple_getattr+0x6f/0x120
+[   18.369676]  ? __pfx_idempotent_init_module+0x10/0x10
+[   18.370110]  ? fdget+0x58/0x3a0
+[   18.370393]  ? security_capable+0x64/0xf0
+[   18.370745]  __x64_sys_finit_module+0xc2/0x140
+[   18.371136]  do_syscall_64+0x7d/0x160
+[   18.371459]  ? fdget_pos+0x1c8/0x4c0
+[   18.371784]  ? ksys_read+0xfd/0x1d0
+[   18.372106]  ? syscall_exit_to_user_mode+0x10/0x1f0
+[   18.372525]  ? do_syscall_64+0x89/0x160
+[   18.372860]  ? do_syscall_64+0x89/0x160
+[   18.373194]  ? do_syscall_64+0x89/0x160
+[   18.373527]  ? syscall_exit_to_user_mode+0x10/0x1f0
+[   18.373952]  ? do_syscall_64+0x89/0x160
+[   18.374283]  ? syscall_exit_to_user_mode+0x10/0x1f0
+[   18.374701]  ? do_syscall_64+0x89/0x160
+[   18.375037]  ? do_user_addr_fault+0x4a8/0xa40
+[   18.375416]  ? clear_bhb_loop+0x25/0x80
+[   18.375748]  ? clear_bhb_loop+0x25/0x80
+[   18.376119]  ? clear_bhb_loop+0x25/0x80
+[   18.376450]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+Link: https://lkml.kernel.org/r/20241212072126.134572-1-hao.ge@linux.dev
+Fixes: 233e89322cbe ("alloc_tag: fix module allocation tags populated area calculation")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Reported-by: Ben Greear <greearb@candelatech.com>
+Closes: https://lore.kernel.org/all/1ba0cc57-e2ed-caa2-1241-aa5615bee01f@candelatech.com/
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
 Acked-by: Suren Baghdasaryan <surenb@google.com>
+Tested-by: Adrian Huang <ahuang12@lenovo.com> 
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h |    2 +-
- lib/alloc_tag.c           |    7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ lib/alloc_tag.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/include/linux/alloc_tag.h~mm-codetag-clear-tags-before-swap
-+++ a/include/linux/alloc_tag.h
-@@ -140,7 +140,7 @@ static inline struct alloc_tag_counters
- #ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
- static inline void alloc_tag_add_check(union codetag_ref *ref, struct alloc_tag *tag)
- {
--	WARN_ONCE(ref && ref->ct,
-+	WARN_ONCE(ref && ref->ct && !is_codetag_empty(ref),
- 		  "alloc_tag was not cleared (got tag for %s:%u)\n",
- 		  ref->ct->filename, ref->ct->lineno);
- 
---- a/lib/alloc_tag.c~mm-codetag-clear-tags-before-swap
+--- a/lib/alloc_tag.c~alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2
 +++ a/lib/alloc_tag.c
-@@ -209,6 +209,13 @@ void pgalloc_tag_swap(struct folio *new,
- 		return;
+@@ -414,6 +414,8 @@ static int vm_module_tags_populate(void)
+ 
+ 	if (phys_end < new_end) {
+ 		struct page **next_page = vm_module_tags->pages + vm_module_tags->nr_pages;
++		unsigned long old_shadow_end = ALIGN(phys_end, MODULE_ALIGN);
++		unsigned long new_shadow_end = ALIGN(new_end, MODULE_ALIGN);
+ 		unsigned long more_pages;
+ 		unsigned long nr;
+ 
+@@ -428,7 +430,19 @@ static int vm_module_tags_populate(void)
+ 				__free_page(next_page[i]);
+ 			return -ENOMEM;
+ 		}
++
+ 		vm_module_tags->nr_pages += nr;
++
++		/*
++		 * Kasan allocates 1 byte of shadow for every 8 bytes of data.
++		 * When kasan_alloc_module_shadow allocates shadow memory,
++		 * its unit of allocation is a page.
++		 * Therefore, here we need to align to MODULE_ALIGN.
++		 */
++		if (old_shadow_end < new_shadow_end)
++			kasan_alloc_module_shadow((void *)old_shadow_end,
++						  new_shadow_end - old_shadow_end,
++						  GFP_KERNEL);
  	}
  
-+	/*
-+	 * Clear tag references to avoid debug warning when using
-+	 * __alloc_tag_ref_set() with non-empty reference.
-+	 */
-+	set_codetag_empty(&ref_old);
-+	set_codetag_empty(&ref_new);
-+
- 	/* swap tags */
- 	__alloc_tag_ref_set(&ref_old, tag_new);
- 	update_page_tag_ref(handle_old, &ref_old);
+ 	/*
 _
 
-Patches currently in -mm which might be from 00107082@163.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-mm-codetag-clear-tags-before-swap.patch
+alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix.patch
+alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
 
