@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DEB1748D
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 03:49:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0045748D
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 03:49:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734061791; cv=none; b=fPd561fSm4ZngKJNquO5E8ESve40o0g3x9mKBbWp4n5YljairqRNPsqrOwBeMq6Nv9BkN69MFPg48qFhn6QMk2ZFbXujHsat6tcHCUeeBTskQ83/GPAHb7FiGNImXFHSE1xefnH+1asqK5SA479Z2wU6dPKc5UNAx1aOnOncnzw=
+	t=1734061793; cv=none; b=Yut4Sif5X3E0AjA4038hauteFvUb0TVO0pxC0YNYDoqV+fmJSQHlKpqPFv9jI0Y8dkXBXsIhGhdrTJl55IqS3qQe7nhEP5PNElE/qbGvJZk2Nu/qDmlImHAa2jFMBbtA2eddUKoyqMADtv8GiBKAfGf6KkpXFcrw/LEFFDag+0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734061791; c=relaxed/simple;
-	bh=UzZ1cL9fcJcMXxczDVnX0tFyPdQTeZOR1yC6CIwc/Xg=;
-	h=Date:To:From:Subject:Message-Id; b=SUn0JVm17TuSq9q7kP8hPj2IiGY7J8c8GfT29M0JaQoOi6E++EkaTZjAGovB87ilo1ZMbGTtC6JgXDrlvEYkBghkmmnmNLFwU86+KGyaZlWDHLFVO0a2jAJpzn1uPWL55CxQRH2ySLrEmExeAgevOFu/T6UZhAaYC1vETS92rfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aKh71IZV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734061793; c=relaxed/simple;
+	bh=0m5/r3zNz48cl7K0++DC1iaMB0Lvg2wT7ECmJkG0Dqo=;
+	h=Date:To:From:Subject:Message-Id; b=W3kM4bH0cEZcYOMopqeMHVvos3f4FJUw2OiL6pDrhAThUhvTvmoK+mYErUbgXc6P8TBsfNIHTjlcd1X898EtXU+je9WQXEu1yyhmJTUPpbbVzg8c/BgtLOevddYZ4F9vbUAoTl/Dob1Iq37R62jUpWGVZ0gOeNu8kAYJzGGg3SY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLDenG9g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aKh71IZV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D14C4CED2;
-	Fri, 13 Dec 2024 03:49:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLDenG9g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 367F4C4CED2;
+	Fri, 13 Dec 2024 03:49:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734061791;
-	bh=UzZ1cL9fcJcMXxczDVnX0tFyPdQTeZOR1yC6CIwc/Xg=;
+	s=korg; t=1734061793;
+	bh=0m5/r3zNz48cl7K0++DC1iaMB0Lvg2wT7ECmJkG0Dqo=;
 	h=Date:To:From:Subject:From;
-	b=aKh71IZVazM3eHeIBI7JSDuT8fifKxITj/gCgZi0y3iMVCa/J3vn+o032+FWGOVDo
-	 nqI8x6bVXeLl+BW0Q7D1JilYpLg6zdEtTIEHc2L+oLiMlB4rOg1Sa085GlrNHXpWl2
-	 PzrMVlQYJqxH24Wwds/k9rPdmfGGMluVY6Gu41sA=
-Date: Thu, 12 Dec 2024 19:49:50 -0800
+	b=MLDenG9gEg1ExIVK47O3M52CDahu98s2+p1S5BWbkldXYqx+u2L1J0kMDs175m+kF
+	 304FtuDz6uwisJYy+FzMdEqXEfAf6ZvKqvKjiEycISGeVK71lECOlMNjTYEzIgQXyW
+	 Zw4zgm66oD4DKlAteKvZiLiEFm40tMkDbs/ICVdE=
+Date: Thu, 12 Dec 2024 19:49:52 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kgdb-use-is_err_pcpu-macro.patch added to mm-unstable branch
-Message-Id: <20241213034950.F1D14C4CED2@smtp.kernel.org>
+Subject: + compilerh-introduce-typeof_unqual-macro.patch added to mm-unstable branch
+Message-Id: <20241213034953.367F4C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kgdb: use IS_ERR_PCPU() macro
+     Subject: compiler.h: introduce TYPEOF_UNQUAL() macro
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kgdb-use-is_err_pcpu-macro.patch
+     compilerh-introduce-typeof_unqual-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kgdb-use-is_err_pcpu-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compilerh-introduce-typeof_unqual-macro.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Uros Bizjak <ubizjak@gmail.com>
-Subject: x86/kgdb: use IS_ERR_PCPU() macro
-Date: Sun, 8 Dec 2024 21:45:16 +0100
+Subject: compiler.h: introduce TYPEOF_UNQUAL() macro
+Date: Sun, 8 Dec 2024 21:45:17 +0100
 
-Enable strict percpu address space checks via x86 named address space
-qualifiers.  Percpu variables are declared in __seg_gs/__seg_fs named AS
-and kept named AS qualified until they are dereferenced via percpu
-accessor.  This approach enables various compiler checks for
-cross-namespace variable assignments.
+Define TYPEOF_UNQUAL() to use __typeof_unqual__() as typeof operator when
+available, to return unqualified type of the expression.
 
-Please note that current version of sparse doesn't know anything about
-__typeof_unqual__() operator.  Avoid the usage of __typeof_unqual__() when
-sparse checking is active to prevent sparse errors with unknowing keyword.
-The proposed patch by Dan Carpenter to implement __typeof_unqual__()
-handling in sparse is located at:
+Current version of sparse doesn't know anything about __typeof_unqual__()
+operator.  Avoid the usage of __typeof_unqual__() when sparse checking is
+active to prevent sparse errors with unknowing keyword.
 
-https://lore.kernel.org/lkml/5b8d0dee-8fb6-45af-ba6c-7f74aff9a4b8@stanley.mountain/
-
-
-This patch (of 6):
-
-Use IS_ERR_PCPU() when checking the error pointer in the percpu address
-space.  This macro adds intermediate cast to unsigned long when switching
-named address spaces.
-
-The patch will avoid future build errors due to pointer address space
-mismatch with enabled strict percpu address space checks.
-
-Link: https://lkml.kernel.org/r/20241208204708.3742696-1-ubizjak@gmail.com
-Link: https://lkml.kernel.org/r/20241208204708.3742696-2-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20241208204708.3742696-3-ubizjak@gmail.com
 Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Acked-by: Nadav Amit <nadav.amit@gmail.com>
 Acked-by: Dennis Zhou <dennis@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
@@ -115,20 +97,44 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kgdb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler.h |   13 +++++++++++++
+ init/Kconfig             |    3 +++
+ 2 files changed, 16 insertions(+)
 
---- a/arch/x86/kernel/kgdb.c~x86-kgdb-use-is_err_pcpu-macro
-+++ a/arch/x86/kernel/kgdb.c
-@@ -655,7 +655,7 @@ void kgdb_arch_late(void)
- 		if (breakinfo[i].pev)
- 			continue;
- 		breakinfo[i].pev = register_wide_hw_breakpoint(&attr, NULL, NULL);
--		if (IS_ERR((void * __force)breakinfo[i].pev)) {
-+		if (IS_ERR_PCPU(breakinfo[i].pev)) {
- 			printk(KERN_ERR "kgdb: Could not allocate hw"
- 			       "breakpoints\nDisabling the kernel debugger\n");
- 			breakinfo[i].pev = NULL;
+--- a/include/linux/compiler.h~compilerh-introduce-typeof_unqual-macro
++++ a/include/linux/compiler.h
+@@ -321,6 +321,19 @@ static inline void *offset_to_ptr(const
+  */
+ #define prevent_tail_call_optimization()	mb()
+ 
++/*
++ * Define TYPEOF_UNQUAL() to use __typeof_unqual__() as typeof
++ * operator when available, to return unqualified type of the exp.
++ *
++ * XXX: Remove test for __CHECKER__ once
++ * sparse learns about __typeof_unqual__.
++ */
++#if defined(CONFIG_CC_HAS_TYPEOF_UNQUAL) && !defined(__CHECKER__)
++# define TYPEOF_UNQUAL(exp) __typeof_unqual__(exp)
++#else
++# define TYPEOF_UNQUAL(exp) __typeof__(exp)
++#endif
++
+ #include <asm/rwonce.h>
+ 
+ #endif /* __LINUX_COMPILER_H */
+--- a/init/Kconfig~compilerh-introduce-typeof_unqual-macro
++++ a/init/Kconfig
+@@ -894,6 +894,9 @@ config ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+ config CC_HAS_INT128
+ 	def_bool !$(cc-option,$(m64-flag) -D__SIZEOF_INT128__=0) && 64BIT
+ 
++config CC_HAS_TYPEOF_UNQUAL
++	def_bool $(success,echo 'int foo (int a) { __typeof_unqual__(a) b = a; return b; }' | $(CC) -x c - -S -o /dev/null)
++
+ config CC_IMPLICIT_FALLTHROUGH
+ 	string
+ 	default "-Wimplicit-fallthrough=5" if CC_IS_GCC && $(cc-option,-Wimplicit-fallthrough=5)
 _
 
 Patches currently in -mm which might be from ubizjak@gmail.com are
