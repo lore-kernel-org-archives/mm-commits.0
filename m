@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932BD2B9A8
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:04:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD29416D4E6
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:05:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734062644; cv=none; b=sJNOuqAUta9oKuaAu2i67WEyS9pu6yR/QiiVZyPbH4gy/9NyOJ/2x5kPU9xaaW23t04OnhQYZuRZqExbo/zlPWeRdC3t9ljp92oY1dKFblQmYdZjRREidCPDYv8xn9rFNs6lM4CUklPbZSY8CGHesf6a6sneakP5RrlH8cX+I9U=
+	t=1734062712; cv=none; b=ivzUt/wMoeSjrs0QZApJQb1zrfxrBnSLdz0Sp4YM3sC2PJoiUN6rs+mK6pd/ghxsBvfaoCXKfPuFnXykF+CBBEy1zXiwf/CbF+thRMjtdhv3SH/7mlzExGz52r43hiHXOGR23d5OooRuMuwUZT04XXMoP39NR1QzFcWZ8Ym02+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734062644; c=relaxed/simple;
-	bh=fLKv7oUsyirLp2hRdEoOJ98D2jXdIiNt7RXJKoyya08=;
-	h=Date:To:From:Subject:Message-Id; b=Tt3F0UdjlaS/8rpYMtFgUYPzIOYq4efFa2xTgLzWTF6n2wiRdatgo8+EmqSYdwO6e5CTtGPdUzU4tfez4d4fTkMMsMk9VCfLoWaEL746f/J0gW2rY5rZLy1m5cwxj4GbluLq5ggRKVHTZrpAViRyUj6aZ7h2KmjB7Xup4lCyTZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q997+I38; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734062712; c=relaxed/simple;
+	bh=CrweHXHkr3uHyvX3vSucNNm0t4zm5LUsyOIL3dwjlk8=;
+	h=Date:To:From:Subject:Message-Id; b=lBdu0nPFeAiyUXQEJ/17cThOccRU1PJ5lidzqhWjx/O7if8u3SA6e9RmUtf1hWIk/aBJ42rhXkymCInNJ4uaoJQZn0IdWy/7R09pHNrzElzqdhieIi3+Y1i9OtSYz1n1P2wi7NIp4xmaUuv1Nq+L4zN0bTsCZirXMknpZshUzf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V4bx8lze; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q997+I38"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D3EBC4CED2;
-	Fri, 13 Dec 2024 04:04:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V4bx8lze"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BE34C4CED2;
+	Fri, 13 Dec 2024 04:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734062644;
-	bh=fLKv7oUsyirLp2hRdEoOJ98D2jXdIiNt7RXJKoyya08=;
+	s=korg; t=1734062712;
+	bh=CrweHXHkr3uHyvX3vSucNNm0t4zm5LUsyOIL3dwjlk8=;
 	h=Date:To:From:Subject:From;
-	b=q997+I38tdOOkdaGMJ8VTTVByArJ8nXZXxaVlmdroJgINXL5AzNVHuRTVKBNYeoDF
-	 k+NenkZUVG9e1bcN1VL/AscmKTRpvnG/dzIrQGpw/hkFdd7TW91tT94C/payOT9289
-	 FdcxnUXitbnCjR+Xzukq2GvPFuPnvMQ/V0R968tc=
-Date: Thu, 12 Dec 2024 20:04:03 -0800
-To: mm-commits@vger.kernel.org,alexjlzheng@tencent.com,alexjlzheng@gmail.com,akpm@linux-foundation.org
+	b=V4bx8lzedjUFIqdSnmiJ+UswotCJT5qP/chPsB+ZhtprLVVyEiWvi5fND5B0BBLov
+	 auJQQd+/uEADUbvbuU/g/8u7yrYKG+/08I88BS6atUq6liSCTKksDULR0pmxeROdsc
+	 VeNnHuLcFhWghmZEIWAb/DqSBisUqUldEURgyago=
+Date: Thu, 12 Dec 2024 20:05:11 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault.patch added to mm-unstable branch
-Message-Id: <20241213040404.5D3EBC4CED2@smtp.kernel.org>
+Subject: + mm-unexport-apply_to_existing_page_range.patch added to mm-unstable branch
+Message-Id: <20241213040512.2BE34C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix outdated incorrect code comments for handle_mm_fault()
+     Subject: mm: unexport apply_to_existing_page_range
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault.patch
+     mm-unexport-apply_to_existing_page_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-unexport-apply_to_existing_page_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,33 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinliang Zheng <alexjlzheng@gmail.com>
-Subject: mm: fix outdated incorrect code comments for handle_mm_fault()
-Date: Fri, 13 Dec 2024 11:18:20 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: unexport apply_to_existing_page_range
+Date: Thu, 12 Dec 2024 08:34:23 +0100
 
-Link: https://lkml.kernel.org/r/20241213031820.778342-1-alexjlzheng@tencent.com
-Signed-off-by: Jinliang Zheng <alexjlzheng@tencent.com>
+apply_to_existing_page_range() is only used by non-modular code.
+
+Link: https://lkml.kernel.org/r/20241212073423.1439954-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memory.c~mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault
+--- a/mm/memory.c~mm-unexport-apply_to_existing_page_range
 +++ a/mm/memory.c
-@@ -6140,7 +6140,8 @@ static vm_fault_t sanitize_fault_flags(s
+@@ -3082,7 +3082,6 @@ int apply_to_existing_page_range(struct
+ {
+ 	return __apply_to_page_range(mm, addr, size, fn, data, false);
  }
+-EXPORT_SYMBOL_GPL(apply_to_existing_page_range);
  
  /*
-- * By the time we get here, we already hold the mm semaphore
-+ * By the time we get here, we already hold either the VMA lock or the
-+ * mmap_Lock (FAULT_FLAG_VMA_LOCK tells you which).
-  *
-  * The mmap_lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
+  * handle_pte_fault chooses page fault handler according to an entry which was
 _
 
-Patches currently in -mm which might be from alexjlzheng@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault.patch
+mm-unexport-apply_to_existing_page_range.patch
 
