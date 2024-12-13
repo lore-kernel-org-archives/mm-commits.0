@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A752748D
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 03:50:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB988F5E
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:00:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734061806; cv=none; b=JTbWjmie7jhqokksoKfewYHMJ/pbmIraQXCjHYHoNCJM4MfNRCgGpGSrcItUDfTLXGY0JhTOvgXLkgzoMxce9m0UTMmWzRBFGjO3QTjO5+rZinpgrPNbrk2UdcOVOl+W3WXdJrN4rRTN1/unMB+J4bGV4H2sTFExHAVe4msDghA=
+	t=1734062459; cv=none; b=kNBswRMV4AJy9v0NNQlOkPuSU4Hy6vPguuUTCKXYHi4emkhhc84tApXiw0izVcSWibbW7cF+vmgHfzX4QHb9TBvcP7240/TN/w5ax2A3gUn4AalLD92qXOBMl4nTTkKiZY9qD1NWN4rktZMvWOCGd8CNDSonbFI003vd2QE7MFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734061806; c=relaxed/simple;
-	bh=lpbFAJ28k8hsYpJoswx+Zeu90KtkM3sMCkCwgjY5dJg=;
-	h=Date:To:From:Subject:Message-Id; b=IPZfIXq/zMIY61o1KhB9nhp2dlOiLF5e/K5eoYD5tfU7lUU3InkLugWGyDCR9DfqGx1MbJbiQrZmPSmVBL/MkRWH34+CDG4oVOrl7MOOY370EFvqMue4hK7A8VgXM+cL1XiaIrS1Kni3HHvb5ln/AGc5QKLdjSDE9yAMxpwKZU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E8RypeUh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734062459; c=relaxed/simple;
+	bh=GJr+mv7mqvYp4Z+TNGHVm00kfERkVqCfWAmPRGK2U5U=;
+	h=Date:To:From:Subject:Message-Id; b=YGWcMrJhjgWD+PA8vQs70DwKUZDzRf3U0pEj6VjYVKvSKZTaj6qfYIzonHEjJLVs6gBzB1SG2Y/hWZeiXUxC3Y6x8BqWul9j9cWO6h+CsFK3FT7UrarOw8plPvF66RfVLSFRyppfdQwnzjnMccdj6gFIJf8zBxz6yzFqcWjWO0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LBxUC5bC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E8RypeUh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11852C4CED2;
-	Fri, 13 Dec 2024 03:50:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LBxUC5bC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD522C4CED2;
+	Fri, 13 Dec 2024 04:00:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734061806;
-	bh=lpbFAJ28k8hsYpJoswx+Zeu90KtkM3sMCkCwgjY5dJg=;
+	s=korg; t=1734062458;
+	bh=GJr+mv7mqvYp4Z+TNGHVm00kfERkVqCfWAmPRGK2U5U=;
 	h=Date:To:From:Subject:From;
-	b=E8RypeUhd1FnbhZ6WqZfaW80Tw8zAh1EdJwamIb6a0eTxj4Bq0izjyUzf6vzSuG8w
-	 h5fAklvzWcxRzLTr151DUAuepUyaO1piZjO+8o+hF7pIZML5/YQn2SuuSyWwFD9PCy
-	 9unVdxJqQe+ci8eNbUVjzeDOGdLcW8kUe8XowkrA=
-Date: Thu, 12 Dec 2024 19:50:05 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=LBxUC5bCYAd1/1Nfc3ghvNj8JzhD37dp/Fd6nhC7FxIkgA4JQXEF/2aYayssmCdW7
+	 icdEOBKJI/U+bGKpKBT6YwiOggw+YcQ6NmctLJa4Wa/DMgr9yFkRqybj1q6ArqC/zQ
+	 rOZnKYCU4pk/ao15zKESnGW6RJSWtV2tIjOrTUUE=
+Date: Thu, 12 Dec 2024 20:00:57 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch added to mm-unstable branch
-Message-Id: <20241213035006.11852C4CED2@smtp.kernel.org>
+Subject: + xarray-do-not-return-sibling-entries-from-xas_find_marked.patch added to mm-nonmm-unstable branch
+Message-Id: <20241213040058.AD522C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu/x86: enable strict percpu checks via named AS qualifiers
-has been added to the -mm mm-unstable branch.  Its filename is
-     percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch
+     Subject: Xarray: do not return sibling entries from xas_find_marked()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,83 +58,181 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: percpu/x86: enable strict percpu checks via named AS qualifiers
-Date: Sun, 8 Dec 2024 21:45:21 +0100
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: Xarray: do not return sibling entries from xas_find_marked()
+Date: Fri, 13 Dec 2024 20:25:19 +0800
 
-This patch declares percpu variables in __seg_gs/__seg_fs named AS and
-keeps them named AS qualified until they are dereferenced with percpu
-accessor.  This approach enables various compiler check for
-cross-namespace variable assignments.
+Patch series "Fixes and cleanups to xarray", v3.
 
-Link: https://lkml.kernel.org/r/20241208204708.3742696-7-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Acked-by: Nadav Amit <nadav.amit@gmail.com>
-Acked-by: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
+This series contains some random fixes and cleanups to xarray. Patch 1-2
+are fixes and patch 3-6 are cleanups. More details can be found in
+respective patches.
+
+
+This patch (of 5):
+
+Similar to issue fixed in commit cbc02854331ed ("XArray: Do not return
+sibling entries from xa_load()"), we may return sibling entries from
+xas_find_marked as following:
+    Thread A:               Thread B:
+                            xa_store_range(xa, entry, 6, 7, gfp);
+			    xa_set_mark(xa, 6, mark)
+    XA_STATE(xas, xa, 6);
+    xas_find_marked(&xas, 7, mark);
+    offset = xas_find_chunk(xas, advance, mark);
+    [offset is 6 which points to a valid entry]
+                            xa_store_range(xa, entry, 4, 7, gfp);
+    entry = xa_entry(xa, node, 6);
+    [entry is a sibling of 4]
+    if (!xa_is_node(entry))
+        return entry;
+
+Skip sibling entry like xas_find() does to protect caller from seeing
+sibling entry from xas_find_marked() or caller may use sibling entry
+as a valid entry and crash the kernel.
+
+Besides, load_race() test is modified to catch mentioned issue and modified
+load_race() only passes after this fix is merged.
+
+Here is an example how this bug could be triggerred in tmpfs which
+enables large folio in mapping:
+Let's take a look at involved racer:
+1. How pages could be created and dirtied in shmem file.
+write
+ ksys_write
+  vfs_write
+   new_sync_write
+    shmem_file_write_iter
+     generic_perform_write
+      shmem_write_begin
+       shmem_get_folio
+        shmem_allowable_huge_orders
+        shmem_alloc_and_add_folios
+        shmem_alloc_folio
+        __folio_set_locked
+        shmem_add_to_page_cache
+         XA_STATE_ORDER(..., index, order)
+         xax_store()
+      shmem_write_end
+       folio_mark_dirty()
+
+2. How dirty pages could be deleted in shmem file.
+ioctl
+ do_vfs_ioctl
+  file_ioctl
+   ioctl_preallocate
+    vfs_fallocate
+     shmem_fallocate
+      shmem_truncate_range
+       shmem_undo_range
+        truncate_inode_folio
+         filemap_remove_folio
+          page_cache_delete
+           xas_store(&xas, NULL);
+
+3. How dirty pages could be lockless searched
+sync_file_range
+ ksys_sync_file_range
+  __filemap_fdatawrite_range
+   filemap_fdatawrite_wbc
+    do_writepages
+     writeback_use_writepage
+      writeback_iter
+       writeback_get_folio
+        filemap_get_folios_tag
+         find_get_entry
+          folio = xas_find_marked()
+          folio_try_get(folio)
+
+Kernel will crash as following:
+1.Create               2.Search             3.Delete
+/* write page 2,3 */
+write
+ ...
+  shmem_write_begin
+   XA_STATE_ORDER(xas, i_pages, index = 2, order = 1)
+   xa_store(&xas, folio)
+  shmem_write_end
+   folio_mark_dirty()
+
+                       /* sync page 2 and page 3 */
+                       sync_file_range
+                        ...
+                         find_get_entry
+                          folio = xas_find_marked()
+                          /* offset will be 2 */
+                          offset = xas_find_chunk()
+
+                                             /* delete page 2 and page 3 */
+                                             ioctl
+                                              ...
+                                               xas_store(&xas, NULL);
+
+/* write page 0-3 */
+write
+ ...
+  shmem_write_begin
+   XA_STATE_ORDER(xas, i_pages, index = 0, order = 2)
+   xa_store(&xas, folio)
+  shmem_write_end
+   folio_mark_dirty(folio)
+
+                          /* get sibling entry from offset 2 */
+                          entry = xa_entry(.., 2)
+                          /* use sibling entry as folio and crash kernel */
+                          folio_try_get(folio)
+
+Link: https://lkml.kernel.org/r/20241213122523.12764-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20241213122523.12764-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/percpu.h |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ lib/xarray.c                          |    2 ++
+ tools/testing/radix-tree/multiorder.c |    4 ++++
+ 2 files changed, 6 insertions(+)
 
---- a/arch/x86/include/asm/percpu.h~percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers
-+++ a/arch/x86/include/asm/percpu.h
-@@ -95,9 +95,23 @@
+--- a/lib/xarray.c~xarray-do-not-return-sibling-entries-from-xas_find_marked
++++ a/lib/xarray.c
+@@ -1387,6 +1387,8 @@ void *xas_find_marked(struct xa_state *x
+ 		entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
+ 		if (!entry && !(xa_track_free(xas->xa) && mark == XA_FREE_MARK))
+ 			continue;
++		if (xa_is_sibling(entry))
++			continue;
+ 		if (!xa_is_node(entry))
+ 			return entry;
+ 		xas->xa_node = xa_to_node(entry);
+--- a/tools/testing/radix-tree/multiorder.c~xarray-do-not-return-sibling-entries-from-xas_find_marked
++++ a/tools/testing/radix-tree/multiorder.c
+@@ -227,6 +227,7 @@ static void *load_creator(void *ptr)
+ 			unsigned long index = (3 << RADIX_TREE_MAP_SHIFT) -
+ 						(1 << order);
+ 			item_insert_order(tree, index, order);
++			xa_set_mark(tree, index, XA_MARK_1);
+ 			item_delete_rcu(tree, index);
+ 		}
+ 	}
+@@ -242,8 +243,11 @@ static void *load_worker(void *ptr)
  
- #endif /* CONFIG_SMP */
- 
--#define __my_cpu_type(var)	typeof(var) __percpu_seg_override
--#define __my_cpu_ptr(ptr)	(__my_cpu_type(*(ptr))*)(__force uintptr_t)(ptr)
--#define __my_cpu_var(var)	(*__my_cpu_ptr(&(var)))
-+/*
-+ * XXX: Remove test for __CHECKER__ once
-+ * sparse learns about __typeof_unqual__.
-+ */
-+#if defined(CONFIG_USE_X86_SEG_SUPPORT) && \
-+    defined(CONFIG_CC_HAS_TYPEOF_UNQUAL) && !defined(__CHECKER__)
-+# define __my_cpu_type(var)	typeof(var)
-+# define __my_cpu_ptr(ptr)	(ptr)
-+# define __my_cpu_var(var)	(var)
-+
-+# define __percpu_qual		__percpu_seg_override
-+#else
-+# define __my_cpu_type(var)	typeof(var) __percpu_seg_override
-+# define __my_cpu_ptr(ptr)	(__my_cpu_type(*(ptr))*)(__force uintptr_t)(ptr)
-+# define __my_cpu_var(var)	(*__my_cpu_ptr(&(var)))
-+#endif
-+
- #define __percpu_arg(x)		__percpu_prefix "%" #x
- #define __force_percpu_arg(x)	__force_percpu_prefix "%" #x
+ 	rcu_register_thread();
+ 	while (!stop_iteration) {
++		unsigned long find_index = (2 << RADIX_TREE_MAP_SHIFT) + 1;
+ 		struct item *item = xa_load(ptr, index);
+ 		assert(!xa_is_internal(item));
++		item = xa_find(ptr, &find_index, index, XA_MARK_1);
++		assert(!xa_is_internal(item));
+ 	}
+ 	rcu_unregister_thread();
  
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-x86-kgdb-use-is_err_pcpu-macro.patch
-compilerh-introduce-typeof_unqual-macro.patch
-percpu-use-typeof_unqual-in-variable-declarations.patch
-percpu-use-typeof_unqual-in-_cpu_ptr-accessors.patch
-percpu-repurpose-__percpu-tag-as-a-named-address-space-qualifier.patch
-percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch
+xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
+xarray-move-forward-index-correctly-in-xas_pause.patch
+xarray-distinguish-large-entries-correctly-in-xas_split_alloc.patch
+xarray-remove-repeat-check-in-xas_squash_marks.patch
+xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent.patch
 
