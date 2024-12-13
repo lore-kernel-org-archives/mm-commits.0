@@ -1,192 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BEDE149E00
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:23:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F029917BB1C
+	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 04:28:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734063787; cv=none; b=rcZhexQKP24sJpu/wmB+2+qG3HzbvLwgpjQCYBd8oLOOfRy5kCdMcmjIinOqJEPllk1DUTI+gZ6NKPqzfjT8bKgIgeZR3bDgX6yHclebkpWywU79+9uwWbklulKRKFpOK5nav5yYhjFts8pZ2Ov6cuNkDS0pz6LmRBZI44v2aAw=
+	t=1734064091; cv=none; b=jUNCGAGccCeRw4a2kWcVWSXjPD4n+gVexst+RdaM6CbR742+SWvVrh20hE33LxlPmqzpMZWC2Uv73BX7NvSBzr+TO0lt1vCN9+GoY0iAVeKn7vplhi80cutUY8KoB2eXDwmO54HxRL9NvgJP5zXF4+9ilyTMwl3bAXOY7tqufzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734063787; c=relaxed/simple;
-	bh=5HEtm60SfUNKZeJclV4UMJwK9KR2UPd4s3vXyTUOpRg=;
-	h=Date:To:From:Subject:Message-Id; b=OueqgwlYEcIaWqP+ymNcTbWX6TFziP3lBz2/C8HROhcMaCCNOHdcM07tjomUUZTXWhaZXaTLDczgvnjm1BejOw9J6e94mnyWUFLiv3mXPE0i9c+Yesu2KDGBmRFqXz3X6XFE366dMgsN+UNlkGq84yExEcE329LncxclqRFtX/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3ao1YMQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734064091; c=relaxed/simple;
+	bh=C34HmViexd6pC4Q47HYURGyZS/KpgGPi0NINujjjSdU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Z37hQgZ+InJfsoZN5mouVWxv/QCyLYq0AGsn/KFVCmmPNaW8PuzofpuXe6abT+05YbJWZShvLUFe0DPi6jjhLpvvHgAXEmmYaRje08XhQ56foNdJSBDg1RGo7YY6Qxjj/GgQsDmOQFMY0d+pCagwAdmfkgZYra82C8AVu6k6pbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=jBO+NfAd; arc=none smtp.client-ip=209.85.210.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3ao1YMQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F183DC4CED1;
-	Fri, 13 Dec 2024 04:23:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734063787;
-	bh=5HEtm60SfUNKZeJclV4UMJwK9KR2UPd4s3vXyTUOpRg=;
-	h=Date:To:From:Subject:From;
-	b=u3ao1YMQ2pACUOm917p04OdfSLKqzIpSLahL1lvvzdNGZOLh/36JgB2ugQ/tbRBSO
-	 sCVnyAAqU+B1nOk+BYoqRRHSjxP1llLafbqtynF0x9B3AlY/Nl3SfCY13NLoh/fEJ4
-	 HawLVIqRCLqQMwy+eDRYf1q6d+5GXX4xnbhKc79Q=
-Date: Thu, 12 Dec 2024 20:23:06 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,greearb@candelatech.com,ahuang12@lenovo.com,gehao@kylinos.cn,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241213042306.F183DC4CED1@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="jBO+NfAd"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-728e81257bfso1104267b3a.2
+        for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 20:28:09 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1734064089; x=1734668889; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=fycz0Jqpx4aOSEiJrWv0ZWbaFdp57efmCepw8Y45Yq8=;
+        b=jBO+NfAdkofSuFKlYMVV62oYCmR89Ehu4cEX31J87+nCYpfDou2VWKMTl39VVrNjNl
+         vGsavFgD92rBMK2Jt0+MY6hCsCYPZSoypbS9qcmbFI1p3dlObt+j7+PVVeGRYdTKA/za
+         SAXHnBKOoUIIoPm2dvBSkKA2jJ426QyNau8bI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734064089; x=1734668889;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fycz0Jqpx4aOSEiJrWv0ZWbaFdp57efmCepw8Y45Yq8=;
+        b=URA8J7ik2KsJVQB3HnUk/vN0lo9vxMXSNepGvpyuzPeqRtKj+3qu/SjyoEyLpAI+4A
+         +Sb17g57Jd5ohIBeGFDiqEYn5yAZp+mz8oar4rHIPuH6oMR48ODHMM948lQC9DGYuii2
+         P8YfZIETUit9l6O0X05S1/U6KoqlA344i/3RFga6BUX3htcU15/+YtF+IMvpbfXhC2wm
+         Hc6VqtawDVS/lSk/KId9u5cKDgpaJYok6NEkdCUjyH8fnp5dYsA+3ww/HP471KNBYvmE
+         AhZ07Ct6h6rL/eDm0ACAct1Jcmc1PefQJ9oimnbfCR9FxWPWc1mLJCONfGss+leSlf7R
+         tHAA==
+X-Forwarded-Encrypted: i=1; AJvYcCWoeHUdexhRfrl49iIeLeotOgATOyw1iuMI8iA0iVIPW62hzEYOkYZC9N6UVwIPY6bQLZVoqxeB0nZe@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx3+0wuP9GEqAOcYS9V4ur9SB33sMnT4cZ42ofYoRA5kKAlbVqI
+	ai76oGFKINIupJ/p7p0ziuOVwLQ1dapYIkwp5oko30GMJjohMmDUM9aTTs81eQ==
+X-Gm-Gg: ASbGncuhvGeSHOLnA9KmFF1KhjLK+8eebqxdqhRGG/pnbWnn0atn9HlmuGpXYmxniHN
+	GYlSfVHielpT1dinMhIlfElucghyegR4fIKj9sDdIzQlPbcRYVCm0miEoW04ydtEVWe8Vv04vzR
+	1MaONE7aZuShlfgcc8ymJZg997IiCvi1Y8sTRfwa/NHVlRMJtfsQV1X+dIRYLREGES5JHQju0An
+	XnOq1Epyz7aZYN/QOIf7zaphLZiM07X7EDV9S/GRM6KK17KQxtcTZKVYbP0
+X-Google-Smtp-Source: AGHT+IERQzzg2q97AC1GoQrvJPFrX81ojeCfE22exlpUpT47fDXnKagocBJKz9dOsYdBVzGfWjozYg==
+X-Received: by 2002:a05:6a00:400d:b0:725:d956:aa6f with SMTP id d2e1a72fcca58-7290c117a24mr1975800b3a.5.1734064089267;
+        Thu, 12 Dec 2024 20:28:09 -0800 (PST)
+Received: from google.com ([2401:fa00:8f:203:2d7e:d20a:98ca:2039])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-725ec805ca1sm8218924b3a.195.2024.12.12.20.28.07
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Dec 2024 20:28:08 -0800 (PST)
+Date: Fri, 13 Dec 2024 13:28:04 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: caiqingfu <baicaiaichibaicai@gmail.com>
+Cc: senozhatsky@chromium.org, akpm@linux-foundation.org, 
+	caiqingfu@ruijie.com.cn, minchan@kernel.org, mm-commits@vger.kernel.org
+Subject: Re: [PATCH] zram: panic when use ext4 over zram
+Message-ID: <5qmps6mcifydwtnsynxdtipaoerjrnjlpo6gztxfdryn37bvws@fp2xqjmiews5>
+References: <20241211110414.GF2091455@google.com>
+ <20241212095530.162164-1-baicaiaichibaicai@gmail.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241212095530.162164-1-baicaiaichibaicai@gmail.com>
 
+On (24/12/12 17:55), caiqingfu wrote:
+> > I see that somebody posted something similar on the bugzilla [1].  Is
+> > that person you, by any chance?  If so, can you please post your
+> > findings to linux kernel mailing list? E.g. linux-ext4@, Cc-ing
+> > linux-fsdevevl@ and linux-mm@ would be a good start.  Bugzilla is
+> > not used.
+> > 
+> > If this problem is in ext4 then I'd really prefer to address it there and
+> > drop this patch from zram, simply because it covers an issue in the upper
+> > layer.  And it's better to fix issues that to cover them.
+> > 
+> > [1] https://bugzilla.kernel.org/show_bug.cgi?id=219548
+> 
+> He is my colleague, he reported a bug
 
-The patch titled
-     Subject: mm/alloc_tag: fix panic when CONFIG_KASAN enabled and CONFIG_KASAN_VMALLOC not enabled
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
+Oh, I see.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
+> In any case, zram should ensure that its data is not damaged
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/alloc_tag: fix panic when CONFIG_KASAN enabled and CONFIG_KASAN_VMALLOC not enabled
-Date: Thu, 12 Dec 2024 15:21:26 +0800
-
-When CONFIG_KASAN is enabled but CONFIG_KASAN_VMALLOC is not enabled, we
-may encounter a panic during system boot.
-
-Because we haven't allocated pages and created mappings for the shadow
-memory corresponding to module allocation tags region,similar to how it is
-done for execmem_vmalloc.
-
-The memory for module allocation tags is allocated on demand, therefore we
-need to allocate shadow memory on demand as well in MODULE_ALIGN blocks.
-
-Here is the log for panic:
-
-[   18.349421] BUG: unable to handle page fault for address: fffffbfff8092000
-[   18.350016] #PF: supervisor read access in kernel mode
-[   18.350459] #PF: error_code(0x0000) - not-present page
-[   18.350904] PGD 20fe52067 P4D 219dc8067 PUD 219dc4067 PMD 102495067 PTE 0
-[   18.351484] Oops: Oops: 0000 [#1] PREEMPT SMP KASAN NOPTI
-[   18.351961] CPU: 5 UID: 0 PID: 1 Comm: systemd Not tainted 6.13.0-rc1+ #3
-[   18.352533] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
-[   18.353494] RIP: 0010:kasan_check_range+0xba/0x1b0
-[   18.353931] Code: 8d 5a 07 4c 0f 49 da 49 c1 fb 03 45 85 db 0f 84 dd 00 00 00 45 89 db 4a 8d 14 d8 eb 0d 48 83 c0 08 48 39 c2 0f 84 c1 00 00 00 <48> 83 38 00 74 ed 48 8d 50 08 eb 0d 48 83 c0 01 48 39 d0 0f 84 90
-[   18.355484] RSP: 0018:ff11000101877958 EFLAGS: 00010206
-[   18.355937] RAX: fffffbfff8092000 RBX: fffffbfff809201e RCX: ffffffff82a7ceac
-[   18.356542] RDX: fffffbfff8092018 RSI: 00000000000000f0 RDI: ffffffffc0490000
-[   18.357153] RBP: fffffbfff8092000 R08: 0000000000000001 R09: fffffbfff809201d
-[   18.357756] R10: ffffffffc04900ef R11: 0000000000000003 R12: ffffffffc0490000
-[   18.358365] R13: ff11000101877b48 R14: ffffffffc0490000 R15: 000000000000002c
-[   18.358968] FS:  00007f9bd13c5940(0000) GS:ff110001eb480000(0000) knlGS:0000000000000000
-[   18.359648] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   18.360178] CR2: fffffbfff8092000 CR3: 0000000109214004 CR4: 0000000000771ef0
-[   18.360790] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   18.361404] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[   18.362020] PKRU: 55555554
-[   18.362261] Call Trace:
-[   18.362481]  <TASK>
-[   18.362671]  ? __die+0x23/0x70
-[   18.362964]  ? page_fault_oops+0xc2/0x160
-[   18.363318]  ? exc_page_fault+0xad/0xc0
-[   18.363680]  ? asm_exc_page_fault+0x26/0x30
-[   18.364056]  ? move_module+0x3cc/0x8a0
-[   18.364398]  ? kasan_check_range+0xba/0x1b0
-[   18.364755]  __asan_memcpy+0x3c/0x60
-[   18.365074]  move_module+0x3cc/0x8a0
-[   18.365386]  layout_and_allocate.constprop.0+0x3d5/0x720
-[   18.365841]  ? early_mod_check+0x3dc/0x510
-[   18.366195]  load_module+0x72/0x1850
-[   18.366509]  ? __pfx_kernel_read_file+0x10/0x10
-[   18.366918]  ? vm_mmap_pgoff+0x21c/0x2d0
-[   18.367262]  init_module_from_file+0xd1/0x130
-[   18.367638]  ? __pfx_init_module_from_file+0x10/0x10
-[   18.368073]  ? __pfx__raw_spin_lock+0x10/0x10
-[   18.368456]  ? __pfx_cred_has_capability.isra.0+0x10/0x10
-[   18.368938]  idempotent_init_module+0x22c/0x790
-[   18.369332]  ? simple_getattr+0x6f/0x120
-[   18.369676]  ? __pfx_idempotent_init_module+0x10/0x10
-[   18.370110]  ? fdget+0x58/0x3a0
-[   18.370393]  ? security_capable+0x64/0xf0
-[   18.370745]  __x64_sys_finit_module+0xc2/0x140
-[   18.371136]  do_syscall_64+0x7d/0x160
-[   18.371459]  ? fdget_pos+0x1c8/0x4c0
-[   18.371784]  ? ksys_read+0xfd/0x1d0
-[   18.372106]  ? syscall_exit_to_user_mode+0x10/0x1f0
-[   18.372525]  ? do_syscall_64+0x89/0x160
-[   18.372860]  ? do_syscall_64+0x89/0x160
-[   18.373194]  ? do_syscall_64+0x89/0x160
-[   18.373527]  ? syscall_exit_to_user_mode+0x10/0x1f0
-[   18.373952]  ? do_syscall_64+0x89/0x160
-[   18.374283]  ? syscall_exit_to_user_mode+0x10/0x1f0
-[   18.374701]  ? do_syscall_64+0x89/0x160
-[   18.375037]  ? do_user_addr_fault+0x4a8/0xa40
-[   18.375416]  ? clear_bhb_loop+0x25/0x80
-[   18.375748]  ? clear_bhb_loop+0x25/0x80
-[   18.376119]  ? clear_bhb_loop+0x25/0x80
-[   18.376450]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
-Link: https://lkml.kernel.org/r/20241212072126.134572-1-hao.ge@linux.dev
-Fixes: 233e89322cbe ("alloc_tag: fix module allocation tags populated area calculation")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Reported-by: Ben Greear <greearb@candelatech.com>
-Closes: https://lore.kernel.org/all/1ba0cc57-e2ed-caa2-1241-aa5615bee01f@candelatech.com/
-Suggested-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: Adrian Huang <ahuang12@lenovo.com> 
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/alloc_tag.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
---- a/lib/alloc_tag.c~alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2
-+++ a/lib/alloc_tag.c
-@@ -414,6 +414,8 @@ static int vm_module_tags_populate(void)
- 
- 	if (phys_end < new_end) {
- 		struct page **next_page = vm_module_tags->pages + vm_module_tags->nr_pages;
-+		unsigned long old_shadow_end = ALIGN(phys_end, MODULE_ALIGN);
-+		unsigned long new_shadow_end = ALIGN(new_end, MODULE_ALIGN);
- 		unsigned long more_pages;
- 		unsigned long nr;
- 
-@@ -428,7 +430,19 @@ static int vm_module_tags_populate(void)
- 				__free_page(next_page[i]);
- 			return -ENOMEM;
- 		}
-+
- 		vm_module_tags->nr_pages += nr;
-+
-+		/*
-+		 * Kasan allocates 1 byte of shadow for every 8 bytes of data.
-+		 * When kasan_alloc_module_shadow allocates shadow memory,
-+		 * its unit of allocation is a page.
-+		 * Therefore, here we need to align to MODULE_ALIGN.
-+		 */
-+		if (old_shadow_end < new_shadow_end)
-+			kasan_alloc_module_shadow((void *)old_shadow_end,
-+						  new_shadow_end - old_shadow_end,
-+						  GFP_KERNEL);
- 	}
- 
- 	/*
-_
-
-Patches currently in -mm which might be from gehao@kylinos.cn are
-
-alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix.patch
-alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
-
+zram cannot ensure that, it's not zram's job.  Nothing stops
+the buggy actor from modifiying the page at any random point,
+zram might not even be able to decompress the page in the end,
+it's not only the zs_handle allocation slow-path case.
