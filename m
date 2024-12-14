@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 177F23D6D
-	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:45:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74566125
+	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:46:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734137145; cv=none; b=Htw+dE2kUm2/+7fXLry9bovWsV+Bb8zeqZ1uE7rZpXJOFvaiKleP4+pUHQTJNF6J1bBfQ/BafmzMf5TIsynRE6Kn5X2TwOg0TidqaKdv3qnqIZrSfYYJc+MF1wU88Mp0vcPx81QuvkP239XdZvaR1ra+1SK29tdDPgJZAbXEz7w=
+	t=1734137188; cv=none; b=nJQJINBEpkV/k3p9R+seXXYy4PgOI2n1hGUhtkz5TXQESwkeBKJtrvdFqfwEEqAryRWTnHeLo173DOhJc4vXFJdXaMXeTwCg2bXg133ttSkMheijHvo6TKw8s5sJRD48mdg65K9y37bxuMFbK8tJBb3BrElWc6zAa/WkWCwW0wQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734137145; c=relaxed/simple;
-	bh=s/o3ZW1B74Jc99gWCWMeUQZ1h3RXhqRvyQ3DW0HqTUk=;
-	h=Date:To:From:Subject:Message-Id; b=rCDdJhrqHxD8ZdtlDwM82GibImBJC+TI29Iv5rUFDgqvR5nPtk3xA2HO8DngzLb64oI8au2ge9ykKMr6JuaZ9+suiDmyEaeovXsGt+XoQXeWd+PuSeCjGw34cdlIpmsSfWyu26WbTv19aHt0oP78gU01qa0mOTUtOMIUAADm8/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DtaaqV98; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734137188; c=relaxed/simple;
+	bh=xVLoLy/wHuZHL1J1V3x+Lokv6KjmZor5a4aHoALlhZs=;
+	h=Date:To:From:Subject:Message-Id; b=mI6MRLEHlCegX/Za/Zv/1EBqxlwAtIth8MbaiM5Wo+pY3WANk4hpIAx8EbYKjUUqbsTzBN86augvkPm5aIZDCK6mz4BmFC1AkDHwIy7HpfAuQSZ/8Vg6i7KggFzwGVOff409LSfoZObRJ0qT+ogDCIbQrkjiv7yHpS/NHGYihJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HgyGTKbH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DtaaqV98"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FAB9C4CED0;
-	Sat, 14 Dec 2024 00:45:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HgyGTKbH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61B30C4CED0;
+	Sat, 14 Dec 2024 00:46:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734137144;
-	bh=s/o3ZW1B74Jc99gWCWMeUQZ1h3RXhqRvyQ3DW0HqTUk=;
+	s=korg; t=1734137188;
+	bh=xVLoLy/wHuZHL1J1V3x+Lokv6KjmZor5a4aHoALlhZs=;
 	h=Date:To:From:Subject:From;
-	b=DtaaqV98QoyMXIskRyI4f+zkcpxibeJJDdq2f1laurSatwk4y4g0gp10l8dd8gaTP
-	 dpeVyswDJYxj2gUa6SBldzeUUPg53hI6B2nXj4wcQ4cDEHW9DdvgBmU056tdYFPxeT
-	 dOmDvuOYskKW3vRuw12pQwaPqPBVHcA/P6nagq78=
-Date: Fri, 13 Dec 2024 16:45:43 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=HgyGTKbHCCx4B0vnDHbVXf/WJOFwrzqv2F+S+DTR2rD9BFFHkWicBpRLJ/T/Pz+ps
+	 DdZiKI8TViixdYIiF0NY8GQygM8QePccwUemAr1bQ59oo2/JRRUx9SatIzbP5C6xla
+	 urQYSax3tRi+gTIV2Pj9KztL0SYFJ4Ha7ye657zk=
+Date: Fri, 13 Dec 2024 16:46:27 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rbm@suse.com,davidgow@google.com,luis.hernandez093@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-add-delay-max-to-record-delay-peak-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20241214004544.7FAB9C4CED0@smtp.kernel.org>
+Subject: + lib-math-add-int_sqrt-test-suite.patch added to mm-nonmm-unstable branch
+Message-Id: <20241214004628.61B30C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delayacct: update docs and fix some spelling errors
+     Subject: lib/math: add int_sqrt test suite
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-add-delay-max-to-record-delay-peak-fix.patch
+     lib-math-add-int_sqrt-test-suite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-delay-max-to-record-delay-peak-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_sqrt-test-suite.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,98 +58,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yaxin Wang <wang.yaxin@zte.com.cn>
-Subject: delayacct: update docs and fix some spelling errors
-Date: Fri, 13 Dec 2024 19:27:00 +0800 (CST)
+From: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Subject: lib/math: add int_sqrt test suite
+Date: Thu, 12 Dec 2024 23:26:50 -0500
 
-Update delay-accounting.rst to include the 'delay max' in the output of
-getdelays, and fix some spelling errors before.
+Adds test suite for integer based square root function.
 
-Link: https://lkml.kernel.org/r/20241213192700771XKZ8H30OtHSeziGqRVMs0@zte.com.cn
-Signed-off-by: Yaxin Wang <wang.yaxin@zte.com.cn>
-Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: tuqiang <tu.qiang35@zte.com.cn>
-Cc: Wang Yong <wang.yong12@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+The test suite is designed to verify the correctness of the int_sqrt()
+math library function.
+
+Link: https://lkml.kernel.org/r/20241213042701.1037467-1-luis.hernandez093@gmail.com
+Signed-off-by: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Ricardo B. Marliere <rbm@suse.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   38 ++++++++--------
- kernel/delayacct.c                            |    2 
- 2 files changed, 20 insertions(+), 20 deletions(-)
+ lib/Kconfig.debug               |   15 ++++++
+ lib/math/Makefile               |    1 
+ lib/math/tests/Makefile         |    1 
+ lib/math/tests/int_sqrt_kunit.c |   66 ++++++++++++++++++++++++++++++
+ 4 files changed, 83 insertions(+)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-max-to-record-delay-peak-fix
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -100,29 +100,29 @@ Get delays, since system boot, for pid 1
- 	# ./getdelays -d -p 10
- 	(output similar to next case)
+--- a/lib/Kconfig.debug~lib-math-add-int_sqrt-test-suite
++++ a/lib/Kconfig.debug
+@@ -3174,6 +3174,21 @@ config INT_POW_TEST
  
--Get sum of delays, since system boot, for all pids with tgid 5::
-+Get sum and peak of delays, since system boot, for all pids with tgid 242::
+ 	  If unsure, say N
  
--	# ./getdelays -d -t 5
-+	bash-4.4# ./getdelays -d -t 242
- 	print delayacct stats ON
--	TGID	5
-+	TGID    242
++config INT_SQRT_KUNIT_TEST
++	tristate "Integer square root test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the int_sqrt() function,
++	  which performs square root calculation. The test suite checks
++	  various scenarios, including edge cases, to ensure correctness.
++
++	  Enabling this option will include tests that check various scenarios
++	  and edge cases to ensure the accuracy and reliability of the square root
++	  function.
++
++	  If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
  
+ config ARCH_USE_MEMTEST
+--- a/lib/math/Makefile~lib-math-add-int_sqrt-test-suite
++++ a/lib/math/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_INT_POW_TEST)  += tests/int
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
+ obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
++obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += tests/int_sqrt_kunit.o
+\ No newline at end of file
+diff --git a/lib/math/tests/int_sqrt_kunit.c a/lib/math/tests/int_sqrt_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/int_sqrt_kunit.c
+@@ -0,0 +1,66 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <kunit/test.h>
++#include <linux/limits.h>
++#include <linux/math.h>
++#include <linux/module.h>
++#include <linux/string.h>
++
++struct test_case_params {
++	unsigned long x;
++	unsigned long expected_result;
++	const char *name;
++};
++
++static const struct test_case_params params[] = {
++	{ 0, 0, "edge case: square root of 0" },
++	{ 1, 1, "perfect square: square root of 1" },
++	{ 2, 1, "non-perfect square: square root of 2" },
++	{ 3, 1, "non-perfect square: square root of 3" },
++	{ 4, 2, "perfect square: square root of 4" },
++	{ 5, 2, "non-perfect square: square root of 5" },
++	{ 6, 2, "non-perfect square: square root of 6" },
++	{ 7, 2, "non-perfect square: square root of 7" },
++	{ 8, 2, "non-perfect square: square root of 8" },
++	{ 9, 3, "perfect square: square root of 9" },
++	{ 15, 3, "non-perfect square: square root of 15 (N-1 from 16)" },
++	{ 16, 4, "perfect square: square root of 16" },
++	{ 17, 4, "non-perfect square: square root of 17 (N+1 from 16)" },
++	{ 80, 8, "non-perfect square: square root of 80 (N-1 from 81)" },
++	{ 81, 9, "perfect square: square root of 81" },
++	{ 82, 9, "non-perfect square: square root of 82 (N+1 from 81)" },
++	{ 255, 15, "non-perfect square: square root of 255 (N-1 from 256)" },
++	{ 256, 16, "perfect square: square root of 256" },
++	{ 257, 16, "non-perfect square: square root of 257 (N+1 from 256)" },
++	{ 2147483648, 46340, "large input: square root of 2147483648" },
++	{ 4294967295, 65535, "edge case: ULONG_MAX for 32-bit" },
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
++{
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(int_sqrt, params, get_desc);
++
++static void int_sqrt_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, int_sqrt(tc->x));
++}
++
++static struct kunit_case math_int_sqrt_test_cases[] = {
++	KUNIT_CASE_PARAM(int_sqrt_test, int_sqrt_gen_params),
++	{}
++};
++
++static struct kunit_suite int_sqrt_test_suite = {
++	.name = "math-int_sqrt",
++	.test_cases = math_int_sqrt_test_cases,
++};
++
++kunit_test_suites(&int_sqrt_test_suite);
++
++MODULE_DESCRIPTION("math.int_sqrt KUnit test suite");
++MODULE_LICENSE("GPL");
+--- a/lib/math/tests/Makefile~lib-math-add-int_sqrt-test-suite
++++ a/lib/math/tests/Makefile
+@@ -1,3 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
--	CPU             count     real total  virtual total    delay total  delay average
--	                    8        7000000        6872122        3382277          0.423ms
--	IO              count    delay total  delay average
--                   0              0          0.000ms
--	SWAP            count    delay total  delay average
--                       0              0          0.000ms
--	RECLAIM         count    delay total  delay average
--                   0              0          0.000ms
--	THRASHING       count    delay total  delay average
--                       0              0          0.000ms
--	COMPACT         count    delay total  delay average
--                       0              0          0.000ms
--	WPCOPY          count    delay total  delay average
--                       0              0          0.000ms
--	IRQ             count    delay total  delay average
--                       0              0          0.000ms
-+	CPU         count     real total  virtual total    delay total  delay average      delay max
-+	              239      296000000      307724885        1127792          0.005ms     0.238382ms
-+	IO          count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	SWAP        count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	RECLAIM     count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	THRASHING   count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	COMPACT     count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	WPCOPY      count    delay total  delay average      delay max
-+	              230       19100476          0.083ms     0.383822ms
-+	IRQ         count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
- 
- Get IO accounting for pid 1, it works only with -p::
- 
---- a/kernel/delayacct.c~delayacct-add-delay-max-to-record-delay-peak-fix
-+++ a/kernel/delayacct.c
-@@ -93,7 +93,7 @@ void __delayacct_tsk_init(struct task_st
- 
- /*
-  * Finish delay accounting for a statistic using its timestamps (@start),
-- * accumalator (@total) and @count
-+ * accumulator (@total) and @count
-  */
- static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
- {
+ obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
++obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += int_sqrt_kunit.o
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from luis.hernandez093@gmail.com are
 
-delayacct-add-delay-max-to-record-delay-peak.patch
-delayacct-add-delay-max-to-record-delay-peak-fix.patch
+lib-math-add-int_sqrt-test-suite.patch
 
