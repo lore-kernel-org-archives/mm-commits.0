@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF100B672
-	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:39:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 177F23D6D
+	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:45:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734136795; cv=none; b=QEJ6Z3siZLg95QwY7kSicgeIm6WGakE/v0kReSlhJai/kC1ZozxLvbOulJjms+RTRAgb6LR7lNh9wySGufGCMl7+/ekUNd3mgFXc192E4UXxNgiejfDUtBH10Rh/2R5dVtobGi5Gok4gys3jQ4SPXd/x0UWYhs6dv6+isNZt19g=
+	t=1734137145; cv=none; b=Htw+dE2kUm2/+7fXLry9bovWsV+Bb8zeqZ1uE7rZpXJOFvaiKleP4+pUHQTJNF6J1bBfQ/BafmzMf5TIsynRE6Kn5X2TwOg0TidqaKdv3qnqIZrSfYYJc+MF1wU88Mp0vcPx81QuvkP239XdZvaR1ra+1SK29tdDPgJZAbXEz7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734136795; c=relaxed/simple;
-	bh=awGYVYUjx80kgfU/Dq591u43ooPYD/zEUDswabgVa3M=;
-	h=Date:To:From:Subject:Message-Id; b=mGo/rezAvXFM946WE+gIaZOZwTPHyIN7y7gZD/SoLUkut110yDpHbP2S7OUnxc6s4dVgufemC0qSuwEnX1uipgeIE4Ap+aMZpJGbbJ4fw6GJ4r3BhMObpPoTPHqnGcpYgRABWOiw2lxyKetDl+lri5HogtMLeCFGdgo//Sx5MYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ta/jgL0p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734137145; c=relaxed/simple;
+	bh=s/o3ZW1B74Jc99gWCWMeUQZ1h3RXhqRvyQ3DW0HqTUk=;
+	h=Date:To:From:Subject:Message-Id; b=rCDdJhrqHxD8ZdtlDwM82GibImBJC+TI29Iv5rUFDgqvR5nPtk3xA2HO8DngzLb64oI8au2ge9ykKMr6JuaZ9+suiDmyEaeovXsGt+XoQXeWd+PuSeCjGw34cdlIpmsSfWyu26WbTv19aHt0oP78gU01qa0mOTUtOMIUAADm8/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DtaaqV98; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ta/jgL0p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47CB3C4CED0;
-	Sat, 14 Dec 2024 00:39:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DtaaqV98"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FAB9C4CED0;
+	Sat, 14 Dec 2024 00:45:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734136795;
-	bh=awGYVYUjx80kgfU/Dq591u43ooPYD/zEUDswabgVa3M=;
+	s=korg; t=1734137144;
+	bh=s/o3ZW1B74Jc99gWCWMeUQZ1h3RXhqRvyQ3DW0HqTUk=;
 	h=Date:To:From:Subject:From;
-	b=Ta/jgL0pAbRKIlgSVt0xGTB0AiJbF26sxXL3J9wkhr9BhZvPr+mH/w5D72vYGFRUi
-	 e+nwGA9zqLGDT8e5ZI/A8Y537ziigpjK1WUCoGE7XlIuq4egmKDsTBld2WHldXJQaE
-	 XjCY/sW8k4LvIu4mu82vFY8PqeK7JSB2bVGKt22M=
-Date: Fri, 13 Dec 2024 16:39:54 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,wang.yaxin@zte.com.cn,tu.qiang35@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,jiang.kun2@zte.com.cn,akpm@linux-foundation.org
+	b=DtaaqV98QoyMXIskRyI4f+zkcpxibeJJDdq2f1laurSatwk4y4g0gp10l8dd8gaTP
+	 dpeVyswDJYxj2gUa6SBldzeUUPg53hI6B2nXj4wcQ4cDEHW9DdvgBmU056tdYFPxeT
+	 dOmDvuOYskKW3vRuw12pQwaPqPBVHcA/P6nagq78=
+Date: Fri, 13 Dec 2024 16:45:43 -0800
+To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-update-docs-and-fix-some-spelling-errors.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241214003955.47CB3C4CED0@smtp.kernel.org>
+Subject: + delayacct-add-delay-max-to-record-delay-peak-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20241214004544.7FAB9C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -36,13 +36,13 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 The patch titled
      Subject: delayacct: update docs and fix some spelling errors
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     delayacct-update-docs-and-fix-some-spelling-errors.patch
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     delayacct-add-delay-max-to-record-delay-peak-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-update-docs-and-fix-some-spelling-errors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-delay-max-to-record-delay-peak-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,13 +58,12 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: <jiang.kun2@zte.com.cn>
+From: Yaxin Wang <wang.yaxin@zte.com.cn>
 Subject: delayacct: update docs and fix some spelling errors
 Date: Fri, 13 Dec 2024 19:27:00 +0800 (CST)
 
-
-Update delay-accounting.rst to include the 'delay max' in the output
-of getdelays, and fix some spelling errors before.
+Update delay-accounting.rst to include the 'delay max' in the output of
+getdelays, and fix some spelling errors before.
 
 Link: https://lkml.kernel.org/r/20241213192700771XKZ8H30OtHSeziGqRVMs0@zte.com.cn
 Signed-off-by: Yaxin Wang <wang.yaxin@zte.com.cn>
@@ -85,7 +84,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/delayacct.c                            |    2 
  2 files changed, 20 insertions(+), 20 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-update-docs-and-fix-some-spelling-errors
+--- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-max-to-record-delay-peak-fix
 +++ a/Documentation/accounting/delay-accounting.rst
 @@ -100,29 +100,29 @@ Get delays, since system boot, for pid 1
  	# ./getdelays -d -p 10
@@ -136,7 +135,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  Get IO accounting for pid 1, it works only with -p::
  
---- a/kernel/delayacct.c~delayacct-update-docs-and-fix-some-spelling-errors
+--- a/kernel/delayacct.c~delayacct-add-delay-max-to-record-delay-peak-fix
 +++ a/kernel/delayacct.c
 @@ -93,7 +93,7 @@ void __delayacct_tsk_init(struct task_st
  
@@ -145,11 +144,12 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 - * accumalator (@total) and @count
 + * accumulator (@total) and @count
   */
- static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count)
+ static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
  {
 _
 
-Patches currently in -mm which might be from jiang.kun2@zte.com.cn are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-delayacct-update-docs-and-fix-some-spelling-errors.patch
+delayacct-add-delay-max-to-record-delay-peak.patch
+delayacct-add-delay-max-to-record-delay-peak-fix.patch
 
