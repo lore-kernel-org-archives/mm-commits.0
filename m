@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 625C538C
-	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:34:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1523208
+	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:34:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734136446; cv=none; b=dxqEnR6zjPkdUnC1ma4Uw8U62HGFc7GcPWr+UjWLB9Bcdty429RcPqNPcsw4asKN8TXUhIjIbtURgWSFBZw9GHJiyj2JjRKdvYyNhhm/NRG5hCicXkr1dfDatQxrX3MTzNJWPbgoIcXRjnKfjTPxYIiq1eqaqBy8oBB7jOHhuyU=
+	t=1734136448; cv=none; b=NPbmwhFLlW1DKpPj8tT8ZnrJYDWBk7+LBWYe+cWn5SbHkFa1OyCiepFi/itoeEx/0eMdFX67ocS/ty3SzPrWHbgcuM/82GA2T/OdL0XvbCttFI3BXntnPArszevPMeOCcf82OlwgWeRkx7uQImHjiNjlwrAZ4109heoYdIy62cs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734136446; c=relaxed/simple;
-	bh=AJn0FBCA8RlsDqLvQx+r6vDIUYXJsAIJR2U5ORDgwAQ=;
-	h=Date:To:From:Subject:Message-Id; b=eq+1EKjcMNdtwA8aorEZvLuGPRwm0MX47f7kJSy9+6DBpy69pPJWnGWcSnN+lhLjxeDQdljb5qlEPq2teIBA3DkcCSj3awQYnxYJzsrh0jnyQ7hcYleS2Lbe3J0uQW49YnMC3NKVHWygU0/Qay2x04gjHw9NL0Wjhp+tveb8Aq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LxwCdmU7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734136448; c=relaxed/simple;
+	bh=FXHStf09VS3P9UXhRgOxqAsOqiegPApjO4BHetC+rY4=;
+	h=Date:To:From:Subject:Message-Id; b=B7G9xs7cLlX9dypLChcyNMghQAM6s7dof/hYlvGq4OLOit24Ui/pNcU8HixM7XWOOwrn1ClMYulND3M4x7xqaVqY/oyJWCwSRRoPZhRLo8amWAOsiTd+6oH40E2Om+LNZzJLhdukJ2oUMcyCi5BW7BbRVNoFZ7GEUSM/TOwBUp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BkBLakDA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LxwCdmU7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2EADC4CED0;
-	Sat, 14 Dec 2024 00:34:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BkBLakDA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0BB0C4CED0;
+	Sat, 14 Dec 2024 00:34:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734136445;
-	bh=AJn0FBCA8RlsDqLvQx+r6vDIUYXJsAIJR2U5ORDgwAQ=;
+	s=korg; t=1734136447;
+	bh=FXHStf09VS3P9UXhRgOxqAsOqiegPApjO4BHetC+rY4=;
 	h=Date:To:From:Subject:From;
-	b=LxwCdmU7QV2/ejgdx9ENtp/fWJnCA3H1kxqdoS7pwaylg2ROuIfWZee/usOKbjK4k
-	 i9DxtJFtm6Eay6pH9F8SCn1uscjOwkjAXsiqtLK6NKzUxVBaI0Vb7ZHGK2ra+Z+UZK
-	 WenJDftz3UqB/IQmOprLgfSfkYkyWDsqzEYu6EUI=
-Date: Fri, 13 Dec 2024 16:34:05 -0800
+	b=BkBLakDAQhXeqmrfFf2FHtKZ6RBa/lAId1seKwCYQLfAp3VYWU/XFrJAhgIk5mZFl
+	 daNoArJoV/BvInxCwbKNXS7d6YfP2+4L3D/KIm2ngLJZXhm3I/f9mfDw1VuzrEJSrA
+	 lK1E4AaT+p5E9bnvZki023avoafsUFDSgpBQWU7U=
+Date: Fri, 13 Dec 2024 16:34:07 -0800
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,mszeredi@redhat.com,josef@toxicpanda.com,jefflexu@linux.alibaba.com,bernd.schubert@fastmail.fm,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-as_writeback_indeterminate-mapping-flag.patch added to mm-unstable branch
-Message-Id: <20241214003405.C2EADC4CED0@smtp.kernel.org>
+Subject: + mm-skip-reclaiming-folios-in-legacy-memcg-writeback-indeterminate-contexts.patch added to mm-unstable branch
+Message-Id: <20241214003407.D0BB0C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add AS_WRITEBACK_INDETERMINATE mapping flag
+     Subject: mm: skip reclaiming folios in legacy memcg writeback indeterminate contexts
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-as_writeback_indeterminate-mapping-flag.patch
+     mm-skip-reclaiming-folios-in-legacy-memcg-writeback-indeterminate-contexts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-as_writeback_indeterminate-mapping-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-skip-reclaiming-folios-in-legacy-memcg-writeback-indeterminate-contexts.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Joanne Koong <joannelkoong@gmail.com>
-Subject: mm: add AS_WRITEBACK_INDETERMINATE mapping flag
-Date: Fri, 22 Nov 2024 15:23:55 -0800
+Subject: mm: skip reclaiming folios in legacy memcg writeback indeterminate contexts
+Date: Fri, 22 Nov 2024 15:23:56 -0800
 
-Patch series "fuse: remove temp page copies in writeback", v6.
+Currently in shrink_folio_list(), reclaim for folios under writeback falls
+into 3 different cases:
 
-The purpose of this patchset is to help make writeback-cache write
-performance in FUSE filesystems as fast as possible.
+1) Reclaim is encountering an excessive number of folios under
+   writeback and this folio has both the writeback and reclaim flags
+   set
+2) Dirty throttling is enabled (this happens if reclaim through cgroup
+   is not enabled, if reclaim through cgroupv2 memcg is enabled, or
+   if reclaim is on the root cgroup), or if the folio is not marked for
+   immediate reclaim, or if the caller does not have __GFP_FS (or
+   __GFP_IO if it's going to swap) set
+3) Legacy cgroupv1 encounters a folio that already has the reclaim flag
+   set and the caller did not have __GFP_FS (or __GFP_IO if swap) set
 
-In the current FUSE writeback design (see commit 3be5a52b30aa ("fuse:
-support writable mmap"))), a temp page is allocated for every dirty page
-to be written back, the contents of the dirty page are copied over to the
-temp page, and the temp page gets handed to the server to write back. 
-This is done so that writeback may be immediately cleared on the dirty
-page, and this in turn is done for two reasons:
+In cases 1) and 2), we activate the folio and skip reclaiming it while in
+case 3), we wait for writeback to finish on the folio and then try to
+reclaim the folio again.  In case 3, we wait on writeback because cgroupv1
+does not have dirty folio throttling, as such this is a mitigation against
+the case where there are too many folios in writeback with nothing else to
+reclaim.
 
-a) in order to mitigate the following deadlock scenario that may arise
-   if reclaim waits on writeback on the dirty page to complete (more
-   details can be found in this thread [1]):
+For filesystems where writeback may take an indeterminate amount of time
+to write to disk, this has the possibility of stalling reclaim.
 
-   * single-threaded FUSE server is in the middle of handling a request
-     that needs a memory allocation
-   * memory allocation triggers direct reclaim
-   * direct reclaim waits on a folio under writeback
-   * the FUSE server can't write back the folio since it's stuck in
-     direct reclaim
+In this commit, if legacy memcg encounters a folio with the reclaim flag
+set (eg case 3) and the folio belongs to a mapping that has the
+AS_WRITEBACK_INDETERMINATE flag set, the folio will be activated and skip
+reclaim (eg default to behavior in case 2) instead.
 
-b) in order to unblock internal (eg sync, page compaction) waits on
-   writeback without needing the server to complete writing back to disk,
-   which may take an indeterminate amount of time.
-
-Allocating and copying dirty pages to temp pages is the biggest
-performance bottleneck for FUSE writeback.  This patchset aims to get rid
-of the temp page altogether (which will also allow us to get rid of the
-internal FUSE rb tree that is needed to keep track of writeback status on
-the temp pages).  Benchmarks show approximately a 20% improvement in
-throughput for 4k block-size writes and a 45% improvement for 1M
-block-size writes.
-
-With removing the temp page, writeback state is now only cleared on the
-dirty page after the server has written it back to disk.  This may take an
-indeterminate amount of time.  As well, there is also the possibility of
-malicious or well-intentioned but buggy servers where writeback may in the
-worst case scenario, never complete.  This means that any
-folio_wait_writeback() on a dirty page belonging to a FUSE filesystem
-needs to be carefully audited.
-
-In particular, these are the cases that need to be accounted for:
-* potentially deadlocking in reclaim, as mentioned above
-* potentially stalling sync(2)
-* potentially stalling page migration / compaction
-
-This patchset adds a new mapping flag, AS_WRITEBACK_INDETERMINATE, which
-filesystems may set on its inode mappings to indicate that writeback
-operations may take an indeterminate amount of time to complete.  FUSE
-will set this flag on its mappings.  This patchset adds checks to the
-critical parts of reclaim, sync, and page migration logic where writeback
-may be waited on.
-
-Please note the following:
-* For sync(2), waiting on writeback will be skipped for FUSE, but this has no
-  effect on existing behavior. Dirty FUSE pages are already not guaranteed to
-  be written to disk by the time sync(2) returns (eg writeback is cleared on
-  the dirty page but the server may not have written out the temp page to disk
-  yet). If the caller wishes to ensure the data has actually been synced to
-  disk, they should use fsync(2)/fdatasync(2) instead.
-* AS_WRITEBACK_INDETERMINATE does not indicate that the folios should never be
-  waited on when in writeback. There are some cases where the wait is
-  desirable. For example, for the sync_file_range() syscall, it is fine to
-  wait on the writeback since the caller passes in a fd for the operation.
-
-[1] https://lore.kernel.org/linux-kernel/495d2400-1d96-4924-99d3-8b2952e05fc3@linux.alibaba.com/
-
-
-This patch (of 5):
-
-Add a new mapping flag AS_WRITEBACK_INDETERMINATE which filesystems may
-set to indicate that writing back to disk may take an indeterminate amount
-of time to complete.  Extra caution should be taken when waiting on
-writeback for folios belonging to mappings where this flag is set.
-
-Link: https://lkml.kernel.org/r/20241122232359.429647-1-joannelkoong@gmail.com
-Link: https://lkml.kernel.org/r/20241122232359.429647-2-joannelkoong@gmail.com
+Link: https://lkml.kernel.org/r/20241122232359.429647-3-joannelkoong@gmail.com
 Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Miklos Szeredi <mszeredi@redhat.com>
@@ -150,36 +101,42 @@ Cc: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/vmscan.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/include/linux/pagemap.h~mm-add-as_writeback_indeterminate-mapping-flag
-+++ a/include/linux/pagemap.h
-@@ -210,6 +210,7 @@ enum mapping_flags {
- 	AS_STABLE_WRITES = 7,	/* must wait for writeback before modifying
- 				   folio contents */
- 	AS_INACCESSIBLE = 8,	/* Do not attempt direct R/W access to the mapping */
-+	AS_WRITEBACK_INDETERMINATE = 9, /* Use caution when waiting on writeback */
- 	/* Bits 16-25 are used for FOLIO_ORDER */
- 	AS_FOLIO_ORDER_BITS = 5,
- 	AS_FOLIO_ORDER_MIN = 16,
-@@ -335,6 +336,16 @@ static inline bool mapping_inaccessible(
- 	return test_bit(AS_INACCESSIBLE, &mapping->flags);
- }
- 
-+static inline void mapping_set_writeback_indeterminate(struct address_space *mapping)
-+{
-+	set_bit(AS_WRITEBACK_INDETERMINATE, &mapping->flags);
-+}
+--- a/mm/vmscan.c~mm-skip-reclaiming-folios-in-legacy-memcg-writeback-indeterminate-contexts
++++ a/mm/vmscan.c
+@@ -1165,8 +1165,9 @@ retry:
+ 		 * 2) Global or new memcg reclaim encounters a folio that is
+ 		 *    not marked for immediate reclaim, or the caller does not
+ 		 *    have __GFP_FS (or __GFP_IO if it's simply going to swap,
+-		 *    not to fs). In this case mark the folio for immediate
+-		 *    reclaim and continue scanning.
++		 *    not to fs), or the writeback may take an indeterminate
++		 *    amount of time to complete. In this case mark the folio
++		 *    for immediate reclaim and continue scanning.
+ 		 *
+ 		 *    Require may_enter_fs() because we would wait on fs, which
+ 		 *    may not have submitted I/O yet. And the loop driver might
+@@ -1191,6 +1192,8 @@ retry:
+ 		 * takes to write them to disk.
+ 		 */
+ 		if (folio_test_writeback(folio)) {
++			mapping = folio_mapping(folio);
 +
-+static inline bool mapping_writeback_indeterminate(struct address_space *mapping)
-+{
-+	return test_bit(AS_WRITEBACK_INDETERMINATE, &mapping->flags);
-+}
-+
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
- {
- 	return mapping->gfp_mask;
+ 			/* Case 1 above */
+ 			if (current_is_kswapd() &&
+ 			    folio_test_reclaim(folio) &&
+@@ -1201,7 +1204,8 @@ retry:
+ 			/* Case 2 above */
+ 			} else if (writeback_throttling_sane(sc) ||
+ 			    !folio_test_reclaim(folio) ||
+-			    !may_enter_fs(folio, sc->gfp_mask)) {
++			    !may_enter_fs(folio, sc->gfp_mask) ||
++			    (mapping && mapping_writeback_indeterminate(mapping))) {
+ 				/*
+ 				 * This is slightly racy -
+ 				 * folio_end_writeback() might have
 _
 
 Patches currently in -mm which might be from joannelkoong@gmail.com are
