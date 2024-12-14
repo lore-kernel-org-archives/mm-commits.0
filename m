@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D9FD366
-	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:25:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 625C538C
+	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:34:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734135928; cv=none; b=N7m/iMOKr/zZSbnxK4CPMDo6veh/i0JtBVzJLPG4cqmeQpg7FdVAjRosoOnZIDr9Y9pyErAaB8uLW+T2j2k/I3y1A9JrFJ5dSmOSspCCOm1BjoTsEt5Hbq1S1GdC6FqgN0NF/p4tbO1EpT78OpW6Az5LYpYo8vy5hKtw81qI1X8=
+	t=1734136446; cv=none; b=dxqEnR6zjPkdUnC1ma4Uw8U62HGFc7GcPWr+UjWLB9Bcdty429RcPqNPcsw4asKN8TXUhIjIbtURgWSFBZw9GHJiyj2JjRKdvYyNhhm/NRG5hCicXkr1dfDatQxrX3MTzNJWPbgoIcXRjnKfjTPxYIiq1eqaqBy8oBB7jOHhuyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734135928; c=relaxed/simple;
-	bh=GJQfs1OqW5kPDWgTcEzIaTrEv8IHkwO6+UOft1PXvok=;
-	h=Date:To:From:Subject:Message-Id; b=q+g3/Td/roYDNHLj9cI1PU2Kei6wnfMATm6+MbYB0chlmKcmbTdbZqxo4xhz2l47+MTeH67krAk5nQM0SVSm+p2B41Hh3efhh7l756D5SDFhj1N5O8OyB9Ct1XsYzyLbBDjiKgAuMrNbB3/8C/ZjJH0oLQJyQELbhyAUyKnk37k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+1XLSgj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734136446; c=relaxed/simple;
+	bh=AJn0FBCA8RlsDqLvQx+r6vDIUYXJsAIJR2U5ORDgwAQ=;
+	h=Date:To:From:Subject:Message-Id; b=eq+1EKjcMNdtwA8aorEZvLuGPRwm0MX47f7kJSy9+6DBpy69pPJWnGWcSnN+lhLjxeDQdljb5qlEPq2teIBA3DkcCSj3awQYnxYJzsrh0jnyQ7hcYleS2Lbe3J0uQW49YnMC3NKVHWygU0/Qay2x04gjHw9NL0Wjhp+tveb8Aq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LxwCdmU7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+1XLSgj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACCBDC4CED0;
-	Sat, 14 Dec 2024 00:25:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LxwCdmU7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2EADC4CED0;
+	Sat, 14 Dec 2024 00:34:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734135927;
-	bh=GJQfs1OqW5kPDWgTcEzIaTrEv8IHkwO6+UOft1PXvok=;
+	s=korg; t=1734136445;
+	bh=AJn0FBCA8RlsDqLvQx+r6vDIUYXJsAIJR2U5ORDgwAQ=;
 	h=Date:To:From:Subject:From;
-	b=G+1XLSgjmiD12/JiKH5b9eex1B0NDFmzjA52RrqcmurWiFMOOHC5Pk+BAYrhPzINl
-	 wQJjjWYXiB8iB0Uu09ETZLzkY6Ag2DzffWMF3de70pqveHhN5vvCjGToCVnp/miaWR
-	 wV/o+9eNfEzG2NNWWXsnR7liItbLrVlenqAsuptI=
-Date: Fri, 13 Dec 2024 16:25:26 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,rdunlap@infradead.org,corbet@lwn.net,bagasdotme@gmail.com,tamird@gmail.com,akpm@linux-foundation.org
+	b=LxwCdmU7QV2/ejgdx9ENtp/fWJnCA3H1kxqdoS7pwaylg2ROuIfWZee/usOKbjK4k
+	 i9DxtJFtm6Eay6pH9F8SCn1uscjOwkjAXsiqtLK6NKzUxVBaI0Vb7ZHGK2ra+Z+UZK
+	 WenJDftz3UqB/IQmOprLgfSfkYkyWDsqzEYu6EUI=
+Date: Fri, 13 Dec 2024 16:34:05 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,mszeredi@redhat.com,josef@toxicpanda.com,jefflexu@linux.alibaba.com,bernd.schubert@fastmail.fm,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-minor-documentation-improvements.patch added to mm-nonmm-unstable branch
-Message-Id: <20241214002527.ACCBDC4CED0@smtp.kernel.org>
+Subject: + mm-add-as_writeback_indeterminate-mapping-flag.patch added to mm-unstable branch
+Message-Id: <20241214003405.C2EADC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: XArray: minor documentation improvements
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xarray-minor-documentation-improvements.patch
+     Subject: mm: add AS_WRITEBACK_INDETERMINATE mapping flag
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-as_writeback_indeterminate-mapping-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-minor-documentation-improvements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-as_writeback_indeterminate-mapping-flag.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,135 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tamir Duberstein <tamird@gmail.com>
-Subject: XArray: minor documentation improvements
-Date: Tue, 05 Nov 2024 08:03:42 -0400
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: mm: add AS_WRITEBACK_INDETERMINATE mapping flag
+Date: Fri, 22 Nov 2024 15:23:55 -0800
 
-- Replace "they" with "you" where "you" is used in the preceding
-  sentence fragment.
-- Mention `xa_erase` in discussion of multi-index entries.  Split this
-  into a separate sentence.
-- Add "call" parentheses on "xa_store" for consistency and
-  linkification.
-- Add caveat that `xa_store` and `xa_erase` are not equivalent in the
-  presence of `XA_FLAGS_ALLOC`.
+Patch series "fuse: remove temp page copies in writeback", v6.
 
-Link: https://lkml.kernel.org/r/20241105-xarray-documentation-v5-1-8e1702321b41@gmail.com
-Signed-off-by: Tamir Duberstein <tamird@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
+The purpose of this patchset is to help make writeback-cache write
+performance in FUSE filesystems as fast as possible.
+
+In the current FUSE writeback design (see commit 3be5a52b30aa ("fuse:
+support writable mmap"))), a temp page is allocated for every dirty page
+to be written back, the contents of the dirty page are copied over to the
+temp page, and the temp page gets handed to the server to write back. 
+This is done so that writeback may be immediately cleared on the dirty
+page, and this in turn is done for two reasons:
+
+a) in order to mitigate the following deadlock scenario that may arise
+   if reclaim waits on writeback on the dirty page to complete (more
+   details can be found in this thread [1]):
+
+   * single-threaded FUSE server is in the middle of handling a request
+     that needs a memory allocation
+   * memory allocation triggers direct reclaim
+   * direct reclaim waits on a folio under writeback
+   * the FUSE server can't write back the folio since it's stuck in
+     direct reclaim
+
+b) in order to unblock internal (eg sync, page compaction) waits on
+   writeback without needing the server to complete writing back to disk,
+   which may take an indeterminate amount of time.
+
+Allocating and copying dirty pages to temp pages is the biggest
+performance bottleneck for FUSE writeback.  This patchset aims to get rid
+of the temp page altogether (which will also allow us to get rid of the
+internal FUSE rb tree that is needed to keep track of writeback status on
+the temp pages).  Benchmarks show approximately a 20% improvement in
+throughput for 4k block-size writes and a 45% improvement for 1M
+block-size writes.
+
+With removing the temp page, writeback state is now only cleared on the
+dirty page after the server has written it back to disk.  This may take an
+indeterminate amount of time.  As well, there is also the possibility of
+malicious or well-intentioned but buggy servers where writeback may in the
+worst case scenario, never complete.  This means that any
+folio_wait_writeback() on a dirty page belonging to a FUSE filesystem
+needs to be carefully audited.
+
+In particular, these are the cases that need to be accounted for:
+* potentially deadlocking in reclaim, as mentioned above
+* potentially stalling sync(2)
+* potentially stalling page migration / compaction
+
+This patchset adds a new mapping flag, AS_WRITEBACK_INDETERMINATE, which
+filesystems may set on its inode mappings to indicate that writeback
+operations may take an indeterminate amount of time to complete.  FUSE
+will set this flag on its mappings.  This patchset adds checks to the
+critical parts of reclaim, sync, and page migration logic where writeback
+may be waited on.
+
+Please note the following:
+* For sync(2), waiting on writeback will be skipped for FUSE, but this has no
+  effect on existing behavior. Dirty FUSE pages are already not guaranteed to
+  be written to disk by the time sync(2) returns (eg writeback is cleared on
+  the dirty page but the server may not have written out the temp page to disk
+  yet). If the caller wishes to ensure the data has actually been synced to
+  disk, they should use fsync(2)/fdatasync(2) instead.
+* AS_WRITEBACK_INDETERMINATE does not indicate that the folios should never be
+  waited on when in writeback. There are some cases where the wait is
+  desirable. For example, for the sync_file_range() syscall, it is fine to
+  wait on the writeback since the caller passes in a fd for the operation.
+
+[1] https://lore.kernel.org/linux-kernel/495d2400-1d96-4924-99d3-8b2952e05fc3@linux.alibaba.com/
+
+
+This patch (of 5):
+
+Add a new mapping flag AS_WRITEBACK_INDETERMINATE which filesystems may
+set to indicate that writing back to disk may take an indeterminate amount
+of time to complete.  Extra caution should be taken when waiting on
+writeback for folios belonging to mappings where this flag is set.
+
+Link: https://lkml.kernel.org/r/20241122232359.429647-1-joannelkoong@gmail.com
+Link: https://lkml.kernel.org/r/20241122232359.429647-2-joannelkoong@gmail.com
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Bernd Schubert <bernd.schubert@fastmail.fm>
+Cc: Jingbo Xu <jefflexu@linux.alibaba.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/xarray.rst |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ include/linux/pagemap.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/Documentation/core-api/xarray.rst~xarray-minor-documentation-improvements
-+++ a/Documentation/core-api/xarray.rst
-@@ -42,8 +42,8 @@ call xa_tag_pointer() to create an entry
- to turn a tagged entry back into an untagged pointer and xa_pointer_tag()
- to retrieve the tag of an entry.  Tagged pointers use the same bits that
- are used to distinguish value entries from normal pointers, so you must
--decide whether they want to store value entries or tagged pointers in
--any particular XArray.
-+decide whether you want to store value entries or tagged pointers in any
-+particular XArray.
+--- a/include/linux/pagemap.h~mm-add-as_writeback_indeterminate-mapping-flag
++++ a/include/linux/pagemap.h
+@@ -210,6 +210,7 @@ enum mapping_flags {
+ 	AS_STABLE_WRITES = 7,	/* must wait for writeback before modifying
+ 				   folio contents */
+ 	AS_INACCESSIBLE = 8,	/* Do not attempt direct R/W access to the mapping */
++	AS_WRITEBACK_INDETERMINATE = 9, /* Use caution when waiting on writeback */
+ 	/* Bits 16-25 are used for FOLIO_ORDER */
+ 	AS_FOLIO_ORDER_BITS = 5,
+ 	AS_FOLIO_ORDER_MIN = 16,
+@@ -335,6 +336,16 @@ static inline bool mapping_inaccessible(
+ 	return test_bit(AS_INACCESSIBLE, &mapping->flags);
+ }
  
- The XArray does not support storing IS_ERR() pointers as some
- conflict with value entries or internal entries.
-@@ -52,8 +52,9 @@ An unusual feature of the XArray is the
- occupy a range of indices.  Once stored to, looking up any index in
- the range will return the same entry as looking up any other index in
- the range.  Storing to any index will store to all of them.  Multi-index
--entries can be explicitly split into smaller entries, or storing ``NULL``
--into any entry will cause the XArray to forget about the range.
-+entries can be explicitly split into smaller entries. Unsetting (using
-+xa_erase() or xa_store() with ``NULL``) any entry will cause the XArray
-+to forget about the range.
- 
- Normal API
- ==========
-@@ -63,13 +64,14 @@ for statically allocated XArrays or xa_i
- allocated ones.  A freshly-initialised XArray contains a ``NULL``
- pointer at every index.
- 
--You can then set entries using xa_store() and get entries
--using xa_load().  xa_store will overwrite any entry with the
--new entry and return the previous entry stored at that index.  You can
--use xa_erase() instead of calling xa_store() with a
--``NULL`` entry.  There is no difference between an entry that has never
--been stored to, one that has been erased and one that has most recently
--had ``NULL`` stored to it.
-+You can then set entries using xa_store() and get entries using
-+xa_load().  xa_store() will overwrite any entry with the new entry and
-+return the previous entry stored at that index.  You can unset entries
-+using xa_erase() or by setting the entry to ``NULL`` using xa_store().
-+There is no difference between an entry that has never been stored to
-+and one that has been erased with xa_erase(); an entry that has most
-+recently had ``NULL`` stored to it is also equivalent except if the
-+XArray was initialized with ``XA_FLAGS_ALLOC``.
- 
- You can conditionally replace an entry at an index by using
- xa_cmpxchg().  Like cmpxchg(), it will only succeed if
++static inline void mapping_set_writeback_indeterminate(struct address_space *mapping)
++{
++	set_bit(AS_WRITEBACK_INDETERMINATE, &mapping->flags);
++}
++
++static inline bool mapping_writeback_indeterminate(struct address_space *mapping)
++{
++	return test_bit(AS_WRITEBACK_INDETERMINATE, &mapping->flags);
++}
++
+ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
+ {
+ 	return mapping->gfp_mask;
 _
 
-Patches currently in -mm which might be from tamird@gmail.com are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-xarray-extract-xa_zero_to_null.patch
-xarray-extract-helper-from-__xa_insertcmpxchg.patch
-xarray-extract-helper-from-__xa_insertcmpxchg-fix.patch
-xarray-port-tests-to-kunit.patch
-checkpatch-check-return-of-git_commit_info.patch
-xarray-minor-documentation-improvements.patch
+mm-add-as_writeback_indeterminate-mapping-flag.patch
+mm-skip-reclaiming-folios-in-legacy-memcg-writeback-indeterminate-contexts.patch
+fs-writeback-in-wait_sb_inodes-skip-wait-for-as_writeback_indeterminate-mappings.patch
+mm-migrate-skip-migrating-folios-under-writeback-with-as_writeback_indeterminate-mappings.patch
+fuse-remove-tmp-folio-for-writebacks-and-internal-rb-tree.patch
 
