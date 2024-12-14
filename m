@@ -1,90 +1,143 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07D8C18BC0F
-	for <mm-commits@vger.kernel.org>; Fri, 13 Dec 2024 06:40:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D9FD366
+	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:25:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734072019; cv=none; b=FDQwwScLfoa3jTeYl2oQFoIwInS0Bd76AX74SYzSme+Faa4NblYfXFjHUGXBnWO154QWtgj5v6ilee3BDbLJQ1jooE6V6T2M18bISHa6ydiixfw1bjKgoWWrj1nxKwLTND1xeADy30+zR/f5AQJT27zDT29Svnl3K5pfWOdwsQk=
+	t=1734135928; cv=none; b=N7m/iMOKr/zZSbnxK4CPMDo6veh/i0JtBVzJLPG4cqmeQpg7FdVAjRosoOnZIDr9Y9pyErAaB8uLW+T2j2k/I3y1A9JrFJ5dSmOSspCCOm1BjoTsEt5Hbq1S1GdC6FqgN0NF/p4tbO1EpT78OpW6Az5LYpYo8vy5hKtw81qI1X8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734072019; c=relaxed/simple;
-	bh=YZ4N8NE3ukddsy64hRsAkOmO32T5a/k/Tkl/h+tZx+c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Xkd6ek2evfuDBlnGs950m6disp6yyXsH1LMnin1TSZOFhstmeyQN2yU7kQrgnvagl+sIFD6G9k6OZRrFGxcBO07bl1xbjUjvRqrXjoSbJVPAod39JKsmOAPKd8zcl3acUYsUWDJHVJHffeXJa2OUeWSBFiUZ8ZdU+lHubwg7YTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=ZGZZK/7Q; arc=none smtp.client-ip=209.85.214.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1734135928; c=relaxed/simple;
+	bh=GJQfs1OqW5kPDWgTcEzIaTrEv8IHkwO6+UOft1PXvok=;
+	h=Date:To:From:Subject:Message-Id; b=q+g3/Td/roYDNHLj9cI1PU2Kei6wnfMATm6+MbYB0chlmKcmbTdbZqxo4xhz2l47+MTeH67krAk5nQM0SVSm+p2B41Hh3efhh7l756D5SDFhj1N5O8OyB9Ct1XsYzyLbBDjiKgAuMrNbB3/8C/ZjJH0oLQJyQELbhyAUyKnk37k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+1XLSgj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ZGZZK/7Q"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-21649a7bcdcso13924765ad.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Dec 2024 22:40:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1734072017; x=1734676817; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=EYra4WLBik/qk2CTypUbNS7MwOB8IWprDYcVUfZtL5U=;
-        b=ZGZZK/7QD54hNr6wupLEZGzMzNmXFzk0hoA680y/9gdZOjQ+xRfeNyjtoiQuflzzz+
-         bU36NHLfmWxoPLtFm9f1zRG4mLdD7nDtAWJWHpDZRy9J4g5Iv3EQ6fagCiXm1Br0OJ2r
-         Qfd9AAGj0wV3P0rUhfFXT9x4KGzm/Ewhbf+BE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1734072017; x=1734676817;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=EYra4WLBik/qk2CTypUbNS7MwOB8IWprDYcVUfZtL5U=;
-        b=oy1TFRgtj/vBQFQGrW/iXJ0ryOQIJ4lwgsoIk8PstNr07+jAS96sPlAzuQEPdYqIlj
-         9AeZCrb6VVcrgt3FSjbDmIMTB7/uovxGn3xPEjluxzz/tGGsBsaqfh+fr0/VNy2+2uR0
-         qHyFyDXM++I8LD5Oa2GEu+cLBiW8tHlH5kSbYzPtsXIzichNL9IUfYOqDDJEVniBKkoE
-         7zIvcRtKQzaUPOk8cmSmkACxwrWbAgj3t4E33Au2nEiBTWv3VASN+8k5Rwej5cxRDQja
-         NklsFYEbRWO6F/v11GQ/bcAB/glR0dchvqQl6dvBA0ZooPhOYQ2mtIzs8t05cUvpM+Cj
-         skMg==
-X-Forwarded-Encrypted: i=1; AJvYcCXKS0Himnz14z6elABhcDgedYz9x8PSVVv8jng5zZ4uYzvgVDKH5JfLXSeS5v9ZD70Ub6ET6GZKtLO/@vger.kernel.org
-X-Gm-Message-State: AOJu0YxTGh6W5zjYDPPyWrArTPSQslBvXWnAjDQA6psoTtE1n1IJufcS
-	czkCqBdskO5AIbpeVxBsctSXQjCuKaDq9wwvXmmMlbRAr6M45ZhVR9uJBTyqtqg0bwDZGsGeugk
-	=
-X-Gm-Gg: ASbGnctOW5FQK37BxEkw0kttPYD4eGK5zNH37JRSXQHpQc3G+C/bbC4/Uj3vMkATq22
-	EqEusQjPcjVMrYl+4qF9VAhIyks6xNWagzkXcBJJqa03gr+zjmFDIPA2DN2w9GX3kKVh17/edEs
-	1aAs0f08D0T6j2+kJ+/LFF8//okQnepjK1KtEI/u2GVbn2Z7rJqyWynOIcxxrmjKV47hOL77RgL
-	fw3szdAcwfVwZ5ZWj7+hV+JnJ/vr1Ay5+6kFo3Bt9Ttfr59uRDwDJ0Ms44n
-X-Google-Smtp-Source: AGHT+IF1/MXSU/dPzvdN4HhvPI/631oOjb7h/AHDY0BSBNjcjW6nmDgxdBYXYnxWN2dlsh9Z9RZCzA==
-X-Received: by 2002:a17:902:e748:b0:215:577b:ab77 with SMTP id d9443c01a7336-21892a40509mr21396905ad.39.1734072017384;
-        Thu, 12 Dec 2024 22:40:17 -0800 (PST)
-Received: from google.com ([2401:fa00:8f:203:2d7e:d20a:98ca:2039])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2166fc21dd6sm57744615ad.123.2024.12.12.22.40.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Dec 2024 22:40:16 -0800 (PST)
-Date: Fri, 13 Dec 2024 15:40:12 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: caiqingfu <baicaiaichibaicai@gmail.com>
-Cc: caiqingfu <baicaiaichibaicai@gmail.com>, akpm@linux-foundation.org, 
-	caiqingfu@ruijie.com.cn, minchan@kernel.org, mm-commits@vger.kernel.org, 
-	Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Re: [PATCH] zram: panic when use ext4 over zram
-Message-ID: <gxxr7y3honggqff4fgmss3v3hcnwplywkhce7al47ji3rzql5c@l3g6c6kpzzwg>
-References: <5qmps6mcifydwtnsynxdtipaoerjrnjlpo6gztxfdryn37bvws@fp2xqjmiews5>
- <20241213055630.163185-1-baicaiaichibaicai@gmail.com>
- <ix3p5j34pjke3tf7pmt23vnjsvejcgdlycmz6nnjxtewjn6pzd@wfjkarwokcox>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+1XLSgj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACCBDC4CED0;
+	Sat, 14 Dec 2024 00:25:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1734135927;
+	bh=GJQfs1OqW5kPDWgTcEzIaTrEv8IHkwO6+UOft1PXvok=;
+	h=Date:To:From:Subject:From;
+	b=G+1XLSgjmiD12/JiKH5b9eex1B0NDFmzjA52RrqcmurWiFMOOHC5Pk+BAYrhPzINl
+	 wQJjjWYXiB8iB0Uu09ETZLzkY6Ag2DzffWMF3de70pqveHhN5vvCjGToCVnp/miaWR
+	 wV/o+9eNfEzG2NNWWXsnR7liItbLrVlenqAsuptI=
+Date: Fri, 13 Dec 2024 16:25:26 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,rdunlap@infradead.org,corbet@lwn.net,bagasdotme@gmail.com,tamird@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + xarray-minor-documentation-improvements.patch added to mm-nonmm-unstable branch
+Message-Id: <20241214002527.ACCBDC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ix3p5j34pjke3tf7pmt23vnjsvejcgdlycmz6nnjxtewjn6pzd@wfjkarwokcox>
 
-On (24/12/13 15:28), Sergey Senozhatsky wrote:
-> The data must not change.  That's the only "must" thing.  zram
-> cannot and must not tolerate buggy upper layer that do not respect
-> BLK_FEAT_STABLE_WRITES.
 
-The solution (per [1]) is
+The patch titled
+     Subject: XArray: minor documentation improvements
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xarray-minor-documentation-improvements.patch
 
-"we need to teach the buffer cache writeback code to issue writes
-through a bounce buffer if the device requires stable writes."
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-minor-documentation-improvements.patch
 
-Unless somebody is already working on it (I'm not aware of that),
-please feel free to submit a patch, that would be highly appreciated.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-[1] https://lore.kernel.org/linux-fsdevel/20241212140437.GD1265540@mit.edu
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Tamir Duberstein <tamird@gmail.com>
+Subject: XArray: minor documentation improvements
+Date: Tue, 05 Nov 2024 08:03:42 -0400
+
+- Replace "they" with "you" where "you" is used in the preceding
+  sentence fragment.
+- Mention `xa_erase` in discussion of multi-index entries.  Split this
+  into a separate sentence.
+- Add "call" parentheses on "xa_store" for consistency and
+  linkification.
+- Add caveat that `xa_store` and `xa_erase` are not equivalent in the
+  presence of `XA_FLAGS_ALLOC`.
+
+Link: https://lkml.kernel.org/r/20241105-xarray-documentation-v5-1-8e1702321b41@gmail.com
+Signed-off-by: Tamir Duberstein <tamird@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/core-api/xarray.rst |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
+
+--- a/Documentation/core-api/xarray.rst~xarray-minor-documentation-improvements
++++ a/Documentation/core-api/xarray.rst
+@@ -42,8 +42,8 @@ call xa_tag_pointer() to create an entry
+ to turn a tagged entry back into an untagged pointer and xa_pointer_tag()
+ to retrieve the tag of an entry.  Tagged pointers use the same bits that
+ are used to distinguish value entries from normal pointers, so you must
+-decide whether they want to store value entries or tagged pointers in
+-any particular XArray.
++decide whether you want to store value entries or tagged pointers in any
++particular XArray.
+ 
+ The XArray does not support storing IS_ERR() pointers as some
+ conflict with value entries or internal entries.
+@@ -52,8 +52,9 @@ An unusual feature of the XArray is the
+ occupy a range of indices.  Once stored to, looking up any index in
+ the range will return the same entry as looking up any other index in
+ the range.  Storing to any index will store to all of them.  Multi-index
+-entries can be explicitly split into smaller entries, or storing ``NULL``
+-into any entry will cause the XArray to forget about the range.
++entries can be explicitly split into smaller entries. Unsetting (using
++xa_erase() or xa_store() with ``NULL``) any entry will cause the XArray
++to forget about the range.
+ 
+ Normal API
+ ==========
+@@ -63,13 +64,14 @@ for statically allocated XArrays or xa_i
+ allocated ones.  A freshly-initialised XArray contains a ``NULL``
+ pointer at every index.
+ 
+-You can then set entries using xa_store() and get entries
+-using xa_load().  xa_store will overwrite any entry with the
+-new entry and return the previous entry stored at that index.  You can
+-use xa_erase() instead of calling xa_store() with a
+-``NULL`` entry.  There is no difference between an entry that has never
+-been stored to, one that has been erased and one that has most recently
+-had ``NULL`` stored to it.
++You can then set entries using xa_store() and get entries using
++xa_load().  xa_store() will overwrite any entry with the new entry and
++return the previous entry stored at that index.  You can unset entries
++using xa_erase() or by setting the entry to ``NULL`` using xa_store().
++There is no difference between an entry that has never been stored to
++and one that has been erased with xa_erase(); an entry that has most
++recently had ``NULL`` stored to it is also equivalent except if the
++XArray was initialized with ``XA_FLAGS_ALLOC``.
+ 
+ You can conditionally replace an entry at an index by using
+ xa_cmpxchg().  Like cmpxchg(), it will only succeed if
+_
+
+Patches currently in -mm which might be from tamird@gmail.com are
+
+xarray-extract-xa_zero_to_null.patch
+xarray-extract-helper-from-__xa_insertcmpxchg.patch
+xarray-extract-helper-from-__xa_insertcmpxchg-fix.patch
+xarray-port-tests-to-kunit.patch
+checkpatch-check-return-of-git_commit_info.patch
+xarray-minor-documentation-improvements.patch
+
