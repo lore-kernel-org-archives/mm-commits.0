@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 118BF6AA7
-	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:36:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF100B672
+	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:39:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734136594; cv=none; b=U2NbyvVfw3R61egtNwPXXcA8AzV3EXK9+wAAcu6Q9ZAoHOdnWKBJlyqLtzPhSeNOVxkBAOFnVZxF+riDe4FLRWc3bEKxs58IMFO4RRqWagZ3NB05XK5aSBZCpYbiXGaveDkM/aXxFpRO7oPSSfArCFvNCPBfESKhwwuuWyMX3gI=
+	t=1734136795; cv=none; b=QEJ6Z3siZLg95QwY7kSicgeIm6WGakE/v0kReSlhJai/kC1ZozxLvbOulJjms+RTRAgb6LR7lNh9wySGufGCMl7+/ekUNd3mgFXc192E4UXxNgiejfDUtBH10Rh/2R5dVtobGi5Gok4gys3jQ4SPXd/x0UWYhs6dv6+isNZt19g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734136594; c=relaxed/simple;
-	bh=flQGr35m0FOoUBsf3iPEfzsy2UGMSmVnVKfnAOmm0BE=;
-	h=Date:To:From:Subject:Message-Id; b=KjpmGjp3dlmfsNi382uEAxKy5MEhlLnizXUaVpnPKeWr1+FjSZN+9PK6x3gxCsxT4Lc0KaVeSDvbijG6QSOR13nfP39hf34SEi0T4DuI0pbEOwMekqJ2hxXmHuq48Xg6qGHiF/5T0nURajm8JM6muaj//ZnODyoxJPOgtpGrxMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYTXpX5H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734136795; c=relaxed/simple;
+	bh=awGYVYUjx80kgfU/Dq591u43ooPYD/zEUDswabgVa3M=;
+	h=Date:To:From:Subject:Message-Id; b=mGo/rezAvXFM946WE+gIaZOZwTPHyIN7y7gZD/SoLUkut110yDpHbP2S7OUnxc6s4dVgufemC0qSuwEnX1uipgeIE4Ap+aMZpJGbbJ4fw6GJ4r3BhMObpPoTPHqnGcpYgRABWOiw2lxyKetDl+lri5HogtMLeCFGdgo//Sx5MYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ta/jgL0p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYTXpX5H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91ACAC4CED0;
-	Sat, 14 Dec 2024 00:36:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ta/jgL0p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47CB3C4CED0;
+	Sat, 14 Dec 2024 00:39:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734136593;
-	bh=flQGr35m0FOoUBsf3iPEfzsy2UGMSmVnVKfnAOmm0BE=;
+	s=korg; t=1734136795;
+	bh=awGYVYUjx80kgfU/Dq591u43ooPYD/zEUDswabgVa3M=;
 	h=Date:To:From:Subject:From;
-	b=FYTXpX5HViihSG9sR5JICY75KlSct/d4j9MfmPiyUpIMUj6Qdma8b+wAs08ICd8l4
-	 a6b/F+ZrsWI7e53B/6NUvXSaVOHwfWJWG28d6P09j1HE7hQMWgaUMY4nC95uqf1Y5O
-	 bmJToTJQQRWAfZQ6hmZBJbIqA8l32ca9xR4/Z/5E=
-Date: Fri, 13 Dec 2024 16:36:33 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,alexjlzheng@tencent.com,alexjlzheng@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Ta/jgL0pAbRKIlgSVt0xGTB0AiJbF26sxXL3J9wkhr9BhZvPr+mH/w5D72vYGFRUi
+	 e+nwGA9zqLGDT8e5ZI/A8Y537ziigpjK1WUCoGE7XlIuq4egmKDsTBld2WHldXJQaE
+	 XjCY/sW8k4LvIu4mu82vFY8PqeK7JSB2bVGKt22M=
+Date: Fri, 13 Dec 2024 16:39:54 -0800
+To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,wang.yaxin@zte.com.cn,tu.qiang35@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,jiang.kun2@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch added to mm-unstable branch
-Message-Id: <20241214003633.91ACAC4CED0@smtp.kernel.org>
+Subject: + delayacct-update-docs-and-fix-some-spelling-errors.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241214003955.47CB3C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+     Subject: delayacct: update docs and fix some spelling errors
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     delayacct-update-docs-and-fix-some-spelling-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-update-docs-and-fix-some-spelling-errors.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix
-Date: Fri Dec 13 04:35:29 PM PST 2024
+From: <jiang.kun2@zte.com.cn>
+Subject: delayacct: update docs and fix some spelling errors
+Date: Fri, 13 Dec 2024 19:27:00 +0800 (CST)
 
-s/mmap_Locl/mmap_lock/, per Liam
 
-Cc: Jinliang Zheng <alexjlzheng@gmail.com>
-Cc: Jinliang Zheng <alexjlzheng@tencent.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Update delay-accounting.rst to include the 'delay max' in the output
+of getdelays, and fix some spelling errors before.
+
+Link: https://lkml.kernel.org/r/20241213192700771XKZ8H30OtHSeziGqRVMs0@zte.com.cn
+Signed-off-by: Yaxin Wang <wang.yaxin@zte.com.cn>
+Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Peilin He <he.peilin@zte.com.cn>
+Cc: tuqiang <tu.qiang35@zte.com.cn>
+Cc: Wang Yong <wang.yong12@zte.com.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: ye xingchen <ye.xingchen@zte.com.cn>
+Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/accounting/delay-accounting.rst |   38 ++++++++--------
+ kernel/delayacct.c                            |    2 
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
---- a/mm/memory.c~mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix
-+++ a/mm/memory.c
-@@ -6141,7 +6141,7 @@ static vm_fault_t sanitize_fault_flags(s
+--- a/Documentation/accounting/delay-accounting.rst~delayacct-update-docs-and-fix-some-spelling-errors
++++ a/Documentation/accounting/delay-accounting.rst
+@@ -100,29 +100,29 @@ Get delays, since system boot, for pid 1
+ 	# ./getdelays -d -p 10
+ 	(output similar to next case)
+ 
+-Get sum of delays, since system boot, for all pids with tgid 5::
++Get sum and peak of delays, since system boot, for all pids with tgid 242::
+ 
+-	# ./getdelays -d -t 5
++	bash-4.4# ./getdelays -d -t 242
+ 	print delayacct stats ON
+-	TGID	5
++	TGID    242
+ 
+ 
+-	CPU             count     real total  virtual total    delay total  delay average
+-	                    8        7000000        6872122        3382277          0.423ms
+-	IO              count    delay total  delay average
+-                   0              0          0.000ms
+-	SWAP            count    delay total  delay average
+-                       0              0          0.000ms
+-	RECLAIM         count    delay total  delay average
+-                   0              0          0.000ms
+-	THRASHING       count    delay total  delay average
+-                       0              0          0.000ms
+-	COMPACT         count    delay total  delay average
+-                       0              0          0.000ms
+-	WPCOPY          count    delay total  delay average
+-                       0              0          0.000ms
+-	IRQ             count    delay total  delay average
+-                       0              0          0.000ms
++	CPU         count     real total  virtual total    delay total  delay average      delay max
++	              239      296000000      307724885        1127792          0.005ms     0.238382ms
++	IO          count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	SWAP        count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	RECLAIM     count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	THRASHING   count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	COMPACT     count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	WPCOPY      count    delay total  delay average      delay max
++	              230       19100476          0.083ms     0.383822ms
++	IRQ         count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
+ 
+ Get IO accounting for pid 1, it works only with -p::
+ 
+--- a/kernel/delayacct.c~delayacct-update-docs-and-fix-some-spelling-errors
++++ a/kernel/delayacct.c
+@@ -93,7 +93,7 @@ void __delayacct_tsk_init(struct task_st
  
  /*
-  * By the time we get here, we already hold either the VMA lock or the
-- * mmap_Lock (FAULT_FLAG_VMA_LOCK tells you which).
-+ * mmap_lock (FAULT_FLAG_VMA_LOCK tells you which).
-  *
-  * The mmap_lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
+  * Finish delay accounting for a statistic using its timestamps (@start),
+- * accumalator (@total) and @count
++ * accumulator (@total) and @count
+  */
+ static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jiang.kun2@zte.com.cn are
 
-mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-xarray-port-tests-to-kunit-fix.patch
-fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+delayacct-update-docs-and-fix-some-spelling-errors.patch
 
