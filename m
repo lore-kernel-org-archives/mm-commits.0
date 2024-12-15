@@ -1,199 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D74566125
-	for <mm-commits@vger.kernel.org>; Sat, 14 Dec 2024 00:46:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0877713D28F
+	for <mm-commits@vger.kernel.org>; Sun, 15 Dec 2024 08:57:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734137188; cv=none; b=nJQJINBEpkV/k3p9R+seXXYy4PgOI2n1hGUhtkz5TXQESwkeBKJtrvdFqfwEEqAryRWTnHeLo173DOhJc4vXFJdXaMXeTwCg2bXg133ttSkMheijHvo6TKw8s5sJRD48mdg65K9y37bxuMFbK8tJBb3BrElWc6zAa/WkWCwW0wQ=
+	t=1734253044; cv=none; b=MFsDk986ucDAcavE+o6pFwTIzcxb4ywxwNYc6mFBEvGn4v+IL+iqLF8y6hD9ehm115E0nta74/SDhvZMS+Ea57XJXPeNGnWFs94lBlrnlggl7wzUrcbhuHPA2hdJRaJrwV2UtNSslfo87lLeruXbNiwOeRn0bWU1KlmGyv4y05U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734137188; c=relaxed/simple;
-	bh=xVLoLy/wHuZHL1J1V3x+Lokv6KjmZor5a4aHoALlhZs=;
-	h=Date:To:From:Subject:Message-Id; b=mI6MRLEHlCegX/Za/Zv/1EBqxlwAtIth8MbaiM5Wo+pY3WANk4hpIAx8EbYKjUUqbsTzBN86augvkPm5aIZDCK6mz4BmFC1AkDHwIy7HpfAuQSZ/8Vg6i7KggFzwGVOff409LSfoZObRJ0qT+ogDCIbQrkjiv7yHpS/NHGYihJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HgyGTKbH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734253044; c=relaxed/simple;
+	bh=FB5CSAzTaGB8uqgNBSVzO9k0Xi2W/GChDiM0K45HS6g=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=uFBA2A7dh/clmkY3CT3imikLcicy2YgFY9yelBKXHypAPj79Sh3JOeHxdIASICLHtLx0hezdC/C8M2FIoBu7fhha5uz8maXfbhNW8l/4pcDuV7485P1lIf7z2Vp2z3OBMqvjMr4naJuMEPCU16+syMXpDZawLaSeGL+ld+USEqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BIrU4esw; arc=none smtp.client-ip=209.85.216.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HgyGTKbH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61B30C4CED0;
-	Sat, 14 Dec 2024 00:46:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734137188;
-	bh=xVLoLy/wHuZHL1J1V3x+Lokv6KjmZor5a4aHoALlhZs=;
-	h=Date:To:From:Subject:From;
-	b=HgyGTKbHCCx4B0vnDHbVXf/WJOFwrzqv2F+S+DTR2rD9BFFHkWicBpRLJ/T/Pz+ps
-	 DdZiKI8TViixdYIiF0NY8GQygM8QePccwUemAr1bQ59oo2/JRRUx9SatIzbP5C6xla
-	 urQYSax3tRi+gTIV2Pj9KztL0SYFJ4Ha7ye657zk=
-Date: Fri, 13 Dec 2024 16:46:27 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,rbm@suse.com,davidgow@google.com,luis.hernandez093@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-add-int_sqrt-test-suite.patch added to mm-nonmm-unstable branch
-Message-Id: <20241214004628.61B30C4CED0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BIrU4esw"
+Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-2ef05d0ef18so515589a91.0
+        for <mm-commits@vger.kernel.org>; Sun, 15 Dec 2024 00:57:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1734253042; x=1734857842; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zYJBrn5pDy0HAJYfgNhu+rAJLKb+JhcEDNPFaLxuFu0=;
+        b=BIrU4esw3nohLyFdQltOt8xJPdWm440PwlRd4Y025k1wuFAg31KcdNL31YpJiL54Vk
+         +bnQb0/xrzVvmFB4FUqAl4/HMKABFK1B53h32n4q4DudZ7dQFbKuKSIdV+8QBKRTr8e0
+         S7RhHjqBCi5XLXWzGWhqlmwRdyTWFkbhrXta/Wt16qeOO4iyagPSgH+H81pUZEhlxIoH
+         lfUqoiEXL0ouKKs24OipEn44IVIEtNEZjZDhhQoMB6BWkWHRlOH7qzVyKBahfbbYN5EN
+         y0EW0nHSuVVGhqB6lCB+rFwS4m2/J6bLDcZ30aaSTx6Htnp+MNe+fB+fkdidY+djZP9a
+         33PQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734253042; x=1734857842;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zYJBrn5pDy0HAJYfgNhu+rAJLKb+JhcEDNPFaLxuFu0=;
+        b=FMzI8dRinbC6iWQOHymvxRfu7ls00Lh7i8JeaC3XXaYqWYnVIAw0f6kmkSb74luV2w
+         eNIlbWfJacYJjEiUwWzRR/XT2j11ph5Rnamxng9tD5MhIltc6FW7IPoITYcvG6DgZcYw
+         Nlg6ws7aO+nMwH128hqgR6ou7GijVSI4lkaXMiDEGQWrxi7OEMt0pqeEQAqtvLI4Y6IK
+         EKS45Zj/Bz4Z5VOI8PA5SNBh5DdXjxMQehJPfrEPy7WE8M1JbyCsNNRS/6flIDap2AhQ
+         bUT0/Z4EWAHILRvuY0Gv7RElJB8DUB0Oy+b75TTvEPexrIr6Cy+UOp0W8KxiTJ2S1XYV
+         i/dQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUbbel5uLal2nAt+cFw2PWslMyVVPPNcy4/BlEnRzKutl9ap4f5XtS8EryAXS0AMZNvJGDQ/g8j2uqB@vger.kernel.org
+X-Gm-Message-State: AOJu0YwAGI8ecuyRihsRlCuGcJ9UkPcdIVSxKMx97C99qoSGKbIqxSYv
+	hz5ZrgsioXtxzIc8HIdC2ahAmrRI+0O6Q4mNNPAAhnc791V3exM2f02wgCST
+X-Gm-Gg: ASbGncsko3kGZLuykKyvFjde5r5OGRL58S2DRTekiUNtjz+rb9ocmiCKuaqDZnvXqcK
+	R1CRk6vZKXcb9KCWnfM+ejLT9zIWhRRIrrplIh6xCHm0kZJn14hGpS4+o6VKFqKzD9+Ncowd4dN
+	SYYilRgkpID7iX6lno/n3O53ozvTD1iS4V0/XSJ1ca/LjpA0d5Co70rEOg/Wiu2Y6QpsQCB2vWq
+	E8ClCVSA7NBaF+BODF4BUhDN546VTJb7r83FgAum416Mz41JCxMTSOxfduw
+X-Google-Smtp-Source: AGHT+IH0T4dEmlBtUlzVavk50DNlovKmhjqYLCyyF8QeW1cWTofyhOrnymhBUJ7HtNr6RqzmXZP0Ig==
+X-Received: by 2002:a05:6a20:1591:b0:1e1:c0d7:74f5 with SMTP id adf61e73a8af0-1e1dfe303cemr5322034637.11.1734253042119;
+        Sun, 15 Dec 2024 00:57:22 -0800 (PST)
+Received: from x1k.com ([175.42.19.220])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-801d5ad1f55sm2287508a12.41.2024.12.15.00.57.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 15 Dec 2024 00:57:21 -0800 (PST)
+From: caiqingfu <baicaiaichibaicai@gmail.com>
+To: senozhatsky@chromium.org
+Cc: akpm@linux-foundation.org,
+	baicaiaichibaicai@gmail.com,
+	caiqingfu@ruijie.com.cn,
+	minchan@kernel.org,
+	mm-commits@vger.kernel.org
+Subject: Re: [PATCH] zram: panic when use ext4 over zram
+Date: Sun, 15 Dec 2024 16:57:15 +0800
+Message-Id: <20241215085715.165430-1-baicaiaichibaicai@gmail.com>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <gxxr7y3honggqff4fgmss3v3hcnwplywkhce7al47ji3rzql5c@l3g6c6kpzzwg>
+References: <gxxr7y3honggqff4fgmss3v3hcnwplywkhce7al47ji3rzql5c@l3g6c6kpzzwg>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
+There are two issues:
+[1] data may change while ext4 is writing it to zram.
+[2] zram is written directly without checking the length after recompression, 
+    which may cause zs_obj to be damaged.
+This patch solves [2].
 
-The patch titled
-     Subject: lib/math: add int_sqrt test suite
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-add-int_sqrt-test-suite.patch
+as you said:
+> zram cannot ensure that, it's not zram's job.  Nothing stops
+> the buggy actor from modifiying the page at any random point,
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-int_sqrt-test-suite.patch
+It is not zram's job to ensure that data is not modified.
+As long as there is re-compression, it must be confirmed again 
+whether the length has changed. This way we can avoid zram 
+panic caused by upper layer problems.
+So I think this patch should not be discarded.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
-Subject: lib/math: add int_sqrt test suite
-Date: Thu, 12 Dec 2024 23:26:50 -0500
-
-Adds test suite for integer based square root function.
-
-The test suite is designed to verify the correctness of the int_sqrt()
-math library function.
-
-Link: https://lkml.kernel.org/r/20241213042701.1037467-1-luis.hernandez093@gmail.com
-Signed-off-by: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Ricardo B. Marliere <rbm@suse.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/Kconfig.debug               |   15 ++++++
- lib/math/Makefile               |    1 
- lib/math/tests/Makefile         |    1 
- lib/math/tests/int_sqrt_kunit.c |   66 ++++++++++++++++++++++++++++++
- 4 files changed, 83 insertions(+)
-
---- a/lib/Kconfig.debug~lib-math-add-int_sqrt-test-suite
-+++ a/lib/Kconfig.debug
-@@ -3174,6 +3174,21 @@ config INT_POW_TEST
- 
- 	  If unsure, say N
- 
-+config INT_SQRT_KUNIT_TEST
-+	tristate "Integer square root test" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This option enables the KUnit test suite for the int_sqrt() function,
-+	  which performs square root calculation. The test suite checks
-+	  various scenarios, including edge cases, to ensure correctness.
-+
-+	  Enabling this option will include tests that check various scenarios
-+	  and edge cases to ensure the accuracy and reliability of the square root
-+	  function.
-+
-+	  If unsure, say N
-+
- endif # RUNTIME_TESTING_MENU
- 
- config ARCH_USE_MEMTEST
---- a/lib/math/Makefile~lib-math-add-int_sqrt-test-suite
-+++ a/lib/math/Makefile
-@@ -9,3 +9,4 @@ obj-$(CONFIG_INT_POW_TEST)  += tests/int
- obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
- obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
- obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
-+obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += tests/int_sqrt_kunit.o
-\ No newline at end of file
-diff --git a/lib/math/tests/int_sqrt_kunit.c a/lib/math/tests/int_sqrt_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/math/tests/int_sqrt_kunit.c
-@@ -0,0 +1,66 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#include <kunit/test.h>
-+#include <linux/limits.h>
-+#include <linux/math.h>
-+#include <linux/module.h>
-+#include <linux/string.h>
-+
-+struct test_case_params {
-+	unsigned long x;
-+	unsigned long expected_result;
-+	const char *name;
-+};
-+
-+static const struct test_case_params params[] = {
-+	{ 0, 0, "edge case: square root of 0" },
-+	{ 1, 1, "perfect square: square root of 1" },
-+	{ 2, 1, "non-perfect square: square root of 2" },
-+	{ 3, 1, "non-perfect square: square root of 3" },
-+	{ 4, 2, "perfect square: square root of 4" },
-+	{ 5, 2, "non-perfect square: square root of 5" },
-+	{ 6, 2, "non-perfect square: square root of 6" },
-+	{ 7, 2, "non-perfect square: square root of 7" },
-+	{ 8, 2, "non-perfect square: square root of 8" },
-+	{ 9, 3, "perfect square: square root of 9" },
-+	{ 15, 3, "non-perfect square: square root of 15 (N-1 from 16)" },
-+	{ 16, 4, "perfect square: square root of 16" },
-+	{ 17, 4, "non-perfect square: square root of 17 (N+1 from 16)" },
-+	{ 80, 8, "non-perfect square: square root of 80 (N-1 from 81)" },
-+	{ 81, 9, "perfect square: square root of 81" },
-+	{ 82, 9, "non-perfect square: square root of 82 (N+1 from 81)" },
-+	{ 255, 15, "non-perfect square: square root of 255 (N-1 from 256)" },
-+	{ 256, 16, "perfect square: square root of 256" },
-+	{ 257, 16, "non-perfect square: square root of 257 (N+1 from 256)" },
-+	{ 2147483648, 46340, "large input: square root of 2147483648" },
-+	{ 4294967295, 65535, "edge case: ULONG_MAX for 32-bit" },
-+};
-+
-+static void get_desc(const struct test_case_params *tc, char *desc)
-+{
-+	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
-+}
-+
-+KUNIT_ARRAY_PARAM(int_sqrt, params, get_desc);
-+
-+static void int_sqrt_test(struct kunit *test)
-+{
-+	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
-+
-+	KUNIT_EXPECT_EQ(test, tc->expected_result, int_sqrt(tc->x));
-+}
-+
-+static struct kunit_case math_int_sqrt_test_cases[] = {
-+	KUNIT_CASE_PARAM(int_sqrt_test, int_sqrt_gen_params),
-+	{}
-+};
-+
-+static struct kunit_suite int_sqrt_test_suite = {
-+	.name = "math-int_sqrt",
-+	.test_cases = math_int_sqrt_test_cases,
-+};
-+
-+kunit_test_suites(&int_sqrt_test_suite);
-+
-+MODULE_DESCRIPTION("math.int_sqrt KUnit test suite");
-+MODULE_LICENSE("GPL");
---- a/lib/math/tests/Makefile~lib-math-add-int_sqrt-test-suite
-+++ a/lib/math/tests/Makefile
-@@ -1,3 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
- 
- obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
-+obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += int_sqrt_kunit.o
-_
-
-Patches currently in -mm which might be from luis.hernandez093@gmail.com are
-
-lib-math-add-int_sqrt-test-suite.patch
-
+As for issues [1], i'm powerless.
