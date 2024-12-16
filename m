@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF14157469
-	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:52:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7568192B70;
+	Mon, 16 Dec 2024 06:06:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734328336; cv=none; b=LPwldJqqrJIPSmj4cdVmsZeDf3lu9t2OK27hFla7gSy2d9VBK1kzWwGcx3TwxQgPkj5nxd4TjYP4ASJKuASenm1O/h7pvqAbSj3o33t5u65lDBsYEXzoY6bpET2cOir8ohSCDh6+ezraqMOXaVYp+EzX1OtS5k/BYl1DSD7Pxa0=
+	t=1734329160; cv=none; b=FG1NMO+H7oSox2b9s11CQQYWgQgw6I73cRJz4S2HA8R/8qpxAIAh/xfCO6FKmWQNWKqzyl0ucHxAZm/MFRoSZCAbwmdqvG0KQeC/+F2FVbOnMXq5KmB3ArHWrVWIe5GlQU+TmojQaSx53N1iTF48zL1k90o2mXUCMX+gIdNiX5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734328336; c=relaxed/simple;
-	bh=BxeI+IUaFy6QdhD31Z/tCUP3toyuixODm3Moud41kXw=;
-	h=Date:To:From:Subject:Message-Id; b=Ra2e4M333MKD6zc7Zlytypy4x+1bnUjkEHhQB2pcOUh3zTOJhOHC+m9L/Z/4mxBCVnOQbMEoOVCRbBvqJzbmUtSvJEbqsyV4dbhVRwsxE2noQFKBrcTG0dwksNza1Lo1G7Nxvqfpdx5KxKubO6rMNJEH4TKE2+XYT+6zMReW3Q0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lzy8aKN5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734329160; c=relaxed/simple;
+	bh=p0Ksb1HTFz6VDrCWSmQ/ZZlJ7Cscieb7L1VwQol2EXY=;
+	h=Date:To:From:Subject:Message-Id; b=Hnup4yCOSjnHPb3OjsM0JoyEGwJB1DAtGpMbbtuW2UfQWtQ0Vf7vQaEB1D3TS0iNgp0sCizEEvvIfjwBjbjt1j+2OC9BGqeSp2SuyxFL455HIJWKl1zQsY+il9F+odWt4x8jFfr7xcjL9HZ7p6q/ui2IR2hsVrU4y49Vo8MjysQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nCpDJO6Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lzy8aKN5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE6ECC4CED0;
-	Mon, 16 Dec 2024 05:52:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nCpDJO6Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 287B4C4CED0;
+	Mon, 16 Dec 2024 06:06:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734328334;
-	bh=BxeI+IUaFy6QdhD31Z/tCUP3toyuixODm3Moud41kXw=;
+	s=korg; t=1734329160;
+	bh=p0Ksb1HTFz6VDrCWSmQ/ZZlJ7Cscieb7L1VwQol2EXY=;
 	h=Date:To:From:Subject:From;
-	b=Lzy8aKN5RSWjyINf4wl/KI9ZPESbnrLdS5RBR2N4vQf5qP4Th46ynf7jjFwAzVd0N
-	 +XgTcRyaCUHSZMMaDgDPPob7ghZcbXRtzlShmz//34xqkPr0eyCJ6z+PYzx7zGrlYT
-	 ZOaCw1L8UyTv9YCRyWAHmU8pJe3vYdWeY5mjmpW4=
-Date: Sun, 15 Dec 2024 21:52:14 -0800
-To: mm-commits@vger.kernel.org,leocstone@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=nCpDJO6ZtmxbnHvJGTDzMvlwUqfvrBECVQVTHvBvOp1FfvVZg9iJl83yJj/bF1nWn
+	 k8wzYSr2yGF/y6RUd1BMX4xMAzZo+2ksGF6nIVP6HcZh+j52bly23btWAwEKD6+ODD
+	 Qbv+VJUJOhbcykTfD2TlwHXVI9gGm57RRBaJwWok=
+Date: Sun, 15 Dec 2024 22:05:59 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,chuck.lever@oracle.com,brauner@kernel.org,yangerkun@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memoryc-rename-shadowed-local.patch added to mm-unstable branch
-Message-Id: <20241216055214.BE6ECC4CED0@smtp.kernel.org>
+Subject: + maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch added to mm-unstable branch
+Message-Id: <20241216060600.287B4C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory.c: rename shadowed local
+     Subject: maple_tree: reload mas before the second call for mas_empty_area
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memoryc-rename-shadowed-local.patch
+     maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memoryc-rename-shadowed-local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,61 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/huge_memory.c: rename shadowed local
-Date: Sun Dec 15 09:44:47 PM PST 2024
+From: Yang Erkun <yangerkun@huawei.com>
+Subject: maple_tree: reload mas before the second call for mas_empty_area
+Date: Sat, 14 Dec 2024 17:30:05 +0800
 
-split_huge_pages_write() has a lccal `buf' which shadows incoming arg
-`buf'.  Reviewer confusion resulted.  Rename the inner local to `tok_buf'.
+Change the LONG_MAX in simple_offset_add to 1024, and do latter:
 
-Cc: Leo Stone <leocstone@gmail.com>
+[root@fedora ~]# mkdir /tmp/dir
+[root@fedora ~]# for i in {1..1024}; do touch /tmp/dir/$i; done
+touch: cannot touch '/tmp/dir/1024': Device or resource busy
+[root@fedora ~]# rm /tmp/dir/123
+[root@fedora ~]# touch /tmp/dir/1024
+[root@fedora ~]# rm /tmp/dir/100
+[root@fedora ~]# touch /tmp/dir/1025
+touch: cannot touch '/tmp/dir/1025': Device or resource busy
+
+After we delete file 100, actually this is a empty entry, but the latter
+create failed unexpected.
+
+mas_alloc_cyclic has two chance to find empty entry.  First find the entry
+with range range_lo and range_hi, if no empty entry exist, and range_lo >
+min, retry find with range min and range_hi.  However, the first call
+mas_empty_area may mark mas as EBUSY, and the second call for
+mas_empty_area will return false directly.  Fix this by reload mas before
+second call for mas_empty_area.
+
+Link: https://lkml.kernel.org/r/20241214093005.72284-1-yangerkun@huaweicloud.com
+Fixes: 9b6713cc7522 ("maple_tree: Add mtree_alloc_cyclic()")
+Signed-off-by: Yang Erkun <yangerkun@huawei.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com> says:
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-rename-shadowed-local
-+++ a/mm/huge_memory.c
-@@ -4169,20 +4169,21 @@ static ssize_t split_huge_pages_write(st
+--- a/lib/maple_tree.c~maple_tree-reload-mas-before-the-second-call-for-mas_empty_area
++++ a/lib/maple_tree.c
+@@ -4335,6 +4335,7 @@ int mas_alloc_cyclic(struct ma_state *ma
+ {
+ 	unsigned long min = range_lo;
+ 	int ret = 0;
++	struct ma_state m = *mas;
  
- 	if (input_buf[0] == '/') {
- 		char *tok;
--		char *buf = input_buf;
-+		char *tok_buf = input_buf;
- 		char file_path[MAX_INPUT_BUF_SZ];
- 		pgoff_t off_start = 0, off_end = 0;
- 		size_t input_len = strlen(input_buf);
- 
--		tok = strsep(&buf, ",");
--		if (tok && buf) {
-+		tok = strsep(&tok_buf, ",");
-+		if (tok && tok_buf) {
- 			strscpy(file_path, tok);
- 		} else {
- 			ret = -EINVAL;
- 			goto out;
- 		}
- 
--		ret = sscanf(buf, "0x%lx,0x%lx,%d", &off_start, &off_end, &new_order);
-+		ret = sscanf(tok_buf, "0x%lx,0x%lx,%d", &off_start,
-+			    &off_end, &new_order);
- 		if (ret != 2 && ret != 3) {
- 			ret = -EINVAL;
- 			goto out;
+ 	range_lo = max(min, *next);
+ 	ret = mas_empty_area(mas, range_lo, range_hi, 1);
+@@ -4343,6 +4344,7 @@ int mas_alloc_cyclic(struct ma_state *ma
+ 		ret = 1;
+ 	}
+ 	if (ret < 0 && range_lo > min) {
++		*mas = m;
+ 		ret = mas_empty_area(mas, min, range_hi, 1);
+ 		if (ret == 0)
+ 			ret = 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yangerkun@huawei.com are
 
-mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-xarray-port-tests-to-kunit-fix.patch
-fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch
 
