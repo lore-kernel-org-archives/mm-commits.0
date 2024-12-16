@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C18C2148FF0
-	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 17:01:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9EDF126BF7;
+	Mon, 16 Dec 2024 17:06:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734368473; cv=none; b=NNnw2bezBfiLHWMKauXXyatmRX3lc6eByygdHwEPLoR6u2ON4Kjs8EkSb0PJeKMDfh7147B5j2TBF1PtnA7mMP564x3QMvqReQQbvAqrvoGNXf4qGXRaGUHUQMX/RgNJmURtdjpnxOmtKij3U3T7nB42ss4L4bPg+6sqh6H3BHs=
+	t=1734368801; cv=none; b=ZqTQLgCWfzofNsfwrj5sa2PqmRHUxjz86mzEdU57RG+82gU/JXO+O2mGtvQ0BM60GHFl7au6Qc/iGKgQz54uPPhpG/g6c6yqVvusxRzNmzG25+S9la66xfMDkfYd2otR7WgDKWHm/l+YdtTer40TIOMfDb9v5mpmAvVescHt+KI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734368473; c=relaxed/simple;
-	bh=4kNnHfd5ZK162LdKNaTVpz4olYBW1iLvLDtwsLwHcFo=;
-	h=Date:To:From:Subject:Message-Id; b=oitFqNksJ06Lm6QTrwpEpeqYxeyYC3tcS86/ulWvcRw6grctOwE1BVvnTOjGj3jM2xV1qABu8H9lsXoGO02FRJHdzW//V7QCWaXfmNr7MRntOoCRpiIbcS10zlT3f8Ya88ux9o7UUa9RHzXTvg9GWrWgk8YiqXlGgLpAIzon/eM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=keO9f5DY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734368801; c=relaxed/simple;
+	bh=6rLbqDpq132Fc2qmsHPS4g5GfEjn6kctkcgMIJMbVGA=;
+	h=Date:To:From:Subject:Message-Id; b=mRRKSGiOvCvVCeNDjDYPq0nJq5XjGia59qxQur45s9WYZEUd9YbzKum8H7UxUhdQoNhVLC8lYlXChmmyuSzXDZLw88WzP+cneEq9O9TrE0crGW6mnuvWypO0XKJ5oUWiaYqBL/B+EWoAKLGzWmOmapFceuMAGjiFQIEdRVIx8gM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A5e9G68W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="keO9f5DY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E8FDC4CED0;
-	Mon, 16 Dec 2024 17:01:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A5e9G68W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A50C4CED0;
+	Mon, 16 Dec 2024 17:06:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734368473;
-	bh=4kNnHfd5ZK162LdKNaTVpz4olYBW1iLvLDtwsLwHcFo=;
+	s=korg; t=1734368801;
+	bh=6rLbqDpq132Fc2qmsHPS4g5GfEjn6kctkcgMIJMbVGA=;
 	h=Date:To:From:Subject:From;
-	b=keO9f5DYpmYmAbnIO/Nx78O+BXz/YNLOuS+TCZbrO3bN8xQRMqjUPX6hxnYaqqjV+
-	 Tq3C9P7AV+QiPf7PAzpvyH1VnEED+78j5HJc2RWQ/mEOiwKNBhAEg07zBTh3JcK9Gy
-	 i0a2cFjiU/Fpz6VZZS9/kJhdFmw34NpLKabO2n0w=
-Date: Mon, 16 Dec 2024 09:01:12 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=A5e9G68W5HLQLKv/GDU2NyS9EBnoBhdknNRBkzu9WfG2/y++7uJS9udGfJ6evoBKx
+	 hN/aii36Z67VMP7z/gOqEDmZY1DwXG3weMbiw0hqR9W4LJCWu1ChyzZl3d1YDVzyEf
+	 EAJwVanDa4c71r56FcTfX6xouONmBO4WTsWm79wQ=
+Date: Mon, 16 Dec 2024 09:06:40 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,muchun.song@linux.dev,kenneth.w.chen@intel.com,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-sys_pkey-helpers-consistently-fix.patch added to mm-unstable branch
-Message-Id: <20241216170113.3E8FDC4CED0@smtp.kernel.org>
+Subject: + mm-hugetlb-independent-pmd-page-table-shared-count.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241216170641.37A50C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix dependency on pkey_util.c
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-use-sys_pkey-helpers-consistently-fix.patch
+     Subject: mm: hugetlb: independent PMD page table shared count
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-independent-pmd-page-table-shared-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-sys_pkey-helpers-consistently-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-independent-pmd-page-table-shared-count.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,76 +58,193 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: fix dependency on pkey_util.c
-Date: Mon, 16 Dec 2024 09:28:49 +0000
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm: hugetlb: independent PMD page table shared count
+Date: Mon, 16 Dec 2024 15:11:47 +0800
 
-The pkey* files can only be built on architectures that support pkeys
-(pkey-helpers.h #error's otherwise).  Adding pkey_util.c as dependency to
-all $(TEST_GEN_FILES) is therefore a bad idea.  Make it a dependency of
-the pkeys tests only.
+The folio refcount may be increased unexpectly through try_get_folio() by
+caller such as split_huge_pages.  In huge_pmd_unshare(), we use refcount
+to check whether a pmd page table is shared.  The check is incorrect if
+the refcount is increased by the above caller, and this can cause the page
+table leaked:
 
-Those tests are built in 32/64-bit variants on x86_64 so we need to add an
-explicit dependency there as well.
+ BUG: Bad page state in process sh  pfn:109324
+ page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x66 pfn:0x109324
+ flags: 0x17ffff800000000(node=0|zone=2|lastcpupid=0xfffff)
+ page_type: f2(table)
+ raw: 017ffff800000000 0000000000000000 0000000000000000 0000000000000000
+ raw: 0000000000000066 0000000000000000 00000000f2000000 0000000000000000
+ page dumped because: nonzero mapcount
+ ...
+ CPU: 31 UID: 0 PID: 7515 Comm: sh Kdump: loaded Tainted: G    B              6.13.0-rc2master+ #7
+ Tainted: [B]=BAD_PAGE
+ Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+ Call trace:
+  show_stack+0x20/0x38 (C)
+  dump_stack_lvl+0x80/0xf8
+  dump_stack+0x18/0x28
+  bad_page+0x8c/0x130
+  free_page_is_bad_report+0xa4/0xb0
+  free_unref_page+0x3cc/0x620
+  __folio_put+0xf4/0x158
+  split_huge_pages_all+0x1e0/0x3e8
+  split_huge_pages_write+0x25c/0x2d8
+  full_proxy_write+0x64/0xd8
+  vfs_write+0xcc/0x280
+  ksys_write+0x70/0x110
+  __arm64_sys_write+0x24/0x38
+  invoke_syscall+0x50/0x120
+  el0_svc_common.constprop.0+0xc8/0xf0
+  do_el0_svc+0x24/0x38
+  el0_svc+0x34/0x128
+  el0t_64_sync_handler+0xc8/0xd0
+  el0t_64_sync+0x190/0x198
 
-Link: https://lkml.kernel.org/r/20241216092849.2140850-1-kevin.brodsky@arm.com
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Joey Gouly <joey.gouly@arm.com>
-Cc: Keith Lucas <keith.lucas@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+The issue may be triggered by damon, offline_page, page_idle, etc, which
+will increase the refcount of page table.
+
+Fix it by introducing independent PMD page table shared count.  As
+described by comment, pt_index/pt_mm/pt_frag_refcount are used for s390
+gmap, x86 pgds and powerpc, pt_share_count is used for x86/arm64/riscv
+pmds, so we can reuse the field as pt_share_count.
+
+Link: https://lkml.kernel.org/r/20241216071147.3984217-1-liushixin2@huawei.com
+Fixes: 39dde65c9940 ("[PATCH] shared page table for hugetlb page")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Ken Chen <kenneth.w.chen@intel.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/mm.h       |    1 +
+ include/linux/mm_types.h |   30 ++++++++++++++++++++++++++++++
+ mm/hugetlb.c             |   16 +++++++---------
+ 3 files changed, 38 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-use-sys_pkey-helpers-consistently-fix
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -146,16 +146,20 @@ TEST_FILES += write_hugetlb_memory.sh
+--- a/include/linux/mm.h~mm-hugetlb-independent-pmd-page-table-shared-count
++++ a/include/linux/mm.h
+@@ -3125,6 +3125,7 @@ static inline bool pagetable_pmd_ctor(st
+ 	if (!pmd_ptlock_init(ptdesc))
+ 		return false;
+ 	__folio_set_pgtable(folio);
++	ptdesc_pmd_pts_init(ptdesc);
+ 	lruvec_stat_add_folio(folio, NR_PAGETABLE);
+ 	return true;
+ }
+--- a/include/linux/mm_types.h~mm-hugetlb-independent-pmd-page-table-shared-count
++++ a/include/linux/mm_types.h
+@@ -445,6 +445,7 @@ FOLIO_MATCH(compound_head, _head_2a);
+  * @pt_index:         Used for s390 gmap.
+  * @pt_mm:            Used for x86 pgds.
+  * @pt_frag_refcount: For fragmented page table tracking. Powerpc only.
++ * @pt_share_count:   Used for HugeTLB PMD page table share count.
+  * @_pt_pad_2:        Padding to ensure proper alignment.
+  * @ptl:              Lock for the page table.
+  * @__page_type:      Same as page->page_type. Unused for page tables.
+@@ -471,6 +472,9 @@ struct ptdesc {
+ 		pgoff_t pt_index;
+ 		struct mm_struct *pt_mm;
+ 		atomic_t pt_frag_refcount;
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++		atomic_t pt_share_count;
++#endif
+ 	};
  
- include ../lib.mk
+ 	union {
+@@ -516,6 +520,32 @@ static_assert(sizeof(struct ptdesc) <= s
+ 	const struct page *:		(const struct ptdesc *)(p),	\
+ 	struct page *:			(struct ptdesc *)(p)))
  
--$(TEST_GEN_PROGS): vm_util.c thp_settings.c pkey_util.c
--$(TEST_GEN_FILES): vm_util.c thp_settings.c pkey_util.c
-+$(TEST_GEN_PROGS): vm_util.c thp_settings.c
-+$(TEST_GEN_FILES): vm_util.c thp_settings.c
- 
- $(OUTPUT)/uffd-stress: uffd-common.c
- $(OUTPUT)/uffd-unit-tests: uffd-common.c
-+$(OUTPUT)/protection_keys: pkey_util.c
-+$(OUTPUT)/pkey_sighandler_tests: pkey_util.c
- 
- ifeq ($(ARCH),x86_64)
- BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
- BINARIES_64 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
- 
-+$(BINARIES_32) $(BINARIES_64): pkey_util.c
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
++{
++	atomic_set(&ptdesc->pt_share_count, 0);
++}
 +
- define gen-target-rule-32
- $(1) $(1)_32: $(OUTPUT)/$(1)_32
- .PHONY: $(1) $(1)_32
++static inline void ptdesc_pmd_pts_inc(struct ptdesc *ptdesc)
++{
++	atomic_inc(&ptdesc->pt_share_count);
++}
++
++static inline void ptdesc_pmd_pts_dec(struct ptdesc *ptdesc)
++{
++	atomic_dec(&ptdesc->pt_share_count);
++}
++
++static inline int ptdesc_pmd_pts_count(struct ptdesc *ptdesc)
++{
++	return atomic_read(&ptdesc->pt_share_count);
++}
++#else
++static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
++{
++}
++#endif
++
+ /*
+  * Used for sizing the vmemmap region on some architectures
+  */
+--- a/mm/hugetlb.c~mm-hugetlb-independent-pmd-page-table-shared-count
++++ a/mm/hugetlb.c
+@@ -7211,7 +7211,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 			spte = hugetlb_walk(svma, saddr,
+ 					    vma_mmu_pagesize(svma));
+ 			if (spte) {
+-				get_page(virt_to_page(spte));
++				ptdesc_pmd_pts_inc(virt_to_ptdesc(spte));
+ 				break;
+ 			}
+ 		}
+@@ -7226,7 +7226,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
+ 		mm_inc_nr_pmds(mm);
+ 	} else {
+-		put_page(virt_to_page(spte));
++		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
+ 	}
+ 	spin_unlock(&mm->page_table_lock);
+ out:
+@@ -7238,10 +7238,6 @@ out:
+ /*
+  * unmap huge page backed by shared pte.
+  *
+- * Hugetlb pte page is ref counted at the time of mapping.  If pte is shared
+- * indicated by page_count > 1, unmap is achieved by clearing pud and
+- * decrementing the ref count. If count == 1, the pte page is not shared.
+- *
+  * Called with page table lock held.
+  *
+  * returns: 1 successfully unmapped a shared pte page
+@@ -7250,18 +7246,20 @@ out:
+ int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
+ 					unsigned long addr, pte_t *ptep)
+ {
++	unsigned long sz = huge_page_size(hstate_vma(vma));
+ 	pgd_t *pgd = pgd_offset(mm, addr);
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 
+ 	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
+ 	hugetlb_vma_assert_locked(vma);
+-	BUG_ON(page_count(virt_to_page(ptep)) == 0);
+-	if (page_count(virt_to_page(ptep)) == 1)
++	if (sz != PMD_SIZE)
++		return 0;
++	if (!ptdesc_pmd_pts_count(virt_to_ptdesc(ptep)))
+ 		return 0;
+ 
+ 	pud_clear(pud);
+-	put_page(virt_to_page(ptep));
++	ptdesc_pmd_pts_dec(virt_to_ptdesc(ptep));
+ 	mm_dec_nr_pmds(mm);
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from kevin.brodsky@arm.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-selftests-mm-fix-condition-in-uffd_move_test_common.patch
-selftests-mm-fix-wmaybe-uninitialized-warnings.patch
-selftests-mm-fix-strncpy-length.patch
-selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
-selftests-mm-build-with-o2.patch
-selftests-mm-remove-unused-pkey-helpers.patch
-selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
-selftests-mm-ensure-pkey-h-define-inline-functions-only.patch
-selftests-mm-remove-empty-pkey-helper-definition.patch
-selftests-mm-ensure-non-global-pkey-symbols-are-marked-static.patch
-selftests-mm-use-sys_pkey-helpers-consistently.patch
-selftests-mm-use-sys_pkey-helpers-consistently-fix.patch
-selftests-mm-rename-pkey-register-macro.patch
-selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch
-selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch
+mm-hugetlb-independent-pmd-page-table-shared-count.patch
 
