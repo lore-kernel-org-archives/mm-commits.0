@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB7FB1C3F34
-	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:41:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935FA1C3F0E
+	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:41:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734327686; cv=none; b=ivjyTbFKVk6qelllMY3eLuzRp/TMPkGp64zPDsy/4SkoOv5OHG+62i/qCGn5qz9dikluTJYafoo6NVX+eyS0IrnQuGxZ0HjDQrY39fA+HiNIlwZ0HjB4akPBBztELjr4c0tgNRP+R5Ok5P+O2rNs6J6KkIuWUzA9SeuDckj+GWk=
+	t=1734327688; cv=none; b=LICMOFnKewnqT2vkTsxCo3av984E6FzwofgFGtw7srOltDR8s4bMwzEkk+4e54KDEpLXfCdqvI/shd2X0GLEIth5U5A57CSZj7oT93L8L/6IZGrbvLBgb8acPQPz3jHJEhSuvTkzG4Y4SsDNckCp5ONGto2zdPTj812JB7IZDjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734327686; c=relaxed/simple;
-	bh=qM+MJPwCvjWPPN5LO29vMiRxmGGaLa1Cpw4kbbU8jM4=;
-	h=Date:To:From:Subject:Message-Id; b=bjj+Xzhx8EU+NsWtqAvwdWnab+u1yj4a3dbvclxSkGeu9Gw9ndWhI/PTfyDauWtBxnV1qqNND7OI1tGT4O8zWGHwquuwVRlIztix+TlOecfSleJ54J3jtJQILu9a7AA2FxWEF2utxVKDBVZBHalFV/Oam8J8TTzFxioxv19eu+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BfZypQaJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734327688; c=relaxed/simple;
+	bh=zZj7gf4zGAnmnhA4TNumUuOAE/s9zNGkZXn9NOB8OSg=;
+	h=Date:To:From:Subject:Message-Id; b=f5jAiva3fpvLmBoCS9zDYLu6VHf++dOet/Y3KZeDDWp8rNAF4FXTnsNQXGPI2Ie8vOTxJx3NcpqABSDzIRfLpLm7q14Z0SfGwxU0GNKT5KBlEVfaGNnyrvTmvklhmZbxMWdKGb3w3KdWHw5wz3MM/80W/DHKRg7F3mMRXY1ha1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gycZuw8i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BfZypQaJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDF4C4CED0;
-	Mon, 16 Dec 2024 05:41:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gycZuw8i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CD8C4CED0;
+	Mon, 16 Dec 2024 05:41:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734327686;
-	bh=qM+MJPwCvjWPPN5LO29vMiRxmGGaLa1Cpw4kbbU8jM4=;
+	s=korg; t=1734327688;
+	bh=zZj7gf4zGAnmnhA4TNumUuOAE/s9zNGkZXn9NOB8OSg=;
 	h=Date:To:From:Subject:From;
-	b=BfZypQaJrlGRG+nfCfwB7R3A+uha7r9kZuKjfndstH4t/CYQmgbGE6Mp800yYQ4qN
-	 6MDnPWJeafF1PIP+dYISDJxn/wiyMwR4CyoRTxuvM0Fa5XGdme1BuQ+ohwS4sLBj7g
-	 F3YtAPZpiJ/cuikJKSEJ4cTXg3ORcAWd5uGZB8Kw=
-Date: Sun, 15 Dec 2024 21:41:25 -0800
+	b=gycZuw8iQz6FP7qNUaHavnDfig52JhLw4VJEdaaP2nu+ZeoXAKE1NfBBTkSz/yH6r
+	 S+Rw9ze92Bml7fdvIBGDicbmkwUxHGmpfkfta2s4m6ZggbWLb0BgBWhj/dX5sQpRUF
+	 GnG2LXCzPzk6fKdkdjH/9lzW2ErgM/M3iEOkmjUM=
+Date: Sun, 15 Dec 2024 21:41:27 -0800
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20241216054126.7FDF4C4CED0@smtp.kernel.org>
+Subject: + ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch added to mm-nonmm-unstable branch
+Message-Id: <20241216054128.68CD8C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: use a folio in ocfs2_fast_symlink_read_folio()
+     Subject: ocfs2: remove ocfs2_start_walk_page_trans() prototype
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+     ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ocfs2: use a folio in ocfs2_fast_symlink_read_folio()
-Date: Thu, 5 Dec 2024 17:16:48 +0000
+Subject: ocfs2: remove ocfs2_start_walk_page_trans() prototype
+Date: Thu, 5 Dec 2024 17:16:49 +0000
 
-Use folio_end_read() instead of SetPageUptodate() and unlock_page().  Use
-memcpy_to_folio() instead of open-coding a kmap_atomic() sequence.
+This function no longer exists.
 
-Link: https://lkml.kernel.org/r/20241205171653.3179945-21-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241205171653.3179945-22-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Changwei Ge <gechangwei@live.cn>
@@ -77,41 +76,23 @@ Cc: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/symlink.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ fs/ocfs2/aops.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/fs/ocfs2/symlink.c~ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio
-+++ a/fs/ocfs2/symlink.c
-@@ -54,13 +54,11 @@
+--- a/fs/ocfs2/aops.h~ocfs2-remove-ocfs2_start_walk_page_trans-prototype
++++ a/fs/ocfs2/aops.h
+@@ -8,11 +8,6 @@
  
- static int ocfs2_fast_symlink_read_folio(struct file *f, struct folio *folio)
- {
--	struct page *page = &folio->page;
--	struct inode *inode = page->mapping->host;
-+	struct inode *inode = folio->mapping->host;
- 	struct buffer_head *bh = NULL;
- 	int status = ocfs2_read_inode_block(inode, &bh);
- 	struct ocfs2_dinode *fe;
- 	const char *link;
--	void *kaddr;
- 	size_t len;
+ #include <linux/fs.h>
  
- 	if (status < 0) {
-@@ -72,12 +70,9 @@ static int ocfs2_fast_symlink_read_folio
- 	link = (char *) fe->id2.i_symlink;
- 	/* will be less than a page size */
- 	len = strnlen(link, ocfs2_fast_symlink_chars(inode->i_sb));
--	kaddr = kmap_atomic(page);
--	memcpy(kaddr, link, len + 1);
--	kunmap_atomic(kaddr);
--	SetPageUptodate(page);
-+	memcpy_to_folio(folio, 0, link, len + 1);
- out:
--	unlock_page(page);
-+	folio_end_read(folio, status == 0);
- 	brelse(bh);
- 	return status;
- }
+-handle_t *ocfs2_start_walk_page_trans(struct inode *inode,
+-							 struct page *page,
+-							 unsigned from,
+-							 unsigned to);
+-
+ int ocfs2_map_folio_blocks(struct folio *folio, u64 *p_blkno,
+ 			  struct inode *inode, unsigned int from,
+ 			  unsigned int to, int new);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
