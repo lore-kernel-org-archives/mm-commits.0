@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935FA1C3F0E
-	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:41:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706631C3F0E
+	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:41:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734327688; cv=none; b=LICMOFnKewnqT2vkTsxCo3av984E6FzwofgFGtw7srOltDR8s4bMwzEkk+4e54KDEpLXfCdqvI/shd2X0GLEIth5U5A57CSZj7oT93L8L/6IZGrbvLBgb8acPQPz3jHJEhSuvTkzG4Y4SsDNckCp5ONGto2zdPTj812JB7IZDjY=
+	t=1734327690; cv=none; b=OhzT9vPDokEmUM/pCDPn1Sd167zSJng8ujIB7tpqAWcGZp8kvkC2YZ8SXc8PCYoMZlG2sHfu2BR/c7lab6DOCrZ3+8beGLCIsbzw1N+XLK9eqgWe0tHlIDmLCo4CQWz7cRg5yNGS9LazF03LLRBrPktxKECORjGAm8IYgi46flQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734327688; c=relaxed/simple;
-	bh=zZj7gf4zGAnmnhA4TNumUuOAE/s9zNGkZXn9NOB8OSg=;
-	h=Date:To:From:Subject:Message-Id; b=f5jAiva3fpvLmBoCS9zDYLu6VHf++dOet/Y3KZeDDWp8rNAF4FXTnsNQXGPI2Ie8vOTxJx3NcpqABSDzIRfLpLm7q14Z0SfGwxU0GNKT5KBlEVfaGNnyrvTmvklhmZbxMWdKGb3w3KdWHw5wz3MM/80W/DHKRg7F3mMRXY1ha1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gycZuw8i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734327690; c=relaxed/simple;
+	bh=NKbXIuPxYanYi5fxaFjrELpnnQs3s4PZqijzEA2UPbA=;
+	h=Date:To:From:Subject:Message-Id; b=bmq39+8Z+QOLaAe5BlVob7KKMlzHEH3eey9C8eUsHkIHq46WNVsYAApm0E3zgAhwuOvXYI87d2hsgJ6lV/ypvKzVnXjAwpfdxzs4ki+keBeTn144U3fLVFQwQIy+oSUiHAFK/SBOyLqA3XtbPaOvWSCW1iY8R1zU8WNqgpH/RU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=amVsLqk1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gycZuw8i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CD8C4CED0;
-	Mon, 16 Dec 2024 05:41:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="amVsLqk1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45618C4CED0;
+	Mon, 16 Dec 2024 05:41:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734327688;
-	bh=zZj7gf4zGAnmnhA4TNumUuOAE/s9zNGkZXn9NOB8OSg=;
+	s=korg; t=1734327690;
+	bh=NKbXIuPxYanYi5fxaFjrELpnnQs3s4PZqijzEA2UPbA=;
 	h=Date:To:From:Subject:From;
-	b=gycZuw8iQz6FP7qNUaHavnDfig52JhLw4VJEdaaP2nu+ZeoXAKE1NfBBTkSz/yH6r
-	 S+Rw9ze92Bml7fdvIBGDicbmkwUxHGmpfkfta2s4m6ZggbWLb0BgBWhj/dX5sQpRUF
-	 GnG2LXCzPzk6fKdkdjH/9lzW2ErgM/M3iEOkmjUM=
-Date: Sun, 15 Dec 2024 21:41:27 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
+	b=amVsLqk1VRYnWiFL/Pzc1rsxLXWX6KLWsuyIwAn9pcJHlgJI2iDdZzBOk7mxJOONT
+	 /DvruJzviZ9WPG+EnoYYDfI9dkc1x87te4F7uEGDo3fbSWdR0pdhQl8fWwIAHlWVBF
+	 kgOnBZUtpGb2TLF/6ZPa2xizHTwBLyRp6hEzGmPs=
+Date: Sun, 15 Dec 2024 21:41:29 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,mark.tinguely@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20241216054128.68CD8C4CED0@smtp.kernel.org>
+Subject: + ocfs2-support-large-folios-in-ocfs2_zero_cluster_folios.patch added to mm-nonmm-unstable branch
+Message-Id: <20241216054130.45618C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: remove ocfs2_start_walk_page_trans() prototype
+     Subject: ocfs2: support large folios in ocfs2_zero_cluster_folios()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
+     ocfs2-support-large-folios-in-ocfs2_zero_cluster_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-support-large-folios-in-ocfs2_zero_cluster_folios.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,13 +58,14 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ocfs2: remove ocfs2_start_walk_page_trans() prototype
-Date: Thu, 5 Dec 2024 17:16:49 +0000
+From: Mark Tinguely <mark.tinguely@oracle.com>
+Subject: ocfs2: support large folios in ocfs2_zero_cluster_folios()
+Date: Thu, 5 Dec 2024 17:16:50 +0000
 
-This function no longer exists.
+Remove assumptions that a folio is one page in size.
 
-Link: https://lkml.kernel.org/r/20241205171653.3179945-22-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241205171653.3179945-23-willy@infradead.org
+Signed-off-by: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Changwei Ge <gechangwei@live.cn>
@@ -72,51 +73,68 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.h |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/ocfs2/alloc.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
---- a/fs/ocfs2/aops.h~ocfs2-remove-ocfs2_start_walk_page_trans-prototype
-+++ a/fs/ocfs2/aops.h
-@@ -8,11 +8,6 @@
+--- a/fs/ocfs2/alloc.c~ocfs2-support-large-folios-in-ocfs2_zero_cluster_folios
++++ a/fs/ocfs2/alloc.c
+@@ -6851,7 +6851,6 @@ static void ocfs2_zero_cluster_folios(st
+ 		u64 phys, handle_t *handle)
+ {
+ 	int i;
+-	unsigned int from, to = PAGE_SIZE;
+ 	struct super_block *sb = inode->i_sb;
  
- #include <linux/fs.h>
+ 	BUG_ON(!ocfs2_sparse_alloc(OCFS2_SB(sb)));
+@@ -6859,21 +6858,18 @@ static void ocfs2_zero_cluster_folios(st
+ 	if (numfolios == 0)
+ 		goto out;
  
--handle_t *ocfs2_start_walk_page_trans(struct inode *inode,
--							 struct page *page,
--							 unsigned from,
--							 unsigned to);
+-	to = PAGE_SIZE;
+ 	for (i = 0; i < numfolios; i++) {
+ 		struct folio *folio = folios[i];
++		size_t to = folio_size(folio);
++		size_t from = offset_in_folio(folio, start);
+ 
+-		from = start & (PAGE_SIZE - 1);
+-		if ((end >> PAGE_SHIFT) == folio->index)
+-			to = end & (PAGE_SIZE - 1);
 -
- int ocfs2_map_folio_blocks(struct folio *folio, u64 *p_blkno,
- 			  struct inode *inode, unsigned int from,
- 			  unsigned int to, int new);
+-		BUG_ON(from > PAGE_SIZE);
+-		BUG_ON(to > PAGE_SIZE);
++		if (to > end - folio_pos(folio))
++			to = end - folio_pos(folio);
+ 
+ 		ocfs2_map_and_dirty_folio(inode, handle, from, to, folio, 1,
+ 				&phys);
+ 
+-		start = (folio->index + 1) << PAGE_SHIFT;
++		start = folio_next_index(folio) << PAGE_SHIFT;
+ 	}
+ out:
+ 	if (folios)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mark.tinguely@oracle.com are
 
-vmalloc-fix-accounting-with-i915.patch
-mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
-mm-make-alloc_pages_mpol-static.patch
-mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
-mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
-mm-page_alloc-add-__alloc_frozen_pages.patch
-mm-mempolicy-add-alloc_frozen_pages.patch
-slab-allocate-frozen-pages.patch
-ocfs2-handle-a-symlink-read-error-correctly.patch
-ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
-ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
-ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
-ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
-ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
+ocfs2-convert-w_target_page-to-w_target_folio.patch
+ocfs2-use-a-folio-in-ocfs2_zero_new_buffers.patch
+ocfs2-use-a-folio-in-ocfs2_write_begin_inline.patch
+ocfs2-convert-ocfs2_readpage_inline-to-take-a-folio.patch
+ocfs2-convert-ocfs2_inode_lock_with_page-to-ocfs2_inode_lock_with_folio.patch
+ocfs2-convert-w_pages-to-w_folios.patch
+ocfs2-convert-ocfs2_write_failure-to-use-a-folio.patch
+ocfs2-use-a-folio-in-ocfs2_write_end_nolock.patch
+ocfs2-use-a-folio-in-ocfs2_prepare_page_for_write.patch
+ocfs2-use-a-folio-in-ocfs2_map_and_dirty_page.patch
+ocfs2-convert-ocfs2_map_page_blocks-to-ocfs2_map_folio_blocks.patch
+ocfs2-convert-ocfs2_clear_page_regions-to-ocfs2_clear_folio_regions.patch
+ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages.patch
+ocfs2-convert-ocfs2_duplicate_clusters_by_page-to-use-a-folio.patch
+ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio.patch
+ocfs2-support-large-folios-in-ocfs2_zero_cluster_folios.patch
+ocfs2-support-large-folios-in-ocfs2_write_zero_page.patch
 
