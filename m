@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB8510F4;
-	Mon, 16 Dec 2024 05:40:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2145810F4
+	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:40:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734327644; cv=none; b=rCylkML5OP5TmxJHF5kAwm0DgoFoZbdV6apuKmwwaE9aNv/ggYQQokMYP3sEyhvC/+NwgwEy15xMo8ypZd5mMoKaEzf06ruzzFiTuWsVIR4U06Nvi6CvlIpl4wLtflTUMw4aB1RJpbcXu5Iqb0OYoAbcAo4I/5Dlfi9PuwTpUVg=
+	t=1734327646; cv=none; b=COKd2575DCSv6q2fddwYXyJWVFAIEZcortnqqg5aBbjRZkFN5MUjF7k12K5K9jSEgP8E8D9U2I7V/G0U8trOhz+Q7bPCJAUJp3/Nr4ArPvfXwbHgcgtGc9U86iojcyFewUg6gtMJNi2Lbc7qbSgSnrUjozf3BIuPayR0XuDeHt4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734327644; c=relaxed/simple;
-	bh=M1SnyEp0FyzyUk5gjEDkbZ+Hf+f4IWkZeYCNSZ3Xsu8=;
-	h=Date:To:From:Subject:Message-Id; b=P/HwqTxlzoHFiRgdccZXI77oJ/PzHIdY0v92YVkrK9huldebwbu/SqIjrU34TpD2qUtOaY9KfsSYe5WyHeG3G0cvI7ln+r0iPbRGf4Pc2aY0BGBvHez6DwkFGsGalCX+wNohOlbmCgUfgE3eQZ2KuMa3BsuYLQnIDU9I5Ks7BKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HdRVLNZE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734327646; c=relaxed/simple;
+	bh=+8rjgLpF1X6Teby1a5qcBTIT6cakGi3qgvypalqk+jQ=;
+	h=Date:To:From:Subject:Message-Id; b=fvsI52R+oBgZqxGoTJW8JIEISNlVmFXg7+oMomYZEFQpwx80VxXnX36WXbO0crCAT1+c5kIJqd6YFnjU8gbo4eY2HvUKLDFmF+CJ5qQGpweb5aU/UdF7ODJrkMPgOUpUYgz8Q3lFvA8SR6iESQMPLnIZbxKmYiXfVXKQubjE5c0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uX+cQKmF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HdRVLNZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E1F1C4CED0;
-	Mon, 16 Dec 2024 05:40:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uX+cQKmF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B35BC4CED7;
+	Mon, 16 Dec 2024 05:40:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734327643;
-	bh=M1SnyEp0FyzyUk5gjEDkbZ+Hf+f4IWkZeYCNSZ3Xsu8=;
+	s=korg; t=1734327645;
+	bh=+8rjgLpF1X6Teby1a5qcBTIT6cakGi3qgvypalqk+jQ=;
 	h=Date:To:From:Subject:From;
-	b=HdRVLNZEMI85wwQLNgp60RefMsOsON4hAfnNOsq8sGXA1z3feMh7T8YBCq58hBToz
-	 vi2FHZLUvNeBEPTgDroqScbxGNqmyK/+yvbZzfdLyG3Qaqsh8zLbBizfjWdfgPDAje
-	 QRNxi2ljkEiqWa+gP4/dfUaQzJdAKRN6u6r0K+VM=
-Date: Sun, 15 Dec 2024 21:40:42 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
+	b=uX+cQKmF4I8MQrQVHpsiR5NriQ3dhm0FLN3YL9w9nPgHx4xSZAvZ+x4+PKEncWIzP
+	 /bwBTCr0bGVHGAsxcqxKEVZ7ZpEi4f/67nSL0rltqSkqlitXPz/bIysCWViQeDY8ht
+	 FoKWDWGRwkMkdAvw8y04F5mGXrf9R6XDOuAT72E8=
+Date: Sun, 15 Dec 2024 21:40:45 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-handle-a-symlink-read-error-correctly.patch added to mm-nonmm-unstable branch
-Message-Id: <20241216054043.9E1F1C4CED0@smtp.kernel.org>
+Subject: + ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20241216054045.9B35BC4CED7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: handle a symlink read error correctly
+     Subject: ocfs2: convert ocfs2_page_mkwrite() to use a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-handle-a-symlink-read-error-correctly.patch
+     ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-handle-a-symlink-read-error-correctly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,65 +59,90 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ocfs2: handle a symlink read error correctly
-Date: Thu, 5 Dec 2024 17:16:29 +0000
+Subject: ocfs2: convert ocfs2_page_mkwrite() to use a folio
+Date: Thu, 5 Dec 2024 17:16:30 +0000
 
-Patch series "Convert ocfs2 to use folios".
+Pass the folio into __ocfs2_page_mkwrite() and use it throughout.  Does
+not attempt to support large folios.
 
-Mark did a conversion of ocfs2 to use folios and sent it to me as a
-giant patch for review ;-)
-
-So I've redone it as individual patches, and credited Mark for the patches
-where his code is substantially the same.  It's not a bad way to do it;
-his patch had some bugs and my patches had some bugs.  Hopefully all our
-bugs were different from each other.  And hopefully Mark likes all the
-changes I made to his code!
-
-
-This patch (of 23):
-
-If we can't read the buffer, be sure to unlock the page before returning.
-
-Link: https://lkml.kernel.org/r/20241205171653.3179945-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20241205171653.3179945-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241205171653.3179945-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Mark Tinguely <mark.tinguely@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/symlink.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/mmap.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/fs/ocfs2/symlink.c~ocfs2-handle-a-symlink-read-error-correctly
-+++ a/fs/ocfs2/symlink.c
-@@ -65,7 +65,7 @@ static int ocfs2_fast_symlink_read_folio
- 
- 	if (status < 0) {
- 		mlog_errno(status);
--		return status;
-+		goto out;
- 	}
- 
- 	fe = (struct ocfs2_dinode *) bh->b_data;
-@@ -76,9 +76,10 @@ static int ocfs2_fast_symlink_read_folio
- 	memcpy(kaddr, link, len + 1);
- 	kunmap_atomic(kaddr);
- 	SetPageUptodate(page);
-+out:
- 	unlock_page(page);
- 	brelse(bh);
--	return 0;
-+	return status;
+--- a/fs/ocfs2/mmap.c~ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio
++++ a/fs/ocfs2/mmap.c
+@@ -44,13 +44,13 @@ static vm_fault_t ocfs2_fault(struct vm_
  }
  
- const struct address_space_operations ocfs2_fast_symlink_aops = {
+ static vm_fault_t __ocfs2_page_mkwrite(struct file *file,
+-			struct buffer_head *di_bh, struct page *page)
++			struct buffer_head *di_bh, struct folio *folio)
+ {
+ 	int err;
+ 	vm_fault_t ret = VM_FAULT_NOPAGE;
+ 	struct inode *inode = file_inode(file);
+ 	struct address_space *mapping = inode->i_mapping;
+-	loff_t pos = page_offset(page);
++	loff_t pos = folio_pos(folio);
+ 	unsigned int len = PAGE_SIZE;
+ 	pgoff_t last_index;
+ 	struct folio *locked_folio = NULL;
+@@ -72,9 +72,9 @@ static vm_fault_t __ocfs2_page_mkwrite(s
+ 	 *
+ 	 * Let VM retry with these cases.
+ 	 */
+-	if ((page->mapping != inode->i_mapping) ||
+-	    (!PageUptodate(page)) ||
+-	    (page_offset(page) >= size))
++	if ((folio->mapping != inode->i_mapping) ||
++	    !folio_test_uptodate(folio) ||
++	    (pos >= size))
+ 		goto out;
+ 
+ 	/*
+@@ -87,11 +87,11 @@ static vm_fault_t __ocfs2_page_mkwrite(s
+ 	 * worry about ocfs2_write_begin() skipping some buffer reads
+ 	 * because the "write" would invalidate their data.
+ 	 */
+-	if (page->index == last_index)
++	if (folio->index == last_index)
+ 		len = ((size - 1) & ~PAGE_MASK) + 1;
+ 
+ 	err = ocfs2_write_begin_nolock(mapping, pos, len, OCFS2_WRITE_MMAP,
+-				       &locked_folio, &fsdata, di_bh, page);
++				       &locked_folio, &fsdata, di_bh, &folio->page);
+ 	if (err) {
+ 		if (err != -ENOSPC)
+ 			mlog_errno(err);
+@@ -112,7 +112,7 @@ out:
+ 
+ static vm_fault_t ocfs2_page_mkwrite(struct vm_fault *vmf)
+ {
+-	struct page *page = vmf->page;
++	struct folio *folio = page_folio(vmf->page);
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct buffer_head *di_bh = NULL;
+ 	sigset_t oldset;
+@@ -141,7 +141,7 @@ static vm_fault_t ocfs2_page_mkwrite(str
+ 	 */
+ 	down_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 
+-	ret = __ocfs2_page_mkwrite(vmf->vma->vm_file, di_bh, page);
++	ret = __ocfs2_page_mkwrite(vmf->vma->vm_file, di_bh, folio);
+ 
+ 	up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
