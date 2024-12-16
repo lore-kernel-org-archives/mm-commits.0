@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F3B2146A71
-	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 16:34:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E804A209689
+	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 16:53:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734366843; cv=none; b=L47pa3iqaVZ82uhvAy/mhYTR0zIMJ0DEtrKk/bAAt8JDYwTOtEJooN8rAtW4uR6ggad4r6KYtVDCR0ufCxzBd9jwFgQl3gy5E3XNIeGlRnDg8drIp7ve+WlJigPt9ECio42RNe0+TLXR+l7APiQEzRTW2JXoUkky8XE56MVmxuE=
+	t=1734368008; cv=none; b=b+TR4YI1QW9+JTQ9bwaSme80sGw9oEifJiLqpkPtGMf788MbIIWOZCCCxNuSOHV3qe0cau13y+jscAXLc/Kqx6npHtcqqLleaPMWySnx/3NS+ySBeNzBjibbV1WXyH+CZl4HkKTOZraYnHjWuSj//zlFM3BST7PUhu5VyHVGWio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734366843; c=relaxed/simple;
-	bh=vyjXzX26S4jv+Ul50pmMXfH+Njn8HH93jXh7VOnr3k8=;
-	h=Date:To:From:Subject:Message-Id; b=D1ZwbEAVjnLyNxhxAvweueNsqTEHCRf/jrg4W7U3uDWzLK8oKzq1lA3cwfWjEYa0T2iSlJgzk65rR27Qgy7wZxo1neOFGB9soI/Ox2sUhAqm++nFDQxNz/KFbEbTDdaK6R9Bs8UC03IQUQYYR8sgVUxAGlzuzOqkg+CAEMWVafQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ysv2NjB/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734368008; c=relaxed/simple;
+	bh=Pvn5LT6Mqku1RVXTdGafn1t5Wp/Q+GDMmFZvGJfOVUY=;
+	h=Date:To:From:Subject:Message-Id; b=K1D+7eR6OUtmByHDMt9ed0Mcw/Z8nwKZ1UsxrXnWBbEv7Bn2WAlrcEhcqX2YpnI2w9X/fHYSaf9bWGKPrGN8rj+jOzQeQQW1VQran5tOjXioVMtl0BXWF9JJWZ6lnwhdPi6l/1appMBoMC9w9FysSnVBzTS9hkCzcJp9PJ3pT+w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zx54fhNe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ysv2NjB/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB62FC4CED0;
-	Mon, 16 Dec 2024 16:34:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zx54fhNe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37672C4CED0;
+	Mon, 16 Dec 2024 16:53:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734366842;
-	bh=vyjXzX26S4jv+Ul50pmMXfH+Njn8HH93jXh7VOnr3k8=;
+	s=korg; t=1734368007;
+	bh=Pvn5LT6Mqku1RVXTdGafn1t5Wp/Q+GDMmFZvGJfOVUY=;
 	h=Date:To:From:Subject:From;
-	b=Ysv2NjB/CmG7UedrHgzwq3eEwcBnoUoiY/XdSqgOEzRcqnpneyNnhA6cGkccFzDJ/
-	 P5LTLz3SvzEBl1qJgmILEYEJZIdOpi7pMYzNKCpwINZMuxYj9teKSgoXvrY3LiOfTT
-	 egJ8UM3lNPxy71wnVTQ6Z7qxwLlgeL1gQ6vkZ2Eo=
-Date: Mon, 16 Dec 2024 08:34:02 -0800
-To: mm-commits@vger.kernel.org,dhowells@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=Zx54fhNeQzyL/PDeMRNuAHMEgRkIxeJXZxNmNQu7raZzsf/YoNi0UA0WlCCBd74rJ
+	 dyKHtZZ11hanB41q2LVYwP34kzT2YaaQHXOs8NJFMpYiSm9YWNZrKwQXQAP79u9k1E
+	 B2GsFscBTrME/TjzOBOn5Qy+g5vDv63MwecqeWL8=
+Date: Mon, 16 Dec 2024 08:53:26 -0800
+To: mm-commits@vger.kernel.org,linux@weissschuh.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + iov_iter-remove-setting-of-page-index.patch added to mm-nonmm-unstable branch
-Message-Id: <20241216163402.BB62FC4CED0@smtp.kernel.org>
+Subject: + mm-page_idle-constify-struct-bin_attribute.patch added to mm-unstable branch
+Message-Id: <20241216165327.37672C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: iov_iter: remove setting of page->index
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     iov_iter-remove-setting-of-page-index.patch
+     Subject: mm/page_idle: constify 'struct bin_attribute'
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_idle-constify-struct-bin_attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iov_iter-remove-setting-of-page-index.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_idle-constify-struct-bin_attribute.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: iov_iter: remove setting of page->index
-Date: Mon, 16 Dec 2024 16:12:50 +0000
+From: Thomas Weißschuh <linux@weissschuh.net>
+Subject: mm/page_idle: constify 'struct bin_attribute'
+Date: Mon, 16 Dec 2024 13:20:25 +0100
 
-Nothing actually checks page->index, so just remove it.
+The sysfs core now allows instances of 'struct bin_attribute' to be moved
+into read-only memory.  Make use of that to protect them against
+accidental or malicious modifications.
 
-Link: https://lkml.kernel.org/r/20241216161253.37687-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
+Link: https://lkml.kernel.org/r/20241216-sysfs-const-bin_attr-page_idle-v1-1-cc01ecc55196@weissschuh.net
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kunit_iov_iter.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/page_idle.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/lib/kunit_iov_iter.c~iov_iter-remove-setting-of-page-index
-+++ a/lib/kunit_iov_iter.c
-@@ -63,9 +63,6 @@ static void *__init iov_kunit_create_buf
- 		KUNIT_ASSERT_EQ(test, got, npages);
- 	}
+--- a/mm/page_idle.c~mm-page_idle-constify-struct-bin_attribute
++++ a/mm/page_idle.c
+@@ -112,7 +112,7 @@ static void page_idle_clear_pte_refs(str
+ }
  
--	for (int i = 0; i < npages; i++)
--		pages[i]->index = i;
--
- 	buffer = vmap(pages, npages, VM_MAP | VM_MAP_PUT_PAGES, PAGE_KERNEL);
-         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, buffer);
+ static ssize_t page_idle_bitmap_read(struct file *file, struct kobject *kobj,
+-				     struct bin_attribute *attr, char *buf,
++				     const struct bin_attribute *attr, char *buf,
+ 				     loff_t pos, size_t count)
+ {
+ 	u64 *out = (u64 *)buf;
+@@ -157,7 +157,7 @@ static ssize_t page_idle_bitmap_read(str
+ }
+ 
+ static ssize_t page_idle_bitmap_write(struct file *file, struct kobject *kobj,
+-				      struct bin_attribute *attr, char *buf,
++				      const struct bin_attribute *attr, char *buf,
+ 				      loff_t pos, size_t count)
+ {
+ 	const u64 *in = (u64 *)buf;
+@@ -193,17 +193,17 @@ static ssize_t page_idle_bitmap_write(st
+ 	return (char *)in - buf;
+ }
+ 
+-static struct bin_attribute page_idle_bitmap_attr =
++static const struct bin_attribute page_idle_bitmap_attr =
+ 		__BIN_ATTR(bitmap, 0600,
+ 			   page_idle_bitmap_read, page_idle_bitmap_write, 0);
+ 
+-static struct bin_attribute *page_idle_bin_attrs[] = {
++static const struct bin_attribute *const page_idle_bin_attrs[] = {
+ 	&page_idle_bitmap_attr,
+ 	NULL,
+ };
+ 
+ static const struct attribute_group page_idle_attr_group = {
+-	.bin_attrs = page_idle_bin_attrs,
++	.bin_attrs_new = page_idle_bin_attrs,
+ 	.name = "page_idle",
+ };
  
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
-vmalloc-fix-accounting-with-i915.patch
-mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
-mm-make-alloc_pages_mpol-static.patch
-mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
-mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
-mm-page_alloc-add-__alloc_frozen_pages.patch
-mm-mempolicy-add-alloc_frozen_pages.patch
-slab-allocate-frozen-pages.patch
-ocfs2-handle-a-symlink-read-error-correctly.patch
-ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
-ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
-ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
-ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
-ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
-iov_iter-remove-setting-of-page-index.patch
+mm-page_idle-constify-struct-bin_attribute.patch
 
