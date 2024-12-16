@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D5501C9B9B;
-	Mon, 16 Dec 2024 16:57:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99A3217A5BD
+	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 17:00:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734368251; cv=none; b=GXZT5+rLhjx10Aaag4ae+cNMGd60ixrkRhP+ckLWQ4yriiXSsPd9/M1AoFCsqAbNPP2MxSNHrfSTvq2tl061rG74qmPdtBMs2AK2KWV+gFBKZupCzfUfx71UjH9oAnyIMhY3zVNVA3W0hueTNs383qeeO2bKy8OEIMziTjkL2Eg=
+	t=1734368402; cv=none; b=TSkTg5tBoJKd+JvTiTseiGHDoXFKqxSyWXPYuteHognhGyBKhBIZoc+VKOVVgFMpP2D+Pczh5TdMl21/3sZZAWiKuuNFgVI5Fc9jDLl90FBeuWzz807eS7oyJdmm81MEWnsE8bAosoaRCRypx3Bq2Dh5Ud8pKD08x2CVGPf094Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734368251; c=relaxed/simple;
-	bh=rHVRkW2GHn2zDA48jsGrXdtqGkdG8/EWEMV2UC6pN4M=;
-	h=Date:To:From:Subject:Message-Id; b=FR8Yv8yemB2dM9PA6i8fQZK2fYYEMHbPuT7bdg1eamYsfnVRDlSXHbs7czu8XitALYFdAhW1/cjrcugbDbipSnaUp3bzq3xhVBAsS6TTmyBo1sQ5fQEH7mUlRXB6yd3F1Nj1VCaxHLYeKiDvgP88o6bN3/aZZfT1YTZRSJIIVX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uniQaLX2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734368402; c=relaxed/simple;
+	bh=0bKLBMkr9SLVijvI9jH0GdBPiQdWS+HAx7KXl0Zu4CY=;
+	h=Date:To:From:Subject:Message-Id; b=LBvJ7wgXgXhcZTSLVqWqo/bex/aYBdCdO1bU17S0wqdJCTnceBWlZJRe6la9QlMgATAiTG2qRRevAslTK6y4vwR25E7FnGlbNJHNdEPN/GboaYax2XssssG9bEhFnFt8SVN2GVmDqcvI73Dqv+YfFzY+ih7gSEVMGi8Mw/0uafE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FPZoEhoT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uniQaLX2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97162C4CED0;
-	Mon, 16 Dec 2024 16:57:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FPZoEhoT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F143C4CED0;
+	Mon, 16 Dec 2024 17:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734368250;
-	bh=rHVRkW2GHn2zDA48jsGrXdtqGkdG8/EWEMV2UC6pN4M=;
+	s=korg; t=1734368402;
+	bh=0bKLBMkr9SLVijvI9jH0GdBPiQdWS+HAx7KXl0Zu4CY=;
 	h=Date:To:From:Subject:From;
-	b=uniQaLX2NquGqwpctb6DU0l32YU5XNx6QaIi6+PTqWWWozc9HwTfpCAOHHOzJehXK
-	 2sjbHI031qNchU1w0TmH1UyBfiU4tmTNJXRAH6kNYwl+kJH13yvjvDpMfJp6uYaMm9
-	 8IkY5X0aPWGFArf9qAS99w2KfQ35Tm1fpFYnUpnA=
-Date: Mon, 16 Dec 2024 08:57:30 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=FPZoEhoTZEEdjxPvMgpkiFAyetaY4icqXXhP2xxLewbVlS13HR11hZBertohRe/W5
+	 b7lllM/7r+R//057POck/D0NSBTgTvZbWVOuYkM10DjD2AkKyVmrGToFdi1i7PRtAD
+	 YNsmBcNDHIp4kiMUdKVnSp66faKS7cvB3SH3a5LI=
+Date: Mon, 16 Dec 2024 09:00:01 -0800
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,torvalds@linux-foundation.org,masahiroy@kernel.org,mailhol.vincent@wanadoo.fr,linux@rasmusvillemoes.dk,david.laight@aculab.com,David.Laight@ACULAB.COM,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241216165730.97162C4CED0@smtp.kernel.org>
+Subject: + linux-bitsh-simplify-genmask.patch added to mm-nonmm-unstable branch
+Message-Id: <20241216170002.1F143C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, compaction: don't use ALLOC_CMA in long term GUP flow
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow.patch
+     Subject: linux/bits.h: simplify GENMASK()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     linux-bitsh-simplify-genmask.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/linux-bitsh-simplify-genmask.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,243 +58,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm, compaction: don't use ALLOC_CMA in long term GUP flow
-Date: Mon, 16 Dec 2024 19:54:04 +0800
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: linux/bits.h: simplify GENMASK()
+Date: Mon, 16 Dec 2024 09:39:23 +0000
 
-Since commit 984fdba6a32e ("mm, compaction: use proper alloc_flags in
-__compaction_suitable()") allow compaction to proceed when free pages
-required for compaction reside in the CMA pageblocks, it's possible that
-__compaction_suitable() always returns true, and in some cases, it's not
-acceptable.
+Change 95b980d62d52c replaced ~0ul and ~0ull with ~UL(0) and ~ULL(0) in
+the GENMASK() defines as part of a change to allow the bitops definitions
+be used from assembly.
 
-There are 4 NUMA nodes on my machine, and each NUMA node has 32GB of
-memory.  I have configured 16GB of CMA memory on each NUMA node, and
-starting a 32GB virtual machine with device passthrough is extremely slow,
-taking almost an hour.
+The definitions have since been moved to a uapi header which probably
+shouldn't require some other header be included first.
 
-During the start-up of the virtual machine, it will call
-pin_user_pages_remote(..., FOLL_LONGTERM, ...) to allocate memory.  Long
-term GUP cannot allocate memory from CMA area, so a maximum of 16 GB of
-no-CMA memory on a NUMA node can be used as virtual machine memory.  Since
-there is 16G of free CMA memory on the NUMA node, watermark for order-0
-always be met for compaction, so __compaction_suitable() always returns
-true, even if the node is unable to allocate non-CMA memory for the
-virtual machine.
+The definition of __GENMASK() is also overcomplicated partially due to
+avoiding overflow warnings from shifting ~0u left.
 
-For costly allocations, because __compaction_suitable() always
-returns true, __alloc_pages_slowpath() can't exit at the appropriate
-place, resulting in excessively long virtual machine startup times.
-Call trace:
-__alloc_pages_slowpath
-    if (compact_result == COMPACT_SKIPPED ||
-        compact_result == COMPACT_DEFERRED)
-        goto nopage; // should exit __alloc_pages_slowpath() from here
+Implement GENMASK() using the simpler (1u << hi) * 2 - (1u << lo) formula.
+This doesn't rely on right shifts and doesn't need to know the number of
+bits in the integral type.  It can be used for different types by just
+changing the type of the 1u.  __GENMASK() __GENMASK_ULL() and
+__GENMASK_U128() can now implemeted using a single ___GENMASK(one, hi,
+lo).
 
-In order to quickly fall back to remote node, we should remove ALLOC_CMA
-both in __compaction_suitable() and __isolate_free_page() in long term GUP
-flow.  After this fix, starting a 32GB virtual machine with device
-passthrough takes only a few seconds.
+Overflow warnings (from shifting out the MSB) are avoided by subtracting 1
+before the multiply and adding two back in later.  The complers see
+straight through the subterfuge when generating code.
 
-Link: https://lkml.kernel.org/r/1734350044-12928-1-git-send-email-yangge1116@126.com
-Fixes: 984fdba6a32e ("mm, compaction: use proper alloc_flags in __compaction_suitable()")
-Signed-off-by: yangge <yangge1116@126.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Since there are already conditionals for ASSEMBLY in bits.h, for ASSEMBLY
+directly expand GENMASK() and GENMASK_ULL() as ___GENMASK(1, hi, lo)
+rather than through the __GENMASK() and __GENMASK_ULL() uapi defines. 
+Remove the UL(x) and ULL(x) from the uapi file.
+
+GENMASK() and GENMASK_ULL() now generate the correct values when ASSEMBLY
+is defined.  Fortunately they've never been used.
+
+Rename 'h' to 'hi' and 'l' to 'lo' because 'l' looks like '1' in many fonts.
+
+Link: https://lkml.kernel.org/r/7a1b1534e51342769740985db773d5e1@AcuMS.aculab.com
+Signed-off-by: David Laight <david.laight@aculab.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Vincent Mailhol <mailhol.vincent@wanadoo.fr>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    6 ++++--
- mm/compaction.c            |   20 +++++++++++---------
- mm/internal.h              |    3 ++-
- mm/page_alloc.c            |    6 ++++--
- mm/page_isolation.c        |    3 ++-
- mm/page_reporting.c        |    2 +-
- mm/vmscan.c                |    4 ++--
- 7 files changed, 26 insertions(+), 18 deletions(-)
+ include/linux/bits.h      |   43 ++++++++++++++----------------------
+ include/uapi/linux/bits.h |   15 +++++-------
+ 2 files changed, 24 insertions(+), 34 deletions(-)
 
---- a/include/linux/compaction.h~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/include/linux/compaction.h
-@@ -90,7 +90,8 @@ extern enum compact_result try_to_compac
- 		struct page **page);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
- extern bool compaction_suitable(struct zone *zone, int order,
--					       int highest_zoneidx);
-+					       int highest_zoneidx,
-+					       unsigned int alloc_flags);
- 
- extern void compaction_defer_reset(struct zone *zone, int order,
- 				bool alloc_success);
-@@ -108,7 +109,8 @@ static inline void reset_isolation_suita
- }
- 
- static inline bool compaction_suitable(struct zone *zone, int order,
--						      int highest_zoneidx)
-+						      int highest_zoneidx,
-+						      unsigned int alloc_flags)
- {
- 	return false;
- }
---- a/mm/compaction.c~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/mm/compaction.c
-@@ -654,7 +654,7 @@ static unsigned long isolate_freepages_b
- 
- 		/* Found a free page, will break it into order-0 pages */
- 		order = buddy_order(page);
--		isolated = __isolate_free_page(page, order);
-+		isolated = __isolate_free_page(page, order, cc->alloc_flags);
- 		if (!isolated)
- 			break;
- 		set_page_private(page, order);
-@@ -1633,7 +1633,7 @@ static void fast_isolate_freepages(struc
- 
- 		/* Isolate the page if available */
- 		if (page) {
--			if (__isolate_free_page(page, order)) {
-+			if (__isolate_free_page(page, order, cc->alloc_flags)) {
- 				set_page_private(page, order);
- 				nr_isolated = 1 << order;
- 				nr_scanned += nr_isolated - 1;
-@@ -2379,6 +2379,7 @@ static enum compact_result compact_finis
- 
- static bool __compaction_suitable(struct zone *zone, int order,
- 				  int highest_zoneidx,
-+				  unsigned int alloc_flags,
- 				  unsigned long wmark_target)
- {
- 	unsigned long watermark;
-@@ -2393,25 +2394,26 @@ static bool __compaction_suitable(struct
- 	 * even if compaction succeeds.
- 	 * For costly orders, we require low watermark instead of min for
- 	 * compaction to proceed to increase its chances.
--	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
--	 * suitable migration targets
-+	 * In addition to long term GUP flow, ALLOC_CMA is used, as pages in
-+	 * CMA pageblocks are considered suitable migration targets
- 	 */
- 	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
- 				low_wmark_pages(zone) : min_wmark_pages(zone);
- 	watermark += compact_gap(order);
- 	return __zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
--				   ALLOC_CMA, wmark_target);
-+				   alloc_flags & ALLOC_CMA, wmark_target);
- }
+--- a/include/linux/bits.h~linux-bitsh-simplify-genmask
++++ a/include/linux/bits.h
+@@ -14,41 +14,32 @@
+ #define BITS_PER_BYTE		8
  
  /*
-  * compaction_suitable: Is this suitable to run compaction on this zone now?
+- * Create a contiguous bitmask starting at bit position @l and ending at
+- * position @h. For example
++ * Create a contiguous bitmask starting at bit position @lo and ending at
++ * position @hi. For example
+  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
   */
--bool compaction_suitable(struct zone *zone, int order, int highest_zoneidx)
-+bool compaction_suitable(struct zone *zone, int order, int highest_zoneidx,
-+				   unsigned int alloc_flags)
- {
- 	enum compact_result compact_result;
- 	bool suitable;
+ #if !defined(__ASSEMBLY__)
+ #include <linux/build_bug.h>
+-#define GENMASK_INPUT_CHECK(h, l) \
++#define GENMASK_INPUT_CHECK(hi, lo) \
+ 	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
+-		__is_constexpr((l) > (h)), (l) > (h), 0)))
+-#else
+-/*
+- * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
+- * disable the input check if that is the case.
+- */
+-#define GENMASK_INPUT_CHECK(h, l) 0
+-#endif
++		__is_constexpr((lo) > (hi)), (lo) > (hi), 0)))
  
--	suitable = __compaction_suitable(zone, order, highest_zoneidx,
-+	suitable = __compaction_suitable(zone, order, highest_zoneidx, alloc_flags,
- 					 zone_page_state(zone, NR_FREE_PAGES));
- 	/*
- 	 * fragmentation index determines if allocation failures are due to
-@@ -2472,7 +2474,7 @@ bool compaction_zonelist_suitable(struct
- 		available = zone_reclaimable_pages(zone) / order;
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
- 		if (__compaction_suitable(zone, order, ac->highest_zoneidx,
--					  available))
-+					  alloc_flags, available))
- 			return true;
- 	}
+-#define GENMASK(h, l) \
+-	(GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
+-#define GENMASK_ULL(h, l) \
+-	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_ULL(h, l))
++#define GENMASK(hi, lo) \
++	(GENMASK_INPUT_CHECK(hi, lo) + __GENMASK(hi, lo))
++#define GENMASK_ULL(hi, lo) \
++	(GENMASK_INPUT_CHECK(hi, lo) + __GENMASK_ULL(hi, lo))
  
-@@ -2497,7 +2499,7 @@ compaction_suit_allocation_order(struct
- 			      alloc_flags))
- 		return COMPACT_SUCCESS;
+-#if !defined(__ASSEMBLY__)
++#define GENMASK_U128(hi, lo) \
++	(GENMASK_INPUT_CHECK(hi, lo) + __GENMASK_U128(hi, lo))
++#else
+ /*
+- * Missing asm support
+- *
+- * __GENMASK_U128() depends on _BIT128() which would not work
+- * in the asm code, as it shifts an 'unsigned __init128' data
+- * type instead of direct representation of 128 bit constants
+- * such as long and unsigned long. The fundamental problem is
+- * that a 128 bit constant will get silently truncated by the
+- * gcc compiler.
++ * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
++ * 128bit exprssions don't work, neither can C 0UL (etc) constants be used.
++ * These definitions only have to work for constants and don't require
++ * that ~0 have any specific number of set bits.
+  */
+-#define GENMASK_U128(h, l) \
+-	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_U128(h, l))
++#define GENMASK(hi, lo) ___GENMASK(1, hi, lo)
++#define GENMASK_ULL(hi, lo) ___GENMASK(1, hi, lo)
+ #endif
  
--	if (!compaction_suitable(zone, order, highest_zoneidx))
-+	if (!compaction_suitable(zone, order, highest_zoneidx, alloc_flags))
- 		return COMPACT_SKIPPED;
+ #endif	/* __LINUX_BITS_H */
+--- a/include/uapi/linux/bits.h~linux-bitsh-simplify-genmask
++++ a/include/uapi/linux/bits.h
+@@ -4,15 +4,14 @@
+ #ifndef _UAPI_LINUX_BITS_H
+ #define _UAPI_LINUX_BITS_H
  
- 	return COMPACT_CONTINUE;
---- a/mm/internal.h~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/mm/internal.h
-@@ -662,7 +662,8 @@ static inline void clear_zone_contiguous
- 	zone->contiguous = false;
- }
+-#define __GENMASK(h, l) \
+-        (((~_UL(0)) - (_UL(1) << (l)) + 1) & \
+-         (~_UL(0) >> (__BITS_PER_LONG - 1 - (h))))
++/* Result is '(1u << (hi + 1)) - (1u << lo)' coded to avoid overflow. */
++#define ___GENMASK(one, hi, lo) \
++	((((one) << (hi)) - 1) * 2 + 1 - (((one) << (lo)) - 1))
  
--extern int __isolate_free_page(struct page *page, unsigned int order);
-+extern int __isolate_free_page(struct page *page, unsigned int order,
-+				    unsigned int alloc_flags);
- extern void __putback_isolated_page(struct page *page, unsigned int order,
- 				    int mt);
- extern void memblock_free_pages(struct page *page, unsigned long pfn,
---- a/mm/page_alloc.c~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/mm/page_alloc.c
-@@ -2808,7 +2808,8 @@ void split_page(struct page *page, unsig
- }
- EXPORT_SYMBOL_GPL(split_page);
+-#define __GENMASK_ULL(h, l) \
+-        (((~_ULL(0)) - (_ULL(1) << (l)) + 1) & \
+-         (~_ULL(0) >> (__BITS_PER_LONG_LONG - 1 - (h))))
++#define __GENMASK(hi, lo) ___GENMASK(1UL, hi, lo)
  
--int __isolate_free_page(struct page *page, unsigned int order)
-+int __isolate_free_page(struct page *page, unsigned int order,
-+				   unsigned int alloc_flags)
- {
- 	struct zone *zone = page_zone(page);
- 	int mt = get_pageblock_migratetype(page);
-@@ -2822,7 +2823,8 @@ int __isolate_free_page(struct page *pag
- 		 * exists.
- 		 */
- 		watermark = zone->_watermark[WMARK_MIN] + (1UL << order);
--		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
-+		if (!zone_watermark_ok(zone, 0, watermark, 0,
-+			    alloc_flags & ALLOC_CMA))
- 			return 0;
- 	}
+-#define __GENMASK_U128(h, l) \
+-	((_BIT128((h)) << 1) - (_BIT128(l)))
++#define __GENMASK_ULL(hi, lo) ___GENMASK(1ULL, hi, lo)
++
++#define __GENMASK_U128(hi, lo) ___GENMASK((unsigned __int128)1, hi, lo)
  
---- a/mm/page_isolation.c~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/mm/page_isolation.c
-@@ -229,7 +229,8 @@ static void unset_migratetype_isolate(st
- 			buddy = find_buddy_page_pfn(page, page_to_pfn(page),
- 						    order, NULL);
- 			if (buddy && !is_migrate_isolate_page(buddy)) {
--				isolated_page = !!__isolate_free_page(page, order);
-+				isolated_page = !!__isolate_free_page(page, order,
-+						    ALLOC_CMA);
- 				/*
- 				 * Isolating a free page in an isolated pageblock
- 				 * is expected to always work as watermarks don't
---- a/mm/page_reporting.c~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/mm/page_reporting.c
-@@ -198,7 +198,7 @@ page_reporting_cycle(struct page_reporti
- 
- 		/* Attempt to pull page from list and place in scatterlist */
- 		if (*offset) {
--			if (!__isolate_free_page(page, order)) {
-+			if (!__isolate_free_page(page, order, ALLOC_CMA)) {
- 				next = page;
- 				break;
- 			}
---- a/mm/vmscan.c~mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow
-+++ a/mm/vmscan.c
-@@ -5861,7 +5861,7 @@ static inline bool should_continue_recla
- 				      sc->reclaim_idx, 0))
- 			return false;
- 
--		if (compaction_suitable(zone, sc->order, sc->reclaim_idx))
-+		if (compaction_suitable(zone, sc->order, sc->reclaim_idx, ALLOC_CMA))
- 			return false;
- 	}
- 
-@@ -6089,7 +6089,7 @@ static inline bool compaction_ready(stru
- 		return true;
- 
- 	/* Compaction cannot yet proceed. Do reclaim. */
--	if (!compaction_suitable(zone, sc->order, sc->reclaim_idx))
-+	if (!compaction_suitable(zone, sc->order, sc->reclaim_idx, ALLOC_CMA))
- 		return false;
- 
- 	/*
+ #endif /* _UAPI_LINUX_BITS_H */
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from David.Laight@ACULAB.COM are
 
-mm-compaction-dont-use-alloc_cma-in-long-term-gup-flow.patch
+minmaxh-add-whitespace-around-operators-and-after-commas.patch
+minmaxh-update-some-comments.patch
+minmaxh-reduce-the-define-expansion-of-min-max-and-clamp.patch
+minmaxh-use-build_bug_on_msg-for-the-lo-hi-test-in-clamp.patch
+minmaxh-move-all-the-clamp-definitions-after-the-min-max-ones.patch
+minmaxh-simplify-the-variants-of-clamp.patch
+minmaxh-remove-some-defines-that-are-only-expanded-once.patch
+linux-bitsh-simplify-genmask.patch
 
