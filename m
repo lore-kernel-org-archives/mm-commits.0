@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 674EA10F4
-	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:41:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F321C3F34
+	for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 05:41:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734327681; cv=none; b=rKz7USXrEoLhhTDAuXN+Twuxdn5zXtodX7ZMpKbg40hyOL6cTBDqZ+AujjTFCZ/lr5KgcbU+LhjSzqFPbhcP2iEBiB5gdKhK4GIoTTfxTkSwLBgungzFVhg0fCFj2h7eWrJGUCzYub2/Ot5O+rJzzBI1O2Pp9PSQj7vD1g1svZI=
+	t=1734327684; cv=none; b=Ue9MXLbJ+7XWjLEe1NFMMn0PO1ckJjGuwNGHbD2i52+Z1cb7n/Mbl0YT3UEI2UOqicfxbcLVMlx1JL3t/OjzWDosQgx4J6Q7NPNFveOipXcxpkhMN445m7WIfQNoHbYIVpTMitVpCP8fTGeIW7D3mXsebRFOzVzD/vumSVtRTXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734327681; c=relaxed/simple;
-	bh=UfFGxHQFlLrz18SNVKuKoIcrOi0KXoqWYrl/Y15hZkI=;
-	h=Date:To:From:Subject:Message-Id; b=eou7p5mltG9+8vjvgNXQ8fKzgVfVQqNUmdzz2jg8dEyq0mFOY83I+X50F30vraeKDY8hZ+viiQu/G98D1MfD/jPz2cWjcfncy6G8Y++kwF7xXcy4/Xv9I5knJrpoo6VSHkmeNsMmF1pezD/V/5uNiy6522BlxIm089BdmyZyY4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sYoJFe5M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734327684; c=relaxed/simple;
+	bh=aY5nqkiTMfVCc5wiXTNYOH1YkzAmRDpQUvH+PV/O3u0=;
+	h=Date:To:From:Subject:Message-Id; b=t+x9OvmHqtIxBKtT85fAky3sYyNZQp128C7a/u8FyAKtMmdIyYQ1J9J3Y5Bu/7DTOHz8ViRwxxKe9zCeIq0Xfca5l1ym2iZMAU53hqFeotfz4Dgux8bAYlR29si1RfwEQeXR42T7lwuzTGHAM0M36LhGyEwVD65T04qtWcbYgGI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jI9drUyG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sYoJFe5M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3366BC4CED0;
-	Mon, 16 Dec 2024 05:41:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jI9drUyG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF4D1C4CED0;
+	Mon, 16 Dec 2024 05:41:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734327681;
-	bh=UfFGxHQFlLrz18SNVKuKoIcrOi0KXoqWYrl/Y15hZkI=;
+	s=korg; t=1734327683;
+	bh=aY5nqkiTMfVCc5wiXTNYOH1YkzAmRDpQUvH+PV/O3u0=;
 	h=Date:To:From:Subject:From;
-	b=sYoJFe5MYSV4t6C2SIDQCghgUn8UZoc4aOmEQ1IJ3O710SdvzLHnY1DEZtw20p7GR
-	 VrWHCpOYIS8gYeVt26Un/2pjd00yaZH47fknvBROJdqwu0Z8BB0pYMMnmGPs+fJZ+n
-	 ZR/0F1pOoPTdUfAa/6s9ZRu1eTalyd4qPJkr+VLk=
-Date: Sun, 15 Dec 2024 21:41:20 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,mark.tinguely@oracle.com,akpm@linux-foundation.org
+	b=jI9drUyGD5lKXeugn0OvVFCYISaztbj5iW7diWyTBwqU6OjRgEg+/iqiNpJeupj35
+	 QF7q0O4kpv/PagHxWlJS13sjw1loBNcn1aFWMKr35YWIwGFuUlG1BWQXmDuZcyUyHx
+	 wjRfUJ6Jb52Fgpc2oYD6jVkfI4d449Atb3rrWqco=
+Date: Sun, 15 Dec 2024 21:41:23 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20241216054121.3366BC4CED0@smtp.kernel.org>
+Subject: + ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20241216054123.CF4D1C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: convert ocfs2_map_and_dirty_page() to ocfs2_map_and_dirty_folio()
+     Subject: ocfs2: convert ocfs2_read_inline_data() to take a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio.patch
+     ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,14 +58,14 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mark Tinguely <mark.tinguely@oracle.com>
-Subject: ocfs2: convert ocfs2_map_and_dirty_page() to ocfs2_map_and_dirty_folio()
-Date: Thu, 5 Dec 2024 17:16:46 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ocfs2: convert ocfs2_read_inline_data() to take a folio
+Date: Thu, 5 Dec 2024 17:16:47 +0000
 
-All callers now have a folio, so skip the folio->page->folio conversion.
+All callers now have a folio, so pass it in.  We can use folio_fill_tail()
+instead of open-coding it.  Saves a call to compound_head().
 
-Link: https://lkml.kernel.org/r/20241205171653.3179945-19-willy@infradead.org
-Signed-off-by: Mark Tinguely <mark.tinguely@oracle.com>
+Link: https://lkml.kernel.org/r/20241205171653.3179945-20-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Changwei Ge <gechangwei@live.cn>
@@ -73,110 +73,120 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c        |   17 ++++++++---------
- fs/ocfs2/alloc.h        |    6 +++---
- fs/ocfs2/refcounttree.c |    5 ++---
- 3 files changed, 13 insertions(+), 15 deletions(-)
+ fs/ocfs2/alloc.c |    2 +-
+ fs/ocfs2/aops.c  |   20 ++++++--------------
+ fs/ocfs2/aops.h  |    2 +-
+ 3 files changed, 8 insertions(+), 16 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio
+--- a/fs/ocfs2/alloc.c~ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio
 +++ a/fs/ocfs2/alloc.c
-@@ -6808,11 +6808,10 @@ static int ocfs2_zero_func(handle_t *han
+@@ -7135,7 +7135,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		 * This should populate the 1st page for us and mark
+ 		 * it up to date.
+ 		 */
+-		ret = ocfs2_read_inline_data(inode, &folio->page, di_bh);
++		ret = ocfs2_read_inline_data(inode, folio, di_bh);
+ 		if (ret) {
+ 			mlog_errno(ret);
+ 			need_free = 1;
+--- a/fs/ocfs2/aops.c~ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio
++++ a/fs/ocfs2/aops.c
+@@ -215,10 +215,9 @@ bail:
+ 	return err;
+ }
+ 
+-int ocfs2_read_inline_data(struct inode *inode, struct page *page,
++int ocfs2_read_inline_data(struct inode *inode, struct folio *folio,
+ 			   struct buffer_head *di_bh)
+ {
+-	void *kaddr;
+ 	loff_t size;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
+ 
+@@ -230,7 +229,7 @@ int ocfs2_read_inline_data(struct inode
+ 
+ 	size = i_size_read(inode);
+ 
+-	if (size > PAGE_SIZE ||
++	if (size > folio_size(folio) ||
+ 	    size > ocfs2_max_inline_data_with_xattr(inode->i_sb, di)) {
+ 		ocfs2_error(inode->i_sb,
+ 			    "Inode %llu has with inline data has bad size: %Lu\n",
+@@ -239,15 +238,8 @@ int ocfs2_read_inline_data(struct inode
+ 		return -EROFS;
+ 	}
+ 
+-	kaddr = kmap_atomic(page);
+-	if (size)
+-		memcpy(kaddr, di->id2.i_data.id_data, size);
+-	/* Clear the remaining part of the page */
+-	memset(kaddr + size, 0, PAGE_SIZE - size);
+-	flush_dcache_page(page);
+-	kunmap_atomic(kaddr);
+-
+-	SetPageUptodate(page);
++	folio_fill_tail(folio, 0, di->id2.i_data.id_data, size);
++	folio_mark_uptodate(folio);
+ 
  	return 0;
  }
- 
--void ocfs2_map_and_dirty_page(struct inode *inode, handle_t *handle,
--			      unsigned int from, unsigned int to,
--			      struct page *page, int zero, u64 *phys)
-+void ocfs2_map_and_dirty_folio(struct inode *inode, handle_t *handle,
-+		size_t from, size_t to, struct folio *folio, int zero,
-+		u64 *phys)
- {
--	struct folio *folio = page_folio(page);
- 	int ret, partial = 0;
- 	loff_t start_byte = folio_pos(folio) + from;
- 	loff_t length = to - from;
-@@ -6871,8 +6870,8 @@ static void ocfs2_zero_cluster_folios(st
- 		BUG_ON(from > PAGE_SIZE);
- 		BUG_ON(to > PAGE_SIZE);
- 
--		ocfs2_map_and_dirty_page(inode, handle, from, to, &folio->page, 1,
--					 &phys);
-+		ocfs2_map_and_dirty_folio(inode, handle, from, to, folio, 1,
-+				&phys);
- 
- 		start = (folio->index + 1) << PAGE_SHIFT;
- 	}
-@@ -7120,7 +7119,7 @@ int ocfs2_convert_inline_data_to_extents
- 
- 		/*
- 		 * Save two copies, one for insert, and one that can
--		 * be changed by ocfs2_map_and_dirty_page() below.
-+		 * be changed by ocfs2_map_and_dirty_folio() below.
- 		 */
- 		block = phys = ocfs2_clusters_to_blocks(inode->i_sb, bit_off);
- 
-@@ -7143,8 +7142,8 @@ int ocfs2_convert_inline_data_to_extents
- 			goto out_unlock;
- 		}
- 
--		ocfs2_map_and_dirty_page(inode, handle, 0, page_end, &folio->page, 0,
--					 &phys);
-+		ocfs2_map_and_dirty_folio(inode, handle, 0, page_end, folio, 0,
-+				&phys);
+@@ -266,7 +258,7 @@ static int ocfs2_readpage_inline(struct
+ 		goto out;
  	}
  
- 	spin_lock(&oi->ip_lock);
---- a/fs/ocfs2/alloc.h~ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio
-+++ a/fs/ocfs2/alloc.h
-@@ -254,9 +254,9 @@ static inline int ocfs2_is_empty_extent(
- 	return !rec->e_leaf_clusters;
- }
+-	ret = ocfs2_read_inline_data(inode, &folio->page, di_bh);
++	ret = ocfs2_read_inline_data(inode, folio, di_bh);
+ out:
+ 	folio_unlock(folio);
  
--void ocfs2_map_and_dirty_page(struct inode *inode, handle_t *handle,
--			      unsigned int from, unsigned int to,
--			      struct page *page, int zero, u64 *phys);
-+void ocfs2_map_and_dirty_folio(struct inode *inode, handle_t *handle,
-+		size_t from, size_t to, struct folio *folio, int zero,
-+		u64 *phys);
- /*
-  * Structures which describe a path through a btree, and functions to
-  * manipulate them.
---- a/fs/ocfs2/refcounttree.c~ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2975,9 +2975,8 @@ retry:
- 			}
- 		}
+@@ -1506,7 +1498,7 @@ static int ocfs2_write_begin_inline(stru
+ 		ocfs2_set_inode_data_inline(inode, di);
  
--		ocfs2_map_and_dirty_page(inode,
--					 handle, from, to,
--					 &folio->page, 0, &new_block);
-+		ocfs2_map_and_dirty_folio(inode, handle, from, to,
-+				folio, 0, &new_block);
- 		folio_mark_accessed(folio);
- unlock:
- 		folio_unlock(folio);
+ 	if (!folio_test_uptodate(folio)) {
+-		ret = ocfs2_read_inline_data(inode, &folio->page, wc->w_di_bh);
++		ret = ocfs2_read_inline_data(inode, folio, wc->w_di_bh);
+ 		if (ret) {
+ 			ocfs2_commit_trans(osb, handle);
+ 
+--- a/fs/ocfs2/aops.h~ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio
++++ a/fs/ocfs2/aops.h
+@@ -41,7 +41,7 @@ int ocfs2_write_begin_nolock(struct addr
+ 		struct folio **foliop, void **fsdata,
+ 		struct buffer_head *di_bh, struct folio *mmap_folio);
+ 
+-int ocfs2_read_inline_data(struct inode *inode, struct page *page,
++int ocfs2_read_inline_data(struct inode *inode, struct folio *folio,
+ 			   struct buffer_head *di_bh);
+ int ocfs2_size_fits_inline_data(struct buffer_head *di_bh, u64 new_size);
+ 
 _
 
-Patches currently in -mm which might be from mark.tinguely@oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-ocfs2-convert-w_target_page-to-w_target_folio.patch
-ocfs2-use-a-folio-in-ocfs2_zero_new_buffers.patch
-ocfs2-use-a-folio-in-ocfs2_write_begin_inline.patch
-ocfs2-convert-ocfs2_readpage_inline-to-take-a-folio.patch
-ocfs2-convert-ocfs2_inode_lock_with_page-to-ocfs2_inode_lock_with_folio.patch
-ocfs2-convert-w_pages-to-w_folios.patch
-ocfs2-convert-ocfs2_write_failure-to-use-a-folio.patch
-ocfs2-use-a-folio-in-ocfs2_write_end_nolock.patch
-ocfs2-use-a-folio-in-ocfs2_prepare_page_for_write.patch
-ocfs2-use-a-folio-in-ocfs2_map_and_dirty_page.patch
-ocfs2-convert-ocfs2_map_page_blocks-to-ocfs2_map_folio_blocks.patch
-ocfs2-convert-ocfs2_clear_page_regions-to-ocfs2_clear_folio_regions.patch
-ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages.patch
-ocfs2-convert-ocfs2_duplicate_clusters_by_page-to-use-a-folio.patch
-ocfs2-convert-ocfs2_map_and_dirty_page-to-ocfs2_map_and_dirty_folio.patch
-ocfs2-support-large-folios-in-ocfs2_zero_cluster_folios.patch
-ocfs2-support-large-folios-in-ocfs2_write_zero_page.patch
+vmalloc-fix-accounting-with-i915.patch
+mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
+mm-make-alloc_pages_mpol-static.patch
+mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
+mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
+mm-page_alloc-add-__alloc_frozen_pages.patch
+mm-mempolicy-add-alloc_frozen_pages.patch
+slab-allocate-frozen-pages.patch
+ocfs2-handle-a-symlink-read-error-correctly.patch
+ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
+ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
+ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
+ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
 
