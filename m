@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CF6B153573;
-	Mon, 16 Dec 2024 05:24:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB8510F4;
+	Mon, 16 Dec 2024 05:40:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734326685; cv=none; b=V58FxQxoOBqk+XeNdbQbFbo2wJOJTnutZF706fC/kzdRaXsxGNK6aGwAD1KhbF0hoGKnc/GpYbuo7Y6TBKPim2Uh6wUMnpoWn4o9v1vPhQsr3b/LN5zCr1W4NxMJZqNem0+n30JAciLgwQCJsKQsJhN/6ylLyx/26PS3+QWMcLE=
+	t=1734327644; cv=none; b=rCylkML5OP5TmxJHF5kAwm0DgoFoZbdV6apuKmwwaE9aNv/ggYQQokMYP3sEyhvC/+NwgwEy15xMo8ypZd5mMoKaEzf06ruzzFiTuWsVIR4U06Nvi6CvlIpl4wLtflTUMw4aB1RJpbcXu5Iqb0OYoAbcAo4I/5Dlfi9PuwTpUVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734326685; c=relaxed/simple;
-	bh=l+nQX0LAxClsLAYJMb1zdUz3IkrQHkhTD/k0PRrdl7w=;
-	h=Date:To:From:Subject:Message-Id; b=pzuR16v8QrDdUgkAGWh/dEO2TKJ1i/th2IkFD2Kr3wVpyB7H/+FJRmXPv3Wwelhw0fk6a4Ldi9MkN4CVgDprJf/Ee9j7Cbhe/CI1PBvYzv4F8594uH+3JN1gm2Zx7ohakfH13z5SQZiaAsVWmnpjhaZXn1xOJmTbVoKFjpZ/zNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xRfM6wTh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734327644; c=relaxed/simple;
+	bh=M1SnyEp0FyzyUk5gjEDkbZ+Hf+f4IWkZeYCNSZ3Xsu8=;
+	h=Date:To:From:Subject:Message-Id; b=P/HwqTxlzoHFiRgdccZXI77oJ/PzHIdY0v92YVkrK9huldebwbu/SqIjrU34TpD2qUtOaY9KfsSYe5WyHeG3G0cvI7ln+r0iPbRGf4Pc2aY0BGBvHez6DwkFGsGalCX+wNohOlbmCgUfgE3eQZ2KuMa3BsuYLQnIDU9I5Ks7BKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HdRVLNZE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xRfM6wTh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C92EC4CED0;
-	Mon, 16 Dec 2024 05:24:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HdRVLNZE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E1F1C4CED0;
+	Mon, 16 Dec 2024 05:40:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734326685;
-	bh=l+nQX0LAxClsLAYJMb1zdUz3IkrQHkhTD/k0PRrdl7w=;
+	s=korg; t=1734327643;
+	bh=M1SnyEp0FyzyUk5gjEDkbZ+Hf+f4IWkZeYCNSZ3Xsu8=;
 	h=Date:To:From:Subject:From;
-	b=xRfM6wThcn9g3dpeMqYBgDej24/WK5uPwtfs7BUaQ+cuycXd/Ysf2leC23fkyU+IU
-	 xPAoyEKHx3IdGu60ol815HOt/kU4Zfh1ldW0jAdDSfIuUyXX+GqaN7wziMe7YZO+do
-	 qIk4606PI9n8cfJlYewJsvpkx7+0M3LUlqbnW2Vg=
-Date: Sun, 15 Dec 2024 21:24:44 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,oliver.sang@intel.com,david@redhat.com,laoar.shao@gmail.com,akpm@linux-foundation.org
+	b=HdRVLNZEMI85wwQLNgp60RefMsOsON4hAfnNOsq8sGXA1z3feMh7T8YBCq58hBToz
+	 vi2FHZLUvNeBEPTgDroqScbxGNqmyK/+yvbZzfdLyG3Qaqsh8zLbBizfjWdfgPDAje
+	 QRNxi2ljkEiqWa+gP4/dfUaQzJdAKRN6u6r0K+VM=
+Date: Sun, 15 Dec 2024 21:40:42 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-readahead-fix-large-folio-support-in-async-readahead.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241216052445.4C92EC4CED0@smtp.kernel.org>
+Subject: + ocfs2-handle-a-symlink-read-error-correctly.patch added to mm-nonmm-unstable branch
+Message-Id: <20241216054043.9E1F1C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/readahead: fix large folio support in async readahead
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-readahead-fix-large-folio-support-in-async-readahead.patch
+     Subject: ocfs2: handle a symlink read error correctly
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-handle-a-symlink-read-error-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-fix-large-folio-support-in-async-readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-handle-a-symlink-read-error-correctly.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,71 +58,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/readahead: fix large folio support in async readahead
-Date: Fri, 6 Dec 2024 16:30:25 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ocfs2: handle a symlink read error correctly
+Date: Thu, 5 Dec 2024 17:16:29 +0000
 
-When testing large folio support with XFS on our servers, we observed that
-only a few large folios are mapped when reading large files via mmap. 
-After a thorough analysis, I identified it was caused by the
-`/sys/block/*/queue/read_ahead_kb` setting.  On our test servers, this
-parameter is set to 128KB.  After I tune it to 2MB, the large folio can
-work as expected.  However, I believe the large folio behavior should not
-be dependent on the value of read_ahead_kb.  It would be more robust if
-the kernel can automatically adopt to it.
+Patch series "Convert ocfs2 to use folios".
 
-With /sys/block/*/queue/read_ahead_kb set to 128KB and performing a
-sequential read on a 1GB file using MADV_HUGEPAGE, the differences in
-/proc/meminfo are as follows:
+Mark did a conversion of ocfs2 to use folios and sent it to me as a
+giant patch for review ;-)
 
-- before this patch
-  FileHugePages:     18432 kB
-  FilePmdMapped:      4096 kB
+So I've redone it as individual patches, and credited Mark for the patches
+where his code is substantially the same.  It's not a bad way to do it;
+his patch had some bugs and my patches had some bugs.  Hopefully all our
+bugs were different from each other.  And hopefully Mark likes all the
+changes I made to his code!
 
-- after this patch
-  FileHugePages:   1067008 kB
-  FilePmdMapped:   1048576 kB
 
-This shows that after applying the patch, the entire 1GB file is mapped to
-huge pages.  The stable list is CCed, as without this patch, large folios
-don't function optimally in the readahead path.
+This patch (of 23):
 
-It's worth noting that if read_ahead_kb is set to a larger value that
-isn't aligned with huge page sizes (e.g., 4MB + 128KB), it may still fail
-to map to hugepages.
+If we can't read the buffer, be sure to unlock the page before returning.
 
-Link: https://lkml.kernel.org/r/20241108141710.9721-1-laoar.shao@gmail.com
-Link: https://lkml.kernel.org/r/20241206083025.3478-1-laoar.shao@gmail.com
-Fixes: 4687fdbb805a ("mm/filemap: Support VM_HUGEPAGE for file mappings")
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Tested-by: kernel test robot <oliver.sang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20241205171653.3179945-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241205171653.3179945-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Mark Tinguely <mark.tinguely@oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/ocfs2/symlink.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/readahead.c~mm-readahead-fix-large-folio-support-in-async-readahead
-+++ a/mm/readahead.c
-@@ -646,7 +646,11 @@ void page_cache_async_ra(struct readahea
- 			1UL << order);
- 	if (index == expected) {
- 		ra->start += ra->size;
--		ra->size = get_next_ra_size(ra, max_pages);
-+		/*
-+		 * In the case of MADV_HUGEPAGE, the actual size might exceed
-+		 * the readahead window.
-+		 */
-+		ra->size = max(ra->size, get_next_ra_size(ra, max_pages));
- 		ra->async_size = ra->size;
- 		goto readit;
+--- a/fs/ocfs2/symlink.c~ocfs2-handle-a-symlink-read-error-correctly
++++ a/fs/ocfs2/symlink.c
+@@ -65,7 +65,7 @@ static int ocfs2_fast_symlink_read_folio
+ 
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		return status;
++		goto out;
  	}
+ 
+ 	fe = (struct ocfs2_dinode *) bh->b_data;
+@@ -76,9 +76,10 @@ static int ocfs2_fast_symlink_read_folio
+ 	memcpy(kaddr, link, len + 1);
+ 	kunmap_atomic(kaddr);
+ 	SetPageUptodate(page);
++out:
+ 	unlock_page(page);
+ 	brelse(bh);
+-	return 0;
++	return status;
+ }
+ 
+ const struct address_space_operations ocfs2_fast_symlink_aops = {
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-readahead-fix-large-folio-support-in-async-readahead.patch
+vmalloc-fix-accounting-with-i915.patch
+mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
+mm-make-alloc_pages_mpol-static.patch
+mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
+mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
+mm-page_alloc-add-__alloc_frozen_pages.patch
+mm-mempolicy-add-alloc_frozen_pages.patch
+slab-allocate-frozen-pages.patch
+ocfs2-handle-a-symlink-read-error-correctly.patch
+ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
+ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
+ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
+ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
 
