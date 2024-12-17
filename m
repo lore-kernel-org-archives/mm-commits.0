@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C433C8615A
-	for <mm-commits@vger.kernel.org>; Tue, 17 Dec 2024 18:06:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A0E626296
+	for <mm-commits@vger.kernel.org>; Tue, 17 Dec 2024 18:06:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734458769; cv=none; b=leBfMDoSpiDLsLhQwrQRZ7swHCDaAfGP8H6vbPGmXyjdNMZQouja1qvNeXLwnGQ+EcW1Pj+Lm52MUSDQ1YVPQ4IWvANOTIFT5I1rPtE1bTvZhN7RE/euCOdXkY6RQjenR8qOdCXuPxBhHdsmls423DIzUVrWCw3CzRRkAVcc3aA=
+	t=1734458807; cv=none; b=l51K8uniNF07AglUx8JHSgdsC4tvitq/w1tBM6wSyri3Tt+mRMlnMVfd2fgnX7xUBFP5AgZGj8k9L1cbJZ1RNSCCXY7QvVz9X1OvgxxeD06H8AES8bRy7EGrC7zaWxd+OrzBR2f4JO8x4mlc69qAgivfOPgDTWZDM8hWK4gf2tM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734458769; c=relaxed/simple;
-	bh=9NAf96pFiEEXk8diuHENuFPj3HevXWcp5AcK5OTCrRU=;
-	h=Date:To:From:Subject:Message-Id; b=WmUgLszB/4lI5fZpsbe6kRIRfisqX++8DKLQhRIV2KoomDc84itHfPzxeX5wewXIQouy86twQjuPKHu67jTye5FXjEfqIXTMys1mG1Zb+OjL6XL2rhEgvXRQMBy559Bkf2F7tXPSrF3FP6KvDeULl/Tszk30lUPqlrWQC+84Ujo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NIUtllm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734458807; c=relaxed/simple;
+	bh=v56tMx9q+g8/y3A845pg4jCoOR5e4JGBQb2kOYoQUlk=;
+	h=Date:To:From:Subject:Message-Id; b=NuzLDHscdVykpzrkoJw3wt7WGwc22FvVCTW8cDAKZDKZ170CoJL8MmZN3jvHmdLL4MjONlPH/enHeE0asKJ1p+xCS3CYKPrbxKm1HSl/p48nE7h9Djxl3I058M+5pO/CR0BzyQb7ZWlG72CCZ0gqtQJ3hbeBxCIg8BTYeznRH/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KkEw2guR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NIUtllm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42D17C4CED3;
-	Tue, 17 Dec 2024 18:06:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KkEw2guR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1A1AC4CED3;
+	Tue, 17 Dec 2024 18:06:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734458769;
-	bh=9NAf96pFiEEXk8diuHENuFPj3HevXWcp5AcK5OTCrRU=;
+	s=korg; t=1734458807;
+	bh=v56tMx9q+g8/y3A845pg4jCoOR5e4JGBQb2kOYoQUlk=;
 	h=Date:To:From:Subject:From;
-	b=1NIUtllmkEdxqM/RFgdwwoAX6/ccJJTYwVHhXSZ1VzeGnhh+c0LtSWM5M9d7+RsN2
-	 P+b5GAPu5Yalz3zcxFzOymsh7cOWTi/uCX+kxu7PvOhtPW2Ug6bavv80DklvRkkiI8
-	 fUF81mKhPK69XSIE7EMNBNHN79xMclJ7Y1MM5wH4=
-Date: Tue, 17 Dec 2024 10:06:08 -0800
-To: mm-commits@vger.kernel.org,qmo@kernel.org,neeraj.upadhyay@kernel.org,matttbe@kernel.org,kees@kernel.org,geliang@kernel.org,elder@kernel.org,davem@davemloft.net,othacehe@gnu.org,akpm@linux-foundation.org
+	b=KkEw2guRstup+jjnNKGjyDFWiX80rd7WYQB9QQq3IWkT8z3216GVBCozwAqcd8lPv
+	 x8O6x2tRBBm4slzhKdYewORyscL8e49JsyXn5Qg8BIGhwpfL73auksuOJ+fPVWcn76
+	 svVvX1lc1VGkc751P424nnyE7OwemlPzFwiJoxe0=
+Date: Tue, 17 Dec 2024 10:06:46 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-modify-the-entry-for-mathieu-othacehe.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241217180609.42D17C4CED3@smtp.kernel.org>
+Subject: + docs-mm-fix-the-incorrect-filehugemapped-field.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241217180646.E1A1AC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: modify the entry for Mathieu Othacehe
+     Subject: docs: mm: fix the incorrect 'FileHugeMapped' field
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-modify-the-entry-for-mathieu-othacehe.patch
+     docs-mm-fix-the-incorrect-filehugemapped-field.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-modify-the-entry-for-mathieu-othacehe.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-fix-the-incorrect-filehugemapped-field.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,41 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mathieu Othacehe <othacehe@gnu.org>
-Subject: mailmap: modify the entry for Mathieu Othacehe
-Date: Tue, 17 Dec 2024 11:09:21 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: docs: mm: fix the incorrect 'FileHugeMapped' field
+Date: Tue, 17 Dec 2024 16:55:39 +0800
 
-Set my gnu address as the main one.
+The '/proc/PID/smaps' does not have the 'FileHugeMapped' field to count
+the file transparent huge pages, instead, the 'FilePmdMapped' field should
+be used.  Fix it.
 
-Link: https://lkml.kernel.org/r/20241217100924.7821-1-othacehe@gnu.org
-Signed-off-by: Mathieu Othacehe <othacehe@gnu.org>
-Cc: Alex Elder <elder@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geliang Tang <geliang@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Matthieu Baerts (NGI0) <matttbe@kernel.org>
-Cc: Neeraj Upadhyay <neeraj.upadhyay@kernel.org>
-Cc: Quentin Monnet <qmo@kernel.org>
+Link: https://lkml.kernel.org/r/d520ce3aba2b03b088be30bece732426a939049a.1734425264.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 +-
+ Documentation/admin-guide/mm/transhuge.rst |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-modify-the-entry-for-mathieu-othacehe
-+++ a/.mailmap
-@@ -435,7 +435,7 @@ Martin Kepplinger <martink@posteo.de> <m
- Martin Kepplinger <martink@posteo.de> <martin.kepplinger@puri.sm>
- Martin Kepplinger <martink@posteo.de> <martin.kepplinger@theobroma-systems.com>
- Martyna Szapar-Mudlaw <martyna.szapar-mudlaw@linux.intel.com> <martyna.szapar-mudlaw@intel.com>
--Mathieu Othacehe <m.othacehe@gmail.com> <othacehe@gnu.org>
-+Mathieu Othacehe <othacehe@gnu.org> <m.othacehe@gmail.com>
- Mat Martineau <martineau@kernel.org> <mathew.j.martineau@linux.intel.com>
- Mat Martineau <martineau@kernel.org> <mathewm@codeaurora.org>
- Matthew Wilcox <willy@infradead.org> <matthew.r.wilcox@intel.com>
+--- a/Documentation/admin-guide/mm/transhuge.rst~docs-mm-fix-the-incorrect-filehugemapped-field
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -436,7 +436,7 @@ AnonHugePmdMapped).
+ The number of file transparent huge pages mapped to userspace is available
+ by reading ShmemPmdMapped and ShmemHugePages fields in ``/proc/meminfo``.
+ To identify what applications are mapping file transparent huge pages, it
+-is necessary to read ``/proc/PID/smaps`` and count the FileHugeMapped fields
++is necessary to read ``/proc/PID/smaps`` and count the FilePmdMapped fields
+ for each mapping.
+ 
+ Note that reading the smaps file is expensive and reading it
 _
 
-Patches currently in -mm which might be from othacehe@gnu.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mailmap-modify-the-entry-for-mathieu-othacehe.patch
+docs-mm-fix-the-incorrect-filehugemapped-field.patch
+mm-factor-out-the-order-calculation-into-a-new-helper.patch
+mm-shmem-change-shmem_huge_global_enabled-to-return-huge-order-bitmap.patch
+mm-shmem-add-large-folio-support-for-tmpfs.patch
+mm-shmem-add-a-kernel-command-line-to-change-the-default-huge-policy-for-tmpfs.patch
+docs-tmpfs-drop-fadvise-from-the-documentation.patch
 
