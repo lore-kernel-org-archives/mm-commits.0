@@ -1,250 +1,261 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com [209.85.219.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9EDF126BF7;
-	Mon, 16 Dec 2024 17:06:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79B4413D893
+	for <mm-commits@vger.kernel.org>; Tue, 17 Dec 2024 02:20:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734368801; cv=none; b=ZqTQLgCWfzofNsfwrj5sa2PqmRHUxjz86mzEdU57RG+82gU/JXO+O2mGtvQ0BM60GHFl7au6Qc/iGKgQz54uPPhpG/g6c6yqVvusxRzNmzG25+S9la66xfMDkfYd2otR7WgDKWHm/l+YdtTer40TIOMfDb9v5mpmAvVescHt+KI=
+	t=1734402032; cv=none; b=eHZKu6yKY32AUtgpKCcVkl7qS1FLQJARb8OdhqR5CxSp8Uj3FV0eF7yJSHzAN8JQbDI8dq8rRUPW3d4uIh56z6DEOPr2hi8xY8j5ZI6NZVU3Xb/sDQ/QDO1jTAYchgkMFFkaizggye5I3+LVT5ihjpCw1WAarMFkyOO8K3OejAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734368801; c=relaxed/simple;
-	bh=6rLbqDpq132Fc2qmsHPS4g5GfEjn6kctkcgMIJMbVGA=;
-	h=Date:To:From:Subject:Message-Id; b=mRRKSGiOvCvVCeNDjDYPq0nJq5XjGia59qxQur45s9WYZEUd9YbzKum8H7UxUhdQoNhVLC8lYlXChmmyuSzXDZLw88WzP+cneEq9O9TrE0crGW6mnuvWypO0XKJ5oUWiaYqBL/B+EWoAKLGzWmOmapFceuMAGjiFQIEdRVIx8gM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A5e9G68W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734402032; c=relaxed/simple;
+	bh=wQfx8qtmxRUzI9+SD70Kw2S+j6lhnDip/WQq4spwh44=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WhmPeSikK4JcEkVKeGAM+YSl1uLLpAO4lgPVF7A6saGRvrLqfd6L/eTQYrWwcR/gz0Yn+l7ajY4tWuHLz1r/MIgFz029bkI9Dv8fkRg0iJQaP2duvnzUkkVpmaYEgHyfUw0LoY21fHLglzuRnHLhSvGseGHwRnkUupYNNV4hBd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ND6hICh/; arc=none smtp.client-ip=209.85.219.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A5e9G68W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37A50C4CED0;
-	Mon, 16 Dec 2024 17:06:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734368801;
-	bh=6rLbqDpq132Fc2qmsHPS4g5GfEjn6kctkcgMIJMbVGA=;
-	h=Date:To:From:Subject:From;
-	b=A5e9G68W5HLQLKv/GDU2NyS9EBnoBhdknNRBkzu9WfG2/y++7uJS9udGfJ6evoBKx
-	 hN/aii36Z67VMP7z/gOqEDmZY1DwXG3weMbiw0hqR9W4LJCWu1ChyzZl3d1YDVzyEf
-	 EAJwVanDa4c71r56FcTfX6xouONmBO4WTsWm79wQ=
-Date: Mon, 16 Dec 2024 09:06:40 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,muchun.song@linux.dev,kenneth.w.chen@intel.com,liushixin2@huawei.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-independent-pmd-page-table-shared-count.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241216170641.37A50C4CED0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ND6hICh/"
+Received: by mail-yb1-f169.google.com with SMTP id 3f1490d57ef6-e460717039fso2351774276.0
+        for <mm-commits@vger.kernel.org>; Mon, 16 Dec 2024 18:20:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1734402029; x=1735006829; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Poj65mCzB7tacpKeqSVrfVvfMEqzew22PoBVSPrlv4I=;
+        b=ND6hICh/FGbeNSegQMevHmDOpcJH76SPDUcZmYDENZTu57X640IoxuT8qR1wxa4/7M
+         NWgfgblpSfhKcxxNJXa4Et9HZLEIC/DjkswrJjph/DbWx51oG9i4jtRR5CKhpGOa4S7a
+         hXnB0vtNc24ulbo9hJWowhnL812T3LFkwjpuFjCjX736xfLhhDdH1ADHvzot/TfWGXKF
+         1M9tM0xqy3RggbAKuAYG/ehIPeE8eIwlsGHwyJvrEkG+D3GjEQbGtYTOUSGIoW02Pspk
+         LbgS1Z7oHHi0CzXdwXalqC/bQC2620aNfNlWPdRv1Ty0ss6PwX+qISkM/pUiSdGMAuLU
+         upxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734402029; x=1735006829;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Poj65mCzB7tacpKeqSVrfVvfMEqzew22PoBVSPrlv4I=;
+        b=O47qp3sM+XeEd0uM+BRiwf+ZVf1URaHx91nk+nQx81hv1SK/ceIRdlCUA/D7pJ+C5h
+         GDPgq7AL32oAMIG6hiMuqIKzXEwB1aFnwprF8TBMqvE/UhZACtUFs9hlInf+AeQQ6UBe
+         ViIE1/EgffnURyv49cA7QcB/iG86W0C/RMJK5jCOnTTjEF6Dukl+hkgIlHcRB2y4Gmxd
+         soKYGSZ1Qjb1z5YOPhq7Vo7EH27ZiIeHGlqQ/ZY02Ro63CJ6c6UAJKzrBczwWvYNK97y
+         MPg24OpgQ8ttnxRN72iBuK60l2E3ALIGeJMJmQsSVOYPWacZcDpGC9CCCxBo0ln0NONS
+         WRig==
+X-Gm-Message-State: AOJu0YwxXdj/u2gSSwJPdDT2Q2/Vl662yZ1w2pa/qbIS8eqiz2T9+Bmt
+	SA3skhJNAWX5om5v7ly2YhZLph/ZYLeQZMdZWzpsDbZA0ocD75G0
+X-Gm-Gg: ASbGncuFTs9mWh65c//HnKKG5o7rJ0VpT/QS8+Bc05nJplN6X+7TxrXZcKIVQB0Itqu
+	cIRnXRP8X4k5RuapE4tY6vlKTIReem2NShtjNiqvRFVn/TMhGD9rDNGn8ZkUb/4Z2EG4h55kcDe
+	iK1JiOdoN92N4LPb7wOy212aTGlKsSzaju614uBYEoH1TdPPK2tUG0hGbxRJj0D6slGRKTBObm/
+	WZO3Ut47yHaho7R1rp9faSbUV9ArVGVfu3lDhqUv+reZCEWX3MndxwMuXknpvzTl7O8Zc1FRxiC
+	yb8Mo7axETQ+C6BR
+X-Google-Smtp-Source: AGHT+IHLjPbj+mBwuvBDgu0s5mJY9OONmbha1WiAM9rIYbid13ex4igAm1modVnd/OvFw9x846VVvw==
+X-Received: by 2002:a05:6902:2413:b0:e38:8a2e:e3bc with SMTP id 3f1490d57ef6-e4348b31398mr12456864276.5.1734402029232;
+        Mon, 16 Dec 2024 18:20:29 -0800 (PST)
+Received: from localhost (c-24-129-28-254.hsd1.fl.comcast.net. [24.129.28.254])
+        by smtp.gmail.com with ESMTPSA id 3f1490d57ef6-e470316140dsm1662183276.16.2024.12.16.18.20.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Dec 2024 18:20:28 -0800 (PST)
+Date: Mon, 16 Dec 2024 18:20:26 -0800
+From: Yury Norov <yury.norov@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+	masahiroy@kernel.org, mailhol.vincent@wanadoo.fr,
+	linux@rasmusvillemoes.dk, david.laight@aculab.com
+Subject: Re: + linux-bitsh-simplify-genmask.patch added to mm-nonmm-unstable
+ branch
+Message-ID: <Z2Df6iv0qZ6eg0Dp@yury-ThinkPad>
+References: <20241216170002.1F143C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241216170002.1F143C4CED0@smtp.kernel.org>
+
+On Mon, Dec 16, 2024 at 09:00:01AM -0800, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: linux/bits.h: simplify GENMASK()
+> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+>      linux-bitsh-simplify-genmask.patch
+> 
+
+Hi Andrew,
+
+Can you put this on hold for a while? I have a couple questions for
+David about this. Also, if it comes to v2, I'd like to move it in my
+branch.
+
+Thanks,
+Yury
 
 
-The patch titled
-     Subject: mm: hugetlb: independent PMD page table shared count
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-independent-pmd-page-table-shared-count.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-independent-pmd-page-table-shared-count.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: hugetlb: independent PMD page table shared count
-Date: Mon, 16 Dec 2024 15:11:47 +0800
-
-The folio refcount may be increased unexpectly through try_get_folio() by
-caller such as split_huge_pages.  In huge_pmd_unshare(), we use refcount
-to check whether a pmd page table is shared.  The check is incorrect if
-the refcount is increased by the above caller, and this can cause the page
-table leaked:
-
- BUG: Bad page state in process sh  pfn:109324
- page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x66 pfn:0x109324
- flags: 0x17ffff800000000(node=0|zone=2|lastcpupid=0xfffff)
- page_type: f2(table)
- raw: 017ffff800000000 0000000000000000 0000000000000000 0000000000000000
- raw: 0000000000000066 0000000000000000 00000000f2000000 0000000000000000
- page dumped because: nonzero mapcount
- ...
- CPU: 31 UID: 0 PID: 7515 Comm: sh Kdump: loaded Tainted: G    B              6.13.0-rc2master+ #7
- Tainted: [B]=BAD_PAGE
- Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
- Call trace:
-  show_stack+0x20/0x38 (C)
-  dump_stack_lvl+0x80/0xf8
-  dump_stack+0x18/0x28
-  bad_page+0x8c/0x130
-  free_page_is_bad_report+0xa4/0xb0
-  free_unref_page+0x3cc/0x620
-  __folio_put+0xf4/0x158
-  split_huge_pages_all+0x1e0/0x3e8
-  split_huge_pages_write+0x25c/0x2d8
-  full_proxy_write+0x64/0xd8
-  vfs_write+0xcc/0x280
-  ksys_write+0x70/0x110
-  __arm64_sys_write+0x24/0x38
-  invoke_syscall+0x50/0x120
-  el0_svc_common.constprop.0+0xc8/0xf0
-  do_el0_svc+0x24/0x38
-  el0_svc+0x34/0x128
-  el0t_64_sync_handler+0xc8/0xd0
-  el0t_64_sync+0x190/0x198
-
-The issue may be triggered by damon, offline_page, page_idle, etc, which
-will increase the refcount of page table.
-
-Fix it by introducing independent PMD page table shared count.  As
-described by comment, pt_index/pt_mm/pt_frag_refcount are used for s390
-gmap, x86 pgds and powerpc, pt_share_count is used for x86/arm64/riscv
-pmds, so we can reuse the field as pt_share_count.
-
-Link: https://lkml.kernel.org/r/20241216071147.3984217-1-liushixin2@huawei.com
-Fixes: 39dde65c9940 ("[PATCH] shared page table for hugetlb page")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Ken Chen <kenneth.w.chen@intel.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mm.h       |    1 +
- include/linux/mm_types.h |   30 ++++++++++++++++++++++++++++++
- mm/hugetlb.c             |   16 +++++++---------
- 3 files changed, 38 insertions(+), 9 deletions(-)
-
---- a/include/linux/mm.h~mm-hugetlb-independent-pmd-page-table-shared-count
-+++ a/include/linux/mm.h
-@@ -3125,6 +3125,7 @@ static inline bool pagetable_pmd_ctor(st
- 	if (!pmd_ptlock_init(ptdesc))
- 		return false;
- 	__folio_set_pgtable(folio);
-+	ptdesc_pmd_pts_init(ptdesc);
- 	lruvec_stat_add_folio(folio, NR_PAGETABLE);
- 	return true;
- }
---- a/include/linux/mm_types.h~mm-hugetlb-independent-pmd-page-table-shared-count
-+++ a/include/linux/mm_types.h
-@@ -445,6 +445,7 @@ FOLIO_MATCH(compound_head, _head_2a);
-  * @pt_index:         Used for s390 gmap.
-  * @pt_mm:            Used for x86 pgds.
-  * @pt_frag_refcount: For fragmented page table tracking. Powerpc only.
-+ * @pt_share_count:   Used for HugeTLB PMD page table share count.
-  * @_pt_pad_2:        Padding to ensure proper alignment.
-  * @ptl:              Lock for the page table.
-  * @__page_type:      Same as page->page_type. Unused for page tables.
-@@ -471,6 +472,9 @@ struct ptdesc {
- 		pgoff_t pt_index;
- 		struct mm_struct *pt_mm;
- 		atomic_t pt_frag_refcount;
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+		atomic_t pt_share_count;
-+#endif
- 	};
- 
- 	union {
-@@ -516,6 +520,32 @@ static_assert(sizeof(struct ptdesc) <= s
- 	const struct page *:		(const struct ptdesc *)(p),	\
- 	struct page *:			(struct ptdesc *)(p)))
- 
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
-+{
-+	atomic_set(&ptdesc->pt_share_count, 0);
-+}
-+
-+static inline void ptdesc_pmd_pts_inc(struct ptdesc *ptdesc)
-+{
-+	atomic_inc(&ptdesc->pt_share_count);
-+}
-+
-+static inline void ptdesc_pmd_pts_dec(struct ptdesc *ptdesc)
-+{
-+	atomic_dec(&ptdesc->pt_share_count);
-+}
-+
-+static inline int ptdesc_pmd_pts_count(struct ptdesc *ptdesc)
-+{
-+	return atomic_read(&ptdesc->pt_share_count);
-+}
-+#else
-+static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
-+{
-+}
-+#endif
-+
- /*
-  * Used for sizing the vmemmap region on some architectures
-  */
---- a/mm/hugetlb.c~mm-hugetlb-independent-pmd-page-table-shared-count
-+++ a/mm/hugetlb.c
-@@ -7211,7 +7211,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 			spte = hugetlb_walk(svma, saddr,
- 					    vma_mmu_pagesize(svma));
- 			if (spte) {
--				get_page(virt_to_page(spte));
-+				ptdesc_pmd_pts_inc(virt_to_ptdesc(spte));
- 				break;
- 			}
- 		}
-@@ -7226,7 +7226,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
- 		mm_inc_nr_pmds(mm);
- 	} else {
--		put_page(virt_to_page(spte));
-+		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
- 	}
- 	spin_unlock(&mm->page_table_lock);
- out:
-@@ -7238,10 +7238,6 @@ out:
- /*
-  * unmap huge page backed by shared pte.
-  *
-- * Hugetlb pte page is ref counted at the time of mapping.  If pte is shared
-- * indicated by page_count > 1, unmap is achieved by clearing pud and
-- * decrementing the ref count. If count == 1, the pte page is not shared.
-- *
-  * Called with page table lock held.
-  *
-  * returns: 1 successfully unmapped a shared pte page
-@@ -7250,18 +7246,20 @@ out:
- int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
- 					unsigned long addr, pte_t *ptep)
- {
-+	unsigned long sz = huge_page_size(hstate_vma(vma));
- 	pgd_t *pgd = pgd_offset(mm, addr);
- 	p4d_t *p4d = p4d_offset(pgd, addr);
- 	pud_t *pud = pud_offset(p4d, addr);
- 
- 	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
- 	hugetlb_vma_assert_locked(vma);
--	BUG_ON(page_count(virt_to_page(ptep)) == 0);
--	if (page_count(virt_to_page(ptep)) == 1)
-+	if (sz != PMD_SIZE)
-+		return 0;
-+	if (!ptdesc_pmd_pts_count(virt_to_ptdesc(ptep)))
- 		return 0;
- 
- 	pud_clear(pud);
--	put_page(virt_to_page(ptep));
-+	ptdesc_pmd_pts_dec(virt_to_ptdesc(ptep));
- 	mm_dec_nr_pmds(mm);
- 	return 1;
- }
-_
-
-Patches currently in -mm which might be from liushixin2@huawei.com are
-
-mm-hugetlb-independent-pmd-page-table-shared-count.patch
-
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/linux-bitsh-simplify-genmask.patch
+> 
+> This patch will later appear in the mm-nonmm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: David Laight <David.Laight@ACULAB.COM>
+> Subject: linux/bits.h: simplify GENMASK()
+> Date: Mon, 16 Dec 2024 09:39:23 +0000
+> 
+> Change 95b980d62d52c replaced ~0ul and ~0ull with ~UL(0) and ~ULL(0) in
+> the GENMASK() defines as part of a change to allow the bitops definitions
+> be used from assembly.
+> 
+> The definitions have since been moved to a uapi header which probably
+> shouldn't require some other header be included first.
+> 
+> The definition of __GENMASK() is also overcomplicated partially due to
+> avoiding overflow warnings from shifting ~0u left.
+> 
+> Implement GENMASK() using the simpler (1u << hi) * 2 - (1u << lo) formula.
+> This doesn't rely on right shifts and doesn't need to know the number of
+> bits in the integral type.  It can be used for different types by just
+> changing the type of the 1u.  __GENMASK() __GENMASK_ULL() and
+> __GENMASK_U128() can now implemeted using a single ___GENMASK(one, hi,
+> lo).
+> 
+> Overflow warnings (from shifting out the MSB) are avoided by subtracting 1
+> before the multiply and adding two back in later.  The complers see
+> straight through the subterfuge when generating code.
+> 
+> Since there are already conditionals for ASSEMBLY in bits.h, for ASSEMBLY
+> directly expand GENMASK() and GENMASK_ULL() as ___GENMASK(1, hi, lo)
+> rather than through the __GENMASK() and __GENMASK_ULL() uapi defines. 
+> Remove the UL(x) and ULL(x) from the uapi file.
+> 
+> GENMASK() and GENMASK_ULL() now generate the correct values when ASSEMBLY
+> is defined.  Fortunately they've never been used.
+> 
+> Rename 'h' to 'hi' and 'l' to 'lo' because 'l' looks like '1' in many fonts.
+> 
+> Link: https://lkml.kernel.org/r/7a1b1534e51342769740985db773d5e1@AcuMS.aculab.com
+> Signed-off-by: David Laight <david.laight@aculab.com>
+> Cc: Linus Torvalds <torvalds@linux-foundation.org>
+> Cc: Masahiro Yamada <masahiroy@kernel.org>
+> Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> Cc: Vincent Mailhol <mailhol.vincent@wanadoo.fr>
+> Cc: Yury Norov <yury.norov@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  include/linux/bits.h      |   43 ++++++++++++++----------------------
+>  include/uapi/linux/bits.h |   15 +++++-------
+>  2 files changed, 24 insertions(+), 34 deletions(-)
+> 
+> --- a/include/linux/bits.h~linux-bitsh-simplify-genmask
+> +++ a/include/linux/bits.h
+> @@ -14,41 +14,32 @@
+>  #define BITS_PER_BYTE		8
+>  
+>  /*
+> - * Create a contiguous bitmask starting at bit position @l and ending at
+> - * position @h. For example
+> + * Create a contiguous bitmask starting at bit position @lo and ending at
+> + * position @hi. For example
+>   * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
+>   */
+>  #if !defined(__ASSEMBLY__)
+>  #include <linux/build_bug.h>
+> -#define GENMASK_INPUT_CHECK(h, l) \
+> +#define GENMASK_INPUT_CHECK(hi, lo) \
+>  	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
+> -		__is_constexpr((l) > (h)), (l) > (h), 0)))
+> -#else
+> -/*
+> - * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
+> - * disable the input check if that is the case.
+> - */
+> -#define GENMASK_INPUT_CHECK(h, l) 0
+> -#endif
+> +		__is_constexpr((lo) > (hi)), (lo) > (hi), 0)))
+>  
+> -#define GENMASK(h, l) \
+> -	(GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
+> -#define GENMASK_ULL(h, l) \
+> -	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_ULL(h, l))
+> +#define GENMASK(hi, lo) \
+> +	(GENMASK_INPUT_CHECK(hi, lo) + __GENMASK(hi, lo))
+> +#define GENMASK_ULL(hi, lo) \
+> +	(GENMASK_INPUT_CHECK(hi, lo) + __GENMASK_ULL(hi, lo))
+>  
+> -#if !defined(__ASSEMBLY__)
+> +#define GENMASK_U128(hi, lo) \
+> +	(GENMASK_INPUT_CHECK(hi, lo) + __GENMASK_U128(hi, lo))
+> +#else
+>  /*
+> - * Missing asm support
+> - *
+> - * __GENMASK_U128() depends on _BIT128() which would not work
+> - * in the asm code, as it shifts an 'unsigned __init128' data
+> - * type instead of direct representation of 128 bit constants
+> - * such as long and unsigned long. The fundamental problem is
+> - * that a 128 bit constant will get silently truncated by the
+> - * gcc compiler.
+> + * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
+> + * 128bit exprssions don't work, neither can C 0UL (etc) constants be used.
+> + * These definitions only have to work for constants and don't require
+> + * that ~0 have any specific number of set bits.
+>   */
+> -#define GENMASK_U128(h, l) \
+> -	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_U128(h, l))
+> +#define GENMASK(hi, lo) ___GENMASK(1, hi, lo)
+> +#define GENMASK_ULL(hi, lo) ___GENMASK(1, hi, lo)
+>  #endif
+>  
+>  #endif	/* __LINUX_BITS_H */
+> --- a/include/uapi/linux/bits.h~linux-bitsh-simplify-genmask
+> +++ a/include/uapi/linux/bits.h
+> @@ -4,15 +4,14 @@
+>  #ifndef _UAPI_LINUX_BITS_H
+>  #define _UAPI_LINUX_BITS_H
+>  
+> -#define __GENMASK(h, l) \
+> -        (((~_UL(0)) - (_UL(1) << (l)) + 1) & \
+> -         (~_UL(0) >> (__BITS_PER_LONG - 1 - (h))))
+> +/* Result is '(1u << (hi + 1)) - (1u << lo)' coded to avoid overflow. */
+> +#define ___GENMASK(one, hi, lo) \
+> +	((((one) << (hi)) - 1) * 2 + 1 - (((one) << (lo)) - 1))
+>  
+> -#define __GENMASK_ULL(h, l) \
+> -        (((~_ULL(0)) - (_ULL(1) << (l)) + 1) & \
+> -         (~_ULL(0) >> (__BITS_PER_LONG_LONG - 1 - (h))))
+> +#define __GENMASK(hi, lo) ___GENMASK(1UL, hi, lo)
+>  
+> -#define __GENMASK_U128(h, l) \
+> -	((_BIT128((h)) << 1) - (_BIT128(l)))
+> +#define __GENMASK_ULL(hi, lo) ___GENMASK(1ULL, hi, lo)
+> +
+> +#define __GENMASK_U128(hi, lo) ___GENMASK((unsigned __int128)1, hi, lo)
+>  
+>  #endif /* _UAPI_LINUX_BITS_H */
+> _
+> 
+> Patches currently in -mm which might be from David.Laight@ACULAB.COM are
+> 
+> minmaxh-add-whitespace-around-operators-and-after-commas.patch
+> minmaxh-update-some-comments.patch
+> minmaxh-reduce-the-define-expansion-of-min-max-and-clamp.patch
+> minmaxh-use-build_bug_on_msg-for-the-lo-hi-test-in-clamp.patch
+> minmaxh-move-all-the-clamp-definitions-after-the-min-max-ones.patch
+> minmaxh-simplify-the-variants-of-clamp.patch
+> minmaxh-remove-some-defines-that-are-only-expanded-once.patch
+> linux-bitsh-simplify-genmask.patch
