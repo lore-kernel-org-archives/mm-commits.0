@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DE58380
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AC7F380
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:33:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734568397; cv=none; b=GJ2x226qYYm4ZrNIM4LgyBG/MR9a5gjUA7I9q4vejk4O3lLD9fkWid8bllSsedQhL4kqimGi4xzxq8+/tGGONXZ3koGEcWeBFUmuXyGphC1igKlbpX41wLfbIxsXd1uWH+nfX6QXXxzxMIQySOkFqH+1JXbAm0ugC3NjYfZNY/Y=
+	t=1734568399; cv=none; b=DlGQ2w76eAHTGmXFvM2chOlPg3007pPJue/phTiN6zy2r8UnibjaLXxaKFE92/SdADabWXo3HkRKtlzn63h6iO4/V3jKzVjVlqsVc6abnX0wIvFtk87HXu7WsYHTBK2B6jjPp2RngEDLG9DStRFBdwL6dDb5qxEj71s03oYpUYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734568397; c=relaxed/simple;
-	bh=UzW0ZvjVIQJT+YnebWLftiz2YW4fVdbONHTvrsg7YbU=;
-	h=Date:To:From:Subject:Message-Id; b=WHb2S8RDsLuKe8lLwE763+Wzo+5RZtfleeyKwpAlIdsDE8OeNsuchewYBvBwfstRyfvXpjTyj8wtDcz5NNglzJhAOhpahlruWaj9inM6KrylRCGkeZtpm+7KJeWdlQsPQ5YMrCtTK4vVDztAonwo/EHpvgPaMV1z0ROmlHwaAk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b75p3X1M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734568399; c=relaxed/simple;
+	bh=A4eiKVaO62XvsdkeTzdgHgqJ61dpaAvhl1lwSSpxHQY=;
+	h=Date:To:From:Subject:Message-Id; b=dFdFZz8coJJYoAfH4W6e9jFOo0yDSiL1KjVd1WffBaOTQkZr9/JNrC2NwmVgBho5P/OpygloxB/b15VinDmPmd6T5tgn917Fz01jwvuVil9leZHe+P16GU+LIE/qF8LIGRI5TWQ/i+bynRyZdWKJ/SNMtHF46cZvGElkztQwI2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hjGk6ylT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b75p3X1M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95F9CC4CECD;
-	Thu, 19 Dec 2024 00:33:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hjGk6ylT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB682C4CECD;
+	Thu, 19 Dec 2024 00:33:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734568396;
-	bh=UzW0ZvjVIQJT+YnebWLftiz2YW4fVdbONHTvrsg7YbU=;
+	s=korg; t=1734568398;
+	bh=A4eiKVaO62XvsdkeTzdgHgqJ61dpaAvhl1lwSSpxHQY=;
 	h=Date:To:From:Subject:From;
-	b=b75p3X1M1cCNAIRTtN76BoLj3ktVLEGKfIioIOnYToR7fJ0bRw3GA+C8tAaqruhce
-	 kMlxmIO7IaZyLnEttgepdues/fDhriJuDeCoCcG/GgYw8NnAp1KACRevb9gJWO4eB1
-	 B54Kus1IQTnyF/R0tu8RW74VoDOTTJZlxjz3m8oA=
-Date: Wed, 18 Dec 2024 16:33:15 -0800
+	b=hjGk6ylTF3iL0c6La9e33eHtDKqU2fQm+uM+2xne2H1aHt6dljJNvmereF8y8RtjO
+	 rY9H2a9G3/7zh8KITIjUDZC/QViPV7KSR2BL6qJ5J9dygyVD4oc+0OcdCey+6i96FM
+	 Upbl2Xsa+rY5D6q6vz+FsOP6BvO/H1EuA2a+fIEw=
+Date: Wed, 18 Dec 2024 16:33:18 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-avoid-duplicated-memcg-enable-check.patch added to mm-unstable branch
-Message-Id: <20241219003316.95F9CC4CECD@smtp.kernel.org>
+Subject: + mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch added to mm-unstable branch
+Message-Id: <20241219003318.BB682C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, memcontrol: avoid duplicated memcg enable check
+     Subject: mm/swap_cgroup: remove swap_cgroup_cmpxchg
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
+     mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, memcontrol: avoid duplicated memcg enable check
-Date: Wed, 18 Dec 2024 19:46:30 +0800
+Subject: mm/swap_cgroup: remove swap_cgroup_cmpxchg
+Date: Wed, 18 Dec 2024 19:46:31 +0800
 
-Patch series "mm/swap_cgroup: remove global swap cgroup lock", v3.
+This function is never used after commit 6b611388b626 ("memcg-v1: remove
+charge move code").
 
-This series removes the global swap cgroup lock.  The critical section of
-this lock is very short but it's still a bottle neck for mass parallel
-swap workloads.
-
-Up to 10% performance gain for tmpfs build kernel test on a 48c96t system
-under memory pressure, and no regression for other cases:
-
-
-This patch (of 3):
-
-mem_cgroup_uncharge_swap() includes a mem_cgroup_disabled() check,
-so the caller doesn't need to check that.
-
-Link: https://lkml.kernel.org/r/20241218114633.85196-1-ryncsn@gmail.com
-Link: https://lkml.kernel.org/r/20241218114633.85196-2-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241218114633.85196-3-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
@@ -88,24 +75,62 @@ Cc: Barry Song <baohua@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap_cgroup.h |    2 --
+ mm/swap_cgroup.c            |   29 -----------------------------
+ 2 files changed, 31 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-avoid-duplicated-memcg-enable-check
-+++ a/mm/memcontrol.c
-@@ -4595,7 +4595,7 @@ void mem_cgroup_swapin_uncharge_swap(swp
- 	 * correspond 1:1 to page and swap slot lifetimes: we charge the
- 	 * page to memory here, and uncharge swap when the slot is freed.
- 	 */
--	if (!mem_cgroup_disabled() && do_memsw_account()) {
-+	if (do_memsw_account()) {
- 		/*
- 		 * The swap entry might not get freed for a long time,
- 		 * let's not wait for it.  The page already received a
+--- a/include/linux/swap_cgroup.h~mm-swap_cgroup-remove-swap_cgroup_cmpxchg
++++ a/include/linux/swap_cgroup.h
+@@ -6,8 +6,6 @@
+ 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
+ 
+-extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
+-					unsigned short old, unsigned short new);
+ extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
+ 					 unsigned int nr_ents);
+ extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
+--- a/mm/swap_cgroup.c~mm-swap_cgroup-remove-swap_cgroup_cmpxchg
++++ a/mm/swap_cgroup.c
+@@ -46,35 +46,6 @@ static struct swap_cgroup *lookup_swap_c
+ }
+ 
+ /**
+- * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
+- * @ent: swap entry to be cmpxchged
+- * @old: old id
+- * @new: new id
+- *
+- * Returns old id at success, 0 at failure.
+- * (There is no mem_cgroup using 0 as its id)
+- */
+-unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
+-					unsigned short old, unsigned short new)
+-{
+-	struct swap_cgroup_ctrl *ctrl;
+-	struct swap_cgroup *sc;
+-	unsigned long flags;
+-	unsigned short retval;
+-
+-	sc = lookup_swap_cgroup(ent, &ctrl);
+-
+-	spin_lock_irqsave(&ctrl->lock, flags);
+-	retval = sc->id;
+-	if (retval == old)
+-		sc->id = new;
+-	else
+-		retval = 0;
+-	spin_unlock_irqrestore(&ctrl->lock, flags);
+-	return retval;
+-}
+-
+-/**
+  * swap_cgroup_record - record mem_cgroup for a set of swap entries
+  * @ent: the first swap entry to be recorded into
+  * @id: mem_cgroup to be recorded
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
