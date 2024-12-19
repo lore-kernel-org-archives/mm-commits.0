@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D09D171D2
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:57:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE41171D2
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:57:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734569875; cv=none; b=IjnXzp95u+dQvDjdGg+DopFwJ7WHYL5qIvYGmBrDUWUmWgzjm1v/iVTmBS42rfMTcr4YyWZKrQHmRCVBPyHVU4u5bZK8sEljLAvQ1hbQcN5A6ganAQxCMiajcSVT55MSN+Ko9P+EQEQ2ciXJLAGzlw/E5ymKfVX1fO8BB+sGXkQ=
+	t=1734569877; cv=none; b=HFE7v5DEAtLDIrmt0zSNsA4Ic9vz1AgLHIM2UennXEXzX7jFPfeCKvzTMwQ/+rrY46l8mtHXShlQlD5bMIhddJ1CEy5tOPptYlQZTJnK2gAEbkKLkK0hO7kuhpo3gQ4rv2iwsOMhgNy3PPZC8Wlid7ztQ+P22fTFSvVg8ACc5P8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734569875; c=relaxed/simple;
-	bh=yt1BYUCnhGwoNBPdv0y7vOvKNYBNDusqq/xrVoZUULo=;
-	h=Date:To:From:Subject:Message-Id; b=tr2+sP61seKOdjJ1Z0rv3LfwAVv7W0cF6aIgc05ub9iNHr5yd2tGO0xV09S1Ev/XIA3OHxli5Cz4G3rkvNbLsTxTbYmSvTZ4mMt+eQ+xGlaw14x7Rn6KYXzk02sKKWF5Cn8flLh6zOW/c/WxUJ9CC+s7G0430Znt1ZryRGFrQkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=de6qKwcK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734569877; c=relaxed/simple;
+	bh=kdl8fz9HKb7pKVe40qevs9+Ym8IZ/2KfgJO9Yg3Q6Ts=;
+	h=Date:To:From:Subject:Message-Id; b=ZTIUHZWeshcjPXCFS0+tzyD1iUJB4REDVJRp4AlEdSdvn9JHl5asMV+1VB5hyHA41D2SzE652wl2xcnyso2F95WX9utuOOVcyw+1oWy4mdNqO25xSOP1R2kdY87L0fokEtFznIdCJDRKKKcVglfU9BBvlqDByG+nkSjf9vsvs6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FDh6JuZJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="de6qKwcK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D9FDC4CECD;
-	Thu, 19 Dec 2024 00:57:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FDh6JuZJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4A73C4CECD;
+	Thu, 19 Dec 2024 00:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734569874;
-	bh=yt1BYUCnhGwoNBPdv0y7vOvKNYBNDusqq/xrVoZUULo=;
+	s=korg; t=1734569876;
+	bh=kdl8fz9HKb7pKVe40qevs9+Ym8IZ/2KfgJO9Yg3Q6Ts=;
 	h=Date:To:From:Subject:From;
-	b=de6qKwcKw1qGLkNnyIDpCFG+Jckq6euG9aGC85tJR4YNZaFB425XTGpp1VWL5Cn5X
-	 ptsX4qTdxoGKoNly+FcFM0D0Ullq7rlL6+SZJO6fMJ4G11RdD18RC9w9SFt4DlsCT9
-	 jhlwY0zWTfIrEpucB4+ruqDpWz5ld01eG3A6kcO0=
-Date: Wed, 18 Dec 2024 16:57:54 -0800
+	b=FDh6JuZJPS7Vel05nyGd21AzknWlwNFZfQvSTbc/PVPzJjybUWlduufbupJrP04lY
+	 ybl/IhM29Mip12pePSgnLsrEz/E7+7IrShqjOVM08M6rve9jDBtIHMYZX+GeOoa4kv
+	 uZbI4lufkIkILaHnUtheFU8Knlsxt55F8lLmSYjA=
+Date: Wed, 18 Dec 2024 16:57:56 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-factor-out-zram_huge-write.patch added to mm-unstable branch
-Message-Id: <20241219005754.8D9FDC4CECD@smtp.kernel.org>
+Subject: + zram-factor-out-different-page-types-read.patch added to mm-unstable branch
+Message-Id: <20241219005756.B4A73C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: factor out ZRAM_HUGE write
+     Subject: zram: factor out different page types read
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-factor-out-zram_huge-write.patch
+     zram-factor-out-different-page-types-read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-factor-out-zram_huge-write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-factor-out-different-page-types-read.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,240 +59,130 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: factor out ZRAM_HUGE write
-Date: Wed, 18 Dec 2024 15:34:21 +0900
+Subject: zram: factor out different page types read
+Date: Wed, 18 Dec 2024 15:34:22 +0900
 
-zram_write_page() handles: ZRAM_SAME pages (which was already factored
-out) stores, regular page stores and ZRAM_HUGE pages stores.
+Similarly to write, split the page read code into ZRAM_HUGE read,
+ZRAM_SAME read and compressed page read to simplify the code.
 
-ZRAM_HUGE handling adds a significant amount of complexity.  Instead, we
-can handle ZRAM_HUGE in a separate function.  This allows us to simplify
-zs_handle allocations slow-path, as it now does not handle ZRAM_HUGE case.
-ZRAM_HUGE zs_handle allocation, on the other hand, can now drop
-__GFP_KSWAPD_RECLAIM because we handle ZRAM_HUGE in preemptible context
-(outside of local-lock scope).
-
-Link: https://lkml.kernel.org/r/20241218063513.297475-5-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20241218063513.297475-6-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  136 +++++++++++++++++++-------------
- 1 file changed, 83 insertions(+), 53 deletions(-)
+ drivers/block/zram/zram_drv.c |   85 +++++++++++++++++++-------------
+ 1 file changed, 52 insertions(+), 33 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-factor-out-zram_huge-write
+--- a/drivers/block/zram/zram_drv.c~zram-factor-out-different-page-types-read
 +++ a/drivers/block/zram/zram_drv.c
-@@ -132,6 +132,27 @@ static inline bool zram_allocated(struct
- 			zram_test_flag(zram, index, ZRAM_WB);
+@@ -1530,54 +1530,73 @@ out:
+ 	zram_set_obj_size(zram, index, 0);
  }
  
-+static inline void update_used_max(struct zram *zram, const unsigned long pages)
-+{
-+	unsigned long cur_max = atomic_long_read(&zram->stats.max_used_pages);
-+
-+	do {
-+		if (cur_max >= pages)
-+			return;
-+	} while (!atomic_long_try_cmpxchg(&zram->stats.max_used_pages,
-+					  &cur_max, pages));
-+}
-+
-+static bool zram_can_store_page(struct zram *zram)
-+{
-+	unsigned long alloced_pages;
-+
-+	alloced_pages = zs_get_total_pages(zram->mem_pool);
-+	update_used_max(zram, alloced_pages);
-+
-+	return !zram->limit_pages || alloced_pages <= zram->limit_pages;
-+}
-+
- #if PAGE_SIZE != 4096
- static inline bool is_partial_io(struct bio_vec *bvec)
+-/*
+- * Reads (decompresses if needed) a page from zspool (zsmalloc).
+- * Corresponding ZRAM slot should be locked.
+- */
+-static int zram_read_from_zspool(struct zram *zram, struct page *page,
++static int read_same_filled_page(struct zram *zram, struct page *page,
+ 				 u32 index)
  {
-@@ -266,18 +287,6 @@ static struct zram_pp_slot *select_pp_sl
- }
- #endif
- 
--static inline void update_used_max(struct zram *zram,
--					const unsigned long pages)
--{
--	unsigned long cur_max = atomic_long_read(&zram->stats.max_used_pages);
--
--	do {
--		if (cur_max >= pages)
--			return;
--	} while (!atomic_long_try_cmpxchg(&zram->stats.max_used_pages,
--					  &cur_max, pages));
--}
--
- static inline void zram_fill_page(void *ptr, unsigned long len,
- 					unsigned long value)
- {
-@@ -1638,13 +1647,54 @@ static int write_same_filled_page(struct
- 	return 0;
- }
- 
-+static int write_incompressible_page(struct zram *zram, struct page *page,
-+				     u32 index)
-+{
-+	unsigned long handle;
-+	void *src, *dst;
+-	struct zcomp_strm *zstrm;
++	void *mem;
 +
-+	/*
-+	 * This function is called from preemptible context so we don't need
-+	 * to do optimistic and fallback to pessimistic handle allocation,
-+	 * like we do for compressible pages.
-+	 */
-+	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
-+			   GFP_NOIO | __GFP_HIGHMEM | __GFP_MOVABLE);
-+	if (IS_ERR_VALUE(handle))
-+		return PTR_ERR((void *)handle);
-+
-+	if (!zram_can_store_page(zram)) {
-+		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+		zs_free(zram->mem_pool, handle);
-+		return -ENOMEM;
-+	}
-+
-+	dst = zs_map_object(zram->mem_pool, handle, ZS_MM_WO);
-+	src = kmap_local_page(page);
-+	memcpy(dst, src, PAGE_SIZE);
-+	kunmap_local(src);
-+	zs_unmap_object(zram->mem_pool, handle);
-+
-+	zram_slot_lock(zram, index);
-+	zram_set_flag(zram, index, ZRAM_HUGE);
-+	zram_set_handle(zram, index, handle);
-+	zram_set_obj_size(zram, index, PAGE_SIZE);
-+	zram_slot_unlock(zram, index);
-+
-+	atomic64_add(PAGE_SIZE, &zram->stats.compr_data_size);
-+	atomic64_inc(&zram->stats.huge_pages);
-+	atomic64_inc(&zram->stats.huge_pages_since);
-+	atomic64_inc(&zram->stats.pages_stored);
-+
++	mem = kmap_local_page(page);
++	zram_fill_page(mem, PAGE_SIZE, zram_get_handle(zram, index));
++	kunmap_local(mem);
 +	return 0;
 +}
 +
- static int zram_write_page(struct zram *zram, struct page *page, u32 index)
- {
- 	int ret = 0;
--	unsigned long alloced_pages;
- 	unsigned long handle = -ENOMEM;
- 	unsigned int comp_len = 0;
--	void *src, *dst, *mem;
-+	void *dst, *mem;
- 	struct zcomp_strm *zstrm;
- 	unsigned long element = 0;
- 	bool same_filled;
-@@ -1662,10 +1712,10 @@ static int zram_write_page(struct zram *
++static int read_incompressible_page(struct zram *zram, struct page *page,
++				    u32 index)
++{
+ 	unsigned long handle;
+-	unsigned int size;
+ 	void *src, *dst;
+-	u32 prio;
+-	int ret;
  
- compress_again:
- 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
--	src = kmap_local_page(page);
-+	mem = kmap_local_page(page);
- 	ret = zcomp_compress(zram->comps[ZRAM_PRIMARY_COMP], zstrm,
--			     src, &comp_len);
--	kunmap_local(src);
-+			     mem, &comp_len);
-+	kunmap_local(mem);
+ 	handle = zram_get_handle(zram, index);
+-	if (!handle || zram_test_flag(zram, index, ZRAM_SAME)) {
+-		void *mem;
++	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
++	dst = kmap_local_page(page);
++	copy_page(dst, src);
++	kunmap_local(dst);
++	zs_unmap_object(zram->mem_pool, handle);
  
- 	if (unlikely(ret)) {
- 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-@@ -1674,8 +1724,11 @@ compress_again:
- 		return ret;
- 	}
- 
--	if (comp_len >= huge_class_size)
--		comp_len = PAGE_SIZE;
-+	if (comp_len >= huge_class_size) {
-+		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+		return write_incompressible_page(zram, page, index);
-+	}
-+
- 	/*
- 	 * handle allocation has 2 paths:
- 	 * a) fast path is executed with preemption disabled (for
-@@ -1691,35 +1744,23 @@ compress_again:
- 	 */
- 	if (IS_ERR_VALUE(handle))
- 		handle = zs_malloc(zram->mem_pool, comp_len,
--				__GFP_KSWAPD_RECLAIM |
--				__GFP_NOWARN |
--				__GFP_HIGHMEM |
--				__GFP_MOVABLE);
-+				   __GFP_KSWAPD_RECLAIM |
-+				   __GFP_NOWARN |
-+				   __GFP_HIGHMEM |
-+				   __GFP_MOVABLE);
- 	if (IS_ERR_VALUE(handle)) {
- 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
- 		atomic64_inc(&zram->stats.writestall);
- 		handle = zs_malloc(zram->mem_pool, comp_len,
--				GFP_NOIO | __GFP_HIGHMEM |
--				__GFP_MOVABLE);
-+				   GFP_NOIO | __GFP_HIGHMEM |
-+				   __GFP_MOVABLE);
- 		if (IS_ERR_VALUE(handle))
- 			return PTR_ERR((void *)handle);
- 
--		if (comp_len != PAGE_SIZE)
--			goto compress_again;
--		/*
--		 * If the page is not compressible, you need to acquire the
--		 * lock and execute the code below. The zcomp_stream_get()
--		 * call is needed to disable the cpu hotplug and grab the
--		 * zstrm buffer back. It is necessary that the dereferencing
--		 * of the zstrm variable below occurs correctly.
--		 */
--		zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
-+		goto compress_again;
- 	}
- 
--	alloced_pages = zs_get_total_pages(zram->mem_pool);
--	update_used_max(zram, alloced_pages);
--
--	if (zram->limit_pages && alloced_pages > zram->limit_pages) {
-+	if (!zram_can_store_page(zram)) {
- 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
- 		zs_free(zram->mem_pool, handle);
- 		return -ENOMEM;
-@@ -1727,30 +1768,19 @@ compress_again:
- 
- 	dst = zs_map_object(zram->mem_pool, handle, ZS_MM_WO);
- 
--	src = zstrm->buffer;
--	if (comp_len == PAGE_SIZE)
--		src = kmap_local_page(page);
--	memcpy(dst, src, comp_len);
--	if (comp_len == PAGE_SIZE)
--		kunmap_local(src);
--
-+	memcpy(dst, zstrm->buffer, comp_len);
- 	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
- 	zs_unmap_object(zram->mem_pool, handle);
--	atomic64_add(comp_len, &zram->stats.compr_data_size);
- 
- 	zram_slot_lock(zram, index);
--	if (comp_len == PAGE_SIZE) {
--		zram_set_flag(zram, index, ZRAM_HUGE);
--		atomic64_inc(&zram->stats.huge_pages);
--		atomic64_inc(&zram->stats.huge_pages_since);
+-		mem = kmap_local_page(page);
+-		zram_fill_page(mem, PAGE_SIZE, handle);
+-		kunmap_local(mem);
+-		return 0;
 -	}
--
- 	zram_set_handle(zram, index, handle);
- 	zram_set_obj_size(zram, index, comp_len);
- 	zram_slot_unlock(zram, index);
++	return 0;
++}
  
- 	/* Update stats */
- 	atomic64_inc(&zram->stats.pages_stored);
-+	atomic64_add(comp_len, &zram->stats.compr_data_size);
+-	size = zram_get_obj_size(zram, index);
++static int read_compressed_page(struct zram *zram, struct page *page, u32 index)
++{
++	struct zcomp_strm *zstrm;
++	unsigned long handle;
++	unsigned int size;
++	void *src, *dst;
++	int ret, prio;
+ 
+-	if (size != PAGE_SIZE) {
+-		prio = zram_get_priority(zram, index);
+-		zstrm = zcomp_stream_get(zram->comps[prio]);
+-	}
++	handle = zram_get_handle(zram, index);
++	size = zram_get_obj_size(zram, index);
++	prio = zram_get_priority(zram, index);
+ 
++	zstrm = zcomp_stream_get(zram->comps[prio]);
+ 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
+-	if (size == PAGE_SIZE) {
+-		dst = kmap_local_page(page);
+-		copy_page(dst, src);
+-		kunmap_local(dst);
+-		ret = 0;
+-	} else {
+-		dst = kmap_local_page(page);
+-		ret = zcomp_decompress(zram->comps[prio], zstrm,
+-				       src, size, dst);
+-		kunmap_local(dst);
+-		zcomp_stream_put(zram->comps[prio]);
+-	}
++	dst = kmap_local_page(page);
++	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
++	kunmap_local(dst);
+ 	zs_unmap_object(zram->mem_pool, handle);
++	zcomp_stream_put(zram->comps[prio]);
 +
  	return ret;
  }
  
++/*
++ * Reads (decompresses if needed) a page from zspool (zsmalloc).
++ * Corresponding ZRAM slot should be locked.
++ */
++static int zram_read_from_zspool(struct zram *zram, struct page *page,
++				 u32 index)
++{
++	if (zram_test_flag(zram, index, ZRAM_SAME) ||
++	    !zram_get_handle(zram, index))
++		return read_same_filled_page(zram, page, index);
++
++	if (!zram_test_flag(zram, index, ZRAM_HUGE))
++		return read_compressed_page(zram, page, index);
++	else
++		return read_incompressible_page(zram, page, index);
++}
++
+ static int zram_read_page(struct zram *zram, struct page *page, u32 index,
+ 			  struct bio *parent)
+ {
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
