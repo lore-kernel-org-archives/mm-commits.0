@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19FC5380
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:33:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1176171D2
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:57:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734568404; cv=none; b=H2Jl3L93X8YPf5ep7Ur53blOttQXJEmolXCicQEnjkkLeeRdnRO8HcR4Zd2Tngpa2eV3/v/CkrTvUeYe9QuMJilYeykYWOMrnISnKpr5NCLQeb6qH54KOuVMinZnp0HoP2/58R6JPzn7ODuCWQS2EoZY63P+LNq5t9JJ/BYs8yY=
+	t=1734569869; cv=none; b=UEf50jfkdusCKsGq9MZUTJ1Anjn7r375BrI2yE7qY+wfw4TWsPnDzNcFnjVx/m3SZTPcA9Pilelz5qSdr3i4KJlhqSeWTe0+0Y3fWBLRu8MEIlh2+QENo+QFMzM5VYq55Em71Llt248M+OkIVh+ARD/xUVEDSl21EfUMwvvlzvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734568404; c=relaxed/simple;
-	bh=e0jsmSqsQBCpkrAZLRNLzg1RRPQqN38jTwfD/jcYrSw=;
-	h=Date:To:From:Subject:Message-Id; b=dpEzVi0xsc8uFLkJUcETZ3XonGrSC2McY5O/8kMdAqfs8ptB4EPuMA0/utkXhw/DEgfKU4Ksc6F1IVcQ5NGbI/E/leoeFv+As0sz2pfR5PMbVQzfSXVMpR+SQLyICtpmp4wfddGbK2AVUWkOQNBltBZNJPwp2wU+GR5lZDxcDtU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=umw0HSKY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734569869; c=relaxed/simple;
+	bh=jayPTcFCy6J6z+TjG9kI+fsedUvtV2lNlfnNohq4L/g=;
+	h=Date:To:From:Subject:Message-Id; b=m4xYjRmoN8KwAI6g9zBAmDmxgIDynI42uggWODOKRe30+gx+pNQtiSehvBWFpvnecWGDTb+slAZrk+va65MWie2VldYwS1rWz6teHoZhXQ6jqq408fNtfmxBIqBEe3WkNICbA66uQclQ8QEtIZSK4RO1h/0eSIUDSgz+O50fGk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VQORgAPC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="umw0HSKY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CED9C4CECD;
-	Thu, 19 Dec 2024 00:33:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VQORgAPC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581B3C4CECD;
+	Thu, 19 Dec 2024 00:57:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734568403;
-	bh=e0jsmSqsQBCpkrAZLRNLzg1RRPQqN38jTwfD/jcYrSw=;
+	s=korg; t=1734569868;
+	bh=jayPTcFCy6J6z+TjG9kI+fsedUvtV2lNlfnNohq4L/g=;
 	h=Date:To:From:Subject:From;
-	b=umw0HSKYTiALSJIEC3KenQx+cSz9ZJ6iQFKviFvtX4SWRGFCx00f0S5e9wt070/n/
-	 XeLF4JVAv9RBK+YubfgDccZfjTw1MRVfMCaEEGHfI7rUuDYfNyLq7gSKWVN8ZBWAY9
-	 RckEu+s7lI0K+tWS9V2GgP9o+2O/nmU/IVt9mrKw=
-Date: Wed, 18 Dec 2024 16:33:22 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=VQORgAPCMY44aYBeXdnkc4OCDsnTFQXfrfQQF1nGOQ0O3Qk7oUM7dnUinmKFUqrFU
+	 7ECRj5vQMKdMnBd9Wr5mOtgiRvNOnN/oNSHxPmHJpUSFD1npioMSRxzTSacYHVK+lX
+	 tcTG+fInYQJdBDCRoi+4FFurnn4h3s+bFPvDkqPs=
+Date: Wed, 18 Dec 2024 16:57:47 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch added to mm-unstable branch
-Message-Id: <20241219003323.7CED9C4CECD@smtp.kernel.org>
+Subject: + zram-free-slot-memory-early-during-write.patch added to mm-unstable branch
+Message-Id: <20241219005748.581B3C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap_cgroup: decouple swap cgroup recording and clearing
+     Subject: zram: free slot memory early during write
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch
+     zram-free-slot-memory-early-during-write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-free-slot-memory-early-during-write.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,252 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/swap_cgroup: decouple swap cgroup recording and clearing
-Date: Wed, 18 Dec 2024 19:46:33 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: free slot memory early during write
+Date: Wed, 18 Dec 2024 15:34:18 +0900
 
-The current implementation of swap cgroup tracking is a bit complex and
-fragile:
+Patch series "zram: split page type read/write handling", v2.
 
-On charging path, swap_cgroup_record always records an actual memcg id,
-and it depends on the caller to make sure all entries passed in must
-belong to one single folio.  As folios are always charged or uncharged as
-a whole, and always charged and uncharged in order, swap_cgroup doesn't
-need an extra lock.
+This is a subset of [1] series which contains only fixes and improvements
+(no new features, as ZRAM_HUGE split is still under consideration).
 
-On uncharging path, swap_cgroup_record always sets the record to zero. 
-These entries won't be charged again until uncharging is done.  So there
-is no extra lock needed either.  Worth noting that swap cgroup clearing
-may happen without folio involved, eg.  exiting processes will zap its
-page table without swapin.
+The motivation for factoring out is that zram_write_page() gets more and
+more complex all the time, because it tries to handle too many scenarios:
+ZRAM_SAME store, ZRAM_HUGE store, compress page store with zs_malloc
+allocation slowpath and conditional recompression, etc.  Factor those out
+and make things easier to handle.
 
-The xchg/cmpxchg provides atomic operations and barriers to ensure no
-tearing or synchronization issue of these swap cgroup records.
+Addition of cond_resched() is simply a fix, I can trigger watchdog from
+zram writeback().  And early slot free is just a reasonable thing to do.
 
-It works but quite error-prone.  Things can be much clear and robust by
-decoupling recording and clearing into two helpers.  Recording takes the
-actual folio being charged as argument, and clearing always set the record
-to zero, and refine the debug sanity checks to better reflect their usage
+[1] https://lore.kernel.org/linux-kernel/20241119072057.3440039-1-senozhatsky@chromium.org
 
-Benchmark even showed a very slight improvement as it saved some
-extra arguments and lookups:
 
-make -j96 with defconfig on tmpfs in 1.5G memory cgroup using 4k folios:
-Before: sys 9617.23 (stdev 37.764062)
-After : sys 9541.54 (stdev 42.973976)
+This patch (of 7):
 
-make -j96 with defconfig on tmpfs in 2G memory cgroup using 64k folios:
-Before: sys 7358.98 (stdev 54.927593)
-After : sys 7337.82 (stdev 39.398956)
+In the current implementation entry's previously allocated memory is
+released in the very last moment, when we already have allocated a new
+memory for new data.  This, basically, temporarily increases memory usage
+for no good reason.  For example, consider the case when both old (stale)
+and new entry data are incompressible so such entry will temporarily use
+two physical pages - one for stale (old) data and one for new data.  We
+can release old memory as soon as we get a write request for entry.
 
-Link: https://lkml.kernel.org/r/20241218114633.85196-5-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Suggested-by: Chris Li <chrisl@kernel.org>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20241218063513.297475-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20241218063513.297475-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap_cgroup.h |   12 ++++--
- mm/memcontrol.c             |   13 ++----
- mm/swap_cgroup.c            |   66 +++++++++++++++++++++-------------
- 3 files changed, 55 insertions(+), 36 deletions(-)
+ drivers/block/zram/zram_drv.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/include/linux/swap_cgroup.h~mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing
-+++ a/include/linux/swap_cgroup.h
-@@ -6,8 +6,8 @@
+--- a/drivers/block/zram/zram_drv.c~zram-free-slot-memory-early-during-write
++++ a/drivers/block/zram/zram_drv.c
+@@ -1648,6 +1648,11 @@ static int zram_write_page(struct zram *
+ 	unsigned long element = 0;
+ 	enum zram_pageflags flags = 0;
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
- 
--extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
--					 unsigned int nr_ents);
-+extern void swap_cgroup_record(struct folio *folio, swp_entry_t ent);
-+extern unsigned short swap_cgroup_clear(swp_entry_t ent, unsigned int nr_ents);
- extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
- extern int swap_cgroup_swapon(int type, unsigned long max_pages);
- extern void swap_cgroup_swapoff(int type);
-@@ -15,8 +15,12 @@ extern void swap_cgroup_swapoff(int type
- #else
- 
- static inline
--unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
--				  unsigned int nr_ents)
-+void swap_cgroup_record(struct folio *folio, swp_entry_t ent)
-+{
-+}
++	/* First, free memory allocated to this slot (if any) */
++	zram_slot_lock(zram, index);
++	zram_free_page(zram, index);
++	zram_slot_unlock(zram, index);
 +
-+static inline
-+unsigned short swap_cgroup_clear(swp_entry_t ent, unsigned int nr_ents)
- {
- 	return 0;
- }
---- a/mm/memcontrol.c~mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing
-+++ a/mm/memcontrol.c
-@@ -4959,7 +4959,6 @@ void mem_cgroup_swapout(struct folio *fo
- {
- 	struct mem_cgroup *memcg, *swap_memcg;
- 	unsigned int nr_entries;
--	unsigned short oldid;
- 
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_ref_count(folio), folio);
-@@ -4986,11 +4985,10 @@ void mem_cgroup_swapout(struct folio *fo
- 	/* Get references for the tail pages, too */
- 	if (nr_entries > 1)
- 		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
--	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg),
--				   nr_entries);
--	VM_BUG_ON_FOLIO(oldid, folio);
- 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
- 
-+	swap_cgroup_record(folio, entry);
-+
- 	folio_unqueue_deferred_split(folio);
- 	folio->memcg_data = 0;
- 
-@@ -5021,7 +5019,6 @@ int __mem_cgroup_try_charge_swap(struct
- 	unsigned int nr_pages = folio_nr_pages(folio);
- 	struct page_counter *counter;
- 	struct mem_cgroup *memcg;
--	unsigned short oldid;
- 
- 	if (do_memsw_account())
- 		return 0;
-@@ -5050,10 +5047,10 @@ int __mem_cgroup_try_charge_swap(struct
- 	/* Get references for the tail pages, too */
- 	if (nr_pages > 1)
- 		mem_cgroup_id_get_many(memcg, nr_pages - 1);
--	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg), nr_pages);
--	VM_BUG_ON_FOLIO(oldid, folio);
- 	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
- 
-+	swap_cgroup_record(folio, entry);
-+
- 	return 0;
- }
- 
-@@ -5067,7 +5064,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
- 	struct mem_cgroup *memcg;
- 	unsigned short id;
- 
--	id = swap_cgroup_record(entry, 0, nr_pages);
-+	id = swap_cgroup_clear(entry, nr_pages);
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_id(id);
- 	if (memcg) {
---- a/mm/swap_cgroup.c~mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing
-+++ a/mm/swap_cgroup.c
-@@ -21,17 +21,6 @@ struct swap_cgroup_ctrl {
- 
- static struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
- 
--/*
-- * SwapCgroup implements "lookup" and "exchange" operations.
-- * In typical usage, this swap_cgroup is accessed via memcg's charge/uncharge
-- * against SwapCache. At swap_free(), this is accessed directly from swap.
-- *
-- * This means,
-- *  - we have no race in "exchange" when we're accessed via SwapCache because
-- *    SwapCache(and its swp_entry) is under lock.
-- *  - When called via swap_free(), there is no user of this entry and no race.
-- * Then, we don't need lock around "exchange".
-- */
- static unsigned short __swap_cgroup_id_lookup(struct swap_cgroup *map,
- 					      pgoff_t offset)
- {
-@@ -63,29 +52,58 @@ static unsigned short __swap_cgroup_id_x
- }
- 
- /**
-- * swap_cgroup_record - record mem_cgroup for a set of swap entries
-+ * swap_cgroup_record - record mem_cgroup for a set of swap entries.
-+ * These entries must belong to one single folio, and that folio
-+ * must be being charged for swap space (swap out), and these
-+ * entries must not have been charged
-+ *
-+ * @folio: the folio that the swap entry belongs to
-+ * @ent: the first swap entry to be recorded
-+ */
-+void swap_cgroup_record(struct folio *folio, swp_entry_t ent)
-+{
-+	unsigned int nr_ents = folio_nr_pages(folio);
-+	struct swap_cgroup *map;
-+	pgoff_t offset, end;
-+	unsigned short old;
-+
-+	offset = swp_offset(ent);
-+	end = offset + nr_ents;
-+	map = swap_cgroup_ctrl[swp_type(ent)].map;
-+
-+	do {
-+		old = __swap_cgroup_id_xchg(map, offset,
-+					    mem_cgroup_id(folio_memcg(folio)));
-+		VM_BUG_ON(old);
-+	} while (++offset != end);
-+}
-+
-+/**
-+ * swap_cgroup_clear - clear mem_cgroup for a set of swap entries.
-+ * These entries must be being uncharged from swap. They either
-+ * belongs to one single folio in the swap cache (swap in for
-+ * cgroup v1), or no longer have any users (slot freeing).
-+ *
-  * @ent: the first swap entry to be recorded into
-- * @id: mem_cgroup to be recorded
-  * @nr_ents: number of swap entries to be recorded
-  *
-- * Returns old value at success, 0 at failure.
-- * (Of course, old value can be 0.)
-+ * Returns the existing old value.
-  */
--unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id,
--				  unsigned int nr_ents)
-+unsigned short swap_cgroup_clear(swp_entry_t ent, unsigned int nr_ents)
- {
--	struct swap_cgroup_ctrl *ctrl;
- 	pgoff_t offset = swp_offset(ent);
- 	pgoff_t end = offset + nr_ents;
--	unsigned short old, iter;
- 	struct swap_cgroup *map;
-+	unsigned short old, iter = 0;
- 
--	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
--	map = ctrl->map;
-+	offset = swp_offset(ent);
-+	end = offset + nr_ents;
-+	map = swap_cgroup_ctrl[swp_type(ent)].map;
- 
--	old = __swap_cgroup_id_lookup(map, offset);
- 	do {
--		iter = __swap_cgroup_id_xchg(map, offset, id);
-+		old = __swap_cgroup_id_xchg(map, offset, 0);
-+		if (!iter)
-+			iter = old;
- 		VM_BUG_ON(iter != old);
- 	} while (++offset != end);
- 
-@@ -119,7 +137,7 @@ int swap_cgroup_swapon(int type, unsigne
- 
- 	BUILD_BUG_ON(sizeof(unsigned short) * ID_PER_SC !=
- 		     sizeof(struct swap_cgroup));
--	map = vcalloc(DIV_ROUND_UP(max_pages, ID_PER_SC),
-+	map = vzalloc(DIV_ROUND_UP(max_pages, ID_PER_SC) *
- 		      sizeof(struct swap_cgroup));
- 	if (!map)
- 		goto nomem;
+ 	mem = kmap_local_page(page);
+ 	if (page_same_filled(mem, &element)) {
+ 		kunmap_local(mem);
+@@ -1736,13 +1741,7 @@ compress_again:
+ 	zs_unmap_object(zram->mem_pool, handle);
+ 	atomic64_add(comp_len, &zram->stats.compr_data_size);
+ out:
+-	/*
+-	 * Free memory associated with this sector
+-	 * before overwriting unused sectors.
+-	 */
+ 	zram_slot_lock(zram, index);
+-	zram_free_page(zram, index);
+-
+ 	if (comp_len == PAGE_SIZE) {
+ 		zram_set_flag(zram, index, ZRAM_HUGE);
+ 		atomic64_inc(&zram->stats.huge_pages);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-zram-refuse-to-use-zero-sized-block-device-as-backing-device.patch
-zram-fix-uninitialized-zram-not-releasing-backing-device.patch
-mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
-mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch
-mm-swap_cgroup-remove-global-swap-cgroup-lock.patch
-mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch
+zram-free-slot-memory-early-during-write.patch
+zram-remove-entry-element-member.patch
+zram-factor-out-zram_same-write.patch
+zram-factor-out-zram_huge-write.patch
+zram-factor-out-different-page-types-read.patch
+zram-use-zram_read_from_zspool-in-writeback.patch
+zram-cond_resched-in-writeback-loop.patch
 
