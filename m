@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3184B1EA90;
-	Thu, 19 Dec 2024 03:05:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB2A770824;
+	Thu, 19 Dec 2024 03:05:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734577519; cv=none; b=g+R7xo1dRU69CN9hFj8J9FvK036FPJZ8Q1bv5MD0OAYHIkZpFYGGAz6yaVGkDoRrj3Sg0y+Z/Cw0Z51zDUx8jtUQHvZlpOOHEWyV5QWQLNtyOFf0lm2bI+CO7Hob3oaYXu0xzjT6aistqfqhKKc2rK9/Rj/mP0x7zOQGYwXs4WM=
+	t=1734577522; cv=none; b=g22ZEUK8oem0YNaOJeFZKYz5fA0v3+h52EjDVf5jqDOvRJzo7l9665ohJ1T9gUrmyyl17Mw1yzX+Snn7/0/HhMr0Brbg0UKCdfutUJeN6ZLO2zT+iX5Kkue2a1ky1X+DF2/CVRdRFcUDxuVshjWNGZZtpA2nmpypIAe3yswNe9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734577519; c=relaxed/simple;
-	bh=JOkHKAZmmDRTafDILYGZ0SLaPtLJIAgr1QfpbFSw1Po=;
-	h=Date:To:From:Subject:Message-Id; b=PqteKYvS0oGQWzKEn7Ofy6OOAFdxe8Dx0v2vuPc6J4TDAnMHFrysBhQR3J4Vfj3/dfQ25lDp/D+gLfzkc6n0Nvbv1DJTR+vCacHD6uyw+jeGg822yvDyrul9wykLYT0jN6ysgmte6ccDPpZglzUo8bmBBgR9JqQNIFCFpdJu/vE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sq+C8KAX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577522; c=relaxed/simple;
+	bh=0YpVc5v/T8qweYagCDKDZ2cuia/hhWCx19VaaLnMQsU=;
+	h=Date:To:From:Subject:Message-Id; b=A+XupYVr1A4Sn7ruzrlwK+bM6MA/xGfC/XE66/HZp1/tpEEwI+HNMTaBomPbyzt5JLdFPGLyYjyC3hHX0Agw1OPEtISd4ubcxzWUpSjZI+PFRdmixvscg27NGj8WZXzF5LLKODWtkiiG4+FK0X+8ILgKfr7wRTsi6hbjguMLwoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yCOY5xXv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sq+C8KAX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0387CC4CECD;
-	Thu, 19 Dec 2024 03:05:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yCOY5xXv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63FA2C4CECD;
+	Thu, 19 Dec 2024 03:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734577519;
-	bh=JOkHKAZmmDRTafDILYGZ0SLaPtLJIAgr1QfpbFSw1Po=;
+	s=korg; t=1734577520;
+	bh=0YpVc5v/T8qweYagCDKDZ2cuia/hhWCx19VaaLnMQsU=;
 	h=Date:To:From:Subject:From;
-	b=Sq+C8KAXLvuZDbszzz21u3vLx9mmK7laHqzEnNMszgNWIcyXhPAHap+YXW8QkoT/7
-	 Qg/vU7Rxrw5aCTBVPX4Udjfx47ZJDoevq8qMiAYs5BMNv+F+xO0nclE2P87GsVSO1o
-	 JelF9IwVQVdARTywnnqLqbKxlMnYdc8IH7oOlL1c=
-Date: Wed, 18 Dec 2024 19:05:18 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
+	b=yCOY5xXvzynkm7wKLM2xcc2NIUO6sVtkQYudOSiGdgt+VWuDiZfsITMIvyZSvna7x
+	 KE30u+R346GaE8XxrvhQdxbU8k4H7RojDtal5nDeYgqEbeOZF6xhqCgGjJMOwNnRI7
+	 CtYfwYynNVFAWXKmzzV0R/mCMIqqJQxmUyYQHZzo=
+Date: Wed, 18 Dec 2024 19:05:19 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,baolin.wang@linux.alibaba.com,hughd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ocfs2-fix-the-space-leak-in-la-when-releasing-la.patch removed from -mm tree
-Message-Id: <20241219030519.0387CC4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-fix-shmemhugepages-at-swapout.patch removed from -mm tree
+Message-Id: <20241219030520.63FA2C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix the space leak in LA when releasing LA
+     Subject: mm: shmem: fix ShmemHugePages at swapout
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-the-space-leak-in-la-when-releasing-la.patch
+     mm-shmem-fix-shmemhugepages-at-swapout.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: fix the space leak in LA when releasing LA
-Date: Thu, 5 Dec 2024 18:48:33 +0800
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: shmem: fix ShmemHugePages at swapout
+Date: Wed, 4 Dec 2024 22:50:06 -0800 (PST)
 
-Commit 30dd3478c3cd ("ocfs2: correctly use ocfs2_find_next_zero_bit()")
-introduced an issue, the ocfs2_sync_local_to_main() ignores the last
-contiguous free bits, which causes an OCFS2 volume to lose the last free
-clusters of LA window during the release routine.
+/proc/meminfo ShmemHugePages has been showing overlarge amounts (more than
+Shmem) after swapping out THPs: we forgot to update NR_SHMEM_THPS.
 
-Please note, because commit dfe6c5692fb5 ("ocfs2: fix the la space leak
-when unmounting an ocfs2 volume") was reverted, this commit is a
-replacement fix for commit dfe6c5692fb5.
+Add shmem_update_stats(), to avoid repetition, and risk of making that
+mistake again: the call from shmem_delete_from_page_cache() is the bugfix;
+the call from shmem_replace_folio() is reassuring, but not really a bugfix
+(replace corrects misplaced swapin readahead, but huge swapin readahead
+would be a mistake).
 
-Link: https://lkml.kernel.org/r/20241205104835.18223-3-heming.zhao@suse.com
-Fixes: 30dd3478c3cd ("ocfs2: correctly use ocfs2_find_next_zero_bit()")
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/5ba477c8-a569-70b5-923e-09ab221af45b@google.com
+Fixes: 809bc86517cc ("mm: shmem: support large folio swap out")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/localalloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/shmem.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/localalloc.c~ocfs2-fix-the-space-leak-in-la-when-releasing-la
-+++ a/fs/ocfs2/localalloc.c
-@@ -971,9 +971,9 @@ static int ocfs2_sync_local_to_main(stru
- 	start = count = 0;
- 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
+--- a/mm/shmem.c~mm-shmem-fix-shmemhugepages-at-swapout
++++ a/mm/shmem.c
+@@ -787,6 +787,14 @@ static bool shmem_huge_global_enabled(st
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--	while ((bit_off = ocfs2_find_next_zero_bit(bitmap, left, start)) <
--	       left) {
--		if (bit_off == start) {
-+	while (1) {
-+		bit_off = ocfs2_find_next_zero_bit(bitmap, left, start);
-+		if ((bit_off < left) && (bit_off == start)) {
- 			count++;
- 			start++;
- 			continue;
-@@ -998,6 +998,8 @@ static int ocfs2_sync_local_to_main(stru
- 			}
- 		}
- 
-+		if (bit_off >= left)
-+			break;
- 		count = 1;
- 		start = bit_off + 1;
++static void shmem_update_stats(struct folio *folio, int nr_pages)
++{
++	if (folio_test_pmd_mappable(folio))
++		__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr_pages);
++	__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr_pages);
++	__lruvec_stat_mod_folio(folio, NR_SHMEM, nr_pages);
++}
++
+ /*
+  * Somewhat like filemap_add_folio, but error if expected item has gone.
+  */
+@@ -821,10 +829,7 @@ static int shmem_add_to_page_cache(struc
+ 		xas_store(&xas, folio);
+ 		if (xas_error(&xas))
+ 			goto unlock;
+-		if (folio_test_pmd_mappable(folio))
+-			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
+-		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
+-		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr);
++		shmem_update_stats(folio, nr);
+ 		mapping->nrpages += nr;
+ unlock:
+ 		xas_unlock_irq(&xas);
+@@ -852,8 +857,7 @@ static void shmem_delete_from_page_cache
+ 	error = shmem_replace_entry(mapping, folio->index, folio, radswap);
+ 	folio->mapping = NULL;
+ 	mapping->nrpages -= nr;
+-	__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
+-	__lruvec_stat_mod_folio(folio, NR_SHMEM, -nr);
++	shmem_update_stats(folio, -nr);
+ 	xa_unlock_irq(&mapping->i_pages);
+ 	folio_put_refs(folio, nr);
+ 	BUG_ON(error);
+@@ -1969,10 +1973,8 @@ static int shmem_replace_folio(struct fo
  	}
+ 	if (!error) {
+ 		mem_cgroup_replace_folio(old, new);
+-		__lruvec_stat_mod_folio(new, NR_FILE_PAGES, nr_pages);
+-		__lruvec_stat_mod_folio(new, NR_SHMEM, nr_pages);
+-		__lruvec_stat_mod_folio(old, NR_FILE_PAGES, -nr_pages);
+-		__lruvec_stat_mod_folio(old, NR_SHMEM, -nr_pages);
++		shmem_update_stats(new, nr_pages);
++		shmem_update_stats(old, -nr_pages);
+ 	}
+ 	xa_unlock_irq(&swap_mapping->i_pages);
+ 
 _
 
-Patches currently in -mm which might be from heming.zhao@suse.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
