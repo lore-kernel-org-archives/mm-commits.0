@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE41171D2
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:57:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C4A5171D2
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:57:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734569877; cv=none; b=HFE7v5DEAtLDIrmt0zSNsA4Ic9vz1AgLHIM2UennXEXzX7jFPfeCKvzTMwQ/+rrY46l8mtHXShlQlD5bMIhddJ1CEy5tOPptYlQZTJnK2gAEbkKLkK0hO7kuhpo3gQ4rv2iwsOMhgNy3PPZC8Wlid7ztQ+P22fTFSvVg8ACc5P8=
+	t=1734569879; cv=none; b=LWMmJxeFJAfQ7yulYT30hIjWCzsNBohHzwOCrqCqG98ZCeyyRWC4oevB+5aYcQD/bTqQv4EqCIFbVH7OFJFgdwK+h5YUos6FC634bTRUe2FS/b8702RjBWvfT3UwSYS/XBwwoggPeMdiJL53vCCxBSZU0Uo1fUCN/OpyzaaGf6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734569877; c=relaxed/simple;
-	bh=kdl8fz9HKb7pKVe40qevs9+Ym8IZ/2KfgJO9Yg3Q6Ts=;
-	h=Date:To:From:Subject:Message-Id; b=ZTIUHZWeshcjPXCFS0+tzyD1iUJB4REDVJRp4AlEdSdvn9JHl5asMV+1VB5hyHA41D2SzE652wl2xcnyso2F95WX9utuOOVcyw+1oWy4mdNqO25xSOP1R2kdY87L0fokEtFznIdCJDRKKKcVglfU9BBvlqDByG+nkSjf9vsvs6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FDh6JuZJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734569879; c=relaxed/simple;
+	bh=ANeDhRTdWg7aLn1RJBFr461JVDzlmsei17J5PD5ulFw=;
+	h=Date:To:From:Subject:Message-Id; b=XtTAM92Ls4YOnHP7ejvokoOA6FySvVHi+WgKDiO6rOGzCoLmPyn8QBYzLEuCLD5OOXaAsQGpKlvh1Ga58KmDgZR+td6xoB6DXxb8CEPj0wEo6EOU31uAIRiNifojXh2RncmX7GLFvCUSxUIMn+y0o9olEqqJYzIkuOUaXA1xqLk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yIHRe+pT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FDh6JuZJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4A73C4CECD;
-	Thu, 19 Dec 2024 00:57:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yIHRe+pT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADF38C4CECD;
+	Thu, 19 Dec 2024 00:57:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734569876;
-	bh=kdl8fz9HKb7pKVe40qevs9+Ym8IZ/2KfgJO9Yg3Q6Ts=;
+	s=korg; t=1734569878;
+	bh=ANeDhRTdWg7aLn1RJBFr461JVDzlmsei17J5PD5ulFw=;
 	h=Date:To:From:Subject:From;
-	b=FDh6JuZJPS7Vel05nyGd21AzknWlwNFZfQvSTbc/PVPzJjybUWlduufbupJrP04lY
-	 ybl/IhM29Mip12pePSgnLsrEz/E7+7IrShqjOVM08M6rve9jDBtIHMYZX+GeOoa4kv
-	 uZbI4lufkIkILaHnUtheFU8Knlsxt55F8lLmSYjA=
-Date: Wed, 18 Dec 2024 16:57:56 -0800
+	b=yIHRe+pTW2p/kApSBsjU+hWYGX4YtstrErPdWHVgPt/+l+eaY2/DfYSRayZPv2qKL
+	 PJpnVy2dcjq+BQzmpsAteUMuXjeLimZp1O0lcC1G1Xuy/4GlSfevOSMdtW01kh1zFq
+	 c9hEvPJBMY5tjWxjg5IaX6xZ6uW2Zx2FfiEUAR30=
+Date: Wed, 18 Dec 2024 16:57:58 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-factor-out-different-page-types-read.patch added to mm-unstable branch
-Message-Id: <20241219005756.B4A73C4CECD@smtp.kernel.org>
+Subject: + zram-use-zram_read_from_zspool-in-writeback.patch added to mm-unstable branch
+Message-Id: <20241219005758.ADF38C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: factor out different page types read
+     Subject: zram: use zram_read_from_zspool() in writeback
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-factor-out-different-page-types-read.patch
+     zram-use-zram_read_from_zspool-in-writeback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-factor-out-different-page-types-read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-zram_read_from_zspool-in-writeback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,130 +59,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: factor out different page types read
-Date: Wed, 18 Dec 2024 15:34:22 +0900
+Subject: zram: use zram_read_from_zspool() in writeback
+Date: Wed, 18 Dec 2024 15:34:23 +0900
 
-Similarly to write, split the page read code into ZRAM_HUGE read,
-ZRAM_SAME read and compressed page read to simplify the code.
+We only can read pages from zspool in writeback, zram_read_page() is not
+really right in that context not only because it's a more generic function
+that handles ZRAM_WB pages, but also because it requires us to unlock slot
+between slot flag check and actual page read.  Use zram_read_from_zspool()
+instead and do slot flags check and page read under the same slot lock.
 
-Link: https://lkml.kernel.org/r/20241218063513.297475-6-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20241218063513.297475-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   85 +++++++++++++++++++-------------
- 1 file changed, 52 insertions(+), 33 deletions(-)
+ drivers/block/zram/zram_drv.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-factor-out-different-page-types-read
+--- a/drivers/block/zram/zram_drv.c~zram-use-zram_read_from_zspool-in-writeback
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1530,54 +1530,73 @@ out:
- 	zram_set_obj_size(zram, index, 0);
- }
+@@ -55,8 +55,8 @@ static size_t huge_class_size;
+ static const struct block_device_operations zram_devops;
  
--/*
-- * Reads (decompresses if needed) a page from zspool (zsmalloc).
-- * Corresponding ZRAM slot should be locked.
-- */
--static int zram_read_from_zspool(struct zram *zram, struct page *page,
-+static int read_same_filled_page(struct zram *zram, struct page *page,
- 				 u32 index)
- {
--	struct zcomp_strm *zstrm;
-+	void *mem;
-+
-+	mem = kmap_local_page(page);
-+	zram_fill_page(mem, PAGE_SIZE, zram_get_handle(zram, index));
-+	kunmap_local(mem);
-+	return 0;
-+}
-+
-+static int read_incompressible_page(struct zram *zram, struct page *page,
-+				    u32 index)
-+{
- 	unsigned long handle;
--	unsigned int size;
- 	void *src, *dst;
--	u32 prio;
--	int ret;
- 
- 	handle = zram_get_handle(zram, index);
--	if (!handle || zram_test_flag(zram, index, ZRAM_SAME)) {
--		void *mem;
-+	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
-+	dst = kmap_local_page(page);
-+	copy_page(dst, src);
-+	kunmap_local(dst);
-+	zs_unmap_object(zram->mem_pool, handle);
- 
--		mem = kmap_local_page(page);
--		zram_fill_page(mem, PAGE_SIZE, handle);
--		kunmap_local(mem);
--		return 0;
--	}
-+	return 0;
-+}
- 
--	size = zram_get_obj_size(zram, index);
-+static int read_compressed_page(struct zram *zram, struct page *page, u32 index)
-+{
-+	struct zcomp_strm *zstrm;
-+	unsigned long handle;
-+	unsigned int size;
-+	void *src, *dst;
-+	int ret, prio;
- 
--	if (size != PAGE_SIZE) {
--		prio = zram_get_priority(zram, index);
--		zstrm = zcomp_stream_get(zram->comps[prio]);
--	}
-+	handle = zram_get_handle(zram, index);
-+	size = zram_get_obj_size(zram, index);
-+	prio = zram_get_priority(zram, index);
- 
-+	zstrm = zcomp_stream_get(zram->comps[prio]);
- 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
--	if (size == PAGE_SIZE) {
--		dst = kmap_local_page(page);
--		copy_page(dst, src);
--		kunmap_local(dst);
--		ret = 0;
--	} else {
--		dst = kmap_local_page(page);
--		ret = zcomp_decompress(zram->comps[prio], zstrm,
--				       src, size, dst);
--		kunmap_local(dst);
--		zcomp_stream_put(zram->comps[prio]);
--	}
-+	dst = kmap_local_page(page);
-+	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
-+	kunmap_local(dst);
- 	zs_unmap_object(zram->mem_pool, handle);
-+	zcomp_stream_put(zram->comps[prio]);
-+
- 	return ret;
- }
- 
-+/*
-+ * Reads (decompresses if needed) a page from zspool (zsmalloc).
-+ * Corresponding ZRAM slot should be locked.
-+ */
+ static void zram_free_page(struct zram *zram, size_t index);
+-static int zram_read_page(struct zram *zram, struct page *page, u32 index,
+-			  struct bio *parent);
 +static int zram_read_from_zspool(struct zram *zram, struct page *page,
-+				 u32 index)
-+{
-+	if (zram_test_flag(zram, index, ZRAM_SAME) ||
-+	    !zram_get_handle(zram, index))
-+		return read_same_filled_page(zram, page, index);
-+
-+	if (!zram_test_flag(zram, index, ZRAM_HUGE))
-+		return read_compressed_page(zram, page, index);
-+	else
-+		return read_incompressible_page(zram, page, index);
-+}
-+
- static int zram_read_page(struct zram *zram, struct page *page, u32 index,
- 			  struct bio *parent)
++				 u32 index);
+ 
+ static int zram_slot_trylock(struct zram *zram, u32 index)
  {
+@@ -831,13 +831,10 @@ static ssize_t writeback_store(struct de
+ 		 */
+ 		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+ 			goto next;
++		if (zram_read_from_zspool(zram, page, index))
++			goto next;
+ 		zram_slot_unlock(zram, index);
+ 
+-		if (zram_read_page(zram, page, index, NULL)) {
+-			release_pp_slot(zram, pps);
+-			continue;
+-		}
+-
+ 		bio_init(&bio, zram->bdev, &bio_vec, 1,
+ 			 REQ_OP_WRITE | REQ_SYNC);
+ 		bio.bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
