@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C4A5171D2
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:57:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AB97171D2
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 00:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734569879; cv=none; b=LWMmJxeFJAfQ7yulYT30hIjWCzsNBohHzwOCrqCqG98ZCeyyRWC4oevB+5aYcQD/bTqQv4EqCIFbVH7OFJFgdwK+h5YUos6FC634bTRUe2FS/b8702RjBWvfT3UwSYS/XBwwoggPeMdiJL53vCCxBSZU0Uo1fUCN/OpyzaaGf6w=
+	t=1734569881; cv=none; b=kVXcbmNsjka5BRiqUjJLB+I3FYR3yJFVHT0MVGg7xE1e8w6Psu0QGjkSgQ79fEOGR+NG7j2TZzQW1yWLQNCXHX+BiTZp0PbASkS4q/pgOBkpAXPJh1NCRHkKAErCrgSy/DZ2C/dqr+2Cg463FCrTIj7/m9BDp5u5M1NggnhxGaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734569879; c=relaxed/simple;
-	bh=ANeDhRTdWg7aLn1RJBFr461JVDzlmsei17J5PD5ulFw=;
-	h=Date:To:From:Subject:Message-Id; b=XtTAM92Ls4YOnHP7ejvokoOA6FySvVHi+WgKDiO6rOGzCoLmPyn8QBYzLEuCLD5OOXaAsQGpKlvh1Ga58KmDgZR+td6xoB6DXxb8CEPj0wEo6EOU31uAIRiNifojXh2RncmX7GLFvCUSxUIMn+y0o9olEqqJYzIkuOUaXA1xqLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yIHRe+pT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734569881; c=relaxed/simple;
+	bh=OFbgET0hqrO1J+bWGHonLjpmmLivF6XWyWYeDtmLsVo=;
+	h=Date:To:From:Subject:Message-Id; b=fAErnqZyE2j9e90A0XCETF3bE0+24zLbUeb06pZDMskJFNhf1u5UF9ZkSt8LbCmU9tz+7MhgRQUvtHBHRhm5DLLox3var7O5F/777vMnZNKg+rYoGyTCDymbPl49qnwBmHNrnoXVp/IT1ZjmC6gkBghojU9vi2GFRc20YDHb4gE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hJ4drsUi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yIHRe+pT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADF38C4CECD;
-	Thu, 19 Dec 2024 00:57:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hJ4drsUi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BDF1C4CECD;
+	Thu, 19 Dec 2024 00:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734569878;
-	bh=ANeDhRTdWg7aLn1RJBFr461JVDzlmsei17J5PD5ulFw=;
+	s=korg; t=1734569880;
+	bh=OFbgET0hqrO1J+bWGHonLjpmmLivF6XWyWYeDtmLsVo=;
 	h=Date:To:From:Subject:From;
-	b=yIHRe+pTW2p/kApSBsjU+hWYGX4YtstrErPdWHVgPt/+l+eaY2/DfYSRayZPv2qKL
-	 PJpnVy2dcjq+BQzmpsAteUMuXjeLimZp1O0lcC1G1Xuy/4GlSfevOSMdtW01kh1zFq
-	 c9hEvPJBMY5tjWxjg5IaX6xZ6uW2Zx2FfiEUAR30=
-Date: Wed, 18 Dec 2024 16:57:58 -0800
+	b=hJ4drsUijkQNaqGBuTicLLoaB0AMKzHCQqCBwI9VS1grDPsYWOGeHsfnt4DK6m94M
+	 2qSsJgLZhw5opSQNy2dIqzfsgTSkaPfQE6n0hvIuwac22ee17NwQwhQTy2U8oqcLV3
+	 8v9l5U7/koLebSoYPfli8PTM9dVdUGZOrgu7IiNo=
+Date: Wed, 18 Dec 2024 16:58:00 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-use-zram_read_from_zspool-in-writeback.patch added to mm-unstable branch
-Message-Id: <20241219005758.ADF38C4CECD@smtp.kernel.org>
+Subject: + zram-cond_resched-in-writeback-loop.patch added to mm-unstable branch
+Message-Id: <20241219005800.9BDF1C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: use zram_read_from_zspool() in writeback
+     Subject: zram: cond_resched() in writeback loop
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-use-zram_read_from_zspool-in-writeback.patch
+     zram-cond_resched-in-writeback-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-zram_read_from_zspool-in-writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-cond_resched-in-writeback-loop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: use zram_read_from_zspool() in writeback
-Date: Wed, 18 Dec 2024 15:34:23 +0900
+Subject: zram: cond_resched() in writeback loop
+Date: Wed, 18 Dec 2024 15:34:24 +0900
 
-We only can read pages from zspool in writeback, zram_read_page() is not
-really right in that context not only because it's a more generic function
-that handles ZRAM_WB pages, but also because it requires us to unlock slot
-between slot flag check and actual page read.  Use zram_read_from_zspool()
-instead and do slot flags check and page read under the same slot lock.
+zram writeback is a costly operation, because every target slot (unless
+ZRAM_HUGE) is decompressed before it gets written to a backing device. 
+The writeback to a backing device uses submit_bio_wait() which may look
+like a rescheduling point.  However, if the backing device has
+BD_HAS_SUBMIT_BIO bit set __submit_bio() calls directly
+disk->fops->submit_bio(bio) on the backing device and so when
+submit_bio_wait() calls blk_wait_io() the I/O is already done.  On such
+systems we effective end up in a loop
 
-Link: https://lkml.kernel.org/r/20241218063513.297475-7-senozhatsky@chromium.org
+    for_each (target slot) {
+	decompress(slot)
+	__submit_bio()
+	    disk->fops->submit_bio(bio)
+    }
+
+Which on PREEMPT_NONE systems triggers watchdogs (since there are no
+explicit rescheduling points).  Add cond_resched() to the zram writeback
+loop.
+
+Link: https://lkml.kernel.org/r/20241218063513.297475-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-use-zram_read_from_zspool-in-writeback
+--- a/drivers/block/zram/zram_drv.c~zram-cond_resched-in-writeback-loop
 +++ a/drivers/block/zram/zram_drv.c
-@@ -55,8 +55,8 @@ static size_t huge_class_size;
- static const struct block_device_operations zram_devops;
- 
- static void zram_free_page(struct zram *zram, size_t index);
--static int zram_read_page(struct zram *zram, struct page *page, u32 index,
--			  struct bio *parent);
-+static int zram_read_from_zspool(struct zram *zram, struct page *page,
-+				 u32 index);
- 
- static int zram_slot_trylock(struct zram *zram, u32 index)
- {
-@@ -831,13 +831,10 @@ static ssize_t writeback_store(struct de
- 		 */
- 		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
- 			goto next;
-+		if (zram_read_from_zspool(zram, page, index))
-+			goto next;
+@@ -884,6 +884,8 @@ static ssize_t writeback_store(struct de
+ next:
  		zram_slot_unlock(zram, index);
+ 		release_pp_slot(zram, pps);
++
++		cond_resched();
+ 	}
  
--		if (zram_read_page(zram, page, index, NULL)) {
--			release_pp_slot(zram, pps);
--			continue;
--		}
--
- 		bio_init(&bio, zram->bdev, &bio_vec, 1,
- 			 REQ_OP_WRITE | REQ_SYNC);
- 		bio.bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
+ 	if (blk_idx)
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
