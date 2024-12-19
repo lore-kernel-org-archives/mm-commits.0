@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DED3578F51;
-	Thu, 19 Dec 2024 03:05:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E64FC1EA90;
+	Thu, 19 Dec 2024 03:05:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734577538; cv=none; b=PhsNgHIw4LsAX3Pvvi6et5xzegJey4Q0+/YKd6GqooaKom6u49mMTI/teEgTtlGcahEI5ntgAPpsJygIFFMCxD9VIep8Z8gjpIoVUVZv7HoODSZi5T3+rW1NN9JpdohncqQryY7cV8DRhLbli7LP9XoOVUsjoOVa+Or7VRSk1cU=
+	t=1734577539; cv=none; b=PKjGIGnrl9O4UkzCHS/gZkL8JS1mJDB+g3AnI88MJQ6/ugfUmE/AuO2kT5fw8fmY1bbWJnNlcxlYxn/t2g3CDeKQ2d0eIv6ovGdwdltR9i+AbId6BvottGRVFiItixpV+17CXpR9OpLZs5hghLrGt7SfAa2Ks/+ee3tmTrpH9pI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734577538; c=relaxed/simple;
-	bh=k2g7RQLAhSkL+pnTvBS7UIeSqSVxSZyofD0waq5JV7A=;
-	h=Date:To:From:Subject:Message-Id; b=jUaCPNGVAHHHzsUIv1+UVQyUIV9tgmWpHmRAq05upZVGn42ULjUTW+U0LUxGA8Udxkk/gXHDq3slJp72Q3mGxlnBnIK/jkzZ5R4KQHZnE+tMS2vu1IgJ2FOUpXOwl+fMuPOLzavjXOE+/ATp9bKg4v4MXr7ANmm0W5TtUSv+7Oc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PzZkw2Wg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577539; c=relaxed/simple;
+	bh=6WOdsX02LGCO8WoeqUNVKZa3iiRV9ZQt3aooAsZdY74=;
+	h=Date:To:From:Subject:Message-Id; b=Y6WYLienX2+weEWSA0OwldvCc0TqVxSMBHln/pRNkiaEvyrLUL3K+y3r0EbHAQuYltKAQkEX962wRRJyn1DwgeL1dE9g+C/O24F5GhQLN48TiRNfvJtM0w/1kNQrujaW5Pm9buCbaaU6hx3wtqcEAn/DNuqsXex7WRhR0Q7aroY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sLdjYZD9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PzZkw2Wg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74D2AC4CECD;
-	Thu, 19 Dec 2024 03:05:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sLdjYZD9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8B7BC4CECD;
+	Thu, 19 Dec 2024 03:05:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734577537;
-	bh=k2g7RQLAhSkL+pnTvBS7UIeSqSVxSZyofD0waq5JV7A=;
+	s=korg; t=1734577538;
+	bh=6WOdsX02LGCO8WoeqUNVKZa3iiRV9ZQt3aooAsZdY74=;
 	h=Date:To:From:Subject:From;
-	b=PzZkw2WgFNvMsPTwRNeJK+liYM36mm/FRD9AVRoSV1Yf1FKtzieueH8YYoE3T+DVY
-	 NBO1a8Lcmx7oubyX3oxXTYIPfKT16evKcVM5MMSzhTGQ1N3T+lCQCSQKw0EWxWTkLX
-	 /QIMZyZsEn2ifK8ymg0mFX9rR17SCOBNijzzCsjw=
-Date: Wed, 18 Dec 2024 19:05:36 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=sLdjYZD9bcSByS1c1fC8DKLnPYLA6TWIIn5C9ycyDAPPB1mC+vkkOTtcFbF8Egb8h
+	 N7WLhZ8wZaf/gr5oWuCiqPrh0f6V0H6EZGN8hX4akmvnMTgJJ62W+mtYzZAdfbavuN
+	 b8s7yw5argKT8RwiVbg0JywCDCP1d8FezN4ikQyM=
+Date: Wed, 18 Dec 2024 19:05:38 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,stable@vger.kernel.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,npache@redhat.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,cerasuolodomenico@gmail.com,baohua@kernel.org,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-buffer-head-leaks-in-calls-to-truncate_inode_pages.patch removed from -mm tree
-Message-Id: <20241219030537.74D2AC4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-convert-partially_mapped-set-clear-operations-to-be-atomic.patch removed from -mm tree
+Message-Id: <20241219030538.B8B7BC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,110 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix buffer head leaks in calls to truncate_inode_pages()
+     Subject: mm: convert partially_mapped set/clear operations to be atomic
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-buffer-head-leaks-in-calls-to-truncate_inode_pages.patch
+     mm-convert-partially_mapped-set-clear-operations-to-be-atomic.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix buffer head leaks in calls to truncate_inode_pages()
-Date: Fri, 13 Dec 2024 01:43:28 +0900
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm: convert partially_mapped set/clear operations to be atomic
+Date: Thu, 12 Dec 2024 18:33:51 +0000
 
-When block_invalidatepage was converted to block_invalidate_folio, the
-fallback to block_invalidatepage in folio_invalidate() if the
-address_space_operations method invalidatepage (currently
-invalidate_folio) was not set, was removed.
+Other page flags in the 2nd page, like PG_hwpoison and PG_anon_exclusive
+can get modified concurrently.  Changes to other page flags might be lost
+if they are happening at the same time as non-atomic partially_mapped
+operations.  Hence, make partially_mapped operations atomic.
 
-Unfortunately, some pseudo-inodes in nilfs2 use empty_aops set by
-inode_init_always_gfp() as is, or explicitly set it to
-address_space_operations.  Therefore, with this change,
-block_invalidatepage() is no longer called from folio_invalidate(), and as
-a result, the buffer_head structures attached to these pages/folios are no
-longer freed via try_to_free_buffers().
-
-Thus, these buffer heads are now leaked by truncate_inode_pages(), which
-cleans up the page cache from inode evict(), etc.
-
-Three types of caches use empty_aops: gc inode caches and the DAT shadow
-inode used by GC, and b-tree node caches.  Of these, b-tree node caches
-explicitly call invalidate_mapping_pages() during cleanup, which involves
-calling try_to_free_buffers(), so the leak was not visible during normal
-operation but worsened when GC was performed.
-
-Fix this issue by using address_space_operations with invalidate_folio set
-to block_invalidate_folio instead of empty_aops, which will ensure the
-same behavior as before.
-
-Link: https://lkml.kernel.org/r/20241212164556.21338-1-konishi.ryusuke@gmail.com
-Fixes: 7ba13abbd31e ("fs: Turn block_invalidatepage into block_invalidate_folio")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.18+]
+Link: https://lkml.kernel.org/r/20241212183351.1345389-1-usamaarif642@gmail.com
+Fixes: 8422acdc97ed ("mm: introduce a pageflag for partially mapped folios")
+Reported-by: David Hildenbrand <david@redhat.com>
+Link: https://lore.kernel.org/all/e53b04ad-1827-43a2-a1ab-864c7efecf6e@redhat.com/
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c  |    1 +
- fs/nilfs2/gcinode.c |    2 +-
- fs/nilfs2/inode.c   |    5 +++++
- fs/nilfs2/nilfs.h   |    1 +
- 4 files changed, 8 insertions(+), 1 deletion(-)
+ include/linux/page-flags.h |   12 ++----------
+ mm/huge_memory.c           |    8 ++++----
+ 2 files changed, 6 insertions(+), 14 deletions(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-fix-buffer-head-leaks-in-calls-to-truncate_inode_pages
-+++ a/fs/nilfs2/btnode.c
-@@ -35,6 +35,7 @@ void nilfs_init_btnc_inode(struct inode
- 	ii->i_flags = 0;
- 	memset(&ii->i_bmap_data, 0, sizeof(struct nilfs_bmap));
- 	mapping_set_gfp_mask(btnc_inode->i_mapping, GFP_NOFS);
-+	btnc_inode->i_mapping->a_ops = &nilfs_buffer_cache_aops;
+--- a/include/linux/page-flags.h~mm-convert-partially_mapped-set-clear-operations-to-be-atomic
++++ a/include/linux/page-flags.h
+@@ -862,18 +862,10 @@ static inline void ClearPageCompound(str
+ 	ClearPageHead(page);
  }
+ FOLIO_FLAG(large_rmappable, FOLIO_SECOND_PAGE)
+-FOLIO_TEST_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
+-/*
+- * PG_partially_mapped is protected by deferred_split split_queue_lock,
+- * so its safe to use non-atomic set/clear.
+- */
+-__FOLIO_SET_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
+-__FOLIO_CLEAR_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
++FOLIO_FLAG(partially_mapped, FOLIO_SECOND_PAGE)
+ #else
+ FOLIO_FLAG_FALSE(large_rmappable)
+-FOLIO_TEST_FLAG_FALSE(partially_mapped)
+-__FOLIO_SET_FLAG_NOOP(partially_mapped)
+-__FOLIO_CLEAR_FLAG_NOOP(partially_mapped)
++FOLIO_FLAG_FALSE(partially_mapped)
+ #endif
  
- void nilfs_btnode_cache_clear(struct address_space *btnc)
---- a/fs/nilfs2/gcinode.c~nilfs2-fix-buffer-head-leaks-in-calls-to-truncate_inode_pages
-+++ a/fs/nilfs2/gcinode.c
-@@ -163,7 +163,7 @@ int nilfs_init_gcinode(struct inode *ino
- 
- 	inode->i_mode = S_IFREG;
- 	mapping_set_gfp_mask(inode->i_mapping, GFP_NOFS);
--	inode->i_mapping->a_ops = &empty_aops;
-+	inode->i_mapping->a_ops = &nilfs_buffer_cache_aops;
- 
- 	ii->i_flags = 0;
- 	nilfs_bmap_init_gc(ii->i_bmap);
---- a/fs/nilfs2/inode.c~nilfs2-fix-buffer-head-leaks-in-calls-to-truncate_inode_pages
-+++ a/fs/nilfs2/inode.c
-@@ -276,6 +276,10 @@ const struct address_space_operations ni
- 	.is_partially_uptodate  = block_is_partially_uptodate,
- };
- 
-+const struct address_space_operations nilfs_buffer_cache_aops = {
-+	.invalidate_folio	= block_invalidate_folio,
-+};
-+
- static int nilfs_insert_inode_locked(struct inode *inode,
- 				     struct nilfs_root *root,
- 				     unsigned long ino)
-@@ -681,6 +685,7 @@ struct inode *nilfs_iget_for_shadow(stru
- 	NILFS_I(s_inode)->i_flags = 0;
- 	memset(NILFS_I(s_inode)->i_bmap, 0, sizeof(struct nilfs_bmap));
- 	mapping_set_gfp_mask(s_inode->i_mapping, GFP_NOFS);
-+	s_inode->i_mapping->a_ops = &nilfs_buffer_cache_aops;
- 
- 	err = nilfs_attach_btree_node_cache(s_inode);
- 	if (unlikely(err)) {
---- a/fs/nilfs2/nilfs.h~nilfs2-fix-buffer-head-leaks-in-calls-to-truncate_inode_pages
-+++ a/fs/nilfs2/nilfs.h
-@@ -401,6 +401,7 @@ extern const struct file_operations nilf
- extern const struct inode_operations nilfs_file_inode_operations;
- extern const struct file_operations nilfs_file_operations;
- extern const struct address_space_operations nilfs_aops;
-+extern const struct address_space_operations nilfs_buffer_cache_aops;
- extern const struct inode_operations nilfs_dir_inode_operations;
- extern const struct inode_operations nilfs_special_inode_operations;
- extern const struct inode_operations nilfs_symlink_inode_operations;
+ #define PG_head_mask ((1UL << PG_head))
+--- a/mm/huge_memory.c~mm-convert-partially_mapped-set-clear-operations-to-be-atomic
++++ a/mm/huge_memory.c
+@@ -3577,7 +3577,7 @@ int split_huge_page_to_list_to_order(str
+ 		    !list_empty(&folio->_deferred_list)) {
+ 			ds_queue->split_queue_len--;
+ 			if (folio_test_partially_mapped(folio)) {
+-				__folio_clear_partially_mapped(folio);
++				folio_clear_partially_mapped(folio);
+ 				mod_mthp_stat(folio_order(folio),
+ 					      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 			}
+@@ -3689,7 +3689,7 @@ bool __folio_unqueue_deferred_split(stru
+ 	if (!list_empty(&folio->_deferred_list)) {
+ 		ds_queue->split_queue_len--;
+ 		if (folio_test_partially_mapped(folio)) {
+-			__folio_clear_partially_mapped(folio);
++			folio_clear_partially_mapped(folio);
+ 			mod_mthp_stat(folio_order(folio),
+ 				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 		}
+@@ -3733,7 +3733,7 @@ void deferred_split_folio(struct folio *
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+ 	if (partially_mapped) {
+ 		if (!folio_test_partially_mapped(folio)) {
+-			__folio_set_partially_mapped(folio);
++			folio_set_partially_mapped(folio);
+ 			if (folio_test_pmd_mappable(folio))
+ 				count_vm_event(THP_DEFERRED_SPLIT_PAGE);
+ 			count_mthp_stat(folio_order(folio), MTHP_STAT_SPLIT_DEFERRED);
+@@ -3826,7 +3826,7 @@ static unsigned long deferred_split_scan
+ 		} else {
+ 			/* We lost race with folio_put() */
+ 			if (folio_test_partially_mapped(folio)) {
+-				__folio_clear_partially_mapped(folio);
++				folio_clear_partially_mapped(folio);
+ 				mod_mthp_stat(folio_order(folio),
+ 					      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 			}
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
 
