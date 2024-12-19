@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D43154727
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 03:53:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87A58F6D;
+	Thu, 19 Dec 2024 21:59:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734580416; cv=none; b=On8dTDyHNHnX9FcT2Tn4mjJ/Hyrthas6c5iLeD68AmCaaSvggfEl0btvim9eiT0me94aMdbW5mLV7Ts6RnhA88tPsSVVBShBA83C6bQHaX1IYkVuczJUZ8ysr7050TFBztTBN37HQwkNJMs5a/J1qOKsbVEHZZe/4rIHMS2i9FA=
+	t=1734645569; cv=none; b=XV4C1ihncbNKofELhWrflHc+XVXImoUi3BttqxE0WCYf2vYEDy/vnR/Jxa9FS8bxGkLuSXdRqnxrusUozxs7k6s7pKp3DEdhGWOxYnt9iiKx8x4AGpCmTs5m4XpRZaLaiOlagmHoY4svVoB0jiQ6AVnAjfvp7QsGfWeKKYvej4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734580416; c=relaxed/simple;
-	bh=1JyyOIVRaz1V+BQkh5tSNdQ/+9CzxZEVSYoBSl9he/Q=;
-	h=Date:To:From:Subject:Message-Id; b=CJ4UrMLZnSzN78Dka7xhE2TI8NsID6++sY1/W9gMF+CZ37M/tPFQuZtA9DhTPCzy36t0Am2M84U0scGqMPqEcOMKawIA9ZGWj1lmrGCaoQXqho7QOVjorwXtW1wgXc8wJH7HD3M09NrPzVxZ161e0oyHQH0ISIJOtbgLzcVRswQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uoxk7Z5Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734645569; c=relaxed/simple;
+	bh=ROm+b4jqipAAQzA7M5UhayYDEe3GUZqm058FAJ3LOvQ=;
+	h=Date:To:From:Subject:Message-Id; b=oFA8cnKljTbAVpGPw6+tsHHYGCztX4WLCU97O03fg/DpB2UVuz+ezdFa2ciZfVwxTjIjKH4mI4Oo1J7msje8pOgtMr88oZus8IX91vcleRTwwhShn/UwhOo5o2M9D8MDbhTSVZCihVh2xHrYZ3G4FPvi5ZSiVa/0fEoLYM7l5FY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cnWVVu+7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uoxk7Z5Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9628C4CED4;
-	Thu, 19 Dec 2024 03:53:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cnWVVu+7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A21C4CECE;
+	Thu, 19 Dec 2024 21:59:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734580415;
-	bh=1JyyOIVRaz1V+BQkh5tSNdQ/+9CzxZEVSYoBSl9he/Q=;
+	s=korg; t=1734645569;
+	bh=ROm+b4jqipAAQzA7M5UhayYDEe3GUZqm058FAJ3LOvQ=;
 	h=Date:To:From:Subject:From;
-	b=uoxk7Z5ZHqM9oLcxUkRhFeRUJNuB/CoRYxHSoxNTHslNcP7X+V0MTY1TomGCFxFkV
-	 pqbXyCDwpTWtAlXG1wy3QW73tWWmnkpcTxK/NVnNHoLm1WEYZezmg5dVvcZBGxxm4A
-	 6XShrIz5aBlxOekuiRKwW9I4Q8QZChFCr2Sdx0Y4=
-Date: Wed, 18 Dec 2024 19:53:35 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dennis.lamerice@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=cnWVVu+7CqizVfGzDxxtvc+15ovImibkQP96+SXrpa49FLirmBQlrrvdXZrElQsEv
+	 FuIOIAh8c2/eWYYdomB8hqoI7Z6CXy1aIsK/6YlGY0C2G9lVUvg74JWdCj05pbqc3V
+	 TD6p1KHJtE2VdiVcIcqZHAmoW+Z8K+MSX4zjI43k=
+Date: Thu, 19 Dec 2024 13:59:28 -0800
+To: mm-commits@vger.kernel.org,vitalywool@gmail.com,stable@vger.kernel.org,samsun1006219@gmail.com,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241219035335.B9628C4CED4@smtp.kernel.org>
+Subject: + mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241219215929.27A21C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes
+     Subject: mm: zswap: fix race between [de]compression and CPU hotunplug
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes.patch
+     mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes
-Date: Wed Dec 18 07:52:38 PM PST 2024
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: fix race between [de]compression and CPU hotunplug
+Date: Thu, 19 Dec 2024 21:24:37 +0000
 
-WARNING: Possible repeated word: 'to'
-#11: 
-set as null leaving it to to be accessed.  Additionally, the read-only
+In zswap_compress() and zswap_decompress(), the per-CPU acomp_ctx of the
+current CPU at the beginning of the operation is retrieved and used
+throughout.  However, since neither preemption nor migration are disabled,
+it is possible that the operation continues on a different CPU.
 
-WARNING: Please use correct Fixes: style 'Fixes: <12 chars of sha1> ("<title line>")' - ie: 'Fixes: fatal: not a ("nux-next'")'
-#21: 
-Fixes: 8f9e8f5fcc05 ("ocfs2: Fix Q_GETNEXTQUOTA for filesystem without quotas")
+If the original CPU is hotunplugged while the acomp_ctx is still in use,
+we run into a UAF bug as the resources attached to the acomp_ctx are freed
+during hotunplug in zswap_cpu_comp_dead().
 
-WARNING: Reported-by: should be immediately followed by Closes: with a URL to the report
-#23: 
-Reported-by: syzbot+d173bf8a5a7faeede34c@syzkaller.appspotmail.com
-Tested-by: syzbot+d173bf8a5a7faeede34c@syzkaller.appspotmail.com
+The problem was introduced in commit 1ec3b5fe6eec ("mm/zswap: move to use
+crypto_acomp API for hardware acceleration") when the switch to the
+crypto_acomp API was made.  Prior to that, the per-CPU crypto_comp was
+retrieved using get_cpu_ptr() which disables preemption and makes sure the
+CPU cannot go away from under us.  Preemption cannot be disabled with the
+crypto_acomp API as a sleepable context is needed.
 
-ERROR: space required before the open brace '{'
-#47: FILE: fs/ocfs2/quota_global.c:896:
-+	if (!sb_has_quota_active(sb, type)){
+Commit 8ba2f844f050 ("mm/zswap: change per-cpu mutex and buffer to
+per-acomp_ctx") increased the UAF surface area by making the per-CPU
+buffers dynamic, adding yet another resource that can be freed from under
+zswap compression/decompression by CPU hotunplug.
 
-total: 1 errors, 3 warnings, 15 lines checked
+There are a few ways to fix this:
+(a) Add a refcount for acomp_ctx.
+(b) Disable migration while using the per-CPU acomp_ctx.
+(c) Disable CPU hotunplug while using the per-CPU acomp_ctx by holding
+the CPUs read lock.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+Implement (c) since it's simpler than (a), and (b) involves using
+migrate_disable() which is apparently undesired (see huge comment in
+include/linux/preempt.h).
 
-./patches/ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Dennis Lam <dennis.lamerice@gmail.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+Link: https://lkml.kernel.org/r/20241219212437.2714151-1-yosryahmed@google.com
+Fixes: 1ec3b5fe6eec ("mm/zswap: move to use crypto_acomp API for hardware acceleration")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Closes: https://lore.kernel.org/lkml/20241113213007.GB1564047@cmpxchg.org/
+Reported-by: Sam Sun <samsun1006219@gmail.com>
+Closes: https://lore.kernel.org/lkml/CAEkJfYMtSdM5HceNsXUDf5haghD5+o2e7Qv4OcuruL4tPg6OaQ@mail.gmail.com/
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes
-+++ a/fs/ocfs2/quota_global.c
-@@ -893,7 +893,7 @@ static int ocfs2_get_next_id(struct supe
- 	int status = 0;
+--- a/mm/zswap.c~mm-zswap-fix-race-between-compression-and-cpu-hotunplug
++++ a/mm/zswap.c
+@@ -880,6 +880,18 @@ static int zswap_cpu_comp_dead(unsigned
+ 	return 0;
+ }
  
- 	trace_ocfs2_get_next_id(from_kqid(&init_user_ns, *qid), type);
--	if (!sb_has_quota_active(sb, type)){
-+	if (!sb_has_quota_active(sb, type)) {
- 		status = -ESRCH;
- 		goto out;
- 	}
++/* Prevent CPU hotplug from freeing up the per-CPU acomp_ctx resources */
++static struct crypto_acomp_ctx *acomp_ctx_get_cpu(struct crypto_acomp_ctx __percpu *acomp_ctx)
++{
++	cpus_read_lock();
++	return raw_cpu_ptr(acomp_ctx);
++}
++
++static void acomp_ctx_put_cpu(void)
++{
++	cpus_read_unlock();
++}
++
+ static bool zswap_compress(struct page *page, struct zswap_entry *entry,
+ 			   struct zswap_pool *pool)
+ {
+@@ -893,8 +905,7 @@ static bool zswap_compress(struct page *
+ 	gfp_t gfp;
+ 	u8 *dst;
+ 
+-	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
+-
++	acomp_ctx = acomp_ctx_get_cpu(pool->acomp_ctx);
+ 	mutex_lock(&acomp_ctx->mutex);
+ 
+ 	dst = acomp_ctx->buffer;
+@@ -950,6 +961,7 @@ unlock:
+ 		zswap_reject_alloc_fail++;
+ 
+ 	mutex_unlock(&acomp_ctx->mutex);
++	acomp_ctx_put_cpu();
+ 	return comp_ret == 0 && alloc_ret == 0;
+ }
+ 
+@@ -960,7 +972,7 @@ static void zswap_decompress(struct zswa
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	u8 *src;
+ 
+-	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
++	acomp_ctx = acomp_ctx_get_cpu(entry->pool->acomp_ctx);
+ 	mutex_lock(&acomp_ctx->mutex);
+ 
+ 	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
+@@ -990,6 +1002,7 @@ static void zswap_decompress(struct zswa
+ 
+ 	if (src != acomp_ctx->buffer)
+ 		zpool_unmap_handle(zpool, entry->handle);
++	acomp_ctx_put_cpu();
+ }
+ 
+ /*********************************
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
-ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes.patch
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-replace-free-hugepage-folios-after-migration-fix.patch
-xarray-port-tests-to-kunit-fix.patch
-fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
 
