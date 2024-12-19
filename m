@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF5113AA38
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 03:05:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D848614E;
+	Thu, 19 Dec 2024 03:05:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734577534; cv=none; b=XSHh2kg5FPp9X4hqg8w55ihCN77bFhV5VzIeY997O/J3UiSdckTnPee+MJNeC/EsFXCPHyZ+ngab242gvDrCriOQ8PMvD2JzDwUJBd1MwfUOj1P+/Q5dLD9K0IsIwBOFgRb5MbIt8sVouOOjG3XYUzc4ZY4pMeBlauMg6t49K+w=
+	t=1734577535; cv=none; b=MvuUNhCTs6eposuzhYHoz6gHFANDKEGmSfxZXyMiiTm4/bN0VtnrPkwy1AWwuFqp8GApquta1izzP2wzBtpAV/x+4y37dFrjlJ6GkOAPWZMwsVZc47g5gooFAgq5wAD8dgvBA6pRvvsQnnLedme+QEByZFLjnEKU/U/EvyM9WFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734577534; c=relaxed/simple;
-	bh=AeJjfwniY64fEYOmILx9VQib2zMRx8wZH7HvdAwArKE=;
-	h=Date:To:From:Subject:Message-Id; b=uTXziPqjJhlYBrBZK8WfK5vGMVLZF82KVixfUIiAUhy+/IRcZ3UeN1i5qX3357kwjntYHiA1oULpalq3jjALJs+2HblmC7dlHKIqIJRz4JoKy4ZnpImJrT/9Lf9xnbf4NtOWRELJ7JiXoLIL5eZ4kqp0nd3cqOKpJLV52M09EWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TUqlgfYp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577535; c=relaxed/simple;
+	bh=yNofCBze4cmuccg4vjZ/QguhtfLtEWoRHZRJIeaBhRc=;
+	h=Date:To:From:Subject:Message-Id; b=V40xyLgLrsKA3ZfE616CcAfSrl4qrmU5tlqgV6H5gYLVBT9fVgMtkSxGMg2UB9HkUTdbcvpmKJkPj6YHXoD9OIyVx9NzH3jYAMfcuuY636hdaMjlSbrEmUFtIoF/ZUdtoKLv8fNAmRS8U1Lmm0W3WJAfJzLbLGSbD5GY2L1ZWdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aZggatLD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TUqlgfYp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F3FBC4CECD;
-	Thu, 19 Dec 2024 03:05:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aZggatLD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D7A9C4CECD;
+	Thu, 19 Dec 2024 03:05:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734577534;
-	bh=AeJjfwniY64fEYOmILx9VQib2zMRx8wZH7HvdAwArKE=;
+	s=korg; t=1734577535;
+	bh=yNofCBze4cmuccg4vjZ/QguhtfLtEWoRHZRJIeaBhRc=;
 	h=Date:To:From:Subject:From;
-	b=TUqlgfYpQkZXz5d4iz4zqZWA9RbV0kO3BxThV2MC/HEFyNkodAxvZsYL9ca8ugNIT
-	 uFEh8rSM6piElR29qgO1aECVXlqYBq9QjJpoGVPHBGBc1gGujjoXRiIGiI767DfcnQ
-	 vxKvtq24ukt5ZwTAq3U17jkbJPR+krFxwCgf1jzw=
-Date: Wed, 18 Dec 2024 19:05:33 -0800
-To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,vbabka@suse.cz,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,Liam.Howlett@Oracle.com,kan.liang@linux.intel.com,jolsa@kernel.org,jannh@google.com,irogers@google.com,david@redhat.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=aZggatLD8DofVhvvEBXwWcCYC3pSgPhY+VZVkLsBOu6oWd6k+bpgpCIOkrv08VeP3
+	 sVY/38bc3C6wmmFXJnQyHRks+o4wALODh3WaxmP+VH3Y+e1XqyJEMHDmWpduHY47R2
+	 UcPXW74vR9ddxKcPgzmvHofeWyIm0F+kwysNxAU0=
+Date: Wed, 18 Dec 2024 19:05:34 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,vbabka@suse.cz,stable@vger.kernel.org,hannes@cmpxchg.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fork-avoid-inappropriate-uprobe-access-to-invalid-mm.patch removed from -mm tree
-Message-Id: <20241219030534.0F3FBC4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_alloc-dont-call-pfn_to_page-on-possibly-non-existent-pfn-in-split_large_buddy.patch removed from -mm tree
+Message-Id: <20241219030535.2D7A9C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,145 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fork: avoid inappropriate uprobe access to invalid mm
+     Subject: mm/page_alloc: don't call pfn_to_page() on possibly non-existent PFN in split_large_buddy()
 has been removed from the -mm tree.  Its filename was
-     fork-avoid-inappropriate-uprobe-access-to-invalid-mm.patch
+     mm-page_alloc-dont-call-pfn_to_page-on-possibly-non-existent-pfn-in-split_large_buddy.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fork: avoid inappropriate uprobe access to invalid mm
-Date: Tue, 10 Dec 2024 17:24:12 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/page_alloc: don't call pfn_to_page() on possibly non-existent PFN in split_large_buddy()
+Date: Tue, 10 Dec 2024 10:34:37 +0100
 
-If dup_mmap() encounters an issue, currently uprobe is able to access the
-relevant mm via the reverse mapping (in build_map_info()), and if we are
-very unlucky with a race window, observe invalid XA_ZERO_ENTRY state which
-we establish as part of the fork error path.
+In split_large_buddy(), we might call pfn_to_page() on a PFN that might
+not exist.  In corner cases, such as when freeing the highest pageblock in
+the last memory section, this could result with CONFIG_SPARSEMEM &&
+!CONFIG_SPARSEMEM_EXTREME in __pfn_to_section() returning NULL and and
+__section_mem_map_addr() dereferencing that NULL pointer.
 
-This occurs because uprobe_write_opcode() invokes anon_vma_prepare() which
-in turn invokes find_mergeable_anon_vma() that uses a VMA iterator,
-invoking vma_iter_load() which uses the advanced maple tree API and thus
-is able to observe XA_ZERO_ENTRY entries added to dup_mmap() in commit
-d24062914837 ("fork: use __mt_dup() to duplicate maple tree in
-dup_mmap()").
+Let's fix it, and avoid doing a pfn_to_page() call for the first
+iteration, where we already have the page.
 
-This change was made on the assumption that only process tear-down code
-would actually observe (and make use of) these values.  However this very
-unlikely but still possible edge case with uprobes exists and
-unfortunately does make these observable.
+So far this was found by code inspection, but let's just CC stable as the
+fix is easy.
 
-The uprobe operation prevents races against the dup_mmap() operation via
-the dup_mmap_sem semaphore, which is acquired via uprobe_start_dup_mmap()
-and dropped via uprobe_end_dup_mmap(), and held across
-register_for_each_vma() prior to invoking build_map_info() which does the
-reverse mapping lookup.
-
-Currently these are acquired and dropped within dup_mmap(), which exposes
-the race window prior to error handling in the invoking dup_mm() which
-tears down the mm.
-
-We can avoid all this by just moving the invocation of
-uprobe_start_dup_mmap() and uprobe_end_dup_mmap() up a level to dup_mm()
-and only release this lock once the dup_mmap() operation succeeds or clean
-up is done.
-
-This means that the uprobe code can never observe an incompletely
-constructed mm and resolves the issue in this case.
-
-Link: https://lkml.kernel.org/r/20241210172412.52995-1-lorenzo.stoakes@oracle.com
-Fixes: d24062914837 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: syzbot+2d788f4f7cb660dac4b7@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/6756d273.050a0220.2477f.003d.GAE@google.com/
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Kan Liang <kan.liang@linux.intel.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20241210093437.174413-1-david@redhat.com
+Fixes: fd919a85cd55 ("mm: page_isolation: prepare for hygienic freelists")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Closes: https://lkml.kernel.org/r/e1a898ba-a717-4d20-9144-29df1a6c8813@suse.cz
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/kernel/fork.c~fork-avoid-inappropriate-uprobe-access-to-invalid-mm
-+++ a/kernel/fork.c
-@@ -639,11 +639,8 @@ static __latent_entropy int dup_mmap(str
- 	LIST_HEAD(uf);
- 	VMA_ITERATOR(vmi, mm, 0);
+--- a/mm/page_alloc.c~mm-page_alloc-dont-call-pfn_to_page-on-possibly-non-existent-pfn-in-split_large_buddy
++++ a/mm/page_alloc.c
+@@ -1238,13 +1238,15 @@ static void split_large_buddy(struct zon
+ 	if (order > pageblock_order)
+ 		order = pageblock_order;
  
--	uprobe_start_dup_mmap();
--	if (mmap_write_lock_killable(oldmm)) {
--		retval = -EINTR;
--		goto fail_uprobe_end;
+-	while (pfn != end) {
++	do {
+ 		int mt = get_pfnblock_migratetype(page, pfn);
+ 
+ 		__free_one_page(page, pfn, zone, order, mt, fpi);
+ 		pfn += 1 << order;
++		if (pfn == end)
++			break;
+ 		page = pfn_to_page(pfn);
 -	}
-+	if (mmap_write_lock_killable(oldmm))
-+		return -EINTR;
- 	flush_cache_dup_mm(oldmm);
- 	uprobe_dup_mmap(oldmm, mm);
- 	/*
-@@ -782,8 +779,6 @@ out:
- 		dup_userfaultfd_complete(&uf);
- 	else
- 		dup_userfaultfd_fail(&uf);
--fail_uprobe_end:
--	uprobe_end_dup_mmap();
- 	return retval;
++	} while (1);
+ }
  
- fail_nomem_anon_vma_fork:
-@@ -1692,9 +1687,11 @@ static struct mm_struct *dup_mm(struct t
- 	if (!mm_init(mm, tsk, mm->user_ns))
- 		goto fail_nomem;
- 
-+	uprobe_start_dup_mmap();
- 	err = dup_mmap(mm, oldmm);
- 	if (err)
- 		goto free_pt;
-+	uprobe_end_dup_mmap();
- 
- 	mm->hiwater_rss = get_mm_rss(mm);
- 	mm->hiwater_vm = mm->total_vm;
-@@ -1709,6 +1706,8 @@ free_pt:
- 	mm->binfmt = NULL;
- 	mm_init_owner(mm, NULL);
- 	mmput(mm);
-+	if (err)
-+		uprobe_end_dup_mmap();
- 
- fail_nomem:
- 	return NULL;
+ static void free_one_page(struct zone *zone, struct page *page,
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
-selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
-mm-vma-move-brk-internals-to-mm-vmac.patch
-mm-vma-move-brk-internals-to-mm-vmac-fix.patch
-mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
-mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
-mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
-mm-vma-move-__vm_munmap-to-mm-vmac.patch
-selftests-mm-add-fork-cow-guard-page-test.patch
-mm-enforce-__must_check-on-vma-merge-and-split.patch
-mm-perform-all-memfd-seal-checks-in-a-single-place.patch
-mm-perform-all-memfd-seal-checks-in-a-single-place-fix.patch
-maintainers-update-memory-mapping-section.patch
-mm-assert-mmap-write-lock-held-on-do_mmap-mmap_region.patch
-mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
-tools-testing-add-simple-__mmap_region-userland-test.patch
+fs-proc-task_mmu-fix-pagemap-flags-with-pmd-thp-entries-on-32bit.patch
+docs-tmpfs-update-the-large-folios-policy-for-tmpfs-and-shmem.patch
+mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
+mm-page_isolation-dont-pass-gfp-flags-to-isolate_single_pageblock.patch
+mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
+mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
+mm-page_alloc-sort-out-the-alloc_contig_range-gfp-flags-mess.patch
+mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
+powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
+mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+fs-proc-vmcore-convert-vmcore_cb_lock-into-vmcore_mutex.patch
+fs-proc-vmcore-replace-vmcoredd_mutex-by-vmcore_mutex.patch
+fs-proc-vmcore-disallow-vmcore-modifications-while-the-vmcore-is-open.patch
+fs-proc-vmcore-prefix-all-pr_-with-vmcore.patch
+fs-proc-vmcore-move-vmcore-definitions-out-of-kcoreh.patch
+fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list.patch
+fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges.patch
+fs-proc-vmcore-introduce-proc_vmcore_device_ram-to-detect-device-ram-ranges-in-2nd-kernel.patch
+virtio-mem-mark-device-ready-before-registering-callbacks-in-kdump-mode.patch
+virtio-mem-remember-usable-region-size.patch
+virtio-mem-support-config_proc_vmcore_device_ram.patch
+s390-kdump-virtio-mem-kdump-support-config_proc_vmcore_device_ram.patch
+mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig.patch
+mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
 
