@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7882035960
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 01:59:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6B7870809;
+	Thu, 19 Dec 2024 02:27:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734573588; cv=none; b=WDb5HC8tjLwlkVf+/11SMMhGT/VBTnoUKuSvIbd6P52fzFwnqBj/rcyPTgioF9FafG1prlFQDV5aPY+51Lc08F8JN9xklOqbaApaJghGeDt/n6a8nID35JO6q25nszTSXdSbeLb8vW/TOt2HZMKq1OidW5uCSgTsuIZnkI06Pww=
+	t=1734575256; cv=none; b=ZvqJ6kDULzzyK5FbDZ6XfnDos0AiwkTDv1R+Cbw57drXiC9r1CHgL7fimI0+UYp3iTz0FZGse8l0Lk/m/j78FQ1He7NlZVfxa5QksPwiZFMKViWGw4VREu7PyFmIZ4ceDqOH9x7NIpKYLj7DX8Mzh71KWk0LlZikwfpJy4fM2RY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734573588; c=relaxed/simple;
-	bh=PjCXGEnCaifIh/Ymlkuq/xtm4hPkSL8/3MtMYnnfNHM=;
-	h=Date:To:From:Subject:Message-Id; b=bcHVrIRmtjuQ4CID+aToXzNuNrvuJvptyrbcN5i3WGTaj5jXrIiSNnyG7r6F07ia8myq+NZ6JMn07sZbXAA/JvzWZrwsA31QOHYjmu1x5TsIEG0Li1ecmTFpfMs7oNfpyilpOJrvNsGKQ0bmXZckgfTuSMa4GcSEREfn24+56AI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qbzLo9BA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734575256; c=relaxed/simple;
+	bh=OB6AcvM7XAqC2Z3FFsNNoei0wuA772XqOc/I3kn/XV8=;
+	h=Date:To:From:Subject:Message-Id; b=RWvmsBo6UlzIJyq4aEsrCl4Rn1126ATDQa01AlR09b/WBbsnYbZ0CMr+cDwLIWWzt6NvBodmMyWSWzHK6+uPoT5pCXBlTWJPcutoFKah4NaXl6czRsYT5Oo2v2oeSFY/mLKqvsc5gdW/TSOQBK+wFlnqLpTEtJKc6wqDA/BPYaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mzxeQvLK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qbzLo9BA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E329AC4CECD;
-	Thu, 19 Dec 2024 01:59:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mzxeQvLK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33E4EC4CECD;
+	Thu, 19 Dec 2024 02:27:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734573588;
-	bh=PjCXGEnCaifIh/Ymlkuq/xtm4hPkSL8/3MtMYnnfNHM=;
+	s=korg; t=1734575254;
+	bh=OB6AcvM7XAqC2Z3FFsNNoei0wuA772XqOc/I3kn/XV8=;
 	h=Date:To:From:Subject:From;
-	b=qbzLo9BAT6+JVG+NtvQuKpDioYzm39aWNxJi5AzA7Ix3gAICEkH5EpitUb6weg1ML
-	 mn3vjcwlwwAyD49lE/PxWovTu/jh4YfQYnJ7oaC/f9fYJH+OspZskbzpZNvKXzk/r6
-	 2MVqsUQjRTkb7rCMGpceq3XvDoTEPaiDHYPoGzh4=
-Date: Wed, 18 Dec 2024 17:59:47 -0800
-To: mm-commits@vger.kernel.org,yangge1116@126.com,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=mzxeQvLK4H7yv1xxvCGl1xGtAvpl3ODagbMFJl/YdHFBYlmHFzwMwOTgvQZ8e40nM
+	 kLFX6J2z/znP5yl2FKooI5u1hwPo2bz7U+uJEsZsOCZH6Qdp8DQWKWULZL3HwWJBLY
+	 NbbR67M0E+rz7dprYji783Dnu+JFpNaYNc/LI8qA=
+Date: Wed, 18 Dec 2024 18:27:33 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dennis.lamerice@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + replace-free-hugepage-folios-after-migration-fix.patch added to mm-unstable branch
-Message-Id: <20241219015947.E329AC4CECD@smtp.kernel.org>
+Subject: + ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch added to mm-nonmm-unstable branch
+Message-Id: <20241219022734.33E4EC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: replace-free-hugepage-folios-after-migration-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     replace-free-hugepage-folios-after-migration-fix.patch
+     Subject: ocfs2: fix slab-use-after-free due to dangling pointer dqi_priv
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/replace-free-hugepage-folios-after-migration-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,78 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: replace-free-hugepage-folios-after-migration-fix
-Date: Wed Dec 18 05:57:21 PM PST 2024
+From: Dennis Lam <dennis.lamerice@gmail.com>
+Subject: ocfs2: fix slab-use-after-free due to dangling pointer dqi_priv
+Date: Tue, 17 Dec 2024 21:39:25 -0500
 
-fix comments, 80-column tweak
+When mounting ocfs2 and then remounting it as read-only, a
+slab-use-after-free occurs after the user uses a syscall to
+quota_getnextquota.  Specifically, sb_dqinfo(sb, type)->dqi_priv is the
+dangling pointer.
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: yangge <yangge1116@126.com>
+During the remounting process, the pointer dqi_priv is freed but is never
+set as null leaving it to to be accessed.  Additionally, the read-only
+option for remounting sets the DQUOT_SUSPENDED flag instead of setting the
+DQUOT_USAGE_ENABLED flags.  Moreover, later in the process of getting the
+next quota, the function ocfs2_get_next_id is called and only checks the
+quota usage flags and not the quota suspended flags.
+
+To fix this, I set dqi_priv to null when it is freed after remounting with
+read-only and put a check for DQUOT_SUSPENDED in ocfs2_get_next_id.
+
+Link: https://lkml.kernel.org/r/20241218023924.22821-2-dennis.lamerice@gmail.com
+Fixes: 8f9e8f5fcc05 ("ocfs2: Fix Q_GETNEXTQUOTA for filesystem without quotas")
+Signed-off-by: Dennis Lam <dennis.lamerice@gmail.com>
+Reported-by: syzbot+d173bf8a5a7faeede34c@syzkaller.appspotmail.com
+Tested-by: syzbot+d173bf8a5a7faeede34c@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6731d26f.050a0220.1fb99c.014b.GAE@google.com/T/
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c    |    5 +++--
- mm/page_alloc.c |   11 +++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ fs/ocfs2/quota_global.c |    2 +-
+ fs/ocfs2/quota_local.c  |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~replace-free-hugepage-folios-after-migration-fix
-+++ a/mm/hugetlb.c
-@@ -2978,7 +2978,7 @@ int isolate_or_dissolve_huge_page(struct
- /*
-  *  replace_free_hugepage_folios - Replace free hugepage folios in a given pfn
-  *  range with new folios.
-- *  @stat_pfn: start pfn of the given pfn range
-+ *  @start_pfn: start pfn of the given pfn range
-  *  @end_pfn: end pfn of the given pfn range
-  *  Returns 0 on success, otherwise negated error.
-  */
-@@ -3000,7 +3000,8 @@ int replace_free_hugepage_folios(unsigne
- 		}
+--- a/fs/ocfs2/quota_global.c~ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv
++++ a/fs/ocfs2/quota_global.c
+@@ -893,7 +893,7 @@ static int ocfs2_get_next_id(struct supe
+ 	int status = 0;
  
- 		if (!folio_ref_count(folio)) {
--			ret = alloc_and_dissolve_hugetlb_folio(h, folio, &isolate_list);
-+			ret = alloc_and_dissolve_hugetlb_folio(h, folio,
-+							       &isolate_list);
- 			if (ret)
- 				break;
+ 	trace_ocfs2_get_next_id(from_kqid(&init_user_ns, *qid), type);
+-	if (!sb_has_quota_loaded(sb, type)) {
++	if (!sb_has_quota_active(sb, type)){
+ 		status = -ESRCH;
+ 		goto out;
+ 	}
+--- a/fs/ocfs2/quota_local.c~ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv
++++ a/fs/ocfs2/quota_local.c
+@@ -867,6 +867,7 @@ out:
+ 	brelse(oinfo->dqi_libh);
+ 	brelse(oinfo->dqi_lqi_bh);
+ 	kfree(oinfo);
++	info->dqi_priv = NULL;
+ 	return status;
+ }
  
---- a/mm/page_alloc.c~replace-free-hugepage-folios-after-migration-fix
-+++ a/mm/page_alloc.c
-@@ -6506,12 +6506,11 @@ int alloc_contig_range_noprof(unsigned l
- 		goto done;
- 
- 	/*
--	 * When in-use hugetlb pages are migrated, they may simply be
--	 * released back into the free hugepage pool instead of being
--	 * returned to the buddy system. After the migration of in-use
--	 * huge pages is completed, we will invoke the
--	 * replace_free_hugepage_folios() function to ensure that
--	 * these hugepages are properly released to the buddy system.
-+	 * When in-use hugetlb pages are migrated, they may simply be released
-+	 * back into the free hugepage pool instead of being returned to the
-+	 * buddy system.  After the migration of in-use huge pages is completed,
-+	 * we will invoke replace_free_hugepage_folios() to ensure that these
-+	 * hugepages are properly released to the buddy system.
- 	 */
- 	ret = replace_free_hugepage_folios(start, end);
- 	if (ret)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dennis.lamerice@gmail.com are
 
-mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-replace-free-hugepage-folios-after-migration-fix.patch
-xarray-port-tests-to-kunit-fix.patch
-fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch
 
