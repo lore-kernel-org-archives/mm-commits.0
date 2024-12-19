@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6B7870809;
-	Thu, 19 Dec 2024 02:27:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DCF9208A7
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 02:57:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734575256; cv=none; b=ZvqJ6kDULzzyK5FbDZ6XfnDos0AiwkTDv1R+Cbw57drXiC9r1CHgL7fimI0+UYp3iTz0FZGse8l0Lk/m/j78FQ1He7NlZVfxa5QksPwiZFMKViWGw4VREu7PyFmIZ4ceDqOH9x7NIpKYLj7DX8Mzh71KWk0LlZikwfpJy4fM2RY=
+	t=1734577037; cv=none; b=oxiFL+YyQxZ5nCh2POjzw8bThAOGg1HC/9OZbbtacawp2loexey0vEUvaEvuli8lNccISfK0cRx3omUI2YCEikZMi8ahzI/rvC4b8AbKWR0hw5RPtD2v/i43xMmnepx8H0WDl18qkxrL4evws8QNS9E6x5O9zdK8nWfl27wXHFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734575256; c=relaxed/simple;
-	bh=OB6AcvM7XAqC2Z3FFsNNoei0wuA772XqOc/I3kn/XV8=;
-	h=Date:To:From:Subject:Message-Id; b=RWvmsBo6UlzIJyq4aEsrCl4Rn1126ATDQa01AlR09b/WBbsnYbZ0CMr+cDwLIWWzt6NvBodmMyWSWzHK6+uPoT5pCXBlTWJPcutoFKah4NaXl6czRsYT5Oo2v2oeSFY/mLKqvsc5gdW/TSOQBK+wFlnqLpTEtJKc6wqDA/BPYaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mzxeQvLK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577037; c=relaxed/simple;
+	bh=3q5dSL99t4hDTesnM0vKL08tbIpbHzxED9Ky2CwkQXc=;
+	h=Date:To:From:Subject:Message-Id; b=u18mG0vI7PJVJkkJJPt4VQQ8wGXfPTXtMEB93HJ5vGLyYvlTSE/Cp+sS1xy3NZDEf/eoCVh8H5tqkcnNZRnwjPGqQxjiodZLRSqb0lExNOnODnmwe+BsJHi18WAU0/J+FaLh2j+c0YjXrxLhgI32GPMFKQx+Vyxq1uD94vyqWbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bmYg95J8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mzxeQvLK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33E4EC4CECD;
-	Thu, 19 Dec 2024 02:27:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bmYg95J8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94E77C4CECD;
+	Thu, 19 Dec 2024 02:57:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734575254;
-	bh=OB6AcvM7XAqC2Z3FFsNNoei0wuA772XqOc/I3kn/XV8=;
+	s=korg; t=1734577036;
+	bh=3q5dSL99t4hDTesnM0vKL08tbIpbHzxED9Ky2CwkQXc=;
 	h=Date:To:From:Subject:From;
-	b=mzxeQvLK4H7yv1xxvCGl1xGtAvpl3ODagbMFJl/YdHFBYlmHFzwMwOTgvQZ8e40nM
-	 kLFX6J2z/znP5yl2FKooI5u1hwPo2bz7U+uJEsZsOCZH6Qdp8DQWKWULZL3HwWJBLY
-	 NbbR67M0E+rz7dprYji783Dnu+JFpNaYNc/LI8qA=
-Date: Wed, 18 Dec 2024 18:27:33 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dennis.lamerice@gmail.com,akpm@linux-foundation.org
+	b=bmYg95J8tlN+fZEjOODEB7RHo/DH+W8L54sOFeASMeW4uJxMxUfAcPJQVybfVHoyT
+	 9rF+tVCCu62IjikCgYHOuTvg0yYGeGPsASddRrXD+ogCxf3/sXGE6UbAcFCjKNfiG+
+	 ikR5s74lBoDzpk7+aDjo922IgpfIwG5UR0fl8V7M=
+Date: Wed, 18 Dec 2024 18:57:16 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,souravpanda@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,00107082@163.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch added to mm-nonmm-unstable branch
-Message-Id: <20241219022734.33E4EC4CECD@smtp.kernel.org>
+Subject: [folded-merged] alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix.patch removed from -mm tree
+Message-Id: <20241219025716.94E77C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,93 +34,94 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: fix slab-use-after-free due to dangling pointer dqi_priv
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch
+The quilt patch titled
+     Subject: mm/alloc_tag: fix vm_module_tags_populate's KASAN poisoning logic
+has been removed from the -mm tree.  Its filename was
+     alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into alloc_tag-fix-module-allocation-tags-populated-area-calculation.patch
 
 ------------------------------------------------------
-From: Dennis Lam <dennis.lamerice@gmail.com>
-Subject: ocfs2: fix slab-use-after-free due to dangling pointer dqi_priv
-Date: Tue, 17 Dec 2024 21:39:25 -0500
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/alloc_tag: fix vm_module_tags_populate's KASAN poisoning logic
+Date: Fri, 6 Dec 2024 01:05:28 +0800
 
-When mounting ocfs2 and then remounting it as read-only, a
-slab-use-after-free occurs after the user uses a syscall to
-quota_getnextquota.  Specifically, sb_dqinfo(sb, type)->dqi_priv is the
-dangling pointer.
+After commit 233e89322cbe ("alloc_tag: fix module allocation tags
+populated area calculation"), We still encountered a KASAN bug.
 
-During the remounting process, the pointer dqi_priv is freed but is never
-set as null leaving it to to be accessed.  Additionally, the read-only
-option for remounting sets the DQUOT_SUSPENDED flag instead of setting the
-DQUOT_USAGE_ENABLED flags.  Moreover, later in the process of getting the
-next quota, the function ocfs2_get_next_id is called and only checks the
-quota usage flags and not the quota suspended flags.
+This is because we have only actually performed page allocation and
+address mapping here.  we need to unpoisoned portions of underlying
+memory.
 
-To fix this, I set dqi_priv to null when it is freed after remounting with
-read-only and put a check for DQUOT_SUSPENDED in ocfs2_get_next_id.
+Here is the log for KASAN:
 
-Link: https://lkml.kernel.org/r/20241218023924.22821-2-dennis.lamerice@gmail.com
-Fixes: 8f9e8f5fcc05 ("ocfs2: Fix Q_GETNEXTQUOTA for filesystem without quotas")
-Signed-off-by: Dennis Lam <dennis.lamerice@gmail.com>
-Reported-by: syzbot+d173bf8a5a7faeede34c@syzkaller.appspotmail.com
-Tested-by: syzbot+d173bf8a5a7faeede34c@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/6731d26f.050a0220.1fb99c.014b.GAE@google.com/T/
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+[    5.041171][    T1] ==================================================================
+[    5.042047][    T1] BUG: KASAN: vmalloc-out-of-bounds in move_module+0x2c0/0x708
+[    5.042723][    T1] Write of size 240 at addr ffff80007e510000 by task systemd/1
+[    5.043412][    T1]
+[    5.043523][   T72] input: QEMU QEMU USB Tablet as /devices/pci0000:00/0000:00:01.1/0000:02:001
+[    5.043614][    T1] CPU: 0 UID: 0 PID: 1 Comm: systemd Not tainted 6.13.0-rc1+ #28
+[    5.045560][    T1] Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+[    5.046328][    T1] Call trace:
+[    5.046670][    T1]  show_stack+0x20/0x38 (C)
+[    5.047127][    T1]  dump_stack_lvl+0x80/0xf8
+[    5.047533][    T1]  print_address_description.constprop.0+0x58/0x358
+[    5.048092][   T72] hid-generic 0003:0627:0001.0001: input,hidraw0: USB HID v0.01 Mouse [QEMU 0
+[    5.048126][    T1]  print_report+0xb0/0x280
+[    5.049682][    T1]  kasan_report+0xb8/0x108
+[    5.050170][    T1]  kasan_check_range+0xe8/0x190
+[    5.050685][    T1]  memcpy+0x58/0xa0
+[    5.051135][    T1]  move_module+0x2c0/0x708
+[    5.051586][    T1]  layout_and_allocate.constprop.0+0x308/0x5b8
+[    5.052219][    T1]  load_module+0x134/0x16c8
+[    5.052671][    T1]  init_module_from_file+0xdc/0x138
+[    5.053193][    T1]  idempotent_init_module+0x344/0x600
+[    5.053742][    T1]  __arm64_sys_finit_module+0xbc/0x150
+[    5.054289][    T1]  invoke_syscall+0xd4/0x258
+[    5.054749][    T1]  el0_svc_common.constprop.0+0xb4/0x240
+[    5.055319][    T1]  do_el0_svc+0x48/0x68
+[    5.055743][    T1]  el0_svc+0x40/0xe0
+[    5.056142][    T1]  el0t_64_sync_handler+0x10c/0x138
+[    5.056658][    T1]  el0t_64_sync+0x1ac/0x1b0
+
+Link: https://lkml.kernel.org/r/20241205170528.81000-1-hao.ge@linux.dev
+Fixes: 233e89322cbe ("alloc_tag: fix module allocation tags populated area calculation")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: David Wang <00107082@163.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |    2 +-
- fs/ocfs2/quota_local.c  |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ lib/alloc_tag.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv
-+++ a/fs/ocfs2/quota_global.c
-@@ -893,7 +893,7 @@ static int ocfs2_get_next_id(struct supe
- 	int status = 0;
- 
- 	trace_ocfs2_get_next_id(from_kqid(&init_user_ns, *qid), type);
--	if (!sb_has_quota_loaded(sb, type)) {
-+	if (!sb_has_quota_active(sb, type)){
- 		status = -ESRCH;
- 		goto out;
+--- a/lib/alloc_tag.c~alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix
++++ a/lib/alloc_tag.c
+@@ -431,6 +431,15 @@ static int vm_module_tags_populate(void)
+ 		vm_module_tags->nr_pages += nr;
  	}
---- a/fs/ocfs2/quota_local.c~ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv
-+++ a/fs/ocfs2/quota_local.c
-@@ -867,6 +867,7 @@ out:
- 	brelse(oinfo->dqi_libh);
- 	brelse(oinfo->dqi_lqi_bh);
- 	kfree(oinfo);
-+	info->dqi_priv = NULL;
- 	return status;
+ 
++	/*
++	 * Mark the pages as accessible, now that they are mapped.
++	 * With hardware tag-based KASAN, marking is skipped for
++	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
++	 */
++	kasan_unpoison_vmalloc((void *)module_tags.start_addr,
++				new_end - module_tags.start_addr,
++				KASAN_VMALLOC_PROT_NORMAL);
++
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from dennis.lamerice@gmail.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv.patch
+alloc_tag-fix-module-allocation-tags-populated-area-calculation.patch
+alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
 
