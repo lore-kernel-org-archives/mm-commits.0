@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DCF9208A7
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 02:57:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8114D78F55
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 02:57:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734577037; cv=none; b=oxiFL+YyQxZ5nCh2POjzw8bThAOGg1HC/9OZbbtacawp2loexey0vEUvaEvuli8lNccISfK0cRx3omUI2YCEikZMi8ahzI/rvC4b8AbKWR0hw5RPtD2v/i43xMmnepx8H0WDl18qkxrL4evws8QNS9E6x5O9zdK8nWfl27wXHFA=
+	t=1734577038; cv=none; b=WJoo2SebSbDhxHhLxd5UjG4uXXHtT/GtdhBvaUxBt0VWhHtc3VTZ/tbruKrjCUnf/PY/YED6yKaVsE11vqRPp/xtyu/EbnOu8xKguuQxSGGbgzdzZvSrZ8zkpT54kGVs8MSO8zBA7692U/dEgCdLY6yTSrR8khegBQI7sV6yvXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734577037; c=relaxed/simple;
-	bh=3q5dSL99t4hDTesnM0vKL08tbIpbHzxED9Ky2CwkQXc=;
-	h=Date:To:From:Subject:Message-Id; b=u18mG0vI7PJVJkkJJPt4VQQ8wGXfPTXtMEB93HJ5vGLyYvlTSE/Cp+sS1xy3NZDEf/eoCVh8H5tqkcnNZRnwjPGqQxjiodZLRSqb0lExNOnODnmwe+BsJHi18WAU0/J+FaLh2j+c0YjXrxLhgI32GPMFKQx+Vyxq1uD94vyqWbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bmYg95J8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577038; c=relaxed/simple;
+	bh=C6DwQugO60jh/jIc9BkdGaKi9qpIHjQ1uTPLAaAWkQ4=;
+	h=Date:To:From:Subject:Message-Id; b=LP8Hc+3sWYxpTaausXWdcRtKZ0ERavCaXOQ4CBGqaFs8X7dxApFu0BS5DjThQurs4qztjo6u/t69Q1rZijKVNcTaYpeAdSSEliHzvOUloEtp8RhOexyKCU3+Rs5cG6clF3mNKUr4RbW0W/EORGnwBX5X3d2TK0xGZkAMLariZf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UKgmvLWS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bmYg95J8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94E77C4CECD;
-	Thu, 19 Dec 2024 02:57:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UKgmvLWS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2ED4C4CECD;
+	Thu, 19 Dec 2024 02:57:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734577036;
-	bh=3q5dSL99t4hDTesnM0vKL08tbIpbHzxED9Ky2CwkQXc=;
+	s=korg; t=1734577038;
+	bh=C6DwQugO60jh/jIc9BkdGaKi9qpIHjQ1uTPLAaAWkQ4=;
 	h=Date:To:From:Subject:From;
-	b=bmYg95J8tlN+fZEjOODEB7RHo/DH+W8L54sOFeASMeW4uJxMxUfAcPJQVybfVHoyT
-	 9rF+tVCCu62IjikCgYHOuTvg0yYGeGPsASddRrXD+ogCxf3/sXGE6UbAcFCjKNfiG+
-	 ikR5s74lBoDzpk7+aDjo922IgpfIwG5UR0fl8V7M=
-Date: Wed, 18 Dec 2024 18:57:16 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,souravpanda@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,00107082@163.com,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=UKgmvLWSAHz3XsT7QvGGvFJe5qrav/ntxWcLvGNIR/zNUnSP2oY3Rs56t59Sdhw2b
+	 dwxti1tCBu7vMy4vHxwiKSJ9LZb79WQw4bwgiWevokxjTKJzETRUjkIYKOmMcUZVMP
+	 gN6e1vt8SJ+STyLO2cQmVMKP0wu9FGLl4E4/uoHs=
+Date: Wed, 18 Dec 2024 18:57:17 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,greearb@candelatech.com,ahuang12@lenovo.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix.patch removed from -mm tree
-Message-Id: <20241219025716.94E77C4CECD@smtp.kernel.org>
+Subject: [folded-merged] alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch removed from -mm tree
+Message-Id: <20241219025717.F2ED4C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,141 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/alloc_tag: fix vm_module_tags_populate's KASAN poisoning logic
+     Subject: mm/alloc_tag: fix panic when CONFIG_KASAN enabled and CONFIG_KASAN_VMALLOC not enabled
 has been removed from the -mm tree.  Its filename was
-     alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix.patch
+     alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
 
 This patch was dropped because it was folded into alloc_tag-fix-module-allocation-tags-populated-area-calculation.patch
 
 ------------------------------------------------------
 From: Hao Ge <gehao@kylinos.cn>
-Subject: mm/alloc_tag: fix vm_module_tags_populate's KASAN poisoning logic
-Date: Fri, 6 Dec 2024 01:05:28 +0800
+Subject: mm/alloc_tag: fix panic when CONFIG_KASAN enabled and CONFIG_KASAN_VMALLOC not enabled
+Date: Thu, 12 Dec 2024 15:21:26 +0800
 
-After commit 233e89322cbe ("alloc_tag: fix module allocation tags
-populated area calculation"), We still encountered a KASAN bug.
+When CONFIG_KASAN is enabled but CONFIG_KASAN_VMALLOC is not enabled, we
+may encounter a panic during system boot.
 
-This is because we have only actually performed page allocation and
-address mapping here.  we need to unpoisoned portions of underlying
-memory.
+Because we haven't allocated pages and created mappings for the shadow
+memory corresponding to module allocation tags region,similar to how it is
+done for execmem_vmalloc.
 
-Here is the log for KASAN:
+The memory for module allocation tags is allocated on demand, therefore we
+need to allocate shadow memory on demand as well in MODULE_ALIGN blocks.
 
-[    5.041171][    T1] ==================================================================
-[    5.042047][    T1] BUG: KASAN: vmalloc-out-of-bounds in move_module+0x2c0/0x708
-[    5.042723][    T1] Write of size 240 at addr ffff80007e510000 by task systemd/1
-[    5.043412][    T1]
-[    5.043523][   T72] input: QEMU QEMU USB Tablet as /devices/pci0000:00/0000:00:01.1/0000:02:001
-[    5.043614][    T1] CPU: 0 UID: 0 PID: 1 Comm: systemd Not tainted 6.13.0-rc1+ #28
-[    5.045560][    T1] Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
-[    5.046328][    T1] Call trace:
-[    5.046670][    T1]  show_stack+0x20/0x38 (C)
-[    5.047127][    T1]  dump_stack_lvl+0x80/0xf8
-[    5.047533][    T1]  print_address_description.constprop.0+0x58/0x358
-[    5.048092][   T72] hid-generic 0003:0627:0001.0001: input,hidraw0: USB HID v0.01 Mouse [QEMU 0
-[    5.048126][    T1]  print_report+0xb0/0x280
-[    5.049682][    T1]  kasan_report+0xb8/0x108
-[    5.050170][    T1]  kasan_check_range+0xe8/0x190
-[    5.050685][    T1]  memcpy+0x58/0xa0
-[    5.051135][    T1]  move_module+0x2c0/0x708
-[    5.051586][    T1]  layout_and_allocate.constprop.0+0x308/0x5b8
-[    5.052219][    T1]  load_module+0x134/0x16c8
-[    5.052671][    T1]  init_module_from_file+0xdc/0x138
-[    5.053193][    T1]  idempotent_init_module+0x344/0x600
-[    5.053742][    T1]  __arm64_sys_finit_module+0xbc/0x150
-[    5.054289][    T1]  invoke_syscall+0xd4/0x258
-[    5.054749][    T1]  el0_svc_common.constprop.0+0xb4/0x240
-[    5.055319][    T1]  do_el0_svc+0x48/0x68
-[    5.055743][    T1]  el0_svc+0x40/0xe0
-[    5.056142][    T1]  el0t_64_sync_handler+0x10c/0x138
-[    5.056658][    T1]  el0t_64_sync+0x1ac/0x1b0
+Here is the log for panic:
 
-Link: https://lkml.kernel.org/r/20241205170528.81000-1-hao.ge@linux.dev
+[   18.349421] BUG: unable to handle page fault for address: fffffbfff8092000
+[   18.350016] #PF: supervisor read access in kernel mode
+[   18.350459] #PF: error_code(0x0000) - not-present page
+[   18.350904] PGD 20fe52067 P4D 219dc8067 PUD 219dc4067 PMD 102495067 PTE 0
+[   18.351484] Oops: Oops: 0000 [#1] PREEMPT SMP KASAN NOPTI
+[   18.351961] CPU: 5 UID: 0 PID: 1 Comm: systemd Not tainted 6.13.0-rc1+ #3
+[   18.352533] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+[   18.353494] RIP: 0010:kasan_check_range+0xba/0x1b0
+[   18.353931] Code: 8d 5a 07 4c 0f 49 da 49 c1 fb 03 45 85 db 0f 84 dd 00 00 00 45 89 db 4a 8d 14 d8 eb 0d 48 83 c0 08 48 39 c2 0f 84 c1 00 00 00 <48> 83 38 00 74 ed 48 8d 50 08 eb 0d 48 83 c0 01 48 39 d0 0f 84 90
+[   18.355484] RSP: 0018:ff11000101877958 EFLAGS: 00010206
+[   18.355937] RAX: fffffbfff8092000 RBX: fffffbfff809201e RCX: ffffffff82a7ceac
+[   18.356542] RDX: fffffbfff8092018 RSI: 00000000000000f0 RDI: ffffffffc0490000
+[   18.357153] RBP: fffffbfff8092000 R08: 0000000000000001 R09: fffffbfff809201d
+[   18.357756] R10: ffffffffc04900ef R11: 0000000000000003 R12: ffffffffc0490000
+[   18.358365] R13: ff11000101877b48 R14: ffffffffc0490000 R15: 000000000000002c
+[   18.358968] FS:  00007f9bd13c5940(0000) GS:ff110001eb480000(0000) knlGS:0000000000000000
+[   18.359648] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   18.360178] CR2: fffffbfff8092000 CR3: 0000000109214004 CR4: 0000000000771ef0
+[   18.360790] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[   18.361404] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[   18.362020] PKRU: 55555554
+[   18.362261] Call Trace:
+[   18.362481]  <TASK>
+[   18.362671]  ? __die+0x23/0x70
+[   18.362964]  ? page_fault_oops+0xc2/0x160
+[   18.363318]  ? exc_page_fault+0xad/0xc0
+[   18.363680]  ? asm_exc_page_fault+0x26/0x30
+[   18.364056]  ? move_module+0x3cc/0x8a0
+[   18.364398]  ? kasan_check_range+0xba/0x1b0
+[   18.364755]  __asan_memcpy+0x3c/0x60
+[   18.365074]  move_module+0x3cc/0x8a0
+[   18.365386]  layout_and_allocate.constprop.0+0x3d5/0x720
+[   18.365841]  ? early_mod_check+0x3dc/0x510
+[   18.366195]  load_module+0x72/0x1850
+[   18.366509]  ? __pfx_kernel_read_file+0x10/0x10
+[   18.366918]  ? vm_mmap_pgoff+0x21c/0x2d0
+[   18.367262]  init_module_from_file+0xd1/0x130
+[   18.367638]  ? __pfx_init_module_from_file+0x10/0x10
+[   18.368073]  ? __pfx__raw_spin_lock+0x10/0x10
+[   18.368456]  ? __pfx_cred_has_capability.isra.0+0x10/0x10
+[   18.368938]  idempotent_init_module+0x22c/0x790
+[   18.369332]  ? simple_getattr+0x6f/0x120
+[   18.369676]  ? __pfx_idempotent_init_module+0x10/0x10
+[   18.370110]  ? fdget+0x58/0x3a0
+[   18.370393]  ? security_capable+0x64/0xf0
+[   18.370745]  __x64_sys_finit_module+0xc2/0x140
+[   18.371136]  do_syscall_64+0x7d/0x160
+[   18.371459]  ? fdget_pos+0x1c8/0x4c0
+[   18.371784]  ? ksys_read+0xfd/0x1d0
+[   18.372106]  ? syscall_exit_to_user_mode+0x10/0x1f0
+[   18.372525]  ? do_syscall_64+0x89/0x160
+[   18.372860]  ? do_syscall_64+0x89/0x160
+[   18.373194]  ? do_syscall_64+0x89/0x160
+[   18.373527]  ? syscall_exit_to_user_mode+0x10/0x1f0
+[   18.373952]  ? do_syscall_64+0x89/0x160
+[   18.374283]  ? syscall_exit_to_user_mode+0x10/0x1f0
+[   18.374701]  ? do_syscall_64+0x89/0x160
+[   18.375037]  ? do_user_addr_fault+0x4a8/0xa40
+[   18.375416]  ? clear_bhb_loop+0x25/0x80
+[   18.375748]  ? clear_bhb_loop+0x25/0x80
+[   18.376119]  ? clear_bhb_loop+0x25/0x80
+[   18.376450]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+Link: https://lkml.kernel.org/r/20241212072126.134572-1-hao.ge@linux.dev
 Fixes: 233e89322cbe ("alloc_tag: fix module allocation tags populated area calculation")
 Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Reported-by: Ben Greear <greearb@candelatech.com>
+Closes: https://lore.kernel.org/all/1ba0cc57-e2ed-caa2-1241-aa5615bee01f@candelatech.com/
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
 Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Wang <00107082@163.com>
+Tested-by: Adrian Huang <ahuang12@lenovo.com> 
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ lib/alloc_tag.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/lib/alloc_tag.c~alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix
+--- a/lib/alloc_tag.c~alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2
 +++ a/lib/alloc_tag.c
-@@ -431,6 +431,15 @@ static int vm_module_tags_populate(void)
+@@ -414,6 +414,8 @@ static int vm_module_tags_populate(void)
+ 
+ 	if (phys_end < new_end) {
+ 		struct page **next_page = vm_module_tags->pages + vm_module_tags->nr_pages;
++		unsigned long old_shadow_end = ALIGN(phys_end, MODULE_ALIGN);
++		unsigned long new_shadow_end = ALIGN(new_end, MODULE_ALIGN);
+ 		unsigned long more_pages;
+ 		unsigned long nr;
+ 
+@@ -428,7 +430,19 @@ static int vm_module_tags_populate(void)
+ 				__free_page(next_page[i]);
+ 			return -ENOMEM;
+ 		}
++
  		vm_module_tags->nr_pages += nr;
++
++		/*
++		 * Kasan allocates 1 byte of shadow for every 8 bytes of data.
++		 * When kasan_alloc_module_shadow allocates shadow memory,
++		 * its unit of allocation is a page.
++		 * Therefore, here we need to align to MODULE_ALIGN.
++		 */
++		if (old_shadow_end < new_shadow_end)
++			kasan_alloc_module_shadow((void *)old_shadow_end,
++						  new_shadow_end - old_shadow_end,
++						  GFP_KERNEL);
  	}
  
-+	/*
-+	 * Mark the pages as accessible, now that they are mapped.
-+	 * With hardware tag-based KASAN, marking is skipped for
-+	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
-+	 */
-+	kasan_unpoison_vmalloc((void *)module_tags.start_addr,
-+				new_end - module_tags.start_addr,
-+				KASAN_VMALLOC_PROT_NORMAL);
-+
- 	return 0;
- }
- 
+ 	/*
 _
 
 Patches currently in -mm which might be from gehao@kylinos.cn are
 
 alloc_tag-fix-module-allocation-tags-populated-area-calculation.patch
-alloc_tag-fix-module-allocation-tags-populated-area-calculation-fix-2.patch
 
