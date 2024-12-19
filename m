@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 510581EA90
-	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 03:05:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 755641EA90;
+	Thu, 19 Dec 2024 03:05:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734577540; cv=none; b=hoWBfQksk6GxnGZwGn8yxlUPk6v2ERC6ij6HqBa69i4dBuriUQmOnF1Mg+iTPzgUqseeTsU/kikM6Y1XbrrwXGGC/U75HHDP33g2x9cw/QS6zJUNJ9HGXMQ6QMicXvZzLCFXyeVpEmQvSC/3nONjxNe/hDiKwOEQQ0apfuFgCfs=
+	t=1734577541; cv=none; b=jly/SlyHAPusPaahoznhb4E4ULI1keezUtfRF14UwbMYnafsfpY/QvqzJxJCfh0tpD7pkoUxXtNhV9xJ7SKAn1M1Cou/WSQkr263FXJPnYEJdXMnNooN/iNnWSi7oyc9LleAIqsNsOPD20AtBFnNJOq6MQ9PR1c4a7XikX/gIGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734577540; c=relaxed/simple;
-	bh=F7ZRodBUn62ShyRQ1TeI0E/3Mxp8FdifaGuSwpQToXw=;
-	h=Date:To:From:Subject:Message-Id; b=uW4YMZfVq8bUT87oLox4mPOoyOq3tcIYWAZ+vYH3k9dfrW1DTb1dJD6iIU7qkNGnZUTw+qKmzfWqSDdzJMxlbDaRpSJ8Y9p8bTWQH896fygUhE+jrhM2+0RILK9XPGv7eoeoLqR/0vYMnY5BnqFW6iuWc+2r7umjhb9oXm/3mDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GycNhN8E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577541; c=relaxed/simple;
+	bh=tGl/B/HwA0uQzsA4M1JN0mIeQyoYo023gz9n/0NmB8w=;
+	h=Date:To:From:Subject:Message-Id; b=Yz9m5rVbVngUmNLTokyKrV9Cs0hVqtBNnZtau2/uq1jJ/FH9Q2bx4/RNr/KMRZC3fFpvUUYym/leb73QohHP5/pOJjo7BvEVssZuEJlPHg5EtPGj5MKBUFEV9tqPS16tEqTarIqui1ID8c//RL5wyO5llFNp9MiGPoOa25Tf50g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zcpiLCe1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GycNhN8E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2205C4CECD;
-	Thu, 19 Dec 2024 03:05:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zcpiLCe1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECD72C4CECD;
+	Thu, 19 Dec 2024 03:05:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734577539;
-	bh=F7ZRodBUn62ShyRQ1TeI0E/3Mxp8FdifaGuSwpQToXw=;
+	s=korg; t=1734577541;
+	bh=tGl/B/HwA0uQzsA4M1JN0mIeQyoYo023gz9n/0NmB8w=;
 	h=Date:To:From:Subject:From;
-	b=GycNhN8ETt9j3+J4qPB6ysZHia+4+KeifS61c8Brvuy0oQp1GLnduJvtiVcAtbVHB
-	 u9PCYiOsdYv4gXvCfZc76A3etz6QfNdfTZLj4s0pzPJhE+khBtwwEus96BPHhYrKSm
-	 igXRozrWaaruTuM+fCYYiub/xWoLk1TSpGGZoTsU=
-Date: Wed, 18 Dec 2024 19:05:39 -0800
-To: mm-commits@vger.kernel.org,nathan@kernel.org,koct9i@gmail.com,bvanassche@acm.org,akpm@linux-foundation.org
+	b=zcpiLCe1/HPAuZQMBKUwHhQB1ubMlhYSaOfqcd36eA3MS24de+HaX9quUZitCYEML
+	 SXYGnZgpTPHsg26DpFEuUyvTqHyImWahecgkUdcRHY+As+ucLkE5Xzc2j0a8ZDsovC
+	 moVqHisiVjWCsnrl5Pq6LeeiAwRJS1tpiWPkMYfQ=
+Date: Wed, 18 Dec 2024 19:05:40 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,surenb@google.com,stable@vger.kernel.org,oliver.sang@intel.com,kent.overstreet@linux.dev,00107082@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmstat-fix-a-w=1-clang-compiler-warning.patch removed from -mm tree
-Message-Id: <20241219030539.D2205C4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-codetag-clear-tags-before-swap.patch removed from -mm tree
+Message-Id: <20241219030540.ECD72C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmstat: fix a W=1 clang compiler warning
+     Subject: mm/codetag: clear tags before swap
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-fix-a-w=1-clang-compiler-warning.patch
+     mm-codetag-clear-tags-before-swap.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: mm/vmstat: fix a W=1 clang compiler warning
-Date: Thu, 12 Dec 2024 13:31:26 -0800
+From: David Wang <00107082@163.com>
+Subject: mm/codetag: clear tags before swap
+Date: Fri, 13 Dec 2024 09:33:32 +0800
 
-Fix the following clang compiler warning that is reported if the kernel is
-built with W=1:
+When CONFIG_MEM_ALLOC_PROFILING_DEBUG is set, kernel WARN would be
+triggered when calling __alloc_tag_ref_set() during swap:
 
-./include/linux/vmstat.h:518:36: error: arithmetic between different enumeration types ('enum node_stat_item' and 'enum lru_list') [-Werror,-Wenum-enum-conversion]
-  518 |         return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
-      |                               ~~~~~~~~~~~ ^ ~~~
+	alloc_tag was not cleared (got tag for mm/filemap.c:1951)
+	WARNING: CPU: 0 PID: 816 at ./include/linux/alloc_tag.h...
 
+Clear code tags before swap can fix the warning. And this patch also fix
+a potential invalid address dereference in alloc_tag_add_check() when
+CONFIG_MEM_ALLOC_PROFILING_DEBUG is set and ref->ct is CODETAG_EMPTY,
+which is defined as ((void *)1).
 
-Link: https://lkml.kernel.org/r/20241212213126.1269116-1-bvanassche@acm.org
-Fixes: 9d7ea9a297e6 ("mm/vmstat: add helpers to get vmstat item names for each enum type")
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Link: https://lkml.kernel.org/r/20241213013332.89910-1-00107082@163.com
+Fixes: 51f43d5d82ed ("mm/codetag: swap tags when migrate pages")
+Signed-off-by: David Wang <00107082@163.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202412112227.df61ebb-lkp@intel.com
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/alloc_tag.h |    2 +-
+ lib/alloc_tag.c           |    7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/include/linux/vmstat.h~mm-vmstat-fix-a-w=1-clang-compiler-warning
-+++ a/include/linux/vmstat.h
-@@ -515,7 +515,7 @@ static inline const char *node_stat_name
- 
- static inline const char *lru_list_name(enum lru_list lru)
+--- a/include/linux/alloc_tag.h~mm-codetag-clear-tags-before-swap
++++ a/include/linux/alloc_tag.h
+@@ -135,7 +135,7 @@ static inline struct alloc_tag_counters
+ #ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
+ static inline void alloc_tag_add_check(union codetag_ref *ref, struct alloc_tag *tag)
  {
--	return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
-+	return node_stat_name(NR_LRU_BASE + (enum node_stat_item)lru) + 3; // skip "nr_"
- }
+-	WARN_ONCE(ref && ref->ct,
++	WARN_ONCE(ref && ref->ct && !is_codetag_empty(ref),
+ 		  "alloc_tag was not cleared (got tag for %s:%u)\n",
+ 		  ref->ct->filename, ref->ct->lineno);
  
- #if defined(CONFIG_VM_EVENT_COUNTERS) || defined(CONFIG_MEMCG)
+--- a/lib/alloc_tag.c~mm-codetag-clear-tags-before-swap
++++ a/lib/alloc_tag.c
+@@ -209,6 +209,13 @@ void pgalloc_tag_swap(struct folio *new,
+ 		return;
+ 	}
+ 
++	/*
++	 * Clear tag references to avoid debug warning when using
++	 * __alloc_tag_ref_set() with non-empty reference.
++	 */
++	set_codetag_empty(&ref_old);
++	set_codetag_empty(&ref_new);
++
+ 	/* swap tags */
+ 	__alloc_tag_ref_set(&ref_old, tag_new);
+ 	update_page_tag_ref(handle_old, &ref_old);
 _
 
-Patches currently in -mm which might be from bvanassche@acm.org are
+Patches currently in -mm which might be from 00107082@163.com are
 
 
