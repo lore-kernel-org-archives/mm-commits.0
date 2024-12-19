@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB45613AA38;
-	Thu, 19 Dec 2024 03:05:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF5113AA38
+	for <mm-commits@vger.kernel.org>; Thu, 19 Dec 2024 03:05:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734577533; cv=none; b=cV8QgZR3QSQQ+IBw4cx+ffP93NI/LwZUnriS89GbX2LyqGg95YUk1F2VsT42ZC78LPgfmcGLQI5nfLjTI+rb/L/kExn1HOY+nP/aH1pMozAJzakHPZjFzXvjQcqByab2QYpjvnSCIarZsPhkCby+NPFI0YRJR5nlBnDUOmxyqJo=
+	t=1734577534; cv=none; b=XSHh2kg5FPp9X4hqg8w55ihCN77bFhV5VzIeY997O/J3UiSdckTnPee+MJNeC/EsFXCPHyZ+ngab242gvDrCriOQ8PMvD2JzDwUJBd1MwfUOj1P+/Q5dLD9K0IsIwBOFgRb5MbIt8sVouOOjG3XYUzc4ZY4pMeBlauMg6t49K+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734577533; c=relaxed/simple;
-	bh=1CpTYVDTCADa0cOS9W/tKjlaFJ/uO/n2FqWnGU+oHYI=;
-	h=Date:To:From:Subject:Message-Id; b=N4YUZe99pS/UdUPnG1UwzOIkY9XJ71EkrZICw9v2tF0+O/MJpV4/XWt/6wVKO0aN8laiy5uOKk7NMAugAabPcdJS/NGY2WtycIFNmn+UA7xEb3+u90GjqTapA1vAhPfJ/w+TUmZGifsSuiGcefthI7co5xj+q+t8bHPrnpP8Q+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B6YNJzKw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734577534; c=relaxed/simple;
+	bh=AeJjfwniY64fEYOmILx9VQib2zMRx8wZH7HvdAwArKE=;
+	h=Date:To:From:Subject:Message-Id; b=uTXziPqjJhlYBrBZK8WfK5vGMVLZF82KVixfUIiAUhy+/IRcZ3UeN1i5qX3357kwjntYHiA1oULpalq3jjALJs+2HblmC7dlHKIqIJRz4JoKy4ZnpImJrT/9Lf9xnbf4NtOWRELJ7JiXoLIL5eZ4kqp0nd3cqOKpJLV52M09EWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TUqlgfYp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B6YNJzKw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1379C4CECD;
-	Thu, 19 Dec 2024 03:05:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TUqlgfYp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F3FBC4CECD;
+	Thu, 19 Dec 2024 03:05:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734577532;
-	bh=1CpTYVDTCADa0cOS9W/tKjlaFJ/uO/n2FqWnGU+oHYI=;
+	s=korg; t=1734577534;
+	bh=AeJjfwniY64fEYOmILx9VQib2zMRx8wZH7HvdAwArKE=;
 	h=Date:To:From:Subject:From;
-	b=B6YNJzKwX3yeISjR1WJKnKOwrIK9+fC26AfCDT1/XldGgQdqhwCK/WpDN7j/qU7ln
-	 NtJNj19i4oO3u0Yc8vkwocf9zclss434PKUFl1gK9bV5+AJEuBjVjLk7quUcUu1szn
-	 Dp7pNfW1pRN7fj44qveMd7plEQT+q+g0fe/ACz8A=
-Date: Wed, 18 Dec 2024 19:05:32 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,eadavis@qq.com,akpm@linux-foundation.org
+	b=TUqlgfYpQkZXz5d4iz4zqZWA9RbV0kO3BxThV2MC/HEFyNkodAxvZsYL9ca8ugNIT
+	 uFEh8rSM6piElR29qgO1aECVXlqYBq9QjJpoGVPHBGBc1gGujjoXRiIGiI767DfcnQ
+	 vxKvtq24ukt5ZwTAq3U17jkbJPR+krFxwCgf1jzw=
+Date: Wed, 18 Dec 2024 19:05:33 -0800
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,vbabka@suse.cz,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,Liam.Howlett@Oracle.com,kan.liang@linux.intel.com,jolsa@kernel.org,jannh@google.com,irogers@google.com,david@redhat.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-prevent-use-of-deleted-inode.patch removed from -mm tree
-Message-Id: <20241219030532.B1379C4CECD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fork-avoid-inappropriate-uprobe-access-to-invalid-mm.patch removed from -mm tree
+Message-Id: <20241219030534.0F3FBC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,145 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: prevent use of deleted inode
+     Subject: fork: avoid inappropriate uprobe access to invalid mm
 has been removed from the -mm tree.  Its filename was
-     nilfs2-prevent-use-of-deleted-inode.patch
+     fork-avoid-inappropriate-uprobe-access-to-invalid-mm.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: nilfs2: prevent use of deleted inode
-Date: Mon, 9 Dec 2024 15:56:52 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: fork: avoid inappropriate uprobe access to invalid mm
+Date: Tue, 10 Dec 2024 17:24:12 +0000
 
-syzbot reported a WARNING in nilfs_rmdir. [1]
+If dup_mmap() encounters an issue, currently uprobe is able to access the
+relevant mm via the reverse mapping (in build_map_info()), and if we are
+very unlucky with a race window, observe invalid XA_ZERO_ENTRY state which
+we establish as part of the fork error path.
 
-Because the inode bitmap is corrupted, an inode with an inode number that
-should exist as a ".nilfs" file was reassigned by nilfs_mkdir for "file0",
-causing an inode duplication during execution.  And this causes an
-underflow of i_nlink in rmdir operations.
+This occurs because uprobe_write_opcode() invokes anon_vma_prepare() which
+in turn invokes find_mergeable_anon_vma() that uses a VMA iterator,
+invoking vma_iter_load() which uses the advanced maple tree API and thus
+is able to observe XA_ZERO_ENTRY entries added to dup_mmap() in commit
+d24062914837 ("fork: use __mt_dup() to duplicate maple tree in
+dup_mmap()").
 
-The inode is used twice by the same task to unmount and remove directories
-".nilfs" and "file0", it trigger warning in nilfs_rmdir.
+This change was made on the assumption that only process tear-down code
+would actually observe (and make use of) these values.  However this very
+unlikely but still possible edge case with uprobes exists and
+unfortunately does make these observable.
 
-Avoid to this issue, check i_nlink in nilfs_iget(), if it is 0, it means
-that this inode has been deleted, and iput is executed to reclaim it.
+The uprobe operation prevents races against the dup_mmap() operation via
+the dup_mmap_sem semaphore, which is acquired via uprobe_start_dup_mmap()
+and dropped via uprobe_end_dup_mmap(), and held across
+register_for_each_vma() prior to invoking build_map_info() which does the
+reverse mapping lookup.
 
-[1]
-WARNING: CPU: 1 PID: 5824 at fs/inode.c:407 drop_nlink+0xc4/0x110 fs/inode.c:407
-...
-Call Trace:
- <TASK>
- nilfs_rmdir+0x1b0/0x250 fs/nilfs2/namei.c:342
- vfs_rmdir+0x3a3/0x510 fs/namei.c:4394
- do_rmdir+0x3b5/0x580 fs/namei.c:4453
- __do_sys_rmdir fs/namei.c:4472 [inline]
- __se_sys_rmdir fs/namei.c:4470 [inline]
- __x64_sys_rmdir+0x47/0x50 fs/namei.c:4470
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
+Currently these are acquired and dropped within dup_mmap(), which exposes
+the race window prior to error handling in the invoking dup_mm() which
+tears down the mm.
 
-Link: https://lkml.kernel.org/r/20241209065759.6781-1-konishi.ryusuke@gmail.com
-Fixes: d25006523d0b ("nilfs2: pathname operations")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+9260555647a5132edd48@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=9260555647a5132edd48
-Tested-by: syzbot+9260555647a5132edd48@syzkaller.appspotmail.com
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Cc: <stable@vger.kernel.org>
+We can avoid all this by just moving the invocation of
+uprobe_start_dup_mmap() and uprobe_end_dup_mmap() up a level to dup_mm()
+and only release this lock once the dup_mmap() operation succeeds or clean
+up is done.
+
+This means that the uprobe code can never observe an incompletely
+constructed mm and resolves the issue in this case.
+
+Link: https://lkml.kernel.org/r/20241210172412.52995-1-lorenzo.stoakes@oracle.com
+Fixes: d24062914837 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: syzbot+2d788f4f7cb660dac4b7@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6756d273.050a0220.2477f.003d.GAE@google.com/
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |    8 +++++++-
- fs/nilfs2/namei.c |    5 +++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ kernel/fork.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/fs/nilfs2/inode.c~nilfs2-prevent-use-of-deleted-inode
-+++ a/fs/nilfs2/inode.c
-@@ -544,8 +544,14 @@ struct inode *nilfs_iget(struct super_bl
- 	inode = nilfs_iget_locked(sb, root, ino);
- 	if (unlikely(!inode))
- 		return ERR_PTR(-ENOMEM);
--	if (!(inode->i_state & I_NEW))
-+
-+	if (!(inode->i_state & I_NEW)) {
-+		if (!inode->i_nlink) {
-+			iput(inode);
-+			return ERR_PTR(-ESTALE);
-+		}
- 		return inode;
-+	}
+--- a/kernel/fork.c~fork-avoid-inappropriate-uprobe-access-to-invalid-mm
++++ a/kernel/fork.c
+@@ -639,11 +639,8 @@ static __latent_entropy int dup_mmap(str
+ 	LIST_HEAD(uf);
+ 	VMA_ITERATOR(vmi, mm, 0);
  
- 	err = __nilfs_read_inode(sb, root, ino, inode);
- 	if (unlikely(err)) {
---- a/fs/nilfs2/namei.c~nilfs2-prevent-use-of-deleted-inode
-+++ a/fs/nilfs2/namei.c
-@@ -67,6 +67,11 @@ nilfs_lookup(struct inode *dir, struct d
- 		inode = NULL;
- 	} else {
- 		inode = nilfs_iget(dir->i_sb, NILFS_I(dir)->i_root, ino);
-+		if (inode == ERR_PTR(-ESTALE)) {
-+			nilfs_error(dir->i_sb,
-+					"deleted inode referenced: %lu", ino);
-+			return ERR_PTR(-EIO);
-+		}
- 	}
+-	uprobe_start_dup_mmap();
+-	if (mmap_write_lock_killable(oldmm)) {
+-		retval = -EINTR;
+-		goto fail_uprobe_end;
+-	}
++	if (mmap_write_lock_killable(oldmm))
++		return -EINTR;
+ 	flush_cache_dup_mm(oldmm);
+ 	uprobe_dup_mmap(oldmm, mm);
+ 	/*
+@@ -782,8 +779,6 @@ out:
+ 		dup_userfaultfd_complete(&uf);
+ 	else
+ 		dup_userfaultfd_fail(&uf);
+-fail_uprobe_end:
+-	uprobe_end_dup_mmap();
+ 	return retval;
  
- 	return d_splice_alias(inode, dentry);
+ fail_nomem_anon_vma_fork:
+@@ -1692,9 +1687,11 @@ static struct mm_struct *dup_mm(struct t
+ 	if (!mm_init(mm, tsk, mm->user_ns))
+ 		goto fail_nomem;
+ 
++	uprobe_start_dup_mmap();
+ 	err = dup_mmap(mm, oldmm);
+ 	if (err)
+ 		goto free_pt;
++	uprobe_end_dup_mmap();
+ 
+ 	mm->hiwater_rss = get_mm_rss(mm);
+ 	mm->hiwater_vm = mm->total_vm;
+@@ -1709,6 +1706,8 @@ free_pt:
+ 	mm->binfmt = NULL;
+ 	mm_init_owner(mm, NULL);
+ 	mmput(mm);
++	if (err)
++		uprobe_end_dup_mmap();
+ 
+ fail_nomem:
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mm-reinstate-ability-to-map-write-sealed-memfd-mappings-read-only.patch
+selftests-memfd-add-test-for-mapping-write-sealed-memfd-read-only.patch
+mm-vma-move-brk-internals-to-mm-vmac.patch
+mm-vma-move-brk-internals-to-mm-vmac-fix.patch
+mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
+mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
+mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
+mm-vma-move-__vm_munmap-to-mm-vmac.patch
+selftests-mm-add-fork-cow-guard-page-test.patch
+mm-enforce-__must_check-on-vma-merge-and-split.patch
+mm-perform-all-memfd-seal-checks-in-a-single-place.patch
+mm-perform-all-memfd-seal-checks-in-a-single-place-fix.patch
+maintainers-update-memory-mapping-section.patch
+mm-assert-mmap-write-lock-held-on-do_mmap-mmap_region.patch
+mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
+tools-testing-add-simple-__mmap_region-userland-test.patch
 
