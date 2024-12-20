@@ -1,144 +1,336 @@
-Received: from smtp.eurecom.fr (smtp.eurecom.fr [193.55.113.210])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0255074059;
-	Fri, 20 Dec 2024 06:06:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.55.113.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F51E1B85DF
+	for <mm-commits@vger.kernel.org>; Fri, 20 Dec 2024 22:16:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734674790; cv=none; b=cI8NxSYhlbgrqdyHtQLnWoixRqlRJyRVtj31Sm3NyS2UvreuvHcJMBDf+oyGz6lgnYj9Qf/rEz5ZhVVO+jU5OpsWmGVm4r6i7reIsKDDd6SWMp01ZLavrkzbwZadVLPuXsQHM71DujloNs7+348l1GtpNrT1Zc2kdLmppjrCtsA=
+	t=1734732980; cv=none; b=unQ5jU0Xv7ckLOFbgHGYwNtU2/fO//Wr0NlrlczxfRWtxLm1CL5RP3Bf91HroJVUbA9K0B6ET1ZCbX6dzvf9COFVhdcpvRI+u75O2LWwydKmFE0YtYshOyg0aIQe0ckbtrEcizINrSJcWPXevT2+cGOxaVev8AAO2pTc6NgkvSA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734674790; c=relaxed/simple;
-	bh=2RbFRUgw/qI9zihNzLR2Q2ojXC2qlL4c3ZQfciTB1hI=;
-	h=From:In-Reply-To:Content-Type:References:Date:Cc:To:MIME-Version:
-	 Message-ID:Subject; b=Plgtbj8cgduI8ACzDDmbIJXPhN4eL0k47H7DafvcPopWchwnN6PfTp0KUV7k/tvYqDM+C/IqQIlz8mg7wTB/7iMaiqGaN01ZBw3uSKi0DrtjvYbqR5CZCB2P2nrt3HRbD4SPc4NA8vwAKQN+iz8kdbOBXVVGwbFFWr6pwPAMM5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=eurecom.fr; spf=pass smtp.mailfrom=eurecom.fr; dkim=pass (1024-bit key) header.d=eurecom.fr header.i=@eurecom.fr header.b=ux8YekwF; arc=none smtp.client-ip=193.55.113.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=eurecom.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=eurecom.fr
+	s=arc-20240116; t=1734732980; c=relaxed/simple;
+	bh=T4YRKdqmjB2UFY5S+jEafA9cFyDToEmOhKkSqWL9qq0=;
+	h=Date:To:From:Subject:Message-Id; b=aLPeowyqyIexex+TBO6MpVm4rxiqyM82QDM7+2ts8GrNaGBol5/ttuv0rdIJJlcPdnC6alqDrDgMa3b7tS8efSNE4tW/J/YODJUuo7by/hfuM/EfVDrhgB8Y7J3HtjJhKt5elCWsuCTBhjAjypw5TghhqFIl4sHzF770opvrbiY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f9XryAkE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=eurecom.fr header.i=@eurecom.fr header.b="ux8YekwF"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=eurecom.fr; i=@eurecom.fr; q=dns/txt; s=default;
-  t=1734674787; x=1766210787;
-  h=from:in-reply-to:references:date:cc:to:mime-version:
-   message-id:subject:content-transfer-encoding;
-  bh=2RbFRUgw/qI9zihNzLR2Q2ojXC2qlL4c3ZQfciTB1hI=;
-  b=ux8YekwFA4xTQEf9mLullmg850RZ9fCtN132hNsN4KaV8GeAuHCvOery
-   yj26IWsAw+GOlHrzPF0WaXQm218GGP5w5bBdymWm6bPSXdlvj6Bxh+1MT
-   2pY3nt1tgAO0ijAN7mIueXVa7V6OXruDFBVaoucEo4cIJS2LdkEvpMY36
-   0=;
-X-CSE-ConnectionGUID: x7KDBgJ+RDmCofNbz/mOcQ==
-X-CSE-MsgGUID: cat6bxRdT9+Hz3AwkC8aKA==
-X-IronPort-AV: E=Sophos;i="6.12,249,1728943200"; 
-   d="scan'208";a="28265590"
-Received: from quovadis.eurecom.fr ([10.3.2.233])
-  by drago1i.eurecom.fr with ESMTP; 20 Dec 2024 07:06:19 +0100
-From: "Ariel Otilibili-Anieli" <Ariel.Otilibili-Anieli@eurecom.fr>
-In-Reply-To: <20241219231352.579D5C4CECE@smtp.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-X-Forward: 88.183.119.157
-References: <20241219231352.579D5C4CECE@smtp.kernel.org>
-Date: Fri, 20 Dec 2024 07:06:18 +0100
-Cc: mm-commits@vger.kernel.org, sstabellini@kernel.org, roger.pau@citrix.com, michal.orzel@amd.com, julien@xen.org, jbeulich@suse.com, anthony.perard@vates.tech, andrew.cooper3@citrix.com, stable@vger.kernel.org, xen-devel@lists.xenproject.org, linux-kernel@vger.kernel.org
-To: "Andrew Morton" <akpm@linux-foundation.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f9XryAkE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D62DDC4CECD;
+	Fri, 20 Dec 2024 22:16:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1734732978;
+	bh=T4YRKdqmjB2UFY5S+jEafA9cFyDToEmOhKkSqWL9qq0=;
+	h=Date:To:From:Subject:From;
+	b=f9XryAkExZGn3b/HQAY0qy08IWH065x3FpUoUF8FrCf73S+TpsIpmu9uQIu+o3PgD
+	 tztAzQBntN+7NZy4zxt4M98FnmRosgGglI5gw/DG9ydHuPf6cxDRFAEWlqr5v6jhVF
+	 1YxZLo2EnXouz7XyfYTjkjKBcz4GRw5qS5RkcMnQ=
+Date: Fri, 20 Dec 2024 14:16:18 -0800
+To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,kernel@xen0n.name,gregkh@linuxfoundation.org,david@redhat.com,corbet@lwn.net,chenhuacai@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-add-build-time-option-for-hotplug-memory-default-online-type.patch added to mm-unstable branch
+Message-Id: <20241220221618.D62DDC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Message-ID: <2f7a83-67650980-a2c7-5cf12280@54007280>
-Subject: =?utf-8?q?Re=3A?= + =?utf-8?q?lib-remove-dead-code=2Epatch?= added to 
- mm-nonmm-unstable branch
-User-Agent: SOGoMail 5.11.1
-Content-Transfer-Encoding: quoted-printable
 
-On Friday, December 20, 2024 00:13 CET, Andrew Morton <akpm@linux-found=
-ation.org> wrote:
 
->=20
-> The patch titled
->      Subject: lib/inflate.c: remove dead code
-> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->      lib-remove-dead-code.patch
->=20
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/=
-tree/patches/lib-remove-dead-code.patch
->=20
-> This patch will later appear in the mm-nonmm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->=20
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
+The patch titled
+     Subject: mm: add build-time option for hotplug memory default online type
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
 
-Hello Andrew,
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
 
-Cc: linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org
-Cc: xen-devel@lists.xenproject.org
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-https://lore.kernel.org/lkml/20241219224645.749233-1-ariel.otilibili-an=
-ieli@eurecom.fr/
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Thank you,
-Ariel
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->=20
-> *** Remember to use Documentation/process/submit-checklist.rst when t=
-esting your code ***
->=20
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->=20
-> ------------------------------------------------------
-> From: Ariel Otilibili <ariel.otilibili-anieli@eurecom.fr>
-> Subject: lib/inflate.c: remove dead code
-> Date: Thu, 19 Dec 2024 10:21:12 +0100
->=20
-> This is a follow up from a discussion in Xen:
->=20
-> The if-statement tests that `res` is non-zero; meaning the case zero =
-is
-> never reached.
->=20
-> Link: https://lore.kernel.org/all/7587b503-b2ca-4476-8dc9-e9683d4ca5f=
-0@suse.com/
-> Link: https://lkml.kernel.org/r/20241219092615.644642-2-ariel.otilibi=
-li-anieli@eurecom.fr
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Signed-off-by: Ariel Otilibili <ariel.otilibili-anieli@eurecom.fr>
-> Suggested-by: Jan Beulich <jbeulich@suse.com>
-> Cc: Andrew Cooper <andrew.cooper3@citrix.com>
-> Cc: Anthony PERARD <anthony.perard@vates.tech>
-> Cc: Michal Orzel <michal.orzel@amd.com>
-> Cc: Julien Grall <julien@xen.org>
-> Cc: Roger Pau Monn=C3=A9 <roger.pau@citrix.com>
-> Cc: Stefano Stabellini <sstabellini@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->=20
->  lib/inflate.c |    2 --
->  1 file changed, 2 deletions(-)
->=20
-> --- a/lib/inflate.c~lib-remove-dead-code
-> +++ a/lib/inflate.c
-> @@ -1257,8 +1257,6 @@ static int INIT gunzip(void)
->      /* Decompress */
->      if ((res =3D inflate())) {
->  	    switch (res) {
-> -	    case 0:
-> -		    break;
->  	    case 1:
->  		    error("invalid compressed format (err=3D1)");
->  		    break;
-> =5F
->=20
-> Patches currently in -mm which might be from ariel.otilibili-anieli@e=
-urecom.fr are
->=20
-> lib-remove-dead-code.patch
->
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Gregory Price <gourry@gourry.net>
+Subject: mm: add build-time option for hotplug memory default online type
+Date: Fri, 20 Dec 2024 16:07:09 -0500
+
+Memory hotplug presently auto-onlines memory into a zone the kernel deems
+appropriate if CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y.
+
+The memhp_default_state boot param enables runtime config, but it's
+not possible to do this at build-time.
+
+Remove CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE, and replace it with
+CONFIG_MHP_DEFAULT_ONLINE_TYPE_* choices that sync with the boot param.
+
+Selections:
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE
+    => mhp_default_online_type = "offline"
+       Memory will not be onlined automatically.
+
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO
+    => mhp_default_online_type = "online"
+       Memory will be onlined automatically in a zone deemed.
+       appropriate by the kernel.
+
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
+    => mhp_default_online_type = "online_kernel"
+       Memory will be onlined automatically.
+       The zone may allow kernel data (e.g. ZONE_NORMAL).
+
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
+    => mhp_default_online_type = "online_movable"
+       Memory will be onlined automatically.
+       The zone will be ZONE_MOVABLE.
+
+Default to CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE to match the
+existing default CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=n behavior.
+
+Existing users of CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y should use
+CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO.
+
+Link: https://lkml.kernel.org/r/20241220210709.300066-1-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/kernel-parameters.txt |    4 
+ Documentation/admin-guide/mm/memory-hotplug.rst |    4 
+ arch/loongarch/configs/loongson3_defconfig      |    5 -
+ drivers/base/memory.c                           |    4 
+ include/linux/memory_hotplug.h                  |    5 -
+ mm/Kconfig                                      |   57 ++++++++++++--
+ mm/memory_hotplug.c                             |   33 ++++++--
+ 7 files changed, 89 insertions(+), 23 deletions(-)
+
+--- a/arch/loongarch/configs/loongson3_defconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/arch/loongarch/configs/loongson3_defconfig
+@@ -113,7 +113,10 @@ CONFIG_ZBUD=y
+ CONFIG_ZSMALLOC=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MEMORY_HOTPLUG=y
+-CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y
++# CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE is not set
++CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO=y
++# CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL is not set
++# CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE is not set
+ CONFIG_MEMORY_HOTREMOVE=y
+ CONFIG_KSM=y
+ CONFIG_TRANSPARENT_HUGEPAGE=y
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3351,8 +3351,8 @@
+ 			[KNL] Set the initial state for the memory hotplug
+ 			onlining policy. If not specified, the default value is
+ 			set according to the
+-			CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
+-			option.
++			CONFIG_MHP_DEFAULT_ONLINE_TYPE kernel config
++			options.
+ 			See Documentation/admin-guide/mm/memory-hotplug.rst.
+ 
+ 	memmap=exactmap	[KNL,X86,EARLY] Enable setting of an exact
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -280,8 +280,8 @@ The following files are currently define
+ 		       blocks; configure auto-onlining.
+ 
+ 		       The default value depends on the
+-		       CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel configuration
+-		       option.
++		       CONFIG_MHP_DEFAULT_ONLINE_TYPE kernel configuration
++		       options.
+ 
+ 		       See the ``state`` property of memory blocks for details.
+ ``block_size_bytes``   read-only: the size in bytes of a memory block.
+--- a/drivers/base/memory.c~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/drivers/base/memory.c
+@@ -512,7 +512,7 @@ static ssize_t auto_online_blocks_show(s
+ 				       struct device_attribute *attr, char *buf)
+ {
+ 	return sysfs_emit(buf, "%s\n",
+-			  online_type_to_str[mhp_default_online_type]);
++			  online_type_to_str[mhp_get_default_online_type()]);
+ }
+ 
+ static ssize_t auto_online_blocks_store(struct device *dev,
+@@ -524,7 +524,7 @@ static ssize_t auto_online_blocks_store(
+ 	if (online_type < 0)
+ 		return -EINVAL;
+ 
+-	mhp_default_online_type = online_type;
++	mhp_set_default_online_type(online_type);
+ 	return count;
+ }
+ 
+--- a/include/linux/memory_hotplug.h~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/include/linux/memory_hotplug.h
+@@ -144,8 +144,6 @@ extern u64 max_mem_size;
+ 
+ extern int mhp_online_type_from_str(const char *str);
+ 
+-/* Default online_type (MMOP_*) when new memory blocks are added. */
+-extern int mhp_default_online_type;
+ /* If movable_node boot option specified */
+ extern bool movable_node_enabled;
+ static inline bool movable_node_is_enabled(void)
+@@ -303,6 +301,9 @@ static inline void __remove_memory(u64 s
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
++/* Default online_type (MMOP_*) when new memory blocks are added. */
++extern int mhp_get_default_online_type(void);
++extern void mhp_set_default_online_type(int online_type);
+ extern void __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
+ extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
+ extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
+--- a/mm/Kconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/mm/Kconfig
+@@ -550,20 +550,63 @@ menuconfig MEMORY_HOTPLUG
+ 
+ if MEMORY_HOTPLUG
+ 
+-config MEMORY_HOTPLUG_DEFAULT_ONLINE
+-	bool "Online the newly added memory blocks by default"
+-	depends on MEMORY_HOTPLUG
++choice
++	prompt "Memory Hotplug Default Online Type"
++	default MHP_DEFAULT_ONLINE_TYPE_OFFLINE
+ 	help
++	  Default memory type for driver managed hotplug memory.
++
+ 	  This option sets the default policy setting for memory hotplug
+ 	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
+ 	  determines what happens to newly added memory regions. Policy setting
+ 	  can always be changed at runtime.
++
++	  The default is 'offline'.
++
++	  Select offline to defer onlining to drivers and user policy.
++	  Select auto to let the kernel choose what zones to utilize.
++	  Select online_kernel to generally allow kernel usage of this memory.
++	  Select online_movable to generally disallow kernel usage of this memory.
++
++	  Example kernel usage would be page structs and page tables.
++
+ 	  See Documentation/admin-guide/mm/memory-hotplug.rst for more information.
+ 
+-	  Say Y here if you want all hot-plugged memory blocks to appear in
+-	  'online' state by default.
+-	  Say N here if you want the default policy to keep all hot-plugged
+-	  memory blocks in 'offline' state.
++config MHP_DEFAULT_ONLINE_TYPE_OFFLINE
++	bool "offline"
++	help
++	  Driver managed memory will not be onlined by default.
++	  Choose this for systems with drivers and user policy that
++	  handle onlining of hotplug memory policy.
++
++config MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO
++	bool "auto"
++	help
++	  Select this if you want the kernel to automatically online
++	  memory into the zone it thinks is reasonable. This memory
++	  may be utilized for kernel data (e.g. page tables).
++
++config MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
++	bool "kernel"
++	help
++	  Select this if you want the kernel to automatically online
++	  hotplug memory into a zone capable of being used for kernel
++	  data (e.g. page tables). This typically means ZONE_NORMAL.
++
++config MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
++	bool "movable"
++	help
++	  Select this if you want the kernel to automatically online
++	  hotplug memory into ZONE_MOVABLE. This memory will generally
++	  not be utilized for kernel data (e.g. page tables).
++
++	  This should only be used when the admin knows sufficient
++	  ZONE_NORMAL memory is available to describe hotplug memory,
++	  otherwise hotplug memory may fail to online. For example,
++	  sufficient kernel-capable memory (ZONE_NORMAL) must be
++	  available to allocate page structs to describe ZONE_MOVABLE.
++
++endchoice
+ 
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+--- a/mm/memory_hotplug.c~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/mm/memory_hotplug.c
+@@ -219,11 +219,30 @@ void put_online_mems(void)
+ 
+ bool movable_node_enabled = false;
+ 
+-#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+-int mhp_default_online_type = MMOP_OFFLINE;
+-#else
+-int mhp_default_online_type = MMOP_ONLINE;
+-#endif
++static int mhp_default_online_type = -1;
++int mhp_get_default_online_type(void)
++{
++	if (mhp_default_online_type >= 0)
++		return mhp_default_online_type;
++
++	if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE))
++		mhp_default_online_type = MMOP_OFFLINE;
++	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO))
++		mhp_default_online_type = MMOP_ONLINE;
++	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL))
++		mhp_default_online_type = MMOP_ONLINE_KERNEL;
++	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE))
++		mhp_default_online_type = MMOP_ONLINE_MOVABLE;
++	else
++		mhp_default_online_type = MMOP_OFFLINE;
++
++	return mhp_default_online_type;
++}
++
++void mhp_set_default_online_type(int online_type)
++{
++	mhp_default_online_type = online_type;
++}
+ 
+ static int __init setup_memhp_default_state(char *str)
+ {
+@@ -1328,7 +1347,7 @@ static int check_hotplug_memory_range(u6
+ 
+ static int online_memory_block(struct memory_block *mem, void *arg)
+ {
+-	mem->online_type = mhp_default_online_type;
++	mem->online_type = mhp_get_default_online_type();
+ 	return device_online(&mem->dev);
+ }
+ 
+@@ -1575,7 +1594,7 @@ int add_memory_resource(int nid, struct
+ 		merge_system_ram_resource(res);
+ 
+ 	/* online pages if requested */
+-	if (mhp_default_online_type != MMOP_OFFLINE)
++	if (mhp_get_default_online_type() != MMOP_OFFLINE)
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
+_
+
+Patches currently in -mm which might be from gourry@gourry.net are
+
+mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
 
