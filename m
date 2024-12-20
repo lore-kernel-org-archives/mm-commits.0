@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1173B1A3BAD
-	for <mm-commits@vger.kernel.org>; Fri, 20 Dec 2024 22:51:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94B501C07DE
+	for <mm-commits@vger.kernel.org>; Fri, 20 Dec 2024 22:51:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734735061; cv=none; b=u0ChcauNPZjvMvdnez/GcCeCt/V/7N6eIVAR1DcfREdcu8XJZa08MVbSlymaR/rl95YMgpifszTgYWv2rkmhEizfJ4mRbxxrcDpguqpiHtIbkgo+/ITMQkMSuY64OVOU/ADaZuh7rOV/ymU/70WuFd3QfM5G20cwxmVpBgsCdCo=
+	t=1734735075; cv=none; b=AcpWBlPGqDJyqYSvcsBunZWk9PreaA6DfcwJraVj2cS8vxkCW0sMTDI2ulQRTccu/gnXn4ztm8l8i0+kw1YUASIGzE/IxZLaaGNNDJGTMXnxTsVyM221xVU/SNQHpbIzr7SgnzhsBereOPW0q4ShcTMtZJaclYdcZwvLuA86a6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734735061; c=relaxed/simple;
-	bh=SGJ4o4ASajaGhPWKNbRB6FefwGXV4mEXUUb5RznKjW8=;
-	h=Date:To:From:Subject:Message-Id; b=paGJWEBsNVPTuzw/pLDnUOJR57tLU2uNplBsknoaaLbToUd0o4DdFurJf+ROpvUIYTtPCPJCdb6ABg038bIMbGGXNfSgobVnBzt4SjH4Zva3oy6pBWdiwTVdYT/Bz8ACkmp5ZEBgVemq8uWJWBl7LaZgTk6oepn61MLPCan7aLI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vRHculNU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734735075; c=relaxed/simple;
+	bh=3ThRlQVEjisIY7EdbbTeYf9oDojz/2EQ9LTupFwzwnU=;
+	h=Date:To:From:Subject:Message-Id; b=QQTg3utn+4nIp0qnjerV8SDs6PWiZz/pDO2edYq0PyoW7bXYD6Tn/oTDDTRJc6eguhfwHoisoSlCz4HV59CZRwaLnpw1rr7f/VDzVyTR0i9PyF5BeIfQUrnbU+0Uc1cReE585c6u+urw8hnWeT4/LfsLZ1AEdxIjTbkOOT02Ej0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOntPS23; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vRHculNU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 906D4C4CECD;
-	Fri, 20 Dec 2024 22:51:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOntPS23"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D5B9C4CECD;
+	Fri, 20 Dec 2024 22:51:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734735060;
-	bh=SGJ4o4ASajaGhPWKNbRB6FefwGXV4mEXUUb5RznKjW8=;
+	s=korg; t=1734735075;
+	bh=3ThRlQVEjisIY7EdbbTeYf9oDojz/2EQ9LTupFwzwnU=;
 	h=Date:To:From:Subject:From;
-	b=vRHculNUmi2Bxpp+iZrehBwlLtcegF7Wog35qUyiYB0wAWtOXBRJNzQWPQRgUVQta
-	 Ks2Ncp5VloJ39JaLz9AN2K3k6/ZZAe+078pvaTA69q4hv64+nJ0X+0N27KXjQ/Fx1I
-	 XAZgoPkDk7iIgjUmP6g4VN+DxHEDOa42oIGpJ7JI=
-Date: Fri, 20 Dec 2024 14:51:00 -0800
+	b=KOntPS237KH85BN/GDpQzPZGx2NpFdjgnD2xV9DlgR6+BOY1SJDaihvw5ne31M/vf
+	 rWkYZ8VxmqU6VO69tmzTIUxOgkahW47h0X1CZx2DuT7pdRF6RQPAG1MlNOQusASdUC
+	 S0QlwC/qtWSXXTBOlY9+GpUMCOIf15FiE6ltAju0=
+Date: Fri, 20 Dec 2024 14:51:14 -0800
 To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch added to mm-nonmm-unstable branch
-Message-Id: <20241220225100.906D4C4CECD@smtp.kernel.org>
+Subject: + delayacct-add-delay-min-to-record-delay-peak.patch added to mm-nonmm-unstable branch
+Message-Id: <20241220225115.1D5B9C4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: delayacct: add delay min to record delay peak
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch
+     delayacct-add-delay-min-to-record-delay-peak.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-delay-min-to-record-delay-peak.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -119,7 +119,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  tools/accounting/getdelays.c                  |   42 +++++++++-------
  7 files changed, 88 insertions(+), 40 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-min-to-record-delay-peak
 +++ a/Documentation/accounting/delay-accounting.rst
 @@ -107,22 +107,22 @@ Get sum and peak of delays, since system
  	TGID    242
@@ -160,7 +160,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  Get IO accounting for pid 1, it works only with -p::
  
---- a/include/linux/delayacct.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/include/linux/delayacct.h~delayacct-add-delay-min-to-record-delay-peak
 +++ a/include/linux/delayacct.h
 @@ -30,9 +30,11 @@ struct task_delay_info {
  	 */
@@ -201,7 +201,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
  
  	u32 freepages_count;	/* total count of memory reclaim */
---- a/include/linux/sched.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/include/linux/sched.h~delayacct-add-delay-min-to-record-delay-peak
 +++ a/include/linux/sched.h
 @@ -401,6 +401,9 @@ struct sched_info {
  	/* Max time spent waiting on a runqueue: */
@@ -213,7 +213,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	/* Timestamps: */
  
  	/* When did we last run on a CPU? */
---- a/include/uapi/linux/taskstats.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/include/uapi/linux/taskstats.h~delayacct-add-delay-min-to-record-delay-peak
 +++ a/include/uapi/linux/taskstats.h
 @@ -73,6 +73,7 @@ struct taskstats {
  	__u64	cpu_count __attribute__((aligned(8)));
@@ -273,7 +273,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	/* v15: add Delay max */
  };
  
---- a/kernel/delayacct.c~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/kernel/delayacct.c~delayacct-add-delay-min-to-record-delay-peak
 +++ a/kernel/delayacct.c
 @@ -95,7 +95,7 @@ void __delayacct_tsk_init(struct task_st
   * Finish delay accounting for a statistic using its timestamps (@start),
@@ -402,7 +402,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
  }
  
---- a/kernel/sched/stats.h~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/kernel/sched/stats.h~delayacct-add-delay-min-to-record-delay-peak
 +++ a/kernel/sched/stats.h
 @@ -246,6 +246,8 @@ static inline void sched_info_dequeue(st
  	t->sched_info.run_delay += delta;
@@ -422,7 +422,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	rq_sched_info_arrive(rq, delta);
  }
---- a/tools/accounting/getdelays.c~=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===
+--- a/tools/accounting/getdelays.c~delayacct-add-delay-min-to-record-delay-peak
 +++ a/tools/accounting/getdelays.c
 @@ -192,7 +192,7 @@ static int get_family_id(int sd)
  }
@@ -512,5 +512,5 @@ Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
 delayacct-add-delay-max-to-record-delay-peak.patch
 delayacct-add-delay-max-to-record-delay-peak-fix.patch
-=utf-8bw1bbveniigxpbnv4ig5lehrdigrlbgf5ywnjddogywrkigrlbgf5ig1pbib0bybyzwnvcmqgzgvsyxkgcgvhaw===.patch
+delayacct-add-delay-min-to-record-delay-peak.patch
 
