@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF8D81A9B27;
-	Fri, 20 Dec 2024 22:36:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19F51A9B27
+	for <mm-commits@vger.kernel.org>; Fri, 20 Dec 2024 22:39:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734734176; cv=none; b=CuCX7cReoNRqGopStZc6+eDEda5T84eh8QnVTQ4tBor4eDT9vU1eIlMqe3t/ylC5MgUvjOSbXnamS9GqKTiaeZL3vk3+EwUMonKU4Dvlht97L+bO82zH3En+J2SIg6nUIyqZ3oIeO1V6LhTHjgSv8LL16Naci7ApCdVhkFxrXh8=
+	t=1734734353; cv=none; b=sQIcpJz/fgL0fROWlAp+DL/vj6ttqgCp+ZeFfZbSUr3hHcIHN5YBJR/ci22u8+f37KrdbVbiolcC7K/Rqz762zU3dNXznbr+M6LkqsKRyzG7LjhVjaSlcrP4tKGsPLF7azjCC06piUHBR+rICaFY8fKPsNgs4CPzZHfsA1FLeoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734734176; c=relaxed/simple;
-	bh=UN5R+bJFW+uyWWoSk/G7I3n4krvo7Eco5JgaK16dypg=;
-	h=Date:To:From:Subject:Message-Id; b=rNYgGE2N4OIxUafWN27Me9udGk0VtGQ+Hz3/Y2o088tOgMqEU4C/hyQRwJkQ0VSN0Bg26A7o/iuF9cP94nmPS3F83tYudpoR75PxwNLfNpG9YFOm3UpkQg5PZWvzx0CJT5dEtau+c/RVvLEm5rQK7UI3CR9LSKRAnaiC9cRMApQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sgS3Z2vh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734734353; c=relaxed/simple;
+	bh=SbOXESvjwzFC3Ilhy+QICI/8vnCCwYTNxavJnLLWamg=;
+	h=Date:To:From:Subject:Message-Id; b=KO/pq0vN1lYzjDmq1ArD3ANpMky1rw0CdUyk/SAg9lDASnnX10b5nn7WKOvGx02LETya9oLQTiYEgB7Y1gBcn9YsN1TRsr6GX3NFgN24HcPq9db0nfR5OeY6oVLHiMPJv250zXPAqmsKerhmL6K2ubbPeYMVDetdfXMFqUjPbB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Et/wycFo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sgS3Z2vh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35ADFC4CECD;
-	Fri, 20 Dec 2024 22:36:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Et/wycFo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37ADDC4CECD;
+	Fri, 20 Dec 2024 22:39:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734734176;
-	bh=UN5R+bJFW+uyWWoSk/G7I3n4krvo7Eco5JgaK16dypg=;
+	s=korg; t=1734734353;
+	bh=SbOXESvjwzFC3Ilhy+QICI/8vnCCwYTNxavJnLLWamg=;
 	h=Date:To:From:Subject:From;
-	b=sgS3Z2vhLgrDREhVvyl/Sq8gIXhNB9NXg0yUoE7hPA7kYs6ZAMImP+VnBBrxJcoCX
-	 2WcQWqiOpSyy/XEIH9AJ+6m5UVI0LrWGNCPwwcMAHiUpHCEy0qVWr2DymQ3xoHyhZt
-	 Gv4jHnOZ+i6sgLduAKZeFPuaOkKo6KM45xi2VfLw=
-Date: Fri, 20 Dec 2024 14:36:15 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,bigeasy@linutronix.de,koichiro.den@canonical.com,akpm@linux-foundation.org
+	b=Et/wycFovi/+g+YddFBCeV5ZNrAOf3tHLLjo5iizymNPu0opqh2WaacNP1Kd6MJFy
+	 IbxfQ7E03u3AYV0QD48J/Z2jmiS1wGPSY89SD63M4SgwLaAdVvevcGOP1JTOhM5Tz3
+	 9v7MjcgVyBxj7j0drpxowepFI1SJMEZXYcbUTyCE=
+Date: Fri, 20 Dec 2024 14:39:12 -0800
+To: mm-commits@vger.kernel.org,yangge1116@126.com,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241220223616.35ADFC4CECD@smtp.kernel.org>
+Subject: + replace-free-hugepage-folios-after-migration-fix-2.patch added to mm-unstable branch
+Message-Id: <20241220223913.37ADDC4CECD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
+     Subject: replace-free-hugepage-folios-after-migration-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     replace-free-hugepage-folios-after-migration-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/replace-free-hugepage-folios-after-migration-fix-2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Koichiro Den <koichiro.den@canonical.com>
-Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
-Date: Fri, 20 Dec 2024 22:42:34 +0900
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: replace-free-hugepage-folios-after-migration-fix-2
+Date: Fri Dec 20 02:38:13 PM PST 2024
 
-Even after mm/vmstat:online teardown, shepherd may still queue work for
-the dying cpu until the cpu is removed from online mask.  While it's quite
-rare, this means that after unbind_workers() unbinds a per-cpu kworker, it
-potentially runs vmstat_update for the dying CPU on an irrelevant cpu
-before entering STARTING section.  When CONFIG_DEBUG_PREEMPT=y, it results
-in the following error with the backtrace.
+make the replace_free_hugepage_folios() stub static inline
 
-  BUG: using smp_processor_id() in preemptible [00000000] code: \
-                                               kworker/7:3/1702
-  caller is refresh_cpu_vm_stats+0x235/0x5f0
-  CPU: 0 UID: 0 PID: 1702 Comm: kworker/7:3 Tainted: G
-  Tainted: [N]=TEST
-  Workqueue: mm_percpu_wq vmstat_update
-  Call Trace:
-   <TASK>
-   dump_stack_lvl+0x8d/0xb0
-   check_preemption_disabled+0xce/0xe0
-   refresh_cpu_vm_stats+0x235/0x5f0
-   vmstat_update+0x17/0xa0
-   process_one_work+0x869/0x1aa0
-   worker_thread+0x5e5/0x1100
-   kthread+0x29e/0x380
-   ret_from_fork+0x2d/0x70
-   ret_from_fork_asm+0x1a/0x30
-   </TASK>
-
-So, disable vmstat_work reliably on vmstat_cpu_down_prep().
-
-Link: https://lkml.kernel.org/r/20241220134234.3809621-1-koichiro.den@canonical.com
-Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: yangge <yangge1116@126.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmstat.c~vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep
-+++ a/mm/vmstat.c
-@@ -2154,7 +2154,7 @@ static int vmstat_cpu_online(unsigned in
- 
- static int vmstat_cpu_down_prep(unsigned int cpu)
- {
--	cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
-+	disable_delayed_work_sync(&per_cpu(vmstat_work, cpu));
- 	return 0;
+--- a/include/linux/hugetlb.h~replace-free-hugepage-folios-after-migration-fix-2
++++ a/include/linux/hugetlb.h
+@@ -1060,7 +1060,8 @@ static inline int isolate_or_dissolve_hu
+ 	return -ENOMEM;
  }
  
+-int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn)
++static inline int replace_free_hugepage_folios(unsigned long start_pfn,
++					       unsigned long end_pfn)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from koichiro.den@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
-hugetlb-prioritize-surplus-allocation-from-current-node.patch
+mm-vmscan-account-for-free-pages-to-prevent-infinite-loop-in-throttle_direct_reclaim-checkpatch-fixes.patch
+ocfs2-fix-slab-use-after-free-due-to-dangling-pointer-dqi_priv-checkpatch-fixes.patch
+mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
+mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
+mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
+mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
+mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+mm-huge_memoryc-rename-shadowed-local.patch
+replace-free-hugepage-folios-after-migration-fix.patch
+replace-free-hugepage-folios-after-migration-fix-2.patch
+xarray-port-tests-to-kunit-fix.patch
+fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
 
