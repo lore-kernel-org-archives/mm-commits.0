@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CA031BC085
-	for <mm-commits@vger.kernel.org>; Fri, 20 Dec 2024 23:24:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 985675C8F7;
+	Sat, 21 Dec 2024 03:57:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734737094; cv=none; b=JjHj3mJ+vI1Auv02h5KOZAgd135AfIZqiFKsi0g8MZ0eg2CPm2iHJTkBzNbmYIk75jhVCOWARLyep8DHNZdtNSrYdQyI/r+GEEgGbbtgsSsVRlUH+q9fGY5EiXD3YXztVz2GPMFZ4BG5hHrOWIEymHz7BSwHp8EtXOpncqlkSZs=
+	t=1734753446; cv=none; b=IaXKwHF2eLpyCB5P/GbW0grcrWsdOy0k7wXMZ9LIfKJ5RF9fvgNtOiUyXeF/mk2mTviDWURdDo0fgSILngjV+AFVYdNoFoAdv8NUZe4/j41CpWsTe1NmEDq1xZEvgGwu0IaXWiA2JqUYWzxHBIsHG2oxR9bIgpeVmsPm7Tg+UaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734737094; c=relaxed/simple;
-	bh=3ThRlQVEjisIY7EdbbTeYf9oDojz/2EQ9LTupFwzwnU=;
-	h=Date:To:From:Subject:Message-Id; b=DYWM7Ew19wASjQXP1TAt5lZs3fdfQQZwG9SZgPmIG7BL6oE/ztg0344G5jJqjFidq3OIthYAFKSgsj6buHQy4Ud+01+g4R2WKaJO1gtqVtMy6eBagQAaNem5yA+XqSgzqhucsjLUz129vwieponK0EKK9GAf3qiOXN++BdElSjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DDanGFPh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734753446; c=relaxed/simple;
+	bh=PiIPBe0UUPa7OxWNxW5c8SxznkJstqepPuAZSArOjOw=;
+	h=Date:To:From:Subject:Message-Id; b=KDXP5/5nIU1chIW6EBY1zaQR+PLC1fMBP21rGwp1XTeEeuRVUdxNKxs5W3z8HTvHqJNnpxftCjXtRmPWQhffubZYRWR605ohTmg9kStlnmsNMz1Jkn4Io4gdk61KVr/wRT7p4QHUVhyiVPrkmHL6w65tvjXLsnOM6PYa5i6CcyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MvFYgfRI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DDanGFPh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72D6CC4CECD;
-	Fri, 20 Dec 2024 23:24:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MvFYgfRI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38C82C4CECE;
+	Sat, 21 Dec 2024 03:57:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734737093;
-	bh=3ThRlQVEjisIY7EdbbTeYf9oDojz/2EQ9LTupFwzwnU=;
+	s=korg; t=1734753446;
+	bh=PiIPBe0UUPa7OxWNxW5c8SxznkJstqepPuAZSArOjOw=;
 	h=Date:To:From:Subject:From;
-	b=DDanGFPhi16v8TOd+M7N0HjpNQSoJFy32sV0d0QLK33FZ60WvbDJBhU3n4U+dmqe2
-	 gG9/rOzgj0iLsBoeH8ZteEA2eiwjDJbZjUzHO0AgWz9k/Ww6GtuOYzMCYETH4cr0Jl
-	 23l1xxn/TTeRkB/Gdv0ZbmFnAngaV+4NLqR37Lm4=
-Date: Fri, 20 Dec 2024 15:24:52 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=MvFYgfRIpv4YVMe+ay6kERAagZqLgyhJnYvG5AaeeYC2c8MNEtMHMYztoAIPjf0vI
+	 RDxbCczoK9IvmtTfZA5pkZ1Qxil5offFfkgbCs9X57x83JNHd3MOg33Z5rFb3slFYn
+	 2WYdaGqiHyN47LzoaPp40cV0gUY+OZmV+lKapSag=
+Date: Fri, 20 Dec 2024 19:57:25 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,bigeasy@linutronix.de,koichiro.den@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-add-delay-min-to-record-delay-peak.patch added to mm-nonmm-unstable branch
-Message-Id: <20241220232453.72D6CC4CECD@smtp.kernel.org>
+Subject: + vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241221035726.38C82C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delayacct: add delay min to record delay peak
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-add-delay-min-to-record-delay-peak.patch
+     Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-delay-min-to-record-delay-peak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,459 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delayacct: add delay min to record delay peak
-Date: Fri, 20 Dec 2024 17:31:05 +0800 (CST)
+From: Koichiro Den <koichiro.den@canonical.com>
+Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
+Date: Sat, 21 Dec 2024 12:33:20 +0900
 
-Delay accounting can now calculate the average delay of processes, detect
-the overall system load, and also record the 'delay max' to identify
-potential abnormal delays.  However, 'delay min' can help us identify
-another useful delay peak.  By comparing the difference between 'delay
-max' and 'delay min', we can understand the optimization space for
-latency, providing a reference for the optimization of latency
-performance.
+Even after mm/vmstat:online teardown, shepherd may still queue work for
+the dying cpu until the cpu is removed from online mask.  While it's quite
+rare, this means that after unbind_workers() unbinds a per-cpu kworker, it
+potentially runs vmstat_update for the dying CPU on an irrelevant cpu
+before entering atomic AP states.  When CONFIG_DEBUG_PREEMPT=y, it results
+in the following error with the backtrace.
 
-Use case
-=========
-bash-4.4# ./getdelays -d -t 242
-print delayacct stats ON
-TGID    242
-CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
-               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
-IO          count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-SWAP        count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-RECLAIM     count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-THRASHING   count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-COMPACT     count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-WPCOPY      count    delay total  delay average      delay max      delay min
-              156       11215873          0.072ms     0.207403ms     0.033913ms
-IRQ         count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
+  BUG: using smp_processor_id() in preemptible [00000000] code: \
+                                               kworker/7:3/1702
+  caller is refresh_cpu_vm_stats+0x235/0x5f0
+  CPU: 0 UID: 0 PID: 1702 Comm: kworker/7:3 Tainted: G
+  Tainted: [N]=TEST
+  Workqueue: mm_percpu_wq vmstat_update
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x8d/0xb0
+   check_preemption_disabled+0xce/0xe0
+   refresh_cpu_vm_stats+0x235/0x5f0
+   vmstat_update+0x17/0xa0
+   process_one_work+0x869/0x1aa0
+   worker_thread+0x5e5/0x1100
+   kthread+0x29e/0x380
+   ret_from_fork+0x2d/0x70
+   ret_from_fork_asm+0x1a/0x30
+   </TASK>
 
-Link: https://lkml.kernel.org/r/20241220173105906EOdsPhzjMLYNJJBqgz1ga@zte.com.cn
-Co-developed-by: Wang Yong <wang.yong12@zte.com.cn>
-Signed-off-by: Wang Yong <wang.yong12@zte.com.cn>
-Co-developed-by: xu xin <xu.xin16@zte.com.cn>
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Co-developed-by: Kun Jiang <jiang.kun2@zte.com.cn>
-Signed-off-by: Kun Jiang <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: tuqiang <tu.qiang35@zte.com.cn>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+So, for mm/vmstat:online, disable vmstat_work reliably on teardown and
+symmetrically enable it on startup.
+
+Link: https://lkml.kernel.org/r/20241221033321.4154409-1-koichiro.den@canonical.com
+Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   32 ++++++------
- include/linux/delayacct.h                     |    7 ++
- include/linux/sched.h                         |    3 +
- include/uapi/linux/taskstats.h                |    8 +++
- kernel/delayacct.c                            |   32 +++++++++---
- kernel/sched/stats.h                          |    4 +
- tools/accounting/getdelays.c                  |   42 +++++++++-------
- 7 files changed, 88 insertions(+), 40 deletions(-)
+ mm/vmstat.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-min-to-record-delay-peak
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -107,22 +107,22 @@ Get sum and peak of delays, since system
- 	TGID    242
- 
- 
--	CPU         count     real total  virtual total    delay total  delay average      delay max
--	              239      296000000      307724885        1127792          0.005ms     0.238382ms
--	IO          count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	SWAP        count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	RECLAIM     count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	THRASHING   count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	COMPACT     count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	WPCOPY      count    delay total  delay average      delay max
--	              230       19100476          0.083ms     0.383822ms
--	IRQ         count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
-+	CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
-+	               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
-+	IO          count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	SWAP        count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	RECLAIM     count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	THRASHING   count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	COMPACT     count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	WPCOPY      count    delay total  delay average      delay max      delay min
-+	              156       11215873          0.072ms     0.207403ms     0.033913ms
-+	IRQ         count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
- 
- Get IO accounting for pid 1, it works only with -p::
- 
---- a/include/linux/delayacct.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/include/linux/delayacct.h
-@@ -30,9 +30,11 @@ struct task_delay_info {
- 	 */
- 	u64 blkio_start;
- 	u64 blkio_delay_max;
-+	u64 blkio_delay_min;
- 	u64 blkio_delay;	/* wait for sync block io completion */
- 	u64 swapin_start;
- 	u64 swapin_delay_max;
-+	u64 swapin_delay_min;
- 	u64 swapin_delay;	/* wait for swapin */
- 	u32 blkio_count;	/* total count of the number of sync block */
- 				/* io operations performed */
-@@ -40,21 +42,26 @@ struct task_delay_info {
- 
- 	u64 freepages_start;
- 	u64 freepages_delay_max;
-+	u64 freepages_delay_min;
- 	u64 freepages_delay;	/* wait for memory reclaim */
- 
- 	u64 thrashing_start;
- 	u64 thrashing_delay_max;
-+	u64 thrashing_delay_min;
- 	u64 thrashing_delay;	/* wait for thrashing page */
- 
- 	u64 compact_start;
- 	u64 compact_delay_max;
-+	u64 compact_delay_min;
- 	u64 compact_delay;	/* wait for memory compact */
- 
- 	u64 wpcopy_start;
- 	u64 wpcopy_delay_max;
-+	u64 wpcopy_delay_min;
- 	u64 wpcopy_delay;	/* wait for write-protect copy */
- 
- 	u64 irq_delay_max;
-+	u64 irq_delay_min;
- 	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
- 
- 	u32 freepages_count;	/* total count of memory reclaim */
---- a/include/linux/sched.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/include/linux/sched.h
-@@ -401,6 +401,9 @@ struct sched_info {
- 	/* Max time spent waiting on a runqueue: */
- 	unsigned long long		max_run_delay;
- 
-+	/* Min time spent waiting on a runqueue: */
-+	unsigned long long		min_run_delay;
-+
- 	/* Timestamps: */
- 
- 	/* When did we last run on a CPU? */
---- a/include/uapi/linux/taskstats.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/include/uapi/linux/taskstats.h
-@@ -73,6 +73,7 @@ struct taskstats {
- 	__u64	cpu_count __attribute__((aligned(8)));
- 	__u64	cpu_delay_total;
- 	__u64	cpu_delay_max;
-+	__u64	cpu_delay_min;
- 
- 	/* Following four fields atomically updated using task->delays->lock */
- 
-@@ -82,11 +83,13 @@ struct taskstats {
- 	__u64	blkio_count;
- 	__u64	blkio_delay_total;
- 	__u64	blkio_delay_max;
-+	__u64	blkio_delay_min;
- 
- 	/* Delay waiting for page fault I/O (swap in only) */
- 	__u64	swapin_count;
- 	__u64	swapin_delay_total;
- 	__u64	swapin_delay_max;
-+	__u64	swapin_delay_min;
- 
- 	/* cpu "wall-clock" running time
- 	 * On some architectures, value will adjust for cpu time stolen
-@@ -170,11 +173,13 @@ struct taskstats {
- 	__u64	freepages_count;
- 	__u64	freepages_delay_total;
- 	__u64	freepages_delay_max;
-+	__u64	freepages_delay_min;
- 
- 	/* Delay waiting for thrashing page */
- 	__u64	thrashing_count;
- 	__u64	thrashing_delay_total;
- 	__u64	thrashing_delay_max;
-+	__u64	thrashing_delay_min;
- 
- 	/* v10: 64-bit btime to avoid overflow */
- 	__u64	ac_btime64;		/* 64-bit begin time */
-@@ -183,6 +188,7 @@ struct taskstats {
- 	__u64	compact_count;
- 	__u64	compact_delay_total;
- 	__u64	compact_delay_max;
-+	__u64	compact_delay_min;
- 
- 	/* v12 begin */
- 	__u32   ac_tgid;	/* thread group ID */
-@@ -205,11 +211,13 @@ struct taskstats {
- 	__u64    wpcopy_count;
- 	__u64    wpcopy_delay_total;
- 	__u64    wpcopy_delay_max;
-+	__u64    wpcopy_delay_min;
- 
- 	/* v14: Delay waiting for IRQ/SOFTIRQ */
- 	__u64    irq_count;
- 	__u64    irq_delay_total;
- 	__u64    irq_delay_max;
-+	__u64    irq_delay_min;
- 	/* v15: add Delay max */
- };
- 
---- a/kernel/delayacct.c~delayacct-add-delay-min-to-record-delay-peak
-+++ a/kernel/delayacct.c
-@@ -95,7 +95,7 @@ void __delayacct_tsk_init(struct task_st
-  * Finish delay accounting for a statistic using its timestamps (@start),
-  * accumulator (@total) and @count
-  */
--static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
-+static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max, u64 *min)
- {
- 	s64 ns = local_clock() - *start;
- 	unsigned long flags;
-@@ -106,6 +106,8 @@ static void delayacct_end(raw_spinlock_t
- 		(*count)++;
- 		if (ns > *max)
- 			*max = ns;
-+		if (*min == 0 || ns < *min)
-+			*min = ns;
- 		raw_spin_unlock_irqrestore(lock, flags);
+--- a/mm/vmstat.c~vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep
++++ a/mm/vmstat.c
+@@ -2148,13 +2148,14 @@ static int vmstat_cpu_online(unsigned in
+ 	if (!node_state(cpu_to_node(cpu), N_CPU)) {
+ 		node_set_state(cpu_to_node(cpu), N_CPU);
  	}
- }
-@@ -125,7 +127,8 @@ void __delayacct_blkio_end(struct task_s
- 		      &p->delays->blkio_start,
- 		      &p->delays->blkio_delay,
- 		      &p->delays->blkio_count,
--		      &p->delays->blkio_delay_max);
-+		      &p->delays->blkio_delay_max,
-+		      &p->delays->blkio_delay_min);
++	enable_delayed_work(&per_cpu(vmstat_work, cpu));
+ 
+ 	return 0;
  }
  
- int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
-@@ -157,6 +160,7 @@ int delayacct_add_tsk(struct taskstats *
- 	d->cpu_count += t1;
- 
- 	d->cpu_delay_max = tsk->sched_info.max_run_delay;
-+	d->cpu_delay_min = tsk->sched_info.min_run_delay;
- 	tmp = (s64)d->cpu_delay_total + t2;
- 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
- 	tmp = (s64)d->cpu_run_virtual_total + t3;
-@@ -170,24 +174,31 @@ int delayacct_add_tsk(struct taskstats *
- 	/* zero XXX_total, non-zero XXX_count implies XXX stat overflowed */
- 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
- 	d->blkio_delay_max = tsk->delays->blkio_delay_max;
-+	d->blkio_delay_min = tsk->delays->blkio_delay_min;
- 	tmp = d->blkio_delay_total + tsk->delays->blkio_delay;
- 	d->blkio_delay_total = (tmp < d->blkio_delay_total) ? 0 : tmp;
- 	d->swapin_delay_max = tsk->delays->swapin_delay_max;
-+	d->swapin_delay_min = tsk->delays->swapin_delay_min;
- 	tmp = d->swapin_delay_total + tsk->delays->swapin_delay;
- 	d->swapin_delay_total = (tmp < d->swapin_delay_total) ? 0 : tmp;
- 	d->freepages_delay_max = tsk->delays->freepages_delay_max;
-+	d->freepages_delay_min = tsk->delays->freepages_delay_min;
- 	tmp = d->freepages_delay_total + tsk->delays->freepages_delay;
- 	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
- 	d->thrashing_delay_max = tsk->delays->thrashing_delay_max;
-+	d->thrashing_delay_min = tsk->delays->thrashing_delay_min;
- 	tmp = d->thrashing_delay_total + tsk->delays->thrashing_delay;
- 	d->thrashing_delay_total = (tmp < d->thrashing_delay_total) ? 0 : tmp;
- 	d->compact_delay_max = tsk->delays->compact_delay_max;
-+	d->compact_delay_min = tsk->delays->compact_delay_min;
- 	tmp = d->compact_delay_total + tsk->delays->compact_delay;
- 	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
- 	d->wpcopy_delay_max = tsk->delays->wpcopy_delay_max;
-+	d->wpcopy_delay_min = tsk->delays->wpcopy_delay_min;
- 	tmp = d->wpcopy_delay_total + tsk->delays->wpcopy_delay;
- 	d->wpcopy_delay_total = (tmp < d->wpcopy_delay_total) ? 0 : tmp;
- 	d->irq_delay_max = tsk->delays->irq_delay_max;
-+	d->irq_delay_min = tsk->delays->irq_delay_min;
- 	tmp = d->irq_delay_total + tsk->delays->irq_delay;
- 	d->irq_delay_total = (tmp < d->irq_delay_total) ? 0 : tmp;
- 	d->blkio_count += tsk->delays->blkio_count;
-@@ -224,7 +235,8 @@ void __delayacct_freepages_end(void)
- 		      &current->delays->freepages_start,
- 		      &current->delays->freepages_delay,
- 		      &current->delays->freepages_count,
--		      &current->delays->freepages_delay_max);
-+		      &current->delays->freepages_delay_max,
-+		      &current->delays->freepages_delay_min);
- }
- 
- void __delayacct_thrashing_start(bool *in_thrashing)
-@@ -247,7 +259,8 @@ void __delayacct_thrashing_end(bool *in_
- 		      &current->delays->thrashing_start,
- 		      &current->delays->thrashing_delay,
- 		      &current->delays->thrashing_count,
--		      &current->delays->thrashing_delay_max);
-+		      &current->delays->thrashing_delay_max,
-+		      &current->delays->thrashing_delay_min);
- }
- 
- void __delayacct_swapin_start(void)
-@@ -261,7 +274,8 @@ void __delayacct_swapin_end(void)
- 		      &current->delays->swapin_start,
- 		      &current->delays->swapin_delay,
- 		      &current->delays->swapin_count,
--		      &current->delays->swapin_delay_max);
-+		      &current->delays->swapin_delay_max,
-+		      &current->delays->swapin_delay_min);
- }
- 
- void __delayacct_compact_start(void)
-@@ -275,7 +289,8 @@ void __delayacct_compact_end(void)
- 		      &current->delays->compact_start,
- 		      &current->delays->compact_delay,
- 		      &current->delays->compact_count,
--		      &current->delays->compact_delay_max);
-+		      &current->delays->compact_delay_max,
-+		      &current->delays->compact_delay_min);
- }
- 
- void __delayacct_wpcopy_start(void)
-@@ -289,7 +304,8 @@ void __delayacct_wpcopy_end(void)
- 		      &current->delays->wpcopy_start,
- 		      &current->delays->wpcopy_delay,
- 		      &current->delays->wpcopy_count,
--		      &current->delays->wpcopy_delay_max);
-+		      &current->delays->wpcopy_delay_max,
-+		      &current->delays->wpcopy_delay_min);
- }
- 
- void __delayacct_irq(struct task_struct *task, u32 delta)
-@@ -301,6 +317,8 @@ void __delayacct_irq(struct task_struct
- 	task->delays->irq_count++;
- 	if (delta > task->delays->irq_delay_max)
- 		task->delays->irq_delay_max = delta;
-+	if (delta && (!task->delays->irq_delay_min || delta < task->delays->irq_delay_min))
-+		task->delays->irq_delay_min = delta;
- 	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
- }
- 
---- a/kernel/sched/stats.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/kernel/sched/stats.h
-@@ -246,6 +246,8 @@ static inline void sched_info_dequeue(st
- 	t->sched_info.run_delay += delta;
- 	if (delta > t->sched_info.max_run_delay)
- 		t->sched_info.max_run_delay = delta;
-+	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
-+		t->sched_info.min_run_delay = delta;
- 	rq_sched_info_dequeue(rq, delta);
- }
- 
-@@ -269,6 +271,8 @@ static void sched_info_arrive(struct rq
- 	t->sched_info.pcount++;
- 	if (delta > t->sched_info.max_run_delay)
- 		t->sched_info.max_run_delay = delta;
-+	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
-+		t->sched_info.min_run_delay = delta;
- 
- 	rq_sched_info_arrive(rq, delta);
- }
---- a/tools/accounting/getdelays.c~delayacct-add-delay-min-to-record-delay-peak
-+++ a/tools/accounting/getdelays.c
-@@ -192,7 +192,7 @@ static int get_family_id(int sd)
- }
- 
- #define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
--#define delay_max_ms(t) (t / 1000000ULL)
-+#define delay_ms(t) (t / 1000000ULL)
- 
- static void print_delayacct(struct taskstats *t)
+ static int vmstat_cpu_down_prep(unsigned int cpu)
  {
-@@ -213,48 +213,56 @@ static void print_delayacct(struct tasks
- 	       "IRQ   %15s%15s%15s%15s\n"
- 	       "      %15llu%15llu%15.3fms%13.6fms\n",
- 	       "count", "real total", "virtual total",
--	       "delay total", "delay average", "delay max",
-+	       "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->cpu_count,
- 	       (unsigned long long)t->cpu_run_real_total,
- 	       (unsigned long long)t->cpu_run_virtual_total,
- 	       (unsigned long long)t->cpu_delay_total,
- 	       average_ms((double)t->cpu_delay_total, t->cpu_count),
--		   delay_max_ms((double)t->cpu_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->cpu_delay_max),
-+	       delay_ms((double)t->cpu_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->blkio_count,
- 	       (unsigned long long)t->blkio_delay_total,
- 	       average_ms((double)t->blkio_delay_total, t->blkio_count),
--		   delay_max_ms((double)t->blkio_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->blkio_delay_max),
-+	       delay_ms((double)t->blkio_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->swapin_count,
- 	       (unsigned long long)t->swapin_delay_total,
- 	       average_ms((double)t->swapin_delay_total, t->swapin_count),
--		   delay_max_ms((double)t->swapin_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->swapin_delay_max),
-+	       delay_ms((double)t->swapin_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->freepages_count,
- 	       (unsigned long long)t->freepages_delay_total,
- 	       average_ms((double)t->freepages_delay_total, t->freepages_count),
--		   delay_max_ms((double)t->freepages_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->freepages_delay_max),
-+	       delay_ms((double)t->freepages_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->thrashing_count,
- 	       (unsigned long long)t->thrashing_delay_total,
- 	       average_ms((double)t->thrashing_delay_total, t->thrashing_count),
--		   delay_max_ms((double)t->thrashing_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->thrashing_delay_max),
-+	       delay_ms((double)t->thrashing_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->compact_count,
- 	       (unsigned long long)t->compact_delay_total,
- 	       average_ms((double)t->compact_delay_total, t->compact_count),
--		   delay_max_ms((double)t->compact_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->compact_delay_max),
-+	       delay_ms((double)t->compact_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->wpcopy_count,
- 	       (unsigned long long)t->wpcopy_delay_total,
- 	       average_ms((double)t->wpcopy_delay_total, t->wpcopy_count),
--		   delay_max_ms((double)t->wpcopy_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->wpcopy_delay_max),
-+	       delay_ms((double)t->wpcopy_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->irq_count,
- 	       (unsigned long long)t->irq_delay_total,
- 	       average_ms((double)t->irq_delay_total, t->irq_count),
--		   delay_max_ms((double)t->irq_delay_max));
-+	       delay_ms((double)t->irq_delay_max),
-+	       delay_ms((double)t->irq_delay_min));
+-	cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
++	disable_delayed_work_sync(&per_cpu(vmstat_work, cpu));
+ 	return 0;
  }
  
- static void task_context_switch_counts(struct taskstats *t)
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from koichiro.den@canonical.com are
 
-delayacct-add-delay-max-to-record-delay-peak.patch
-delayacct-add-delay-max-to-record-delay-peak-fix.patch
-delayacct-add-delay-min-to-record-delay-peak.patch
+vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
+hugetlb-prioritize-surplus-allocation-from-current-node.patch
 
