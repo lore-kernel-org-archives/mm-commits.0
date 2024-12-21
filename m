@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F016013A244
-	for <mm-commits@vger.kernel.org>; Sat, 21 Dec 2024 04:07:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCA5C1DB943
+	for <mm-commits@vger.kernel.org>; Sat, 21 Dec 2024 04:07:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734754056; cv=none; b=Mi7Z31aZEwBK3AmPLKWZJ9vJiXJepF72GwQl7R2uPwR+jKI7DvUPweIfunxiNqu5xE+vDsFh1XmROq0Vsf8pC6nDXVeyCroiQHBxASMteBs8ZPqDmDW57zF6nHh+bVEcYy3IY4V75N4HPS2Xu5OodjlHMMoOtFIdxPCPaTwT/3I=
+	t=1734754057; cv=none; b=BITjaEJ4dwK6ctoViPedWood1vT4eLHEqA+mPq1fJARNx9X4xZEel1BhRokLEqsvCpaZ/WrZL9IrKZC8Rf9LaVqwmF/YqhBXh8Odf/3vKrC0D/iWBW0/XuVukamq7U1a5WwCa4i1Lw7DrHzeO9KrfAfmGHMWgy7ikcDTbHFQ5qc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734754056; c=relaxed/simple;
-	bh=Aic84rPrkxFJF20EvVIeWwD4qYfoO5bHbSoCAoAjHY0=;
-	h=Date:To:From:Subject:Message-Id; b=aznK99LkuZssUOpWPrqfJYGlQTA5zdi11+8YzwupWxsQS5qyUt5vyaWPOmuoEMZMj73L1pqZz1hCD/pFkvvajN5llzCMuiKmRNcV1GCOji+1C6H+RgeI6N8fL+zQl1GcQCmlrnptRdcIDDgLQKcsguQPtjUnhmrGONkG6c0yJ3s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IRhocYOM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734754057; c=relaxed/simple;
+	bh=K3Oq2696wCwgZDg6guzDMeLlF3H91zClZHMggkxZIEw=;
+	h=Date:To:From:Subject:Message-Id; b=mEbeUFWKmt3uoT3zu8VPtAzQDPTgJAKbj5NgYzgsiN/SRfiwXU9rOYON/M7FNEacfOcBPI79WvG3/y9Sf7ojSQRoa21nzriWTrf7/+QQFHXdfn5r+pWrTb5oeB4cS2a8F0gBOP5RmdbF79Bn7b87c6I7anw1SwVUnFtdzyQ9WxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P4WU4LPb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IRhocYOM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87BD2C4CECE;
-	Sat, 21 Dec 2024 04:07:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P4WU4LPb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C3EC4CECE;
+	Sat, 21 Dec 2024 04:07:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734754055;
-	bh=Aic84rPrkxFJF20EvVIeWwD4qYfoO5bHbSoCAoAjHY0=;
+	s=korg; t=1734754057;
+	bh=K3Oq2696wCwgZDg6guzDMeLlF3H91zClZHMggkxZIEw=;
 	h=Date:To:From:Subject:From;
-	b=IRhocYOMdHL8W7/AeSCeCbX1AkFQjUZ2mWtBJuAXq9fzUQbHFQAcv4vswFKEsXtS5
-	 kP7iYEE5dV9eBN5Pdd9AmG14NDMCPyM15QVn0LI21dDIKatAUQq+feLnbbsYLwptdO
-	 a2lSycnp78Tjjftd/FWhJb+W93fY+AVQXXpb0934=
-Date: Fri, 20 Dec 2024 20:07:34 -0800
+	b=P4WU4LPb34nVtPpASIoDgB46gB2Gpk93Yo8vclW3UkPKCRRDH+L9lZniQ7TI0IdBl
+	 nojjtPrgPD6zweG7ZApf9Hfv85icP2N8ILQklxZI20HorqSuChDnA+WU0NdeG3uKwb
+	 1R2pG2dMQbBewIhfAUILeDTj0t8bmWDDppYxn0Qs=
+Date: Fri, 20 Dec 2024 20:07:36 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-use-a-folio-throughout-squashfs_read_folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20241221040735.87BD2C4CECE@smtp.kernel.org>
+Subject: + squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch added to mm-nonmm-unstable branch
+Message-Id: <20241221040737.72C3EC4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: use a folio throughout squashfs_read_folio()
+     Subject: squashfs: pass a folio to squashfs_readpage_fragment()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-use-a-folio-throughout-squashfs_read_folio.patch
+     squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-use-a-folio-throughout-squashfs_read_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,78 +59,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: squashfs: use a folio throughout squashfs_read_folio()
-Date: Fri, 20 Dec 2024 22:46:24 +0000
+Subject: squashfs: pass a folio to squashfs_readpage_fragment()
+Date: Fri, 20 Dec 2024 22:46:25 +0000
 
-Use modern folio APIs where they exist and convert back to struct
-page for the internal functions.
+Remove an access to page->mapping.
 
-Link: https://lkml.kernel.org/r/20241220224634.723899-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241220224634.723899-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+ fs/squashfs/file.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/squashfs/file.c~squashfs-use-a-folio-throughout-squashfs_read_folio
+--- a/fs/squashfs/file.c~squashfs-pass-a-folio-to-squashfs_readpage_fragment
 +++ a/fs/squashfs/file.c
-@@ -445,21 +445,19 @@ static int squashfs_readpage_sparse(stru
+@@ -417,9 +417,9 @@ skip_page:
+ }
  
- static int squashfs_read_folio(struct file *file, struct folio *folio)
+ /* Read datablock stored packed inside a fragment (tail-end packed block) */
+-static int squashfs_readpage_fragment(struct page *page, int expected)
++static int squashfs_readpage_fragment(struct folio *folio, int expected)
  {
--	struct page *page = &folio->page;
 -	struct inode *inode = page->mapping->host;
 +	struct inode *inode = folio->mapping->host;
- 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
--	int index = page->index >> (msblk->block_log - PAGE_SHIFT);
-+	int index = folio->index >> (msblk->block_log - PAGE_SHIFT);
- 	int file_end = i_size_read(inode) >> msblk->block_log;
- 	int expected = index == file_end ?
- 			(i_size_read(inode) & (msblk->block_size - 1)) :
- 			 msblk->block_size;
- 	int res = 0;
--	void *pageaddr;
+ 	struct squashfs_cache_entry *buffer = squashfs_get_fragment(inode->i_sb,
+ 		squashfs_i(inode)->fragment_block,
+ 		squashfs_i(inode)->fragment_size);
+@@ -430,7 +430,7 @@ static int squashfs_readpage_fragment(st
+ 			squashfs_i(inode)->fragment_block,
+ 			squashfs_i(inode)->fragment_size);
+ 	else
+-		squashfs_copy_cache(page, buffer, expected,
++		squashfs_copy_cache(&folio->page, buffer, expected,
+ 			squashfs_i(inode)->fragment_offset);
  
- 	TRACE("Entered squashfs_readpage, page index %lx, start block %llx\n",
--				page->index, squashfs_i(inode)->start);
-+				folio->index, squashfs_i(inode)->start);
- 
--	if (page->index >= ((i_size_read(inode) + PAGE_SIZE - 1) >>
-+	if (folio->index >= ((i_size_read(inode) + PAGE_SIZE - 1) >>
- 					PAGE_SHIFT))
- 		goto out;
- 
-@@ -472,23 +470,18 @@ static int squashfs_read_folio(struct fi
- 			goto out;
- 
- 		if (res == 0)
--			res = squashfs_readpage_sparse(page, expected);
-+			res = squashfs_readpage_sparse(&folio->page, expected);
+ 	squashfs_cache_put(buffer);
+@@ -474,7 +474,7 @@ static int squashfs_read_folio(struct fi
  		else
--			res = squashfs_readpage_block(page, block, res, expected);
-+			res = squashfs_readpage_block(&folio->page, block, res, expected);
+ 			res = squashfs_readpage_block(&folio->page, block, res, expected);
  	} else
--		res = squashfs_readpage_fragment(page, expected);
-+		res = squashfs_readpage_fragment(&folio->page, expected);
+-		res = squashfs_readpage_fragment(&folio->page, expected);
++		res = squashfs_readpage_fragment(folio, expected);
  
  	if (!res)
  		return 0;
- 
- out:
--	pageaddr = kmap_atomic(page);
--	memset(pageaddr, 0, PAGE_SIZE);
--	kunmap_atomic(pageaddr);
--	flush_dcache_page(page);
--	if (res == 0)
--		SetPageUptodate(page);
--	unlock_page(page);
-+	folio_zero_segment(folio, 0, folio_size(folio));
-+	folio_end_read(folio, res == 0);
- 
- 	return res;
- }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
