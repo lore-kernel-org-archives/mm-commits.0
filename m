@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5779D2905
-	for <mm-commits@vger.kernel.org>; Sat, 21 Dec 2024 04:01:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F016013A244
+	for <mm-commits@vger.kernel.org>; Sat, 21 Dec 2024 04:07:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734753694; cv=none; b=s/cRsJwp1Vr96fa4wmnjygbRnt7Cx3rxgqm19TPkKQaQodx5Pf57v3nOQDcecHPcryVM+9CHboKFOBjUq6dbb/NOGT4BXlPoVIcjcg8/GQp0KhzHTXuwwdDhmnWUeJlam0ksq+1WnKbqTqlfrOpzwTpp1CBddA/qQrl6pQz6li4=
+	t=1734754056; cv=none; b=Mi7Z31aZEwBK3AmPLKWZJ9vJiXJepF72GwQl7R2uPwR+jKI7DvUPweIfunxiNqu5xE+vDsFh1XmROq0Vsf8pC6nDXVeyCroiQHBxASMteBs8ZPqDmDW57zF6nHh+bVEcYy3IY4V75N4HPS2Xu5OodjlHMMoOtFIdxPCPaTwT/3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734753694; c=relaxed/simple;
-	bh=W1oUBF0nY6RX+PqQ0H4wMVki2ofHTo88/AFKrzd1Z2Y=;
-	h=Date:To:From:Subject:Message-Id; b=vDSEsrDXomDpCt5mqMurGaB64va0HNYZ2GBbswvwzRBxmw5BdOUXIZz7SGh8pF/LqhOKi4zJxaV0JJaY1bH7GTujL2fRWIfrzUvdObSp/+dgnP/QqTwMbgf7t/tLnib09KqiDzsDGoLwEn5EiFR+jkS3ugaqh4wJrDV5NqFYrWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=plG7qN7i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1734754056; c=relaxed/simple;
+	bh=Aic84rPrkxFJF20EvVIeWwD4qYfoO5bHbSoCAoAjHY0=;
+	h=Date:To:From:Subject:Message-Id; b=aznK99LkuZssUOpWPrqfJYGlQTA5zdi11+8YzwupWxsQS5qyUt5vyaWPOmuoEMZMj73L1pqZz1hCD/pFkvvajN5llzCMuiKmRNcV1GCOji+1C6H+RgeI6N8fL+zQl1GcQCmlrnptRdcIDDgLQKcsguQPtjUnhmrGONkG6c0yJ3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IRhocYOM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="plG7qN7i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9F9FC4CECE;
-	Sat, 21 Dec 2024 04:01:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IRhocYOM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87BD2C4CECE;
+	Sat, 21 Dec 2024 04:07:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734753693;
-	bh=W1oUBF0nY6RX+PqQ0H4wMVki2ofHTo88/AFKrzd1Z2Y=;
+	s=korg; t=1734754055;
+	bh=Aic84rPrkxFJF20EvVIeWwD4qYfoO5bHbSoCAoAjHY0=;
 	h=Date:To:From:Subject:From;
-	b=plG7qN7iISjrEunpErO6AVm7Cm2YlpMOvMLSKe+h9cg+VZHwolgF3UwxxRF1sKa+m
-	 TKDnAW05kWTHklM/114Xpp33mTMxDLo5f51RuMWXTSNiy4cGQlJfRzHAR0DWwopSLZ
-	 /a+NPowgSFvVzQjsmZVig/AAOKfkOtwDLxZepskI=
-Date: Fri, 20 Dec 2024 20:01:33 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,david@redhat.com,chrisl@kernel.org,riel@surriel.com,akpm@linux-foundation.org
+	b=IRhocYOMdHL8W7/AeSCeCbX1AkFQjUZ2mWtBJuAXq9fzUQbHFQAcv4vswFKEsXtS5
+	 kP7iYEE5dV9eBN5Pdd9AmG14NDMCPyM15QVn0LI21dDIKatAUQq+feLnbbsYLwptdO
+	 a2lSycnp78Tjjftd/FWhJb+W93fY+AVQXXpb0934=
+Date: Fri, 20 Dec 2024 20:07:34 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unnecessary-calls-to-lru_add_drain.patch added to mm-unstable branch
-Message-Id: <20241221040133.C9F9FC4CECE@smtp.kernel.org>
+Subject: + squashfs-use-a-folio-throughout-squashfs_read_folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20241221040735.87BD2C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove unnecessary calls to lru_add_drain
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unnecessary-calls-to-lru_add_drain.patch
+     Subject: squashfs: use a folio throughout squashfs_read_folio()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-use-a-folio-throughout-squashfs_read_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unnecessary-calls-to-lru_add_drain.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-use-a-folio-throughout-squashfs_read_folio.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,111 +58,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm: remove unnecessary calls to lru_add_drain
-Date: Thu, 19 Dec 2024 15:32:53 -0500
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: squashfs: use a folio throughout squashfs_read_folio()
+Date: Fri, 20 Dec 2024 22:46:24 +0000
 
-There seem to be several categories of calls to lru_add_drain and
-lru_add_drain_all.
+Use modern folio APIs where they exist and convert back to struct
+page for the internal functions.
 
-The first are code paths that recently allocated, swapped in, or otherwise
-processed a batch of pages, and want them all on the LRU.  These drain
-pages that were recently allocated, probably on the local CPU.
-
-A second category are code paths that are actively trying to reclaim,
-migrate, or offline memory.  These often use lru_add_drain_all, to drain
-the caches on all CPUs.
-
-However, there also seem to be some other callers where we aren't really
-doing either.  They are calling lru_add_drain(), despite operating on
-pages that may have been allocated long ago, and quite possibly on
-different CPUs.
-
-Those calls are not likely to be effective at anything but creating lock
-contention on the LRU locks.
-
-Remove the lru_add_drain calls in the latter category.
-
-For detailed reasoning, see [1] and [2].
-
-Link: https://lkml.kernel.org/r/dca2824e8e88e826c6b260a831d79089b5b9c79d.camel@surriel.com [1]
-Link: https://lkml.kernel.org/r/xxfhcjaq2xxcl5adastz5omkytenq7izo2e5f4q7e3ns4z6lko@odigjjc7hqrg [2]
-Link: https://lkml.kernel.org/r/20241219153253.3da9e8aa@fangorn
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20241220224634.723899-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c     |    1 -
- mm/mmap.c       |    2 --
- mm/swap_state.c |    1 -
- mm/vma.c        |    2 --
- 4 files changed, 6 deletions(-)
+ fs/squashfs/file.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
---- a/mm/memory.c~mm-remove-unnecessary-calls-to-lru_add_drain
-+++ a/mm/memory.c
-@@ -2004,7 +2004,6 @@ void zap_page_range_single(struct vm_are
- 	struct mmu_notifier_range range;
- 	struct mmu_gather tlb;
+--- a/fs/squashfs/file.c~squashfs-use-a-folio-throughout-squashfs_read_folio
++++ a/fs/squashfs/file.c
+@@ -445,21 +445,19 @@ static int squashfs_readpage_sparse(stru
  
--	lru_add_drain();
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
- 				address, end);
- 	hugetlb_zap_begin(vma, &range.start, &range.end);
---- a/mm/mmap.c~mm-remove-unnecessary-calls-to-lru_add_drain
-+++ a/mm/mmap.c
-@@ -1336,7 +1336,6 @@ void exit_mmap(struct mm_struct *mm)
- 		goto destroy;
- 	}
+ static int squashfs_read_folio(struct file *file, struct folio *folio)
+ {
+-	struct page *page = &folio->page;
+-	struct inode *inode = page->mapping->host;
++	struct inode *inode = folio->mapping->host;
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-	int index = page->index >> (msblk->block_log - PAGE_SHIFT);
++	int index = folio->index >> (msblk->block_log - PAGE_SHIFT);
+ 	int file_end = i_size_read(inode) >> msblk->block_log;
+ 	int expected = index == file_end ?
+ 			(i_size_read(inode) & (msblk->block_size - 1)) :
+ 			 msblk->block_size;
+ 	int res = 0;
+-	void *pageaddr;
  
--	lru_add_drain();
- 	flush_cache_mm(mm);
- 	tlb_gather_mmu_fullmm(&tlb, mm);
- 	/* update_hiwater_rss(mm) here? but nobody should be looking */
-@@ -1779,7 +1778,6 @@ int relocate_vma_down(struct vm_area_str
- 				       vma, new_start, length, false, true))
- 		return -ENOMEM;
+ 	TRACE("Entered squashfs_readpage, page index %lx, start block %llx\n",
+-				page->index, squashfs_i(inode)->start);
++				folio->index, squashfs_i(inode)->start);
  
--	lru_add_drain();
- 	tlb_gather_mmu(&tlb, mm);
- 	next = vma_next(&vmi);
- 	if (new_end > old_start) {
---- a/mm/swap_state.c~mm-remove-unnecessary-calls-to-lru_add_drain
-+++ a/mm/swap_state.c
-@@ -317,7 +317,6 @@ void free_pages_and_swap_cache(struct en
- 	struct folio_batch folios;
- 	unsigned int refs[PAGEVEC_SIZE];
+-	if (page->index >= ((i_size_read(inode) + PAGE_SIZE - 1) >>
++	if (folio->index >= ((i_size_read(inode) + PAGE_SIZE - 1) >>
+ 					PAGE_SHIFT))
+ 		goto out;
  
--	lru_add_drain();
- 	folio_batch_init(&folios);
- 	for (int i = 0; i < nr; i++) {
- 		struct folio *folio = page_folio(encoded_page_ptr(pages[i]));
---- a/mm/vma.c~mm-remove-unnecessary-calls-to-lru_add_drain
-+++ a/mm/vma.c
-@@ -430,7 +430,6 @@ void unmap_region(struct ma_state *mas,
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct mmu_gather tlb;
+@@ -472,23 +470,18 @@ static int squashfs_read_folio(struct fi
+ 			goto out;
  
--	lru_add_drain();
- 	tlb_gather_mmu(&tlb, mm);
- 	update_hiwater_rss(mm);
- 	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end,
-@@ -1132,7 +1131,6 @@ static inline void vms_clear_ptes(struct
- 	 * were isolated before we downgraded mmap_lock.
- 	 */
- 	mas_set(mas_detach, 1);
--	lru_add_drain();
- 	tlb_gather_mmu(&tlb, vms->vma->vm_mm);
- 	update_hiwater_rss(vms->vma->vm_mm);
- 	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end,
+ 		if (res == 0)
+-			res = squashfs_readpage_sparse(page, expected);
++			res = squashfs_readpage_sparse(&folio->page, expected);
+ 		else
+-			res = squashfs_readpage_block(page, block, res, expected);
++			res = squashfs_readpage_block(&folio->page, block, res, expected);
+ 	} else
+-		res = squashfs_readpage_fragment(page, expected);
++		res = squashfs_readpage_fragment(&folio->page, expected);
+ 
+ 	if (!res)
+ 		return 0;
+ 
+ out:
+-	pageaddr = kmap_atomic(page);
+-	memset(pageaddr, 0, PAGE_SIZE);
+-	kunmap_atomic(pageaddr);
+-	flush_dcache_page(page);
+-	if (res == 0)
+-		SetPageUptodate(page);
+-	unlock_page(page);
++	folio_zero_segment(folio, 0, folio_size(folio));
++	folio_end_read(folio, res == 0);
+ 
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-remove-unnecessary-calls-to-lru_add_drain.patch
+mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
+mm-make-alloc_pages_mpol-static.patch
+mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
+mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
+mm-page_alloc-add-__alloc_frozen_pages.patch
+mm-mempolicy-add-alloc_frozen_pages.patch
+slab-allocate-frozen-pages.patch
+ocfs2-handle-a-symlink-read-error-correctly.patch
+ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
+ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
+ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
+ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
+iov_iter-remove-setting-of-page-index.patch
+squashfs-use-a-folio-throughout-squashfs_read_folio.patch
+squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
+squashfs-convert-squashfs_readpage_block-to-take-a-folio.patch
+squashfs-convert-squashfs_copy_cache-to-take-a-folio.patch
+squashfs-convert-squashfs_fill_page-to-take-a-folio.patch
 
