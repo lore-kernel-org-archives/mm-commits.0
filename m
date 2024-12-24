@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C121F3FE4
-	for <mm-commits@vger.kernel.org>; Tue, 24 Dec 2024 00:45:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FB518F40
+	for <mm-commits@vger.kernel.org>; Tue, 24 Dec 2024 00:45:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735001103; cv=none; b=nhqUZGz8h+9fzroVd6e/dAkz96F/WPlh/6H0wptr4OtaF7tpPNhpnGR27HHorlH8wyIZCPaEA45K01Jc1J2JEhWGTBp8qhs1xxOZ9JZo8mK4OnCO//jzxD1/89bUp99H59xrShfkvdANwN2fNqFbiQTBwOUosA6nOxNZRzBf5F4=
+	t=1735001106; cv=none; b=O2JkPCLgQiwG2zRH4EQ1bWMBqvGJeICeHg6U99x2I2YJcC2mNrrUZcK7dGED3ljh5R/GoHLek8j4x2QWwit6QneeSGQDtK9qwu9iYPycIic/nASy05wLzQ0gIBgwvQpNaZ5dPqPywJm+aKaSwuHaq8ObRNDsjT/jsiIqhmgp8OE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735001103; c=relaxed/simple;
-	bh=q2DvfXB6mp/rZNAB6fGgZ/sr/6vxwpon96cvm0VmjSo=;
-	h=Date:To:From:Subject:Message-Id; b=MXdMDU1AZE5d0r9pBXQmWQsk23PIP5je61gnrVfvEbME+pHvMae2lPXJv4EjuiHQKZjwwC/0Ne36CJpXviJkodpxqfU09KErHpyjoyPFqX0Ud7cj79wLWcwP0V6jB5cc9mW8qeZxq+/WY8Zr+ulCTyHnPQD5R1boH2xrcmr9wTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v698peU7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735001106; c=relaxed/simple;
+	bh=Vc2rdz+XnVBJ8wxnR8EqCPVMYBpTan3O29k6fIOW0Qs=;
+	h=Date:To:From:Subject:Message-Id; b=iFEAKguH77lhabWGSz2VmHOD2N61PyTQZXO7TAE43pNk0FMGf4YaTehGHqQx9nedVrWm+KmGHlouoHIhx8vBBo3m9fNQi9NYyfj26ArfyhoJB60NlwogDq2R56ApKc++YaBtXH1DXIpc1jUXgpsfaA7k0ZyD+j84cher2A1sWyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qWoa2kQk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v698peU7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4239FC4CED3;
-	Tue, 24 Dec 2024 00:45:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qWoa2kQk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8396C4CED3;
+	Tue, 24 Dec 2024 00:45:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735001103;
-	bh=q2DvfXB6mp/rZNAB6fGgZ/sr/6vxwpon96cvm0VmjSo=;
+	s=korg; t=1735001105;
+	bh=Vc2rdz+XnVBJ8wxnR8EqCPVMYBpTan3O29k6fIOW0Qs=;
 	h=Date:To:From:Subject:From;
-	b=v698peU7iVlM1Qk8D5IC3/jem8Vl/Sx8PrUVd3OE+jFVhvaic/ybYshVJPQnIvxl0
-	 M14VfjN8wUsv6MTTVEeP7521I8gin0VmfIXwKkRBMn0yoktQtQVYgFqnRIs6HJlA1z
-	 fJ2OaJu4l+2pVRhxWXu7WsTUfY2yH1oicQ/gXJOI=
-Date: Mon, 23 Dec 2024 16:45:02 -0800
+	b=qWoa2kQkQaLiy0tg89jdF4iA4vj4WHSBaBq3uu87L0rLUCrpQ3mP/P26DKwFmJNQ4
+	 cP7wTACTbaA4dbTe+zWCGFsIYa6f4Lddfev5QzVyD5yx5t54/kOv72I4KlLtQ+4WAd
+	 U4S498X5aEsCsK6NTpg9f0lU406NkzVIndqmrDz8=
+Date: Mon, 23 Dec 2024 16:45:05 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,agordeev@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table.patch added to mm-unstable branch
-Message-Id: <20241224004503.4239FC4CED3@smtp.kernel.org>
+Subject: + s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table.patch added to mm-unstable branch
+Message-Id: <20241224004505.C8396C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: pgtable: use mmu gather to free p4d level page table
+     Subject: s390: pgtable: add statistics for PUD and P4D level page table
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table.patch
+     s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: arm64: pgtable: use mmu gather to free p4d level page table
-Date: Mon, 23 Dec 2024 17:40:51 +0800
+Subject: s390: pgtable: add statistics for PUD and P4D level page table
+Date: Mon, 23 Dec 2024 17:40:52 +0800
 
-Like other levels of page tables, also use mmu gather mechanism to free
-p4d level page table.
+Like PMD and PTE level page table, also add statistics for PUD and P4D
+page table.
 
-Link: https://lkml.kernel.org/r/7c12112047ac230809aacd0379259414b9b0d3a3.1734945104.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/35be22a2b1666df729a9fc108c2da5cce266e4be.1734945104.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Originally-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Aneesh Kumar K.V (Arm) <aneesh.kumar@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -90,41 +90,121 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgalloc.h |    1 -
- arch/arm64/include/asm/tlb.h     |   14 ++++++++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ arch/s390/include/asm/pgalloc.h |   29 +++++++++++++++++------
+ arch/s390/include/asm/tlb.h     |   37 +++++++++++++++---------------
+ 2 files changed, 40 insertions(+), 26 deletions(-)
 
---- a/arch/arm64/include/asm/pgalloc.h~arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table
-+++ a/arch/arm64/include/asm/pgalloc.h
-@@ -85,7 +85,6 @@ static inline void pgd_populate(struct m
- 	__pgd_populate(pgdp, __pa(p4dp), pgdval);
- }
- 
--#define __p4d_free_tlb(tlb, p4d, addr)  p4d_free((tlb)->mm, p4d)
- #else
- static inline void __pgd_populate(pgd_t *pgdp, phys_addr_t p4dp, pgdval_t prot)
+--- a/arch/s390/include/asm/pgalloc.h~s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table
++++ a/arch/s390/include/asm/pgalloc.h
+@@ -53,29 +53,42 @@ static inline p4d_t *p4d_alloc_one(struc
  {
---- a/arch/arm64/include/asm/tlb.h~arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table
-+++ a/arch/arm64/include/asm/tlb.h
-@@ -111,4 +111,18 @@ static inline void __pud_free_tlb(struct
- }
- #endif
+ 	unsigned long *table = crst_table_alloc(mm);
  
-+#if CONFIG_PGTABLE_LEVELS > 4
-+static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4dp,
-+				  unsigned long addr)
-+{
-+	struct ptdesc *ptdesc = virt_to_ptdesc(p4dp);
+-	if (table)
+-		crst_table_init(table, _REGION2_ENTRY_EMPTY);
++	if (!table)
++		return NULL;
++	crst_table_init(table, _REGION2_ENTRY_EMPTY);
++	pagetable_p4d_ctor(virt_to_ptdesc(table));
 +
-+	if (!pgtable_l5_enabled())
+ 	return (p4d_t *) table;
+ }
+ 
+ static inline void p4d_free(struct mm_struct *mm, p4d_t *p4d)
+ {
+-	if (!mm_p4d_folded(mm))
+-		crst_table_free(mm, (unsigned long *) p4d);
++	if (mm_p4d_folded(mm))
 +		return;
 +
-+	pagetable_p4d_dtor(ptdesc);
-+	tlb_remove_ptdesc(tlb, ptdesc);
-+}
-+#endif
++	pagetable_p4d_dtor(virt_to_ptdesc(p4d));
++	crst_table_free(mm, (unsigned long *) p4d);
+ }
+ 
+ static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long address)
+ {
+ 	unsigned long *table = crst_table_alloc(mm);
+-	if (table)
+-		crst_table_init(table, _REGION3_ENTRY_EMPTY);
 +
- #endif
++	if (!table)
++		return NULL;
++	crst_table_init(table, _REGION3_ENTRY_EMPTY);
++	pagetable_pud_ctor(virt_to_ptdesc(table));
++
+ 	return (pud_t *) table;
+ }
+ 
+ static inline void pud_free(struct mm_struct *mm, pud_t *pud)
+ {
+-	if (!mm_pud_folded(mm))
+-		crst_table_free(mm, (unsigned long *) pud);
++	if (mm_pud_folded(mm))
++		return;
++
++	pagetable_pud_dtor(virt_to_ptdesc(pud));
++	crst_table_free(mm, (unsigned long *) pud);
+ }
+ 
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long vmaddr)
+--- a/arch/s390/include/asm/tlb.h~s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table
++++ a/arch/s390/include/asm/tlb.h
+@@ -111,24 +111,6 @@ static inline void pmd_free_tlb(struct m
+ }
+ 
+ /*
+- * p4d_free_tlb frees a pud table and clears the CRSTE for the
+- * region second table entry from the tlb.
+- * If the mm uses a four level page table the single p4d is freed
+- * as the pgd. p4d_free_tlb checks the asce_limit against 8PB
+- * to avoid the double free of the p4d in this case.
+- */
+-static inline void p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d,
+-				unsigned long address)
+-{
+-	if (mm_p4d_folded(tlb->mm))
+-		return;
+-	__tlb_adjust_range(tlb, address, PAGE_SIZE);
+-	tlb->mm->context.flush_mm = 1;
+-	tlb->freed_tables = 1;
+-	tlb_remove_ptdesc(tlb, p4d);
+-}
+-
+-/*
+  * pud_free_tlb frees a pud table and clears the CRSTE for the
+  * region third table entry from the tlb.
+  * If the mm uses a three level page table the single pud is freed
+@@ -140,11 +122,30 @@ static inline void pud_free_tlb(struct m
+ {
+ 	if (mm_pud_folded(tlb->mm))
+ 		return;
++	pagetable_pud_dtor(virt_to_ptdesc(pud));
+ 	tlb->mm->context.flush_mm = 1;
+ 	tlb->freed_tables = 1;
+ 	tlb->cleared_p4ds = 1;
+ 	tlb_remove_ptdesc(tlb, pud);
+ }
+ 
++/*
++ * p4d_free_tlb frees a p4d table and clears the CRSTE for the
++ * region second table entry from the tlb.
++ * If the mm uses a four level page table the single p4d is freed
++ * as the pgd. p4d_free_tlb checks the asce_limit against 8PB
++ * to avoid the double free of the p4d in this case.
++ */
++static inline void p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d,
++				unsigned long address)
++{
++	if (mm_p4d_folded(tlb->mm))
++		return;
++	pagetable_p4d_dtor(virt_to_ptdesc(p4d));
++	__tlb_adjust_range(tlb, address, PAGE_SIZE);
++	tlb->mm->context.flush_mm = 1;
++	tlb->freed_tables = 1;
++	tlb_remove_ptdesc(tlb, p4d);
++}
+ 
+ #endif /* _S390_TLB_H */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
