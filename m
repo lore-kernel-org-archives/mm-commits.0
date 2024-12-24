@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4DCA33FD
-	for <mm-commits@vger.kernel.org>; Tue, 24 Dec 2024 00:44:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE7C24689
+	for <mm-commits@vger.kernel.org>; Tue, 24 Dec 2024 00:44:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735001094; cv=none; b=D4MGBegBE9hjlrZ93yGL+2ULsczDnw6FY1slrAZ8Kv36kU8I+TdS+JrQHRs3oOQZioaKI4LsPuR065FwE1krmqMCyRziGl2OdK4Ekii4uIbjX3raYZx1l9Yy8xJb5U/BUhb1Mnq0XQBr9FM1vZT90A+3dOOIziJUBPIAN1POsxo=
+	t=1735001097; cv=none; b=WlyebaAe20xiWuXeTJvD0fGcFT8tKf9IaWj6na6BCVVbwk5RCPDhTErZs8S6CTOezQibMY+JGmqFwg8WvJISLFKVbsnR9nsL5rZ3SiAX1tu36OkucCG8GctdGHAX3VXNZR5Z8rS3zOd3BAymroLnfmNRgdPlLBlTZWwe+nEPHLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735001094; c=relaxed/simple;
-	bh=VNNxRDRm1jEamHlGeiRDo1a4SnmALQj3yyaOYavGm9Q=;
-	h=Date:To:From:Subject:Message-Id; b=eMDzF/lu7NdxR8KAop5L6f8tBLLYESPH9ea0ccZ9+agZX43sZIeM8mX1NQIkXR6l9cyp4owB0x/U9aQ1989fksQTCt/hL4PvJMMDHpjoNNTnj7hkcJxi8i/438S2fOwHRm/HYNIFe8++bMo+xzgj6bPR41VEPZgu7AK2nY96ofE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ikC2KoIg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735001097; c=relaxed/simple;
+	bh=OR09U/PTzuA0TaR1AcO6TxowuUQmE2X40c560DzU6a4=;
+	h=Date:To:From:Subject:Message-Id; b=RFlp/1Ss2VxzMnfdje0DUkpIVUNN5KLWvWqJTfZvmirFBe39h8cdWwV7h/Tys+YP5DNqCUkhCRUumdQA6KvNZ2BdPFgB5UdrOTaWbbdnMXCnVme1ogVhKtXDK/yIsTY4FEi5mNrNMVmAEEAMMncA/fSfU652HOVKmUjKZoZj5h8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lIE9Ito3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ikC2KoIg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D0B3C4CED3;
-	Tue, 24 Dec 2024 00:44:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lIE9Ito3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DC28C4CED3;
+	Tue, 24 Dec 2024 00:44:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735001094;
-	bh=VNNxRDRm1jEamHlGeiRDo1a4SnmALQj3yyaOYavGm9Q=;
+	s=korg; t=1735001096;
+	bh=OR09U/PTzuA0TaR1AcO6TxowuUQmE2X40c560DzU6a4=;
 	h=Date:To:From:Subject:From;
-	b=ikC2KoIgOE3POY6KRebun9qKgPrSzhLXTU9pGbSJcUAaA6rRV3w9b3fzvhM7P7T6F
-	 L8AJ/wpsuhCNZzkNIJKABIx/KbP3Wn1Tgw8FYRm6k+4ZW97zcjGvh/dJCtKJXrB0Gy
-	 6WKxaAgGLROGpfKx9rPJ1mi/mB0Ouq1YN+8vXWmk=
-Date: Mon, 23 Dec 2024 16:44:53 -0800
+	b=lIE9Ito3+iceBs+jnEzdihWozwnfYKsXI14ODZLarCpeROIPOtgNy/a7mdA8LoqxQ
+	 comOHbJFjsSSNiKkhpLWqaiHej10u1hZeGEE8CM0qvaUXLLh5mYRqUL7+q0Yjtw6D7
+	 pC1GUQnzaRJ9sShnwVm6Eo8qQTfH+jjObVX4Gab8=
+Date: Mon, 23 Dec 2024 16:44:55 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-skip-pgtable-level-check-in-pudp4d_alloc_one.patch added to mm-unstable branch
-Message-Id: <20241224004454.5D0B3C4CED3@smtp.kernel.org>
+Subject: + asm-generic-pgalloc-provide-generic-p4d_alloc_onefree.patch added to mm-unstable branch
+Message-Id: <20241224004456.8DC28C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: mm: Skip pgtable level check in {pud,p4d}_alloc_one
+     Subject: asm-generic: pgalloc: provide generic p4d_{alloc_one,free}
 has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-mm-skip-pgtable-level-check-in-pudp4d_alloc_one.patch
+     asm-generic-pgalloc-provide-generic-p4d_alloc_onefree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-skip-pgtable-level-check-in-pudp4d_alloc_one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/asm-generic-pgalloc-provide-generic-p4d_alloc_onefree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: riscv: mm: Skip pgtable level check in {pud,p4d}_alloc_one
-Date: Mon, 23 Dec 2024 17:40:48 +0800
+Subject: asm-generic: pgalloc: provide generic p4d_{alloc_one,free}
+Date: Mon, 23 Dec 2024 17:40:49 +0800
 
-{pmd,pud,p4d}_alloc_one() is never called if the corresponding page table
-level is folded, as {pmd,pud,p4d}_alloc() already does the required check.
-We can therefore remove the runtime page table level checks in
-{pud,p4d}_alloc_one.  The PUD helper becomes equivalent to the generic
-version, so we remove it altogether.
+Four architectures currently implement 5-level pgtables: arm64, riscv, x86
+and s390.  The first three have essentially the same implementation for
+p4d_alloc_one() and p4d_free(), so we've got an opportunity to reduce
+duplication like at the lower levels.
 
-This is consistent with the way arm64 and x86 handle this situation
-(runtime check in p4d_free() only).
+Provide a generic version of p4d_alloc_one() and p4d_free(), and make use
+of it on those architectures.
 
-Link: https://lkml.kernel.org/r/84ddf857508b98a195a790bc6ff6ab8849b44633.1734945104.git.zhengqi.arch@bytedance.com
+Their implementation is the same as at PUD level, except that p4d_free()
+performs a runtime check by calling mm_p4d_folded().  5-level pgtables
+depend on a runtime-detected hardware feature on all supported
+architectures, so we might as well include this check in the generic
+implementation.  No runtime check is required in p4d_alloc_one() as the
+top-level p4d_alloc() already does the required check.
+
+Link: https://lkml.kernel.org/r/4c4bcc1aa565c6252183553aecd5e5cbd1a0f6ea.1734945104.git.zhengqi.arch@bytedance.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
@@ -96,55 +102,151 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgalloc.h |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ arch/arm64/include/asm/pgalloc.h |   17 ----------
+ arch/riscv/include/asm/pgalloc.h |   23 --------------
+ arch/x86/include/asm/pgalloc.h   |   18 -----------
+ include/asm-generic/pgalloc.h    |   45 +++++++++++++++++++++++++++++
+ 4 files changed, 45 insertions(+), 58 deletions(-)
 
---- a/arch/riscv/include/asm/pgalloc.h~riscv-mm-skip-pgtable-level-check-in-pudp4d_alloc_one
+--- a/arch/arm64/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-p4d_alloc_onefree
++++ a/arch/arm64/include/asm/pgalloc.h
+@@ -85,23 +85,6 @@ static inline void pgd_populate(struct m
+ 	__pgd_populate(pgdp, __pa(p4dp), pgdval);
+ }
+ 
+-static inline p4d_t *p4d_alloc_one(struct mm_struct *mm, unsigned long addr)
+-{
+-	gfp_t gfp = GFP_PGTABLE_USER;
+-
+-	if (mm == &init_mm)
+-		gfp = GFP_PGTABLE_KERNEL;
+-	return (p4d_t *)get_zeroed_page(gfp);
+-}
+-
+-static inline void p4d_free(struct mm_struct *mm, p4d_t *p4d)
+-{
+-	if (!pgtable_l5_enabled())
+-		return;
+-	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
+-	free_page((unsigned long)p4d);
+-}
+-
+ #define __p4d_free_tlb(tlb, p4d, addr)  p4d_free((tlb)->mm, p4d)
+ #else
+ static inline void __pgd_populate(pgd_t *pgdp, phys_addr_t p4dp, pgdval_t prot)
+--- a/arch/riscv/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-p4d_alloc_onefree
 +++ a/arch/riscv/include/asm/pgalloc.h
-@@ -12,7 +12,6 @@
- #include <asm/tlb.h>
- 
- #ifdef CONFIG_MMU
--#define __HAVE_ARCH_PUD_ALLOC_ONE
- #define __HAVE_ARCH_PUD_FREE
- #include <asm-generic/pgalloc.h>
- 
-@@ -88,15 +87,6 @@ static inline void pgd_populate_safe(str
+@@ -105,29 +105,6 @@ static inline void __pud_free_tlb(struct
  	}
  }
  
--#define pud_alloc_one pud_alloc_one
--static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
+-#define p4d_alloc_one p4d_alloc_one
+-static inline p4d_t *p4d_alloc_one(struct mm_struct *mm, unsigned long addr)
 -{
--	if (pgtable_l4_enabled)
--		return __pud_alloc_one(mm, addr);
+-	gfp_t gfp = GFP_PGTABLE_USER;
 -
--	return NULL;
+-	if (mm == &init_mm)
+-		gfp = GFP_PGTABLE_KERNEL;
+-	return (p4d_t *)get_zeroed_page(gfp);
 -}
 -
- #define pud_free pud_free
- static inline void pud_free(struct mm_struct *mm, pud_t *pud)
- {
-@@ -118,15 +108,11 @@ static inline void __pud_free_tlb(struct
- #define p4d_alloc_one p4d_alloc_one
- static inline p4d_t *p4d_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	if (pgtable_l5_enabled) {
--		gfp_t gfp = GFP_PGTABLE_USER;
+-static inline void __p4d_free(struct mm_struct *mm, p4d_t *p4d)
+-{
+-	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
+-	free_page((unsigned long)p4d);
+-}
 -
--		if (mm == &init_mm)
--			gfp = GFP_PGTABLE_KERNEL;
--		return (p4d_t *)get_zeroed_page(gfp);
--	}
-+	gfp_t gfp = GFP_PGTABLE_USER;
- 
--	return NULL;
-+	if (mm == &init_mm)
-+		gfp = GFP_PGTABLE_KERNEL;
-+	return (p4d_t *)get_zeroed_page(gfp);
+-#define p4d_free p4d_free
+-static inline void p4d_free(struct mm_struct *mm, p4d_t *p4d)
+-{
+-	if (pgtable_l5_enabled)
+-		__p4d_free(mm, p4d);
+-}
+-
+ static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d,
+ 				  unsigned long addr)
+ {
+--- a/arch/x86/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-p4d_alloc_onefree
++++ a/arch/x86/include/asm/pgalloc.h
+@@ -147,24 +147,6 @@ static inline void pgd_populate_safe(str
+ 	set_pgd_safe(pgd, __pgd(_PAGE_TABLE | __pa(p4d)));
  }
  
- static inline void __p4d_free(struct mm_struct *mm, p4d_t *p4d)
+-static inline p4d_t *p4d_alloc_one(struct mm_struct *mm, unsigned long addr)
+-{
+-	gfp_t gfp = GFP_KERNEL_ACCOUNT;
+-
+-	if (mm == &init_mm)
+-		gfp &= ~__GFP_ACCOUNT;
+-	return (p4d_t *)get_zeroed_page(gfp);
+-}
+-
+-static inline void p4d_free(struct mm_struct *mm, p4d_t *p4d)
+-{
+-	if (!pgtable_l5_enabled())
+-		return;
+-
+-	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
+-	free_page((unsigned long)p4d);
+-}
+-
+ extern void ___p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d);
+ 
+ static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d,
+--- a/include/asm-generic/pgalloc.h~asm-generic-pgalloc-provide-generic-p4d_alloc_onefree
++++ a/include/asm-generic/pgalloc.h
+@@ -215,6 +215,51 @@ static inline void pud_free(struct mm_st
+ 
+ #endif /* CONFIG_PGTABLE_LEVELS > 3 */
+ 
++#if CONFIG_PGTABLE_LEVELS > 4
++
++static inline p4d_t *__p4d_alloc_one_noprof(struct mm_struct *mm, unsigned long addr)
++{
++	gfp_t gfp = GFP_PGTABLE_USER;
++	struct ptdesc *ptdesc;
++
++	if (mm == &init_mm)
++		gfp = GFP_PGTABLE_KERNEL;
++	gfp &= ~__GFP_HIGHMEM;
++
++	ptdesc = pagetable_alloc_noprof(gfp, 0);
++	if (!ptdesc)
++		return NULL;
++
++	return ptdesc_address(ptdesc);
++}
++#define __p4d_alloc_one(...)	alloc_hooks(__p4d_alloc_one_noprof(__VA_ARGS__))
++
++#ifndef __HAVE_ARCH_P4D_ALLOC_ONE
++static inline p4d_t *p4d_alloc_one_noprof(struct mm_struct *mm, unsigned long addr)
++{
++	return __p4d_alloc_one_noprof(mm, addr);
++}
++#define p4d_alloc_one(...)	alloc_hooks(p4d_alloc_one_noprof(__VA_ARGS__))
++#endif
++
++static inline void __p4d_free(struct mm_struct *mm, p4d_t *p4d)
++{
++	struct ptdesc *ptdesc = virt_to_ptdesc(p4d);
++
++	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
++	pagetable_free(ptdesc);
++}
++
++#ifndef __HAVE_ARCH_P4D_FREE
++static inline void p4d_free(struct mm_struct *mm, p4d_t *p4d)
++{
++	if (!mm_p4d_folded(mm))
++		__p4d_free(mm, p4d);
++}
++#endif
++
++#endif /* CONFIG_PGTABLE_LEVELS > 4 */
++
+ #ifndef __HAVE_ARCH_PGD_FREE
+ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ {
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
