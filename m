@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F0F318E35D
-	for <mm-commits@vger.kernel.org>; Mon, 23 Dec 2024 22:42:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE35C367
+	for <mm-commits@vger.kernel.org>; Tue, 24 Dec 2024 00:44:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734993755; cv=none; b=K9pcJTiIbXd3pAPMHvUE+50rsOp4tRXyudrLDMeamc0JojPzs4EpG9unlXglP3nClp4mJ87upHxPb0FQroJ5seqdxEb9JNHg7eURwlTB/A3IBdIsnJgTBJWUFETnU4i+gKJUzNVPPdw4W4WHLePmSym3rHrYbsMSlffgl2Vxoh0=
+	t=1735001092; cv=none; b=KlvZT9zNbAdiv+3qZpCRNPySfVRcGn5c8u3qgK6fVhcTL6s2CNSt0HMlT4gdMN+chi/KVXaNOwXsws7eqYDBeU0ibpVOuAeix1ocAMt/gV0Y4qt6eBNNYpoD+vMX1Y8g2f9aFrJPP95z67LqWURrDvHqf0kcM7Ao+gdY4TN/wo8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734993755; c=relaxed/simple;
-	bh=lM3qB+hxTHZZWZwrZ01Yq0Bwgujy7od+jIP1Nvdk9AM=;
-	h=Date:To:From:Subject:Message-Id; b=Cz+Xglnn9csQ+yxCkWKTYXacnR3F3Glt6ldarT0aWpR0cC9dimDkoVIr5u9DTQuq0Trf1x7S7YlRdrGwnd8Od1T8T4wcy9uBa4QIvQTXXZs3D9/rN0OPFUvtz7bEcxdzVgG9GHlnOQETB7U3xTj71GS1wXWYtLvj5IwV1jKtyMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PC1nvSVj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735001092; c=relaxed/simple;
+	bh=qV2GDxlk5VbGEX/T3RmDzRWP0jtnSLY216EeIROb/4I=;
+	h=Date:To:From:Subject:Message-Id; b=Ap5u5xPG+dmtqTwY5xW5/7XsbnDLSmqRcLoQq38ve6mSbzgjj8IxWGOC/y028Ii5zHwSnGTn/Ss6ASIRHD/UVqYAJR3TlvgFO/lZPI1mVLLo0zAKbF9UHDYLmSqzD2EWdVGrJ2SjoU2IHttrvTLwfqIv+pF6p+3pNniWc3p76Fo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVs8Wddb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PC1nvSVj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 097E9C4CED3;
-	Mon, 23 Dec 2024 22:42:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVs8Wddb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53D85C4CED3;
+	Tue, 24 Dec 2024 00:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1734993755;
-	bh=lM3qB+hxTHZZWZwrZ01Yq0Bwgujy7od+jIP1Nvdk9AM=;
+	s=korg; t=1735001091;
+	bh=qV2GDxlk5VbGEX/T3RmDzRWP0jtnSLY216EeIROb/4I=;
 	h=Date:To:From:Subject:From;
-	b=PC1nvSVjeu2OrWpix2JgAWAGphwRpmAAdMrX6+VyISiEmfeWtv00qGZrHNv0EeOpJ
-	 tZShiuFaBNv1Val4Zm0u76glAbLgRLIHN0PQ0FFMaCmKtEACdlkJ31UsAo6JTwm7cw
-	 EwCFf5keedddM3DfTuii9atDm0jncffz+bJG+qe4=
-Date: Mon, 23 Dec 2024 14:42:34 -0800
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,zhengqi.arch@bytedance.com,yuzhao@google.com,willy@infradead.org,shakeel.butt@linux.dev,sashal@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=QVs8WddbWbo46yP4ZxK7leH1d0nw7YHWSG6HX2jK+ENn4bNAN7EHPAQlS+817n++Z
+	 UH16djKmXfP/p7HAmIzD3V9R7TcWXAnpQYur+vzw05oxMfSP2vO+P2BteSgNIK710g
+	 16s9lA7YY4GaaXO73yOZMUc9WJDmjrj4aU8RVQYw=
+Date: Mon, 23 Dec 2024 16:44:50 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,agordeev@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-fix-false-warning-of-negative-counter.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241223224235.097E9C4CED3@smtp.kernel.org>
+Subject: + revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch added to mm-unstable branch
+Message-Id: <20241224004451.53D85C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/list_lru: fix false warning of negative counter
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-list_lru-fix-false-warning-of-negative-counter.patch
+     Subject: Revert "mm: pgtable: make ptlock be freed by RCU"
+has been added to the -mm mm-unstable branch.  Its filename is
+     revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-fix-false-warning-of-negative-counter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,167 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/list_lru: fix false warning of negative counter
-Date: Mon, 23 Dec 2024 23:09:07 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: Revert "mm: pgtable: make ptlock be freed by RCU"
+Date: Mon, 23 Dec 2024 17:40:47 +0800
 
-commit 2788cf0c401c ("memcg: reparent list_lrus and free kmemcg_id on css
-offline") removed sanity checks for the nr_items counter's value because
-it implemented list_lru re-parenting in a way that will redirect
-children's list_lru to the parent before re-parenting the items in
-list_lru.  This will make item counter uncharging happen in the parent
-while the item is still being held by the child.  As a result, the
-parent's counter value may become negative.  This is acceptable because
-re-parenting will sum up the children's counter values, and the parent's
-counter will be fixed.
+Patch series "move pagetable_*_dtor() to __tlb_remove_table()", v3.
 
-Later commit fb56fdf8b9a2 ("mm/list_lru: split the lock to per-cgroup
-scope") reworked the re-parenting process, and removed the redirect.  So
-it added the sanity check back, assuming that as long as items are still
-in the children's list_lru, parent's counter will not be uncharged.
+As proposed by Peter Zijlstra[1], this patch series aims to move
+pagetable_*_dtor() into __tlb_remove_table().  This will clean up
+pagetable_*_dtor() a bit and more gracefully fix the UAF issue [2]
+reported by syzbot.
 
-But that assumption is incorrect.  The xas_store in
-memcg_reparent_list_lrus will set children's list_lru to NULL before
-re-parenting the items, it redirects list_lru helpers to use parent's
-list_lru just like before.  But still, it's not a problem as re-parenting
-will fix the counter.
+[1]. https://lore.kernel.org/all/20241211133433.GC12500@noisy.programming.kicks-ass.net/
+[2]. https://lore.kernel.org/all/67548279.050a0220.a30f1.015b.GAE@google.com/
 
-Therefore, remove this sanity check, but add a new check to ensure that
-the counter won't go negative in a different way: the child's list_lru
-being re-parented should never have a negative counter, since re-parenting
-should occur in order and fixes counters.
 
-Link: https://lkml.kernel.org/r/20241223150907.1591-1-ryncsn@gmail.com
-Fixes: fb56fdf8b9a2 ("mm/list_lru: split the lock to per-cgroup scope")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Closes: https://lore.kernel.org/lkml/Z2Bz9t92Be9l1xqj@lappy/
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
+This patch (of 17):
+
+This reverts commit 2f3443770437e49abc39af26962d293851cbab6d.
+
+Link: https://lkml.kernel.org/r/cover.1734945104.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/b59adb960b2075822a6e57efc7a52e7eb7780068.1734945104.git.zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Aneesh Kumar K.V (Arm) <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h       |    2 +-
+ include/linux/mm_types.h |    9 +--------
+ mm/memory.c              |   22 ++++++----------------
+ 3 files changed, 8 insertions(+), 25 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-fix-false-warning-of-negative-counter
-+++ a/mm/list_lru.c
-@@ -77,7 +77,6 @@ again:
- 			spin_lock(&l->lock);
- 		nr_items = READ_ONCE(l->nr_items);
- 		if (likely(nr_items != LONG_MIN)) {
--			WARN_ON(nr_items < 0);
- 			rcu_read_unlock();
- 			return l;
- 		}
-@@ -450,6 +449,7 @@ static void memcg_reparent_list_lru_one(
+--- a/include/linux/mm.h~revert-mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/include/linux/mm.h
+@@ -2925,7 +2925,7 @@ void ptlock_free(struct ptdesc *ptdesc);
  
- 	list_splice_init(&src->list, &dst->list);
- 	if (src->nr_items) {
-+		WARN_ON(src->nr_items < 0);
- 		dst->nr_items += src->nr_items;
- 		set_shrinker_bit(dst_memcg, nid, lru_shrinker_id(lru));
- 	}
+ static inline spinlock_t *ptlock_ptr(struct ptdesc *ptdesc)
+ {
+-	return &(ptdesc->ptl->ptl);
++	return ptdesc->ptl;
+ }
+ #else /* ALLOC_SPLIT_PTLOCKS */
+ static inline void ptlock_cache_init(void)
+--- a/include/linux/mm_types.h~revert-mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/include/linux/mm_types.h
+@@ -434,13 +434,6 @@ FOLIO_MATCH(flags, _flags_2a);
+ FOLIO_MATCH(compound_head, _head_2a);
+ #undef FOLIO_MATCH
+ 
+-#if ALLOC_SPLIT_PTLOCKS
+-struct pt_lock {
+-	spinlock_t ptl;
+-	struct rcu_head rcu;
+-};
+-#endif
+-
+ /**
+  * struct ptdesc -    Memory descriptor for page tables.
+  * @__page_flags:     Same as page flags. Powerpc only.
+@@ -489,7 +482,7 @@ struct ptdesc {
+ 	union {
+ 		unsigned long _pt_pad_2;
+ #if ALLOC_SPLIT_PTLOCKS
+-		struct pt_lock *ptl;
++		spinlock_t *ptl;
+ #else
+ 		spinlock_t ptl;
+ #endif
+--- a/mm/memory.c~revert-mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/mm/memory.c
+@@ -7014,34 +7014,24 @@ static struct kmem_cache *page_ptl_cache
+ 
+ void __init ptlock_cache_init(void)
+ {
+-	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(struct pt_lock), 0,
++	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(spinlock_t), 0,
+ 			SLAB_PANIC, NULL);
+ }
+ 
+ bool ptlock_alloc(struct ptdesc *ptdesc)
+ {
+-	struct pt_lock *pt_lock;
++	spinlock_t *ptl;
+ 
+-	pt_lock = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
+-	if (!pt_lock)
++	ptl = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
++	if (!ptl)
+ 		return false;
+-	ptdesc->ptl = pt_lock;
++	ptdesc->ptl = ptl;
+ 	return true;
+ }
+ 
+-static void ptlock_free_rcu(struct rcu_head *head)
+-{
+-	struct pt_lock *pt_lock;
+-
+-	pt_lock = container_of(head, struct pt_lock, rcu);
+-	kmem_cache_free(page_ptl_cachep, pt_lock);
+-}
+-
+ void ptlock_free(struct ptdesc *ptdesc)
+ {
+-	struct pt_lock *pt_lock = ptdesc->ptl;
+-
+-	call_rcu(&pt_lock->rcu, ptlock_free_rcu);
++	kmem_cache_free(page_ptl_cachep, ptdesc->ptl);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-list_lru-fix-false-warning-of-negative-counter.patch
-mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
-mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch
-mm-swap_cgroup-remove-global-swap-cgroup-lock.patch
-mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch
+mm-pgtable-make-ptep_clear-non-atomic.patch
+mm-khugepaged-recheck-pmd-state-in-retract_page_tables.patch
+mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte.patch
+mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix.patch
+mm-introduce-zap_nonpresent_ptes.patch
+mm-introduce-do_zap_pte_range.patch
+mm-skip-over-all-consecutive-none-ptes-in-do_zap_pte_range.patch
+mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch
+mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch
+mm-make-zap_pte_range-handle-full-within-pmd-range.patch
+mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch
+mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
+x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch
+mm-pgtable-make-ptlock-be-freed-by-rcu.patch
+x86-select-arch_supports_pt_reclaim-if-x86_64.patch
+revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch
+mm-pgtable-add-statistics-for-p4d-level-page-table.patch
+arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table.patch
+s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table.patch
+mm-pgtable-introduce-pagetable_dtor.patch
+arm-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+arm64-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+riscv-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+x86-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+s390-pgtable-also-move-pagetable_dtor-of-pxd-to-__tlb_remove_table.patch
+mm-pgtable-introduce-generic-__tlb_remove_table.patch
+mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
+mm-pgtable-remove-tlb_remove_page_ptdesc.patch
+mm-pgtable-remove-tlb_remove_ptdesc.patch
+mm-pgtable-introduce-generic-pagetable_dtor_free.patch
 
