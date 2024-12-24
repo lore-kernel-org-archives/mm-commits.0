@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABCB7372;
-	Tue, 24 Dec 2024 01:09:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94391A95E;
+	Tue, 24 Dec 2024 01:09:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735002551; cv=none; b=lmFaPyfPgJldILB6CdtCYNccl/ldFpfPiwRIpY/t2JyQzQ8cV4SOcupfD0DgEdC5kFHdz13NkO037WfViC9qdQlL+btvUsKuJnFPL+282F0LtsnhyzjwZUf8JAl8EssSiRhe0RcE3MxfpwTV0eZMYidrZz8gPLhjLvv7q9A1Z1E=
+	t=1735002553; cv=none; b=OO6JOMDQPPyR/3ookofEMtEZi2ykvcV0cJSncgofzd7IXF+wPMiz63YSUg97yJZzPhEskfs+pmtDgmtro3ItX9OLDw82tK3r75Zbgqo6oc43ZrjOFqku9UrkFHPmoA4fBVsYOKDJB+6Yj3rKIG2pk4KMiwKRNM+ckx2QQzV4Yi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735002551; c=relaxed/simple;
-	bh=Kr/+4B5L79XPyQ3i5e4ZvHG1fIHyqshiqLWcGoOj3EA=;
-	h=Date:To:From:Subject:Message-Id; b=SD8FEhcB8C+q9fbJFh4rOIrzfbOfk13xlKacLeF8P8PwoDXnKOifgR/aBWlhma6NlADsAzLjPJdP4QNf7hLJ0ShI0aLujFqR39oQReKFaXFwOs0vbASqkC4NOtBYVaacta/edFSs0aoWo/nMwUWYhStEXI5r0mpme8pvMKV3Bog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jqltGmka; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735002553; c=relaxed/simple;
+	bh=4rDVZHD3AVDNcoO8R/b1XAopoXmn5s+omf3WqGDMjz0=;
+	h=Date:To:From:Subject:Message-Id; b=BRUsd0XvDb9DI5ZarTXLopY3Nxn7OfQJdXaXx0FVDHGBncm6ZptO2i5u0eMNCsK+VwxERDyL5PjgdscSBg6EFjE+oiO7roAdlsewC6Ez0UHlLSTbsmgVOiXuMyozneIaXs5u+jmM5cXjJAGaGZ0NOqvHP7vVWUQz/sKgi157q1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yIgKyyui; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jqltGmka"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26452C4CED3;
-	Tue, 24 Dec 2024 01:09:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yIgKyyui"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0457DC4CED3;
+	Tue, 24 Dec 2024 01:09:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735002551;
-	bh=Kr/+4B5L79XPyQ3i5e4ZvHG1fIHyqshiqLWcGoOj3EA=;
+	s=korg; t=1735002553;
+	bh=4rDVZHD3AVDNcoO8R/b1XAopoXmn5s+omf3WqGDMjz0=;
 	h=Date:To:From:Subject:From;
-	b=jqltGmka0CLDWTWGsLRXjcj2mh7MTUizuNMxgppYm78+jwIDQCOwd0dziDXrwWXdW
-	 SGL9GTwGtoBN1L3IS+bauc7DOTsNLjwELSGQU69n720MgDprvG9UerbwdxOiDvGT+M
-	 D74Jj1Di9wFcEZhrcVTK8KFvlBo93tVJnbsto4rI=
-Date: Mon, 23 Dec 2024 17:09:10 -0800
+	b=yIgKyyuivzmN3yyqQ3jWpAgeH9v1FwpkJoAXpeaabzsDis+CGLVkbTPeyXWnYCRMi
+	 ZqfrgVMnhlj+XXQWoiJe5Uaevj8bE28+je83uHARMppYa4QG8HsneLSLoSjUKcu/4w
+	 KChbR4/vl4NJX/1mOQFK7thXSIFq9JTwjWidwKik=
+Date: Mon, 23 Dec 2024 17:09:12 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-fix-new-damon_target-objects-leaks-on-damon_commit_targets.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241224010911.26452C4CED3@smtp.kernel.org>
+Subject: + mm-damon-core-fix-ignored-quota-goals-and-filters-of-newly-committed-schemes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241224010913.0457DC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: fix new damon_target objects leaks on damon_commit_targets()
+     Subject: mm/damon/core: fix ignored quota goals and filters of newly committed schemes
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-fix-new-damon_target-objects-leaks-on-damon_commit_targets.patch
+     mm-damon-core-fix-ignored-quota-goals-and-filters-of-newly-committed-schemes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-new-damon_target-objects-leaks-on-damon_commit_targets.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-ignored-quota-goals-and-filters-of-newly-committed-schemes.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,56 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: fix new damon_target objects leaks on damon_commit_targets()
-Date: Sun, 22 Dec 2024 15:12:21 -0800
+Subject: mm/damon/core: fix ignored quota goals and filters of newly committed schemes
+Date: Sun, 22 Dec 2024 15:12:22 -0800
 
-Patch series "mm/damon/core: fix memory leaks and ignored inputs from
-damon_commit_ctx()".
+damon_commit_schemes() ignores quota goals and filters of the newly
+committed schemes.  This makes users confused about the behaviors. 
+Correctly handle those inputs.
 
-Due to two bugs in damon_commit_targets() and damon_commit_schemes(),
-which are called from damon_commit_ctx(), some user inputs can be ignored,
-and some mmeory objects can be leaked.  Fix those.
-
-Note that only DAMON sysfs interface users are affected.  Other DAMON core
-API user modules that more focused more on simple and dedicated production
-usages, including DAMON_RECLAIM and DAMON_LRU_SORT are not using the buggy
-function in the way, so not affected.
-
-
-This patch (of 2):
-
-When new DAMON targets are added via damon_commit_targets(), the newly
-created targets are not deallocated when updating the internal data
-(damon_commit_target()) is failed.  Worse yet, even if the setup is
-successfully done, the new target is not linked to the context.  Hence,
-the new targets are always leaked regardless of the internal data setup
-failure.  Fix the leaks.
-
-Link: https://lkml.kernel.org/r/20241222231222.85060-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241222231222.85060-3-sj@kernel.org
 Fixes: 9cb3d0b9dfce ("mm/damon/core: implement DAMON context commit function")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-fix-new-damon_target-objects-leaks-on-damon_commit_targets
+--- a/mm/damon/core.c~mm-damon-core-fix-ignored-quota-goals-and-filters-of-newly-committed-schemes
 +++ a/mm/damon/core.c
-@@ -961,8 +961,11 @@ static int damon_commit_targets(
+@@ -868,6 +868,11 @@ static int damon_commit_schemes(struct d
+ 				NUMA_NO_NODE);
+ 		if (!new_scheme)
  			return -ENOMEM;
- 		err = damon_commit_target(new_target, false,
- 				src_target, damon_target_has_pid(src));
--		if (err)
++		err = damos_commit(new_scheme, src_scheme);
 +		if (err) {
-+			damon_destroy_target(new_target);
- 			return err;
++			damon_destroy_scheme(new_scheme);
++			return err;
 +		}
-+		damon_add_target(dst, new_target);
+ 		damon_add_scheme(dst, new_scheme);
  	}
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
