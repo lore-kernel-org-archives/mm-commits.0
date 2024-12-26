@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A2FA77111
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:50:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7569A189BB0
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:53:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249848; cv=none; b=muBf/5Z6iJRTWjH82Mdkpu6W0HC/Nc6khChTrIQqNHyvtbZ+KGhK+XMQ8jlw1+SDTKpbvMuLf59tLZRY1PvdRNHsJJVTn+uuyfhCSG6X8UibMbO2Bjq7eLbeO4juqe70TFBdQHCvw9J5aJk7bSN7fbUanZyZxFBLJ2aLjMqF8wg=
+	t=1735249991; cv=none; b=jAY5K5cJCVo3AvGJxqR3YL7k6zGkAysk1/MNxlNUr80vhEdkxLH53KG3f/L0elTcbOEF0oPgInwQvVJSnhTvZCYFQ3D6XLXrg4ELxF28qs2UBnyzd/GvH33jyPKBfxFEs3FuxRYSAoQYgyG/4y+uvhFDtogHDO2AjPy3F6GX0G4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735249848; c=relaxed/simple;
-	bh=thCbRquCgfE2I/RUmvrokmwP2Lba7S9STg4mP7E4AxA=;
-	h=Date:To:From:Subject:Message-Id; b=XogZs9gxoFSGyPoVvtwJssYcCYf9DmqYlMoV+RIbwARrvInsVmM/A1+0mjhYkDjbk57o5dKSN7pMxk8VXtysWdc+pNTdfjqPCu47BbeL1ctOdaDJygsaayZh/GIq4fsWfdTN8A45SSz2EGTSDkaXFSr8iLlMoe8/+s5Lyni8bkY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KbYnAFRg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735249991; c=relaxed/simple;
+	bh=Rx6GiwbtmUjmhxG3ZIYIdL5WH571bYD8fISYSklIgBY=;
+	h=Date:To:From:Subject:Message-Id; b=bbqIVDdsJsxCY/gOgU6XgVZVCrO7Q+VmAjkI38xuQC9T26El2HiKeQ8y8uetlOYhx+FaBX7GvKmXVx6bQQt/RTDYAyZ9+nM718sMpSuyKkDqsNAPiJ6L8Vo/S+mbvK+jXBpI9zMDjpWguPL/hv0y2+SKDyWdyIxIMJSo64m2GLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j0lRy0nq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KbYnAFRg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5613C4CED1;
-	Thu, 26 Dec 2024 21:50:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j0lRy0nq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D55D6C4CED1;
+	Thu, 26 Dec 2024 21:53:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735249847;
-	bh=thCbRquCgfE2I/RUmvrokmwP2Lba7S9STg4mP7E4AxA=;
+	s=korg; t=1735249990;
+	bh=Rx6GiwbtmUjmhxG3ZIYIdL5WH571bYD8fISYSklIgBY=;
 	h=Date:To:From:Subject:From;
-	b=KbYnAFRgDvt1uYH0s8zzYBlMlm55ZtG8j0YWONRV8f5PflgWciOirLsWWDm6dgXKy
-	 1mml+vWlWwAvnBTXUfvMHe02AUtAgxnm32D8aHzbVLl776oXk2QkP7YSiNkADDsk+0
-	 mTk0FhE1Mq7pwgeyxseeGMieHr3BE/9QJpk+EmzY=
-Date: Thu, 26 Dec 2024 13:50:47 -0800
-To: mm-commits@vger.kernel.org,chester.a.unal@arinc9.com,akpm@linux-foundation.org
+	b=j0lRy0nqUmkDy9KZgF2XdP6RluPkmPApUva5DvIp7WbiNC7lcir+Lex0469Ydqqpk
+	 KtYGtY9abLLdJghEUsxhaj34JVXuzFORnV+kbFBKbkEewTMiABJQCUREnRlPqeGSdz
+	 03FT7LUMCjSrNatTms5lp0zYKNBEDFQk601k9tRs=
+Date: Thu, 26 Dec 2024 13:53:10 -0800
+To: mm-commits@vger.kernel.org,yaowenchao@jd.com,15645113830zzh@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-change-arınc-_nals-name-and-email-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241226215047.B5613C4CED1@smtp.kernel.org>
+Subject: + mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241226215310.D55D6C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: change Arınç _NAL's name and email address
+     Subject: mm: page_alloc: fix missed updates of lowmem_reserve in adjust_managed_page_count
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-change-arınc-_nals-name-and-email-address.patch
+     mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-change-arınc-_nals-name-and-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Chester A. Unal" <chester.a.unal@arinc9.com>
-Subject: MAINTAINERS: change Arınç _NAL's name and email address
-Date: Wed, 25 Dec 2024 15:50:41 +0300
+From: zihan zhou <15645113830zzh@gmail.com>
+Subject: mm: page_alloc: fix missed updates of lowmem_reserve in adjust_managed_page_count
+Date: Wed, 25 Dec 2024 10:10:35 +0800
 
-My legal name now includes Chester. Change the name and the email address
-sections to reflect that.
+In the kernel, the zone's lowmem_reserve and _watermark, and the global
+variable 'totalreserve_pages' depend on the value of managed_pages, but
+after running adjust_managed_page_count, these values aren't updated,
+which caused some problems.
 
-Link: https://lkml.kernel.org/r/20241225-for-unknown-upstream-v1-1-3e35e4d5e161@arinc9.com
-Signed-off-by: Chester A. Unal <chester.a.unal@arinc9.com>
+For example, in a system with six 1GB large pages, we found that the value
+of protection in zoneinfo (zone->lowmem_reserve), is not right.  Its value
+seems calculated from the initial managed_pages, but after the
+managed_pages changed, was not updated.  Only after reading the file
+/proc/sys/vm/lowmem_reserve_ratio, updates happen.
+
+read file /proc/sys/vm/lowmem_reserve_ratio:
+
+lowmem_reserve_ratio_sysctl_handler
+----setup_per_zone_lowmem_reserve
+--------calculate_totalreserve_pages
+
+protection changed after reading file:
+
+[root@test ~]# cat /proc/zoneinfo | grep protection
+        protection: (0, 2719, 57360, 0)
+        protection: (0, 0, 54640, 0)
+        protection: (0, 0, 0, 0)
+        protection: (0, 0, 0, 0)
+[root@test ~]# cat /proc/sys/vm/lowmem_reserve_ratio
+256     256     32      0
+[root@test ~]# cat /proc/zoneinfo | grep protection
+        protection: (0, 2735, 63524, 0)
+        protection: (0, 0, 60788, 0)
+        protection: (0, 0, 0, 0)
+        protection: (0, 0, 0, 0)
+
+lowmem_reserve increased also makes the totalreserve_pages increased,
+which causes a decrease in available memory.  The one above is just a test
+machine, and the increase is not significant.  On our online machine, the
+reserved memory will increase by several GB due to reading this file.  It
+is clearly unreasonable to cause a sharp drop in available memory just by
+reading a file.
+
+In this patch, we update reserve memory when update managed_pages, The
+size of reserved memory becomes stable.  But it seems that the _watermark
+should also be updated along with the managed_pages.  We have not done it
+because we are unsure if it is reasonable to set the watermark through the
+initial managed_pages.  If it is not reasonable, we will propose new
+patch.
+
+Link: https://lkml.kernel.org/r/20241225021034.45693-1-15645113830zzh@gmail.com
+Signed-off-by: zihan zhou <15645113830zzh@gmail.com>
+Signed-off-by: yaowenchao <yaowenchao@jd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/MAINTAINERS~maintainers-change-arınc-_nals-name-and-email-address
-+++ a/MAINTAINERS
-@@ -14756,7 +14756,7 @@ F:	drivers/memory/mtk-smi.c
- F:	include/soc/mediatek/smi.h
+--- a/mm/page_alloc.c~mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count
++++ a/mm/page_alloc.c
+@@ -5692,10 +5692,13 @@ __meminit void zone_pcp_init(struct zone
+ 			 zone->present_pages, zone_batchsize(zone));
+ }
  
- MEDIATEK SWITCH DRIVER
--M:	Arınç ÜNAL <arinc.unal@arinc9.com>
-+M:	Chester A. Unal <chester.a.unal@arinc9.com>
- M:	Daniel Golle <daniel@makrotopia.org>
- M:	DENG Qingfang <dqfext@gmail.com>
- M:	Sean Wang <sean.wang@mediatek.com>
-@@ -18460,7 +18460,7 @@ F:	Documentation/devicetree/bindings/pin
- F:	drivers/pinctrl/mediatek/
++static void setup_per_zone_lowmem_reserve(void);
++
+ void adjust_managed_page_count(struct page *page, long count)
+ {
+ 	atomic_long_add(count, &page_zone(page)->managed_pages);
+ 	totalram_pages_add(count);
++	setup_per_zone_lowmem_reserve();
+ }
+ EXPORT_SYMBOL(adjust_managed_page_count);
  
- PIN CONTROLLER - MEDIATEK MIPS
--M:	Arınç ÜNAL <arinc.unal@arinc9.com>
-+M:	Chester A. Unal <chester.a.unal@arinc9.com>
- M:	Sergio Paracuellos <sergio.paracuellos@gmail.com>
- L:	linux-mediatek@lists.infradead.org (moderated for non-subscribers)
- L:	linux-mips@vger.kernel.org
-@@ -19504,7 +19504,7 @@ S:	Maintained
- F:	arch/mips/ralink
- 
- RALINK MT7621 MIPS ARCHITECTURE
--M:	Arınç ÜNAL <arinc.unal@arinc9.com>
-+M:	Chester A. Unal <chester.a.unal@arinc9.com>
- M:	Sergio Paracuellos <sergio.paracuellos@gmail.com>
- L:	linux-mips@vger.kernel.org
- S:	Maintained
 _
 
-Patches currently in -mm which might be from chester.a.unal@arinc9.com are
+Patches currently in -mm which might be from 15645113830zzh@gmail.com are
 
-maintainers-change-arınc-_nals-name-and-email-address.patch
+mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch
 
