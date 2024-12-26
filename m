@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CF3681728
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:15:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B0F16F265
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:15:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735247752; cv=none; b=dLltlB+rtjiBFMoHnILQfZsnkXqYtGHzIqVp1hSlw3SGH3/uUE9UDSZbU70KHl9DckhTb9l0118agSII/BPwYUkr8cDLsO7aBLXorKL/CP8vAySo9MzddX7+dzuCH9xvTfa/LBKiAKDdbRXw7h2sdsAbse50Dqm0nRziaxmF47o=
+	t=1735247756; cv=none; b=t1dUv1vRevCUQSLAeqaxnzOOfEKGjh7mOXCVLmrJTdC4/8A1oYpHxH6SA9ORx8oJOEIKYJMcKiePIYOfGIvvvXo6xxHpxaXuhYHnBXz3XrMfF+LQvntLI8uB920kgEfnFibr2Kre4/IESm7E4CMv4pmL6DeZ24hX9oiQGtGSZIo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735247752; c=relaxed/simple;
-	bh=3LgIPVmBS3zkNb/3iV+zUZBxnixG3ieRQxZ6gIq32Rw=;
-	h=Date:To:From:Subject:Message-Id; b=Ps7DZuok4u3rqBBubIgaV0HfAq3ALtgSRaHwC8SVBX/BTn9OlPZciBZ6gf+BADol2SoGnr4l6zzp/N26BA+Wto5C+o3TQOlIMw5dt7gihUEyC8FjWFeFAFwc4F/RFls99BF9MhO7IPwUpiaO4QmNpwN99G7oQKPgsM2gWbDwW6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TutC1GG3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735247756; c=relaxed/simple;
+	bh=/fGd2mNeCAwq9JzdI+sqxRMhOnhHkS5bTtF+urDoP54=;
+	h=Date:To:From:Subject:Message-Id; b=MleALq5BVAjym+ObPLiJJnyfXvxowPNn8rEZHYZdB49BifQTxt3PmdxIRXQQrXiGGsUW4hFjBK8whJuoloRHKfyUP6Ei5hsXGS10sXJVVprkvDwYIkNO+FyGMJTH4YzofmwlSfhzYhvFpzKHsi+fer1RA8iPRjY+vw4DrMxCFXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2Sd2B1d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TutC1GG3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB238C4CED1;
-	Thu, 26 Dec 2024 21:15:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2Sd2B1d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52591C4CED1;
+	Thu, 26 Dec 2024 21:15:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735247752;
-	bh=3LgIPVmBS3zkNb/3iV+zUZBxnixG3ieRQxZ6gIq32Rw=;
+	s=korg; t=1735247755;
+	bh=/fGd2mNeCAwq9JzdI+sqxRMhOnhHkS5bTtF+urDoP54=;
 	h=Date:To:From:Subject:From;
-	b=TutC1GG3w9VV1uKWGJ/Ajk3l08C9UV4DGoc4BtOBhd4/8t48L9Y7ry3I4GvEVeTtx
-	 Rk6ypS1rMdNiw4VQZGQGySmu48jr+33d5qi36YuMbd6mi7YRmTgnml3x3VcxLcPBe/
-	 09yxV/eWjImSpg84Z08w8FICcrD0TV5uBGVtF/IQ=
-Date: Thu, 26 Dec 2024 13:15:51 -0800
+	b=X2Sd2B1dQ1hn5KtLlR1h7vHdL2KaojajLbBhjGppoCMTojQT/bhqNZU+M/X84SzEC
+	 +yUGT2TEK286fcUIAzgx3gpd1eLb5R6LLtUxg+QuueaTNLndCvojuN8wWRt+BbCP/R
+	 jZ4IO8sQGaAkJn6lx0wvpnGSvB5P6LuZbi7DZ6YE=
+Date: Thu, 26 Dec 2024 13:15:54 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma.patch added to mm-unstable branch
-Message-Id: <20241226211551.EB238C4CED1@smtp.kernel.org>
+Subject: + mm-mark-vmas-detached-upon-exit.patch added to mm-unstable branch
+Message-Id: <20241226211555.52591C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: modify vma_iter_store{_gfp} to indicate if it's storing a new vma
+     Subject: mm: mark vmas detached upon exit
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma.patch
+     mm-mark-vmas-detached-upon-exit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mark-vmas-detached-upon-exit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: modify vma_iter_store{_gfp} to indicate if it's storing a new vma
-Date: Thu, 26 Dec 2024 09:06:56 -0800
+Subject: mm: mark vmas detached upon exit
+Date: Thu, 26 Dec 2024 09:06:57 -0800
 
-vma_iter_store() functions can be used both when adding a new vma and when
-updating an existing one.  However for existing ones we do not need to
-mark them attached as they are already marked that way.  Add a parameter
-to distinguish the usage and skip vma_mark_attached() when not needed.
+When exit_mmap() removes vmas belonging to an exiting task, it does not
+mark them as detached since they can't be reached by other tasks and they
+will be freed shortly.  Once we introduce vma reuse, all vmas will have to
+be in detached state before they are freed to ensure vma when reused is in
+a consistent state.  Add missing vma_mark_detached() before freeing the
+vma.
 
-Link: https://lkml.kernel.org/r/20241226170710.1159679-5-surenb@google.com
+Link: https://lkml.kernel.org/r/20241226170710.1159679-6-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -99,176 +101,24 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 ++++++++++++
- mm/nommu.c         |    4 ++--
- mm/vma.c           |   16 ++++++++--------
- mm/vma.h           |   13 +++++++++----
- 4 files changed, 31 insertions(+), 14 deletions(-)
+ mm/vma.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma
-+++ a/include/linux/mm.h
-@@ -821,6 +821,16 @@ static inline void vma_assert_locked(str
- 		vma_assert_write_locked(vma);
- }
- 
-+static inline void vma_assert_attached(struct vm_area_struct *vma)
-+{
-+	VM_BUG_ON_VMA(vma->detached, vma);
-+}
-+
-+static inline void vma_assert_detached(struct vm_area_struct *vma)
-+{
-+	VM_BUG_ON_VMA(!vma->detached, vma);
-+}
-+
- static inline void vma_mark_attached(struct vm_area_struct *vma)
- {
- 	vma->detached = false;
-@@ -866,6 +876,8 @@ static inline void vma_end_read(struct v
- static inline void vma_start_write(struct vm_area_struct *vma) {}
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
- 		{ mmap_assert_write_locked(vma->vm_mm); }
-+static inline void vma_assert_attached(struct vm_area_struct *vma) {}
-+static inline void vma_assert_detached(struct vm_area_struct *vma) {}
- static inline void vma_mark_attached(struct vm_area_struct *vma) {}
- static inline void vma_mark_detached(struct vm_area_struct *vma) {}
- 
---- a/mm/nommu.c~mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma
-+++ a/mm/nommu.c
-@@ -1191,7 +1191,7 @@ share:
- 	setup_vma_to_mm(vma, current->mm);
- 	current->mm->map_count++;
- 	/* add the VMA to the tree */
--	vma_iter_store(&vmi, vma);
-+	vma_iter_store(&vmi, vma, true);
- 
- 	/* we flush the region from the icache only when the first executable
- 	 * mapping of it is made  */
-@@ -1356,7 +1356,7 @@ static int split_vma(struct vma_iterator
- 
- 	setup_vma_to_mm(vma, mm);
- 	setup_vma_to_mm(new, mm);
--	vma_iter_store(vmi, new);
-+	vma_iter_store(vmi, new, true);
- 	mm->map_count++;
- 	return 0;
- 
---- a/mm/vma.c~mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma
+--- a/mm/vma.c~mm-mark-vmas-detached-upon-exit
 +++ a/mm/vma.c
-@@ -306,7 +306,7 @@ static void vma_complete(struct vma_prep
- 		 * us to insert it before dropping the locks
- 		 * (it may either follow vma or precede it).
- 		 */
--		vma_iter_store(vmi, vp->insert);
-+		vma_iter_store(vmi, vp->insert, true);
- 		mm->map_count++;
- 	}
- 
-@@ -660,14 +660,14 @@ static int commit_merge(struct vma_merge
- 	vma_set_range(vmg->vma, vmg->start, vmg->end, vmg->pgoff);
- 
- 	if (expanded)
--		vma_iter_store(vmg->vmi, vmg->vma);
-+		vma_iter_store(vmg->vmi, vmg->vma, false);
- 
- 	if (adj_start) {
- 		adjust->vm_start += adj_start;
- 		adjust->vm_pgoff += PHYS_PFN(adj_start);
- 		if (adj_start < 0) {
- 			WARN_ON(expanded);
--			vma_iter_store(vmg->vmi, adjust);
-+			vma_iter_store(vmg->vmi, adjust, false);
- 		}
- 	}
- 
-@@ -1689,7 +1689,7 @@ int vma_link(struct mm_struct *mm, struc
- 		return -ENOMEM;
- 
- 	vma_start_write(vma);
--	vma_iter_store(&vmi, vma);
-+	vma_iter_store(&vmi, vma, true);
- 	vma_link_file(vma);
- 	mm->map_count++;
- 	validate_mm(mm);
-@@ -2368,7 +2368,7 @@ static int __mmap_new_vma(struct mmap_st
- 
- 	/* Lock the VMA since it is modified after insertion into VMA tree */
- 	vma_start_write(vma);
--	vma_iter_store(vmi, vma);
-+	vma_iter_store(vmi, vma, true);
- 	map->mm->map_count++;
- 	vma_link_file(vma);
- 
-@@ -2542,7 +2542,7 @@ int do_brk_flags(struct vma_iterator *vm
- 	vm_flags_init(vma, flags);
- 	vma->vm_page_prot = vm_get_page_prot(flags);
- 	vma_start_write(vma);
--	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
-+	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL, true))
- 		goto mas_store_fail;
- 
- 	mm->map_count++;
-@@ -2785,7 +2785,7 @@ int expand_upwards(struct vm_area_struct
- 				anon_vma_interval_tree_pre_update_vma(vma);
- 				vma->vm_end = address;
- 				/* Overwrite old entry in mtree. */
--				vma_iter_store(&vmi, vma);
-+				vma_iter_store(&vmi, vma, false);
- 				anon_vma_interval_tree_post_update_vma(vma);
- 
- 				perf_event_mmap(vma);
-@@ -2865,7 +2865,7 @@ int expand_downwards(struct vm_area_stru
- 				vma->vm_start = address;
- 				vma->vm_pgoff -= grow;
- 				/* Overwrite old entry in mtree. */
--				vma_iter_store(&vmi, vma);
-+				vma_iter_store(&vmi, vma, false);
- 				anon_vma_interval_tree_post_update_vma(vma);
- 
- 				perf_event_mmap(vma);
---- a/mm/vma.h~mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma
-+++ a/mm/vma.h
-@@ -145,7 +145,7 @@ __must_check int vma_shrink(struct vma_i
- 		unsigned long start, unsigned long end, pgoff_t pgoff);
- 
- static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
--			struct vm_area_struct *vma, gfp_t gfp)
-+			struct vm_area_struct *vma, gfp_t gfp, bool new_vma)
- 
- {
- 	if (vmi->mas.status != ma_start &&
-@@ -157,7 +157,10 @@ static inline int vma_iter_store_gfp(str
- 	if (unlikely(mas_is_err(&vmi->mas)))
- 		return -ENOMEM;
- 
--	vma_mark_attached(vma);
-+	if (new_vma)
-+		vma_mark_attached(vma);
-+	vma_assert_attached(vma);
-+
- 	return 0;
+@@ -413,9 +413,10 @@ void remove_vma(struct vm_area_struct *v
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 	mpol_put(vma_policy(vma));
+-	if (unreachable)
++	if (unreachable) {
++		vma_mark_detached(vma);
+ 		__vm_area_free(vma);
+-	else
++	} else
+ 		vm_area_free(vma);
  }
  
-@@ -366,7 +369,7 @@ static inline struct vm_area_struct *vma
- 
- /* Store a VMA with preallocated memory */
- static inline void vma_iter_store(struct vma_iterator *vmi,
--				  struct vm_area_struct *vma)
-+				  struct vm_area_struct *vma, bool new_vma)
- {
- 
- #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
-@@ -390,7 +393,9 @@ static inline void vma_iter_store(struct
- 
- 	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
- 	mas_store_prealloc(&vmi->mas, vma);
--	vma_mark_attached(vma);
-+	if (new_vma)
-+		vma_mark_attached(vma);
-+	vma_assert_attached(vma);
- }
- 
- static inline unsigned long vma_iter_addr(struct vma_iterator *vmi)
 _
 
 Patches currently in -mm which might be from surenb@google.com are
