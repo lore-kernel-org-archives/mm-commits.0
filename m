@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C3D842AA1
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:16:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5BDB42AA1
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:16:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735247760; cv=none; b=uiqVbvN6SoK8Iv8ebev7SBFobUd/8+US3dD5jd25C8nG6JdW3mdxE6d/4kAsIyQIMY/H+yrpruSI0wwjvlH6t99VKLBPfDVJ0D5zik3WD+q2wtB8ZKw2v3sTt2GFxfhcCjb9ZNQB+6ix2jawweGW0v+JB+KshDj1t2MnTfrTHEk=
+	t=1735247762; cv=none; b=nb+vZA8GeJ6bvHhWf3pQwInEB1EfCabTmDGkYFqM3NaR1MIA8MaYzfyaaki6vyPG1G0xtdMvCBYda2E+JmAamt3j2YpRW3C/fMcI4bJxQQNpjts0tjQ2QYwK2jDK7K258ewxqWWQfszeVTRNaVh9kM8b/uJ8v+JuJaNWNMeOzqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735247760; c=relaxed/simple;
-	bh=uxQ5RZ4q0vT0ljJJiX7+PIQQr7qAAEbbeYZU87fZJWc=;
-	h=Date:To:From:Subject:Message-Id; b=exwRo6kJjMF21Q4mdmWW0IssMTK11aHNQWroMyBEQrtxCKeaoEgDcYP61eHauLrmEV41gt0YVjQWYls6YPgeeq8F+0lXXHWkHVbvWAzS95yVd1d2LuApzUXgMZsTfzUx9EcWvujdUpTzF9UdaQ/1tP+ocahsUeGJlfApKLV3KUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ReM2NdG5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735247762; c=relaxed/simple;
+	bh=hV2OghsnYH8g17l2eLGD5tdUunTHXRab6NMMOT/XFVM=;
+	h=Date:To:From:Subject:Message-Id; b=XLYdOGrc4l7MuY+1ki9PJ0OvVK4mhgQYPtVfSwsJo1JMjPIw+e9oaXyu9xg56pATmmWnyFCjEMVgsy45Er3C6mQzKDlIkIGe9Q19ObLhd/efEXCea1GNws55B67Dwk6LK+2ut+Tqfkp2v7hXtlN1O1qCI5IGS2czjLNaRLSB+Cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UgJI1O2M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ReM2NdG5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8E89C4CED1;
-	Thu, 26 Dec 2024 21:15:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UgJI1O2M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BDBEC4CED1;
+	Thu, 26 Dec 2024 21:16:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735247760;
-	bh=uxQ5RZ4q0vT0ljJJiX7+PIQQr7qAAEbbeYZU87fZJWc=;
+	s=korg; t=1735247762;
+	bh=hV2OghsnYH8g17l2eLGD5tdUunTHXRab6NMMOT/XFVM=;
 	h=Date:To:From:Subject:From;
-	b=ReM2NdG5kq4P+7BM4lk6GLi9YNhrV60F9S6dkIN82TP8dCCOnp6lzI2jDlXdE70DV
-	 9JVJqUBC+79PrEZRobuT+ugY4sz0IROBEnNzrir7zriqnmzXu8mSA0MXVWX4zhmnZc
-	 eh/tEi3UXT9d1eJfOby1NV9cBCQT7bIEeOe5ZS6w=
-Date: Thu, 26 Dec 2024 13:15:59 -0800
+	b=UgJI1O2M6AQzjbyKJ4K7+As4R2y7fA1ED+uWIXWEzPR7UR4r/kfMAscu7BTO+3DS9
+	 514tbkSq7zDGf5EdhRjVvfmqJbGLqtTaXNfpN9D7EdGf8hlqSrFvNuo93+YfGPsbIN
+	 WBP9d3ckO4WBtEui5bwVMG33ee9DwaQFp9K8rosc=
+Date: Thu, 26 Dec 2024 13:16:01 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + types-move-struct-rcuwait-into-typesh.patch added to mm-unstable branch
-Message-Id: <20241226211559.D8E89C4CED1@smtp.kernel.org>
+Subject: + mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch added to mm-unstable branch
+Message-Id: <20241226211602.7BDBEC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: types: move struct rcuwait into types.h
+     Subject: mm: allow vma_start_read_locked/vma_start_read_locked_nested to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     types-move-struct-rcuwait-into-typesh.patch
+     mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/types-move-struct-rcuwait-into-typesh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: types: move struct rcuwait into types.h
-Date: Thu, 26 Dec 2024 09:06:59 -0800
+Subject: mm: allow vma_start_read_locked/vma_start_read_locked_nested to fail
+Date: Thu, 26 Dec 2024 09:07:00 -0800
 
-Move rcuwait struct definition into types.h so that rcuwait can be used
-without including rcuwait.h which includes other headers.  Without this
-change mm_types.h can't use rcuwait due to a the following circular
-dependency:
+With upcoming replacement of vm_lock with vm_refcnt, we need to handle a
+possibility of vma_start_read_locked/vma_start_read_locked_nested failing
+due to refcount overflow.  Prepare for such possibility by changing these
+APIs and adjusting their users.
 
-mm_types.h -> rcuwait.h -> signal.h -> mm_types.h
-
-Link: https://lkml.kernel.org/r/20241226170710.1159679-8-surenb@google.com
-Suggested-by: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20241226170710.1159679-9-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -84,9 +82,9 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Klara Modin <klarasmodin@gmail.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@google.com>
@@ -101,52 +99,71 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rcuwait.h |   13 +------------
- include/linux/types.h   |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ include/linux/mm.h |    6 ++++--
+ mm/userfaultfd.c   |   17 ++++++++++++-----
+ 2 files changed, 16 insertions(+), 7 deletions(-)
 
---- a/include/linux/rcuwait.h~types-move-struct-rcuwait-into-typesh
-+++ a/include/linux/rcuwait.h
-@@ -4,18 +4,7 @@
+--- a/include/linux/mm.h~mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail
++++ a/include/linux/mm.h
+@@ -747,10 +747,11 @@ static inline bool vma_start_read(struct
+  * not be used in such cases because it might fail due to mm_lock_seq overflow.
+  * This functionality is used to obtain vma read lock and drop the mmap read lock.
+  */
+-static inline void vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
++static inline bool vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
+ {
+ 	mmap_assert_locked(vma->vm_mm);
+ 	down_read_nested(&vma->vm_lock.lock, subclass);
++	return true;
+ }
  
- #include <linux/rcupdate.h>
- #include <linux/sched/signal.h>
--
--/*
-- * rcuwait provides a way of blocking and waking up a single
-- * task in an rcu-safe manner.
-- *
-- * The only time @task is non-nil is when a user is blocked (or
-- * checking if it needs to) on a condition, and reset as soon as we
-- * know that the condition has succeeded and are awoken.
-- */
--struct rcuwait {
--	struct task_struct __rcu *task;
--};
-+#include <linux/types.h>
+ /*
+@@ -759,10 +760,11 @@ static inline void vma_start_read_locked
+  * not be used in such cases because it might fail due to mm_lock_seq overflow.
+  * This functionality is used to obtain vma read lock and drop the mmap read lock.
+  */
+-static inline void vma_start_read_locked(struct vm_area_struct *vma)
++static inline bool vma_start_read_locked(struct vm_area_struct *vma)
+ {
+ 	mmap_assert_locked(vma->vm_mm);
+ 	down_read(&vma->vm_lock.lock);
++	return true;
+ }
  
- #define __RCUWAIT_INITIALIZER(name)		\
- 	{ .task = NULL, }
---- a/include/linux/types.h~types-move-struct-rcuwait-into-typesh
-+++ a/include/linux/types.h
-@@ -248,5 +248,17 @@ typedef void (*swap_func_t)(void *a, voi
- typedef int (*cmp_r_func_t)(const void *a, const void *b, const void *priv);
- typedef int (*cmp_func_t)(const void *a, const void *b);
+ static inline void vma_end_read(struct vm_area_struct *vma)
+--- a/mm/userfaultfd.c~mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail
++++ a/mm/userfaultfd.c
+@@ -85,7 +85,8 @@ static struct vm_area_struct *uffd_lock_
+ 	mmap_read_lock(mm);
+ 	vma = find_vma_and_prepare_anon(mm, address);
+ 	if (!IS_ERR(vma))
+-		vma_start_read_locked(vma);
++		if (!vma_start_read_locked(vma))
++			vma = ERR_PTR(-EAGAIN);
  
-+/*
-+ * rcuwait provides a way of blocking and waking up a single
-+ * task in an rcu-safe manner.
-+ *
-+ * The only time @task is non-nil is when a user is blocked (or
-+ * checking if it needs to) on a condition, and reset as soon as we
-+ * know that the condition has succeeded and are awoken.
-+ */
-+struct rcuwait {
-+	struct task_struct __rcu *task;
-+};
-+
- #endif /*  __ASSEMBLY__ */
- #endif /* _LINUX_TYPES_H */
+ 	mmap_read_unlock(mm);
+ 	return vma;
+@@ -1483,10 +1484,16 @@ static int uffd_move_lock(struct mm_stru
+ 	mmap_read_lock(mm);
+ 	err = find_vmas_mm_locked(mm, dst_start, src_start, dst_vmap, src_vmap);
+ 	if (!err) {
+-		vma_start_read_locked(*dst_vmap);
+-		if (*dst_vmap != *src_vmap)
+-			vma_start_read_locked_nested(*src_vmap,
+-						SINGLE_DEPTH_NESTING);
++		if (vma_start_read_locked(*dst_vmap)) {
++			if (*dst_vmap != *src_vmap) {
++				if (!vma_start_read_locked_nested(*src_vmap,
++							SINGLE_DEPTH_NESTING)) {
++					vma_end_read(*dst_vmap);
++					err = -EAGAIN;
++				}
++			}
++		} else
++			err = -EAGAIN;
+ 	}
+ 	mmap_read_unlock(mm);
+ 	return err;
 _
 
 Patches currently in -mm which might be from surenb@google.com are
