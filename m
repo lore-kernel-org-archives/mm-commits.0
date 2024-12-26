@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B0F16F265
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:15:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F29EE16F265
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:15:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735247756; cv=none; b=t1dUv1vRevCUQSLAeqaxnzOOfEKGjh7mOXCVLmrJTdC4/8A1oYpHxH6SA9ORx8oJOEIKYJMcKiePIYOfGIvvvXo6xxHpxaXuhYHnBXz3XrMfF+LQvntLI8uB920kgEfnFibr2Kre4/IESm7E4CMv4pmL6DeZ24hX9oiQGtGSZIo=
+	t=1735247758; cv=none; b=erfxCQn/IYPRzVXXvYG8lPKHW+WH55VQreL76oOWSOf5KqpfvRVmEW1dEeliI6cnGSFA7kd8qWNYT7ozhpQd0OURjFzZOLaFlVoXJ6BXpJdjxi3QToFwEWY4aJc+q1FBNEWrnX6w47o1FRDUJv/4BfIiUjcLY+Yzd/hF29BPsNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735247756; c=relaxed/simple;
-	bh=/fGd2mNeCAwq9JzdI+sqxRMhOnhHkS5bTtF+urDoP54=;
-	h=Date:To:From:Subject:Message-Id; b=MleALq5BVAjym+ObPLiJJnyfXvxowPNn8rEZHYZdB49BifQTxt3PmdxIRXQQrXiGGsUW4hFjBK8whJuoloRHKfyUP6Ei5hsXGS10sXJVVprkvDwYIkNO+FyGMJTH4YzofmwlSfhzYhvFpzKHsi+fer1RA8iPRjY+vw4DrMxCFXs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2Sd2B1d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735247758; c=relaxed/simple;
+	bh=EX9oKIWZp/KKas4/9JWMzBBlpJtNNJSwjdbSPOLeL0w=;
+	h=Date:To:From:Subject:Message-Id; b=RWFLy5aFVG/1ssL/WDBTgwS5YNX7NEcqo3rP/5eS2qS9+iy5487y//vLR3EKYCGzrHJmWDpIjRpKtv4ia/03qOjCesDLFGRFp15h5dD8lF/AuIqEs10klXqRATIxsVIsuYeoEGKPzrkxeUiYGmJuIEGlyqaY5APTZ3FZGOv0Ox4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HSh5dv2+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2Sd2B1d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52591C4CED1;
-	Thu, 26 Dec 2024 21:15:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HSh5dv2+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A17C9C4CED1;
+	Thu, 26 Dec 2024 21:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735247755;
-	bh=/fGd2mNeCAwq9JzdI+sqxRMhOnhHkS5bTtF+urDoP54=;
+	s=korg; t=1735247757;
+	bh=EX9oKIWZp/KKas4/9JWMzBBlpJtNNJSwjdbSPOLeL0w=;
 	h=Date:To:From:Subject:From;
-	b=X2Sd2B1dQ1hn5KtLlR1h7vHdL2KaojajLbBhjGppoCMTojQT/bhqNZU+M/X84SzEC
-	 +yUGT2TEK286fcUIAzgx3gpd1eLb5R6LLtUxg+QuueaTNLndCvojuN8wWRt+BbCP/R
-	 jZ4IO8sQGaAkJn6lx0wvpnGSvB5P6LuZbi7DZ6YE=
-Date: Thu, 26 Dec 2024 13:15:54 -0800
+	b=HSh5dv2+QSxWQr5YmSkShRcCobY5PuNdTQf10uiUe/bCmeGomQJeK4vw4u17XNzuY
+	 nIi0xKzAmYzlnND95GOZQ17rzVA2/0xzodTSytTciGVC7DogtlBc9OLIHEIEBkmmvw
+	 U5GjYQ4IMg+zgSc08k61eXCevBKHeKLErN0VeXJY=
+Date: Thu, 26 Dec 2024 13:15:57 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mark-vmas-detached-upon-exit.patch added to mm-unstable branch
-Message-Id: <20241226211555.52591C4CED1@smtp.kernel.org>
+Subject: + mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached.patch added to mm-unstable branch
+Message-Id: <20241226211557.A17C9C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mark vmas detached upon exit
+     Subject: mm/nommu: fix the last places where vma is not locked before being attached
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mark-vmas-detached-upon-exit.patch
+     mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mark-vmas-detached-upon-exit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: mark vmas detached upon exit
-Date: Thu, 26 Dec 2024 09:06:57 -0800
+Subject: mm/nommu: fix the last places where vma is not locked before being attached
+Date: Thu, 26 Dec 2024 09:06:58 -0800
 
-When exit_mmap() removes vmas belonging to an exiting task, it does not
-mark them as detached since they can't be reached by other tasks and they
-will be freed shortly.  Once we introduce vma reuse, all vmas will have to
-be in detached state before they are freed to ensure vma when reused is in
-a consistent state.  Add missing vma_mark_detached() before freeing the
-vma.
+nommu configuration has two places where vma gets attached to the vma tree
+without write-locking it.  Add the missing locks to ensure vma is always
+locked before it's attached.
 
-Link: https://lkml.kernel.org/r/20241226170710.1159679-6-surenb@google.com
+Link: https://lkml.kernel.org/r/20241226170710.1159679-7-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -101,24 +98,27 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/nommu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vma.c~mm-mark-vmas-detached-upon-exit
-+++ a/mm/vma.c
-@@ -413,9 +413,10 @@ void remove_vma(struct vm_area_struct *v
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	mpol_put(vma_policy(vma));
--	if (unreachable)
-+	if (unreachable) {
-+		vma_mark_detached(vma);
- 		__vm_area_free(vma);
--	else
-+	} else
- 		vm_area_free(vma);
- }
+--- a/mm/nommu.c~mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached
++++ a/mm/nommu.c
+@@ -1189,6 +1189,7 @@ share:
+ 		goto error_just_free;
  
+ 	setup_vma_to_mm(vma, current->mm);
++	vma_start_write(vma);
+ 	current->mm->map_count++;
+ 	/* add the VMA to the tree */
+ 	vma_iter_store(&vmi, vma, true);
+@@ -1356,6 +1357,7 @@ static int split_vma(struct vma_iterator
+ 
+ 	setup_vma_to_mm(vma, mm);
+ 	setup_vma_to_mm(new, mm);
++	vma_start_write(new);
+ 	vma_iter_store(vmi, new, true);
+ 	mm->map_count++;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from surenb@google.com are
