@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE6918E1F;
-	Thu, 26 Dec 2024 21:38:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27C7A13C80D
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:46:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249131; cv=none; b=XawkQ1+wJDTECnbsUv0Z/ZDofpyvN78V0/5gGThFHvR8/R4QsJ7ovVraHJyfMMMbkchzooyRGs52Y4TdRo5u38wcciX1KvejWOKqjKY7NiOxSvdJeFc6AUszJIvyDB+pN2bW/ycYOaonhRqmYYVGsMMDb/oElKAvfb9mkNUOGUQ=
+	t=1735249612; cv=none; b=rHqORpJhRmUA4yCme/pXHsSXhhYzzA/if7wA3mDk3bcBSeDX5dl5bC1Yc+wY2KhpJ+ZKILOfih3ktdDK/mbuKyUW9ZI90sC/wy1faCHX3KAC/vKoOMT0i1KO4yD2zwTryKPgXcN83e2ULgl5BpVg4kx2v9Y3AKrfjRd3hIFA+JU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735249131; c=relaxed/simple;
-	bh=jcyj5tSl4PeG/4jjbOvSRQSVQvAHVmja0i+w17NkK6o=;
-	h=Date:To:From:Subject:Message-Id; b=uYVcLZya5872pkiLKP2v/eOy3bCgB406pxInXe+k2ykWuywk28e3DQnioqrhti9RbvMj/zDyL8SUR3ybdwRl2rCgCDbsr0mIMCf/WwuUmYza2FBtKioiq3vpPE1sLNMKXsiIpKi2wQ7iNDc5PokyVGORUPNdt7guJFVf+yPPNXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q80O9aGn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735249612; c=relaxed/simple;
+	bh=vOgncFLXlVx4OV4u3qWiNGkbrzfXoIOsSHUlOD6zYWA=;
+	h=Date:To:From:Subject:Message-Id; b=KvorzSyGdWr9NCYbNKSitO+hvKVsX5N3sTW3tJjukcLk5V5968CslMbk/4aQGYYJUdTgvb5LVMmcf6ziAhpBh2qGK9U1tEtQvtTnWUvJHnN/5auh/lsJGfb7HkfPFV3TxZM4XBfjEGz55jy7mP3QoIi2+T6S/K/Or4tDzFZBnNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GRbJUTxr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q80O9aGn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B615C4CED1;
-	Thu, 26 Dec 2024 21:38:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GRbJUTxr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C5B9C4CED1;
+	Thu, 26 Dec 2024 21:46:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735249131;
-	bh=jcyj5tSl4PeG/4jjbOvSRQSVQvAHVmja0i+w17NkK6o=;
+	s=korg; t=1735249611;
+	bh=vOgncFLXlVx4OV4u3qWiNGkbrzfXoIOsSHUlOD6zYWA=;
 	h=Date:To:From:Subject:From;
-	b=Q80O9aGnYb41uUTK2ROxC6infLZYTvb/0LsRs5PvsJ8gulQmYoo1dGlx4Gzg56uFy
-	 dezmw4NtaxHQ0K/r4KzhcliutmY+ikjCHHPGXy1/B4UduPM7Oy26exiJjzhhgEgBr6
-	 VvvE8rmukUXMCR79D402MTDmaTcRgFpLU3O7DCfA=
-Date: Thu, 26 Dec 2024 13:38:50 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shile.zhang@linux.alibaba.com,rostedt@goodmis.org,peterz@infradead.org,mingo@kernel.org,jserv@ccns.ncku.edu.tw,jpoimboe@kernel.org,chuang@cs.nycu.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=GRbJUTxrGv+K03PJrXZLviGI3CgNFzsY+7uAXcjsxz8jU+TXY1Y0QBRXymn6DPzKR
+	 ggl14o2igRa4K6Lmc4b/ZGqwTQZOY9zJklV1mMbW9bo0zMEX0pMxidBjdnE6FBVJDR
+	 CuKL78gbQk4g+N93UW/8lyiQILU4w5NLoNGlT/uk=
+Date: Thu, 26 Dec 2024 13:46:50 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,senozhatsky@chromium.org,minchan@kernel.org,42.hyeyoo@gmail.com,alexs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241226213851.3B615C4CED1@smtp.kernel.org>
+Subject: + mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch added to mm-unstable branch
+Message-Id: <20241226214651.8C5B9C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/sorttable: fix orc_sort_cmp() to maintain symmetry and transitivity
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch
+     Subject: mm/zsmalloc: add zpdesc memory descriptor for zswap.zpool
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,70 +58,251 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: scripts/sorttable: fix orc_sort_cmp() to maintain symmetry and transitivity
-Date: Thu, 26 Dec 2024 22:03:32 +0800
+From: Alex Shi <alexs@kernel.org>
+Subject: mm/zsmalloc: add zpdesc memory descriptor for zswap.zpool
+Date: Tue, 17 Dec 2024 00:04:32 +0900
 
-The orc_sort_cmp() function, used with qsort(), previously violated the
-symmetry and transitivity rules required by the C standard.  Specifically,
-when both entries are ORC_TYPE_UNDEFINED, it could result in both a < b
-and b < a, which breaks the required symmetry and transitivity.  This can
-lead to undefined behavior and incorrect sorting results, potentially
-causing memory corruption in glibc implementations [1].
+Patch series "Add zpdesc memory descriptor for zswap.zpool", v9.
 
-Symmetry: If x < y, then y > x.
-Transitivity: If x < y and y < z, then x < z.
+This patch series introduces a new memory descriptor for zswap.zpool that
+currently overlaps with struct page for now.  This is part of the effort
+to reduce the size of struct page and to enable dynamic allocation of
+memory descriptors [1].
 
-Fix the comparison logic to return 0 when both entries are
-ORC_TYPE_UNDEFINED, ensuring compliance with qsort() requirements.
+This series does not bloat anything for zsmalloc and no functional change
+is intended (except for using zpdesc and folios).
 
-Link: https://www.qualys.com/2024/01/30/qsort.txt [1]
-Link: https://lkml.kernel.org/r/20241226140332.2670689-1-visitorckw@gmail.com
-Fixes: 57fa18994285 ("scripts/sorttable: Implement build-time ORC unwind table sorting")
-Fixes: fb799447ae29 ("x86,objtool: Split UNWIND_HINT_EMPTY in two")
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: <chuang@cs.nycu.edu.tw>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: <stable@vger.kernel.org>
+In the near future, the removal of page->index from struct page [2] will
+be addressed and the project also depends on this patch series.
+
+Thanks to everyone got involved in this series, especially, Alex who's
+been pushing it forward this year.
+
+[1] https://lore.kernel.org/linux-mm/ZvRKzKizOfEWBtJp@casper.infradead.org
+[2] https://lore.kernel.org/linux-mm/Z09hOy-UY9KC8WMb@casper.infradead.org
+
+
+This patch (of 18):
+
+The 1st patch introduces new memory descriptor zpdesc and renames
+zspage.first_page to zspage.first_zpdesc, with no functional change.
+
+We removed the comment about PG_owner_priv_1 since it is no longer used
+after commit a41ec880aa7b ("zsmalloc: move huge compressed obj from page
+to zspage").
+
+[42.hyeyoo@gmail.com: rework comments a little bit]
+Link: https://lkml.kernel.org/r/20241216150450.1228021-1-42.hyeyoo@gmail.com
+Link: https://lkml.kernel.org/r/20241216150450.1228021-2-42.hyeyoo@gmail.com
+Originally-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Signed-off-by: Alex Shi <alexs@kernel.org>
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/sorttable.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/zpdesc.h   |  107 ++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/zsmalloc.c |   28 ++----------
+ 2 files changed, 112 insertions(+), 23 deletions(-)
 
---- a/scripts/sorttable.h~scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity
-+++ a/scripts/sorttable.h
-@@ -110,7 +110,7 @@ static inline unsigned long orc_ip(const
+diff --git a/mm/zpdesc.h a/mm/zpdesc.h
+new file mode 100644
+--- /dev/null
++++ a/mm/zpdesc.h
+@@ -0,0 +1,107 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* zpdesc.h: zswap.zpool memory descriptor
++ *
++ * Written by Alex Shi <alexs@kernel.org>
++ *	      Hyeonggon Yoo <42.hyeyoo@gmail.com>
++ */
++#ifndef __MM_ZPDESC_H__
++#define __MM_ZPDESC_H__
++
++/*
++ * struct zpdesc -	Memory descriptor for zpool memory.
++ * @flags:		Page flags, mostly unused by zsmalloc.
++ * @lru:		Indirectly used by page migration.
++ * @movable_ops:	Used by page migration.
++ * @next:		Next zpdesc in a zspage in zsmalloc zpool.
++ * @handle:		For huge zspage in zsmalloc zpool.
++ * @zspage:		Points to the zspage this zpdesc is a part of.
++ * @first_obj_offset:	First object offset in zsmalloc zpool.
++ * @_refcount:		The number of references to this zpdesc.
++ *
++ * This struct overlays struct page for now. Do not modify without a good
++ * understanding of the issues. In particular, do not expand into the overlap
++ * with memcg_data.
++ *
++ * Page flags used:
++ * * PG_private identifies the first component page.
++ * * PG_locked is used by page migration code.
++ */
++struct zpdesc {
++	unsigned long flags;
++	struct list_head lru;
++	unsigned long movable_ops;
++	union {
++		struct zpdesc *next;
++		unsigned long handle;
++	};
++	struct zspage *zspage;
++	/*
++	 * Only the lower 24 bits are available for offset, limiting a page
++	 * to 16 MiB. The upper 8 bits are reserved for PGTY_zsmalloc.
++	 *
++	 * Do not access this field directly.
++	 * Instead, use {get,set}_first_obj_offset() helpers.
++	 */
++	unsigned int first_obj_offset;
++	atomic_t _refcount;
++};
++#define ZPDESC_MATCH(pg, zp) \
++	static_assert(offsetof(struct page, pg) == offsetof(struct zpdesc, zp))
++
++ZPDESC_MATCH(flags, flags);
++ZPDESC_MATCH(lru, lru);
++ZPDESC_MATCH(mapping, movable_ops);
++ZPDESC_MATCH(index, next);
++ZPDESC_MATCH(index, handle);
++ZPDESC_MATCH(private, zspage);
++ZPDESC_MATCH(page_type, first_obj_offset);
++ZPDESC_MATCH(_refcount, _refcount);
++#undef ZPDESC_MATCH
++static_assert(sizeof(struct zpdesc) <= sizeof(struct page));
++
++/*
++ * zpdesc_page - The first struct page allocated for a zpdesc
++ * @zp: The zpdesc.
++ *
++ * A convenience wrapper for converting zpdesc to the first struct page of the
++ * underlying folio, to communicate with code not yet converted to folio or
++ * struct zpdesc.
++ *
++ */
++#define zpdesc_page(zp)			(_Generic((zp),			\
++	const struct zpdesc *:		(const struct page *)(zp),	\
++	struct zpdesc *:		(struct page *)(zp)))
++
++/**
++ * zpdesc_folio - The folio allocated for a zpdesc
++ * @zpdesc: The zpdesc.
++ *
++ * Zpdescs are descriptors for zpool memory. The zpool memory itself is
++ * allocated as folios that contain the zpool objects, and zpdesc uses specific
++ * fields in the first struct page of the folio - those fields are now accessed
++ * by struct zpdesc.
++ *
++ * It is occasionally necessary convert to back to a folio in order to
++ * communicate with the rest of the mm. Please use this helper function
++ * instead of casting yourself, as the implementation may change in the future.
++ */
++#define zpdesc_folio(zp)		(_Generic((zp),			\
++	const struct zpdesc *:		(const struct folio *)(zp),	\
++	struct zpdesc *:		(struct folio *)(zp)))
++/**
++ * page_zpdesc - Converts from first struct page to zpdesc.
++ * @p: The first (either head of compound or single) page of zpdesc.
++ *
++ * A temporary wrapper to convert struct page to struct zpdesc in situations
++ * where we know the page is the compound head, or single order-0 page.
++ *
++ * Long-term ideally everything would work with struct zpdesc directly or go
++ * through folio to struct zpdesc.
++ *
++ * Return: The zpdesc which contains this page
++ */
++#define page_zpdesc(p)			(_Generic((p),			\
++	const struct page *:		(const struct zpdesc *)(p),	\
++	struct page *:			(struct zpdesc *)(p)))
++
++#endif
+--- a/mm/zsmalloc.c~mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool
++++ a/mm/zsmalloc.c
+@@ -13,24 +13,6 @@
+  * Released under the terms of GNU General Public License Version 2.0
+  */
  
- static int orc_sort_cmp(const void *_a, const void *_b)
+-/*
+- * Following is how we use various fields and flags of underlying
+- * struct page(s) to form a zspage.
+- *
+- * Usage of struct page fields:
+- *	page->private: points to zspage
+- *	page->index: links together all component pages of a zspage
+- *		For the huge page, this is always 0, so we use this field
+- *		to store handle.
+- *	page->page_type: PGTY_zsmalloc, lower 24 bits locate the first object
+- *		offset in a subpage of a zspage
+- *
+- * Usage of struct page flags:
+- *	PG_private: identifies the first component page
+- *	PG_owner_priv_1: identifies the huge component page
+- *
+- */
+-
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ /*
+@@ -67,6 +49,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/fs.h>
+ #include <linux/local_lock.h>
++#include "zpdesc.h"
+ 
+ #define ZSPAGE_MAGIC	0x58
+ 
+@@ -254,7 +237,7 @@ struct zspage {
+ 	};
+ 	unsigned int inuse;
+ 	unsigned int freeobj;
+-	struct page *first_page;
++	struct zpdesc *first_zpdesc;
+ 	struct list_head list; /* fullness list */
+ 	struct zs_pool *pool;
+ 	rwlock_t lock;
+@@ -459,7 +442,7 @@ static inline void mod_zspage_inuse(stru
+ 
+ static inline struct page *get_first_page(struct zspage *zspage)
  {
--	struct orc_entry *orc_a;
-+	struct orc_entry *orc_a, *orc_b;
- 	const int *a = g_orc_ip_table + *(int *)_a;
- 	const int *b = g_orc_ip_table + *(int *)_b;
- 	unsigned long a_val = orc_ip(a);
-@@ -128,6 +128,9 @@ static int orc_sort_cmp(const void *_a,
- 	 * whitelisted .o files which didn't get objtool generation.
- 	 */
- 	orc_a = g_orc_table + (a - g_orc_ip_table);
-+	orc_b = g_orc_table + (b - g_orc_ip_table);
-+	if (orc_a->type == ORC_TYPE_UNDEFINED && orc_b->type == ORC_TYPE_UNDEFINED)
-+		return 0;
- 	return orc_a->type == ORC_TYPE_UNDEFINED ? -1 : 1;
- }
+-	struct page *first_page = zspage->first_page;
++	struct page *first_page = zpdesc_page(zspage->first_zpdesc);
  
+ 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
+ 	return first_page;
+@@ -952,7 +935,7 @@ static void create_page_chain(struct siz
+ 		set_page_private(page, (unsigned long)zspage);
+ 		page->index = 0;
+ 		if (i == 0) {
+-			zspage->first_page = page;
++			zspage->first_zpdesc = page_zpdesc(page);
+ 			SetPagePrivate(page);
+ 			if (unlikely(class->objs_per_zspage == 1 &&
+ 					class->pages_per_zspage == 1))
+@@ -1317,8 +1300,7 @@ static unsigned long obj_malloc(struct z
+ 		/* record handle in the header of allocated chunk */
+ 		link->handle = handle | OBJ_ALLOCATED_TAG;
+ 	else
+-		/* record handle to page->index */
+-		zspage->first_page->index = handle | OBJ_ALLOCATED_TAG;
++		zspage->first_zpdesc->handle = handle | OBJ_ALLOCATED_TAG;
+ 
+ 	kunmap_local(vaddr);
+ 	mod_zspage_inuse(zspage, 1);
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from alexs@kernel.org are
 
-scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch
-lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
-lib-test_min_heap-use-inline-min-heap-variants-to-reduce-attack-vector.patch
-lib-min_heap-add-brief-introduction-to-min-heap-api.patch
-documentation-core-api-min_heap-add-author-information.patch
+mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch
+mm-zsmalloc-use-zpdesc-in-trylock_zspage-lock_zspage.patch
+mm-zsmalloc-convert-create_page_chain-and-its-users-to-use-zpdesc.patch
+mm-zsmalloc-convert-reset_page-to-reset_zpdesc.patch
+mm-zsmalloc-convert-setzspagemovable-and-remove-unused-funcs.patch
+mm-zsmalloc-convert-get-set_first_obj_offset-to-take-zpdesc.patch
+mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc.patch
 
