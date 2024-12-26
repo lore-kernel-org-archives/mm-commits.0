@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49F361474B7
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:47:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2FC5140E50
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:47:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249629; cv=none; b=Wp6u935mrsG1z3L/bqho//0YasRbhfVtd2b2z8sHJOItnYlbfj1zKeEzkqjWTZOEvDS2h4VnkpjTh4ReRqv2TWjJMXXvq0ru0j7NwVdLxb98Bfjmj1V7Qq51aPkYy2NllPOaCwHOcrELwqDV6SrODR4KHsQLjecePxCMKrBN7Sk=
+	t=1735249629; cv=none; b=G4KAaTrw2bxqvexqrYyIXLqrD/0w656CI2QebtKTGzwJFcO9oKHzfjOP5Gheev19fnxVCOM+3jHQe+icH9toohngkbgh5cjWcIzpIJ7y8uloHPouE9w3GF6uHAQw6yOlbuR9njnmsSn+2OPUbZ7sDE6YObJR3xpDrw73HQXt96Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1735249629; c=relaxed/simple;
-	bh=h77DRAB54hZTw+TKgxkQw2r30d+HvVaU5VBNWIO/gJI=;
-	h=Date:To:From:Subject:Message-Id; b=QR/bd7/OcTFPlJN+3Yj6oVx0vocynUvL88ao7kgj0dLSTkG1XNU5XNZPEy+osv7W1vBemZevQOv+yb2g8S1GB9plgCo/FSWNChC6cNELNyyxYzjURd6RxKlBh5fE/2jKbyzTw24xuheCoA/WHDudUX28otY5/o+LTLc8VxqXs0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kcig348A; arc=none smtp.client-ip=10.30.226.201
+	bh=6spVTUCF19ydt6NT+7oxadVcFjK7OeV0PjxMpoaXhQQ=;
+	h=Date:To:From:Subject:Message-Id; b=cl8ZBdZJ1p3JB9n2RtH0BLzWNulgGoMq7Der+GGFYzL5YEUKQ/bwhiyCMaLdoXvOf6EC2TAui8uVJ8v25WZFVmxP2TLJhaWwZnZ5v7Vef9g+ZxQzhHj5h95Eoy7/ksbZ6oOmtNHrFV2FZ5emTVGzE/rzcXxFop2XNEg0aUSuYgg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BB5muwR5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kcig348A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAFBDC4CED1;
-	Thu, 26 Dec 2024 21:47:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BB5muwR5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C38C4CED1;
+	Thu, 26 Dec 2024 21:47:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735249627;
-	bh=h77DRAB54hZTw+TKgxkQw2r30d+HvVaU5VBNWIO/gJI=;
+	s=korg; t=1735249629;
+	bh=6spVTUCF19ydt6NT+7oxadVcFjK7OeV0PjxMpoaXhQQ=;
 	h=Date:To:From:Subject:From;
-	b=kcig348Ahh1NaR27DwzZY9HuaH1GKejwhMH38b41OyTSzISyAQgGFkR+hyXbRUxNq
-	 gq2cXXc+drt51jNjYS07spIoel5zO6RXl7EBAY2Vs7KRnn8VMbiLi9Ag/oZMqISBk4
-	 iUWuySZHG9bFcCQkfeM2mmJBeE5G7Tq+cxS9o47Q=
-Date: Thu, 26 Dec 2024 13:47:07 -0800
+	b=BB5muwR5RS+723fPjiNfOoUQAXjKaVuYxGA2QzySbAcST9WPq8+s5fI4ptlBbqGYp
+	 iQgIGn7UEnH2udImqGdHfn0O0+TH/JypvhaYqRkzqXqpWT6msp6PCN1lulRPqlvUTO
+	 C320fxH93X3JJDPBEQwPHl4SxKIh/e0D/DZPTzP0=
+Date: Thu, 26 Dec 2024 13:47:09 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,senozhatsky@chromium.org,minchan@kernel.org,alexs@kernel.org,42.hyeyoo@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-convert-init_zspage-to-use-zpdesc.patch added to mm-unstable branch
-Message-Id: <20241226214707.BAFBDC4CED1@smtp.kernel.org>
+Subject: + mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch added to mm-unstable branch
+Message-Id: <20241226214709.98C38C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: convert init_zspage() to use zpdesc
+     Subject: mm/zsmalloc: convert obj_to_page() and zs_free() to use zpdesc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-convert-init_zspage-to-use-zpdesc.patch
+     mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-convert-init_zspage-to-use-zpdesc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/zsmalloc: convert init_zspage() to use zpdesc
-Date: Tue, 17 Dec 2024 00:04:39 +0900
+Subject: mm/zsmalloc: convert obj_to_page() and zs_free() to use zpdesc
+Date: Tue, 17 Dec 2024 00:04:40 +0900
 
-Replace get_first/next_page func series and kmap_atomic to new helper, no
-functional change.
+Rename obj_to_page() to obj_to_zpdesc() and also convert it and its user
+zs_free() to use zpdesc.
 
-Link: https://lkml.kernel.org/r/20241216150450.1228021-9-42.hyeyoo@gmail.com
+Link: https://lkml.kernel.org/r/20241216150450.1228021-10-42.hyeyoo@gmail.com
 Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Signed-off-by: Alex Shi <alexs@kernel.org>
 Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -76,53 +76,43 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/zsmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-convert-init_zspage-to-use-zpdesc
+--- a/mm/zsmalloc.c~mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc
 +++ a/mm/zsmalloc.c
-@@ -925,16 +925,16 @@ static void init_zspage(struct size_clas
+@@ -798,9 +798,9 @@ static void obj_to_location(unsigned lon
+ 	*obj_idx = (obj & OBJ_INDEX_MASK);
+ }
+ 
+-static void obj_to_page(unsigned long obj, struct page **page)
++static void obj_to_zpdesc(unsigned long obj, struct zpdesc **zpdesc)
  {
- 	unsigned int freeobj = 1;
- 	unsigned long off = 0;
--	struct page *page = get_first_page(zspage);
-+	struct zpdesc *zpdesc = get_first_zpdesc(zspage);
+-	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
++	*zpdesc = pfn_zpdesc(obj >> OBJ_INDEX_BITS);
+ }
  
--	while (page) {
--		struct page *next_page;
-+	while (zpdesc) {
-+		struct zpdesc *next_zpdesc;
- 		struct link_free *link;
- 		void *vaddr;
- 
--		set_first_obj_offset(page, off);
-+		set_first_obj_offset(zpdesc_page(zpdesc), off);
- 
--		vaddr = kmap_local_page(page);
-+		vaddr = kmap_local_zpdesc(zpdesc);
- 		link = (struct link_free *)vaddr + off / sizeof(*link);
- 
- 		while ((off += class->size) < PAGE_SIZE) {
-@@ -947,8 +947,8 @@ static void init_zspage(struct size_clas
- 		 * page, which must point to the first object on the next
- 		 * page (if present)
- 		 */
--		next_page = get_next_page(page);
--		if (next_page) {
-+		next_zpdesc = get_next_zpdesc(zpdesc);
-+		if (next_zpdesc) {
- 			link->next = freeobj++ << OBJ_TAG_BITS;
- 		} else {
- 			/*
-@@ -958,7 +958,7 @@ static void init_zspage(struct size_clas
- 			link->next = -1UL << OBJ_TAG_BITS;
- 		}
- 		kunmap_local(vaddr);
--		page = next_page;
-+		zpdesc = next_zpdesc;
- 		off %= PAGE_SIZE;
- 	}
- 
+ /**
+@@ -1462,7 +1462,7 @@ static void obj_free(int class_size, uns
+ void zs_free(struct zs_pool *pool, unsigned long handle)
+ {
+ 	struct zspage *zspage;
+-	struct page *f_page;
++	struct zpdesc *f_zpdesc;
+ 	unsigned long obj;
+ 	struct size_class *class;
+ 	int fullness;
+@@ -1476,8 +1476,8 @@ void zs_free(struct zs_pool *pool, unsig
+ 	 */
+ 	read_lock(&pool->migrate_lock);
+ 	obj = handle_to_obj(handle);
+-	obj_to_page(obj, &f_page);
+-	zspage = get_zspage(f_page);
++	obj_to_zpdesc(obj, &f_zpdesc);
++	zspage = get_zspage(zpdesc_page(f_zpdesc));
+ 	class = zspage_class(pool, zspage);
+ 	spin_lock(&class->lock);
+ 	read_unlock(&pool->migrate_lock);
 _
 
 Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
