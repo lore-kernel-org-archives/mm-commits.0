@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB35115624B
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:16:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC56D15624B
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:16:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735247768; cv=none; b=X/bn8m85DkG/zonwuD7YWHHhBYpiqCi+TPfIVzbokZXOSuaFgSnoz4U2QJhCW3NbA+kAxXw6VF4axpkb7Upfz+W8P92QMQgZOjwLgW0tFc0xR5WK73JRryPBmTgDlEt3oaFSn6gN1xrSabXOxWBPFvedjbRQg3cK+S6c9PwgeXU=
+	t=1735247770; cv=none; b=SqjnvdlgnQnXT6Vo8G+KnwjfI7bgO5c4oy7CDmcSZIzN6vuRauzjkP0iOkGNLMNVhC2ybJFWpWaRvCtWyiUMKN4YJ1yprWnYX72mNo+V0pzbIMEW4CIxjkF2ayAdCGPB2G65/l0Fg6F0hNxLaI+TO7U3Ly/uhANmWl225UdHUI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735247768; c=relaxed/simple;
-	bh=uGg5FyoSvzxVpmfAc19zA4uXH0X5pXk8PD5waguHwPc=;
-	h=Date:To:From:Subject:Message-Id; b=ozI48EoUC3hYn83ToXudWPRREq398gWGKKhEoqnT4FElhqgh5jxRduLfIrYWi79JBpxDmUiltAqgi7InUVmLZS8Q6P1VuszpmcQ9ogvZ/qxYCPAxXYRYiFjcZBy20UHZHb0i32IvgQwtx6vy7L65/SgXbLGpLF6i6KnLCuTM2WE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TbcKiW8m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735247770; c=relaxed/simple;
+	bh=/L/blDJ1zyv7vbHpcTZhyrrsyUSgW08RGTSdOxIfxNU=;
+	h=Date:To:From:Subject:Message-Id; b=n30KX1JMuj3e9UAcnvfVaOfFnsmbfeSHYwTwpSC4l3q+TmkYnJBfn1KESoATqG1raGyOGxJDV5WtlzXIiZlsjVkLD+CHeQAiiutwdiN5px6hdLw2qpKMuawJhRuDiPM5D1gVhtM2s2lA4fol28+ssjHDH0aDbKRZfY5y0sVLBuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0xb2bXwQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TbcKiW8m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7B76C4CED1;
-	Thu, 26 Dec 2024 21:16:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0xb2bXwQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 515F7C4CED1;
+	Thu, 26 Dec 2024 21:16:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735247767;
-	bh=uGg5FyoSvzxVpmfAc19zA4uXH0X5pXk8PD5waguHwPc=;
+	s=korg; t=1735247770;
+	bh=/L/blDJ1zyv7vbHpcTZhyrrsyUSgW08RGTSdOxIfxNU=;
 	h=Date:To:From:Subject:From;
-	b=TbcKiW8m9yKYLcfYxdGh4Ex0uCCQXrC4i1yYg4wFfXir8joXV/YiJ/yyR2dX3OFc6
-	 d4t7U+f7OF+xeg2TjmQVhB3Exshz9gUgl4FDquTRFtOzN2of38RGlNt3Y806zJAg5T
-	 Xg7Vie1CyDd0n+PWxpLWOueE0w1T1LrKDdv5CeNo=
-Date: Thu, 26 Dec 2024 13:16:07 -0800
+	b=0xb2bXwQTXilIk+fGY9cwcmVs/AOhHNpZZJn/F/Chhm+HfUpxBxRviQ24Q48SQca2
+	 ef3dLpCfffkEJIhDxbLiCtdYMkfjGWG5yVYWCTdp0P02fijEqicCF0KeCh/fzCJYXI
+	 nUK5+kbCxwMPHVk7yClNfXiIGgLarC78VaTBJwiY=
+Date: Thu, 26 Dec 2024 13:16:09 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uninline-the-main-body-of-vma_start_write.patch added to mm-unstable branch
-Message-Id: <20241226211607.B7B76C4CED1@smtp.kernel.org>
+Subject: + refcount-introduce-__refcount_addinc_not_zero_limited.patch added to mm-unstable branch
+Message-Id: <20241226211610.515F7C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: uninline the main body of vma_start_write()
+     Subject: refcount: introduce __refcount_{add|inc}_not_zero_limited
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uninline-the-main-body-of-vma_start_write.patch
+     refcount-introduce-__refcount_addinc_not_zero_limited.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uninline-the-main-body-of-vma_start_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/refcount-introduce-__refcount_addinc_not_zero_limited.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: uninline the main body of vma_start_write()
-Date: Thu, 26 Dec 2024 09:07:02 -0800
+Subject: refcount: introduce __refcount_{add|inc}_not_zero_limited
+Date: Thu, 26 Dec 2024 09:07:03 -0800
 
-vma_start_write() is used in many places and will grow in size very soon. 
-It is not used in performance critical paths and uninlining it should
-limit the future code size growth.  No functional changes.
+Introduce functions to increase refcount but with a top limit above which
+they will fail to increase.  Setting the limit to 0 indicates no limit.
 
-Link: https://lkml.kernel.org/r/20241226170710.1159679-11-surenb@google.com
+Link: https://lkml.kernel.org/r/20241226170710.1159679-12-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
@@ -98,61 +97,58 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 +++---------
- mm/memory.c        |   14 ++++++++++++++
- 2 files changed, 17 insertions(+), 9 deletions(-)
+ include/linux/refcount.h |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-uninline-the-main-body-of-vma_start_write
-+++ a/include/linux/mm.h
-@@ -787,6 +787,8 @@ static bool __is_vma_write_locked(struct
- 	return (vma->vm_lock_seq == *mm_lock_seq);
+--- a/include/linux/refcount.h~refcount-introduce-__refcount_addinc_not_zero_limited
++++ a/include/linux/refcount.h
+@@ -137,13 +137,19 @@ static inline unsigned int refcount_read
  }
  
-+void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq);
-+
- /*
-  * Begin writing to a VMA.
-  * Exclude concurrent readers under the per-VMA lock until the currently
-@@ -799,15 +801,7 @@ static inline void vma_start_write(struc
- 	if (__is_vma_write_locked(vma, &mm_lock_seq))
- 		return;
+ static inline __must_check __signed_wrap
+-bool __refcount_add_not_zero(int i, refcount_t *r, int *oldp)
++bool __refcount_add_not_zero_limited(int i, refcount_t *r, int *oldp,
++				     int limit)
+ {
+ 	int old = refcount_read(r);
  
--	down_write(&vma->vm_lock.lock);
--	/*
--	 * We should use WRITE_ONCE() here because we can have concurrent reads
--	 * from the early lockless pessimistic check in vma_start_read().
--	 * We don't really care about the correctness of that early check, but
--	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
--	 */
--	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
--	up_write(&vma->vm_lock.lock);
-+	__vma_start_write(vma, mm_lock_seq);
+ 	do {
+ 		if (!old)
+ 			break;
++		if (limit && old + i > limit) {
++			if (oldp)
++				*oldp = old;
++			return false;
++		}
+ 	} while (!atomic_try_cmpxchg_relaxed(&r->refs, &old, old + i));
+ 
+ 	if (oldp)
+@@ -155,6 +161,12 @@ bool __refcount_add_not_zero(int i, refc
+ 	return old;
  }
  
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
---- a/mm/memory.c~mm-uninline-the-main-body-of-vma_start_write
-+++ a/mm/memory.c
-@@ -6328,6 +6328,20 @@ fail:
- #endif
- 
- #ifdef CONFIG_PER_VMA_LOCK
-+void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq)
++static inline __must_check __signed_wrap
++bool __refcount_add_not_zero(int i, refcount_t *r, int *oldp)
 +{
-+	down_write(&vma->vm_lock.lock);
-+	/*
-+	 * We should use WRITE_ONCE() here because we can have concurrent reads
-+	 * from the early lockless pessimistic check in vma_start_read().
-+	 * We don't really care about the correctness of that early check, but
-+	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
-+	 */
-+	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
-+	up_write(&vma->vm_lock.lock);
++	return __refcount_add_not_zero_limited(i, r, oldp, 0);
 +}
-+EXPORT_SYMBOL_GPL(__vma_start_write);
 +
- /*
-  * Lookup and lock a VMA under RCU protection. Returned VMA is guaranteed to be
-  * stable and not isolated. If the VMA is not found or is being modified the
+ /**
+  * refcount_add_not_zero - add a value to a refcount unless it is 0
+  * @i: the value to add to the refcount
+@@ -213,6 +225,12 @@ static inline void refcount_add(int i, r
+ 	__refcount_add(i, r, NULL);
+ }
+ 
++static inline __must_check bool __refcount_inc_not_zero_limited(refcount_t *r,
++								int *oldp, int limit)
++{
++	return __refcount_add_not_zero_limited(1, r, oldp, limit);
++}
++
+ static inline __must_check bool __refcount_inc_not_zero(refcount_t *r, int *oldp)
+ {
+ 	return __refcount_add_not_zero(1, r, oldp);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
