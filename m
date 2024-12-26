@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2FC5140E50
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:47:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE43A13C80D
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:47:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249629; cv=none; b=G4KAaTrw2bxqvexqrYyIXLqrD/0w656CI2QebtKTGzwJFcO9oKHzfjOP5Gheev19fnxVCOM+3jHQe+icH9toohngkbgh5cjWcIzpIJ7y8uloHPouE9w3GF6uHAQw6yOlbuR9njnmsSn+2OPUbZ7sDE6YObJR3xpDrw73HQXt96Y=
+	t=1735249631; cv=none; b=fV+pVwDboRpHh//7NQ2Gepve6dyLfyllWH9yLCyKWLjyAGmu2bf/0nceFEaQBpxft71yqUejVslLHbjpxkr83R24IzfyuH8CYHtwMnpnYEDfh3sdK1M4bUDyLRJyXHuExXHBOS6mrJHlGgltjGu+sqsoPKAsykvWjMWygUCSoeo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735249629; c=relaxed/simple;
-	bh=6spVTUCF19ydt6NT+7oxadVcFjK7OeV0PjxMpoaXhQQ=;
-	h=Date:To:From:Subject:Message-Id; b=cl8ZBdZJ1p3JB9n2RtH0BLzWNulgGoMq7Der+GGFYzL5YEUKQ/bwhiyCMaLdoXvOf6EC2TAui8uVJ8v25WZFVmxP2TLJhaWwZnZ5v7Vef9g+ZxQzhHj5h95Eoy7/ksbZ6oOmtNHrFV2FZ5emTVGzE/rzcXxFop2XNEg0aUSuYgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BB5muwR5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735249631; c=relaxed/simple;
+	bh=fRLr0y8WGR7WSljCehz+kcsAFyPTmLxtyPjwQYzptR4=;
+	h=Date:To:From:Subject:Message-Id; b=OgtW90Mo+J58PPCRC/u9a8IyV7g9ikTqPp24ZxMmSmo4FerchswVkKJ58K1cflzRzCu9wnXnDEE6R7w0NNoDtCnBhR9IXkksEAAWa6KVVmb3xgHvGFbEFYS5r24c+IBwTA/26nfkerLlxradtLAaY4skCr9PA/WjM/ybt2rRFxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sTkgkemY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BB5muwR5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C38C4CED1;
-	Thu, 26 Dec 2024 21:47:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sTkgkemY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91966C4CED1;
+	Thu, 26 Dec 2024 21:47:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735249629;
-	bh=6spVTUCF19ydt6NT+7oxadVcFjK7OeV0PjxMpoaXhQQ=;
+	s=korg; t=1735249631;
+	bh=fRLr0y8WGR7WSljCehz+kcsAFyPTmLxtyPjwQYzptR4=;
 	h=Date:To:From:Subject:From;
-	b=BB5muwR5RS+723fPjiNfOoUQAXjKaVuYxGA2QzySbAcST9WPq8+s5fI4ptlBbqGYp
-	 iQgIGn7UEnH2udImqGdHfn0O0+TH/JypvhaYqRkzqXqpWT6msp6PCN1lulRPqlvUTO
-	 C320fxH93X3JJDPBEQwPHl4SxKIh/e0D/DZPTzP0=
-Date: Thu, 26 Dec 2024 13:47:09 -0800
+	b=sTkgkemYdbroOtKJa6cCRZ9WUBcuUdcchev6d2j0c3zw22jeZd59HZCZJN5sWG8xM
+	 lu4TJOxokal2qAxC3FrrDYbmUXMl6JeDrio2cWEXKmTGrruYZZJUFft+cnBg0xv6LZ
+	 Gq/LTQpBj9fxef0Rura1vR/vDr3GbWVNVPFvCebY=
+Date: Thu, 26 Dec 2024 13:47:11 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,senozhatsky@chromium.org,minchan@kernel.org,alexs@kernel.org,42.hyeyoo@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch added to mm-unstable branch
-Message-Id: <20241226214709.98C38C4CED1@smtp.kernel.org>
+Subject: + mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc.patch added to mm-unstable branch
+Message-Id: <20241226214711.91966C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: convert obj_to_page() and zs_free() to use zpdesc
+     Subject: mm/zsmalloc: add two helpers for zs_page_migrate() and make it use zpdesc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch
+     mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/zsmalloc: convert obj_to_page() and zs_free() to use zpdesc
-Date: Tue, 17 Dec 2024 00:04:40 +0900
+Subject: mm/zsmalloc: add two helpers for zs_page_migrate() and make it use zpdesc
+Date: Tue, 17 Dec 2024 00:04:41 +0900
 
-Rename obj_to_page() to obj_to_zpdesc() and also convert it and its user
-zs_free() to use zpdesc.
-
-Link: https://lkml.kernel.org/r/20241216150450.1228021-10-42.hyeyoo@gmail.com
+To convert page to zpdesc in zs_page_migrate(), we added
+zpdesc_is_isolated()/zpdesc_zone() helpers.  No functional change.
+Link: https://lkml.kernel.org/r/20241216150450.1228021-11-42.hyeyoo@gmail.com
 Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Signed-off-by: Alex Shi <alexs@kernel.org>
 Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -76,43 +75,112 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/zpdesc.h   |   11 +++++++++++
+ mm/zsmalloc.c |   30 ++++++++++++++++--------------
+ 2 files changed, 27 insertions(+), 14 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc
+--- a/mm/zpdesc.h~mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc
++++ a/mm/zpdesc.h
+@@ -154,4 +154,15 @@ static inline void __zpdesc_set_movable(
+ {
+ 	__SetPageMovable(zpdesc_page(zpdesc), mops);
+ }
++
++static inline bool zpdesc_is_isolated(struct zpdesc *zpdesc)
++{
++	return PageIsolated(zpdesc_page(zpdesc));
++}
++
++static inline struct zone *zpdesc_zone(struct zpdesc *zpdesc)
++{
++	return page_zone(zpdesc_page(zpdesc));
++}
++
+ #endif
+--- a/mm/zsmalloc.c~mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc
 +++ a/mm/zsmalloc.c
-@@ -798,9 +798,9 @@ static void obj_to_location(unsigned lon
- 	*obj_idx = (obj & OBJ_INDEX_MASK);
- }
- 
--static void obj_to_page(unsigned long obj, struct page **page)
-+static void obj_to_zpdesc(unsigned long obj, struct zpdesc **zpdesc)
- {
--	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
-+	*zpdesc = pfn_zpdesc(obj >> OBJ_INDEX_BITS);
- }
- 
- /**
-@@ -1462,7 +1462,7 @@ static void obj_free(int class_size, uns
- void zs_free(struct zs_pool *pool, unsigned long handle)
- {
- 	struct zspage *zspage;
--	struct page *f_page;
-+	struct zpdesc *f_zpdesc;
- 	unsigned long obj;
+@@ -1796,19 +1796,21 @@ static int zs_page_migrate(struct page *
  	struct size_class *class;
- 	int fullness;
-@@ -1476,8 +1476,8 @@ void zs_free(struct zs_pool *pool, unsig
+ 	struct zspage *zspage;
+ 	struct zpdesc *dummy;
++	struct zpdesc *newzpdesc = page_zpdesc(newpage);
++	struct zpdesc *zpdesc = page_zpdesc(page);
+ 	void *s_addr, *d_addr, *addr;
+ 	unsigned int offset;
+ 	unsigned long handle;
+ 	unsigned long old_obj, new_obj;
+ 	unsigned int obj_idx;
+ 
+-	VM_BUG_ON_PAGE(!PageIsolated(page), page);
++	VM_BUG_ON_PAGE(!zpdesc_is_isolated(zpdesc), zpdesc_page(zpdesc));
+ 
+ 	/* We're committed, tell the world that this is a Zsmalloc page. */
+-	__SetPageZsmalloc(newpage);
++	__SetPageZsmalloc(zpdesc_page(newzpdesc));
+ 
+ 	/* The page is locked, so this pointer must remain valid */
+-	zspage = get_zspage(page);
++	zspage = get_zspage(zpdesc_page(zpdesc));
+ 	pool = zspage->pool;
+ 
+ 	/*
+@@ -1825,30 +1827,30 @@ static int zs_page_migrate(struct page *
+ 	/* the migrate_write_lock protects zpage access via zs_map_object */
+ 	migrate_write_lock(zspage);
+ 
+-	offset = get_first_obj_offset(page);
+-	s_addr = kmap_local_page(page);
++	offset = get_first_obj_offset(zpdesc_page(zpdesc));
++	s_addr = kmap_local_zpdesc(zpdesc);
+ 
+ 	/*
+ 	 * Here, any user cannot access all objects in the zspage so let's move.
  	 */
- 	read_lock(&pool->migrate_lock);
- 	obj = handle_to_obj(handle);
--	obj_to_page(obj, &f_page);
--	zspage = get_zspage(f_page);
-+	obj_to_zpdesc(obj, &f_zpdesc);
-+	zspage = get_zspage(zpdesc_page(f_zpdesc));
- 	class = zspage_class(pool, zspage);
- 	spin_lock(&class->lock);
- 	read_unlock(&pool->migrate_lock);
+-	d_addr = kmap_local_page(newpage);
++	d_addr = kmap_local_zpdesc(newzpdesc);
+ 	copy_page(d_addr, s_addr);
+ 	kunmap_local(d_addr);
+ 
+ 	for (addr = s_addr + offset; addr < s_addr + PAGE_SIZE;
+ 					addr += class->size) {
+-		if (obj_allocated(page_zpdesc(page), addr, &handle)) {
++		if (obj_allocated(zpdesc, addr, &handle)) {
+ 
+ 			old_obj = handle_to_obj(handle);
+ 			obj_to_location(old_obj, &dummy, &obj_idx);
+-			new_obj = (unsigned long)location_to_obj(newpage,
++			new_obj = (unsigned long)location_to_obj(zpdesc_page(newzpdesc),
+ 								obj_idx);
+ 			record_obj(handle, new_obj);
+ 		}
+ 	}
+ 	kunmap_local(s_addr);
+ 
+-	replace_sub_page(class, zspage, page_zpdesc(newpage), page_zpdesc(page));
++	replace_sub_page(class, zspage, newzpdesc, zpdesc);
+ 	/*
+ 	 * Since we complete the data copy and set up new zspage structure,
+ 	 * it's okay to release migration_lock.
+@@ -1857,14 +1859,14 @@ static int zs_page_migrate(struct page *
+ 	spin_unlock(&class->lock);
+ 	migrate_write_unlock(zspage);
+ 
+-	get_page(newpage);
+-	if (page_zone(newpage) != page_zone(page)) {
+-		dec_zone_page_state(page, NR_ZSPAGES);
+-		inc_zone_page_state(newpage, NR_ZSPAGES);
++	zpdesc_get(newzpdesc);
++	if (zpdesc_zone(newzpdesc) != zpdesc_zone(zpdesc)) {
++		zpdesc_dec_zone_page_state(zpdesc);
++		zpdesc_inc_zone_page_state(newzpdesc);
+ 	}
+ 
+ 	reset_page(page);
+-	put_page(page);
++	zpdesc_put(zpdesc);
+ 
+ 	return MIGRATEPAGE_SUCCESS;
+ }
 _
 
 Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
