@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D415450F2
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 22:12:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B47818870C
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 22:14:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735251135; cv=none; b=Cp4+RMY67Lw5kDdpFMnpuPoio8yr18yPhor6QHeyVUhvqR1VG2Ek07JxfBMl06DamPd9wMxSZdMLV0zAteuQ81qmwniB6mGUnpSXWSxdtlU6rbiNx6AZim+aX0gdhIQIFyYIeDDITKeXEWAKSsaRdiWw2STUqBlml3MIv4ba7+U=
+	t=1735251262; cv=none; b=SY9TyW+iCU/GCL0ZPUgERI/0HvMaaibaORmcqzm/G6n576KpkhdtC1oAjyG7lCzV00eucaFPAV23inOhBd8Za3SnitKWoHRHtHcIliWUVoj7IYGQk64xRQOMw+h+THcZSiMf5/IUCeFX/EnvgD0Z+uN4utVl19lpX8cyWUYFAmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735251135; c=relaxed/simple;
-	bh=9+4N3Fxg4ONvBOcHk4EXCK4nFaKmPHT/zcVkXFaTQj4=;
-	h=Date:To:From:Subject:Message-Id; b=ArTxBHvDV+XgQ8KUB5K0AeJXX0s9XI3mRIz/jAe6BJIFGu1dFh0SU8y8KdV3yEOUPMLmGpSSrW7djjLvzvWevrXoXbOeJHWNcFLYoBFbPWRESNjLOJC9n7MGTaScPzSViGPuyHVIW7dstAXQLovWhKd52BnW7gaUsmqoOSyGoQU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o1/T0+0o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735251262; c=relaxed/simple;
+	bh=7hurIhkUJWIrNFn3bv+2APL58QbSeXFgOx2HBsXwbt8=;
+	h=Date:To:From:Subject:Message-Id; b=hNMz3lw7PXW6xmlULzEKhjhICwt21nRx6PtX0miP0+EzFYg4G/nMRHFFFYEl0g4W8HHsEu6WZqe610vueyy90vuizEJiHoCxmMPTSNKmFzqRDC3OkpzScuIlhj/yaCaeMZ8Q3Bip7+yEHuwY6/qsk0J8lzWrfFDg4QCdGksDnwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bZMeBF82; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o1/T0+0o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2305FC4CED1;
-	Thu, 26 Dec 2024 22:12:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bZMeBF82"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86F4C4CED1;
+	Thu, 26 Dec 2024 22:14:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735251134;
-	bh=9+4N3Fxg4ONvBOcHk4EXCK4nFaKmPHT/zcVkXFaTQj4=;
+	s=korg; t=1735251261;
+	bh=7hurIhkUJWIrNFn3bv+2APL58QbSeXFgOx2HBsXwbt8=;
 	h=Date:To:From:Subject:From;
-	b=o1/T0+0oYUJu3BBzEOfT6XIRxQImkPKB5u2Zc+lvp/mhuEbpq5Bx7jw+mcV9RN8kR
-	 /99duasNHHMSjGWc0fw8dsi4Y7x3YcQhMmKgKrKCzy+Xi4TyvUDm3IXjGXgYET1M2c
-	 JU3pOa3+ovGGVGPvWrm/RylDnvdhHA9I05q3d7zo=
-Date: Thu, 26 Dec 2024 14:12:13 -0800
-To: mm-commits@vger.kernel.org,oliver.sang@intel.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=bZMeBF82SdLVHAepN8b+IBtP677TRepLT43/7WXhFt5WQEx7npEJTPFg24JzACSK+
+	 gFP+89ZcmHWTwCvDBv2JjxEiZfLrHurdsgaiJXXm7JyZqEZ/sA1Obl98/pQAVanlex
+	 pEKa2/4zUEAqxrpitJwN25QqVnN/ugeoDNf9hmDM=
+Date: Thu, 26 Dec 2024 14:14:21 -0800
+To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,chuang@cs.nycu.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-rework-workingset-protection-fix.patch added to mm-unstable branch
-Message-Id: <20241226221214.2305FC4CED1@smtp.kernel.org>
+Subject: + lib-sort-clarify-comparison-function-requirements-in-sort_r.patch added to mm-nonmm-unstable branch
+Message-Id: <20241226221421.C86F4C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-mglru-rework-workingset-protection-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-rework-workingset-protection-fix.patch
+     Subject: lib/sort: clarify comparison function requirements in sort_r()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-sort-clarify-comparison-function-requirements-in-sort_r.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-rework-workingset-protection-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sort-clarify-comparison-function-requirements-in-sort_r.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm-mglru-rework-workingset-protection-fix
-Date: Tue, 24 Dec 2024 12:04:44 -0700
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib/sort: clarify comparison function requirements in sort_r()
+Date: Wed, 25 Dec 2024 00:39:26 +0800
 
-Revert change to folio_mark_accessed() that unncessarily dirties cache
-lines shared between different cores.
+Patch series "lib: clarify comparison function requirements".
 
-Link: https://lkml.kernel.org/r/Z2sFzKmHPI0kI_fq@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Tested-by: kernel test robot <oliver.sang@intel.com>
+Add a detailed explanation in the sort_r/list_sort kernel doc comment
+specifying that the comparison function must satisfy antisymmetry and
+transitivity.  These properties are essential for the sorting algorithm to
+produce correct results.
+
+Issues have arisen in the past [1][2][3][4] where comparison functions
+violated the transitivity property, causing sorting algorithms to fail to
+correctly order elements.  While these requirements may seem
+straightforward, they are commonly misunderstood or overlooked, leading to
+bugs.  Highlighting these properties in the documentation will help
+prevent such mistakes in the future.
+
+
+This patch (of 2):
+
+Add a detailed explanation in the sort_r() kernel doc comment specifying
+that the comparison function must satisfy antisymmetry and transitivity. 
+These properties are essential for the sorting algorithm to produce
+correct results.
+
+Issues have arisen in the past [1][2][3][4] where comparison functions
+violated the transitivity property, causing sorting algorithms to fail to
+correctly order elements.  While these requirements may seem
+straightforward, they are commonly misunderstood or overlooked, leading to
+bugs.  Highlighting these properties in the documentation will help
+prevent such mistakes in the future.
+
+Link: https://lore.kernel.org/lkml/20240701205639.117194-1-visitorckw@gmail.com [1]
+Link: https://lore.kernel.org/lkml/20241203202228.1274403-1-visitorckw@gmail.com [2]
+Link: https://lore.kernel.org/lkml/20241209134226.1939163-1-visitorckw@gmail.com [3]
+Link: https://lore.kernel.org/lkml/20241209145728.1975311-1-visitorckw@gmail.com [4]
+Link: https://lkml.kernel.org/r/20241224163927.2558195-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: <chuang@cs.nycu.edu.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/sort.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/swap.c~mm-mglru-rework-workingset-protection-fix
-+++ a/mm/swap.c
-@@ -395,7 +395,8 @@ static void lru_gen_inc_refs(struct foli
- 
- 	do {
- 		if ((old_flags & LRU_REFS_MASK) == LRU_REFS_MASK) {
--			folio_set_workingset(folio);
-+			if (!folio_test_workingset(folio))
-+				folio_set_workingset(folio);
- 			return;
- 		}
- 
+--- a/lib/sort.c~lib-sort-clarify-comparison-function-requirements-in-sort_r
++++ a/lib/sort.c
+@@ -200,6 +200,13 @@ static size_t parent(size_t i, unsigned
+  * copy (e.g. fix up pointers or auxiliary data), but the built-in swap
+  * avoids a slow retpoline and so is significantly faster.
+  *
++ * The comparison function must adhere to specific mathematical
++ * properties to ensure correct and stable sorting:
++ * - Antisymmetry: cmp_func(a, b) must return the opposite sign of
++ *   cmp_func(b, a).
++ * - Transitivity: if cmp_func(a, b) <= 0 and cmp_func(b, c) <= 0, then
++ *   cmp_func(a, c) <= 0.
++ *
+  * Sorting time is O(n log n) both on average and worst-case. While
+  * quicksort is slightly faster on average, it suffers from exploitable
+  * O(n*n) worst-case behavior and extra memory requirements that make
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-mm-mglru-clean-up-workingset.patch
-mm-mglru-optimize-deactivation.patch
-mm-mglru-rework-aging-feedback.patch
-mm-mglru-rework-type-selection.patch
-mm-mglru-rework-refault-detection.patch
-mm-mglru-rework-workingset-protection.patch
-mm-mglru-rework-workingset-protection-fix.patch
+scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch
+lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
+lib-test_min_heap-use-inline-min-heap-variants-to-reduce-attack-vector.patch
+lib-min_heap-add-brief-introduction-to-min-heap-api.patch
+documentation-core-api-min_heap-add-author-information.patch
+lib-sort-clarify-comparison-function-requirements-in-sort_r.patch
+lib-list_sort-clarify-comparison-function-requirements-in-sort_r.patch
 
