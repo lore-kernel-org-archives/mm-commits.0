@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7569A189BB0
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:53:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D415450F2
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 22:12:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249991; cv=none; b=jAY5K5cJCVo3AvGJxqR3YL7k6zGkAysk1/MNxlNUr80vhEdkxLH53KG3f/L0elTcbOEF0oPgInwQvVJSnhTvZCYFQ3D6XLXrg4ELxF28qs2UBnyzd/GvH33jyPKBfxFEs3FuxRYSAoQYgyG/4y+uvhFDtogHDO2AjPy3F6GX0G4=
+	t=1735251135; cv=none; b=Cp4+RMY67Lw5kDdpFMnpuPoio8yr18yPhor6QHeyVUhvqR1VG2Ek07JxfBMl06DamPd9wMxSZdMLV0zAteuQ81qmwniB6mGUnpSXWSxdtlU6rbiNx6AZim+aX0gdhIQIFyYIeDDITKeXEWAKSsaRdiWw2STUqBlml3MIv4ba7+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735249991; c=relaxed/simple;
-	bh=Rx6GiwbtmUjmhxG3ZIYIdL5WH571bYD8fISYSklIgBY=;
-	h=Date:To:From:Subject:Message-Id; b=bbqIVDdsJsxCY/gOgU6XgVZVCrO7Q+VmAjkI38xuQC9T26El2HiKeQ8y8uetlOYhx+FaBX7GvKmXVx6bQQt/RTDYAyZ9+nM718sMpSuyKkDqsNAPiJ6L8Vo/S+mbvK+jXBpI9zMDjpWguPL/hv0y2+SKDyWdyIxIMJSo64m2GLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j0lRy0nq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735251135; c=relaxed/simple;
+	bh=9+4N3Fxg4ONvBOcHk4EXCK4nFaKmPHT/zcVkXFaTQj4=;
+	h=Date:To:From:Subject:Message-Id; b=ArTxBHvDV+XgQ8KUB5K0AeJXX0s9XI3mRIz/jAe6BJIFGu1dFh0SU8y8KdV3yEOUPMLmGpSSrW7djjLvzvWevrXoXbOeJHWNcFLYoBFbPWRESNjLOJC9n7MGTaScPzSViGPuyHVIW7dstAXQLovWhKd52BnW7gaUsmqoOSyGoQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o1/T0+0o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j0lRy0nq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D55D6C4CED1;
-	Thu, 26 Dec 2024 21:53:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o1/T0+0o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2305FC4CED1;
+	Thu, 26 Dec 2024 22:12:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735249990;
-	bh=Rx6GiwbtmUjmhxG3ZIYIdL5WH571bYD8fISYSklIgBY=;
+	s=korg; t=1735251134;
+	bh=9+4N3Fxg4ONvBOcHk4EXCK4nFaKmPHT/zcVkXFaTQj4=;
 	h=Date:To:From:Subject:From;
-	b=j0lRy0nqUmkDy9KZgF2XdP6RluPkmPApUva5DvIp7WbiNC7lcir+Lex0469Ydqqpk
-	 KtYGtY9abLLdJghEUsxhaj34JVXuzFORnV+kbFBKbkEewTMiABJQCUREnRlPqeGSdz
-	 03FT7LUMCjSrNatTms5lp0zYKNBEDFQk601k9tRs=
-Date: Thu, 26 Dec 2024 13:53:10 -0800
-To: mm-commits@vger.kernel.org,yaowenchao@jd.com,15645113830zzh@gmail.com,akpm@linux-foundation.org
+	b=o1/T0+0oYUJu3BBzEOfT6XIRxQImkPKB5u2Zc+lvp/mhuEbpq5Bx7jw+mcV9RN8kR
+	 /99duasNHHMSjGWc0fw8dsi4Y7x3YcQhMmKgKrKCzy+Xi4TyvUDm3IXjGXgYET1M2c
+	 JU3pOa3+ovGGVGPvWrm/RylDnvdhHA9I05q3d7zo=
+Date: Thu, 26 Dec 2024 14:12:13 -0800
+To: mm-commits@vger.kernel.org,oliver.sang@intel.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241226215310.D55D6C4CED1@smtp.kernel.org>
+Subject: + mm-mglru-rework-workingset-protection-fix.patch added to mm-unstable branch
+Message-Id: <20241226221214.2305FC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: fix missed updates of lowmem_reserve in adjust_managed_page_count
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch
+     Subject: mm-mglru-rework-workingset-protection-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mglru-rework-workingset-protection-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-rework-workingset-protection-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,84 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zihan zhou <15645113830zzh@gmail.com>
-Subject: mm: page_alloc: fix missed updates of lowmem_reserve in adjust_managed_page_count
-Date: Wed, 25 Dec 2024 10:10:35 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm-mglru-rework-workingset-protection-fix
+Date: Tue, 24 Dec 2024 12:04:44 -0700
 
-In the kernel, the zone's lowmem_reserve and _watermark, and the global
-variable 'totalreserve_pages' depend on the value of managed_pages, but
-after running adjust_managed_page_count, these values aren't updated,
-which caused some problems.
+Revert change to folio_mark_accessed() that unncessarily dirties cache
+lines shared between different cores.
 
-For example, in a system with six 1GB large pages, we found that the value
-of protection in zoneinfo (zone->lowmem_reserve), is not right.  Its value
-seems calculated from the initial managed_pages, but after the
-managed_pages changed, was not updated.  Only after reading the file
-/proc/sys/vm/lowmem_reserve_ratio, updates happen.
-
-read file /proc/sys/vm/lowmem_reserve_ratio:
-
-lowmem_reserve_ratio_sysctl_handler
-----setup_per_zone_lowmem_reserve
---------calculate_totalreserve_pages
-
-protection changed after reading file:
-
-[root@test ~]# cat /proc/zoneinfo | grep protection
-        protection: (0, 2719, 57360, 0)
-        protection: (0, 0, 54640, 0)
-        protection: (0, 0, 0, 0)
-        protection: (0, 0, 0, 0)
-[root@test ~]# cat /proc/sys/vm/lowmem_reserve_ratio
-256     256     32      0
-[root@test ~]# cat /proc/zoneinfo | grep protection
-        protection: (0, 2735, 63524, 0)
-        protection: (0, 0, 60788, 0)
-        protection: (0, 0, 0, 0)
-        protection: (0, 0, 0, 0)
-
-lowmem_reserve increased also makes the totalreserve_pages increased,
-which causes a decrease in available memory.  The one above is just a test
-machine, and the increase is not significant.  On our online machine, the
-reserved memory will increase by several GB due to reading this file.  It
-is clearly unreasonable to cause a sharp drop in available memory just by
-reading a file.
-
-In this patch, we update reserve memory when update managed_pages, The
-size of reserved memory becomes stable.  But it seems that the _watermark
-should also be updated along with the managed_pages.  We have not done it
-because we are unsure if it is reasonable to set the watermark through the
-initial managed_pages.  If it is not reasonable, we will propose new
-patch.
-
-Link: https://lkml.kernel.org/r/20241225021034.45693-1-15645113830zzh@gmail.com
-Signed-off-by: zihan zhou <15645113830zzh@gmail.com>
-Signed-off-by: yaowenchao <yaowenchao@jd.com>
+Link: https://lkml.kernel.org/r/Z2sFzKmHPI0kI_fq@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Tested-by: kernel test robot <oliver.sang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/swap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count
-+++ a/mm/page_alloc.c
-@@ -5692,10 +5692,13 @@ __meminit void zone_pcp_init(struct zone
- 			 zone->present_pages, zone_batchsize(zone));
- }
+--- a/mm/swap.c~mm-mglru-rework-workingset-protection-fix
++++ a/mm/swap.c
+@@ -395,7 +395,8 @@ static void lru_gen_inc_refs(struct foli
  
-+static void setup_per_zone_lowmem_reserve(void);
-+
- void adjust_managed_page_count(struct page *page, long count)
- {
- 	atomic_long_add(count, &page_zone(page)->managed_pages);
- 	totalram_pages_add(count);
-+	setup_per_zone_lowmem_reserve();
- }
- EXPORT_SYMBOL(adjust_managed_page_count);
+ 	do {
+ 		if ((old_flags & LRU_REFS_MASK) == LRU_REFS_MASK) {
+-			folio_set_workingset(folio);
++			if (!folio_test_workingset(folio))
++				folio_set_workingset(folio);
+ 			return;
+ 		}
  
 _
 
-Patches currently in -mm which might be from 15645113830zzh@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-page_alloc-fix-missed-updates-of-lowmem_reserve-in-adjust_managed_page_count.patch
+mm-mglru-clean-up-workingset.patch
+mm-mglru-optimize-deactivation.patch
+mm-mglru-rework-aging-feedback.patch
+mm-mglru-rework-type-selection.patch
+mm-mglru-rework-refault-detection.patch
+mm-mglru-rework-workingset-protection.patch
+mm-mglru-rework-workingset-protection-fix.patch
 
