@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 248F318B477
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:47:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A2FA77111
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:50:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735249648; cv=none; b=bzMjGJ+NuxwubOzBw+c/iXIb/31lBh0zUih2ifciFxY0jV69cQU9VEerzMeorWAm8nTSX03n9414d8lQ78BIEtBUfhU26RQTj4bWpEogqt7kM2JGadyCbgsDghfO1obu80tNWd9dCtq1BWfjvsSYXFcCcAVINbnDCOLMJOw/6+c=
+	t=1735249848; cv=none; b=muBf/5Z6iJRTWjH82Mdkpu6W0HC/Nc6khChTrIQqNHyvtbZ+KGhK+XMQ8jlw1+SDTKpbvMuLf59tLZRY1PvdRNHsJJVTn+uuyfhCSG6X8UibMbO2Bjq7eLbeO4juqe70TFBdQHCvw9J5aJk7bSN7fbUanZyZxFBLJ2aLjMqF8wg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735249648; c=relaxed/simple;
-	bh=iLkR2/rwogGtpB6KEbAGAJWDG2BgGcauWK6yLXKPdF0=;
-	h=Date:To:From:Subject:Message-Id; b=IIgHMri6KJ+HO+a7b/fc5Gb2KBeoc/3rhEbdnFtkVoSQ04RF6zVrigJYN0H5pK7NWzay4kGuxPo9erbo+UB8q8h/Qo34aVKvVYP+ORAoG1noLNEvcJ75hbxNggakPv/TJ8pfEsC93qLeFexmciJw2JKu5530PbMfX2tRuQLbY/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RUuBMDhp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735249848; c=relaxed/simple;
+	bh=thCbRquCgfE2I/RUmvrokmwP2Lba7S9STg4mP7E4AxA=;
+	h=Date:To:From:Subject:Message-Id; b=XogZs9gxoFSGyPoVvtwJssYcCYf9DmqYlMoV+RIbwARrvInsVmM/A1+0mjhYkDjbk57o5dKSN7pMxk8VXtysWdc+pNTdfjqPCu47BbeL1ctOdaDJygsaayZh/GIq4fsWfdTN8A45SSz2EGTSDkaXFSr8iLlMoe8/+s5Lyni8bkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KbYnAFRg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RUuBMDhp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECFBBC4CED1;
-	Thu, 26 Dec 2024 21:47:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KbYnAFRg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5613C4CED1;
+	Thu, 26 Dec 2024 21:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735249648;
-	bh=iLkR2/rwogGtpB6KEbAGAJWDG2BgGcauWK6yLXKPdF0=;
+	s=korg; t=1735249847;
+	bh=thCbRquCgfE2I/RUmvrokmwP2Lba7S9STg4mP7E4AxA=;
 	h=Date:To:From:Subject:From;
-	b=RUuBMDhpDtJ+zHhjQdHG14bZIAeI5+tk7WwQ9HJK3rsnR0CTgZ2eCDIHRynrHvjHb
-	 Aoh7a1/y6rOmPYlv1fnjTGCMxyG/dZvqRgorLwxfM2jP7Ic3rKLnkQaKYqNONzLnJQ
-	 ZDYE/8xt8/WBXX1lASLZvkAhYONHqTyfWS4nSUps=
-Date: Thu, 26 Dec 2024 13:47:27 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,senozhatsky@chromium.org,minchan@kernel.org,42.hyeyoo@gmail.com,alexs@kernel.org,akpm@linux-foundation.org
+	b=KbYnAFRgDvt1uYH0s8zzYBlMlm55ZtG8j0YWONRV8f5PflgWciOirLsWWDm6dgXKy
+	 1mml+vWlWwAvnBTXUfvMHe02AUtAgxnm32D8aHzbVLl776oXk2QkP7YSiNkADDsk+0
+	 mTk0FhE1Mq7pwgeyxseeGMieHr3BE/9QJpk+EmzY=
+Date: Thu, 26 Dec 2024 13:50:47 -0800
+To: mm-commits@vger.kernel.org,chester.a.unal@arinc9.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc.patch added to mm-unstable branch
-Message-Id: <20241226214727.ECFBBC4CED1@smtp.kernel.org>
+Subject: + maintainers-change-arınc-_nals-name-and-email-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241226215047.B5613C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: introduce __zpdesc_clear/set_zsmalloc()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc.patch
+     Subject: MAINTAINERS: change Arınç _NAL's name and email address
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-change-arınc-_nals-name-and-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-change-arınc-_nals-name-and-email-address.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,84 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alex Shi <alexs@kernel.org>
-Subject: mm/zsmalloc: introduce __zpdesc_clear/set_zsmalloc()
-Date: Tue, 17 Dec 2024 00:04:49 +0900
+From: "Chester A. Unal" <chester.a.unal@arinc9.com>
+Subject: MAINTAINERS: change Arınç _NAL's name and email address
+Date: Wed, 25 Dec 2024 15:50:41 +0300
 
-Add helper __zpdesc_clear_zsmalloc() for __ClearPageZsmalloc(),
-__zpdesc_set_zsmalloc() for __SetPageZsmalloc(), and use them in callers.
+My legal name now includes Chester. Change the name and the email address
+sections to reflect that.
 
-[42.hyeyoo@gmail.com: keep reset_zpdesc() to use struct page]
-Link: https://lkml.kernel.org/r/20241216150450.1228021-19-42.hyeyoo@gmail.com
-Signed-off-by: Alex Shi <alexs@kernel.org>
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20241225-for-unknown-upstream-v1-1-3e35e4d5e161@arinc9.com
+Signed-off-by: Chester A. Unal <chester.a.unal@arinc9.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpdesc.h   |   10 ++++++++++
- mm/zsmalloc.c |    6 +++---
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/zpdesc.h~mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc
-+++ a/mm/zpdesc.h
-@@ -155,6 +155,16 @@ static inline void __zpdesc_set_movable(
- 	__SetPageMovable(zpdesc_page(zpdesc), mops);
- }
+--- a/MAINTAINERS~maintainers-change-arınc-_nals-name-and-email-address
++++ a/MAINTAINERS
+@@ -14756,7 +14756,7 @@ F:	drivers/memory/mtk-smi.c
+ F:	include/soc/mediatek/smi.h
  
-+static inline void __zpdesc_set_zsmalloc(struct zpdesc *zpdesc)
-+{
-+	__SetPageZsmalloc(zpdesc_page(zpdesc));
-+}
-+
-+static inline void __zpdesc_clear_zsmalloc(struct zpdesc *zpdesc)
-+{
-+	__ClearPageZsmalloc(zpdesc_page(zpdesc));
-+}
-+
- static inline bool zpdesc_is_isolated(struct zpdesc *zpdesc)
- {
- 	return PageIsolated(zpdesc_page(zpdesc));
---- a/mm/zsmalloc.c~mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc
-+++ a/mm/zsmalloc.c
-@@ -1001,13 +1001,13 @@ static struct zspage *alloc_zspage(struc
- 		if (!zpdesc) {
- 			while (--i >= 0) {
- 				zpdesc_dec_zone_page_state(zpdescs[i]);
--				__ClearPageZsmalloc(zpdesc_page(zpdescs[i]));
-+				__zpdesc_clear_zsmalloc(zpdescs[i]);
- 				free_zpdesc(zpdescs[i]);
- 			}
- 			cache_free_zspage(pool, zspage);
- 			return NULL;
- 		}
--		__SetPageZsmalloc(zpdesc_page(zpdesc));
-+		__zpdesc_set_zsmalloc(zpdesc);
+ MEDIATEK SWITCH DRIVER
+-M:	Arınç ÜNAL <arinc.unal@arinc9.com>
++M:	Chester A. Unal <chester.a.unal@arinc9.com>
+ M:	Daniel Golle <daniel@makrotopia.org>
+ M:	DENG Qingfang <dqfext@gmail.com>
+ M:	Sean Wang <sean.wang@mediatek.com>
+@@ -18460,7 +18460,7 @@ F:	Documentation/devicetree/bindings/pin
+ F:	drivers/pinctrl/mediatek/
  
- 		zpdesc_inc_zone_page_state(zpdesc);
- 		zpdescs[i] = zpdesc;
-@@ -1786,7 +1786,7 @@ static int zs_page_migrate(struct page *
- 	VM_BUG_ON_PAGE(!zpdesc_is_isolated(zpdesc), zpdesc_page(zpdesc));
+ PIN CONTROLLER - MEDIATEK MIPS
+-M:	Arınç ÜNAL <arinc.unal@arinc9.com>
++M:	Chester A. Unal <chester.a.unal@arinc9.com>
+ M:	Sergio Paracuellos <sergio.paracuellos@gmail.com>
+ L:	linux-mediatek@lists.infradead.org (moderated for non-subscribers)
+ L:	linux-mips@vger.kernel.org
+@@ -19504,7 +19504,7 @@ S:	Maintained
+ F:	arch/mips/ralink
  
- 	/* We're committed, tell the world that this is a Zsmalloc page. */
--	__SetPageZsmalloc(zpdesc_page(newzpdesc));
-+	__zpdesc_set_zsmalloc(newzpdesc);
- 
- 	/* The page is locked, so this pointer must remain valid */
- 	zspage = get_zspage(zpdesc);
+ RALINK MT7621 MIPS ARCHITECTURE
+-M:	Arınç ÜNAL <arinc.unal@arinc9.com>
++M:	Chester A. Unal <chester.a.unal@arinc9.com>
+ M:	Sergio Paracuellos <sergio.paracuellos@gmail.com>
+ L:	linux-mips@vger.kernel.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from alexs@kernel.org are
+Patches currently in -mm which might be from chester.a.unal@arinc9.com are
 
-mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch
-mm-zsmalloc-use-zpdesc-in-trylock_zspage-lock_zspage.patch
-mm-zsmalloc-convert-create_page_chain-and-its-users-to-use-zpdesc.patch
-mm-zsmalloc-convert-reset_page-to-reset_zpdesc.patch
-mm-zsmalloc-convert-setzspagemovable-and-remove-unused-funcs.patch
-mm-zsmalloc-convert-get-set_first_obj_offset-to-take-zpdesc.patch
-mm-zsmalloc-introduce-__zpdesc_clear-set_zsmalloc.patch
+maintainers-change-arınc-_nals-name-and-email-address.patch
 
