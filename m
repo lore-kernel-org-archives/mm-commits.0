@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFD6442AA1
-	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:16:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CB4918C008
+	for <mm-commits@vger.kernel.org>; Thu, 26 Dec 2024 21:16:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735247779; cv=none; b=pr+GNmsIcX30PBl+SyhHlZZYoR9V7gQf0RuwAHjJ1ILK6bABYrXfWIJ/ALT4CRg79bTG52Ow5kRw4dFiiWl4Q9OaziYDeR9BCubFbgZGowqLm3Ep+p9AObgzDTXSoJfuC/iBI6hETmQc94asvo3tqRoc+8wEXwnEE734fxfGr9U=
+	t=1735247782; cv=none; b=ZsNI5jUXsJGcmt4ECh4u+zRPTO5Fzdt5P/R0iY8N9uf3U8jm0kBDajQWTPAzvfYDG53bQOeCKZis0hHVH/SB6BwI2ns6WwecUQKJODQJgYWv0PXCT7CjGde5j0RzUJA1vK6p8cAshZhzcl6VJYO59dYfzIwDQzuy+GQCrUiCP0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735247779; c=relaxed/simple;
-	bh=gqqWX5KgsWaOl/c/43vSLJLz5ILx8RaGyMI0VRwz2Bc=;
-	h=Date:To:From:Subject:Message-Id; b=loPpyn6fVTvOHCB7dQeGeDG7Xg61WFEknLX6yC+0YJ8bTzr/VyeEDmRy3CzVsk/1HoAcYu7mX60EgyzLDmrLR68Tj9yDnmb9VwQjTdKGPDTvA/Th1bXJG87kTc8D2W8fQiBvHq2R9mISAhIrSg8l50Yt3StqinFuHSpySVAgqsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ificsuu3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735247782; c=relaxed/simple;
+	bh=w6crT6EeCuy6Ebdgivfk6Cta7YSctjZl3kDETi4LpPw=;
+	h=Date:To:From:Subject:Message-Id; b=f0trgV7Opf1OLFcR6kjOpbbD0Iq6WCXtih3fjPbM6aXTMxjSyD6b9KkCPUwor0Lhbm1qXUW8aTtxZeTqmbWQEfOGqzhxZoZxlDOGVwYbKcuUOqCYIfppp2PMqTm/stHNQV1YEd3Rzn6RytoHWEInHDcUgzO5PMWcl35RZ6op2lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AUzCCvB7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ificsuu3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A21FFC4CED1;
-	Thu, 26 Dec 2024 21:16:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AUzCCvB7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C76FCC4CED1;
+	Thu, 26 Dec 2024 21:16:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735247779;
-	bh=gqqWX5KgsWaOl/c/43vSLJLz5ILx8RaGyMI0VRwz2Bc=;
+	s=korg; t=1735247781;
+	bh=w6crT6EeCuy6Ebdgivfk6Cta7YSctjZl3kDETi4LpPw=;
 	h=Date:To:From:Subject:From;
-	b=Ificsuu3Tzk/GOaBlzmtpdArYuf5EACiX4m/+uXScujNucNz8QBkBlnhDMr4ep4LC
-	 ke7dLi+lqxxv7IAYjizHBNMVKPV9KQv7+yJsChbQ7t3S57VG4tcXVVJ/pwBQ6XRxQc
-	 uWvUULOA1a3iwdm1FihI5Dhy1WQeKXGYKPung8+g=
-Date: Thu, 26 Dec 2024 13:16:19 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,surenb@google.com,akpm@linux-foundation.org
+	b=AUzCCvB7W8u4kivX6ZvB05zg1q7Dt80CC1WFXqb3RCDWZxMuVGyQqDRlDPVqzfdze
+	 tSEX+p6M8XnVT1h9/r37jcvmNaxumr23zhbdqfP0W0V8scxFcf6UCtnKzn0+4pbd3Z
+	 g1WVp4+5LOOpg2X9vZRrcQ5kvs7Zj/G5ZmqBH1uA=
+Date: Thu, 26 Dec 2024 13:16:21 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix.patch added to mm-unstable branch
-Message-Id: <20241226211619.A21FFC4CED1@smtp.kernel.org>
+Subject: + mm-remove-extra-vma_numab_state_init-call.patch added to mm-unstable branch
+Message-Id: <20241226211621.C76FCC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix
+     Subject: mm: remove extra vma_numab_state_init() call
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix.patch
+     mm-remove-extra-vma_numab_state_init-call.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-extra-vma_numab_state_init-call.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,51 +59,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix
-Date: Thu, 26 Dec 2024 12:03:35 -0800
+Subject: mm: remove extra vma_numab_state_init() call
+Date: Thu, 26 Dec 2024 09:07:06 -0800
 
-vma->vm_refcnt does not exist when CONFIG_PER_VMA_LOCK=n, therefore when
-CONFIG_PER_VMA_LOCK=n and CONFIG_DEBUG_VM=y we need to avoid its usage in
-dump_vma().
+vma_init() already memset's the whole vm_area_struct to 0, so there is
+no need to an additional vma_numab_state_init().
 
-Link: https://lkml.kernel.org/r/20241226200335.1250078-1-surenb@google.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202412270328.HiJX1mRt-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20241226170710.1159679-15-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: kernel test robot <oliver.sang@intel.com>
+Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/linux/mm.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/debug.c~mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix
-+++ a/mm/debug.c
-@@ -178,6 +178,7 @@ EXPORT_SYMBOL(dump_page);
- 
- void dump_vma(const struct vm_area_struct *vma)
- {
-+#ifdef CONFIG_PER_VMA_LOCK
- 	pr_emerg("vma %px start %px end %px mm %px\n"
- 		"prot %lx anon_vma %px vm_ops %px\n"
- 		"pgoff %lx file %px private_data %px\n"
-@@ -187,6 +188,17 @@ void dump_vma(const struct vm_area_struc
- 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
- 		vma->vm_file, vma->vm_private_data,
- 		vma->vm_flags, &vma->vm_flags, refcount_read(&vma->vm_refcnt));
-+#else
-+	pr_emerg("vma %px start %px end %px mm %px\n"
-+		"prot %lx anon_vma %px vm_ops %px\n"
-+		"pgoff %lx file %px private_data %px\n"
-+		"flags: %#lx(%pGv)\n",
-+		vma, (void *)vma->vm_start, (void *)vma->vm_end, vma->vm_mm,
-+		(unsigned long)pgprot_val(vma->vm_page_prot),
-+		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
-+		vma->vm_file, vma->vm_private_data,
-+		vma->vm_flags, &vma->vm_flags);
-+#endif
+--- a/include/linux/mm.h~mm-remove-extra-vma_numab_state_init-call
++++ a/include/linux/mm.h
+@@ -947,7 +947,6 @@ static inline void vma_init(struct vm_ar
+ 	vma->vm_mm = mm;
+ 	vma->vm_ops = &vma_dummy_vm_ops;
+ 	INIT_LIST_HEAD(&vma->anon_vma_chain);
+-	vma_numab_state_init(vma);
+ 	vma_lockdep_init(vma);
+ 	vma_init_lock(vma, false);
  }
- EXPORT_SYMBOL(dump_vma);
- 
 _
 
 Patches currently in -mm which might be from surenb@google.com are
