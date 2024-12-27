@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7AA8176ADE;
-	Thu, 26 Dec 2024 23:02:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F9C957C93;
+	Fri, 27 Dec 2024 18:17:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735254172; cv=none; b=XeAV9eAn12D32NK5kBiF6CNRZwHLarrD/Xaljm8G10RqGDn027sPtnSG9F4VOKddiMm5kxuQcfMhuhSC33EbfeaWzuSW0SrH502/WlXpW+zkcexiZ8AdsJ+S916xuuOqcmNBe62KPiRCko44tsVO7EMqroshTm/sBQcJaB/a0lU=
+	t=1735323429; cv=none; b=pCxfGy4sNmRGmTOH1FImLa674shybabNTbL+mTQpAw7EXTOgEbbZtzUFpIlxfrDfcUer351enFTRB0QHKHonQFZ8Cehvt2YKsqCtKKS16xz0JVDoKeBzfVA6rm3fGexkFVifP6rqKP3vBaSV7HTqGMIIMP7X5jhC/Lr9P1X0UZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735254172; c=relaxed/simple;
-	bh=jY4tcsq7S/8S27SxlV+QxZwByH5/RBwe0EoUjU8upuQ=;
-	h=Date:To:From:Subject:Message-Id; b=IV/7nCTiXOLk6FWCQg+CNXYI9VDrrH1qJTloMmq8tiaUuWH0Lj9mbhvIvWHvJew5igfRAVth1Ruw0Bio5U47Lju6mhSGxCBx4GBU228L6eWbuPgdul304Cg3a418YZSCEB7FNL6681eziqP4azKNG3CgxbjWcHhO9+iMED8Vvcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QONyqf9d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735323429; c=relaxed/simple;
+	bh=hgLTG9x/Hkq9O+DHS9knFWeoeVLM47KiC6OVSbSuvgk=;
+	h=Date:To:From:Subject:Message-Id; b=R1hkmAnOrf39fDOiedU/RkWU14OvgzP1ByVnpa/NoM13zJrjO7OAZa+uzbDTxuTYKhSyBcUl+/QdOQ1bH4NupQDgs+SlBNtNIZw0VZOJOFCMLWInG4diw862igBMZO1mb9Sfv8I/TYWw8oYaLuLa4eZ862YNrWX3sdMYE76ez+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZkyUf7md; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QONyqf9d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 511C2C4CED1;
-	Thu, 26 Dec 2024 23:02:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZkyUf7md"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFEC6C4CED0;
+	Fri, 27 Dec 2024 18:17:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735254172;
-	bh=jY4tcsq7S/8S27SxlV+QxZwByH5/RBwe0EoUjU8upuQ=;
+	s=korg; t=1735323428;
+	bh=hgLTG9x/Hkq9O+DHS9knFWeoeVLM47KiC6OVSbSuvgk=;
 	h=Date:To:From:Subject:From;
-	b=QONyqf9dRCbbCqqpU+TYLj1lPkidmS9bbVXgzZtA12UuhlXI8eYaQOpFl2AvtSX8c
-	 qPlCMFo7Za/cte8WSxgLs+MjfnEDDCFzUm4SOFx+G+XhRdmMOXUxeVqj7vvY4ecyOA
-	 ShVDhNbCioRezSrMAxoX/K8YK+wVUFFmKHdocH8w=
-Date: Thu, 26 Dec 2024 15:02:51 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,stable@vger.kernel.org,quic_zhenhuah@quicinc.com,kent.overstreet@linux.dev,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=ZkyUf7mdq+8KxNJ5I+92hTalpzksEHDoLtueg00IaA4CEC2NSyN4S0x0c/dbfp242
+	 JhqsSZr104QzbAmgck9R/fyYGLeTXdmMmguKAO6uND45+7up7+y2zg6uL67bRt4HGB
+	 fWSvmqR5OA+sWv77ArQ8ZK40eaTZBV/yJfdBDdAo=
+Date: Fri, 27 Dec 2024 10:17:08 -0800
+To: mm-commits@vger.kernel.org,ubizjak@gmail.com,stable@vger.kernel.org,catalin.marinas@arm.com,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241226230252.511C2C4CED1@smtp.kernel.org>
+Subject: + mm-kmemleak-fix-percpu-memory-leak-detection-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241227181708.AFEC6C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: skip pgalloc_tag_swap if profiling is disabled
+     Subject: mm/kmemleak: fix percpu memory leak detection failure
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
+     mm-kmemleak-fix-percpu-memory-leak-detection-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-fix-percpu-memory-leak-detection-failure.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: skip pgalloc_tag_swap if profiling is disabled
-Date: Thu, 26 Dec 2024 13:16:39 -0800
+From: Guo Weikang <guoweikang.kernel@gmail.com>
+Subject: mm/kmemleak: fix percpu memory leak detection failure
+Date: Fri, 27 Dec 2024 17:23:10 +0800
 
-When memory allocation profiling is disabled, there is no need to swap
-allocation tags during migration.  Skip it to avoid unnecessary overhead.
+kmemleak_alloc_percpu gives an incorrect min_count parameter, causing
+percpu memory to be considered a gray object.
 
-Link: https://lkml.kernel.org/r/20241226211639.1357704-2-surenb@google.com
-Fixes: e0a955bf7f61 ("mm/codetag: add pgalloc_tag_copy()")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zhenhua Huang <quic_zhenhuah@quicinc.com>
+Link: https://lkml.kernel.org/r/20241227092311.3572500-1-guoweikang.kernel@gmail.com
+Fixes: 8c8685928910 ("mm/kmemleak: use IS_ERR_PCPU() for pointer in the percpu address space")
+Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
+Acked-by: Uros Bizjak <ubizjak@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Guo Weikang <guoweikang.kernel@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/alloc_tag.c~alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled
-+++ a/lib/alloc_tag.c
-@@ -197,6 +197,9 @@ void pgalloc_tag_swap(struct folio *new,
- 	union codetag_ref ref_old, ref_new;
- 	struct alloc_tag *tag_old, *tag_new;
+--- a/mm/kmemleak.c~mm-kmemleak-fix-percpu-memory-leak-detection-failure
++++ a/mm/kmemleak.c
+@@ -1093,7 +1093,7 @@ void __ref kmemleak_alloc_percpu(const v
+ 	pr_debug("%s(0x%px, %zu)\n", __func__, ptr, size);
  
-+	if (!mem_alloc_profiling_enabled())
-+		return;
-+
- 	tag_old = pgalloc_tag_get(&old->page);
- 	if (!tag_old)
- 		return;
+ 	if (kmemleak_enabled && ptr && !IS_ERR_PCPU(ptr))
+-		create_object_percpu((__force unsigned long)ptr, size, 0, gfp);
++		create_object_percpu((__force unsigned long)ptr, size, 1, gfp);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
+ 
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
 
-alloc_tag-avoid-current-alloc_tag-manipulations-when-profiling-is-disabled.patch
-alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
-seqlock-add-raw_seqcount_try_begin.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculate_try_beginretry.patch
-mm-introduce-vma_start_read_locked_nested-helpers.patch
-mm-move-per-vma-lock-into-vm_area_struct.patch
-mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
-mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma.patch
-mm-mark-vmas-detached-upon-exit.patch
-mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached.patch
-types-move-struct-rcuwait-into-typesh.patch
-mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
-mm-move-mmap_init_lock-out-of-the-header-file.patch
-mm-uninline-the-main-body-of-vma_start_write.patch
-refcount-introduce-__refcount_addinc_not_zero_limited.patch
-mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
-mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
-mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix.patch
-mm-remove-extra-vma_numab_state_init-call.patch
-mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
-mm-make-vma-cache-slab_typesafe_by_rcu.patch
-docs-mm-document-latest-changes-to-vm_lock.patch
+mm-kmemleak-fix-percpu-memory-leak-detection-failure.patch
+mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing.patch
+mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch
 
