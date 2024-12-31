@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF00979D0
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:37:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 179E44C7D
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:42:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735605440; cv=none; b=esKy1MIpbJaNlKLIEqp+6lYHqpK9njDm8sBz/iRGJBPFOfTQmE4F2V3ywlT/PxOgZslLMp7RwTY/vkZOAcflajW9bpxIE0hLgsg5iWlO4s33TV/VE+uN2FJSSHD6OJGVB5LuN1lHknoEMaihV8qPgkpAaZCuyAdyNG67rIzYgP4=
+	t=1735605735; cv=none; b=IAR1FipvVLcPMJ1eq7Myp2Zbg+IzniCM3Z8wrbfpPyD3kH6UK1WQ3cjaSb0FF4Pmdo0BlGj7eh0i+n6zzD+gkvP0HSgmJYQ9GzBWl3pijlyzfP2kPhFbt0OofpOV6O7FoqaeYoBwvAgMq8A7qfvlLPiC0+j0OwbPKRXT1JvmxPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735605440; c=relaxed/simple;
-	bh=PnpoXbf6tlnVimwUzFinPElbuF9bqhtZ2AExi8Yeg2o=;
-	h=Date:To:From:Subject:Message-Id; b=FnP+RtQ9snJoMhSJL+5Iydo+0f1WkKGG39dacKIHK83VRhUHKKCfz1XAFpsjP9qRR9z9j2bp19bJZCb1jbyiHdSi2B8rPiTLUewO3Pm9jvKRVr/aR1flM+IWkLraTH03AP1XOGy8WBnbWFFrn8VAzTBZKYXC2O5e2mD150zkXhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U0rx1G8n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735605735; c=relaxed/simple;
+	bh=p0sZgciWrmRBQCBtKPG/hiQJFbAs1kHBshLdcfYbirU=;
+	h=Date:To:From:Subject:Message-Id; b=AqEyJHDiEozaob4LkRHunugZr2DUlQQuJH7q0KMtYhicg+ca44KK/OfU+KDQYU7o2gg/gkLJNu8VWXz742PDJEJsMsAaFWO0WZh6zQvKNnJLsSpIF0foLO3qeoQUMIJC4QUOVuc5qxFd5gfHaN9g/87c0XQfjxMCQW5JsBkN2PA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ClAq2O33; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U0rx1G8n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EB0CC4CED0;
-	Tue, 31 Dec 2024 00:37:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClAq2O33"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78D68C4CED0;
+	Tue, 31 Dec 2024 00:42:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735605440;
-	bh=PnpoXbf6tlnVimwUzFinPElbuF9bqhtZ2AExi8Yeg2o=;
+	s=korg; t=1735605734;
+	bh=p0sZgciWrmRBQCBtKPG/hiQJFbAs1kHBshLdcfYbirU=;
 	h=Date:To:From:Subject:From;
-	b=U0rx1G8noBNGprwesPw830hRllUxIDiNqggET14D6Fui39Aj4Yn73odvcVG61eCqd
-	 8s0fKD6jibNDnnrzDZHPLGQFuS4AHNKSNbiqtcMML+q3qBkZ+zdgDc0v3XKHNLftB8
-	 iPTruDSCjZ+xPMuAMJeHQ04LEzoo3l6RQyxTuMIA=
-Date: Mon, 30 Dec 2024 16:37:20 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
+	b=ClAq2O33GvXGukz7ZEpg8rHy8C+ExVMgsM0CtpPcMp8lbZmmjEZW31Cts+GO6Iz1k
+	 Jmxu+HGAJIFwmQg6JGetCffmy1Vjo95EXWLz5UBYX/aZJV98G+oQUzPIPPeW2chVAS
+	 dAP1aIPwd3ZN+tMnsY/rvUynqOyIyCNlHz3CC2d4=
+Date: Mon, 30 Dec 2024 16:42:13 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,song@kernel.org,shuah@kernel.org,samitolvanen@google.com,rostedt@goodmis.org,rmoar@google.com,richard@nod.at,pmladek@suse.com,petr.pavlu@suse.com,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mbenes@suse.cz,mark.rutland@arm.com,luto@kernel.org,kirill.shutemov@linux.intel.com,jpoimboe@kernel.org,johannes@sipsolutions.net,joe.lawrence@redhat.com,jikos@kernel.org,jason.wessel@windriver.com,hpa@zytor.com,dianders@chromium.org,davidgow@google.com,dave.hansen@linux.intel.com,danielt@kernel.org,da.gomez@samsung.com,brendan.higgins@linux.dev,bp@alien8.de,anton.ivanov@cambridgegreys.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-fix-atomic_set-definition-to-set-the-value-correctly.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241231003720.7EB0CC4CED0@smtp.kernel.org>
+Subject: + x86-mm-pat-cpa-test-fix-length-for-cpa_array-test.patch added to mm-unstable branch
+Message-Id: <20241231004214.78D68C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools: fix atomic_set() definition to set the value correctly
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
+     Subject: x86/mm/pat: cpa-test: fix length for CPA_ARRAY test
+has been added to the -mm mm-unstable branch.  Its filename is
+     x86-mm-pat-cpa-test-fix-length-for-cpa_array-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-cpa-test-fix-length-for-cpa_array-test.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,76 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: tools: fix atomic_set() definition to set the value correctly
-Date: Fri, 27 Dec 2024 14:22:20 -0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: x86/mm/pat: cpa-test: fix length for CPA_ARRAY test
+Date: Fri, 27 Dec 2024 09:28:18 +0200
 
-Currently vma test is failing because of the new vma_assert_attached()
-assertion.  The check is failing because previous refcount_set() inside
-vma_mark_attached() is a NoOp.  Fix the definition of atomic_set() to
-correctly set the value of the atomic.
+Patch series "x86/module: rework ROX cache to avoid writable copy".
 
-Link: https://lkml.kernel.org/r/20241227222220.1726384-1-surenb@google.com
-Fixes: 9325b8b5a1cb ("tools: add skeleton code for userland testing of VMA logic")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Following Peter's comments [1] these patches rework handling of ROX caches
+for module text allocations.  
+
+Instead of using a writable copy that really complicates alternatives
+patching, temporarily remap parts of a large ROX page as RW for the time
+of module formation and then restore it's ROX protections when the module
+is ready.
+
+To keep the ROX memory mapped with large pages, make set_memory code
+capable of restoring large pages (more details are in patch 3).
+
+The patches also available in git
+https://git.kernel.org/rppt/h/execmem/x86-rox/v8
+
+[1] https://lore.kernel.org/all/20241209083818.GK8562@noisy.programming.kicks-ass.net
+
+
+This patch (of 8):
+
+The CPA_ARRAY test always uses len[1] as numpages argument to
+change_page_attr_set() although the addresses array is different each
+iteration of the test loop.
+
+Replace len[1] with len[i] to have numpages matching the addresses array.
+
+Link: https://lkml.kernel.org/r/20241227072825.1288491-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20241227072825.1288491-2-rppt@kernel.org
+Fixes: ecc729f1f471 ("x86/mm/cpa: Add ARRAY and PAGES_ARRAY selftests")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: Daniel Thompson <danielt@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Jiri Kosina <jikos@kernel.org>
+Cc: Joe Lawrence <joe.lawrence@redhat.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Miroslav Benes <mbenes@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
+Cc: Rae Moar <rmoar@google.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/shared/linux/maple_tree.h |    2 +-
- tools/testing/vma/linux/atomic.h        |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/pat/cpa-test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/shared/linux/maple_tree.h~tools-fix-atomic_set-definition-to-set-the-value-correctly
-+++ a/tools/testing/shared/linux/maple_tree.h
-@@ -2,6 +2,6 @@
- #define atomic_t int32_t
- #define atomic_inc(x) uatomic_inc(x)
- #define atomic_read(x) uatomic_read(x)
--#define atomic_set(x, y) do {} while (0)
-+#define atomic_set(x, y) uatomic_set(x, y)
- #define U8_MAX UCHAR_MAX
- #include "../../../../include/linux/maple_tree.h"
---- a/tools/testing/vma/linux/atomic.h~tools-fix-atomic_set-definition-to-set-the-value-correctly
-+++ a/tools/testing/vma/linux/atomic.h
-@@ -6,7 +6,7 @@
- #define atomic_t int32_t
- #define atomic_inc(x) uatomic_inc(x)
- #define atomic_read(x) uatomic_read(x)
--#define atomic_set(x, y) do {} while (0)
-+#define atomic_set(x, y) uatomic_set(x, y)
- #define U8_MAX UCHAR_MAX
+--- a/arch/x86/mm/pat/cpa-test.c~x86-mm-pat-cpa-test-fix-length-for-cpa_array-test
++++ a/arch/x86/mm/pat/cpa-test.c
+@@ -183,7 +183,7 @@ static int pageattr_test(void)
+ 			break;
  
- #endif	/* _LINUX_ATOMIC_H */
+ 		case 1:
+-			err = change_page_attr_set(addrs, len[1], PAGE_CPA_TEST, 1);
++			err = change_page_attr_set(addrs, len[i], PAGE_CPA_TEST, 1);
+ 			break;
+ 
+ 		case 2:
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
-tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
-seqlock-add-raw_seqcount_try_begin.patch
-mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
-mm-introduce-mmap_lock_speculate_try_beginretry.patch
-mm-introduce-vma_start_read_locked_nested-helpers.patch
-mm-move-per-vma-lock-into-vm_area_struct.patch
-mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
-mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma.patch
-mm-mark-vmas-detached-upon-exit.patch
-mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached.patch
-types-move-struct-rcuwait-into-typesh.patch
-mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
-mm-move-mmap_init_lock-out-of-the-header-file.patch
-mm-uninline-the-main-body-of-vma_start_write.patch
-refcount-introduce-__refcount_addinc_not_zero_limited.patch
-mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
-mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
-mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix.patch
-mm-remove-extra-vma_numab_state_init-call.patch
-mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
-mm-make-vma-cache-slab_typesafe_by_rcu.patch
-docs-mm-document-latest-changes-to-vm_lock.patch
-alloc_tag-avoid-current-alloc_tag-manipulations-when-profiling-is-disabled.patch
+x86-mm-pat-cpa-test-fix-length-for-cpa_array-test.patch
+x86-mm-pat-drop-duplicate-variable-in-cpa_flush.patch
+execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards.patch
+module-introduce-module_state_gone.patch
+modules-switch-to-execmem-api-for-remapping-as-rw-and-restoring-rox.patch
+revert-x86-module-prepare-module-loading-for-rox-allocations-of-text.patch
+module-drop-unused-module_writable_address.patch
 
