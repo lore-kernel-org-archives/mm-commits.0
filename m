@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23EC01EEE6;
-	Tue, 31 Dec 2024 02:00:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F11B1EEE6
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 02:00:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735610421; cv=none; b=R5MXmxgTZHh8IoIIJC+LJio3wXfXQ0S3hUijp3aoJFHWQ1/rzgttAuVmofnmqSpfyWHZNbEPu5MKOhXWuXlqSZXQMteAnX3sfalCVaVj40lmX4UtOe2NfNNIKUjbIG8+kz/vyWsA9YFWZjmCUWHkXIeCFQRyhS+k4JxGRcaowRA=
+	t=1735610422; cv=none; b=FJ0aK4RNSa0jg009JB8DlCzIrerPfuFt9UBmb3tVl3NfBr8BpwYwOxHOX6U5Y/z5M6nfMmqrgWpNXvghofppc1Bz1gMVfrZLS2KIN8CDnOneBJSCqnMno12WOxC9OyeCEOY/ivtP628i55VmtXI+Vm9rRMm9WGr4j9uSkrNHnZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735610421; c=relaxed/simple;
-	bh=Usxv/Faais8O6vZjQ6enns6vnWwCIHI/GDjQFD8F9tI=;
-	h=Date:To:From:Subject:Message-Id; b=S2OJawGF1H9ZUUxx9ZRyw8whm8OAnoEeyFnQ76iSRpKACLEeuDmofzjyjv8nHCir3OBzjszgU7m+fTEHI2ixkfq0EdxA1ZFKM94sGgVguY2weh/MIbyKFfFshS6Y1mA8obxb0qT77GKMkC4BSfOI3yg4Ahh9G+uRmKHk62Q/Yks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k2rWsmMg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735610422; c=relaxed/simple;
+	bh=i5GDixO1Fsyez6p9guqZlRqbaNSDRLM7TqMhAB7rFE4=;
+	h=Date:To:From:Subject:Message-Id; b=hJ7yIdEC2u8q5O4gC7sKHv0dLIEMKKuqwUwAl1rtxiv7M4EJETb2ul6T9ZO/P7KzYp/WeWN5+JEPCBlv4C3wnGA1Tqmil/agXrlpTWXp6VbSZhmtMwT8zSglTjfEFTKdo6vBTfTy4w7FG011G1hLL6jCGqe5/aIeoWAd9oXUvxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yqS9iyXr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k2rWsmMg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAEBAC4CED0;
-	Tue, 31 Dec 2024 02:00:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yqS9iyXr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04A98C4CED0;
+	Tue, 31 Dec 2024 02:00:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735610421;
-	bh=Usxv/Faais8O6vZjQ6enns6vnWwCIHI/GDjQFD8F9tI=;
+	s=korg; t=1735610422;
+	bh=i5GDixO1Fsyez6p9guqZlRqbaNSDRLM7TqMhAB7rFE4=;
 	h=Date:To:From:Subject:From;
-	b=k2rWsmMgxXLm9+VmNGdYGJCM030PoyaMNyC4C5JpMFf1tUO4yRR9YiWvYI7jcVjoq
-	 dJuzR0nRVRQKLluyHpgwUQizfpgUdAawU5+tAB8/I3xKlrCFkY2bAy7ISgiMutQxvT
-	 13qy3Anl1dZXYhfrXUbuL/1BerFkrXZ4IVVy61rw=
-Date: Mon, 30 Dec 2024 18:00:20 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shile.zhang@linux.alibaba.com,rostedt@goodmis.org,peterz@infradead.org,mingo@kernel.org,jserv@ccns.ncku.edu.tw,jpoimboe@kernel.org,chuang@cs.nycu.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=yqS9iyXrLwfLb5yX4WsCAC9vTv7x5Pyaum7oySb0R0FER6PoStgrW/hOqMXAqP08h
+	 2dKyFWLc6jnlXsRqV//EGCbHfTd7SrTnwOdSoRA8P5wt0JoIUZ6uce5PPe+xmEQebT
+	 HJFixINE0AfUbMKtVnt66HJ4rsLVTFAWd45lyus0=
+Date: Mon, 30 Dec 2024 18:00:21 -0800
+To: mm-commits@vger.kernel.org,chester.a.unal@arinc9.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch removed from -mm tree
-Message-Id: <20241231020020.EAEBAC4CED0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-change-arınc-_nals-name-and-email-address.patch removed from -mm tree
+Message-Id: <20241231020022.04A98C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/sorttable: fix orc_sort_cmp() to maintain symmetry and transitivity
+     Subject: MAINTAINERS: change Arınç _NAL's name and email address
 has been removed from the -mm tree.  Its filename was
-     scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity.patch
+     maintainers-change-arınc-_nals-name-and-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: scripts/sorttable: fix orc_sort_cmp() to maintain symmetry and transitivity
-Date: Thu, 26 Dec 2024 22:03:32 +0800
+From: "Chester A. Unal" <chester.a.unal@arinc9.com>
+Subject: MAINTAINERS: change Arınç _NAL's name and email address
+Date: Wed, 25 Dec 2024 15:50:41 +0300
 
-The orc_sort_cmp() function, used with qsort(), previously violated the
-symmetry and transitivity rules required by the C standard.  Specifically,
-when both entries are ORC_TYPE_UNDEFINED, it could result in both a < b
-and b < a, which breaks the required symmetry and transitivity.  This can
-lead to undefined behavior and incorrect sorting results, potentially
-causing memory corruption in glibc implementations [1].
+My legal name now includes Chester. Change the name and the email address
+sections to reflect that.
 
-Symmetry: If x < y, then y > x.
-Transitivity: If x < y and y < z, then x < z.
-
-Fix the comparison logic to return 0 when both entries are
-ORC_TYPE_UNDEFINED, ensuring compliance with qsort() requirements.
-
-Link: https://www.qualys.com/2024/01/30/qsort.txt [1]
-Link: https://lkml.kernel.org/r/20241226140332.2670689-1-visitorckw@gmail.com
-Fixes: 57fa18994285 ("scripts/sorttable: Implement build-time ORC unwind table sorting")
-Fixes: fb799447ae29 ("x86,objtool: Split UNWIND_HINT_EMPTY in two")
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: <chuang@cs.nycu.edu.tw>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20241225-for-unknown-upstream-v1-1-3e35e4d5e161@arinc9.com
+Signed-off-by: Chester A. Unal <chester.a.unal@arinc9.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/sorttable.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/scripts/sorttable.h~scripts-sorttable-fix-orc_sort_cmp-to-maintain-symmetry-and-transitivity
-+++ a/scripts/sorttable.h
-@@ -110,7 +110,7 @@ static inline unsigned long orc_ip(const
+--- a/MAINTAINERS~maintainers-change-arınc-_nals-name-and-email-address
++++ a/MAINTAINERS
+@@ -14756,7 +14756,7 @@ F:	drivers/memory/mtk-smi.c
+ F:	include/soc/mediatek/smi.h
  
- static int orc_sort_cmp(const void *_a, const void *_b)
- {
--	struct orc_entry *orc_a;
-+	struct orc_entry *orc_a, *orc_b;
- 	const int *a = g_orc_ip_table + *(int *)_a;
- 	const int *b = g_orc_ip_table + *(int *)_b;
- 	unsigned long a_val = orc_ip(a);
-@@ -128,6 +128,9 @@ static int orc_sort_cmp(const void *_a,
- 	 * whitelisted .o files which didn't get objtool generation.
- 	 */
- 	orc_a = g_orc_table + (a - g_orc_ip_table);
-+	orc_b = g_orc_table + (b - g_orc_ip_table);
-+	if (orc_a->type == ORC_TYPE_UNDEFINED && orc_b->type == ORC_TYPE_UNDEFINED)
-+		return 0;
- 	return orc_a->type == ORC_TYPE_UNDEFINED ? -1 : 1;
- }
+ MEDIATEK SWITCH DRIVER
+-M:	Arınç ÜNAL <arinc.unal@arinc9.com>
++M:	Chester A. Unal <chester.a.unal@arinc9.com>
+ M:	Daniel Golle <daniel@makrotopia.org>
+ M:	DENG Qingfang <dqfext@gmail.com>
+ M:	Sean Wang <sean.wang@mediatek.com>
+@@ -18460,7 +18460,7 @@ F:	Documentation/devicetree/bindings/pin
+ F:	drivers/pinctrl/mediatek/
  
+ PIN CONTROLLER - MEDIATEK MIPS
+-M:	Arınç ÜNAL <arinc.unal@arinc9.com>
++M:	Chester A. Unal <chester.a.unal@arinc9.com>
+ M:	Sergio Paracuellos <sergio.paracuellos@gmail.com>
+ L:	linux-mediatek@lists.infradead.org (moderated for non-subscribers)
+ L:	linux-mips@vger.kernel.org
+@@ -19504,7 +19504,7 @@ S:	Maintained
+ F:	arch/mips/ralink
+ 
+ RALINK MT7621 MIPS ARCHITECTURE
+-M:	Arınç ÜNAL <arinc.unal@arinc9.com>
++M:	Chester A. Unal <chester.a.unal@arinc9.com>
+ M:	Sergio Paracuellos <sergio.paracuellos@gmail.com>
+ L:	linux-mips@vger.kernel.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from chester.a.unal@arinc9.com are
 
-lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
-lib-test_min_heap-use-inline-min-heap-variants-to-reduce-attack-vector.patch
-lib-min_heap-add-brief-introduction-to-min-heap-api.patch
-documentation-core-api-min_heap-add-author-information.patch
-lib-sort-clarify-comparison-function-requirements-in-sort_r.patch
-lib-list_sort-clarify-comparison-function-requirements-in-sort_r.patch
 
