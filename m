@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA994A21
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:32:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF00979D0
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:37:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735605154; cv=none; b=ijVNns3geQwOwat1eVvJ4jeFV0zzzOyO7nrn5Q16u70arpe08r4bdnjxYRZYco5RIcacM8FNj/9IWVWqEtmwABB61CLEbKPwT1psitabsSWtSqMnCjlD/vqyb+c7PRZtY+qyZY2GhJVUMvR2gAnU1ipM2FN7AiBWwzkAhV9jND8=
+	t=1735605440; cv=none; b=esKy1MIpbJaNlKLIEqp+6lYHqpK9njDm8sBz/iRGJBPFOfTQmE4F2V3ywlT/PxOgZslLMp7RwTY/vkZOAcflajW9bpxIE0hLgsg5iWlO4s33TV/VE+uN2FJSSHD6OJGVB5LuN1lHknoEMaihV8qPgkpAaZCuyAdyNG67rIzYgP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735605154; c=relaxed/simple;
-	bh=qFlTH/pYsnAYjvILIcDrN7BproVAe+vKvfWb1TLQlvw=;
-	h=Date:To:From:Subject:Message-Id; b=FhjzfXS4NvmgW4DzH7KTBkpBnL7yRcaOhvlG2l9ApvECr6IJu0e6gmGpkWjFxNJ/F62i1lom6icbbdJOmlgAOw6xxmDwgSx04N5wJD+JIp40jqb2EhrWavOQuobd/ho5F3f2lxQYR4uD+nwNn6kY/DSA5y78IMybl8QPsqy9AL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jcp3okeO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735605440; c=relaxed/simple;
+	bh=PnpoXbf6tlnVimwUzFinPElbuF9bqhtZ2AExi8Yeg2o=;
+	h=Date:To:From:Subject:Message-Id; b=FnP+RtQ9snJoMhSJL+5Iydo+0f1WkKGG39dacKIHK83VRhUHKKCfz1XAFpsjP9qRR9z9j2bp19bJZCb1jbyiHdSi2B8rPiTLUewO3Pm9jvKRVr/aR1flM+IWkLraTH03AP1XOGy8WBnbWFFrn8VAzTBZKYXC2O5e2mD150zkXhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U0rx1G8n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jcp3okeO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BA8DC4CED0;
-	Tue, 31 Dec 2024 00:32:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U0rx1G8n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EB0CC4CED0;
+	Tue, 31 Dec 2024 00:37:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735605154;
-	bh=qFlTH/pYsnAYjvILIcDrN7BproVAe+vKvfWb1TLQlvw=;
+	s=korg; t=1735605440;
+	bh=PnpoXbf6tlnVimwUzFinPElbuF9bqhtZ2AExi8Yeg2o=;
 	h=Date:To:From:Subject:From;
-	b=jcp3okeOsmFh7JL5gbwvZ+NkdJLymyPPXneBrDs1jFlLy4aZueBZoWf2pPh76KrCJ
-	 C3cz/bf8KB9SUlFElnrrZuMNmB3c+fsJP27N1RjuuWWAnW6Io/k832WDnuq2a/39Cg
-	 Q2e78CrQ7Fvs7Df8Q2Og/GhL7z2HQBVZmGmgEerQ=
-Date: Mon, 30 Dec 2024 16:32:33 -0800
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
+	b=U0rx1G8noBNGprwesPw830hRllUxIDiNqggET14D6Fui39Aj4Yn73odvcVG61eCqd
+	 8s0fKD6jibNDnnrzDZHPLGQFuS4AHNKSNbiqtcMML+q3qBkZ+zdgDc0v3XKHNLftB8
+	 iPTruDSCjZ+xPMuAMJeHQ04LEzoo3l6RQyxTuMIA=
+Date: Mon, 30 Dec 2024 16:37:20 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-update-kconfig-information.patch added to mm-nonmm-unstable branch
-Message-Id: <20241231003234.4BA8DC4CED0@smtp.kernel.org>
+Subject: + tools-fix-atomic_set-definition-to-set-the-value-correctly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20241231003720.7EB0CC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: update Kconfig information
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-update-kconfig-information.patch
+     Subject: tools: fix atomic_set() definition to set the value correctly
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-update-kconfig-information.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: update Kconfig information
-Date: Sun, 29 Dec 2024 23:37:52 +0000
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: tools: fix atomic_set() definition to set the value correctly
+Date: Fri, 27 Dec 2024 14:22:20 -0800
 
-Update the compression algorithms supported, and the Squashfs website
-location.
+Currently vma test is failing because of the new vma_assert_attached()
+assertion.  The check is failing because previous refcount_set() inside
+vma_mark_attached() is a NoOp.  Fix the definition of atomic_set() to
+correctly set the value of the atomic.
 
-Link: https://lkml.kernel.org/r/20241229233752.54481-5-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20241227222220.1726384-1-surenb@google.com
+Fixes: 9325b8b5a1cb ("tools: add skeleton code for userland testing of VMA logic")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/shared/linux/maple_tree.h |    2 +-
+ tools/testing/vma/linux/atomic.h        |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/squashfs/Kconfig~squashfs-update-kconfig-information
-+++ a/fs/squashfs/Kconfig
-@@ -5,8 +5,8 @@ config SQUASHFS
- 	help
- 	  Saying Y here includes support for SquashFS 4.0 (a Compressed
- 	  Read-Only File System).  Squashfs is a highly compressed read-only
--	  filesystem for Linux.  It uses zlib, lzo or xz compression to
--	  compress both files, inodes and directories.  Inodes in the system
-+	  filesystem for Linux.  It uses zlib, lz4, lzo, xz or zstd compression
-+	  to compress both files, inodes and directories.  Inodes in the system
- 	  are very small and all blocks are packed to minimise data overhead.
- 	  Block sizes greater than 4K are supported up to a maximum of 1 Mbytes
- 	  (default block size 128K).  SquashFS 4.0 supports 64 bit filesystems
-@@ -16,7 +16,7 @@ config SQUASHFS
- 	  Squashfs is intended for general read-only filesystem use, for
- 	  archival use (i.e. in cases where a .tar.gz file may be used), and in
- 	  embedded systems where low overhead is needed.  Further information
--	  and tools are available from http://squashfs.sourceforge.net.
-+	  and tools are available from github.com/plougher/squashfs-tools.
+--- a/tools/testing/shared/linux/maple_tree.h~tools-fix-atomic_set-definition-to-set-the-value-correctly
++++ a/tools/testing/shared/linux/maple_tree.h
+@@ -2,6 +2,6 @@
+ #define atomic_t int32_t
+ #define atomic_inc(x) uatomic_inc(x)
+ #define atomic_read(x) uatomic_read(x)
+-#define atomic_set(x, y) do {} while (0)
++#define atomic_set(x, y) uatomic_set(x, y)
+ #define U8_MAX UCHAR_MAX
+ #include "../../../../include/linux/maple_tree.h"
+--- a/tools/testing/vma/linux/atomic.h~tools-fix-atomic_set-definition-to-set-the-value-correctly
++++ a/tools/testing/vma/linux/atomic.h
+@@ -6,7 +6,7 @@
+ #define atomic_t int32_t
+ #define atomic_inc(x) uatomic_inc(x)
+ #define atomic_read(x) uatomic_read(x)
+-#define atomic_set(x, y) do {} while (0)
++#define atomic_set(x, y) uatomic_set(x, y)
+ #define U8_MAX UCHAR_MAX
  
- 	  If you want to compile this as a module ( = code which can be
- 	  inserted in and removed from the running kernel whenever you want),
+ #endif	/* _LINUX_ATOMIC_H */
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from surenb@google.com are
 
-squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch
-squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured.patch
-documentation-update-the-squashfs-filesystem-documentation.patch
-squashfs-update-kconfig-information.patch
+alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
+tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
+seqlock-add-raw_seqcount_try_begin.patch
+mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
+mm-introduce-mmap_lock_speculate_try_beginretry.patch
+mm-introduce-vma_start_read_locked_nested-helpers.patch
+mm-move-per-vma-lock-into-vm_area_struct.patch
+mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+mm-modify-vma_iter_store_gfp-to-indicate-if-its-storing-a-new-vma.patch
+mm-mark-vmas-detached-upon-exit.patch
+mm-nommu-fix-the-last-places-where-vma-is-not-locked-before-being-attached.patch
+types-move-struct-rcuwait-into-typesh.patch
+mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+mm-move-mmap_init_lock-out-of-the-header-file.patch
+mm-uninline-the-main-body-of-vma_start_write.patch
+refcount-introduce-__refcount_addinc_not_zero_limited.patch
+mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
+mm-debug-print-vm_refcnt-state-when-dumping-the-vma-fix.patch
+mm-remove-extra-vma_numab_state_init-call.patch
+mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+mm-make-vma-cache-slab_typesafe_by_rcu.patch
+docs-mm-document-latest-changes-to-vm_lock.patch
+alloc_tag-avoid-current-alloc_tag-manipulations-when-profiling-is-disabled.patch
 
