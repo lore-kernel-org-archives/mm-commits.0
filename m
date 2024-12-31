@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEA7419AD90
-	for <mm-commits@vger.kernel.org>; Mon, 30 Dec 2024 23:54:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B4A163
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:13:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735602884; cv=none; b=kevtwT7ysO5/aAAladGTeFFoX4OFOnqtnKPtwIrCs3+NxDVlIGB7M2J2GPoLPva01Q6Tl6Fk7Pnos0EFWfOQ/GCUVcUSTFJCIxHMpxiKIYtmmGy2EWhsaQES+RTRd/qQU3ag7kDH4jAKyyPDsmOUVAAWBIpgbEFzAwae3NKcsh0=
+	t=1735604023; cv=none; b=RWB4PGxw4+9OcK3PsWD3le7widalClQXcmQuy/oXdctqnt0gfv84H9t9XufMLJN3Yb7UXg0b+2fc8THL9GWYuNb20D+6lV7sUZ9cg+u/uLRxoA+jhTtf9fQ+0Y0IA1caIRMzGlxljfDWjBVaNLiZ6y7CjUX0KcqTktjzP633mqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735602884; c=relaxed/simple;
-	bh=XcsBKdrsoI5JwTABSQnaDfwaTZfQhtXSucKrqh2IrUY=;
-	h=Date:To:From:Subject:Message-Id; b=h8y7vvM3JSg3Xxk4sewmrZTs8mt72G/BV8rRn6DEJE5tYY6zMnrtnoRik27wwUljOtJ8pIe/PaRnClE1gxfu6IcoIiM+wjq/YitmRmxscwY4w9GRBv0kV7eF+DB5ar3dzX8CVISP4K7e8YSaN7nv9RqCz1mV3NfIwrHXESDJTRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CqhH7ZQx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735604023; c=relaxed/simple;
+	bh=jGNvlFyUN73AqUIJEEsBWYKrv7sCnmHkr7ley6peXeA=;
+	h=Date:To:From:Subject:Message-Id; b=fmgfQ1j3a3190ZYMkN990uA9evMuhgvFl7+JJoj0g+mIfU3VDe9wUDfbIZNSDCR4IEmIt9hvRZlcOu7VZ+vBajl6vpmpTzMkWaf07Wf84yBD2sukKcogMxWlMw0lAbNc15v9JEDGa/7zvj7g5UCh5pjI0rXcb1Wn70c1dGCTLuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XimwNMWM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CqhH7ZQx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58D8CC4CED0;
-	Mon, 30 Dec 2024 23:54:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XimwNMWM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39937C4CED0;
+	Tue, 31 Dec 2024 00:13:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735602883;
-	bh=XcsBKdrsoI5JwTABSQnaDfwaTZfQhtXSucKrqh2IrUY=;
+	s=korg; t=1735604023;
+	bh=jGNvlFyUN73AqUIJEEsBWYKrv7sCnmHkr7ley6peXeA=;
 	h=Date:To:From:Subject:From;
-	b=CqhH7ZQxLzgf7wzCViaBM95bVVBL6UFdzeDw/od27AfrfEQjhRTcLrR1bd/2ow24o
-	 UXFZk7aEUSBTWiJJBReaYpWcIkDJdsaHvLbSnY+GejbHRUl2QtaEWLd8GAJn8Yi/2D
-	 rG0+/Vq02utzOFgND3K/afPIapCGhTLyQQCYycvA=
-Date: Mon, 30 Dec 2024 15:54:42 -0800
-To: mm-commits@vger.kernel.org,thomas.petazzoni@bootlin.com,puranjay@kernel.org,mbenes@suse.cz,mark.rutland@arm.com,catalin.marinas@arm.com,broonie@kernel.org,luca.ceresoli@bootlin.com,akpm@linux-foundation.org
+	b=XimwNMWMMXkSMxkFGnkNYrNeWL1R3aWjf5B0cyYvr/od92agDHdezHnlPtrFkYnmc
+	 Sfz+wREXfYiPNfhfTaorJhv867fhPdmrbq3VftQCW5AAXAhtBtJNZFYOTgde5U3BtS
+	 IpSr1S02C0MVIUa/h/SJEPTHiZ3W4nsif2qq0U9U=
+Date: Mon, 30 Dec 2024 16:13:42 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decode_stacktracesh-fix-decoding-of-lines-with-an-additional-info.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241230235443.58D8CC4CED0@smtp.kernel.org>
+Subject: + mm-swap-minor-clean-up-for-swap-entry-allocation.patch added to mm-unstable branch
+Message-Id: <20241231001343.39937C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: fix decoding of lines with an additional info
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     scripts-decode_stacktracesh-fix-decoding-of-lines-with-an-additional-info.patch
+     Subject: mm, swap: minor clean up for swap entry allocation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-minor-clean-up-for-swap-entry-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decode_stacktracesh-fix-decoding-of-lines-with-an-additional-info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-minor-clean-up-for-swap-entry-allocation.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,330 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luca Ceresoli <luca.ceresoli@bootlin.com>
-Subject: scripts/decode_stacktrace.sh: fix decoding of lines with an additional info
-Date: Mon, 30 Dec 2024 22:55:10 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: minor clean up for swap entry allocation
+Date: Tue, 31 Dec 2024 01:46:09 +0800
 
-Since commit bdf8eafbf7f5 ("arm64: stacktrace: report source of unwind
-data") a stack trace line can contain an additional info field that was not
-present before, in the form of one or more letters in parentheses. E.g.:
+Patch series "mm, swap: rework of swap allocator locks", v3.
 
-  [  504.517915]  led_sysfs_enable+0x54/0x80 (P)
-                                             ^^^
+This series greatly improves swap performance by reworking the locking
+design and simplify a lot of code path.  Test showed a up to 400%
+vm-scalability improvement with pmem as SWAP, and up to 37% reduce of
+kernel compile real time with ZRAM as SWAP (up to 60% improvement in
+system time).
 
-When this is present, decode_stacktrace decodes the line incorrectly:
+This is part of the new swap allocator discussed during the "Swap
+Abstraction" discussion at LSF/MM 2024, and "mTHP and swap allocator"
+discussion at LPC 2024.
 
-  [  504.517915] led_sysfs_enable+0x54/0x80 P
+This is a follow up of previous swap cluster allocator series:
+https://lore.kernel.org/linux-mm/20240730-swap-allocator-v5-0-cb9c148b9297@kernel.org/
+Also enables further optimizations which will come later.
 
-Extend parsing to decode it correctly:
+Previous series introduced a fully cluster based allocator, this series
+completely get rid of the old allocator and makes the new allocator avoid
+touching the si->lock unless needed.  This bring huge performance gain and
+get rid of slot cache for freeing path.
 
-  [  504.517915] led_sysfs_enable (drivers/leds/led-core.c:455 (discriminator 7)) (P)
+Currently, swap locking is mainly composed of two locks, cluster lock
+(ci->lock) and device lock (si->lock).  The device lock is widely used to
+protect many things, causing it to be the main bottleneck for SWAP.
 
-The regex to match such lines assumes the info can be extended in the
-future to other uppercase characters, and will need to be extended in case
-other characters will be used. Using a much more generic regex might incur
-in false positives, so this looked like a good tradeoff.
+Cluster lock is much more fine-grained, so it will be best to use ci->lock
+instead of si->lock as much as possible.
 
-Link: https://lkml.kernel.org/r/20241230-decode_stacktrace-fix-info-v1-1-984910659173@bootlin.com
-Fixes: bdf8eafbf7f5 ("arm64: stacktrace: report source of unwind data")
-Signed-off-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Puranjay Mohan <puranjay@kernel.org>
-Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+`perf lock` indicates this issue clearly. Doing linux kernel build
+using tmpfs and ZRAM with limited memory (make -j64 with 1G memcg and 4k
+pages), result of "perf lock contention -ab sleep 3" shows:
+
+  contended   total wait     max wait     avg wait         type   caller
+     34948     53.63 s       7.11 ms      1.53 ms     spinlock   free_swap_and_cache_nr+0x350
+     16569     40.05 s       6.45 ms      2.42 ms     spinlock   get_swap_pages+0x231
+     11191     28.41 s       7.03 ms      2.54 ms     spinlock   swapcache_free_entries+0x59
+      4147     22.78 s     122.66 ms      5.49 ms     spinlock   page_vma_mapped_walk+0x6f3
+      4595      7.17 s       6.79 ms      1.56 ms     spinlock   swapcache_free_entries+0x59
+    406027      2.74 s       2.59 ms      6.74 us     spinlock   list_lru_add+0x39
+  ...snip...
+
+The top 5 caller are all users of si->lock, total wait time sums to
+several minutes in the 3 seconds time window.
+
+Following the new allocator design, many operation doesn't need to touch
+si->lock at all.  We only need to take si->lock when doing operations
+across multiple clusters (changing the cluster list).  So ideally
+allocator should always take ci->lock first, then take si->lock only if
+needed.  But due to historical reasons, ci->lock is used inside si->lock
+critical section, causing lock inversion if we simply try to acquire
+si->lock after acquiring ci->lock.
+
+This series audited all si->lock usage, clean up legacy codes, eliminate
+usage of si->lock as much as possible by introducing new designs based on
+the new cluster allocator.
+
+Old HDD allocation codes are removed, cluster allocator is adapted with
+small changes for HDD usage, test is looking OK.
+
+And this also removed slot cache for freeing path.  The performance is
+even better without it now, and this enables other clean up and
+optimizations as discussed before:
+
+https://lore.kernel.org/all/CAMgjq7ACohT_uerSz8E_994ZZCv709Zor+43hdmesW_59W1BWw@mail.gmail.com/
+
+After this series, lock contention on si->lock is nearly unobservable
+with `perf lock` with the same test above:
+
+  contended   total wait     max wait     avg wait         type   caller
+  ... snip ...
+         91    204.62 us      4.51 us      2.25 us     spinlock   cluster_move+0x2e
+  ... snip ...
+         47    125.62 us      4.47 us      2.67 us     spinlock   cluster_move+0x2e
+  ... snip ...
+         23     63.15 us      3.95 us      2.74 us     spinlock   cluster_move+0x2e
+  ... snip ...
+         17     41.26 us      4.58 us      2.43 us     spinlock   cluster_isolate_lock+0x1d
+  ... snip ...
+
+`cluster_move` and `cluster_isolate_lock` (two new introduced helper) are
+basically the only users of si->lock now, performance gain is huge, and
+LOC is reduced.
+
+Tests Results:
+
+vm-scalability
+==============
+Running `usemem --init-time -O -y -x -R -31 1G` from vm-scalability in a
+12G memory cgroup using simulated pmem as SWAP backend (32G pmem, 32
+CPUs).
+
+Using 4K folio by default, 64k mTHP and sequential access (!-R) results
+are also provided.  6 test runs for each case, Total Throughput:
+
+Test             Before (KB/s) (stdev)  After (KB/s) (stdev)   Delta
+---------------------------------------------------------------------------
+Random (4K):     69937.11 (16449.77)    369816.17  (24476.68)  +428.78%
+Random (64k):    123442.83 (13207.51)   216379.00  (25024.83)  +75.28%
+Sequential (4K): 6313909.83 (148856.12) 6419860.66 (183563.38) +1.7%
+
+Sequential access will cause lower stress for the allocator so the gain is
+limited, but with random access (which is much closer to real workloads)
+the performance gain is huge.
+
+Build kernel with defconfig on tmpfs with ZRAM
+==============================================
+Below results shows a test matrix using different memory cgroup limit and
+job numbets, and scaled up progressive for a intuitive result.  Done on a
+48c96t system.
+
+6 test run for each case, it can be seen clearly that as concurrent job
+number goes higher the performance gain is higher, but even -j6 is showing
+slight improvement.
+
+   make -j<NR>     |   System Time (seconds)  |   Total Time (seconds)
+ (NR / Mem / ZRAM) | (Before / After / Delta) | (Before / After / Delta)
+ With 4k pages only:
+  6 / 192M / 3G    |    1533 /  1522 / -0.7%  |    1420 /  1414 / -0.3%
+ 12 / 256M / 4G    |    2275 /  2226 / -2.2%  |     758 /   742 / -2.1%
+ 24 / 384M / 5G    |    3596 /  3154 / -12.3% |     476 /   422 / -11.3%
+ 48 / 768M / 7G    |    8159 /  3605 / -55.8% |     330 /   221 / -33.0%
+ 96 / 1.5G / 10G   |   18541 /  6462 / -65.1% |     283 /   180 / -36.4%
+ With 64k mTHP:
+ 24 / 512M / 5G    |    3585 /  3469 /  -3.2% |     293 /   290 / -0.1%
+ 48 /   1G / 7G    |    8173 /  3607 / -55.9% |     251 /   158 / -37.0%
+ 96 /   2G / 10G   |   16305 /  7791 / -52.2% |     226 /   144 / -36.3%
+
+The fragmentation are reduced too:
+With: make -j96 / 1152M memcg, 64K mTHP:
+(avg of 4 test run)
+Before:
+hugepages-64kB/stats/swpout: 1696184
+hugepages-64kB/stats/swpout_fallback: 414318
+After: (-63.2% mTHP swapout failure)
+hugepages-64kB/stats/swpout: 1866267
+hugepages-64kB/stats/swpout_fallback: 158330
+
+There is a up to 65.1% improvement in sys time for build kernel test,
+and lower fragmentation rate.
+
+Build kernel with tinyconfig on tmpfs with HDD as swap:
+=======================================================
+
+This test is similar to above, but HDD test is very noisy and slow, the
+deviation is huge, so just use tinyconfig instead and take the median test
+result of 3 test run, which looks OK:
+
+Before this series:
+114.44user 29.11system 39:42.90elapsed 6%CPU
+2901232inputs+0outputs (238877major+4227640minor)pagefaults
+
+After this commit:
+113.90user 23.81system 38:11.77elapsed 6%CPU
+2548728inputs+0outputs (235471major+4238110minor)pagefaults
+
+Single thread SWAP:
+===================
+
+Sequential SWAP should also be slightly faster as we removed a lot of
+unnecessary parts.  Test using micro benchmark for swapout/in 4G zero
+memory using ZRAM, 10 test runs:
+
+Swapout Before (avg. 3359304):
+3353796 3358551 3371305 3356043 3367524 3355303 3355924 3354513 3360776
+
+Swapin Before (avg. 1928698):
+1920283 1927183 1934105 1921373 1926562 1938261 1927726 1928636 1934155
+
+Swapout After (avg. 3347511, -0.4%):
+3337863 3347948 3355235 3339081 3333134 3353006 3354917 3346055 3360359
+
+Swapin After (avg. 1922290, -0.3%):
+1919101 1925743 1916810 1917007 1923930 1935152 1917403 1923549 1921913
+
+The gain is limited at noise level but seems slightly better.
+
+
+This patch (of 13):
+
+Direct reclaim can skip the whole folio after reclaimed a set of folio
+based slots.  Also simplify the code for allocation, reduce indention.
+
+Link: https://lkml.kernel.org/r/20241230174621.61185-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241230174621.61185-2-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ mm/swapfile.c |   59 +++++++++++++++++++++++-------------------------
+ 1 file changed, 29 insertions(+), 30 deletions(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-fix-decoding-of-lines-with-an-additional-info
-+++ a/scripts/decode_stacktrace.sh
-@@ -286,6 +286,18 @@ handle_line() {
- 		last=$(( $last - 1 ))
- 	fi
+--- a/mm/swapfile.c~mm-swap-minor-clean-up-for-swap-entry-allocation
++++ a/mm/swapfile.c
+@@ -604,23 +604,28 @@ static bool cluster_reclaim_range(struct
+ 				  unsigned long start, unsigned long end)
+ {
+ 	unsigned char *map = si->swap_map;
+-	unsigned long offset;
++	unsigned long offset = start;
++	int nr_reclaim;
  
-+	# Extract info after the symbol if present. E.g.:
-+	# func_name+0x54/0x80 (P)
-+	#                     ^^^
-+	# The regex assumes only uppercase letters will be used. To be
-+	# extended if needed.
-+	local info_str=""
-+	if [[ ${words[$last]} =~ \([A-Z]*\) ]]; then
-+		info_str=${words[$last]}
-+		unset words[$last]
-+		last=$(( $last - 1 ))
-+	fi
-+
- 	if [[ ${words[$last]} =~ \[([^]]+)\] ]]; then
- 		module=${words[$last]}
- 		# some traces format is "(%pS)", which like "(foo+0x0/0x1 [bar])"
-@@ -313,9 +325,9 @@ handle_line() {
- 	# Add up the line number to the symbol
- 	if [[ -z ${module} ]]
- 	then
--		echo "${words[@]}" "$symbol"
-+		echo "${words[@]}" "$symbol ${info_str}"
- 	else
--		echo "${words[@]}" "$symbol $module"
-+		echo "${words[@]}" "$symbol $module ${info_str}"
- 	fi
- }
+ 	spin_unlock(&ci->lock);
+ 	spin_unlock(&si->lock);
  
+-	for (offset = start; offset < end; offset++) {
++	do {
+ 		switch (READ_ONCE(map[offset])) {
+ 		case 0:
+-			continue;
++			offset++;
++			break;
+ 		case SWAP_HAS_CACHE:
+-			if (__try_to_reclaim_swap(si, offset, TTRS_ANYWAY | TTRS_DIRECT) > 0)
+-				continue;
+-			goto out;
++			nr_reclaim = __try_to_reclaim_swap(si, offset, TTRS_ANYWAY | TTRS_DIRECT);
++			if (nr_reclaim > 0)
++				offset += nr_reclaim;
++			else
++				goto out;
++			break;
+ 		default:
+ 			goto out;
+ 		}
+-	}
++	} while (offset < end);
+ out:
+ 	spin_lock(&si->lock);
+ 	spin_lock(&ci->lock);
+@@ -838,35 +843,30 @@ new_cluster:
+ 							 &found, order, usage);
+ 			frags++;
+ 			if (found)
+-				break;
++				goto done;
+ 		}
+ 
+-		if (!found) {
++		/*
++		 * Nonfull clusters are moved to frag tail if we reached
++		 * here, count them too, don't over scan the frag list.
++		 */
++		while (frags < si->frag_cluster_nr[order]) {
++			ci = list_first_entry(&si->frag_clusters[order],
++					      struct swap_cluster_info, list);
+ 			/*
+-			 * Nonfull clusters are moved to frag tail if we reached
+-			 * here, count them too, don't over scan the frag list.
++			 * Rotate the frag list to iterate, they were all failing
++			 * high order allocation or moved here due to per-CPU usage,
++			 * this help keeping usable cluster ahead.
+ 			 */
+-			while (frags < si->frag_cluster_nr[order]) {
+-				ci = list_first_entry(&si->frag_clusters[order],
+-						      struct swap_cluster_info, list);
+-				/*
+-				 * Rotate the frag list to iterate, they were all failing
+-				 * high order allocation or moved here due to per-CPU usage,
+-				 * this help keeping usable cluster ahead.
+-				 */
+-				list_move_tail(&ci->list, &si->frag_clusters[order]);
+-				offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
+-								 &found, order, usage);
+-				frags++;
+-				if (found)
+-					break;
+-			}
++			list_move_tail(&ci->list, &si->frag_clusters[order]);
++			offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
++							 &found, order, usage);
++			frags++;
++			if (found)
++				goto done;
+ 		}
+ 	}
+ 
+-	if (found)
+-		goto done;
+-
+ 	if (!list_empty(&si->discard_clusters)) {
+ 		/*
+ 		 * we don't have free cluster but have some clusters in
+@@ -904,7 +904,6 @@ new_cluster:
+ 				goto done;
+ 		}
+ 	}
+-
+ done:
+ 	cluster->next[order] = offset;
+ 	return found;
 _
 
-Patches currently in -mm which might be from luca.ceresoli@bootlin.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-scripts-decode_stacktracesh-fix-decoding-of-lines-with-an-additional-info.patch
+mm-list_lru-fix-false-warning-of-negative-counter.patch
+mm-madvise-fix-potential-workingset-node-list_lru-leaks.patch
+mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
+mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch
+mm-swap_cgroup-remove-global-swap-cgroup-lock.patch
+mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch
+mm-swap-minor-clean-up-for-swap-entry-allocation.patch
+mm-swap-fold-swap_info_get_cont-in-the-only-caller.patch
+mm-swap-remove-old-allocation-path-for-hdd.patch
+mm-swap-use-cluster-lock-for-hdd.patch
+mm-swap-clean-up-device-availability-check.patch
+mm-swap-clean-up-plist-removal-and-adding.patch
+mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch
+mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes.patch
+mm-swap-reduce-contention-on-device-lock.patch
+mm-swap-simplify-percpu-cluster-updating.patch
+mm-swap-introduce-a-helper-for-retrieving-cluster-from-offset.patch
+mm-swap-use-a-global-swap-cluster-for-non-rotation-devices.patch
+mm-swap_slots-remove-slot-cache-for-freeing-path.patch
 
