@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D62A04C7D
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:42:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7C54C7D
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:42:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735605739; cv=none; b=I92QhHc5Wc/HJnx2b+CIGDe4HecHHcJv2Y1m4GYV1V8zenp1Q/kqYGTzi8eUYrwpbrpcgauFLbvQNh55Ui4gBlzo+japj6GLxviIzS9Atmn7H+CKLbMLyxvEkqxG6H3/bylU6lobAwWZlin2MnDsV3Azfse+i4YyiSP2ddYKK7I=
+	t=1735605743; cv=none; b=dToyC+bJFIBtWYox9KQ7ij0733bNkwxQjEHltV1DMi6Gy2YSfxTZokn/9gsWg+eceEqGRJqAhJZyhKodluYdpXYb61WlreFhI6JTCs6a/PBX8UKxjd60KZKh735J9e/Y29XB0ulMZ7YDve8eI7+dnntKLCBIRItQCBouq4ieFtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735605739; c=relaxed/simple;
-	bh=I07/sM0JUmaVZuKbqRGL4I8d+UbJ0JJkuWbYhy84xAA=;
-	h=Date:To:From:Subject:Message-Id; b=sWJeKhSM/BpmtM9wdRsE0oa1YgqbnqEjByrHoXu0DlUtq9aH3Kt7ijSvm8H7kYowbH5hvvhYNtoViTvHtCTv60pCE2q0AWesSieSzJdkIS9vBacf6x1kHrifnHd4K11Qus1LadOkJzkMlD5ELvh61PyEvcdWF7OhHM3kv/WyxEU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kKyJZOcf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735605743; c=relaxed/simple;
+	bh=3xwKpONOKUfeqnhwqkP27D4byQZxc1OxsINAXQnMh3w=;
+	h=Date:To:From:Subject:Message-Id; b=YSlNRgmHJUQuCfKbHfwk71Q3SsIAbdhmS5CvzNiAr+KcP1EXXzIglPOvjYd5zhWtHUVyzCTkWYZCCGBN9a40GEBgYB77y5IaEwPyBfwE9I45uv9R8h0avZTLIkt63cUa/JeHLxd4UKa5j3PSNGiwNAClyv8S1ZgIvgnWJ4RRjNs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GOlwweHw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kKyJZOcf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18BD6C4CED0;
-	Tue, 31 Dec 2024 00:42:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GOlwweHw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA1E5C4CED0;
+	Tue, 31 Dec 2024 00:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735605739;
-	bh=I07/sM0JUmaVZuKbqRGL4I8d+UbJ0JJkuWbYhy84xAA=;
+	s=korg; t=1735605742;
+	bh=3xwKpONOKUfeqnhwqkP27D4byQZxc1OxsINAXQnMh3w=;
 	h=Date:To:From:Subject:From;
-	b=kKyJZOcfTEU94UlsXtCrIzcg7M7qeo2DNv2DoLbSgSYxxGGML7goqPuQNdvgA74z5
-	 4ZZ1eLF67dudGl12SVeeGb9GHnlhqEt7KwJFgKZw8Ty1hXtZDvLVpcOyjoZYEp2qM2
-	 6kkFcvXXBAgb24u4jEZh+H2ZRorwmvtvH8bzl9WQ=
-Date: Mon, 30 Dec 2024 16:42:18 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,song@kernel.org,shuah@kernel.org,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,rmoar@google.com,richard@nod.at,pmladek@suse.com,petr.pavlu@suse.com,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mbenes@suse.cz,mark.rutland@arm.com,luto@kernel.org,jpoimboe@kernel.org,johannes@sipsolutions.net,joe.lawrence@redhat.com,jikos@kernel.org,jason.wessel@windriver.com,hpa@zytor.com,dianders@chromium.org,davidgow@google.com,dave.hansen@linux.intel.com,danielt@kernel.org,da.gomez@samsung.com,brendan.higgins@linux.dev,bp@alien8.de,anton.ivanov@cambridgegreys.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=GOlwweHwk7tsZijjObluNDMqZGVVk3lGCb9xMCGNmFK8QNLjWRcsqbiSvOlnP2bv6
+	 klqX3bGqKxkXkUraNq7b8LQslRgEPFmJWUkdBfclH2jePIIA8HKVytccKwmlpslb5g
+	 KKbQqaRDluI1KuoDHxX03iUriG/kcjdtewOzTjBk=
+Date: Mon, 30 Dec 2024 16:42:22 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,song@kernel.org,shuah@kernel.org,samitolvanen@google.com,rostedt@goodmis.org,rmoar@google.com,richard@nod.at,pmladek@suse.com,petr.pavlu@suse.com,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mbenes@suse.cz,mark.rutland@arm.com,luto@kernel.org,kirill.shutemov@linux.intel.com,jpoimboe@kernel.org,johannes@sipsolutions.net,joe.lawrence@redhat.com,jikos@kernel.org,jason.wessel@windriver.com,hpa@zytor.com,dianders@chromium.org,davidgow@google.com,dave.hansen@linux.intel.com,danielt@kernel.org,da.gomez@samsung.com,brendan.higgins@linux.dev,bp@alien8.de,anton.ivanov@cambridgegreys.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-restore-large-pages-after-fragmentation.patch added to mm-unstable branch
-Message-Id: <20241231004219.18BD6C4CED0@smtp.kernel.org>
+Subject: + execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards.patch added to mm-unstable branch
+Message-Id: <20241231004222.CA1E5C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: Restore large pages after fragmentation
+     Subject: execmem: add API for temporal remapping as RW and restoring ROX afterwards
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-pat-restore-large-pages-after-fragmentation.patch
+     execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-restore-large-pages-after-fragmentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,22 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: x86/mm/pat: Restore large pages after fragmentation
-Date: Fri, 27 Dec 2024 09:28:20 +0200
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: execmem: add API for temporal remapping as RW and restoring ROX afterwards
+Date: Fri, 27 Dec 2024 09:28:21 +0200
 
-Change of attributes of the pages may lead to fragmentation of direct
-mapping over time and performance degradation as result.
+Using a writable copy for ROX memory is cumbersome and error prone.
 
-With current code it's one way road: kernel tries to avoid splitting large
-pages, but it doesn't restore them back even if page attributes got
-compatible again.
+Add API that allow temporarily remapping of ranges in the ROX cache as
+writable and then restoring their read-only-execute permissions.
 
-Any change to the mapping may potentially allow to restore large page.
+This API will be later used in modules code and will allow removing nasty
+games with writable copy in alternatives patching on x86.
 
-Hook up into cpa_flush() path to check if there's any pages to be
-recovered in PUD_SIZE range around pages we've just touched.
+The restoring of the ROX permissions relies on the ability of architecture
+to reconstruct large pages in its set_memory_rox() method.
 
-CPUs don't like[1] to have to have TLB entries of different size for the
-same memory, but looks like it's okay as long as these entries have
-matching attributes[2].  Therefore it's critical to flush TLB before any
-following changes to the mapping.
-
-Note that we already allow for multiple TLB entries of different sizes for
-the same memory now in split_large_page() path.  It's not a new situation.
-
-set_memory_4k() provides a way to use 4k pages on purpose.  Kernel must
-not remap such pages as large.  Re-use one of software PTE bits to
-indicate such pages.
-
-[1] See Erratum 383 of AMD Family 10h Processors
-[2] https://lore.kernel.org/linux-mm/1da1b025-cabc-6f04-bde5-e50830d1ecf0@amd.com/
-
-[rppt@kernel.org:
- * s/restore/collapse/
- * update formatting per peterz
- * use 'struct ptdesc' instead of 'struct page' for list of page tables to
-   be freed
- * try to collapse PMD first and if it succeeds move on to PUD as peterz
-   suggested
- * flush TLB twice: for changes done in the original CPA call and after
-   collapsing of large pages
-]
-
-Link: https://lore.kernel.org/all/20200416213229.19174-1-kirill.shutemov@linux.intel.com
-Link: https://lkml.kernel.org/r/20241227072825.1288491-4-rppt@kernel.org
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20241227072825.1288491-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
@@ -121,6 +91,7 @@ Cc: Jiri Kosina <jikos@kernel.org>
 Cc: Joe Lawrence <joe.lawrence@redhat.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
@@ -138,327 +109,308 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_types.h |    2 
- arch/x86/mm/pat/set_memory.c         |  213 ++++++++++++++++++++++++-
- include/linux/vm_event_item.h        |    2 
- mm/vmstat.c                          |    2 
- 4 files changed, 216 insertions(+), 3 deletions(-)
+ include/linux/execmem.h |   31 +++++++++
+ mm/execmem.c            |  118 +++++++++++++++++++++++++++++++-------
+ 2 files changed, 130 insertions(+), 19 deletions(-)
 
---- a/arch/x86/include/asm/pgtable_types.h~x86-mm-pat-restore-large-pages-after-fragmentation
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -33,6 +33,7 @@
- #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
- #define _PAGE_BIT_UFFD_WP	_PAGE_BIT_SOFTW2 /* userfaultfd wrprotected */
- #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
-+#define _PAGE_BIT_KERNEL_4K	_PAGE_BIT_SOFTW3 /* page must not be converted to large */
- #define _PAGE_BIT_DEVMAP	_PAGE_BIT_SOFTW4
- 
- #ifdef CONFIG_X86_64
-@@ -64,6 +65,7 @@
- #define _PAGE_PAT_LARGE (_AT(pteval_t, 1) << _PAGE_BIT_PAT_LARGE)
- #define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
- #define _PAGE_CPA_TEST	(_AT(pteval_t, 1) << _PAGE_BIT_CPA_TEST)
-+#define _PAGE_KERNEL_4K	(_AT(pteval_t, 1) << _PAGE_BIT_KERNEL_4K)
- #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
- #define _PAGE_PKEY_BIT0	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT0)
- #define _PAGE_PKEY_BIT1	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT1)
---- a/arch/x86/mm/pat/set_memory.c~x86-mm-pat-restore-large-pages-after-fragmentation
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -107,6 +107,18 @@ static void split_page_count(int level)
- 	direct_pages_count[level - 1] += PTRS_PER_PTE;
- }
- 
-+static void collapse_page_count(int level)
-+{
-+	direct_pages_count[level]++;
-+	if (system_state == SYSTEM_RUNNING) {
-+		if (level == PG_LEVEL_2M)
-+			count_vm_event(DIRECT_MAP_LEVEL2_COLLAPSE);
-+		else if (level == PG_LEVEL_1G)
-+			count_vm_event(DIRECT_MAP_LEVEL3_COLLAPSE);
-+	}
-+	direct_pages_count[level - 1] -= PTRS_PER_PTE;
-+}
+--- a/include/linux/execmem.h~execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards
++++ a/include/linux/execmem.h
+@@ -65,6 +65,37 @@ enum execmem_range_flags {
+  * Architectures that use EXECMEM_ROX_CACHE must implement this.
+  */
+ void execmem_fill_trapping_insns(void *ptr, size_t size, bool writable);
 +
- void arch_report_meminfo(struct seq_file *m)
- {
- 	seq_printf(m, "DirectMap4k:    %8lu kB\n",
-@@ -124,6 +136,7 @@ void arch_report_meminfo(struct seq_file
- }
- #else
- static inline void split_page_count(int level) { }
-+static inline void collapse_page_count(int level) { }
++/**
++ * execmem_make_temp_rw - temporarily remap region with read-write
++ *			  permissions
++ * @ptr:	address of the region to remap
++ * @size:	size of the region to remap
++ *
++ * Remaps a part of the cached large page in the ROX cache in the range
++ * [@ptr, @ptr + @size) as writable and not executable. The caller must
++ * have exclusive ownership of this range and ensure nothing will try to
++ * execute code in this range.
++ *
++ * Return: 0 on success or negative error code on failure.
++ */
++int execmem_make_temp_rw(void *ptr, size_t size);
++
++/**
++ * execmem_restore_rox - restore read-only-execute permissions
++ * @ptr:	address of the region to remap
++ * @size:	size of the region to remap
++ *
++ * Restores read-only-execute permissions on a range [@ptr, @ptr + @size)
++ * after it was temporarily remapped as writable. Relies on architecture
++ * implementation of set_memory_rox() to restore mapping using large pages.
++ *
++ * Return: 0 on success or negative error code on failure.
++ */
++int execmem_restore_rox(void *ptr, size_t size);
++#else
++static inline int execmem_make_temp_rw(void *ptr, size_t size) { return 0; }
++static inline int execmem_restore_rox(void *ptr, size_t size) { return 0; }
  #endif
  
- #ifdef CONFIG_X86_CPA_STATISTICS
-@@ -396,15 +409,50 @@ static void __cpa_flush_tlb(void *data)
- 		flush_tlb_one_kernel(fix_addr(__cpa_addr(cpa, i)));
- }
+ /**
+--- a/mm/execmem.c~execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards
++++ a/mm/execmem.c
+@@ -89,6 +89,12 @@ static void *execmem_vmalloc(struct exec
+ #endif /* CONFIG_MMU */
  
-+static int collapse_large_pages(unsigned long addr, struct list_head *pgtables);
+ #ifdef CONFIG_ARCH_HAS_EXECMEM_ROX
++struct execmem_area {
++	struct vm_struct *vm;
++	unsigned int rw_mappings;
++	size_t size;
++};
 +
-+static void cpa_collapse_large_pages(struct cpa_data *cpa)
-+{
-+	unsigned long start, addr, end;
-+	struct ptdesc *ptdesc, *tmp;
-+	LIST_HEAD(pgtables);
-+	int collapsed = 0;
-+	int i;
-+
-+	if (cpa->flags & (CPA_PAGES_ARRAY | CPA_ARRAY)) {
-+		for (i = 0; i < cpa->numpages; i++)
-+			collapsed += collapse_large_pages(__cpa_addr(cpa, i),
-+							  &pgtables);
-+	} else {
-+		addr = __cpa_addr(cpa, 0);
-+		start = addr & PMD_MASK;
-+		end = addr + PAGE_SIZE * cpa->numpages;
-+
-+		for (addr = start; within(addr, start, end); addr += PMD_SIZE)
-+			collapsed += collapse_large_pages(addr, &pgtables);
-+	}
-+
-+	if (!collapsed)
-+		return;
-+
-+	flush_tlb_all();
-+
-+	list_for_each_entry_safe(ptdesc, tmp, &pgtables, pt_list) {
-+		list_del(&ptdesc->pt_list);
-+		__free_page(ptdesc_page(ptdesc));
-+	}
-+}
-+
- static void cpa_flush(struct cpa_data *cpa, int cache)
+ struct execmem_cache {
+ 	struct mutex mutex;
+ 	struct maple_tree busy_areas;
+@@ -135,7 +141,7 @@ static void execmem_cache_clean(struct w
+ 	struct maple_tree *free_areas = &execmem_cache.free_areas;
+ 	struct mutex *mutex = &execmem_cache.mutex;
+ 	MA_STATE(mas, free_areas, 0, ULONG_MAX);
+-	void *area;
++	struct execmem_area *area;
+ 
+ 	mutex_lock(mutex);
+ 	mas_for_each(&mas, area, ULONG_MAX) {
+@@ -143,11 +149,12 @@ static void execmem_cache_clean(struct w
+ 
+ 		if (IS_ALIGNED(size, PMD_SIZE) &&
+ 		    IS_ALIGNED(mas.index, PMD_SIZE)) {
+-			struct vm_struct *vm = find_vm_area(area);
++			struct vm_struct *vm = area->vm;
+ 
+ 			execmem_set_direct_map_valid(vm, true);
+ 			mas_store_gfp(&mas, NULL, GFP_KERNEL);
+-			vfree(area);
++			vfree(vm->addr);
++			kfree(area);
+ 		}
+ 	}
+ 	mutex_unlock(mutex);
+@@ -155,30 +162,31 @@ static void execmem_cache_clean(struct w
+ 
+ static DECLARE_WORK(execmem_cache_clean_work, execmem_cache_clean);
+ 
+-static int execmem_cache_add(void *ptr, size_t size)
++static int execmem_cache_add(void *ptr, size_t size, struct execmem_area *area)
  {
-+	LIST_HEAD(pgtables);
- 	unsigned int i;
+ 	struct maple_tree *free_areas = &execmem_cache.free_areas;
+ 	struct mutex *mutex = &execmem_cache.mutex;
+ 	unsigned long addr = (unsigned long)ptr;
+ 	MA_STATE(mas, free_areas, addr - 1, addr + 1);
++	struct execmem_area *lower_area = NULL;
++	struct execmem_area *upper_area = NULL;
+ 	unsigned long lower, upper;
+-	void *area = NULL;
+ 	int err;
  
- 	BUG_ON(irqs_disabled() && !early_boot_irqs_disabled);
+ 	lower = addr;
+ 	upper = addr + size - 1;
  
- 	if (cache && !static_cpu_has(X86_FEATURE_CLFLUSH)) {
- 		cpa_flush_all(cache);
--		return;
-+		goto collapse_large_pages;
- 	}
+ 	mutex_lock(mutex);
+-	area = mas_walk(&mas);
+-	if (area && mas.last == addr - 1)
++	lower_area = mas_walk(&mas);
++	if (lower_area && lower_area == area && mas.last == addr - 1)
+ 		lower = mas.index;
  
- 	if (cpa->force_flush_all || cpa->numpages > tlb_single_page_flush_ceiling)
-@@ -413,7 +461,7 @@ static void cpa_flush(struct cpa_data *c
- 		on_each_cpu(__cpa_flush_tlb, cpa, 1);
+-	area = mas_next(&mas, ULONG_MAX);
+-	if (area && mas.index == addr + size)
++	upper_area = mas_next(&mas, ULONG_MAX);
++	if (upper_area && upper_area == area && mas.index == addr + size)
+ 		upper = mas.last;
  
- 	if (!cache)
--		return;
-+		goto collapse_large_pages;
+ 	mas_set_range(&mas, lower, upper);
+-	err = mas_store_gfp(&mas, (void *)lower, GFP_KERNEL);
++	err = mas_store_gfp(&mas, area, GFP_KERNEL);
+ 	mutex_unlock(mutex);
+ 	if (err)
+ 		return err;
+@@ -209,7 +217,8 @@ static void *__execmem_cache_alloc(struc
+ 	MA_STATE(mas_busy, busy_areas, 0, ULONG_MAX);
+ 	struct mutex *mutex = &execmem_cache.mutex;
+ 	unsigned long addr, last, area_size = 0;
+-	void *area, *ptr = NULL;
++	struct execmem_area *area;
++	void *ptr = NULL;
+ 	int err;
  
- 	mb();
- 	for (i = 0; i < cpa->numpages; i++) {
-@@ -429,6 +477,9 @@ static void cpa_flush(struct cpa_data *c
- 			clflush_cache_range_opt((void *)fix_addr(addr), PAGE_SIZE);
- 	}
- 	mb();
+ 	mutex_lock(mutex);
+@@ -228,20 +237,18 @@ static void *__execmem_cache_alloc(struc
+ 
+ 	/* insert allocated size to busy_areas at range [addr, addr + size) */
+ 	mas_set_range(&mas_busy, addr, addr + size - 1);
+-	err = mas_store_gfp(&mas_busy, (void *)addr, GFP_KERNEL);
++	err = mas_store_gfp(&mas_busy, area, GFP_KERNEL);
+ 	if (err)
+ 		goto out_unlock;
+ 
+ 	mas_store_gfp(&mas_free, NULL, GFP_KERNEL);
+ 	if (area_size > size) {
+-		void *ptr = (void *)(addr + size);
+-
+ 		/*
+ 		 * re-insert remaining free size to free_areas at range
+ 		 * [addr + size, last]
+ 		 */
+ 		mas_set_range(&mas_free, addr + size, last);
+-		err = mas_store_gfp(&mas_free, ptr, GFP_KERNEL);
++		err = mas_store_gfp(&mas_free, area, GFP_KERNEL);
+ 		if (err) {
+ 			mas_store_gfp(&mas_busy, NULL, GFP_KERNEL);
+ 			goto out_unlock;
+@@ -257,16 +264,21 @@ out_unlock:
+ static int execmem_cache_populate(struct execmem_range *range, size_t size)
+ {
+ 	unsigned long vm_flags = VM_ALLOW_HUGE_VMAP;
++	struct execmem_area *area;
+ 	unsigned long start, end;
+ 	struct vm_struct *vm;
+ 	size_t alloc_size;
+ 	int err = -ENOMEM;
+ 	void *p;
+ 
++	area = kzalloc(sizeof(*area), GFP_KERNEL);
++	if (!area)
++		return err;
 +
-+collapse_large_pages:
-+	cpa_collapse_large_pages(cpa);
+ 	alloc_size = round_up(size, PMD_SIZE);
+ 	p = execmem_vmalloc(range, alloc_size, PAGE_KERNEL, vm_flags);
+ 	if (!p)
+-		return err;
++		goto err_free_area;
+ 
+ 	vm = find_vm_area(p);
+ 	if (!vm)
+@@ -289,7 +301,9 @@ static int execmem_cache_populate(struct
+ 	if (err)
+ 		goto err_free_mem;
+ 
+-	err = execmem_cache_add(p, alloc_size);
++	area->size = alloc_size;
++	area->vm = vm;
++	err = execmem_cache_add(p, alloc_size, area);
+ 	if (err)
+ 		goto err_free_mem;
+ 
+@@ -297,6 +311,8 @@ static int execmem_cache_populate(struct
+ 
+ err_free_mem:
+ 	vfree(p);
++err_free_area:
++	kfree(area);
+ 	return err;
  }
  
- static bool overlaps(unsigned long r1_start, unsigned long r1_end,
-@@ -1198,6 +1249,161 @@ static int split_large_page(struct cpa_d
- 	return 0;
- }
+@@ -305,6 +321,9 @@ static void *execmem_cache_alloc(struct
+ 	void *p;
+ 	int err;
  
-+static int collapse_pmd_page(pmd_t *pmd, unsigned long addr,
-+			     struct list_head *pgtables)
++	/* make sure everything in the cache is page aligned */
++	size = PAGE_ALIGN(size);
++
+ 	p = __execmem_cache_alloc(range, size);
+ 	if (p)
+ 		return p;
+@@ -322,8 +341,8 @@ static bool execmem_cache_free(void *ptr
+ 	struct mutex *mutex = &execmem_cache.mutex;
+ 	unsigned long addr = (unsigned long)ptr;
+ 	MA_STATE(mas, busy_areas, addr, addr);
++	struct execmem_area *area;
+ 	size_t size;
+-	void *area;
+ 
+ 	mutex_lock(mutex);
+ 	area = mas_walk(&mas);
+@@ -338,12 +357,73 @@ static bool execmem_cache_free(void *ptr
+ 
+ 	execmem_fill_trapping_insns(ptr, size, /* writable = */ false);
+ 
+-	execmem_cache_add(ptr, size);
++	execmem_cache_add(ptr, size, area);
+ 
+ 	schedule_work(&execmem_cache_clean_work);
+ 
+ 	return true;
+ }
++
++int execmem_make_temp_rw(void *ptr, size_t size)
 +{
-+	pmd_t _pmd, old_pmd;
-+	pte_t *pte, first;
-+	unsigned long pfn;
-+	pgprot_t pgprot;
-+	int i = 0;
++	struct maple_tree *busy_areas = &execmem_cache.busy_areas;
++	unsigned int nr = PAGE_ALIGN(size) >> PAGE_SHIFT;
++	struct mutex *mutex = &execmem_cache.mutex;
++	unsigned long addr = (unsigned long)ptr;
++	MA_STATE(mas, busy_areas, addr, addr);
++	struct execmem_area *area;
++	int ret = -ENOMEM;
 +
-+	addr &= PMD_MASK;
-+	pte = pte_offset_kernel(pmd, addr);
-+	first = *pte;
-+	pfn = pte_pfn(first);
++	mutex_lock(mutex);
++	area = mas_walk(&mas);
++	if (!area)
++		goto out;
 +
-+	/* Make sure alignment is suitable */
-+	if (PFN_PHYS(pfn) & ~PMD_MASK)
-+		return 0;
-+
-+	/* The page is 4k intentionally */
-+	if (pte_flags(first) & _PAGE_KERNEL_4K)
-+		return 0;
-+
-+	/* Check that the rest of PTEs are compatible with the first one */
-+	for (i = 1, pte++; i < PTRS_PER_PTE; i++, pte++) {
-+		pte_t entry = *pte;
-+
-+		if (!pte_present(entry))
-+			return 0;
-+		if (pte_flags(entry) != pte_flags(first))
-+			return 0;
-+		if (pte_pfn(entry) != pte_pfn(first) + i)
-+			return 0;
-+	}
-+
-+	old_pmd = *pmd;
-+
-+	/* Success: set up a large page */
-+	pgprot = pgprot_4k_2_large(pte_pgprot(first));
-+	pgprot_val(pgprot) |= _PAGE_PSE;
-+	_pmd = pfn_pmd(pfn, pgprot);
-+	set_pmd(pmd, _pmd);
-+
-+	/* Queue the page table to be freed after TLB flush */
-+	list_add(&page_ptdesc(pmd_page(old_pmd))->pt_list, pgtables);
-+
-+	if (IS_ENABLED(CONFIG_X86_32) && !SHARED_KERNEL_PMD) {
-+		struct page *page;
-+
-+		/* Update all PGD tables to use the same large page */
-+		list_for_each_entry(page, &pgd_list, lru) {
-+			pgd_t *pgd = (pgd_t *)page_address(page) + pgd_index(addr);
-+			p4d_t *p4d = p4d_offset(pgd, addr);
-+			pud_t *pud = pud_offset(p4d, addr);
-+			pmd_t *pmd = pmd_offset(pud, addr);
-+			/* Something is wrong if entries doesn't match */
-+			if (WARN_ON(pmd_val(old_pmd) != pmd_val(*pmd)))
-+				continue;
-+			set_pmd(pmd, _pmd);
-+		}
-+	}
-+
-+	if (virt_addr_valid(addr) && pfn_range_is_mapped(pfn, pfn + 1))
-+		collapse_page_count(PG_LEVEL_2M);
-+
-+	return 1;
-+}
-+
-+static int collapse_pud_page(pud_t *pud, unsigned long addr,
-+			     struct list_head *pgtables)
-+{
-+	unsigned long pfn;
-+	pmd_t *pmd, first;
-+	int i;
-+
-+	if (!direct_gbpages)
-+		return 0;
-+
-+	addr &= PUD_MASK;
-+	pmd = pmd_offset(pud, addr);
-+	first = *pmd;
++	ret = set_memory_nx(addr, nr);
++	if (ret)
++		goto out;
 +
 +	/*
-+	 * To restore PUD page all PMD entries must be large and
-+	 * have suitable alignment
++	 * If a split of large page was required, it already happened when
++	 * we marked the pages NX which guarantees that this call won't
++	 * fail
 +	 */
-+	pfn = pmd_pfn(first);
-+	if (!pmd_leaf(first) || (PFN_PHYS(pfn) & ~PUD_MASK))
-+		return 0;
-+
-+	/*
-+	 * To restore PUD page, all following PMDs must be compatible with the
-+	 * first one.
-+	 */
-+	for (i = 1, pmd++; i < PTRS_PER_PMD; i++, pmd++) {
-+		pmd_t entry = *pmd;
-+
-+		if (!pmd_present(entry) || !pmd_leaf(entry))
-+			return 0;
-+		if (pmd_flags(entry) != pmd_flags(first))
-+			return 0;
-+		if (pmd_pfn(entry) != pmd_pfn(first) + i * PTRS_PER_PTE)
-+			return 0;
-+	}
-+
-+	/* Restore PUD page and queue page table to be freed after TLB flush */
-+	list_add(&page_ptdesc(pud_page(*pud))->pt_list, pgtables);
-+	set_pud(pud, pfn_pud(pfn, pmd_pgprot(first)));
-+
-+	if (virt_addr_valid(addr) && pfn_range_is_mapped(pfn, pfn + 1))
-+		collapse_page_count(PG_LEVEL_1G);
-+
-+	return 1;
-+}
-+
-+/*
-+ * Collapse PMD and PUD pages in the kernel mapping around the address where
-+ * possible.
-+ *
-+ * Caller must flush TLB and free page tables queued on the list before
-+ * touching the new entries. CPU must not see TLB entries of different size
-+ * with different attributes.
-+ */
-+static int collapse_large_pages(unsigned long addr, struct list_head *pgtables)
-+{
-+	int collapsed = 0;
-+	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+
-+	addr &= PMD_MASK;
-+
-+	spin_lock(&pgd_lock);
-+	pgd = pgd_offset_k(addr);
-+	if (pgd_none(*pgd))
-+		goto out;
-+	p4d = p4d_offset(pgd, addr);
-+	if (p4d_none(*p4d))
-+		goto out;
-+	pud = pud_offset(p4d, addr);
-+	if (!pud_present(*pud) || pud_leaf(*pud))
-+		goto out;
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd) || pmd_leaf(*pmd))
-+		goto out;
-+
-+	collapsed = collapse_pmd_page(pmd, addr, pgtables);
-+	if (collapsed)
-+		collapsed += collapse_pud_page(pud, addr, pgtables);
++	set_memory_rw(addr, nr);
++	area->rw_mappings++;
 +
 +out:
-+	spin_unlock(&pgd_lock);
-+	return collapsed;
++	mutex_unlock(mutex);
++	return ret;
 +}
 +
- static bool try_to_free_pte_page(pte_t *pte)
++int execmem_restore_rox(void *ptr, size_t size)
++{
++	struct maple_tree *busy_areas = &execmem_cache.busy_areas;
++	struct mutex *mutex = &execmem_cache.mutex;
++	unsigned long addr = (unsigned long)ptr;
++	MA_STATE(mas, busy_areas, addr, addr);
++	struct execmem_area *area;
++	int err = 0;
++
++	size = PAGE_ALIGN(size);
++
++	mutex_lock(mutex);
++	mas_for_each(&mas, area, addr + size - 1) {
++		area->rw_mappings--;
++		if (!area->rw_mappings) {
++			unsigned int nr = area->size >> PAGE_SHIFT;
++
++			addr = (unsigned long)area->vm->addr;
++			err = set_memory_rox(addr, nr);
++			if (err)
++				break;
++		}
++	}
++	mutex_unlock(mutex);
++
++	return err;
++}
++
+ #else /* CONFIG_ARCH_HAS_EXECMEM_ROX */
+ static void *execmem_cache_alloc(struct execmem_range *range, size_t size)
  {
- 	int i;
-@@ -2148,7 +2354,8 @@ int set_memory_p(unsigned long addr, int
- 
- int set_memory_4k(unsigned long addr, int numpages)
- {
--	return change_page_attr_set_clr(&addr, numpages, __pgprot(0),
-+	return change_page_attr_set_clr(&addr, numpages,
-+					__pgprot(_PAGE_KERNEL_4K),
- 					__pgprot(0), 1, 0, NULL);
- }
- 
---- a/include/linux/vm_event_item.h~x86-mm-pat-restore-large-pages-after-fragmentation
-+++ a/include/linux/vm_event_item.h
-@@ -151,6 +151,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_X86
- 		DIRECT_MAP_LEVEL2_SPLIT,
- 		DIRECT_MAP_LEVEL3_SPLIT,
-+		DIRECT_MAP_LEVEL2_COLLAPSE,
-+		DIRECT_MAP_LEVEL3_COLLAPSE,
- #endif
- #ifdef CONFIG_PER_VMA_LOCK_STATS
- 		VMA_LOCK_SUCCESS,
---- a/mm/vmstat.c~x86-mm-pat-restore-large-pages-after-fragmentation
-+++ a/mm/vmstat.c
-@@ -1435,6 +1435,8 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_X86
- 	"direct_map_level2_splits",
- 	"direct_map_level3_splits",
-+	"direct_map_level2_collapses",
-+	"direct_map_level3_collapses",
- #endif
- #ifdef CONFIG_PER_VMA_LOCK_STATS
- 	"vma_lock_success",
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-x86-mm-pat-restore-large-pages-after-fragmentation.patch
+x86-mm-pat-cpa-test-fix-length-for-cpa_array-test.patch
+x86-mm-pat-drop-duplicate-variable-in-cpa_flush.patch
+execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards.patch
+module-introduce-module_state_gone.patch
+modules-switch-to-execmem-api-for-remapping-as-rw-and-restoring-rox.patch
+revert-x86-module-prepare-module-loading-for-rox-allocations-of-text.patch
+module-drop-unused-module_writable_address.patch
 
