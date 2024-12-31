@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BA14FC0B;
-	Tue, 31 Dec 2024 01:59:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C27FC0B;
+	Tue, 31 Dec 2024 01:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735610393; cv=none; b=JfyBnmAldiZcKMs4klqzu/Y2WulkppXiUXtgIos1v5Sf5Qp8O12/4Mkq5Uzup0CT46t3TU6gMCj0r6aWdaFuGzhroKrTRcSMSMWNvcp0tlfn6Q/VRzftsdLMnqoJe4LmwiqC6shZ9xIB7zdgHIOW2YBHS+5jtRPPN7w8N1zIfms=
+	t=1735610395; cv=none; b=nKvu7MwNgPSTuXBKP70sDvOU2c1V4bWrr68X1Kd2nozVZp3196hPlPp09UKcZJ/7vC86qt5/X3s0OSmhCWPOtcG1L0SgYEBL+/11rzeKY0zpyKF3zp+Cb6uudkhP/GhC2/zNo/JLcQCJDLbnCsyDWR+KnGS+ZjxH+bRHDRx3CIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735610393; c=relaxed/simple;
-	bh=9idB0Cn5ug2Q+nok94ViGE5A1Kspr+YZFJqzVFTHQwk=;
-	h=Date:To:From:Subject:Message-Id; b=MGaTUppizk8+NbBBg125Q5GDyGKIqghZdE2gzBJMUQl9K191ioq5RwFYX6a0GQyQffV3lC2eUYJJOS7i7aJbowiBwWLMULoG9Vo9hBM4IHVLxEXWbC+qrJTj9as/uHp2SnUuI3Uk94wQJXnmJzNxQsj6dpSL8+ksaeKfkznWMF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pyspbTy4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735610395; c=relaxed/simple;
+	bh=LiIYiVq8OpASnSwSChrgafAH3YQ11gBpHeN70P0k9lQ=;
+	h=Date:To:From:Subject:Message-Id; b=eUCb0zixvV23jrwZ9qnM5VDtOyvSWT0DCgLhotrBjUQFIYQ30ZN9vREMwzh8JnLdoSCLfS5aYXRdbcQLn3fJPO/rgpyjst0JqnsFdtqXeylWouL5YABnfXenKkmOtjjcghV7FW9eZtYrVp17/iziL87jzk1dgJvDo2jDSY+V654=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AklQrdDa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pyspbTy4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F8F2C4CED0;
-	Tue, 31 Dec 2024 01:59:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AklQrdDa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB37DC4CED0;
+	Tue, 31 Dec 2024 01:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735610393;
-	bh=9idB0Cn5ug2Q+nok94ViGE5A1Kspr+YZFJqzVFTHQwk=;
+	s=korg; t=1735610394;
+	bh=LiIYiVq8OpASnSwSChrgafAH3YQ11gBpHeN70P0k9lQ=;
 	h=Date:To:From:Subject:From;
-	b=pyspbTy4a3mio+AfvXtBX5VZkSjCK0xV+jVoVJe5q7E8fWXkPaeCY2NELs6s9bOIR
-	 L+61Qtw9woPCzvk2T+4k2bPBeISZmzeptok946cL5oW6qcwXf0Mjmb/v1jz+dkvmt8
-	 Rka2i/eo19U9pjAPrVu0WEaLdwUHwe0l246/wJ/A=
-Date: Mon, 30 Dec 2024 17:59:52 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,oliver.sang@intel.com,david@redhat.com,laoar.shao@gmail.com,akpm@linux-foundation.org
+	b=AklQrdDa5G5OPFKDLUu8khjbHYZfPWykBUjMbNZoF3Q0hDvJzADt9Nwti2ifnROG7
+	 gh5dDOH4Z3lx19YPKh/kkfX9ySawEGHvtsfMIJbcu/wzKNw+kX4vvlCXEqq6t8npXx
+	 sDHolb4HfET+99EZfJtyg6LYqw6oxJt8gQopYTcw=
+Date: Mon, 30 Dec 2024 17:59:54 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,chuck.lever@oracle.com,brauner@kernel.org,yangerkun@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-readahead-fix-large-folio-support-in-async-readahead.patch removed from -mm tree
-Message-Id: <20241231015953.5F8F2C4CED0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch removed from -mm tree
+Message-Id: <20241231015954.CB37DC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/readahead: fix large folio support in async readahead
+     Subject: maple_tree: reload mas before the second call for mas_empty_area
 has been removed from the -mm tree.  Its filename was
-     mm-readahead-fix-large-folio-support-in-async-readahead.patch
+     maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/readahead: fix large folio support in async readahead
-Date: Fri, 6 Dec 2024 16:30:25 +0800
+From: Yang Erkun <yangerkun@huawei.com>
+Subject: maple_tree: reload mas before the second call for mas_empty_area
+Date: Sat, 14 Dec 2024 17:30:05 +0800
 
-When testing large folio support with XFS on our servers, we observed that
-only a few large folios are mapped when reading large files via mmap. 
-After a thorough analysis, I identified it was caused by the
-`/sys/block/*/queue/read_ahead_kb` setting.  On our test servers, this
-parameter is set to 128KB.  After I tune it to 2MB, the large folio can
-work as expected.  However, I believe the large folio behavior should not
-be dependent on the value of read_ahead_kb.  It would be more robust if
-the kernel can automatically adopt to it.
+Change the LONG_MAX in simple_offset_add to 1024, and do latter:
 
-With /sys/block/*/queue/read_ahead_kb set to 128KB and performing a
-sequential read on a 1GB file using MADV_HUGEPAGE, the differences in
-/proc/meminfo are as follows:
+[root@fedora ~]# mkdir /tmp/dir
+[root@fedora ~]# for i in {1..1024}; do touch /tmp/dir/$i; done
+touch: cannot touch '/tmp/dir/1024': Device or resource busy
+[root@fedora ~]# rm /tmp/dir/123
+[root@fedora ~]# touch /tmp/dir/1024
+[root@fedora ~]# rm /tmp/dir/100
+[root@fedora ~]# touch /tmp/dir/1025
+touch: cannot touch '/tmp/dir/1025': Device or resource busy
 
-- before this patch
-  FileHugePages:     18432 kB
-  FilePmdMapped:      4096 kB
+After we delete file 100, actually this is a empty entry, but the latter
+create failed unexpected.
 
-- after this patch
-  FileHugePages:   1067008 kB
-  FilePmdMapped:   1048576 kB
+mas_alloc_cyclic has two chance to find empty entry.  First find the entry
+with range range_lo and range_hi, if no empty entry exist, and range_lo >
+min, retry find with range min and range_hi.  However, the first call
+mas_empty_area may mark mas as EBUSY, and the second call for
+mas_empty_area will return false directly.  Fix this by reload mas before
+second call for mas_empty_area.
 
-This shows that after applying the patch, the entire 1GB file is mapped to
-huge pages.  The stable list is CCed, as without this patch, large folios
-don't function optimally in the readahead path.
-
-It's worth noting that if read_ahead_kb is set to a larger value that
-isn't aligned with huge page sizes (e.g., 4MB + 128KB), it may still fail
-to map to hugepages.
-
-Link: https://lkml.kernel.org/r/20241108141710.9721-1-laoar.shao@gmail.com
-Link: https://lkml.kernel.org/r/20241206083025.3478-1-laoar.shao@gmail.com
-Fixes: 4687fdbb805a ("mm/filemap: Support VM_HUGEPAGE for file mappings")
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Tested-by: kernel test robot <oliver.sang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+[Liam.Howlett@Oracle.com: fix mas_alloc_cyclic() second search]
+  Link: https://lore.kernel.org/all/20241216060600.287B4C4CED0@smtp.kernel.org/
+  Link: https://lkml.kernel.org/r/20241216190113.1226145-2-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20241214093005.72284-1-yangerkun@huaweicloud.com
+Fixes: 9b6713cc7522 ("maple_tree: Add mtree_alloc_cyclic()")
+Signed-off-by: Yang Erkun <yangerkun@huawei.com>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com> says:
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/readahead.c~mm-readahead-fix-large-folio-support-in-async-readahead
-+++ a/mm/readahead.c
-@@ -646,7 +646,11 @@ void page_cache_async_ra(struct readahea
- 			1UL << order);
- 	if (index == expected) {
- 		ra->start += ra->size;
--		ra->size = get_next_ra_size(ra, max_pages);
-+		/*
-+		 * In the case of MADV_HUGEPAGE, the actual size might exceed
-+		 * the readahead window.
-+		 */
-+		ra->size = max(ra->size, get_next_ra_size(ra, max_pages));
- 		ra->async_size = ra->size;
- 		goto readit;
+--- a/lib/maple_tree.c~maple_tree-reload-mas-before-the-second-call-for-mas_empty_area
++++ a/lib/maple_tree.c
+@@ -4354,6 +4354,7 @@ int mas_alloc_cyclic(struct ma_state *ma
+ 		ret = 1;
  	}
+ 	if (ret < 0 && range_lo > min) {
++		mas_reset(mas);
+ 		ret = mas_empty_area(mas, min, range_hi, 1);
+ 		if (ret == 0)
+ 			ret = 1;
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from yangerkun@huawei.com are
 
-kernel-remove-get_task_comm-and-print-task-comm-directly.patch
-arch-remove-get_task_comm-and-print-task-comm-directly.patch
-net-remove-get_task_comm-and-print-task-comm-directly.patch
-security-remove-get_task_comm-and-print-task-comm-directly.patch
-drivers-remove-get_task_comm-and-print-task-comm-directly.patch
 
