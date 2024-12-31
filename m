@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12CF54C7D
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:42:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D62A04C7D
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:42:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735605737; cv=none; b=FxcINKiMm4ATJHlX8rrki6QrDkBFTSdmbjWmWDJ/f++FoNYVKIjFNsYJ+7B2x0APJrta3es5VN8VorK6vIcxwMbbYRQ/SWJxNz/ZqGr4aiBXjUS0DOFGMYB3DmqGnnBYadkhasV8ShFRoaVwY01NA7a+Zb1pxwtaBus+u7+gM/M=
+	t=1735605739; cv=none; b=I92QhHc5Wc/HJnx2b+CIGDe4HecHHcJv2Y1m4GYV1V8zenp1Q/kqYGTzi8eUYrwpbrpcgauFLbvQNh55Ui4gBlzo+japj6GLxviIzS9Atmn7H+CKLbMLyxvEkqxG6H3/bylU6lobAwWZlin2MnDsV3Azfse+i4YyiSP2ddYKK7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735605737; c=relaxed/simple;
-	bh=jxboJ9riGLtDkgZROCjGTdOb4xLDbFAqBGl0sOxpr9c=;
-	h=Date:To:From:Subject:Message-Id; b=l1CdxMp7B67pUopwqmmJRJOJkSF4xfkU9V174jPCLnJabnV1uoQPgG2+8MacGOSgdGJ2XajYkXz7HpHY6L7t/rKjMSB/8rXcUXiP6BrvKO2qvKQzsZmRw7CRG0WVPNtMNqW8ICzsuZUP8w6CS9B0uKStzEJuJ0bPTtoWvRzIhZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2KSDEgUN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735605739; c=relaxed/simple;
+	bh=I07/sM0JUmaVZuKbqRGL4I8d+UbJ0JJkuWbYhy84xAA=;
+	h=Date:To:From:Subject:Message-Id; b=sWJeKhSM/BpmtM9wdRsE0oa1YgqbnqEjByrHoXu0DlUtq9aH3Kt7ijSvm8H7kYowbH5hvvhYNtoViTvHtCTv60pCE2q0AWesSieSzJdkIS9vBacf6x1kHrifnHd4K11Qus1LadOkJzkMlD5ELvh61PyEvcdWF7OhHM3kv/WyxEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kKyJZOcf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2KSDEgUN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6AE2C4CED0;
-	Tue, 31 Dec 2024 00:42:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kKyJZOcf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18BD6C4CED0;
+	Tue, 31 Dec 2024 00:42:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735605736;
-	bh=jxboJ9riGLtDkgZROCjGTdOb4xLDbFAqBGl0sOxpr9c=;
+	s=korg; t=1735605739;
+	bh=I07/sM0JUmaVZuKbqRGL4I8d+UbJ0JJkuWbYhy84xAA=;
 	h=Date:To:From:Subject:From;
-	b=2KSDEgUNhgYPAyefz5yMqXYWDCAtnZvM02EFn5DlOjlf781tFpFT8Xah6EShZr1h4
-	 iMdlThcSXraEj7ylmVvHeyPTfRpqVTzQzvTGDLpj5oDCvbB7K/CvY3fgea883n0BMl
-	 1HdWg50vGvzMGGFkqM6zEq8jnoqGRXp44ywVnhco=
-Date: Mon, 30 Dec 2024 16:42:16 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,song@kernel.org,shuah@kernel.org,samitolvanen@google.com,rostedt@goodmis.org,rmoar@google.com,richard@nod.at,pmladek@suse.com,petr.pavlu@suse.com,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mbenes@suse.cz,mark.rutland@arm.com,luto@kernel.org,kirill.shutemov@linux.intel.com,jpoimboe@kernel.org,johannes@sipsolutions.net,joe.lawrence@redhat.com,jikos@kernel.org,jason.wessel@windriver.com,hpa@zytor.com,dianders@chromium.org,davidgow@google.com,dave.hansen@linux.intel.com,danielt@kernel.org,da.gomez@samsung.com,brendan.higgins@linux.dev,bp@alien8.de,anton.ivanov@cambridgegreys.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=kKyJZOcfTEU94UlsXtCrIzcg7M7qeo2DNv2DoLbSgSYxxGGML7goqPuQNdvgA74z5
+	 4ZZ1eLF67dudGl12SVeeGb9GHnlhqEt7KwJFgKZw8Ty1hXtZDvLVpcOyjoZYEp2qM2
+	 6kkFcvXXBAgb24u4jEZh+H2ZRorwmvtvH8bzl9WQ=
+Date: Mon, 30 Dec 2024 16:42:18 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,song@kernel.org,shuah@kernel.org,samitolvanen@google.com,rppt@kernel.org,rostedt@goodmis.org,rmoar@google.com,richard@nod.at,pmladek@suse.com,petr.pavlu@suse.com,peterz@infradead.org,mingo@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,mbenes@suse.cz,mark.rutland@arm.com,luto@kernel.org,jpoimboe@kernel.org,johannes@sipsolutions.net,joe.lawrence@redhat.com,jikos@kernel.org,jason.wessel@windriver.com,hpa@zytor.com,dianders@chromium.org,davidgow@google.com,dave.hansen@linux.intel.com,danielt@kernel.org,da.gomez@samsung.com,brendan.higgins@linux.dev,bp@alien8.de,anton.ivanov@cambridgegreys.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-drop-duplicate-variable-in-cpa_flush.patch added to mm-unstable branch
-Message-Id: <20241231004216.B6AE2C4CED0@smtp.kernel.org>
+Subject: + x86-mm-pat-restore-large-pages-after-fragmentation.patch added to mm-unstable branch
+Message-Id: <20241231004219.18BD6C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: drop duplicate variable in cpa_flush()
+     Subject: x86/mm/pat: Restore large pages after fragmentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-pat-drop-duplicate-variable-in-cpa_flush.patch
+     x86-mm-pat-restore-large-pages-after-fragmentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-drop-duplicate-variable-in-cpa_flush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-restore-large-pages-after-fragmentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,17 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: x86/mm/pat: drop duplicate variable in cpa_flush()
-Date: Fri, 27 Dec 2024 09:28:19 +0200
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: x86/mm/pat: Restore large pages after fragmentation
+Date: Fri, 27 Dec 2024 09:28:20 +0200
 
-There is a 'struct cpa_data *data' parameter in cpa_flush() that is
-assigned to a local 'struct cpa_data *cpa' variable.
+Change of attributes of the pages may lead to fragmentation of direct
+mapping over time and performance degradation as result.
 
-Rename the parameter from 'data' to 'cpa' and drop declaration of the
-local 'cpa' variable.
+With current code it's one way road: kernel tries to avoid splitting large
+pages, but it doesn't restore them back even if page attributes got
+compatible again.
 
-Link: https://lkml.kernel.org/r/20241227072825.1288491-3-rppt@kernel.org
+Any change to the mapping may potentially allow to restore large page.
+
+Hook up into cpa_flush() path to check if there's any pages to be
+recovered in PUD_SIZE range around pages we've just touched.
+
+CPUs don't like[1] to have to have TLB entries of different size for the
+same memory, but looks like it's okay as long as these entries have
+matching attributes[2].  Therefore it's critical to flush TLB before any
+following changes to the mapping.
+
+Note that we already allow for multiple TLB entries of different sizes for
+the same memory now in split_large_page() path.  It's not a new situation.
+
+set_memory_4k() provides a way to use 4k pages on purpose.  Kernel must
+not remap such pages as large.  Re-use one of software PTE bits to
+indicate such pages.
+
+[1] See Erratum 383 of AMD Family 10h Processors
+[2] https://lore.kernel.org/linux-mm/1da1b025-cabc-6f04-bde5-e50830d1ecf0@amd.com/
+
+[rppt@kernel.org:
+ * s/restore/collapse/
+ * update formatting per peterz
+ * use 'struct ptdesc' instead of 'struct page' for list of page tables to
+   be freed
+ * try to collapse PMD first and if it succeeds move on to PUD as peterz
+   suggested
+ * flush TLB twice: for changes done in the original CPA call and after
+   collapsing of large pages
+]
+
+Link: https://lore.kernel.org/all/20200416213229.19174-1-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20241227072825.1288491-4-rppt@kernel.org
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
@@ -86,7 +121,6 @@ Cc: Jiri Kosina <jikos@kernel.org>
 Cc: Joe Lawrence <joe.lawrence@redhat.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
@@ -104,31 +138,327 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/set_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/include/asm/pgtable_types.h |    2 
+ arch/x86/mm/pat/set_memory.c         |  213 ++++++++++++++++++++++++-
+ include/linux/vm_event_item.h        |    2 
+ mm/vmstat.c                          |    2 
+ 4 files changed, 216 insertions(+), 3 deletions(-)
 
---- a/arch/x86/mm/pat/set_memory.c~x86-mm-pat-drop-duplicate-variable-in-cpa_flush
+--- a/arch/x86/include/asm/pgtable_types.h~x86-mm-pat-restore-large-pages-after-fragmentation
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -33,6 +33,7 @@
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
+ #define _PAGE_BIT_UFFD_WP	_PAGE_BIT_SOFTW2 /* userfaultfd wrprotected */
+ #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
++#define _PAGE_BIT_KERNEL_4K	_PAGE_BIT_SOFTW3 /* page must not be converted to large */
+ #define _PAGE_BIT_DEVMAP	_PAGE_BIT_SOFTW4
+ 
+ #ifdef CONFIG_X86_64
+@@ -64,6 +65,7 @@
+ #define _PAGE_PAT_LARGE (_AT(pteval_t, 1) << _PAGE_BIT_PAT_LARGE)
+ #define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
+ #define _PAGE_CPA_TEST	(_AT(pteval_t, 1) << _PAGE_BIT_CPA_TEST)
++#define _PAGE_KERNEL_4K	(_AT(pteval_t, 1) << _PAGE_BIT_KERNEL_4K)
+ #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
+ #define _PAGE_PKEY_BIT0	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT0)
+ #define _PAGE_PKEY_BIT1	(_AT(pteval_t, 1) << _PAGE_BIT_PKEY_BIT1)
+--- a/arch/x86/mm/pat/set_memory.c~x86-mm-pat-restore-large-pages-after-fragmentation
 +++ a/arch/x86/mm/pat/set_memory.c
-@@ -396,9 +396,8 @@ static void __cpa_flush_tlb(void *data)
+@@ -107,6 +107,18 @@ static void split_page_count(int level)
+ 	direct_pages_count[level - 1] += PTRS_PER_PTE;
+ }
+ 
++static void collapse_page_count(int level)
++{
++	direct_pages_count[level]++;
++	if (system_state == SYSTEM_RUNNING) {
++		if (level == PG_LEVEL_2M)
++			count_vm_event(DIRECT_MAP_LEVEL2_COLLAPSE);
++		else if (level == PG_LEVEL_1G)
++			count_vm_event(DIRECT_MAP_LEVEL3_COLLAPSE);
++	}
++	direct_pages_count[level - 1] -= PTRS_PER_PTE;
++}
++
+ void arch_report_meminfo(struct seq_file *m)
+ {
+ 	seq_printf(m, "DirectMap4k:    %8lu kB\n",
+@@ -124,6 +136,7 @@ void arch_report_meminfo(struct seq_file
+ }
+ #else
+ static inline void split_page_count(int level) { }
++static inline void collapse_page_count(int level) { }
+ #endif
+ 
+ #ifdef CONFIG_X86_CPA_STATISTICS
+@@ -396,15 +409,50 @@ static void __cpa_flush_tlb(void *data)
  		flush_tlb_one_kernel(fix_addr(__cpa_addr(cpa, i)));
  }
  
--static void cpa_flush(struct cpa_data *data, int cache)
-+static void cpa_flush(struct cpa_data *cpa, int cache)
++static int collapse_large_pages(unsigned long addr, struct list_head *pgtables);
++
++static void cpa_collapse_large_pages(struct cpa_data *cpa)
++{
++	unsigned long start, addr, end;
++	struct ptdesc *ptdesc, *tmp;
++	LIST_HEAD(pgtables);
++	int collapsed = 0;
++	int i;
++
++	if (cpa->flags & (CPA_PAGES_ARRAY | CPA_ARRAY)) {
++		for (i = 0; i < cpa->numpages; i++)
++			collapsed += collapse_large_pages(__cpa_addr(cpa, i),
++							  &pgtables);
++	} else {
++		addr = __cpa_addr(cpa, 0);
++		start = addr & PMD_MASK;
++		end = addr + PAGE_SIZE * cpa->numpages;
++
++		for (addr = start; within(addr, start, end); addr += PMD_SIZE)
++			collapsed += collapse_large_pages(addr, &pgtables);
++	}
++
++	if (!collapsed)
++		return;
++
++	flush_tlb_all();
++
++	list_for_each_entry_safe(ptdesc, tmp, &pgtables, pt_list) {
++		list_del(&ptdesc->pt_list);
++		__free_page(ptdesc_page(ptdesc));
++	}
++}
++
+ static void cpa_flush(struct cpa_data *cpa, int cache)
  {
--	struct cpa_data *cpa = data;
++	LIST_HEAD(pgtables);
  	unsigned int i;
  
  	BUG_ON(irqs_disabled() && !early_boot_irqs_disabled);
+ 
+ 	if (cache && !static_cpu_has(X86_FEATURE_CLFLUSH)) {
+ 		cpa_flush_all(cache);
+-		return;
++		goto collapse_large_pages;
+ 	}
+ 
+ 	if (cpa->force_flush_all || cpa->numpages > tlb_single_page_flush_ceiling)
+@@ -413,7 +461,7 @@ static void cpa_flush(struct cpa_data *c
+ 		on_each_cpu(__cpa_flush_tlb, cpa, 1);
+ 
+ 	if (!cache)
+-		return;
++		goto collapse_large_pages;
+ 
+ 	mb();
+ 	for (i = 0; i < cpa->numpages; i++) {
+@@ -429,6 +477,9 @@ static void cpa_flush(struct cpa_data *c
+ 			clflush_cache_range_opt((void *)fix_addr(addr), PAGE_SIZE);
+ 	}
+ 	mb();
++
++collapse_large_pages:
++	cpa_collapse_large_pages(cpa);
+ }
+ 
+ static bool overlaps(unsigned long r1_start, unsigned long r1_end,
+@@ -1198,6 +1249,161 @@ static int split_large_page(struct cpa_d
+ 	return 0;
+ }
+ 
++static int collapse_pmd_page(pmd_t *pmd, unsigned long addr,
++			     struct list_head *pgtables)
++{
++	pmd_t _pmd, old_pmd;
++	pte_t *pte, first;
++	unsigned long pfn;
++	pgprot_t pgprot;
++	int i = 0;
++
++	addr &= PMD_MASK;
++	pte = pte_offset_kernel(pmd, addr);
++	first = *pte;
++	pfn = pte_pfn(first);
++
++	/* Make sure alignment is suitable */
++	if (PFN_PHYS(pfn) & ~PMD_MASK)
++		return 0;
++
++	/* The page is 4k intentionally */
++	if (pte_flags(first) & _PAGE_KERNEL_4K)
++		return 0;
++
++	/* Check that the rest of PTEs are compatible with the first one */
++	for (i = 1, pte++; i < PTRS_PER_PTE; i++, pte++) {
++		pte_t entry = *pte;
++
++		if (!pte_present(entry))
++			return 0;
++		if (pte_flags(entry) != pte_flags(first))
++			return 0;
++		if (pte_pfn(entry) != pte_pfn(first) + i)
++			return 0;
++	}
++
++	old_pmd = *pmd;
++
++	/* Success: set up a large page */
++	pgprot = pgprot_4k_2_large(pte_pgprot(first));
++	pgprot_val(pgprot) |= _PAGE_PSE;
++	_pmd = pfn_pmd(pfn, pgprot);
++	set_pmd(pmd, _pmd);
++
++	/* Queue the page table to be freed after TLB flush */
++	list_add(&page_ptdesc(pmd_page(old_pmd))->pt_list, pgtables);
++
++	if (IS_ENABLED(CONFIG_X86_32) && !SHARED_KERNEL_PMD) {
++		struct page *page;
++
++		/* Update all PGD tables to use the same large page */
++		list_for_each_entry(page, &pgd_list, lru) {
++			pgd_t *pgd = (pgd_t *)page_address(page) + pgd_index(addr);
++			p4d_t *p4d = p4d_offset(pgd, addr);
++			pud_t *pud = pud_offset(p4d, addr);
++			pmd_t *pmd = pmd_offset(pud, addr);
++			/* Something is wrong if entries doesn't match */
++			if (WARN_ON(pmd_val(old_pmd) != pmd_val(*pmd)))
++				continue;
++			set_pmd(pmd, _pmd);
++		}
++	}
++
++	if (virt_addr_valid(addr) && pfn_range_is_mapped(pfn, pfn + 1))
++		collapse_page_count(PG_LEVEL_2M);
++
++	return 1;
++}
++
++static int collapse_pud_page(pud_t *pud, unsigned long addr,
++			     struct list_head *pgtables)
++{
++	unsigned long pfn;
++	pmd_t *pmd, first;
++	int i;
++
++	if (!direct_gbpages)
++		return 0;
++
++	addr &= PUD_MASK;
++	pmd = pmd_offset(pud, addr);
++	first = *pmd;
++
++	/*
++	 * To restore PUD page all PMD entries must be large and
++	 * have suitable alignment
++	 */
++	pfn = pmd_pfn(first);
++	if (!pmd_leaf(first) || (PFN_PHYS(pfn) & ~PUD_MASK))
++		return 0;
++
++	/*
++	 * To restore PUD page, all following PMDs must be compatible with the
++	 * first one.
++	 */
++	for (i = 1, pmd++; i < PTRS_PER_PMD; i++, pmd++) {
++		pmd_t entry = *pmd;
++
++		if (!pmd_present(entry) || !pmd_leaf(entry))
++			return 0;
++		if (pmd_flags(entry) != pmd_flags(first))
++			return 0;
++		if (pmd_pfn(entry) != pmd_pfn(first) + i * PTRS_PER_PTE)
++			return 0;
++	}
++
++	/* Restore PUD page and queue page table to be freed after TLB flush */
++	list_add(&page_ptdesc(pud_page(*pud))->pt_list, pgtables);
++	set_pud(pud, pfn_pud(pfn, pmd_pgprot(first)));
++
++	if (virt_addr_valid(addr) && pfn_range_is_mapped(pfn, pfn + 1))
++		collapse_page_count(PG_LEVEL_1G);
++
++	return 1;
++}
++
++/*
++ * Collapse PMD and PUD pages in the kernel mapping around the address where
++ * possible.
++ *
++ * Caller must flush TLB and free page tables queued on the list before
++ * touching the new entries. CPU must not see TLB entries of different size
++ * with different attributes.
++ */
++static int collapse_large_pages(unsigned long addr, struct list_head *pgtables)
++{
++	int collapsed = 0;
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++
++	addr &= PMD_MASK;
++
++	spin_lock(&pgd_lock);
++	pgd = pgd_offset_k(addr);
++	if (pgd_none(*pgd))
++		goto out;
++	p4d = p4d_offset(pgd, addr);
++	if (p4d_none(*p4d))
++		goto out;
++	pud = pud_offset(p4d, addr);
++	if (!pud_present(*pud) || pud_leaf(*pud))
++		goto out;
++	pmd = pmd_offset(pud, addr);
++	if (!pmd_present(*pmd) || pmd_leaf(*pmd))
++		goto out;
++
++	collapsed = collapse_pmd_page(pmd, addr, pgtables);
++	if (collapsed)
++		collapsed += collapse_pud_page(pud, addr, pgtables);
++
++out:
++	spin_unlock(&pgd_lock);
++	return collapsed;
++}
++
+ static bool try_to_free_pte_page(pte_t *pte)
+ {
+ 	int i;
+@@ -2148,7 +2354,8 @@ int set_memory_p(unsigned long addr, int
+ 
+ int set_memory_4k(unsigned long addr, int numpages)
+ {
+-	return change_page_attr_set_clr(&addr, numpages, __pgprot(0),
++	return change_page_attr_set_clr(&addr, numpages,
++					__pgprot(_PAGE_KERNEL_4K),
+ 					__pgprot(0), 1, 0, NULL);
+ }
+ 
+--- a/include/linux/vm_event_item.h~x86-mm-pat-restore-large-pages-after-fragmentation
++++ a/include/linux/vm_event_item.h
+@@ -151,6 +151,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_X86
+ 		DIRECT_MAP_LEVEL2_SPLIT,
+ 		DIRECT_MAP_LEVEL3_SPLIT,
++		DIRECT_MAP_LEVEL2_COLLAPSE,
++		DIRECT_MAP_LEVEL3_COLLAPSE,
+ #endif
+ #ifdef CONFIG_PER_VMA_LOCK_STATS
+ 		VMA_LOCK_SUCCESS,
+--- a/mm/vmstat.c~x86-mm-pat-restore-large-pages-after-fragmentation
++++ a/mm/vmstat.c
+@@ -1435,6 +1435,8 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_X86
+ 	"direct_map_level2_splits",
+ 	"direct_map_level3_splits",
++	"direct_map_level2_collapses",
++	"direct_map_level3_collapses",
+ #endif
+ #ifdef CONFIG_PER_VMA_LOCK_STATS
+ 	"vma_lock_success",
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-x86-mm-pat-cpa-test-fix-length-for-cpa_array-test.patch
-x86-mm-pat-drop-duplicate-variable-in-cpa_flush.patch
-execmem-add-api-for-temporal-remapping-as-rw-and-restoring-rox-afterwards.patch
-module-introduce-module_state_gone.patch
-modules-switch-to-execmem-api-for-remapping-as-rw-and-restoring-rox.patch
-revert-x86-module-prepare-module-loading-for-rox-allocations-of-text.patch
-module-drop-unused-module_writable_address.patch
+x86-mm-pat-restore-large-pages-after-fragmentation.patch
 
