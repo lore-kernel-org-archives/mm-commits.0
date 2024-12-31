@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29C88FC0B;
-	Tue, 31 Dec 2024 01:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79499FC0B;
+	Tue, 31 Dec 2024 01:59:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735610397; cv=none; b=Xj5dgGHxMOgqfk47sTyreCid3y68xg7s85VgIvvGI6NOinwRNPCqlSWAAqqUhf5qs44K+zplou/esfnoNAnkra75nyuz/1WDRYydG0HLrGIIgrUOD7XuTxCQToUjulUYLlG4Hae+Uo/RvIx7L4+LElXwt3m3NDJm9gisNL8WF7Y=
+	t=1735610399; cv=none; b=Z3nZjrBgAv3epe38yFXu5I7XYvs9qEgbEJZHegcUIFxiaX4QcFpk/bGVT5L02pro7Mgac3LKflFtqiq+aje6VV5nDIAZiY/z87YXDeRlyizWa1iFUQvZXI9WtGjB9hbPqJwdOY2SdDpbKATHXvtppV/+XTGfE59kpdZ3n02Nwjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735610397; c=relaxed/simple;
-	bh=QiLdIJhnCPDk/vhYlScSMgK3WXNnCRpOa2qqT7izQfo=;
-	h=Date:To:From:Subject:Message-Id; b=aYapAue9CtPSRvObDSmcblIWDsnkxFX10iDafdsYROcm0OEkR38uqSP3Q58jXK/a2vatCAMWO986I/dJE5F3XezYtLkZaKxmupdWSUCMR6x0kOV9STVBfRz61zUtSuQTnkj/pg3Pn/6/8tus7gFGB3HKXeDTeiSlpT6DPPGZ4Fw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kgJCSDy/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735610399; c=relaxed/simple;
+	bh=2k6uBQSiE9eYbc9Me/9L4bBJBI0fhwyEuVSK0uQr7lk=;
+	h=Date:To:From:Subject:Message-Id; b=raKygGqwxEXKOgXjohyLQg8uWAQFzCenOTwHBVKEZiQuhkMqMLGkGbu2Va41FLTS9FE1RzGogmW7Wh6usPnefBtMGtcRJuwchUrzelPx7QiZkPXXw3Kdik3OhpXHsXGMrQq2RO59QnAjmsT+IDf2HtFCOWZBD2XCY+OafgAa9a0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vIfToODU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kgJCSDy/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1ED8C4CED0;
-	Tue, 31 Dec 2024 01:59:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vIfToODU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B233C4CED0;
+	Tue, 31 Dec 2024 01:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735610397;
-	bh=QiLdIJhnCPDk/vhYlScSMgK3WXNnCRpOa2qqT7izQfo=;
+	s=korg; t=1735610399;
+	bh=2k6uBQSiE9eYbc9Me/9L4bBJBI0fhwyEuVSK0uQr7lk=;
 	h=Date:To:From:Subject:From;
-	b=kgJCSDy/8zW2Lt68xbfmjFWRCu7ZhzSdmwjZ/jvlgrTl2TtYN/JX37sf5tEWUVJvp
-	 W76+qurhKYEghinD/48lO8tBb0wtxjIw7XaPGNaK62rvkVRDANEfJIqeqw5Iiy4gvL
-	 FKgJTaA+LT3Oe64wwvbk3zqycn2IPZyWrh0gn9y4=
-Date: Mon, 30 Dec 2024 17:59:56 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,muchun.song@linux.dev,kenneth.w.chen@intel.com,jane.chu@oracle.com,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=vIfToODUe4Vr/F89I0VSiXnr2aChwa/v7fPMCbXVsOxoQmKs5YhrQDSq6U2Sx+WUU
+	 5LBe13BjHXV4KYQ+jeDssLSFCL9HLW68gSYx3c+De2huHRCwQiIGvX8vFd9yGcqt4+
+	 F1usnbg/dxUUc2Vumlis4AQSsmNZ2vELK4bAIK/0=
+Date: Mon, 30 Dec 2024 17:59:58 -0800
+To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,stable@vger.kernel.org,rostedt@goodmis.org,juri.lelli@redhat.com,gpaoloni@redhat.com,echanude@redhat.com,clement.leger@bootlin.com,catalin.marinas@arm.com,bigeasy@linutronix.de,acarmina@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-independent-pmd-page-table-shared-count.patch removed from -mm tree
-Message-Id: <20241231015956.F1ED8C4CED0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kmemleak-fix-sleeping-function-called-from-invalid-context-at-print-message.patch removed from -mm tree
+Message-Id: <20241231015959.4B233C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,208 +35,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: independent PMD page table shared count
+     Subject: mm/kmemleak: fix sleeping function called from invalid context at print message
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-independent-pmd-page-table-shared-count.patch
+     mm-kmemleak-fix-sleeping-function-called-from-invalid-context-at-print-message.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: hugetlb: independent PMD page table shared count
-Date: Mon, 16 Dec 2024 15:11:47 +0800
+From: Alessandro Carminati <acarmina@redhat.com>
+Subject: mm/kmemleak: fix sleeping function called from invalid context at print message
+Date: Tue, 17 Dec 2024 14:20:33 +0000
 
-The folio refcount may be increased unexpectly through try_get_folio() by
-caller such as split_huge_pages.  In huge_pmd_unshare(), we use refcount
-to check whether a pmd page table is shared.  The check is incorrect if
-the refcount is increased by the above caller, and this can cause the page
-table leaked:
+Address a bug in the kernel that triggers a "sleeping function called from
+invalid context" warning when /sys/kernel/debug/kmemleak is printed under
+specific conditions:
+- CONFIG_PREEMPT_RT=y
+- Set SELinux as the LSM for the system
+- Set kptr_restrict to 1
+- kmemleak buffer contains at least one item
 
- BUG: Bad page state in process sh  pfn:109324
- page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x66 pfn:0x109324
- flags: 0x17ffff800000000(node=0|zone=2|lastcpupid=0xfffff)
- page_type: f2(table)
- raw: 017ffff800000000 0000000000000000 0000000000000000 0000000000000000
- raw: 0000000000000066 0000000000000000 00000000f2000000 0000000000000000
- page dumped because: nonzero mapcount
- ...
- CPU: 31 UID: 0 PID: 7515 Comm: sh Kdump: loaded Tainted: G    B              6.13.0-rc2master+ #7
- Tainted: [B]=BAD_PAGE
- Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
- Call trace:
-  show_stack+0x20/0x38 (C)
-  dump_stack_lvl+0x80/0xf8
-  dump_stack+0x18/0x28
-  bad_page+0x8c/0x130
-  free_page_is_bad_report+0xa4/0xb0
-  free_unref_page+0x3cc/0x620
-  __folio_put+0xf4/0x158
-  split_huge_pages_all+0x1e0/0x3e8
-  split_huge_pages_write+0x25c/0x2d8
-  full_proxy_write+0x64/0xd8
-  vfs_write+0xcc/0x280
-  ksys_write+0x70/0x110
-  __arm64_sys_write+0x24/0x38
-  invoke_syscall+0x50/0x120
-  el0_svc_common.constprop.0+0xc8/0xf0
-  do_el0_svc+0x24/0x38
-  el0_svc+0x34/0x128
-  el0t_64_sync_handler+0xc8/0xd0
-  el0t_64_sync+0x190/0x198
+BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
+in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 136, name: cat
+preempt_count: 1, expected: 0
+RCU nest depth: 2, expected: 2
+6 locks held by cat/136:
+ #0: ffff32e64bcbf950 (&p->lock){+.+.}-{3:3}, at: seq_read_iter+0xb8/0xe30
+ #1: ffffafe6aaa9dea0 (scan_mutex){+.+.}-{3:3}, at: kmemleak_seq_start+0x34/0x128
+ #3: ffff32e6546b1cd0 (&object->lock){....}-{2:2}, at: kmemleak_seq_show+0x3c/0x1e0
+ #4: ffffafe6aa8d8560 (rcu_read_lock){....}-{1:2}, at: has_ns_capability_noaudit+0x8/0x1b0
+ #5: ffffafe6aabbc0f8 (notif_lock){+.+.}-{2:2}, at: avc_compute_av+0xc4/0x3d0
+irq event stamp: 136660
+hardirqs last  enabled at (136659): [<ffffafe6a80fd7a0>] _raw_spin_unlock_irqrestore+0xa8/0xd8
+hardirqs last disabled at (136660): [<ffffafe6a80fd85c>] _raw_spin_lock_irqsave+0x8c/0xb0
+softirqs last  enabled at (0): [<ffffafe6a5d50b28>] copy_process+0x11d8/0x3df8
+softirqs last disabled at (0): [<0000000000000000>] 0x0
+Preemption disabled at:
+[<ffffafe6a6598a4c>] kmemleak_seq_show+0x3c/0x1e0
+CPU: 1 UID: 0 PID: 136 Comm: cat Tainted: G            E      6.11.0-rt7+ #34
+Tainted: [E]=UNSIGNED_MODULE
+Hardware name: linux,dummy-virt (DT)
+Call trace:
+ dump_backtrace+0xa0/0x128
+ show_stack+0x1c/0x30
+ dump_stack_lvl+0xe8/0x198
+ dump_stack+0x18/0x20
+ rt_spin_lock+0x8c/0x1a8
+ avc_perm_nonode+0xa0/0x150
+ cred_has_capability.isra.0+0x118/0x218
+ selinux_capable+0x50/0x80
+ security_capable+0x7c/0xd0
+ has_ns_capability_noaudit+0x94/0x1b0
+ has_capability_noaudit+0x20/0x30
+ restricted_pointer+0x21c/0x4b0
+ pointer+0x298/0x760
+ vsnprintf+0x330/0xf70
+ seq_printf+0x178/0x218
+ print_unreferenced+0x1a4/0x2d0
+ kmemleak_seq_show+0xd0/0x1e0
+ seq_read_iter+0x354/0xe30
+ seq_read+0x250/0x378
+ full_proxy_read+0xd8/0x148
+ vfs_read+0x190/0x918
+ ksys_read+0xf0/0x1e0
+ __arm64_sys_read+0x70/0xa8
+ invoke_syscall.constprop.0+0xd4/0x1d8
+ el0_svc+0x50/0x158
+ el0t_64_sync+0x17c/0x180
 
-The issue may be triggered by damon, offline_page, page_idle, etc, which
-will increase the refcount of page table.
+%pS and %pK, in the same back trace line, are redundant, and %pS can void
+%pK service in certain contexts.
 
-1. The page table itself will be discarded after reporting the
-   "nonzero mapcount".
+%pS alone already provides the necessary information, and if it cannot
+resolve the symbol, it falls back to printing the raw address voiding
+the original intent behind the %pK.
 
-2. The HugeTLB page mapped by the page table miss freeing since we
-   treat the page table as shared and a shared page table will not be
-   unmapped.
+Additionally, %pK requires a privilege check CAP_SYSLOG enforced through
+the LSM, which can trigger a "sleeping function called from invalid
+context" warning under RT_PREEMPT kernels when the check occurs in an
+atomic context. This issue may also affect other LSMs.
 
-Fix it by introducing independent PMD page table shared count.  As
-described by comment, pt_index/pt_mm/pt_frag_refcount are used for s390
-gmap, x86 pgds and powerpc, pt_share_count is used for x86/arm64/riscv
-pmds, so we can reuse the field as pt_share_count.
+This change avoids the unnecessary privilege check and resolves the
+sleeping function warning without any loss of information.
 
-Link: https://lkml.kernel.org/r/20241216071147.3984217-1-liushixin2@huawei.com
-Fixes: 39dde65c9940 ("[PATCH] shared page table for hugetlb page")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Ken Chen <kenneth.w.chen@intel.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Jane Chu <jane.chu@oracle.com>
+Link: https://lkml.kernel.org/r/20241217142032.55793-1-acarmina@redhat.com
+Fixes: 3a6f33d86baa ("mm/kmemleak: use %pK to display kernel pointers in backtrace")
+Signed-off-by: Alessandro Carminati <acarmina@redhat.com>
+Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Clément Léger <clement.leger@bootlin.com>
+Cc: Alessandro Carminati <acarmina@redhat.com>
+Cc: Eric Chanudet <echanude@redhat.com>
+Cc: Gabriele Paoloni <gpaoloni@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    1 +
- include/linux/mm_types.h |   30 ++++++++++++++++++++++++++++++
- mm/hugetlb.c             |   16 +++++++---------
- 3 files changed, 38 insertions(+), 9 deletions(-)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-hugetlb-independent-pmd-page-table-shared-count
-+++ a/include/linux/mm.h
-@@ -3125,6 +3125,7 @@ static inline bool pagetable_pmd_ctor(st
- 	if (!pmd_ptlock_init(ptdesc))
- 		return false;
- 	__folio_set_pgtable(folio);
-+	ptdesc_pmd_pts_init(ptdesc);
- 	lruvec_stat_add_folio(folio, NR_PAGETABLE);
- 	return true;
- }
---- a/include/linux/mm_types.h~mm-hugetlb-independent-pmd-page-table-shared-count
-+++ a/include/linux/mm_types.h
-@@ -445,6 +445,7 @@ FOLIO_MATCH(compound_head, _head_2a);
-  * @pt_index:         Used for s390 gmap.
-  * @pt_mm:            Used for x86 pgds.
-  * @pt_frag_refcount: For fragmented page table tracking. Powerpc only.
-+ * @pt_share_count:   Used for HugeTLB PMD page table share count.
-  * @_pt_pad_2:        Padding to ensure proper alignment.
-  * @ptl:              Lock for the page table.
-  * @__page_type:      Same as page->page_type. Unused for page tables.
-@@ -471,6 +472,9 @@ struct ptdesc {
- 		pgoff_t pt_index;
- 		struct mm_struct *pt_mm;
- 		atomic_t pt_frag_refcount;
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+		atomic_t pt_share_count;
-+#endif
- 	};
+--- a/mm/kmemleak.c~mm-kmemleak-fix-sleeping-function-called-from-invalid-context-at-print-message
++++ a/mm/kmemleak.c
+@@ -373,7 +373,7 @@ static void print_unreferenced(struct se
  
- 	union {
-@@ -516,6 +520,32 @@ static_assert(sizeof(struct ptdesc) <= s
- 	const struct page *:		(const struct ptdesc *)(p),	\
- 	struct page *:			(struct ptdesc *)(p)))
- 
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
-+{
-+	atomic_set(&ptdesc->pt_share_count, 0);
-+}
-+
-+static inline void ptdesc_pmd_pts_inc(struct ptdesc *ptdesc)
-+{
-+	atomic_inc(&ptdesc->pt_share_count);
-+}
-+
-+static inline void ptdesc_pmd_pts_dec(struct ptdesc *ptdesc)
-+{
-+	atomic_dec(&ptdesc->pt_share_count);
-+}
-+
-+static inline int ptdesc_pmd_pts_count(struct ptdesc *ptdesc)
-+{
-+	return atomic_read(&ptdesc->pt_share_count);
-+}
-+#else
-+static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
-+{
-+}
-+#endif
-+
- /*
-  * Used for sizing the vmemmap region on some architectures
-  */
---- a/mm/hugetlb.c~mm-hugetlb-independent-pmd-page-table-shared-count
-+++ a/mm/hugetlb.c
-@@ -7211,7 +7211,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 			spte = hugetlb_walk(svma, saddr,
- 					    vma_mmu_pagesize(svma));
- 			if (spte) {
--				get_page(virt_to_page(spte));
-+				ptdesc_pmd_pts_inc(virt_to_ptdesc(spte));
- 				break;
- 			}
- 		}
-@@ -7226,7 +7226,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
- 		mm_inc_nr_pmds(mm);
- 	} else {
--		put_page(virt_to_page(spte));
-+		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
+ 	for (i = 0; i < nr_entries; i++) {
+ 		void *ptr = (void *)entries[i];
+-		warn_or_seq_printf(seq, "    [<%pK>] %pS\n", ptr, ptr);
++		warn_or_seq_printf(seq, "    %pS\n", ptr);
  	}
- 	spin_unlock(&mm->page_table_lock);
- out:
-@@ -7238,10 +7238,6 @@ out:
- /*
-  * unmap huge page backed by shared pte.
-  *
-- * Hugetlb pte page is ref counted at the time of mapping.  If pte is shared
-- * indicated by page_count > 1, unmap is achieved by clearing pud and
-- * decrementing the ref count. If count == 1, the pte page is not shared.
-- *
-  * Called with page table lock held.
-  *
-  * returns: 1 successfully unmapped a shared pte page
-@@ -7250,18 +7246,20 @@ out:
- int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
- 					unsigned long addr, pte_t *ptep)
- {
-+	unsigned long sz = huge_page_size(hstate_vma(vma));
- 	pgd_t *pgd = pgd_offset(mm, addr);
- 	p4d_t *p4d = p4d_offset(pgd, addr);
- 	pud_t *pud = pud_offset(p4d, addr);
- 
- 	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
- 	hugetlb_vma_assert_locked(vma);
--	BUG_ON(page_count(virt_to_page(ptep)) == 0);
--	if (page_count(virt_to_page(ptep)) == 1)
-+	if (sz != PMD_SIZE)
-+		return 0;
-+	if (!ptdesc_pmd_pts_count(virt_to_ptdesc(ptep)))
- 		return 0;
- 
- 	pud_clear(pud);
--	put_page(virt_to_page(ptep));
-+	ptdesc_pmd_pts_dec(virt_to_ptdesc(ptep));
- 	mm_dec_nr_pmds(mm);
- 	return 1;
  }
+ 
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from acarmina@redhat.com are
 
 
