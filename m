@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BD2A1078F
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:29:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB37C173
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:32:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735604954; cv=none; b=mfEVaVDiHUyHC2iLLSmphF+IdJQLDHoQEoitRxxGf31Vbc4C5sLbfD3zChEQPKYAQGNz4X2Ug9AqEcd+UsNFFQv4Ou+cv9hmwB36nqwstoiXsioTMTJB05dHcl4/YzoWIdrP1vBol1122ewIUFn6wNb66QyffWRYMf3ctMZy6Jo=
+	t=1735605148; cv=none; b=TxZmDKX7QGOW3LSg2slk8yZOMKt5idsMByiYBTI2cQCbdxLF740+9T0Ra2gygBvqm8wFScmZKZIMOpvc5wVZGMQxl0/go5WpxU01QsxkqhByB9As2jl96O0JOD+4ackcHJ7QDxqRGvt5f8ATVSF6WIvomrCr4A/DMhbz+LYcXpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735604954; c=relaxed/simple;
-	bh=umrn0w5jE5zDtQJ2uCp3BvMY61qkP653GKAXz+QmySg=;
-	h=Date:To:From:Subject:Message-Id; b=pqrkFdVWWBQj9yUx7v2bVSqurEz+CB5I6lYJaYt4IDi1qKxxRQ7qwNDE4+gO0BSUsiZCjDy7lQDAVT2d7H+YcylIiH4OfNLu4pean4IGVyokMfd62IdzZ/E9MiODR1B5nmDAq7jvSgBxsZSuS6wypeFnhR5PbcqL3CeDD6sBv2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xAOvCnSi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735605148; c=relaxed/simple;
+	bh=gRVHtdBDEZRjQdJVjgV3Dz9QlgbSH/9l/7ZbN5o3+Ug=;
+	h=Date:To:From:Subject:Message-Id; b=g71+drroTHmQH4chuwaa1OdciEtXjXROu/DWmOYgJXB4Al054PG1P+lc2vyedsShzzLAKQb8aIVL+l2OqsxVkWYWqzJhaOR/AS+zvFqw79kyNIKfARac2fYReekDhCHYjiiYw/vHFXgJEL22rHDE08wgNz2bQhlB4AOOcyT0eLA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y0Xt7ByL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xAOvCnSi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5122C4CED0;
-	Tue, 31 Dec 2024 00:29:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y0Xt7ByL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DEB7C4CED0;
+	Tue, 31 Dec 2024 00:32:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735604953;
-	bh=umrn0w5jE5zDtQJ2uCp3BvMY61qkP653GKAXz+QmySg=;
+	s=korg; t=1735605148;
+	bh=gRVHtdBDEZRjQdJVjgV3Dz9QlgbSH/9l/7ZbN5o3+Ug=;
 	h=Date:To:From:Subject:From;
-	b=xAOvCnSianOwusSfqisMP4wf7K7fNQEs+hw7xyDREoX2D6uIMskuyua7eFhly2bL9
-	 tSY0rGi+4RiqsZ2iny9xM08Rnv9eB3CsY0Mzl6pDyfYb60dANHcoIza3+jxWP6eKk8
-	 +g1v5jjJtP99593wxELUn81GKr+IB+6U0IH/aWyw=
-Date: Mon, 30 Dec 2024 16:29:13 -0800
-To: mm-commits@vger.kernel.org,gourry@gourry.net,ak@linux.intel.com,honggyu.kim@sk.com,akpm@linux-foundation.org
+	b=Y0Xt7ByLgoAg+rXyei5+JRZKIbZmTTXvFlwfIJE1+WMZR+MYSGtcSdFPVQY08B68M
+	 u9f3cN6+voWgiqE5BRVLQ3ICqsleVzGLAKkxqbBD3eNlBFvFTSVLBF7nmvGtXpBv5C
+	 K7iFUI1BwEf8bFyPuLIGlP+3NbkfLGmRz1ViHxws=
+Date: Mon, 30 Dec 2024 16:32:27 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch added to mm-hotfixes-unstable branch
-Message-Id: <20241231002913.D5122C4CED0@smtp.kernel.org>
+Subject: + squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch added to mm-nonmm-unstable branch
+Message-Id: <20241231003228.0DEB7C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: count MPOL_WEIGHTED_INTERLEAVE to "interleave_hit"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch
+     Subject: squashfs: make squashfs_cache_init() return ERR_PTR(-ENOMEM)
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Honggyu Kim <honggyu.kim@sk.com>
-Subject: mm/mempolicy: count MPOL_WEIGHTED_INTERLEAVE to "interleave_hit"
-Date: Fri, 27 Dec 2024 18:57:37 +0900
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: make squashfs_cache_init() return ERR_PTR(-ENOMEM)
+Date: Sun, 29 Dec 2024 23:37:49 +0000
 
-Commit fa3bea4e1f82 introduced MPOL_WEIGHTED_INTERLEAVE but it missed
-adding its counter to "interleave_hit" of numastat, which is located at
-/sys/devices/system/node/nodeN/ directory.
+Patch series "mm, swap: rework of swap allocator locks".
 
-It'd be better to add weighted interleving counter info to the existing
-"interleave_hit" instead of introducing a new counter
-"weighted_interleave_hit".
+This patchset reduces the amount of memory that Squashfs uses when
+CONFIG_FILE_DIRECT is configured, and updates various out of date
+information in the documentation and Kconfig.
 
-Link: https://lkml.kernel.org/r/20241227095737.645-1-honggyu.kim@sk.com
-Fixes: fa3bea4e1f82 ("mm/mempolicy: introduce MPOL_WEIGHTED_INTERLEAVE for weighted interleaving")
-Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Cc: Andi Kleen <ak@linux.intel.com>
+
+This patch (of 4):
+
+Make squashfs_cache_init() return an ERR_PTR(-ENOMEM) on failure rather
+than NULL.
+
+This tidies up some calling code, but, it also allows NULL to be returned
+as a valid result when a cache hasn't be allocated.
+
+Link: https://lkml.kernel.org/r/20241229233752.54481-1-phillip@squashfs.org.uk
+Link: https://lkml.kernel.org/r/20241229233752.54481-2-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/squashfs/cache.c |   10 +++++++---
+ fs/squashfs/super.c |   17 ++++++++++-------
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit
-+++ a/mm/mempolicy.c
-@@ -2268,7 +2268,8 @@ struct page *alloc_pages_mpol_noprof(gfp
+--- a/fs/squashfs/cache.c~squashfs-make-squashfs_cache_init-return-err_ptr-enomem
++++ a/fs/squashfs/cache.c
+@@ -224,11 +224,15 @@ struct squashfs_cache *squashfs_cache_in
+ 	int block_size)
+ {
+ 	int i, j;
+-	struct squashfs_cache *cache = kzalloc(sizeof(*cache), GFP_KERNEL);
++	struct squashfs_cache *cache;
  
- 	page = __alloc_pages_noprof(gfp, order, nid, nodemask);
++	if (entries == 0)
++		return NULL;
++
++	cache = kzalloc(sizeof(*cache), GFP_KERNEL);
+ 	if (cache == NULL) {
+ 		ERROR("Failed to allocate %s cache\n", name);
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 	}
  
--	if (unlikely(pol->mode == MPOL_INTERLEAVE) && page) {
-+	if (unlikely(pol->mode == MPOL_INTERLEAVE ||
-+		     pol->mode == MPOL_WEIGHTED_INTERLEAVE) && page) {
- 		/* skip NUMA_INTERLEAVE_HIT update if numa stats is disabled */
- 		if (static_branch_likely(&vm_numa_stat_key) &&
- 		    page_to_nid(page) == nid) {
+ 	cache->entry = kcalloc(entries, sizeof(*(cache->entry)), GFP_KERNEL);
+@@ -281,7 +285,7 @@ struct squashfs_cache *squashfs_cache_in
+ 
+ cleanup:
+ 	squashfs_cache_delete(cache);
+-	return NULL;
++	return ERR_PTR(-ENOMEM);
+ }
+ 
+ 
+--- a/fs/squashfs/super.c~squashfs-make-squashfs_cache_init-return-err_ptr-enomem
++++ a/fs/squashfs/super.c
+@@ -314,26 +314,29 @@ static int squashfs_fill_super(struct su
+ 	sb->s_flags |= SB_RDONLY;
+ 	sb->s_op = &squashfs_super_ops;
+ 
+-	err = -ENOMEM;
+-
+ 	msblk->block_cache = squashfs_cache_init("metadata",
+ 			SQUASHFS_CACHED_BLKS, SQUASHFS_METADATA_SIZE);
+-	if (msblk->block_cache == NULL)
++	if (IS_ERR(msblk->block_cache)) {
++		err = PTR_ERR(msblk->block_cache);
+ 		goto failed_mount;
++	}
+ 
+ 	/* Allocate read_page block */
+ 	msblk->read_page = squashfs_cache_init("data",
+ 		msblk->max_thread_num, msblk->block_size);
+-	if (msblk->read_page == NULL) {
++	if (IS_ERR(msblk->read_page)) {
+ 		errorf(fc, "Failed to allocate read_page block");
++		err = PTR_ERR(msblk->read_page);
+ 		goto failed_mount;
+ 	}
+ 
+ 	if (msblk->devblksize == PAGE_SIZE) {
+ 		struct inode *cache = new_inode(sb);
+ 
+-		if (cache == NULL)
++		if (cache == NULL) {
++			err = -ENOMEM;
+ 			goto failed_mount;
++		}
+ 
+ 		set_nlink(cache, 1);
+ 		cache->i_size = OFFSET_MAX;
+@@ -406,8 +409,8 @@ handle_fragments:
+ 
+ 	msblk->fragment_cache = squashfs_cache_init("fragment",
+ 		min(SQUASHFS_CACHED_FRAGMENTS, fragments), msblk->block_size);
+-	if (msblk->fragment_cache == NULL) {
+-		err = -ENOMEM;
++	if (IS_ERR(msblk->fragment_cache)) {
++		err = PTR_ERR(msblk->fragment_cache);
+ 		goto failed_mount;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from honggyu.kim@sk.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch
-mm-damon-core-remove-duplicate-list_empty-quota-goals-check.patch
+squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch
+squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured.patch
+documentation-update-the-squashfs-filesystem-documentation.patch
+squashfs-update-kconfig-information.patch
 
