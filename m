@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C27FC0B;
-	Tue, 31 Dec 2024 01:59:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29C88FC0B;
+	Tue, 31 Dec 2024 01:59:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735610395; cv=none; b=nKvu7MwNgPSTuXBKP70sDvOU2c1V4bWrr68X1Kd2nozVZp3196hPlPp09UKcZJ/7vC86qt5/X3s0OSmhCWPOtcG1L0SgYEBL+/11rzeKY0zpyKF3zp+Cb6uudkhP/GhC2/zNo/JLcQCJDLbnCsyDWR+KnGS+ZjxH+bRHDRx3CIc=
+	t=1735610397; cv=none; b=Xj5dgGHxMOgqfk47sTyreCid3y68xg7s85VgIvvGI6NOinwRNPCqlSWAAqqUhf5qs44K+zplou/esfnoNAnkra75nyuz/1WDRYydG0HLrGIIgrUOD7XuTxCQToUjulUYLlG4Hae+Uo/RvIx7L4+LElXwt3m3NDJm9gisNL8WF7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735610395; c=relaxed/simple;
-	bh=LiIYiVq8OpASnSwSChrgafAH3YQ11gBpHeN70P0k9lQ=;
-	h=Date:To:From:Subject:Message-Id; b=eUCb0zixvV23jrwZ9qnM5VDtOyvSWT0DCgLhotrBjUQFIYQ30ZN9vREMwzh8JnLdoSCLfS5aYXRdbcQLn3fJPO/rgpyjst0JqnsFdtqXeylWouL5YABnfXenKkmOtjjcghV7FW9eZtYrVp17/iziL87jzk1dgJvDo2jDSY+V654=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AklQrdDa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735610397; c=relaxed/simple;
+	bh=QiLdIJhnCPDk/vhYlScSMgK3WXNnCRpOa2qqT7izQfo=;
+	h=Date:To:From:Subject:Message-Id; b=aYapAue9CtPSRvObDSmcblIWDsnkxFX10iDafdsYROcm0OEkR38uqSP3Q58jXK/a2vatCAMWO986I/dJE5F3XezYtLkZaKxmupdWSUCMR6x0kOV9STVBfRz61zUtSuQTnkj/pg3Pn/6/8tus7gFGB3HKXeDTeiSlpT6DPPGZ4Fw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kgJCSDy/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AklQrdDa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB37DC4CED0;
-	Tue, 31 Dec 2024 01:59:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kgJCSDy/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1ED8C4CED0;
+	Tue, 31 Dec 2024 01:59:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735610394;
-	bh=LiIYiVq8OpASnSwSChrgafAH3YQ11gBpHeN70P0k9lQ=;
+	s=korg; t=1735610397;
+	bh=QiLdIJhnCPDk/vhYlScSMgK3WXNnCRpOa2qqT7izQfo=;
 	h=Date:To:From:Subject:From;
-	b=AklQrdDa5G5OPFKDLUu8khjbHYZfPWykBUjMbNZoF3Q0hDvJzADt9Nwti2ifnROG7
-	 gh5dDOH4Z3lx19YPKh/kkfX9ySawEGHvtsfMIJbcu/wzKNw+kX4vvlCXEqq6t8npXx
-	 sDHolb4HfET+99EZfJtyg6LYqw6oxJt8gQopYTcw=
-Date: Mon, 30 Dec 2024 17:59:54 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,chuck.lever@oracle.com,brauner@kernel.org,yangerkun@huawei.com,akpm@linux-foundation.org
+	b=kgJCSDy/8zW2Lt68xbfmjFWRCu7ZhzSdmwjZ/jvlgrTl2TtYN/JX37sf5tEWUVJvp
+	 W76+qurhKYEghinD/48lO8tBb0wtxjIw7XaPGNaK62rvkVRDANEfJIqeqw5Iiy4gvL
+	 FKgJTaA+LT3Oe64wwvbk3zqycn2IPZyWrh0gn9y4=
+Date: Mon, 30 Dec 2024 17:59:56 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,muchun.song@linux.dev,kenneth.w.chen@intel.com,jane.chu@oracle.com,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch removed from -mm tree
-Message-Id: <20241231015954.CB37DC4CED0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-independent-pmd-page-table-shared-count.patch removed from -mm tree
+Message-Id: <20241231015956.F1ED8C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,208 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: reload mas before the second call for mas_empty_area
+     Subject: mm: hugetlb: independent PMD page table shared count
 has been removed from the -mm tree.  Its filename was
-     maple_tree-reload-mas-before-the-second-call-for-mas_empty_area.patch
+     mm-hugetlb-independent-pmd-page-table-shared-count.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Erkun <yangerkun@huawei.com>
-Subject: maple_tree: reload mas before the second call for mas_empty_area
-Date: Sat, 14 Dec 2024 17:30:05 +0800
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm: hugetlb: independent PMD page table shared count
+Date: Mon, 16 Dec 2024 15:11:47 +0800
 
-Change the LONG_MAX in simple_offset_add to 1024, and do latter:
+The folio refcount may be increased unexpectly through try_get_folio() by
+caller such as split_huge_pages.  In huge_pmd_unshare(), we use refcount
+to check whether a pmd page table is shared.  The check is incorrect if
+the refcount is increased by the above caller, and this can cause the page
+table leaked:
 
-[root@fedora ~]# mkdir /tmp/dir
-[root@fedora ~]# for i in {1..1024}; do touch /tmp/dir/$i; done
-touch: cannot touch '/tmp/dir/1024': Device or resource busy
-[root@fedora ~]# rm /tmp/dir/123
-[root@fedora ~]# touch /tmp/dir/1024
-[root@fedora ~]# rm /tmp/dir/100
-[root@fedora ~]# touch /tmp/dir/1025
-touch: cannot touch '/tmp/dir/1025': Device or resource busy
+ BUG: Bad page state in process sh  pfn:109324
+ page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x66 pfn:0x109324
+ flags: 0x17ffff800000000(node=0|zone=2|lastcpupid=0xfffff)
+ page_type: f2(table)
+ raw: 017ffff800000000 0000000000000000 0000000000000000 0000000000000000
+ raw: 0000000000000066 0000000000000000 00000000f2000000 0000000000000000
+ page dumped because: nonzero mapcount
+ ...
+ CPU: 31 UID: 0 PID: 7515 Comm: sh Kdump: loaded Tainted: G    B              6.13.0-rc2master+ #7
+ Tainted: [B]=BAD_PAGE
+ Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
+ Call trace:
+  show_stack+0x20/0x38 (C)
+  dump_stack_lvl+0x80/0xf8
+  dump_stack+0x18/0x28
+  bad_page+0x8c/0x130
+  free_page_is_bad_report+0xa4/0xb0
+  free_unref_page+0x3cc/0x620
+  __folio_put+0xf4/0x158
+  split_huge_pages_all+0x1e0/0x3e8
+  split_huge_pages_write+0x25c/0x2d8
+  full_proxy_write+0x64/0xd8
+  vfs_write+0xcc/0x280
+  ksys_write+0x70/0x110
+  __arm64_sys_write+0x24/0x38
+  invoke_syscall+0x50/0x120
+  el0_svc_common.constprop.0+0xc8/0xf0
+  do_el0_svc+0x24/0x38
+  el0_svc+0x34/0x128
+  el0t_64_sync_handler+0xc8/0xd0
+  el0t_64_sync+0x190/0x198
 
-After we delete file 100, actually this is a empty entry, but the latter
-create failed unexpected.
+The issue may be triggered by damon, offline_page, page_idle, etc, which
+will increase the refcount of page table.
 
-mas_alloc_cyclic has two chance to find empty entry.  First find the entry
-with range range_lo and range_hi, if no empty entry exist, and range_lo >
-min, retry find with range min and range_hi.  However, the first call
-mas_empty_area may mark mas as EBUSY, and the second call for
-mas_empty_area will return false directly.  Fix this by reload mas before
-second call for mas_empty_area.
+1. The page table itself will be discarded after reporting the
+   "nonzero mapcount".
 
-[Liam.Howlett@Oracle.com: fix mas_alloc_cyclic() second search]
-  Link: https://lore.kernel.org/all/20241216060600.287B4C4CED0@smtp.kernel.org/
-  Link: https://lkml.kernel.org/r/20241216190113.1226145-2-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20241214093005.72284-1-yangerkun@huaweicloud.com
-Fixes: 9b6713cc7522 ("maple_tree: Add mtree_alloc_cyclic()")
-Signed-off-by: Yang Erkun <yangerkun@huawei.com>
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Chuck Lever <chuck.lever@oracle.com> says:
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+2. The HugeTLB page mapped by the page table miss freeing since we
+   treat the page table as shared and a shared page table will not be
+   unmapped.
+
+Fix it by introducing independent PMD page table shared count.  As
+described by comment, pt_index/pt_mm/pt_frag_refcount are used for s390
+gmap, x86 pgds and powerpc, pt_share_count is used for x86/arm64/riscv
+pmds, so we can reuse the field as pt_share_count.
+
+Link: https://lkml.kernel.org/r/20241216071147.3984217-1-liushixin2@huawei.com
+Fixes: 39dde65c9940 ("[PATCH] shared page table for hugetlb page")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Ken Chen <kenneth.w.chen@intel.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Jane Chu <jane.chu@oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h       |    1 +
+ include/linux/mm_types.h |   30 ++++++++++++++++++++++++++++++
+ mm/hugetlb.c             |   16 +++++++---------
+ 3 files changed, 38 insertions(+), 9 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-reload-mas-before-the-second-call-for-mas_empty_area
-+++ a/lib/maple_tree.c
-@@ -4354,6 +4354,7 @@ int mas_alloc_cyclic(struct ma_state *ma
- 		ret = 1;
+--- a/include/linux/mm.h~mm-hugetlb-independent-pmd-page-table-shared-count
++++ a/include/linux/mm.h
+@@ -3125,6 +3125,7 @@ static inline bool pagetable_pmd_ctor(st
+ 	if (!pmd_ptlock_init(ptdesc))
+ 		return false;
+ 	__folio_set_pgtable(folio);
++	ptdesc_pmd_pts_init(ptdesc);
+ 	lruvec_stat_add_folio(folio, NR_PAGETABLE);
+ 	return true;
+ }
+--- a/include/linux/mm_types.h~mm-hugetlb-independent-pmd-page-table-shared-count
++++ a/include/linux/mm_types.h
+@@ -445,6 +445,7 @@ FOLIO_MATCH(compound_head, _head_2a);
+  * @pt_index:         Used for s390 gmap.
+  * @pt_mm:            Used for x86 pgds.
+  * @pt_frag_refcount: For fragmented page table tracking. Powerpc only.
++ * @pt_share_count:   Used for HugeTLB PMD page table share count.
+  * @_pt_pad_2:        Padding to ensure proper alignment.
+  * @ptl:              Lock for the page table.
+  * @__page_type:      Same as page->page_type. Unused for page tables.
+@@ -471,6 +472,9 @@ struct ptdesc {
+ 		pgoff_t pt_index;
+ 		struct mm_struct *pt_mm;
+ 		atomic_t pt_frag_refcount;
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++		atomic_t pt_share_count;
++#endif
+ 	};
+ 
+ 	union {
+@@ -516,6 +520,32 @@ static_assert(sizeof(struct ptdesc) <= s
+ 	const struct page *:		(const struct ptdesc *)(p),	\
+ 	struct page *:			(struct ptdesc *)(p)))
+ 
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
++{
++	atomic_set(&ptdesc->pt_share_count, 0);
++}
++
++static inline void ptdesc_pmd_pts_inc(struct ptdesc *ptdesc)
++{
++	atomic_inc(&ptdesc->pt_share_count);
++}
++
++static inline void ptdesc_pmd_pts_dec(struct ptdesc *ptdesc)
++{
++	atomic_dec(&ptdesc->pt_share_count);
++}
++
++static inline int ptdesc_pmd_pts_count(struct ptdesc *ptdesc)
++{
++	return atomic_read(&ptdesc->pt_share_count);
++}
++#else
++static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
++{
++}
++#endif
++
+ /*
+  * Used for sizing the vmemmap region on some architectures
+  */
+--- a/mm/hugetlb.c~mm-hugetlb-independent-pmd-page-table-shared-count
++++ a/mm/hugetlb.c
+@@ -7211,7 +7211,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 			spte = hugetlb_walk(svma, saddr,
+ 					    vma_mmu_pagesize(svma));
+ 			if (spte) {
+-				get_page(virt_to_page(spte));
++				ptdesc_pmd_pts_inc(virt_to_ptdesc(spte));
+ 				break;
+ 			}
+ 		}
+@@ -7226,7 +7226,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
+ 		mm_inc_nr_pmds(mm);
+ 	} else {
+-		put_page(virt_to_page(spte));
++		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
  	}
- 	if (ret < 0 && range_lo > min) {
-+		mas_reset(mas);
- 		ret = mas_empty_area(mas, min, range_hi, 1);
- 		if (ret == 0)
- 			ret = 1;
+ 	spin_unlock(&mm->page_table_lock);
+ out:
+@@ -7238,10 +7238,6 @@ out:
+ /*
+  * unmap huge page backed by shared pte.
+  *
+- * Hugetlb pte page is ref counted at the time of mapping.  If pte is shared
+- * indicated by page_count > 1, unmap is achieved by clearing pud and
+- * decrementing the ref count. If count == 1, the pte page is not shared.
+- *
+  * Called with page table lock held.
+  *
+  * returns: 1 successfully unmapped a shared pte page
+@@ -7250,18 +7246,20 @@ out:
+ int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
+ 					unsigned long addr, pte_t *ptep)
+ {
++	unsigned long sz = huge_page_size(hstate_vma(vma));
+ 	pgd_t *pgd = pgd_offset(mm, addr);
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 
+ 	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
+ 	hugetlb_vma_assert_locked(vma);
+-	BUG_ON(page_count(virt_to_page(ptep)) == 0);
+-	if (page_count(virt_to_page(ptep)) == 1)
++	if (sz != PMD_SIZE)
++		return 0;
++	if (!ptdesc_pmd_pts_count(virt_to_ptdesc(ptep)))
+ 		return 0;
+ 
+ 	pud_clear(pud);
+-	put_page(virt_to_page(ptep));
++	ptdesc_pmd_pts_dec(virt_to_ptdesc(ptep));
+ 	mm_dec_nr_pmds(mm);
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from yangerkun@huawei.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
 
