@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D623B4A21
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:32:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2195A4A21
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:32:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735605150; cv=none; b=ivlrNOO/FaPk5+GgMVxWCeEka21E0o78yhA5BcRFxHyGdBn0Y0aPE8eHrVA+QRvQXOe87vNO0dIBGkcbbtkhmLqRUnDZeHbuLcyimt2IE+rrPsxa6AQCeEMYbyXUBh0ZS+MNXtzUnc+rsSZZN2ztUcCLUorl2Un2iJfLgk24Py8=
+	t=1735605153; cv=none; b=AAVSH/bGDPKuq6NEHRm4SoOTacnWTQE+DAiguTjBQVQFkQPfkRVKi/7auVxwERw5nqU0FZQDhMiEsMoOi87lH3LUbrqTd1PfIwz5mMymuJWszDxD1xzIrpVrfuGkLhofcECxQHQJH+K9qLzNkpypzBeSc153JpM7bChmSYaxn9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735605150; c=relaxed/simple;
-	bh=pEk5ekJW593XePCsfjg5pOgW8xzSjgRHMyqgSLxU1sw=;
-	h=Date:To:From:Subject:Message-Id; b=Xn+fogWXKyPYfjW1zGR2a5SqSeE2OK/t+ZWMF29MiA4XTfOePzWlX1Pz2Tadr0y0i9i/es2jjA+5FEUg3EHBJKyVpkFVorxaiN74gNLqPgMIlc7iSUyuedvwDaCxWsJGxyonV5eS9o1+cVVn7J0T4x58Sr/AG8B6wbed0YaDHv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cEaURHTS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735605153; c=relaxed/simple;
+	bh=3l2WaqQrVzg+z0LLyj3Q6VBbwt5nwZP7h6yOIcGvRtM=;
+	h=Date:To:From:Subject:Message-Id; b=WLEm2lFboKYDCAv01g6mAlxTbFMNUhkVvRTkd30NC1qdlRUd5t4NUb49VrodM8JX9gWp3lErVuhVkoVNIbaFu7xu8KmR11vmF6XaTrIOq0ahXzWV6CkI+qlmr0Vrl+M67wrSTTs0bVwafw0cSblivUnwIg3CiSfrRLM1NwXvXG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RnQTp5E2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cEaURHTS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4645BC4CED0;
-	Tue, 31 Dec 2024 00:32:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RnQTp5E2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85461C4CED0;
+	Tue, 31 Dec 2024 00:32:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735605150;
-	bh=pEk5ekJW593XePCsfjg5pOgW8xzSjgRHMyqgSLxU1sw=;
+	s=korg; t=1735605152;
+	bh=3l2WaqQrVzg+z0LLyj3Q6VBbwt5nwZP7h6yOIcGvRtM=;
 	h=Date:To:From:Subject:From;
-	b=cEaURHTSm9bY0BGStD9DySBqNwODLfU+aSvGBCEuX1qOW1lRZwb4u3KOpp5RHw92A
-	 +Qf10lk70AkPTJGi9udlRul2DoIGnUjegVQPmu1J4/hrpkhP+IvaiMC0j+T7FI/iIZ
-	 NIvB/pkSEPEnU7YxQ5EZEY6ad2WcSjK3JWgFmeJE=
-Date: Mon, 30 Dec 2024 16:32:29 -0800
+	b=RnQTp5E2QEL8sIsGSTF2ONcPYyBP0wIYBNs8e2ErCzaUll6KP+0fWqxQRpchQK21w
+	 jLjjxluRbt3Wq0WwM4Np1D+Zvd40maTGybfu2jDG0t5T2Xm1wQ5ELjxShlgnf6rA5g
+	 rnFD30cjep4OUXrIXSnUjLZRFB87TJVsRBGA3lj0=
+Date: Mon, 30 Dec 2024 16:32:31 -0800
 To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured.patch added to mm-nonmm-unstable branch
-Message-Id: <20241231003230.4645BC4CED0@smtp.kernel.org>
+Subject: + documentation-update-the-squashfs-filesystem-documentation.patch added to mm-nonmm-unstable branch
+Message-Id: <20241231003232.85461C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: don't allocate read_page cache if SQUASHFS_FILE_DIRECT configured
+     Subject: Documentation: update the Squashfs filesystem documentation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured.patch
+     documentation-update-the-squashfs-filesystem-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-update-the-squashfs-filesystem-documentation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,57 +59,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: don't allocate read_page cache if SQUASHFS_FILE_DIRECT configured
-Date: Sun, 29 Dec 2024 23:37:50 +0000
+Subject: Documentation: update the Squashfs filesystem documentation
+Date: Sun, 29 Dec 2024 23:37:51 +0000
 
-If Squashfs has been configured to directly read datablocks into the page
-cache (SQUASHFS_FILE_DIRECT), then the read_page cache is unnecessary.
+This patch updates the following which are out of date.
 
-This improvement is due to the following two commits, which added the
-ability to read datablocks into the page cache when pages were missing,
-enabling the fallback which used an intermediate buffer to be removed.
+- Zstd has been added to the compression algorithms supported.
+- The filesystem mailing list (for the kernel code) is changed to
+  linux-fsdevel rather than the now very little used Sourceforge
+  mailing list.
+- The Squashfs website has been changed to the Squashfs-tools github
+  repository.
+- The fact that Squashfs-tools is likely packaged by the linux
+  distribution is mentioned.
 
-commit f268eedddf359 ("squashfs: extend "page actor" to handle missing pages")
-commit 1bb1a07afad97 ("squashfs: don't use intermediate buffer if pages missing")
-
-This reduces the amount of memory used when mounting a filesystem by
-block_size * maximum number of threads.
-
-Link: https://lkml.kernel.org/r/20241229233752.54481-3-phillip@squashfs.org.uk
+Link: https://lkml.kernel.org/r/20241229233752.54481-4-phillip@squashfs.org.uk
 Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/squashfs.h |    6 ++++++
- fs/squashfs/super.c    |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ Documentation/filesystems/squashfs.rst |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/fs/squashfs/squashfs.h~squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured
-+++ a/fs/squashfs/squashfs.h
-@@ -14,6 +14,12 @@
+--- a/Documentation/filesystems/squashfs.rst~documentation-update-the-squashfs-filesystem-documentation
++++ a/Documentation/filesystems/squashfs.rst
+@@ -6,7 +6,7 @@ Squashfs 4.0 Filesystem
  
- #define WARNING(s, args...)	pr_warn("SQUASHFS: "s, ## args)
+ Squashfs is a compressed read-only filesystem for Linux.
  
-+#ifdef CONFIG_SQUASHFS_FILE_CACHE
-+#define SQUASHFS_READ_PAGES msblk->max_thread_num
-+#else
-+#define SQUASHFS_READ_PAGES 0
-+#endif
-+
- /* block.c */
- extern int squashfs_read_data(struct super_block *, u64, int, u64 *,
- 				struct squashfs_page_actor *);
---- a/fs/squashfs/super.c~squashfs-dont-allocate-read_page-cache-if-squashfs_file_direct-configured
-+++ a/fs/squashfs/super.c
-@@ -323,7 +323,7 @@ static int squashfs_fill_super(struct su
+-It uses zlib, lz4, lzo, or xz compression to compress files, inodes and
++It uses zlib, lz4, lzo, xz or zstd compression to compress files, inodes and
+ directories.  Inodes in the system are very small and all blocks are packed to
+ minimise data overhead. Block sizes greater than 4K are supported up to a
+ maximum of 1Mbytes (default block size 128K).
+@@ -16,8 +16,8 @@ use (i.e. in cases where a .tar.gz file
+ block device/memory systems (e.g. embedded systems) where low overhead is
+ needed.
  
- 	/* Allocate read_page block */
- 	msblk->read_page = squashfs_cache_init("data",
--		msblk->max_thread_num, msblk->block_size);
-+		SQUASHFS_READ_PAGES, msblk->block_size);
- 	if (IS_ERR(msblk->read_page)) {
- 		errorf(fc, "Failed to allocate read_page block");
- 		err = PTR_ERR(msblk->read_page);
+-Mailing list: squashfs-devel@lists.sourceforge.net
+-Web site: www.squashfs.org
++Mailing list (kernel code): linux-fsdevel@vger.kernel.org
++Web site: github.com/plougher/squashfs-tools
+ 
+ 1. Filesystem Features
+ ----------------------
+@@ -58,11 +58,9 @@ inodes have different sizes).
+ 
+ As squashfs is a read-only filesystem, the mksquashfs program must be used to
+ create populated squashfs filesystems.  This and other squashfs utilities
+-can be obtained from http://www.squashfs.org.  Usage instructions can be
+-obtained from this site also.
+-
+-The squashfs-tools development tree is now located on kernel.org
+-	git://git.kernel.org/pub/scm/fs/squashfs/squashfs-tools.git
++are very likely packaged by your linux distribution (called squashfs-tools).
++The source code can be obtained from github.com/plougher/squashfs-tools.
++Usage instructions can also be obtained from this site.
+ 
+ 2.1 Mount options
+ -----------------
 _
 
 Patches currently in -mm which might be from phillip@squashfs.org.uk are
