@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 128B413C9DE;
-	Tue, 31 Dec 2024 02:00:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05132136327;
+	Tue, 31 Dec 2024 02:00:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735610403; cv=none; b=ifExVAYvMwyzKmZgiXPoGpOFsv+aHrLVLLgylpdR87hy63pCkCDJdnYR6ANf1MitRyLWQ7Nh/FJ9/zFvhhuUr9ICCmIjrKPdkFBl/tDokX3g7+nxalRxQpRHRJxE0O79rIeEGmtH2kcelGEifUiqKMlyDFE8I5AeuOw2M403J00=
+	t=1735610404; cv=none; b=VRDUDWnmVqoT1jag7T8hcZ+c39H8MrzshsobcRRnGk+ogzBpND/rjeQBRz1JAK4jsK0adc71hKGzXtCWWS75CBAlHBVhzSF9BNWwoTigW3Hj+AAN8iUAWg77JX9vNJYjXFvl7jqMk9IVawTgDHbMQS7UJFBJ3UwWUrAAGUZmwAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735610403; c=relaxed/simple;
-	bh=8QEcNhdnOvz8ra6ZNf4/GAow6KKFT1LyPZef7h+f8/Q=;
-	h=Date:To:From:Subject:Message-Id; b=ucCloZjB0mK52v8Z4qhRGCXFjPbsXqjSiRBbfwfqbcdmuhBeRJ+V8pHGhIG06lqCZsEm/xSeLrshkQdISZGKookT8DE/fMZenS5kVHEHlXlPVi9ELR0LjE0RmD2JPKoQDAVFNi3E8XG18G20p4PqQHj2M7RTuD9FblTGCXBFhNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hGkASxmM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735610404; c=relaxed/simple;
+	bh=/n116UgFWbnpafqS0SBo7iwTERl912cF8oDKXSFlZ3A=;
+	h=Date:To:From:Subject:Message-Id; b=HZtFxhnWeaA2cRNos7GLGhLb/YtlAzPokiZ+Gc2Owcz843mLtJ8MmH8zkphUj5IdBwaPCF597lwsMGFGp+CFfBcEDnmRm/WVzqc94z3w7QIegbFm7iNEU/QlDrj+UfRsf775lzsC7wTUhxw0icApR+P2VIKHElzAZ3WASc9rXyM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dmj8oj9s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hGkASxmM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A58CFC4CED0;
-	Tue, 31 Dec 2024 02:00:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dmj8oj9s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3545C4CED2;
+	Tue, 31 Dec 2024 02:00:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735610402;
-	bh=8QEcNhdnOvz8ra6ZNf4/GAow6KKFT1LyPZef7h+f8/Q=;
+	s=korg; t=1735610403;
+	bh=/n116UgFWbnpafqS0SBo7iwTERl912cF8oDKXSFlZ3A=;
 	h=Date:To:From:Subject:From;
-	b=hGkASxmMPb5FdE9CtIru07Uo+G/ztcuifYwzd8vczAZ6yCFypyrEPIord6Kfeb2U5
-	 2oRd4J1w1oE44E1pyLfdrYrZgwSL6Pj5psSBds3+LlCLa4dJleVNhyUotplvEDvo6R
-	 aHt6dTK16s+ZKvBIeJrYqgVu3V8yi/BAJheyehoA=
-Date: Mon, 30 Dec 2024 18:00:02 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterz@infradead.org,nogikh@google.com,jpoimboe@kernel.org,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=dmj8oj9sZofzoFOh209vOJZtHYA7/JwU4j1DumXm5oZqjXHaKV0r9lS4TE3G//6Vo
+	 0LldQuW16RhQ4456/h1rlZAdCPb75pQYdlE1eyXkFvDF+HJOXO+65zXQj3iNVk9bVa
+	 4rHjJ2Ur8NPoA8hv6iB5SsjXt49xMr65kD1dQS5I=
+Date: Mon, 30 Dec 2024 18:00:03 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kcov-mark-in_softirq_really-as-__always_inline.patch removed from -mm tree
-Message-Id: <20241231020002.A58CFC4CED0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-fix-pagemap-flags-with-pmd-thp-entries-on-32bit.patch removed from -mm tree
+Message-Id: <20241231020003.C3545C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kcov: mark in_softirq_really() as __always_inline
+     Subject: fs/proc/task_mmu: fix pagemap flags with PMD THP entries on 32bit
 has been removed from the -mm tree.  Its filename was
-     kcov-mark-in_softirq_really-as-__always_inline.patch
+     fs-proc-task_mmu-fix-pagemap-flags-with-pmd-thp-entries-on-32bit.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kcov: mark in_softirq_really() as __always_inline
-Date: Tue, 17 Dec 2024 08:18:10 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: fs/proc/task_mmu: fix pagemap flags with PMD THP entries on 32bit
+Date: Tue, 17 Dec 2024 20:50:00 +0100
 
-If gcc decides not to inline in_softirq_really(), objtool warns about a
-function call with UACCESS enabled:
+Entries (including flags) are u64, even on 32bit.  So right now we are
+cutting of the flags on 32bit.  This way, for example the cow selftest
+complains about:
 
-kernel/kcov.o: warning: objtool: __sanitizer_cov_trace_pc+0x1e: call to in_softirq_really() with UACCESS enabled
-kernel/kcov.o: warning: objtool: check_kcov_mode+0x11: call to in_softirq_really() with UACCESS enabled
+  # ./cow
+  ...
+  Bail Out! read and ioctl return unmatched results for populated: 0 1
 
-Mark this as __always_inline to avoid the problem.
-
-Link: https://lkml.kernel.org/r/20241217071814.2261620-1-arnd@kernel.org
-Fixes: 7d4df2dad312 ("kcov: properly check for softirq context")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20241217195000.1734039-1-david@redhat.com
+Fixes: 2c1f057e5be6 ("fs/proc/task_mmu: properly detect PM_MMAP_EXCLUSIVE per page of PMD-mapped THPs")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    2 +-
+ fs/proc/task_mmu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kcov.c~kcov-mark-in_softirq_really-as-__always_inline
-+++ a/kernel/kcov.c
-@@ -166,7 +166,7 @@ static void kcov_remote_area_put(struct
-  * Unlike in_serving_softirq(), this function returns false when called during
-  * a hardirq or an NMI that happened in the softirq context.
-  */
--static inline bool in_softirq_really(void)
-+static __always_inline bool in_softirq_really(void)
- {
- 	return in_serving_softirq() && !in_hardirq() && !in_nmi();
- }
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-pagemap-flags-with-pmd-thp-entries-on-32bit
++++ a/fs/proc/task_mmu.c
+@@ -1810,7 +1810,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		}
+ 
+ 		for (; addr != end; addr += PAGE_SIZE, idx++) {
+-			unsigned long cur_flags = flags;
++			u64 cur_flags = flags;
+ 			pagemap_entry_t pme;
+ 
+ 			if (folio && (flags & PM_PRESENT) &&
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from david@redhat.com are
 
+docs-tmpfs-update-the-large-folios-policy-for-tmpfs-and-shmem.patch
+mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
+mm-page_isolation-dont-pass-gfp-flags-to-isolate_single_pageblock.patch
+mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
+mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
+mm-page_alloc-sort-out-the-alloc_contig_range-gfp-flags-mess.patch
+mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
+powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
+mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+fs-proc-vmcore-convert-vmcore_cb_lock-into-vmcore_mutex.patch
+fs-proc-vmcore-replace-vmcoredd_mutex-by-vmcore_mutex.patch
+fs-proc-vmcore-disallow-vmcore-modifications-while-the-vmcore-is-open.patch
+fs-proc-vmcore-prefix-all-pr_-with-vmcore.patch
+fs-proc-vmcore-move-vmcore-definitions-out-of-kcoreh.patch
+fs-proc-vmcore-factor-out-allocating-a-vmcore-range-and-adding-it-to-a-list.patch
+fs-proc-vmcore-factor-out-freeing-a-list-of-vmcore-ranges.patch
+fs-proc-vmcore-introduce-proc_vmcore_device_ram-to-detect-device-ram-ranges-in-2nd-kernel.patch
+virtio-mem-mark-device-ready-before-registering-callbacks-in-kdump-mode.patch
+virtio-mem-remember-usable-region-size.patch
+virtio-mem-support-config_proc_vmcore_device_ram.patch
+s390-kdump-virtio-mem-kdump-support-config_proc_vmcore_device_ram.patch
+mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig.patch
+mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
 
