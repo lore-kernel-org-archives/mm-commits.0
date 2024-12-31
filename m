@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D2F80B
-	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:13:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DEA4163
+	for <mm-commits@vger.kernel.org>; Tue, 31 Dec 2024 00:13:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735604027; cv=none; b=eAERbBsslCnPUwI9o2Tk2KEgkb0McTZS5eg6p+7KJyB42Ifm6CsUKLFImtdl5nxEUjpOI2ehkxo9waYjdfVq22gHspRK1o0qp7VtxfOtw1UYZMH2kjkRj78kqosG32sqktZzDsncffgiEmBFVBNGc2zpUZcD+pUgF6LHFx25uc8=
+	t=1735604030; cv=none; b=bGUNuiqMQTIP1OhjIOexA8hVHit/XplKzQrz5Yd4HCRCIt+VowA5anKpC+iGF3egee9BmZAiKAG88nzWHPx/PAkJjv48+xRIHctY0GL+7yHiVH0x6kb3hYP7MJbul0QyhjifTcB2066BGbSwOsSy28eyCMoqg8P42YdIOWMjklA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735604027; c=relaxed/simple;
-	bh=Ie2zpI9UMDilwH2NO1/CTvXaAiOGegTjmYshQjk4VYk=;
-	h=Date:To:From:Subject:Message-Id; b=clunmPaCmb+5eL9UVpKIa818VXpdW0J3gRYDyn6tX/kL2XebNtpZtf22jBhiCGsA47VeYq03GTqmjFC0LKyt0aPrcS+NoUFhcdTPqAfiHnDOhfrVFtSZ1HQkKlMan2XwWVQQ7eTHuAHw8Aw/aPBvAuWuEzrf+nkAf1CKCLkvew0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KlK3+eQF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735604030; c=relaxed/simple;
+	bh=pcnWAQlI3Zk15dYG57oFijhFKA+6rRKM9fvjpSaVH5E=;
+	h=Date:To:From:Subject:Message-Id; b=m1V431xYAND5rosX+hAOEkiGyCh5xe4WYwSpNlQ2pXlRq2Hsq8fgKHkihkK80z4p/DHgG/ycrldrY0EmQgag30+IQQZaf4Dau15Gmb7HMWeN+oGKeTvvN3WmGFZ2HpePnIh0aE7cyqtWjEHntZ/yx9UO6FCHyCBkW3gcdYC2pUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fl2EE489; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KlK3+eQF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 601F6C4CED0;
-	Tue, 31 Dec 2024 00:13:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fl2EE489"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBA42C4CED0;
+	Tue, 31 Dec 2024 00:13:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735604027;
-	bh=Ie2zpI9UMDilwH2NO1/CTvXaAiOGegTjmYshQjk4VYk=;
+	s=korg; t=1735604029;
+	bh=pcnWAQlI3Zk15dYG57oFijhFKA+6rRKM9fvjpSaVH5E=;
 	h=Date:To:From:Subject:From;
-	b=KlK3+eQFWp2N4fMm66fAk0geZMf8siBMPuBPDvQy9E+yAQlv4QRv7LlLTTVjGX5xx
-	 QQFrbk58fRYRFXT5bZk8HReA4bzcWVa3wkxLDLm1zWoSODGInBPtn8vlOrnV29sclF
-	 ynHwsmYbJvtFq7CzrZHjwIH26OuVVlYwudnz8C6k=
-Date: Mon, 30 Dec 2024 16:13:46 -0800
+	b=Fl2EE489nTtFnZmR6701Zm77vyh+qX4tcI8Sts9b2vyqy/RbIeemg2tP6bPva4j3B
+	 tBET8Jp0x4pTb2CTnLF4YpYGlg06ls58sQjHvJDhu4BE+ZiLhdhGswYg8XmZV0sn6s
+	 KsWtp5Vr3//b2lo5+85dmrIFIp4RJf5/ZEKqGdPw=
+Date: Mon, 30 Dec 2024 16:13:49 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-old-allocation-path-for-hdd.patch added to mm-unstable branch
-Message-Id: <20241231001347.601F6C4CED0@smtp.kernel.org>
+Subject: + mm-swap-use-cluster-lock-for-hdd.patch added to mm-unstable branch
+Message-Id: <20241231001349.BBA42C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: remove old allocation path for HDD
+     Subject: mm, swap: use cluster lock for HDD
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-remove-old-allocation-path-for-hdd.patch
+     mm-swap-use-cluster-lock-for-hdd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-old-allocation-path-for-hdd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-cluster-lock-for-hdd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: remove old allocation path for HDD
-Date: Tue, 31 Dec 2024 01:46:11 +0800
+Subject: mm, swap: use cluster lock for HDD
+Date: Tue, 31 Dec 2024 01:46:12 +0800
 
-We are currently using different swap allocation algorithm for HDD and
-non-HDD.  This leads to the existence of a different set of locks, and the
-code path is heavily bloated, causing difficulties for further
-optimization and maintenance.
+Cluster lock (ci->lock) was introduce to reduce contention for certain
+operations.  Using cluster lock for HDD is not helpful as HDD have a poor
+performance, so locking isn't the bottleneck.  But having different set of
+locks for HDD / non-HDD prevents further rework of device lock (si->lock).
 
-This commit removes all HDD swap allocation and related dead code, and
-uses the cluster allocation algorithm instead.
+This commit just changed all lock_cluster_or_swap_info to lock_cluster,
+which is a safe and straight conversion since cluster info is always
+allocated now, also removed all cluster_info related checks.
 
-The performance may drop temporarily, but this should be negligible: The
-main advantage of the legacy HDD allocation algorithm is that it tends to
-use continuous slots, but swap device gets fragmented quickly anyway, and
-the attempt to use continuous slots will fail easily.
-
-This commit also enables mTHP swap on HDD, which is expected to be
-beneficial, and following commits will adapt and optimize the cluster
-allocator for HDD.
-
-Link: https://lkml.kernel.org/r/20241230174621.61185-4-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241230174621.61185-5-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Suggested-by: Chris Li <chrisl@kernel.org>
-Suggested-by: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kalesh Singh <kaleshsingh@google.com>
@@ -93,342 +85,288 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 
- mm/swapfile.c        |  235 +----------------------------------------
- 2 files changed, 9 insertions(+), 229 deletions(-)
+ mm/swapfile.c |  107 +++++++++++++++---------------------------------
+ 1 file changed, 34 insertions(+), 73 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-remove-old-allocation-path-for-hdd
-+++ a/include/linux/swap.h
-@@ -310,9 +310,6 @@ struct swap_info_struct {
- 	unsigned int highest_bit;	/* index of last free in swap_map */
- 	unsigned int pages;		/* total of usable pages of swap */
- 	unsigned int inuse_pages;	/* number of those currently in use */
--	unsigned int cluster_next;	/* likely index for next allocation */
--	unsigned int cluster_nr;	/* countdown to next cluster search */
--	unsigned int __percpu *cluster_next_cpu; /*percpu index for next allocation */
- 	struct percpu_cluster __percpu *percpu_cluster; /* per cpu's swap location */
- 	struct rb_root swap_extent_root;/* root of the swap extent rbtree */
- 	struct block_device *bdev;	/* swap device or bdev of swap file */
---- a/mm/swapfile.c~mm-swap-remove-old-allocation-path-for-hdd
+--- a/mm/swapfile.c~mm-swap-use-cluster-lock-for-hdd
 +++ a/mm/swapfile.c
-@@ -1001,49 +1001,6 @@ static void swap_range_free(struct swap_
- 	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+@@ -58,10 +58,9 @@ static void swap_entry_range_free(struct
+ static void swap_range_alloc(struct swap_info_struct *si, unsigned long offset,
+ 			     unsigned int nr_entries);
+ static bool folio_swapcache_freeable(struct folio *folio);
+-static struct swap_cluster_info *lock_cluster_or_swap_info(
+-		struct swap_info_struct *si, unsigned long offset);
+-static void unlock_cluster_or_swap_info(struct swap_info_struct *si,
+-					struct swap_cluster_info *ci);
++static struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
++					      unsigned long offset);
++static void unlock_cluster(struct swap_cluster_info *ci);
+ 
+ static DEFINE_SPINLOCK(swap_lock);
+ static unsigned int nr_swapfiles;
+@@ -222,9 +221,9 @@ static int __try_to_reclaim_swap(struct
+ 	 * swap_map is HAS_CACHE only, which means the slots have no page table
+ 	 * reference or pending writeback, and can't be allocated to others.
+ 	 */
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 	need_reclaim = swap_is_has_cache(si, offset, nr_pages);
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 	if (!need_reclaim)
+ 		goto out_unlock;
+ 
+@@ -404,45 +403,15 @@ static inline struct swap_cluster_info *
+ {
+ 	struct swap_cluster_info *ci;
+ 
+-	ci = si->cluster_info;
+-	if (ci) {
+-		ci += offset / SWAPFILE_CLUSTER;
+-		spin_lock(&ci->lock);
+-	}
+-	return ci;
+-}
+-
+-static inline void unlock_cluster(struct swap_cluster_info *ci)
+-{
+-	if (ci)
+-		spin_unlock(&ci->lock);
+-}
+-
+-/*
+- * Determine the locking method in use for this device.  Return
+- * swap_cluster_info if SSD-style cluster-based locking is in place.
+- */
+-static inline struct swap_cluster_info *lock_cluster_or_swap_info(
+-		struct swap_info_struct *si, unsigned long offset)
+-{
+-	struct swap_cluster_info *ci;
+-
+-	/* Try to use fine-grained SSD-style locking if available: */
+-	ci = lock_cluster(si, offset);
+-	/* Otherwise, fall back to traditional, coarse locking: */
+-	if (!ci)
+-		spin_lock(&si->lock);
++	ci = &si->cluster_info[offset / SWAPFILE_CLUSTER];
++	spin_lock(&ci->lock);
+ 
+ 	return ci;
  }
  
--static void set_cluster_next(struct swap_info_struct *si, unsigned long next)
--{
--	unsigned long prev;
--
--	if (!(si->flags & SWP_SOLIDSTATE)) {
--		si->cluster_next = next;
--		return;
--	}
--
--	prev = this_cpu_read(*si->cluster_next_cpu);
--	/*
--	 * Cross the swap address space size aligned trunk, choose
--	 * another trunk randomly to avoid lock contention on swap
--	 * address space if possible.
--	 */
--	if ((prev >> SWAP_ADDRESS_SPACE_SHIFT) !=
--	    (next >> SWAP_ADDRESS_SPACE_SHIFT)) {
--		/* No free swap slots available */
--		if (si->highest_bit <= si->lowest_bit)
--			return;
--		next = get_random_u32_inclusive(si->lowest_bit, si->highest_bit);
--		next = ALIGN_DOWN(next, SWAP_ADDRESS_SPACE_PAGES);
--		next = max_t(unsigned int, next, si->lowest_bit);
--	}
--	this_cpu_write(*si->cluster_next_cpu, next);
--}
--
--static bool swap_offset_available_and_locked(struct swap_info_struct *si,
--					     unsigned long offset)
--{
--	if (data_race(!si->swap_map[offset])) {
--		spin_lock(&si->lock);
--		return true;
--	}
--
--	if (vm_swap_full() && READ_ONCE(si->swap_map[offset]) == SWAP_HAS_CACHE) {
--		spin_lock(&si->lock);
--		return true;
--	}
--
--	return false;
--}
--
- static int cluster_alloc_swap(struct swap_info_struct *si,
- 			     unsigned char usage, int nr,
- 			     swp_entry_t slots[], int order)
-@@ -1071,13 +1028,7 @@ static int scan_swap_map_slots(struct sw
- 			       unsigned char usage, int nr,
- 			       swp_entry_t slots[], int order)
+-static inline void unlock_cluster_or_swap_info(struct swap_info_struct *si,
+-					       struct swap_cluster_info *ci)
++static inline void unlock_cluster(struct swap_cluster_info *ci)
  {
--	unsigned long offset;
--	unsigned long scan_base;
--	unsigned long last_in_cluster = 0;
--	int latency_ration = LATENCY_LIMIT;
- 	unsigned int nr_pages = 1 << order;
--	int n_ret = 0;
--	bool scanned_many = false;
+-	if (ci)
+-		unlock_cluster(ci);
+-	else
+-		spin_unlock(&si->lock);
++	spin_unlock(&ci->lock);
+ }
  
- 	/*
- 	 * We try to cluster swap pages by allocating them sequentially
-@@ -1089,7 +1040,6 @@ static int scan_swap_map_slots(struct sw
- 	 * But we do now try to find an empty cluster.  -Andrea
- 	 * And we let swap pages go all over an SSD partition.  Hugh
- 	 */
+ /* Add a cluster to discard list and schedule it to do discard */
+@@ -558,9 +527,6 @@ static void inc_cluster_info_page(struct
+ 	unsigned long idx = page_nr / SWAPFILE_CLUSTER;
+ 	struct swap_cluster_info *ci;
+ 
+-	if (!cluster_info)
+-		return;
 -
- 	if (order > 0) {
+ 	ci = cluster_info + idx;
+ 	ci->count++;
+ 
+@@ -576,9 +542,6 @@ static void inc_cluster_info_page(struct
+ static void dec_cluster_info_page(struct swap_info_struct *si,
+ 				  struct swap_cluster_info *ci, int nr_pages)
+ {
+-	if (!si->cluster_info)
+-		return;
+-
+ 	VM_BUG_ON(ci->count < nr_pages);
+ 	VM_BUG_ON(cluster_is_free(ci));
+ 	lockdep_assert_held(&si->lock);
+@@ -1007,8 +970,6 @@ static int cluster_alloc_swap(struct swa
+ {
+ 	int n_ret = 0;
+ 
+-	VM_BUG_ON(!si->cluster_info);
+-
+ 	si->flags += SWP_SCANNING;
+ 
+ 	while (n_ret < nr) {
+@@ -1052,10 +1013,10 @@ static int scan_swap_map_slots(struct sw
+ 		}
+ 
  		/*
- 		 * Should not even be attempting large allocations when huge
-@@ -1109,158 +1059,7 @@ static int scan_swap_map_slots(struct sw
+-		 * Swapfile is not block device or not using clusters so unable
++		 * Swapfile is not block device so unable
+ 		 * to allocate large entries.
+ 		 */
+-		if (!(si->flags & SWP_BLKDEV) || !si->cluster_info)
++		if (!(si->flags & SWP_BLKDEV))
  			return 0;
  	}
  
--	if (si->cluster_info)
--		return cluster_alloc_swap(si, usage, nr, slots, order);
--
--	si->flags += SWP_SCANNING;
--
--	/* For HDD, sequential access is more important. */
--	scan_base = si->cluster_next;
--	offset = scan_base;
--
--	if (unlikely(!si->cluster_nr--)) {
--		if (si->pages - si->inuse_pages < SWAPFILE_CLUSTER) {
--			si->cluster_nr = SWAPFILE_CLUSTER - 1;
--			goto checks;
--		}
--
--		spin_unlock(&si->lock);
--
--		/*
--		 * If seek is expensive, start searching for new cluster from
--		 * start of partition, to minimize the span of allocated swap.
--		 */
--		scan_base = offset = si->lowest_bit;
--		last_in_cluster = offset + SWAPFILE_CLUSTER - 1;
--
--		/* Locate the first empty (unaligned) cluster */
--		for (; last_in_cluster <= READ_ONCE(si->highest_bit); offset++) {
--			if (si->swap_map[offset])
--				last_in_cluster = offset + SWAPFILE_CLUSTER;
--			else if (offset == last_in_cluster) {
--				spin_lock(&si->lock);
--				offset -= SWAPFILE_CLUSTER - 1;
--				si->cluster_next = offset;
--				si->cluster_nr = SWAPFILE_CLUSTER - 1;
--				goto checks;
--			}
--			if (unlikely(--latency_ration < 0)) {
--				cond_resched();
--				latency_ration = LATENCY_LIMIT;
--			}
--		}
--
--		offset = scan_base;
--		spin_lock(&si->lock);
--		si->cluster_nr = SWAPFILE_CLUSTER - 1;
--	}
--
--checks:
--	if (!(si->flags & SWP_WRITEOK))
--		goto no_page;
--	if (!si->highest_bit)
--		goto no_page;
--	if (offset > si->highest_bit)
--		scan_base = offset = si->lowest_bit;
--
--	/* reuse swap entry of cache-only swap if not busy. */
--	if (vm_swap_full() && si->swap_map[offset] == SWAP_HAS_CACHE) {
--		int swap_was_freed;
--		spin_unlock(&si->lock);
--		swap_was_freed = __try_to_reclaim_swap(si, offset, TTRS_ANYWAY | TTRS_DIRECT);
--		spin_lock(&si->lock);
--		/* entry was freed successfully, try to use this again */
--		if (swap_was_freed > 0)
--			goto checks;
--		goto scan; /* check next one */
--	}
--
--	if (si->swap_map[offset]) {
--		if (!n_ret)
--			goto scan;
--		else
--			goto done;
--	}
--	memset(si->swap_map + offset, usage, nr_pages);
--
--	swap_range_alloc(si, offset, nr_pages);
--	slots[n_ret++] = swp_entry(si->type, offset);
--
--	/* got enough slots or reach max slots? */
--	if ((n_ret == nr) || (offset >= si->highest_bit))
--		goto done;
--
--	/* search for next available slot */
--
--	/* time to take a break? */
--	if (unlikely(--latency_ration < 0)) {
--		if (n_ret)
--			goto done;
--		spin_unlock(&si->lock);
--		cond_resched();
--		spin_lock(&si->lock);
--		latency_ration = LATENCY_LIMIT;
--	}
--
--	if (si->cluster_nr && !si->swap_map[++offset]) {
--		/* non-ssd case, still more slots in cluster? */
--		--si->cluster_nr;
--		goto checks;
--	}
--
--	/*
--	 * Even if there's no free clusters available (fragmented),
--	 * try to scan a little more quickly with lock held unless we
--	 * have scanned too many slots already.
--	 */
--	if (!scanned_many) {
--		unsigned long scan_limit;
--
--		if (offset < scan_base)
--			scan_limit = scan_base;
--		else
--			scan_limit = si->highest_bit;
--		for (; offset <= scan_limit && --latency_ration > 0;
--		     offset++) {
--			if (!si->swap_map[offset])
--				goto checks;
--		}
--	}
--
--done:
--	if (order == 0)
--		set_cluster_next(si, offset + 1);
--	si->flags -= SWP_SCANNING;
--	return n_ret;
--
--scan:
--	VM_WARN_ON(order > 0);
--	spin_unlock(&si->lock);
--	while (++offset <= READ_ONCE(si->highest_bit)) {
--		if (unlikely(--latency_ration < 0)) {
--			cond_resched();
--			latency_ration = LATENCY_LIMIT;
--			scanned_many = true;
--		}
--		if (swap_offset_available_and_locked(si, offset))
--			goto checks;
--	}
--	offset = si->lowest_bit;
--	while (offset < scan_base) {
--		if (unlikely(--latency_ration < 0)) {
--			cond_resched();
--			latency_ration = LATENCY_LIMIT;
--			scanned_many = true;
--		}
--		if (swap_offset_available_and_locked(si, offset))
--			goto checks;
--		offset++;
--	}
--	spin_lock(&si->lock);
--
--no_page:
--	si->flags -= SWP_SCANNING;
--	return n_ret;
-+	return cluster_alloc_swap(si, usage, nr, slots, order);
+@@ -1295,9 +1256,9 @@ static unsigned char __swap_entry_free(s
+ 	unsigned long offset = swp_offset(entry);
+ 	unsigned char usage;
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 	usage = __swap_entry_free_locked(si, offset, 1);
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 	if (!usage)
+ 		free_swap_slot(entry);
+ 
+@@ -1320,14 +1281,14 @@ static bool __swap_entries_free(struct s
+ 	if (nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER)
+ 		goto fallback;
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 	if (!swap_is_last_map(si, offset, nr, &has_cache)) {
+-		unlock_cluster_or_swap_info(si, ci);
++		unlock_cluster(ci);
+ 		goto fallback;
+ 	}
+ 	for (i = 0; i < nr; i++)
+ 		WRITE_ONCE(si->swap_map[offset + i], SWAP_HAS_CACHE);
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 
+ 	if (!has_cache) {
+ 		for (i = 0; i < nr; i++)
+@@ -1383,7 +1344,7 @@ static void cluster_swap_free_nr(struct
+ 	DECLARE_BITMAP(to_free, BITS_PER_LONG) = { 0 };
+ 	int i, nr;
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 	while (nr_pages) {
+ 		nr = min(BITS_PER_LONG, nr_pages);
+ 		for (i = 0; i < nr; i++) {
+@@ -1391,18 +1352,18 @@ static void cluster_swap_free_nr(struct
+ 				bitmap_set(to_free, i, 1);
+ 		}
+ 		if (!bitmap_empty(to_free, BITS_PER_LONG)) {
+-			unlock_cluster_or_swap_info(si, ci);
++			unlock_cluster(ci);
+ 			for_each_set_bit(i, to_free, BITS_PER_LONG)
+ 				free_swap_slot(swp_entry(si->type, offset + i));
+ 			if (nr == nr_pages)
+ 				return;
+ 			bitmap_clear(to_free, 0, BITS_PER_LONG);
+-			ci = lock_cluster_or_swap_info(si, offset);
++			ci = lock_cluster(si, offset);
+ 		}
+ 		offset += nr;
+ 		nr_pages -= nr;
+ 	}
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
  }
  
- int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_order)
-@@ -2871,8 +2670,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	mutex_unlock(&swapon_mutex);
- 	free_percpu(p->percpu_cluster);
- 	p->percpu_cluster = NULL;
--	free_percpu(p->cluster_next_cpu);
--	p->cluster_next_cpu = NULL;
- 	vfree(swap_map);
- 	kvfree(zeromap);
- 	kvfree(cluster_info);
-@@ -3184,8 +2981,6 @@ static unsigned long read_swap_header(st
+ /*
+@@ -1441,9 +1402,9 @@ void put_swap_folio(struct folio *folio,
+ 	if (!si)
+ 		return;
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 	if (size > 1 && swap_is_has_cache(si, offset, size)) {
+-		unlock_cluster_or_swap_info(si, ci);
++		unlock_cluster(ci);
+ 		spin_lock(&si->lock);
+ 		swap_entry_range_free(si, entry, size);
+ 		spin_unlock(&si->lock);
+@@ -1451,14 +1412,14 @@ void put_swap_folio(struct folio *folio,
+ 	}
+ 	for (int i = 0; i < size; i++, entry.val++) {
+ 		if (!__swap_entry_free_locked(si, offset + i, SWAP_HAS_CACHE)) {
+-			unlock_cluster_or_swap_info(si, ci);
++			unlock_cluster(ci);
+ 			free_swap_slot(entry);
+ 			if (i == size - 1)
+ 				return;
+-			lock_cluster_or_swap_info(si, offset);
++			lock_cluster(si, offset);
+ 		}
+ 	}
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ }
+ 
+ static int swp_entry_cmp(const void *ent1, const void *ent2)
+@@ -1522,9 +1483,9 @@ int swap_swapcount(struct swap_info_stru
+ 	struct swap_cluster_info *ci;
+ 	int count;
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 	count = swap_count(si->swap_map[offset]);
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 	return count;
+ }
+ 
+@@ -1547,7 +1508,7 @@ int swp_swapcount(swp_entry_t entry)
+ 
+ 	offset = swp_offset(entry);
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 
+ 	count = swap_count(si->swap_map[offset]);
+ 	if (!(count & COUNT_CONTINUED))
+@@ -1570,7 +1531,7 @@ int swp_swapcount(swp_entry_t entry)
+ 		n *= (SWAP_CONT_MAX + 1);
+ 	} while (tmp_count & COUNT_CONTINUED);
+ out:
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 	return count;
+ }
+ 
+@@ -1585,8 +1546,8 @@ static bool swap_page_trans_huge_swapped
+ 	int i;
+ 	bool ret = false;
+ 
+-	ci = lock_cluster_or_swap_info(si, offset);
+-	if (!ci || nr_pages == 1) {
++	ci = lock_cluster(si, offset);
++	if (nr_pages == 1) {
+ 		if (swap_count(map[roffset]))
+ 			ret = true;
+ 		goto unlock_out;
+@@ -1598,7 +1559,7 @@ static bool swap_page_trans_huge_swapped
+ 		}
+ 	}
+ unlock_out:
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 	return ret;
+ }
+ 
+@@ -3428,7 +3389,7 @@ static int __swap_duplicate(swp_entry_t
+ 	offset = swp_offset(entry);
+ 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
+ 	VM_WARN_ON(usage == 1 && nr > 1);
+-	ci = lock_cluster_or_swap_info(si, offset);
++	ci = lock_cluster(si, offset);
+ 
+ 	err = 0;
+ 	for (i = 0; i < nr; i++) {
+@@ -3483,7 +3444,7 @@ static int __swap_duplicate(swp_entry_t
  	}
  
- 	si->lowest_bit  = 1;
--	si->cluster_next = 1;
--	si->cluster_nr = 0;
+ unlock_out:
+-	unlock_cluster_or_swap_info(si, ci);
++	unlock_cluster(ci);
+ 	return err;
+ }
  
- 	maxpages = swapfile_maximum_size;
- 	last_page = swap_header->info.last_page;
-@@ -3271,7 +3066,6 @@ static struct swap_cluster_info *setup_c
- 						unsigned long maxpages)
- {
- 	unsigned long nr_clusters = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
--	unsigned long col = si->cluster_next / SWAPFILE_CLUSTER % SWAP_CLUSTER_COLS;
- 	struct swap_cluster_info *cluster_info;
- 	unsigned long i, j, k, idx;
- 	int cpu, err = -ENOMEM;
-@@ -3283,15 +3077,6 @@ static struct swap_cluster_info *setup_c
- 	for (i = 0; i < nr_clusters; i++)
- 		spin_lock_init(&cluster_info[i].lock);
- 
--	si->cluster_next_cpu = alloc_percpu(unsigned int);
--	if (!si->cluster_next_cpu)
--		goto err_free;
--
--	/* Random start position to help with wear leveling */
--	for_each_possible_cpu(cpu)
--		per_cpu(*si->cluster_next_cpu, cpu) =
--		get_random_u32_inclusive(1, si->highest_bit);
--
- 	si->percpu_cluster = alloc_percpu(struct percpu_cluster);
- 	if (!si->percpu_cluster)
- 		goto err_free;
-@@ -3333,7 +3118,7 @@ static struct swap_cluster_info *setup_c
- 	 * sharing same address space.
- 	 */
- 	for (k = 0; k < SWAP_CLUSTER_COLS; k++) {
--		j = (k + col) % SWAP_CLUSTER_COLS;
-+		j = k % SWAP_CLUSTER_COLS;
- 		for (i = 0; i < DIV_ROUND_UP(nr_clusters, SWAP_CLUSTER_COLS); i++) {
- 			struct swap_cluster_info *ci;
- 			idx = i * SWAP_CLUSTER_COLS + j;
-@@ -3483,18 +3268,18 @@ SYSCALL_DEFINE2(swapon, const char __use
- 
- 	if (si->bdev && bdev_nonrot(si->bdev)) {
- 		si->flags |= SWP_SOLIDSTATE;
--
--		cluster_info = setup_clusters(si, swap_header, maxpages);
--		if (IS_ERR(cluster_info)) {
--			error = PTR_ERR(cluster_info);
--			cluster_info = NULL;
--			goto bad_swap_unlock_inode;
--		}
- 	} else {
- 		atomic_inc(&nr_rotate_swap);
- 		inced_nr_rotate_swap = true;
- 	}
- 
-+	cluster_info = setup_clusters(si, swap_header, maxpages);
-+	if (IS_ERR(cluster_info)) {
-+		error = PTR_ERR(cluster_info);
-+		cluster_info = NULL;
-+		goto bad_swap_unlock_inode;
-+	}
-+
- 	if ((swap_flags & SWAP_FLAG_DISCARD) &&
- 	    si->bdev && bdev_max_discard_sectors(si->bdev)) {
- 		/*
-@@ -3575,8 +3360,6 @@ bad_swap_unlock_inode:
- bad_swap:
- 	free_percpu(si->percpu_cluster);
- 	si->percpu_cluster = NULL;
--	free_percpu(si->cluster_next_cpu);
--	si->cluster_next_cpu = NULL;
- 	inode = NULL;
- 	destroy_swap_extents(si);
- 	swap_cgroup_swapoff(si->type);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
