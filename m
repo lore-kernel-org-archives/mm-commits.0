@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C6513B5B6;
-	Tue, 31 Dec 2024 02:00:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1A69487BF;
+	Tue, 31 Dec 2024 02:00:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735610413; cv=none; b=RwUst8RDfSWiv1JRNdtHUmd4RqN7B/y8GeSsW1NRotndb1JLo6ytHBkoQjaeojeBCTT4W9nTTLfdA5crofkQc9unkaCBHZKpxIKzVSCIGVH055D2bUK29enwtSTSbuBR505SNGJ+jLA+dbFFGj5aEveoBPpluiS/JH2wEMiXMBc=
+	t=1735610413; cv=none; b=iIDNwUPlMVGkXKmgAIAUeOUwcy+TDESbKnLVSeKzM9qobmVnviSeJpV3bx1Tnm+oBYZgV5COUxnSJHyIAFejzuRZ85pNlvFcY2NE40EgJabnc7COdv8fgg+aHJq+A0WLDjHhFzYzBUtA/RFX6EVL4RXSoU2sT9Au8NDGiOTqyu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1735610413; c=relaxed/simple;
-	bh=z6SOhrbQbGQZCQn58VrV9LuW4tiTAZ2wwWsSA6FGcEU=;
-	h=Date:To:From:Subject:Message-Id; b=k8jgEt5/NyP8/70wpVFnsAHU+Cuw+62rlarBfj0wutVdBnGCZUieMS0W0bDoU3uyor21Yu1WdR9b2+vxXLp+tGGh3ubRGE+HyZF6gDGTCIsmKWjWM+PDLbbrpxKPA8U9gdDCnZM1Q+0rzeRR6l2mk19OdGatrwZqdvhK2Jfjn/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x0pj4xjq; arc=none smtp.client-ip=10.30.226.201
+	bh=r2wuNpqaIe87/duu5/9b0nz8O35JCX5Z5oI3vRQNKlI=;
+	h=Date:To:From:Subject:Message-Id; b=T8hPyzDRrkaMxcRrnlIN/z96XXT92qkXpSNuXXzXwvuG+tQuc5zF5j69La6NA0+1zf7a8S0ElMFb7wdfxo1ADmOAuGKFXmhYKDmHIDNYOiieLetuK7iLI0KUTzcZQ5Il5RSOWgP6vOKCeXU35GZlovhAZieZvn3eB1k+eQsIt04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LdvfNCXP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x0pj4xjq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E8A0C4CED2;
-	Tue, 31 Dec 2024 02:00:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LdvfNCXP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98CEDC4CED7;
+	Tue, 31 Dec 2024 02:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735610412;
-	bh=z6SOhrbQbGQZCQn58VrV9LuW4tiTAZ2wwWsSA6FGcEU=;
+	s=korg; t=1735610413;
+	bh=r2wuNpqaIe87/duu5/9b0nz8O35JCX5Z5oI3vRQNKlI=;
 	h=Date:To:From:Subject:From;
-	b=x0pj4xjqh0mk6rk7wOPldgNReOYcZYohfgBZaGrlpb82Ti60TWCJ0GypH9jw57Hvr
-	 Ap/0p/eIbND4J19k9fK47R09Ljup+1jiTDtcCsu86bmsP3opC8z6gaNtSQK5MBg+I2
-	 V7iEt/ja2nJitYdx9z4+2SfvzC+H90QEm3+qocrs=
-Date: Mon, 30 Dec 2024 18:00:11 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=LdvfNCXPzF9zjQmLt1l/1EcdAonxektOFrtggoIbOZU+giXg16voR6+hx1IMul53S
+	 Sl9CwJtSjNAgQyEflBxLF4J5lp8rWpNBZLQqxTVYnwvRMS47GQmi4zJ0ma+O8fVxMe
+	 p/IvU5WelA9J/Nh6Hy2e8mzD/cPjk9kEI9e92+Y8=
+Date: Mon, 30 Dec 2024 18:00:13 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,bigeasy@linutronix.de,koichiro.den@canonical.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shmem-fix-the-update-of-shmem_falloc-nr_unswapped.patch removed from -mm tree
-Message-Id: <20241231020012.6E8A0C4CED2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch removed from -mm tree
+Message-Id: <20241231020013.98CEDC4CED7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: fix the update of 'shmem_falloc->nr_unswapped'
+     Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-the-update-of-shmem_falloc-nr_unswapped.patch
+     vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: fix the update of 'shmem_falloc->nr_unswapped'
-Date: Thu, 19 Dec 2024 15:30:09 +0800
+From: Koichiro Den <koichiro.den@canonical.com>
+Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
+Date: Sat, 21 Dec 2024 12:33:20 +0900
 
-The 'shmem_falloc->nr_unswapped' is used to record how many writepage
-refused to swap out because fallocate() is allocating, but after shmem
-supports large folio swap out, the update of 'shmem_falloc->nr_unswapped'
-does not use the correct number of pages in the large folio, which may
-lead to fallocate() not exiting as soon as possible.
+Even after mm/vmstat:online teardown, shepherd may still queue work for
+the dying cpu until the cpu is removed from online mask.  While it's quite
+rare, this means that after unbind_workers() unbinds a per-cpu kworker, it
+potentially runs vmstat_update for the dying CPU on an irrelevant cpu
+before entering atomic AP states.  When CONFIG_DEBUG_PREEMPT=y, it results
+in the following error with the backtrace.
 
-Anyway, this is found through code inspection, and I am not sure whether
-it would actually cause serious issues.
+  BUG: using smp_processor_id() in preemptible [00000000] code: \
+                                               kworker/7:3/1702
+  caller is refresh_cpu_vm_stats+0x235/0x5f0
+  CPU: 0 UID: 0 PID: 1702 Comm: kworker/7:3 Tainted: G
+  Tainted: [N]=TEST
+  Workqueue: mm_percpu_wq vmstat_update
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x8d/0xb0
+   check_preemption_disabled+0xce/0xe0
+   refresh_cpu_vm_stats+0x235/0x5f0
+   vmstat_update+0x17/0xa0
+   process_one_work+0x869/0x1aa0
+   worker_thread+0x5e5/0x1100
+   kthread+0x29e/0x380
+   ret_from_fork+0x2d/0x70
+   ret_from_fork_asm+0x1a/0x30
+   </TASK>
 
-Link: https://lkml.kernel.org/r/f66a0119d0564c2c37c84f045835b870d1b2196f.1734593154.git.baolin.wang@linux.alibaba.com
-Fixes: 809bc86517cc ("mm: shmem: support large folio swap out")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+So, for mm/vmstat:online, disable vmstat_work reliably on teardown and
+symmetrically enable it on startup.
+
+Link: https://lkml.kernel.org/r/20241221033321.4154409-1-koichiro.den@canonical.com
+Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmstat.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-fix-the-update-of-shmem_falloc-nr_unswapped
-+++ a/mm/shmem.c
-@@ -1535,7 +1535,7 @@ try_split:
- 			    !shmem_falloc->waitq &&
- 			    index >= shmem_falloc->start &&
- 			    index < shmem_falloc->next)
--				shmem_falloc->nr_unswapped++;
-+				shmem_falloc->nr_unswapped += nr_pages;
- 			else
- 				shmem_falloc = NULL;
- 			spin_unlock(&inode->i_lock);
+--- a/mm/vmstat.c~vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep
++++ a/mm/vmstat.c
+@@ -2148,13 +2148,14 @@ static int vmstat_cpu_online(unsigned in
+ 	if (!node_state(cpu_to_node(cpu), N_CPU)) {
+ 		node_set_state(cpu_to_node(cpu), N_CPU);
+ 	}
++	enable_delayed_work(&per_cpu(vmstat_work, cpu));
+ 
+ 	return 0;
+ }
+ 
+ static int vmstat_cpu_down_prep(unsigned int cpu)
+ {
+-	cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
++	disable_delayed_work_sync(&per_cpu(vmstat_work, cpu));
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from koichiro.den@canonical.com are
 
-mm-factor-out-the-order-calculation-into-a-new-helper.patch
-mm-shmem-change-shmem_huge_global_enabled-to-return-huge-order-bitmap.patch
-mm-shmem-add-large-folio-support-for-tmpfs.patch
-mm-shmem-add-a-kernel-command-line-to-change-the-default-huge-policy-for-tmpfs.patch
-docs-tmpfs-drop-fadvise-from-the-documentation.patch
+hugetlb-prioritize-surplus-allocation-from-current-node.patch
 
