@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8CA8827
-	for <mm-commits@vger.kernel.org>; Wed,  1 Jan 2025 23:39:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A18EA8827
+	for <mm-commits@vger.kernel.org>; Wed,  1 Jan 2025 23:39:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735774778; cv=none; b=i5Vmrd65P7BmOtSLzq/fFwlute4oFnJxqVtBhw1aa1cBJMApiM17sxoTu0NI3aWRBLqhlh2rsRyZ+z2j6PFd2VOBRJ6DX/oPylGMCRg+rucsekdrZbSU2RiuQdO98qzMP750ew1CvpkJ19+FkH+2VtgBoKxqRqj1zG4rSXBCcrA=
+	t=1735774780; cv=none; b=fyz6HVUzYvYi2NoB3EFYDj03Qi1/eabMoTpU8hbt0t0Q5ro/OQRuBB8OHppuCiiyGTMXMYEuB7aBKBqj2U/tPlJ4Yz9jME0AihSvaA+0kuCnephpkpIzL78s/oHLvGfhSNLQbabmT7x3+RVd/Cr2DrxgDAcbuF5kkF4fETBLD68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735774778; c=relaxed/simple;
-	bh=Wm0aMbdhxUmJjygShiadYihZkK8k85d/+4XPtBuKQm8=;
-	h=Date:To:From:Subject:Message-Id; b=uiy6kM6DFa8Oxmw6uBimPTWAyG0TmuNeNDrfkd4lLoInB8ZXt9SJMXl++BCwSG16bTCGBUrH7KEkImA+5LsbNGUkuB8Rpy9PqaoeCMR7c57yEnMkvjWCN091LdtK+bXMCdh02E29OCUWg9jUr40nUCd/BW/sPfwAtkR6kyHs9aE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ihjgg2zk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735774780; c=relaxed/simple;
+	bh=2vptVMKjby/VoUf9BK9ygA0KmNfZGYfvrwYsqM+y7S4=;
+	h=Date:To:From:Subject:Message-Id; b=sJfT34Uii5EprMfljWK1elY3Iu7t+XRD4OvWZIyqNZqIhV4MhJjSbhYYufgEzaVPtpWfjF1QSFUHFmjZKCuzCn1UqJA8S2VhU0Jfsvwkd+kNeSt8DbSVc+h58apN7ckQdOuCTfzUbQfWAD+RlVvIBWPlKOJuaORGW+f1TYf564I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kO6c1Q39; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ihjgg2zk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41F30C4CECE;
-	Wed,  1 Jan 2025 23:39:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kO6c1Q39"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 248D5C4CECE;
+	Wed,  1 Jan 2025 23:39:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735774778;
-	bh=Wm0aMbdhxUmJjygShiadYihZkK8k85d/+4XPtBuKQm8=;
+	s=korg; t=1735774780;
+	bh=2vptVMKjby/VoUf9BK9ygA0KmNfZGYfvrwYsqM+y7S4=;
 	h=Date:To:From:Subject:From;
-	b=ihjgg2zkc1LOHmAqmqZ9+yAZGI/5o0kTTXTJ78jyFWlXIOwUYPKzagLG9Zy77+dZq
-	 OMD+k2LE93+iAsKCJtEgF60XeHcTCyIGt9tD9r403mexAu49qPQ8Vqk+KhNu5AL1hH
-	 Ky1pk8b0TOoUtqjjaQtnXVf7EkmtiKW1Yc1Gz8oo=
-Date: Wed, 01 Jan 2025 15:39:37 -0800
+	b=kO6c1Q39K+ak4Tb07Y09NVyjBp1JdTiT5SBPCOsPHe/M238lvZNY+JsNwOAmMnH/2
+	 gooZrnj9lreb/d7vhi716rvvD6ArcKHYxCycM7zS/M8jqRh74qhTlUTZUNz9opkgdv
+	 4E5UQHABIQmJ/gfFJqt9BJwRxDGNDCtwZLIkxYpc=
+Date: Wed, 01 Jan 2025 15:39:39 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,rmoar@google.com,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch added to mm-unstable branch
-Message-Id: <20250101233938.41F30C4CECE@smtp.kernel.org>
+Subject: + mm-damon-remove-damon-debugfs-interface-kunit-tests.patch added to mm-unstable branch
+Message-Id: <20250101233940.248D5C4CECE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kunit: configs: remove configs for DAMON debugfs interface tests
+     Subject: mm/damon: remove DAMON debugfs interface kunit tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
+     mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: kunit: configs: remove configs for DAMON debugfs interface tests
-Date: Wed, 1 Jan 2025 13:35:25 -0800
+Subject: mm/damon: remove DAMON debugfs interface kunit tests
+Date: Wed, 1 Jan 2025 13:35:26 -0800
 
 It's time to remove DAMON debugfs interface, which has deprecated long
 before in February 2023.  Read the cover letter of this patch series for
 more details.
 
-Remove kernel configs for running DAMON debugfs interface kunit tests from
-the kunit all_tests configuration, to prevent unnecessary noises from
-tests.
+Remove kunit tests for the interface, to prevent unnecessary test
+failures.
 
-Link: https://lkml.kernel.org/r/20250101213527.74203-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250101213527.74203-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -80,21 +79,232 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/kunit/configs/all_tests.config |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/damon/Kconfig             |   12 --
+ mm/damon/dbgfs.c             |    2 
+ mm/damon/tests/.kunitconfig  |    7 -
+ mm/damon/tests/dbgfs-kunit.h |  173 ---------------------------------
+ 4 files changed, 194 deletions(-)
 
---- a/tools/testing/kunit/configs/all_tests.config~kunit-configs-remove-configs-for-damon-debugfs-interface-tests
-+++ a/tools/testing/kunit/configs/all_tests.config
-@@ -38,9 +38,6 @@ CONFIG_IWLWIFI=y
- CONFIG_DAMON=y
- CONFIG_DAMON_VADDR=y
- CONFIG_DAMON_PADDR=y
+--- a/mm/damon/dbgfs.c~mm-damon-remove-damon-debugfs-interface-kunit-tests
++++ a/mm/damon/dbgfs.c
+@@ -1144,5 +1144,3 @@ out:
+ }
+ 
+ module_init(damon_dbgfs_init);
+-
+-#include "tests/dbgfs-kunit.h"
+--- a/mm/damon/Kconfig~mm-damon-remove-damon-debugfs-interface-kunit-tests
++++ a/mm/damon/Kconfig
+@@ -89,18 +89,6 @@ config DAMON_DBGFS
+ 	default y
+ 	depends on DAMON_DBGFS_DEPRECATED
+ 
+-config DAMON_DBGFS_KUNIT_TEST
+-	bool "Test for damon debugfs interface" if !KUNIT_ALL_TESTS
+-	depends on DAMON_DBGFS && KUNIT=y
+-	default KUNIT_ALL_TESTS
+-	help
+-	  This builds the DAMON debugfs interface Kunit test suite.
+-
+-	  For more information on KUnit and unit tests in general, please refer
+-	  to the KUnit documentation.
+-
+-	  If unsure, say N.
+-
+ config DAMON_RECLAIM
+ 	bool "Build DAMON-based reclaim (DAMON_RECLAIM)"
+ 	depends on DAMON_PADDR
+diff --git a/mm/damon/tests/dbgfs-kunit.h a/mm/damon/tests/dbgfs-kunit.h
+deleted file mode 100644
+--- a/mm/damon/tests/dbgfs-kunit.h
++++ /dev/null
+@@ -1,173 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/*
+- * DAMON Debugfs Interface Unit Tests
+- *
+- * Author: SeongJae Park <sj@kernel.org>
+- */
+-
+-#ifdef CONFIG_DAMON_DBGFS_KUNIT_TEST
+-
+-#ifndef _DAMON_DBGFS_TEST_H
+-#define _DAMON_DBGFS_TEST_H
+-
+-#include <kunit/test.h>
+-
+-static void damon_dbgfs_test_str_to_ints(struct kunit *test)
+-{
+-	char *question;
+-	int *answers;
+-	int expected[] = {12, 35, 46};
+-	ssize_t nr_integers = 0, i;
+-
+-	question = "123";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
+-	KUNIT_EXPECT_EQ(test, 123, answers[0]);
+-	kfree(answers);
+-
+-	question = "123abc";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
+-	KUNIT_EXPECT_EQ(test, 123, answers[0]);
+-	kfree(answers);
+-
+-	question = "a123";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
+-	kfree(answers);
+-
+-	question = "12 35";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
+-	for (i = 0; i < nr_integers; i++)
+-		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
+-	kfree(answers);
+-
+-	question = "12 35 46";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)3, nr_integers);
+-	for (i = 0; i < nr_integers; i++)
+-		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
+-	kfree(answers);
+-
+-	question = "12 35 abc 46";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
+-	for (i = 0; i < 2; i++)
+-		KUNIT_EXPECT_EQ(test, expected[i], answers[i]);
+-	kfree(answers);
+-
+-	question = "";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
+-	kfree(answers);
+-
+-	question = "\n";
+-	answers = str_to_ints(question, strlen(question), &nr_integers);
+-	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
+-	kfree(answers);
+-}
+-
+-static void damon_dbgfs_test_set_targets(struct kunit *test)
+-{
+-	struct damon_ctx *ctx = dbgfs_new_ctx();
+-	char buf[64];
+-
+-	if (!damon_is_registered_ops(DAMON_OPS_PADDR)) {
+-		dbgfs_destroy_ctx(ctx);
+-		kunit_skip(test, "PADDR not registered");
+-	}
+-
+-	/* Make DAMON consider target has no pid */
+-	damon_select_ops(ctx, DAMON_OPS_PADDR);
+-
+-	dbgfs_set_targets(ctx, 0, NULL);
+-	sprint_target_ids(ctx, buf, 64);
+-	KUNIT_EXPECT_STREQ(test, (char *)buf, "\n");
+-
+-	dbgfs_set_targets(ctx, 1, NULL);
+-	sprint_target_ids(ctx, buf, 64);
+-	KUNIT_EXPECT_STREQ(test, (char *)buf, "42\n");
+-
+-	dbgfs_set_targets(ctx, 0, NULL);
+-	sprint_target_ids(ctx, buf, 64);
+-	KUNIT_EXPECT_STREQ(test, (char *)buf, "\n");
+-
+-	dbgfs_destroy_ctx(ctx);
+-}
+-
+-static void damon_dbgfs_test_set_init_regions(struct kunit *test)
+-{
+-	struct damon_ctx *ctx = damon_new_ctx();
+-	/* Each line represents one region in ``<target idx> <start> <end>`` */
+-	char * const valid_inputs[] = {"1 10 20\n 1   20 30\n1 35 45",
+-		"1 10 20\n",
+-		"1 10 20\n0 39 59\n0 70 134\n  1  20 25\n",
+-		""};
+-	/* Reading the file again will show sorted, clean output */
+-	char * const valid_expects[] = {"1 10 20\n1 20 30\n1 35 45\n",
+-		"1 10 20\n",
+-		"0 39 59\n0 70 134\n1 10 20\n1 20 25\n",
+-		""};
+-	char * const invalid_inputs[] = {"3 10 20\n",	/* target not exists */
+-		"1 10 20\n 1 14 26\n",		/* regions overlap */
+-		"0 10 20\n1 30 40\n 0 5 8"};	/* not sorted by address */
+-	char *input, *expect;
+-	int i, rc;
+-	char buf[256];
+-
+-	if (!damon_is_registered_ops(DAMON_OPS_PADDR)) {
+-		damon_destroy_ctx(ctx);
+-		kunit_skip(test, "PADDR not registered");
+-	}
+-
+-	damon_select_ops(ctx, DAMON_OPS_PADDR);
+-
+-	dbgfs_set_targets(ctx, 3, NULL);
+-
+-	/* Put valid inputs and check the results */
+-	for (i = 0; i < ARRAY_SIZE(valid_inputs); i++) {
+-		input = valid_inputs[i];
+-		expect = valid_expects[i];
+-
+-		rc = set_init_regions(ctx, input, strnlen(input, 256));
+-		KUNIT_EXPECT_EQ(test, rc, 0);
+-
+-		memset(buf, 0, 256);
+-		sprint_init_regions(ctx, buf, 256);
+-
+-		KUNIT_EXPECT_STREQ(test, (char *)buf, expect);
+-	}
+-	/* Put invalid inputs and check the return error code */
+-	for (i = 0; i < ARRAY_SIZE(invalid_inputs); i++) {
+-		input = invalid_inputs[i];
+-		pr_info("input: %s\n", input);
+-		rc = set_init_regions(ctx, input, strnlen(input, 256));
+-		KUNIT_EXPECT_EQ(test, rc, -EINVAL);
+-
+-		memset(buf, 0, 256);
+-		sprint_init_regions(ctx, buf, 256);
+-
+-		KUNIT_EXPECT_STREQ(test, (char *)buf, "");
+-	}
+-
+-	dbgfs_set_targets(ctx, 0, NULL);
+-	damon_destroy_ctx(ctx);
+-}
+-
+-static struct kunit_case damon_test_cases[] = {
+-	KUNIT_CASE(damon_dbgfs_test_str_to_ints),
+-	KUNIT_CASE(damon_dbgfs_test_set_targets),
+-	KUNIT_CASE(damon_dbgfs_test_set_init_regions),
+-	{},
+-};
+-
+-static struct kunit_suite damon_test_suite = {
+-	.name = "damon-dbgfs",
+-	.test_cases = damon_test_cases,
+-};
+-kunit_test_suite(damon_test_suite);
+-
+-#endif /* _DAMON_DBGFS_TEST_H */
+-
+-#endif	/* CONFIG_DAMON_KUNIT_TEST */
+--- a/mm/damon/tests/.kunitconfig~mm-damon-remove-damon-debugfs-interface-kunit-tests
++++ a/mm/damon/tests/.kunitconfig
+@@ -13,10 +13,3 @@ CONFIG_DAMON_VADDR_KUNIT_TEST=y
+ CONFIG_SYSFS=y
+ CONFIG_DAMON_SYSFS=y
+ CONFIG_DAMON_SYSFS_KUNIT_TEST=y
+-
+-# for DAMON debugfs interface
 -CONFIG_DEBUG_FS=y
--CONFIG_DAMON_DBGFS=y
+-CONFIG_DAMON_PADDR=y
 -CONFIG_DAMON_DBGFS_DEPRECATED=y
- 
- CONFIG_REGMAP_BUILD=y
- 
+-CONFIG_DAMON_DBGFS=y
+-CONFIG_DAMON_DBGFS_KUNIT_TEST=y
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
