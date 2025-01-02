@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D479DDC1;
-	Thu,  2 Jan 2025 22:51:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19009DDC1
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jan 2025 22:51:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735858273; cv=none; b=Mt1zEsKcJRtI+n3b9fp6lRXOLxQzkwt1eZUTf95tKvAoDB+cH/sXq7NHO6IAvWNBpZYfsCB7Uo8oexvzyzYIDHu44FF1FD9I96h3sH4iUks2bgJMWXm2dxnhsMZy1mKo6BfTv6bNrtSjJK7kj/mdC1emFn63sWH6IaWPQxTUbxk=
+	t=1735858299; cv=none; b=KzdhPLDhk/12/8t+v4jWl+ZDbrrC1ZT0Cw4hpG1n8MHFs24Xp00b0HmGx4NqzJ0D2DlJ4ZQFuz6xjh7PTxecfvGd1C/WIkR51CY5jo47FGNmXZTQSPHyL3pr7UcXi+1skQIp6NrnkMcpjSF24hryZJi3O7Tb49G9R8Z5YQZpWpw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735858273; c=relaxed/simple;
-	bh=z38s81y9cm1/CzpBNgO8ugNKLv4/6X6T6flzsxd4AGA=;
-	h=Date:To:From:Subject:Message-Id; b=D7ilOvSApz4U5wIIfNrNh5v4QqITXHnQP7cf3FoeP3qpBp5VGUr+vKZKB+U52oJalhamC4Y2Cy8rGavsaSJEU8UacQO0oE32MdDU2aNbAMvc4Ku+ITZCkHrapjhDFOhU2ya5Mde/kTrKGmCHorRj6FoEDL1WHCZD/r9LEQ6q9yE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sQNfb9Gv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735858299; c=relaxed/simple;
+	bh=H+Gk7HfJbLhEGqzq2grcZm3I+22c37MTcLDSUEDJyEY=;
+	h=Date:To:From:Subject:Message-Id; b=Gi39z83xg/BzcAq+OS/qB6b8oWDUYuFfkGxaO+N/eap9K0+rwsdiN9uupu95GWDsBloBwm9vS9J3gdK0HM4Sf7T+/YsK34AcZlIGv+lluZXXkodEDvZcTPvqc9lcx0fP0KvRjT+RDTAk0Kqpr+gioweBNlMjxSQxL1pYKDncszw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P2snBv3T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sQNfb9Gv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82B17C4CED0;
-	Thu,  2 Jan 2025 22:51:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P2snBv3T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EF27C4CED0;
+	Thu,  2 Jan 2025 22:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735858272;
-	bh=z38s81y9cm1/CzpBNgO8ugNKLv4/6X6T6flzsxd4AGA=;
+	s=korg; t=1735858298;
+	bh=H+Gk7HfJbLhEGqzq2grcZm3I+22c37MTcLDSUEDJyEY=;
 	h=Date:To:From:Subject:From;
-	b=sQNfb9GvfPHxS7NqpsDVwIcbJfOXqHWi+CXl7hR9YbU+zjdYcvi5OZyJPOYv5fly9
-	 vovfEfDPO74bLJ6HuB9IyT8vYJ0IZmOPEiDK39JWxBXid1LZCAFvsJRAmyf+q+sj3P
-	 lKVPNKP1+09PFaL7gFTFSRL7LO/kC37a7QnWQp9Q=
-Date: Thu, 02 Jan 2025 14:51:11 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,oleg@redhat.com,kees@kernel.org,john.ogness@linutronix.de,ebiederm@xmission.com,dylanbhatch@google.com,namcao@linutronix.de,akpm@linux-foundation.org
+	b=P2snBv3Twaw8cWiYakKjpmEQ7WLznZfZitlLx+2vz4Q/fYwM0mgkm/j76SxCuaxPY
+	 5srEklqJCyBzYnCd7ipjpXqWKV3C6ZgYBD33cAOjT0OHzOtXqcHSbEhvjnplBaBlm+
+	 Jb+yDdx9lXB03idoMTvntXAqc7/6FaSP2qV3erNA=
+Date: Thu, 02 Jan 2025 14:51:37 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,oleg@redhat.com,kees@kernel.org,john.ogness@linutronix.de,ebiederm@xmission.com,dylanbhatch@google.com,namcao@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-do_task_stat-fix-esp-not-readable-during-coredump.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250102225112.82B17C4CED0@smtp.kernel.org>
+Subject: + selftests-coredump-add-stackdump-test.patch added to mm-nonmm-unstable branch
+Message-Id: <20250102225138.7EF27C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: do_task_stat: fix ESP not readable during coredump
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-do_task_stat-fix-esp-not-readable-during-coredump.patch
+     Subject: selftests: coredump: add stackdump test
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-coredump-add-stackdump-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-do_task_stat-fix-esp-not-readable-during-coredump.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-coredump-add-stackdump-test.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,65 +59,274 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nam Cao <namcao@linutronix.de>
-Subject: fs/proc: do_task_stat: fix ESP not readable during coredump
-Date: Thu, 2 Jan 2025 09:22:56 +0100
+Subject: selftests: coredump: add stackdump test
+Date: Thu, 2 Jan 2025 09:22:57 +0100
 
-The field "eip" (instruction pointer) and "esp" (stack pointer) of a task
-can be read from /proc/PID/stat.  These fields can be interesting for
-coredump.
+Add a test which checks that the kstkesp field in /proc/pid/stat can be
+read for all threads of a coredumping process.
 
-However, these fields were disabled by commit 0a1eb2d474ed ("fs/proc: Stop
-reporting eip and esp in /proc/PID/stat"), because it is generally unsafe
-to do so.  But it is safe for a coredumping process, and therefore
-exceptions were made:
+For full details including the motivation for this test and how it works,
+see the README file added by this commit.
 
-  - for a coredumping thread by commit fd7d56270b52 ("fs/proc: Report
-    eip/esp in /prod/PID/stat for coredumping").
-
-  - for all other threads in a coredumping process by commit cb8f381f1613
-    ("fs/proc/array.c: allow reporting eip/esp for all coredumping
-    threads").
-
-The above two commits check the PF_DUMPCORE flag to determine a coredump
-thread and the PF_EXITING flag for the other threads.
-
-Unfortunately, commit 92307383082d ("coredump: Don't perform any cleanups
-before dumping core") moved coredump to happen earlier and before
-PF_EXITING is set.  Thus, checking PF_EXITING is no longer the correct way
-to determine threads in a coredumping process.
-
-Instead of PF_EXITING, use PF_POSTCOREDUMP to determine the other threads.
-
-Checking of PF_EXITING was added for coredumping, so it probably can now
-be removed.  But it doesn't hurt to keep.
-
-Link: https://lkml.kernel.org/r/d89af63d478d6c64cc46a01420b46fd6eb147d6f.1735805772.git.namcao@linutronix.de
-Fixes: 92307383082d ("coredump:  Don't perform any cleanups before dumping core")
+Link: https://lkml.kernel.org/r/50e737b6576208566d14efcf1934fe840de6b1f4.1735805772.git.namcao@linutronix.de
 Signed-off-by: Nam Cao <namcao@linutronix.de>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kees Cook <kees@kernel.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Reviewed-by: John Ogness <john.ogness@linutronix.de>
 Cc: Dylan Hatch <dylanbhatch@google.com>
-Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/coredump/Makefile         |    7 
+ tools/testing/selftests/coredump/README.rst       |   50 +++
+ tools/testing/selftests/coredump/stackdump        |   14 +
+ tools/testing/selftests/coredump/stackdump_test.c |  151 ++++++++++++
+ 4 files changed, 222 insertions(+)
 
---- a/fs/proc/array.c~fs-proc-do_task_stat-fix-esp-not-readable-during-coredump
-+++ a/fs/proc/array.c
-@@ -500,7 +500,7 @@ static int do_task_stat(struct seq_file
- 		 * a program is not able to use ptrace(2) in that case. It is
- 		 * safe because the task has stopped executing permanently.
- 		 */
--		if (permitted && (task->flags & (PF_EXITING|PF_DUMPCORE))) {
-+		if (permitted && (task->flags & (PF_EXITING|PF_DUMPCORE|PF_POSTCOREDUMP))) {
- 			if (try_get_task_stack(task)) {
- 				eip = KSTK_EIP(task);
- 				esp = KSTK_ESP(task);
+diff --git a/tools/testing/selftests/coredump/Makefile a/tools/testing/selftests/coredump/Makefile
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/coredump/Makefile
+@@ -0,0 +1,7 @@
++# SPDX-License-Identifier: GPL-2.0-only
++CFLAGS = $(KHDR_INCLUDES)
++
++TEST_GEN_PROGS := stackdump_test
++TEST_FILES := stackdump
++
++include ../lib.mk
+diff --git a/tools/testing/selftests/coredump/README.rst a/tools/testing/selftests/coredump/README.rst
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/coredump/README.rst
+@@ -0,0 +1,50 @@
++coredump selftest
++=================
++
++Background context
++------------------
++
++`coredump` is a feature which dumps a process's memory space when the process terminates
++unexpectedly (e.g. due to segmentation fault), which can be useful for debugging. By default,
++`coredump` dumps the memory to the file named `core`, but this behavior can be changed by writing a
++different file name to `/proc/sys/kernel/core_pattern`. Furthermore, `coredump` can be piped to a
++user-space program by writing the pipe symbol (`|`) followed by the command to be executed to
++`/proc/sys/kernel/core_pattern`. For the full description, see `man 5 core`.
++
++The piped user program may be interested in reading the stack pointers of the crashed process. The
++crashed process's stack pointers can be read from `procfs`: it is the `kstkesp` field in
++`/proc/$PID/stat`. See `man 5 proc` for all the details.
++
++The problem
++-----------
++While a thread is active, the stack pointer is unsafe to read and therefore the `kstkesp` field
++reads zero. But when the thread is dead (e.g. during a coredump), this field should have valid
++value.
++
++However, this was broken in the past and `kstkesp` was zero even during coredump:
++
++* commit 0a1eb2d474ed ("fs/proc: Stop reporting eip and esp in /proc/PID/stat") changed kstkesp to
++  always be zero
++
++* commit fd7d56270b52 ("fs/proc: Report eip/esp in /prod/PID/stat for coredumping") fixed it for the
++  coredumping thread. However, other threads in a coredumping process still had the problem.
++
++* commit cb8f381f1613 ("fs/proc/array.c: allow reporting eip/esp for all coredumping threads") fixed
++  for all threads in a coredumping process.
++
++* commit 92307383082d ("coredump:  Don't perform any cleanups before dumping core") broke it again
++  for the other threads in a coredumping process.
++
++The problem has been fixed now, but considering the history, it may appear again in the future.
++
++The goal of this test
++---------------------
++This test detects problem with reading `kstkesp` during coredump by doing the following:
++
++#. Tell the kernel to execute the "stackdump" script when a coredump happens. This script
++   reads the stack pointers of all threads of crashed processes.
++
++#. Spawn a child process who creates some threads and then crashes.
++
++#. Read the output from the "stackdump" script, and make sure all stack pointer values are
++   non-zero.
+diff --git a/tools/testing/selftests/coredump/stackdump a/tools/testing/selftests/coredump/stackdump
+new file mode 100755
+--- /dev/null
++++ a/tools/testing/selftests/coredump/stackdump
+@@ -0,0 +1,14 @@
++#!/bin/sh
++# SPDX-License-Identifier: GPL-2.0
++
++CRASH_PROGRAM_ID=$1
++STACKDUMP_FILE=$2
++
++TMP=$(mktemp)
++
++for t in /proc/$CRASH_PROGRAM_ID/task/*; do
++	tid=$(basename $t)
++	cat /proc/$tid/stat | awk '{print $29}' >> $TMP
++done
++
++mv $TMP $STACKDUMP_FILE
+diff --git a/tools/testing/selftests/coredump/stackdump_test.c a/tools/testing/selftests/coredump/stackdump_test.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/coredump/stackdump_test.c
+@@ -0,0 +1,151 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <fcntl.h>
++#include <libgen.h>
++#include <linux/limits.h>
++#include <pthread.h>
++#include <string.h>
++#include <sys/resource.h>
++#include <unistd.h>
++
++#include "../kselftest_harness.h"
++
++#define STACKDUMP_FILE "stack_values"
++#define STACKDUMP_SCRIPT "stackdump"
++#define NUM_THREAD_SPAWN 128
++
++static void *do_nothing(void *)
++{
++	while (1)
++		pause();
++}
++
++static void crashing_child(void)
++{
++	pthread_t thread;
++	int i;
++
++	for (i = 0; i < NUM_THREAD_SPAWN; ++i)
++		pthread_create(&thread, NULL, do_nothing, NULL);
++
++	/* crash on purpose */
++	i = *(int *)NULL;
++}
++
++FIXTURE(coredump)
++{
++	char original_core_pattern[256];
++};
++
++FIXTURE_SETUP(coredump)
++{
++	char buf[PATH_MAX];
++	FILE *file;
++	char *dir;
++	int ret;
++
++	file = fopen("/proc/sys/kernel/core_pattern", "r");
++	ASSERT_NE(NULL, file);
++
++	ret = fread(self->original_core_pattern, 1, sizeof(self->original_core_pattern), file);
++	ASSERT_TRUE(ret || feof(file));
++	ASSERT_LT(ret, sizeof(self->original_core_pattern));
++
++	self->original_core_pattern[ret] = '\0';
++
++	ret = fclose(file);
++	ASSERT_EQ(0, ret);
++}
++
++FIXTURE_TEARDOWN(coredump)
++{
++	const char *reason;
++	FILE *file;
++	int ret;
++
++	unlink(STACKDUMP_FILE);
++
++	file = fopen("/proc/sys/kernel/core_pattern", "w");
++	if (!file) {
++		reason = "Unable to open core_pattern";
++		goto fail;
++	}
++
++	ret = fprintf(file, "%s", self->original_core_pattern);
++	if (ret < 0) {
++		reason = "Unable to write to core_pattern";
++		goto fail;
++	}
++
++	ret = fclose(file);
++	if (ret) {
++		reason = "Unable to close core_pattern";
++		goto fail;
++	}
++
++	return;
++fail:
++	/* This should never happen */
++	fprintf(stderr, "Failed to cleanup stackdump test: %s\n", reason);
++}
++
++TEST_F(coredump, stackdump)
++{
++	struct sigaction action = {};
++	unsigned long long stack;
++	char *test_dir, *line;
++	size_t line_length;
++	char buf[PATH_MAX];
++	int ret, i;
++	FILE *file;
++	pid_t pid;
++
++	/*
++	 * Step 1: Setup core_pattern so that the stackdump script is executed when the child
++	 * process crashes
++	 */
++	ret = readlink("/proc/self/exe", buf, sizeof(buf));
++	ASSERT_NE(-1, ret);
++	ASSERT_LT(ret, sizeof(buf));
++	buf[ret] = '\0';
++
++	test_dir = dirname(buf);
++
++	file = fopen("/proc/sys/kernel/core_pattern", "w");
++	ASSERT_NE(NULL, file);
++
++	ret = fprintf(file, "|%1$s/%2$s %%P %1$s/%3$s", test_dir, STACKDUMP_SCRIPT, STACKDUMP_FILE);
++	ASSERT_LT(0, ret);
++
++	ret = fclose(file);
++	ASSERT_EQ(0, ret);
++
++	/* Step 2: Create a process who spawns some threads then crashes */
++	pid = fork();
++	ASSERT_TRUE(pid >= 0);
++	if (pid == 0)
++		crashing_child();
++
++	/*
++	 * Step 3: Wait for the stackdump script to write the stack pointers to the stackdump file
++	 */
++	for (i = 0; i < 10; ++i) {
++		file = fopen(STACKDUMP_FILE, "r");
++		if (file)
++			break;
++		sleep(1);
++	}
++	ASSERT_NE(file, NULL);
++
++	/* Step 4: Make sure all stack pointer values are non-zero */
++	for (i = 0; -1 != getline(&line, &line_length, file); ++i) {
++		stack = strtoull(line, NULL, 10);
++		ASSERT_NE(stack, 0);
++	}
++
++	ASSERT_EQ(i, 1 + NUM_THREAD_SPAWN);
++
++	fclose(file);
++}
++
++TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from namcao@linutronix.de are
