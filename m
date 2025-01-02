@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2B431B85D3;
-	Thu,  2 Jan 2025 22:10:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50689188006
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jan 2025 22:31:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735855838; cv=none; b=n9Ylljtci8N1VJOwOg7WjZTYdvR5ikrWNFQSbW/viI0uO2fXW0v6XJAwdpvgcvQ50FrzPJcySDTqNyY1JHWG5gQTD6eAgo5GtmtCQdBsziwIv3b2EYkk3su+QHnot/ZL/beIRMP/SwZvnxrqx1ox4s/rHcwaMukPhRW4nOeuPOc=
+	t=1735857119; cv=none; b=B46dIho2LIov3gi2slItDB3kZ2+tIZwvm1JKx+3UCz5U4BXNkgNuisdiwftDb9PY459LC6lPbiOb5wi62SDYFMDjiS7G/z4RIjpmzFZnfareZfwoi7ybG2az51G0n1aGMniak1XeDbm/7p1g96tZHMzEtSC18Ucp9j2dwtyPbMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735855838; c=relaxed/simple;
-	bh=u77SrFDG2FUwtHUkecETXYGCZ8vA8MhoTEj0emRtF78=;
-	h=Date:To:From:Subject:Message-Id; b=TvTea0JLHjZvtAkPX2Zzo5QDgmkp//4Qdy8BsXcTImdR+v5vBQfZRUnv2rq+mQKUl0AlRZNFMPYQE0pZkfcN6K1P78byrU3p1h5F6yXFONI5l4TAAxcK26kaGj0D31MSP8x8aKmvQwvkedzkod4Wl2g5SQxMl1k2M+nfqTRe/tc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gH/ulqOa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735857119; c=relaxed/simple;
+	bh=L8wjD+JSLI5nO86eItzH6mRnvzt5aG3eLF+IvrULkW4=;
+	h=Date:To:From:Subject:Message-Id; b=mZFaeQr+T4w/eaINJqBAGrMTaHv0KIwHN7HIy3g2LQXdjLxSou9M+Vr0GhScvTFEO3qHZWFXF+svR83y+5BgogeapxDjEZ3GQh8LEIlo8oyeqIDrBueLzzrCj0vMJR7eLvVTU2l04kw9T7nxbeynWB5oGpEQsX2lT1c9iDcid9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hlK3niUu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gH/ulqOa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CE4CC4CED0;
-	Thu,  2 Jan 2025 22:10:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hlK3niUu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF740C4CED0;
+	Thu,  2 Jan 2025 22:31:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735855838;
-	bh=u77SrFDG2FUwtHUkecETXYGCZ8vA8MhoTEj0emRtF78=;
+	s=korg; t=1735857118;
+	bh=L8wjD+JSLI5nO86eItzH6mRnvzt5aG3eLF+IvrULkW4=;
 	h=Date:To:From:Subject:From;
-	b=gH/ulqOaoaYVCDBWzx9LzXc7p3k/dqwERtvGJxPOcp2Cua8BxYEcaNTBekaXduSaI
-	 sNSkPwURH1M7HUHL2UevGe9DIqh5hh3QMV/BP0/bNxlowANY4uA9pdN04LmBzzeU5S
-	 P7tu67ns/dBSIzqX3/iFoib9MhxrBtR+sKjn4Vn8=
-Date: Thu, 02 Jan 2025 14:10:37 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,marco.nelissen@gmail.com,akpm@linux-foundation.org
+	b=hlK3niUuJu/dLWiM6nueWAUNrZmwh/acpWS/XioLxeERpGZJrEkQYeckB4kyFHqoF
+	 82DlQH5UtkUjvAgwPqbvTtbLdqFSz2rwpjbzssKxXet4OuuKG7ePrzNYzsmXmJxPC9
+	 QFHTD9VA8t7ijEKyDI7ofwiKx5ToUzYP9MmEFlUg=
+Date: Thu, 02 Jan 2025 14:31:58 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-avoid-truncating-64-bit-offset-to-32-bits.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250102221038.2CE4CC4CED0@smtp.kernel.org>
+Subject: + mips-vdso-prefer-do_mmap-to-mmap_region.patch added to mm-unstable branch
+Message-Id: <20250102223158.CF740C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: filemap: avoid truncating 64-bit offset to 32 bits
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     filemap-avoid-truncating-64-bit-offset-to-32-bits.patch
+     Subject: mips: vdso: prefer do_mmap() to mmap_region()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mips-vdso-prefer-do_mmap-to-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-avoid-truncating-64-bit-offset-to-32-bits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-vdso-prefer-do_mmap-to-mmap_region.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,39 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Nelissen <marco.nelissen@gmail.com>
-Subject: filemap: avoid truncating 64-bit offset to 32 bits
-Date: Thu, 2 Jan 2025 11:04:11 -0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mips: vdso: prefer do_mmap() to mmap_region()
+Date: Thu, 2 Jan 2025 12:10:51 +0000
 
-On 32-bit kernels, folio_seek_hole_data() was inadvertently truncating a
-64-bit value to 32 bits, leading to a possible infinite loop when writing
-to an xfs filesystem.
+Patch series "mm: update mips to use do_mmap(), make mmap_region()
+internal".
 
-Link: https://lkml.kernel.org/r/20250102190540.1356838-1-marco.nelissen@gmail.com
-Fixes: 54fa39ac2e00b ("iomap: use mapping_seek_hole_data")
-Signed-off-by: Marco Nelissen <marco.nelissen@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Currently the only user of mmap_region() outside of the memory management
+code is the MIPS VDSO implementation.
+
+This uses mmap_region() to map a 'delay slot emulation page' at the top of
+the stack which is read-only and executable.
+
+This mapping requires that an already-acquired mmap write lock is utilised
+and that uffd and populate logic is ignored. This rules out vm_mmap(),
+however do_mmap() fits the bill.
+
+Adapt this code to use do_mmap() and then once done, make mmap_region()
+internal and userland testable, and avoid any other uses of mmap_region(),
+which is absolutely and strictly an internal mm function which bypasses a
+great number of checks and logic.
+
+
+This patch (of 2):
+
+mmap_region() is an internal memory management implementation detail that
+is not intended to be used outside of the memory management subsystem.
+
+Map the delay slot emulation page using do_mmap() which makes use of the
+already-held mmap write lock and bypasses unneeded populate and
+userfaultfd logic.
+
+This should have the precise same behaviour as the existing logic.
+
+Link: https://lkml.kernel.org/r/cover.1735819274.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/ef076e381570f709e5c2c142dc030ec5b3309a0e.1735819274.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/kernel/vdso.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/filemap.c~filemap-avoid-truncating-64-bit-offset-to-32-bits
-+++ a/mm/filemap.c
-@@ -2996,7 +2996,7 @@ static inline loff_t folio_seek_hole_dat
- 		if (ops->is_partially_uptodate(folio, offset, bsz) ==
- 							seek_data)
- 			break;
--		start = (start + bsz) & ~(bsz - 1);
-+		start = (start + bsz) & ~((u64)bsz - 1);
- 		offset += bsz;
- 	} while (offset < folio_size(folio));
- unlock:
+--- a/arch/mips/kernel/vdso.c~mips-vdso-prefer-do_mmap-to-mmap_region
++++ a/arch/mips/kernel/vdso.c
+@@ -11,6 +11,7 @@
+ #include <linux/ioport.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/mman.h>
+ #include <linux/random.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+@@ -97,11 +98,12 @@ int arch_setup_additional_pages(struct l
+ 		return -EINTR;
+ 
+ 	if (IS_ENABLED(CONFIG_MIPS_FP_SUPPORT)) {
++		unsigned long unused;
++
+ 		/* Map delay slot emulation page */
+-		base = mmap_region(NULL, STACK_TOP, PAGE_SIZE,
+-				VM_READ | VM_EXEC |
+-				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+-				0, NULL);
++		base = do_mmap(NULL, STACK_TOP, PAGE_SIZE, PROT_READ | PROT_EXEC,
++			       MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, 0, 0, &unused,
++			       NULL);
+ 		if (IS_ERR_VALUE(base)) {
+ 			ret = base;
+ 			goto out;
 _
 
-Patches currently in -mm which might be from marco.nelissen@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-filemap-avoid-truncating-64-bit-offset-to-32-bits.patch
+mm-vma-move-brk-internals-to-mm-vmac.patch
+mm-vma-move-brk-internals-to-mm-vmac-fix.patch
+mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
+mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
+mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
+mm-vma-move-__vm_munmap-to-mm-vmac.patch
+selftests-mm-add-fork-cow-guard-page-test.patch
+mm-enforce-__must_check-on-vma-merge-and-split.patch
+mm-perform-all-memfd-seal-checks-in-a-single-place.patch
+mm-perform-all-memfd-seal-checks-in-a-single-place-fix.patch
+maintainers-update-memory-mapping-section.patch
+mm-assert-mmap-write-lock-held-on-do_mmap-mmap_region.patch
+mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
+tools-testing-add-simple-__mmap_region-userland-test.patch
+mips-vdso-prefer-do_mmap-to-mmap_region.patch
+mm-make-mmap_region-internal.patch
 
