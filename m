@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19009DDC1
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jan 2025 22:51:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B688B149E00
+	for <mm-commits@vger.kernel.org>; Thu,  2 Jan 2025 23:09:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735858299; cv=none; b=KzdhPLDhk/12/8t+v4jWl+ZDbrrC1ZT0Cw4hpG1n8MHFs24Xp00b0HmGx4NqzJ0D2DlJ4ZQFuz6xjh7PTxecfvGd1C/WIkR51CY5jo47FGNmXZTQSPHyL3pr7UcXi+1skQIp6NrnkMcpjSF24hryZJi3O7Tb49G9R8Z5YQZpWpw=
+	t=1735859348; cv=none; b=acI8bjG+qEiTbtyMwfaUf6RBxFvD9nWmGHP/IbLW2NnUG8AXdTGbxOASSDXmfTpfQ36CPadqGNxp8k54ssfpL+gu5KY04P0uOLsSAK196Iabxb7pU8IBvdrBHvx3eGrMOJXvkPscUXDv+gdydPXN/pcE/CHmkbL1N+v3yz54PdQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735858299; c=relaxed/simple;
-	bh=H+Gk7HfJbLhEGqzq2grcZm3I+22c37MTcLDSUEDJyEY=;
-	h=Date:To:From:Subject:Message-Id; b=Gi39z83xg/BzcAq+OS/qB6b8oWDUYuFfkGxaO+N/eap9K0+rwsdiN9uupu95GWDsBloBwm9vS9J3gdK0HM4Sf7T+/YsK34AcZlIGv+lluZXXkodEDvZcTPvqc9lcx0fP0KvRjT+RDTAk0Kqpr+gioweBNlMjxSQxL1pYKDncszw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P2snBv3T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735859348; c=relaxed/simple;
+	bh=5BJhVpCtn2cUvB0jGQLKRX0lOE8KwRZwkjgSB4m0hgs=;
+	h=Date:To:From:Subject:Message-Id; b=gn1Ti6NJgr02C6hUK1nqd5gNDLqxqr94mEdrqMwFN4BLGdGe9wT6tjU4ZVNntG9nhT/7cMlrcc0dElSRTFdw9TQWxiPXy8LTJBADuIJ1X3GMRp6XxLNuSn9hRz8mOmHW0ZL69i2EYcdSSBToiTgEN5w4pVNzDI/Flq7evvy+zW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ylnnAsuy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P2snBv3T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EF27C4CED0;
-	Thu,  2 Jan 2025 22:51:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ylnnAsuy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35486C4CED0;
+	Thu,  2 Jan 2025 23:09:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735858298;
-	bh=H+Gk7HfJbLhEGqzq2grcZm3I+22c37MTcLDSUEDJyEY=;
+	s=korg; t=1735859348;
+	bh=5BJhVpCtn2cUvB0jGQLKRX0lOE8KwRZwkjgSB4m0hgs=;
 	h=Date:To:From:Subject:From;
-	b=P2snBv3Twaw8cWiYakKjpmEQ7WLznZfZitlLx+2vz4Q/fYwM0mgkm/j76SxCuaxPY
-	 5srEklqJCyBzYnCd7ipjpXqWKV3C6ZgYBD33cAOjT0OHzOtXqcHSbEhvjnplBaBlm+
-	 Jb+yDdx9lXB03idoMTvntXAqc7/6FaSP2qV3erNA=
-Date: Thu, 02 Jan 2025 14:51:37 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,oleg@redhat.com,kees@kernel.org,john.ogness@linutronix.de,ebiederm@xmission.com,dylanbhatch@google.com,namcao@linutronix.de,akpm@linux-foundation.org
+	b=ylnnAsuy1punSl3u6mh3vRMhnVHuoc88n39x3F4A0tPMwFn6JNkvWPERXd06eQLM6
+	 jOINai/83EFuE9WRLccpdTbV8S2kEd5pVmH8bbrNvLyAueB+kwqNkZn2wOSfCAaERR
+	 1VA7lR2Bci+EnHW4FpM9OltX3hgvoqxCgUsbbTnc=
+Date: Thu, 02 Jan 2025 15:09:07 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,geert@linux-m68k.org,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-coredump-add-stackdump-test.patch added to mm-nonmm-unstable branch
-Message-Id: <20250102225138.7EF27C4CED0@smtp.kernel.org>
+Subject: + mm-memblock-add-memblock_alloc_or_panic-interface.patch added to mm-unstable branch
+Message-Id: <20250102230908.35486C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: coredump: add stackdump test
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-coredump-add-stackdump-test.patch
+     Subject: mm/memblock: add memblock_alloc_or_panic interface
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memblock-add-memblock_alloc_or_panic-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-coredump-add-stackdump-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memblock-add-memblock_alloc_or_panic-interface.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,279 +58,1543 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nam Cao <namcao@linutronix.de>
-Subject: selftests: coredump: add stackdump test
-Date: Thu, 2 Jan 2025 09:22:57 +0100
+From: Guo Weikang <guoweikang.kernel@gmail.com>
+Subject: mm/memblock: add memblock_alloc_or_panic interface
+Date: Thu, 2 Jan 2025 15:25:28 +0800
 
-Add a test which checks that the kstkesp field in /proc/pid/stat can be
-read for all threads of a coredumping process.
+Before SLUB initialization, various subsystems used memblock_alloc to
+allocate memory.  In most cases, when memory allocation fails, an
+immediate panic is required.  To simplify this behavior and reduce
+repetitive checks, introduce `memblock_alloc_or_panic`.  This function
+ensures that memory allocation failures result in a panic automatically,
+improving code readability and consistency across subsystems that require
+this behavior.
 
-For full details including the motivation for this test and how it works,
-see the README file added by this commit.
-
-Link: https://lkml.kernel.org/r/50e737b6576208566d14efcf1934fe840de6b1f4.1735805772.git.namcao@linutronix.de
-Signed-off-by: Nam Cao <namcao@linutronix.de>
-Reviewed-by: John Ogness <john.ogness@linutronix.de>
-Cc: Dylan Hatch <dylanbhatch@google.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250102072528.650926-1-guoweikang.kernel@gmail.com
+Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/coredump/Makefile         |    7 
- tools/testing/selftests/coredump/README.rst       |   50 +++
- tools/testing/selftests/coredump/stackdump        |   14 +
- tools/testing/selftests/coredump/stackdump_test.c |  151 ++++++++++++
- 4 files changed, 222 insertions(+)
+ arch/alpha/kernel/core_cia.c            |    5 -
+ arch/alpha/kernel/core_marvel.c         |   10 ---
+ arch/alpha/kernel/pci.c                 |   13 ----
+ arch/alpha/kernel/pci_iommu.c           |   10 ---
+ arch/arm/kernel/setup.c                 |   10 ---
+ arch/arm/mm/mmu.c                       |   17 -----
+ arch/arm/mm/nommu.c                     |    5 -
+ arch/arm64/kernel/setup.c               |    4 -
+ arch/loongarch/kernel/setup.c           |    2 
+ arch/loongarch/mm/init.c                |   13 ----
+ arch/m68k/mm/init.c                     |    5 -
+ arch/m68k/mm/mcfmmu.c                   |   10 ---
+ arch/m68k/mm/motorola.c                 |    5 -
+ arch/m68k/mm/sun3mmu.c                  |   10 ---
+ arch/m68k/sun3/sun3dvma.c               |    6 -
+ arch/mips/kernel/setup.c                |    5 -
+ arch/openrisc/mm/ioremap.c              |    5 -
+ arch/parisc/mm/init.c                   |   20 +-----
+ arch/powerpc/kernel/dt_cpu_ftrs.c       |   10 +--
+ arch/powerpc/kernel/pci_32.c            |    5 -
+ arch/powerpc/kernel/setup-common.c      |    5 -
+ arch/powerpc/kernel/setup_32.c          |    8 --
+ arch/powerpc/mm/book3s32/mmu.c          |    5 -
+ arch/powerpc/mm/book3s64/pgtable.c      |    6 -
+ arch/powerpc/mm/kasan/init_book3e_64.c  |    8 +-
+ arch/powerpc/mm/kasan/init_book3s_64.c  |    2 
+ arch/powerpc/mm/nohash/mmu_context.c    |   16 -----
+ arch/powerpc/mm/pgtable_32.c            |    7 --
+ arch/powerpc/platforms/powermac/nvram.c |    5 -
+ arch/powerpc/platforms/powernv/opal.c   |    5 -
+ arch/powerpc/platforms/ps3/setup.c      |    5 -
+ arch/powerpc/sysdev/msi_bitmap.c        |    5 -
+ arch/riscv/kernel/setup.c               |    4 -
+ arch/riscv/mm/kasan_init.c              |   14 ++--
+ arch/s390/kernel/numa.c                 |    5 -
+ arch/s390/kernel/setup.c                |   20 +-----
+ arch/s390/kernel/smp.c                  |    9 --
+ arch/s390/kernel/topology.c             |   10 ---
+ arch/sh/mm/init.c                       |   10 ---
+ arch/sparc/kernel/prom_32.c             |    4 -
+ arch/sparc/mm/srmmu.c                   |   14 ----
+ arch/um/drivers/net_kern.c              |    5 -
+ arch/um/drivers/vector_kern.c           |    5 -
+ arch/um/kernel/load_file.c              |    4 -
+ arch/x86/coco/sev/core.c                |    4 -
+ arch/x86/kernel/acpi/boot.c             |    5 -
+ arch/x86/kernel/apic/io_apic.c          |    9 --
+ arch/x86/kernel/e820.c                  |    5 -
+ arch/x86/platform/olpc/olpc_dt.c        |    6 -
+ arch/x86/xen/p2m.c                      |    8 --
+ arch/xtensa/mm/kasan_init.c             |    6 -
+ drivers/clk/ti/clk.c                    |    5 -
+ drivers/macintosh/smu.c                 |    6 -
+ drivers/of/fdt.c                        |    8 --
+ drivers/of/unittest.c                   |    8 --
+ include/linux/memblock.h                |    6 +
+ init/main.c                             |   18 +----
+ kernel/power/snapshot.c                 |    5 -
+ lib/cpumask.c                           |    5 -
+ mm/kmsan/shadow.c                       |    8 --
+ mm/memblock.c                           |   20 ++++++
+ mm/numa.c                               |    8 --
+ mm/percpu.c                             |   70 ++++------------------
+ mm/sparse.c                             |    5 -
+ 64 files changed, 143 insertions(+), 423 deletions(-)
 
-diff --git a/tools/testing/selftests/coredump/Makefile a/tools/testing/selftests/coredump/Makefile
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/coredump/Makefile
-@@ -0,0 +1,7 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+CFLAGS = $(KHDR_INCLUDES)
+--- a/arch/alpha/kernel/core_cia.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/alpha/kernel/core_cia.c
+@@ -331,10 +331,7 @@ cia_prepare_tbia_workaround(int window)
+ 	long i;
+ 
+ 	/* Use minimal 1K map. */
+-	ppte = memblock_alloc(CIA_BROKEN_TBIA_SIZE, 32768);
+-	if (!ppte)
+-		panic("%s: Failed to allocate %u bytes align=0x%x\n",
+-		      __func__, CIA_BROKEN_TBIA_SIZE, 32768);
++	ppte = memblock_alloc_or_panic(CIA_BROKEN_TBIA_SIZE, 32768);
+ 	pte = (virt_to_phys(ppte) >> (PAGE_SHIFT - 1)) | 1;
+ 
+ 	for (i = 0; i < CIA_BROKEN_TBIA_SIZE / sizeof(unsigned long); ++i)
+--- a/arch/alpha/kernel/core_marvel.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/alpha/kernel/core_marvel.c
+@@ -81,10 +81,7 @@ mk_resource_name(int pe, int port, char
+ 	char *name;
+ 	
+ 	sprintf(tmp, "PCI %s PE %d PORT %d", str, pe, port);
+-	name = memblock_alloc(strlen(tmp) + 1, SMP_CACHE_BYTES);
+-	if (!name)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      strlen(tmp) + 1);
++	name = memblock_alloc_or_panic(strlen(tmp) + 1, SMP_CACHE_BYTES);
+ 	strcpy(name, tmp);
+ 
+ 	return name;
+@@ -119,10 +116,7 @@ alloc_io7(unsigned int pe)
+ 		return NULL;
+ 	}
+ 
+-	io7 = memblock_alloc(sizeof(*io7), SMP_CACHE_BYTES);
+-	if (!io7)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*io7));
++	io7 = memblock_alloc_or_panic(sizeof(*io7), SMP_CACHE_BYTES);
+ 	io7->pe = pe;
+ 	raw_spin_lock_init(&io7->irq_lock);
+ 
+--- a/arch/alpha/kernel/pci.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/alpha/kernel/pci.c
+@@ -391,10 +391,7 @@ alloc_pci_controller(void)
+ {
+ 	struct pci_controller *hose;
+ 
+-	hose = memblock_alloc(sizeof(*hose), SMP_CACHE_BYTES);
+-	if (!hose)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*hose));
++	hose = memblock_alloc_or_panic(sizeof(*hose), SMP_CACHE_BYTES);
+ 
+ 	*hose_tail = hose;
+ 	hose_tail = &hose->next;
+@@ -405,13 +402,7 @@ alloc_pci_controller(void)
+ struct resource * __init
+ alloc_resource(void)
+ {
+-	void *ptr = memblock_alloc(sizeof(struct resource), SMP_CACHE_BYTES);
+-
+-	if (!ptr)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(struct resource));
+-
+-	return ptr;
++	return memblock_alloc_or_panic(sizeof(struct resource), SMP_CACHE_BYTES);
+ }
+ 
+ 
+--- a/arch/alpha/kernel/pci_iommu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -71,14 +71,8 @@ iommu_arena_new_node(int nid, struct pci
+ 	if (align < mem_size)
+ 		align = mem_size;
+ 
+-	arena = memblock_alloc(sizeof(*arena), SMP_CACHE_BYTES);
+-	if (!arena)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*arena));
+-	arena->ptes = memblock_alloc(mem_size, align);
+-	if (!arena->ptes)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, mem_size, align);
++	arena = memblock_alloc_or_panic(sizeof(*arena), SMP_CACHE_BYTES);
++	arena->ptes = memblock_alloc_or_panic(mem_size, align);
+ 
+ 	spin_lock_init(&arena->lock);
+ 	arena->hose = hose;
+--- a/arch/arm64/kernel/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/arm64/kernel/setup.c
+@@ -223,9 +223,7 @@ static void __init request_standard_reso
+ 
+ 	num_standard_resources = memblock.memory.cnt;
+ 	res_size = num_standard_resources * sizeof(*standard_resources);
+-	standard_resources = memblock_alloc(res_size, SMP_CACHE_BYTES);
+-	if (!standard_resources)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__, res_size);
++	standard_resources = memblock_alloc_or_panic(res_size, SMP_CACHE_BYTES);
+ 
+ 	for_each_mem_region(region) {
+ 		res = &standard_resources[i++];
+--- a/arch/arm/kernel/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/arm/kernel/setup.c
+@@ -880,10 +880,7 @@ static void __init request_standard_reso
+ 		 */
+ 		boot_alias_start = phys_to_idmap(start);
+ 		if (arm_has_idmap_alias() && boot_alias_start != IDMAP_INVALID_ADDR) {
+-			res = memblock_alloc(sizeof(*res), SMP_CACHE_BYTES);
+-			if (!res)
+-				panic("%s: Failed to allocate %zu bytes\n",
+-				      __func__, sizeof(*res));
++			res = memblock_alloc_or_panic(sizeof(*res), SMP_CACHE_BYTES);
+ 			res->name = "System RAM (boot alias)";
+ 			res->start = boot_alias_start;
+ 			res->end = phys_to_idmap(res_end);
+@@ -891,10 +888,7 @@ static void __init request_standard_reso
+ 			request_resource(&iomem_resource, res);
+ 		}
+ 
+-		res = memblock_alloc(sizeof(*res), SMP_CACHE_BYTES);
+-		if (!res)
+-			panic("%s: Failed to allocate %zu bytes\n", __func__,
+-			      sizeof(*res));
++		res = memblock_alloc_or_panic(sizeof(*res), SMP_CACHE_BYTES);
+ 		res->name  = "System RAM";
+ 		res->start = start;
+ 		res->end = res_end;
+--- a/arch/arm/mm/mmu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/arm/mm/mmu.c
+@@ -726,13 +726,8 @@ EXPORT_SYMBOL(phys_mem_access_prot);
+ 
+ static void __init *early_alloc(unsigned long sz)
+ {
+-	void *ptr = memblock_alloc(sz, sz);
++	return memblock_alloc_or_panic(sz, sz);
+ 
+-	if (!ptr)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, sz, sz);
+-
+-	return ptr;
+ }
+ 
+ static void *__init late_alloc(unsigned long sz)
+@@ -1027,10 +1022,7 @@ void __init iotable_init(struct map_desc
+ 	if (!nr)
+ 		return;
+ 
+-	svm = memblock_alloc(sizeof(*svm) * nr, __alignof__(*svm));
+-	if (!svm)
+-		panic("%s: Failed to allocate %zu bytes align=0x%zx\n",
+-		      __func__, sizeof(*svm) * nr, __alignof__(*svm));
++	svm = memblock_alloc_or_panic(sizeof(*svm) * nr, __alignof__(*svm));
+ 
+ 	for (md = io_desc; nr; md++, nr--) {
+ 		create_mapping(md);
+@@ -1052,10 +1044,7 @@ void __init vm_reserve_area_early(unsign
+ 	struct vm_struct *vm;
+ 	struct static_vm *svm;
+ 
+-	svm = memblock_alloc(sizeof(*svm), __alignof__(*svm));
+-	if (!svm)
+-		panic("%s: Failed to allocate %zu bytes align=0x%zx\n",
+-		      __func__, sizeof(*svm), __alignof__(*svm));
++	svm = memblock_alloc_or_panic(sizeof(*svm), __alignof__(*svm));
+ 
+ 	vm = &svm->vm;
+ 	vm->addr = (void *)addr;
+--- a/arch/arm/mm/nommu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/arm/mm/nommu.c
+@@ -162,10 +162,7 @@ void __init paging_init(const struct mac
+ 	mpu_setup();
+ 
+ 	/* allocate the zero page. */
+-	zero_page = (void *)memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!zero_page)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, PAGE_SIZE, PAGE_SIZE);
++	zero_page = (void *)memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	bootmem_init();
+ 
+--- a/arch/loongarch/kernel/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/loongarch/kernel/setup.c
+@@ -431,7 +431,7 @@ static void __init resource_init(void)
+ 
+ 	num_standard_resources = memblock.memory.cnt;
+ 	res_size = num_standard_resources * sizeof(*standard_resources);
+-	standard_resources = memblock_alloc(res_size, SMP_CACHE_BYTES);
++	standard_resources = memblock_alloc_or_panic(res_size, SMP_CACHE_BYTES);
+ 
+ 	for_each_mem_region(region) {
+ 		res = &standard_resources[i++];
+--- a/arch/loongarch/mm/init.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/loongarch/mm/init.c
+@@ -174,9 +174,7 @@ pte_t * __init populate_kernel_pte(unsig
+ 	pmd_t *pmd;
+ 
+ 	if (p4d_none(p4dp_get(p4d))) {
+-		pud = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pud)
+-			panic("%s: Failed to allocate memory\n", __func__);
++		pud = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 		p4d_populate(&init_mm, p4d, pud);
+ #ifndef __PAGETABLE_PUD_FOLDED
+ 		pud_init(pud);
+@@ -185,9 +183,7 @@ pte_t * __init populate_kernel_pte(unsig
+ 
+ 	pud = pud_offset(p4d, addr);
+ 	if (pud_none(pudp_get(pud))) {
+-		pmd = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pmd)
+-			panic("%s: Failed to allocate memory\n", __func__);
++		pmd = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 		pud_populate(&init_mm, pud, pmd);
+ #ifndef __PAGETABLE_PMD_FOLDED
+ 		pmd_init(pmd);
+@@ -198,10 +194,7 @@ pte_t * __init populate_kernel_pte(unsig
+ 	if (!pmd_present(pmdp_get(pmd))) {
+ 		pte_t *pte;
+ 
+-		pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pte)
+-			panic("%s: Failed to allocate memory\n", __func__);
+-
++		pte = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmd, pte);
+ 		kernel_pte_init(pte);
+ 	}
+--- a/arch/m68k/mm/init.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/m68k/mm/init.c
+@@ -68,10 +68,7 @@ void __init paging_init(void)
+ 
+ 	high_memory = (void *) end_mem;
+ 
+-	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!empty_zero_page)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, PAGE_SIZE, PAGE_SIZE);
++	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 	max_zone_pfn[ZONE_DMA] = end_mem >> PAGE_SHIFT;
+ 	free_area_init(max_zone_pfn);
+ }
+--- a/arch/m68k/mm/mcfmmu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/m68k/mm/mcfmmu.c
+@@ -42,20 +42,14 @@ void __init paging_init(void)
+ 	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
+ 	int i;
+ 
+-	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!empty_zero_page)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, PAGE_SIZE, PAGE_SIZE);
++	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	pg_dir = swapper_pg_dir;
+ 	memset(swapper_pg_dir, 0, sizeof(swapper_pg_dir));
+ 
+ 	size = num_pages * sizeof(pte_t);
+ 	size = (size + PAGE_SIZE) & ~(PAGE_SIZE-1);
+-	next_pgtable = (unsigned long) memblock_alloc(size, PAGE_SIZE);
+-	if (!next_pgtable)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, size, PAGE_SIZE);
++	next_pgtable = (unsigned long) memblock_alloc_or_panic(size, PAGE_SIZE);
+ 
+ 	pg_dir += PAGE_OFFSET >> PGDIR_SHIFT;
+ 
+--- a/arch/m68k/mm/motorola.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/m68k/mm/motorola.c
+@@ -491,10 +491,7 @@ void __init paging_init(void)
+ 	 * initialize the bad page table and bad page to point
+ 	 * to a couple of allocated pages
+ 	 */
+-	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!empty_zero_page)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, PAGE_SIZE, PAGE_SIZE);
++	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	/*
+ 	 * Set up SFC/DFC registers
+--- a/arch/m68k/mm/sun3mmu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/m68k/mm/sun3mmu.c
+@@ -44,10 +44,7 @@ void __init paging_init(void)
+ 	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
+ 	unsigned long size;
+ 
+-	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!empty_zero_page)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, PAGE_SIZE, PAGE_SIZE);
++	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	address = PAGE_OFFSET;
+ 	pg_dir = swapper_pg_dir;
+@@ -57,10 +54,7 @@ void __init paging_init(void)
+ 	size = num_pages * sizeof(pte_t);
+ 	size = (size + PAGE_SIZE) & ~(PAGE_SIZE-1);
+ 
+-	next_pgtable = (unsigned long)memblock_alloc(size, PAGE_SIZE);
+-	if (!next_pgtable)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, size, PAGE_SIZE);
++	next_pgtable = (unsigned long)memblock_alloc_or_panic(size, PAGE_SIZE);
+ 	bootmem_end = (next_pgtable + size + PAGE_SIZE) & PAGE_MASK;
+ 
+ 	/* Map whole memory from PAGE_OFFSET (0x0E000000) */
+--- a/arch/m68k/sun3/sun3dvma.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/m68k/sun3/sun3dvma.c
+@@ -252,12 +252,8 @@ void __init dvma_init(void)
+ 
+ 	list_add(&(hole->list), &hole_list);
+ 
+-	iommu_use = memblock_alloc(IOMMU_TOTAL_ENTRIES * sizeof(unsigned long),
++	iommu_use = memblock_alloc_or_panic(IOMMU_TOTAL_ENTRIES * sizeof(unsigned long),
+ 				   SMP_CACHE_BYTES);
+-	if (!iommu_use)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      IOMMU_TOTAL_ENTRIES * sizeof(unsigned long));
+-
+ 	dvma_unmap_iommu(DVMA_START, DVMA_SIZE);
+ 
+ 	sun3_dvma_init();
+--- a/arch/mips/kernel/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/mips/kernel/setup.c
+@@ -704,10 +704,7 @@ static void __init resource_init(void)
+ 	for_each_mem_range(i, &start, &end) {
+ 		struct resource *res;
+ 
+-		res = memblock_alloc(sizeof(struct resource), SMP_CACHE_BYTES);
+-		if (!res)
+-			panic("%s: Failed to allocate %zu bytes\n", __func__,
+-			      sizeof(struct resource));
++		res = memblock_alloc_or_panic(sizeof(struct resource), SMP_CACHE_BYTES);
+ 
+ 		res->start = start;
+ 		/*
+--- a/arch/openrisc/mm/ioremap.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/openrisc/mm/ioremap.c
+@@ -38,10 +38,7 @@ pte_t __ref *pte_alloc_one_kernel(struct
+ 	if (likely(mem_init_done)) {
+ 		pte = (pte_t *)get_zeroed_page(GFP_KERNEL);
+ 	} else {
+-		pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pte)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, PAGE_SIZE, PAGE_SIZE);
++		pte = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 	}
+ 
+ 	return pte;
+--- a/arch/parisc/mm/init.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/parisc/mm/init.c
+@@ -377,10 +377,8 @@ static void __ref map_pages(unsigned lon
+ 
+ #if CONFIG_PGTABLE_LEVELS == 3
+ 		if (pud_none(*pud)) {
+-			pmd = memblock_alloc(PAGE_SIZE << PMD_TABLE_ORDER,
++			pmd = memblock_alloc_or_panic(PAGE_SIZE << PMD_TABLE_ORDER,
+ 					     PAGE_SIZE << PMD_TABLE_ORDER);
+-			if (!pmd)
+-				panic("pmd allocation failed.\n");
+ 			pud_populate(NULL, pud, pmd);
+ 		}
+ #endif
+@@ -388,9 +386,7 @@ static void __ref map_pages(unsigned lon
+ 		pmd = pmd_offset(pud, vaddr);
+ 		for (tmp1 = start_pmd; tmp1 < PTRS_PER_PMD; tmp1++, pmd++) {
+ 			if (pmd_none(*pmd)) {
+-				pg_table = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-				if (!pg_table)
+-					panic("page table allocation failed\n");
++				pg_table = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 				pmd_populate_kernel(NULL, pmd, pg_table);
+ 			}
+ 
+@@ -648,9 +644,7 @@ static void __init pagetable_init(void)
+ 	}
+ #endif
+ 
+-	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!empty_zero_page)
+-		panic("zero page allocation failed.\n");
++	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 
+ }
+ 
+@@ -687,19 +681,15 @@ static void __init fixmap_init(void)
+ 
+ #if CONFIG_PGTABLE_LEVELS == 3
+ 	if (pud_none(*pud)) {
+-		pmd = memblock_alloc(PAGE_SIZE << PMD_TABLE_ORDER,
++		pmd = memblock_alloc_or_panic(PAGE_SIZE << PMD_TABLE_ORDER,
+ 				     PAGE_SIZE << PMD_TABLE_ORDER);
+-		if (!pmd)
+-			panic("fixmap: pmd allocation failed.\n");
+ 		pud_populate(NULL, pud, pmd);
+ 	}
+ #endif
+ 
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+-		pte_t *pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pte)
+-			panic("fixmap: pte allocation failed.\n");
++		pte_t *pte = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 
+ 		pmd_populate_kernel(&init_mm, pmd, pte);
+ 
+--- a/arch/powerpc/kernel/dt_cpu_ftrs.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/kernel/dt_cpu_ftrs.c
+@@ -1087,12 +1087,10 @@ static int __init dt_cpu_ftrs_scan_callb
+ 	/* Count and allocate space for cpu features */
+ 	of_scan_flat_dt_subnodes(node, count_cpufeatures_subnodes,
+ 						&nr_dt_cpu_features);
+-	dt_cpu_features = memblock_alloc(sizeof(struct dt_cpu_feature) * nr_dt_cpu_features, PAGE_SIZE);
+-	if (!dt_cpu_features)
+-		panic("%s: Failed to allocate %zu bytes align=0x%lx\n",
+-		      __func__,
+-		      sizeof(struct dt_cpu_feature) * nr_dt_cpu_features,
+-		      PAGE_SIZE);
++	dt_cpu_features =
++		memblock_alloc_or_panic(
++			sizeof(struct dt_cpu_feature) * nr_dt_cpu_features,
++			PAGE_SIZE);
+ 
+ 	cpufeatures_setup_start(isa);
+ 
+--- a/arch/powerpc/kernel/pci_32.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/kernel/pci_32.c
+@@ -213,11 +213,8 @@ pci_create_OF_bus_map(void)
+ 	struct property* of_prop;
+ 	struct device_node *dn;
+ 
+-	of_prop = memblock_alloc(sizeof(struct property) + 256,
++	of_prop = memblock_alloc_or_panic(sizeof(struct property) + 256,
+ 				 SMP_CACHE_BYTES);
+-	if (!of_prop)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(struct property) + 256);
+ 	dn = of_find_node_by_path("/");
+ 	if (dn) {
+ 		memset(of_prop, -1, sizeof(struct property) + 256);
+--- a/arch/powerpc/kernel/setup_32.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/kernel/setup_32.c
+@@ -140,13 +140,7 @@ arch_initcall(ppc_init);
+ 
+ static void *__init alloc_stack(void)
+ {
+-	void *ptr = memblock_alloc(THREAD_SIZE, THREAD_ALIGN);
+-
+-	if (!ptr)
+-		panic("cannot allocate %d bytes for stack at %pS\n",
+-		      THREAD_SIZE, (void *)_RET_IP_);
+-
+-	return ptr;
++	return memblock_alloc_or_panic(THREAD_SIZE, THREAD_ALIGN);
+ }
+ 
+ void __init irqstack_early_init(void)
+--- a/arch/powerpc/kernel/setup-common.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -458,11 +458,8 @@ void __init smp_setup_cpu_maps(void)
+ 
+ 	DBG("smp_setup_cpu_maps()\n");
+ 
+-	cpu_to_phys_id = memblock_alloc(nr_cpu_ids * sizeof(u32),
++	cpu_to_phys_id = memblock_alloc_or_panic(nr_cpu_ids * sizeof(u32),
+ 					__alignof__(u32));
+-	if (!cpu_to_phys_id)
+-		panic("%s: Failed to allocate %zu bytes align=0x%zx\n",
+-		      __func__, nr_cpu_ids * sizeof(u32), __alignof__(u32));
+ 
+ 	for_each_node_by_type(dn, "cpu") {
+ 		const __be32 *intserv;
+--- a/arch/powerpc/mm/book3s32/mmu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/mm/book3s32/mmu.c
+@@ -377,10 +377,7 @@ void __init MMU_init_hw(void)
+ 	 * Find some memory for the hash table.
+ 	 */
+ 	if ( ppc_md.progress ) ppc_md.progress("hash:find piece", 0x322);
+-	Hash = memblock_alloc(Hash_size, Hash_size);
+-	if (!Hash)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, Hash_size, Hash_size);
++	Hash = memblock_alloc_or_panic(Hash_size, Hash_size);
+ 	_SDR1 = __pa(Hash) | SDR1_LOW_BITS;
+ 
+ 	pr_info("Total memory = %lldMB; using %ldkB for hash table\n",
+--- a/arch/powerpc/mm/book3s64/pgtable.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -330,11 +330,7 @@ void __init mmu_partition_table_init(voi
+ 	unsigned long ptcr;
+ 
+ 	/* Initialize the Partition Table with no entries */
+-	partition_tb = memblock_alloc(patb_size, patb_size);
+-	if (!partition_tb)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, patb_size, patb_size);
+-
++	partition_tb = memblock_alloc_or_panic(patb_size, patb_size);
+ 	ptcr = __pa(partition_tb) | (PATB_SIZE_SHIFT - 12);
+ 	set_ptcr_when_no_uv(ptcr);
+ 	powernv_set_nmmu_ptcr(ptcr);
+--- a/arch/powerpc/mm/kasan/init_book3e_64.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/mm/kasan/init_book3e_64.c
+@@ -40,19 +40,19 @@ static int __init kasan_map_kernel_page(
+ 	pgdp = pgd_offset_k(ea);
+ 	p4dp = p4d_offset(pgdp, ea);
+ 	if (kasan_pud_table(*p4dp)) {
+-		pudp = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
++		pudp = memblock_alloc_or_panic(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
+ 		memcpy(pudp, kasan_early_shadow_pud, PUD_TABLE_SIZE);
+ 		p4d_populate(&init_mm, p4dp, pudp);
+ 	}
+ 	pudp = pud_offset(p4dp, ea);
+ 	if (kasan_pmd_table(*pudp)) {
+-		pmdp = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
++		pmdp = memblock_alloc_or_panic(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
+ 		memcpy(pmdp, kasan_early_shadow_pmd, PMD_TABLE_SIZE);
+ 		pud_populate(&init_mm, pudp, pmdp);
+ 	}
+ 	pmdp = pmd_offset(pudp, ea);
+ 	if (kasan_pte_table(*pmdp)) {
+-		ptep = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
++		ptep = memblock_alloc_or_panic(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
+ 		memcpy(ptep, kasan_early_shadow_pte, PTE_TABLE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmdp, ptep);
+ 	}
+@@ -74,7 +74,7 @@ static void __init kasan_init_phys_regio
+ 	k_start = ALIGN_DOWN((unsigned long)kasan_mem_to_shadow(start), PAGE_SIZE);
+ 	k_end = ALIGN((unsigned long)kasan_mem_to_shadow(end), PAGE_SIZE);
+ 
+-	va = memblock_alloc(k_end - k_start, PAGE_SIZE);
++	va = memblock_alloc_or_panic(k_end - k_start, PAGE_SIZE);
+ 	for (k_cur = k_start; k_cur < k_end; k_cur += PAGE_SIZE, va += PAGE_SIZE)
+ 		kasan_map_kernel_page(k_cur, __pa(va), PAGE_KERNEL);
+ }
+--- a/arch/powerpc/mm/kasan/init_book3s_64.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/mm/kasan/init_book3s_64.c
+@@ -32,7 +32,7 @@ static void __init kasan_init_phys_regio
+ 	k_start = ALIGN_DOWN((unsigned long)kasan_mem_to_shadow(start), PAGE_SIZE);
+ 	k_end = ALIGN((unsigned long)kasan_mem_to_shadow(end), PAGE_SIZE);
+ 
+-	va = memblock_alloc(k_end - k_start, PAGE_SIZE);
++	va = memblock_alloc_or_panic(k_end - k_start, PAGE_SIZE);
+ 	for (k_cur = k_start; k_cur < k_end; k_cur += PAGE_SIZE, va += PAGE_SIZE)
+ 		map_kernel_page(k_cur, __pa(va), PAGE_KERNEL);
+ }
+--- a/arch/powerpc/mm/nohash/mmu_context.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/mm/nohash/mmu_context.c
+@@ -385,21 +385,11 @@ void __init mmu_context_init(void)
+ 	/*
+ 	 * Allocate the maps used by context management
+ 	 */
+-	context_map = memblock_alloc(CTX_MAP_SIZE, SMP_CACHE_BYTES);
+-	if (!context_map)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      CTX_MAP_SIZE);
+-	context_mm = memblock_alloc(sizeof(void *) * (LAST_CONTEXT + 1),
++	context_map = memblock_alloc_or_panic(CTX_MAP_SIZE, SMP_CACHE_BYTES);
++	context_mm = memblock_alloc_or_panic(sizeof(void *) * (LAST_CONTEXT + 1),
+ 				    SMP_CACHE_BYTES);
+-	if (!context_mm)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(void *) * (LAST_CONTEXT + 1));
+ 	if (IS_ENABLED(CONFIG_SMP)) {
+-		stale_map[boot_cpuid] = memblock_alloc(CTX_MAP_SIZE, SMP_CACHE_BYTES);
+-		if (!stale_map[boot_cpuid])
+-			panic("%s: Failed to allocate %zu bytes\n", __func__,
+-			      CTX_MAP_SIZE);
+-
++		stale_map[boot_cpuid] = memblock_alloc_or_panic(CTX_MAP_SIZE, SMP_CACHE_BYTES);
+ 		cpuhp_setup_state_nocalls(CPUHP_POWERPC_MMU_CTX_PREPARE,
+ 					  "powerpc/mmu/ctx:prepare",
+ 					  mmu_ctx_cpu_prepare, mmu_ctx_cpu_dead);
+--- a/arch/powerpc/mm/pgtable_32.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/mm/pgtable_32.c
+@@ -50,13 +50,8 @@ notrace void __init early_ioremap_init(v
+ 
+ void __init *early_alloc_pgtable(unsigned long size)
+ {
+-	void *ptr = memblock_alloc(size, size);
++	return memblock_alloc_or_panic(size, size);
+ 
+-	if (!ptr)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, size, size);
+-
+-	return ptr;
+ }
+ 
+ pte_t __init *early_pte_alloc_kernel(pmd_t *pmdp, unsigned long va)
+--- a/arch/powerpc/platforms/powermac/nvram.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/platforms/powermac/nvram.c
+@@ -514,10 +514,7 @@ static int __init core99_nvram_setup(str
+ 		printk(KERN_ERR "nvram: no address\n");
+ 		return -EINVAL;
+ 	}
+-	nvram_image = memblock_alloc(NVRAM_SIZE, SMP_CACHE_BYTES);
+-	if (!nvram_image)
+-		panic("%s: Failed to allocate %u bytes\n", __func__,
+-		      NVRAM_SIZE);
++	nvram_image = memblock_alloc_or_panic(NVRAM_SIZE, SMP_CACHE_BYTES);
+ 	nvram_data = ioremap(addr, NVRAM_SIZE*2);
+ 	nvram_naddrs = 1; /* Make sure we get the correct case */
+ 
+--- a/arch/powerpc/platforms/powernv/opal.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/platforms/powernv/opal.c
+@@ -180,10 +180,7 @@ int __init early_init_dt_scan_recoverabl
+ 	/*
+ 	 * Allocate a buffer to hold the MC recoverable ranges.
+ 	 */
+-	mc_recoverable_range = memblock_alloc(size, __alignof__(u64));
+-	if (!mc_recoverable_range)
+-		panic("%s: Failed to allocate %u bytes align=0x%lx\n",
+-		      __func__, size, __alignof__(u64));
++	mc_recoverable_range = memblock_alloc_or_panic(size, __alignof__(u64));
+ 
+ 	for (i = 0; i < mc_recoverable_range_len; i++) {
+ 		mc_recoverable_range[i].start_addr =
+--- a/arch/powerpc/platforms/ps3/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/platforms/ps3/setup.c
+@@ -115,10 +115,7 @@ static void __init prealloc(struct ps3_p
+ 	if (!p->size)
+ 		return;
+ 
+-	p->address = memblock_alloc(p->size, p->align);
+-	if (!p->address)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, p->size, p->align);
++	p->address = memblock_alloc_or_panic(p->size, p->align);
+ 
+ 	printk(KERN_INFO "%s: %lu bytes at %p\n", p->name, p->size,
+ 	       p->address);
+--- a/arch/powerpc/sysdev/msi_bitmap.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/powerpc/sysdev/msi_bitmap.c
+@@ -124,10 +124,7 @@ int __ref msi_bitmap_alloc(struct msi_bi
+ 	if (bmp->bitmap_from_slab)
+ 		bmp->bitmap = kzalloc(size, GFP_KERNEL);
+ 	else {
+-		bmp->bitmap = memblock_alloc(size, SMP_CACHE_BYTES);
+-		if (!bmp->bitmap)
+-			panic("%s: Failed to allocate %u bytes\n", __func__,
+-			      size);
++		bmp->bitmap = memblock_alloc_or_panic(size, SMP_CACHE_BYTES);
+ 		/* the bitmap won't be freed from memblock allocator */
+ 		kmemleak_not_leak(bmp->bitmap);
+ 	}
+--- a/arch/riscv/kernel/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/riscv/kernel/setup.c
+@@ -147,9 +147,7 @@ static void __init init_resources(void)
+ 	res_idx = num_resources - 1;
+ 
+ 	mem_res_sz = num_resources * sizeof(*mem_res);
+-	mem_res = memblock_alloc(mem_res_sz, SMP_CACHE_BYTES);
+-	if (!mem_res)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__, mem_res_sz);
++	mem_res = memblock_alloc_or_panic(mem_res_sz, SMP_CACHE_BYTES);
+ 
+ 	/*
+ 	 * Start by adding the reserved regions, if they overlap
+--- a/arch/riscv/mm/kasan_init.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/riscv/mm/kasan_init.c
+@@ -32,7 +32,7 @@ static void __init kasan_populate_pte(pm
+ 	pte_t *ptep, *p;
+ 
+ 	if (pmd_none(pmdp_get(pmd))) {
+-		p = memblock_alloc(PTRS_PER_PTE * sizeof(pte_t), PAGE_SIZE);
++		p = memblock_alloc_or_panic(PTRS_PER_PTE * sizeof(pte_t), PAGE_SIZE);
+ 		set_pmd(pmd, pfn_pmd(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 	}
+ 
+@@ -54,7 +54,7 @@ static void __init kasan_populate_pmd(pu
+ 	unsigned long next;
+ 
+ 	if (pud_none(pudp_get(pud))) {
+-		p = memblock_alloc(PTRS_PER_PMD * sizeof(pmd_t), PAGE_SIZE);
++		p = memblock_alloc_or_panic(PTRS_PER_PMD * sizeof(pmd_t), PAGE_SIZE);
+ 		set_pud(pud, pfn_pud(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 	}
+ 
+@@ -85,7 +85,7 @@ static void __init kasan_populate_pud(p4
+ 	unsigned long next;
+ 
+ 	if (p4d_none(p4dp_get(p4d))) {
+-		p = memblock_alloc(PTRS_PER_PUD * sizeof(pud_t), PAGE_SIZE);
++		p = memblock_alloc_or_panic(PTRS_PER_PUD * sizeof(pud_t), PAGE_SIZE);
+ 		set_p4d(p4d, pfn_p4d(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 	}
+ 
+@@ -116,7 +116,7 @@ static void __init kasan_populate_p4d(pg
+ 	unsigned long next;
+ 
+ 	if (pgd_none(pgdp_get(pgd))) {
+-		p = memblock_alloc(PTRS_PER_P4D * sizeof(p4d_t), PAGE_SIZE);
++		p = memblock_alloc_or_panic(PTRS_PER_P4D * sizeof(p4d_t), PAGE_SIZE);
+ 		set_pgd(pgd, pfn_pgd(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 	}
+ 
+@@ -385,7 +385,7 @@ static void __init kasan_shallow_populat
+ 		next = pud_addr_end(vaddr, end);
+ 
+ 		if (pud_none(pudp_get(pud_k))) {
+-			p = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
++			p = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 			set_pud(pud_k, pfn_pud(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 			continue;
+ 		}
+@@ -405,7 +405,7 @@ static void __init kasan_shallow_populat
+ 		next = p4d_addr_end(vaddr, end);
+ 
+ 		if (p4d_none(p4dp_get(p4d_k))) {
+-			p = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
++			p = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 			set_p4d(p4d_k, pfn_p4d(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 			continue;
+ 		}
+@@ -424,7 +424,7 @@ static void __init kasan_shallow_populat
+ 		next = pgd_addr_end(vaddr, end);
+ 
+ 		if (pgd_none(pgdp_get(pgd_k))) {
+-			p = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
++			p = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 			set_pgd(pgd_k, pfn_pgd(PFN_DOWN(__pa(p)), PAGE_TABLE));
+ 			continue;
+ 		}
+--- a/arch/s390/kernel/numa.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/s390/kernel/numa.c
+@@ -22,10 +22,7 @@ void __init numa_setup(void)
+ 	node_set(0, node_possible_map);
+ 	node_set_online(0);
+ 	for (nid = 0; nid < MAX_NUMNODES; nid++) {
+-		NODE_DATA(nid) = memblock_alloc(sizeof(pg_data_t), 8);
+-		if (!NODE_DATA(nid))
+-			panic("%s: Failed to allocate %zu bytes align=0x%x\n",
+-			      __func__, sizeof(pg_data_t), 8);
++		NODE_DATA(nid) = memblock_alloc_or_panic(sizeof(pg_data_t), 8);
+ 	}
+ 	NODE_DATA(0)->node_spanned_pages = memblock_end_of_DRAM() >> PAGE_SHIFT;
+ 	NODE_DATA(0)->node_id = 0;
+--- a/arch/s390/kernel/setup.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/s390/kernel/setup.c
+@@ -384,11 +384,7 @@ static unsigned long __init stack_alloc_
+ {
+ 	unsigned long stack;
+ 
+-	stack = (unsigned long)memblock_alloc(THREAD_SIZE, THREAD_SIZE);
+-	if (!stack) {
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, THREAD_SIZE, THREAD_SIZE);
+-	}
++	stack = (unsigned long)memblock_alloc_or_panic(THREAD_SIZE, THREAD_SIZE);
+ 	return stack;
+ }
+ 
+@@ -512,10 +508,7 @@ static void __init setup_resources(void)
+ 	bss_resource.end = __pa_symbol(__bss_stop) - 1;
+ 
+ 	for_each_mem_range(i, &start, &end) {
+-		res = memblock_alloc(sizeof(*res), 8);
+-		if (!res)
+-			panic("%s: Failed to allocate %zu bytes align=0x%x\n",
+-			      __func__, sizeof(*res), 8);
++		res = memblock_alloc_or_panic(sizeof(*res), 8);
+ 		res->flags = IORESOURCE_BUSY | IORESOURCE_SYSTEM_RAM;
+ 
+ 		res->name = "System RAM";
+@@ -534,10 +527,7 @@ static void __init setup_resources(void)
+ 			    std_res->start > res->end)
+ 				continue;
+ 			if (std_res->end > res->end) {
+-				sub_res = memblock_alloc(sizeof(*sub_res), 8);
+-				if (!sub_res)
+-					panic("%s: Failed to allocate %zu bytes align=0x%x\n",
+-					      __func__, sizeof(*sub_res), 8);
++				sub_res = memblock_alloc_or_panic(sizeof(*sub_res), 8);
+ 				*sub_res = *std_res;
+ 				sub_res->end = res->end;
+ 				std_res->start = res->end + 1;
+@@ -824,9 +814,7 @@ static void __init setup_randomness(void
+ {
+ 	struct sysinfo_3_2_2 *vmms;
+ 
+-	vmms = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!vmms)
+-		panic("Failed to allocate memory for sysinfo structure\n");
++	vmms = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 	if (stsi(vmms, 3, 2, 2) == 0 && vmms->count)
+ 		add_device_randomness(&vmms->vm, sizeof(vmms->vm[0]) * vmms->count);
+ 	memblock_free(vmms, PAGE_SIZE);
+--- a/arch/s390/kernel/smp.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/s390/kernel/smp.c
+@@ -611,9 +611,9 @@ void __init smp_save_dump_ipl_cpu(void)
+ 	if (!dump_available())
+ 		return;
+ 	sa = save_area_alloc(true);
+-	regs = memblock_alloc(512, 8);
+-	if (!sa || !regs)
++	if (!sa)
+ 		panic("could not allocate memory for boot CPU save area\n");
++	regs = memblock_alloc_or_panic(512, 8);
+ 	copy_oldmem_kernel(regs, __LC_FPREGS_SAVE_AREA, 512);
+ 	save_area_add_regs(sa, regs);
+ 	memblock_free(regs, 512);
+@@ -792,10 +792,7 @@ void __init smp_detect_cpus(void)
+ 	u16 address;
+ 
+ 	/* Get CPU information */
+-	info = memblock_alloc(sizeof(*info), 8);
+-	if (!info)
+-		panic("%s: Failed to allocate %zu bytes align=0x%x\n",
+-		      __func__, sizeof(*info), 8);
++	info = memblock_alloc_or_panic(sizeof(*info), 8);
+ 	smp_get_core_info(info, 1);
+ 	/* Find boot CPU type */
+ 	if (sclp.has_core_type) {
+--- a/arch/s390/kernel/topology.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/s390/kernel/topology.c
+@@ -548,10 +548,7 @@ static void __init alloc_masks(struct sy
+ 		nr_masks *= info->mag[TOPOLOGY_NR_MAG - offset - 1 - i];
+ 	nr_masks = max(nr_masks, 1);
+ 	for (i = 0; i < nr_masks; i++) {
+-		mask->next = memblock_alloc(sizeof(*mask->next), 8);
+-		if (!mask->next)
+-			panic("%s: Failed to allocate %zu bytes align=0x%x\n",
+-			      __func__, sizeof(*mask->next), 8);
++		mask->next = memblock_alloc_or_panic(sizeof(*mask->next), 8);
+ 		mask = mask->next;
+ 	}
+ }
+@@ -569,10 +566,7 @@ void __init topology_init_early(void)
+ 	}
+ 	if (!MACHINE_HAS_TOPOLOGY)
+ 		goto out;
+-	tl_info = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-	if (!tl_info)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, PAGE_SIZE, PAGE_SIZE);
++	tl_info = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 	info = tl_info;
+ 	store_topology(info);
+ 	pr_info("The CPU configuration topology of the machine is: %d %d %d %d %d %d / %d\n",
+--- a/arch/sh/mm/init.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/sh/mm/init.c
+@@ -137,10 +137,7 @@ static pmd_t * __init one_md_table_init(
+ 	if (pud_none(*pud)) {
+ 		pmd_t *pmd;
+ 
+-		pmd = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pmd)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, PAGE_SIZE, PAGE_SIZE);
++		pmd = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 		pud_populate(&init_mm, pud, pmd);
+ 		BUG_ON(pmd != pmd_offset(pud, 0));
+ 	}
+@@ -153,10 +150,7 @@ static pte_t * __init one_page_table_ini
+ 	if (pmd_none(*pmd)) {
+ 		pte_t *pte;
+ 
+-		pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!pte)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, PAGE_SIZE, PAGE_SIZE);
++		pte = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmd, pte);
+ 		BUG_ON(pte != pte_offset_kernel(pmd, 0));
+ 	}
+--- a/arch/sparc/kernel/prom_32.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/sparc/kernel/prom_32.c
+@@ -28,9 +28,7 @@ void * __init prom_early_alloc(unsigned
+ {
+ 	void *ret;
+ 
+-	ret = memblock_alloc(size, SMP_CACHE_BYTES);
+-	if (!ret)
+-		panic("%s: Failed to allocate %lu bytes\n", __func__, size);
++	ret = memblock_alloc_or_panic(size, SMP_CACHE_BYTES);
+ 
+ 	prom_early_allocated += size;
+ 
+--- a/arch/sparc/mm/srmmu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/sparc/mm/srmmu.c
+@@ -277,19 +277,13 @@ static void __init srmmu_nocache_init(vo
+ 
+ 	bitmap_bits = srmmu_nocache_size >> SRMMU_NOCACHE_BITMAP_SHIFT;
+ 
+-	srmmu_nocache_pool = memblock_alloc(srmmu_nocache_size,
++	srmmu_nocache_pool = memblock_alloc_or_panic(srmmu_nocache_size,
+ 					    SRMMU_NOCACHE_ALIGN_MAX);
+-	if (!srmmu_nocache_pool)
+-		panic("%s: Failed to allocate %lu bytes align=0x%x\n",
+-		      __func__, srmmu_nocache_size, SRMMU_NOCACHE_ALIGN_MAX);
+ 	memset(srmmu_nocache_pool, 0, srmmu_nocache_size);
+ 
+ 	srmmu_nocache_bitmap =
+-		memblock_alloc(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
++		memblock_alloc_or_panic(BITS_TO_LONGS(bitmap_bits) * sizeof(long),
+ 			       SMP_CACHE_BYTES);
+-	if (!srmmu_nocache_bitmap)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      BITS_TO_LONGS(bitmap_bits) * sizeof(long));
+ 	bit_map_init(&srmmu_nocache_map, srmmu_nocache_bitmap, bitmap_bits);
+ 
+ 	srmmu_swapper_pg_dir = __srmmu_get_nocache(SRMMU_PGD_TABLE_SIZE, SRMMU_PGD_TABLE_SIZE);
+@@ -452,9 +446,7 @@ static void __init sparc_context_init(in
+ 	unsigned long size;
+ 
+ 	size = numctx * sizeof(struct ctx_list);
+-	ctx_list_pool = memblock_alloc(size, SMP_CACHE_BYTES);
+-	if (!ctx_list_pool)
+-		panic("%s: Failed to allocate %lu bytes\n", __func__, size);
++	ctx_list_pool = memblock_alloc_or_panic(size, SMP_CACHE_BYTES);
+ 
+ 	for (ctx = 0; ctx < numctx; ctx++) {
+ 		struct ctx_list *clist;
+--- a/arch/um/drivers/net_kern.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/um/drivers/net_kern.c
+@@ -636,10 +636,7 @@ static int __init eth_setup(char *str)
+ 		return 1;
+ 	}
+ 
+-	new = memblock_alloc(sizeof(*new), SMP_CACHE_BYTES);
+-	if (!new)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*new));
++	new = memblock_alloc_or_panic(sizeof(*new), SMP_CACHE_BYTES);
+ 
+ 	INIT_LIST_HEAD(&new->list);
+ 	new->index = n;
+--- a/arch/um/drivers/vector_kern.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/um/drivers/vector_kern.c
+@@ -1694,10 +1694,7 @@ static int __init vector_setup(char *str
+ 				 str, error);
+ 		return 1;
+ 	}
+-	new = memblock_alloc(sizeof(*new), SMP_CACHE_BYTES);
+-	if (!new)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*new));
++	new = memblock_alloc_or_panic(sizeof(*new), SMP_CACHE_BYTES);
+ 	INIT_LIST_HEAD(&new->list);
+ 	new->unit = n;
+ 	new->arguments = str;
+--- a/arch/um/kernel/load_file.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/um/kernel/load_file.c
+@@ -48,9 +48,7 @@ void *uml_load_file(const char *filename
+ 		return NULL;
+ 	}
+ 
+-	area = memblock_alloc(*size, SMP_CACHE_BYTES);
+-	if (!area)
+-		panic("%s: Failed to allocate %llu bytes\n", __func__, *size);
++	area = memblock_alloc_or_panic(*size, SMP_CACHE_BYTES);
+ 
+ 	if (__uml_load_file(filename, area, *size)) {
+ 		memblock_free(area, *size);
+--- a/arch/x86/coco/sev/core.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/x86/coco/sev/core.c
+@@ -1572,9 +1572,7 @@ static void __init alloc_runtime_data(in
+ 		struct svsm_ca *caa;
+ 
+ 		/* Allocate the SVSM CA page if an SVSM is present */
+-		caa = memblock_alloc(sizeof(*caa), PAGE_SIZE);
+-		if (!caa)
+-			panic("Can't allocate SVSM CA page\n");
++		caa = memblock_alloc_or_panic(sizeof(*caa), PAGE_SIZE);
+ 
+ 		per_cpu(svsm_caa, cpu) = caa;
+ 		per_cpu(svsm_caa_pa, cpu) = __pa(caa);
+--- a/arch/x86/kernel/acpi/boot.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -911,11 +911,8 @@ static int __init acpi_parse_hpet(struct
+ 	 * the resource tree during the lateinit timeframe.
+ 	 */
+ #define HPET_RESOURCE_NAME_SIZE 9
+-	hpet_res = memblock_alloc(sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE,
++	hpet_res = memblock_alloc_or_panic(sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE,
+ 				  SMP_CACHE_BYTES);
+-	if (!hpet_res)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE);
+ 
+ 	hpet_res->name = (void *)&hpet_res[1];
+ 	hpet_res->flags = IORESOURCE_MEM;
+--- a/arch/x86/kernel/apic/io_apic.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/x86/kernel/apic/io_apic.c
+@@ -2503,9 +2503,7 @@ static struct resource * __init ioapic_s
+ 	n = IOAPIC_RESOURCE_NAME_SIZE + sizeof(struct resource);
+ 	n *= nr_ioapics;
+ 
+-	mem = memblock_alloc(n, SMP_CACHE_BYTES);
+-	if (!mem)
+-		panic("%s: Failed to allocate %lu bytes\n", __func__, n);
++	mem = memblock_alloc_or_panic(n, SMP_CACHE_BYTES);
+ 	res = (void *)mem;
+ 
+ 	mem += sizeof(struct resource) * nr_ioapics;
+@@ -2564,11 +2562,8 @@ void __init io_apic_init_mappings(void)
+ #ifdef CONFIG_X86_32
+ fake_ioapic_page:
+ #endif
+-			ioapic_phys = (unsigned long)memblock_alloc(PAGE_SIZE,
++			ioapic_phys = (unsigned long)memblock_alloc_or_panic(PAGE_SIZE,
+ 								    PAGE_SIZE);
+-			if (!ioapic_phys)
+-				panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-				      __func__, PAGE_SIZE, PAGE_SIZE);
+ 			ioapic_phys = __pa(ioapic_phys);
+ 		}
+ 		io_apic_set_fixmap(idx, ioapic_phys);
+--- a/arch/x86/kernel/e820.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/x86/kernel/e820.c
+@@ -1146,11 +1146,8 @@ void __init e820__reserve_resources(void
+ 	struct resource *res;
+ 	u64 end;
+ 
+-	res = memblock_alloc(sizeof(*res) * e820_table->nr_entries,
++	res = memblock_alloc_or_panic(sizeof(*res) * e820_table->nr_entries,
+ 			     SMP_CACHE_BYTES);
+-	if (!res)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*res) * e820_table->nr_entries);
+ 	e820_res = res;
+ 
+ 	for (i = 0; i < e820_table->nr_entries; i++) {
+--- a/arch/x86/platform/olpc/olpc_dt.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/x86/platform/olpc/olpc_dt.c
+@@ -136,11 +136,7 @@ void * __init prom_early_alloc(unsigned
+ 		 * fast enough on the platforms we care about while minimizing
+ 		 * wasted bootmem) and hand off chunks of it to callers.
+ 		 */
+-		res = memblock_alloc(chunk_size, SMP_CACHE_BYTES);
+-		if (!res)
+-			panic("%s: Failed to allocate %zu bytes\n", __func__,
+-			      chunk_size);
+-		BUG_ON(!res);
++		res = memblock_alloc_or_panic(chunk_size, SMP_CACHE_BYTES);
+ 		prom_early_allocated += chunk_size;
+ 		memset(res, 0, chunk_size);
+ 		free_mem = chunk_size;
+--- a/arch/x86/xen/p2m.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/x86/xen/p2m.c
+@@ -178,13 +178,7 @@ static void p2m_init_identity(unsigned l
+ static void * __ref alloc_p2m_page(void)
+ {
+ 	if (unlikely(!slab_is_available())) {
+-		void *ptr = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-
+-		if (!ptr)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, PAGE_SIZE, PAGE_SIZE);
+-
+-		return ptr;
++		return memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
+ 	}
+ 
+ 	return (void *)__get_free_page(GFP_KERNEL);
+--- a/arch/xtensa/mm/kasan_init.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/arch/xtensa/mm/kasan_init.c
+@@ -39,11 +39,7 @@ static void __init populate(void *start,
+ 	unsigned long i, j;
+ 	unsigned long vaddr = (unsigned long)start;
+ 	pmd_t *pmd = pmd_off_k(vaddr);
+-	pte_t *pte = memblock_alloc(n_pages * sizeof(pte_t), PAGE_SIZE);
+-
+-	if (!pte)
+-		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-		      __func__, n_pages * sizeof(pte_t), PAGE_SIZE);
++	pte_t *pte = memblock_alloc_or_panic(n_pages * sizeof(pte_t), PAGE_SIZE);
+ 
+ 	pr_debug("%s: %p - %p\n", __func__, start, end);
+ 
+--- a/drivers/clk/ti/clk.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/drivers/clk/ti/clk.c
+@@ -449,10 +449,7 @@ void __init omap2_clk_legacy_provider_in
+ {
+ 	struct clk_iomap *io;
+ 
+-	io = memblock_alloc(sizeof(*io), SMP_CACHE_BYTES);
+-	if (!io)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(*io));
++	io = memblock_alloc_or_panic(sizeof(*io), SMP_CACHE_BYTES);
+ 
+ 	io->mem = mem;
+ 
+--- a/drivers/macintosh/smu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/drivers/macintosh/smu.c
+@@ -492,11 +492,7 @@ int __init smu_init (void)
+ 		goto fail_np;
+ 	}
+ 
+-	smu = memblock_alloc(sizeof(struct smu_device), SMP_CACHE_BYTES);
+-	if (!smu)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(struct smu_device));
+-
++	smu = memblock_alloc_or_panic(sizeof(struct smu_device), SMP_CACHE_BYTES);
+ 	spin_lock_init(&smu->lock);
+ 	INIT_LIST_HEAD(&smu->cmd_list);
+ 	INIT_LIST_HEAD(&smu->cmd_i2c_list);
+--- a/drivers/of/fdt.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/drivers/of/fdt.c
+@@ -1126,13 +1126,7 @@ void __init __weak early_init_dt_add_mem
+ 
+ static void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
+ {
+-	void *ptr = memblock_alloc(size, align);
+-
+-	if (!ptr)
+-		panic("%s: Failed to allocate %llu bytes align=0x%llx\n",
+-		      __func__, size, align);
+-
+-	return ptr;
++	return memblock_alloc_or_panic(size, align);
+ }
+ 
+ bool __init early_init_dt_verify(void *dt_virt, phys_addr_t dt_phys)
+--- a/drivers/of/unittest.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/drivers/of/unittest.c
+@@ -3666,13 +3666,7 @@ static struct device_node *overlay_base_
+ 
+ static void * __init dt_alloc_memory(u64 size, u64 align)
+ {
+-	void *ptr = memblock_alloc(size, align);
+-
+-	if (!ptr)
+-		panic("%s: Failed to allocate %llu bytes align=0x%llx\n",
+-		      __func__, size, align);
+-
+-	return ptr;
++	return memblock_alloc_or_panic(size, align);
+ }
+ 
+ /*
+--- a/include/linux/memblock.h~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/include/linux/memblock.h
+@@ -417,6 +417,12 @@ static __always_inline void *memblock_al
+ 				      MEMBLOCK_ALLOC_ACCESSIBLE, NUMA_NO_NODE);
+ }
+ 
++void *__memblock_alloc_or_panic(phys_addr_t size, phys_addr_t align,
++				const char *func);
 +
-+TEST_GEN_PROGS := stackdump_test
-+TEST_FILES := stackdump
++#define memblock_alloc_or_panic(size, align)    \
++	 __memblock_alloc_or_panic(size, align, __func__)
 +
-+include ../lib.mk
-diff --git a/tools/testing/selftests/coredump/README.rst a/tools/testing/selftests/coredump/README.rst
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/coredump/README.rst
-@@ -0,0 +1,50 @@
-+coredump selftest
-+=================
-+
-+Background context
-+------------------
-+
-+`coredump` is a feature which dumps a process's memory space when the process terminates
-+unexpectedly (e.g. due to segmentation fault), which can be useful for debugging. By default,
-+`coredump` dumps the memory to the file named `core`, but this behavior can be changed by writing a
-+different file name to `/proc/sys/kernel/core_pattern`. Furthermore, `coredump` can be piped to a
-+user-space program by writing the pipe symbol (`|`) followed by the command to be executed to
-+`/proc/sys/kernel/core_pattern`. For the full description, see `man 5 core`.
-+
-+The piped user program may be interested in reading the stack pointers of the crashed process. The
-+crashed process's stack pointers can be read from `procfs`: it is the `kstkesp` field in
-+`/proc/$PID/stat`. See `man 5 proc` for all the details.
-+
-+The problem
-+-----------
-+While a thread is active, the stack pointer is unsafe to read and therefore the `kstkesp` field
-+reads zero. But when the thread is dead (e.g. during a coredump), this field should have valid
-+value.
-+
-+However, this was broken in the past and `kstkesp` was zero even during coredump:
-+
-+* commit 0a1eb2d474ed ("fs/proc: Stop reporting eip and esp in /proc/PID/stat") changed kstkesp to
-+  always be zero
-+
-+* commit fd7d56270b52 ("fs/proc: Report eip/esp in /prod/PID/stat for coredumping") fixed it for the
-+  coredumping thread. However, other threads in a coredumping process still had the problem.
-+
-+* commit cb8f381f1613 ("fs/proc/array.c: allow reporting eip/esp for all coredumping threads") fixed
-+  for all threads in a coredumping process.
-+
-+* commit 92307383082d ("coredump:  Don't perform any cleanups before dumping core") broke it again
-+  for the other threads in a coredumping process.
-+
-+The problem has been fixed now, but considering the history, it may appear again in the future.
-+
-+The goal of this test
-+---------------------
-+This test detects problem with reading `kstkesp` during coredump by doing the following:
-+
-+#. Tell the kernel to execute the "stackdump" script when a coredump happens. This script
-+   reads the stack pointers of all threads of crashed processes.
-+
-+#. Spawn a child process who creates some threads and then crashes.
-+
-+#. Read the output from the "stackdump" script, and make sure all stack pointer values are
-+   non-zero.
-diff --git a/tools/testing/selftests/coredump/stackdump a/tools/testing/selftests/coredump/stackdump
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/coredump/stackdump
-@@ -0,0 +1,14 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+
-+CRASH_PROGRAM_ID=$1
-+STACKDUMP_FILE=$2
-+
-+TMP=$(mktemp)
-+
-+for t in /proc/$CRASH_PROGRAM_ID/task/*; do
-+	tid=$(basename $t)
-+	cat /proc/$tid/stat | awk '{print $29}' >> $TMP
-+done
-+
-+mv $TMP $STACKDUMP_FILE
-diff --git a/tools/testing/selftests/coredump/stackdump_test.c a/tools/testing/selftests/coredump/stackdump_test.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/coredump/stackdump_test.c
-@@ -0,0 +1,151 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <fcntl.h>
-+#include <libgen.h>
-+#include <linux/limits.h>
-+#include <pthread.h>
-+#include <string.h>
-+#include <sys/resource.h>
-+#include <unistd.h>
-+
-+#include "../kselftest_harness.h"
-+
-+#define STACKDUMP_FILE "stack_values"
-+#define STACKDUMP_SCRIPT "stackdump"
-+#define NUM_THREAD_SPAWN 128
-+
-+static void *do_nothing(void *)
+ static inline void *memblock_alloc_raw(phys_addr_t size,
+ 					       phys_addr_t align)
+ {
+--- a/init/main.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/init/main.c
+@@ -640,15 +640,11 @@ static void __init setup_command_line(ch
+ 
+ 	len = xlen + strlen(boot_command_line) + ilen + 1;
+ 
+-	saved_command_line = memblock_alloc(len, SMP_CACHE_BYTES);
+-	if (!saved_command_line)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__, len);
++	saved_command_line = memblock_alloc_or_panic(len, SMP_CACHE_BYTES);
+ 
+ 	len = xlen + strlen(command_line) + 1;
+ 
+-	static_command_line = memblock_alloc(len, SMP_CACHE_BYTES);
+-	if (!static_command_line)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__, len);
++	static_command_line = memblock_alloc_or_panic(len, SMP_CACHE_BYTES);
+ 
+ 	if (xlen) {
+ 		/*
+@@ -1145,16 +1141,10 @@ static int __init initcall_blacklist(cha
+ 		str_entry = strsep(&str, ",");
+ 		if (str_entry) {
+ 			pr_debug("blacklisting initcall %s\n", str_entry);
+-			entry = memblock_alloc(sizeof(*entry),
++			entry = memblock_alloc_or_panic(sizeof(*entry),
+ 					       SMP_CACHE_BYTES);
+-			if (!entry)
+-				panic("%s: Failed to allocate %zu bytes\n",
+-				      __func__, sizeof(*entry));
+-			entry->buf = memblock_alloc(strlen(str_entry) + 1,
++			entry->buf = memblock_alloc_or_panic(strlen(str_entry) + 1,
+ 						    SMP_CACHE_BYTES);
+-			if (!entry->buf)
+-				panic("%s: Failed to allocate %zu bytes\n",
+-				      __func__, strlen(str_entry) + 1);
+ 			strcpy(entry->buf, str_entry);
+ 			list_add(&entry->next, &blacklisted_initcalls);
+ 		}
+--- a/kernel/power/snapshot.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/kernel/power/snapshot.c
+@@ -1011,11 +1011,8 @@ void __init register_nosave_region(unsig
+ 		}
+ 	}
+ 	/* This allocation cannot fail */
+-	region = memblock_alloc(sizeof(struct nosave_region),
++	region = memblock_alloc_or_panic(sizeof(struct nosave_region),
+ 				SMP_CACHE_BYTES);
+-	if (!region)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      sizeof(struct nosave_region));
+ 	region->start_pfn = start_pfn;
+ 	region->end_pfn = end_pfn;
+ 	list_add_tail(&region->list, &nosave_regions);
+--- a/lib/cpumask.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/lib/cpumask.c
+@@ -83,10 +83,7 @@ EXPORT_SYMBOL(alloc_cpumask_var_node);
+  */
+ void __init alloc_bootmem_cpumask_var(cpumask_var_t *mask)
+ {
+-	*mask = memblock_alloc(cpumask_size(), SMP_CACHE_BYTES);
+-	if (!*mask)
+-		panic("%s: Failed to allocate %u bytes\n", __func__,
+-		      cpumask_size());
++	*mask = memblock_alloc_or_panic(cpumask_size(), SMP_CACHE_BYTES);
+ }
+ 
+ /**
+--- a/mm/kmsan/shadow.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/mm/kmsan/shadow.c
+@@ -280,12 +280,8 @@ void __init kmsan_init_alloc_meta_for_ra
+ 
+ 	start = (void *)PAGE_ALIGN_DOWN((u64)start);
+ 	size = PAGE_ALIGN((u64)end - (u64)start);
+-	shadow = memblock_alloc(size, PAGE_SIZE);
+-	origin = memblock_alloc(size, PAGE_SIZE);
+-
+-	if (!shadow || !origin)
+-		panic("%s: Failed to allocate metadata memory for early boot range of size %llu",
+-		      __func__, size);
++	shadow = memblock_alloc_or_panic(size, PAGE_SIZE);
++	origin = memblock_alloc_or_panic(size, PAGE_SIZE);
+ 
+ 	for (u64 addr = 0; addr < size; addr += PAGE_SIZE) {
+ 		page = virt_to_page_or_null((char *)start + addr);
+--- a/mm/memblock.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/mm/memblock.c
+@@ -1692,6 +1692,26 @@ void * __init memblock_alloc_try_nid(
+ }
+ 
+ /**
++ * __memblock_alloc_or_panic - Try to allocate memory and panic on failure
++ * @size: size of memory block to be allocated in bytes
++ * @align: alignment of the region and block's size
++ * @func: caller func name
++ *
++ * This function attempts to allocate memory using memblock_alloc,
++ * and in case of failure, it calls panic with the formatted message.
++ * This function should not be used directly, please use the macro memblock_alloc_or_panic.
++ */
++void *__init __memblock_alloc_or_panic(phys_addr_t size, phys_addr_t align,
++				       const char *func)
 +{
-+	while (1)
-+		pause();
++	void *addr = memblock_alloc(size, align);
++
++	if (unlikely(!addr))
++		panic("%s: Failed to allocate %pap bytes\n", func, &size);
++	return addr;
 +}
 +
-+static void crashing_child(void)
-+{
-+	pthread_t thread;
-+	int i;
-+
-+	for (i = 0; i < NUM_THREAD_SPAWN; ++i)
-+		pthread_create(&thread, NULL, do_nothing, NULL);
-+
-+	/* crash on purpose */
-+	i = *(int *)NULL;
-+}
-+
-+FIXTURE(coredump)
-+{
-+	char original_core_pattern[256];
-+};
-+
-+FIXTURE_SETUP(coredump)
-+{
-+	char buf[PATH_MAX];
-+	FILE *file;
-+	char *dir;
-+	int ret;
-+
-+	file = fopen("/proc/sys/kernel/core_pattern", "r");
-+	ASSERT_NE(NULL, file);
-+
-+	ret = fread(self->original_core_pattern, 1, sizeof(self->original_core_pattern), file);
-+	ASSERT_TRUE(ret || feof(file));
-+	ASSERT_LT(ret, sizeof(self->original_core_pattern));
-+
-+	self->original_core_pattern[ret] = '\0';
-+
-+	ret = fclose(file);
-+	ASSERT_EQ(0, ret);
-+}
-+
-+FIXTURE_TEARDOWN(coredump)
-+{
-+	const char *reason;
-+	FILE *file;
-+	int ret;
-+
-+	unlink(STACKDUMP_FILE);
-+
-+	file = fopen("/proc/sys/kernel/core_pattern", "w");
-+	if (!file) {
-+		reason = "Unable to open core_pattern";
-+		goto fail;
-+	}
-+
-+	ret = fprintf(file, "%s", self->original_core_pattern);
-+	if (ret < 0) {
-+		reason = "Unable to write to core_pattern";
-+		goto fail;
-+	}
-+
-+	ret = fclose(file);
-+	if (ret) {
-+		reason = "Unable to close core_pattern";
-+		goto fail;
-+	}
-+
-+	return;
-+fail:
-+	/* This should never happen */
-+	fprintf(stderr, "Failed to cleanup stackdump test: %s\n", reason);
-+}
-+
-+TEST_F(coredump, stackdump)
-+{
-+	struct sigaction action = {};
-+	unsigned long long stack;
-+	char *test_dir, *line;
-+	size_t line_length;
-+	char buf[PATH_MAX];
-+	int ret, i;
-+	FILE *file;
-+	pid_t pid;
-+
-+	/*
-+	 * Step 1: Setup core_pattern so that the stackdump script is executed when the child
-+	 * process crashes
-+	 */
-+	ret = readlink("/proc/self/exe", buf, sizeof(buf));
-+	ASSERT_NE(-1, ret);
-+	ASSERT_LT(ret, sizeof(buf));
-+	buf[ret] = '\0';
-+
-+	test_dir = dirname(buf);
-+
-+	file = fopen("/proc/sys/kernel/core_pattern", "w");
-+	ASSERT_NE(NULL, file);
-+
-+	ret = fprintf(file, "|%1$s/%2$s %%P %1$s/%3$s", test_dir, STACKDUMP_SCRIPT, STACKDUMP_FILE);
-+	ASSERT_LT(0, ret);
-+
-+	ret = fclose(file);
-+	ASSERT_EQ(0, ret);
-+
-+	/* Step 2: Create a process who spawns some threads then crashes */
-+	pid = fork();
-+	ASSERT_TRUE(pid >= 0);
-+	if (pid == 0)
-+		crashing_child();
-+
-+	/*
-+	 * Step 3: Wait for the stackdump script to write the stack pointers to the stackdump file
-+	 */
-+	for (i = 0; i < 10; ++i) {
-+		file = fopen(STACKDUMP_FILE, "r");
-+		if (file)
-+			break;
-+		sleep(1);
-+	}
-+	ASSERT_NE(file, NULL);
-+
-+	/* Step 4: Make sure all stack pointer values are non-zero */
-+	for (i = 0; -1 != getline(&line, &line_length, file); ++i) {
-+		stack = strtoull(line, NULL, 10);
-+		ASSERT_NE(stack, 0);
-+	}
-+
-+	ASSERT_EQ(i, 1 + NUM_THREAD_SPAWN);
-+
-+	fclose(file);
-+}
-+
-+TEST_HARNESS_MAIN
++/**
+  * memblock_free_late - free pages directly to buddy allocator
+  * @base: phys starting address of the  boot memory block
+  * @size: size of the boot memory block in bytes
+--- a/mm/numa.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/mm/numa.c
+@@ -37,13 +37,7 @@ void __init alloc_node_data(int nid)
+ void __init alloc_offline_node_data(int nid)
+ {
+ 	pg_data_t *pgdat;
+-
+-	pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
+-	if (!pgdat)
+-		panic("Cannot allocate %zuB for node %d.\n",
+-		      sizeof(*pgdat), nid);
+-
+-	node_data[nid] = pgdat;
++	node_data[nid] = memblock_alloc_or_panic(sizeof(*pgdat), SMP_CACHE_BYTES);
+ }
+ 
+ /* Stub functions: */
+--- a/mm/percpu.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/mm/percpu.c
+@@ -1359,10 +1359,7 @@ static struct pcpu_chunk * __init pcpu_a
+ 	/* allocate chunk */
+ 	alloc_size = struct_size(chunk, populated,
+ 				 BITS_TO_LONGS(region_size >> PAGE_SHIFT));
+-	chunk = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!chunk)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	chunk = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	INIT_LIST_HEAD(&chunk->list);
+ 
+@@ -1374,24 +1371,14 @@ static struct pcpu_chunk * __init pcpu_a
+ 	region_bits = pcpu_chunk_map_bits(chunk);
+ 
+ 	alloc_size = BITS_TO_LONGS(region_bits) * sizeof(chunk->alloc_map[0]);
+-	chunk->alloc_map = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!chunk->alloc_map)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	chunk->alloc_map = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	alloc_size =
+ 		BITS_TO_LONGS(region_bits + 1) * sizeof(chunk->bound_map[0]);
+-	chunk->bound_map = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!chunk->bound_map)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	chunk->bound_map = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	alloc_size = pcpu_chunk_nr_blocks(chunk) * sizeof(chunk->md_blocks[0]);
+-	chunk->md_blocks = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!chunk->md_blocks)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
+-
++	chunk->md_blocks = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ #ifdef NEED_PCPUOBJ_EXT
+ 	/* first chunk is free to use */
+ 	chunk->obj_exts = NULL;
+@@ -2595,28 +2582,16 @@ void __init pcpu_setup_first_chunk(const
+ 
+ 	/* process group information and build config tables accordingly */
+ 	alloc_size = ai->nr_groups * sizeof(group_offsets[0]);
+-	group_offsets = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!group_offsets)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	group_offsets = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	alloc_size = ai->nr_groups * sizeof(group_sizes[0]);
+-	group_sizes = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!group_sizes)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	group_sizes = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	alloc_size = nr_cpu_ids * sizeof(unit_map[0]);
+-	unit_map = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!unit_map)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	unit_map = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	alloc_size = nr_cpu_ids * sizeof(unit_off[0]);
+-	unit_off = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
+-	if (!unit_off)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      alloc_size);
++	unit_off = memblock_alloc_or_panic(alloc_size, SMP_CACHE_BYTES);
+ 
+ 	for (cpu = 0; cpu < nr_cpu_ids; cpu++)
+ 		unit_map[cpu] = UINT_MAX;
+@@ -2685,12 +2660,9 @@ void __init pcpu_setup_first_chunk(const
+ 	pcpu_free_slot = pcpu_sidelined_slot + 1;
+ 	pcpu_to_depopulate_slot = pcpu_free_slot + 1;
+ 	pcpu_nr_slots = pcpu_to_depopulate_slot + 1;
+-	pcpu_chunk_lists = memblock_alloc(pcpu_nr_slots *
++	pcpu_chunk_lists = memblock_alloc_or_panic(pcpu_nr_slots *
+ 					  sizeof(pcpu_chunk_lists[0]),
+ 					  SMP_CACHE_BYTES);
+-	if (!pcpu_chunk_lists)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      pcpu_nr_slots * sizeof(pcpu_chunk_lists[0]));
+ 
+ 	for (i = 0; i < pcpu_nr_slots; i++)
+ 		INIT_LIST_HEAD(&pcpu_chunk_lists[i]);
+@@ -3155,25 +3127,19 @@ void __init __weak pcpu_populate_pte(uns
+ 	pmd_t *pmd;
+ 
+ 	if (pgd_none(*pgd)) {
+-		p4d = memblock_alloc(P4D_TABLE_SIZE, P4D_TABLE_SIZE);
+-		if (!p4d)
+-			goto err_alloc;
++		p4d = memblock_alloc_or_panic(P4D_TABLE_SIZE, P4D_TABLE_SIZE);
+ 		pgd_populate(&init_mm, pgd, p4d);
+ 	}
+ 
+ 	p4d = p4d_offset(pgd, addr);
+ 	if (p4d_none(*p4d)) {
+-		pud = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
+-		if (!pud)
+-			goto err_alloc;
++		pud = memblock_alloc_or_panic(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
+ 		p4d_populate(&init_mm, p4d, pud);
+ 	}
+ 
+ 	pud = pud_offset(p4d, addr);
+ 	if (pud_none(*pud)) {
+-		pmd = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
+-		if (!pmd)
+-			goto err_alloc;
++		pmd = memblock_alloc_or_panic(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
+ 		pud_populate(&init_mm, pud, pmd);
+ 	}
+ 
+@@ -3181,16 +3147,11 @@ void __init __weak pcpu_populate_pte(uns
+ 	if (!pmd_present(*pmd)) {
+ 		pte_t *new;
+ 
+-		new = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
+-		if (!new)
+-			goto err_alloc;
++		new = memblock_alloc_or_panic(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmd, new);
+ 	}
+ 
+ 	return;
+-
+-err_alloc:
+-	panic("%s: Failed to allocate memory\n", __func__);
+ }
+ 
+ /**
+@@ -3237,10 +3198,7 @@ int __init pcpu_page_first_chunk(size_t
+ 	/* unaligned allocations can't be freed, round up to page size */
+ 	pages_size = PFN_ALIGN(unit_pages * num_possible_cpus() *
+ 			       sizeof(pages[0]));
+-	pages = memblock_alloc(pages_size, SMP_CACHE_BYTES);
+-	if (!pages)
+-		panic("%s: Failed to allocate %zu bytes\n", __func__,
+-		      pages_size);
++	pages = memblock_alloc_or_panic(pages_size, SMP_CACHE_BYTES);
+ 
+ 	/* allocate pages */
+ 	j = 0;
+--- a/mm/sparse.c~mm-memblock-add-memblock_alloc_or_panic-interface
++++ a/mm/sparse.c
+@@ -257,10 +257,7 @@ static void __init memblocks_present(voi
+ 
+ 		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
+ 		align = 1 << (INTERNODE_CACHE_SHIFT);
+-		mem_section = memblock_alloc(size, align);
+-		if (!mem_section)
+-			panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+-			      __func__, size, align);
++		mem_section = memblock_alloc_or_panic(size, align);
+ 	}
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from namcao@linutronix.de are
+Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
 
-fs-proc-do_task_stat-fix-esp-not-readable-during-coredump.patch
-selftests-coredump-add-stackdump-test.patch
+mm-kmemleak-fix-percpu-memory-leak-detection-failure.patch
+mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing.patch
+mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch
+mm-memblock-add-memblock_alloc_or_panic-interface.patch
 
