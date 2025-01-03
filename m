@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0A7843173
-	for <mm-commits@vger.kernel.org>; Thu,  2 Jan 2025 23:58:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 524EA7482
+	for <mm-commits@vger.kernel.org>; Fri,  3 Jan 2025 00:03:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735862284; cv=none; b=FpY9neILPgi0yP4bHvy+PB7m+teYnk5ISajfOWLR4QNCRjbdnmHhN7q6Sv5GXeTfZ95F9vzweiCA3wFNRAYoVPZkRi5cHuFAZjuVzyUWI9azxkHszCw34kFCWb5IvbF9JMyqNdUlfFZ/VyRHr9CW7uAd1Y2ZZFZudQf8Hw/VjtM=
+	t=1735862606; cv=none; b=Aj26YsTtESn1fdAsOp3L15xVO6TeA9x6UxBC3BLYDfMH9KkyN8sSEiWcuPTdNqAKhUn939rfCK1H5Nl7c3ajOdDi81y1JZIP1dxqaPMayU5qF86eXgrH1MDAk7g238QXcwxYWbJ9mnMg+xeBS1i7WxaQfvrAYY/aVN2HKB6Q2Bc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735862284; c=relaxed/simple;
-	bh=zUgjGkzbjFtl9cM7mCLqRstFXZ+v3GbxEv5fyzl+r/s=;
-	h=Date:To:From:Subject:Message-Id; b=h60o9cQNYARRq00Fpn6s3hhyZ7ZS2T1sLY0yTqBcmAsZHGCImM+azT5sQfVcFKed5cnjIF8Q0zKt6tkdBYUsJrMEGitraG4W1HJ4hUNfIaFFod6hGsfHQE/Z3k0363VbTsNuD1qet/CaBbn6hQz5tPuJ9filvRC/T7zcGpSw038=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q5XFBatQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735862606; c=relaxed/simple;
+	bh=aZ8Dge62t3u7KY6yqQ5m8RQ00YQccPdoF24dzgxUp98=;
+	h=Date:To:From:Subject:Message-Id; b=U9yr9PG1MB+0HU8upuwf9Gni2ULWBwINplBP3Xi6ETyA/30fbbOgfxHRojxLuL2VifHYTC+vDSUoFJbCjMHdHQF49IWAjGtiYMhS3w9FzldkR+zzrQhkVXvkBJJbGrSq2v7HR38zm8JhEYxzqdkpW8Ix6mi4AgNxF3JBSWw3KEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eq29rJYT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q5XFBatQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D77FC4CED0;
-	Thu,  2 Jan 2025 23:58:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eq29rJYT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12156C4CED0;
+	Fri,  3 Jan 2025 00:03:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735862284;
-	bh=zUgjGkzbjFtl9cM7mCLqRstFXZ+v3GbxEv5fyzl+r/s=;
+	s=korg; t=1735862606;
+	bh=aZ8Dge62t3u7KY6yqQ5m8RQ00YQccPdoF24dzgxUp98=;
 	h=Date:To:From:Subject:From;
-	b=q5XFBatQzfpY7GotN0cnKsClrkUjEH0hL9g0980do7ukGlZ0rpcMZGgwL5JRvJA0j
-	 CZQpNgP6IgwZgoIGI0ZJ2YMVKXC+333uUBDYpC+6SciYsYFXx3aSP5Qj0bcL1URcx6
-	 qjV2pKUmmTkq8qCTQkDHHN6ViVDiSShPJIeRpbIQ=
-Date: Thu, 02 Jan 2025 15:58:03 -0800
-To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=eq29rJYTe/SHVtb+5AtQWDJGflac7BgHPS2Pd7Dqn0TwuuWb6DuyGOojvkAA8lBbV
+	 zJjiq+RTOAfJvwldjuInHMkjs5CZYfda+zvmmHXVszVY2VjltbY/nTaS3flIdzHlvN
+	 nOUNLoqJ+rX3k+ZdsbffE4JLNGG4SiuRqfXNR1oE=
+Date: Thu, 02 Jan 2025 16:03:25 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,wangweiyang2@huawei.com,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,mhocko@suse.com,hannes@cmpxchg.org,david@redhat.com,baohua@kernel.org,chenridong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-pte-mapped-large-folios.patch added to mm-unstable branch
-Message-Id: <20250102235804.8D77FC4CED0@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-retry-folios-written-back-while-isolated-for-traditional-lru.patch removed from -mm tree
+Message-Id: <20250103000326.12156C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,270 +34,276 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/mglru: fix PTE-mapped large folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-fix-pte-mapped-large-folios.patch
+The quilt patch titled
+     Subject: mm: vmscan: retry folios written back while isolated for traditional LRU
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-retry-folios-written-back-while-isolated-for-traditional-lru.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-pte-mapped-large-folios.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: fix PTE-mapped large folios
-Date: Mon, 30 Dec 2024 21:35:38 -0700
+From: Chen Ridong <chenridong@huawei.com>
+Subject: mm: vmscan: retry folios written back while isolated for traditional LRU
+Date: Mon, 23 Dec 2024 08:20:04 +0000
 
-Count the accessed bits from PTEs mapping the same large folio as one
-access rather than multiple accesses.
+The page reclaim isolates a batch of folios from the tail of one of the
+LRU lists and works on those folios one by one.  For a suitable
+swap-backed folio, if the swap device is async, it queues that folio for
+writeback.  After the page reclaim finishes an entire batch, it puts back
+the folios it queued for writeback to the head of the original LRU list.
 
-The last patch changed how folios accessed through page tables are
-promoted: rather than getting promoted after the accessed bit is cleared
-for the first time, a folio only gets promoted thereafter.  Counting the
-accessed bits from the same large folio as multiple accesses can cause
-that folio to be promoted prematurely, which in turn can cause
-overprotection of single-use large folios.
+In the meantime, the page writeback flushes the queued folios also by
+batches.  Its batching logic is independent from that of the page reclaim.
+For each of the folios it writes back, the page writeback calls
+folio_rotate_reclaimable() which tries to rotate a folio to the tail.
 
-This patch reduced the sys time of the kernel compilation by 95% CI [2,
-5]% on Altra M128-30 with 3GB DRAM, 12GB zram, 16KB THPs and -j32.
+folio_rotate_reclaimable() only works for a folio after the page reclaim
+has put it back.  If an async swap device is fast enough, the page
+writeback can finish with that folio while the page reclaim is still
+working on the rest of the batch containing it.  In this case, that folio
+will remain at the head and the page reclaim will not retry it before
+reaching there.
 
-Link: https://lkml.kernel.org/r/20241231043538.4075764-8-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Barry Song <v-songbaohua@oppo.com>
-Tested-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: David Stevens <stevensd@chromium.org>
-Cc: Kairui Song <kasong@tencent.com>
+The commit 359a5e1416ca ("mm: multi-gen LRU: retry folios written back
+while isolated") only fixed the issue for mglru.  However, this issue also
+exists in the traditional active/inactive LRU.  This issue will be worse
+if THP is split, which makes the list longer and needs longer time to
+finish a batch of folios reclaim.
+
+This issue should be fixed in the same way for the traditional LRU. 
+Therefore, the common logic was extracted to the
+'find_folios_written_back' function firstly, which is then reused in the
+'shrink_inactive_list' function.  Finally, retry reclaiming those folios
+that may have missed the rotation for traditional LRU.
+
+Link: https://lore.kernel.org/linux-kernel/20241010081802.290893-1-chenridong@huaweicloud.com/
+Link: https://lore.kernel.org/linux-kernel/CAGsJ_4zqL8ZHNRZ44o_CC69kE7DBVXvbZfvmQxMGiFqRxqHQdA@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20241223082004.3759152-1-chenridong@huaweicloud.com
+Signed-off-by: Chen Ridong <chenridong@huawei.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wang Weiyang <wangweiyang2@huawei.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |  108 ++++++++++++++++++++++++++++++++------------------
- 1 file changed, 71 insertions(+), 37 deletions(-)
+ include/linux/mm_inline.h |    5 +
+ mm/vmscan.c               |  108 +++++++++++++++++++++++-------------
+ 2 files changed, 75 insertions(+), 38 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-fix-pte-mapped-large-folios
+--- a/include/linux/mm_inline.h~mm-vmscan-retry-folios-written-back-while-isolated-for-traditional-lru
++++ a/include/linux/mm_inline.h
+@@ -342,6 +342,11 @@ static inline void folio_migrate_refs(st
+ {
+ 
+ }
++
++static inline int lru_gen_distance(struct folio *folio, bool reclaiming)
++{
++	return -1;
++}
+ #endif /* CONFIG_LRU_GEN */
+ 
+ static __always_inline
+--- a/mm/vmscan.c~mm-vmscan-retry-folios-written-back-while-isolated-for-traditional-lru
 +++ a/mm/vmscan.c
-@@ -3431,29 +3431,55 @@ static bool suitable_to_scan(int total,
- 	return young * n >= total;
+@@ -283,6 +283,39 @@ static void set_task_reclaim_state(struc
+ 	task->reclaim_state = rs;
  }
  
-+static void walk_update_folio(struct lru_gen_mm_walk *walk, struct folio *folio,
-+			      int new_gen, bool dirty)
++/**
++ * find_folios_written_back - Find and move the written back folios to a new list.
++ * @list: filios list
++ * @clean: the written back folios list
++ * @is_retrying: whether the list is retrying.
++ */
++static inline void find_folios_written_back(struct list_head *list,
++		struct list_head *clean, bool is_retrying)
 +{
-+	int old_gen;
++	struct folio *folio;
++	struct folio *next;
 +
-+	if (!folio)
-+		return;
++	list_for_each_entry_safe_reverse(folio, next, list, lru) {
++		if (!folio_evictable(folio)) {
++			list_del(&folio->lru);
++			folio_putback_lru(folio);
++			continue;
++		}
 +
-+	if (dirty && !folio_test_dirty(folio) &&
-+	    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
-+	      !folio_test_swapcache(folio)))
-+		folio_mark_dirty(folio);
++		/* retry folios that may have missed folio_rotate_reclaimable() */
++		if (!is_retrying && !folio_test_active(folio) && !folio_mapped(folio) &&
++		    !folio_test_dirty(folio) && !folio_test_writeback(folio)) {
++			list_move(&folio->lru, clean);
++			continue;
++		}
 +
-+	if (walk) {
-+		old_gen = folio_update_gen(folio, new_gen);
-+		if (old_gen >= 0 && old_gen != new_gen)
-+			update_batch_size(walk, folio, old_gen, new_gen);
-+	} else if (lru_gen_set_refs(folio)) {
-+		old_gen = folio_lru_gen(folio);
-+		if (old_gen >= 0 && old_gen != new_gen)
-+			folio_activate(folio);
++		/* don't add rejected folios to the oldest generation */
++		if (lru_gen_enabled() && !lru_gen_distance(folio, false))
++			set_mask_bits(&folio->flags, LRU_REFS_FLAGS, BIT(PG_active));
 +	}
++
 +}
 +
- static bool walk_pte_range(pmd_t *pmd, unsigned long start, unsigned long end,
- 			   struct mm_walk *args)
+ /*
+  * flush_reclaim_state(): add pages reclaimed outside of LRU-based reclaim to
+  * scan_control->nr_reclaimed.
+@@ -1959,14 +1992,18 @@ static unsigned long shrink_inactive_lis
+ 		enum lru_list lru)
  {
- 	int i;
-+	bool dirty;
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 	unsigned long addr;
- 	int total = 0;
- 	int young = 0;
-+	struct folio *last = NULL;
- 	struct lru_gen_mm_walk *walk = args->private;
- 	struct mem_cgroup *memcg = lruvec_memcg(walk->lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
- 	DEFINE_MAX_SEQ(walk->lruvec);
--	int old_gen, new_gen = lru_gen_from_seq(max_seq);
-+	int gen = lru_gen_from_seq(max_seq);
- 	pmd_t pmdval;
+ 	LIST_HEAD(folio_list);
++	LIST_HEAD(clean_list);
+ 	unsigned long nr_scanned;
+-	unsigned int nr_reclaimed = 0;
++	unsigned int nr_reclaimed, total_reclaimed = 0;
++	unsigned int nr_pageout = 0;
++	unsigned int nr_unqueued_dirty = 0;
+ 	unsigned long nr_taken;
+ 	struct reclaim_stat stat;
+ 	bool file = is_file_lru(lru);
+ 	enum vm_event_item item;
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	bool stalled = false;
++	bool is_retrying = false;
  
--	pte = pte_offset_map_rw_nolock(args->mm, pmd, start & PMD_MASK, &pmdval,
--				       &ptl);
-+	pte = pte_offset_map_rw_nolock(args->mm, pmd, start & PMD_MASK, &pmdval, &ptl);
- 	if (!pte)
- 		return false;
+ 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
+ 		if (stalled)
+@@ -2000,22 +2037,47 @@ static unsigned long shrink_inactive_lis
+ 	if (nr_taken == 0)
+ 		return 0;
+ 
++retry:
+ 	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false);
+ 
++	sc->nr.dirty += stat.nr_dirty;
++	sc->nr.congested += stat.nr_congested;
++	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
++	sc->nr.writeback += stat.nr_writeback;
++	sc->nr.immediate += stat.nr_immediate;
++	total_reclaimed += nr_reclaimed;
++	nr_pageout += stat.nr_pageout;
++	nr_unqueued_dirty += stat.nr_unqueued_dirty;
 +
- 	if (!spin_trylock(ptl)) {
- 		pte_unmap(pte);
--		return false;
-+		return true;
++	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
++			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
++
++	find_folios_written_back(&folio_list, &clean_list, is_retrying);
++
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 	move_folios_to_lru(lruvec, &folio_list);
+ 
+ 	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
+ 					stat.nr_demoted);
+-	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	item = PGSTEAL_KSWAPD + reclaimer_offset();
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
+ 	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
++
++	if (!list_empty(&clean_list)) {
++		list_splice_init(&clean_list, &folio_list);
++		is_retrying = true;
++		spin_unlock_irq(&lruvec->lru_lock);
++		goto retry;
++	}
++	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 	spin_unlock_irq(&lruvec->lru_lock);
++	sc->nr.taken += nr_taken;
++	if (file)
++		sc->nr.file_taken += nr_taken;
+ 
+-	lru_note_cost(lruvec, file, stat.nr_pageout, nr_scanned - nr_reclaimed);
++	lru_note_cost(lruvec, file, nr_pageout, nr_scanned - total_reclaimed);
+ 
+ 	/*
+ 	 * If dirty folios are scanned that are not queued for IO, it
+@@ -2028,7 +2090,7 @@ static unsigned long shrink_inactive_lis
+ 	 * the flushers simply cannot keep up with the allocation
+ 	 * rate. Nudge the flusher threads in case they are asleep.
+ 	 */
+-	if (stat.nr_unqueued_dirty == nr_taken) {
++	if (nr_unqueued_dirty == nr_taken) {
+ 		wakeup_flusher_threads(WB_REASON_VMSCAN);
+ 		/*
+ 		 * For cgroupv1 dirty throttling is achieved by waking up
+@@ -2043,18 +2105,7 @@ static unsigned long shrink_inactive_lis
+ 			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
  	}
  
- 	if (unlikely(!pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
-@@ -3482,19 +3508,23 @@ restart:
- 		if (!ptep_clear_young_notify(args->vma, addr, pte + i))
- 			continue;
- 
--		young++;
--		walk->mm_stats[MM_LEAF_YOUNG]++;
-+		if (last != folio) {
-+			walk_update_folio(walk, last, gen, dirty);
- 
--		if (pte_dirty(ptent) && !folio_test_dirty(folio) &&
--		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
--		      !folio_test_swapcache(folio)))
--			folio_mark_dirty(folio);
-+			last = folio;
-+			dirty = false;
-+		}
- 
--		old_gen = folio_update_gen(folio, new_gen);
--		if (old_gen >= 0 && old_gen != new_gen)
--			update_batch_size(walk, folio, old_gen, new_gen);
-+		if (pte_dirty(ptent))
-+			dirty = true;
-+
-+		young++;
-+		walk->mm_stats[MM_LEAF_YOUNG]++;
- 	}
- 
-+	walk_update_folio(walk, last, gen, dirty);
-+	last = NULL;
-+
- 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
- 		goto restart;
- 
-@@ -3508,13 +3538,15 @@ static void walk_pmd_range_locked(pud_t
- 				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
- {
- 	int i;
-+	bool dirty;
- 	pmd_t *pmd;
- 	spinlock_t *ptl;
-+	struct folio *last = NULL;
- 	struct lru_gen_mm_walk *walk = args->private;
- 	struct mem_cgroup *memcg = lruvec_memcg(walk->lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
- 	DEFINE_MAX_SEQ(walk->lruvec);
--	int old_gen, new_gen = lru_gen_from_seq(max_seq);
-+	int gen = lru_gen_from_seq(max_seq);
- 
- 	VM_WARN_ON_ONCE(pud_leaf(*pud));
- 
-@@ -3567,20 +3599,23 @@ static void walk_pmd_range_locked(pud_t
- 		if (!pmdp_clear_young_notify(vma, addr, pmd + i))
- 			goto next;
- 
--		walk->mm_stats[MM_LEAF_YOUNG]++;
-+		if (last != folio) {
-+			walk_update_folio(walk, last, gen, dirty);
- 
--		if (pmd_dirty(pmd[i]) && !folio_test_dirty(folio) &&
--		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
--		      !folio_test_swapcache(folio)))
--			folio_mark_dirty(folio);
-+			last = folio;
-+			dirty = false;
-+		}
- 
--		old_gen = folio_update_gen(folio, new_gen);
--		if (old_gen >= 0 && old_gen != new_gen)
--			update_batch_size(walk, folio, old_gen, new_gen);
-+		if (pmd_dirty(pmd[i]))
-+			dirty = true;
-+
-+		walk->mm_stats[MM_LEAF_YOUNG]++;
- next:
- 		i = i > MIN_LRU_BATCH ? 0 : find_next_bit(bitmap, MIN_LRU_BATCH, i) + 1;
- 	} while (i <= MIN_LRU_BATCH);
- 
-+	walk_update_folio(walk, last, gen, dirty);
-+
- 	arch_leave_lazy_mmu_mode();
- 	spin_unlock(ptl);
- done:
-@@ -4115,9 +4150,11 @@ static void lru_gen_age_node(struct pgli
- bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
- {
- 	int i;
-+	bool dirty;
- 	unsigned long start;
- 	unsigned long end;
- 	struct lru_gen_mm_walk *walk;
-+	struct folio *last = NULL;
- 	int young = 1;
- 	pte_t *pte = pvmw->pte;
- 	unsigned long addr = pvmw->address;
-@@ -4128,7 +4165,7 @@ bool lru_gen_look_around(struct page_vma
- 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
- 	DEFINE_MAX_SEQ(lruvec);
--	int old_gen, new_gen = lru_gen_from_seq(max_seq);
-+	int gen = lru_gen_from_seq(max_seq);
- 
- 	lockdep_assert_held(pvmw->ptl);
- 	VM_WARN_ON_ONCE_FOLIO(folio_test_lru(folio), folio);
-@@ -4182,24 +4219,21 @@ bool lru_gen_look_around(struct page_vma
- 		if (!ptep_clear_young_notify(vma, addr, pte + i))
- 			continue;
- 
--		young++;
-+		if (last != folio) {
-+			walk_update_folio(walk, last, gen, dirty);
- 
--		if (pte_dirty(ptent) && !folio_test_dirty(folio) &&
--		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
--		      !folio_test_swapcache(folio)))
--			folio_mark_dirty(folio);
+-	sc->nr.dirty += stat.nr_dirty;
+-	sc->nr.congested += stat.nr_congested;
+-	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
+-	sc->nr.writeback += stat.nr_writeback;
+-	sc->nr.immediate += stat.nr_immediate;
+-	sc->nr.taken += nr_taken;
+-	if (file)
+-		sc->nr.file_taken += nr_taken;
 -
--		if (walk) {
--			old_gen = folio_update_gen(folio, new_gen);
--			if (old_gen >= 0 && old_gen != new_gen)
--				update_batch_size(walk, folio, old_gen, new_gen);
--		} else if (lru_gen_set_refs(folio)) {
--			old_gen = folio_lru_gen(folio);
--			if (old_gen >= 0 && old_gen != new_gen)
--				folio_activate(folio);
-+			last = folio;
-+			dirty = false;
- 		}
-+
-+		if (pte_dirty(ptent))
-+			dirty = true;
-+
-+		young++;
+-	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+-			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
+-	return nr_reclaimed;
++	return total_reclaimed;
+ }
+ 
+ /*
+@@ -4585,12 +4636,10 @@ static int evict_folios(struct lruvec *l
+ 	int reclaimed;
+ 	LIST_HEAD(list);
+ 	LIST_HEAD(clean);
+-	struct folio *folio;
+-	struct folio *next;
+ 	enum vm_event_item item;
+ 	struct reclaim_stat stat;
+ 	struct lru_gen_mm_walk *walk;
+-	bool skip_retry = false;
++	bool is_retrying = false;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+@@ -4616,24 +4665,7 @@ retry:
+ 			scanned, reclaimed, &stat, sc->priority,
+ 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 
+-	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
+-		if (!folio_evictable(folio)) {
+-			list_del(&folio->lru);
+-			folio_putback_lru(folio);
+-			continue;
+-		}
+-
+-		/* retry folios that may have missed folio_rotate_reclaimable() */
+-		if (!skip_retry && !folio_test_active(folio) && !folio_mapped(folio) &&
+-		    !folio_test_dirty(folio) && !folio_test_writeback(folio)) {
+-			list_move(&folio->lru, &clean);
+-			continue;
+-		}
+-
+-		/* don't add rejected folios to the oldest generation */
+-		if (!lru_gen_distance(folio, false))
+-			set_mask_bits(&folio->flags, LRU_REFS_FLAGS, BIT(PG_active));
+-	}
++	find_folios_written_back(&list, &clean, is_retrying);
+ 
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 
+@@ -4656,7 +4688,7 @@ retry:
+ 	list_splice_init(&clean, &list);
+ 
+ 	if (!list_empty(&list)) {
+-		skip_retry = true;
++		is_retrying = true;
+ 		goto retry;
  	}
  
-+	walk_update_folio(walk, last, gen, dirty);
-+
- 	arch_leave_lazy_mmu_mode();
- 
- 	/* feedback from rmap walkers to page table walkers */
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from chenridong@huawei.com are
 
-mm-mglru-clean-up-workingset.patch
-mm-mglru-optimize-deactivation.patch
-mm-mglru-rework-aging-feedback.patch
-mm-mglru-rework-type-selection.patch
-mm-mglru-rework-refault-detection.patch
-mm-mglru-rework-workingset-protection.patch
-mm-mglru-fix-pte-mapped-large-folios.patch
+memcg-fix-soft-lockup-in-the-oom-process.patch
 
