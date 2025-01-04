@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC07537F8
-	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 01:53:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8A812914
+	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:22:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735955615; cv=none; b=evvQRp1qZt4J7hGZt0EmKxKu/8eKguN7wHkqLlPA3mLTEf6qWivvdqrvlUgzgPUBwR06rHhlRsCgpc1+JlMaqYdnlB1YHihcVPWScujuiPKohlZ2fAdwTRtBifLotw874PHJ+0PKqj14LBukXRApGs0J4gmaZOvSITXw++b+fak=
+	t=1735957368; cv=none; b=HcmOs8dC8itf8ag/usjmYHyqsGMeZ+AxTdHqeuQw3RG4eaoI0GCbguSFHzoj+UtlkIiql6ilZeHi5tDDBbTVHpO0x0wONOkwceC1m/p5e5qHZd3uEnGK7jpAU0Nzw2TEXb1nSq+NlEupggzGj0VvyzmUy3gAq09THX2bHq64en4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735955615; c=relaxed/simple;
-	bh=QDBUR4qKB1ODaiFJJ8wGEXUNaWqdCpXdP83FGHj5ec4=;
-	h=Date:To:From:Subject:Message-Id; b=CQYQyS9lsinZAYsC4nH94+9D2hFHu6Retl/Y4uGKZg8OCBEHUBx4euNRU3vL8T8bsRHDhjRkR/QBcC5TV36apKcoLL1/2A94mDdwFqSYpiSLAiIKlJygHXXB3DsZvdqQTCdZwx33Fy5ctlqfjyv1fVFnjF1q0undrVBD3iTCXxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zp/dSYyf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735957368; c=relaxed/simple;
+	bh=fxB3Ti3hjwmH3Qo/7EwrmFnP37wQdhf6eFCNDYeJi0E=;
+	h=Date:To:From:Subject:Message-Id; b=Y6CyUVGIN8OYCrg29r3B+mYvtEbIXdBOipHz2XqxK1tQJYEppnZeHf1S8Gxjod/0woIy02tp0WhImSYwObf7qI3vvHo1zPi4cVTm1zxD4fxaILypoq3YOxMrm2LGKU/BL/B+srxaS9RGExggnkQKkWIG05Y8IFPeG0mJbg51/XA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jxc92nS7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zp/dSYyf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3D71C4CED6;
-	Sat,  4 Jan 2025 01:53:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jxc92nS7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 468F4C4CED6;
+	Sat,  4 Jan 2025 02:22:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735955615;
-	bh=QDBUR4qKB1ODaiFJJ8wGEXUNaWqdCpXdP83FGHj5ec4=;
+	s=korg; t=1735957368;
+	bh=fxB3Ti3hjwmH3Qo/7EwrmFnP37wQdhf6eFCNDYeJi0E=;
 	h=Date:To:From:Subject:From;
-	b=zp/dSYyfHRFb7gPylxTXJ9uMDQsysw21FqIQvuropRm79Ne3AOzPh+nNCiyrlEr6k
-	 sAZF56gYmgjbURSAceDyQo26PYtgJXtDBc68qJQO+WeDKbvk4eYcT3WkjScf3FqVW2
-	 AF5IGVJUXsIBsaFHe8IO59TX/E1AbyDbK5Xq89pU=
-Date: Fri, 03 Jan 2025 17:53:34 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,mingo@redhat.com,marmarek@invisiblethingslab.com,luto@kernel.org,hpa@zytor.com,dave.hansen@linux.intel.com,jgross@suse.com,akpm@linux-foundation.org
+	b=Jxc92nS7UXAwa21oJuO+9GJjhJ8oB3eDtumLlQPuLC9mHCfTaedrsdD5f0U/Viqz5
+	 trOancYajniXmHgCrRa2Lf2b6tlU0cg8kZKno4IshmzPC9ymdPVSss26NJissNbRjg
+	 YE4P7UbtzNXe0lL/gL8wSfsYFrfT7U7LiUOzUuBo=
+Date: Fri, 03 Jan 2025 18:22:47 -0800
+To: mm-commits@vger.kernel.org,zzqq0103.hey@gmail.com,willy@infradead.org,shr@devkernel.io,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250104015334.F3D71C4CED6@smtp.kernel.org>
+Subject: + mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250104022248.468F4C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/execmem: fix ROX cache usage in Xen PV guests
+     Subject: mm: fix div by zero in bdi_ratio_from_pages
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch
+     mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Juergen Gross <jgross@suse.com>
-Subject: x86/execmem: fix ROX cache usage in Xen PV guests
-Date: Fri, 3 Jan 2025 07:56:31 +0100
+From: Stefan Roesch <shr@devkernel.io>
+Subject: mm: fix div by zero in bdi_ratio_from_pages
+Date: Fri, 3 Jan 2025 17:20:37 -0800
 
-The recently introduced ROX cache for modules is assuming large page
-support in 64-bit mode without testing the related feature bit.  This
-results in breakage when running as a Xen PV guest, as in this mode large
-pages are not supported.
+During testing it has been detected, that it is possible to get div by
+zero error in bdi_set_min_bytes.  The error is caused by the function
+bdi_ratio_from_pages().  bdi_ratio_from_pages() calls global_dirty_limits.
+If the dirty threshold is 0, the div by zero is raised.  This can happen
+if the root user is setting:
 
-Fix that by testing the X86_FEATURE_PSE capability when deciding whether
-to enable the ROX cache.
+echo 0 > /proc/sys/vm/dirty_ration.
 
-Link: https://lkml.kernel.org/r/20250103065631.26459-1-jgross@suse.com
-Fixes: 2e45474ab14f ("execmem: add support for cache of large ROX pages")
-Signed-off-by: Juergen Gross <jgross@suse.com>
-Reported-by: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
-Tested-by: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The following is a test case:
+
+echo 0 > /proc/sys/vm/dirty_ratio
+cd /sys/class/bdi/<device>
+echo 1 > strict_limit
+echo 8192 > min_bytes
+
+==> error is raised.
+
+The problem is addressed by returning -EINVAL if dirty_ratio or
+dirty_bytes is set to 0.
+
+Link: https://lkml.kernel.org/r/20250104012037.159386-1-shr@devkernel.io
+Reported-by: cheung wall <zzqq0103.hey@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/87pll35yd0.fsf@devkernel.io/T/#t
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Qiang Zhang <zzqq0103.hey@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/x86/mm/init.c~x86-execmem-fix-rox-cache-usage-in-xen-pv-guests
-+++ a/arch/x86/mm/init.c
-@@ -1080,7 +1080,8 @@ struct execmem_info __init *execmem_arch
+--- a/mm/page-writeback.c~mm-fix-div-by-zero-in-bdi_ratio_from_pages
++++ a/mm/page-writeback.c
+@@ -692,6 +692,8 @@ static unsigned long bdi_ratio_from_page
+ 	unsigned long ratio;
  
- 	start = MODULES_VADDR + offset;
+ 	global_dirty_limits(&background_thresh, &dirty_thresh);
++	if (!dirty_thresh)
++		return -EINVAL;
+ 	ratio = div64_u64(pages * 100ULL * BDI_RATIO_SCALE, dirty_thresh);
  
--	if (IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX)) {
-+	if (IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX) &&
-+	    cpu_feature_enabled(X86_FEATURE_PSE)) {
- 		pgprot = PAGE_KERNEL_ROX;
- 		flags = EXECMEM_KASAN_SHADOW | EXECMEM_ROX_CACHE;
- 	} else {
+ 	return ratio;
 _
 
-Patches currently in -mm which might be from jgross@suse.com are
+Patches currently in -mm which might be from shr@devkernel.io are
 
-x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch
+mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
 
