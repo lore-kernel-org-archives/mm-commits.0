@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A2252F22
-	for <mm-commits@vger.kernel.org>; Fri,  3 Jan 2025 00:05:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC07537F8
+	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 01:53:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735862731; cv=none; b=Ri6zjKpxPMi3yBAygUeGkTSImYv+3Xa2CXRuj0ObcvqmCm+9It7q7qbYh2ltK+/bJmin0FOK/XENVfBNMH5Okwz6X8h/AqMqMvTPSm39/YP7tUrzKh22owpILUM/Bo5YziK+Mp0JmecKZ+WPy2zAToSW+tEEWOPECUkv9nXA/Vs=
+	t=1735955615; cv=none; b=evvQRp1qZt4J7hGZt0EmKxKu/8eKguN7wHkqLlPA3mLTEf6qWivvdqrvlUgzgPUBwR06rHhlRsCgpc1+JlMaqYdnlB1YHihcVPWScujuiPKohlZ2fAdwTRtBifLotw874PHJ+0PKqj14LBukXRApGs0J4gmaZOvSITXw++b+fak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735862731; c=relaxed/simple;
-	bh=F4NZsq0KrIzfd9sjpNVgM6+/xCzXWQ9OKvLQjBjFprg=;
-	h=Date:To:From:Subject:Message-Id; b=eYEZZ1CVdUVV+7KJmjsLzI5wFF+5KYr6Uw93kktpFrnDnkJJI0n5gJi5fn7TshyEfx/lAFmzD+/Fn5pnSuxm7wP9g1U+pGjBHDhsadcEHm+caACi8vpa6gEYkoGG1bj1CAeSDygdsV/nWuc+lkz7LvNSv2TuDfgfh5fpe1PGSWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NrUREvph; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735955615; c=relaxed/simple;
+	bh=QDBUR4qKB1ODaiFJJ8wGEXUNaWqdCpXdP83FGHj5ec4=;
+	h=Date:To:From:Subject:Message-Id; b=CQYQyS9lsinZAYsC4nH94+9D2hFHu6Retl/Y4uGKZg8OCBEHUBx4euNRU3vL8T8bsRHDhjRkR/QBcC5TV36apKcoLL1/2A94mDdwFqSYpiSLAiIKlJygHXXB3DsZvdqQTCdZwx33Fy5ctlqfjyv1fVFnjF1q0undrVBD3iTCXxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zp/dSYyf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NrUREvph"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B45C4CED0;
-	Fri,  3 Jan 2025 00:05:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zp/dSYyf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3D71C4CED6;
+	Sat,  4 Jan 2025 01:53:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735862730;
-	bh=F4NZsq0KrIzfd9sjpNVgM6+/xCzXWQ9OKvLQjBjFprg=;
+	s=korg; t=1735955615;
+	bh=QDBUR4qKB1ODaiFJJ8wGEXUNaWqdCpXdP83FGHj5ec4=;
 	h=Date:To:From:Subject:From;
-	b=NrUREvphrI3IdDyLQ5o7s6R5ZPVKOIx6qbqnfGLDx690aCpQccx8FrqKscSPi5UOi
-	 uCp1e8wpto0vzWqr6YM/4P1OpHx9Uy87cgP6H2yi2sgj7uMOe5cQzYmmcjQz06388t
-	 4KgYdcmy1EDQ1rpFihx0qu9JpWpyelLdWai5y690=
-Date: Thu, 02 Jan 2025 16:05:30 -0800
-To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,hyeonggon.yoo@sk.com,gourry@gourry.net,ak@linux.intel.com,honggyu.kim@sk.com,akpm@linux-foundation.org
+	b=zp/dSYyfHRFb7gPylxTXJ9uMDQsysw21FqIQvuropRm79Ne3AOzPh+nNCiyrlEr6k
+	 sAZF56gYmgjbURSAceDyQo26PYtgJXtDBc68qJQO+WeDKbvk4eYcT3WkjScf3FqVW2
+	 AF5IGVJUXsIBsaFHe8IO59TX/E1AbyDbK5Xq89pU=
+Date: Fri, 03 Jan 2025 17:53:34 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,mingo@redhat.com,marmarek@invisiblethingslab.com,luto@kernel.org,hpa@zytor.com,dave.hansen@linux.intel.com,jgross@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250103000530.B4B45C4CED0@smtp.kernel.org>
+Subject: + x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250104015334.F3D71C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: count MPOL_WEIGHTED_INTERLEAVE to "interleave_hit"
+     Subject: x86/execmem: fix ROX cache usage in Xen PV guests
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch
+     x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Honggyu Kim <honggyu.kim@sk.com>
-Subject: mm/mempolicy: count MPOL_WEIGHTED_INTERLEAVE to "interleave_hit"
-Date: Fri, 27 Dec 2024 18:57:37 +0900
+From: Juergen Gross <jgross@suse.com>
+Subject: x86/execmem: fix ROX cache usage in Xen PV guests
+Date: Fri, 3 Jan 2025 07:56:31 +0100
 
-Commit fa3bea4e1f82 introduced MPOL_WEIGHTED_INTERLEAVE but it missed
-adding its counter to "interleave_hit" of numastat, which is located at
-/sys/devices/system/node/nodeN/ directory.
+The recently introduced ROX cache for modules is assuming large page
+support in 64-bit mode without testing the related feature bit.  This
+results in breakage when running as a Xen PV guest, as in this mode large
+pages are not supported.
 
-It'd be better to add weighted interleving counter info to the existing
-"interleave_hit" instead of introducing a new counter
-"weighted_interleave_hit".
+Fix that by testing the X86_FEATURE_PSE capability when deciding whether
+to enable the ROX cache.
 
-Link: https://lkml.kernel.org/r/20241227095737.645-1-honggyu.kim@sk.com
-Fixes: fa3bea4e1f82 ("mm/mempolicy: introduce MPOL_WEIGHTED_INTERLEAVE for weighted interleaving")
-Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Hyeonggon Yoo <hyeonggon.yoo@sk.com>
-Tested-by: Yunjeong Mun <yunjeong.mun@sk.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Link: https://lkml.kernel.org/r/20250103065631.26459-1-jgross@suse.com
+Fixes: 2e45474ab14f ("execmem: add support for cache of large ROX pages")
+Signed-off-by: Juergen Gross <jgross@suse.com>
+Reported-by: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
+Tested-by: Marek Marczykowski-Górecki <marmarek@invisiblethingslab.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ++-
+ arch/x86/mm/init.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit
-+++ a/mm/mempolicy.c
-@@ -2268,7 +2268,8 @@ struct page *alloc_pages_mpol_noprof(gfp
+--- a/arch/x86/mm/init.c~x86-execmem-fix-rox-cache-usage-in-xen-pv-guests
++++ a/arch/x86/mm/init.c
+@@ -1080,7 +1080,8 @@ struct execmem_info __init *execmem_arch
  
- 	page = __alloc_pages_noprof(gfp, order, nid, nodemask);
+ 	start = MODULES_VADDR + offset;
  
--	if (unlikely(pol->mode == MPOL_INTERLEAVE) && page) {
-+	if (unlikely(pol->mode == MPOL_INTERLEAVE ||
-+		     pol->mode == MPOL_WEIGHTED_INTERLEAVE) && page) {
- 		/* skip NUMA_INTERLEAVE_HIT update if numa stats is disabled */
- 		if (static_branch_likely(&vm_numa_stat_key) &&
- 		    page_to_nid(page) == nid) {
+-	if (IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX)) {
++	if (IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX) &&
++	    cpu_feature_enabled(X86_FEATURE_PSE)) {
+ 		pgprot = PAGE_KERNEL_ROX;
+ 		flags = EXECMEM_KASAN_SHADOW | EXECMEM_ROX_CACHE;
+ 	} else {
 _
 
-Patches currently in -mm which might be from honggyu.kim@sk.com are
+Patches currently in -mm which might be from jgross@suse.com are
 
-mm-mempolicy-count-mpol_weighted_interleave-to-interleave_hit.patch
-mm-damon-core-remove-duplicate-list_empty-quota-goals-check.patch
+x86-execmem-fix-rox-cache-usage-in-xen-pv-guests.patch
 
