@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3F41BDCF
-	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:36:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D97136351
+	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:45:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735958215; cv=none; b=WWR2iKarbuhlqzXNYXgMvr+BU+e+c/dueF3I0Zie6Q4KpMFQVrVAT2eJaceQafZRvaUsBcHLeujGpVcVsVR5T3WGL4jnKSzk9Telm0Dd+rsRbOG/+WOtiC3Oec/mEWfHlYu1xvsmVbtyverkhOw+zl9KM+5sENM2cqNxs4thv6I=
+	t=1735958709; cv=none; b=LaYL2UnQLgYUJKLbUtExXM+qJJbY8ACpj2FuKrVR7eL8+keVDZ5n5VSJjhyhoK7UWiKyGuaTK6TgeqGxLJOfkWrx/rndyme2I8ICoDtfMrwagQNnVJ7l2JlCSDViEErUdHgRHlACaedhPIEuLVKNYM3Bsj1wUTnYpElhhFKXD1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735958215; c=relaxed/simple;
-	bh=xN80ig4vC+0R5eOG566IhP/MkBDBYYLQ+3NK5DLHdLc=;
-	h=Date:To:From:Subject:Message-Id; b=Zn9hz9S4WM5vxhlRrd6Dfq39jOLDb52Xck+A5PhmgIfYJNsg5DjqxhFm8v7/BvNSbYTozWqwQf7jJW2ECWG7XZ4d4hCq6vO9Jiirl+Sq4PA+o1y4Hsz2Sdhy/Vx2Rrjr5vf6Gm1Xt7c8PvHpytX7IwNR7AFsfyyfGYaM6y5A/7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T5CYI92B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735958709; c=relaxed/simple;
+	bh=nlPdXRfOYxxiNgmXPr1ePtHPI/3vwgjGOuzyLUTTfG8=;
+	h=Date:To:From:Subject:Message-Id; b=JKiCRsIo3d7VokZe6LKTP7qYw5qoU0x5v7sSaP6U1U0jBJKoBNAGXoTNxtCLwtnW3bLl5DJmN6cISIASuXaS8c2MUWUtlvcccR/oZP6fDC98+gKCpe8Xjzyj6HknrSaujI7nd5l8+7D+BEPmXO+9KYRlX6smUCbu9CY6VVL1Cxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=txHU4q1a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T5CYI92B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB5DC4CED6;
-	Sat,  4 Jan 2025 02:36:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="txHU4q1a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51DD5C4CED6;
+	Sat,  4 Jan 2025 02:45:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735958215;
-	bh=xN80ig4vC+0R5eOG566IhP/MkBDBYYLQ+3NK5DLHdLc=;
+	s=korg; t=1735958709;
+	bh=nlPdXRfOYxxiNgmXPr1ePtHPI/3vwgjGOuzyLUTTfG8=;
 	h=Date:To:From:Subject:From;
-	b=T5CYI92BOqZ0wdVUkRp8YCH/n0wDhZlMFmERk+V9DDs6fFgCDFFChbRwRdY9d9uoC
-	 7qECooPZi4qR7rCkV5PiVYueo3pV+jlwYg5CeSSE38C60oyTsDTJmNTaCMjccgA2Gl
-	 cXAnNunwVOrQrh+5T/LhYloSNt3CuCVLE8Rx30KQ=
-Date: Fri, 03 Jan 2025 18:36:54 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,mingo@elte.hu,luto@kernel.org,linus.walleij@linaro.org,dave.hansen@linux.intel.com,catalin.marinas@arm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=txHU4q1ahMfXi5wnSz0uV4wUfgiPvolHU5rhJsJaIkSGpBw7hx+x1yMWVJ0ZGUnPw
+	 0sdCnG7Io0NIDLIwAcwAPzTbEGp5iY6ICp00tVk1j1DQsCFi0VFXMsTRY2f9yPav+F
+	 b9kn/4gcKisUl4fQMb0R7ISNB0dpkfrfKIz10MD0=
+Date: Fri, 03 Jan 2025 18:45:08 -0800
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-ctor-dtor-at-pgd-level.patch added to mm-unstable branch
-Message-Id: <20250104023654.DEB5DC4CED6@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch added to mm-unstable branch
+Message-Id: <20250104024509.51DD5C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce ctor/dtor at PGD level
+     Subject: mm/damon/sysfs-schemes: remove unnecessary schemes existence check in damon_sysfs_schemes_clear_regions()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-introduce-ctor-dtor-at-pgd-level.patch
+     mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-ctor-dtor-at-pgd-level.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,166 +58,171 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: mm: introduce ctor/dtor at PGD level
-Date: Fri, 3 Jan 2025 18:44:15 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: remove unnecessary schemes existence check in damon_sysfs_schemes_clear_regions()
+Date: Fri, 3 Jan 2025 09:43:51 -0800
 
-Following on from the introduction of P4D-level ctor/dtor, let's finish
-the job and introduce ctor/dtor at PGD level.  The incurred improvement in
-page accounting is minimal - the main motivation is to create a single,
-generic place where construction/destruction hooks can be added for all
-page table pages.
+Patch series "mm/damon: replace most damon_callback usages in sysfs with
+new core functions".
 
-This patch should cover all architectures and all configurations where
-PGDs are one or more regular pages.  This excludes any configuration where
-PGDs are allocated from a kmem_cache object.
+DAMON provides damon_callback API that notifies monitoring events and
+allows safe access to damon_ctx internal data.  The usage is simple. 
+Users register and deregister callback functions for different monitoring
+events in damon_ctx.  Then the DAMON worker thread (kdamond) of the
+damon_ctx calls back the registered functions on the events.
 
-Link: https://lkml.kernel.org/r/20250103184415.2744423-7-kevin.brodsky@arm.com
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+It is designed in such simple way because it was sufficient for usages of
+DAMON at the early days.  We also wanted to make it flexible so that API
+user code can implement any required additional features on top of
+damon_callback on their demands.
+
+As expected, more sophisticated usages have invented.  Online updates of
+DAMON parameters and DAMOS auto-tuning inputs, and online retrieval of
+DAMOS statistics and tried regions information are such usages.  Because
+damon_callback doesn't provide any explicit synchronization mechanism, the
+user ABIs for exposing such functionalities are implemented in
+asynchronous ways (DAMON_RECLAIM and DAMON_LRU_SORT}), or synchronous ways
+(DAMON_SYSFS) with additional synchronization mechanisms that built inside
+the ABI implementation, on top of damon_callback.
+
+So damon_callback is working as expected.  However, the additional
+mechanisms built inside ABI on top of damon_callback is becoming somewhat
+too big and not easy to maintain.  The additional mechanisms can be
+smaller and easier to maintain when implemented inside the core logic
+layer.
+
+Introduce two new DAMON core API, namely 'damon_call()' and
+'damos_walk()'.  The two functions support synchronous access to
+- damon_ctx internal data including DAMON parameters and monitoring
+  results, and
+- DAMOS-specific data such as regions that each DAMOS action is applied,
+respectively.
+
+And replace most of damon_callback usages in DAMON sysfs interface with
+the new core API functions.  damon_callback usage for online DAMON
+parameters tuning is not replaced in this series, since it has specific
+callback timing assumptions that require more works.
+
+Patch sequence
+==============
+
+First two patches are fixups for simplifying the following changes.  Those
+remove a unnecessary condition check and a synchronization, respectively.
+
+Third patch implements one of the new DAMON core APIs, namely
+damon_call().  Three patches replacing damon_callback usages in DAMON
+sysfs interface using damon_call() follow.
+
+Then, seventh and eighth patches introduces the other new DAMON API,
+damos_walk(), and document it on the design doc.  Ninth patch replaces two
+damon_callback usages in DAMON sysfs interface using damos_walk().
+
+The tenth patch finally cleans up code that no more being used.
+
+
+This patch (of 10):
+
+damon_sysfs_schemes_clear_regions() skips removing the scheme tried region
+directories only if the matching scheme is still ongoing.  It is
+unnecessary check, since what users want is just removing the entire
+region directories.  Remove the unnecessary check.
+
+Link: https://lkml.kernel.org/r/20250103174400.54890-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250103174400.54890-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/mcf_pgalloc.h |    3 ++-
- arch/m68k/mm/motorola.c             |    6 ++++--
- arch/s390/include/asm/pgalloc.h     |    9 ++++++++-
- include/asm-generic/pgalloc.h       |    3 ++-
- include/linux/mm.h                  |    5 +++++
- 5 files changed, 21 insertions(+), 5 deletions(-)
+ mm/damon/sysfs-common.h  |    3 +--
+ mm/damon/sysfs-schemes.c |   16 +++++-----------
+ mm/damon/sysfs.c         |    2 +-
+ 3 files changed, 7 insertions(+), 14 deletions(-)
 
---- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-introduce-ctor-dtor-at-pgd-level
-+++ a/arch/m68k/include/asm/mcf_pgalloc.h
-@@ -73,7 +73,7 @@ static inline void pte_free(struct mm_st
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions
++++ a/mm/damon/sysfs.c
+@@ -1262,7 +1262,7 @@ static int damon_sysfs_clear_schemes_reg
+ 	if (!ctx)
+ 		return -EINVAL;
+ 	return damon_sysfs_schemes_clear_regions(
+-			kdamond->contexts->contexts_arr[0]->schemes, ctx);
++			kdamond->contexts->contexts_arr[0]->schemes);
+ }
  
- static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ static inline bool damon_sysfs_kdamond_running(
+--- a/mm/damon/sysfs-common.h~mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions
++++ a/mm/damon/sysfs-common.h
+@@ -56,8 +56,7 @@ bool damos_sysfs_regions_upd_done(void);
+ int damon_sysfs_schemes_update_regions_stop(struct damon_ctx *ctx);
+ 
+ int damon_sysfs_schemes_clear_regions(
+-		struct damon_sysfs_schemes *sysfs_schemes,
+-		struct damon_ctx *ctx);
++		struct damon_sysfs_schemes *sysfs_schemes);
+ 
+ int damos_sysfs_set_quota_scores(struct damon_sysfs_schemes *sysfs_schemes,
+ 		struct damon_ctx *ctx);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions
++++ a/mm/damon/sysfs-schemes.c
+@@ -2208,20 +2208,14 @@ void damos_sysfs_mark_finished_regions_u
+ 
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+ int damon_sysfs_schemes_clear_regions(
+-		struct damon_sysfs_schemes *sysfs_schemes,
+-		struct damon_ctx *ctx)
++		struct damon_sysfs_schemes *sysfs_schemes)
  {
--	pagetable_free(virt_to_ptdesc(pgd));
-+	pagetable_dtor_free(virt_to_ptdesc(pgd));
- }
+-	struct damos *scheme;
+-	int schemes_idx = 0;
++	int i;
  
- static inline pgd_t *pgd_alloc(struct mm_struct *mm)
-@@ -84,6 +84,7 @@ static inline pgd_t *pgd_alloc(struct mm
+-	damon_for_each_scheme(scheme, ctx) {
++	for (i = 0; i < sysfs_schemes->nr; i++) {
+ 		struct damon_sysfs_scheme *sysfs_scheme;
  
- 	if (!ptdesc)
- 		return NULL;
-+	pagetable_pgd_ctor(ptdesc);
- 	new_pgd = ptdesc_address(ptdesc);
- 
- 	memcpy(new_pgd, swapper_pg_dir, PTRS_PER_PGD * sizeof(pgd_t));
---- a/arch/m68k/mm/motorola.c~mm-introduce-ctor-dtor-at-pgd-level
-+++ a/arch/m68k/mm/motorola.c
-@@ -169,6 +169,9 @@ void *get_pointer_table(int type)
- 		case TABLE_PMD:
- 			pagetable_pmd_ctor(virt_to_ptdesc(page));
- 			break;
-+		case TABLE_PGD:
-+			pagetable_pgd_ctor(virt_to_ptdesc(page));
-+			break;
- 		}
- 
- 		mmu_page_ctor(page);
-@@ -207,8 +210,7 @@ int free_pointer_table(void *table, int
- 		/* all tables in page are free, free page */
- 		list_del(dp);
- 		mmu_page_dtor((void *)page);
--		if (type == TABLE_PTE || type == TABLE_PMD)
--			pagetable_dtor(virt_to_ptdesc((void *)page));
-+		pagetable_dtor(virt_to_ptdesc((void *)page));
- 		free_page (page);
- 		return 1;
- 	} else if (ptable_list[type].next != dp) {
---- a/arch/s390/include/asm/pgalloc.h~mm-introduce-ctor-dtor-at-pgd-level
-+++ a/arch/s390/include/asm/pgalloc.h
-@@ -130,11 +130,18 @@ static inline void pud_populate(struct m
- 
- static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+-		/* user could have removed the scheme sysfs dir */
+-		if (schemes_idx >= sysfs_schemes->nr)
+-			break;
+-
+-		sysfs_scheme = sysfs_schemes->schemes_arr[schemes_idx++];
++		sysfs_scheme = sysfs_schemes->schemes_arr[i];
+ 		damon_sysfs_scheme_regions_rm_dirs(
+ 				sysfs_scheme->tried_regions);
+ 		sysfs_scheme->tried_regions->total_bytes = 0;
+@@ -2271,7 +2265,7 @@ int damon_sysfs_schemes_update_regions_s
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+ 		struct damon_ctx *ctx, bool total_bytes_only)
  {
--	return (pgd_t *) crst_table_alloc(mm);
-+	unsigned long *table = crst_table_alloc(mm);
-+
-+	if (!table)
-+		return NULL;
-+	pagetable_pgd_ctor(virt_to_ptdesc(table));
-+
-+	return (pgd_t *) table;
- }
- 
- static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
- {
-+	pagetable_dtor(virt_to_ptdesc(pgd));
- 	crst_table_free(mm, (unsigned long *) pgd);
- }
- 
---- a/include/asm-generic/pgalloc.h~mm-introduce-ctor-dtor-at-pgd-level
-+++ a/include/asm-generic/pgalloc.h
-@@ -271,6 +271,7 @@ static inline pgd_t *__pgd_alloc_noprof(
- 	if (!ptdesc)
- 		return NULL;
- 
-+	pagetable_pgd_ctor(ptdesc);
- 	return ptdesc_address(ptdesc);
- }
- #define __pgd_alloc(...)	alloc_hooks(__pgd_alloc_noprof(__VA_ARGS__))
-@@ -280,7 +281,7 @@ static inline void __pgd_free(struct mm_
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pgd);
- 
- 	BUG_ON((unsigned long)pgd & (PAGE_SIZE-1));
--	pagetable_free(ptdesc);
-+	pagetable_dtor_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_PGD_FREE
---- a/include/linux/mm.h~mm-introduce-ctor-dtor-at-pgd-level
-+++ a/include/linux/mm.h
-@@ -3243,6 +3243,11 @@ static inline void pagetable_p4d_ctor(st
- 	__pagetable_ctor(ptdesc);
- }
- 
-+static inline void pagetable_pgd_ctor(struct ptdesc *ptdesc)
-+{
-+	__pagetable_ctor(ptdesc);
-+}
-+
- extern void __init pagecache_init(void);
- extern void free_initmem(void);
- 
+-	damon_sysfs_schemes_clear_regions(sysfs_schemes, ctx);
++	damon_sysfs_schemes_clear_regions(sysfs_schemes);
+ 	damon_sysfs_schemes_for_damos_callback = sysfs_schemes;
+ 	damos_tried_regions_init_upd_status(sysfs_schemes, ctx);
+ 	damos_regions_upd_total_bytes_only = total_bytes_only;
 _
 
-Patches currently in -mm which might be from kevin.brodsky@arm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-selftests-mm-fix-condition-in-uffd_move_test_common.patch
-selftests-mm-fix-wmaybe-uninitialized-warnings.patch
-selftests-mm-fix-strncpy-length.patch
-selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
-selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix.patch
-selftests-mm-build-with-o2.patch
-selftests-mm-remove-unused-pkey-helpers.patch
-selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
-selftests-mm-ensure-pkey-h-define-inline-functions-only.patch
-selftests-mm-remove-empty-pkey-helper-definition.patch
-selftests-mm-ensure-non-global-pkey-symbols-are-marked-static.patch
-selftests-mm-use-sys_pkey-helpers-consistently.patch
-selftests-mm-use-sys_pkey-helpers-consistently-fix.patch
-selftests-mm-rename-pkey-register-macro.patch
-selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch
-selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch
-riscv-mm-skip-pgtable-level-check-in-pudp4d_alloc_one.patch
-asm-generic-pgalloc-provide-generic-p4d_alloc_onefree.patch
-mm-move-common-part-of-pagetable__ctor-to-helper.patch
-parisc-mm-ensure-pagetable_pmd_tor-are-called.patch
-m68k-mm-add-calls-to-pagetable_pmd_tor.patch
-arm-mm-rename-pgd-helpers.patch
-asm-generic-pgalloc-provide-generic-__pgd_allocfree.patch
-mm-introduce-ctor-dtor-at-pgd-level.patch
+samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
+samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
+samples-damon-wsse-implement-working-set-size-estimation-and-logging.patch
+samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch
+samples-damon-prcl-implement-schemes-setup.patch
+replace-free-hugepage-folios-after-migration-fix-2.patch
+docs-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
+docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch
+selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch
+selftests-damon-remove-tests-for-damon-debugfs-interface.patch
+kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
+mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
+mm-damon-remove-damon-debugfs-interface.patch
+mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
+mm-damon-sysfs-handle-clear_schemes_tried_regions-from-damon-sysfs-context.patch
+mm-damon-core-introduce-damon_call.patch
+mm-damon-sysfs-use-damon_call-for-update_schemes_stats.patch
+mm-damon-sysfs-use-damon_call-for-commit_schemes_quota_goals.patch
+mm-damon-sysfs-use-damon_call-for-update_schemes_effective_quotas.patch
+mm-damon-core-implement-damos_walk.patch
+docs-mm-damon-design-document-damos-regions-walking.patch
+mm-damon-sysfs-use-damos_walk-for-update_schemes_tried_bytesregions.patch
+mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
 
