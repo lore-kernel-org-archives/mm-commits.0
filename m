@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CF0117993
-	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:36:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F416842AAB
+	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:36:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735958198; cv=none; b=kKWERTj+4Z5VcdbUdoOPJ+YNQozjC3dE2lXCT0mKpvAGy7w3B9QBIgU+JsSEJOLXJ14bo+5zZXohWQXG5JYQKFitt1FgPSDiAiuqizavZXmewYny5R+ROFmFTQLyDJxn3bQ/J4Yfkhyrx9bR/uSDRqx9qe7Eg2VA2rYgabcsAe0=
+	t=1735958199; cv=none; b=Jj9g9gWsIRbqvcTZxLmOc5SuQHU3qJvr4f0H6xpFdyPA7/l30rk912WYeLhpwKTFNnV7rMs5bcViekEhtJD7zwFd3NVjDHqh9YupiEWdsn5vtX4dApKOxo2zh67Pnv9brBZ9OCN0dlQy3Eo2tGCaPH2HeD3ozm7SJ9w8q/dIrvU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735958198; c=relaxed/simple;
-	bh=/8XtU1y3dOwfQmhSgEJ0xzy6VbmI/V2IKZ+M8Efmzd0=;
-	h=Date:To:From:Subject:Message-Id; b=FKLqJfd6qA+UVlvuN56m9L0+Trssc8f++FjEmz+kOMiMiZioiqRzHzhiAnIrbWMq/ezFEnNrp+1E0aJQO9EHA4B19czhEeGU4IwE24zdC82bI4O9Br8aEnLb7l4i9RXpd0ejpGdjh6PsMHbmYUqvillpvIs5pioSEPHbXZ4q2Vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XOpgO22B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735958199; c=relaxed/simple;
+	bh=I1KUCjqWVJfHvFInIUIooVvQlt/pvOrPCPMEcDbHDPg=;
+	h=Date:To:From:Subject:Message-Id; b=tefcc53OqKATzNgaLoOblHw9u0usRYT9TIvtc1SnOnCGDRL+Myj903aBjtivgy0CWR8k8R7Hh4AAGcxrRPWhFyler+4qBlMTFhDQuJaZwOvdh5O5KzydQLqFdUtOBfnMm2nbh/1BVvmrlS7eDJOdgqvaLsnAEEk5rVIgyz63NoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FVT3vNgv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XOpgO22B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D7CC4CED6;
-	Sat,  4 Jan 2025 02:36:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FVT3vNgv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81A75C4CED6;
+	Sat,  4 Jan 2025 02:36:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735958196;
-	bh=/8XtU1y3dOwfQmhSgEJ0xzy6VbmI/V2IKZ+M8Efmzd0=;
+	s=korg; t=1735958198;
+	bh=I1KUCjqWVJfHvFInIUIooVvQlt/pvOrPCPMEcDbHDPg=;
 	h=Date:To:From:Subject:From;
-	b=XOpgO22BUIrwY/etz5MnVmRjhrjvXkFvvJyBjjDjeHxjXHVp/GwuiertS2j3C/Gi3
-	 pgjFfrqO3wDMnyx6/sdIVlK8C36K4RWMXjZLxbs7s4OXo6ceXFtrahOx33b07WoPml
-	 v+mQ2s6/I0gQkKl2GmLG7TTRVj+gIEJg92IkVSA8=
-Date: Fri, 03 Jan 2025 18:36:35 -0800
+	b=FVT3vNgvckjqbt8nWd2kjXsZA1N3aPZHrlFQqJaH+zahLGuAbZ5wuyM9SxFPr3fYs
+	 sOk6L/RHPVHlm6alZ7fG9C7fZaTJ/XGPZ0qEJXKeynMsxRPOlyQFgUaH50YiH7PaPK
+	 vNjZuGGDKAnNcmLeQ3C7brJgcP7mPn1nNqZdHx6g=
+Date: Fri, 03 Jan 2025 18:36:38 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,mingo@elte.hu,luto@kernel.org,linus.walleij@linaro.org,dave.hansen@linux.intel.com,catalin.marinas@arm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-common-part-of-pagetable__ctor-to-helper.patch added to mm-unstable branch
-Message-Id: <20250104023636.77D7CC4CED6@smtp.kernel.org>
+Subject: + parisc-mm-ensure-pagetable_pmd_tor-are-called.patch added to mm-unstable branch
+Message-Id: <20250104023638.81A75C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move common part of pagetable_*_ctor to helper
+     Subject: parisc: mm: ensure pagetable_pmd_[cd]tor are called
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-common-part-of-pagetable__ctor-to-helper.patch
+     parisc-mm-ensure-pagetable_pmd_tor-are-called.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-common-part-of-pagetable__ctor-to-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-mm-ensure-pagetable_pmd_tor-are-called.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: mm: move common part of pagetable_*_ctor to helper
-Date: Fri, 3 Jan 2025 18:44:10 +0000
+Subject: parisc: mm: ensure pagetable_pmd_[cd]tor are called
+Date: Fri, 3 Jan 2025 18:44:11 +0000
 
-Patch series "Account page tables at all levels".
+The implementation of pmd_{alloc_one,free} on parisc requires a non-zero
+allocation order, but is completely standard aside from that.  Let's reuse
+the generic implementation of pmd_alloc_one().  Explicit zeroing is not
+needed as GFP_PGTABLE_KERNEL includes __GFP_ZERO.  The generic pmd_free()
+can handle higher allocation orders so we don't need to define our own.
 
-This series should be considered in conjunction with Qi's series [1].
-Together, they ensure that page table ctor/dtor are called at all levels
-(PTE to PGD) and all architectures, where page tables are regular pages.
-Besides the improvement in accounting and general cleanup, this also
-create a single place where construction/destruction hooks can be called
-for all page tables, namely the now-generic pagetable_dtor() introduced
-by Qi, and __pagetable_ctor() introduced in this series.
+These changes ensure that pagetable_pmd_[cd]tor are called, improving the
+accounting of page table pages.
 
-[1] https://lore.kernel.org/linux-mm/cover.1735549103.git.zhengqi.arch@bytedance.com/
-
-
-This patch (of 6):
-
-pagetable_*_ctor all have the same basic implementation.  Move the common
-part to a helper to reduce duplication.
-
-Link: https://lkml.kernel.org/r/20250103184415.2744423-1-kevin.brodsky@arm.com
-Link: https://lkml.kernel.org/r/20250103184415.2744423-2-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250103184415.2744423-3-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Linus Walleij <linus.walleij@linaro.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -94,80 +85,52 @@ Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ arch/parisc/include/asm/pgalloc.h |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
---- a/include/linux/mm.h~mm-move-common-part-of-pagetable__ctor-to-helper
-+++ a/include/linux/mm.h
-@@ -3076,6 +3076,14 @@ static inline bool ptlock_init(struct pt
- static inline void ptlock_free(struct ptdesc *ptdesc) {}
- #endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+--- a/arch/parisc/include/asm/pgalloc.h~parisc-mm-ensure-pagetable_pmd_tor-are-called
++++ a/arch/parisc/include/asm/pgalloc.h
+@@ -11,7 +11,6 @@
+ #include <asm/cache.h>
  
-+static inline void __pagetable_ctor(struct ptdesc *ptdesc)
-+{
-+	struct folio *folio = ptdesc_folio(ptdesc);
-+
-+	__folio_set_pgtable(folio);
-+	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+}
-+
- static inline void pagetable_dtor(struct ptdesc *ptdesc)
- {
- 	struct folio *folio = ptdesc_folio(ptdesc);
-@@ -3093,12 +3101,9 @@ static inline void pagetable_dtor_free(s
+ #define __HAVE_ARCH_PMD_ALLOC_ONE
+-#define __HAVE_ARCH_PMD_FREE
+ #define __HAVE_ARCH_PGD_FREE
+ #include <asm-generic/pgalloc.h>
  
- static inline bool pagetable_pte_ctor(struct ptdesc *ptdesc)
+@@ -46,17 +45,19 @@ static inline void pud_populate(struct m
+ 
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
  {
--	struct folio *folio = ptdesc_folio(ptdesc);
+-	pmd_t *pmd;
++	struct ptdesc *ptdesc;
++	gfp_t gfp = GFP_PGTABLE_USER;
+ 
+-	pmd = (pmd_t *)__get_free_pages(GFP_PGTABLE_KERNEL, PMD_TABLE_ORDER);
+-	if (likely(pmd))
+-		memset ((void *)pmd, 0, PAGE_SIZE << PMD_TABLE_ORDER);
+-	return pmd;
+-}
 -
- 	if (!ptlock_init(ptdesc))
- 		return false;
--	__folio_set_pgtable(folio);
--	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+	__pagetable_ctor(ptdesc);
- 	return true;
+-static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
+-{
+-	free_pages((unsigned long)pmd, PMD_TABLE_ORDER);
++	if (mm == &init_mm)
++		gfp = GFP_PGTABLE_KERNEL;
++	ptdesc = pagetable_alloc(gfp, PMD_TABLE_ORDER);
++	if (!ptdesc)
++		return NULL;
++	if (!pagetable_pmd_ctor(ptdesc)) {
++		pagetable_free(ptdesc);
++		return NULL;
++	}
++	return ptdesc_address(ptdesc);
  }
+ #endif
  
-@@ -3202,13 +3207,10 @@ static inline spinlock_t *pmd_lock(struc
- 
- static inline bool pagetable_pmd_ctor(struct ptdesc *ptdesc)
- {
--	struct folio *folio = ptdesc_folio(ptdesc);
--
- 	if (!pmd_ptlock_init(ptdesc))
- 		return false;
--	__folio_set_pgtable(folio);
- 	ptdesc_pmd_pts_init(ptdesc);
--	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+	__pagetable_ctor(ptdesc);
- 	return true;
- }
- 
-@@ -3233,18 +3235,12 @@ static inline spinlock_t *pud_lock(struc
- 
- static inline void pagetable_pud_ctor(struct ptdesc *ptdesc)
- {
--	struct folio *folio = ptdesc_folio(ptdesc);
--
--	__folio_set_pgtable(folio);
--	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+	__pagetable_ctor(ptdesc);
- }
- 
- static inline void pagetable_p4d_ctor(struct ptdesc *ptdesc)
- {
--	struct folio *folio = ptdesc_folio(ptdesc);
--
--	__folio_set_pgtable(folio);
--	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+	__pagetable_ctor(ptdesc);
- }
- 
- extern void __init pagecache_init(void);
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
