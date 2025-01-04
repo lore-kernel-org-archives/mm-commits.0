@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F416842AAB
-	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:36:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F0FC42AAB
+	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:36:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735958199; cv=none; b=Jj9g9gWsIRbqvcTZxLmOc5SuQHU3qJvr4f0H6xpFdyPA7/l30rk912WYeLhpwKTFNnV7rMs5bcViekEhtJD7zwFd3NVjDHqh9YupiEWdsn5vtX4dApKOxo2zh67Pnv9brBZ9OCN0dlQy3Eo2tGCaPH2HeD3ozm7SJ9w8q/dIrvU=
+	t=1735958201; cv=none; b=GN0j4mhtBt98iz/4lP9SAlMngfKFEPeYMLFagIMamCrX+E1RL6O+J5odydS9fJ6A5CI8cMFf+SDiKiPKYXLKt4iGpdLiItSrpN9JKmRszIjfaGu4Fnor6xgyp8xIs8UkvLrV17xFUFUZs8VcEb4kmZM1gy92+QgrCFcEPXxIn6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735958199; c=relaxed/simple;
-	bh=I1KUCjqWVJfHvFInIUIooVvQlt/pvOrPCPMEcDbHDPg=;
-	h=Date:To:From:Subject:Message-Id; b=tefcc53OqKATzNgaLoOblHw9u0usRYT9TIvtc1SnOnCGDRL+Myj903aBjtivgy0CWR8k8R7Hh4AAGcxrRPWhFyler+4qBlMTFhDQuJaZwOvdh5O5KzydQLqFdUtOBfnMm2nbh/1BVvmrlS7eDJOdgqvaLsnAEEk5rVIgyz63NoM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FVT3vNgv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1735958201; c=relaxed/simple;
+	bh=QsRUccWb/jzXiy66hjGLhmbckoamRxew//ai85nIHAY=;
+	h=Date:To:From:Subject:Message-Id; b=FYPHr+wuItNMo4c9Nyvb9eKjmUZ+/dJqXYxtcOHmgxTkHZetF5VG4c5SLuREQz3Fv40ybuzETvkUdvwqTxcJCxSr/6dl67B+xEAGHTPpO9i9/dxkC8kmIXYc8+xOlHWEwI+H2JXt6z2z+Y+9hD6B8wWGwJBZZ6mtX5yWw8F/0Bo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rMTk2EQZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FVT3vNgv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81A75C4CED6;
-	Sat,  4 Jan 2025 02:36:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rMTk2EQZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F52CC4CED6;
+	Sat,  4 Jan 2025 02:36:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735958198;
-	bh=I1KUCjqWVJfHvFInIUIooVvQlt/pvOrPCPMEcDbHDPg=;
+	s=korg; t=1735958200;
+	bh=QsRUccWb/jzXiy66hjGLhmbckoamRxew//ai85nIHAY=;
 	h=Date:To:From:Subject:From;
-	b=FVT3vNgvckjqbt8nWd2kjXsZA1N3aPZHrlFQqJaH+zahLGuAbZ5wuyM9SxFPr3fYs
-	 sOk6L/RHPVHlm6alZ7fG9C7fZaTJ/XGPZ0qEJXKeynMsxRPOlyQFgUaH50YiH7PaPK
-	 vNjZuGGDKAnNcmLeQ3C7brJgcP7mPn1nNqZdHx6g=
-Date: Fri, 03 Jan 2025 18:36:38 -0800
+	b=rMTk2EQZdnq+PCHDXamvmLhVYzk+nrCBzOrklHjBRJA2zsKcE9dsYX8mzk+F/FD+0
+	 qrL+coZP8hpYkD94KGm6SWLPlfctOA9Z/k2LHt8Vv0IS0nZclhEYjbY+g7FE/pr0ci
+	 d3L5viY9ochDIQoKot7QhPfp9OTsPn34cUvbllt0=
+Date: Fri, 03 Jan 2025 18:36:40 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,will@kernel.org,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,mingo@elte.hu,luto@kernel.org,linus.walleij@linaro.org,dave.hansen@linux.intel.com,catalin.marinas@arm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + parisc-mm-ensure-pagetable_pmd_tor-are-called.patch added to mm-unstable branch
-Message-Id: <20250104023638.81A75C4CED6@smtp.kernel.org>
+Subject: + m68k-mm-add-calls-to-pagetable_pmd_tor.patch added to mm-unstable branch
+Message-Id: <20250104023640.8F52CC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: parisc: mm: ensure pagetable_pmd_[cd]tor are called
+     Subject: m68k: mm: add calls to pagetable_pmd_[cd]tor
 has been added to the -mm mm-unstable branch.  Its filename is
-     parisc-mm-ensure-pagetable_pmd_tor-are-called.patch
+     m68k-mm-add-calls-to-pagetable_pmd_tor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-mm-ensure-pagetable_pmd_tor-are-called.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-mm-add-calls-to-pagetable_pmd_tor.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: parisc: mm: ensure pagetable_pmd_[cd]tor are called
-Date: Fri, 3 Jan 2025 18:44:11 +0000
+Subject: m68k: mm: add calls to pagetable_pmd_[cd]tor
+Date: Fri, 3 Jan 2025 18:44:12 +0000
 
-The implementation of pmd_{alloc_one,free} on parisc requires a non-zero
-allocation order, but is completely standard aside from that.  Let's reuse
-the generic implementation of pmd_alloc_one().  Explicit zeroing is not
-needed as GFP_PGTABLE_KERNEL includes __GFP_ZERO.  The generic pmd_free()
-can handle higher allocation orders so we don't need to define our own.
+get_pointer_table() and free_pointer_table() already special-case
+TABLE_PTE to call pagetable_pte_[cd]tor.  Let's do the same at PMD level
+to improve accounting further.  TABLE_PGD and TABLE_PMD are currently
+defined to the same value, so we first need to separate them.  That also
+implies separating ptable_list for PMD/PGD levels.
 
-These changes ensure that pagetable_pmd_[cd]tor are called, improving the
-accounting of page table pages.
-
-Link: https://lkml.kernel.org/r/20250103184415.2744423-3-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250103184415.2744423-4-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -88,49 +85,78 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/pgalloc.h |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ arch/m68k/include/asm/motorola_pgalloc.h |    6 +++---
+ arch/m68k/mm/motorola.c                  |   17 ++++++++++++-----
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
---- a/arch/parisc/include/asm/pgalloc.h~parisc-mm-ensure-pagetable_pmd_tor-are-called
-+++ a/arch/parisc/include/asm/pgalloc.h
-@@ -11,7 +11,6 @@
- #include <asm/cache.h>
+--- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-mm-add-calls-to-pagetable_pmd_tor
++++ a/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -9,9 +9,9 @@ extern void mmu_page_ctor(void *page);
+ extern void mmu_page_dtor(void *page);
  
- #define __HAVE_ARCH_PMD_ALLOC_ONE
--#define __HAVE_ARCH_PMD_FREE
- #define __HAVE_ARCH_PGD_FREE
- #include <asm-generic/pgalloc.h>
+ enum m68k_table_types {
+-	TABLE_PGD = 0,
+-	TABLE_PMD = 0, /* same size as PGD */
+-	TABLE_PTE = 1,
++	TABLE_PGD,
++	TABLE_PMD,
++	TABLE_PTE,
+ };
  
-@@ -46,17 +45,19 @@ static inline void pud_populate(struct m
+ extern void init_pointer_table(void *table, int type);
+--- a/arch/m68k/mm/motorola.c~m68k-mm-add-calls-to-pagetable_pmd_tor
++++ a/arch/m68k/mm/motorola.c
+@@ -97,17 +97,19 @@ void mmu_page_dtor(void *page)
  
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
- {
--	pmd_t *pmd;
-+	struct ptdesc *ptdesc;
-+	gfp_t gfp = GFP_PGTABLE_USER;
+ typedef struct list_head ptable_desc;
  
--	pmd = (pmd_t *)__get_free_pages(GFP_PGTABLE_KERNEL, PMD_TABLE_ORDER);
--	if (likely(pmd))
--		memset ((void *)pmd, 0, PAGE_SIZE << PMD_TABLE_ORDER);
--	return pmd;
--}
--
--static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
--{
--	free_pages((unsigned long)pmd, PMD_TABLE_ORDER);
-+	if (mm == &init_mm)
-+		gfp = GFP_PGTABLE_KERNEL;
-+	ptdesc = pagetable_alloc(gfp, PMD_TABLE_ORDER);
-+	if (!ptdesc)
-+		return NULL;
-+	if (!pagetable_pmd_ctor(ptdesc)) {
-+		pagetable_free(ptdesc);
-+		return NULL;
-+	}
-+	return ptdesc_address(ptdesc);
- }
- #endif
+-static struct list_head ptable_list[2] = {
++static struct list_head ptable_list[3] = {
+ 	LIST_HEAD_INIT(ptable_list[0]),
+ 	LIST_HEAD_INIT(ptable_list[1]),
++	LIST_HEAD_INIT(ptable_list[2]),
+ };
  
+ #define PD_PTABLE(page) ((ptable_desc *)&(virt_to_page((void *)(page))->lru))
+ #define PD_PAGE(ptable) (list_entry(ptable, struct page, lru))
+ #define PD_MARKBITS(dp) (*(unsigned int *)&PD_PAGE(dp)->index)
+ 
+-static const int ptable_shift[2] = {
+-	7+2, /* PGD, PMD */
++static const int ptable_shift[3] = {
++	7+2, /* PGD */
++	7+2, /* PMD */
+ 	6+2, /* PTE */
+ };
+ 
+@@ -156,12 +158,17 @@ void *get_pointer_table(int type)
+ 		if (!(page = (void *)get_zeroed_page(GFP_KERNEL)))
+ 			return NULL;
+ 
+-		if (type == TABLE_PTE) {
++		switch (type) {
++		case TABLE_PTE:
+ 			/*
+ 			 * m68k doesn't have SPLIT_PTE_PTLOCKS for not having
+ 			 * SMP.
+ 			 */
+ 			pagetable_pte_ctor(virt_to_ptdesc(page));
++			break;
++		case TABLE_PMD:
++			pagetable_pmd_ctor(virt_to_ptdesc(page));
++			break;
+ 		}
+ 
+ 		mmu_page_ctor(page);
+@@ -200,7 +207,7 @@ int free_pointer_table(void *table, int
+ 		/* all tables in page are free, free page */
+ 		list_del(dp);
+ 		mmu_page_dtor((void *)page);
+-		if (type == TABLE_PTE)
++		if (type == TABLE_PTE || type == TABLE_PMD)
+ 			pagetable_dtor(virt_to_ptdesc((void *)page));
+ 		free_page (page);
+ 		return 1;
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
