@@ -1,482 +1,160 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55DB13BC12
-	for <mm-commits@vger.kernel.org>; Sat,  4 Jan 2025 02:45:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA89029A0;
+	Sun,  5 Jan 2025 02:05:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735958729; cv=none; b=LHFLyyhXqlZxeH1Z2USXVyvlRFskTDkJILs2OS+sztP/9FNi0IvnhpyUajIGT0NmFhliMFNtiF2+e2KmugYnvFjvEvzGjZFyeJTfNSodB1xGE3rezs3kBmJYTW6PDdxuX1hU3SDYXEwLgrrsLsWZ3l+5CkyymJuwR6A9M4f8uLM=
+	t=1736042713; cv=none; b=Gq+eiMXbQxDoIt6NT9ocaM6JeLDeomGLPFxLMqgbXVf0ZN/fUD4Ul0OseGhG+v+ovphA+wNCo5oqTKBpjr+Ek1LjZ7CdBgUe3jsCNnCH6PS36cWw1NHjUgZqke6hSHQpj+i/5wqxUPujhpZYw+uETtRdGx9E1rVqnZgbQIb485g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735958729; c=relaxed/simple;
-	bh=P27XOmhhsU8aRVZV0LvZtz3lH3yGWdyBW0S5rmrcL4I=;
-	h=Date:To:From:Subject:Message-Id; b=SamGlAelRpR9WGX550zOxFWF8oDPKYSoutp/IRcytmrAfuxoJPhcjoGnhZD81Cg4oj5ja4KM9Q7d6U7zA4dCzhHyRg4s2Xl5baqvgYAI6WK9GvDUi7dqTNuxkQYtGZW3NWm5maOZeUSWVtUuBKxLJzpc8KTG1u4p2clzcvL2mP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z4TM23S9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736042713; c=relaxed/simple;
+	bh=pIyK5UNLmHV0OJMrjV03EMKF/xqRBQVt2/V7W4H6rrU=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=QDxXZwLI5Lgr4WAOSf8yyia/RNp4XfA31KfPuEkBHHIqrvYdFATyfBnjSZvpt7XwC7TWwXobltxy1/8SCehU/ZBOHfGcLjdKquPHIypiBRdtEP1sxa3xOemJqYd/46acWcncnDji0wI+7dIVE2ms8F2FQ2Z41infu33JhPZ4jY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r3B4tdXg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z4TM23S9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2471FC4CED6;
-	Sat,  4 Jan 2025 02:45:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r3B4tdXg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B0DC4CED1;
+	Sun,  5 Jan 2025 02:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1735958729;
-	bh=P27XOmhhsU8aRVZV0LvZtz3lH3yGWdyBW0S5rmrcL4I=;
-	h=Date:To:From:Subject:From;
-	b=z4TM23S96TIP5UVrQNPBNExp/lVxDlDqJJJvfKjThgKH9rGVqZ6Pof1h++8L7m5Yy
-	 AuaEweri/F3+t7DLirnLRPhT3BXHQ8UHH4JQISoAvNHsm2otkNxdrv7iwmnwjC0d8E
-	 fk8V/vsgxlwJAAml0vANL6e7Kqndy5kAYN/SQ66Q=
-Date: Fri, 03 Jan 2025 18:45:28 -0800
-To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	s=korg; t=1736042712;
+	bh=pIyK5UNLmHV0OJMrjV03EMKF/xqRBQVt2/V7W4H6rrU=;
+	h=Date:From:To:Cc:Subject:From;
+	b=r3B4tdXgPyUjKd84HMpg8z05zjLAo5dJ/FBTS0f2YFLySgUno36JMVzip1ZNpDBTm
+	 b+nUZOTUM3Lmgkiji+ek6gjhKPbiVeUUnXAvNtkqT/Mp2Z2iVAEtrNoZ9y8vw013zX
+	 o9HAbbfoxwtj8qVVSYqrOLd6zsTMEb6yQUxSyq2M=
+Date: Sat, 4 Jan 2025 18:05:11 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch added to mm-unstable branch
-Message-Id: <20250104024529.2471FC4CED6@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.13-rc6
+Message-Id: <20250104180511.ec607c34f312c8cc759cffc2@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 
-The patch titled
-     Subject: mm/damon/sysfs: remove unused code for schemes tried regions update
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 4bbf9020becbfd8fc2c3da790855b7042fad455b:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.13-rc4 (2024-12-22 13:22:21 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-01-04-18-02
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove unused code for schemes tried regions update
-Date: Fri, 3 Jan 2025 09:44:00 -0800
+for you to fetch changes up to e7404921818d676da4d7143ce78659456b05e2af:
 
-DAMON sysfs interface was using damon_callback with its own complicated
-synchronization logics to update DAMOS scheme applied regions directories
-and files.  But it is replaced to use damos_walk(), and the additional
-synchronization logics are no more being used.  Remove those.
+  MAINTAINERS: change Arınç _NAL's name and email address (2024-12-30 17:59:12 -0800)
 
-Link: https://lkml.kernel.org/r/20250103174400.54890-11-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+25 hotfixes.  16 are cc:stable.  18 are MM and 7 are non-MM.
 
- mm/damon/sysfs-common.h  |   10 -
- mm/damon/sysfs-schemes.c |  204 -------------------------------------
- mm/damon/sysfs.c         |   70 ------------
- 3 files changed, 2 insertions(+), 282 deletions(-)
+The usual bunch of singletons and two doubletons - please see the relevant
+changelogs for details.
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update
-+++ a/mm/damon/sysfs.c
-@@ -1181,25 +1181,9 @@ static int damon_sysfs_add_targets(struc
- 	return 0;
- }
- 
--static bool damon_sysfs_schemes_regions_updating;
--
- static void damon_sysfs_before_terminate(struct damon_ctx *ctx)
- {
- 	struct damon_target *t, *next;
--	struct damon_sysfs_kdamond *kdamond;
--	enum damon_sysfs_cmd cmd;
--
--	/* damon_sysfs_schemes_update_regions_stop() might not yet called */
--	kdamond = damon_sysfs_cmd_request.kdamond;
--	cmd = damon_sysfs_cmd_request.cmd;
--	if (kdamond && ctx == kdamond->damon_ctx &&
--			(cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_REGIONS ||
--			 cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_BYTES) &&
--			damon_sysfs_schemes_regions_updating) {
--		damon_sysfs_schemes_update_regions_stop(ctx);
--		damon_sysfs_schemes_regions_updating = false;
--		mutex_unlock(&damon_sysfs_lock);
--	}
- 
- 	if (!damon_target_has_pid(ctx))
- 		return;
-@@ -1232,28 +1216,6 @@ static int damon_sysfs_upd_schemes_stats
- 	return 0;
- }
- 
--static int damon_sysfs_upd_schemes_regions_start(
--		struct damon_sysfs_kdamond *kdamond, bool total_bytes_only)
--{
--	struct damon_ctx *ctx = kdamond->damon_ctx;
--
--	if (!ctx)
--		return -EINVAL;
--	return damon_sysfs_schemes_update_regions_start(
--			kdamond->contexts->contexts_arr[0]->schemes, ctx,
--			total_bytes_only);
--}
--
--static int damon_sysfs_upd_schemes_regions_stop(
--		struct damon_sysfs_kdamond *kdamond)
--{
--	struct damon_ctx *ctx = kdamond->damon_ctx;
--
--	if (!ctx)
--		return -EINVAL;
--	return damon_sysfs_schemes_update_regions_stop(ctx);
--}
--
- static inline bool damon_sysfs_kdamond_running(
- 		struct damon_sysfs_kdamond *kdamond)
- {
-@@ -1358,12 +1320,10 @@ static int damon_sysfs_cmd_request_callb
- 		bool after_aggregation)
- {
- 	struct damon_sysfs_kdamond *kdamond;
--	bool total_bytes_only = false;
- 	int err = 0;
- 
- 	/* avoid deadlock due to concurrent state_store('off') */
--	if (!damon_sysfs_schemes_regions_updating &&
--			!mutex_trylock(&damon_sysfs_lock))
-+	if (!mutex_trylock(&damon_sysfs_lock))
- 		return 0;
- 	kdamond = damon_sysfs_cmd_request.kdamond;
- 	if (!kdamond || kdamond->damon_ctx != c)
-@@ -1374,39 +1334,13 @@ static int damon_sysfs_cmd_request_callb
- 			goto out;
- 		err = damon_sysfs_commit_input(kdamond);
- 		break;
--	case DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_BYTES:
--		total_bytes_only = true;
--		fallthrough;
--	case DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_REGIONS:
--		if (!damon_sysfs_schemes_regions_updating) {
--			err = damon_sysfs_upd_schemes_regions_start(kdamond,
--					total_bytes_only);
--			if (!err) {
--				damon_sysfs_schemes_regions_updating = true;
--				goto keep_lock_out;
--			}
--		} else {
--			damos_sysfs_mark_finished_regions_updates(c);
--			/*
--			 * Continue regions updating if DAMON is till
--			 * active and the update for all schemes is not
--			 * finished.
--			 */
--			if (active && !damos_sysfs_regions_upd_done())
--				goto keep_lock_out;
--			err = damon_sysfs_upd_schemes_regions_stop(kdamond);
--			damon_sysfs_schemes_regions_updating = false;
--		}
--		break;
- 	default:
- 		break;
- 	}
- 	/* Mark the request as invalid now. */
- 	damon_sysfs_cmd_request.kdamond = NULL;
- out:
--	if (!damon_sysfs_schemes_regions_updating)
--		mutex_unlock(&damon_sysfs_lock);
--keep_lock_out:
-+	mutex_unlock(&damon_sysfs_lock);
- 	return err;
- }
- 
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update
-+++ a/mm/damon/sysfs-common.h
-@@ -45,16 +45,6 @@ void damon_sysfs_schemes_update_stats(
- 		struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx);
- 
--int damon_sysfs_schemes_update_regions_start(
--		struct damon_sysfs_schemes *sysfs_schemes,
--		struct damon_ctx *ctx, bool total_bytes_only);
--
--void damos_sysfs_mark_finished_regions_updates(struct damon_ctx *ctx);
--
--bool damos_sysfs_regions_upd_done(void);
--
--int damon_sysfs_schemes_update_regions_stop(struct damon_ctx *ctx);
--
- void damos_sysfs_populate_region_dir(struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx, struct damon_target *t,
- 		struct damon_region *r, struct damos *s,
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update
-+++ a/mm/damon/sysfs-schemes.c
-@@ -114,55 +114,11 @@ static const struct kobj_type damon_sysf
-  * scheme regions directory
-  */
- 
--/*
-- * enum damos_sysfs_regions_upd_status - Represent DAMOS tried regions update
-- *					 status
-- * @DAMOS_TRIED_REGIONS_UPD_IDLE:		Waiting for next request.
-- * @DAMOS_TRIED_REGIONS_UPD_STARTED:		Update started.
-- * @DAMOS_TRIED_REGIONS_UPD_FINISHED:	Update finished.
-- *
-- * Each DAMON-based operation scheme (&struct damos) has its own apply
-- * interval, and we need to expose the scheme tried regions based on only
-- * single snapshot.  For this, we keep the tried regions update status for each
-- * scheme.  The status becomes 'idle' at the beginning.
-- *
-- * Once the tried regions update request is received, the request handling
-- * start function (damon_sysfs_scheme_update_regions_start()) sets the status
-- * of all schemes as 'idle' again, and register ->before_damos_apply()
-- * callback.
-- *
-- * Then, the first followup ->before_damos_apply() callback
-- * (damon_sysfs_before_damos_apply()) sets the status 'started'.  The first
-- * ->after_sampling() or ->after_aggregation() callback
-- *  (damon_sysfs_cmd_request_callback()) after the call is called only after
-- *  the scheme is completely applied to the given snapshot.  Hence the callback
-- *  knows the situation by showing 'started' status, and sets the status as
-- *  'finished'.  Then, damon_sysfs_before_damos_apply() understands the
-- *  situation by showing the 'finished' status and do nothing.
-- *
-- * If DAMOS is not applied to any region due to any reasons including the
-- * access pattern, the watermarks, the quotas, and the filters,
-- * ->before_damos_apply() will not be called back.  Until the situation is
-- * changed, the update will not be finished.  To avoid this,
-- * damon_sysfs_after_sampling() set the status as 'finished' if more than two
-- * apply intervals of the scheme is passed while the state is 'idle'.
-- *
-- *  Finally, the tried regions request handling finisher function
-- *  (damon_sysfs_schemes_update_regions_stop()) unregisters the callbacks.
-- */
--enum damos_sysfs_regions_upd_status {
--	DAMOS_TRIED_REGIONS_UPD_IDLE,
--	DAMOS_TRIED_REGIONS_UPD_STARTED,
--	DAMOS_TRIED_REGIONS_UPD_FINISHED,
--};
--
- struct damon_sysfs_scheme_regions {
- 	struct kobject kobj;
- 	struct list_head regions_list;
- 	int nr_regions;
- 	unsigned long total_bytes;
--	enum damos_sysfs_regions_upd_status upd_status;
--	unsigned long upd_timeout_jiffies;
- };
- 
- static struct damon_sysfs_scheme_regions *
-@@ -178,7 +134,6 @@ damon_sysfs_scheme_regions_alloc(void)
- 	INIT_LIST_HEAD(&regions->regions_list);
- 	regions->nr_regions = 0;
- 	regions->total_bytes = 0;
--	regions->upd_status = DAMOS_TRIED_REGIONS_UPD_IDLE;
- 	return regions;
- }
- 
-@@ -2126,63 +2081,6 @@ void damon_sysfs_schemes_update_stats(
- 	}
- }
- 
--/*
-- * damon_sysfs_schemes that need to update its schemes regions dir.  Protected
-- * by damon_sysfs_lock
-- */
--static struct damon_sysfs_schemes *damon_sysfs_schemes_for_damos_callback;
--static int damon_sysfs_schemes_region_idx;
--static bool damos_regions_upd_total_bytes_only;
--
--/*
-- * DAMON callback that called before damos apply.  While this callback is
-- * registered, damon_sysfs_lock should be held to ensure the regions
-- * directories exist.
-- */
--static int damon_sysfs_before_damos_apply(struct damon_ctx *ctx,
--		struct damon_target *t, struct damon_region *r,
--		struct damos *s)
--{
--	struct damos *scheme;
--	struct damon_sysfs_scheme_regions *sysfs_regions;
--	struct damon_sysfs_scheme_region *region;
--	struct damon_sysfs_schemes *sysfs_schemes =
--		damon_sysfs_schemes_for_damos_callback;
--	int schemes_idx = 0;
--
--	damon_for_each_scheme(scheme, ctx) {
--		if (scheme == s)
--			break;
--		schemes_idx++;
--	}
--
--	/* user could have removed the scheme sysfs dir */
--	if (schemes_idx >= sysfs_schemes->nr)
--		return 0;
--
--	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
--	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_FINISHED)
--		return 0;
--	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_IDLE)
--		sysfs_regions->upd_status = DAMOS_TRIED_REGIONS_UPD_STARTED;
--	sysfs_regions->total_bytes += r->ar.end - r->ar.start;
--	if (damos_regions_upd_total_bytes_only)
--		return 0;
--
--	region = damon_sysfs_scheme_region_alloc(r);
--	if (!region)
--		return 0;
--	list_add_tail(&region->list, &sysfs_regions->regions_list);
--	sysfs_regions->nr_regions++;
--	if (kobject_init_and_add(&region->kobj,
--				&damon_sysfs_scheme_region_ktype,
--				&sysfs_regions->kobj, "%d",
--				damon_sysfs_schemes_region_idx++)) {
--		kobject_put(&region->kobj);
--	}
--	return 0;
--}
--
- /**
-  * damos_sysfs_populate_region_dir() - Populate a schemes tried region dir.
-  * @sysfs_schemes:	Schemes directory to populate regions directory.
-@@ -2231,29 +2129,6 @@ void damos_sysfs_populate_region_dir(str
- 	}
- }
- 
--/*
-- * DAMON callback that called after each accesses sampling.  While this
-- * callback is registered, damon_sysfs_lock should be held to ensure the
-- * regions directories exist.
-- */
--void damos_sysfs_mark_finished_regions_updates(struct damon_ctx *ctx)
--{
--	struct damon_sysfs_schemes *sysfs_schemes =
--		damon_sysfs_schemes_for_damos_callback;
--	struct damon_sysfs_scheme_regions *sysfs_regions;
--	int i;
--
--	for (i = 0; i < sysfs_schemes->nr; i++) {
--		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
--		if (sysfs_regions->upd_status ==
--				DAMOS_TRIED_REGIONS_UPD_STARTED ||
--				time_after(jiffies,
--					sysfs_regions->upd_timeout_jiffies))
--			sysfs_regions->upd_status =
--				DAMOS_TRIED_REGIONS_UPD_FINISHED;
--	}
--}
--
- /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
- int damon_sysfs_schemes_clear_regions(
- 		struct damon_sysfs_schemes *sysfs_schemes)
-@@ -2270,82 +2145,3 @@ int damon_sysfs_schemes_clear_regions(
- 	}
- 	return 0;
- }
--
--static struct damos *damos_sysfs_nth_scheme(int n, struct damon_ctx *ctx)
--{
--	struct damos *scheme;
--	int i = 0;
--
--	damon_for_each_scheme(scheme, ctx) {
--		if (i == n)
--			return scheme;
--		i++;
--	}
--	return NULL;
--}
--
--static void damos_tried_regions_init_upd_status(
--		struct damon_sysfs_schemes *sysfs_schemes,
--		struct damon_ctx *ctx)
--{
--	int i;
--	struct damos *scheme;
--	struct damon_sysfs_scheme_regions *sysfs_regions;
--
--	for (i = 0; i < sysfs_schemes->nr; i++) {
--		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
--		scheme = damos_sysfs_nth_scheme(i, ctx);
--		if (!scheme) {
--			sysfs_regions->upd_status =
--				DAMOS_TRIED_REGIONS_UPD_FINISHED;
--			continue;
--		}
--		sysfs_regions->upd_status = DAMOS_TRIED_REGIONS_UPD_IDLE;
--		sysfs_regions->upd_timeout_jiffies = jiffies +
--			2 * usecs_to_jiffies(scheme->apply_interval_us ?
--					scheme->apply_interval_us :
--					ctx->attrs.aggr_interval);
--	}
--}
--
--/* Called while damon_sysfs_lock is hold */
--int damon_sysfs_schemes_update_regions_start(
--		struct damon_sysfs_schemes *sysfs_schemes,
--		struct damon_ctx *ctx, bool total_bytes_only)
--{
--	damon_sysfs_schemes_clear_regions(sysfs_schemes);
--	damon_sysfs_schemes_for_damos_callback = sysfs_schemes;
--	damos_tried_regions_init_upd_status(sysfs_schemes, ctx);
--	damos_regions_upd_total_bytes_only = total_bytes_only;
--	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
--	return 0;
--}
--
--bool damos_sysfs_regions_upd_done(void)
--{
--	struct damon_sysfs_schemes *sysfs_schemes =
--		damon_sysfs_schemes_for_damos_callback;
--	struct damon_sysfs_scheme_regions *sysfs_regions;
--	int i;
--
--	for (i = 0; i < sysfs_schemes->nr; i++) {
--		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
--		if (sysfs_regions->upd_status !=
--				DAMOS_TRIED_REGIONS_UPD_FINISHED)
--			return false;
--	}
--	return true;
--}
--
--/*
-- * Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock.  Caller
-- * should unlock damon_sysfs_lock which held before
-- * damon_sysfs_schemes_update_regions_start()
-- */
--int damon_sysfs_schemes_update_regions_stop(struct damon_ctx *ctx)
--{
--	damon_sysfs_schemes_for_damos_callback = NULL;
--	ctx->callback.before_damos_apply = NULL;
--	damon_sysfs_schemes_region_idx = 0;
--	return 0;
--}
-_
+----------------------------------------------------------------
+Alessandro Carminati (1):
+      mm/kmemleak: fix sleeping function called from invalid context at print message
 
-Patches currently in -mm which might be from sj@kernel.org are
+Arnd Bergmann (1):
+      kcov: mark in_softirq_really() as __always_inline
 
-samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
-samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
-samples-damon-wsse-implement-working-set-size-estimation-and-logging.patch
-samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch
-samples-damon-prcl-implement-schemes-setup.patch
-replace-free-hugepage-folios-after-migration-fix-2.patch
-docs-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
-docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch
-selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch
-selftests-damon-remove-tests-for-damon-debugfs-interface.patch
-kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
-mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
-mm-damon-remove-damon-debugfs-interface.patch
-mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
-mm-damon-sysfs-handle-clear_schemes_tried_regions-from-damon-sysfs-context.patch
-mm-damon-core-introduce-damon_call.patch
-mm-damon-sysfs-use-damon_call-for-update_schemes_stats.patch
-mm-damon-sysfs-use-damon_call-for-commit_schemes_quota_goals.patch
-mm-damon-sysfs-use-damon_call-for-update_schemes_effective_quotas.patch
-mm-damon-core-implement-damos_walk.patch
-docs-mm-damon-design-document-damos-regions-walking.patch
-mm-damon-sysfs-use-damos_walk-for-update_schemes_tried_bytesregions.patch
-mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
+Baolin Wang (3):
+      docs: mm: fix the incorrect 'FileHugeMapped' field
+      mm: shmem: fix incorrect index alignment for within_size policy
+      mm: shmem: fix the update of 'shmem_falloc->nr_unswapped'
+
+Chester A. Unal (1):
+      MAINTAINERS: change Arınç _NAL's name and email address
+
+David Hildenbrand (1):
+      fs/proc/task_mmu: fix pagemap flags with PMD THP entries on 32bit
+
+Dennis Lam (1):
+      ocfs2: fix slab-use-after-free due to dangling pointer dqi_priv
+
+Gal Pressman (1):
+      percpu: remove intermediate variable in PERCPU_PTR()
+
+Kairui Song (2):
+      mm/list_lru: fix false warning of negative counter
+      mm, madvise: fix potential workingset node list_lru leaks
+
+Kefeng Wang (1):
+      mm: don't try THP alignment for FS without get_unmapped_area
+
+Koichiro Den (1):
+      vmstat: disable vmstat_work on vmstat_cpu_down_prep()
+
+Kuan-Wei Chiu (1):
+      scripts/sorttable: fix orc_sort_cmp() to maintain symmetry and transitivity
+
+Liu Shixin (1):
+      mm: hugetlb: independent PMD page table shared count
+
+Lorenzo Stoakes (2):
+      mm: reinstate ability to map write-sealed memfd mappings read-only
+      selftests/memfd: add test for mapping write-sealed memfd read-only
+
+Mathieu Othacehe (1):
+      mailmap: modify the entry for Mathieu Othacehe
+
+Seiji Nishikawa (1):
+      mm: vmscan: account for free pages to prevent infinite Loop in throttle_direct_reclaim()
+
+SeongJae Park (2):
+      mm/damon/core: fix new damon_target objects leaks on damon_commit_targets()
+      mm/damon/core: fix ignored quota goals and filters of newly committed schemes
+
+Tetsuo Handa (1):
+      mm/util: make memdup_user_nul() similar to memdup_user()
+
+Yafang Shao (1):
+      mm/readahead: fix large folio support in async readahead
+
+Yang Erkun (1):
+      maple_tree: reload mas before the second call for mas_empty_area
+
+Yosry Ahmed (1):
+      mm: zswap: fix race between [de]compression and CPU hotunplug
+
+ .mailmap                                   |  2 +-
+ Documentation/admin-guide/mm/transhuge.rst |  2 +-
+ MAINTAINERS                                |  6 +--
+ fs/ocfs2/quota_global.c                    |  2 +-
+ fs/ocfs2/quota_local.c                     |  1 +
+ fs/proc/task_mmu.c                         |  2 +-
+ include/linux/memfd.h                      | 14 +++++++
+ include/linux/mm.h                         | 59 +++++++++++++++++++++---------
+ include/linux/mm_types.h                   | 30 +++++++++++++++
+ include/linux/percpu-defs.h                |  5 +--
+ kernel/kcov.c                              |  2 +-
+ lib/maple_tree.c                           |  1 +
+ mm/damon/core.c                            | 10 ++++-
+ mm/filemap.c                               |  9 -----
+ mm/hugetlb.c                               | 16 ++++----
+ mm/internal.h                              |  6 +++
+ mm/khugepaged.c                            |  3 ++
+ mm/kmemleak.c                              |  2 +-
+ mm/list_lru.c                              |  2 +-
+ mm/memfd.c                                 |  2 +-
+ mm/mmap.c                                  |  6 ++-
+ mm/readahead.c                             |  6 ++-
+ mm/shmem.c                                 |  7 ++--
+ mm/util.c                                  |  7 +---
+ mm/vmscan.c                                |  9 ++++-
+ mm/vmstat.c                                |  3 +-
+ mm/zswap.c                                 | 19 ++++++++--
+ scripts/sorttable.h                        |  5 ++-
+ tools/testing/selftests/memfd/memfd_test.c | 43 ++++++++++++++++++++++
+ 29 files changed, 212 insertions(+), 69 deletions(-)
 
