@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F2F12E7F
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D969D2594AB
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736215463; cv=none; b=hkY+wp6+W3/rkiMMlZqs36Hb4QVhT8RIsFAFdv7pTUdnjJxM2SspkaAZ38ZgwwZmCEn+uruwmUBPWdmkvCXDaCtMQQQJVAw41CApjazCJVPx2Vh5TVCwRQDaRXDuA9v9EsSK6mSTk2knWH79Jx5GjCkVz6HN8LjJ+c7B0G5GLkA=
+	t=1736215464; cv=none; b=uUjnlvkzlnz1b8pzMMmS9pA76421PSe347wOz/MXBMxWKiP7+t6NwN63nyJW5WwDPtbrQ8RDgFiZcXqoh078X/fkJktR4S96d9B+wvkPXdyVj4zayWOEKJ91WFpasij/KiKQY+3LSMSrmI9Xu1++LQafjr+KoZa8+B1+QukraI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736215463; c=relaxed/simple;
-	bh=abf1aPdpaKXDpwHVu4YDTMsaKAmkE+IZg0jQTxyfbL8=;
-	h=Date:To:From:Subject:Message-Id; b=S13iu7VFGVLcnzPqP83//nfqP5GLlDQzx9qRqBAF4VZHu/fzDH7NlnbHr8Kh8lcQo1sOhV2CNZADFKlilp/D6Q/BgfaKhwnmJ5X4qCS7ZJ2QJufaeBeED9DwrkXb+3AJsiEoucepndtv1++dSxoMvWC+6+Id15YNQaKuHWRha8Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lVqxAoiq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736215464; c=relaxed/simple;
+	bh=+8f1p5yQqdaxDjNx0REOMPxL9zd6o6bAcuj1CIxIgBs=;
+	h=Date:To:From:Subject:Message-Id; b=XANiawHNopYuQYMcvKv6W956pMPVn4o7fkazW6AllSipqXiwOdXl1/b1At+5jzWkesWsL5+BJXXq/r+fAKmNY8WIMQJmXUCvQovvwqU0QWajqsdhUmHhbzGQq0HY9MPtg5bqo+6zyv5PyzhZRzwn+NeXCWOkN4b+sN7ELrFZaA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qFojspDq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lVqxAoiq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E02C4CED2;
-	Tue,  7 Jan 2025 02:04:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qFojspDq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E7D6C4CED2;
+	Tue,  7 Jan 2025 02:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736215462;
-	bh=abf1aPdpaKXDpwHVu4YDTMsaKAmkE+IZg0jQTxyfbL8=;
+	s=korg; t=1736215464;
+	bh=+8f1p5yQqdaxDjNx0REOMPxL9zd6o6bAcuj1CIxIgBs=;
 	h=Date:To:From:Subject:From;
-	b=lVqxAoiqH5W3wyNPdX4ShhXxXe//OvXYlFuup6NCAU2+mBYVssSpIZGN5VJH8m9+j
-	 3RnM05LhqU6bqtFFUbYrizl0dqHUGtbq+W4NU2Y7nrOiWLS8JyhR4af1sVPwDQmNAL
-	 s1mA9+KUBwK3OV0YSFhkjWde9klM6sZkNFAljCFA=
-Date: Mon, 06 Jan 2025 18:04:21 -0800
+	b=qFojspDqjMOAD8qYhfu1JZG7eRLL3qqUGmJpnYiYp0ZUWjgKmB4AJuVRhhoHeH3yW
+	 Xa4n+JTWWpYBSCjL885xlSErTnSbs/C9ap7YJs5i7LNxTPjaj1Td1sDyKsCa8XppDW
+	 lsEnbFqzwbimTsnaRiQSdL5GztmxZsmQc3afA5S4=
+Date: Mon, 06 Jan 2025 18:04:23 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-add-statistics-section.patch added to mm-unstable branch
-Message-Id: <20250107020422.78E02C4CED2@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc.patch added to mm-unstable branch
+Message-Id: <20250107020424.5E7D6C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: add 'statistics' section
+     Subject: Docs/admin-guide/mm/damon/usage: link damos stat design doc
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-add-statistics-section.patch
+     docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-add-statistics-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,69 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: add 'statistics' section
-Date: Mon, 6 Jan 2025 11:33:47 -0800
+Subject: Docs/admin-guide/mm/damon/usage: link damos stat design doc
+Date: Mon, 6 Jan 2025 11:33:48 -0800
 
-DAMOS stats are important feature for tuning of DAMOS-based access-aware
-system operation, and efficient access pattern monitoring.  But not well
-documented on the design document.  Add a section on the document.
+DAMON sysfs usage document focuses on usage, rather than the detail of the
+stat metric itself.  Add a link to the design document on DAMOS stat usage
+section.
 
-Link: https://lkml.kernel.org/r/20250106193401.109161-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250106193401.109161-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   38 ++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |    3 ++-
+ Documentation/mm/damon/design.rst            |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-add-statistics-section
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -451,7 +451,8 @@ schemes/<N>/stats/
+ DAMON counts the total number and bytes of regions that each scheme is tried to
+ be applied, the two numbers for the regions that each scheme is successfully
+ applied, and the total number of the quota limit exceeds.  This statistics can
+-be used for online analysis or tuning of the schemes.
++be used for online analysis or tuning of the schemes.  Refer to :ref:`design
++doc <damon_design_damos_stat>` for more details about the stats.
+ 
+ The statistics can be retrieved by reading the files under ``stats`` directory
+ (``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``, and
+--- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc
 +++ a/Documentation/mm/damon/design.rst
-@@ -539,6 +539,44 @@ To know how user-space can set the water
+@@ -539,6 +539,8 @@ To know how user-space can set the water
  <sysfs_interface>`, refer to :ref:`filters <sysfs_filters>` part of the
  documentation.
  
-+Statistics
-+~~~~~~~~~~
++.. _damon_design_damos_stat:
 +
-+The statistics of DAMOS behaviors that designed to help monitoring, tuning and
-+debugging of DAMOS.
-+
-+DAMOS accounts below statistics for each scheme, from the beginning of the
-+scheme's execution.
-+
-+- ``nr_tried``: Total number of regions that the scheme is tried to be applied.
-+- ``sz_trtied``: Total size of regions that the scheme is tried to be applied.
-+- ``nr_applied``: Total number of regions that the scheme is applied.
-+- ``sz_applied``: Total size of regions that the scheme is applied.
-+- ``qt_exceeds``: Total number of times the quota of the scheme has exceeded.
-+
-+"A scheme is tried to be applied to a region" means DAMOS core logic determined
-+the region is eligible to apply the scheme's :ref:`action
-+<damon_design_damos_action>`.  The :ref:`access pattern
-+<damon_design_damos_access_pattern>`, :ref:`quotas
-+<damon_design_damos_quotas>`, :ref:`watermarks
-+<damon_design_damos_watermarks>`, and :ref:`filters
-+<damon_design_damos_filters>` that handled on core logic could affect this.
-+The core logic will only ask the underlying :ref:`operation set
-+<damon_operations_set>` to do apply the action to the region, so whether the
-+action is really applied or not is unclear.  That's why it is called "tried".
-+
-+"A scheme is applied to a region" means the :ref:`operation set
-+<damon_operations_set>` has applied the action to at least a part of the
-+region.  The :ref:`filters <damon_design_damos_filters>` that handled by the
-+operation set, and the types of the :ref:`action <damon_design_damos_action>`
-+and the pages of the region can affect this.  For example, if a filter is set
-+to exclude anonymous pages and the region has only anonymous pages, or if the
-+action is ``pageout`` while all pages of the region are unreclaimable, applying
-+the action to the region will fail.
-+
-+To know how user-space can read the stats via :ref:`DAMON sysfs interface
-+<sysfs_interface>`, refer to :ref:s`stats <sysfs_stats>` part of the
-+documentation.
+ Statistics
+ ~~~~~~~~~~
  
- Regions Walking
- ~~~~~~~~~~~~~~~
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
