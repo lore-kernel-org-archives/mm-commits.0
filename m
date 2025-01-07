@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E75FBC139
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 389AD13635B
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736215478; cv=none; b=ej07ge2TzH1HLoeq5JtMhL4xijc4D8QHIsJfoEIYqFJJagWEULWkzQHbSY154avUNB0jaDvr0/dXxzIEgAz7o13r5ir6oWK/bGTAqKSBUWgzvTJf32DCCcyUqKjuXQbIyaNp/gJJK9aiQFsyqCR7n+qib7oI0XBf4wo+UztLP9I=
+	t=1736215478; cv=none; b=KpfKVfCH04zSnRjf3dzYmQed73D8n6X5D4NeDAMObybv/JyZTTGaJi31P2WmsnCVaFx6Gee10o95J4uj9KsT1Z0QbxqKBP/5jAJv0fFV9+YgupGp+hUumk+s8WSUxyhVj0QgMpc/jhQARLyQYWRfEE6fdFufTKMDeVVK0KXLtJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736215478; c=relaxed/simple;
-	bh=qsBJHDzQxnTd7mIugbrgTlw8OLbJaiDrxECnlqz0Axo=;
-	h=Date:To:From:Subject:Message-Id; b=aUSbQs1n737u6urcd6UWuPBOzDyji9+ccmQXxkTkcLrDnwdvTskXqRJS/xGGJxWSTYis0k8JSB68H+Tc56iyLo8fO20lak2bYye79hNhYB+VTEcywIQP7U+3KI94U4nklp/9+7vwi1xvF9yJBb9QDykVjXZDwidfr3ZpjnsgP+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aefN4dL0; arc=none smtp.client-ip=10.30.226.201
+	bh=SPKwb+BbkpqByH3ebjgu2PnWl//qMEGy0Gaz+hgY7gI=;
+	h=Date:To:From:Subject:Message-Id; b=mXSQujTWXI8iNg21trbfCUN860gm/lz4H0qp7Kjrs7B2SrI88EqBGxe9/m0p3OdNpxpSCVE8q3MKdPZflucYuFe0gzpyWryT+bGBTAgqCP7fiKVwijl0bGU7/GXQMB+VP8bu5LHq38oH3JYsZ5PHJbbQEHtebD/roaPWIRfLprw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ptYBPz86; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aefN4dL0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E207EC4CED2;
-	Tue,  7 Jan 2025 02:04:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ptYBPz86"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB48FC4CEDD;
+	Tue,  7 Jan 2025 02:04:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736215476;
-	bh=qsBJHDzQxnTd7mIugbrgTlw8OLbJaiDrxECnlqz0Axo=;
+	s=korg; t=1736215477;
+	bh=SPKwb+BbkpqByH3ebjgu2PnWl//qMEGy0Gaz+hgY7gI=;
 	h=Date:To:From:Subject:From;
-	b=aefN4dL0nchpI+oDN01ShLNCdWq1JFUPDmAzRAy3MKMGmOm2rhl3YddISqgl0CbXK
-	 B/iouZIHV6a4qjgtzIDhLr56YKNkMco3nJh1d8fnt43gf6GJ9DBqGw4B0KSKc7z00R
-	 P3Yd5cILOgIg5775yyK0P4PRRzrS83YKUKUjX/6k=
-Date: Mon, 06 Jan 2025 18:04:35 -0800
+	b=ptYBPz865uxG1ZCLk70qa0Re7kTJrh6uN3TzoeKiTXtikdzC9c4URjdNEdOyavWGt
+	 5s/npHQPBtmzf3Cy0bNYmZk9/ceahJ8TFrAXZFnmAPxlGmGT/1lBBERK2vr3gRDZjx
+	 09Rma0agn0QY5zFi/p5N5YSJxHSZ/p2KDSgmhwLQ=
+Date: Mon, 06 Jan 2025 18:04:37 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat.patch added to mm-unstable branch
-Message-Id: <20250107020435.E207EC4CED2@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-sz_ops_filter_passed.patch added to mm-unstable branch
+Message-Id: <20250107020437.BB48FC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/syfs-schemes: implement per-scheme filter-passed bytes stat
+     Subject: Docs/mm/damon/design: document sz_ops_filter_passed
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat.patch
+     docs-mm-damon-design-document-sz_ops_filter_passed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-sz_ops_filter_passed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,76 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/syfs-schemes: implement per-scheme filter-passed bytes stat
-Date: Mon, 6 Jan 2025 11:33:53 -0800
+Subject: Docs/mm/damon/design: document sz_ops_filter_passed
+Date: Mon, 6 Jan 2025 11:33:54 -0800
 
-Add a new DAMON sysfs interface file under scheme stat directory, namely
-'sz_ops_filter_passed'.  It represents total bytes that passed
-region-internal DAMOS filters of the scheme that handled by the DAMON
-operations set layer.
+Document the new per-scheme accumulated stat for total bytes that passed
+the operations set layer-handled DAMOS filters on the design document.
 
-Link: https://lkml.kernel.org/r/20250106193401.109161-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250106193401.109161-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ Documentation/mm/damon/design.rst |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat
-+++ a/mm/damon/sysfs-schemes.c
-@@ -188,6 +188,7 @@ struct damon_sysfs_stats {
- 	unsigned long sz_tried;
- 	unsigned long nr_applied;
- 	unsigned long sz_applied;
-+	unsigned long sz_ops_filter_passed;
- 	unsigned long qt_exceeds;
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-sz_ops_filter_passed
++++ a/Documentation/mm/damon/design.rst
+@@ -552,6 +552,8 @@ scheme's execution.
  
-@@ -232,6 +233,15 @@ static ssize_t sz_applied_show(struct ko
- 	return sysfs_emit(buf, "%lu\n", stats->sz_applied);
- }
- 
-+static ssize_t sz_ops_filter_passed_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_stats *stats = container_of(kobj,
-+			struct damon_sysfs_stats, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", stats->sz_ops_filter_passed);
-+}
-+
- static ssize_t qt_exceeds_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
-@@ -258,6 +268,9 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_stats_sz_applied_attr =
- 		__ATTR_RO_MODE(sz_applied, 0400);
- 
-+static struct kobj_attribute damon_sysfs_stats_sz_ops_filter_passed_attr =
-+		__ATTR_RO_MODE(sz_ops_filter_passed, 0400);
-+
- static struct kobj_attribute damon_sysfs_stats_qt_exceeds_attr =
- 		__ATTR_RO_MODE(qt_exceeds, 0400);
- 
-@@ -266,6 +279,7 @@ static struct attribute *damon_sysfs_sta
- 	&damon_sysfs_stats_sz_tried_attr.attr,
- 	&damon_sysfs_stats_nr_applied_attr.attr,
- 	&damon_sysfs_stats_sz_applied_attr.attr,
-+	&damon_sysfs_stats_sz_ops_filter_passed_attr.attr,
- 	&damon_sysfs_stats_qt_exceeds_attr.attr,
- 	NULL,
- };
-@@ -2077,6 +2091,8 @@ void damon_sysfs_schemes_update_stats(
- 		sysfs_stats->sz_tried = scheme->stat.sz_tried;
- 		sysfs_stats->nr_applied = scheme->stat.nr_applied;
- 		sysfs_stats->sz_applied = scheme->stat.sz_applied;
-+		sysfs_stats->sz_ops_filter_passed =
-+			scheme->stat.sz_ops_filter_passed;
- 		sysfs_stats->qt_exceeds = scheme->stat.qt_exceeds;
- 	}
- }
+ - ``nr_tried``: Total number of regions that the scheme is tried to be applied.
+ - ``sz_trtied``: Total size of regions that the scheme is tried to be applied.
++- ``sz_ops_filter_passed``: Total bytes that passed operations set
++  layer-handled DAMOS filters.
+ - ``nr_applied``: Total number of regions that the scheme is applied.
+ - ``sz_applied``: Total size of regions that the scheme is applied.
+ - ``qt_exceeds``: Total number of times the quota of the scheme has exceeded.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
