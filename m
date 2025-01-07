@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7798145009
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91F362E634
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736215481; cv=none; b=Gq2sE3KJxphhhdlMThzqkbyvvY+HrBJrSrkAo6Zh05676W5PSy26AFPVJpev+MLLqQVTzdaLCbP8YJzmuj/NOfvLKqb4Kb6c/AlGzia1n2KmbK9AypeAZO3fsqn6slP20c8hXWN9p2KEryjzme+t9MFk+WRzvdhBChYL1Ay3H04=
+	t=1736215483; cv=none; b=U63Q4vzAKwSzSCy8Xp6yxepKRkJ3DG/FTi2IvK6mu7dFvKSbxfbiKu26uR6Je70t4n50a+37n+vJj7jGtE8AbFiQBDJBkwNIYnzSlxoMcMr1MfUFlg1l/yL67KQl/5DeWYBZPK+Z22hm6lgDVGyq5JBtPj9nIYqfpYteBAduw3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736215481; c=relaxed/simple;
-	bh=B/4Ew5knwfczP6v0GfClA2UoH26vCROOiWiO34Okv4o=;
-	h=Date:To:From:Subject:Message-Id; b=fwwO0EsXOGO10g6d96aW3dO8Z/0qqb9DvJyCyv9a6TkR3fPzL+c3XU8d+Eendg8+qJ2F+5BFhb0uEpACZqxryo+lgbd1WvEDylVkmpCsg8JHAwlRejq381INSANUYXxvekffPGH7K0wNxbNa3tWfMdfccssosBr1QrULk+jvRPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=073BWTOn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736215483; c=relaxed/simple;
+	bh=P87kacHMdPgd+6WYQ3Ytp+A9D2+hHkaJF1jvTkIE3c8=;
+	h=Date:To:From:Subject:Message-Id; b=TYq+W9VowJ4nosvIPqOJYBQfynQxk/LVjjdBhiWyoVL7XPnn1pLH21qMRWwUbDWvAb3Boxt4oybsuWbI4FbHeNIrAL30MnIVuO1M1SztN2OsqmBXBzYA0nMIIeBJUYYAUT3Yjz4Q4VO0ZbrMu+HMq/M45tDDtI9OfBxzVb03wiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ym02ZUkd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="073BWTOn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A8A8C4CED2;
-	Tue,  7 Jan 2025 02:04:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ym02ZUkd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17D1EC4CED2;
+	Tue,  7 Jan 2025 02:04:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736215481;
-	bh=B/4Ew5knwfczP6v0GfClA2UoH26vCROOiWiO34Okv4o=;
+	s=korg; t=1736215483;
+	bh=P87kacHMdPgd+6WYQ3Ytp+A9D2+hHkaJF1jvTkIE3c8=;
 	h=Date:To:From:Subject:From;
-	b=073BWTOnL0tnw67vVPOL2qE+wQIx2AU0+yv1FRXKoLFHKLt9qZoS0zd7rqEhuQtZL
-	 xmYrGhOVZ4OmxpPUR8Ixby2ywuJ2h/H5Uqe9n1HxkfusQh4NijthYg9mXLfDsxra8r
-	 MsNwNCEbqtr1RJP+i2ObFYpZO3jCjs/tZ0Zb5YDw=
-Date: Mon, 06 Jan 2025 18:04:40 -0800
+	b=ym02ZUkdahYI7jw7FHDCvDB3ghIfrSwSpDKBuCs+wNnkdC1bRwMMBFMNfSTw6aUIl
+	 tEdKJVW8g2Y2HbYi+6H+363b338s3+LXQ2Wd674a4pQUyxGNEJasSs/4B1hfL8vQPZ
+	 bUzSJoWbCfDEcyoIJYXwomr2EBeDK7Aeni596kkU=
+Date: Mon, 06 Jan 2025 18:04:42 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file.patch added to mm-unstable branch
-Message-Id: <20250107020441.4A8A8C4CED2@smtp.kernel.org>
+Subject: + mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn.patch added to mm-unstable branch
+Message-Id: <20250107020443.17D1EC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document per-scheme filter-passed bytes stat file
+     Subject: mm/damon/core: pass per-region filter-passed bytes to damos_walk_control->walk_fn()
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file.patch
+     mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,78 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document per-scheme filter-passed bytes stat file
-Date: Mon, 6 Jan 2025 11:33:56 -0800
+Subject: mm/damon/core: pass per-region filter-passed bytes to damos_walk_control->walk_fn()
+Date: Mon, 6 Jan 2025 11:33:57 -0800
 
-Document the new ABI for per-scheme operations set layer-handled DAMOS
-filters passed bytes statistic on the ABI document.
+Total size of memory that passed DAMON operations set layer-handled DAMOS
+filters per scheme is provided to DAMON core API and ABI (sysfs interface)
+users.  Having it per-region in non-accumulated way can provide it in
+finer granularity.  Provide it to damos_walk() core API users, by passing
+the data to damos_walk_control->walk_fn().
 
-Link: https://lkml.kernel.org/r/20250106193401.109161-12-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250106193401.109161-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/damon.h |    2 +-
+ mm/damon/core.c       |    7 ++++---
+ mm/damon/sysfs.c      |    2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -384,6 +384,12 @@ Contact:	SeongJae Park <sj@kernel.org>
- Description:	Reading this file returns the total size of regions that the
- 		action of the scheme has successfully applied in bytes.
+--- a/include/linux/damon.h~mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn
++++ a/include/linux/damon.h
+@@ -388,7 +388,7 @@ struct damos;
+ struct damos_walk_control {
+ 	void (*walk_fn)(void *data, struct damon_ctx *ctx,
+ 			struct damon_target *t, struct damon_region *r,
+-			struct damos *s);
++			struct damos *s, unsigned long sz_filter_passed);
+ 	void *data;
+ /* private: internal use only */
+ 	/* informs if the kdamond finished handling of the walk request */
+--- a/mm/damon/core.c~mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn
++++ a/mm/damon/core.c
+@@ -1445,7 +1445,8 @@ static bool damos_filter_out(struct damo
+  * installed by damos_walk() and not yet uninstalled, invoke it.
+  */
+ static void damos_walk_call_walk(struct damon_ctx *ctx, struct damon_target *t,
+-		struct damon_region *r, struct damos *s)
++		struct damon_region *r, struct damos *s,
++		unsigned long sz_filter_passed)
+ {
+ 	struct damos_walk_control *control;
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/sz_ops_filter_passed
-+Date:		Dec 2024
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Reading this file returns the total size of memory that passed
-+		DAMON operations layer-handled filters of the scheme in bytes.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/qt_exceeds
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
+@@ -1454,7 +1455,7 @@ static void damos_walk_call_walk(struct
+ 	mutex_unlock(&ctx->walk_control_lock);
+ 	if (!control)
+ 		return;
+-	control->walk_fn(control->data, ctx, t, r, s);
++	control->walk_fn(control->data, ctx, t, r, s, sz_filter_passed);
+ }
+ 
+ /*
+@@ -1574,7 +1575,7 @@ static void damos_apply_scheme(struct da
+ 			sz_applied = c->ops.apply_scheme(c, t, r, s,
+ 					&sz_ops_filter_passed);
+ 		}
+-		damos_walk_call_walk(c, t, r, s);
++		damos_walk_call_walk(c, t, r, s, sz_ops_filter_passed);
+ 		ktime_get_coarse_ts64(&end);
+ 		quota->total_charged_ns += timespec64_to_ns(&end) -
+ 			timespec64_to_ns(&begin);
+--- a/mm/damon/sysfs.c~mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn
++++ a/mm/damon/sysfs.c
+@@ -1454,7 +1454,7 @@ struct damon_sysfs_schemes_walk_data {
+ /* populate the region directory */
+ static void damon_sysfs_schemes_tried_regions_upd_one(void *data, struct damon_ctx *ctx,
+ 		struct damon_target *t, struct damon_region *r,
+-		struct damos *s)
++		struct damos *s, unsigned long sz_filter_passed)
+ {
+ 	struct damon_sysfs_schemes_walk_data *walk_data = data;
+ 	struct damon_sysfs_kdamond *sysfs_kdamond = walk_data->sysfs_kdamond;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
