@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 600D0259C;
-	Tue,  7 Jan 2025 03:04:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE765219EB
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 03:07:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736219087; cv=none; b=ZXxFdxttB1Sf+lundE5FGKXjtFQUvISS6BnEqVOeOLcZXVIyknAUyfuoYVvNlkR4qm0LUFhcJ2eXPggafJiSx9SL0ROxc5bGF2jXKoKLgZDr7/f5Xx4dHjPGvU9W2PUD1c9a6jQTVQN2jQt4A1qN1hSkvcUz0RKfTVLZt5HUMb4=
+	t=1736219236; cv=none; b=a1FHutgqzpJ/aJzh0TGjSik3opzwD0+e1OAScneXC4dWQlREgeJ/hj0OWuZBzVN5erpsaNxOohJ2bCKzTwFy5zZq074pi3IG0nHH6OXy7RroWMKNhyAVpOOwzGHH6zmcCVwSOOJv+DqNqUeYeEzfeVjpsWT32VwrucOpefNymPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736219087; c=relaxed/simple;
-	bh=pQ+aZMJfs0tLFC+8bz6GwbvVM52+W74yyIUaxiAl8ek=;
-	h=Date:To:From:Subject:Message-Id; b=CVwwG0RriuhT/JGqcMTwR/emHvESG4Th9HUgCavzuLbIdGAYUtkn0ceB92DXsf/uJyOXqn2sjG4rQf0Ei/LTOh5MZJLwnAxohYTfhWLAa4V+fIfne0/BCfpBA1CHUU5dk7CWU0Z4F0pdAYJO15zY50TrTtzVQjDR/aAAgALUFlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XHF1KbK3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736219236; c=relaxed/simple;
+	bh=ljrhpV4TAhnxD0/N53jacIptJXQQDmlQpSFjPpeBwkc=;
+	h=Date:To:From:Subject:Message-Id; b=ERUwIvC4rEot/SS5bmVkg7L9FzsySIKMBMIZ7zawARvYUoMC6GeKubjiOnkRQEIC/H7R+WVEOdK150njG4paUvOKtkwAzuY/CEB6MNNbG+yqdEnQVrpvcb/Vam6K1R3w0YY4P+Xzm3xPZZjaHVcV4ui+D0miDbgb2wN5bG03FwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pu1O06M7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XHF1KbK3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C701FC4CED2;
-	Tue,  7 Jan 2025 03:04:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pu1O06M7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75CEFC4CED2;
+	Tue,  7 Jan 2025 03:07:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736219086;
-	bh=pQ+aZMJfs0tLFC+8bz6GwbvVM52+W74yyIUaxiAl8ek=;
+	s=korg; t=1736219235;
+	bh=ljrhpV4TAhnxD0/N53jacIptJXQQDmlQpSFjPpeBwkc=;
 	h=Date:To:From:Subject:From;
-	b=XHF1KbK3/TbA2pTbdjgS1Fz/zX8yhIQ5Xr7rHd8zy4DZ0ssmj+A8nVPfsfpjUBJSk
-	 TcGHqpfTmKBMFbMXHvg/ydc3uglrq73c7a00F8g2TnRCcsE/74XuuNpQExl3rXsVJg
-	 4PK1VevxoiYQIUqRN/rFRz+j4wlW8lKwtA4dSl7o=
-Date: Mon, 06 Jan 2025 19:04:46 -0800
-To: mm-commits@vger.kernel.org,zzqq0103.hey@gmail.com,stable@vger.kernel.org,lihongbo22@huawei.com,brauner@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=pu1O06M7PKAYHPoFh/dx/N8RTY0sw3RlcFCzJ4SNTTIUO18nZk3xlOBKI/6J3+Ol1
+	 RbT+znPu5KP2JNWfXnNwY+FztMSX99qFyZbfReKIhuj4zR3HrZeMLJd3blLjNIbPme
+	 KJAfu2yFwdpfiMuLm8twC4JNFevXPSQ1vLFUPUJY=
+Date: Mon, 06 Jan 2025 19:07:14 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,catalin.marinas@arm.com,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250107030446.C701FC4CED2@smtp.kernel.org>
+Subject: + mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak.patch added to mm-unstable branch
+Message-Id: <20250107030715.75CEFC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: fix NULL pointer dereference in trace_hugetlbfs_alloc_inode
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode.patch
+     Subject: mm/memmap: prevent double scanning of memmap by kmemleak
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: hugetlb: fix NULL pointer dereference in trace_hugetlbfs_alloc_inode
-Date: Mon, 6 Jan 2025 11:31:17 +0800
+From: Guo Weikang <guoweikang.kernel@gmail.com>
+Subject: mm/memmap: prevent double scanning of memmap by kmemleak
+Date: Mon, 6 Jan 2025 10:11:25 +0800
 
-hugetlb_file_setup() will pass a NULL @dir to hugetlbfs_get_inode(), so we
-will access a NULL pointer for @dir.  Fix it and set __entry->dr to 0 if
-@dir is NULL.  Because ->i_ino cannot be 0 (see get_next_ino()), there is
-no confusing if user sees a 0 inode number.
+kmemleak explicitly scans the mem_map through the valid struct page
+objects.  However, memmap_alloc() was also adding this memory to the gray
+object list, causing it to be scanned twice.  Remove memmap_alloc() from
+the scan list and add a comment to clarify the behavior.
 
-Link: https://lkml.kernel.org/r/20250106033118.4640-1-songmuchun@bytedance.com
-Fixes: 318580ad7f28 ("hugetlbfs: support tracepoint")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Cheung Wall <zzqq0103.hey@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/02858D60-43C1-4863-A84F-3C76A8AF1F15@linux.dev/T/#
-Reviewed-by: Hongbo Li <lihongbo22@huawei.com>
-Cc: cheung wall <zzqq0103.hey@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/lkml/CAOm6qn=FVeTpH54wGDFMHuCOeYtvoTx30ktnv9-w3Nh8RMofEA@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20250106021126.1678334-1-guoweikang.kernel@gmail.com
+Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/hugetlbfs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memblock.h |    4 ++++
+ mm/mm_init.c             |    8 ++++++--
+ mm/sparse-vmemmap.c      |    5 +++--
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
---- a/include/trace/events/hugetlbfs.h~hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode
-+++ a/include/trace/events/hugetlbfs.h
-@@ -23,7 +23,7 @@ TRACE_EVENT(hugetlbfs_alloc_inode,
- 	TP_fast_assign(
- 		__entry->dev		= inode->i_sb->s_dev;
- 		__entry->ino		= inode->i_ino;
--		__entry->dir		= dir->i_ino;
-+		__entry->dir		= dir ? dir->i_ino : 0;
- 		__entry->mode		= mode;
- 	),
+--- a/include/linux/memblock.h~mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak
++++ a/include/linux/memblock.h
+@@ -378,6 +378,10 @@ static inline int memblock_get_region_no
+ /* Flags for memblock allocation APIs */
+ #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
+ #define MEMBLOCK_ALLOC_ACCESSIBLE	0
++/*
++ *  MEMBLOCK_ALLOC_NOLEAKTRACE avoids kmemleak tracing. It implies
++ *  MEMBLOCK_ALLOC_ACCESSIBLE
++ */
+ #define MEMBLOCK_ALLOC_NOLEAKTRACE	1
  
+ /* We are using top down, so it is safe to use 0 here */
+--- a/mm/mm_init.c~mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak
++++ a/mm/mm_init.c
+@@ -1585,13 +1585,17 @@ void __init *memmap_alloc(phys_addr_t si
+ {
+ 	void *ptr;
+ 
++	/*
++	 * Kmemleak will explicitly scan mem_map by traversing all valid
++	 * `struct *page`,so memblock does not need to be added to the scan list.
++	 */
+ 	if (exact_nid)
+ 		ptr = memblock_alloc_exact_nid_raw(size, align, min_addr,
+-						   MEMBLOCK_ALLOC_ACCESSIBLE,
++						   MEMBLOCK_ALLOC_NOLEAKTRACE,
+ 						   nid);
+ 	else
+ 		ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
+-						 MEMBLOCK_ALLOC_ACCESSIBLE,
++						 MEMBLOCK_ALLOC_NOLEAKTRACE,
+ 						 nid);
+ 
+ 	if (ptr && size > 0)
+--- a/mm/sparse-vmemmap.c~mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak
++++ a/mm/sparse-vmemmap.c
+@@ -31,6 +31,8 @@
+ #include <asm/dma.h>
+ #include <asm/pgalloc.h>
+ 
++#include "internal.h"
++
+ /*
+  * Allocate a block of memory to be used to back the virtual memory map
+  * or to back the page tables that are used to create the mapping.
+@@ -42,8 +44,7 @@ static void * __ref __earlyonly_bootmem_
+ 				unsigned long align,
+ 				unsigned long goal)
+ {
+-	return memblock_alloc_try_nid_raw(size, align, goal,
+-					       MEMBLOCK_ALLOC_ACCESSIBLE, node);
++	return memmap_alloc(size, align, goal, node, false);
+ }
+ 
+ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
 
-hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode.patch
+mm-kmemleak-fix-percpu-memory-leak-detection-failure.patch
+mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing.patch
+mm-early_ioremap-add-null-pointer-checks-to-prevent-null-pointer-dereference.patch
+mm-memblock-add-memblock_alloc_or_panic-interface.patch
+mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak.patch
 
