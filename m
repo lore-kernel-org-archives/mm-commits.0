@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A6F13AA35
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 559A8376F1
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736215490; cv=none; b=qC8owWVHZ537OySUrIUzI1xePMziLik4UbowX7aogcWC1EgIvMzL7uTp5XTAtko3vNQlC9a0NNcbTBgaq2W9UUN51PKALJvzKx7D7xhGvDwbUhgUyfmb+4svP6BJm9YzdrCX92mDj/wqTVHp5b8l7inH7TmZ00MM/TzkVeAOu3c=
+	t=1736215492; cv=none; b=Gd1VoTJspJkvE1wp52OO72aoPSaQK4cl69U7UZs0B4g/LckgaNUyrZWoPZmAgZMIAlHL9SC47zFqcubdy3eySoo07Ay7CycmWH/m5bZNciLJR+qXb0e2Yd/6PUPWfgWb26k64BLxeHFthOlDoePcLiyccsaxnWAtaztQOPk0lzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736215490; c=relaxed/simple;
-	bh=vtYP82I87q+0hQ7SxUFhPsfhlT8hfSc1o/XPxIlUYiE=;
-	h=Date:To:From:Subject:Message-Id; b=nd1xEX3DFMrJq14NcnkDojMgmfhumMCW4K+CegPL1Dts3yGT9UppQLAMv05oOJgQqc/RnYskFn8WGDdIU8KY8rroAf2Dd7qX9EhufPEEnbz0OW2HOgi7138tF/Y6W3r3sYcRlgWFtY5/6Bvbxun1JF1TfG+1BXwlQbIrrR7okJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sw91uC0E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736215492; c=relaxed/simple;
+	bh=5tkUhZevzVxYIFupLsTek67jP0Vs36ZwONiHYaST00Q=;
+	h=Date:To:From:Subject:Message-Id; b=PVNQeuJ3Kl3u+Fy2Byiek4x7iFENDq/aXgnnXJ35LEO9DuqUFljxpkkyEk352XN5MW+k0BDNaJE/dvGjN+8z0v8B09lbX7ue7dEpMdbENvsxo7XBfjEmm7RGjgtLKxtKnWk5CnhlOFoWk+0RNzkUGEwijeJ2XuauIh8wwOaE6wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sjw0LUFI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sw91uC0E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18E32C4CED2;
-	Tue,  7 Jan 2025 02:04:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sjw0LUFI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D51D1C4CED2;
+	Tue,  7 Jan 2025 02:04:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736215490;
-	bh=vtYP82I87q+0hQ7SxUFhPsfhlT8hfSc1o/XPxIlUYiE=;
+	s=korg; t=1736215491;
+	bh=5tkUhZevzVxYIFupLsTek67jP0Vs36ZwONiHYaST00Q=;
 	h=Date:To:From:Subject:From;
-	b=Sw91uC0E0G9fjKUDnMBeDy5bHg2+MqGqmd1iLD/xAHdQMRPZUutg/3Q65m71s+QLy
-	 CSfwWxqmgOXRDWp4ZXipWtTolXoOJXyW5FQwcFIIOK/3Dto6XoKwB+Cad/pjyJYonk
-	 PM2t+/CWfGl89DuEvPPRtmA08Iky8E2X5UQi/uUU=
-Date: Mon, 06 Jan 2025 18:04:49 -0800
+	b=Sjw0LUFIhgjsRCgisfuBqjFvmSdycBcV1vhh9amQ+D6EM1ZtauYNtjvu40wZTY3eS
+	 4yAYgPSTLWTgrZNSHT2TSa6X0Ze+CKCY9SahFP0loOkoFs6mktoqb9NrfCTDaB5VJI
+	 vshXbt6c0w9mKsaYHjqiV/G4izvS1hF7+50hybng=
+Date: Mon, 06 Jan 2025 18:04:51 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories.patch added to mm-unstable branch
-Message-Id: <20250107020450.18E32C4CED2@smtp.kernel.org>
+Subject: + docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file.patch added to mm-unstable branch
+Message-Id: <20250107020451.D51D1C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document sz_filtered_out of scheme tried region directories
+     Subject: Docs/ABI/damon: document per-region DAMOS filter-passed bytes stat file
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories.patch
+     docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document sz_filtered_out of scheme tried region directories
-Date: Mon, 6 Jan 2025 11:34:00 -0800
+Subject: Docs/ABI/damon: document per-region DAMOS filter-passed bytes stat file
+Date: Mon, 6 Jan 2025 11:34:01 -0800
 
-Document the newly added DAMON sysfs interface file for per-scheme-tried
-region's bytes that passed the operations set handling DAMOS filters.
+Document the new ABI for per-region operations set layer-handled DAMOS
+filters passed bytes statistic.
 
-Link: https://lkml.kernel.org/r/20250106193401.109161-16-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250106193401.109161-17-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -86,7 +86,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ 0/type,matching,memcg_id
-     │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds
-     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
--    │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age
-+    │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age,sz_filter_passed
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ ...
-     │ │ │ │ ...
-@@ -494,10 +494,10 @@ set the ``access pattern`` as their inte
- tried_regions/<N>/
- ------------------
- 
--In each region directory, you will find four files (``start``, ``end``,
--``nr_accesses``, and ``age``).  Reading the files will show the start and end
--addresses, ``nr_accesses``, and ``age`` of the region that corresponding
--DAMON-based operation scheme ``action`` has tried to be applied.
-+In each region directory, you will find five files (``start``, ``end``,
-+``nr_accesses``, ``age``, and ``sz_filter_passed``).  Reading the files will
-+show the properties of the region that corresponding DAMON-based operation
-+scheme ``action`` has tried to be applied.
- 
- Example
- ~~~~~~~
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -430,3 +430,10 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Reading this file returns the 'age' of a memory region that
+ 		corresponding DAMON-based Operation Scheme's action has tried
+ 		to be applied.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/tried_regions/<R>/sz_filter_passed
++Date:		Dec 2024
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading this file returns the size of the memory in the region
++		that passed DAMON operations layer-handled filters of the
++		scheme in bytes.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
