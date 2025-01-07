@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 389AD13635B
-	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07F813B58D
+	for <mm-commits@vger.kernel.org>; Tue,  7 Jan 2025 02:04:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736215478; cv=none; b=KpfKVfCH04zSnRjf3dzYmQed73D8n6X5D4NeDAMObybv/JyZTTGaJi31P2WmsnCVaFx6Gee10o95J4uj9KsT1Z0QbxqKBP/5jAJv0fFV9+YgupGp+hUumk+s8WSUxyhVj0QgMpc/jhQARLyQYWRfEE6fdFufTKMDeVVK0KXLtJM=
+	t=1736215480; cv=none; b=QWIq4pJVN94ZifD5pUB6C3S5tJXrdwmuHG/7wRh84c/CqKLOOqUlWxhaaq/NLLvJfrr1Gmc9O3+EujRsqZxkws6AKyyoOmvIyL2Nu1xOeZN4DYBoHcqCvyJOAA6zzkwGfZlL2jjLgoX1mxIgJ4CndqWjeauNspGiZfZfdY1v0k4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736215478; c=relaxed/simple;
-	bh=SPKwb+BbkpqByH3ebjgu2PnWl//qMEGy0Gaz+hgY7gI=;
-	h=Date:To:From:Subject:Message-Id; b=mXSQujTWXI8iNg21trbfCUN860gm/lz4H0qp7Kjrs7B2SrI88EqBGxe9/m0p3OdNpxpSCVE8q3MKdPZflucYuFe0gzpyWryT+bGBTAgqCP7fiKVwijl0bGU7/GXQMB+VP8bu5LHq38oH3JYsZ5PHJbbQEHtebD/roaPWIRfLprw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ptYBPz86; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736215480; c=relaxed/simple;
+	bh=5gnenLjtfesgf9BKB9qfZH5GC5Cf6EpbjkoN5HSNkRU=;
+	h=Date:To:From:Subject:Message-Id; b=HDfKy7QT04RYq2pScgpLohxpRtLPeGe+IkbqWUboctGMHk6GdsuxPZeLt35ocREfAlTa0KB19Z9IDzxUqu6JjqQ1uiQ3K/MCgpMjRkbww9fLnklmqri9ArOBIu6SAEqzScXhVH5ut1cwv0vkbRe60H9irJ8c7E3QWDC/uvEjqGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xFtYe7tG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ptYBPz86"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB48FC4CEDD;
-	Tue,  7 Jan 2025 02:04:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xFtYe7tG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81E2BC4CED2;
+	Tue,  7 Jan 2025 02:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736215477;
-	bh=SPKwb+BbkpqByH3ebjgu2PnWl//qMEGy0Gaz+hgY7gI=;
+	s=korg; t=1736215479;
+	bh=5gnenLjtfesgf9BKB9qfZH5GC5Cf6EpbjkoN5HSNkRU=;
 	h=Date:To:From:Subject:From;
-	b=ptYBPz865uxG1ZCLk70qa0Re7kTJrh6uN3TzoeKiTXtikdzC9c4URjdNEdOyavWGt
-	 5s/npHQPBtmzf3Cy0bNYmZk9/ceahJ8TFrAXZFnmAPxlGmGT/1lBBERK2vr3gRDZjx
-	 09Rma0agn0QY5zFi/p5N5YSJxHSZ/p2KDSgmhwLQ=
-Date: Mon, 06 Jan 2025 18:04:37 -0800
+	b=xFtYe7tGdDlSjFVZcTUIdL1HgcbcDkqTI4+ZnFZJa/CYEjk+1TemXlQCUsMjcHeTL
+	 5xIF3bwFZn5c01Klxz04aqR4BeDJPGIJOQAQ2dWRbZYsyRkn/vGwd6hw0GufsxJns1
+	 nIfiUMwzT/4nkC3APhGb/IszjEtBouj6SOzWaxkg=
+Date: Mon, 06 Jan 2025 18:04:39 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-sz_ops_filter_passed.patch added to mm-unstable branch
-Message-Id: <20250107020437.BB48FC4CEDD@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed.patch added to mm-unstable branch
+Message-Id: <20250107020439.81E2BC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document sz_ops_filter_passed
+     Subject: Docs/admin-guide/mm/damon/usage: document sz_ops_filter_passed
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-document-sz_ops_filter_passed.patch
+     docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-sz_ops_filter_passed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,59 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document sz_ops_filter_passed
-Date: Mon, 6 Jan 2025 11:33:54 -0800
+Subject: Docs/admin-guide/mm/damon/usage: document sz_ops_filter_passed
+Date: Mon, 6 Jan 2025 11:33:55 -0800
 
-Document the new per-scheme accumulated stat for total bytes that passed
-the operations set layer-handled DAMOS filters on the design document.
+Document the new per-scheme operations set layer-handled DAMOS filters
+passed bytes statistic file on DAMON sysfs interface usage document.
 
-Link: https://lkml.kernel.org/r/20250106193401.109161-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250106193401.109161-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   20 +++++++----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-sz_ops_filter_passed
-+++ a/Documentation/mm/damon/design.rst
-@@ -552,6 +552,8 @@ scheme's execution.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -84,7 +84,7 @@ comma (",").
+     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
+     │ │ │ │ │ │ │ :ref:`filters <sysfs_filters>`/nr_filters
+     │ │ │ │ │ │ │ │ 0/type,matching,memcg_id
+-    │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,qt_exceeds
++    │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds
+     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
+     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age
+     │ │ │ │ │ │ │ │ ...
+@@ -448,18 +448,16 @@ difference is applied to :ref:`stats <da
+ schemes/<N>/stats/
+ ------------------
  
- - ``nr_tried``: Total number of regions that the scheme is tried to be applied.
- - ``sz_trtied``: Total size of regions that the scheme is tried to be applied.
-+- ``sz_ops_filter_passed``: Total bytes that passed operations set
-+  layer-handled DAMOS filters.
- - ``nr_applied``: Total number of regions that the scheme is applied.
- - ``sz_applied``: Total size of regions that the scheme is applied.
- - ``qt_exceeds``: Total number of times the quota of the scheme has exceeded.
+-DAMON counts the total number and bytes of regions that each scheme is tried to
+-be applied, the two numbers for the regions that each scheme is successfully
+-applied, and the total number of the quota limit exceeds.  This statistics can
+-be used for online analysis or tuning of the schemes.  Refer to :ref:`design
+-doc <damon_design_damos_stat>` for more details about the stats.
++DAMON counts statistics for each scheme.  This statistics can be used for
++online analysis or tuning of the schemes.  Refer to :ref:`design doc
++<damon_design_damos_stat>` for more details about the stats.
+ 
+ The statistics can be retrieved by reading the files under ``stats`` directory
+-(``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``, and
+-``qt_exceeds``), respectively.  The files are not updated in real time, so you
+-should ask DAMON sysfs interface to update the content of the files for the
+-stats by writing a special keyword, ``update_schemes_stats`` to the relevant
+-``kdamonds/<N>/state`` file.
++(``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``,
++``sz_ops_filter_passed``, and ``qt_exceeds``), respectively.  The files are not
++updated in real time, so you should ask DAMON sysfs interface to update the
++content of the files for the stats by writing a special keyword,
++``update_schemes_stats`` to the relevant ``kdamonds/<N>/state`` file.
+ 
+ .. _sysfs_schemes_tried_regions:
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
