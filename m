@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5156F3FBB3
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:36:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5721A2390
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:36:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736318164; cv=none; b=GlQbubgm/jievNE95KF4dDuxDKma7e+zd1ZYdr8gzhFxQYIkq2/rg5os9yIXIQ6V+l3YqjU4UYXQWadRc/7zFvdnqcH7CHkOxxKqYybsJyLk5owN5zTogps86uMLAP7iDnCw8a+q1uhhcP7JiLyt4mkUBK4cJcaskeuwse6eJns=
+	t=1736318205; cv=none; b=jZ8ONKGsNuD5ilFwJaFEXUbAqRYceMOXwoTPpdNASWHaZFmJdsfXr+Egib3BXSgEBpL3ZI1dBTQ6cyfO6yYGu0Rr9PlLjVntKudtvCPPrYAmkDQYZYlB0jLcetF32pz3gu4x8LO0PPYDrUAjwgUAKOls0Kr6ca7SKbU6YMljH+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736318164; c=relaxed/simple;
-	bh=lcAjl+nJwdZOml903ncIpkKkG7NOPjA90snVej9A6to=;
-	h=Date:To:From:Subject:Message-Id; b=TZ5WYVWY52wLurksNkZmmr/S0sltmYNhC07Lee7K6CTFMcLq98P1mu0ci+7zsniBW279PnsSF8byNSXMR6obBb03+SxXDNmUm+Z9LZBh2k7DJIgR6fAacEqC8pa73BDOMLtJ4L/aPId6sUH5ZIXpCa+PuqPnqRKhzwQ+Fq77j7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aqEErjrT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736318205; c=relaxed/simple;
+	bh=f8qEi7qXn53o+GdcVOh1EUK9yzfgZCSLkCetqIW2wRU=;
+	h=Date:To:From:Subject:Message-Id; b=kCRXVHGKVOQFpAHttUuGNKv+N5z1MNwZXsHxrTD3tggPxv0iKmV6Fb+SFg/AWZdzsJeq5WVsBGeWSKNLWg6SxnDQLLba4eqNCeR+f5mQIpsCmHTe26xoBGw2LXcurWTUd5GKyIgzsINFUbn/MTyZNCp5ggKQ9+AxmUUw/HiZxFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HEDsGZm1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aqEErjrT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C425BC4CED0;
-	Wed,  8 Jan 2025 06:36:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HEDsGZm1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C123DC4CED0;
+	Wed,  8 Jan 2025 06:36:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736318163;
-	bh=lcAjl+nJwdZOml903ncIpkKkG7NOPjA90snVej9A6to=;
+	s=korg; t=1736318204;
+	bh=f8qEi7qXn53o+GdcVOh1EUK9yzfgZCSLkCetqIW2wRU=;
 	h=Date:To:From:Subject:From;
-	b=aqEErjrT4riRTU2Q6MxO9iCqMbWTIP6OI2od9sXb1nSgupe3jQlz1SdGhsRjBfdEF
-	 314uSSWgG/+EOAc0jmozBDVEuj3xsczAn91x5m9HccIOujMl4Hy32zMWgMno4wKL62
-	 IXrEZjs/ah/eCdqe8pCEeCHEpi49REr3tmowsqdA=
-Date: Tue, 07 Jan 2025 22:36:03 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=HEDsGZm1nHrmZEBE0fm79sRzsD6wgoztiLuahU9PUnro79wOVf3OFt0kkwxRT9Iog
+	 avHcQPo52EHfRp1kY4134OVmxzPDwMWrZFoBfxOsL+yxqaP0C/ZfLstsQssoAiL6UI
+	 A85q4XWtCaqwIXxoRlwdeOSbphZ/rQp0fSM63hwA=
+Date: Tue, 07 Jan 2025 22:36:44 -0800
+To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,lkp@intel.com,linmiaohe@huawei.com,lina@asahilina.net,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,catalin.marinas@arm.com,bjorn@rivosinc.com,bhelgaas@google.com,apopple@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + huge_memory-add-vmf_insert_folio_pud-fix.patch added to mm-unstable branch
-Message-Id: <20250108063603.C425BC4CED0@smtp.kernel.org>
+Subject: + rmap-add-support-for-pud-sized-mappings-to-rmap-fix.patch added to mm-unstable branch
+Message-Id: <20250108063644.C123DC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: huge_memory-add-vmf_insert_folio_pud-fix
+     Subject: rmap-add-support-for-pud-sized-mappings-to-rmap-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     huge_memory-add-vmf_insert_folio_pud-fix.patch
+     rmap-add-support-for-pud-sized-mappings-to-rmap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-add-vmf_insert_folio_pud-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rmap-add-support-for-pud-sized-mappings-to-rmap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: huge_memory-add-vmf_insert_folio_pud-fix
-Date: Tue Jan  7 10:34:59 PM PST 2025
+Subject: rmap-add-support-for-pud-sized-mappings-to-rmap-fix
+Date: Tue Jan  7 10:33:26 PM PST 2025
 
-fix vmf_insert_folio_pud() kerneldoc
+remove stray * in comment, per David
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202501081149.VDLF8cwh-lkp@intel.com/
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Asahi Lina <lina@asahilina.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Björn Töpel <bjorn@rivosinc.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Dan Wiliams <dan.j.williams@intel.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
+ include/linux/rmap.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~huge_memory-add-vmf_insert_folio_pud-fix
-+++ a/mm/huge_memory.c
-@@ -1552,7 +1552,7 @@ EXPORT_SYMBOL_GPL(vmf_insert_pfn_pud);
- /**
-  * vmf_insert_folio_pud - insert a pud size folio mapped by a pud entry
-  * @vmf: Structure describing the fault
-- * @pfn: pfn of the page to insert
-+ * @folio: folio to insert
-  * @write: whether it's a write fault
-  *
-  * Return: vm_fault_t value.
+--- a/include/linux/rmap.h~rmap-add-support-for-pud-sized-mappings-to-rmap-fix
++++ a/include/linux/rmap.h
+@@ -231,7 +231,7 @@ static inline void __folio_rmap_sanity_c
+ 		break;
+ 	case RMAP_LEVEL_PUD:
+ 		/*
+-		 * Assume that we are creating * a single "entire" mapping of the
++		 * Assume that we are creating a single "entire" mapping of the
+ 		 * folio.
+ 		 */
+ 		VM_WARN_ON_FOLIO(folio_nr_pages(folio) != HPAGE_PUD_NR, folio);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
