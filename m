@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38DCE156653
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:16:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 959287083A
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:34:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736309801; cv=none; b=GrkEZd23eyUcFjQ7DhRMMA7SwwVR2yS09ebl972HONtKisLFPF/sEcX5HQHcy71FJoAcyMsJO4nWBvQa/KNLQQPey0+3P23nxR1H7/PZFg+weq3oxpDvpvS7FoUQr8K7l5pLKSvxfbXBc/GId+10kHQGWHiH2kjqLLA3fSpiHok=
+	t=1736310873; cv=none; b=sTBRdbjaHEgwLE4jJd18dYZzfx7IvB3OFQn6zJHHAXO4THBcmvRUz2GKpLXQRD0xVl3tXtq4bJb3ulgEuTBJojN2Shzirzf6EWsuysy5EtIwbLEQHhLNPGiRnk6TqlOOT79p1VEPcFw1U8qHSt8fC6UwU9+3bmqG7XbiJ6D2Odc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736309801; c=relaxed/simple;
-	bh=GmoA4GxToK4KSM66JJ9ymRLYclf2b8/lfT2JCiBdYrc=;
-	h=Date:To:From:Subject:Message-Id; b=cirB2/y/9jyHvrRPfiz/owonfPd8/SknXcVOYm0NplhI2hhLERZ+Z0YuzrGQ2P1c+s946tqJLFOrM/pfORd18wLa8L1AmzGrRBLpbsAlVzsgB+V6YisJpvi2aHgshHX08EkZ9bqWRv5FasKf8925s9bsqdZ45IK3LdwMubnSUhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zmyT/Lgo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736310873; c=relaxed/simple;
+	bh=LtTzCT72DknHXO6BK19tdLhHCK5qqtlJQrtFlUj/2Rg=;
+	h=Date:To:From:Subject:Message-Id; b=KPVIGVbvdMXjy995VVgFkNXDzt52ov9/K0qdkO/yoCLicyjoijyiodA/Ne1fUD/83mtg/uxEx/ueriyuq5UpP38U6XSYK/vSJT7gIKjcQAfgKoinhRiefQZeMOegDacsYEY1ZBsuaviBm3Iv/vGjJ/PE2KpN5IFvQ4ma49o3Tc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ZTO+tiK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zmyT/Lgo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEC23C4CED0;
-	Wed,  8 Jan 2025 04:16:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ZTO+tiK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08ECAC4CEE1;
+	Wed,  8 Jan 2025 04:34:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736309800;
-	bh=GmoA4GxToK4KSM66JJ9ymRLYclf2b8/lfT2JCiBdYrc=;
+	s=korg; t=1736310873;
+	bh=LtTzCT72DknHXO6BK19tdLhHCK5qqtlJQrtFlUj/2Rg=;
 	h=Date:To:From:Subject:From;
-	b=zmyT/LgozXHtcG2pSWznTj+eNuu8jx/SaR/wXKKYnwJ0vQ0LpnM/gSV+gZR/+7h7Z
-	 7Vic912hEgNrF5YXe6cIK9v8BtcuUNU4BvHTt5Mp2TqbXPP7AvuJfNGQ0LfnA0yu5v
-	 EwqsXIs0eLD2K51beqoeXJPghymcAS4vQ9H5EC7w=
-Date: Tue, 07 Jan 2025 20:16:40 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jstultz@google.com,aliceryhl@google.com,isaacmanjarres@google.com,akpm@linux-foundation.org
+	b=0ZTO+tiKXKNc/S+2kvk/HJjpO8pY+FTZVsdeXgxocFcaer3LELboJuCgyfscEaZjH
+	 EguyALZEqRMU7TEohv/cgfuIQAwOz8QgqH6KF4jG+ike082iQ57dfJUAsOD1gLQUPF
+	 d0TixoMI2wAZIGZXOeVWPsylT5tcfAufZCs3Cn9s=
+Date: Tue, 07 Jan 2025 20:34:32 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch added to mm-unstable branch
-Message-Id: <20250108041640.AEC23C4CED0@smtp.kernel.org>
+Subject: + selftests-mm-build-with-o2-fix.patch added to mm-unstable branch
+Message-Id: <20250108043433.08ECAC4CEE1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd: use strncpy_from_user() to read memfd name
+     Subject: selftests/mm: silence unused-result warnings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     selftests-mm-build-with-o2-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-build-with-o2-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,76 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/memfd: use strncpy_from_user() to read memfd name
-Date: Tue, 7 Jan 2025 10:48:02 -0800
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: selftests/mm: silence unused-result warnings
+Date: Tue, 7 Jan 2025 17:01:10 +0000
 
-The existing logic uses strnlen_user() to calculate the length of the
-memfd name from userspace and then copies the string into a buffer using
-copy_from_user().  This is error-prone, as the string length could have
-changed between the time when it was calculated and when the string was
-copied.  The existing logic handles this by ensuring that the last byte in
-the buffer is the terminating zero.
+Switching to -O2 when building the mm tests has the unexpected side effect
+of triggering many unused-result warnings on certain distros like Ubuntu,
+where GCC is configured so that -O2 implies -D_FORTIFY_SOURCE.
 
-This handling is contrived and can better be handled by using
-strncpy_from_user(), which gets the length of the string and copies it in
-one shot.  Therefore, simplify the logic for copying the memfd name by
-using strncpy_from_user().
+Explicitly disable FORTIFY_SOURCE to avoid those warnings. This has
+no effect on upstream toolchains where FORTIFY_SOURCE is not
+implicitly enabled.
 
-No functional change.
-
-Link: https://lkml.kernel.org/r/20250107184804.4074147-3-isaacmanjarres@google.com
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: John Stultz <jstultz@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20250107170110.2819685-1-kevin.brodsky@arm.com
+Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ tools/testing/selftests/mm/Makefile |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/memfd.c~mm-memfd-use-strncpy_from_user-to-read-memfd-name
-+++ a/mm/memfd.c
-@@ -394,26 +394,18 @@ static char *memfd_create_name(const cha
- 	char *name;
- 	long len;
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-build-with-o2-fix
++++ a/tools/testing/selftests/mm/Makefile
+@@ -36,6 +36,13 @@ MAKEFLAGS += --no-builtin-rules
+ CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
+ LDLIBS = -lrt -lpthread -lm
  
--	/* length includes terminating zero */
--	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
--	if (len <= 0)
--		return ERR_PTR(-EFAULT);
--	if (len > MFD_NAME_MAX_LEN + 1)
--		return ERR_PTR(-EINVAL);
--
--	name = kmalloc(len + MFD_NAME_PREFIX_LEN, GFP_KERNEL);
-+	name = kmalloc(MFD_NAME_PREFIX_LEN + MFD_NAME_MAX_LEN + 1, GFP_KERNEL);
- 	if (!name)
- 		return ERR_PTR(-ENOMEM);
- 
- 	strcpy(name, MFD_NAME_PREFIX);
--	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
-+	/* length does not include terminating zero */
-+	len = strncpy_from_user(name + MFD_NAME_PREFIX_LEN, uname, MFD_NAME_MAX_LEN + 1);
-+	if (len < 0) {
- 		error = -EFAULT;
- 		goto err_name;
--	}
--
--	/* terminating-zero may have changed after strnlen_user() returned */
--	if (name[len + MFD_NAME_PREFIX_LEN - 1]) {
--		error = -EFAULT;
-+	} else if (len > MFD_NAME_MAX_LEN) {
-+		error = -EINVAL;
- 		goto err_name;
- 	}
- 
++# Some distributions (such as Ubuntu) configure GCC so that _FORTIFY_SOURCE is
++# automatically enabled at -O1 or above. This triggers various unused-result
++# warnings where functions such as read() or write() are called and their
++# return value is not checked. Disable _FORTIFY_SOURCE to silence those
++# warnings.
++CFLAGS += -U_FORTIFY_SOURCE
++
+ KDIR ?= /lib/modules/$(shell uname -r)/build
+ ifneq (,$(wildcard $(KDIR)/Module.symvers))
+ ifneq (,$(wildcard $(KDIR)/include/linux/page_frag_cache.h))
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from kevin.brodsky@arm.com are
 
-mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch
-mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+selftests-mm-fix-condition-in-uffd_move_test_common.patch
+selftests-mm-fix-wmaybe-uninitialized-warnings.patch
+selftests-mm-fix-strncpy-length.patch
+selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
+selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix.patch
+selftests-mm-build-with-o2.patch
+selftests-mm-build-with-o2-fix.patch
+selftests-mm-remove-unused-pkey-helpers.patch
+selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
+selftests-mm-ensure-pkey-h-define-inline-functions-only.patch
+selftests-mm-remove-empty-pkey-helper-definition.patch
+selftests-mm-ensure-non-global-pkey-symbols-are-marked-static.patch
+selftests-mm-use-sys_pkey-helpers-consistently.patch
+selftests-mm-use-sys_pkey-helpers-consistently-fix.patch
+selftests-mm-rename-pkey-register-macro.patch
+selftests-mm-skip-pkey_sighandler_tests-if-support-is-missing.patch
+selftests-mm-remove-x-permission-from-sigaltstack-mapping.patch
+riscv-mm-skip-pgtable-level-check-in-pudp4d_alloc_one.patch
+asm-generic-pgalloc-provide-generic-p4d_alloc_onefree.patch
+mm-move-common-part-of-pagetable__ctor-to-helper.patch
+parisc-mm-ensure-pagetable_pmd_tor-are-called.patch
+m68k-mm-add-calls-to-pagetable_pmd_tor.patch
+arm-mm-rename-pgd-helpers.patch
+asm-generic-pgalloc-provide-generic-__pgd_allocfree.patch
+mm-introduce-ctor-dtor-at-pgd-level.patch
 
