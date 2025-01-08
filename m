@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 620C51802AB
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:36:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE1531802AB
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:36:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736307372; cv=none; b=KnIhngJ5FiCvbZoFTC1RrZd73fILjMRIXzEDRRkXlLQejBrqw1Cxb9BH5bGw/gr/ToFyfHXo4IlVI0GlLedk715xXy+Smma5rmVtFI2aOT7QC8aV7XAVTH6YWERaL/ERtWGhTzqnjYqvfWzb9ctLxliuX3SqQTnrCzar6kCPxpw=
+	t=1736307374; cv=none; b=ibJSjDSsJ5Bb/mYSj0aSPi8MZFxEUEHQfbHs91HOx5/RJjxOsU0HIUx5TLT9ZZPcC/FQZMn5AnVb7CvauaQvcbYW9SlKPb7NFj3idVmI0nu0OdyHoRmR3H6ZHuOVf+UYYoprAGKa0DTsyc7QPEBXh2/yjjy/5COnLHCflBdx9ZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736307372; c=relaxed/simple;
-	bh=EpYiMrcVPIKPlznQTzLXJBLH/+PjLNTOSPHd3+MwBKU=;
-	h=Date:To:From:Subject:Message-Id; b=sePYBUgyix6EqchoQ6tyDunU2PbVQD1k9ET1b0j2xNhsUcHNgHdle+4YF2HqJMhEkujL6OGnJnMMm0bESlPpit65g1cGJ7jSWd7ZPENDALxxebOgQ1MV3JmuS4b9/+bDHmDGh3qwD2M+FsRJrZ0j2nDSZniRJsZLJ8wq6UGcriI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ah1guW3f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736307374; c=relaxed/simple;
+	bh=5gdbl0+BCDBOLG2xsP9wkpuBGxvFuEC45AfOF2426Jg=;
+	h=Date:To:From:Subject:Message-Id; b=STHzK1FswQO7wlts0Ku+CBTaTGGqzi/kcUhpmBpFu9PdyS5BGs8vUc/S1K4nptWqriN0Ck6T5XZyvlS1WM/wQ7h2Lbaq/Cp/JrfCIL0J4FWFtlknYxskSaBHpqtHU80PeM7JVedQh54pS6xo2ARvQaM9tlQ4LyOGNGBKyHPw9Qk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w/3MUddb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ah1guW3f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E505BC4CED0;
-	Wed,  8 Jan 2025 03:36:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w/3MUddb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA6D0C4CED0;
+	Wed,  8 Jan 2025 03:36:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736307372;
-	bh=EpYiMrcVPIKPlznQTzLXJBLH/+PjLNTOSPHd3+MwBKU=;
+	s=korg; t=1736307373;
+	bh=5gdbl0+BCDBOLG2xsP9wkpuBGxvFuEC45AfOF2426Jg=;
 	h=Date:To:From:Subject:From;
-	b=Ah1guW3fIyaLsbUgv+/dc1yES34HNjMX18ICoeSojFSNMeDOMTPZeDgoRWLaeSwCL
-	 FG9/Z5/NHgGRlvTMtSQpX0+hHOQFi8GAAS+9eGyX/5gOQZbQTYdg75lf87AgYZLtrL
-	 JS74lyi5VROj0Vz0KyIcmUTOhjmlEiwgG+xzzixs=
-Date: Tue, 07 Jan 2025 19:36:11 -0800
+	b=w/3MUddbFrxNI0YpVM9MMuWE1t+Gt0ldTXOQz9uVa8csDk9kzQC7zybtLJOr8cGD5
+	 UwzG7nhiBR4TfWS9Z3zswxzmPhxjgM3umAyvCY7SvNA7/BJ7cXo8F89m8skByoJXjY
+	 cSyudUJVGotNP5wmK/ueXQHAQQCrAL/y/yBB5Lzo=
+Date: Tue, 07 Jan 2025 19:36:13 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,kirill.shutemov@linux.intel.com,hch@lst.de,hannes@cmpxchg.org,clm@meta.com,bfoster@redhat.com,axboe@kernel.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-call-filemap_fdatawrite_range_kick-after-iocb_dontcache-issue.patch added to mm-unstable branch
-Message-Id: <20250108033611.E505BC4CED0@smtp.kernel.org>
+Subject: + mm-add-fgp_dontcache-folio-creation-flag.patch added to mm-unstable branch
+Message-Id: <20250108033613.DA6D0C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: call filemap_fdatawrite_range_kick() after IOCB_DONTCACHE issue
+     Subject: mm: add FGP_DONTCACHE folio creation flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-call-filemap_fdatawrite_range_kick-after-iocb_dontcache-issue.patch
+     mm-add-fgp_dontcache-folio-creation-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-call-filemap_fdatawrite_range_kick-after-iocb_dontcache-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-fgp_dontcache-folio-creation-flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jens Axboe <axboe@kernel.dk>
-Subject: mm: call filemap_fdatawrite_range_kick() after IOCB_DONTCACHE issue
-Date: Fri, 20 Dec 2024 08:47:49 -0700
+Subject: mm: add FGP_DONTCACHE folio creation flag
+Date: Fri, 20 Dec 2024 08:47:50 -0700
 
-When a buffered write submitted with IOCB_DONTCACHE has been successfully
-submitted, call filemap_fdatawrite_range_kick() to kick off the IO.  File
-systems call generic_write_sync() for any successful buffered write
-submission, hence add the logic here rather than needing to modify the
-file system.
+Callers can pass this in for uncached folio creation, in which case if a
+folio is newly created it gets marked as uncached.  If a folio exists for
+this index and lookup succeeds, then it will not get marked as uncached. 
+If an !uncached lookup finds a cached folio, clear the flag.  For that
+case, there are competeting uncached and cached users of the folio, and it
+should not get pruned.
 
-Link: https://lkml.kernel.org/r/20241220154831.1086649-12-axboe@kernel.dk
+Link: https://lkml.kernel.org/r/20241220154831.1086649-13-axboe@kernel.dk
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Chris Mason <clm@meta.com>
@@ -79,23 +80,49 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/pagemap.h |    2 ++
+ mm/filemap.c            |    5 +++++
+ 2 files changed, 7 insertions(+)
 
---- a/include/linux/fs.h~mm-call-filemap_fdatawrite_range_kick-after-iocb_dontcache-issue
-+++ a/include/linux/fs.h
-@@ -2912,6 +2912,11 @@ static inline ssize_t generic_write_sync
- 				(iocb->ki_flags & IOCB_SYNC) ? 0 : 1);
- 		if (ret)
- 			return ret;
-+	} else if (iocb->ki_flags & IOCB_DONTCACHE) {
-+		struct address_space *mapping = iocb->ki_filp->f_mapping;
-+
-+		filemap_fdatawrite_range_kick(mapping, iocb->ki_pos,
-+					      iocb->ki_pos + count);
- 	}
+--- a/include/linux/pagemap.h~mm-add-fgp_dontcache-folio-creation-flag
++++ a/include/linux/pagemap.h
+@@ -721,6 +721,7 @@ pgoff_t page_cache_prev_miss(struct addr
+  * * %FGP_NOFS - __GFP_FS will get cleared in gfp.
+  * * %FGP_NOWAIT - Don't block on the folio lock.
+  * * %FGP_STABLE - Wait for the folio to be stable (finished writeback)
++ * * %FGP_DONTCACHE - Uncached buffered IO
+  * * %FGP_WRITEBEGIN - The flags to use in a filesystem write_begin()
+  *   implementation.
+  */
+@@ -734,6 +735,7 @@ typedef unsigned int __bitwise fgf_t;
+ #define FGP_NOWAIT		((__force fgf_t)0x00000020)
+ #define FGP_FOR_MMAP		((__force fgf_t)0x00000040)
+ #define FGP_STABLE		((__force fgf_t)0x00000080)
++#define FGP_DONTCACHE		((__force fgf_t)0x00000100)
+ #define FGF_GET_ORDER(fgf)	(((__force unsigned)fgf) >> 26)	/* top 6 bits */
  
- 	return count;
+ #define FGP_WRITEBEGIN		(FGP_LOCK | FGP_WRITE | FGP_CREAT | FGP_STABLE)
+--- a/mm/filemap.c~mm-add-fgp_dontcache-folio-creation-flag
++++ a/mm/filemap.c
+@@ -1973,6 +1973,8 @@ no_page:
+ 			/* Init accessed so avoid atomic mark_page_accessed later */
+ 			if (fgp_flags & FGP_ACCESSED)
+ 				__folio_set_referenced(folio);
++			if (fgp_flags & FGP_DONTCACHE)
++				__folio_set_dropbehind(folio);
+ 
+ 			err = filemap_add_folio(mapping, folio, index, gfp);
+ 			if (!err)
+@@ -1995,6 +1997,9 @@ no_page:
+ 
+ 	if (!folio)
+ 		return ERR_PTR(-ENOENT);
++	/* not an uncached lookup, clear uncached if set */
++	if (folio_test_dropbehind(folio) && !(fgp_flags & FGP_DONTCACHE))
++		folio_clear_dropbehind(folio);
+ 	return folio;
+ }
+ EXPORT_SYMBOL(__filemap_get_folio);
 _
 
 Patches currently in -mm which might be from axboe@kernel.dk are
