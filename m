@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5589B1A238C
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:26:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C5B81990AE
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:26:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736317598; cv=none; b=P7GgDGzT6F80nv8f/AGrJAPlY6LNbLBN14d6iiVc52GHtSaD97xAnt43dgi4eYN21qvewxibSn2CpcA+b0qAloFJDCTS6jf0iQTZr1VYi8G9QZYqsnD6P+nyDUOQVeELfEp17YotFE5n7/Mya8i7trJX05lY6h0oxa4D6LgSTwQ=
+	t=1736317601; cv=none; b=jPy0r8mslxnOUYKMEMuuCnQzf8WdDZrchnyN1wcYT9Udai+pOk6EBT5IBMmCO22EAwsdS/8M5JDXw9VV76b5HK84y//1FNbNnKz8H7D3DX3EGwxX2zPl3RKbjA4GuSQYx35fxHu1V9zLiB/j8B10zZVCYoRm0oOO1QR1TJWKfx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736317598; c=relaxed/simple;
-	bh=6A2Fgv2wm4UyK1tTsVmZHDPovl2UE+zodgzKb38iyt0=;
-	h=Date:To:From:Subject:Message-Id; b=VcJ7NF18+5HpqGA5tatTHtxGqCbMhsqaqbP+6sYq3dZWRAw5IbdBi+1yfZNbHzylg+atIxz1KFJmeAXBYJlo1M0OKZAvgg+Doj6ZWVHYf3k//E11arC7gsDYwkgkXNU7SuphOiOdv7Fsi+mmX0Z1kYnsaIUPnzxAwQi+ieHY+6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YYmkOMS3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736317601; c=relaxed/simple;
+	bh=zhucV8oEFdfBV+Kguq4KdU+hyJjRZv8Yd1iz5ETLqSM=;
+	h=Date:To:From:Subject:Message-Id; b=igVEdDijDJUBr9ZsA7OUNi3HQc+BD++WUMH6UlViHY/oxPxAeG3+TPiY23Yc1/syXiCXU4OrBdjOC5a2ed53IbziFKUlHt2LaoRbCeW8+xF0QSbrLEgwMsHxBRHVPwNW/0R4gBozu2M5RIKOmMZjLZ91+qRnIDn/P/MOIk1x9OY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cJswvkne; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YYmkOMS3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7ED3C4CED0;
-	Wed,  8 Jan 2025 06:26:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cJswvkne"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C127C4CED0;
+	Wed,  8 Jan 2025 06:26:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736317597;
-	bh=6A2Fgv2wm4UyK1tTsVmZHDPovl2UE+zodgzKb38iyt0=;
+	s=korg; t=1736317601;
+	bh=zhucV8oEFdfBV+Kguq4KdU+hyJjRZv8Yd1iz5ETLqSM=;
 	h=Date:To:From:Subject:From;
-	b=YYmkOMS30RWcYThED3R7T8fjM6aPaZ1fK/doviL4lQHSg9LgMWErvIDKTquJbv75u
-	 IKPILTcJtlcXepm5VDHHo8GLj9N9HrGKyYBflU2tWBbZvcW6A3qGdtJvfQ2jufe0U4
-	 8/SZtn/JZpUXXJoh3DvMk5dUuUXHdphyDXRVEG6I=
-Date: Tue, 07 Jan 2025 22:26:37 -0800
+	b=cJswvkne7YDPq39fMw024N//f1jGw5VUIr0wLH2dv8/RamVyetAXiALZUwgilY92w
+	 9OEwky5TA6R4xVo8iS1U9C7FK1hrAuqtty0T+9dQ8YY0LXbYFz9/NasxITxo2vas5U
+	 TFOqrZ4rMZRn0ljUv1GAKPF2iuzeoXy12O01Cbjc=
+Date: Tue, 07 Jan 2025 22:26:40 -0800
 To: mm-commits@vger.kernel.org,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch added to mm-unstable branch
-Message-Id: <20250108062637.C7ED3C4CED0@smtp.kernel.org>
+Subject: + fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch added to mm-unstable branch
+Message-Id: <20250108062641.0C127C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/dax: always remove DAX page-cache entries when breaking layouts
+     Subject: fs/dax: ensure all pages are idle prior to filesystem unmount
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
+     fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,139 +59,208 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: fs/dax: always remove DAX page-cache entries when breaking layouts
-Date: Tue, 7 Jan 2025 14:42:22 +1100
+Subject: fs/dax: ensure all pages are idle prior to filesystem unmount
+Date: Tue, 7 Jan 2025 14:42:23 +1100
 
-Prior to any truncation operations file systems call dax_break_mapping()
-to ensure pages in the range are not under going DMA.  Later DAX
-page-cache entries will be removed by truncate_folio_batch_exceptionals()
-in the generic page-cache code.
+File systems call dax_break_mapping() prior to reallocating file system
+blocks to ensure the page is not undergoing any DMA or other accesses. 
+Generally this is needed when a file is truncated to ensure that if a
+block is reallocated nothing is writing to it.  However filesystems
+currently don't call this when an FS DAX inode is evicted.
 
-However this makes it possible for folios to be removed from the
-page-cache even though they are still DMA busy if the file-system hasn't
-called dax_break_mapping().  It also means they can never be waited on in
-future because FS DAX will lose track of them once the page-cache entry
-has been deleted.
+This can cause problems when the file system is unmounted as a page can
+continue to be under going DMA or other remote access after unmount.  This
+means if the file system is remounted any truncate or other operation
+which requires the underlying file system block to be freed will not wait
+for the remote access to complete.  Therefore a busy block may be
+reallocated to a new file leading to corruption.
 
-Instead it is better to delete the FS DAX entry when the file-system calls
-dax_break_mapping() as part of it's truncate operation.  This ensures only
-idle pages can be removed from the FS DAX page-cache and makes it easy to
-detect if a file-system hasn't called dax_break_mapping() prior to a
-truncate operation.
-
-Link: https://lkml.kernel.org/r/fc4ce7ac0815bc33d00ca6626925a1012473ff7a.1736221254.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/5eadb9096a42f993273cdd755124955665dcea26.1736221254.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   33 +++++++++++++++++++++++++++++++++
- fs/xfs/xfs_inode.c  |    6 ++++++
+ fs/dax.c            |   29 +++++++++++++++++++++++++++++
+ fs/ext4/inode.c     |   32 ++++++++++++++------------------
+ fs/xfs/xfs_inode.c  |    9 +++++++++
+ fs/xfs/xfs_inode.h  |    1 +
+ fs/xfs/xfs_super.c  |   18 ++++++++++++++++++
  include/linux/dax.h |    2 ++
- mm/truncate.c       |   16 +++++++++++++++-
- 4 files changed, 56 insertions(+), 1 deletion(-)
+ 6 files changed, 73 insertions(+), 18 deletions(-)
 
---- a/fs/dax.c~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
+--- a/fs/dax.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
 +++ a/fs/dax.c
-@@ -845,6 +845,36 @@ int dax_delete_mapping_entry(struct addr
+@@ -883,6 +883,14 @@ static int wait_page_idle(struct page *p
+ 				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
+ }
+ 
++static void wait_page_idle_uninterruptible(struct page *page,
++					void (cb)(struct inode *),
++					struct inode *inode)
++{
++	___wait_var_event(page, page_ref_count(page) == 1,
++			TASK_UNINTERRUPTIBLE, 0, 0, cb(inode));
++}
++
+ /*
+  * Unmaps the inode and waits for any DMA to complete prior to deleting the
+  * DAX mapping entries for the range.
+@@ -911,6 +919,27 @@ int dax_break_mapping(struct inode *inod
+ }
+ EXPORT_SYMBOL_GPL(dax_break_mapping);
+ 
++void dax_break_mapping_uninterruptible(struct inode *inode,
++				void (cb)(struct inode *))
++{
++	struct page *page;
++
++	if (!dax_mapping(inode->i_mapping))
++		return;
++
++	do {
++		page = dax_layout_busy_page_range(inode->i_mapping, 0,
++						LLONG_MAX);
++		if (!page)
++			break;
++
++		wait_page_idle_uninterruptible(page, cb, inode);
++	} while (true);
++
++	dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
++}
++EXPORT_SYMBOL_GPL(dax_break_mapping_uninterruptible);
++
+ /*
+  * Invalidate DAX entry if it is clean.
+  */
+--- a/fs/ext4/inode.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
++++ a/fs/ext4/inode.c
+@@ -163,6 +163,18 @@ int ext4_inode_is_fast_symlink(struct in
+ 	       (inode->i_size < EXT4_N_BLOCKS * 4);
+ }
+ 
++static void ext4_wait_dax_page(struct inode *inode)
++{
++	filemap_invalidate_unlock(inode->i_mapping);
++	schedule();
++	filemap_invalidate_lock(inode->i_mapping);
++}
++
++int ext4_break_layouts(struct inode *inode)
++{
++	return dax_break_mapping_inode(inode, ext4_wait_dax_page);
++}
++
+ /*
+  * Called at the last iput() if i_nlink is zero.
+  */
+@@ -181,6 +193,8 @@ void ext4_evict_inode(struct inode *inod
+ 
+ 	trace_ext4_evict_inode(inode);
+ 
++	dax_break_mapping_uninterruptible(inode, ext4_wait_dax_page);
++
+ 	if (EXT4_I(inode)->i_flags & EXT4_EA_INODE_FL)
+ 		ext4_evict_ea_inode(inode);
+ 	if (inode->i_nlink) {
+@@ -3902,24 +3916,6 @@ int ext4_update_disksize_before_punch(st
  	return ret;
  }
  
-+void dax_delete_mapping_range(struct address_space *mapping,
-+				loff_t start, loff_t end)
-+{
-+	void *entry;
-+	pgoff_t start_idx = start >> PAGE_SHIFT;
-+	pgoff_t end_idx;
-+	XA_STATE(xas, &mapping->i_pages, start_idx);
-+
-+	/* If end == LLONG_MAX, all pages from start to till end of file */
-+	if (end == LLONG_MAX)
-+		end_idx = ULONG_MAX;
-+	else
-+		end_idx = end >> PAGE_SHIFT;
-+
-+	xas_lock_irq(&xas);
-+	xas_for_each(&xas, entry, end_idx) {
-+		if (!xa_is_value(entry))
-+			continue;
-+		entry = wait_entry_unlocked_exclusive(&xas, entry);
-+		if (!entry)
-+			continue;
-+		dax_disassociate_entry(entry, mapping, true);
-+		xas_store(&xas, NULL);
-+		mapping->nrpages -= 1UL << dax_entry_order(entry);
-+		put_unlocked_entry(&xas, entry, WAKE_ALL);
-+	}
-+	xas_unlock_irq(&xas);
-+}
-+EXPORT_SYMBOL_GPL(dax_delete_mapping_range);
-+
- static int wait_page_idle(struct page *page,
- 			void (cb)(struct inode *),
- 			struct inode *inode)
-@@ -874,6 +904,9 @@ int dax_break_mapping(struct inode *inod
- 		error = wait_page_idle(page, cb, inode);
- 	} while (error == 0);
- 
-+	if (!page)
-+		dax_delete_mapping_range(inode->i_mapping, start, end);
-+
- 	return error;
- }
- EXPORT_SYMBOL_GPL(dax_break_mapping);
---- a/fs/xfs/xfs_inode.c~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
+-static void ext4_wait_dax_page(struct inode *inode)
+-{
+-	filemap_invalidate_unlock(inode->i_mapping);
+-	schedule();
+-	filemap_invalidate_lock(inode->i_mapping);
+-}
+-
+-int ext4_break_layouts(struct inode *inode)
+-{
+-	struct page *page;
+-	int error;
+-
+-	if (WARN_ON_ONCE(!rwsem_is_locked(&inode->i_mapping->invalidate_lock)))
+-		return -EINVAL;
+-
+-	return dax_break_mapping_inode(inode, ext4_wait_dax_page);
+-}
+-
+ /*
+  * ext4_punch_hole: punches a hole in a file by releasing the blocks
+  * associated with the given offset and length
+--- a/fs/xfs/xfs_inode.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
 +++ a/fs/xfs/xfs_inode.c
-@@ -2746,6 +2746,12 @@ again:
- 		goto again;
- 	}
- 
-+	/*
-+	 * Normally xfs_break_dax_layouts() would delete the mapping entries as well so
-+	 * do that here.
-+	 */
-+	dax_delete_mapping_range(VFS_I(ip2)->i_mapping, 0, LLONG_MAX);
-+
- 	return 0;
+@@ -2997,6 +2997,15 @@ xfs_break_dax_layouts(
+ 	return dax_break_mapping_inode(inode, xfs_wait_dax_page);
  }
  
---- a/include/linux/dax.h~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
-+++ a/include/linux/dax.h
-@@ -263,6 +263,8 @@ vm_fault_t dax_iomap_fault(struct vm_fau
- vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- 		unsigned int order, pfn_t pfn);
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
-+void dax_delete_mapping_range(struct address_space *mapping,
-+				loff_t start, loff_t end);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
- int __must_check dax_break_mapping(struct inode *inode, loff_t start,
---- a/mm/truncate.c~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
-+++ a/mm/truncate.c
-@@ -78,8 +78,22 @@ static void truncate_folio_batch_excepti
- 
- 	if (dax_mapping(mapping)) {
- 		for (i = j; i < nr; i++) {
--			if (xa_is_value(fbatch->folios[i]))
-+			if (xa_is_value(fbatch->folios[i])) {
-+				/*
-+				 * File systems should already have called
-+				 * dax_break_mapping_entry() to remove all DAX
-+				 * entries while holding a lock to prevent
-+				 * establishing new entries. Therefore we
-+				 * shouldn't find any here.
-+				 */
-+				WARN_ON_ONCE(1);
++void
++xfs_break_dax_layouts_uninterruptible(
++	struct inode		*inode)
++{
++	xfs_assert_ilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL);
 +
-+				/*
-+				 * Delete the mapping so truncate_pagecache()
-+				 * doesn't loop forever.
-+				 */
- 				dax_delete_mapping_entry(mapping, indices[i]);
-+			}
- 		}
- 		goto out;
- 	}
++	dax_break_mapping_uninterruptible(inode, xfs_wait_dax_page);
++}
++
+ int
+ xfs_break_layouts(
+ 	struct inode		*inode,
+--- a/fs/xfs/xfs_inode.h~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
++++ a/fs/xfs/xfs_inode.h
+@@ -594,6 +594,7 @@ xfs_itruncate_extents(
+ }
+ 
+ int	xfs_break_dax_layouts(struct inode *inode);
++void xfs_break_dax_layouts_uninterruptible(struct inode *inode);
+ int	xfs_break_layouts(struct inode *inode, uint *iolock,
+ 		enum layout_break_reason reason);
+ 
+--- a/fs/xfs/xfs_super.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
++++ a/fs/xfs/xfs_super.c
+@@ -751,6 +751,23 @@ xfs_fs_drop_inode(
+ 	return generic_drop_inode(inode);
+ }
+ 
++STATIC void
++xfs_fs_evict_inode(
++	struct inode		*inode)
++{
++	struct xfs_inode	*ip = XFS_I(inode);
++	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
++
++	if (IS_DAX(inode)) {
++		xfs_ilock(ip, iolock);
++		xfs_break_dax_layouts_uninterruptible(inode);
++		xfs_iunlock(ip, iolock);
++	}
++
++	truncate_inode_pages_final(&inode->i_data);
++	clear_inode(inode);
++}
++
+ static void
+ xfs_mount_free(
+ 	struct xfs_mount	*mp)
+@@ -1189,6 +1206,7 @@ static const struct super_operations xfs
+ 	.destroy_inode		= xfs_fs_destroy_inode,
+ 	.dirty_inode		= xfs_fs_dirty_inode,
+ 	.drop_inode		= xfs_fs_drop_inode,
++	.evict_inode		= xfs_fs_evict_inode,
+ 	.put_super		= xfs_fs_put_super,
+ 	.sync_fs		= xfs_fs_sync_fs,
+ 	.freeze_fs		= xfs_fs_freeze,
+--- a/include/linux/dax.h~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
++++ a/include/linux/dax.h
+@@ -274,6 +274,8 @@ static inline int __must_check dax_break
+ {
+ 	return dax_break_mapping(inode, 0, LLONG_MAX, cb);
+ }
++void dax_break_mapping_uninterruptible(struct inode *inode,
++				void (cb)(struct inode *));
+ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 				  struct inode *dest, loff_t destoff,
+ 				  loff_t len, bool *is_same,
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
