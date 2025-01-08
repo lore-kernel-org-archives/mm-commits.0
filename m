@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD15F1DB34E;
-	Tue,  7 Jan 2025 07:30:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932D518C900
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 02:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736235039; cv=none; b=Qik78+AVna3lWG8A4lAUhUQTSdUvIxfShL7o2v1AtUT0Lys6a5zJHgNxiutrVrIPL12lzr00RiiONOs1Eb6OFTNAAKX4MEIyd8VBMNeqdjzkCM71uEwe7Dugw+zIWko6lPARTfkxXpaZ6U/mckvF/MCWDEqzSmCR4SjbxJIK98A=
+	t=1736303410; cv=none; b=PHUGDdJMqbrmshJSy2lR+VS5wfyu1apJwDNWKk0241lJGzcFE1t9fNxzuGxgMzOPPwPbo2GpAvb57Tl7W/tb7Fqgh+oDJZvSkMb0oghq+jXPoweNvrHcvCsunSTfKJJF+Ma7Ta/JPIU6CI4qwBInVi21UbK92erw7VizthMrp98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736235039; c=relaxed/simple;
-	bh=UAtX8AUJOrQOBYiFFFvXGZRDxyOE3yCzR96y57AQ8xM=;
-	h=Date:To:From:Subject:Message-Id; b=UvetadfDEH5Z7IbHozGV2YgQPWSP7YdhWIxbULNHktt9oKJ2zw0ndxe+dDiQE1N3qVWeIuTLJ0nH9FJD6K4v0NzPVQ1+WEhYbPr3mbQe2a+bsCm/IFKFbp4TJ+Wkt2R2hTM0lUBf2mSB5BmDfodIgezeisgpvthCcod4ykIAJ28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ouQbHWtG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736303410; c=relaxed/simple;
+	bh=6z3ik+Ogsc1r8EO95LDbP4uZrxHxAIW28RzfS5Bm+e4=;
+	h=Date:To:From:Subject:Message-Id; b=DDsMSulAC0JPoM/rnjnw9IXNxAp4W66TMeMtKbGM60drq5ibroEOoshB3EmnaU6mlIF+C0JWqjxI1tok9cALGLZsYgNEeQSZxPmdzsOaF8V3w1O8AjplhO+lTdalEj1fkvz2+aXGFaqFWRpE/aEhEsHHIzCy4O6ZQrEpz4Tbt1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jTmzqtP5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ouQbHWtG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC7B7C4CED6;
-	Tue,  7 Jan 2025 07:30:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jTmzqtP5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3A13C4CEDF;
+	Wed,  8 Jan 2025 02:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736235039;
-	bh=UAtX8AUJOrQOBYiFFFvXGZRDxyOE3yCzR96y57AQ8xM=;
+	s=korg; t=1736303410;
+	bh=6z3ik+Ogsc1r8EO95LDbP4uZrxHxAIW28RzfS5Bm+e4=;
 	h=Date:To:From:Subject:From;
-	b=ouQbHWtGSjBYxuFRSy81hX4itpaRfOBcEIkixaiyP9fgOYg3SJFjeSmESlXYND7l6
-	 SX7J9R+fja0QzFgdF+3OJHdLiSAtAtVxqPEEZ36zLrp8HMp83v8VMcJY7UGZxxDzie
-	 TiZCiIs+MKokPEaKlUT1nJ3hCI7DZ1ERmo1QDWlo=
-Date: Mon, 06 Jan 2025 23:30:38 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,koichiro.den@canonical.com,greg@kroah.com,bp@alien8.de,bigeasy@linutronix.de,agordeev@linux.ibm.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jTmzqtP5C9pQ2B8LMEIJHlmQVgLydqksxFljZ7LTuD74aiVRn3v1E9snUPsJQpin6
+	 bZd1Z0UEaDYhfU1XT1w/6nbJeZBLWJIDlCYAGtzPy9sGn2vk/o3sGUR8lcjE4s1JFH
+	 jLuSg2xImPAeiaVs6qqd4/MhLse6vML7tbLfjX5Y=
+Date: Tue, 07 Jan 2025 18:30:09 -0800
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,kasong@tencent.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] revert-vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch removed from -mm tree
-Message-Id: <20250107073038.EC7B7C4CED6@smtp.kernel.org>
+Subject: + mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch added to mm-unstable branch
+Message-Id: <20250108023009.E3A13C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,53 +34,71 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: revert "vmstat: disable vmstat_work on vmstat_cpu_down_prep()"
-has been removed from the -mm tree.  Its filename was
-     revert-vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
+The patch titled
+     Subject: mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "vmstat: disable vmstat_work on vmstat_cpu_down_prep()"
-Date: Mon Jan  6 06:24:12 PM PST 2025
+Subject: mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix
+Date: Tue Jan  7 06:25:19 PM PST 2025
 
-Revert adcfb264c3ed ("vmstat: disable vmstat_work on
-vmstat_cpu_down_prep()") due to "workqueue: work disable count
-underflowed" WARNings.
+use IS_ENABLED(), tweak comment grammar 
 
-Fixes: adcfb264c3ed ("vmstat: disable vmstat_work on vmstat_cpu_down_prep()") 
-Reported-by: Borislav Petkov <bp@alien8.de>
-Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Koichiro Den <koichiro.den@canonical.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/shmem.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/vmstat.c~revert-vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep
-+++ a/mm/vmstat.c
-@@ -2148,14 +2148,13 @@ static int vmstat_cpu_online(unsigned in
- 	if (!node_state(cpu_to_node(cpu), N_CPU)) {
- 		node_set_state(cpu_to_node(cpu), N_CPU);
+--- a/mm/shmem.c~mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix
++++ a/mm/shmem.c
+@@ -1978,16 +1978,14 @@ static struct folio *shmem_swap_alloc_fo
+ 
+ 	/*
+ 	 * We have arrived here because our zones are constrained, so don't
+-	 * limit chance of success by further cpuset and node constraints.
++	 * limit chance of success with further cpuset and node constraints.
+ 	 */
+ 	gfp &= ~GFP_CONSTRAINT_MASK;
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (order > 0) {
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && order > 0) {
+ 		gfp_t huge_gfp = vma_thp_gfp_mask(vma);
+ 
+ 		gfp = limit_gfp_mask(huge_gfp, gfp);
  	}
--	enable_delayed_work(&per_cpu(vmstat_work, cpu));
+-#endif
  
- 	return 0;
- }
- 
- static int vmstat_cpu_down_prep(unsigned int cpu)
- {
--	disable_delayed_work_sync(&per_cpu(vmstat_work, cpu));
-+	cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
- 	return 0;
- }
- 
+ 	new = shmem_alloc_folio(gfp, order, info, index);
+ 	if (!new)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +112,7 @@ mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
 mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
 mm-huge_memoryc-rename-shadowed-local.patch
 replace-free-hugepage-folios-after-migration-fix.patch
+mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
 xarray-port-tests-to-kunit-fix.patch
 checkpatch-check-return-of-git_commit_info-fix.patch
 fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
