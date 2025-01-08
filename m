@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8278918EB0;
-	Wed,  8 Jan 2025 04:50:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC7A19408C
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:50:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736311819; cv=none; b=aRk8fYG6nnXXGJ19AJ8OiWQ4cAV4bNdC4q3m7iXBvkbCsM+qLp378BqXma89KB5ZmEDNo3XZgSCXD4D5iLnjy4Eem1Zk1KbQLVSrbdJ7Q+kZDtIfrRIDH2LqxgFFRDEIdkdeoaSRUc9dMHWw4bN0WPEzAB3bGBYJhlpDy7KleVU=
+	t=1736311848; cv=none; b=VFJ1wMgMBoLkqNmuO9nJ8MY0zn/rs2IjccfRoLsztN4eC5mxPtKK0Rnt27juqSC+6W42nO/n4Gq8/+ffPiHcru3aZaFq0TzjGjF91fq4H/9V9gf6q2XFUmUToA0o5xueeBApRsQ9odcDlSLjwlFMGxRECm1SRC2W4/bh2rpeNjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736311819; c=relaxed/simple;
-	bh=1VqoaHSSCufay+nZmamXvAoajMJFAHCA7Kxnnb/7JJc=;
-	h=Date:To:From:Subject:Message-Id; b=pzS4qFsKcYelUxALmVdTUJTOlj6x5Z0SBUKxECHDl0OsfkBj2ckKwc/lXbZib28m0cb9hzIASbeM6QV+d1ypnvsEwb0N+jkSi8DcXT+awyHxyiw0TB/B46svN2X0PDTcP4EY6Wf1rPskRVn45R2MDWh2eCvPBpJntu0Xp0v657Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rPBBlwTO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736311848; c=relaxed/simple;
+	bh=aWbmD+Ubu8ZZXQWNkXDcH0ufwHcZwKTgF8MoYqZbkck=;
+	h=Date:To:From:Subject:Message-Id; b=Ae4dQVX8pBQFND5f+w+60OeBY86YHwpiVRSofI0zoZ7GYdzYmOpmNULtJc1jgDxh4qZ2mHmRXTQCjgsYNc1SC6wbyJtMXFE7Aj3JXbue3oy/EfEBHCAopQVGhEq9nKt5c09Ysy/Z6cBW+UIerQmSqiqXc2pBi/0qlBHAA9dXENI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=quhUcRQa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rPBBlwTO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08E90C4CEE0;
-	Wed,  8 Jan 2025 04:50:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="quhUcRQa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57E34C4CED0;
+	Wed,  8 Jan 2025 04:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736311818;
-	bh=1VqoaHSSCufay+nZmamXvAoajMJFAHCA7Kxnnb/7JJc=;
+	s=korg; t=1736311847;
+	bh=aWbmD+Ubu8ZZXQWNkXDcH0ufwHcZwKTgF8MoYqZbkck=;
 	h=Date:To:From:Subject:From;
-	b=rPBBlwTOSmHqahkudMYcye0uY2IZwMFGZC/JI52rUcyoBktQv4Akj/MmUWErYKdVs
-	 3hUn44w6un7R7Im36S4XGc+Cnefq5M+xpTLha1we2ILwwqBRh5+XEZBKBG/39+jEiH
-	 GSQft85Sn4ksKNMKN9uNWBAihHyWx7KRDU2f2/CE=
-Date: Tue, 07 Jan 2025 20:50:17 -0800
-To: mm-commits@vger.kernel.org,vitalywool@gmail.com,syzkaller@googlegroups.com,stable@vger.kernel.org,samsun1006219@gmail.com,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=quhUcRQaxXkVCFNPAPtJZBuYGIQV4XCdnTdjRwvIdf3iTmA2Su7ALOJCiqrChQOQf
+	 aStmsJ/4tmXWTsxMUVxaiGAqEAGSZh4YoSFdSWnFhZm/IbzxlnrAXKr0FQHdTEogd8
+	 4O6zVsU6PpJ183MHJJDtGzaR3h3zXMiThEHbTp1k=
+Date: Tue, 07 Jan 2025 20:50:46 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,peterx@redhat.com,muchun.song@linux.dev,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250108045018.08E90C4CEE0@smtp.kernel.org>
+Subject: + selftests-mm-introduce-uffd-wp-mremap-regression-test.patch added to mm-unstable branch
+Message-Id: <20250108045047.57E34C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm: zswap: fix race between [de]compression and CPU hotunplug"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
+     Subject: selftests/mm: introduce uffd-wp-mremap regression test
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,226 +58,470 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: Revert "mm: zswap: fix race between [de]compression and CPU hotunplug"
-Date: Tue, 7 Jan 2025 22:22:34 +0000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: selftests/mm: introduce uffd-wp-mremap regression test
+Date: Tue, 7 Jan 2025 14:47:53 +0000
 
-This reverts commit eaebeb93922ca6ab0dd92027b73d0112701706ef.
+Introduce a test that registers a range of memory for
+UFFDIO_WRITEPROTECT_MODE_WP without UFFD_FEATURE_EVENT_REMAP.  First check
+that the uffd-wp bit is set for every PTE in the range.  Then mremap() the
+range to a new location and check that the uffd-wp bit is clear for every
+PTE in the range.
 
-Commit eaebeb93922c ("mm: zswap: fix race between [de]compression and CPU
-hotunplug") used the CPU hotplug lock in zswap compress/decompress
-operations to protect against a race with CPU hotunplug making some
-per-CPU resources go away.
+Run the test for small folios, all supported THP sizes and all supported
+hugetlb sizes, and for swapped out memory, shared and private.
 
-However, zswap compress/decompress can be reached through reclaim while
-the lock is held, resulting in a potential deadlock as reported by syzbot:
-======================================================
-WARNING: possible circular locking dependency detected
-6.13.0-rc6-syzkaller-00006-g5428dc1906dd #0 Not tainted
-------------------------------------------------------
-kswapd0/89 is trying to acquire lock:
- ffffffff8e7d2ed0 (cpu_hotplug_lock){++++}-{0:0}, at: acomp_ctx_get_cpu mm/zswap.c:886 [inline]
- ffffffff8e7d2ed0 (cpu_hotplug_lock){++++}-{0:0}, at: zswap_compress mm/zswap.c:908 [inline]
- ffffffff8e7d2ed0 (cpu_hotplug_lock){++++}-{0:0}, at: zswap_store_page mm/zswap.c:1439 [inline]
- ffffffff8e7d2ed0 (cpu_hotplug_lock){++++}-{0:0}, at: zswap_store+0xa74/0x1ba0 mm/zswap.c:1546
+There was previously a bug in the kernel where the uffd-wp bits remained
+set in all PTEs for this case, after fixing the kernel, the tests all
+pass.
 
-but task is already holding lock:
- ffffffff8ea355a0 (fs_reclaim){+.+.}-{0:0}, at: balance_pgdat mm/vmscan.c:6871 [inline]
- ffffffff8ea355a0 (fs_reclaim){+.+.}-{0:0}, at: kswapd+0xb58/0x2f30 mm/vmscan.c:7253
-
-which lock already depends on the new lock.
-
-the existing dependency chain (in reverse order) is:
-
--> #1 (fs_reclaim){+.+.}-{0:0}:
-        lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5849
-        __fs_reclaim_acquire mm/page_alloc.c:3853 [inline]
-        fs_reclaim_acquire+0x88/0x130 mm/page_alloc.c:3867
-        might_alloc include/linux/sched/mm.h:318 [inline]
-        slab_pre_alloc_hook mm/slub.c:4070 [inline]
-        slab_alloc_node mm/slub.c:4148 [inline]
-        __kmalloc_cache_node_noprof+0x40/0x3a0 mm/slub.c:4337
-        kmalloc_node_noprof include/linux/slab.h:924 [inline]
-        alloc_worker kernel/workqueue.c:2638 [inline]
-        create_worker+0x11b/0x720 kernel/workqueue.c:2781
-        workqueue_prepare_cpu+0xe3/0x170 kernel/workqueue.c:6628
-        cpuhp_invoke_callback+0x48d/0x830 kernel/cpu.c:194
-        __cpuhp_invoke_callback_range kernel/cpu.c:965 [inline]
-        cpuhp_invoke_callback_range kernel/cpu.c:989 [inline]
-        cpuhp_up_callbacks kernel/cpu.c:1020 [inline]
-        _cpu_up+0x2b3/0x580 kernel/cpu.c:1690
-        cpu_up+0x184/0x230 kernel/cpu.c:1722
-        cpuhp_bringup_mask+0xdf/0x260 kernel/cpu.c:1788
-        cpuhp_bringup_cpus_parallel+0xf9/0x160 kernel/cpu.c:1878
-        bringup_nonboot_cpus+0x2b/0x50 kernel/cpu.c:1892
-        smp_init+0x34/0x150 kernel/smp.c:1009
-        kernel_init_freeable+0x417/0x5d0 init/main.c:1569
-        kernel_init+0x1d/0x2b0 init/main.c:1466
-        ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
-        ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
-
--> #0 (cpu_hotplug_lock){++++}-{0:0}:
-        check_prev_add kernel/locking/lockdep.c:3161 [inline]
-        check_prevs_add kernel/locking/lockdep.c:3280 [inline]
-        validate_chain+0x18ef/0x5920 kernel/locking/lockdep.c:3904
-        __lock_acquire+0x1397/0x2100 kernel/locking/lockdep.c:5226
-        lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5849
-        percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
-        cpus_read_lock+0x42/0x150 kernel/cpu.c:490
-        acomp_ctx_get_cpu mm/zswap.c:886 [inline]
-        zswap_compress mm/zswap.c:908 [inline]
-        zswap_store_page mm/zswap.c:1439 [inline]
-        zswap_store+0xa74/0x1ba0 mm/zswap.c:1546
-        swap_writepage+0x647/0xce0 mm/page_io.c:279
-        shmem_writepage+0x1248/0x1610 mm/shmem.c:1579
-        pageout mm/vmscan.c:696 [inline]
-        shrink_folio_list+0x35ee/0x57e0 mm/vmscan.c:1374
-        shrink_inactive_list mm/vmscan.c:1967 [inline]
-        shrink_list mm/vmscan.c:2205 [inline]
-        shrink_lruvec+0x16db/0x2f30 mm/vmscan.c:5734
-        mem_cgroup_shrink_node+0x385/0x8e0 mm/vmscan.c:6575
-        mem_cgroup_soft_reclaim mm/memcontrol-v1.c:312 [inline]
-        memcg1_soft_limit_reclaim+0x346/0x810 mm/memcontrol-v1.c:362
-        balance_pgdat mm/vmscan.c:6975 [inline]
-        kswapd+0x17b3/0x2f30 mm/vmscan.c:7253
-        kthread+0x2f0/0x390 kernel/kthread.c:389
-        ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
-        ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
-
-other info that might help us debug this:
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(fs_reclaim);
-                               lock(cpu_hotplug_lock);
-                               lock(fs_reclaim);
-  rlock(cpu_hotplug_lock);
-
- *** DEADLOCK ***
-
-1 lock held by kswapd0/89:
-  #0: ffffffff8ea355a0 (fs_reclaim){+.+.}-{0:0}, at: balance_pgdat mm/vmscan.c:6871 [inline]
-  #0: ffffffff8ea355a0 (fs_reclaim){+.+.}-{0:0}, at: kswapd+0xb58/0x2f30 mm/vmscan.c:7253
-
-stack backtrace:
-CPU: 0 UID: 0 PID: 89 Comm: kswapd0 Not tainted 6.13.0-rc6-syzkaller-00006-g5428dc1906dd #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
-Call Trace:
- <TASK>
-  __dump_stack lib/dump_stack.c:94 [inline]
-  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
-  print_circular_bug+0x13a/0x1b0 kernel/locking/lockdep.c:2074
-  check_noncircular+0x36a/0x4a0 kernel/locking/lockdep.c:2206
-  check_prev_add kernel/locking/lockdep.c:3161 [inline]
-  check_prevs_add kernel/locking/lockdep.c:3280 [inline]
-  validate_chain+0x18ef/0x5920 kernel/locking/lockdep.c:3904
-  __lock_acquire+0x1397/0x2100 kernel/locking/lockdep.c:5226
-  lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5849
-  percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
-  cpus_read_lock+0x42/0x150 kernel/cpu.c:490
-  acomp_ctx_get_cpu mm/zswap.c:886 [inline]
-  zswap_compress mm/zswap.c:908 [inline]
-  zswap_store_page mm/zswap.c:1439 [inline]
-  zswap_store+0xa74/0x1ba0 mm/zswap.c:1546
-  swap_writepage+0x647/0xce0 mm/page_io.c:279
-  shmem_writepage+0x1248/0x1610 mm/shmem.c:1579
-  pageout mm/vmscan.c:696 [inline]
-  shrink_folio_list+0x35ee/0x57e0 mm/vmscan.c:1374
-  shrink_inactive_list mm/vmscan.c:1967 [inline]
-  shrink_list mm/vmscan.c:2205 [inline]
-  shrink_lruvec+0x16db/0x2f30 mm/vmscan.c:5734
-  mem_cgroup_shrink_node+0x385/0x8e0 mm/vmscan.c:6575
-  mem_cgroup_soft_reclaim mm/memcontrol-v1.c:312 [inline]
-  memcg1_soft_limit_reclaim+0x346/0x810 mm/memcontrol-v1.c:362
-  balance_pgdat mm/vmscan.c:6975 [inline]
-  kswapd+0x17b3/0x2f30 mm/vmscan.c:7253
-  kthread+0x2f0/0x390 kernel/kthread.c:389
-  ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
-  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
- </TASK>
-
-Revert the change. A different fix for the race with CPU hotunplug will
-follow.
-
-Link: https://lkml.kernel.org/r/20250107222236.2715883-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sam Sun <samsun1006219@gmail.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250107144755.1871363-3-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ tools/testing/selftests/mm/.gitignore       |    1 
+ tools/testing/selftests/mm/Makefile         |    2 
+ tools/testing/selftests/mm/run_vmtests.sh   |    1 
+ tools/testing/selftests/mm/uffd-wp-mremap.c |  380 ++++++++++++++++++
+ 4 files changed, 384 insertions(+)
 
---- a/mm/zswap.c~revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug
-+++ a/mm/zswap.c
-@@ -880,18 +880,6 @@ static int zswap_cpu_comp_dead(unsigned
- 	return 0;
- }
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-introduce-uffd-wp-mremap-regression-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -27,6 +27,7 @@ protection_keys_64
+ madv_populate
+ uffd-stress
+ uffd-unit-tests
++uffd-wp-mremap
+ mlock-intersect-test
+ mlock-random-test
+ virtual_address_range
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-introduce-uffd-wp-mremap-regression-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -88,6 +88,7 @@ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += uffd-stress
+ TEST_GEN_FILES += uffd-unit-tests
++TEST_GEN_FILES += uffd-wp-mremap
+ TEST_GEN_FILES += split_huge_page_test
+ TEST_GEN_FILES += ksm_tests
+ TEST_GEN_FILES += ksm_functional_tests
+@@ -158,6 +159,7 @@ $(TEST_GEN_FILES): vm_util.c thp_setting
  
--/* Prevent CPU hotplug from freeing up the per-CPU acomp_ctx resources */
--static struct crypto_acomp_ctx *acomp_ctx_get_cpu(struct crypto_acomp_ctx __percpu *acomp_ctx)
--{
--	cpus_read_lock();
--	return raw_cpu_ptr(acomp_ctx);
--}
--
--static void acomp_ctx_put_cpu(void)
--{
--	cpus_read_unlock();
--}
--
- static bool zswap_compress(struct page *page, struct zswap_entry *entry,
- 			   struct zswap_pool *pool)
- {
-@@ -905,7 +893,8 @@ static bool zswap_compress(struct page *
- 	gfp_t gfp;
- 	u8 *dst;
+ $(OUTPUT)/uffd-stress: uffd-common.c
+ $(OUTPUT)/uffd-unit-tests: uffd-common.c
++$(OUTPUT)/uffd-wp-mremap: uffd-common.c
+ $(OUTPUT)/protection_keys: pkey_util.c
+ $(OUTPUT)/pkey_sighandler_tests: pkey_util.c
  
--	acomp_ctx = acomp_ctx_get_cpu(pool->acomp_ctx);
-+	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-introduce-uffd-wp-mremap-regression-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -307,6 +307,7 @@ CATEGORY="userfaultfd" run_test ${uffd_s
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
++CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
+ 
+ #cleanup
+ echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
+diff --git a/tools/testing/selftests/mm/uffd-wp-mremap.c a/tools/testing/selftests/mm/uffd-wp-mremap.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -0,0 +1,380 @@
++// SPDX-License-Identifier: GPL-2.0-only
 +
- 	mutex_lock(&acomp_ctx->mutex);
- 
- 	dst = acomp_ctx->buffer;
-@@ -961,7 +950,6 @@ unlock:
- 		zswap_reject_alloc_fail++;
- 
- 	mutex_unlock(&acomp_ctx->mutex);
--	acomp_ctx_put_cpu();
- 	return comp_ret == 0 && alloc_ret == 0;
- }
- 
-@@ -972,7 +960,7 @@ static void zswap_decompress(struct zswa
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	u8 *src;
- 
--	acomp_ctx = acomp_ctx_get_cpu(entry->pool->acomp_ctx);
-+	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
- 	mutex_lock(&acomp_ctx->mutex);
- 
- 	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
-@@ -1002,7 +990,6 @@ static void zswap_decompress(struct zswa
- 
- 	if (src != acomp_ctx->buffer)
- 		zpool_unmap_handle(zpool, entry->handle);
--	acomp_ctx_put_cpu();
- }
- 
- /*********************************
++#define _GNU_SOURCE
++#include <stdbool.h>
++#include <stdint.h>
++#include <fcntl.h>
++#include <assert.h>
++#include <linux/mman.h>
++#include <sys/mman.h>
++#include "../kselftest.h"
++#include "thp_settings.h"
++#include "uffd-common.h"
++
++static int pagemap_fd;
++static size_t pagesize;
++static int nr_pagesizes = 1;
++static int nr_thpsizes;
++static size_t thpsizes[20];
++static int nr_hugetlbsizes;
++static size_t hugetlbsizes[10];
++
++static int sz2ord(size_t size)
++{
++	return __builtin_ctzll(size / pagesize);
++}
++
++static int detect_thp_sizes(size_t sizes[], int max)
++{
++	int count = 0;
++	unsigned long orders;
++	size_t kb;
++	int i;
++
++	/* thp not supported at all. */
++	if (!read_pmd_pagesize())
++		return 0;
++
++	orders = thp_supported_orders();
++
++	for (i = 0; orders && count < max; i++) {
++		if (!(orders & (1UL << i)))
++			continue;
++		orders &= ~(1UL << i);
++		kb = (pagesize >> 10) << i;
++		sizes[count++] = kb * 1024;
++		ksft_print_msg("[INFO] detected THP size: %zu KiB\n", kb);
++	}
++
++	return count;
++}
++
++static void *mmap_aligned(size_t size, int prot, int flags)
++{
++	size_t mmap_size = size * 2;
++	char *mmap_mem, *mem;
++
++	mmap_mem = mmap(NULL, mmap_size, prot, flags, -1, 0);
++	if (mmap_mem == MAP_FAILED)
++		return mmap_mem;
++
++	mem = (char *)(((uintptr_t)mmap_mem + size - 1) & ~(size - 1));
++	munmap(mmap_mem, mem - mmap_mem);
++	munmap(mem + size, mmap_mem + mmap_size - mem - size);
++
++	return mem;
++}
++
++static void *alloc_one_folio(size_t size, bool private, bool hugetlb)
++{
++	bool thp = !hugetlb && size > pagesize;
++	int flags = MAP_ANONYMOUS;
++	int prot = PROT_READ | PROT_WRITE;
++	char *mem, *addr;
++
++	assert((size & (size - 1)) == 0);
++
++	if (private)
++		flags |= MAP_PRIVATE;
++	else
++		flags |= MAP_SHARED;
++
++	/*
++	 * For THP, we must explicitly enable the THP size, allocate twice the
++	 * required space then manually align.
++	 */
++	if (thp) {
++		struct thp_settings settings = *thp_current_settings();
++
++		if (private)
++			settings.hugepages[sz2ord(size)].enabled = THP_ALWAYS;
++		else
++			settings.shmem_hugepages[sz2ord(size)].enabled = SHMEM_ALWAYS;
++
++		thp_push_settings(&settings);
++
++		mem = mmap_aligned(size, prot, flags);
++	} else {
++		if (hugetlb) {
++			flags |= MAP_HUGETLB;
++			flags |= __builtin_ctzll(size) << MAP_HUGE_SHIFT;
++		}
++
++		mem = mmap(NULL, size, prot, flags, -1, 0);
++	}
++
++	if (mem == MAP_FAILED) {
++		mem = NULL;
++		goto out;
++	}
++
++	assert(((uintptr_t)mem & (size - 1)) == 0);
++
++	/*
++	 * Populate the folio by writing the first byte and check that all pages
++	 * are populated. Finally set the whole thing to non-zero data to avoid
++	 * kernel from mapping it back to the zero page.
++	 */
++	mem[0] = 1;
++	for (addr = mem; addr < mem + size; addr += pagesize) {
++		if (!pagemap_is_populated(pagemap_fd, addr)) {
++			munmap(mem, size);
++			mem = NULL;
++			goto out;
++		}
++	}
++	memset(mem, 1, size);
++out:
++	if (thp)
++		thp_pop_settings();
++
++	return mem;
++}
++
++static bool check_uffd_wp_state(void *mem, size_t size, bool expect)
++{
++	uint64_t pte;
++	void *addr;
++
++	for (addr = mem; addr < mem + size; addr += pagesize) {
++		pte = pagemap_get_entry(pagemap_fd, addr);
++		if (!!(pte & PM_UFFD_WP) != expect) {
++			ksft_test_result_fail("uffd-wp not %s for pte %lu!\n",
++					      expect ? "set" : "clear",
++					      (addr - mem) / pagesize);
++			return false;
++		}
++	}
++
++	return true;
++}
++
++static bool range_is_swapped(void *addr, size_t size)
++{
++	for (; size; addr += pagesize, size -= pagesize)
++		if (!pagemap_is_swapped(pagemap_fd, addr))
++			return false;
++	return true;
++}
++
++static void test_one_folio(size_t size, bool private, bool swapout, bool hugetlb)
++{
++	struct uffdio_writeprotect wp_prms;
++	uint64_t features = 0;
++	void *addr = NULL;
++	void *mem = NULL;
++
++	assert(!(hugetlb && swapout));
++
++	ksft_print_msg("[RUN] %s(size=%zu, private=%s, swapout=%s, hugetlb=%s)\n",
++				__func__,
++				size,
++				private ? "true" : "false",
++				swapout ? "true" : "false",
++				hugetlb ? "true" : "false");
++
++	/* Allocate a folio of required size and type. */
++	mem = alloc_one_folio(size, private, hugetlb);
++	if (!mem) {
++		ksft_test_result_fail("alloc_one_folio() failed\n");
++		goto out;
++	}
++
++	/* Register range for uffd-wp. */
++	if (userfaultfd_open(&features)) {
++		ksft_test_result_fail("userfaultfd_open() failed\n");
++		goto out;
++	}
++	if (uffd_register(uffd, mem, size, false, true, false)) {
++		ksft_test_result_fail("uffd_register() failed\n");
++		goto out;
++	}
++	wp_prms.mode = UFFDIO_WRITEPROTECT_MODE_WP;
++	wp_prms.range.start = (uintptr_t)mem;
++	wp_prms.range.len = size;
++	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &wp_prms)) {
++		ksft_test_result_fail("ioctl(UFFDIO_WRITEPROTECT) failed\n");
++		goto out;
++	}
++
++	if (swapout) {
++		madvise(mem, size, MADV_PAGEOUT);
++		if (!range_is_swapped(mem, size)) {
++			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
++			goto out;
++		}
++	}
++
++	/* Check that uffd-wp is set for all PTEs in range. */
++	if (!check_uffd_wp_state(mem, size, true))
++		goto out;
++
++	/*
++	 * Move the mapping to a new, aligned location. Since
++	 * UFFD_FEATURE_EVENT_REMAP is not set, we expect the uffd-wp bit for
++	 * each PTE to be cleared in the new mapping.
++	 */
++	addr = mmap_aligned(size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS);
++	if (addr == MAP_FAILED) {
++		ksft_test_result_fail("mmap_aligned() failed\n");
++		goto out;
++	}
++	if (mremap(mem, size, size, MREMAP_FIXED | MREMAP_MAYMOVE, addr) == MAP_FAILED) {
++		ksft_test_result_fail("mremap() failed\n");
++		munmap(addr, size);
++		goto out;
++	}
++	mem = addr;
++
++	/* Check that uffd-wp is cleared for all PTEs in range. */
++	if (!check_uffd_wp_state(mem, size, false))
++		goto out;
++
++	ksft_test_result_pass("%s(size=%zu, private=%s, swapout=%s, hugetlb=%s)\n",
++				__func__,
++				size,
++				private ? "true" : "false",
++				swapout ? "true" : "false",
++				hugetlb ? "true" : "false");
++out:
++	if (mem)
++		munmap(mem, size);
++	if (uffd >= 0) {
++		close(uffd);
++		uffd = -1;
++	}
++}
++
++struct testcase {
++	size_t *sizes;
++	int *nr_sizes;
++	bool private;
++	bool swapout;
++	bool hugetlb;
++};
++
++static const struct testcase testcases[] = {
++	/* base pages. */
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = false,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = true,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = false,
++		.swapout = true,
++		.hugetlb = false,
++	},
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = true,
++		.swapout = true,
++		.hugetlb = false,
++	},
++
++	/* thp. */
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = false,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = true,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = false,
++		.swapout = true,
++		.hugetlb = false,
++	},
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = true,
++		.swapout = true,
++		.hugetlb = false,
++	},
++
++	/* hugetlb. */
++	{
++		.sizes = hugetlbsizes,
++		.nr_sizes = &nr_hugetlbsizes,
++		.private = false,
++		.swapout = false,
++		.hugetlb = true,
++	},
++	{
++		.sizes = hugetlbsizes,
++		.nr_sizes = &nr_hugetlbsizes,
++		.private = true,
++		.swapout = false,
++		.hugetlb = true,
++	},
++};
++
++int main(int argc, char **argv)
++{
++	struct thp_settings settings;
++	int i, j, plan = 0;
++
++	pagesize = getpagesize();
++	nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
++	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
++						    ARRAY_SIZE(hugetlbsizes));
++
++	/* If THP is supported, save THP settings and initially disable THP. */
++	if (nr_thpsizes) {
++		thp_save_settings();
++		thp_read_settings(&settings);
++		for (i = 0; i < NR_ORDERS; i++) {
++			settings.hugepages[i].enabled = THP_NEVER;
++			settings.shmem_hugepages[i].enabled = SHMEM_NEVER;
++		}
++		thp_push_settings(&settings);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(testcases); i++)
++		plan += *testcases[i].nr_sizes;
++	ksft_set_plan(plan);
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++
++	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
++		const struct testcase *tc = &testcases[i];
++
++		for (j = 0; j < *tc->nr_sizes; j++)
++			test_one_folio(tc->sizes[j], tc->private, tc->swapout,
++				       tc->hugetlb);
++	}
++
++	/* If THP is supported, restore original THP settings. */
++	if (nr_thpsizes)
++		thp_restore_settings();
++
++	i = ksft_get_fail_cnt();
++	if (i)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   i, ksft_test_num());
++	ksft_exit_pass();
++}
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
-mm-zswap-disable-migration-while-using-per-cpu-acomp_ctx.patch
+mm-clear-uffd-wp-pte-pmd-state-on-mremap.patch
+selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
