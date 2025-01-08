@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC961A287E
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9255B1A3031
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736317620; cv=none; b=PTd4oBIw4giXPWXb5MoqcMXxPcNVo2j3G4iaay9ISllo7ao3Qa12cwF94qWnHkHF4VbzzF501lLcTsqAW6kLXdwUuMHJe1KYYDiZQvLEyxvWaygD/MlB6C2p3aul+hhtPDVO6nD77fzToFYtjdLD88mJaV0Pnqp9wNDliK6XZYI=
+	t=1736317622; cv=none; b=UOr70ckGqgkS//cB06AYLcUlLCWhi9RbV2Gmpf1Yw86AaDJCxjtgEZHtOplLzG1A7W9KgBRt1XPffga3+nPUMx0Il9T/sMclqnc4Gef9BsepemsHgrTuYTcEqrr2b0h9PvJTesElMCTEIehXpgkEYz7XY/z2Q//BDTWAfj2/2II=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736317620; c=relaxed/simple;
-	bh=mX6ybl6mTVO7+AGsto2vEaA0nw/ISzBD4YWmCzF6MYo=;
-	h=Date:To:From:Subject:Message-Id; b=ZJWJYNu8Y9d837D/l0R+HC3ffhdJK1w2z5atFdzmrkCabK5E75isflE53AB9IGk8ShtwjqY70Tej5FDuKXfWt1xcMC/5n5rdShR9K33Co91NkNDf4a4spoJDfYSAkv2ch41T+HXT1DGijY9qMx6LKrCFcYjriKyl5S+8FWE44VI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ay2onvVm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736317622; c=relaxed/simple;
+	bh=7/IdqXU4ZsmU+f2E8WqlulE0sHVCZ7Q9HrhKSxggYPk=;
+	h=Date:To:From:Subject:Message-Id; b=de6dnrmgZlHM4Y3A0CrP2ET8VfVQDyhyjAjDvMB26sh7gaptlL9kqbuQFbgokHQ+JijUSWkR02O/QcFY978N0MdSQWCYMB+Kg4YdkJ4IbmCjxyIh4A9CT3A3Dqvp3Tc5vE54DZZUMjx3/clr/g/VDMCW5sW5nqrGWL1Sv6743T0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cLvSNO4j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ay2onvVm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D80BC4CED0;
-	Wed,  8 Jan 2025 06:27:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cLvSNO4j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 676C8C4CED0;
+	Wed,  8 Jan 2025 06:27:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736317620;
-	bh=mX6ybl6mTVO7+AGsto2vEaA0nw/ISzBD4YWmCzF6MYo=;
+	s=korg; t=1736317622;
+	bh=7/IdqXU4ZsmU+f2E8WqlulE0sHVCZ7Q9HrhKSxggYPk=;
 	h=Date:To:From:Subject:From;
-	b=ay2onvVmIphEbgxnr56m+UV28DwQsDkHfvleYI/MXhv3qawEWeSfSiOgKJdjhflH+
-	 hbLKWMbEkC7B+EtQukm9+FV7vzlSi1gpbAYKVIn9WEyU5g+8YhWfOdSr1btoDRccZl
-	 WSX/LPp+uHWniMR0wwYT4fqj7kxXSZRtPuahLRPw=
-Date: Tue, 07 Jan 2025 22:26:59 -0800
+	b=cLvSNO4jLmXCtCZLCMEizm3u7zkqUG0/ZKmlxFDiycKR1AWmQT9AReeYo8MRQeHHU
+	 x8LjQ1KQMNrbJLxYvlQvkHO48KijN7HcdEKufpK3W6jlCYU0QcfrZ0+Syuw3miMGJz
+	 9ps8RTXOGhhT7mN8KwF4B1zCHM8rRvVym0KgdEbk=
+Date: Tue, 07 Jan 2025 22:27:01 -0800
 To: mm-commits@vger.kernel.org,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-add-vmf_insert_page_mkwrite.patch added to mm-unstable branch
-Message-Id: <20250108062700.1D80BC4CED0@smtp.kernel.org>
+Subject: + rmap-add-support-for-pud-sized-mappings-to-rmap.patch added to mm-unstable branch
+Message-Id: <20250108062702.676C8C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: add vmf_insert_page_mkwrite()
+     Subject: rmap: add support for PUD sized mappings to rmap
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-add-vmf_insert_page_mkwrite.patch
+     rmap-add-support-for-pud-sized-mappings-to-rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-add-vmf_insert_page_mkwrite.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rmap-add-support-for-pud-sized-mappings-to-rmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,86 +59,193 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memory: add vmf_insert_page_mkwrite()
-Date: Tue, 7 Jan 2025 14:42:29 +1100
+Subject: rmap: add support for PUD sized mappings to rmap
+Date: Tue, 7 Jan 2025 14:42:30 +1100
 
-Currently to map a DAX page the DAX driver calls vmf_insert_pfn.  This
-creates a special devmap PTE entry for the pfn but does not take a
-reference on the underlying struct page for the mapping.  This is because
-DAX page refcounts are treated specially, as indicated by the presence of
-a devmap entry.
+The rmap doesn't currently support adding a PUD mapping of a folio.  This
+patch adds support for entire PUD mappings of folios, primarily to allow
+for more standard refcounting of device DAX folios.  Currently DAX is the
+only user of this and it doesn't require support for partially mapped
+PUD-sized folios so we don't support for that for now.
 
-To allow DAX page refcounts to be managed the same as normal page
-refcounts introduce vmf_insert_page_mkwrite().  This will take a reference
-on the underlying page much the same as vmf_insert_page, except it also
-permits upgrading an existing mapping to be writable if
-requested/possible.
-
-Link: https://lkml.kernel.org/r/0b56d4b4da706ef6e7194b1776fda54ed4c21599.1736221254.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/8830827577fec4c6c2a0135e338723a5b532a2ee.1736221254.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/memory.c        |   36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 38 insertions(+)
+ include/linux/rmap.h |   15 +++++++++
+ mm/rmap.c            |   65 ++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 76 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm.h~mm-memory-add-vmf_insert_page_mkwrite
-+++ a/include/linux/mm.h
-@@ -3627,6 +3627,8 @@ int vm_map_pages(struct vm_area_struct *
- 				unsigned long num);
- int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
- 				unsigned long num);
-+vm_fault_t vmf_insert_page_mkwrite(struct vm_fault *vmf, struct page *page,
-+			bool write);
- vm_fault_t vmf_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
- 			unsigned long pfn);
- vm_fault_t vmf_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
---- a/mm/memory.c~mm-memory-add-vmf_insert_page_mkwrite
-+++ a/mm/memory.c
-@@ -2622,6 +2622,42 @@ static vm_fault_t __vm_insert_mixed(stru
- 	return VM_FAULT_NOPAGE;
+--- a/include/linux/rmap.h~rmap-add-support-for-pud-sized-mappings-to-rmap
++++ a/include/linux/rmap.h
+@@ -192,6 +192,7 @@ typedef int __bitwise rmap_t;
+ enum rmap_level {
+ 	RMAP_LEVEL_PTE = 0,
+ 	RMAP_LEVEL_PMD,
++	RMAP_LEVEL_PUD,
+ };
+ 
+ static inline void __folio_rmap_sanity_checks(const struct folio *folio,
+@@ -228,6 +229,14 @@ static inline void __folio_rmap_sanity_c
+ 		VM_WARN_ON_FOLIO(folio_nr_pages(folio) != HPAGE_PMD_NR, folio);
+ 		VM_WARN_ON_FOLIO(nr_pages != HPAGE_PMD_NR, folio);
+ 		break;
++	case RMAP_LEVEL_PUD:
++		/*
++		 * Assume that we are creating * a single "entire" mapping of the
++		 * folio.
++		 */
++		VM_WARN_ON_FOLIO(folio_nr_pages(folio) != HPAGE_PUD_NR, folio);
++		VM_WARN_ON_FOLIO(nr_pages != HPAGE_PUD_NR, folio);
++		break;
+ 	default:
+ 		VM_WARN_ON_ONCE(true);
+ 	}
+@@ -251,12 +260,16 @@ void folio_add_file_rmap_ptes(struct fol
+ 	folio_add_file_rmap_ptes(folio, page, 1, vma)
+ void folio_add_file_rmap_pmd(struct folio *, struct page *,
+ 		struct vm_area_struct *);
++void folio_add_file_rmap_pud(struct folio *, struct page *,
++		struct vm_area_struct *);
+ void folio_remove_rmap_ptes(struct folio *, struct page *, int nr_pages,
+ 		struct vm_area_struct *);
+ #define folio_remove_rmap_pte(folio, page, vma) \
+ 	folio_remove_rmap_ptes(folio, page, 1, vma)
+ void folio_remove_rmap_pmd(struct folio *, struct page *,
+ 		struct vm_area_struct *);
++void folio_remove_rmap_pud(struct folio *, struct page *,
++		struct vm_area_struct *);
+ 
+ void hugetlb_add_anon_rmap(struct folio *, struct vm_area_struct *,
+ 		unsigned long address, rmap_t flags);
+@@ -341,6 +354,7 @@ static __always_inline void __folio_dup_
+ 		atomic_add(orig_nr_pages, &folio->_large_mapcount);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
++	case RMAP_LEVEL_PUD:
+ 		atomic_inc(&folio->_entire_mapcount);
+ 		atomic_inc(&folio->_large_mapcount);
+ 		break;
+@@ -437,6 +451,7 @@ static __always_inline int __folio_try_d
+ 		atomic_add(orig_nr_pages, &folio->_large_mapcount);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
++	case RMAP_LEVEL_PUD:
+ 		if (PageAnonExclusive(page)) {
+ 			if (unlikely(maybe_pinned))
+ 				return -EBUSY;
+--- a/mm/rmap.c~rmap-add-support-for-pud-sized-mappings-to-rmap
++++ a/mm/rmap.c
+@@ -1187,12 +1187,19 @@ static __always_inline unsigned int __fo
+ 		atomic_add(orig_nr_pages, &folio->_large_mapcount);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
++	case RMAP_LEVEL_PUD:
+ 		first = atomic_inc_and_test(&folio->_entire_mapcount);
+ 		if (first) {
+ 			nr = atomic_add_return_relaxed(ENTIRELY_MAPPED, mapped);
+ 			if (likely(nr < ENTIRELY_MAPPED + ENTIRELY_MAPPED)) {
+-				*nr_pmdmapped = folio_nr_pages(folio);
+-				nr = *nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
++				nr_pages = folio_nr_pages(folio);
++				/*
++				 * We only track PMD mappings of PMD-sized
++				 * folios separately.
++				 */
++				if (level == RMAP_LEVEL_PMD)
++					*nr_pmdmapped = nr_pages;
++				nr = nr_pages - (nr & FOLIO_PAGES_MAPPED);
+ 				/* Raced ahead of a remove and another add? */
+ 				if (unlikely(nr < 0))
+ 					nr = 0;
+@@ -1338,6 +1345,13 @@ static __always_inline void __folio_add_
+ 		case RMAP_LEVEL_PMD:
+ 			SetPageAnonExclusive(page);
+ 			break;
++		case RMAP_LEVEL_PUD:
++			/*
++			 * Keep the compiler happy, we don't support anonymous
++			 * PUD mappings.
++			 */
++			WARN_ON_ONCE(1);
++			break;
+ 		}
+ 	}
+ 	for (i = 0; i < nr_pages; i++) {
+@@ -1531,6 +1545,26 @@ void folio_add_file_rmap_pmd(struct foli
+ #endif
  }
  
-+vm_fault_t vmf_insert_page_mkwrite(struct vm_fault *vmf, struct page *page,
-+			bool write)
++/**
++ * folio_add_file_rmap_pud - add a PUD mapping to a page range of a folio
++ * @folio:	The folio to add the mapping to
++ * @page:	The first page to add
++ * @vma:	The vm area in which the mapping is added
++ *
++ * The page range of the folio is defined by [page, page + HPAGE_PUD_NR)
++ *
++ * The caller needs to hold the page table lock.
++ */
++void folio_add_file_rmap_pud(struct folio *folio, struct page *page,
++		struct vm_area_struct *vma)
 +{
-+	struct vm_area_struct *vma = vmf->vma;
-+	pgprot_t pgprot = vma->vm_page_prot;
-+	unsigned long pfn = page_to_pfn(page);
-+	unsigned long addr = vmf->address;
-+	int err;
-+
-+	if (addr < vma->vm_start || addr >= vma->vm_end)
-+		return VM_FAULT_SIGBUS;
-+
-+	track_pfn_insert(vma, &pgprot, pfn_to_pfn_t(pfn));
-+
-+	if (!pfn_modify_allowed(pfn, pgprot))
-+		return VM_FAULT_SIGBUS;
-+
-+	/*
-+	 * We refcount the page normally so make sure pfn_valid is true.
-+	 */
-+	if (!pfn_valid(pfn))
-+		return VM_FAULT_SIGBUS;
-+
-+	if (WARN_ON(is_zero_pfn(pfn) && write))
-+		return VM_FAULT_SIGBUS;
-+
-+	err = insert_page(vma, addr, page, pgprot, write);
-+	if (err == -ENOMEM)
-+		return VM_FAULT_OOM;
-+	if (err < 0 && err != -EBUSY)
-+		return VM_FAULT_SIGBUS;
-+
-+	return VM_FAULT_NOPAGE;
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	__folio_add_file_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
++#else
++	WARN_ON_ONCE(true);
++#endif
 +}
-+EXPORT_SYMBOL_GPL(vmf_insert_page_mkwrite);
 +
- vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 		pfn_t pfn)
- {
+ static __always_inline void __folio_remove_rmap(struct folio *folio,
+ 		struct page *page, int nr_pages, struct vm_area_struct *vma,
+ 		enum rmap_level level)
+@@ -1560,13 +1594,16 @@ static __always_inline void __folio_remo
+ 		partially_mapped = nr && atomic_read(mapped);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
++	case RMAP_LEVEL_PUD:
+ 		atomic_dec(&folio->_large_mapcount);
+ 		last = atomic_add_negative(-1, &folio->_entire_mapcount);
+ 		if (last) {
+ 			nr = atomic_sub_return_relaxed(ENTIRELY_MAPPED, mapped);
+ 			if (likely(nr < ENTIRELY_MAPPED)) {
+-				nr_pmdmapped = folio_nr_pages(folio);
+-				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
++				nr_pages = folio_nr_pages(folio);
++				if (level == RMAP_LEVEL_PMD)
++					nr_pmdmapped = nr_pages;
++				nr = nr_pages - (nr & FOLIO_PAGES_MAPPED);
+ 				/* Raced ahead of another remove and an add? */
+ 				if (unlikely(nr < 0))
+ 					nr = 0;
+@@ -1638,6 +1675,26 @@ void folio_remove_rmap_pmd(struct folio
+ #else
+ 	WARN_ON_ONCE(true);
+ #endif
++}
++
++/**
++ * folio_remove_rmap_pud - remove a PUD mapping from a page range of a folio
++ * @folio:	The folio to remove the mapping from
++ * @page:	The first page to remove
++ * @vma:	The vm area from which the mapping is removed
++ *
++ * The page range of the folio is defined by [page, page + HPAGE_PUD_NR)
++ *
++ * The caller needs to hold the page table lock.
++ */
++void folio_remove_rmap_pud(struct folio *folio, struct page *page,
++		struct vm_area_struct *vma)
++{
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	__folio_remove_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
++#else
++	WARN_ON_ONCE(true);
++#endif
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
