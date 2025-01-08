@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9BB91A2872
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9C0B1A3031
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736317635; cv=none; b=tGWBzMfd4DXwQWb5yrUMFoNnuJi5yFXWfvRve8udvaeYK/dnHlachtut0unWixEhfY4MZ5zo8/lpQI331p7dvgvnVUrZajhbXNJbBFOPgNMQh6EAwsS5gIchN3DVcIbcqF9UA12gOS2SgC2SdncAxkhr2nj17oDoKODHTNPHtGY=
+	t=1736317635; cv=none; b=ank79qFLq//EgvM9z9l0SJthVba8n9jbWx60R5205UMaM68KqgQHfksiPQg5WxRSuZ6+8kw2BVDtuqm2xY/mK9md0vhcPFO++V3BViTontlLjeamQsdyVncKbIvHQgWSUBHNXIVmHwv943yvvOSjx4N9wZhG06zBAC0QY2gt7vw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736317635; c=relaxed/simple;
-	bh=bp+V1OSDy1BJXVspYdw3/qtApFIjL+insow2jAFV4hs=;
-	h=Date:To:From:Subject:Message-Id; b=mjSsjTBqhTHG48Qxylc5tfdNg6GwWUpTKvuHTvccMxfQCHASNfOOs6IoCtjwoawtCrS42ir2SzCxE2mwDbwpJYSLeZ1tkXFujL7Qgqr6ubF1hoaTHUasjcrkd/DEFPTPR+amynY95MOiYwW6av6tGzlqK22QJNYX4hFJ7fCek7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q/allqC8; arc=none smtp.client-ip=10.30.226.201
+	bh=YLq7JrXkar4fkwSmg+3dXHQ+gK1hqZRcXUh/YAqdPTg=;
+	h=Date:To:From:Subject:Message-Id; b=RPjpwx+XOAi3rP/ATvq1eXzWcELigpswYapFL8Z1jGQfwcOQWgOtnfmnQ76oj2D6abOAibzmy1xbtoSAIl6s+4wBjp2fVBiUcaYAvZE9wjwvjk7a/rxCJxzvsfs5Fs0HME2aidi7utazavpvKZukz5Fo0nD708Gv7er8+Zgv/ns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zc3Sbmo0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q/allqC8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB58C4CED0;
-	Wed,  8 Jan 2025 06:27:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zc3Sbmo0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4303FC4CEE0;
+	Wed,  8 Jan 2025 06:27:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736317633;
-	bh=bp+V1OSDy1BJXVspYdw3/qtApFIjL+insow2jAFV4hs=;
+	s=korg; t=1736317635;
+	bh=YLq7JrXkar4fkwSmg+3dXHQ+gK1hqZRcXUh/YAqdPTg=;
 	h=Date:To:From:Subject:From;
-	b=Q/allqC8n8PeWKpBI5Yvr6ubBQCzFkLZcZESsBWFrmAmTBBqFR2V135r5b2ajfAbf
-	 Iu5XumnGyKAaUNHjUje7oGGJ4Yn5tJqEYSoe8QeEwttf8LP3yMEzDljQko0F42tgrl
-	 VBAGv7Jz1bzNPX1h0TxGU3V/Hdq0tYi1OzMqrxhk=
-Date: Tue, 07 Jan 2025 22:27:12 -0800
-To: mm-commits@vger.kernel.org,apopple@nvidia.com,akpm@linux-foundation.org
+	b=Zc3Sbmo067HG+fD5kNVmsN0ifYyl5lfYynCruNc15GTwpyK4I48oqyz8L6L27rh5J
+	 glw0nlm8tuxTWjhvopTbBmVaHgYZdvK2+EaHezXoaT5OQL1KcLJF/Z/UYpWTt3QPux
+	 viEVLa/C6QnW/gP2b5kiH3ikgE90TldBWoEqUVIY=
+Date: Tue, 07 Jan 2025 22:27:14 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-task_mmu-mark-devdax-and-fsdax-pages-as-always-unpinned.patch added to mm-unstable branch
-Message-Id: <20250108062713.5AB58C4CED0@smtp.kernel.org>
+Subject: + mm-mlock-skip-zone_device-pmds-during-mlock.patch added to mm-unstable branch
+Message-Id: <20250108062715.4303FC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc/task_mmu: mark devdax and fsdax pages as always unpinned
+     Subject: mm/mlock: skip ZONE_DEVICE PMDs during mlock
 has been added to the -mm mm-unstable branch.  Its filename is
-     proc-task_mmu-mark-devdax-and-fsdax-pages-as-always-unpinned.patch
+     mm-mlock-skip-zone_device-pmds-during-mlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-task_mmu-mark-devdax-and-fsdax-pages-as-always-unpinned.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-skip-zone_device-pmds-during-mlock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: proc/task_mmu: mark devdax and fsdax pages as always unpinned
-Date: Tue, 7 Jan 2025 14:42:35 +1100
+Subject: mm/mlock: skip ZONE_DEVICE PMDs during mlock
+Date: Tue, 7 Jan 2025 14:42:36 +1100
 
-The procfs mmu files such as smaps and pagemap currently ignore devdax and
-fsdax pages because these pages are considered special.  A future change
-will start treating these as normal pages, meaning they can be exposed via
-smaps and pagemap.
+At present mlock skips ptes mapping ZONE_DEVICE pages.  A future change to
+remove pmd_devmap will allow pmd_trans_huge_lock() to return ZONE_DEVICE
+folios so make sure we continue to skip those.
 
-The only difference is that devdax and fsdax pages can never be pinned for
-DMA via FOLL_LONGTERM, so add an explicit check in pte_is_pinned() to
-reflect that.
-
-Link: https://lkml.kernel.org/r/e17a04cf8feaa838e62d0c7d1de97444222b7956.1736221254.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/735ecdeef28a03b0e9114b2435e0ef7af7a73c66.1736221254.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/proc/task_mmu.c~proc-task_mmu-mark-devdax-and-fsdax-pages-as-always-unpinned
-+++ a/fs/proc/task_mmu.c
-@@ -1378,7 +1378,7 @@ static inline bool pte_is_pinned(struct
- 	if (likely(!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags)))
- 		return false;
- 	folio = vm_normal_folio(vma, addr, pte);
--	if (!folio)
-+	if (!folio || folio_is_devdax(folio) || folio_is_fsdax(folio))
- 		return false;
- 	return folio_maybe_dma_pinned(folio);
- }
+--- a/mm/mlock.c~mm-mlock-skip-zone_device-pmds-during-mlock
++++ a/mm/mlock.c
+@@ -368,6 +368,8 @@ static int mlock_pte_range(pmd_t *pmd, u
+ 		if (is_huge_zero_pmd(*pmd))
+ 			goto out;
+ 		folio = pmd_folio(*pmd);
++		if (folio_is_zone_device(folio))
++			goto out;
+ 		if (vma->vm_flags & VM_LOCKED)
+ 			mlock_folio(folio);
+ 		else
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
