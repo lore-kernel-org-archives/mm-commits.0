@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC2911802AB
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:35:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6777E19CCFA
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:35:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736307355; cv=none; b=nmW+Dmkc7l/OvmbChxZAWkSTkP2FXuqJ7SyNZT6g2Y48DaHTYYt4q8/uEXOSq7h3R+BEmT+79EF29i8fNuF14C70olY1bfYLBmnaMtUcU6A55uTKLXV0lqZaxqwRPv5IXG5BCfAJMYuVlHYndSnyOQhYDNZgoFf96AS5Pa6RaDc=
+	t=1736307358; cv=none; b=bAN5Pa66nWXAkFIuTl4y+JS6tMklGmrRphlcGSWRr3ehv3dSh5a8SCZVMpQNPXshF7sYEwNJ87tHyAhrukUuMkbAnpjjJIPZd5Atcyjitpa+oFxkdomrtTyBoXlJ6f94Mu3i4AF0ZpbMul9lJjGkayzmy3FIdh1SLj+ljd4QMw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736307355; c=relaxed/simple;
-	bh=ddm3iErUYkROSFO4Zqmdq1/9IsCo7WneAopCr1LgSeo=;
-	h=Date:To:From:Subject:Message-Id; b=JGW0zu5Il7qSkjkBmFYQ9BspSsm4bcRTT8m/+0/+km8xjI3SBEmfYNeEIi+AZsJ9+CthiuE231j4G7tP2YDEF5p6rVxEiSsXTRyre0hyZz5cbp0kjVeYqOfSp65EoLSC7NLIyzIS8jh4BvRhMGSmZEFR2KUw1ghUC4j7shAju3o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FBr7hhOt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736307358; c=relaxed/simple;
+	bh=JhzqlSZHqAZy+t+USutknoOtvC+mxIeAA37kzAKqYIg=;
+	h=Date:To:From:Subject:Message-Id; b=KoIvDJ+3oZClcZwBEwopJ+yYB/OG18fWHqDCDr7wq70fui+6i6CtnSlgcrh8BMQ63G8gTfV4O+E7JgLv9QgWsFK4dBsWQPtn7lUt/jHVc00zayTLWd9BX2lIBve1I9uSp1PVCbiOS0pUsCFjprdbOHzNsqPC7cdEYhlj0+Ibf+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C5UCGzpy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FBr7hhOt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 926E6C4CED0;
-	Wed,  8 Jan 2025 03:35:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C5UCGzpy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3956C4CED0;
+	Wed,  8 Jan 2025 03:35:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736307355;
-	bh=ddm3iErUYkROSFO4Zqmdq1/9IsCo7WneAopCr1LgSeo=;
+	s=korg; t=1736307357;
+	bh=JhzqlSZHqAZy+t+USutknoOtvC+mxIeAA37kzAKqYIg=;
 	h=Date:To:From:Subject:From;
-	b=FBr7hhOteiA8iazNhJjbvBSvpa11dQCaus2tSY2SbZGquoxMnUagcFQXhfgwOH2pb
-	 vwwtm6J2FfnVmgBTPTS5TS3ubhQNDbLS/7qRYP36pLt0dmlNs4h3xOh8Z7zC9AyE3p
-	 wUzDOxb4zOE66T2keb+qeznSFcpSh+zZ/DRabMus=
-Date: Tue, 07 Jan 2025 19:35:55 -0800
+	b=C5UCGzpyqNKtm5elOoDY1EH4AVgIBGs9RyfKEZkeBu7pdiMG7GOCM5D46Xk9d+yEP
+	 Ac03Pnq9lmIg1oPf+Wr/Sl/SZIU/6AtthRMtAS5I4jwIsIjU7WuMsbkaVe2mxjKPI+
+	 /+WrQIZcHS0Ow1v65C9AvoGI0UnddTAwVDu0Od8w=
+Date: Tue, 07 Jan 2025 19:35:57 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,kirill.shutemov@linux.intel.com,hch@lst.de,hannes@cmpxchg.org,clm@meta.com,bfoster@redhat.com,axboe@kernel.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-pg_dropbehind-folio-flag.patch added to mm-unstable branch
-Message-Id: <20250108033555.926E6C4CED0@smtp.kernel.org>
+Subject: + mm-readahead-add-readahead_control-dropbehind-member.patch added to mm-unstable branch
+Message-Id: <20250108033557.D3956C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add PG_dropbehind folio flag
+     Subject: mm/readahead: add readahead_control->dropbehind member
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-pg_dropbehind-folio-flag.patch
+     mm-readahead-add-readahead_control-dropbehind-member.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-pg_dropbehind-folio-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-add-readahead_control-dropbehind-member.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jens Axboe <axboe@kernel.dk>
-Subject: mm: add PG_dropbehind folio flag
-Date: Fri, 20 Dec 2024 08:47:42 -0700
+Subject: mm/readahead: add readahead_control->dropbehind member
+Date: Fri, 20 Dec 2024 08:47:43 -0700
 
-Add a folio flag that file IO can use to indicate that the cached IO being
-done should be dropped from the page cache upon completion.
+If ractl->dropbehind is set to true, then folios created are marked as
+dropbehind as well.
 
-Link: https://lkml.kernel.org/r/20241220154831.1086649-5-axboe@kernel.dk
+Link: https://lkml.kernel.org/r/20241220154831.1086649-6-axboe@kernel.dk
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Brian Foster <bfoster@redhat.com>
@@ -76,43 +76,37 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h     |    5 +++++
- include/trace/events/mmflags.h |    3 ++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/linux/pagemap.h |    1 +
+ mm/readahead.c          |    8 +++++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/include/linux/page-flags.h~mm-add-pg_dropbehind-folio-flag
-+++ a/include/linux/page-flags.h
-@@ -110,6 +110,7 @@ enum pageflags {
- 	PG_reclaim,		/* To be reclaimed asap */
- 	PG_swapbacked,		/* Page is backed by RAM/swap */
- 	PG_unevictable,		/* Page is "unevictable"  */
-+	PG_dropbehind,		/* drop pages on IO completion */
- #ifdef CONFIG_MMU
- 	PG_mlocked,		/* Page is vma mlocked */
- #endif
-@@ -562,6 +563,10 @@ PAGEFLAG(Reclaim, reclaim, PF_NO_TAIL)
- FOLIO_FLAG(readahead, FOLIO_HEAD_PAGE)
- 	FOLIO_TEST_CLEAR_FLAG(readahead, FOLIO_HEAD_PAGE)
- 
-+FOLIO_FLAG(dropbehind, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_CLEAR_FLAG(dropbehind, FOLIO_HEAD_PAGE)
-+	__FOLIO_SET_FLAG(dropbehind, FOLIO_HEAD_PAGE)
+--- a/include/linux/pagemap.h~mm-readahead-add-readahead_control-dropbehind-member
++++ a/include/linux/pagemap.h
+@@ -1369,6 +1369,7 @@ struct readahead_control {
+ 	pgoff_t _index;
+ 	unsigned int _nr_pages;
+ 	unsigned int _batch_count;
++	bool dropbehind;
+ 	bool _workingset;
+ 	unsigned long _pflags;
+ };
+--- a/mm/readahead.c~mm-readahead-add-readahead_control-dropbehind-member
++++ a/mm/readahead.c
+@@ -181,7 +181,13 @@ static void read_pages(struct readahead_
+ static struct folio *ractl_alloc_folio(struct readahead_control *ractl,
+ 				       gfp_t gfp_mask, unsigned int order)
+ {
+-	return filemap_alloc_folio(gfp_mask, order);
++	struct folio *folio;
 +
- #ifdef CONFIG_HIGHMEM
- /*
-  * Must use a macro here due to header dependency issues. page_zone() is not
---- a/include/trace/events/mmflags.h~mm-add-pg_dropbehind-folio-flag
-+++ a/include/trace/events/mmflags.h
-@@ -116,7 +116,8 @@
- 	DEF_PAGEFLAG_NAME(head),					\
- 	DEF_PAGEFLAG_NAME(reclaim),					\
- 	DEF_PAGEFLAG_NAME(swapbacked),					\
--	DEF_PAGEFLAG_NAME(unevictable)					\
-+	DEF_PAGEFLAG_NAME(unevictable),					\
-+	DEF_PAGEFLAG_NAME(dropbehind)					\
- IF_HAVE_PG_MLOCK(mlocked)						\
- IF_HAVE_PG_HWPOISON(hwpoison)						\
- IF_HAVE_PG_IDLE(idle)							\
++	folio = filemap_alloc_folio(gfp_mask, order);
++	if (folio && ractl->dropbehind)
++		__folio_set_dropbehind(folio);
++
++	return folio;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from axboe@kernel.dk are
