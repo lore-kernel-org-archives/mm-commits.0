@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76CEC1A2872
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B3A1A2872
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736317647; cv=none; b=JBHaIkYwvgDOKHRpeOiDVGQdoxB5l7HRar129PZqSDyAQihWNH//Qk5vheAYLde4St2GPffkkcR8v7tJn8GgV/yzzHfPa8KVDOHDg9FYKB4jBKtUtPoPfWLPOXIMWmXzVd0seAmKzuf4zQb6lsTktbOn54XNlifmFSOtP8jUNh0=
+	t=1736317657; cv=none; b=YHgN2c46E9MSBnBwRUn5m4gmQhAKzx4jLTfZvEgFhyqEyUxw08NyCA0ahPSbObHwvGcWax537ozWXUZX5+YDdPFjYZQhueg1JCkL4Vfk1b8L/KLcTfqGxBmvrVYxAN/4K2oUmN9QPNd4bZ71oF24B4CN85ecZaXRXUDeR5s0jX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736317647; c=relaxed/simple;
-	bh=smbxl4lFt2DqKQj9UtzOhUX2kpF7S0sTXHTu+W9m8Yc=;
-	h=Date:To:From:Subject:Message-Id; b=nvI2K6Dr0O8NL1TamUBGXJwSi3kLbP3QeDZKCbFW6RXW3dAauHa/Qwl9YCd1Dp9jEx/3T2NWMvvNQcYj6QXAbi64aSCAkqBJkOOCWEUDj8WZQcM7AwuoiKBtIgQFmqFgFZZwL31I9EJ89sqqUyFRMRQZHPPcmVZHc1K0XVed/OU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VpoxgrQO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736317657; c=relaxed/simple;
+	bh=NkY6uIoOsnUpvgy2aYCZs6PB7LkF+R4leaOXV8j9mNI=;
+	h=Date:To:From:Subject:Message-Id; b=Mpt5PGBolR/49GUNqPca5osCJae3RnW5SuZrylSwTKKH9L6KEaeeVVXzK9frf9A67nIqyuvMvbaMcvNJaFCgHQzixEP2DgM5/+gGJlp+Yj8ik6dp0PEZ6INyI7QWIJ96nkCtS1kZyBCm4Z8+frD0h5yjFRoQxWNjLZG3z6HGtQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wYntwqZi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VpoxgrQO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44863C4CED0;
-	Wed,  8 Jan 2025 06:27:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wYntwqZi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 475DDC4CED0;
+	Wed,  8 Jan 2025 06:27:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736317647;
-	bh=smbxl4lFt2DqKQj9UtzOhUX2kpF7S0sTXHTu+W9m8Yc=;
+	s=korg; t=1736317657;
+	bh=NkY6uIoOsnUpvgy2aYCZs6PB7LkF+R4leaOXV8j9mNI=;
 	h=Date:To:From:Subject:From;
-	b=VpoxgrQOhEaS1hXB3xPGWAim8nd0ZoOyRO26oUiNeZIA4QOpq0Mj1jCwenA/9VkbQ
-	 xuw0OXWLddjoDuxcq33R0Gr4Fr7qI3cMZ3mTk6w+1WFDgQFfiISFvVB9sybpKi/Qnv
-	 wksDoETyKzgg2ZICrNdYby5we9tuIhfZQAFo2K8A=
-Date: Tue, 07 Jan 2025 22:27:26 -0800
-To: mm-commits@vger.kernel.org,apopple@nvidia.com,akpm@linux-foundation.org
+	b=wYntwqZi+F6WQvpyAiK0fsHsgzxCrQ12hLgndyO2w9oX14eidOpMBBVsrZpeaXPXN
+	 TdXZreMzR3VFQEU5x3mbEM5B3Aynr3nCWzyGMYYsGDyvlsd7B4bCBu+9iC0dJ7Bedz
+	 487uKaV+alrGRcPGK6vVt70GL1iTcW7cdHwxe3T0=
+Date: Tue, 07 Jan 2025 22:27:36 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pxx_devmap-callers.patch added to mm-unstable branch
-Message-Id: <20250108062727.44863C4CED0@smtp.kernel.org>
+Subject: + mm-remove-devmap-related-functions-and-page-table-bits.patch added to mm-unstable branch
+Message-Id: <20250108062737.475DDC4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove pXX_devmap callers
+     Subject: mm: remove devmap related functions and page table bits
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pxx_devmap-callers.patch
+     mm-remove-devmap-related-functions-and-page-table-bits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pxx_devmap-callers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-devmap-related-functions-and-page-table-bits.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,990 +59,675 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: remove pXX_devmap callers
-Date: Tue, 7 Jan 2025 14:42:39 +1100
+Subject: mm: remove devmap related functions and page table bits
+Date: Tue, 7 Jan 2025 14:42:40 +1100
 
-The devmap PTE special bit was used to detect mappings of FS DAX pages. 
-This tracking was required to ensure the generic mm did not manipulate the
-page reference counts as FS DAX implemented it's own reference counting
-scheme.
+Now that DAX and all other reference counts to ZONE_DEVICE pages are
+managed normally there is no need for the special devmap PTE/PMD/PUD page
+table bits.  So drop all references to these, freeing up a software
+defined page table bit on architectures supporting it.
 
-Now that FS DAX pages have their references counted the same way as normal
-pages this tracking is no longer needed and can be removed.
-
-Almost all existing uses of pmd_devmap() are paired with a check of
-pmd_trans_huge().  As pmd_trans_huge() now returns true for FS DAX pages
-dropping the check in these cases doesn't change anything.
-
-However care needs to be taken because pmd_trans_huge() also checks that a
-page is not an FS DAX page.  This is dealt with either by checking
-!vma_is_dax() or relying on the fact that the page pointer was obtained
-from a page list.  This is possible because zone device pages cannot
-appear in any page list due to sharing page->lru with page->pgmap.
-
-Link: https://lkml.kernel.org/r/34cc7d36bce3da004c0e31956142ddee048eb604.1736221254.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/23b329a3fdd5c6f7e4b2f8cf8dee081e20c68512.1736221254.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Will Deacon <will@kernel.org> # arm64
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/hash_pgtable.c  |    3 
- arch/powerpc/mm/book3s64/pgtable.c       |    8 -
- arch/powerpc/mm/book3s64/radix_pgtable.c |    5 
- arch/powerpc/mm/pgtable.c                |    2 
- fs/dax.c                                 |    5 
- fs/userfaultfd.c                         |    2 
- include/linux/huge_mm.h                  |   10 -
- include/linux/pgtable.h                  |    2 
- mm/gup.c                                 |  162 ---------------------
- mm/hmm.c                                 |    7 
- mm/huge_memory.c                         |   71 +--------
- mm/khugepaged.c                          |    2 
- mm/mapping_dirty_helpers.c               |    4 
- mm/memory.c                              |   35 +---
- mm/migrate_device.c                      |    2 
- mm/mprotect.c                            |    2 
- mm/mremap.c                              |    5 
- mm/page_vma_mapped.c                     |    5 
- mm/pagewalk.c                            |   14 +
- mm/pgtable-generic.c                     |    7 
- mm/userfaultfd.c                         |    5 
- mm/vmscan.c                              |    5 
- 22 files changed, 63 insertions(+), 300 deletions(-)
+ Documentation/mm/arch_pgtable_helpers.rst     |    6 -
+ arch/arm64/Kconfig                            |    1 
+ arch/arm64/include/asm/pgtable-prot.h         |    1 
+ arch/arm64/include/asm/pgtable.h              |   24 ------
+ arch/powerpc/Kconfig                          |    1 
+ arch/powerpc/include/asm/book3s/64/hash-4k.h  |    6 -
+ arch/powerpc/include/asm/book3s/64/hash-64k.h |    7 -
+ arch/powerpc/include/asm/book3s/64/pgtable.h  |   52 --------------
+ arch/powerpc/include/asm/book3s/64/radix.h    |   14 ---
+ arch/x86/Kconfig                              |    1 
+ arch/x86/include/asm/pgtable.h                |   51 -------------
+ arch/x86/include/asm/pgtable_types.h          |    5 -
+ include/linux/mm.h                            |    7 -
+ include/linux/pfn_t.h                         |   20 -----
+ include/linux/pgtable.h                       |   19 -----
+ mm/Kconfig                                    |    4 -
+ mm/debug_vm_pgtable.c                         |   59 ----------------
+ mm/hmm.c                                      |    3 
+ 18 files changed, 11 insertions(+), 270 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/hash_pgtable.c~mm-remove-pxx_devmap-callers
-+++ a/arch/powerpc/mm/book3s64/hash_pgtable.c
-@@ -195,7 +195,7 @@ unsigned long hash__pmd_hugepage_update(
- 	unsigned long old;
+--- a/arch/arm64/include/asm/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -108,7 +108,6 @@ static inline pteval_t __phys_to_pte_val
+ #define pte_user(pte)		(!!(pte_val(pte) & PTE_USER))
+ #define pte_user_exec(pte)	(!(pte_val(pte) & PTE_UXN))
+ #define pte_cont(pte)		(!!(pte_val(pte) & PTE_CONT))
+-#define pte_devmap(pte)		(!!(pte_val(pte) & PTE_DEVMAP))
+ #define pte_tagged(pte)		((pte_val(pte) & PTE_ATTRINDX_MASK) == \
+ 				 PTE_ATTRINDX(MT_NORMAL_TAGGED))
  
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!hash__pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	WARN_ON(!hash__pmd_trans_huge(*pmdp));
- 	assert_spin_locked(pmd_lockptr(mm, pmdp));
- #endif
- 
-@@ -227,7 +227,6 @@ pmd_t hash__pmdp_collapse_flush(struct v
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON(pmd_trans_huge(*pmdp));
--	VM_BUG_ON(pmd_devmap(*pmdp));
- 
- 	pmd = *pmdp;
- 	pmd_clear(pmdp);
---- a/arch/powerpc/mm/book3s64/pgtable.c~mm-remove-pxx_devmap-callers
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -63,7 +63,7 @@ int pmdp_set_access_flags(struct vm_area
- {
- 	int changed;
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	WARN_ON(!pmd_trans_huge(*pmdp));
- 	assert_spin_locked(pmd_lockptr(vma->vm_mm, pmdp));
- #endif
- 	changed = !pmd_same(*(pmdp), entry);
-@@ -83,7 +83,6 @@ int pudp_set_access_flags(struct vm_area
- {
- 	int changed;
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!pud_devmap(*pudp));
- 	assert_spin_locked(pud_lockptr(vma->vm_mm, pudp));
- #endif
- 	changed = !pud_same(*(pudp), entry);
-@@ -206,7 +205,7 @@ pmd_t pmdp_huge_get_and_clear_full(struc
- 	pmd_t pmd;
- 	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON((pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
--		   !pmd_devmap(*pmdp)) || !pmd_present(*pmdp));
-+		   !pmd_present(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, addr, pmdp);
- 	/*
- 	 * if it not a fullmm flush, then we can possibly end up converting
-@@ -224,8 +223,7 @@ pud_t pudp_huge_get_and_clear_full(struc
- 	pud_t pud;
- 
- 	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
--	VM_BUG_ON((pud_present(*pudp) && !pud_devmap(*pudp)) ||
--		  !pud_present(*pudp));
-+	VM_BUG_ON(!pud_present(*pudp));
- 	pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
- 	/*
- 	 * if it not a fullmm flush, then we can possibly end up converting
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~mm-remove-pxx_devmap-callers
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -1412,7 +1412,7 @@ unsigned long radix__pmd_hugepage_update
- 	unsigned long old;
- 
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!radix__pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
-+	WARN_ON(!radix__pmd_trans_huge(*pmdp));
- 	assert_spin_locked(pmd_lockptr(mm, pmdp));
- #endif
- 
-@@ -1429,7 +1429,7 @@ unsigned long radix__pud_hugepage_update
- 	unsigned long old;
- 
- #ifdef CONFIG_DEBUG_VM
--	WARN_ON(!pud_devmap(*pudp));
-+	WARN_ON(!pud_trans_huge(*pudp));
- 	assert_spin_locked(pud_lockptr(mm, pudp));
- #endif
- 
-@@ -1447,7 +1447,6 @@ pmd_t radix__pmdp_collapse_flush(struct
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON(radix__pmd_trans_huge(*pmdp));
--	VM_BUG_ON(pmd_devmap(*pmdp));
- 	/*
- 	 * khugepaged calls this for normal pmd
- 	 */
---- a/arch/powerpc/mm/pgtable.c~mm-remove-pxx_devmap-callers
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -509,7 +509,7 @@ pte_t *__find_linux_pte(pgd_t *pgdir, un
- 		return NULL;
- #endif
- 
--	if (pmd_trans_huge(pmd) || pmd_devmap(pmd)) {
-+	if (pmd_trans_huge(pmd)) {
- 		if (is_thp)
- 			*is_thp = true;
- 		ret_pte = (pte_t *)pmdp;
---- a/fs/dax.c~mm-remove-pxx_devmap-callers
-+++ a/fs/dax.c
-@@ -1928,7 +1928,7 @@ static vm_fault_t dax_iomap_pte_fault(st
- 	 * the PTE we need to set up.  If so just return and the fault will be
- 	 * retried.
- 	 */
--	if (pmd_trans_huge(*vmf->pmd) || pmd_devmap(*vmf->pmd)) {
-+	if (pmd_trans_huge(*vmf->pmd)) {
- 		ret = VM_FAULT_NOPAGE;
- 		goto unlock_entry;
- 	}
-@@ -2049,8 +2049,7 @@ static vm_fault_t dax_iomap_pmd_fault(st
- 	 * the PMD we need to set up.  If so just return and the fault will be
- 	 * retried.
- 	 */
--	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
--			!pmd_devmap(*vmf->pmd)) {
-+	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd)) {
- 		ret = 0;
- 		goto unlock_entry;
- 	}
---- a/fs/userfaultfd.c~mm-remove-pxx_devmap-callers
-+++ a/fs/userfaultfd.c
-@@ -304,7 +304,7 @@ again:
- 		goto out;
- 
- 	ret = false;
--	if (!pmd_present(_pmd) || pmd_devmap(_pmd))
-+	if (!pmd_present(_pmd) || vma_is_dax(vmf->vma))
- 		goto out;
- 
- 	if (pmd_trans_huge(_pmd)) {
---- a/include/linux/huge_mm.h~mm-remove-pxx_devmap-callers
-+++ a/include/linux/huge_mm.h
-@@ -368,8 +368,7 @@ void __split_huge_pmd(struct vm_area_str
- #define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		if (is_swap_pmd(*____pmd) || pmd_trans_huge(*____pmd)	\
--					|| pmd_devmap(*____pmd))	\
-+		if (is_swap_pmd(*____pmd) || pmd_trans_huge(*____pmd))	\
- 			__split_huge_pmd(__vma, __pmd, __address,	\
- 						false, NULL);		\
- 	}  while (0)
-@@ -395,8 +394,7 @@ change_huge_pud(struct mmu_gather *tlb,
- #define split_huge_pud(__vma, __pud, __address)				\
- 	do {								\
- 		pud_t *____pud = (__pud);				\
--		if (pud_trans_huge(*____pud)				\
--					|| pud_devmap(*____pud))	\
-+		if (pud_trans_huge(*____pud))				\
- 			__split_huge_pud(__vma, __pud, __address);	\
- 	}  while (0)
- 
-@@ -419,7 +417,7 @@ static inline int is_swap_pmd(pmd_t pmd)
- static inline spinlock_t *pmd_trans_huge_lock(pmd_t *pmd,
- 		struct vm_area_struct *vma)
- {
--	if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
-+	if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma);
- 	else
- 		return NULL;
-@@ -427,7 +425,7 @@ static inline spinlock_t *pmd_trans_huge
- static inline spinlock_t *pud_trans_huge_lock(pud_t *pud,
- 		struct vm_area_struct *vma)
- {
--	if (pud_trans_huge(*pud) || pud_devmap(*pud))
-+	if (pud_trans_huge(*pud))
- 		return __pud_trans_huge_lock(pud, vma);
- 	else
- 		return NULL;
---- a/include/linux/pgtable.h~mm-remove-pxx_devmap-callers
-+++ a/include/linux/pgtable.h
-@@ -1635,7 +1635,7 @@ static inline int pud_trans_unstable(pud
- 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
- 	pud_t pudval = READ_ONCE(*pud);
- 
--	if (pud_none(pudval) || pud_trans_huge(pudval) || pud_devmap(pudval))
-+	if (pud_none(pudval) || pud_trans_huge(pudval))
- 		return 1;
- 	if (unlikely(pud_bad(pudval))) {
- 		pud_clear_bad(pud);
---- a/mm/gup.c~mm-remove-pxx_devmap-callers
-+++ a/mm/gup.c
-@@ -678,31 +678,9 @@ static struct page *follow_huge_pud(stru
- 		return NULL;
- 
- 	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
--
--	if (IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
--	    pud_devmap(pud)) {
--		/*
--		 * device mapped pages can only be returned if the caller
--		 * will manage the page reference count.
--		 *
--		 * At least one of FOLL_GET | FOLL_PIN must be set, so
--		 * assert that here:
--		 */
--		if (!(flags & (FOLL_GET | FOLL_PIN)))
--			return ERR_PTR(-EEXIST);
--
--		if (flags & FOLL_TOUCH)
--			touch_pud(vma, addr, pudp, flags & FOLL_WRITE);
--
--		ctx->pgmap = get_dev_pagemap(pfn, ctx->pgmap);
--		if (!ctx->pgmap)
--			return ERR_PTR(-EFAULT);
--	}
--
- 	page = pfn_to_page(pfn);
- 
--	if (!pud_devmap(pud) && !pud_write(pud) &&
--	    gup_must_unshare(vma, flags, page))
-+	if (!pud_write(pud) && gup_must_unshare(vma, flags, page))
- 		return ERR_PTR(-EMLINK);
- 
- 	ret = try_grab_folio(page_folio(page), 1, flags);
-@@ -861,8 +839,7 @@ static struct page *follow_page_pte(stru
- 	page = vm_normal_page(vma, address, pte);
- 
- 	/*
--	 * We only care about anon pages in can_follow_write_pte() and don't
--	 * have to worry about pte_devmap() because they are never anon.
-+	 * We only care about anon pages in can_follow_write_pte().
- 	 */
- 	if ((flags & FOLL_WRITE) &&
- 	    !can_follow_write_pte(pte, page, vma, flags)) {
-@@ -870,18 +847,7 @@ static struct page *follow_page_pte(stru
- 		goto out;
- 	}
- 
--	if (!page && pte_devmap(pte) && (flags & (FOLL_GET | FOLL_PIN))) {
--		/*
--		 * Only return device mapping pages in the FOLL_GET or FOLL_PIN
--		 * case since they are only valid while holding the pgmap
--		 * reference.
--		 */
--		*pgmap = get_dev_pagemap(pte_pfn(pte), *pgmap);
--		if (*pgmap)
--			page = pte_page(pte);
--		else
--			goto no_page;
--	} else if (unlikely(!page)) {
-+	if (unlikely(!page)) {
- 		if (flags & FOLL_DUMP) {
- 			/* Avoid special (like zero) pages in core dumps */
- 			page = ERR_PTR(-EFAULT);
-@@ -963,14 +929,6 @@ static struct page *follow_pmd_mask(stru
- 		return no_page_table(vma, flags, address);
- 	if (!pmd_present(pmdval))
- 		return no_page_table(vma, flags, address);
--	if (pmd_devmap(pmdval)) {
--		ptl = pmd_lock(mm, pmd);
--		page = follow_devmap_pmd(vma, address, pmd, flags, &ctx->pgmap);
--		spin_unlock(ptl);
--		if (page)
--			return page;
--		return no_page_table(vma, flags, address);
--	}
- 	if (likely(!pmd_leaf(pmdval)))
- 		return follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
- 
-@@ -2892,7 +2850,7 @@ static int gup_fast_pte_range(pmd_t pmd,
- 		int *nr)
- {
- 	struct dev_pagemap *pgmap = NULL;
--	int nr_start = *nr, ret = 0;
-+	int ret = 0;
- 	pte_t *ptep, *ptem;
- 
- 	ptem = ptep = pte_offset_map(&pmd, addr);
-@@ -2916,16 +2874,7 @@ static int gup_fast_pte_range(pmd_t pmd,
- 		if (!pte_access_permitted(pte, flags & FOLL_WRITE))
- 			goto pte_unmap;
- 
--		if (pte_devmap(pte)) {
--			if (unlikely(flags & FOLL_LONGTERM))
--				goto pte_unmap;
--
--			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
--			if (unlikely(!pgmap)) {
--				gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
--				goto pte_unmap;
--			}
--		} else if (pte_special(pte))
-+		if (pte_special(pte))
- 			goto pte_unmap;
- 
- 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
-@@ -2996,91 +2945,6 @@ static int gup_fast_pte_range(pmd_t pmd,
+@@ -290,11 +289,6 @@ static inline pmd_t pmd_mkcont(pmd_t pmd
+ 	return __pmd(pmd_val(pmd) | PMD_SECT_CONT);
  }
- #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
  
--#if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
--static int gup_fast_devmap_leaf(unsigned long pfn, unsigned long addr,
--	unsigned long end, unsigned int flags, struct page **pages, int *nr)
+-static inline pte_t pte_mkdevmap(pte_t pte)
 -{
--	int nr_start = *nr;
--	struct dev_pagemap *pgmap = NULL;
--
--	do {
--		struct folio *folio;
--		struct page *page = pfn_to_page(pfn);
--
--		pgmap = get_dev_pagemap(pfn, pgmap);
--		if (unlikely(!pgmap)) {
--			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
--			break;
--		}
--
--		folio = try_grab_folio_fast(page, 1, flags);
--		if (!folio) {
--			gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
--			break;
--		}
--		folio_set_referenced(folio);
--		pages[*nr] = page;
--		(*nr)++;
--		pfn++;
--	} while (addr += PAGE_SIZE, addr != end);
--
--	put_dev_pagemap(pgmap);
--	return addr == end;
+-	return set_pte_bit(pte, __pgprot(PTE_DEVMAP | PTE_SPECIAL));
 -}
 -
--static int gup_fast_devmap_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
+ #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
+ static inline int pte_uffd_wp(pte_t pte)
+ {
+@@ -587,14 +581,6 @@ static inline int pmd_trans_huge(pmd_t p
+ 
+ #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define pmd_devmap(pmd)		pte_devmap(pmd_pte(pmd))
+-#endif
+-static inline pmd_t pmd_mkdevmap(pmd_t pmd)
 -{
--	unsigned long fault_pfn;
--	int nr_start = *nr;
--
--	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
--	if (!gup_fast_devmap_leaf(fault_pfn, addr, end, flags, pages, nr))
--		return 0;
--
--	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
--		gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
--		return 0;
--	}
--	return 1;
+-	return pte_pmd(set_pte_bit(pmd_pte(pmd), __pgprot(PTE_DEVMAP)));
 -}
 -
--static int gup_fast_devmap_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
--{
--	unsigned long fault_pfn;
--	int nr_start = *nr;
+ #ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
+ #define pmd_special(pte)	(!!((pmd_val(pte) & PTE_SPECIAL)))
+ static inline pmd_t pmd_mkspecial(pmd_t pmd)
+@@ -1195,16 +1181,6 @@ static inline int pmdp_set_access_flags(
+ 	return __ptep_set_access_flags(vma, address, (pte_t *)pmdp,
+ 							pmd_pte(entry), dirty);
+ }
 -
--	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
--	if (!gup_fast_devmap_leaf(fault_pfn, addr, end, flags, pages, nr))
--		return 0;
--
--	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
--		gup_fast_undo_dev_pagemap(nr, nr_start, flags, pages);
--		return 0;
--	}
--	return 1;
--}
--#else
--static int gup_fast_devmap_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
+-static inline int pud_devmap(pud_t pud)
 -{
--	BUILD_BUG();
 -	return 0;
 -}
 -
--static int gup_fast_devmap_pud_leaf(pud_t pud, pud_t *pudp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
+-static inline int pgd_devmap(pgd_t pgd)
 -{
--	BUILD_BUG();
+-	return 0;
+-}
+ #endif
+ 
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+--- a/arch/arm64/include/asm/pgtable-prot.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/arm64/include/asm/pgtable-prot.h
+@@ -17,7 +17,6 @@
+ #define PTE_SWP_EXCLUSIVE	(_AT(pteval_t, 1) << 2)	 /* only for swp ptes */
+ #define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
+ #define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
+-#define PTE_DEVMAP		(_AT(pteval_t, 1) << 57)
+ 
+ /*
+  * PTE_PRESENT_INVALID=1 & PTE_VALID=0 indicates that the pte's fields should be
+--- a/arch/arm64/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/arm64/Kconfig
+@@ -39,7 +39,6 @@ config ARM64
+ 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
+ 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+ 	select ARCH_HAS_NONLEAF_PMD_YOUNG if ARM64_HAFT
+-	select ARCH_HAS_PTE_DEVMAP
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_HW_PTE_YOUNG
+ 	select ARCH_HAS_SETUP_DMA_OPS
+--- a/arch/powerpc/include/asm/book3s/64/hash-4k.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/powerpc/include/asm/book3s/64/hash-4k.h
+@@ -160,12 +160,6 @@ extern pmd_t hash__pmdp_huge_get_and_cle
+ extern int hash__has_transparent_hugepage(void);
+ #endif
+ 
+-static inline pmd_t hash__pmd_mkdevmap(pmd_t pmd)
+-{
+-	BUG();
+-	return pmd;
+-}
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _ASM_POWERPC_BOOK3S_64_HASH_4K_H */
+--- a/arch/powerpc/include/asm/book3s/64/hash-64k.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/powerpc/include/asm/book3s/64/hash-64k.h
+@@ -259,7 +259,7 @@ static inline void mark_hpte_slot_valid(
+  */
+ static inline int hash__pmd_trans_huge(pmd_t pmd)
+ {
+-	return !!((pmd_val(pmd) & (_PAGE_PTE | H_PAGE_THP_HUGE | _PAGE_DEVMAP)) ==
++	return !!((pmd_val(pmd) & (_PAGE_PTE | H_PAGE_THP_HUGE)) ==
+ 		  (_PAGE_PTE | H_PAGE_THP_HUGE));
+ }
+ 
+@@ -281,11 +281,6 @@ extern pmd_t hash__pmdp_huge_get_and_cle
+ extern int hash__has_transparent_hugepage(void);
+ #endif /*  CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-static inline pmd_t hash__pmd_mkdevmap(pmd_t pmd)
+-{
+-	return __pmd(pmd_val(pmd) | (_PAGE_PTE | H_PAGE_THP_HUGE | _PAGE_DEVMAP));
+-}
+-
+ #endif	/* __ASSEMBLY__ */
+ 
+ #endif /* _ASM_POWERPC_BOOK3S_64_HASH_64K_H */
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -88,7 +88,6 @@
+ 
+ #define _PAGE_SOFT_DIRTY	_RPAGE_SW3 /* software: software dirty tracking */
+ #define _PAGE_SPECIAL		_RPAGE_SW2 /* software: special page */
+-#define _PAGE_DEVMAP		_RPAGE_SW1 /* software: ZONE_DEVICE page */
+ 
+ /*
+  * Drivers request for cache inhibited pte mapping using _PAGE_NO_CACHE
+@@ -109,7 +108,7 @@
+  */
+ #define _HPAGE_CHG_MASK (PTE_RPN_MASK | _PAGE_HPTEFLAGS | _PAGE_DIRTY | \
+ 			 _PAGE_ACCESSED | H_PAGE_THP_HUGE | _PAGE_PTE | \
+-			 _PAGE_SOFT_DIRTY | _PAGE_DEVMAP)
++			 _PAGE_SOFT_DIRTY)
+ /*
+  * user access blocked by key
+  */
+@@ -123,7 +122,7 @@
+  */
+ #define _PAGE_CHG_MASK	(PTE_RPN_MASK | _PAGE_HPTEFLAGS | _PAGE_DIRTY | \
+ 			 _PAGE_ACCESSED | _PAGE_SPECIAL | _PAGE_PTE |	\
+-			 _PAGE_SOFT_DIRTY | _PAGE_DEVMAP)
++			 _PAGE_SOFT_DIRTY)
+ 
+ /*
+  * We define 2 sets of base prot bits, one for basic pages (ie,
+@@ -609,24 +608,6 @@ static inline pte_t pte_mkhuge(pte_t pte
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkdevmap(pte_t pte)
+-{
+-	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_SPECIAL | _PAGE_DEVMAP));
+-}
+-
+-/*
+- * This is potentially called with a pmd as the argument, in which case it's not
+- * safe to check _PAGE_DEVMAP unless we also confirm that _PAGE_PTE is set.
+- * That's because the bit we use for _PAGE_DEVMAP is not reserved for software
+- * use in page directory entries (ie. non-ptes).
+- */
+-static inline int pte_devmap(pte_t pte)
+-{
+-	__be64 mask = cpu_to_be64(_PAGE_DEVMAP | _PAGE_PTE);
+-
+-	return (pte_raw(pte) & mask) == mask;
+-}
+-
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	/* FIXME!! check whether this need to be a conditional */
+@@ -1380,35 +1361,6 @@ static inline bool arch_needs_pgtable_de
+ }
+ extern void serialize_against_pte_lookup(struct mm_struct *mm);
+ 
+-
+-static inline pmd_t pmd_mkdevmap(pmd_t pmd)
+-{
+-	if (radix_enabled())
+-		return radix__pmd_mkdevmap(pmd);
+-	return hash__pmd_mkdevmap(pmd);
+-}
+-
+-static inline pud_t pud_mkdevmap(pud_t pud)
+-{
+-	if (radix_enabled())
+-		return radix__pud_mkdevmap(pud);
+-	BUG();
+-	return pud;
+-}
+-
+-static inline int pmd_devmap(pmd_t pmd)
+-{
+-	return pte_devmap(pmd_pte(pmd));
+-}
+-
+-static inline int pud_devmap(pud_t pud)
+-{
+-	return pte_devmap(pud_pte(pud));
+-}
+-
+-static inline int pgd_devmap(pgd_t pgd)
+-{
+-	return 0;
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+--- a/arch/powerpc/include/asm/book3s/64/radix.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/powerpc/include/asm/book3s/64/radix.h
+@@ -264,7 +264,7 @@ static inline int radix__p4d_bad(p4d_t p
+ 
+ static inline int radix__pmd_trans_huge(pmd_t pmd)
+ {
+-	return (pmd_val(pmd) & (_PAGE_PTE | _PAGE_DEVMAP)) == _PAGE_PTE;
++	return (pmd_val(pmd) & _PAGE_PTE) == _PAGE_PTE;
+ }
+ 
+ static inline pmd_t radix__pmd_mkhuge(pmd_t pmd)
+@@ -274,7 +274,7 @@ static inline pmd_t radix__pmd_mkhuge(pm
+ 
+ static inline int radix__pud_trans_huge(pud_t pud)
+ {
+-	return (pud_val(pud) & (_PAGE_PTE | _PAGE_DEVMAP)) == _PAGE_PTE;
++	return (pud_val(pud) & _PAGE_PTE) == _PAGE_PTE;
+ }
+ 
+ static inline pud_t radix__pud_mkhuge(pud_t pud)
+@@ -315,16 +315,6 @@ static inline int radix__has_transparent
+ }
+ #endif
+ 
+-static inline pmd_t radix__pmd_mkdevmap(pmd_t pmd)
+-{
+-	return __pmd(pmd_val(pmd) | (_PAGE_PTE | _PAGE_DEVMAP));
+-}
+-
+-static inline pud_t radix__pud_mkdevmap(pud_t pud)
+-{
+-	return __pud(pud_val(pud) | (_PAGE_PTE | _PAGE_DEVMAP));
+-}
+-
+ struct vmem_altmap;
+ struct dev_pagemap;
+ extern int __meminit radix__vmemmap_create_mapping(unsigned long start,
+--- a/arch/powerpc/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/powerpc/Kconfig
+@@ -145,7 +145,6 @@ config PPC
+ 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+ 	select ARCH_HAS_PHYS_TO_DMA
+ 	select ARCH_HAS_PMEM_API
+-	select ARCH_HAS_PTE_DEVMAP		if PPC_BOOK3S_64
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_SCALED_CPUTIME		if VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
+ 	select ARCH_HAS_SET_MEMORY
+--- a/arch/x86/include/asm/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/x86/include/asm/pgtable.h
+@@ -308,16 +308,15 @@ static inline bool pmd_leaf(pmd_t pte)
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-/* NOTE: when predicate huge page, consider also pmd_devmap, or use pmd_leaf */
+ static inline int pmd_trans_huge(pmd_t pmd)
+ {
+-	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
++	return (pmd_val(pmd) & _PAGE_PSE) == _PAGE_PSE;
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static inline int pud_trans_huge(pud_t pud)
+ {
+-	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
++	return (pud_val(pud) & _PAGE_PSE) == _PAGE_PSE;
+ }
+ #endif
+ 
+@@ -327,24 +326,6 @@ static inline int has_transparent_hugepa
+ 	return boot_cpu_has(X86_FEATURE_PSE);
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
+-static inline int pmd_devmap(pmd_t pmd)
+-{
+-	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
+-}
+-
+-#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static inline int pud_devmap(pud_t pud)
+-{
+-	return !!(pud_val(pud) & _PAGE_DEVMAP);
+-}
+-#else
+-static inline int pud_devmap(pud_t pud)
+-{
 -	return 0;
 -}
 -#endif
 -
- static int gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
- 		unsigned long end, unsigned int flags, struct page **pages,
- 		int *nr)
-@@ -3095,13 +2959,6 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	if (pmd_special(orig))
- 		return 0;
- 
--	if (pmd_devmap(orig)) {
--		if (unlikely(flags & FOLL_LONGTERM))
--			return 0;
--		return gup_fast_devmap_pmd_leaf(orig, pmdp, addr, end, flags,
--					        pages, nr);
--	}
+ #ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
+ static inline bool pmd_special(pmd_t pmd)
+ {
+@@ -368,12 +349,6 @@ static inline pud_t pud_mkspecial(pud_t
+ 	return pud_set_flags(pud, _PAGE_SPECIAL);
+ }
+ #endif	/* CONFIG_ARCH_SUPPORTS_PUD_PFNMAP */
 -
- 	page = pmd_page(orig);
- 	refs = record_subpages(page, PMD_SIZE, addr, end, pages + *nr);
+-static inline int pgd_devmap(pgd_t pgd)
+-{
+-	return 0;
+-}
+-#endif
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
-@@ -3142,13 +2999,6 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	if (pud_special(orig))
- 		return 0;
- 
--	if (pud_devmap(orig)) {
--		if (unlikely(flags & FOLL_LONGTERM))
--			return 0;
--		return gup_fast_devmap_pud_leaf(orig, pudp, addr, end, flags,
--					        pages, nr);
--	}
--
- 	page = pud_page(orig);
- 	refs = record_subpages(page, PUD_SIZE, addr, end, pages + *nr);
- 
-@@ -3187,8 +3037,6 @@ static int gup_fast_pgd_leaf(pgd_t orig,
- 	if (!pgd_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
- 
--	BUILD_BUG_ON(pgd_devmap(orig));
--
- 	page = pgd_page(orig);
- 	refs = record_subpages(page, PGDIR_SIZE, addr, end, pages + *nr);
- 
---- a/mm/hmm.c~mm-remove-pxx_devmap-callers
-+++ a/mm/hmm.c
-@@ -298,7 +298,6 @@ static int hmm_vma_handle_pte(struct mm_
- 	 * fall through and treat it like a normal page.
- 	 */
- 	if (!vm_normal_page(walk->vma, addr, pte) &&
--	    !pte_devmap(pte) &&
- 	    !is_zero_pfn(pte_pfn(pte))) {
- 		if (hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0)) {
- 			pte_unmap(ptep);
-@@ -351,7 +350,7 @@ again:
- 		return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
- 	}
- 
--	if (pmd_devmap(pmd) || pmd_trans_huge(pmd)) {
-+	if (pmd_trans_huge(pmd)) {
- 		/*
- 		 * No need to take pmd_lock here, even if some other thread
- 		 * is splitting the huge pmd we will get that event through
-@@ -362,7 +361,7 @@ again:
- 		 * values.
- 		 */
- 		pmd = pmdp_get_lockless(pmdp);
--		if (!pmd_devmap(pmd) && !pmd_trans_huge(pmd))
-+		if (!pmd_trans_huge(pmd))
- 			goto again;
- 
- 		return hmm_vma_handle_pmd(walk, addr, end, hmm_pfns, pmd);
-@@ -429,7 +428,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
- 		return hmm_vma_walk_hole(start, end, -1, walk);
- 	}
- 
--	if (pud_leaf(pud) && pud_devmap(pud)) {
-+	if (pud_leaf(pud) && vma_is_dax(walk->vma)) {
- 		unsigned long i, npages, pfn;
- 		unsigned int required_fault;
- 		unsigned long *hmm_pfns;
---- a/mm/huge_memory.c~mm-remove-pxx_devmap-callers
-+++ a/mm/huge_memory.c
-@@ -1398,10 +1398,7 @@ static void insert_pfn_pmd(struct vm_are
- 	}
- 
- 	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
--	if (pfn_t_devmap(pfn))
--		entry = pmd_mkdevmap(entry);
--	else
--		entry = pmd_mkspecial(entry);
-+	entry = pmd_mkspecial(entry);
- 	if (write) {
- 		entry = pmd_mkyoung(pmd_mkdirty(entry));
- 		entry = maybe_pmd_mkwrite(entry, vma);
-@@ -1440,8 +1437,6 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
--			!pfn_t_devmap(pfn));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-@@ -1530,10 +1525,7 @@ static void insert_pfn_pud(struct vm_are
- 	}
- 
- 	entry = pud_mkhuge(pfn_t_pud(pfn, prot));
--	if (pfn_t_devmap(pfn))
--		entry = pud_mkdevmap(entry);
--	else
--		entry = pud_mkspecial(entry);
-+	entry = pud_mkspecial(entry);
- 	if (write) {
- 		entry = pud_mkyoung(pud_mkdirty(entry));
- 		entry = maybe_pud_mkwrite(entry, vma);
-@@ -1564,8 +1556,6 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
--			!pfn_t_devmap(pfn));
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-@@ -1632,46 +1622,6 @@ void touch_pmd(struct vm_area_struct *vm
- 		update_mmu_cache_pmd(vma, addr, pmd);
+ static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
+@@ -534,11 +509,6 @@ static inline pte_t pte_mkspecial(pte_t
+ 	return pte_set_flags(pte, _PAGE_SPECIAL);
  }
  
--struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
--		pmd_t *pmd, int flags, struct dev_pagemap **pgmap)
+-static inline pte_t pte_mkdevmap(pte_t pte)
 -{
--	unsigned long pfn = pmd_pfn(*pmd);
--	struct mm_struct *mm = vma->vm_mm;
--	struct page *page;
--	int ret;
--
--	assert_spin_locked(pmd_lockptr(mm, pmd));
--
--	if (flags & FOLL_WRITE && !pmd_write(*pmd))
--		return NULL;
--
--	if (pmd_present(*pmd) && pmd_devmap(*pmd))
--		/* pass */;
--	else
--		return NULL;
--
--	if (flags & FOLL_TOUCH)
--		touch_pmd(vma, addr, pmd, flags & FOLL_WRITE);
--
--	/*
--	 * device mapped pages can only be returned if the
--	 * caller will manage the page reference count.
--	 */
--	if (!(flags & (FOLL_GET | FOLL_PIN)))
--		return ERR_PTR(-EEXIST);
--
--	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
--	*pgmap = get_dev_pagemap(pfn, *pgmap);
--	if (!*pgmap)
--		return ERR_PTR(-EFAULT);
--	page = pfn_to_page(pfn);
--	ret = try_grab_folio(page_folio(page), 1, flags);
--	if (ret)
--		page = ERR_PTR(ret);
--
--	return page;
+-	return pte_set_flags(pte, _PAGE_SPECIAL|_PAGE_DEVMAP);
 -}
 -
- int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 		  pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
- 		  struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
-@@ -1823,7 +1773,7 @@ int copy_huge_pud(struct mm_struct *dst_
- 
- 	ret = -EAGAIN;
- 	pud = *src_pud;
--	if (unlikely(!pud_trans_huge(pud) && !pud_devmap(pud)))
-+	if (unlikely(!pud_trans_huge(pud)))
- 		goto out_unlock;
- 
- 	/*
-@@ -2677,8 +2627,7 @@ spinlock_t *__pmd_trans_huge_lock(pmd_t
+ /* See comments above mksaveddirty_shift() */
+ static inline pmd_t pmd_mksaveddirty(pmd_t pmd)
  {
- 	spinlock_t *ptl;
- 	ptl = pmd_lock(vma->vm_mm, pmd);
--	if (likely(is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) ||
--			pmd_devmap(*pmd)))
-+	if (likely(is_swap_pmd(*pmd) || pmd_trans_huge(*pmd)))
- 		return ptl;
- 	spin_unlock(ptl);
- 	return NULL;
-@@ -2695,7 +2644,7 @@ spinlock_t *__pud_trans_huge_lock(pud_t
- 	spinlock_t *ptl;
+@@ -610,11 +580,6 @@ static inline pmd_t pmd_mkwrite_shstk(pm
+ 	return pmd_set_flags(pmd, _PAGE_DIRTY);
+ }
  
- 	ptl = pud_lock(vma->vm_mm, pud);
--	if (likely(pud_trans_huge(*pud) || pud_devmap(*pud)))
-+	if (likely(pud_trans_huge(*pud)))
- 		return ptl;
- 	spin_unlock(ptl);
- 	return NULL;
-@@ -2746,7 +2695,7 @@ static void __split_huge_pud_locked(stru
- 	VM_BUG_ON(haddr & ~HPAGE_PUD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PUD_SIZE, vma);
--	VM_BUG_ON(!pud_trans_huge(*pud) && !pud_devmap(*pud));
-+	VM_BUG_ON(!pud_trans_huge(*pud));
- 
- 	count_vm_event(THP_SPLIT_PUD);
- 
-@@ -2779,7 +2728,7 @@ void __split_huge_pud(struct vm_area_str
- 				(address & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
- 	ptl = pud_lock(vma->vm_mm, pud);
--	if (unlikely(!pud_trans_huge(*pud) && !pud_devmap(*pud)))
-+	if (unlikely(!pud_trans_huge(*pud)))
- 		goto out;
- 	__split_huge_pud_locked(vma, pud, range.start);
- 
-@@ -2852,8 +2801,7 @@ static void __split_huge_pmd_locked(stru
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PMD_SIZE, vma);
--	VM_BUG_ON(!is_pmd_migration_entry(*pmd) && !pmd_trans_huge(*pmd)
--				&& !pmd_devmap(*pmd));
-+	VM_BUG_ON(!is_pmd_migration_entry(*pmd) && !pmd_trans_huge(*pmd));
- 
- 	count_vm_event(THP_SPLIT_PMD);
- 
-@@ -3070,8 +3018,7 @@ void split_huge_pmd_locked(struct vm_are
- 	 * require a folio to check the PMD against. Otherwise, there
- 	 * is a risk of replacing the wrong folio.
- 	 */
--	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
--	    is_pmd_migration_entry(*pmd)) {
-+	if (pmd_trans_huge(*pmd) || is_pmd_migration_entry(*pmd)) {
- 		if (folio && folio != pmd_folio(*pmd))
- 			return;
- 		__split_huge_pmd_locked(vma, pmd, address, freeze);
---- a/mm/khugepaged.c~mm-remove-pxx_devmap-callers
-+++ a/mm/khugepaged.c
-@@ -958,8 +958,6 @@ static inline int check_pmd_state(pmd_t
- 		return SCAN_PMD_NULL;
- 	if (pmd_trans_huge(pmde))
- 		return SCAN_PMD_MAPPED;
--	if (pmd_devmap(pmde))
--		return SCAN_PMD_NULL;
- 	if (pmd_bad(pmde))
- 		return SCAN_PMD_NULL;
- 	return SCAN_SUCCEED;
---- a/mm/mapping_dirty_helpers.c~mm-remove-pxx_devmap-callers
-+++ a/mm/mapping_dirty_helpers.c
-@@ -129,7 +129,7 @@ static int wp_clean_pmd_entry(pmd_t *pmd
- 	pmd_t pmdval = pmdp_get_lockless(pmd);
- 
- 	/* Do not split a huge pmd, present or migrated */
--	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval)) {
-+	if (pmd_trans_huge(pmdval)) {
- 		WARN_ON(pmd_write(pmdval) || pmd_dirty(pmdval));
- 		walk->action = ACTION_CONTINUE;
- 	}
-@@ -152,7 +152,7 @@ static int wp_clean_pud_entry(pud_t *pud
- 	pud_t pudval = READ_ONCE(*pud);
- 
- 	/* Do not split a huge pud */
--	if (pud_trans_huge(pudval) || pud_devmap(pudval)) {
-+	if (pud_trans_huge(pudval)) {
- 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
- 		walk->action = ACTION_CONTINUE;
- 	}
---- a/mm/memory.c~mm-remove-pxx_devmap-callers
-+++ a/mm/memory.c
-@@ -602,16 +602,6 @@ struct page *vm_normal_page(struct vm_ar
- 			return NULL;
- 		if (is_zero_pfn(pfn))
- 			return NULL;
--		if (pte_devmap(pte))
--		/*
--		 * NOTE: New users of ZONE_DEVICE will not set pte_devmap()
--		 * and will have refcounts incremented on their struct pages
--		 * when they are inserted into PTEs, thus they are safe to
--		 * return here. Legacy ZONE_DEVICE pages that set pte_devmap()
--		 * do not have refcounts. Example of legacy ZONE_DEVICE is
--		 * MEMORY_DEVICE_FS_DAX type in pmem or virtio_fs drivers.
--		 */
--			return NULL;
- 
- 		print_bad_pte(vma, addr, pte, NULL);
- 		return NULL;
-@@ -689,8 +679,6 @@ struct page *vm_normal_page_pmd(struct v
- 		}
- 	}
- 
--	if (pmd_devmap(pmd))
--		return NULL;
- 	if (is_huge_zero_pmd(pmd))
- 		return NULL;
- 	if (unlikely(pfn > highest_memmap_pfn))
-@@ -1244,8 +1232,7 @@ copy_pmd_range(struct vm_area_struct *ds
- 	src_pmd = pmd_offset(src_pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (is_swap_pmd(*src_pmd) || pmd_trans_huge(*src_pmd)
--			|| pmd_devmap(*src_pmd)) {
-+		if (is_swap_pmd(*src_pmd) || pmd_trans_huge(*src_pmd)) {
- 			int err;
- 			VM_BUG_ON_VMA(next-addr != HPAGE_PMD_SIZE, src_vma);
- 			err = copy_huge_pmd(dst_mm, src_mm, dst_pmd, src_pmd,
-@@ -1281,7 +1268,7 @@ copy_pud_range(struct vm_area_struct *ds
- 	src_pud = pud_offset(src_p4d, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (pud_trans_huge(*src_pud) || pud_devmap(*src_pud)) {
-+		if (pud_trans_huge(*src_pud)) {
- 			int err;
- 
- 			VM_BUG_ON_VMA(next-addr != HPAGE_PUD_SIZE, src_vma);
-@@ -1796,7 +1783,7 @@ static inline unsigned long zap_pmd_rang
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
-+		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				__split_huge_pmd(vma, pmd, addr, false, NULL);
- 			else if (zap_huge_pmd(tlb, vma, pmd, addr)) {
-@@ -1838,7 +1825,7 @@ static inline unsigned long zap_pud_rang
- 	pud = pud_offset(p4d, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
--		if (pud_trans_huge(*pud) || pud_devmap(*pud)) {
-+		if (pud_trans_huge(*pud)) {
- 			if (next - addr != HPAGE_PUD_SIZE) {
- 				mmap_assert_locked(tlb->mm);
- 				split_huge_pud(vma, pud, addr);
-@@ -2452,10 +2439,7 @@ static vm_fault_t insert_pfn(struct vm_a
- 	}
- 
- 	/* Ok, finally just insert the thing.. */
--	if (pfn_t_devmap(pfn))
--		entry = pte_mkdevmap(pfn_t_pte(pfn, prot));
--	else
--		entry = pte_mkspecial(pfn_t_pte(pfn, prot));
-+	entry = pte_mkspecial(pfn_t_pte(pfn, prot));
- 
- 	if (mkwrite) {
- 		entry = pte_mkyoung(entry);
-@@ -2566,8 +2550,6 @@ static bool vm_mixed_ok(struct vm_area_s
- 	/* these checks mirror the abort conditions in vm_normal_page */
- 	if (vma->vm_flags & VM_MIXEDMAP)
- 		return true;
--	if (pfn_t_devmap(pfn))
--		return true;
- 	if (pfn_t_special(pfn))
- 		return true;
- 	if (is_zero_pfn(pfn_t_to_pfn(pfn)))
-@@ -2599,8 +2581,7 @@ static vm_fault_t __vm_insert_mixed(stru
- 	 * than insert_pfn).  If a zero_pfn were inserted into a VM_MIXEDMAP
- 	 * without pte special, it would there be refcounted as a normal page.
- 	 */
--	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL) &&
--	    !pfn_t_devmap(pfn) && pfn_t_valid(pfn)) {
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL) && pfn_t_valid(pfn)) {
- 		struct page *page;
- 
- 		/*
-@@ -6014,7 +5995,7 @@ retry_pud:
- 		pud_t orig_pud = *vmf.pud;
- 
- 		barrier();
--		if (pud_trans_huge(orig_pud) || pud_devmap(orig_pud)) {
-+		if (pud_trans_huge(orig_pud)) {
- 
- 			/*
- 			 * TODO once we support anonymous PUDs: NUMA case and
-@@ -6055,7 +6036,7 @@ retry_pud:
- 				pmd_migration_entry_wait(mm, vmf.pmd);
- 			return 0;
- 		}
--		if (pmd_trans_huge(vmf.orig_pmd) || pmd_devmap(vmf.orig_pmd)) {
-+		if (pmd_trans_huge(vmf.orig_pmd)) {
- 			if (pmd_protnone(vmf.orig_pmd) && vma_is_accessible(vma))
- 				return do_huge_pmd_numa_page(&vmf);
- 
---- a/mm/migrate_device.c~mm-remove-pxx_devmap-callers
-+++ a/mm/migrate_device.c
-@@ -599,7 +599,7 @@ static void migrate_vma_insert_page(stru
- 	pmdp = pmd_alloc(mm, pudp, addr);
- 	if (!pmdp)
- 		goto abort;
--	if (pmd_trans_huge(*pmdp) || pmd_devmap(*pmdp))
-+	if (pmd_trans_huge(*pmdp))
- 		goto abort;
- 	if (pte_alloc(mm, pmdp))
- 		goto abort;
---- a/mm/mprotect.c~mm-remove-pxx_devmap-callers
-+++ a/mm/mprotect.c
-@@ -384,7 +384,7 @@ again:
- 			goto next;
- 
- 		_pmd = pmdp_get_lockless(pmd);
--		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd) || pmd_devmap(_pmd)) {
-+		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
- 			    pgtable_split_needed(vma, cp_flags)) {
- 				__split_huge_pmd(vma, pmd, addr, false, NULL);
---- a/mm/mremap.c~mm-remove-pxx_devmap-callers
-+++ a/mm/mremap.c
-@@ -633,7 +633,7 @@ unsigned long move_page_tables(struct vm
- 		new_pud = alloc_new_pud(vma->vm_mm, vma, new_addr);
- 		if (!new_pud)
- 			break;
--		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
-+		if (pud_trans_huge(*old_pud)) {
- 			if (extent == HPAGE_PUD_SIZE) {
- 				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
- 					       old_pud, new_pud, need_rmap_locks);
-@@ -655,8 +655,7 @@ unsigned long move_page_tables(struct vm
- 		if (!new_pmd)
- 			break;
- again:
--		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd) ||
--		    pmd_devmap(*old_pmd)) {
-+		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE &&
- 			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
- 					   old_pmd, new_pmd, need_rmap_locks))
---- a/mm/page_vma_mapped.c~mm-remove-pxx_devmap-callers
-+++ a/mm/page_vma_mapped.c
-@@ -242,8 +242,7 @@ restart:
- 		 */
- 		pmde = pmdp_get_lockless(pvmw->pmd);
- 
--		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde) ||
--		    (pmd_present(pmde) && pmd_devmap(pmde))) {
-+		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
- 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 			pmde = *pvmw->pmd;
- 			if (!pmd_present(pmde)) {
-@@ -258,7 +257,7 @@ restart:
- 					return not_found(pvmw);
- 				return true;
- 			}
--			if (likely(pmd_trans_huge(pmde) || pmd_devmap(pmde))) {
-+			if (likely(pmd_trans_huge(pmde))) {
- 				if (pvmw->flags & PVMW_MIGRATION)
- 					return not_found(pvmw);
- 				if (!check_pmd(pmd_pfn(pmde), pvmw))
---- a/mm/pagewalk.c~mm-remove-pxx_devmap-callers
-+++ a/mm/pagewalk.c
-@@ -143,8 +143,7 @@ again:
- 			 * We are ONLY installing, so avoid unnecessarily
- 			 * splitting a present huge page.
- 			 */
--			if (pmd_present(*pmd) &&
--			    (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
-+			if (pmd_present(*pmd) && pmd_trans_huge(*pmd))
- 				continue;
- 		}
- 
-@@ -210,8 +209,7 @@ static int walk_pud_range(p4d_t *p4d, un
- 			 * We are ONLY installing, so avoid unnecessarily
- 			 * splitting a present huge page.
- 			 */
--			if (pud_present(*pud) &&
--			    (pud_trans_huge(*pud) || pud_devmap(*pud)))
-+			if (pud_present(*pud) && pud_trans_huge(*pud))
- 				continue;
- 		}
- 
-@@ -872,7 +870,7 @@ struct folio *folio_walk_start(struct fo
- 		 * TODO: FW_MIGRATION support for PUD migration entries
- 		 * once there are relevant users.
- 		 */
--		if (!pud_present(pud) || pud_devmap(pud) || pud_special(pud)) {
-+		if (!pud_present(pud) || pud_special(pud)) {
- 			spin_unlock(ptl);
- 			goto not_found;
- 		} else if (!pud_leaf(pud)) {
-@@ -884,6 +882,12 @@ struct folio *folio_walk_start(struct fo
- 		 * support PUD mappings in VM_PFNMAP|VM_MIXEDMAP VMAs.
- 		 */
- 		page = pud_page(pud);
-+
-+		if (is_devdax_page(page)) {
-+			spin_unlock(ptl);
-+			goto not_found;
-+		}
-+
- 		goto found;
- 	}
- 
---- a/mm/pgtable-generic.c~mm-remove-pxx_devmap-callers
-+++ a/mm/pgtable-generic.c
-@@ -139,8 +139,7 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
- {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(pmd_present(*pmdp) && !pmd_trans_huge(*pmdp) &&
--			   !pmd_devmap(*pmdp));
-+	VM_BUG_ON(pmd_present(*pmdp) && !pmd_trans_huge(*pmdp));
- 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
-@@ -153,7 +152,7 @@ pud_t pudp_huge_clear_flush(struct vm_ar
- 	pud_t pud;
- 
- 	VM_BUG_ON(address & ~HPAGE_PUD_MASK);
--	VM_BUG_ON(!pud_trans_huge(*pudp) && !pud_devmap(*pudp));
-+	VM_BUG_ON(!pud_trans_huge(*pudp));
- 	pud = pudp_huge_get_and_clear(vma->vm_mm, address, pudp);
- 	flush_pud_tlb_range(vma, address, address + HPAGE_PUD_SIZE);
- 	return pud;
-@@ -293,7 +292,7 @@ pte_t *___pte_offset_map(pmd_t *pmd, uns
- 		*pmdvalp = pmdval;
- 	if (unlikely(pmd_none(pmdval) || is_pmd_migration_entry(pmdval)))
- 		goto nomap;
--	if (unlikely(pmd_trans_huge(pmdval) || pmd_devmap(pmdval)))
-+	if (unlikely(pmd_trans_huge(pmdval)))
- 		goto nomap;
- 	if (unlikely(pmd_bad(pmdval))) {
- 		pmd_clear_bad(pmd);
---- a/mm/userfaultfd.c~mm-remove-pxx_devmap-callers
-+++ a/mm/userfaultfd.c
-@@ -791,8 +791,7 @@ retry:
- 		 * (This includes the case where the PMD used to be THP and
- 		 * changed back to none after __pte_alloc().)
- 		 */
--		if (unlikely(!pmd_present(dst_pmdval) || pmd_trans_huge(dst_pmdval) ||
--			     pmd_devmap(dst_pmdval))) {
-+		if (unlikely(!pmd_present(dst_pmdval) || pmd_trans_huge(dst_pmdval))) {
- 			err = -EEXIST;
- 			break;
- 		}
-@@ -1701,7 +1700,7 @@ ssize_t move_pages(struct userfaultfd_ct
- 
- 		ptl = pmd_trans_huge_lock(src_pmd, src_vma);
- 		if (ptl) {
--			if (pmd_devmap(*src_pmd)) {
-+			if (vma_is_dax(src_vma)) {
- 				spin_unlock(ptl);
- 				err = -ENOENT;
- 				break;
---- a/mm/vmscan.c~mm-remove-pxx_devmap-callers
-+++ a/mm/vmscan.c
-@@ -3366,7 +3366,7 @@ static unsigned long get_pte_pfn(pte_t p
- 	if (!pte_present(pte) || is_zero_pfn(pfn))
- 		return -1;
- 
--	if (WARN_ON_ONCE(pte_devmap(pte) || pte_special(pte)))
-+	if (WARN_ON_ONCE(pte_special(pte)))
- 		return -1;
- 
- 	if (!pte_young(pte) && !mm_has_notifiers(vma->vm_mm))
-@@ -3391,9 +3391,6 @@ static unsigned long get_pmd_pfn(pmd_t p
- 	if (!pmd_present(pmd) || is_huge_zero_pmd(pmd))
- 		return -1;
- 
--	if (WARN_ON_ONCE(pmd_devmap(pmd)))
--		return -1;
+-static inline pmd_t pmd_mkdevmap(pmd_t pmd)
+-{
+-	return pmd_set_flags(pmd, _PAGE_DEVMAP);
+-}
 -
- 	if (!pmd_young(pmd) && !mm_has_notifiers(vma->vm_mm))
- 		return -1;
+ static inline pmd_t pmd_mkhuge(pmd_t pmd)
+ {
+ 	return pmd_set_flags(pmd, _PAGE_PSE);
+@@ -680,11 +645,6 @@ static inline pud_t pud_mkdirty(pud_t pu
+ 	return pud_mksaveddirty(pud);
+ }
  
+-static inline pud_t pud_mkdevmap(pud_t pud)
+-{
+-	return pud_set_flags(pud, _PAGE_DEVMAP);
+-}
+-
+ static inline pud_t pud_mkhuge(pud_t pud)
+ {
+ 	return pud_set_flags(pud, _PAGE_PSE);
+@@ -1012,13 +972,6 @@ static inline int pte_present(pte_t a)
+ 	return pte_flags(a) & (_PAGE_PRESENT | _PAGE_PROTNONE);
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
+-static inline int pte_devmap(pte_t a)
+-{
+-	return (pte_flags(a) & _PAGE_DEVMAP) == _PAGE_DEVMAP;
+-}
+-#endif
+-
+ #define pte_accessible pte_accessible
+ static inline bool pte_accessible(struct mm_struct *mm, pte_t a)
+ {
+--- a/arch/x86/include/asm/pgtable_types.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -33,7 +33,6 @@
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
+ #define _PAGE_BIT_UFFD_WP	_PAGE_BIT_SOFTW2 /* userfaultfd wrprotected */
+ #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
+-#define _PAGE_BIT_DEVMAP	_PAGE_BIT_SOFTW4
+ 
+ #ifdef CONFIG_X86_64
+ #define _PAGE_BIT_SAVED_DIRTY	_PAGE_BIT_SOFTW5 /* Saved Dirty bit (leaf) */
+@@ -119,11 +118,9 @@
+ 
+ #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
+ #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
+-#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
+ #define _PAGE_SOFTW4	(_AT(pteval_t, 1) << _PAGE_BIT_SOFTW4)
+ #else
+ #define _PAGE_NX	(_AT(pteval_t, 0))
+-#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
+ #define _PAGE_SOFTW4	(_AT(pteval_t, 0))
+ #endif
+ 
+@@ -152,7 +149,7 @@
+ #define _COMMON_PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |	\
+ 				 _PAGE_SPECIAL | _PAGE_ACCESSED |	\
+ 				 _PAGE_DIRTY_BITS | _PAGE_SOFT_DIRTY |	\
+-				 _PAGE_DEVMAP | _PAGE_CC | _PAGE_UFFD_WP)
++				 _PAGE_CC | _PAGE_UFFD_WP)
+ #define _PAGE_CHG_MASK	(_COMMON_PAGE_CHG_MASK | _PAGE_PAT)
+ #define _HPAGE_CHG_MASK (_COMMON_PAGE_CHG_MASK | _PAGE_PSE | _PAGE_PAT_LARGE)
+ 
+--- a/arch/x86/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/arch/x86/Kconfig
+@@ -95,7 +95,6 @@ config X86
+ 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+ 	select ARCH_HAS_PMEM_API		if X86_64
+ 	select ARCH_HAS_PREEMPT_LAZY
+-	select ARCH_HAS_PTE_DEVMAP		if X86_64
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_HW_PTE_YOUNG
+ 	select ARCH_HAS_NONLEAF_PMD_YOUNG	if PGTABLE_LEVELS > 2
+--- a/Documentation/mm/arch_pgtable_helpers.rst~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/Documentation/mm/arch_pgtable_helpers.rst
+@@ -30,8 +30,6 @@ PTE Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_protnone              | Tests a PROT_NONE PTE                            |
+ +---------------------------+--------------------------------------------------+
+-| pte_devmap                | Tests a ZONE_DEVICE mapped PTE                   |
+-+---------------------------+--------------------------------------------------+
+ | pte_soft_dirty            | Tests a soft dirty PTE                           |
+ +---------------------------+--------------------------------------------------+
+ | pte_swp_soft_dirty        | Tests a soft dirty swapped PTE                   |
+@@ -104,8 +102,6 @@ PMD Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pmd_protnone              | Tests a PROT_NONE PMD                            |
+ +---------------------------+--------------------------------------------------+
+-| pmd_devmap                | Tests a ZONE_DEVICE mapped PMD                   |
+-+---------------------------+--------------------------------------------------+
+ | pmd_soft_dirty            | Tests a soft dirty PMD                           |
+ +---------------------------+--------------------------------------------------+
+ | pmd_swp_soft_dirty        | Tests a soft dirty swapped PMD                   |
+@@ -177,8 +173,6 @@ PUD Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pud_write                 | Tests a writable PUD                             |
+ +---------------------------+--------------------------------------------------+
+-| pud_devmap                | Tests a ZONE_DEVICE mapped PUD                   |
+-+---------------------------+--------------------------------------------------+
+ | pud_mkyoung               | Creates a young PUD                              |
+ +---------------------------+--------------------------------------------------+
+ | pud_mkold                 | Creates an old PUD                               |
+--- a/include/linux/mm.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/include/linux/mm.h
+@@ -2790,13 +2790,6 @@ static inline pud_t pud_mkspecial(pud_t
+ }
+ #endif	/* CONFIG_ARCH_SUPPORTS_PUD_PFNMAP */
+ 
+-#ifndef CONFIG_ARCH_HAS_PTE_DEVMAP
+-static inline int pte_devmap(pte_t pte)
+-{
+-	return 0;
+-}
+-#endif
+-
+ extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
+ 			       spinlock_t **ptl);
+ static inline pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
+--- a/include/linux/pfn_t.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/include/linux/pfn_t.h
+@@ -97,26 +97,6 @@ static inline pud_t pfn_t_pud(pfn_t pfn,
+ #endif
+ #endif
+ 
+-#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
+-static inline bool pfn_t_devmap(pfn_t pfn)
+-{
+-	const u64 flags = PFN_DEV|PFN_MAP;
+-
+-	return (pfn.val & flags) == flags;
+-}
+-#else
+-static inline bool pfn_t_devmap(pfn_t pfn)
+-{
+-	return false;
+-}
+-pte_t pte_mkdevmap(pte_t pte);
+-pmd_t pmd_mkdevmap(pmd_t pmd);
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
+-	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+-pud_t pud_mkdevmap(pud_t pud);
+-#endif
+-#endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
+-
+ #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+ static inline bool pfn_t_special(pfn_t pfn)
+ {
+--- a/include/linux/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/include/linux/pgtable.h
+@@ -1606,21 +1606,6 @@ static inline int pud_write(pud_t pud)
+ }
+ #endif /* pud_write */
+ 
+-#if !defined(CONFIG_ARCH_HAS_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-static inline int pmd_devmap(pmd_t pmd)
+-{
+-	return 0;
+-}
+-static inline int pud_devmap(pud_t pud)
+-{
+-	return 0;
+-}
+-static inline int pgd_devmap(pgd_t pgd)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #if !defined(CONFIG_TRANSPARENT_HUGEPAGE) || \
+ 	!defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+ static inline int pud_trans_huge(pud_t pud)
+@@ -1875,8 +1860,8 @@ typedef unsigned int pgtbl_mod_mask;
+  * - It should contain a huge PFN, which points to a huge page larger than
+  *   PAGE_SIZE of the platform.  The PFN format isn't important here.
+  *
+- * - It should cover all kinds of huge mappings (e.g., pXd_trans_huge(),
+- *   pXd_devmap(), or hugetlb mappings).
++ * - It should cover all kinds of huge mappings (i.e. pXd_trans_huge()
++ *   or hugetlb mappings).
+  */
+ #ifndef pgd_leaf
+ #define pgd_leaf(x)	false
+--- a/mm/debug_vm_pgtable.c~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/mm/debug_vm_pgtable.c
+@@ -348,12 +348,6 @@ static void __init pud_advanced_tests(st
+ 	vaddr &= HPAGE_PUD_MASK;
+ 
+ 	pud = pfn_pud(args->pud_pfn, args->page_prot);
+-	/*
+-	 * Some architectures have debug checks to make sure
+-	 * huge pud mapping are only found with devmap entries
+-	 * For now test with only devmap entries.
+-	 */
+-	pud = pud_mkdevmap(pud);
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
+ 	flush_dcache_page(page);
+ 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
+@@ -366,7 +360,6 @@ static void __init pud_advanced_tests(st
+ 	WARN_ON(!pud_none(pud));
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 	pud = pfn_pud(args->pud_pfn, args->page_prot);
+-	pud = pud_mkdevmap(pud);
+ 	pud = pud_wrprotect(pud);
+ 	pud = pud_mkclean(pud);
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
+@@ -384,7 +377,6 @@ static void __init pud_advanced_tests(st
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+ 	pud = pfn_pud(args->pud_pfn, args->page_prot);
+-	pud = pud_mkdevmap(pud);
+ 	pud = pud_mkyoung(pud);
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
+ 	flush_dcache_page(page);
+@@ -693,53 +685,6 @@ static void __init pmd_protnone_tests(st
+ static void __init pmd_protnone_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
+-static void __init pte_devmap_tests(struct pgtable_debug_args *args)
+-{
+-	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
+-
+-	pr_debug("Validating PTE devmap\n");
+-	WARN_ON(!pte_devmap(pte_mkdevmap(pte)));
+-}
+-
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static void __init pmd_devmap_tests(struct pgtable_debug_args *args)
+-{
+-	pmd_t pmd;
+-
+-	if (!has_transparent_hugepage())
+-		return;
+-
+-	pr_debug("Validating PMD devmap\n");
+-	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
+-	WARN_ON(!pmd_devmap(pmd_mkdevmap(pmd)));
+-}
+-
+-#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static void __init pud_devmap_tests(struct pgtable_debug_args *args)
+-{
+-	pud_t pud;
+-
+-	if (!has_transparent_pud_hugepage())
+-		return;
+-
+-	pr_debug("Validating PUD devmap\n");
+-	pud = pfn_pud(args->fixed_pud_pfn, args->page_prot);
+-	WARN_ON(!pud_devmap(pud_mkdevmap(pud)));
+-}
+-#else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+-static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+-#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+-#else  /* CONFIG_TRANSPARENT_HUGEPAGE */
+-static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
+-static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-#else
+-static void __init pte_devmap_tests(struct pgtable_debug_args *args) { }
+-static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
+-static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+-#endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
+-
+ static void __init pte_soft_dirty_tests(struct pgtable_debug_args *args)
+ {
+ 	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
+@@ -1341,10 +1286,6 @@ static int __init debug_vm_pgtable(void)
+ 	pte_protnone_tests(&args);
+ 	pmd_protnone_tests(&args);
+ 
+-	pte_devmap_tests(&args);
+-	pmd_devmap_tests(&args);
+-	pud_devmap_tests(&args);
+-
+ 	pte_soft_dirty_tests(&args);
+ 	pmd_soft_dirty_tests(&args);
+ 	pte_swap_soft_dirty_tests(&args);
+--- a/mm/hmm.c~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/mm/hmm.c
+@@ -395,8 +395,7 @@ again:
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && \
+-    defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++#if defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+ static inline unsigned long pud_to_hmm_pfn_flags(struct hmm_range *range,
+ 						 pud_t pud)
+ {
+--- a/mm/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
++++ a/mm/Kconfig
+@@ -1087,9 +1087,6 @@ config ARCH_HAS_CURRENT_STACK_POINTER
+ 	  register alias named "current_stack_pointer", this config can be
+ 	  selected.
+ 
+-config ARCH_HAS_PTE_DEVMAP
+-	bool
+-
+ config ARCH_HAS_ZONE_DMA_SET
+ 	bool
+ 
+@@ -1107,7 +1104,6 @@ config ZONE_DEVICE
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
+-	depends on ARCH_HAS_PTE_DEVMAP
+ 	select XARRAY_MULTI
+ 
+ 	help
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
