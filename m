@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90446194A66
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:52:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E2179FE;
+	Wed,  8 Jan 2025 04:56:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736311951; cv=none; b=hSQ2H87Ezon5u2BpqBBV3Gwrt+3CZPHA7DWvPHrW2m0GLW02mTvQ7sdyj2tBCJijOEZQZmQ9cRNyTg260PUwHsrIbsuvp39n5iVi3+86HyUr4EEibtsRUXIHwfPutMQhgSWQiPYr7tu0763PNZQCigrMR3tzQeqzpgS1GXvFQgM=
+	t=1736312194; cv=none; b=Zm5OjXxX7D7LL57VYz5Wsztf7TJXm77g+TX+9e2A/mokaSNE+Dppmix6PdNbOkeZW2jzzopIw9cVkH5e2jMni5XcEeBY386ps3cDGw1e7IJbNChi4RmG/XSMCnPxGDq7Yueg8VuKiyfADyeaoNiPFc2zFPhMWG6e3W3Zn2RlegM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736311951; c=relaxed/simple;
-	bh=yBSMnM2mHH9mdsO/86wGIOoU9mGDNiCnF3kSKdu2qeQ=;
-	h=Date:To:From:Subject:Message-Id; b=KTrYF8YtExF/MPg0IWz/MPL9h0oTFHNFTN8k5ICtoeNUFq7/AsIXjLjZZ+lB6NPBWTu5OSYut454hdd0aHFsOa5Bjq9HDxX5aWqo4wRjDQv7J1V8ULVYCxFsdnRqOPqo276Ela293AcpoMXLV6iXlLr/Z5P2wNMXFfXQ4EzpTEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x4zz18tL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736312194; c=relaxed/simple;
+	bh=EJEQeDR8sZhwrFU5EAN0BuvYUQBwoEmgfNPtmkukAq4=;
+	h=Date:To:From:Subject:Message-Id; b=MkVZWd8JTyAT9FEWZDSKx8+kclpvzxeP6jrqmZIkDrL8BiFaV3rMGeXWfaW0omg8b92N0rVJ7pM1qnWby09Z/PwIB/+E1hayAXV7QfN3s05k5QJZJr5xJHgKYF+tcmlJS4AJqskWKNwLuAnsk/9xNPICV9bPQ9nck1YtM+LNb0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YWfD3syZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x4zz18tL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B0C3C4CED0;
-	Wed,  8 Jan 2025 04:52:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YWfD3syZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F8E3C4CED0;
+	Wed,  8 Jan 2025 04:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736311951;
-	bh=yBSMnM2mHH9mdsO/86wGIOoU9mGDNiCnF3kSKdu2qeQ=;
+	s=korg; t=1736312194;
+	bh=EJEQeDR8sZhwrFU5EAN0BuvYUQBwoEmgfNPtmkukAq4=;
 	h=Date:To:From:Subject:From;
-	b=x4zz18tLxK2MLoBVZsV7t8dSEbzMe7U5FJIswu8fIlHArHJER0rJ2UmASxB88EVt2
-	 1bJJb6BWcgVIHY8Ioooxq3fhBhoEyDGBM0zZRyf8M0Sr4dDIv7ByKTjp3eCnLNVwK1
-	 rISiXf7kErxuAlQWr0gNQhvELnna4KFMxkpxhxXk=
-Date: Tue, 07 Jan 2025 20:52:30 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=YWfD3syZz6u5G2i4JoW9lkf/0O6ldRq4yql2tNeYshLQKSHYsk1/3qcBIHnxKy2Na
+	 ZxbBUVC6KvhNPKl8ZYvrc2/szPNmrB84jlJGS5YaMD6cDylm1yK4gZzyNINQV65O6D
+	 AKMIlVV9ZwEVD7G6/5KAoctBfeXDf5Tjii0vLKjk=
+Date: Tue, 07 Jan 2025 20:56:33 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,usamaarif642@gmail.com,stable@vger.kernel.org,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-fork-cow-guard-page-test-fix.patch added to mm-unstable branch
-Message-Id: <20250108045231.0B0C3C4CED0@smtp.kernel.org>
+Subject: + selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250108045634.7F8E3C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: static process_madvise() wrapper for guard-pages
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-fork-cow-guard-page-test-fix.patch
+     Subject: selftests/mm: set allocated memory to non-zero content in cow test
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-fork-cow-guard-page-test-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,94 +59,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm: static process_madvise() wrapper for guard-pages
-Date: Tue, 7 Jan 2025 14:29:35 +0000
+Subject: selftests/mm: set allocated memory to non-zero content in cow test
+Date: Tue, 7 Jan 2025 14:25:53 +0000
 
-The recently introduced guard-pages mm selftest uses the process_madvise()
-syscall, a wrapper for which was added to glibc v2.36.  For those of us
-stuck with older distributions this causes a compile error when compiling
-the mm selftests.  For example Ubuntu 22.04 uses glibc 2.35, which does
-not have the wrapper.
+After commit b1f202060afe ("mm: remap unused subpages to shared zeropage
+when splitting isolated thp"), cow test cases involving swapping out THPs
+via madvise(MADV_PAGEOUT) started to be skipped due to the subsequent
+check via pagemap determining that the memory was not actually swapped
+out.  Logs similar to this were emitted:
 
-To workaround the issue, let's introduce our own static process_madvise()
-wrapper that uses glibc's syscall() helper.
+   ...
 
-While we are at it, add the guard-page test suite to run_vmtests.sh so
-that it can be automatically run by CI systems.
+   # [RUN] Basic COW after fork() ... with swapped-out, PTE-mapped THP (16 kB)
+   ok 2 # SKIP MADV_PAGEOUT did not work, is swap enabled?
+   # [RUN] Basic COW after fork() ... with single PTE of swapped-out THP (16 kB)
+   ok 3 # SKIP MADV_PAGEOUT did not work, is swap enabled?
+   # [RUN] Basic COW after fork() ... with swapped-out, PTE-mapped THP (32 kB)
+   ok 4 # SKIP MADV_PAGEOUT did not work, is swap enabled?
 
-Link: https://lkml.kernel.org/r/20250107142937.1870478-1-ryan.roberts@arm.com
+   ...
+
+The commit in question introduces the behaviour of scanning THPs and if
+their content is predominantly zero, it splits them and replaces the pages
+which are wholly zero with the zero page.  These cow test cases were
+getting caught up in this.
+
+So let's avoid that by filling the contents of all allocated memory with
+a non-zero value. With this in place, the tests are passing again.
+
+Link: https://lkml.kernel.org/r/20250107142555.1870101-1-ryan.roberts@arm.com
+Fixes: b1f202060afe ("mm: remap unused subpages to shared zeropage when splitting isolated thp")
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-pages.c  |   10 ++++++++--
- tools/testing/selftests/mm/run_vmtests.sh |    5 +++++
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/cow.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/guard-pages.c~selftests-mm-add-fork-cow-guard-page-test-fix
-+++ a/tools/testing/selftests/mm/guard-pages.c
-@@ -55,6 +55,12 @@ static int pidfd_open(pid_t pid, unsigne
- 	return syscall(SYS_pidfd_open, pid, flags);
- }
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test
++++ a/tools/testing/selftests/mm/cow.c
+@@ -758,7 +758,7 @@ static void do_run_with_base_page(test_f
+ 	}
  
-+static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
-+				   size_t n, int advice, unsigned int flags)
-+{
-+	return syscall(__NR_process_madvise, pidfd, iovec, n, advice, flags);
-+}
-+
- /*
-  * Enable our signal catcher and try to read/write the specified buffer. The
-  * return value indicates whether the read/write succeeds without a fatal
-@@ -419,7 +425,7 @@ TEST_F(guard_pages, process_madvise)
- 	ASSERT_EQ(munmap(&ptr_region[99 * page_size], page_size), 0);
+ 	/* Populate a base page. */
+-	memset(mem, 0, pagesize);
++	memset(mem, 1, pagesize);
  
- 	/* Now guard in one step. */
--	count = process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
-+	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
+ 	if (swapout) {
+ 		madvise(mem, pagesize, MADV_PAGEOUT);
+@@ -824,12 +824,12 @@ static void do_run_with_thp(test_fn fn,
+ 	 * Try to populate a THP. Touch the first sub-page and test if
+ 	 * we get the last sub-page populated automatically.
+ 	 */
+-	mem[0] = 0;
++	mem[0] = 1;
+ 	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
+ 		ksft_test_result_skip("Did not get a THP populated\n");
+ 		goto munmap;
+ 	}
+-	memset(mem, 0, thpsize);
++	memset(mem, 1, thpsize);
  
- 	/* OK we don't have permission to do this, skip. */
- 	if (count == -1 && errno == EPERM)
-@@ -440,7 +446,7 @@ TEST_F(guard_pages, process_madvise)
- 	ASSERT_FALSE(try_read_write_buf(&ptr3[19 * page_size]));
+ 	size = thpsize;
+ 	switch (thp_run) {
+@@ -1012,7 +1012,7 @@ static void run_with_hugetlb(test_fn fn,
+ 	}
  
- 	/* Now do the same with unguard... */
--	count = process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
-+	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
+ 	/* Populate an huge page. */
+-	memset(mem, 0, hugetlbsize);
++	memset(mem, 1, hugetlbsize);
  
- 	/* ...and everything should now succeed. */
- 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-fork-cow-guard-page-test-fix
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -45,6 +45,8 @@ separated by spaces:
- 	vmalloc smoke tests
- - hmm
- 	hmm smoke tests
-+- madv_guard
-+	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
- - madv_populate
- 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
- - memfd_secret
-@@ -375,6 +377,9 @@ CATEGORY="mremap" run_test ./mremap_dont
- 
- CATEGORY="hmm" run_test bash ./test_hmm.sh smoke
- 
-+# MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
-+CATEGORY="madv_guard" run_test ./guard-pages
-+
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
- 
+ 	/*
+ 	 * We need a total of two hugetlb pages to handle COW/unsharing
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
 
 mm-clear-uffd-wp-pte-pmd-state-on-mremap.patch
+selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test.patch
 selftests-mm-add-fork-cow-guard-page-test-fix.patch
 selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
