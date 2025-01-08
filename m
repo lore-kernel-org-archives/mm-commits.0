@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F242594B3;
-	Wed,  8 Jan 2025 04:40:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3C82594B3
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:41:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736311207; cv=none; b=EIbw0SW3WySwpZBCdY/39EE16fzS7s9iI1B9cMPJTHK+KdL4eENNNEYdNWO9QXJwmeKHpw4wu0m5ZNAMMTuDyTxrPQbbgyuLx0EUS3SQ57reRz7xLOyp5cfLSfk99I6Gg3S/GWoelNDXO2RddNBgS/oRKoLPQ79Q64dO3dKmuUY=
+	t=1736311276; cv=none; b=cIshw+OB1sN7Hh39+jbRQq+DoULmAm3iSoO261UcHuERfuXGDNsa3i+BEewGATuptRl5ylDqKziGy73g9qDcP2LcgsrWNXSyREpClT1mx/VuG8fLXx5AWh4LM39qbdZatX+4YPoOg7TQVCLiLSpDY6p4Vs8OYi+9tg4GuZfwfiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736311207; c=relaxed/simple;
-	bh=u9zHp+Wp6GYH38QTg6h3Jpfap6SRiDKYatMY/bg8K3w=;
-	h=Date:To:From:Subject:Message-Id; b=W8UEhAEnTs7VVEmasllJ7amRv8jDrNPcz3/bCYI8hWNsMaj55NAwc3zrugqJvUmtWBq9sHHg+b4aptx+1lkMyhNqFKSgLauOR7Bjp+pHFNyvpspQEht0ATppnphUlu9WBfYJLjcMIXXF2kcGRM1PPYlU8brHlemD6OcAe+b0zW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M/gUHxKE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736311276; c=relaxed/simple;
+	bh=5Vg0r7Z00PpshRXou2KIh4R0b1STAjS40ctDejS2u0s=;
+	h=Date:To:From:Subject:Message-Id; b=ki5gn8KDfEThF4e2WtMN9B9C0VUDf/dGMYFkRTCn8RMLpC23XeuQ917NFIkBgyfzEL8GNeV6tZqmpNyaJUmWPuGsvn98hrkKn+2CxafqzzmnwFSu0a/oX7VT3AMZh6Yfq+JENFEDLSZv02qD7Z/mk1xEyail+eEVQWErAIub4Ac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XycAQ4ag; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M/gUHxKE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCE71C4CED0;
-	Wed,  8 Jan 2025 04:40:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XycAQ4ag"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60706C4CED0;
+	Wed,  8 Jan 2025 04:41:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736311206;
-	bh=u9zHp+Wp6GYH38QTg6h3Jpfap6SRiDKYatMY/bg8K3w=;
+	s=korg; t=1736311276;
+	bh=5Vg0r7Z00PpshRXou2KIh4R0b1STAjS40ctDejS2u0s=;
 	h=Date:To:From:Subject:From;
-	b=M/gUHxKET0aCgFQb7y2qdkusI5l+8rR0/HsdIhYGp1C8WcNgK1xvcz7xaKIF2GIbk
-	 DEuzQivL8VTSvFAqEWMBLDoQdi+iVhrhwNFPEtXhQyIR5nmjMgymmLN3I0XxjRni6v
-	 CxuWZFsOzsu6ENffdkgb7KqNk7dHnSPMcHE+8pSs=
-Date: Tue, 07 Jan 2025 20:40:06 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,shuah@kernel.org,oliver.sang@intel.com,dev.jain@arm.com,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
+	b=XycAQ4ag2361GNM64neoCsPLbRLDZ3rLF1IRynCBfSfgsiOrIPiICqMG0Qy/CDvdC
+	 oUt8sS+vdP2u58C2yFMTZlOrqaHaxwxPqjWM4HhY+TUZy2UoFZBuxHzIwAWOM9SaPS
+	 xGdMOBj9IdtozFefGlI+hbFlMmscfBNlI3/AkJ/8=
+Date: Tue, 07 Jan 2025 20:41:15 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shuah@kernel.org,dev.jain@arm.com,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-virtual_address_range-avoid-reading-vvar-mappings.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250108044006.CCE71C4CED0@smtp.kernel.org>
+Subject: + selftests-mm-virtual_address_range-dump-to-dev-null.patch added to mm-unstable branch
+Message-Id: <20250108044116.60706C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: virtual_address_range: avoid reading VVAR mappings
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-virtual_address_range-avoid-reading-vvar-mappings.patch
+     Subject: selftests/mm: virtual_address_range: dump to /dev/null
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-virtual_address_range-dump-to-dev-null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-avoid-reading-vvar-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-dump-to-dev-null.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,71 +59,73 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Subject: selftests/mm: virtual_address_range: avoid reading VVAR mappings
-Date: Tue, 07 Jan 2025 16:14:46 +0100
+Subject: selftests/mm: virtual_address_range: dump to /dev/null
+Date: Tue, 07 Jan 2025 16:14:47 +0100
 
-The virtual_address_range selftest reads from the start of each mapping
-listed in /proc/self/maps.
+During the execution of validate_complete_va_space() a lot of memory is on
+the VM subsystem.  When running on a low memory subsystem an OOM may be
+triggered, when writing to the dump file as the filesystem may also
+require memory.
 
-However not all mappings are valid to be arbitrarily accessed.  For
-example the vvar data used for virtual clocks on x86 can only be accessed
-if 1) the kernel configuration enables virtual clocks and 2) the
-hypervisor provided the data for it, which can only determined by the VDSO
-code itself.
+On my test system with 1100MiB physical memory:
 
-Since commit e93d2521b27f ("x86/vdso: Split virtual clock pages into
-dedicated mapping") the virtual clock data was split out into its own
-mapping, triggering faulting accesses by virtual_address_range.
+	Tasks state (memory values in pages):
+	[  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+	[     57]     0    57 34359215953      695      256        0       439 1064390656        0             0 virtual_address
 
-Skip the various vvar mappings in virtual_address_range to avoid errors.
+	Out of memory: Killed process 57 (virtual_address) total-vm:137436863812kB, anon-rss:1024kB, file-rss:0kB, shmem-rss:1756kB, UID:0 pgtables:1039444kB oom_score_adj:0
+	<snip>
+	fault_in_iov_iter_readable+0x4a/0xd0
+	generic_perform_write+0x9c/0x280
+	shmem_file_write_iter+0x86/0x90
+	vfs_write+0x29c/0x480
+	ksys_write+0x6c/0xe0
+	do_syscall_64+0x9e/0x1a0
+	entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-Link: https://lkml.kernel.org/r/20250107-virtual_address_range-tests-v1-2-3834a2fb47fe@linutronix.de
-Fixes: e93d2521b27f ("x86/vdso: Split virtual clock pages into dedicated mapping")
-Fixes: 010409649885 ("selftests/mm: confirm VA exhaustion without reliance on correctness of mmap()")
+Write the dumped data into /dev/null instead which does not require
+additional memory during write(), making the code simpler as a
+side-effect.
+
+Link: https://lkml.kernel.org/r/20250107-virtual_address_range-tests-v1-3-3834a2fb47fe@linutronix.de
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202412271148.2656e485-lkp@intel.com
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/virtual_address_range.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-avoid-reading-vvar-mappings
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-dump-to-dev-null
 +++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -116,10 +116,11 @@ static int validate_complete_va_space(vo
+@@ -103,10 +103,9 @@ static int validate_complete_va_space(vo
+ 	FILE *file;
+ 	int fd;
  
- 	prev_end_addr = 0;
- 	while (fgets(line, sizeof(line), file)) {
-+		int path_offset = 0;
- 		unsigned long hop;
+-	fd = open("va_dump", O_CREAT | O_WRONLY, 0600);
+-	unlink("va_dump");
++	fd = open("/dev/null", O_WRONLY);
+ 	if (fd < 0) {
+-		ksft_test_result_skip("cannot create or open dump file\n");
++		ksft_test_result_skip("cannot create or open /dev/null\n");
+ 		ksft_finished();
+ 	}
  
--		if (sscanf(line, "%lx-%lx %s[rwxp-]",
--			   &start_addr, &end_addr, prot) != 3)
-+		if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %n",
-+			   &start_addr, &end_addr, prot, &path_offset) != 3)
- 			ksft_exit_fail_msg("cannot parse /proc/self/maps\n");
+@@ -152,7 +151,6 @@ static int validate_complete_va_space(vo
+ 		while (start_addr + hop < end_addr) {
+ 			if (write(fd, (void *)(start_addr + hop), 1) != 1)
+ 				return 1;
+-			lseek(fd, 0, SEEK_SET);
  
- 		/* end of userspace mappings; ignore vsyscall mapping */
-@@ -135,6 +136,10 @@ static int validate_complete_va_space(vo
- 		if (prot[0] != 'r')
- 			continue;
- 
-+		/* Only the VDSO can know if a VVAR mapping is really readable */
-+		if (path_offset && !strncmp(line + path_offset, "[vvar", 5))
-+			continue;
-+
- 		/*
- 		 * Confirm whether MAP_CHUNK_SIZE chunk can be found or not.
- 		 * If write succeeds, no need to check MAP_CHUNK_SIZE - 1
+ 			hop += MAP_CHUNK_SIZE;
+ 		}
 _
 
 Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
 
 selftests-mm-virtual_address_range-fix-error-when-commitlimit-1gib.patch
 selftests-mm-virtual_address_range-avoid-reading-vvar-mappings.patch
+selftests-mm-virtual_address_range-dump-to-dev-null.patch
 
