@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A38992E40E
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:52:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9412E40E
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:52:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736308363; cv=none; b=EHTYf8/VH/AebOxMA+kCWq2KLMRNORiWbLN0qfhThsc53dvirSX7X5Q4TS1PryGIDggGgOyThys7Gs/CVVWETdNytsp8242rV4Pcs2Xx+6fx6ET8NGeA0/5kUu8VVmQFY71i9tgU3QG1tnKIy7JDnob7sI0WvuTfSihMq4XqPdU=
+	t=1736308365; cv=none; b=rbPu6Pa6C9Sk2q1GqYLUn4rWDe7I6QtKPCFaKsUiY375tTHm7V+sAdwjsH1BZaGBBE4YzgHE8KWa4lKacv2/UR4tZSPp1cz0CUvzrWQCjNzATTHS9JR2xR5KZjHc3O6sqG8UwtCeZUc6tZVTKvW7dSRWtFsBhA4FBIJZvxxfER4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736308363; c=relaxed/simple;
-	bh=Q+howBrPiwZZxTUy2PWnyZng2Xj0RQm8bU4zcGzKMkA=;
-	h=Date:To:From:Subject:Message-Id; b=r55Rd+zxUIF+DQZDhyz1xCKjcTyUEDxO3nGOE058D9BL5bZhta/nWUS5c3oWs1itptc5kIgSs6QqT6+3BeJoN9AkYxb6v+bNzmwVCWg4UZSc5FCD7jdUZkvNbEXRrZr/9d9xGqS1qOX/+nEzuyxF2GVSgPt8PRhfxdTCcwsP3jA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X1PwvxWM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736308365; c=relaxed/simple;
+	bh=bwZoI71301xeEXkAiNVYH+BwZd8Odx+av9ZN7J2ZCSQ=;
+	h=Date:To:From:Subject:Message-Id; b=p4zykPHvzBfIdb450E/jq3lFu/rl8lsyc3UXA0cCB0ym41aRkBIjGK8RZqR+hvgkGDF05DKoQqIszUJETW9P/CRf1rR3ZJ25kQQVKQtwh5/B8yfc5uBvB/fVsy7pCzSR/GKjzUaDToCk5fOrpIL4k850ImmVAJhiGv8ucZL57G0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XkZjANmr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X1PwvxWM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE05C4CEDD;
-	Wed,  8 Jan 2025 03:52:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XkZjANmr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 677B1C4CED0;
+	Wed,  8 Jan 2025 03:52:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736308363;
-	bh=Q+howBrPiwZZxTUy2PWnyZng2Xj0RQm8bU4zcGzKMkA=;
+	s=korg; t=1736308365;
+	bh=bwZoI71301xeEXkAiNVYH+BwZd8Odx+av9ZN7J2ZCSQ=;
 	h=Date:To:From:Subject:From;
-	b=X1PwvxWMZP2IOlEVJLEtyiPfQJ7ibIjo92kwviO+i3mxUNnhL+v4iTDWM3FRON9xZ
-	 9/jV1OC1alodDXdMpqnYzjDUSlZr7R++6Z5rHHe2b5mF77UzAPyoIlc4eC++yP7j6W
-	 XaKstxeO7ezCKJ9aEf4c1BLdTf8mTbnawpPRcCEI=
-Date: Tue, 07 Jan 2025 19:52:42 -0800
+	b=XkZjANmrCPT/gk/OJppsDiC4K526TjdvPPJHSNylq92WEFeA5TRkQPZnlh/gDd1cD
+	 7ocyIdYnBEDezIMPymkGqN02ylTX3r8bswt/bcPeb7V6FDfeXD81PEO+MoVySxfnEZ
+	 2Hu+vV8U4YWK2zJNuNlvqjxw7S0QjmL+dKa9h1N0=
+Date: Tue, 07 Jan 2025 19:52:44 -0800
 To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,riel@surriel.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,leitao@debian.org,ackerleytng@google.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-clean-up-map-global-resv-accounting-when-allocate.patch added to mm-unstable branch
-Message-Id: <20250108035243.2AE05C4CEDD@smtp.kernel.org>
+Subject: + mm-hugetlb-simplify-vma_has_reserves.patch added to mm-unstable branch
+Message-Id: <20250108035245.677B1C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: clean up map/global resv accounting when allocate
+     Subject: mm/hugetlb: simplify vma_has_reserves()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-clean-up-map-global-resv-accounting-when-allocate.patch
+     mm-hugetlb-simplify-vma_has_reserves.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-clean-up-map-global-resv-accounting-when-allocate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-simplify-vma_has_reserves.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,71 +59,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: clean up map/global resv accounting when allocate
-Date: Tue, 7 Jan 2025 15:39:59 -0500
+Subject: mm/hugetlb: simplify vma_has_reserves()
+Date: Tue, 7 Jan 2025 15:40:00 -0500
 
-alloc_hugetlb_folio() isn't a function easy to read, especially on
-reservation accountings for either VMA or globally (majorly, spool only).
+vma_has_reserves() is a helper "trying" to know whether the vma should
+consume one reservation when allocating the hugetlb folio.
 
-The 1st complexity lies in the special private CoW path, aka,
-cow_from_owner=true case.
+However it's not clear on why we need such complexity, as such information
+is already represented in the "chg" variable.
 
-The 2nd complexity may be the confusing updates of gbl_chg after it's set
-once, which looks like they can change anytime on the fly.
+From alloc_hugetlb_folio() context, "chg" (or in the function's context,
+"gbl_chg") is defined as:
 
-Logically, cow_from_user is only about vma reservation.  We could already
-decouple the flag and consolidate it into map charge flag very early. 
-Then we don't need to keep checking the CoW special flag every time.
+  - If gbl_chg=1, the allocation cannot reuse an existing reservation
+  - If gbl_chg=0, the allocation should reuse an existing reservation
 
-This patch does it by making map_chg a tri-state flag.  Tri-state needed
-is unfortunate, and it's because currently vma_needs_reservation() has a
-side effect internally, that it must be followed by either a end() or
-commit().
+Firstly, map_chg is defined as following, to cover all cases of hugetlb
+reservation scenarios (mostly, via vma_needs_reservation(), but
+cow_from_owner is an outlier):
 
-We keep the same semantic as before on one thing: "if (map_chg)" means we
-need a separate per-vma resv count.  It keeps most of the old code like
-before untouched with the new enum.
+CONDITION                                             HAS RESERVATION?
+=========                                             ================
+- SHARED: always check against per-inode resv_map
+  (ignore NONRESERVE)
+  - If resv exists                                ==> YES  [1]
+  - If not                                        ==> NO   [2]
+- PRIVATE: complicated...
+  - Request came from a CoW from owner resv map   ==> NO   [3]
+    (when cow_from_owner==true)
+  - If does not own a resv_map at all..           ==> NO   [4]
+    (examples: VM_NORESERVE, private fork())
+  - If owns a resv_map, but resv donsn't exists   ==> NO   [5]
+  - If owns a resv_map, and resv exists           ==> YES  [6]
 
-After this patch, we take these steps to decide these variables, hopefully
-slightly easier to follow:
+Further on, gbl_chg considered spool setup, so that is a decision based on
+all the context.
 
-  - First, decide map_chg.  This will take cow_from_owner into account,
-    once and for all.  It's about whether we could take a resv count from
-    the vma, no matter it's shared, private, etc.
+If we look at vma_has_reserves(), it almost does check that has already
+been processed by map_chg accounting (I marked each return value to the
+case above):
 
-  - Then, decide gbl_chg.  The only diff here is spool, comparing to
-    map_chg.
+  static bool vma_has_reserves(struct vm_area_struct *vma, long chg)
+  {
+          if (vma->vm_flags & VM_NORESERVE) {
+                  if (vma->vm_flags & VM_MAYSHARE && chg == 0)
+                          return true;              ==> [1]
+                  else
+                          return false;             ==> [2] or [4]
+          }
 
-Now only update each flag once and for all, instead of keep any of them
-flipping which can be very hard to follow.
+          if (vma->vm_flags & VM_MAYSHARE) {
+                  if (chg)
+                          return false;             ==> [2]
+                  else
+                          return true;              ==> [1]
+          }
 
-With cow_from_owner merged into map_chg, we could remove quite a few such
-checks all over.  Side benefit of such is that we can get rid of one more
-confusing flag, which is deferred_reserve.
+          if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+                  if (chg)
+                          return false;             ==> [5]
+                  else
+                          return true;              ==> [6]
+          }
 
-Cleanup the comments a bit too.  E.g., MAP_NORESERVE may not need to check
-against spool limit, AFAIU, if it's on a shared mapping, and if the page
-cache folio has its inode's resv map available (in which case map_chg
-would have been set zero, hence the code should be correct, not the
-comment).
+          return false;                             ==> [4]
+  }
 
-There's one trivial detail that needs attention that this patch touched,
-which is this check right after vma_commit_reservation():
+It didn't check [3], but [3] case was actually already covered now by the
+"chg" / "gbl_chg" / "map_chg" calculations.
 
-  if (map_chg > map_commit)
+In short, vma_has_reserves() doesn't provide anything more than return
+"!chg"..  so just simplify all the things.
 
-It changes to:
+There're a lot of comments describing truncation races, IIUC there should
+have no race as long as map_chg is properly done.
 
-  if (unlikely(map_chg == MAP_CHG_NEEDED && retval == 0))
-
-It should behave the same like before, because previously the only way to
-make "map_chg > map_commit" happen is map_chg=1 && map_commit=0.  That's
-exactly the rewritten line.  Meanwhile, either commit() or end() will need
-to be skipped if ENFORCE, to keep the old behavior.
-
-Even though it looks a lot changed, but no functional change expected.
-
-Link: https://lkml.kernel.org/r/20250107204002.2683356-5-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20250107204002.2683356-6-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Ackerley Tng <ackerleytng@google.com>
 Cc: Breno Leitao <leitao@debian.org>
@@ -135,194 +146,109 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  110 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 77 insertions(+), 33 deletions(-)
+ mm/hugetlb.c |   67 +++++--------------------------------------------
+ 1 file changed, 7 insertions(+), 60 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-clean-up-map-global-resv-accounting-when-allocate
+--- a/mm/hugetlb.c~mm-hugetlb-simplify-vma_has_reserves
 +++ a/mm/hugetlb.c
-@@ -2970,6 +2970,25 @@ int isolate_or_dissolve_huge_page(struct
- 	return ret;
+@@ -1247,66 +1247,13 @@ void clear_vma_resv_huge_pages(struct vm
  }
  
-+typedef enum {
-+	/*
-+	 * For either 0/1: we checked the per-vma resv map, and one resv
-+	 * count either can be reused (0), or an extra needed (1).
-+	 */
-+	MAP_CHG_REUSE = 0,
-+	MAP_CHG_NEEDED = 1,
-+	/*
-+	 * Cannot use per-vma resv count can be used, hence a new resv
-+	 * count is enforced.
-+	 *
-+	 * NOTE: This is mostly identical to MAP_CHG_NEEDED, except
-+	 * that currently vma_needs_reservation() has an unwanted side
-+	 * effect to either use end() or commit() to complete the
-+	 * transaction.	 Hence it needs to differenciate from NEEDED.
-+	 */
-+	MAP_CHG_ENFORCED = 2,
-+} map_chg_state;
-+
- /*
-  *  replace_free_hugepage_folios - Replace free hugepage folios in a given pfn
-  *  range with new folios.
-@@ -3021,40 +3040,59 @@ struct folio *alloc_hugetlb_folio(struct
- 	struct hugepage_subpool *spool = subpool_vma(vma);
- 	struct hstate *h = hstate_vma(vma);
- 	struct folio *folio;
--	long map_chg, map_commit;
--	long gbl_chg;
-+	long retval, gbl_chg;
-+	map_chg_state map_chg;
- 	int ret, idx;
- 	struct hugetlb_cgroup *h_cg = NULL;
--	bool deferred_reserve;
- 	gfp_t gfp = htlb_alloc_mask(h) | __GFP_RETRY_MAYFAIL;
- 
- 	idx = hstate_index(h);
--	/*
--	 * Examine the region/reserve map to determine if the process
--	 * has a reservation for the page to be allocated.  A return
--	 * code of zero indicates a reservation exists (no change).
--	 */
--	map_chg = gbl_chg = vma_needs_reservation(h, vma, addr);
--	if (map_chg < 0)
--		return ERR_PTR(-ENOMEM);
-+
-+	/* Whether we need a separate per-vma reservation? */
-+	if (cow_from_owner) {
-+		/*
-+		 * Special case!  Since it's a CoW on top of a reserved
-+		 * page, the private resv map doesn't count.  So it cannot
-+		 * consume the per-vma resv map even if it's reserved.
-+		 */
-+		map_chg = MAP_CHG_ENFORCED;
-+	} else {
-+		/*
-+		 * Examine the region/reserve map to determine if the process
-+		 * has a reservation for the page to be allocated.  A return
-+		 * code of zero indicates a reservation exists (no change).
-+		 */
-+		retval = vma_needs_reservation(h, vma, addr);
-+		if (retval < 0)
-+			return ERR_PTR(-ENOMEM);
-+		map_chg = retval ? MAP_CHG_NEEDED : MAP_CHG_REUSE;
-+	}
- 
+ /* Returns true if the VMA has associated reserve pages */
+-static bool vma_has_reserves(struct vm_area_struct *vma, long chg)
++static bool vma_has_reserves(long chg)
+ {
+-	if (vma->vm_flags & VM_NORESERVE) {
+-		/*
+-		 * This address is already reserved by other process(chg == 0),
+-		 * so, we should decrement reserved count. Without decrementing,
+-		 * reserve count remains after releasing inode, because this
+-		 * allocated page will go into page cache and is regarded as
+-		 * coming from reserved pool in releasing step.  Currently, we
+-		 * don't have any other solution to deal with this situation
+-		 * properly, so add work-around here.
+-		 */
+-		if (vma->vm_flags & VM_MAYSHARE && chg == 0)
+-			return true;
+-		else
+-			return false;
+-	}
+-
+-	/* Shared mappings always use reserves */
+-	if (vma->vm_flags & VM_MAYSHARE) {
+-		/*
+-		 * We know VM_NORESERVE is not set.  Therefore, there SHOULD
+-		 * be a region map for all pages.  The only situation where
+-		 * there is no region map is if a hole was punched via
+-		 * fallocate.  In this case, there really are no reserves to
+-		 * use.  This situation is indicated if chg != 0.
+-		 */
+-		if (chg)
+-			return false;
+-		else
+-			return true;
+-	}
+-
  	/*
-+	 * Whether we need a separate global reservation?
-+	 *
- 	 * Processes that did not create the mapping will have no
- 	 * reserves as indicated by the region/reserve map. Check
- 	 * that the allocation will not exceed the subpool limit.
--	 * Allocations for MAP_NORESERVE mappings also need to be
--	 * checked against any subpool limit.
-+	 * Or if it can get one from the pool reservation directly.
+-	 * Only the process that called mmap() has reserves for
+-	 * private mappings.
++	 * Now "chg" has all the conditions considered for whether we
++	 * should use an existing reservation.
  	 */
--	if (map_chg || cow_from_owner) {
-+	if (map_chg) {
- 		gbl_chg = hugepage_subpool_get_pages(spool, 1);
- 		if (gbl_chg < 0)
- 			goto out_end_reservation;
-+	} else {
-+		/*
-+		 * If we have the vma reservation ready, no need for extra
-+		 * global reservation.
-+		 */
-+		gbl_chg = 0;
- 	}
+-	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+-		/*
+-		 * Like the shared case above, a hole punch or truncate
+-		 * could have been performed on the private mapping.
+-		 * Examine the value of chg to determine if reserves
+-		 * actually exist or were previously consumed.
+-		 * Very Subtle - The value of chg comes from a previous
+-		 * call to vma_needs_reserves().  The reserve map for
+-		 * private mappings has different (opposite) semantics
+-		 * than that of shared mappings.  vma_needs_reserves()
+-		 * has already taken this difference in semantics into
+-		 * account.  Therefore, the meaning of chg is the same
+-		 * as in the shared case above.  Code could easily be
+-		 * combined, but keeping it separate draws attention to
+-		 * subtle differences.
+-		 */
+-		if (chg)
+-			return false;
+-		else
+-			return true;
+-	}
+-
+-	return false;
++	return chg == 0;
+ }
  
--	/* If this allocation is not consuming a reservation, charge it now.
-+	/*
-+	 * If this allocation is not consuming a per-vma reservation,
-+	 * charge the hugetlb cgroup now.
+ static void enqueue_hugetlb_folio(struct hstate *h, struct folio *folio)
+@@ -1407,7 +1354,7 @@ static struct folio *dequeue_hugetlb_fol
+ 	 * have no page reserves. This check ensures that reservations are
+ 	 * not "stolen". The child may still get SIGKILLed
  	 */
--	deferred_reserve = map_chg || cow_from_owner;
--	if (deferred_reserve) {
-+	if (map_chg) {
- 		ret = hugetlb_cgroup_charge_cgroup_rsvd(
- 			idx, pages_per_huge_page(h), &h_cg);
- 		if (ret)
-@@ -3078,7 +3116,7 @@ struct folio *alloc_hugetlb_folio(struct
+-	if (!vma_has_reserves(vma, chg) && !available_huge_pages(h))
++	if (!vma_has_reserves(chg) && !available_huge_pages(h))
+ 		goto err;
+ 
+ 	gfp_mask = htlb_alloc_mask(h);
+@@ -1425,7 +1372,7 @@ static struct folio *dequeue_hugetlb_fol
+ 		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
+ 							nid, nodemask);
+ 
+-	if (folio && vma_has_reserves(vma, chg)) {
++	if (folio && vma_has_reserves(chg)) {
+ 		folio_set_hugetlb_restore_reserve(folio);
+ 		h->resv_huge_pages--;
+ 	}
+@@ -3116,7 +3063,7 @@ struct folio *alloc_hugetlb_folio(struct
  		if (!folio)
  			goto out_uncharge_cgroup;
  		spin_lock_irq(&hugetlb_lock);
--		if (!cow_from_owner && vma_has_reserves(vma, gbl_chg)) {
-+		if (vma_has_reserves(vma, gbl_chg)) {
+-		if (vma_has_reserves(vma, gbl_chg)) {
++		if (vma_has_reserves(gbl_chg)) {
  			folio_set_hugetlb_restore_reserve(folio);
  			h->resv_huge_pages--;
  		}
-@@ -3091,7 +3129,7 @@ struct folio *alloc_hugetlb_folio(struct
- 	/* If allocation is not consuming a reservation, also store the
- 	 * hugetlb_cgroup pointer on the page.
- 	 */
--	if (deferred_reserve) {
-+	if (map_chg) {
- 		hugetlb_cgroup_commit_charge_rsvd(idx, pages_per_huge_page(h),
- 						  h_cg, folio);
- 	}
-@@ -3100,26 +3138,31 @@ struct folio *alloc_hugetlb_folio(struct
- 
- 	hugetlb_set_folio_subpool(folio, spool);
- 
--	map_commit = vma_commit_reservation(h, vma, addr);
--	if (unlikely(map_chg > map_commit)) {
-+	if (map_chg != MAP_CHG_ENFORCED) {
-+		/* commit() is only needed if the map_chg is not enforced */
-+		retval = vma_commit_reservation(h, vma, addr);
- 		/*
-+		 * Check for possible race conditions. When it happens..
- 		 * The page was added to the reservation map between
- 		 * vma_needs_reservation and vma_commit_reservation.
- 		 * This indicates a race with hugetlb_reserve_pages.
- 		 * Adjust for the subpool count incremented above AND
--		 * in hugetlb_reserve_pages for the same page.  Also,
-+		 * in hugetlb_reserve_pages for the same page.	Also,
- 		 * the reservation count added in hugetlb_reserve_pages
- 		 * no longer applies.
- 		 */
--		long rsv_adjust;
-+		if (unlikely(map_chg == MAP_CHG_NEEDED && retval == 0)) {
-+			long rsv_adjust;
- 
--		rsv_adjust = hugepage_subpool_put_pages(spool, 1);
--		hugetlb_acct_memory(h, -rsv_adjust);
--		if (deferred_reserve) {
--			spin_lock_irq(&hugetlb_lock);
--			hugetlb_cgroup_uncharge_folio_rsvd(hstate_index(h),
--					pages_per_huge_page(h), folio);
--			spin_unlock_irq(&hugetlb_lock);
-+			rsv_adjust = hugepage_subpool_put_pages(spool, 1);
-+			hugetlb_acct_memory(h, -rsv_adjust);
-+			if (map_chg) {
-+				spin_lock_irq(&hugetlb_lock);
-+				hugetlb_cgroup_uncharge_folio_rsvd(
-+				    hstate_index(h), pages_per_huge_page(h),
-+				    folio);
-+				spin_unlock_irq(&hugetlb_lock);
-+			}
- 		}
- 	}
- 
-@@ -3141,14 +3184,15 @@ struct folio *alloc_hugetlb_folio(struct
- out_uncharge_cgroup:
- 	hugetlb_cgroup_uncharge_cgroup(idx, pages_per_huge_page(h), h_cg);
- out_uncharge_cgroup_reservation:
--	if (deferred_reserve)
-+	if (map_chg)
- 		hugetlb_cgroup_uncharge_cgroup_rsvd(idx, pages_per_huge_page(h),
- 						    h_cg);
- out_subpool_put:
--	if (map_chg || cow_from_owner)
-+	if (map_chg)
- 		hugepage_subpool_put_pages(spool, 1);
- out_end_reservation:
--	vma_end_reservation(h, vma, addr);
-+	if (map_chg != MAP_CHG_ENFORCED)
-+		vma_end_reservation(h, vma, addr);
- 	return ERR_PTR(-ENOSPC);
- }
- 
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
