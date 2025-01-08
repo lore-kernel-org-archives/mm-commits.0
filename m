@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E61E1A2872
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B05F1A2872
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736317630; cv=none; b=Nl3hNNIru1ivZg+TSrlV1hu2Uq0RfuzqaDA3OACCvz3DxFR72tq7kGD2HlvMUcrr6LzF3VwW4VVCGTycQaLSGZklewd8vFITaktj5yTdBquaK7nmDE34B84u9GPzDA4FR8XSbl36awLFxVazZwBqKoXxRopI9xUeWzB4OhwZtZ8=
+	t=1736317633; cv=none; b=kCo0CCbSwl9lbzhFtDS40eMQoLAxt6ys38qdxeFTDybamRV3y1keIBdY5xkDPhzN5mQt/7l7CJu3F2BAlNAPPiB81wYto3ZO4JHMsbNTN518zbbAa8EctJwTVgFhjyTCxqedYGQPBQ8WTk0zf9kh9GogSK78C83nbvIE/E+gbkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736317630; c=relaxed/simple;
-	bh=JdRkFqTX7NEWyCTd/IYpqRH92c/ZI6mcx1oYdAJycE8=;
-	h=Date:To:From:Subject:Message-Id; b=LAep3fNIqyD75fhPu21gzdpMUbXZUWlAenUj9bXToc29LncReMDlIQch9NZKrgJzCROF61VZERIYDnQ9b+S76rKB8zNrmce9SafmEUfi2ZsPANYxqDtr1A3eZTX039Y2nn188U8sm2nT3tur19RDYmMkSIWdWmrwT0iMTbfmtRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rtaSg2gj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736317633; c=relaxed/simple;
+	bh=h+af5thfB9CjT16HHH3Y9b+tM6qF6TSNtuAZoiZHKlY=;
+	h=Date:To:From:Subject:Message-Id; b=Efb/hcsfcofDp945HsILnxEyl9DD+zWDSv+N+SXLV4MsRJEDGcXbvfgk2yB/3IFxKe2Mx0rGC5okr3L05GXSigNcp2BrsCQsbER5M0nDeIXP3eu6BnwfGPZ2072+AZFJ9RYJ7HiYLjkIeBw7hnfQrICpaxeHvYgC878H2rqHCyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=isjLR1i1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtaSg2gj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F633C4CED0;
-	Wed,  8 Jan 2025 06:27:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="isjLR1i1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 867E2C4CED0;
+	Wed,  8 Jan 2025 06:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736317629;
-	bh=JdRkFqTX7NEWyCTd/IYpqRH92c/ZI6mcx1oYdAJycE8=;
+	s=korg; t=1736317631;
+	bh=h+af5thfB9CjT16HHH3Y9b+tM6qF6TSNtuAZoiZHKlY=;
 	h=Date:To:From:Subject:From;
-	b=rtaSg2gju/zNLvb4qvXJ6ix0TN25PemRPdfLHU9x0C5+myGI7f0kac78gKVnJRZeq
-	 2jcaCn/wOobeoR/Rr+QwrtMjVhIy9xpKXiBW18IBNMRx6lHf4zIKHJ0jGH3V269on4
-	 stF9ty5RvKlAkxnt8lyRxv7CFperezkqVrD+UnGY=
-Date: Tue, 07 Jan 2025 22:27:09 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=isjLR1i1ZMq3JauPd0Eutot4z8mw+C5B+lZc0oFZXU9QfSOvuf4G8EjChqMR0/t55
+	 EXN14NxK9EGGEL59Q+onawnt1HGL+wjSdU1ZFobAPyAU7DTqK3bp2byzaJxvP4n3D6
+	 rgWNKZ5MgU2RwmqCtN7icM0Pem0/G7vfEw4RZ5XI=
+Date: Tue, 07 Jan 2025 22:27:11 -0800
+To: mm-commits@vger.kernel.org,jhubbard@nvidia.com,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memremap-add-is_devdax_page-and-is_fsdax_page-helpers.patch added to mm-unstable branch
-Message-Id: <20250108062709.8F633C4CED0@smtp.kernel.org>
+Subject: + mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch added to mm-unstable branch
+Message-Id: <20250108062711.867E2C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memremap: add is_devdax_page() and is_fsdax_page() helpers
+     Subject: mm/gup: don't allow FOLL_LONGTERM pinning of FS DAX pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     memremap-add-is_devdax_page-and-is_fsdax_page-helpers.patch
+     mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memremap-add-is_devdax_page-and-is_fsdax_page-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,52 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: memremap: add is_devdax_page() and is_fsdax_page() helpers
-Date: Tue, 7 Jan 2025 14:42:33 +1100
+Subject: mm/gup: don't allow FOLL_LONGTERM pinning of FS DAX pages
+Date: Tue, 7 Jan 2025 14:42:34 +1100
 
-Add helpers to determine if a page or folio is a devdax or fsdax page or
-folio.
+Longterm pinning of FS DAX pages should already be disallowed by various
+pXX_devmap checks.  However a future change will cause these checks to be
+invalid for FS DAX pages so make folio_is_longterm_pinnable() return false
+for FS DAX pages.
 
-Link: https://lkml.kernel.org/r/75b434c52f386c6078cd4fa7b92ed826d95d033f.1736221254.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/8bd0a8c0f62e2d2d8ece6f445580d20b73e3decd.1736221254.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ include/linux/mm.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/memremap.h~memremap-add-is_devdax_page-and-is_fsdax_page-helpers
-+++ a/include/linux/memremap.h
-@@ -187,6 +187,28 @@ static inline bool folio_is_device_coher
- 	return is_device_coherent_page(&folio->page);
- }
+--- a/include/linux/mm.h~mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages
++++ a/include/linux/mm.h
+@@ -2099,6 +2099,10 @@ static inline bool folio_is_longterm_pin
+ 	if (folio_is_device_coherent(folio))
+ 		return false;
  
-+static inline bool is_fsdax_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		page_pgmap(page)->type == MEMORY_DEVICE_FS_DAX;
-+}
++	/* DAX must also always allow eviction. */
++	if (folio_is_fsdax(folio))
++		return false;
 +
-+static inline bool folio_is_fsdax(const struct folio *folio)
-+{
-+	return is_fsdax_page(&folio->page);
-+}
-+
-+static inline bool is_devdax_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		page_pgmap(page)->type == MEMORY_DEVICE_GENERIC;
-+}
-+
-+static inline bool folio_is_devdax(const struct folio *folio)
-+{
-+	return is_devdax_page(&folio->page);
-+}
-+
- #ifdef CONFIG_ZONE_DEVICE
- void zone_device_page_init(struct page *page);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
+ 	/* Otherwise, non-movable zone folios can be pinned. */
+ 	return !folio_is_zone_movable(folio);
+ 
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
