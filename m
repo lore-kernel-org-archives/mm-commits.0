@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B3A1A2872
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1B181A83E4
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 06:27:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736317657; cv=none; b=YHgN2c46E9MSBnBwRUn5m4gmQhAKzx4jLTfZvEgFhyqEyUxw08NyCA0ahPSbObHwvGcWax537ozWXUZX5+YDdPFjYZQhueg1JCkL4Vfk1b8L/KLcTfqGxBmvrVYxAN/4K2oUmN9QPNd4bZ71oF24B4CN85ecZaXRXUDeR5s0jX8=
+	t=1736317665; cv=none; b=trQ1+ewYf9Tk0tz7ppZrvkLqCEQafcwMmefoQDr3zXxr+ewEYwJJVFfBKvpXlCVUovpFxQxIqMfcuZyj30H7u4dNMS8HONfR9c1MKP44T/53mZYWV/lfwD2Nv+oIWg3MWiteTDH1IohzBoBZlodfweZWduvsHvdmPbTyU2nGcbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736317657; c=relaxed/simple;
-	bh=NkY6uIoOsnUpvgy2aYCZs6PB7LkF+R4leaOXV8j9mNI=;
-	h=Date:To:From:Subject:Message-Id; b=Mpt5PGBolR/49GUNqPca5osCJae3RnW5SuZrylSwTKKH9L6KEaeeVVXzK9frf9A67nIqyuvMvbaMcvNJaFCgHQzixEP2DgM5/+gGJlp+Yj8ik6dp0PEZ6INyI7QWIJ96nkCtS1kZyBCm4Z8+frD0h5yjFRoQxWNjLZG3z6HGtQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wYntwqZi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736317665; c=relaxed/simple;
+	bh=tFAUoxXfGKftPjJjYITsyHx60fxk3TN2C2KVAuTJQi0=;
+	h=Date:To:From:Subject:Message-Id; b=VtVXgGkExIMEHwbyWb3iFyqLESarIxVoQ7qHoCFlocD/KboA0pAZ1ZiIYXuozJ0FnqzDum6Ic7F4QBbPb6cokztuqACwxOAStEs1f5w87snSg2hmT6/s8mCXwrqkVdAaNUygBs2UjRAzRqSKxh+zqcg2PHd8PzJ5J8gpx/dphSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWAanFIr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wYntwqZi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 475DDC4CED0;
-	Wed,  8 Jan 2025 06:27:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWAanFIr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 748C3C4CED0;
+	Wed,  8 Jan 2025 06:27:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736317657;
-	bh=NkY6uIoOsnUpvgy2aYCZs6PB7LkF+R4leaOXV8j9mNI=;
+	s=korg; t=1736317665;
+	bh=tFAUoxXfGKftPjJjYITsyHx60fxk3TN2C2KVAuTJQi0=;
 	h=Date:To:From:Subject:From;
-	b=wYntwqZi+F6WQvpyAiK0fsHsgzxCrQ12hLgndyO2w9oX14eidOpMBBVsrZpeaXPXN
-	 TdXZreMzR3VFQEU5x3mbEM5B3Aynr3nCWzyGMYYsGDyvlsd7B4bCBu+9iC0dJ7Bedz
-	 487uKaV+alrGRcPGK6vVt70GL1iTcW7cdHwxe3T0=
-Date: Tue, 07 Jan 2025 22:27:36 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,apopple@nvidia.com,akpm@linux-foundation.org
+	b=uWAanFIrMN6l6yicILUXkwYibaXkGRuciI8Y04iS1SGENvpjHTZVYVIS1Bmplm0Lv
+	 Puvv2zhI177irdjvEKuDIbu2Rzt3I7oZd8ohRNqe0DQvHUa+NGEsn6z7zoXnGDhddQ
+	 Wsgs9iK8hQQGH4HzDDO3s/Bpvik4wbHfNShIi7Js=
+Date: Tue, 07 Jan 2025 22:27:44 -0800
+To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,bjorn@rivosinc.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-devmap-related-functions-and-page-table-bits.patch added to mm-unstable branch
-Message-Id: <20250108062737.475DDC4CED0@smtp.kernel.org>
+Subject: + revert-riscv-mm-add-support-for-zone_device.patch added to mm-unstable branch
+Message-Id: <20250108062745.748C3C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove devmap related functions and page table bits
+     Subject: Revert "riscv: mm: add support for ZONE_DEVICE"
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-devmap-related-functions-and-page-table-bits.patch
+     revert-riscv-mm-add-support-for-zone_device.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-devmap-related-functions-and-page-table-bits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-riscv-mm-add-support-for-zone_device.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,224 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: remove devmap related functions and page table bits
-Date: Tue, 7 Jan 2025 14:42:40 +1100
+Subject: Revert "riscv: mm: add support for ZONE_DEVICE"
+Date: Tue, 7 Jan 2025 14:42:41 +1100
 
-Now that DAX and all other reference counts to ZONE_DEVICE pages are
-managed normally there is no need for the special devmap PTE/PMD/PUD page
-table bits.  So drop all references to these, freeing up a software
-defined page table bit on architectures supporting it.
+DEVMAP PTEs are no longer required to support ZONE_DEVICE so remove them.
 
-Link: https://lkml.kernel.org/r/23b329a3fdd5c6f7e4b2f8cf8dee081e20c68512.1736221254.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/dd557b20d49a08f6172e6cff76753850300fda57.1736221254.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: Will Deacon <will@kernel.org> # arm64
+Suggested-by: Chunyan Zhang <zhang.lyra@gmail.com>
+Reviewed-by: Björn Töpel <bjorn@rivosinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/arch_pgtable_helpers.rst     |    6 -
- arch/arm64/Kconfig                            |    1 
- arch/arm64/include/asm/pgtable-prot.h         |    1 
- arch/arm64/include/asm/pgtable.h              |   24 ------
- arch/powerpc/Kconfig                          |    1 
- arch/powerpc/include/asm/book3s/64/hash-4k.h  |    6 -
- arch/powerpc/include/asm/book3s/64/hash-64k.h |    7 -
- arch/powerpc/include/asm/book3s/64/pgtable.h  |   52 --------------
- arch/powerpc/include/asm/book3s/64/radix.h    |   14 ---
- arch/x86/Kconfig                              |    1 
- arch/x86/include/asm/pgtable.h                |   51 -------------
- arch/x86/include/asm/pgtable_types.h          |    5 -
- include/linux/mm.h                            |    7 -
- include/linux/pfn_t.h                         |   20 -----
- include/linux/pgtable.h                       |   19 -----
- mm/Kconfig                                    |    4 -
- mm/debug_vm_pgtable.c                         |   59 ----------------
- mm/hmm.c                                      |    3 
- 18 files changed, 11 insertions(+), 270 deletions(-)
+ arch/riscv/Kconfig                    |    1 -
+ arch/riscv/include/asm/pgtable-64.h   |   20 --------------------
+ arch/riscv/include/asm/pgtable-bits.h |    1 -
+ arch/riscv/include/asm/pgtable.h      |   17 -----------------
+ 4 files changed, 39 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -108,7 +108,6 @@ static inline pteval_t __phys_to_pte_val
- #define pte_user(pte)		(!!(pte_val(pte) & PTE_USER))
- #define pte_user_exec(pte)	(!(pte_val(pte) & PTE_UXN))
- #define pte_cont(pte)		(!!(pte_val(pte) & PTE_CONT))
--#define pte_devmap(pte)		(!!(pte_val(pte) & PTE_DEVMAP))
- #define pte_tagged(pte)		((pte_val(pte) & PTE_ATTRINDX_MASK) == \
- 				 PTE_ATTRINDX(MT_NORMAL_TAGGED))
- 
-@@ -290,11 +289,6 @@ static inline pmd_t pmd_mkcont(pmd_t pmd
- 	return __pmd(pmd_val(pmd) | PMD_SECT_CONT);
- }
- 
--static inline pte_t pte_mkdevmap(pte_t pte)
--{
--	return set_pte_bit(pte, __pgprot(PTE_DEVMAP | PTE_SPECIAL));
--}
--
- #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
- static inline int pte_uffd_wp(pte_t pte)
- {
-@@ -587,14 +581,6 @@ static inline int pmd_trans_huge(pmd_t p
- 
- #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
+--- a/arch/riscv/include/asm/pgtable-64.h~revert-riscv-mm-add-support-for-zone_device
++++ a/arch/riscv/include/asm/pgtable-64.h
+@@ -398,24 +398,4 @@ static inline struct page *pgd_page(pgd_
+ #define p4d_offset p4d_offset
+ p4d_t *p4d_offset(pgd_t *pgd, unsigned long address);
  
 -#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--#define pmd_devmap(pmd)		pte_devmap(pmd_pte(pmd))
--#endif
--static inline pmd_t pmd_mkdevmap(pmd_t pmd)
--{
--	return pte_pmd(set_pte_bit(pmd_pte(pmd), __pgprot(PTE_DEVMAP)));
--}
--
- #ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
- #define pmd_special(pte)	(!!((pmd_val(pte) & PTE_SPECIAL)))
- static inline pmd_t pmd_mkspecial(pmd_t pmd)
-@@ -1195,16 +1181,6 @@ static inline int pmdp_set_access_flags(
- 	return __ptep_set_access_flags(vma, address, (pte_t *)pmdp,
- 							pmd_pte(entry), dirty);
- }
--
--static inline int pud_devmap(pud_t pud)
--{
--	return 0;
--}
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
- #endif
- 
- #ifdef CONFIG_PAGE_TABLE_CHECK
---- a/arch/arm64/include/asm/pgtable-prot.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/arm64/include/asm/pgtable-prot.h
-@@ -17,7 +17,6 @@
- #define PTE_SWP_EXCLUSIVE	(_AT(pteval_t, 1) << 2)	 /* only for swp ptes */
- #define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
- #define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
--#define PTE_DEVMAP		(_AT(pteval_t, 1) << 57)
- 
- /*
-  * PTE_PRESENT_INVALID=1 & PTE_VALID=0 indicates that the pte's fields should be
---- a/arch/arm64/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/arm64/Kconfig
-@@ -39,7 +39,6 @@ config ARM64
- 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_NONLEAF_PMD_YOUNG if ARM64_HAFT
--	select ARCH_HAS_PTE_DEVMAP
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_HW_PTE_YOUNG
- 	select ARCH_HAS_SETUP_DMA_OPS
---- a/arch/powerpc/include/asm/book3s/64/hash-4k.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/powerpc/include/asm/book3s/64/hash-4k.h
-@@ -160,12 +160,6 @@ extern pmd_t hash__pmdp_huge_get_and_cle
- extern int hash__has_transparent_hugepage(void);
- #endif
- 
--static inline pmd_t hash__pmd_mkdevmap(pmd_t pmd)
--{
--	BUG();
--	return pmd;
--}
--
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASM_POWERPC_BOOK3S_64_HASH_4K_H */
---- a/arch/powerpc/include/asm/book3s/64/hash-64k.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/powerpc/include/asm/book3s/64/hash-64k.h
-@@ -259,7 +259,7 @@ static inline void mark_hpte_slot_valid(
-  */
- static inline int hash__pmd_trans_huge(pmd_t pmd)
- {
--	return !!((pmd_val(pmd) & (_PAGE_PTE | H_PAGE_THP_HUGE | _PAGE_DEVMAP)) ==
-+	return !!((pmd_val(pmd) & (_PAGE_PTE | H_PAGE_THP_HUGE)) ==
- 		  (_PAGE_PTE | H_PAGE_THP_HUGE));
- }
- 
-@@ -281,11 +281,6 @@ extern pmd_t hash__pmdp_huge_get_and_cle
- extern int hash__has_transparent_hugepage(void);
- #endif /*  CONFIG_TRANSPARENT_HUGEPAGE */
- 
--static inline pmd_t hash__pmd_mkdevmap(pmd_t pmd)
--{
--	return __pmd(pmd_val(pmd) | (_PAGE_PTE | H_PAGE_THP_HUGE | _PAGE_DEVMAP));
--}
--
- #endif	/* __ASSEMBLY__ */
- 
- #endif /* _ASM_POWERPC_BOOK3S_64_HASH_64K_H */
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -88,7 +88,6 @@
- 
- #define _PAGE_SOFT_DIRTY	_RPAGE_SW3 /* software: software dirty tracking */
- #define _PAGE_SPECIAL		_RPAGE_SW2 /* software: special page */
--#define _PAGE_DEVMAP		_RPAGE_SW1 /* software: ZONE_DEVICE page */
- 
- /*
-  * Drivers request for cache inhibited pte mapping using _PAGE_NO_CACHE
-@@ -109,7 +108,7 @@
-  */
- #define _HPAGE_CHG_MASK (PTE_RPN_MASK | _PAGE_HPTEFLAGS | _PAGE_DIRTY | \
- 			 _PAGE_ACCESSED | H_PAGE_THP_HUGE | _PAGE_PTE | \
--			 _PAGE_SOFT_DIRTY | _PAGE_DEVMAP)
-+			 _PAGE_SOFT_DIRTY)
- /*
-  * user access blocked by key
-  */
-@@ -123,7 +122,7 @@
-  */
- #define _PAGE_CHG_MASK	(PTE_RPN_MASK | _PAGE_HPTEFLAGS | _PAGE_DIRTY | \
- 			 _PAGE_ACCESSED | _PAGE_SPECIAL | _PAGE_PTE |	\
--			 _PAGE_SOFT_DIRTY | _PAGE_DEVMAP)
-+			 _PAGE_SOFT_DIRTY)
- 
- /*
-  * We define 2 sets of base prot bits, one for basic pages (ie,
-@@ -609,24 +608,6 @@ static inline pte_t pte_mkhuge(pte_t pte
- 	return pte;
- }
- 
--static inline pte_t pte_mkdevmap(pte_t pte)
--{
--	return __pte_raw(pte_raw(pte) | cpu_to_be64(_PAGE_SPECIAL | _PAGE_DEVMAP));
--}
--
--/*
-- * This is potentially called with a pmd as the argument, in which case it's not
-- * safe to check _PAGE_DEVMAP unless we also confirm that _PAGE_PTE is set.
-- * That's because the bit we use for _PAGE_DEVMAP is not reserved for software
-- * use in page directory entries (ie. non-ptes).
-- */
--static inline int pte_devmap(pte_t pte)
--{
--	__be64 mask = cpu_to_be64(_PAGE_DEVMAP | _PAGE_PTE);
--
--	return (pte_raw(pte) & mask) == mask;
--}
--
- static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
- {
- 	/* FIXME!! check whether this need to be a conditional */
-@@ -1380,35 +1361,6 @@ static inline bool arch_needs_pgtable_de
- }
- extern void serialize_against_pte_lookup(struct mm_struct *mm);
- 
--
--static inline pmd_t pmd_mkdevmap(pmd_t pmd)
--{
--	if (radix_enabled())
--		return radix__pmd_mkdevmap(pmd);
--	return hash__pmd_mkdevmap(pmd);
--}
--
--static inline pud_t pud_mkdevmap(pud_t pud)
--{
--	if (radix_enabled())
--		return radix__pud_mkdevmap(pud);
--	BUG();
--	return pud;
--}
+-static inline int pte_devmap(pte_t pte);
+-static inline pte_t pmd_pte(pmd_t pmd);
 -
 -static inline int pmd_devmap(pmd_t pmd)
 -{
@@ -285,449 +94,76 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -
 -static inline int pud_devmap(pud_t pud)
 -{
--	return pte_devmap(pud_pte(pud));
+-	return 0;
 -}
 -
 -static inline int pgd_devmap(pgd_t pgd)
 -{
 -	return 0;
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
---- a/arch/powerpc/include/asm/book3s/64/radix.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/powerpc/include/asm/book3s/64/radix.h
-@@ -264,7 +264,7 @@ static inline int radix__p4d_bad(p4d_t p
- 
- static inline int radix__pmd_trans_huge(pmd_t pmd)
- {
--	return (pmd_val(pmd) & (_PAGE_PTE | _PAGE_DEVMAP)) == _PAGE_PTE;
-+	return (pmd_val(pmd) & _PAGE_PTE) == _PAGE_PTE;
- }
- 
- static inline pmd_t radix__pmd_mkhuge(pmd_t pmd)
-@@ -274,7 +274,7 @@ static inline pmd_t radix__pmd_mkhuge(pm
- 
- static inline int radix__pud_trans_huge(pud_t pud)
- {
--	return (pud_val(pud) & (_PAGE_PTE | _PAGE_DEVMAP)) == _PAGE_PTE;
-+	return (pud_val(pud) & _PAGE_PTE) == _PAGE_PTE;
- }
- 
- static inline pud_t radix__pud_mkhuge(pud_t pud)
-@@ -315,16 +315,6 @@ static inline int radix__has_transparent
- }
- #endif
- 
--static inline pmd_t radix__pmd_mkdevmap(pmd_t pmd)
--{
--	return __pmd(pmd_val(pmd) | (_PAGE_PTE | _PAGE_DEVMAP));
 -}
+-#endif
 -
--static inline pud_t radix__pud_mkdevmap(pud_t pud)
--{
--	return __pud(pud_val(pud) | (_PAGE_PTE | _PAGE_DEVMAP));
--}
--
- struct vmem_altmap;
- struct dev_pagemap;
- extern int __meminit radix__vmemmap_create_mapping(unsigned long start,
---- a/arch/powerpc/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/powerpc/Kconfig
-@@ -145,7 +145,6 @@ config PPC
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_PHYS_TO_DMA
- 	select ARCH_HAS_PMEM_API
--	select ARCH_HAS_PTE_DEVMAP		if PPC_BOOK3S_64
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SCALED_CPUTIME		if VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
- 	select ARCH_HAS_SET_MEMORY
---- a/arch/x86/include/asm/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -308,16 +308,15 @@ static inline bool pmd_leaf(pmd_t pte)
- }
+ #endif /* _ASM_RISCV_PGTABLE_64_H */
+--- a/arch/riscv/include/asm/pgtable-bits.h~revert-riscv-mm-add-support-for-zone_device
++++ a/arch/riscv/include/asm/pgtable-bits.h
+@@ -19,7 +19,6 @@
+ #define _PAGE_SOFT      (3 << 8)    /* Reserved for software */
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--/* NOTE: when predicate huge page, consider also pmd_devmap, or use pmd_leaf */
- static inline int pmd_trans_huge(pmd_t pmd)
- {
--	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
-+	return (pmd_val(pmd) & _PAGE_PSE) == _PAGE_PSE;
- }
+ #define _PAGE_SPECIAL   (1 << 8)    /* RSW: 0x1 */
+-#define _PAGE_DEVMAP    (1 << 9)    /* RSW, devmap */
+ #define _PAGE_TABLE     _PAGE_PRESENT
  
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static inline int pud_trans_huge(pud_t pud)
- {
--	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
-+	return (pud_val(pud) & _PAGE_PSE) == _PAGE_PSE;
- }
- #endif
- 
-@@ -327,24 +326,6 @@ static inline int has_transparent_hugepa
- 	return boot_cpu_has(X86_FEATURE_PSE);
+ /*
+--- a/arch/riscv/include/asm/pgtable.h~revert-riscv-mm-add-support-for-zone_device
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -399,13 +399,6 @@ static inline int pte_special(pte_t pte)
+ 	return pte_val(pte) & _PAGE_SPECIAL;
  }
  
 -#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
--static inline int pmd_devmap(pmd_t pmd)
+-static inline int pte_devmap(pte_t pte)
 -{
--	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
--}
--
--#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--static inline int pud_devmap(pud_t pud)
--{
--	return !!(pud_val(pud) & _PAGE_DEVMAP);
--}
--#else
--static inline int pud_devmap(pud_t pud)
--{
--	return 0;
+-	return pte_val(pte) & _PAGE_DEVMAP;
 -}
 -#endif
 -
- #ifdef CONFIG_ARCH_SUPPORTS_PMD_PFNMAP
- static inline bool pmd_special(pmd_t pmd)
- {
-@@ -368,12 +349,6 @@ static inline pud_t pud_mkspecial(pud_t
- 	return pud_set_flags(pud, _PAGE_SPECIAL);
- }
- #endif	/* CONFIG_ARCH_SUPPORTS_PUD_PFNMAP */
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
--#endif
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ /* static inline pte_t pte_rdprotect(pte_t pte) */
  
- static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
-@@ -534,11 +509,6 @@ static inline pte_t pte_mkspecial(pte_t
- 	return pte_set_flags(pte, _PAGE_SPECIAL);
+ static inline pte_t pte_wrprotect(pte_t pte)
+@@ -447,11 +440,6 @@ static inline pte_t pte_mkspecial(pte_t
+ 	return __pte(pte_val(pte) | _PAGE_SPECIAL);
  }
  
 -static inline pte_t pte_mkdevmap(pte_t pte)
 -{
--	return pte_set_flags(pte, _PAGE_SPECIAL|_PAGE_DEVMAP);
+-	return __pte(pte_val(pte) | _PAGE_DEVMAP);
 -}
 -
- /* See comments above mksaveddirty_shift() */
- static inline pmd_t pmd_mksaveddirty(pmd_t pmd)
+ static inline pte_t pte_mkhuge(pte_t pte)
  {
-@@ -610,11 +580,6 @@ static inline pmd_t pmd_mkwrite_shstk(pm
- 	return pmd_set_flags(pmd, _PAGE_DIRTY);
+ 	return pte;
+@@ -763,11 +751,6 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
+ 	return pte_pmd(pte_mkdirty(pmd_pte(pmd)));
  }
  
 -static inline pmd_t pmd_mkdevmap(pmd_t pmd)
 -{
--	return pmd_set_flags(pmd, _PAGE_DEVMAP);
+-	return pte_pmd(pte_mkdevmap(pmd_pte(pmd)));
 -}
 -
- static inline pmd_t pmd_mkhuge(pmd_t pmd)
+ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 				pmd_t *pmdp, pmd_t pmd)
  {
- 	return pmd_set_flags(pmd, _PAGE_PSE);
-@@ -680,11 +645,6 @@ static inline pud_t pud_mkdirty(pud_t pu
- 	return pud_mksaveddirty(pud);
- }
- 
--static inline pud_t pud_mkdevmap(pud_t pud)
--{
--	return pud_set_flags(pud, _PAGE_DEVMAP);
--}
--
- static inline pud_t pud_mkhuge(pud_t pud)
- {
- 	return pud_set_flags(pud, _PAGE_PSE);
-@@ -1012,13 +972,6 @@ static inline int pte_present(pte_t a)
- 	return pte_flags(a) & (_PAGE_PRESENT | _PAGE_PROTNONE);
- }
- 
--#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
--static inline int pte_devmap(pte_t a)
--{
--	return (pte_flags(a) & _PAGE_DEVMAP) == _PAGE_DEVMAP;
--}
--#endif
--
- #define pte_accessible pte_accessible
- static inline bool pte_accessible(struct mm_struct *mm, pte_t a)
- {
---- a/arch/x86/include/asm/pgtable_types.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -33,7 +33,6 @@
- #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
- #define _PAGE_BIT_UFFD_WP	_PAGE_BIT_SOFTW2 /* userfaultfd wrprotected */
- #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
--#define _PAGE_BIT_DEVMAP	_PAGE_BIT_SOFTW4
- 
- #ifdef CONFIG_X86_64
- #define _PAGE_BIT_SAVED_DIRTY	_PAGE_BIT_SOFTW5 /* Saved Dirty bit (leaf) */
-@@ -119,11 +118,9 @@
- 
- #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
- #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
--#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
- #define _PAGE_SOFTW4	(_AT(pteval_t, 1) << _PAGE_BIT_SOFTW4)
- #else
- #define _PAGE_NX	(_AT(pteval_t, 0))
--#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
- #define _PAGE_SOFTW4	(_AT(pteval_t, 0))
- #endif
- 
-@@ -152,7 +149,7 @@
- #define _COMMON_PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |	\
- 				 _PAGE_SPECIAL | _PAGE_ACCESSED |	\
- 				 _PAGE_DIRTY_BITS | _PAGE_SOFT_DIRTY |	\
--				 _PAGE_DEVMAP | _PAGE_CC | _PAGE_UFFD_WP)
-+				 _PAGE_CC | _PAGE_UFFD_WP)
- #define _PAGE_CHG_MASK	(_COMMON_PAGE_CHG_MASK | _PAGE_PAT)
- #define _HPAGE_CHG_MASK (_COMMON_PAGE_CHG_MASK | _PAGE_PSE | _PAGE_PAT_LARGE)
- 
---- a/arch/x86/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/arch/x86/Kconfig
-@@ -95,7 +95,6 @@ config X86
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_PMEM_API		if X86_64
+--- a/arch/riscv/Kconfig~revert-riscv-mm-add-support-for-zone_device
++++ a/arch/riscv/Kconfig
+@@ -42,7 +42,6 @@ config RISCV
+ 	select ARCH_HAS_PMEM_API
  	select ARCH_HAS_PREEMPT_LAZY
--	select ARCH_HAS_PTE_DEVMAP		if X86_64
+ 	select ARCH_HAS_PREPARE_SYNC_CORE_CMD
+-	select ARCH_HAS_PTE_DEVMAP if 64BIT && MMU
  	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_HW_PTE_YOUNG
- 	select ARCH_HAS_NONLEAF_PMD_YOUNG	if PGTABLE_LEVELS > 2
---- a/Documentation/mm/arch_pgtable_helpers.rst~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/Documentation/mm/arch_pgtable_helpers.rst
-@@ -30,8 +30,6 @@ PTE Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | pte_protnone              | Tests a PROT_NONE PTE                            |
- +---------------------------+--------------------------------------------------+
--| pte_devmap                | Tests a ZONE_DEVICE mapped PTE                   |
--+---------------------------+--------------------------------------------------+
- | pte_soft_dirty            | Tests a soft dirty PTE                           |
- +---------------------------+--------------------------------------------------+
- | pte_swp_soft_dirty        | Tests a soft dirty swapped PTE                   |
-@@ -104,8 +102,6 @@ PMD Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | pmd_protnone              | Tests a PROT_NONE PMD                            |
- +---------------------------+--------------------------------------------------+
--| pmd_devmap                | Tests a ZONE_DEVICE mapped PMD                   |
--+---------------------------+--------------------------------------------------+
- | pmd_soft_dirty            | Tests a soft dirty PMD                           |
- +---------------------------+--------------------------------------------------+
- | pmd_swp_soft_dirty        | Tests a soft dirty swapped PMD                   |
-@@ -177,8 +173,6 @@ PUD Page Table Helpers
- +---------------------------+--------------------------------------------------+
- | pud_write                 | Tests a writable PUD                             |
- +---------------------------+--------------------------------------------------+
--| pud_devmap                | Tests a ZONE_DEVICE mapped PUD                   |
--+---------------------------+--------------------------------------------------+
- | pud_mkyoung               | Creates a young PUD                              |
- +---------------------------+--------------------------------------------------+
- | pud_mkold                 | Creates an old PUD                               |
---- a/include/linux/mm.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/include/linux/mm.h
-@@ -2790,13 +2790,6 @@ static inline pud_t pud_mkspecial(pud_t
- }
- #endif	/* CONFIG_ARCH_SUPPORTS_PUD_PFNMAP */
- 
--#ifndef CONFIG_ARCH_HAS_PTE_DEVMAP
--static inline int pte_devmap(pte_t pte)
--{
--	return 0;
--}
--#endif
--
- extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
- 			       spinlock_t **ptl);
- static inline pte_t *get_locked_pte(struct mm_struct *mm, unsigned long addr,
---- a/include/linux/pfn_t.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/include/linux/pfn_t.h
-@@ -97,26 +97,6 @@ static inline pud_t pfn_t_pud(pfn_t pfn,
- #endif
- #endif
- 
--#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
--static inline bool pfn_t_devmap(pfn_t pfn)
--{
--	const u64 flags = PFN_DEV|PFN_MAP;
--
--	return (pfn.val & flags) == flags;
--}
--#else
--static inline bool pfn_t_devmap(pfn_t pfn)
--{
--	return false;
--}
--pte_t pte_mkdevmap(pte_t pte);
--pmd_t pmd_mkdevmap(pmd_t pmd);
--#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
--	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--pud_t pud_mkdevmap(pud_t pud);
--#endif
--#endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
--
- #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
- static inline bool pfn_t_special(pfn_t pfn)
- {
---- a/include/linux/pgtable.h~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/include/linux/pgtable.h
-@@ -1606,21 +1606,6 @@ static inline int pud_write(pud_t pud)
- }
- #endif /* pud_write */
- 
--#if !defined(CONFIG_ARCH_HAS_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
--static inline int pmd_devmap(pmd_t pmd)
--{
--	return 0;
--}
--static inline int pud_devmap(pud_t pud)
--{
--	return 0;
--}
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
--#endif
--
- #if !defined(CONFIG_TRANSPARENT_HUGEPAGE) || \
- 	!defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
- static inline int pud_trans_huge(pud_t pud)
-@@ -1875,8 +1860,8 @@ typedef unsigned int pgtbl_mod_mask;
-  * - It should contain a huge PFN, which points to a huge page larger than
-  *   PAGE_SIZE of the platform.  The PFN format isn't important here.
-  *
-- * - It should cover all kinds of huge mappings (e.g., pXd_trans_huge(),
-- *   pXd_devmap(), or hugetlb mappings).
-+ * - It should cover all kinds of huge mappings (i.e. pXd_trans_huge()
-+ *   or hugetlb mappings).
-  */
- #ifndef pgd_leaf
- #define pgd_leaf(x)	false
---- a/mm/debug_vm_pgtable.c~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/mm/debug_vm_pgtable.c
-@@ -348,12 +348,6 @@ static void __init pud_advanced_tests(st
- 	vaddr &= HPAGE_PUD_MASK;
- 
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
--	/*
--	 * Some architectures have debug checks to make sure
--	 * huge pud mapping are only found with devmap entries
--	 * For now test with only devmap entries.
--	 */
--	pud = pud_mkdevmap(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
- 	flush_dcache_page(page);
- 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
-@@ -366,7 +360,6 @@ static void __init pud_advanced_tests(st
- 	WARN_ON(!pud_none(pud));
- #endif /* __PAGETABLE_PMD_FOLDED */
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
--	pud = pud_mkdevmap(pud);
- 	pud = pud_wrprotect(pud);
- 	pud = pud_mkclean(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-@@ -384,7 +377,6 @@ static void __init pud_advanced_tests(st
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
--	pud = pud_mkdevmap(pud);
- 	pud = pud_mkyoung(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
- 	flush_dcache_page(page);
-@@ -693,53 +685,6 @@ static void __init pmd_protnone_tests(st
- static void __init pmd_protnone_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--#ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
--static void __init pte_devmap_tests(struct pgtable_debug_args *args)
--{
--	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
--
--	pr_debug("Validating PTE devmap\n");
--	WARN_ON(!pte_devmap(pte_mkdevmap(pte)));
--}
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static void __init pmd_devmap_tests(struct pgtable_debug_args *args)
--{
--	pmd_t pmd;
--
--	if (!has_transparent_hugepage())
--		return;
--
--	pr_debug("Validating PMD devmap\n");
--	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
--	WARN_ON(!pmd_devmap(pmd_mkdevmap(pmd)));
--}
--
--#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--static void __init pud_devmap_tests(struct pgtable_debug_args *args)
--{
--	pud_t pud;
--
--	if (!has_transparent_pud_hugepage())
--		return;
--
--	pr_debug("Validating PUD devmap\n");
--	pud = pfn_pud(args->fixed_pud_pfn, args->page_prot);
--	WARN_ON(!pud_devmap(pud_mkdevmap(pud)));
--}
--#else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
--static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
--#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
--#else  /* CONFIG_TRANSPARENT_HUGEPAGE */
--static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
--static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
--#else
--static void __init pte_devmap_tests(struct pgtable_debug_args *args) { }
--static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
--static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
--#endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
--
- static void __init pte_soft_dirty_tests(struct pgtable_debug_args *args)
- {
- 	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
-@@ -1341,10 +1286,6 @@ static int __init debug_vm_pgtable(void)
- 	pte_protnone_tests(&args);
- 	pmd_protnone_tests(&args);
- 
--	pte_devmap_tests(&args);
--	pmd_devmap_tests(&args);
--	pud_devmap_tests(&args);
--
- 	pte_soft_dirty_tests(&args);
- 	pmd_soft_dirty_tests(&args);
- 	pte_swap_soft_dirty_tests(&args);
---- a/mm/hmm.c~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/mm/hmm.c
-@@ -395,8 +395,7 @@ again:
- 	return 0;
- }
- 
--#if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && \
--    defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
-+#if defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
- static inline unsigned long pud_to_hmm_pfn_flags(struct hmm_range *range,
- 						 pud_t pud)
- {
---- a/mm/Kconfig~mm-remove-devmap-related-functions-and-page-table-bits
-+++ a/mm/Kconfig
-@@ -1087,9 +1087,6 @@ config ARCH_HAS_CURRENT_STACK_POINTER
- 	  register alias named "current_stack_pointer", this config can be
- 	  selected.
- 
--config ARCH_HAS_PTE_DEVMAP
--	bool
--
- config ARCH_HAS_ZONE_DMA_SET
- 	bool
- 
-@@ -1107,7 +1104,6 @@ config ZONE_DEVICE
- 	depends on MEMORY_HOTPLUG
- 	depends on MEMORY_HOTREMOVE
- 	depends on SPARSEMEM_VMEMMAP
--	depends on ARCH_HAS_PTE_DEVMAP
- 	select XARRAY_MULTI
- 
- 	help
+ 	select ARCH_HAS_SET_DIRECT_MAP if MMU
+ 	select ARCH_HAS_SET_MEMORY if MMU
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
