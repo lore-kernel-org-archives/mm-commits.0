@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BA4220B20
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:11:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7C4820B20
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 04:13:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736309502; cv=none; b=piSIhKvUd1s887RL3KZYu+anw7tCCBsLx6H8C5PwLtl5z10BV5AiET8CEdozuCDKrq/ZGev6wZIQgTmDyhXE8yu3nrUBz12FJ0VeyAcztnDl6NQdlr8noK+dVQ5+/hduph17vIrSbI7CXKCfXuzwUd6SdonPNL+kmF8QNndwp1k=
+	t=1736309619; cv=none; b=XYRq5+/5FlNyxt0DzwZAHeiYGOPaEa54dcqBz2X1JP6YXp2OFg+SrIBA5OdJyfJN2W4PK2a/iWUNQ5SaKqOUBZoTXmeGS0gciCJS311FmxMpE4zvn0MUt57FuYPbiiQ2lghXi9ZpiXxv3mB3HBtcx8voziwo27i1sumFM8SlT/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736309502; c=relaxed/simple;
-	bh=tXtynqy/VgVrVqx+kuxzUlWo/ei/V9HW3rsSvzgUyzU=;
-	h=Date:To:From:Subject:Message-Id; b=Zpr3/OCpKH7/D+mp5F/qE2pG/k50hiP+Eut1Oe2kdv8G8YIAD45pKwTuyjBnMy5aFou3tcjmSrawSTdbmk2qMXbLscmrNzQd5w0lU/M5iqxMkU1+x9VC9Qclr3zs9Wp4jUgVAOQR1mQSucoq9AHpG5y2j6ODFe3U917uea+IYAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sZUuVKCL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736309619; c=relaxed/simple;
+	bh=o4fsGY8TUjlhmqp62x6542UktYbjOowelLdmIs0Vkmc=;
+	h=Date:To:From:Subject:Message-Id; b=QE0cJTaXuFQDcCMJIXgR9mXH6b+E3u1/cg0mSJpeQS6GI+ECmhifBGRTytv85jGRMTuap1HZSnbi7l4g5dhPIem4n/wkYOnrPMQMIl6aTgwqCHahICnQnx/nMSPW91cnRQsRhV1AZ4dHehwQjilaH/blo1Sv5TxXBDBsBQtr0nk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u9O4QKGE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sZUuVKCL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4303C4CED0;
-	Wed,  8 Jan 2025 04:11:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u9O4QKGE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 157B6C4CED0;
+	Wed,  8 Jan 2025 04:13:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736309501;
-	bh=tXtynqy/VgVrVqx+kuxzUlWo/ei/V9HW3rsSvzgUyzU=;
+	s=korg; t=1736309619;
+	bh=o4fsGY8TUjlhmqp62x6542UktYbjOowelLdmIs0Vkmc=;
 	h=Date:To:From:Subject:From;
-	b=sZUuVKCLBWEMtwPQy2ufa04mgXY/6frRvQSJUoGm+K+35aibnFCJ3z8JJE7uND/xo
-	 +0/vy3/BaF6pRC/o3VvQk+PpsUZdTgL4WAKbLdFRqQuoHSw/MiUna+1UqTOv7TukCP
-	 qn4JEcVj6pZKwGCh5UgIXa/8NhlS6ceAzqsAcgHQ=
-Date: Tue, 07 Jan 2025 20:11:41 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
+	b=u9O4QKGERQLnIeZfP+EgXoJiqxztUulXGZr0K9tCB+PVhehKWeE8MqFNCtMBzAJlT
+	 pEOByHIXMpc43VzNkgk1rmByHQOZU2rao7PHMMtFOwzHiLe+uggp8z2XB/hBzEPXfu
+	 F3c9P11jIgAtM8cijAVgZEyCGGiRn/QE/0oLT8Mk=
+Date: Tue, 07 Jan 2025 20:13:38 -0800
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-remove-parameter-parent_fe_bh-from-__ocfs2_mknod_locked.patch added to mm-nonmm-unstable branch
-Message-Id: <20250108041141.D4303C4CED0@smtp.kernel.org>
+Subject: + nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch added to mm-nonmm-unstable branch
+Message-Id: <20250108041339.157B6C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: remove parameter parent_fe_bh from __ocfs2_mknod_locked
+     Subject: nilfs2: do not force clear folio if buffer is referenced
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-remove-parameter-parent_fe_bh-from-__ocfs2_mknod_locked.patch
+     nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-parameter-parent_fe_bh-from-__ocfs2_mknod_locked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Su Yue <glass.su@suse.com>
-Subject: ocfs2: remove parameter parent_fe_bh from __ocfs2_mknod_locked
-Date: Mon, 6 Jan 2025 22:06:34 +0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: do not force clear folio if buffer is referenced
+Date: Wed, 8 Jan 2025 05:00:46 +0900
 
-The parameter is not used in __ocfs2_mknod_locked().  So remove it.
+Patch series "nilfs2: protect busy buffer heads from being force-cleared".
 
-No functional change.
+This series fixes the buffer head state inconsistency issues reported by
+syzbot that occurs when the filesystem is corrupted and falls back to
+read-only, and the associated buffer head use-after-free issue.
 
-Link: https://lkml.kernel.org/r/20250106140634.92241-1-glass.su@suse.com
-Signed-off-by: Su Yue <glass.su@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+
+This patch (of 2):
+
+Syzbot has reported that after nilfs2 detects filesystem corruption and
+falls back to read-only, inconsistencies in the buffer state may occur.
+
+One of the inconsistencies is that when nilfs2 calls mark_buffer_dirty()
+to set a data or metadata buffer as dirty, but it detects that the buffer
+is not in the uptodate state:
+
+ WARNING: CPU: 0 PID: 6049 at fs/buffer.c:1177 mark_buffer_dirty+0x2e5/0x520
+  fs/buffer.c:1177
+ ...
+ Call Trace:
+  <TASK>
+  nilfs_palloc_commit_alloc_entry+0x4b/0x160 fs/nilfs2/alloc.c:598
+  nilfs_ifile_create_inode+0x1dd/0x3a0 fs/nilfs2/ifile.c:73
+  nilfs_new_inode+0x254/0x830 fs/nilfs2/inode.c:344
+  nilfs_mkdir+0x10d/0x340 fs/nilfs2/namei.c:218
+  vfs_mkdir+0x2f9/0x4f0 fs/namei.c:4257
+  do_mkdirat+0x264/0x3a0 fs/namei.c:4280
+  __do_sys_mkdirat fs/namei.c:4295 [inline]
+  __se_sys_mkdirat fs/namei.c:4293 [inline]
+  __x64_sys_mkdirat+0x87/0xa0 fs/namei.c:4293
+  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+  do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+The other is when nilfs_btree_propagate(), which propagates the dirty
+state to the ancestor nodes of a b-tree that point to a dirty buffer,
+detects that the origin buffer is not dirty, even though it should be:
+
+ WARNING: CPU: 0 PID: 5245 at fs/nilfs2/btree.c:2089
+  nilfs_btree_propagate+0xc79/0xdf0 fs/nilfs2/btree.c:2089
+ ...
+ Call Trace:
+  <TASK>
+  nilfs_bmap_propagate+0x75/0x120 fs/nilfs2/bmap.c:345
+  nilfs_collect_file_data+0x4d/0xd0 fs/nilfs2/segment.c:587
+  nilfs_segctor_apply_buffers+0x184/0x340 fs/nilfs2/segment.c:1006
+  nilfs_segctor_scan_file+0x28c/0xa50 fs/nilfs2/segment.c:1045
+  nilfs_segctor_collect_blocks fs/nilfs2/segment.c:1216 [inline]
+  nilfs_segctor_collect fs/nilfs2/segment.c:1540 [inline]
+  nilfs_segctor_do_construct+0x1c28/0x6b90 fs/nilfs2/segment.c:2115
+  nilfs_segctor_construct+0x181/0x6b0 fs/nilfs2/segment.c:2479
+  nilfs_segctor_thread_construct fs/nilfs2/segment.c:2587 [inline]
+  nilfs_segctor_thread+0x69e/0xe80 fs/nilfs2/segment.c:2701
+  kthread+0x2f0/0x390 kernel/kthread.c:389
+  ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+  </TASK>
+
+Both of these issues are caused by the callbacks that handle the
+page/folio write requests, forcibly clear various states, including the
+working state of the buffers they hold, at unexpected times when they
+detect read-only fallback.
+
+Fix these issues by checking if the buffer is referenced before clearing
+the page/folio state, and skipping the clear if it is.
+
+Link: https://lkml.kernel.org/r/20250107200202.6432-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20250107200202.6432-2-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+b2b14916b77acf8626d7@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=b2b14916b77acf8626d7
+Reported-by: syzbot+d98fd19acd08b36ff422@syzkaller.appspotmail.com
+Link: https://syzkaller.appspot.com/bug?extid=d98fd19acd08b36ff422
+Fixes: 8c26c4e2694a ("nilfs2: fix issue with flush kernel thread after remount in RO mode because of driver's internal error or metadata corruption")
+Tested-by: syzbot+b2b14916b77acf8626d7@syzkaller.appspotmail.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/nilfs2/page.c |   31 +++++++++++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 4 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-remove-parameter-parent_fe_bh-from-__ocfs2_mknod_locked
-+++ a/fs/ocfs2/namei.c
-@@ -508,7 +508,6 @@ static int __ocfs2_mknod_locked(struct i
- 				struct inode *inode,
- 				dev_t dev,
- 				struct buffer_head **new_fe_bh,
--				struct buffer_head *parent_fe_bh,
- 				handle_t *handle,
- 				struct ocfs2_alloc_context *inode_ac,
- 				u64 fe_blkno, u64 suballoc_loc, u16 suballoc_bit)
-@@ -641,8 +640,8 @@ static int ocfs2_mknod_locked(struct ocf
+--- a/fs/nilfs2/page.c~nilfs2-do-not-force-clear-folio-if-buffer-is-referenced
++++ a/fs/nilfs2/page.c
+@@ -392,6 +392,11 @@ void nilfs_clear_dirty_pages(struct addr
+ /**
+  * nilfs_clear_folio_dirty - discard dirty folio
+  * @folio: dirty folio that will be discarded
++ *
++ * nilfs_clear_folio_dirty() clears working states including dirty state for
++ * the folio and its buffers.  If the folio has buffers, clear only if it is
++ * confirmed that none of the buffer heads are busy (none have valid
++ * references and none are locked).
+  */
+ void nilfs_clear_folio_dirty(struct folio *folio)
+ {
+@@ -399,10 +404,6 @@ void nilfs_clear_folio_dirty(struct foli
+ 
+ 	BUG_ON(!folio_test_locked(folio));
+ 
+-	folio_clear_uptodate(folio);
+-	folio_clear_mappedtodisk(folio);
+-	folio_clear_checked(folio);
+-
+ 	head = folio_buffers(folio);
+ 	if (head) {
+ 		const unsigned long clear_bits =
+@@ -410,6 +411,25 @@ void nilfs_clear_folio_dirty(struct foli
+ 			 BIT(BH_Async_Write) | BIT(BH_NILFS_Volatile) |
+ 			 BIT(BH_NILFS_Checked) | BIT(BH_NILFS_Redirected) |
+ 			 BIT(BH_Delay));
++		bool busy, invalidated = false;
++
++recheck_buffers:
++		busy = false;
++		bh = head;
++		do {
++			if (atomic_read(&bh->b_count) | buffer_locked(bh)) {
++				busy = true;
++				break;
++			}
++		} while (bh = bh->b_this_page, bh != head);
++
++		if (busy) {
++			if (invalidated)
++				return;
++			invalidate_bh_lrus();
++			invalidated = true;
++			goto recheck_buffers;
++		}
+ 
+ 		bh = head;
+ 		do {
+@@ -419,6 +439,9 @@ void nilfs_clear_folio_dirty(struct foli
+ 		} while (bh = bh->b_this_page, bh != head);
  	}
  
- 	return __ocfs2_mknod_locked(dir, inode, dev, new_fe_bh,
--				    parent_fe_bh, handle, inode_ac,
--				    fe_blkno, suballoc_loc, suballoc_bit);
-+				    handle, inode_ac, fe_blkno,
-+				    suballoc_loc, suballoc_bit);
++	folio_clear_uptodate(folio);
++	folio_clear_mappedtodisk(folio);
++	folio_clear_checked(folio);
+ 	__nilfs_clear_folio_dirty(folio);
  }
  
- static int ocfs2_mkdir(struct mnt_idmap *idmap,
-@@ -2576,7 +2575,7 @@ int ocfs2_create_inode_in_orphan(struct
- 	clear_nlink(inode);
- 	/* do the real work now. */
- 	status = __ocfs2_mknod_locked(dir, inode,
--				      0, &new_di_bh, parent_di_bh, handle,
-+				      0, &new_di_bh, handle,
- 				      inode_ac, di_blkno, suballoc_loc,
- 				      suballoc_bit);
- 	if (status < 0) {
 _
 
-Patches currently in -mm which might be from glass.su@suse.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-ocfs2-check-tl-count-of-truncate-log-inode-in-ocfs2_get_truncate_log_info.patch
-ocfs2-mark-dquot-as-inactive-if-failed-to-start-trans-while-releasing-dquot.patch
-ocfs2-remove-parameter-parent_fe_bh-from-__ocfs2_mknod_locked.patch
+nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch
+nilfs2-protect-access-to-buffers-with-no-active-references.patch
 
