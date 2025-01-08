@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDDB19D8AC
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:36:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90B819D8AC
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:36:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736307368; cv=none; b=Ew8HT3coK/1CyCzSnHdAms00MpuKdqUigj8LM/dtT4sH0NoW4ZXteBVbq8fHJ3+U6IUm4hJtSohVgC0msZNP4jBM9x8lg5t5ON9tA6JQjC+DI4IwYMaWI5QTldvIvrqz6b9sI9VljNqy0jaqIHZlIN0HO/Q9lfsN/EPf7v2Ustw=
+	t=1736307369; cv=none; b=ExwvTzxB5EWEgIdxiMSJ2F3w6M/LC93W2eV1tcjU81H46q5nLJaALv6cVLOXwH2dJbOnxzD0yf+XkLRe4tqaJdGVaDbSnnS7XAlFl2mesY9R7wdJNIgUwq48MZfFTgDmRk0ZIaX3AuG4fTX46W6ucJ0+CL76yLQTQLKYx+XcJiY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736307368; c=relaxed/simple;
-	bh=dmG9A2irqbeYs+cdrEmhpTFW6RiQoukyPtFPBzoMksA=;
-	h=Date:To:From:Subject:Message-Id; b=aDI4PD4n7Wh/SGB8wJEa43u9p/8kza8aBtSI0MeRBpPfZY96j3u8yvTxCnNuWEq2Ib/LciMSkZfrNbvVctpYmm9XvqvlLK6otcHhoc46pM4a7RZ5iHO8ccHPvBMb7RE5TQ+S39i02zebq8MzybBNkwNzY2eNEKVvgbkSZm62Cvs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I6LodCfX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736307369; c=relaxed/simple;
+	bh=X4gZi7/1U3Sunchp8uirIW1KTcBqPylLMLAjx8/RQX0=;
+	h=Date:To:From:Subject:Message-Id; b=NsSAErVt49zAGsRkClenbnVv01kQIp9Q1AvyWYThAdoDCJhuNxqedfHZOP/+vEHk0XrN4NgE8Q8w/VME7VQrzHq2GwhcC0JJbCQkeyMXMHdzaoJW+2M3qNY60JcOFkd613xZroI2My9M5Oa9gdgn7XFEzh8OSc/KD91TgPX6V7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2shYhpFU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I6LodCfX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93053C4CED0;
-	Wed,  8 Jan 2025 03:36:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2shYhpFU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91E78C4CED0;
+	Wed,  8 Jan 2025 03:36:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736307367;
-	bh=dmG9A2irqbeYs+cdrEmhpTFW6RiQoukyPtFPBzoMksA=;
+	s=korg; t=1736307369;
+	bh=X4gZi7/1U3Sunchp8uirIW1KTcBqPylLMLAjx8/RQX0=;
 	h=Date:To:From:Subject:From;
-	b=I6LodCfXs1uMXKNj46GHvpoKV3lQBcIpnSucVI5T0UEUe+byvk2bs/UEfhlJGZ6He
-	 cp43HQsrWbgtb5LYR9pVIXGVXrbjQHTz5qc+BczKxceQePic6qPng1v4p2GxXI1zkk
-	 rrKy3BDjMMJnQyuxGBF3uJKph8VRu4SFqWHo4qZ4=
-Date: Tue, 07 Jan 2025 19:36:07 -0800
+	b=2shYhpFUnVcacxTC+k5z7Fet+YlA9G9cfOkJ5u2e9rvyZpOFNlrEC0QpGMBiv94bi
+	 jSexTZ+jX0vsNooQczzQi4fvfoRUNII+sv4NLCU27a2j0aAw2NzbaiUd5v25Uxo24F
+	 NcG+sWFEMeyxIE+xhT3dzLlOuMYXZw1yweImilZ0=
+Date: Tue, 07 Jan 2025 19:36:09 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,kirill.shutemov@linux.intel.com,hch@lst.de,hannes@cmpxchg.org,clm@meta.com,bfoster@redhat.com,axboe@kernel.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-drop-streaming-uncached-pages-when-writeback-completes.patch added to mm-unstable branch
-Message-Id: <20250108033607.93053C4CED0@smtp.kernel.org>
+Subject: + mm-filemap-add-filemap_fdatawrite_range_kick-helper.patch added to mm-unstable branch
+Message-Id: <20250108033609.91E78C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: drop streaming/uncached pages when writeback completes
+     Subject: mm/filemap: add filemap_fdatawrite_range_kick() helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-drop-streaming-uncached-pages-when-writeback-completes.patch
+     mm-filemap-add-filemap_fdatawrite_range_kick-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-drop-streaming-uncached-pages-when-writeback-completes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-add-filemap_fdatawrite_range_kick-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Jens Axboe <axboe@kernel.dk>
-Subject: mm/filemap: drop streaming/uncached pages when writeback completes
-Date: Fri, 20 Dec 2024 08:47:47 -0700
+Subject: mm/filemap: add filemap_fdatawrite_range_kick() helper
+Date: Fri, 20 Dec 2024 08:47:48 -0700
 
-If the folio is marked as streaming, drop pages when writeback completes. 
-Intended to be used with RWF_DONTCACHE, to avoid needing sync writes for
-uncached IO.
+Works like filemap_fdatawrite_range(), except it's a non-integrity data
+writeback and hence only starts writeback on the specified range.  Will
+help facilitate generically starting uncached writeback from
+generic_write_sync(), as header dependencies preclude doing this inline
+from fs.h.
 
-Link: https://lkml.kernel.org/r/20241220154831.1086649-10-axboe@kernel.dk
+Link: https://lkml.kernel.org/r/20241220154831.1086649-11-axboe@kernel.dk
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Chris Mason <clm@meta.com>
@@ -77,63 +79,48 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ include/linux/fs.h |    2 ++
+ mm/filemap.c       |   18 ++++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
---- a/mm/filemap.c~mm-filemap-drop-streaming-uncached-pages-when-writeback-completes
-+++ a/mm/filemap.c
-@@ -1571,6 +1571,27 @@ int folio_wait_private_2_killable(struct
- }
- EXPORT_SYMBOL(folio_wait_private_2_killable);
+--- a/include/linux/fs.h~mm-filemap-add-filemap_fdatawrite_range_kick-helper
++++ a/include/linux/fs.h
+@@ -2878,6 +2878,8 @@ extern int __must_check file_fdatawait_r
+ extern int __must_check file_check_and_advance_wb_err(struct file *file);
+ extern int __must_check file_write_and_wait_range(struct file *file,
+ 						loff_t start, loff_t end);
++int filemap_fdatawrite_range_kick(struct address_space *mapping, loff_t start,
++		loff_t end);
  
-+/*
-+ * If folio was marked as dropbehind, then pages should be dropped when writeback
-+ * completes. Do that now. If we fail, it's likely because of a big folio -
-+ * just reset dropbehind for that case and latter completions should invalidate.
-+ */
-+static void folio_end_dropbehind_write(struct folio *folio)
-+{
-+	/*
-+	 * Hitting !in_task() should not happen off RWF_DONTCACHE writeback,
-+	 * but can happen if normal writeback just happens to find dirty folios
-+	 * that were created as part of uncached writeback, and that writeback
-+	 * would otherwise not need non-IRQ handling. Just skip the
-+	 * invalidation in that case.
-+	 */
-+	if (in_task() && folio_trylock(folio)) {
-+		if (folio->mapping)
-+			folio_unmap_invalidate(folio->mapping, folio, 0);
-+		folio_unlock(folio);
-+	}
-+}
-+
- /**
-  * folio_end_writeback - End writeback against a folio.
-  * @folio: The folio.
-@@ -1581,6 +1602,8 @@ EXPORT_SYMBOL(folio_wait_private_2_killa
-  */
- void folio_end_writeback(struct folio *folio)
+ static inline int file_write_and_wait(struct file *file)
  {
-+	bool folio_dropbehind = false;
-+
- 	VM_BUG_ON_FOLIO(!folio_test_writeback(folio), folio);
+--- a/mm/filemap.c~mm-filemap-add-filemap_fdatawrite_range_kick-helper
++++ a/mm/filemap.c
+@@ -441,6 +441,24 @@ int filemap_fdatawrite_range(struct addr
+ EXPORT_SYMBOL(filemap_fdatawrite_range);
  
- 	/*
-@@ -1602,9 +1625,14 @@ void folio_end_writeback(struct folio *f
- 	 * reused before the folio_wake_bit().
- 	 */
- 	folio_get(folio);
-+	if (!folio_test_dirty(folio))
-+		folio_dropbehind = folio_test_clear_dropbehind(folio);
- 	if (__folio_end_writeback(folio))
- 		folio_wake_bit(folio, PG_writeback);
- 	acct_reclaim_writeback(folio);
+ /**
++ * filemap_fdatawrite_range_kick - start writeback on a range
++ * @mapping:	target address_space
++ * @start:	index to start writeback on
++ * @end:	last (non-inclusive) index for writeback
++ *
++ * This is a non-integrity writeback helper, to start writing back folios
++ * for the indicated range.
++ *
++ * Return: %0 on success, negative error code otherwise.
++ */
++int filemap_fdatawrite_range_kick(struct address_space *mapping, loff_t start,
++				  loff_t end)
++{
++	return __filemap_fdatawrite_range(mapping, start, end, WB_SYNC_NONE);
++}
++EXPORT_SYMBOL_GPL(filemap_fdatawrite_range_kick);
 +
-+	if (folio_dropbehind)
-+		folio_end_dropbehind_write(folio);
- 	folio_put(folio);
- }
- EXPORT_SYMBOL(folio_end_writeback);
++/**
+  * filemap_flush - mostly a non-blocking flush
+  * @mapping:	target address_space
+  *
 _
 
 Patches currently in -mm which might be from axboe@kernel.dk are
