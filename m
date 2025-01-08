@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4A2A19CC0C
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:55:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29CD219CC02
+	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 03:55:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736308500; cv=none; b=gb7Ez4QV1Gav1DtCOOdJYEvXyuJw9Wc6P3fSSafeYwpnpGfef9xpHJKSaUuM1WPdgxQwmKJ3Vg/dGsr18s+Bv+4IrVSDIKtXqzpfT826CWEwLDJLMCb+QpiwuvHmVukE74zxBFBd9n8QdbTyCts4GvbKwKqc3OJL8Em+CpwYrmU=
+	t=1736308502; cv=none; b=bC8ie5Unh7iP9i2hoDEaBK5E10VLXzDKvp0KFV6nFclEAqTnHbG/IEPSNdBzq7MGNRwho/+Y+PbutCgt4BqKC80r+HynHmJur7G3VymRzv3w1WulpwaO0ZO+xbVl8SX9q5wy3kg0e98CdkIeoH0lTUrE7pLVVs1Oxf+T6Txw9qA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736308500; c=relaxed/simple;
-	bh=+4NfAdgoxGv4XwTlDsCIU45+yhRav+SKhDvWuAaFWHw=;
-	h=Date:To:From:Subject:Message-Id; b=SkU/lx6RwySTFL5pePKk5koy1A1EznFWr8OB+rWootItK7UoJBcEtoukKQbNHu/600IZ5Ynyth3GvDvoIy7SulOgaKtqzn6wUweOdZlOvlyplUd0MQ+DHSKkFn0oaXpCHZLNQWeL0VvFelbOhYmOk0dcJmYencCV7L7z5nvI8+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hGqXlqPY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736308502; c=relaxed/simple;
+	bh=SRU6r2/GpSsTes0vlKuvjS6ZWTT9D6OFtBlUZ5B9+k0=;
+	h=Date:To:From:Subject:Message-Id; b=M8SmV42u/RPllOKHx/XU1GWrNlASfw0fspdmqvsUKLUPNzgHyPOo6U4xxwb1hBYwzUmfn5sntG5UalsMPUq2P/U5DV1KCn6bhHkUjmpmk6INM6A6ZaALbxo6RoHMZDrfttm3BPtw1XhapO3EGywbffHEYvdMA+y7zPJ1a1ewyrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YLSNRJ6/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hGqXlqPY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D055C4CED0;
-	Wed,  8 Jan 2025 03:55:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YLSNRJ6/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBB71C4CED0;
+	Wed,  8 Jan 2025 03:55:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736308500;
-	bh=+4NfAdgoxGv4XwTlDsCIU45+yhRav+SKhDvWuAaFWHw=;
+	s=korg; t=1736308502;
+	bh=SRU6r2/GpSsTes0vlKuvjS6ZWTT9D6OFtBlUZ5B9+k0=;
 	h=Date:To:From:Subject:From;
-	b=hGqXlqPYVcDqXlptSacwZ9Yf8ubDtNTl8RHMLW039lzIZyqaFiQOBgWmos3Hs2Pg+
-	 OP9wKAsJ67vYUFLnPUmjE7S1cqZ5G9guqsfupdhGAC7rCWCqhe5nL9OwOv/FJtraFs
-	 RKU/rTQJS4mI/uTTZefzY4uam+9WqXiiEKD/aYoM=
-Date: Tue, 07 Jan 2025 19:54:59 -0800
+	b=YLSNRJ6/AcPkvPdMq7ZBy+ML1HwGpPA7DvfllPF9lvYHWlrLcmp2APruYcNOAQYni
+	 kfpii1cuv9UuHIeS7dVLQ4z3tg+csRNIN03WXNIaTCVDX0CTfy8zGKt9n6TB5Fe2Sw
+	 8348AfXrfuke4b9U9zIzxIfrEdpWhUkyd8FwcVxY=
+Date: Tue, 07 Jan 2025 19:55:01 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-pass.patch added to mm-unstable branch
-Message-Id: <20250108035500.0D055C4CED0@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-pass-block-filters-behaviors.patch added to mm-unstable branch
+Message-Id: <20250108035501.EBB71C4CED0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: add a file for setting damos_filter->pass
+     Subject: Docs/mm/damon/design: document pass/block filters behaviors
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-pass.patch
+     docs-mm-damon-design-document-pass-block-filters-behaviors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-pass.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-pass-block-filters-behaviors.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,91 +59,71 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: add a file for setting damos_filter->pass
-Date: Tue, 7 Jan 2025 12:17:35 -0800
+Subject: Docs/mm/damon/design: document pass/block filters behaviors
+Date: Tue, 7 Jan 2025 12:17:36 -0800
 
-Only kernel-space DAMON API users can use inclusive DAMOS filters.  Add a
-sysfs file named 'pass' under DAMOS filter directory of DAMON sysfs
-interface, to let the user-space users use inclusive DAMOS filters.
+Update DAMOS filters design document to describe the pass/block behavior
+of filters.
 
-Link: https://lkml.kernel.org/r/20250107201739.79484-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250107201739.79484-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   32 +++++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |   34 ++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-pass
-+++ a/mm/damon/sysfs-schemes.c
-@@ -313,6 +313,7 @@ struct damon_sysfs_scheme_filter {
- 	struct kobject kobj;
- 	enum damos_filter_type type;
- 	bool matching;
-+	bool pass;
- 	char *memcg_path;
- 	struct damon_addr_range addr_range;
- 	int target_idx;
-@@ -385,6 +386,30 @@ static ssize_t matching_store(struct kob
- 	return count;
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-pass-block-filters-behaviors
++++ a/Documentation/mm/damon/design.rst
+@@ -504,9 +504,35 @@ have a list of latency-critical processe
  
-+static ssize_t pass_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
+ To let users optimize DAMOS schemes with such special knowledge, DAMOS provides
+ a feature called DAMOS filters.  The feature allows users to set an arbitrary
+-number of filters for each scheme.  Each filter specifies the type of target
+-memory, and whether it should exclude the memory of the type (filter-out), or
+-all except the memory of the type (filter-in).
++number of filters for each scheme.  Each filter specifies
 +
-+	return sysfs_emit(buf, "%c\n", filter->pass ? 'Y' : 'N');
-+}
++- a type of memory (``type``),
++- whether it is for the memory of the type or all except the type
++  (``matching``), and
++- whether it is to allow (pass through the filter) or reject (block) applying
++  the scheme's action to the memory (``pass``).
 +
-+static ssize_t pass_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+	bool pass;
-+	int err = kstrtobool(buf, &pass);
++When multiple filters are installed, each filter is evaluated in the installed
++order.  If a part of memory is matched to one of the filter, next filters are
++ignored.  If a part of memory is not matched to any of the filters, the default
++behavior is applied.  That is, as long as it fulfills other conditions of the
++scheme including the access pattern and quotas, the action will be applied to
++the part of the memory.
 +
-+	if (err)
-+		return err;
++For example, let's assume 1) a filter for passing anonymous pages and 2)
++another filter for blocking young pages are installed in the order.  If a page
++of a region that eligible to apply the scheme's action is an anonymous page,
++the scheme's action will be applied to the page regardless of whether it is
++young or not, since it matches with the first filter.  If the page is not
++anonymous but young, the scheme's action will not be applied, since the second
++filter blocks it.  If the page is neither anonymous nor young, no filter is
++involved, so the action will be applied to the page.
 +
-+	filter->pass = pass;
-+	return count;
-+}
-+
- static ssize_t memcg_path_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
-@@ -482,6 +507,9 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_scheme_filter_matching_attr =
- 		__ATTR_RW_MODE(matching, 0600);
++The fact that the action can be applied to any memory as long as no block
++filter explicitly excluded it means that installing pass filters without any
++block filter after those is same to not installing the pass filters, in terms
++of the ``action`` applying.  Statistics for DAMOS filters will still be
++accounted, though.  It is therefore still useful for monitoring purpose.
  
-+static struct kobj_attribute damon_sysfs_scheme_filter_pass_attr =
-+		__ATTR_RW_MODE(pass, 0600);
-+
- static struct kobj_attribute damon_sysfs_scheme_filter_memcg_path_attr =
- 		__ATTR_RW_MODE(memcg_path, 0600);
+ For efficient handling of filters, some types of filters are handled by the
+ core layer, while others are handled by operations set.  In the latter case,
+@@ -516,7 +542,7 @@ filter are not counted as the scheme has
+ a memory regions is filtered by an operations set layer-handled filter, it is
+ counted as the scheme has tried.  This difference affects the statistics.
  
-@@ -497,6 +525,7 @@ static struct kobj_attribute damon_sysfs
- static struct attribute *damon_sysfs_scheme_filter_attrs[] = {
- 	&damon_sysfs_scheme_filter_type_attr.attr,
- 	&damon_sysfs_scheme_filter_matching_attr.attr,
-+	&damon_sysfs_scheme_filter_pass_attr.attr,
- 	&damon_sysfs_scheme_filter_memcg_path_attr.attr,
- 	&damon_sysfs_scheme_filter_addr_start_attr.attr,
- 	&damon_sysfs_scheme_filter_addr_end_attr.attr,
-@@ -1901,7 +1930,8 @@ static int damon_sysfs_add_scheme_filter
- 			sysfs_filters->filters_arr[i];
- 		struct damos_filter *filter =
- 			damos_new_filter(sysfs_filter->type,
--					sysfs_filter->matching, false);
-+					sysfs_filter->matching,
-+					sysfs_filter->pass);
- 		int err;
+-Below types of filters are currently supported.
++Below ``type`` of filters are currently supported.
  
- 		if (!filter)
+ - anonymous page
+     - Applied to pages that containing data that not stored in files.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
