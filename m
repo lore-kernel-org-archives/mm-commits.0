@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A9942144D0
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:44:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 559AA143888
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736401460; cv=none; b=VbKAt6ChEpzVf0duj0pRhgnq9uEtKItcOQ0sEqFygWe/BvSMjAA8rvIKbhhs3xon5/5yN4Ow1JrSguX1X1imA83GSs9G9cwDtiXhUzxzZpDp0HrnCIupsJKVcyWCv3ORsu+IJaUZklLQutYIEnC4RDSchAJoP5wZcxVQ4TdthaA=
+	t=1736401464; cv=none; b=SGhoh+nLgf5c6Qvsn6q/Db2VEjJWbaim10MaK3RrB5/EINsoHPNvZZVj5IjHtYFrJoYBZs69kq7NOxAgseWpl5rWFCUSDDberX6+vCyxP10zNVkz6J5B7gPmTz2+Pi8THSFNHfe96JB+67AEJ3ZVcc8YouBRQFm97WtEuv5DtVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736401460; c=relaxed/simple;
-	bh=W83eKNndA8Cy66IB+4Kq1kSv9Wh4GiOZXdLjYU/u168=;
-	h=Date:To:From:Subject:Message-Id; b=FK+Zf3IPWFmfsOM7UEigcWcPuAQDpmjbp42PT7563HBnTmWmQSAOu7SXdDliOMbPbBWiMEKsAAU6KUiwJYMdCyzFRgyLz4b1aa01aMfmJxg+BqLMTa3PxWfY8eRFDwEG1DpYqWCBWALs8zM09lXquvHvOrznNXlzVxvrM2vgC/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ozc1ZHnH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736401464; c=relaxed/simple;
+	bh=z7YPL9LQFMCkM28IViksgGzE1anJFubUJpTVMM3Sq/s=;
+	h=Date:To:From:Subject:Message-Id; b=nOt7Mj5n4mZCJC4ZrdaXxRuSumL0TcZ7RCkLIWTP0Oh0HtX0IOoLE+vLoqPiftFjKsvJJH+x80S3KiOim6mp+SY4k/w17VDCqGECrHmnznvBa6fXtXFzGhsfmBIx5fJtPoUkDS+bWOkTZ2hXNKrml/SCtRBlhFwuYJL3Wt1TFxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xviziUfm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ozc1ZHnH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8217EC4CED2;
-	Thu,  9 Jan 2025 05:44:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xviziUfm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6178C4CED2;
+	Thu,  9 Jan 2025 05:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736401459;
-	bh=W83eKNndA8Cy66IB+4Kq1kSv9Wh4GiOZXdLjYU/u168=;
+	s=korg; t=1736401463;
+	bh=z7YPL9LQFMCkM28IViksgGzE1anJFubUJpTVMM3Sq/s=;
 	h=Date:To:From:Subject:From;
-	b=ozc1ZHnHSAwKJUMpkJMebefSDSr5OhFuP34sHxsLntgUx/N9GHN/eG9h+1TZ7NWa1
-	 zz/FNu1sn72ubIn1qnfNjghbvZhPtGBj47YhVJWOCfhtdL1TVNCObYWj5JTZ4w7bXU
-	 YXqH/664X52Iy8woyRC5Qp9IMDuZXLV9aHETqK8Y=
-Date: Wed, 08 Jan 2025 21:44:18 -0800
+	b=xviziUfmxdcDIBRse45Sz+ldVps6+JA7WwmP/cxdr9xIrZWvTF++zXYgl/6L+me0H
+	 8jSlVoR+zAgN+n3OLktkWYV1+G0n6JYf2bXn29eGOwcnaFzjeqdFaB5SgGLj8WayWg
+	 zVocZsS6A1yICDGNQzDw9Ot2/MrP7gkS2g93vs8I=
+Date: Wed, 08 Jan 2025 21:44:23 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch added to mm-unstable branch
-Message-Id: <20250109054419.8217EC4CED2@smtp.kernel.org>
+Subject: + mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch added to mm-unstable branch
+Message-Id: <20250109054423.A6178C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mark vma as detached until it's added into vma tree
+     Subject: mm: introduce vma_iter_store_attached() to use with attached vmas
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+     mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: mark vma as detached until it's added into vma tree
-Date: Wed, 8 Jan 2025 18:30:12 -0800
+Subject: mm: introduce vma_iter_store_attached() to use with attached vmas
+Date: Wed, 8 Jan 2025 18:30:13 -0800
 
-Current implementation does not set detached flag when a VMA is first
-allocated.  This does not represent the real state of the VMA, which is
-detached until it is added into mm's VMA tree.  Fix this by marking new
-VMAs as detached and resetting detached flag only after VMA is added into
-a tree.
+vma_iter_store() functions can be used both when adding a new vma and when
+updating an existing one.  However for existing ones we do not need to
+mark them attached as they are already marked that way.  Introduce
+vma_iter_store_attached() to be used with already attached vmas.
 
-Introduce vma_mark_attached() to make the API more readable and to
-simplify possible future cleanup when vma->vm_mm might be used to indicate
-detached vma and vma_mark_attached() will need an additional mm parameter.
-
-Link: https://lkml.kernel.org/r/20250109023025.2242447-4-surenb@google.com
+Link: https://lkml.kernel.org/r/20250109023025.2242447-5-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -88,7 +79,9 @@ Cc: Jann Horn <jannh@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -99,192 +92,112 @@ Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |   27 ++++++++++++++++++++-------
- kernel/fork.c                    |    4 ++++
- mm/memory.c                      |    2 +-
- mm/vma.c                         |    6 +++---
- mm/vma.h                         |    2 ++
- tools/testing/vma/vma_internal.h |   17 ++++++++++++-----
- 6 files changed, 42 insertions(+), 16 deletions(-)
+ include/linux/mm.h |   12 ++++++++++++
+ mm/vma.c           |    8 ++++----
+ mm/vma.h           |   11 +++++++++--
+ 3 files changed, 25 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm.h~mm-mark-vma-as-detached-until-its-added-into-vma-tree
+--- a/include/linux/mm.h~mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas
 +++ a/include/linux/mm.h
-@@ -821,12 +821,21 @@ static inline void vma_assert_locked(str
+@@ -821,6 +821,16 @@ static inline void vma_assert_locked(str
  		vma_assert_write_locked(vma);
  }
  
--static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
-+static inline void vma_mark_attached(struct vm_area_struct *vma)
++static inline void vma_assert_attached(struct vm_area_struct *vma)
 +{
-+	vma->detached = false;
++	VM_BUG_ON_VMA(vma->detached, vma);
 +}
 +
-+static inline void vma_mark_detached(struct vm_area_struct *vma)
++static inline void vma_assert_detached(struct vm_area_struct *vma)
++{
++	VM_BUG_ON_VMA(!vma->detached, vma);
++}
++
+ static inline void vma_mark_attached(struct vm_area_struct *vma)
  {
- 	/* When detaching vma should be write-locked */
--	if (detached)
--		vma_assert_write_locked(vma);
--	vma->detached = detached;
-+	vma_assert_write_locked(vma);
-+	vma->detached = true;
-+}
-+
-+static inline bool is_vma_detached(struct vm_area_struct *vma)
-+{
-+	return vma->detached;
- }
- 
- static inline void release_fault_lock(struct vm_fault *vmf)
-@@ -857,8 +866,8 @@ static inline void vma_end_read(struct v
+ 	vma->detached = false;
+@@ -866,6 +876,8 @@ static inline void vma_end_read(struct v
  static inline void vma_start_write(struct vm_area_struct *vma) {}
  static inline void vma_assert_write_locked(struct vm_area_struct *vma)
  		{ mmap_assert_write_locked(vma->vm_mm); }
--static inline void vma_mark_detached(struct vm_area_struct *vma,
--				     bool detached) {}
-+static inline void vma_mark_attached(struct vm_area_struct *vma) {}
-+static inline void vma_mark_detached(struct vm_area_struct *vma) {}
++static inline void vma_assert_attached(struct vm_area_struct *vma) {}
++static inline void vma_assert_detached(struct vm_area_struct *vma) {}
+ static inline void vma_mark_attached(struct vm_area_struct *vma) {}
+ static inline void vma_mark_detached(struct vm_area_struct *vma) {}
  
- static inline struct vm_area_struct *lock_vma_under_rcu(struct mm_struct *mm,
- 		unsigned long address)
-@@ -891,7 +900,10 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &vma_dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
--	vma_mark_detached(vma, false);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	/* vma is not locked, can't use vma_mark_detached() */
-+	vma->detached = true;
-+#endif
- 	vma_numab_state_init(vma);
- 	vma_lock_init(vma);
- }
-@@ -1086,6 +1098,7 @@ static inline int vma_iter_bulk_store(st
- 	if (unlikely(mas_is_err(&vmi->mas)))
- 		return -ENOMEM;
- 
-+	vma_mark_attached(vma);
- 	return 0;
- }
- 
---- a/kernel/fork.c~mm-mark-vma-as-detached-until-its-added-into-vma-tree
-+++ a/kernel/fork.c
-@@ -465,6 +465,10 @@ struct vm_area_struct *vm_area_dup(struc
- 	data_race(memcpy(new, orig, sizeof(*new)));
- 	vma_lock_init(new);
- 	INIT_LIST_HEAD(&new->anon_vma_chain);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	/* vma is not locked, can't use vma_mark_detached() */
-+	new->detached = true;
-+#endif
- 	vma_numab_state_init(new);
- 	dup_anon_vma_name(orig, new);
- 
---- a/mm/memory.c~mm-mark-vma-as-detached-until-its-added-into-vma-tree
-+++ a/mm/memory.c
-@@ -6349,7 +6349,7 @@ retry:
- 		goto inval;
- 
- 	/* Check if the VMA got isolated after we found it */
--	if (vma->detached) {
-+	if (is_vma_detached(vma)) {
- 		vma_end_read(vma);
- 		count_vm_vma_lock_event(VMA_LOCK_MISS);
- 		/* The area was replaced with another one */
---- a/mm/vma.c~mm-mark-vma-as-detached-until-its-added-into-vma-tree
+--- a/mm/vma.c~mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas
 +++ a/mm/vma.c
-@@ -327,7 +327,7 @@ static void vma_complete(struct vma_prep
+@@ -660,14 +660,14 @@ static int commit_merge(struct vma_merge
+ 	vma_set_range(vmg->vma, vmg->start, vmg->end, vmg->pgoff);
  
- 	if (vp->remove) {
- again:
--		vma_mark_detached(vp->remove, true);
-+		vma_mark_detached(vp->remove);
- 		if (vp->file) {
- 			uprobe_munmap(vp->remove, vp->remove->vm_start,
- 				      vp->remove->vm_end);
-@@ -1220,7 +1220,7 @@ static void reattach_vmas(struct ma_stat
+ 	if (expanded)
+-		vma_iter_store(vmg->vmi, vmg->vma);
++		vma_iter_store_attached(vmg->vmi, vmg->vma);
  
- 	mas_set(mas_detach, 0);
- 	mas_for_each(mas_detach, vma, ULONG_MAX)
--		vma_mark_detached(vma, false);
-+		vma_mark_attached(vma);
+ 	if (adj_start) {
+ 		adjust->vm_start += adj_start;
+ 		adjust->vm_pgoff += PHYS_PFN(adj_start);
+ 		if (adj_start < 0) {
+ 			WARN_ON(expanded);
+-			vma_iter_store(vmg->vmi, adjust);
++			vma_iter_store_attached(vmg->vmi, adjust);
+ 		}
+ 	}
  
- 	__mt_destroy(mas_detach->tree);
- }
-@@ -1295,7 +1295,7 @@ static int vms_gather_munmap_vmas(struct
- 		if (error)
- 			goto munmap_gather_failed;
+@@ -2785,7 +2785,7 @@ int expand_upwards(struct vm_area_struct
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				/* Overwrite old entry in mtree. */
+-				vma_iter_store(&vmi, vma);
++				vma_iter_store_attached(&vmi, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
  
--		vma_mark_detached(next, true);
-+		vma_mark_detached(next);
- 		nrpages = vma_pages(next);
+ 				perf_event_mmap(vma);
+@@ -2865,7 +2865,7 @@ int expand_downwards(struct vm_area_stru
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				/* Overwrite old entry in mtree. */
+-				vma_iter_store(&vmi, vma);
++				vma_iter_store_attached(&vmi, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
  
- 		vms->nr_pages += nrpages;
---- a/mm/vma.h~mm-mark-vma-as-detached-until-its-added-into-vma-tree
+ 				perf_event_mmap(vma);
+--- a/mm/vma.h~mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas
 +++ a/mm/vma.h
-@@ -157,6 +157,7 @@ static inline int vma_iter_store_gfp(str
- 	if (unlikely(mas_is_err(&vmi->mas)))
- 		return -ENOMEM;
- 
-+	vma_mark_attached(vma);
- 	return 0;
+@@ -365,9 +365,10 @@ static inline struct vm_area_struct *vma
  }
  
-@@ -389,6 +390,7 @@ static inline void vma_iter_store(struct
+ /* Store a VMA with preallocated memory */
+-static inline void vma_iter_store(struct vma_iterator *vmi,
+-				  struct vm_area_struct *vma)
++static inline void vma_iter_store_attached(struct vma_iterator *vmi,
++					   struct vm_area_struct *vma)
+ {
++	vma_assert_attached(vma);
+ 
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ 	if (MAS_WARN_ON(&vmi->mas, vmi->mas.status != ma_start &&
+@@ -390,7 +391,13 @@ static inline void vma_iter_store(struct
  
  	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
  	mas_store_prealloc(&vmi->mas, vma);
-+	vma_mark_attached(vma);
++}
++
++static inline void vma_iter_store(struct vma_iterator *vmi,
++				  struct vm_area_struct *vma)
++{
+ 	vma_mark_attached(vma);
++	vma_iter_store_attached(vmi, vma);
  }
  
  static inline unsigned long vma_iter_addr(struct vma_iterator *vmi)
---- a/tools/testing/vma/vma_internal.h~mm-mark-vma-as-detached-until-its-added-into-vma-tree
-+++ a/tools/testing/vma/vma_internal.h
-@@ -465,13 +465,17 @@ static inline void vma_lock_init(struct
- 	vma->vm_lock_seq = UINT_MAX;
- }
- 
-+static inline void vma_mark_attached(struct vm_area_struct *vma)
-+{
-+	vma->detached = false;
-+}
-+
- static inline void vma_assert_write_locked(struct vm_area_struct *);
--static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
-+static inline void vma_mark_detached(struct vm_area_struct *vma)
- {
- 	/* When detaching vma should be write-locked */
--	if (detached)
--		vma_assert_write_locked(vma);
--	vma->detached = detached;
-+	vma_assert_write_locked(vma);
-+	vma->detached = true;
- }
- 
- extern const struct vm_operations_struct vma_dummy_vm_ops;
-@@ -484,7 +488,8 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &vma_dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
--	vma_mark_detached(vma, false);
-+	/* vma is not locked, can't use vma_mark_detached() */
-+	vma->detached = true;
- 	vma_lock_init(vma);
- }
- 
-@@ -510,6 +515,8 @@ static inline struct vm_area_struct *vm_
- 	memcpy(new, orig, sizeof(*new));
- 	vma_lock_init(new);
- 	INIT_LIST_HEAD(&new->anon_vma_chain);
-+	/* vma is not locked, can't use vma_mark_detached() */
-+	new->detached = true;
- 
- 	return new;
- }
 _
 
 Patches currently in -mm which might be from surenb@google.com are
