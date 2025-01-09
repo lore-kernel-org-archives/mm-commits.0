@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37163748D
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 04:10:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45063748D
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 04:10:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736395836; cv=none; b=g9GJwPQ4Rg9sdn9ovt/eHN0O4JByXCaZWk4lvfAHAeRlI5cD93Dm4TY1EAtNpERitOq7VYjnQTUIBy8cA8usJne+ArKGjyibPIUgZAOwfulEcpY0vAVAGLnA1C76w5+j4J5ui+OswfD8UkQw3vYeXSDPIU0oMz1z4KJBPm+shcI=
+	t=1736395839; cv=none; b=oOP4lYHA2ER+6WQMNi386FJ755NVsmR9cwdrBeX8OkB2VCl9CnaQ++qB1c7adr73dOYXQVrM518EaiD98fS5XelY5iDVDAle/Yo119HxGyfP1rNxLpAOHZynsn/f54994tTMlGuDfJWClx0byrta2axaY5ADOityuZc1T/QUrHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736395836; c=relaxed/simple;
-	bh=BqCM9QWWf/kDHjjw40J1YOP1RdUZTO2HPPLbS45suFc=;
-	h=Date:To:From:Subject:Message-Id; b=KpXnivxR0uWy5h6RpNCWjNUTCzfEPSbQSgjrz2SofdeytaUs2aLHvbehaLLWMJF60UetyV578+WCrtBAYZmZPI6jzlQNyEIzzrpK9kH829e0pnHhw9lrY/EAoLOl6MJn02BM/moWgpzH3FwDP25zSFE7nGNxnQI7q2pMK/ZZeWw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f63SkzFv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736395839; c=relaxed/simple;
+	bh=3ETcQZ3cv27wby1Mrn4Y8wHdxoidjuqW27WmGbiEWnw=;
+	h=Date:To:From:Subject:Message-Id; b=RjmlbCMslFpE1OiFWvynp/lxf67NUCbkj5DVZXKk0kPfdl+sWuCi8c1yaDTaEZoMe1qaktqu2NQhbOCMGBcrZ3Bsg6TCZKvN3PnmnEYnPDn0ka3MnaSB1mqHp5TcPorTVsxDHveVZwVDQFlr7/1zqac7jergAH6jcng8EbzEvEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k4xPYvNt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f63SkzFv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A78C4CED2;
-	Thu,  9 Jan 2025 04:10:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k4xPYvNt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9C04C4CED2;
+	Thu,  9 Jan 2025 04:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736395835;
-	bh=BqCM9QWWf/kDHjjw40J1YOP1RdUZTO2HPPLbS45suFc=;
+	s=korg; t=1736395838;
+	bh=3ETcQZ3cv27wby1Mrn4Y8wHdxoidjuqW27WmGbiEWnw=;
 	h=Date:To:From:Subject:From;
-	b=f63SkzFvRtWZZdk10Kl8VVAVI2Vhu6cPUai3ZYAU0iQUSlM/hurRY3pFE+60jlzXT
-	 +d57UzrB3sb9a+OAHlQbbMxZCv00IMArBkjhDque5yS6xMpcqQ48bwZ7u6LAUfvCze
-	 C/8ZR4EM9uVHWP+vZ/qBDYsQWrKO8pt8ne+MT1T0=
-Date: Wed, 08 Jan 2025 20:10:34 -0800
+	b=k4xPYvNtV/aP0MwWBJhsoBJVXucaK2t/3qbAnx9J3k/sEMIZJh46u+Tp6gE/Mny34
+	 ghJtWK9JPS2ldfmA5AO0tgATh8lYXB14MIO8SLYCV6fL6ADIkoOyTLoybS8F3qC+lC
+	 xQCuUDLnVBiXmMnLW7oFjoacumeOuxR7AAK8jsTM=
+Date: Wed, 08 Jan 2025 20:10:38 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,mgorman@techsingularity.net,linyunsheng@huawei.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch added to mm-unstable branch
-Message-Id: <20250109041035.B3A78C4CED2@smtp.kernel.org>
+Subject: + mm-alloc_pages_bulk-rename-api.patch added to mm-unstable branch
+Message-Id: <20250109041038.B9C04C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: alloc_pages_bulk_noprof: drop page_list argument
+     Subject: mm: alloc_pages_bulk: rename API
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch
+     mm-alloc_pages_bulk-rename-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_pages_bulk-rename-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm: alloc_pages_bulk_noprof: drop page_list argument
-Date: Mon, 23 Dec 2024 17:00:37 -0500
+Subject: mm: alloc_pages_bulk: rename API
+Date: Mon, 23 Dec 2024 17:00:38 -0500
 
-Patch series "mm: alloc_pages_bulk: small API refactor", v2.
+The previous commit removed the page_list argument from
+alloc_pages_bulk_noprof() along with the alloc_pages_bulk_list() function.
 
-Today, alloc_pages_bulk_noprof() supports two arguments to return
-allocated pages: a linked list and an array.  There are also higher level
-APIs for both.
+Now that only the *_array() flavour of the API remains, we can do the
+following renaming (along with the _noprof() ones):
 
-However, the linked list API has apparently never been used.  So, this
-series removes it along with the list API and also refactors the remaining
-API naming for consistency.
+  alloc_pages_bulk_array -> alloc_pages_bulk
+  alloc_pages_bulk_array_mempolicy -> alloc_pages_bulk_mempolicy
+  alloc_pages_bulk_array_node -> alloc_pages_bulk_node
 
-
-This patch (of 2):
-
-commit 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator") added
-__alloc_pages_bulk() along with the page_list argument.  The next commit
-0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk
-page allocator") added the array-based argument.  As it turns out, the
-page_list argument has no users in the current tree (if it ever had any). 
-Dropping it allows for a slight simplification and eliminates some
-unnecessary checks, now that page_array is required.
-
-Also, note that the removal of the page_list argument was proposed before
-in the thread below, where Matthew Wilcox mentions that:
-
-  """
-  Iterating a linked list is _expensive_.  It is about 10x quicker to
-  iterate an array than a linked list.
-  """
-  (https://lore.kernel.org/linux-mm/20231025093254.xvomlctwhcuerzky@techsingularity.net)
-
-Link: https://lkml.kernel.org/r/cover.1734991165.git.luizcap@redhat.com
-Link: https://lkml.kernel.org/r/f1c75db91d08cafd211eca6a3b199b629d4ffe16.1734991165.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/275a3bbc0be20fbe9002297d60045e67ab3d4ada.1734991165.git.luizcap@redhat.com
 Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -102,196 +81,353 @@ Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    8 ++------
- mm/mempolicy.c      |   14 +++++++-------
- mm/page_alloc.c     |   39 ++++++++++++---------------------------
- 3 files changed, 21 insertions(+), 40 deletions(-)
+ drivers/staging/media/atomisp/pci/hmm/hmm_bo.c |    4 ++--
+ drivers/vfio/pci/mlx5/cmd.c                    |   14 +++++++-------
+ drivers/vfio/pci/virtio/migrate.c              |    6 +++---
+ fs/btrfs/extent_io.c                           |    2 +-
+ fs/erofs/zutil.c                               |    4 ++--
+ fs/splice.c                                    |    2 +-
+ fs/xfs/xfs_buf.c                               |    4 ++--
+ include/linux/gfp.h                            |   14 +++++++-------
+ kernel/bpf/arena.c                             |    2 +-
+ lib/alloc_tag.c                                |    4 ++--
+ lib/kunit_iov_iter.c                           |    2 +-
+ lib/test_vmalloc.c                             |    2 +-
+ mm/mempolicy.c                                 |   14 +++++++-------
+ mm/vmalloc.c                                   |    4 ++--
+ net/core/page_pool.c                           |    7 +++----
+ net/sunrpc/svc.c                               |    4 ++--
+ net/sunrpc/svc_xprt.c                          |    3 +--
+ 17 files changed, 45 insertions(+), 47 deletions(-)
 
---- a/include/linux/gfp.h~mm-alloc_pages_bulk_noprof-drop-page_list-argument
-+++ a/include/linux/gfp.h
-@@ -212,7 +212,6 @@ struct folio *__folio_alloc_noprof(gfp_t
+--- a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c~mm-alloc_pages_bulk-rename-api
++++ a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c
+@@ -624,10 +624,10 @@ static int alloc_private_pages(struct hm
+ 	const gfp_t gfp = __GFP_NOWARN | __GFP_RECLAIM | __GFP_FS;
+ 	int ret;
  
- unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
- 				nodemask_t *nodemask, int nr_pages,
--				struct list_head *page_list,
+-	ret = alloc_pages_bulk_array(gfp, bo->pgnr, bo->pages);
++	ret = alloc_pages_bulk(gfp, bo->pgnr, bo->pages);
+ 	if (ret != bo->pgnr) {
+ 		free_pages_bulk_array(ret, bo->pages);
+-		dev_err(atomisp_dev, "alloc_pages_bulk_array() failed\n");
++		dev_err(atomisp_dev, "alloc_pages_bulk() failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+--- a/drivers/vfio/pci/mlx5/cmd.c~mm-alloc_pages_bulk-rename-api
++++ a/drivers/vfio/pci/mlx5/cmd.c
+@@ -408,7 +408,7 @@ void mlx5vf_free_data_buffer(struct mlx5
+ 				  buf->dma_dir, 0);
+ 	}
+ 
+-	/* Undo alloc_pages_bulk_array() */
++	/* Undo alloc_pages_bulk() */
+ 	for_each_sgtable_page(&buf->table.sgt, &sg_iter, 0)
+ 		__free_page(sg_page_iter_page(&sg_iter));
+ 	sg_free_append_table(&buf->table);
+@@ -431,8 +431,8 @@ static int mlx5vf_add_migration_pages(st
+ 		return -ENOMEM;
+ 
+ 	do {
+-		filled = alloc_pages_bulk_array(GFP_KERNEL_ACCOUNT, to_fill,
+-						page_list);
++		filled = alloc_pages_bulk(GFP_KERNEL_ACCOUNT, to_fill,
++					  page_list);
+ 		if (!filled) {
+ 			ret = -ENOMEM;
+ 			goto err;
+@@ -1342,7 +1342,7 @@ static void free_recv_pages(struct mlx5_
+ {
+ 	int i;
+ 
+-	/* Undo alloc_pages_bulk_array() */
++	/* Undo alloc_pages_bulk() */
+ 	for (i = 0; i < recv_buf->npages; i++)
+ 		__free_page(recv_buf->page_list[i]);
+ 
+@@ -1361,9 +1361,9 @@ static int alloc_recv_pages(struct mlx5_
+ 		return -ENOMEM;
+ 
+ 	for (;;) {
+-		filled = alloc_pages_bulk_array(GFP_KERNEL_ACCOUNT,
+-						npages - done,
+-						recv_buf->page_list + done);
++		filled = alloc_pages_bulk(GFP_KERNEL_ACCOUNT,
++					  npages - done,
++					  recv_buf->page_list + done);
+ 		if (!filled)
+ 			goto err;
+ 
+--- a/drivers/vfio/pci/virtio/migrate.c~mm-alloc_pages_bulk-rename-api
++++ a/drivers/vfio/pci/virtio/migrate.c
+@@ -77,8 +77,8 @@ static int virtiovf_add_migration_pages(
+ 		return -ENOMEM;
+ 
+ 	do {
+-		filled = alloc_pages_bulk_array(GFP_KERNEL_ACCOUNT, to_fill,
+-						page_list);
++		filled = alloc_pages_bulk(GFP_KERNEL_ACCOUNT, to_fill,
++					  page_list);
+ 		if (!filled) {
+ 			ret = -ENOMEM;
+ 			goto err;
+@@ -112,7 +112,7 @@ static void virtiovf_free_data_buffer(st
+ {
+ 	struct sg_page_iter sg_iter;
+ 
+-	/* Undo alloc_pages_bulk_array() */
++	/* Undo alloc_pages_bulk() */
+ 	for_each_sgtable_page(&buf->table.sgt, &sg_iter, 0)
+ 		__free_page(sg_page_iter_page(&sg_iter));
+ 	sg_free_append_table(&buf->table);
+--- a/fs/btrfs/extent_io.c~mm-alloc_pages_bulk-rename-api
++++ a/fs/btrfs/extent_io.c
+@@ -632,7 +632,7 @@ int btrfs_alloc_page_array(unsigned int
+ 	for (allocated = 0; allocated < nr_pages;) {
+ 		unsigned int last = allocated;
+ 
+-		allocated = alloc_pages_bulk_array(gfp, nr_pages, page_array);
++		allocated = alloc_pages_bulk(gfp, nr_pages, page_array);
+ 		if (unlikely(allocated == last)) {
+ 			/* No progress, fail and do cleanup. */
+ 			for (int i = 0; i < allocated; i++) {
+--- a/fs/erofs/zutil.c~mm-alloc_pages_bulk-rename-api
++++ a/fs/erofs/zutil.c
+@@ -87,8 +87,8 @@ int z_erofs_gbuf_growsize(unsigned int n
+ 			tmp_pages[j] = gbuf->pages[j];
+ 		do {
+ 			last = j;
+-			j = alloc_pages_bulk_array(GFP_KERNEL, nrpages,
+-						   tmp_pages);
++			j = alloc_pages_bulk(GFP_KERNEL, nrpages,
++					     tmp_pages);
+ 			if (last == j)
+ 				goto out;
+ 		} while (j != nrpages);
+--- a/fs/splice.c~mm-alloc_pages_bulk-rename-api
++++ a/fs/splice.c
+@@ -342,7 +342,7 @@ ssize_t copy_splice_read(struct file *in
+ 		return -ENOMEM;
+ 
+ 	pages = (struct page **)(bv + npages);
+-	npages = alloc_pages_bulk_array(GFP_USER, npages, pages);
++	npages = alloc_pages_bulk(GFP_USER, npages, pages);
+ 	if (!npages) {
+ 		kfree(bv);
+ 		return -ENOMEM;
+--- a/fs/xfs/xfs_buf.c~mm-alloc_pages_bulk-rename-api
++++ a/fs/xfs/xfs_buf.c
+@@ -395,8 +395,8 @@ xfs_buf_alloc_pages(
+ 	for (;;) {
+ 		long	last = filled;
+ 
+-		filled = alloc_pages_bulk_array(gfp_mask, bp->b_page_count,
+-						bp->b_pages);
++		filled = alloc_pages_bulk(gfp_mask, bp->b_page_count,
++					  bp->b_pages);
+ 		if (filled == bp->b_page_count) {
+ 			XFS_STATS_INC(bp->b_mount, xb_page_found);
+ 			break;
+--- a/include/linux/gfp.h~mm-alloc_pages_bulk-rename-api
++++ a/include/linux/gfp.h
+@@ -215,18 +215,18 @@ unsigned long alloc_pages_bulk_noprof(gf
  				struct page **page_array);
  #define __alloc_pages_bulk(...)			alloc_hooks(alloc_pages_bulk_noprof(__VA_ARGS__))
  
-@@ -223,11 +222,8 @@ unsigned long alloc_pages_bulk_array_mem
- 	alloc_hooks(alloc_pages_bulk_array_mempolicy_noprof(__VA_ARGS__))
+-unsigned long alloc_pages_bulk_array_mempolicy_noprof(gfp_t gfp,
++unsigned long alloc_pages_bulk_mempolicy_noprof(gfp_t gfp,
+ 				unsigned long nr_pages,
+ 				struct page **page_array);
+-#define  alloc_pages_bulk_array_mempolicy(...)				\
+-	alloc_hooks(alloc_pages_bulk_array_mempolicy_noprof(__VA_ARGS__))
++#define  alloc_pages_bulk_mempolicy(...)				\
++	alloc_hooks(alloc_pages_bulk_mempolicy_noprof(__VA_ARGS__))
  
  /* Bulk allocate order-0 pages */
--#define alloc_pages_bulk_list(_gfp, _nr_pages, _list)			\
--	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _list, NULL)
--
- #define alloc_pages_bulk_array(_gfp, _nr_pages, _page_array)		\
--	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, NULL, _page_array)
-+	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _page_array)
+-#define alloc_pages_bulk_array(_gfp, _nr_pages, _page_array)		\
++#define alloc_pages_bulk(_gfp, _nr_pages, _page_array)		\
+ 	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _page_array)
  
  static inline unsigned long
- alloc_pages_bulk_array_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
-@@ -236,7 +232,7 @@ alloc_pages_bulk_array_node_noprof(gfp_t
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- 
--	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, NULL, page_array);
-+	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, page_array);
- }
- 
- #define alloc_pages_bulk_array_node(...)				\
---- a/mm/mempolicy.c~mm-alloc_pages_bulk_noprof-drop-page_list-argument
-+++ a/mm/mempolicy.c
-@@ -2391,13 +2391,13 @@ static unsigned long alloc_pages_bulk_ar
- 		if (delta) {
- 			nr_allocated = alloc_pages_bulk_noprof(gfp,
- 					interleave_nodes(pol), NULL,
--					nr_pages_per_node + 1, NULL,
-+					nr_pages_per_node + 1,
- 					page_array);
- 			delta--;
- 		} else {
- 			nr_allocated = alloc_pages_bulk_noprof(gfp,
- 					interleave_nodes(pol), NULL,
--					nr_pages_per_node, NULL, page_array);
-+					nr_pages_per_node, page_array);
- 		}
- 
- 		page_array += nr_allocated;
-@@ -2446,7 +2446,7 @@ static unsigned long alloc_pages_bulk_ar
- 	if (weight && node_isset(node, nodes)) {
- 		node_pages = min(rem_pages, weight);
- 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
--						  NULL, page_array);
-+						  page_array);
- 		page_array += nr_allocated;
- 		total_allocated += nr_allocated;
- 		/* if that's all the pages, no need to interleave */
-@@ -2509,7 +2509,7 @@ static unsigned long alloc_pages_bulk_ar
- 		if (!node_pages)
- 			break;
- 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
--						  NULL, page_array);
-+						  page_array);
- 		page_array += nr_allocated;
- 		total_allocated += nr_allocated;
- 		if (total_allocated == nr_pages)
-@@ -2533,11 +2533,11 @@ static unsigned long alloc_pages_bulk_ar
- 	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 
- 	nr_allocated  = alloc_pages_bulk_noprof(preferred_gfp, nid, &pol->nodes,
--					   nr_pages, NULL, page_array);
-+					   nr_pages, page_array);
- 
- 	if (nr_allocated < nr_pages)
- 		nr_allocated += alloc_pages_bulk_noprof(gfp, numa_node_id(), NULL,
--				nr_pages - nr_allocated, NULL,
-+				nr_pages - nr_allocated,
- 				page_array + nr_allocated);
- 	return nr_allocated;
- }
-@@ -2573,7 +2573,7 @@ unsigned long alloc_pages_bulk_array_mem
- 	nid = numa_node_id();
- 	nodemask = policy_nodemask(gfp, pol, NO_INTERLEAVE_INDEX, &nid);
- 	return alloc_pages_bulk_noprof(gfp, nid, nodemask,
--				       nr_pages, NULL, page_array);
-+				       nr_pages, page_array);
- }
- 
- int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
---- a/mm/page_alloc.c~mm-alloc_pages_bulk_noprof-drop-page_list-argument
-+++ a/mm/page_alloc.c
-@@ -4531,28 +4531,23 @@ static inline bool prepare_alloc_pages(g
- }
- 
- /*
-- * __alloc_pages_bulk - Allocate a number of order-0 pages to a list or array
-+ * __alloc_pages_bulk - Allocate a number of order-0 pages to an array
-  * @gfp: GFP flags for the allocation
-  * @preferred_nid: The preferred NUMA node ID to allocate from
-  * @nodemask: Set of nodes to allocate from, may be NULL
-- * @nr_pages: The number of pages desired on the list or array
-- * @page_list: Optional list to store the allocated pages
-- * @page_array: Optional array to store the pages
-+ * @nr_pages: The number of pages desired in the array
-+ * @page_array: Array to store the pages
-  *
-  * This is a batched version of the page allocator that attempts to
-- * allocate nr_pages quickly. Pages are added to page_list if page_list
-- * is not NULL, otherwise it is assumed that the page_array is valid.
-+ * allocate nr_pages quickly. Pages are added to the page_array.
-  *
-- * For lists, nr_pages is the number of pages that should be allocated.
-- *
-- * For arrays, only NULL elements are populated with pages and nr_pages
-+ * Note that only NULL elements are populated with pages and nr_pages
-  * is the maximum number of pages that will be stored in the array.
-  *
-- * Returns the number of pages on the list or array.
-+ * Returns the number of pages in the array.
-  */
- unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
- 			nodemask_t *nodemask, int nr_pages,
--			struct list_head *page_list,
- 			struct page **page_array)
+-alloc_pages_bulk_array_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
++alloc_pages_bulk_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
+ 				   struct page **page_array)
  {
- 	struct page *page;
-@@ -4570,7 +4565,7 @@ unsigned long alloc_pages_bulk_noprof(gf
- 	 * Skip populated array elements to determine if any pages need
- 	 * to be allocated before disabling IRQs.
- 	 */
--	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
-+	while (nr_populated < nr_pages && page_array[nr_populated])
- 		nr_populated++;
+ 	if (nid == NUMA_NO_NODE)
+@@ -235,8 +235,8 @@ alloc_pages_bulk_array_node_noprof(gfp_t
+ 	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, page_array);
+ }
  
- 	/* No pages requested? */
-@@ -4578,7 +4573,7 @@ unsigned long alloc_pages_bulk_noprof(gf
- 		goto out;
+-#define alloc_pages_bulk_array_node(...)				\
+-	alloc_hooks(alloc_pages_bulk_array_node_noprof(__VA_ARGS__))
++#define alloc_pages_bulk_node(...)				\
++	alloc_hooks(alloc_pages_bulk_node_noprof(__VA_ARGS__))
  
- 	/* Already populated array? */
--	if (unlikely(page_array && nr_pages - nr_populated == 0))
-+	if (unlikely(nr_pages - nr_populated == 0))
- 		goto out;
- 
- 	/* Bulk allocator does not support memcg accounting. */
-@@ -4660,7 +4655,7 @@ retry_this_zone:
- 	while (nr_populated < nr_pages) {
- 
- 		/* Skip existing pages */
--		if (page_array && page_array[nr_populated]) {
-+		if (page_array[nr_populated]) {
- 			nr_populated++;
- 			continue;
- 		}
-@@ -4679,11 +4674,7 @@ retry_this_zone:
- 
- 		prep_new_page(page, 0, gfp, 0);
- 		set_page_refcounted(page);
--		if (page_list)
--			list_add(&page->lru, page_list);
--		else
--			page_array[nr_populated] = page;
--		nr_populated++;
-+		page_array[nr_populated++] = page;
+ static inline void warn_if_node_offline(int this_node, gfp_t gfp_mask)
+ {
+--- a/kernel/bpf/arena.c~mm-alloc_pages_bulk-rename-api
++++ a/kernel/bpf/arena.c
+@@ -443,7 +443,7 @@ static long arena_alloc_pages(struct bpf
+ 			return 0;
  	}
  
- 	pcp_spin_unlock(pcp);
-@@ -4700,14 +4691,8 @@ failed_irq:
+-	/* zeroing is needed, since alloc_pages_bulk_array() only fills in non-zero entries */
++	/* zeroing is needed, since alloc_pages_bulk() only fills in non-zero entries */
+ 	pages = kvcalloc(page_cnt, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+ 		return 0;
+--- a/lib/alloc_tag.c~mm-alloc_pages_bulk-rename-api
++++ a/lib/alloc_tag.c
+@@ -425,8 +425,8 @@ static int vm_module_tags_populate(void)
+ 		unsigned long nr;
  
- failed:
- 	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask);
--	if (page) {
--		if (page_list)
--			list_add(&page->lru, page_list);
--		else
--			page_array[nr_populated] = page;
--		nr_populated++;
--	}
--
-+	if (page)
-+		page_array[nr_populated++] = page;
- 	goto out;
+ 		more_pages = ALIGN(new_end - phys_end, PAGE_SIZE) >> PAGE_SHIFT;
+-		nr = alloc_pages_bulk_array_node(GFP_KERNEL | __GFP_NOWARN,
+-						 NUMA_NO_NODE, more_pages, next_page);
++		nr = alloc_pages_bulk_node(GFP_KERNEL | __GFP_NOWARN,
++					   NUMA_NO_NODE, more_pages, next_page);
+ 		if (nr < more_pages ||
+ 		    vmap_pages_range(phys_end, phys_end + (nr << PAGE_SHIFT), PAGE_KERNEL,
+ 				     next_page, PAGE_SHIFT) < 0) {
+--- a/lib/kunit_iov_iter.c~mm-alloc_pages_bulk-rename-api
++++ a/lib/kunit_iov_iter.c
+@@ -57,7 +57,7 @@ static void *__init iov_kunit_create_buf
+         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pages);
+ 	*ppages = pages;
+ 
+-	got = alloc_pages_bulk_array(GFP_KERNEL, npages, pages);
++	got = alloc_pages_bulk(GFP_KERNEL, npages, pages);
+ 	if (got != npages) {
+ 		release_pages(pages, got);
+ 		KUNIT_ASSERT_EQ(test, got, npages);
+--- a/lib/test_vmalloc.c~mm-alloc_pages_bulk-rename-api
++++ a/lib/test_vmalloc.c
+@@ -373,7 +373,7 @@ vm_map_ram_test(void)
+ 	if (!pages)
+ 		return -1;
+ 
+-	nr_allocated = alloc_pages_bulk_array(GFP_KERNEL, map_nr_pages, pages);
++	nr_allocated = alloc_pages_bulk(GFP_KERNEL, map_nr_pages, pages);
+ 	if (nr_allocated != map_nr_pages)
+ 		goto cleanup;
+ 
+--- a/mm/mempolicy.c~mm-alloc_pages_bulk-rename-api
++++ a/mm/mempolicy.c
+@@ -2372,7 +2372,7 @@ struct folio *folio_alloc_noprof(gfp_t g
  }
- EXPORT_SYMBOL_GPL(alloc_pages_bulk_noprof);
+ EXPORT_SYMBOL(folio_alloc_noprof);
+ 
+-static unsigned long alloc_pages_bulk_array_interleave(gfp_t gfp,
++static unsigned long alloc_pages_bulk_interleave(gfp_t gfp,
+ 		struct mempolicy *pol, unsigned long nr_pages,
+ 		struct page **page_array)
+ {
+@@ -2407,7 +2407,7 @@ static unsigned long alloc_pages_bulk_ar
+ 	return total_allocated;
+ }
+ 
+-static unsigned long alloc_pages_bulk_array_weighted_interleave(gfp_t gfp,
++static unsigned long alloc_pages_bulk_weighted_interleave(gfp_t gfp,
+ 		struct mempolicy *pol, unsigned long nr_pages,
+ 		struct page **page_array)
+ {
+@@ -2522,7 +2522,7 @@ static unsigned long alloc_pages_bulk_ar
+ 	return total_allocated;
+ }
+ 
+-static unsigned long alloc_pages_bulk_array_preferred_many(gfp_t gfp, int nid,
++static unsigned long alloc_pages_bulk_preferred_many(gfp_t gfp, int nid,
+ 		struct mempolicy *pol, unsigned long nr_pages,
+ 		struct page **page_array)
+ {
+@@ -2548,7 +2548,7 @@ static unsigned long alloc_pages_bulk_ar
+  * It can accelerate memory allocation especially interleaving
+  * allocate memory.
+  */
+-unsigned long alloc_pages_bulk_array_mempolicy_noprof(gfp_t gfp,
++unsigned long alloc_pages_bulk_mempolicy_noprof(gfp_t gfp,
+ 		unsigned long nr_pages, struct page **page_array)
+ {
+ 	struct mempolicy *pol = &default_policy;
+@@ -2559,15 +2559,15 @@ unsigned long alloc_pages_bulk_array_mem
+ 		pol = get_task_policy(current);
+ 
+ 	if (pol->mode == MPOL_INTERLEAVE)
+-		return alloc_pages_bulk_array_interleave(gfp, pol,
++		return alloc_pages_bulk_interleave(gfp, pol,
+ 							 nr_pages, page_array);
+ 
+ 	if (pol->mode == MPOL_WEIGHTED_INTERLEAVE)
+-		return alloc_pages_bulk_array_weighted_interleave(
++		return alloc_pages_bulk_weighted_interleave(
+ 				  gfp, pol, nr_pages, page_array);
+ 
+ 	if (pol->mode == MPOL_PREFERRED_MANY)
+-		return alloc_pages_bulk_array_preferred_many(gfp,
++		return alloc_pages_bulk_preferred_many(gfp,
+ 				numa_node_id(), pol, nr_pages, page_array);
+ 
+ 	nid = numa_node_id();
+--- a/mm/vmalloc.c~mm-alloc_pages_bulk-rename-api
++++ a/mm/vmalloc.c
+@@ -3562,11 +3562,11 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			 * but mempolicy wants to alloc memory by interleaving.
+ 			 */
+ 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
+-				nr = alloc_pages_bulk_array_mempolicy_noprof(gfp,
++				nr = alloc_pages_bulk_mempolicy_noprof(gfp,
+ 							nr_pages_request,
+ 							pages + nr_allocated);
+ 			else
+-				nr = alloc_pages_bulk_array_node_noprof(gfp, nid,
++				nr = alloc_pages_bulk_node_noprof(gfp, nid,
+ 							nr_pages_request,
+ 							pages + nr_allocated);
+ 
+--- a/net/core/page_pool.c~mm-alloc_pages_bulk-rename-api
++++ a/net/core/page_pool.c
+@@ -532,12 +532,11 @@ static noinline netmem_ref __page_pool_a
+ 	if (unlikely(pool->alloc.count > 0))
+ 		return pool->alloc.cache[--pool->alloc.count];
+ 
+-	/* Mark empty alloc.cache slots "empty" for alloc_pages_bulk_array */
++	/* Mark empty alloc.cache slots "empty" for alloc_pages_bulk */
+ 	memset(&pool->alloc.cache, 0, sizeof(void *) * bulk);
+ 
+-	nr_pages = alloc_pages_bulk_array_node(gfp,
+-					       pool->p.nid, bulk,
+-					       (struct page **)pool->alloc.cache);
++	nr_pages = alloc_pages_bulk_node(gfp, pool->p.nid, bulk,
++					 (struct page **)pool->alloc.cache);
+ 	if (unlikely(!nr_pages))
+ 		return 0;
+ 
+--- a/net/sunrpc/svc.c~mm-alloc_pages_bulk-rename-api
++++ a/net/sunrpc/svc.c
+@@ -651,8 +651,8 @@ svc_init_buffer(struct svc_rqst *rqstp,
+ 	if (pages > RPCSVC_MAXPAGES)
+ 		pages = RPCSVC_MAXPAGES;
+ 
+-	ret = alloc_pages_bulk_array_node(GFP_KERNEL, node, pages,
+-					  rqstp->rq_pages);
++	ret = alloc_pages_bulk_node(GFP_KERNEL, node, pages,
++				    rqstp->rq_pages);
+ 	return ret == pages;
+ }
+ 
+--- a/net/sunrpc/svc_xprt.c~mm-alloc_pages_bulk-rename-api
++++ a/net/sunrpc/svc_xprt.c
+@@ -671,8 +671,7 @@ static bool svc_alloc_arg(struct svc_rqs
+ 	}
+ 
+ 	for (filled = 0; filled < pages; filled = ret) {
+-		ret = alloc_pages_bulk_array(GFP_KERNEL, pages,
+-					     rqstp->rq_pages);
++		ret = alloc_pages_bulk(GFP_KERNEL, pages, rqstp->rq_pages);
+ 		if (ret > filled)
+ 			/* Made progress, don't sleep yet */
+ 			continue;
 _
 
 Patches currently in -mm which might be from luizcap@redhat.com are
