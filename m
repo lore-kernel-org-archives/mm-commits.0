@@ -1,143 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0EF84F5E0
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 06:40:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C3B215F4C
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 10:27:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736404842; cv=none; b=NfvFBggfWjCXe1HDWLHEkNFkJg7toGT2Xu3icb8LR8dQtkVOG3yTlthF8Ed02PYI2nlIaXLKBOGb5Mlrmy6nHOIWnjroUrbGamwTSnmJI6rFSPtuF2xD95lD730FxqY5EPbNaKQkaqOGZZlbeCy1AOZzOp/hzaWZ8joxauwFD9w=
+	t=1736418472; cv=none; b=rQiRygU8TJKAJXTmRujOJpBKDBhKT+GWqVsDjGR7ERtgPmm3fQa9cmqlEWU3EbamBvKM7PBBveZHXfsB0stf4mzKvSK7oFjlSIthnhbM7HhmBWLkAH4ImQ9837L7QT9a6rQuW9kmyOYF7ApNpsk3YbrX/3f90T42F/wdESE++qA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736404842; c=relaxed/simple;
-	bh=9dGUdihMLwumBHb7JfDliFtee6NT3C65YUwG3KWVLMw=;
-	h=Date:To:From:Subject:Message-Id; b=GR3WmfIr/OKo6AaGWDpHPPorVPl5/WFejBsY2S1OxpzigRVNNWJXHO1TFQmdUORLWBT+rfSAE04qpeIwGRJwrR/tX5i9X5HIHTuE3wxhlxX1z5uDxtTmbgSOewdHyoqS0X7de36KOqsS8Mcm5KotDlSvxYiuHm5VrqDsgqVI6Rg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JcfRG004; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736418472; c=relaxed/simple;
+	bh=7sgJJt9yP8rrzkx11+NobWCVD7fikMCU1m/fATWcUsI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IL3MgIhkvs6NRSACuy1jqlKvk/FJyD+F35SQNjrs95o0k5mrvYmW/lFaHuwWmH+toHifYkuTyu66tUuO0oD0CG5HOyFIVTSzSmH0KTsrIyy8uVvjwvOOxt0QFtuKvYru48GHtqmMixOFScRHkOJIw324GmM52L07jdlLaaVBeKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kkFMJwJP; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JcfRG004"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24099C4CED2;
-	Thu,  9 Jan 2025 06:40:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736404842;
-	bh=9dGUdihMLwumBHb7JfDliFtee6NT3C65YUwG3KWVLMw=;
-	h=Date:To:From:Subject:From;
-	b=JcfRG004QMf/DO9wJF5XP8Dx++bhjsei7whH8ccz83mfwaTabXevF3VzZuz4dnhEl
-	 KuB33EOM34gHjYnN5IFtxHJdD8N5FB0k0pB7ea3i5Y18JDEkkXMpDSMAiNjh152ghQ
-	 RxsPpgpptBOfDF5QyWnnC5a83NjTKnMm2S/9rD+c=
-Date: Wed, 08 Jan 2025 22:40:41 -0800
-To: mm-commits@vger.kernel.org,zzqq0103.hey@gmail.com,willy@infradead.org,shr@devkernel.io,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250109064042.24099C4CED2@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kkFMJwJP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1736418471; x=1767954471;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=7sgJJt9yP8rrzkx11+NobWCVD7fikMCU1m/fATWcUsI=;
+  b=kkFMJwJPv7X0hspKRV0gfqkSkYdXqRa+JokdIRl2at3vYprYZ92oJ17R
+   rLiF0Nk1ztjSlSuQu4wLaH61mvDAowo9C9elmaNP0fYqHPVvFOa46xS3s
+   F5ZiI1ThnF1NqqJ92K4W43+Nw0jYa/lYtUe/657sznPdGGS6FFg5hDaET
+   hu+5dcFMsHla7gyXVRK08LrajNFl6JToi3NyBs2NDF14uNwOT9et/5q7j
+   j4o4L55Cs0d27Vl/qCGc2TVXDHmukFAm3QRX0MzZ0+s7Kc+9P+cMJ2ogL
+   +CUYXVX9vHPSFMQeTmWIr9YaJYQIN6w6ikM9i9tLYy+R2DlH0ftqb8OcG
+   A==;
+X-CSE-ConnectionGUID: tjHl2AfZQgiWuDgs2Cq0ow==
+X-CSE-MsgGUID: ZZ+CnowDRzGtKqzCe3puJQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11309"; a="36559991"
+X-IronPort-AV: E=Sophos;i="6.12,301,1728975600"; 
+   d="scan'208";a="36559991"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2025 02:27:50 -0800
+X-CSE-ConnectionGUID: 1HX4SinKRXe021TKHABvHw==
+X-CSE-MsgGUID: dKcZcI8hQJO1StUjfPF8lQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.12,301,1728975600"; 
+   d="scan'208";a="108269282"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmviesa004.fm.intel.com with ESMTP; 09 Jan 2025 02:27:48 -0800
+Received: by black.fi.intel.com (Postfix, from userid 1000)
+	id 17A3B3C3; Thu, 09 Jan 2025 12:27:46 +0200 (EET)
+Date: Thu, 9 Jan 2025 12:27:46 +0200
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
+	hch@lst.de, hannes@cmpxchg.org, clm@meta.com, bfoster@redhat.com, 
+	axboe@kernel.dk
+Subject: Re: + mm-add-pg_dropbehind-folio-flag.patch added to mm-unstable
+ branch
+Message-ID: <q4kpgg5l5s3vprg7zc5hkmyo4a3gnzrsrcm6wnmfj6p26ypayv@6kmconrrwjhi>
+References: <20250108033555.926E6C4CED0@smtp.kernel.org>
+ <Z36LFTqnHM-jywV5@casper.infradead.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Z36LFTqnHM-jywV5@casper.infradead.org>
 
+On Wed, Jan 08, 2025 at 02:26:29PM +0000, Matthew Wilcox wrote:
+> On Tue, Jan 07, 2025 at 07:35:55PM -0800, Andrew Morton wrote:
+> > 
+> > The patch titled
+> >      Subject: mm: add PG_dropbehind folio flag
+> > has been added to the -mm mm-unstable branch.  Its filename is
+> >      mm-add-pg_dropbehind-folio-flag.patch
+> 
+> I was hoping we'd get some response to Kirill's suggestion that we not
+> do this.
+> 
+> https://lore.kernel.org/linux-mm/Z2WRJdKnTD5eSfBS@casper.infradead.org/
 
-The patch titled
-     Subject: mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3.patch
+I can do this conversion on top of Jens patchset.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3
-Date: Wed, 8 Jan 2025 22:34:11 -0800
-
-During testing it has been detected, that it is possible to get div by
-zero error in bdi_set_min_bytes. The error is caused by the function
-bdi_ratio_from_pages(). bdi_ratio_from_pages() calls
-global_dirty_limits. If the dirty threshold is 0, the div by zero is
-raised. This can happen if the root user is setting:
-
-echo 0 > /proc/sys/vm/dirty_ratio
-
-The following is a test case:
-
-echo 0 > /proc/sys/vm/dirty_ratio
-cd /sys/class/bdi/<device>
-echo 1 > strict_limit
-echo 8192 > min_bytes
-
-==> error is raised.
-
-The problem is addressed by returning -EINVAL if dirty_ratio or
-dirty_bytes is set to 0.
-
-Link: https://lkml.kernel.org/r/20250109063411.6591-1-shr@devkernel.io
-Reported-by: cheung wall <zzqq0103.hey@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/87pll35yd0.fsf@devkernel.io/T/#t
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page-writeback.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
---- a/mm/page-writeback.c~mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3
-+++ a/mm/page-writeback.c
-@@ -792,15 +792,15 @@ int bdi_set_min_bytes(struct backing_dev
- {
- 	int ret;
- 	unsigned long pages = min_bytes >> PAGE_SHIFT;
--	unsigned long min_ratio;
-+	long min_ratio;
- 
- 	ret = bdi_check_pages_limit(pages);
- 	if (ret)
- 		return ret;
- 
- 	min_ratio = bdi_ratio_from_pages(pages);
--	if (min_ratio == -EINVAL)
--		return -EINVAL;
-+	if (min_ratio < 0)
-+		return min_ratio;
- 	return __bdi_set_min_ratio(bdi, min_ratio);
- }
- 
-@@ -813,15 +813,15 @@ int bdi_set_max_bytes(struct backing_dev
- {
- 	int ret;
- 	unsigned long pages = max_bytes >> PAGE_SHIFT;
--	unsigned long max_ratio;
-+	long max_ratio;
- 
- 	ret = bdi_check_pages_limit(pages);
- 	if (ret)
- 		return ret;
- 
- 	max_ratio = bdi_ratio_from_pages(pages);
--	if (max_ratio == -EINVAL)
--		return -EINVAL;
-+	if (max_ratio < 0)
-+		return max_ratio;
- 	return __bdi_set_max_ratio(bdi, max_ratio);
- }
- 
-_
-
-Patches currently in -mm which might be from shr@devkernel.io are
-
-mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
-mm-fix-div-by-zero-in-bdi_ratio_from_pages-v2.patch
-mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3.patch
-
+-- 
+  Kiryl Shutsemau / Kirill A. Shutemov
