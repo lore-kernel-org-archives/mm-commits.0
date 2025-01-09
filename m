@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C0702F2F
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 04:34:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B7282F2F
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 04:35:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736397289; cv=none; b=uzadHd7qvhYeDHhtX/Fj8jyYjSr9nyY31d0WfUsf/p1fs3opcp1H8rUmR5F+DyYLVFyP7n7UPmZXPdBwVOT8Mst7zo6s8DpEhgl42EIPYeFeNmuwpeOMxSGvEjggCLtxKu7R0+mpBKyWAkU8e5weuRN9cYVmdrM2VV1dIRuDNSc=
+	t=1736397343; cv=none; b=SbZBAagR87/Lgqk2DdEY00XCYZ1BSWHbUrSTNIAqndQjcR7/YRXaWziHftxaiMcBsRgDN8ob1ie4D1IGEmNXx1oWY7+pTpGKAXmMyJxgvWN19rxV9lNHU8u1/YGn55dzHbhrlEgn/d5mdBrRzByzRRVzUSj26c1EbxGwkwAKzi0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736397289; c=relaxed/simple;
-	bh=ZR8k0Gsy8BsJXLaTDOX23L38DwDGX33iaeqZ1taMqGY=;
-	h=Date:To:From:Subject:Message-Id; b=aaJOhnSQUFSArmWRzwGjW+66kTohbSFemC8EUjMSUbSSEIjGDiZGKvZqQLCow1fHeTYCNqbhDE2GQ64pPzMBaeZBpHKyRPkim5k9FjXyygFG71kY565TCvPTGmrfJ15POooCZk7jj+tn2TbGqF/Q5JZH1tFeG7zn1rktUn2D75s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ey1bZDmJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736397343; c=relaxed/simple;
+	bh=VLcPQx3i7I5JH8tKYYkjuzEqD3nSMJafI9KhXrO4EVU=;
+	h=Date:To:From:Subject:Message-Id; b=JYu50ZTgunRKCjSJnZ8mup/SvniZwUIld+OKUkU7PjwavOzMQ1l7nOrsa4v0GY3aeS9z442GlWgnTVYkJOC1juzWVUmnmx37EDqewLz3zfFFNZf/i5dTum0yIU/kA8+82rW/uK6evn13825MbKJ55FPQtuOfr8AdRWdxlznWzag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o1JTusLP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ey1bZDmJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80788C4CED2;
-	Thu,  9 Jan 2025 04:34:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o1JTusLP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09C4DC4CED2;
+	Thu,  9 Jan 2025 04:35:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736397288;
-	bh=ZR8k0Gsy8BsJXLaTDOX23L38DwDGX33iaeqZ1taMqGY=;
+	s=korg; t=1736397343;
+	bh=VLcPQx3i7I5JH8tKYYkjuzEqD3nSMJafI9KhXrO4EVU=;
 	h=Date:To:From:Subject:From;
-	b=ey1bZDmJSSAoj5mvNlw2Val+5PV93oFK+MfbxCGWIICSxsdeh23Dx+5frCIzEgTmY
-	 8zLvbwts3tbJhkuh23rSQlMMFWFQDvb7+QxZNIDAAHlJwsNUpWGVvFQMfSMeIScwOG
-	 3P8C8Ue5bx2bP69jTnqZFBX95NgLCdeNzyrapRSU=
-Date: Wed, 08 Jan 2025 20:34:47 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,muchun.song@linux.dev,mjguzik@gmail.com,david@redhat.com,yuzhao@google.com,akpm@linux-foundation.org
+	b=o1JTusLPaifBGMGD7QiAVHXr6gvupe/8CQ4mbSZilgsZ9mdffsVflwGKghaP6FjvX
+	 WEyKdhYukR1EtoQKQ9aY+mnYS7m+7Kjg+z2j/QSBef5EjSbdKcNBRrM5UojgZw3mUz
+	 ALtUDU5hPUNFNUkPT8mEQKTf6y4oZjFx9vaphIBI=
+Date: Wed, 08 Jan 2025 20:35:42 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shuah@kernel.org,dev.jain@arm.com,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250109043448.80788C4CED2@smtp.kernel.org>
+Subject: [withdrawn] selftests-mm-virtual_address_range-dump-to-dev-null.patch removed from -mm tree
+Message-Id: <20250109043543.09C4DC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,156 +34,81 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/hugetlb_vmemmap: fix memory loads ordering
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch
+The quilt patch titled
+     Subject: selftests/mm: virtual_address_range: dump to /dev/null
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-virtual_address_range-dump-to-dev-null.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/hugetlb_vmemmap: fix memory loads ordering
-Date: Wed, 8 Jan 2025 00:48:21 -0700
+From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Subject: selftests/mm: virtual_address_range: dump to /dev/null
+Date: Tue, 07 Jan 2025 16:14:47 +0100
 
-Using x86_64 as an example, for a 32KB struct page[] area describing a 2MB
-hugeTLB, HVO reduces the area to 4KB by the following steps:
+During the execution of validate_complete_va_space() a lot of memory is on
+the VM subsystem.  When running on a low memory subsystem an OOM may be
+triggered, when writing to the dump file as the filesystem may also
+require memory.
 
-1. Split the (r/w vmemmap) PMD mapping the area into 512 (r/w) PTEs;
-2. For the 8 PTEs mapping the area, remap PTE 1-7 to the page mapped
-   by PTE 0, and at the same time change the permission from r/w to
-   r/o;
-3. Free the pages PTE 1-7 used to map, hence the reduction from 32KB
-   to 4KB.
+On my test system with 1100MiB physical memory:
 
-However, the following race can happen due to improperly memory loads
-ordering:
-  CPU 1 (HVO)                     CPU 2 (speculative PFN walker)
+	Tasks state (memory values in pages):
+	[  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
+	[     57]     0    57 34359215953      695      256        0       439 1064390656        0             0 virtual_address
 
-  page_ref_freeze()
-  synchronize_rcu()
-                                  rcu_read_lock()
-                                  page_is_fake_head() is false
-  vmemmap_remap_pte()
-  XXX: struct page[] becomes r/o
+	Out of memory: Killed process 57 (virtual_address) total-vm:137436863812kB, anon-rss:1024kB, file-rss:0kB, shmem-rss:1756kB, UID:0 pgtables:1039444kB oom_score_adj:0
+	<snip>
+	fault_in_iov_iter_readable+0x4a/0xd0
+	generic_perform_write+0x9c/0x280
+	shmem_file_write_iter+0x86/0x90
+	vfs_write+0x29c/0x480
+	ksys_write+0x6c/0xe0
+	do_syscall_64+0x9e/0x1a0
+	entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-  page_ref_unfreeze()
-                                  page_ref_count() is not zero
+Write the dumped data into /dev/null instead which does not require
+additional memory during write(), making the code simpler as a
+side-effect.
 
-                                  atomic_add_unless(&page->_refcount)
-                                  XXX: try to modify r/o struct page[]
-
-Specifically, page_is_fake_head() must be ordered after page_ref_count()
-on CPU 2 so that it can only return true for this case, to avoid the later
-attempt to modify r/o struct page[].
-
-This patch adds the missing memory barrier and makes the tests on
-page_is_fake_head() and page_ref_count() done in the proper order.
-
-Link: https://lkml.kernel.org/r/20250108074822.722696-1-yuzhao@google.com
-Fixes: bd225530a4c7 ("mm/hugetlb_vmemmap: fix race with speculative PFN walkers")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Will Deacon <will@kernel.org>
-Closes: https://lore.kernel.org/20241128142028.GA3506@willie-the-truck/
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20250107-virtual_address_range-tests-v1-3-3834a2fb47fe@linutronix.de
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   37 +++++++++++++++++++++++++++++++++++
- include/linux/page_ref.h   |    2 -
- 2 files changed, 38 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/virtual_address_range.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/include/linux/page-flags.h~mm-hugetlb_vmemmap-fix-memory-loads-ordering
-+++ a/include/linux/page-flags.h
-@@ -225,11 +225,48 @@ static __always_inline const struct page
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-dump-to-dev-null
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -103,10 +103,9 @@ static int validate_complete_va_space(vo
+ 	FILE *file;
+ 	int fd;
+ 
+-	fd = open("va_dump", O_CREAT | O_WRONLY, 0600);
+-	unlink("va_dump");
++	fd = open("/dev/null", O_WRONLY);
+ 	if (fd < 0) {
+-		ksft_test_result_skip("cannot create or open dump file\n");
++		ksft_test_result_skip("cannot create or open /dev/null\n");
+ 		ksft_finished();
  	}
- 	return page;
- }
-+
-+static __always_inline bool page_count_writable(const struct page *page, int u)
-+{
-+	if (!static_branch_unlikely(&hugetlb_optimize_vmemmap_key))
-+		return true;
-+
-+	/*
-+	 * The refcount check is ordered before the fake-head check to prevent
-+	 * the following race:
-+	 *   CPU 1 (HVO)                     CPU 2 (speculative PFN walker)
-+	 *
-+	 *   page_ref_freeze()
-+	 *   synchronize_rcu()
-+	 *                                   rcu_read_lock()
-+	 *                                   page_is_fake_head() is false
-+	 *   vmemmap_remap_pte()
-+	 *   XXX: struct page[] becomes r/o
-+	 *
-+	 *   page_ref_unfreeze()
-+	 *                                   page_ref_count() is not zero
-+	 *
-+	 *                                   atomic_add_unless(&page->_refcount)
-+	 *                                   XXX: try to modify r/o struct page[]
-+	 *
-+	 * The refcount check also prevents modification attempts to other (r/o)
-+	 * tail pages that are not fake heads.
-+	 */
-+	if (atomic_read_acquire(&page->_refcount) == u)
-+		return false;
-+
-+	return page_fixed_fake_head(page) == page;
-+}
- #else
- static inline const struct page *page_fixed_fake_head(const struct page *page)
- {
- 	return page;
- }
-+
-+static inline bool page_count_writable(const struct page *page, int u)
-+{
-+	return true;
-+}
- #endif
  
- static __always_inline int page_is_fake_head(const struct page *page)
---- a/include/linux/page_ref.h~mm-hugetlb_vmemmap-fix-memory-loads-ordering
-+++ a/include/linux/page_ref.h
-@@ -234,7 +234,7 @@ static inline bool page_ref_add_unless(s
+@@ -152,7 +151,6 @@ static int validate_complete_va_space(vo
+ 		while (start_addr + hop < end_addr) {
+ 			if (write(fd, (void *)(start_addr + hop), 1) != 1)
+ 				return 1;
+-			lseek(fd, 0, SEEK_SET);
  
- 	rcu_read_lock();
- 	/* avoid writing to the vmemmap area being remapped */
--	if (!page_is_fake_head(page) && page_ref_count(page) != u)
-+	if (page_count_writable(page, u))
- 		ret = atomic_add_unless(&page->_refcount, nr, u);
- 	rcu_read_unlock();
- 
+ 			hop += MAP_CHUNK_SIZE;
+ 		}
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
 
-mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch
-mm-mglru-clean-up-workingset.patch
-mm-mglru-optimize-deactivation.patch
-mm-mglru-rework-aging-feedback.patch
-mm-mglru-rework-type-selection.patch
-mm-mglru-rework-refault-detection.patch
-mm-mglru-rework-workingset-protection.patch
-mm-mglru-fix-pte-mapped-large-folios.patch
+selftests-mm-virtual_address_range-fix-error-when-commitlimit-1gib.patch
+selftests-mm-virtual_address_range-avoid-reading-vvar-mappings.patch
 
