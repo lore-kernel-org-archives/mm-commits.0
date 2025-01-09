@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F28833C9
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:36:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0A333C9
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:36:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736401009; cv=none; b=DcPBlvZqCfySwQW76X9VCsK3t/yyh3AFNHcXJn4ujcoehxYHNeL/WUeBVNruc7zBaAz4A9HH/xBbSOCTjT3WU7CqLmIY+XglBygLrclf0EO9AvUkDBWCfI1PpJahOPOM3gVNkcFfagh8aHNYEHq1m/uY3lpfXhrYgLEY78/vXV4=
+	t=1736401011; cv=none; b=ZfJuxa40v6MlWc9odYyg0gMQm+Z6O2QpWEzH4UnWkIr03NzcnsMcA7eTxETkh97Tg1Q70jJPZuJL0V0idNRuEMLHpWlLwm+O0GdfFcPY2RKSyHQkjQ8WFsI3f2/fsw2uRgdUPyk7QTnQP2Xtz5dyIwhKDUgPCHc0O0DQZ6FZJQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736401009; c=relaxed/simple;
-	bh=X7zg8J3Bdl+d/ZNLTJGt6+SuJB3bhZnLfWR+DW4XCIQ=;
-	h=Date:To:From:Subject:Message-Id; b=HCWgt+7+Bv6AISRKS7mE5d76N2BT0Vj8GQcnGjrl9KzusS1JHXc3ZERBZ4JzVYGsL+3xOfnY9dxvgyXla0Sr5/XBUw4azf1d+tPLVy3BJR4a5+aHPSj5DyNiUgUZxh8zF2lvRNqlg/WR8Hke/AsNub8xyBZiDOjKb06beXmlmzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YKe53GP6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736401011; c=relaxed/simple;
+	bh=ArHIHiFz7yB6/ftYNW/Czt6xXjhJnmgYpPQzKe/cQII=;
+	h=Date:To:From:Subject:Message-Id; b=az9CmOgWDr8DZSPlpHw8pLBBgNsqYlToMzC9E+Doj152arFk0/3Jc5eM0FKXrgHJ4gsRpUnL6nrHzAv97lum2cO3N6EFVsjEzD0HDErdXUrPmTIoI6Mb8QuQ59qj1fnwB4DDXnIUyJrqQSU15f7LlmYvsA3DD5ZUdV6uvLtKxas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AC7tWOdG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YKe53GP6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD5EC4CED2;
-	Thu,  9 Jan 2025 05:36:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AC7tWOdG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2A3EC4CED2;
+	Thu,  9 Jan 2025 05:36:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736401008;
-	bh=X7zg8J3Bdl+d/ZNLTJGt6+SuJB3bhZnLfWR+DW4XCIQ=;
+	s=korg; t=1736401011;
+	bh=ArHIHiFz7yB6/ftYNW/Czt6xXjhJnmgYpPQzKe/cQII=;
 	h=Date:To:From:Subject:From;
-	b=YKe53GP6e+kUK74IDkM+Wnaen00ShAdX3M6GsdVsvKg1ZHUj+mIszXjN+44hKu8JS
-	 xyvUlxidA0ulY/PPQ1nJ2SpAdR1LrFM9rmbzX/QiVCIOE09LRtOQW8nTMITe3TuXqO
-	 aWo1gq5z6g2re0HJBM0qp17xQnfQxl6+zFWGDWlk=
-Date: Wed, 08 Jan 2025 21:36:48 -0800
+	b=AC7tWOdGH6EDnWdWI+TYUrqL/0WAOdRs2K7ZbVtclrzyr4GACevHYcNvLBuABHBp8
+	 7578VAqOQuozKTbWcZd5R6iT71KAAfSU3GEqFBp8NNeFIcNpxZhazsaywiB29VDoD9
+	 3uzRcf0CLrK6lD6dJh/NOSf7RNg3V/FfjoIQlDgk=
+Date: Wed, 08 Jan 2025 21:36:50 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile.patch added to mm-nonmm-unstable branch
-Message-Id: <20250109053648.ABD5EC4CED2@smtp.kernel.org>
+Subject: + nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files.patch added to mm-nonmm-unstable branch
+Message-Id: <20250109053650.F2A3EC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: correct return value kernel-doc descriptions for sufile
+     Subject: nilfs2: correct return value kernel-doc descriptions for metadata files
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile.patch
+     nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,194 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: correct return value kernel-doc descriptions for sufile
-Date: Thu, 9 Jan 2025 12:23:22 +0900
+Subject: nilfs2: correct return value kernel-doc descriptions for metadata files
+Date: Thu, 9 Jan 2025 12:23:23 +0900
 
 Similar to the previous changes to fix return value descriptions, this
-fixes the format of the return value descriptions of functions for
-sufile-related functions, eliminating a dozen warnings emitted by the
-kernel-doc script.
+fixes the format of the return value descriptions for metadata file
+functions other than sufile.
 
-Link: https://lkml.kernel.org/r/20250109032846.10147-4-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20250109032846.10147-5-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |   96 ++++++++++++++-----------------------------
- fs/nilfs2/sufile.h |   15 ++----
- 2 files changed, 38 insertions(+), 73 deletions(-)
+ fs/nilfs2/cpfile.c |   47 +++++++++++-----------------------
+ fs/nilfs2/dat.c    |   37 +++++++++-----------------
+ fs/nilfs2/ifile.c  |   32 +++++++++--------------
+ fs/nilfs2/mdt.c    |   59 ++++++++++++++++++-------------------------
+ 4 files changed, 67 insertions(+), 108 deletions(-)
 
---- a/fs/nilfs2/sufile.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile
-+++ a/fs/nilfs2/sufile.c
-@@ -155,17 +155,12 @@ unsigned long nilfs_sufile_get_ncleanseg
-  * of successfully modified segments from the head is stored in the
-  * place @ndone points to.
+--- a/fs/nilfs2/cpfile.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files
++++ a/fs/nilfs2/cpfile.c
+@@ -191,14 +191,10 @@ static inline int nilfs_cpfile_get_check
+  * @cnop: place to store the next checkpoint number
+  * @bhp: place to store a pointer to buffer_head struct
   *
-- * Return Value: On success, zero is returned.  On error, one of the
-- * following negative error codes is returned.
+- * Return Value: On success, it returns 0. On error, the following negative
+- * error code is returned.
 - *
-- * %-EIO - I/O error.
+- * %-ENOMEM - Insufficient memory available.
 - *
-- * %-ENOMEM - Insufficient amount of memory available.
+- * %-EIO - I/O error
 - *
-- * %-ENOENT - Given segment usage is in hole block (may be returned if
-- *            @create is zero)
-- *
-- * %-EINVAL - Invalid segment usage number
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- Invalid segment usage number
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOENT	- Given segment usage is in hole block (may be returned if
-+ *		  @create is zero)
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- int nilfs_sufile_updatev(struct inode *sufile, __u64 *segnumv, size_t nsegs,
- 			 int create, size_t *ndone,
-@@ -272,10 +267,7 @@ int nilfs_sufile_update(struct inode *su
-  * @start: minimum segment number of allocatable region (inclusive)
-  * @end: maximum segment number of allocatable region (inclusive)
-  *
-- * Return Value: On success, 0 is returned.  On error, one of the
-- * following negative error codes is returned.
-- *
-- * %-ERANGE - invalid segment region
-+ * Return: 0 on success, or %-ERANGE if segment range is invalid.
-  */
- int nilfs_sufile_set_alloc_range(struct inode *sufile, __u64 start, __u64 end)
- {
-@@ -300,17 +292,13 @@ int nilfs_sufile_set_alloc_range(struct
-  * @sufile: inode of segment usage file
-  * @segnump: pointer to segment number
-  *
-- * Description: nilfs_sufile_alloc() allocates a clean segment.
-- *
-- * Return Value: On success, 0 is returned and the segment number of the
-- * allocated segment is stored in the place pointed by @segnump. On error, one
-- * of the following negative error codes is returned.
-- *
-- * %-EIO - I/O error.
-+ * Description: nilfs_sufile_alloc() allocates a clean segment, and stores
-+ * its segment number in the place pointed to by @segnump.
-  *
-- * %-ENOMEM - Insufficient amount of memory available.
-- *
-- * %-ENOSPC - No clean segment left.
+- * %-ENOENT - no block exists in the range.
 + * Return: 0 on success, or the following negative error code on failure.
 + * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-+ * * %-ENOSPC	- No clean segment left.
-  */
- int nilfs_sufile_alloc(struct inode *sufile, __u64 *segnump)
- {
-@@ -610,16 +598,12 @@ int nilfs_sufile_set_segment_usage(struc
-  * @sufile: inode of segment usage file
-  * @sustat: pointer to a structure of segment usage statistics
-  *
-- * Description: nilfs_sufile_get_stat() returns information about segment
-- * usage.
-- *
-- * Return Value: On success, 0 is returned, and segment usage information is
-- * stored in the place pointed by @sustat. On error, one of the following
-- * negative error codes is returned.
-+ * Description: nilfs_sufile_get_stat() retrieves segment usage statistics
-+ * and stores them in the location pointed to by @sustat.
-  *
-- * %-EIO - I/O error.
-- *
-- * %-ENOMEM - Insufficient amount of memory available.
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- no block exists in the range.
 + * * %-ENOMEM	- Insufficient memory available.
   */
- int nilfs_sufile_get_stat(struct inode *sufile, struct nilfs_sustat *sustat)
- {
-@@ -683,16 +667,11 @@ void nilfs_sufile_do_set_error(struct in
-  * @start: start segment number (inclusive)
-  * @end: end segment number (inclusive)
-  *
-- * Return Value: On success, 0 is returned.  On error, one of the
-- * following negative error codes is returned.
-- *
-- * %-EIO - I/O error.
-- *
-- * %-ENOMEM - Insufficient amount of memory available.
-- *
-- * %-EINVAL - Invalid number of segments specified
-- *
-- * %-EBUSY - Dirty or active segments are present in the range
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EBUSY	- Dirty or active segments are present in the range.
-+ * * %-EINVAL	- Invalid number of segments specified.
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- static int nilfs_sufile_truncate_range(struct inode *sufile,
- 				       __u64 start, __u64 end)
-@@ -787,16 +766,11 @@ out:
-  * @sufile: inode of segment usage file
-  * @newnsegs: new number of segments
-  *
-- * Return Value: On success, 0 is returned.  On error, one of the
-- * following negative error codes is returned.
-- *
-- * %-EIO - I/O error.
-- *
-- * %-ENOMEM - Insufficient amount of memory available.
-- *
-- * %-ENOSPC - Enough free space is not left for shrinking
-- *
-- * %-EBUSY - Dirty or active segments exist in the region to be truncated
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EBUSY	- Dirty or active segments exist in the region to be truncated.
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-+ * * %-ENOSPC	- Enough free space is not left for shrinking.
-  */
- int nilfs_sufile_resize(struct inode *sufile, __u64 newnsegs)
- {
-@@ -939,14 +913,10 @@ ssize_t nilfs_sufile_get_suinfo(struct i
-  * segment usage accordingly. Only the fields indicated by the sup_flags
-  * are updated.
-  *
-- * Return Value: On success, 0 is returned. On error, one of the
-- * following negative error codes is returned.
-- *
-- * %-EIO - I/O error.
-- *
-- * %-ENOMEM - Insufficient amount of memory available.
-- *
-- * %-EINVAL - Invalid values in input (segment number, flags or nblocks)
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- Invalid values in input (segment number, flags or nblocks).
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- ssize_t nilfs_sufile_set_suinfo(struct inode *sufile, void *buf,
- 				unsigned int supsz, size_t nsup)
-@@ -1073,7 +1043,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
-  * and start+len is rounded down. For each clean segment blkdev_issue_discard
-  * function is invoked.
-  *
-- * Return Value: On success, 0 is returned or negative error code, otherwise.
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_sufile_trim_fs(struct inode *sufile, struct fstrim_range *range)
- {
---- a/fs/nilfs2/sufile.h~nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile
-+++ a/fs/nilfs2/sufile.h
-@@ -95,8 +95,7 @@ static inline int nilfs_sufile_freev(str
-  * @nsegs: size of @segnumv array
-  * @ndone: place to store the number of cancelled segments
-  *
-- * Return Value: On success, 0 is returned. On error, a negative error codes
-- * is returned.
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static inline int nilfs_sufile_cancel_freev(struct inode *sufile,
- 					    __u64 *segnumv, size_t nsegs,
-@@ -114,14 +113,10 @@ static inline int nilfs_sufile_cancel_fr
-  * Description: nilfs_sufile_set_error() marks the segment specified by
-  * @segnum as erroneous. The error segment will never be used again.
+ static int nilfs_cpfile_find_checkpoint_block(struct inode *cpfile,
+ 					      __u64 start_cno, __u64 end_cno,
+@@ -447,14 +443,10 @@ error:
+  * the period from @start to @end, excluding @end itself. The checkpoints
+  * which have been already deleted are ignored.
   *
 - * Return Value: On success, 0 is returned. On error, one of the following
 - * negative error codes is returned.
@@ -255,13 +109,249 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 - *
 - * %-ENOMEM - Insufficient amount of memory available.
 - *
-- * %-EINVAL - Invalid segment usage number.
+- * %-EINVAL - invalid checkpoints.
 + * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- Invalid segment usage number.
++ * * %-EINVAL	- Invalid checkpoints.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_cpfile_delete_checkpoints(struct inode *cpfile,
+ 				    __u64 start,
+@@ -1058,14 +1050,10 @@ int nilfs_cpfile_is_snapshot(struct inod
+  * Description: nilfs_change_cpmode() changes the mode of the checkpoint
+  * specified by @cno. The mode @mode is NILFS_CHECKPOINT or NILFS_SNAPSHOT.
+  *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOENT - No such checkpoint.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- No such checkpoint.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_cpfile_change_cpmode(struct inode *cpfile, __u64 cno, int mode)
+ {
+@@ -1097,14 +1085,11 @@ int nilfs_cpfile_change_cpmode(struct in
+  * @cpstat: pointer to a structure of checkpoint statistics
+  *
+  * Description: nilfs_cpfile_get_stat() returns information about checkpoints.
++ * The checkpoint statistics are stored in the location pointed to by @cpstat.
+  *
+- * Return Value: On success, 0 is returned, and checkpoints information is
+- * stored in the place pointed by @cpstat. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_cpfile_get_stat(struct inode *cpfile, struct nilfs_cpstat *cpstat)
+ {
+--- a/fs/nilfs2/dat.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files
++++ a/fs/nilfs2/dat.c
+@@ -302,14 +302,10 @@ int nilfs_dat_mark_dirty(struct inode *d
+  * Description: nilfs_dat_freev() frees the virtual block numbers specified by
+  * @vblocknrs and @nitems.
+  *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOENT - The virtual block number have not been allocated.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- The virtual block number have not been allocated.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_dat_freev(struct inode *dat, __u64 *vblocknrs, size_t nitems)
+ {
+@@ -325,12 +321,9 @@ int nilfs_dat_freev(struct inode *dat, _
+  * Description: nilfs_dat_move() changes the block number associated with
+  * @vblocknr to @blocknr.
+  *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_dat_move(struct inode *dat, __u64 vblocknr, sector_t blocknr)
+ {
+@@ -390,17 +383,13 @@ int nilfs_dat_move(struct inode *dat, __
+  * @blocknrp: pointer to a block number
+  *
+  * Description: nilfs_dat_translate() maps the virtual block number @vblocknr
+- * to the corresponding block number.
+- *
+- * Return Value: On success, 0 is returned and the block number associated
+- * with @vblocknr is stored in the place pointed by @blocknrp. On error, one
+- * of the following negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * to the corresponding block number.  The block number associated with
++ * @vblocknr is stored in the place pointed to by @blocknrp.
+  *
+- * %-ENOENT - A block number associated with @vblocknr does not exist.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- A block number associated with @vblocknr does not exist.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_dat_translate(struct inode *dat, __u64 vblocknr, sector_t *blocknrp)
+ {
+--- a/fs/nilfs2/ifile.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files
++++ a/fs/nilfs2/ifile.c
+@@ -38,17 +38,15 @@ static inline struct nilfs_ifile_info *N
+  * @out_ino: pointer to a variable to store inode number
+  * @out_bh: buffer_head contains newly allocated disk inode
+  *
+- * Return Value: On success, 0 is returned and the newly allocated inode
+- * number is stored in the place pointed by @ino, and buffer_head pointer
+- * that contains newly allocated disk inode structure is stored in the
+- * place pointed by @out_bh
+- * On error, one of the following negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOSPC - No inode left.
++ * nilfs_ifile_create_inode() allocates a new inode in the ifile metadata
++ * file and stores the inode number in the variable pointed to by @out_ino,
++ * as well as storing the ifile's buffer with the disk inode in the location
++ * pointed to by @out_bh.
++ *
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
++ * * %-ENOSPC	- No inode left.
+  */
+ int nilfs_ifile_create_inode(struct inode *ifile, ino_t *out_ino,
+ 			     struct buffer_head **out_bh)
+@@ -83,14 +81,10 @@ int nilfs_ifile_create_inode(struct inod
+  * @ifile: ifile inode
+  * @ino: inode number
+  *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOENT - The inode number @ino have not been allocated.
++ * Return: 0 on success, or the following negative error code on failure.
 + * * %-ENOMEM	- Insufficient memory available.
 + * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- Inode number unallocated.
   */
- static inline int nilfs_sufile_set_error(struct inode *sufile, __u64 segnum)
+ int nilfs_ifile_delete_inode(struct inode *ifile, ino_t ino)
+ {
+--- a/fs/nilfs2/mdt.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files
++++ a/fs/nilfs2/mdt.c
+@@ -226,20 +226,20 @@ static int nilfs_mdt_read_block(struct i
+  * @out_bh: output of a pointer to the buffer_head
+  *
+  * nilfs_mdt_get_block() looks up the specified buffer and tries to create
+- * a new buffer if @create is not zero.  On success, the returned buffer is
+- * assured to be either existing or formatted using a buffer lock on success.
+- * @out_bh is substituted only when zero is returned.
+- *
+- * Return Value: On success, it returns 0. On error, the following negative
+- * error code is returned.
+- *
+- * %-ENOMEM - Insufficient memory available.
+- *
+- * %-EIO - I/O error
+- *
+- * %-ENOENT - the specified block does not exist (hole block)
+- *
+- * %-EROFS - Read only filesystem (for create mode)
++ * a new buffer if @create is not zero.  If (and only if) this function
++ * succeeds, it stores a pointer to the retrieved buffer head in the location
++ * pointed to by @out_bh.
++ *
++ * The retrieved buffer may be either an existing one or a newly allocated one.
++ * For a newly created buffer, if the callback function argument @init_block
++ * is non-NULL, the callback will be called with the buffer locked to format
++ * the block.
++ *
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- The specified block does not exist (hole block).
++ * * %-ENOMEM	- Insufficient memory available.
++ * * %-EROFS	- Read only filesystem (for create mode).
+  */
+ int nilfs_mdt_get_block(struct inode *inode, unsigned long blkoff, int create,
+ 			void (*init_block)(struct inode *,
+@@ -275,14 +275,10 @@ int nilfs_mdt_get_block(struct inode *in
+  * @out_bh, and block offset to @blkoff, respectively.  @out_bh and
+  * @blkoff are substituted only when zero is returned.
+  *
+- * Return Value: On success, it returns 0. On error, the following negative
+- * error code is returned.
+- *
+- * %-ENOMEM - Insufficient memory available.
+- *
+- * %-EIO - I/O error
+- *
+- * %-ENOENT - no block was found in the range
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- No block was found in the range.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_mdt_find_block(struct inode *inode, unsigned long start,
+ 			 unsigned long end, unsigned long *blkoff,
+@@ -321,12 +317,10 @@ out:
+  * @inode: inode of the meta data file
+  * @block: block offset
+  *
+- * Return Value: On success, zero is returned.
+- * On error, one of the following negative error code is returned.
+- *
+- * %-ENOMEM - Insufficient memory available.
+- *
+- * %-EIO - I/O error
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- Non-existent block.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ int nilfs_mdt_delete_block(struct inode *inode, unsigned long block)
+ {
+@@ -349,12 +343,9 @@ int nilfs_mdt_delete_block(struct inode
+  * nilfs_mdt_forget_block() clears a dirty flag of the specified buffer, and
+  * tries to release the page including the buffer from a page cache.
+  *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error code is returned.
+- *
+- * %-EBUSY - page has an active buffer.
+- *
+- * %-ENOENT - page cache has no page addressed by the offset.
++ * Return: 0 on success, or the following negative error code on failure.
++ * * %-EBUSY	- Page has an active buffer.
++ * * %-ENOENT	- Page cache has no page addressed by the offset.
+  */
+ int nilfs_mdt_forget_block(struct inode *inode, unsigned long block)
  {
 _
 
