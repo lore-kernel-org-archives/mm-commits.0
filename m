@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14EC0213E82
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:01:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC9B2214223
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:01:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736398888; cv=none; b=i5sgvX885vA0NnH3gz2tLoyIZQQXHUiGGT9Lq0PVscLevS3wFIrPGwGdi/Lc2Hb5XjWsvWNwCV94cVSH2niubs8eGYynjj/MzqeO7OPyqgrKiZuZM6Yqx4rfc8pgy1idSyW2b4UYKylm57acMtJAE0kjtTzlixx0yYo0fLGLs0o=
+	t=1736398890; cv=none; b=K/r/ZZAcWjWmA9N7lveVHFPVkAQvhrkvO4za2tC2WT+x1eMAe5eCTxxgXp4/g6tK7Mlb746YzSsjP2wn+ZwQD8NHXg4/odExVL/Gmq59mS4N85fastda8Hx0kB3dFUSAUrYsU9OKBDv/HyFmpU3ZuEZEa1BjpEll7F0Ib7OBf6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736398888; c=relaxed/simple;
-	bh=kApu/gdSHvLGj9JBCZgriiVGSLItVKjc6DjwQqb0ISc=;
-	h=Date:To:From:Subject:Message-Id; b=NHW7imfBLq0+GlOdUCLrJLGxJTc0445qae7y5BzNPsxSyMEaLoDDySNRrVgotsh23Oovt5wwCLr5jT0pw4mQ8AQl0p8wo7WK6E1lcKYzxhqJE4Z057uPgVPgxVApBeMa1cLmSF8btq72TVvgPCCmlV4HGWKmFZYz06vXTdPSgi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QV7Kv0cb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736398890; c=relaxed/simple;
+	bh=3+1cHOKAZPXYFu7TwiN6KrIbbT84EvwOro5zMxTbWIU=;
+	h=Date:To:From:Subject:Message-Id; b=ZLix087Ldtd0c2AH4RA5QBI+PI2SLeCskWtbfDxBzm4Y6njldDwItpEMl982UjKT4pHzvOis/VOvttMkYRTCJMDB7zdjJkKO4J0eDwWFxzwHo9ypbR63yFJNW+IcExRMKudEUmiBeiBZyj9FQaQ1MxFohpZlwzVDb9iYNwoFW3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=06ei2EUq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QV7Kv0cb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D596AC4CED2;
-	Thu,  9 Jan 2025 05:01:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="06ei2EUq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77BE8C4CED2;
+	Thu,  9 Jan 2025 05:01:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736398887;
-	bh=kApu/gdSHvLGj9JBCZgriiVGSLItVKjc6DjwQqb0ISc=;
+	s=korg; t=1736398890;
+	bh=3+1cHOKAZPXYFu7TwiN6KrIbbT84EvwOro5zMxTbWIU=;
 	h=Date:To:From:Subject:From;
-	b=QV7Kv0cb7WVNfXyNsRYgebVbqHoVu5fZH97AEsU6VyCn4rvNozel/bfjJ9AAqKry1
-	 WobrFmQL/H4uF/Vq/Xplaz1NYE3O/VyN7KnDptY2EtCWnMmn6nR+an9QIZhS0YYkO4
-	 52vVeI1ZtWQLSb6onHnBcmoSxhETF/DdsrkUKPTQ=
-Date: Wed, 08 Jan 2025 21:01:27 -0800
+	b=06ei2EUq0tqg3l5bd1YER5g4DuXtC1nfOzcQ5IOWUwQcL3MZ8p8ChWs2Xxcyk3KbH
+	 tN6/jWZnIa6D1NijjM3Bi78RJ2enkpKXPe+psLmp1bK+XMT5K1UUL0uqnCRDTYjinN
+	 Z/XTVWrpz0sZPyc0Dgia+adkcW6QgIbMAui47+cM=
+Date: Wed, 08 Jan 2025 21:01:29 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,palmer@dabbelt.com,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,andreas@gaisler.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch added to mm-unstable branch
-Message-Id: <20250109050127.D596AC4CED2@smtp.kernel.org>
+Subject: + mm-pgtable-introduce-generic-pagetable_dtor_free.patch added to mm-unstable branch
+Message-Id: <20250109050130.77BE8C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pgtable: move __tlb_remove_table_one() in x86 to generic file
+     Subject: mm: pgtable: introduce generic pagetable_dtor_free()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
+     mm-pgtable-introduce-generic-pagetable_dtor_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-introduce-generic-pagetable_dtor_free.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: move __tlb_remove_table_one() in x86 to generic file
-Date: Wed, 8 Jan 2025 14:57:32 +0800
+Subject: mm: pgtable: introduce generic pagetable_dtor_free()
+Date: Wed, 8 Jan 2025 14:57:33 +0800
 
-The __tlb_remove_table_one() in x86 does not contain architecture-specific
-content, so move it to the generic file.
+The pte_free(), pmd_free(), __pud_free() and __p4d_free() in
+asm-generic/pgalloc.h and the generic __tlb_remove_table() are basically
+the same, so let's introduce pagetable_dtor_free() to deduplicate them.
 
-Link: https://lkml.kernel.org/r/aab8a449bc67167943fd2cb5aab0a3a23b7b1cd7.1736317725.git.zhengqi.arch@bytedance.com
+In addition, the pagetable_dtor_free() in s390 does the same thing, so
+let's s390 also calls generic pagetable_dtor_free().
+
+Link: https://lkml.kernel.org/r/1663a0565aca881d1338ceb7d1db4aa9c333abd6.1736317725.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -85,7 +90,6 @@ Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
@@ -94,72 +98,96 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlb.h |   19 -------------------
- mm/mmu_gather.c            |   20 ++++++++++++++++++--
- 2 files changed, 18 insertions(+), 21 deletions(-)
+ arch/s390/mm/pgalloc.c        |    6 ------
+ include/asm-generic/pgalloc.h |   12 ++++--------
+ include/asm-generic/tlb.h     |    3 +--
+ include/linux/mm.h            |    6 ++++++
+ 4 files changed, 11 insertions(+), 16 deletions(-)
 
---- a/arch/x86/include/asm/tlb.h~mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file
-+++ a/arch/x86/include/asm/tlb.h
-@@ -20,25 +20,6 @@ static inline void tlb_flush(struct mmu_
- 	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, tlb->freed_tables);
+--- a/arch/s390/mm/pgalloc.c~mm-pgtable-introduce-generic-pagetable_dtor_free
++++ a/arch/s390/mm/pgalloc.c
+@@ -180,12 +180,6 @@ unsigned long *page_table_alloc(struct m
+ 	return table;
  }
  
--#ifdef CONFIG_PT_RECLAIM
--static inline void __tlb_remove_table_one_rcu(struct rcu_head *head)
+-static void pagetable_dtor_free(struct ptdesc *ptdesc)
 -{
--	struct ptdesc *ptdesc;
--
--	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
--	__tlb_remove_table(ptdesc);
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
 -}
 -
--static inline void __tlb_remove_table_one(void *table)
--{
--	struct ptdesc *ptdesc;
--
--	ptdesc = table;
--	call_rcu(&ptdesc->pt_rcu_head, __tlb_remove_table_one_rcu);
--}
--#define __tlb_remove_table_one __tlb_remove_table_one
--#endif /* CONFIG_PT_RECLAIM */
--
- static inline void invlpg(unsigned long addr)
+ void page_table_free(struct mm_struct *mm, unsigned long *table)
  {
- 	asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
---- a/mm/mmu_gather.c~mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file
-+++ a/mm/mmu_gather.c
-@@ -311,13 +311,29 @@ static inline void tlb_table_invalidate(
- 	}
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(table);
+--- a/include/asm-generic/pgalloc.h~mm-pgtable-introduce-generic-pagetable_dtor_free
++++ a/include/asm-generic/pgalloc.h
+@@ -109,8 +109,7 @@ static inline void pte_free(struct mm_st
+ {
+ 	struct ptdesc *ptdesc = page_ptdesc(pte_page);
+ 
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
++	pagetable_dtor_free(ptdesc);
  }
  
--#ifndef __tlb_remove_table_one
-+#ifdef CONFIG_PT_RECLAIM
-+static inline void __tlb_remove_table_one_rcu(struct rcu_head *head)
-+{
-+	struct ptdesc *ptdesc;
-+
-+	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
-+	__tlb_remove_table(ptdesc);
-+}
-+
-+static inline void __tlb_remove_table_one(void *table)
-+{
-+	struct ptdesc *ptdesc;
-+
-+	ptdesc = table;
-+	call_rcu(&ptdesc->pt_rcu_head, __tlb_remove_table_one_rcu);
-+}
-+#else
- static inline void __tlb_remove_table_one(void *table)
- {
- 	tlb_remove_table_sync_one();
- 	__tlb_remove_table(table);
- }
--#endif
-+#endif /* CONFIG_PT_RECLAIM */
  
- static void tlb_remove_table_one(void *table)
+@@ -153,8 +152,7 @@ static inline void pmd_free(struct mm_st
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pmd);
+ 
+ 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
++	pagetable_dtor_free(ptdesc);
+ }
+ #endif
+ 
+@@ -202,8 +200,7 @@ static inline void __pud_free(struct mm_
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
+ 
+ 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
++	pagetable_dtor_free(ptdesc);
+ }
+ 
+ #ifndef __HAVE_ARCH_PUD_FREE
+@@ -248,8 +245,7 @@ static inline void __p4d_free(struct mm_
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(p4d);
+ 
+ 	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
++	pagetable_dtor_free(ptdesc);
+ }
+ 
+ #ifndef __HAVE_ARCH_P4D_FREE
+--- a/include/asm-generic/tlb.h~mm-pgtable-introduce-generic-pagetable_dtor_free
++++ a/include/asm-generic/tlb.h
+@@ -213,8 +213,7 @@ static inline void __tlb_remove_table(vo
  {
+ 	struct ptdesc *ptdesc = (struct ptdesc *)table;
+ 
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
++	pagetable_dtor_free(ptdesc);
+ }
+ #endif
+ 
+--- a/include/linux/mm.h~mm-pgtable-introduce-generic-pagetable_dtor_free
++++ a/include/linux/mm.h
+@@ -3001,6 +3001,12 @@ static inline void pagetable_dtor(struct
+ 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
+ }
+ 
++static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
++{
++	pagetable_dtor(ptdesc);
++	pagetable_free(ptdesc);
++}
++
+ static inline bool pagetable_pte_ctor(struct ptdesc *ptdesc)
+ {
+ 	struct folio *folio = ptdesc_folio(ptdesc);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
