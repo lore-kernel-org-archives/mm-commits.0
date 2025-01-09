@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 176581AAC9
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 04:53:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D611747F
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:00:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736398403; cv=none; b=s0ga46SGpHb3gZYZJAV6KzqeK/FtqnSm41acy6L+E+tHLfYncM4ISIj8oAk0SWmjyoX/iTEwOg1jkx7/8pGCL86LAYh3oXn2sgWf4fkYQ5ZosIoZ3xCYQI/1zsF+wckEjhJa6vDjPhKXWeZJGVXf6Ofg3ec4c5CTQvivRXgFyb0=
+	t=1736398835; cv=none; b=Rc9dEo2U1VBQCeDejax6Yb7Hl+LDWB+3oqhEWzxylFCqb+bzGAXp9nduoEBpY0kCM/3h/pYPyJEJCiazOvru0gp3lok27OL5hJec7nb5SuUDzN+fHOFRqJtq5vRVOIJ3K/laC3VHmcKozcanDVbwAwlL4XlPDYK/F2+xeVem3J8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736398403; c=relaxed/simple;
-	bh=ybtrG0QfmypogTlOmuIjn1Y2VNRuo+Zzhree4BLKrhU=;
-	h=Date:To:From:Subject:Message-Id; b=sNQYe4SHjAOw6aiehBXBRB41Wj41ZofGKVvKtBJ2ygnEbS4hXZ0VYiv8++xEY8CL6HgsUaKKVJ0olVB+CFf+xLUxOuABVD22YDRC1U+kTdWfnE7yDjUVjEIMQG1JL0wggThwSGRqiR2SNmXvzpwT5beAKCvJM++t2tjyTf5HWUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YtYQGrne; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736398835; c=relaxed/simple;
+	bh=IV7SkTam7J8glXo0v978lHVKQ02dAGhSpa0uIpWsQ+U=;
+	h=Date:To:From:Subject:Message-Id; b=YeKuIDXan2C+YUkmy66MHvMqUtSsxHX+U5E0QMbe9e0ihyHQ/kNqbeEIMPqyqT2I3t1Z7klWVY1klf2UTxk0kxTNpg1T6/BNSXxUZV0yxdZPK/vn2jnOSFqE5x92Dx7S01ioN8yxXmBlPc4U9yf9K77aYhh+dGHMYJNhpFPWW7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RSOvOkQh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YtYQGrne"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78917C4CEE2;
-	Thu,  9 Jan 2025 04:53:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RSOvOkQh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 927DAC4CED2;
+	Thu,  9 Jan 2025 05:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736398402;
-	bh=ybtrG0QfmypogTlOmuIjn1Y2VNRuo+Zzhree4BLKrhU=;
+	s=korg; t=1736398834;
+	bh=IV7SkTam7J8glXo0v978lHVKQ02dAGhSpa0uIpWsQ+U=;
 	h=Date:To:From:Subject:From;
-	b=YtYQGrneI0mwdO9zwdoH1gGStKs777y+G5rDc81aS7jwZnGS2EtKJzSM8KP3ODCDV
-	 rwN1Q2LSOYoX6fowtKic7fGP2Z/KQwJHkLFfdHIIBf91dukJ1ASFKSa62Vf6cUX3oQ
-	 MQFoqEsWoNMwv+oOUsCNGdFyAvu6CgYTslTMCdw8=
-Date: Wed, 08 Jan 2025 20:53:21 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,mjguzik@gmail.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=RSOvOkQhpfh/tbgImzRmpyucZeNbqnCLZkjKIC8EFSUjX6XavuSZhbub2Pb+EhRn2
+	 7Q5Z0G2gaCQSTF0TqiUNBjOtgc/5Wsb0i7u+6NuDTumDmaPudcfYlQCVEF8F8+qq38
+	 0bmDrLgwHTmWOoBBvOnfEZ0UHQP2SDdnBhMKfrxg=
+Date: Wed, 08 Jan 2025 21:00:34 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,palmer@dabbelt.com,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,andreas@gaisler.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch removed from -mm tree
-Message-Id: <20250109045322.78917C4CEE2@smtp.kernel.org>
+Subject: + revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch added to mm-unstable branch
+Message-Id: <20250109050034.927DAC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,66 +34,181 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix
-has been removed from the -mm tree.  Its filename was
-     mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix.patch
+The patch titled
+     Subject: Revert "mm: pgtable: make ptlock be freed by RCU"
+has been added to the -mm mm-unstable branch.  Its filename is
+     revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix
-Date: Mon Dec  9 07:53:02 PM PST 2024
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: Revert "mm: pgtable: make ptlock be freed by RCU"
+Date: Wed, 8 Jan 2025 14:57:17 +0800
 
-add comment from David
+This reverts commit 2f3443770437e49abc39af26962d293851cbab6d.
 
-Link: https://lkml.kernel.org/r/f5a65bf5-5105-4376-9c1c-164a15a4ab79@redhat.com
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/366002e0af83f0d5cad3f356db036cb6447492f7.1736317725.git.zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Aneesh Kumar K.V (Arm) <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ref.h |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/mm.h       |    2 +-
+ include/linux/mm_types.h |    9 +--------
+ mm/memory.c              |   22 ++++++----------------
+ 3 files changed, 8 insertions(+), 25 deletions(-)
 
---- a/include/linux/page_ref.h~mm-remove-an-avoidable-load-of-page-refcount-in-page_ref_add_unless-fix
-+++ a/include/linux/page_ref.h
-@@ -234,8 +234,15 @@ static inline bool page_ref_add_unless(s
+--- a/include/linux/mm.h~revert-mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/include/linux/mm.h
+@@ -2925,7 +2925,7 @@ void ptlock_free(struct ptdesc *ptdesc);
  
- 	rcu_read_lock();
- 	/* avoid writing to the vmemmap area being remapped */
--	if (!page_is_fake_head(page))
-+	if (!page_is_fake_head(page)) {
-+		/*
-+		 * atomic_add_unless() will currently never modify the value
-+		 * if it already is u. If that ever changes, we'd have to have
-+		 * a separate check here, such that we won't be writing to
-+		 * write-protected vmemmap areas.
-+		 */
- 		ret = atomic_add_unless(&page->_refcount, nr, u);
-+	}
- 	rcu_read_unlock();
+ static inline spinlock_t *ptlock_ptr(struct ptdesc *ptdesc)
+ {
+-	return &(ptdesc->ptl->ptl);
++	return ptdesc->ptl;
+ }
+ #else /* ALLOC_SPLIT_PTLOCKS */
+ static inline void ptlock_cache_init(void)
+--- a/include/linux/mm_types.h~revert-mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/include/linux/mm_types.h
+@@ -434,13 +434,6 @@ FOLIO_MATCH(flags, _flags_2a);
+ FOLIO_MATCH(compound_head, _head_2a);
+ #undef FOLIO_MATCH
  
- 	if (page_ref_tracepoint_active(page_ref_mod_unless))
+-#if ALLOC_SPLIT_PTLOCKS
+-struct pt_lock {
+-	spinlock_t ptl;
+-	struct rcu_head rcu;
+-};
+-#endif
+-
+ /**
+  * struct ptdesc -    Memory descriptor for page tables.
+  * @__page_flags:     Same as page flags. Powerpc only.
+@@ -489,7 +482,7 @@ struct ptdesc {
+ 	union {
+ 		unsigned long _pt_pad_2;
+ #if ALLOC_SPLIT_PTLOCKS
+-		struct pt_lock *ptl;
++		spinlock_t *ptl;
+ #else
+ 		spinlock_t ptl;
+ #endif
+--- a/mm/memory.c~revert-mm-pgtable-make-ptlock-be-freed-by-rcu
++++ a/mm/memory.c
+@@ -7014,34 +7014,24 @@ static struct kmem_cache *page_ptl_cache
+ 
+ void __init ptlock_cache_init(void)
+ {
+-	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(struct pt_lock), 0,
++	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(spinlock_t), 0,
+ 			SLAB_PANIC, NULL);
+ }
+ 
+ bool ptlock_alloc(struct ptdesc *ptdesc)
+ {
+-	struct pt_lock *pt_lock;
++	spinlock_t *ptl;
+ 
+-	pt_lock = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
+-	if (!pt_lock)
++	ptl = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
++	if (!ptl)
+ 		return false;
+-	ptdesc->ptl = pt_lock;
++	ptdesc->ptl = ptl;
+ 	return true;
+ }
+ 
+-static void ptlock_free_rcu(struct rcu_head *head)
+-{
+-	struct pt_lock *pt_lock;
+-
+-	pt_lock = container_of(head, struct pt_lock, rcu);
+-	kmem_cache_free(page_ptl_cachep, pt_lock);
+-}
+-
+ void ptlock_free(struct ptdesc *ptdesc)
+ {
+-	struct pt_lock *pt_lock = ptdesc->ptl;
+-
+-	call_rcu(&pt_lock->rcu, ptlock_free_rcu);
++	kmem_cache_free(page_ptl_cachep, ptdesc->ptl);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-replace-free-hugepage-folios-after-migration-fix.patch
-mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
-rmap-add-support-for-pud-sized-mappings-to-rmap-fix.patch
-huge_memory-add-vmf_insert_folio_pud-fix.patch
-xarray-port-tests-to-kunit-fix.patch
-checkpatch-check-return-of-git_commit_info-fix.patch
-fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+mm-pgtable-make-ptep_clear-non-atomic.patch
+mm-khugepaged-recheck-pmd-state-in-retract_page_tables.patch
+mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte.patch
+mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte-fix.patch
+mm-introduce-zap_nonpresent_ptes.patch
+mm-introduce-do_zap_pte_range.patch
+mm-skip-over-all-consecutive-none-ptes-in-do_zap_pte_range.patch
+mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch
+mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch
+mm-make-zap_pte_range-handle-full-within-pmd-range.patch
+mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch
+mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
+x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch
+mm-pgtable-make-ptlock-be-freed-by-rcu.patch
+x86-select-arch_supports_pt_reclaim-if-x86_64.patch
+revert-mm-pgtable-make-ptlock-be-freed-by-rcu.patch
+mm-pgtable-add-statistics-for-p4d-level-page-table.patch
+arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table.patch
+s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table.patch
+mm-pgtable-introduce-pagetable_dtor.patch
+arm-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+arm64-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+riscv-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+x86-pgtable-convert-__tlb_remove_table-to-use-struct-ptdesc.patch
+x86-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
+s390-pgtable-consolidate-pxd-and-pte-tlb-free-paths.patch
+mm-pgtable-introduce-generic-__tlb_remove_table.patch
+mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table.patch
+mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
+mm-pgtable-introduce-generic-pagetable_dtor_free.patch
 
