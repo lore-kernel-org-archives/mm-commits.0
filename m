@@ -1,62 +1,294 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7E5A25949D
-	for <mm-commits@vger.kernel.org>; Wed,  8 Jan 2025 14:26:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC3CC126BF1;
+	Thu,  9 Jan 2025 02:07:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736346396; cv=none; b=Dp+/JJ6TFs/adK3fo2NBbu7WjkAVOgeHAwF7f09KA7HjPWPLmZSXps+bbOEpt2VyRosXpZ8R7VE7MrSchnRV+EOIQITnQRO5mWXKi60vS6XTdiYjSILdzFv8LsxEKwn7JvWxvQHESofWA3r4pn5zNw3yu2LqdrFPdkWvpYRXX/c=
+	t=1736388469; cv=none; b=YnSN/4xPEMZHi0YNRnm1mnTlXrmEHEwL7F7hoXZPTTSnVR/CHFIkgcmrL2N4YezRy4K/1bEtyzSab8HfA42FN3gCbxSDV4pPxkk7NbQxxWHOZNWBzAhRXfYoIS3i5UP5RDpvnm+14E8An60FJ5ihynSyEKuZa9ojwsF1cqxqgUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736346396; c=relaxed/simple;
-	bh=4Guo9WMPj08tFFttu3DV2i9ayFwUIdAsWMCmQduMgcE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qhAYDOEH5uqW18PPK+gbDZ7MBUIBCCQ9boTt24d5NYhv7ehowvNaltMUrZwwjpSQRwIni4WHWm7yv32ELdrBxogdgWz6GJJI7j+OxfvSeTz+K9ijY+tC9W2Z/ECtP6jblE91lylpRMhcbRelQIP8PBTvD4/48TWTmEjsPy+oJ+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ugAsBH2V; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1736388469; c=relaxed/simple;
+	bh=y0piB//M9uPBf0TQvr1YFFFnT/Ui1mlxG+6yW9GKV9M=;
+	h=Date:To:From:Subject:Message-Id; b=ZHW3686yQJWAL+t2HY2+YexVR8xK+unR/rOmkSjxUTbKdbLrPSQrl8609fG0EViqz4tqNwDPrGK0ohgkS8ShWxQq42fLohOonz6wGJkaldHH2iosleYcRZWUK/9GX0HwowPYFrd4UeblRXR27PgRwobST8il/6Mn++1I7zhZh64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BR5SF4f4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ugAsBH2V"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=KbzYpKqp+U/Fs0ZESAzc2ilAysai1xUJRwxGEjKOCok=; b=ugAsBH2VMYx3ie5PEkol6YrB8w
-	SiGogN2odOcRC1fXUlkQTecR3LC5waYJTEUXk91ftjwyEm9fwFtJ8enQ4hb7WAXSwZLPk/HY5iWNn
-	8ulkuRaPwNrBdOJjFAlj7j6MybqF1Tyx3NXF7PGe02g6wTeSXJllAso+fyQImfRF3K9h+nSrVfKhy
-	Y5aunJX+Wy1ct6bZRm+OcyY+2662UPvN1HtSIIm3ZMCiC6ChjW3bwFeihUy19GqnE3LvEv49xEBI8
-	SPHBLU5Rj1x3V1zTT9zsgIGwZN2IbcYQsgODNsJ6xh4C4JCi5VqjCXsO+nYm9fkYBF2zeyLkjLsoE
-	W1BfloVg==;
-Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1tVX0v-00000000hLr-2efd;
-	Wed, 08 Jan 2025 14:26:29 +0000
-Date: Wed, 8 Jan 2025 14:26:29 +0000
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, hch@lst.de,
-	hannes@cmpxchg.org, clm@meta.com, bfoster@redhat.com,
-	axboe@kernel.dk
-Subject: Re: + mm-add-pg_dropbehind-folio-flag.patch added to mm-unstable
- branch
-Message-ID: <Z36LFTqnHM-jywV5@casper.infradead.org>
-References: <20250108033555.926E6C4CED0@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BR5SF4f4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA09C4CEDD;
+	Thu,  9 Jan 2025 02:07:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1736388469;
+	bh=y0piB//M9uPBf0TQvr1YFFFnT/Ui1mlxG+6yW9GKV9M=;
+	h=Date:To:From:Subject:From;
+	b=BR5SF4f4NTDb/b+OoIM+Lv7SkSUTGXqo9lsBi2XRARyOwTlkHT2HJl0R6La7HJifQ
+	 KSTdYS0X5AssuOaYrIUS2zsc5574KqCvQdae6nf1ahej5x8Nh1FDqWDuQFwfVVAVtA
+	 Ah/S0T5R1on+xRCOSZB1w3FUu/+DuaEGOKuRYvJs=
+Date: Wed, 08 Jan 2025 18:07:48 -0800
+To: mm-commits@vger.kernel.org,vitalywool@gmail.com,stable@vger.kernel.org,samsun1006219@gmail.com,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250109020749.1EA09C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250108033555.926E6C4CED0@smtp.kernel.org>
 
-On Tue, Jan 07, 2025 at 07:35:55PM -0800, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm: add PG_dropbehind folio flag
-> has been added to the -mm mm-unstable branch.  Its filename is
->      mm-add-pg_dropbehind-folio-flag.patch
 
-I was hoping we'd get some response to Kirill's suggestion that we not
-do this.
+The patch titled
+     Subject: mm: zswap: properly synchronize freeing resources during CPU hotunplug
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch
 
-https://lore.kernel.org/linux-mm/Z2WRJdKnTD5eSfBS@casper.infradead.org/
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: properly synchronize freeing resources during CPU hotunplug
+Date: Wed, 8 Jan 2025 22:24:41 +0000
+
+In zswap_compress() and zswap_decompress(), the per-CPU acomp_ctx of the
+current CPU at the beginning of the operation is retrieved and used
+throughout.  However, since neither preemption nor migration are disabled,
+it is possible that the operation continues on a different CPU.
+
+If the original CPU is hotunplugged while the acomp_ctx is still in use,
+we run into a UAF bug as some of the resources attached to the acomp_ctx
+are freed during hotunplug in zswap_cpu_comp_dead() (i.e. 
+acomp_ctx.buffer, acomp_ctx.req, or acomp_ctx.acomp).
+
+The problem was introduced in commit 1ec3b5fe6eec ("mm/zswap: move to use
+crypto_acomp API for hardware acceleration") when the switch to the
+crypto_acomp API was made.  Prior to that, the per-CPU crypto_comp was
+retrieved using get_cpu_ptr() which disables preemption and makes sure the
+CPU cannot go away from under us.  Preemption cannot be disabled with the
+crypto_acomp API as a sleepable context is needed.
+
+Use the acomp_ctx.mutex to synchronize CPU hotplug callbacks allocating
+and freeing resources with compression/decompression paths.  Make sure
+that acomp_ctx.req is NULL when the resources are freed.  In the
+compression/decompression paths, check if acomp_ctx.req is NULL after
+acquiring the mutex (meaning the CPU was offlined) and retry on the new
+CPU.
+
+The initialization of acomp_ctx.mutex is moved from the CPU hotplug
+callback to the pool initialization where it belongs (where the mutex is
+allocated).  In addition to adding clarity, this makes sure that CPU
+hotplug cannot reinitialize a mutex that is already locked by
+compression/decompression.
+
+Previously a fix was attempted by holding cpus_read_lock() [1].  This
+would have caused a potential deadlock as it is possible for code already
+holding the lock to fall into reclaim and enter zswap (causing a
+deadlock).  A fix was also attempted using SRCU for synchronization, but
+Johannes pointed out that synchronize_srcu() cannot be used in CPU hotplug
+notifiers [2].
+
+Alternative fixes that were considered/attempted and could have worked:
+- Refcounting the per-CPU acomp_ctx. This involves complexity in
+  handling the race between the refcount dropping to zero in
+  zswap_[de]compress() and the refcount being re-initialized when the
+  CPU is onlined.
+- Disabling migration before getting the per-CPU acomp_ctx [3], but
+  that's discouraged and is a much bigger hammer than needed, and could
+  result in subtle performance issues.
+
+[1]https://lkml.kernel.org/20241219212437.2714151-1-yosryahmed@google.com/
+[2]https://lkml.kernel.org/20250107074724.1756696-2-yosryahmed@google.com/
+[3]https://lkml.kernel.org/20250107222236.2715883-2-yosryahmed@google.com/
+
+Link: https://lkml.kernel.org/r/20250108222441.3622031-1-yosryahmed@google.com
+Fixes: 1ec3b5fe6eec ("mm/zswap: move to use crypto_acomp API for hardware acceleration")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Closes: https://lore.kernel.org/lkml/20241113213007.GB1564047@cmpxchg.org/
+Reported-by: Sam Sun <samsun1006219@gmail.com>
+Closes: https://lore.kernel.org/lkml/CAEkJfYMtSdM5HceNsXUDf5haghD5+o2e7Qv4OcuruL4tPg6OaQ@mail.gmail.com/
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/zswap.c |   60 +++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 46 insertions(+), 14 deletions(-)
+
+--- a/mm/zswap.c~mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug
++++ a/mm/zswap.c
+@@ -251,7 +251,7 @@ static struct zswap_pool *zswap_pool_cre
+ 	struct zswap_pool *pool;
+ 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
+ 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+-	int ret;
++	int ret, cpu;
+ 
+ 	if (!zswap_has_pool) {
+ 		/* if either are unset, pool initialization failed, and we
+@@ -285,6 +285,9 @@ static struct zswap_pool *zswap_pool_cre
+ 		goto error;
+ 	}
+ 
++	for_each_possible_cpu(cpu)
++		mutex_init(&per_cpu_ptr(pool->acomp_ctx, cpu)->mutex);
++
+ 	ret = cpuhp_state_add_instance(CPUHP_MM_ZSWP_POOL_PREPARE,
+ 				       &pool->node);
+ 	if (ret)
+@@ -821,11 +824,12 @@ static int zswap_cpu_comp_prepare(unsign
+ 	struct acomp_req *req;
+ 	int ret;
+ 
+-	mutex_init(&acomp_ctx->mutex);
+-
++	mutex_lock(&acomp_ctx->mutex);
+ 	acomp_ctx->buffer = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
+-	if (!acomp_ctx->buffer)
+-		return -ENOMEM;
++	if (!acomp_ctx->buffer) {
++		ret = -ENOMEM;
++		goto buffer_fail;
++	}
+ 
+ 	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
+ 	if (IS_ERR(acomp)) {
+@@ -844,6 +848,8 @@ static int zswap_cpu_comp_prepare(unsign
+ 		ret = -ENOMEM;
+ 		goto req_fail;
+ 	}
++
++	/* acomp_ctx->req must be NULL if the acomp_ctx is not fully initialized */
+ 	acomp_ctx->req = req;
+ 
+ 	crypto_init_wait(&acomp_ctx->wait);
+@@ -855,12 +861,15 @@ static int zswap_cpu_comp_prepare(unsign
+ 	acomp_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+ 				   crypto_req_done, &acomp_ctx->wait);
+ 
++	mutex_unlock(&acomp_ctx->mutex);
+ 	return 0;
+ 
+ req_fail:
+ 	crypto_free_acomp(acomp_ctx->acomp);
+ acomp_fail:
+ 	kfree(acomp_ctx->buffer);
++buffer_fail:
++	mutex_unlock(&acomp_ctx->mutex);
+ 	return ret;
+ }
+ 
+@@ -869,17 +878,45 @@ static int zswap_cpu_comp_dead(unsigned
+ 	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
+ 	struct crypto_acomp_ctx *acomp_ctx = per_cpu_ptr(pool->acomp_ctx, cpu);
+ 
++	mutex_lock(&acomp_ctx->mutex);
+ 	if (!IS_ERR_OR_NULL(acomp_ctx)) {
+ 		if (!IS_ERR_OR_NULL(acomp_ctx->req))
+ 			acomp_request_free(acomp_ctx->req);
++		acomp_ctx->req = NULL;
+ 		if (!IS_ERR_OR_NULL(acomp_ctx->acomp))
+ 			crypto_free_acomp(acomp_ctx->acomp);
+ 		kfree(acomp_ctx->buffer);
+ 	}
++	mutex_unlock(&acomp_ctx->mutex);
+ 
+ 	return 0;
+ }
+ 
++static struct crypto_acomp_ctx *acomp_ctx_get_cpu_lock(struct zswap_pool *pool)
++{
++	struct crypto_acomp_ctx *acomp_ctx;
++
++	for (;;) {
++		acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
++		mutex_lock(&acomp_ctx->mutex);
++		if (likely(acomp_ctx->req))
++			return acomp_ctx;
++		/*
++		 * It is possible that we were migrated to a different CPU after
++		 * getting the per-CPU ctx but before the mutex was acquired. If
++		 * the old CPU got offlined, zswap_cpu_comp_dead() could have
++		 * already freed ctx->req (among other things) and set it to
++		 * NULL. Just try again on the new CPU that we ended up on.
++		 */
++		mutex_unlock(&acomp_ctx->mutex);
++	}
++}
++
++static void acomp_ctx_put_unlock(struct crypto_acomp_ctx *acomp_ctx)
++{
++	mutex_unlock(&acomp_ctx->mutex);
++}
++
+ static bool zswap_compress(struct page *page, struct zswap_entry *entry,
+ 			   struct zswap_pool *pool)
+ {
+@@ -893,10 +930,7 @@ static bool zswap_compress(struct page *
+ 	gfp_t gfp;
+ 	u8 *dst;
+ 
+-	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
+-
+-	mutex_lock(&acomp_ctx->mutex);
+-
++	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
+ 	dst = acomp_ctx->buffer;
+ 	sg_init_table(&input, 1);
+ 	sg_set_page(&input, page, PAGE_SIZE, 0);
+@@ -949,7 +983,7 @@ unlock:
+ 	else if (alloc_ret)
+ 		zswap_reject_alloc_fail++;
+ 
+-	mutex_unlock(&acomp_ctx->mutex);
++	acomp_ctx_put_unlock(acomp_ctx);
+ 	return comp_ret == 0 && alloc_ret == 0;
+ }
+ 
+@@ -960,9 +994,7 @@ static void zswap_decompress(struct zswa
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	u8 *src;
+ 
+-	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+-	mutex_lock(&acomp_ctx->mutex);
+-
++	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+ 	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
+ 	/*
+ 	 * If zpool_map_handle is atomic, we cannot reliably utilize its mapped buffer
+@@ -986,10 +1018,10 @@ static void zswap_decompress(struct zswa
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
+ 	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
+ 	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
+-	mutex_unlock(&acomp_ctx->mutex);
+ 
+ 	if (src != acomp_ctx->buffer)
+ 		zpool_unmap_handle(zpool, entry->handle);
++	acomp_ctx_put_unlock(acomp_ctx);
+ }
+ 
+ /*********************************
+_
+
+Patches currently in -mm which might be from yosryahmed@google.com are
+
+revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
+mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch
+mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch
+
