@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F46B213E82
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:01:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14EC0213E82
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:01:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736398885; cv=none; b=fzlpPkR1Ov8coEhAQNP3f1q08RduCeVAhYAhdeaLkMSJ1DadcWfji8U6UvjnFQ1DHpf4y2JYrNhPE2X1rFT0pvc8p7ngER032srEBhHFt4AzwY1L1CSlb/zSUO1Bq++aVdY0HXPRPcZ7JHvucBER/Mw9ynYzGi479nmaJBf5xCM=
+	t=1736398888; cv=none; b=i5sgvX885vA0NnH3gz2tLoyIZQQXHUiGGT9Lq0PVscLevS3wFIrPGwGdi/Lc2Hb5XjWsvWNwCV94cVSH2niubs8eGYynjj/MzqeO7OPyqgrKiZuZM6Yqx4rfc8pgy1idSyW2b4UYKylm57acMtJAE0kjtTzlixx0yYo0fLGLs0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736398885; c=relaxed/simple;
-	bh=XuOeyRPBv2kZyBz5SmOofVhTcZB3D7G2gNaalT494O8=;
-	h=Date:To:From:Subject:Message-Id; b=YDoGpCytq8fPAgIkuQxaKeAzQdBJcfrLrYVnRVmJPWHiVnHzO/eOqoz9nQDpRT+UIy3Jn4pCbUcXXMdyuIMGBR1gE2d9XRG6CefdOZEmhczwiHXvB4w1wQvty6s+DSDX9l1ppf3a57Y+/X5ZbgPF8W9on++HZ8mZQXLzG0lLtD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ir+kHy81; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736398888; c=relaxed/simple;
+	bh=kApu/gdSHvLGj9JBCZgriiVGSLItVKjc6DjwQqb0ISc=;
+	h=Date:To:From:Subject:Message-Id; b=NHW7imfBLq0+GlOdUCLrJLGxJTc0445qae7y5BzNPsxSyMEaLoDDySNRrVgotsh23Oovt5wwCLr5jT0pw4mQ8AQl0p8wo7WK6E1lcKYzxhqJE4Z057uPgVPgxVApBeMa1cLmSF8btq72TVvgPCCmlV4HGWKmFZYz06vXTdPSgi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QV7Kv0cb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ir+kHy81"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D780C4CED2;
-	Thu,  9 Jan 2025 05:01:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QV7Kv0cb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D596AC4CED2;
+	Thu,  9 Jan 2025 05:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736398885;
-	bh=XuOeyRPBv2kZyBz5SmOofVhTcZB3D7G2gNaalT494O8=;
+	s=korg; t=1736398887;
+	bh=kApu/gdSHvLGj9JBCZgriiVGSLItVKjc6DjwQqb0ISc=;
 	h=Date:To:From:Subject:From;
-	b=Ir+kHy81ser9K+jbYP25C0fKXy3gDOAI9QQ/FSoxMqneyWjC7pUUkz9ffaD3+bMjm
-	 JpslR1iwIlfA/vdfHWVko/GjPsxw4j6Ze5S+hEzVnBqmn0gq5qlmQBMcKzY3QYu0hY
-	 QMYC8RtSsVBPpjwnZyILGGT22AfvIjShOO/6k3QI=
-Date: Wed, 08 Jan 2025 21:01:24 -0800
+	b=QV7Kv0cb7WVNfXyNsRYgebVbqHoVu5fZH97AEsU6VyCn4rvNozel/bfjJ9AAqKry1
+	 WobrFmQL/H4uF/Vq/Xplaz1NYE3O/VyN7KnDptY2EtCWnMmn6nR+an9QIZhS0YYkO4
+	 52vVeI1ZtWQLSb6onHnBcmoSxhETF/DdsrkUKPTQ=
+Date: Wed, 08 Jan 2025 21:01:27 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,palmer@dabbelt.com,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,andreas@gaisler.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table.patch added to mm-unstable branch
-Message-Id: <20250109050125.4D780C4CED2@smtp.kernel.org>
+Subject: + mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch added to mm-unstable branch
+Message-Id: <20250109050127.D596AC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pgtable: completely move pagetable_dtor() to generic tlb_remove_table()
+     Subject: mm: pgtable: move __tlb_remove_table_one() in x86 to generic file
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table.patch
+     mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: completely move pagetable_dtor() to generic tlb_remove_table()
-Date: Wed, 8 Jan 2025 14:57:31 +0800
+Subject: mm: pgtable: move __tlb_remove_table_one() in x86 to generic file
+Date: Wed, 8 Jan 2025 14:57:32 +0800
 
-For the generic tlb_remove_table(), it is implemented in the following two
-forms:
+The __tlb_remove_table_one() in x86 does not contain architecture-specific
+content, so move it to the generic file.
 
-1) CONFIG_MMU_GATHER_TABLE_FREE is enabled
-
-tlb_remove_table
---> generic __tlb_remove_table()
-
-2) CONFIG_MMU_GATHER_TABLE_FREE is disabled
-
-tlb_remove_table
---> tlb_remove_page
-
-For case 1), the pagetable_dtor() has already been moved to generic
-__tlb_remove_table().
-
-For case 2), now only arm will call tlb_remove_table()/tlb_remove_ptdesc()
-when CONFIG_MMU_GATHER_TABLE_FREE is disabled.  Let's move
-pagetable_dtor() completely to generic tlb_remove_table(), so that the
-architectures can follow more easily.
-
-Link: https://lkml.kernel.org/r/0c733ac867b287ec08190676496d1decebf49da2.1736317725.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/aab8a449bc67167943fd2cb5aab0a3a23b7b1cd7.1736317725.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Suggested-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -113,48 +94,72 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h |    4 ----
- include/asm-generic/tlb.h  |   10 ++++++++--
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/tlb.h |   19 -------------------
+ mm/mmu_gather.c            |   20 ++++++++++++++++++--
+ 2 files changed, 18 insertions(+), 21 deletions(-)
 
---- a/arch/arm/include/asm/tlb.h~mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table
-+++ a/arch/arm/include/asm/tlb.h
-@@ -34,10 +34,6 @@ __pte_free_tlb(struct mmu_gather *tlb, p
- {
- 	struct ptdesc *ptdesc = page_ptdesc(pte);
+--- a/arch/x86/include/asm/tlb.h~mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file
++++ a/arch/x86/include/asm/tlb.h
+@@ -20,25 +20,6 @@ static inline void tlb_flush(struct mmu_
+ 	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, tlb->freed_tables);
+ }
  
--#ifndef CONFIG_MMU_GATHER_TABLE_FREE
--	pagetable_dtor(ptdesc);
--#endif
+-#ifdef CONFIG_PT_RECLAIM
+-static inline void __tlb_remove_table_one_rcu(struct rcu_head *head)
+-{
+-	struct ptdesc *ptdesc;
 -
- #ifndef CONFIG_ARM_LPAE
- 	/*
- 	 * With the classic ARM MMU, a pte page has two corresponding pmd
---- a/include/asm-generic/tlb.h~mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table
-+++ a/include/asm-generic/tlb.h
-@@ -220,14 +220,20 @@ static inline void __tlb_remove_table(vo
+-	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
+-	__tlb_remove_table(ptdesc);
+-}
+-
+-static inline void __tlb_remove_table_one(void *table)
+-{
+-	struct ptdesc *ptdesc;
+-
+-	ptdesc = table;
+-	call_rcu(&ptdesc->pt_rcu_head, __tlb_remove_table_one_rcu);
+-}
+-#define __tlb_remove_table_one __tlb_remove_table_one
+-#endif /* CONFIG_PT_RECLAIM */
+-
+ static inline void invlpg(unsigned long addr)
+ {
+ 	asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
+--- a/mm/mmu_gather.c~mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file
++++ a/mm/mmu_gather.c
+@@ -311,13 +311,29 @@ static inline void tlb_table_invalidate(
+ 	}
+ }
  
- extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
- 
--#else /* !CONFIG_MMU_GATHER_HAVE_TABLE_FREE */
-+#else /* !CONFIG_MMU_GATHER_TABLE_FREE */
- 
-+static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page);
- /*
-  * Without MMU_GATHER_TABLE_FREE the architecture is assumed to have page based
-  * page directories and we can use the normal page batching to free them.
-  */
--#define tlb_remove_table(tlb, page) tlb_remove_page((tlb), (page))
-+static inline void tlb_remove_table(struct mmu_gather *tlb, void *table)
+-#ifndef __tlb_remove_table_one
++#ifdef CONFIG_PT_RECLAIM
++static inline void __tlb_remove_table_one_rcu(struct rcu_head *head)
 +{
-+	struct page *page = (struct page *)table;
- 
-+	pagetable_dtor(page_ptdesc(page));
-+	tlb_remove_page(tlb, page);
++	struct ptdesc *ptdesc;
++
++	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
++	__tlb_remove_table(ptdesc);
 +}
- #endif /* CONFIG_MMU_GATHER_TABLE_FREE */
++
++static inline void __tlb_remove_table_one(void *table)
++{
++	struct ptdesc *ptdesc;
++
++	ptdesc = table;
++	call_rcu(&ptdesc->pt_rcu_head, __tlb_remove_table_one_rcu);
++}
++#else
+ static inline void __tlb_remove_table_one(void *table)
+ {
+ 	tlb_remove_table_sync_one();
+ 	__tlb_remove_table(table);
+ }
+-#endif
++#endif /* CONFIG_PT_RECLAIM */
  
- #ifdef CONFIG_MMU_GATHER_RCU_TABLE_FREE
+ static void tlb_remove_table_one(void *table)
+ {
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
