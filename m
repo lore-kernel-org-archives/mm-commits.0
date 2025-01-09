@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8342933C9
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:36:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 232C72144DE
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 05:44:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736401018; cv=none; b=ZD5WAMzh5ygUunH1XpmHCd5kFrwRiNbV8FwP2xCPIeTxc1wgqjGlBXKr/fJxtgXW7VGt1XXh2oMENzKU0GLBpgU2O0dujsHxjXPt5N1HfQX7xKDci1MMI+cDFHkGDE9xiygSWiagJAi3YycOI44C6Id1SwUzTrRthhI900ngH84=
+	t=1736401454; cv=none; b=I3x94T7a6L1nQl8G5juIP5L4AmJgNCVoRIezoXeVpaswKbtMBwALV+/Kn98d+koiTfQemFcXDeGzFxzpP/JataWxSZSJfQo3/tni4g+IoFSlm+AQngjpucSPYtdAwyHrLUfLiPg3Rr7mgHXMpb8Ll/aeK6okhXagIrtnuPt/vhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736401018; c=relaxed/simple;
-	bh=rG30PDJoXGwwJpk8IuZ1pk+39uOsOeHvX2sos7kSY6w=;
-	h=Date:To:From:Subject:Message-Id; b=ki4gtdQPwNingtQCeHN/PR7aY92++7RCFiz1ZwbwoZOXj6ae8gqnf0rhPyYRstOpFD2g5/xn2Cm5bT+WsPzF8Pli5dBe+lPkBevvssVS5N5xBd2wHQd3uchTGuVSz0apo9lGdmFj+0cB0fEvIAzitF2BrnTf/SAVV0eQF3FvTR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M5o+4oLW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736401454; c=relaxed/simple;
+	bh=h8NoQgbzslBkOsRN42uvNFjnux/aNWRdkSPSPZ3nFYM=;
+	h=Date:To:From:Subject:Message-Id; b=GkVJthkmUgDgKAcj0qRAs57oPF7XBtt8iUv9rtyDaFHv47BR87dZ8Mxw4SsxgKgmb7Yn1KOSxarGR42aN3qGSkv9ZEIOG/1BNYz0WQHSr68WdCiahbMM+ip+HjPW956gDYBuLgUNB1wkWtziWvyD/ehQOx4xsDLDxnSg/nRtlng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=APabIKdS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M5o+4oLW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C343C4CED2;
-	Thu,  9 Jan 2025 05:36:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="APabIKdS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53069C4CED2;
+	Thu,  9 Jan 2025 05:44:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736401018;
-	bh=rG30PDJoXGwwJpk8IuZ1pk+39uOsOeHvX2sos7kSY6w=;
+	s=korg; t=1736401453;
+	bh=h8NoQgbzslBkOsRN42uvNFjnux/aNWRdkSPSPZ3nFYM=;
 	h=Date:To:From:Subject:From;
-	b=M5o+4oLWmDQi1zLK5x5fn1A7x94vuHHkADQVahNM87X9VnJflWuHf/lVncVgIvZm7
-	 1AxUtywni8ewAJEOaKh5phKRDGkdiP0U6O0ndRGwyS/sfg5bvXsnW+lyq5ILq9c+2Z
-	 s2vk7ZjE47HbipFdJWYleNFzIfCKUACdoOpLvqgU=
-Date: Wed, 08 Jan 2025 21:36:57 -0800
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=APabIKdSCCOyjcTvZhNPxAzfqHKI+suL2FfbT8Ao8QX1MworIWD7+zNF5EP+UDFz6
+	 DiGKOIE4PdGXagb4pU+NzxZHoEMTo1kaZ4HwwbBxTixhKPMK51WJZCoHJh169JTmCA
+	 uZjM6mtskfg+gGJ6yRGJ7EIA85Z20SNlMAjrUg9o=
+Date: Wed, 08 Jan 2025 21:44:12 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-add-missing-return-value-kernel-doc-descriptions.patch added to mm-nonmm-unstable branch
-Message-Id: <20250109053658.0C343C4CED2@smtp.kernel.org>
+Subject: + mm-introduce-vma_start_read_locked_nested-helpers.patch added to mm-unstable branch
+Message-Id: <20250109054413.53069C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: add missing return value kernel-doc descriptions
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-add-missing-return-value-kernel-doc-descriptions.patch
+     Subject: mm: introduce vma_start_read_locked{_nested} helpers
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-introduce-vma_start_read_locked_nested-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-add-missing-return-value-kernel-doc-descriptions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma_start_read_locked_nested-helpers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,656 +58,198 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: add missing return value kernel-doc descriptions
-Date: Thu, 9 Jan 2025 12:23:25 +0900
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: introduce vma_start_read_locked{_nested} helpers
+Date: Wed, 8 Jan 2025 18:30:10 -0800
 
-There are a number of kernel-doc comments for functions that are missing
-return values, which also causes a number of warnings when the kernel-doc
-script is run with the "-Wall" option.
+Patch series "move per-vma lock into vm_area_struct".
 
-Fix this issue by adding proper return value descriptions, and improve
-code maintainability.
+Back when per-vma locks were introduces, vm_lock was moved out of
+vm_area_struct in [1] because of the performance regression caused by
+false cacheline sharing.  Recent investigation [2] revealed that the
+regressions is limited to a rather old Broadwell microarchitecture and
+even there it can be mitigated by disabling adjacent cacheline
+prefetching, see [3].
 
-Link: https://lkml.kernel.org/r/20250109032846.10147-7-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Splitting single logical structure into multiple ones leads to more
+complicated management, extra pointer dereferences and overall less
+maintainable code.  When that split-away part is a lock, it complicates
+things even further.  With no performance benefits, there are no reasons
+for this split.  Merging the vm_lock back into vm_area_struct also allows
+vm_area_struct to use SLAB_TYPESAFE_BY_RCU later in this patchset.
+
+This patchset:
+
+1. moves vm_lock back into vm_area_struct, aligning it at the
+   cacheline boundary and changing the cache to be cacheline-aligned to
+   minimize cacheline sharing;
+
+2. changes vm_area_struct initialization to mark new vma as detached
+   until it is inserted into vma tree;
+
+3. replaces vm_lock and vma->detached flag with a reference counter;
+
+4. changes vm_area_struct cache to SLAB_TYPESAFE_BY_RCU to allow for
+   their reuse and to minimize call_rcu() calls.
+
+Pagefault microbenchmarks show performance improvement:
+Hmean     faults/cpu-1    507926.5547 (   0.00%)   506519.3692 *  -0.28%*
+Hmean     faults/cpu-4    479119.7051 (   0.00%)   481333.6802 *   0.46%*
+Hmean     faults/cpu-7    452880.2961 (   0.00%)   455845.6211 *   0.65%*
+Hmean     faults/cpu-12   347639.1021 (   0.00%)   352004.2254 *   1.26%*
+Hmean     faults/cpu-21   200061.2238 (   0.00%)   229597.0317 *  14.76%*
+Hmean     faults/cpu-30   145251.2001 (   0.00%)   164202.5067 *  13.05%*
+Hmean     faults/cpu-48   106848.4434 (   0.00%)   120641.5504 *  12.91%*
+Hmean     faults/cpu-56    92472.3835 (   0.00%)   103464.7916 *  11.89%*
+Hmean     faults/sec-1    507566.1468 (   0.00%)   506139.0811 *  -0.28%*
+Hmean     faults/sec-4   1880478.2402 (   0.00%)  1886795.6329 *   0.34%*
+Hmean     faults/sec-7   3106394.3438 (   0.00%)  3140550.7485 *   1.10%*
+Hmean     faults/sec-12  4061358.4795 (   0.00%)  4112477.0206 *   1.26%*
+Hmean     faults/sec-21  3988619.1169 (   0.00%)  4577747.1436 *  14.77%*
+Hmean     faults/sec-30  3909839.5449 (   0.00%)  4311052.2787 *  10.26%*
+Hmean     faults/sec-48  4761108.4691 (   0.00%)  5283790.5026 *  10.98%*
+Hmean     faults/sec-56  4885561.4590 (   0.00%)  5415839.4045 *  10.85%*
+
+
+This patch (of 16):
+
+Introduce helper functions which can be used to read-lock a VMA when
+holding mmap_lock for read.  Replace direct accesses to vma->vm_lock with
+these new helpers.
+
+Link: https://lkml.kernel.org/r/20250109023025.2242447-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20250109023025.2242447-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.c     |   64 ++++++++++++++++++++++++++++++++++++++--
- fs/nilfs2/alloc.h     |    2 +
- fs/nilfs2/cpfile.c    |    2 +
- fs/nilfs2/dat.c       |    2 +
- fs/nilfs2/ifile.c     |    2 +
- fs/nilfs2/inode.c     |    4 ++
- fs/nilfs2/mdt.c       |    4 ++
- fs/nilfs2/page.c      |    8 ++---
- fs/nilfs2/recovery.c  |   27 ++++++++++++++++
- fs/nilfs2/segment.c   |    8 +++++
- fs/nilfs2/sufile.c    |    8 +++++
- fs/nilfs2/sufile.h    |    6 +++
- fs/nilfs2/super.c     |   10 +++++-
- fs/nilfs2/the_nilfs.c |   13 ++++++++
- 14 files changed, 153 insertions(+), 7 deletions(-)
+ include/linux/mm.h |   24 ++++++++++++++++++++++++
+ mm/userfaultfd.c   |   22 +++++-----------------
+ 2 files changed, 29 insertions(+), 17 deletions(-)
 
---- a/fs/nilfs2/alloc.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/alloc.c
-@@ -21,6 +21,8 @@
-  * nilfs_palloc_groups_per_desc_block - get the number of groups that a group
-  *					descriptor block can maintain
-  * @inode: inode of metadata file using this allocator
-+ *
-+ * Return: Number of groups that a group descriptor block can maintain.
-  */
- static inline unsigned long
- nilfs_palloc_groups_per_desc_block(const struct inode *inode)
-@@ -32,6 +34,8 @@ nilfs_palloc_groups_per_desc_block(const
- /**
-  * nilfs_palloc_groups_count - get maximum number of groups
-  * @inode: inode of metadata file using this allocator
-+ *
-+ * Return: Maximum number of groups.
-  */
- static inline unsigned long
- nilfs_palloc_groups_count(const struct inode *inode)
-@@ -43,6 +47,8 @@ nilfs_palloc_groups_count(const struct i
-  * nilfs_palloc_init_blockgroup - initialize private variables for allocator
-  * @inode: inode of metadata file using this allocator
-  * @entry_size: size of the persistent object
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_palloc_init_blockgroup(struct inode *inode, unsigned int entry_size)
+--- a/include/linux/mm.h~mm-introduce-vma_start_read_locked_nested-helpers
++++ a/include/linux/mm.h
+@@ -735,6 +735,30 @@ static inline bool vma_start_read(struct
+ 	return true;
+ }
+ 
++/*
++ * Use only while holding mmap read lock which guarantees that locking will not
++ * fail (nobody can concurrently write-lock the vma). vma_start_read() should
++ * not be used in such cases because it might fail due to mm_lock_seq overflow.
++ * This functionality is used to obtain vma read lock and drop the mmap read lock.
++ */
++static inline void vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
++{
++	mmap_assert_locked(vma->vm_mm);
++	down_read_nested(&vma->vm_lock->lock, subclass);
++}
++
++/*
++ * Use only while holding mmap read lock which guarantees that locking will not
++ * fail (nobody can concurrently write-lock the vma). vma_start_read() should
++ * not be used in such cases because it might fail due to mm_lock_seq overflow.
++ * This functionality is used to obtain vma read lock and drop the mmap read lock.
++ */
++static inline void vma_start_read_locked(struct vm_area_struct *vma)
++{
++	mmap_assert_locked(vma->vm_mm);
++	down_read(&vma->vm_lock->lock);
++}
++
+ static inline void vma_end_read(struct vm_area_struct *vma)
  {
-@@ -78,6 +84,9 @@ int nilfs_palloc_init_blockgroup(struct
-  * @inode: inode of metadata file using this allocator
-  * @nr: serial number of the entry (e.g. inode number)
-  * @offset: pointer to store offset number in the group
-+ *
-+ * Return: Number of the group that contains the entry with the index
-+ * specified by @nr.
-  */
- static unsigned long nilfs_palloc_group(const struct inode *inode, __u64 nr,
- 					unsigned long *offset)
-@@ -93,8 +102,8 @@ static unsigned long nilfs_palloc_group(
-  * @inode: inode of metadata file using this allocator
-  * @group: group number
-  *
-- * nilfs_palloc_desc_blkoff() returns block offset of the descriptor
-- * block which contains a descriptor of the specified group.
-+ * Return: Index number in the metadata file of the descriptor block of
-+ * the group specified by @group.
-  */
- static unsigned long
- nilfs_palloc_desc_blkoff(const struct inode *inode, unsigned long group)
-@@ -111,6 +120,9 @@ nilfs_palloc_desc_blkoff(const struct in
-  *
-  * nilfs_palloc_bitmap_blkoff() returns block offset of the bitmap
-  * block used to allocate/deallocate entries in the specified group.
-+ *
-+ * Return: Index number in the metadata file of the bitmap block of
-+ * the group specified by @group.
-  */
- static unsigned long
- nilfs_palloc_bitmap_blkoff(const struct inode *inode, unsigned long group)
-@@ -125,6 +137,8 @@ nilfs_palloc_bitmap_blkoff(const struct
-  * nilfs_palloc_group_desc_nfrees - get the number of free entries in a group
-  * @desc: pointer to descriptor structure for the group
-  * @lock: spin lock protecting @desc
-+ *
-+ * Return: Number of free entries written in the group descriptor @desc.
-  */
- static unsigned long
- nilfs_palloc_group_desc_nfrees(const struct nilfs_palloc_group_desc *desc,
-@@ -143,6 +157,9 @@ nilfs_palloc_group_desc_nfrees(const str
-  * @desc: pointer to descriptor structure for the group
-  * @lock: spin lock protecting @desc
-  * @n: delta to be added
-+ *
-+ * Return: Number of free entries after adjusting the group descriptor
-+ * @desc.
-  */
- static u32
- nilfs_palloc_group_desc_add_entries(struct nilfs_palloc_group_desc *desc,
-@@ -161,6 +178,9 @@ nilfs_palloc_group_desc_add_entries(stru
-  * nilfs_palloc_entry_blkoff - get block offset of an entry block
-  * @inode: inode of metadata file using this allocator
-  * @nr: serial number of the entry (e.g. inode number)
-+ *
-+ * Return: Index number in the metadata file of the block containing
-+ * the entry specified by @nr.
-  */
- static unsigned long
- nilfs_palloc_entry_blkoff(const struct inode *inode, __u64 nr)
-@@ -238,6 +258,11 @@ static int nilfs_palloc_get_block(struct
-  * @blkoff: block offset
-  * @prev: nilfs_bh_assoc struct of the last used buffer
-  * @lock: spin lock protecting @prev
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOENT	- Non-existent block.
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- static int nilfs_palloc_delete_block(struct inode *inode, unsigned long blkoff,
- 				     struct nilfs_bh_assoc *prev,
-@@ -258,6 +283,8 @@ static int nilfs_palloc_delete_block(str
-  * @group: group number
-  * @create: create flag
-  * @bhp: pointer to store the resultant buffer head
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_palloc_get_desc_block(struct inode *inode,
- 				       unsigned long group,
-@@ -277,6 +304,8 @@ static int nilfs_palloc_get_desc_block(s
-  * @group: group number
-  * @create: create flag
-  * @bhp: pointer to store the resultant buffer head
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_palloc_get_bitmap_block(struct inode *inode,
- 					 unsigned long group,
-@@ -294,6 +323,8 @@ static int nilfs_palloc_get_bitmap_block
-  * nilfs_palloc_delete_bitmap_block - delete a bitmap block
-  * @inode: inode of metadata file using this allocator
-  * @group: group number
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_palloc_delete_bitmap_block(struct inode *inode,
- 					    unsigned long group)
-@@ -312,6 +343,8 @@ static int nilfs_palloc_delete_bitmap_bl
-  * @nr: serial number of the entry (e.g. inode number)
-  * @create: create flag
-  * @bhp: pointer to store the resultant buffer head
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_palloc_get_entry_block(struct inode *inode, __u64 nr,
- 				 int create, struct buffer_head **bhp)
-@@ -328,6 +361,8 @@ int nilfs_palloc_get_entry_block(struct
-  * nilfs_palloc_delete_entry_block - delete an entry block
-  * @inode: inode of metadata file using this allocator
-  * @nr: serial number of the entry
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_palloc_delete_entry_block(struct inode *inode, __u64 nr)
- {
-@@ -397,6 +432,9 @@ size_t nilfs_palloc_entry_offset(const s
-  * @bsize: size in bits
-  * @lock: spin lock protecting @bitmap
-  * @wrap: whether to wrap around
-+ *
-+ * Return: Offset number within the group of the found free entry, or
-+ * %-ENOSPC if not found.
-  */
- static int nilfs_palloc_find_available_slot(unsigned char *bitmap,
- 					    unsigned long target,
-@@ -438,6 +476,9 @@ static int nilfs_palloc_find_available_s
-  * @inode: inode of metadata file using this allocator
-  * @curr: current group number
-  * @max: maximum number of groups
-+ *
-+ * Return: Number of remaining descriptors (= groups) managed by the descriptor
-+ * block.
-  */
- static unsigned long
- nilfs_palloc_rest_groups_in_desc_block(const struct inode *inode,
-@@ -453,6 +494,8 @@ nilfs_palloc_rest_groups_in_desc_block(c
-  * nilfs_palloc_count_desc_blocks - count descriptor blocks number
-  * @inode: inode of metadata file using this allocator
-  * @desc_blocks: descriptor blocks number [out]
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_palloc_count_desc_blocks(struct inode *inode,
- 					    unsigned long *desc_blocks)
-@@ -473,6 +516,8 @@ static int nilfs_palloc_count_desc_block
-  *					MDT file growing
-  * @inode: inode of metadata file using this allocator
-  * @desc_blocks: known current descriptor blocks count
-+ *
-+ * Return: true if a group can be added in the metadata file, false if not.
-  */
- static inline bool nilfs_palloc_mdt_file_can_grow(struct inode *inode,
- 						    unsigned long desc_blocks)
-@@ -487,6 +532,11 @@ static inline bool nilfs_palloc_mdt_file
-  * @inode: inode of metadata file using this allocator
-  * @nused: current number of used entries
-  * @nmaxp: max number of entries [out]
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-+ * * %-ERANGE	- Number of entries in use is out of range.
-  */
- int nilfs_palloc_count_max_entries(struct inode *inode, u64 nused, u64 *nmaxp)
- {
-@@ -518,6 +568,12 @@ int nilfs_palloc_count_max_entries(struc
-  * @inode: inode of metadata file using this allocator
-  * @req: nilfs_palloc_req structure exchanged for the allocation
-  * @wrap: whether to wrap around
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOMEM	- Insufficient memory available.
-+ * * %-ENOSPC	- Entries exhausted (No entries available for allocation).
-+ * * %-EROFS	- Read only filesystem
-  */
- int nilfs_palloc_prepare_alloc_entry(struct inode *inode,
- 				     struct nilfs_palloc_req *req, bool wrap)
-@@ -710,6 +766,8 @@ void nilfs_palloc_abort_alloc_entry(stru
-  * nilfs_palloc_prepare_free_entry - prepare to deallocate a persistent object
-  * @inode: inode of metadata file using this allocator
-  * @req: nilfs_palloc_req structure exchanged for the removal
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_palloc_prepare_free_entry(struct inode *inode,
- 				    struct nilfs_palloc_req *req)
-@@ -754,6 +812,8 @@ void nilfs_palloc_abort_free_entry(struc
-  * @inode: inode of metadata file using this allocator
-  * @entry_nrs: array of entry numbers to be deallocated
-  * @nitems: number of entries stored in @entry_nrs
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_palloc_freev(struct inode *inode, __u64 *entry_nrs, size_t nitems)
- {
---- a/fs/nilfs2/alloc.h~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/alloc.h
-@@ -21,6 +21,8 @@
-  *
-  * The number of entries per group is defined by the number of bits
-  * that a bitmap block can maintain.
-+ *
-+ * Return: Number of entries per group.
-  */
- static inline unsigned long
- nilfs_palloc_entries_per_group(const struct inode *inode)
---- a/fs/nilfs2/cpfile.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/cpfile.c
-@@ -1120,6 +1120,8 @@ int nilfs_cpfile_get_stat(struct inode *
-  * @cpsize: size of a checkpoint entry
-  * @raw_inode: on-disk cpfile inode
-  * @inodep: buffer to store the inode
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_cpfile_read(struct super_block *sb, size_t cpsize,
- 		      struct nilfs_inode *raw_inode, struct inode **inodep)
---- a/fs/nilfs2/dat.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/dat.c
-@@ -478,6 +478,8 @@ ssize_t nilfs_dat_get_vinfo(struct inode
-  * @entry_size: size of a dat entry
-  * @raw_inode: on-disk dat inode
-  * @inodep: buffer to store the inode
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_dat_read(struct super_block *sb, size_t entry_size,
- 		   struct nilfs_inode *raw_inode, struct inode **inodep)
---- a/fs/nilfs2/ifile.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/ifile.c
-@@ -144,6 +144,8 @@ int nilfs_ifile_get_inode_block(struct i
-  * @ifile: ifile inode
-  * @nmaxinodes: current maximum of available inodes count [out]
-  * @nfreeinodes: free inodes count [out]
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_ifile_count_free_inodes(struct inode *ifile,
- 				    u64 *nmaxinodes, u64 *nfreeinodes)
---- a/fs/nilfs2/inode.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/inode.c
-@@ -68,6 +68,8 @@ void nilfs_inode_sub_blocks(struct inode
-  *
-  * This function does not issue actual read request of the specified data
-  * block. It is done by VFS.
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_get_block(struct inode *inode, sector_t blkoff,
- 		    struct buffer_head *bh_result, int create)
-@@ -141,6 +143,8 @@ int nilfs_get_block(struct inode *inode,
-  * address_space_operations.
-  * @file: file struct of the file to be read
-  * @folio: the folio to be read
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_read_folio(struct file *file, struct folio *folio)
- {
---- a/fs/nilfs2/mdt.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/mdt.c
-@@ -515,6 +515,8 @@ void nilfs_mdt_set_entry_size(struct ino
-  * nilfs_mdt_setup_shadow_map - setup shadow map and bind it to metadata file
-  * @inode: inode of the metadata file
-  * @shadow: shadow mapping
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_mdt_setup_shadow_map(struct inode *inode,
- 			       struct nilfs_shadow_map *shadow)
-@@ -536,6 +538,8 @@ int nilfs_mdt_setup_shadow_map(struct in
- /**
-  * nilfs_mdt_save_to_shadow_map - copy bmap and dirty pages to shadow map
-  * @inode: inode of the metadata file
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_mdt_save_to_shadow_map(struct inode *inode)
- {
---- a/fs/nilfs2/page.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/page.c
-@@ -135,8 +135,7 @@ void nilfs_copy_buffer(struct buffer_hea
-  * nilfs_folio_buffers_clean - Check if a folio has dirty buffers or not.
-  * @folio: Folio to be checked.
-  *
-- * nilfs_folio_buffers_clean() returns false if the folio has dirty buffers.
-- * Otherwise, it returns true.
-+ * Return: false if the folio has dirty buffers, true otherwise.
-  */
- bool nilfs_folio_buffers_clean(struct folio *folio)
- {
-@@ -500,8 +499,9 @@ void __nilfs_clear_folio_dirty(struct fo
-  * This function searches an extent of buffers marked "delayed" which
-  * starts from a block offset equal to or larger than @start_blk.  If
-  * such an extent was found, this will store the start offset in
-- * @blkoff and return its length in blocks.  Otherwise, zero is
-- * returned.
-+ * @blkoff and return its length in blocks.
-+ *
-+ * Return: Length in blocks of found extent, 0 otherwise.
-  */
- unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
- 					    sector_t start_blk,
---- a/fs/nilfs2/recovery.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/recovery.c
-@@ -88,6 +88,8 @@ static int nilfs_warn_segment_error(stru
-  * @check_bytes: number of bytes to be checked
-  * @start: DBN of start block
-  * @nblock: number of blocks to be checked
-+ *
-+ * Return: 0 on success, or %-EIO if an I/O error occurs.
-  */
- static int nilfs_compute_checksum(struct the_nilfs *nilfs,
- 				  struct buffer_head *bhs, u32 *sum,
-@@ -126,6 +128,10 @@ static int nilfs_compute_checksum(struct
-  * @sr_block: disk block number of the super root block
-  * @pbh: address of a buffer_head pointer to return super root buffer
-  * @check: CRC check flag
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- Super root block corrupted.
-+ * * %-EIO	- I/O error.
-  */
- int nilfs_read_super_root_block(struct the_nilfs *nilfs, sector_t sr_block,
- 				struct buffer_head **pbh, int check)
-@@ -176,6 +182,8 @@ int nilfs_read_super_root_block(struct t
-  * @nilfs: nilfs object
-  * @start_blocknr: start block number of the log
-  * @sum: pointer to return segment summary structure
-+ *
-+ * Return: Buffer head pointer, or NULL if an I/O error occurs.
-  */
- static struct buffer_head *
- nilfs_read_log_header(struct the_nilfs *nilfs, sector_t start_blocknr,
-@@ -195,6 +203,13 @@ nilfs_read_log_header(struct the_nilfs *
-  * @seg_seq: sequence number of segment
-  * @bh_sum: buffer head of summary block
-  * @sum: segment summary struct
-+ *
-+ * Return: 0 on success, or the following internal code on failure.
-+ * * %NILFS_SEG_FAIL_MAGIC	    - Magic number mismatch.
-+ * * %NILFS_SEG_FAIL_SEQ	    - Sequence number mismatch.
-+ * * %NIFLS_SEG_FAIL_CONSISTENCY    - Block count out of range.
-+ * * %NILFS_SEG_FAIL_IO		    - I/O error.
-+ * * %NILFS_SEG_FAIL_CHECKSUM_FULL  - Full log checksum verification failed.
-  */
- static int nilfs_validate_log(struct the_nilfs *nilfs, u64 seg_seq,
- 			      struct buffer_head *bh_sum,
-@@ -238,6 +253,9 @@ out:
-  * @pbh: the current buffer head on summary blocks [in, out]
-  * @offset: the current byte offset on summary blocks [in, out]
-  * @bytes: byte size of the item to be read
-+ *
-+ * Return: Kernel space address of current segment summary entry, or
-+ * NULL if an I/O error occurs.
-  */
- static void *nilfs_read_summary_info(struct the_nilfs *nilfs,
- 				     struct buffer_head **pbh,
-@@ -300,6 +318,10 @@ static void nilfs_skip_summary_info(stru
-  * @start_blocknr: start block number of the log
-  * @sum: log summary information
-  * @head: list head to add nilfs_recovery_block struct
-+ *
-+ * Return: 0 on success, or the following negative error code on failure:
-+ * * %-EIO	- I/O error.
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- static int nilfs_scan_dsync_log(struct the_nilfs *nilfs, sector_t start_blocknr,
- 				struct nilfs_segment_summary *sum,
-@@ -571,6 +593,11 @@ static int nilfs_recover_dsync_blocks(st
-  * @sb: super block instance
-  * @root: NILFS root instance
-  * @ri: pointer to a nilfs_recovery_info
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- Log format error.
-+ * * %-EIO	- I/O error.
-+ * * %-ENOMEM	- Insufficient memory available.
-  */
- static int nilfs_do_roll_forward(struct the_nilfs *nilfs,
- 				 struct super_block *sb,
---- a/fs/nilfs2/segment.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/segment.c
-@@ -249,6 +249,8 @@ int nilfs_transaction_begin(struct super
-  * nilfs_transaction_commit() sets a timer to start the segment
-  * constructor.  If a sync flag is set, it starts construction
-  * directly.
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_transaction_commit(struct super_block *sb)
- {
-@@ -404,6 +406,8 @@ static void *nilfs_segctor_map_segsum_en
- /**
-  * nilfs_segctor_reset_segment_buffer - reset the current segment buffer
-  * @sci: nilfs_sc_info
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_segctor_reset_segment_buffer(struct nilfs_sc_info *sci)
- {
-@@ -1314,6 +1318,8 @@ static int nilfs_segctor_collect_blocks(
-  * nilfs_segctor_begin_construction - setup segment buffer to make a new log
-  * @sci: nilfs_sc_info
-  * @nilfs: nilfs object
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_segctor_begin_construction(struct nilfs_sc_info *sci,
- 					    struct the_nilfs *nilfs)
-@@ -2451,6 +2457,8 @@ static void nilfs_segctor_notify(struct
-  * nilfs_segctor_construct - form logs and write them to disk
-  * @sci: segment constructor object
-  * @mode: mode of log forming
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_segctor_construct(struct nilfs_sc_info *sci, int mode)
- {
---- a/fs/nilfs2/sufile.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/sufile.c
-@@ -133,6 +133,8 @@ static void nilfs_sufile_mod_counter(str
- /**
-  * nilfs_sufile_get_ncleansegs - return the number of clean segments
-  * @sufile: inode of segment usage file
-+ *
-+ * Return: Number of clean segments.
-  */
- unsigned long nilfs_sufile_get_ncleansegs(struct inode *sufile)
- {
-@@ -498,6 +500,8 @@ void nilfs_sufile_do_free(struct inode *
-  * nilfs_sufile_mark_dirty - mark the buffer having a segment usage dirty
-  * @sufile: inode of segment usage file
-  * @segnum: segment number
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_sufile_mark_dirty(struct inode *sufile, __u64 segnum)
- {
-@@ -557,6 +561,8 @@ out_sem:
-  * @segnum: segment number
-  * @nblocks: number of live blocks in the segment
-  * @modtime: modification time (option)
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_sufile_set_segment_usage(struct inode *sufile, __u64 segnum,
- 				   unsigned long nblocks, time64_t modtime)
-@@ -1189,6 +1195,8 @@ out_sem:
-  * @susize: size of a segment usage entry
-  * @raw_inode: on-disk sufile inode
-  * @inodep: buffer to store the inode
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_sufile_read(struct super_block *sb, size_t susize,
- 		      struct nilfs_inode *raw_inode, struct inode **inodep)
---- a/fs/nilfs2/sufile.h~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/sufile.h
-@@ -58,6 +58,8 @@ int nilfs_sufile_trim_fs(struct inode *s
-  * nilfs_sufile_scrap - make a segment garbage
-  * @sufile: inode of segment usage file
-  * @segnum: segment number to be freed
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static inline int nilfs_sufile_scrap(struct inode *sufile, __u64 segnum)
- {
-@@ -68,6 +70,8 @@ static inline int nilfs_sufile_scrap(str
-  * nilfs_sufile_free - free segment
-  * @sufile: inode of segment usage file
-  * @segnum: segment number to be freed
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static inline int nilfs_sufile_free(struct inode *sufile, __u64 segnum)
- {
-@@ -80,6 +84,8 @@ static inline int nilfs_sufile_free(stru
-  * @segnumv: array of segment numbers
-  * @nsegs: size of @segnumv array
-  * @ndone: place to store the number of freed segments
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static inline int nilfs_sufile_freev(struct inode *sufile, __u64 *segnumv,
- 				     size_t nsegs, size_t *ndone)
---- a/fs/nilfs2/super.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/super.c
-@@ -309,6 +309,8 @@ int nilfs_commit_super(struct super_bloc
-  * This function restores state flags in the on-disk super block.
-  * This will set "clean" flag (i.e. NILFS_VALID_FS) unless the
-  * filesystem was not clean previously.
-+ *
-+ * Return: 0 on success, %-EIO if I/O error or superblock is corrupted.
-  */
- int nilfs_cleanup_super(struct super_block *sb)
- {
-@@ -339,6 +341,8 @@ int nilfs_cleanup_super(struct super_blo
-  * nilfs_move_2nd_super - relocate secondary super block
-  * @sb: super block instance
-  * @sb2off: new offset of the secondary super block (in bytes)
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int nilfs_move_2nd_super(struct super_block *sb, loff_t sb2off)
- {
-@@ -420,6 +424,8 @@ out:
-  * nilfs_resize_fs - resize the filesystem
-  * @sb: super block instance
-  * @newsize: new size of the filesystem (in bytes)
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int nilfs_resize_fs(struct super_block *sb, __u64 newsize)
- {
-@@ -987,7 +993,7 @@ static int nilfs_attach_snapshot(struct
-  * nilfs_tree_is_busy() - try to shrink dentries of a checkpoint
-  * @root_dentry: root dentry of the tree to be shrunk
-  *
-- * This function returns true if the tree was in-use.
-+ * Return: true if the tree was in-use, false otherwise.
-  */
- static bool nilfs_tree_is_busy(struct dentry *root_dentry)
- {
-@@ -1033,6 +1039,8 @@ int nilfs_checkpoint_is_mounted(struct s
-  *
-  * This function is called exclusively by nilfs->ns_mount_mutex.
-  * So, the recovery process is protected from other simultaneous mounts.
-+ *
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- static int
- nilfs_fill_super(struct super_block *sb, struct fs_context *fc)
---- a/fs/nilfs2/the_nilfs.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -165,6 +165,9 @@ static void nilfs_clear_recovery_info(st
-  * containing a super root from a given super block, and initializes
-  * relevant information on the nilfs object preparatory for log
-  * scanning and recovery.
-+ *
-+ * Return: 0 on success, or %-EINVAL if current segment number is out
-+ * of range.
-  */
- static int nilfs_store_log_cursor(struct the_nilfs *nilfs,
- 				  struct nilfs_super_block *sbp)
-@@ -225,6 +228,12 @@ static int nilfs_get_blocksize(struct su
-  * load_nilfs() searches and load the latest super root,
-  * attaches the last segment, and does recovery if needed.
-  * The caller must call this exclusively for simultaneous mounts.
-+ *
-+ * Return: 0 on success, or the following negative error code on failure.
-+ * * %-EINVAL	- No valid segment found.
-+ * * %-EIO	- I/O error.
-+ * * %-ENOMEM	- Insufficient memory available.
-+ * * %-EROFS	- Read only device or RO compat mode (if recovery is required)
-  */
- int load_nilfs(struct the_nilfs *nilfs, struct super_block *sb)
- {
-@@ -394,6 +403,8 @@ static unsigned long long nilfs_max_size
-  * nilfs_nrsvsegs - calculate the number of reserved segments
-  * @nilfs: nilfs object
-  * @nsegs: total number of segments
-+ *
-+ * Return: Number of reserved segments.
-  */
- unsigned long nilfs_nrsvsegs(struct the_nilfs *nilfs, unsigned long nsegs)
- {
-@@ -405,6 +416,8 @@ unsigned long nilfs_nrsvsegs(struct the_
- /**
-  * nilfs_max_segment_count - calculate the maximum number of segments
-  * @nilfs: nilfs object
-+ *
-+ * Return: Maximum number of segments
-  */
- static u64 nilfs_max_segment_count(struct the_nilfs *nilfs)
- {
+ 	rcu_read_lock(); /* keeps vma alive till the end of up_read */
+--- a/mm/userfaultfd.c~mm-introduce-vma_start_read_locked_nested-helpers
++++ a/mm/userfaultfd.c
+@@ -84,16 +84,8 @@ static struct vm_area_struct *uffd_lock_
+ 
+ 	mmap_read_lock(mm);
+ 	vma = find_vma_and_prepare_anon(mm, address);
+-	if (!IS_ERR(vma)) {
+-		/*
+-		 * We cannot use vma_start_read() as it may fail due to
+-		 * false locked (see comment in vma_start_read()). We
+-		 * can avoid that by directly locking vm_lock under
+-		 * mmap_lock, which guarantees that nobody can lock the
+-		 * vma for write (vma_start_write()) under us.
+-		 */
+-		down_read(&vma->vm_lock->lock);
+-	}
++	if (!IS_ERR(vma))
++		vma_start_read_locked(vma);
+ 
+ 	mmap_read_unlock(mm);
+ 	return vma;
+@@ -1491,14 +1483,10 @@ static int uffd_move_lock(struct mm_stru
+ 	mmap_read_lock(mm);
+ 	err = find_vmas_mm_locked(mm, dst_start, src_start, dst_vmap, src_vmap);
+ 	if (!err) {
+-		/*
+-		 * See comment in uffd_lock_vma() as to why not using
+-		 * vma_start_read() here.
+-		 */
+-		down_read(&(*dst_vmap)->vm_lock->lock);
++		vma_start_read_locked(*dst_vmap);
+ 		if (*dst_vmap != *src_vmap)
+-			down_read_nested(&(*src_vmap)->vm_lock->lock,
+-					 SINGLE_DEPTH_NESTING);
++			vma_start_read_locked_nested(*src_vmap,
++						SINGLE_DEPTH_NESTING);
+ 	}
+ 	mmap_read_unlock(mm);
+ 	return err;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch
-nilfs2-protect-access-to-buffers-with-no-active-references.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-bmap-functions.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest.patch
-nilfs2-add-missing-return-value-kernel-doc-descriptions.patch
+alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
+tools-fix-atomic_set-definition-to-set-the-value-correctly.patch
+seqlock-add-raw_seqcount_try_begin.patch
+mm-convert-mm_lock_seq-to-a-proper-seqcount.patch
+mm-introduce-mmap_lock_speculate_try_beginretry.patch
+mm-introduce-vma_start_read_locked_nested-helpers.patch
+mm-move-per-vma-lock-into-vm_area_struct.patch
+mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
+mm-mark-vmas-detached-upon-exit.patch
+types-move-struct-rcuwait-into-typesh.patch
+mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+mm-move-mmap_init_lock-out-of-the-header-file.patch
+mm-uninline-the-main-body-of-vma_start_write.patch
+refcount-introduce-__refcount_addinc_not_zero_limited.patch
+mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
+mm-remove-extra-vma_numab_state_init-call.patch
+mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+mm-make-vma-cache-slab_typesafe_by_rcu.patch
+docs-mm-document-latest-changes-to-vm_lock.patch
+alloc_tag-avoid-current-alloc_tag-manipulations-when-profiling-is-disabled.patch
 
