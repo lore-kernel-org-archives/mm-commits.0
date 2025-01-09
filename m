@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B12921345
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 02:08:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37163748D
+	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 04:10:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736388530; cv=none; b=XokQsy6BJOFlw3caTnrBR92J8dXw6vWdnhM4E/of3wh8I4Cm7YYzktFAelikMiJk6iJvU92KiGkI2OYxTvkInUVUXkwdChcChH/4630sE/e32eqfBrNxMpdAHsXeH0ZVGHcHvluD3U2/h9dcuBdoPOXCNr5VCrB6Pu2g0go2lMs=
+	t=1736395836; cv=none; b=g9GJwPQ4Rg9sdn9ovt/eHN0O4JByXCaZWk4lvfAHAeRlI5cD93Dm4TY1EAtNpERitOq7VYjnQTUIBy8cA8usJne+ArKGjyibPIUgZAOwfulEcpY0vAVAGLnA1C76w5+j4J5ui+OswfD8UkQw3vYeXSDPIU0oMz1z4KJBPm+shcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736388530; c=relaxed/simple;
-	bh=UcdfBsSroXy+UrhrKP1MHT5mnqboE1dpXdV8JkpX/Pc=;
-	h=Date:To:From:Subject:Message-Id; b=IK+s4pYPigcfrwO+zEtZwpid0IEi0tCkBZj4aT9Vno7sOlOhjan6sYt6XTj7s7BnbCLXoolo8FtIV1S1sy4h2ryvY0XhghfDtWq3c7qQLGKYA9FkZriOBwPg9eUmDUU+gOG6qHtffrwu9vDdVK9ukYv7thxhcgPqV4KBzS9aXTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KsOWgGel; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736395836; c=relaxed/simple;
+	bh=BqCM9QWWf/kDHjjw40J1YOP1RdUZTO2HPPLbS45suFc=;
+	h=Date:To:From:Subject:Message-Id; b=KpXnivxR0uWy5h6RpNCWjNUTCzfEPSbQSgjrz2SofdeytaUs2aLHvbehaLLWMJF60UetyV578+WCrtBAYZmZPI6jzlQNyEIzzrpK9kH829e0pnHhw9lrY/EAoLOl6MJn02BM/moWgpzH3FwDP25zSFE7nGNxnQI7q2pMK/ZZeWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f63SkzFv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KsOWgGel"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD069C4CED3;
-	Thu,  9 Jan 2025 02:08:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f63SkzFv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A78C4CED2;
+	Thu,  9 Jan 2025 04:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736388529;
-	bh=UcdfBsSroXy+UrhrKP1MHT5mnqboE1dpXdV8JkpX/Pc=;
+	s=korg; t=1736395835;
+	bh=BqCM9QWWf/kDHjjw40J1YOP1RdUZTO2HPPLbS45suFc=;
 	h=Date:To:From:Subject:From;
-	b=KsOWgGelFxkM+CxK6c5ZPh0P7ZuO9cA7ieBhyV1/gms+tP8O4BHLujTOqCWNz6/q3
-	 wY96tpg0x6dV2TFpE3RCj5eBUsfNpay8n2iYNoue4pfamhk9YhofrfiT76Clq2ZH5f
-	 9KmLBcsPSil5SbsLHVUVz39OuCAjFrdk7kOkRqcc=
-Date: Wed, 08 Jan 2025 18:08:49 -0800
-To: mm-commits@vger.kernel.org,vitalywool@gmail.com,samsun1006219@gmail.com,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=f63SkzFvRtWZZdk10Kl8VVAVI2Vhu6cPUai3ZYAU0iQUSlM/hurRY3pFE+60jlzXT
+	 +d57UzrB3sb9a+OAHlQbbMxZCv00IMArBkjhDque5yS6xMpcqQ48bwZ7u6LAUfvCze
+	 C/8ZR4EM9uVHWP+vZ/qBDYsQWrKO8pt8ne+MT1T0=
+Date: Wed, 08 Jan 2025 20:10:34 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,mgorman@techsingularity.net,linyunsheng@huawei.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250109020849.AD069C4CED3@smtp.kernel.org>
+Subject: + mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch added to mm-unstable branch
+Message-Id: <20250109041035.B3A78C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch
+     Subject: mm: alloc_pages_bulk_noprof: drop page_list argument
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,244 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix
-Date: Wed, 8 Jan 2025 16:25:56 -0800
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: mm: alloc_pages_bulk_noprof: drop page_list argument
+Date: Mon, 23 Dec 2024 17:00:37 -0500
 
-remove comment
+Patch series "mm: alloc_pages_bulk: small API refactor", v2.
 
-Link: https://lkml.kernel.org/r/CAJD7tkaxS1wjn+swugt8QCvQ-rVF5RZnjxwPGX17k8x9zSManA@mail.gmail.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sam Sun <samsun1006219@gmail.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>
+Today, alloc_pages_bulk_noprof() supports two arguments to return
+allocated pages: a linked list and an array.  There are also higher level
+APIs for both.
+
+However, the linked list API has apparently never been used.  So, this
+series removes it along with the list API and also refactors the remaining
+API naming for consistency.
+
+
+This patch (of 2):
+
+commit 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator") added
+__alloc_pages_bulk() along with the page_list argument.  The next commit
+0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk
+page allocator") added the array-based argument.  As it turns out, the
+page_list argument has no users in the current tree (if it ever had any). 
+Dropping it allows for a slight simplification and eliminates some
+unnecessary checks, now that page_array is required.
+
+Also, note that the removal of the page_list argument was proposed before
+in the thread below, where Matthew Wilcox mentions that:
+
+  """
+  Iterating a linked list is _expensive_.  It is about 10x quicker to
+  iterate an array than a linked list.
+  """
+  (https://lore.kernel.org/linux-mm/20231025093254.xvomlctwhcuerzky@techsingularity.net)
+
+Link: https://lkml.kernel.org/r/cover.1734991165.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/f1c75db91d08cafd211eca6a3b199b629d4ffe16.1734991165.git.luizcap@redhat.com
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/gfp.h |    8 ++------
+ mm/mempolicy.c      |   14 +++++++-------
+ mm/page_alloc.c     |   39 ++++++++++++---------------------------
+ 3 files changed, 21 insertions(+), 40 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix
-+++ a/mm/zswap.c
-@@ -848,8 +848,6 @@ static int zswap_cpu_comp_prepare(unsign
- 		ret = -ENOMEM;
- 		goto req_fail;
- 	}
--
--	/* acomp_ctx->req must be NULL if the acomp_ctx is not fully initialized */
- 	acomp_ctx->req = req;
+--- a/include/linux/gfp.h~mm-alloc_pages_bulk_noprof-drop-page_list-argument
++++ a/include/linux/gfp.h
+@@ -212,7 +212,6 @@ struct folio *__folio_alloc_noprof(gfp_t
  
- 	crypto_init_wait(&acomp_ctx->wait);
+ unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
+ 				nodemask_t *nodemask, int nr_pages,
+-				struct list_head *page_list,
+ 				struct page **page_array);
+ #define __alloc_pages_bulk(...)			alloc_hooks(alloc_pages_bulk_noprof(__VA_ARGS__))
+ 
+@@ -223,11 +222,8 @@ unsigned long alloc_pages_bulk_array_mem
+ 	alloc_hooks(alloc_pages_bulk_array_mempolicy_noprof(__VA_ARGS__))
+ 
+ /* Bulk allocate order-0 pages */
+-#define alloc_pages_bulk_list(_gfp, _nr_pages, _list)			\
+-	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _list, NULL)
+-
+ #define alloc_pages_bulk_array(_gfp, _nr_pages, _page_array)		\
+-	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, NULL, _page_array)
++	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _page_array)
+ 
+ static inline unsigned long
+ alloc_pages_bulk_array_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
+@@ -236,7 +232,7 @@ alloc_pages_bulk_array_node_noprof(gfp_t
+ 	if (nid == NUMA_NO_NODE)
+ 		nid = numa_mem_id();
+ 
+-	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, NULL, page_array);
++	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, page_array);
+ }
+ 
+ #define alloc_pages_bulk_array_node(...)				\
+--- a/mm/mempolicy.c~mm-alloc_pages_bulk_noprof-drop-page_list-argument
++++ a/mm/mempolicy.c
+@@ -2391,13 +2391,13 @@ static unsigned long alloc_pages_bulk_ar
+ 		if (delta) {
+ 			nr_allocated = alloc_pages_bulk_noprof(gfp,
+ 					interleave_nodes(pol), NULL,
+-					nr_pages_per_node + 1, NULL,
++					nr_pages_per_node + 1,
+ 					page_array);
+ 			delta--;
+ 		} else {
+ 			nr_allocated = alloc_pages_bulk_noprof(gfp,
+ 					interleave_nodes(pol), NULL,
+-					nr_pages_per_node, NULL, page_array);
++					nr_pages_per_node, page_array);
+ 		}
+ 
+ 		page_array += nr_allocated;
+@@ -2446,7 +2446,7 @@ static unsigned long alloc_pages_bulk_ar
+ 	if (weight && node_isset(node, nodes)) {
+ 		node_pages = min(rem_pages, weight);
+ 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
+-						  NULL, page_array);
++						  page_array);
+ 		page_array += nr_allocated;
+ 		total_allocated += nr_allocated;
+ 		/* if that's all the pages, no need to interleave */
+@@ -2509,7 +2509,7 @@ static unsigned long alloc_pages_bulk_ar
+ 		if (!node_pages)
+ 			break;
+ 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
+-						  NULL, page_array);
++						  page_array);
+ 		page_array += nr_allocated;
+ 		total_allocated += nr_allocated;
+ 		if (total_allocated == nr_pages)
+@@ -2533,11 +2533,11 @@ static unsigned long alloc_pages_bulk_ar
+ 	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
+ 
+ 	nr_allocated  = alloc_pages_bulk_noprof(preferred_gfp, nid, &pol->nodes,
+-					   nr_pages, NULL, page_array);
++					   nr_pages, page_array);
+ 
+ 	if (nr_allocated < nr_pages)
+ 		nr_allocated += alloc_pages_bulk_noprof(gfp, numa_node_id(), NULL,
+-				nr_pages - nr_allocated, NULL,
++				nr_pages - nr_allocated,
+ 				page_array + nr_allocated);
+ 	return nr_allocated;
+ }
+@@ -2573,7 +2573,7 @@ unsigned long alloc_pages_bulk_array_mem
+ 	nid = numa_node_id();
+ 	nodemask = policy_nodemask(gfp, pol, NO_INTERLEAVE_INDEX, &nid);
+ 	return alloc_pages_bulk_noprof(gfp, nid, nodemask,
+-				       nr_pages, NULL, page_array);
++				       nr_pages, page_array);
+ }
+ 
+ int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+--- a/mm/page_alloc.c~mm-alloc_pages_bulk_noprof-drop-page_list-argument
++++ a/mm/page_alloc.c
+@@ -4531,28 +4531,23 @@ static inline bool prepare_alloc_pages(g
+ }
+ 
+ /*
+- * __alloc_pages_bulk - Allocate a number of order-0 pages to a list or array
++ * __alloc_pages_bulk - Allocate a number of order-0 pages to an array
+  * @gfp: GFP flags for the allocation
+  * @preferred_nid: The preferred NUMA node ID to allocate from
+  * @nodemask: Set of nodes to allocate from, may be NULL
+- * @nr_pages: The number of pages desired on the list or array
+- * @page_list: Optional list to store the allocated pages
+- * @page_array: Optional array to store the pages
++ * @nr_pages: The number of pages desired in the array
++ * @page_array: Array to store the pages
+  *
+  * This is a batched version of the page allocator that attempts to
+- * allocate nr_pages quickly. Pages are added to page_list if page_list
+- * is not NULL, otherwise it is assumed that the page_array is valid.
++ * allocate nr_pages quickly. Pages are added to the page_array.
+  *
+- * For lists, nr_pages is the number of pages that should be allocated.
+- *
+- * For arrays, only NULL elements are populated with pages and nr_pages
++ * Note that only NULL elements are populated with pages and nr_pages
+  * is the maximum number of pages that will be stored in the array.
+  *
+- * Returns the number of pages on the list or array.
++ * Returns the number of pages in the array.
+  */
+ unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
+ 			nodemask_t *nodemask, int nr_pages,
+-			struct list_head *page_list,
+ 			struct page **page_array)
+ {
+ 	struct page *page;
+@@ -4570,7 +4565,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 	 * Skip populated array elements to determine if any pages need
+ 	 * to be allocated before disabling IRQs.
+ 	 */
+-	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
++	while (nr_populated < nr_pages && page_array[nr_populated])
+ 		nr_populated++;
+ 
+ 	/* No pages requested? */
+@@ -4578,7 +4573,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 		goto out;
+ 
+ 	/* Already populated array? */
+-	if (unlikely(page_array && nr_pages - nr_populated == 0))
++	if (unlikely(nr_pages - nr_populated == 0))
+ 		goto out;
+ 
+ 	/* Bulk allocator does not support memcg accounting. */
+@@ -4660,7 +4655,7 @@ retry_this_zone:
+ 	while (nr_populated < nr_pages) {
+ 
+ 		/* Skip existing pages */
+-		if (page_array && page_array[nr_populated]) {
++		if (page_array[nr_populated]) {
+ 			nr_populated++;
+ 			continue;
+ 		}
+@@ -4679,11 +4674,7 @@ retry_this_zone:
+ 
+ 		prep_new_page(page, 0, gfp, 0);
+ 		set_page_refcounted(page);
+-		if (page_list)
+-			list_add(&page->lru, page_list);
+-		else
+-			page_array[nr_populated] = page;
+-		nr_populated++;
++		page_array[nr_populated++] = page;
+ 	}
+ 
+ 	pcp_spin_unlock(pcp);
+@@ -4700,14 +4691,8 @@ failed_irq:
+ 
+ failed:
+ 	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask);
+-	if (page) {
+-		if (page_list)
+-			list_add(&page->lru, page_list);
+-		else
+-			page_array[nr_populated] = page;
+-		nr_populated++;
+-	}
+-
++	if (page)
++		page_array[nr_populated++] = page;
+ 	goto out;
+ }
+ EXPORT_SYMBOL_GPL(alloc_pages_bulk_noprof);
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
-revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
-mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch
-mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch
+mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch
+mm-alloc_pages_bulk-rename-api.patch
 
