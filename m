@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8896FA2D
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:16:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B81E1D515
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:16:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736468165; cv=none; b=D4BSvx2kklu9NALQvDPVbJXdIykMcdlenciGpWIcA2+XnvvELlmnGUTW3r3mo++AE1S/whOADuGbij/b5sN9hN8Xq9PoIIvChmCaFTCZAaU+kS4bxlQWnx+TVhYcOxenH5z5ktu4UqHEDal3TKlTCr32HF3E5bgC2BcnoCdcuDo=
+	t=1736468167; cv=none; b=PJLTW4KvZPQ7Sio9cDVu8qqCOops2FS2RjZzpD0Z2jsVTaA+CFqOzBL2qG3r/ZKk6+Waeo1YLAO7pg5dTKxASAmhVWD5njJZ1dcW+Q/F/fuBssqgap5Zr9tV47KlMO2fFr/kCpjT6WonYGeCwAz5eRJQYQpWEIvmM4YPWzQcIho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736468165; c=relaxed/simple;
-	bh=BpivQTQrMPmSLpu6kM3U3huGyiK01fq7QQE91pz7Ljc=;
-	h=Date:To:From:Subject:Message-Id; b=D0ZQl4zNDsa5HH+AkFXHjxTMrL/q2lU92crT8T4XhE6V81gV04wvgxfl4HY/Gf3lELeV2FJBh4k4G/ysfG3e9Y0mMJ0epgNmxkU14TYyFCifb+p1LKv2vPooMrzTIGjlT3PuYpoMIDB0h05wSHXiiv3tJdOnbeBWv7m7Ntp4hvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGPyHT6F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736468167; c=relaxed/simple;
+	bh=7Ov5nbYfH22fX/sy9J4zox7fG+OSKHMyCXcn8Qv5FQ4=;
+	h=Date:To:From:Subject:Message-Id; b=TzAdrYN/VA7ryFyescsAgrv0Ij9dpXGIglHcFvv4JwXKKJT/LNqbpSG6Ht6dpdqpYEJ+J0gqf+rgAhw8LmZmBosHuoEXc5tZPcJsaSC00XEZ71dqh4qQ52UXMZHNfzlqMDQfSLHLT6hOU0hPRYYgHhJofr66jAAmrnHyLi7wf/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ALPFh51R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGPyHT6F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D688C4CED2;
-	Fri, 10 Jan 2025 00:16:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ALPFh51R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E1E5C4CED2;
+	Fri, 10 Jan 2025 00:16:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736468165;
-	bh=BpivQTQrMPmSLpu6kM3U3huGyiK01fq7QQE91pz7Ljc=;
+	s=korg; t=1736468167;
+	bh=7Ov5nbYfH22fX/sy9J4zox7fG+OSKHMyCXcn8Qv5FQ4=;
 	h=Date:To:From:Subject:From;
-	b=XGPyHT6FmhPUwAb2HJeGsYgPBP3yr1YWoUZ6ZxnPXSTDvLdVDQTFqAbKHILrRUEvA
-	 AztVt/pn/abUqq8gD6sQ+cn35RX9jnWWA7S0zmQ3EvpqyNFFPmXyaQLmkbtKRf2EQ2
-	 Zk3ggDy0B7vQFYM5GXrTE0xDhcGaO2nlaWa/DSVs=
-Date: Thu, 09 Jan 2025 16:16:04 -0800
+	b=ALPFh51RQVXyW6EI5qrW8MBwa39F4DucVE1382zHsdKulYFdBgLMCKg/13pP/X/01
+	 4sIVNstC5Wi/XDflN4LXGk8GYYNSLUuY/oAYCq8yHZEpTweXkuJPAehxUcfw4/RMU5
+	 R+t71x6Moin4rtcq8kG1Y5N8okM5hiCg5cp8M3/U=
+Date: Thu, 09 Jan 2025 16:16:06 -0800
 To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,luto@amacapital.net,kees@kernel.org,jglisse@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-thuge-gen-fix-type-mismatch-warnings.patch added to mm-unstable branch
-Message-Id: <20250110001605.5D688C4CED2@smtp.kernel.org>
+Subject: + selftests-mm-uffd-fix-all-type-mismatch-warnings.patch added to mm-unstable branch
+Message-Id: <20250110001607.4E1E5C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: thuge-gen: fix type mismatch warnings
+     Subject: selftests/mm: uffd-*: fix all type mismatch warnings
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-thuge-gen-fix-type-mismatch-warnings.patch
+     selftests-mm-uffd-fix-all-type-mismatch-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-thuge-gen-fix-type-mismatch-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-fix-all-type-mismatch-warnings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: thuge-gen: fix type mismatch warnings
-Date: Thu, 9 Jan 2025 22:38:40 +0500
+Subject: selftests/mm: uffd-*: fix all type mismatch warnings
+Date: Thu, 9 Jan 2025 22:38:41 +0500
 
-Fix all the found type mismatch warnings.
+Fix all type mismatch warnings in all uffd-* files.
 
-Link: https://lkml.kernel.org/r/20250109173842.1142376-15-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250109173842.1142376-16-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Jérôme Glisse <jglisse@redhat.com>
@@ -74,56 +74,80 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/thuge-gen.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/uffd-common.c     |    6 +++---
+ tools/testing/selftests/mm/uffd-stress.c     |    2 +-
+ tools/testing/selftests/mm/uffd-unit-tests.c |    6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-thuge-gen-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -65,7 +65,7 @@ void show(unsigned long ps)
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd-fix-all-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -450,7 +450,7 @@ void uffd_handle_page_fault(struct uffd_
+ 		args->wp_faults++;
+ 	} else if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_MINOR) {
+ 		uint8_t *area;
+-		int b;
++		unsigned int b;
+ 
+ 		/*
+ 		 * Minor page faults
+@@ -621,7 +621,7 @@ int __copy_page(int ufd, unsigned long o
+ 			err("UFFDIO_COPY error: %"PRId64,
+ 			    (int64_t)uffdio_copy.copy);
+ 		wake_range(ufd, uffdio_copy.dst, page_size);
+-	} else if (uffdio_copy.copy != page_size) {
++	} else if (uffdio_copy.copy != (signed long)page_size) {
+ 		err("UFFDIO_COPY error: %"PRId64, (int64_t)uffdio_copy.copy);
+ 	} else {
+ 		if (test_uffdio_copy_eexist && retry) {
+@@ -655,7 +655,7 @@ int move_page(int ufd, unsigned long off
+ 			err("UFFDIO_MOVE error: %"PRId64,
+ 			    (int64_t)uffdio_move.move);
+ 		wake_range(ufd, uffdio_move.dst, len);
+-	} else if (uffdio_move.move != len) {
++	} else if (uffdio_move.move != (signed long)len) {
+ 		err("UFFDIO_MOVE error: %"PRId64, (int64_t)uffdio_move.move);
+ 	} else
+ 		return 1;
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd-fix-all-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -77,7 +77,7 @@ static void usage(void)
+ 
+ static void uffd_stats_reset(struct uffd_args *args, unsigned long n_cpus)
  {
- 	char buf[100];
- 
--	if (ps == getpagesize())
-+	if ((signed long)ps == getpagesize())
- 		return;
- 
- 	ksft_print_msg("%luMB: ", ps >> 20);
-@@ -106,7 +106,7 @@ unsigned long read_sysfs(int warn, char
- 
- unsigned long read_free(unsigned long ps)
- {
--	return read_sysfs(ps != getpagesize(),
-+	return read_sysfs((signed long)ps != getpagesize(),
- 			  "/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
- 			  ps >> 10);
- }
-@@ -126,7 +126,7 @@ void test_mmap(unsigned long size, unsig
- 	after = read_free(size);
- 
- 	show(size);
--	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
-+	ksft_test_result((signed long)size == getpagesize() || (before - after) == NUM_PAGES,
- 			 "%s mmap\n", __func__);
- 
- 	if (munmap(map, size * NUM_PAGES))
-@@ -164,7 +164,7 @@ void test_shmget(unsigned long size, uns
- 	after = read_free(size);
- 
- 	show(size);
--	ksft_test_result(size == getpagesize() || (before - after) == NUM_PAGES,
-+	ksft_test_result((signed long)size == getpagesize() || (before - after) == NUM_PAGES,
- 			 "%s: mmap\n", __func__);
- 	if (shmdt(map))
- 		ksft_exit_fail_msg("%s: shmdt: %s\n", __func__, strerror(errno));
-@@ -173,7 +173,7 @@ void test_shmget(unsigned long size, uns
- void find_pagesizes(void)
- {
- 	unsigned long largest = getpagesize();
 -	int i;
 +	unsigned int i;
- 	glob_t g;
  
- 	glob("/sys/kernel/mm/hugepages/hugepages-*kB", 0, NULL, &g);
+ 	for (i = 0; i < n_cpus; i++) {
+ 		args[i].cpu = i;
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-fix-all-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -917,7 +917,7 @@ static bool do_uffdio_zeropage(int ufd,
+ 		else if (res != -EINVAL)
+ 			err("UFFDIO_ZEROPAGE not -EINVAL");
+ 	} else if (has_zeropage) {
+-		if (res != page_size)
++		if (res != (signed long)page_size)
+ 			err("UFFDIO_ZEROPAGE unexpected size");
+ 		else
+ 			retry_uffdio_zeropage(ufd, &uffdio_zeropage);
+@@ -949,7 +949,7 @@ uffd_register_detect_zeropage(int uffd,
+ static void uffd_zeropage_test(uffd_test_args_t __attribute__((unused)) *args)
+ {
+ 	bool has_zeropage;
+-	int i;
++	unsigned int i;
+ 
+ 	has_zeropage = uffd_register_detect_zeropage(uffd, area_dst, page_size);
+ 	if (area_dst_alias)
+@@ -997,7 +997,7 @@ static void do_uffdio_poison(int uffd, u
+ 
+ 	if (ret)
+ 		err("UFFDIO_POISON error: %"PRId64, (int64_t)res);
+-	else if (res != page_size)
++	else if (res != (signed long)page_size)
+ 		err("UFFDIO_POISON unexpected size: %"PRId64, (int64_t)res);
+ }
+ 
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
