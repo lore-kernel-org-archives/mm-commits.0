@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37CE3A2D
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98208A2D
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736468137; cv=none; b=hztQ6tMkKf2mCEoPBsjeiXuZ2qRx3yuUsMeuSWAPA95qzyoo9RTVrT1RkvT8GnBDsC7liG1wJthRWHYMgYGVjjHPRoYkyFMbv8LN8LEi1c3x1ZZ7MR2ppdf2/VvDltgKCfOqVVEy+D1/mFhy6tfge7dL/IMeMo0iY2Wf559rrwc=
+	t=1736468142; cv=none; b=PsiCFI+gI5QyDI1xLlOmULH2DxjTVQgEkWo5LA8z1OIPU7uImiXSc5rMBtlMVARMC+ZiCWmDvwDEo0kF2ZtJsyx3LPt3Z6kRSqNQAOdOBGv0cTKMQxIazupYwyrv4Ir86FjQeJWKOd6JC3SAlE9OKhHgUPg8sqB8BFUztkm2vfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736468137; c=relaxed/simple;
-	bh=R0orq3ESh1iZ95sWlP/jZuw/Lmox6AEGDkQ8vKkdgEI=;
-	h=Date:To:From:Subject:Message-Id; b=aMOtDcdnOf7tmzTy55kKVKxPMXkGVBBIDAsAxcxjccc/Li71Z/Y7eOoeMNKcrdu+GjHEfv3f/bd9UJ3eqb76zuJwQI1xsNja57CXhPSbtJ5NqL85MWOYiq+7j46FVi19C3ErYDOVK1rNYx88EMnBgB3xQ2gEhSWKbrRDk83X764=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2DJn/NFz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736468142; c=relaxed/simple;
+	bh=KxTUFM3v2+9hA6YDcI1d+9K8TbpEIUW2q4vVPY7cHj4=;
+	h=Date:To:From:Subject:Message-Id; b=mtNEZPscCw7ffkzlSfkNMWP57VwLrDMQ3iBGoifr76PH6uJ+DANmfmKhuYuOI6mvMTwcfqlr4ue7DPdHCPogGYHTxrHIvtt02eeOVg5Ui6ikAro+NH7KytQ54gr7l++fc3/9mp65haZh53wWgBhb6YW4nosCesmI+cKZX2wgOXI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krCcuCbL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2DJn/NFz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E19BC4CEE3;
-	Fri, 10 Jan 2025 00:15:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krCcuCbL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 268C4C4CED2;
+	Fri, 10 Jan 2025 00:15:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736468136;
-	bh=R0orq3ESh1iZ95sWlP/jZuw/Lmox6AEGDkQ8vKkdgEI=;
+	s=korg; t=1736468142;
+	bh=KxTUFM3v2+9hA6YDcI1d+9K8TbpEIUW2q4vVPY7cHj4=;
 	h=Date:To:From:Subject:From;
-	b=2DJn/NFzufiMrRwPhM3x3U/cMky1xhPWxdVvpcV0C0mG38Z9tNJa1ZzpN8f2TczLY
-	 lH3Hw9gd5MvQmzKvidSQem3kTnOKfW54aiH2DsKFAqU2KAhbpee5j1aWpNNF+gGLxf
-	 JZfwaRtbYdPAQ1EoQR752iO1kvi2YKrVhdLYKDoo=
-Date: Thu, 09 Jan 2025 16:15:36 -0800
+	b=krCcuCbL/NjskkeJZGLBCcH819Kh9jrZfbqZ3KQ1lTLcaSu9D75Yeh1NoOUghoMJz
+	 1vmBHlzDaruqhZ/4qy5yaBavogGoK+t5+nRe+DsZ0H7Xd9fN5kEoVZ55O+WpjLmzJm
+	 htAjGgW48x0jNmWwYvjVUtuefhuL2gN2NRRMQj44=
+Date: Thu, 09 Jan 2025 16:15:41 -0800
 To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,luto@amacapital.net,kees@kernel.org,jglisse@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-unused-parameter-warnings.patch added to mm-unstable branch
-Message-Id: <20250110001536.8E19BC4CEE3@smtp.kernel.org>
+Subject: + selftests-mm-fix-type-mismatch-warnings.patch added to mm-unstable branch
+Message-Id: <20250110001542.268C4C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: Fix unused parameter warnings
+     Subject: selftests/mm: fix type mismatch warnings
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-unused-parameter-warnings.patch
+     selftests-mm-fix-type-mismatch-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-unused-parameter-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-type-mismatch-warnings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: Fix unused parameter warnings
-Date: Thu, 9 Jan 2025 22:38:28 +0500
+Subject: selftests/mm: fix type mismatch warnings
+Date: Thu, 9 Jan 2025 22:38:30 +0500
 
-Fix warnings generated  by unused parameters.
+Fix type mismatch warnings in different tests.
 
-Link: https://lkml.kernel.org/r/20250109173842.1142376-3-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250109173842.1142376-5-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Jérôme Glisse <jglisse@redhat.com>
@@ -74,452 +74,144 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    4 
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c      |    6 -
- tools/testing/selftests/mm/ksm_tests.c                |   17 +--
- tools/testing/selftests/mm/memfd_secret.c             |    4 
- tools/testing/selftests/mm/soft-dirty.c               |    4 
- tools/testing/selftests/mm/split_huge_page_test.c     |    4 
- tools/testing/selftests/mm/uffd-common.c              |   18 ++-
- tools/testing/selftests/mm/uffd-common.h              |    2 
- tools/testing/selftests/mm/uffd-stress.c              |    2 
- tools/testing/selftests/mm/uffd-unit-tests.c          |   52 +++++-----
- 10 files changed, 57 insertions(+), 56 deletions(-)
+ tools/testing/selftests/mm/compaction_test.c          |    2 +-
+ tools/testing/selftests/mm/gup_longterm.c             |    3 ++-
+ tools/testing/selftests/mm/hugetlb_dio.c              |    2 +-
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    2 +-
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c      |    2 +-
+ tools/testing/selftests/mm/ksm_functional_tests.c     |    6 +++---
+ tools/testing/selftests/mm/mlock-random-test.c        |    4 ++--
+ tools/testing/selftests/mm/pkey_sighandler_tests.c    |    2 +-
+ tools/testing/selftests/mm/soft-dirty.c               |    2 +-
+ 9 files changed, 13 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-fix-unused-parameter-warnings
+--- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-fix-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/compaction_test.c
+@@ -134,7 +134,7 @@ int check_compaction(unsigned long mem_f
+ 	lseek(fd, 0, SEEK_SET);
+ 
+ 	if (write(fd, init_nr_hugepages, strlen(init_nr_hugepages))
+-	    != strlen(init_nr_hugepages)) {
++	    != (signed long int)strlen(init_nr_hugepages)) {
+ 		ksft_print_msg("Failed to write value to /proc/sys/vm/nr_hugepages: %s\n",
+ 			       strerror(errno));
+ 		goto close_fd;
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-fix-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -446,7 +446,8 @@ static int tests_per_test_case(void)
+ 
+ int main(void)
+ {
+-	int i, err;
++	unsigned int i;
++	int err;
+ 
+ 	pagesize = getpagesize();
+ 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
+--- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-fix-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/hugetlb_dio.c
+@@ -63,7 +63,7 @@ void run_dio_using_hugetlb(unsigned int
+ 	memset(buffer, 'A', writesize);
+ 
+ 	/* Write the buffer to the file */
+-	if (write(fd, buffer, writesize) != (writesize)) {
++	if (write(fd, buffer, writesize) != (signed int)writesize) {
+ 		munmap(orig_buffer, h_pagesize);
+ 		close(fd);
+ 		ksft_exit_fail_perror("Error writing to file\n");
+--- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-fix-type-mismatch-warnings
 +++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
-@@ -28,7 +28,7 @@ static void signal_handler(int signal)
- }
+@@ -88,7 +88,7 @@ int main(void)
+ 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+ 				-1, 0);
  
- /* Touch the memory while it is being madvised() */
--void *touch(void *unused)
-+void *touch(void __attribute__((unused)) *unused)
- {
- 	char *ptr = (char *)huge_ptr;
+-		if ((unsigned long)huge_ptr == -1)
++		if (huge_ptr == MAP_FAILED)
+ 			ksft_exit_skip("Failed to allocated huge page\n");
  
-@@ -41,7 +41,7 @@ void *touch(void *unused)
- 	return NULL;
- }
- 
--void *madv(void *unused)
-+void *madv(void __attribute__((unused)) *unused)
- {
- 	usleep(rand() % 10);
- 
---- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-fix-unused-parameter-warnings
+ 		pthread_create(&thread1, NULL, madv, NULL);
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-fix-type-mismatch-warnings
 +++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -33,7 +33,7 @@ size_t mmap_size;
- char *huge_ptr;
+@@ -100,7 +100,7 @@ int main(void)
+ 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
+ 				-1, 0);
  
- /* Touch the memory while it is being madvised() */
--void *touch(void *unused)
-+void *touch(void __attribute__((unused)) *unused)
- {
- 	for (int i = 0; i < INLOOP_ITER; i++)
- 		huge_ptr[0] = '.';
-@@ -41,7 +41,7 @@ void *touch(void *unused)
- 	return NULL;
- }
- 
--void *madv(void *unused)
-+void *madv(void __attribute__((unused)) *unused)
- {
- 	for (int i = 0; i < INLOOP_ITER; i++)
- 		madvise(huge_ptr, mmap_size, MADV_DONTNEED);
-@@ -54,7 +54,7 @@ void *madv(void *unused)
-  * The other hugepage should be flipping from used <-> reserved, because
-  * of madvise(DONTNEED).
-  */
--void *map_extra(void *unused)
-+void *map_extra(void __attribute__((unused)) *unused)
- {
- 	void *ptr;
- 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -265,8 +265,7 @@ static int ksm_merge_pages(int merge_typ
- 	return 0;
- }
- 
--static int ksm_unmerge_pages(void *addr, size_t size,
--			     struct timespec start_time, int timeout)
-+static int ksm_unmerge_pages(void *addr, size_t size)
- {
- 	if (madvise(addr, size, MADV_UNMERGEABLE)) {
- 		perror("madvise");
-@@ -483,7 +482,7 @@ static int get_first_mem_node(void)
- 	return get_next_mem_node(numa_max_node());
- }
- 
--static int check_ksm_numa_merge(int merge_type, int mapping, int prot, int timeout,
-+static int check_ksm_numa_merge(int merge_type, int timeout,
- 				bool merge_across_nodes, size_t page_size)
- {
- 	void *numa1_map_ptr, *numa2_map_ptr;
-@@ -547,8 +546,7 @@ err_out:
- 	return KSFT_FAIL;
- }
- 
--static int ksm_merge_hugepages_time(int merge_type, int mapping, int prot,
--				int timeout, size_t map_size)
-+static int ksm_merge_hugepages_time(int merge_type, int timeout, size_t map_size)
- {
- 	void *map_ptr, *map_ptr_orig;
- 	struct timespec start_time, end_time;
-@@ -678,7 +676,7 @@ static int ksm_unmerge_time(int merge_ty
- 		perror("clock_gettime");
- 		goto err_out;
- 	}
--	if (ksm_unmerge_pages(map_ptr, map_size, start_time, timeout))
-+	if (ksm_unmerge_pages(map_ptr, map_size))
- 		goto err_out;
- 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
- 		perror("clock_gettime");
-@@ -906,8 +904,8 @@ int main(int argc, char *argv[])
- 						page_size);
- 		break;
- 	case CHECK_KSM_NUMA_MERGE:
--		ret = check_ksm_numa_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
--					ksm_scan_limit_sec, merge_across_nodes, page_size);
-+		ret = check_ksm_numa_merge(merge_type, ksm_scan_limit_sec, merge_across_nodes,
-+					   page_size);
- 		break;
- 	case KSM_MERGE_TIME:
- 		if (size_MB == 0) {
-@@ -922,8 +920,7 @@ int main(int argc, char *argv[])
- 			printf("Option '-s' is required.\n");
+-		if ((unsigned long)huge_ptr == -1) {
++		if (huge_ptr == MAP_FAILED) {
+ 			ksft_test_result_fail("Failed to allocate huge page\n");
  			return KSFT_FAIL;
  		}
--		ret = ksm_merge_hugepages_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
--				ksm_scan_limit_sec, size_MB);
-+		ret = ksm_merge_hugepages_time(merge_type, ksm_scan_limit_sec, size_MB);
- 		break;
- 	case KSM_UNMERGE_TIME:
- 		if (size_MB == 0) {
---- a/tools/testing/selftests/mm/memfd_secret.c~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/memfd_secret.c
-@@ -121,7 +121,7 @@ close_pipe:
- 	close(pipefd[1]);
- }
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-fix-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -306,7 +306,7 @@ static void test_unmerge_zero_pages(void
  
--static void try_process_vm_read(int fd, int pipefd[2])
-+static void try_process_vm_read(int __attribute__((unused)) fd, int pipefd[2])
- {
- 	struct iovec liov, riov;
- 	char buf[64];
-@@ -145,7 +145,7 @@ static void try_process_vm_read(int fd,
- 	exit(KSFT_FAIL);
- }
+ 	/* Check if ksm_zero_pages is updated correctly after KSM merging */
+ 	pages_expected = size / pagesize;
+-	if (pages_expected != get_my_ksm_zero_pages()) {
++	if ((signed long)pages_expected != get_my_ksm_zero_pages()) {
+ 		ksft_test_result_fail("'ksm_zero_pages' updated after merging\n");
+ 		goto unmap;
+ 	}
+@@ -319,7 +319,7 @@ static void test_unmerge_zero_pages(void
  
--static void try_ptrace(int fd, int pipefd[2])
-+static void try_ptrace(int __attribute__((unused)) fd, int pipefd[2])
+ 	/* Check if ksm_zero_pages is updated correctly after unmerging */
+ 	pages_expected /= 2;
+-	if (pages_expected != get_my_ksm_zero_pages()) {
++	if ((signed long)pages_expected != get_my_ksm_zero_pages()) {
+ 		ksft_test_result_fail("'ksm_zero_pages' updated after unmerging\n");
+ 		goto unmap;
+ 	}
+@@ -625,7 +625,7 @@ static void test_prot_none(void)
  {
- 	pid_t ppid = getppid();
- 	int status;
---- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-unused-parameter-warnings
+ 	const unsigned int size = 2 * MiB;
+ 	char *map;
+-	int i;
++	unsigned int i;
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+--- a/tools/testing/selftests/mm/mlock-random-test.c~selftests-mm-fix-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/mlock-random-test.c
+@@ -138,7 +138,7 @@ static void test_mlock_within_limit(char
+ 	int page_size = 0;
+ 
+ 	getrlimit(RLIMIT_MEMLOCK, &cur);
+-	if (cur.rlim_cur < alloc_size)
++	if (cur.rlim_cur < (unsigned int)alloc_size)
+ 		ksft_exit_fail_msg("alloc_size[%d] < %u rlimit,lead to mlock failure\n",
+ 				   alloc_size, (unsigned int)cur.rlim_cur);
+ 
+@@ -204,7 +204,7 @@ static void test_mlock_outof_limit(char
+ 	struct rlimit cur;
+ 
+ 	getrlimit(RLIMIT_MEMLOCK, &cur);
+-	if (cur.rlim_cur >= alloc_size)
++	if (cur.rlim_cur >= (unsigned int)alloc_size)
+ 		ksft_exit_fail_msg("alloc_size[%d] >%u rlimit, violates test condition\n",
+ 				   alloc_size, (unsigned int)cur.rlim_cur);
+ 
+--- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-fix-type-mismatch-warnings
++++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
+@@ -530,7 +530,7 @@ static void (*pkey_tests[])(void) = {
+ 
+ int main(void)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	ksft_print_header();
+ 	ksft_set_plan(ARRAY_SIZE(pkey_tests));
+--- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-type-mismatch-warnings
 +++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -74,7 +74,7 @@ static void test_vma_reuse(int pagemap_f
- 	munmap(map2, pagesize);
- }
- 
--static void test_hugepage(int pagemap_fd, int pagesize)
-+static void test_hugepage(int pagemap_fd)
+@@ -77,7 +77,7 @@ static void test_vma_reuse(int pagemap_f
+ static void test_hugepage(int pagemap_fd)
  {
  	char *map;
- 	int i, ret;
-@@ -203,7 +203,7 @@ int main(void)
+-	int i, ret;
++	unsigned int i, ret;
+ 	size_t hpage_len = read_pmd_pagesize();
  
- 	test_simple(pagemap_fd, pagesize);
- 	test_vma_reuse(pagemap_fd, pagesize);
--	test_hugepage(pagemap_fd, pagesize);
-+	test_hugepage(pagemap_fd);
- 	test_mprotect_anon(pagemap_fd, pagesize);
- 	test_mprotect_file(pagemap_fd, pagesize);
- 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -103,7 +103,7 @@ static char *allocate_zero_filled_hugepa
- 	return result;
- }
- 
--static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, int nr_hpages, size_t len)
-+static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, size_t len)
- {
- 	unsigned long rss_anon_before, rss_anon_after;
- 	size_t i;
-@@ -149,7 +149,7 @@ void split_pmd_zero_pages(void)
- 	size_t len = nr_hpages * pmd_pagesize;
- 
- 	one_page = allocate_zero_filled_hugepage(len);
--	verify_rss_anon_split_huge_page_all_zeroes(one_page, nr_hpages, len);
-+	verify_rss_anon_split_huge_page_all_zeroes(one_page, len);
- 	printf("Split zero filled huge pages successful\n");
- 	free(one_page);
- }
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -46,7 +46,7 @@ static void anon_release_pages(char *rel
- 		err("madvise(MADV_DONTNEED) failed");
- }
- 
--static int anon_allocate_area(void **alloc_area, bool is_src)
-+static int anon_allocate_area(void **alloc_area, bool __attribute__((unused)) is_src)
- {
- 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
- 			   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-@@ -57,7 +57,9 @@ static int anon_allocate_area(void **all
- 	return 0;
- }
- 
--static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-+static void noop_alias_mapping(__u64 __attribute__((unused)) *start,
-+			       size_t __attribute__((unused)) len,
-+			       unsigned long __attribute__((unused)) offset)
- {
- }
- 
-@@ -108,7 +110,8 @@ static int hugetlb_allocate_area(void **
- 	return 0;
- }
- 
--static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-+static void hugetlb_alias_mapping(__u64 *start, size_t __attribute__((unused)) len,
-+				  unsigned long offset)
- {
- 	if (!map_shared)
- 		return;
-@@ -167,12 +170,13 @@ static int shmem_allocate_area(void **al
- 	return 0;
- }
- 
--static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-+static void shmem_alias_mapping(__u64 *start, size_t __attribute__((unused)) len,
-+				unsigned long offset)
- {
- 	*start = (unsigned long)area_dst_alias + offset;
- }
- 
--static void shmem_check_pmd_mapping(void *p, int expect_nr_hpages)
-+static void shmem_check_pmd_mapping(void __attribute__((unused)) *p, int expect_nr_hpages)
- {
- 	if (!check_huge_shmem(area_dst_alias, expect_nr_hpages,
- 			      read_pmd_pagesize()))
-@@ -416,7 +420,7 @@ static void continue_range(int ufd, __u6
- 		    ret, (int64_t) req.mapped);
- }
- 
--int uffd_read_msg(int ufd, struct uffd_msg *msg)
-+int uffd_read_msg(struct uffd_msg *msg)
- {
- 	int ret = read(uffd, msg, sizeof(*msg));
- 
-@@ -537,7 +541,7 @@ void *uffd_poll_thread(void *arg)
- 		}
- 		if (!(pollfd[0].revents & POLLIN))
- 			err("pollfd[0].revents %d", pollfd[0].revents);
--		if (uffd_read_msg(uffd, &msg))
-+		if (uffd_read_msg(&msg))
- 			continue;
- 		switch (msg.event) {
- 		default:
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -117,7 +117,7 @@ void uffd_stats_report(struct uffd_args
- int uffd_test_ctx_init(uint64_t features, const char **errmsg);
- void uffd_test_ctx_clear(void);
- int userfaultfd_open(uint64_t *features);
--int uffd_read_msg(int ufd, struct uffd_msg *msg);
-+int uffd_read_msg(struct uffd_msg *msg);
- void wp_range(int ufd, __u64 start, __u64 len, bool wp);
- void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_args *args);
- int __copy_page(int ufd, unsigned long offset, bool retry, bool wp);
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -136,7 +136,7 @@ static void *uffd_read_thread(void *arg)
- 	/* from here cancellation is ok */
- 
- 	for (;;) {
--		if (uffd_read_msg(uffd, &msg))
-+		if (uffd_read_msg(&msg))
- 			continue;
- 		uffd_handle_page_fault(&msg, args);
- 	}
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-unused-parameter-warnings
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -244,7 +244,7 @@ static void *fork_event_consumer(void *d
- 	ready_for_fork = true;
- 
- 	/* Read until a full msg received */
--	while (uffd_read_msg(args->parent_uffd, &msg));
-+	while (uffd_read_msg(&msg));
- 
- 	if (msg.event != UFFD_EVENT_FORK)
- 		err("wrong message: %u\n", msg.event);
-@@ -357,7 +357,7 @@ static int pagemap_test_fork(int uffd, b
- 	return result;
- }
- 
--static void uffd_wp_unpopulated_test(uffd_test_args_t *args)
-+static void uffd_wp_unpopulated_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uint64_t value;
- 	int pagemap_fd;
-@@ -483,8 +483,7 @@ static void uffd_wp_fork_with_event_test
- 	uffd_wp_fork_test_common(args, true);
- }
- 
--static void uffd_wp_fork_pin_test_common(uffd_test_args_t *args,
--					 bool with_event)
-+static void uffd_wp_fork_pin_test_common(bool with_event)
- {
- 	int pagemap_fd;
- 	pin_args pin_args = {};
-@@ -535,14 +534,14 @@ out:
- 	close(pagemap_fd);
- }
- 
--static void uffd_wp_fork_pin_test(uffd_test_args_t *args)
-+static void uffd_wp_fork_pin_test(uffd_test_args_t __attribute__((unused)) *args)
- {
--	uffd_wp_fork_pin_test_common(args, false);
-+	uffd_wp_fork_pin_test_common(false);
- }
- 
--static void uffd_wp_fork_pin_with_event_test(uffd_test_args_t *args)
-+static void uffd_wp_fork_pin_with_event_test(uffd_test_args_t __attribute__((unused)) *args)
- {
--	uffd_wp_fork_pin_test_common(args, true);
-+	uffd_wp_fork_pin_test_common(true);
- }
- 
- static void check_memory_contents(char *p)
-@@ -627,24 +626,25 @@ static void uffd_minor_test_common(bool
- 		uffd_test_pass();
- }
- 
--void uffd_minor_test(uffd_test_args_t *args)
-+void uffd_minor_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_minor_test_common(false, false);
- }
- 
--void uffd_minor_wp_test(uffd_test_args_t *args)
-+void uffd_minor_wp_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_minor_test_common(false, true);
- }
- 
--void uffd_minor_collapse_test(uffd_test_args_t *args)
-+void uffd_minor_collapse_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_minor_test_common(true, false);
- }
- 
- static sigjmp_buf jbuf, *sigbuf;
- 
--static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-+static void sighndl(int sig, siginfo_t __attribute__((unused)) *siginfo,
-+		    void __attribute__((unused)) *ptr)
- {
- 	if (sig == SIGBUS) {
- 		if (sigbuf)
-@@ -820,12 +820,12 @@ static void uffd_sigbus_test_common(bool
- 		uffd_test_pass();
- }
- 
--static void uffd_sigbus_test(uffd_test_args_t *args)
-+static void uffd_sigbus_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_sigbus_test_common(false);
- }
- 
--static void uffd_sigbus_wp_test(uffd_test_args_t *args)
-+static void uffd_sigbus_wp_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_sigbus_test_common(true);
- }
-@@ -873,12 +873,12 @@ static void uffd_events_test_common(bool
- 		uffd_test_pass();
- }
- 
--static void uffd_events_test(uffd_test_args_t *args)
-+static void uffd_events_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_events_test_common(false);
- }
- 
--static void uffd_events_wp_test(uffd_test_args_t *args)
-+static void uffd_events_wp_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	uffd_events_test_common(true);
- }
-@@ -946,7 +946,7 @@ uffd_register_detect_zeropage(int uffd,
- }
- 
- /* exercise UFFDIO_ZEROPAGE */
--static void uffd_zeropage_test(uffd_test_args_t *args)
-+static void uffd_zeropage_test(uffd_test_args_t __attribute__((unused)) *args)
- {
- 	bool has_zeropage;
- 	int i;
-@@ -1002,7 +1002,7 @@ static void do_uffdio_poison(int uffd, u
- }
- 
- static void uffd_poison_handle_fault(
--	struct uffd_msg *msg, struct uffd_args *args)
-+	struct uffd_msg *msg, struct uffd_args __attribute__((unused)) *args)
- {
- 	unsigned long offset;
- 
-@@ -1023,7 +1023,7 @@ static void uffd_poison_handle_fault(
- 		do_uffdio_poison(uffd, offset);
- }
- 
--static void uffd_poison_test(uffd_test_args_t *targs)
-+static void uffd_poison_test(uffd_test_args_t __attribute__((unused)) *targs)
- {
- 	pthread_t uffd_mon;
- 	char c;
-@@ -1114,7 +1114,7 @@ static void uffd_move_pmd_handle_fault(s
- }
- 
- static void
--uffd_move_test_common(uffd_test_args_t *targs, unsigned long chunk_size,
-+uffd_move_test_common(unsigned long chunk_size,
- 		      void (*handle_fault)(struct uffd_msg *msg, struct uffd_args *args))
- {
- 	unsigned long nr;
-@@ -1206,24 +1206,24 @@ uffd_move_test_common(uffd_test_args_t *
- 		uffd_test_pass();
- }
- 
--static void uffd_move_test(uffd_test_args_t *targs)
-+static void uffd_move_test(uffd_test_args_t __attribute__((unused)) *targs)
- {
--	uffd_move_test_common(targs, page_size, uffd_move_handle_fault);
-+	uffd_move_test_common(page_size, uffd_move_handle_fault);
- }
- 
--static void uffd_move_pmd_test(uffd_test_args_t *targs)
-+static void uffd_move_pmd_test(uffd_test_args_t __attribute__((unused)) *targs)
- {
- 	if (madvise(area_dst, nr_pages * page_size, MADV_HUGEPAGE))
- 		err("madvise(MADV_HUGEPAGE) failure");
--	uffd_move_test_common(targs, read_pmd_pagesize(),
-+	uffd_move_test_common(read_pmd_pagesize(),
- 			      uffd_move_pmd_handle_fault);
- }
- 
--static void uffd_move_pmd_split_test(uffd_test_args_t *targs)
-+static void uffd_move_pmd_split_test(uffd_test_args_t __attribute__((unused)) *targs)
- {
- 	if (madvise(area_dst, nr_pages * page_size, MADV_NOHUGEPAGE))
- 		err("madvise(MADV_NOHUGEPAGE) failure");
--	uffd_move_test_common(targs, read_pmd_pagesize(),
-+	uffd_move_test_common(read_pmd_pagesize(),
- 			      uffd_move_pmd_handle_fault);
- }
- 
+ 	if (!hpage_len)
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
