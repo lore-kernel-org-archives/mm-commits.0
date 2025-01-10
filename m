@@ -1,108 +1,240 @@
-Received: from mail-il1-f177.google.com (mail-il1-f177.google.com [209.85.166.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2919218AB3
-	for <mm-commits@vger.kernel.org>; Thu,  9 Jan 2025 13:48:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E89CD14286
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:00:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736430489; cv=none; b=UMCQnh7bV5EIrtJfABsWOUPpu6NcGq3Va1OMC74h8w6ic7CTVqrdZ86oRDweythVnktRYI2+feRfs/Ui0CBxaPyHAbZYO0G39MR1pkjYtXx/uB99Lirothy9zz9dUWObiEiFNRXXXQoNsx8zV1yfzF4EDO8+OGRetml1tiMohfQ=
+	t=1736467252; cv=none; b=tYFYJGERxCHHHJHmLlp/It71dF2oxCbVUj7mITFPccaHSFZS1Y/9VqO/22+JeoKDgseVRKzDarRWPqwpiM9+7pd3nLaEoriCfwR1Ob4ev/Qcqr94sg36QaAjAwSpqQtgbKnYDDL+zak7giainpxXhOjJLyDUwnqLiYAhG4Fwzsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736430489; c=relaxed/simple;
-	bh=MfUAsByiN5G1cpKWskdIpU8Hzs1S1TOv2sPq1G8qPaE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Mdw47gV9IR6ZdHyQqRuwYmEXnVrEypYqCHF0aL2vjVJWeP60JhrSFN6kDpmfRX0f3JZ044FU/tPh4rFRNpyUYbMPVhq4eupP3jHQA/tem9/yXeB4iUsQjFZWH6v+G0Ahoj+cqGkQlsSfBvWYW3CVKF4i5YsnlbpUXlpZzDIFkRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk; spf=pass smtp.mailfrom=kernel.dk; dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b=PD4afNIz; arc=none smtp.client-ip=209.85.166.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kernel.dk
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kernel.dk
+	s=arc-20240116; t=1736467252; c=relaxed/simple;
+	bh=4+NrV7PQuE8wwLHZ9uMv7wRr/e+7MTloGG9Es+nKORY=;
+	h=Date:To:From:Subject:Message-Id; b=JHqln00UWGKx29Wod/GwmzYhhq1ZZb7bhIO/nmJRzfQySeEcrSPDdNBpdPK6gF9aXCAtr4TLhMysbOLimM+z8hEN99RC1PbSvYP598RG51w1NUxYGqG1HXV5TxsXDfNBRSwR4fQjU3Qj0inmGUTIY41PL0u5pgHJo8rr0H/DL5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S0HHm0m8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel-dk.20230601.gappssmtp.com header.i=@kernel-dk.20230601.gappssmtp.com header.b="PD4afNIz"
-Received: by mail-il1-f177.google.com with SMTP id e9e14a558f8ab-3a7d7db4d89so2373935ab.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 Jan 2025 05:48:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1736430484; x=1737035284; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=NjFJHiLttVQ/1qgu1DVPvVlnOW9nGnLZZjIldl0AS5o=;
-        b=PD4afNIz/9MOj9esQMJRrCcE3FE9qCDPBGlDhzf/yV42/bsIyQlbbPazcyfDxLIS02
-         tVQ+JOyemHCE6PAGMz/QJZiCssphdCYPK/QAZL5pXS04y5hR3KTcEwRO7uib8JOl3NEi
-         KB9iKYuMJd77s7FNO/yYYdflpd1Jrba+XN09RoBSWr5lgO7WY+tdz3WU8/95fB2cLxsx
-         Adx4GxM3JIld/fXM70lhE0ASu42shkGEXsv5Z9f/aElb0Q0zVGxJhT3b94DDgRU+2/XP
-         WPDGjTvUTTOcEDrTKcJu1a78KYwQ5RorVNOXYUFwgVr/acGid4l8XCNVET6TLuGHXpj/
-         Pm7g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736430484; x=1737035284;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=NjFJHiLttVQ/1qgu1DVPvVlnOW9nGnLZZjIldl0AS5o=;
-        b=ISxQx5RaBD2JAbpUH267uwqhVI+sU/nSS3J4jSED3M0zOP+YfY45S7FyLAAsD2qmX9
-         cMTVdKE9uoK993XExK5C7T5r5NLE9JVnEGK7IBTdqK03jgHF62nibGznSiQ7DKMmMov7
-         6T2GbDnVCaB6ZyMB85pwwOQ477m4occ7lZJvIiYVYMkvYyLwHsMmlBVbERyeku8bfCkJ
-         vYOSNs2d/aNDNOtDC9R3g4iGs8e9bJdxUNb4Mu6Mg/ZJsoB3YoffhQvNlKg+OsQa50hm
-         xiDgP5jnBVX/9v8AOGqvXhq1E98kWYgeuy4A96RlvW7tBSba0e4HCSeW35JY5HuWdEt5
-         97rw==
-X-Forwarded-Encrypted: i=1; AJvYcCXC9I13XcQLaeFTVNLH7jczwDuqKOOUtPYrwwwip2ncRQIEDI15G9XVhUOOm+bKLCYIMX0DfwUJ2lGi@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw80c8O8NnQNnAB4NgqBkXerdp2T2z2FXWkZYa0wDcxqznzEFrC
-	WmJh5vhnUtQ6VNjcrDGBMFVjdYeU1Fne4eMllO0juQsLPMorBxy0+fwV/d1rp1Q=
-X-Gm-Gg: ASbGncvicVibYQq0QsLbmPMdPRNU2nixnpTRfHMho7tME/8w0+5MNV1IKe2OId+It1r
-	gBi5CTdzPPE6PMFSUCr9FMI4Q5okwzq/Ly4poxwLDdGg2zUBJKR/6zvVFAIvrCE6Z8/eYJxBOHA
-	0xZ3RWP8X3cHF5sKriZfEzDiR+4PYSztG3H4VVkigC/Zyk9VguNv+KVUZTvl8Z9CDt9y2PWmzDO
-	zIORchplyN0mv5qO8z/ho4JaXdD0YJ4XBfEH5Zf+kqYixdltKaPwQ==
-X-Google-Smtp-Source: AGHT+IG5SANKVDmAgAYjDqK10COs4jWHaFf9VTuEjRa7uGEWse3fQ6B/s8xNC11pOGn29F5jf4C8zg==
-X-Received: by 2002:a05:6e02:1fcb:b0:3ab:a274:d68 with SMTP id e9e14a558f8ab-3ce3a9b59b3mr52636765ab.8.1736430484442;
-        Thu, 09 Jan 2025 05:48:04 -0800 (PST)
-Received: from [192.168.1.150] ([198.8.77.157])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4ea1b7488casm316012173.135.2025.01.09.05.48.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 09 Jan 2025 05:48:03 -0800 (PST)
-Message-ID: <73c72b29-3847-4617-a2f7-14c2b452d23d@kernel.dk>
-Date: Thu, 9 Jan 2025 06:48:03 -0700
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S0HHm0m8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AFE5C4CED2;
+	Fri, 10 Jan 2025 00:00:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1736467251;
+	bh=4+NrV7PQuE8wwLHZ9uMv7wRr/e+7MTloGG9Es+nKORY=;
+	h=Date:To:From:Subject:From;
+	b=S0HHm0m8cnyrkUNjmE8g3B/D9MIWC64dGnPNlzSNfFVQmOLMtbqWFYrPAQK2R+IqY
+	 kLWAYXlwOh9WcZishx+tQmaPLbpwS2aYDpKYZk6TB4jBlaIaDHRr7JMi1sNvaSkV7t
+	 dIS1YPZzI28qxl33xDuCRB1zrInPinYr8DvPLd80=
+Date: Thu, 09 Jan 2025 16:00:50 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jstultz@google.com,jeffxu@chromium.org,axelrasmussen@google.com,aliceryhl@google.com,isaacmanjarres@google.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch added to mm-unstable branch
+Message-Id: <20250110000051.6AFE5C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-add-pg_dropbehind-folio-flag.patch added to mm-unstable
- branch
-To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
- Matthew Wilcox <willy@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- hch@lst.de, hannes@cmpxchg.org, clm@meta.com, bfoster@redhat.com
-References: <20250108033555.926E6C4CED0@smtp.kernel.org>
- <Z36LFTqnHM-jywV5@casper.infradead.org>
- <q4kpgg5l5s3vprg7zc5hkmyo4a3gnzrsrcm6wnmfj6p26ypayv@6kmconrrwjhi>
-Content-Language: en-US
-From: Jens Axboe <axboe@kernel.dk>
-In-Reply-To: <q4kpgg5l5s3vprg7zc5hkmyo4a3gnzrsrcm6wnmfj6p26ypayv@6kmconrrwjhi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 1/9/25 3:27 AM, Kirill A. Shutemov wrote:
-> On Wed, Jan 08, 2025 at 02:26:29PM +0000, Matthew Wilcox wrote:
->> On Tue, Jan 07, 2025 at 07:35:55PM -0800, Andrew Morton wrote:
->>>
->>> The patch titled
->>>      Subject: mm: add PG_dropbehind folio flag
->>> has been added to the -mm mm-unstable branch.  Its filename is
->>>      mm-add-pg_dropbehind-folio-flag.patch
->>
->> I was hoping we'd get some response to Kirill's suggestion that we not
->> do this.
->>
->> https://lore.kernel.org/linux-mm/Z2WRJdKnTD5eSfBS@casper.infradead.org/
-> 
-> I can do this conversion on top of Jens patchset.
 
-Yeah, was hoping we could do something like that. As I replied to
-earlier questions on this, I don't feel comfortable overloading
-any existing flags, as I don't have a good enough overview of how
-it all ties together. IMHO that kind of change should be done by
-someone that has intimate knowledge of the subsystem and flags,
-not a plebe like me.
+The patch titled
+     Subject: mm/memfd: refactor and cleanup the logic in memfd_create()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch
 
--- 
-Jens Axboe
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
+Subject: mm/memfd: refactor and cleanup the logic in memfd_create()
+Date: Thu, 9 Jan 2025 10:59:04 -0800
+
+Patch series "Cleanup for memfd_create()", v3.
+
+memfd_create() handles all of its logic in a single function.  Some of the
+logic in the function is also somewhat contrived (i.e.  copying the memfd
+name from userpace).
+
+This series aims to cleanup memfd_create() by splitting out the logic into
+helper functions, and simplifying the memfd name copying to make the code
+easier to follow.
+
+This has no intended functional changes.
+
+
+This patch (of 2):
+
+memfd_create() is a pretty busy function that could be easier to read if
+some of the logic was split out into helper functions.
+
+Therefore, split the flags sanitization, name allocation, and file
+structure allocation into their own helper functions.
+
+No functional change.
+
+Link: https://lkml.kernel.org/r/20250109185908.1006310-1-isaacmanjarres@google.com
+Link: https://lkml.kernel.org/r/20250109185908.1006310-2-isaacmanjarres@google.com
+Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: John Stultz <jstultz@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memfd.c |   82 ++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 59 insertions(+), 23 deletions(-)
+
+--- a/mm/memfd.c~mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create
++++ a/mm/memfd.c
+@@ -369,15 +369,9 @@ int memfd_check_seals_mmap(struct file *
+ 	return err;
+ }
+ 
+-SYSCALL_DEFINE2(memfd_create,
+-		const char __user *, uname,
+-		unsigned int, flags)
++static int sanitize_flags(unsigned int *flags_ptr)
+ {
+-	unsigned int *file_seals;
+-	struct file *file;
+-	int fd, error;
+-	char *name;
+-	long len;
++	unsigned int flags = *flags_ptr;
+ 
+ 	if (!(flags & MFD_HUGETLB)) {
+ 		if (flags & ~(unsigned int)MFD_ALL_FLAGS)
+@@ -393,20 +387,25 @@ SYSCALL_DEFINE2(memfd_create,
+ 	if ((flags & MFD_EXEC) && (flags & MFD_NOEXEC_SEAL))
+ 		return -EINVAL;
+ 
+-	error = check_sysctl_memfd_noexec(&flags);
+-	if (error < 0)
+-		return error;
++	return check_sysctl_memfd_noexec(flags_ptr);
++}
++
++static char *alloc_name(const char __user *uname)
++{
++	int error;
++	char *name;
++	long len;
+ 
+ 	/* length includes terminating zero */
+ 	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
+ 	if (len <= 0)
+-		return -EFAULT;
++		return ERR_PTR(-EFAULT);
+ 	if (len > MFD_NAME_MAX_LEN + 1)
+-		return -EINVAL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	name = kmalloc(len + MFD_NAME_PREFIX_LEN, GFP_KERNEL);
+ 	if (!name)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	strcpy(name, MFD_NAME_PREFIX);
+ 	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
+@@ -420,23 +419,28 @@ SYSCALL_DEFINE2(memfd_create,
+ 		goto err_name;
+ 	}
+ 
+-	fd = get_unused_fd_flags((flags & MFD_CLOEXEC) ? O_CLOEXEC : 0);
+-	if (fd < 0) {
+-		error = fd;
+-		goto err_name;
+-	}
++	return name;
++
++err_name:
++	kfree(name);
++	return ERR_PTR(error);
++}
++
++static struct file *alloc_file(const char *name, unsigned int flags)
++{
++	unsigned int *file_seals;
++	struct file *file;
+ 
+ 	if (flags & MFD_HUGETLB) {
+ 		file = hugetlb_file_setup(name, 0, VM_NORESERVE,
+ 					HUGETLB_ANONHUGE_INODE,
+ 					(flags >> MFD_HUGE_SHIFT) &
+ 					MFD_HUGE_MASK);
+-	} else
++	} else {
+ 		file = shmem_file_setup(name, 0, VM_NORESERVE);
+-	if (IS_ERR(file)) {
+-		error = PTR_ERR(file);
+-		goto err_fd;
+ 	}
++	if (IS_ERR(file))
++		return file;
+ 	file->f_mode |= FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
+ 	file->f_flags |= O_LARGEFILE;
+ 
+@@ -456,7 +460,39 @@ SYSCALL_DEFINE2(memfd_create,
+ 			*file_seals &= ~F_SEAL_SEAL;
+ 	}
+ 
++	return file;
++}
++
++SYSCALL_DEFINE2(memfd_create,
++		const char __user *, uname,
++		unsigned int, flags)
++{
++	struct file *file;
++	int fd, error;
++	char *name;
++
++	error = sanitize_flags(&flags);
++	if (error < 0)
++		return error;
++
++	name = alloc_name(uname);
++	if (IS_ERR(name))
++		return PTR_ERR(name);
++
++	fd = get_unused_fd_flags((flags & MFD_CLOEXEC) ? O_CLOEXEC : 0);
++	if (fd < 0) {
++		error = fd;
++		goto err_name;
++	}
++
++	file = alloc_file(name, flags);
++	if (IS_ERR(file)) {
++		error = PTR_ERR(file);
++		goto err_fd;
++	}
++
+ 	fd_install(fd, file);
++	/* name is not needed beyond this point. */
+ 	kfree(name);
+ 	return fd;
+ 
+_
+
+Patches currently in -mm which might be from isaacmanjarres@google.com are
+
+mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch
+mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
 
