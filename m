@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0A45A2D
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 931BBA2D
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736468148; cv=none; b=OxHoyG9RCQm11MruwDI9kxRI75dxRia0rHr2rl+6YySd6Nl8ugX4OUQzWC+FtQTfZDp+dCl3sEG+W7jxQnuElJNwKl7E0Q8G5G+NfcOpZqrRiM6cnBxcXfufskXdUbDxdae4gA6w5aojsJP1o3xcVr3qxNtjovaxJpWvnoYJZHc=
+	t=1736468150; cv=none; b=SUHK3QLmRjdyh/aE8BUox7VGM4sX38V4KMRWF06gbZIXiha7pf1L+usW0pNknfbIMXMlG2h6V63hzERRkJlZN53LW4fubVlVyJp/XqezXp0UELL4G1CYpB7hizp23NT8I6nsKYxZ/SdaPcT1dv/om0b+TlFhQ1AcPpMVfPK5csk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736468148; c=relaxed/simple;
-	bh=pCf6JHZ1+UNVQGNyJpSMCAbYuHZWu27avlLLdDhn74o=;
-	h=Date:To:From:Subject:Message-Id; b=eZqMoZmB6d0gB56HekDxp638vsi+kEkWkZkjQFIC8BQul/fksl40r3xlTytHPPXz6iQRGt8+f6F1lHPCCBR1kD0U3BTbpKN3g/Cp9mBasUNIohwwtsD54wXIIwnp1dnHw8cEc7j9kJwZ7VWpu6kfQHzCephaY7pGnSnJx20mBe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZtuqaQzA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736468150; c=relaxed/simple;
+	bh=KKPVO86Vrs8hxcBvg/8UGBMxpwQ+IpdK456aF8/8mvQ=;
+	h=Date:To:From:Subject:Message-Id; b=q8TL8D8O1f53nb9K7mlSyZzmIU9rxYPPpF9k0i8pxUPga46EpeINqWDdPt/8QVzYZmdqxeEvvwZVa68450Bbz4q4Dbt9CfoufKIH1yuPfAeflQEHTo5f+Hhn20l5BZwvJEKlPd10T8F7E2myVehZwqQ6rUE3VxKPjEgA/W87gk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=POKA2fQQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZtuqaQzA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E885C4CED2;
-	Fri, 10 Jan 2025 00:15:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="POKA2fQQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12648C4CED2;
+	Fri, 10 Jan 2025 00:15:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736468148;
-	bh=pCf6JHZ1+UNVQGNyJpSMCAbYuHZWu27avlLLdDhn74o=;
+	s=korg; t=1736468150;
+	bh=KKPVO86Vrs8hxcBvg/8UGBMxpwQ+IpdK456aF8/8mvQ=;
 	h=Date:To:From:Subject:From;
-	b=ZtuqaQzAaofzJ/wdkn55HX8jI/LiMtDlAGtPW/ApNaKxQeOw3UMtwyJ/9VmOLZgO5
-	 EhsDDTvpy008CxfX7eCvAMnkEYgYkHwciWx0po8SK1fVNPLErvMHzqPWlBU9fRC1tt
-	 +lMYDFpfJL2aH/WFzKwXDmpDlEgl5kFj56w1QLwA=
-Date: Thu, 09 Jan 2025 16:15:46 -0800
+	b=POKA2fQQBH/n70QvYEkfrfnv7OkEfhR5vuEFwOCm0DWB4yDBPOQjjMmIw+tg9SU5H
+	 lww762YB4cnw0oFqZP4v/8WK9IIjzN4A8C4OEm+UfRIYio08Bm5AYSBoFiYEmjjRCw
+	 OgTJriuTZNT7Xda6ytHtXP4Opk55NvVlmgHx0j6c=
+Date: Thu, 09 Jan 2025 16:15:49 -0800
 To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,luto@amacapital.net,kees@kernel.org,jglisse@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-kselftest_harness-fix-warnings.patch added to mm-unstable branch
-Message-Id: <20250110001548.1E885C4CED2@smtp.kernel.org>
+Subject: + selftests-mm-cow-remove-unused-variables-and-fix-type-mismatch-errors.patch added to mm-unstable branch
+Message-Id: <20250110001550.12648C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: kselftest_harness: Fix warnings
+     Subject: selftests/mm: cow: remove unused variables and fix type mismatch errors
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-kselftest_harness-fix-warnings.patch
+     selftests-mm-cow-remove-unused-variables-and-fix-type-mismatch-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-kselftest_harness-fix-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-remove-unused-variables-and-fix-type-mismatch-errors.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: kselftest_harness: Fix warnings
-Date: Thu, 9 Jan 2025 22:38:31 +0500
-
-Found warnings through hmm-tests and mdwe_test.
+Subject: selftests/mm: cow: remove unused variables and fix type mismatch errors
+Date: Thu, 9 Jan 2025 22:38:32 +0500
 
 Fix following warnings:
-- Mark unused variable with unused attribute
-- __EXPECT is causing types mismatch warnings when __exp is unsigned and
-  _seen is equal to a constant number, __typeof__(_seen) returns signed
-  type.
+- Remove unused variables
+- Use __attribute__(unused) with unused variables which aren't being
+  used and cannot be removed because of function pointer declaration
+- Fix type mismatches
 
-  hmm-tests.c: In function `hmm_anon_read':
-  ../kselftest_harness.h:523:52: warning: comparison of integer expressions of different signedness: `long unsigned int' and `int' [-Wsign-compare]
-    523 |         __EXPECT(expected, #expected, seen, #seen, !=, 1)
-        |                                                    ^~
-  ../kselftest_harness.h:759:21: note: in definition of macro `__EXPECT'
-    759 |         if (!(__exp _t __seen)) { \
-        |                     ^~
-  hmm-tests.c:303:9: note: in expansion of macro `ASSERT_NE'
-    303 |         ASSERT_NE(npages, 0);
-        |         ^~~~~~~~~
-- Mark variant as unused:
-mdwe_test.c: In function `wrapper_prctl_flags':
-../kselftest_harness.h:177:52: warning: unused parameter `variant' [-Wunused-parameter]
-  177 |                 struct __fixture_variant_metadata *variant) \
-      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
-../kselftest_harness.h:152:25: note: in expansion of macro `__TEST_IMPL'
-  152 | #define TEST(test_name) __TEST_IMPL(test_name, -1)
-      |                         ^~~~~~~~~~~
-mdwe_test.c:23:1: note: in expansion of macro `TEST'
-   23 | TEST(prctl_flags)
-      | ^~~~
-
-Link: https://lkml.kernel.org/r/20250109173842.1142376-6-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250109173842.1142376-7-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Jérôme Glisse <jglisse@redhat.com>
@@ -102,37 +78,173 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kselftest_harness.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/cow.c |   46 +++++++++++++++++------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
---- a/tools/testing/selftests/kselftest_harness.h~selftests-mm-kselftest_harness-fix-warnings
-+++ a/tools/testing/selftests/kselftest_harness.h
-@@ -174,7 +174,7 @@
- 	static void test_name(struct __test_metadata *_metadata); \
- 	static inline void wrapper_##test_name( \
- 		struct __test_metadata *_metadata, \
--		struct __fixture_variant_metadata *variant) \
-+		struct __fixture_variant_metadata __attribute__((unused)) *variant) \
- 	{ \
- 		_metadata->setup_completed = true; \
- 		if (setjmp(_metadata->env) == 0) \
-@@ -756,7 +756,7 @@
- 	/* Avoid multiple evaluation of the cases */ \
- 	__typeof__(_expected) __exp = (_expected); \
- 	__typeof__(_seen) __seen = (_seen); \
--	if (!(__exp _t __seen)) { \
-+	if (!(__exp _t (__typeof__(_expected)) __seen)) { \
- 		/* Report with actual signedness to avoid weird output. */ \
- 		switch (is_signed_type(__exp) * 2 + is_signed_type(__seen)) { \
- 		case 0: { \
-@@ -965,7 +965,7 @@ static inline void __test_check_assert(s
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-remove-unused-variables-and-fix-type-mismatch-errors
++++ a/tools/testing/selftests/mm/cow.c
+@@ -84,7 +84,7 @@ static void detect_huge_zeropage(void)
+ 		return;
+ 
+ 	ret = pread(fd, buf, sizeof(buf), 0);
+-	if (ret > 0 && ret < sizeof(buf)) {
++	if (ret > 0 && (unsigned int)ret < sizeof(buf)) {
+ 		buf[ret] = 0;
+ 
+ 		enabled = strtoul(buf, NULL, 10);
+@@ -263,12 +263,14 @@ close_comm_pipes:
+ 	close_comm_pipes(&comm_pipes);
  }
  
- struct __test_metadata *__active_test;
--static void __timeout_handler(int sig, siginfo_t *info, void *ucontext)
-+static void __timeout_handler(int sig, siginfo_t *info, void __attribute__((unused)) *ucontext)
+-static void test_cow_in_parent(char *mem, size_t size, bool is_hugetlb)
++static void test_cow_in_parent(char *mem, size_t size,
++			       bool __attribute__((unused)) is_hugetlb)
  {
- 	struct __test_metadata *t = __active_test;
+ 	do_test_cow_in_parent(mem, size, false, child_memcmp_fn, false);
+ }
+ 
+-static void test_cow_in_parent_mprotect(char *mem, size_t size, bool is_hugetlb)
++static void test_cow_in_parent_mprotect(char *mem, size_t size,
++					bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_cow_in_parent(mem, size, true, child_memcmp_fn, false);
+ }
+@@ -408,10 +410,11 @@ static void do_test_iouring(char *mem, s
+ 	struct io_uring_cqe *cqe;
+ 	struct io_uring_sqe *sqe;
+ 	struct io_uring ring;
+-	ssize_t cur, total;
+ 	struct iovec iov;
+ 	char *buf, *tmp;
++	size_t total;
+ 	int ret, fd;
++	ssize_t cur;
+ 	FILE *file;
+ 
+ 	ret = setup_comm_pipes(&comm_pipes);
+@@ -515,7 +518,7 @@ static void do_test_iouring(char *mem, s
+ 		goto quit_child;
+ 	}
+ 
+-	if (cqe->res != size) {
++	if ((unsigned int) cqe->res != size) {
+ 		ksft_test_result_fail("write_fixed failed\n");
+ 		goto quit_child;
+ 	}
+@@ -529,7 +532,7 @@ static void do_test_iouring(char *mem, s
+ 			ksft_test_result_fail("pread() failed\n");
+ 			goto quit_child;
+ 		}
+-		total += cur;
++		total += (size_t)cur;
+ 	}
+ 
+ 	/* Finally, check if we read what we expected. */
+@@ -553,12 +556,14 @@ close_comm_pipes:
+ 	close_comm_pipes(&comm_pipes);
+ }
+ 
+-static void test_iouring_ro(char *mem, size_t size, bool is_hugetlb)
++static void test_iouring_ro(char *mem, size_t size,
++			    bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_iouring(mem, size, false);
+ }
+ 
+-static void test_iouring_fork(char *mem, size_t size, bool is_hugetlb)
++static void test_iouring_fork(char *mem, size_t size,
++			      bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_iouring(mem, size, true);
+ }
+@@ -702,36 +707,38 @@ free_tmp:
+ 	free(tmp);
+ }
+ 
+-static void test_ro_pin_on_shared(char *mem, size_t size, bool is_hugetlb)
++static void test_ro_pin_on_shared(char *mem, size_t size,
++				  bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, false);
+ }
+ 
+-static void test_ro_fast_pin_on_shared(char *mem, size_t size, bool is_hugetlb)
++static void test_ro_fast_pin_on_shared(char *mem, size_t size,
++				       bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST_SHARED, true);
+ }
+ 
+ static void test_ro_pin_on_ro_previously_shared(char *mem, size_t size,
+-		bool is_hugetlb)
++						bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, false);
+ }
+ 
+ static void test_ro_fast_pin_on_ro_previously_shared(char *mem, size_t size,
+-		bool is_hugetlb)
++						     bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST_PREVIOUSLY_SHARED, true);
+ }
+ 
+ static void test_ro_pin_on_ro_exclusive(char *mem, size_t size,
+-		bool is_hugetlb)
++					bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, false);
+ }
+ 
+ static void test_ro_fast_pin_on_ro_exclusive(char *mem, size_t size,
+-		bool is_hugetlb)
++					     bool __attribute__((unused)) is_hugetlb)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST_RO_EXCLUSIVE, true);
+ }
+@@ -1192,7 +1199,7 @@ static void run_anon_test_case(struct te
+ 
+ static void run_anon_test_cases(void)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	ksft_print_msg("[INFO] Anonymous memory tests in private mappings\n");
+ 
+@@ -1420,7 +1427,7 @@ static const struct test_case anon_thp_t
+ 
+ static void run_anon_thp_test_cases(void)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	if (!pmdsize)
+ 		return;
+@@ -1457,13 +1464,14 @@ static void test_cow(char *mem, const ch
+ 			 "Other mapping not modified\n");
+ 	free(old);
+ }
++//typedef void (*non_anon_test_fn)(char *mem, const char *smem, size_t size);
+ 
+-static void test_ro_pin(char *mem, const char *smem, size_t size)
++static void test_ro_pin(char *mem, const char __attribute__((unused)) *smem, size_t size)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST, false);
+ }
+ 
+-static void test_ro_fast_pin(char *mem, const char *smem, size_t size)
++static void test_ro_fast_pin(char *mem, const char __attribute__((unused)) *smem, size_t size)
+ {
+ 	do_test_ro_pin(mem, size, RO_PIN_TEST, true);
+ }
+@@ -1752,7 +1760,7 @@ static void run_non_anon_test_case(struc
+ 
+ static void run_non_anon_test_cases(void)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	ksft_print_msg("[RUN] Non-anonymous memory tests in private mappings\n");
  
 _
 
