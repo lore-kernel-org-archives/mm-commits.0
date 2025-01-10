@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13C03DDCD
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:16:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C17DDCD
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:16:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736468162; cv=none; b=KUimszoFGEXchlStjMB6GOEjel7PuURc1TgSvIliL71y3p1VhROdjQ3sbJc7/6a7N7LN1MyG3e9nlmTr8/YLySm9f1704fFCd5xDucuV8NcK5WRhJXGPHnPQeZET8yS4uOPC+YiDV04tdw/aMN5cmnidVO51P8yKjj14w2bEp3g=
+	t=1736468163; cv=none; b=aVZc4n4f44kSb3unyCuniXAAsHeF2IpXFpk/kET/UdQMjEOkF7ldX5mMaRlbd3GDKXJ1Gbb20n6nvBlaZSEk78zwBJ8VnkrE9iYLUW6Ct0gkw8mlbhry2mCX1Fwp+7pJmfGd3C2CF+OIi4D4QOEYO39HgKZ5Uvw6azCX9xgrd6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736468162; c=relaxed/simple;
-	bh=dbOKjYJKVCZyaiJmO2x7Ja36Tyb39o4AlN7bpZIaptg=;
-	h=Date:To:From:Subject:Message-Id; b=tCIRXZnvrORHV7LfAPbJ4eSxGv0a07pYmzlPI63r+bZQvc6w5zSllemXyt18xAL+DSgTPZg01mDAwxgV/C2e6G01jNNBfn+DDEraua39AJ2gnrbz3Fgeqs/cu6DydVi4zt3PlODv0LFc02/ZC2lIBvmCxYjaa0FEgqdAJAoVPng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RU9Vx5Vu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736468163; c=relaxed/simple;
+	bh=YMkUoQa6JW8hQc2uMo4LnB5guYeb7UAihWSNpZy7tBU=;
+	h=Date:To:From:Subject:Message-Id; b=gSnKNQ7+8FMeiea4kvFtZLyzIvsMIOlqq4rb5BmSF1/uuPDIPy20w8PsxbV8fShP+M7lyUlwh3JszkOJw6/xnUHMfy+0pXhTubdtGBbTQRG/c3g0/fCEcVDqyetowCNoqEEVGBnozotXuBfaFt9WPxMdqOwZymIs/3x14sqoVi0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DciYMA9s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RU9Vx5Vu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EFE4C4CED3;
-	Fri, 10 Jan 2025 00:16:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DciYMA9s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77AE1C4CED2;
+	Fri, 10 Jan 2025 00:16:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736468161;
-	bh=dbOKjYJKVCZyaiJmO2x7Ja36Tyb39o4AlN7bpZIaptg=;
+	s=korg; t=1736468163;
+	bh=YMkUoQa6JW8hQc2uMo4LnB5guYeb7UAihWSNpZy7tBU=;
 	h=Date:To:From:Subject:From;
-	b=RU9Vx5Vu85CnT1r0matJXvp5xhNYNbZDnZgjnRMa9FZvE8vhdrLxpngjHA2B2liCT
-	 GGvKEu9u2Sd/s0/8fbXah85PcciBdP/bn7q9/fl40HaPumDVKV7a+LeCRdcA8rxBhD
-	 w5vJkFAD37CmgAc0wZ8WJ2h2zTC/DgQy37lT8heI=
-Date: Thu, 09 Jan 2025 16:16:01 -0800
+	b=DciYMA9stzZfF4eiyNHK8aWz3Oivd3Of6AKp25oIXX8xAdSnDynRLm1M+48ici5JH
+	 ucGilWaaVVCpIFgPZm0Sb1j61GhbMkgvR0IgFD7J7iv6YRBMoY+uPUxIx6F/O6l4uV
+	 loewgFMus+Bg9YtkVe0aRBb3U9qLqscZHyx45lo4=
+Date: Thu, 09 Jan 2025 16:16:02 -0800
 To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,luto@amacapital.net,kees@kernel.org,jglisse@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-khugepaged-fix-type-mismatch-warnings.patch added to mm-unstable branch
-Message-Id: <20250110001601.8EFE4C4CED3@smtp.kernel.org>
+Subject: + selftests-mm-protection_keys-fix-variables-types-mismatch-warnings.patch added to mm-unstable branch
+Message-Id: <20250110001603.77AE1C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: khugepaged: fix type mismatch warnings
+     Subject: selftests/mm: protection_keys: fix variables types mismatch warnings
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-khugepaged-fix-type-mismatch-warnings.patch
+     selftests-mm-protection_keys-fix-variables-types-mismatch-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-khugepaged-fix-type-mismatch-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-protection_keys-fix-variables-types-mismatch-warnings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: khugepaged: fix type mismatch warnings
-Date: Thu, 9 Jan 2025 22:38:38 +0500
+Subject: selftests/mm: protection_keys: fix variables types mismatch warnings
+Date: Thu, 9 Jan 2025 22:38:39 +0500
 
-Fix type mismatch warnings.
+Fix variable type mismatch warnings.
 
-Link: https://lkml.kernel.org/r/20250109173842.1142376-13-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250109173842.1142376-14-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Jérôme Glisse <jglisse@redhat.com>
@@ -74,78 +74,78 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |   16 ++++++++--------
+ tools/testing/selftests/mm/protection_keys.c |   16 ++++++++--------
  1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -140,7 +140,7 @@ static void get_finfo(const char *dir)
- 		exit(EXIT_FAILURE);
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-protection_keys-fix-variables-types-mismatch-warnings
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -78,7 +78,7 @@ static void cat_into_file(char *str, cha
  	}
- 	if (snprintf(finfo.path, sizeof(finfo.path), "%s/" TEST_FILE,
--		     finfo.dir) >= sizeof(finfo.path)) {
-+		     finfo.dir) >= (signed int)sizeof(finfo.path)) {
- 		printf("%s: Pathname is too long\n", __func__);
- 		exit(EXIT_FAILURE);
- 	}
-@@ -155,7 +155,7 @@ static void get_finfo(const char *dir)
- 	/* Find owning device's queue/read_ahead_kb control */
- 	if (snprintf(path, sizeof(path), "/sys/dev/block/%d:%d/uevent",
- 		     major(path_stat.st_dev), minor(path_stat.st_dev))
--	    >= sizeof(path)) {
-+	    >= (signed int)sizeof(path)) {
- 		printf("%s: Pathname is too long\n", __func__);
- 		exit(EXIT_FAILURE);
- 	}
-@@ -169,7 +169,7 @@ static void get_finfo(const char *dir)
- 			     sizeof(finfo.dev_queue_read_ahead_path),
- 			     "/sys/dev/block/%d:%d/queue/read_ahead_kb",
- 			     major(path_stat.st_dev), minor(path_stat.st_dev))
--		    >= sizeof(finfo.dev_queue_read_ahead_path)) {
-+		    >= (signed int)sizeof(finfo.dev_queue_read_ahead_path)) {
- 			printf("%s: Pathname is too long\n", __func__);
- 			exit(EXIT_FAILURE);
- 		}
-@@ -197,7 +197,7 @@ static void get_finfo(const char *dir)
- 			if (snprintf(finfo.dev_queue_read_ahead_path,
- 				     sizeof(finfo.dev_queue_read_ahead_path),
- 				     "/sys/block/%s/queue/read_ahead_kb",
--				     str) >= sizeof(finfo.dev_queue_read_ahead_path)) {
-+				     str) >= (signed int)sizeof(finfo.dev_queue_read_ahead_path)) {
- 				printf("%s: Pathname is too long\n", __func__);
- 				exit(EXIT_FAILURE);
- 			}
-@@ -271,7 +271,7 @@ static void *alloc_mapping(int nr)
  
- static void fill_memory(int *p, unsigned long start, unsigned long end)
+ 	ret = write(fd, str, strlen(str));
+-	if (ret != strlen(str)) {
++	if (ret != (signed int)strlen(str)) {
+ 		perror("write to file failed");
+ 		fprintf(stderr, "filename: '%s' str: '%s'\n", file, str);
+ 		exit(__LINE__);
+@@ -597,10 +597,10 @@ struct pkey_malloc_record *pkey_last_mal
+ static long nr_pkey_malloc_records;
+ void record_pkey_malloc(void *ptr, long size, int prot)
  {
--	int i;
-+	unsigned int i;
+-	long i;
++	unsigned long i;
+ 	struct pkey_malloc_record *rec = NULL;
  
- 	for (i = start / page_size; i < end / page_size; i++)
- 		p[i * page_size / sizeof(*p)] = i + 0xdead0000;
-@@ -333,10 +333,10 @@ static void *alloc_hpage(struct mem_ops
- 
- static void validate_memory(int *p, unsigned long start, unsigned long end)
+-	for (i = 0; i < nr_pkey_malloc_records; i++) {
++	for (i = 0; i < (unsigned long)nr_pkey_malloc_records; i++) {
+ 		rec = &pkey_malloc_records[i];
+ 		/* find a free record */
+ 		if (rec)
+@@ -866,7 +866,7 @@ static int nr_test_fds;
+ static void __save_test_fd(int fd)
  {
--	int i;
-+	unsigned int i;
+ 	pkey_assert(fd >= 0);
+-	pkey_assert(nr_test_fds < ARRAY_SIZE(test_fds));
++	pkey_assert(nr_test_fds < (signed int)ARRAY_SIZE(test_fds));
+ 	test_fds[nr_test_fds] = fd;
+ 	nr_test_fds++;
+ }
+@@ -897,7 +897,7 @@ static void test_pkey_alloc_free_attach_
+ 	int max_nr_pkey_allocs;
+ 	int alloced_pkeys[NR_PKEYS];
+ 	int nr_alloced = 0;
+-	long size;
++	unsigned long size;
  
- 	for (i = start / page_size; i < end / page_size; i++) {
--		if (p[i * page_size / sizeof(*p)] != i + 0xdead0000) {
-+		if ((unsigned int)p[i * page_size / sizeof(*p)] != i + 0xdead0000) {
- 			printf("Page %d is corrupted: %#x\n",
- 					i, p[i * page_size / sizeof(*p)]);
- 			exit(EXIT_FAILURE);
-@@ -537,7 +537,7 @@ static void madvise_collapse(const char
- static bool wait_for_scan(const char *msg, char *p, int nr_hpages,
- 			  struct mem_ops *ops)
+ 	pkey_assert(pkey_last_malloc_record);
+ 	size = pkey_last_malloc_record->size;
+@@ -1280,7 +1280,7 @@ static void test_pkey_init_state(int *pt
+  */
+ static void test_mprotect_with_pkey_0(int *ptr, u16 pkey)
  {
--	int full_scans;
-+	unsigned int full_scans;
- 	int timeout = 6; /* 3 seconds */
+-	long size;
++	unsigned long size;
+ 	int prot;
  
- 	/* Sanity check */
+ 	assert(pkey_last_malloc_record);
+@@ -1528,7 +1528,7 @@ static void test_ptrace_modifies_pkru(in
+ 	pkey_assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP);
+ 
+ 	xsave = (void *)malloc(xsave_size);
+-	pkey_assert(xsave > 0);
++	pkey_assert(xsave != NULL);
+ 
+ 	/* Modify the PKRU register directly */
+ 	iov.iov_base = xsave;
+@@ -1725,7 +1725,7 @@ static void run_tests_once(void)
+ 	int *ptr;
+ 	int prot = PROT_READ|PROT_WRITE;
+ 
+-	for (test_nr = 0; test_nr < ARRAY_SIZE(pkey_tests); test_nr++) {
++	for (test_nr = 0; test_nr < (signed int)ARRAY_SIZE(pkey_tests); test_nr++) {
+ 		int pkey;
+ 		int orig_pkey_faults = pkey_faults;
+ 
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
