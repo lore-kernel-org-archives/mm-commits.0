@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63324D51C
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 404F4D515
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736468154; cv=none; b=ohgtTfvpmy/J7ZNtd5P7ELUeB1rLBsvU53RHtumxinMPJAiVivuucEjPy9R6r6C2CmVHiI3OLern1sOKrW55A3+ciRJ9Q83KGY2fIHI2MxKhwohfuj310yZaApeoXSPsKKckr4zV0G4eGN550nuKEjyZylVnKJf0joEdRDDLyM0=
+	t=1736468156; cv=none; b=T3mPknorSi1pBjcm76svwRZa2phpGyekjwN6gjtrrTglYiTc2iYBB6VG7ANQXfLEBeSpIYml9c6YueOoNQ+OO4rrDdSrMUg1FOATczBzjXygWcTvOs/e0jn/YbEsGxLqnTSb0U9VVjLAe6io0wZUIYgqU628jGO47xYNaioHc4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736468154; c=relaxed/simple;
-	bh=W3ziIdTOt+C4FvEFErGCIDGXtNj/LGg9r5UVmyQED9I=;
-	h=Date:To:From:Subject:Message-Id; b=AxAPmNHE4I5bzXyEeb/HNCk0wLiMbUGXtbGsdyYzecdhQzgfMtct3SS7/4hBdIT0kZUmIHshsdpQ7AJQ+UbwoF6XZsTq6RO7t/ccjeE4TChq/uBlRQk7/QaUyGPUqGuWf099tHmljUGSm8iflf9hvSxDLD0Gjm+lel8Jsgo4wm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gtnkVGEb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736468156; c=relaxed/simple;
+	bh=WyJVn60/b1TC+q3sK3qmSxL3w2GGFDyawdfMcMJwcKg=;
+	h=Date:To:From:Subject:Message-Id; b=BUZlm7fFQPEdYvKA6sCnLsr9rgs5AaG1mB9iAZfBVXbWaCeYW3Ug1x7TFUyN8dumiK7mCprJ7M0+2bbUa6gzHG6+0EEDrDU/o8/qkSWndNSr1Sn1NVTtmIzaSTQGw5Y22dw+ToJlX6WVwW9/LH59grzLadlLHedr8bjhrXXh26k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rYp5xCU4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gtnkVGEb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF7EEC4CED3;
-	Fri, 10 Jan 2025 00:15:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rYp5xCU4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3934C4CED2;
+	Fri, 10 Jan 2025 00:15:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736468154;
-	bh=W3ziIdTOt+C4FvEFErGCIDGXtNj/LGg9r5UVmyQED9I=;
+	s=korg; t=1736468155;
+	bh=WyJVn60/b1TC+q3sK3qmSxL3w2GGFDyawdfMcMJwcKg=;
 	h=Date:To:From:Subject:From;
-	b=gtnkVGEbBZ/ED3GF1IQ6C0ipYoz7KYoWdqC6nxL8nlEsHc6//nOzV7O61yKpCkq6O
-	 laesYaxC5Wa0GzUf+A7udE56ua4HudM/txn0zji4mPwkyr9o6rMohTEG2jiQhvdapE
-	 MUwiGD330oEIF8STLhB0pQi3B8xuqOciTgcDMye0=
-Date: Thu, 09 Jan 2025 16:15:53 -0800
+	b=rYp5xCU4eRTOtcdMYmiM/+FdYegV9TzABv2oUV03k3Aa1Z7dfibExjdk+VS7uRith
+	 uaswgedSJNQUl03yucli0XmDxkZJJhQst86PkgVVkw1xWhZcA3T2hMpWTbHqvU7xoO
+	 U3w9AiND2AsxDBmrgFu52OSS4vaIXhAtARpr2KxA=
+Date: Thu, 09 Jan 2025 16:15:55 -0800
 To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,luto@amacapital.net,kees@kernel.org,jglisse@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-guard-pages-fix-type-mismatch-warnings.patch added to mm-unstable branch
-Message-Id: <20250110001553.DF7EEC4CED3@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb-madvise-fix-type-mismatch-issues.patch added to mm-unstable branch
+Message-Id: <20250110001555.C3934C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: guard-pages: fix type mismatch warnings
+     Subject: selftests/mm: hugetlb-madvise: fix type mismatch issues
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-guard-pages-fix-type-mismatch-warnings.patch
+     selftests-mm-hugetlb-madvise-fix-type-mismatch-issues.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-guard-pages-fix-type-mismatch-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-madvise-fix-type-mismatch-issues.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: guard-pages: fix type mismatch warnings
-Date: Thu, 9 Jan 2025 22:38:34 +0500
+Subject: selftests/mm: hugetlb-madvise: fix type mismatch issues
+Date: Thu, 9 Jan 2025 22:38:35 +0500
 
-Fix type mismatch warnings.
+Fix type mismatch warnings:
+  hugetlb-madvise.c:30:25: warning: comparison of integer expressions of different signedness: `int' and `long unsigned int' [-Wsign-compare]
+     30 |                 if (fhp != (exp_free)) {                                \
+        |                         ^~
+  hugetlb-madvise.c:114:9: note: in expansion of macro `validate_free_pages'
+    114 |         validate_free_pages(free_hugepages - NR_HUGE_PAGES);
+        |         ^~~~~~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20250109173842.1142376-9-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20250109173842.1142376-10-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Jérôme Glisse <jglisse@redhat.com>
@@ -74,29 +80,20 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-pages.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/hugetlb-madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/guard-pages.c~selftests-mm-guard-pages-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/guard-pages.c
-@@ -142,7 +142,7 @@ TEST_F(guard_pages, basic)
- 	const unsigned long NUM_PAGES = 10;
- 	const unsigned long page_size = self->page_size;
- 	char *ptr;
--	int i;
-+	unsigned int i;
+--- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-hugetlb-madvise-fix-type-mismatch-issues
++++ a/tools/testing/selftests/mm/hugetlb-madvise.c
+@@ -26,7 +26,7 @@
  
- 	ptr = mmap(NULL, NUM_PAGES * page_size, PROT_READ | PROT_WRITE,
- 		   MAP_PRIVATE | MAP_ANON, -1, 0);
-@@ -1044,7 +1044,7 @@ TEST_F(guard_pages, fork_cow)
- 	const unsigned long page_size = self->page_size;
- 	char *ptr;
- 	pid_t pid;
--	int i;
-+	unsigned int i;
- 
- 	/* Map 10 pages. */
- 	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+ #define validate_free_pages(exp_free)					\
+ 	do {								\
+-		int fhp = get_free_hugepages();				\
++		unsigned int fhp = get_free_hugepages();		\
+ 		if (fhp != (exp_free)) {				\
+ 			printf("Unexpected number of free huge "	\
+ 				"pages line %d\n", __LINE__);		\
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
