@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E77E524B24E
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:29:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CE101ACEB8;
+	Fri, 10 Jan 2025 23:59:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736551780; cv=none; b=Vv35iaoJ6Pld2TxAlRv2v/1kKBsVdywXy4Q0ip+B7AskAi7VMLk/89sf9vdlpiBtMnpEYvFFVYPXWnv7m78gLTXXyTTdi1jGL+4fgAO+DtqrZ/e7UGfA417BJV2eDWx6Do204yUO4uWx0xq37zFkbgY+od8kNxntEvBQT7w18mY=
+	t=1736553597; cv=none; b=SALkwEQBv8H9sq7wXOvy+CaB4C3ZMt63M2W/th0DYHOoAKvkPwYn2/B6KQo0su4UcLpas7FvYiThQf02Y4hARTA0Wb31CeB7ko0iKqduETyEUeFa7GnyHaaKcBNpFeC5PQxHDCK6ZyZErKbhPyCib7Y8ZcnGAzFgjIBCNVwfs+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736551780; c=relaxed/simple;
-	bh=v2zS8R++QKgj6tqpoRwD3pXllStRw69A7sLx9KxVAKk=;
-	h=Date:To:From:Subject:Message-Id; b=Bn7ufJQARC8HiPewvMqtdRSd9MGM1X1oByqEsb8RGlIaMWlrWhbeUloByueLwS23H/jBKNzNxleVYlt2AdnUFtBn+14Uk7UEs6483rqjZavyeqkYrpbNx20ZsVx+9PJ26ZcoHgIrQqYUHkkCe34eVke5p8GYYfSu0ye/YcIXEKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=efLa5q5o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736553597; c=relaxed/simple;
+	bh=gV/pWKsID/GHYaARt61Ih/XC4/eKVn6SkKa9x63XAx0=;
+	h=Date:To:From:Subject:Message-Id; b=ii5RqW6iBkFQju+opx7ua4xAgZlM6Dum9LyxIOURUSETDLk1uqrcS0GqZOUBRtMesY9kN0+SjOc+1IpeBvKVLkQZzwTI7EtEBFpM1gOWwosV9yLCZRtfwqGcpPyTp8yz+OZ88ngFE8HagHCXUKnCvX1Z5iTLWRDDTK03dYwNI/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXiioLJ2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="efLa5q5o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FFABC4CED6;
-	Fri, 10 Jan 2025 23:29:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXiioLJ2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E25C4CED6;
+	Fri, 10 Jan 2025 23:59:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736551779;
-	bh=v2zS8R++QKgj6tqpoRwD3pXllStRw69A7sLx9KxVAKk=;
+	s=korg; t=1736553596;
+	bh=gV/pWKsID/GHYaARt61Ih/XC4/eKVn6SkKa9x63XAx0=;
 	h=Date:To:From:Subject:From;
-	b=efLa5q5owD2AjYB3Jw/5BOW9Pt3nrT2bBYG7lv6q5Wgj69FFKNIeqTC6DNYRL/I/h
-	 hf3x4OX24jhdtNZfVFpN4CbS9wzoDPBabnoq6YMssWtTwaA/tNyeo5e7N3EmAFSk4a
-	 Qnv10C1RgzhsX35+E/+YfXtlvEUMIotAybdJtCQ8=
-Date: Fri, 10 Jan 2025 15:29:38 -0800
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,jack@suse.cz,dietmar.eggemann@arm.com,bsegall@google.com,brauner@kernel.org,oxana@cloudflare.com,akpm@linux-foundation.org
+	b=yXiioLJ2rFWcExyPj+3dQ8MViKlzfS2vofcSgqTzKVw9+6C+qKBdlFouk65/80ppY
+	 NNJXdYfAUk5uYgyOU2TkbfOw8jd2wNOXwrjwUszxctTZwVKy3HY0UHXu37eLSgZ25r
+	 5i0SNBdjKDZlEvErnYIsk7F5xRCyEyMBOwl5ZCds=
+Date: Fri, 10 Jan 2025 15:59:56 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,leitao@debian.org,dyoung@redhat.com,bhe@redhat.com,riel@surriel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-add-task-flags-blocked-by-coredump-to-log.patch added to mm-nonmm-unstable branch
-Message-Id: <20250110232939.3FFABC4CED6@smtp.kernel.org>
+Subject: + fs-proc-fix-softlockup-in-__read_vmcore-part-2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250110235956.E0E25C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: add task->flags, blocked by coredump to log
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-add-task-flags-blocked-by-coredump-to-log.patch
+     Subject: fs/proc: fix softlockup in __read_vmcore (part 2)
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fs-proc-fix-softlockup-in-__read_vmcore-part-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-task-flags-blocked-by-coredump-to-log.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-softlockup-in-__read_vmcore-part-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,89 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oxana Kharitonova <oxana@cloudflare.com>
-Subject: hung_task: add task->flags, blocked by coredump to log
-Date: Fri, 10 Jan 2025 16:03:28 +0000
+From: Rik van Riel <riel@surriel.com>
+Subject: fs/proc: fix softlockup in __read_vmcore (part 2)
+Date: Fri, 10 Jan 2025 10:28:21 -0500
 
-Resending this patch as I haven't received feedback on my initial
-submission https://lore.kernel.org/all/20241204182953.10854-1-oxana@cloudflare.com/
+Since commit 5cbcb62dddf5 ("fs/proc: fix softlockup in __read_vmcore") the
+number of softlockups in __read_vmcore at kdump time have gone down, but
+they still happen sometimes.
 
-For the processes which are terminated abnormally the kernel can provide
-a coredump if enabled. When the coredump is performed, the process and
-all its threads are put into the D state
-(TASK_UNINTERRUPTIBLE | TASK_FREEZABLE).
+In a memory constrained environment like the kdump image, a softlockup is
+not just a harmless message, but it can interfere with things like RCU
+freeing memory, causing the crashdump to get stuck.
 
-On the other hand, we have kernel thread khungtaskd which monitors the
-processes in the D state. If the task stuck in the D state more than
-kernel.hung_task_timeout_secs, the hung_task alert appears in the kernel
-log.
+The second loop in __read_vmcore has a lot more opportunities for natural
+sleep points, like scheduling out while waiting for a data write to
+happen, but apparently that is not always enough.
 
-The higher memory usage of a process, the longer it takes to create
-coredump, the longer tasks are in the D state. We have hung_task alerts
-for the processes with memory usage above 10Gb. Although, our
-kernel.hung_task_timeout_secs is 10 sec when the default is 120 sec.
+Add a cond_resched() to the second loop in __read_vmcore to (hopefully)
+get rid of the softlockups.
 
-Adding additional information to the log that the task is blocked by
-coredump will help with monitoring. Another approach might be to
-completely filter out alerts for such tasks, but in that case we would
-lose transparency about what is putting pressure on some system
-resources, e.g. we saw an increase in I/O when coredump occurs due its
-writing to disk.
-
-Additionally, it would be helpful to have task_struct->flags in the log
-from the function sched_show_task(). Currently it prints
-task_struct->thread_info->flags, this seems misleading as the line
-starts with "task:xxxx".
-
-Link: https://lkml.kernel.org/r/20250110160328.64947-1-oxana@cloudflare.com
-Signed-off-by: Oxana Kharitonova <oxana@cloudflare.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Link: https://lkml.kernel.org/r/20250110102821.2a37581b@fangorn
+Fixes: 5cbcb62dddf5 ("fs/proc: fix softlockup in __read_vmcore")
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reported-by: Breno Leitao <leitao@debian.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c  |    2 ++
- kernel/sched/core.c |    4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ fs/proc/vmcore.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/kernel/hung_task.c~hung_task-add-task-flags-blocked-by-coredump-to-log
-+++ a/kernel/hung_task.c
-@@ -147,6 +147,8 @@ static void check_hung_task(struct task_
- 			print_tainted(), init_utsname()->release,
- 			(int)strcspn(init_utsname()->version, " "),
- 			init_utsname()->version);
-+		if (t->flags & PF_POSTCOREDUMP)
-+			pr_err("      Blocked by coredump.\n");
- 		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
- 			" disables this message.\n");
- 		sched_show_task(t);
---- a/kernel/sched/core.c~hung_task-add-task-flags-blocked-by-coredump-to-log
-+++ a/kernel/sched/core.c
-@@ -7701,9 +7701,9 @@ void sched_show_task(struct task_struct
- 	if (pid_alive(p))
- 		ppid = task_pid_nr(rcu_dereference(p->real_parent));
- 	rcu_read_unlock();
--	pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d flags:0x%08lx\n",
-+	pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d task_flags:0x%08lx flags:0x%08lx\n",
- 		free, task_pid_nr(p), task_tgid_nr(p),
--		ppid, read_task_thread_flags(p));
-+		ppid, p->flags, read_task_thread_flags(p));
+--- a/fs/proc/vmcore.c~fs-proc-fix-softlockup-in-__read_vmcore-part-2
++++ a/fs/proc/vmcore.c
+@@ -404,6 +404,8 @@ static ssize_t __read_vmcore(struct iov_
+ 			if (!iov_iter_count(iter))
+ 				return acc;
+ 		}
++
++		cond_resched();
+ 	}
  
- 	print_worker_info(KERN_INFO, p);
- 	print_stop_info(KERN_INFO, p);
+ 	return acc;
 _
 
-Patches currently in -mm which might be from oxana@cloudflare.com are
+Patches currently in -mm which might be from riel@surriel.com are
 
-hung_task-add-task-flags-blocked-by-coredump-to-log.patch
+fs-proc-fix-softlockup-in-__read_vmcore-part-2.patch
+mm-remove-unnecessary-calls-to-lru_add_drain.patch
 
