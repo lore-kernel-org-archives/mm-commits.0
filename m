@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98208A2D
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0A45A2D
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:15:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736468142; cv=none; b=PsiCFI+gI5QyDI1xLlOmULH2DxjTVQgEkWo5LA8z1OIPU7uImiXSc5rMBtlMVARMC+ZiCWmDvwDEo0kF2ZtJsyx3LPt3Z6kRSqNQAOdOBGv0cTKMQxIazupYwyrv4Ir86FjQeJWKOd6JC3SAlE9OKhHgUPg8sqB8BFUztkm2vfk=
+	t=1736468148; cv=none; b=OxHoyG9RCQm11MruwDI9kxRI75dxRia0rHr2rl+6YySd6Nl8ugX4OUQzWC+FtQTfZDp+dCl3sEG+W7jxQnuElJNwKl7E0Q8G5G+NfcOpZqrRiM6cnBxcXfufskXdUbDxdae4gA6w5aojsJP1o3xcVr3qxNtjovaxJpWvnoYJZHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736468142; c=relaxed/simple;
-	bh=KxTUFM3v2+9hA6YDcI1d+9K8TbpEIUW2q4vVPY7cHj4=;
-	h=Date:To:From:Subject:Message-Id; b=mtNEZPscCw7ffkzlSfkNMWP57VwLrDMQ3iBGoifr76PH6uJ+DANmfmKhuYuOI6mvMTwcfqlr4ue7DPdHCPogGYHTxrHIvtt02eeOVg5Ui6ikAro+NH7KytQ54gr7l++fc3/9mp65haZh53wWgBhb6YW4nosCesmI+cKZX2wgOXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krCcuCbL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736468148; c=relaxed/simple;
+	bh=pCf6JHZ1+UNVQGNyJpSMCAbYuHZWu27avlLLdDhn74o=;
+	h=Date:To:From:Subject:Message-Id; b=eZqMoZmB6d0gB56HekDxp638vsi+kEkWkZkjQFIC8BQul/fksl40r3xlTytHPPXz6iQRGt8+f6F1lHPCCBR1kD0U3BTbpKN3g/Cp9mBasUNIohwwtsD54wXIIwnp1dnHw8cEc7j9kJwZ7VWpu6kfQHzCephaY7pGnSnJx20mBe8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZtuqaQzA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krCcuCbL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 268C4C4CED2;
-	Fri, 10 Jan 2025 00:15:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZtuqaQzA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E885C4CED2;
+	Fri, 10 Jan 2025 00:15:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736468142;
-	bh=KxTUFM3v2+9hA6YDcI1d+9K8TbpEIUW2q4vVPY7cHj4=;
+	s=korg; t=1736468148;
+	bh=pCf6JHZ1+UNVQGNyJpSMCAbYuHZWu27avlLLdDhn74o=;
 	h=Date:To:From:Subject:From;
-	b=krCcuCbL/NjskkeJZGLBCcH819Kh9jrZfbqZ3KQ1lTLcaSu9D75Yeh1NoOUghoMJz
-	 1vmBHlzDaruqhZ/4qy5yaBavogGoK+t5+nRe+DsZ0H7Xd9fN5kEoVZ55O+WpjLmzJm
-	 htAjGgW48x0jNmWwYvjVUtuefhuL2gN2NRRMQj44=
-Date: Thu, 09 Jan 2025 16:15:41 -0800
+	b=ZtuqaQzAaofzJ/wdkn55HX8jI/LiMtDlAGtPW/ApNaKxQeOw3UMtwyJ/9VmOLZgO5
+	 EhsDDTvpy008CxfX7eCvAMnkEYgYkHwciWx0po8SK1fVNPLErvMHzqPWlBU9fRC1tt
+	 +lMYDFpfJL2aH/WFzKwXDmpDlEgl5kFj56w1QLwA=
+Date: Thu, 09 Jan 2025 16:15:46 -0800
 To: mm-commits@vger.kernel.org,wad@chromium.org,shuah@kernel.org,luto@amacapital.net,kees@kernel.org,jglisse@redhat.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-type-mismatch-warnings.patch added to mm-unstable branch
-Message-Id: <20250110001542.268C4C4CED2@smtp.kernel.org>
+Subject: + selftests-mm-kselftest_harness-fix-warnings.patch added to mm-unstable branch
+Message-Id: <20250110001548.1E885C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix type mismatch warnings
+     Subject: selftests/mm: kselftest_harness: Fix warnings
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-type-mismatch-warnings.patch
+     selftests-mm-kselftest_harness-fix-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-type-mismatch-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-kselftest_harness-fix-warnings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: fix type mismatch warnings
-Date: Thu, 9 Jan 2025 22:38:30 +0500
+Subject: selftests/mm: kselftest_harness: Fix warnings
+Date: Thu, 9 Jan 2025 22:38:31 +0500
 
-Fix type mismatch warnings in different tests.
+Found warnings through hmm-tests and mdwe_test.
 
-Link: https://lkml.kernel.org/r/20250109173842.1142376-5-usama.anjum@collabora.com
+Fix following warnings:
+- Mark unused variable with unused attribute
+- __EXPECT is causing types mismatch warnings when __exp is unsigned and
+  _seen is equal to a constant number, __typeof__(_seen) returns signed
+  type.
+
+  hmm-tests.c: In function `hmm_anon_read':
+  ../kselftest_harness.h:523:52: warning: comparison of integer expressions of different signedness: `long unsigned int' and `int' [-Wsign-compare]
+    523 |         __EXPECT(expected, #expected, seen, #seen, !=, 1)
+        |                                                    ^~
+  ../kselftest_harness.h:759:21: note: in definition of macro `__EXPECT'
+    759 |         if (!(__exp _t __seen)) { \
+        |                     ^~
+  hmm-tests.c:303:9: note: in expansion of macro `ASSERT_NE'
+    303 |         ASSERT_NE(npages, 0);
+        |         ^~~~~~~~~
+- Mark variant as unused:
+mdwe_test.c: In function `wrapper_prctl_flags':
+../kselftest_harness.h:177:52: warning: unused parameter `variant' [-Wunused-parameter]
+  177 |                 struct __fixture_variant_metadata *variant) \
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+../kselftest_harness.h:152:25: note: in expansion of macro `__TEST_IMPL'
+  152 | #define TEST(test_name) __TEST_IMPL(test_name, -1)
+      |                         ^~~~~~~~~~~
+mdwe_test.c:23:1: note: in expansion of macro `TEST'
+   23 | TEST(prctl_flags)
+      | ^~~~
+
+Link: https://lkml.kernel.org/r/20250109173842.1142376-6-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Jérôme Glisse <jglisse@redhat.com>
@@ -74,144 +102,38 @@ Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/compaction_test.c          |    2 +-
- tools/testing/selftests/mm/gup_longterm.c             |    3 ++-
- tools/testing/selftests/mm/hugetlb_dio.c              |    2 +-
- tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    2 +-
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c      |    2 +-
- tools/testing/selftests/mm/ksm_functional_tests.c     |    6 +++---
- tools/testing/selftests/mm/mlock-random-test.c        |    4 ++--
- tools/testing/selftests/mm/pkey_sighandler_tests.c    |    2 +-
- tools/testing/selftests/mm/soft-dirty.c               |    2 +-
- 9 files changed, 13 insertions(+), 12 deletions(-)
+ tools/testing/selftests/kselftest_harness.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/compaction_test.c
-@@ -134,7 +134,7 @@ int check_compaction(unsigned long mem_f
- 	lseek(fd, 0, SEEK_SET);
+--- a/tools/testing/selftests/kselftest_harness.h~selftests-mm-kselftest_harness-fix-warnings
++++ a/tools/testing/selftests/kselftest_harness.h
+@@ -174,7 +174,7 @@
+ 	static void test_name(struct __test_metadata *_metadata); \
+ 	static inline void wrapper_##test_name( \
+ 		struct __test_metadata *_metadata, \
+-		struct __fixture_variant_metadata *variant) \
++		struct __fixture_variant_metadata __attribute__((unused)) *variant) \
+ 	{ \
+ 		_metadata->setup_completed = true; \
+ 		if (setjmp(_metadata->env) == 0) \
+@@ -756,7 +756,7 @@
+ 	/* Avoid multiple evaluation of the cases */ \
+ 	__typeof__(_expected) __exp = (_expected); \
+ 	__typeof__(_seen) __seen = (_seen); \
+-	if (!(__exp _t __seen)) { \
++	if (!(__exp _t (__typeof__(_expected)) __seen)) { \
+ 		/* Report with actual signedness to avoid weird output. */ \
+ 		switch (is_signed_type(__exp) * 2 + is_signed_type(__seen)) { \
+ 		case 0: { \
+@@ -965,7 +965,7 @@ static inline void __test_check_assert(s
+ }
  
- 	if (write(fd, init_nr_hugepages, strlen(init_nr_hugepages))
--	    != strlen(init_nr_hugepages)) {
-+	    != (signed long int)strlen(init_nr_hugepages)) {
- 		ksft_print_msg("Failed to write value to /proc/sys/vm/nr_hugepages: %s\n",
- 			       strerror(errno));
- 		goto close_fd;
---- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -446,7 +446,8 @@ static int tests_per_test_case(void)
- 
- int main(void)
+ struct __test_metadata *__active_test;
+-static void __timeout_handler(int sig, siginfo_t *info, void *ucontext)
++static void __timeout_handler(int sig, siginfo_t *info, void __attribute__((unused)) *ucontext)
  {
--	int i, err;
-+	unsigned int i;
-+	int err;
+ 	struct __test_metadata *t = __active_test;
  
- 	pagesize = getpagesize();
- 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
---- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -63,7 +63,7 @@ void run_dio_using_hugetlb(unsigned int
- 	memset(buffer, 'A', writesize);
- 
- 	/* Write the buffer to the file */
--	if (write(fd, buffer, writesize) != (writesize)) {
-+	if (write(fd, buffer, writesize) != (signed int)writesize) {
- 		munmap(orig_buffer, h_pagesize);
- 		close(fd);
- 		ksft_exit_fail_perror("Error writing to file\n");
---- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
-@@ -88,7 +88,7 @@ int main(void)
- 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
- 				-1, 0);
- 
--		if ((unsigned long)huge_ptr == -1)
-+		if (huge_ptr == MAP_FAILED)
- 			ksft_exit_skip("Failed to allocated huge page\n");
- 
- 		pthread_create(&thread1, NULL, madv, NULL);
---- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -100,7 +100,7 @@ int main(void)
- 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
- 				-1, 0);
- 
--		if ((unsigned long)huge_ptr == -1) {
-+		if (huge_ptr == MAP_FAILED) {
- 			ksft_test_result_fail("Failed to allocate huge page\n");
- 			return KSFT_FAIL;
- 		}
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -306,7 +306,7 @@ static void test_unmerge_zero_pages(void
- 
- 	/* Check if ksm_zero_pages is updated correctly after KSM merging */
- 	pages_expected = size / pagesize;
--	if (pages_expected != get_my_ksm_zero_pages()) {
-+	if ((signed long)pages_expected != get_my_ksm_zero_pages()) {
- 		ksft_test_result_fail("'ksm_zero_pages' updated after merging\n");
- 		goto unmap;
- 	}
-@@ -319,7 +319,7 @@ static void test_unmerge_zero_pages(void
- 
- 	/* Check if ksm_zero_pages is updated correctly after unmerging */
- 	pages_expected /= 2;
--	if (pages_expected != get_my_ksm_zero_pages()) {
-+	if ((signed long)pages_expected != get_my_ksm_zero_pages()) {
- 		ksft_test_result_fail("'ksm_zero_pages' updated after unmerging\n");
- 		goto unmap;
- 	}
-@@ -625,7 +625,7 @@ static void test_prot_none(void)
- {
- 	const unsigned int size = 2 * MiB;
- 	char *map;
--	int i;
-+	unsigned int i;
- 
- 	ksft_print_msg("[RUN] %s\n", __func__);
- 
---- a/tools/testing/selftests/mm/mlock-random-test.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/mlock-random-test.c
-@@ -138,7 +138,7 @@ static void test_mlock_within_limit(char
- 	int page_size = 0;
- 
- 	getrlimit(RLIMIT_MEMLOCK, &cur);
--	if (cur.rlim_cur < alloc_size)
-+	if (cur.rlim_cur < (unsigned int)alloc_size)
- 		ksft_exit_fail_msg("alloc_size[%d] < %u rlimit,lead to mlock failure\n",
- 				   alloc_size, (unsigned int)cur.rlim_cur);
- 
-@@ -204,7 +204,7 @@ static void test_mlock_outof_limit(char
- 	struct rlimit cur;
- 
- 	getrlimit(RLIMIT_MEMLOCK, &cur);
--	if (cur.rlim_cur >= alloc_size)
-+	if (cur.rlim_cur >= (unsigned int)alloc_size)
- 		ksft_exit_fail_msg("alloc_size[%d] >%u rlimit, violates test condition\n",
- 				   alloc_size, (unsigned int)cur.rlim_cur);
- 
---- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
-@@ -530,7 +530,7 @@ static void (*pkey_tests[])(void) = {
- 
- int main(void)
- {
--	int i;
-+	unsigned int i;
- 
- 	ksft_print_header();
- 	ksft_set_plan(ARRAY_SIZE(pkey_tests));
---- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-fix-type-mismatch-warnings
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -77,7 +77,7 @@ static void test_vma_reuse(int pagemap_f
- static void test_hugepage(int pagemap_fd)
- {
- 	char *map;
--	int i, ret;
-+	unsigned int i, ret;
- 	size_t hpage_len = read_pmd_pagesize();
- 
- 	if (!hpage_len)
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
