@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3FA21A43A
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 22:56:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056B2207DFD
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:04:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736549779; cv=none; b=styxDoceNT+wzD3wwZOEsznsGPDWUwAN3YAPeyFBi090qzSfnxefU61UEP/qxrXqg4E9B6QGrGwxp/i6OKxYqo5mpR0/jAZZBriY+oyXP8jxt5hs7QBPEfP6WO+SOwna+wmD+dVu8342QDGy5AdjX0xo59HrQfQnjKL3AXieCtk=
+	t=1736550274; cv=none; b=uHT+4dz8lPu0z3SiribyVrBs9HaRyypIvle+i2gg/MglU0YytRA4GsY/m5uxQSn100tAM8AGhPIJWNWg1vRFhdz5fbAhW7vgaDt+vtWoPYXWqAXD2PiIr69dxaXS+XG8MA7uHm4AZyaIazE+T9eWIKy8ziEXDq5Ai7bfMWHJOVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736549779; c=relaxed/simple;
-	bh=YS6UYmkHgPYeMUaj2k1lCVf9BRcznBvCnAKMSQIQCQQ=;
-	h=Date:To:From:Subject:Message-Id; b=HC5kuyL0Q1KXWR597eeHzM26Gfdj0ec35yzx9UhkXlaamlZYl6jUeVvb4pChbS6TyxHlYBvauxyZPxQOGxRTT9stmWEXcsfhsvVHCOihm6cF7Hn3yi1vlFw0CawNEzn1CzAX3k8IxewGU0lr3Cu39XOa01LyXbTlfV98SKKfffk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ztPbJK15; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736550274; c=relaxed/simple;
+	bh=cvt+GhVhXmGSwON/4icWiR7wlHouSbI4DRrXXbRyJ98=;
+	h=Date:To:From:Subject:Message-Id; b=eSasEokZ8kc0e5nOqdWDWS1EbAarlqiRRTHMsGUj/HDJ5pfVnwYHIvTj02Wwq4SRZiFIMbxodbbtnqnjQMxY91Tg6aEyEIiotu/UKiAjNou2q6mo7Ie5/AD2EQQCcCvsEkKNBItqDzB/FqLD/4gh4wNP5r91Rm7RuycsvFUISAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Keajomb9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ztPbJK15"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EE18C4CED6;
-	Fri, 10 Jan 2025 22:56:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Keajomb9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B8FC4CED6;
+	Fri, 10 Jan 2025 23:04:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736549778;
-	bh=YS6UYmkHgPYeMUaj2k1lCVf9BRcznBvCnAKMSQIQCQQ=;
+	s=korg; t=1736550273;
+	bh=cvt+GhVhXmGSwON/4icWiR7wlHouSbI4DRrXXbRyJ98=;
 	h=Date:To:From:Subject:From;
-	b=ztPbJK15YfErp90j4aMJF/uus+GezWEK43gT1MaXrL01vVZmZpkrhY63z84WvbtpS
-	 8CF9bro365Lu5eXNDb14zfy5HSh1TYwcVdP11MyGNByHoelKTI1TMeSp5RISClVG4U
-	 hgOpxzqx0XV+EZj1kTHbQgXofDNYZxPCn6vnvFFE=
-Date: Fri, 10 Jan 2025 14:56:17 -0800
-To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,honggyu.kim@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=Keajomb9LY4Pq4FFF0z12Td8uc6Shj6zjvnVmewgugBElcekwNDTvpOKOcVvCgWfH
+	 v0ZNSiq3vD4BEyy/lNFzxCQGJH+y+69Us5qnBQwnwsr8L74VZIxe51fbxkAj0MPOc0
+	 kkSfJPdPBXb64X6+IjSnxJVzPCX8X41O3TORBTZI=
+Date: Fri, 10 Jan 2025 15:04:32 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-explain-effective-quota-on-kernel-doc-comment.patch added to mm-unstable branch
-Message-Id: <20250110225618.3EE18C4CED6@smtp.kernel.org>
+Subject: + mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag.patch added to mm-unstable branch
+Message-Id: <20250110230433.74B8FC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: explain "effective quota" on kernel-doc comment
+     Subject: mm/huge_memory: convert has_hwpoisoned into a pure folio flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-explain-effective-quota-on-kernel-doc-comment.patch
+     mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-explain-effective-quota-on-kernel-doc-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,110 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: explain "effective quota" on kernel-doc comment
-Date: Fri, 10 Jan 2025 10:52:32 -0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/huge_memory: convert has_hwpoisoned into a pure folio flag
+Date: Fri, 10 Jan 2025 19:21:44 +0100
 
-The kernel-doc comment for 'struct damos_quota' describes how "effective
-quota" is calculated, but does not explain what it is.  Actually there was
-an input[1] about it.  Add the explanation on the comment.
+Patch series "mm/hugetlb: folio and migration cleanups".
 
-Also, fix a trivial typo on the comment block: s/empt/empty/
+Some cleanups around more folio conversion and migration handling that I
+collected working on random stuff.
 
-[1] https://github.com/damonitor/damo/issues/17#issuecomment-2497525043
 
-Link: https://lkml.kernel.org/r/20250110185232.54907-6-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Suggested-by: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Yunjeong Mun <yunjeong.mun@sk.com>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+This patch (of 6):
+
+Let's stop setting it on pages, there is no need to anymore.
+
+Link: https://lkml.kernel.org/r/20250110182149.746551-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250110182149.746551-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |    6 ++----
+ mm/huge_memory.c           |    2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-explain-effective-quota-on-kernel-doc-comment
-+++ a/include/linux/damon.h
-@@ -193,11 +193,16 @@ struct damos_quota_goal {
-  * size quota is set, DAMON tries to apply the action only up to &sz bytes
-  * within &reset_interval.
+--- a/include/linux/page-flags.h~mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag
++++ a/include/linux/page-flags.h
+@@ -948,11 +948,9 @@ TESTPAGEFLAG_FALSE(TransCompound, transc
   *
-- * Internally, the time quota is transformed to a size quota using estimated
-- * throughput of the scheme's action.  DAMON then compares it against &sz and
-- * uses smaller one as the effective quota.
-+ * To convince the different types of quotas and goals, DAMON internally
-+ * converts those into one single size quota called "effective quota".  DAMON
-+ * internally uses it as the only one real quota.  The conversion is made as
-+ * follows.
-  *
-- * If @goals is not empt, DAMON calculates yet another size quota based on the
-+ * The time quota is transformed to a size quota using estimated throughput of
-+ * the scheme's action.  DAMON then compares it against &sz and uses smaller
-+ * one as the effective quota.
-+ *
-+ * If @goals is not empty, DAMON calculates yet another size quota based on the
-  * goals using its internal feedback loop algorithm, for every @reset_interval.
-  * Then, if the new size quota is smaller than the effective quota, it uses the
-  * new size quota as the effective quota.
+  * This flag is set by hwpoison handler.  Cleared by THP split or free page.
+  */
+-PAGEFLAG(HasHWPoisoned, has_hwpoisoned, PF_SECOND)
+-	TESTSCFLAG(HasHWPoisoned, has_hwpoisoned, PF_SECOND)
++FOLIO_FLAG(has_hwpoisoned, FOLIO_SECOND_PAGE)
+ #else
+-PAGEFLAG_FALSE(HasHWPoisoned, has_hwpoisoned)
+-	TESTSCFLAG_FALSE(HasHWPoisoned, has_hwpoisoned)
++FOLIO_FLAG_FALSE(has_hwpoisoned)
+ #endif
+ 
+ /*
+--- a/mm/huge_memory.c~mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag
++++ a/mm/huge_memory.c
+@@ -3290,7 +3290,7 @@ static void __split_huge_page(struct pag
+ 	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
+ 	lruvec = folio_lruvec_lock(folio);
+ 
+-	ClearPageHasHWPoisoned(head);
++	folio_clear_has_hwpoisoned(folio);
+ 
+ 	for (i = nr - new_nr; i >= new_nr; i -= new_nr) {
+ 		struct folio *tail;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
-samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
-samples-damon-wsse-implement-working-set-size-estimation-and-logging.patch
-samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch
-samples-damon-prcl-implement-schemes-setup.patch
-replace-free-hugepage-folios-after-migration-fix-2.patch
-mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
-mm-damon-sysfs-handle-clear_schemes_tried_regions-from-damon-sysfs-context.patch
-mm-damon-core-introduce-damon_call.patch
-mm-damon-sysfs-use-damon_call-for-update_schemes_stats.patch
-mm-damon-sysfs-use-damon_call-for-commit_schemes_quota_goals.patch
-mm-damon-sysfs-use-damon_call-for-update_schemes_effective_quotas.patch
-mm-damon-core-implement-damos_walk.patch
-docs-mm-damon-design-document-damos-regions-walking.patch
-mm-damon-sysfs-use-damos_walk-for-update_schemes_tried_bytesregions.patch
-mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
-mm-damon-clarify-trying-vs-applying-on-damos_stat-kernel-doc-comment.patch
-docs-mm-damon-design-add-statistics-section.patch
-docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc.patch
-mm-damon-ask-apply_scheme-to-report-filter-passed-region-internal-bytes.patch
-mm-damon-paddr-report-filter-passed-bytes-back-for-normal-actions.patch
-mm-damon-paddr-report-filter-passed-bytes-back-for-damos_stat-action.patch
-mm-damon-core-implement-per-scheme-ops-handled-filter-passed-bytes-stat.patch
-mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat.patch
-docs-mm-damon-design-document-sz_ops_filter_passed.patch
-docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed.patch
-docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file.patch
-mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn.patch
-mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes.patch
-docs-mm-damon-design-document-per-region-sz_filter_passed-stat.patch
-docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories.patch
-docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file.patch
-docs-translations-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
-docs-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
-docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch
-selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch
-selftests-damon-remove-tests-for-damon-debugfs-interface.patch
-kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
-mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
-mm-damon-remove-damon-debugfs-interface.patch
-mm-damon-fixup-damos_filter-kernel-doc.patch
-mm-damon-core-add-damos_filter-allow-field.patch
-mm-damon-core-support-damos_filter-allow.patch
-mm-damon-paddr-support-damos_filter-allow.patch
-mm-damon-add-allow-argument-to-damos_new_filter.patch
-mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-allow.patch
-docs-mm-damon-design-document-allow-reject-damos-filter-behaviors.patch
-docs-abi-damon-document-damos-filter-allow-sysfs-file.patch
-docs-admin-guide-mm-damon-usage-omit-damos-filter-details-in-favor-of-design-doc.patch
-docs-admin-guide-mm-damon-usage-document-damos-filter-allow-sysfs-file.patch
-docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch
-docs-mm-damon-add-an-example-monitoring-intervals-tuning.patch
-docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch
-docs-admin-guide-mm-damon-start-update-snapshot-example.patch
-mm-damon-explain-effective-quota-on-kernel-doc-comment.patch
+docs-tmpfs-update-the-large-folios-policy-for-tmpfs-and-shmem.patch
+mm-memory_hotplug-move-debug_pagealloc_map_pages-into-online_pages_range.patch
+mm-page_isolation-dont-pass-gfp-flags-to-isolate_single_pageblock.patch
+mm-page_isolation-dont-pass-gfp-flags-to-start_isolate_page_range.patch
+mm-page_alloc-make-__alloc_contig_migrate_range-static.patch
+mm-page_alloc-sort-out-the-alloc_contig_range-gfp-flags-mess.patch
+mm-page_alloc-forward-the-gfp-flags-from-alloc_contig_range-to-post_alloc_hook.patch
+powernv-memtrace-use-__gfp_zero-with-alloc_contig_pages.patch
+mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig.patch
+mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
+mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag.patch
+mm-hugetlb-rename-isolate_hugetlb-to-folio_isolate_hugetlb.patch
+mm-migrate-dont-call-folio_putback_active_hugetlb-on-dst-hugetlb-folio.patch
+mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb.patch
+mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios.patch
+mm-hugetlb-use-folio-lru-int-demote_free_hugetlb_folios.patch
 
