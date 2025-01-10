@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46FA221D5A2
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:26:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD5A724B24E
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:28:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736551562; cv=none; b=md+R0NZ86VuHdKoMSjNGjNdc8WeaT40gLKjKD3CNDvYwqOh+o9SRY0kN/r+gqAc9jbLho95YkBWYyoVEGfY+lbhOgBTEFTwedy9uuW6LISBEFZKWz3vZiSvcoRkYbV3P2tFMViyipuT35vo90U75SVdQgJzp0Tz9bRDk91GRgns=
+	t=1736551688; cv=none; b=hVWNKo96H9CFaJYCWbqctNflmAYQHIvg14RK55+FjcUK9fB5dAOO/6GeXbpNvZvpJX+4qqfRcXNEFEyAUUvvqmLkJ543R4I6QnxyzFKyqnN5d2eNsBA7zpvpj7oCEKyTAADwCRXd5zhEE8PJ6lzkexF70kmlSKl4h3YuOi5zhOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736551562; c=relaxed/simple;
-	bh=dUtPIfb+zpysgyv8ft6fPUPuN0tGPMmOZnMtrj+uc54=;
-	h=Date:To:From:Subject:Message-Id; b=PgV/Fgww7xGNZzTGHFgRNM9i/devr66eGxDb0UIDwAFycMOHlZGXx5yurldm4UOQeXtlTcGrE5r+JLtt/wEY25dQLymt1zsREfQW+vYLww+u+yFN3CulineFj0ryN8dukJ9DHPaoL2609NNbXTD/62CDLhhN0N85P2j8fqVKf+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShQGZmmT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736551688; c=relaxed/simple;
+	bh=i+wwFGJ0RynKR5ufI8cIKTiSFCf+tD2jvg/rcnIcja4=;
+	h=Date:To:From:Subject:Message-Id; b=HUIasBIF46JU750QMAuLHtVducYc20tmGgXRHXjc6uM0FnvaPHkUB+KK+TRRh6Emva0zavIJRhIrP4C53bU6cxb1Va69HFPJyUM43Gs+sebNOeOsmz2i/PhTJUFFLSnBg16X/YAeWyfv0z28DhzCV+CVimuzc3lfp/0diHP0Ayg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P5H85NA1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShQGZmmT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBE47C4CED6;
-	Fri, 10 Jan 2025 23:26:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P5H85NA1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3626EC4CED6;
+	Fri, 10 Jan 2025 23:28:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736551561;
-	bh=dUtPIfb+zpysgyv8ft6fPUPuN0tGPMmOZnMtrj+uc54=;
+	s=korg; t=1736551687;
+	bh=i+wwFGJ0RynKR5ufI8cIKTiSFCf+tD2jvg/rcnIcja4=;
 	h=Date:To:From:Subject:From;
-	b=ShQGZmmTj7CmkIBiaU1py7DXtfOm773gXDR10DkagFZV2zjkdnCgHqwe+6lGt0IEG
-	 Ah3xr4GZzWKFjeSbCHxoQwybEmQlpmt6jlx0cTm1JC7SVszs5GisU1XrbCIOyj5YZL
-	 5Oj03yY1vxaBwTwNtX9VooFx0+gO0BD4U8ZSVlqg=
-Date: Fri, 10 Jan 2025 15:26:01 -0800
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
+	b=P5H85NA1QS2FDOQlZ7GyWHUoPPa7o27zlYtyHuRpWb2W87TtVVpLrDa6X1PkysS5m
+	 gnGNf4M7Nujtpad5TRtbwqo/11RGFlrIORqoyZ6aLVznNAH3Blmk39a42KbI1mSDod
+	 taNYmgwtPgopnx4xeZVvylTFYRYWlb6lfKIH4x3w=
+Date: Fri, 10 Jan 2025 15:28:06 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-assertion-in-folio_end_read.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250110232601.CBE47C4CED6@smtp.kernel.org>
+Subject: + squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250110232807.3626EC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix assertion in folio_end_read()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-assertion-in-folio_end_read.patch
+     Subject: squashfs: fix "convert squashfs_fill_page() to take a folio"
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-assertion-in-folio_end_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,34 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix assertion in folio_end_read()
-Date: Fri, 10 Jan 2025 16:32:57 +0000
+Subject: squashfs: fix "convert squashfs_fill_page() to take a folio"
+Date: Fri, 10 Jan 2025 16:32:58 +0000
 
-We only need to assert that the uptodate flag is clear if we're going to
-set it.  This hasn't been a problem before now because we have only used
-folio_end_read() when completing with an error, but it's convenient to use
-it in squashfs if we discover the folio is already uptodate.
+I got the polarity of "uptodate" wrong.  Rename it.  Thanks to Ryan for
+testing; please fold into above named patch, and he'd like you to add
 
-Link: https://lkml.kernel.org/r/20250110163300.3346321-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250110163300.3346321-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Tested-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/filemap.c~mm-fix-assertion-in-folio_end_read
-+++ a/mm/filemap.c
-@@ -1523,7 +1523,7 @@ void folio_end_read(struct folio *folio,
- 	/* Must be in bottom byte for x86 to work */
- 	BUILD_BUG_ON(PG_uptodate > 7);
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
--	VM_BUG_ON_FOLIO(folio_test_uptodate(folio), folio);
-+	VM_BUG_ON_FOLIO(success && folio_test_uptodate(folio), folio);
+--- a/fs/squashfs/file.c~squashfs-convert-squashfs_fill_page-to-take-a-folio-fix
++++ a/fs/squashfs/file.c
+@@ -400,7 +400,7 @@ void squashfs_copy_cache(struct folio *f
+ 			bytes -= PAGE_SIZE, offset += PAGE_SIZE) {
+ 		struct folio *push_folio;
+ 		size_t avail = buffer ? min(bytes, PAGE_SIZE) : 0;
+-		bool uptodate = true;
++		bool updated = false;
  
- 	if (likely(success))
- 		mask |= 1 << PG_uptodate;
+ 		TRACE("bytes %zu, i %d, available_bytes %zu\n", bytes, i, avail);
+ 
+@@ -415,9 +415,9 @@ void squashfs_copy_cache(struct folio *f
+ 		if (folio_test_uptodate(push_folio))
+ 			goto skip_folio;
+ 
+-		uptodate = squashfs_fill_page(push_folio, buffer, offset, avail);
++		updated = squashfs_fill_page(push_folio, buffer, offset, avail);
+ skip_folio:
+-		folio_end_read(push_folio, uptodate);
++		folio_end_read(push_folio, updated);
+ 		if (i != folio->index)
+ 			folio_put(push_folio);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -120,4 +131,5 @@ squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
 squashfs-convert-squashfs_readpage_block-to-take-a-folio.patch
 squashfs-convert-squashfs_copy_cache-to-take-a-folio.patch
 squashfs-convert-squashfs_fill_page-to-take-a-folio.patch
+squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
 
