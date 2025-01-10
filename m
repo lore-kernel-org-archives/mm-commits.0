@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B0EC2F4A
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:10:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CDFA539A
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:10:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736467857; cv=none; b=PK27tNRes9ZDHdMOkEJmUpjjkpE7AanI8wpp4tzk1znUOEKt2EGQaN5swu1fp7fbQvkka1oXhcNeIq8qNloYqyWLOAgUVowqxAJyz8ceDAGtUBDjDz5oqkL3oTqRBb9+yJ6IbyDqKvAmm68+Ss1fsRI8jZpU7l5qkbHkiGt+1vQ=
+	t=1736467859; cv=none; b=Q5shGktuJ79nW9WqY0FlZB35ahsmkHklVd81QK6k4FWSVq18ZM4a0tZRs1ITqADCw+rkL2qfPb3CxbL7/O3HLfxLnIzkrEYSb7MUgEOC4BFNe1B8YmXh7yngAkteinyl+x6jlIJYmEgxnOrsnPTqB9MGo9KB9gbYIMuO+noAk98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736467857; c=relaxed/simple;
-	bh=LdYDI2KxaS1ZDqlqwn4tLbL5En4ny9C+79XU7izLQek=;
-	h=Date:To:From:Subject:Message-Id; b=McTtGM0BJFtINJLONRKKscZkU7eDI1+4XO9Qklz7880b00n2lkvwMUNS2Nr70tddqp/XsbMiuIsnyX/XY+H4DZeiNhz+fagH38U3aTw7cTD3aX6hF2G/ZBeztOLggeV3M1Vcm6vNBIDqiumpg5ZLpft2GTc2rb93qmGlDTY9jCI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mBnHPmIf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736467859; c=relaxed/simple;
+	bh=Y5IT7jEqObF0doz/OYY37dTjENjUUpEogZOylu9bUeE=;
+	h=Date:To:From:Subject:Message-Id; b=DbaG0YoSSZ8qhD8CwmfOXlcIKXOhTm9eCc0mX/c9x9CRcs2ORJ592FZvr2Medum7O3Zm5i6NFYUHYcStVDnWA4WsSxIhU3co1rDfyVPYWTuMphbhkx2jq+2NFOIi8AFE5jyeLgT4bKClZGUMK0AKKLI15rBP7DE+9UOC5t8S8Ls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TG9luw8e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mBnHPmIf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12066C4CED3;
-	Fri, 10 Jan 2025 00:10:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TG9luw8e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6045C4CED2;
+	Fri, 10 Jan 2025 00:10:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736467857;
-	bh=LdYDI2KxaS1ZDqlqwn4tLbL5En4ny9C+79XU7izLQek=;
+	s=korg; t=1736467858;
+	bh=Y5IT7jEqObF0doz/OYY37dTjENjUUpEogZOylu9bUeE=;
 	h=Date:To:From:Subject:From;
-	b=mBnHPmIfla+90YrBg/tvT7GE5LlMICQOc0L6cWx5P4BkF/QlU2/mIFMjGUQ+vdqzr
-	 M2KSLJ17sbRCK7hB2XLNMqnDVdsCEgHMwiFROXu/Gjq76J0IO8nI36Qjd3kuhkoKQc
-	 S6kwyTvjblsqK1hKutQqmJCJtfFS750CIJ4qu6G4=
-Date: Thu, 09 Jan 2025 16:10:56 -0800
+	b=TG9luw8e5WsEn+67IbP12jhHQTzAE9CzPD/Md6tAnV2tmh83iYVqLPUIpxukQkJ2q
+	 cFIAw09HhoW9KM48BUk3aYcx76SGaYHExiXQLI3q7LFWScxD9F4RnujmHcKS/PwTjF
+	 4zT7iYdM+zeEgcEyCITWuUpss8icjIZx/reHZzfA=
+Date: Thu, 09 Jan 2025 16:10:58 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-allow-reject-damos-filter-behaviors.patch added to mm-unstable branch
-Message-Id: <20250110001057.12066C4CED3@smtp.kernel.org>
+Subject: + docs-abi-damon-document-damos-filter-allow-sysfs-file.patch added to mm-unstable branch
+Message-Id: <20250110001058.D6045C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document allow/reject DAMOS filter behaviors
+     Subject: Docs/ABI/damon: document DAMOS filter allow sysfs file
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-document-allow-reject-damos-filter-behaviors.patch
+     docs-abi-damon-document-damos-filter-allow-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-allow-reject-damos-filter-behaviors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-damos-filter-allow-sysfs-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document allow/reject DAMOS filter behaviors
-Date: Thu, 9 Jan 2025 09:51:23 -0800
+Subject: Docs/ABI/damon: document DAMOS filter allow sysfs file
+Date: Thu, 9 Jan 2025 09:51:24 -0800
 
-Update DAMOS filters design document to describe the allow/reject behavior
-of filters.
+Update DAMON ABI document for added DAMOS filter 'allow' file.
 
-Link: https://lkml.kernel.org/r/20250109175126.57878-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250109175126.57878-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   33 ++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-allow-reject-damos-filter-behaviors
-+++ a/Documentation/mm/damon/design.rst
-@@ -504,9 +504,34 @@ have a list of latency-critical processe
- 
- To let users optimize DAMOS schemes with such special knowledge, DAMOS provides
- a feature called DAMOS filters.  The feature allows users to set an arbitrary
--number of filters for each scheme.  Each filter specifies the type of target
--memory, and whether it should exclude the memory of the type (filter-out), or
--all except the memory of the type (filter-in).
-+number of filters for each scheme.  Each filter specifies
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-damos-filter-allow-sysfs-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -355,10 +355,15 @@ Description:	If 'target' is written to t
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/matching
+ Date:		Dec 2022
+ Contact:	SeongJae Park <sj@kernel.org>
+-Description:	Writing 'Y' or 'N' to this file sets whether to filter out
+-		pages that do or do not match to the 'type' and 'memcg_path',
+-		respectively.  Filter out means the action of the scheme will
+-		not be applied to.
++Description:	Writing 'Y' or 'N' to this file sets whether the filter is for
++		the memory of the 'type', or all except the 'type'.
 +
-+- a type of memory (``type``),
-+- whether it is for the memory of the type or all except the type
-+  (``matching``), and
-+- whether it is to allow (include) or reject (exclude) applying
-+  the scheme's action to the memory (``allow``).
-+
-+When multiple filters are installed, each filter is evaluated in the installed
-+order.  If a part of memory is matched to one of the filter, next filters are
-+ignored.  If the memory passes through the filters evaluation stage because it
-+is not matched to any of the filters, applying the scheme's action to it is
-+allowed, same to the behavior when no filter exists.
-+
-+For example, let's assume 1) a filter for allowing anonymous pages and 2)
-+another filter for rejecting young pages are installed in the order.  If a page
-+of a region that eligible to apply the scheme's action is an anonymous page,
-+the scheme's action will be applied to the page regardless of whether it is
-+young or not, since it matches with the first allow-filter.  If the page is
-+not anonymous but young, the scheme's action will not be applied, since the
-+second reject-filter blocks it.  If the page is neither anonymous nor young,
-+the page will pass through the filters evaluation stage since there is no
-+matching filter, and the action will be applied to the page.
-+
-+Note that the action can equally be applied to memory that either explicitly
-+filter-allowed or filters evaluation stage passed.  It means that installing
-+allow-filters at the end of the list makes no practical change but only
-+filters-checking overhead.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/allow
++Date:		Jan 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing 'Y' or 'N' to this file sets whether to allow or reject
++		applying the scheme's action to the memory that satisfies the
++		'type' and the 'matching' of the directory.
  
- For efficient handling of filters, some types of filters are handled by the
- core layer, while others are handled by operations set.  In the latter case,
-@@ -516,7 +541,7 @@ filter are not counted as the scheme has
- a memory regions is filtered by an operations set layer-handled filter, it is
- counted as the scheme has tried.  This difference affects the statistics.
- 
--Below types of filters are currently supported.
-+Below ``type`` of filters are currently supported.
- 
- - anonymous page
-     - Applied to pages that containing data that not stored in files.
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
+ Date:		Mar 2022
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
