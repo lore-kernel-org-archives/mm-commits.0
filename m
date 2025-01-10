@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD5A724B24E
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:28:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E77E524B24E
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736551688; cv=none; b=hVWNKo96H9CFaJYCWbqctNflmAYQHIvg14RK55+FjcUK9fB5dAOO/6GeXbpNvZvpJX+4qqfRcXNEFEyAUUvvqmLkJ543R4I6QnxyzFKyqnN5d2eNsBA7zpvpj7oCEKyTAADwCRXd5zhEE8PJ6lzkexF70kmlSKl4h3YuOi5zhOk=
+	t=1736551780; cv=none; b=Vv35iaoJ6Pld2TxAlRv2v/1kKBsVdywXy4Q0ip+B7AskAi7VMLk/89sf9vdlpiBtMnpEYvFFVYPXWnv7m78gLTXXyTTdi1jGL+4fgAO+DtqrZ/e7UGfA417BJV2eDWx6Do204yUO4uWx0xq37zFkbgY+od8kNxntEvBQT7w18mY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736551688; c=relaxed/simple;
-	bh=i+wwFGJ0RynKR5ufI8cIKTiSFCf+tD2jvg/rcnIcja4=;
-	h=Date:To:From:Subject:Message-Id; b=HUIasBIF46JU750QMAuLHtVducYc20tmGgXRHXjc6uM0FnvaPHkUB+KK+TRRh6Emva0zavIJRhIrP4C53bU6cxb1Va69HFPJyUM43Gs+sebNOeOsmz2i/PhTJUFFLSnBg16X/YAeWyfv0z28DhzCV+CVimuzc3lfp/0diHP0Ayg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P5H85NA1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736551780; c=relaxed/simple;
+	bh=v2zS8R++QKgj6tqpoRwD3pXllStRw69A7sLx9KxVAKk=;
+	h=Date:To:From:Subject:Message-Id; b=Bn7ufJQARC8HiPewvMqtdRSd9MGM1X1oByqEsb8RGlIaMWlrWhbeUloByueLwS23H/jBKNzNxleVYlt2AdnUFtBn+14Uk7UEs6483rqjZavyeqkYrpbNx20ZsVx+9PJ26ZcoHgIrQqYUHkkCe34eVke5p8GYYfSu0ye/YcIXEKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=efLa5q5o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P5H85NA1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3626EC4CED6;
-	Fri, 10 Jan 2025 23:28:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="efLa5q5o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FFABC4CED6;
+	Fri, 10 Jan 2025 23:29:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736551687;
-	bh=i+wwFGJ0RynKR5ufI8cIKTiSFCf+tD2jvg/rcnIcja4=;
+	s=korg; t=1736551779;
+	bh=v2zS8R++QKgj6tqpoRwD3pXllStRw69A7sLx9KxVAKk=;
 	h=Date:To:From:Subject:From;
-	b=P5H85NA1QS2FDOQlZ7GyWHUoPPa7o27zlYtyHuRpWb2W87TtVVpLrDa6X1PkysS5m
-	 gnGNf4M7Nujtpad5TRtbwqo/11RGFlrIORqoyZ6aLVznNAH3Blmk39a42KbI1mSDod
-	 taNYmgwtPgopnx4xeZVvylTFYRYWlb6lfKIH4x3w=
-Date: Fri, 10 Jan 2025 15:28:06 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
+	b=efLa5q5owD2AjYB3Jw/5BOW9Pt3nrT2bBYG7lv6q5Wgj69FFKNIeqTC6DNYRL/I/h
+	 hf3x4OX24jhdtNZfVFpN4CbS9wzoDPBabnoq6YMssWtTwaA/tNyeo5e7N3EmAFSk4a
+	 Qnv10C1RgzhsX35+E/+YfXtlvEUMIotAybdJtCQ8=
+Date: Fri, 10 Jan 2025 15:29:38 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,jack@suse.cz,dietmar.eggemann@arm.com,bsegall@google.com,brauner@kernel.org,oxana@cloudflare.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20250110232807.3626EC4CED6@smtp.kernel.org>
+Subject: + hung_task-add-task-flags-blocked-by-coredump-to-log.patch added to mm-nonmm-unstable branch
+Message-Id: <20250110232939.3FFABC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: fix "convert squashfs_fill_page() to take a folio"
+     Subject: hung_task: add task->flags, blocked by coredump to log
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
+     hung_task-add-task-flags-blocked-by-coredump-to-log.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-task-flags-blocked-by-coredump-to-log.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: squashfs: fix "convert squashfs_fill_page() to take a folio"
-Date: Fri, 10 Jan 2025 16:32:58 +0000
+From: Oxana Kharitonova <oxana@cloudflare.com>
+Subject: hung_task: add task->flags, blocked by coredump to log
+Date: Fri, 10 Jan 2025 16:03:28 +0000
 
-I got the polarity of "uptodate" wrong.  Rename it.  Thanks to Ryan for
-testing; please fold into above named patch, and he'd like you to add
+Resending this patch as I haven't received feedback on my initial
+submission https://lore.kernel.org/all/20241204182953.10854-1-oxana@cloudflare.com/
 
-Link: https://lkml.kernel.org/r/20250110163300.3346321-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+For the processes which are terminated abnormally the kernel can provide
+a coredump if enabled. When the coredump is performed, the process and
+all its threads are put into the D state
+(TASK_UNINTERRUPTIBLE | TASK_FREEZABLE).
+
+On the other hand, we have kernel thread khungtaskd which monitors the
+processes in the D state. If the task stuck in the D state more than
+kernel.hung_task_timeout_secs, the hung_task alert appears in the kernel
+log.
+
+The higher memory usage of a process, the longer it takes to create
+coredump, the longer tasks are in the D state. We have hung_task alerts
+for the processes with memory usage above 10Gb. Although, our
+kernel.hung_task_timeout_secs is 10 sec when the default is 120 sec.
+
+Adding additional information to the log that the task is blocked by
+coredump will help with monitoring. Another approach might be to
+completely filter out alerts for such tasks, but in that case we would
+lose transparency about what is putting pressure on some system
+resources, e.g. we saw an increase in I/O when coredump occurs due its
+writing to disk.
+
+Additionally, it would be helpful to have task_struct->flags in the log
+from the function sched_show_task(). Currently it prints
+task_struct->thread_info->flags, this seems misleading as the line
+starts with "task:xxxx".
+
+Link: https://lkml.kernel.org/r/20250110160328.64947-1-oxana@cloudflare.com
+Signed-off-by: Oxana Kharitonova <oxana@cloudflare.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/hung_task.c  |    2 ++
+ kernel/sched/core.c |    4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/fs/squashfs/file.c~squashfs-convert-squashfs_fill_page-to-take-a-folio-fix
-+++ a/fs/squashfs/file.c
-@@ -400,7 +400,7 @@ void squashfs_copy_cache(struct folio *f
- 			bytes -= PAGE_SIZE, offset += PAGE_SIZE) {
- 		struct folio *push_folio;
- 		size_t avail = buffer ? min(bytes, PAGE_SIZE) : 0;
--		bool uptodate = true;
-+		bool updated = false;
+--- a/kernel/hung_task.c~hung_task-add-task-flags-blocked-by-coredump-to-log
++++ a/kernel/hung_task.c
+@@ -147,6 +147,8 @@ static void check_hung_task(struct task_
+ 			print_tainted(), init_utsname()->release,
+ 			(int)strcspn(init_utsname()->version, " "),
+ 			init_utsname()->version);
++		if (t->flags & PF_POSTCOREDUMP)
++			pr_err("      Blocked by coredump.\n");
+ 		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+ 			" disables this message.\n");
+ 		sched_show_task(t);
+--- a/kernel/sched/core.c~hung_task-add-task-flags-blocked-by-coredump-to-log
++++ a/kernel/sched/core.c
+@@ -7701,9 +7701,9 @@ void sched_show_task(struct task_struct
+ 	if (pid_alive(p))
+ 		ppid = task_pid_nr(rcu_dereference(p->real_parent));
+ 	rcu_read_unlock();
+-	pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d flags:0x%08lx\n",
++	pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d task_flags:0x%08lx flags:0x%08lx\n",
+ 		free, task_pid_nr(p), task_tgid_nr(p),
+-		ppid, read_task_thread_flags(p));
++		ppid, p->flags, read_task_thread_flags(p));
  
- 		TRACE("bytes %zu, i %d, available_bytes %zu\n", bytes, i, avail);
- 
-@@ -415,9 +415,9 @@ void squashfs_copy_cache(struct folio *f
- 		if (folio_test_uptodate(push_folio))
- 			goto skip_folio;
- 
--		uptodate = squashfs_fill_page(push_folio, buffer, offset, avail);
-+		updated = squashfs_fill_page(push_folio, buffer, offset, avail);
- skip_folio:
--		folio_end_read(push_folio, uptodate);
-+		folio_end_read(push_folio, updated);
- 		if (i != folio->index)
- 			folio_put(push_folio);
- 	}
+ 	print_worker_info(KERN_INFO, p);
+ 	print_stop_info(KERN_INFO, p);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from oxana@cloudflare.com are
 
-mm-fix-assertion-in-folio_end_read.patch
-mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
-mm-make-alloc_pages_mpol-static.patch
-mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
-mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
-mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
-mm-page_alloc-add-__alloc_frozen_pages.patch
-mm-mempolicy-add-alloc_frozen_pages.patch
-slab-allocate-frozen-pages.patch
-mm-remove-pagetranstail.patch
-ocfs2-handle-a-symlink-read-error-correctly.patch
-ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
-ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
-ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
-ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
-ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
-iov_iter-remove-setting-of-page-index.patch
-squashfs-use-a-folio-throughout-squashfs_read_folio.patch
-squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
-squashfs-convert-squashfs_readpage_block-to-take-a-folio.patch
-squashfs-convert-squashfs_copy_cache-to-take-a-folio.patch
-squashfs-convert-squashfs_fill_page-to-take-a-folio.patch
-squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
+hung_task-add-task-flags-blocked-by-coredump-to-log.patch
 
