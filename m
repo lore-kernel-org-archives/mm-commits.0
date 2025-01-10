@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 463841C683;
-	Fri, 10 Jan 2025 00:51:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AA8B2080F6
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 22:56:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736470290; cv=none; b=DrOplfcuu6vGRTzaJietJK9YQi2zYewLe0UOAGBUR20hewFaToOaN9fQE0t9PPR2KBUAwu4Hgn6wtwPYJfDfBGFOTJD/EljQjlyHJ2Jd8T0CZa+rXX+MrQEGdKLXqxirZK/IbO23metSB8seZnXCxiQdy2OQge1ZkloUGb/VXkQ=
+	t=1736549770; cv=none; b=KV/xmPY5c1du987vdUU3Enu6e9XD0r06HkWI1d5Oa/nhJkDZncqLGUrrxj0PRTKTBAvARGUKeJCrsuzkhfhdR74htTbh4364y6NWgptCKZOZo+ZoayW7vzvkEzOBKKQpI6XqUNUi0VXQA9seiKXIBSd9w1fgq8z9kZyOa69iB1U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736470290; c=relaxed/simple;
-	bh=5WDyKzA9a1kFVJ2d4N6Loo/bX4Lg8NURQ4VuI4zRmFo=;
-	h=Date:To:From:Subject:Message-Id; b=D9dmVxmjPUoshcfyAc5yefLgLjwgFPAtqTdRI6wApN20ca5KQ1M3gaFjZ/I5uxHV6XSQNfaWaMhWZ3MsPj/41UwtxynAQl8u0P+bGHINH7uc2H8Ey10EE19d0kL8J+MF1SRHxo49ZfWNDIiunVNjkoav0ffJHG4Mtp51DxYvgcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZIoaJB+8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736549770; c=relaxed/simple;
+	bh=TPxy2gOCSBRGy/R1ZOngtLef3g8cwyzRtrPJt/q9QDs=;
+	h=Date:To:From:Subject:Message-Id; b=Dl10HYhgkcL4pGp7wmWriVNqaQ2xtJAHBwGcYy1a9P8GX3qlBIKJGNm7Pwu69Q6DgLFw51+LkhETuuZ+OAwzM+D6R/SPS4Gf7lc2n+whng5ffD7zAnoi/7+TaVaL1JCBP1CUaLzuOQPqCSzg8SwJPskneG8eVoutR9iUE7UIilo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jweNOK/k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZIoaJB+8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB181C4CED2;
-	Fri, 10 Jan 2025 00:51:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jweNOK/k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD3BDC4CED6;
+	Fri, 10 Jan 2025 22:56:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736470289;
-	bh=5WDyKzA9a1kFVJ2d4N6Loo/bX4Lg8NURQ4VuI4zRmFo=;
+	s=korg; t=1736549769;
+	bh=TPxy2gOCSBRGy/R1ZOngtLef3g8cwyzRtrPJt/q9QDs=;
 	h=Date:To:From:Subject:From;
-	b=ZIoaJB+8k2xTuVyVYBay288R9uXbCrxNcJysnNtNQxHWxC0O5Hkg2gKLHFDvCJX3k
-	 wBwg4T2LvDx6KbshyAQ1bf60WquIsKfdo4VIn75l6SdyqhyQWfBL/MZSwMMen0MbLL
-	 8CpHa01EzXXVXJxO9QBd4UrcnOKM8GXMkPdVmOcs=
-Date: Thu, 09 Jan 2025 16:51:29 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ritesh.list@gmail.com,rientjes@google.com,muchun.song@linux.dev,mhocko@kernel.org,kaiyang2@cs.cmu.edu,hannes@cmpxchg.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=jweNOK/k4Ow7UopBBOxjh+Dyx3NvHXl+t2l+pOFKYDBY8FlDnRyoFZmaBMdG3c99Z
+	 1ypRHEiCvwsWOJpC2HLwhue6doZsj5N7hnQQKisIpg8HyvxxvmvOFvAAPiSf45l1lc
+	 b4erlOcMfPSSTqgsGq5ChL4E/nLQxoZFx/GPCJHE=
+Date: Fri, 10 Jan 2025 14:56:09 -0800
+To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,honggyu.kim@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250110005129.AB181C4CED2@smtp.kernel.org>
+Subject: + docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch added to mm-unstable branch
+Message-Id: <20250110225609.AD3BDC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan : pgdemote vmstat is not getting updated when MGLRU is enabled.
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled.patch
+     Subject: Docs/mm/damon/design: add monitoring parameters tuning guide
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,160 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: mm: vmscan : pgdemote vmstat is not getting updated when MGLRU is enabled.
-Date: Thu, 9 Jan 2025 00:05:39 -0600
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/design: add monitoring parameters tuning guide
+Date: Fri, 10 Jan 2025 10:52:28 -0800
 
-When MGLRU is enabled, the pgdemote_kswapd, pgdemote_direct, and
-pgdemote_khugepaged stats in vmstat are not being updated.
+Patch series "Docs/mm/damon: add tuning guide and misc updates".
 
-Commit f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA
-balancing operations") moved the pgdemote vmstat update from
-demote_folio_list() to shrink_inactive_list(), which is in the normal LRU
-path.  As a result, the pgdemote stats are updated correctly for the
-normal LRU but not for MGLRU.
+Add DAMON monitoring parameters tuning guide (patches 1 and 2), with misc
+documentation fixes (patch 3), updates (patch 4) and clarifications (patch
+5).
 
-To address this, we have added the pgdemote stat update in the
-evict_folios() function, which is in the MGLRU path.  With this patch, the
-pgdemote stats will now be updated correctly when MGLRU is enabled.
 
-Without this patch vmstat output when MGLRU is enabled
-======================================================
-pgdemote_kswapd 0
-pgdemote_direct 0
-pgdemote_khugepaged 0
+This patch (of 5):
 
-With this patch vmstat output when MGLRU is enabled
-===================================================
-pgdemote_kswapd 43234
-pgdemote_direct 4691
-pgdemote_khugepaged 0
+DAMON monitoring parameters including sampling and aggregation intervals
+should be tuned for given workloads.  However, the fact is not explicitly
+documented.  Also there is no official guide to help the tuning.  This
+apparently confused a number of people[1] at best, or made people forgive
+DAMON without tuning.  Add a guide on the design document.
 
-Link: https://lkml.kernel.org/r/20250109060540.451261-1-donettom@linux.ibm.com
-Fixes: f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA balancing operations")
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Aneesh Kumar K.V (Arm) <aneesh.kumar@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: <stable@vger.kernel.org>
+[1] https://lore.kernel.org/20241202175459.2005526-1-sj@kernel.org
+
+Link: https://lkml.kernel.org/r/20250110185232.54907-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250110185232.54907-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/mm/damon/design.rst |   48 ++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled
-+++ a/mm/vmscan.c
-@@ -4646,6 +4646,9 @@ retry:
- 		reset_batch_size(walk);
- 	}
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-add-monitoring-parameters-tuning-guide
++++ a/Documentation/mm/damon/design.rst
+@@ -203,6 +203,8 @@ This scheme, however, cannot preserve th
+ assumption is not guaranteed.
  
-+	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
-+					stat.nr_demoted);
+ 
++.. _damon_design_adaptive_regions_adjustment:
 +
- 	item = PGSTEAL_KSWAPD + reclaimer_offset();
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, reclaimed);
+ Adaptive Regions Adjustment
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+@@ -264,6 +266,52 @@ tracepoints.  For more details, please r
+ respectively.
+ 
+ 
++Monitoring Parameters Tuning Guide
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++In short, set ``aggregation interval`` to capture meaningful amount of accesses
++for the purpose.  The amount of accesses can be measured using ``nr_accesses``
++and ``age`` of regions in the aggregated monitoring results snapshot.  The
++default value of the interval, ``100ms``, turns out to be too short in many
++cases.  Set ``sampling interval`` proportional to ``aggregation interval``.  By
++default, ``1/20`` is recommended as the ratio.
++
++``Aggregation interval`` should be set as the time interval that the workload
++can make an amount of accesses for the monitoring purpose, within the interval.
++If the interval is too short, only small number of accesses are captured.  As a
++result, the monitoring results look everything is samely accessed only rarely.
++For many purposes, that would be useless.  If it is too long, however, the time
++to converge regions with the :ref:`regions adjustment mechanism
++<damon_design_adaptive_regions_adjustment>` can be too long, depending on the
++time scale of the given purpose.  This could happen if the workload is actually
++making only rare accesses but the user thinks the amount of accesses for the
++monitoring purpose too high.  For such cases, the target amount of access to
++capture per ``aggregation interval`` should carefully reconsidered.  Also, note
++that the captured amount of accesses is represented with not only
++``nr_accesses``, but also ``age``.  For example, even if every region on the
++monitoring results show zero ``nr_accesses``, regions could still be
++distinguished using ``age`` values as the recency information.
++
++Hence the optimum value of ``aggregation interval`` depends on the access
++intensiveness of the workload.  The user should tune the interval based on the
++amount of access that captured on each aggregated snapshot of the monitoring
++results.
++
++Note that the default value of the interval is 100 milliseconds, which is too
++short in many cases, especially on large systems.
++
++``Sampling interval`` defines the resolution of each aggregation.  If it is set
++too large, monitoring results will look like every region was samely rarely
++accessed, or samely frequently accessed.  That is, regions become
++undistinguishable based on access pattern, and therefore the results will be
++useless in many use cases.  If ``sampling interval`` is too small, it will not
++degrade the resolution, but will increase the monitoring overhead.  If it is
++appropriate enough to provide a resolution of the monitoring results that
++sufficient for the given purpose, it shouldn't be unnecessarily further
++lowered.  It is recommended to be set proportional to ``aggregation interval``.
++By default, the ratio is set as ``1/20``, and it is still recommended.
++
++
+ .. _damon_design_damos:
+ 
+ Operation Schemes
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled.patch
-mm-migrate-removed-unused-argument-vma-from-migrate_misplaced_folio.patch
-selftests-mm-added-new-test-cases-to-the-migration-test.patch
+samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
+samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
+samples-damon-wsse-implement-working-set-size-estimation-and-logging.patch
+samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch
+samples-damon-prcl-implement-schemes-setup.patch
+replace-free-hugepage-folios-after-migration-fix-2.patch
+mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
+mm-damon-sysfs-handle-clear_schemes_tried_regions-from-damon-sysfs-context.patch
+mm-damon-core-introduce-damon_call.patch
+mm-damon-sysfs-use-damon_call-for-update_schemes_stats.patch
+mm-damon-sysfs-use-damon_call-for-commit_schemes_quota_goals.patch
+mm-damon-sysfs-use-damon_call-for-update_schemes_effective_quotas.patch
+mm-damon-core-implement-damos_walk.patch
+docs-mm-damon-design-document-damos-regions-walking.patch
+mm-damon-sysfs-use-damos_walk-for-update_schemes_tried_bytesregions.patch
+mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
+mm-damon-clarify-trying-vs-applying-on-damos_stat-kernel-doc-comment.patch
+docs-mm-damon-design-add-statistics-section.patch
+docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc.patch
+mm-damon-ask-apply_scheme-to-report-filter-passed-region-internal-bytes.patch
+mm-damon-paddr-report-filter-passed-bytes-back-for-normal-actions.patch
+mm-damon-paddr-report-filter-passed-bytes-back-for-damos_stat-action.patch
+mm-damon-core-implement-per-scheme-ops-handled-filter-passed-bytes-stat.patch
+mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat.patch
+docs-mm-damon-design-document-sz_ops_filter_passed.patch
+docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed.patch
+docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file.patch
+mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn.patch
+mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes.patch
+docs-mm-damon-design-document-per-region-sz_filter_passed-stat.patch
+docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories.patch
+docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file.patch
+docs-translations-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
+docs-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
+docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch
+selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch
+selftests-damon-remove-tests-for-damon-debugfs-interface.patch
+kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
+mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
+mm-damon-remove-damon-debugfs-interface.patch
+mm-damon-fixup-damos_filter-kernel-doc.patch
+mm-damon-core-add-damos_filter-allow-field.patch
+mm-damon-core-support-damos_filter-allow.patch
+mm-damon-paddr-support-damos_filter-allow.patch
+mm-damon-add-allow-argument-to-damos_new_filter.patch
+mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-allow.patch
+docs-mm-damon-design-document-allow-reject-damos-filter-behaviors.patch
+docs-abi-damon-document-damos-filter-allow-sysfs-file.patch
+docs-admin-guide-mm-damon-usage-omit-damos-filter-details-in-favor-of-design-doc.patch
+docs-admin-guide-mm-damon-usage-document-damos-filter-allow-sysfs-file.patch
+docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch
+docs-mm-damon-add-an-example-monitoring-intervals-tuning.patch
+docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch
+docs-admin-guide-mm-damon-start-update-snapshot-example.patch
+mm-damon-explain-effective-quota-on-kernel-doc-comment.patch
 
