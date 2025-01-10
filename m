@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD85E2080F6
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 22:56:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCDAF21A43A
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 22:56:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736549774; cv=none; b=EUMYTfWdoI3X2551oqnIAyBzilF+OB+9Ko6Myy9WmSoKMFa5pu9YuQGrg2GRuJRJkJQD2jTeNtffQp0ZRbBa5EsfWFpI1FXMk7m71DCMtuyJWLoLFokYZHtsIdT7ZxsvB8jMAwts1SZxdD5IErvP8EXAc6jSiP+4g38VY7DlBwo=
+	t=1736549777; cv=none; b=C8iyYNbpX74QPKTP3N7PlAazeV6OO5q2lOVpOecZVU4iZgipBMHJq86W3Bot+x9DcOdwI8VYxCHuWC20Jmd228vWhlp0RqXU/ZxMMYvDIgvBcMaGD7+w1Dk6/FmTr0NGYvIu0jOq34pGbkCcPdeU9/wuCIut/FXfuIoecBiYnWY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736549774; c=relaxed/simple;
-	bh=SqL+MDFh0mHxzG7D1HO5Y2x6gC9GZv+Iay1YCHCdUpY=;
-	h=Date:To:From:Subject:Message-Id; b=TSTv3GRcvi/Wp1SpwROV1tdTJr1ehYyivrHvXfhdULBdujsY3WLfEFAz9C3uTak/xfDgHqmJ7vNddMyGwBE8UQJfi4Sbe4vSagqw60yOpVGiOUcK3N5XIri8ha7NHMBMTleXOn+LKfo9T2031gxWl28IEw4GV6l0vwaubjZ+5kM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSLiighm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736549777; c=relaxed/simple;
+	bh=3+ovh0y5gcnpmfBwkOSISxBOqZXqaZ9A73tG3fw9Mwk=;
+	h=Date:To:From:Subject:Message-Id; b=EDRY+5DkBnwoL8waBFS2HA+aL6hdhSf5DDWNqdSeShtqtxXTL1zYKffpRdHXg4k5ziqDqg5gyPmspySaU/vINIcP1PdwjEYqtdUtFa+C0FsEECK27okHZ2q3OxFdnlvojwJAtBb6klBmpFhEw4BrSWWeKDZTdBQhGZL6lkl1kGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gE+IoKIz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSLiighm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7881DC4CED6;
-	Fri, 10 Jan 2025 22:56:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gE+IoKIz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6169DC4CED6;
+	Fri, 10 Jan 2025 22:56:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736549774;
-	bh=SqL+MDFh0mHxzG7D1HO5Y2x6gC9GZv+Iay1YCHCdUpY=;
+	s=korg; t=1736549776;
+	bh=3+ovh0y5gcnpmfBwkOSISxBOqZXqaZ9A73tG3fw9Mwk=;
 	h=Date:To:From:Subject:From;
-	b=gSLiighmzDDSRHRFEf/rRgsGN7iwtX/2rDB2u+uSj1brvvtX/x08qSgMbZ1+6g8tN
-	 47ZIqMXIhSQE8Lz96Gtg2VXVWxGpWyKkWEX0WqdvQH6w25Dsi99UxqW6UnetChoukw
-	 7TwtC0zVH4pgVjSCbII3GxX+RLQbTUqES6qjO4Es=
-Date: Fri, 10 Jan 2025 14:56:13 -0800
+	b=gE+IoKIzR1gTOkpPbvRI9TzFkC2M91oMioBaYrDv2CjejE8BoQkNa69FVxG9GIpse
+	 NGwixR/RhkWpSGE2JLRzTGOXCrq3aPgaLdXsuXGrd2eot3EdepSZxOtSn6MIQxao4m
+	 OO5KjVSljgVO9OfqqDTZCbhG33QSr7kjJaCU4n2U=
+Date: Fri, 10 Jan 2025 14:56:15 -0800
 To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,honggyu.kim@sk.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch added to mm-unstable branch
-Message-Id: <20250110225614.7881DC4CED6@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-start-update-snapshot-example.patch added to mm-unstable branch
+Message-Id: <20250110225616.6169DC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: fix and add missing DAMOS filter sysfs files on files hierarchy
+     Subject: Docs/admin-guide/mm/damon/start: update snapshot example
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch
+     docs-admin-guide-mm-damon-start-update-snapshot-example.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-start-update-snapshot-example.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: fix and add missing DAMOS filter sysfs files on files hierarchy
-Date: Fri, 10 Jan 2025 10:52:30 -0800
+Subject: Docs/admin-guide/mm/damon/start: update snapshot example
+Date: Fri, 10 Jan 2025 10:52:31 -0800
 
-DAMOS filter directory part of DAMON sysfs files hierarchy on the usage
-document is wrong.  'memcg_path' file under the directory is wrongly
-written as 'memcg_id'.  Also the directory has 'addr_start', 'addr_end',
-and 'target_idx' files, but the list is missing those.  Fix the wrong name
-and add missing files.
+Two of DAMON user-space tool (damo) commands that are used for examples on
+DAMON getting started document, namely 'damo show' and 'damo report heats'
+are deprecated[1,2], and replaced by new commands that provides same
+functions with unified and simplified user interfaces.  Also the example
+output of 'damo show' is outdated.  'damo schemes' command is not
+deprecated, but users are recommended to use 'damo start' or 'damo tune'
+instead.
 
-Link: https://lkml.kernel.org/r/20250110185232.54907-4-sj@kernel.org
+Update the examples to use the replacements, recommendations, and
+up-to-date output formats.
+
+[1] https://git.kernel.org/sj/damo/c/3272e0ac94ecc5e1
+[2] https://git.kernel.org/sj/damo/c/da3ec66bbdd9e87d
+
+Link: https://lkml.kernel.org/r/20250110185232.54907-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Honggyu Kim <honggyu.kim@sk.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -76,20 +84,99 @@ Cc: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/start.rst |   67 ++++++++++-------
+ 1 file changed, 40 insertions(+), 27 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -83,7 +83,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value
-     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
-     │ │ │ │ │ │ │ :ref:`filters <sysfs_filters>`/nr_filters
--    │ │ │ │ │ │ │ │ 0/type,matching,memcg_id,allow
-+    │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx
-     │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds
-     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
-     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age,sz_filter_passed
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-update-snapshot-example
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -42,32 +42,45 @@ the execution. ::
+ 
+     $ git clone https://github.com/sjp38/masim; cd masim; make
+     $ sudo damo start "./masim ./configs/stairs.cfg --quiet"
+-    $ sudo ./damo show
+-    0   addr [85.541 TiB  , 85.541 TiB ) (57.707 MiB ) access 0 %   age 10.400 s
+-    1   addr [85.541 TiB  , 85.542 TiB ) (413.285 MiB) access 0 %   age 11.400 s
+-    2   addr [127.649 TiB , 127.649 TiB) (57.500 MiB ) access 0 %   age 1.600 s
+-    3   addr [127.649 TiB , 127.649 TiB) (32.500 MiB ) access 0 %   age 500 ms
+-    4   addr [127.649 TiB , 127.649 TiB) (9.535 MiB  ) access 100 % age 300 ms
+-    5   addr [127.649 TiB , 127.649 TiB) (8.000 KiB  ) access 60 %  age 0 ns
+-    6   addr [127.649 TiB , 127.649 TiB) (6.926 MiB  ) access 0 %   age 1 s
+-    7   addr [127.998 TiB , 127.998 TiB) (120.000 KiB) access 0 %   age 11.100 s
+-    8   addr [127.998 TiB , 127.998 TiB) (8.000 KiB  ) access 40 %  age 100 ms
+-    9   addr [127.998 TiB , 127.998 TiB) (4.000 KiB  ) access 0 %   age 11 s
+-    total size: 577.590 MiB
+-    $ sudo ./damo stop
++    $ sudo damo report access
++    heatmap: 641111111000000000000000000000000000000000000000000000[...]33333333333333335557984444[...]7
++    # min/max temperatures: -1,840,000,000, 370,010,000, column size: 3.925 MiB
++    0   addr 86.182 TiB   size 8.000 KiB   access 0 %   age 14.900 s
++    1   addr 86.182 TiB   size 8.000 KiB   access 60 %  age 0 ns
++    2   addr 86.182 TiB   size 3.422 MiB   access 0 %   age 4.100 s
++    3   addr 86.182 TiB   size 2.004 MiB   access 95 %  age 2.200 s
++    4   addr 86.182 TiB   size 29.688 MiB  access 0 %   age 14.100 s
++    5   addr 86.182 TiB   size 29.516 MiB  access 0 %   age 16.700 s
++    6   addr 86.182 TiB   size 29.633 MiB  access 0 %   age 17.900 s
++    7   addr 86.182 TiB   size 117.652 MiB access 0 %   age 18.400 s
++    8   addr 126.990 TiB  size 62.332 MiB  access 0 %   age 9.500 s
++    9   addr 126.990 TiB  size 13.980 MiB  access 0 %   age 5.200 s
++    10  addr 126.990 TiB  size 9.539 MiB   access 100 % age 3.700 s
++    11  addr 126.990 TiB  size 16.098 MiB  access 0 %   age 6.400 s
++    12  addr 127.987 TiB  size 132.000 KiB access 0 %   age 2.900 s
++    total size: 314.008 MiB
++    $ sudo damo stop
+ 
+ The first command of the above example downloads and builds an artificial
+ memory access generator program called ``masim``.  The second command asks DAMO
+-to execute the artificial generator process start via the given command and
+-make DAMON monitors the generator process.  The third command retrieves the
+-current snapshot of the monitored access pattern of the process from DAMON and
+-shows the pattern in a human readable format.
+-
+-Each line of the output shows which virtual address range (``addr [XX, XX)``)
+-of the process is how frequently (``access XX %``) accessed for how long time
+-(``age XX``).  For example, the fifth region of ~9 MiB size is being most
+-frequently accessed for last 300 milliseconds.  Finally, the fourth command
+-stops DAMON.
++to start the program via the given command and make DAMON monitors the newly
++started process.  The third command retrieves the current snapshot of the
++monitored access pattern of the process from DAMON and shows the pattern in a
++human readable format.
++
++The first line of the output shows the relative access temperature (hotness) of
++the regions in a single row hetmap format.  Each column on the heatmap
++represents regions of same size on the monitored virtual address space.  The
++position of the colun on the row and the number on the column represents the
++relative location and access temperature of the region.  ``[...]`` means
++unmapped huge regions on the virtual address spaces.  The second line shows
++additional information for better understanding the heatmap.
++
++Each line of the output from the third line shows which virtual address range
++(``addr XX size XX``) of the process is how frequently (``access XX %``)
++accessed for how long time (``age XX``).  For example, the evelenth region of
++~9.5 MiB size is being most frequently accessed for last 3.7 seconds.  Finally,
++the fourth command stops DAMON.
+ 
+ Note that DAMON can monitor not only virtual address spaces but multiple types
+ of address spaces including the physical address space.
+@@ -95,7 +108,7 @@ Visualizing Recorded Patterns
+ You can visualize the pattern in a heatmap, showing which memory region
+ (x-axis) got accessed when (y-axis) and how frequently (number).::
+ 
+-    $ sudo damo report heats --heatmap stdout
++    $ sudo damo report heatmap
+     22222222222222222222222222222222222222211111111111111111111111111111111111111100
+     44444444444444444444444444444444444444434444444444444444444444444444444444443200
+     44444444444444444444444444444444444444433444444444444444444444444444444444444200
+@@ -160,6 +173,6 @@ Data Access Pattern Aware Memory Managem
+ Below command makes every memory region of size >=4K that has not accessed for
+ >=60 seconds in your workload to be swapped out. ::
+ 
+-    $ sudo damo schemes --damos_access_rate 0 0 --damos_sz_region 4K max \
+-                        --damos_age 60s max --damos_action pageout \
+-                        <pid of your workload>
++    $ sudo damo start --damos_access_rate 0 0 --damos_sz_region 4K max \
++                      --damos_age 60s max --damos_action pageout \
++                      <pid of your workload>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
