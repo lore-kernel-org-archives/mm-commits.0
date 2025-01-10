@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1123207DFD
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:04:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 909DA207DFD
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:04:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736550283; cv=none; b=UvAQvzeHdzOL8UTSv9Y3539u+SGtZiszdF7zN1S4PfMwgd+bWSZYIGk+sjqfJnfS0Hc1rP9l5hN7/Ef92oQA6RY9++x7eFnhDgPpjFlUonaFXuSM/ntuy7xnpwBec52IXqtEgnirzJ24NuGi9vzfuz36WUL00ayg4U2Yhu80HNo=
+	t=1736550286; cv=none; b=An63x8e4VpnzsnbiZkpJclr+HaUu10v2dxmz/kLK6Tp2UPU4o7jus/xAQzFj8G6MI+vDph9snEASaLkdhkfkaJOC1TGul8juXFgOYsHgRnDDQf6VZSTAwnIPvP5aT9sau+m4L+ivh1Reipnfy2sFU0tWiYmn2KOAI7ZyQc1npWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736550283; c=relaxed/simple;
-	bh=064LH+wQVodCG3ClAHXHlCowxLhtFWecOmXz8oIddrI=;
-	h=Date:To:From:Subject:Message-Id; b=IQocaz8HONi4WnLKGqXlHmUTGLAtoAZHp95dP+fqN6vlnrJJcZRxYdJ02D0DJm0cAgMbN2mlzxGQ+v7cCn5T74QF3H38IIRsZyHO4BrDUMugHEUkS/q1uEn84OToUa8ve+DiVYhj5tmZRMh+3kDQ8I9LgSRIWRRvqB7nn2AEY30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rF03f8yn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736550286; c=relaxed/simple;
+	bh=5w+PE3+ggjbbXnn5sQsN0NK+nSFkW3MaNWOMqZ47ylo=;
+	h=Date:To:From:Subject:Message-Id; b=OXdwvysopFzQnDx4zDlzMZ/uc6acmcCNhdiPweE0Q70mCW7QSjpi56keQzLYe0B94oESJ//KxqFD7Yw+PC9bgUP6b/v6ihPL+Fm+Gu3vXB9CQUKOTktVEcZzVIGdQCfnUmUX24ybQkKSKtfNIp/ncTB1KuSXns8xxEYptR/hd0Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ElVO87C0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rF03f8yn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BD9FC4CED6;
-	Fri, 10 Jan 2025 23:04:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ElVO87C0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0418EC4CED6;
+	Fri, 10 Jan 2025 23:04:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736550283;
-	bh=064LH+wQVodCG3ClAHXHlCowxLhtFWecOmXz8oIddrI=;
+	s=korg; t=1736550286;
+	bh=5w+PE3+ggjbbXnn5sQsN0NK+nSFkW3MaNWOMqZ47ylo=;
 	h=Date:To:From:Subject:From;
-	b=rF03f8ynxM2/G3w8N+sbolT4JchrIoF0M6UXWdpysgXYFqdQ9fmmZNGJ7hKXHxAOh
-	 7e4koSVxkJWYqVKGr8lGMg6uhNgSFTiA3oTEWbkBC6L/QXIuMDzzXkG7/0ircnudtJ
-	 kzFbP6Us4XyFO5z1w2UBgmILmRsi2mAHfRdMhGms=
-Date: Fri, 10 Jan 2025 15:04:42 -0800
+	b=ElVO87C0FNPxuYmmQet00H5mXTasDCGFTBSFqt8SEhOJWUhN88Lb9cEKMrGrSGlqy
+	 lpXoQWKp1HoD9ihfdLwpNq6561bFoaIjm/YSnP6Wf506ZX6GD8ZOz6nU/bVrnqiDzU
+	 KPUuRn9mrLJd4lESGBV2NXENSt9e/eQL8y15Ru1A=
+Date: Fri, 10 Jan 2025 15:04:45 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb.patch added to mm-unstable branch
-Message-Id: <20250110230443.5BD9FC4CED6@smtp.kernel.org>
+Subject: + mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios.patch added to mm-unstable branch
+Message-Id: <20250110230446.0418EC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: rename folio_putback_active_hugetlb() to folio_putback_hugetlb()
+     Subject: mm/hugetlb-cgroup: convert hugetlb_cgroup_css_offline() to work on folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb.patch
+     mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,107 +59,77 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: rename folio_putback_active_hugetlb() to folio_putback_hugetlb()
-Date: Fri, 10 Jan 2025 19:21:47 +0100
+Subject: mm/hugetlb-cgroup: convert hugetlb_cgroup_css_offline() to work on folios
+Date: Fri, 10 Jan 2025 19:21:48 +0100
 
-Now that folio_putback_hugetlb() is only called on folios that were
-previously isolated through folio_isolate_hugetlb(), let's rename it to
-match folio_putback_lru().
+Let's convert hugetlb_cgroup_css_offline() and
+hugetlb_cgroup_move_parent() to work on folios.  hugepage_activelist
+contains folios, not pages.
 
-Add some kernel doc to clarify how this function is supposed to be used.
+While at it, rename page_hcg simply to hcg, removing most of the "page"
+terminology.
 
-Link: https://lkml.kernel.org/r/20250110182149.746551-5-david@redhat.com
+Also removes an unnecessary call to compound_head().
+
+Link: https://lkml.kernel.org/r/20250110182149.746551-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++--
- mm/hugetlb.c            |   15 +++++++++++++--
- mm/migrate.c            |    6 +++---
- 3 files changed, 18 insertions(+), 7 deletions(-)
+ mm/hugetlb_cgroup.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb
-+++ a/include/linux/hugetlb.h
-@@ -157,7 +157,7 @@ bool folio_isolate_hugetlb(struct folio
- int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 				bool *migratable_cleared);
--void folio_putback_active_hugetlb(struct folio *folio);
-+void folio_putback_hugetlb(struct folio *folio);
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
- void hugetlb_fix_reserve_counts(struct inode *inode);
- extern struct mutex *hugetlb_fault_mutex_table;
-@@ -430,7 +430,7 @@ static inline int get_huge_page_for_hwpo
- 	return 0;
- }
- 
--static inline void folio_putback_active_hugetlb(struct folio *folio)
-+static inline void folio_putback_hugetlb(struct folio *folio)
- {
- }
- 
---- a/mm/hugetlb.c~mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb
-+++ a/mm/hugetlb.c
-@@ -7430,7 +7430,7 @@ __weak unsigned long hugetlb_mask_last_p
-  * it is already isolated/non-migratable.
-  *
-  * On success, an additional folio reference is taken that must be dropped
-- * using folio_putback_active_hugetlb() to undo the isolation.
-+ * using folio_putback_hugetlb() to undo the isolation.
-  *
-  * Return: True if isolation worked, otherwise False.
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios
++++ a/mm/hugetlb_cgroup.c
+@@ -195,24 +195,23 @@ static void hugetlb_cgroup_css_free(stru
+  * cannot fail.
   */
-@@ -7482,7 +7482,18 @@ int get_huge_page_for_hwpoison(unsigned
- 	return ret;
- }
- 
--void folio_putback_active_hugetlb(struct folio *folio)
-+/**
-+ * folio_putback_hugetlb: unisolate a hugetlb folio
-+ * @folio: the isolated hugetlb folio
-+ *
-+ * Putback/un-isolate the hugetlb folio that was previous isolated using
-+ * folio_isolate_hugetlb(): marking it non-isolated/migratable and putting it
-+ * back onto the active list.
-+ *
-+ * Will drop the additional folio reference obtained through
-+ * folio_isolate_hugetlb().
-+ */
-+void folio_putback_hugetlb(struct folio *folio)
+ static void hugetlb_cgroup_move_parent(int idx, struct hugetlb_cgroup *h_cg,
+-				       struct page *page)
++				       struct folio *folio)
  {
- 	spin_lock_irq(&hugetlb_lock);
- 	folio_set_hugetlb_migratable(folio);
---- a/mm/migrate.c~mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb
-+++ a/mm/migrate.c
-@@ -137,7 +137,7 @@ void putback_movable_pages(struct list_h
+ 	unsigned int nr_pages;
+ 	struct page_counter *counter;
+-	struct hugetlb_cgroup *page_hcg;
++	struct hugetlb_cgroup *hcg;
+ 	struct hugetlb_cgroup *parent = parent_hugetlb_cgroup(h_cg);
+-	struct folio *folio = page_folio(page);
  
- 	list_for_each_entry_safe(folio, folio2, l, lru) {
- 		if (unlikely(folio_test_hugetlb(folio))) {
--			folio_putback_active_hugetlb(folio);
-+			folio_putback_hugetlb(folio);
- 			continue;
+-	page_hcg = hugetlb_cgroup_from_folio(folio);
++	hcg = hugetlb_cgroup_from_folio(folio);
+ 	/*
+ 	 * We can have pages in active list without any cgroup
+ 	 * ie, hugepage with less than 3 pages. We can safely
+ 	 * ignore those pages.
+ 	 */
+-	if (!page_hcg || page_hcg != h_cg)
++	if (!hcg || hcg != h_cg)
+ 		goto out;
+ 
+-	nr_pages = compound_nr(page);
++	nr_pages = folio_nr_pages(folio);
+ 	if (!parent) {
+ 		parent = root_h_cgroup;
+ 		/* root has no limit */
+@@ -235,13 +234,13 @@ static void hugetlb_cgroup_css_offline(s
+ {
+ 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(css);
+ 	struct hstate *h;
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	do {
+ 		for_each_hstate(h) {
+ 			spin_lock_irq(&hugetlb_lock);
+-			list_for_each_entry(page, &h->hugepage_activelist, lru)
+-				hugetlb_cgroup_move_parent(hstate_index(h), h_cg, page);
++			list_for_each_entry(folio, &h->hugepage_activelist, lru)
++				hugetlb_cgroup_move_parent(hstate_index(h), h_cg, folio);
+ 
+ 			spin_unlock_irq(&hugetlb_lock);
  		}
- 		list_del(&folio->lru);
-@@ -1454,7 +1454,7 @@ static int unmap_and_move_huge_page(new_
- 
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
--		folio_putback_active_hugetlb(src);
-+		folio_putback_hugetlb(src);
- 		return MIGRATEPAGE_SUCCESS;
- 	}
- 
-@@ -1537,7 +1537,7 @@ out_unlock:
- 	folio_unlock(src);
- out:
- 	if (rc == MIGRATEPAGE_SUCCESS)
--		folio_putback_active_hugetlb(src);
-+		folio_putback_hugetlb(src);
- 	else if (rc != -EAGAIN)
- 		list_move_tail(&src->lru, ret);
- 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
