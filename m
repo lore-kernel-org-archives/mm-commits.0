@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1737514286
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:00:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B8D1DDA8
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 00:10:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736467254; cv=none; b=u8Hn8TQjh8GrCr6K2JpesR46IXlZ2plthEEs4Zn7Vhynilao5MRtbrZ5009oRqWfg7Yw+3DUtm6UmrVqvCkzvAiaiu3+//SWMfcZFMBIYhN7z5fM2F1AuceWzI3dZY42KHSOlC7irRtrAutVCw8NjVvO7Tw8E59rznx2F+jjoBI=
+	t=1736467843; cv=none; b=Y+X92P1CAQkywUyMqB1hxZLivgTOq8tUwoX67rOVjaAhnrK7yEag4yhDioyoLyeWOMwO71p5ygBrjDCJZKpzDAi0MS1ZRNcXkIix+50iNWKECnX3wlTsahPzIJCV3PvAltBU1qefR1uxHSWT07mvX5M5KpDCZ++BPB3Kgen20nw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736467254; c=relaxed/simple;
-	bh=eWvlFz+/p5sSWYEKcrV4BYOmYlsMR/676ujOfaO7Bc0=;
-	h=Date:To:From:Subject:Message-Id; b=tUvvVcXaavD3ZmBfBFAXYbsExTFB+vHpvm2b+unllIdTiqDRvtx66rqW79AglRLdOYLHUYB4BqcjiQfsq0PSdgumBPC0lrgyuVyXv+p2pWwNrh2TiuYYrC+2U2EHgd7jotdTn5TOkyGDBOtKMDxEA8eEDqaWVkn5fYUaAiyDT40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kkz2dRkL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736467843; c=relaxed/simple;
+	bh=XMrpyaT3HkKyU3jR88qtEoWV0Pn+c/xn3OecpuLVaL0=;
+	h=Date:To:From:Subject:Message-Id; b=PJQOgzcJwje+Mt12FSOYyv2bEhmpyxqtRFwR7NLVxtWNtBy1iWh7VNLCgtweosOj8dXzfXdhutqH/d3Hv3Szi8Ps9bHPMZh7RD6Uydc/SaeLMrvlpwJOXk1tnFzHDQpnnR2wGYeXhSlHYGiDCxwfG5Qgo3QCSGR3yRXdkgX9nc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vO2eZBNf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kkz2dRkL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9654EC4CED2;
-	Fri, 10 Jan 2025 00:00:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vO2eZBNf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7C8DC4CED2;
+	Fri, 10 Jan 2025 00:10:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736467253;
-	bh=eWvlFz+/p5sSWYEKcrV4BYOmYlsMR/676ujOfaO7Bc0=;
+	s=korg; t=1736467842;
+	bh=XMrpyaT3HkKyU3jR88qtEoWV0Pn+c/xn3OecpuLVaL0=;
 	h=Date:To:From:Subject:From;
-	b=kkz2dRkL+4ZtRCZa8m/aM3VC9oEUYX8nvJv3rQmNAqqRYs/UQilT9t96Y/2BdBNLa
-	 vjjfn1Cam7j+mny4pXONahlTVGWbCl7Dpqyor1Vc7UauiRCByNugmVvr1eY/Amxs/l
-	 llvwuUDjWv2gC6BUhr1bcCJZV+yUoFcfMmY/wp/0=
-Date: Thu, 09 Jan 2025 16:00:52 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jstultz@google.com,jeffxu@chromium.org,axelrasmussen@google.com,aliceryhl@google.com,isaacmanjarres@google.com,akpm@linux-foundation.org
+	b=vO2eZBNfTHLIbJBFh0MGi+ZJ7n53CF0MNGJW/TDABPTjHSYyqoppCUsz9GRgs7YTN
+	 lHK4ZyxXmj+HJa+97iV1uH+aCZfhMn++lFKWgJ1U9q1g0XEtxS7QyRRRMJb1rdE4JK
+	 OaWmT4kX3jF7zmTAkMjDPO0CMi9pDPNqwi63sFBA=
+Date: Thu, 09 Jan 2025 16:10:42 -0800
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch added to mm-unstable branch
-Message-Id: <20250110000053.9654EC4CED2@smtp.kernel.org>
+Subject: + mm-damon-fixup-damos_filter-kernel-doc.patch added to mm-unstable branch
+Message-Id: <20250110001042.B7C8DC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd: use strncpy_from_user() to read memfd name
+     Subject: mm/damon: fixup damos_filter kernel-doc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     mm-damon-fixup-damos_filter-kernel-doc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-fixup-damos_filter-kernel-doc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,140 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/memfd: use strncpy_from_user() to read memfd name
-Date: Thu, 9 Jan 2025 10:59:05 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: fixup damos_filter kernel-doc
+Date: Thu, 9 Jan 2025 09:51:17 -0800
 
-The existing logic uses strnlen_user() to calculate the length of the
-memfd name from userspace and then copies the string into a buffer using
-copy_from_user().  This is error-prone, as the string length could have
-changed between the time when it was calculated and when the string was
-copied.  The existing logic handles this by ensuring that the last byte in
-the buffer is the terminating zero.
+Patch series "mm/damon: extend DAMOS filters for inclusion", v2.
 
-This handling is contrived and can better be handled by using
-strncpy_from_user(), which gets the length of the string and copies it in
-one shot.  Therefore, simplify the logic for copying the memfd name by
-using strncpy_from_user().
+DAMOS fitlers are exclusive filters.  It only excludes memory of given
+criterias from the DAMOS action targets.  This has below limitations.
 
-No functional change.
+First, the name is not explicitly explaining the behavior.  This actually
+resulted in users' confusions[1].  Secondly, combined uses of multiple
+filters provide only restriced coverages.  For example, building a DAMOS
+scheme that applies the action to memory that belongs to cgroup A "or"
+cgroup B is impossible.  A workaround would be using two schemes that
+fitlers out memory that not belong to cgroup A and cgroup B, respectively.
+It is cumbersome, and difficult to control quota-like per-scheme features
+in an orchestration.  Monitoring of filters-passed memory statistic will
+also be complicated.
 
-Link: https://lkml.kernel.org/r/20250109185908.1006310-3-isaacmanjarres@google.com
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: John Stultz <jstultz@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Extend DAMOS filters to support not only exclusion (rejecting), but also
+inclusion (allowing) behavior.  For this, add a new damos_filter struct
+field called 'allow' for DAMON kernel API users.  The filter works as an
+inclusion or exclusion filter when it is set or unset, respectively.  For
+DAMON user-space ABI users, add a DAMON sysfs file of same name under
+DAMOS filter sysfs directory.  To prevent exposing a behavioral change to
+old users, set rejecting as the default behavior.
+
+Note that allow-filters work for only inclusion, not exclusion of memory
+that not satisfying the criteria.  And the default behavior of DAMOS for
+memory that no filter has involved is that the action can be applied to
+those memory.  Also, filters-passed memory statistics are for any memory
+that passed through the DAMOS filters check stage.  These implies
+installing allow-filters at the endof the filter list is useless.  Refer
+to the design doc change of this series for more details.
+
+[1] https://lore.kernel.org/20240320165619.71478-1-sj@kernel.org
+
+
+This patch (of 10):
+
+The comment is slightly wrong.  DAMOS filters are not only for pages, but
+general bytes of memory.  Also the description of 'matching' is bit
+confusing, since DAMOS filters do only filtering out.  Update the comments
+to be less confusing.
+
+Link: https://lkml.kernel.org/r/20250109175126.57878-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250109175126.57878-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ include/linux/damon.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/memfd.c~mm-memfd-use-strncpy_from_user-to-read-memfd-name
-+++ a/mm/memfd.c
-@@ -396,26 +396,18 @@ static char *alloc_name(const char __use
- 	char *name;
- 	long len;
+--- a/include/linux/damon.h~mm-damon-fixup-damos_filter-kernel-doc
++++ a/include/linux/damon.h
+@@ -347,8 +347,8 @@ enum damos_filter_type {
  
--	/* length includes terminating zero */
--	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
--	if (len <= 0)
--		return ERR_PTR(-EFAULT);
--	if (len > MFD_NAME_MAX_LEN + 1)
--		return ERR_PTR(-EINVAL);
--
--	name = kmalloc(len + MFD_NAME_PREFIX_LEN, GFP_KERNEL);
-+	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
- 		return ERR_PTR(-ENOMEM);
- 
- 	strcpy(name, MFD_NAME_PREFIX);
--	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
-+	/* returned length does not include terminating zero */
-+	len = strncpy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, MFD_NAME_MAX_LEN + 1);
-+	if (len < 0) {
- 		error = -EFAULT;
- 		goto err_name;
--	}
--
--	/* terminating-zero may have changed after strnlen_user() returned */
--	if (name[len + MFD_NAME_PREFIX_LEN - 1]) {
--		error = -EFAULT;
-+	} else if (len > MFD_NAME_MAX_LEN) {
-+		error = -EINVAL;
- 		goto err_name;
- 	}
- 
+ /**
+  * struct damos_filter - DAMOS action target memory filter.
+- * @type:	Type of the page.
+- * @matching:	If the matching page should filtered out or in.
++ * @type:	Type of the target memory.
++ * @matching:	If the @type-matching memory should be filtered out.
+  * @memcg_id:	Memcg id of the question if @type is DAMOS_FILTER_MEMCG.
+  * @addr_range:	Address range if @type is DAMOS_FILTER_TYPE_ADDR.
+  * @target_idx:	Index of the &struct damon_target of
+@@ -357,9 +357,10 @@ enum damos_filter_type {
+  * @list:	List head for siblings.
+  *
+  * Before applying the &damos->action to a memory region, DAMOS checks if each
+- * page of the region matches to this and avoid applying the action if so.
+- * Support of each filter type depends on the running &struct damon_operations
+- * and the type.  Refer to &enum damos_filter_type for more detai.
++ * byte of the region matches to this given condition and avoid applying the
++ * action if so.  Support of each filter type depends on the running &struct
++ * damon_operations and the type.  Refer to &enum damos_filter_type for more
++ * details.
+  */
+ struct damos_filter {
+ 	enum damos_filter_type type;
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch
-mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+samples-add-a-skeleton-of-a-sample-damon-module-for-working-set-size-estimation.patch
+samples-damon-wsse-start-and-stop-damon-as-the-user-requests.patch
+samples-damon-wsse-implement-working-set-size-estimation-and-logging.patch
+samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch
+samples-damon-prcl-implement-schemes-setup.patch
+replace-free-hugepage-folios-after-migration-fix-2.patch
+mm-damon-sysfs-schemes-remove-unnecessary-schemes-existence-check-in-damon_sysfs_schemes_clear_regions.patch
+mm-damon-sysfs-handle-clear_schemes_tried_regions-from-damon-sysfs-context.patch
+mm-damon-core-introduce-damon_call.patch
+mm-damon-sysfs-use-damon_call-for-update_schemes_stats.patch
+mm-damon-sysfs-use-damon_call-for-commit_schemes_quota_goals.patch
+mm-damon-sysfs-use-damon_call-for-update_schemes_effective_quotas.patch
+mm-damon-core-implement-damos_walk.patch
+docs-mm-damon-design-document-damos-regions-walking.patch
+mm-damon-sysfs-use-damos_walk-for-update_schemes_tried_bytesregions.patch
+mm-damon-sysfs-remove-unused-code-for-schemes-tried-regions-update.patch
+mm-damon-clarify-trying-vs-applying-on-damos_stat-kernel-doc-comment.patch
+docs-mm-damon-design-add-statistics-section.patch
+docs-admin-guide-mm-damon-usage-link-damos-stat-design-doc.patch
+mm-damon-ask-apply_scheme-to-report-filter-passed-region-internal-bytes.patch
+mm-damon-paddr-report-filter-passed-bytes-back-for-normal-actions.patch
+mm-damon-paddr-report-filter-passed-bytes-back-for-damos_stat-action.patch
+mm-damon-core-implement-per-scheme-ops-handled-filter-passed-bytes-stat.patch
+mm-damon-syfs-schemes-implement-per-scheme-filter-passed-bytes-stat.patch
+docs-mm-damon-design-document-sz_ops_filter_passed.patch
+docs-admin-guide-mm-damon-usage-document-sz_ops_filter_passed.patch
+docs-abi-damon-document-per-scheme-filter-passed-bytes-stat-file.patch
+mm-damon-core-pass-per-region-filter-passed-bytes-to-damos_walk_control-walk_fn.patch
+mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes.patch
+docs-mm-damon-design-document-per-region-sz_filter_passed-stat.patch
+docs-admin-guide-mm-damon-usage-document-sz_filtered_out-of-scheme-tried-region-directories.patch
+docs-abi-damon-document-per-region-damos-filter-passed-bytes-stat-file.patch
+docs-translations-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
+docs-admin-guide-mm-damon-usage-remove-damon-debugfs-interface-documentation.patch
+docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch
+selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch
+selftests-damon-remove-tests-for-damon-debugfs-interface.patch
+kunit-configs-remove-configs-for-damon-debugfs-interface-tests.patch
+mm-damon-remove-damon-debugfs-interface-kunit-tests.patch
+mm-damon-remove-damon-debugfs-interface.patch
+mm-damon-fixup-damos_filter-kernel-doc.patch
+mm-damon-core-add-damos_filter-allow-field.patch
+mm-damon-core-support-damos_filter-allow.patch
+mm-damon-paddr-support-damos_filter-allow.patch
+mm-damon-add-allow-argument-to-damos_new_filter.patch
+mm-damon-sysfs-schemes-add-a-file-for-setting-damos_filter-allow.patch
+docs-mm-damon-design-document-allow-reject-damos-filter-behaviors.patch
+docs-abi-damon-document-damos-filter-allow-sysfs-file.patch
+docs-admin-guide-mm-damon-usage-omit-damos-filter-details-in-favor-of-design-doc.patch
+docs-admin-guide-mm-damon-usage-document-damos-filter-allow-sysfs-file.patch
 
