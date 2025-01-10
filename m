@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4AFD2063E0
-	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:20:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46FA221D5A2
+	for <mm-commits@vger.kernel.org>; Fri, 10 Jan 2025 23:26:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736551201; cv=none; b=L/yImkKcg15wMS/DkoCpXTmqJhrNqIMLk5ttP2sUPqsnoFU6a7e0YQ9nRuQ79zE9Sm7SrEjuBxiqrO4vHbngyDzJ3bQadIrrssDknjuoLnBPYEXqv7h5hP6rhB0HuJHl4dFVxpYU+rsO8nS39bBUKyZIAygUOKuFAMGX1mpxEsA=
+	t=1736551562; cv=none; b=md+R0NZ86VuHdKoMSjNGjNdc8WeaT40gLKjKD3CNDvYwqOh+o9SRY0kN/r+gqAc9jbLho95YkBWYyoVEGfY+lbhOgBTEFTwedy9uuW6LISBEFZKWz3vZiSvcoRkYbV3P2tFMViyipuT35vo90U75SVdQgJzp0Tz9bRDk91GRgns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736551201; c=relaxed/simple;
-	bh=sw+H7uj85YDZ+FWJ/0pDP2JkaF2DHEE1mxuvud6teeY=;
-	h=Date:To:From:Subject:Message-Id; b=P5S9MtLVqCXXG1EB1nYQwjD2jiax11Zy7Nv6hy1HvpZVOpAylD89RnLFVgmbtpeaIk1JK7U55u4TvSBgIWOC8DbuxB/vrYenRo6k2EvwKaL04wRFBKJOkLlNnhNv3kixYDzGEIIrxpCFHdwXjNlGox3TpzGbvHxNwXBYEvHg5l0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Hce+vh/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736551562; c=relaxed/simple;
+	bh=dUtPIfb+zpysgyv8ft6fPUPuN0tGPMmOZnMtrj+uc54=;
+	h=Date:To:From:Subject:Message-Id; b=PgV/Fgww7xGNZzTGHFgRNM9i/devr66eGxDb0UIDwAFycMOHlZGXx5yurldm4UOQeXtlTcGrE5r+JLtt/wEY25dQLymt1zsREfQW+vYLww+u+yFN3CulineFj0ryN8dukJ9DHPaoL2609NNbXTD/62CDLhhN0N85P2j8fqVKf+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ShQGZmmT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Hce+vh/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BFF2C4CEE5;
-	Fri, 10 Jan 2025 23:20:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ShQGZmmT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBE47C4CED6;
+	Fri, 10 Jan 2025 23:26:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736551201;
-	bh=sw+H7uj85YDZ+FWJ/0pDP2JkaF2DHEE1mxuvud6teeY=;
+	s=korg; t=1736551561;
+	bh=dUtPIfb+zpysgyv8ft6fPUPuN0tGPMmOZnMtrj+uc54=;
 	h=Date:To:From:Subject:From;
-	b=1Hce+vh/Xm7tQXnvfLVQG8KG61cUj7TCMZ/gejoOQl9wqDEUb2koapvej8FvdMTRu
-	 ffW6TNBvkYZx3Q07iqRAKzgE7DbaBpFLXGdHbPLLx6etYD10FRXR8+NzzoMVK5DKJa
-	 xoXHiNJpkJ9zsV/Qe//TZ4eXUYcM/0b9CVXcL8BQ=
-Date: Fri, 10 Jan 2025 15:20:00 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jstultz@google.com,aliceryhl@google.com,isaacmanjarres@google.com,akpm@linux-foundation.org
+	b=ShQGZmmTj7CmkIBiaU1py7DXtfOm773gXDR10DkagFZV2zjkdnCgHqwe+6lGt0IEG
+	 Ah3xr4GZzWKFjeSbCHxoQwybEmQlpmt6jlx0cTm1JC7SVszs5GisU1XrbCIOyj5YZL
+	 5Oj03yY1vxaBwTwNtX9VooFx0+gO0BD4U8ZSVlqg=
+Date: Fri, 10 Jan 2025 15:26:01 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch added to mm-unstable branch
-Message-Id: <20250110232001.7BFF2C4CEE5@smtp.kernel.org>
+Subject: + mm-fix-assertion-in-folio_end_read.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250110232601.CBE47C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd: Use strncpy_from_user() to read memfd name
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     Subject: mm: fix assertion in folio_end_read()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-assertion-in-folio_end_read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-assertion-in-folio_end_read.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,76 +58,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/memfd: Use strncpy_from_user() to read memfd name
-Date: Fri, 10 Jan 2025 08:59:00 -0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: fix assertion in folio_end_read()
+Date: Fri, 10 Jan 2025 16:32:57 +0000
 
-The existing logic uses strnlen_user() to calculate the length of the
-memfd name from userspace and then copies the string into a buffer using
-copy_from_user().  This is error-prone, as the string length could have
-changed between the time when it was calculated and when the string was
-copied.  The existing logic handles this by ensuring that the last byte in
-the buffer is the terminating zero.
+We only need to assert that the uptodate flag is clear if we're going to
+set it.  This hasn't been a problem before now because we have only used
+folio_end_read() when completing with an error, but it's convenient to use
+it in squashfs if we discover the folio is already uptodate.
 
-This handling is contrived and can better be handled by using
-strncpy_from_user(), which gets the length of the string and copies it in
-one shot.  Therefore, simplify the logic for copying the memfd name by
-using strncpy_from_user().
-
-No functional change.
-
-Link: https://lkml.kernel.org/r/20250110165904.3437374-3-isaacmanjarres@google.com
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: John Stultz <jstultz@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20250110163300.3346321-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memfd.c~mm-memfd-use-strncpy_from_user-to-read-memfd-name
-+++ a/mm/memfd.c
-@@ -396,26 +396,18 @@ static char *alloc_name(const char __use
- 	char *name;
- 	long len;
+--- a/mm/filemap.c~mm-fix-assertion-in-folio_end_read
++++ a/mm/filemap.c
+@@ -1523,7 +1523,7 @@ void folio_end_read(struct folio *folio,
+ 	/* Must be in bottom byte for x86 to work */
+ 	BUILD_BUG_ON(PG_uptodate > 7);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+-	VM_BUG_ON_FOLIO(folio_test_uptodate(folio), folio);
++	VM_BUG_ON_FOLIO(success && folio_test_uptodate(folio), folio);
  
--	/* length includes terminating zero */
--	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
--	if (len <= 0)
--		return ERR_PTR(-EFAULT);
--	if (len > MFD_NAME_MAX_LEN + 1)
--		return ERR_PTR(-EINVAL);
--
--	name = kmalloc(len + MFD_NAME_PREFIX_LEN, GFP_KERNEL);
-+	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
- 		return ERR_PTR(-ENOMEM);
- 
- 	strcpy(name, MFD_NAME_PREFIX);
--	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
-+	/* returned length does not include terminating zero */
-+	len = strncpy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, MFD_NAME_MAX_LEN + 1);
-+	if (len < 0) {
- 		error = -EFAULT;
- 		goto err_name;
--	}
--
--	/* terminating-zero may have changed after strnlen_user() returned */
--	if (name[len + MFD_NAME_PREFIX_LEN - 1]) {
--		error = -EFAULT;
-+	} else if (len > MFD_NAME_MAX_LEN) {
-+		error = -EINVAL;
- 		goto err_name;
- 	}
- 
+ 	if (likely(success))
+ 		mask |= 1 << PG_uptodate;
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-memfd-refactor-and-cleanup-the-logic-in-memfd_create.patch
-mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+mm-fix-assertion-in-folio_end_read.patch
+mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
+mm-make-alloc_pages_mpol-static.patch
+mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
+mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
+mm-page_alloc-add-__alloc_frozen_pages.patch
+mm-mempolicy-add-alloc_frozen_pages.patch
+slab-allocate-frozen-pages.patch
+mm-remove-pagetranstail.patch
+ocfs2-handle-a-symlink-read-error-correctly.patch
+ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
+ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
+ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
+ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
+iov_iter-remove-setting-of-page-index.patch
+squashfs-use-a-folio-throughout-squashfs_read_folio.patch
+squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
+squashfs-convert-squashfs_readpage_block-to-take-a-folio.patch
+squashfs-convert-squashfs_copy_cache-to-take-a-folio.patch
+squashfs-convert-squashfs_fill_page-to-take-a-folio.patch
 
