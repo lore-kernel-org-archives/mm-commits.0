@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE40942A8F
-	for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 01:45:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863ED610D
+	for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 02:23:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736559945; cv=none; b=d6q9RS1bKX+3fZECzlIUhgCA45jrVEJf60tcut4MVOZyUZ6uqWtdT1H+PRBEtFDovwZL+4AQTqZrqBIVScbFfRf54WWLcs8JHnoZ0rU8wQkk30IRVY6uNCCw/yxfWwKlVQWpmUrUREfvizdIGd3YAvOhYDGz4+ylDItPv5yTKmg=
+	t=1736562229; cv=none; b=W2IzkpHRy2ZmrUofOOSCjMXFnnDxbb68AFqDvoBdoPhZkmJ6FYJUbfDMKK7Tb+vqLoUaklDtZDJ2N/LRyQqwn9ryJuzwi25xQCuNIZS8pILpYAkVkrpp+OYaBuuYqTrvvfIQlwBpVKjzw889OePo6+7KhBOVm2LHaN68wM+ENQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736559945; c=relaxed/simple;
-	bh=94wkZcMXJa0TcO17lFFo0JwTGNDTQPMcfIUB0Ma8Bq4=;
-	h=Date:To:From:Subject:Message-Id; b=RVptTWWga71r6KZhzlvMp/LI9qhNzMZjiXi3P/aoIVO2s0ccIwI2R9fHFsnTcj2kA3cJQbP4RvqEwmfL0FvHMNjch4Eb4YtGSMn8aJv1lfMEL7G63RmcwB0DFHBkbhg3I3BzIHzGjT2GZoqm/Aho4vru+V7Z0o2AAyFEVord8pc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=amHo4LZn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736562229; c=relaxed/simple;
+	bh=vhc20oTQx2wcmz/P6cfPdMM1wmSdHD0B92tgQy3lFwA=;
+	h=Date:To:From:Subject:Message-Id; b=YJ1pI4Z+2kasKMamjiGLgPcLzu5V7io2lgAFEVytsLKf1ld3MQRM4M7A5xJaQzyZ+WLWXU+v8+/n3RHcHBm4BT05iKVPb6P4HJ+7Pb2ClsWWyeW7hm4RjMm/0Qrc+q487iUa39DTxYAl3B8mAv51+KwkQE/QRyWsO+DL/SO6S5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B57R4ssN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="amHo4LZn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EDE5C4CED6;
-	Sat, 11 Jan 2025 01:45:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B57R4ssN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7401C4CED6;
+	Sat, 11 Jan 2025 02:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736559945;
-	bh=94wkZcMXJa0TcO17lFFo0JwTGNDTQPMcfIUB0Ma8Bq4=;
+	s=korg; t=1736562228;
+	bh=vhc20oTQx2wcmz/P6cfPdMM1wmSdHD0B92tgQy3lFwA=;
 	h=Date:To:From:Subject:From;
-	b=amHo4LZnOFRuqGV3PCSlnPuNlrtfycAiV6cA23tSvBfBlz1WRWjdE/RReVsSIZk43
-	 1JHYG4ULGAL7//b7DPulTaKQlbeGfg6BLrpBgq8bHQ5cQHmZT39ygFv0ylnFycvVBt
-	 iB2XX+r85EJiStd0H6f9wTIxMZi/0OsBaOJuMLa4=
-Date: Fri, 10 Jan 2025 17:45:44 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=B57R4ssNg105bJtM8wiGSrktZjNCDCjw5raUTC+Dwf4SRifxmZW3/6w9MuFmX8Tt6
+	 9ZEDLWKDudydUIhMJVJ3iKAXWEWhnAcCNLmYP5BNtLxKP7wRAz4inf/IMF7PFRs6cC
+	 Ga9Gd6v65EW8CuPOXnfOJnqysGRyOFUudKRRdDIA=
+Date: Fri, 10 Jan 2025 18:23:48 -0800
+To: mm-commits@vger.kernel.org,gissf1@gmail.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + replace-free-hugepage-folios-after-migration-fix-3.patch added to mm-unstable branch
-Message-Id: <20250111014545.2EDE5C4CED6@smtp.kernel.org>
+Subject: + nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20250111022348.D7401C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: prevent reuse of isolated free hugepages
-has been added to the -mm mm-unstable branch.  Its filename is
-     replace-free-hugepage-folios-after-migration-fix-3.patch
+     Subject: nilfs2: correct return value kernel-doc descriptions for ioctl functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/replace-free-hugepage-folios-after-migration-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,443 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm/hugetlb: prevent reuse of isolated free hugepages
-Date: Fri, 10 Jan 2025 10:56:06 +0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: correct return value kernel-doc descriptions for ioctl functions
+Date: Fri, 10 Jan 2025 10:01:44 +0900
 
-When there are free hugetlb folios in the hugetlb pool, during the
-migration of in-use hugetlb folios, new folios is allocated from the free
-hugetlb pool.  After the migration is completed, the old folios are
-released back to the free hugetlb pool.  However, after the old folios are
-released to the free hugetlb pool, they may be reallocated.  When
-replace_free_hugepage_folios() is executed later, it cannot release these
-old folios back to the buddy system.
+Patch series "nilfs2: fix kernel-doc comments for function return values",
+v2.
 
-As discussed with David in [1], when alloc_contig_range() is used to
-migrate multiple in-use hugetlb pages, it can lead to the issue described
-above.  For example:
+This series fixes the inadequacies in the return value descriptions in
+nilfs2's kernel-doc comments (mainly incorrect formatting), as well as the
+lack of return value descriptions themselves, and fixes most of the
+remaining warnings that are output when the kernel-doc script is run with
+the "-Wall" option.
 
-[huge 0] [huge 1]
 
-To migrate huge 0, we obtain huge x from the pool.  After the migration is
-completed, we return the now-freed huge 0 back to the pool.  When it's
-time to migrate huge 1, we can simply reuse the now-freed huge 0 from the
-pool.  As a result, when replace_free_hugepage_folios() is executed, it
-cannot release huge 0 back to the buddy system.
+This patch (of 7):
 
-To solve the problem above, we should prevent reuse of isolated free
-hugepages.
+In the kernel-doc comments for functions, there are many cases where the
+format of the return value description is inaccurate, such as "Return
+Value: ...", which causes many warnings to be output when the kernel-doc
+script is executed with the "-Wall" option.
 
-Link: https://lore.kernel.org/lkml/1734503588-16254-1-git-send-email-yangge1116@126.com/
-Link: https://lkml.kernel.org/r/1736477766-23525-1-git-send-email-yangge1116@126.com
-Fixes: 08d312ee4c0a ("mm: replace free hugepage folios after migration")
-Signed-off-by: yangge <yangge1116@126.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
+This fixes such incorrectly formatted return value descriptions for ioctl
+functions.
+
+Link: https://lkml.kernel.org/r/20250110010530.21872-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20250110010530.21872-2-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: "Brian G ." <gissf1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/nilfs2/ioctl.c |  231 ++++++++++++++++++--------------------------
+ 1 file changed, 95 insertions(+), 136 deletions(-)
 
---- a/mm/hugetlb.c~replace-free-hugepage-folios-after-migration-fix-3
-+++ a/mm/hugetlb.c
-@@ -48,6 +48,7 @@
- #include <linux/page_owner.h>
- #include "internal.h"
- #include "hugetlb_vmemmap.h"
-+#include <linux/page-isolation.h>
- 
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
-@@ -1336,6 +1337,9 @@ static struct folio *dequeue_hugetlb_fol
- 		if (folio_test_hwpoison(folio))
- 			continue;
- 
-+		if (is_migrate_isolate_page(&folio->page))
-+			continue;
-+
- 		list_move(&folio->lru, &h->hugepage_activelist);
- 		folio_ref_unfreeze(folio, 1);
- 		folio_clear_hugetlb_freed(folio);
+--- a/fs/nilfs2/ioctl.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions
++++ a/fs/nilfs2/ioctl.c
+@@ -33,17 +33,14 @@
+  * @dofunc: concrete function of get/set metadata info
+  *
+  * Description: nilfs_ioctl_wrap_copy() gets/sets metadata info by means of
+- * calling dofunc() function on the basis of @argv argument.
++ * calling dofunc() function on the basis of @argv argument.  If successful,
++ * the requested metadata information is copied to userspace memory.
+  *
+- * Return Value: On success, 0 is returned and requested metadata info
+- * is copied into userspace. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EINVAL - Invalid arguments from userspace.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-EFAULT - Failure during execution of requested operation.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EFAULT	- Failure during execution of requested operation.
++ * * %-EINVAL	- Invalid arguments from userspace.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_wrap_copy(struct the_nilfs *nilfs,
+ 				 struct nilfs_argv *argv, int dir,
+@@ -190,13 +187,10 @@ static int nilfs_ioctl_getversion(struct
+  * given checkpoint between checkpoint and snapshot state. This ioctl
+  * is used in chcp and mkcp utilities.
+  *
+- * Return Value: On success, 0 is returned and mode of a checkpoint is
+- * changed. On error, one of the following negative error codes
+- * is returned.
+- *
+- * %-EPERM - Operation not permitted.
+- *
+- * %-EFAULT - Failure during checkpoint mode changing.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * %-EFAULT	- Failure during checkpoint mode changing.
++ * %-EPERM	- Operation not permitted.
+  */
+ static int nilfs_ioctl_change_cpmode(struct inode *inode, struct file *filp,
+ 				     unsigned int cmd, void __user *argp)
+@@ -244,13 +238,10 @@ out:
+  * checkpoint from NILFS2 file system. This ioctl is used in rmcp
+  * utility.
+  *
+- * Return Value: On success, 0 is returned and a checkpoint is
+- * removed. On error, one of the following negative error codes
+- * is returned.
+- *
+- * %-EPERM - Operation not permitted.
+- *
+- * %-EFAULT - Failure during checkpoint removing.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * %-EFAULT	- Failure during checkpoint removing.
++ * %-EPERM	- Operation not permitted.
+  */
+ static int
+ nilfs_ioctl_delete_checkpoint(struct inode *inode, struct file *filp,
+@@ -296,7 +287,7 @@ out:
+  * requested checkpoints. The NILFS_IOCTL_GET_CPINFO ioctl is used in
+  * lscp utility and by nilfs_cleanerd daemon.
+  *
+- * Return value: count of nilfs_cpinfo structures in output buffer.
++ * Return: Count of nilfs_cpinfo structures in output buffer.
+  */
+ static ssize_t
+ nilfs_ioctl_do_get_cpinfo(struct the_nilfs *nilfs, __u64 *posp, int flags,
+@@ -320,17 +311,14 @@ nilfs_ioctl_do_get_cpinfo(struct the_nil
+  *
+  * Description: nilfs_ioctl_get_cpstat() returns information about checkpoints.
+  * The NILFS_IOCTL_GET_CPSTAT ioctl is used by lscp, rmcp utilities
+- * and by nilfs_cleanerd daemon.
++ * and by nilfs_cleanerd daemon.  The checkpoint statistics are copied to
++ * the userspace memory pointed to by @argp.
+  *
+- * Return Value: On success, 0 is returned, and checkpoints information is
+- * copied into userspace pointer @argp. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-EFAULT - Failure during getting checkpoints statistics.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EFAULT	- Failure during getting checkpoints statistics.
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_get_cpstat(struct inode *inode, struct file *filp,
+ 				  unsigned int cmd, void __user *argp)
+@@ -363,7 +351,8 @@ static int nilfs_ioctl_get_cpstat(struct
+  * info about requested segments. The NILFS_IOCTL_GET_SUINFO ioctl is used
+  * in lssu, nilfs_resize utilities and by nilfs_cleanerd daemon.
+  *
+- * Return value: count of nilfs_suinfo structures in output buffer.
++ * Return: Count of nilfs_suinfo structures in output buffer on success,
++ * or a negative error code on failure.
+  */
+ static ssize_t
+ nilfs_ioctl_do_get_suinfo(struct the_nilfs *nilfs, __u64 *posp, int flags,
+@@ -387,17 +376,14 @@ nilfs_ioctl_do_get_suinfo(struct the_nil
+  *
+  * Description: nilfs_ioctl_get_sustat() returns segment usage statistics.
+  * The NILFS_IOCTL_GET_SUSTAT ioctl is used in lssu, nilfs_resize utilities
+- * and by nilfs_cleanerd daemon.
+- *
+- * Return Value: On success, 0 is returned, and segment usage information is
+- * copied into userspace pointer @argp. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
++ * and by nilfs_cleanerd daemon.  The requested segment usage information is
++ * copied to the userspace memory pointed to by @argp.
+  *
+- * %-EFAULT - Failure during getting segment usage statistics.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EFAULT	- Failure during getting segment usage statistics.
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_get_sustat(struct inode *inode, struct file *filp,
+ 				  unsigned int cmd, void __user *argp)
+@@ -430,7 +416,8 @@ static int nilfs_ioctl_get_sustat(struct
+  * on virtual block addresses. The NILFS_IOCTL_GET_VINFO ioctl is used
+  * by nilfs_cleanerd daemon.
+  *
+- * Return value: count of nilfs_vinfo structures in output buffer.
++ * Return: Count of nilfs_vinfo structures in output buffer on success, or
++ * a negative error code on failure.
+  */
+ static ssize_t
+ nilfs_ioctl_do_get_vinfo(struct the_nilfs *nilfs, __u64 *posp, int flags,
+@@ -457,7 +444,8 @@ nilfs_ioctl_do_get_vinfo(struct the_nilf
+  * about descriptors of disk block numbers. The NILFS_IOCTL_GET_BDESCS ioctl
+  * is used by nilfs_cleanerd daemon.
+  *
+- * Return value: count of nilfs_bdescs structures in output buffer.
++ * Return: Count of nilfs_bdescs structures in output buffer on success, or
++ * a negative error code on failure.
+  */
+ static ssize_t
+ nilfs_ioctl_do_get_bdescs(struct the_nilfs *nilfs, __u64 *posp, int flags,
+@@ -494,19 +482,15 @@ nilfs_ioctl_do_get_bdescs(struct the_nil
+  *
+  * Description: nilfs_ioctl_do_get_bdescs() function returns information
+  * about descriptors of disk block numbers. The NILFS_IOCTL_GET_BDESCS ioctl
+- * is used by nilfs_cleanerd daemon.
+- *
+- * Return Value: On success, 0 is returned, and disk block descriptors are
+- * copied into userspace pointer @argp. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EINVAL - Invalid arguments from userspace.
++ * is used by nilfs_cleanerd daemon.  If successful, disk block descriptors
++ * are copied to userspace pointer @argp.
+  *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-EFAULT - Failure during getting disk block descriptors.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EFAULT	- Failure during getting disk block descriptors.
++ * * %-EINVAL	- Invalid arguments from userspace.
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_get_bdescs(struct inode *inode, struct file *filp,
+ 				  unsigned int cmd, void __user *argp)
+@@ -540,16 +524,12 @@ static int nilfs_ioctl_get_bdescs(struct
+  * Description: nilfs_ioctl_move_inode_block() function registers data/node
+  * buffer in the GC pagecache and submit read request.
+  *
+- * Return Value: On success, 0 is returned. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOENT - Requested block doesn't exist.
+- *
+- * %-EEXIST - Blocks conflict is detected.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EEXIST	- Block conflict detected.
++ * * %-EIO	- I/O error.
++ * * %-ENOENT	- Requested block doesn't exist.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_move_inode_block(struct inode *inode,
+ 					struct nilfs_vdesc *vdesc,
+@@ -604,8 +584,8 @@ static int nilfs_ioctl_move_inode_block(
+  * blocks that garbage collector specified with the array of nilfs_vdesc
+  * structures and stores them into page caches of GC inodes.
+  *
+- * Return Value: Number of processed nilfs_vdesc structures or
+- * error code, otherwise.
++ * Return: Number of processed nilfs_vdesc structures on success, or
++ * a negative error code on failure.
+  */
+ static int nilfs_ioctl_move_blocks(struct super_block *sb,
+ 				   struct nilfs_argv *argv, void *buf)
+@@ -682,14 +662,11 @@ static int nilfs_ioctl_move_blocks(struc
+  * in the period from p_start to p_end, excluding p_end itself. The checkpoints
+  * which have been already deleted are ignored.
+  *
+- * Return Value: Number of processed nilfs_period structures or
+- * error code, otherwise.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-EINVAL - invalid checkpoints.
++ * Return: Number of processed nilfs_period structures on success, or one of
++ * the following negative error codes on failure:
++ * * %-EINVAL	- invalid checkpoints.
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_delete_checkpoints(struct the_nilfs *nilfs,
+ 					  struct nilfs_argv *argv, void *buf)
+@@ -717,14 +694,11 @@ static int nilfs_ioctl_delete_checkpoint
+  * Description: nilfs_ioctl_free_vblocknrs() function frees
+  * the virtual block numbers specified by @buf and @argv->v_nmembs.
+  *
+- * Return Value: Number of processed virtual block numbers or
+- * error code, otherwise.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOENT - The virtual block number have not been allocated.
++ * Return: Number of processed virtual block numbers on success, or one of the
++ * following negative error codes on failure:
++ * * %-EIO	- I/O error.
++ * * %-ENOENT	- Unallocated virtual block number.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_free_vblocknrs(struct the_nilfs *nilfs,
+ 				      struct nilfs_argv *argv, void *buf)
+@@ -746,14 +720,11 @@ static int nilfs_ioctl_free_vblocknrs(st
+  * Description: nilfs_ioctl_mark_blocks_dirty() function marks
+  * metadata file or data blocks as dirty.
+  *
+- * Return Value: Number of processed block descriptors or
+- * error code, otherwise.
+- *
+- * %-ENOMEM - Insufficient memory available.
+- *
+- * %-EIO - I/O error
+- *
+- * %-ENOENT - the specified block does not exist (hole block)
++ * Return: Number of processed block descriptors on success, or one of the
++ * following negative error codes on failure:
++ * * %-EIO	- I/O error.
++ * * %-ENOENT	- Non-existent block (hole block).
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_mark_blocks_dirty(struct the_nilfs *nilfs,
+ 					 struct nilfs_argv *argv, void *buf)
+@@ -852,7 +823,7 @@ int nilfs_ioctl_prepare_clean_segments(s
+  * from userspace. The NILFS_IOCTL_CLEAN_SEGMENTS ioctl is used by
+  * nilfs_cleanerd daemon.
+  *
+- * Return Value: On success, 0 is returned or error code, otherwise.
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_ioctl_clean_segments(struct inode *inode, struct file *filp,
+ 				      unsigned int cmd, void __user *argp)
+@@ -976,20 +947,14 @@ out:
+  * and metadata are written out to the device when it successfully
+  * returned.
+  *
+- * Return Value: On success, 0 is retured. On errors, one of the following
+- * negative error code is returned.
+- *
+- * %-EROFS - Read only filesystem.
+- *
+- * %-EIO - I/O error
+- *
+- * %-ENOSPC - No space left on device (only in a panic state).
+- *
+- * %-ERESTARTSYS - Interrupted.
+- *
+- * %-ENOMEM - Insufficient memory available.
+- *
+- * %-EFAULT - Failure during execution of requested operation.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EFAULT		- Failure during execution of requested operation.
++ * * %-EIO		- I/O error.
++ * * %-ENOMEM		- Insufficient memory available.
++ * * %-ENOSPC		- No space left on device (only in a panic state).
++ * * %-ERESTARTSYS	- Interrupted.
++ * * %-EROFS		- Read only filesystem.
+  */
+ static int nilfs_ioctl_sync(struct inode *inode, struct file *filp,
+ 			    unsigned int cmd, void __user *argp)
+@@ -1023,7 +988,7 @@ static int nilfs_ioctl_sync(struct inode
+  * @filp: file object
+  * @argp: pointer on argument from userspace
+  *
+- * Return Value: On success, 0 is returned or error code, otherwise.
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_ioctl_resize(struct inode *inode, struct file *filp,
+ 			      void __user *argp)
+@@ -1059,7 +1024,7 @@ out:
+  * checks the arguments from userspace and calls nilfs_sufile_trim_fs, which
+  * performs the actual trim operation.
+  *
+- * Return Value: On success, 0 is returned or negative error code, otherwise.
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_ioctl_trim_fs(struct inode *inode, void __user *argp)
+ {
+@@ -1101,7 +1066,7 @@ static int nilfs_ioctl_trim_fs(struct in
+  * of segments in bytes and upper limit of segments in bytes.
+  * The NILFS_IOCTL_SET_ALLOC_RANGE is used by nilfs_resize utility.
+  *
+- * Return Value: On success, 0 is returned or error code, otherwise.
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_ioctl_set_alloc_range(struct inode *inode, void __user *argp)
+ {
+@@ -1152,17 +1117,15 @@ out:
+  * @dofunc: concrete function of getting metadata info
+  *
+  * Description: nilfs_ioctl_get_info() gets metadata info by means of
+- * calling dofunc() function.
+- *
+- * Return Value: On success, 0 is returned and requested metadata info
+- * is copied into userspace. On error, one of the following
+- * negative error codes is returned.
+- *
+- * %-EINVAL - Invalid arguments from userspace.
++ * calling dofunc() function.  The requested metadata information is copied
++ * to userspace memory @argp.
+  *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-EFAULT - Failure during execution of requested operation.
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EFAULT	- Failure during execution of requested operation.
++ * * %-EINVAL	- Invalid arguments from userspace.
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_ioctl_get_info(struct inode *inode, struct file *filp,
+ 				unsigned int cmd, void __user *argp,
+@@ -1202,18 +1165,14 @@ static int nilfs_ioctl_get_info(struct i
+  * encapsulated in nilfs_argv and updates the segment usage info
+  * according to the flags in nilfs_suinfo_update.
+  *
+- * Return Value: On success, 0 is returned. On error, one of the
+- * following negative error codes is returned.
+- *
+- * %-EPERM - Not enough permissions
+- *
+- * %-EFAULT - Error copying input data
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-EINVAL - Invalid values in input (segment number, flags or nblocks)
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EEXIST	- Block conflict detected.
++ * * %-EFAULT	- Error copying input data.
++ * * %-EINVAL	- Invalid values in input (segment number, flags or nblocks).
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
++ * * %-EPERM	- Not enough permissions.
+  */
+ static int nilfs_ioctl_set_suinfo(struct inode *inode, struct file *filp,
+ 				unsigned int cmd, void __user *argp)
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-replace-free-hugepage-folios-after-migration.patch
-replace-free-hugepage-folios-after-migration-fix-3.patch
-mm-compaction-skip-memory-compaction-when-there-are-not-enough-migratable-pages.patch
+nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch
+nilfs2-protect-access-to-buffers-with-no-active-references.patch
+nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions.patch
+nilfs2-correct-return-value-kernel-doc-descriptions-for-bmap-functions.patch
+nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile.patch
+nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files.patch
+nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest.patch
+nilfs2-add-missing-return-value-kernel-doc-descriptions.patch
+nilfs2-revise-the-return-value-description-style-for-consistency.patch
 
