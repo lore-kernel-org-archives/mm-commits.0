@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F1D97E0FF
-	for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 02:56:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49CED49641
+	for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 02:59:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736564164; cv=none; b=jVBx+z1XqgOUUwCh/sp8GMg87whZJxtl3GE3y6ttrCCa28bgEw8muafJf/S8/zOFItVPgaZM1jbyBgadFEwdmGpEhwYmNZ06oZLPYPRBjP8CoViVy8vnL8944128tpXX92sXt0xF23WAqPlS/G3zrFvbQWVJSvDrWtfPTDQLxrk=
+	t=1736564387; cv=none; b=flBBDdbHbDncG4JZ+3rRPr+PQfCSme8v/+Mt1xrFl4ygTjA7YjIpnZPiHbNyIrTI/pfXhPmdPd1f3aqzAx4AGcZgEkQwB+Ofo0kEPzRFf1l0mCFhyGotYesFifSlAB528bFDzk27fPqouOx4grBukW7Tc4aE2T+M3ZE2Vr1RwLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736564164; c=relaxed/simple;
-	bh=GF3bWI0ejqbwyWWiiJnbFlq6BWeV8zQSFYuHhvZ3aIE=;
-	h=Date:To:From:Subject:Message-Id; b=Bdi8d6PA6W3UlVXP5Y6E87BMR8IGHCn4pPFgDDcpKUmQL3+i7PdRC8+aobAxa7vEq6rN4uskIcU6W15ONzhJkJseh/7b1kvi3Ta7eprXaEA0/tLTYLQ+RzkhnGaCerKnofXONw3BCLZV0LAgqQprEbwvI3SNBSl7Pl3SWQWCj88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gmXsCElQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736564387; c=relaxed/simple;
+	bh=Ze8MLiMdRnFbks7Miffunq/i9UnnNnknAFehEsLMqKo=;
+	h=Date:To:From:Subject:Message-Id; b=fbXsAXmrDclAJisa3vZXv/0D3bweFmbw/+uUcwjbKQ5nD8tx38iYOU/KnVEMDm0K1Bz4FUn1Ks4LyEdOrgOECTmI/po/7XcxVg2IYP296NK+VigzqcO+ow0pvSNZkBlk1ZXMT37xzPFlJpyRCnSgOZU5Gilk4B82eXLqBP1sA84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/hoLtXo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gmXsCElQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D386C4CED6;
-	Sat, 11 Jan 2025 02:56:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/hoLtXo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED72BC4CED6;
+	Sat, 11 Jan 2025 02:59:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736564163;
-	bh=GF3bWI0ejqbwyWWiiJnbFlq6BWeV8zQSFYuHhvZ3aIE=;
+	s=korg; t=1736564387;
+	bh=Ze8MLiMdRnFbks7Miffunq/i9UnnNnknAFehEsLMqKo=;
 	h=Date:To:From:Subject:From;
-	b=gmXsCElQYBUdybPclTfojgLt8HoV1/LGAaZkXE43IIK7GPaNDyV60gkJEpOYrRWzz
-	 YWK5mul4ooytOGSlycKs5lxvNCaoFZh5Fjh7nHtbIj6/+93bfDOVC4GoEwopvlbK3w
-	 LF5FjI+QF5KUFJDJaznbFJGYpR/s5nCugyEe8DGo=
-Date: Fri, 10 Jan 2025 18:56:02 -0800
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shuah@kernel.org,riel@surriel.com,alexlzhu@fb.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=A/hoLtXoR2zgOxPHsoj+6B7vF38gSacxZEFOfJrlCzGcsu4S9RY48YdYpXZyUbHLH
+	 jQ35g7AL0T0Cl8QzVHEGUVi1yYQtC9GuSnHfbEPWOOIAwQ7sKqNUcyMaFOVTtFMcpt
+	 0P2EFm6yRbcUvH1211lEtYYwx4ARnvuYBaoHPZF4=
+Date: Fri, 10 Jan 2025 18:59:46 -0800
+To: mm-commits@vger.kernel.org,kaiyang2@cs.cmu.edu,lizhijian@fujitsu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch added to mm-unstable branch
-Message-Id: <20250111025603.8D386C4CED6@smtp.kernel.org>
+Subject: + mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250111025946.ED72BC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add tests for splitting pmd THPs to all lower orders
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
+     Subject: mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,78 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: add tests for splitting pmd THPs to all lower orders
-Date: Fri, 10 Jan 2025 18:50:28 -0500
+From: Li Zhijian <lizhijian@fujitsu.com>
+Subject: mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2
+Date: Sat, 11 Jan 2025 09:52:53 +0800
 
-Kernel already supports splitting a folio to any lower order. Test it.
+introduce local nr_demoted to fix nr_reclaimed double counting
 
-Link: https://lkml.kernel.org/r/20250110235028.96824-2-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Alexander Zhu <alexlzhu@fb.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Link: https://lkml.kernel.org/r/20250111015253.425693-1-lizhijian@fujitsu.com
+Fixes: f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA balancing operations")
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   13 +++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -144,7 +144,7 @@ void split_pmd_zero_pages(void)
- 	free(one_page);
- }
+--- a/mm/vmscan.c~mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2
++++ a/mm/vmscan.c
+@@ -1053,7 +1053,7 @@ static unsigned int shrink_folio_list(st
+ 	struct folio_batch free_folios;
+ 	LIST_HEAD(ret_folios);
+ 	LIST_HEAD(demote_folios);
+-	unsigned int nr_reclaimed = 0;
++	unsigned int nr_reclaimed = 0, nr_demoted = 0;
+ 	unsigned int pgactivate = 0;
+ 	bool do_demote_pass;
+ 	struct swap_iocb *plug = NULL;
+@@ -1522,8 +1522,9 @@ keep:
+ 	/* 'folio_list' is always empty here */
  
--void split_pmd_thp(void)
-+void split_pmd_thp_to_order(int order)
- {
- 	char *one_page;
- 	size_t len = 4 * pmd_pagesize;
-@@ -164,7 +164,7 @@ void split_pmd_thp(void)
- 
- 	/* split all THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
--		(uint64_t)one_page + len, 0);
-+		(uint64_t)one_page + len, order);
- 
- 	for (i = 0; i < len; i++)
- 		if (one_page[i] != (char)i)
-@@ -174,7 +174,7 @@ void split_pmd_thp(void)
- 	if (!check_huge_anon(one_page, 0, pmd_pagesize))
- 		ksft_exit_fail_msg("Still AnonHugePages not split\n");
- 
--	ksft_test_result_pass("Split huge pages successful\n");
-+	ksft_test_result_pass("Split huge pages to order %d successful\n", order);
- 	free(one_page);
- }
- 
-@@ -481,7 +481,7 @@ int main(int argc, char **argv)
- 	if (argc > 1)
- 		optional_xfs_path = argv[1];
- 
--	ksft_set_plan(4+9);
-+	ksft_set_plan(1+9+2+9);
- 
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
-@@ -492,7 +492,10 @@ int main(int argc, char **argv)
- 	fd_size = 2 * pmd_pagesize;
- 
- 	split_pmd_zero_pages();
--	split_pmd_thp();
-+
-+	for (i = 0; i < 9; i++)
-+		split_pmd_thp_to_order(i);
-+
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
- 
+ 	/* Migrate folios selected for demotion */
+-	stat->nr_demoted += demote_folio_list(&demote_folios, pgdat);
+-	nr_reclaimed += stat->nr_demoted;
++	nr_demoted = demote_folio_list(&demote_folios, pgdat);
++	nr_reclaimed += nr_demoted;
++	stat->nr_demoted += nr_demoted;
+ 	/* Folios that could not be demoted are still in @demote_folios */
+ 	if (!list_empty(&demote_folios)) {
+ 		/* Folios which weren't demoted go back on @folio_list */
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from lizhijian@fujitsu.com are
 
-selftests-mm-use-selftests-framework-to-print-test-result.patch
-selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
+mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics.patch
+mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch
+mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled.patch
+selftests-mm-add-a-few-missing-gitignore-files.patch
 
