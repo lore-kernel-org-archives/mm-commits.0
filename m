@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FFA11114;
-	Sat, 11 Jan 2025 00:27:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2190C5C96;
+	Sat, 11 Jan 2025 00:33:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736555220; cv=none; b=Orl0vfNPLWnSADDedN4LKdJJnMBalCpsPgkIRQuSC2HJ1jnigZlSt5aepwKADnSs5lJU7nQi3Vp+zF2v2DVIgsK9Qkic/YyKF7zPsMnpbg2HwPZMVAvFzJhvsOf/lUFx4rUdMtusogLWaoXTltH82sgSspI6NC58i+C2nNg+ovM=
+	t=1736555609; cv=none; b=fFm0Ig+38M4ox+e+7LX65RL2puEdf6wsD/9PERw78Jy00+DBKR2WUXJV24RCsFKZ3keiIlObIv4/vPZ1uv2ngbTDEpWpW7aa2cu7hx3BJrINsRmiAvS7whb2npBz7vFryAQ5FsyvDtYiEXFfGlKi000IGiwSIk0H8pulWR1bk0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736555220; c=relaxed/simple;
-	bh=KNFl3RxXXwuBNnJZ1sLmmZNKfV1R5wxmFVtgs9X+e20=;
-	h=Date:To:From:Subject:Message-Id; b=JvqX5ii/sSSxBYccS//m6jTnDcqz265eNTSnXKQZGBi7srHorrysCQ+0msj8L+xD7nQ6/WcTFauIDW9gsG4e5ws1Dlx5xZicRhM/D8q9YT18E1l7ajxNbaxjrBE3u5fA/y/xd4WhSpY2nfwgHtXXMtISj9XiARqdwNabG2qKptQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fmDfXqq4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736555609; c=relaxed/simple;
+	bh=NNpi/QIv4UBU2vxyZUyPXHVZCWRgX7q7A6/qOmyogjw=;
+	h=Date:To:From:Subject:Message-Id; b=IALn8GJbCxEB0UVL6OyM9tY1XYYfhHbaW9uV3+adCyYQf/YUnNQi4YHpps+xy1QXEnV7NgNPXpzyFANqzeeC17Dotnkbphk2H16KJSWbXK01koVV4FeYe9B9w1XXMHHjD14BA5gWm1mV7MB/GXYjeIQi41YmpV3u3RsQfdI07bo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bFFAflOm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fmDfXqq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2A13C4CED6;
-	Sat, 11 Jan 2025 00:26:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bFFAflOm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BCEFC4CED6;
+	Sat, 11 Jan 2025 00:33:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736555220;
-	bh=KNFl3RxXXwuBNnJZ1sLmmZNKfV1R5wxmFVtgs9X+e20=;
+	s=korg; t=1736555608;
+	bh=NNpi/QIv4UBU2vxyZUyPXHVZCWRgX7q7A6/qOmyogjw=;
 	h=Date:To:From:Subject:From;
-	b=fmDfXqq4iPQIbmOe+KVS9b7NH9CzBTOPndcHF3tNhJJGg9mfN93QOT20dALEabT7V
-	 hBCYL+v9zd1QKb/YeHpvVfi+tO4MsxvutlZefBviMFXDmHcJogAk7CCk5xswjipy2s
-	 5sVjNBgk46ua1ySgcB2S3l6VERMYnehDzDZZ5YNA=
-Date: Fri, 10 Jan 2025 16:26:59 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kaiyang2@cs.cmu.edu,lizhijian@fujitsu.com,akpm@linux-foundation.org
+	b=bFFAflOmeJTlgCoVdFjZfukKhop10P4Zp1xBVMODqzlerpn+ekcT3zOOSCCd/eZsR
+	 0s6/DG7EEsMEjDa+OCnu3/izkL2sG/RBlCj3dQ20FkLielF7oWxariXk14f5Agm0qs
+	 0P1RDgBdbZYx6lXdiBcK211rc4pWZwIhBkiCkgfQ=
+Date: Fri, 10 Jan 2025 16:33:28 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kbingham@kernel.org,baohua@kernel.org,jan.kiszka@siemens.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250111002659.E2A13C4CED6@smtp.kernel.org>
+Subject: + scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250111003328.8BCEFC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: fix pgdemote_* accounting with lru_gen_enabled
+     Subject: scripts/gdb: fix aarch64 userspace detection in get_current_task
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled.patch
+     scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,48 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li Zhijian <lizhijian@fujitsu.com>
-Subject: mm/vmscan: fix pgdemote_* accounting with lru_gen_enabled
-Date: Fri, 10 Jan 2025 20:21:33 +0800
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Subject: scripts/gdb: fix aarch64 userspace detection in get_current_task
+Date: Fri, 10 Jan 2025 11:36:33 +0100
 
-Commit f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA
-balancing operations") moved the accounting of PGDEMOTE_* statistics to
-shrink_inactive_list().  However, shrink_inactive_list() is not called
-when lrugen_enabled is true, leading to incorrect demotion statistics
-despite actual demotion events occurring.
+At least recent gdb releases (seen with 14.2) return SP_EL0 as signed long
+which lets the right-shift always return 0.
 
-Add the PGDEMOTE_* accounting in evict_folios(), ensuring that demotion
-statistics are correctly updated regardless of the lru_gen_enabled state. 
-This fix is crucial for systems that rely on accurate NUMA balancing
-metrics for performance tuning and resource management.
-
-Link: https://lkml.kernel.org/r/20250110122133.423481-2-lizhijian@fujitsu.com
-Fixes: f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA balancing operations")
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Link: https://lkml.kernel.org/r/dcd2fabc-9131-4b48-8419-6444e2d67454@siemens.com
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/gdb/linux/cpus.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled
-+++ a/mm/vmscan.c
-@@ -4649,6 +4649,8 @@ retry:
- 	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
- 					stat.nr_demoted);
- 
-+	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
-+			   stat.nr_demoted);
- 	item = PGSTEAL_KSWAPD + reclaimer_offset();
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, reclaimed);
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task
++++ a/scripts/gdb/linux/cpus.py
+@@ -167,7 +167,7 @@ def get_current_task(cpu):
+             var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
+             return per_cpu(var_ptr, cpu).dereference()
+     elif utils.is_target_arch("aarch64"):
+-        current_task_addr = gdb.parse_and_eval("$SP_EL0")
++        current_task_addr = gdb.parse_and_eval("(unsigned long)$SP_EL0")
+         if (current_task_addr >> 63) != 0:
+             current_task = current_task_addr.cast(task_ptr_type)
+             return current_task.dereference()
 _
 
-Patches currently in -mm which might be from lizhijian@fujitsu.com are
+Patches currently in -mm which might be from jan.kiszka@siemens.com are
 
-mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics.patch
-mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled.patch
-selftests-mm-add-a-few-missing-gitignore-files.patch
+scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task.patch
 
