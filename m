@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EC1513B29F
-	for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 02:24:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3173A7E0FF
+	for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 02:56:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736562250; cv=none; b=fyVIGBjbLiDhX4okugufsx77ZZh4IE5sPPH8uODgNTctY6iWyEg58lcHWSG7aBpvOwsKDs2WEEiYr+YfEe6JTGgmzVlljAElnb/4/iyLCgUc+Ue0+71qNVDVQAnGVU1uDdLENad7ldy9WbtchfxsI+zXAsOb5NF4pazGZKONH8k=
+	t=1736564162; cv=none; b=CsBRdA60jJM97cYWe4BdH4s29Chk+/IuPboqTVkHIBzx5KNjmNTvF+K+eDO0nHpLtvQwDWcp/fXZuIKSQJAhBj84DSPyiRj3xT4Um9doVmHoOjNKK0V5Uy5GqE8aEUWQxGMYU4jt6bG1ZCsU35ABQVHw9yYLK7bcfBONXtMA56A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736562250; c=relaxed/simple;
-	bh=HYsVePGFVWEs9LpQXEBtny5i6N2k8Wpc0IccdyOgDGo=;
-	h=Date:To:From:Subject:Message-Id; b=qMz4ulHhH1hxjB4D/C0l0Wdb+GyDr92sWpypwPa0A4tIPV1mWZ2mOAbtS/qreTL8okr2HpzHzV4SVKfF1K9jMjGa1F+tkc4UCaesRYEGCjm4uqvmbVMXyKuQJ6ZYBWYyCVXR6ltL8a5Q0uQtigaNtqnz7O+0V+4YoENCdAM0Nh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f2u3E6Xm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736564162; c=relaxed/simple;
+	bh=uBTSLZrLjrkmgFL4zBAuxiTRQzIbNnwgVPdJfAg1D2U=;
+	h=Date:To:From:Subject:Message-Id; b=jLJd9ii8QXB/+8uwYBEMZXV8M1hjDI5opoRrV1kh35Vt4NmPXsF+bUFEdLiHlB/8fcFU/0tvlwdMRSDrPic7rO0D2z9JKlfGwUOQN7XZn7bl2Wue+zSClXsWy46+p2nYWasq+JIAIc5PnZLOwFFFCAmZ6D3vX3YkbPbAYsPoCL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AJBSQTGJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f2u3E6Xm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1C56C4CED6;
-	Sat, 11 Jan 2025 02:24:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AJBSQTGJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87386C4CED6;
+	Sat, 11 Jan 2025 02:56:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736562250;
-	bh=HYsVePGFVWEs9LpQXEBtny5i6N2k8Wpc0IccdyOgDGo=;
+	s=korg; t=1736564161;
+	bh=uBTSLZrLjrkmgFL4zBAuxiTRQzIbNnwgVPdJfAg1D2U=;
 	h=Date:To:From:Subject:From;
-	b=f2u3E6XmOIMH1FS0Zz9zrPfI6T8neYlRSrjlUB8qtsgZPxpyB0QnehEvu7w4RzzG1
-	 lXD3/TnTsyHFVkvfJ5ruX+n4v++e8dtan1//w6g310gDUEXo0l3VZHWTudrUDjvVOL
-	 a+NXWvtcYeyINLIlsgLORljITm/ktUpbetsUake0=
-Date: Fri, 10 Jan 2025 18:24:09 -0800
-To: mm-commits@vger.kernel.org,gissf1@gmail.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=AJBSQTGJ8uy/Vgdbovy4bPd+kqVJWzy0cNhp5msmIQ1m+cEQ4opkgkIxT9FXZ69d/
+	 vQxhtXsUDuaTUBIvzr8lufZRP5CBscR9T6wKL7XNf+ESLOPPtfRE+s+Lx7gPa7F60A
+	 VWmlo32XO++ICyt3ENoSReWxg4jJF+LEXF/4B7Bg=
+Date: Fri, 10 Jan 2025 18:56:00 -0800
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shuah@kernel.org,riel@surriel.com,alexlzhu@fb.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-revise-the-return-value-description-style-for-consistency.patch added to mm-nonmm-unstable branch
-Message-Id: <20250111022409.E1C56C4CED6@smtp.kernel.org>
+Subject: + selftests-mm-use-selftests-framework-to-print-test-result.patch added to mm-unstable branch
+Message-Id: <20250111025601.87386C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: revise the return value description style for consistency.
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-revise-the-return-value-description-style-for-consistency.patch
+     Subject: selftests/mm: use selftests framework to print test result
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-use-selftests-framework-to-print-test-result.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-revise-the-return-value-description-style-for-consistency.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-selftests-framework-to-print-test-result.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,183 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: revise the return value description style for consistency.
-Date: Fri, 10 Jan 2025 10:01:50 +0900
+From: Zi Yan <ziy@nvidia.com>
+Subject: selftests/mm: use selftests framework to print test result
+Date: Fri, 10 Jan 2025 18:50:27 -0500
 
-Also for comments that do not cause kernel-doc warnings (those that list
-multiple error codes), revise the return value description style to match
-Brian G.'s suggestion of "..., or one of the following negative error
-codes on failure:".
+Otherwise the number of tests does not match the reality.
 
-Link: https://lkml.kernel.org/r/CAAq45aNh1qV8P6XgDhKeNstT=PvcPUaCXsAF-f9rvmzznsZL5A@mail.gmail.com
-Link: https://lkml.kernel.org/r/20250110010530.21872-8-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: "Brian G ." <gissf1@gmail.com>
+Link: https://lkml.kernel.org/r/20250110235028.96824-1-ziy@nvidia.com
+Fixes: 391e86971161 ("mm: selftest to verify zero-filled pages are mapped to zeropage")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Alexander Zhu <alexlzhu@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c  |    3 ++-
- fs/nilfs2/cpfile.c  |   16 ++++++++++------
- fs/nilfs2/dat.c     |    3 ++-
- fs/nilfs2/ifile.c   |    3 ++-
- fs/nilfs2/ioctl.c   |    3 ++-
- fs/nilfs2/segment.c |    6 ++++--
- fs/nilfs2/sufile.c  |    2 +-
- 7 files changed, 23 insertions(+), 13 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   34 ++++--------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/btnode.c
-@@ -201,7 +201,8 @@ void nilfs_btnode_delete(struct buffer_h
-  * Note that the current implementation does not support folio sizes larger
-  * than the page size.
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EIO	- I/O error (metadata corruption).
-  * * %-ENOMEM	- Insufficient memory available.
-  */
---- a/fs/nilfs2/cpfile.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/cpfile.c
-@@ -236,7 +236,8 @@ static inline int nilfs_cpfile_delete_ch
-  * stores it to the inode file given by @ifile and the nilfs root object
-  * given by @root.
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EINVAL	- Invalid checkpoint.
-  * * %-ENOMEM	- Insufficient memory available.
-  * * %-EIO	- I/O error (including metadata corruption).
-@@ -304,7 +305,8 @@ out_sem:
-  * In either case, the buffer of the block containing the checkpoint entry
-  * and the cpfile inode are made dirty for inclusion in the write log.
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-ENOMEM	- Insufficient memory available.
-  * * %-EIO	- I/O error (including metadata corruption).
-  * * %-EROFS	- Read only filesystem
-@@ -373,7 +375,8 @@ out_sem:
-  * cpfile with the data given by the arguments @root, @blkinc, @ctime, and
-  * @minor.
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-ENOMEM	- Insufficient memory available.
-  * * %-EIO	- I/O error (including metadata corruption).
-  */
-@@ -712,7 +715,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
-  * number to continue searching.
-  *
-  * Return: Count of checkpoint info items stored in the output buffer on
-- * success, or the following negative error code on failure.
-+ * success, or one of the following negative error codes on failure:
-  * * %-EINVAL	- Invalid checkpoint mode.
-  * * %-ENOMEM	- Insufficient memory available.
-  * * %-EIO	- I/O error (including metadata corruption).
-@@ -737,7 +740,8 @@ ssize_t nilfs_cpfile_get_cpinfo(struct i
-  * @cpfile: checkpoint file inode
-  * @cno:    checkpoint number to delete
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EBUSY	- Checkpoint in use (snapshot specified).
-  * * %-EIO	- I/O error (including metadata corruption).
-  * * %-ENOENT	- No valid checkpoint found.
-@@ -1005,7 +1009,7 @@ static int nilfs_cpfile_clear_snapshot(s
-  * @cno:    checkpoint number
-  *
-  * Return: 1 if the checkpoint specified by @cno is a snapshot, 0 if not, or
-- * the following negative error code on failure.
-+ * one of the following negative error codes on failure:
-  * * %-EIO	- I/O error (including metadata corruption).
-  * * %-ENOENT	- No such checkpoint.
-  * * %-ENOMEM	- Insufficient memory available.
---- a/fs/nilfs2/dat.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/dat.c
-@@ -276,7 +276,8 @@ void nilfs_dat_abort_update(struct inode
-  * @dat:      DAT file inode
-  * @vblocknr: virtual block number
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EINVAL	- Invalid DAT entry (internal code).
-  * * %-EIO	- I/O error (including metadata corruption).
-  * * %-ENOMEM	- Insufficient memory available.
---- a/fs/nilfs2/ifile.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/ifile.c
-@@ -172,7 +172,8 @@ int nilfs_ifile_count_free_inodes(struct
-  * @cno: number of checkpoint entry to read
-  * @inode_size: size of an inode
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EINVAL	- Invalid checkpoint.
-  * * %-ENOMEM	- Insufficient memory available.
-  * * %-EIO	- I/O error (including metadata corruption).
---- a/fs/nilfs2/ioctl.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/ioctl.c
-@@ -1268,7 +1268,8 @@ static int nilfs_ioctl_get_fslabel(struc
-  * @filp: file object
-  * @argp: pointer to userspace memory that contains the volume name
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EFAULT	- Error copying input data.
-  * * %-EINVAL	- Label length exceeds record size in superblock.
-  * * %-EIO	- I/O error.
---- a/fs/nilfs2/segment.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/segment.c
-@@ -1122,7 +1122,8 @@ static int nilfs_segctor_scan_file_dsync
-  * a super root block containing this sufile change is complete, and it can
-  * be canceled with nilfs_sufile_cancel_freev() until then.
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EINVAL	- Invalid segment number.
-  * * %-EIO	- I/O error (including metadata corruption).
-  * * %-ENOMEM	- Insufficient memory available.
-@@ -2834,7 +2835,8 @@ static void nilfs_segctor_destroy(struct
-  * This allocates a log writer object, initializes it, and starts the
-  * log writer.
-  *
-- * Return: 0 on success, or the following negative error code on failure.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-  * * %-EINTR	- Log writer thread creation failed due to interruption.
-  * * %-ENOMEM	- Insufficient memory available.
-  */
---- a/fs/nilfs2/sufile.c~nilfs2-revise-the-return-value-description-style-for-consistency
-+++ a/fs/nilfs2/sufile.c
-@@ -850,7 +850,7 @@ out:
-  * @nsi:    size of suinfo array
-  *
-  * Return: Count of segment usage info items stored in the output buffer on
-- * success, or the following negative error code on failure.
-+ * success, or one of the following negative error codes on failure:
-  * * %-EIO	- I/O error (including metadata corruption).
-  * * %-ENOMEM	- Insufficient memory available.
-  */
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-use-selftests-framework-to-print-test-result
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -108,38 +108,28 @@ static void verify_rss_anon_split_huge_p
+ 	unsigned long rss_anon_before, rss_anon_after;
+ 	size_t i;
+ 
+-	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
+-		printf("No THP is allocated\n");
+-		exit(EXIT_FAILURE);
+-	}
++	if (!check_huge_anon(one_page, 4, pmd_pagesize))
++		ksft_exit_fail_msg("No THP is allocated\n");
+ 
+ 	rss_anon_before = rss_anon();
+-	if (!rss_anon_before) {
+-		printf("No RssAnon is allocated before split\n");
+-		exit(EXIT_FAILURE);
+-	}
++	if (!rss_anon_before)
++		ksft_exit_fail_msg("No RssAnon is allocated before split\n");
+ 
+ 	/* split all THPs */
+ 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
+ 		      (uint64_t)one_page + len, 0);
+ 
+ 	for (i = 0; i < len; i++)
+-		if (one_page[i] != (char)0) {
+-			printf("%ld byte corrupted\n", i);
+-			exit(EXIT_FAILURE);
+-		}
++		if (one_page[i] != (char)0)
++			ksft_exit_fail_msg("%ld byte corrupted\n", i);
+ 
+-	if (!check_huge_anon(one_page, 0, pmd_pagesize)) {
+-		printf("Still AnonHugePages not split\n");
+-		exit(EXIT_FAILURE);
+-	}
++	if (!check_huge_anon(one_page, 0, pmd_pagesize))
++		ksft_exit_fail_msg("Still AnonHugePages not split\n");
+ 
+ 	rss_anon_after = rss_anon();
+-	if (rss_anon_after >= rss_anon_before) {
+-		printf("Incorrect RssAnon value. Before: %ld After: %ld\n",
++	if (rss_anon_after >= rss_anon_before)
++		ksft_exit_fail_msg("Incorrect RssAnon value. Before: %ld After: %ld\n",
+ 		       rss_anon_before, rss_anon_after);
+-		exit(EXIT_FAILURE);
+-	}
+ }
+ 
+ void split_pmd_zero_pages(void)
+@@ -150,7 +140,7 @@ void split_pmd_zero_pages(void)
+ 
+ 	one_page = allocate_zero_filled_hugepage(len);
+ 	verify_rss_anon_split_huge_page_all_zeroes(one_page, len);
+-	printf("Split zero filled huge pages successful\n");
++	ksft_test_result_pass("Split zero filled huge pages successful\n");
+ 	free(one_page);
+ }
+ 
+@@ -491,7 +481,7 @@ int main(int argc, char **argv)
+ 	if (argc > 1)
+ 		optional_xfs_path = argv[1];
+ 
+-	ksft_set_plan(3+9);
++	ksft_set_plan(4+9);
+ 
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-nilfs2-do-not-force-clear-folio-if-buffer-is-referenced.patch
-nilfs2-protect-access-to-buffers-with-no-active-references.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-ioctl-functions.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-bmap-functions.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-sufile.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-metadata-files.patch
-nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest.patch
-nilfs2-add-missing-return-value-kernel-doc-descriptions.patch
-nilfs2-revise-the-return-value-description-style-for-consistency.patch
+selftests-mm-use-selftests-framework-to-print-test-result.patch
+selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
 
