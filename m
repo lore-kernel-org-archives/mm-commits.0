@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 880DC219FF
-	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 05:46:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 581EB1482E1
+	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 05:46:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736660814; cv=none; b=gwM2uL5lRmmO4RA0HJkEg8TxHtOKEVXp2190uQNO7zNGNvOTgbbCodXOMUgBfJI9RTwoaBKU7lH5xYa5b/6oYGzdTDgtTqvLrQnUbfHCurFen+pRgAdnzialE3ZvUs7XdtLg4DCDZBXjRlS9vz8R/nlXZpjqIj//WErci8bViHE=
+	t=1736660816; cv=none; b=QplGQRjozd61IpGyGiPh/PJY/Zq1DLYfbTq0SFQvbspsoSlRJa0dFH8WY4F968S3+87JTq1B/KLAJoH//QFPFyWd7FzPRaTS+v9XM96Sj8A0xQHx6dQJMcYMnjptqo7dabUx7mQl65yvr+7k9jnJ7NODjJqc6uTYnobIpepNs7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736660814; c=relaxed/simple;
-	bh=BdZuUpzjdfK+7wde60BG9LGwSqP4KP5400craLCvOCs=;
-	h=Date:To:From:Subject:Message-Id; b=hUM4EkGpxPPBPr7d4QP3Xx+WkBOxyviWasPb4H5CO1f1jyh0PgKJqRiVTX9gyBWVqF7E8KnPPEBQbVpkAn83QFpgvrKNnGKOrdxvcze23+IZ9YbKkq48CGE8aqvDIglsNwVx3w9p6AEJONyI22JHJNP+7Q/lg6vbECOxC0BAMs4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sap5Blvx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736660816; c=relaxed/simple;
+	bh=DDJNJaPP/Qbbdw6CESB8+Jbypy32VGjrc5x0EV/w38U=;
+	h=Date:To:From:Subject:Message-Id; b=PM1YfGm1dTH8flUPWusmBfczgvYAUvTQawtTD/hq70BBqSGGF6/7FDXt9rRhhVUu4v/FeRXJJb7Vc7zzkhPZgqbiboW5q9pdpWF2shUTvHrU7xXu4PJUF3tmQdIgLt2n5PH6g2ctMmLovD1k9NKAco3qLHUtRwOuzbe67y2VZ7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=prEooo0S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sap5Blvx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6D3EC4CEE0;
-	Sun, 12 Jan 2025 05:46:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="prEooo0S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2356DC4CEE0;
+	Sun, 12 Jan 2025 05:46:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736660814;
-	bh=BdZuUpzjdfK+7wde60BG9LGwSqP4KP5400craLCvOCs=;
+	s=korg; t=1736660816;
+	bh=DDJNJaPP/Qbbdw6CESB8+Jbypy32VGjrc5x0EV/w38U=;
 	h=Date:To:From:Subject:From;
-	b=Sap5BlvxNKcEwKSLGe3BoLY6spAU+ZSNBPQyamcD9gtBxIj0UdOkbZnufRYkF8+r4
-	 8+OPZifZXrJ4R6x0wJaP1k6FXXEf9SwHwCcWCKHZwdrnMFSB5q4jFVkhv/IecInm/9
-	 dJ/RomV0JZdGW5SvKtM+MqKRHQRnpwVzmDp14hKU=
-Date: Sat, 11 Jan 2025 21:46:53 -0800
+	b=prEooo0S6JVC+2Kh1HSpsNM8XnAwoeaBy/ovcvpRHuztkTSrrE6PaNC6kLfQv47nu
+	 8oVpKsa+lfM9Y7vZ3eqddRVxQXWiI/q3pFH542pRKn8JZoJNTaWtSJuSRa8npfA1Nz
+	 W2Yz8SZdSkuTIbqjn06KJ6e+WlBNkTYuMK9PdsvY=
+Date: Sat, 11 Jan 2025 21:46:55 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-extra-vma_numab_state_init-call.patch added to mm-unstable branch
-Message-Id: <20250112054653.E6D3EC4CEE0@smtp.kernel.org>
+Subject: + mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch added to mm-unstable branch
+Message-Id: <20250112054656.2356DC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove extra vma_numab_state_init() call
+     Subject: mm: prepare lock_vma_under_rcu() for vma reuse possibility
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-extra-vma_numab_state_init-call.patch
+     mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-extra-vma_numab_state_init-call.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: remove extra vma_numab_state_init() call
-Date: Fri, 10 Jan 2025 20:26:01 -0800
+Subject: mm: prepare lock_vma_under_rcu() for vma reuse possibility
+Date: Fri, 10 Jan 2025 20:26:02 -0800
 
-vma_init() already memset's the whole vm_area_struct to 0, so there is no
-need to an additional vma_numab_state_init().
+Once we make vma cache SLAB_TYPESAFE_BY_RCU, it will be possible for a vma
+to be reused and attached to another mm after lock_vma_under_rcu() locks
+the vma.  lock_vma_under_rcu() should ensure that vma_start_read() is
+using the original mm and after locking the vma it should ensure that
+vma->vm_mm has not changed from under us.
 
-Link: https://lkml.kernel.org/r/20250111042604.3230628-15-surenb@google.com
+Link: https://lkml.kernel.org/r/20250111042604.3230628-16-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -98,19 +101,74 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |   10 ++++++----
+ mm/memory.c        |    7 ++++---
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-extra-vma_numab_state_init-call
+--- a/include/linux/mm.h~mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility
 +++ a/include/linux/mm.h
-@@ -948,7 +948,6 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &vma_dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
--	vma_numab_state_init(vma);
- 	vma_lock_init(vma, false);
- }
+@@ -739,8 +739,10 @@ static inline void vma_refcount_put(stru
+  * Try to read-lock a vma. The function is allowed to occasionally yield false
+  * locked result to avoid performance overhead, in which case we fall back to
+  * using mmap_lock. The function should never yield false unlocked result.
++ * False locked result is possible if mm_lock_seq overflows or if vma gets
++ * reused and attached to a different mm before we lock it.
+  */
+-static inline bool vma_start_read(struct vm_area_struct *vma)
++static inline bool vma_start_read(struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+ 	int oldcnt;
  
+@@ -751,7 +753,7 @@ static inline bool vma_start_read(struct
+ 	 * we don't rely on for anything - the mm_lock_seq read against which we
+ 	 * need ordering is below.
+ 	 */
+-	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(vma->vm_mm->mm_lock_seq.sequence))
++	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence))
+ 		return false;
+ 
+ 	/*
+@@ -774,7 +776,7 @@ static inline bool vma_start_read(struct
+ 	 * after it has been unlocked.
+ 	 * This pairs with RELEASE semantics in vma_end_write_all().
+ 	 */
+-	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&vma->vm_mm->mm_lock_seq))) {
++	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
+ 		vma_refcount_put(vma);
+ 		return false;
+ 	}
+@@ -906,7 +908,7 @@ struct vm_area_struct *lock_vma_under_rc
+ #else /* CONFIG_PER_VMA_LOCK */
+ 
+ static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
+-static inline bool vma_start_read(struct vm_area_struct *vma)
++static inline bool vma_start_read(struct mm_struct *mm, struct vm_area_struct *vma)
+ 		{ return false; }
+ static inline void vma_end_read(struct vm_area_struct *vma) {}
+ static inline void vma_start_write(struct vm_area_struct *vma) {}
+--- a/mm/memory.c~mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility
++++ a/mm/memory.c
+@@ -6426,7 +6426,7 @@ struct vm_area_struct *lock_vma_under_rc
+ 	if (!vma)
+ 		goto inval;
+ 
+-	if (!vma_start_read(vma))
++	if (!vma_start_read(mm, vma))
+ 		goto inval;
+ 
+ 	/*
+@@ -6436,8 +6436,9 @@ struct vm_area_struct *lock_vma_under_rc
+ 	 * fields are accessible for RCU readers.
+ 	 */
+ 
+-	/* Check since vm_start/vm_end might change before we lock the VMA */
+-	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
++	/* Check if the vma we locked is the right one. */
++	if (unlikely(vma->vm_mm != mm ||
++		     address < vma->vm_start || address >= vma->vm_end))
+ 		goto inval_end_read;
+ 
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from surenb@google.com are
