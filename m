@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EC60219FF
-	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 05:46:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32F02219FF
+	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 05:46:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736660789; cv=none; b=pPJ9oWKPDsvJSzMKQPSBDtNItbssTBb05UzzJP0ufkwExyYWu4Z7j+T8SdNKjk1+etuCF9yBv0w+6IDHG+Kf9yCfkGRnwKrfXzedmm8VAPysuZfAw14HRVVNkU/JLofa0lj/gCl7f0sYOLpdQe6VIfJ6FxJ6Mhuji8pNLkYmpAk=
+	t=1736660791; cv=none; b=AZOKrr0CNRwwbNGosD4WZmdQN2zJ0DPajDGeUGGvzISGGHL857Md3DLvuyNlqrkt8gp0Y7xMClWJfbA03MAIm/69z7TVj0S6/p88k4B8C+YEAR9I/QXaVClZJU5dIPQNtKKTj9WjDZVr3ywmnjPy6NQ3buQx/kin6mYGb5/ZoQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736660789; c=relaxed/simple;
-	bh=wM7uC6FXFq6hJElx8iS68OjuH2xn6dklvU5ueDFYtcc=;
-	h=Date:To:From:Subject:Message-Id; b=AMviunIsVt+72BDvHKw276KEepT+yDrURYhrB0C/BF3BWcIYXFpIUWkm0c1vLiF9hv3f+udc0VBKMhNNqe58QJRrO9wZ3OQk0+2rGo4WjdUtuzHOYnhz4t6WD6d5Vw+G5VCILDGBV7Ihcieg0P5SeeUwr4zMMYaMzI4CsVlfRzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gO7g8gxR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736660791; c=relaxed/simple;
+	bh=PVgryOTKH5wY7kigo+TPCaasFO/3lj+Up/E9me51Thg=;
+	h=Date:To:From:Subject:Message-Id; b=poRM/9RqBDG+QOWArbMIQbnMZjKprVEInbzIOiwoS6UBaoOiwLnTg5oE1TEAeWrqDvubWH3knjhGDEoCDK6jaxbaREmj0PJ5NHef9cJvfZOwqV7ulfq8GhYQKxwTOp9tYFzel85uoZJttuUS4NhcSKbqUjI2YxYKjW4m/lx0LuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uG83HZHs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gO7g8gxR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE54EC4CEE0;
-	Sun, 12 Jan 2025 05:46:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uG83HZHs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F39B4C4CEE0;
+	Sun, 12 Jan 2025 05:46:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736660788;
-	bh=wM7uC6FXFq6hJElx8iS68OjuH2xn6dklvU5ueDFYtcc=;
+	s=korg; t=1736660791;
+	bh=PVgryOTKH5wY7kigo+TPCaasFO/3lj+Up/E9me51Thg=;
 	h=Date:To:From:Subject:From;
-	b=gO7g8gxRizgingJhcCiDlT5/UBqqxRKirpjYwyXskaNVIH3YjlCdoAmjJsiPr7IDK
-	 OBYyJaGcpmGuZoULjbopbyoLBLoIA1j8UfNyiVW6uO5b3pENxhKT8bI+jqmF/Tqtkb
-	 9yjW15eE8zJBv9pkTgU70qsL4Y6VetP6CLlaDRk4=
-Date: Sat, 11 Jan 2025 21:46:28 -0800
+	b=uG83HZHsp7/1lnWBJwe9SxMYTAwd1SXM0wsNCDFlVYaf3dXFvB6Hd7PbnXlOGbijK
+	 7rEk4ayDHvdl31pL8Kh5yr+pzuqE4BsSrNb7MzD8BkerfrM1GMQkMK2XX6hgR5b9Ew
+	 TJstNc1cOdaP7qEPF3Vdr89D+fDLfyGfyJ7G9nNw=
+Date: Sat, 11 Jan 2025 21:46:30 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mark-vmas-detached-upon-exit.patch added to mm-unstable branch
-Message-Id: <20250112054628.BE54EC4CEE0@smtp.kernel.org>
+Subject: + types-move-struct-rcuwait-into-typesh.patch added to mm-unstable branch
+Message-Id: <20250112054630.F39B4C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mark vmas detached upon exit
+     Subject: types: move struct rcuwait into types.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mark-vmas-detached-upon-exit.patch
+     types-move-struct-rcuwait-into-typesh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mark-vmas-detached-upon-exit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/types-move-struct-rcuwait-into-typesh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: mark vmas detached upon exit
-Date: Fri, 10 Jan 2025 20:25:52 -0800
+Subject: types: move struct rcuwait into types.h
+Date: Fri, 10 Jan 2025 20:25:53 -0800
 
-When exit_mmap() removes vmas belonging to an exiting task, it does not
-mark them as detached since they can't be reached by other tasks and they
-will be freed shortly.  Once we introduce vma reuse, all vmas will have to
-be in detached state before they are freed to ensure vma when reused is in
-a consistent state.  Add missing vma_mark_detached() before freeing the
-vma.
+Move rcuwait struct definition into types.h so that rcuwait can be used
+without including rcuwait.h which includes other headers.  Without this
+change mm_types.h can't use rcuwait due to a the following circular
+dependency:
 
-Link: https://lkml.kernel.org/r/20250111042604.3230628-6-surenb@google.com
+mm_types.h -> rcuwait.h -> signal.h -> mm_types.h
+
+Link: https://lkml.kernel.org/r/20250111042604.3230628-7-surenb@google.com
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Hugh Dickens <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
@@ -83,11 +84,9 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Klara Modin <klarasmodin@gmail.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Mattew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@google.com>
@@ -98,30 +97,57 @@ Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/rcuwait.h |   13 +------------
+ include/linux/types.h   |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
---- a/mm/vma.c~mm-mark-vmas-detached-upon-exit
-+++ a/mm/vma.c
-@@ -413,10 +413,12 @@ void remove_vma(struct vm_area_struct *v
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	mpol_put(vma_policy(vma));
--	if (unreachable)
-+	if (unreachable) {
-+		vma_mark_detached(vma);
- 		__vm_area_free(vma);
--	else
-+	} else {
- 		vm_area_free(vma);
-+	}
- }
+--- a/include/linux/rcuwait.h~types-move-struct-rcuwait-into-typesh
++++ a/include/linux/rcuwait.h
+@@ -4,18 +4,7 @@
  
- /*
+ #include <linux/rcupdate.h>
+ #include <linux/sched/signal.h>
+-
+-/*
+- * rcuwait provides a way of blocking and waking up a single
+- * task in an rcu-safe manner.
+- *
+- * The only time @task is non-nil is when a user is blocked (or
+- * checking if it needs to) on a condition, and reset as soon as we
+- * know that the condition has succeeded and are awoken.
+- */
+-struct rcuwait {
+-	struct task_struct __rcu *task;
+-};
++#include <linux/types.h>
+ 
+ #define __RCUWAIT_INITIALIZER(name)		\
+ 	{ .task = NULL, }
+--- a/include/linux/types.h~types-move-struct-rcuwait-into-typesh
++++ a/include/linux/types.h
+@@ -248,5 +248,17 @@ typedef void (*swap_func_t)(void *a, voi
+ typedef int (*cmp_r_func_t)(const void *a, const void *b, const void *priv);
+ typedef int (*cmp_func_t)(const void *a, const void *b);
+ 
++/*
++ * rcuwait provides a way of blocking and waking up a single
++ * task in an rcu-safe manner.
++ *
++ * The only time @task is non-nil is when a user is blocked (or
++ * checking if it needs to) on a condition, and reset as soon as we
++ * know that the condition has succeeded and are awoken.
++ */
++struct rcuwait {
++	struct task_struct __rcu *task;
++};
++
+ #endif /*  __ASSEMBLY__ */
+ #endif /* _LINUX_TYPES_H */
 _
 
 Patches currently in -mm which might be from surenb@google.com are
