@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D33CE219FF
-	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 05:46:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98B9D219FF
+	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 05:46:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736660804; cv=none; b=MJiGlKw6sCVOR14MpUU3iqgVvHvRQ/90BPJidCtmmWVSZeQ7AA2pXWg28jtKrl14Fz5wO5DOulq6+j73sD2Fw7yi3yL2T+9Qa0Pd1eS04ibxPxzT0ahc2IyS6rQKF4iidFzgUIQk6hTUZMJNBl64FAmWul9wWlBZRjwwUoE0KAI=
+	t=1736660809; cv=none; b=JAY6TPJ4Rgb5XZQniMVB5MSUmVUXP6tJJC7wHJ1y9yg+zYcXRfX3tCRGKXM0GRIWgodF1COpRMKrRO+wKFSxT5Fvmbv6PAEYj/zouIkcu4dxKiIMkkBuz6WAiaX+qIxv+6GmsWxXBm2cWcqJK5G7pa6bqo2jb6if8oUDYEoSVVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736660804; c=relaxed/simple;
-	bh=4qmOIQKBrgu8e5pGhyEPWnB8FA71H8kzfxboHxmDBzA=;
-	h=Date:To:From:Subject:Message-Id; b=FvGWZyk9M4BhEFvH+Oqy8xqjDPshrp2N+2mPf0F/Ju+BubK4g8d/j70JKYN1v1+ERxKcsbn67AUhtXp8VNK5KhQinZ3zVUP8Ju6W/z2NUCA6+RY9NSKGJiQbtL8Dl9vUbpEeayfWoCirSE3sDMTWj2L9L50EuGuCYzGWd11LaHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kTSgtPiB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736660809; c=relaxed/simple;
+	bh=9TgZH/IaIi5SkytqCrv2huoJwnPflp6bz22RpRleS6w=;
+	h=Date:To:From:Subject:Message-Id; b=VIJ9Vo0ybu2mMDkBEh7WLCyRKm7hbxVrr1FWnBVD13E633CqtpkCNh7i/KxRvRYvU9AkNYNpZIBDgxDz2yVhwM7R9Z+iSUceciesSYuiovEVWZfIrslKuqNm9G2sq2qajQiaB260NOzBL4vi96DtNh6h716TkcUP4oPewV4bBo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EFThY5lr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kTSgtPiB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4567DC4CEE0;
-	Sun, 12 Jan 2025 05:46:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EFThY5lr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6557AC4CEE0;
+	Sun, 12 Jan 2025 05:46:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736660804;
-	bh=4qmOIQKBrgu8e5pGhyEPWnB8FA71H8kzfxboHxmDBzA=;
+	s=korg; t=1736660809;
+	bh=9TgZH/IaIi5SkytqCrv2huoJwnPflp6bz22RpRleS6w=;
 	h=Date:To:From:Subject:From;
-	b=kTSgtPiB7BCtZlhfe+vjsfFePOwhzih7A6fRkCGj0N8AHm4sWnyIdKTSevxJRD/yM
-	 yScFugt8DiNA6LCPRoHjX34o9lDs8fBuCOgFG1eL+peQgSszFErLlkBtu5xVJRW0+/
-	 yezMyImxjIGkx8SwN9PjhFrq/6PwcYwE9z8ZaFb0=
-Date: Sat, 11 Jan 2025 21:46:43 -0800
+	b=EFThY5lr592nvCNeqLMLAc0/f44ltdwnOhjaE3HTmE2q12V9l00rTB+B7iF1qcV8j
+	 lyhPM9vKKdH5zoo+cGPs+Oy0+4PUe4tFwCNoin5rUj4T60/dpHtgR0JR9NY5A8hhBD
+	 tvE9bFssZYEVLmM5ztmBSSi2ztEhwIZ7Pb8ReLsI=
+Date: Sat, 11 Jan 2025 21:46:48 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oliver.sang@intel.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch added to mm-unstable branch
-Message-Id: <20250112054644.4567DC4CEE0@smtp.kernel.org>
+Subject: + mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch added to mm-unstable branch
+Message-Id: <20250112054649.6557AC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: replace vm_lock and detached flag with a reference count
+     Subject: mm: move lesser used vma_area_struct members into the last cacheline
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+     mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,55 +59,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: replace vm_lock and detached flag with a reference count
-Date: Fri, 10 Jan 2025 20:25:58 -0800
+Subject: mm: move lesser used vma_area_struct members into the last cacheline
+Date: Fri, 10 Jan 2025 20:25:59 -0800
 
-rw_semaphore is a sizable structure of 40 bytes and consumes considerable
-space for each vm_area_struct.  However vma_lock has two important
-specifics which can be used to replace rw_semaphore with a simpler
-structure:
+Move several vma_area_struct members which are rarely or never used during
+page fault handling into the last cacheline to better pack vm_area_struct.
+As a result vm_area_struct will fit into 3 as opposed to 4 cachelines. 
+New typical vm_area_struct layout:
 
-1. Readers never wait.  They try to take the vma_lock and fall back to
-   mmap_lock if that fails.
+struct vm_area_struct {
+    union {
+        struct {
+            long unsigned int vm_start;              /*     0     8 */
+            long unsigned int vm_end;                /*     8     8 */
+        };                                           /*     0    16 */
+        freeptr_t          vm_freeptr;               /*     0     8 */
+    };                                               /*     0    16 */
+    struct mm_struct *         vm_mm;                /*    16     8 */
+    pgprot_t                   vm_page_prot;         /*    24     8 */
+    union {
+        const vm_flags_t   vm_flags;                 /*    32     8 */
+        vm_flags_t         __vm_flags;               /*    32     8 */
+    };                                               /*    32     8 */
+    unsigned int               vm_lock_seq;          /*    40     4 */
 
-2. Only one writer at a time will ever try to write-lock a vma_lock
-   because writers first take mmap_lock in write mode.  Because of these
-   requirements, full rw_semaphore functionality is not needed and we can
-   replace rw_semaphore and the vma->detached flag with a refcount
-   (vm_refcnt).
+    /* XXX 4 bytes hole, try to pack */
 
-When vma is in detached state, vm_refcnt is 0 and only a call to
-vma_mark_attached() can take it out of this state.  Note that unlike
-before, now we enforce both vma_mark_attached() and vma_mark_detached() to
-be done only after vma has been write-locked.  vma_mark_attached() changes
-vm_refcnt to 1 to indicate that it has been attached to the vma tree. 
-When a reader takes read lock, it increments vm_refcnt, unless the top
-usable bit of vm_refcnt (0x40000000) is set, indicating presence of a
-writer.  When writer takes write lock, it sets the top usable bit to
-indicate its presence.  If there are readers, writer will wait using newly
-introduced mm->vma_writer_wait.  Since all writers take mmap_lock in write
-mode first, there can be only one writer at a time.  The last reader to
-release the lock will signal the writer to wake up.  refcount might
-overflow if there are many competing readers, in which case read-locking
-will fail.  Readers are expected to handle such failures.  In summary:
+    struct list_head           anon_vma_chain;       /*    48    16 */
+    /* --- cacheline 1 boundary (64 bytes) --- */
+    struct anon_vma *          anon_vma;             /*    64     8 */
+    const struct vm_operations_struct  * vm_ops;     /*    72     8 */
+    long unsigned int          vm_pgoff;             /*    80     8 */
+    struct file *              vm_file;              /*    88     8 */
+    void *                     vm_private_data;      /*    96     8 */
+    atomic_long_t              swap_readahead_info;  /*   104     8 */
+    struct mempolicy *         vm_policy;            /*   112     8 */
+    struct vma_numab_state *   numab_state;          /*   120     8 */
+    /* --- cacheline 2 boundary (128 bytes) --- */
+    refcount_t          vm_refcnt (__aligned__(64)); /*   128     4 */
 
-1. all readers increment the vm_refcnt;
-2. writer sets top usable (writer) bit of vm_refcnt;
-3. readers cannot increment the vm_refcnt if the writer bit is set;
-4. in the presence of readers, writer must wait for the vm_refcnt to drop
-to 1 (ignoring the writer bit), indicating an attached vma with no readers;
-5. vm_refcnt overflow is handled by the readers.
+    /* XXX 4 bytes hole, try to pack */
 
-While this vm_lock replacement does not yet result in a smaller
-vm_area_struct (it stays at 256 bytes due to cacheline alignment), it
-allows for further size optimization by structure member regrouping
-to bring the size of vm_area_struct below 192 bytes.
+    struct {
+        struct rb_node     rb (__aligned__(8));      /*   136    24 */
+        long unsigned int  rb_subtree_last;          /*   160     8 */
+    } __attribute__((__aligned__(8))) shared;        /*   136    32 */
+    struct anon_vma_name *     anon_name;            /*   168     8 */
+    struct vm_userfaultfd_ctx  vm_userfaultfd_ctx;   /*   176     8 */
 
-Link: https://lkml.kernel.org/r/20250111042604.3230628-12-surenb@google.com
+    /* size: 192, cachelines: 3, members: 18 */
+    /* sum members: 176, holes: 2, sum holes: 8 */
+    /* padding: 8 */
+    /* forced alignments: 2, forced holes: 1, sum forced holes: 4 */
+} __attribute__((__aligned__(64)));
+
+Memory consumption per 1000 VMAs becomes 48 pages:
+
+    slabinfo after vm_area_struct changes:
+     <name>           ... <objsize> <objperslab> <pagesperslab> : ...
+     vm_area_struct   ...    192   42    2 : ...
+
+Link: https://lkml.kernel.org/r/20250111042604.3230628-13-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -123,6 +136,7 @@ Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Mattew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@google.com>
@@ -130,622 +144,85 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |  102 +++++++++++++++++++----------
- include/linux/mm_types.h         |   22 ++----
- kernel/fork.c                    |   13 +--
- mm/init-mm.c                     |    1 
- mm/memory.c                      |   80 +++++++++++++++++++---
- tools/testing/vma/linux/atomic.h |    5 +
- tools/testing/vma/vma_internal.h |   66 ++++++++++--------
- 7 files changed, 198 insertions(+), 91 deletions(-)
+ include/linux/mm_types.h |   38 +++++++++++++++++--------------------
+ 1 file changed, 18 insertions(+), 20 deletions(-)
 
---- a/include/linux/mm.h~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
-+++ a/include/linux/mm.h
-@@ -32,6 +32,7 @@
- #include <linux/memremap.h>
- #include <linux/slab.h>
- #include <linux/cacheinfo.h>
-+#include <linux/rcuwait.h>
- 
- struct mempolicy;
- struct anon_vma;
-@@ -697,12 +698,43 @@ static inline void vma_numab_state_free(
- #endif /* CONFIG_NUMA_BALANCING */
- 
- #ifdef CONFIG_PER_VMA_LOCK
--static inline void vma_lock_init(struct vm_area_struct *vma)
-+static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt)
- {
--	init_rwsem(&vma->vm_lock.lock);
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	static struct lock_class_key lockdep_key;
-+
-+	lockdep_init_map(&vma->vmlock_dep_map, "vm_lock", &lockdep_key, 0);
-+#endif
-+	if (reset_refcnt)
-+		refcount_set(&vma->vm_refcnt, 0);
- 	vma->vm_lock_seq = UINT_MAX;
- }
- 
-+static inline bool is_vma_writer_only(int refcnt)
-+{
-+	/*
-+	 * With a writer and no readers, refcnt is VMA_LOCK_OFFSET if the vma
-+	 * is detached and (VMA_LOCK_OFFSET + 1) if it is attached. Waiting on
-+	 * a detached vma happens only in vma_mark_detached() and is a rare
-+	 * case, therefore most of the time there will be no unnecessary wakeup.
-+	 */
-+	return refcnt & VMA_LOCK_OFFSET && refcnt <= VMA_LOCK_OFFSET + 1;
-+}
-+
-+static inline void vma_refcount_put(struct vm_area_struct *vma)
-+{
-+	/* Use a copy of vm_mm in case vma is freed after we drop vm_refcnt */
-+	struct mm_struct *mm = vma->vm_mm;
-+	int oldcnt;
-+
-+	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
-+	if (!__refcount_dec_and_test(&vma->vm_refcnt, &oldcnt)) {
-+
-+		if (is_vma_writer_only(oldcnt - 1))
-+			rcuwait_wake_up(&mm->vma_writer_wait);
-+	}
-+}
-+
- /*
-  * Try to read-lock a vma. The function is allowed to occasionally yield false
-  * locked result to avoid performance overhead, in which case we fall back to
-@@ -710,6 +742,8 @@ static inline void vma_lock_init(struct
-  */
- static inline bool vma_start_read(struct vm_area_struct *vma)
- {
-+	int oldcnt;
-+
- 	/*
- 	 * Check before locking. A race might cause false locked result.
- 	 * We can use READ_ONCE() for the mm_lock_seq here, and don't need
-@@ -720,13 +754,19 @@ static inline bool vma_start_read(struct
- 	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(vma->vm_mm->mm_lock_seq.sequence))
- 		return false;
- 
--	if (unlikely(down_read_trylock(&vma->vm_lock.lock) == 0))
-+	/*
-+	 * If VMA_LOCK_OFFSET is set, __refcount_inc_not_zero_limited() will fail
-+	 * because VMA_REF_LIMIT is less than VMA_LOCK_OFFSET.
-+	 */
-+	if (unlikely(!__refcount_inc_not_zero_limited(&vma->vm_refcnt, &oldcnt,
-+						      VMA_REF_LIMIT)))
- 		return false;
- 
-+	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
- 	/*
--	 * Overflow might produce false locked result.
-+	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
- 	 * False unlocked result is impossible because we modify and check
--	 * vma->vm_lock_seq under vma->vm_lock protection and mm->mm_lock_seq
-+	 * vma->vm_lock_seq under vma->vm_refcnt protection and mm->mm_lock_seq
- 	 * modification invalidates all existing locks.
- 	 *
- 	 * We must use ACQUIRE semantics for the mm_lock_seq so that if we are
-@@ -735,9 +775,10 @@ static inline bool vma_start_read(struct
- 	 * This pairs with RELEASE semantics in vma_end_write_all().
- 	 */
- 	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&vma->vm_mm->mm_lock_seq))) {
--		up_read(&vma->vm_lock.lock);
-+		vma_refcount_put(vma);
- 		return false;
- 	}
-+
- 	return true;
- }
- 
-@@ -749,8 +790,14 @@ static inline bool vma_start_read(struct
-  */
- static inline bool vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
- {
-+	int oldcnt;
-+
- 	mmap_assert_locked(vma->vm_mm);
--	down_read_nested(&vma->vm_lock.lock, subclass);
-+	if (unlikely(!__refcount_inc_not_zero_limited(&vma->vm_refcnt, &oldcnt,
-+						      VMA_REF_LIMIT)))
-+		return false;
-+
-+	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
- 	return true;
- }
- 
-@@ -762,16 +809,12 @@ static inline bool vma_start_read_locked
-  */
- static inline bool vma_start_read_locked(struct vm_area_struct *vma)
- {
--	mmap_assert_locked(vma->vm_mm);
--	down_read(&vma->vm_lock.lock);
--	return true;
-+	return vma_start_read_locked_nested(vma, 0);
- }
- 
- static inline void vma_end_read(struct vm_area_struct *vma)
- {
--	rcu_read_lock(); /* keeps vma alive till the end of up_read */
--	up_read(&vma->vm_lock.lock);
--	rcu_read_unlock();
-+	vma_refcount_put(vma);
- }
- 
- /* WARNING! Can only be used if mmap_lock is expected to be write-locked */
-@@ -813,36 +856,33 @@ static inline void vma_assert_write_lock
- 
- static inline void vma_assert_locked(struct vm_area_struct *vma)
- {
--	if (!rwsem_is_locked(&vma->vm_lock.lock))
-+	if (refcount_read(&vma->vm_refcnt) <= 1)
- 		vma_assert_write_locked(vma);
- }
- 
-+/*
-+ * WARNING: to avoid racing with vma_mark_attached()/vma_mark_detached(), these
-+ * assertions should be made either under mmap_write_lock or when the object
-+ * has been isolated under mmap_write_lock, ensuring no competing writers.
-+ */
- static inline void vma_assert_attached(struct vm_area_struct *vma)
- {
--	VM_BUG_ON_VMA(vma->detached, vma);
-+	VM_BUG_ON_VMA(!refcount_read(&vma->vm_refcnt), vma);
- }
- 
- static inline void vma_assert_detached(struct vm_area_struct *vma)
- {
--	VM_BUG_ON_VMA(!vma->detached, vma);
-+	VM_BUG_ON_VMA(refcount_read(&vma->vm_refcnt), vma);
- }
- 
- static inline void vma_mark_attached(struct vm_area_struct *vma)
- {
--	vma->detached = false;
--}
--
--static inline void vma_mark_detached(struct vm_area_struct *vma)
--{
--	/* When detaching vma should be write-locked */
- 	vma_assert_write_locked(vma);
--	vma->detached = true;
-+	vma_assert_detached(vma);
-+	refcount_set(&vma->vm_refcnt, 1);
- }
- 
--static inline bool is_vma_detached(struct vm_area_struct *vma)
--{
--	return vma->detached;
--}
-+void vma_mark_detached(struct vm_area_struct *vma);
- 
- static inline void release_fault_lock(struct vm_fault *vmf)
- {
-@@ -865,7 +905,7 @@ struct vm_area_struct *lock_vma_under_rc
- 
- #else /* CONFIG_PER_VMA_LOCK */
- 
--static inline void vma_lock_init(struct vm_area_struct *vma) {}
-+static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
- static inline bool vma_start_read(struct vm_area_struct *vma)
- 		{ return false; }
- static inline void vma_end_read(struct vm_area_struct *vma) {}
-@@ -908,12 +948,8 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &vma_dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
--#ifdef CONFIG_PER_VMA_LOCK
--	/* vma is not locked, can't use vma_mark_detached() */
--	vma->detached = true;
--#endif
- 	vma_numab_state_init(vma);
--	vma_lock_init(vma);
-+	vma_lock_init(vma, false);
- }
- 
- /* Use when VMA is not part of the VMA tree and needs no locking */
---- a/include/linux/mm_types.h~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
+--- a/include/linux/mm_types.h~mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline
 +++ a/include/linux/mm_types.h
-@@ -19,6 +19,7 @@
- #include <linux/workqueue.h>
- #include <linux/seqlock.h>
- #include <linux/percpu_counter.h>
-+#include <linux/types.h>
- 
- #include <asm/mmu.h>
- 
-@@ -629,9 +630,8 @@ static inline struct anon_vma_name *anon
- }
- #endif
- 
--struct vma_lock {
--	struct rw_semaphore lock;
--};
-+#define VMA_LOCK_OFFSET	0x40000000
-+#define VMA_REF_LIMIT	(VMA_LOCK_OFFSET - 1)
- 
- struct vma_numab_state {
- 	/*
-@@ -710,18 +710,12 @@ struct vm_area_struct {
- 
- #ifdef CONFIG_PER_VMA_LOCK
- 	/*
--	 * Flag to indicate areas detached from the mm->mm_mt tree.
--	 * Unstable RCU readers are allowed to read this.
--	 */
--	bool detached;
--
--	/*
- 	 * Can only be written (using WRITE_ONCE()) while holding both:
- 	 *  - mmap_lock (in write mode)
--	 *  - vm_lock->lock (in write mode)
-+	 *  - vm_refcnt bit at VMA_LOCK_OFFSET is set
- 	 * Can be read reliably while holding one of:
- 	 *  - mmap_lock (in read or write mode)
--	 *  - vm_lock->lock (in read or write mode)
-+	 *  - vm_refcnt bit at VMA_LOCK_OFFSET is set or vm_refcnt > 1
- 	 * Can be read unreliably (using READ_ONCE()) for pessimistic bailout
- 	 * while holding nothing (except RCU to keep the VMA struct allocated).
- 	 *
-@@ -784,7 +778,10 @@ struct vm_area_struct {
- 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
- #ifdef CONFIG_PER_VMA_LOCK
- 	/* Unstable RCU readers are allowed to read this. */
--	struct vma_lock vm_lock ____cacheline_aligned_in_smp;
-+	refcount_t vm_refcnt ____cacheline_aligned_in_smp;
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	struct lockdep_map vmlock_dep_map;
-+#endif
- #endif
- } __randomize_layout;
- 
-@@ -919,6 +916,7 @@ struct mm_struct {
- 					  * by mmlist_lock
- 					  */
- #ifdef CONFIG_PER_VMA_LOCK
-+		struct rcuwait vma_writer_wait;
- 		/*
- 		 * This field has lock-like semantics, meaning it is sometimes
- 		 * accessed with ACQUIRE/RELEASE semantics.
---- a/kernel/fork.c~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
-+++ a/kernel/fork.c
-@@ -463,12 +463,8 @@ struct vm_area_struct *vm_area_dup(struc
- 	 * will be reinitialized.
- 	 */
- 	data_race(memcpy(new, orig, sizeof(*new)));
--	vma_lock_init(new);
-+	vma_lock_init(new, true);
- 	INIT_LIST_HEAD(&new->anon_vma_chain);
--#ifdef CONFIG_PER_VMA_LOCK
--	/* vma is not locked, can't use vma_mark_detached() */
--	new->detached = true;
--#endif
- 	vma_numab_state_init(new);
- 	dup_anon_vma_name(orig, new);
- 
-@@ -477,6 +473,8 @@ struct vm_area_struct *vm_area_dup(struc
- 
- void __vm_area_free(struct vm_area_struct *vma)
- {
-+	/* The vma should be detached while being destroyed. */
-+	vma_assert_detached(vma);
- 	vma_numab_state_free(vma);
- 	free_anon_vma_name(vma);
- 	kmem_cache_free(vm_area_cachep, vma);
-@@ -488,8 +486,6 @@ static void vm_area_free_rcu_cb(struct r
- 	struct vm_area_struct *vma = container_of(head, struct vm_area_struct,
- 						  vm_rcu);
- 
--	/* The vma should not be locked while being destroyed. */
--	VM_BUG_ON_VMA(rwsem_is_locked(&vma->vm_lock.lock), vma);
- 	__vm_area_free(vma);
- }
- #endif
-@@ -1223,6 +1219,9 @@ static inline void mmap_init_lock(struct
- {
- 	init_rwsem(&mm->mmap_lock);
- 	mm_lock_seqcount_init(mm);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	rcuwait_init(&mm->vma_writer_wait);
-+#endif
- }
- 
- static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
---- a/mm/init-mm.c~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
-+++ a/mm/init-mm.c
-@@ -40,6 +40,7 @@ struct mm_struct init_mm = {
- 	.arg_lock	=  __SPIN_LOCK_UNLOCKED(init_mm.arg_lock),
- 	.mmlist		= LIST_HEAD_INIT(init_mm.mmlist),
- #ifdef CONFIG_PER_VMA_LOCK
-+	.vma_writer_wait = __RCUWAIT_INITIALIZER(init_mm.vma_writer_wait),
- 	.mm_lock_seq	= SEQCNT_ZERO(init_mm.mm_lock_seq),
- #endif
- 	.user_ns	= &init_user_ns,
---- a/mm/memory.c~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
-+++ a/mm/memory.c
-@@ -6328,9 +6328,47 @@ fail:
- #endif
- 
- #ifdef CONFIG_PER_VMA_LOCK
-+static inline bool __vma_enter_locked(struct vm_area_struct *vma, bool detaching)
-+{
-+	unsigned int tgt_refcnt = VMA_LOCK_OFFSET;
-+
-+	/* Additional refcnt if the vma is attached. */
-+	if (!detaching)
-+		tgt_refcnt++;
-+
-+	/*
-+	 * If vma is detached then only vma_mark_attached() can raise the
-+	 * vm_refcnt. mmap_write_lock prevents racing with vma_mark_attached().
-+	 */
-+	if (!refcount_add_not_zero(VMA_LOCK_OFFSET, &vma->vm_refcnt))
-+		return false;
-+
-+	rwsem_acquire(&vma->vmlock_dep_map, 0, 0, _RET_IP_);
-+	rcuwait_wait_event(&vma->vm_mm->vma_writer_wait,
-+		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
-+		   TASK_UNINTERRUPTIBLE);
-+	lock_acquired(&vma->vmlock_dep_map, _RET_IP_);
-+
-+	return true;
-+}
-+
-+static inline void __vma_exit_locked(struct vm_area_struct *vma, bool *detached)
-+{
-+	*detached = refcount_sub_and_test(VMA_LOCK_OFFSET, &vma->vm_refcnt);
-+	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
-+}
-+
- void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq)
- {
--	down_write(&vma->vm_lock.lock);
-+	bool locked;
-+
-+	/*
-+	 * __vma_enter_locked() returns false immediately if the vma is not
-+	 * attached, otherwise it waits until refcnt is indicating that vma
-+	 * is attached with no readers.
-+	 */
-+	locked = __vma_enter_locked(vma, false);
-+
- 	/*
- 	 * We should use WRITE_ONCE() here because we can have concurrent reads
- 	 * from the early lockless pessimistic check in vma_start_read().
-@@ -6338,10 +6376,40 @@ void __vma_start_write(struct vm_area_st
- 	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
- 	 */
- 	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
--	up_write(&vma->vm_lock.lock);
-+
-+	if (locked) {
-+		bool detached;
-+
-+		__vma_exit_locked(vma, &detached);
-+		VM_BUG_ON_VMA(detached, vma); /* vma should remain attached */
-+	}
- }
- EXPORT_SYMBOL_GPL(__vma_start_write);
- 
-+void vma_mark_detached(struct vm_area_struct *vma)
-+{
-+	vma_assert_write_locked(vma);
-+	vma_assert_attached(vma);
-+
-+	/*
-+	 * We are the only writer, so no need to use vma_refcount_put().
-+	 * The condition below is unlikely because the vma has been already
-+	 * write-locked and readers can increment vm_refcnt only temporarily
-+	 * before they check vm_lock_seq, realize the vma is locked and drop
-+	 * back the vm_refcnt. That is a narrow window for observing a raised
-+	 * vm_refcnt.
-+	 */
-+	if (unlikely(!refcount_dec_and_test(&vma->vm_refcnt))) {
-+		/* Wait until vma is detached with no readers. */
-+		if (__vma_enter_locked(vma, true)) {
-+			bool detached;
-+
-+			__vma_exit_locked(vma, &detached);
-+			VM_BUG_ON_VMA(!detached, vma);
-+		}
-+	}
-+}
-+
- /*
-  * Lookup and lock a VMA under RCU protection. Returned VMA is guaranteed to be
-  * stable and not isolated. If the VMA is not found or is being modified the
-@@ -6354,7 +6422,6 @@ struct vm_area_struct *lock_vma_under_rc
- 	struct vm_area_struct *vma;
- 
- 	rcu_read_lock();
--retry:
- 	vma = mas_walk(&mas);
- 	if (!vma)
- 		goto inval;
-@@ -6362,13 +6429,6 @@ retry:
- 	if (!vma_start_read(vma))
- 		goto inval;
- 
--	/* Check if the VMA got isolated after we found it */
--	if (is_vma_detached(vma)) {
--		vma_end_read(vma);
--		count_vm_vma_lock_event(VMA_LOCK_MISS);
--		/* The area was replaced with another one */
--		goto retry;
--	}
- 	/*
- 	 * At this point, we have a stable reference to a VMA: The VMA is
- 	 * locked and we know it hasn't already been isolated.
---- a/tools/testing/vma/linux/atomic.h~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
-+++ a/tools/testing/vma/linux/atomic.h
-@@ -9,4 +9,9 @@
- #define atomic_set(x, y) uatomic_set(x, y)
- #define U8_MAX UCHAR_MAX
- 
-+#ifndef atomic_cmpxchg_relaxed
-+#define  atomic_cmpxchg_relaxed		uatomic_cmpxchg
-+#define  atomic_cmpxchg_release         uatomic_cmpxchg
-+#endif /* atomic_cmpxchg_relaxed */
-+
- #endif	/* _LINUX_ATOMIC_H */
---- a/tools/testing/vma/vma_internal.h~mm-replace-vm_lock-and-detached-flag-with-a-reference-count
-+++ a/tools/testing/vma/vma_internal.h
-@@ -25,7 +25,7 @@
- #include <linux/maple_tree.h>
- #include <linux/mm.h>
- #include <linux/rbtree.h>
--#include <linux/rwsem.h>
-+#include <linux/refcount.h>
- 
- extern unsigned long stack_guard_gap;
- #ifdef CONFIG_MMU
-@@ -132,10 +132,6 @@ typedef __bitwise unsigned int vm_fault_
-  */
- #define pr_warn_once pr_err
- 
--typedef struct refcount_struct {
--	atomic_t refs;
--} refcount_t;
--
- struct kref {
- 	refcount_t refcount;
- };
-@@ -228,15 +224,12 @@ struct mm_struct {
- 	unsigned long def_flags;
- };
- 
--struct vma_lock {
--	struct rw_semaphore lock;
--};
--
--
- struct file {
- 	struct address_space	*f_mapping;
- };
- 
-+#define VMA_LOCK_OFFSET	0x40000000
-+
- struct vm_area_struct {
- 	/* The first cache line has the info for VMA tree walking. */
- 
-@@ -264,16 +257,13 @@ struct vm_area_struct {
- 	};
- 
- #ifdef CONFIG_PER_VMA_LOCK
--	/* Flag to indicate areas detached from the mm->mm_mt tree */
--	bool detached;
--
- 	/*
- 	 * Can only be written (using WRITE_ONCE()) while holding both:
- 	 *  - mmap_lock (in write mode)
--	 *  - vm_lock.lock (in write mode)
-+	 *  - vm_refcnt bit at VMA_LOCK_OFFSET is set
- 	 * Can be read reliably while holding one of:
- 	 *  - mmap_lock (in read or write mode)
--	 *  - vm_lock.lock (in read or write mode)
-+	 *  - vm_refcnt bit at VMA_LOCK_OFFSET is set or vm_refcnt > 1
- 	 * Can be read unreliably (using READ_ONCE()) for pessimistic bailout
- 	 * while holding nothing (except RCU to keep the VMA struct allocated).
- 	 *
-@@ -282,7 +272,6 @@ struct vm_area_struct {
- 	 * slowpath.
+@@ -725,17 +725,6 @@ struct vm_area_struct {
  	 */
  	unsigned int vm_lock_seq;
--	struct vma_lock vm_lock;
  #endif
- 
+-
+-	/*
+-	 * For areas with an address space and backing store,
+-	 * linkage into the address_space->i_mmap interval tree.
+-	 *
+-	 */
+-	struct {
+-		struct rb_node rb;
+-		unsigned long rb_subtree_last;
+-	} shared;
+-
  	/*
-@@ -335,6 +324,10 @@ struct vm_area_struct {
+ 	 * A file's MAP_PRIVATE vma can be in both i_mmap tree and anon_vma
+ 	 * list, after a COW of one of the file pages.	A MAP_SHARED vma
+@@ -755,14 +744,6 @@ struct vm_area_struct {
+ 	struct file * vm_file;		/* File we map to (can be NULL). */
+ 	void * vm_private_data;		/* was vm_pte (shared mem) */
+ 
+-#ifdef CONFIG_ANON_VMA_NAME
+-	/*
+-	 * For private and shared anonymous mappings, a pointer to a null
+-	 * terminated string containing the name given to the vma, or NULL if
+-	 * unnamed. Serialized by mmap_lock. Use anon_vma_name to access.
+-	 */
+-	struct anon_vma_name *anon_name;
+-#endif
+ #ifdef CONFIG_SWAP
+ 	atomic_long_t swap_readahead_info;
+ #endif
+@@ -775,7 +756,6 @@ struct vm_area_struct {
+ #ifdef CONFIG_NUMA_BALANCING
  	struct vma_numab_state *numab_state;	/* NUMA Balancing state */
  #endif
- 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
-+#ifdef CONFIG_PER_VMA_LOCK
-+	/* Unstable RCU readers are allowed to read this. */
-+	refcount_t vm_refcnt;
+-	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
+ #ifdef CONFIG_PER_VMA_LOCK
+ 	/* Unstable RCU readers are allowed to read this. */
+ 	refcount_t vm_refcnt ____cacheline_aligned_in_smp;
+@@ -783,6 +763,24 @@ struct vm_area_struct {
+ 	struct lockdep_map vmlock_dep_map;
+ #endif
+ #endif
++	/*
++	 * For areas with an address space and backing store,
++	 * linkage into the address_space->i_mmap interval tree.
++	 *
++	 */
++	struct {
++		struct rb_node rb;
++		unsigned long rb_subtree_last;
++	} shared;
++#ifdef CONFIG_ANON_VMA_NAME
++	/*
++	 * For private and shared anonymous mappings, a pointer to a null
++	 * terminated string containing the name given to the vma, or NULL if
++	 * unnamed. Serialized by mmap_lock. Use anon_vma_name to access.
++	 */
++	struct anon_vma_name *anon_name;
 +#endif
++	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
  } __randomize_layout;
  
- struct vm_fault {};
-@@ -459,23 +452,41 @@ static inline struct vm_area_struct *vma
- 	return mas_find(&vmi->mas, ULONG_MAX);
- }
- 
--static inline void vma_lock_init(struct vm_area_struct *vma)
-+/*
-+ * WARNING: to avoid racing with vma_mark_attached()/vma_mark_detached(), these
-+ * assertions should be made either under mmap_write_lock or when the object
-+ * has been isolated under mmap_write_lock, ensuring no competing writers.
-+ */
-+static inline void vma_assert_attached(struct vm_area_struct *vma)
-+{
-+	VM_BUG_ON_VMA(!refcount_read(&vma->vm_refcnt), vma);
-+}
-+
-+static inline void vma_assert_detached(struct vm_area_struct *vma)
- {
--	init_rwsem(&vma->vm_lock.lock);
--	vma->vm_lock_seq = UINT_MAX;
-+	VM_BUG_ON_VMA(refcount_read(&vma->vm_refcnt), vma);
- }
- 
-+static inline void vma_assert_write_locked(struct vm_area_struct *);
- static inline void vma_mark_attached(struct vm_area_struct *vma)
- {
--	vma->detached = false;
-+	vma_assert_write_locked(vma);
-+	vma_assert_detached(vma);
-+	refcount_set(&vma->vm_refcnt, 1);
- }
- 
--static inline void vma_assert_write_locked(struct vm_area_struct *);
- static inline void vma_mark_detached(struct vm_area_struct *vma)
- {
--	/* When detaching vma should be write-locked */
- 	vma_assert_write_locked(vma);
--	vma->detached = true;
-+	vma_assert_attached(vma);
-+
-+	/* We are the only writer, so no need to use vma_refcount_put(). */
-+	if (unlikely(!refcount_dec_and_test(&vma->vm_refcnt))) {
-+		/*
-+		 * Reader must have temporarily raised vm_refcnt but it will
-+		 * drop it without using the vma since vma is write-locked.
-+		 */
-+	}
- }
- 
- extern const struct vm_operations_struct vma_dummy_vm_ops;
-@@ -488,9 +499,7 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &vma_dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
--	/* vma is not locked, can't use vma_mark_detached() */
--	vma->detached = true;
--	vma_lock_init(vma);
-+	vma->vm_lock_seq = UINT_MAX;
- }
- 
- static inline struct vm_area_struct *vm_area_alloc(struct mm_struct *mm)
-@@ -513,10 +522,9 @@ static inline struct vm_area_struct *vm_
- 		return NULL;
- 
- 	memcpy(new, orig, sizeof(*new));
--	vma_lock_init(new);
-+	refcount_set(&new->vm_refcnt, 0);
-+	new->vm_lock_seq = UINT_MAX;
- 	INIT_LIST_HEAD(&new->anon_vma_chain);
--	/* vma is not locked, can't use vma_mark_detached() */
--	new->detached = true;
- 
- 	return new;
- }
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from surenb@google.com are
