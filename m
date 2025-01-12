@@ -1,151 +1,120 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A11FA4C9A
-	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 06:03:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC5A625763
+	for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 07:34:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736661817; cv=none; b=fvLs00WSxtEIcQJ1G9qddXSnM62GYpJHs//OdkloyyC9JDySzmL69dQGihUUPnoamKLYbBGPoFCxybDHmvHUmlKrjhp5oEE2itx5XWDI84sQW+c/p7v/DXLJ4noiiUQ3//LzYNwo4OWsM4j07sRYa+T7vLhM5Rvr2gA/JocJirw=
+	t=1736667259; cv=none; b=sWPynwMm/4Tz+t0dKER6uaFRyx+bafTPuAOiDXhdQj3bz8c+0VlHpff5KtPUgeNbSJZ5m0gP4daiwxr2cDevxF+bfCPIDaSNLn0RzMc6wjshP8Ee+FJgIEYbmB/TEm5qi7nKX3YTJmRGOEer9UKFOyy4uS6FF31HZJouKsvQkUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736661817; c=relaxed/simple;
-	bh=hP3lnq2LEva0E9DOp+DdXfEu8h3LTkNQqT+p2GtSgOE=;
-	h=Date:To:From:Subject:Message-Id; b=gWBqOSyouEmfmGFuAr5yDpmqoxIfhIbKP5anZA3FXWAeP5/xYEy8fFbUruOhaGIMrtejMV0h1VNyriQVCZJo94AdNWVjDHmg8ygm6EYXvX1Q5HBzcrJZoVEUpiseWkx3oVhPBixEFShqE8iABx+11IwjDhI3LrJ8bp0TijcX2P4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jfxNT57L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736667259; c=relaxed/simple;
+	bh=CZRUb5HIahJt5po9Co4ULkuHQEcmqFADg4dsJILUmY0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QlwaIMjk/B5O5a8lR9TqDf0cq5/cdtXVirsitGeaWgRNX6rlNr+QCVM7pTcFaut5EyA5rHo7m8LJnJRrcBY7/6U/2phRfyYvK47EAYrRKqQyyVwBiOO/EvcB9xQxtanX4s/5tyvlOqyR+ottk3S/M3jRqDOReru1SVcqp7ZbLAg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eVOPVGSI; arc=none smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jfxNT57L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DC93C4CEE0;
-	Sun, 12 Jan 2025 06:03:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736661817;
-	bh=hP3lnq2LEva0E9DOp+DdXfEu8h3LTkNQqT+p2GtSgOE=;
-	h=Date:To:From:Subject:From;
-	b=jfxNT57LLE6ouqpk6uUcZFJI81vF8r3ISjmukqhew74Icy9JeUmcvLFbEypl++Or5
-	 EwSdbnq9UC99RMqOrC+XQDT/9cq9CNF+qTArgMoSww91YeyIrJwrPM36aKzPnm8qUy
-	 ARH9vPPTFakhhSmnybsJ47NI6Y5gXoFP+7cBQATI=
-Date: Sat, 11 Jan 2025 22:03:36 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,muchun.song@linux.dev,hannes@cmpxchg.org,chengming.zhou@linux.dev,liushixin2@huawei.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-call-hpage_collapse_scan_file-for-anonymous-vma.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250112060337.0DC93C4CEE0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eVOPVGSI"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-aaecf50578eso650538266b.2
+        for <mm-commits@vger.kernel.org>; Sat, 11 Jan 2025 23:34:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1736667256; x=1737272056; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/Uwuc+boSW20rvx0UrEpHpeI3fwnAj/gmqChABlH11I=;
+        b=eVOPVGSIwj5NSPBJQGuXGNTuN4VJ9Yl453daV2LI8GfFu5knqBxNi+pnrgZxvdPekk
+         MFNE2/Lgj529PFlIkNyLhOfLTnRtCRqYVDYKfoSi89I6w8NSrDG5uaWQjeBSOwuIKg2N
+         VthZ0j0saS+JI2m0Q7zkgHm/x0K0l9JVVApAYt6nSqTIbPuVzKPcTMYPu2YeOVPAK9Qz
+         3wK4JLu8MzhRfXtAg8gOmthOw4cmuEPNGf4b0msR6MtS/idahGyjfs0kHQD80x5YKMDp
+         6cWY8tcyFV02c6b/cpldNgN2HxjoDGg0JXkWc4Mre0OpaxoECpvz4nupkx55ACNXWSjx
+         Sqxw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736667256; x=1737272056;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/Uwuc+boSW20rvx0UrEpHpeI3fwnAj/gmqChABlH11I=;
+        b=GC/ReVik0J/IYtUgk2kKDKyHrb89cC9JTpASCDhYgVo7MnPwQfYViHI2sc1PfD7JU2
+         lqixCSa9VeIQOpw0YDPDgvZ7NE4YB3jsUK8UWP+KJhKv8nJG75ys/jgHF5dAZX5JGNgR
+         8Q3yUZoBsSqrmKKDyQjRp/1A0x0RlmH8XzhxLBvGHO4hg7mkqp5XDSdCbvk9XlBYIg5R
+         /R/+jHFxM88/UgE4oCR5Tk5muY8ldCwpeKrUzdSPo14zgtO7rLQQe0G7xraakYct+6GG
+         IJXYREHTyPyZ0jShPsdjpLJ+85OkCgRWArl1Ftu382l3liwYd0kzqcx7eev2T8Sk2fI1
+         Ygqg==
+X-Gm-Message-State: AOJu0YyE7IEn7I2XlXmnhHN+XPvldc+JAaNCSWf14xFzcRivkUK+/BLE
+	APK1FsFPY4ggpxnBkQrSKrU4kKpiWHv3vn3uxYVOUTctj1in3B6aQzwVkOkPmooApXwe6rYTNRS
+	0Gzn4Jsxv12s4hD1Yn6MTzTQP0kA/rX+5jQA=
+X-Gm-Gg: ASbGncsSKl+xUv155UCC0ffwz2+Oh1HN4wzjIf3eUat5iCyj5UEn2GZnxHpLLBbrQjR
+	FFnoFMaLJbnwvSh0soYrTUTkBppVyXdGt49gr+n7Cqg5pBZ9JXfNvGnqULYZTu0wc0LWcu30h
+X-Google-Smtp-Source: AGHT+IFPf+PuSMEsy7b1VazhVrHzvle7fPWUTy8i359W9G921BooA49o/+S6P0lk9Y75fe3vPL9REz3aC5h680VsC6c=
+X-Received: by 2002:a17:907:3e1c:b0:aa6:83cc:7996 with SMTP id
+ a640c23a62f3a-ab2ab6bfec7mr1706749066b.42.1736667255687; Sat, 11 Jan 2025
+ 23:34:15 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20250111232639.A83AFC4CED2@smtp.kernel.org>
+In-Reply-To: <20250111232639.A83AFC4CED2@smtp.kernel.org>
+From: Tanya Agarwal <tanyaagarwal25699@gmail.com>
+Date: Sun, 12 Jan 2025 13:04:04 +0530
+X-Gm-Features: AbW1kvZZ7Uhb8zlmt77I9QX7ChIwnYF8My1kuZ0oqL9-ca9E4XygWhu0mUUfDcw
+Message-ID: <CAPdGtUwAKw7VA+PRrbwYfnXzeT9wxvLgjgTWjvDqcyyNmw+cXg@mail.gmail.com>
+Subject: Re: + credits-fix-spelling-mistakes.patch added to mm-nonmm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org, 
+	anupnewsmail@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Jan 12, 2025 at 4:56=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+>
+> The patch titled
+>      Subject: CREDITS: fix spelling mistakes
+> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+>      credits-fix-spelling-mistakes.patch
+
+Thank you Andrew for merging my patch.
+Regards,
+Tanya
 
 
-The patch titled
-     Subject: mm: khugepaged: fix call hpage_collapse_scan_file() for anonymous vma
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-khugepaged-fix-call-hpage_collapse_scan_file-for-anonymous-vma.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-call-hpage_collapse_scan_file-for-anonymous-vma.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: khugepaged: fix call hpage_collapse_scan_file() for anonymous vma
-Date: Sat, 11 Jan 2025 11:45:11 +0800
-
-syzkaller reported such a BUG_ON():
-
- ------------[ cut here ]------------
- kernel BUG at mm/khugepaged.c:1835!
- Internal error: Oops - BUG: 00000000f2000800 [#1] SMP
- ...
- CPU: 6 UID: 0 PID: 8009 Comm: syz.15.106 Kdump: loaded Tainted: G        W          6.13.0-rc6 #22
- Tainted: [W]=WARN
- Hardware name: QEMU KVM Virtual Machine, BIOS 0.0.0 02/06/2015
- pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
- pc : collapse_file+0xa44/0x1400
- lr : collapse_file+0x88/0x1400
- sp : ffff80008afe3a60
- ...
- Call trace:
-  collapse_file+0xa44/0x1400 (P)
-  hpage_collapse_scan_file+0x278/0x400
-  madvise_collapse+0x1bc/0x678
-  madvise_vma_behavior+0x32c/0x448
-  madvise_walk_vmas.constprop.0+0xbc/0x140
-  do_madvise.part.0+0xdc/0x2c8
-  __arm64_sys_madvise+0x68/0x88
-  invoke_syscall+0x50/0x120
-  el0_svc_common.constprop.0+0xc8/0xf0
-  do_el0_svc+0x24/0x38
-  el0_svc+0x34/0x128
-  el0t_64_sync_handler+0xc8/0xd0
-  el0t_64_sync+0x190/0x198
-
-This indicates that the pgoff is unaligned.  After analysis, I confirm the
-vma is mapped to /dev/zero.  Such a vma certainly has vm_file, but it is
-set to anonymous by mmap_zero().  So even if it's mmapped by 2m-unaligned,
-it can pass the check in thp_vma_allowable_order() as it is an
-anonymous-mmap, but then be collapsed as a file-mmap.
-
-It seems the problem has existed for a long time, but actually, since we
-have khugepaged_max_ptes_none check before, we will skip collapse it as it
-is /dev/zero and so has no present page.  But commit d8ea7cc8547c limit
-the check for only khugepaged, so the BUG_ON() can be triggered by
-madvise_collapse().
-
-Add vma_is_anonymous() check to make such vma be processed by
-hpage_collapse_scan_pmd().
-
-Link: https://lkml.kernel.org/r/20250111034511.2223353-1-liushixin2@huawei.com
-Fixes: d8ea7cc8547c ("mm/khugepaged: add flag to predicate khugepaged-only behavior")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mattew Wilcox <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/mm/khugepaged.c~mm-khugepaged-fix-call-hpage_collapse_scan_file-for-anonymous-vma
-+++ a/mm/khugepaged.c
-@@ -2422,7 +2422,7 @@ skip:
- 			VM_BUG_ON(khugepaged_scan.address < hstart ||
- 				  khugepaged_scan.address + HPAGE_PMD_SIZE >
- 				  hend);
--			if (IS_ENABLED(CONFIG_SHMEM) && vma->vm_file) {
-+			if (IS_ENABLED(CONFIG_SHMEM) && !vma_is_anonymous(vma)) {
- 				struct file *file = get_file(vma->vm_file);
- 				pgoff_t pgoff = linear_page_index(vma,
- 						khugepaged_scan.address);
-@@ -2768,7 +2768,7 @@ int madvise_collapse(struct vm_area_stru
- 		mmap_assert_locked(mm);
- 		memset(cc->node_load, 0, sizeof(cc->node_load));
- 		nodes_clear(cc->alloc_nmask);
--		if (IS_ENABLED(CONFIG_SHMEM) && vma->vm_file) {
-+		if (IS_ENABLED(CONFIG_SHMEM) && !vma_is_anonymous(vma)) {
- 			struct file *file = get_file(vma->vm_file);
- 			pgoff_t pgoff = linear_page_index(vma, addr);
- 
-_
-
-Patches currently in -mm which might be from liushixin2@huawei.com are
-
-mm-khugepaged-fix-call-hpage_collapse_scan_file-for-anonymous-vma.patch
-
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
+/patches/credits-fix-spelling-mistakes.patch
+>
+> This patch will later appear in the mm-nonmm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testi=
+ng your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Tanya Agarwal <tanyaagarwal25699@gmail.com>
+> Subject: CREDITS: fix spelling mistakes
+> Date: Sun, 12 Jan 2025 01:17:10 +0530
+>
+> Fix spelling errors identified using codespell tool.
+>
+> Link: https://lkml.kernel.org/r/20250111194709.51133-1-tanyaagarwal25699@=
+gmail.com
+> Signed-off-by: Tanya Agarwal <tanyaagarwal25699@gmail.com>
+> Cc: Anup Sharma <anupnewsmail@gmail.com>
+> Cc: Shuah Khan <skhan@linuxfoundation.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
