@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B55A25761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64A8615624B
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742180; cv=none; b=gHt4Rm559qiN6LTjUfeJWxu3/KmqHMdSx6w9vjSyt/Liy7hrApOvpQkIToDSd7S2kF2k9X7MBnLZbQ8HHeqdpyNtf6SqRxqToUepamsJxmnmP3N0SQuUMZTBUVyLrlAgG6Hq/UuS7O9EkGQzTiaQ0CTEA/zyY0yJTaRmJ4DwRsI=
+	t=1736742182; cv=none; b=S0reyXvYym2m/D/LCwHeTg7Wc+M062YNLliGC6kTigmCKitKH/Cj+IYPrF6zlePgdNTQK03z0vZqKEY4znFkxzY7IFKQBqFZWhgX0YLwR1xWdpIhv0X7xjsg9mgCYQUIqSmWb2njPVeRIuMPjqjYRaglyBg/he/OEA+eO3hnuAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742180; c=relaxed/simple;
-	bh=tmV5eMPpnKUtZDAVkX03xdsGWblGwO+yQeafygYHM2o=;
-	h=Date:To:From:Subject:Message-Id; b=Mx/fJX1FHS7xV/LlmeM7HBdD1Ec5GJwgDjyYlX++Yrp08y0l0U9XPl7KLoYjMVkhPMliUMkxbQWuZEWvORpHkdbPRPRdMuY2+p2J18xNffffvrQvdQ8Bm7+HMI4wMcEzwo1nNIkvaMpRVwoAjBZ/S308lMug7UWzs4bLOns+UG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQkxWwSk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742182; c=relaxed/simple;
+	bh=5C1uEyeMltFtGrvCgyxW8acSQ5BVNGQA4BDISPbLQn0=;
+	h=Date:To:From:Subject:Message-Id; b=qFeSe3norPn9BaChHyc/Rb/Q679GTM9+U9JHc18V2CbyFIMlWmWP5YZ5df5FY+EQBkI1S3646SRVqofbbayPtWlcApXNXZLq5E0j5xdoNxWFb1RpROfj4ic0T9ksmWG1yoWXC+cWvnt33j2wSK8HEKx0j/25rBJiCazBAYXNcWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BjEzeggu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQkxWwSk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CE9FC4CED6;
-	Mon, 13 Jan 2025 04:23:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BjEzeggu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 393F4C4CED6;
+	Mon, 13 Jan 2025 04:23:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742180;
-	bh=tmV5eMPpnKUtZDAVkX03xdsGWblGwO+yQeafygYHM2o=;
+	s=korg; t=1736742182;
+	bh=5C1uEyeMltFtGrvCgyxW8acSQ5BVNGQA4BDISPbLQn0=;
 	h=Date:To:From:Subject:From;
-	b=AQkxWwSkYmGh5OkvuzjcbK/vzner6KxYAhgqLV5v8LlNJBMn34I/uFW88FUHX2354
-	 GOUVF+GDEjEnlkFDmMhbPuyRXZ9cTDJspuKeKuBTVvQpbimoPlVpnm2Tn6Yoc6MfSQ
-	 RYUTSaCKHhqfLbAip3VWgUT7BKZ0rQlRi6AElqTo=
-Date: Sun, 12 Jan 2025 20:22:59 -0800
+	b=BjEzeggu7s/v0Ccqk9Xe6lqPkwFyeItaIUrJCtqr8zp51a3cU0AXmdFJgppWiCrv9
+	 7ZjCwdYLzuiJ49k41OBGBpA3djTuoGCVtjc3XpUdYcYVcV68xFJbh3z6UFxWEhg2hZ
+	 vm/AkpDpS00w0h5pVvty9kqP6LdaQFLEL6E9sJRE=
+Date: Sun, 12 Jan 2025 20:23:01 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] bluetooth-mgmt-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250113042300.5CE9FC4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] staging-vc04_services-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
+Message-Id: <20250113042302.393F4C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,17 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bluetooth: mgmt: convert timeouts to secs_to_jiffies()
+     Subject: staging: vc04_services: convert timeouts to secs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     bluetooth-mgmt-convert-timeouts-to-secs_to_jiffies.patch
+     staging-vc04_services-convert-timeouts-to-secs_to_jiffies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: bluetooth: mgmt: convert timeouts to secs_to_jiffies()
-Date: Tue, 10 Dec 2024 22:02:46 +0000
+Subject: staging: vc04_services: convert timeouts to secs_to_jiffies()
+Date: Tue, 10 Dec 2024 22:02:47 +0000
 
 Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
 secs_to_jiffies().  As the value here is a multiple of 1000, use
@@ -64,7 +64,7 @@ the following Coccinelle rules:
 - msecs_to_jiffies(C * MSEC_PER_SEC)
 + secs_to_jiffies(C)
 
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-15-ddfefd7e9f2a@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-16-ddfefd7e9f2a@linux.microsoft.com
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
@@ -135,20 +135,20 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/mgmt.c |    2 +-
+ drivers/staging/vc04_services/bcm2835-audio/bcm2835-vchiq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/net/bluetooth/mgmt.c~bluetooth-mgmt-convert-timeouts-to-secs_to_jiffies
-+++ a/net/bluetooth/mgmt.c
-@@ -210,7 +210,7 @@ static const u16 mgmt_untrusted_events[]
- 	MGMT_EV_EXP_FEATURE_CHANGED,
- };
+--- a/drivers/staging/vc04_services/bcm2835-audio/bcm2835-vchiq.c~staging-vc04_services-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/staging/vc04_services/bcm2835-audio/bcm2835-vchiq.c
+@@ -59,7 +59,7 @@ static int bcm2835_audio_send_msg_locked
  
--#define CACHE_TIMEOUT	msecs_to_jiffies(2 * 1000)
-+#define CACHE_TIMEOUT	secs_to_jiffies(2)
- 
- #define ZERO_KEY "\x00\x00\x00\x00\x00\x00\x00\x00" \
- 		 "\x00\x00\x00\x00\x00\x00\x00\x00"
+ 	if (wait) {
+ 		if (!wait_for_completion_timeout(&instance->msg_avail_comp,
+-						 msecs_to_jiffies(10 * 1000))) {
++						 secs_to_jiffies(10))) {
+ 			dev_err(instance->dev,
+ 				"vchi message timeout, msg=%d\n", m->type);
+ 			return -ETIMEDOUT;
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
