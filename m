@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0606025761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1822525761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742208; cv=none; b=mX2xhrnTUwX/MNXwNBo24f5oVY8zTzId97rUupB3sjjES1y3Ey8R2COiUQu2Kz3fzZLmPxk8VPbxGkQjMubzkEM1b3ffJ+AMFz/N6A56ZnoRnQLHi9EqoIn0a7XvIGGBW3pPO6jp4KI+a2bGWpuk7MPwu8D3AWcbe/NLXt5TSSo=
+	t=1736742209; cv=none; b=WYndgbkUTErWXZT1cFHmuNcQDRgaiD7D3JU0DOibwOH+d5uiOUtoAD+6pjYlDBIo7uQ6P+v4sKedrhLAY4t5MVA4zJupSr0eH+vVy0Pfg0uWVy7StYHLX/BkSNuJqvFb0XTptqQTmOOvxWlnNC35oXY26vpBqV3oXLrRf0ByH5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742208; c=relaxed/simple;
-	bh=IJJAr/Jq7urwm14D2x45ud30hfHmrGVB1TI+gCjeCno=;
-	h=Date:To:From:Subject:Message-Id; b=pl8Y+6h5aXrQA1UVSjHcgg/aWBk0gHc5kctW7u6tkt0x3YHD6oBh1FOCdovFjbN48OWzCKqAeSbz5jmeorbJgPWomEfHVX3JMfDM0k6I3lGa8kWB/qObZ8EAukY3U6wJAoHYKNp2Nd3HoJDnsqQlPoL/etOd/LDgBBSilKpd/Xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rg41YL9x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742209; c=relaxed/simple;
+	bh=bmeDgW0xvVA/woH3pkBi0nwoD3lJGpGF0iKMQe3o8oQ=;
+	h=Date:To:From:Subject:Message-Id; b=ZjmB847nE3scjLPpvO6ti59pf3GcIPzq7Ey4q5vdgS/D+UcM7e7KjjQqgd6Ypq8/mlr9y+LlzYZ76qQzRhrj6Y+66dgG8Ncb5r9LeALyFr6Q5AVHBWPm3OHkz8wq9A4cchKHY/Mg5n00xibvGjbP+opgUIJq8Mbd8wahiSC1sR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rt7KOZ9G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rg41YL9x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7AB1C4CED6;
-	Mon, 13 Jan 2025 04:23:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rt7KOZ9G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E29E1C4CED6;
+	Mon, 13 Jan 2025 04:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742207;
-	bh=IJJAr/Jq7urwm14D2x45ud30hfHmrGVB1TI+gCjeCno=;
+	s=korg; t=1736742209;
+	bh=bmeDgW0xvVA/woH3pkBi0nwoD3lJGpGF0iKMQe3o8oQ=;
 	h=Date:To:From:Subject:From;
-	b=rg41YL9xTFnCxD6SLYYlGUe5NVIIkKo0SwkxCbQwjwgxRXGmQCHAA+NTBp6KMrU61
-	 vMpB64qmBtu0BexjcpnbwuDlnktSrUqwf7hgAu2omLlzJMiSoHKr8k7OIeG2/OoH9x
-	 UJoJiymBFy6USqyOeUEyhVStt7WgacMz37ruvbJ8=
-Date: Sun, 12 Jan 2025 20:23:27 -0800
+	b=rt7KOZ9GMAIqFhjGh2zUd1VBFycZni2nHtdQ0fE1/zR4W0RZf7ignOqK7UsDTZ0xA
+	 j3GhwfzsHQng1mTkuJ/2+0kuq3q80KokiJnlIWEQCCHqcviSPfdIuNvvyH075gRiyn
+	 NTEAM8gGTSqTyl4ceIxXo1VFzpR95j4oQ+1Qvilw=
+Date: Sun, 12 Jan 2025 20:23:28 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,mark.tinguely@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-use-a-folio-in-ocfs2_zero_new_buffers.patch removed from -mm tree
-Message-Id: <20250113042327.C7AB1C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-use-a-folio-in-ocfs2_write_begin_inline.patch removed from -mm tree
+Message-Id: <20250113042328.E29E1C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: use a folio in ocfs2_zero_new_buffers()
+     Subject: ocfs2: use a folio in ocfs2_write_begin_inline()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-a-folio-in-ocfs2_zero_new_buffers.patch
+     ocfs2-use-a-folio-in-ocfs2_write_begin_inline.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mark Tinguely <mark.tinguely@oracle.com>
-Subject: ocfs2: use a folio in ocfs2_zero_new_buffers()
-Date: Thu, 5 Dec 2024 17:16:32 +0000
+Subject: ocfs2: use a folio in ocfs2_write_begin_inline()
+Date: Thu, 5 Dec 2024 17:16:33 +0000
 
-Convert to the new APIs, saving at least one hidden call to
-compound_head().
+Retrieve a folio from the page cache instead of a page and use that
+folio throught the function.  Saves a couple of calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20241205171653.3179945-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241205171653.3179945-6-willy@infradead.org
 Signed-off-by: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
@@ -62,48 +62,57 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/ocfs2/aops.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/fs/ocfs2/aops.c~ocfs2-use-a-folio-in-ocfs2_zero_new_buffers
+--- a/fs/ocfs2/aops.c~ocfs2-use-a-folio-in-ocfs2_write_begin_inline
 +++ a/fs/ocfs2/aops.c
-@@ -869,30 +869,30 @@ static int ocfs2_alloc_write_ctxt(struct
-  * and dirty so they'll be written out (in order to prevent uninitialised
-  * block data from leaking). And clear the new bit.
-  */
--static void ocfs2_zero_new_buffers(struct folio *folio, unsigned from, unsigned to)
-+static void ocfs2_zero_new_buffers(struct folio *folio, size_t from, size_t to)
+@@ -1473,7 +1473,7 @@ static int ocfs2_write_begin_inline(stru
  {
--	struct page *page = &folio->page;
- 	unsigned int block_start, block_end;
- 	struct buffer_head *head, *bh;
+ 	int ret;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+-	struct page *page;
++	struct folio *folio;
+ 	handle_t *handle;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)wc->w_di_bh->b_data;
  
--	BUG_ON(!PageLocked(page));
--	if (!page_has_buffers(page))
-+	BUG_ON(!folio_test_locked(folio));
-+	head = folio_buffers(folio);
-+	if (!head)
- 		return;
+@@ -1484,19 +1484,20 @@ static int ocfs2_write_begin_inline(stru
+ 		goto out;
+ 	}
  
--	bh = head = page_buffers(page);
-+	bh = head;
- 	block_start = 0;
- 	do {
- 		block_end = block_start + bh->b_size;
+-	page = find_or_create_page(mapping, 0, GFP_NOFS);
+-	if (!page) {
++	folio = __filemap_get_folio(mapping, 0,
++			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, GFP_NOFS);
++	if (IS_ERR(folio)) {
+ 		ocfs2_commit_trans(osb, handle);
+-		ret = -ENOMEM;
++		ret = PTR_ERR(folio);
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+ 	/*
+-	 * If we don't set w_num_pages then this page won't get unlocked
++	 * If we don't set w_num_pages then this folio won't get unlocked
+ 	 * and freed on cleanup of the write context.
+ 	 */
+-	wc->w_target_folio = page_folio(page);
+-	wc->w_pages[0] = page;
++	wc->w_target_folio = folio;
++	wc->w_pages[0] = &folio->page;
+ 	wc->w_num_pages = 1;
  
- 		if (buffer_new(bh)) {
- 			if (block_end > from && block_start < to) {
--				if (!PageUptodate(page)) {
-+				if (!folio_test_uptodate(folio)) {
- 					unsigned start, end;
+ 	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
+@@ -1511,8 +1512,8 @@ static int ocfs2_write_begin_inline(stru
+ 	if (!(OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL))
+ 		ocfs2_set_inode_data_inline(inode, di);
  
- 					start = max(from, block_start);
- 					end = min(to, block_end);
- 
--					zero_user_segment(page, start, end);
-+					folio_zero_segment(folio, start, end);
- 					set_buffer_uptodate(bh);
- 				}
+-	if (!PageUptodate(page)) {
+-		ret = ocfs2_read_inline_data(inode, page, wc->w_di_bh);
++	if (!folio_test_uptodate(folio)) {
++		ret = ocfs2_read_inline_data(inode, &folio->page, wc->w_di_bh);
+ 		if (ret) {
+ 			ocfs2_commit_trans(osb, handle);
  
 _
 
