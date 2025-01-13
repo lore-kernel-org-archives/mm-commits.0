@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9A2B25761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D700625761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742239; cv=none; b=d35j/4gojefdYVSeto9stMYpKmjF9YiO4czwtDOZwaZAcGXkUFNUu1Joo4TwD9Rw7nvpFA0X6Huvstb3+NF+3eIyCkHSURX3fM67JnW2D2LcCyrDuhSfl5CdbB3ZQBZGD8msd6Zabuye3Jk40sykVa1djCIrFhR/gFDyLU6sed0=
+	t=1736742240; cv=none; b=MN70hDYutyaVwNc9asVUUGXiPdUs4HKZqOAmcoFdHuTPG36+TQ+9RQT+ppfUTDa6CLz90o+KWI328ph3HzKt9cye6AZl+I5tUdI6VdWlpJZBX7laF685fmKJ5uDcSv+K7tIyvBsqjRgs9uWgqXywMjVjGCs9ygbd4RaoeR/9LTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742239; c=relaxed/simple;
-	bh=OGZD4NP9jSNuxRW50XC8zm6gtiG8nAqGMZ2aCVN69V4=;
-	h=Date:To:From:Subject:Message-Id; b=RL/aDsggtTrbgUz0CVljjY5d0khaxRjdRIRBnVeVE4ED7Q0VKW5y4zoKtcho4Gf4MzRTdTckXtCC2ysxeOSloaDu/Y9StDhSRw5NNl8UcFKuYWC6WTtJsjSBO46uZ8ezFmX//6979ukAVFgFdqfFU7rXwNqHTXsPqbq8e2ri3i0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZLvQZ3BY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742240; c=relaxed/simple;
+	bh=9OUeNSapyJGftNZkIdE+yk0SdFt8wcU8zzZG8d/1npU=;
+	h=Date:To:From:Subject:Message-Id; b=u3iX0jxiH+s7fVUevRA1IDmAvyVhCgw0/9++B3ikFHk9mPpvHbvMF8G34QxNfuD+NRoKsblFeOIngHDbNdpY8lSLavDTL5iMVGM6wwUmQMp/EMGJFbvOm4rk/DxVY/kLwtgDX3Q4iJlQwvI5AGa84NyLK+dviU9T0G+WxRAdMNQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RWKx1tGb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZLvQZ3BY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43171C4CED6;
-	Mon, 13 Jan 2025 04:23:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RWKx1tGb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A891CC4CED6;
+	Mon, 13 Jan 2025 04:24:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742239;
-	bh=OGZD4NP9jSNuxRW50XC8zm6gtiG8nAqGMZ2aCVN69V4=;
+	s=korg; t=1736742240;
+	bh=9OUeNSapyJGftNZkIdE+yk0SdFt8wcU8zzZG8d/1npU=;
 	h=Date:To:From:Subject:From;
-	b=ZLvQZ3BYuodhVDJ4QAhzICCGMk4L9tx8alyYYKtvcSnegXoBfSnXETKxkjnjAtK6d
-	 DNouBUb3zfy4i03qeYpR2Yp8RMWcFn603G4jo2A3AuOea2x+kiLdkaACrLxzREiEOx
-	 cVbWN+CFd4FZBKmhpIR3BVn+lGAl+b5FSDfNlcGQ=
-Date: Sun, 12 Jan 2025 20:23:58 -0800
+	b=RWKx1tGbArQPUg2+bha4mJwtfxT3BM+KXDLG/gHJYkm+bYVaJwnkm+ewFIA7oWvHv
+	 FiLFNzGeR7kmtKqpgnC9n937rD42630Sy4yT/gYRQeMNeezqFzwYAt0XCeRmsp4zjx
+	 jUXobguHmUu9y2e9/tGtVH9rgktWg5ZVscUk0Sek=
+Date: Sun, 12 Jan 2025 20:24:00 -0800
 To: mm-commits@vger.kernel.org,vgupta@kernel.org,tursulin@ursulin.net,torvalds@linux-foundation.org,tglx@linutronix.de,simona@ffwll.ch,serge@hallyn.com,rodrigo.vivi@intel.com,pmladek@suse.com,peterz@infradead.org,paul@paul-moore.com,ogabbay@kernel.org,mingo@redhat.com,lyude@redhat.com,kvalo@kernel.org,kherbst@redhat.com,kees@kernel.org,joonas.lahtinen@linux.intel.com,johannes@sipsolutions.net,jmorris@namei.org,jirislaby@kernel.org,jani.nikula@linux.intel.com,hpa@zytor.com,gregkh@linuxfoundation.org,dvhart@infradead.org,dave@stgolabs.net,dave.hansen@linux.intel.com,dakr@redhat.com,bp@alien8.de,andriy.shevchenko@linux.intel.com,andrealmeid@igalia.com,airlied@gmail.com,laoar.shao@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] security-remove-get_task_comm-and-print-task-comm-directly.patch removed from -mm tree
-Message-Id: <20250113042359.43171C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] drivers-remove-get_task_comm-and-print-task-comm-directly.patch removed from -mm tree
+Message-Id: <20250113042400.A891CC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,204 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: security: remove get_task_comm() and print task comm directly
+     Subject: drivers: remove get_task_comm() and print task comm directly
 has been removed from the -mm tree.  Its filename was
-     security-remove-get_task_comm-and-print-task-comm-directly.patch
+     drivers-remove-get_task_comm-and-print-task-comm-directly.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yafang Shao <laoar.shao@gmail.com>
-Subject: security: remove get_task_comm() and print task comm directly
-Date: Thu, 19 Dec 2024 10:34:51 +0800
+Subject: drivers: remove get_task_comm() and print task comm directly
+Date: Thu, 19 Dec 2024 10:34:52 +0800
 
 Since task->comm is guaranteed to be NUL-terminated, we can print it
 directly without the need to copy it into a separate buffer.  This
 simplifies the code and avoids unnecessary operations.
 
-Link: https://lkml.kernel.org/r/20241219023452.69907-5-laoar.shao@gmail.com
+Link: https://lkml.kernel.org/r/20241219023452.69907-6-laoar.shao@gmail.com
 Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Reviewed-by: Paul Moore <paul@paul-moore.com>
-Acked-by: Kees Cook <kees@kernel.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org> (For tty)
+Reviewed-by: Lyude Paul <lyude@redhat.com> (For nouveau)
+Cc: Oded Gabbay <ogabbay@kernel.org>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Tvrtko Ursulin <tursulin@ursulin.net>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Karol Herbst <kherbst@redhat.com>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jirislaby@kernel.org>
 Cc: "André Almeida" <andrealmeid@igalia.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Danilo Krummrich <dakr@redhat.com>
 Cc: Darren Hart <dvhart@infradead.org>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: James Morris <jmorris@namei.org>
 Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Kalle Valo <kvalo@kernel.org>
-Cc: Karol Herbst <kherbst@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Oded Gabbay <ogabbay@kernel.org>
+Cc: Paul Moore <paul@paul-moore.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Simona Vetter <simona@ffwll.ch>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tvrtko Ursulin <tursulin@ursulin.net>
 Cc: Vineet Gupta <vgupta@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/yama/yama_lsm.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/accel/habanalabs/common/context.c           |    3 --
+ drivers/accel/habanalabs/common/habanalabs_ioctl.c  |   11 ++--------
+ drivers/gpu/drm/i915/display/intel_display_driver.c |    6 +----
+ drivers/gpu/drm/nouveau/nouveau_chan.c              |    4 ---
+ drivers/gpu/drm/nouveau/nouveau_drm.c               |    5 +---
+ drivers/tty/tty_io.c                                |    3 --
+ 6 files changed, 10 insertions(+), 22 deletions(-)
 
---- a/security/yama/yama_lsm.c~security-remove-get_task_comm-and-print-task-comm-directly
-+++ a/security/yama/yama_lsm.c
-@@ -76,7 +76,6 @@ static void report_access(const char *ac
- 				struct task_struct *agent)
+--- a/drivers/accel/habanalabs/common/context.c~drivers-remove-get_task_comm-and-print-task-comm-directly
++++ a/drivers/accel/habanalabs/common/context.c
+@@ -199,7 +199,6 @@ out_err:
+ 
+ int hl_ctx_init(struct hl_device *hdev, struct hl_ctx *ctx, bool is_kernel_ctx)
  {
- 	struct access_report_info *info;
--	char agent_comm[sizeof(agent->comm)];
+-	char task_comm[TASK_COMM_LEN];
+ 	int rc = 0, i;
  
- 	assert_spin_locked(&target->alloc_lock); /* for target->comm */
+ 	ctx->hdev = hdev;
+@@ -272,7 +271,7 @@ int hl_ctx_init(struct hl_device *hdev,
+ 		mutex_init(&ctx->ts_reg_lock);
  
-@@ -86,8 +85,7 @@ static void report_access(const char *ac
- 		 */
- 		pr_notice_ratelimited(
- 		    "ptrace %s of \"%s\"[%d] was attempted by \"%s\"[%d]\n",
--		    access, target->comm, target->pid,
--		    get_task_comm(agent_comm, agent), agent->pid);
-+		    access, target->comm, target->pid, agent->comm, agent->pid);
- 		return;
+ 		dev_dbg(hdev->dev, "create user context, comm=\"%s\", asid=%u\n",
+-			get_task_comm(task_comm, current), ctx->asid);
++			current->comm, ctx->asid);
  	}
  
+ 	return 0;
+--- a/drivers/accel/habanalabs/common/habanalabs_ioctl.c~drivers-remove-get_task_comm-and-print-task-comm-directly
++++ a/drivers/accel/habanalabs/common/habanalabs_ioctl.c
+@@ -1279,13 +1279,10 @@ static long _hl_ioctl(struct hl_fpriv *h
+ 		retcode = -EFAULT;
+ 
+ out_err:
+-	if (retcode) {
+-		char task_comm[TASK_COMM_LEN];
+-
++	if (retcode)
+ 		dev_dbg_ratelimited(dev,
+ 				"error in ioctl: pid=%d, comm=\"%s\", cmd=%#010x, nr=%#04x\n",
+-				task_pid_nr(current), get_task_comm(task_comm, current), cmd, nr);
+-	}
++				task_pid_nr(current), current->comm, cmd, nr);
+ 
+ 	if (kdata != stack_kdata)
+ 		kfree(kdata);
+@@ -1308,11 +1305,9 @@ long hl_ioctl_control(struct file *filep
+ 	if (nr == _IOC_NR(DRM_IOCTL_HL_INFO)) {
+ 		ioctl = &hl_ioctls_control[nr - HL_COMMAND_START];
+ 	} else {
+-		char task_comm[TASK_COMM_LEN];
+-
+ 		dev_dbg_ratelimited(hdev->dev_ctrl,
+ 				"invalid ioctl: pid=%d, comm=\"%s\", cmd=%#010x, nr=%#04x\n",
+-				task_pid_nr(current), get_task_comm(task_comm, current), cmd, nr);
++				task_pid_nr(current), current->comm, cmd, nr);
+ 		return -ENOTTY;
+ 	}
+ 
+--- a/drivers/gpu/drm/i915/display/intel_display_driver.c~drivers-remove-get_task_comm-and-print-task-comm-directly
++++ a/drivers/gpu/drm/i915/display/intel_display_driver.c
+@@ -391,7 +391,6 @@ void intel_display_driver_resume_access(
+  */
+ bool intel_display_driver_check_access(struct drm_i915_private *i915)
+ {
+-	char comm[TASK_COMM_LEN];
+ 	char current_task[TASK_COMM_LEN + 16];
+ 	char allowed_task[TASK_COMM_LEN + 16] = "none";
+ 
+@@ -400,12 +399,11 @@ bool intel_display_driver_check_access(s
+ 		return true;
+ 
+ 	snprintf(current_task, sizeof(current_task), "%s[%d]",
+-		 get_task_comm(comm, current),
+-		 task_pid_vnr(current));
++		 current->comm, task_pid_vnr(current));
+ 
+ 	if (i915->display.access.allowed_task)
+ 		snprintf(allowed_task, sizeof(allowed_task), "%s[%d]",
+-			 get_task_comm(comm, i915->display.access.allowed_task),
++			 i915->display.access.allowed_task->comm,
+ 			 task_pid_vnr(i915->display.access.allowed_task));
+ 
+ 	drm_dbg_kms(&i915->drm,
+--- a/drivers/gpu/drm/nouveau/nouveau_chan.c~drivers-remove-get_task_comm-and-print-task-comm-directly
++++ a/drivers/gpu/drm/nouveau/nouveau_chan.c
+@@ -279,7 +279,6 @@ nouveau_channel_ctor(struct nouveau_cli
+ 	const u64 plength = 0x10000;
+ 	const u64 ioffset = plength;
+ 	const u64 ilength = 0x02000;
+-	char name[TASK_COMM_LEN];
+ 	int cid, ret;
+ 	u64 size;
+ 
+@@ -338,8 +337,7 @@ nouveau_channel_ctor(struct nouveau_cli
+ 		chan->userd = &chan->user;
+ 	}
+ 
+-	get_task_comm(name, current);
+-	snprintf(args.name, sizeof(args.name), "%s[%d]", name, task_pid_nr(current));
++	snprintf(args.name, sizeof(args.name), "%s[%d]", current->comm, task_pid_nr(current));
+ 
+ 	ret = nvif_object_ctor(&device->object, "abi16ChanUser", 0, hosts[cid].oclass,
+ 			       &args, sizeof(args), &chan->user);
+--- a/drivers/gpu/drm/nouveau/nouveau_drm.c~drivers-remove-get_task_comm-and-print-task-comm-directly
++++ a/drivers/gpu/drm/nouveau/nouveau_drm.c
+@@ -1159,7 +1159,7 @@ nouveau_drm_open(struct drm_device *dev,
+ {
+ 	struct nouveau_drm *drm = nouveau_drm(dev);
+ 	struct nouveau_cli *cli;
+-	char name[32], tmpname[TASK_COMM_LEN];
++	char name[32];
+ 	int ret;
+ 
+ 	/* need to bring up power immediately if opening device */
+@@ -1169,10 +1169,9 @@ nouveau_drm_open(struct drm_device *dev,
+ 		return ret;
+ 	}
+ 
+-	get_task_comm(tmpname, current);
+ 	rcu_read_lock();
+ 	snprintf(name, sizeof(name), "%s[%d]",
+-		 tmpname, pid_nr(rcu_dereference(fpriv->pid)));
++		 current->comm, pid_nr(rcu_dereference(fpriv->pid)));
+ 	rcu_read_unlock();
+ 
+ 	if (!(cli = kzalloc(sizeof(*cli), GFP_KERNEL))) {
+--- a/drivers/tty/tty_io.c~drivers-remove-get_task_comm-and-print-task-comm-directly
++++ a/drivers/tty/tty_io.c
+@@ -2622,14 +2622,13 @@ static int tty_tiocgicount(struct tty_st
+ 
+ static int tty_set_serial(struct tty_struct *tty, struct serial_struct *ss)
+ {
+-	char comm[TASK_COMM_LEN];
+ 	int flags;
+ 
+ 	flags = ss->flags & ASYNC_DEPRECATED;
+ 
+ 	if (flags)
+ 		pr_warn_ratelimited("%s: '%s' is using deprecated serial flags (with no effect): %.8x\n",
+-				__func__, get_task_comm(comm, current), flags);
++				__func__, current->comm, flags);
+ 
+ 	if (!tty->ops->set_serial)
+ 		return -ENOTTY;
 _
 
 Patches currently in -mm which might be from laoar.shao@gmail.com are
