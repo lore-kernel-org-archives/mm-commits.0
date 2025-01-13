@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E74662AF09
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:14:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC2A14F123
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:15:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736741690; cv=none; b=MI/hFWnNaEOvqC+Kb4HQ8nHwvlou3by0py2+K3zHDZytcThfcW0W0KppDSeHcl6AvYYmmh5lHpusLkHpHjRhyHsmv5HWcMlVHPc1i6zKZzjaEhY1xoNIRJB2nmVOmqDIkSzLAIIV6gdabeQJlNE0vIG4ohffVjxDKU3UrrsWUHg=
+	t=1736741715; cv=none; b=n8+Nw2rGmAd13mYThGHbAluN/crKtyp0oQ7MTqxGdy0wGHGcWwOcDlgg3EHVoWVn62FzUvEaj6LCpKBp9F17ADkjyNS9SOpXrKgD5wESrQc92aw+B4D1SgUL8gSju2je/WzVlBViEBlol/TxgxSssZ3uw2sVtuewubs9FXRUaao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736741690; c=relaxed/simple;
-	bh=pM7RVtvUJwnIhM6Vfm89Gx2pNZNCydiv0RgXyM37dPA=;
-	h=Date:To:From:Subject:Message-Id; b=sy4TWBx7RWyiIhCAZssDfxoEApG0KuLjDxHVudGWyXRiE3cbOlPPxp4xEdh9ZVnDbAh1rVFN6RLoKYt1LdwYUihfHHO8yeqcb6h19rul40HGi+4RK0sb122gmn82EXj7fNkj8/co/p7+Z5GPrVyOspBiQyrWQ0fShFZMtQGP+sc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cgty4jNq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736741715; c=relaxed/simple;
+	bh=jHjRZxCQI8lPKuUYec8sOgkc49/Ac2ASU2a6uTEMSMg=;
+	h=Date:To:From:Subject:Message-Id; b=aWd3IhAuGEjt2EQ+T6Htr9Dad4IkvFTE7ugfyTy8QJF5hDdzAqev0dIzmKTMe2CHTc0CajFmL70bP+HcZcmQzKUWcX4kOdiA9jC66ldCuxJ5nqtKu8xRPri/fOAx092tUwKdxjWZ5N/v2PfjssAvA0SnfVUS5j8UCIUduHrN/Hs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LzDA9eZV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cgty4jNq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F694C4CED6;
-	Mon, 13 Jan 2025 04:14:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LzDA9eZV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 698ACC4CED6;
+	Mon, 13 Jan 2025 04:15:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736741689;
-	bh=pM7RVtvUJwnIhM6Vfm89Gx2pNZNCydiv0RgXyM37dPA=;
+	s=korg; t=1736741713;
+	bh=jHjRZxCQI8lPKuUYec8sOgkc49/Ac2ASU2a6uTEMSMg=;
 	h=Date:To:From:Subject:From;
-	b=cgty4jNqzgKoF+rUW0/DkjZcblp8kPNDzMc1+MXM3OT51VWmEgiclN5mQxizb+Axl
-	 m4LeSiDX/kh6n7OvLWKqygWsun5xBemiz6CSJ+YhQ6mQAEvRwUN6MkoMQN+RJCXy6s
-	 8Dx38hM2XDHjPBz4uaAx8M7WdO0PdRBCCfKfuuSw=
-Date: Sun, 12 Jan 2025 20:14:48 -0800
-To: mm-commits@vger.kernel.org,peterz@infradead.org,mhiramat@kernel.org,akinobu.mita@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=LzDA9eZV5KvR5sTZsZTi+HDOVIFBTlfM9bDNO/vWSb/j0fsuNTVQT0ELP3Yeiv1m4
+	 rq4bchhmYwTOy1mgo1mAqrTTZGbQbX5LOP84Xs5BaRs54qVMPXmvlRRDaqIfgNBJd9
+	 uynC/gX2rgQRIdFY4OthBYSSvJZXVoSTlJEkM1vs=
+Date: Sun, 12 Jan 2025 20:15:12 -0800
+To: mm-commits@vger.kernel.org,eahariha@linux.microsoft.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch removed from -mm tree
-Message-Id: <20250113041449.4F694C4CED6@smtp.kernel.org>
+Subject: [folded-merged] s390-kernel-convert-timeouts-to-use-secs_to_jiffies-fix.patch removed from -mm tree
+Message-Id: <20250113041513.698ACC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix
+     Subject: s390-kernel-convert-timeouts-to-use-secs_to_jiffies-fix
 has been removed from the -mm tree.  Its filename was
-     fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+     s390-kernel-convert-timeouts-to-use-secs_to_jiffies-fix.patch
 
-This patch was dropped because it was folded into fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed.patch
+This patch was dropped because it was folded into s390-kernel-convert-timeouts-to-use-secs_to_jiffies.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix
-Date: Mon Dec  9 07:12:31 PM PST 2024
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: s390-kernel-convert-timeouts-to-use-secs_to_jiffies-fix
+Date: Tue, 17 Dec 2024 18:31:16 +0100
 
-tweak and reflow comment
+simplify cmm_set_timer()
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/Z2G1ZPL2cAlQOYlF@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Easwar Hariharan <eahariha@linux.microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fault-inject.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/mm/cmm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/fault-inject.c~fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix
-+++ a/lib/fault-inject.c
-@@ -13,8 +13,8 @@
- #include <linux/fault-inject.h>
+--- a/arch/s390/mm/cmm.c~s390-kernel-convert-timeouts-to-use-secs_to_jiffies-fix
++++ a/arch/s390/mm/cmm.c
+@@ -204,7 +204,7 @@ static void cmm_set_timer(void)
+ 			del_timer(&cmm_timer);
+ 		return;
+ 	}
+-	mod_timer(&cmm_timer, jiffies + msecs_to_jiffies(cmm_timeout_seconds * MSEC_PER_SEC));
++	mod_timer(&cmm_timer, jiffies + secs_to_jiffies(cmm_timeout_seconds));
+ }
  
- /*
-- * The should_fail() use prandom instead of the normal Linux RNG since they don't
-- * need cryptographically secure random numbers.
-+ * The should_fail() functions use prandom instead of the normal Linux RNG
-+ * since they don't need cryptographically secure random numbers.
-  */
- static DEFINE_PER_CPU(struct rnd_state, fault_rnd_state);
- 
+ static void cmm_timer_fn(struct timer_list *unused)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
-mm-hugetlb-rename-isolate_hugetlb-to-folio_isolate_hugetlb-fix.patch
-documentation-filesystems-procrst-fix-possessive-form-of-process.patch
-fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed.patch
-hung_task-add-task-flags-blocked-by-coredump-to-log-fix.patch
+s390-kernel-convert-timeouts-to-use-secs_to_jiffies.patch
 
