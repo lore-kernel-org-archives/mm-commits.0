@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 098A9176242
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A7E2170826
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742280; cv=none; b=Reu6sh87MI5uEATJaYy3rzILLHWiayJdMpTyW0bcpTbQEiPh+WEymT8tNNYL3NgP+U0krRt9d4lmdt9Hmk1T3Y7k/tyYjrFQEyKDlwvacXNLzhsC1Ed2Q8kDZkEcPDwSDcvxEwjZnztQ0fgA1VA0fUG1yrl0KIGC3DaB5vOxlwQ=
+	t=1736742281; cv=none; b=o48h2USB/pH5PIfTujMKT09dsTE+2XgQFDX9WOCZsyDnJcbj1oXkRXzkvQ/GaXrL2UoIqM/jIK11kZkfU9nyxAr0ozspMLfYaLxso7eKr19987NeAJ89ZMEeXSX/e/t0wJb+CkYM9PmN7Fje0CMk+K2JF8+kkyPnitt/tk9O8WM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742280; c=relaxed/simple;
-	bh=ldSy3F30pY1FCbtUdRw+jufvIXHrHmFmPuxXMMHoQEw=;
-	h=Date:To:From:Subject:Message-Id; b=eSGgAErcJc4zjCQWuFzMnqWYSsnGq3qUuqxxGR5YBY86wCwUcJQXdV3Ztygj8ZFxVd3STElt8pMCeEmndcReZkjQugxTmkrpkS7A4b9ASCG3b9pC7V+Ll/7856XgxuXPcqnlZXQGvAIinnRyRLLkOeRMeze3rONmnnClMi1jFfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mx90KQBG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742281; c=relaxed/simple;
+	bh=2S9JBWPY5qaf019CMgUm94PwOGoiRNGq9dRz75z/1qc=;
+	h=Date:To:From:Subject:Message-Id; b=WdfoCKwiczmv/76QmZP4xW1SkR+zhhdbULAWiFLvgemlGbrCn2ZICOGAUb39D54fKb7gTQmN/aIgQuU3lUp9Q8N85HVbwFu6jKa84iSni1sMVFnVA8iDTW+c3kvgs7xWaXb91fS4BPd8jPcvbgN5E/DhHW4yLbYfTxg8Kk1fHVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IhAWASr2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mx90KQBG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5BA1C4CED6;
-	Mon, 13 Jan 2025 04:24:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IhAWASr2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29084C4CED6;
+	Mon, 13 Jan 2025 04:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742279;
-	bh=ldSy3F30pY1FCbtUdRw+jufvIXHrHmFmPuxXMMHoQEw=;
+	s=korg; t=1736742281;
+	bh=2S9JBWPY5qaf019CMgUm94PwOGoiRNGq9dRz75z/1qc=;
 	h=Date:To:From:Subject:From;
-	b=Mx90KQBGxzHB1SrZUAnhUZP5meZwPF2hoo61y5Awguk4OrELpWRaFdRMMp8iU/S50
-	 nW3/zm0CXHA6arARWwh7p+ke4nBB0pOb9MS2FoUZd/NWy55LRV3HYd5t2HcTaECNkm
-	 00N0fU78t4gV06bf1Tz57SoF3nB/V7kN/XkyRlVU=
-Date: Sun, 12 Jan 2025 20:24:39 -0800
+	b=IhAWASr2xQXELtSDrXYtAszrjt6opJpYBN2Dj0UWA0xksVcP4k2UtxuEuzM+Eyvh/
+	 8UMvpRXwkw0hk4OKyYEaR9IW6DSeGCzZ6a+4dRGH7YH511d2W1HZq640bNSqplTN2h
+	 0Bx3BnFqHZG4ixk0P4k7Xz/a+mIWsiaYlgU0ZjPc=
+Date: Sun, 12 Jan 2025 20:24:40 -0800
 To: mm-commits@vger.kernel.org,gissf1@gmail.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest.patch removed from -mm tree
-Message-Id: <20250113042439.D5BA1C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-add-missing-return-value-kernel-doc-descriptions.patch removed from -mm tree
+Message-Id: <20250113042441.29084C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,292 +35,661 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: correct return value kernel-doc descriptions for the rest
+     Subject: nilfs2: add missing return value kernel-doc descriptions
 has been removed from the -mm tree.  Its filename was
-     nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest.patch
+     nilfs2-add-missing-return-value-kernel-doc-descriptions.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: correct return value kernel-doc descriptions for the rest
-Date: Fri, 10 Jan 2025 10:01:48 +0900
+Subject: nilfs2: add missing return value kernel-doc descriptions
+Date: Fri, 10 Jan 2025 10:01:49 +0900
 
-Similar to the previous changes to fix return value descriptions, this
-fixes the format of the return value descriptions of functions for the
-rest.
+There are a number of kernel-doc comments for functions that are missing
+return values, which also causes a number of warnings when the kernel-doc
+script is run with the "-Wall" option.
 
-Link: https://lkml.kernel.org/r/20250110010530.21872-6-konishi.ryusuke@gmail.com
+Fix this issue by adding proper return value descriptions, and improve
+code maintainability.
+
+Link: https://lkml.kernel.org/r/20250110010530.21872-7-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: "Brian G ." <gissf1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/gcinode.c   |   24 ++++++++------------
- fs/nilfs2/inode.c     |   12 ++--------
- fs/nilfs2/recovery.c  |   32 ++++++++++----------------
- fs/nilfs2/segbuf.c    |   12 +---------
- fs/nilfs2/segment.c   |   48 +++++++++++++++-------------------------
- fs/nilfs2/the_nilfs.c |   12 ++++------
- 6 files changed, 50 insertions(+), 90 deletions(-)
+ fs/nilfs2/alloc.c     |   67 ++++++++++++++++++++++++++++++++++++++--
+ fs/nilfs2/alloc.h     |    2 +
+ fs/nilfs2/cpfile.c    |    2 +
+ fs/nilfs2/dat.c       |    2 +
+ fs/nilfs2/ifile.c     |    2 +
+ fs/nilfs2/inode.c     |    4 ++
+ fs/nilfs2/mdt.c       |    4 ++
+ fs/nilfs2/page.c      |    8 ++--
+ fs/nilfs2/recovery.c  |   30 +++++++++++++++++
+ fs/nilfs2/segment.c   |    8 ++++
+ fs/nilfs2/sufile.c    |    8 ++++
+ fs/nilfs2/sufile.h    |    6 +++
+ fs/nilfs2/super.c     |   10 +++++
+ fs/nilfs2/the_nilfs.c |   14 ++++++++
+ 14 files changed, 160 insertions(+), 7 deletions(-)
 
---- a/fs/nilfs2/gcinode.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest
-+++ a/fs/nilfs2/gcinode.c
-@@ -46,14 +46,11 @@
-  * specified by @pbn to the GC pagecache with the key @blkoff.
-  * This function sets @vbn (@pbn if @vbn is zero) in b_blocknr of the buffer.
+--- a/fs/nilfs2/alloc.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/alloc.c
+@@ -21,6 +21,8 @@
+  * nilfs_palloc_groups_per_desc_block - get the number of groups that a group
+  *					descriptor block can maintain
+  * @inode: inode of metadata file using this allocator
++ *
++ * Return: Number of groups that a group descriptor block can maintain.
+  */
+ static inline unsigned long
+ nilfs_palloc_groups_per_desc_block(const struct inode *inode)
+@@ -32,6 +34,8 @@ nilfs_palloc_groups_per_desc_block(const
+ /**
+  * nilfs_palloc_groups_count - get maximum number of groups
+  * @inode: inode of metadata file using this allocator
++ *
++ * Return: Maximum number of groups.
+  */
+ static inline unsigned long
+ nilfs_palloc_groups_count(const struct inode *inode)
+@@ -43,6 +47,8 @@ nilfs_palloc_groups_count(const struct i
+  * nilfs_palloc_init_blockgroup - initialize private variables for allocator
+  * @inode: inode of metadata file using this allocator
+  * @entry_size: size of the persistent object
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_palloc_init_blockgroup(struct inode *inode, unsigned int entry_size)
+ {
+@@ -78,6 +84,9 @@ int nilfs_palloc_init_blockgroup(struct
+  * @inode: inode of metadata file using this allocator
+  * @nr: serial number of the entry (e.g. inode number)
+  * @offset: pointer to store offset number in the group
++ *
++ * Return: Number of the group that contains the entry with the index
++ * specified by @nr.
+  */
+ static unsigned long nilfs_palloc_group(const struct inode *inode, __u64 nr,
+ 					unsigned long *offset)
+@@ -93,8 +102,8 @@ static unsigned long nilfs_palloc_group(
+  * @inode: inode of metadata file using this allocator
+  * @group: group number
   *
-- * Return Value: On success, 0 is returned. On Error, one of the following
-- * negative error code is returned.
-- *
-- * %-EIO - I/O error.
-- *
-- * %-ENOMEM - Insufficient amount of memory available.
-- *
-- * %-ENOENT - The block specified with @pbn does not exist.
+- * nilfs_palloc_desc_blkoff() returns block offset of the descriptor
+- * block which contains a descriptor of the specified group.
++ * Return: Index number in the metadata file of the descriptor block of
++ * the group specified by @group.
+  */
+ static unsigned long
+ nilfs_palloc_desc_blkoff(const struct inode *inode, unsigned long group)
+@@ -111,6 +120,9 @@ nilfs_palloc_desc_blkoff(const struct in
+  *
+  * nilfs_palloc_bitmap_blkoff() returns block offset of the bitmap
+  * block used to allocate/deallocate entries in the specified group.
++ *
++ * Return: Index number in the metadata file of the bitmap block of
++ * the group specified by @group.
+  */
+ static unsigned long
+ nilfs_palloc_bitmap_blkoff(const struct inode *inode, unsigned long group)
+@@ -125,6 +137,8 @@ nilfs_palloc_bitmap_blkoff(const struct
+  * nilfs_palloc_group_desc_nfrees - get the number of free entries in a group
+  * @desc: pointer to descriptor structure for the group
+  * @lock: spin lock protecting @desc
++ *
++ * Return: Number of free entries written in the group descriptor @desc.
+  */
+ static unsigned long
+ nilfs_palloc_group_desc_nfrees(const struct nilfs_palloc_group_desc *desc,
+@@ -143,6 +157,9 @@ nilfs_palloc_group_desc_nfrees(const str
+  * @desc: pointer to descriptor structure for the group
+  * @lock: spin lock protecting @desc
+  * @n: delta to be added
++ *
++ * Return: Number of free entries after adjusting the group descriptor
++ * @desc.
+  */
+ static u32
+ nilfs_palloc_group_desc_add_entries(struct nilfs_palloc_group_desc *desc,
+@@ -161,6 +178,9 @@ nilfs_palloc_group_desc_add_entries(stru
+  * nilfs_palloc_entry_blkoff - get block offset of an entry block
+  * @inode: inode of metadata file using this allocator
+  * @nr: serial number of the entry (e.g. inode number)
++ *
++ * Return: Index number in the metadata file of the block containing
++ * the entry specified by @nr.
+  */
+ static unsigned long
+ nilfs_palloc_entry_blkoff(const struct inode *inode, __u64 nr)
+@@ -238,6 +258,12 @@ static int nilfs_palloc_get_block(struct
+  * @blkoff: block offset
+  * @prev: nilfs_bh_assoc struct of the last used buffer
+  * @lock: spin lock protecting @prev
++ *
 + * Return: 0 on success, or one of the following negative error codes on
 + * failure:
 + * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOENT	- The block specified with @pbn does not exist.
++ * * %-ENOENT	- Non-existent block.
 + * * %-ENOMEM	- Insufficient memory available.
   */
- int nilfs_gccache_submit_read_data(struct inode *inode, sector_t blkoff,
- 				   sector_t pbn, __u64 vbn,
-@@ -114,12 +111,11 @@ int nilfs_gccache_submit_read_data(struc
-  * specified by @vbn to the GC pagecache.  @pbn can be supplied by the
-  * caller to avoid translation of the disk block address.
-  *
-- * Return Value: On success, 0 is returned. On Error, one of the following
-- * negative error code is returned.
-- *
-- * %-EIO - I/O error.
-- *
-- * %-ENOMEM - Insufficient amount of memory available.
+ static int nilfs_palloc_delete_block(struct inode *inode, unsigned long blkoff,
+ 				     struct nilfs_bh_assoc *prev,
+@@ -258,6 +284,8 @@ static int nilfs_palloc_delete_block(str
+  * @group: group number
+  * @create: create flag
+  * @bhp: pointer to store the resultant buffer head
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_palloc_get_desc_block(struct inode *inode,
+ 				       unsigned long group,
+@@ -277,6 +305,8 @@ static int nilfs_palloc_get_desc_block(s
+  * @group: group number
+  * @create: create flag
+  * @bhp: pointer to store the resultant buffer head
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_palloc_get_bitmap_block(struct inode *inode,
+ 					 unsigned long group,
+@@ -294,6 +324,8 @@ static int nilfs_palloc_get_bitmap_block
+  * nilfs_palloc_delete_bitmap_block - delete a bitmap block
+  * @inode: inode of metadata file using this allocator
+  * @group: group number
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_palloc_delete_bitmap_block(struct inode *inode,
+ 					    unsigned long group)
+@@ -312,6 +344,8 @@ static int nilfs_palloc_delete_bitmap_bl
+  * @nr: serial number of the entry (e.g. inode number)
+  * @create: create flag
+  * @bhp: pointer to store the resultant buffer head
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_palloc_get_entry_block(struct inode *inode, __u64 nr,
+ 				 int create, struct buffer_head **bhp)
+@@ -328,6 +362,8 @@ int nilfs_palloc_get_entry_block(struct
+  * nilfs_palloc_delete_entry_block - delete an entry block
+  * @inode: inode of metadata file using this allocator
+  * @nr: serial number of the entry
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_palloc_delete_entry_block(struct inode *inode, __u64 nr)
+ {
+@@ -397,6 +433,9 @@ size_t nilfs_palloc_entry_offset(const s
+  * @bsize: size in bits
+  * @lock: spin lock protecting @bitmap
+  * @wrap: whether to wrap around
++ *
++ * Return: Offset number within the group of the found free entry, or
++ * %-ENOSPC if not found.
+  */
+ static int nilfs_palloc_find_available_slot(unsigned char *bitmap,
+ 					    unsigned long target,
+@@ -438,6 +477,9 @@ static int nilfs_palloc_find_available_s
+  * @inode: inode of metadata file using this allocator
+  * @curr: current group number
+  * @max: maximum number of groups
++ *
++ * Return: Number of remaining descriptors (= groups) managed by the descriptor
++ * block.
+  */
+ static unsigned long
+ nilfs_palloc_rest_groups_in_desc_block(const struct inode *inode,
+@@ -453,6 +495,8 @@ nilfs_palloc_rest_groups_in_desc_block(c
+  * nilfs_palloc_count_desc_blocks - count descriptor blocks number
+  * @inode: inode of metadata file using this allocator
+  * @desc_blocks: descriptor blocks number [out]
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_palloc_count_desc_blocks(struct inode *inode,
+ 					    unsigned long *desc_blocks)
+@@ -473,6 +517,8 @@ static int nilfs_palloc_count_desc_block
+  *					MDT file growing
+  * @inode: inode of metadata file using this allocator
+  * @desc_blocks: known current descriptor blocks count
++ *
++ * Return: true if a group can be added in the metadata file, false if not.
+  */
+ static inline bool nilfs_palloc_mdt_file_can_grow(struct inode *inode,
+ 						    unsigned long desc_blocks)
+@@ -487,6 +533,12 @@ static inline bool nilfs_palloc_mdt_file
+  * @inode: inode of metadata file using this allocator
+  * @nused: current number of used entries
+  * @nmaxp: max number of entries [out]
++ *
 + * Return: 0 on success, or one of the following negative error codes on
 + * failure:
 + * * %-EIO	- I/O error (including metadata corruption).
-+ * * %-ENOENT	- Invalid virtual block address.
 + * * %-ENOMEM	- Insufficient memory available.
++ * * %-ERANGE	- Number of entries in use is out of range.
   */
- int nilfs_gccache_submit_read_node(struct inode *inode, sector_t pbn,
- 				   __u64 vbn, struct buffer_head **out_bh)
---- a/fs/nilfs2/inode.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest
+ int nilfs_palloc_count_max_entries(struct inode *inode, u64 nused, u64 *nmaxp)
+ {
+@@ -518,6 +570,13 @@ int nilfs_palloc_count_max_entries(struc
+  * @inode: inode of metadata file using this allocator
+  * @req: nilfs_palloc_req structure exchanged for the allocation
+  * @wrap: whether to wrap around
++ *
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOMEM	- Insufficient memory available.
++ * * %-ENOSPC	- Entries exhausted (No entries available for allocation).
++ * * %-EROFS	- Read only filesystem
+  */
+ int nilfs_palloc_prepare_alloc_entry(struct inode *inode,
+ 				     struct nilfs_palloc_req *req, bool wrap)
+@@ -710,6 +769,8 @@ void nilfs_palloc_abort_alloc_entry(stru
+  * nilfs_palloc_prepare_free_entry - prepare to deallocate a persistent object
+  * @inode: inode of metadata file using this allocator
+  * @req: nilfs_palloc_req structure exchanged for the removal
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_palloc_prepare_free_entry(struct inode *inode,
+ 				    struct nilfs_palloc_req *req)
+@@ -754,6 +815,8 @@ void nilfs_palloc_abort_free_entry(struc
+  * @inode: inode of metadata file using this allocator
+  * @entry_nrs: array of entry numbers to be deallocated
+  * @nitems: number of entries stored in @entry_nrs
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_palloc_freev(struct inode *inode, __u64 *entry_nrs, size_t nitems)
+ {
+--- a/fs/nilfs2/alloc.h~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/alloc.h
+@@ -21,6 +21,8 @@
+  *
+  * The number of entries per group is defined by the number of bits
+  * that a bitmap block can maintain.
++ *
++ * Return: Number of entries per group.
+  */
+ static inline unsigned long
+ nilfs_palloc_entries_per_group(const struct inode *inode)
+--- a/fs/nilfs2/cpfile.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/cpfile.c
+@@ -1124,6 +1124,8 @@ int nilfs_cpfile_get_stat(struct inode *
+  * @cpsize: size of a checkpoint entry
+  * @raw_inode: on-disk cpfile inode
+  * @inodep: buffer to store the inode
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_cpfile_read(struct super_block *sb, size_t cpsize,
+ 		      struct nilfs_inode *raw_inode, struct inode **inodep)
+--- a/fs/nilfs2/dat.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/dat.c
+@@ -481,6 +481,8 @@ ssize_t nilfs_dat_get_vinfo(struct inode
+  * @entry_size: size of a dat entry
+  * @raw_inode: on-disk dat inode
+  * @inodep: buffer to store the inode
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_dat_read(struct super_block *sb, size_t entry_size,
+ 		   struct nilfs_inode *raw_inode, struct inode **inodep)
+--- a/fs/nilfs2/ifile.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/ifile.c
+@@ -146,6 +146,8 @@ int nilfs_ifile_get_inode_block(struct i
+  * @ifile: ifile inode
+  * @nmaxinodes: current maximum of available inodes count [out]
+  * @nfreeinodes: free inodes count [out]
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_ifile_count_free_inodes(struct inode *ifile,
+ 				    u64 *nmaxinodes, u64 *nfreeinodes)
+--- a/fs/nilfs2/inode.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
 +++ a/fs/nilfs2/inode.c
-@@ -598,10 +598,7 @@ struct inode *nilfs_iget_for_gc(struct s
-  * or does nothing if the inode already has it.  This function allocates
-  * an additional inode to maintain page cache of B-tree nodes one-on-one.
+@@ -68,6 +68,8 @@ void nilfs_inode_sub_blocks(struct inode
   *
-- * Return Value: On success, 0 is returned. On errors, one of the following
-- * negative error code is returned.
-- *
-- * %-ENOMEM - Insufficient memory available.
-+ * Return: 0 on success, or %-ENOMEM if memory is insufficient.
+  * This function does not issue actual read request of the specified data
+  * block. It is done by VFS.
++ *
++ * Return: 0 on success, or a negative error code on failure.
   */
- int nilfs_attach_btree_node_cache(struct inode *inode)
+ int nilfs_get_block(struct inode *inode, sector_t blkoff,
+ 		    struct buffer_head *bh_result, int create)
+@@ -141,6 +143,8 @@ int nilfs_get_block(struct inode *inode,
+  * address_space_operations.
+  * @file: file struct of the file to be read
+  * @folio: the folio to be read
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_read_folio(struct file *file, struct folio *folio)
  {
-@@ -660,11 +657,8 @@ void nilfs_detach_btree_node_cache(struc
-  * in one inode and the one for b-tree node pages is set up in the
-  * other inode, which is attached to the former inode.
+--- a/fs/nilfs2/mdt.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/mdt.c
+@@ -519,6 +519,8 @@ void nilfs_mdt_set_entry_size(struct ino
+  * nilfs_mdt_setup_shadow_map - setup shadow map and bind it to metadata file
+  * @inode: inode of the metadata file
+  * @shadow: shadow mapping
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_mdt_setup_shadow_map(struct inode *inode,
+ 			       struct nilfs_shadow_map *shadow)
+@@ -540,6 +542,8 @@ int nilfs_mdt_setup_shadow_map(struct in
+ /**
+  * nilfs_mdt_save_to_shadow_map - copy bmap and dirty pages to shadow map
+  * @inode: inode of the metadata file
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_mdt_save_to_shadow_map(struct inode *inode)
+ {
+--- a/fs/nilfs2/page.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/page.c
+@@ -135,8 +135,7 @@ void nilfs_copy_buffer(struct buffer_hea
+  * nilfs_folio_buffers_clean - Check if a folio has dirty buffers or not.
+  * @folio: Folio to be checked.
   *
-- * Return Value: On success, a pointer to the inode for data pages is
-- * returned. On errors, one of the following negative error code is returned
-- * in a pointer type.
-- *
-- * %-ENOMEM - Insufficient memory available.
-+ * Return: a pointer to the inode for data pages on success, or %-ENOMEM
-+ * if memory is insufficient.
+- * nilfs_folio_buffers_clean() returns false if the folio has dirty buffers.
+- * Otherwise, it returns true.
++ * Return: false if the folio has dirty buffers, true otherwise.
   */
- struct inode *nilfs_iget_for_shadow(struct inode *inode)
+ bool nilfs_folio_buffers_clean(struct folio *folio)
  {
---- a/fs/nilfs2/recovery.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest
+@@ -500,8 +499,9 @@ void __nilfs_clear_folio_dirty(struct fo
+  * This function searches an extent of buffers marked "delayed" which
+  * starts from a block offset equal to or larger than @start_blk.  If
+  * such an extent was found, this will store the start offset in
+- * @blkoff and return its length in blocks.  Otherwise, zero is
+- * returned.
++ * @blkoff and return its length in blocks.
++ *
++ * Return: Length in blocks of found extent, 0 otherwise.
+  */
+ unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
+ 					    sector_t start_blk,
+--- a/fs/nilfs2/recovery.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
 +++ a/fs/nilfs2/recovery.c
-@@ -754,18 +754,13 @@ static void nilfs_abort_roll_forward(str
-  * @sb: super block instance
-  * @ri: pointer to a nilfs_recovery_info struct to store search results.
-  *
-- * Return Value: On success, 0 is returned.  On error, one of the following
-- * negative error code is returned.
-- *
-- * %-EINVAL - Inconsistent filesystem state.
-- *
-- * %-EIO - I/O error
-- *
-- * %-ENOSPC - No space left on device (only in a panic state).
-- *
-- * %-ERESTARTSYS - Interrupted.
-- *
-- * %-ENOMEM - Insufficient memory available.
+@@ -88,6 +88,8 @@ static int nilfs_warn_segment_error(stru
+  * @check_bytes: number of bytes to be checked
+  * @start: DBN of start block
+  * @nblock: number of blocks to be checked
++ *
++ * Return: 0 on success, or %-EIO if an I/O error occurs.
+  */
+ static int nilfs_compute_checksum(struct the_nilfs *nilfs,
+ 				  struct buffer_head *bhs, u32 *sum,
+@@ -126,6 +128,11 @@ static int nilfs_compute_checksum(struct
+  * @sr_block: disk block number of the super root block
+  * @pbh: address of a buffer_head pointer to return super root buffer
+  * @check: CRC check flag
++ *
 + * Return: 0 on success, or one of the following negative error codes on
 + * failure:
-+ * * %-EINVAL		- Inconsistent filesystem state.
-+ * * %-EIO		- I/O error.
-+ * * %-ENOMEM		- Insufficient memory available.
-+ * * %-ENOSPC		- No space left on device (only in a panic state).
-+ * * %-ERESTARTSYS	- Interrupted.
++ * * %-EINVAL	- Super root block corrupted.
++ * * %-EIO	- I/O error.
   */
- int nilfs_salvage_orphan_logs(struct the_nilfs *nilfs,
- 			      struct super_block *sb,
-@@ -830,14 +825,11 @@ failed:
-  * segment pointed by the superblock.  It sets up struct the_nilfs through
-  * this search. It fills nilfs_recovery_info (ri) required for recovery.
+ int nilfs_read_super_root_block(struct the_nilfs *nilfs, sector_t sr_block,
+ 				struct buffer_head **pbh, int check)
+@@ -176,6 +183,8 @@ int nilfs_read_super_root_block(struct t
+  * @nilfs: nilfs object
+  * @start_blocknr: start block number of the log
+  * @sum: pointer to return segment summary structure
++ *
++ * Return: Buffer head pointer, or NULL if an I/O error occurs.
+  */
+ static struct buffer_head *
+ nilfs_read_log_header(struct the_nilfs *nilfs, sector_t start_blocknr,
+@@ -195,6 +204,13 @@ nilfs_read_log_header(struct the_nilfs *
+  * @seg_seq: sequence number of segment
+  * @bh_sum: buffer head of summary block
+  * @sum: segment summary struct
++ *
++ * Return: 0 on success, or one of the following internal codes on failure:
++ * * %NILFS_SEG_FAIL_MAGIC	    - Magic number mismatch.
++ * * %NILFS_SEG_FAIL_SEQ	    - Sequence number mismatch.
++ * * %NIFLS_SEG_FAIL_CONSISTENCY    - Block count out of range.
++ * * %NILFS_SEG_FAIL_IO		    - I/O error.
++ * * %NILFS_SEG_FAIL_CHECKSUM_FULL  - Full log checksum verification failed.
+  */
+ static int nilfs_validate_log(struct the_nilfs *nilfs, u64 seg_seq,
+ 			      struct buffer_head *bh_sum,
+@@ -238,6 +254,9 @@ out:
+  * @pbh: the current buffer head on summary blocks [in, out]
+  * @offset: the current byte offset on summary blocks [in, out]
+  * @bytes: byte size of the item to be read
++ *
++ * Return: Kernel space address of current segment summary entry, or
++ * NULL if an I/O error occurs.
+  */
+ static void *nilfs_read_summary_info(struct the_nilfs *nilfs,
+ 				     struct buffer_head **pbh,
+@@ -300,6 +319,11 @@ static void nilfs_skip_summary_info(stru
+  * @start_blocknr: start block number of the log
+  * @sum: log summary information
+  * @head: list head to add nilfs_recovery_block struct
++ *
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_scan_dsync_log(struct the_nilfs *nilfs, sector_t start_blocknr,
+ 				struct nilfs_segment_summary *sum,
+@@ -571,6 +595,12 @@ static int nilfs_recover_dsync_blocks(st
+  * @sb: super block instance
+  * @root: NILFS root instance
+  * @ri: pointer to a nilfs_recovery_info
++ *
++ * Return: 0 on success, or one of the following negative error codes on
++ * failure:
++ * * %-EINVAL	- Log format error.
++ * * %-EIO	- I/O error.
++ * * %-ENOMEM	- Insufficient memory available.
+  */
+ static int nilfs_do_roll_forward(struct the_nilfs *nilfs,
+ 				 struct super_block *sb,
+--- a/fs/nilfs2/segment.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/segment.c
+@@ -250,6 +250,8 @@ int nilfs_transaction_begin(struct super
+  * nilfs_transaction_commit() sets a timer to start the segment
+  * constructor.  If a sync flag is set, it starts construction
+  * directly.
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_transaction_commit(struct super_block *sb)
+ {
+@@ -405,6 +407,8 @@ static void *nilfs_segctor_map_segsum_en
+ /**
+  * nilfs_segctor_reset_segment_buffer - reset the current segment buffer
+  * @sci: nilfs_sc_info
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_segctor_reset_segment_buffer(struct nilfs_sc_info *sci)
+ {
+@@ -1315,6 +1319,8 @@ static int nilfs_segctor_collect_blocks(
+  * nilfs_segctor_begin_construction - setup segment buffer to make a new log
+  * @sci: nilfs_sc_info
+  * @nilfs: nilfs object
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_segctor_begin_construction(struct nilfs_sc_info *sci,
+ 					    struct the_nilfs *nilfs)
+@@ -2454,6 +2460,8 @@ static void nilfs_segctor_notify(struct
+  * nilfs_segctor_construct - form logs and write them to disk
+  * @sci: segment constructor object
+  * @mode: mode of log forming
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_segctor_construct(struct nilfs_sc_info *sci, int mode)
+ {
+--- a/fs/nilfs2/sufile.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/sufile.c
+@@ -133,6 +133,8 @@ static void nilfs_sufile_mod_counter(str
+ /**
+  * nilfs_sufile_get_ncleansegs - return the number of clean segments
+  * @sufile: inode of segment usage file
++ *
++ * Return: Number of clean segments.
+  */
+ unsigned long nilfs_sufile_get_ncleansegs(struct inode *sufile)
+ {
+@@ -500,6 +502,8 @@ void nilfs_sufile_do_free(struct inode *
+  * nilfs_sufile_mark_dirty - mark the buffer having a segment usage dirty
+  * @sufile: inode of segment usage file
+  * @segnum: segment number
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_sufile_mark_dirty(struct inode *sufile, __u64 segnum)
+ {
+@@ -559,6 +563,8 @@ out_sem:
+  * @segnum: segment number
+  * @nblocks: number of live blocks in the segment
+  * @modtime: modification time (option)
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_sufile_set_segment_usage(struct inode *sufile, __u64 segnum,
+ 				   unsigned long nblocks, time64_t modtime)
+@@ -1195,6 +1201,8 @@ out_sem:
+  * @susize: size of a segment usage entry
+  * @raw_inode: on-disk sufile inode
+  * @inodep: buffer to store the inode
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_sufile_read(struct super_block *sb, size_t susize,
+ 		      struct nilfs_inode *raw_inode, struct inode **inodep)
+--- a/fs/nilfs2/sufile.h~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/sufile.h
+@@ -58,6 +58,8 @@ int nilfs_sufile_trim_fs(struct inode *s
+  * nilfs_sufile_scrap - make a segment garbage
+  * @sufile: inode of segment usage file
+  * @segnum: segment number to be freed
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static inline int nilfs_sufile_scrap(struct inode *sufile, __u64 segnum)
+ {
+@@ -68,6 +70,8 @@ static inline int nilfs_sufile_scrap(str
+  * nilfs_sufile_free - free segment
+  * @sufile: inode of segment usage file
+  * @segnum: segment number to be freed
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static inline int nilfs_sufile_free(struct inode *sufile, __u64 segnum)
+ {
+@@ -80,6 +84,8 @@ static inline int nilfs_sufile_free(stru
+  * @segnumv: array of segment numbers
+  * @nsegs: size of @segnumv array
+  * @ndone: place to store the number of freed segments
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static inline int nilfs_sufile_freev(struct inode *sufile, __u64 *segnumv,
+ 				     size_t nsegs, size_t *ndone)
+--- a/fs/nilfs2/super.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/super.c
+@@ -309,6 +309,8 @@ int nilfs_commit_super(struct super_bloc
+  * This function restores state flags in the on-disk super block.
+  * This will set "clean" flag (i.e. NILFS_VALID_FS) unless the
+  * filesystem was not clean previously.
++ *
++ * Return: 0 on success, %-EIO if I/O error or superblock is corrupted.
+  */
+ int nilfs_cleanup_super(struct super_block *sb)
+ {
+@@ -339,6 +341,8 @@ int nilfs_cleanup_super(struct super_blo
+  * nilfs_move_2nd_super - relocate secondary super block
+  * @sb: super block instance
+  * @sb2off: new offset of the secondary super block (in bytes)
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int nilfs_move_2nd_super(struct super_block *sb, loff_t sb2off)
+ {
+@@ -420,6 +424,8 @@ out:
+  * nilfs_resize_fs - resize the filesystem
+  * @sb: super block instance
+  * @newsize: new size of the filesystem (in bytes)
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ int nilfs_resize_fs(struct super_block *sb, __u64 newsize)
+ {
+@@ -987,7 +993,7 @@ static int nilfs_attach_snapshot(struct
+  * nilfs_tree_is_busy() - try to shrink dentries of a checkpoint
+  * @root_dentry: root dentry of the tree to be shrunk
   *
-- * Return Value: On success, 0 is returned.  On error, one of the following
-- * negative error code is returned.
-- *
-- * %-EINVAL - No valid segment found
-- *
-- * %-EIO - I/O error
-- *
-- * %-ENOMEM - Insufficient memory available.
+- * This function returns true if the tree was in-use.
++ * Return: true if the tree was in-use, false otherwise.
+  */
+ static bool nilfs_tree_is_busy(struct dentry *root_dentry)
+ {
+@@ -1033,6 +1039,8 @@ int nilfs_checkpoint_is_mounted(struct s
+  *
+  * This function is called exclusively by nilfs->ns_mount_mutex.
+  * So, the recovery process is protected from other simultaneous mounts.
++ *
++ * Return: 0 on success, or a negative error code on failure.
+  */
+ static int
+ nilfs_fill_super(struct super_block *sb, struct fs_context *fc)
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-add-missing-return-value-kernel-doc-descriptions
++++ a/fs/nilfs2/the_nilfs.c
+@@ -165,6 +165,9 @@ static void nilfs_clear_recovery_info(st
+  * containing a super root from a given super block, and initializes
+  * relevant information on the nilfs object preparatory for log
+  * scanning and recovery.
++ *
++ * Return: 0 on success, or %-EINVAL if current segment number is out
++ * of range.
+  */
+ static int nilfs_store_log_cursor(struct the_nilfs *nilfs,
+ 				  struct nilfs_super_block *sbp)
+@@ -225,6 +228,13 @@ static int nilfs_get_blocksize(struct su
+  * load_nilfs() searches and load the latest super root,
+  * attaches the last segment, and does recovery if needed.
+  * The caller must call this exclusively for simultaneous mounts.
++ *
 + * Return: 0 on success, or one of the following negative error codes on
 + * failure:
 + * * %-EINVAL	- No valid segment found.
 + * * %-EIO	- I/O error.
 + * * %-ENOMEM	- Insufficient memory available.
++ * * %-EROFS	- Read only device or RO compat mode (if recovery is required)
   */
- int nilfs_search_super_root(struct the_nilfs *nilfs,
- 			    struct nilfs_recovery_info *ri)
---- a/fs/nilfs2/segbuf.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest
-+++ a/fs/nilfs2/segbuf.c
-@@ -406,12 +406,7 @@ static int nilfs_segbuf_submit_bh(struct
-  * @segbuf: buffer storing a log to be written
+ int load_nilfs(struct the_nilfs *nilfs, struct super_block *sb)
+ {
+@@ -394,6 +404,8 @@ static unsigned long long nilfs_max_size
+  * nilfs_nrsvsegs - calculate the number of reserved segments
   * @nilfs: nilfs object
-  *
-- * Return Value: On Success, 0 is returned. On Error, one of the following
-- * negative error code is returned.
-- *
-- * %-EIO - I/O error
-- *
-- * %-ENOMEM - Insufficient memory available.
-+ * Return: Always 0.
+  * @nsegs: total number of segments
++ *
++ * Return: Number of reserved segments.
   */
- static int nilfs_segbuf_write(struct nilfs_segment_buffer *segbuf,
- 			      struct the_nilfs *nilfs)
-@@ -452,10 +447,7 @@ static int nilfs_segbuf_write(struct nil
-  * nilfs_segbuf_wait - wait for completion of requested BIOs
-  * @segbuf: segment buffer
-  *
-- * Return Value: On Success, 0 is returned. On Error, one of the following
-- * negative error code is returned.
-- *
-- * %-EIO - I/O error
-+ * Return: 0 on success, or %-EIO if I/O error is detected.
-  */
- static int nilfs_segbuf_wait(struct nilfs_segment_buffer *segbuf)
+ unsigned long nilfs_nrsvsegs(struct the_nilfs *nilfs, unsigned long nsegs)
  {
---- a/fs/nilfs2/segment.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest
-+++ a/fs/nilfs2/segment.c
-@@ -191,12 +191,10 @@ static int nilfs_prepare_segment_lock(st
-  * When @vacancy_check flag is set, this function will check the amount of
-  * free space, and will wait for the GC to reclaim disk space if low capacity.
-  *
-- * Return Value: On success, 0 is returned. On error, one of the following
-- * negative error code is returned.
-- *
-- * %-ENOMEM - Insufficient memory available.
-- *
-- * %-ENOSPC - No space left on device
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-+ * * %-ENOMEM	- Insufficient memory available.
-+ * * %-ENOSPC	- No space left on device (if checking free space).
+@@ -405,6 +417,8 @@ unsigned long nilfs_nrsvsegs(struct the_
+ /**
+  * nilfs_max_segment_count - calculate the maximum number of segments
+  * @nilfs: nilfs object
++ *
++ * Return: Maximum number of segments
   */
- int nilfs_transaction_begin(struct super_block *sb,
- 			    struct nilfs_transaction_info *ti,
-@@ -2314,18 +2312,13 @@ static void nilfs_segctor_wakeup(struct
-  * nilfs_construct_segment - construct a logical segment
-  * @sb: super block
-  *
-- * Return Value: On success, 0 is returned. On errors, one of the following
-- * negative error code is returned.
-- *
-- * %-EROFS - Read only filesystem.
-- *
-- * %-EIO - I/O error
-- *
-- * %-ENOSPC - No space left on device (only in a panic state).
-- *
-- * %-ERESTARTSYS - Interrupted.
-- *
-- * %-ENOMEM - Insufficient memory available.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-+ * * %-EIO		- I/O error (including metadata corruption).
-+ * * %-ENOMEM		- Insufficient memory available.
-+ * * %-ENOSPC		- No space left on device (only in a panic state).
-+ * * %-ERESTARTSYS	- Interrupted.
-+ * * %-EROFS		- Read only filesystem.
-  */
- int nilfs_construct_segment(struct super_block *sb)
- {
-@@ -2349,18 +2342,13 @@ int nilfs_construct_segment(struct super
-  * @start: start byte offset
-  * @end: end byte offset (inclusive)
-  *
-- * Return Value: On success, 0 is returned. On errors, one of the following
-- * negative error code is returned.
-- *
-- * %-EROFS - Read only filesystem.
-- *
-- * %-EIO - I/O error
-- *
-- * %-ENOSPC - No space left on device (only in a panic state).
-- *
-- * %-ERESTARTSYS - Interrupted.
-- *
-- * %-ENOMEM - Insufficient memory available.
-+ * Return: 0 on success, or one of the following negative error codes on
-+ * failure:
-+ * * %-EIO		- I/O error (including metadata corruption).
-+ * * %-ENOMEM		- Insufficient memory available.
-+ * * %-ENOSPC		- No space left on device (only in a panic state).
-+ * * %-ERESTARTSYS	- Interrupted.
-+ * * %-EROFS		- Read only filesystem.
-  */
- int nilfs_construct_dsync_segment(struct super_block *sb, struct inode *inode,
- 				  loff_t start, loff_t end)
---- a/fs/nilfs2/the_nilfs.c~nilfs2-correct-return-value-kernel-doc-descriptions-for-the-rest
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -49,8 +49,8 @@ void nilfs_set_last_segment(struct the_n
-  * alloc_nilfs - allocate a nilfs object
-  * @sb: super block instance
-  *
-- * Return Value: On success, pointer to the_nilfs is returned.
-- * On error, NULL is returned.
-+ * Return: a pointer to the allocated nilfs object on success, or NULL on
-+ * failure.
-  */
- struct the_nilfs *alloc_nilfs(struct super_block *sb)
- {
-@@ -200,8 +200,7 @@ static int nilfs_store_log_cursor(struct
-  * exponent information written in @sbp and stores it in @blocksize,
-  * or aborts with an error message if it's too large.
-  *
-- * Return Value: On success, 0 is returned. If the block size is too
-- * large, -EINVAL is returned.
-+ * Return: 0 on success, or %-EINVAL if the block size is too large.
-  */
- static int nilfs_get_blocksize(struct super_block *sb,
- 			       struct nilfs_super_block *sbp, int *blocksize)
-@@ -538,7 +537,7 @@ static int nilfs_valid_sb(struct nilfs_s
-  * area, or if the parameters themselves are not normal, it is
-  * determined to be invalid.
-  *
-- * Return Value: true if invalid, false if valid.
-+ * Return: true if invalid, false if valid.
-  */
- static bool nilfs_sb2_bad_offset(struct nilfs_super_block *sbp, u64 offset)
- {
-@@ -684,8 +683,7 @@ static int nilfs_load_super_block(struct
-  * reading the super block, getting disk layout information, initializing
-  * shared fields in the_nilfs).
-  *
-- * Return Value: On success, 0 is returned. On error, a negative error
-- * code is returned.
-+ * Return: 0 on success, or a negative error code on failure.
-  */
- int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb)
+ static u64 nilfs_max_segment_count(struct the_nilfs *nilfs)
  {
 _
 
