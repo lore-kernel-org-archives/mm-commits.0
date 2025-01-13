@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D700625761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C2525761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742240; cv=none; b=MN70hDYutyaVwNc9asVUUGXiPdUs4HKZqOAmcoFdHuTPG36+TQ+9RQT+ppfUTDa6CLz90o+KWI328ph3HzKt9cye6AZl+I5tUdI6VdWlpJZBX7laF685fmKJ5uDcSv+K7tIyvBsqjRgs9uWgqXywMjVjGCs9ygbd4RaoeR/9LTE=
+	t=1736742242; cv=none; b=BnoXsh+62yAD1QMjWlNkOx5HFYhC4rXbQPJjAQo7vkyxaXDuD5dsmNvOXBVTA2NGk8g/dtBIlTZpQ798Yi5LbS8GTKT1bR7OkIqppyWp6vAmGbpOkjhYvaCbolmCJdw3TSeFS+4xlARpU9WjIV01dKBbuPrhPooTObRQ3gl21yM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742240; c=relaxed/simple;
-	bh=9OUeNSapyJGftNZkIdE+yk0SdFt8wcU8zzZG8d/1npU=;
-	h=Date:To:From:Subject:Message-Id; b=u3iX0jxiH+s7fVUevRA1IDmAvyVhCgw0/9++B3ikFHk9mPpvHbvMF8G34QxNfuD+NRoKsblFeOIngHDbNdpY8lSLavDTL5iMVGM6wwUmQMp/EMGJFbvOm4rk/DxVY/kLwtgDX3Q4iJlQwvI5AGa84NyLK+dviU9T0G+WxRAdMNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RWKx1tGb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742242; c=relaxed/simple;
+	bh=4n0HVUnw1QJcu4Y+gfQeLSkuMCVqdDiltYLU+fsxZ/4=;
+	h=Date:To:From:Subject:Message-Id; b=eLOICBYx6bvUtOKnRW0hcn19nn0WTg9XkKN/OVNwuLQ4IBH8LjbyTxAtRsRBTX8sA1ZaHDa7JVr/e9KzpNkMdPCYZ7c7TfH38Pb4F67PVbMKaZGgonETeyrbokWK8FWQmzrDB0OduszX+tvwEbWECkAmr7Tup/sTHcFobzvXVtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z4SKbXGj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RWKx1tGb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A891CC4CED6;
-	Mon, 13 Jan 2025 04:24:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z4SKbXGj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2013C4CED6;
+	Mon, 13 Jan 2025 04:24:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742240;
-	bh=9OUeNSapyJGftNZkIdE+yk0SdFt8wcU8zzZG8d/1npU=;
+	s=korg; t=1736742242;
+	bh=4n0HVUnw1QJcu4Y+gfQeLSkuMCVqdDiltYLU+fsxZ/4=;
 	h=Date:To:From:Subject:From;
-	b=RWKx1tGbArQPUg2+bha4mJwtfxT3BM+KXDLG/gHJYkm+bYVaJwnkm+ewFIA7oWvHv
-	 FiLFNzGeR7kmtKqpgnC9n937rD42630Sy4yT/gYRQeMNeezqFzwYAt0XCeRmsp4zjx
-	 jUXobguHmUu9y2e9/tGtVH9rgktWg5ZVscUk0Sek=
-Date: Sun, 12 Jan 2025 20:24:00 -0800
-To: mm-commits@vger.kernel.org,vgupta@kernel.org,tursulin@ursulin.net,torvalds@linux-foundation.org,tglx@linutronix.de,simona@ffwll.ch,serge@hallyn.com,rodrigo.vivi@intel.com,pmladek@suse.com,peterz@infradead.org,paul@paul-moore.com,ogabbay@kernel.org,mingo@redhat.com,lyude@redhat.com,kvalo@kernel.org,kherbst@redhat.com,kees@kernel.org,joonas.lahtinen@linux.intel.com,johannes@sipsolutions.net,jmorris@namei.org,jirislaby@kernel.org,jani.nikula@linux.intel.com,hpa@zytor.com,gregkh@linuxfoundation.org,dvhart@infradead.org,dave@stgolabs.net,dave.hansen@linux.intel.com,dakr@redhat.com,bp@alien8.de,andriy.shevchenko@linux.intel.com,andrealmeid@igalia.com,airlied@gmail.com,laoar.shao@gmail.com,akpm@linux-foundation.org
+	b=z4SKbXGjpZWEqJ7jXmit0lbz8uoblxYImrxjRdTcXwhjQCIhyBJymx7WJJ297KXGB
+	 x2X6u5RFt8+gd1DtcAq56MznZ7fGbR1QwCRmPOE6RJW2D5Av0o/+RVzGBb8QGagYJb
+	 5UCl5ZuOhdl3F8rY0uICCJOSjwlz3OAtbnU/mH60=
+Date: Sun, 12 Jan 2025 20:24:01 -0800
+To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] drivers-remove-get_task_comm-and-print-task-comm-directly.patch removed from -mm tree
-Message-Id: <20250113042400.A891CC4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] delayacct-add-delay-min-to-record-delay-peak.patch removed from -mm tree
+Message-Id: <20250113042401.E2013C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,206 +35,464 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drivers: remove get_task_comm() and print task comm directly
+     Subject: delayacct: add delay min to record delay peak
 has been removed from the -mm tree.  Its filename was
-     drivers-remove-get_task_comm-and-print-task-comm-directly.patch
+     delayacct-add-delay-min-to-record-delay-peak.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: drivers: remove get_task_comm() and print task comm directly
-Date: Thu, 19 Dec 2024 10:34:52 +0800
+From: Wang Yaxin <wang.yaxin@zte.com.cn>
+Subject: delayacct: add delay min to record delay peak
+Date: Fri, 20 Dec 2024 17:31:05 +0800 (CST)
 
-Since task->comm is guaranteed to be NUL-terminated, we can print it
-directly without the need to copy it into a separate buffer.  This
-simplifies the code and avoids unnecessary operations.
+Delay accounting can now calculate the average delay of processes, detect
+the overall system load, and also record the 'delay max' to identify
+potential abnormal delays.  However, 'delay min' can help us identify
+another useful delay peak.  By comparing the difference between 'delay
+max' and 'delay min', we can understand the optimization space for
+latency, providing a reference for the optimization of latency
+performance.
 
-Link: https://lkml.kernel.org/r/20241219023452.69907-6-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org> (For tty)
-Reviewed-by: Lyude Paul <lyude@redhat.com> (For nouveau)
-Cc: Oded Gabbay <ogabbay@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Tvrtko Ursulin <tursulin@ursulin.net>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Karol Herbst <kherbst@redhat.com>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Danilo Krummrich <dakr@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: "André Almeida" <andrealmeid@igalia.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Kalle Valo <kvalo@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vineet Gupta <vgupta@kernel.org>
+Use case
+=========
+bash-4.4# ./getdelays -d -t 242
+print delayacct stats ON
+TGID    242
+CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
+               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
+IO          count    delay total  delay average      delay max      delay min
+                0              0          0.000ms     0.000000ms     0.000000ms
+SWAP        count    delay total  delay average      delay max      delay min
+                0              0          0.000ms     0.000000ms     0.000000ms
+RECLAIM     count    delay total  delay average      delay max      delay min
+                0              0          0.000ms     0.000000ms     0.000000ms
+THRASHING   count    delay total  delay average      delay max      delay min
+                0              0          0.000ms     0.000000ms     0.000000ms
+COMPACT     count    delay total  delay average      delay max      delay min
+                0              0          0.000ms     0.000000ms     0.000000ms
+WPCOPY      count    delay total  delay average      delay max      delay min
+              156       11215873          0.072ms     0.207403ms     0.033913ms
+IRQ         count    delay total  delay average      delay max      delay min
+                0              0          0.000ms     0.000000ms     0.000000ms
+
+Link: https://lkml.kernel.org/r/20241220173105906EOdsPhzjMLYNJJBqgz1ga@zte.com.cn
+Co-developed-by: Wang Yong <wang.yong12@zte.com.cn>
+Signed-off-by: Wang Yong <wang.yong12@zte.com.cn>
+Co-developed-by: xu xin <xu.xin16@zte.com.cn>
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Co-developed-by: Kun Jiang <jiang.kun2@zte.com.cn>
+Signed-off-by: Kun Jiang <jiang.kun2@zte.com.cn>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Peilin He <he.peilin@zte.com.cn>
+Cc: tuqiang <tu.qiang35@zte.com.cn>
+Cc: ye xingchen <ye.xingchen@zte.com.cn>
+Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accel/habanalabs/common/context.c           |    3 --
- drivers/accel/habanalabs/common/habanalabs_ioctl.c  |   11 ++--------
- drivers/gpu/drm/i915/display/intel_display_driver.c |    6 +----
- drivers/gpu/drm/nouveau/nouveau_chan.c              |    4 ---
- drivers/gpu/drm/nouveau/nouveau_drm.c               |    5 +---
- drivers/tty/tty_io.c                                |    3 --
- 6 files changed, 10 insertions(+), 22 deletions(-)
+ Documentation/accounting/delay-accounting.rst |   32 ++++++------
+ include/linux/delayacct.h                     |    7 ++
+ include/linux/sched.h                         |    3 +
+ include/uapi/linux/taskstats.h                |    8 +++
+ kernel/delayacct.c                            |   32 +++++++++---
+ kernel/sched/stats.h                          |    4 +
+ tools/accounting/getdelays.c                  |   42 +++++++++-------
+ 7 files changed, 88 insertions(+), 40 deletions(-)
 
---- a/drivers/accel/habanalabs/common/context.c~drivers-remove-get_task_comm-and-print-task-comm-directly
-+++ a/drivers/accel/habanalabs/common/context.c
-@@ -199,7 +199,6 @@ out_err:
+--- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-min-to-record-delay-peak
++++ a/Documentation/accounting/delay-accounting.rst
+@@ -107,22 +107,22 @@ Get sum and peak of delays, since system
+ 	TGID    242
  
- int hl_ctx_init(struct hl_device *hdev, struct hl_ctx *ctx, bool is_kernel_ctx)
- {
--	char task_comm[TASK_COMM_LEN];
- 	int rc = 0, i;
  
- 	ctx->hdev = hdev;
-@@ -272,7 +271,7 @@ int hl_ctx_init(struct hl_device *hdev,
- 		mutex_init(&ctx->ts_reg_lock);
+-	CPU         count     real total  virtual total    delay total  delay average      delay max
+-	              239      296000000      307724885        1127792          0.005ms     0.238382ms
+-	IO          count    delay total  delay average      delay max
+-	                0              0          0.000ms     0.000000ms
+-	SWAP        count    delay total  delay average      delay max
+-	                0              0          0.000ms     0.000000ms
+-	RECLAIM     count    delay total  delay average      delay max
+-	                0              0          0.000ms     0.000000ms
+-	THRASHING   count    delay total  delay average      delay max
+-	                0              0          0.000ms     0.000000ms
+-	COMPACT     count    delay total  delay average      delay max
+-	                0              0          0.000ms     0.000000ms
+-	WPCOPY      count    delay total  delay average      delay max
+-	              230       19100476          0.083ms     0.383822ms
+-	IRQ         count    delay total  delay average      delay max
+-	                0              0          0.000ms     0.000000ms
++	CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
++	               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
++	IO          count    delay total  delay average      delay max      delay min
++	                0              0          0.000ms     0.000000ms     0.000000ms
++	SWAP        count    delay total  delay average      delay max      delay min
++	                0              0          0.000ms     0.000000ms     0.000000ms
++	RECLAIM     count    delay total  delay average      delay max      delay min
++	                0              0          0.000ms     0.000000ms     0.000000ms
++	THRASHING   count    delay total  delay average      delay max      delay min
++	                0              0          0.000ms     0.000000ms     0.000000ms
++	COMPACT     count    delay total  delay average      delay max      delay min
++	                0              0          0.000ms     0.000000ms     0.000000ms
++	WPCOPY      count    delay total  delay average      delay max      delay min
++	              156       11215873          0.072ms     0.207403ms     0.033913ms
++	IRQ         count    delay total  delay average      delay max      delay min
++	                0              0          0.000ms     0.000000ms     0.000000ms
  
- 		dev_dbg(hdev->dev, "create user context, comm=\"%s\", asid=%u\n",
--			get_task_comm(task_comm, current), ctx->asid);
-+			current->comm, ctx->asid);
- 	}
+ Get IO accounting for pid 1, it works only with -p::
  
- 	return 0;
---- a/drivers/accel/habanalabs/common/habanalabs_ioctl.c~drivers-remove-get_task_comm-and-print-task-comm-directly
-+++ a/drivers/accel/habanalabs/common/habanalabs_ioctl.c
-@@ -1279,13 +1279,10 @@ static long _hl_ioctl(struct hl_fpriv *h
- 		retcode = -EFAULT;
+--- a/include/linux/delayacct.h~delayacct-add-delay-min-to-record-delay-peak
++++ a/include/linux/delayacct.h
+@@ -30,9 +30,11 @@ struct task_delay_info {
+ 	 */
+ 	u64 blkio_start;
+ 	u64 blkio_delay_max;
++	u64 blkio_delay_min;
+ 	u64 blkio_delay;	/* wait for sync block io completion */
+ 	u64 swapin_start;
+ 	u64 swapin_delay_max;
++	u64 swapin_delay_min;
+ 	u64 swapin_delay;	/* wait for swapin */
+ 	u32 blkio_count;	/* total count of the number of sync block */
+ 				/* io operations performed */
+@@ -40,21 +42,26 @@ struct task_delay_info {
  
- out_err:
--	if (retcode) {
--		char task_comm[TASK_COMM_LEN];
--
-+	if (retcode)
- 		dev_dbg_ratelimited(dev,
- 				"error in ioctl: pid=%d, comm=\"%s\", cmd=%#010x, nr=%#04x\n",
--				task_pid_nr(current), get_task_comm(task_comm, current), cmd, nr);
--	}
-+				task_pid_nr(current), current->comm, cmd, nr);
+ 	u64 freepages_start;
+ 	u64 freepages_delay_max;
++	u64 freepages_delay_min;
+ 	u64 freepages_delay;	/* wait for memory reclaim */
  
- 	if (kdata != stack_kdata)
- 		kfree(kdata);
-@@ -1308,11 +1305,9 @@ long hl_ioctl_control(struct file *filep
- 	if (nr == _IOC_NR(DRM_IOCTL_HL_INFO)) {
- 		ioctl = &hl_ioctls_control[nr - HL_COMMAND_START];
- 	} else {
--		char task_comm[TASK_COMM_LEN];
--
- 		dev_dbg_ratelimited(hdev->dev_ctrl,
- 				"invalid ioctl: pid=%d, comm=\"%s\", cmd=%#010x, nr=%#04x\n",
--				task_pid_nr(current), get_task_comm(task_comm, current), cmd, nr);
-+				task_pid_nr(current), current->comm, cmd, nr);
- 		return -ENOTTY;
- 	}
+ 	u64 thrashing_start;
+ 	u64 thrashing_delay_max;
++	u64 thrashing_delay_min;
+ 	u64 thrashing_delay;	/* wait for thrashing page */
  
---- a/drivers/gpu/drm/i915/display/intel_display_driver.c~drivers-remove-get_task_comm-and-print-task-comm-directly
-+++ a/drivers/gpu/drm/i915/display/intel_display_driver.c
-@@ -391,7 +391,6 @@ void intel_display_driver_resume_access(
+ 	u64 compact_start;
+ 	u64 compact_delay_max;
++	u64 compact_delay_min;
+ 	u64 compact_delay;	/* wait for memory compact */
+ 
+ 	u64 wpcopy_start;
+ 	u64 wpcopy_delay_max;
++	u64 wpcopy_delay_min;
+ 	u64 wpcopy_delay;	/* wait for write-protect copy */
+ 
+ 	u64 irq_delay_max;
++	u64 irq_delay_min;
+ 	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
+ 
+ 	u32 freepages_count;	/* total count of memory reclaim */
+--- a/include/linux/sched.h~delayacct-add-delay-min-to-record-delay-peak
++++ a/include/linux/sched.h
+@@ -401,6 +401,9 @@ struct sched_info {
+ 	/* Max time spent waiting on a runqueue: */
+ 	unsigned long long		max_run_delay;
+ 
++	/* Min time spent waiting on a runqueue: */
++	unsigned long long		min_run_delay;
++
+ 	/* Timestamps: */
+ 
+ 	/* When did we last run on a CPU? */
+--- a/include/uapi/linux/taskstats.h~delayacct-add-delay-min-to-record-delay-peak
++++ a/include/uapi/linux/taskstats.h
+@@ -73,6 +73,7 @@ struct taskstats {
+ 	__u64	cpu_count __attribute__((aligned(8)));
+ 	__u64	cpu_delay_total;
+ 	__u64	cpu_delay_max;
++	__u64	cpu_delay_min;
+ 
+ 	/* Following four fields atomically updated using task->delays->lock */
+ 
+@@ -82,11 +83,13 @@ struct taskstats {
+ 	__u64	blkio_count;
+ 	__u64	blkio_delay_total;
+ 	__u64	blkio_delay_max;
++	__u64	blkio_delay_min;
+ 
+ 	/* Delay waiting for page fault I/O (swap in only) */
+ 	__u64	swapin_count;
+ 	__u64	swapin_delay_total;
+ 	__u64	swapin_delay_max;
++	__u64	swapin_delay_min;
+ 
+ 	/* cpu "wall-clock" running time
+ 	 * On some architectures, value will adjust for cpu time stolen
+@@ -170,11 +173,13 @@ struct taskstats {
+ 	__u64	freepages_count;
+ 	__u64	freepages_delay_total;
+ 	__u64	freepages_delay_max;
++	__u64	freepages_delay_min;
+ 
+ 	/* Delay waiting for thrashing page */
+ 	__u64	thrashing_count;
+ 	__u64	thrashing_delay_total;
+ 	__u64	thrashing_delay_max;
++	__u64	thrashing_delay_min;
+ 
+ 	/* v10: 64-bit btime to avoid overflow */
+ 	__u64	ac_btime64;		/* 64-bit begin time */
+@@ -183,6 +188,7 @@ struct taskstats {
+ 	__u64	compact_count;
+ 	__u64	compact_delay_total;
+ 	__u64	compact_delay_max;
++	__u64	compact_delay_min;
+ 
+ 	/* v12 begin */
+ 	__u32   ac_tgid;	/* thread group ID */
+@@ -205,11 +211,13 @@ struct taskstats {
+ 	__u64    wpcopy_count;
+ 	__u64    wpcopy_delay_total;
+ 	__u64    wpcopy_delay_max;
++	__u64    wpcopy_delay_min;
+ 
+ 	/* v14: Delay waiting for IRQ/SOFTIRQ */
+ 	__u64    irq_count;
+ 	__u64    irq_delay_total;
+ 	__u64    irq_delay_max;
++	__u64    irq_delay_min;
+ 	/* v15: add Delay max */
+ };
+ 
+--- a/kernel/delayacct.c~delayacct-add-delay-min-to-record-delay-peak
++++ a/kernel/delayacct.c
+@@ -95,7 +95,7 @@ void __delayacct_tsk_init(struct task_st
+  * Finish delay accounting for a statistic using its timestamps (@start),
+  * accumulator (@total) and @count
   */
- bool intel_display_driver_check_access(struct drm_i915_private *i915)
+-static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
++static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max, u64 *min)
  {
--	char comm[TASK_COMM_LEN];
- 	char current_task[TASK_COMM_LEN + 16];
- 	char allowed_task[TASK_COMM_LEN + 16] = "none";
- 
-@@ -400,12 +399,11 @@ bool intel_display_driver_check_access(s
- 		return true;
- 
- 	snprintf(current_task, sizeof(current_task), "%s[%d]",
--		 get_task_comm(comm, current),
--		 task_pid_vnr(current));
-+		 current->comm, task_pid_vnr(current));
- 
- 	if (i915->display.access.allowed_task)
- 		snprintf(allowed_task, sizeof(allowed_task), "%s[%d]",
--			 get_task_comm(comm, i915->display.access.allowed_task),
-+			 i915->display.access.allowed_task->comm,
- 			 task_pid_vnr(i915->display.access.allowed_task));
- 
- 	drm_dbg_kms(&i915->drm,
---- a/drivers/gpu/drm/nouveau/nouveau_chan.c~drivers-remove-get_task_comm-and-print-task-comm-directly
-+++ a/drivers/gpu/drm/nouveau/nouveau_chan.c
-@@ -279,7 +279,6 @@ nouveau_channel_ctor(struct nouveau_cli
- 	const u64 plength = 0x10000;
- 	const u64 ioffset = plength;
- 	const u64 ilength = 0x02000;
--	char name[TASK_COMM_LEN];
- 	int cid, ret;
- 	u64 size;
- 
-@@ -338,8 +337,7 @@ nouveau_channel_ctor(struct nouveau_cli
- 		chan->userd = &chan->user;
+ 	s64 ns = local_clock() - *start;
+ 	unsigned long flags;
+@@ -106,6 +106,8 @@ static void delayacct_end(raw_spinlock_t
+ 		(*count)++;
+ 		if (ns > *max)
+ 			*max = ns;
++		if (*min == 0 || ns < *min)
++			*min = ns;
+ 		raw_spin_unlock_irqrestore(lock, flags);
  	}
+ }
+@@ -125,7 +127,8 @@ void __delayacct_blkio_end(struct task_s
+ 		      &p->delays->blkio_start,
+ 		      &p->delays->blkio_delay,
+ 		      &p->delays->blkio_count,
+-		      &p->delays->blkio_delay_max);
++		      &p->delays->blkio_delay_max,
++		      &p->delays->blkio_delay_min);
+ }
  
--	get_task_comm(name, current);
--	snprintf(args.name, sizeof(args.name), "%s[%d]", name, task_pid_nr(current));
-+	snprintf(args.name, sizeof(args.name), "%s[%d]", current->comm, task_pid_nr(current));
+ int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
+@@ -157,6 +160,7 @@ int delayacct_add_tsk(struct taskstats *
+ 	d->cpu_count += t1;
  
- 	ret = nvif_object_ctor(&device->object, "abi16ChanUser", 0, hosts[cid].oclass,
- 			       &args, sizeof(args), &chan->user);
---- a/drivers/gpu/drm/nouveau/nouveau_drm.c~drivers-remove-get_task_comm-and-print-task-comm-directly
-+++ a/drivers/gpu/drm/nouveau/nouveau_drm.c
-@@ -1159,7 +1159,7 @@ nouveau_drm_open(struct drm_device *dev,
+ 	d->cpu_delay_max = tsk->sched_info.max_run_delay;
++	d->cpu_delay_min = tsk->sched_info.min_run_delay;
+ 	tmp = (s64)d->cpu_delay_total + t2;
+ 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
+ 	tmp = (s64)d->cpu_run_virtual_total + t3;
+@@ -170,24 +174,31 @@ int delayacct_add_tsk(struct taskstats *
+ 	/* zero XXX_total, non-zero XXX_count implies XXX stat overflowed */
+ 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
+ 	d->blkio_delay_max = tsk->delays->blkio_delay_max;
++	d->blkio_delay_min = tsk->delays->blkio_delay_min;
+ 	tmp = d->blkio_delay_total + tsk->delays->blkio_delay;
+ 	d->blkio_delay_total = (tmp < d->blkio_delay_total) ? 0 : tmp;
+ 	d->swapin_delay_max = tsk->delays->swapin_delay_max;
++	d->swapin_delay_min = tsk->delays->swapin_delay_min;
+ 	tmp = d->swapin_delay_total + tsk->delays->swapin_delay;
+ 	d->swapin_delay_total = (tmp < d->swapin_delay_total) ? 0 : tmp;
+ 	d->freepages_delay_max = tsk->delays->freepages_delay_max;
++	d->freepages_delay_min = tsk->delays->freepages_delay_min;
+ 	tmp = d->freepages_delay_total + tsk->delays->freepages_delay;
+ 	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
+ 	d->thrashing_delay_max = tsk->delays->thrashing_delay_max;
++	d->thrashing_delay_min = tsk->delays->thrashing_delay_min;
+ 	tmp = d->thrashing_delay_total + tsk->delays->thrashing_delay;
+ 	d->thrashing_delay_total = (tmp < d->thrashing_delay_total) ? 0 : tmp;
+ 	d->compact_delay_max = tsk->delays->compact_delay_max;
++	d->compact_delay_min = tsk->delays->compact_delay_min;
+ 	tmp = d->compact_delay_total + tsk->delays->compact_delay;
+ 	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
+ 	d->wpcopy_delay_max = tsk->delays->wpcopy_delay_max;
++	d->wpcopy_delay_min = tsk->delays->wpcopy_delay_min;
+ 	tmp = d->wpcopy_delay_total + tsk->delays->wpcopy_delay;
+ 	d->wpcopy_delay_total = (tmp < d->wpcopy_delay_total) ? 0 : tmp;
+ 	d->irq_delay_max = tsk->delays->irq_delay_max;
++	d->irq_delay_min = tsk->delays->irq_delay_min;
+ 	tmp = d->irq_delay_total + tsk->delays->irq_delay;
+ 	d->irq_delay_total = (tmp < d->irq_delay_total) ? 0 : tmp;
+ 	d->blkio_count += tsk->delays->blkio_count;
+@@ -224,7 +235,8 @@ void __delayacct_freepages_end(void)
+ 		      &current->delays->freepages_start,
+ 		      &current->delays->freepages_delay,
+ 		      &current->delays->freepages_count,
+-		      &current->delays->freepages_delay_max);
++		      &current->delays->freepages_delay_max,
++		      &current->delays->freepages_delay_min);
+ }
+ 
+ void __delayacct_thrashing_start(bool *in_thrashing)
+@@ -247,7 +259,8 @@ void __delayacct_thrashing_end(bool *in_
+ 		      &current->delays->thrashing_start,
+ 		      &current->delays->thrashing_delay,
+ 		      &current->delays->thrashing_count,
+-		      &current->delays->thrashing_delay_max);
++		      &current->delays->thrashing_delay_max,
++		      &current->delays->thrashing_delay_min);
+ }
+ 
+ void __delayacct_swapin_start(void)
+@@ -261,7 +274,8 @@ void __delayacct_swapin_end(void)
+ 		      &current->delays->swapin_start,
+ 		      &current->delays->swapin_delay,
+ 		      &current->delays->swapin_count,
+-		      &current->delays->swapin_delay_max);
++		      &current->delays->swapin_delay_max,
++		      &current->delays->swapin_delay_min);
+ }
+ 
+ void __delayacct_compact_start(void)
+@@ -275,7 +289,8 @@ void __delayacct_compact_end(void)
+ 		      &current->delays->compact_start,
+ 		      &current->delays->compact_delay,
+ 		      &current->delays->compact_count,
+-		      &current->delays->compact_delay_max);
++		      &current->delays->compact_delay_max,
++		      &current->delays->compact_delay_min);
+ }
+ 
+ void __delayacct_wpcopy_start(void)
+@@ -289,7 +304,8 @@ void __delayacct_wpcopy_end(void)
+ 		      &current->delays->wpcopy_start,
+ 		      &current->delays->wpcopy_delay,
+ 		      &current->delays->wpcopy_count,
+-		      &current->delays->wpcopy_delay_max);
++		      &current->delays->wpcopy_delay_max,
++		      &current->delays->wpcopy_delay_min);
+ }
+ 
+ void __delayacct_irq(struct task_struct *task, u32 delta)
+@@ -301,6 +317,8 @@ void __delayacct_irq(struct task_struct
+ 	task->delays->irq_count++;
+ 	if (delta > task->delays->irq_delay_max)
+ 		task->delays->irq_delay_max = delta;
++	if (delta && (!task->delays->irq_delay_min || delta < task->delays->irq_delay_min))
++		task->delays->irq_delay_min = delta;
+ 	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
+ }
+ 
+--- a/kernel/sched/stats.h~delayacct-add-delay-min-to-record-delay-peak
++++ a/kernel/sched/stats.h
+@@ -246,6 +246,8 @@ static inline void sched_info_dequeue(st
+ 	t->sched_info.run_delay += delta;
+ 	if (delta > t->sched_info.max_run_delay)
+ 		t->sched_info.max_run_delay = delta;
++	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
++		t->sched_info.min_run_delay = delta;
+ 	rq_sched_info_dequeue(rq, delta);
+ }
+ 
+@@ -269,6 +271,8 @@ static void sched_info_arrive(struct rq
+ 	t->sched_info.pcount++;
+ 	if (delta > t->sched_info.max_run_delay)
+ 		t->sched_info.max_run_delay = delta;
++	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
++		t->sched_info.min_run_delay = delta;
+ 
+ 	rq_sched_info_arrive(rq, delta);
+ }
+--- a/tools/accounting/getdelays.c~delayacct-add-delay-min-to-record-delay-peak
++++ a/tools/accounting/getdelays.c
+@@ -192,7 +192,7 @@ static int get_family_id(int sd)
+ }
+ 
+ #define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
+-#define delay_max_ms(t) (t / 1000000ULL)
++#define delay_ms(t) (t / 1000000ULL)
+ 
+ static void print_delayacct(struct taskstats *t)
  {
- 	struct nouveau_drm *drm = nouveau_drm(dev);
- 	struct nouveau_cli *cli;
--	char name[32], tmpname[TASK_COMM_LEN];
-+	char name[32];
- 	int ret;
+@@ -213,48 +213,56 @@ static void print_delayacct(struct tasks
+ 	       "IRQ   %15s%15s%15s%15s\n"
+ 	       "      %15llu%15llu%15.3fms%13.6fms\n",
+ 	       "count", "real total", "virtual total",
+-	       "delay total", "delay average", "delay max",
++	       "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->cpu_count,
+ 	       (unsigned long long)t->cpu_run_real_total,
+ 	       (unsigned long long)t->cpu_run_virtual_total,
+ 	       (unsigned long long)t->cpu_delay_total,
+ 	       average_ms((double)t->cpu_delay_total, t->cpu_count),
+-		   delay_max_ms((double)t->cpu_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->cpu_delay_max),
++	       delay_ms((double)t->cpu_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->blkio_count,
+ 	       (unsigned long long)t->blkio_delay_total,
+ 	       average_ms((double)t->blkio_delay_total, t->blkio_count),
+-		   delay_max_ms((double)t->blkio_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->blkio_delay_max),
++	       delay_ms((double)t->blkio_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->swapin_count,
+ 	       (unsigned long long)t->swapin_delay_total,
+ 	       average_ms((double)t->swapin_delay_total, t->swapin_count),
+-		   delay_max_ms((double)t->swapin_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->swapin_delay_max),
++	       delay_ms((double)t->swapin_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->freepages_count,
+ 	       (unsigned long long)t->freepages_delay_total,
+ 	       average_ms((double)t->freepages_delay_total, t->freepages_count),
+-		   delay_max_ms((double)t->freepages_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->freepages_delay_max),
++	       delay_ms((double)t->freepages_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->thrashing_count,
+ 	       (unsigned long long)t->thrashing_delay_total,
+ 	       average_ms((double)t->thrashing_delay_total, t->thrashing_count),
+-		   delay_max_ms((double)t->thrashing_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->thrashing_delay_max),
++	       delay_ms((double)t->thrashing_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->compact_count,
+ 	       (unsigned long long)t->compact_delay_total,
+ 	       average_ms((double)t->compact_delay_total, t->compact_count),
+-		   delay_max_ms((double)t->compact_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->compact_delay_max),
++	       delay_ms((double)t->compact_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->wpcopy_count,
+ 	       (unsigned long long)t->wpcopy_delay_total,
+ 	       average_ms((double)t->wpcopy_delay_total, t->wpcopy_count),
+-		   delay_max_ms((double)t->wpcopy_delay_max),
+-	       "count", "delay total", "delay average", "delay max",
++	       delay_ms((double)t->wpcopy_delay_max),
++	       delay_ms((double)t->wpcopy_delay_min),
++	       "count", "delay total", "delay average", "delay max", "delay min",
+ 	       (unsigned long long)t->irq_count,
+ 	       (unsigned long long)t->irq_delay_total,
+ 	       average_ms((double)t->irq_delay_total, t->irq_count),
+-		   delay_max_ms((double)t->irq_delay_max));
++	       delay_ms((double)t->irq_delay_max),
++	       delay_ms((double)t->irq_delay_min));
+ }
  
- 	/* need to bring up power immediately if opening device */
-@@ -1169,10 +1169,9 @@ nouveau_drm_open(struct drm_device *dev,
- 		return ret;
- 	}
- 
--	get_task_comm(tmpname, current);
- 	rcu_read_lock();
- 	snprintf(name, sizeof(name), "%s[%d]",
--		 tmpname, pid_nr(rcu_dereference(fpriv->pid)));
-+		 current->comm, pid_nr(rcu_dereference(fpriv->pid)));
- 	rcu_read_unlock();
- 
- 	if (!(cli = kzalloc(sizeof(*cli), GFP_KERNEL))) {
---- a/drivers/tty/tty_io.c~drivers-remove-get_task_comm-and-print-task-comm-directly
-+++ a/drivers/tty/tty_io.c
-@@ -2622,14 +2622,13 @@ static int tty_tiocgicount(struct tty_st
- 
- static int tty_set_serial(struct tty_struct *tty, struct serial_struct *ss)
- {
--	char comm[TASK_COMM_LEN];
- 	int flags;
- 
- 	flags = ss->flags & ASYNC_DEPRECATED;
- 
- 	if (flags)
- 		pr_warn_ratelimited("%s: '%s' is using deprecated serial flags (with no effect): %.8x\n",
--				__func__, get_task_comm(comm, current), flags);
-+				__func__, current->comm, flags);
- 
- 	if (!tty->ops->set_serial)
- 		return -ENOTTY;
+ static void task_context_switch_counts(struct taskstats *t)
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
 
