@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9416F1474D3
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:09:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D47F2AF09
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:12:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736741350; cv=none; b=MnacPT9J4oYw06Gn0m64VTZUf9Wyexjc5CbRN0blPfTOTY2BcA6aKihRGz2IYlOhn9RkHzZIV9dgc1l8wZ9Lgpypns8GcoDv4iA+V63twBovfKUQPXJLX4+YoOHEJwDxyZPkRJQPGUYuXFyWW/18SPuDZdawQKfpAa+x53XfK7I=
+	t=1736741544; cv=none; b=UeiLTwxnhuh6QAzyYOKhM9ySQS9mhSDi/X+/WLHDx1IVSgfytkPqm5WiwKxMQHwn61OVJkL9OYf7pM2/RZ4JcMSpz+/KuPcTKSdDnqLvJwBaK2TNoqixvgdI9e6mvRplwOxQwM6umhE4r8d+ROCOh+bFeEGFj9PokIIkztqRm3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736741350; c=relaxed/simple;
-	bh=2iQ/PIg8tAG3NQmbB6ABWELMpsDw/t6PmVZDm5+VoPU=;
-	h=Date:To:From:Subject:Message-Id; b=pbxWdMC4OZCkZL150m4ubTBJ8OL5J+H9kp1qHwekCD71OFYyxUBfcqsaScTEgDrgH7599UVZ/W/TyjEZkBPIrA1T9bG4KDLruE7F0okvxtEFANE3yxbtGIL61iOSN0dlH/u4QEJpmx5sH9/7MpsVjxnuFd90HNYG+n9r8HeRrK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hIerT+q2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736741544; c=relaxed/simple;
+	bh=1vSFzQoojRtF3Tx5n6qDJ6hgM9rjuxuDvMXrR9dkHSM=;
+	h=Date:To:From:Subject:Message-Id; b=SLjm96T+qIznUDMm9SSJW6GG8UNXsGf2c+yEDOAOxi+mp10tlo9v/u866pXlZr/yVOVu+MRwzkCwjiULQANAoJz9EfZQXpTUK7yRyJgrCVoNvDws0+5ODdlSZQctyQKSEvAWQ0y2NvQxB8BM0PBO2EjNVUcrIWiFVajsA3ar2MM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vxk3mJcf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hIerT+q2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 201A3C4CED6;
-	Mon, 13 Jan 2025 04:09:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vxk3mJcf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8906C4CED6;
+	Mon, 13 Jan 2025 04:12:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736741350;
-	bh=2iQ/PIg8tAG3NQmbB6ABWELMpsDw/t6PmVZDm5+VoPU=;
+	s=korg; t=1736741543;
+	bh=1vSFzQoojRtF3Tx5n6qDJ6hgM9rjuxuDvMXrR9dkHSM=;
 	h=Date:To:From:Subject:From;
-	b=hIerT+q25cNJjINAe9xxETLnheF9HTAVCEj304e/Ex4mst/qsG16swLkINwsnSLs8
-	 DXqF2IwpxeGxPhdk1XiOntXiDvIUeUJmIiwngvt2ZXL4qYlntGHxO5bEhE5imbHF0V
-	 hIjf4cR9muDFq90eb/pMS3obH/awPuhl/GuvnZys=
-Date: Sun, 12 Jan 2025 20:09:09 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=vxk3mJcfNLIOOdpPKsugdNVXJ8m6y9Woi1tSGrlEJp14JZPYtQLXvr1rdjtHJOB+S
+	 XUgvw6pdNJNoKzyJWgWEMK7sxDnpCogqbixNk8C65kzIlDAQh7N8PfJoEVHW9S1EUE
+	 SbZfpKe1zaDG9olaMdW6Ph842aTXpgSG4e3vklPE=
+Date: Sun, 12 Jan 2025 20:12:23 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,syzbot+092bbab7da235a02a03a@syzkaller.appspotmail.com,axboe@kernel.dk,asml.silence@gmail.com,tamird@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent.patch added to mm-nonmm-unstable branch
-Message-Id: <20250113040910.201A3C4CED6@smtp.kernel.org>
+Subject: [folded-merged] xarray-extract-helper-from-__xa_insertcmpxchg-fix.patch removed from -mm tree
+Message-Id: <20250113041223.A8906C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,85 +34,50 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: Xarray: use xa_mark_t in xas_squash_marks() to keep code consistent
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent.patch
+The quilt patch titled
+     Subject: xarray-extract-helper-from-__xa_insertcmpxchg-fix
+has been removed from the -mm tree.  Its filename was
+     xarray-extract-helper-from-__xa_insertcmpxchg-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into xarray-extract-helper-from-__xa_insertcmpxchg.patch
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: Xarray: use xa_mark_t in xas_squash_marks() to keep code consistent
-Date: Fri, 13 Dec 2024 20:25:23 +0800
+From: Tamir Duberstein <tamird@gmail.com>
+Subject: xarray-extract-helper-from-__xa_insertcmpxchg-fix
+Date: Wed, 4 Dec 2024 10:21:59 -0500
 
-Besides xas_squash_marks(), all functions use xa_mark_t type to iterate
-all possible marks.  Use xa_mark_t in xas_squash_marks() to keep code
-consistent.
+fix __xa_erase()
 
-Link: https://lkml.kernel.org/r/20241213122523.12764-6-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Mattew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/CAJ-ks9kN_qddZ3Ne5d=cADu5POC1rHd4rQcbVSD_spnZOrLLZg@mail.gmail.com
+Signed-off-by: Tamir Duberstein <tamird@gmail.com>
+Reported-by: <syzbot+092bbab7da235a02a03a@syzkaller.appspotmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ lib/xarray.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/xarray.c~xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent
+--- a/lib/xarray.c~xarray-extract-helper-from-__xa_insertcmpxchg-fix
 +++ a/lib/xarray.c
-@@ -125,16 +125,20 @@ static inline void node_mark_all(struct
-  */
- static void xas_squash_marks(const struct xa_state *xas)
+@@ -1509,7 +1509,7 @@ static void *xas_result(struct xa_state
+ void *__xa_erase(struct xarray *xa, unsigned long index)
  {
--	unsigned int mark = 0;
-+	xa_mark_t mark = 0;
- 	unsigned int limit = xas->xa_offset + xas->xa_sibs + 1;
- 
--	do {
--		unsigned long *marks = xas->xa_node->marks[mark];
--		if (find_next_bit(marks, limit, xas->xa_offset + 1) == limit)
--			continue;
--		__set_bit(xas->xa_offset, marks);
--		bitmap_clear(marks, xas->xa_offset + 1, xas->xa_sibs);
--	} while (mark++ != (__force unsigned)XA_MARK_MAX);
-+	for (;;) {
-+		unsigned long *marks = node_marks(xas->xa_node, mark);
-+
-+		if (find_next_bit(marks, limit, xas->xa_offset + 1) != limit) {
-+			__set_bit(xas->xa_offset, marks);
-+			bitmap_clear(marks, xas->xa_offset + 1, xas->xa_sibs);
-+		}
-+		if (mark == XA_MARK_MAX)
-+			break;
-+		mark_inc(mark);
-+	}
+ 	XA_STATE(xas, xa, index);
+-	return xas_result(&xas, xas_store(&xas, NULL));
++	return xas_result(&xas, xa_zero_to_null(xas_store(&xas, NULL)));
  }
+ EXPORT_SYMBOL(__xa_erase);
  
- /* extracts the offset within this node from the index */
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from tamird@gmail.com are
 
-xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
-xarray-move-forward-index-correctly-in-xas_pause.patch
-xarray-distinguish-large-entries-correctly-in-xas_split_alloc.patch
-xarray-remove-repeat-check-in-xas_squash_marks.patch
-xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent.patch
+xarray-extract-xa_zero_to_null.patch
+xarray-extract-helper-from-__xa_insertcmpxchg.patch
+xarray-port-tests-to-kunit.patch
+checkpatch-check-return-of-git_commit_info.patch
+xarray-minor-documentation-improvements.patch
 
