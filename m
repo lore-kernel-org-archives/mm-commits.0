@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B82425761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9510525761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742221; cv=none; b=b4ToGUAIoSBpQDwVbwu6aDwKkVxxfkZyqhBgqdntde3O9J0lIyCY1JxnL+gWfxW6Nl4pG+RF3KaM1gET1BW9ExeuecHJEHVsM+Fz8uMstYSsV1OaMa1LhUDma62QPNjIPxPaRtMVGXqylh5tmuL95A8lQfIuaJLLoK7AUeQVN+Y=
+	t=1736742222; cv=none; b=uN7CE3mrHB/Zj4yDKl8kPxGUdMnjIuMjzuYyCLAx3gGGI9bxn6hm4RymIrQuPoT12l+zO0tXw6Xm/fQdPZNyheffxii5M315CZdFtsSvUAe3ixCi/rO9zHS8Fy522lKkm8UN9rSyPF+uIp7htt57/z5KZcApo9yjcQaLMvEdxnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742221; c=relaxed/simple;
-	bh=K39y+7kxqic4h0h3eo6UGH+hlnXK1n9kZeF+BKFK/As=;
-	h=Date:To:From:Subject:Message-Id; b=M+9zJLc04XJ2Caen6Vy4ETDAoferRFTzQh6Olo5rF36I37XaoB5F+hYY0l7ureaA5vkSs9ot7tX+RQHLwFim3cZ/LpyvsT+p4cI0igw6KewZwwMQFb8P6QE3n3VSpMEKybDwC6BxYhVivHu5+bwlLWPbQAoUIsofvtOtQsYTvd8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FC70gg1i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742222; c=relaxed/simple;
+	bh=FZENhSVp2Fc1rEasd1IkCM61t058wW2BieOVzszOh9I=;
+	h=Date:To:From:Subject:Message-Id; b=l1vU/NgcCYoNhl7oapgBXW1meYPkpYh75VAK8lC1ODsBbevzNs5jNSnI4/0nHU9zgp3+sXKUMyf89YilrRQeQZzmvDlNKBcytA0uHOC/PBP/w2AtnDuDMNnfE10r/ypFzSIVB5dnYbAgCYBAsuDES/HpqXfJ0RIokzROD2Q8p0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NNwlR8D1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FC70gg1i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 504B9C4CED6;
-	Mon, 13 Jan 2025 04:23:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NNwlR8D1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CE1DC4CED6;
+	Mon, 13 Jan 2025 04:23:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742221;
-	bh=K39y+7kxqic4h0h3eo6UGH+hlnXK1n9kZeF+BKFK/As=;
+	s=korg; t=1736742222;
+	bh=FZENhSVp2Fc1rEasd1IkCM61t058wW2BieOVzszOh9I=;
 	h=Date:To:From:Subject:From;
-	b=FC70gg1is2tciafNLWGLQF8RXcCF5j5H9CXp7MgCafaZxnNUXt988pd4TqsfUq5lR
-	 f7UGoRDRNPVgGup32sfgv14VmrQfyxh4oztKdGnddNLJ3PzlcwpQpah/Oof08T+fs/
-	 IMWPWj3c+kMIpMI/ZFO39NzOn/rFJZMBL/eyY6TQ=
-Date: Sun, 12 Jan 2025 20:23:40 -0800
+	b=NNwlR8D19DewQk2TaLU3HGWIz8mZITAye97ey+gwwIy39DZywa/u9JZrkY/p2dH0S
+	 juTkULQhh+0QawL1ArfbfVHNDpfNpTyaSpWCcqHVfcy4iY8v8LPfCvAVb1nsz9Pmo2
+	 u9ToTah1h+HGCOLaZV3P0d1tEn3dmOBQ4KBdK728=
+Date: Sun, 12 Jan 2025 20:23:41 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,mark.tinguely@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages.patch removed from -mm tree
-Message-Id: <20250113042341.504B9C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-convert-ocfs2_duplicate_clusters_by_page-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20250113042342.6CE1DC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: use an array of folios instead of an array of pages
+     Subject: ocfs2: convert ocfs2_duplicate_clusters_by_page() to use a folio
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages.patch
+     ocfs2-convert-ocfs2_duplicate_clusters_by_page-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mark Tinguely <mark.tinguely@oracle.com>
-Subject: ocfs2: use an array of folios instead of an array of pages
-Date: Thu, 5 Dec 2024 17:16:44 +0000
+Subject: ocfs2: convert ocfs2_duplicate_clusters_by_page() to use a folio
+Date: Thu, 5 Dec 2024 17:16:45 +0000
 
-The ocfs2_zero_cluster_folios() / ocfs2_grab_folios() /
-ocfs2_grab_eof_folios() family of functions pass around an array of pages.
-Convert them to pass around an array of folios.  This removes the last
-caller of ocfs2_unlock_and_free_pages(), so delete it.
+Retrieve folios from the page cache, not pages, and use a folio throughout
+this function.  Removes seven calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20241205171653.3179945-17-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241205171653.3179945-18-willy@infradead.org
 Signed-off-by: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
@@ -64,297 +62,93 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   98 ++++++++++++++++++++++-----------------------
- fs/ocfs2/alloc.h |    2 
- fs/ocfs2/aops.c  |   13 -----
- fs/ocfs2/aops.h  |    1 
- 4 files changed, 49 insertions(+), 65 deletions(-)
+ fs/ocfs2/refcounttree.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages
-+++ a/fs/ocfs2/alloc.c
-@@ -6847,87 +6847,87 @@ void ocfs2_map_and_dirty_page(struct ino
- 	flush_dcache_folio(folio);
- }
- 
--static void ocfs2_zero_cluster_pages(struct inode *inode, loff_t start,
--				     loff_t end, struct page **pages,
--				     int numpages, u64 phys, handle_t *handle)
-+static void ocfs2_zero_cluster_folios(struct inode *inode, loff_t start,
-+		loff_t end, struct folio **folios, int numfolios,
-+		u64 phys, handle_t *handle)
- {
- 	int i;
+--- a/fs/ocfs2/refcounttree.c~ocfs2-convert-ocfs2_duplicate_clusters_by_page-to-use-a-folio
++++ a/fs/ocfs2/refcounttree.c
+@@ -2902,7 +2902,6 @@ int ocfs2_duplicate_clusters_by_page(han
+ 	int ret = 0, partial;
+ 	struct super_block *sb = inode->i_sb;
+ 	u64 new_block = ocfs2_clusters_to_blocks(sb, new_cluster);
 -	struct page *page;
- 	unsigned int from, to = PAGE_SIZE;
- 	struct super_block *sb = inode->i_sb;
+ 	pgoff_t page_index;
+ 	unsigned int from, to;
+ 	loff_t offset, end, map_end;
+@@ -2921,6 +2920,7 @@ int ocfs2_duplicate_clusters_by_page(han
+ 		end = i_size_read(inode);
  
- 	BUG_ON(!ocfs2_sparse_alloc(OCFS2_SB(sb)));
+ 	while (offset < end) {
++		struct folio *folio;
+ 		page_index = offset >> PAGE_SHIFT;
+ 		map_end = ((loff_t)page_index + 1) << PAGE_SHIFT;
+ 		if (map_end > end)
+@@ -2933,9 +2933,10 @@ int ocfs2_duplicate_clusters_by_page(han
+ 			to = map_end & (PAGE_SIZE - 1);
  
--	if (numpages == 0)
-+	if (numfolios == 0)
- 		goto out;
- 
- 	to = PAGE_SIZE;
--	for(i = 0; i < numpages; i++) {
--		page = pages[i];
-+	for (i = 0; i < numfolios; i++) {
-+		struct folio *folio = folios[i];
- 
- 		from = start & (PAGE_SIZE - 1);
--		if ((end >> PAGE_SHIFT) == page->index)
-+		if ((end >> PAGE_SHIFT) == folio->index)
- 			to = end & (PAGE_SIZE - 1);
- 
- 		BUG_ON(from > PAGE_SIZE);
- 		BUG_ON(to > PAGE_SIZE);
- 
--		ocfs2_map_and_dirty_page(inode, handle, from, to, page, 1,
-+		ocfs2_map_and_dirty_page(inode, handle, from, to, &folio->page, 1,
- 					 &phys);
- 
--		start = (page->index + 1) << PAGE_SHIFT;
-+		start = (folio->index + 1) << PAGE_SHIFT;
- 	}
- out:
--	if (pages)
--		ocfs2_unlock_and_free_pages(pages, numpages);
-+	if (folios)
-+		ocfs2_unlock_and_free_folios(folios, numfolios);
- }
- 
--int ocfs2_grab_pages(struct inode *inode, loff_t start, loff_t end,
--		     struct page **pages, int *num)
-+static int ocfs2_grab_folios(struct inode *inode, loff_t start, loff_t end,
-+		struct folio **folios, int *num)
- {
--	int numpages, ret = 0;
-+	int numfolios, ret = 0;
- 	struct address_space *mapping = inode->i_mapping;
- 	unsigned long index;
- 	loff_t last_page_bytes;
- 
- 	BUG_ON(start > end);
- 
--	numpages = 0;
-+	numfolios = 0;
- 	last_page_bytes = PAGE_ALIGN(end);
- 	index = start >> PAGE_SHIFT;
- 	do {
--		pages[numpages] = find_or_create_page(mapping, index, GFP_NOFS);
--		if (!pages[numpages]) {
+ retry:
+-		page = find_or_create_page(mapping, page_index, GFP_NOFS);
+-		if (!page) {
 -			ret = -ENOMEM;
-+		folios[numfolios] = __filemap_get_folio(mapping, index,
++		folio = __filemap_get_folio(mapping, page_index,
 +				FGP_LOCK | FGP_ACCESSED | FGP_CREAT, GFP_NOFS);
-+		if (IS_ERR(folios[numfolios])) {
-+			ret = PTR_ERR(folios[numfolios]);
++		if (IS_ERR(folio)) {
++			ret = PTR_ERR(folio);
  			mlog_errno(ret);
- 			goto out;
+ 			break;
+ 		}
+@@ -2945,9 +2946,9 @@ retry:
+ 		 * page, so write it back.
+ 		 */
+ 		if (PAGE_SIZE <= OCFS2_SB(sb)->s_clustersize) {
+-			if (PageDirty(page)) {
+-				unlock_page(page);
+-				put_page(page);
++			if (folio_test_dirty(folio)) {
++				folio_unlock(folio);
++				folio_put(folio);
+ 
+ 				ret = filemap_write_and_wait_range(mapping,
+ 						offset, map_end - 1);
+@@ -2955,9 +2956,7 @@ retry:
+ 			}
  		}
  
--		numpages++;
--		index++;
-+		index = folio_next_index(folios[numfolios]);
-+		numfolios++;
- 	} while (index < (last_page_bytes >> PAGE_SHIFT));
- 
- out:
- 	if (ret != 0) {
--		if (pages)
--			ocfs2_unlock_and_free_pages(pages, numpages);
--		numpages = 0;
-+		if (folios)
-+			ocfs2_unlock_and_free_folios(folios, numfolios);
-+		numfolios = 0;
- 	}
- 
--	*num = numpages;
-+	*num = numfolios;
- 
- 	return ret;
- }
- 
--static int ocfs2_grab_eof_pages(struct inode *inode, loff_t start, loff_t end,
--				struct page **pages, int *num)
-+static int ocfs2_grab_eof_folios(struct inode *inode, loff_t start, loff_t end,
-+				struct folio **folios, int *num)
- {
- 	struct super_block *sb = inode->i_sb;
- 
- 	BUG_ON(start >> OCFS2_SB(sb)->s_clustersize_bits !=
- 	       (end - 1) >> OCFS2_SB(sb)->s_clustersize_bits);
- 
--	return ocfs2_grab_pages(inode, start, end, pages, num);
-+	return ocfs2_grab_folios(inode, start, end, folios, num);
- }
- 
- /*
-@@ -6941,8 +6941,8 @@ static int ocfs2_grab_eof_pages(struct i
- int ocfs2_zero_range_for_truncate(struct inode *inode, handle_t *handle,
- 				  u64 range_start, u64 range_end)
- {
--	int ret = 0, numpages;
--	struct page **pages = NULL;
-+	int ret = 0, numfolios;
-+	struct folio **folios = NULL;
- 	u64 phys;
- 	unsigned int ext_flags;
- 	struct super_block *sb = inode->i_sb;
-@@ -6955,17 +6955,17 @@ int ocfs2_zero_range_for_truncate(struct
- 		return 0;
- 
- 	/*
--	 * Avoid zeroing pages fully beyond current i_size. It is pointless as
--	 * underlying blocks of those pages should be already zeroed out and
-+	 * Avoid zeroing folios fully beyond current i_size. It is pointless as
-+	 * underlying blocks of those folios should be already zeroed out and
- 	 * page writeback will skip them anyway.
- 	 */
- 	range_end = min_t(u64, range_end, i_size_read(inode));
- 	if (range_start >= range_end)
- 		return 0;
- 
--	pages = kcalloc(ocfs2_pages_per_cluster(sb),
--			sizeof(struct page *), GFP_NOFS);
--	if (pages == NULL) {
-+	folios = kcalloc(ocfs2_pages_per_cluster(sb),
-+			sizeof(struct folio *), GFP_NOFS);
-+	if (folios == NULL) {
- 		ret = -ENOMEM;
- 		mlog_errno(ret);
- 		goto out;
-@@ -6986,18 +6986,18 @@ int ocfs2_zero_range_for_truncate(struct
- 	if (phys == 0 || ext_flags & OCFS2_EXT_UNWRITTEN)
- 		goto out;
- 
--	ret = ocfs2_grab_eof_pages(inode, range_start, range_end, pages,
--				   &numpages);
-+	ret = ocfs2_grab_eof_folios(inode, range_start, range_end, folios,
-+				   &numfolios);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out;
- 	}
- 
--	ocfs2_zero_cluster_pages(inode, range_start, range_end, pages,
--				 numpages, phys, handle);
-+	ocfs2_zero_cluster_folios(inode, range_start, range_end, folios,
-+				 numfolios, phys, handle);
- 
- 	/*
--	 * Initiate writeout of the pages we zero'd here. We don't
-+	 * Initiate writeout of the folios we zero'd here. We don't
- 	 * wait on them - the truncate_inode_pages() call later will
- 	 * do that for us.
- 	 */
-@@ -7007,7 +7007,7 @@ int ocfs2_zero_range_for_truncate(struct
- 		mlog_errno(ret);
- 
- out:
--	kfree(pages);
-+	kfree(folios);
- 
- 	return ret;
- }
-@@ -7060,7 +7060,7 @@ void ocfs2_set_inode_data_inline(struct
- int ocfs2_convert_inline_data_to_extents(struct inode *inode,
- 					 struct buffer_head *di_bh)
- {
--	int ret, has_data, num_pages = 0;
-+	int ret, has_data, num_folios = 0;
- 	int need_free = 0;
- 	u32 bit_off, num;
- 	handle_t *handle;
-@@ -7069,7 +7069,7 @@ int ocfs2_convert_inline_data_to_extents
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
- 	struct ocfs2_alloc_context *data_ac = NULL;
--	struct page *page = NULL;
-+	struct folio *folio = NULL;
- 	struct ocfs2_extent_tree et;
- 	int did_quota = 0;
- 
-@@ -7124,8 +7124,8 @@ int ocfs2_convert_inline_data_to_extents
- 		 */
- 		block = phys = ocfs2_clusters_to_blocks(inode->i_sb, bit_off);
- 
--		ret = ocfs2_grab_eof_pages(inode, 0, page_end, &page,
--					   &num_pages);
-+		ret = ocfs2_grab_eof_folios(inode, 0, page_end, &folio,
-+					   &num_folios);
- 		if (ret) {
- 			mlog_errno(ret);
- 			need_free = 1;
-@@ -7136,14 +7136,14 @@ int ocfs2_convert_inline_data_to_extents
- 		 * This should populate the 1st page for us and mark
- 		 * it up to date.
- 		 */
--		ret = ocfs2_read_inline_data(inode, page, di_bh);
-+		ret = ocfs2_read_inline_data(inode, &folio->page, di_bh);
- 		if (ret) {
- 			mlog_errno(ret);
- 			need_free = 1;
- 			goto out_unlock;
+-		if (!PageUptodate(page)) {
+-			struct folio *folio = page_folio(page);
+-
++		if (!folio_test_uptodate(folio)) {
+ 			ret = block_read_full_folio(folio, ocfs2_get_block);
+ 			if (ret) {
+ 				mlog_errno(ret);
+@@ -2966,8 +2965,8 @@ retry:
+ 			folio_lock(folio);
  		}
  
--		ocfs2_map_and_dirty_page(inode, handle, 0, page_end, page, 0,
-+		ocfs2_map_and_dirty_page(inode, handle, 0, page_end, &folio->page, 0,
- 					 &phys);
- 	}
+-		if (page_has_buffers(page)) {
+-			ret = walk_page_buffers(handle, page_buffers(page),
++		if (folio_buffers(folio)) {
++			ret = walk_page_buffers(handle, folio_buffers(folio),
+ 						from, to, &partial,
+ 						ocfs2_clear_cow_buffer);
+ 			if (ret) {
+@@ -2978,12 +2977,11 @@ retry:
  
-@@ -7175,8 +7175,8 @@ int ocfs2_convert_inline_data_to_extents
- 	}
- 
- out_unlock:
--	if (page)
--		ocfs2_unlock_and_free_pages(&page, num_pages);
-+	if (folio)
-+		ocfs2_unlock_and_free_folios(&folio, num_folios);
- 
- out_commit:
- 	if (ret < 0 && did_quota)
---- a/fs/ocfs2/alloc.h~ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages
-+++ a/fs/ocfs2/alloc.h
-@@ -254,8 +254,6 @@ static inline int ocfs2_is_empty_extent(
- 	return !rec->e_leaf_clusters;
- }
- 
--int ocfs2_grab_pages(struct inode *inode, loff_t start, loff_t end,
--		     struct page **pages, int *num);
- void ocfs2_map_and_dirty_page(struct inode *inode, handle_t *handle,
- 			      unsigned int from, unsigned int to,
- 			      struct page *page, int zero, u64 *phys);
---- a/fs/ocfs2/aops.c~ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages
-+++ a/fs/ocfs2/aops.c
-@@ -783,19 +783,6 @@ void ocfs2_unlock_and_free_folios(struct
- 	}
- }
- 
--void ocfs2_unlock_and_free_pages(struct page **pages, int num_pages)
--{
--	int i;
--
--	for(i = 0; i < num_pages; i++) {
--		if (pages[i]) {
--			unlock_page(pages[i]);
--			mark_page_accessed(pages[i]);
--			put_page(pages[i]);
--		}
--	}
--}
--
- static void ocfs2_unlock_folios(struct ocfs2_write_ctxt *wc)
- {
- 	int i;
---- a/fs/ocfs2/aops.h~ocfs2-use-an-array-of-folios-instead-of-an-array-of-pages
-+++ a/fs/ocfs2/aops.h
-@@ -18,7 +18,6 @@ int ocfs2_map_folio_blocks(struct folio
- 			  unsigned int to, int new);
- 
- void ocfs2_unlock_and_free_folios(struct folio **folios, int num_folios);
--void ocfs2_unlock_and_free_pages(struct page **pages, int num_pages);
- 
- int walk_page_buffers(	handle_t *handle,
- 			struct buffer_head *head,
+ 		ocfs2_map_and_dirty_page(inode,
+ 					 handle, from, to,
+-					 page, 0, &new_block);
+-		mark_page_accessed(page);
++					 &folio->page, 0, &new_block);
++		folio_mark_accessed(folio);
+ unlock:
+-		unlock_page(page);
+-		put_page(page);
+-		page = NULL;
++		folio_unlock(folio);
++		folio_put(folio);
+ 		offset = map_end;
+ 		if (ret)
+ 			break;
 _
 
 Patches currently in -mm which might be from mark.tinguely@oracle.com are
