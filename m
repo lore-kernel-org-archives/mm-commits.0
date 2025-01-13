@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 445B613AD05
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 02:56:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49154749C
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 02:58:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736737002; cv=none; b=bUG4U2L66cmzmP1BmD+ce18v4IP4R1+c4ZsUfcVQxVvYiiE0J9N5ncHWhYN2hNqCrz7b6Wy6enzJZsTIeF5i/MUJ4Lx6rCBoLtt6+GDO0eWTT+ZfiBDRqqd5YN+zS/CRCNpsZKYq43KHi1hvUtrh76reEs5iIeXq6zCpqAkQz08=
+	t=1736737095; cv=none; b=hAxtLP5d4bGCvsidMaP6b1WX+3U82ZKM0LSEC+3mAEhYOxOVONguOrJ99NcqX3vFhb+NBJNl4tKkaX90/4rJGrA61tglP+0iWNIyaluCgD7Tw8isAGdp7MEW5n+AVQI0Kkek3uVkPxoOgqSUjkb9KiA7JfFbrYoBGYSnHVaQdVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736737002; c=relaxed/simple;
-	bh=IE4n0rEnWn5r+kNrA6zV5vbnx75C5ZyAiqg8Xe71SqA=;
-	h=Date:To:From:Subject:Message-Id; b=tmp62KUPy9hvLy2rfvKhx08os1J5xYJ0vPqvT6IPOS2aSc3nF/04b69WuljUiN6zR2vIsaR1eK/63FhHW/vDgp67Sh9oWHpyDP/5iQQYlGqawKKX8v2Ocsxmyb3J/DXiUMJTFOkYIV6DN2tpd1qdhdWU98HrAh5E/l/v0VyNCAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xWA5E+P5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736737095; c=relaxed/simple;
+	bh=Dhz5R58DsfsjAg1pVLasMdQAfxnZBM6jKh+pHqUlhrI=;
+	h=Date:To:From:Subject:Message-Id; b=nLeKjAoekdssKCw/oFSkWnGw3GR/lJYE9rFxH5GKD/sCBN9YSiixrWcd4e9MW5WVWqJNBDfBFpEZkpbaa6H1vv6kukvQ8+a6ObRVnU+froHi+VgG2K0t9xMdlnqREGKPx3WA43/5NUexyLNBFla5fJl1OfyAF9TBeuyUqVLmk1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SO3rIOLv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xWA5E+P5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A302AC4CEE0;
-	Mon, 13 Jan 2025 02:56:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SO3rIOLv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1635EC4CEDF;
+	Mon, 13 Jan 2025 02:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736737001;
-	bh=IE4n0rEnWn5r+kNrA6zV5vbnx75C5ZyAiqg8Xe71SqA=;
+	s=korg; t=1736737095;
+	bh=Dhz5R58DsfsjAg1pVLasMdQAfxnZBM6jKh+pHqUlhrI=;
 	h=Date:To:From:Subject:From;
-	b=xWA5E+P5TwlaI1G4usCZXXT7XiNcbxjun5Cz52o8ID9fkqzLlJ0VayQVYkbjIJeaq
-	 2PZCcs341LDmQ0q1kVSBNeut+sBOzYsQG3vjl/yhctActTO33XVAtTdY2UODoOGXG9
-	 YuFF5/dxiJ/ZZkX+3VVpywC/yfEeFtoGpNkHheZw=
-Date: Sun, 12 Jan 2025 18:56:41 -0800
-To: mm-commits@vger.kernel.org,zzqq0103.hey@gmail.com,willy@infradead.org,shr@devkernel.io,akpm@linux-foundation.org
+	b=SO3rIOLvko427tyiAXyWJj7iNmPtfbsfzYTopbD6MI0u0JdHw/J+ZlS75aqKR/NT3
+	 /A7QgmDL65JMaX9vSjmDwSuoPd9qY8PL188v6noAoXhjQrNquz85MvvwzMdAbr1beF
+	 Lt5IzhYGbmFV26TmO2QADVZ7ztgoDC4E9dg4stTA=
+Date: Sun, 12 Jan 2025 18:58:14 -0800
+To: mm-commits@vger.kernel.org,vitalywool@gmail.com,samsun1006219@gmail.com,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,baohua@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3.patch removed from -mm tree
-Message-Id: <20250113025641.A302AC4CEE0@smtp.kernel.org>
+Subject: [folded-merged] mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch removed from -mm tree
+Message-Id: <20250113025815.1635EC4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3
+     Subject: mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3.patch
+     mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix.patch
 
-This patch was dropped because it was folded into mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
+This patch was dropped because it was folded into mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3
-Date: Wed, 8 Jan 2025 22:34:11 -0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix
+Date: Wed, 8 Jan 2025 16:25:56 -0800
 
-During testing it has been detected, that it is possible to get div by
-zero error in bdi_set_min_bytes. The error is caused by the function
-bdi_ratio_from_pages(). bdi_ratio_from_pages() calls
-global_dirty_limits. If the dirty threshold is 0, the div by zero is
-raised. This can happen if the root user is setting:
+remove comment
 
-echo 0 > /proc/sys/vm/dirty_ratio
-
-The following is a test case:
-
-echo 0 > /proc/sys/vm/dirty_ratio
-cd /sys/class/bdi/<device>
-echo 1 > strict_limit
-echo 8192 > min_bytes
-
-==> error is raised.
-
-The problem is addressed by returning -EINVAL if dirty_ratio or
-dirty_bytes is set to 0.
-
-Link: https://lkml.kernel.org/r/20250109063411.6591-1-shr@devkernel.io
-Reported-by: cheung wall <zzqq0103.hey@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/87pll35yd0.fsf@devkernel.io/T/#t
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/CAJD7tkaxS1wjn+swugt8QCvQ-rVF5RZnjxwPGX17k8x9zSManA@mail.gmail.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sam Sun <samsun1006219@gmail.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/zswap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/page-writeback.c~mm-fix-div-by-zero-in-bdi_ratio_from_pages-v3
-+++ a/mm/page-writeback.c
-@@ -792,15 +792,15 @@ int bdi_set_min_bytes(struct backing_dev
- {
- 	int ret;
- 	unsigned long pages = min_bytes >> PAGE_SHIFT;
--	unsigned long min_ratio;
-+	long min_ratio;
+--- a/mm/zswap.c~mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug-fix
++++ a/mm/zswap.c
+@@ -848,8 +848,6 @@ static int zswap_cpu_comp_prepare(unsign
+ 		ret = -ENOMEM;
+ 		goto req_fail;
+ 	}
+-
+-	/* acomp_ctx->req must be NULL if the acomp_ctx is not fully initialized */
+ 	acomp_ctx->req = req;
  
- 	ret = bdi_check_pages_limit(pages);
- 	if (ret)
- 		return ret;
- 
- 	min_ratio = bdi_ratio_from_pages(pages);
--	if (min_ratio == -EINVAL)
--		return -EINVAL;
-+	if (min_ratio < 0)
-+		return min_ratio;
- 	return __bdi_set_min_ratio(bdi, min_ratio);
- }
- 
-@@ -813,15 +813,15 @@ int bdi_set_max_bytes(struct backing_dev
- {
- 	int ret;
- 	unsigned long pages = max_bytes >> PAGE_SHIFT;
--	unsigned long max_ratio;
-+	long max_ratio;
- 
- 	ret = bdi_check_pages_limit(pages);
- 	if (ret)
- 		return ret;
- 
- 	max_ratio = bdi_ratio_from_pages(pages);
--	if (max_ratio == -EINVAL)
--		return -EINVAL;
-+	if (max_ratio < 0)
-+		return max_ratio;
- 	return __bdi_set_max_ratio(bdi, max_ratio);
- }
- 
+ 	crypto_init_wait(&acomp_ctx->wait);
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
+revert-mm-zswap-fix-race-between-compression-and-cpu-hotunplug.patch
+mm-zswap-properly-synchronize-freeing-resources-during-cpu-hotunplug.patch
 
