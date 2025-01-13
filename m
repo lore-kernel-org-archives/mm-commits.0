@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAEC985260
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 03:04:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944414315A;
+	Mon, 13 Jan 2025 03:04:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736737452; cv=none; b=mwyqx5LrvNbLiRL7P7tl0hHKwIPuWnAcuNwSEDxBzxNpmG06jN7nJ+zHzE2x2n3/k5AZJjCY0G8qCwK8ZCIc7NbASdzKj0S/HJg8jQOPUHjGfC4Oc3sntS6Xt74HzkUsOI1FeVyY5JXRjUCzYtyGUc9nx6cQ9aEiIUup+sgwa6U=
+	t=1736737454; cv=none; b=mnwKH9M8nNJDa7Zhagdm3EiMMlTwiIuzeIJ/POSox4K3/3O9dpUzeYcJA2m79GYaWr1cKEO6xlIZeWvihck1ZbuSkhBz/9Z98PSLKzutCnk37wjkDd6MCrF6QN+yTOOk5s4e2y9itSkSCZl52Jj8snGHxdDN1qTY2nM0bp1URq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736737452; c=relaxed/simple;
-	bh=ClNQidBIJl9Ijs3dxmdPS830dHY4zPZ6cr+IkYJY0sM=;
-	h=Date:To:From:Subject:Message-Id; b=BQbee31rLdNbvg9UMB+fWqg2iI6QPQQ5OGv3cun09R4Mwc+6smMcEWAmZQ6QzRI0SiHjs/6wiOutOAoA4k/kUEdXRlRzqB1VJekS+5K/dhO02A6IRE4WkiZh53UL/WOv/vPURLYFJUyeWUMklInmceCbONnrtRKMHyOL6m2aIoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zOcGFgkp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736737454; c=relaxed/simple;
+	bh=TvUtvpUYlv1fWVcVpP+7gPkh7iC9sdhk/WUpojWweAE=;
+	h=Date:To:From:Subject:Message-Id; b=GMMfUrr4b23W9Rj28tfDg83d64vGU9DhCDTlH020LN4LfmsxGMDKe2dvleF3BxOLw+caE0sMsMImH3YyMs+pvz4dgRh2GZHbUWyF5GBPypRSpTOrAwQhgBeIFvSSdMnd4gvhhZQngUt2J9bWn+T7Xv4IZ0BIDcIKerzBGTHRu/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cvRq2W6d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zOcGFgkp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DAD3C4CEDF;
-	Mon, 13 Jan 2025 03:04:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cvRq2W6d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67071C4CEDF;
+	Mon, 13 Jan 2025 03:04:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736737452;
-	bh=ClNQidBIJl9Ijs3dxmdPS830dHY4zPZ6cr+IkYJY0sM=;
+	s=korg; t=1736737454;
+	bh=TvUtvpUYlv1fWVcVpP+7gPkh7iC9sdhk/WUpojWweAE=;
 	h=Date:To:From:Subject:From;
-	b=zOcGFgkp+9Opjm28Ax5uSSETc+wGyegvk3ZCEYwWzANLL0MoSPE1PmtupJg4erCSC
-	 9eIjjhPd+l3Hn4f2lS1Xx0Tfabh8FLhuKE34Eno41ab4Nrt9NSzbnw/E6IjGQbKVdM
-	 Vn2JoNuVfPxCXQKaR6lDZRKtigT1FyvifjoabZ+U=
-Date: Sun, 12 Jan 2025 19:04:11 -0800
-To: mm-commits@vger.kernel.org,zzqq0103.hey@gmail.com,willy@infradead.org,david@redhat.com,shr@devkernel.io,akpm@linux-foundation.org
+	b=cvRq2W6dcRM9EIzKRzd4V4f3qjBQ3zXYkf12ZvOPyacAfW9be1D0fjjnsfAlvY3Dx
+	 /hXtrKO0H1fE7jQHCaSNYAvpWq1azVOytSIIZ8RLICqxBk+XzU/QzORzPy7+rT8f76
+	 fK6wXxmGJO0KC7cUZvUrYWs2WhSekgvHhW9JyEpI=
+Date: Sun, 12 Jan 2025 19:04:13 -0800
+To: mm-commits@vger.kernel.org,zzqq0103.hey@gmail.com,stable@vger.kernel.org,lihongbo22@huawei.com,brauner@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch removed from -mm tree
-Message-Id: <20250113030412.2DAD3C4CEDF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode.patch removed from -mm tree
+Message-Id: <20250113030414.67071C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix div by zero in bdi_ratio_from_pages
+     Subject: hugetlb: fix NULL pointer dereference in trace_hugetlbfs_alloc_inode
 has been removed from the -mm tree.  Its filename was
-     mm-fix-div-by-zero-in-bdi_ratio_from_pages.patch
+     hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: fix div by zero in bdi_ratio_from_pages
-Date: Fri, 3 Jan 2025 17:20:37 -0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: hugetlb: fix NULL pointer dereference in trace_hugetlbfs_alloc_inode
+Date: Mon, 6 Jan 2025 11:31:17 +0800
 
-During testing it has been detected, that it is possible to get div by
-zero error in bdi_set_min_bytes.  The error is caused by the function
-bdi_ratio_from_pages().  bdi_ratio_from_pages() calls global_dirty_limits.
-If the dirty threshold is 0, the div by zero is raised.  This can happen
-if the root user is setting:
+hugetlb_file_setup() will pass a NULL @dir to hugetlbfs_get_inode(), so we
+will access a NULL pointer for @dir.  Fix it and set __entry->dr to 0 if
+@dir is NULL.  Because ->i_ino cannot be 0 (see get_next_ino()), there is
+no confusing if user sees a 0 inode number.
 
-echo 0 > /proc/sys/vm/dirty_ratio
-
-The following is a test case:
-
-echo 0 > /proc/sys/vm/dirty_ratio
-cd /sys/class/bdi/<device>
-echo 1 > strict_limit
-echo 8192 > min_bytes
-
-==> error is raised.
-
-The problem is addressed by returning -EINVAL if dirty_ratio or
-dirty_bytes is set to 0.
-
-[shr@devkernel.io: check for -EINVAL in bdi_set_min_bytes() and bdi_set_max_bytes()]
-  Link: https://lkml.kernel.org/r/20250108014723.166637-1-shr@devkernel.io
-[shr@devkernel.io: v3]
-  Link: https://lkml.kernel.org/r/20250109063411.6591-1-shr@devkernel.io
-Link: https://lkml.kernel.org/r/20250104012037.159386-1-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Reported-by: cheung wall <zzqq0103.hey@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/87pll35yd0.fsf@devkernel.io/T/#t
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Qiang Zhang <zzqq0103.hey@gmail.com>
+Link: https://lkml.kernel.org/r/20250106033118.4640-1-songmuchun@bytedance.com
+Fixes: 318580ad7f28 ("hugetlbfs: support tracepoint")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Cheung Wall <zzqq0103.hey@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/02858D60-43C1-4863-A84F-3C76A8AF1F15@linux.dev/T/#
+Reviewed-by: Hongbo Li <lihongbo22@huawei.com>
+Cc: cheung wall <zzqq0103.hey@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/trace/events/hugetlbfs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~mm-fix-div-by-zero-in-bdi_ratio_from_pages
-+++ a/mm/page-writeback.c
-@@ -692,6 +692,8 @@ static unsigned long bdi_ratio_from_page
- 	unsigned long ratio;
- 
- 	global_dirty_limits(&background_thresh, &dirty_thresh);
-+	if (!dirty_thresh)
-+		return -EINVAL;
- 	ratio = div64_u64(pages * 100ULL * BDI_RATIO_SCALE, dirty_thresh);
- 
- 	return ratio;
-@@ -790,13 +792,15 @@ int bdi_set_min_bytes(struct backing_dev
- {
- 	int ret;
- 	unsigned long pages = min_bytes >> PAGE_SHIFT;
--	unsigned long min_ratio;
-+	long min_ratio;
- 
- 	ret = bdi_check_pages_limit(pages);
- 	if (ret)
- 		return ret;
- 
- 	min_ratio = bdi_ratio_from_pages(pages);
-+	if (min_ratio < 0)
-+		return min_ratio;
- 	return __bdi_set_min_ratio(bdi, min_ratio);
- }
- 
-@@ -809,13 +813,15 @@ int bdi_set_max_bytes(struct backing_dev
- {
- 	int ret;
- 	unsigned long pages = max_bytes >> PAGE_SHIFT;
--	unsigned long max_ratio;
-+	long max_ratio;
- 
- 	ret = bdi_check_pages_limit(pages);
- 	if (ret)
- 		return ret;
- 
- 	max_ratio = bdi_ratio_from_pages(pages);
-+	if (max_ratio < 0)
-+		return max_ratio;
- 	return __bdi_set_max_ratio(bdi, max_ratio);
- }
+--- a/include/trace/events/hugetlbfs.h~hugetlb-fix-null-pointer-dereference-in-trace_hugetlbfs_alloc_inode
++++ a/include/trace/events/hugetlbfs.h
+@@ -23,7 +23,7 @@ TRACE_EVENT(hugetlbfs_alloc_inode,
+ 	TP_fast_assign(
+ 		__entry->dev		= inode->i_sb->s_dev;
+ 		__entry->ino		= inode->i_ino;
+-		__entry->dir		= dir->i_ino;
++		__entry->dir		= dir ? dir->i_ino : 0;
+ 		__entry->mode		= mode;
+ 	),
  
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
