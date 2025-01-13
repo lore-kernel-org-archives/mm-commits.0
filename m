@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0A88176242
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:28:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADC1D1714C6
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:29:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742487; cv=none; b=sRebaqEaT1estA3s0VbLKrwBwxU2RZKgG5c5/AuNBakrkYkSpRZivDJmx8/twF1JxQ35Vh+Jf7X3QEJvEYLkJbM8bhQOBQNPUSbVxULlfbRnxoJj1KSeedsNE1E29l/2Zo++lAG9ZvLX0EtE/QCdl7zHFh2YzxzMQ5pnBeVr3EM=
+	t=1736742592; cv=none; b=tcDlx+BVQSbamTK/0PSxYBisS7aJaSI0phx2CAubiT96Wwxv39Y6ygnUR8OE9+mR9AOljozI/97j8gOEOtzB29D5eiR52k9weFo0rpu5k1hnNcPQW/AizxhtytNoGLTew5qXF6gBw+XEEh8GLWcgRvD/09mrOiL0F6BgP1HJ3pk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742487; c=relaxed/simple;
-	bh=N6NSioRTjbwJOFtu5uP+I27A+qNxMmiop4MGYMUQpT4=;
-	h=Date:To:From:Subject:Message-Id; b=GV5AifFz01EdDnfOBGMfS++3ACYNXDkvygSnQR6tOrJ2ZRzvEX8Pzn24adqjyMbAuc3OOTgE0IvKAqNoXTs7py+bBxcWK0+YoXk3WIp915VGH6uiV+yHw4V0kKXPo/cSFoCIlz52IKlf1TkgCdS06ulFTRhrmQPJ33D8Nfxn898=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sOJtElKe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742592; c=relaxed/simple;
+	bh=/lOgevWAFt5vib3DGd0vG8DLGq0m2OyvkPgzJLde/mQ=;
+	h=Date:To:From:Subject:Message-Id; b=ch98Ab5T3WpDvYVY4OPIV8eJVsApCUKkTaVzPDJnkkB4LvtSf+2avzt/KFV2jpaCwZcmzgUzoi/haRAC0YgTmjq9PK2zepEIbVfwNawCXg/LpEvHXDCkA8P8YfJqTVyBpQquTHvxT8Ym+z0qOKIFMSDtNI2i+f5zZfw1Ycxpbko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xg1FuLPK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sOJtElKe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25416C4CEE2;
-	Mon, 13 Jan 2025 04:28:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xg1FuLPK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 062F2C4CED6;
+	Mon, 13 Jan 2025 04:29:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742487;
-	bh=N6NSioRTjbwJOFtu5uP+I27A+qNxMmiop4MGYMUQpT4=;
+	s=korg; t=1736742592;
+	bh=/lOgevWAFt5vib3DGd0vG8DLGq0m2OyvkPgzJLde/mQ=;
 	h=Date:To:From:Subject:From;
-	b=sOJtElKeEJBVH1CPBY8yGv+ZARq0s/XXym2Oy+CwdrB5ufB6t2IKwmusGonmeSolZ
-	 852fDNUBBnAw+UgmJxzyZ2wCuiUII5L9ZALCC4QPZFmtlxcUSYibmsbdXl9EA2maLW
-	 Onq7cwhkLV266jGUR1mcpFojJ+HstFsPSgmbIFo8=
-Date: Sun, 12 Jan 2025 20:28:06 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=Xg1FuLPKvhHA64Y/VjoXgkxNmrns2JEafoiBxzbm6OlNx/juh4OuKmXXn4yzc8oNQ
+	 ixOfmAkH5k64e5qRBd3NZUiM9By2FH5O/wMbusWWdQIJyIvExVNIbVbwkF4J7+bt0o
+	 rsX94dsMGv54IzkemI6RdehJ0vYw5iTmW0Xr1OaA=
+Date: Sun, 12 Jan 2025 20:29:51 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix.patch added to mm-unstable branch
-Message-Id: <20250113042807.25416C4CEE2@smtp.kernel.org>
+Subject: + selftests-mm-cow-modify-the-incorrect-checking-parameters.patch added to mm-unstable branch
+Message-Id: <20250113042952.062F2C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: fix function parameter kernel-doc notation
+     Subject: selftests/mm/cow: modify the incorrect checking parameters
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix.patch
+     selftests-mm-cow-modify-the-incorrect-checking-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-modify-the-incorrect-checking-parameters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/zsmalloc: fix function parameter kernel-doc notation
-Date: Fri, 10 Jan 2025 22:33:05 -0800
+From: Hao Ge <gehao@kylinos.cn>
+Subject: selftests/mm/cow: modify the incorrect checking parameters
+Date: Mon, 13 Jan 2025 11:28:58 +0800
 
-Use the correct function parameter name to eliminate a kernel-doc
-warning:
+In run_with_memfd_hugetlb(), some error handle have passed incorrect
+parameters.  It should be "smem", but it was mistakenly written as "mem".
 
-zpdesc.h:90: warning: Function parameter or struct member 'zp' not described in 'zpdesc_folio'
-zpdesc.h:90: warning: Excess function parameter 'zpdesc' description in 'zpdesc_folio'
+Let's fix it.
 
-Link: https://lkml.kernel.org/r/20250111063305.911010-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20250113032858.63670-1-hao.ge@linux.dev
+Fixes: baa489fabd01 ("selftests/vm: rename selftests/vm to selftests/mm")
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpdesc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/cow.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zpdesc.h~mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix
-+++ a/mm/zpdesc.h
-@@ -74,7 +74,7 @@ static_assert(sizeof(struct zpdesc) <= s
- 
- /**
-  * zpdesc_folio - The folio allocated for a zpdesc
-- * @zpdesc: The zpdesc.
-+ * @zp: The zpdesc.
-  *
-  * Zpdescs are descriptors for zpool memory. The zpool memory itself is
-  * allocated as folios that contain the zpool objects, and zpdesc uses specific
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-modify-the-incorrect-checking-parameters
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1692,7 +1692,7 @@ static void run_with_memfd_hugetlb(non_a
+ 		goto close;
+ 	}
+ 	smem = mmap(NULL, hugetlbsize, PROT_READ, MAP_SHARED, fd, 0);
+-	if (mem == MAP_FAILED) {
++	if (smem == MAP_FAILED) {
+ 		ksft_test_result_fail("mmap() failed\n");
+ 		goto munmap;
+ 	}
+@@ -1704,7 +1704,7 @@ static void run_with_memfd_hugetlb(non_a
+ 	fn(mem, smem, hugetlbsize);
+ munmap:
+ 	munmap(mem, hugetlbsize);
+-	if (mem != MAP_FAILED)
++	if (smem != MAP_FAILED)
+ 		munmap(smem, hugetlbsize);
+ close:
+ 	close(fd);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix.patch
-kasan-use-correct-kernel-doc-format.patch
-latencytop-use-correct-kernel-doc-format-for-func-params.patch
-kthread-modify-kernel-doc-function-name-to-match-code.patch
-gcov-clang-use-correct-function-param-names.patch
-ipc-utilc-complete-the-kernel-doc-function-descriptions.patch
+selftests-mm-cow-modify-the-incorrect-checking-parameters.patch
 
