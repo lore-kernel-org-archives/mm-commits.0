@@ -1,84 +1,238 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103861474D3
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 03:59:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8102CF9FE
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:09:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736740788; cv=none; b=d13LZUjCOFfMAY216T4wRuICg4kreBNCbh3oPhlFs5WYLaou7Qf9fjT/lmZ4YY6DFH1ZHNvQ0aad8UyOx0peSGXiMppBd5HQeIfm/f0A71DZsqc0O3IGyBNQ38mr0KUt/2yxE0Lu+JNCJ3sCazd+CnvTRD50+c8iQHEKwwKs8Rg=
+	t=1736741342; cv=none; b=WnUMDixDN0768KbW/tn0t5GIN+ouedJvZqWyexUO8Vfv/05DcrFr8EBOud0bDkXQ+R8kL3A8sHfBNoFDtWO+WKlx5sMumK9SH1bfAxAt1nlMcBApAI7UF7EAt2PUHkiaf11aV9mTCQ99ADuBXUrERSexh9BCKSjvOtzrrOwIq+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736740788; c=relaxed/simple;
-	bh=PtJptJ1ys9sGlrEilTRPtOW+x308JYg7f/BLBMiclMQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jls1T9+Rp9lPxplgorJMBDj2wDBrjpIBXmVKZckf6mkOQHaRuXakqLSOVHKtO644wkZ/diN5jTM6zf+9h6DF7PYy6K2QRlYHTdeW3W7uf40GOgq4wgqIXAq6iknkXcg3gxA2eUjLkVkSEpPtwUWC1qPeN490KIS0hk0Xy4Pj+dU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=oAmiY9ya; arc=none smtp.client-ip=209.85.216.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1736741342; c=relaxed/simple;
+	bh=nxUOtcEksPdqKk6aJMYw4gEV9E0yiHeGOcw8Mn9+L+U=;
+	h=Date:To:From:Subject:Message-Id; b=moBXNnHLgbhjOa4gUqM+H4df9XbPDM+MdLy+QvuvZ5rlTHGhV3YIeM5lAS4WdvEHRju+oJoVQNDyBJXUIqyrTrYDtT6pu6eFDd7bwVC4sRTy9OXInqykjSoLmqDtUpYzgA2Q5bahCJTATlm4547m3atVziRBiwYI0vzp7YOjo7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C+/4oykE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="oAmiY9ya"
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-2ee8aa26415so6501547a91.1
-        for <mm-commits@vger.kernel.org>; Sun, 12 Jan 2025 19:59:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1736740786; x=1737345586; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=UGB9WKm15VLQGLRZ19XO4Q6ETFq3q7buwNEAgKH0mSY=;
-        b=oAmiY9ya9DXk+WoBaQnTo2mqcfvMLlq3RKfYxKwdbTasXBZeZfutAWu+ET3HV0BvOX
-         oRfrNzSI+WRgYrvOPF2usyzIM/CWd03FSWw5H+xFMK/6rqINoJ7C7SRJwMzT9Qx+YmLE
-         1HKkMd/vsxZT5TPC/Kq0kYB3QrCJm3SsqFgyg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736740786; x=1737345586;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UGB9WKm15VLQGLRZ19XO4Q6ETFq3q7buwNEAgKH0mSY=;
-        b=a/n0VPnvxbARu0Er5nohvTf0zLXMc3d8gTNVxTs5ipOUJRHs32twASPTf7yHtTvw1B
-         oP1smQXP99q2cN+JNClvr0A0rpBsBtDIV3NKOeXVsPX7JI8fF4aLxQZN4eB/9RrMbSbD
-         wuZSm2ImRYF3GX1l+a1IeiB3+dmWFhxIgXph9+U6ewSucLH3UfBqcV7Tfimafj2zGzJH
-         xn7UTulHcSDP5cE4Egi7LITbCZhMu8F0/Ja8E/cgk3CA0yNb2A8tFIemG+hsJbAfijvb
-         lVJOfU9DOyekVAeG89KBp6ERci/NmKvhcDGQAXQJ+Oi/kT+9jn+eyClFw4+8jhNESHHP
-         y0Cg==
-X-Gm-Message-State: AOJu0YzzvSjRFQJ4Z7tCXVTw2h3rVPBi/7gIwG6MA99LsWEjQCQuS41D
-	rSmOTYGUwZ+AtgU1J4zAZk8vZbbIhljyzZuEAP0FI1LfsWFrOXUnMYaSNbQyFhBvyIANmZAKls4
-	=
-X-Gm-Gg: ASbGncteLuAaM3IxwBO84faBCgBKT02qh+JGDMwSQjiEvFn3DwsbAV1iS91dGp0ix1W
-	YJp+0TQSc9dz4dnM/2AB4jYUDBWfylqGWkJ9lKoGHBClLgNMReksB6tW+XAaScQn/WsgCIzjo4J
-	LS7QxUY6US6SQs40PbmZRo0PR+MneA6fTC7VRbFOw8UsUWaLJTseffQb36ocBUvGzTfymMjnIGQ
-	1kEVFBDZl8VGEMK1XMVUPtd9zOizskWvjxfv4clcwMTmKfLl3YUqXTEe19Z
-X-Google-Smtp-Source: AGHT+IFnRiBXOrzEYBhWOF9WEdr0dpEXG/8dCr3tGtHxRuRs2xRWMZn/GN+ldz5VN49Hc0w2jF6Fkg==
-X-Received: by 2002:a17:90b:274b:b0:2ee:8427:4b02 with SMTP id 98e67ed59e1d1-2f548f5f941mr27186469a91.28.1736740786398;
-        Sun, 12 Jan 2025 19:59:46 -0800 (PST)
-Received: from google.com ([2401:fa00:8f:203:b4d5:730a:a151:6449])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2f54a34d91bsm9929715a91.32.2025.01.12.19.59.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Jan 2025 19:59:46 -0800 (PST)
-Date: Mon, 13 Jan 2025 12:59:41 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, senozhatsky@chromium.org, 
-	minchan@kernel.org, rdunlap@infradead.org
-Subject: Re: + mm-zsmalloc-fix-function-parameter-kernel-doc-notation.patch
- added to mm-unstable branch
-Message-ID: <wrox5uoknvnsqhifnqddrdipdgkmjr5zy4yx2obzyugh7hof3z@247jib2lble6>
-References: <20250112053211.D85AAC4CEE0@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C+/4oykE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1B9AC4CED6;
+	Mon, 13 Jan 2025 04:09:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1736741342;
+	bh=nxUOtcEksPdqKk6aJMYw4gEV9E0yiHeGOcw8Mn9+L+U=;
+	h=Date:To:From:Subject:From;
+	b=C+/4oykEufBtiwXtYiGqD+uRC9/CX3ix2nfdBMeR70B0pFW++V3q1cvQ6fNgWe+hE
+	 3mqPJqJa1o9iDTQkjPvFP/8Z4qjyUS9sGKy1/q/HXwf6ZgpEt4aqzikXOPyyrrGFZB
+	 lujr+UBNoffSzcel2uTpkGQBHe86fWcRCiF5ui/E=
+Date: Sun, 12 Jan 2025 20:09:01 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + xarray-do-not-return-sibling-entries-from-xas_find_marked.patch added to mm-nonmm-unstable branch
+Message-Id: <20250113040901.F1B9AC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250112053211.D85AAC4CEE0@smtp.kernel.org>
 
-On (25/01/11 21:32), Andrew Morton wrote:
-> Use the correct function parameter name to eliminate a kernel-doc
-> warning:
-> 
-> zpdesc.h:90: warning: Function parameter or struct member 'zp' not described in 'zpdesc_folio'
-> zpdesc.h:90: warning: Excess function parameter 'zpdesc' description in 'zpdesc_folio'
 
-I think, techically, this can be a fixup for [1] which is in mm-unstable
-right now.
+The patch titled
+     Subject: Xarray: do not return sibling entries from xas_find_marked()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
 
-[1] https://lore.kernel.org/mm-commits/20241226214651.8C5B9C4CED1@smtp.kernel.org
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: Xarray: do not return sibling entries from xas_find_marked()
+Date: Fri, 13 Dec 2024 20:25:19 +0800
+
+Patch series "Fixes and cleanups to xarray", v5.
+
+This series contains some random fixes and cleanups to xarray.  Patch 1-2
+are fixes and patch 3-6 are cleanups.  More details can be found in
+respective patches.
+
+
+This patch (of 5):
+
+Similar to issue fixed in commit cbc02854331ed ("XArray: Do not return
+sibling entries from xa_load()"), we may return sibling entries from
+xas_find_marked as following:
+    Thread A:               Thread B:
+                            xa_store_range(xa, entry, 6, 7, gfp);
+			    xa_set_mark(xa, 6, mark)
+    XA_STATE(xas, xa, 6);
+    xas_find_marked(&xas, 7, mark);
+    offset = xas_find_chunk(xas, advance, mark);
+    [offset is 6 which points to a valid entry]
+                            xa_store_range(xa, entry, 4, 7, gfp);
+    entry = xa_entry(xa, node, 6);
+    [entry is a sibling of 4]
+    if (!xa_is_node(entry))
+        return entry;
+
+Skip sibling entry like xas_find() does to protect caller from seeing
+sibling entry from xas_find_marked() or caller may use sibling entry
+as a valid entry and crash the kernel.
+
+Besides, load_race() test is modified to catch mentioned issue and modified
+load_race() only passes after this fix is merged.
+
+Here is an example how this bug could be triggerred in tmpfs which
+enables large folio in mapping:
+Let's take a look at involved racer:
+1. How pages could be created and dirtied in shmem file.
+write
+ ksys_write
+  vfs_write
+   new_sync_write
+    shmem_file_write_iter
+     generic_perform_write
+      shmem_write_begin
+       shmem_get_folio
+        shmem_allowable_huge_orders
+        shmem_alloc_and_add_folios
+        shmem_alloc_folio
+        __folio_set_locked
+        shmem_add_to_page_cache
+         XA_STATE_ORDER(..., index, order)
+         xax_store()
+      shmem_write_end
+       folio_mark_dirty()
+
+2. How dirty pages could be deleted in shmem file.
+ioctl
+ do_vfs_ioctl
+  file_ioctl
+   ioctl_preallocate
+    vfs_fallocate
+     shmem_fallocate
+      shmem_truncate_range
+       shmem_undo_range
+        truncate_inode_folio
+         filemap_remove_folio
+          page_cache_delete
+           xas_store(&xas, NULL);
+
+3. How dirty pages could be lockless searched
+sync_file_range
+ ksys_sync_file_range
+  __filemap_fdatawrite_range
+   filemap_fdatawrite_wbc
+    do_writepages
+     writeback_use_writepage
+      writeback_iter
+       writeback_get_folio
+        filemap_get_folios_tag
+         find_get_entry
+          folio = xas_find_marked()
+          folio_try_get(folio)
+
+Kernel will crash as following:
+1.Create               2.Search             3.Delete
+/* write page 2,3 */
+write
+ ...
+  shmem_write_begin
+   XA_STATE_ORDER(xas, i_pages, index = 2, order = 1)
+   xa_store(&xas, folio)
+  shmem_write_end
+   folio_mark_dirty()
+
+                       /* sync page 2 and page 3 */
+                       sync_file_range
+                        ...
+                         find_get_entry
+                          folio = xas_find_marked()
+                          /* offset will be 2 */
+                          offset = xas_find_chunk()
+
+                                             /* delete page 2 and page 3 */
+                                             ioctl
+                                              ...
+                                               xas_store(&xas, NULL);
+
+/* write page 0-3 */
+write
+ ...
+  shmem_write_begin
+   XA_STATE_ORDER(xas, i_pages, index = 0, order = 2)
+   xa_store(&xas, folio)
+  shmem_write_end
+   folio_mark_dirty(folio)
+
+                          /* get sibling entry from offset 2 */
+                          entry = xa_entry(.., 2)
+                          /* use sibling entry as folio and crash kernel */
+                          folio_try_get(folio)
+
+Link: https://lkml.kernel.org/r/20241213122523.12764-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20241213122523.12764-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Mattew Wilcox <willy@infradead.org> [English fixes]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/xarray.c                          |    2 ++
+ tools/testing/radix-tree/multiorder.c |    4 ++++
+ 2 files changed, 6 insertions(+)
+
+--- a/lib/xarray.c~xarray-do-not-return-sibling-entries-from-xas_find_marked
++++ a/lib/xarray.c
+@@ -1387,6 +1387,8 @@ void *xas_find_marked(struct xa_state *x
+ 		entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
+ 		if (!entry && !(xa_track_free(xas->xa) && mark == XA_FREE_MARK))
+ 			continue;
++		if (xa_is_sibling(entry))
++			continue;
+ 		if (!xa_is_node(entry))
+ 			return entry;
+ 		xas->xa_node = xa_to_node(entry);
+--- a/tools/testing/radix-tree/multiorder.c~xarray-do-not-return-sibling-entries-from-xas_find_marked
++++ a/tools/testing/radix-tree/multiorder.c
+@@ -227,6 +227,7 @@ static void *load_creator(void *ptr)
+ 			unsigned long index = (3 << RADIX_TREE_MAP_SHIFT) -
+ 						(1 << order);
+ 			item_insert_order(tree, index, order);
++			xa_set_mark(tree, index, XA_MARK_1);
+ 			item_delete_rcu(tree, index);
+ 		}
+ 	}
+@@ -242,8 +243,11 @@ static void *load_worker(void *ptr)
+ 
+ 	rcu_register_thread();
+ 	while (!stop_iteration) {
++		unsigned long find_index = (2 << RADIX_TREE_MAP_SHIFT) + 1;
+ 		struct item *item = xa_load(ptr, index);
+ 		assert(!xa_is_internal(item));
++		item = xa_find(ptr, &find_index, index, XA_MARK_1);
++		assert(!xa_is_internal(item));
+ 	}
+ 	rcu_unregister_thread();
+ 
+_
+
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+
+xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
+xarray-move-forward-index-correctly-in-xas_pause.patch
+xarray-distinguish-large-entries-correctly-in-xas_split_alloc.patch
+xarray-remove-repeat-check-in-xas_squash_marks.patch
+xarray-use-xa_mark_t-in-xas_squash_marks-to-keep-code-consistent.patch
+
