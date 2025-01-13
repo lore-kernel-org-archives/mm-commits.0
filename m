@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB1F8170A30
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003E325761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742258; cv=none; b=ouSlj24WrPR/KO9SlW3TIhdC7ozb1m2hTiAyGbTTE1VARNBWg0UTKcTGysYRypKIgXUR9alq6gxXIM+s2c+cUtJxhbEu/kPnTKxsb82E9HCd8Dx37TkJF4g88WeWjBmjl8LHGqZSo3ldtNB1Khl4NYOjcmXB4QhIg7o3r2cJBp8=
+	t=1736742260; cv=none; b=F37zNGePXLtV1oFH0QYmFsLc6OFuWoaDd4F3brbQBJMvF3XPL3U8SVd8l/6sMBWaiYFfcgYlXSygMTHVJlyMWYamZYDCheggYLFrdseeej+Ld4mq9x5f7tTrhxCf9IZ4057GwGw2szlGCVwwUe8CTyB/DXIhLKHs9yKkod8FaPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742258; c=relaxed/simple;
-	bh=Fdbt0giHFJAxy1bhPgsHSeAQndRsP4Pej0pgFi9DdRY=;
-	h=Date:To:From:Subject:Message-Id; b=WlhG9vX8JtV6AyLz8uBLPxahcABlXJ7tlicFL9RjUEQNz5Po3aFYYzBjGzE+d/ZfM3uZocUexH/63xMb40l6mGUu+8WAitNH9g3WOIsoGsYC3+rd5wzuL7QdsxOGSGG6VuH2EB2YZs9T/Hv8+Av1r+OaH/LEFP9+Gqn6IlrFGcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MqpZweXf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742260; c=relaxed/simple;
+	bh=U4S3NUKK6afa8tvM0qSvKoIleDRtwbd2z0QA+IcUsfw=;
+	h=Date:To:From:Subject:Message-Id; b=A/KKGDvD7UFVFx9/eDFJl2F1w2fY6OmYtk3+SyOqmvKZSqcaPQmDt9BLHRyglpFuJNp7rQ/EQ7N3cfLQyjXMl7bSNhzUP2eY2K5Nvl8d53Iwa7ZpW/e2A9nULecgev0L5hVQaQjgtybe4ycSLDNFkGRffdRGjG/j5YEmcf9fIU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0NxfYDA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MqpZweXf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0DA8C4CED6;
-	Mon, 13 Jan 2025 04:24:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0NxfYDA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3997C4CED6;
+	Mon, 13 Jan 2025 04:24:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742258;
-	bh=Fdbt0giHFJAxy1bhPgsHSeAQndRsP4Pej0pgFi9DdRY=;
+	s=korg; t=1736742259;
+	bh=U4S3NUKK6afa8tvM0qSvKoIleDRtwbd2z0QA+IcUsfw=;
 	h=Date:To:From:Subject:From;
-	b=MqpZweXfTpPhP4OR7QYKd2MFG/hknGRcaeJWauB6UJD0awOXcoh3c/5rviAJjMB6Z
-	 e4d7CmqXTpzd+VomlpdiQVQmvAMQnpYeOkexFKECICM+E4mMjmFKOZVC8DzFtC733E
-	 rDvjyfx5JzIXZgAKd33FWNz6Q7U+sztUWbz/DnLg=
-Date: Sun, 12 Jan 2025 20:24:18 -0800
-To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,chuang@cs.nycu.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=J0NxfYDA2CDGG7j8+faIkDD0BPLR2mnsuorEc9FMUp/AETYLMo73aGQ/NIuB5G8dT
+	 Ne+Z39CltQFIugcm7V7wNaTJ3pcU6gwoNfzkJH16zcCVM8whKtrwZyb7UMsxx3ro9C
+	 DDCUX8Nf47B8KlIMAd9TCUmCN7vIvaCdAph4gM4o=
+Date: Sun, 12 Jan 2025 20:24:19 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,sunjunchao2870@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-list_sort-clarify-comparison-function-requirements-in-list_sort.patch removed from -mm tree
-Message-Id: <20250113042418.A0DA8C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-check-el-l_next_free_rec-in-ocfs2_get_clusters_nocache.patch removed from -mm tree
+Message-Id: <20250113042419.C3997C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/list_sort: clarify comparison function requirements in list_sort()
+     Subject: ocfs2: check el->l_next_free_rec in ocfs2_get_clusters_nocache
 has been removed from the -mm tree.  Its filename was
-     lib-list_sort-clarify-comparison-function-requirements-in-list_sort.patch
+     ocfs2-check-el-l_next_free_rec-in-ocfs2_get_clusters_nocache.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/list_sort: clarify comparison function requirements in list_sort()
-Date: Tue, 7 Jan 2025 01:01:04 +0800
+From: Julian Sun <sunjunchao2870@gmail.com>
+Subject: ocfs2: check el->l_next_free_rec in ocfs2_get_clusters_nocache
+Date: Mon, 6 Jan 2025 10:34:31 +0800
 
-Add a detailed explanation in the list_sort() kernel doc comment
-specifying that the comparison function must satisfy antisymmetry and
-transitivity.  These properties are essential for the sorting algorithm to
-produce correct results.
+Recently syzbot reported a use-after-free issue[1].
 
-Issues have arisen in the past [1][2][3][4] where comparison functions
-violated the transitivity property, causing sorting algorithms to fail to
-correctly order elements.  While these requirements may seem
-straightforward, they are commonly misunderstood or overlooked, leading to
-bugs.  Highlighting these properties in the documentation will help
-prevent such mistakes in the future.
+The root cause of the problem is that the journal inode recorded in this
+file system image is corrupted.  The value of
+"di->id2.i_list.l_next_free_rec" is 8193, which is greater than the value
+of "di->id2.i_list.l_count" (19).
 
-Link: https://lore.kernel.org/lkml/20240701205639.117194-1-visitorckw@gmail.com [1]
-Link: https://lore.kernel.org/lkml/20241203202228.1274403-1-visitorckw@gmail.com [2]
-Link: https://lore.kernel.org/lkml/20241209134226.1939163-1-visitorckw@gmail.com [3]
-Link: https://lore.kernel.org/lkml/20241209145728.1975311-1-visitorckw@gmail.com [4]
-Link: https://lkml.kernel.org/r/20250106170104.3137845-3-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: <chuang@cs.nycu.edu.tw>
+To solve this problem, an additional check should be added within
+ocfs2_get_clusters_nocache().  If the check fails, an error will be
+returned and the file system will be set to read-only.
+
+[1]: https://lore.kernel.org/all/67577778.050a0220.a30f1.01bc.GAE@google.com/T/
+
+Link: https://lkml.kernel.org/r/20250106023432.1320904-1-sunjunchao2870@gmail.com
+Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
+Reported-by: syzbot+2313dda4dc4885c93578@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=2313dda4dc4885c93578
+Tested-by: syzbot+2313dda4dc4885c93578@syzkaller.appspotmail.com
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_sort.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/ocfs2/extent_map.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/lib/list_sort.c~lib-list_sort-clarify-comparison-function-requirements-in-list_sort
-+++ a/lib/list_sort.c
-@@ -108,6 +108,13 @@ static void merge_final(void *priv, list
-  * and list_sort is a stable sort, so it is not necessary to distinguish
-  * the @a < @b and @a == @b cases.
-  *
-+ * The comparison function must adhere to specific mathematical properties
-+ * to ensure correct and stable sorting:
-+ * - Antisymmetry: cmp(@a, @b) must return the opposite sign of
-+ * cmp(@b, @a).
-+ * - Transitivity: if cmp(@a, @b) <= 0 and cmp(@b, @c) <= 0, then
-+ * cmp(@a, @c) <= 0.
-+ *
-  * This is compatible with two styles of @cmp function:
-  * - The traditional style which returns <0 / =0 / >0, or
-  * - Returning a boolean 0/1.
+--- a/fs/ocfs2/extent_map.c~ocfs2-check-el-l_next_free_rec-in-ocfs2_get_clusters_nocache
++++ a/fs/ocfs2/extent_map.c
+@@ -435,6 +435,16 @@ static int ocfs2_get_clusters_nocache(st
+ 		}
+ 	}
+ 
++	if (le16_to_cpu(el->l_next_free_rec) > le16_to_cpu(el->l_count)) {
++		ocfs2_error(inode->i_sb,
++			    "Inode %lu has an invalid extent (next_free_rec %u, count %u)\n",
++			    inode->i_ino,
++			    le16_to_cpu(el->l_next_free_rec),
++			    le16_to_cpu(el->l_count));
++		ret = -EROFS;
++		goto out;
++	}
++
+ 	i = ocfs2_search_extent_list(el, v_cluster);
+ 	if (i == -1) {
+ 		/*
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from sunjunchao2870@gmail.com are
 
 
