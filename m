@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198C225761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0288C25761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742156; cv=none; b=XLMrpHshyh3lmGqciL/3IU5NhxYtS+dUpKVd4N1pRGANVfrFEvx1faVdJgEe6hlZ2iM2eurwzOjtSm4+i++UzoPv3TLblKFqyGw1uBlmcGPoKs2AW1jsyasm+CfBl5M160RFw8J6VjJeJW02uibGOKb0bBRYTpqb36+WOaS9SfE=
+	t=1736742158; cv=none; b=W3s3gMOcocsTB2uz+lfWtAHpvQ888vyf4kdQ+x/0zJuNqiMw+UXxIr4ArZcm/I+FXbJJnFJzhHbTpLglSkmCK3U5hiKFWugozqQvY7jnii4MNuDZ9R0+J58OobYVth5IkDsz1hTm/TdrS+9W2JeVdK89Gy07PIte3tAzMxebOeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742156; c=relaxed/simple;
-	bh=dl8hShUdxllWf3Rl2sL5PhIMa53BfRAThLYNadZAQJ0=;
-	h=Date:To:From:Subject:Message-Id; b=OiFsZGnYQy5FBPJiCQHf/a/YEeJ4yL/f06oqBE9SGHzSgaV6s3WhBIhR/eTeWqNF6SwtOqiJMDk70c/vpfetDrN51L8G1a3JrWokABG7hMPWuPxHNZy8SsKiAm01hqsBcDiiwnr+VOnLqAjVDYNsgw3uj1XhhmZy6nfiD7CzRcE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xl6eY1QE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742158; c=relaxed/simple;
+	bh=ivVeBvPI0tMckuuSZ3Bf36EScDFdfj2Q8dXJvx6yHGo=;
+	h=Date:To:From:Subject:Message-Id; b=Z6UwmCgcSRww3lMgAr146u1h/PSZFmdIEi7pmm5lJQPT/EFe1Faz2XQOKTuPE1pQsnen3WNU1cVXs92BzzG2DiJ9UGMRAv5clCyBkMWmQZ9w0fDCMj3fwH0r7bL8UtZmoBqz3359rREEouM4EvyS/20lMr3ABkoTvmS1isqBltM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=btCXOm1b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xl6eY1QE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F1FC4CED6;
-	Mon, 13 Jan 2025 04:22:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="btCXOm1b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFB15C4CED6;
+	Mon, 13 Jan 2025 04:22:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742155;
-	bh=dl8hShUdxllWf3Rl2sL5PhIMa53BfRAThLYNadZAQJ0=;
+	s=korg; t=1736742157;
+	bh=ivVeBvPI0tMckuuSZ3Bf36EScDFdfj2Q8dXJvx6yHGo=;
 	h=Date:To:From:Subject:From;
-	b=xl6eY1QEWizzfqawQBlkmp7ZeIQFlzb/hDR4utdLLssuWX22rc00kURM6MhwsIN4T
-	 Vk70eZXnCStNAqCc/dXj8N2rW+sqRrkAo1Y6BDeXX7PRDUHqBDqm42XS1GFRx3B2gF
-	 MlsoiI+xzz3S7UJ+M+xbr2bSWNZXb6r+G411vw+Q=
-Date: Sun, 12 Jan 2025 20:22:35 -0800
+	b=btCXOm1b1Nv4CiDp9xymOl4h1O7yjYFexQcDktgEffZ7oOs9oc1hnEgIknhqxD4IY
+	 0JKz7YxrK5ivW2qQOcHAU4WctzY+K72/wCX6w+syocgTT9XExl/PjUKXogH6R+kMmb
+	 PqFIirTcOO4WLZJjKfS8eVKkHlFbdmVBSNdKzbYc=
+Date: Sun, 12 Jan 2025 20:22:37 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] coccinelle-misc-add-secs_to_jiffies-script.patch removed from -mm tree
-Message-Id: <20250113042235.D5F1FC4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] arm-pxa-convert-timeouts-to-use-secs_to_jiffies.patch removed from -mm tree
+Message-Id: <20250113042237.BFB15C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: coccinelle: misc: add secs_to_jiffies script
+     Subject: arm: pxa: convert timeouts to use secs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     coccinelle-misc-add-secs_to_jiffies-script.patch
+     arm-pxa-convert-timeouts-to-use-secs_to_jiffies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: coccinelle: misc: add secs_to_jiffies script
-Date: Tue, 10 Dec 2024 22:02:33 +0000
+Subject: arm: pxa: convert timeouts to use secs_to_jiffies()
+Date: Tue, 10 Dec 2024 22:02:34 +0000
 
-This script finds and suggests conversions of timeout patterns that result
-in seconds-denominated timeouts to use the new secs_to_jiffies() API in
-include/linux/jiffies.h for better readability.
+Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
+secs_to_jiffies().  As the value here is a multiple of 1000, use
+secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
 
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-2-ddfefd7e9f2a@linux.microsoft.com
+This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
+the following Coccinelle rules:
+
+@@ constant C; @@
+
+- msecs_to_jiffies(C * 1000)
++ secs_to_jiffies(C)
+
+@@ constant C; @@
+
+- msecs_to_jiffies(C * MSEC_PER_SEC)
++ secs_to_jiffies(C)
+
+Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-3-ddfefd7e9f2a@linux.microsoft.com
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-Suggested-by: Anna-Maria Behnsen <anna-maria@linutronix.de>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
+Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -122,36 +135,26 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/misc/secs_to_jiffies.cocci |   22 ++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/arm/mach-pxa/sharpsl_pm.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/scripts/coccinelle/misc/secs_to_jiffies.cocci a/scripts/coccinelle/misc/secs_to_jiffies.cocci
-new file mode 100644
---- /dev/null
-+++ a/scripts/coccinelle/misc/secs_to_jiffies.cocci
-@@ -0,0 +1,22 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+///
-+/// Find usages of:
-+/// - msecs_to_jiffies(value*1000)
-+/// - msecs_to_jiffies(value*MSEC_PER_SEC)
-+///
-+// Confidence: High
-+// Copyright: (C) 2024 Easwar Hariharan, Microsoft
-+// Keywords: secs, seconds, jiffies
-+//
-+
-+virtual patch
-+
-+@depends on patch@ constant C; @@
-+
-+- msecs_to_jiffies(C * 1000)
-++ secs_to_jiffies(C)
-+
-+@depends on patch@ constant C; @@
-+
-+- msecs_to_jiffies(C * MSEC_PER_SEC)
-++ secs_to_jiffies(C)
+--- a/arch/arm/mach-pxa/sharpsl_pm.c~arm-pxa-convert-timeouts-to-use-secs_to_jiffies
++++ a/arch/arm/mach-pxa/sharpsl_pm.c
+@@ -31,10 +31,10 @@
+ /*
+  * Constants
+  */
+-#define SHARPSL_CHARGE_ON_TIME_INTERVAL        (msecs_to_jiffies(1*60*1000))  /* 1 min */
+-#define SHARPSL_CHARGE_FINISH_TIME             (msecs_to_jiffies(10*60*1000)) /* 10 min */
+-#define SHARPSL_BATCHK_TIME                    (msecs_to_jiffies(15*1000))    /* 15 sec */
+-#define SHARPSL_BATCHK_TIME_SUSPEND            (60*10)                        /* 10 min */
++#define SHARPSL_CHARGE_ON_TIME_INTERVAL        (secs_to_jiffies(60))
++#define SHARPSL_CHARGE_FINISH_TIME             (secs_to_jiffies(10*60))
++#define SHARPSL_BATCHK_TIME                    (secs_to_jiffies(15))
++#define SHARPSL_BATCHK_TIME_SUSPEND            (60*10) /* 10 min */
+ 
+ #define SHARPSL_WAIT_CO_TIME                   15  /* 15 sec */
+ #define SHARPSL_WAIT_DISCHARGE_ON              100 /* 100 msec */
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
