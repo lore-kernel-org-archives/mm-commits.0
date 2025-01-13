@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF72D4315A;
-	Mon, 13 Jan 2025 03:04:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF0B13C8F3
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 03:04:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736737468; cv=none; b=i334GThIZwCnoBYcPOhItOwjB9YAK8kNry62bvTYD83xwDr9oqMef/tHLH5T09gpylrDjFGqVnCXjiU02Ycz7v5aQoG9r0jLLuxeFQF0deNDsEJ1BaFba8bqvnIZaQCZXqUzXkcYoVcDj15secCOWdz4nNgxNFlPXniFFQAACxs=
+	t=1736737468; cv=none; b=f/UVD8yn5ElZXbQp1BfRrh5Da2MMm6pgVHIDL6+zjFcq6VnwRmJT/fuiQDLeCfTrIYUWtZLYKsDuw9URq+tI/zqbFOYlsOti34Sjl90ONk6HkBTROuI7qXyjgz96fBNdbLdKNn22oi53HWm1stCVvnR5D/+Pjxn//IYkTc5xHWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736737468; c=relaxed/simple;
-	bh=mYLJlp3iIWRC5nkLYj1i/AIh5kXsvon3/HueGBTlfwc=;
-	h=Date:To:From:Subject:Message-Id; b=DhUL8gmflUBpg02XsUvS9/eD2d7+IO9uJZJYBzfD0Rb6pX7SvxCLqwOu67QAd3r7Ume+91VhK9lKcYsuYmFAK5w7A484IiBB9BvddB5wle4QYhE05zc58aH3fcE6CYjRL2MeEi9kkeRMCJ/Ofhnmmbi5TFrSGot2+jEQMXaC0xM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bQF/+WT/; arc=none smtp.client-ip=10.30.226.201
+	bh=0vWmC9VbB+Bv0QJ8OmpYwM0o9diZBsGmRXGnYCfeEn4=;
+	h=Date:To:From:Subject:Message-Id; b=cvFaR/K54mpkRMc0UU62NQo3Vd6wn1z6FreZll3nXkr/Rcs8ZkajXF0nHIRstQrlXKB4ky4E4P4SFd3Zq5pCV+29hxg4aA95wXU61xkSp2NkqYCn+HPioMrb5TROXOYfalG3tw5Ojc9LOV0KB+xae/zXkT6oUd+ycqS3zYZn57w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FjVTtAr0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bQF/+WT/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 830F2C4CEE0;
-	Mon, 13 Jan 2025 03:04:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FjVTtAr0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DF4BC4CEDF;
+	Mon, 13 Jan 2025 03:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736737468;
-	bh=mYLJlp3iIWRC5nkLYj1i/AIh5kXsvon3/HueGBTlfwc=;
+	s=korg; t=1736737467;
+	bh=0vWmC9VbB+Bv0QJ8OmpYwM0o9diZBsGmRXGnYCfeEn4=;
 	h=Date:To:From:Subject:From;
-	b=bQF/+WT/zps6Fog6vr7SEpNF9q65Vuy6XbZDYWhq8TFC8TD2omsDs2gudsr/lsQ11
-	 WgBfJgaXYlCBOuOOh9VszA5Cad4UdEeNknthXBVYkSulyLnGgnqvZR8o52S5XeDt9F
-	 Zv1Gmqw1gg4aDepr9W3T8rptNELmSnl1+610fCF4=
-Date: Sun, 12 Jan 2025 19:04:28 -0800
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,leitao@debian.org,dyoung@redhat.com,bhe@redhat.com,riel@surriel.com,akpm@linux-foundation.org
+	b=FjVTtAr051DDosairck1SvosirgaQDXrfPBE9B7W3CxqnzqlOEk5rUZQORKxZOcoT
+	 wL0+UhUpjLLg9dabtI4+u3lOylLWwvs+ieNq0AnKRf4n5JZD4gW7Un2y189FZcQMiq
+	 w4Rw2K/ESwQIy9su7rnYUbV16QPXVBpGBubBUbaQ=
+Date: Sun, 12 Jan 2025 19:04:26 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-proc-fix-softlockup-in-__read_vmcore-part-2.patch removed from -mm tree
-Message-Id: <20250113030428.830F2C4CEE0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-assertion-in-folio_end_read.patch removed from -mm tree
+Message-Id: <20250113030427.5DF4BC4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/proc: fix softlockup in __read_vmcore (part 2)
+     Subject: mm: fix assertion in folio_end_read()
 has been removed from the -mm tree.  Its filename was
-     fs-proc-fix-softlockup-in-__read_vmcore-part-2.patch
+     mm-fix-assertion-in-folio_end_read.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: fs/proc: fix softlockup in __read_vmcore (part 2)
-Date: Fri, 10 Jan 2025 10:28:21 -0500
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: fix assertion in folio_end_read()
+Date: Fri, 10 Jan 2025 16:32:57 +0000
 
-Since commit 5cbcb62dddf5 ("fs/proc: fix softlockup in __read_vmcore") the
-number of softlockups in __read_vmcore at kdump time have gone down, but
-they still happen sometimes.
+We only need to assert that the uptodate flag is clear if we're going to
+set it.  This hasn't been a problem before now because we have only used
+folio_end_read() when completing with an error, but it's convenient to use
+it in squashfs if we discover the folio is already uptodate.
 
-In a memory constrained environment like the kdump image, a softlockup is
-not just a harmless message, but it can interfere with things like RCU
-freeing memory, causing the crashdump to get stuck.
-
-The second loop in __read_vmcore has a lot more opportunities for natural
-sleep points, like scheduling out while waiting for a data write to
-happen, but apparently that is not always enough.
-
-Add a cond_resched() to the second loop in __read_vmcore to (hopefully)
-get rid of the softlockups.
-
-Link: https://lkml.kernel.org/r/20250110102821.2a37581b@fangorn
-Fixes: 5cbcb62dddf5 ("fs/proc: fix softlockup in __read_vmcore")
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Reported-by: Breno Leitao <leitao@debian.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250110163300.3346321-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/vmcore.c~fs-proc-fix-softlockup-in-__read_vmcore-part-2
-+++ a/fs/proc/vmcore.c
-@@ -404,6 +404,8 @@ static ssize_t __read_vmcore(struct iov_
- 			if (!iov_iter_count(iter))
- 				return acc;
- 		}
-+
-+		cond_resched();
- 	}
+--- a/mm/filemap.c~mm-fix-assertion-in-folio_end_read
++++ a/mm/filemap.c
+@@ -1523,7 +1523,7 @@ void folio_end_read(struct folio *folio,
+ 	/* Must be in bottom byte for x86 to work */
+ 	BUILD_BUG_ON(PG_uptodate > 7);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+-	VM_BUG_ON_FOLIO(folio_test_uptodate(folio), folio);
++	VM_BUG_ON_FOLIO(success && folio_test_uptodate(folio), folio);
  
- 	return acc;
+ 	if (likely(success))
+ 		mask |= 1 << PG_uptodate;
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-remove-unnecessary-calls-to-lru_add_drain.patch
+mm-page_alloc-cache-page_zone-result-in-free_unref_page.patch
+mm-make-alloc_pages_mpol-static.patch
+mm-page_alloc-export-free_frozen_pages-instead-of-free_unref_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-post_alloc_hook.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-prep_new_page.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-get_page_from_freelist.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_cpuset_fallback.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_may_oom.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
+mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_slowpath.patch
+mm-page_alloc-move-set_page_refcounted-to-end-of-__alloc_pages.patch
+mm-page_alloc-add-__alloc_frozen_pages.patch
+mm-mempolicy-add-alloc_frozen_pages.patch
+slab-allocate-frozen-pages.patch
+mm-remove-pagetranstail.patch
+ocfs2-handle-a-symlink-read-error-correctly.patch
+ocfs2-convert-ocfs2_page_mkwrite-to-use-a-folio.patch
+ocfs2-pass-mmap_folio-around-instead-of-mmap_page.patch
+ocfs2-convert-ocfs2_read_inline_data-to-take-a-folio.patch
+ocfs2-use-a-folio-in-ocfs2_fast_symlink_read_folio.patch
+ocfs2-remove-ocfs2_start_walk_page_trans-prototype.patch
+iov_iter-remove-setting-of-page-index.patch
+squashfs-use-a-folio-throughout-squashfs_read_folio.patch
+squashfs-pass-a-folio-to-squashfs_readpage_fragment.patch
+squashfs-convert-squashfs_readpage_block-to-take-a-folio.patch
+squashfs-convert-squashfs_copy_cache-to-take-a-folio.patch
+squashfs-convert-squashfs_fill_page-to-take-a-folio.patch
+squashfs-convert-squashfs_fill_page-to-take-a-folio-fix.patch
 
