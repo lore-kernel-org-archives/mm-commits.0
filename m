@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9463154C0F
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE95125761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742176; cv=none; b=RMOxZqcRhJz8+dzmetp/IRgUpouWf0VUVQg4XYdll9oW1ysGivcE36/p5/lU7uAjawyVFxZC7+kqS612FyDSN4egoUrk2w6MCdiTWDw4m5Czfj7KqHl9Y18rbH1uYUHTf45+oKHGJq9xL9tn1Zc1fgriZRC1Clbdabs61tNnK7w=
+	t=1736742178; cv=none; b=jCSmrvDECXDUcyAn+kbfkcqbS6YE7mKtNbz39W5EJ9rrUQnKSeaYIK1r3HTO2eDEXrbOSBKsirZePuSHnrWvHXxmYqD4AbM0uPNai4iM5NHi+PjphqnWsv3iPSLDNw4GQBX1/rc8GkPhjbhLghRQ9LK8fD46QiYDqnjF407Kejk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742176; c=relaxed/simple;
-	bh=p2hiS52leA6qN24UOlCgYuESqBtW104kVvOZBu6FYa4=;
-	h=Date:To:From:Subject:Message-Id; b=K2hSw2SBUHjmVN7ibnvE9b48Ouf7ZImSKy46iDA91v5NXZ2Y+raAPmJyXQVRWUAfMoJOew+rpjmnjcNZ9dIn5RwI2cuWZy279tBcCmvy6eIVvxPcuEfFjwldtUbRNiSkmKrjMR6eCAmRhVNVpF/8zM0utnxhUxzIR8hWQs7kLiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1dvpc2eO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742178; c=relaxed/simple;
+	bh=17MmIygVS6dXpU9GQv/A902UCx5k+eKqd7F3SH1H0O0=;
+	h=Date:To:From:Subject:Message-Id; b=bcVCp+b2xnmE2I5zT0N1PQhDuVa3OD/MReSejWMGQ5+xa8q1U7+6VNQIPfp6pUyPiV/oChyDEh3Yk5qU5NLwUzVmOKM9m5nLf4IdcotTR9P85qC17/f5yTUimeMBAEhtD45zV28RBvwSQTQnBPVtnEGVMYXgzytwwYbiLCGRjcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AmMN8JJQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1dvpc2eO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CE00C4CED6;
-	Mon, 13 Jan 2025 04:22:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AmMN8JJQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75068C4CED6;
+	Mon, 13 Jan 2025 04:22:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742176;
-	bh=p2hiS52leA6qN24UOlCgYuESqBtW104kVvOZBu6FYa4=;
+	s=korg; t=1736742178;
+	bh=17MmIygVS6dXpU9GQv/A902UCx5k+eKqd7F3SH1H0O0=;
 	h=Date:To:From:Subject:From;
-	b=1dvpc2eOZ9KyaRCx/iwdrf26h5jWdUFa7vuQqC/xBX+bvN44Hcc0txdEo+o/ipJdS
-	 ewGVcKkHAjPIoCtiN7GqjzHBgmzNl/ULsBqwAQxofdyyzbrET8mdngLVKjvGfvQM0W
-	 E+TZ41odbMa/fEXO5oKxTbdl6yDexIHnGN+y9P/g=
-Date: Sun, 12 Jan 2025 20:22:56 -0800
+	b=AmMN8JJQwwebfNC8tiVJIeMTV7hUUTSXTYTLWOw5KcvJVPRe+El6YC2CQZSytlfOx
+	 PSRCRQgAEUcwE6FEKlxbLbhU0V6MuURKsWPIDVgktkm6s1R0txb73j2FjUwILhYL5n
+	 oaXI19SpcbMD5kfjdJihctVkioEDe8f0gr9v3wnc=
+Date: Sun, 12 Jan 2025 20:22:57 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xen-blkback-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250113042256.8CE00C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] wifi-ath11k-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
+Message-Id: <20250113042258.75068C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,17 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xen/blkback: convert timeouts to secs_to_jiffies()
+     Subject: wifi: ath11k: convert timeouts to secs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     xen-blkback-convert-timeouts-to-secs_to_jiffies.patch
+     wifi-ath11k-convert-timeouts-to-secs_to_jiffies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: xen/blkback: convert timeouts to secs_to_jiffies()
-Date: Tue, 10 Dec 2024 22:02:43 +0000
+Subject: wifi: ath11k: convert timeouts to secs_to_jiffies()
+Date: Tue, 10 Dec 2024 22:02:45 +0000
 
 Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
 secs_to_jiffies().  As the value here is a multiple of 1000, use
@@ -64,7 +64,8 @@ the following Coccinelle rules:
 - msecs_to_jiffies(C * MSEC_PER_SEC)
 + secs_to_jiffies(C)
 
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-12-ddfefd7e9f2a@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-14-ddfefd7e9f2a@linux.microsoft.com
+Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
@@ -88,7 +89,6 @@ Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: James Smart <james.smart@broadcom.com>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Jeff Johnson <jjohnson@kernel.org>
-Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Jeroen de Borst <jeroendb@google.com>
 Cc: Jiri Kosina <jikos@kernel.org>
@@ -135,20 +135,20 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/xen-blkback/blkback.c |    2 +-
+ drivers/net/wireless/ath/ath11k/debugfs.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/xen-blkback/blkback.c~xen-blkback-convert-timeouts-to-secs_to_jiffies
-+++ a/drivers/block/xen-blkback/blkback.c
-@@ -544,7 +544,7 @@ static void print_stats(struct xen_blkif
- 		 ring->st_rd_req, ring->st_wr_req,
- 		 ring->st_f_req, ring->st_ds_req,
- 		 ring->persistent_gnt_c, max_pgrants);
--	ring->st_print = jiffies + msecs_to_jiffies(10 * 1000);
-+	ring->st_print = jiffies + secs_to_jiffies(10);
- 	ring->st_rd_req = 0;
- 	ring->st_wr_req = 0;
- 	ring->st_oo_req = 0;
+--- a/drivers/net/wireless/ath/ath11k/debugfs.c~wifi-ath11k-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/net/wireless/ath/ath11k/debugfs.c
+@@ -178,7 +178,7 @@ static int ath11k_debugfs_fw_stats_reque
+ 	 * received 'update stats' event, we keep a 3 seconds timeout in case,
+ 	 * fw_stats_done is not marked yet
+ 	 */
+-	timeout = jiffies + msecs_to_jiffies(3 * 1000);
++	timeout = jiffies + secs_to_jiffies(3);
+ 
+ 	ath11k_debugfs_fw_stats_reset(ar);
+ 
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
