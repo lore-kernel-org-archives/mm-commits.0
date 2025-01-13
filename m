@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4F22AF09
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:12:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245182AF09
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:13:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736741573; cv=none; b=Jb6WjGtKHy/50kt1hBJzoP8NEnSn2NUdGZ/u1CguK1/TvzlGWFGsNmtjYvrQHNTQIzLRs6Lb4R6fZyueYylrSxls2WVVvuTzjxiwOe5mJlpIqTs9Xz3VFu4LX+D4keF5CX5+cc3UjEa0FL8DiE78qTx9fB+0lLTz5YrBivsJ0PA=
+	t=1736741614; cv=none; b=gSs/+V8P95Ex372QWRP5kJS843ggqOSwQgj1qlnfCRfMsF41DJghePl4UrDH82FQemVyaJRoF/w+tuNfcUdYG4I3IoQs+dQJsmmf+T8H/lT8ea6x+Nb+FeNlC/7pYlvHlEo9L+lmzpBFZREmBbGXBUYP/8yBH4CueWTLDiqabXk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736741573; c=relaxed/simple;
-	bh=8mloECLTVSWFKbCwWTSDruJ2hN4bxNSFXU4lPZbiTbo=;
-	h=Date:To:From:Subject:Message-Id; b=pqDVKAr43iFXf7OEhLPsS7SNatE2PFpCrYlT3kihfqW8dzbRbYo1Vh4DKKMa95k5KbHYwynPZn8UgKg84JRq88VZVP6ChGk4nPlXS2UCYGYeRi0wO3mKmxPtNZQj2dkPlf71edZvmkzFPPLj7S2mJA93UqKKLEONjtMF1DylR/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UmX8KZg1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736741614; c=relaxed/simple;
+	bh=OBE+VMX6dFfC2jf1XIi+x+dLe+ftL22D8E/+RUZ4+KE=;
+	h=Date:To:From:Subject:Message-Id; b=Y6RjN1nx+afEbDla7VxpuhM9TblJellsuKm50o3WY2vc0COZlgMt+MW24KKErFuNOBmDsUXUXRMMdhTYRTiD2M4QLyv3cvSYyxmefqR+yyMxOw0j1ZnZwC2MQG7HU6vGiMWTQjk7RwNR7wTL292N092sxtIXrI74FIhSYeVKUfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z97WGtIw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UmX8KZg1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38090C4CED6;
-	Mon, 13 Jan 2025 04:12:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z97WGtIw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C381C4CED6;
+	Mon, 13 Jan 2025 04:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736741573;
-	bh=8mloECLTVSWFKbCwWTSDruJ2hN4bxNSFXU4lPZbiTbo=;
+	s=korg; t=1736741613;
+	bh=OBE+VMX6dFfC2jf1XIi+x+dLe+ftL22D8E/+RUZ4+KE=;
 	h=Date:To:From:Subject:From;
-	b=UmX8KZg1m4XNViy8zHLhUkBpqet2HUCbUpezHRa2VJBAobWHRsOqdI5t7y9H7/1g2
-	 BMBSMDAIVeP4vZJwnpWcxnElnH0xo+Z3CILSx/ZeCrQUhmsYfi14gbcRoOHAW2kvd9
-	 OQJ2RmJAQW9OPbRIJzbfPjLbnrwmJdCIy6cYw3bE=
-Date: Sun, 12 Jan 2025 20:12:52 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=z97WGtIwZK80RGlsUg2I/CPeua4KAcWzDrotHHcd+AIDGdmDWqMqS5W2fxH8pnLJD
+	 Dz7TWYNmfNPclrjMb2NfuSCEQJiSERX251dGk6DRRvyz+16kDiQ0K6YiW9R4gOeaBq
+	 zCofG6PINvBjZI9lgPQiUEU4KbPTcdp5tzWk/i2c=
+Date: Sun, 12 Jan 2025 20:13:33 -0800
+To: mm-commits@vger.kernel.org,tamird@gmail.com,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] delayacct-add-delay-max-to-record-delay-peak-fix.patch removed from -mm tree
-Message-Id: <20250113041253.38090C4CED6@smtp.kernel.org>
+Subject: [folded-merged] xarray-port-tests-to-kunit-fix.patch removed from -mm tree
+Message-Id: <20250113041333.9C381C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: delayacct: update docs and fix some spelling errors
+     Subject: xarray-port-tests-to-kunit-fix
 has been removed from the -mm tree.  Its filename was
-     delayacct-add-delay-max-to-record-delay-peak-fix.patch
+     xarray-port-tests-to-kunit-fix.patch
 
-This patch was dropped because it was folded into delayacct-add-delay-max-to-record-delay-peak.patch
+This patch was dropped because it was folded into xarray-port-tests-to-kunit.patch
 
 ------------------------------------------------------
-From: Yaxin Wang <wang.yaxin@zte.com.cn>
-Subject: delayacct: update docs and fix some spelling errors
-Date: Fri, 13 Dec 2024 19:27:00 +0800 (CST)
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xarray-port-tests-to-kunit-fix
+Date: Mon Dec  9 07:06:54 PM PST 2024
 
-Update delay-accounting.rst to include the 'delay max' in the output of
-getdelays, and fix some spelling errors before.
+Fix cocci warning:
 
-Link: https://lkml.kernel.org/r/20241213192700771XKZ8H30OtHSeziGqRVMs0@zte.com.cn
-Signed-off-by: Yaxin Wang <wang.yaxin@zte.com.cn>
-Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: tuqiang <tu.qiang35@zte.com.cn>
-Cc: Wang Yong <wang.yong12@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+lib/test_xarray.c:1019:52-53: WARNING comparing pointer to 0
+
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202412081700.YXB3vBbg-lkp@intel.com/
+Cc: Tamir Duberstein <tamird@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   38 ++++++++--------
- kernel/delayacct.c                            |    2 
- 2 files changed, 20 insertions(+), 20 deletions(-)
+ lib/test_xarray.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-max-to-record-delay-peak-fix
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -100,29 +100,29 @@ Get delays, since system boot, for pid 1
- 	# ./getdelays -d -p 10
- 	(output similar to next case)
+--- a/lib/test_xarray.c~xarray-port-tests-to-kunit-fix
++++ a/lib/test_xarray.c
+@@ -1016,7 +1016,7 @@ static noinline void check_xa_alloc_1(st
  
--Get sum of delays, since system boot, for all pids with tgid 5::
-+Get sum and peak of delays, since system boot, for all pids with tgid 242::
- 
--	# ./getdelays -d -t 5
-+	bash-4.4# ./getdelays -d -t 242
- 	print delayacct stats ON
--	TGID	5
-+	TGID    242
- 
- 
--	CPU             count     real total  virtual total    delay total  delay average
--	                    8        7000000        6872122        3382277          0.423ms
--	IO              count    delay total  delay average
--                   0              0          0.000ms
--	SWAP            count    delay total  delay average
--                       0              0          0.000ms
--	RECLAIM         count    delay total  delay average
--                   0              0          0.000ms
--	THRASHING       count    delay total  delay average
--                       0              0          0.000ms
--	COMPACT         count    delay total  delay average
--                       0              0          0.000ms
--	WPCOPY          count    delay total  delay average
--                       0              0          0.000ms
--	IRQ             count    delay total  delay average
--                       0              0          0.000ms
-+	CPU         count     real total  virtual total    delay total  delay average      delay max
-+	              239      296000000      307724885        1127792          0.005ms     0.238382ms
-+	IO          count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	SWAP        count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	RECLAIM     count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	THRASHING   count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	COMPACT     count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
-+	WPCOPY      count    delay total  delay average      delay max
-+	              230       19100476          0.083ms     0.383822ms
-+	IRQ         count    delay total  delay average      delay max
-+	                0              0          0.000ms     0.000000ms
- 
- Get IO accounting for pid 1, it works only with -p::
- 
---- a/kernel/delayacct.c~delayacct-add-delay-max-to-record-delay-peak-fix
-+++ a/kernel/delayacct.c
-@@ -93,7 +93,7 @@ void __delayacct_tsk_init(struct task_st
- 
- /*
-  * Finish delay accounting for a statistic using its timestamps (@start),
-- * accumalator (@total) and @count
-+ * accumulator (@total) and @count
-  */
- static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
- {
+ 	XA_BUG_ON(xa, xa_alloc(xa, &id, xa_mk_index(10), XA_LIMIT(10, 5),
+ 				GFP_KERNEL) != -EBUSY);
+-	XA_BUG_ON(xa, xa_store_index(xa, 3, GFP_KERNEL) != 0);
++	XA_BUG_ON(xa, xa_store_index(xa, 3, GFP_KERNEL) != NULL);
+ 	XA_BUG_ON(xa, xa_alloc(xa, &id, xa_mk_index(10), XA_LIMIT(10, 5),
+ 				GFP_KERNEL) != -EBUSY);
+ 	xa_erase_index(test, xa, 3);
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-delayacct-add-delay-max-to-record-delay-peak.patch
-delayacct-add-delay-min-to-record-delay-peak.patch
+mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
+mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
+mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
+mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+mm-huge_memoryc-rename-shadowed-local.patch
+mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
+mm-hugetlb-rename-isolate_hugetlb-to-folio_isolate_hugetlb-fix.patch
+documentation-filesystems-procrst-fix-possessive-form-of-process.patch
+xarray-port-tests-to-kunit.patch
+checkpatch-check-return-of-git_commit_info-fix.patch
+fault-inject-use-prandom-where-cryptographically-secure-randomness-is-not-needed-fix.patch
+hung_task-add-task-flags-blocked-by-coredump-to-log-fix.patch
 
