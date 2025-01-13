@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0702E25761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291D315624B
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742188; cv=none; b=EpWXJiRNDMFDmQ76dSiPuRQfRNAGrrY+k2sLydKFYPBtSyjg65dC2gIMJU1nQLc+oDAOywu7B6zYuTNdCTrcXyn756y1demLJgNBZrK4TDkcvZUB/NsBtInqGY2Ah3ZrxSGIlq6haxRv2WX0qKRI41gTvJQ2TMpF+HNQSncpgZw=
+	t=1736742189; cv=none; b=jWwS6LkTOU29cUs01a1HiS8ITpvPpetrO+Z9P0oWtdid1cbBe4/igtoAzJVgQZKpbI+Rlt9w8iOFhUzLJNBMvk0dSHHOm2hVh+DIhtfJPlgELaHUiLOUcIUGAK0PT+KLzPw7jenF7FqQZyicAj0kluDi7Xu+es8FhyBREMzhXu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742188; c=relaxed/simple;
-	bh=e9TlVR1/WFet5eTKOBOP7jdHoMxx7gc94TyV2JMrxcs=;
-	h=Date:To:From:Subject:Message-Id; b=R71y+kkj0XqsyqincyF7Xmzak7xTITzWDWz8Gz0oSEh8zE9DanLortPgpylqn7N5AKbg3n4DI5acL2pA/CaW0RD4i45lDQX7/SlsGTQyzzzfWqDkNjbl/pVctFz+NKbZiBvmv/wsgmTi5sl+muz8i/UCIn4j2eAn9PrJfNXbJsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DBFaSeh3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742189; c=relaxed/simple;
+	bh=yeX3riTTIoy8XVDilmmZvjHJTK05qnGHsDZBqCK61rg=;
+	h=Date:To:From:Subject:Message-Id; b=WjsfNdqgivyykiHmJEouUF82LH0QO8otD8Yybk7fpAtN4F+57rJtPErfFa2JntalDo0DZBujN3SODbpa38qvl33LRtqzMztYy8TXvss3d1JtWiN/pFWdXl2EN2P2+PpHk1Qkej5zmIu8ZLxn8XnR4V6tMokkjEa0ZQOp4VDBrac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tDOOVCd1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DBFaSeh3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEE07C4CED6;
-	Mon, 13 Jan 2025 04:23:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tDOOVCd1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF89AC4CED6;
+	Mon, 13 Jan 2025 04:23:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742187;
-	bh=e9TlVR1/WFet5eTKOBOP7jdHoMxx7gc94TyV2JMrxcs=;
+	s=korg; t=1736742189;
+	bh=yeX3riTTIoy8XVDilmmZvjHJTK05qnGHsDZBqCK61rg=;
 	h=Date:To:From:Subject:From;
-	b=DBFaSeh3+J2SanIiur6HAEvW/HkoIOzH/SRGJLLu6UygtT1n1CUNatmNzmmEyukzi
-	 EoZibfPbjoVBu7+jh5jcTzikGFXfLw9mFEcOve4Z9/lBTKD07RMxR5pMJGA7tjizg9
-	 uOsBCtkqGCVXVYpSlljFZ3h2+/kXQU3HnHBP+DQ8=
-Date: Sun, 12 Jan 2025 20:23:07 -0800
-To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
+	b=tDOOVCd1C1ROnX6HSwEerxObQIDgoTsr4Ds2wZorVewQO+8BeyVjm9EZOA9Kdnscy
+	 o+MfebgW6hGfG7YMZSIV3018JM6nmuGbBwl+dSfrD2g0e6OPwOTUfQxkfQvvhM3/vl
+	 WU8dStjeWHutBQ5t9jZq1Bulcy/KZJLGOFr3YT70=
+Date: Sun, 12 Jan 2025 20:23:08 -0800
+To: mm-commits@vger.kernel.org,yaoma@linux.alibaba.com,song@kernel.org,liusong@linux.alibaba.com,linux@weissschuh.net,john.ogness@linutronix.de,joel.granados@kernel.org,dianders@chromium.org,cuiyunhui@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] alsa-line6-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250113042307.CEE07C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-output-this_cpu-when-printing-hard-lockup.patch removed from -mm tree
+Message-Id: <20250113042308.EF89AC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,122 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ALSA: line6: convert timeouts to secs_to_jiffies()
+     Subject: watchdog: output this_cpu when printing hard LOCKUP
 has been removed from the -mm tree.  Its filename was
-     alsa-line6-convert-timeouts-to-secs_to_jiffies.patch
+     watchdog-output-this_cpu-when-printing-hard-lockup.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: ALSA: line6: convert timeouts to secs_to_jiffies()
-Date: Tue, 10 Dec 2024 22:02:50 +0000
+From: Yunhui Cui <cuiyunhui@bytedance.com>
+Subject: watchdog: output this_cpu when printing hard LOCKUP
+Date: Tue, 10 Dec 2024 17:52:38 +0800
 
-Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-secs_to_jiffies().  As the value here is a multiple of 1000, use
-secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
+When printing "Watchdog detected hard LOCKUP on cpu", also output the
+detecting CPU.  It's more intuitive.
 
-This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-the following Coccinelle rules:
-
-@@ constant C; @@
-
-- msecs_to_jiffies(C * 1000)
-+ secs_to_jiffies(C)
-
-@@ constant C; @@
-
-- msecs_to_jiffies(C * MSEC_PER_SEC)
-+ secs_to_jiffies(C)
-
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-19-ddfefd7e9f2a@linux.microsoft.com
-Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Daniel Mack <daniel@zonque.org>
-Cc: David Airlie <airlied@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dick Kennedy <dick.kennedy@broadcom.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jack Wang <jinpu.wang@cloud.ionos.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: James Smart <james.smart@broadcom.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jeff Johnson <jjohnson@kernel.org>
-Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jeroen de Borst <jeroendb@google.com>
-Cc: Jiri Kosina <jikos@kernel.org>
-Cc: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Johan Hedberg <johan.hedberg@gmail.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Kalle Valo <kvalo@kernel.org>
-Cc: Louis Peens <louis.peens@corigine.com>
-Cc: Lucas De Marchi <lucas.demarchi@intel.com>
-Cc: Luiz Augusto von Dentz <luiz.dentz@gmail.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Naveen N Rao <naveen@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nicolas Palix <nicolas.palix@imag.fr>
-Cc: Oded Gabbay <ogabbay@kernel.org>
-Cc: Ofir Bitton <obitton@habana.ai>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Praveen Kaligineedi <pkaligineedi@google.com>
-Cc: Ray Jui <rjui@broadcom.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Roger Pau Monné <roger.pau@citrix.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Scott Branden <sbranden@broadcom.com>
-Cc: Shailend Chand <shailend@google.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Simon Horman <horms@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Xiubo Li <xiubli@redhat.com>
+Link: https://lkml.kernel.org/r/20241210095238.63444-1-cuiyunhui@bytedance.com
+Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Cc: Bitao Hu <yaoma@linux.alibaba.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Liu Song <liusong@linux.alibaba.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/line6/toneport.c |    2 +-
+ kernel/watchdog.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/sound/usb/line6/toneport.c~alsa-line6-convert-timeouts-to-secs_to_jiffies
-+++ a/sound/usb/line6/toneport.c
-@@ -386,7 +386,7 @@ static int toneport_setup(struct usb_lin
- 		toneport_update_led(toneport);
+--- a/kernel/watchdog.c~watchdog-output-this_cpu-when-printing-hard-lockup
++++ a/kernel/watchdog.c
+@@ -190,7 +190,7 @@ void watchdog_hardlockup_check(unsigned
+ 		 * with printk_cpu_sync_get_irqsave() that we can still at least
+ 		 * get the message about the lockup out.
+ 		 */
+-		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", cpu);
++		pr_emerg("CPU%u: Watchdog detected hard LOCKUP on cpu %u\n", this_cpu, cpu);
+ 		printk_cpu_sync_get_irqsave(flags);
  
- 	schedule_delayed_work(&toneport->line6.startup_work,
--			      msecs_to_jiffies(TONEPORT_PCM_DELAY * 1000));
-+			      secs_to_jiffies(TONEPORT_PCM_DELAY));
- 	return 0;
- }
- 
+ 		print_modules();
 _
 
-Patches currently in -mm which might be from eahariha@linux.microsoft.com are
+Patches currently in -mm which might be from cuiyunhui@bytedance.com are
 
 
