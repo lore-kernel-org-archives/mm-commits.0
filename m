@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B23825761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15B0E25761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742261; cv=none; b=Q9WRPL2xVlXu1oCv6K/gMbMMxyU1IYNp9KfS5fJU0Yr9tg8MndWA7JmF7vRKB1G3jazzZjE8TQDU6Bhc2/MpKHeHOXQKTQjmi0djeeXxeKAPR45Xaf03ezOb45XFJecM4eiCgPEAu+vGqiUbDCyP+h7n+BPjizVgJ9eugBpMngI=
+	t=1736742262; cv=none; b=NQZBQ08qyQn7p9NIUVLbg4BD8n3OiBSnUyV320w37jtoChyP8HbAD2V1/seD0yqyyEWiwVELby57+9FKf9vHDdwlYDhoQ0MmWNDfOc+btDQ/mWXQY9Q0E/IHJunwEcl5aQplB10CNPUQkpsI6LWpPpSVzLZOKAnCFkH9e2V9Y8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742261; c=relaxed/simple;
-	bh=Q+PlX/uervfxKJdJTrGsGpN12hfm4C8ulqGin+uSNd4=;
-	h=Date:To:From:Subject:Message-Id; b=VwPrcIWM8AUx3N8XSeZ9g8pJRlCKx8Dr6H/5Yacn/CAs4108DiFsPO//8rWKcH9MxteNt0zI0HYIh0oqTz0pudAlU8Z5pzM/D0n1VcDXeITDRbSAHy3b0vasrCL9MjjAZOkdhZbR0UF1KgiaH/7PSClpEOet8czAI9MhP7t1Gvc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IHQ+DwcE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742262; c=relaxed/simple;
+	bh=EynMmAkqUd+vijgK77WnZAC5wqxH7cHxqGs5ht0w2Js=;
+	h=Date:To:From:Subject:Message-Id; b=CBuxowmNIM03QX5Em2JOFxW7CHqmf9Ys9S54ZwNFSWtLXloRxcnBqOsVennMRlZonOpeWoWY7eB8mQARKd0JR44kdITMnaDfe69HHEcaanic8lWpPjme1RaMyHxkD1dbEPN9AdB8jpFeMcBl7gSt24lsLRJFm+eGfyEEbQ9A0v0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v2esfhCU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IHQ+DwcE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBB42C4CED6;
-	Mon, 13 Jan 2025 04:24:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v2esfhCU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E09C7C4CED6;
+	Mon, 13 Jan 2025 04:24:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742260;
-	bh=Q+PlX/uervfxKJdJTrGsGpN12hfm4C8ulqGin+uSNd4=;
+	s=korg; t=1736742262;
+	bh=EynMmAkqUd+vijgK77WnZAC5wqxH7cHxqGs5ht0w2Js=;
 	h=Date:To:From:Subject:From;
-	b=IHQ+DwcErs77etoRzoVphiisv3izHu/n9Uv9ogK8J9M/3kPy4cUMgS6Ev7WF53Jtf
-	 45wErC34kDbwRRyYnhueVSdLkMcIqVbhxf/d1RPy6i+8yLoSg1SQVXYL6eJhG2p4Sq
-	 3VeS0m7Sek6j2oYG+eNef2a/KSssFqv9mw0NLaF4=
-Date: Sun, 12 Jan 2025 20:24:20 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,sunjunchao2870@gmail.com,akpm@linux-foundation.org
+	b=v2esfhCU4p7RPtGnBmDJd8bWlfXekjVxwBNndueJmXdpsQuYe3tDosoKXDZypoc/T
+	 pCJz5545nTdx/ciyH02H659NBv9hH67+NW01Zga0cZk60P2VMU7CVSTgzvjILcU1f3
+	 E40XaZGDwVRYdQY5zeTG9ZLEn6sFkhBWhjZbLWEg=
+Date: Sun, 12 Jan 2025 20:24:21 -0800
+To: mm-commits@vger.kernel.org,linus.luessing@c0d3.blue,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-correct-l_next_free_rec-in-online-check.patch removed from -mm tree
-Message-Id: <20250113042420.DBB42C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mailmap-update-entry-for-linus-lüssing.patch removed from -mm tree
+Message-Id: <20250113042421.E09C7C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: correct l_next_free_rec in online check
+     Subject: mailmap: update entry for Linus Lüssing
 has been removed from the -mm tree.  Its filename was
-     ocfs2-correct-l_next_free_rec-in-online-check.patch
+     mailmap-update-entry-for-linus-lüssing.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Julian Sun <sunjunchao2870@gmail.com>
-Subject: ocfs2: correct l_next_free_rec in online check
-Date: Mon, 6 Jan 2025 10:34:32 +0800
+From: Linus Lüssing <linus.luessing@c0d3.blue>
+Subject: mailmap: update entry for Linus Lüssing
+Date: Wed, 8 Jan 2025 04:58:39 +0100
 
-Correct the value of l_next_free_rec to l_count during the online check,
-as done in the check_el() function in ocfs2_tools.
+Mapping another old, obsolete work email address to my primary one.
 
-Link: https://lkml.kernel.org/r/20250106023432.1320904-2-sunjunchao2870@gmail.com
-Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20250108035840.25194-1-linus.luessing@c0d3.blue
+Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-correct-l_next_free_rec-in-online-check
-+++ a/fs/ocfs2/inode.c
-@@ -200,6 +200,20 @@ bail:
- 	return inode;
- }
- 
-+static int ocfs2_dinode_has_extents(struct ocfs2_dinode *di)
-+{
-+	/* inodes flagged with other stuff in id2 */
-+	if (di->i_flags & (OCFS2_SUPER_BLOCK_FL | OCFS2_LOCAL_ALLOC_FL |
-+			   OCFS2_CHAIN_FL | OCFS2_DEALLOC_FL))
-+		return 0;
-+	/* i_flags doesn't indicate when id2 is a fast symlink */
-+	if (S_ISLNK(di->i_mode) && di->i_size && di->i_clusters == 0)
-+		return 0;
-+	if (di->i_dyn_features & OCFS2_INLINE_DATA_FL)
-+		return 0;
-+
-+	return 1;
-+}
- 
- /*
-  * here's how inodes get read from disk:
-@@ -1547,6 +1561,16 @@ static int ocfs2_filecheck_repair_inode_
- 		     le32_to_cpu(di->i_fs_generation));
- 	}
- 
-+	if (ocfs2_dinode_has_extents(di) &&
-+	    le16_to_cpu(di->id2.i_list.l_next_free_rec) > le16_to_cpu(di->id2.i_list.l_count)) {
-+		di->id2.i_list.l_next_free_rec = di->id2.i_list.l_count;
-+		changed = 1;
-+		mlog(ML_ERROR,
-+		     "Filecheck: reset dinode #%llu: l_next_free_rec to %u\n",
-+		     (unsigned long long)bh->b_blocknr,
-+		     le16_to_cpu(di->id2.i_list.l_next_free_rec));
-+	}
-+
- 	if (changed || ocfs2_validate_meta_ecc(sb, bh->b_data, &di->i_check)) {
- 		ocfs2_compute_meta_ecc(sb, bh->b_data, &di->i_check);
- 		mark_buffer_dirty(bh);
+--- a/.mailmap~mailmap-update-entry-for-linus-lüssing
++++ a/.mailmap
+@@ -405,6 +405,7 @@ Liam Mark <quic_lmark@quicinc.com> <lmar
+ Linas Vepstas <linas@austin.ibm.com>
+ Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
+ Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
++Linus Lüssing <linus.luessing@c0d3.blue> <ll@simonwunderlich.de>
+ <linux-hardening@vger.kernel.org> <kernel-hardening@lists.openwall.com>
+ Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
+ Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
 _
 
-Patches currently in -mm which might be from sunjunchao2870@gmail.com are
+Patches currently in -mm which might be from linus.luessing@c0d3.blue are
 
 
