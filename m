@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37F932CCC0
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198C225761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742154; cv=none; b=u46ofc0aoPEIslAMeBT/DrbgYsME6ywvmkLWFXM+ATgZ63Sq83L/43P1Rb8lja9G8M5HBig5DyjIVIzyIgLy7188ILe69PvzsZd9seY/aSjUPypYg/z8E2MXAh7GbM3Po7YZxgj+2uJF+tTGbvrX/APN/Ia+0P05rw4ybKFIrUM=
+	t=1736742156; cv=none; b=XLMrpHshyh3lmGqciL/3IU5NhxYtS+dUpKVd4N1pRGANVfrFEvx1faVdJgEe6hlZ2iM2eurwzOjtSm4+i++UzoPv3TLblKFqyGw1uBlmcGPoKs2AW1jsyasm+CfBl5M160RFw8J6VjJeJW02uibGOKb0bBRYTpqb36+WOaS9SfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742154; c=relaxed/simple;
-	bh=/LGq/VWcUFTYCmQlwL109ie9ZMsFKYXPxFDBS5GaQ8A=;
-	h=Date:To:From:Subject:Message-Id; b=bQ9pDgrMgrtv2MaDDA5Psp1Yi6q0nSCc9cZMB7tiYY75hOPTl9hxUyvdno3VNzq6ecQvsczpa9GsA3d1SnUcUeC+A8dx1fbpmnKDTQyLD1MSyB06gYprgBvhWLx9ZJjqeercEEjhr6PpIb6D28/4I8kqpa5Si6jRE1b+2R/x3uo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RGWvQQWV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742156; c=relaxed/simple;
+	bh=dl8hShUdxllWf3Rl2sL5PhIMa53BfRAThLYNadZAQJ0=;
+	h=Date:To:From:Subject:Message-Id; b=OiFsZGnYQy5FBPJiCQHf/a/YEeJ4yL/f06oqBE9SGHzSgaV6s3WhBIhR/eTeWqNF6SwtOqiJMDk70c/vpfetDrN51L8G1a3JrWokABG7hMPWuPxHNZy8SsKiAm01hqsBcDiiwnr+VOnLqAjVDYNsgw3uj1XhhmZy6nfiD7CzRcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xl6eY1QE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RGWvQQWV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0773C4CED6;
-	Mon, 13 Jan 2025 04:22:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xl6eY1QE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F1FC4CED6;
+	Mon, 13 Jan 2025 04:22:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742154;
-	bh=/LGq/VWcUFTYCmQlwL109ie9ZMsFKYXPxFDBS5GaQ8A=;
+	s=korg; t=1736742155;
+	bh=dl8hShUdxllWf3Rl2sL5PhIMa53BfRAThLYNadZAQJ0=;
 	h=Date:To:From:Subject:From;
-	b=RGWvQQWVNEBjGgNdGqjuhchCtz/FggFrGhXDGPCDOgVJc9JTQ0wq9W58oLqUCdzro
-	 o/cR+sCild4d1elS/PZM/WHrBK+byVUradmk31z54hLqfUzNliWK97xqc20jPzPDsw
-	 agJA/zWmGGC/YJTZtw4+vv8u1l1R0Fye3VrlkwL8=
-Date: Sun, 12 Jan 2025 20:22:33 -0800
+	b=xl6eY1QEWizzfqawQBlkmp7ZeIQFlzb/hDR4utdLLssuWX22rc00kURM6MhwsIN4T
+	 Vk70eZXnCStNAqCc/dXj8N2rW+sqRrkAo1Y6BDeXX7PRDUHqBDqm42XS1GFRx3B2gF
+	 MlsoiI+xzz3S7UJ+M+xbr2bSWNZXb6r+G411vw+Q=
+Date: Sun, 12 Jan 2025 20:22:35 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] netfilter-conntrack-cleanup-timeout-definitions.patch removed from -mm tree
-Message-Id: <20250113042233.F0773C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] coccinelle-misc-add-secs_to_jiffies-script.patch removed from -mm tree
+Message-Id: <20250113042235.D5F1FC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: netfilter: conntrack: cleanup timeout definitions
+     Subject: coccinelle: misc: add secs_to_jiffies script
 has been removed from the -mm tree.  Its filename was
-     netfilter-conntrack-cleanup-timeout-definitions.patch
+     coccinelle-misc-add-secs_to_jiffies-script.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: netfilter: conntrack: cleanup timeout definitions
-Date: Tue, 10 Dec 2024 22:02:32 +0000
+Subject: coccinelle: misc: add secs_to_jiffies script
+Date: Tue, 10 Dec 2024 22:02:33 +0000
 
-Patch series "Converge on using secs_to_jiffies()", v3.
+This script finds and suggests conversions of timeout patterns that result
+in seconds-denominated timeouts to use the new secs_to_jiffies() API in
+include/linux/jiffies.h for better readability.
 
-This is a series that follows up on my previous series to introduce
-secs_to_jiffies() and convert a few initial users.[1] In the review for
-that series, Anna-Maria requested converting other users with Coccinelle. 
-[2] This is part 1 that converts users of msecs_to_jiffies() that use the
-multiply pattern of either of:
-
-- msecs_to_jiffies(N*1000), or
-- msecs_to_jiffies(N*MSEC_PER_SEC)
-
-where N is a constant, to avoid the multiplication.
-
-The entire conversion is made with Coccinelle in the script added in
-patch 2. Some changes suggested by Coccinelle have been deferred to
-later parts that will address other possible variant patterns.
-
-[1] https://lore.kernel.org/all/20241030-open-coded-timeouts-v3-0-9ba123facf88@linux.microsoft.com/
-[2] https://lore.kernel.org/all/8734kngfni.fsf@somnus/
-
-
-This patch (of 19):
-
-None of the higher order definitions are used anymore, so remove
-definitions for minutes, hours, and days timeouts.  Convert the seconds
-denominated timeouts to secs_to_jiffies()
-
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-0-ddfefd7e9f2a@linux.microsoft.com
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-1-ddfefd7e9f2a@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-2-ddfefd7e9f2a@linux.microsoft.com
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+Suggested-by: Anna-Maria Behnsen <anna-maria@linutronix.de>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -99,11 +75,12 @@ Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: James Smart <james.smart@broadcom.com>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Jeff Johnson <jjohnson@kernel.org>
+Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Jeroen de Borst <jeroendb@google.com>
 Cc: Jiri Kosina <jikos@kernel.org>
 Cc: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Johan Hedberg <johan.hedberg@gmail.com>:
+Cc: Johan Hedberg <johan.hedberg@gmail.com>
 Cc: Josh Poimboeuf <jpoimboe@kernel.org>
 Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc: Julia Lawall <julia.lawall@inria.fr>
@@ -113,7 +90,7 @@ Cc: Lucas De Marchi <lucas.demarchi@intel.com>
 Cc: Luiz Augusto von Dentz <luiz.dentz@gmail.com>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>:
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Cc: Martin K. Petersen <martin.petersen@oracle.com>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -142,44 +119,39 @@ Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Xiubo Li <xiubli@redhat.com>
-Cc: Jeff Johnson <quic_jjohnson@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/nf_conntrack_proto_sctp.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ scripts/coccinelle/misc/secs_to_jiffies.cocci |   22 ++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/net/netfilter/nf_conntrack_proto_sctp.c~netfilter-conntrack-cleanup-timeout-definitions
-+++ a/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -39,20 +39,15 @@ static const char *const sctp_conntrack_
- 	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= "HEARTBEAT_SENT",
- };
- 
--#define SECS  * HZ
--#define MINS  * 60 SECS
--#define HOURS * 60 MINS
--#define DAYS  * 24 HOURS
--
- static const unsigned int sctp_timeouts[SCTP_CONNTRACK_MAX] = {
--	[SCTP_CONNTRACK_CLOSED]			= 10 SECS,
--	[SCTP_CONNTRACK_COOKIE_WAIT]		= 3 SECS,
--	[SCTP_CONNTRACK_COOKIE_ECHOED]		= 3 SECS,
--	[SCTP_CONNTRACK_ESTABLISHED]		= 210 SECS,
--	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= 3 SECS,
--	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= 3 SECS,
--	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	= 3 SECS,
--	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= 30 SECS,
-+	[SCTP_CONNTRACK_CLOSED]			= secs_to_jiffies(10),
-+	[SCTP_CONNTRACK_COOKIE_WAIT]		= secs_to_jiffies(3),
-+	[SCTP_CONNTRACK_COOKIE_ECHOED]		= secs_to_jiffies(3),
-+	[SCTP_CONNTRACK_ESTABLISHED]		= secs_to_jiffies(210),
-+	[SCTP_CONNTRACK_SHUTDOWN_SENT]		= secs_to_jiffies(3),
-+	[SCTP_CONNTRACK_SHUTDOWN_RECD]		= secs_to_jiffies(3),
-+	[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT]	= secs_to_jiffies(3),
-+	[SCTP_CONNTRACK_HEARTBEAT_SENT]		= secs_to_jiffies(30),
- };
- 
- #define	SCTP_FLAG_HEARTBEAT_VTAG_FAILED	1
+diff --git a/scripts/coccinelle/misc/secs_to_jiffies.cocci a/scripts/coccinelle/misc/secs_to_jiffies.cocci
+new file mode 100644
+--- /dev/null
++++ a/scripts/coccinelle/misc/secs_to_jiffies.cocci
+@@ -0,0 +1,22 @@
++// SPDX-License-Identifier: GPL-2.0-only
++///
++/// Find usages of:
++/// - msecs_to_jiffies(value*1000)
++/// - msecs_to_jiffies(value*MSEC_PER_SEC)
++///
++// Confidence: High
++// Copyright: (C) 2024 Easwar Hariharan, Microsoft
++// Keywords: secs, seconds, jiffies
++//
++
++virtual patch
++
++@depends on patch@ constant C; @@
++
++- msecs_to_jiffies(C * 1000)
+++ secs_to_jiffies(C)
++
++@depends on patch@ constant C; @@
++
++- msecs_to_jiffies(C * MSEC_PER_SEC)
+++ secs_to_jiffies(C)
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
