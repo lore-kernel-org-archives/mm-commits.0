@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87FFF25761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A345525761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:23:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742232; cv=none; b=VJo0MZTUecd1Y1oQjf/ljvnPUzkBPurMa5EsVor0GiLcnkSO6dCgkhtVPVqKB4uG3/pErjgQYvYlNDFpwJQdiwKW/zhqOS1FGYadnQ83B/3/4/nQo8txoayC0ipCdcarA2QBL/taVYjW1OCejxfPkzI0vmKTNpheNemlMmWAExg=
+	t=1736742233; cv=none; b=TA/Bk7TKXCHPQdKTMIoOL91JcERvsCIkNXGv4p+x/xPo4az7eU0uboSTOQVgmnCWPSzg9t2NksufdRGYtitnGXchQpDxXXXhhmXAjwGI99WdJWObYf5bMPl0D2K0Dval9T2zBAfVqLj87Mg0oBwF+qcLouh1TN8xa+W8E07mVaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742232; c=relaxed/simple;
-	bh=9YpM9qQ6jFiAY4BKdbKLECccNl/d5JSpsILXFjTuKYU=;
-	h=Date:To:From:Subject:Message-Id; b=H1vl7loDihcL4E0LuijP+8b7ghs9Hc+5c1fmqEpVHOe82k7e+AAWOZ1DLEjiR5uYTMmPQyaoqWnf3Y5gd2rT2wfSVidKZU9ihh9PI3y9wzSrQQfjUVti3Jo3j6JtWioDCZ9tU0SecwK7YSCcOUbNghhwQlJJdOEPrwdn85N8qio=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zvtvgzTn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742233; c=relaxed/simple;
+	bh=ZCQRCANfK88gnHo31U54AmW+FaxSqlm7RpxYg5y3OI0=;
+	h=Date:To:From:Subject:Message-Id; b=stXY/k3y8isDH/BUvcE+FfezcevfqKo3l5YMiRau5k4xcOap0uR7xm4y+uW0B8G0kvxRVc0pDfwkdZQPtZT8/FJjJ7CDl4FauH65Sk1AB86HFvpn7PyzjNATkLCrPZ2Avr6/oSV1kOoowXBWAXjcYEjGkJ8B6atQcDlT3kf3h/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ybW+d6Nn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zvtvgzTn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 607C7C4CED6;
-	Mon, 13 Jan 2025 04:23:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ybW+d6Nn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78669C4CED6;
+	Mon, 13 Jan 2025 04:23:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742232;
-	bh=9YpM9qQ6jFiAY4BKdbKLECccNl/d5JSpsILXFjTuKYU=;
+	s=korg; t=1736742233;
+	bh=ZCQRCANfK88gnHo31U54AmW+FaxSqlm7RpxYg5y3OI0=;
 	h=Date:To:From:Subject:From;
-	b=zvtvgzTneTNtoYT49joS7ovJnwdDKvDfbgzA1VP/OF0M/J7OtFOQjQyknDOk44RtJ
-	 j64NbgQevX2+fYdw8XKnAlmRR31ogr1r2jkxH7+ynpVzKbLWKMZfvCuBbqQ4UQt+jr
-	 IiBCUMrs8lQmqH8cLjOepDTSuqqw6gRsFptUYK58=
-Date: Sun, 12 Jan 2025 20:23:51 -0800
-To: mm-commits@vger.kernel.org,sstabellini@kernel.org,roger.pau@citrix.com,michal.orzel@amd.com,julien@xen.org,jbeulich@suse.com,anthony.perard@vates.tech,andrew.cooper3@citrix.com,ariel.otilibili-anieli@eurecom.fr,akpm@linux-foundation.org
+	b=ybW+d6NnunWygkpZHyP2jNm3S2lYDathgvL16T3DDHIoL1Ze/nvywmpHHJvfJ8wk9
+	 fMiXqJZPGfI2Rv3v/5/4P0IbCkjtDUer6W55axUlS2+gMZwwMiOgeGLWRKWQ7Te4Tl
+	 Lown5H+w1sro9oykSqAjzpgCdwehDzppqL4EBSdk=
+Date: Sun, 12 Jan 2025 20:23:52 -0800
+To: mm-commits@vger.kernel.org,glider@google.com,andreyknvl@gmail.com,dominik.karol.piatkowski@protonmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-remove-dead-code.patch removed from -mm tree
-Message-Id: <20250113042352.607C7C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kasan-fix-typo-in-kasan_poison_new_object-documentation.patch removed from -mm tree
+Message-Id: <20250113042353.78669C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/inflate.c: remove dead code
+     Subject: kasan: fix typo in kasan_poison_new_object documentation
 has been removed from the -mm tree.  Its filename was
-     lib-remove-dead-code.patch
+     kasan-fix-typo-in-kasan_poison_new_object-documentation.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ariel Otilibili <ariel.otilibili-anieli@eurecom.fr>
-Subject: lib/inflate.c: remove dead code
-Date: Thu, 19 Dec 2024 10:21:12 +0100
+From: Dominik Karol Piątkowski <dominik.karol.piatkowski@protonmail.com>
+Subject: kasan: fix typo in kasan_poison_new_object documentation
+Date: Fri, 20 Dec 2024 18:12:12 +0000
 
-This is a follow up from a discussion in Xen:
+Fix presumed copy-paste typo of kasan_poison_new_object documentation
+referring to kasan_unpoison_new_object.
 
-The if-statement tests that `res` is non-zero; meaning the case zero is
-never reached.
+No functional changes.
 
-Link: https://lore.kernel.org/all/7587b503-b2ca-4476-8dc9-e9683d4ca5f0@suse.com/
-Link: https://lkml.kernel.org/r/20241219092615.644642-2-ariel.otilibili-anieli@eurecom.fr
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Ariel Otilibili <ariel.otilibili-anieli@eurecom.fr>
-Suggested-by: Jan Beulich <jbeulich@suse.com>
-Cc: Andrew Cooper <andrew.cooper3@citrix.com>
-Cc: Anthony PERARD <anthony.perard@vates.tech>
-Cc: Michal Orzel <michal.orzel@amd.com>
-Cc: Julien Grall <julien@xen.org>
-Cc: Roger Pau Monné <roger.pau@citrix.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
+Link: https://lkml.kernel.org/r/20241220181205.9663-1-dominik.karol.piatkowski@protonmail.com
+Fixes: 1ce9a0523938 ("kasan: rename and document kasan_(un)poison_object_data")
+ta")
+Signed-off-by: Dominik Karol Piątkowski <dominik.karol.piatkowski@protonmail.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/inflate.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/kasan.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/inflate.c~lib-remove-dead-code
-+++ a/lib/inflate.c
-@@ -1257,8 +1257,6 @@ static int INIT gunzip(void)
-     /* Decompress */
-     if ((res = inflate())) {
- 	    switch (res) {
--	    case 0:
--		    break;
- 	    case 1:
- 		    error("invalid compressed format (err=1)");
- 		    break;
+--- a/include/linux/kasan.h~kasan-fix-typo-in-kasan_poison_new_object-documentation
++++ a/include/linux/kasan.h
+@@ -153,7 +153,7 @@ static __always_inline void kasan_unpois
+ 
+ void __kasan_poison_new_object(struct kmem_cache *cache, void *object);
+ /**
+- * kasan_unpoison_new_object - Repoison a new slab object.
++ * kasan_poison_new_object - Repoison a new slab object.
+  * @cache: Cache the object belong to.
+  * @object: Pointer to the object.
+  *
 _
 
-Patches currently in -mm which might be from ariel.otilibili-anieli@eurecom.fr are
+Patches currently in -mm which might be from dominik.karol.piatkowski@protonmail.com are
 
 
