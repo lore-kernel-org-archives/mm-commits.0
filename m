@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2550814D6F6
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24AC114D6F6
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742134; cv=none; b=MlJZ9PbUuTPm+PJxWdX7udzQjG/NHP/JPuU0tMmw2flO/21Igl96QBHQ82nXBfiQDUW2MnFyQxjjf0k9laYr+I4aY/EXUPzvDDECxlYcp4T4qQaQQLJPiKyHVF+TrOZQTHzWKTSxFUQ5W2FRHkmp+nfcl6gip9Wb8hFOsUFHBqE=
+	t=1736742135; cv=none; b=HFDKznEpT69LzFoug3z4hY9SrE4K97PhfvSydyPtaDSRLe0EIB4jvJ4hfuIZ5sdzOOn/a31epym6+pHbn80Gs+la11KY+gVEJxRZqsuYjEJA6jmit5vwnA5ZniUKef4QZY8LARiv6xAwWuD274xbu6wL5rWy8T0HznRdQ7cR+XQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742134; c=relaxed/simple;
-	bh=DCuxXlQXbBoVd9alC+ueLm1tRc0MoBUtT9ar9V29+mM=;
-	h=Date:To:From:Subject:Message-Id; b=MJRVgJJ5qfJfG9Fjgz6e8a0zzossX86ClHEeGeyJgqrR2A5NTu/QAuzL8WAjQC9549s+/yQJZrvSE502ytITAdRRTWoF7P5M8K/vBmtJXL7NOml9Iaffw7W9+Q4kpcGMPrvAx54RKNEGrpzADPXmpk4Bpe/WAFzlyU2kEQh6SvE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SzjmxdGL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742135; c=relaxed/simple;
+	bh=p/MVlDvFKsaQhXgN8bT39kGDIzYPdUqoSOAIlMJVRyo=;
+	h=Date:To:From:Subject:Message-Id; b=bEsl73w2VfkhdSqeaOFNLFSF/Z4BAN9WDKqromBD8eLDl3f1jG+BTQ1hA/8JgAq9k6wyLDgHwE8sXFGm49iAn5mZJ5N+tlbdTMy/vM48xN01kF2TXNwDjdmz0GuqTNV2J/oX33ppZgu/Az8HB2NZQ6J6K10xC0tKanZzufTdvao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ztWcMXRt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SzjmxdGL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A439C4CED6;
-	Mon, 13 Jan 2025 04:22:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ztWcMXRt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE482C4CED6;
+	Mon, 13 Jan 2025 04:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742133;
-	bh=DCuxXlQXbBoVd9alC+ueLm1tRc0MoBUtT9ar9V29+mM=;
+	s=korg; t=1736742134;
+	bh=p/MVlDvFKsaQhXgN8bT39kGDIzYPdUqoSOAIlMJVRyo=;
 	h=Date:To:From:Subject:From;
-	b=SzjmxdGLLWLN1o//pVweQsd7VgkoapPyPy83qL9CSnJCGepguB8KG7thqqT34OcEH
-	 Xbg9hBfSyFt+7R2FhAqxSR97HPVUd5S7T1qx0y2IQplSG98R4QGGGBgOKXKunKtcRm
-	 A0wGfCn5JFN/Dp5q/FrwauYRqxZYKLj+siiNF3+o=
-Date: Sun, 12 Jan 2025 20:22:13 -0800
+	b=ztWcMXRtpmgfyC0FYocQ0le7T/XcszHjQwyv6nb38g+ixwsHlKJNPcSlfks69CQe3
+	 xhISy+YSxInVGFNYLRGsAqRNXHo5RwzdrEen2wQmhbH+nITn+BCuHNLMcOZ72YphVB
+	 zug2GGlMsl0Irou4g2lftc+dUyJIs1qFLLorsHRM=
+Date: Sun, 12 Jan 2025 20:22:14 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,aliceryhl@google.com,a.hindborg@kernel.org,tamird@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xarray-extract-xa_zero_to_null.patch removed from -mm tree
-Message-Id: <20250113042213.8A439C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xarray-extract-helper-from-__xa_insertcmpxchg.patch removed from -mm tree
+Message-Id: <20250113042214.AE482C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xarray: extract xa_zero_to_null
+     Subject: xarray: extract helper from __xa_{insert,cmpxchg}
 has been removed from the -mm tree.  Its filename was
-     xarray-extract-xa_zero_to_null.patch
+     xarray-extract-helper-from-__xa_insertcmpxchg.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tamir Duberstein <tamird@gmail.com>
-Subject: xarray: extract xa_zero_to_null
-Date: Tue, 12 Nov 2024 14:25:36 -0500
+Subject: xarray: extract helper from __xa_{insert,cmpxchg}
+Date: Tue, 12 Nov 2024 14:25:37 -0500
 
-Patch series "xarray: extract __xa_cmpxchg_raw".
+Reduce code duplication by extracting a static inline function.  This
+function is identical to __xa_cmpxchg with the exception that it does not
+coerce zero entries to null on the return path.
 
-This series reduces duplication between __xa_cmpxchg and __xa_insert by
-extracting a new function that does not coerce zero entries to null on the
-return path.
-
-The new function may be used by the upcoming Rust xarray abstraction in
-its reservation API where it is useful to tell the difference between zero
-entries and null slots.
-
-
-This patch (of 2):
-
-Reduce code duplication by extracting a static inline function that
-returns its argument if it is non-zero and NULL otherwise.
-
-This changes xas_result to check for errors before checking for zero but
-this cannot change the behavior of existing callers:
-- __xa_erase: passes the result of xas_store(_, NULL) which cannot fail.
-- __xa_store: passes the result of xas_store(_, entry) which may fail.
-  xas_store calls xas_create when entry is not NULL which returns NULL
-  on error, which is immediately checked. This should not change
-  observable behavior.
-- __xa_cmpxchg: passes the result of xas_load(_) which might be zero.
-  This would previously return NULL regardless of the outcome of
-  xas_store but xas_store cannot fail if xas_load returns zero
-  because there is no need to allocate memory.
-- xa_store_range: same as __xa_erase.
-
-Link: https://lkml.kernel.org/r/20241112-xarray-insert-cmpxchg-v1-0-dc2bdd8c4136@gmail.com
-Link: https://lkml.kernel.org/r/20241112-xarray-insert-cmpxchg-v1-1-dc2bdd8c4136@gmail.com
+[tamird@gmail.com: fix __xa_erase()]
+  Link: https://lkml.kernel.org/r/CAJ-ks9kN_qddZ3Ne5d=cADu5POC1rHd4rQcbVSD_spnZOrLLZg@mail.gmail.com
+Link: https://lkml.kernel.org/r/20241112-xarray-insert-cmpxchg-v1-2-dc2bdd8c4136@gmail.com
 Signed-off-by: Tamir Duberstein <tamird@gmail.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andreas Hindborg <a.hindborg@kernel.org>
@@ -85,58 +61,103 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ lib/xarray.c |   39 +++++++++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
 
---- a/lib/xarray.c~xarray-extract-xa_zero_to_null
+--- a/lib/xarray.c~xarray-extract-helper-from-__xa_insertcmpxchg
 +++ a/lib/xarray.c
-@@ -435,6 +435,11 @@ static unsigned long max_index(void *ent
- 	return (XA_CHUNK_SIZE << xa_to_node(entry)->shift) - 1;
- }
- 
-+static inline void *xa_zero_to_null(void *entry)
-+{
-+	return xa_is_zero(entry) ? NULL : entry;
-+}
-+
- static void xas_shrink(struct xa_state *xas)
+@@ -1491,7 +1491,7 @@ static void *xas_result(struct xa_state
  {
- 	struct xarray *xa = xas->xa;
-@@ -451,8 +456,8 @@ static void xas_shrink(struct xa_state *
- 			break;
- 		if (!xa_is_node(entry) && node->shift)
- 			break;
--		if (xa_is_zero(entry) && xa_zero_busy(xa))
--			entry = NULL;
-+		if (xa_zero_busy(xa))
-+			entry = xa_zero_to_null(entry);
- 		xas->xa_node = XAS_BOUNDS;
- 
- 		RCU_INIT_POINTER(xa->xa_head, entry);
-@@ -1474,9 +1479,7 @@ void *xa_load(struct xarray *xa, unsigne
- 
- 	rcu_read_lock();
- 	do {
--		entry = xas_load(&xas);
--		if (xa_is_zero(entry))
--			entry = NULL;
-+		entry = xa_zero_to_null(xas_load(&xas));
- 	} while (xas_retry(&xas, entry));
- 	rcu_read_unlock();
- 
-@@ -1486,11 +1489,9 @@ EXPORT_SYMBOL(xa_load);
- 
- static void *xas_result(struct xa_state *xas, void *curr)
- {
--	if (xa_is_zero(curr))
--		return NULL;
  	if (xas_error(xas))
  		curr = xas->xa_node;
--	return curr;
-+	return xa_zero_to_null(curr);
+-	return xa_zero_to_null(curr);
++	return curr;
  }
  
  /**
+@@ -1509,7 +1509,7 @@ static void *xas_result(struct xa_state
+ void *__xa_erase(struct xarray *xa, unsigned long index)
+ {
+ 	XA_STATE(xas, xa, index);
+-	return xas_result(&xas, xas_store(&xas, NULL));
++	return xas_result(&xas, xa_zero_to_null(xas_store(&xas, NULL)));
+ }
+ EXPORT_SYMBOL(__xa_erase);
+ 
+@@ -1568,7 +1568,7 @@ void *__xa_store(struct xarray *xa, unsi
+ 			xas_clear_mark(&xas, XA_FREE_MARK);
+ 	} while (__xas_nomem(&xas, gfp));
+ 
+-	return xas_result(&xas, curr);
++	return xas_result(&xas, xa_zero_to_null(curr));
+ }
+ EXPORT_SYMBOL(__xa_store);
+ 
+@@ -1601,6 +1601,9 @@ void *xa_store(struct xarray *xa, unsign
+ }
+ EXPORT_SYMBOL(xa_store);
+ 
++static inline void *__xa_cmpxchg_raw(struct xarray *xa, unsigned long index,
++			void *old, void *entry, gfp_t gfp);
++
+ /**
+  * __xa_cmpxchg() - Store this entry in the XArray.
+  * @xa: XArray.
+@@ -1620,6 +1623,13 @@ EXPORT_SYMBOL(xa_store);
+ void *__xa_cmpxchg(struct xarray *xa, unsigned long index,
+ 			void *old, void *entry, gfp_t gfp)
+ {
++	return xa_zero_to_null(__xa_cmpxchg_raw(xa, index, old, entry, gfp));
++}
++EXPORT_SYMBOL(__xa_cmpxchg);
++
++static inline void *__xa_cmpxchg_raw(struct xarray *xa, unsigned long index,
++			void *old, void *entry, gfp_t gfp)
++{
+ 	XA_STATE(xas, xa, index);
+ 	void *curr;
+ 
+@@ -1637,7 +1647,6 @@ void *__xa_cmpxchg(struct xarray *xa, un
+ 
+ 	return xas_result(&xas, curr);
+ }
+-EXPORT_SYMBOL(__xa_cmpxchg);
+ 
+ /**
+  * __xa_insert() - Store this entry in the XArray if no entry is present.
+@@ -1657,26 +1666,16 @@ EXPORT_SYMBOL(__xa_cmpxchg);
+  */
+ int __xa_insert(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp)
+ {
+-	XA_STATE(xas, xa, index);
+ 	void *curr;
++	int errno;
+ 
+-	if (WARN_ON_ONCE(xa_is_advanced(entry)))
+-		return -EINVAL;
+ 	if (!entry)
+ 		entry = XA_ZERO_ENTRY;
+-
+-	do {
+-		curr = xas_load(&xas);
+-		if (!curr) {
+-			xas_store(&xas, entry);
+-			if (xa_track_free(xa))
+-				xas_clear_mark(&xas, XA_FREE_MARK);
+-		} else {
+-			xas_set_err(&xas, -EBUSY);
+-		}
+-	} while (__xas_nomem(&xas, gfp));
+-
+-	return xas_error(&xas);
++	curr = __xa_cmpxchg_raw(xa, index, NULL, entry, gfp);
++	errno = xa_err(curr);
++	if (errno)
++		return errno;
++	return (curr != NULL) ? -EBUSY : 0;
+ }
+ EXPORT_SYMBOL(__xa_insert);
+ 
 _
 
 Patches currently in -mm which might be from tamird@gmail.com are
