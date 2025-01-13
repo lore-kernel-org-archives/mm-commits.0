@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFAF7154C0F
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9463154C0F
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742175; cv=none; b=EU4vvTAX+x+EUUlTOZPk8pe5JhuCMa1K+AHmeJsI/y66DGdBHU9KpmZ5De+vRplL5NT0GvN3JHmCS0QvCWjOliFJzcfP3fg9rmFyBF1vT5awVDKWW1IsMH4Y3bHyguNpDeV+yvtBnQEinre51Dm05jdhz3bp6D+/2pG8GTIHNUM=
+	t=1736742176; cv=none; b=RMOxZqcRhJz8+dzmetp/IRgUpouWf0VUVQg4XYdll9oW1ysGivcE36/p5/lU7uAjawyVFxZC7+kqS612FyDSN4egoUrk2w6MCdiTWDw4m5Czfj7KqHl9Y18rbH1uYUHTf45+oKHGJq9xL9tn1Zc1fgriZRC1Clbdabs61tNnK7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742175; c=relaxed/simple;
-	bh=uR4esei65GtF7rPS0gynJwl3N3xMbDAO6S+I0K1Wtjw=;
-	h=Date:To:From:Subject:Message-Id; b=OYrdhcb2BU1LywThBbZ0aIhOu648zjXZUl0CdVzW2JZKt9Buho1lAOzYPtkr/6Mk0Q5+nQd6nsYJ5sZv/qJ3MMWx9Z0foY3mX/SM4Wcjn1S063O4+JQYYl4cpDP/HozTIGQZVvDpIC5ygOpUsIqg1ubZhIj13TM0ZrUXbfUZTXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wsp3RzFM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742176; c=relaxed/simple;
+	bh=p2hiS52leA6qN24UOlCgYuESqBtW104kVvOZBu6FYa4=;
+	h=Date:To:From:Subject:Message-Id; b=K2hSw2SBUHjmVN7ibnvE9b48Ouf7ZImSKy46iDA91v5NXZ2Y+raAPmJyXQVRWUAfMoJOew+rpjmnjcNZ9dIn5RwI2cuWZy279tBcCmvy6eIVvxPcuEfFjwldtUbRNiSkmKrjMR6eCAmRhVNVpF/8zM0utnxhUxzIR8hWQs7kLiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1dvpc2eO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wsp3RzFM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC151C4CED6;
-	Mon, 13 Jan 2025 04:22:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1dvpc2eO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CE00C4CED6;
+	Mon, 13 Jan 2025 04:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742174;
-	bh=uR4esei65GtF7rPS0gynJwl3N3xMbDAO6S+I0K1Wtjw=;
+	s=korg; t=1736742176;
+	bh=p2hiS52leA6qN24UOlCgYuESqBtW104kVvOZBu6FYa4=;
 	h=Date:To:From:Subject:From;
-	b=Wsp3RzFM2STuKD1khgCCMTDyucOrOtbjaIOhdzuxqeBc6v1XobXxkbVja2lbxnrXJ
-	 J/VvIGFLi9oXLxXEEQkEHTP6JtvCePFs01oyQDIQuCAfHutaIKfMoi5fUJW53QtxeX
-	 Gk2/SpbsyqTTL9P7GEQw2qRuttWe5IcTK74l7eBg=
-Date: Sun, 12 Jan 2025 20:22:54 -0800
+	b=1dvpc2eOZ9KyaRCx/iwdrf26h5jWdUFa7vuQqC/xBX+bvN44Hcc0txdEo+o/ipJdS
+	 ewGVcKkHAjPIoCtiN7GqjzHBgmzNl/ULsBqwAQxofdyyzbrET8mdngLVKjvGfvQM0W
+	 E+TZ41odbMa/fEXO5oKxTbdl6yDexIHnGN+y9P/g=
+Date: Sun, 12 Jan 2025 20:22:56 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scsi-pm8001-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250113042254.AC151C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xen-blkback-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
+Message-Id: <20250113042256.8CE00C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,17 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scsi: pm8001: convert timeouts to secs_to_jiffies()
+     Subject: xen/blkback: convert timeouts to secs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     scsi-pm8001-convert-timeouts-to-secs_to_jiffies.patch
+     xen-blkback-convert-timeouts-to-secs_to_jiffies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: scsi: pm8001: convert timeouts to secs_to_jiffies()
-Date: Tue, 10 Dec 2024 22:02:42 +0000
+Subject: xen/blkback: convert timeouts to secs_to_jiffies()
+Date: Tue, 10 Dec 2024 22:02:43 +0000
 
 Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
 secs_to_jiffies().  As the value here is a multiple of 1000, use
@@ -64,7 +64,7 @@ the following Coccinelle rules:
 - msecs_to_jiffies(C * MSEC_PER_SEC)
 + secs_to_jiffies(C)
 
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-11-ddfefd7e9f2a@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-12-ddfefd7e9f2a@linux.microsoft.com
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
@@ -135,20 +135,20 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/pm8001/pm8001_init.c |    2 +-
+ drivers/block/xen-blkback/blkback.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/scsi/pm8001/pm8001_init.c~scsi-pm8001-convert-timeouts-to-secs_to_jiffies
-+++ a/drivers/scsi/pm8001/pm8001_init.c
-@@ -736,7 +736,7 @@ static int pm8001_init_sas_add(struct pm
- 		return -EIO;
- 	}
- 	time_remaining = wait_for_completion_timeout(&completion,
--				msecs_to_jiffies(60*1000)); // 1 min
-+				secs_to_jiffies(60)); // 1 min
- 	if (!time_remaining) {
- 		kfree(payload.func_specific);
- 		pm8001_dbg(pm8001_ha, FAIL, "get_nvmd_req timeout\n");
+--- a/drivers/block/xen-blkback/blkback.c~xen-blkback-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/block/xen-blkback/blkback.c
+@@ -544,7 +544,7 @@ static void print_stats(struct xen_blkif
+ 		 ring->st_rd_req, ring->st_wr_req,
+ 		 ring->st_f_req, ring->st_ds_req,
+ 		 ring->persistent_gnt_c, max_pgrants);
+-	ring->st_print = jiffies + msecs_to_jiffies(10 * 1000);
++	ring->st_print = jiffies + secs_to_jiffies(10);
+ 	ring->st_rd_req = 0;
+ 	ring->st_wr_req = 0;
+ 	ring->st_oo_req = 0;
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
