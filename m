@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 672DA4315A
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 03:04:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E230D4315A;
+	Mon, 13 Jan 2025 03:04:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736737464; cv=none; b=EuOoFB/a1qfENYsFqwKAjeUzxCvyl1KJLU5J/XD4L3A+/0o6mAYYdy2sXdcMUa/hddA/b+DzZ/3RPf0DqO4LXZQ4t6EHbqt24bSavdhCphM51bFpFBMogj8PNqBZ/nvpl3Un0hMN1RQh/x0MIFvsIAJWMpZvJkEjYxqmcQ+2WRw=
+	t=1736737466; cv=none; b=cUgj2wsYM/qu7U+MuKQ/ql5tIXjY8y6lQVf7bqIL9f8JMcBsXIKls5dFa8z8kSv3wMFpYm3glf/iSiYE23f9/Erate3GQ7lJrUXn3t6R+7rRkGSK2go0DGQ0c+OHYKHu17NBbOr5KWkIDXkGX3ZhLJE8WpOZgBs/YDuasMIP2PU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736737464; c=relaxed/simple;
-	bh=BPTTy+GrTL1bp0IEo4sSUHWQPacKnZy5EUXaZ6zjGmM=;
-	h=Date:To:From:Subject:Message-Id; b=bxSDuoAmHiWDwsBMpXtZECRLL8UlTPjXywOZJWzS1PvIGxmWf9/0HMIMuDCgMBrpv4v74580g3f35UmkAjV1YCcSS40N8Yg4Gdhhmkjq6mkUqUVO1J+97Rt8QdZJxfLhhItue9YERVnX17P1JOk5FiDCnYPZYFVqxW2A1Boj/x0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMoyrZ8d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736737466; c=relaxed/simple;
+	bh=bMuMCBt4X0fu92Lq8l+OIrlFdC7Hsh92apBRQzATdk4=;
+	h=Date:To:From:Subject:Message-Id; b=m2n5+FNZ2StUP98mkckXJ0T5qvYTZyyGKsAhbuamWbyBOaVCWzj9g6x8tdnxlHbl6LwewZSQw/PnYXgEYl2O9fjyDCX9idHXH45Wr4Ral66ka0yeFL/3td6iL6klir3xh9WFFg7jdzWvpLJtsTYS67tbS8kNbIRcI+ICFrAa/3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NwOr+knO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMoyrZ8d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BB67C4CEE0;
-	Mon, 13 Jan 2025 03:04:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NwOr+knO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7576C4CEDF;
+	Mon, 13 Jan 2025 03:04:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736737464;
-	bh=BPTTy+GrTL1bp0IEo4sSUHWQPacKnZy5EUXaZ6zjGmM=;
+	s=korg; t=1736737465;
+	bh=bMuMCBt4X0fu92Lq8l+OIrlFdC7Hsh92apBRQzATdk4=;
 	h=Date:To:From:Subject:From;
-	b=EMoyrZ8dGJJf0ZvI4Mz4m5DdIO0YAIm589TrROrr8MMNv260EbI5IWVJa2Lfk1HcM
-	 DcaezaFq3A6xVZRJMR5McFHYoTlkmdNHKMrOP9Y4jfXIFVnaSFhx85Y1qCvTIZqoKD
-	 D57T8sq2FChmKJByGHiUKilm9L7e4CsA4NKx6Lno=
-Date: Sun, 12 Jan 2025 19:04:23 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,chenhuacai@kernel.org,charmitro@posteo.net,koichiro.den@canonical.com,akpm@linux-foundation.org
+	b=NwOr+knOkVXxAimFA+STTzMu2sgEK+Cmh3Mi7D3bMe/9Q6O0CgiLYH5ANQpwmYxPx
+	 CWyIBNSDbrLNQ1wbf9E0weY63LnuHlWCg1WkO2vbL5whqD1uHjsk6eno6wi4MA3Y1B
+	 gFOvH7h6R0aXAKdZubblUxNlrnu/iUXLJl8ka/7Q=
+Date: Sun, 12 Jan 2025 19:04:25 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ritesh.list@gmail.com,rientjes@google.com,muchun.song@linux.dev,mhocko@kernel.org,lizhijian@fujitsu.com,kaiyang2@cs.cmu.edu,hannes@cmpxchg.org,aneesh.kumar@kernel.org,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch removed from -mm tree
-Message-Id: <20250113030424.3BB67C4CEE0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled.patch removed from -mm tree
+Message-Id: <20250113030425.B7576C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
+     Subject: mm: vmscan : pgdemote vmstat is not getting updated when MGLRU is enabled.
 has been removed from the -mm tree.  Its filename was
-     vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep.patch
+     mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Koichiro Den <koichiro.den@canonical.com>
-Subject: vmstat: disable vmstat_work on vmstat_cpu_down_prep()
-Date: Wed, 8 Jan 2025 13:28:07 +0900
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: mm: vmscan : pgdemote vmstat is not getting updated when MGLRU is enabled.
+Date: Thu, 9 Jan 2025 00:05:39 -0600
 
-The upstream commit adcfb264c3ed ("vmstat: disable vmstat_work on
-vmstat_cpu_down_prep()") introduced another warning during the boot phase
-so was soon reverted on upstream by commit cd6313beaeae ("Revert "vmstat:
-disable vmstat_work on vmstat_cpu_down_prep()"").  This commit resolves it
-and reattempts the original fix.
+When MGLRU is enabled, the pgdemote_kswapd, pgdemote_direct, and
+pgdemote_khugepaged stats in vmstat are not being updated.
 
-Even after mm/vmstat:online teardown, shepherd may still queue work for
-the dying cpu until the cpu is removed from online mask.  While it's quite
-rare, this means that after unbind_workers() unbinds a per-cpu kworker, it
-potentially runs vmstat_update for the dying CPU on an irrelevant cpu
-before entering atomic AP states.  When CONFIG_DEBUG_PREEMPT=y, it results
-in the following error with the backtrace.
+Commit f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA
+balancing operations") moved the pgdemote vmstat update from
+demote_folio_list() to shrink_inactive_list(), which is in the normal LRU
+path.  As a result, the pgdemote stats are updated correctly for the
+normal LRU but not for MGLRU.
 
-  BUG: using smp_processor_id() in preemptible [00000000] code: \
-                                               kworker/7:3/1702
-  caller is refresh_cpu_vm_stats+0x235/0x5f0
-  CPU: 0 UID: 0 PID: 1702 Comm: kworker/7:3 Tainted: G
-  Tainted: [N]=TEST
-  Workqueue: mm_percpu_wq vmstat_update
-  Call Trace:
-   <TASK>
-   dump_stack_lvl+0x8d/0xb0
-   check_preemption_disabled+0xce/0xe0
-   refresh_cpu_vm_stats+0x235/0x5f0
-   vmstat_update+0x17/0xa0
-   process_one_work+0x869/0x1aa0
-   worker_thread+0x5e5/0x1100
-   kthread+0x29e/0x380
-   ret_from_fork+0x2d/0x70
-   ret_from_fork_asm+0x1a/0x30
-   </TASK>
+To address this, we have added the pgdemote stat update in the
+evict_folios() function, which is in the MGLRU path.  With this patch, the
+pgdemote stats will now be updated correctly when MGLRU is enabled.
 
-So, for mm/vmstat:online, disable vmstat_work reliably on teardown and
-symmetrically enable it on startup.
+Without this patch vmstat output when MGLRU is enabled
+======================================================
+pgdemote_kswapd 0
+pgdemote_direct 0
+pgdemote_khugepaged 0
 
-For secondary CPUs during CPU hotplug scenarios, ensure the delayed work
-is disabled immediately after the initialization.  These CPUs are not yet
-online when start_shepherd_timer() runs on boot CPU.  vmstat_cpu_online()
-will enable the work for them.
+With this patch vmstat output when MGLRU is enabled
+===================================================
+pgdemote_kswapd 43234
+pgdemote_direct 4691
+pgdemote_khugepaged 0
 
-Link: https://lkml.kernel.org/r/20250108042807.3429745-1-koichiro.den@canonical.com
-Signed-off-by: Huacai Chen <chenhuacai@kernel.org>
-Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
-Suggested-by: Huacai Chen <chenhuacai@kernel.org>
-Tested-by: Charalampos Mitrodimas <charmitro@posteo.net>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20250109060540.451261-1-donettom@linux.ibm.com
+Fixes: f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA balancing operations")
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Tested-by: Li Zhijian <lizhijian@fujitsu.com>
+Reviewed-by: Li Zhijian <lizhijian@fujitsu.com>
+Cc: Aneesh Kumar K.V (Arm) <aneesh.kumar@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/vmstat.c~vmstat-disable-vmstat_work-on-vmstat_cpu_down_prep
-+++ a/mm/vmstat.c
-@@ -2122,10 +2122,20 @@ static void __init start_shepherd_timer(
- {
- 	int cpu;
- 
--	for_each_possible_cpu(cpu)
-+	for_each_possible_cpu(cpu) {
- 		INIT_DEFERRABLE_WORK(per_cpu_ptr(&vmstat_work, cpu),
- 			vmstat_update);
- 
-+		/*
-+		 * For secondary CPUs during CPU hotplug scenarios,
-+		 * vmstat_cpu_online() will enable the work.
-+		 * mm/vmstat:online enables and disables vmstat_work
-+		 * symmetrically during CPU hotplug events.
-+		 */
-+		if (!cpu_online(cpu))
-+			disable_delayed_work_sync(&per_cpu(vmstat_work, cpu));
-+	}
-+
- 	schedule_delayed_work(&shepherd,
- 		round_jiffies_relative(sysctl_stat_interval));
- }
-@@ -2148,13 +2158,14 @@ static int vmstat_cpu_online(unsigned in
- 	if (!node_state(cpu_to_node(cpu), N_CPU)) {
- 		node_set_state(cpu_to_node(cpu), N_CPU);
+--- a/mm/vmscan.c~mm-vmscan-pgdemote-vmstat-is-not-getting-updated-when-mglru-is-enabled
++++ a/mm/vmscan.c
+@@ -4642,6 +4642,9 @@ retry:
+ 		reset_batch_size(walk);
  	}
-+	enable_delayed_work(&per_cpu(vmstat_work, cpu));
  
- 	return 0;
- }
- 
- static int vmstat_cpu_down_prep(unsigned int cpu)
- {
--	cancel_delayed_work_sync(&per_cpu(vmstat_work, cpu));
-+	disable_delayed_work_sync(&per_cpu(vmstat_work, cpu));
- 	return 0;
- }
- 
++	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
++					stat.nr_demoted);
++
+ 	item = PGSTEAL_KSWAPD + reclaimer_offset();
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, reclaimed);
 _
 
-Patches currently in -mm which might be from koichiro.den@canonical.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-hugetlb-prioritize-surplus-allocation-from-current-node.patch
+mm-migrate-removed-unused-argument-vma-from-migrate_misplaced_folio.patch
+selftests-mm-added-new-test-cases-to-the-migration-test.patch
 
