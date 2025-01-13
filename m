@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D47F2AF09
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:12:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C4F22AF09
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:12:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736741544; cv=none; b=UeiLTwxnhuh6QAzyYOKhM9ySQS9mhSDi/X+/WLHDx1IVSgfytkPqm5WiwKxMQHwn61OVJkL9OYf7pM2/RZ4JcMSpz+/KuPcTKSdDnqLvJwBaK2TNoqixvgdI9e6mvRplwOxQwM6umhE4r8d+ROCOh+bFeEGFj9PokIIkztqRm3U=
+	t=1736741573; cv=none; b=Jb6WjGtKHy/50kt1hBJzoP8NEnSn2NUdGZ/u1CguK1/TvzlGWFGsNmtjYvrQHNTQIzLRs6Lb4R6fZyueYylrSxls2WVVvuTzjxiwOe5mJlpIqTs9Xz3VFu4LX+D4keF5CX5+cc3UjEa0FL8DiE78qTx9fB+0lLTz5YrBivsJ0PA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736741544; c=relaxed/simple;
-	bh=1vSFzQoojRtF3Tx5n6qDJ6hgM9rjuxuDvMXrR9dkHSM=;
-	h=Date:To:From:Subject:Message-Id; b=SLjm96T+qIznUDMm9SSJW6GG8UNXsGf2c+yEDOAOxi+mp10tlo9v/u866pXlZr/yVOVu+MRwzkCwjiULQANAoJz9EfZQXpTUK7yRyJgrCVoNvDws0+5ODdlSZQctyQKSEvAWQ0y2NvQxB8BM0PBO2EjNVUcrIWiFVajsA3ar2MM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vxk3mJcf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736741573; c=relaxed/simple;
+	bh=8mloECLTVSWFKbCwWTSDruJ2hN4bxNSFXU4lPZbiTbo=;
+	h=Date:To:From:Subject:Message-Id; b=pqDVKAr43iFXf7OEhLPsS7SNatE2PFpCrYlT3kihfqW8dzbRbYo1Vh4DKKMa95k5KbHYwynPZn8UgKg84JRq88VZVP6ChGk4nPlXS2UCYGYeRi0wO3mKmxPtNZQj2dkPlf71edZvmkzFPPLj7S2mJA93UqKKLEONjtMF1DylR/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UmX8KZg1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vxk3mJcf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8906C4CED6;
-	Mon, 13 Jan 2025 04:12:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UmX8KZg1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38090C4CED6;
+	Mon, 13 Jan 2025 04:12:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736741543;
-	bh=1vSFzQoojRtF3Tx5n6qDJ6hgM9rjuxuDvMXrR9dkHSM=;
+	s=korg; t=1736741573;
+	bh=8mloECLTVSWFKbCwWTSDruJ2hN4bxNSFXU4lPZbiTbo=;
 	h=Date:To:From:Subject:From;
-	b=vxk3mJcfNLIOOdpPKsugdNVXJ8m6y9Woi1tSGrlEJp14JZPYtQLXvr1rdjtHJOB+S
-	 XUgvw6pdNJNoKzyJWgWEMK7sxDnpCogqbixNk8C65kzIlDAQh7N8PfJoEVHW9S1EUE
-	 SbZfpKe1zaDG9olaMdW6Ph842aTXpgSG4e3vklPE=
-Date: Sun, 12 Jan 2025 20:12:23 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,syzbot+092bbab7da235a02a03a@syzkaller.appspotmail.com,axboe@kernel.dk,asml.silence@gmail.com,tamird@gmail.com,akpm@linux-foundation.org
+	b=UmX8KZg1m4XNViy8zHLhUkBpqet2HUCbUpezHRa2VJBAobWHRsOqdI5t7y9H7/1g2
+	 BMBSMDAIVeP4vZJwnpWcxnElnH0xo+Z3CILSx/ZeCrQUhmsYfi14gbcRoOHAW2kvd9
+	 OQJ2RmJAQW9OPbRIJzbfPjLbnrwmJdCIy6cYw3bE=
+Date: Sun, 12 Jan 2025 20:12:52 -0800
+To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] xarray-extract-helper-from-__xa_insertcmpxchg-fix.patch removed from -mm tree
-Message-Id: <20250113041223.A8906C4CED6@smtp.kernel.org>
+Subject: [folded-merged] delayacct-add-delay-max-to-record-delay-peak-fix.patch removed from -mm tree
+Message-Id: <20250113041253.38090C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,105 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xarray-extract-helper-from-__xa_insertcmpxchg-fix
+     Subject: delayacct: update docs and fix some spelling errors
 has been removed from the -mm tree.  Its filename was
-     xarray-extract-helper-from-__xa_insertcmpxchg-fix.patch
+     delayacct-add-delay-max-to-record-delay-peak-fix.patch
 
-This patch was dropped because it was folded into xarray-extract-helper-from-__xa_insertcmpxchg.patch
+This patch was dropped because it was folded into delayacct-add-delay-max-to-record-delay-peak.patch
 
 ------------------------------------------------------
-From: Tamir Duberstein <tamird@gmail.com>
-Subject: xarray-extract-helper-from-__xa_insertcmpxchg-fix
-Date: Wed, 4 Dec 2024 10:21:59 -0500
+From: Yaxin Wang <wang.yaxin@zte.com.cn>
+Subject: delayacct: update docs and fix some spelling errors
+Date: Fri, 13 Dec 2024 19:27:00 +0800 (CST)
 
-fix __xa_erase()
+Update delay-accounting.rst to include the 'delay max' in the output of
+getdelays, and fix some spelling errors before.
 
-Link: https://lkml.kernel.org/r/CAJ-ks9kN_qddZ3Ne5d=cADu5POC1rHd4rQcbVSD_spnZOrLLZg@mail.gmail.com
-Signed-off-by: Tamir Duberstein <tamird@gmail.com>
-Reported-by: <syzbot+092bbab7da235a02a03a@syzkaller.appspotmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pavel Begunkov <asml.silence@gmail.com>
+Link: https://lkml.kernel.org/r/20241213192700771XKZ8H30OtHSeziGqRVMs0@zte.com.cn
+Signed-off-by: Yaxin Wang <wang.yaxin@zte.com.cn>
+Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Peilin He <he.peilin@zte.com.cn>
+Cc: tuqiang <tu.qiang35@zte.com.cn>
+Cc: Wang Yong <wang.yong12@zte.com.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: ye xingchen <ye.xingchen@zte.com.cn>
+Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/accounting/delay-accounting.rst |   38 ++++++++--------
+ kernel/delayacct.c                            |    2 
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
---- a/lib/xarray.c~xarray-extract-helper-from-__xa_insertcmpxchg-fix
-+++ a/lib/xarray.c
-@@ -1509,7 +1509,7 @@ static void *xas_result(struct xa_state
- void *__xa_erase(struct xarray *xa, unsigned long index)
- {
- 	XA_STATE(xas, xa, index);
--	return xas_result(&xas, xas_store(&xas, NULL));
-+	return xas_result(&xas, xa_zero_to_null(xas_store(&xas, NULL)));
- }
- EXPORT_SYMBOL(__xa_erase);
+--- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-max-to-record-delay-peak-fix
++++ a/Documentation/accounting/delay-accounting.rst
+@@ -100,29 +100,29 @@ Get delays, since system boot, for pid 1
+ 	# ./getdelays -d -p 10
+ 	(output similar to next case)
  
+-Get sum of delays, since system boot, for all pids with tgid 5::
++Get sum and peak of delays, since system boot, for all pids with tgid 242::
+ 
+-	# ./getdelays -d -t 5
++	bash-4.4# ./getdelays -d -t 242
+ 	print delayacct stats ON
+-	TGID	5
++	TGID    242
+ 
+ 
+-	CPU             count     real total  virtual total    delay total  delay average
+-	                    8        7000000        6872122        3382277          0.423ms
+-	IO              count    delay total  delay average
+-                   0              0          0.000ms
+-	SWAP            count    delay total  delay average
+-                       0              0          0.000ms
+-	RECLAIM         count    delay total  delay average
+-                   0              0          0.000ms
+-	THRASHING       count    delay total  delay average
+-                       0              0          0.000ms
+-	COMPACT         count    delay total  delay average
+-                       0              0          0.000ms
+-	WPCOPY          count    delay total  delay average
+-                       0              0          0.000ms
+-	IRQ             count    delay total  delay average
+-                       0              0          0.000ms
++	CPU         count     real total  virtual total    delay total  delay average      delay max
++	              239      296000000      307724885        1127792          0.005ms     0.238382ms
++	IO          count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	SWAP        count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	RECLAIM     count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	THRASHING   count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	COMPACT     count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
++	WPCOPY      count    delay total  delay average      delay max
++	              230       19100476          0.083ms     0.383822ms
++	IRQ         count    delay total  delay average      delay max
++	                0              0          0.000ms     0.000000ms
+ 
+ Get IO accounting for pid 1, it works only with -p::
+ 
+--- a/kernel/delayacct.c~delayacct-add-delay-max-to-record-delay-peak-fix
++++ a/kernel/delayacct.c
+@@ -93,7 +93,7 @@ void __delayacct_tsk_init(struct task_st
+ 
+ /*
+  * Finish delay accounting for a statistic using its timestamps (@start),
+- * accumalator (@total) and @count
++ * accumulator (@total) and @count
+  */
+ static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
+ {
 _
 
-Patches currently in -mm which might be from tamird@gmail.com are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-xarray-extract-xa_zero_to_null.patch
-xarray-extract-helper-from-__xa_insertcmpxchg.patch
-xarray-port-tests-to-kunit.patch
-checkpatch-check-return-of-git_commit_info.patch
-xarray-minor-documentation-improvements.patch
+delayacct-add-delay-max-to-record-delay-peak.patch
+delayacct-add-delay-min-to-record-delay-peak.patch
 
