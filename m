@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 239098248C;
-	Mon, 13 Jan 2025 03:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B18A8248C;
+	Mon, 13 Jan 2025 03:04:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736737462; cv=none; b=HJpuUcdqCcrcmVNzoyQmfe5/UNOPeIWsjn1p7ScOfi/Sc61Bu7VLLEUYiLtyjperfhiZ+TAevscV5txzQXKSaMAd+pT1Hg+WjXshyn/s2an5QUjQpTT8rl0Q/cZ2K9u5MBZMjMqE04Z/esaXHOL+1uUHTWyg4FF6+NR2peuS23M=
+	t=1736737463; cv=none; b=ukblS5+P3Sf1URioGchw1qRMeyKuS2ziIxzDrC/hCvWiUKL0nlxC5KXQl19zCK+6Zxw1DOBmQs8nH18dq/VeEBRIGCqlp1bZUABPZ4oG19WlhyOi4Wq2najAc5E4cCqHxEl0Ome6EPkTnGUXAbd2WvsS6D6+N2HxrBqkLPuTs1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736737462; c=relaxed/simple;
-	bh=LLanx9awTKxAntm7FNekdHQIDtPgRWLDoeB/XvE5LAg=;
-	h=Date:To:From:Subject:Message-Id; b=po4m5GCIDgeHCpiePa+oG0CIhTUvZjXQjGObHvurXRK+jxoLybouKk5Lvd33oCOqggswQEBhbodbyS5swl4vjioOkjUw06+MvHEuhdqT4S9nu3slrcnIBNfL74NjjR4FCNMyDFg60Tl/jj28mOeQklNWNNQtUt0uIGNMwhsPvBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NmTDMXoZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736737463; c=relaxed/simple;
+	bh=j+D+FUZxzTKS3YBNJ0qvQWNpgcidHeJJNRv72yIgmmM=;
+	h=Date:To:From:Subject:Message-Id; b=pwDyJtyKYGBFk2M9rGqvQ+KH2AvTmk+v7CPbB16Ez5YQuOc7kQ8bSTExCTuIMoJgPjxFOT0gzFzEk1+urL4/aNplTIPmvB+me5W35xJuPTAkRB6xTzyeS/kEUX8AvK1J1qvqLIHv8QJLb+N/qOxFc7+Xf3g/7hduqqll55L4drU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lFCMh17t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NmTDMXoZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE50DC4CEDF;
-	Mon, 13 Jan 2025 03:04:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lFCMh17t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FF24C4CEE0;
+	Mon, 13 Jan 2025 03:04:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736737462;
-	bh=LLanx9awTKxAntm7FNekdHQIDtPgRWLDoeB/XvE5LAg=;
+	s=korg; t=1736737463;
+	bh=j+D+FUZxzTKS3YBNJ0qvQWNpgcidHeJJNRv72yIgmmM=;
 	h=Date:To:From:Subject:From;
-	b=NmTDMXoZU35EnflqJMiFPTrG3w3qu8o9y/ahj4RF4H7Z17076nmA1QKHFIpFyMSFt
-	 9IOJ3CzL6035/gG6cGXvWZcvQ13DzdUbPVyuIzMPbWKOMFcrqUFhC/OmqZNR5Jj9q9
-	 J4BTfKw4mL1WcvF81FdOqS+jo2TSaWTRDWtshbnA=
-Date: Sun, 12 Jan 2025 19:04:21 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,usamaarif642@gmail.com,stable@vger.kernel.org,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=lFCMh17tho0RL1HBi5dtIjFsZLrFBqPbmgt6y87rLrnGmaSWPGDpI41AeMaPWfvt7
+	 EJaSr0a6tcE44EyugbSFO6cbHEh6O5qfxGF7tv981JgK+B7DMLB1oxpXjausCG01P8
+	 7GFfm9RRZnELjehUW0SuLSKdo0dJtn/J/c+2oCrk=
+Date: Sun, 12 Jan 2025 19:04:22 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test.patch removed from -mm tree
-Message-Id: <20250113030421.EE50DC4CEDF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] zram-fix-potential-uaf-of-zram-table.patch removed from -mm tree
+Message-Id: <20250113030423.0FF24C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: set allocated memory to non-zero content in cow test
+     Subject: zram: fix potential UAF of zram table
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test.patch
+     zram-fix-potential-uaf-of-zram-table.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm: set allocated memory to non-zero content in cow test
-Date: Tue, 7 Jan 2025 14:25:53 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: zram: fix potential UAF of zram table
+Date: Tue, 7 Jan 2025 14:54:46 +0800
 
-After commit b1f202060afe ("mm: remap unused subpages to shared zeropage
-when splitting isolated thp"), cow test cases involving swapping out THPs
-via madvise(MADV_PAGEOUT) started to be skipped due to the subsequent
-check via pagemap determining that the memory was not actually swapped
-out.  Logs similar to this were emitted:
+If zram_meta_alloc failed early, it frees allocated zram->table without
+setting it NULL.  Which will potentially cause zram_meta_free to access
+the table if user reset an failed and uninitialized device.
 
-   ...
-
-   # [RUN] Basic COW after fork() ... with swapped-out, PTE-mapped THP (16 kB)
-   ok 2 # SKIP MADV_PAGEOUT did not work, is swap enabled?
-   # [RUN] Basic COW after fork() ... with single PTE of swapped-out THP (16 kB)
-   ok 3 # SKIP MADV_PAGEOUT did not work, is swap enabled?
-   # [RUN] Basic COW after fork() ... with swapped-out, PTE-mapped THP (32 kB)
-   ok 4 # SKIP MADV_PAGEOUT did not work, is swap enabled?
-
-   ...
-
-The commit in question introduces the behaviour of scanning THPs and if
-their content is predominantly zero, it splits them and replaces the pages
-which are wholly zero with the zero page.  These cow test cases were
-getting caught up in this.
-
-So let's avoid that by filling the contents of all allocated memory with
-a non-zero value. With this in place, the tests are passing again.
-
-Link: https://lkml.kernel.org/r/20250107142555.1870101-1-ryan.roberts@arm.com
-Fixes: b1f202060afe ("mm: remap unused subpages to shared zeropage when splitting isolated thp")
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20250107065446.86928-1-ryncsn@gmail.com
+Fixes: 74363ec674cb ("zram: fix uninitialized ZRAM not releasing backing device")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by:  Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-set-allocated-memory-to-non-zero-content-in-cow-test
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -758,7 +758,7 @@ static void do_run_with_base_page(test_f
+--- a/drivers/block/zram/zram_drv.c~zram-fix-potential-uaf-of-zram-table
++++ a/drivers/block/zram/zram_drv.c
+@@ -1468,6 +1468,7 @@ static bool zram_meta_alloc(struct zram
+ 	zram->mem_pool = zs_create_pool(zram->disk->disk_name);
+ 	if (!zram->mem_pool) {
+ 		vfree(zram->table);
++		zram->table = NULL;
+ 		return false;
  	}
  
- 	/* Populate a base page. */
--	memset(mem, 0, pagesize);
-+	memset(mem, 1, pagesize);
- 
- 	if (swapout) {
- 		madvise(mem, pagesize, MADV_PAGEOUT);
-@@ -824,12 +824,12 @@ static void do_run_with_thp(test_fn fn,
- 	 * Try to populate a THP. Touch the first sub-page and test if
- 	 * we get the last sub-page populated automatically.
- 	 */
--	mem[0] = 0;
-+	mem[0] = 1;
- 	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
- 		ksft_test_result_skip("Did not get a THP populated\n");
- 		goto munmap;
- 	}
--	memset(mem, 0, thpsize);
-+	memset(mem, 1, thpsize);
- 
- 	size = thpsize;
- 	switch (thp_run) {
-@@ -1012,7 +1012,7 @@ static void run_with_hugetlb(test_fn fn,
- 	}
- 
- 	/* Populate an huge page. */
--	memset(mem, 0, hugetlbsize);
-+	memset(mem, 1, hugetlbsize);
- 
- 	/*
- 	 * We need a total of two hugetlb pages to handle COW/unsharing
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-selftests-mm-add-fork-cow-guard-page-test-fix.patch
-selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
+mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
+mm-swap_cgroup-remove-swap_cgroup_cmpxchg.patch
+mm-swap_cgroup-remove-global-swap-cgroup-lock.patch
+mm-swap_cgroup-decouple-swap-cgroup-recording-and-clearing.patch
+mm-swap-minor-clean-up-for-swap-entry-allocation.patch
+mm-swap-fold-swap_info_get_cont-in-the-only-caller.patch
+mm-swap-remove-old-allocation-path-for-hdd.patch
+mm-swap-use-cluster-lock-for-hdd.patch
+mm-swap-clean-up-device-availability-check.patch
+mm-swap-clean-up-plist-removal-and-adding.patch
+mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch
+mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes.patch
+mm-swap-reduce-contention-on-device-lock.patch
+mm-swap-simplify-percpu-cluster-updating.patch
+mm-swap-introduce-a-helper-for-retrieving-cluster-from-offset.patch
+mm-swap-use-a-global-swap-cluster-for-non-rotation-devices.patch
+mm-swap_slots-remove-slot-cache-for-freeing-path.patch
 
