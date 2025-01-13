@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 003E325761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B23825761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742260; cv=none; b=F37zNGePXLtV1oFH0QYmFsLc6OFuWoaDd4F3brbQBJMvF3XPL3U8SVd8l/6sMBWaiYFfcgYlXSygMTHVJlyMWYamZYDCheggYLFrdseeej+Ld4mq9x5f7tTrhxCf9IZ4057GwGw2szlGCVwwUe8CTyB/DXIhLKHs9yKkod8FaPQ=
+	t=1736742261; cv=none; b=Q9WRPL2xVlXu1oCv6K/gMbMMxyU1IYNp9KfS5fJU0Yr9tg8MndWA7JmF7vRKB1G3jazzZjE8TQDU6Bhc2/MpKHeHOXQKTQjmi0djeeXxeKAPR45Xaf03ezOb45XFJecM4eiCgPEAu+vGqiUbDCyP+h7n+BPjizVgJ9eugBpMngI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742260; c=relaxed/simple;
-	bh=U4S3NUKK6afa8tvM0qSvKoIleDRtwbd2z0QA+IcUsfw=;
-	h=Date:To:From:Subject:Message-Id; b=A/KKGDvD7UFVFx9/eDFJl2F1w2fY6OmYtk3+SyOqmvKZSqcaPQmDt9BLHRyglpFuJNp7rQ/EQ7N3cfLQyjXMl7bSNhzUP2eY2K5Nvl8d53Iwa7ZpW/e2A9nULecgev0L5hVQaQjgtybe4ycSLDNFkGRffdRGjG/j5YEmcf9fIU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0NxfYDA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742261; c=relaxed/simple;
+	bh=Q+PlX/uervfxKJdJTrGsGpN12hfm4C8ulqGin+uSNd4=;
+	h=Date:To:From:Subject:Message-Id; b=VwPrcIWM8AUx3N8XSeZ9g8pJRlCKx8Dr6H/5Yacn/CAs4108DiFsPO//8rWKcH9MxteNt0zI0HYIh0oqTz0pudAlU8Z5pzM/D0n1VcDXeITDRbSAHy3b0vasrCL9MjjAZOkdhZbR0UF1KgiaH/7PSClpEOet8czAI9MhP7t1Gvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IHQ+DwcE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0NxfYDA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3997C4CED6;
-	Mon, 13 Jan 2025 04:24:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IHQ+DwcE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBB42C4CED6;
+	Mon, 13 Jan 2025 04:24:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742259;
-	bh=U4S3NUKK6afa8tvM0qSvKoIleDRtwbd2z0QA+IcUsfw=;
+	s=korg; t=1736742260;
+	bh=Q+PlX/uervfxKJdJTrGsGpN12hfm4C8ulqGin+uSNd4=;
 	h=Date:To:From:Subject:From;
-	b=J0NxfYDA2CDGG7j8+faIkDD0BPLR2mnsuorEc9FMUp/AETYLMo73aGQ/NIuB5G8dT
-	 Ne+Z39CltQFIugcm7V7wNaTJ3pcU6gwoNfzkJH16zcCVM8whKtrwZyb7UMsxx3ro9C
-	 DDCUX8Nf47B8KlIMAd9TCUmCN7vIvaCdAph4gM4o=
-Date: Sun, 12 Jan 2025 20:24:19 -0800
+	b=IHQ+DwcErs77etoRzoVphiisv3izHu/n9Uv9ogK8J9M/3kPy4cUMgS6Ev7WF53Jtf
+	 45wErC34kDbwRRyYnhueVSdLkMcIqVbhxf/d1RPy6i+8yLoSg1SQVXYL6eJhG2p4Sq
+	 3VeS0m7Sek6j2oYG+eNef2a/KSssFqv9mw0NLaF4=
+Date: Sun, 12 Jan 2025 20:24:20 -0800
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,sunjunchao2870@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-check-el-l_next_free_rec-in-ocfs2_get_clusters_nocache.patch removed from -mm tree
-Message-Id: <20250113042419.C3997C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-correct-l_next_free_rec-in-online-check.patch removed from -mm tree
+Message-Id: <20250113042420.DBB42C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: check el->l_next_free_rec in ocfs2_get_clusters_nocache
+     Subject: ocfs2: correct l_next_free_rec in online check
 has been removed from the -mm tree.  Its filename was
-     ocfs2-check-el-l_next_free_rec-in-ocfs2_get_clusters_nocache.patch
+     ocfs2-correct-l_next_free_rec-in-online-check.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Julian Sun <sunjunchao2870@gmail.com>
-Subject: ocfs2: check el->l_next_free_rec in ocfs2_get_clusters_nocache
-Date: Mon, 6 Jan 2025 10:34:31 +0800
+Subject: ocfs2: correct l_next_free_rec in online check
+Date: Mon, 6 Jan 2025 10:34:32 +0800
 
-Recently syzbot reported a use-after-free issue[1].
+Correct the value of l_next_free_rec to l_count during the online check,
+as done in the check_el() function in ocfs2_tools.
 
-The root cause of the problem is that the journal inode recorded in this
-file system image is corrupted.  The value of
-"di->id2.i_list.l_next_free_rec" is 8193, which is greater than the value
-of "di->id2.i_list.l_count" (19).
-
-To solve this problem, an additional check should be added within
-ocfs2_get_clusters_nocache().  If the check fails, an error will be
-returned and the file system will be set to read-only.
-
-[1]: https://lore.kernel.org/all/67577778.050a0220.a30f1.01bc.GAE@google.com/T/
-
-Link: https://lkml.kernel.org/r/20250106023432.1320904-1-sunjunchao2870@gmail.com
+Link: https://lkml.kernel.org/r/20250106023432.1320904-2-sunjunchao2870@gmail.com
 Signed-off-by: Julian Sun <sunjunchao2870@gmail.com>
-Reported-by: syzbot+2313dda4dc4885c93578@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=2313dda4dc4885c93578
-Tested-by: syzbot+2313dda4dc4885c93578@syzkaller.appspotmail.com
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/ocfs2/inode.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/fs/ocfs2/extent_map.c~ocfs2-check-el-l_next_free_rec-in-ocfs2_get_clusters_nocache
-+++ a/fs/ocfs2/extent_map.c
-@@ -435,6 +435,16 @@ static int ocfs2_get_clusters_nocache(st
- 		}
+--- a/fs/ocfs2/inode.c~ocfs2-correct-l_next_free_rec-in-online-check
++++ a/fs/ocfs2/inode.c
+@@ -200,6 +200,20 @@ bail:
+ 	return inode;
+ }
+ 
++static int ocfs2_dinode_has_extents(struct ocfs2_dinode *di)
++{
++	/* inodes flagged with other stuff in id2 */
++	if (di->i_flags & (OCFS2_SUPER_BLOCK_FL | OCFS2_LOCAL_ALLOC_FL |
++			   OCFS2_CHAIN_FL | OCFS2_DEALLOC_FL))
++		return 0;
++	/* i_flags doesn't indicate when id2 is a fast symlink */
++	if (S_ISLNK(di->i_mode) && di->i_size && di->i_clusters == 0)
++		return 0;
++	if (di->i_dyn_features & OCFS2_INLINE_DATA_FL)
++		return 0;
++
++	return 1;
++}
+ 
+ /*
+  * here's how inodes get read from disk:
+@@ -1547,6 +1561,16 @@ static int ocfs2_filecheck_repair_inode_
+ 		     le32_to_cpu(di->i_fs_generation));
  	}
  
-+	if (le16_to_cpu(el->l_next_free_rec) > le16_to_cpu(el->l_count)) {
-+		ocfs2_error(inode->i_sb,
-+			    "Inode %lu has an invalid extent (next_free_rec %u, count %u)\n",
-+			    inode->i_ino,
-+			    le16_to_cpu(el->l_next_free_rec),
-+			    le16_to_cpu(el->l_count));
-+		ret = -EROFS;
-+		goto out;
++	if (ocfs2_dinode_has_extents(di) &&
++	    le16_to_cpu(di->id2.i_list.l_next_free_rec) > le16_to_cpu(di->id2.i_list.l_count)) {
++		di->id2.i_list.l_next_free_rec = di->id2.i_list.l_count;
++		changed = 1;
++		mlog(ML_ERROR,
++		     "Filecheck: reset dinode #%llu: l_next_free_rec to %u\n",
++		     (unsigned long long)bh->b_blocknr,
++		     le16_to_cpu(di->id2.i_list.l_next_free_rec));
 +	}
 +
- 	i = ocfs2_search_extent_list(el, v_cluster);
- 	if (i == -1) {
- 		/*
+ 	if (changed || ocfs2_validate_meta_ecc(sb, bh->b_data, &di->i_check)) {
+ 		ocfs2_compute_meta_ecc(sb, bh->b_data, &di->i_check);
+ 		mark_buffer_dirty(bh);
 _
 
 Patches currently in -mm which might be from sunjunchao2870@gmail.com are
