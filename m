@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EACDD2837A
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:18:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F3D825761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736741887; cv=none; b=IgV6v1LlXZt5rv/Neyi/hOTb5yT8Rw0RTvAKGQ6yqC1JQiYOZpHXACdJ/6qQBbJ3MARpPiHB2gkTSO9j0r1NGsXuiYoZb2q+QHIcXudPqtF2AWaukrWKW0M5OovxSxsdY0mdPaHc6YZj2xQI529nBOHKjkFY7ApniCmemHNU/ww=
+	t=1736742128; cv=none; b=Tu+CxcjhtVTZGO1+73Z1kzLu3B9PEWE4m/zS0A3C5WqcaLT93QXSihrSRyb+i1L8AhwFJYnr26xilHzEmf6Gp1zONhHjteRGs1LelE8tmWUgJmgX1uOC/HpZIudA8Fm028t6a3JjNyqzUuIk7LGVvZAMUktjIm8rovAdLwLXzmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736741887; c=relaxed/simple;
-	bh=pEzdSQAM0w9upf3AhHeu3WpouRwFHebtKw7U0kpXdkk=;
-	h=Date:To:From:Subject:Message-Id; b=V4atOOcm3Q840csiQkivSp04kJsoTjkPztCmW0Kw63MeAVT7oyozUFgYW7kI7P9jj3UpPrMYE5nSFTmOYdl82SJ+Tsf/mqjokrtgLfzcXh72rJhsMxPzfOb4fMsBVGDaO5SsqacgElwls7+ZNFLSne7SbNSPN0VbepCzgyXhX94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1dwMQ3rq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742128; c=relaxed/simple;
+	bh=SnnCxpHitUa/B/WrAqYu6voVEimWEB1ldg0npaXjlfA=;
+	h=Date:To:From:Subject:Message-Id; b=Xd57quMWGezqzjirG7lxTlJjyUMAhHlGUI/tQPHQFdTGOepfVYk/GBD4QAoJyIafk35PTexgWMnrgAe4BwsOazGepD08j0gWWi9LMkFDxrwQDju6RxLTlI41s071kSIpcl+fDHSye25RK/5i0hooUgXEUjt6CoE/37IRv4SpAaE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iz3KRCsK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1dwMQ3rq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8019C4CED6;
-	Mon, 13 Jan 2025 04:18:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iz3KRCsK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D2C0C4CED6;
+	Mon, 13 Jan 2025 04:22:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736741886;
-	bh=pEzdSQAM0w9upf3AhHeu3WpouRwFHebtKw7U0kpXdkk=;
+	s=korg; t=1736742127;
+	bh=SnnCxpHitUa/B/WrAqYu6voVEimWEB1ldg0npaXjlfA=;
 	h=Date:To:From:Subject:From;
-	b=1dwMQ3rq6c13uRYcR65vrg2Kfd6iVU7ngJWkezGP8bwavZuRdhPk0nIPW0Vhoi+uo
-	 +/a0fEO/46gcWWfGs3IPFbL02edcrH0hU+0AEEhgTUmb8ql75jnD+zPHIm/uuC4MXA
-	 UfPHRgqU5Ad5t8sw1xjIX+TCODroMzF8GyPJ8zoo=
-Date: Sun, 12 Jan 2025 20:18:06 -0800
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,rostedt@goodmis.org,peterz@infradead.org,oxana@cloudflare.com,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,jack@suse.cz,dietmar.eggemann@arm.com,bsegall@google.com,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=iz3KRCsKK0oVB1YKyZ/glqDICKuV6Uwt0o55jy3Iikt0r0uGHMLgpxJRNtm7aaDoN
+	 KFYEn/JNBeJV//4i8t8PC58fKNsZQSR3xyWDDDI0iCrwgrc5dRpysNAbRGdJwxj3tx
+	 MpPQv0nmLF0QIovN6bsbpFV1k9cRpRnkKa+PwS/8=
+Date: Sun, 12 Jan 2025 20:22:07 -0800
+To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,geert@linux-m68k.org,corbet@lwn.net,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] hung_task-add-task-flags-blocked-by-coredump-to-log-fix.patch removed from -mm tree
-Message-Id: <20250113041806.B8019C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch removed from -mm tree
+Message-Id: <20250113042207.8D2C0C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,203 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task-add-task-flags-blocked-by-coredump-to-log-fix
+     Subject: lib min_heap: improve type safety in min_heap macros by using container_of
 has been removed from the -mm tree.  Its filename was
-     hung_task-add-task-flags-blocked-by-coredump-to-log-fix.patch
+     lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of.patch
 
-This patch was dropped because it was folded into hung_task-add-task-flags-blocked-by-coredump-to-log.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hung_task-add-task-flags-blocked-by-coredump-to-log-fix
-Date: Fri Jan 10 07:51:53 PM PST 2025
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib min_heap: improve type safety in min_heap macros by using container_of
+Date: Sat, 30 Nov 2024 02:12:19 +0800
 
-fix printk control string
+Patch series "lib min_heap: Improve min_heap safety, testing, and
+documentation".
 
-In file included from ./include/asm-generic/bug.h:22,
-                 from ./arch/x86/include/asm/bug.h:99,
-                 from ./include/linux/bug.h:5,
-                 from ./arch/x86/include/asm/paravirt.h:19,
-                 from ./arch/x86/include/asm/irqflags.h:80,
-                 from ./include/linux/irqflags.h:18,
-                 from ./include/linux/spinlock.h:59,
-                 from ./include/linux/wait.h:9,
-                 from ./include/linux/wait_bit.h:8,
-                 from ./include/linux/fs.h:6,
-                 from ./include/linux/highmem.h:5,
-                 from kernel/sched/core.c:10:
-kernel/sched/core.c: In function 'sched_show_task':
-./include/linux/kern_levels.h:5:25: error: format '%lx' expects argument of type 'long unsigned int', but argument 6 has type 'unsigned int' [-Werror=format=]
-    5 | #define KERN_SOH        "\001"          /* ASCII Start Of Header */
-      |                         ^~~~~~
-./include/linux/printk.h:473:25: note: in definition of macro 'printk_index_wrap'
-  473 |                 _p_func(_fmt, ##__VA_ARGS__);                           \
-      |                         ^~~~
-./include/linux/printk.h:586:9: note: in expansion of macro 'printk'
-  586 |         printk(KERN_CONT fmt, ##__VA_ARGS__)
-      |         ^~~~~~
-./include/linux/kern_levels.h:24:25: note: in expansion of macro 'KERN_SOH'
-   24 | #define KERN_CONT       KERN_SOH "c"
-      |                         ^~~~~~~~
-./include/linux/printk.h:586:16: note: in expansion of macro 'KERN_CONT'
-  586 |         printk(KERN_CONT fmt, ##__VA_ARGS__)
-      |                ^~~~~~~~~
-kernel/sched/core.c:7704:9: note: in expansion of macro 'pr_cont'
- 7704 |         pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d task_flags:0x%08lx flags:0x%08lx\n",
-      |         ^~~~~~~
-cc1: all warnings being treated as errors
+Improve the min heap implementation by enhancing type safety with
+container_of, reducing the attack vector by replacing test function calls
+with inline variants, and adding a brief API introduction in min_heap.h. 
+It also includes author information in
+Documentation/core-api/min_heap.rst.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Oxana Kharitonova <oxana@cloudflare.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+
+This patch (of 4):
+
+The current implementation of min_heap macros uses explicit casting to
+min_heap_char *, which prevents the compiler from detecting incorrect
+pointer types.  This can lead to errors if non-min_heap pointers are
+passed inadvertently.
+
+To enhance safety, replace all explicit casts to min_heap_char * with the
+use of container_of(&(_heap)->nr, min_heap_char, nr).  This approach
+ensures that the _heap parameter is indeed a min_heap_char-compatible
+structure, allowing the compiler to catch improper usages.
+
+Link: https://lkml.kernel.org/r/20241129181222.646855-1-visitorckw@gmail.com
+Link: https://lore.kernel.org/lkml/CAMuHMdVO5DPuD9HYWBFqKDHphx7+0BEhreUxtVC40A=8p6VAhQ@mail.gmail.com
+Link: https://lkml.kernel.org/r/20241129181222.646855-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/min_heap.h |   61 +++++++++++++++++++++----------------
+ 1 file changed, 35 insertions(+), 26 deletions(-)
 
---- a/kernel/sched/core.c~hung_task-add-task-flags-blocked-by-coredump-to-log-fix
-+++ a/kernel/sched/core.c
-@@ -7701,7 +7701,7 @@ void sched_show_task(struct task_struct
- 	if (pid_alive(p))
- 		ppid = task_pid_nr(rcu_dereference(p->real_parent));
- 	rcu_read_unlock();
--	pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d task_flags:0x%08lx flags:0x%08lx\n",
-+	pr_cont(" stack:%-5lu pid:%-5d tgid:%-5d ppid:%-6d task_flags:0x%04x flags:0x%08lx\n",
- 		free, task_pid_nr(p), task_tgid_nr(p),
- 		ppid, p->flags, read_task_thread_flags(p));
+--- a/include/linux/min_heap.h~lib-min_heap-improve-type-safety-in-min_heap-macros-by-using-container_of
++++ a/include/linux/min_heap.h
+@@ -218,7 +218,7 @@ void __min_heap_init_inline(min_heap_cha
+ }
  
+ #define min_heap_init_inline(_heap, _data, _size)	\
+-	__min_heap_init_inline((min_heap_char *)_heap, _data, _size)
++	__min_heap_init_inline(container_of(&(_heap)->nr, min_heap_char, nr), _data, _size)
+ 
+ /* Get the minimum element from the heap. */
+ static __always_inline
+@@ -228,7 +228,8 @@ void *__min_heap_peek_inline(struct min_
+ }
+ 
+ #define min_heap_peek_inline(_heap)	\
+-	(__minheap_cast(_heap) __min_heap_peek_inline((min_heap_char *)_heap))
++	(__minheap_cast(_heap)	\
++	 __min_heap_peek_inline(container_of(&(_heap)->nr, min_heap_char, nr)))
+ 
+ /* Check if the heap is full. */
+ static __always_inline
+@@ -238,7 +239,7 @@ bool __min_heap_full_inline(min_heap_cha
+ }
+ 
+ #define min_heap_full_inline(_heap)	\
+-	__min_heap_full_inline((min_heap_char *)_heap)
++	__min_heap_full_inline(container_of(&(_heap)->nr, min_heap_char, nr))
+ 
+ /* Sift the element at pos down the heap. */
+ static __always_inline
+@@ -277,8 +278,8 @@ void __min_heap_sift_down_inline(min_hea
+ }
+ 
+ #define min_heap_sift_down_inline(_heap, _pos, _func, _args)	\
+-	__min_heap_sift_down_inline((min_heap_char *)_heap, _pos, __minheap_obj_size(_heap),	\
+-				    _func, _args)
++	__min_heap_sift_down_inline(container_of(&(_heap)->nr, min_heap_char, nr), _pos,	\
++				    __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Sift up ith element from the heap, O(log2(nr)). */
+ static __always_inline
+@@ -304,8 +305,8 @@ void __min_heap_sift_up_inline(min_heap_
+ }
+ 
+ #define min_heap_sift_up_inline(_heap, _idx, _func, _args)	\
+-	__min_heap_sift_up_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx,	\
+-				  _func, _args)
++	__min_heap_sift_up_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++				  __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+ /* Floyd's approach to heapification that is O(nr). */
+ static __always_inline
+@@ -319,7 +320,8 @@ void __min_heapify_all_inline(min_heap_c
+ }
+ 
+ #define min_heapify_all_inline(_heap, _func, _args)	\
+-	__min_heapify_all_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heapify_all_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++				 __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Remove minimum element from the heap, O(log2(nr)). */
+ static __always_inline
+@@ -340,7 +342,8 @@ bool __min_heap_pop_inline(min_heap_char
+ }
+ 
+ #define min_heap_pop_inline(_heap, _func, _args)	\
+-	__min_heap_pop_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_pop_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			      __minheap_obj_size(_heap), _func, _args)
+ 
+ /*
+  * Remove the minimum element and then push the given element. The
+@@ -356,8 +359,8 @@ void __min_heap_pop_push_inline(min_heap
+ }
+ 
+ #define min_heap_pop_push_inline(_heap, _element, _func, _args)	\
+-	__min_heap_pop_push_inline((min_heap_char *)_heap, _element, __minheap_obj_size(_heap),	\
+-				   _func, _args)
++	__min_heap_pop_push_inline(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++				   __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Push an element on to the heap, O(log2(nr)). */
+ static __always_inline
+@@ -382,8 +385,8 @@ bool __min_heap_push_inline(min_heap_cha
+ }
+ 
+ #define min_heap_push_inline(_heap, _element, _func, _args)	\
+-	__min_heap_push_inline((min_heap_char *)_heap, _element, __minheap_obj_size(_heap),	\
+-			       _func, _args)
++	__min_heap_push_inline(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++					    __minheap_obj_size(_heap), _func, _args)
+ 
+ /* Remove ith element from the heap, O(log2(nr)). */
+ static __always_inline
+@@ -411,8 +414,8 @@ bool __min_heap_del_inline(min_heap_char
+ }
+ 
+ #define min_heap_del_inline(_heap, _idx, _func, _args)	\
+-	__min_heap_del_inline((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx,	\
+-			      _func, _args)
++	__min_heap_del_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			      __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+ void __min_heap_init(min_heap_char *heap, void *data, int size);
+ void *__min_heap_peek(struct min_heap_char *heap);
+@@ -433,25 +436,31 @@ bool __min_heap_del(min_heap_char *heap,
+ 		    const struct min_heap_callbacks *func, void *args);
+ 
+ #define min_heap_init(_heap, _data, _size)	\
+-	__min_heap_init((min_heap_char *)_heap, _data, _size)
++	__min_heap_init(container_of(&(_heap)->nr, min_heap_char, nr), _data, _size)
+ #define min_heap_peek(_heap)	\
+-	(__minheap_cast(_heap) __min_heap_peek((min_heap_char *)_heap))
++	(__minheap_cast(_heap) __min_heap_peek(container_of(&(_heap)->nr, min_heap_char, nr)))
+ #define min_heap_full(_heap)	\
+-	__min_heap_full((min_heap_char *)_heap)
++	__min_heap_full(container_of(&(_heap)->nr, min_heap_char, nr))
+ #define min_heap_sift_down(_heap, _pos, _func, _args)	\
+-	__min_heap_sift_down((min_heap_char *)_heap, _pos, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_sift_down(container_of(&(_heap)->nr, min_heap_char, nr), _pos,	\
++			     __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_sift_up(_heap, _idx, _func, _args)	\
+-	__min_heap_sift_up((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx, _func, _args)
++	__min_heap_sift_up(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			   __minheap_obj_size(_heap), _idx, _func, _args)
+ #define min_heapify_all(_heap, _func, _args)	\
+-	__min_heapify_all((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heapify_all(container_of(&(_heap)->nr, min_heap_char, nr),	\
++			  __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_pop(_heap, _func, _args)	\
+-	__min_heap_pop((min_heap_char *)_heap, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_pop(container_of(&(_heap)->nr, min_heap_char, nr),	\
++		       __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_pop_push(_heap, _element, _func, _args)	\
+-	__min_heap_pop_push((min_heap_char *)_heap, _element, __minheap_obj_size(_heap),	\
+-			    _func, _args)
++	__min_heap_pop_push(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++			    __minheap_obj_size(_heap), _func, _args)
+ #define min_heap_push(_heap, _element, _func, _args)	\
+-	__min_heap_push((min_heap_char *)_heap, _element, __minheap_obj_size(_heap), _func, _args)
++	__min_heap_push(container_of(&(_heap)->nr, min_heap_char, nr), _element,	\
++			__minheap_obj_size(_heap), _func, _args)
+ #define min_heap_del(_heap, _idx, _func, _args)	\
+-	__min_heap_del((min_heap_char *)_heap, __minheap_obj_size(_heap), _idx, _func, _args)
++	__min_heap_del(container_of(&(_heap)->nr, min_heap_char, nr),	\
++		       __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+ #endif /* _LINUX_MIN_HEAP_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
-mm-hugetlb-rename-isolate_hugetlb-to-folio_isolate_hugetlb-fix.patch
-documentation-filesystems-procrst-fix-possessive-form-of-process.patch
-hung_task-add-task-flags-blocked-by-coredump-to-log.patch
 
