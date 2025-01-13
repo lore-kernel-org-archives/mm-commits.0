@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C2525761
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D59025761
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:24:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742242; cv=none; b=BnoXsh+62yAD1QMjWlNkOx5HFYhC4rXbQPJjAQo7vkyxaXDuD5dsmNvOXBVTA2NGk8g/dtBIlTZpQ798Yi5LbS8GTKT1bR7OkIqppyWp6vAmGbpOkjhYvaCbolmCJdw3TSeFS+4xlARpU9WjIV01dKBbuPrhPooTObRQ3gl21yM=
+	t=1736742243; cv=none; b=TF2p9RbzxX3YxPoVPuN1rSdz2ovMCDBe6cECM/o3zGtOT9nhGQsjNrD04CvgvAFXUkpOBaWTog+gYEb6QW0T+aIEfgwadrykkJt+HXLESHBPJiFImzUA3VCCa3HZNkDOWAqUynOEL5McwlPkAbkeCiK2lhkbBOMCgT0Nni3g+pI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742242; c=relaxed/simple;
-	bh=4n0HVUnw1QJcu4Y+gfQeLSkuMCVqdDiltYLU+fsxZ/4=;
-	h=Date:To:From:Subject:Message-Id; b=eLOICBYx6bvUtOKnRW0hcn19nn0WTg9XkKN/OVNwuLQ4IBH8LjbyTxAtRsRBTX8sA1ZaHDa7JVr/e9KzpNkMdPCYZ7c7TfH38Pb4F67PVbMKaZGgonETeyrbokWK8FWQmzrDB0OduszX+tvwEbWECkAmr7Tup/sTHcFobzvXVtY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z4SKbXGj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742243; c=relaxed/simple;
+	bh=GHJAv02rU8sO01BDstppustkSohU8k2YeUVFamEf7QU=;
+	h=Date:To:From:Subject:Message-Id; b=Hc6Zy6ncy3WxrgBimpFkEHyM6b4Ge8GH+2QQOscVg75N5qpwMkHphVwBcM5jsTbQO9ZOjsVP9MKHEbaEEXqerfwT9B+6VNjW52+3NvJf4S692dIjijgbdiaoc7fjkjdiu77/Rf7kb+nPPJhdoVqF5DpPgD9vvj99pr7F2l0kDxs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hbdf2hYv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z4SKbXGj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2013C4CED6;
-	Mon, 13 Jan 2025 04:24:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hbdf2hYv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8C96C4CED6;
+	Mon, 13 Jan 2025 04:24:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742242;
-	bh=4n0HVUnw1QJcu4Y+gfQeLSkuMCVqdDiltYLU+fsxZ/4=;
+	s=korg; t=1736742243;
+	bh=GHJAv02rU8sO01BDstppustkSohU8k2YeUVFamEf7QU=;
 	h=Date:To:From:Subject:From;
-	b=z4SKbXGjpZWEqJ7jXmit0lbz8uoblxYImrxjRdTcXwhjQCIhyBJymx7WJJ297KXGB
-	 x2X6u5RFt8+gd1DtcAq56MznZ7fGbR1QwCRmPOE6RJW2D5Av0o/+RVzGBb8QGagYJb
-	 5UCl5ZuOhdl3F8rY0uICCJOSjwlz3OAtbnU/mH60=
-Date: Sun, 12 Jan 2025 20:24:01 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=Hbdf2hYvXe5EFLXSgSUCmzO0D3AXy6jOJgLYGkJHJBIQnDVKHpSlkAiw9PgFVqW0b
+	 RyK31jU1vcRURgmfw8VWkuMZEGElpocEl+hku3bDr84vgzsmaTsphBEZiDvl8Ud6M/
+	 VxdQPlRd+XED/7YxH+zC1BvkIGOJQ+uwfilUcFJg=
+Date: Sun, 12 Jan 2025 20:24:02 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] delayacct-add-delay-min-to-record-delay-peak.patch removed from -mm tree
-Message-Id: <20250113042401.E2013C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch removed from -mm tree
+Message-Id: <20250113042402.E8C96C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,464 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: delayacct: add delay min to record delay peak
+     Subject: squashfs: make squashfs_cache_init() return ERR_PTR(-ENOMEM)
 has been removed from the -mm tree.  Its filename was
-     delayacct-add-delay-min-to-record-delay-peak.patch
+     squashfs-make-squashfs_cache_init-return-err_ptr-enomem.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delayacct: add delay min to record delay peak
-Date: Fri, 20 Dec 2024 17:31:05 +0800 (CST)
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: make squashfs_cache_init() return ERR_PTR(-ENOMEM)
+Date: Sun, 29 Dec 2024 23:37:49 +0000
 
-Delay accounting can now calculate the average delay of processes, detect
-the overall system load, and also record the 'delay max' to identify
-potential abnormal delays.  However, 'delay min' can help us identify
-another useful delay peak.  By comparing the difference between 'delay
-max' and 'delay min', we can understand the optimization space for
-latency, providing a reference for the optimization of latency
-performance.
+Patch series "mm, swap: rework of swap allocator locks".
 
-Use case
-=========
-bash-4.4# ./getdelays -d -t 242
-print delayacct stats ON
-TGID    242
-CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
-               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
-IO          count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-SWAP        count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-RECLAIM     count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-THRASHING   count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-COMPACT     count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
-WPCOPY      count    delay total  delay average      delay max      delay min
-              156       11215873          0.072ms     0.207403ms     0.033913ms
-IRQ         count    delay total  delay average      delay max      delay min
-                0              0          0.000ms     0.000000ms     0.000000ms
+This patchset reduces the amount of memory that Squashfs uses when
+CONFIG_FILE_DIRECT is configured, and updates various out of date
+information in the documentation and Kconfig.
 
-Link: https://lkml.kernel.org/r/20241220173105906EOdsPhzjMLYNJJBqgz1ga@zte.com.cn
-Co-developed-by: Wang Yong <wang.yong12@zte.com.cn>
-Signed-off-by: Wang Yong <wang.yong12@zte.com.cn>
-Co-developed-by: xu xin <xu.xin16@zte.com.cn>
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Co-developed-by: Kun Jiang <jiang.kun2@zte.com.cn>
-Signed-off-by: Kun Jiang <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: tuqiang <tu.qiang35@zte.com.cn>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+
+This patch (of 4):
+
+Make squashfs_cache_init() return an ERR_PTR(-ENOMEM) on failure rather
+than NULL.
+
+This tidies up some calling code, but, it also allows NULL to be returned
+as a valid result when a cache hasn't be allocated.
+
+Link: https://lkml.kernel.org/r/20241229233752.54481-1-phillip@squashfs.org.uk
+Link: https://lkml.kernel.org/r/20241229233752.54481-2-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   32 ++++++------
- include/linux/delayacct.h                     |    7 ++
- include/linux/sched.h                         |    3 +
- include/uapi/linux/taskstats.h                |    8 +++
- kernel/delayacct.c                            |   32 +++++++++---
- kernel/sched/stats.h                          |    4 +
- tools/accounting/getdelays.c                  |   42 +++++++++-------
- 7 files changed, 88 insertions(+), 40 deletions(-)
+ fs/squashfs/cache.c |   10 +++++++---
+ fs/squashfs/super.c |   17 ++++++++++-------
+ 2 files changed, 17 insertions(+), 10 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-add-delay-min-to-record-delay-peak
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -107,22 +107,22 @@ Get sum and peak of delays, since system
- 	TGID    242
+--- a/fs/squashfs/cache.c~squashfs-make-squashfs_cache_init-return-err_ptr-enomem
++++ a/fs/squashfs/cache.c
+@@ -224,11 +224,15 @@ struct squashfs_cache *squashfs_cache_in
+ 	int block_size)
+ {
+ 	int i, j;
+-	struct squashfs_cache *cache = kzalloc(sizeof(*cache), GFP_KERNEL);
++	struct squashfs_cache *cache;
  
- 
--	CPU         count     real total  virtual total    delay total  delay average      delay max
--	              239      296000000      307724885        1127792          0.005ms     0.238382ms
--	IO          count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	SWAP        count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	RECLAIM     count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	THRASHING   count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	COMPACT     count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
--	WPCOPY      count    delay total  delay average      delay max
--	              230       19100476          0.083ms     0.383822ms
--	IRQ         count    delay total  delay average      delay max
--	                0              0          0.000ms     0.000000ms
-+	CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
-+	               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
-+	IO          count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	SWAP        count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	RECLAIM     count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	THRASHING   count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	COMPACT     count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
-+	WPCOPY      count    delay total  delay average      delay max      delay min
-+	              156       11215873          0.072ms     0.207403ms     0.033913ms
-+	IRQ         count    delay total  delay average      delay max      delay min
-+	                0              0          0.000ms     0.000000ms     0.000000ms
- 
- Get IO accounting for pid 1, it works only with -p::
- 
---- a/include/linux/delayacct.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/include/linux/delayacct.h
-@@ -30,9 +30,11 @@ struct task_delay_info {
- 	 */
- 	u64 blkio_start;
- 	u64 blkio_delay_max;
-+	u64 blkio_delay_min;
- 	u64 blkio_delay;	/* wait for sync block io completion */
- 	u64 swapin_start;
- 	u64 swapin_delay_max;
-+	u64 swapin_delay_min;
- 	u64 swapin_delay;	/* wait for swapin */
- 	u32 blkio_count;	/* total count of the number of sync block */
- 				/* io operations performed */
-@@ -40,21 +42,26 @@ struct task_delay_info {
- 
- 	u64 freepages_start;
- 	u64 freepages_delay_max;
-+	u64 freepages_delay_min;
- 	u64 freepages_delay;	/* wait for memory reclaim */
- 
- 	u64 thrashing_start;
- 	u64 thrashing_delay_max;
-+	u64 thrashing_delay_min;
- 	u64 thrashing_delay;	/* wait for thrashing page */
- 
- 	u64 compact_start;
- 	u64 compact_delay_max;
-+	u64 compact_delay_min;
- 	u64 compact_delay;	/* wait for memory compact */
- 
- 	u64 wpcopy_start;
- 	u64 wpcopy_delay_max;
-+	u64 wpcopy_delay_min;
- 	u64 wpcopy_delay;	/* wait for write-protect copy */
- 
- 	u64 irq_delay_max;
-+	u64 irq_delay_min;
- 	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
- 
- 	u32 freepages_count;	/* total count of memory reclaim */
---- a/include/linux/sched.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/include/linux/sched.h
-@@ -401,6 +401,9 @@ struct sched_info {
- 	/* Max time spent waiting on a runqueue: */
- 	unsigned long long		max_run_delay;
- 
-+	/* Min time spent waiting on a runqueue: */
-+	unsigned long long		min_run_delay;
++	if (entries == 0)
++		return NULL;
 +
- 	/* Timestamps: */
- 
- 	/* When did we last run on a CPU? */
---- a/include/uapi/linux/taskstats.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/include/uapi/linux/taskstats.h
-@@ -73,6 +73,7 @@ struct taskstats {
- 	__u64	cpu_count __attribute__((aligned(8)));
- 	__u64	cpu_delay_total;
- 	__u64	cpu_delay_max;
-+	__u64	cpu_delay_min;
- 
- 	/* Following four fields atomically updated using task->delays->lock */
- 
-@@ -82,11 +83,13 @@ struct taskstats {
- 	__u64	blkio_count;
- 	__u64	blkio_delay_total;
- 	__u64	blkio_delay_max;
-+	__u64	blkio_delay_min;
- 
- 	/* Delay waiting for page fault I/O (swap in only) */
- 	__u64	swapin_count;
- 	__u64	swapin_delay_total;
- 	__u64	swapin_delay_max;
-+	__u64	swapin_delay_min;
- 
- 	/* cpu "wall-clock" running time
- 	 * On some architectures, value will adjust for cpu time stolen
-@@ -170,11 +173,13 @@ struct taskstats {
- 	__u64	freepages_count;
- 	__u64	freepages_delay_total;
- 	__u64	freepages_delay_max;
-+	__u64	freepages_delay_min;
- 
- 	/* Delay waiting for thrashing page */
- 	__u64	thrashing_count;
- 	__u64	thrashing_delay_total;
- 	__u64	thrashing_delay_max;
-+	__u64	thrashing_delay_min;
- 
- 	/* v10: 64-bit btime to avoid overflow */
- 	__u64	ac_btime64;		/* 64-bit begin time */
-@@ -183,6 +188,7 @@ struct taskstats {
- 	__u64	compact_count;
- 	__u64	compact_delay_total;
- 	__u64	compact_delay_max;
-+	__u64	compact_delay_min;
- 
- 	/* v12 begin */
- 	__u32   ac_tgid;	/* thread group ID */
-@@ -205,11 +211,13 @@ struct taskstats {
- 	__u64    wpcopy_count;
- 	__u64    wpcopy_delay_total;
- 	__u64    wpcopy_delay_max;
-+	__u64    wpcopy_delay_min;
- 
- 	/* v14: Delay waiting for IRQ/SOFTIRQ */
- 	__u64    irq_count;
- 	__u64    irq_delay_total;
- 	__u64    irq_delay_max;
-+	__u64    irq_delay_min;
- 	/* v15: add Delay max */
- };
- 
---- a/kernel/delayacct.c~delayacct-add-delay-min-to-record-delay-peak
-+++ a/kernel/delayacct.c
-@@ -95,7 +95,7 @@ void __delayacct_tsk_init(struct task_st
-  * Finish delay accounting for a statistic using its timestamps (@start),
-  * accumulator (@total) and @count
-  */
--static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max)
-+static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max, u64 *min)
- {
- 	s64 ns = local_clock() - *start;
- 	unsigned long flags;
-@@ -106,6 +106,8 @@ static void delayacct_end(raw_spinlock_t
- 		(*count)++;
- 		if (ns > *max)
- 			*max = ns;
-+		if (*min == 0 || ns < *min)
-+			*min = ns;
- 		raw_spin_unlock_irqrestore(lock, flags);
++	cache = kzalloc(sizeof(*cache), GFP_KERNEL);
+ 	if (cache == NULL) {
+ 		ERROR("Failed to allocate %s cache\n", name);
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
  	}
- }
-@@ -125,7 +127,8 @@ void __delayacct_blkio_end(struct task_s
- 		      &p->delays->blkio_start,
- 		      &p->delays->blkio_delay,
- 		      &p->delays->blkio_count,
--		      &p->delays->blkio_delay_max);
-+		      &p->delays->blkio_delay_max,
-+		      &p->delays->blkio_delay_min);
- }
  
- int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
-@@ -157,6 +160,7 @@ int delayacct_add_tsk(struct taskstats *
- 	d->cpu_count += t1;
+ 	cache->entry = kcalloc(entries, sizeof(*(cache->entry)), GFP_KERNEL);
+@@ -281,7 +285,7 @@ struct squashfs_cache *squashfs_cache_in
  
- 	d->cpu_delay_max = tsk->sched_info.max_run_delay;
-+	d->cpu_delay_min = tsk->sched_info.min_run_delay;
- 	tmp = (s64)d->cpu_delay_total + t2;
- 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
- 	tmp = (s64)d->cpu_run_virtual_total + t3;
-@@ -170,24 +174,31 @@ int delayacct_add_tsk(struct taskstats *
- 	/* zero XXX_total, non-zero XXX_count implies XXX stat overflowed */
- 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
- 	d->blkio_delay_max = tsk->delays->blkio_delay_max;
-+	d->blkio_delay_min = tsk->delays->blkio_delay_min;
- 	tmp = d->blkio_delay_total + tsk->delays->blkio_delay;
- 	d->blkio_delay_total = (tmp < d->blkio_delay_total) ? 0 : tmp;
- 	d->swapin_delay_max = tsk->delays->swapin_delay_max;
-+	d->swapin_delay_min = tsk->delays->swapin_delay_min;
- 	tmp = d->swapin_delay_total + tsk->delays->swapin_delay;
- 	d->swapin_delay_total = (tmp < d->swapin_delay_total) ? 0 : tmp;
- 	d->freepages_delay_max = tsk->delays->freepages_delay_max;
-+	d->freepages_delay_min = tsk->delays->freepages_delay_min;
- 	tmp = d->freepages_delay_total + tsk->delays->freepages_delay;
- 	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
- 	d->thrashing_delay_max = tsk->delays->thrashing_delay_max;
-+	d->thrashing_delay_min = tsk->delays->thrashing_delay_min;
- 	tmp = d->thrashing_delay_total + tsk->delays->thrashing_delay;
- 	d->thrashing_delay_total = (tmp < d->thrashing_delay_total) ? 0 : tmp;
- 	d->compact_delay_max = tsk->delays->compact_delay_max;
-+	d->compact_delay_min = tsk->delays->compact_delay_min;
- 	tmp = d->compact_delay_total + tsk->delays->compact_delay;
- 	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
- 	d->wpcopy_delay_max = tsk->delays->wpcopy_delay_max;
-+	d->wpcopy_delay_min = tsk->delays->wpcopy_delay_min;
- 	tmp = d->wpcopy_delay_total + tsk->delays->wpcopy_delay;
- 	d->wpcopy_delay_total = (tmp < d->wpcopy_delay_total) ? 0 : tmp;
- 	d->irq_delay_max = tsk->delays->irq_delay_max;
-+	d->irq_delay_min = tsk->delays->irq_delay_min;
- 	tmp = d->irq_delay_total + tsk->delays->irq_delay;
- 	d->irq_delay_total = (tmp < d->irq_delay_total) ? 0 : tmp;
- 	d->blkio_count += tsk->delays->blkio_count;
-@@ -224,7 +235,8 @@ void __delayacct_freepages_end(void)
- 		      &current->delays->freepages_start,
- 		      &current->delays->freepages_delay,
- 		      &current->delays->freepages_count,
--		      &current->delays->freepages_delay_max);
-+		      &current->delays->freepages_delay_max,
-+		      &current->delays->freepages_delay_min);
+ cleanup:
+ 	squashfs_cache_delete(cache);
+-	return NULL;
++	return ERR_PTR(-ENOMEM);
  }
  
- void __delayacct_thrashing_start(bool *in_thrashing)
-@@ -247,7 +259,8 @@ void __delayacct_thrashing_end(bool *in_
- 		      &current->delays->thrashing_start,
- 		      &current->delays->thrashing_delay,
- 		      &current->delays->thrashing_count,
--		      &current->delays->thrashing_delay_max);
-+		      &current->delays->thrashing_delay_max,
-+		      &current->delays->thrashing_delay_min);
- }
  
- void __delayacct_swapin_start(void)
-@@ -261,7 +274,8 @@ void __delayacct_swapin_end(void)
- 		      &current->delays->swapin_start,
- 		      &current->delays->swapin_delay,
- 		      &current->delays->swapin_count,
--		      &current->delays->swapin_delay_max);
-+		      &current->delays->swapin_delay_max,
-+		      &current->delays->swapin_delay_min);
- }
+--- a/fs/squashfs/super.c~squashfs-make-squashfs_cache_init-return-err_ptr-enomem
++++ a/fs/squashfs/super.c
+@@ -314,26 +314,29 @@ static int squashfs_fill_super(struct su
+ 	sb->s_flags |= SB_RDONLY;
+ 	sb->s_op = &squashfs_super_ops;
  
- void __delayacct_compact_start(void)
-@@ -275,7 +289,8 @@ void __delayacct_compact_end(void)
- 		      &current->delays->compact_start,
- 		      &current->delays->compact_delay,
- 		      &current->delays->compact_count,
--		      &current->delays->compact_delay_max);
-+		      &current->delays->compact_delay_max,
-+		      &current->delays->compact_delay_min);
- }
+-	err = -ENOMEM;
+-
+ 	msblk->block_cache = squashfs_cache_init("metadata",
+ 			SQUASHFS_CACHED_BLKS, SQUASHFS_METADATA_SIZE);
+-	if (msblk->block_cache == NULL)
++	if (IS_ERR(msblk->block_cache)) {
++		err = PTR_ERR(msblk->block_cache);
+ 		goto failed_mount;
++	}
  
- void __delayacct_wpcopy_start(void)
-@@ -289,7 +304,8 @@ void __delayacct_wpcopy_end(void)
- 		      &current->delays->wpcopy_start,
- 		      &current->delays->wpcopy_delay,
- 		      &current->delays->wpcopy_count,
--		      &current->delays->wpcopy_delay_max);
-+		      &current->delays->wpcopy_delay_max,
-+		      &current->delays->wpcopy_delay_min);
- }
+ 	/* Allocate read_page block */
+ 	msblk->read_page = squashfs_cache_init("data",
+ 		msblk->max_thread_num, msblk->block_size);
+-	if (msblk->read_page == NULL) {
++	if (IS_ERR(msblk->read_page)) {
+ 		errorf(fc, "Failed to allocate read_page block");
++		err = PTR_ERR(msblk->read_page);
+ 		goto failed_mount;
+ 	}
  
- void __delayacct_irq(struct task_struct *task, u32 delta)
-@@ -301,6 +317,8 @@ void __delayacct_irq(struct task_struct
- 	task->delays->irq_count++;
- 	if (delta > task->delays->irq_delay_max)
- 		task->delays->irq_delay_max = delta;
-+	if (delta && (!task->delays->irq_delay_min || delta < task->delays->irq_delay_min))
-+		task->delays->irq_delay_min = delta;
- 	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
- }
+ 	if (msblk->devblksize == PAGE_SIZE) {
+ 		struct inode *cache = new_inode(sb);
  
---- a/kernel/sched/stats.h~delayacct-add-delay-min-to-record-delay-peak
-+++ a/kernel/sched/stats.h
-@@ -246,6 +246,8 @@ static inline void sched_info_dequeue(st
- 	t->sched_info.run_delay += delta;
- 	if (delta > t->sched_info.max_run_delay)
- 		t->sched_info.max_run_delay = delta;
-+	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
-+		t->sched_info.min_run_delay = delta;
- 	rq_sched_info_dequeue(rq, delta);
- }
+-		if (cache == NULL)
++		if (cache == NULL) {
++			err = -ENOMEM;
+ 			goto failed_mount;
++		}
  
-@@ -269,6 +271,8 @@ static void sched_info_arrive(struct rq
- 	t->sched_info.pcount++;
- 	if (delta > t->sched_info.max_run_delay)
- 		t->sched_info.max_run_delay = delta;
-+	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
-+		t->sched_info.min_run_delay = delta;
+ 		set_nlink(cache, 1);
+ 		cache->i_size = OFFSET_MAX;
+@@ -406,8 +409,8 @@ handle_fragments:
  
- 	rq_sched_info_arrive(rq, delta);
- }
---- a/tools/accounting/getdelays.c~delayacct-add-delay-min-to-record-delay-peak
-+++ a/tools/accounting/getdelays.c
-@@ -192,7 +192,7 @@ static int get_family_id(int sd)
- }
+ 	msblk->fragment_cache = squashfs_cache_init("fragment",
+ 		min(SQUASHFS_CACHED_FRAGMENTS, fragments), msblk->block_size);
+-	if (msblk->fragment_cache == NULL) {
+-		err = -ENOMEM;
++	if (IS_ERR(msblk->fragment_cache)) {
++		err = PTR_ERR(msblk->fragment_cache);
+ 		goto failed_mount;
+ 	}
  
- #define average_ms(t, c) (t / 1000000ULL / (c ? c : 1))
--#define delay_max_ms(t) (t / 1000000ULL)
-+#define delay_ms(t) (t / 1000000ULL)
- 
- static void print_delayacct(struct taskstats *t)
- {
-@@ -213,48 +213,56 @@ static void print_delayacct(struct tasks
- 	       "IRQ   %15s%15s%15s%15s\n"
- 	       "      %15llu%15llu%15.3fms%13.6fms\n",
- 	       "count", "real total", "virtual total",
--	       "delay total", "delay average", "delay max",
-+	       "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->cpu_count,
- 	       (unsigned long long)t->cpu_run_real_total,
- 	       (unsigned long long)t->cpu_run_virtual_total,
- 	       (unsigned long long)t->cpu_delay_total,
- 	       average_ms((double)t->cpu_delay_total, t->cpu_count),
--		   delay_max_ms((double)t->cpu_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->cpu_delay_max),
-+	       delay_ms((double)t->cpu_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->blkio_count,
- 	       (unsigned long long)t->blkio_delay_total,
- 	       average_ms((double)t->blkio_delay_total, t->blkio_count),
--		   delay_max_ms((double)t->blkio_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->blkio_delay_max),
-+	       delay_ms((double)t->blkio_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->swapin_count,
- 	       (unsigned long long)t->swapin_delay_total,
- 	       average_ms((double)t->swapin_delay_total, t->swapin_count),
--		   delay_max_ms((double)t->swapin_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->swapin_delay_max),
-+	       delay_ms((double)t->swapin_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->freepages_count,
- 	       (unsigned long long)t->freepages_delay_total,
- 	       average_ms((double)t->freepages_delay_total, t->freepages_count),
--		   delay_max_ms((double)t->freepages_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->freepages_delay_max),
-+	       delay_ms((double)t->freepages_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->thrashing_count,
- 	       (unsigned long long)t->thrashing_delay_total,
- 	       average_ms((double)t->thrashing_delay_total, t->thrashing_count),
--		   delay_max_ms((double)t->thrashing_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->thrashing_delay_max),
-+	       delay_ms((double)t->thrashing_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->compact_count,
- 	       (unsigned long long)t->compact_delay_total,
- 	       average_ms((double)t->compact_delay_total, t->compact_count),
--		   delay_max_ms((double)t->compact_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->compact_delay_max),
-+	       delay_ms((double)t->compact_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->wpcopy_count,
- 	       (unsigned long long)t->wpcopy_delay_total,
- 	       average_ms((double)t->wpcopy_delay_total, t->wpcopy_count),
--		   delay_max_ms((double)t->wpcopy_delay_max),
--	       "count", "delay total", "delay average", "delay max",
-+	       delay_ms((double)t->wpcopy_delay_max),
-+	       delay_ms((double)t->wpcopy_delay_min),
-+	       "count", "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->irq_count,
- 	       (unsigned long long)t->irq_delay_total,
- 	       average_ms((double)t->irq_delay_total, t->irq_count),
--		   delay_max_ms((double)t->irq_delay_max));
-+	       delay_ms((double)t->irq_delay_max),
-+	       delay_ms((double)t->irq_delay_min));
- }
- 
- static void task_context_switch_counts(struct taskstats *t)
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
 
