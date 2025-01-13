@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A602154C0F
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16BD9154C0F
+	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 04:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736742169; cv=none; b=q0pWMH/Asn8XiOYLbtxT4TxTXi7FNw739BMBB/ItNoy3Pw49eyLVnAx2E+IqBnEo4AtNwMfVCzM8uN2j5ghk30qUTajtqw8fXRGd5KQAS5DmYLF3geWGHRR/HLy1M0xLysRYb0Q8inL9PqpAbQ1SPFlIxIFTkXuEHFEv+z6pli8=
+	t=1736742171; cv=none; b=sf2Ju7qHv6pPLmGbmdOc6X+G8XM5IEcBz3Q+vG0TaMvAryxK3TCIV5iRhPQqjJQicnpjgUttVY1ENgT2/cQuEAlVBC54sdnQPa6/4W5fvmEg595ZPGV20JPn9WuX8iQs/Kabpxh2nF1eIRHl2NxOEg/zwc8T3F55mw9ORtCxm/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736742169; c=relaxed/simple;
-	bh=+9zLpBXEcQG8F+fKPine2eYag1Wb0m10sBJ73KbEFmQ=;
-	h=Date:To:From:Subject:Message-Id; b=WroJyvSI8+a7LTW7r9LyCTC3s3GGomTptSlOnpvuCPphywYqboos450eKHB7/Y/1nKfFEQd6jwTrlhtrX3KR4gPuxWsEsveVUi0mNsxpzprnrclstJOyWectZ+Gleu6KwHIbEqg0vRZMdamRTfTmbjdlbv5nLtRUhONmFxryRtw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYa49jK6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736742171; c=relaxed/simple;
+	bh=LWiMTNmRkGngjhAMES/IXiuKpSzxAmidbAIG/OnncX4=;
+	h=Date:To:From:Subject:Message-Id; b=VFZllbL3qV7drQHcKbn8dGqxn4mRalcInwbhheLJ/LAnFlI1DH2CWABJAyGtKcsZpJIIck66qljTusaQn9gzwRzGt4WPb4NOUI+BD1urULxGlH1LRdrEjzp8Ieyq9U6SxKYdlZc75CtcHTto89WoYzR/Z+VD4c3u6KvRxC07738=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kNcDXkpx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYa49jK6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07FA2C4CED6;
-	Mon, 13 Jan 2025 04:22:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kNcDXkpx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7692C4CED6;
+	Mon, 13 Jan 2025 04:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736742169;
-	bh=+9zLpBXEcQG8F+fKPine2eYag1Wb0m10sBJ73KbEFmQ=;
+	s=korg; t=1736742171;
+	bh=LWiMTNmRkGngjhAMES/IXiuKpSzxAmidbAIG/OnncX4=;
 	h=Date:To:From:Subject:From;
-	b=TYa49jK6Ex8EZN4zN40xc7FfvNT/2+SYiNIgyfBLthhn3aHZc24q5v5f6iDiCKavu
-	 cJ11GkoQCjMFqnviPahRSJ1b0piIYMbQdDU2/woawI+9LoT/ucKDm5ZGN9SDe88Ejb
-	 IkYHXbtyxGt57f5hBdTd9GWX8Q33sayizxF73VSo=
-Date: Sun, 12 Jan 2025 20:22:48 -0800
+	b=kNcDXkpxENsPTe+ZR9XRGTCSXgpt4NccYNwSbQe9DXR9S3fA+6/8HTvH1KuJ2508o
+	 XWzcMZvcrt7gLLBQ+42unRptwVbitpks+YPb+cjrDExShtAmmXpIuaJHYFIN7NVii+
+	 PBYFK4De8M9TeQTUPXHtJ2/l7b8af8Kwk2IuT9A0=
+Date: Sun, 12 Jan 2025 20:22:50 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tzimmermann@suse.de,tiwai@suse.com,thomas.hellstrom@linux.intel.com,svens@linux.ibm.com,simona@ffwll.ch,shailend@google.com,sbranden@broadcom.com,roger.pau@citrix.com,rodrigo.vivi@intel.com,robert.jarzmik@free.fr,rjui@broadcom.com,quic_jjohnson@quicinc.com,pmladek@suse.com,pkaligineedi@google.com,perex@perex.cz,pablo@netfilter.org,pabeni@redhat.com,ogabbay@kernel.org,obitton@habana.ai,npiggin@gmail.com,nicolas.palix@imag.fr,naveen@kernel.org,mripard@kernel.org,mpe@ellerman.id.au,mbenes@suse.cz,martin.petersen@oracle.com,marcel@holtmann.org,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,luiz.dentz@gmail.com,lucas.demarchi@intel.com,louis.peens@corigine.com,linux@armlinux.org.uk,kvalo@kernel.org,kuba@kernel.org,kadlec@netfilter.org,julia.lawall@inria.fr,jpoimboe@kernel.org,johan.hedberg@gmail.com,joe.lawrence@redhat.com,jjohnson@kernel.org,jinpu.wang@cloud.ionos.com,jikos@kernel.org,jeroendb@google.com,james.smart@broadcom.com,James.Bottomley@HansenPartnership.com,idryomov@gmail.com,horms@kernel.org,hca@linux.ibm.com,haojian.zhuang@gmail.com,gregkh@linuxfoundation.org,gor@linux.ibm.com,florian.fainelli@broadcom.com,edumazet@google.com,dick.kennedy@broadcom.com,davem@davemloft.net,daniel@zonque.org,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,axboe@kernel.dk,anna-maria@linutronix.de,andrew+netdev@lunn.ch,airlied@gmail.com,agordeev@linux.ibm.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] drm-xe-convert-timeout-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250113042249.07FA2C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scsi-lpfc-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
+Message-Id: <20250113042250.D7692C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,17 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drm/xe: convert timeout to secs_to_jiffies()
+     Subject: scsi: lpfc: convert timeouts to secs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     drm-xe-convert-timeout-to-secs_to_jiffies.patch
+     scsi-lpfc-convert-timeouts-to-secs_to_jiffies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: drm/xe: convert timeout to secs_to_jiffies()
-Date: Tue, 10 Dec 2024 22:02:39 +0000
+Subject: scsi: lpfc: convert timeouts to secs_to_jiffies()
+Date: Tue, 10 Dec 2024 22:02:40 +0000
 
 Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
 secs_to_jiffies().  As the value here is a multiple of 1000, use
@@ -64,8 +64,7 @@ the following Coccinelle rules:
 - msecs_to_jiffies(C * MSEC_PER_SEC)
 + secs_to_jiffies(C)
 
-Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-8-ddfefd7e9f2a@linux.microsoft.com
-Reviewed-by: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Link: https://lkml.kernel.org/r/20241210-converge-secs-to-jiffies-v3-9-ddfefd7e9f2a@linux.microsoft.com
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andrew Lunn <andrew+netdev@lunn.ch>
@@ -129,26 +128,175 @@ Cc: Simona Vetter <simona@ffwll.ch>
 Cc: Simon Horman <horms@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/xe/xe_device.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/lpfc/lpfc_init.c      |   18 +++++++++---------
+ drivers/scsi/lpfc/lpfc_nportdisc.c |    8 ++++----
+ drivers/scsi/lpfc/lpfc_nvme.c      |    2 +-
+ drivers/scsi/lpfc/lpfc_sli.c       |    4 ++--
+ drivers/scsi/lpfc/lpfc_vmid.c      |    2 +-
+ 5 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/drivers/gpu/drm/xe/xe_device.c~drm-xe-convert-timeout-to-secs_to_jiffies
-+++ a/drivers/gpu/drm/xe/xe_device.c
-@@ -514,7 +514,7 @@ static int wait_for_lmem_ready(struct xe
- 	drm_dbg(&xe->drm, "Waiting for lmem initialization\n");
+--- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -598,7 +598,7 @@ lpfc_config_port_post(struct lpfc_hba *p
+ 		  jiffies + msecs_to_jiffies(1000 * timeout));
+ 	/* Set up heart beat (HB) timer */
+ 	mod_timer(&phba->hb_tmofunc,
+-		  jiffies + msecs_to_jiffies(1000 * LPFC_HB_MBOX_INTERVAL));
++		  jiffies + secs_to_jiffies(LPFC_HB_MBOX_INTERVAL));
+ 	clear_bit(HBA_HBEAT_INP, &phba->hba_flag);
+ 	clear_bit(HBA_HBEAT_TMO, &phba->hba_flag);
+ 	phba->last_completion_time = jiffies;
+@@ -1267,7 +1267,7 @@ lpfc_hb_mbox_cmpl(struct lpfc_hba * phba
+ 	    !test_bit(FC_UNLOADING, &phba->pport->load_flag))
+ 		mod_timer(&phba->hb_tmofunc,
+ 			  jiffies +
+-			  msecs_to_jiffies(1000 * LPFC_HB_MBOX_INTERVAL));
++			  secs_to_jiffies(LPFC_HB_MBOX_INTERVAL));
+ 	return;
+ }
  
- 	start = jiffies;
--	timeout = start + msecs_to_jiffies(60 * 1000); /* 60 sec! */
-+	timeout = start + secs_to_jiffies(60); /* 60 sec! */
+@@ -1555,7 +1555,7 @@ lpfc_hb_timeout_handler(struct lpfc_hba
+ 		/* If IOs are completing, no need to issue a MBX_HEARTBEAT */
+ 		spin_lock_irq(&phba->pport->work_port_lock);
+ 		if (time_after(phba->last_completion_time +
+-				msecs_to_jiffies(1000 * LPFC_HB_MBOX_INTERVAL),
++				secs_to_jiffies(LPFC_HB_MBOX_INTERVAL),
+ 				jiffies)) {
+ 			spin_unlock_irq(&phba->pport->work_port_lock);
+ 			if (test_bit(HBA_HBEAT_INP, &phba->hba_flag))
+@@ -3354,7 +3354,7 @@ lpfc_block_mgmt_io(struct lpfc_hba *phba
+ 	spin_unlock_irqrestore(&phba->hbalock, iflag);
+ 	if (mbx_action == LPFC_MBX_NO_WAIT)
+ 		return;
+-	timeout = msecs_to_jiffies(LPFC_MBOX_TMO * 1000) + jiffies;
++	timeout = secs_to_jiffies(LPFC_MBOX_TMO) + jiffies;
+ 	spin_lock_irqsave(&phba->hbalock, iflag);
+ 	if (phba->sli.mbox_active) {
+ 		actcmd = phba->sli.mbox_active->u.mb.mbxCommand;
+@@ -4924,14 +4924,14 @@ int lpfc_scan_finished(struct Scsi_Host
+ 		stat = 1;
+ 		goto finished;
+ 	}
+-	if (time >= msecs_to_jiffies(30 * 1000)) {
++	if (time >= secs_to_jiffies(30)) {
+ 		lpfc_printf_log(phba, KERN_INFO, LOG_INIT,
+ 				"0461 Scanning longer than 30 "
+ 				"seconds.  Continuing initialization\n");
+ 		stat = 1;
+ 		goto finished;
+ 	}
+-	if (time >= msecs_to_jiffies(15 * 1000) &&
++	if (time >= secs_to_jiffies(15) &&
+ 	    phba->link_state <= LPFC_LINK_DOWN) {
+ 		lpfc_printf_log(phba, KERN_INFO, LOG_INIT,
+ 				"0465 Link down longer than 15 "
+@@ -4945,7 +4945,7 @@ int lpfc_scan_finished(struct Scsi_Host
+ 	if (vport->num_disc_nodes || vport->fc_prli_sent)
+ 		goto finished;
+ 	if (!atomic_read(&vport->fc_map_cnt) &&
+-	    time < msecs_to_jiffies(2 * 1000))
++	    time < secs_to_jiffies(2))
+ 		goto finished;
+ 	if ((phba->sli.sli_flag & LPFC_SLI_MBOX_ACTIVE) != 0)
+ 		goto finished;
+@@ -5179,8 +5179,8 @@ lpfc_vmid_poll(struct timer_list *t)
+ 		lpfc_worker_wake_up(phba);
  
- 	do {
- 		if (signal_pending(current))
+ 	/* restart the timer for the next iteration */
+-	mod_timer(&phba->inactive_vmid_poll, jiffies + msecs_to_jiffies(1000 *
+-							LPFC_VMID_TIMER));
++	mod_timer(&phba->inactive_vmid_poll,
++		  jiffies + secs_to_jiffies(LPFC_VMID_TIMER));
+ }
+ 
+ /**
+--- a/drivers/scsi/lpfc/lpfc_nportdisc.c~scsi-lpfc-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/scsi/lpfc/lpfc_nportdisc.c
+@@ -906,7 +906,7 @@ lpfc_rcv_logo(struct lpfc_vport *vport,
+ 		    (ndlp->nlp_state >= NLP_STE_ADISC_ISSUE ||
+ 		     ndlp->nlp_state <= NLP_STE_PRLI_ISSUE)) {
+ 			mod_timer(&ndlp->nlp_delayfunc,
+-				  jiffies + msecs_to_jiffies(1000 * 1));
++				  jiffies + secs_to_jiffies(1));
+ 			set_bit(NLP_DELAY_TMO, &ndlp->nlp_flag);
+ 			ndlp->nlp_last_elscmd = ELS_CMD_PLOGI;
+ 			lpfc_printf_vlog(vport, KERN_INFO,
+@@ -1332,7 +1332,7 @@ lpfc_rcv_els_plogi_issue(struct lpfc_vpo
+ 	}
+ 
+ 	/* Put ndlp in npr state set plogi timer for 1 sec */
+-	mod_timer(&ndlp->nlp_delayfunc, jiffies + msecs_to_jiffies(1000 * 1));
++	mod_timer(&ndlp->nlp_delayfunc, jiffies + secs_to_jiffies(1));
+ 	set_bit(NLP_DELAY_TMO, &ndlp->nlp_flag);
+ 	ndlp->nlp_last_elscmd = ELS_CMD_PLOGI;
+ 	ndlp->nlp_prev_state = NLP_STE_PLOGI_ISSUE;
+@@ -1936,7 +1936,7 @@ lpfc_cmpl_reglogin_reglogin_issue(struct
+ 
+ 		/* Put ndlp in npr state set plogi timer for 1 sec */
+ 		mod_timer(&ndlp->nlp_delayfunc,
+-			  jiffies + msecs_to_jiffies(1000 * 1));
++			  jiffies + secs_to_jiffies(1));
+ 		set_bit(NLP_DELAY_TMO, &ndlp->nlp_flag);
+ 		ndlp->nlp_last_elscmd = ELS_CMD_PLOGI;
+ 
+@@ -2743,7 +2743,7 @@ lpfc_rcv_prlo_npr_node(struct lpfc_vport
+ 
+ 	if (!test_bit(NLP_DELAY_TMO, &ndlp->nlp_flag)) {
+ 		mod_timer(&ndlp->nlp_delayfunc,
+-			  jiffies + msecs_to_jiffies(1000 * 1));
++			  jiffies + secs_to_jiffies(1));
+ 		set_bit(NLP_DELAY_TMO, &ndlp->nlp_flag);
+ 		clear_bit(NLP_NPR_ADISC, &ndlp->nlp_flag);
+ 		ndlp->nlp_last_elscmd = ELS_CMD_PLOGI;
+--- a/drivers/scsi/lpfc/lpfc_nvme.c~scsi-lpfc-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/scsi/lpfc/lpfc_nvme.c
+@@ -2237,7 +2237,7 @@ lpfc_nvme_lport_unreg_wait(struct lpfc_v
+ 	 * wait. Print a message if a 10 second wait expires and renew the
+ 	 * wait. This is unexpected.
+ 	 */
+-	wait_tmo = msecs_to_jiffies(LPFC_NVME_WAIT_TMO * 1000);
++	wait_tmo = secs_to_jiffies(LPFC_NVME_WAIT_TMO);
+ 	while (true) {
+ 		ret = wait_for_completion_timeout(lport_unreg_cmp, wait_tmo);
+ 		if (unlikely(!ret)) {
+--- a/drivers/scsi/lpfc/lpfc_sli.c~scsi-lpfc-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/scsi/lpfc/lpfc_sli.c
+@@ -9012,7 +9012,7 @@ lpfc_sli4_hba_setup(struct lpfc_hba *phb
+ 
+ 	/* Start heart beat timer */
+ 	mod_timer(&phba->hb_tmofunc,
+-		  jiffies + msecs_to_jiffies(1000 * LPFC_HB_MBOX_INTERVAL));
++		  jiffies + secs_to_jiffies(LPFC_HB_MBOX_INTERVAL));
+ 	clear_bit(HBA_HBEAT_INP, &phba->hba_flag);
+ 	clear_bit(HBA_HBEAT_TMO, &phba->hba_flag);
+ 	phba->last_completion_time = jiffies;
+@@ -13323,7 +13323,7 @@ lpfc_sli_mbox_sys_shutdown(struct lpfc_h
+ 		lpfc_sli_mbox_sys_flush(phba);
+ 		return;
+ 	}
+-	timeout = msecs_to_jiffies(LPFC_MBOX_TMO * 1000) + jiffies;
++	timeout = secs_to_jiffies(LPFC_MBOX_TMO) + jiffies;
+ 
+ 	/* Disable softirqs, including timers from obtaining phba->hbalock */
+ 	local_bh_disable();
+--- a/drivers/scsi/lpfc/lpfc_vmid.c~scsi-lpfc-convert-timeouts-to-secs_to_jiffies
++++ a/drivers/scsi/lpfc/lpfc_vmid.c
+@@ -278,7 +278,7 @@ int lpfc_vmid_get_appid(struct lpfc_vpor
+ 		if (!(vport->phba->pport->vmid_flag & LPFC_VMID_TIMER_ENBLD)) {
+ 			mod_timer(&vport->phba->inactive_vmid_poll,
+ 				  jiffies +
+-				  msecs_to_jiffies(1000 * LPFC_VMID_TIMER));
++				  secs_to_jiffies(LPFC_VMID_TIMER));
+ 			vport->phba->pport->vmid_flag |= LPFC_VMID_TIMER_ENBLD;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
