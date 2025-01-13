@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E11194315A
-	for <mm-commits@vger.kernel.org>; Mon, 13 Jan 2025 03:04:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCAF74315A;
+	Mon, 13 Jan 2025 03:04:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736737460; cv=none; b=Ki1HUK8p0yB1xoVQvFcrEvG44XVZoVmB/gxCc2njwNkJCMSbg8Te1F3IM0M6pQLYgjChxeunHt4NEVfu6HavoZuwyfUx8fs2fQ8G+bLyGBkYAQNb1v5S4uB94Q6v54mobDEl+c0wOme7jdmZFLNSbqKKow8bOjCO/xIcP8pY4XI=
+	t=1736737461; cv=none; b=UnGk3QSqqzEtfNNJxpWPxkMoE8DWhnW/kt1dii1JuMCxDuHbKD1yTxy9uMiVwXiamK/cPGaGFcf3dWgOxT2Rknb+FYKldz2N5Z2PgTvHNQb3HhJpimXjjMiqG4gxF9h79/Zhvi2QOG11C6aanHhj9+p/8Y3K6jFjd8xKmr90nTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736737460; c=relaxed/simple;
-	bh=GyT2eJcIngStZAAH8oXC5afB50CBRulboFUDXSvQ4+U=;
-	h=Date:To:From:Subject:Message-Id; b=iejo2UEqUiFmnqzNAB+P6Xm1m4enFWLi9JZdbCSrv5Z8j4cTqTWgSZ67Z33byANh6kQOc5leNDVAYWmM0dAnHMeLKTDgRhKmwFn/3RBn7g1udeDEozEmzcKIXCpKUFQaPOy6DCMQ+aF6IUHPjZmgP6oDYYBDZVqo5h4NxQh6AQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ycFGxbGU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736737461; c=relaxed/simple;
+	bh=BxgjWLLSUQ6CkegO2uMIUnYsy8luOBPmVhLRU7YcL+c=;
+	h=Date:To:From:Subject:Message-Id; b=Zx4AeCbXPVYJ9KI4jP9RRjmDKpsUOTwI1yvy6bNMic2oCBSSMyok1SmcYTsMG7eVk+iQNj6ygYQNnscFuWyUgLDWf/GaNBlC+rR4msaBMIjk3yTw20V267ADLMpGZNfHrEZhenvmcRtXW5oGICWzvf0rim6bbmy9CF4aGrkO5ks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xGfvVQby; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ycFGxbGU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76FCAC4CEDF;
-	Mon, 13 Jan 2025 03:04:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xGfvVQby"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1E4DC4CEDF;
+	Mon, 13 Jan 2025 03:04:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736737459;
-	bh=GyT2eJcIngStZAAH8oXC5afB50CBRulboFUDXSvQ4+U=;
+	s=korg; t=1736737460;
+	bh=BxgjWLLSUQ6CkegO2uMIUnYsy8luOBPmVhLRU7YcL+c=;
 	h=Date:To:From:Subject:From;
-	b=ycFGxbGUBQnYtIFKUNiR4qCCg8P6o6CK+0vvIhagw/Bz0YXrHN5QgwzB9Z/3tJ7dm
-	 /khhPRrxmbSwZVm+pH8wTFZ7zptzf8GnPgm+hgGRPIk2YYVBn9PH9hQabG7crZ8jvR
-	 K4hPN11PGYL691SpI+9Hyq0kpQPvllCBtPrWVFEM=
-Date: Sun, 12 Jan 2025 19:04:18 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pmladek@suse.com,mmaslanka@google.com,mcgrof@kernel.org,jpoimboe@kernel.org,joe.lawrence@redhat.com,petr.pavlu@suse.com,akpm@linux-foundation.org
+	b=xGfvVQbycVLJWjJKFMsXersQGAkNs/2LQ6CSVVXHmW13IjCW3n8wJLu3Iy1Of3vYy
+	 N013uCKawNHZwfHJAQIkScZccLqntWfoIlNj2jpfRuFIhzzYtT7kT/cLePeuwhwpvg
+	 ec4ZSOMY1cIgH3QipIEFUF3p+oXASoYh7bIzd3ww=
+Date: Sun, 12 Jan 2025 19:04:20 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,muchun.song@linux.dev,miko.lenczewski@arm.com,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] module-fix-writing-of-livepatch-relocations-in-rox-text.patch removed from -mm tree
-Message-Id: <20250113030419.76FCAC4CEDF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-clear-uffd-wp-pte-pmd-state-on-mremap.patch removed from -mm tree
+Message-Id: <20250113030420.B1E4DC4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,209 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: module: fix writing of livepatch relocations in ROX text
+     Subject: mm: clear uffd-wp PTE/PMD state on mremap()
 has been removed from the -mm tree.  Its filename was
-     module-fix-writing-of-livepatch-relocations-in-rox-text.patch
+     mm-clear-uffd-wp-pte-pmd-state-on-mremap.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Pavlu <petr.pavlu@suse.com>
-Subject: module: fix writing of livepatch relocations in ROX text
-Date: Tue, 7 Jan 2025 16:34:57 +0100
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: clear uffd-wp PTE/PMD state on mremap()
+Date: Tue, 7 Jan 2025 14:47:52 +0000
 
-A livepatch module can contain a special relocation section
-.klp.rela.<objname>.<secname> to apply its relocations at the appropriate
-time and to additionally access local and unexported symbols.  When
-<objname> points to another module, such relocations are processed
-separately from the regular module relocation process.  For instance, only
-when the target <objname> actually becomes loaded.
+When mremap()ing a memory region previously registered with userfaultfd as
+write-protected but without UFFD_FEATURE_EVENT_REMAP, an inconsistency in
+flag clearing leads to a mismatch between the vma flags (which have
+uffd-wp cleared) and the pte/pmd flags (which do not have uffd-wp
+cleared).  This mismatch causes a subsequent mprotect(PROT_WRITE) to
+trigger a warning in page_table_check_pte_flags() due to setting the pte
+to writable while uffd-wp is still set.
 
-With CONFIG_STRICT_MODULE_RWX, when the livepatch core decides to apply
-these relocations, their processing results in the following bug:
+Fix this by always explicitly clearing the uffd-wp pte/pmd flags on any
+such mremap() so that the values are consistent with the existing clearing
+of VM_UFFD_WP.  Be careful to clear the logical flag regardless of its
+physical form; a PTE bit, a swap PTE bit, or a PTE marker.  Cover PTE,
+huge PMD and hugetlb paths.
 
-[   25.827238] BUG: unable to handle page fault for address: 00000000000012ba
-[   25.827819] #PF: supervisor read access in kernel mode
-[   25.828153] #PF: error_code(0x0000) - not-present page
-[   25.828588] PGD 0 P4D 0
-[   25.829063] Oops: Oops: 0000 [#1] PREEMPT SMP NOPTI
-[   25.829742] CPU: 2 UID: 0 PID: 452 Comm: insmod Tainted: G O  K    6.13.0-rc4-00078-g059dd502b263 #7820
-[   25.830417] Tainted: [O]=OOT_MODULE, [K]=LIVEPATCH
-[   25.830768] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.0-20220807_005459-localhost 04/01/2014
-[   25.831651] RIP: 0010:memcmp+0x24/0x60
-[   25.832190] Code: [...]
-[   25.833378] RSP: 0018:ffffa40b403a3ae8 EFLAGS: 00000246
-[   25.833637] RAX: 0000000000000000 RBX: ffff93bc81d8e700 RCX: ffffffffc0202000
-[   25.834072] RDX: 0000000000000000 RSI: 0000000000000004 RDI: 00000000000012ba
-[   25.834548] RBP: ffffa40b403a3b68 R08: ffffa40b403a3b30 R09: 0000004a00000002
-[   25.835088] R10: ffffffffffffd222 R11: f000000000000000 R12: 0000000000000000
-[   25.835666] R13: ffffffffc02032ba R14: ffffffffc007d1e0 R15: 0000000000000004
-[   25.836139] FS:  00007fecef8c3080(0000) GS:ffff93bc8f900000(0000) knlGS:0000000000000000
-[   25.836519] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   25.836977] CR2: 00000000000012ba CR3: 0000000002f24000 CR4: 00000000000006f0
-[   25.837442] Call Trace:
-[   25.838297]  <TASK>
-[   25.841083]  __write_relocate_add.constprop.0+0xc7/0x2b0
-[   25.841701]  apply_relocate_add+0x75/0xa0
-[   25.841973]  klp_write_section_relocs+0x10e/0x140
-[   25.842304]  klp_write_object_relocs+0x70/0xa0
-[   25.842682]  klp_init_object_loaded+0x21/0xf0
-[   25.842972]  klp_enable_patch+0x43d/0x900
-[   25.843572]  do_one_initcall+0x4c/0x220
-[   25.844186]  do_init_module+0x6a/0x260
-[   25.844423]  init_module_from_file+0x9c/0xe0
-[   25.844702]  idempotent_init_module+0x172/0x270
-[   25.845008]  __x64_sys_finit_module+0x69/0xc0
-[   25.845253]  do_syscall_64+0x9e/0x1a0
-[   25.845498]  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-[   25.846056] RIP: 0033:0x7fecef9eb25d
-[   25.846444] Code: [...]
-[   25.847563] RSP: 002b:00007ffd0c5d6de8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
-[   25.848082] RAX: ffffffffffffffda RBX: 000055b03f05e470 RCX: 00007fecef9eb25d
-[   25.848456] RDX: 0000000000000000 RSI: 000055b001e74e52 RDI: 0000000000000003
-[   25.848969] RBP: 00007ffd0c5d6ea0 R08: 0000000000000040 R09: 0000000000004100
-[   25.849411] R10: 00007fecefac7b20 R11: 0000000000000246 R12: 000055b001e74e52
-[   25.849905] R13: 0000000000000000 R14: 000055b03f05e440 R15: 0000000000000000
-[   25.850336]  </TASK>
-[   25.850553] Modules linked in: deku(OK+) uinput
-[   25.851408] CR2: 00000000000012ba
-[   25.852085] ---[ end trace 0000000000000000 ]---
-
-The problem is that the .klp.rela.<objname>.<secname> relocations are
-processed after the module was already formed and mod->rw_copy was reset. 
-However, the code in __write_relocate_add() calls
-module_writable_address() which translates the target address 'loc' still
-to 'loc + (mem->rw_copy - mem->base)', with mem->rw_copy now being 0.
-
-Fix the problem by returning directly 'loc' in module_writable_address()
-when the module is already formed.  Function __write_relocate_add() knows
-to use text_poke() in such a case.
-
-Link: https://lkml.kernel.org/r/20250107153507.14733-1-petr.pavlu@suse.com
-Fixes: 0c133b1e78cd ("module: prepare to handle ROX allocations for text")
-Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
-Reported-by: Marek Maslanka <mmaslanka@google.com>
-Closes: https://lore.kernel.org/linux-modules/CAGcaFA2hdThQV6mjD_1_U+GNHThv84+MQvMWLgEuX+LVbAyDxg@mail.gmail.com/
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Tested-by: Petr Mladek <pmladek@suse.com>
-Cc: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+Link: https://lkml.kernel.org/r/20250107144755.1871363-2-ryan.roberts@arm.com
+Co-developed-by: Mikołaj Lenczewski <miko.lenczewski@arm.com>
+Signed-off-by: Mikołaj Lenczewski <miko.lenczewski@arm.com>
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Closes: https://lore.kernel.org/linux-mm/810b44a8-d2ae-4107-b665-5a42eae2d948@arm.com/
+Fixes: 63b2d4174c4a ("userfaultfd: wp: add the writeprotect API to userfaultfd ioctl")
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/userfaultfd_k.h |   12 ++++++++++++
+ mm/huge_memory.c              |   12 ++++++++++++
+ mm/hugetlb.c                  |   14 +++++++++++++-
+ mm/mremap.c                   |   32 +++++++++++++++++++++++++++++++-
+ 4 files changed, 68 insertions(+), 2 deletions(-)
 
---- a/include/linux/module.h~module-fix-writing-of-livepatch-relocations-in-rox-text
-+++ a/include/linux/module.h
-@@ -773,7 +773,8 @@ void *__module_writable_address(struct m
- 
- static inline void *module_writable_address(struct module *mod, void *loc)
- {
--	if (!IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX) || !mod)
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_EXECMEM_ROX) || !mod ||
-+	    mod->state != MODULE_STATE_UNFORMED)
- 		return loc;
- 	return __module_writable_address(mod, loc);
+--- a/include/linux/userfaultfd_k.h~mm-clear-uffd-wp-pte-pmd-state-on-mremap
++++ a/include/linux/userfaultfd_k.h
+@@ -247,6 +247,13 @@ static inline bool vma_can_userfault(str
+ 	    vma_is_shmem(vma);
  }
+ 
++static inline bool vma_has_uffd_without_event_remap(struct vm_area_struct *vma)
++{
++	struct userfaultfd_ctx *uffd_ctx = vma->vm_userfaultfd_ctx.ctx;
++
++	return uffd_ctx && (uffd_ctx->features & UFFD_FEATURE_EVENT_REMAP) == 0;
++}
++
+ extern int dup_userfaultfd(struct vm_area_struct *, struct list_head *);
+ extern void dup_userfaultfd_complete(struct list_head *);
+ void dup_userfaultfd_fail(struct list_head *);
+@@ -401,6 +408,11 @@ static inline bool userfaultfd_wp_async(
+ {
+ 	return false;
+ }
++
++static inline bool vma_has_uffd_without_event_remap(struct vm_area_struct *vma)
++{
++	return false;
++}
+ 
+ #endif /* CONFIG_USERFAULTFD */
+ 
+--- a/mm/huge_memory.c~mm-clear-uffd-wp-pte-pmd-state-on-mremap
++++ a/mm/huge_memory.c
+@@ -2206,6 +2206,16 @@ static pmd_t move_soft_dirty_pmd(pmd_t p
+ 	return pmd;
+ }
+ 
++static pmd_t clear_uffd_wp_pmd(pmd_t pmd)
++{
++	if (pmd_present(pmd))
++		pmd = pmd_clear_uffd_wp(pmd);
++	else if (is_swap_pmd(pmd))
++		pmd = pmd_swp_clear_uffd_wp(pmd);
++
++	return pmd;
++}
++
+ bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+@@ -2244,6 +2254,8 @@ bool move_huge_pmd(struct vm_area_struct
+ 			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
+ 		}
+ 		pmd = move_soft_dirty_pmd(pmd);
++		if (vma_has_uffd_without_event_remap(vma))
++			pmd = clear_uffd_wp_pmd(pmd);
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd);
+ 		if (force_flush)
+ 			flush_pmd_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
+--- a/mm/hugetlb.c~mm-clear-uffd-wp-pte-pmd-state-on-mremap
++++ a/mm/hugetlb.c
+@@ -5402,6 +5402,7 @@ static void move_huge_pte(struct vm_area
+ 			  unsigned long new_addr, pte_t *src_pte, pte_t *dst_pte,
+ 			  unsigned long sz)
+ {
++	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	spinlock_t *src_ptl, *dst_ptl;
+@@ -5418,7 +5419,18 @@ static void move_huge_pte(struct vm_area
+ 		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+ 
+ 	pte = huge_ptep_get_and_clear(mm, old_addr, src_pte);
+-	set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
++
++	if (need_clear_uffd_wp && pte_marker_uffd_wp(pte))
++		huge_pte_clear(mm, new_addr, dst_pte, sz);
++	else {
++		if (need_clear_uffd_wp) {
++			if (pte_present(pte))
++				pte = huge_pte_clear_uffd_wp(pte);
++			else if (is_swap_pte(pte))
++				pte = pte_swp_clear_uffd_wp(pte);
++		}
++		set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
++	}
+ 
+ 	if (src_ptl != dst_ptl)
+ 		spin_unlock(src_ptl);
+--- a/mm/mremap.c~mm-clear-uffd-wp-pte-pmd-state-on-mremap
++++ a/mm/mremap.c
+@@ -138,6 +138,7 @@ static int move_ptes(struct vm_area_stru
+ 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
+ 		unsigned long new_addr, bool need_rmap_locks)
+ {
++	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_pte, *new_pte, pte;
+ 	pmd_t dummy_pmdval;
+@@ -216,7 +217,18 @@ static int move_ptes(struct vm_area_stru
+ 			force_flush = true;
+ 		pte = move_pte(pte, old_addr, new_addr);
+ 		pte = move_soft_dirty_pte(pte);
+-		set_pte_at(mm, new_addr, new_pte, pte);
++
++		if (need_clear_uffd_wp && pte_marker_uffd_wp(pte))
++			pte_clear(mm, new_addr, new_pte);
++		else {
++			if (need_clear_uffd_wp) {
++				if (pte_present(pte))
++					pte = pte_clear_uffd_wp(pte);
++				else if (is_swap_pte(pte))
++					pte = pte_swp_clear_uffd_wp(pte);
++			}
++			set_pte_at(mm, new_addr, new_pte, pte);
++		}
+ 	}
+ 
+ 	arch_leave_lazy_mmu_mode();
+@@ -278,6 +290,15 @@ static bool move_normal_pmd(struct vm_ar
+ 	if (WARN_ON_ONCE(!pmd_none(*new_pmd)))
+ 		return false;
+ 
++	/* If this pmd belongs to a uffd vma with remap events disabled, we need
++	 * to ensure that the uffd-wp state is cleared from all pgtables. This
++	 * means recursing into lower page tables in move_page_tables(), and we
++	 * can reuse the existing code if we simply treat the entry as "not
++	 * moved".
++	 */
++	if (vma_has_uffd_without_event_remap(vma))
++		return false;
++
+ 	/*
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * ptlocks because exclusive mmap_lock prevents deadlock.
+@@ -333,6 +354,15 @@ static bool move_normal_pud(struct vm_ar
+ 	if (WARN_ON_ONCE(!pud_none(*new_pud)))
+ 		return false;
+ 
++	/* If this pud belongs to a uffd vma with remap events disabled, we need
++	 * to ensure that the uffd-wp state is cleared from all pgtables. This
++	 * means recursing into lower page tables in move_page_tables(), and we
++	 * can reuse the existing code if we simply treat the entry as "not
++	 * moved".
++	 */
++	if (vma_has_uffd_without_event_remap(vma))
++		return false;
++
+ 	/*
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * ptlocks because exclusive mmap_lock prevents deadlock.
 _
 
-Patches currently in -mm which might be from petr.pavlu@suse.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
+selftests-mm-add-fork-cow-guard-page-test-fix.patch
+selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
