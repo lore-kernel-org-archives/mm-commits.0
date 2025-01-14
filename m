@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCEEA23A112
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 339FA23A10F
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836950; cv=none; b=jYa9ykX3dFX2cs4Lf3iRhBe02AnO1xhHWLpxfkGLSuteZWCD8Qp9Ajbt2vzki2k3S6+S4crusYxemvKtGVnnOt0d09+FXcoT/QMJ6+/atEhIUgX9/8Kh5AixeS6gxLato4PLHmdSANFKGucaEPJq+W9P/CXbfk5x1d2zkeDoyaE=
+	t=1736836952; cv=none; b=jSLpajGqoBKuIvV1jrKZrohGfTqXtwYMF7FZOCg5QWCynSWwm9p5WljZlZQGRDT4VDi4juHlb+ToW+qyLt8mOU9aT/nN57Nod4r3iuRiIUX6FL0C0yIcna0VO7O0ylf1CM8OrqEqeYr/blxLBRyIOF0BVaLENHEY7CHj6LoplQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836950; c=relaxed/simple;
-	bh=06nCw0BoNPilSc6vrzEBM+HytveGXqT/PBv1n7lWC78=;
-	h=Date:To:From:Subject:Message-Id; b=OoA0fSxnQNk2r5/PXpaF8kuWLxJYg9P5MEILYLQzOEpEN+jj7w2JpfrNAJeidFH3ojStKfJPceQL60s048EWGSMyHnXSL1BQUuPeC2/twb2tSn3O8sMGQfNcPwmlodLgBq58GUCtAx55pV1b03vQaDz3Pe5X0puFipzSRtJAFo0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xrk7lNrf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836952; c=relaxed/simple;
+	bh=DbO3CzbCmYi+9E4pnykL1qm34GdYPFOiUU/pEJQScO4=;
+	h=Date:To:From:Subject:Message-Id; b=df57kz+zWnJtApUgnA127PX2oqGUgSkL+QD87kQNrN/WqMMOMY/Pft5rvWR/q9gpI0Mt52zh2JZoe+p7CQdF9QHR6qNjIqE0W/1vlFhLUEDxhTAw7TX91LpS5qp0fxCmykGsD81Kk7KsJSbFiB2rnJR2qzhJezF3MYIVOOPPLRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fVUQXvcO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xrk7lNrf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91B00C4CEDD;
-	Tue, 14 Jan 2025 06:42:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fVUQXvcO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2277C4CEDD;
+	Tue, 14 Jan 2025 06:42:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836950;
-	bh=06nCw0BoNPilSc6vrzEBM+HytveGXqT/PBv1n7lWC78=;
+	s=korg; t=1736836951;
+	bh=DbO3CzbCmYi+9E4pnykL1qm34GdYPFOiUU/pEJQScO4=;
 	h=Date:To:From:Subject:From;
-	b=xrk7lNrfda9pw6DNfQ9EitO2iX8jEfmniXxTDwFi4m8/NbPrbLZ61DU0XF1z6xbZy
-	 EIoPdVZIWhD7Ama7Lc1HxLlNsgqGQBlX3hak49elMa024aICB2OHWjhoq2T0dHELfr
-	 9Xc/7x19tKfUgDjdSiiVYNkHAyQ3oG9phpTWtl68=
-Date: Mon, 13 Jan 2025 22:42:30 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,dchinner@redhat.com,aliceryhl@google.com,akpm@linux-foundation.org
+	b=fVUQXvcOgYHEzxZMhXjHqaE83kl+oIzzpzLrexqzVjfYZLKgfTvsd9xaDJDooMedl
+	 q2fzaOTgaL5/G1iiQS7+wj7I1kh3EwBsUnWzSlNhLCben7GHCl5AljyqQAWSElx559
+	 V6QWLVksCDKadRTTZThfEelmi70Haik0dXGPI3fA=
+Date: Mon, 13 Jan 2025 22:42:31 -0800
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,guanjing@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] list_lru-expand-list_lru_add-docs-with-info-about-sublists.patch removed from -mm tree
-Message-Id: <20250114064230.91B00C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-conversion-specifiers-in-transact_test.patch removed from -mm tree
+Message-Id: <20250114064231.A2277C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,124 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: list_lru: expand list_lru_add() docs with info about sublists
+     Subject: selftests: mm: fix conversion specifiers in transact_test()
 has been removed from the -mm tree.  Its filename was
-     list_lru-expand-list_lru_add-docs-with-info-about-sublists.patch
+     selftests-mm-fix-conversion-specifiers-in-transact_test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: list_lru: expand list_lru_add() docs with info about sublists
-Date: Fri, 29 Nov 2024 14:58:25 +0000
+From: guanjing <guanjing@cmss.chinamobile.com>
+Subject: selftests: mm: fix conversion specifiers in transact_test()
+Date: Sun, 17 Nov 2024 15:12:31 +0800
 
-The documentation for list_lru_add() and list_lru_del() has not been
-updated since lru lists were originally introduced by commit a38e40824844
-("list: add a new LRU list type").  Back then, list_lru stored all of the
-items in a single list, but the implementation has since been expanded to
-use many sublists internally.
+Lots of incorrect conversion specifiers. Fix them.
 
-Thus, update the docs to mention that the requirements about not using the
-item with several lists at the same time also applies not using different
-sublists.  Also mention that list_lru items are reparented when the memcg
-is deleted as discussed on the LKML [1].
-
-Also fix incorrect use of 'Return value:' which should be 'Return:'.
-
-Link: https://lore.kernel.org/all/Z0eXrllVhRI9Ag5b@dread.disaster.area/ [1]
-Link: https://lkml.kernel.org/r/20241129-list_lru_memcg_docs-v2-1-e285ff1c481b@google.com
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20241117071231.177864-1-guanjing@cmss.chinamobile.com
+Fixes: 46fd75d4a3c9 ("selftests: mm: add pagemap ioctl tests")
+Signed-off-by: guanjing <guanjing@cmss.chinamobile.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |   44 +++++++++++++++++++++++++++----------
- 1 file changed, 33 insertions(+), 11 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/list_lru.h~list_lru-expand-list_lru_add-docs-with-info-about-sublists
-+++ a/include/linux/list_lru.h
-@@ -91,13 +91,24 @@ void memcg_reparent_list_lrus(struct mem
-  * @memcg: the cgroup of the sublist to add the item to.
-  *
-  * If the element is already part of a list, this function returns doing
-- * nothing. Therefore the caller does not need to keep state about whether or
-- * not the element already belongs in the list and is allowed to lazy update
-- * it. Note however that this is valid for *a* list, not *this* list. If
-- * the caller organize itself in a way that elements can be in more than
-- * one type of list, it is up to the caller to fully remove the item from
-- * the previous list (with list_lru_del() for instance) before moving it
-- * to @lru.
-+ * nothing. This means that it is not necessary to keep state about whether or
-+ * not the element already belongs in the list. That said, this logic only
-+ * works if the item is in *this* list. If the item might be in some other
-+ * list, then you cannot rely on this check and you must remove it from the
-+ * other list before trying to insert it.
-+ *
-+ * The lru list consists of many sublists internally; the @nid and @memcg
-+ * parameters are used to determine which sublist to insert the item into.
-+ * It's important to use the right value of @nid and @memcg when deleting the
-+ * item, since it might otherwise get deleted from the wrong sublist.
-+ *
-+ * This also applies when attempting to insert the item multiple times - if
-+ * the item is currently in one sublist and you call list_lru_add() again, you
-+ * must pass the right @nid and @memcg parameters so that the same sublist is
-+ * used.
-+ *
-+ * You must ensure that the memcg is not freed during this call (e.g., with
-+ * rcu or by taking a css refcnt).
-  *
-  * Return: true if the list was updated, false otherwise
-  */
-@@ -113,7 +124,7 @@ bool list_lru_add(struct list_lru *lru,
-  * memcg of the sublist is determined by @item list_head. This assumption is
-  * valid for slab objects LRU such as dentries, inodes, etc.
-  *
-- * Return value: true if the list was updated, false otherwise
-+ * Return: true if the list was updated, false otherwise
-  */
- bool list_lru_add_obj(struct list_lru *lru, struct list_head *item);
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-fix-conversion-specifiers-in-transact_test
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1405,9 +1405,9 @@ static void transact_test(int page_size)
+ 	memset(mem, 0, 0x1000 * nthreads * pages_per_thread);
  
-@@ -125,8 +136,19 @@ bool list_lru_add_obj(struct list_lru *l
-  * @memcg: the cgroup of the sublist to delete the item from.
-  *
-  * This function works analogously as list_lru_add() in terms of list
-- * manipulation. The comments about an element already pertaining to
-- * a list are also valid for list_lru_del().
-+ * manipulation.
-+ *
-+ * The comments in list_lru_add() about an element already being in a list are
-+ * also valid for list_lru_del(), that is, you can delete an item that has
-+ * already been removed or never been added. However, if the item is in a
-+ * list, it must be in *this* list, and you must pass the right value of @nid
-+ * and @memcg so that the right sublist is used.
-+ *
-+ * You must ensure that the memcg is not freed during this call (e.g., with
-+ * rcu or by taking a css refcnt). When a memcg is deleted, list_lru entries
-+ * are automatically moved to the parent memcg. This is done in a race-free
-+ * way, so during deletion of an memcg both the old and new memcg will resolve
-+ * to the same sublist internally.
-  *
-  * Return: true if the list was updated, false otherwise
-  */
-@@ -142,7 +164,7 @@ bool list_lru_del(struct list_lru *lru,
-  * memcg of the sublist is determined by @item list_head. This assumption is
-  * valid for slab objects LRU such as dentries, inodes, etc.
-  *
-- * Return value: true if the list was updated, false otherwise.
-+ * Return: true if the list was updated, false otherwise.
-  */
- bool list_lru_del_obj(struct list_lru *lru, struct list_head *item);
+ 	count = get_dirty_pages_reset(mem, nthreads * pages_per_thread, 1, page_size);
+-	ksft_test_result(count > 0, "%s count %d\n", __func__, count);
++	ksft_test_result(count > 0, "%s count %u\n", __func__, count);
+ 	count = get_dirty_pages_reset(mem, nthreads * pages_per_thread, 1, page_size);
+-	ksft_test_result(count == 0, "%s count %d\n", __func__, count);
++	ksft_test_result(count == 0, "%s count %u\n", __func__, count);
  
+ 	finish = 0;
+ 	for (i = 0; i < nthreads; ++i)
+@@ -1429,7 +1429,7 @@ static void transact_test(int page_size)
+ 			ksft_exit_fail_msg("pthread_barrier_wait\n");
+ 
+ 		if (count > nthreads * access_per_thread)
+-			ksft_exit_fail_msg("Too big count %d expected %d, iter %d\n",
++			ksft_exit_fail_msg("Too big count %u expected %u, iter %u\n",
+ 					   count, nthreads * access_per_thread, i);
+ 
+ 		c = get_dirty_pages_reset(mem, nthreads * pages_per_thread, 1, page_size);
+@@ -1454,7 +1454,7 @@ static void transact_test(int page_size)
+ 			 * access and application gets page fault again for the same write.
+ 			 */
+ 			if (count < nthreads * access_per_thread) {
+-				ksft_test_result_fail("Lost update, iter %d, %d vs %d.\n", i, count,
++				ksft_test_result_fail("Lost update, iter %u, %u vs %u.\n", i, count,
+ 						      nthreads * access_per_thread);
+ 				return;
+ 			}
+@@ -1467,7 +1467,7 @@ static void transact_test(int page_size)
+ 	finish = 1;
+ 	pthread_barrier_wait(&end_barrier);
+ 
+-	ksft_test_result_pass("%s Extra pages %u (%.1lf%%), extra thread faults %d.\n", __func__,
++	ksft_test_result_pass("%s Extra pages %u (%.1lf%%), extra thread faults %u.\n", __func__,
+ 			      extra_pages,
+ 			      100.0 * extra_pages / (iter_count * nthreads * access_per_thread),
+ 			      extra_thread_faults);
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from guanjing@cmss.chinamobile.com are
 
 
