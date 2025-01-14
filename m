@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64D301DFDE
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:31:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 523F31DFDE
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:31:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836284; cv=none; b=JdGclf4TOPOXLYrHJ305ljslR8P7LjnyBBBMdOKIfZkyQhQZopvYwohYf/jG7Jspb0GCdRqMMNBff1tBNOChHTjBLS+NMy+lJMq81p+iXnA7Rn/CQDu8jfsKxQeETpcLpv1H0bBs5pdYfS4yMMRC4snvSACcIWg45H8R3gVvUB0=
+	t=1736836314; cv=none; b=U77tVcrFR3hbP4ej7IhDVifeNDCeA2GWuXTA/cNYoKJRypf/QV5oL1B4nGo9L4dlkxpNbtCM+SxldyR/AXKtQjl9SGhfCXMs4atqacRoNYAxG16OKXUgZTVypl6k9ma8iwbdR9PQHuNEKy2uwrbARbHq7utmVbBXcdpddq1mO6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836284; c=relaxed/simple;
-	bh=R22QZMVRkRZh/KYmZvmIkppwwAgAHXxM2yI+jj0uG58=;
-	h=Date:To:From:Subject:Message-Id; b=nwu2hot38pgkC06cBEjVy1RmkneZjqtvgz9kvlFnIxiHUix5TvUtax2nzQFKmLGW34kLCiM5la+KJ4wVHv+cu+S0AxTcFjsJOaSrqde6+qW8ojIuzatCI1p+GJt22H+PxiN1B8cQcSuKZ263gi4aGXLeDkTlBTLm7ClBMJaV+Uw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vNs+RAon; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836314; c=relaxed/simple;
+	bh=iR0/VxjROrXNFl54W0tpun9rloDY149BTMIlRCjXOEg=;
+	h=Date:To:From:Subject:Message-Id; b=GiG78x+XigLXrXI2JTXIJvXjtT+93APrcpID9HVnTDj9pnX2W8XfOgxI2e3Gz4JpouIW2luwkcTiqPNdKZY1np15dDzzEswNVrxr6JowjEya3gCIBjFRC/vC5JvV9TcCC8MTQaFD2HENlzsDtizC+6toGDBZYhbPSg+tAW2dC90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EZri65tl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vNs+RAon"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6051C4CEDD;
-	Tue, 14 Jan 2025 06:31:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EZri65tl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 224F8C4CEDD;
+	Tue, 14 Jan 2025 06:31:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836283;
-	bh=R22QZMVRkRZh/KYmZvmIkppwwAgAHXxM2yI+jj0uG58=;
+	s=korg; t=1736836314;
+	bh=iR0/VxjROrXNFl54W0tpun9rloDY149BTMIlRCjXOEg=;
 	h=Date:To:From:Subject:From;
-	b=vNs+RAonJ5bunnI3BXLXMzTsLj1+3YG8gkyKT3CLR1/220uCt9IQRPQqXIirYbEpr
-	 9CiyKbB29aRrY0zlLhN1G66gjW6PFjAGa8ZCWJZsOBK1CSxDWvvXhwxJyC/HurL8fJ
-	 WrXSEiAlS28lH1kxF4a21q1L5TqOjthrD42vOcps=
-Date: Mon, 13 Jan 2025 22:31:23 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,alexjlzheng@tencent.com,alexjlzheng@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=EZri65tlBC7QdteF+cEmagu3iSHK9kGcde2cgfIpya91e+7L0/s4ppHBkTWJGx2Qp
+	 FrtGnuEoUGj8Vnca5Llo53VKElPkuGaruW/j3QE3S0qqDcI/9bjZIIctp5c89gDBLE
+	 vMNlTaHs3i2RqJE05FYXiQTypytqyXTOG60TT9Co=
+Date: Mon, 13 Jan 2025 22:31:53 -0800
+To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,kernel@xen0n.name,gregkh@linuxfoundation.org,david@redhat.com,corbet@lwn.net,chenhuacai@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch removed from -mm tree
-Message-Id: <20250114063123.C6051C4CEDD@smtp.kernel.org>
+Subject: [folded-merged] mm-add-build-time-option-for-hotplug-memory-default-online-type-v4.patch removed from -mm tree
+Message-Id: <20250114063154.224F8C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix
+     Subject: mm-add-build-time-option-for-hotplug-memory-default-online-type-v4
 has been removed from the -mm tree.  Its filename was
-     mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+     mm-add-build-time-option-for-hotplug-memory-default-online-type-v4.patch
 
-This patch was dropped because it was folded into mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault.patch
+This patch was dropped because it was folded into mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix
-Date: Fri Dec 13 04:35:29 PM PST 2024
+From: Gregory Price <gourry@gourry.net>
+Subject: mm-add-build-time-option-for-hotplug-memory-default-online-type-v4
+Date: Thu, 26 Dec 2024 11:29:18 -0700
 
-s/mmap_Lock/mmap_lock/, per Liam
+update KConfig comments
 
-Cc: Jinliang Zheng <alexjlzheng@gmail.com>
-Cc: Jinliang Zheng <alexjlzheng@tencent.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20241226182918.648799-1-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix
-+++ a/mm/memory.c
-@@ -6141,7 +6141,7 @@ static vm_fault_t sanitize_fault_flags(s
+--- a/mm/Kconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type-v4
++++ a/mm/Kconfig
+@@ -554,7 +554,7 @@ choice
+ 	prompt "Memory Hotplug Default Online Type"
+ 	default MHP_DEFAULT_ONLINE_TYPE_OFFLINE
+ 	help
+-	  Default memory type for driver managed hotplug memory.
++	  Default memory type for hotplugged memory.
  
- /*
-  * By the time we get here, we already hold either the VMA lock or the
-- * mmap_Lock (FAULT_FLAG_VMA_LOCK tells you which).
-+ * mmap_lock (FAULT_FLAG_VMA_LOCK tells you which).
-  *
-  * The mmap_lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
+ 	  This option sets the default policy setting for memory hotplug
+ 	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
+@@ -575,7 +575,7 @@ choice
+ config MHP_DEFAULT_ONLINE_TYPE_OFFLINE
+ 	bool "offline"
+ 	help
+-	  Driver managed memory will not be onlined by default.
++	  Hotplugged memory will not be onlined by default.
+ 	  Choose this for systems with drivers and user policy that
+ 	  handle onlining of hotplug memory policy.
+ 
+@@ -583,22 +583,22 @@ config MHP_DEFAULT_ONLINE_TYPE_ONLINE_AU
+ 	bool "auto"
+ 	help
+ 	  Select this if you want the kernel to automatically online
+-	  memory into the zone it thinks is reasonable. This memory
+-	  may be utilized for kernel data (e.g. page tables).
++	  hotplugged memory into the zone it thinks is reasonable.
++	  This memory may be utilized for kernel data.
+ 
+ config MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
+ 	bool "kernel"
+ 	help
+ 	  Select this if you want the kernel to automatically online
+-	  hotplug memory into a zone capable of being used for kernel
+-	  data (e.g. page tables). This typically means ZONE_NORMAL.
++	  hotplugged memory into a zone capable of being used for kernel
++	  data. This typically means ZONE_NORMAL.
+ 
+ config MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
+ 	bool "movable"
+ 	help
+ 	  Select this if you want the kernel to automatically online
+ 	  hotplug memory into ZONE_MOVABLE. This memory will generally
+-	  not be utilized for kernel data (e.g. page tables).
++	  not be utilized for kernel data.
+ 
+ 	  This should only be used when the admin knows sufficient
+ 	  ZONE_NORMAL memory is available to describe hotplug memory,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
-ksm-add-ksm-involvement-information-for-each-process-fix.patch
-documentation-filesystems-procrst-fix-possessive-form-of-process.patch
+mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
 
