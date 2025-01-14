@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0756E230999
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABD75230999
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836931; cv=none; b=MKgpYpWTDDPVJ3oMNjWXRR74KIqm7v4WyuENvPOi2MdMSO4T5FmW6DgfGyVHI5e1BY1+XG9qwNg2IqFv+8TeIbHRp+RQT0l4wiu4hB+rmgJXICgAAPFJExybK09kTWYX/gzG3DiE5aVWfqJUNaeXvtd8VZvZYupdloBy2utoLW0=
+	t=1736836931; cv=none; b=g7siii6F9uWBLkyhb8IBNG2+28t0QwLynKs8Z0fxPHcWqjPZI2eNhTh9koHVPLjY37ZIhcXpKb8+y9Oryze2tEVbFZDjpBfxzGvcgFUCxOE7VjqKCYe3O8L6gw2JaJvvIOVZ1su3fjn2hjs1rPk5BCVOiuV5E6q3L8PTyaUBrBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736836931; c=relaxed/simple;
-	bh=IAupg3t+/1lt0FNpcJu0h2JJEAZYXyakzMlzm18iVGc=;
-	h=Date:To:From:Subject:Message-Id; b=YejK+eICpL3PLLqSd4Q9hl0eT5qfR3ogyYbqjkXCIHzxwsemz5HH8Ug6UmV8QTAz6XkYZIRWJXTr2F6tSjF2aRwm+oHzu1UvvRJyCAyMZis8gTYCTuJ5ZYdAdonAocBYFua+HOBDtcigAzflAVwTlJWREFheZO12zZ4gdAKlhbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sPMJ2p64; arc=none smtp.client-ip=10.30.226.201
+	bh=Mj5s6yd4WIlzatctnyiJn5o3hekLpJysvE/N7qXFKvA=;
+	h=Date:To:From:Subject:Message-Id; b=mrWUcSzriI/A2PX/GoGMa4SQtqPuygWKHU1QAhzSNdBqTkQN/AusDAuxN7xpBfKY9Ywelir/Jlzpwo//x/61A4HCLB9QqtSfY+d76fbuHJOoD4br1pqcX9XoRt+jet6t55blYsOY0QKYvGXf7QIR11d5m/eiPgNHTPQg64VmLF4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zU0fKFlb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sPMJ2p64"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F51CC4CEDF;
-	Tue, 14 Jan 2025 06:42:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zU0fKFlb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F912C4CEE4;
+	Tue, 14 Jan 2025 06:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836930;
-	bh=IAupg3t+/1lt0FNpcJu0h2JJEAZYXyakzMlzm18iVGc=;
+	s=korg; t=1736836931;
+	bh=Mj5s6yd4WIlzatctnyiJn5o3hekLpJysvE/N7qXFKvA=;
 	h=Date:To:From:Subject:From;
-	b=sPMJ2p64f6dS9MnRu6Cgf2cq0B0orTpW8uRzmqGwI+cptI9D5SXB1grIGEpFRrNk6
-	 5uycsHmi6qmXZBQpRuN6lVOmxoK4iJc6XPQ1wnsBorkO0YtmqxHXEVaPXSX7O9cNh0
-	 c3MlDDMhqk/6xUflkWaChtfaB5WW9O9x+OjXlXqE=
-Date: Mon, 13 Jan 2025 22:42:09 -0800
-To: mm-commits@vger.kernel.org,william.kucharski@oracle.com,vbabka@suse.cz,songmuchun@bytedance.com,mgorman@techsingularity.net,linmiaohe@huawei.com,david@redhat.com,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
+	b=zU0fKFlb2XM/dnz0TnpvVeU/IxvAxeKR4WsmjIhDwUSv5JCnKhWXjwlh+BM5GWisU
+	 XsJA9xcSZ1XX9K7ntffwJUK2Y41PBwFqlrFHZniEhUivZx760WvQIqyPFQnXv7DfqD
+	 7/Qirj/xuDilLbdeXvGjqzSG2B/7kH9YTDkH6Wqg=
+Date: Mon, 13 Jan 2025 22:42:10 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,honggyu.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] slab-allocate-frozen-pages.patch removed from -mm tree
-Message-Id: <20250114064210.6F51CC4CEDF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-remove-duplicate-list_empty-quota-goals-check.patch removed from -mm tree
+Message-Id: <20250114064211.7F912C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: slab: allocate frozen pages
+     Subject: mm/damon/core: remove duplicate list_empty quota->goals check
 has been removed from the -mm tree.  Its filename was
-     slab-allocate-frozen-pages.patch
+     mm-damon-core-remove-duplicate-list_empty-quota-goals-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: slab: allocate frozen pages
-Date: Mon, 25 Nov 2024 21:01:47 +0000
+From: Honggyu Kim <honggyu.kim@sk.com>
+Subject: mm/damon/core: remove duplicate list_empty quota->goals check
+Daye: Mon, 25 Nov 2024 13:56:55 +0900
 
-Since slab does not use the page refcount, it can allocate and free frozen
-pages, saving one atomic operation per free.
+damos_set_effective_quota() checks quota contidions but there are some
+duplicate checks for quota->goals inside.
 
-Link: https://lkml.kernel.org/r/20241125210149.2976098-16-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+This patch reduces one of if statement to simplify the esz calculation
+logic by setting esz as ULONG_MAX by default.
+
+Link: https://lkml.kernel.org/r/20241125184307.41746-1-sj@kernel.org
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/slub.c~slab-allocate-frozen-pages
-+++ a/mm/slub.c
-@@ -2420,9 +2420,9 @@ static inline struct slab *alloc_slab_pa
- 	unsigned int order = oo_order(oo);
+--- a/mm/damon/core.c~mm-damon-core-remove-duplicate-list_empty-quota-goals-check
++++ a/mm/damon/core.c
+@@ -1550,7 +1550,7 @@ static unsigned long damos_quota_score(s
+ static void damos_set_effective_quota(struct damos_quota *quota)
+ {
+ 	unsigned long throughput;
+-	unsigned long esz;
++	unsigned long esz = ULONG_MAX;
  
- 	if (node == NUMA_NO_NODE)
--		folio = (struct folio *)alloc_pages(flags, order);
-+		folio = (struct folio *)alloc_frozen_pages(flags, order);
- 	else
--		folio = (struct folio *)__alloc_pages_node(node, flags, order);
-+		folio = (struct folio *)__alloc_frozen_pages(flags, order, node, NULL);
+ 	if (!quota->ms && list_empty(&quota->goals)) {
+ 		quota->esz = quota->sz;
+@@ -1572,10 +1572,7 @@ static void damos_set_effective_quota(st
+ 				quota->total_charged_ns;
+ 		else
+ 			throughput = PAGE_SIZE * 1024;
+-		if (!list_empty(&quota->goals))
+-			esz = min(throughput * quota->ms, esz);
+-		else
+-			esz = throughput * quota->ms;
++		esz = min(throughput * quota->ms, esz);
+ 	}
  
- 	if (!folio)
- 		return NULL;
-@@ -2656,7 +2656,7 @@ static void __free_slab(struct kmem_cach
- 	__folio_clear_slab(folio);
- 	mm_account_reclaimed_pages(pages);
- 	unaccount_slab(slab, order, s);
--	__free_pages(&folio->page, order);
-+	free_frozen_pages(&folio->page, order);
- }
- 
- static void rcu_free_slab(struct rcu_head *h)
+ 	if (quota->sz && quota->sz < esz)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from honggyu.kim@sk.com are
 
-mm-remove-pagetranstail.patch
 
