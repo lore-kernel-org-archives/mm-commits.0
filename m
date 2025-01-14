@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FBCA24332A
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD23D23D3E0
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837094; cv=none; b=foVdYQfrDT95YMfqbSV1KwcZNh5/tMmRk4BXdfz6HUkQi7DehT7AZVUoAtr5TrWU6Xe1ne9E87zV6QUf4YkjJ8D645yvJGoIMJa5mbhQjc99FmEIxTadkYvqMZCAKy/dS9QgMtLZ6PCAjn44QJCGf+ZudxoghoZibjosiD2mOqI=
+	t=1736837095; cv=none; b=lDi1dG0jRNONx+kdLQOINr4DRL+rTkI2tJfOvNXOJ/6mtvZ3oc3LBxe0++Xe/cIvKGjMwyHxwkJ5HB8jtLH5uTKjHoU0Vj0VfOOExR9txUhJHR34e33nQocDpV6UnJL4WtqfMayGXw+FW7JxwQDsJzW12DlRxPnmVoSD7VS3yAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837094; c=relaxed/simple;
-	bh=/GZLIqJEwZB0+I1Hb1lnr8y0H2TQ6g5iNmFs0hvSDIk=;
-	h=Date:To:From:Subject:Message-Id; b=Tuh7tUHxrVqxIZBqiCXjlSwXkw/hDxXk/A2c8e2Ot5IjtSgo54fbXwY3CM8LwxwSqhEWSbBZIWO6k0LF78rWaKQk9x/mMOWdXFM+nSeWZKY7zld56EDzcnhzgNhqk2S0GmXOWjJQwU3gwvX3gnYrkIqzi5QtKy9zZuxJR07y2bY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oN0nH02e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837095; c=relaxed/simple;
+	bh=8jrdSKOcEH0N5pVxyY+PjpbnAlbb81nstkoCNFXNKnU=;
+	h=Date:To:From:Subject:Message-Id; b=CXLIwAuYoYNatLbp6q12kNdktYniFjUDkF5MZEEIo2Z6rLGvTzGOAwvYU+WeV/gAIWRQHyiZQQtRxp3GDLorE4/Cp9NUkyJBJORnKxtkXxTq6t7Hzu0kcA8ud6TleUWN0WWMc72hEJ81GWMyF8/BvDkAE+d7CZLuCzw1dFnRqoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e0tj9LQJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oN0nH02e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46468C4CEDD;
-	Tue, 14 Jan 2025 06:44:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e0tj9LQJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91772C4CEDD;
+	Tue, 14 Jan 2025 06:44:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837094;
-	bh=/GZLIqJEwZB0+I1Hb1lnr8y0H2TQ6g5iNmFs0hvSDIk=;
+	s=korg; t=1736837095;
+	bh=8jrdSKOcEH0N5pVxyY+PjpbnAlbb81nstkoCNFXNKnU=;
 	h=Date:To:From:Subject:From;
-	b=oN0nH02e9E5zx6POuvoctEr4sJfiLKnymWG+e3cD2sRMufJVR2sDBLauNw20aRTy4
-	 hB2ZxgUU8T2EbF9PR1DTgw0rWiRllf3f5jdRtCRvPw2ayYjAsFq1opRKREv8M6iZSe
-	 BqSHMcpUY9Due/MV/TtvEjqmFmFN7w7HbeAqbtps=
-Date: Mon, 13 Jan 2025 22:44:53 -0800
+	b=e0tj9LQJfoVghYF1aIjPskn84uOe204fJBcnuw0eO4btftMAumPQSNfxD8YJw4F6P
+	 NJDI0csshG6Wxn40ceJdqfSSwvnwEzb0PQ0SqWIg1Zcpa6O+Qvm7szsv5M+jcWKbOY
+	 OnWVJbRLSCB6Aoj0x+0BSrOJf/6klPzZps4hwcjU=
+Date: Mon, 13 Jan 2025 22:44:55 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-free-slot-memory-early-during-write.patch removed from -mm tree
-Message-Id: <20250114064454.46468C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] zram-remove-entry-element-member.patch removed from -mm tree
+Message-Id: <20250114064455.91772C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: free slot memory early during write
+     Subject: zram: remove entry element member
 has been removed from the -mm tree.  Its filename was
-     zram-free-slot-memory-early-during-write.patch
+     zram-remove-entry-element-member.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: free slot memory early during write
-Date: Wed, 18 Dec 2024 15:34:18 +0900
+Subject: zram: remove entry element member
+Date: Wed, 18 Dec 2024 15:34:19 +0900
 
-Patch series "zram: split page type read/write handling", v2.
+Element is in the same anon union as handle and hence holds the same
+value, which makes code below sort of confusing
 
-This is a subset of [1] series which contains only fixes and improvements
-(no new features, as ZRAM_HUGE split is still under consideration).
+    handle = zram_get_handle()
+    if (!handle)
+	element = zram_get_element()
 
-The motivation for factoring out is that zram_write_page() gets more and
-more complex all the time, because it tries to handle too many scenarios:
-ZRAM_SAME store, ZRAM_HUGE store, compress page store with zs_malloc
-allocation slowpath and conditional recompression, etc.  Factor those out
-and make things easier to handle.
+Element doesn't really simplify the code, let's just remove it.  We
+already re-purpose handle to store the block id a written back page.
 
-Addition of cond_resched() is simply a fix, I can trigger watchdog from
-zram writeback().  And early slot free is just a reasonable thing to do.
-
-[1] https://lore.kernel.org/linux-kernel/20241119072057.3440039-1-senozhatsky@chromium.org
-
-
-This patch (of 7):
-
-In the current implementation entry's previously allocated memory is
-released in the very last moment, when we already have allocated a new
-memory for new data.  This, basically, temporarily increases memory usage
-for no good reason.  For example, consider the case when both old (stale)
-and new entry data are incompressible so such entry will temporarily use
-two physical pages - one for stale (old) data and one for new data.  We
-can release old memory as soon as we get a write request for entry.
-
-Link: https://lkml.kernel.org/r/20241218063513.297475-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20241218063513.297475-2-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20241218063513.297475-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   23 +++++------------------
+ drivers/block/zram/zram_drv.h |    5 +----
+ 2 files changed, 6 insertions(+), 22 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-free-slot-memory-early-during-write
+--- a/drivers/block/zram/zram_drv.c~zram-remove-entry-element-member
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1649,6 +1649,11 @@ static int zram_write_page(struct zram *
- 	unsigned long element = 0;
- 	enum zram_pageflags flags = 0;
+@@ -112,17 +112,6 @@ static void zram_clear_flag(struct zram
+ 	zram->table[index].flags &= ~BIT(flag);
+ }
  
-+	/* First, free memory allocated to this slot (if any) */
-+	zram_slot_lock(zram, index);
-+	zram_free_page(zram, index);
-+	zram_slot_unlock(zram, index);
-+
- 	mem = kmap_local_page(page);
- 	if (page_same_filled(mem, &element)) {
- 		kunmap_local(mem);
-@@ -1737,13 +1742,7 @@ compress_again:
- 	zs_unmap_object(zram->mem_pool, handle);
- 	atomic64_add(comp_len, &zram->stats.compr_data_size);
- out:
--	/*
--	 * Free memory associated with this sector
--	 * before overwriting unused sectors.
--	 */
- 	zram_slot_lock(zram, index);
--	zram_free_page(zram, index);
+-static inline void zram_set_element(struct zram *zram, u32 index,
+-			unsigned long element)
+-{
+-	zram->table[index].element = element;
+-}
 -
- 	if (comp_len == PAGE_SIZE) {
- 		zram_set_flag(zram, index, ZRAM_HUGE);
- 		atomic64_inc(&zram->stats.huge_pages);
+-static unsigned long zram_get_element(struct zram *zram, u32 index)
+-{
+-	return zram->table[index].element;
+-}
+-
+ static size_t zram_get_obj_size(struct zram *zram, u32 index)
+ {
+ 	return zram->table[index].flags & (BIT(ZRAM_FLAG_SHIFT) - 1);
+@@ -879,7 +868,7 @@ static ssize_t writeback_store(struct de
+ 
+ 		zram_free_page(zram, index);
+ 		zram_set_flag(zram, index, ZRAM_WB);
+-		zram_set_element(zram, index, blk_idx);
++		zram_set_handle(zram, index, blk_idx);
+ 		blk_idx = 0;
+ 		atomic64_inc(&zram->stats.pages_stored);
+ 		spin_lock(&zram->wb_limit_lock);
+@@ -1505,7 +1494,7 @@ static void zram_free_page(struct zram *
+ 
+ 	if (zram_test_flag(zram, index, ZRAM_WB)) {
+ 		zram_clear_flag(zram, index, ZRAM_WB);
+-		free_block_bdev(zram, zram_get_element(zram, index));
++		free_block_bdev(zram, zram_get_handle(zram, index));
+ 		goto out;
+ 	}
+ 
+@@ -1549,12 +1538,10 @@ static int zram_read_from_zspool(struct
+ 
+ 	handle = zram_get_handle(zram, index);
+ 	if (!handle || zram_test_flag(zram, index, ZRAM_SAME)) {
+-		unsigned long value;
+ 		void *mem;
+ 
+-		value = handle ? zram_get_element(zram, index) : 0;
+ 		mem = kmap_local_page(page);
+-		zram_fill_page(mem, PAGE_SIZE, value);
++		zram_fill_page(mem, PAGE_SIZE, handle);
+ 		kunmap_local(mem);
+ 		return 0;
+ 	}
+@@ -1600,7 +1587,7 @@ static int zram_read_page(struct zram *z
+ 		 */
+ 		zram_slot_unlock(zram, index);
+ 
+-		ret = read_from_bdev(zram, page, zram_get_element(zram, index),
++		ret = read_from_bdev(zram, page, zram_get_handle(zram, index),
+ 				     parent);
+ 	}
+ 
+@@ -1751,7 +1738,7 @@ out:
+ 
+ 	if (flags) {
+ 		zram_set_flag(zram, index, flags);
+-		zram_set_element(zram, index, element);
++		zram_set_handle(zram, index, element);
+ 	}  else {
+ 		zram_set_handle(zram, index, handle);
+ 		zram_set_obj_size(zram, index, comp_len);
+--- a/drivers/block/zram/zram_drv.h~zram-remove-entry-element-member
++++ a/drivers/block/zram/zram_drv.h
+@@ -62,10 +62,7 @@ enum zram_pageflags {
+ 
+ /* Allocated for each disk page */
+ struct zram_table_entry {
+-	union {
+-		unsigned long handle;
+-		unsigned long element;
+-	};
++	unsigned long handle;
+ 	unsigned int flags;
+ 	spinlock_t lock;
+ #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
