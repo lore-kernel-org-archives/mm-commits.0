@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0D5523C6EC
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56B0023A103
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836995; cv=none; b=vA49kjxYUiun7/xk/uXgDcdV5e0esW7l/FyiB/VNPEefgR7gYeeZcyECwYLKAgSOEHgGu3KBaq9X3ajznYXCtG5UyHfZuVd5uErbyYh+KH0SgnHktZxRgIB7BHNBO9oxDqjKfk9ctHx+BWSZej0SSIm5iPg4c6Sq+/+a6qX4+HM=
+	t=1736836996; cv=none; b=jn2FR4dqy6KrRQNY+awXsYoEUuKxMrJ7fgZlG93C42iPBhN23JbVfEfiwFeSpDlrPSixOBiP9o+1yiEOw+j7o0BWIBF8IjqucudbOVFAPpPV91FHDvUq+FCK2r/lzTU58W8QrkM2UiduERsmHoABW3z+lPxJ1G9GwheKJJLcMbA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836995; c=relaxed/simple;
-	bh=mT0LbvT1KLcVMzdhowNCUnjufXcbeoHjcnDWGymBa90=;
-	h=Date:To:From:Subject:Message-Id; b=ZKqUbMUH9LJwRi+yOmk+3DLqpCZ1Bv8l6xj2L0UkSCAzDoZbN0nrO4AKN0u5UT01TJrP8i2OazCubmgfaxKDHbHznFY1ISKa9khhL31jABTQvSx55dVddP3vrSK91O8qXulDUNrfOrFlnZbz56mPmkO91I9Km/5XMibqpXfFMtw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nY3xAL16; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836996; c=relaxed/simple;
+	bh=mfBGbGqGG7SEgbaxf9rIYu1XkZFiq1Gg5cD+7xdsOmY=;
+	h=Date:To:From:Subject:Message-Id; b=ihr4ja7hFp6pyPUAfAKb8kCsLZNkPGuk4DUswqmTi6wUcO16uqhRsFKznsVDGUU/zGxidS3OP5mASpz8DRTZI/CQ2pgYRFNZv+TkwhUyNIkYGzT3jF1tiXb8BjRZrklUoym27NanRR6Xk0Z+KbOXmT52sVZGDBfo/Ozk4SWvqZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mxdbjUVl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nY3xAL16"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C713CC4CEDD;
-	Tue, 14 Jan 2025 06:43:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mxdbjUVl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DFFFC4CEDD;
+	Tue, 14 Jan 2025 06:43:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836994;
-	bh=mT0LbvT1KLcVMzdhowNCUnjufXcbeoHjcnDWGymBa90=;
+	s=korg; t=1736836996;
+	bh=mfBGbGqGG7SEgbaxf9rIYu1XkZFiq1Gg5cD+7xdsOmY=;
 	h=Date:To:From:Subject:From;
-	b=nY3xAL16gyte6RY/fm3wG1dVfaBD1tgARMRUxB01dnS5CrkotyM3NItRovg1xGGll
-	 coqrr5U9fH/yZrj1ZWQI6EsYs233+bwuUmalsKug99nmC0pMkVOZ/cGzX6kx4yMfDg
-	 ArTufZaJkYwmgVE+QmEeHHwJxBE2BYDi9rVFW4R0=
-Date: Mon, 13 Jan 2025 22:43:14 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,guillaume@morinfr.org,david@redhat.com,akpm@linux-foundation.org
+	b=mxdbjUVlCieihYQ43uOyjMosiqt9dB+ir34vY/jjm25iE4Bq9V0cSBuO/wQ2qhMDj
+	 AR2pnfs1RbYEKef93GIGDdqppu9eSDMVg3+Q9baDSuzCmQSU3DHzy1iSumA77r1Mf/
+	 zOIZ8HE1Jqbl6sU8AfXF2ZrFIzm0xb2WJAFhryX0=
+Date: Mon, 13 Jan 2025 22:43:15 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch removed from -mm tree
-Message-Id: <20250114064314.C713CC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-recheck-pmd-state-in-retract_page_tables.patch removed from -mm tree
+Message-Id: <20250114064316.2DFFFC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,120 +35,206 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: don't map folios writable without VM_WRITE when copying during fork()
+     Subject: mm: khugepaged: recheck pmd state in retract_page_tables()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
+     mm-khugepaged-recheck-pmd-state-in-retract_page_tables.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: don't map folios writable without VM_WRITE when copying during fork()
-Date: Wed, 4 Dec 2024 16:31:00 +0100
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: khugepaged: recheck pmd state in retract_page_tables()
+Date: Wed, 4 Dec 2024 19:09:41 +0800
 
-If we have to trigger a hugetlb folio copy during fork() because the anon
-folio might be pinned, we currently unconditionally create a writable PTE.
+Patch series "synchronously scan and reclaim empty user PTE pages", v4.
 
-However, the VMA might not have write permissions (VM_WRITE) at that
-point.
+Previously, we tried to use a completely asynchronous method to reclaim
+empty user PTE pages [1].  After discussing with David Hildenbrand, we
+decided to implement synchronous reclaimation in the case of
+madvise(MADV_DONTNEED) as the first step.
 
-Fix it by checking the VMA for VM_WRITE.  Make the code less error prone
-by moving checking for VM_WRITE into make_huge_pte(), and letting callers
-only specify whether we should try making it writable.
+So this series aims to synchronously free the empty PTE pages in
+madvise(MADV_DONTNEED) case.  We will detect and free empty PTE pages in
+zap_pte_range(), and will add zap_details.reclaim_pt to exclude cases
+other than madvise(MADV_DONTNEED).
 
-A simple reproducer that longterm-pins the folios using liburing to then
-mprotect(PROT_READ) the folios befor fork() [1] results in:
+In zap_pte_range(), mmu_gather is used to perform batch tlb flushing and
+page freeing operations.  Therefore, if we want to free the empty PTE page
+in this path, the most natural way is to add it to mmu_gather as well. 
+Now, if CONFIG_MMU_GATHER_RCU_TABLE_FREE is selected, mmu_gather will free
+page table pages by semi RCU:
 
-Before:
-[FAIL] access should not have worked
+ - batch table freeing: asynchronous free by RCU
+ - single table freeing: IPI + synchronous free
 
-After:
-[PASS] access did not work as expected
+But this is not enough to free the empty PTE page table pages in paths
+other that munmap and exit_mmap path, because IPI cannot be synchronized
+with rcu_read_lock() in pte_offset_map{_lock}().  So we should let single
+table also be freed by RCU like batch table freeing.
 
-[1] https://gitlab.com/davidhildenbrand/scratchspace/-/raw/main/reproducers/hugetlb-mkwrite-fork.c
+As a first step, we supported this feature on x86_64 and selectd the newly
+introduced CONFIG_ARCH_SUPPORTS_PT_RECLAIM.
 
-This is rather a corner case, so stable might not be warranted.
+For other cases such as madvise(MADV_FREE), consider scanning and freeing
+empty PTE pages asynchronously in the future.
 
-Link: https://lkml.kernel.org/r/20241204153100.1967364-1-david@redhat.com
-Fixes: 4eae4efa2c29 ("hugetlb: do early cow when page pinned on src mm")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
+Note: issues related to TLB flushing are not new to this series and are tracked
+      in the separate RFC patch [3]. And more context please refer to this
+      thread [4].
+
+[1]. https://lore.kernel.org/lkml/cover.1718267194.git.zhengqi.arch@bytedance.com/
+[2]. https://lore.kernel.org/lkml/cover.1727332572.git.zhengqi.arch@bytedance.com/
+[3]. https://lore.kernel.org/lkml/20240815120715.14516-1-zhengqi.arch@bytedance.com/
+[4]. https://lore.kernel.org/lkml/6f38cb19-9847-4f70-bbe7-06881bb016be@bytedance.com/
+
+
+This patch (of 11):
+
+In retract_page_tables(), the lock of new_folio is still held, we will be
+blocked in the page fault path, which prevents the pte entries from being
+set again.  So even though the old empty PTE page may be concurrently
+freed and a new PTE page is filled into the pmd entry, it is still empty
+and can be removed.
+
+So just refactor the retract_page_tables() a little bit and recheck the
+pmd state after holding the pmd lock.
+
+Link: https://lkml.kernel.org/r/cover.1733305182.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/70a51804cd19d44ccaf031825d9fb6eaf92f2bad.1733305182.git.zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Suggested-by: Jann Horn <jannh@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Guillaume Morin <guillaume@morinfr.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ Documentation/mm/process_addrs.rst |    4 ++
+ mm/khugepaged.c                    |   45 ++++++++++++++++++---------
+ 2 files changed, 35 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork
-+++ a/mm/hugetlb.c
-@@ -5155,12 +5155,12 @@ const struct vm_operations_struct hugetl
- };
+--- a/Documentation/mm/process_addrs.rst~mm-khugepaged-recheck-pmd-state-in-retract_page_tables
++++ a/Documentation/mm/process_addrs.rst
+@@ -531,6 +531,10 @@ are extra requirements for accessing the
+   new page table has been installed in the same location and filled with
+   entries. Writers normally need to take the PTE lock and revalidate that the
+   PMD entry still refers to the same PTE-level page table.
++  If the writer does not care whether it is the same PTE-level page table, it
++  can take the PMD lock and revalidate that the contents of pmd entry still meet
++  the requirements. In particular, this also happens in :c:func:`!retract_page_tables`
++  when handling :c:macro:`!MADV_COLLAPSE`.
  
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
--				int writable)
-+		bool try_mkwrite)
+ To access PTE-level page tables, a helper like :c:func:`!pte_offset_map_lock` or
+ :c:func:`!pte_offset_map` can be used depending on stability requirements.
+--- a/mm/khugepaged.c~mm-khugepaged-recheck-pmd-state-in-retract_page_tables
++++ a/mm/khugepaged.c
+@@ -948,17 +948,10 @@ static int hugepage_vma_revalidate(struc
+ 	return SCAN_SUCCEED;
+ }
+ 
+-static int find_pmd_or_thp_or_none(struct mm_struct *mm,
+-				   unsigned long address,
+-				   pmd_t **pmd)
++static inline int check_pmd_state(pmd_t *pmd)
  {
- 	pte_t entry;
- 	unsigned int shift = huge_page_shift(hstate_vma(vma));
- 
--	if (writable) {
-+	if (try_mkwrite && (vma->vm_flags & VM_WRITE)) {
- 		entry = huge_pte_mkwrite(huge_pte_mkdirty(mk_huge_pte(page,
- 					 vma->vm_page_prot)));
- 	} else {
-@@ -5213,7 +5213,7 @@ static void
- hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
- 		      struct folio *new_folio, pte_t old, unsigned long sz)
- {
--	pte_t newpte = make_huge_pte(vma, &new_folio->page, 1);
-+	pte_t newpte = make_huge_pte(vma, &new_folio->page, true);
- 
- 	__folio_mark_uptodate(new_folio);
- 	hugetlb_add_new_anon_rmap(new_folio, vma, addr);
-@@ -6249,8 +6249,7 @@ static vm_fault_t hugetlb_no_page(struct
- 		hugetlb_add_new_anon_rmap(folio, vma, vmf->address);
- 	else
- 		hugetlb_add_file_rmap(folio);
--	new_pte = make_huge_pte(vma, &folio->page, ((vma->vm_flags & VM_WRITE)
--				&& (vma->vm_flags & VM_SHARED)));
-+	new_pte = make_huge_pte(vma, &folio->page, vma->vm_flags & VM_SHARED);
- 	/*
- 	 * If this pte was previously wr-protected, keep it wr-protected even
- 	 * if populated.
-@@ -6582,7 +6581,6 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	spinlock_t *ptl;
- 	int ret = -ENOMEM;
- 	struct folio *folio;
--	int writable;
- 	bool folio_in_pagecache = false;
- 
- 	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
-@@ -6736,12 +6734,8 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
- 	 * with wp flag set, don't set pte write bit.
- 	 */
--	if (wp_enabled || (is_continue && !vm_shared))
--		writable = 0;
--	else
--		writable = dst_vma->vm_flags & VM_WRITE;
+-	pmd_t pmde;
 -
--	_dst_pte = make_huge_pte(dst_vma, &folio->page, writable);
-+	_dst_pte = make_huge_pte(dst_vma, &folio->page,
-+				 !wp_enabled && !(is_continue && !vm_shared));
- 	/*
- 	 * Always mark UFFDIO_COPY page dirty; note that this may not be
- 	 * extremely important for hugetlbfs for now since swapping is not
+-	*pmd = mm_find_pmd(mm, address);
+-	if (!*pmd)
+-		return SCAN_PMD_NULL;
++	pmd_t pmde = pmdp_get_lockless(pmd);
+ 
+-	pmde = pmdp_get_lockless(*pmd);
+ 	if (pmd_none(pmde))
+ 		return SCAN_PMD_NONE;
+ 	if (!pmd_present(pmde))
+@@ -972,6 +965,17 @@ static int find_pmd_or_thp_or_none(struc
+ 	return SCAN_SUCCEED;
+ }
+ 
++static int find_pmd_or_thp_or_none(struct mm_struct *mm,
++				   unsigned long address,
++				   pmd_t **pmd)
++{
++	*pmd = mm_find_pmd(mm, address);
++	if (!*pmd)
++		return SCAN_PMD_NULL;
++
++	return check_pmd_state(*pmd);
++}
++
+ static int check_pmd_still_valid(struct mm_struct *mm,
+ 				 unsigned long address,
+ 				 pmd_t *pmd)
+@@ -1721,7 +1725,7 @@ static void retract_page_tables(struct a
+ 		pmd_t *pmd, pgt_pmd;
+ 		spinlock_t *pml;
+ 		spinlock_t *ptl;
+-		bool skipped_uffd = false;
++		bool success = false;
+ 
+ 		/*
+ 		 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
+@@ -1758,6 +1762,19 @@ static void retract_page_tables(struct a
+ 		mmu_notifier_invalidate_range_start(&range);
+ 
+ 		pml = pmd_lock(mm, pmd);
++		/*
++		 * The lock of new_folio is still held, we will be blocked in
++		 * the page fault path, which prevents the pte entries from
++		 * being set again. So even though the old empty PTE page may be
++		 * concurrently freed and a new PTE page is filled into the pmd
++		 * entry, it is still empty and can be removed.
++		 *
++		 * So here we only need to recheck if the state of pmd entry
++		 * still meets our requirements, rather than checking pmd_same()
++		 * like elsewhere.
++		 */
++		if (check_pmd_state(pmd) != SCAN_SUCCEED)
++			goto drop_pml;
+ 		ptl = pte_lockptr(mm, pmd);
+ 		if (ptl != pml)
+ 			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+@@ -1771,20 +1788,20 @@ static void retract_page_tables(struct a
+ 		 * repeating the anon_vma check protects from one category,
+ 		 * and repeating the userfaultfd_wp() check from another.
+ 		 */
+-		if (unlikely(vma->anon_vma || userfaultfd_wp(vma))) {
+-			skipped_uffd = true;
+-		} else {
++		if (likely(!vma->anon_vma && !userfaultfd_wp(vma))) {
+ 			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
+ 			pmdp_get_lockless_sync();
++			success = true;
+ 		}
+ 
+ 		if (ptl != pml)
+ 			spin_unlock(ptl);
++drop_pml:
+ 		spin_unlock(pml);
+ 
+ 		mmu_notifier_invalidate_range_end(&range);
+ 
+-		if (!skipped_uffd) {
++		if (success) {
+ 			mm_dec_nr_ptes(mm);
+ 			page_table_check_pte_clear_range(mm, addr, pgt_pmd);
+ 			pte_free_defer(mm, pmd_pgtable(pgt_pmd));
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag.patch
-mm-hugetlb-rename-isolate_hugetlb-to-folio_isolate_hugetlb.patch
-mm-migrate-dont-call-folio_putback_active_hugetlb-on-dst-hugetlb-folio.patch
-mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb.patch
-mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios.patch
-mm-hugetlb-use-folio-lru-int-demote_free_hugetlb_folios.patch
 
