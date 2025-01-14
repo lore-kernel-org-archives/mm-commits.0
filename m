@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDEB7230276
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:23:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 294C722F11
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:23:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736835793; cv=none; b=tyGR1OEvZ9WHtIifqmScPQlkf2MMpTxaM8tC1k1ZYAjAu0jhFT9sdQt2DIyj8vcY/DE7feRZo4q1EHIWnntgS1VJc654HtQvwvVwDZlGo2DfAYJye3nLkI+FX/wKYVVc1YUzOe6hkGL6N4KOW2aiXBL72cxmiVA6k8Hj3CvdbVM=
+	t=1736835821; cv=none; b=blroLRixitJoXQXmXxhzfuEZuGxIH/x0ifiALYK3SMLBKq9XPhwse/WTr5D34mKe71gZF8IHvlmvu+y6+kGUr3tO4FcGWr8erPjle2Le+28OjNYwnvBJgU3O2c8vgFsBe3AfbAFsXrr6waKKVR83OlSG8Qff/nG7YErYjyvXZ9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736835793; c=relaxed/simple;
-	bh=OLOj9kE/wvcAR+4lUg1sh2SI16utyK3D1ReRh0gsVGw=;
-	h=Date:To:From:Subject:Message-Id; b=cPhnWCpp4iWMvl52ah1YqoOo8GWI0zhif5ixzV31nbp5Er+XGd6HBvES4UfukuLX8C6yYQnh5yHS3+7pKQhRXSSXaRDt+NVpa29d+gLuWw2lIRgizpQYUteSP97vkYQWUSmIzhccfJgJBxx4vhCOL4JDCBqZ6HK0Z93pw2UXTQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bne16Kjf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736835821; c=relaxed/simple;
+	bh=Z7KrjipgseyJ7/0YL6IyD7z2Wnr1Vf+SVE+hqprV9jw=;
+	h=Date:To:From:Subject:Message-Id; b=JhNq3U3vr3vc/B1iKotE86lQPgTlFzd9jwfmprMfLVzNarqZl9Lbxbsnrx7+L3GEhNXJ/8sxI8NuH+FedTpMS8HpmuyQcqH6K6r3OoUWk2fzWEqSCA0ZfHbZhtyjSESmHH4yILjzioog+2KhB8v3pb8QkDvYMgHrtT1b3aE6n2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TV3wy6ei; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bne16Kjf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F24CC4CEDD;
-	Tue, 14 Jan 2025 06:23:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TV3wy6ei"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98DC9C4CEDD;
+	Tue, 14 Jan 2025 06:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736835793;
-	bh=OLOj9kE/wvcAR+4lUg1sh2SI16utyK3D1ReRh0gsVGw=;
+	s=korg; t=1736835820;
+	bh=Z7KrjipgseyJ7/0YL6IyD7z2Wnr1Vf+SVE+hqprV9jw=;
 	h=Date:To:From:Subject:From;
-	b=bne16KjfOd0fPMubya7ovCS5JBpsLibQMTqUv6x2N94V+xpufhFvErHlBOemf7hyA
-	 i8Vm16xk+Filtujd0Q8VWRbCmfwa96JZpgEEnN6aFa131iWNXQ4yocWd74u4xax1ur
-	 3TA97OOxQJXHMptD7/gevBYtuSIWDd2DjYU1Fh3I=
-Date: Mon, 13 Jan 2025 22:23:12 -0800
-To: mm-commits@vger.kernel.org,gaoxiang17@xiaomi.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=TV3wy6eiKc5Y1FxjgoDZ/oFI+616FLe+T/uOTPxKi4BrIPsZWP2spVYh/1tOS1NA6
+	 WOIRLE/eg6eD3JRXBEjlF/ILn9j2eT1zUObi871ZYml9J46i2ltraAGHmGbtfK1SQW
+	 V3OUXhUs7Q7bTFsd/6w7cCIyQz4yApJ1Y6FNaxYw=
+Date: Mon, 13 Jan 2025 22:23:40 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch removed from -mm tree
-Message-Id: <20250114062313.3F24CC4CEDD@smtp.kernel.org>
+Subject: [folded-merged] mm-vma-move-brk-internals-to-mm-vmac-fix.patch removed from -mm tree
+Message-Id: <20250114062340.98DC9C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix
+     Subject: mm/vma: add missing personality header import
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
+     mm-vma-move-brk-internals-to-mm-vmac-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
+This patch was dropped because it was folded into mm-vma-move-brk-internals-to-mm-vmac.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix
-Date: Fri Nov 29 09:23:51 PM PST 2024
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: add missing personality header import
+Date: Wed, 4 Dec 2024 12:00:35 +0000
 
-tweak grammer, fit to 80 cols
+Some architectures have different header dependency chains, we incorrectly
+failed to important linux/personality.h which broke MIPS. Fix this.
 
-Cc: gaoxiang17 <gaoxiang17@xiaomi.com>
+Link: https://lkml.kernel.org/r/2a717265-985f-45eb-9257-8b2857088ed4@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/vma_internal.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix
-+++ a/mm/page_alloc.c
-@@ -1856,11 +1856,12 @@ static bool can_steal_fallback(unsigned
- 		return true;
- 
- 	/*
--	 * movable pages won't cause permanent fragmentation, so when you alloc small pages,
--	 * you just need to temporarily steal unmovable or reclaimable pages that are closest
--	 * to the request size. After a while, memory compact may occur to form large contiguous
--	 * pages, and the next movable allocation may not need to steal. Unmovable and reclaimable
--	 * allocation need to actually steal pages.
-+	 * Movable pages won't cause permanent fragmentation, so when you alloc
-+	 * small pages, you just need to temporarily steal unmovable or
-+	 * reclaimable pages that are closest to the request size.  After a
-+	 * while, memory compaction may occur to form large contiguous pages,
-+	 * and the next movable allocation may not need to steal.  Unmovable and
-+	 * reclaimable allocations need to actually steal pages.
- 	 */
- 	if (order >= pageblock_order / 2 ||
- 		start_mt == MIGRATE_RECLAIMABLE ||
+--- a/mm/vma_internal.h~mm-vma-move-brk-internals-to-mm-vmac-fix
++++ a/mm/vma_internal.h
+@@ -35,6 +35,7 @@
+ #include <linux/mutex.h>
+ #include <linux/pagemap.h>
+ #include <linux/perf_event.h>
++#include <linux/personality.h>
+ #include <linux/pfn.h>
+ #include <linux/rcupdate.h>
+ #include <linux/rmap.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
-mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
-mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
-ksm-add-ksm-involvement-information-for-each-process-fix.patch
-documentation-filesystems-procrst-fix-possessive-form-of-process.patch
+mm-vma-move-brk-internals-to-mm-vmac.patch
+mm-vma-move-unmapped_area-internals-to-mm-vmac.patch
+mm-abstract-get_arg_page-stack-expansion-and-mmap-read-lock.patch
+mm-vma-move-stack-expansion-logic-to-mm-vmac.patch
+mm-vma-move-__vm_munmap-to-mm-vmac.patch
+selftests-mm-add-fork-cow-guard-page-test.patch
+mm-enforce-__must_check-on-vma-merge-and-split.patch
+mm-perform-all-memfd-seal-checks-in-a-single-place.patch
+mm-perform-all-memfd-seal-checks-in-a-single-place-fix.patch
+maintainers-update-memory-mapping-section.patch
+mm-assert-mmap-write-lock-held-on-do_mmap-mmap_region.patch
+mm-add-comments-to-do_mmap-mmap_region-and-vm_mmap.patch
+tools-testing-add-simple-__mmap_region-userland-test.patch
+mm-debug-introduce-vm_warn_on_vmg-to-dump-vma-merge-state.patch
+mm-debug-prefer-vm_warn_on_vmg-to-report-vmg-debug-warnings.patch
+mips-vdso-prefer-do_mmap-to-mmap_region.patch
+mm-make-mmap_region-internal.patch
 
