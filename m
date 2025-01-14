@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33A671C2DC8
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:32:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 579331C1F15
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:41:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836375; cv=none; b=XJln/wsuA15y971vHnSWSqIbeaNzZ5bPHgUCl3PMsrcySc77JK3IIjgb9Qd4PT4eGlyXW2jimQXoiMCDxQkcSjPcCw/Si4k6VnIFtrBoYzHreq6gnvcTKu9ZqDJdsbG0nia9Iaxjns/utfK01LfjPJTnQc0hU4NSJfeJKFkcj4g=
+	t=1736836910; cv=none; b=lqWcpRfQHfPmdHx9RQv+yeoJ55C4T5pW7iYdq5J9QBHG/ABDEBvERsaPurhsqUdzHTidTim2+mzkxS0hHIeiPe65WaHh8xVBIAECOISH7KdCmudhtsnVsYyOmuqW/c4tCWOPASlI+37AOTopY6D5OCTlAA0hfwc7Eo3PfoCIo7A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836375; c=relaxed/simple;
-	bh=N9fQ7xYb1xQk+OnDhO7XTBhaKm/GRl2UEUhoMHq3Rrg=;
-	h=Date:To:From:Subject:Message-Id; b=ADAXG0WXHQXTnhBWus0uzFJE116OmPafE1mwC9BkAvdXhLxrX4ex3WkMkwD5tjnrohzziKE+XJOgtsrhNYXujKsOgRVPYbIDQg8D/1CBbx9unOsZ7egLCRcR7/C7qErD3UUszpf69CpPetSLRow5OJpaLV6QaPA0AlKwkSHPkTo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pxBi9FKL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836910; c=relaxed/simple;
+	bh=Txq2ZH8czoTHbOkilNNBisuKG20G52BEj7bITbbuOio=;
+	h=Date:To:From:Subject:Message-Id; b=Uv1ZvyQbhsflhpRTolqnzz7XTtpxfT1lzHJH5j8N2BhohdHqmFynp/Q3mhoSqBwNyi/a1w+QwLg8kgs8BUKgPtKY65F5aMPRiwl0BiqqejEKC8ig/XHPypGz/t899CXzvUyfV+51fyS8DumRmNffm+nlsJtsTbUh7/aP18CIxeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o3uFN9RL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pxBi9FKL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1734C4CEDD;
-	Tue, 14 Jan 2025 06:32:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o3uFN9RL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C9B5C4CEDD;
+	Tue, 14 Jan 2025 06:41:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836374;
-	bh=N9fQ7xYb1xQk+OnDhO7XTBhaKm/GRl2UEUhoMHq3Rrg=;
+	s=korg; t=1736836909;
+	bh=Txq2ZH8czoTHbOkilNNBisuKG20G52BEj7bITbbuOio=;
 	h=Date:To:From:Subject:From;
-	b=pxBi9FKLWbf3mZMb1emKzRqlhCKfJf9eiJoTwj7sJGpjngssD9vPSPUiBmOJCnIlD
-	 +fTWkWYEpchblOlTVIuravA9yQLYLpk8KKbSAmfAtBaMihwnvtDmI+mMrCzYKYJ/eB
-	 2NUqWfqpvExch+h7F6/UXSr75HT5IXC8dpFrVJ3w=
-Date: Mon, 13 Jan 2025 22:32:54 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,kasong@tencent.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=o3uFN9RL7wCWPEzkJ2/NeRX5Cvr3lYCILS4G9htix/DwvhQas4qDtxRCpN9Y1VR1B
+	 PkefRFcP+vvBf0kfEORD5VU8wLTCG7ZbgF9R9uoXjMShTl8W1tP59CSNi4uxGOq7f/
+	 2o9/UIlXonj8r4lXqydWG5VLlKDCO3AmJ1YY1QRc=
+Date: Mon, 13 Jan 2025 22:41:49 -0800
+To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch removed from -mm tree
-Message-Id: <20250114063254.B1734C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-use-mas_next_slot-directly.patch removed from -mm tree
+Message-Id: <20250114064149.9C9B5C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix
+     Subject: maple_tree: use mas_next_slot() directly
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
+     maple_tree-use-mas_next_slot-directly.patch
 
-This patch was dropped because it was folded into mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix
-Date: Tue Jan  7 06:25:19 PM PST 2025
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: maple_tree: use mas_next_slot() directly
+Date: Mon, 25 Nov 2024 02:41:56 +0000
 
-use IS_ENABLED(), tweak comment grammar 
+The loop condition makes sure (mas.last < max), so we can directly use
+mas_next_slot() here.
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Since no other use of mas_next_entry(), it is removed.
+
+Link: https://lkml.kernel.org/r/20241125024156.26093-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |   25 +------------------------
+ 1 file changed, 1 insertion(+), 24 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix
-+++ a/mm/shmem.c
-@@ -1978,16 +1978,14 @@ static struct folio *shmem_swap_alloc_fo
+--- a/lib/maple_tree.c~maple_tree-use-mas_next_slot-directly
++++ a/lib/maple_tree.c
+@@ -4746,29 +4746,6 @@ again:
+ }
  
- 	/*
- 	 * We have arrived here because our zones are constrained, so don't
--	 * limit chance of success by further cpuset and node constraints.
-+	 * limit chance of success with further cpuset and node constraints.
- 	 */
- 	gfp &= ~GFP_CONSTRAINT_MASK;
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (order > 0) {
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && order > 0) {
- 		gfp_t huge_gfp = vma_thp_gfp_mask(vma);
+ /*
+- * mas_next_entry() - Internal function to get the next entry.
+- * @mas: The maple state
+- * @limit: The maximum range start.
+- *
+- * Set the @mas->node to the next entry and the range_start to
+- * the beginning value for the entry.  Does not check beyond @limit.
+- * Sets @mas->index and @mas->last to the range, Does not update @mas->index and
+- * @mas->last on overflow.
+- * Restarts on dead nodes.
+- *
+- * Return: the next entry or %NULL.
+- */
+-static inline void *mas_next_entry(struct ma_state *mas, unsigned long limit)
+-{
+-	if (mas->last >= limit) {
+-		mas->status = ma_overflow;
+-		return NULL;
+-	}
+-
+-	return mas_next_slot(mas, limit, false);
+-}
+-
+-/*
+  * mas_rev_awalk() - Internal function.  Reverse allocation walk.  Find the
+  * highest gap address of a given size in a given node and descend.
+  * @mas: The maple state
+@@ -6938,7 +6915,7 @@ retry:
+ 		goto unlock;
  
- 		gfp = limit_gfp_mask(huge_gfp, gfp);
+ 	while (mas_is_active(&mas) && (mas.last < max)) {
+-		entry = mas_next_entry(&mas, max);
++		entry = mas_next_slot(&mas, max, false);
+ 		if (likely(entry && !xa_is_zero(entry)))
+ 			break;
  	}
--#endif
- 
- 	new = shmem_alloc_folio(gfp, order, info, index);
- 	if (!new)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
-mm-huge_memoryc-rename-shadowed-local.patch
-mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device.patch
-ksm-add-ksm-involvement-information-for-each-process-fix.patch
-documentation-filesystems-procrst-fix-possessive-form-of-process.patch
 
