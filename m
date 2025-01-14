@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EDE823D3C5
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1178523C717
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837062; cv=none; b=KggkVtyWlz+C/fm3pj/QduXQDekpr8USRqEdAcyvqbOo0K9lwLx4FT+7r561ZTDHzXmNxsqJ+sxkyeWePYgD8bOgtccWrXT3oqoXMgu/1kyxs4MhMJdTnCSqQ1yIL+PrxLSnRfX00hg7W7q4D1dNKxL/cWnp94+YiJeIulhW9b0=
+	t=1736837063; cv=none; b=aaLN/ctVWEm2WxZTF7k3Jxg49UMnrvz2pNi+dGkdGyVIWMVXQFQXxmRBn9dLIhI4G/WKWC6xyknNFvqTiIbAZoytEzAOM0+QfVHl+SbnbdB84BlaaKX/t27vzwAjKfj765F4T7t7oqgWEpTN1NCKJxQ02y9LrdLFvhSVmkgRXVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837062; c=relaxed/simple;
-	bh=YAFC+wk096F1F2hF3fr9bQmKuG/oS6YGPPF990gE8CM=;
-	h=Date:To:From:Subject:Message-Id; b=d//T3NbX+j/2GYK6h47nB5QVu09KbKoKmZjNs3CeRRyFWVSl/VUAy6xE0mkvbTle6zMA6RXuPR6ypoVRfsZM3NZEFUXN9YLqeZAKJ0rexbYPQb0rNAjIqFsOBnzOOqBI0kfVsNUjcIdQaGmFveJ0Jke9x/nkJE+YWtKc9iwgUR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B9std9hz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837063; c=relaxed/simple;
+	bh=+MIoKEwdYHk+GCrrUjxNNFcZ1ryjmATl2qyGfXPu/QM=;
+	h=Date:To:From:Subject:Message-Id; b=byhuAGaIv0o+BZDWHb43trBUbenIjb6qjKQRIR1qZQgOJLR+/1pKuro40n6YdMaL91Uyis9krRmu/wHoF9d6dscU0aA2llDrG99ARGbPn5LkgxQk8ZV5lwoXQdid6ILLbe6iBKmtRxTTPKcvGEv6ucgwsgUoMXEqBA9SBoCclGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GMNgBI9w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B9std9hz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EFDC4CEDD;
-	Tue, 14 Jan 2025 06:44:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GMNgBI9w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB97AC4CEDD;
+	Tue, 14 Jan 2025 06:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837061;
-	bh=YAFC+wk096F1F2hF3fr9bQmKuG/oS6YGPPF990gE8CM=;
+	s=korg; t=1736837062;
+	bh=+MIoKEwdYHk+GCrrUjxNNFcZ1ryjmATl2qyGfXPu/QM=;
 	h=Date:To:From:Subject:From;
-	b=B9std9hzcU72/of8Wzx0kPgmz45CeBR6S45iTGwGoaN6wOm9ALLET3DXJ3WIBcxj6
-	 vwDW6918JgCYOfLtxVO7KHABgJp/s/vUjMcql0riXes3dQjMvX7ISsQGdMizDZ1Xm0
-	 wC35egMa30R8h3XfPQUmfJV9UmMT4wCVtdWw1av8=
-Date: Mon, 13 Jan 2025 22:44:21 -0800
+	b=GMNgBI9wb0OcKBaU4BFo7idS1FIvM+AUw9VMIJJaLvJiSIyDAuHvd4tbKY1Hro7bS
+	 LWy1ZZpoKgpGdm65EU7mTlrxImjkiFVjhbbsnej3FS4vj6GPqsprLTtQRJG+Y7Feai
+	 F+sDsfl1nCTTRe+X9UKdvnRz5gtibmHW9wUNuvoM=
+Date: Mon, 13 Jan 2025 22:44:22 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch removed from -mm tree
-Message-Id: <20250114064421.D6EFDC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-prcl-implement-schemes-setup.patch removed from -mm tree
+Message-Id: <20250114064422.DB97AC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,193 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon: introduce a skeleton of a smaple DAMON module for proactive reclamation
+     Subject: samples/damon/prcl: implement schemes setup
 has been removed from the -mm tree.  Its filename was
-     samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation.patch
+     samples-damon-prcl-implement-schemes-setup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon: introduce a skeleton of a smaple DAMON module for proactive reclamation
-Date: Tue, 10 Dec 2024 13:50:29 -0800
+Subject: samples/damon/prcl: implement schemes setup
+Date: Tue, 10 Dec 2024 13:50:30 -0800
 
-DAMON is not only for monitoring of access patterns, but also for
-access-aware system operations.  For the system operations, DAMON provides
-a feature called DAMOS (Data Access Monitoring-based Operation Schemes). 
-There is no sample API usage of DAMOS, though.  Copy the working set size
-estimation sample modules with changed names of the module and symbols, to
-use it as a skeleton for a sample module showing the DAMOS API usage.  The
-following commit will make it proactively reclaim cold memory of the given
-process, using DAMOS.
+Implement a proactive cold memory regions reclaiming logic of prcl sample
+module using DAMOS.  The logic treats memory regions that not accessed at
+all for five or more seconds as cold, and reclaim those as soon as found.
 
-Link: https://lkml.kernel.org/r/20241210215030.85675-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20241210215030.85675-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/Makefile       |    1 
- samples/damon/Kconfig  |   13 ++++
- samples/damon/Makefile |    1 
- samples/damon/prcl.c   |  116 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 131 insertions(+)
+ samples/damon/prcl.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/samples/damon/Kconfig~samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation
-+++ a/samples/damon/Kconfig
-@@ -14,4 +14,17 @@ config SAMPLE_DAMON_WSSE
- 
- 	  If unsure, say N.
- 
-+config SAMPLE_DAMON_PRCL
-+	bool "DAMON sameple module for access-aware proactive reclamation"
-+	depends on DAMON && DAMON_VADDR
-+	help
-+	  This builds DAMON sample module for access-aware proactive
-+	  reclamation.
-+
-+	  The module receives a pid, monitor access to the virtual address
-+	  space of the process, find memory regions that not accessed, and
-+	  proactively reclaim the regions.
-+
-+	  If unsure, say N.
-+
- endmenu
---- a/samples/damon/Makefile~samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation
-+++ a/samples/damon/Makefile
-@@ -1,3 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
- 
- obj-$(CONFIG_SAMPLE_DAMON_WSSE) += wsse.o
-+obj-$(CONFIG_SAMPLE_DAMON_PRCL) += prcl.o
-diff --git a/samples/damon/prcl.c a/samples/damon/prcl.c
-new file mode 100644
---- /dev/null
+--- a/samples/damon/prcl.c~samples-damon-prcl-implement-schemes-setup
 +++ a/samples/damon/prcl.c
-@@ -0,0 +1,116 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * proactive reclamation: monitor access pattern of a given process, find
-+ * regiosn that seems not accessed, and proactively page out the regions.
-+ */
-+
-+#define pr_fmt(fmt) "damon_sample_prcl: " fmt
-+
-+#include <linux/damon.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+
-+static int target_pid __read_mostly;
-+module_param(target_pid, int, 0600);
-+
-+static int damon_sample_prcl_enable_store(
-+		const char *val, const struct kernel_param *kp);
-+
-+static const struct kernel_param_ops enable_param_ops = {
-+	.set = damon_sample_prcl_enable_store,
-+	.get = param_get_bool,
-+};
-+
-+static bool enable __read_mostly;
-+module_param_cb(enable, &enable_param_ops, &enable, 0600);
-+MODULE_PARM_DESC(enable, "Enable of disable DAMON_SAMPLE_WSSE");
-+
-+static struct damon_ctx *ctx;
-+static struct pid *target_pidp;
-+
-+static int damon_sample_prcl_after_aggregate(struct damon_ctx *c)
-+{
-+	struct damon_target *t;
-+
-+	damon_for_each_target(t, c) {
-+		struct damon_region *r;
-+		unsigned long wss = 0;
-+
-+		damon_for_each_region(r, t) {
-+			if (r->nr_accesses > 0)
-+				wss += r->ar.end - r->ar.start;
-+		}
-+		pr_info("wss: %lu\n", wss);
-+	}
-+	return 0;
-+}
-+
-+static int damon_sample_prcl_start(void)
-+{
-+	struct damon_target *target;
-+
-+	pr_info("start\n");
-+
-+	ctx = damon_new_ctx();
-+	if (!ctx)
-+		return -ENOMEM;
-+	if (damon_select_ops(ctx, DAMON_OPS_VADDR)) {
-+		damon_destroy_ctx(ctx);
-+		return -EINVAL;
-+	}
-+
-+	target = damon_new_target();
-+	if (!target) {
+@@ -49,6 +49,7 @@ static int damon_sample_prcl_after_aggre
+ static int damon_sample_prcl_start(void)
+ {
+ 	struct damon_target *target;
++	struct damos *scheme;
+ 
+ 	pr_info("start\n");
+ 
+@@ -75,6 +76,25 @@ static int damon_sample_prcl_start(void)
+ 
+ 	ctx->callback.after_aggregation = damon_sample_prcl_after_aggregate;
+ 
++	scheme = damon_new_scheme(
++			&(struct damos_access_pattern) {
++			.min_sz_region = PAGE_SIZE,
++			.max_sz_region = ULONG_MAX,
++			.min_nr_accesses = 0,
++			.max_nr_accesses = 0,
++			.min_age_region = 50,
++			.max_age_region = UINT_MAX},
++			DAMOS_PAGEOUT,
++			0,
++			&(struct damos_quota){},
++			&(struct damos_watermarks){},
++			NUMA_NO_NODE);
++	if (!scheme) {
 +		damon_destroy_ctx(ctx);
 +		return -ENOMEM;
 +	}
-+	damon_add_target(ctx, target);
-+	target_pidp = find_get_pid(target_pid);
-+	if (!target_pidp) {
-+		damon_destroy_ctx(ctx);
-+		return -EINVAL;
-+	}
-+	target->pid = target_pidp;
++	damon_set_schemes(ctx, &scheme, 1);
 +
-+	ctx->callback.after_aggregation = damon_sample_prcl_after_aggregate;
-+
-+	return damon_start(&ctx, 1, true);
-+}
-+
-+static void damon_sample_prcl_stop(void)
-+{
-+	pr_info("stop\n");
-+	if (ctx) {
-+		damon_stop(&ctx, 1);
-+		damon_destroy_ctx(ctx);
-+	}
-+	if (target_pidp)
-+		put_pid(target_pidp);
-+}
-+
-+static int damon_sample_prcl_enable_store(
-+		const char *val, const struct kernel_param *kp)
-+{
-+	bool enabled = enable;
-+	int err;
-+
-+	err = kstrtobool(val, &enable);
-+	if (err)
-+		return err;
-+
-+	if (enable == enabled)
-+		return 0;
-+
-+	if (enable)
-+		return damon_sample_prcl_start();
-+	damon_sample_prcl_stop();
-+	return 0;
-+}
-+
-+static int __init damon_sample_prcl_init(void)
-+{
-+	return 0;
-+}
-+
-+module_init(damon_sample_prcl_init);
---- a/samples/Makefile~samples-damon-introduce-a-skeleton-of-a-smaple-damon-module-for-proactive-reclamation
-+++ a/samples/Makefile
-@@ -40,3 +40,4 @@ obj-$(CONFIG_SAMPLE_CORESIGHT_SYSCFG)	+=
- obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
- obj-$(CONFIG_SAMPLES_RUST)		+= rust/
- obj-$(CONFIG_SAMPLE_DAMON_WSSE)		+= damon/
-+obj-$(CONFIG_SAMPLE_DAMON_PRCL)		+= damon/
+ 	return damon_start(&ctx, 1, true);
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
