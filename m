@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6647123C6EA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2276523C70B
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837036; cv=none; b=G4spsMqZNnrn5zBzBqGvuz7XxbDxchbBya/qcGrkoMKQjNMYJ/NXRGI3cWRdxQFZ+IIV5617nT7W647omo6ygjrDrbm3Y8z73x4r2FDEUR692DvZJKGxhlvMWUxazZAHTA7CmSS04jPoPZ5s11OMbsUr7JvfpeywhoUoXYivXRA=
+	t=1736837038; cv=none; b=Pa3CrCqd/QPJTMpNrORe4huKeG0d690lLYU7dQeiLiTCraZ7hni0USLnw4z1rx48BRxISY56fQvFiyPghO/n3zhKI7fSE4j2qjk0pcDudKD9oBZxqtZmac7E98ISqR9qQVF9y3b+P8VgtMmAgTmj33VZ7Y5dVSHYB5IifOL6wR0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837036; c=relaxed/simple;
-	bh=SvNEXC0uclfOXq9sk0rggByNz4Q1JY0rg1PVpzJZdBg=;
-	h=Date:To:From:Subject:Message-Id; b=OjaagoJeHaJe8rLgXDVsFp0qW6f2A5OCSMya2uiMprzp9+ZbvyjW+vyZuokOpdBfUiaYkJlU/RKNLYwEw7dOJdDlfBNjEwnDsbTQ157QAYbgxLly7feoszxrZIh3nZzixd1aqQRBnFYWeUfow74FttCKRFxaahHJrl/9GjyTolA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ySR7svhD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837038; c=relaxed/simple;
+	bh=7SQHFYBvm0YJZ4DZemWU5ClN1MpPfOLEZphWNhxrBXU=;
+	h=Date:To:From:Subject:Message-Id; b=UXfYBBvzSGtnq9jfKY9Pc2mSkt/vmVy6KELCcmJ6XNcbWRoyfGxZYONfuKGn2r3V4O8lYZ7Lsm471SsnQhWPnxXeNoi+bXRUPI8eWpf3wXS3AjZH446pV6gB4I4ZjvajAXwqaM04OL9rqPncZbgTz4X+l4xo6/Rw3KUsJ+oyAWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bhz+8VZX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ySR7svhD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B5D5C4CEDD;
-	Tue, 14 Jan 2025 06:43:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bhz+8VZX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECFDCC4CEDD;
+	Tue, 14 Jan 2025 06:43:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837036;
-	bh=SvNEXC0uclfOXq9sk0rggByNz4Q1JY0rg1PVpzJZdBg=;
+	s=korg; t=1736837038;
+	bh=7SQHFYBvm0YJZ4DZemWU5ClN1MpPfOLEZphWNhxrBXU=;
 	h=Date:To:From:Subject:From;
-	b=ySR7svhDLaIWt/EmFpHwz3KzeyjgOeXcMQ2O6UF2+sngJN1MB8kV1PikqqmVm0k4a
-	 /RJ906Wm4OUtp5T84n8BeR64IJKRGcFvVmi/artzT6xecmp3qA7l/FP8aWAX3mcbhZ
-	 ylbU9cqeC6CjHVEbWUR6F5IreQdFPvlQhh5bwzr4=
-Date: Mon, 13 Jan 2025 22:43:55 -0800
+	b=bhz+8VZXtL04Dr6EkwuwQDtqXSvz3HfZu4Sp5DmPxQzDvQy2ox9/A07WdRIecjkEF
+	 1iwZpHeiEvzsCrWrR71+ZIaAZTDTfbwrhZqTsip8d1DEynIonPhmxwjNs81ElyP0FZ
+	 nznlzeDpp6mjZjAuuxNvDH8tuLSLWcD+aNRehMXw=
+Date: Mon, 13 Jan 2025 22:43:57 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,osalvador@suse.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig.patch removed from -mm tree
-Message-Id: <20250114064356.3B5D5C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch removed from -mm tree
+Message-Id: <20250114064357.ECFDCC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: don't use __GFP_HARDWALL when migrating pages via alloc_contig*()
+     Subject: mm/memory_hotplug: don't use __GFP_HARDWALL when migrating pages via memory offlining
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig.patch
+     mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: don't use __GFP_HARDWALL when migrating pages via alloc_contig*()
-Date: Thu, 5 Dec 2024 10:05:07 +0100
+Subject: mm/memory_hotplug: don't use __GFP_HARDWALL when migrating pages via memory offlining
+Date: Thu, 5 Dec 2024 10:05:08 +0100
 
-Patch series "mm: don't use __GFP_HARDWALL when migrating remote pages".
-
-__GFP_HARDWALL means that we will be respecting the cpuset of the caller
-when allocating a page.  However, when we are migrating remote allocations
-(pages allocated from other context), the cpuset of the current context is
-irrelevant.
-
-For memory offlining + alloc_contig_*(), this is rather obvious.  There
-might be other such page migration users, let's start with the obvious
-ones.
-
-
-This patch (of 2):
-
-We'll migrate pages allocated by other contexts; respecting the cpuset of
-the alloc_contig*() caller when allocating a migration target does not
+We'll migrate pages allocated by other context; respecting the cpuset of
+the memory offlining context when allocating a migration target does not
 make sense.
 
-Drop the __GFP_HARDWALL.
+Drop the __GFP_HARDWALL by using GFP_KERNEL.
 
 Note that in an ideal world, migration code could figure out the cpuset
 of the original context and take that into consideration.
 
-Link: https://lkml.kernel.org/r/20241205090508.2095225-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20241205090508.2095225-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20241205090508.2095225-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Oscar Salvador <osalvador@suse.de>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-use-__gfp_hardwall-when-migrating-pages-via-alloc_contig
-+++ a/mm/page_alloc.c
-@@ -6412,11 +6412,11 @@ static int __alloc_contig_verify_gfp_mas
- 	 * page range. Migratable pages are movable, __GFP_MOVABLE is implied
- 	 * for them.
- 	 *
--	 * Traditionally we always had __GFP_HARDWALL|__GFP_RETRY_MAYFAIL set,
--	 * keep doing that to not degrade callers.
-+	 * Traditionally we always had __GFP_RETRY_MAYFAIL set, keep doing that
-+	 * to not degrade callers.
- 	 */
- 	*gfp_cc_mask = (gfp_mask & (reclaim_mask | cc_action_mask)) |
--			__GFP_HARDWALL | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
-+			__GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
- 	return 0;
- }
- 
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-dont-use-__gfp_hardwall-when-migrating-pages-via-memory-offlining
++++ a/mm/memory_hotplug.c
+@@ -1838,7 +1838,7 @@ put_folio:
+ 		nodemask_t nmask = node_states[N_MEMORY];
+ 		struct migration_target_control mtc = {
+ 			.nmask = &nmask,
+-			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++			.gfp_mask = GFP_KERNEL | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
+ 			.reason = MR_MEMORY_HOTPLUG,
+ 		};
+ 		int ret;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
