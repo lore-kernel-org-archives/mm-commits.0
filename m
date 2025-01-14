@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2429F23C710
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E4A423D3C5
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837045; cv=none; b=sjMFQujcG0yhSRrAXzmkJzzzR+iDGXBp8L0d2xC4ySBfESxqfyAG2ckyvc/bq2BEVMomYxbscIw2Sngmb92zP7cn7LGZAwoMApqavP+aUI5geYEjQXEL9cFl4fD4PxdlNZz2X4zD44z/cpDtT6plZMszjAVJeCXZKZoflI/7/04=
+	t=1736837047; cv=none; b=gT5xC8zYYomy98VrilWPh6UTfKu9Du0I1u2ZF/DcIbTCmp42e+37GOUdJ10/T8v0LtXqnygwzwIW43408LoVO6NPQp9KaCx7fjONv7eUYVL+gzwEoJPAI9gb0t9XWxwQrv8d7P+rBFFw8dj9VInyO1JEbKatTjjeG3HJdoKID90=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837045; c=relaxed/simple;
-	bh=td9XuAFyTxafUnErHMexz1IAMaDdXfcdiK3gN4DuBGQ=;
-	h=Date:To:From:Subject:Message-Id; b=s95KuViIVZ7pf63JcxeGya4qMzRhnRUWKS7iwMERLjS9o8mldSZDfdNEgP2jF9gUe/CU2EWu2Jc7pInT16FumuK5US6t/zwAyfQ9guTh8r6L8Jo/e6H7qnNHpdZxj4nvR0xyE+q4lh2SG92CosRawfXbFAwgg48DsNOm9i++nYI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ibItr043; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837047; c=relaxed/simple;
+	bh=xqyTrbPQzWyObiuFoqkArmp1UwwPcD/s8HqbLf9VzOg=;
+	h=Date:To:From:Subject:Message-Id; b=KulF233uikjbTmrb8S63kxheUFZzMrjyBfMJq0UD67sx0Ol+GWv8yT4hh+o7X81qJk7ajEZWT/FxOW4r36iFCgLIWr9FZw7bzyXXKT8UDc0hG+9FHa+8quaei9k3LZXZ3SrJLCgG9QLdBAgVxanlSlOgDgVFH9tbpBz6uZjFisU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rxVgr+RE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ibItr043"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEF9DC4CEDD;
-	Tue, 14 Jan 2025 06:44:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rxVgr+RE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48980C4CEDF;
+	Tue, 14 Jan 2025 06:44:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837045;
-	bh=td9XuAFyTxafUnErHMexz1IAMaDdXfcdiK3gN4DuBGQ=;
+	s=korg; t=1736837047;
+	bh=xqyTrbPQzWyObiuFoqkArmp1UwwPcD/s8HqbLf9VzOg=;
 	h=Date:To:From:Subject:From;
-	b=ibItr043orF9En6ra4JG0VpUFUQxZUpR90OW+8Evg89IdHkkkdaNp7Lb7153yFQ5y
-	 JTLG99EOFHtrBQ8RcMJWWpNkLPL4Ry9QfJEwj3DBN/fWDxYNcDP2xSdgLE+6oeW5kf
-	 h0OB7lHO3MJfwZQmQOm4dZmcu/86GHBcHOGCh2c8=
-Date: Mon, 13 Jan 2025 22:44:04 -0800
+	b=rxVgr+RER534rfH6zbZgaGpSXl2/dHHe6GZ9fvJby7mbaGNq+Qe3zGVeWZy+OYP8k
+	 3t/wLLDNanvdHgRL4Z+qkj9tz4YI5cmicLxBGAw1JD1kmyqOnguUqrfeIYCCX7pITd
+	 HjTNkznKssnmLufLmK6drqxY74nISLixdGbKTb8I=
+Date: Mon, 13 Jan 2025 22:44:06 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-build-with-o2.patch removed from -mm tree
-Message-Id: <20250114064404.EEF9DC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-remove-unused-pkey-helpers.patch removed from -mm tree
+Message-Id: <20250114064407.48980C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: build with -O2
+     Subject: selftests/mm: remove unused pkey helpers
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-build-with-o2.patch
+     selftests-mm-remove-unused-pkey-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: build with -O2
-Date: Mon, 9 Dec 2024 09:50:10 +0000
+Subject: selftests/mm: remove unused pkey helpers
+Date: Mon, 9 Dec 2024 09:50:11 +0000
 
-The mm kselftests are currently built with no optimisation (-O0).  It's
-unclear why, and besides being obviously suboptimal, this also prevents
-the pkeys tests from working as intended.  Let's build all the tests with
--O2.
+Commit 5f23f6d082a9 ("x86/pkeys: Add self-tests") introduced a
+number of helpers and functions that don't seem to have ever been
+used. Let's remove them.
 
-[kevin.brodsky@arm.com: silence unused-result warnings]
-  Link: https://lkml.kernel.org/r/20250107170110.2819685-1-kevin.brodsky@arm.com
-Link: https://lkml.kernel.org/r/20241209095019.1732120-6-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20241209095019.1732120-7-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -66,29 +63,124 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/pkey-helpers.h    |   34 -----------------
+ tools/testing/selftests/mm/protection_keys.c |   34 -----------------
+ 2 files changed, 68 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-build-with-o2
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -33,9 +33,16 @@ endif
- # LDLIBS.
- MAKEFLAGS += --no-builtin-rules
+--- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-remove-unused-pkey-helpers
++++ a/tools/testing/selftests/mm/pkey-helpers.h
+@@ -26,9 +26,7 @@
+ #ifndef DEBUG_LEVEL
+ #define DEBUG_LEVEL 0
+ #endif
+-#define DPRINT_IN_SIGNAL_BUF_SIZE 4096
+ extern int dprint_in_signal;
+-extern char dprint_in_signal_buffer[DPRINT_IN_SIGNAL_BUF_SIZE];
  
--CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
-+CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
- LDLIBS = -lrt -lpthread -lm
+ extern int test_nr;
+ extern int iteration_nr;
+@@ -171,38 +169,6 @@ static inline void write_pkey_reg(u64 pk
+ 			pkey_reg, __read_pkey_reg());
+ }
  
-+# Some distributions (such as Ubuntu) configure GCC so that _FORTIFY_SOURCE is
-+# automatically enabled at -O1 or above. This triggers various unused-result
-+# warnings where functions such as read() or write() are called and their
-+# return value is not checked. Disable _FORTIFY_SOURCE to silence those
-+# warnings.
-+CFLAGS += -U_FORTIFY_SOURCE
-+
- KDIR ?= /lib/modules/$(shell uname -r)/build
- ifneq (,$(wildcard $(KDIR)/Module.symvers))
- ifneq (,$(wildcard $(KDIR)/include/linux/page_frag_cache.h))
+-/*
+- * These are technically racy. since something could
+- * change PKEY register between the read and the write.
+- */
+-static inline void __pkey_access_allow(int pkey, int do_allow)
+-{
+-	u64 pkey_reg = read_pkey_reg();
+-	int bit = pkey * 2;
+-
+-	if (do_allow)
+-		pkey_reg &= (1<<bit);
+-	else
+-		pkey_reg |= (1<<bit);
+-
+-	dprintf4("pkey_reg now: %016llx\n", read_pkey_reg());
+-	write_pkey_reg(pkey_reg);
+-}
+-
+-static inline void __pkey_write_allow(int pkey, int do_allow_write)
+-{
+-	u64 pkey_reg = read_pkey_reg();
+-	int bit = pkey * 2 + 1;
+-
+-	if (do_allow_write)
+-		pkey_reg &= (1<<bit);
+-	else
+-		pkey_reg |= (1<<bit);
+-
+-	write_pkey_reg(pkey_reg);
+-	dprintf4("pkey_reg now: %016llx\n", read_pkey_reg());
+-}
+-
+ #define ALIGN_UP(x, align_to)	(((x) + ((align_to)-1)) & ~((align_to)-1))
+ #define ALIGN_DOWN(x, align_to) ((x) & ~((align_to)-1))
+ #define ALIGN_PTR_UP(p, ptr_align_to)	\
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-remove-unused-pkey-helpers
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -53,7 +53,6 @@ int test_nr;
+ 
+ u64 shadow_pkey_reg;
+ int dprint_in_signal;
+-char dprint_in_signal_buffer[DPRINT_IN_SIGNAL_BUF_SIZE];
+ 
+ void cat_into_file(char *str, char *file)
+ {
+@@ -397,12 +396,6 @@ void signal_handler(int signum, siginfo_
+ 	dprint_in_signal = 0;
+ }
+ 
+-int wait_all_children(void)
+-{
+-	int status;
+-	return waitpid(-1, &status, 0);
+-}
+-
+ void sig_chld(int x)
+ {
+ 	dprint_in_signal = 1;
+@@ -817,39 +810,12 @@ void *malloc_pkey_hugetlb(long size, int
+ 	return ptr;
+ }
+ 
+-void *malloc_pkey_mmap_dax(long size, int prot, u16 pkey)
+-{
+-	void *ptr;
+-	int fd;
+-
+-	dprintf1("doing %s(size=%ld, prot=0x%x, pkey=%d)\n", __func__,
+-			size, prot, pkey);
+-	pkey_assert(pkey < NR_PKEYS);
+-	fd = open("/dax/foo", O_RDWR);
+-	pkey_assert(fd >= 0);
+-
+-	ptr = mmap(0, size, prot, MAP_SHARED, fd, 0);
+-	pkey_assert(ptr != (void *)-1);
+-
+-	mprotect_pkey(ptr, size, prot, pkey);
+-
+-	record_pkey_malloc(ptr, size, prot);
+-
+-	dprintf1("mmap()'d for pkey %d @ %p\n", pkey, ptr);
+-	close(fd);
+-	return ptr;
+-}
+-
+ void *(*pkey_malloc[])(long size, int prot, u16 pkey) = {
+ 
+ 	malloc_pkey_with_mprotect,
+ 	malloc_pkey_with_mprotect_subpage,
+ 	malloc_pkey_anon_huge,
+ 	malloc_pkey_hugetlb
+-/* can not do direct with the pkey_mprotect() API:
+-	malloc_pkey_mmap_direct,
+-	malloc_pkey_mmap_dax,
+-*/
+ };
+ 
+ void *malloc_pkey(long size, int prot, u16 pkey)
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
