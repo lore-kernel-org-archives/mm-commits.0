@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF61246326
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A7A62451FD
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837107; cv=none; b=VRLmnJFiXj5vTeHvyl2OhlJsgSko4oPbOF5/xmCkXr9WnEzTGESM5S2DcHzAm9HMK4qLBRgO3cCWHnKM6H9vMZO5DsNAHI4E8EU8L92k+GzaJxw69yj/qH8Zs8xz7lMC/JZt1kbo9/cUhv2g5w/7Dg0EwXW1zPDq5FjAyFVq+Lc=
+	t=1736837109; cv=none; b=tqcNXUqfGQkCTr+BmX2Xd7J7N5XqL/O9cqiCUUb2zIHmFv+E36OnPk1iyVnf1dFBn4LJxAfYBztzIRYP9VbWeIwDbsRtWdhw36cTPyhYy216qg6M3Yfyt2NnhoHykUrMmFuE4fYMC4Cb9HeF0PSOpC9BcYy0WidhExAjxcSxiu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837107; c=relaxed/simple;
-	bh=+ryxYL+AHvkctkbF0z5XC5+RQAU5o0p/AXNxZKh5KZ8=;
-	h=Date:To:From:Subject:Message-Id; b=luuz/NNt3qKgoWPtL2lBvtS11kcUkLAChbIi3+Y+Sln9MfLLatgh2tzaM2BzriFoytDU1KnYUng6BXnWKCk+4P50MRanw9Q65On1xLXC12BaGVLmkelxRD7nKkcIXhIxJ/TCCG2rqXQkJ2MDgLuwVadjrOFWdbS0RYOlLNPkwOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x4zYTTr5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837109; c=relaxed/simple;
+	bh=/4l244tbfZyc2h1If3TR2/Xae6X+h2UDOaRsp9dQJk0=;
+	h=Date:To:From:Subject:Message-Id; b=lgcPcPg+BlrSCXHnGT9B2z5zGqbJQJMu+f+Dy3w/Oq0PapUou96UFkq/aCHV28kA3fyxt1y9K1SnIse9t33ExU9eKnXhHlFzt3/1ETx7gNGnqhNsLFcPLl00gSpQbCj+IRtbWysh+rKPuLvzJ4cqSLx5bqqTZOR3yrlZI+tIe0Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VdHHgaRA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x4zYTTr5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7878BC4CEDD;
-	Tue, 14 Jan 2025 06:45:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VdHHgaRA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFC5EC4CEDD;
+	Tue, 14 Jan 2025 06:45:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837106;
-	bh=+ryxYL+AHvkctkbF0z5XC5+RQAU5o0p/AXNxZKh5KZ8=;
+	s=korg; t=1736837109;
+	bh=/4l244tbfZyc2h1If3TR2/Xae6X+h2UDOaRsp9dQJk0=;
 	h=Date:To:From:Subject:From;
-	b=x4zYTTr56JEkWHrRBbUSdLDoLA3eALK/DpI/j88TpKGfi/Yorq+p4mARZrsV0ObrP
-	 gArZ1cDBxXnCZ8Hxujf/zX2cdK8RJeG+0xxPAefZvXfWJQypFWqroHkiGlMWEsZfgb
-	 BYtkQzoeVuHxz+HmqbhZLz+c/UlcmdcWIJYFSdmg=
-Date: Mon, 13 Jan 2025 22:45:05 -0800
-To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,kernel@xen0n.name,gregkh@linuxfoundation.org,david@redhat.com,corbet@lwn.net,chenhuacai@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=VdHHgaRA8ZITKp7XmaqCHGaGLXO+kKTwvQrrnEQRzhkXMOIIUbtEBSiqjdPmTf39s
+	 ytVR7JdjOm7LwafgeKoRRZj12hFpsXyFiIoUUv8JCAciUM3rAOei6nDuNE7wJQi6Do
+	 By9Cgtww/bjgR2DYH+ZLUTW36mvRjD35XX7FGEZA=
+Date: Mon, 13 Jan 2025 22:45:08 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,david@redhat.com,chrisl@kernel.org,riel@surriel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-build-time-option-for-hotplug-memory-default-online-type.patch removed from -mm tree
-Message-Id: <20250114064506.7878BC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-unnecessary-calls-to-lru_add_drain.patch removed from -mm tree
+Message-Id: <20250114064508.EFC5EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,288 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add build-time option for hotplug memory default online type
+     Subject: mm: remove unnecessary calls to lru_add_drain
 has been removed from the -mm tree.  Its filename was
-     mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
+     mm-remove-unnecessary-calls-to-lru_add_drain.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm: add build-time option for hotplug memory default online type
-Date: Fri, 20 Dec 2024 16:07:09 -0500
+From: Rik van Riel <riel@surriel.com>
+Subject: mm: remove unnecessary calls to lru_add_drain
+Date: Thu, 19 Dec 2024 15:32:53 -0500
 
-Memory hotplug presently auto-onlines memory into a zone the kernel deems
-appropriate if CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y.
+There seem to be several categories of calls to lru_add_drain and
+lru_add_drain_all.
 
-The memhp_default_state boot param enables runtime config, but it's not
-possible to do this at build-time.
+The first are code paths that recently allocated, swapped in, or otherwise
+processed a batch of pages, and want them all on the LRU.  These drain
+pages that were recently allocated, probably on the local CPU.
 
-Remove CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE, and replace it with
-CONFIG_MHP_DEFAULT_ONLINE_TYPE_* choices that sync with the boot param.
+A second category are code paths that are actively trying to reclaim,
+migrate, or offline memory.  These often use lru_add_drain_all, to drain
+the caches on all CPUs.
 
-Selections:
-  CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE
-    => mhp_default_online_type = "offline"
-       Memory will not be onlined automatically.
+However, there also seem to be some other callers where we aren't really
+doing either.  They are calling lru_add_drain(), despite operating on
+pages that may have been allocated long ago, and quite possibly on
+different CPUs.
 
-  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO
-    => mhp_default_online_type = "online"
-       Memory will be onlined automatically in a zone deemed.
-       appropriate by the kernel.
+Those calls are not likely to be effective at anything but creating lock
+contention on the LRU locks.
 
-  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
-    => mhp_default_online_type = "online_kernel"
-       Memory will be onlined automatically.
-       The zone may allow kernel data (e.g. ZONE_NORMAL).
+Remove the lru_add_drain calls in the latter category.
 
-  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
-    => mhp_default_online_type = "online_movable"
-       Memory will be onlined automatically.
-       The zone will be ZONE_MOVABLE.
+For detailed reasoning, see [1] and [2].
 
-Default to CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE to match the existing
-default CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=n behavior.
-
-Existing users of CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y should use
-CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO.
-
-[gourry@gourry.net: update KConfig comments]
-  Link: https://lkml.kernel.org/r/20241226182918.648799-1-gourry@gourry.net
-Link: https://lkml.kernel.org/r/20241220210709.300066-1-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
+Link: https://lkml.kernel.org/r/dca2824e8e88e826c6b260a831d79089b5b9c79d.camel@surriel.com [1]
+Link: https://lkml.kernel.org/r/xxfhcjaq2xxcl5adastz5omkytenq7izo2e5f4q7e3ns4z6lko@odigjjc7hqrg [2]
+Link: https://lkml.kernel.org/r/20241219153253.3da9e8aa@fangorn
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    4 
- Documentation/admin-guide/mm/memory-hotplug.rst |    4 
- arch/loongarch/configs/loongson3_defconfig      |    5 -
- drivers/base/memory.c                           |    4 
- include/linux/memory_hotplug.h                  |    5 -
- mm/Kconfig                                      |   57 ++++++++++++--
- mm/memory_hotplug.c                             |   33 ++++++--
- 7 files changed, 89 insertions(+), 23 deletions(-)
+ mm/memory.c     |    1 -
+ mm/mmap.c       |    2 --
+ mm/swap_state.c |    1 -
+ mm/vma.c        |    2 --
+ 4 files changed, 6 deletions(-)
 
---- a/arch/loongarch/configs/loongson3_defconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/arch/loongarch/configs/loongson3_defconfig
-@@ -113,7 +113,10 @@ CONFIG_ZBUD=y
- CONFIG_ZSMALLOC=m
- # CONFIG_COMPAT_BRK is not set
- CONFIG_MEMORY_HOTPLUG=y
--CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y
-+# CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE is not set
-+CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO=y
-+# CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL is not set
-+# CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE is not set
- CONFIG_MEMORY_HOTREMOVE=y
- CONFIG_KSM=y
- CONFIG_TRANSPARENT_HUGEPAGE=y
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3351,8 +3351,8 @@
- 			[KNL] Set the initial state for the memory hotplug
- 			onlining policy. If not specified, the default value is
- 			set according to the
--			CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
--			option.
-+			CONFIG_MHP_DEFAULT_ONLINE_TYPE kernel config
-+			options.
- 			See Documentation/admin-guide/mm/memory-hotplug.rst.
+--- a/mm/memory.c~mm-remove-unnecessary-calls-to-lru_add_drain
++++ a/mm/memory.c
+@@ -2004,7 +2004,6 @@ void zap_page_range_single(struct vm_are
+ 	struct mmu_notifier_range range;
+ 	struct mmu_gather tlb;
  
- 	memmap=exactmap	[KNL,X86,EARLY] Enable setting of an exact
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -280,8 +280,8 @@ The following files are currently define
- 		       blocks; configure auto-onlining.
+-	lru_add_drain();
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
+ 				address, end);
+ 	hugetlb_zap_begin(vma, &range.start, &range.end);
+--- a/mm/mmap.c~mm-remove-unnecessary-calls-to-lru_add_drain
++++ a/mm/mmap.c
+@@ -1336,7 +1336,6 @@ void exit_mmap(struct mm_struct *mm)
+ 		goto destroy;
+ 	}
  
- 		       The default value depends on the
--		       CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel configuration
--		       option.
-+		       CONFIG_MHP_DEFAULT_ONLINE_TYPE kernel configuration
-+		       options.
+-	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb_gather_mmu_fullmm(&tlb, mm);
+ 	/* update_hiwater_rss(mm) here? but nobody should be looking */
+@@ -1779,7 +1778,6 @@ int relocate_vma_down(struct vm_area_str
+ 				       vma, new_start, length, false, true))
+ 		return -ENOMEM;
  
- 		       See the ``state`` property of memory blocks for details.
- ``block_size_bytes``   read-only: the size in bytes of a memory block.
---- a/drivers/base/memory.c~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/drivers/base/memory.c
-@@ -512,7 +512,7 @@ static ssize_t auto_online_blocks_show(s
- 				       struct device_attribute *attr, char *buf)
- {
- 	return sysfs_emit(buf, "%s\n",
--			  online_type_to_str[mhp_default_online_type]);
-+			  online_type_to_str[mhp_get_default_online_type()]);
- }
+-	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, mm);
+ 	next = vma_next(&vmi);
+ 	if (new_end > old_start) {
+--- a/mm/swap_state.c~mm-remove-unnecessary-calls-to-lru_add_drain
++++ a/mm/swap_state.c
+@@ -317,7 +317,6 @@ void free_pages_and_swap_cache(struct en
+ 	struct folio_batch folios;
+ 	unsigned int refs[PAGEVEC_SIZE];
  
- static ssize_t auto_online_blocks_store(struct device *dev,
-@@ -524,7 +524,7 @@ static ssize_t auto_online_blocks_store(
- 	if (online_type < 0)
- 		return -EINVAL;
+-	lru_add_drain();
+ 	folio_batch_init(&folios);
+ 	for (int i = 0; i < nr; i++) {
+ 		struct folio *folio = page_folio(encoded_page_ptr(pages[i]));
+--- a/mm/vma.c~mm-remove-unnecessary-calls-to-lru_add_drain
++++ a/mm/vma.c
+@@ -430,7 +430,6 @@ void unmap_region(struct ma_state *mas,
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_gather tlb;
  
--	mhp_default_online_type = online_type;
-+	mhp_set_default_online_type(online_type);
- 	return count;
- }
- 
---- a/include/linux/memory_hotplug.h~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/include/linux/memory_hotplug.h
-@@ -144,8 +144,6 @@ extern u64 max_mem_size;
- 
- extern int mhp_online_type_from_str(const char *str);
- 
--/* Default online_type (MMOP_*) when new memory blocks are added. */
--extern int mhp_default_online_type;
- /* If movable_node boot option specified */
- extern bool movable_node_enabled;
- static inline bool movable_node_is_enabled(void)
-@@ -303,6 +301,9 @@ static inline void __remove_memory(u64 s
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
-+/* Default online_type (MMOP_*) when new memory blocks are added. */
-+extern int mhp_get_default_online_type(void);
-+extern void mhp_set_default_online_type(int online_type);
- extern void __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
- extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
- extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
---- a/mm/Kconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/mm/Kconfig
-@@ -550,20 +550,63 @@ menuconfig MEMORY_HOTPLUG
- 
- if MEMORY_HOTPLUG
- 
--config MEMORY_HOTPLUG_DEFAULT_ONLINE
--	bool "Online the newly added memory blocks by default"
--	depends on MEMORY_HOTPLUG
-+choice
-+	prompt "Memory Hotplug Default Online Type"
-+	default MHP_DEFAULT_ONLINE_TYPE_OFFLINE
- 	help
-+	  Default memory type for hotplugged memory.
-+
- 	  This option sets the default policy setting for memory hotplug
- 	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
- 	  determines what happens to newly added memory regions. Policy setting
- 	  can always be changed at runtime.
-+
-+	  The default is 'offline'.
-+
-+	  Select offline to defer onlining to drivers and user policy.
-+	  Select auto to let the kernel choose what zones to utilize.
-+	  Select online_kernel to generally allow kernel usage of this memory.
-+	  Select online_movable to generally disallow kernel usage of this memory.
-+
-+	  Example kernel usage would be page structs and page tables.
-+
- 	  See Documentation/admin-guide/mm/memory-hotplug.rst for more information.
- 
--	  Say Y here if you want all hot-plugged memory blocks to appear in
--	  'online' state by default.
--	  Say N here if you want the default policy to keep all hot-plugged
--	  memory blocks in 'offline' state.
-+config MHP_DEFAULT_ONLINE_TYPE_OFFLINE
-+	bool "offline"
-+	help
-+	  Hotplugged memory will not be onlined by default.
-+	  Choose this for systems with drivers and user policy that
-+	  handle onlining of hotplug memory policy.
-+
-+config MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO
-+	bool "auto"
-+	help
-+	  Select this if you want the kernel to automatically online
-+	  hotplugged memory into the zone it thinks is reasonable.
-+	  This memory may be utilized for kernel data.
-+
-+config MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
-+	bool "kernel"
-+	help
-+	  Select this if you want the kernel to automatically online
-+	  hotplugged memory into a zone capable of being used for kernel
-+	  data. This typically means ZONE_NORMAL.
-+
-+config MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
-+	bool "movable"
-+	help
-+	  Select this if you want the kernel to automatically online
-+	  hotplug memory into ZONE_MOVABLE. This memory will generally
-+	  not be utilized for kernel data.
-+
-+	  This should only be used when the admin knows sufficient
-+	  ZONE_NORMAL memory is available to describe hotplug memory,
-+	  otherwise hotplug memory may fail to online. For example,
-+	  sufficient kernel-capable memory (ZONE_NORMAL) must be
-+	  available to allocate page structs to describe ZONE_MOVABLE.
-+
-+endchoice
- 
- config MEMORY_HOTREMOVE
- 	bool "Allow for memory hot remove"
---- a/mm/memory_hotplug.c~mm-add-build-time-option-for-hotplug-memory-default-online-type
-+++ a/mm/memory_hotplug.c
-@@ -219,11 +219,30 @@ void put_online_mems(void)
- 
- bool movable_node_enabled = false;
- 
--#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
--int mhp_default_online_type = MMOP_OFFLINE;
--#else
--int mhp_default_online_type = MMOP_ONLINE;
--#endif
-+static int mhp_default_online_type = -1;
-+int mhp_get_default_online_type(void)
-+{
-+	if (mhp_default_online_type >= 0)
-+		return mhp_default_online_type;
-+
-+	if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE))
-+		mhp_default_online_type = MMOP_OFFLINE;
-+	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO))
-+		mhp_default_online_type = MMOP_ONLINE;
-+	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL))
-+		mhp_default_online_type = MMOP_ONLINE_KERNEL;
-+	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE))
-+		mhp_default_online_type = MMOP_ONLINE_MOVABLE;
-+	else
-+		mhp_default_online_type = MMOP_OFFLINE;
-+
-+	return mhp_default_online_type;
-+}
-+
-+void mhp_set_default_online_type(int online_type)
-+{
-+	mhp_default_online_type = online_type;
-+}
- 
- static int __init setup_memhp_default_state(char *str)
- {
-@@ -1328,7 +1347,7 @@ static int check_hotplug_memory_range(u6
- 
- static int online_memory_block(struct memory_block *mem, void *arg)
- {
--	mem->online_type = mhp_default_online_type;
-+	mem->online_type = mhp_get_default_online_type();
- 	return device_online(&mem->dev);
- }
- 
-@@ -1575,7 +1594,7 @@ int add_memory_resource(int nid, struct
- 		merge_system_ram_resource(res);
- 
- 	/* online pages if requested */
--	if (mhp_default_online_type != MMOP_OFFLINE)
-+	if (mhp_get_default_online_type() != MMOP_OFFLINE)
- 		walk_memory_blocks(start, size, NULL, online_memory_block);
- 
- 	return ret;
+-	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, mm);
+ 	update_hiwater_rss(mm);
+ 	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end,
+@@ -1132,7 +1131,6 @@ static inline void vms_clear_ptes(struct
+ 	 * were isolated before we downgraded mmap_lock.
+ 	 */
+ 	mas_set(mas_detach, 1);
+-	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, vms->vma->vm_mm);
+ 	update_hiwater_rss(vms->vma->vm_mm);
+ 	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end,
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from riel@surriel.com are
 
 
