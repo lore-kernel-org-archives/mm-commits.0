@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 275DA23C6EA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8023523C70B
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837027; cv=none; b=ENln+ENZ86X/tYOfPZjWlMWaEiXPwCdU2+8h/2XfWwCJylwicI8ok9TFhR4gGCCf2MQStQJ6kI02E6skTlEFYlBnR81aeR7oeUqncU+Gvh0Hjm0jt7Rdl3QiagsEm5XLMKJcr17vSuTXau371Tc8xoXztJ43KOkCBCRtasP43FA=
+	t=1736837029; cv=none; b=ACsvyPwVKPXl6vqNnKd4QBBnkHJrwgYEsmSvUvBPN6fknVzEWLOXvHkxn3Sr5t4iOpBWMQpBqPFmOqqhNdcovYzyCv8StaXEQlttjS8CfQix/Z/qRAJIuLw7SNv0ngDEA3NI4K9SWM3NabYikIB3ePev0pfnWueyU+yKrRXBmbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837027; c=relaxed/simple;
-	bh=0Sol5aYWHyOzkCh/9suzWvo2QlsgdtcCFCTDrlOEQgM=;
-	h=Date:To:From:Subject:Message-Id; b=l0hTM3bMLogZrAr//60UupBetddRMUXIEuU8TYwRO+0i74Yy/B6/AuQugLCvYKnpJ07nXpazSA5X2N066AK6HPrMuWY3XBV0HS9yHW9Qa9kS15CLwYw43339kqDR9nOaFbsejb9IBYAxbUuZJvpXPqGQ+vvqGQdv7nsZ2yfXJY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ISWEadEL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837029; c=relaxed/simple;
+	bh=OkxUzzASvAHIyuPw4+MTIWelnh4wTT2L0GzVgQ49xXI=;
+	h=Date:To:From:Subject:Message-Id; b=SviLQqEpRVG4NrK6bg713DFy0xZgoD1JqAFN/kuG8S1drXEl1yXd896fupKGBHEfHhIUsjlkAnO+um4JnUkb2cTHD2274Eq+SchKSyOmGUy/k80Kc6LwCAh/0zvrLuqdIXUPWGBowCXhYt9K+K0AgBZs4lLPe3ZGw4V0d7saoZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o0duaqfh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ISWEadEL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F016BC4CEDD;
-	Tue, 14 Jan 2025 06:43:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o0duaqfh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55402C4CEDD;
+	Tue, 14 Jan 2025 06:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837027;
-	bh=0Sol5aYWHyOzkCh/9suzWvo2QlsgdtcCFCTDrlOEQgM=;
+	s=korg; t=1736837029;
+	bh=OkxUzzASvAHIyuPw4+MTIWelnh4wTT2L0GzVgQ49xXI=;
 	h=Date:To:From:Subject:From;
-	b=ISWEadELBJppgySOTNYDTtqe6qCqunXihJnFOWvTuSl2+1ox7DuQzTRr+BVT45KpZ
-	 NWgHxKmfUghlUl02cJtT97+6rfp7JjTK6K9UIU/X1CD7zDQkTyw8GR/cYM/iJW4Ruo
-	 pztqz06Y72wgFp4hZCRwhdpq6xWCfVz5/fH+476s=
-Date: Mon, 13 Jan 2025 22:43:46 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,muchun.song@linux.dev,Liam.Howlett@Oracle.com,kaleshsingh@google.com,jeffxu@chromium.org,jannh@google.com,isaacmanjarres@google.com,hughd@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=o0duaqfhA8kX35VzYbTnQ4dgaM1OBmV7J4Z80/ZOS5UEMPe1EHl8AMsPmRjidDsTU
+	 0ZubbhDRTY4T5y8wW5IT8CwTTnM55S+5YRlNP2nYrCKGbngYdVDkRfSyLFDvrcpBP4
+	 fTxNfQHivegpldpIeWEnoNqrNIu3tggFnu3XTt4A=
+Date: Mon, 13 Jan 2025 22:43:48 -0800
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,ehagberg@janestreet.com,david@redhat.com,akpm@linux-foundation.org,guillaume@morinfr.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-perform-all-memfd-seal-checks-in-a-single-place.patch removed from -mm tree
-Message-Id: <20250114064346.F016BC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-support-foll_forcefoll_write.patch removed from -mm tree
+Message-Id: <20250114064349.55402C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,307 +35,227 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: perform all memfd seal checks in a single place
+     Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
 has been removed from the -mm tree.  Its filename was
-     mm-perform-all-memfd-seal-checks-in-a-single-place.patch
+     mm-hugetlb-support-foll_forcefoll_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: perform all memfd seal checks in a single place
-Date: Fri, 6 Dec 2024 21:28:46 +0000
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: mm/hugetlb: support FOLL_FORCE|FOLL_WRITE
+Date: Fri, 6 Dec 2024 22:28:36 +0100
 
-We no longer actually need to perform these checks in the f_op->mmap()
-hook any longer.
+Eric reported that PTRACE_POKETEXT fails when applications use hugetlb for
+mapping text using huge pages.  Before commit 1d8d14641fd9 ("mm/hugetlb:
+support write-faults in shared mappings"), PTRACE_POKETEXT worked by
+accident, but it was buggy and silently ended up mapping pages writable
+into the page tables even though VM_WRITE was not set.
 
-We already moved the operation which clears VM_MAYWRITE on a read-only
-mapping of a write-sealed memfd in order to work around the restrictions
-imposed by commit 5de195060b2e ("mm: resolve faulty mmap_region() error
-path behaviour").
+In general, FOLL_FORCE|FOLL_WRITE does currently not work with hugetlb. 
+Let's implement FOLL_FORCE|FOLL_WRITE properly for hugetlb, such that what
+used to work in the past by accident now properly works, allowing
+applications using hugetlb for text etc.  to get properly debugged.
 
-There is no reason for us not to simply go ahead and additionally check to
-see if any pre-existing seals are in place here rather than defer this to
-the f_op->mmap() hook.
+This change might also be required to implement uprobes support for
+hugetlb [1].
 
-By doing this we remove more logic from shmem_mmap() which doesn't belong
-there, as well as doing the same for hugetlbfs_file_mmap().  We also
-remove dubious shared logic in mm.h which simply does not belong there
-either.
+[1] https://lore.kernel.org/lkml/ZiK50qob9yl5e0Xz@bender.morinfr.org/
 
-It makes sense to do these checks at the earliest opportunity, we know
-these are shmem (or hugetlbfs) mappings whose relevant VMA flags will not
-change from the invoking do_mmap() so there is simply no need to wait.
-
-This also means the implementation of further memfd seal flags can be done
-within mm/memfd.c and also have the opportunity to modify VMA flags as
-necessary early in the mapping logic.
-
-[lorenzo.stoakes@oracle.com: fix typos in !memfd inline stub]
-  Link: https://lkml.kernel.org/r/7dee6c5d-480b-4c24-b98e-6fa47dbd8a23@lucifer.local
-Link: https://lkml.kernel.org/r/20241206212846.210835-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Link: https://lkml.kernel.org/r/Z1NshNfWuzUCPebA@bender.morinfr.org
+Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Eric Hagberg <ehagberg@janestreet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c  |    5 ---
- include/linux/memfd.h |   23 ++++++++--------
- include/linux/mm.h    |   55 ----------------------------------------
- mm/memfd.c            |   44 +++++++++++++++++++++++++++++++-
- mm/mmap.c             |   12 ++++++--
- mm/shmem.c            |    6 ----
- 6 files changed, 63 insertions(+), 82 deletions(-)
+ mm/gup.c     |   91 +++++++++++++++++++++++--------------------------
+ mm/hugetlb.c |   17 ++++-----
+ 2 files changed, 53 insertions(+), 55 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-perform-all-memfd-seal-checks-in-a-single-place
-+++ a/fs/hugetlbfs/inode.c
-@@ -99,7 +99,6 @@ static const struct fs_parameter_spec hu
- static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct inode *inode = file_inode(file);
--	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
- 	loff_t len, vma_len;
- 	int ret;
- 	struct hstate *h = hstate_file(file);
-@@ -116,10 +115,6 @@ static int hugetlbfs_file_mmap(struct fi
- 	vm_flags_set(vma, VM_HUGETLB | VM_DONTEXPAND);
- 	vma->vm_ops = &hugetlb_vm_ops;
- 
--	ret = seal_check_write(info->seals, vma);
--	if (ret)
--		return ret;
--
- 	/*
- 	 * page based offset in vm_pgoff could be sufficiently large to
- 	 * overflow a loff_t when converted to byte offset.  This can
---- a/include/linux/memfd.h~mm-perform-all-memfd-seal-checks-in-a-single-place
-+++ a/include/linux/memfd.h
-@@ -7,7 +7,14 @@
- #ifdef CONFIG_MEMFD_CREATE
- extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned int arg);
- struct folio *memfd_alloc_folio(struct file *memfd, pgoff_t idx);
--unsigned int *memfd_file_seals_ptr(struct file *file);
-+/*
-+ * Check for any existing seals on mmap, return an error if access is denied due
-+ * to sealing, or 0 otherwise.
-+ *
-+ * We also update VMA flags if appropriate by manipulating the VMA flags pointed
-+ * to by vm_flags_ptr.
-+ */
-+int memfd_check_seals_mmap(struct file *file, unsigned long *vm_flags_ptr);
- #else
- static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned int a)
- {
-@@ -17,19 +24,11 @@ static inline struct folio *memfd_alloc_
- {
- 	return ERR_PTR(-EINVAL);
+--- a/mm/gup.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/gup.c
+@@ -596,6 +596,33 @@ static struct folio *try_grab_folio_fast
  }
--
--static inline unsigned int *memfd_file_seals_ptr(struct file *file)
-+static inline int memfd_check_seals_mmap(struct file *file,
-+					 unsigned long *vm_flags_ptr)
- {
--	return NULL;
-+	return 0;
- }
- #endif
+ #endif	/* CONFIG_HAVE_GUP_FAST */
  
--/* Retrieve memfd seals associated with the file, if any. */
--static inline unsigned int memfd_file_seals(struct file *file)
--{
--	unsigned int *sealsp = memfd_file_seals_ptr(file);
--
--	return sealsp ? *sealsp : 0;
--}
--
- #endif /* __LINUX_MEMFD_H */
---- a/include/linux/mm.h~mm-perform-all-memfd-seal-checks-in-a-single-place
-+++ a/include/linux/mm.h
-@@ -4102,61 +4102,6 @@ void mem_dump_obj(void *object);
- static inline void mem_dump_obj(void *object) {}
- #endif
- 
--static inline bool is_write_sealed(int seals)
--{
--	return seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE);
--}
--
--/**
-- * is_readonly_sealed - Checks whether write-sealed but mapped read-only,
-- *                      in which case writes should be disallowing moving
-- *                      forwards.
-- * @seals: the seals to check
-- * @vm_flags: the VMA flags to check
-- *
-- * Returns whether readonly sealed, in which case writess should be disallowed
-- * going forward.
-- */
--static inline bool is_readonly_sealed(int seals, vm_flags_t vm_flags)
--{
--	/*
--	 * Since an F_SEAL_[FUTURE_]WRITE sealed memfd can be mapped as
--	 * MAP_SHARED and read-only, take care to not allow mprotect to
--	 * revert protections on such mappings. Do this only for shared
--	 * mappings. For private mappings, don't need to mask
--	 * VM_MAYWRITE as we still want them to be COW-writable.
--	 */
--	if (is_write_sealed(seals) &&
--	    ((vm_flags & (VM_SHARED | VM_WRITE)) == VM_SHARED))
--		return true;
--
--	return false;
--}
--
--/**
-- * seal_check_write - Check for F_SEAL_WRITE or F_SEAL_FUTURE_WRITE flags and
-- *                    handle them.
-- * @seals: the seals to check
-- * @vma: the vma to operate on
-- *
-- * Check whether F_SEAL_WRITE or F_SEAL_FUTURE_WRITE are set; if so, do proper
-- * check/handling on the vma flags.  Return 0 if check pass, or <0 for errors.
-- */
--static inline int seal_check_write(int seals, struct vm_area_struct *vma)
--{
--	if (!is_write_sealed(seals))
--		return 0;
--
--	/*
--	 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
--	 * write seals are active.
--	 */
--	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE))
--		return -EPERM;
--
--	return 0;
--}
--
- #ifdef CONFIG_ANON_VMA_NAME
- int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
- 			  unsigned long len_in,
---- a/mm/memfd.c~mm-perform-all-memfd-seal-checks-in-a-single-place
-+++ a/mm/memfd.c
-@@ -170,7 +170,7 @@ static int memfd_wait_for_pins(struct ad
- 	return error;
- }
- 
--unsigned int *memfd_file_seals_ptr(struct file *file)
-+static unsigned int *memfd_file_seals_ptr(struct file *file)
- {
- 	if (shmem_file(file))
- 		return &SHMEM_I(file_inode(file))->seals;
-@@ -327,6 +327,48 @@ static int check_sysctl_memfd_noexec(uns
- 	return 0;
- }
- 
-+static inline bool is_write_sealed(unsigned int seals)
++/* Common code for can_follow_write_* */
++static inline bool can_follow_write_common(struct page *page,
++		struct vm_area_struct *vma, unsigned int flags)
 +{
-+	return seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE);
-+}
++	/* Maybe FOLL_FORCE is set to override it? */
++	if (!(flags & FOLL_FORCE))
++		return false;
 +
-+static int check_write_seal(unsigned long *vm_flags_ptr)
-+{
-+	unsigned long vm_flags = *vm_flags_ptr;
-+	unsigned long mask = vm_flags & (VM_SHARED | VM_WRITE);
++	/* But FOLL_FORCE has no effect on shared mappings */
++	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
++		return false;
 +
-+	/* If a private matting then writability is irrelevant. */
-+	if (!(mask & VM_SHARED))
-+		return 0;
++	/* ... or read-only private ones */
++	if (!(vma->vm_flags & VM_MAYWRITE))
++		return false;
++
++	/* ... or already writable ones that just need to take a write fault */
++	if (vma->vm_flags & VM_WRITE)
++		return false;
 +
 +	/*
-+	 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
-+	 * write seals are active.
++	 * See can_change_pte_writable(): we broke COW and could map the page
++	 * writable if we have an exclusive anonymous page ...
 +	 */
-+	if (mask & VM_WRITE)
-+		return -EPERM;
-+
-+	/*
-+	 * This is a read-only mapping, disallow mprotect() from making a
-+	 * write-sealed mapping writable in future.
-+	 */
-+	*vm_flags_ptr &= ~VM_MAYWRITE;
-+
-+	return 0;
++	return page && PageAnon(page) && PageAnonExclusive(page);
 +}
 +
-+int memfd_check_seals_mmap(struct file *file, unsigned long *vm_flags_ptr)
+ static struct page *no_page_table(struct vm_area_struct *vma,
+ 				  unsigned int flags, unsigned long address)
+ {
+@@ -622,6 +649,18 @@ static struct page *no_page_table(struct
+ }
+ 
+ #ifdef CONFIG_PGTABLE_HAS_HUGE_LEAVES
++/* FOLL_FORCE can write to even unwritable PUDs in COW mappings. */
++static inline bool can_follow_write_pud(pud_t pud, struct page *page,
++					struct vm_area_struct *vma,
++					unsigned int flags)
 +{
-+	int err = 0;
-+	unsigned int *seals_ptr = memfd_file_seals_ptr(file);
-+	unsigned int seals = seals_ptr ? *seals_ptr : 0;
++	/* If the pud is writable, we can write to the page. */
++	if (pud_write(pud))
++		return true;
 +
-+	if (is_write_sealed(seals))
-+		err = check_write_seal(vm_flags_ptr);
-+
-+	return err;
++	return can_follow_write_common(page, vma, flags);
 +}
 +
- SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
- 		unsigned int, flags)
---- a/mm/mmap.c~mm-perform-all-memfd-seal-checks-in-a-single-place
-+++ a/mm/mmap.c
-@@ -368,8 +368,8 @@ unsigned long do_mmap(struct file *file,
+ static struct page *follow_huge_pud(struct vm_area_struct *vma,
+ 				    unsigned long addr, pud_t *pudp,
+ 				    int flags, struct follow_page_context *ctx)
+@@ -634,10 +673,11 @@ static struct page *follow_huge_pud(stru
  
- 	if (file) {
- 		struct inode *inode = file_inode(file);
--		unsigned int seals = memfd_file_seals(file);
- 		unsigned long flags_mask;
-+		int err;
+ 	assert_spin_locked(pud_lockptr(mm, pudp));
  
- 		if (!file_mmap_ok(file, inode, pgoff, len))
- 			return -EOVERFLOW;
-@@ -409,8 +409,6 @@ unsigned long do_mmap(struct file *file,
- 			vm_flags |= VM_SHARED | VM_MAYSHARE;
- 			if (!(file->f_mode & FMODE_WRITE))
- 				vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
--			else if (is_readonly_sealed(seals, vm_flags))
--				vm_flags &= ~VM_MAYWRITE;
- 			fallthrough;
- 		case MAP_PRIVATE:
- 			if (!(file->f_mode & FMODE_READ))
-@@ -430,6 +428,14 @@ unsigned long do_mmap(struct file *file,
- 		default:
- 			return -EINVAL;
+-	if ((flags & FOLL_WRITE) && !pud_write(pud))
++	if (!pud_present(pud))
+ 		return NULL;
+ 
+-	if (!pud_present(pud))
++	if ((flags & FOLL_WRITE) &&
++	    !can_follow_write_pud(pud, pfn_to_page(pfn), vma, flags))
+ 		return NULL;
+ 
+ 	pfn += (addr & ~PUD_MASK) >> PAGE_SHIFT;
+@@ -686,27 +726,7 @@ static inline bool can_follow_write_pmd(
+ 	if (pmd_write(pmd))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -807,27 +827,7 @@ static inline bool can_follow_write_pte(
+ 	if (pte_write(pte))
+ 		return true;
+ 
+-	/* Maybe FOLL_FORCE is set to override it? */
+-	if (!(flags & FOLL_FORCE))
+-		return false;
+-
+-	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
+-		return false;
+-
+-	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
+-		return false;
+-
+-	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
+-		return false;
+-
+-	/*
+-	 * See can_change_pte_writable(): we broke COW and could map the page
+-	 * writable if we have an exclusive anonymous page ...
+-	 */
+-	if (!page || !PageAnon(page) || !PageAnonExclusive(page))
++	if (!can_follow_write_common(page, vma, flags))
+ 		return false;
+ 
+ 	/* ... and a write-fault isn't required for other reasons. */
+@@ -1294,9 +1294,6 @@ static int check_vma_flags(struct vm_are
+ 		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+ 				return -EFAULT;
+-			/* hugetlb does not support FOLL_FORCE|FOLL_WRITE. */
+-			if (is_vm_hugetlb_page(vma))
+-				return -EFAULT;
+ 			/*
+ 			 * We used to let the write,force case do COW in a
+ 			 * VM_MAYWRITE VM_SHARED !VM_WRITE vma, so ptrace could
+--- a/mm/hugetlb.c~mm-hugetlb-support-foll_forcefoll_write
++++ a/mm/hugetlb.c
+@@ -5183,6 +5183,13 @@ static void set_huge_ptep_writable(struc
+ 		update_mmu_cache(vma, address, ptep);
+ }
+ 
++static void set_huge_ptep_maybe_writable(struct vm_area_struct *vma,
++					 unsigned long address, pte_t *ptep)
++{
++	if (vma->vm_flags & VM_WRITE)
++		set_huge_ptep_writable(vma, address, ptep);
++}
++
+ bool is_hugetlb_entry_migration(pte_t pte)
+ {
+ 	swp_entry_t swp;
+@@ -5828,13 +5835,6 @@ static vm_fault_t hugetlb_wp(struct foli
+ 	if (!unshare && huge_pte_uffd_wp(pte))
+ 		return 0;
+ 
+-	/*
+-	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
+-	 * PTE mapped R/O such as maybe_mkwrite() would do.
+-	 */
+-	if (WARN_ON_ONCE(!unshare && !(vma->vm_flags & VM_WRITE)))
+-		return VM_FAULT_SIGSEGV;
+-
+ 	/* Let's take out MAP_SHARED mappings first. */
+ 	if (vma->vm_flags & VM_MAYSHARE) {
+ 		set_huge_ptep_writable(vma, vmf->address, vmf->pte);
+@@ -5863,7 +5863,8 @@ retry_avoidcopy:
+ 			SetPageAnonExclusive(&old_folio->page);
  		}
-+
-+		/*
-+		 * Check to see if we are violating any seals and update VMA
-+		 * flags if necessary to avoid future seal violations.
-+		 */
-+		err = memfd_check_seals_mmap(file, &vm_flags);
-+		if (err)
-+			return (unsigned long)err;
- 	} else {
- 		switch (flags & MAP_TYPE) {
- 		case MAP_SHARED:
---- a/mm/shmem.c~mm-perform-all-memfd-seal-checks-in-a-single-place
-+++ a/mm/shmem.c
-@@ -2816,12 +2816,6 @@ out_nomem:
- static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct inode *inode = file_inode(file);
--	struct shmem_inode_info *info = SHMEM_I(inode);
--	int ret;
--
--	ret = seal_check_write(info->seals, vma);
--	if (ret)
--		return ret;
+ 		if (likely(!unshare))
+-			set_huge_ptep_writable(vma, vmf->address, vmf->pte);
++			set_huge_ptep_maybe_writable(vma, vmf->address,
++						     vmf->pte);
  
- 	file_accessed(file);
- 	/* This is anonymous shared memory if it is unlinked at the time of mmap */
+ 		delayacct_wpcopy_end();
+ 		return 0;
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from guillaume@morinfr.org are
 
-mips-vdso-prefer-do_mmap-to-mmap_region.patch
-mm-make-mmap_region-internal.patch
 
