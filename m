@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A2F23353A
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FC61C54A2
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837134; cv=none; b=Fkr1FZ/9M/BRx3wP2I+F7vLIK8rQgi4krwBspD+6wkEfRLmSdx92jyI+0MmeAEPKb/wNVVkucXeIAnREuIG1kL28CojEIe15FsmcdaEEfU/dP3Hc88sJx7GJvC9FqT8LNAiradQ2p/PcXH644oNoejmBewHCsD5O/MfzuJtxil4=
+	t=1736837135; cv=none; b=Dl+W16zYVs0VAgbMdS5wki5fn/4HdpehM+0/iz2451i0COQ16niDJ46jSTyk7y6ie6u+m2quY/prWHJYFWL+cG8pROX+91N6zA8HBjITx/7fr2TvM8aE64SDQ2kvb6ZGXxs6A+Q/hdWXAKgjt7KpIZ5Dx+dVfYsXku06TxbmWm4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837134; c=relaxed/simple;
-	bh=7H9vevQhpjlG2150w1DAG3n9jSA6CWsleU9gkpPD3DA=;
-	h=Date:To:From:Subject:Message-Id; b=fJ0t3BlQZPfXpFP+O36ezK+4d7DTe3SPXVRn1kV6jkwW8azmIi+EL/NE5qt8fV5MLOvkRp7qDucHGClLcU29sbfGlDVCv7/52Gt+tpBAqLhqiSQ1jbByQjEe9bXk/6nY0jwoa8ypvVGZQWB/NfTpLVEO02RHlo+ctPmRYLkrfkY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BTQB3NTp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837135; c=relaxed/simple;
+	bh=Y8eNuK9mYW9ctSZPRStylzpjCiPYa79QydHvrQcXEFo=;
+	h=Date:To:From:Subject:Message-Id; b=DJw7PzefN+ykfT+5E5KwLPo7gKeCX3fLi9nFt8UH1b/J0L2WSudqtb75i03JhxADQZ5I/7OnqhJwFD4lG7qdN8q20GEirhYOQnDwOJF9KOC7dEs2s7AMuixftwR1ta5+4/ovdbUznuLRPkN2Xji931zUf4d6bH46rkMWlIwDT0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIqvIwLB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BTQB3NTp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11A70C4CEDD;
-	Tue, 14 Jan 2025 06:45:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIqvIwLB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C3BEC4CEDD;
+	Tue, 14 Jan 2025 06:45:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837134;
-	bh=7H9vevQhpjlG2150w1DAG3n9jSA6CWsleU9gkpPD3DA=;
+	s=korg; t=1736837135;
+	bh=Y8eNuK9mYW9ctSZPRStylzpjCiPYa79QydHvrQcXEFo=;
 	h=Date:To:From:Subject:From;
-	b=BTQB3NTp5/SgW+NogaiERUDBxvyGM1bLPGSivRenhc9GAGNQGjDNuC/sphh1GFyyS
-	 wRkfDpU9SpzR5RH1CsHKJhuMx3Iz0Uudav+w5kA6KwqsPwz6sriGdYKTcQmyKsJEx5
-	 ij+fgayjfT8Lck7N9s7WA8YsNNS3D+/n8HSn8AqA=
-Date: Mon, 13 Jan 2025 22:45:33 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,tglx@linutronix.de,ryan.roberts@arm.com,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,palmer@dabbelt.com,npiggin@gmail.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,andreas@gaisler.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=aIqvIwLBrJi9zJ9v+T1fCWK0ADd3u18Xoeofdb2AHyQ9eqh0+UrnQR6frBbrmf+Ja
+	 u15JrIjV+aAnR6ZUxIJc5UwuXHdXC2GWoDUOa3duKQDi9TAM22VQC10KtAv/oQ/VLk
+	 Bm3LIFyFz8aPgHb73MPspGwoT7xnwtWRmURNwoew=
+Date: Mon, 13 Jan 2025 22:45:34 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,r.thapliyal@samsung.com,jack@suse.cz,elver@google.com,brauner@kernel.org,maninder1.s@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pgtable-introduce-generic-pagetable_dtor_free.patch removed from -mm tree
-Message-Id: <20250114064534.11A70C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] lib-list_debugc-add-object-information-in-case-of-invalid-object.patch removed from -mm tree
+Message-Id: <20250114064535.7C3BEC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,146 +35,183 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: pgtable: introduce generic pagetable_dtor_free()
+     Subject: lib/list_debug.c: add object information in case of invalid object
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-introduce-generic-pagetable_dtor_free.patch
+     lib-list_debugc-add-object-information-in-case-of-invalid-object.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: introduce generic pagetable_dtor_free()
-Date: Wed, 8 Jan 2025 14:57:33 +0800
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: lib/list_debug.c: add object information in case of invalid object
+Date: Mon, 30 Dec 2024 15:40:43 +0530
 
-The pte_free(), pmd_free(), __pud_free() and __p4d_free() in
-asm-generic/pgalloc.h and the generic __tlb_remove_table() are basically
-the same, so let's introduce pagetable_dtor_free() to deduplicate them.
+As of now during link list corruption it prints about cluprit address and
+its wrong value, but sometime it is not enough to catch the actual issue
+point.
 
-In addition, the pagetable_dtor_free() in s390 does the same thing, so
-let's s390 also calls generic pagetable_dtor_free().
+If it prints allocation and free path of that corrupted node, it will be a
+lot easier to find and fix the issues.
 
-Link: https://lkml.kernel.org/r/1663a0565aca881d1338ceb7d1db4aa9c333abd6.1736317725.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Aneesh Kumar K.V (Arm) <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Adding the same information when data mismatch is found in link list
+debug data:
+
+[   14.243055]  slab kmalloc-32 start ffff0000cda19320 data offset 32 pointer offset 8 size 32 allocated at add_to_list+0x28/0xb0
+[   14.245259]     __kmalloc_cache_noprof+0x1c4/0x358
+[   14.245572]     add_to_list+0x28/0xb0
+...
+[   14.248632]     do_el0_svc_compat+0x1c/0x34
+[   14.249018]     el0_svc_compat+0x2c/0x80
+[   14.249244]  Free path:
+[   14.249410]     kfree+0x24c/0x2f0
+[   14.249724]     do_force_corruption+0xbc/0x100
+...
+[   14.252266]     el0_svc_common.constprop.0+0x40/0xe0
+[   14.252540]     do_el0_svc_compat+0x1c/0x34
+[   14.252763]     el0_svc_compat+0x2c/0x80
+[   14.253071] ------------[ cut here ]------------
+[   14.253303] list_del corruption. next->prev should be ffff0000cda192a8, but was 6b6b6b6b6b6b6b6b. (next=ffff0000cda19348)
+[   14.254255] WARNING: CPU: 3 PID: 84 at lib/list_debug.c:65 __list_del_entry_valid_or_report+0x158/0x164
+
+Moved prototype of mem_dump_obj() to bug.h, as mm.h can not be included in
+bug.h.
+
+Link: https://lkml.kernel.org/r/20241230101043.53773-1-maninder1.s@samsung.com
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Rohit Thapliyal <r.thapliyal@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgalloc.c        |    6 ------
- include/asm-generic/pgalloc.h |   12 ++++--------
- include/asm-generic/tlb.h     |    3 +--
- include/linux/mm.h            |    6 ++++++
- 4 files changed, 11 insertions(+), 16 deletions(-)
+ fs/open.c           |    2 +-
+ fs/super.c          |    2 +-
+ include/linux/bug.h |   10 +++++++++-
+ include/linux/mm.h  |    6 ------
+ lib/list_debug.c    |   22 +++++++++++-----------
+ 5 files changed, 22 insertions(+), 20 deletions(-)
 
---- a/arch/s390/mm/pgalloc.c~mm-pgtable-introduce-generic-pagetable_dtor_free
-+++ a/arch/s390/mm/pgalloc.c
-@@ -180,12 +180,6 @@ unsigned long *page_table_alloc(struct m
- 	return table;
- }
- 
--static void pagetable_dtor_free(struct ptdesc *ptdesc)
--{
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
--}
--
- void page_table_free(struct mm_struct *mm, unsigned long *table)
+--- a/fs/open.c~lib-list_debugc-add-object-information-in-case-of-invalid-object
++++ a/fs/open.c
+@@ -1504,7 +1504,7 @@ static int filp_flush(struct file *filp,
  {
- 	struct ptdesc *ptdesc = virt_to_ptdesc(table);
---- a/include/asm-generic/pgalloc.h~mm-pgtable-introduce-generic-pagetable_dtor_free
-+++ a/include/asm-generic/pgalloc.h
-@@ -109,8 +109,7 @@ static inline void pte_free(struct mm_st
- {
- 	struct ptdesc *ptdesc = page_ptdesc(pte_page);
+ 	int retval = 0;
  
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
-+	pagetable_dtor_free(ptdesc);
- }
+-	if (CHECK_DATA_CORRUPTION(file_count(filp) == 0,
++	if (CHECK_DATA_CORRUPTION(file_count(filp) == 0, filp,
+ 			"VFS: Close: file count is 0 (f_op=%ps)",
+ 			filp->f_op)) {
+ 		return 0;
+--- a/fs/super.c~lib-list_debugc-add-object-information-in-case-of-invalid-object
++++ a/fs/super.c
+@@ -647,7 +647,7 @@ void generic_shutdown_super(struct super
+ 		 */
+ 		fscrypt_destroy_keyring(sb);
  
+-		if (CHECK_DATA_CORRUPTION(!list_empty(&sb->s_inodes),
++		if (CHECK_DATA_CORRUPTION(!list_empty(&sb->s_inodes), NULL,
+ 				"VFS: Busy inodes after unmount of %s (%s)",
+ 				sb->s_id, sb->s_type->name)) {
+ 			/*
+--- a/include/linux/bug.h~lib-list_debugc-add-object-information-in-case-of-invalid-object
++++ a/include/linux/bug.h
+@@ -73,15 +73,23 @@ static inline void generic_bug_clear_onc
  
-@@ -153,8 +152,7 @@ static inline void pmd_free(struct mm_st
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pmd);
+ #endif	/* CONFIG_GENERIC_BUG */
  
- 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
-+	pagetable_dtor_free(ptdesc);
- }
- #endif
- 
-@@ -202,8 +200,7 @@ static inline void __pud_free(struct mm_
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
- 
- 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
-+	pagetable_dtor_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_PUD_FREE
-@@ -248,8 +245,7 @@ static inline void __p4d_free(struct mm_
- 	struct ptdesc *ptdesc = virt_to_ptdesc(p4d);
- 
- 	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
-+	pagetable_dtor_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_P4D_FREE
---- a/include/asm-generic/tlb.h~mm-pgtable-introduce-generic-pagetable_dtor_free
-+++ a/include/asm-generic/tlb.h
-@@ -213,8 +213,7 @@ static inline void __tlb_remove_table(vo
- {
- 	struct ptdesc *ptdesc = (struct ptdesc *)table;
- 
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
-+	pagetable_dtor_free(ptdesc);
- }
- #endif
- 
---- a/include/linux/mm.h~mm-pgtable-introduce-generic-pagetable_dtor_free
-+++ a/include/linux/mm.h
-@@ -3001,6 +3001,12 @@ static inline void pagetable_dtor(struct
- 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
- }
- 
-+static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
-+{
-+	pagetable_dtor(ptdesc);
-+	pagetable_free(ptdesc);
-+}
++#ifdef CONFIG_PRINTK
++void mem_dump_obj(void *object);
++#else
++static inline void mem_dump_obj(void *object) {}
++#endif
 +
- static inline bool pagetable_pte_ctor(struct ptdesc *ptdesc)
+ /*
+  * Since detected data corruption should stop operation on the affected
+  * structures. Return value must be checked and sanely acted on by caller.
+  */
+ static inline __must_check bool check_data_corruption(bool v) { return v; }
+-#define CHECK_DATA_CORRUPTION(condition, fmt, ...)			 \
++#define CHECK_DATA_CORRUPTION(condition, addr, fmt, ...)		 \
+ 	check_data_corruption(({					 \
+ 		bool corruption = unlikely(condition);			 \
+ 		if (corruption) {					 \
++			if (addr)					 \
++				mem_dump_obj(addr);			 \
+ 			if (IS_ENABLED(CONFIG_BUG_ON_DATA_CORRUPTION)) { \
+ 				pr_err(fmt, ##__VA_ARGS__);		 \
+ 				BUG();					 \
+--- a/include/linux/mm.h~lib-list_debugc-add-object-information-in-case-of-invalid-object
++++ a/include/linux/mm.h
+@@ -4084,12 +4084,6 @@ unsigned long wp_shared_mapping_range(st
+ 
+ extern int sysctl_nr_trim_pages;
+ 
+-#ifdef CONFIG_PRINTK
+-void mem_dump_obj(void *object);
+-#else
+-static inline void mem_dump_obj(void *object) {}
+-#endif
+-
+ #ifdef CONFIG_ANON_VMA_NAME
+ int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long len_in,
+--- a/lib/list_debug.c~lib-list_debugc-add-object-information-in-case-of-invalid-object
++++ a/lib/list_debug.c
+@@ -22,17 +22,17 @@ __list_valid_slowpath
+ bool __list_add_valid_or_report(struct list_head *new, struct list_head *prev,
+ 				struct list_head *next)
  {
- 	struct folio *folio = ptdesc_folio(ptdesc);
+-	if (CHECK_DATA_CORRUPTION(prev == NULL,
++	if (CHECK_DATA_CORRUPTION(prev == NULL, NULL,
+ 			"list_add corruption. prev is NULL.\n") ||
+-	    CHECK_DATA_CORRUPTION(next == NULL,
++	    CHECK_DATA_CORRUPTION(next == NULL, NULL,
+ 			"list_add corruption. next is NULL.\n") ||
+-	    CHECK_DATA_CORRUPTION(next->prev != prev,
++	    CHECK_DATA_CORRUPTION(next->prev != prev, next,
+ 			"list_add corruption. next->prev should be prev (%px), but was %px. (next=%px).\n",
+ 			prev, next->prev, next) ||
+-	    CHECK_DATA_CORRUPTION(prev->next != next,
++	    CHECK_DATA_CORRUPTION(prev->next != next, prev,
+ 			"list_add corruption. prev->next should be next (%px), but was %px. (prev=%px).\n",
+ 			next, prev->next, prev) ||
+-	    CHECK_DATA_CORRUPTION(new == prev || new == next,
++	    CHECK_DATA_CORRUPTION(new == prev || new == next, NULL,
+ 			"list_add double add: new=%px, prev=%px, next=%px.\n",
+ 			new, prev, next))
+ 		return false;
+@@ -49,20 +49,20 @@ bool __list_del_entry_valid_or_report(st
+ 	prev = entry->prev;
+ 	next = entry->next;
+ 
+-	if (CHECK_DATA_CORRUPTION(next == NULL,
++	if (CHECK_DATA_CORRUPTION(next == NULL, NULL,
+ 			"list_del corruption, %px->next is NULL\n", entry) ||
+-	    CHECK_DATA_CORRUPTION(prev == NULL,
++	    CHECK_DATA_CORRUPTION(prev == NULL, NULL,
+ 			"list_del corruption, %px->prev is NULL\n", entry) ||
+-	    CHECK_DATA_CORRUPTION(next == LIST_POISON1,
++	    CHECK_DATA_CORRUPTION(next == LIST_POISON1, next,
+ 			"list_del corruption, %px->next is LIST_POISON1 (%px)\n",
+ 			entry, LIST_POISON1) ||
+-	    CHECK_DATA_CORRUPTION(prev == LIST_POISON2,
++	    CHECK_DATA_CORRUPTION(prev == LIST_POISON2, prev,
+ 			"list_del corruption, %px->prev is LIST_POISON2 (%px)\n",
+ 			entry, LIST_POISON2) ||
+-	    CHECK_DATA_CORRUPTION(prev->next != entry,
++	    CHECK_DATA_CORRUPTION(prev->next != entry, prev,
+ 			"list_del corruption. prev->next should be %px, but was %px. (prev=%px)\n",
+ 			entry, prev->next, prev) ||
+-	    CHECK_DATA_CORRUPTION(next->prev != entry,
++	    CHECK_DATA_CORRUPTION(next->prev != entry, next,
+ 			"list_del corruption. next->prev should be %px, but was %px. (next=%px)\n",
+ 			entry, next->prev, next))
+ 		return false;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from maninder1.s@samsung.com are
 
 
