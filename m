@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F32423A11D
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B20423A115
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836970; cv=none; b=YqYoGF0kCTxo3NyisPwBsQ46Yrob1PlqSCxl/Ljuy3K7/wjZwnugLUCZp6klGtBt9oSYj0/x6aPVJmdjTLu8BgOFnUvfqFBV1CK2Fu9WCWr23Jgmh982PHbWitBOaTba6EpvJjffkN2tOc1bqBaIXTr/bsFcMn7w5z9+Y2J0/fg=
+	t=1736836971; cv=none; b=hltH0DlPR4FuOu2Hj9nU45fg/sxNvp1Op0DryyQjNLD6xiReKrVdF0Gh1B51sraMO9UZL7qj50hKDeFPWDHBewWYnbH6jIr4E0+JWrb9e41ASSU1oUlkBL2+2dzEK1jcl3EktyF/GPQtvNbvmeoAOhBiay2YgrDp85QnFCLdlgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836970; c=relaxed/simple;
-	bh=QepdCh43wOpeju0qV1lxIUof+dyOhaNiW/Ri7n82fw4=;
-	h=Date:To:From:Subject:Message-Id; b=uRpTCGVAWHZhzxuFbrhJcOI8kLxe5ohi3T5FA7evy2WWI9naeo77EbjBf/nTbK8ARNYDt6OVvsEbncXYki3bDHAlCd2i10gTNdumisoqTnIviC5SJVO+1+OwGCHPdeokaokn7tE2xm6vM4G7hXEgyAUL3+97cQZCkKXxjaDI24U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fdE8Lody; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836971; c=relaxed/simple;
+	bh=lSeW45YEQmHV562YR3yErj3gYj2ITs0kR57U2oJP2uI=;
+	h=Date:To:From:Subject:Message-Id; b=F7Cn6osbjQOwH04J7IrmTo9hDvebxv7Pm4oqEmSyctfXLSFvNega1kyN/9wOyTO4RKSqlFQSReUk7N7e6gssFQFZ8NY8rMIKa1Uu39ZORztChF6sbsNa8YdxOMYacxq70epPyzrUCBp0quP+rpWRJLsSFkuqSBas0/I9Q7QBeUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=duoBxLXh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fdE8Lody"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCB4C4CEDD;
-	Tue, 14 Jan 2025 06:42:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="duoBxLXh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3BCAC4CEDD;
+	Tue, 14 Jan 2025 06:42:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836969;
-	bh=QepdCh43wOpeju0qV1lxIUof+dyOhaNiW/Ri7n82fw4=;
+	s=korg; t=1736836971;
+	bh=lSeW45YEQmHV562YR3yErj3gYj2ITs0kR57U2oJP2uI=;
 	h=Date:To:From:Subject:From;
-	b=fdE8Lodyjdi2uvjkiRufuQ5tctDZIcrxMJhRFsMPZbUnn/aFwjzVUMxZ9CZ38hjlp
-	 6pUPtOQqPyDquHzgEvz12f/MvOEMArqBNW8/DLg0H9pVFP7qaGwTlGQDbWP7s6P1i9
-	 rfNeDB8XLWjXLGUVk8f1zND1ynSAUdRq+0nYvMzc=
-Date: Mon, 13 Jan 2025 22:42:49 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,ryabinin.a.a@gmail.com,lkp@intel.com,dvyukov@google.com,andreyknvl@gmail.com,niharchaithanya@gmail.com,akpm@linux-foundation.org
+	b=duoBxLXhk4sgDGl8MAX5Gdxim0uUr5onyeU4iYPuEgsrov8kXAxv/SS0dKiyP0l0u
+	 2McSb6zMNWedTE/KQUESjk5DI9fYk6K158nELnXMAGx/0P0JtZ+NbSrw3laN4UAhU5
+	 jJ3JSwtHB1XZ8iA08REAlK+y37S55zbiJb1L+k4M=
+Date: Mon, 13 Jan 2025 22:42:50 -0800
+To: mm-commits@vger.kernel.org,gaoxiang17@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kasan-fix-sparse-warnings-should-it-be-static.patch removed from -mm tree
-Message-Id: <20250114064249.CFCB4C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch removed from -mm tree
+Message-Id: <20250114064250.E3BCAC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm:kasan: fix sparse warnings: Should it be static?
+     Subject: mm/page_alloc: add some detailed comments in can_steal_fallback
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-fix-sparse-warnings-should-it-be-static.patch
+     mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nihar Chaithanya <niharchaithanya@gmail.com>
-Subject: mm:kasan: fix sparse warnings: Should it be static?
-Date: Fri, 11 Oct 2024 17:15:38 +0530
+From: gaoxiang17 <gaoxiang17@xiaomi.com>
+Subject: mm/page_alloc: add some detailed comments in can_steal_fallback
+Date: Fri, 20 Sep 2024 20:20:30 +0800
 
-Yes, when making the global variables kasan_ptr_result and
-kasan_int_result as static volatile, the warnings are removed and the
-variable and assignments are retained, but when just static is used I
-understand that it might be optimized.
-
-Add a fix making the global varaibles - static volatile, removing the
-warnings:
-mm/kasan/kasan_test.c:36:6: warning: symbol 'kasan_ptr_result' was not declared. Should it be static?
-mm/kasan/kasan_test.c:37:5: warning: symbol 'kasan_int_result' was not declared. Should it be static?
-
-Link: https://lkml.kernel.org/r/20241011114537.35664-1-niharchaithanya@gmail.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202312261010.o0lRiI9b-lkp@intel.com/
-Signed-off-by: Nihar Chaithanya <niharchaithanya@gmail.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+[akpm@linux-foundation.org: tweak grammar, fit to 80 cols]
+Link: https://lkml.kernel.org/r/20240920122030.159751-1-gxxa03070307@gmail.com
+Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/kasan/kasan_test_c.c~mm-kasan-fix-sparse-warnings-should-it-be-static
-+++ a/mm/kasan/kasan_test_c.c
-@@ -47,8 +47,8 @@ static struct {
-  * Some tests use these global variables to store return values from function
-  * calls that could otherwise be eliminated by the compiler as dead code.
-  */
--void *kasan_ptr_result;
--int kasan_int_result;
-+static volatile void *kasan_ptr_result;
-+static volatile int kasan_int_result;
+--- a/mm/page_alloc.c~mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback
++++ a/mm/page_alloc.c
+@@ -1855,6 +1855,14 @@ static bool can_steal_fallback(unsigned
+ 	if (order >= pageblock_order)
+ 		return true;
  
- /* Probe for console output: obtains test_status lines of interest. */
- static void probe_console(void *ignore, const char *buf, size_t len)
++	/*
++	 * Movable pages won't cause permanent fragmentation, so when you alloc
++	 * small pages, you just need to temporarily steal unmovable or
++	 * reclaimable pages that are closest to the request size.  After a
++	 * while, memory compaction may occur to form large contiguous pages,
++	 * and the next movable allocation may not need to steal.  Unmovable and
++	 * reclaimable allocations need to actually steal pages.
++	 */
+ 	if (order >= pageblock_order / 2 ||
+ 		start_mt == MIGRATE_RECLAIMABLE ||
+ 		start_mt == MIGRATE_UNMOVABLE ||
 _
 
-Patches currently in -mm which might be from niharchaithanya@gmail.com are
+Patches currently in -mm which might be from gaoxiang17@xiaomi.com are
 
 
