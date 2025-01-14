@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73CFF42A83
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 02:24:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C7F288CC
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 02:51:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736821484; cv=none; b=W9gTsI3dtev8asKnmjVvAYQOipjaRTp7AbuQKZ5n989LjqdQL8kLT5OUBrSzE22Yj3u+HqRUDFonOwDFzEUqf6dzwOC/njQ82wwbCM6outXytH9YyPs9JtgmBnFLxpemmQ2LSBN1yIqkFCBC+wBVI6fW6KvKXDeDOncqv9lGd80=
+	t=1736823079; cv=none; b=HIoT4Zyp4qLxzX3syyA3h8xtTJ+6Oj+C6GkJwHrx92RysgRkIr7CXt6mooibJp4ut/2Fm4AYeLQsJka/BJ7QcR07iatGe35mqnNme2iiGZnfOWSsRJM2tq/O2mwbn+iU9Q4Y5KLGnQC6UgpamesZRZcCRsf1/VKBQAA+7tPUIC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736821484; c=relaxed/simple;
-	bh=mAlezV2b+8LzZn/wHT7bZeRSmsBzbIrRi+i5m/kImzo=;
-	h=Date:To:From:Subject:Message-Id; b=V4IMXwEawAgG8QU6450tPwkJdljWdnAfpDaLVl4Zb5f3dwGO5hKQo34f5ag2qbY+zGDDdoPS30oAqKLOdN5ZhTN42aUrJggoFIEsdbYXNHKqCIOk+OzHYiL+TZhRURpm8JlcC1TH7JjyZgB9z+8zoPsq6BoiGwzUYD04sidwmZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G7jr7dli; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736823079; c=relaxed/simple;
+	bh=8Illt2HinXZK+DYvej/lQEJPuBR+crV3pc1gPT8Mglo=;
+	h=Date:To:From:Subject:Message-Id; b=HefbRHoW9qv0YRYwXAKV2xX3FXzeqyGaIWGuKVUhG8v+vzgmzfbpQ4+/CL6sYNssM0IXdGl0ImEv5cxOIJO6n+mRkxyWJ1jM2SYgTa4lKjdcrUG0zSsv0vXjP4wX68dvDvjGc3qZoNcOtp8oA12Lp2bVXJ4gFSVcgDA39PynYQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XpBNlLLu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G7jr7dli"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC934C4CED6;
-	Tue, 14 Jan 2025 02:24:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XpBNlLLu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AAB0C4CED6;
+	Tue, 14 Jan 2025 02:51:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736821484;
-	bh=mAlezV2b+8LzZn/wHT7bZeRSmsBzbIrRi+i5m/kImzo=;
+	s=korg; t=1736823077;
+	bh=8Illt2HinXZK+DYvej/lQEJPuBR+crV3pc1gPT8Mglo=;
 	h=Date:To:From:Subject:From;
-	b=G7jr7dli3kSaE87Fn+1m7abPgJsfGmz22eoWwVueACYDtwYmTNngP0YB4ClbZR/E1
-	 eO1k5yM4nDvcURzk3gnAcu8M8eQkwjt6mAjy/kSpcI0LPWFzOPqHf1OWTBBRzS+0xe
-	 P5IRIInc2bD/2DAAOAXXVMpHLhNLwFqEHxu2k3HQ=
-Date: Mon, 13 Jan 2025 18:24:43 -0800
-To: mm-commits@vger.kernel.org,ville.syrjala@linux.intel.com,rppt@kernel.org,mingo@redhat.com,bp@alien8.de,peterz@infradead.org,akpm@linux-foundation.org
+	b=XpBNlLLuGJL9vKJic7c5bgJXdIuYVyKckVEHoWCYogM4DuTyznhR4FgniPlpo3H5o
+	 fc0VOg022MskIU/ues0X3vYwAILCAE21fAAGlqNucu3OOyHUNPShVRNRuHq/7BM0fS
+	 pE0uZESS2gPaanqoDqXG8f2T5PGqAZeWZJi9YE5I=
+Date: Mon, 13 Jan 2025 18:51:16 -0800
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-disable-execmem_rox-support.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250114022443.DC934C4CED6@smtp.kernel.org>
+Subject: + ksm-add-ksm-involvement-information-for-each-process-fix.patch added to mm-unstable branch
+Message-Id: <20250114025117.7AAB0C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: disable EXECMEM_ROX support
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-disable-execmem_rox-support.patch
+     Subject: ksm-add-ksm-involvement-information-for-each-process-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     ksm-add-ksm-involvement-information-for-each-process-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-disable-execmem_rox-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-add-ksm-involvement-information-for-each-process-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: x86: disable EXECMEM_ROX support
-Date: Mon, 13 Jan 2025 12:29:34 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm-add-ksm-involvement-information-for-each-process-fix
+Date: Mon Jan 13 06:48:34 PM PST 2025
 
-module_writable_address() made a mess of alternative.c, and it still
-contains bugs -- notably some of the CFI variants crash and burn.
+wording tweaks, per David and akpm
 
-Mike has been working on patches to clean all this up again, but given the
-current state of things, this stuff just isn't ready.
-
-Disable for now, lets try again next cycle.
-
-Link: https://lkml.kernel.org/r/20250113112934.GA8385@noisy.programming.kicks-ass.net
-Fixes: 5185e7f9f3bd ("x86/module: enable ROX caches for module text on 64 bit")
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Tested-by: Ville Syrjl <ville.syrjala@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/filesystems/proc.rst |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/arch/x86/Kconfig~x86-disable-execmem_rox-support
-+++ a/arch/x86/Kconfig
-@@ -83,7 +83,6 @@ config X86
- 	select ARCH_HAS_DMA_OPS			if GART_IOMMU || XEN
- 	select ARCH_HAS_EARLY_DEBUG		if KGDB
- 	select ARCH_HAS_ELF_RANDOMIZE
--	select ARCH_HAS_EXECMEM_ROX		if X86_64
- 	select ARCH_HAS_FAST_MULTIPLIER
- 	select ARCH_HAS_FORTIFY_SOURCE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
+--- a/Documentation/filesystems/proc.rst~ksm-add-ksm-involvement-information-for-each-process-fix
++++ a/Documentation/filesystems/proc.rst
+@@ -2257,10 +2257,10 @@ Description
+ ksm_rmap_items
+ ^^^^^^^^^^^^^^
+ 
+-The number of ksm_rmap_item structure in use. The structure of
+-ksm_rmap_item is to store the reverse mapping information for virtual
+-addresses. KSM will generate a ksm_rmap_item for each ksm-scanned page
+-of the process.
++The number of ksm_rmap_item structures in use.  The structure
++ksm_rmap_item stores the reverse mapping information for virtual
++addresses.  KSM will generate a ksm_rmap_item for each ksm-scanned page of
++the process.
+ 
+ ksm_zero_pages
+ ^^^^^^^^^^^^^^
+@@ -2289,14 +2289,16 @@ ksm_merge_any
+ ^^^^^^^^^^^^^
+ 
+ It specifies whether the process'mm is added by prctl() into the candidate list
+-of KSM or not, and KSM scanning is fully enabled at process level.
++of KSM or not, and if KSM scanning is fully enabled at process level.
+ 
+ ksm_mergeable
+ ^^^^^^^^^^^^^
+ 
+-It specifies whether any VMAs of the process'mm are currently applicable to KSM.
++It specifies whether any VMAs of the process'mm are currently applicable
++to KSM.
+ 
+-More information about KSM can be found at Documentation/admin-guide/mm/ksm.rst.
++More information about KSM can be found in
++Documentation/admin-guide/mm/ksm.rst.
+ 
+ 
+ Chapter 4: Configuring procfs
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-disable-execmem_rox-support.patch
-kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch
+mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
+mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
+mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
+mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+mm-huge_memoryc-rename-shadowed-local.patch
+mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
+ksm-add-ksm-involvement-information-for-each-process-fix.patch
+documentation-filesystems-procrst-fix-possessive-form-of-process.patch
 
