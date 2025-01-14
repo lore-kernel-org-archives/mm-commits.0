@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C55423D3ED
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A181D23D3ED
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837083; cv=none; b=OAANBQx4MxkaMJLA3k3UNv1JuAwOJIxNYg25YeOQ4VW3bIr7DBEzubK0VXixPWGi1+RCJpmOtq4+aw/zuMCx2ycQUHR2VqlETI50U3zg1naVmexc/Utz1oGZN8WIr0/gTUdTNjwnZKY4og6G+mcwDs8tvr+B11NWE1ekIRdIBbI=
+	t=1736837084; cv=none; b=NJKUi+jLbm/YrA1ID2LUXRhUiQiQkHo5GOsxBjQHTfXPsaEUsHCGTOtF6K9A3HcoBlX3r9cixKKfGlJAjBz6F3Di3SdhSbn6fAjCcOdeTsBRqyBaZ1875q9N0eDE39Ytdm5Otaj8+q4W8/HW371r4vLaJ8rU8YxmMu2Rl0R4oXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837083; c=relaxed/simple;
-	bh=a/gwWA7RjBZbJ1BAnfXrKWY32YoeQphoPDtnUBvcTwQ=;
-	h=Date:To:From:Subject:Message-Id; b=V7EqlXAPOoYdOjyVqyoiEhcm0ertrwhUz0394Ivi3nGfzXl5HhwyproSVhcVgEZYmMhyfItcBMsEvC4F1DsJ1TFmfbSE8m6qa4H+++fnCyNz7VSQMOsatjbe0g+Los3DUcSNhqIUrO+cRbGXdEkbr/miLFjylazvGOslwMrGI+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EPBMxRZM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837084; c=relaxed/simple;
+	bh=nv518uI0izP0OUt1qO+/R61nejaOIeih//Y1iTcqWic=;
+	h=Date:To:From:Subject:Message-Id; b=IKzUq2Pv2cFBmYBabPiJz5V1Ou9O7BgBmggZSSeIwENRMP+Nb4G0vOTp9jDwWbacdU1GRU3tbtVEFihc+leVZNVcUkgfvwyD4LEUkCQNAya6uBHwPt+tvkJsEB2+Uv7CAwdR0lJKn/pAQo9ygLUlzY3PpNt4TBLaLXKGoU4y04g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m37onVlV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EPBMxRZM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60931C4CEDD;
-	Tue, 14 Jan 2025 06:44:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m37onVlV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76AFDC4CEDD;
+	Tue, 14 Jan 2025 06:44:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837083;
-	bh=a/gwWA7RjBZbJ1BAnfXrKWY32YoeQphoPDtnUBvcTwQ=;
+	s=korg; t=1736837084;
+	bh=nv518uI0izP0OUt1qO+/R61nejaOIeih//Y1iTcqWic=;
 	h=Date:To:From:Subject:From;
-	b=EPBMxRZMTqlpNFzzFtlkSUgkK4fI1WVofGtgfU4g8vdmYxzd5vCd1HA/A7hA9bVTM
-	 DweQ1Tv74Py9viPdzVYFQHRNigBrbiOHR3vJXl/KKm9GQVPX/1+NELqNpK0Z47+YMX
-	 XthA6oL5uCCUND3+w/Yr8Ka3nyGTn+zEZg0yxomw=
-Date: Mon, 13 Jan 2025 22:44:42 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,hch@lst.de,akpm@linux-foundation.org
+	b=m37onVlVvGjJUcCzNdrrPI+eYf2/AtQpNwvgQxOmFGb8WtQnS9fI7/+C52rWNslxt
+	 uynFm8+5EE/2qcXLEL9NC3/wGdpbB8XV4OJrfEUzOMVNKhW8H7I/fVyVMk/3UxcVHo
+	 Oc//sZ2wDtQuP0IQXyJmLYOAp2FQHt8AVxqSu/7w=
+Date: Mon, 13 Jan 2025 22:44:43 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-unexport-apply_to_existing_page_range.patch removed from -mm tree
-Message-Id: <20250114064443.60931C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-add-simple-__mmap_region-userland-test.patch removed from -mm tree
+Message-Id: <20250114064444.76AFDC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: unexport apply_to_existing_page_range
+     Subject: tools: testing: add simple __mmap_region() userland test
 has been removed from the -mm tree.  Its filename was
-     mm-unexport-apply_to_existing_page_range.patch
+     tools-testing-add-simple-__mmap_region-userland-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: unexport apply_to_existing_page_range
-Date: Thu, 12 Dec 2024 08:34:23 +0100
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: tools: testing: add simple __mmap_region() userland test
+Date: Fri, 13 Dec 2024 16:24:09 +0000
 
-apply_to_existing_page_range() is only used by non-modular code.
+Introduce demonstrative, basic, __mmap_region() test upon which we can
+base further work upon moving forwards.
 
-Link: https://lkml.kernel.org/r/20241212073423.1439954-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+This simply asserts that mappings can be made and merges occur as
+expected.
+
+As part of this change, fix the security_vm_enough_memory_mm() stub which
+was previously incorrectly implemented.
+
+Link: https://lkml.kernel.org/r/20241213162409.41498-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/testing/vma/vma.c          |   53 +++++++++++++++++++++++++++++
+ tools/testing/vma/vma_internal.h |    2 -
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-unexport-apply_to_existing_page_range
-+++ a/mm/memory.c
-@@ -3082,7 +3082,6 @@ int apply_to_existing_page_range(struct
- {
- 	return __apply_to_page_range(mm, addr, size, fn, data, false);
+--- a/tools/testing/vma/vma.c~tools-testing-add-simple-__mmap_region-userland-test
++++ a/tools/testing/vma/vma.c
+@@ -1574,6 +1574,57 @@ static bool test_expand_only_mode(void)
+ 	return true;
  }
--EXPORT_SYMBOL_GPL(apply_to_existing_page_range);
  
- /*
-  * handle_pte_fault chooses page fault handler according to an entry which was
++static bool test_mmap_region_basic(void)
++{
++	struct mm_struct mm = {};
++	unsigned long addr;
++	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, &mm, 0);
++
++	current->mm = &mm;
++
++	/* Map at 0x300000, length 0x3000. */
++	addr = __mmap_region(NULL, 0x300000, 0x3000,
++			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
++			     0x300, NULL);
++	ASSERT_EQ(addr, 0x300000);
++
++	/* Map at 0x250000, length 0x3000. */
++	addr = __mmap_region(NULL, 0x250000, 0x3000,
++			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
++			     0x250, NULL);
++	ASSERT_EQ(addr, 0x250000);
++
++	/* Map at 0x303000, merging to 0x300000 of length 0x6000. */
++	addr = __mmap_region(NULL, 0x303000, 0x3000,
++			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
++			     0x303, NULL);
++	ASSERT_EQ(addr, 0x303000);
++
++	/* Map at 0x24d000, merging to 0x250000 of length 0x6000. */
++	addr = __mmap_region(NULL, 0x24d000, 0x3000,
++			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
++			     0x24d, NULL);
++	ASSERT_EQ(addr, 0x24d000);
++
++	ASSERT_EQ(mm.map_count, 2);
++
++	for_each_vma(vmi, vma) {
++		if (vma->vm_start == 0x300000) {
++			ASSERT_EQ(vma->vm_end, 0x306000);
++			ASSERT_EQ(vma->vm_pgoff, 0x300);
++		} else if (vma->vm_start == 0x24d000) {
++			ASSERT_EQ(vma->vm_end, 0x253000);
++			ASSERT_EQ(vma->vm_pgoff, 0x24d);
++		} else {
++			ASSERT_FALSE(true);
++		}
++	}
++
++	cleanup_mm(&mm, &vmi);
++	return true;
++}
++
+ int main(void)
+ {
+ 	int num_tests = 0, num_fail = 0;
+@@ -1607,6 +1658,8 @@ int main(void)
+ 	TEST(copy_vma);
+ 	TEST(expand_only_mode);
+ 
++	TEST(mmap_region_basic);
++
+ #undef TEST
+ 
+ 	printf("%d tests run, %d passed, %d failed.\n",
+--- a/tools/testing/vma/vma_internal.h~tools-testing-add-simple-__mmap_region-userland-test
++++ a/tools/testing/vma/vma_internal.h
+@@ -996,7 +996,7 @@ static inline bool is_file_hugepages(str
+ 
+ static inline int security_vm_enough_memory_mm(struct mm_struct *, long)
+ {
+-	return true;
++	return 0;
+ }
+ 
+ static inline bool may_expand_vm(struct mm_struct *, vm_flags_t, unsigned long)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mips-vdso-prefer-do_mmap-to-mmap_region.patch
+mm-make-mmap_region-internal.patch
 
