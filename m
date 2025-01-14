@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F7981C1F15
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4752C1C1F15
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836924; cv=none; b=N8cjrFfxOhjh8+7g8A4nTgvb/Ukf8w6Ibri9EaHLGpLApZRPEsZU4ZUVxcAyKk5OtLwNys4oggW3rTWbUOxroqiL/NHJUiH4IC9SbM9lavhWI0d4Z8GgXVjypKG6v6Cg9/RPgXqjGEoAfsxjl98CNV9+nd84kpcJ4xdteV7dhPM=
+	t=1736836925; cv=none; b=YA4nG0VcSMA7N6JqPGE3/RRAN3hN+qWzo6AgIJ126wjB0YTxkytEj1fnpRSwzs3mVcoSPSMvaIrIQ5pL/yYXtHvF3QS0X/m42yA8VXQF3Oggwt9kYLOp9BbXEh2GxjnebNsR7PS3sVqItRDsAWXMlI4DtuIcEfnFbD1DBlvv3Bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836924; c=relaxed/simple;
-	bh=wASL/SbTNN1hRW68smlI96s0Ocyrhodv7PjbQYtgiSk=;
-	h=Date:To:From:Subject:Message-Id; b=eBVK78FDo5Z0vGdgqEERxlA7jk+TN4jw3i0YQFnJjdYBB89ezmdjJnfShbf3HAtjeLFWyGZ9aluSOfoRJAZKlUqu4R+VyGRKeXEmxmJe2Tgq5tIQAa+gA/Q5TMKpSjMOnacIdRgok9XS0dYgfn6afOSFiTPqGynvaT/orosqGRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ss7wyUsc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836925; c=relaxed/simple;
+	bh=U/+Ayrt/b63Zs5ZOY/qyGfX5ydfgG+BZEl0Y9UV2VLs=;
+	h=Date:To:From:Subject:Message-Id; b=RmPKkRpPwgpeDW6eJ4ESnAkIGjHU4ZT3xrSbldNzprh7j5I/ypRUoEHfeHPIGJg4CAc64px+6E6pE/9rPQlsO3Yc7+EOZ+cbSGqcSLJMryNNicSUnyTOCK1e0w0M/+1D+uDfOU2JwU2bh1PJ5CwolcZvLXMwFoXHZch3PTomm4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lZ6ebbxW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ss7wyUsc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5DFCC4CEDD;
-	Tue, 14 Jan 2025 06:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lZ6ebbxW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5A95C4CEDD;
+	Tue, 14 Jan 2025 06:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836923;
-	bh=wASL/SbTNN1hRW68smlI96s0Ocyrhodv7PjbQYtgiSk=;
+	s=korg; t=1736836924;
+	bh=U/+Ayrt/b63Zs5ZOY/qyGfX5ydfgG+BZEl0Y9UV2VLs=;
 	h=Date:To:From:Subject:From;
-	b=Ss7wyUscDbHgQdyBZgbCJMFFeo8UTlTUD4GbTmjA/fqKxk5AUoKpQbwrnwegDsEs/
-	 yYZqARiA57ZHaizH7Q4Yq7/BvAmC/Q6yAnbDPqink4P/etPNd7Rsu6o9jHml6iG1Rw
-	 3SfaBmeszPOAbiHaflM2JQnEJ4DBj0kJfkMa2zP4=
-Date: Mon, 13 Jan 2025 22:42:03 -0800
+	b=lZ6ebbxWIOzJRXM24AQ3I3De4icYZV+No7wGKtMhjyLcqfH+uxGtvLYQ0pWuxOdj1
+	 mOI5y4482qxZDyJ2/lEwvUsSrjsp9u5cxIjT9WJnttgyzAR7M4H5elbPxCRJ8e13hd
+	 uQ+QF8XzYjcyHF9+BY1N/I4+h7vO0jwdfEqkejMg=
+Date: Mon, 13 Jan 2025 22:42:04 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,william.kucharski@oracle.com,vbabka@suse.cz,songmuchun@bytedance.com,mgorman@techsingularity.net,linmiaohe@huawei.com,david@redhat.com,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch removed from -mm tree
-Message-Id: <20250114064203.A5DFCC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch removed from -mm tree
+Message-Id: <20250114064204.C5A95C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: move set_page_refcounted() to callers of __alloc_pages_direct_compact()
+     Subject: mm/page_alloc: move set_page_refcounted() to callers of __alloc_pages_direct_reclaim()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact.patch
+     mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/page_alloc: move set_page_refcounted() to callers of __alloc_pages_direct_compact()
-Date: Mon, 25 Nov 2024 21:01:41 +0000
+Subject: mm/page_alloc: move set_page_refcounted() to callers of __alloc_pages_direct_reclaim()
+Date: Mon, 25 Nov 2024 21:01:42 +0000
 
 In preparation for allocating frozen pages, stop initialising the page
-refcount in __alloc_pages_direct_compact().
+refcount in __alloc_pages_direct_reclaim().
 
-Link: https://lkml.kernel.org/r/20241125210149.2976098-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20241125210149.2976098-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -63,43 +63,31 @@ Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_compact
+--- a/mm/page_alloc.c~mm-page_alloc-move-set_page_refcounted-to-callers-of-__alloc_pages_direct_reclaim
 +++ a/mm/page_alloc.c
-@@ -3706,7 +3706,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	if (page) {
- 		struct zone *zone = page_zone(page);
+@@ -3964,7 +3964,6 @@ retry:
+ 		drained = true;
+ 		goto retry;
+ 	}
+-	set_page_refcounted(page);
+ out:
+ 	psi_memstall_leave(&pflags);
  
--		set_page_refcounted(page);
- 		zone->compact_blockskip_flush = false;
- 		compaction_defer_reset(zone, order, true);
- 		count_vm_event(COMPACTSUCCESS);
-@@ -4308,8 +4307,10 @@ restart:
- 						alloc_flags, ac,
- 						INIT_COMPACT_PRIORITY,
- 						&compact_result);
--		if (page)
-+		if (page) {
-+			set_page_refcounted(page);
- 			goto got_pg;
-+		}
- 
- 		/*
- 		 * Checks for costly allocations with __GFP_NORETRY, which
-@@ -4391,8 +4392,10 @@ retry:
- 	/* Try direct compaction and then allocating */
- 	page = __alloc_pages_direct_compact(gfp_mask, order, alloc_flags, ac,
- 					compact_priority, &compact_result);
+@@ -4386,8 +4385,10 @@ retry:
+ 	/* Try direct reclaim and then allocating */
+ 	page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags, ac,
+ 							&did_some_progress);
 -	if (page)
 +	if (page) {
 +		set_page_refcounted(page);
  		goto got_pg;
 +	}
  
- 	/* Do not loop if specifically requested */
- 	if (gfp_mask & __GFP_NORETRY)
+ 	/* Try direct compaction and then allocating */
+ 	page = __alloc_pages_direct_compact(gfp_mask, order, alloc_flags, ac,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
