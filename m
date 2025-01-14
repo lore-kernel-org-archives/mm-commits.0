@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC48123C70A
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 090DC23ED63
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837087; cv=none; b=Q2S0wzmVQfuaVOuYQ7kw0ZU1jrTi8kOvEU3BfhPslGuNT+NHvx585ST16Luk/LrFvxIN5Ke/TpZU57nk5Y5bE5c8X+RNremndWqtbBV6WBVwQZ69qDRhsW5fYuqj4eoJ504OHCgAEENppOHJOZ8js478lSPpUtfr/fDWLYxzq4U=
+	t=1736837089; cv=none; b=mlLTlF3j+rq3puFpu8rBh8laTuEvALApVZhYZDKcuvQfLucmxERjBR3MZOOy/lhwH52W5aonqRPpRU5q2kXrMYG31SAGtObrwJ3OKAKkST/G90yjG/29V8BNCspFtpZHj5H7TSuxaGAc2TCoF7HCkDWlxthAdLvhrtv4OOsMdtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837087; c=relaxed/simple;
-	bh=zWGtDuGMpfjLRNo4XQ5zEHgm7w2IFat2syCbKxius/I=;
-	h=Date:To:From:Subject:Message-Id; b=AqK+A9TLtDkU5wJx47dXehptIkE/QCWdxq/+Hw4JRNjvygVC9P0xECWumJTwf3qgKfTuB2SPXF9Ojom5EJeJVpzVihg1+miCydhYFYvyh+HDGtB4Yd/kj9Lqlc1SoZFnyhhtEXrwRlqXgZPJIarFV73eIWdkE1sf/BehZU6s0wQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dOPlHZMS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837089; c=relaxed/simple;
+	bh=mMZ7Q3QOmkFxOoDlgGllrWri3rhw1aJnPNfsZmbnnqk=;
+	h=Date:To:From:Subject:Message-Id; b=HTvb3URnuk0adDLHFdSTlr6rop+3bG2Lb/aLlu6WtuYpR+lvdtiMshU6NfHIt2cTuxjbesWfAl0VFVWkV4DeLLbhtioaEqC9GE6r2FFAQqyLxwVie5evLYtpOO3SjA4AcqY6ud3pYS0vGyO5yVfbcx3hrCiy/XCt1+cPHhoAWVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uAtggQW9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dOPlHZMS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A278DC4CEDD;
-	Tue, 14 Jan 2025 06:44:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uAtggQW9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB88DC4CEDD;
+	Tue, 14 Jan 2025 06:44:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837087;
-	bh=zWGtDuGMpfjLRNo4XQ5zEHgm7w2IFat2syCbKxius/I=;
+	s=korg; t=1736837088;
+	bh=mMZ7Q3QOmkFxOoDlgGllrWri3rhw1aJnPNfsZmbnnqk=;
 	h=Date:To:From:Subject:From;
-	b=dOPlHZMSfM1/s2bLPo87wjV5y1gntJBZEtK69c2m0ZJ+IykcM43beewYes0kMUdgQ
-	 uzqSqGafI7UEiCnuzs5FHXTQWECDiyUBZf1J+BPvHPih3GeTTzEGUR4hlFWNmAzbAU
-	 6/r+znLxwXXayoQJs6nynLyJCm++2s0Y+IVPq0B0=
-Date: Mon, 13 Jan 2025 22:44:47 -0800
-To: mm-commits@vger.kernel.org,yangerkun@huawei.com,chuck.lever@oracle.com,brauner@kernel.org,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=uAtggQW9MLiAgdmcjCVJsGwNkiVUtsVU5tMI8J8+z4ohwLLqZtEmiBs7JXU/swR3O
+	 ZQZxC3Y6bfyfp57aWrC65jx9mj7nr4F7nN40+kXkFsvhiI0cFshqd+9pZnhNXXug4L
+	 29zcgC/AwIL+Q7c/IGIES5fBUNzoRYtPbt4KC/LU=
+Date: Mon, 13 Jan 2025 22:44:48 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] test_maple_tree-test-exhausted-upper-limit-of-mtree_alloc_cyclic.patch removed from -mm tree
-Message-Id: <20250114064447.A278DC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-avoid-duplicated-memcg-enable-check.patch removed from -mm tree
+Message-Id: <20250114064448.CB88DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: test_maple_tree: test exhausted upper limit of mtree_alloc_cyclic()
+     Subject: mm, memcontrol: avoid duplicated memcg enable check
 has been removed from the -mm tree.  Its filename was
-     test_maple_tree-test-exhausted-upper-limit-of-mtree_alloc_cyclic.patch
+     mm-memcontrol-avoid-duplicated-memcg-enable-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: test_maple_tree: test exhausted upper limit of mtree_alloc_cyclic()
-Date: Mon, 16 Dec 2024 14:01:13 -0500
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, memcontrol: avoid duplicated memcg enable check
+Date: Wed, 18 Dec 2024 19:46:30 +0800
 
-When the upper bound of the search is exhausted, the maple state may be
-returned in an error state of -EBUSY.  This means maple state needs to be
-reset before the second search in mas_alloc_cylic() to ensure the search
-happens.  This test ensures the issue is not recreated.
+Patch series "mm/swap_cgroup: remove global swap cgroup lock", v3.
 
-Link: https://lkml.kernel.org/r/20241216190113.1226145-3-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Yang Erkun <yangerkun@huawei.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Chuck Lever <chuck.lever@oracle.com> says:
+This series removes the global swap cgroup lock.  The critical section of
+this lock is very short but it's still a bottle neck for mass parallel
+swap workloads.
+
+Up to 10% performance gain for tmpfs build kernel test on a 48c96t system
+under memory pressure, and no regression for other cases:
+
+
+This patch (of 3):
+
+mem_cgroup_uncharge_swap() includes a mem_cgroup_disabled() check,
+so the caller doesn't need to check that.
+
+Link: https://lkml.kernel.org/r/20241218114633.85196-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20241218114633.85196-2-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_maple_tree.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_maple_tree.c~test_maple_tree-test-exhausted-upper-limit-of-mtree_alloc_cyclic
-+++ a/lib/test_maple_tree.c
-@@ -3738,6 +3738,34 @@ static noinline void __init alloc_cyclic
- 	}
- 
- 	mtree_destroy(mt);
-+
-+	/*
-+	 * Issue with reverse search was discovered
-+	 * https://lore.kernel.org/all/20241216060600.287B4C4CED0@smtp.kernel.org/
-+	 * Exhausting the allocation area and forcing the search to wrap needs a
-+	 * mas_reset() in mas_alloc_cyclic().
-+	 */
-+	next = 0;
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	for (int i = 0; i < 1023; i++) {
-+		mtree_alloc_cyclic(mt, &location, mt, 2, 1024, &next, GFP_KERNEL);
-+		MT_BUG_ON(mt, i != location - 2);
-+		MT_BUG_ON(mt, i != next - 3);
-+		MT_BUG_ON(mt, mtree_load(mt, location) != mt);
-+	}
-+	mtree_erase(mt, 123);
-+	MT_BUG_ON(mt, mtree_load(mt, 123) != NULL);
-+	mtree_alloc_cyclic(mt, &location, mt, 2, 1024, &next, GFP_KERNEL);
-+	MT_BUG_ON(mt, 123 != location);
-+	MT_BUG_ON(mt, 124 != next);
-+	MT_BUG_ON(mt, mtree_load(mt, location) != mt);
-+	mtree_erase(mt, 100);
-+	mtree_alloc_cyclic(mt, &location, mt, 2, 1024, &next, GFP_KERNEL);
-+	MT_BUG_ON(mt, 100 != location);
-+	MT_BUG_ON(mt, 101 != next);
-+	MT_BUG_ON(mt, mtree_load(mt, location) != mt);
-+	mtree_destroy(mt);
-+
- 	/* Overflow test */
- 	next = ULONG_MAX - 1;
- 	ret = mtree_alloc_cyclic(mt, &location, mt, 2, ULONG_MAX, &next, GFP_KERNEL);
+--- a/mm/memcontrol.c~mm-memcontrol-avoid-duplicated-memcg-enable-check
++++ a/mm/memcontrol.c
+@@ -4595,7 +4595,7 @@ void mem_cgroup_swapin_uncharge_swap(swp
+ 	 * correspond 1:1 to page and swap slot lifetimes: we charge the
+ 	 * page to memory here, and uncharge swap when the slot is freed.
+ 	 */
+-	if (!mem_cgroup_disabled() && do_memsw_account()) {
++	if (do_memsw_account()) {
+ 		/*
+ 		 * The swap entry might not get freed for a long time,
+ 		 * let's not wait for it.  The page already received a
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
+mm-swap-minor-clean-up-for-swap-entry-allocation.patch
+mm-swap-fold-swap_info_get_cont-in-the-only-caller.patch
+mm-swap-remove-old-allocation-path-for-hdd.patch
+mm-swap-use-cluster-lock-for-hdd.patch
+mm-swap-clean-up-device-availability-check.patch
+mm-swap-clean-up-plist-removal-and-adding.patch
+mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch
+mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes.patch
+mm-swap-reduce-contention-on-device-lock.patch
+mm-swap-simplify-percpu-cluster-updating.patch
+mm-swap-introduce-a-helper-for-retrieving-cluster-from-offset.patch
+mm-swap-use-a-global-swap-cluster-for-non-rotation-devices.patch
+mm-swap_slots-remove-slot-cache-for-freeing-path.patch
 
