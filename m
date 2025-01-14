@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF3D8168DA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 04:14:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEA9322F11
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:22:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736828074; cv=none; b=uhrtKmX/PnLv31ewRrav+aRt7vCcCCGhTLbpBcUIfmzBvE9OXqyIn77mDaLrZsEHRF/kVBqQVpELrZTTE5m+xpqyVREywwxQoSGq+oHEdhc0CFfm6C3hfokQ1Ik53jbT8P8ebQsHVTCSAfYdKvB+wSbdu8LYrNsgCF+zaigR8zc=
+	t=1736835769; cv=none; b=pgyE+8mYMT00HG12+sj9gZXRtNimzPmJ3+T15GQStKfwIw0iPLLJ3TJqDbTleJwhab3j7wz7iCmyfGlUOKEHSzNzbwc9dJwXukZDIyTgXjNT1livBXT1xf0yKsQt6FsNLtyb6MdXFVjNLuEDZ/c3XozncbgaUGmBXJhj5ETw15w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736828074; c=relaxed/simple;
-	bh=TZfJa+lCy24X+2+/49XejuYHA9pvMkTLaOortp9qFL0=;
-	h=Date:To:From:Subject:Message-Id; b=VKL6JBNzLZYS2AncM9WXDYsEHwA/Rd3jSUlJptKwhsfLK80ZeZgLxCVMpLCYCFTjUxFCgBHTDqYw/XrU8AI0GtHFl0GmxcFSyMIYAYRHk9nvyrYL0Oai6Ip3EGrvBMdmGZBnsaImVOErPZ/UxVQ/2nyo1CJ4n8i7z5oy4C4PUOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kOSOf9Bg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736835769; c=relaxed/simple;
+	bh=/JGg1PsN7ELO/916KEpPgtDxk4XxQJdGtMBQ1zdiusc=;
+	h=Date:To:From:Subject:Message-Id; b=RDt++nWc/jKqWCrB/c0jbK64TNuXcN8Ep9WGGpRL3unedHXpXquF5xHhKoI8WlH4C9FMa8Y7g8iojxqI/nwDsM9BWV/Q7g3FFbNqpQNut4xPp+Kl9c5RRdO/zP1dHZRurGQTELtAVJK7XFcd5Kic4QYb6hudOt020P3yalX12xs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WPyGdsav; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kOSOf9Bg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C2BC4CEDF;
-	Tue, 14 Jan 2025 04:14:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WPyGdsav"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B22EC4CEDD;
+	Tue, 14 Jan 2025 06:22:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736828074;
-	bh=TZfJa+lCy24X+2+/49XejuYHA9pvMkTLaOortp9qFL0=;
+	s=korg; t=1736835769;
+	bh=/JGg1PsN7ELO/916KEpPgtDxk4XxQJdGtMBQ1zdiusc=;
 	h=Date:To:From:Subject:From;
-	b=kOSOf9Bgbhd3bKcGupH65Cg29NdI+GK0s91+oBgqNYZQhBPAxsKHputOcbGTNz1Xp
-	 0hCBuh+J9ZRZZh7ASa3YpVTN64WtL+cSgDmJj9nCJYEQOB9of9RGsH6jlvd80CYcML
-	 Uq0s9K/+5tEj2wUNfomJ6lwGdG785SrfhoKWCYrQ=
-Date: Mon, 13 Jan 2025 20:14:33 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sauravshah.31@gmail.com,lorenzo.stoakes@oracle.com,jeffxu@google.com,isaacmanjarres@google.com,gthelen@google.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=WPyGdsavG65YSzPYtTl0UzHruOzJj/NuOLuYHW6vkaKNYkRf9O/Jm5/5T/Sqfxt23
+	 QRXHshsKgFUi6h4C9K1ylpinEshzDcgkt1F3rGjNQ62s+b/8U9BBel1RMxJybQtNT0
+	 IdMnfGswJbsPfFPGnBUV/7U+dVV36GXBbmxKGZBY=
+Date: Mon, 13 Jan 2025 22:22:48 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-memfd-memfd_test-fix-possible-null-pointer-dereference.patch added to mm-unstable branch
-Message-Id: <20250114041434.44C2BC4CEDF@smtp.kernel.org>
+Subject: [folded-merged] mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch removed from -mm tree
+Message-Id: <20250114062249.1B22EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,65 +34,51 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/memfd/memfd_test: fix possible NULL pointer dereference
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-memfd-memfd_test-fix-possible-null-pointer-dereference.patch
+The quilt patch titled
+     Subject: mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix
+has been removed from the -mm tree.  Its filename was
+     mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd-memfd_test-fix-possible-null-pointer-dereference.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc.patch
 
 ------------------------------------------------------
-From: liuye <liuye@kylinos.cn>
-Subject: selftests/memfd/memfd_test: fix possible NULL pointer dereference
-Date: Tue, 14 Jan 2025 11:21:15 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix
+Date: Fri Nov 29 08:09:32 PM PST 2024
 
-If `name' is NULL, a NULL pointer may be accessed in printf.
+s/vfree/kvfree/, per Shakeel
 
-Link: https://lkml.kernel.org/r/20250114032115.58638-1-liuye@kylinos.cn
-Signed-off-by: liuye <liuye@kylinos.cn>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Saurav Shah <sauravshah.31@gmail.com>
-Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/memfd_test.c |    2 +-
+ mm/swap_cgroup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-memfd_test-fix-possible-null-pointer-dereference
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -171,7 +171,7 @@ static void mfd_fail_new(const char *nam
- 	r = sys_memfd_create(name, flags);
- 	if (r >= 0) {
- 		printf("memfd_create(\"%s\", %u) succeeded, but failure expected\n",
--		       name, flags);
-+		       name ? name : "NULL", flags);
- 		close(r);
- 		abort();
- 	}
+--- a/mm/swap_cgroup.c~mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc-fix
++++ a/mm/swap_cgroup.c
+@@ -158,5 +158,5 @@ void swap_cgroup_swapoff(int type)
+ 	ctrl->map = NULL;
+ 	mutex_unlock(&swap_cgroup_mutex);
+ 
+-	kvfree(map);
++	vfree(map);
+ }
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-fix-hard-lockup-in-function-isolate_lru_folios.patch
-selftests-memfd-memfd_test-fix-possible-null-pointer-dereference.patch
+mm-swap_cgroup-allocate-swap_cgroup-map-using-vcalloc.patch
+mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback-fix.patch
+mm-introduce-mmap_lock_speculate_try_beginretry-fix.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption.patch
+mm-damon-tests-vaddr-kunith-reduce-stack-consumption-fix.patch
+mm-fix-outdated-incorrect-code-comments-for-handle_mm_fault-fix.patch
+mm-huge_memoryc-rename-shadowed-local.patch
+mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device-fix.patch
+ksm-add-ksm-involvement-information-for-each-process-fix.patch
+documentation-filesystems-procrst-fix-possessive-form-of-process.patch
 
