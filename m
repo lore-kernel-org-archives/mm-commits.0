@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26A0D23C6EE
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0D5523C6EC
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836994; cv=none; b=nyF4LlZIMO/t7F1O0onkpU2bfSievqqO66YXzTBpZ/2SarjhLkLw0irEHWBmtOYy6gsjUmgAufiBS38xKsuXB9urIE2UYAckLgTanT5/aBoHZnqid9vA81GsjNCqDo2629baOC5PAyRZAugqvUVIddUa3WAdc82ri3UplZ/eJlU=
+	t=1736836995; cv=none; b=vA49kjxYUiun7/xk/uXgDcdV5e0esW7l/FyiB/VNPEefgR7gYeeZcyECwYLKAgSOEHgGu3KBaq9X3ajznYXCtG5UyHfZuVd5uErbyYh+KH0SgnHktZxRgIB7BHNBO9oxDqjKfk9ctHx+BWSZej0SSIm5iPg4c6Sq+/+a6qX4+HM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836994; c=relaxed/simple;
-	bh=TNedEMeFwa9yCSfB8n7LoeotssBtn4K2dIIXIbgSa0U=;
-	h=Date:To:From:Subject:Message-Id; b=Qj4JENFnXjcRGAHrurOpVLxYMAil1vVq8r0mFDuTDs2M1eJFv8qnPCJaojyDaeqip7c9mHr0np4ddC4BVAPBTEorNI6OhVSSBJYYSzQHnSwnqhZdvlI2H+qx9WOEawhtYCaseGDmkiGOzxrq1CDQEHADBp6+saQu7CqLpKReEqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HAqY48lW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836995; c=relaxed/simple;
+	bh=mT0LbvT1KLcVMzdhowNCUnjufXcbeoHjcnDWGymBa90=;
+	h=Date:To:From:Subject:Message-Id; b=ZKqUbMUH9LJwRi+yOmk+3DLqpCZ1Bv8l6xj2L0UkSCAzDoZbN0nrO4AKN0u5UT01TJrP8i2OazCubmgfaxKDHbHznFY1ISKa9khhL31jABTQvSx55dVddP3vrSK91O8qXulDUNrfOrFlnZbz56mPmkO91I9Km/5XMibqpXfFMtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nY3xAL16; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HAqY48lW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8735C4CEDD;
-	Tue, 14 Jan 2025 06:43:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nY3xAL16"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C713CC4CEDD;
+	Tue, 14 Jan 2025 06:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836993;
-	bh=TNedEMeFwa9yCSfB8n7LoeotssBtn4K2dIIXIbgSa0U=;
+	s=korg; t=1736836994;
+	bh=mT0LbvT1KLcVMzdhowNCUnjufXcbeoHjcnDWGymBa90=;
 	h=Date:To:From:Subject:From;
-	b=HAqY48lW7P9X66pU0Vx2i6J4qQiFGdxJD0pZzJAOoW5yiMusjC3zuLWmRN+uChFnX
-	 3nohYDpQlPEt3VJW5UgEL2fx3p8aPiqR/55K/fEK2NBgRCP3LiMnA8cW0B/db9q8Be
-	 F5f7K3Ibw+BOakm2E+TmNsBYW7yS371vcAjIXuh8=
-Date: Mon, 13 Jan 2025 22:43:13 -0800
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,muchun.song@linux.dev,david@redhat.com,aris@ruivo.org,aris@redhat.com,koichiro.den@canonical.com,akpm@linux-foundation.org
+	b=nY3xAL16gyte6RY/fm3wG1dVfaBD1tgARMRUxB01dnS5CrkotyM3NItRovg1xGGll
+	 coqrr5U9fH/yZrj1ZWQI6EsYs233+bwuUmalsKug99nmC0pMkVOZ/cGzX6kx4yMfDg
+	 ArTufZaJkYwmgVE+QmEeHHwJxBE2BYDi9rVFW4R0=
+Date: Mon, 13 Jan 2025 22:43:14 -0800
+To: mm-commits@vger.kernel.org,peterx@redhat.com,muchun.song@linux.dev,guillaume@morinfr.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-prioritize-surplus-allocation-from-current-node.patch removed from -mm tree
-Message-Id: <20250114064313.A8735C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch removed from -mm tree
+Message-Id: <20250114064314.C713CC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,120 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: prioritize surplus allocation from current node
+     Subject: mm/hugetlb: don't map folios writable without VM_WRITE when copying during fork()
 has been removed from the -mm tree.  Its filename was
-     hugetlb-prioritize-surplus-allocation-from-current-node.patch
+     mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Koichiro Den <koichiro.den@canonical.com>
-Subject: hugetlb: prioritize surplus allocation from current node
-Date: Thu, 5 Dec 2024 01:55:03 +0900
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/hugetlb: don't map folios writable without VM_WRITE when copying during fork()
+Date: Wed, 4 Dec 2024 16:31:00 +0100
 
-Previously, surplus allocations triggered by mmap were typically made from
-the node where the process was running.  On a page fault, the area was
-reliably dequeued from the hugepage_freelists for that node.  However,
-since commit 003af997c8a9 ("hugetlb: force allocating surplus hugepages on
-mempolicy allowed nodes"), dequeue_hugetlb_folio_vma() may fall back to
-other nodes unnecessarily even if there is no MPOL_BIND policy, causing
-folios to be dequeued from nodes other than the current one.
+If we have to trigger a hugetlb folio copy during fork() because the anon
+folio might be pinned, we currently unconditionally create a writable PTE.
 
-Also, allocating from the node where the current process is running is
-likely to result in a performance win, as mmap-ing processes often touch
-the area not so long after allocation.  This change minimizes surprises
-for users relying on the previous behavior while maintaining the benefit
-introduced by the commit.
+However, the VMA might not have write permissions (VM_WRITE) at that
+point.
 
-So, prioritize the node the current process is running on when possible.
+Fix it by checking the VMA for VM_WRITE.  Make the code less error prone
+by moving checking for VM_WRITE into make_huge_pte(), and letting callers
+only specify whether we should try making it writable.
 
-Link: https://lkml.kernel.org/r/20241204165503.628784-1-koichiro.den@canonical.com
-Signed-off-by: Koichiro Den <koichiro.den@canonical.com>
-Acked-by: Aristeu Rozanski <aris@ruivo.org>
-Cc: Aristeu Rozanski <aris@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
+A simple reproducer that longterm-pins the folios using liburing to then
+mprotect(PROT_READ) the folios befor fork() [1] results in:
+
+Before:
+[FAIL] access should not have worked
+
+After:
+[PASS] access did not work as expected
+
+[1] https://gitlab.com/davidhildenbrand/scratchspace/-/raw/main/reproducers/hugetlb-mkwrite-fork.c
+
+This is rather a corner case, so stable might not be warranted.
+
+Link: https://lkml.kernel.org/r/20241204153100.1967364-1-david@redhat.com
+Fixes: 4eae4efa2c29 ("hugetlb: do early cow when page pinned on src mm")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Guillaume Morin <guillaume@morinfr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-prioritize-surplus-allocation-from-current-node
+--- a/mm/hugetlb.c~mm-hugetlb-dont-map-folios-writable-without-vm_write-when-copying-during-fork
 +++ a/mm/hugetlb.c
-@@ -2463,7 +2463,13 @@ static int gather_surplus_pages(struct h
- 	long needed, allocated;
- 	bool alloc_ok = true;
- 	int node;
--	nodemask_t *mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
-+	nodemask_t *mbind_nodemask, alloc_nodemask;
-+
-+	mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
-+	if (mbind_nodemask)
-+		nodes_and(alloc_nodemask, *mbind_nodemask, cpuset_current_mems_allowed);
-+	else
-+		alloc_nodemask = cpuset_current_mems_allowed;
+@@ -5155,12 +5155,12 @@ const struct vm_operations_struct hugetl
+ };
  
- 	lockdep_assert_held(&hugetlb_lock);
- 	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
-@@ -2479,8 +2485,16 @@ retry:
- 	spin_unlock_irq(&hugetlb_lock);
- 	for (i = 0; i < needed; i++) {
- 		folio = NULL;
--		for_each_node_mask(node, cpuset_current_mems_allowed) {
--			if (!mbind_nodemask || node_isset(node, *mbind_nodemask)) {
-+
-+		/* Prioritize current node */
-+		if (node_isset(numa_mem_id(), alloc_nodemask))
-+			folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
-+					numa_mem_id(), NULL);
-+
-+		if (!folio) {
-+			for_each_node_mask(node, alloc_nodemask) {
-+				if (node == numa_mem_id())
-+					continue;
- 				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
- 						node, NULL);
- 				if (folio)
+ static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
+-				int writable)
++		bool try_mkwrite)
+ {
+ 	pte_t entry;
+ 	unsigned int shift = huge_page_shift(hstate_vma(vma));
+ 
+-	if (writable) {
++	if (try_mkwrite && (vma->vm_flags & VM_WRITE)) {
+ 		entry = huge_pte_mkwrite(huge_pte_mkdirty(mk_huge_pte(page,
+ 					 vma->vm_page_prot)));
+ 	} else {
+@@ -5213,7 +5213,7 @@ static void
+ hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
+ 		      struct folio *new_folio, pte_t old, unsigned long sz)
+ {
+-	pte_t newpte = make_huge_pte(vma, &new_folio->page, 1);
++	pte_t newpte = make_huge_pte(vma, &new_folio->page, true);
+ 
+ 	__folio_mark_uptodate(new_folio);
+ 	hugetlb_add_new_anon_rmap(new_folio, vma, addr);
+@@ -6249,8 +6249,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 		hugetlb_add_new_anon_rmap(folio, vma, vmf->address);
+ 	else
+ 		hugetlb_add_file_rmap(folio);
+-	new_pte = make_huge_pte(vma, &folio->page, ((vma->vm_flags & VM_WRITE)
+-				&& (vma->vm_flags & VM_SHARED)));
++	new_pte = make_huge_pte(vma, &folio->page, vma->vm_flags & VM_SHARED);
+ 	/*
+ 	 * If this pte was previously wr-protected, keep it wr-protected even
+ 	 * if populated.
+@@ -6582,7 +6581,6 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 	spinlock_t *ptl;
+ 	int ret = -ENOMEM;
+ 	struct folio *folio;
+-	int writable;
+ 	bool folio_in_pagecache = false;
+ 
+ 	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
+@@ -6736,12 +6734,8 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
+ 	 * with wp flag set, don't set pte write bit.
+ 	 */
+-	if (wp_enabled || (is_continue && !vm_shared))
+-		writable = 0;
+-	else
+-		writable = dst_vma->vm_flags & VM_WRITE;
+-
+-	_dst_pte = make_huge_pte(dst_vma, &folio->page, writable);
++	_dst_pte = make_huge_pte(dst_vma, &folio->page,
++				 !wp_enabled && !(is_continue && !vm_shared));
+ 	/*
+ 	 * Always mark UFFDIO_COPY page dirty; note that this may not be
+ 	 * extremely important for hugetlbfs for now since swapping is not
 _
 
-Patches currently in -mm which might be from koichiro.den@canonical.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+mm-huge_memory-convert-has_hwpoisoned-into-a-pure-folio-flag.patch
+mm-hugetlb-rename-isolate_hugetlb-to-folio_isolate_hugetlb.patch
+mm-migrate-dont-call-folio_putback_active_hugetlb-on-dst-hugetlb-folio.patch
+mm-hugetlb-rename-folio_putback_active_hugetlb-to-folio_putback_hugetlb.patch
+mm-hugetlb-cgroup-convert-hugetlb_cgroup_css_offline-to-work-on-folios.patch
+mm-hugetlb-use-folio-lru-int-demote_free_hugetlb_folios.patch
 
