@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632DB2500B1
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81091243348
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837191; cv=none; b=sSO1BgSt7jTU2GeztHDvKa6alwHSQCRXYzBQroMTl7P+kKrEu0XA8biECGekDvUF37jSPm4eU1fId5x9VcbpQtokLJ/MrGOnrUUUMW9p2InDiIO36VnDNtn8EFYSFjuGcpnQmX9Fi83tcJB4ccCCu0FxRRw2qCUoRSlTuj1m45M=
+	t=1736837192; cv=none; b=EwmYm83yHXY5qvkONgSz/SuUZHSoJ7O0GHVqa70rjBoyq7rgccDr7L4/4QAWkS7HL+oRxzveldq3iuBGHvHn3To6+703+FfuUFliHFuxtdHzfcXLrA6f4etIVoQP+5APEn4RIJrOagcOhsJRiTq6aNvw+r/rXtFRYFGJv4RO2tM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837191; c=relaxed/simple;
-	bh=ItxxTbcV2TL7T2En9SMlC2n668mgDhcLduWeFEGuBBw=;
-	h=Date:To:From:Subject:Message-Id; b=QPGPv9Ct8frb5x21dmTfeAnG3NQFgHrim3+jeb0KuJba7PoB0/V/4uxY0lYH3as7/N9/OFs5eo2M2dIycghnlbNEgthjn4RRajsPbA5k/YfKv2dpbZJY9UDHo4gdCTs9xUvzJ+J3DV1o/R+RMjJElJ1m5SR+k0qziRSVS6q4UuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XNucE8iq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837192; c=relaxed/simple;
+	bh=9reWYmqNGIfUwW2r0RYPu2zP/dRnMYm7oBG2f3wgepE=;
+	h=Date:To:From:Subject:Message-Id; b=lumnASQCzecd5H/jzbZCmPHj0SlTdHiOoFZPffepflF0HkYBbLNvJ08DTbyFn4R2LAccqRuD6vXNXYdtergO93nORw9Gwuff/5wXrU6t8V8IivoP7Q2UDVE30yrBqPaqZAi3iq4pcviw/VEIfbiJ7inak87YW7jChq5ecu8tIT4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HmPocKVu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XNucE8iq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37C74C4CEDD;
-	Tue, 14 Jan 2025 06:46:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HmPocKVu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5501BC4CEDD;
+	Tue, 14 Jan 2025 06:46:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837191;
-	bh=ItxxTbcV2TL7T2En9SMlC2n668mgDhcLduWeFEGuBBw=;
+	s=korg; t=1736837192;
+	bh=9reWYmqNGIfUwW2r0RYPu2zP/dRnMYm7oBG2f3wgepE=;
 	h=Date:To:From:Subject:From;
-	b=XNucE8iqTJZHd68obw68DQhrnPlUYcRH/XPoijYWRN+nJvu9Og/JjBUC3JadduxQm
-	 Y/AeQIoQPWHcegYCwMNGZdQ3PuvZtrHqzeFZJulS5VUy5XOdwuwZI50fuakYLHYttO
-	 qGg51OuytMvX2XwkhB346CWP8xeUsS+EPsBFP7qY=
-Date: Mon, 13 Jan 2025 22:46:30 -0800
+	b=HmPocKVuGhuR3DMZPUOckgzPCDYehHfgPmJlC1b8f+U4s1GGM4g4MvVwAxdg5vD+t
+	 S2F9TonFTaYffbPxlMeopo8SMZOdSlqyfZbsLc0n6x8bF2JbhXll6Rb4CR/DJdLNf/
+	 WuZLRARpKW5NsfQMl/ufebFIRSZioUG8vv1mmG4Q=
+Date: Mon, 13 Jan 2025 22:46:31 -0800
 To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,riel@surriel.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,leitao@debian.org,ackerleytng@google.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-stop-using-avoid_reserve-flag-in-fork.patch removed from -mm tree
-Message-Id: <20250114064631.37C74C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-rename-avoid_reserve-to-cow_from_owner.patch removed from -mm tree
+Message-Id: <20250114064632.5501BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,37 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: stop using avoid_reserve flag in fork()
+     Subject: mm/hugetlb: rename avoid_reserve to cow_from_owner
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-stop-using-avoid_reserve-flag-in-fork.patch
+     mm-hugetlb-rename-avoid_reserve-to-cow_from_owner.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: stop using avoid_reserve flag in fork()
-Date: Tue, 7 Jan 2025 15:39:57 -0500
+Subject: mm/hugetlb: rename avoid_reserve to cow_from_owner
+Date: Tue, 7 Jan 2025 15:39:58 -0500
 
-When fork() and stumble on top of a dma-pinned hugetlb private page, CoW
-must happen during fork() to guarantee dma coherency.
+The old name "avoid_reserve" can be too generic and can be used wrongly in
+the new call sites that want to allocate a hugetlb folio.
 
-In this specific path, hugetlb pages need to be allocated for the child
-process.  Stop using avoid_reserve=1 flag here: it's not required to be
-used here, as dest_vma (which is destined to be a MAP_PRIVATE hugetlb vma)
-will have no private vma resv map, and that will make sure it won't be
-able to use a vma reservation later.
+It's confusing on two things: (1) whether one can opt-in to avoid global
+reservation, and (2) whether it should take more than one count.
 
-No functional change intended with this change.  Said that, it's still
-wanted to do this, so as to reduce the usage of avoid_reserve to the only
-one user, which is also why this flag was introduced initially in commit
-04f2cbe35699 ("hugetlb: guarantee that COW faults for a process that
-called mmap(MAP_PRIVATE) on hugetlbfs will succeed").  I don't see whoever
-else should set it at all.
+In reality, this flag is only used in an extremely hacky path, in an
+extremely hacky way in hugetlb CoW path only, and always use with 1 saying
+"skip global reservation".  Rename the flag to avoid future abuse of this
+flag, making it a boolean so as to reflect its true representation that
+it's not a counter.  To make it even harder to abuse, add a comment above
+the function to explain it.
 
-Further patch will clean up resv accounting based on this.
-
-Link: https://lkml.kernel.org/r/20250107204002.2683356-3-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20250107204002.2683356-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Ackerley Tng <ackerleytng@google.com>
@@ -77,20 +72,169 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c    |    2 +-
+ include/linux/hugetlb.h |    4 ++--
+ mm/hugetlb.c            |   33 ++++++++++++++++++++-------------
+ 3 files changed, 23 insertions(+), 16 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-stop-using-avoid_reserve-flag-in-fork
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-rename-avoid_reserve-to-cow_from_owner
++++ a/fs/hugetlbfs/inode.c
+@@ -814,7 +814,7 @@ static long hugetlbfs_fallocate(struct f
+ 		 * folios in these areas, we need to consume the reserves
+ 		 * to keep reservation accounting consistent.
+ 		 */
+-		folio = alloc_hugetlb_folio(&pseudo_vma, addr, 0);
++		folio = alloc_hugetlb_folio(&pseudo_vma, addr, false);
+ 		if (IS_ERR(folio)) {
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			error = PTR_ERR(folio);
+--- a/include/linux/hugetlb.h~mm-hugetlb-rename-avoid_reserve-to-cow_from_owner
++++ a/include/linux/hugetlb.h
+@@ -683,7 +683,7 @@ struct huge_bootmem_page {
+ int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
+ struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+-				unsigned long addr, int avoid_reserve);
++				unsigned long addr, bool cow_from_owner);
+ struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
+ 				nodemask_t *nmask, gfp_t gfp_mask,
+ 				bool allow_alloc_fallback);
+@@ -1068,7 +1068,7 @@ static inline int replace_free_hugepage_
+ 
+ static inline struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+ 					   unsigned long addr,
+-					   int avoid_reserve)
++					   bool cow_from_owner)
+ {
+ 	return NULL;
+ }
+--- a/mm/hugetlb.c~mm-hugetlb-rename-avoid_reserve-to-cow_from_owner
 +++ a/mm/hugetlb.c
-@@ -5373,7 +5373,7 @@ again:
+@@ -3012,8 +3012,15 @@ int replace_free_hugepage_folios(unsigne
+ 	return ret;
+ }
+ 
++/*
++ * NOTE! "cow_from_owner" represents a very hacky usage only used in CoW
++ * faults of hugetlb private mappings on top of a non-page-cache folio (in
++ * which case even if there's a private vma resv map it won't cover such
++ * allocation).  New call sites should (probably) never set it to true!!
++ * When it's set, the allocation will bypass all vma level reservations.
++ */
+ struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+-				    unsigned long addr, int avoid_reserve)
++				    unsigned long addr, bool cow_from_owner)
+ {
+ 	struct hugepage_subpool *spool = subpool_vma(vma);
+ 	struct hstate *h = hstate_vma(vma);
+@@ -3042,7 +3049,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 	 * Allocations for MAP_NORESERVE mappings also need to be
+ 	 * checked against any subpool limit.
+ 	 */
+-	if (map_chg || avoid_reserve) {
++	if (map_chg || cow_from_owner) {
+ 		gbl_chg = hugepage_subpool_get_pages(spool, 1);
+ 		if (gbl_chg < 0)
+ 			goto out_end_reservation;
+@@ -3050,7 +3057,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 
+ 	/* If this allocation is not consuming a reservation, charge it now.
+ 	 */
+-	deferred_reserve = map_chg || avoid_reserve;
++	deferred_reserve = map_chg || cow_from_owner;
+ 	if (deferred_reserve) {
+ 		ret = hugetlb_cgroup_charge_cgroup_rsvd(
+ 			idx, pages_per_huge_page(h), &h_cg);
+@@ -3075,7 +3082,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 		if (!folio)
+ 			goto out_uncharge_cgroup;
+ 		spin_lock_irq(&hugetlb_lock);
+-		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
++		if (!cow_from_owner && vma_has_reserves(vma, gbl_chg)) {
+ 			folio_set_hugetlb_restore_reserve(folio);
+ 			h->resv_huge_pages--;
+ 		}
+@@ -3142,7 +3149,7 @@ out_uncharge_cgroup_reservation:
+ 		hugetlb_cgroup_uncharge_cgroup_rsvd(idx, pages_per_huge_page(h),
+ 						    h_cg);
+ out_subpool_put:
+-	if (map_chg || avoid_reserve)
++	if (map_chg || cow_from_owner)
+ 		hugepage_subpool_put_pages(spool, 1);
+ out_end_reservation:
+ 	vma_end_reservation(h, vma, addr);
+@@ -5373,7 +5380,7 @@ again:
  				spin_unlock(src_ptl);
  				spin_unlock(dst_ptl);
  				/* Do not use reserve as it's private owned */
--				new_folio = alloc_hugetlb_folio(dst_vma, addr, 1);
-+				new_folio = alloc_hugetlb_folio(dst_vma, addr, 0);
+-				new_folio = alloc_hugetlb_folio(dst_vma, addr, 0);
++				new_folio = alloc_hugetlb_folio(dst_vma, addr, false);
  				if (IS_ERR(new_folio)) {
  					folio_put(pte_folio);
  					ret = PTR_ERR(new_folio);
+@@ -5839,7 +5846,7 @@ static vm_fault_t hugetlb_wp(struct foli
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct folio *old_folio;
+ 	struct folio *new_folio;
+-	int outside_reserve = 0;
++	bool cow_from_owner = 0;
+ 	vm_fault_t ret = 0;
+ 	struct mmu_notifier_range range;
+ 
+@@ -5902,7 +5909,7 @@ retry_avoidcopy:
+ 	 */
+ 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
+ 			old_folio != pagecache_folio)
+-		outside_reserve = 1;
++		cow_from_owner = true;
+ 
+ 	folio_get(old_folio);
+ 
+@@ -5911,7 +5918,7 @@ retry_avoidcopy:
+ 	 * be acquired again before returning to the caller, as expected.
+ 	 */
+ 	spin_unlock(vmf->ptl);
+-	new_folio = alloc_hugetlb_folio(vma, vmf->address, outside_reserve);
++	new_folio = alloc_hugetlb_folio(vma, vmf->address, cow_from_owner);
+ 
+ 	if (IS_ERR(new_folio)) {
+ 		/*
+@@ -5921,7 +5928,7 @@ retry_avoidcopy:
+ 		 * reliability, unmap the page from child processes. The child
+ 		 * may get SIGKILLed if it later faults.
+ 		 */
+-		if (outside_reserve) {
++		if (cow_from_owner) {
+ 			struct address_space *mapping = vma->vm_file->f_mapping;
+ 			pgoff_t idx;
+ 			u32 hash;
+@@ -6172,7 +6179,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 				goto out;
+ 		}
+ 
+-		folio = alloc_hugetlb_folio(vma, vmf->address, 0);
++		folio = alloc_hugetlb_folio(vma, vmf->address, false);
+ 		if (IS_ERR(folio)) {
+ 			/*
+ 			 * Returning error will result in faulting task being
+@@ -6638,7 +6645,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			goto out;
+ 		}
+ 
+-		folio = alloc_hugetlb_folio(dst_vma, dst_addr, 0);
++		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
+ 		if (IS_ERR(folio)) {
+ 			ret = -ENOMEM;
+ 			goto out;
+@@ -6680,7 +6687,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			goto out;
+ 		}
+ 
+-		folio = alloc_hugetlb_folio(dst_vma, dst_addr, 0);
++		folio = alloc_hugetlb_folio(dst_vma, dst_addr, false);
+ 		if (IS_ERR(folio)) {
+ 			folio_put(*foliop);
+ 			ret = -ENOMEM;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
