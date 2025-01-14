@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4182323C6F6
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60C9423C6F6
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837013; cv=none; b=kIJ4Y2sgXTMvHxo02iW+AT0X0He1wbZm8mXIeEqlxjYrmT6HjAyJPoKwOsFJY/XCQjIYBx4C2qkYwSFlCyuPHMISgUSkSE6KRJ4v/VGgRq8rK7fdoR7ygednXMABXMBPn+uP8huwHRY+ui6Q32QIL4paM5W+w3ldRW/6UQ4QcvE=
+	t=1736837014; cv=none; b=gAYEU6aywbU092p6GB94pEfvseB+DveIgGmpkrP1JwJWazpYveBRtsGOK+0GlyGscV0heoVh4XNgo1lAmxK4enNaEZk3jRex1ibGNylhEQTjiiW8jbSxRo1cwDPXJR/BomoLCtM6FH9MRx6+S47FLtH/ZN9e/podi6P99XCxOPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837013; c=relaxed/simple;
-	bh=L2TKEPg0rJKPAm+Z8iSU67sbxM7T6a5LPaB0zNJsx3w=;
-	h=Date:To:From:Subject:Message-Id; b=E0t56/9M00oTZ/zcqs8X9EGS92U0gNy3GPwyJMhdfzL6CISe0zqTqzmtDigJzNbl+q2BffkW5fgVGuuR6Glof4J4V1KjZvr0ho9QcrjygbgljCtpz77vYojJhks+T4Ht0v1o3atwFoCOkaDYNpcgQgSvC/GejKuAqHfbaOuKplM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oenwwGpQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837014; c=relaxed/simple;
+	bh=h4nXUK5OhhVs/Ld+cvGoZMUirGeBiVH9wxHX1Deh5jU=;
+	h=Date:To:From:Subject:Message-Id; b=F8Xxr6JOe7SQH2dH+iuDgsoeskp5H7dnlM//PsB0lQYeFVs/zgbTwLWWHVCB2GpEI85URtbLQw8/EKcgBCZaAb9ULE5TIIqUziaxN88F7lBOCXoiYkR0fGRvDtfu8qHo0Gg6ThLoCwcmG/Y/ciSkZ491NHHSATjQy71Atqqc8rM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tl7YDcoE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oenwwGpQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11C72C4CEDD;
-	Tue, 14 Jan 2025 06:43:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tl7YDcoE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3703EC4CEDD;
+	Tue, 14 Jan 2025 06:43:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837013;
-	bh=L2TKEPg0rJKPAm+Z8iSU67sbxM7T6a5LPaB0zNJsx3w=;
+	s=korg; t=1736837014;
+	bh=h4nXUK5OhhVs/Ld+cvGoZMUirGeBiVH9wxHX1Deh5jU=;
 	h=Date:To:From:Subject:From;
-	b=oenwwGpQ3oHVmWeakakpVSPW6o9gl29LbNPWHI8VekBkQj/znVNCibaoABbZOzpFh
-	 uL3D/qK/1oWXQEixd73Kg5PwWxGibplVThHFS0AsxkWBxfQ+oXkyEFSHw7+EYBzE8Z
-	 QvBLYOCy8sKd1WoxXAYMkORx4eItQvkbmaIIgXm0=
-Date: Mon, 13 Jan 2025 22:43:32 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,usamaarif642@gmail.com,ryan.roberts@arm.com,peterx@redhat.com,ioworker0@gmail.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,haowenchao22@gmail.com,akpm@linux-foundation.org
+	b=tl7YDcoEg2mYh0FlF8yqCERjnO59OZoQ9O/8O6R0tFwEQzrgP3w++XClO+EP84S6u
+	 rhyVXpevy7P6+14JkYKqz/mHkAZdXdzWXhJZT6I170lBLkqwDmbLEP4/UVkXqJOpVo
+	 cyZ9PDkWBqIaRm4UBEqz6HxiCHz0PuztYkj5ARU8=
+Date: Mon, 13 Jan 2025 22:43:33 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,ryan.roberts@arm.com,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters.patch removed from -mm tree
-Message-Id: <20250114064333.11C72C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-fork-cow-guard-page-test.patch removed from -mm tree
+Message-Id: <20250114064334.3703EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,193 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add per-order mTHP swap-in fallback/fallback_charge counters
+     Subject: selftests/mm: add fork CoW guard page test
 has been removed from the -mm tree.  Its filename was
-     mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters.patch
+     selftests-mm-add-fork-cow-guard-page-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wenchao Hao <haowenchao22@gmail.com>
-Subject: mm: add per-order mTHP swap-in fallback/fallback_charge counters
-Date: Mon, 2 Dec 2024 20:47:30 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: selftests/mm: add fork CoW guard page test
+Date: Thu, 5 Dec 2024 19:07:48 +0000
 
-Currently, large folio swap-in is supported, but we lack a method to
-analyze their success ratio.  Similar to anon_fault_fallback, we introduce
-per-order mTHP swpin_fallback and swpin_fallback_charge counters for
-calculating their success ratio.  The new counters are located at:
+When we fork anonymous pages, apply a guard page then remove it, the
+previous CoW mapping is cleared.
 
-/sys/kernel/mm/transparent_hugepage/hugepages-<size>/stats/
-	swpin_fallback
-	swpin_fallback_charge
+This might not be obvious to an outside observer without taking some time
+to think about how the overall process functions, so document that this is
+the case through a test, which also usefully asserts that the behaviour is
+as we expect.
 
-Link: https://lkml.kernel.org/r/20241202124730.2407037-1-haowenchao22@gmail.com
-Signed-off-by: Wenchao Hao <haowenchao22@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lance Yang <ioworker0@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
+This is grouped with other, more important, fork tests that ensure that
+guard pages are correctly propagated on fork.
+
+Fix a typo in a nearby comment at the same time.
+
+[ryan.roberts@arm.com: static process_madvise() wrapper for guard-pages]
+  Link: https://lkml.kernel.org/r/20250107142937.1870478-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20241205190748.115656-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   10 ++++++++++
- include/linux/huge_mm.h                    |    2 ++
- mm/huge_memory.c                           |    6 ++++++
- mm/memory.c                                |    2 ++
- 4 files changed, 20 insertions(+)
+ tools/testing/selftests/mm/guard-pages.c  |   83 +++++++++++++++++++-
+ tools/testing/selftests/mm/run_vmtests.sh |    5 +
+ 2 files changed, 85 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -591,6 +591,16 @@ swpin
- 	is incremented every time a huge page is swapped in from a non-zswap
- 	swap device in one piece.
+--- a/tools/testing/selftests/mm/guard-pages.c~selftests-mm-add-fork-cow-guard-page-test
++++ a/tools/testing/selftests/mm/guard-pages.c
+@@ -55,6 +55,12 @@ static int pidfd_open(pid_t pid, unsigne
+ 	return syscall(SYS_pidfd_open, pid, flags);
+ }
  
-+swpin_fallback
-+	is incremented if swapin fails to allocate or charge a huge page
-+	and instead falls back to using huge pages with lower orders or
-+	small pages.
++static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
++				   size_t n, int advice, unsigned int flags)
++{
++	return syscall(__NR_process_madvise, pidfd, iovec, n, advice, flags);
++}
 +
-+swpin_fallback_charge
-+	is incremented if swapin fails to charge a huge page and instead
-+	falls back to using  huge pages with lower orders or small pages
-+	even though the allocation was successful.
-+
- swpout
- 	is incremented every time a huge page is swapped out to a non-zswap
- 	swap device in one piece without splitting.
---- a/include/linux/huge_mm.h~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/include/linux/huge_mm.h
-@@ -121,6 +121,8 @@ enum mthp_stat_item {
- 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
- 	MTHP_STAT_ZSWPOUT,
- 	MTHP_STAT_SWPIN,
-+	MTHP_STAT_SWPIN_FALLBACK,
-+	MTHP_STAT_SWPIN_FALLBACK_CHARGE,
- 	MTHP_STAT_SWPOUT,
- 	MTHP_STAT_SWPOUT_FALLBACK,
- 	MTHP_STAT_SHMEM_ALLOC,
---- a/mm/huge_memory.c~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/mm/huge_memory.c
-@@ -617,6 +617,8 @@ DEFINE_MTHP_STAT_ATTR(anon_fault_fallbac
- DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
-+DEFINE_MTHP_STAT_ATTR(swpin_fallback, MTHP_STAT_SWPIN_FALLBACK);
-+DEFINE_MTHP_STAT_ATTR(swpin_fallback_charge, MTHP_STAT_SWPIN_FALLBACK_CHARGE);
- DEFINE_MTHP_STAT_ATTR(swpout, MTHP_STAT_SWPOUT);
- DEFINE_MTHP_STAT_ATTR(swpout_fallback, MTHP_STAT_SWPOUT_FALLBACK);
- #ifdef CONFIG_SHMEM
-@@ -637,6 +639,8 @@ static struct attribute *anon_stats_attr
- #ifndef CONFIG_SHMEM
- 	&zswpout_attr.attr,
- 	&swpin_attr.attr,
-+	&swpin_fallback_attr.attr,
-+	&swpin_fallback_charge_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
- #endif
-@@ -669,6 +673,8 @@ static struct attribute *any_stats_attrs
- #ifdef CONFIG_SHMEM
- 	&zswpout_attr.attr,
- 	&swpin_attr.attr,
-+	&swpin_fallback_attr.attr,
-+	&swpin_fallback_charge_attr.attr,
- 	&swpout_attr.attr,
- 	&swpout_fallback_attr.attr,
- #endif
---- a/mm/memory.c~mm-add-per-order-mthp-swap-in-fallback-fallback_charge-counters
-+++ a/mm/memory.c
-@@ -4258,8 +4258,10 @@ static struct folio *alloc_swap_folio(st
- 			if (!mem_cgroup_swapin_charge_folio(folio, vma->vm_mm,
- 							    gfp, entry))
- 				return folio;
-+			count_mthp_stat(order, MTHP_STAT_SWPIN_FALLBACK_CHARGE);
- 			folio_put(folio);
- 		}
-+		count_mthp_stat(order, MTHP_STAT_SWPIN_FALLBACK);
- 		order = next_order(&orders, order);
+ /*
+  * Enable our signal catcher and try to read/write the specified buffer. The
+  * return value indicates whether the read/write succeeds without a fatal
+@@ -419,7 +425,7 @@ TEST_F(guard_pages, process_madvise)
+ 	ASSERT_EQ(munmap(&ptr_region[99 * page_size], page_size), 0);
+ 
+ 	/* Now guard in one step. */
+-	count = process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
++	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
+ 
+ 	/* OK we don't have permission to do this, skip. */
+ 	if (count == -1 && errno == EPERM)
+@@ -440,7 +446,7 @@ TEST_F(guard_pages, process_madvise)
+ 	ASSERT_FALSE(try_read_write_buf(&ptr3[19 * page_size]));
+ 
+ 	/* Now do the same with unguard... */
+-	count = process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
++	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
+ 
+ 	/* ...and everything should now succeed. */
+ 
+@@ -990,7 +996,7 @@ TEST_F(guard_pages, fork)
+ 		   MAP_ANON | MAP_PRIVATE, -1, 0);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+-	/* Establish guard apges in the first 5 pages. */
++	/* Establish guard pages in the first 5 pages. */
+ 	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
+ 
+ 	pid = fork();
+@@ -1026,6 +1032,77 @@ TEST_F(guard_pages, fork)
  	}
+ 
+ 	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/*
++ * Assert expected behaviour after we fork populated ranges of anonymous memory
++ * and then guard and unguard the range.
++ */
++TEST_F(guard_pages, fork_cow)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	pid_t pid;
++	int i;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Populate range. */
++	for (i = 0; i < 10 * page_size; i++) {
++		char chr = 'a' + (i % 26);
++
++		ptr[i] = chr;
++	}
++
++	pid = fork();
++	ASSERT_NE(pid, -1);
++	if (!pid) {
++		/* This is the child process now. */
++
++		/* Ensure the range is as expected. */
++		for (i = 0; i < 10 * page_size; i++) {
++			char expected = 'a' + (i % 26);
++			char actual = ptr[i];
++
++			ASSERT_EQ(actual, expected);
++		}
++
++		/* Establish guard pages across the whole range. */
++		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++		/* Remove it. */
++		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
++
++		/*
++		 * By removing the guard pages, the page tables will be
++		 * cleared. Assert that we are looking at the zero page now.
++		 */
++		for (i = 0; i < 10 * page_size; i++) {
++			char actual = ptr[i];
++
++			ASSERT_EQ(actual, '\0');
++		}
++
++		exit(0);
++	}
++
++	/* Parent process. */
++
++	/* Parent simply waits on child. */
++	waitpid(pid, NULL, 0);
++
++	/* Ensure the range is unchanged in parent anon range. */
++	for (i = 0; i < 10 * page_size; i++) {
++		char expected = 'a' + (i % 26);
++		char actual = ptr[i];
++
++		ASSERT_EQ(actual, expected);
++	}
++
++	/* Cleanup. */
+ 	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+ }
+ 
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-fork-cow-guard-page-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -45,6 +45,8 @@ separated by spaces:
+ 	vmalloc smoke tests
+ - hmm
+ 	hmm smoke tests
++- madv_guard
++	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
+ - madv_populate
+ 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
+ - memfd_secret
+@@ -375,6 +377,9 @@ CATEGORY="mremap" run_test ./mremap_dont
+ 
+ CATEGORY="hmm" run_test bash ./test_hmm.sh smoke
+ 
++# MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
++CATEGORY="madv_guard" run_test ./guard-pages
++
+ # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
+ CATEGORY="madv_populate" run_test ./madv_populate
  
 _
 
-Patches currently in -mm which might be from haowenchao22@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mips-vdso-prefer-do_mmap-to-mmap_region.patch
+mm-make-mmap_region-internal.patch
 
