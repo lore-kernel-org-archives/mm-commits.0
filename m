@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6268E243356
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94343243356
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837198; cv=none; b=cLjcHbHr8bZOSTNeJe2EtOtxzol2gWVlIIUh33DZTJZQL7A3pOR+UJB8w0x4vLTo8ZXKq0uNmS9BRbks7kmcGd7l7qOfFROUluTv9WE0ioH+Q4Q8TSXDj+soMiJwA8MRiz7Vd+2s1OEdwJ0avyzGgBkdgHRGJlcyMbUFuIBhJlQ=
+	t=1736837199; cv=none; b=mYR7r6PB5PO/aluiegB+yd3ITTdhFJMfUTRTQeJOcR4SbJeI1AA7Bg1JvZYyl60FPcr3QUi8Mtw9Fa8YK1KH5bfhdeHmxYsVKrjt5cgN5rdLfFFwvkcWPFsB/qhfkiChDPCBlU6qgBDBg1kg500GtY1UYWh5Cm6hNwWUm0osm0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837198; c=relaxed/simple;
-	bh=QBHl+82ttr+puYRlQybt14i/R7qsH5MZ+Xi2R2839dE=;
-	h=Date:To:From:Subject:Message-Id; b=hHdFteKmXen+GggugXU4pnTWikbiGVxinBDAdUgAGOSVpbAnd3pU291a97Jc4XP9cF8yMLWrYshj6yzYv360nylfmBTiq106r3KP/B355sKDnrrnjX4FZ2hT9JBnF1qSDCj1zy1A6xmlNqElAqxwdmsfoNhDWoDwZWW34L2Dx7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n/Ssv/gY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837199; c=relaxed/simple;
+	bh=32a6gmkwe0z7DuWAqXgXtFwBHtWIWjRyxVd0KnO/Uyo=;
+	h=Date:To:From:Subject:Message-Id; b=Rbx3VQEVK6uSclMB1Jb/wkAma6BawEt8l+d+CEMRiUEf40OUn3svF/TWkKW8rguk5lRBo+g68bE9/Tvic4E9BwJEGFJ9GJtxvfovu1sJ+KnERZI0dB1v/0tmfnfWW66ojY/qigndkCUsqnE/AtwTozUmNZjGt7Yc2p8Ob4l9XU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W82/XCuq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n/Ssv/gY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37BA3C4CEDF;
-	Tue, 14 Jan 2025 06:46:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W82/XCuq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67A70C4CEDD;
+	Tue, 14 Jan 2025 06:46:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837198;
-	bh=QBHl+82ttr+puYRlQybt14i/R7qsH5MZ+Xi2R2839dE=;
+	s=korg; t=1736837199;
+	bh=32a6gmkwe0z7DuWAqXgXtFwBHtWIWjRyxVd0KnO/Uyo=;
 	h=Date:To:From:Subject:From;
-	b=n/Ssv/gYETxFbBcKqlNsaEzckofpLNcTupFqOk2As/kzaQdEJv8XcWxblkOnLI8Kg
-	 iTYXgoCQRyQHhYKXW/Jg45E0GQKTVdFP0BaHTm4lA3ADpUJa2Fcm2BByhf2gQCL35O
-	 BLQL8cmoZ/kJHbf4wQX4UM3fl/H3qGy9p/qVj8YI=
-Date: Mon, 13 Jan 2025 22:46:37 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,peterx@redhat.com,muchun.song@linux.dev,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=W82/XCuqYCZhUSy9Ko40AsZ8nxmL8jlkAZ2QWtUD1lNt6v+zWvvxc/a0ate22vsrz
+	 l+K7Mk41nCzE7VGM/LiYy1CmftHD6+//E3bEQewwpwWzOGUS9g9eHKQJ0wEk7fbZxk
+	 T6XMS+yydpyTymRc4IBYYVKLjuD97B3tc+kNKiTM=
+Date: Mon, 13 Jan 2025 22:46:38 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,mgorman@techsingularity.net,linyunsheng@huawei.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-introduce-uffd-wp-mremap-regression-test.patch removed from -mm tree
-Message-Id: <20250114064638.37BA3C4CEDF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch removed from -mm tree
+Message-Id: <20250114064639.67A70C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,476 +35,250 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: introduce uffd-wp-mremap regression test
+     Subject: mm: alloc_pages_bulk_noprof: drop page_list argument
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
+     mm-alloc_pages_bulk_noprof-drop-page_list-argument.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm: introduce uffd-wp-mremap regression test
-Date: Tue, 7 Jan 2025 14:47:53 +0000
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: mm: alloc_pages_bulk_noprof: drop page_list argument
+Date: Mon, 23 Dec 2024 17:00:37 -0500
 
-Introduce a test that registers a range of memory for
-UFFDIO_WRITEPROTECT_MODE_WP without UFFD_FEATURE_EVENT_REMAP.  First check
-that the uffd-wp bit is set for every PTE in the range.  Then mremap() the
-range to a new location and check that the uffd-wp bit is clear for every
-PTE in the range.
+Patch series "mm: alloc_pages_bulk: small API refactor", v2.
 
-Run the test for small folios, all supported THP sizes and all supported
-hugetlb sizes, and for swapped out memory, shared and private.
+Today, alloc_pages_bulk_noprof() supports two arguments to return
+allocated pages: a linked list and an array.  There are also higher level
+APIs for both.
 
-There was previously a bug in the kernel where the uffd-wp bits remained
-set in all PTEs for this case, after fixing the kernel, the tests all
-pass.
+However, the linked list API has apparently never been used.  So, this
+series removes it along with the list API and also refactors the remaining
+API naming for consistency.
 
-Link: https://lkml.kernel.org/r/20250107144755.1871363-3-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
+This patch (of 2):
+
+commit 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator") added
+__alloc_pages_bulk() along with the page_list argument.  The next commit
+0f87d9d30f21 ("mm/page_alloc: add an array-based interface to the bulk
+page allocator") added the array-based argument.  As it turns out, the
+page_list argument has no users in the current tree (if it ever had any). 
+Dropping it allows for a slight simplification and eliminates some
+unnecessary checks, now that page_array is required.
+
+Also, note that the removal of the page_list argument was proposed before
+in the thread below, where Matthew Wilcox mentions that:
+
+  """
+  Iterating a linked list is _expensive_.  It is about 10x quicker to
+  iterate an array than a linked list.
+  """
+  (https://lore.kernel.org/linux-mm/20231025093254.xvomlctwhcuerzky@techsingularity.net)
+
+Link: https://lkml.kernel.org/r/cover.1734991165.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/f1c75db91d08cafd211eca6a3b199b629d4ffe16.1734991165.git.luizcap@redhat.com
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore       |    1 
- tools/testing/selftests/mm/Makefile         |    2 
- tools/testing/selftests/mm/run_vmtests.sh   |    1 
- tools/testing/selftests/mm/uffd-wp-mremap.c |  380 ++++++++++++++++++
- 4 files changed, 384 insertions(+)
+ include/linux/gfp.h |    8 ++------
+ mm/mempolicy.c      |   14 +++++++-------
+ mm/page_alloc.c     |   39 ++++++++++++---------------------------
+ 3 files changed, 21 insertions(+), 40 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-introduce-uffd-wp-mremap-regression-test
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -27,6 +27,7 @@ protection_keys_64
- madv_populate
- uffd-stress
- uffd-unit-tests
-+uffd-wp-mremap
- mlock-intersect-test
- mlock-random-test
- virtual_address_range
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-introduce-uffd-wp-mremap-regression-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -88,6 +88,7 @@ TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
- TEST_GEN_FILES += uffd-unit-tests
-+TEST_GEN_FILES += uffd-wp-mremap
- TEST_GEN_FILES += split_huge_page_test
- TEST_GEN_FILES += ksm_tests
- TEST_GEN_FILES += ksm_functional_tests
-@@ -158,6 +159,7 @@ $(TEST_GEN_FILES): vm_util.c thp_setting
+--- a/include/linux/gfp.h~mm-alloc_pages_bulk_noprof-drop-page_list-argument
++++ a/include/linux/gfp.h
+@@ -212,7 +212,6 @@ struct folio *__folio_alloc_noprof(gfp_t
  
- $(OUTPUT)/uffd-stress: uffd-common.c
- $(OUTPUT)/uffd-unit-tests: uffd-common.c
-+$(OUTPUT)/uffd-wp-mremap: uffd-common.c
- $(OUTPUT)/protection_keys: pkey_util.c
- $(OUTPUT)/pkey_sighandler_tests: pkey_util.c
+ unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
+ 				nodemask_t *nodemask, int nr_pages,
+-				struct list_head *page_list,
+ 				struct page **page_array);
+ #define __alloc_pages_bulk(...)			alloc_hooks(alloc_pages_bulk_noprof(__VA_ARGS__))
  
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-introduce-uffd-wp-mremap-regression-test
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -309,6 +309,7 @@ CATEGORY="userfaultfd" run_test ${uffd_s
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
-+CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
+@@ -223,11 +222,8 @@ unsigned long alloc_pages_bulk_array_mem
+ 	alloc_hooks(alloc_pages_bulk_array_mempolicy_noprof(__VA_ARGS__))
  
- #cleanup
- echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
-diff --git a/tools/testing/selftests/mm/uffd-wp-mremap.c a/tools/testing/selftests/mm/uffd-wp-mremap.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -0,0 +1,380 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#define _GNU_SOURCE
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <fcntl.h>
-+#include <assert.h>
-+#include <linux/mman.h>
-+#include <sys/mman.h>
-+#include "../kselftest.h"
-+#include "thp_settings.h"
-+#include "uffd-common.h"
-+
-+static int pagemap_fd;
-+static size_t pagesize;
-+static int nr_pagesizes = 1;
-+static int nr_thpsizes;
-+static size_t thpsizes[20];
-+static int nr_hugetlbsizes;
-+static size_t hugetlbsizes[10];
-+
-+static int sz2ord(size_t size)
-+{
-+	return __builtin_ctzll(size / pagesize);
-+}
-+
-+static int detect_thp_sizes(size_t sizes[], int max)
-+{
-+	int count = 0;
-+	unsigned long orders;
-+	size_t kb;
-+	int i;
-+
-+	/* thp not supported at all. */
-+	if (!read_pmd_pagesize())
-+		return 0;
-+
-+	orders = thp_supported_orders();
-+
-+	for (i = 0; orders && count < max; i++) {
-+		if (!(orders & (1UL << i)))
-+			continue;
-+		orders &= ~(1UL << i);
-+		kb = (pagesize >> 10) << i;
-+		sizes[count++] = kb * 1024;
-+		ksft_print_msg("[INFO] detected THP size: %zu KiB\n", kb);
-+	}
-+
-+	return count;
-+}
-+
-+static void *mmap_aligned(size_t size, int prot, int flags)
-+{
-+	size_t mmap_size = size * 2;
-+	char *mmap_mem, *mem;
-+
-+	mmap_mem = mmap(NULL, mmap_size, prot, flags, -1, 0);
-+	if (mmap_mem == MAP_FAILED)
-+		return mmap_mem;
-+
-+	mem = (char *)(((uintptr_t)mmap_mem + size - 1) & ~(size - 1));
-+	munmap(mmap_mem, mem - mmap_mem);
-+	munmap(mem + size, mmap_mem + mmap_size - mem - size);
-+
-+	return mem;
-+}
-+
-+static void *alloc_one_folio(size_t size, bool private, bool hugetlb)
-+{
-+	bool thp = !hugetlb && size > pagesize;
-+	int flags = MAP_ANONYMOUS;
-+	int prot = PROT_READ | PROT_WRITE;
-+	char *mem, *addr;
-+
-+	assert((size & (size - 1)) == 0);
-+
-+	if (private)
-+		flags |= MAP_PRIVATE;
-+	else
-+		flags |= MAP_SHARED;
-+
-+	/*
-+	 * For THP, we must explicitly enable the THP size, allocate twice the
-+	 * required space then manually align.
-+	 */
-+	if (thp) {
-+		struct thp_settings settings = *thp_current_settings();
-+
-+		if (private)
-+			settings.hugepages[sz2ord(size)].enabled = THP_ALWAYS;
-+		else
-+			settings.shmem_hugepages[sz2ord(size)].enabled = SHMEM_ALWAYS;
-+
-+		thp_push_settings(&settings);
-+
-+		mem = mmap_aligned(size, prot, flags);
-+	} else {
-+		if (hugetlb) {
-+			flags |= MAP_HUGETLB;
-+			flags |= __builtin_ctzll(size) << MAP_HUGE_SHIFT;
-+		}
-+
-+		mem = mmap(NULL, size, prot, flags, -1, 0);
-+	}
-+
-+	if (mem == MAP_FAILED) {
-+		mem = NULL;
-+		goto out;
-+	}
-+
-+	assert(((uintptr_t)mem & (size - 1)) == 0);
-+
-+	/*
-+	 * Populate the folio by writing the first byte and check that all pages
-+	 * are populated. Finally set the whole thing to non-zero data to avoid
-+	 * kernel from mapping it back to the zero page.
-+	 */
-+	mem[0] = 1;
-+	for (addr = mem; addr < mem + size; addr += pagesize) {
-+		if (!pagemap_is_populated(pagemap_fd, addr)) {
-+			munmap(mem, size);
-+			mem = NULL;
-+			goto out;
-+		}
-+	}
-+	memset(mem, 1, size);
-+out:
-+	if (thp)
-+		thp_pop_settings();
-+
-+	return mem;
-+}
-+
-+static bool check_uffd_wp_state(void *mem, size_t size, bool expect)
-+{
-+	uint64_t pte;
-+	void *addr;
-+
-+	for (addr = mem; addr < mem + size; addr += pagesize) {
-+		pte = pagemap_get_entry(pagemap_fd, addr);
-+		if (!!(pte & PM_UFFD_WP) != expect) {
-+			ksft_test_result_fail("uffd-wp not %s for pte %lu!\n",
-+					      expect ? "set" : "clear",
-+					      (addr - mem) / pagesize);
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static bool range_is_swapped(void *addr, size_t size)
-+{
-+	for (; size; addr += pagesize, size -= pagesize)
-+		if (!pagemap_is_swapped(pagemap_fd, addr))
-+			return false;
-+	return true;
-+}
-+
-+static void test_one_folio(size_t size, bool private, bool swapout, bool hugetlb)
-+{
-+	struct uffdio_writeprotect wp_prms;
-+	uint64_t features = 0;
-+	void *addr = NULL;
-+	void *mem = NULL;
-+
-+	assert(!(hugetlb && swapout));
-+
-+	ksft_print_msg("[RUN] %s(size=%zu, private=%s, swapout=%s, hugetlb=%s)\n",
-+				__func__,
-+				size,
-+				private ? "true" : "false",
-+				swapout ? "true" : "false",
-+				hugetlb ? "true" : "false");
-+
-+	/* Allocate a folio of required size and type. */
-+	mem = alloc_one_folio(size, private, hugetlb);
-+	if (!mem) {
-+		ksft_test_result_fail("alloc_one_folio() failed\n");
-+		goto out;
-+	}
-+
-+	/* Register range for uffd-wp. */
-+	if (userfaultfd_open(&features)) {
-+		ksft_test_result_fail("userfaultfd_open() failed\n");
-+		goto out;
-+	}
-+	if (uffd_register(uffd, mem, size, false, true, false)) {
-+		ksft_test_result_fail("uffd_register() failed\n");
-+		goto out;
-+	}
-+	wp_prms.mode = UFFDIO_WRITEPROTECT_MODE_WP;
-+	wp_prms.range.start = (uintptr_t)mem;
-+	wp_prms.range.len = size;
-+	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &wp_prms)) {
-+		ksft_test_result_fail("ioctl(UFFDIO_WRITEPROTECT) failed\n");
-+		goto out;
-+	}
-+
-+	if (swapout) {
-+		madvise(mem, size, MADV_PAGEOUT);
-+		if (!range_is_swapped(mem, size)) {
-+			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
-+			goto out;
-+		}
-+	}
-+
-+	/* Check that uffd-wp is set for all PTEs in range. */
-+	if (!check_uffd_wp_state(mem, size, true))
-+		goto out;
-+
-+	/*
-+	 * Move the mapping to a new, aligned location. Since
-+	 * UFFD_FEATURE_EVENT_REMAP is not set, we expect the uffd-wp bit for
-+	 * each PTE to be cleared in the new mapping.
-+	 */
-+	addr = mmap_aligned(size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS);
-+	if (addr == MAP_FAILED) {
-+		ksft_test_result_fail("mmap_aligned() failed\n");
-+		goto out;
-+	}
-+	if (mremap(mem, size, size, MREMAP_FIXED | MREMAP_MAYMOVE, addr) == MAP_FAILED) {
-+		ksft_test_result_fail("mremap() failed\n");
-+		munmap(addr, size);
-+		goto out;
-+	}
-+	mem = addr;
-+
-+	/* Check that uffd-wp is cleared for all PTEs in range. */
-+	if (!check_uffd_wp_state(mem, size, false))
-+		goto out;
-+
-+	ksft_test_result_pass("%s(size=%zu, private=%s, swapout=%s, hugetlb=%s)\n",
-+				__func__,
-+				size,
-+				private ? "true" : "false",
-+				swapout ? "true" : "false",
-+				hugetlb ? "true" : "false");
-+out:
-+	if (mem)
-+		munmap(mem, size);
-+	if (uffd >= 0) {
-+		close(uffd);
-+		uffd = -1;
-+	}
-+}
-+
-+struct testcase {
-+	size_t *sizes;
-+	int *nr_sizes;
-+	bool private;
-+	bool swapout;
-+	bool hugetlb;
-+};
-+
-+static const struct testcase testcases[] = {
-+	/* base pages. */
-+	{
-+		.sizes = &pagesize,
-+		.nr_sizes = &nr_pagesizes,
-+		.private = false,
-+		.swapout = false,
-+		.hugetlb = false,
-+	},
-+	{
-+		.sizes = &pagesize,
-+		.nr_sizes = &nr_pagesizes,
-+		.private = true,
-+		.swapout = false,
-+		.hugetlb = false,
-+	},
-+	{
-+		.sizes = &pagesize,
-+		.nr_sizes = &nr_pagesizes,
-+		.private = false,
-+		.swapout = true,
-+		.hugetlb = false,
-+	},
-+	{
-+		.sizes = &pagesize,
-+		.nr_sizes = &nr_pagesizes,
-+		.private = true,
-+		.swapout = true,
-+		.hugetlb = false,
-+	},
-+
-+	/* thp. */
-+	{
-+		.sizes = thpsizes,
-+		.nr_sizes = &nr_thpsizes,
-+		.private = false,
-+		.swapout = false,
-+		.hugetlb = false,
-+	},
-+	{
-+		.sizes = thpsizes,
-+		.nr_sizes = &nr_thpsizes,
-+		.private = true,
-+		.swapout = false,
-+		.hugetlb = false,
-+	},
-+	{
-+		.sizes = thpsizes,
-+		.nr_sizes = &nr_thpsizes,
-+		.private = false,
-+		.swapout = true,
-+		.hugetlb = false,
-+	},
-+	{
-+		.sizes = thpsizes,
-+		.nr_sizes = &nr_thpsizes,
-+		.private = true,
-+		.swapout = true,
-+		.hugetlb = false,
-+	},
-+
-+	/* hugetlb. */
-+	{
-+		.sizes = hugetlbsizes,
-+		.nr_sizes = &nr_hugetlbsizes,
-+		.private = false,
-+		.swapout = false,
-+		.hugetlb = true,
-+	},
-+	{
-+		.sizes = hugetlbsizes,
-+		.nr_sizes = &nr_hugetlbsizes,
-+		.private = true,
-+		.swapout = false,
-+		.hugetlb = true,
-+	},
-+};
-+
-+int main(int argc, char **argv)
-+{
-+	struct thp_settings settings;
-+	int i, j, plan = 0;
-+
-+	pagesize = getpagesize();
-+	nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
-+	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
-+						    ARRAY_SIZE(hugetlbsizes));
-+
-+	/* If THP is supported, save THP settings and initially disable THP. */
-+	if (nr_thpsizes) {
-+		thp_save_settings();
-+		thp_read_settings(&settings);
-+		for (i = 0; i < NR_ORDERS; i++) {
-+			settings.hugepages[i].enabled = THP_NEVER;
-+			settings.shmem_hugepages[i].enabled = SHMEM_NEVER;
-+		}
-+		thp_push_settings(&settings);
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(testcases); i++)
-+		plan += *testcases[i].nr_sizes;
-+	ksft_set_plan(plan);
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		ksft_exit_fail_msg("opening pagemap failed\n");
-+
-+	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
-+		const struct testcase *tc = &testcases[i];
-+
-+		for (j = 0; j < *tc->nr_sizes; j++)
-+			test_one_folio(tc->sizes[j], tc->private, tc->swapout,
-+				       tc->hugetlb);
-+	}
-+
-+	/* If THP is supported, restore original THP settings. */
-+	if (nr_thpsizes)
-+		thp_restore_settings();
-+
-+	i = ksft_get_fail_cnt();
-+	if (i)
-+		ksft_exit_fail_msg("%d out of %d tests failed\n",
-+				   i, ksft_test_num());
-+	ksft_exit_pass();
-+}
+ /* Bulk allocate order-0 pages */
+-#define alloc_pages_bulk_list(_gfp, _nr_pages, _list)			\
+-	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _list, NULL)
+-
+ #define alloc_pages_bulk_array(_gfp, _nr_pages, _page_array)		\
+-	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, NULL, _page_array)
++	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _page_array)
+ 
+ static inline unsigned long
+ alloc_pages_bulk_array_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
+@@ -236,7 +232,7 @@ alloc_pages_bulk_array_node_noprof(gfp_t
+ 	if (nid == NUMA_NO_NODE)
+ 		nid = numa_mem_id();
+ 
+-	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, NULL, page_array);
++	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, page_array);
+ }
+ 
+ #define alloc_pages_bulk_array_node(...)				\
+--- a/mm/mempolicy.c~mm-alloc_pages_bulk_noprof-drop-page_list-argument
++++ a/mm/mempolicy.c
+@@ -2391,13 +2391,13 @@ static unsigned long alloc_pages_bulk_ar
+ 		if (delta) {
+ 			nr_allocated = alloc_pages_bulk_noprof(gfp,
+ 					interleave_nodes(pol), NULL,
+-					nr_pages_per_node + 1, NULL,
++					nr_pages_per_node + 1,
+ 					page_array);
+ 			delta--;
+ 		} else {
+ 			nr_allocated = alloc_pages_bulk_noprof(gfp,
+ 					interleave_nodes(pol), NULL,
+-					nr_pages_per_node, NULL, page_array);
++					nr_pages_per_node, page_array);
+ 		}
+ 
+ 		page_array += nr_allocated;
+@@ -2446,7 +2446,7 @@ static unsigned long alloc_pages_bulk_ar
+ 	if (weight && node_isset(node, nodes)) {
+ 		node_pages = min(rem_pages, weight);
+ 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
+-						  NULL, page_array);
++						  page_array);
+ 		page_array += nr_allocated;
+ 		total_allocated += nr_allocated;
+ 		/* if that's all the pages, no need to interleave */
+@@ -2509,7 +2509,7 @@ static unsigned long alloc_pages_bulk_ar
+ 		if (!node_pages)
+ 			break;
+ 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
+-						  NULL, page_array);
++						  page_array);
+ 		page_array += nr_allocated;
+ 		total_allocated += nr_allocated;
+ 		if (total_allocated == nr_pages)
+@@ -2533,11 +2533,11 @@ static unsigned long alloc_pages_bulk_ar
+ 	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
+ 
+ 	nr_allocated  = alloc_pages_bulk_noprof(preferred_gfp, nid, &pol->nodes,
+-					   nr_pages, NULL, page_array);
++					   nr_pages, page_array);
+ 
+ 	if (nr_allocated < nr_pages)
+ 		nr_allocated += alloc_pages_bulk_noprof(gfp, numa_node_id(), NULL,
+-				nr_pages - nr_allocated, NULL,
++				nr_pages - nr_allocated,
+ 				page_array + nr_allocated);
+ 	return nr_allocated;
+ }
+@@ -2573,7 +2573,7 @@ unsigned long alloc_pages_bulk_array_mem
+ 	nid = numa_node_id();
+ 	nodemask = policy_nodemask(gfp, pol, NO_INTERLEAVE_INDEX, &nid);
+ 	return alloc_pages_bulk_noprof(gfp, nid, nodemask,
+-				       nr_pages, NULL, page_array);
++				       nr_pages, page_array);
+ }
+ 
+ int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+--- a/mm/page_alloc.c~mm-alloc_pages_bulk_noprof-drop-page_list-argument
++++ a/mm/page_alloc.c
+@@ -4531,28 +4531,23 @@ static inline bool prepare_alloc_pages(g
+ }
+ 
+ /*
+- * __alloc_pages_bulk - Allocate a number of order-0 pages to a list or array
++ * __alloc_pages_bulk - Allocate a number of order-0 pages to an array
+  * @gfp: GFP flags for the allocation
+  * @preferred_nid: The preferred NUMA node ID to allocate from
+  * @nodemask: Set of nodes to allocate from, may be NULL
+- * @nr_pages: The number of pages desired on the list or array
+- * @page_list: Optional list to store the allocated pages
+- * @page_array: Optional array to store the pages
++ * @nr_pages: The number of pages desired in the array
++ * @page_array: Array to store the pages
+  *
+  * This is a batched version of the page allocator that attempts to
+- * allocate nr_pages quickly. Pages are added to page_list if page_list
+- * is not NULL, otherwise it is assumed that the page_array is valid.
++ * allocate nr_pages quickly. Pages are added to the page_array.
+  *
+- * For lists, nr_pages is the number of pages that should be allocated.
+- *
+- * For arrays, only NULL elements are populated with pages and nr_pages
++ * Note that only NULL elements are populated with pages and nr_pages
+  * is the maximum number of pages that will be stored in the array.
+  *
+- * Returns the number of pages on the list or array.
++ * Returns the number of pages in the array.
+  */
+ unsigned long alloc_pages_bulk_noprof(gfp_t gfp, int preferred_nid,
+ 			nodemask_t *nodemask, int nr_pages,
+-			struct list_head *page_list,
+ 			struct page **page_array)
+ {
+ 	struct page *page;
+@@ -4570,7 +4565,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 	 * Skip populated array elements to determine if any pages need
+ 	 * to be allocated before disabling IRQs.
+ 	 */
+-	while (page_array && nr_populated < nr_pages && page_array[nr_populated])
++	while (nr_populated < nr_pages && page_array[nr_populated])
+ 		nr_populated++;
+ 
+ 	/* No pages requested? */
+@@ -4578,7 +4573,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 		goto out;
+ 
+ 	/* Already populated array? */
+-	if (unlikely(page_array && nr_pages - nr_populated == 0))
++	if (unlikely(nr_pages - nr_populated == 0))
+ 		goto out;
+ 
+ 	/* Bulk allocator does not support memcg accounting. */
+@@ -4660,7 +4655,7 @@ retry_this_zone:
+ 	while (nr_populated < nr_pages) {
+ 
+ 		/* Skip existing pages */
+-		if (page_array && page_array[nr_populated]) {
++		if (page_array[nr_populated]) {
+ 			nr_populated++;
+ 			continue;
+ 		}
+@@ -4679,11 +4674,7 @@ retry_this_zone:
+ 
+ 		prep_new_page(page, 0, gfp, 0);
+ 		set_page_refcounted(page);
+-		if (page_list)
+-			list_add(&page->lru, page_list);
+-		else
+-			page_array[nr_populated] = page;
+-		nr_populated++;
++		page_array[nr_populated++] = page;
+ 	}
+ 
+ 	pcp_spin_unlock(pcp);
+@@ -4700,14 +4691,8 @@ failed_irq:
+ 
+ failed:
+ 	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask);
+-	if (page) {
+-		if (page_list)
+-			list_add(&page->lru, page_list);
+-		else
+-			page_array[nr_populated] = page;
+-		nr_populated++;
+-	}
+-
++	if (page)
++		page_array[nr_populated++] = page;
+ 	goto out;
+ }
+ EXPORT_SYMBOL_GPL(alloc_pages_bulk_noprof);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
 
