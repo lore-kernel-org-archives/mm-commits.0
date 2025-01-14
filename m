@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC0823D3D1
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE4F623D3FE
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837176; cv=none; b=igQHJNN1BtuhpIe1xjYddBEFs2crTqV1S/FoDMcZGIqnQqXMMA6OP+KLwPpWfySlFvNAFGlozcyoNM6sSEcCASUSkoG/0nH3t09UKvotATevVfL1Dt8Z8TUREkgmw9LsmotlMUEJb4bxavN1jU8kEqUPPoyNHYXeZAnrLQTu0bI=
+	t=1736837178; cv=none; b=EuD3wEcBSBDW1zKphQJwmKl9St6zf6GZSRO9j1WJMwgAeuUPkq16Kw5mEQ/0HJjeMc8gg58KhLJxPH1iC19OWswb0eFrWKcATaY1hDm9NIk5+/+1l0s27s6sXtaDVsAC12QccSlXutfkjJWarOwf0wUPSrFMvFmQVzDmz4Rke/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837176; c=relaxed/simple;
-	bh=dhp7BmOZwx2l+H1QuVMGb9/vVRDqkSpTeKHswHAhGxk=;
-	h=Date:To:From:Subject:Message-Id; b=VS6ab8e8szsRcjD42s/vmNw3tnjJbpuFXGVqdbWN7v2j8oRSlQaTSJL61xprPHpyX71y59fYpMeYW36Tnjl/VUYvs4C6Iva2GF+9WfCW/wxZ606l/DyuFxdj/1s8jPZ9MKFSWks9+ByDCaNNRGJWGuGJHXF4Ek8g4DPRytJLLN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PJ2n7Q4n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837178; c=relaxed/simple;
+	bh=WGWR5Y0jJDqdFKqO+XVo4T/UwbMQfEHDyQwY0Vb/hZU=;
+	h=Date:To:From:Subject:Message-Id; b=HrV8G314bUOpIsyCq5HEyJwzclkpzMbGdtEtdjsx1vM3Qglm9HdomES1IgX+uZubje8UA+K8POS7Lk+BDuVoGTRmdUkBBUiFckokqQPrNAdz/bzzRfvAC1mLIadz58c2O7xOSPKJQnPY5EMU7a3rv63J4CVgyjJUXIq2sx447Og=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uxAdSfnc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PJ2n7Q4n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 634F2C4CEDD;
-	Tue, 14 Jan 2025 06:46:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uxAdSfnc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C34BBC4CEDD;
+	Tue, 14 Jan 2025 06:46:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837176;
-	bh=dhp7BmOZwx2l+H1QuVMGb9/vVRDqkSpTeKHswHAhGxk=;
+	s=korg; t=1736837177;
+	bh=WGWR5Y0jJDqdFKqO+XVo4T/UwbMQfEHDyQwY0Vb/hZU=;
 	h=Date:To:From:Subject:From;
-	b=PJ2n7Q4n52Q7T6lFzJH/hi15KcifCrvgNDTcJTFk4tVVil/Dz+vTeOgBwB3OhCK9H
-	 Zqou/Jw+/CzA6Jy71d/SxYkQsoyBHpOcKs89XuV7JS79yjfMAakqZ0B2bmdGOKSY4t
-	 Ms/f8585FkS7am5r8zVcUIk680Eej9KFslLf3XyA=
-Date: Mon, 13 Jan 2025 22:46:15 -0800
+	b=uxAdSfncW6BP8002OhHp4wN9aekbGIZ+1zutmR9HvwQ8I9iWu/bNIv5a4LB25dO6h
+	 KFLy8F60pBxauSN1LPwJxvK+W5JPzJjBgKOjEnWqijvnbEqB5IIvoxxoLzLKXgu3kO
+	 8yjbkMwSokjR3g23fX1huUd+cNbhXfhibTZbVAFM=
+Date: Mon, 13 Jan 2025 22:46:17 -0800
 To: mm-commits@vger.kernel.org,si.yanteng@linux.dev,shuah@kernel.org,rmoar@google.com,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch removed from -mm tree
-Message-Id: <20250114064616.634F2C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch removed from -mm tree
+Message-Id: <20250114064617.C34BBC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/design: update for removal of DAMON debugfs interface
+     Subject: selftests/damon/config: remove configs for DAMON debugfs interface selftests
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface.patch
+     selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for removal of DAMON debugfs interface
-Date: Mon, 6 Jan 2025 11:19:36 -0800
+Subject: selftests/damon/config: remove configs for DAMON debugfs interface selftests
+Date: Mon, 6 Jan 2025 11:19:37 -0800
 
 It's time to remove DAMON debugfs interface, which has deprecated long
 before in February 2023.  Read the cover letter of this patch series for
 more details.
 
-Update DAMON design documentation to stop mentioning about the interface,
-to avoid unnecessary confuses.
+Remove configs for selftests of it from DAMON selftests config file, to
+prevent unnecessary noises from the tests.
 
-Link: https://lkml.kernel.org/r/20250106191941.107070-4-sj@kernel.org
+[1] https://lore.kernel.org/20230209192009.7885-1-sj@kernel.org
+
+Link: https://lkml.kernel.org/r/20250106191941.107070-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -67,55 +69,18 @@ Cc: Yanteng Si <si.yanteng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ tools/testing/selftests/damon/config |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-removal-of-damon-debugfs-interface
-+++ a/Documentation/mm/damon/design.rst
-@@ -627,15 +627,11 @@ General Purpose User Interface Modules
- DAMON modules that provide user space ABIs for general purpose DAMON usage in
- runtime.
- 
--DAMON user interface modules, namely 'DAMON sysfs interface' and 'DAMON debugfs
--interface' are DAMON API user kernel modules that provide ABIs to the
--user-space.  Please note that DAMON debugfs interface is currently deprecated.
--
--Like many other ABIs, the modules create files on sysfs and debugfs, allow
--users to specify their requests to and get the answers from DAMON by writing to
--and reading from the files.  As a response to such I/O, DAMON user interface
--modules control DAMON and retrieve the results as user requested via the DAMON
--API, and return the results to the user-space.
-+Like many other ABIs, the modules create files on pseudo file systems like
-+'sysfs', allow users to specify their requests to and get the answers from
-+DAMON by writing to and reading from the files.  As a response to such I/O,
-+DAMON user interface modules control DAMON and retrieve the results as user
-+requested via the DAMON API, and return the results to the user-space.
- 
- The ABIs are designed to be used for user space applications development,
- rather than human beings' fingers.  Human users are recommended to use such
-@@ -644,8 +640,9 @@ Github (https://github.com/damonitor/dam
- (https://pypistats.org/packages/damo), and Fedora
- (https://packages.fedoraproject.org/pkgs/python-damo/damo/).
- 
--Please refer to the ABI :doc:`document </admin-guide/mm/damon/usage>` for
--details of the interfaces.
-+Currently, one module for this type, namely 'DAMON sysfs interface' is
-+available.  Please refer to the ABI :ref:`doc <sysfs_interface>` for details of
-+the interfaces.
- 
- 
- Special-Purpose Access-aware Kernel Modules
-@@ -653,8 +650,8 @@ Special-Purpose Access-aware Kernel Modu
- 
- DAMON modules that provide user space ABI for specific purpose DAMON usage.
- 
--DAMON sysfs/debugfs user interfaces are for full control of all DAMON features
--in runtime.  For each special-purpose system-wide data access-aware system
-+DAMON user interface modules are for full control of all DAMON features in
-+runtime.  For each special-purpose system-wide data access-aware system
- operations such as proactive reclamation or LRU lists balancing, the interfaces
- could be simplified by removing unnecessary knobs for the specific purpose, and
- extended for boot-time and even compile time control.  Default values of DAMON
+--- a/tools/testing/selftests/damon/config~selftests-damon-config-remove-configs-for-damon-debugfs-interface-selftests
++++ a/tools/testing/selftests/damon/config
+@@ -1,6 +1,5 @@
+ CONFIG_DAMON=y
+ CONFIG_DAMON_SYSFS=y
+-CONFIG_DAMON_DBGFS=y
+ CONFIG_DAMON_PADDR=y
+ CONFIG_DAMON_VADDR=y
+ CONFIG_DAMON_RECLAIM=y
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
