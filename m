@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4817623A103
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7773D23A11B
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836957; cv=none; b=fn9kMBU5IJm0dX+r8i7dmakwZC080ReiRncmC9ruhwcBBzCdNPdIx0ZbdYIksfDmwZNrU/4hJj8pfZbIZKKgENf+Qw1Zs7hS/Kuwu6E+OKX00qOLy1JlDuLBpIuimzYljXgws+1/0wllNvvYiXBjBoYikpfcHztzmjEr6/rgdDY=
+	t=1736836958; cv=none; b=oDR1BDi+FcNcEXP6ykkZyAmg9O+AMYaCZSNHdo8Od+xP0NRLwknWL1pYKjkVytkiDpgnuSoTY2AkpMiNvGl8mWVbNuO61dKmgAdmzRmd6Wc4g32t0aoTtAq+C2z3XtYm7q8TAN7TyGbCA6mUsWGmpc+fQPfP70cPYqxBvIl1IwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836957; c=relaxed/simple;
-	bh=c50JQkGkipecaGLOz1lpqneuNibXazdxJNQk5NN2Qew=;
-	h=Date:To:From:Subject:Message-Id; b=gKbnvqeMFOL91JNNjeO4Rn8ldHQRrjJdEho2ttbIN2ATmy/Gs7PFtD0kBhGWLhMAOkO+FP2eYrw5G1oXbv71hQtUX0Wog2OuqxjzdYHp7mhk0sR9F8hsZydoereCVWNMnsPHDfxkblVFHNN2yIyb8BlJ+4riGVX9wRPs+Kac3S0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pty+7v4n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836958; c=relaxed/simple;
+	bh=lzeSpXaKZ/YkqFVPYrgve/fCAn7K19SAs9hTr1jzsG0=;
+	h=Date:To:From:Subject:Message-Id; b=aLziwyNue3+ouU2tIrxfWvi36he6YSv30L1vhTwoFqbhXoHvIeYTaXKJJGc6KsOqHr+rJ2o8wUqnwqipe69O1t3huQpbg7VAZ9FO0Me1P6S1PaWl4hnXg7JdA12spsbpt4XIOIGryZXStNeMUsBgOHdO22Wu/Pa+qOwGvTFN/nM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UhWBucUP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pty+7v4n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B624C4CEDD;
-	Tue, 14 Jan 2025 06:42:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UhWBucUP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BA1DC4CEDD;
+	Tue, 14 Jan 2025 06:42:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836957;
-	bh=c50JQkGkipecaGLOz1lpqneuNibXazdxJNQk5NN2Qew=;
+	s=korg; t=1736836958;
+	bh=lzeSpXaKZ/YkqFVPYrgve/fCAn7K19SAs9hTr1jzsG0=;
 	h=Date:To:From:Subject:From;
-	b=pty+7v4n4eJdphDIiYsE3VXJ6ES0Hn3gmI6PLs/GWmjyODqMEal89dH2YRtgJTGxT
-	 YeL4Qi6nIzvbGY7w9N93TbqkWS36E0PaO4rBHlVUxpItMe/1dbThUxIGIIP9QSFebn
-	 NqNAapMgEiTTsKS5ttG325EOX+VoDiJPiUypNoWI=
-Date: Mon, 13 Jan 2025 22:42:36 -0800
-To: mm-commits@vger.kernel.org,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=UhWBucUPXpKMjeqgNPaie2FtZr1LljwgbsRM/8FRZDMDh8vmR+LQNXqiqL7LcPOPb
+	 lSwXV1dMt3mX70pjDJ8yS9UfRtjDsxSQln9Y66m8JGTZvNzwxSBAQoay/65dBD8HWC
+	 161cAmege742aH0TNxvnes3fp+EkS8AyY/SmEF3I=
+Date: Mon, 13 Jan 2025 22:42:37 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,kerensun@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-mm-remove-seal_elf.patch removed from -mm tree
-Message-Id: <20250114064237.1B624C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-prefer-unsigned-int-to-bare-use-of-unsigned.patch removed from -mm tree
+Message-Id: <20250114064238.3BA1DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,194 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftest/mm: remove seal_elf
+     Subject: mm: prefer 'unsigned int' to bare use of 'unsigned'
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-remove-seal_elf.patch
+     mm-prefer-unsigned-int-to-bare-use-of-unsigned.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: selftest/mm: remove seal_elf
-Date: Sat, 16 Nov 2024 00:50:58 +0000
+From: Keren Sun <kerensun@google.com>
+Subject: mm: prefer 'unsigned int' to bare use of 'unsigned'
+Date: Fri, 15 Nov 2024 15:57:42 -0800
 
-Remove seal_elf, which is a demo of mseal, we no longer need this.
+Patch series "mm: fix format issues and param types"
 
-Link: https://lkml.kernel.org/r/20241116005058.69091-1-jeffxu@chromium.org
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Change the param 'mode' from type 'unsigned' to 'unsigned int' in
+memcg_event_wake() and memcg_oom_wake_function(), and for the param 'nid'
+in VM_BUG_ON().
+
+Link: https://lkml.kernel.org/r/20241115235744.1419580-2-kerensun@google.com
+Signed-off-by: Keren Sun <kerensun@google.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |    1 
- tools/testing/selftests/mm/Makefile   |    1 
- tools/testing/selftests/mm/seal_elf.c |  137 ------------------------
- 3 files changed, 139 deletions(-)
+ mm/memcontrol-v1.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftest-mm-remove-seal_elf
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -52,7 +52,6 @@ va_high_addr_switch
- hugetlb_fault_after_madv
- hugetlb_madv_vs_map
- mseal_test
--seal_elf
- droppable
- hugetlb_dio
- pkey_sighandler_tests_32
---- a/tools/testing/selftests/mm/Makefile~selftest-mm-remove-seal_elf
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -75,7 +75,6 @@ TEST_GEN_FILES += mrelease_test
- TEST_GEN_FILES += mremap_dontunmap
- TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += mseal_test
--TEST_GEN_FILES += seal_elf
- TEST_GEN_FILES += on-fault-limit
- TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += thuge-gen
-diff --git a/tools/testing/selftests/mm/seal_elf.c a/tools/testing/selftests/mm/seal_elf.c
-deleted file mode 100644
---- a/tools/testing/selftests/mm/seal_elf.c
-+++ /dev/null
-@@ -1,137 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--#define _GNU_SOURCE
--#include <sys/mman.h>
--#include <stdint.h>
--#include <asm-generic/unistd.h>
--#include <string.h>
--#include <sys/time.h>
--#include <sys/resource.h>
--#include <stdbool.h>
--#include "../kselftest.h"
--#include <syscall.h>
--#include <errno.h>
--#include <stdio.h>
--#include <stdlib.h>
--#include <fcntl.h>
--#include <sys/ioctl.h>
--#include <sys/vfs.h>
--#include <sys/stat.h>
--#include "mseal_helpers.h"
--
--/*
-- * define sys_xyx to call syscall directly.
-- */
--static int sys_mseal(void *start, size_t len)
--{
--	int sret;
--
--	errno = 0;
--	sret = syscall(__NR_mseal, start, len, 0);
--	return sret;
--}
--
--static inline int sys_mprotect(void *ptr, size_t size, unsigned long prot)
--{
--	int sret;
--
--	errno = 0;
--	sret = syscall(__NR_mprotect, ptr, size, prot);
--	return sret;
--}
--
--static bool seal_support(void)
--{
--	int ret;
--	void *ptr;
--	unsigned long page_size = getpagesize();
--
--	ptr = mmap(NULL, page_size, PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
--	if (ptr == (void *) -1)
--		return false;
--
--	ret = sys_mseal(ptr, page_size);
--	if (ret < 0)
--		return false;
--
--	return true;
--}
--
--const char somestr[4096] = {"READONLY"};
--
--static void test_seal_elf(void)
--{
--	int ret;
--	FILE *maps;
--	char line[512];
--	uintptr_t  addr_start, addr_end;
--	char prot[5];
--	char filename[256];
--	unsigned long page_size = getpagesize();
--	unsigned long long ptr = (unsigned long long) somestr;
--	char *somestr2 = (char *)somestr;
--
--	/*
--	 * Modify the protection of readonly somestr
--	 */
--	if (((unsigned long long)ptr % page_size) != 0)
--		ptr = (unsigned long long)ptr & ~(page_size - 1);
--
--	ksft_print_msg("somestr = %s\n", somestr);
--	ksft_print_msg("change protection to rw\n");
--	ret = sys_mprotect((void *)ptr, page_size, PROT_READ|PROT_WRITE);
--	FAIL_TEST_IF_FALSE(!ret);
--	*somestr2 = 'A';
--	ksft_print_msg("somestr is modified to: %s\n", somestr);
--	ret = sys_mprotect((void *)ptr, page_size, PROT_READ);
--	FAIL_TEST_IF_FALSE(!ret);
--
--	maps = fopen("/proc/self/maps", "r");
--	FAIL_TEST_IF_FALSE(maps);
--
--	/*
--	 * apply sealing to elf binary
--	 */
--	while (fgets(line, sizeof(line), maps)) {
--		if (sscanf(line, "%lx-%lx %4s %*x %*x:%*x %*u %255[^\n]",
--			&addr_start, &addr_end, prot, filename) == 4) {
--			if (strlen(filename)) {
--				/*
--				 * seal the mapping if read only.
--				 */
--				if (strstr(prot, "r-")) {
--					ret = sys_mseal((void *)addr_start, addr_end - addr_start);
--					FAIL_TEST_IF_FALSE(!ret);
--					ksft_print_msg("sealed: %lx-%lx %s %s\n",
--						addr_start, addr_end, prot, filename);
--					if ((uintptr_t) somestr >= addr_start &&
--						(uintptr_t) somestr <= addr_end)
--						ksft_print_msg("mapping for somestr found\n");
--				}
--			}
--		}
--	}
--	fclose(maps);
--
--	ret = sys_mprotect((void *)ptr, page_size, PROT_READ | PROT_WRITE);
--	FAIL_TEST_IF_FALSE(ret < 0);
--	ksft_print_msg("somestr is sealed, mprotect is rejected\n");
--
--	REPORT_TEST_PASS();
--}
--
--int main(int argc, char **argv)
--{
--	bool test_seal = seal_support();
--
--	ksft_print_header();
--	ksft_print_msg("pid=%d\n", getpid());
--
--	if (!test_seal)
--		ksft_exit_skip("sealing not supported, check CONFIG_64BIT\n");
--
--	ksft_set_plan(1);
--
--	test_seal_elf();
--
--	ksft_finished();
--}
+--- a/mm/memcontrol-v1.c~mm-prefer-unsigned-int-to-bare-use-of-unsigned
++++ a/mm/memcontrol-v1.c
+@@ -899,7 +899,7 @@ static void memcg_event_remove(struct wo
+  *
+  * Called with wqh->lock held and interrupts disabled.
+  */
+-static int memcg_event_wake(wait_queue_entry_t *wait, unsigned mode,
++static int memcg_event_wake(wait_queue_entry_t *wait, unsigned int mode,
+ 			    int sync, void *key)
+ {
+ 	struct mem_cgroup_event *event =
+@@ -1202,7 +1202,7 @@ struct oom_wait_info {
+ };
+ 
+ static int memcg_oom_wake_function(wait_queue_entry_t *wait,
+-	unsigned mode, int sync, void *arg)
++	unsigned int mode, int sync, void *arg)
+ {
+ 	struct mem_cgroup *wake_memcg = (struct mem_cgroup *)arg;
+ 	struct mem_cgroup *oom_wait_memcg;
+@@ -1644,7 +1644,7 @@ static unsigned long mem_cgroup_node_nr_
+ 	unsigned long nr = 0;
+ 	enum lru_list lru;
+ 
+-	VM_BUG_ON((unsigned)nid >= nr_node_ids);
++	VM_BUG_ON((unsigned int)nid >= nr_node_ids);
+ 
+ 	for_each_lru(lru) {
+ 		if (!(BIT(lru) & lru_mask))
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from kerensun@google.com are
 
 
