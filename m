@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BC1F24332F
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E3423C717
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837186; cv=none; b=DvxJhioi4Naj9NrOUgQhcFvApWo/+LMG7XlyZIBDzYup+8OklF5pXm0IAFogBJecgsDlQguP3UMDJyXUeFCX73BBMwlxGjyAQJGjF3e8QKqoR+jFGE+vqGs4yuWJHSiMW+58FBHGO6jOMsbEY/ngkosfeZKGVzAhVU2LJeM6WDU=
+	t=1736837187; cv=none; b=NaDWP4jLsRSjp28z6Z/ll7ENKjB5EheAFyK0jztODq8HIeAVMstxFUoJcAIGLHwYfVwQ1mga5VsVRplXLyq79wKr48XsBVWvbj1jfBTuNO7r4JOEq3BFeDqEQxCauMIUm/q3+LhIVgI4bzB+qWzTGbv31wDU1YghZ7o+18XUTMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837186; c=relaxed/simple;
-	bh=QB4QvYGAzPefsLOETdL2JIhm8m7R7/ZpslO43EFONqE=;
-	h=Date:To:From:Subject:Message-Id; b=fmoAjKrzSX2z3ZKQOVWvMo7g0Od25zev/eAJ2MP9WhCm+6ixosG7Chk5bwZhF0GK6M4r4bBJzeXiE/lEg8ddIX2b8fXHc/tFtq5aMQzjA9acvKoZjIKsqwzzs/+d26AXN1dtALHEosc+SXSj12lKmF2QFw7jus4+2X4Xz1PsLKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cH77YMyY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837187; c=relaxed/simple;
+	bh=FoVH/MVCFBiEScbfamp6jzTDDEJu29s0J3yLKUhsWtw=;
+	h=Date:To:From:Subject:Message-Id; b=n58Yjehm3Pz2atPu+s1Afm4ugFuhZCLEP1SA4GaPd03/HmozoCbBa4RhwDdNEE2Rlsr2K1xfuGY1dipvAaAxedQAsdHscj9MF49l4SH7MaeERXEwMXDrQts2vGBhE1KBSw2nLwN2l1vrP5bgUXG4MZIKfAUexYkUQ0fJAvXw7/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pOKACjTt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cH77YMyY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12FE0C4CEDF;
-	Tue, 14 Jan 2025 06:46:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pOKACjTt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C713C4CEDD;
+	Tue, 14 Jan 2025 06:46:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837186;
-	bh=QB4QvYGAzPefsLOETdL2JIhm8m7R7/ZpslO43EFONqE=;
+	s=korg; t=1736837187;
+	bh=FoVH/MVCFBiEScbfamp6jzTDDEJu29s0J3yLKUhsWtw=;
 	h=Date:To:From:Subject:From;
-	b=cH77YMyYXPqBYi32PrkXhuVjCN60fGVEqmc9YQdM2WBhR1Fw19S4u8oT9o/IyW+c4
-	 tzZgIkJWGu0I12wM2eU/gqXR0Vsw90ImNB4HwWe8FJ+X+Z1xiSk62RdD/0b6FlFFVq
-	 RyorQvZ/qMhxz81519pAOBBhft29UzC/ihE/t/So=
-Date: Mon, 13 Jan 2025 22:46:25 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,catalin.marinas@arm.com,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
+	b=pOKACjTtZeBhNqXokklfluF4+oXQt4ifSOZyebZFKi+2uH9K0JMlGQAZHV8JFVjLd
+	 wcS6SBNqPdfmyEZHO3K2QxS6FQS+lwgFKFO4hZSNXst97igKI9FqEUOfiZHCiMupoK
+	 DnNciYpwud7HFCayYUdkCGl0ny4FX+k72qliHi+c=
+Date: Mon, 13 Jan 2025 22:46:26 -0800
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,kasong@tencent.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak.patch removed from -mm tree
-Message-Id: <20250114064626.12FE0C4CEDF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device.patch removed from -mm tree
+Message-Id: <20250114064627.3C713C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,246 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memmap: prevent double scanning of memmap by kmemleak
+     Subject: mm: shmem: skip swapcache for swapin of synchronous swap device
 has been removed from the -mm tree.  Its filename was
-     mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak.patch
+     mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guo Weikang <guoweikang.kernel@gmail.com>
-Subject: mm/memmap: prevent double scanning of memmap by kmemleak
-Date: Mon, 6 Jan 2025 10:11:25 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: skip swapcache for swapin of synchronous swap device
+Date: Wed, 8 Jan 2025 10:16:49 +0800
 
-kmemleak explicitly scans the mem_map through the valid struct page
-objects.  However, memmap_alloc() was also adding this memory to the gray
-object list, causing it to be scanned twice.  Remove memmap_alloc() from
-the scan list and add a comment to clarify the behavior.
+With fast swap devices (such as zram), swapin latency is crucial to
+applications.  For shmem swapin, similar to anonymous memory swapin, we
+can skip the swapcache operation to improve swapin latency.  Testing 1G
+shmem sequential swapin without THP enabled, I observed approximately a 6%
+performance improvement: (Note: I repeated 5 times and took the mean data
+for each test)
 
-Link: https://lore.kernel.org/lkml/CAOm6qn=FVeTpH54wGDFMHuCOeYtvoTx30ktnv9-w3Nh8RMofEA@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20250106021126.1678334-1-guoweikang.kernel@gmail.com
-Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+w/o patch	w/ patch	changes
+534.8ms		501ms		+6.3%
+
+In addition, currently, we always split the large swap entry stored in the
+shmem mapping during shmem large folio swapin, which is not perfect,
+especially with a fast swap device.  We should swap in the whole large
+folio instead of splitting the precious large folios to take advantage of
+the large folios and improve the swapin latency if the swap device is
+synchronous device, which is similar to anonymous memory mTHP swapin. 
+Testing 1G shmem sequential swapin with 64K mTHP and 2M mTHP, I observed
+obvious performance improvement:
+
+mTHP=64K
+w/o patch	w/ patch	changes
+550.4ms		169.6ms		+69%
+
+mTHP=2M
+w/o patch	w/ patch	changes
+542.8ms		126.8ms		+77%
+
+Note that skipping swapcache requires attention to concurrent swapin
+scenarios.  Fortunately the swapcache_prepare() and
+shmem_add_to_page_cache() can help identify concurrent swapin and large
+swap entry split scenarios, and return -EEXIST for retry.
+
+[akpm@linux-foundation.org: use IS_ENABLED(), tweak comment grammar]
+Link: https://lkml.kernel.org/r/3d9f3bd3bc6ec953054baff5134f66feeaae7c1e.1736301701.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    4 ++++
- mm/mm_init.c             |    8 ++++++--
- mm/sparse-vmemmap.c      |    5 +++--
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ mm/shmem.c |  110 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 105 insertions(+), 5 deletions(-)
 
---- a/include/linux/memblock.h~mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak
-+++ a/include/linux/memblock.h
-@@ -378,6 +378,10 @@ static inline int memblock_get_region_no
- /* Flags for memblock allocation APIs */
- #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
- #define MEMBLOCK_ALLOC_ACCESSIBLE	0
-+/*
-+ *  MEMBLOCK_ALLOC_NOLEAKTRACE avoids kmemleak tracing. It implies
-+ *  MEMBLOCK_ALLOC_ACCESSIBLE
-+ */
- #define MEMBLOCK_ALLOC_NOLEAKTRACE	1
- 
- /* We are using top down, so it is safe to use 0 here */
---- a/mm/mm_init.c~mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak
-+++ a/mm/mm_init.c
-@@ -1585,13 +1585,17 @@ void __init *memmap_alloc(phys_addr_t si
- {
- 	void *ptr;
- 
-+	/*
-+	 * Kmemleak will explicitly scan mem_map by traversing all valid
-+	 * `struct *page`,so memblock does not need to be added to the scan list.
-+	 */
- 	if (exact_nid)
- 		ptr = memblock_alloc_exact_nid_raw(size, align, min_addr,
--						   MEMBLOCK_ALLOC_ACCESSIBLE,
-+						   MEMBLOCK_ALLOC_NOLEAKTRACE,
- 						   nid);
- 	else
- 		ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
--						 MEMBLOCK_ALLOC_ACCESSIBLE,
-+						 MEMBLOCK_ALLOC_NOLEAKTRACE,
- 						 nid);
- 
- 	if (ptr && size > 0)
---- a/mm/sparse-vmemmap.c~mm-memmap-prevent-double-scanning-of-memmap-by-kmemleak
-+++ a/mm/sparse-vmemmap.c
-@@ -31,6 +31,8 @@
- #include <asm/dma.h>
- #include <asm/pgalloc.h>
- 
-+#include "internal.h"
-+
- /*
-  * Allocate a block of memory to be used to back the virtual memory map
-  * or to back the page tables that are used to create the mapping.
-@@ -42,8 +44,7 @@ static void * __ref __earlyonly_bootmem_
- 				unsigned long align,
- 				unsigned long goal)
- {
--	return memblock_alloc_try_nid_raw(size, align, goal,
--					       MEMBLOCK_ALLOC_ACCESSIBLE, node);
-+	return memmap_alloc(size, align, goal, node, false);
+--- a/mm/shmem.c~mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device
++++ a/mm/shmem.c
+@@ -1967,6 +1967,65 @@ unlock:
+ 	return ERR_PTR(error);
  }
  
- void * __meminit vmemmap_alloc_block(unsigned long size, int node)
++static struct folio *shmem_swap_alloc_folio(struct inode *inode,
++		struct vm_area_struct *vma, pgoff_t index,
++		swp_entry_t entry, int order, gfp_t gfp)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct folio *new;
++	void *shadow;
++	int nr_pages;
++
++	/*
++	 * We have arrived here because our zones are constrained, so don't
++	 * limit chance of success with further cpuset and node constraints.
++	 */
++	gfp &= ~GFP_CONSTRAINT_MASK;
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && order > 0) {
++		gfp_t huge_gfp = vma_thp_gfp_mask(vma);
++
++		gfp = limit_gfp_mask(huge_gfp, gfp);
++	}
++
++	new = shmem_alloc_folio(gfp, order, info, index);
++	if (!new)
++		return ERR_PTR(-ENOMEM);
++
++	nr_pages = folio_nr_pages(new);
++	if (mem_cgroup_swapin_charge_folio(new, vma ? vma->vm_mm : NULL,
++					   gfp, entry)) {
++		folio_put(new);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	/*
++	 * Prevent parallel swapin from proceeding with the swap cache flag.
++	 *
++	 * Of course there is another possible concurrent scenario as well,
++	 * that is to say, the swap cache flag of a large folio has already
++	 * been set by swapcache_prepare(), while another thread may have
++	 * already split the large swap entry stored in the shmem mapping.
++	 * In this case, shmem_add_to_page_cache() will help identify the
++	 * concurrent swapin and return -EEXIST.
++	 */
++	if (swapcache_prepare(entry, nr_pages)) {
++		folio_put(new);
++		return ERR_PTR(-EEXIST);
++	}
++
++	__folio_set_locked(new);
++	__folio_set_swapbacked(new);
++	new->swap = entry;
++
++	mem_cgroup_swapin_uncharge_swap(entry, nr_pages);
++	shadow = get_shadow_from_swap_cache(entry);
++	if (shadow)
++		workingset_refault(new, shadow);
++	folio_add_lru(new);
++	swap_read_folio(new, NULL);
++	return new;
++}
++
+ /*
+  * When a page is moved from swapcache to shmem filecache (either by the
+  * usual swapin of shmem_get_folio_gfp(), or by the less common swapoff of
+@@ -2070,7 +2129,8 @@ static int shmem_replace_folio(struct fo
+ }
+ 
+ static void shmem_set_folio_swapin_error(struct inode *inode, pgoff_t index,
+-					 struct folio *folio, swp_entry_t swap)
++					 struct folio *folio, swp_entry_t swap,
++					 bool skip_swapcache)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	swp_entry_t swapin_error;
+@@ -2086,7 +2146,8 @@ static void shmem_set_folio_swapin_error
+ 
+ 	nr_pages = folio_nr_pages(folio);
+ 	folio_wait_writeback(folio);
+-	delete_from_swap_cache(folio);
++	if (!skip_swapcache)
++		delete_from_swap_cache(folio);
+ 	/*
+ 	 * Don't treat swapin error folio as alloced. Otherwise inode->i_blocks
+ 	 * won't be 0 when inode is released and thus trigger WARN_ON(i_blocks)
+@@ -2190,6 +2251,7 @@ static int shmem_swapin_folio(struct ino
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct swap_info_struct *si;
+ 	struct folio *folio = NULL;
++	bool skip_swapcache = false;
+ 	swp_entry_t swap;
+ 	int error, nr_pages;
+ 
+@@ -2211,6 +2273,8 @@ static int shmem_swapin_folio(struct ino
+ 	/* Look it up and read it in.. */
+ 	folio = swap_cache_get_folio(swap, NULL, 0);
+ 	if (!folio) {
++		int order = xa_get_order(&mapping->i_pages, index);
++		bool fallback_order0 = false;
+ 		int split_order;
+ 
+ 		/* Or update major stats only when swapin succeeds?? */
+@@ -2221,6 +2285,33 @@ static int shmem_swapin_folio(struct ino
+ 		}
+ 
+ 		/*
++		 * If uffd is active for the vma, we need per-page fault
++		 * fidelity to maintain the uffd semantics, then fallback
++		 * to swapin order-0 folio, as well as for zswap case.
++		 */
++		if (order > 0 && ((vma && unlikely(userfaultfd_armed(vma))) ||
++				  !zswap_never_enabled()))
++			fallback_order0 = true;
++
++		/* Skip swapcache for synchronous device. */
++		if (!fallback_order0 && data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
++			folio = shmem_swap_alloc_folio(inode, vma, index, swap, order, gfp);
++			if (!IS_ERR(folio)) {
++				skip_swapcache = true;
++				goto alloced;
++			}
++
++			/*
++			 * Fallback to swapin order-0 folio unless the swap entry
++			 * already exists.
++			 */
++			error = PTR_ERR(folio);
++			folio = NULL;
++			if (error == -EEXIST)
++				goto failed;
++		}
++
++		/*
+ 		 * Now swap device can only swap in order 0 folio, then we
+ 		 * should split the large swap entry stored in the pagecache
+ 		 * if necessary.
+@@ -2250,9 +2341,10 @@ static int shmem_swapin_folio(struct ino
+ 		}
+ 	}
+ 
++alloced:
+ 	/* We have to do this with folio locked to prevent races */
+ 	folio_lock(folio);
+-	if (!folio_test_swapcache(folio) ||
++	if ((!skip_swapcache && !folio_test_swapcache(folio)) ||
+ 	    folio->swap.val != swap.val ||
+ 	    !shmem_confirm_swap(mapping, index, swap)) {
+ 		error = -EEXIST;
+@@ -2288,7 +2380,12 @@ static int shmem_swapin_folio(struct ino
+ 	if (sgp == SGP_WRITE)
+ 		folio_mark_accessed(folio);
+ 
+-	delete_from_swap_cache(folio);
++	if (skip_swapcache) {
++		folio->swap.val = 0;
++		swapcache_clear(si, swap, nr_pages);
++	} else {
++		delete_from_swap_cache(folio);
++	}
+ 	folio_mark_dirty(folio);
+ 	swap_free_nr(swap, nr_pages);
+ 	put_swap_device(si);
+@@ -2299,8 +2396,11 @@ failed:
+ 	if (!shmem_confirm_swap(mapping, index, swap))
+ 		error = -EEXIST;
+ 	if (error == -EIO)
+-		shmem_set_folio_swapin_error(inode, index, folio, swap);
++		shmem_set_folio_swapin_error(inode, index, folio, swap,
++					     skip_swapcache);
+ unlock:
++	if (skip_swapcache)
++		swapcache_clear(si, swap, folio_nr_pages(folio));
+ 	if (folio) {
+ 		folio_unlock(folio);
+ 		folio_put(folio);
 _
 
-Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-memblock-add-memblock_alloc_or_panic-interface.patch
-arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic.patch
 
