@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFB0D243356
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35841FBBDE
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837200; cv=none; b=qe4H5w4jPvous6zjLU7Fhecw93q+MYebRn0LpsRcR5N8wjvVe/t9e0B+/ZrK4oo7er6rBUO22hckzLptWgueHCid9xJmxPNPWKzW+R6a9iOwfPRigATVJUrvXcY3wYGWDIYVu6Yut5PUYaoVhVSknU6zAirkv8DM6Z4iqMwHSoE=
+	t=1736837202; cv=none; b=BpdTJbXbUo53F8q2X4+/2VAg3Pgt+SuEfTzogyX2ei8FQi2DFtVYobz6JjCZioSGSuoIESKUVgRVQIBUcoBOApuZ6khKCJYa08YeY/YSUL8LZW28IvzUGfK6L45YQbM5XobWzD+R1KMu0FeyvnCdILdISUPBbpNbj7p2SpfrEM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837200; c=relaxed/simple;
-	bh=OZxXgUghcGF+QSxs/cKtuQcVV2zrB32pQQVU+giW3w8=;
-	h=Date:To:From:Subject:Message-Id; b=blRVrNiRj4IpbxwxzNCwXRyWx0oXuZXH6rdx82xczB9Snu8P4LvlmXJ4MGCtApQGtJbxuMfbzgwmQeGPAHYMSZwuo4Tsxm2UtOjDZMk9hgxHz1VdGAqfh1jhqDY3HcJ9gfUPEmHn5CN2g78WxFwxio0/w0PQgbsqFCK7lyzXxGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhdC5eFN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837202; c=relaxed/simple;
+	bh=EgZruZrnriA70x8aF1ybDlgbBS0RGwEVcf63DwotybM=;
+	h=Date:To:From:Subject:Message-Id; b=IbxJwityM7QIZyVV2TFT384SH8oGG1Me39pF3gOVFW2LW06DH9cw6tAqQqZfVM8E4VfELT8mLorJoDjJc9zFHelEGXjrja/0xCor3zEt1+WaErttpBuTAlRrQT8ya1wP+7pvxja6P8sdReuJ4qmRmJ8JvfbwFJEJ+f5RjQmw69I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wsNDUOrp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhdC5eFN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85215C4CEDD;
-	Tue, 14 Jan 2025 06:46:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wsNDUOrp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EB2BC4CEDD;
+	Tue, 14 Jan 2025 06:46:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837200;
-	bh=OZxXgUghcGF+QSxs/cKtuQcVV2zrB32pQQVU+giW3w8=;
+	s=korg; t=1736837202;
+	bh=EgZruZrnriA70x8aF1ybDlgbBS0RGwEVcf63DwotybM=;
 	h=Date:To:From:Subject:From;
-	b=XhdC5eFNArTpe3VcdhMA06G5vA16kfI8VryU2HASRKX5Woe99hRU7dWiO0T/owuw7
-	 M9dmi4LeZ2f/XPaiPBxX6Flmmoj9y7F4SFJETvmNR3u0SG+ws0huquHEFZgdX3tp65
-	 NEXoeqmvptPJ3GRCNLZwULf/3sT9XiwHHHwyaRa8=
-Date: Mon, 13 Jan 2025 22:46:40 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,mgorman@techsingularity.net,linyunsheng@huawei.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
+	b=wsNDUOrpJmHxqXgcflYs0Oc21qdwUlFDPewhcwSpl0ugFROGIPBQX6IEtCEdU8ekP
+	 Gp0q441k3ohVa6ZXMQTdUXTaRI/kFSOMfq8ATWZ1Wtc4hEAjpq3Wk3Mi7Zx/ILtQik
+	 kbXbSGJVd4PaH/B25aksnRTaynwRsuuhvDNwPE8c=
+Date: Mon, 13 Jan 2025 22:46:41 -0800
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-alloc_pages_bulk-rename-api.patch removed from -mm tree
-Message-Id: <20250114064640.85215C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-fixup-damos_filter-kernel-doc.patch removed from -mm tree
+Message-Id: <20250114064642.5EB2BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,386 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: alloc_pages_bulk: rename API
+     Subject: mm/damon: fixup damos_filter kernel-doc
 has been removed from the -mm tree.  Its filename was
-     mm-alloc_pages_bulk-rename-api.patch
+     mm-damon-fixup-damos_filter-kernel-doc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm: alloc_pages_bulk: rename API
-Date: Mon, 23 Dec 2024 17:00:38 -0500
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: fixup damos_filter kernel-doc
+Date: Thu, 9 Jan 2025 09:51:17 -0800
 
-The previous commit removed the page_list argument from
-alloc_pages_bulk_noprof() along with the alloc_pages_bulk_list() function.
+Patch series "mm/damon: extend DAMOS filters for inclusion", v2.
 
-Now that only the *_array() flavour of the API remains, we can do the
-following renaming (along with the _noprof() ones):
+DAMOS fitlers are exclusive filters.  It only excludes memory of given
+criterias from the DAMOS action targets.  This has below limitations.
 
-  alloc_pages_bulk_array -> alloc_pages_bulk
-  alloc_pages_bulk_array_mempolicy -> alloc_pages_bulk_mempolicy
-  alloc_pages_bulk_array_node -> alloc_pages_bulk_node
+First, the name is not explicitly explaining the behavior.  This actually
+resulted in users' confusions[1].  Secondly, combined uses of multiple
+filters provide only restriced coverages.  For example, building a DAMOS
+scheme that applies the action to memory that belongs to cgroup A "or"
+cgroup B is impossible.  A workaround would be using two schemes that
+fitlers out memory that not belong to cgroup A and cgroup B, respectively.
+It is cumbersome, and difficult to control quota-like per-scheme features
+in an orchestration.  Monitoring of filters-passed memory statistic will
+also be complicated.
 
-Link: https://lkml.kernel.org/r/275a3bbc0be20fbe9002297d60045e67ab3d4ada.1734991165.git.luizcap@redhat.com
-Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Yunsheng Lin <linyunsheng@huawei.com>
+Extend DAMOS filters to support not only exclusion (rejecting), but also
+inclusion (allowing) behavior.  For this, add a new damos_filter struct
+field called 'allow' for DAMON kernel API users.  The filter works as an
+inclusion or exclusion filter when it is set or unset, respectively.  For
+DAMON user-space ABI users, add a DAMON sysfs file of same name under
+DAMOS filter sysfs directory.  To prevent exposing a behavioral change to
+old users, set rejecting as the default behavior.
+
+Note that allow-filters work for only inclusion, not exclusion of memory
+that not satisfying the criteria.  And the default behavior of DAMOS for
+memory that no filter has involved is that the action can be applied to
+those memory.  Also, filters-passed memory statistics are for any memory
+that passed through the DAMOS filters check stage.  These implies
+installing allow-filters at the endof the filter list is useless.  Refer
+to the design doc change of this series for more details.
+
+[1] https://lore.kernel.org/20240320165619.71478-1-sj@kernel.org
+
+
+This patch (of 10):
+
+The comment is slightly wrong.  DAMOS filters are not only for pages, but
+general bytes of memory.  Also the description of 'matching' is bit
+confusing, since DAMOS filters do only filtering out.  Update the comments
+to be less confusing.
+
+Link: https://lkml.kernel.org/r/20250109175126.57878-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250109175126.57878-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/media/atomisp/pci/hmm/hmm_bo.c |    4 ++--
- drivers/vfio/pci/mlx5/cmd.c                    |   14 +++++++-------
- drivers/vfio/pci/virtio/migrate.c              |    6 +++---
- fs/btrfs/extent_io.c                           |    2 +-
- fs/erofs/zutil.c                               |    4 ++--
- fs/splice.c                                    |    2 +-
- fs/xfs/xfs_buf.c                               |    4 ++--
- include/linux/gfp.h                            |   14 +++++++-------
- kernel/bpf/arena.c                             |    2 +-
- lib/alloc_tag.c                                |    4 ++--
- lib/kunit_iov_iter.c                           |    2 +-
- lib/test_vmalloc.c                             |    2 +-
- mm/mempolicy.c                                 |   14 +++++++-------
- mm/vmalloc.c                                   |    4 ++--
- net/core/page_pool.c                           |    7 +++----
- net/sunrpc/svc.c                               |    4 ++--
- net/sunrpc/svc_xprt.c                          |    3 +--
- 17 files changed, 45 insertions(+), 47 deletions(-)
+ include/linux/damon.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c~mm-alloc_pages_bulk-rename-api
-+++ a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c
-@@ -624,10 +624,10 @@ static int alloc_private_pages(struct hm
- 	const gfp_t gfp = __GFP_NOWARN | __GFP_RECLAIM | __GFP_FS;
- 	int ret;
+--- a/include/linux/damon.h~mm-damon-fixup-damos_filter-kernel-doc
++++ a/include/linux/damon.h
+@@ -347,8 +347,8 @@ enum damos_filter_type {
  
--	ret = alloc_pages_bulk_array(gfp, bo->pgnr, bo->pages);
-+	ret = alloc_pages_bulk(gfp, bo->pgnr, bo->pages);
- 	if (ret != bo->pgnr) {
- 		free_pages_bulk_array(ret, bo->pages);
--		dev_err(atomisp_dev, "alloc_pages_bulk_array() failed\n");
-+		dev_err(atomisp_dev, "alloc_pages_bulk() failed\n");
- 		return -ENOMEM;
- 	}
- 
---- a/drivers/vfio/pci/mlx5/cmd.c~mm-alloc_pages_bulk-rename-api
-+++ a/drivers/vfio/pci/mlx5/cmd.c
-@@ -408,7 +408,7 @@ void mlx5vf_free_data_buffer(struct mlx5
- 				  buf->dma_dir, 0);
- 	}
- 
--	/* Undo alloc_pages_bulk_array() */
-+	/* Undo alloc_pages_bulk() */
- 	for_each_sgtable_page(&buf->table.sgt, &sg_iter, 0)
- 		__free_page(sg_page_iter_page(&sg_iter));
- 	sg_free_append_table(&buf->table);
-@@ -431,8 +431,8 @@ static int mlx5vf_add_migration_pages(st
- 		return -ENOMEM;
- 
- 	do {
--		filled = alloc_pages_bulk_array(GFP_KERNEL_ACCOUNT, to_fill,
--						page_list);
-+		filled = alloc_pages_bulk(GFP_KERNEL_ACCOUNT, to_fill,
-+					  page_list);
- 		if (!filled) {
- 			ret = -ENOMEM;
- 			goto err;
-@@ -1342,7 +1342,7 @@ static void free_recv_pages(struct mlx5_
- {
- 	int i;
- 
--	/* Undo alloc_pages_bulk_array() */
-+	/* Undo alloc_pages_bulk() */
- 	for (i = 0; i < recv_buf->npages; i++)
- 		__free_page(recv_buf->page_list[i]);
- 
-@@ -1361,9 +1361,9 @@ static int alloc_recv_pages(struct mlx5_
- 		return -ENOMEM;
- 
- 	for (;;) {
--		filled = alloc_pages_bulk_array(GFP_KERNEL_ACCOUNT,
--						npages - done,
--						recv_buf->page_list + done);
-+		filled = alloc_pages_bulk(GFP_KERNEL_ACCOUNT,
-+					  npages - done,
-+					  recv_buf->page_list + done);
- 		if (!filled)
- 			goto err;
- 
---- a/drivers/vfio/pci/virtio/migrate.c~mm-alloc_pages_bulk-rename-api
-+++ a/drivers/vfio/pci/virtio/migrate.c
-@@ -77,8 +77,8 @@ static int virtiovf_add_migration_pages(
- 		return -ENOMEM;
- 
- 	do {
--		filled = alloc_pages_bulk_array(GFP_KERNEL_ACCOUNT, to_fill,
--						page_list);
-+		filled = alloc_pages_bulk(GFP_KERNEL_ACCOUNT, to_fill,
-+					  page_list);
- 		if (!filled) {
- 			ret = -ENOMEM;
- 			goto err;
-@@ -112,7 +112,7 @@ static void virtiovf_free_data_buffer(st
- {
- 	struct sg_page_iter sg_iter;
- 
--	/* Undo alloc_pages_bulk_array() */
-+	/* Undo alloc_pages_bulk() */
- 	for_each_sgtable_page(&buf->table.sgt, &sg_iter, 0)
- 		__free_page(sg_page_iter_page(&sg_iter));
- 	sg_free_append_table(&buf->table);
---- a/fs/btrfs/extent_io.c~mm-alloc_pages_bulk-rename-api
-+++ a/fs/btrfs/extent_io.c
-@@ -632,7 +632,7 @@ int btrfs_alloc_page_array(unsigned int
- 	for (allocated = 0; allocated < nr_pages;) {
- 		unsigned int last = allocated;
- 
--		allocated = alloc_pages_bulk_array(gfp, nr_pages, page_array);
-+		allocated = alloc_pages_bulk(gfp, nr_pages, page_array);
- 		if (unlikely(allocated == last)) {
- 			/* No progress, fail and do cleanup. */
- 			for (int i = 0; i < allocated; i++) {
---- a/fs/erofs/zutil.c~mm-alloc_pages_bulk-rename-api
-+++ a/fs/erofs/zutil.c
-@@ -87,8 +87,8 @@ int z_erofs_gbuf_growsize(unsigned int n
- 			tmp_pages[j] = gbuf->pages[j];
- 		do {
- 			last = j;
--			j = alloc_pages_bulk_array(GFP_KERNEL, nrpages,
--						   tmp_pages);
-+			j = alloc_pages_bulk(GFP_KERNEL, nrpages,
-+					     tmp_pages);
- 			if (last == j)
- 				goto out;
- 		} while (j != nrpages);
---- a/fs/splice.c~mm-alloc_pages_bulk-rename-api
-+++ a/fs/splice.c
-@@ -342,7 +342,7 @@ ssize_t copy_splice_read(struct file *in
- 		return -ENOMEM;
- 
- 	pages = (struct page **)(bv + npages);
--	npages = alloc_pages_bulk_array(GFP_USER, npages, pages);
-+	npages = alloc_pages_bulk(GFP_USER, npages, pages);
- 	if (!npages) {
- 		kfree(bv);
- 		return -ENOMEM;
---- a/fs/xfs/xfs_buf.c~mm-alloc_pages_bulk-rename-api
-+++ a/fs/xfs/xfs_buf.c
-@@ -395,8 +395,8 @@ xfs_buf_alloc_pages(
- 	for (;;) {
- 		long	last = filled;
- 
--		filled = alloc_pages_bulk_array(gfp_mask, bp->b_page_count,
--						bp->b_pages);
-+		filled = alloc_pages_bulk(gfp_mask, bp->b_page_count,
-+					  bp->b_pages);
- 		if (filled == bp->b_page_count) {
- 			XFS_STATS_INC(bp->b_mount, xb_page_found);
- 			break;
---- a/include/linux/gfp.h~mm-alloc_pages_bulk-rename-api
-+++ a/include/linux/gfp.h
-@@ -215,18 +215,18 @@ unsigned long alloc_pages_bulk_noprof(gf
- 				struct page **page_array);
- #define __alloc_pages_bulk(...)			alloc_hooks(alloc_pages_bulk_noprof(__VA_ARGS__))
- 
--unsigned long alloc_pages_bulk_array_mempolicy_noprof(gfp_t gfp,
-+unsigned long alloc_pages_bulk_mempolicy_noprof(gfp_t gfp,
- 				unsigned long nr_pages,
- 				struct page **page_array);
--#define  alloc_pages_bulk_array_mempolicy(...)				\
--	alloc_hooks(alloc_pages_bulk_array_mempolicy_noprof(__VA_ARGS__))
-+#define  alloc_pages_bulk_mempolicy(...)				\
-+	alloc_hooks(alloc_pages_bulk_mempolicy_noprof(__VA_ARGS__))
- 
- /* Bulk allocate order-0 pages */
--#define alloc_pages_bulk_array(_gfp, _nr_pages, _page_array)		\
-+#define alloc_pages_bulk(_gfp, _nr_pages, _page_array)		\
- 	__alloc_pages_bulk(_gfp, numa_mem_id(), NULL, _nr_pages, _page_array)
- 
- static inline unsigned long
--alloc_pages_bulk_array_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
-+alloc_pages_bulk_node_noprof(gfp_t gfp, int nid, unsigned long nr_pages,
- 				   struct page **page_array)
- {
- 	if (nid == NUMA_NO_NODE)
-@@ -235,8 +235,8 @@ alloc_pages_bulk_array_node_noprof(gfp_t
- 	return alloc_pages_bulk_noprof(gfp, nid, NULL, nr_pages, page_array);
- }
- 
--#define alloc_pages_bulk_array_node(...)				\
--	alloc_hooks(alloc_pages_bulk_array_node_noprof(__VA_ARGS__))
-+#define alloc_pages_bulk_node(...)				\
-+	alloc_hooks(alloc_pages_bulk_node_noprof(__VA_ARGS__))
- 
- static inline void warn_if_node_offline(int this_node, gfp_t gfp_mask)
- {
---- a/kernel/bpf/arena.c~mm-alloc_pages_bulk-rename-api
-+++ a/kernel/bpf/arena.c
-@@ -443,7 +443,7 @@ static long arena_alloc_pages(struct bpf
- 			return 0;
- 	}
- 
--	/* zeroing is needed, since alloc_pages_bulk_array() only fills in non-zero entries */
-+	/* zeroing is needed, since alloc_pages_bulk() only fills in non-zero entries */
- 	pages = kvcalloc(page_cnt, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages)
- 		return 0;
---- a/lib/alloc_tag.c~mm-alloc_pages_bulk-rename-api
-+++ a/lib/alloc_tag.c
-@@ -420,8 +420,8 @@ static int vm_module_tags_populate(void)
- 		unsigned long nr;
- 
- 		more_pages = ALIGN(new_end - phys_end, PAGE_SIZE) >> PAGE_SHIFT;
--		nr = alloc_pages_bulk_array_node(GFP_KERNEL | __GFP_NOWARN,
--						 NUMA_NO_NODE, more_pages, next_page);
-+		nr = alloc_pages_bulk_node(GFP_KERNEL | __GFP_NOWARN,
-+					   NUMA_NO_NODE, more_pages, next_page);
- 		if (nr < more_pages ||
- 		    vmap_pages_range(phys_end, phys_end + (nr << PAGE_SHIFT), PAGE_KERNEL,
- 				     next_page, PAGE_SHIFT) < 0) {
---- a/lib/kunit_iov_iter.c~mm-alloc_pages_bulk-rename-api
-+++ a/lib/kunit_iov_iter.c
-@@ -57,7 +57,7 @@ static void *__init iov_kunit_create_buf
-         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pages);
- 	*ppages = pages;
- 
--	got = alloc_pages_bulk_array(GFP_KERNEL, npages, pages);
-+	got = alloc_pages_bulk(GFP_KERNEL, npages, pages);
- 	if (got != npages) {
- 		release_pages(pages, got);
- 		KUNIT_ASSERT_EQ(test, got, npages);
---- a/lib/test_vmalloc.c~mm-alloc_pages_bulk-rename-api
-+++ a/lib/test_vmalloc.c
-@@ -373,7 +373,7 @@ vm_map_ram_test(void)
- 	if (!pages)
- 		return -1;
- 
--	nr_allocated = alloc_pages_bulk_array(GFP_KERNEL, map_nr_pages, pages);
-+	nr_allocated = alloc_pages_bulk(GFP_KERNEL, map_nr_pages, pages);
- 	if (nr_allocated != map_nr_pages)
- 		goto cleanup;
- 
---- a/mm/mempolicy.c~mm-alloc_pages_bulk-rename-api
-+++ a/mm/mempolicy.c
-@@ -2372,7 +2372,7 @@ struct folio *folio_alloc_noprof(gfp_t g
- }
- EXPORT_SYMBOL(folio_alloc_noprof);
- 
--static unsigned long alloc_pages_bulk_array_interleave(gfp_t gfp,
-+static unsigned long alloc_pages_bulk_interleave(gfp_t gfp,
- 		struct mempolicy *pol, unsigned long nr_pages,
- 		struct page **page_array)
- {
-@@ -2407,7 +2407,7 @@ static unsigned long alloc_pages_bulk_ar
- 	return total_allocated;
- }
- 
--static unsigned long alloc_pages_bulk_array_weighted_interleave(gfp_t gfp,
-+static unsigned long alloc_pages_bulk_weighted_interleave(gfp_t gfp,
- 		struct mempolicy *pol, unsigned long nr_pages,
- 		struct page **page_array)
- {
-@@ -2522,7 +2522,7 @@ static unsigned long alloc_pages_bulk_ar
- 	return total_allocated;
- }
- 
--static unsigned long alloc_pages_bulk_array_preferred_many(gfp_t gfp, int nid,
-+static unsigned long alloc_pages_bulk_preferred_many(gfp_t gfp, int nid,
- 		struct mempolicy *pol, unsigned long nr_pages,
- 		struct page **page_array)
- {
-@@ -2548,7 +2548,7 @@ static unsigned long alloc_pages_bulk_ar
-  * It can accelerate memory allocation especially interleaving
-  * allocate memory.
+ /**
+  * struct damos_filter - DAMOS action target memory filter.
+- * @type:	Type of the page.
+- * @matching:	If the matching page should filtered out or in.
++ * @type:	Type of the target memory.
++ * @matching:	If the @type-matching memory should be filtered out.
+  * @memcg_id:	Memcg id of the question if @type is DAMOS_FILTER_MEMCG.
+  * @addr_range:	Address range if @type is DAMOS_FILTER_TYPE_ADDR.
+  * @target_idx:	Index of the &struct damon_target of
+@@ -357,9 +357,10 @@ enum damos_filter_type {
+  * @list:	List head for siblings.
+  *
+  * Before applying the &damos->action to a memory region, DAMOS checks if each
+- * page of the region matches to this and avoid applying the action if so.
+- * Support of each filter type depends on the running &struct damon_operations
+- * and the type.  Refer to &enum damos_filter_type for more detai.
++ * byte of the region matches to this given condition and avoid applying the
++ * action if so.  Support of each filter type depends on the running &struct
++ * damon_operations and the type.  Refer to &enum damos_filter_type for more
++ * details.
   */
--unsigned long alloc_pages_bulk_array_mempolicy_noprof(gfp_t gfp,
-+unsigned long alloc_pages_bulk_mempolicy_noprof(gfp_t gfp,
- 		unsigned long nr_pages, struct page **page_array)
- {
- 	struct mempolicy *pol = &default_policy;
-@@ -2559,15 +2559,15 @@ unsigned long alloc_pages_bulk_array_mem
- 		pol = get_task_policy(current);
- 
- 	if (pol->mode == MPOL_INTERLEAVE)
--		return alloc_pages_bulk_array_interleave(gfp, pol,
-+		return alloc_pages_bulk_interleave(gfp, pol,
- 							 nr_pages, page_array);
- 
- 	if (pol->mode == MPOL_WEIGHTED_INTERLEAVE)
--		return alloc_pages_bulk_array_weighted_interleave(
-+		return alloc_pages_bulk_weighted_interleave(
- 				  gfp, pol, nr_pages, page_array);
- 
- 	if (pol->mode == MPOL_PREFERRED_MANY)
--		return alloc_pages_bulk_array_preferred_many(gfp,
-+		return alloc_pages_bulk_preferred_many(gfp,
- 				numa_node_id(), pol, nr_pages, page_array);
- 
- 	nid = numa_node_id();
---- a/mm/vmalloc.c~mm-alloc_pages_bulk-rename-api
-+++ a/mm/vmalloc.c
-@@ -3562,11 +3562,11 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			 * but mempolicy wants to alloc memory by interleaving.
- 			 */
- 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
--				nr = alloc_pages_bulk_array_mempolicy_noprof(gfp,
-+				nr = alloc_pages_bulk_mempolicy_noprof(gfp,
- 							nr_pages_request,
- 							pages + nr_allocated);
- 			else
--				nr = alloc_pages_bulk_array_node_noprof(gfp, nid,
-+				nr = alloc_pages_bulk_node_noprof(gfp, nid,
- 							nr_pages_request,
- 							pages + nr_allocated);
- 
---- a/net/core/page_pool.c~mm-alloc_pages_bulk-rename-api
-+++ a/net/core/page_pool.c
-@@ -532,12 +532,11 @@ static noinline netmem_ref __page_pool_a
- 	if (unlikely(pool->alloc.count > 0))
- 		return pool->alloc.cache[--pool->alloc.count];
- 
--	/* Mark empty alloc.cache slots "empty" for alloc_pages_bulk_array */
-+	/* Mark empty alloc.cache slots "empty" for alloc_pages_bulk */
- 	memset(&pool->alloc.cache, 0, sizeof(void *) * bulk);
- 
--	nr_pages = alloc_pages_bulk_array_node(gfp,
--					       pool->p.nid, bulk,
--					       (struct page **)pool->alloc.cache);
-+	nr_pages = alloc_pages_bulk_node(gfp, pool->p.nid, bulk,
-+					 (struct page **)pool->alloc.cache);
- 	if (unlikely(!nr_pages))
- 		return 0;
- 
---- a/net/sunrpc/svc.c~mm-alloc_pages_bulk-rename-api
-+++ a/net/sunrpc/svc.c
-@@ -651,8 +651,8 @@ svc_init_buffer(struct svc_rqst *rqstp,
- 	if (pages > RPCSVC_MAXPAGES)
- 		pages = RPCSVC_MAXPAGES;
- 
--	ret = alloc_pages_bulk_array_node(GFP_KERNEL, node, pages,
--					  rqstp->rq_pages);
-+	ret = alloc_pages_bulk_node(GFP_KERNEL, node, pages,
-+				    rqstp->rq_pages);
- 	return ret == pages;
- }
- 
---- a/net/sunrpc/svc_xprt.c~mm-alloc_pages_bulk-rename-api
-+++ a/net/sunrpc/svc_xprt.c
-@@ -671,8 +671,7 @@ static bool svc_alloc_arg(struct svc_rqs
- 	}
- 
- 	for (filled = 0; filled < pages; filled = ret) {
--		ret = alloc_pages_bulk_array(GFP_KERNEL, pages,
--					     rqstp->rq_pages);
-+		ret = alloc_pages_bulk(GFP_KERNEL, pages, rqstp->rq_pages);
- 		if (ret > filled)
- 			/* Made progress, don't sleep yet */
- 			continue;
+ struct damos_filter {
+ 	enum damos_filter_type type;
 _
 
-Patches currently in -mm which might be from luizcap@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch
+docs-mm-damon-add-an-example-monitoring-intervals-tuning.patch
+docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch
+docs-admin-guide-mm-damon-start-update-snapshot-example.patch
+mm-damon-explain-effective-quota-on-kernel-doc-comment.patch
 
