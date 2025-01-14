@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96BFF23D3EA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701322451FC
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837103; cv=none; b=ChxponBEn6B8VXTwS/1B2Va+pdGybEYVgIquyJO0SkuWO9Z6SyNbUYNpySzF7J1Cx2u46QU0YXkQfeHbTqSRYgS73DvO9nzF7mqksfKfB4AKb5bfvOitcdNInAOG4X9N1f5Tz2xAS6EokXmgH5i+GnQ6m3xobUY5FbDH1sbVjg4=
+	t=1736837105; cv=none; b=kiY6ULKK91aUD9kauT4iAhVNGe1FJiAFfzv3D38BzIRDsNtjFRiJdEdoGey0SQhxaCeMP1Ao0Ft9533PCw7Wz07nQOZ4DWxhtfZPGWW7IN0Xam7/0VCd9RSbpgiW9g94J732lJ/skJoJFZtvwF9SnUY3Inocx5cSLPHtbZRCShk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837103; c=relaxed/simple;
-	bh=ThHEKk7wvYAsn78kDiz8n1RbXHxwc+HfgM8KhdiHzFI=;
-	h=Date:To:From:Subject:Message-Id; b=TTx7Clfr1TC1JYSbBadL4dpNga2Lt8pQ9XRCQGw8vjovm4VIIcD7tkxNBldUfqc9NFykaEciqQ80mOVb693Kd/Lx2q0Yv4kXb6bW+qiInKNBfYxjpydIzJBCOUKITDRZ5svW639Gc0avPmq3z2G0uHCUd2ch7AVWihZKEozfk+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYNRCb3+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837105; c=relaxed/simple;
+	bh=ZBFex2662nPnbEMDFqS4aVCKgwWVm4SFx3z49oUz4ag=;
+	h=Date:To:From:Subject:Message-Id; b=FTEU/T3vairYSnDouzCRuCLdSEs/GojI+dbnh3ydpep/Rxn0k7v4SJ9i06YybsnGVYWCgzmTF5ZluIZkjSgMzANCTYyOosjVWhP5qPUS8dWOwbKMFFQTQkSmSQp14TAB+uTIOzeUmY+1MBAOiGdMKkSNGfxbUjGoWESKEYFvVNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z0O/DBSx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYNRCb3+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60C8EC4CEDD;
-	Tue, 14 Jan 2025 06:45:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z0O/DBSx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40ABEC4CEDD;
+	Tue, 14 Jan 2025 06:45:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837103;
-	bh=ThHEKk7wvYAsn78kDiz8n1RbXHxwc+HfgM8KhdiHzFI=;
+	s=korg; t=1736837105;
+	bh=ZBFex2662nPnbEMDFqS4aVCKgwWVm4SFx3z49oUz4ag=;
 	h=Date:To:From:Subject:From;
-	b=AYNRCb3+gtIUzijq0hS5cgmdxlor9I2F2Jx+L2Xbb2MN6vicr0EDkpDbntG29L8aK
-	 v3IuYbfV+9TYmlvYrV3/v2PNBGnWvrNv4Lcxjcdp84LaTte6oiLbcB8U6cQQ+IHtMZ
-	 hQ9Qj8mTBG1aLJ98TXYFExQ/nOhjtz92Gf9ZSBf8=
-Date: Mon, 13 Jan 2025 22:45:02 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=Z0O/DBSx4TCYiJipg1lnuteOLw2GaqdI/gQb4BMMaCMhHWv4FWrGLSuCT/BlT4wWF
+	 k8jFJ4NEdK/tgKwOesXM/CKRDFbkx/sQyh84mi6G0bI7LHvJdLAzyD+C/N8omNWQRn
+	 XbH6ekqe7XAxntgnb78eVAqyW1EblukXlm1+2JaI=
+Date: Mon, 13 Jan 2025 22:45:04 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-replace-free-hugepage-folios-after-migration.patch removed from -mm tree
-Message-Id: <20250114064503.60C8EC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-added-new-test-cases-to-the-migration-test.patch removed from -mm tree
+Message-Id: <20250114064505.40ABEC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,189 +35,184 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: replace free hugepage folios after migration
+     Subject: selftests/mm: add new test cases to the migration test
 has been removed from the -mm tree.  Its filename was
-     mm-replace-free-hugepage-folios-after-migration.patch
+     selftests-mm-added-new-test-cases-to-the-migration-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm: replace free hugepage folios after migration
-Date: Sat, 11 Jan 2025 15:58:20 +0800
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: selftests/mm: add new test cases to the migration test
+Date: Thu, 19 Dec 2024 04:27:20 -0600
 
-My machine has 4 NUMA nodes, each equipped with 32GB of memory.  I have
-configured each NUMA node with 16GB of CMA and 16GB of in-use hugetlb
-pages.  The allocation of contiguous memory via cma_alloc() can fail
-probabilistically.
+Added three new test cases to the migration tests:
 
-When there are free hugetlb folios in the hugetlb pool, during the
-migration of in-use hugetlb folios, new folios are allocated from the free
-hugetlb pool.  After the migration is completed, the old folios are
-released back to the free hugetlb pool instead of being returned to the
-buddy system.  This can cause test_pages_isolated() check to fail,
-ultimately leading to the failure of cma_alloc().
+1. Shared anon THP migration test
+This test will mmap shared anon memory, madvise it to
+MADV_HUGEPAGE, then do migration entry testing. One thread
+will move pages back and forth between nodes whilst other
+threads try and access them.
 
-Call trace:
+2. Private anon hugetlb migration test
+This test will mmap private anon hugetlb memory and then
+do the migration entry testing.
 
-cma_alloc()
-    __alloc_contig_migrate_range() // migrate in-use hugepage
-    test_pages_isolated()
-        __test_page_isolated_in_pageblock()
-             PageBuddy(page) // check if the page is in buddy
+3. Shared anon hugetlb migration test
+This test will mmap shared anon hugetlb memory and then
+do the migration entry testing.
 
-To address this issue, we introduce a function named
-replace_free_hugepage_folios().  This function will replace the hugepage
-in the free hugepage pool with a new one and release the old one to the
-buddy system.  After the migration of in-use hugetlb pages is completed,
-we will invoke replace_free_hugepage_folios() to ensure that these
-hugepages are properly released to the buddy system.  Following this step,
-when test_pages_isolated() is executed for inspection, it will
-successfully pass.
+Test results
+============
+ # ./tools/testing/selftests/mm/migration
+ TAP version 13
+ 1..6
+ # Starting 6 tests from 1 test cases.
+ #  RUN           migration.private_anon ...
+ #            OK  migration.private_anon
+ ok 1 migration.private_anon
+ #  RUN           migration.shared_anon ...
+ #            OK  migration.shared_anon
+ ok 2 migration.shared_anon
+ #  RUN           migration.private_anon_thp ...
+ #            OK  migration.private_anon_thp
+ ok 3 migration.private_anon_thp
+ #  RUN           migration.shared_anon_thp ...
+ #            OK  migration.shared_anon_thp
+ ok 4 migration.shared_anon_thp
+ #  RUN           migration.private_anon_htlb ...
+ #            OK  migration.private_anon_htlb
+ ok 5 migration.private_anon_htlb
+ #  RUN           migration.shared_anon_htlb ...
+ #            OK  migration.shared_anon_htlb
+ ok 6 migration.shared_anon_htlb
+ # PASSED: 6 / 6 tests passed.
+ # Totals: pass:6 fail:0 xfail:0 xpass:0 skip:0 error:0
+ #
 
-Additionally, when alloc_contig_range() is used to migrate multiple in-use
-hugetlb pages, it can result in some in-use hugetlb pages being released
-back to the free hugetlb pool and subsequently being reallocated and used
-again.  For example:
-
-[huge 0] [huge 1]
-
-To migrate huge 0, we obtain huge x from the pool.  After the migration is
-completed, we return the now-freed huge 0 back to the pool.  When it's
-time to migrate huge 1, we can simply reuse the now-freed huge 0 from the
-pool.  As a result, when replace_free_hugepage_folios() is executed, it
-cannot release huge 0 back to the buddy system.  To address this issue, we
-should prevent the reuse of isolated free hugepages during the migration
-process.
-
-Link: https://lkml.kernel.org/r/1734503588-16254-1-git-send-email-yangge1116@126.com
-Link: https://lkml.kernel.org/r/1736582300-11364-1-git-send-email-yangge1116@126.com
-Signed-off-by: yangge <yangge1116@126.com>
+Link: https://lkml.kernel.org/r/20241219102720.4487-1-donettom@linux.ibm.com
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 ++++++
- mm/hugetlb.c            |   42 ++++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c         |   12 +++++++++-
- 3 files changed, 60 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/migration.c |   99 +++++++++++++++++++++++
+ 1 file changed, 99 insertions(+)
 
---- a/include/linux/hugetlb.h~mm-replace-free-hugepage-folios-after-migration
-+++ a/include/linux/hugetlb.h
-@@ -681,6 +681,7 @@ struct huge_bootmem_page {
- };
- 
- int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
-+int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
-@@ -1059,6 +1060,12 @@ static inline int isolate_or_dissolve_hu
- 	return -ENOMEM;
+--- a/tools/testing/selftests/mm/migration.c~selftests-mm-added-new-test-cases-to-the-migration-test
++++ a/tools/testing/selftests/mm/migration.c
+@@ -204,4 +204,103 @@ TEST_F_TIMEOUT(migration, private_anon_t
+ 		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
  }
  
-+static inline int replace_free_hugepage_folios(unsigned long start_pfn,
-+		unsigned long end_pfn)
-+{
-+	return 0;
-+}
-+
- static inline struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 					   unsigned long addr,
- 					   int avoid_reserve)
---- a/mm/hugetlb.c~mm-replace-free-hugepage-folios-after-migration
-+++ a/mm/hugetlb.c
-@@ -48,6 +48,7 @@
- #include <linux/page_owner.h>
- #include "internal.h"
- #include "hugetlb_vmemmap.h"
-+#include <linux/page-isolation.h>
- 
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
-@@ -1336,6 +1337,9 @@ static struct folio *dequeue_hugetlb_fol
- 		if (folio_test_hwpoison(folio))
- 			continue;
- 
-+		if (is_migrate_isolate_page(&folio->page))
-+			continue;
-+
- 		list_move(&folio->lru, &h->hugepage_activelist);
- 		folio_ref_unfreeze(folio, 1);
- 		folio_clear_hugetlb_freed(folio);
-@@ -2974,6 +2978,44 @@ int isolate_or_dissolve_huge_page(struct
- 
- 	return ret;
- }
-+
 +/*
-+ *  replace_free_hugepage_folios - Replace free hugepage folios in a given pfn
-+ *  range with new folios.
-+ *  @start_pfn: start pfn of the given pfn range
-+ *  @end_pfn: end pfn of the given pfn range
-+ *  Returns 0 on success, otherwise negated error.
++ * migration test with shared anon THP page
 + */
-+int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn)
++
++TEST_F_TIMEOUT(migration, shared_anon_thp, 2*RUNTIME)
 +{
-+	struct hstate *h;
-+	struct folio *folio;
-+	int ret = 0;
++	pid_t pid;
++	uint64_t *ptr;
++	int i;
 +
-+	LIST_HEAD(isolate_list);
++	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
++		SKIP(return, "Not enough threads or NUMA nodes available");
 +
-+	while (start_pfn < end_pfn) {
-+		folio = pfn_folio(start_pfn);
-+		if (folio_test_hugetlb(folio)) {
-+			h = folio_hstate(folio);
++	ptr = mmap(NULL, 2 * TWOMEG, PROT_READ | PROT_WRITE,
++		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, TWOMEG);
++	ASSERT_EQ(madvise(ptr, TWOMEG, MADV_HUGEPAGE), 0);
++
++	memset(ptr, 0xde, TWOMEG);
++	for (i = 0; i < self->nthreads - 1; i++) {
++		pid = fork();
++		if (!pid) {
++			prctl(PR_SET_PDEATHSIG, SIGHUP);
++			/* Parent may have died before prctl so check now. */
++			if (getppid() == 1)
++				kill(getpid(), SIGHUP);
++			access_mem(ptr);
 +		} else {
-+			start_pfn++;
-+			continue;
++			self->pids[i] = pid;
 +		}
-+
-+		if (!folio_ref_count(folio)) {
-+			ret = alloc_and_dissolve_hugetlb_folio(h, folio,
-+							       &isolate_list);
-+			if (ret)
-+				break;
-+
-+			putback_movable_pages(&isolate_list);
-+		}
-+		start_pfn++;
 +	}
 +
-+	return ret;
++	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
++	for (i = 0; i < self->nthreads - 1; i++)
++		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
 +}
- 
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 				    unsigned long addr, int avoid_reserve)
---- a/mm/page_alloc.c~mm-replace-free-hugepage-folios-after-migration
-+++ a/mm/page_alloc.c
-@@ -6504,7 +6504,17 @@ int alloc_contig_range_noprof(unsigned l
- 	ret = __alloc_contig_migrate_range(&cc, start, end, migratetype);
- 	if (ret && ret != -EBUSY)
- 		goto done;
--	ret = 0;
 +
-+	/*
-+	 * When in-use hugetlb pages are migrated, they may simply be released
-+	 * back into the free hugepage pool instead of being returned to the
-+	 * buddy system.  After the migration of in-use huge pages is completed,
-+	 * we will invoke replace_free_hugepage_folios() to ensure that these
-+	 * hugepages are properly released to the buddy system.
-+	 */
-+	ret = replace_free_hugepage_folios(start, end);
-+	if (ret)
-+		goto done;
- 
- 	/*
- 	 * Pages from [start, end) are within a pageblock_nr_pages
++/*
++ * migration test with private anon hugetlb page
++ */
++TEST_F_TIMEOUT(migration, private_anon_htlb, 2*RUNTIME)
++{
++	uint64_t *ptr;
++	int i;
++
++	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
++		SKIP(return, "Not enough threads or NUMA nodes available");
++
++	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
++		MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	memset(ptr, 0xde, TWOMEG);
++	for (i = 0; i < self->nthreads - 1; i++)
++		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
++			perror("Couldn't create thread");
++
++	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
++	for (i = 0; i < self->nthreads - 1; i++)
++		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
++}
++
++/*
++ * migration test with shared anon hugetlb page
++ */
++TEST_F_TIMEOUT(migration, shared_anon_htlb, 2*RUNTIME)
++{
++	pid_t pid;
++	uint64_t *ptr;
++	int i;
++
++	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
++		SKIP(return, "Not enough threads or NUMA nodes available");
++
++	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
++		MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	memset(ptr, 0xde, TWOMEG);
++	for (i = 0; i < self->nthreads - 1; i++) {
++		pid = fork();
++		if (!pid) {
++			prctl(PR_SET_PDEATHSIG, SIGHUP);
++			/* Parent may have died before prctl so check now. */
++			if (getppid() == 1)
++				kill(getpid(), SIGHUP);
++			access_mem(ptr);
++		} else {
++			self->pids[i] = pid;
++		}
++	}
++
++	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
++	for (i = 0; i < self->nthreads - 1; i++)
++		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
++}
++
+ TEST_HARNESS_MAIN
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-compaction-skip-memory-compaction-when-there-are-not-enough-migratable-pages.patch
 
