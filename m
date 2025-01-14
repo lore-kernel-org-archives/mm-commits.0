@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8597233522
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:28:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3208A1FBBE5
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:29:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836097; cv=none; b=lVqai1521M2rEWb4VemA1k/Yq1cBowo4/fOZ0Hq1CRC5OG7dN9vftuXEd+NOLp3vAkBHEe8UB7+uzx59kqYHykRRNpSGdcA8dojQcnykxoMh0cFw/Ceu+78Shd6eY7pwOTukBKplZSGYVhc2Dv8+lbYSnbG8es4VKsx3UXuFe7g=
+	t=1736836166; cv=none; b=a5COvkrNuynnn/DWOy32Gdv/wGyyYRVXzAHChbCdVLh9a0DH49a6rT8kAQQ8DwAKfiY3baXTdlK7kqmw08J3XGU6auFI2F2X/y0HlNe1HUKXA4KgQRcKlHHR7CFKxjsmzL9ks0cbXx3iqolxNx/x8tb6RNa5cFOHT5LE8F/0008=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836097; c=relaxed/simple;
-	bh=te5LjaUKFLSISuUoP17Fluf40NCyoqvq9OwgWGUOVPc=;
-	h=Date:To:From:Subject:Message-Id; b=rqs3pnA+7a94J0gFGQNw55SHLM3KcOvM+Yj3ODRBoK1Ni517xoq9TtUQiuDzaY6MaO6O8XNaJHCLxGYh49L8FazDrlkCwIphHWURAkE451y7SFNH/wEF/N0hK/+HBoPoFBNDumX2NjvcJoXGyPYqbSPtVnYCKyEIzHbOKtNmWHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yy2goi5W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836166; c=relaxed/simple;
+	bh=2DQnWtyZ7Js8xq0W7PHrPFT0TEmY4GolHQqHEZlZfn4=;
+	h=Date:To:From:Subject:Message-Id; b=fnLQCdNNzs8jV3EQNfSXwqnH5sTry/ukWZg0JuPJyqbMUl4/RZnt6r7sDwZUOu/nqneyC/3Jk7TtDqOrxoGn9Gvk8pTN6RD/zZEElPMRP2tb64PtX9xDkSQeIc0eYJC4/J5Wr3kVjEEx8elJuGcK6EhQ/x15ZRlbX5K9Lf9mM90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lMDG+kk/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yy2goi5W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89CA7C4CEE1;
-	Tue, 14 Jan 2025 06:28:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lMDG+kk/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A62D2C4CEDD;
+	Tue, 14 Jan 2025 06:29:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836097;
-	bh=te5LjaUKFLSISuUoP17Fluf40NCyoqvq9OwgWGUOVPc=;
+	s=korg; t=1736836165;
+	bh=2DQnWtyZ7Js8xq0W7PHrPFT0TEmY4GolHQqHEZlZfn4=;
 	h=Date:To:From:Subject:From;
-	b=Yy2goi5WDqDO0dfenLm6EoxzJRHwOjbFtBg3jpKs3LfCteIUSEZHppqMILGi/WkWp
-	 +P9ckclIuAe5Dtmgq+48T2GL7WUbmWRDspnEJqE6Wu1kKo2uxdRnFB4YXY6ql3QQkN
-	 wSRnS7IOoLt9SSIe+WroCYfkgUM3v1fg7Oq3TU5k=
-Date: Mon, 13 Jan 2025 22:28:17 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,lkp@intel.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=lMDG+kk/elWVTQMaZNvny8tb7G7WfDmnBY/tD8yxn/7/tSBda3B3N2o9AWvSzFgsF
+	 RAyhqgcMg87VoWgDQMGpuEZ490pbxATybRCqRZQiUy3zLprbgXScNkBGlo6geqJQun
+	 7LENHQBv/c/7J3xMbeyGcIDnzgNkEZHCR0TtWWoE=
+Date: Mon, 13 Jan 2025 22:29:25 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix.patch removed from -mm tree
-Message-Id: <20250114062817.89CA7C4CEE1@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-build-with-o2-fix.patch removed from -mm tree
+Message-Id: <20250114062925.A62D2C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix
+     Subject: selftests/mm: silence unused-result warnings
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix.patch
+     selftests-mm-build-with-o2-fix.patch
 
-This patch was dropped because it was folded into selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
+This patch was dropped because it was folded into selftests-mm-build-with-o2.patch
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix
-Date: Wed, 18 Dec 2024 15:36:15 +0000
+Subject: selftests/mm: silence unused-result warnings
+Date: Tue, 7 Jan 2025 17:01:10 +0000
 
-Dereferencing a null pointer on Clang is not a good idea - it will
-entirely optimise out the dereference.  Make the pointer volatile to force
-the access (and fault).
+Switching to -O2 when building the mm tests has the unexpected side effect
+of triggering many unused-result warnings on certain distros like Ubuntu,
+where GCC is configured so that -O2 implies -D_FORTIFY_SOURCE.
 
-Link: https://lkml.kernel.org/r/20241218153615.2267571-1-kevin.brodsky@arm.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202412140850.4TW4YBqc-lkp@intel.com/
+Explicitly disable FORTIFY_SOURCE to avoid those warnings. This has
+no effect on upstream toolchains where FORTIFY_SOURCE is not
+implicitly enabled.
+
+Link: https://lkml.kernel.org/r/20250107170110.2819685-1-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Joey Gouly <joey.gouly@arm.com>
-Cc: Keith Lucas <keith.lucas@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Suggested-by: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey_sighandler_tests.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/mm/pkey_sighandler_tests.c~selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests-fix
-+++ a/tools/testing/selftests/mm/pkey_sighandler_tests.c
-@@ -163,7 +163,7 @@ static void *thread_segv_with_pkey0_disa
- 	__write_pkey_reg(pkey_reg_restrictive_default());
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-build-with-o2-fix
++++ a/tools/testing/selftests/mm/Makefile
+@@ -36,6 +36,13 @@ MAKEFLAGS += --no-builtin-rules
+ CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
+ LDLIBS = -lrt -lpthread -lm
  
- 	/* Segfault (with SEGV_MAPERR) */
--	*(int *)NULL = 1;
-+	*(volatile int *)NULL = 1;
- 	return NULL;
- }
- 
-@@ -194,7 +194,7 @@ static void *thread_segv_maperr_ptr(void
- 	__write_pkey_reg(pkey_reg);
- 
- 	/* Segfault */
--	*(int *)NULL = 1;
-+	*(volatile int *)NULL = 1;
- 	syscall_raw(SYS_exit, 0, 0, 0, 0, 0, 0);
- 	return NULL;
- }
++# Some distributions (such as Ubuntu) configure GCC so that _FORTIFY_SOURCE is
++# automatically enabled at -O1 or above. This triggers various unused-result
++# warnings where functions such as read() or write() are called and their
++# return value is not checked. Disable _FORTIFY_SOURCE to silence those
++# warnings.
++CFLAGS += -U_FORTIFY_SOURCE
++
+ KDIR ?= /lib/modules/$(shell uname -r)/build
+ ifneq (,$(wildcard $(KDIR)/Module.symvers))
+ ifneq (,$(wildcard $(KDIR)/include/linux/page_frag_cache.h))
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
@@ -96,7 +88,6 @@ selftests-mm-fix-wmaybe-uninitialized-warnings.patch
 selftests-mm-fix-strncpy-length.patch
 selftests-mm-fix-warray-bounds-warnings-in-pkey_sighandler_tests.patch
 selftests-mm-build-with-o2.patch
-selftests-mm-build-with-o2-fix.patch
 selftests-mm-remove-unused-pkey-helpers.patch
 selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
 selftests-mm-ensure-pkey-h-define-inline-functions-only.patch
