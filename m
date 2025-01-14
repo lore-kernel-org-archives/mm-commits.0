@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4DB11C1F15
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F18F1C1F15
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836940; cv=none; b=iNnAsL+ZcPIvUEyJXlo1qWqRlwpv7IfHPXb7z1M9hRod7E9LmFVY21HClwkgNBwV4O0tCxrpPa40npTWkShYiY/vruAq8CBCKb3TA/9j3JKa+pZzKQIwnPujO89zz47Zkk7Q3nNPTXyGOoREVaK1FGJiS/wq+E/a4GCkJK+gGwo=
+	t=1736836941; cv=none; b=cnqIsNuj+GdWvi4a3Xqi+v/319LhF5WloTcpdCHsDyHh7BqqFS2dgoyQIGxa6DYdf4/6X5q2YHl0494JE/kgvMzqCSfGHprs4w+FV2WG+8r4ILrgDWF+QQ8lNuL9PRLg79ajSqlOcarYXJXANUj2ax8UIgLmPU6q+u21+mO9HWE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836940; c=relaxed/simple;
-	bh=coF13dFcXWuBtvig36KRPoc4mJ7Ap/LGs7BQyU/sdJo=;
-	h=Date:To:From:Subject:Message-Id; b=ru0+HqYdrN6R+cMCOGhrRA1c//EDVpA93EKw4b3Nk63xUrTApZw1+plR5voHObga5iouhEMTh4+pry26FxUcmX0H9e8Zdxm8S5c8xcdzFyjSgbDPrn7fmmUZmx47/BuXi9fom+hI3L1x4LEQqEzwZcvuZnTpvhgxOlhJP328pE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2AR76Tu/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836941; c=relaxed/simple;
+	bh=zIyhfgpR1pRNtb0x3DoQiqxhLTMfmDtjjWxTZu5W3+E=;
+	h=Date:To:From:Subject:Message-Id; b=B/rOThXZIqgAvw7ApZDpBJ+v0mEJQFCoB3lTg6+7LdMNXlQ+Zc8Em+zGAMaKm1sP/4SvRreykon311s9jAYtPvjG2y6Ps3pQ0R/j5LEIucBDEiD6wK0VVd9QaBnPqz7oZadKimQZKfFoSexLJ36x6QF4gsWyv4wV1vGpthig4Us=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D0YecQSv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2AR76Tu/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B185BC4CEDD;
-	Tue, 14 Jan 2025 06:42:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D0YecQSv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02144C4CEDD;
+	Tue, 14 Jan 2025 06:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836939;
-	bh=coF13dFcXWuBtvig36KRPoc4mJ7Ap/LGs7BQyU/sdJo=;
+	s=korg; t=1736836941;
+	bh=zIyhfgpR1pRNtb0x3DoQiqxhLTMfmDtjjWxTZu5W3+E=;
 	h=Date:To:From:Subject:From;
-	b=2AR76Tu/WIvaSaipKByuGProVcG+lG1yJLCeGUB83JGTcJcFe744kJbTvFTQpfQ7b
-	 MCY50Vvi2YNwtQkIzhT+VAjZnnc78yUoTT0UgSRUYeV0/hD1psCuiZNso6S2tdW4Gl
-	 v0f/iA+4XEAi4uqyJEd0GJe+QfHQq61JD5+2tfoU=
-Date: Mon, 13 Jan 2025 22:42:19 -0800
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincenzo.frascino@arm.com,vincent.guittot@linaro.org,vbabka@suse.cz,urezki@gmail.com,tj@kernel.org,tglx@linutronix.de,ryabinin.a.a@gmail.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,qiang.zhang1211@gmail.com,penberg@kernel.org,paulmck@kernel.org,neeraj.upadhyay@kernel.org,mingo@redhat.com,mgorman@suse.de,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,longman@redhat.com,Liam.Howlett@Oracle.com,kasan-dev@googlegroups.com,juri.lelli@redhat.com,josh@joshtriplett.org,joel@joelfernandes.org,jiangshanlai@gmail.com,jannh@google.com,iamjoonsoo.kim@lge.com,glider@google.com,frederic@kernel.org,elver@google.com,dvyukov@google.com,dietmar.eggemann@arm.com,cl@linux.com,bsegall@google.com,boqun.feng@gmail.com,bigeasy@linutronix.de,andreyknvl@gmail.com,42.hyeyoo@gmail.com,peterz@infradead.org,akpm@linux-foundation.org
+	b=D0YecQSvXzUVzP6BGo3gA/Lzqgg/YllntLf407HjnX2AOQkwR7hjJSRJhsLeTOnoq
+	 QY1Gbqb+4fIDEjj1yaAWmXMRKc1MVCAMILrpep1y2Tcbs5AL3zzArxe7lp4Hheacqz
+	 0f363/XcU2Bw9p9ymi/92LOl1tZ+986oEp3qm4nw=
+Date: Mon, 13 Jan 2025 22:42:20 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,da.gomez@samsung.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch removed from -mm tree
-Message-Id: <20250114064219.B185BC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-factor-out-the-order-calculation-into-a-new-helper.patch removed from -mm tree
+Message-Id: <20250114064221.02144C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,271 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: make kasan_record_aux_stack_noalloc() the default behaviour
+     Subject: mm: factor out the order calculation into a new helper
 has been removed from the -mm tree.  Its filename was
-     kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour.patch
+     mm-factor-out-the-order-calculation-into-a-new-helper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: kasan: make kasan_record_aux_stack_noalloc() the default behaviour
-Date: Fri, 22 Nov 2024 16:54:51 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: factor out the order calculation into a new helper
+Date: Thu, 28 Nov 2024 15:40:39 +0800
 
-kasan_record_aux_stack_noalloc() was introduced to record a stack trace
-without allocating memory in the process.  It has been added to callers
-which were invoked while a raw_spinlock_t was held.  More and more callers
-were identified and changed over time.  Is it a good thing to have this
-while functions try their best to do a locklessly setup?  The only
-downside of having kasan_record_aux_stack() not allocate any memory is
-that we end up without a stacktrace if stackdepot runs out of memory and
-at the same stacktrace was not recorded before To quote Marco Elver from
-https://lore.kernel.org/all/CANpmjNPmQYJ7pv1N3cuU8cP18u7PP_uoZD8YxwZd4jtbof9nVQ@mail.gmail.com/
+Patch series "Support large folios for tmpfs", v3.
 
-| I'd be in favor, it simplifies things. And stack depot should be
-| able to replenish its pool sufficiently in the "non-aux" cases
-| i.e. regular allocations. Worst case we fail to record some
-| aux stacks, but I think that's only really bad if there's a bug
-| around one of these allocations. In general the probabilities
-| of this being a regression are extremely small [...]
+Traditionally, tmpfs only supported PMD-sized large folios.  However
+nowadays with other file systems supporting any sized large folios, and
+extending anonymous to support mTHP, we should not restrict tmpfs to
+allocating only PMD-sized large folios, making it more special.  Instead,
+we should allow tmpfs can allocate any sized large folios.
 
-Make the kasan_record_aux_stack_noalloc() behaviour default as
-kasan_record_aux_stack().
+Considering that tmpfs already has the 'huge=' option to control the
+PMD-sized large folios allocation, we can extend the 'huge=' option to
+allow any sized large folios.  The semantics of the 'huge=' mount option
+are:
 
-[bigeasy@linutronix.de: dressed the diff as patch]
-Link: https://lkml.kernel.org/r/20241122155451.Mb2pmeyJ@linutronix.de
-Fixes: 7cb3007ce2da ("kasan: generic: introduce kasan_record_aux_stack_noalloc()")
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: syzbot+39f85d612b7c20d8db48@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67275485.050a0220.3c8d68.0a37.GAE@google.com
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Waiman Long <longman@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: <kasan-dev@googlegroups.com>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Neeraj Upadhyay <neeraj.upadhyay@kernel.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: syzkaller-bugs@googlegroups.com
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zqiang <qiang.zhang1211@gmail.com>
+huge=never: no any sized large folios
+huge=always: any sized large folios
+huge=within_size: like 'always' but respect the i_size
+huge=advise: like 'always' if requested with madvise()
+
+Note: for tmpfs mmap() faults, due to the lack of a write size hint, still
+allocate the PMD-sized large folios if huge=always/within_size/advise is
+set.
+
+Moreover, the 'deny' and 'force' testing options controlled by
+'/sys/kernel/mm/transparent_hugepage/shmem_enabled', still retain the same
+semantics.  The 'deny' can disable any sized large folios for tmpfs, while
+the 'force' can enable PMD sized large folios for tmpfs.
+
+
+This patch (of 6):
+
+Factor out the order calculation into a new helper, which can be reused by
+shmem in the following patch.
+
+Link: https://lkml.kernel.org/r/cover.1732779148.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/5505f9ea50942820c1924d1803bfdd3a524e54f6.1732779148.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Daniel Gomez <da.gomez@samsung.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h     |    2 --
- include/linux/task_work.h |    3 ---
- kernel/irq_work.c         |    2 +-
- kernel/rcu/tiny.c         |    2 +-
- kernel/rcu/tree.c         |    4 ++--
- kernel/sched/core.c       |    2 +-
- kernel/task_work.c        |   14 +-------------
- kernel/workqueue.c        |    2 +-
- mm/kasan/generic.c        |   18 ++++++------------
- mm/slub.c                 |    2 +-
- 10 files changed, 14 insertions(+), 37 deletions(-)
+ include/linux/pagemap.h |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/include/linux/kasan.h~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/include/linux/kasan.h
-@@ -491,7 +491,6 @@ void kasan_cache_create(struct kmem_cach
- void kasan_cache_shrink(struct kmem_cache *cache);
- void kasan_cache_shutdown(struct kmem_cache *cache);
- void kasan_record_aux_stack(void *ptr);
--void kasan_record_aux_stack_noalloc(void *ptr);
+--- a/include/linux/pagemap.h~mm-factor-out-the-order-calculation-into-a-new-helper
++++ a/include/linux/pagemap.h
+@@ -727,6 +727,16 @@ typedef unsigned int __bitwise fgf_t;
  
- #else /* CONFIG_KASAN_GENERIC */
+ #define FGP_WRITEBEGIN		(FGP_LOCK | FGP_WRITE | FGP_CREAT | FGP_STABLE)
  
-@@ -509,7 +508,6 @@ static inline void kasan_cache_create(st
- static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
- static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
- static inline void kasan_record_aux_stack(void *ptr) {}
--static inline void kasan_record_aux_stack_noalloc(void *ptr) {}
- 
- #endif /* CONFIG_KASAN_GENERIC */
- 
---- a/include/linux/task_work.h~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/include/linux/task_work.h
-@@ -19,9 +19,6 @@ enum task_work_notify_mode {
- 	TWA_SIGNAL,
- 	TWA_SIGNAL_NO_IPI,
- 	TWA_NMI_CURRENT,
--
--	TWA_FLAGS = 0xff00,
--	TWAF_NO_ALLOC = 0x0100,
- };
- 
- static inline bool task_work_pending(struct task_struct *task)
---- a/kernel/irq_work.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/irq_work.c
-@@ -147,7 +147,7 @@ bool irq_work_queue_on(struct irq_work *
- 	if (!irq_work_claim(work))
- 		return false;
- 
--	kasan_record_aux_stack_noalloc(work);
-+	kasan_record_aux_stack(work);
- 
- 	preempt_disable();
- 	if (cpu != smp_processor_id()) {
---- a/kernel/rcu/tiny.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/rcu/tiny.c
-@@ -250,7 +250,7 @@ EXPORT_SYMBOL_GPL(poll_state_synchronize
- void kvfree_call_rcu(struct rcu_head *head, void *ptr)
++static inline unsigned int filemap_get_order(size_t size)
++{
++	unsigned int shift = ilog2(size);
++
++	if (shift <= PAGE_SHIFT)
++		return 0;
++
++	return shift - PAGE_SHIFT;
++}
++
+ /**
+  * fgf_set_order - Encode a length in the fgf_t flags.
+  * @size: The suggested size of the folio to create.
+@@ -740,11 +750,11 @@ typedef unsigned int __bitwise fgf_t;
+  */
+ static inline fgf_t fgf_set_order(size_t size)
  {
- 	if (head)
--		kasan_record_aux_stack_noalloc(ptr);
-+		kasan_record_aux_stack(ptr);
+-	unsigned int shift = ilog2(size);
++	unsigned int order = filemap_get_order(size);
  
- 	__kvfree_call_rcu(head, ptr);
- }
---- a/kernel/rcu/tree.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/rcu/tree.c
-@@ -3083,7 +3083,7 @@ __call_rcu_common(struct rcu_head *head,
- 	}
- 	head->func = func;
- 	head->next = NULL;
--	kasan_record_aux_stack_noalloc(head);
-+	kasan_record_aux_stack(head);
- 	local_irq_save(flags);
- 	rdp = this_cpu_ptr(&rcu_data);
- 	lazy = lazy_in && !rcu_async_should_hurry();
-@@ -3817,7 +3817,7 @@ void kvfree_call_rcu(struct rcu_head *he
- 		return;
- 	}
- 
--	kasan_record_aux_stack_noalloc(ptr);
-+	kasan_record_aux_stack(ptr);
- 	success = add_ptr_to_bulk_krc_lock(&krcp, &flags, ptr, !head);
- 	if (!success) {
- 		run_page_cache_worker(krcp);
---- a/kernel/sched/core.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/sched/core.c
-@@ -10590,7 +10590,7 @@ void task_tick_mm_cid(struct rq *rq, str
- 		return;
- 
- 	/* No page allocation under rq lock */
--	task_work_add(curr, work, TWA_RESUME | TWAF_NO_ALLOC);
-+	task_work_add(curr, work, TWA_RESUME);
+-	if (shift <= PAGE_SHIFT)
++	if (!order)
+ 		return 0;
+-	return (__force fgf_t)((shift - PAGE_SHIFT) << 26);
++	return (__force fgf_t)(order << 26);
  }
  
- void sched_mm_cid_exit_signals(struct task_struct *t)
---- a/kernel/task_work.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/task_work.c
-@@ -55,26 +55,14 @@ int task_work_add(struct task_struct *ta
- 		  enum task_work_notify_mode notify)
- {
- 	struct callback_head *head;
--	int flags = notify & TWA_FLAGS;
- 
--	notify &= ~TWA_FLAGS;
- 	if (notify == TWA_NMI_CURRENT) {
- 		if (WARN_ON_ONCE(task != current))
- 			return -EINVAL;
- 		if (!IS_ENABLED(CONFIG_IRQ_WORK))
- 			return -EINVAL;
- 	} else {
--		/*
--		 * Record the work call stack in order to print it in KASAN
--		 * reports.
--		 *
--		 * Note that stack allocation can fail if TWAF_NO_ALLOC flag
--		 * is set and new page is needed to expand the stack buffer.
--		 */
--		if (flags & TWAF_NO_ALLOC)
--			kasan_record_aux_stack_noalloc(work);
--		else
--			kasan_record_aux_stack(work);
-+		kasan_record_aux_stack(work);
- 	}
- 
- 	head = READ_ONCE(task->task_works);
---- a/kernel/workqueue.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/kernel/workqueue.c
-@@ -2180,7 +2180,7 @@ static void insert_work(struct pool_work
- 	debug_work_activate(work);
- 
- 	/* record the work call stack in order to print it in KASAN reports */
--	kasan_record_aux_stack_noalloc(work);
-+	kasan_record_aux_stack(work);
- 
- 	/* we own @work, set data and link */
- 	set_work_pwq(work, pwq, extra_flags);
---- a/mm/kasan/generic.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/mm/kasan/generic.c
-@@ -524,7 +524,11 @@ size_t kasan_metadata_size(struct kmem_c
- 			sizeof(struct kasan_free_meta) : 0);
- }
- 
--static void __kasan_record_aux_stack(void *addr, depot_flags_t depot_flags)
-+/*
-+ * This function avoids dynamic memory allocations and thus can be called from
-+ * contexts that do not allow allocating memory.
-+ */
-+void kasan_record_aux_stack(void *addr)
- {
- 	struct slab *slab = kasan_addr_to_slab(addr);
- 	struct kmem_cache *cache;
-@@ -541,17 +545,7 @@ static void __kasan_record_aux_stack(voi
- 		return;
- 
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
--	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
--}
--
--void kasan_record_aux_stack(void *addr)
--{
--	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
--}
--
--void kasan_record_aux_stack_noalloc(void *addr)
--{
--	return __kasan_record_aux_stack(addr, 0);
-+	alloc_meta->aux_stack[0] = kasan_save_stack(0, 0);
- }
- 
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
---- a/mm/slub.c~kasan-make-kasan_record_aux_stack_noalloc-the-default-behaviour
-+++ a/mm/slub.c
-@@ -2311,7 +2311,7 @@ bool slab_free_hook(struct kmem_cache *s
- 			 * We have to do this manually because the rcu_head is
- 			 * not located inside the object.
- 			 */
--			kasan_record_aux_stack_noalloc(x);
-+			kasan_record_aux_stack(x);
- 
- 			delayed_free->object = x;
- 			call_rcu(&delayed_free->head, slab_free_after_rcu_debug);
+ void *filemap_get_entry(struct address_space *mapping, pgoff_t index);
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-x86-disable-execmem_rox-support.patch
 
