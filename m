@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35841FBBDE
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA931FBBDE
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837202; cv=none; b=BpdTJbXbUo53F8q2X4+/2VAg3Pgt+SuEfTzogyX2ei8FQi2DFtVYobz6JjCZioSGSuoIESKUVgRVQIBUcoBOApuZ6khKCJYa08YeY/YSUL8LZW28IvzUGfK6L45YQbM5XobWzD+R1KMu0FeyvnCdILdISUPBbpNbj7p2SpfrEM0=
+	t=1736837203; cv=none; b=F6YQfwZ2UjO1j4hxEm8WV6e2A9Jic1bfKFN4qYLg7Nbqd62cPAZ8V3P88KMybWYRX8sMipGxkG5jYFL2UH0zxGv8rfQ55mamCEfOHaIe3n8TmcFw7f1sBc0Ctpgb0OAJ7CWiu1IrEyEw/P7tInqt+gn+kTkhcc3/6MM2Tw3rAEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837202; c=relaxed/simple;
-	bh=EgZruZrnriA70x8aF1ybDlgbBS0RGwEVcf63DwotybM=;
-	h=Date:To:From:Subject:Message-Id; b=IbxJwityM7QIZyVV2TFT384SH8oGG1Me39pF3gOVFW2LW06DH9cw6tAqQqZfVM8E4VfELT8mLorJoDjJc9zFHelEGXjrja/0xCor3zEt1+WaErttpBuTAlRrQT8ya1wP+7pvxja6P8sdReuJ4qmRmJ8JvfbwFJEJ+f5RjQmw69I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wsNDUOrp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837203; c=relaxed/simple;
+	bh=Qo/bd8iWjNEvmUtbYC7yS+yfBDt2dWshgVnHUVn+sFw=;
+	h=Date:To:From:Subject:Message-Id; b=rdgnTpx6grpuu0zCpCCupH22NEqkOJMi7+9Ldg04l8JeWRhJL8VTipy1PCxxVHwIXK+ZIA9b4NIPNUeULpj4m1MFUGIVsaQISNMtEk6gUHvDjtbgBDdDMPNDTS4UzbAC4d90VPbF09Txics2d+zdefKcIR8QUCqmYQjuBs5ezo8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u0qB1gc7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wsNDUOrp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EB2BC4CEDD;
-	Tue, 14 Jan 2025 06:46:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u0qB1gc7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A52B6C4CEDD;
+	Tue, 14 Jan 2025 06:46:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837202;
-	bh=EgZruZrnriA70x8aF1ybDlgbBS0RGwEVcf63DwotybM=;
+	s=korg; t=1736837203;
+	bh=Qo/bd8iWjNEvmUtbYC7yS+yfBDt2dWshgVnHUVn+sFw=;
 	h=Date:To:From:Subject:From;
-	b=wsNDUOrpJmHxqXgcflYs0Oc21qdwUlFDPewhcwSpl0ugFROGIPBQX6IEtCEdU8ekP
-	 Gp0q441k3ohVa6ZXMQTdUXTaRI/kFSOMfq8ATWZ1Wtc4hEAjpq3Wk3Mi7Zx/ILtQik
-	 kbXbSGJVd4PaH/B25aksnRTaynwRsuuhvDNwPE8c=
-Date: Mon, 13 Jan 2025 22:46:41 -0800
+	b=u0qB1gc7WIEWOO2rmhh9F2CdAazPLJeoM1Ek9g/PWFeGpo51vhfnWkkcY6eg2azhX
+	 ZmCe2woWO9RGOq6KO+YR44sz19TboN/Igc6Cux8DrkD6Lz86pMzp4jrkWwO0q+/OdH
+	 XyWU4a0md3HZErkH0cLjjaQF4L7K1VSFi4aW6OKU=
+Date: Mon, 13 Jan 2025 22:46:43 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-fixup-damos_filter-kernel-doc.patch removed from -mm tree
-Message-Id: <20250114064642.5EB2BC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-add-damos_filter-allow-field.patch removed from -mm tree
+Message-Id: <20250114064643.A52B6C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: fixup damos_filter kernel-doc
+     Subject: mm/damon/core: add damos_filter->allow field
 has been removed from the -mm tree.  Its filename was
-     mm-damon-fixup-damos_filter-kernel-doc.patch
+     mm-damon-core-add-damos_filter-allow-field.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: fixup damos_filter kernel-doc
-Date: Thu, 9 Jan 2025 09:51:17 -0800
+Subject: mm/damon/core: add damos_filter->allow field
+Date: Thu, 9 Jan 2025 09:51:18 -0800
 
-Patch series "mm/damon: extend DAMOS filters for inclusion", v2.
+DAMOS filters work as only exclusive (reject) filters.  This makes it easy
+to be confused, and restrictive at combining multiple filters for covering
+various types of memory.
 
-DAMOS fitlers are exclusive filters.  It only excludes memory of given
-criterias from the DAMOS action targets.  This has below limitations.
+Add a field named 'allow' to damos_filter.  The field will be used to
+indicate whether the filter should work for inclusion or exclusion.  To
+keep the old behavior, set it as 'false' (work as exclusive filter) by
+default, from damos_new_filter().
 
-First, the name is not explicitly explaining the behavior.  This actually
-resulted in users' confusions[1].  Secondly, combined uses of multiple
-filters provide only restriced coverages.  For example, building a DAMOS
-scheme that applies the action to memory that belongs to cgroup A "or"
-cgroup B is impossible.  A workaround would be using two schemes that
-fitlers out memory that not belong to cgroup A and cgroup B, respectively.
-It is cumbersome, and difficult to control quota-like per-scheme features
-in an orchestration.  Monitoring of filters-passed memory statistic will
-also be complicated.
+Following two commits will make the core and operations set layers, which
+handles damos_filter objects, respect the field, respectively.
 
-Extend DAMOS filters to support not only exclusion (rejecting), but also
-inclusion (allowing) behavior.  For this, add a new damos_filter struct
-field called 'allow' for DAMON kernel API users.  The filter works as an
-inclusion or exclusion filter when it is set or unset, respectively.  For
-DAMON user-space ABI users, add a DAMON sysfs file of same name under
-DAMOS filter sysfs directory.  To prevent exposing a behavioral change to
-old users, set rejecting as the default behavior.
-
-Note that allow-filters work for only inclusion, not exclusion of memory
-that not satisfying the criteria.  And the default behavior of DAMOS for
-memory that no filter has involved is that the action can be applied to
-those memory.  Also, filters-passed memory statistics are for any memory
-that passed through the DAMOS filters check stage.  These implies
-installing allow-filters at the endof the filter list is useless.  Refer
-to the design doc change of this series for more details.
-
-[1] https://lore.kernel.org/20240320165619.71478-1-sj@kernel.org
-
-
-This patch (of 10):
-
-The comment is slightly wrong.  DAMOS filters are not only for pages, but
-general bytes of memory.  Also the description of 'matching' is bit
-confusing, since DAMOS filters do only filtering out.  Update the comments
-to be less confusing.
-
-Link: https://lkml.kernel.org/r/20250109175126.57878-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250109175126.57878-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250109175126.57878-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/damon.h |    4 +++-
+ mm/damon/core.c       |    1 +
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-fixup-damos_filter-kernel-doc
+--- a/include/linux/damon.h~mm-damon-core-add-damos_filter-allow-field
 +++ a/include/linux/damon.h
-@@ -347,8 +347,8 @@ enum damos_filter_type {
- 
+@@ -348,7 +348,8 @@ enum damos_filter_type {
  /**
   * struct damos_filter - DAMOS action target memory filter.
-- * @type:	Type of the page.
-- * @matching:	If the matching page should filtered out or in.
-+ * @type:	Type of the target memory.
-+ * @matching:	If the @type-matching memory should be filtered out.
+  * @type:	Type of the target memory.
+- * @matching:	If the @type-matching memory should be filtered out.
++ * @matching:	Whether this is for @type-matching memory.
++ * @allow:	Whether to include or exclude the @matching memory.
   * @memcg_id:	Memcg id of the question if @type is DAMOS_FILTER_MEMCG.
   * @addr_range:	Address range if @type is DAMOS_FILTER_TYPE_ADDR.
   * @target_idx:	Index of the &struct damon_target of
-@@ -357,9 +357,10 @@ enum damos_filter_type {
-  * @list:	List head for siblings.
-  *
-  * Before applying the &damos->action to a memory region, DAMOS checks if each
-- * page of the region matches to this and avoid applying the action if so.
-- * Support of each filter type depends on the running &struct damon_operations
-- * and the type.  Refer to &enum damos_filter_type for more detai.
-+ * byte of the region matches to this given condition and avoid applying the
-+ * action if so.  Support of each filter type depends on the running &struct
-+ * damon_operations and the type.  Refer to &enum damos_filter_type for more
-+ * details.
-  */
+@@ -365,6 +366,7 @@ enum damos_filter_type {
  struct damos_filter {
  	enum damos_filter_type type;
+ 	bool matching;
++	bool allow;
+ 	union {
+ 		unsigned short memcg_id;
+ 		struct damon_addr_range addr_range;
+--- a/mm/damon/core.c~mm-damon-core-add-damos_filter-allow-field
++++ a/mm/damon/core.c
+@@ -275,6 +275,7 @@ struct damos_filter *damos_new_filter(en
+ 		return NULL;
+ 	filter->type = type;
+ 	filter->matching = matching;
++	filter->allow = false;
+ 	INIT_LIST_HEAD(&filter->list);
+ 	return filter;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
