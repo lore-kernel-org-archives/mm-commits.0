@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 871E023ED69
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3012B243328
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837183; cv=none; b=uinQ/F/yMryJe+7/axHfq1AHO26pP57/0+sxGq5bO7GgDh/VhPn0GS1Wb7ubJ0JItiYs+lArVkDvKPU/OakjrE7h3dhu0nxUHH9ZwOTPZqqvL6govquSnW6E5jAgL/UehND6CYmjlUWXbbxVfwfto5EiYdWXxljk90hNA6fkDkY=
+	t=1736837185; cv=none; b=fTke49qqM4A6Z5NzQvTLDJoQRwgpwGjNXmITKrbve1StVVdSe5RK9kc9WHhxodX7KDvB0HO6rag1Q/a+1YId1fZsQzNJXujW1QI+MEksiveteG9PC2helNKtwIOaH9XDH4/SHktYn/dbkT+bVPLxFukXnOCd2My9/AtFYfbJmUg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837183; c=relaxed/simple;
-	bh=cWK7pj7Km2nyOVPHQwJuaCDppwXYuzXHuqcac07oajA=;
-	h=Date:To:From:Subject:Message-Id; b=FmeqUiIQIt5f15KzJZal88YN3p1fD3xWRUVRpXaMkwQ9Ns0a0t+mX5m0LJXl73ZslQMhS7t/FYLOeMXuEaKpNXRniq5m5hV4DvLeC2hkBpgfAkA52A41rujh45QD8rYgy18hRB1kZ/t3zPrdwXsMqGxmxkxrVlp4v1conBIfFFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q41xE7ON; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837185; c=relaxed/simple;
+	bh=2K9neTGbbPVrJlTMv6KFkrSLAdFE4C/acyWWqRMQud4=;
+	h=Date:To:From:Subject:Message-Id; b=GBZvnK3Uh/a6w71Nda2NEIAqI+XA8jahTnlor0anuQC4yNVzaTJF4EG7fWcccfTmR56F2WkSgkBV9ZpkKHooDiYnOKMXxxnotlSE7791aIlnr9AAYRiYCI31s/DJeRNi5a1mEYSjLdppbpPofCQcE5Aqf0NDmh4Llv67piNXpqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Aj5J+gRn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q41xE7ON"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C483C4CEDD;
-	Tue, 14 Jan 2025 06:46:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Aj5J+gRn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04340C4CEDD;
+	Tue, 14 Jan 2025 06:46:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837183;
-	bh=cWK7pj7Km2nyOVPHQwJuaCDppwXYuzXHuqcac07oajA=;
+	s=korg; t=1736837185;
+	bh=2K9neTGbbPVrJlTMv6KFkrSLAdFE4C/acyWWqRMQud4=;
 	h=Date:To:From:Subject:From;
-	b=q41xE7ON6PW5/lMlUsmL8dRWKctTAeblhPpyUEUD74dCAup77nKs6wvwepeZQfB8r
-	 OcBIMaCvZ6WWYfasAJ63vBmM3FJFU5zo36V4Awidni35QqIS0feRfzQdihUBDV15E7
-	 IBfCi1ffHlZBhKIH6DhKuDxD2el8Km6d7m+A68pY=
-Date: Mon, 13 Jan 2025 22:46:22 -0800
-To: mm-commits@vger.kernel.org,si.yanteng@linux.dev,shuah@kernel.org,rmoar@google.com,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
+	b=Aj5J+gRnFqpZ1NFF/JxQnqi/tnpJxkfON6Atcyhedf/3SL2XX5ylqQ9eKim3wOc1V
+	 nBxESov4RTDta5Po4K7K93Wg2qtR4ekC7FmM/hI+XXKZ7EmRJcEGTSs+azup+G9IwG
+	 cK9LSMBP/3hqMNwZ8OB6Wd6g6ZMJRgPO8/dTLArM=
+Date: Mon, 13 Jan 2025 22:46:24 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,rppt@kernel.org,jhubbard@nvidia.com,david@redhat.com,bfaccini@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-remove-damon-debugfs-interface.patch removed from -mm tree
-Message-Id: <20250114064623.4C483C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fake-numa-allow-later-numa-node-hotplug.patch removed from -mm tree
+Message-Id: <20250114064625.04340C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,1237 +35,455 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: remove DAMON debugfs interface
+     Subject: mm/fake-numa: allow later numa node hotplug
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-damon-debugfs-interface.patch
+     mm-fake-numa-allow-later-numa-node-hotplug.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove DAMON debugfs interface
-Date: Mon, 6 Jan 2025 11:19:41 -0800
+From: Bruno Faccini <bfaccini@nvidia.com>
+Subject: mm/fake-numa: allow later numa node hotplug
+Date: Mon, 6 Jan 2025 04:06:59 -0800
 
-It's time to remove DAMON debugfs interface, which has deprecated long
-before in February 2023.  Read the cover letter of this patch series for
-more details.
+Current fake-numa implementation prevents new Numa nodes to be later
+hot-plugged by drivers.  A common symptom of this limitation is the "node
+<X> was absent from the node_possible_map" message by associated warning
+in mm/memory_hotplug.c: add_memory_resource().
 
-All documents and related tests are also removed.  Finally remove the
-interface.
+This comes from the lack of remapping in both pxm_to_node_map[] and
+node_to_pxm_map[] tables to take fake-numa nodes into account and thus
+triggers collisions with original and physical nodes only-mapping that had
+been determined from BIOS tables.
 
-Link: https://lkml.kernel.org/r/20250106191941.107070-9-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
-Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Rae Moar <rmoar@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Yanteng Si <si.yanteng@linux.dev>
+This patch fixes this by doing the necessary node-ids translation in both
+pxm_to_node_map[]/node_to_pxm_map[] tables.  node_distance[] table has
+also been fixed accordingly.
+
+
+Details:
+
+When trying to use fake-numa feature on our system where new Numa nodes
+are being "hot-plugged" upon driver load, this fails with the following
+type of message and warning with stack :
+
+node 8 was absent from the node_possible_map WARNING: CPU: 61 PID: 4259 at
+mm/memory_hotplug.c:1506 add_memory_resource+0x3dc/0x418
+
+This issue prevents the use of the fake-NUMA debug feature with the
+system's full configuration, when it has proven to be sometimes extremely
+useful for performance testing of multi-tasked, memory-bound applications,
+as it enables better isolation of processes/ranks compared to fat NUMA
+nodes.
+
+Usual numactl output after driver has “hot-plugged”/unveiled some
+new Numa nodes with and without memory :
+$ numactl --hardware
+available: 9 nodes (0-8)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 0 size: 490037 MB
+node 0 free: 484432 MB
+node 1 cpus:
+node 1 size: 97280 MB
+node 1 free: 97279 MB
+node 2 cpus:
+node 2 size: 0 MB
+node 2 free: 0 MB
+node 3 cpus:
+node 3 size: 0 MB
+node 3 free: 0 MB
+node 4 cpus:
+node 4 size: 0 MB
+node 4 free: 0 MB
+node 5 cpus:
+node 5 size: 0 MB
+node 5 free: 0 MB
+node 6 cpus:
+node 6 size: 0 MB
+node 6 free: 0 MB
+node 7 cpus:
+node 7 size: 0 MB
+node 7 free: 0 MB
+node 8 cpus:
+node 8 size: 0 MB
+node 8 free: 0 MB
+node distances:
+node   0   1   2   3   4   5   6   7   8
+  0:  10  80  80  80  80  80  80  80  80
+  1:  80  10  255  255  255  255  255  255  255
+  2:  80  255  10  255  255  255  255  255  255
+  3:  80  255  255  10  255  255  255  255  255
+  4:  80  255  255  255  10  255  255  255  255
+  5:  80  255  255  255  255  10  255  255  255
+  6:  80  255  255  255  255  255  10  255  255
+  7:  80  255  255  255  255  255  255  10  255
+  8:  80  255  255  255  255  255  255  255  10
+
+
+With recent M.Rapoport set of fake-numa patches in mm-everything
+and using numa=fake=4 boot parameter :
+$ numactl --hardware
+available: 4 nodes (0-3)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 0 size: 122518 MB
+node 0 free: 117141 MB
+node 1 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 1 size: 219911 MB
+node 1 free: 219751 MB
+node 2 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 2 size: 122599 MB
+node 2 free: 122541 MB
+node 3 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 3 size: 122479 MB
+node 3 free: 122408 MB
+node distances:
+node   0   1   2   3
+  0:  10  10  10  10
+  1:  10  10  10  10
+  2:  10  10  10  10
+  3:  10  10  10  10
+
+
+With recent M.Rapoport set of fake-numa patches in mm-everything,
+this patch on top, using numa=fake=4 boot parameter :
+# numactl —hardware
+available: 12 nodes (0-11)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 0 size: 122518 MB
+node 0 free: 116429 MB
+node 1 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 1 size: 122631 MB
+node 1 free: 122576 MB
+node 2 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 2 size: 122599 MB
+node 2 free: 122544 MB
+node 3 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42
+43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+65 66 67 68 69 70 71
+node 3 size: 122479 MB
+node 3 free: 122419 MB
+node 4 cpus:
+node 4 size: 97280 MB
+node 4 free: 97279 MB
+node 5 cpus:
+node 5 size: 0 MB
+node 5 free: 0 MB
+node 6 cpus:
+node 6 size: 0 MB
+node 6 free: 0 MB
+node 7 cpus:
+node 7 size: 0 MB
+node 7 free: 0 MB
+node 8 cpus:
+node 8 size: 0 MB
+node 8 free: 0 MB
+node 9 cpus:
+node 9 size: 0 MB
+node 9 free: 0 MB
+node 10 cpus:
+node 10 size: 0 MB
+node 10 free: 0 MB
+node 11 cpus:
+node 11 size: 0 MB
+node 11 free: 0 MB
+node distances:
+node   0   1   2   3   4   5   6   7   8   9  10  11
+  0:  10  10  10  10  80  80  80  80  80  80  80  80
+  1:  10  10  10  10  80  80  80  80  80  80  80  80
+  2:  10  10  10  10  80  80  80  80  80  80  80  80
+  3:  10  10  10  10  80  80  80  80  80  80  80  80
+  4:  80  80  80  80  10  255  255  255  255  255  255  255
+  5:  80  80  80  80  255  10  255  255  255  255  255  255
+  6:  80  80  80  80  255  255  10  255  255  255  255  255
+  7:  80  80  80  80  255  255  255  10  255  255  255  255
+  8:  80  80  80  80  255  255  255  255  10  255  255  255
+  9:  80  80  80  80  255  255  255  255  255  10  255  255
+ 10:  80  80  80  80  255  255  255  255  255  255  10  255
+ 11:  80  80  80  80  255  255  255  255  255  255  255  10
+
+Link: https://lkml.kernel.org/r/20250106120659.359610-2-bfaccini@nvidia.com
+Signed-off-by: Bruno Faccini <bfaccini@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/Kconfig  |   18 
- mm/damon/Makefile |    1 
- mm/damon/dbgfs.c  | 1146 --------------------------------------------
- 3 files changed, 1165 deletions(-)
+ drivers/acpi/numa/srat.c     |   86 +++++++++++++++++++++++++++++++++
+ include/acpi/acpi_numa.h     |    5 +
+ include/linux/numa_memblks.h |    3 +
+ mm/numa_emulation.c          |   45 ++++++++++++++---
+ mm/numa_memblks.c            |    2 
+ 5 files changed, 133 insertions(+), 8 deletions(-)
 
-diff --git a/mm/damon/dbgfs.c a/mm/damon/dbgfs.c
-deleted file mode 100644
---- a/mm/damon/dbgfs.c
-+++ /dev/null
-@@ -1,1146 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * DAMON Debugfs Interface
-- *
-- * Author: SeongJae Park <sj@kernel.org>
-- */
--
--#define pr_fmt(fmt) "damon-dbgfs: " fmt
--
--#include <linux/damon.h>
--#include <linux/debugfs.h>
--#include <linux/file.h>
--#include <linux/mm.h>
--#include <linux/module.h>
--#include <linux/page_idle.h>
--#include <linux/slab.h>
--
--#define DAMON_DBGFS_DEPRECATION_NOTICE					\
--	"DAMON debugfs interface is deprecated, so users should move "	\
--	"to DAMON_SYSFS. If you cannot, please report your usecase to "	\
--	"damon@lists.linux.dev and linux-mm@kvack.org.\n"
--
--static struct damon_ctx **dbgfs_ctxs;
--static int dbgfs_nr_ctxs;
--static struct dentry **dbgfs_dirs;
--static DEFINE_MUTEX(damon_dbgfs_lock);
--
--static void damon_dbgfs_warn_deprecation(void)
--{
--	pr_warn_once(DAMON_DBGFS_DEPRECATION_NOTICE);
--}
--
--/*
-- * Returns non-empty string on success, negative error code otherwise.
-- */
--static char *user_input_str(const char __user *buf, size_t count, loff_t *ppos)
--{
--	char *kbuf;
--	ssize_t ret;
--
--	/* We do not accept continuous write */
--	if (*ppos)
--		return ERR_PTR(-EINVAL);
--
--	kbuf = kmalloc(count + 1, GFP_KERNEL | __GFP_NOWARN);
--	if (!kbuf)
--		return ERR_PTR(-ENOMEM);
--
--	ret = simple_write_to_buffer(kbuf, count + 1, ppos, buf, count);
--	if (ret != count) {
--		kfree(kbuf);
--		return ERR_PTR(-EIO);
--	}
--	kbuf[ret] = '\0';
--
--	return kbuf;
--}
--
--static ssize_t dbgfs_attrs_read(struct file *file,
--		char __user *buf, size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	char kbuf[128];
--	int ret;
--
--	mutex_lock(&ctx->kdamond_lock);
--	ret = scnprintf(kbuf, ARRAY_SIZE(kbuf), "%lu %lu %lu %lu %lu\n",
--			ctx->attrs.sample_interval, ctx->attrs.aggr_interval,
--			ctx->attrs.ops_update_interval,
--			ctx->attrs.min_nr_regions, ctx->attrs.max_nr_regions);
--	mutex_unlock(&ctx->kdamond_lock);
--
--	return simple_read_from_buffer(buf, count, ppos, kbuf, ret);
--}
--
--static ssize_t dbgfs_attrs_write(struct file *file,
--		const char __user *buf, size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	struct damon_attrs attrs;
--	char *kbuf;
--	ssize_t ret;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--
--	if (sscanf(kbuf, "%lu %lu %lu %lu %lu",
--				&attrs.sample_interval, &attrs.aggr_interval,
--				&attrs.ops_update_interval,
--				&attrs.min_nr_regions,
--				&attrs.max_nr_regions) != 5) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond) {
--		ret = -EBUSY;
--		goto unlock_out;
--	}
--
--	ret = damon_set_attrs(ctx, &attrs);
--	if (!ret)
--		ret = count;
--unlock_out:
--	mutex_unlock(&ctx->kdamond_lock);
--out:
--	kfree(kbuf);
--	return ret;
--}
--
--/*
-- * Return corresponding dbgfs' scheme action value (int) for the given
-- * damos_action if the given damos_action value is valid and supported by
-- * dbgfs, negative error code otherwise.
-- */
--static int damos_action_to_dbgfs_scheme_action(enum damos_action action)
--{
--	switch (action) {
--	case DAMOS_WILLNEED:
--		return 0;
--	case DAMOS_COLD:
--		return 1;
--	case DAMOS_PAGEOUT:
--		return 2;
--	case DAMOS_HUGEPAGE:
--		return 3;
--	case DAMOS_NOHUGEPAGE:
--		return 4;
--	case DAMOS_STAT:
--		return 5;
--	default:
--		return -EINVAL;
--	}
--}
--
--static ssize_t sprint_schemes(struct damon_ctx *c, char *buf, ssize_t len)
--{
--	struct damos *s;
--	int written = 0;
--	int rc;
--
--	damon_for_each_scheme(s, c) {
--		rc = scnprintf(&buf[written], len - written,
--				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %d %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
--				s->pattern.min_sz_region,
--				s->pattern.max_sz_region,
--				s->pattern.min_nr_accesses,
--				s->pattern.max_nr_accesses,
--				s->pattern.min_age_region,
--				s->pattern.max_age_region,
--				damos_action_to_dbgfs_scheme_action(s->action),
--				s->quota.ms, s->quota.sz,
--				s->quota.reset_interval,
--				s->quota.weight_sz,
--				s->quota.weight_nr_accesses,
--				s->quota.weight_age,
--				s->wmarks.metric, s->wmarks.interval,
--				s->wmarks.high, s->wmarks.mid, s->wmarks.low,
--				s->stat.nr_tried, s->stat.sz_tried,
--				s->stat.nr_applied, s->stat.sz_applied,
--				s->stat.qt_exceeds);
--		if (!rc)
--			return -ENOMEM;
--
--		written += rc;
--	}
--	return written;
--}
--
--static ssize_t dbgfs_schemes_read(struct file *file, char __user *buf,
--		size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	char *kbuf;
--	ssize_t len;
--
--	kbuf = kmalloc(count, GFP_KERNEL | __GFP_NOWARN);
--	if (!kbuf)
--		return -ENOMEM;
--
--	mutex_lock(&ctx->kdamond_lock);
--	len = sprint_schemes(ctx, kbuf, count);
--	mutex_unlock(&ctx->kdamond_lock);
--	if (len < 0)
--		goto out;
--	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
--
--out:
--	kfree(kbuf);
--	return len;
--}
--
--static void free_schemes_arr(struct damos **schemes, ssize_t nr_schemes)
--{
--	ssize_t i;
--
--	for (i = 0; i < nr_schemes; i++)
--		kfree(schemes[i]);
--	kfree(schemes);
--}
--
--/*
-- * Return corresponding damos_action for the given dbgfs input for a scheme
-- * action if the input is valid, negative error code otherwise.
-- */
--static enum damos_action dbgfs_scheme_action_to_damos_action(int dbgfs_action)
--{
--	switch (dbgfs_action) {
--	case 0:
--		return DAMOS_WILLNEED;
--	case 1:
--		return DAMOS_COLD;
--	case 2:
--		return DAMOS_PAGEOUT;
--	case 3:
--		return DAMOS_HUGEPAGE;
--	case 4:
--		return DAMOS_NOHUGEPAGE;
--	case 5:
--		return DAMOS_STAT;
--	default:
--		return -EINVAL;
--	}
--}
--
--/*
-- * Converts a string into an array of struct damos pointers
-- *
-- * Returns an array of struct damos pointers that converted if the conversion
-- * success, or NULL otherwise.
-- */
--static struct damos **str_to_schemes(const char *str, ssize_t len,
--				ssize_t *nr_schemes)
--{
--	struct damos *scheme, **schemes;
--	const int max_nr_schemes = 256;
--	int pos = 0, parsed, ret;
--	unsigned int action_input;
--	enum damos_action action;
--
--	schemes = kmalloc_array(max_nr_schemes, sizeof(scheme),
--			GFP_KERNEL);
--	if (!schemes)
--		return NULL;
--
--	*nr_schemes = 0;
--	while (pos < len && *nr_schemes < max_nr_schemes) {
--		struct damos_access_pattern pattern = {};
--		struct damos_quota quota = {};
--		struct damos_watermarks wmarks;
--
--		ret = sscanf(&str[pos],
--				"%lu %lu %u %u %u %u %u %lu %lu %lu %u %u %u %u %lu %lu %lu %lu%n",
--				&pattern.min_sz_region, &pattern.max_sz_region,
--				&pattern.min_nr_accesses,
--				&pattern.max_nr_accesses,
--				&pattern.min_age_region,
--				&pattern.max_age_region,
--				&action_input, &quota.ms,
--				&quota.sz, &quota.reset_interval,
--				&quota.weight_sz, &quota.weight_nr_accesses,
--				&quota.weight_age, &wmarks.metric,
--				&wmarks.interval, &wmarks.high, &wmarks.mid,
--				&wmarks.low, &parsed);
--		if (ret != 18)
--			break;
--		action = dbgfs_scheme_action_to_damos_action(action_input);
--		if ((int)action < 0)
--			goto fail;
--
--		if (pattern.min_sz_region > pattern.max_sz_region ||
--		    pattern.min_nr_accesses > pattern.max_nr_accesses ||
--		    pattern.min_age_region > pattern.max_age_region)
--			goto fail;
--
--		if (wmarks.high < wmarks.mid || wmarks.high < wmarks.low ||
--		    wmarks.mid <  wmarks.low)
--			goto fail;
--
--		pos += parsed;
--		scheme = damon_new_scheme(&pattern, action, 0, &quota,
--				&wmarks, NUMA_NO_NODE);
--		if (!scheme)
--			goto fail;
--
--		schemes[*nr_schemes] = scheme;
--		*nr_schemes += 1;
--	}
--	return schemes;
--fail:
--	free_schemes_arr(schemes, *nr_schemes);
--	return NULL;
--}
--
--static ssize_t dbgfs_schemes_write(struct file *file, const char __user *buf,
--		size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	char *kbuf;
--	struct damos **schemes;
--	ssize_t nr_schemes = 0, ret;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--
--	schemes = str_to_schemes(kbuf, count, &nr_schemes);
--	if (!schemes) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond) {
--		ret = -EBUSY;
--		goto unlock_out;
--	}
--
--	damon_set_schemes(ctx, schemes, nr_schemes);
--	ret = count;
--	nr_schemes = 0;
--
--unlock_out:
--	mutex_unlock(&ctx->kdamond_lock);
--	free_schemes_arr(schemes, nr_schemes);
--out:
--	kfree(kbuf);
--	return ret;
--}
--
--static ssize_t sprint_target_ids(struct damon_ctx *ctx, char *buf, ssize_t len)
--{
--	struct damon_target *t;
--	int id;
--	int written = 0;
--	int rc;
--
--	damon_for_each_target(t, ctx) {
--		if (damon_target_has_pid(ctx))
--			/* Show pid numbers to debugfs users */
--			id = pid_vnr(t->pid);
--		else
--			/* Show 42 for physical address space, just for fun */
--			id = 42;
--
--		rc = scnprintf(&buf[written], len - written, "%d ", id);
--		if (!rc)
--			return -ENOMEM;
--		written += rc;
--	}
--	if (written)
--		written -= 1;
--	written += scnprintf(&buf[written], len - written, "\n");
--	return written;
--}
--
--static ssize_t dbgfs_target_ids_read(struct file *file,
--		char __user *buf, size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	ssize_t len;
--	char ids_buf[320];
--
--	mutex_lock(&ctx->kdamond_lock);
--	len = sprint_target_ids(ctx, ids_buf, 320);
--	mutex_unlock(&ctx->kdamond_lock);
--	if (len < 0)
--		return len;
--
--	return simple_read_from_buffer(buf, count, ppos, ids_buf, len);
--}
--
--/*
-- * Converts a string into an integers array
-- *
-- * Returns an array of integers array if the conversion success, or NULL
-- * otherwise.
-- */
--static int *str_to_ints(const char *str, ssize_t len, ssize_t *nr_ints)
--{
--	int *array;
--	const int max_nr_ints = 32;
--	int nr;
--	int pos = 0, parsed, ret;
--
--	*nr_ints = 0;
--	array = kmalloc_array(max_nr_ints, sizeof(*array), GFP_KERNEL);
--	if (!array)
--		return NULL;
--	while (*nr_ints < max_nr_ints && pos < len) {
--		ret = sscanf(&str[pos], "%d%n", &nr, &parsed);
--		pos += parsed;
--		if (ret != 1)
--			break;
--		array[*nr_ints] = nr;
--		*nr_ints += 1;
--	}
--
--	return array;
--}
--
--static void dbgfs_put_pids(struct pid **pids, int nr_pids)
--{
--	int i;
--
--	for (i = 0; i < nr_pids; i++)
--		put_pid(pids[i]);
--}
--
--/*
-- * Converts a string into an struct pid pointers array
-- *
-- * Returns an array of struct pid pointers if the conversion success, or NULL
-- * otherwise.
-- */
--static struct pid **str_to_pids(const char *str, ssize_t len, ssize_t *nr_pids)
--{
--	int *ints;
--	ssize_t nr_ints;
--	struct pid **pids;
--
--	*nr_pids = 0;
--
--	ints = str_to_ints(str, len, &nr_ints);
--	if (!ints)
--		return NULL;
--
--	pids = kmalloc_array(nr_ints, sizeof(*pids), GFP_KERNEL);
--	if (!pids)
--		goto out;
--
--	for (; *nr_pids < nr_ints; (*nr_pids)++) {
--		pids[*nr_pids] = find_get_pid(ints[*nr_pids]);
--		if (!pids[*nr_pids]) {
--			dbgfs_put_pids(pids, *nr_pids);
--			kfree(ints);
--			kfree(pids);
--			return NULL;
--		}
--	}
--
--out:
--	kfree(ints);
--	return pids;
--}
--
--/*
-- * dbgfs_set_targets() - Set monitoring targets.
-- * @ctx:	monitoring context
-- * @nr_targets:	number of targets
-- * @pids:	array of target pids (size is same to @nr_targets)
-- *
-- * This function should not be called while the kdamond is running.  @pids is
-- * ignored if the context is not configured to have pid in each target.  On
-- * failure, reference counts of all pids in @pids are decremented.
-- *
-- * Return: 0 on success, negative error code otherwise.
-- */
--static int dbgfs_set_targets(struct damon_ctx *ctx, ssize_t nr_targets,
--		struct pid **pids)
--{
--	ssize_t i;
--	struct damon_target *t, *next;
--
--	damon_for_each_target_safe(t, next, ctx) {
--		if (damon_target_has_pid(ctx))
--			put_pid(t->pid);
--		damon_destroy_target(t);
--	}
--
--	for (i = 0; i < nr_targets; i++) {
--		t = damon_new_target();
--		if (!t) {
--			damon_for_each_target_safe(t, next, ctx)
--				damon_destroy_target(t);
--			if (damon_target_has_pid(ctx))
--				dbgfs_put_pids(pids, nr_targets);
--			return -ENOMEM;
--		}
--		if (damon_target_has_pid(ctx))
--			t->pid = pids[i];
--		damon_add_target(ctx, t);
--	}
--
--	return 0;
--}
--
--static ssize_t dbgfs_target_ids_write(struct file *file,
--		const char __user *buf, size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	bool id_is_pid = true;
--	char *kbuf;
--	struct pid **target_pids = NULL;
--	ssize_t nr_targets;
--	ssize_t ret;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--
--	if (!strncmp(kbuf, "paddr\n", count)) {
--		id_is_pid = false;
--		nr_targets = 1;
--	}
--
--	if (id_is_pid) {
--		target_pids = str_to_pids(kbuf, count, &nr_targets);
--		if (!target_pids) {
--			ret = -ENOMEM;
--			goto out;
--		}
--	}
--
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond) {
--		if (id_is_pid)
--			dbgfs_put_pids(target_pids, nr_targets);
--		ret = -EBUSY;
--		goto unlock_out;
--	}
--
--	/* remove previously set targets */
--	dbgfs_set_targets(ctx, 0, NULL);
--	if (!nr_targets) {
--		ret = count;
--		goto unlock_out;
--	}
--
--	/* Configure the context for the address space type */
--	if (id_is_pid)
--		ret = damon_select_ops(ctx, DAMON_OPS_VADDR);
--	else
--		ret = damon_select_ops(ctx, DAMON_OPS_PADDR);
--	if (ret)
--		goto unlock_out;
--
--	ret = dbgfs_set_targets(ctx, nr_targets, target_pids);
--	if (!ret)
--		ret = count;
--
--unlock_out:
--	mutex_unlock(&ctx->kdamond_lock);
--	kfree(target_pids);
--out:
--	kfree(kbuf);
--	return ret;
--}
--
--static ssize_t sprint_init_regions(struct damon_ctx *c, char *buf, ssize_t len)
--{
--	struct damon_target *t;
--	struct damon_region *r;
--	int target_idx = 0;
--	int written = 0;
--	int rc;
--
--	damon_for_each_target(t, c) {
--		damon_for_each_region(r, t) {
--			rc = scnprintf(&buf[written], len - written,
--					"%d %lu %lu\n",
--					target_idx, r->ar.start, r->ar.end);
--			if (!rc)
--				return -ENOMEM;
--			written += rc;
--		}
--		target_idx++;
--	}
--	return written;
--}
--
--static ssize_t dbgfs_init_regions_read(struct file *file, char __user *buf,
--		size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	char *kbuf;
--	ssize_t len;
--
--	kbuf = kmalloc(count, GFP_KERNEL | __GFP_NOWARN);
--	if (!kbuf)
--		return -ENOMEM;
--
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond) {
--		mutex_unlock(&ctx->kdamond_lock);
--		len = -EBUSY;
--		goto out;
--	}
--
--	len = sprint_init_regions(ctx, kbuf, count);
--	mutex_unlock(&ctx->kdamond_lock);
--	if (len < 0)
--		goto out;
--	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
--
--out:
--	kfree(kbuf);
--	return len;
--}
--
--static int add_init_region(struct damon_ctx *c, int target_idx,
--		struct damon_addr_range *ar)
--{
--	struct damon_target *t;
--	struct damon_region *r, *prev;
--	unsigned long idx = 0;
--	int rc = -EINVAL;
--
--	if (ar->start >= ar->end)
--		return -EINVAL;
--
--	damon_for_each_target(t, c) {
--		if (idx++ == target_idx) {
--			r = damon_new_region(ar->start, ar->end);
--			if (!r)
--				return -ENOMEM;
--			damon_add_region(r, t);
--			if (damon_nr_regions(t) > 1) {
--				prev = damon_prev_region(r);
--				if (prev->ar.end > r->ar.start) {
--					damon_destroy_region(r, t);
--					return -EINVAL;
--				}
--			}
--			rc = 0;
--		}
--	}
--	return rc;
--}
--
--static int set_init_regions(struct damon_ctx *c, const char *str, ssize_t len)
--{
--	struct damon_target *t;
--	struct damon_region *r, *next;
--	int pos = 0, parsed, ret;
--	int target_idx;
--	struct damon_addr_range ar;
--	int err;
--
--	damon_for_each_target(t, c) {
--		damon_for_each_region_safe(r, next, t)
--			damon_destroy_region(r, t);
--	}
--
--	while (pos < len) {
--		ret = sscanf(&str[pos], "%d %lu %lu%n",
--				&target_idx, &ar.start, &ar.end, &parsed);
--		if (ret != 3)
--			break;
--		err = add_init_region(c, target_idx, &ar);
--		if (err)
--			goto fail;
--		pos += parsed;
--	}
--
--	return 0;
--
--fail:
--	damon_for_each_target(t, c) {
--		damon_for_each_region_safe(r, next, t)
--			damon_destroy_region(r, t);
--	}
--	return err;
--}
--
--static ssize_t dbgfs_init_regions_write(struct file *file,
--					  const char __user *buf, size_t count,
--					  loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	char *kbuf;
--	ssize_t ret = count;
--	int err;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond) {
--		ret = -EBUSY;
--		goto unlock_out;
--	}
--
--	err = set_init_regions(ctx, kbuf, ret);
--	if (err)
--		ret = err;
--
--unlock_out:
--	mutex_unlock(&ctx->kdamond_lock);
--	kfree(kbuf);
--	return ret;
--}
--
--static ssize_t dbgfs_kdamond_pid_read(struct file *file,
--		char __user *buf, size_t count, loff_t *ppos)
--{
--	struct damon_ctx *ctx = file->private_data;
--	char *kbuf;
--	ssize_t len;
--
--	kbuf = kmalloc(count, GFP_KERNEL | __GFP_NOWARN);
--	if (!kbuf)
--		return -ENOMEM;
--
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond)
--		len = scnprintf(kbuf, count, "%d\n", ctx->kdamond->pid);
--	else
--		len = scnprintf(kbuf, count, "none\n");
--	mutex_unlock(&ctx->kdamond_lock);
--	if (!len)
--		goto out;
--	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
--
--out:
--	kfree(kbuf);
--	return len;
--}
--
--static int damon_dbgfs_open(struct inode *inode, struct file *file)
--{
--	damon_dbgfs_warn_deprecation();
--
--	file->private_data = inode->i_private;
--
--	return nonseekable_open(inode, file);
--}
--
--static const struct file_operations attrs_fops = {
--	.open = damon_dbgfs_open,
--	.read = dbgfs_attrs_read,
--	.write = dbgfs_attrs_write,
--};
--
--static const struct file_operations schemes_fops = {
--	.open = damon_dbgfs_open,
--	.read = dbgfs_schemes_read,
--	.write = dbgfs_schemes_write,
--};
--
--static const struct file_operations target_ids_fops = {
--	.open = damon_dbgfs_open,
--	.read = dbgfs_target_ids_read,
--	.write = dbgfs_target_ids_write,
--};
--
--static const struct file_operations init_regions_fops = {
--	.open = damon_dbgfs_open,
--	.read = dbgfs_init_regions_read,
--	.write = dbgfs_init_regions_write,
--};
--
--static const struct file_operations kdamond_pid_fops = {
--	.open = damon_dbgfs_open,
--	.read = dbgfs_kdamond_pid_read,
--};
--
--static void dbgfs_fill_ctx_dir(struct dentry *dir, struct damon_ctx *ctx)
--{
--	const char * const file_names[] = {"attrs", "schemes", "target_ids",
--		"init_regions", "kdamond_pid"};
--	const struct file_operations *fops[] = {&attrs_fops, &schemes_fops,
--		&target_ids_fops, &init_regions_fops, &kdamond_pid_fops};
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(file_names); i++)
--		debugfs_create_file(file_names[i], 0600, dir, ctx, fops[i]);
--}
--
--static void dbgfs_before_terminate(struct damon_ctx *ctx)
--{
--	struct damon_target *t, *next;
--
--	if (!damon_target_has_pid(ctx))
--		return;
--
--	mutex_lock(&ctx->kdamond_lock);
--	damon_for_each_target_safe(t, next, ctx) {
--		put_pid(t->pid);
--		damon_destroy_target(t);
--	}
--	mutex_unlock(&ctx->kdamond_lock);
--}
--
--static struct damon_ctx *dbgfs_new_ctx(void)
--{
--	struct damon_ctx *ctx;
--
--	ctx = damon_new_ctx();
--	if (!ctx)
--		return NULL;
--
--	if (damon_select_ops(ctx, DAMON_OPS_VADDR) &&
--			damon_select_ops(ctx, DAMON_OPS_PADDR)) {
--		damon_destroy_ctx(ctx);
--		return NULL;
--	}
--	ctx->callback.before_terminate = dbgfs_before_terminate;
--	return ctx;
--}
--
--static void dbgfs_destroy_ctx(struct damon_ctx *ctx)
--{
--	damon_destroy_ctx(ctx);
--}
--
--static ssize_t damon_dbgfs_deprecated_read(struct file *file,
--		char __user *buf, size_t count, loff_t *ppos)
--{
--	static const char kbuf[512] = DAMON_DBGFS_DEPRECATION_NOTICE;
--
--	return simple_read_from_buffer(buf, count, ppos, kbuf, strlen(kbuf));
--}
--
--/*
-- * Make a context of @name and create a debugfs directory for it.
-- *
-- * This function should be called while holding damon_dbgfs_lock.
-- *
-- * Returns 0 on success, negative error code otherwise.
-- */
--static int dbgfs_mk_context(char *name)
--{
--	struct dentry *root, **new_dirs, *new_dir;
--	struct damon_ctx **new_ctxs, *new_ctx;
--
--	if (damon_nr_running_ctxs())
--		return -EBUSY;
--
--	new_ctxs = krealloc(dbgfs_ctxs, sizeof(*dbgfs_ctxs) *
--			(dbgfs_nr_ctxs + 1), GFP_KERNEL);
--	if (!new_ctxs)
--		return -ENOMEM;
--	dbgfs_ctxs = new_ctxs;
--
--	new_dirs = krealloc(dbgfs_dirs, sizeof(*dbgfs_dirs) *
--			(dbgfs_nr_ctxs + 1), GFP_KERNEL);
--	if (!new_dirs)
--		return -ENOMEM;
--	dbgfs_dirs = new_dirs;
--
--	root = dbgfs_dirs[0];
--	if (!root)
--		return -ENOENT;
--
--	new_dir = debugfs_create_dir(name, root);
--	/* Below check is required for a potential duplicated name case */
--	if (IS_ERR(new_dir))
--		return PTR_ERR(new_dir);
--	dbgfs_dirs[dbgfs_nr_ctxs] = new_dir;
--
--	new_ctx = dbgfs_new_ctx();
--	if (!new_ctx) {
--		debugfs_remove(new_dir);
--		dbgfs_dirs[dbgfs_nr_ctxs] = NULL;
--		return -ENOMEM;
--	}
--
--	dbgfs_ctxs[dbgfs_nr_ctxs] = new_ctx;
--	dbgfs_fill_ctx_dir(dbgfs_dirs[dbgfs_nr_ctxs],
--			dbgfs_ctxs[dbgfs_nr_ctxs]);
--	dbgfs_nr_ctxs++;
--
--	return 0;
--}
--
--static ssize_t dbgfs_mk_context_write(struct file *file,
--		const char __user *buf, size_t count, loff_t *ppos)
--{
--	char *kbuf;
--	char *ctx_name;
--	ssize_t ret;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--	ctx_name = kmalloc(count + 1, GFP_KERNEL);
--	if (!ctx_name) {
--		kfree(kbuf);
--		return -ENOMEM;
--	}
--
--	/* Trim white space */
--	if (sscanf(kbuf, "%s", ctx_name) != 1) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	mutex_lock(&damon_dbgfs_lock);
--	ret = dbgfs_mk_context(ctx_name);
--	if (!ret)
--		ret = count;
--	mutex_unlock(&damon_dbgfs_lock);
--
--out:
--	kfree(kbuf);
--	kfree(ctx_name);
--	return ret;
--}
--
--/*
-- * Remove a context of @name and its debugfs directory.
-- *
-- * This function should be called while holding damon_dbgfs_lock.
-- *
-- * Return 0 on success, negative error code otherwise.
-- */
--static int dbgfs_rm_context(char *name)
--{
--	struct dentry *root, *dir, **new_dirs;
--	struct inode *inode;
--	struct damon_ctx **new_ctxs;
--	int i, j;
--	int ret = 0;
--
--	if (damon_nr_running_ctxs())
--		return -EBUSY;
--
--	root = dbgfs_dirs[0];
--	if (!root)
--		return -ENOENT;
--
--	dir = debugfs_lookup(name, root);
--	if (!dir)
--		return -ENOENT;
--
--	inode = d_inode(dir);
--	if (!S_ISDIR(inode->i_mode)) {
--		ret = -EINVAL;
--		goto out_dput;
--	}
--
--	new_dirs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_dirs),
--			GFP_KERNEL);
--	if (!new_dirs) {
--		ret = -ENOMEM;
--		goto out_dput;
--	}
--
--	new_ctxs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_ctxs),
--			GFP_KERNEL);
--	if (!new_ctxs) {
--		ret = -ENOMEM;
--		goto out_new_dirs;
--	}
--
--	for (i = 0, j = 0; i < dbgfs_nr_ctxs; i++) {
--		if (dbgfs_dirs[i] == dir) {
--			debugfs_remove(dbgfs_dirs[i]);
--			dbgfs_destroy_ctx(dbgfs_ctxs[i]);
--			continue;
--		}
--		new_dirs[j] = dbgfs_dirs[i];
--		new_ctxs[j++] = dbgfs_ctxs[i];
--	}
--
--	kfree(dbgfs_dirs);
--	kfree(dbgfs_ctxs);
--
--	dbgfs_dirs = new_dirs;
--	dbgfs_ctxs = new_ctxs;
--	dbgfs_nr_ctxs--;
--
--	goto out_dput;
--
--out_new_dirs:
--	kfree(new_dirs);
--out_dput:
--	dput(dir);
--	return ret;
--}
--
--static ssize_t dbgfs_rm_context_write(struct file *file,
--		const char __user *buf, size_t count, loff_t *ppos)
--{
--	char *kbuf;
--	ssize_t ret;
--	char *ctx_name;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--	ctx_name = kmalloc(count + 1, GFP_KERNEL);
--	if (!ctx_name) {
--		kfree(kbuf);
--		return -ENOMEM;
--	}
--
--	/* Trim white space */
--	if (sscanf(kbuf, "%s", ctx_name) != 1) {
--		ret = -EINVAL;
--		goto out;
--	}
--
--	mutex_lock(&damon_dbgfs_lock);
--	ret = dbgfs_rm_context(ctx_name);
--	if (!ret)
--		ret = count;
--	mutex_unlock(&damon_dbgfs_lock);
--
--out:
--	kfree(kbuf);
--	kfree(ctx_name);
--	return ret;
--}
--
--static ssize_t dbgfs_monitor_on_read(struct file *file,
--		char __user *buf, size_t count, loff_t *ppos)
--{
--	char monitor_on_buf[5];
--	bool monitor_on = damon_nr_running_ctxs() != 0;
--	int len;
--
--	len = scnprintf(monitor_on_buf, 5, monitor_on ? "on\n" : "off\n");
--
--	return simple_read_from_buffer(buf, count, ppos, monitor_on_buf, len);
--}
--
--static ssize_t dbgfs_monitor_on_write(struct file *file,
--		const char __user *buf, size_t count, loff_t *ppos)
--{
--	ssize_t ret;
--	char *kbuf;
--
--	kbuf = user_input_str(buf, count, ppos);
--	if (IS_ERR(kbuf))
--		return PTR_ERR(kbuf);
--
--	/* Remove white space */
--	if (sscanf(kbuf, "%s", kbuf) != 1) {
--		kfree(kbuf);
--		return -EINVAL;
--	}
--
--	mutex_lock(&damon_dbgfs_lock);
--	if (!strncmp(kbuf, "on", count)) {
--		int i;
--
--		for (i = 0; i < dbgfs_nr_ctxs; i++) {
--			if (damon_targets_empty(dbgfs_ctxs[i])) {
--				kfree(kbuf);
--				mutex_unlock(&damon_dbgfs_lock);
--				return -EINVAL;
--			}
--		}
--		ret = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs, true);
--	} else if (!strncmp(kbuf, "off", count)) {
--		ret = damon_stop(dbgfs_ctxs, dbgfs_nr_ctxs);
--	} else {
--		ret = -EINVAL;
--	}
--	mutex_unlock(&damon_dbgfs_lock);
--
--	if (!ret)
--		ret = count;
--	kfree(kbuf);
--	return ret;
--}
--
--static int damon_dbgfs_static_file_open(struct inode *inode, struct file *file)
--{
--	damon_dbgfs_warn_deprecation();
--	return nonseekable_open(inode, file);
--}
--
--static const struct file_operations deprecated_fops = {
--	.read = damon_dbgfs_deprecated_read,
--};
--
--static const struct file_operations mk_contexts_fops = {
--	.open = damon_dbgfs_static_file_open,
--	.write = dbgfs_mk_context_write,
--};
--
--static const struct file_operations rm_contexts_fops = {
--	.open = damon_dbgfs_static_file_open,
--	.write = dbgfs_rm_context_write,
--};
--
--static const struct file_operations monitor_on_fops = {
--	.open = damon_dbgfs_static_file_open,
--	.read = dbgfs_monitor_on_read,
--	.write = dbgfs_monitor_on_write,
--};
--
--static int __init __damon_dbgfs_init(void)
--{
--	struct dentry *dbgfs_root;
--	const char * const file_names[] = {"mk_contexts", "rm_contexts",
--		"monitor_on_DEPRECATED", "DEPRECATED"};
--	const struct file_operations *fops[] = {&mk_contexts_fops,
--		&rm_contexts_fops, &monitor_on_fops, &deprecated_fops};
--	int i;
--
--	dbgfs_root = debugfs_create_dir("damon", NULL);
--
--	for (i = 0; i < ARRAY_SIZE(file_names); i++)
--		debugfs_create_file(file_names[i], 0600, dbgfs_root, NULL,
--				fops[i]);
--	dbgfs_fill_ctx_dir(dbgfs_root, dbgfs_ctxs[0]);
--
--	dbgfs_dirs = kmalloc(sizeof(dbgfs_root), GFP_KERNEL);
--	if (!dbgfs_dirs) {
--		debugfs_remove(dbgfs_root);
--		return -ENOMEM;
--	}
--	dbgfs_dirs[0] = dbgfs_root;
--
--	return 0;
--}
--
--/*
-- * Functions for the initialization
-- */
--
--static int __init damon_dbgfs_init(void)
--{
--	int rc = -ENOMEM;
--
--	mutex_lock(&damon_dbgfs_lock);
--	dbgfs_ctxs = kmalloc(sizeof(*dbgfs_ctxs), GFP_KERNEL);
--	if (!dbgfs_ctxs)
--		goto out;
--	dbgfs_ctxs[0] = dbgfs_new_ctx();
--	if (!dbgfs_ctxs[0]) {
--		kfree(dbgfs_ctxs);
--		goto out;
--	}
--	dbgfs_nr_ctxs = 1;
--
--	rc = __damon_dbgfs_init();
--	if (rc) {
--		kfree(dbgfs_ctxs[0]);
--		kfree(dbgfs_ctxs);
--		pr_err("%s: dbgfs init failed\n", __func__);
--	}
--
--out:
--	mutex_unlock(&damon_dbgfs_lock);
--	return rc;
--}
--
--module_init(damon_dbgfs_init);
---- a/mm/damon/Kconfig~mm-damon-remove-damon-debugfs-interface
-+++ a/mm/damon/Kconfig
-@@ -71,24 +71,6 @@ config DAMON_SYSFS_KUNIT_TEST
+--- a/drivers/acpi/numa/srat.c~mm-fake-numa-allow-later-numa-node-hotplug
++++ a/drivers/acpi/numa/srat.c
+@@ -81,6 +81,92 @@ int acpi_map_pxm_to_node(int pxm)
+ }
+ EXPORT_SYMBOL(acpi_map_pxm_to_node);
  
- 	  If unsure, say N.
++#ifdef CONFIG_NUMA_EMU
++/*
++ * Take max_nid - 1 fake-numa nodes into account in both
++ * pxm_to_node_map()/node_to_pxm_map[] tables.
++ */
++int __init fix_pxm_node_maps(int max_nid)
++{
++	static int pxm_to_node_map_copy[MAX_PXM_DOMAINS] __initdata
++			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
++	static int node_to_pxm_map_copy[MAX_NUMNODES] __initdata
++			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
++	int i, j, index = -1, count = 0;
++	nodemask_t nodes_to_enable;
++
++	if (numa_off || srat_disabled())
++		return -1;
++
++	/* find fake nodes PXM mapping */
++	for (i = 0; i < MAX_NUMNODES; i++) {
++		if (node_to_pxm_map[i] != PXM_INVAL) {
++			for (j = 0; j <= max_nid; j++) {
++				if ((emu_nid_to_phys[j] == i) &&
++				    WARN(node_to_pxm_map_copy[j] != PXM_INVAL,
++					 "Node %d is already binded to PXM %d\n",
++					 j, node_to_pxm_map_copy[j]))
++					return -1;
++				if (emu_nid_to_phys[j] == i) {
++					node_to_pxm_map_copy[j] =
++						node_to_pxm_map[i];
++					if (j > index)
++						index = j;
++					count++;
++				}
++			}
++		}
++	}
++	if (WARN(index != max_nid, "%d max nid  when expected %d\n",
++		      index, max_nid))
++		return -1;
++
++	nodes_clear(nodes_to_enable);
++
++	/* map phys nodes not used for fake nodes */
++	for (i = 0; i < MAX_NUMNODES; i++) {
++		if (node_to_pxm_map[i] != PXM_INVAL) {
++			for (j = 0; j <= max_nid; j++)
++				if (emu_nid_to_phys[j] == i)
++					break;
++			/* fake nodes PXM mapping has been done */
++			if (j <= max_nid)
++				continue;
++			/* find first hole */
++			for (j = 0;
++			     j < MAX_NUMNODES &&
++				 node_to_pxm_map_copy[j] != PXM_INVAL;
++			     j++)
++			;
++			if (WARN(j == MAX_NUMNODES,
++			    "Number of nodes exceeds MAX_NUMNODES\n"))
++				return -1;
++			node_to_pxm_map_copy[j] = node_to_pxm_map[i];
++			node_set(j, nodes_to_enable);
++			count++;
++		}
++	}
++
++	/* creating reverse mapping in pxm_to_node_map[] */
++	for (i = 0; i < MAX_NUMNODES; i++)
++		if (node_to_pxm_map_copy[i] != PXM_INVAL &&
++		    pxm_to_node_map_copy[node_to_pxm_map_copy[i]] == NUMA_NO_NODE)
++			pxm_to_node_map_copy[node_to_pxm_map_copy[i]] = i;
++
++	/* overwrite with new mapping */
++	for (i = 0; i < MAX_NUMNODES; i++) {
++		node_to_pxm_map[i] = node_to_pxm_map_copy[i];
++		pxm_to_node_map[i] = pxm_to_node_map_copy[i];
++	}
++
++	/* enable other nodes found in PXM for hotplug */
++	nodes_or(numa_nodes_parsed, nodes_to_enable, numa_nodes_parsed);
++
++	pr_debug("found %d total number of nodes\n", count);
++	return 0;
++}
++#endif
++
+ static void __init
+ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ {
+--- a/include/acpi/acpi_numa.h~mm-fake-numa-allow-later-numa-node-hotplug
++++ a/include/acpi/acpi_numa.h
+@@ -17,11 +17,16 @@ extern int node_to_pxm(int);
+ extern int acpi_map_pxm_to_node(int);
+ extern unsigned char acpi_srat_revision;
+ extern void disable_srat(void);
++extern int fix_pxm_node_maps(int max_nid);
  
--config DAMON_DBGFS_DEPRECATED
--	bool "DAMON debugfs interface (DEPRECATED!)"
--	depends on DAMON_VADDR && DAMON_PADDR && DEBUG_FS
--	help
--	  This builds the debugfs interface for DAMON.  The user space admins
--	  can use the interface for arbitrary data access monitoring.
+ extern void bad_srat(void);
+ extern int srat_disabled(void);
+ 
+ #else				/* CONFIG_ACPI_NUMA */
++static inline int fix_pxm_node_maps(int max_nid)
++{
++	return 0;
++}
+ static inline void disable_srat(void)
+ {
+ }
+--- a/include/linux/numa_memblks.h~mm-fake-numa-allow-later-numa-node-hotplug
++++ a/include/linux/numa_memblks.h
+@@ -29,7 +29,10 @@ int __init numa_cleanup_meminfo(struct n
+ int __init numa_memblks_init(int (*init_func)(void),
+ 			     bool memblock_force_top_down);
+ 
++extern int numa_distance_cnt;
++
+ #ifdef CONFIG_NUMA_EMU
++extern int emu_nid_to_phys[MAX_NUMNODES];
+ int numa_emu_cmdline(char *str);
+ void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
+ 					unsigned int nr_emu_nids);
+--- a/mm/numa_emulation.c~mm-fake-numa-allow-later-numa-node-hotplug
++++ a/mm/numa_emulation.c
+@@ -8,11 +8,12 @@
+ #include <linux/memblock.h>
+ #include <linux/numa_memblks.h>
+ #include <asm/numa.h>
++#include <acpi/acpi_numa.h>
+ 
+ #define FAKE_NODE_MIN_SIZE	((u64)32 << 20)
+ #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1UL))
+ 
+-static int emu_nid_to_phys[MAX_NUMNODES];
++int emu_nid_to_phys[MAX_NUMNODES];
+ static char *emu_cmdline __initdata;
+ 
+ int __init numa_emu_cmdline(char *str)
+@@ -379,6 +380,7 @@ void __init numa_emulation(struct numa_m
+ 	size_t phys_size = numa_dist_cnt * numa_dist_cnt * sizeof(phys_dist[0]);
+ 	int max_emu_nid, dfl_phys_nid;
+ 	int i, j, ret;
++	nodemask_t physnode_mask = numa_nodes_parsed;
+ 
+ 	if (!emu_cmdline)
+ 		goto no_emu;
+@@ -395,7 +397,6 @@ void __init numa_emulation(struct numa_m
+ 	 * split the system RAM into N fake nodes.
+ 	 */
+ 	if (strchr(emu_cmdline, 'U')) {
+-		nodemask_t physnode_mask = numa_nodes_parsed;
+ 		unsigned long n;
+ 		int nid = 0;
+ 
+@@ -465,9 +466,6 @@ void __init numa_emulation(struct numa_m
+ 	 */
+ 	max_emu_nid = setup_emu2phys_nid(&dfl_phys_nid);
+ 
+-	/* commit */
+-	*numa_meminfo = ei;
 -
--	  If unsure, say N.
--
--	  This is deprecated, so users should move to the sysfs interface
--	  (DAMON_SYSFS).  If you depend on this and cannot move, please report
--	  your usecase to damon@lists.linux.dev and linux-mm@kvack.org.
--
--config DAMON_DBGFS
--	bool
--	default y
--	depends on DAMON_DBGFS_DEPRECATED
--
- config DAMON_RECLAIM
- 	bool "Build DAMON-based reclaim (DAMON_RECLAIM)"
- 	depends on DAMON_PADDR
---- a/mm/damon/Makefile~mm-damon-remove-damon-debugfs-interface
-+++ a/mm/damon/Makefile
-@@ -4,6 +4,5 @@ obj-y				:= core.o
- obj-$(CONFIG_DAMON_VADDR)	+= ops-common.o vaddr.o
- obj-$(CONFIG_DAMON_PADDR)	+= ops-common.o paddr.o
- obj-$(CONFIG_DAMON_SYSFS)	+= sysfs-common.o sysfs-schemes.o sysfs.o
--obj-$(CONFIG_DAMON_DBGFS)	+= dbgfs.o
- obj-$(CONFIG_DAMON_RECLAIM)	+= modules-common.o reclaim.o
- obj-$(CONFIG_DAMON_LRU_SORT)	+= modules-common.o lru_sort.o
+ 	/* Make sure numa_nodes_parsed only contains emulated nodes */
+ 	nodes_clear(numa_nodes_parsed);
+ 	for (i = 0; i < ARRAY_SIZE(ei.blk); i++)
+@@ -475,10 +473,21 @@ void __init numa_emulation(struct numa_m
+ 		    ei.blk[i].nid != NUMA_NO_NODE)
+ 			node_set(ei.blk[i].nid, numa_nodes_parsed);
+ 
+-	numa_emu_update_cpu_to_node(emu_nid_to_phys, ARRAY_SIZE(emu_nid_to_phys));
++	/* fix pxm_to_node_map[] and node_to_pxm_map[] to avoid collision
++	 * with faked numa nodes, particularly during later memory hotplug
++	 * handling, and also update numa_nodes_parsed accordingly.
++	 */
++	ret = fix_pxm_node_maps(max_emu_nid);
++	if (ret < 0)
++		goto no_emu;
++
++	/* commit */
++	*numa_meminfo = ei;
++
++	numa_emu_update_cpu_to_node(emu_nid_to_phys, max_emu_nid + 1);
+ 
+ 	/* make sure all emulated nodes are mapped to a physical node */
+-	for (i = 0; i < ARRAY_SIZE(emu_nid_to_phys); i++)
++	for (i = 0; i < max_emu_nid + 1; i++)
+ 		if (emu_nid_to_phys[i] == NUMA_NO_NODE)
+ 			emu_nid_to_phys[i] = dfl_phys_nid;
+ 
+@@ -501,12 +510,34 @@ void __init numa_emulation(struct numa_m
+ 			numa_set_distance(i, j, dist);
+ 		}
+ 	}
++	for (i = 0; i < numa_distance_cnt; i++) {
++		for (j = 0; j < numa_distance_cnt; j++) {
++			int physi, physj;
++			u8 dist;
++
++			/* distance between fake nodes is already ok */
++			if (emu_nid_to_phys[i] != NUMA_NO_NODE &&
++			    emu_nid_to_phys[j] != NUMA_NO_NODE)
++				continue;
++			if (emu_nid_to_phys[i] != NUMA_NO_NODE)
++				physi = emu_nid_to_phys[i];
++			else
++				physi = i - max_emu_nid;
++			if (emu_nid_to_phys[j] != NUMA_NO_NODE)
++				physj = emu_nid_to_phys[j];
++			else
++				physj = j - max_emu_nid;
++			dist = phys_dist[physi * numa_dist_cnt + physj];
++			numa_set_distance(i, j, dist);
++		}
++	}
+ 
+ 	/* free the copied physical distance table */
+ 	memblock_free(phys_dist, phys_size);
+ 	return;
+ 
+ no_emu:
++	numa_nodes_parsed = physnode_mask;
+ 	/* No emulation.  Build identity emu_nid_to_phys[] for numa_add_cpu() */
+ 	for (i = 0; i < ARRAY_SIZE(emu_nid_to_phys); i++)
+ 		emu_nid_to_phys[i] = i;
+--- a/mm/numa_memblks.c~mm-fake-numa-allow-later-numa-node-hotplug
++++ a/mm/numa_memblks.c
+@@ -7,7 +7,7 @@
+ #include <linux/numa.h>
+ #include <linux/numa_memblks.h>
+ 
+-static int numa_distance_cnt;
++int numa_distance_cnt;
+ static u8 *numa_distance;
+ 
+ nodemask_t numa_nodes_parsed __initdata;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from bfaccini@nvidia.com are
 
-docs-mm-damon-design-add-monitoring-parameters-tuning-guide.patch
-docs-mm-damon-add-an-example-monitoring-intervals-tuning.patch
-docs-admin-guide-mm-damon-usage-fix-and-add-missing-damos-filter-sysfs-files-on-files-hierarchy.patch
-docs-admin-guide-mm-damon-start-update-snapshot-example.patch
-mm-damon-explain-effective-quota-on-kernel-doc-comment.patch
 
