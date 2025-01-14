@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B20423A115
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BAA023A103
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836971; cv=none; b=hltH0DlPR4FuOu2Hj9nU45fg/sxNvp1Op0DryyQjNLD6xiReKrVdF0Gh1B51sraMO9UZL7qj50hKDeFPWDHBewWYnbH6jIr4E0+JWrb9e41ASSU1oUlkBL2+2dzEK1jcl3EktyF/GPQtvNbvmeoAOhBiay2YgrDp85QnFCLdlgA=
+	t=1736836973; cv=none; b=D4G563U41V2fmzeK9gDJJu5GtOZbBIICo6r+4i81/rLg08E8FseRCZ29TIRo5IMI6I1+saQTnPnp8r+V+u41VHH2p1ZXGOWt0VYVoMh1iZwYunwXVbrmdYfcPZ8Zb9sOOVP5QltIy8Y4EENDFTYd+IU0CMA8/sn7NtCE2xzL6o4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836971; c=relaxed/simple;
-	bh=lSeW45YEQmHV562YR3yErj3gYj2ITs0kR57U2oJP2uI=;
-	h=Date:To:From:Subject:Message-Id; b=F7Cn6osbjQOwH04J7IrmTo9hDvebxv7Pm4oqEmSyctfXLSFvNega1kyN/9wOyTO4RKSqlFQSReUk7N7e6gssFQFZ8NY8rMIKa1Uu39ZORztChF6sbsNa8YdxOMYacxq70epPyzrUCBp0quP+rpWRJLsSFkuqSBas0/I9Q7QBeUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=duoBxLXh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836973; c=relaxed/simple;
+	bh=TzRXiPnMKGsfj0UrEMFw1HSJoc9TopLKoSDOwFnmUBs=;
+	h=Date:To:From:Subject:Message-Id; b=cW7H/IfSWVy4zrIjwRi66VphtJlUbcWKu0IeYDycDYopb8+dUyRFJLX2XTZ8JBDEmhlByebHQfSe8cHONK5RVa07CqneArht9cU6pS7Yp1ddINtlDmpQ9dWBbMTU1A2OvqhKD05kjfwBne77T8wpWPtnqfA2O9YgTh48E0NRhds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h7o/JBLl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="duoBxLXh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3BCAC4CEDD;
-	Tue, 14 Jan 2025 06:42:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h7o/JBLl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C2C2C4CEDD;
+	Tue, 14 Jan 2025 06:42:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836971;
-	bh=lSeW45YEQmHV562YR3yErj3gYj2ITs0kR57U2oJP2uI=;
+	s=korg; t=1736836973;
+	bh=TzRXiPnMKGsfj0UrEMFw1HSJoc9TopLKoSDOwFnmUBs=;
 	h=Date:To:From:Subject:From;
-	b=duoBxLXhk4sgDGl8MAX5Gdxim0uUr5onyeU4iYPuEgsrov8kXAxv/SS0dKiyP0l0u
-	 2McSb6zMNWedTE/KQUESjk5DI9fYk6K158nELnXMAGx/0P0JtZ+NbSrw3laN4UAhU5
-	 jJ3JSwtHB1XZ8iA08REAlK+y37S55zbiJb1L+k4M=
-Date: Mon, 13 Jan 2025 22:42:50 -0800
-To: mm-commits@vger.kernel.org,gaoxiang17@xiaomi.com,akpm@linux-foundation.org
+	b=h7o/JBLlpEhZFLw4bGrLjmmrOuJhWC6uK8CFFMkv/AJi4vFrl3T2+wRzeGxfUS4eF
+	 zZnFgjBwzup9vPUgXcAjUd7vO/J0QUykKOQmKrYG9XuMykk+jzoLRBfgtr2ph4WceM
+	 wqfWBKvGTThZQhcYX26v9Umx8miafKMMzxjmT4zY=
+Date: Mon, 13 Jan 2025 22:42:52 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,Liam.Howlett@Oracle.com,kees@kernel.org,jannh@google.com,jack@suse.cz,ebiederm@xmission.com,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch removed from -mm tree
-Message-Id: <20250114064250.E3BCAC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-move-brk-internals-to-mm-vmac.patch removed from -mm tree
+Message-Id: <20250114064253.4C2C2C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,346 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: add some detailed comments in can_steal_fallback
+     Subject: mm/vma: move brk() internals to mm/vma.c
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback.patch
+     mm-vma-move-brk-internals-to-mm-vmac.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: gaoxiang17 <gaoxiang17@xiaomi.com>
-Subject: mm/page_alloc: add some detailed comments in can_steal_fallback
-Date: Fri, 20 Sep 2024 20:20:30 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: move brk() internals to mm/vma.c
+Date: Tue, 3 Dec 2024 18:05:08 +0000
 
-[akpm@linux-foundation.org: tweak grammar, fit to 80 cols]
-Link: https://lkml.kernel.org/r/20240920122030.159751-1-gxxa03070307@gmail.com
-Signed-off-by: gaoxiang17 <gaoxiang17@xiaomi.com>
+Patch series "mm/vma: make more mmap logic userland testable".
+
+This series carries on the work started in previous series and
+continued in commit 52956b0d7fb9 ("mm: isolate mmap internal logic to
+mm/vma.c"), moving the remainder of memory mapping implementation
+details logic into mm/vma.c allowing the bulk of the mapping logic to
+be unit tested.
+
+It is highly useful to do so, as this means we can both fundamentally test
+this core logic, and introduce regression tests to ensure any issues
+previously resolved do not recur.
+
+Vitally, this includes the do_brk_flags() function, meaning we have both
+core means of userland mapping memory now testable.
+
+Performance testing was performed after this change given the brk() system
+call's sensitivity to change, and no performance regression was observed.
+
+The stack expansion logic is also moved into mm/vma.c, which necessitates
+a change in the API exposed to the exec code, removing the invocation of
+the expand_downwards() function used in get_arg_page() and instead adding
+mmap_read_lock_maybe_expand() to wrap this.
+
+
+This patch (of 5):
+
+Now we have moved mmap_region() internals to mm/vma.c, making it available
+to userland testing, it makes sense to do the same with brk().
+
+This continues the pattern of VMA heavy lifting being done in mm/vma.c in
+an environment where it can be subject to straightforward unit and
+regression testing, with other VMA-adjacent files becoming wrappers around
+this functionality.
+
+[lorenzo.stoakes@oracle.com: add missing personality header import]
+  Link: https://lkml.kernel.org/r/2a717265-985f-45eb-9257-8b2857088ed4@lucifer.local
+Link: https://lkml.kernel.org/r/cover.1733248985.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/3d24b9e67bb0261539ca921d1188a10a1b4d4357.1733248985.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/mmap.c                        |   85 -----------------------------
+ mm/vma.c                         |   82 +++++++++++++++++++++++++++
+ mm/vma.h                         |    3 +
+ mm/vma_internal.h                |    1 
+ tools/testing/vma/vma_internal.h |   22 +++++++
+ 5 files changed, 109 insertions(+), 84 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-some-detailed-comments-in-can_steal_fallback
-+++ a/mm/page_alloc.c
-@@ -1855,6 +1855,14 @@ static bool can_steal_fallback(unsigned
- 	if (order >= pageblock_order)
- 		return true;
+--- a/mm/mmap.c~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/mmap.c
+@@ -111,8 +111,7 @@ static int check_brk_limits(unsigned lon
+ 	return mlock_future_ok(current->mm, current->mm->def_flags, len)
+ 		? 0 : -EAGAIN;
+ }
+-static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
+-		unsigned long addr, unsigned long request, unsigned long flags);
++
+ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ {
+ 	unsigned long newbrk, oldbrk, origbrk;
+@@ -1512,88 +1511,6 @@ out:
+ 	return ret;
+ }
  
+-/*
+- * do_brk_flags() - Increase the brk vma if the flags match.
+- * @vmi: The vma iterator
+- * @addr: The start address
+- * @len: The length of the increase
+- * @vma: The vma,
+- * @flags: The VMA Flags
+- *
+- * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
+- * do not match then create a new anonymous VMA.  Eventually we may be able to
+- * do some brk-specific accounting here.
+- */
+-static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long len, unsigned long flags)
+-{
+-	struct mm_struct *mm = current->mm;
+-
+-	/*
+-	 * Check against address space limits by the changed size
+-	 * Note: This happens *after* clearing old mappings in some code paths.
+-	 */
+-	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
+-	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
+-		return -ENOMEM;
+-
+-	if (mm->map_count > sysctl_max_map_count)
+-		return -ENOMEM;
+-
+-	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
+-		return -ENOMEM;
+-
+-	/*
+-	 * Expand the existing vma if possible; Note that singular lists do not
+-	 * occur after forking, so the expand will only happen on new VMAs.
+-	 */
+-	if (vma && vma->vm_end == addr) {
+-		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
+-
+-		vmg.prev = vma;
+-		/* vmi is positioned at prev, which this mode expects. */
+-		vmg.merge_flags = VMG_FLAG_JUST_EXPAND;
+-
+-		if (vma_merge_new_range(&vmg))
+-			goto out;
+-		else if (vmg_nomem(&vmg))
+-			goto unacct_fail;
+-	}
+-
+-	if (vma)
+-		vma_iter_next_range(vmi);
+-	/* create a vma struct for an anonymous mapping */
+-	vma = vm_area_alloc(mm);
+-	if (!vma)
+-		goto unacct_fail;
+-
+-	vma_set_anonymous(vma);
+-	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
+-	vm_flags_init(vma, flags);
+-	vma->vm_page_prot = vm_get_page_prot(flags);
+-	vma_start_write(vma);
+-	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
+-		goto mas_store_fail;
+-
+-	mm->map_count++;
+-	validate_mm(mm);
+-	ksm_add_vma(vma);
+-out:
+-	perf_event_mmap(vma);
+-	mm->total_vm += len >> PAGE_SHIFT;
+-	mm->data_vm += len >> PAGE_SHIFT;
+-	if (flags & VM_LOCKED)
+-		mm->locked_vm += (len >> PAGE_SHIFT);
+-	vm_flags_set(vma, VM_SOFTDIRTY);
+-	return 0;
+-
+-mas_store_fail:
+-	vm_area_free(vma);
+-unacct_fail:
+-	vm_unacct_memory(len >> PAGE_SHIFT);
+-	return -ENOMEM;
+-}
+-
+ int vm_brk_flags(unsigned long addr, unsigned long request, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+--- a/mm/vma.c~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/vma.c
+@@ -2481,3 +2481,85 @@ abort_munmap:
+ 	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
+ 	return error;
+ }
++
++/*
++ * do_brk_flags() - Increase the brk vma if the flags match.
++ * @vmi: The vma iterator
++ * @addr: The start address
++ * @len: The length of the increase
++ * @vma: The vma,
++ * @flags: The VMA Flags
++ *
++ * Extend the brk VMA from addr to addr + len.  If the VMA is NULL or the flags
++ * do not match then create a new anonymous VMA.  Eventually we may be able to
++ * do some brk-specific accounting here.
++ */
++int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		 unsigned long addr, unsigned long len, unsigned long flags)
++{
++	struct mm_struct *mm = current->mm;
++
 +	/*
-+	 * Movable pages won't cause permanent fragmentation, so when you alloc
-+	 * small pages, you just need to temporarily steal unmovable or
-+	 * reclaimable pages that are closest to the request size.  After a
-+	 * while, memory compaction may occur to form large contiguous pages,
-+	 * and the next movable allocation may not need to steal.  Unmovable and
-+	 * reclaimable allocations need to actually steal pages.
++	 * Check against address space limits by the changed size
++	 * Note: This happens *after* clearing old mappings in some code paths.
 +	 */
- 	if (order >= pageblock_order / 2 ||
- 		start_mt == MIGRATE_RECLAIMABLE ||
- 		start_mt == MIGRATE_UNMOVABLE ||
++	flags |= VM_DATA_DEFAULT_FLAGS | VM_ACCOUNT | mm->def_flags;
++	if (!may_expand_vm(mm, flags, len >> PAGE_SHIFT))
++		return -ENOMEM;
++
++	if (mm->map_count > sysctl_max_map_count)
++		return -ENOMEM;
++
++	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
++		return -ENOMEM;
++
++	/*
++	 * Expand the existing vma if possible; Note that singular lists do not
++	 * occur after forking, so the expand will only happen on new VMAs.
++	 */
++	if (vma && vma->vm_end == addr) {
++		VMG_STATE(vmg, mm, vmi, addr, addr + len, flags, PHYS_PFN(addr));
++
++		vmg.prev = vma;
++		/* vmi is positioned at prev, which this mode expects. */
++		vmg.merge_flags = VMG_FLAG_JUST_EXPAND;
++
++		if (vma_merge_new_range(&vmg))
++			goto out;
++		else if (vmg_nomem(&vmg))
++			goto unacct_fail;
++	}
++
++	if (vma)
++		vma_iter_next_range(vmi);
++	/* create a vma struct for an anonymous mapping */
++	vma = vm_area_alloc(mm);
++	if (!vma)
++		goto unacct_fail;
++
++	vma_set_anonymous(vma);
++	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
++	vm_flags_init(vma, flags);
++	vma->vm_page_prot = vm_get_page_prot(flags);
++	vma_start_write(vma);
++	if (vma_iter_store_gfp(vmi, vma, GFP_KERNEL))
++		goto mas_store_fail;
++
++	mm->map_count++;
++	validate_mm(mm);
++	ksm_add_vma(vma);
++out:
++	perf_event_mmap(vma);
++	mm->total_vm += len >> PAGE_SHIFT;
++	mm->data_vm += len >> PAGE_SHIFT;
++	if (flags & VM_LOCKED)
++		mm->locked_vm += (len >> PAGE_SHIFT);
++	vm_flags_set(vma, VM_SOFTDIRTY);
++	return 0;
++
++mas_store_fail:
++	vm_area_free(vma);
++unacct_fail:
++	vm_unacct_memory(len >> PAGE_SHIFT);
++	return -ENOMEM;
++}
+--- a/mm/vma.h~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/vma.h
+@@ -247,6 +247,9 @@ unsigned long __mmap_region(struct file
+ 		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
+ 		struct list_head *uf);
+ 
++int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
++		 unsigned long addr, unsigned long request, unsigned long flags);
++
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
+ {
+ 	/*
+--- a/mm/vma_internal.h~mm-vma-move-brk-internals-to-mm-vmac
++++ a/mm/vma_internal.h
+@@ -35,6 +35,7 @@
+ #include <linux/mutex.h>
+ #include <linux/pagemap.h>
+ #include <linux/perf_event.h>
++#include <linux/personality.h>
+ #include <linux/pfn.h>
+ #include <linux/rcupdate.h>
+ #include <linux/rmap.h>
+--- a/tools/testing/vma/vma_internal.h~mm-vma-move-brk-internals-to-mm-vmac
++++ a/tools/testing/vma/vma_internal.h
+@@ -39,6 +39,7 @@
+ #define VM_SHARED	0x00000008
+ #define VM_MAYREAD	0x00000010
+ #define VM_MAYWRITE	0x00000020
++#define VM_MAYEXEC	0x00000040
+ #define VM_GROWSDOWN	0x00000100
+ #define VM_PFNMAP	0x00000400
+ #define VM_LOCKED	0x00002000
+@@ -58,6 +59,13 @@
+ /* This mask represents all the VMA flag bits used by mlock */
+ #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+ 
++#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
++
++#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
++
+ #ifdef CONFIG_64BIT
+ /* VM is sealed, in vm_flags */
+ #define VM_SEALED	_BITUL(63)
+@@ -122,10 +130,22 @@ enum {
+ 	TASK_COMM_LEN = 16,
+ };
+ 
++/*
++ * Flags for bug emulation.
++ *
++ * These occupy the top three bytes.
++ */
++enum {
++	READ_IMPLIES_EXEC =	0x0400000,
++};
++
+ struct task_struct {
+ 	char comm[TASK_COMM_LEN];
+ 	pid_t pid;
+ 	struct mm_struct *mm;
++
++	/* Used for emulating ABI behavior of previous Linux versions: */
++	unsigned int			personality;
+ };
+ 
+ struct task_struct *get_current(void);
+@@ -186,6 +206,8 @@ struct mm_struct {
+ 	unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
+ 	unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
+ 	unsigned long stack_vm;	   /* VM_STACK */
++
++	unsigned long def_flags;
+ };
+ 
+ struct vma_lock {
 _
 
-Patches currently in -mm which might be from gaoxiang17@xiaomi.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mips-vdso-prefer-do_mmap-to-mmap_region.patch
+mm-make-mmap_region-internal.patch
 
