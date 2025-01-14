@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 584405695
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 00:19:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04D0E5695
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 00:19:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736813986; cv=none; b=gjWjOaIIdtlLP51alhdFV2S+K8Op6gxE2yRN/Eb3xmky2aYYtLoOWe8kTktzMqYTOHin6ovE6VLbPHA4DaXenHDeBGaNWSIdM6cUOuWNVEJ2GnTuupEv9WddC6lDQ2ZMqCOhUfpv0sE2voBKwGMg4XmYbraBEbPzlYjjqrpPcik=
+	t=1736813989; cv=none; b=fi5vR2nafv1OdhkQ+wodC6f3KS/imn7eoutUtcxmnCv90R5SRTvMjesON0KaYkq9tjbcJ5aeYVJXOZL+i3o3iy4tvsjOIA5P2DBS0xl3XhmePPGThl85Uv+k86tyl6y+1gXgF9uQynl5BjwvomqZk/4zYkcW7WzmzdXkuRrqVQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736813986; c=relaxed/simple;
-	bh=mJ0X78b0V2TmcWqalAY6Z6gfl7SLv8YsHF+FqyDF9jo=;
-	h=Date:To:From:Subject:Message-Id; b=pd+ehscmIvogiVVnMAQyjiIsIRO5cgRTlr3S6E937yZALuGyeJsFYr+WlTju8pAItULwPVojNXCqqJLIQ3FysQq3EPmSZPSHEsZxjjoWA8yIup5U5iQDjSFe0ZBElV5qTshAYl/6s6s/DVuX9Uoht94iu8hXq+mSmdju6a5q0/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQ8pvtJC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736813989; c=relaxed/simple;
+	bh=dikEt49AxZFPDdNOnN4kvTD6aqSqWvNq8OaRz/O2wEw=;
+	h=Date:To:From:Subject:Message-Id; b=BCdtrW+b6tm3PHDUkCWLarBLmFpXsqrA1bhbnW0RDEWE9KTivErN5i42mlCejM86WIsGSNVG1LIbFjGC+m1UZPHU4ztHOvm6YEGoBmlZWaiKIr/S7XwYiCc6C8tjnphwk2QycQYqIHZI5rJrwQUo0/+0cjywRIDlfj0f5bKqmfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E/r9RMJY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQ8pvtJC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEF1EC4CED6;
-	Tue, 14 Jan 2025 00:19:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E/r9RMJY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 831C1C4CED6;
+	Tue, 14 Jan 2025 00:19:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736813985;
-	bh=mJ0X78b0V2TmcWqalAY6Z6gfl7SLv8YsHF+FqyDF9jo=;
+	s=korg; t=1736813988;
+	bh=dikEt49AxZFPDdNOnN4kvTD6aqSqWvNq8OaRz/O2wEw=;
 	h=Date:To:From:Subject:From;
-	b=ZQ8pvtJCY3SUPfqSRg1ITtOWRb2t5CHpl5DMoxDEPSFuY400ZT0sR32/TH8fkI5uO
-	 cnS6Hzt6vEZ3e0L6C98M10IpukWsxfBN/sb2DrXIbsJ1Fh/5Rf7AEt4oiSdq9C4w0P
-	 op0hDUC2xhBD5rFfuLXuBvINxShTK3W/0qvb/2Fk=
-Date: Mon, 13 Jan 2025 16:19:45 -0800
+	b=E/r9RMJYmPplIeUguuTBbN5lNV7jgNVha7WDLn9zaXfg1+7hrV76Kx+ls0ncPu/+q
+	 vqcuknjewsKfuGkX6sBBz65E/krOUsvgEW9Mym34kApuefuR6Axr/XGdnCagFSQP69
+	 0yp+LDOSP+aRVI2KzLS6CK2jRlbbU3xYJBNnc9Sg=
+Date: Mon, 13 Jan 2025 16:19:47 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-clean-up-plist-removal-and-adding.patch added to mm-unstable branch
-Message-Id: <20250114001945.BEF1EC4CED6@smtp.kernel.org>
+Subject: + mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch added to mm-unstable branch
+Message-Id: <20250114001948.831C1C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: clean up plist removal and adding
+     Subject: mm, swap: hold a reference during scan and cleanup flag usage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-clean-up-plist-removal-and-adding.patch
+     mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-clean-up-plist-removal-and-adding.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: clean up plist removal and adding
-Date: Tue, 14 Jan 2025 01:57:25 +0800
+Subject: mm, swap: hold a reference during scan and cleanup flag usage
+Date: Tue, 14 Jan 2025 01:57:26 +0800
 
-When the swap device is full (inuse_pages == pages), it should be removed
-from the allocation available plist.  If any slot is freed, the swap
-device should be added back to the plist.  Additionally, during swapon or
-swapoff, the swap device is forcefully added or removed.
+The flag SWP_SCANNING was used as an indicator of whether a device is
+being scanned for allocation, and prevents swapoff.  Combined with
+SWP_WRITEOK, they work as a set of barriers for a clean swapoff:
 
-Currently, the condition (inuse_pages == pages) is checked after every
-counter update, then remove or add the device accordingly.  This is
-serialized by si->lock.
+1. Swapoff clears SWP_WRITEOK, allocation requests will see
+   ~SWP_WRITEOK and abort as it's serialized by si->lock.
+2. Swapoff unuses all allocated entries.
+3. Swapoff waits for SWP_SCANNING flag to be cleared, so ongoing
+   allocations will stop, preventing UAF.
+4. Now swapoff can free everything safely.
 
-This commit decouples it from the protection of si->lock and reworked
-plist removal and adding, making it possible to get rid of the hard
-dependency on si->lock in allocation path in later commits.
+This will make the allocation path have a hard dependency on si->lock. 
+Allocation always have to acquire si->lock first for setting SWP_SCANNING
+and checking SWP_WRITEOK.
 
-To achieve this, simply using another lock is not an optimal approach, as
-the overhead is observable for a hot counter, and may cause complex
-locking issues.  Thus, this commit manages to make it a lock-free atomic
-operation, by embedding the plist state into the second highest bit of the
-atomic counter.
+This commit removes this flag, and just uses the existing per-CPU refcount
+instead to prevent UAF in step 3, which serves well for such usage without
+dependency on si->lock, and scales very well too.  Just hold a reference
+during the whole scan and allocation process.  Swapoff will kill and wait
+for the counter.
 
-Simply making the counter an atomic will not work, if the update and plist
-status check are not performed atomically, we may miss an addition or
-removal.  With the embedded info we can update the counter and check the
-plist status with single atomic operations, and avoid any extra overheads:
+And for preventing any allocation from happening after step 1 so the unuse
+in step 2 can ensure all slots are free, swapoff will acquire the ci->lock
+of each cluster one by one to ensure all allocations see ~SWP_WRITEOK and
+abort.
 
-If the counter is full (inuse_pages == pages) and the off-list bit is
-unset, we attempt to remove it from the plist.  If the counter is not full
-(inuse_pages != pages) and the off-list bit is set, we attempt to add it
-to the plist.  Removing, adding and bit update is serialized with a lock,
-which is a cold path.  Ordinary counter updates will be lock-free.
+This way these dependences on si->lock are gone.  And worth noting we
+can't kill the refcount as the first step for swapoff as the unuse process
+have to acquire the refcount.
 
-Link: https://lkml.kernel.org/r/20250113175732.48099-7-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250113175732.48099-8-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
@@ -107,368 +107,183 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 
- mm/swapfile.c        |  186 ++++++++++++++++++++++++++++++-----------
- 2 files changed, 138 insertions(+), 50 deletions(-)
+ include/linux/swap.h |    1 
+ mm/swapfile.c        |   90 +++++++++++++++++++++++++----------------
+ 2 files changed, 57 insertions(+), 34 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-clean-up-plist-removal-and-adding
+--- a/include/linux/swap.h~mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage
 +++ a/include/linux/swap.h
-@@ -307,7 +307,7 @@ struct swap_info_struct {
- 					/* list of cluster that are fragmented or contented */
- 	unsigned int frag_cluster_nr[SWAP_NR_ORDERS];
- 	unsigned int pages;		/* total of usable pages of swap */
--	unsigned int inuse_pages;	/* number of those currently in use */
-+	atomic_long_t inuse_pages;	/* number of those currently in use */
- 	struct percpu_cluster __percpu *percpu_cluster; /* per cpu's swap location */
- 	struct rb_root swap_extent_root;/* root of the swap extent rbtree */
- 	struct block_device *bdev;	/* swap device or bdev of swap file */
---- a/mm/swapfile.c~mm-swap-clean-up-plist-removal-and-adding
+@@ -219,7 +219,6 @@ enum {
+ 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
+ 	SWP_SYNCHRONOUS_IO = (1 << 12),	/* synchronous IO is efficient */
+ 					/* add others here before... */
+-	SWP_SCANNING	= (1 << 14),	/* refcount in scan_swap_map */
+ };
+ 
+ #define SWAP_CLUSTER_MAX 32UL
+--- a/mm/swapfile.c~mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage
 +++ a/mm/swapfile.c
-@@ -128,6 +128,26 @@ static inline unsigned char swap_count(u
- 	return ent & ~SWAP_HAS_CACHE;	/* may include COUNT_CONTINUED flag */
- }
- 
-+/*
-+ * Use the second highest bit of inuse_pages counter as the indicator
-+ * if one swap device is on the available plist, so the atomic can
-+ * still be updated arithmetically while having special data embedded.
-+ *
-+ * inuse_pages counter is the only thing indicating if a device should
-+ * be on avail_lists or not (except swapon / swapoff). By embedding the
-+ * off-list bit in the atomic counter, updates no longer need any lock
-+ * to check the list status.
-+ *
-+ * This bit will be set if the device is not on the plist and not
-+ * usable, will be cleared if the device is on the plist.
-+ */
-+#define SWAP_USAGE_OFFLIST_BIT (1UL << (BITS_PER_TYPE(atomic_t) - 2))
-+#define SWAP_USAGE_COUNTER_MASK (~SWAP_USAGE_OFFLIST_BIT)
-+static long swap_usage_in_pages(struct swap_info_struct *si)
-+{
-+	return atomic_long_read(&si->inuse_pages) & SWAP_USAGE_COUNTER_MASK;
-+}
-+
- /* Reclaim the swap entry anyway if possible */
- #define TTRS_ANYWAY		0x1
- /*
-@@ -717,7 +737,7 @@ static void swap_reclaim_full_clusters(s
- 	int nr_reclaim;
- 
- 	if (force)
--		to_scan = si->inuse_pages / SWAPFILE_CLUSTER;
-+		to_scan = swap_usage_in_pages(si) / SWAPFILE_CLUSTER;
- 
- 	while (!list_empty(&si->full_clusters)) {
- 		ci = list_first_entry(&si->full_clusters, struct swap_cluster_info, list);
-@@ -872,42 +892,128 @@ done:
- 	return found;
- }
- 
--static void __del_from_avail_list(struct swap_info_struct *si)
-+/* SWAP_USAGE_OFFLIST_BIT can only be set by this helper. */
-+static void del_from_avail_list(struct swap_info_struct *si, bool swapoff)
+@@ -658,6 +658,8 @@ static bool cluster_alloc_range(struct s
  {
- 	int nid;
-+	unsigned long pages;
-+
-+	spin_lock(&swap_avail_lock);
-+
-+	if (swapoff) {
-+		/*
-+		 * Forcefully remove it. Clear the SWP_WRITEOK flags for
-+		 * swapoff here so it's synchronized by both si->lock and
-+		 * swap_avail_lock, to ensure the result can be seen by
-+		 * add_to_avail_list.
-+		 */
-+		lockdep_assert_held(&si->lock);
-+		si->flags &= ~SWP_WRITEOK;
-+		atomic_long_or(SWAP_USAGE_OFFLIST_BIT, &si->inuse_pages);
-+	} else {
-+		/*
-+		 * If not called by swapoff, take it off-list only if it's
-+		 * full and SWAP_USAGE_OFFLIST_BIT is not set (strictly
-+		 * si->inuse_pages == pages), any concurrent slot freeing,
-+		 * or device already removed from plist by someone else
-+		 * will make this return false.
-+		 */
-+		pages = si->pages;
-+		if (!atomic_long_try_cmpxchg(&si->inuse_pages, &pages,
-+					     pages | SWAP_USAGE_OFFLIST_BIT))
-+			goto skip;
-+	}
+ 	unsigned int nr_pages = 1 << order;
  
--	assert_spin_locked(&si->lock);
- 	for_each_node(nid)
- 		plist_del(&si->avail_lists[nid], &swap_avail_heads[nid]);
++	lockdep_assert_held(&ci->lock);
 +
-+skip:
-+	spin_unlock(&swap_avail_lock);
- }
+ 	if (!(si->flags & SWP_WRITEOK))
+ 		return false;
  
--static void del_from_avail_list(struct swap_info_struct *si)
-+/* SWAP_USAGE_OFFLIST_BIT can only be cleared by this helper. */
-+static void add_to_avail_list(struct swap_info_struct *si, bool swapon)
+@@ -1059,8 +1061,6 @@ static int cluster_alloc_swap(struct swa
  {
-+	int nid;
-+	long val;
-+	unsigned long pages;
-+
- 	spin_lock(&swap_avail_lock);
--	__del_from_avail_list(si);
-+
-+	/* Corresponding to SWP_WRITEOK clearing in del_from_avail_list */
-+	if (swapon) {
-+		lockdep_assert_held(&si->lock);
-+		si->flags |= SWP_WRITEOK;
-+	} else {
-+		if (!(READ_ONCE(si->flags) & SWP_WRITEOK))
-+			goto skip;
-+	}
-+
-+	if (!(atomic_long_read(&si->inuse_pages) & SWAP_USAGE_OFFLIST_BIT))
-+		goto skip;
-+
-+	val = atomic_long_fetch_and_relaxed(~SWAP_USAGE_OFFLIST_BIT, &si->inuse_pages);
-+
-+	/*
-+	 * When device is full and device is on the plist, only one updater will
-+	 * see (inuse_pages == si->pages) and will call del_from_avail_list. If
-+	 * that updater happen to be here, just skip adding.
-+	 */
-+	pages = si->pages;
-+	if (val == pages) {
-+		/* Just like the cmpxchg in del_from_avail_list */
-+		if (atomic_long_try_cmpxchg(&si->inuse_pages, &pages,
-+					    pages | SWAP_USAGE_OFFLIST_BIT))
-+			goto skip;
-+	}
-+
-+	for_each_node(nid)
-+		plist_add(&si->avail_lists[nid], &swap_avail_heads[nid]);
-+
-+skip:
- 	spin_unlock(&swap_avail_lock);
- }
+ 	int n_ret = 0;
  
--static void swap_range_alloc(struct swap_info_struct *si,
--			     unsigned int nr_entries)
-+/*
-+ * swap_usage_add / swap_usage_sub of each slot are serialized by ci->lock
-+ * within each cluster, so the total contribution to the global counter should
-+ * always be positive and cannot exceed the total number of usable slots.
-+ */
-+static bool swap_usage_add(struct swap_info_struct *si, unsigned int nr_entries)
- {
--	WRITE_ONCE(si->inuse_pages, si->inuse_pages + nr_entries);
--	if (si->inuse_pages == si->pages) {
--		del_from_avail_list(si);
-+	long val = atomic_long_add_return_relaxed(nr_entries, &si->inuse_pages);
+-	si->flags += SWP_SCANNING;
+-
+ 	while (n_ret < nr) {
+ 		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
  
--		if (vm_swap_full())
--			schedule_work(&si->reclaim_work);
-+	/*
-+	 * If device is full, and SWAP_USAGE_OFFLIST_BIT is not set,
-+	 * remove it from the plist.
-+	 */
-+	if (unlikely(val == si->pages)) {
-+		del_from_avail_list(si, false);
-+		return true;
+@@ -1069,8 +1069,6 @@ static int cluster_alloc_swap(struct swa
+ 		slots[n_ret++] = swp_entry(si->type, offset);
  	}
-+
-+	return false;
+ 
+-	si->flags -= SWP_SCANNING;
+-
+ 	return n_ret;
  }
  
--static void add_to_avail_list(struct swap_info_struct *si)
-+static void swap_usage_sub(struct swap_info_struct *si, unsigned int nr_entries)
- {
--	int nid;
-+	long val = atomic_long_sub_return_relaxed(nr_entries, &si->inuse_pages);
+@@ -1112,6 +1110,22 @@ static int scan_swap_map_slots(struct sw
+ 	return cluster_alloc_swap(si, usage, nr, slots, order);
+ }
  
--	spin_lock(&swap_avail_lock);
--	for_each_node(nid)
--		plist_add(&si->avail_lists[nid], &swap_avail_heads[nid]);
--	spin_unlock(&swap_avail_lock);
++static bool get_swap_device_info(struct swap_info_struct *si)
++{
++	if (!percpu_ref_tryget_live(&si->users))
++		return false;
 +	/*
-+	 * If device is not full, and SWAP_USAGE_OFFLIST_BIT is set,
-+	 * remove it from the plist.
++	 * Guarantee the si->users are checked before accessing other
++	 * fields of swap_info_struct, and si->flags (SWP_WRITEOK) is
++	 * up to dated.
++	 *
++	 * Paired with the spin_unlock() after setup_swap_info() in
++	 * enable_swap_info(), and smp_wmb() in swapoff.
 +	 */
-+	if (unlikely(val & SWAP_USAGE_OFFLIST_BIT))
-+		add_to_avail_list(si, false);
++	smp_rmb();
++	return true;
 +}
 +
-+static void swap_range_alloc(struct swap_info_struct *si,
-+			     unsigned int nr_entries)
-+{
-+	if (swap_usage_add(si, nr_entries)) {
-+		if (vm_swap_full())
-+			schedule_work(&si->reclaim_work);
-+	}
- }
- 
- static void swap_range_free(struct swap_info_struct *si, unsigned long offset,
-@@ -925,8 +1031,6 @@ static void swap_range_free(struct swap_
- 	for (i = 0; i < nr_entries; i++)
- 		clear_bit(offset + i, si->zeromap);
- 
--	if (si->inuse_pages == si->pages)
--		add_to_avail_list(si);
- 	if (si->flags & SWP_BLKDEV)
- 		swap_slot_free_notify =
- 			si->bdev->bd_disk->fops->swap_slot_free_notify;
-@@ -946,7 +1050,7 @@ static void swap_range_free(struct swap_
- 	 */
- 	smp_wmb();
- 	atomic_long_add(nr_entries, &nr_swap_pages);
--	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
-+	swap_usage_sub(si, nr_entries);
- }
- 
- static int cluster_alloc_swap(struct swap_info_struct *si,
-@@ -1036,19 +1140,6 @@ start_over:
+ int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_order)
+ {
+ 	int order = swap_entry_order(entry_order);
+@@ -1139,13 +1153,16 @@ start_over:
+ 		/* requeue si to after same-priority siblings */
  		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
  		spin_unlock(&swap_avail_lock);
- 		spin_lock(&si->lock);
--		if ((si->inuse_pages == si->pages) || !(si->flags & SWP_WRITEOK)) {
--			spin_lock(&swap_avail_lock);
--			if (plist_node_empty(&si->avail_lists[node])) {
--				spin_unlock(&si->lock);
--				goto nextsi;
--			}
--			WARN(!(si->flags & SWP_WRITEOK),
--			     "swap_info %d in list but !SWP_WRITEOK\n",
--			     si->type);
--			__del_from_avail_list(si);
--			spin_unlock(&si->lock);
--			goto nextsi;
--		}
- 		n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
- 					    n_goal, swp_entries, order);
- 		spin_unlock(&si->lock);
-@@ -1057,7 +1148,6 @@ start_over:
- 		cond_resched();
+-		spin_lock(&si->lock);
+-		n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
+-					    n_goal, swp_entries, order);
+-		spin_unlock(&si->lock);
+-		if (n_ret || size > 1)
+-			goto check_out;
+-		cond_resched();
++		if (get_swap_device_info(si)) {
++			spin_lock(&si->lock);
++			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
++					n_goal, swp_entries, order);
++			spin_unlock(&si->lock);
++			put_swap_device(si);
++			if (n_ret || size > 1)
++				goto check_out;
++			cond_resched();
++		}
  
  		spin_lock(&swap_avail_lock);
--nextsi:
  		/*
- 		 * if we got here, it's likely that si was almost full before,
- 		 * and since scan_swap_map_slots() can drop the si->lock,
-@@ -1789,7 +1879,7 @@ unsigned int count_swap_pages(int type,
- 		if (sis->flags & SWP_WRITEOK) {
- 			n = sis->pages;
- 			if (free)
--				n -= sis->inuse_pages;
-+				n -= swap_usage_in_pages(sis);
- 		}
- 		spin_unlock(&sis->lock);
- 	}
-@@ -2124,7 +2214,7 @@ static int try_to_unuse(unsigned int typ
- 	swp_entry_t entry;
- 	unsigned int i;
+@@ -1296,16 +1313,8 @@ struct swap_info_struct *get_swap_device
+ 	si = swp_swap_info(entry);
+ 	if (!si)
+ 		goto bad_nofile;
+-	if (!percpu_ref_tryget_live(&si->users))
++	if (!get_swap_device_info(si))
+ 		goto out;
+-	/*
+-	 * Guarantee the si->users are checked before accessing other
+-	 * fields of swap_info_struct.
+-	 *
+-	 * Paired with the spin_unlock() after setup_swap_info() in
+-	 * enable_swap_info().
+-	 */
+-	smp_rmb();
+ 	offset = swp_offset(entry);
+ 	if (offset >= si->max)
+ 		goto put_out;
+@@ -1785,10 +1794,13 @@ swp_entry_t get_swap_page_of_type(int ty
+ 		goto fail;
  
--	if (!READ_ONCE(si->inuse_pages))
-+	if (!swap_usage_in_pages(si))
- 		goto success;
- 
- retry:
-@@ -2137,7 +2227,7 @@ retry:
- 
- 	spin_lock(&mmlist_lock);
- 	p = &init_mm.mmlist;
--	while (READ_ONCE(si->inuse_pages) &&
-+	while (swap_usage_in_pages(si) &&
- 	       !signal_pending(current) &&
- 	       (p = p->next) != &init_mm.mmlist) {
- 
-@@ -2165,7 +2255,7 @@ retry:
- 	mmput(prev_mm);
- 
- 	i = 0;
--	while (READ_ONCE(si->inuse_pages) &&
-+	while (swap_usage_in_pages(si) &&
- 	       !signal_pending(current) &&
- 	       (i = find_next_to_unuse(si, i)) != 0) {
- 
-@@ -2200,7 +2290,7 @@ retry:
- 	 * folio_alloc_swap(), temporarily hiding that swap.  It's easy
- 	 * and robust (though cpu-intensive) just to keep retrying.
- 	 */
--	if (READ_ONCE(si->inuse_pages)) {
-+	if (swap_usage_in_pages(si)) {
- 		if (!signal_pending(current))
- 			goto retry;
- 		return -EINTR;
-@@ -2227,7 +2317,7 @@ static void drain_mmlist(void)
- 	unsigned int type;
- 
- 	for (type = 0; type < nr_swapfiles; type++)
--		if (swap_info[type]->inuse_pages)
-+		if (swap_usage_in_pages(swap_info[type]))
- 			return;
- 	spin_lock(&mmlist_lock);
- 	list_for_each_safe(p, next, &init_mm.mmlist)
-@@ -2406,7 +2496,6 @@ static void setup_swap_info(struct swap_
- 
- static void _enable_swap_info(struct swap_info_struct *si)
- {
--	si->flags |= SWP_WRITEOK;
- 	atomic_long_add(si->pages, &nr_swap_pages);
- 	total_swap_pages += si->pages;
- 
-@@ -2423,9 +2512,8 @@ static void _enable_swap_info(struct swa
- 	 */
- 	plist_add(&si->list, &swap_active_head);
- 
--	/* add to available list if swap device is not full */
--	if (si->inuse_pages < si->pages)
--		add_to_avail_list(si);
-+	/* Add back to available list */
-+	add_to_avail_list(si, true);
+ 	/* This is called for allocating swap entry, not cache */
+-	spin_lock(&si->lock);
+-	if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry, 0))
+-		atomic_long_dec(&nr_swap_pages);
+-	spin_unlock(&si->lock);
++	if (get_swap_device_info(si)) {
++		spin_lock(&si->lock);
++		if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry, 0))
++			atomic_long_dec(&nr_swap_pages);
++		spin_unlock(&si->lock);
++		put_swap_device(si);
++	}
+ fail:
+ 	return entry;
+ }
+@@ -2562,6 +2574,25 @@ bool has_usable_swap(void)
+ 	return ret;
  }
  
- static void enable_swap_info(struct swap_info_struct *si, int prio,
-@@ -2523,7 +2611,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 		goto out_dput;
- 	}
- 	spin_lock(&p->lock);
--	del_from_avail_list(p);
-+	del_from_avail_list(p, true);
- 	if (p->prio < 0) {
- 		struct swap_info_struct *si = p;
- 		int nid;
-@@ -2541,7 +2629,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	plist_del(&p->list, &swap_active_head);
- 	atomic_long_sub(p->pages, &nr_swap_pages);
- 	total_swap_pages -= p->pages;
--	p->flags &= ~SWP_WRITEOK;
++/*
++ * Called after clearing SWP_WRITEOK, ensures cluster_alloc_range
++ * see the updated flags, so there will be no more allocations.
++ */
++static void wait_for_allocation(struct swap_info_struct *si)
++{
++	unsigned long offset;
++	unsigned long end = ALIGN(si->max, SWAPFILE_CLUSTER);
++	struct swap_cluster_info *ci;
++
++	BUG_ON(si->flags & SWP_WRITEOK);
++
++	for (offset = 0; offset < end; offset += SWAPFILE_CLUSTER) {
++		ci = lock_cluster(si, offset);
++		unlock_cluster(ci);
++		offset += SWAPFILE_CLUSTER;
++	}
++}
++
+ SYSCALL_DEFINE1(swapoff, const char __user *, specialfile)
+ {
+ 	struct swap_info_struct *p = NULL;
+@@ -2632,6 +2663,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
  	spin_unlock(&p->lock);
  	spin_unlock(&swap_lock);
  
-@@ -2721,7 +2808,7 @@ static int swap_show(struct seq_file *sw
- 	}
++	wait_for_allocation(p);
++
+ 	disable_swap_slots_cache_lock();
  
- 	bytes = K(si->pages);
--	inuse = K(READ_ONCE(si->inuse_pages));
-+	inuse = K(swap_usage_in_pages(si));
+ 	set_current_oom_origin();
+@@ -2674,15 +2707,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	spin_lock(&p->lock);
+ 	drain_mmlist();
  
- 	file = si->swap_file;
- 	len = seq_file_path(swap, file, " \t\n\\");
-@@ -2838,6 +2925,7 @@ static struct swap_info_struct *alloc_sw
- 	}
- 	spin_lock_init(&p->lock);
- 	spin_lock_init(&p->cont_lock);
-+	atomic_long_set(&p->inuse_pages, SWAP_USAGE_OFFLIST_BIT);
- 	init_completion(&p->comp);
- 
- 	return p;
-@@ -3335,7 +3423,7 @@ void si_swapinfo(struct sysinfo *val)
- 		struct swap_info_struct *si = swap_info[type];
- 
- 		if ((si->flags & SWP_USED) && !(si->flags & SWP_WRITEOK))
--			nr_to_be_unused += READ_ONCE(si->inuse_pages);
-+			nr_to_be_unused += swap_usage_in_pages(si);
- 	}
- 	val->freeswap = atomic_long_read(&nr_swap_pages) + nr_to_be_unused;
- 	val->totalswap = total_swap_pages + nr_to_be_unused;
+-	/* wait for anyone still in scan_swap_map_slots */
+-	while (p->flags >= SWP_SCANNING) {
+-		spin_unlock(&p->lock);
+-		spin_unlock(&swap_lock);
+-		schedule_timeout_uninterruptible(1);
+-		spin_lock(&swap_lock);
+-		spin_lock(&p->lock);
+-	}
+-
+ 	swap_file = p->swap_file;
+ 	p->swap_file = NULL;
+ 	p->max = 0;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
