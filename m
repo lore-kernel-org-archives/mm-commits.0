@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE9BA22F11
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:25:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A68D22F11
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:26:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736835911; cv=none; b=a3mZJ8nek4+0XzQ0ECjY/eD+s97PA+taWONSK00RMWZWCM/cvcFvKHKMAMi9X/6vh94YHAHvz/QfWvRSNUaq0V8dVI3G78FreJCSFDTU31tfQT14rl2xJEAoGbAEQFHPqA8vJucrk1R438Ih4PD39MSm7965BQNrMQCR5a67SLk=
+	t=1736835967; cv=none; b=YfGEI6ns8i4WgzafihG0iCoLMMDYscU9+bjJOdeKuyGIGcDYbF1EZB9FACrgR9VsY3JqumLnbpSA24R6Y64FJxBc/AwhLfdJNJMJBJh4YhEYpEoC9twwOZlo7JFjzzt6ISSHZpzQk9+U4Lo2HfObYvu0ard+zwav5yGkemdROWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736835911; c=relaxed/simple;
-	bh=9XmTgjbEjbE2yNh2uUkdozgEY4UekTDoUrkvdwH63gE=;
-	h=Date:To:From:Subject:Message-Id; b=RJzZncfRAZKkRvUJ12zhjVJu+RzrjOh2O4Abkren58WKGwWwdWNuvyUaORHOsIpMydUc7sUHWhjMS5ejJPcY4Z0fOkFmg00ZoVzziOXSOHd0yQIZ3T9dyxufTpSkKbtDvrnZxCRq2H+wzKZN3SYcczQI9NfUBTPHh7meUfMxY+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I+2Yx7Ck; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736835967; c=relaxed/simple;
+	bh=bcXCsgADa2NEgT1hWVET01fND/ZehFhFOrXITcdhh5o=;
+	h=Date:To:From:Subject:Message-Id; b=YZKpQoQXo92SEBSfPlp7iHV0LhAPlNof+EqfXkjC7udfKMYuvuh2TNymBMloukH0pbnYJAGL7ApyestjiDqJZukbTBOZrjadPhF/i/PdIrwXMgGpcztqRMKsClm4evKyAOEY0UzkvjgYdfDjHxuKIP+rlTnJfH6KhkStL8msCbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iEAr53d/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I+2Yx7Ck"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F94CC4CEDD;
-	Tue, 14 Jan 2025 06:25:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iEAr53d/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAE0AC4CEDD;
+	Tue, 14 Jan 2025 06:26:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736835911;
-	bh=9XmTgjbEjbE2yNh2uUkdozgEY4UekTDoUrkvdwH63gE=;
+	s=korg; t=1736835966;
+	bh=bcXCsgADa2NEgT1hWVET01fND/ZehFhFOrXITcdhh5o=;
 	h=Date:To:From:Subject:From;
-	b=I+2Yx7CkjMrw1ECpW6rOFGgUioxyV+zt5lvxC3Qwgnbn5ELpQ0JwWOJ9LzyuLN9my
-	 +5garl/OZ+pT55ZU4UErn36GEh4T9nTClvJ07/3NAUdfg+scgXpXW4yr3VPWh9PI4o
-	 RGcbN+R+znthPh02ornKLNehYcwyoyDd8l5SEW9E=
-Date: Mon, 13 Jan 2025 22:25:10 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=iEAr53d/qthy0yax2mNl1qOUICs50ZaNvrA1WMGziDNJkB4FJ14SjGWSp4UJRfCzG
+	 aTQNneLZAlVsabltUMYifVbvX1RSC7ymuY13gZkDPkcMkB33sIU+9y+E6mcTB23gyk
+	 h1BgWCY5hGj/e9uDNx0vUliW3H4xaMk1x8wLHOYY=
+Date: Mon, 13 Jan 2025 22:26:05 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch removed from -mm tree
-Message-Id: <20250114062511.0F94CC4CEDD@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-add-fork-cow-guard-page-test-fix.patch removed from -mm tree
+Message-Id: <20250114062605.EAE0AC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
+     Subject: selftests/mm: static process_madvise() wrapper for guard-pages
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix.patch
+     selftests-mm-add-fork-cow-guard-page-test-fix.patch
 
-This patch was dropped because it was folded into mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch
+This patch was dropped because it was folded into selftests-mm-add-fork-cow-guard-page-test.patch
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
-Date: Fri, 6 Dec 2024 19:23:48 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: selftests/mm: static process_madvise() wrapper for guard-pages
+Date: Tue, 7 Jan 2025 14:29:35 +0000
 
-Dan Carpenter reported the following warning:
+The recently introduced guard-pages mm selftest uses the process_madvise()
+syscall, a wrapper for which was added to glibc v2.36.  For those of us
+stuck with older distributions this causes a compile error when compiling
+the mm selftests.  For example Ubuntu 22.04 uses glibc 2.35, which does
+not have the wrapper.
 
-Commit e3aafd2d3551 ("mm: pgtable: reclaim empty PTE page in
-madvise(MADV_DONTNEED)") from Dec 4, 2024 (linux-next), leads to the
-following Smatch static checker warning:
+To workaround the issue, let's introduce our own static process_madvise()
+wrapper that uses glibc's syscall() helper.
 
-	mm/pt_reclaim.c:69 try_to_free_pte()
-	error: uninitialized symbol 'ptl'.
+While we are at it, add the guard-page test suite to run_vmtests.sh so
+that it can be automatically run by CI systems.
 
-To fix it, assign an initial value of NULL to the ptl.
-
-Link: https://lkml.kernel.org/r/20241206112348.51570-1-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
-Closes: https://lore.kernel.org/linux-mm/224e6a4e-43b5-4080-bdd8-b0a6fb2f0853@stanley.mountain/
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20250107142937.1870478-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pt_reclaim.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/guard-pages.c  |   10 ++++++++--
+ tools/testing/selftests/mm/run_vmtests.sh |    5 +++++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
---- a/mm/pt_reclaim.c~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed-fix
-+++ a/mm/pt_reclaim.c
-@@ -36,7 +36,7 @@ void try_to_free_pte(struct mm_struct *m
- 		     struct mmu_gather *tlb)
- {
- 	pmd_t pmdval;
--	spinlock_t *pml, *ptl;
-+	spinlock_t *pml, *ptl = NULL;
- 	pte_t *start_pte, *pte;
- 	int i;
+--- a/tools/testing/selftests/mm/guard-pages.c~selftests-mm-add-fork-cow-guard-page-test-fix
++++ a/tools/testing/selftests/mm/guard-pages.c
+@@ -55,6 +55,12 @@ static int pidfd_open(pid_t pid, unsigne
+ 	return syscall(SYS_pidfd_open, pid, flags);
+ }
+ 
++static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
++				   size_t n, int advice, unsigned int flags)
++{
++	return syscall(__NR_process_madvise, pidfd, iovec, n, advice, flags);
++}
++
+ /*
+  * Enable our signal catcher and try to read/write the specified buffer. The
+  * return value indicates whether the read/write succeeds without a fatal
+@@ -419,7 +425,7 @@ TEST_F(guard_pages, process_madvise)
+ 	ASSERT_EQ(munmap(&ptr_region[99 * page_size], page_size), 0);
+ 
+ 	/* Now guard in one step. */
+-	count = process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
++	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
+ 
+ 	/* OK we don't have permission to do this, skip. */
+ 	if (count == -1 && errno == EPERM)
+@@ -440,7 +446,7 @@ TEST_F(guard_pages, process_madvise)
+ 	ASSERT_FALSE(try_read_write_buf(&ptr3[19 * page_size]));
+ 
+ 	/* Now do the same with unguard... */
+-	count = process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
++	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
+ 
+ 	/* ...and everything should now succeed. */
+ 
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-fork-cow-guard-page-test-fix
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -45,6 +45,8 @@ separated by spaces:
+ 	vmalloc smoke tests
+ - hmm
+ 	hmm smoke tests
++- madv_guard
++	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
+ - madv_populate
+ 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
+ - memfd_secret
+@@ -375,6 +377,9 @@ CATEGORY="mremap" run_test ./mremap_dont
+ 
+ CATEGORY="hmm" run_test bash ./test_hmm.sh smoke
+ 
++# MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
++CATEGORY="madv_guard" run_test ./guard-pages
++
+ # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
+ CATEGORY="madv_populate" run_test ./madv_populate
  
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-pgtable-make-ptep_clear-non-atomic.patch
-mm-khugepaged-recheck-pmd-state-in-retract_page_tables.patch
-mm-userfaultfd-recheck-dst_pmd-entry-in-move_pages_pte.patch
-mm-introduce-zap_nonpresent_ptes.patch
-mm-introduce-do_zap_pte_range.patch
-mm-skip-over-all-consecutive-none-ptes-in-do_zap_pte_range.patch
-mm-zap_install_uffd_wp_if_needed-return-whether-uffd-wp-pte-has-been-re-installed.patch
-mm-do_zap_pte_range-return-any_skipped-information-to-the-caller.patch
-mm-make-zap_pte_range-handle-full-within-pmd-range.patch
-mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch
-x86-mm-free-page-table-pages-by-rcu-instead-of-semi-rcu.patch
-x86-select-arch_supports_pt_reclaim-if-x86_64.patch
-mm-pgtable-add-statistics-for-p4d-level-page-table.patch
-arm64-pgtable-use-mmu-gather-to-free-p4d-level-page-table.patch
-s390-pgtable-add-statistics-for-pud-and-p4d-level-page-table.patch
-mm-pgtable-introduce-pagetable_dtor.patch
-arm-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
-arm64-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
-riscv-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
-x86-pgtable-convert-__tlb_remove_table-to-use-struct-ptdesc.patch
-x86-pgtable-move-pagetable_dtor-to-__tlb_remove_table.patch
-s390-pgtable-consolidate-pxd-and-pte-tlb-free-paths.patch
-mm-pgtable-introduce-generic-__tlb_remove_table.patch
-mm-pgtable-completely-move-pagetable_dtor-to-generic-tlb_remove_table.patch
-mm-pgtable-move-__tlb_remove_table_one-in-x86-to-generic-file.patch
-mm-pgtable-introduce-generic-pagetable_dtor_free.patch
+selftests-mm-add-fork-cow-guard-page-test.patch
+selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
