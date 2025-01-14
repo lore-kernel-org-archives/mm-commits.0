@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 401ED23C6F6
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 854D023C6F6
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837017; cv=none; b=Y+jji6O8VTXmzyyhyTGMvMlBMgIHERygIVpvIaPBwiNKql3a+QNC4lXi5vn+6Anle/sOcnS5aoAgoLYhn8kL+s20GdA8UfET71Dt5qsiYISxMM++X0sHJp4EeVrop2t6kFcsBN3vy13nx82J1PenlgiLMAE0SWsrc5xb4uBFZvw=
+	t=1736837018; cv=none; b=E3X4pzvEgOwQ8v+zziSU9xJUjLR1bV/t8YZ7u+Awb4uw7MT0PkoqYMSAJJJcbB67RjvfSs3iSf47jTg+SMU4Ip6QEikoz1554fkyU316m8GaVLlov7qY/OBAf0vVeZfLH7KgDmKeTBhOpNkuhPiQ9O2EtYogIZjYCjRxoncazto=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837017; c=relaxed/simple;
-	bh=OJ8CcV617SxOaX/RnkWYYntcdqoERVMzXCefEG3xLdE=;
-	h=Date:To:From:Subject:Message-Id; b=ggyBPjnJkhL1ujKtWfRWp5vjASZGDagl8njSgvJo7WDaqOxTOABcslw//I9krpMfUuFVf/GzJ946oSTc9l0IPnYegiezOcQJfiIOMApuuKpLG4OoiQHjGk323QupuSjkj9q6zGOC376AvspETUwYdcWp85nAIbybzv5wpgfgChw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v29PIFI7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837018; c=relaxed/simple;
+	bh=C0AfxqVagJyvELQyxhp2aqkKGrqIQiBypHHkyfV2Py8=;
+	h=Date:To:From:Subject:Message-Id; b=rK/kBgWfcTzT+T4SlAMl6GqXd0WNxMHT7fwTyDrTms/9PcbMlcdAyBO7UNN/kMuwMbuevwD5I1PIgRoQAheIXBQKIEMII6ipxtd8J2Lt03Zh4DK980RMfFU6Ube4lCvAVe5UQ7EJ85XAyxcjULqDnhbATs25i6RsgFiSYWQ6tRI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qLFP10ls; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v29PIFI7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1450CC4CEDD;
-	Tue, 14 Jan 2025 06:43:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qLFP10ls"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55B05C4CEDD;
+	Tue, 14 Jan 2025 06:43:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837017;
-	bh=OJ8CcV617SxOaX/RnkWYYntcdqoERVMzXCefEG3xLdE=;
+	s=korg; t=1736837018;
+	bh=C0AfxqVagJyvELQyxhp2aqkKGrqIQiBypHHkyfV2Py8=;
 	h=Date:To:From:Subject:From;
-	b=v29PIFI7NTqYOyjb/+RKQy4DKFDTy6FAvY4NKr4Eb7fbNcw5YP2EVSyAqNjx3GTDn
-	 tKeBgnCmoS7k106iruF1jWW6n44+FyCHpY6MCBy38UKYc7U+1rDPqM04HSMRhUz/Cg
-	 H1UlIf19VawON+oNH9CjCVPpkVvzrRWkxLdwMx18=
-Date: Mon, 13 Jan 2025 22:43:36 -0800
-To: mm-commits@vger.kernel.org,hughd@google.com,amir73il@gmail.com,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
+	b=qLFP10ls2rORi/PTSUlK4hxpQr2CKznASbcU8S4C2gkJxaqnNczOh4f2vSeSlCmfK
+	 5hK3PiyMTerXJAjZ6ZLbUqbtZgAOsLe6VgmBlxTUxY8O0IGuMen9cBzae1Vh8lRdOs
+	 dfsWaIvwGOlwHJ7HBmR8tOTVCp6SVQOfd+KmvrHY=
+Date: Mon, 13 Jan 2025 22:43:37 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing.patch removed from -mm tree
-Message-Id: <20250114064337.1450CC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] seqlock-add-raw_seqcount_try_begin.patch removed from -mm tree
+Message-Id: <20250114064338.55B05C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: refactor to reuse vfs_parse_monolithic_sep for option parsing
+     Subject: seqlock: add raw_seqcount_try_begin
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing.patch
+     seqlock-add-raw_seqcount_try_begin.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guo Weikang <guoweikang.kernel@gmail.com>
-Subject: mm/shmem: refactor to reuse vfs_parse_monolithic_sep for option parsing
-Date: Thu, 5 Dec 2024 17:45:21 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: seqlock: add raw_seqcount_try_begin
+Date: Fri, 22 Nov 2024 09:44:14 -0800
 
-shmem_parse_options() is refactored to use vfs_parse_monolithic_sep() with
-a custom separator function, shmem_next_opt().  This eliminates redundant
-logic for parsing comma-separated options and ensures consistency with
-other kernel code that uses the same interface.
+Add raw_seqcount_try_begin() to opens a read critical section of the given
+seqcount_t if the counter is even. This enables eliding the critical
+section entirely if the counter is odd, instead of doing the speculation
+knowing it will fail.
 
-The vfs_parse_monolithic_sep() helper was introduced in commit
-e001d1447cd4 ("fs: factor out vfs_parse_monolithic_sep() helper").
-
-Link: https://lkml.kernel.org/r/20241205094521.1244678-1-guoweikang.kernel@gmail.com
-Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
-Cc: Amir Goldstein <amir73il@gmail.com>
+Link: https://lkml.kernel.org/r/20241122174416.1367052-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hillf Danton <hdanton@sina.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   67 +++++++++++++++++++++------------------------------
- 1 file changed, 28 insertions(+), 39 deletions(-)
+ include/linux/seqlock.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-refactor-to-reuse-vfs_parse_monolithic_sep-for-option-parsing
-+++ a/mm/shmem.c
-@@ -4647,48 +4647,37 @@ bad_value:
- 	return invalfc(fc, "Bad value for '%s'", param->key);
- }
+--- a/include/linux/seqlock.h~seqlock-add-raw_seqcount_try_begin
++++ a/include/linux/seqlock.h
+@@ -319,6 +319,28 @@ SEQCOUNT_LOCKNAME(mutex,        struct m
+ })
  
--static int shmem_parse_options(struct fs_context *fc, void *data)
-+static char *shmem_next_opt(char **s)
- {
--	char *options = data;
-+	char *sbegin = *s;
-+	char *p;
- 
--	if (options) {
--		int err = security_sb_eat_lsm_opts(options, &fc->security);
--		if (err)
--			return err;
--	}
--
--	while (options != NULL) {
--		char *this_char = options;
--		for (;;) {
--			/*
--			 * NUL-terminate this option: unfortunately,
--			 * mount options form a comma-separated list,
--			 * but mpol's nodelist may also contain commas.
--			 */
--			options = strchr(options, ',');
--			if (options == NULL)
--				break;
--			options++;
--			if (!isdigit(*options)) {
--				options[-1] = '\0';
--				break;
--			}
--		}
--		if (*this_char) {
--			char *value = strchr(this_char, '=');
--			size_t len = 0;
--			int err;
--
--			if (value) {
--				*value++ = '\0';
--				len = strlen(value);
--			}
--			err = vfs_parse_fs_string(fc, this_char, value, len);
--			if (err < 0)
--				return err;
-+	if (sbegin == NULL)
-+		return NULL;
+ /**
++ * raw_seqcount_try_begin() - begin a seqcount_t read critical section
++ *                            w/o lockdep and w/o counter stabilization
++ * @s: Pointer to seqcount_t or any of the seqcount_LOCKNAME_t variants
++ *
++ * Similar to raw_seqcount_begin(), except it enables eliding the critical
++ * section entirely if odd, instead of doing the speculation knowing it will
++ * fail.
++ *
++ * Useful when counter stabilization is more or less equivalent to taking
++ * the lock and there is a slowpath that does that.
++ *
++ * If true, start will be set to the (even) sequence count read.
++ *
++ * Return: true when a read critical section is started.
++ */
++#define raw_seqcount_try_begin(s, start)				\
++({									\
++	start = raw_read_seqcount(s);					\
++	!(start & 1);							\
++})
 +
-+	/*
-+	 * NUL-terminate this option: unfortunately,
-+	 * mount options form a comma-separated list,
-+	 * but mpol's nodelist may also contain commas.
-+	 */
-+	for (;;) {
-+		p = strchr(*s, ',');
-+		if (p == NULL)
-+			break;
-+		*s = p + 1;
-+		if (!isdigit(*(p+1))) {
-+			*p = '\0';
-+			return sbegin;
- 		}
- 	}
--	return 0;
-+
-+	*s = NULL;
-+	return sbegin;
-+}
-+
-+static int shmem_parse_monolithic(struct fs_context *fc, void *data)
-+{
-+	return vfs_parse_monolithic_sep(fc, data, shmem_next_opt);
- }
- 
- /*
-@@ -5038,7 +5027,7 @@ static const struct fs_context_operation
- 	.free			= shmem_free_fc,
- 	.get_tree		= shmem_get_tree,
- #ifdef CONFIG_TMPFS
--	.parse_monolithic	= shmem_parse_options,
-+	.parse_monolithic	= shmem_parse_monolithic,
- 	.parse_param		= shmem_parse_one,
- 	.reconfigure		= shmem_reconfigure,
- #endif
++/**
+  * raw_seqcount_begin() - begin a seqcount_t read critical section w/o
+  *                        lockdep and w/o counter stabilization
+  * @s: Pointer to seqcount_t or any of the seqcount_LOCKNAME_t variants
 _
 
-Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-memblock-add-memblock_alloc_or_panic-interface.patch
-arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic.patch
+alloc_tag-skip-pgalloc_tag_swap-if-profiling-is-disabled.patch
+alloc_tag-avoid-current-alloc_tag-manipulations-when-profiling-is-disabled.patch
 
