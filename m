@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2CCD234971
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED12234971
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837206; cv=none; b=SjLJH8SkOqR5HOnPLcjGsjMo5dbh4jOAiLElK81uV6Ed9EHLI0dBwzC3gMSe1vV93UAiOn0GvtrhaLKCKRFUmkDWLjT87RyFU7Em1Fyxir/4NJwigZksJtDkAx5ACzYktLrF44frkR8K77m+0fVFXPbMQgnXE0PKv1GujtEpPgw=
+	t=1736837207; cv=none; b=gHoFWkgrw26fQNPw/9iIPEWzzP8Kqsje+ejx1eUKdr86Q9i92hlvxdUXoXbB8BrynAaJwqYK3pwz8jbcT1VIq2xaQm0yFXApxbB/rO8QHOxkz7wJ8w/ntGhYzCjh3HSaQp5UzASvYURPT4+3Dy3I983R5JzwxWhW3K+LJSYkHYo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837206; c=relaxed/simple;
-	bh=pXiXoYS+Wj6203UEgA15Z8JI4B2dYx6SD/dWC3Vo1Bo=;
-	h=Date:To:From:Subject:Message-Id; b=HO5Y26YJxi0JqSMKsK/s7+NnFxFNA9irxV7qqpc5/yGzcES1wgoO3OLnd1f3ZwM9LrjNcLfpPoQ1E0ysEIEFd5yamrlH76o4qhmu7e2gLPzNugxt+nTd0Nxn1qr1/5FPjEICpdF2oYrIy8pvaSxtBan5yHWYo6a9AzzbhvnQziU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0J14M1eP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837207; c=relaxed/simple;
+	bh=zRudwJTGR2GARigOBoCghjeCGrffFp/tojoLRvrbeZ0=;
+	h=Date:To:From:Subject:Message-Id; b=QQ8xqpsaehQvXrctblESPorPsYZyI88Bc87TuO4Elw6uaTUWmayQ6cuquCxWB3V7q0ytVjjHyQiTAElzrhi9mGis1H2ZKH+VwU20q3We7e9eicwGeg6DVdc+rkXu4KbB5kWurkVX1nlEUSqrvES3zyCDe5dzTo+z15boNe4qlEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WTgimq9h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0J14M1eP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7E9FC4CEDD;
-	Tue, 14 Jan 2025 06:46:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WTgimq9h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C498DC4CEDD;
+	Tue, 14 Jan 2025 06:46:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837205;
-	bh=pXiXoYS+Wj6203UEgA15Z8JI4B2dYx6SD/dWC3Vo1Bo=;
+	s=korg; t=1736837206;
+	bh=zRudwJTGR2GARigOBoCghjeCGrffFp/tojoLRvrbeZ0=;
 	h=Date:To:From:Subject:From;
-	b=0J14M1ePbrER5Mtxl8NKDcbVcJDUSiHKSjGQF4agvOa2lj5OEnsTGNB3M+NUROvrI
-	 yj4zbPKPfE6DSaBPZ2lSIV83hqu+4siP+LG0Dn5qeP/C2Ke1+TXLPjU6NudZ8LC5ol
-	 Z+Q28bDevz77kA8OBdAL/wr+k95txjLVTNlK7x/U=
-Date: Mon, 13 Jan 2025 22:46:45 -0800
+	b=WTgimq9hyvQ0AkuRG2p38TdYJAs16cttrMhleFhu2ZVdyRffOL5n9H3iSutSIIney
+	 rYLW0YW3yoXoevQ/SgAaYwGkc8ZR2pMLMpHIK88rg1domW+TMbSlB0uq7WXW7o4EpN
+	 siwQV30Hftuw+Z34Wkq8iYIJ4YtaxnXKJUQEP79o=
+Date: Mon, 13 Jan 2025 22:46:46 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-support-damos_filter-allow.patch removed from -mm tree
-Message-Id: <20250114064645.B7E9FC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-add-allow-argument-to-damos_new_filter.patch removed from -mm tree
+Message-Id: <20250114064646.C498DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,132 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: support damos_filter->allow
+     Subject: mm/damon: add 'allow' argument to damos_new_filter()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-support-damos_filter-allow.patch
+     mm-damon-add-allow-argument-to-damos_new_filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: support damos_filter->allow
-Date: Thu, 9 Jan 2025 09:51:20 -0800
+Subject: mm/damon: add 'allow' argument to damos_new_filter()
+Date: Thu, 9 Jan 2025 09:51:21 -0800
 
-Respect damos_filter->allow from 'paddr', which is a DAMON operations set
-implementation for the physical address space and supports a few types of
-region-internal DAMOS filters (anon, memcg and young).  The change is
-similar to that of the previous commit for core layer update.
+DAMON API users should set damos_filter->allow manually to use a DAMOS
+allow-filter, since damos_new_filter() unsets the field always.  It is
+cumbersome and easy to mistake.  Add an arugment for setting the field to
+damos_new_filter().
 
-Link: https://lkml.kernel.org/r/20250109175126.57878-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250109175126.57878-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/damon.h       |    2 +-
+ mm/damon/core.c             |    7 ++++---
+ mm/damon/paddr.c            |    3 ++-
+ mm/damon/reclaim.c          |    2 +-
+ mm/damon/sysfs-schemes.c    |    2 +-
+ mm/damon/tests/core-kunit.h |    4 ++--
+ 6 files changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-damos_filter-allow
-+++ a/mm/damon/paddr.c
-@@ -198,7 +198,7 @@ static unsigned int damon_pa_check_acces
- 	return max_nr_accesses;
+--- a/include/linux/damon.h~mm-damon-add-allow-argument-to-damos_new_filter
++++ a/include/linux/damon.h
+@@ -801,7 +801,7 @@ void damon_update_region_access_rate(str
+ 		struct damon_attrs *attrs);
+ 
+ struct damos_filter *damos_new_filter(enum damos_filter_type type,
+-		bool matching);
++		bool matching, bool allow);
+ void damos_add_filter(struct damos *s, struct damos_filter *f);
+ void damos_destroy_filter(struct damos_filter *f);
+ 
+--- a/mm/damon/core.c~mm-damon-add-allow-argument-to-damos_new_filter
++++ a/mm/damon/core.c
+@@ -266,7 +266,7 @@ int damon_set_regions(struct damon_targe
  }
  
--static bool __damos_pa_filter_out(struct damos_filter *filter,
-+static bool damos_pa_filter_match(struct damos_filter *filter,
- 		struct folio *folio)
+ struct damos_filter *damos_new_filter(enum damos_filter_type type,
+-		bool matching)
++		bool matching, bool allow)
  {
- 	bool matched = false;
-@@ -237,8 +237,8 @@ static bool damos_pa_filter_out(struct d
  	struct damos_filter *filter;
  
- 	damos_for_each_filter(filter, scheme) {
--		if (__damos_pa_filter_out(filter, folio))
--			return true;
-+		if (damos_pa_filter_match(filter, folio))
-+			return !filter->allow;
- 	}
- 	return false;
+@@ -275,7 +275,7 @@ struct damos_filter *damos_new_filter(en
+ 		return NULL;
+ 	filter->type = type;
+ 	filter->matching = matching;
+-	filter->allow = false;
++	filter->allow = allow;
+ 	INIT_LIST_HEAD(&filter->list);
+ 	return filter;
  }
+@@ -806,7 +806,8 @@ static int damos_commit_filters(struct d
+ 			continue;
+ 
+ 		new_filter = damos_new_filter(
+-				src_filter->type, src_filter->matching);
++				src_filter->type, src_filter->matching,
++				src_filter->allow);
+ 		if (!new_filter)
+ 			return -ENOMEM;
+ 		damos_commit_filter_arg(new_filter, src_filter);
+--- a/mm/damon/paddr.c~mm-damon-add-allow-argument-to-damos_new_filter
++++ a/mm/damon/paddr.c
+@@ -259,7 +259,8 @@ static unsigned long damon_pa_pageout(st
+ 		}
+ 	}
+ 	if (install_young_filter) {
+-		filter = damos_new_filter(DAMOS_FILTER_TYPE_YOUNG, true);
++		filter = damos_new_filter(
++				DAMOS_FILTER_TYPE_YOUNG, true, false);
+ 		if (!filter)
+ 			return 0;
+ 		damos_add_filter(s, filter);
+--- a/mm/damon/reclaim.c~mm-damon-add-allow-argument-to-damos_new_filter
++++ a/mm/damon/reclaim.c
+@@ -221,7 +221,7 @@ static int damon_reclaim_apply_parameter
+ 	}
+ 
+ 	if (skip_anon) {
+-		filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true);
++		filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true, false);
+ 		if (!filter)
+ 			goto out;
+ 		damos_add_filter(scheme, filter);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-add-allow-argument-to-damos_new_filter
++++ a/mm/damon/sysfs-schemes.c
+@@ -1901,7 +1901,7 @@ static int damon_sysfs_add_scheme_filter
+ 			sysfs_filters->filters_arr[i];
+ 		struct damos_filter *filter =
+ 			damos_new_filter(sysfs_filter->type,
+-					sysfs_filter->matching);
++					sysfs_filter->matching, false);
+ 		int err;
+ 
+ 		if (!filter)
+--- a/mm/damon/tests/core-kunit.h~mm-damon-add-allow-argument-to-damos_new_filter
++++ a/mm/damon/tests/core-kunit.h
+@@ -411,7 +411,7 @@ static void damos_test_new_filter(struct
+ {
+ 	struct damos_filter *filter;
+ 
+-	filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true);
++	filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true, false);
+ 	KUNIT_EXPECT_EQ(test, filter->type, DAMOS_FILTER_TYPE_ANON);
+ 	KUNIT_EXPECT_EQ(test, filter->matching, true);
+ 	KUNIT_EXPECT_PTR_EQ(test, filter->list.prev, &filter->list);
+@@ -425,7 +425,7 @@ static void damos_test_filter_out(struct
+ 	struct damon_region *r, *r2;
+ 	struct damos_filter *f;
+ 
+-	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true);
++	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
+ 	f->addr_range = (struct damon_addr_range){
+ 		.start = DAMON_MIN_REGION * 2, .end = DAMON_MIN_REGION * 6};
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
