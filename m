@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D00E223ED6D
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29B1A243326
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837074; cv=none; b=Z8uLy5KPuxQ46af+yixcH/RfDu5G6SkDwXb2p49mjmO/ek2fROfr5QmCpbbILxKCzjkfagOQFAfqtMTlxQFeKW1U0ugkYjkhMluN5GPC8cYOhK1j4k0443pwmGfIgzgUugAX36/yhuUpZB+JX3r0ORjnlQrU59PINsnlK4HJ4A4=
+	t=1736837076; cv=none; b=sddABVoALkG+Itk3ez4RzQGduAzLOKenkZBxwIULtyQm5l9Skr4VsxRqUTL7TGd4pnH0fZ5e5IQY708TDbLizP0mdhNdhemB3dG1LEpHcwrYvU4jFzaQNs60zNzwMHQeUkmtMhxI6Tkr3P7vN7ZekQJKic++DIisT5TsD0mpyG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837074; c=relaxed/simple;
-	bh=pDCf1JwK15lTXfpDBR5faTj5s0QFiI7GrROqmpkMgNE=;
-	h=Date:To:From:Subject:Message-Id; b=LMsv5ziyP60YIXKXpgahr4pRZLD3uUUCnK+thoLQ7kT+orZjtnO865ilu2pRb45GaFJKov5+wv+leH5D+nadFVP1hW5okY0fe1naRUazgEzb1E1dhwbxIrXWgjP6dwrjLffNWhgX+WgThr7XVGPZY6VxZh2dAFc80U3P618irOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dofOf9LM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837076; c=relaxed/simple;
+	bh=WXx6suzND7DWAXn9H/fK7nqKaESe6gt2cwmRwsSe1Kk=;
+	h=Date:To:From:Subject:Message-Id; b=L8If/gcxFYqHafVWjGaNfvOMgDH0GfFCPd6bTUKCaeyhLFuGCj/rfa9Unc7z04mVD0F570iOZvUHyfvmhWoiF0mPFes02seHSp9m+PoucM1NsgHtdfIVJcR69NHz9Tb19as82e2XPHrJS2z3l0z8CoCxAfgwDJRMciDJ/j5JIYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JFBBt+4K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dofOf9LM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A363AC4CEE5;
-	Tue, 14 Jan 2025 06:44:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JFBBt+4K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CD6C4CEDD;
+	Tue, 14 Jan 2025 06:44:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837074;
-	bh=pDCf1JwK15lTXfpDBR5faTj5s0QFiI7GrROqmpkMgNE=;
+	s=korg; t=1736837076;
+	bh=WXx6suzND7DWAXn9H/fK7nqKaESe6gt2cwmRwsSe1Kk=;
 	h=Date:To:From:Subject:From;
-	b=dofOf9LM513H3qJTTaTFWjJKAeuWTewfsQ6pEvk2DnLNm0fh+7U2TEVyV4KV95gEY
-	 RO4m996WlhANY/AIqZql9UYpyER/ieERLgdqTDfGgtNrisWmFslFKeGJk8GX8xBOWF
-	 ffflK0bhq9xZd0BIhBa/I/ml/EfBfXuK/SOJcZ0c=
-Date: Mon, 13 Jan 2025 22:44:34 -0800
+	b=JFBBt+4Kwup1hADkO8u6wcMJCML+g0tlT/p/D4lhM0TrTHDIya/ClhYnf57f9rdBI
+	 WKKkih2R3YRWuK7hGun4hXA/Jq+mH+zw0kmbsb8Klcf1bRxbMDddgAifiBJ1Ut2cr0
+	 AoIIhpNCsoaioazAdIj1Y5vu+yLT9Sc0j/Ud8mlA=
+Date: Mon, 13 Jan 2025 22:44:35 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] compilerh-introduce-typeof_unqual-macro.patch removed from -mm tree
-Message-Id: <20250114064434.A363AC4CEE5@smtp.kernel.org>
+Subject: [merged mm-stable] percpu-use-typeof_unqual-in-variable-declarations.patch removed from -mm tree
+Message-Id: <20250114064435.F1CD6C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,305 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: compiler.h: introduce TYPEOF_UNQUAL() macro
+     Subject: percpu: use TYPEOF_UNQUAL() in variable declarations
 has been removed from the -mm tree.  Its filename was
-     compilerh-introduce-typeof_unqual-macro.patch
+     percpu-use-typeof_unqual-in-variable-declarations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Uros Bizjak <ubizjak@gmail.com>
-Subject: compiler.h: introduce TYPEOF_UNQUAL() macro
-Date: Sun, 8 Dec 2024 21:45:17 +0100
+Subject: percpu: use TYPEOF_UNQUAL() in variable declarations
+Date: Sun, 8 Dec 2024 21:45:18 +0100
 
-Define TYPEOF_UNQUAL() to use __typeof_unqual__() as typeof operator when
-available, to return unqualified type of the expression.
+Use TYPEOF_UNQUAL() to declare variables as a corresponding
+type without named address space qualifier to avoid
+"`__seg_gs' specified for auto variable `var'" errors.
 
-Current version of sparse doesn't know anything about __typeof_unqual__()
-operator.  Avoid the usage of __typeof_unqual__() when sparse checking is
-active to prevent sparse errors with unknowing keyword.
-
-Link: https://lkml.kernel.org/r/20241208204708.3742696-3-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20241208204708.3742696-4-ubizjak@gmail.com
 Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Acked-by: Nadav Amit <nadav.amit@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Acked-by: Dennis Zhou <dennis@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Waiman Long <longman@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Will Deacon <will@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |   13 +++++++++++++
- init/Kconfig             |    3 +++
- 2 files changed, 16 insertions(+)
+ arch/x86/include/asm/percpu.h |   10 +++++-----
+ fs/bcachefs/util.h            |    2 +-
+ include/asm-generic/percpu.h  |   26 +++++++++++++-------------
+ include/linux/part_stat.h     |    2 +-
+ include/linux/percpu-defs.h   |    4 ++--
+ include/net/snmp.h            |    5 ++---
+ kernel/locking/percpu-rwsem.c |    2 +-
+ net/mpls/internal.h           |    4 ++--
+ 8 files changed, 27 insertions(+), 28 deletions(-)
 
---- a/include/linux/compiler.h~compilerh-introduce-typeof_unqual-macro
-+++ a/include/linux/compiler.h
-@@ -336,6 +336,19 @@ static inline void *offset_to_ptr(const
+--- a/arch/x86/include/asm/percpu.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/arch/x86/include/asm/percpu.h
+@@ -180,7 +180,7 @@ do {									\
+ 	__pcpu_type_##size pto_val__ = __pcpu_cast_##size(_val);	\
+ 									\
+ 	if (0) {		                                        \
+-		typeof(_var) pto_tmp__;					\
++		TYPEOF_UNQUAL(_var) pto_tmp__;				\
+ 		pto_tmp__ = (_val);					\
+ 		(void)pto_tmp__;					\
+ 	}								\
+@@ -219,7 +219,7 @@ do {									\
+ 	__pcpu_type_##size pto_val__ = __pcpu_cast_##size(_val);	\
+ 									\
+ 	if (0) {		                                        \
+-		typeof(_var) pto_tmp__;					\
++		TYPEOF_UNQUAL(_var) pto_tmp__;				\
+ 		pto_tmp__ = (_val);					\
+ 		(void)pto_tmp__;					\
+ 	}								\
+@@ -240,7 +240,7 @@ do {									\
+ 			 (val) == (typeof(val))-1)) ? (int)(val) : 0;	\
+ 									\
+ 	if (0) {							\
+-		typeof(var) pao_tmp__;					\
++		TYPEOF_UNQUAL(var) pao_tmp__;				\
+ 		pao_tmp__ = (val);					\
+ 		(void)pao_tmp__;					\
+ 	}								\
+@@ -273,7 +273,7 @@ do {									\
   */
- #define prevent_tail_call_optimization()	mb()
+ #define raw_percpu_xchg_op(_var, _nval)					\
+ ({									\
+-	typeof(_var) pxo_old__ = raw_cpu_read(_var);			\
++	TYPEOF_UNQUAL(_var) pxo_old__ = raw_cpu_read(_var);		\
+ 									\
+ 	raw_cpu_write(_var, _nval);					\
+ 									\
+@@ -287,7 +287,7 @@ do {									\
+  */
+ #define this_percpu_xchg_op(_var, _nval)				\
+ ({									\
+-	typeof(_var) pxo_old__ = this_cpu_read(_var);			\
++	TYPEOF_UNQUAL(_var) pxo_old__ = this_cpu_read(_var);		\
+ 									\
+ 	do { } while (!this_cpu_try_cmpxchg(_var, &pxo_old__, _nval));	\
+ 									\
+--- a/fs/bcachefs/util.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/fs/bcachefs/util.h
+@@ -586,7 +586,7 @@ do {									\
  
-+/*
-+ * Define TYPEOF_UNQUAL() to use __typeof_unqual__() as typeof
-+ * operator when available, to return unqualified type of the exp.
-+ *
-+ * XXX: Remove test for __CHECKER__ once
-+ * sparse learns about __typeof_unqual__.
-+ */
-+#if defined(CONFIG_CC_HAS_TYPEOF_UNQUAL) && !defined(__CHECKER__)
-+# define TYPEOF_UNQUAL(exp) __typeof_unqual__(exp)
-+#else
-+# define TYPEOF_UNQUAL(exp) __typeof__(exp)
-+#endif
-+
- #include <asm/rwonce.h>
+ #define per_cpu_sum(_p)							\
+ ({									\
+-	typeof(*_p) _ret = 0;						\
++	TYPEOF_UNQUAL(*_p) _ret = 0;					\
+ 									\
+ 	int cpu;							\
+ 	for_each_possible_cpu(cpu)					\
+--- a/include/asm-generic/percpu.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/include/asm-generic/percpu.h
+@@ -74,7 +74,7 @@ do {									\
  
- #endif /* __LINUX_COMPILER_H */
---- a/init/Kconfig~compilerh-introduce-typeof_unqual-macro
-+++ a/init/Kconfig
-@@ -894,6 +894,9 @@ config ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- config CC_HAS_INT128
- 	def_bool !$(cc-option,$(m64-flag) -D__SIZEOF_INT128__=0) && 64BIT
+ #define raw_cpu_generic_add_return(pcp, val)				\
+ ({									\
+-	typeof(pcp) *__p = raw_cpu_ptr(&(pcp));				\
++	TYPEOF_UNQUAL(pcp) *__p = raw_cpu_ptr(&(pcp));			\
+ 									\
+ 	*__p += val;							\
+ 	*__p;								\
+@@ -82,8 +82,8 @@ do {									\
  
-+config CC_HAS_TYPEOF_UNQUAL
-+	def_bool $(success,echo 'int foo (int a) { __typeof_unqual__(a) b = a; return b; }' | $(CC) -x c - -S -o /dev/null)
-+
- config CC_IMPLICIT_FALLTHROUGH
- 	string
- 	default "-Wimplicit-fallthrough=5" if CC_IS_GCC && $(cc-option,-Wimplicit-fallthrough=5)
+ #define raw_cpu_generic_xchg(pcp, nval)					\
+ ({									\
+-	typeof(pcp) *__p = raw_cpu_ptr(&(pcp));				\
+-	typeof(pcp) __ret;						\
++	TYPEOF_UNQUAL(pcp) *__p = raw_cpu_ptr(&(pcp));			\
++	TYPEOF_UNQUAL(pcp) __ret;					\
+ 	__ret = *__p;							\
+ 	*__p = nval;							\
+ 	__ret;								\
+@@ -91,7 +91,7 @@ do {									\
+ 
+ #define __cpu_fallback_try_cmpxchg(pcp, ovalp, nval, _cmpxchg)		\
+ ({									\
+-	typeof(pcp) __val, __old = *(ovalp);				\
++	TYPEOF_UNQUAL(pcp) __val, __old = *(ovalp);			\
+ 	__val = _cmpxchg(pcp, __old, nval);				\
+ 	if (__val != __old)						\
+ 		*(ovalp) = __val;					\
+@@ -100,8 +100,8 @@ do {									\
+ 
+ #define raw_cpu_generic_try_cmpxchg(pcp, ovalp, nval)			\
+ ({									\
+-	typeof(pcp) *__p = raw_cpu_ptr(&(pcp));				\
+-	typeof(pcp) __val = *__p, ___old = *(ovalp);			\
++	TYPEOF_UNQUAL(pcp) *__p = raw_cpu_ptr(&(pcp));			\
++	TYPEOF_UNQUAL(pcp) __val = *__p, ___old = *(ovalp);		\
+ 	bool __ret;							\
+ 	if (__val == ___old) {						\
+ 		*__p = nval;						\
+@@ -115,14 +115,14 @@ do {									\
+ 
+ #define raw_cpu_generic_cmpxchg(pcp, oval, nval)			\
+ ({									\
+-	typeof(pcp) __old = (oval);					\
++	TYPEOF_UNQUAL(pcp) __old = (oval);				\
+ 	raw_cpu_generic_try_cmpxchg(pcp, &__old, nval);			\
+ 	__old;								\
+ })
+ 
+ #define __this_cpu_generic_read_nopreempt(pcp)				\
+ ({									\
+-	typeof(pcp) ___ret;						\
++	TYPEOF_UNQUAL(pcp) ___ret;					\
+ 	preempt_disable_notrace();					\
+ 	___ret = READ_ONCE(*raw_cpu_ptr(&(pcp)));			\
+ 	preempt_enable_notrace();					\
+@@ -131,7 +131,7 @@ do {									\
+ 
+ #define __this_cpu_generic_read_noirq(pcp)				\
+ ({									\
+-	typeof(pcp) ___ret;						\
++	TYPEOF_UNQUAL(pcp) ___ret;					\
+ 	unsigned long ___flags;						\
+ 	raw_local_irq_save(___flags);					\
+ 	___ret = raw_cpu_generic_read(pcp);				\
+@@ -141,7 +141,7 @@ do {									\
+ 
+ #define this_cpu_generic_read(pcp)					\
+ ({									\
+-	typeof(pcp) __ret;						\
++	TYPEOF_UNQUAL(pcp) __ret;					\
+ 	if (__native_word(pcp))						\
+ 		__ret = __this_cpu_generic_read_nopreempt(pcp);		\
+ 	else								\
+@@ -160,7 +160,7 @@ do {									\
+ 
+ #define this_cpu_generic_add_return(pcp, val)				\
+ ({									\
+-	typeof(pcp) __ret;						\
++	TYPEOF_UNQUAL(pcp) __ret;					\
+ 	unsigned long __flags;						\
+ 	raw_local_irq_save(__flags);					\
+ 	__ret = raw_cpu_generic_add_return(pcp, val);			\
+@@ -170,7 +170,7 @@ do {									\
+ 
+ #define this_cpu_generic_xchg(pcp, nval)				\
+ ({									\
+-	typeof(pcp) __ret;						\
++	TYPEOF_UNQUAL(pcp) __ret;					\
+ 	unsigned long __flags;						\
+ 	raw_local_irq_save(__flags);					\
+ 	__ret = raw_cpu_generic_xchg(pcp, nval);			\
+@@ -190,7 +190,7 @@ do {									\
+ 
+ #define this_cpu_generic_cmpxchg(pcp, oval, nval)			\
+ ({									\
+-	typeof(pcp) __ret;						\
++	TYPEOF_UNQUAL(pcp) __ret;					\
+ 	unsigned long __flags;						\
+ 	raw_local_irq_save(__flags);					\
+ 	__ret = raw_cpu_generic_cmpxchg(pcp, oval, nval);		\
+--- a/include/linux/part_stat.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/include/linux/part_stat.h
+@@ -33,7 +33,7 @@ struct disk_stats {
+ 
+ #define part_stat_read(part, field)					\
+ ({									\
+-	typeof((part)->bd_stats->field) res = 0;			\
++	TYPEOF_UNQUAL((part)->bd_stats->field) res = 0;			\
+ 	unsigned int _cpu;						\
+ 	for_each_possible_cpu(_cpu)					\
+ 		res += per_cpu_ptr((part)->bd_stats, _cpu)->field; \
+--- a/include/linux/percpu-defs.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/include/linux/percpu-defs.h
+@@ -317,7 +317,7 @@ static __always_inline void __this_cpu_p
+ 
+ #define __pcpu_size_call_return(stem, variable)				\
+ ({									\
+-	typeof(variable) pscr_ret__;					\
++	TYPEOF_UNQUAL(variable) pscr_ret__;				\
+ 	__verify_pcpu_ptr(&(variable));					\
+ 	switch(sizeof(variable)) {					\
+ 	case 1: pscr_ret__ = stem##1(variable); break;			\
+@@ -332,7 +332,7 @@ static __always_inline void __this_cpu_p
+ 
+ #define __pcpu_size_call_return2(stem, variable, ...)			\
+ ({									\
+-	typeof(variable) pscr2_ret__;					\
++	TYPEOF_UNQUAL(variable) pscr2_ret__;				\
+ 	__verify_pcpu_ptr(&(variable));					\
+ 	switch(sizeof(variable)) {					\
+ 	case 1: pscr2_ret__ = stem##1(variable, __VA_ARGS__); break;	\
+--- a/include/net/snmp.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/include/net/snmp.h
+@@ -159,7 +159,7 @@ struct linux_tls_mib {
+ 
+ #define __SNMP_ADD_STATS64(mib, field, addend) 				\
+ 	do {								\
+-		__typeof__(*mib) *ptr = raw_cpu_ptr(mib);		\
++		TYPEOF_UNQUAL(*mib) *ptr = raw_cpu_ptr(mib);		\
+ 		u64_stats_update_begin(&ptr->syncp);			\
+ 		ptr->mibs[field] += addend;				\
+ 		u64_stats_update_end(&ptr->syncp);			\
+@@ -176,8 +176,7 @@ struct linux_tls_mib {
+ #define SNMP_INC_STATS64(mib, field) SNMP_ADD_STATS64(mib, field, 1)
+ #define __SNMP_UPD_PO_STATS64(mib, basefield, addend)			\
+ 	do {								\
+-		__typeof__(*mib) *ptr;				\
+-		ptr = raw_cpu_ptr((mib));				\
++		TYPEOF_UNQUAL(*mib) *ptr = raw_cpu_ptr(mib);		\
+ 		u64_stats_update_begin(&ptr->syncp);			\
+ 		ptr->mibs[basefield##PKTS]++;				\
+ 		ptr->mibs[basefield##OCTETS] += addend;			\
+--- a/kernel/locking/percpu-rwsem.c~percpu-use-typeof_unqual-in-variable-declarations
++++ a/kernel/locking/percpu-rwsem.c
+@@ -184,7 +184,7 @@ EXPORT_SYMBOL_GPL(__percpu_down_read);
+ 
+ #define per_cpu_sum(var)						\
+ ({									\
+-	typeof(var) __sum = 0;						\
++	TYPEOF_UNQUAL(var) __sum = 0;					\
+ 	int cpu;							\
+ 	compiletime_assert_atomic_type(__sum);				\
+ 	for_each_possible_cpu(cpu)					\
+--- a/net/mpls/internal.h~percpu-use-typeof_unqual-in-variable-declarations
++++ a/net/mpls/internal.h
+@@ -33,7 +33,7 @@ struct mpls_dev {
+ 
+ #define MPLS_INC_STATS_LEN(mdev, len, pkts_field, bytes_field)		\
+ 	do {								\
+-		__typeof__(*(mdev)->stats) *ptr =			\
++		TYPEOF_UNQUAL(*(mdev)->stats) *ptr =			\
+ 			raw_cpu_ptr((mdev)->stats);			\
+ 		local_bh_disable();					\
+ 		u64_stats_update_begin(&ptr->syncp);			\
+@@ -45,7 +45,7 @@ struct mpls_dev {
+ 
+ #define MPLS_INC_STATS(mdev, field)					\
+ 	do {								\
+-		__typeof__(*(mdev)->stats) *ptr =			\
++		TYPEOF_UNQUAL(*(mdev)->stats) *ptr =			\
+ 			raw_cpu_ptr((mdev)->stats);			\
+ 		local_bh_disable();					\
+ 		u64_stats_update_begin(&ptr->syncp);			\
 _
 
 Patches currently in -mm which might be from ubizjak@gmail.com are
