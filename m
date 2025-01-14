@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E3423C717
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4694423D3E8;
+	Tue, 14 Jan 2025 06:46:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837187; cv=none; b=NaDWP4jLsRSjp28z6Z/ll7ENKjB5EheAFyK0jztODq8HIeAVMstxFUoJcAIGLHwYfVwQ1mga5VsVRplXLyq79wKr48XsBVWvbj1jfBTuNO7r4JOEq3BFeDqEQxCauMIUm/q3+LhIVgI4bzB+qWzTGbv31wDU1YghZ7o+18XUTMY=
+	t=1736837190; cv=none; b=EZcsujdv9DEokvWg6N3E3exOkg0yEqgwyPrbOTUYQoow0iKnsv7qJ5mTTrI2RESAyoKLXqP2R9VULuXkcPsgVxqCRlqJs94Rbe7UC2JJTKfMvKhqu5Pfyfm0qK1WVjCBPQxSLDZSC8uFO5P+LT2RNoFt3YTF5LzwESmlk5p8YNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837187; c=relaxed/simple;
-	bh=FoVH/MVCFBiEScbfamp6jzTDDEJu29s0J3yLKUhsWtw=;
-	h=Date:To:From:Subject:Message-Id; b=n58Yjehm3Pz2atPu+s1Afm4ugFuhZCLEP1SA4GaPd03/HmozoCbBa4RhwDdNEE2Rlsr2K1xfuGY1dipvAaAxedQAsdHscj9MF49l4SH7MaeERXEwMXDrQts2vGBhE1KBSw2nLwN2l1vrP5bgUXG4MZIKfAUexYkUQ0fJAvXw7/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pOKACjTt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837190; c=relaxed/simple;
+	bh=2xm4KLJFaDiyQobrj72vwCl0ACQJNzeUVztug7/MrmU=;
+	h=Date:To:From:Subject:Message-Id; b=dgBINHil5ChfF22d9EeDXoK5ijCIZm4nOChEek85tzR9I+lid+Yo3uwmlf+Qvho+/MN0aVfzjBEPTl0sOwwtmFZgMpc0wmrt54jsPd8E/O1G6hZkFSosBkcC1s7JqzhWFHjo7XULC7Cf1cN67MabNCAOswTjwwsC1rtFNEYPeg4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oHXqwOqP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pOKACjTt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C713C4CEDD;
-	Tue, 14 Jan 2025 06:46:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oHXqwOqP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19611C4CEDF;
+	Tue, 14 Jan 2025 06:46:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837187;
-	bh=FoVH/MVCFBiEScbfamp6jzTDDEJu29s0J3yLKUhsWtw=;
+	s=korg; t=1736837190;
+	bh=2xm4KLJFaDiyQobrj72vwCl0ACQJNzeUVztug7/MrmU=;
 	h=Date:To:From:Subject:From;
-	b=pOKACjTtZeBhNqXokklfluF4+oXQt4ifSOZyebZFKi+2uH9K0JMlGQAZHV8JFVjLd
-	 wcS6SBNqPdfmyEZHO3K2QxS6FQS+lwgFKFO4hZSNXst97igKI9FqEUOfiZHCiMupoK
-	 DnNciYpwud7HFCayYUdkCGl0ny4FX+k72qliHi+c=
-Date: Mon, 13 Jan 2025 22:46:26 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,kasong@tencent.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=oHXqwOqPoRF1Ic/Aaw+jr5wwmgmpZLh6zzapWFk2Nz3G2fVjfVTdYuMYDHzBRO1Sg
+	 +wJHFHyuptANxNBuScT5tB+BcYs1NiDa1Ve6IKbsnik4PPRlQHRw9r2jPmucOKWo/j
+	 yh6JleH5NwAJKUIfdqfoQjZs+YMpnh0FEwZv/3tg=
+Date: Mon, 13 Jan 2025 22:46:29 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,riel@surriel.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,leitao@debian.org,ackerleytng@google.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device.patch removed from -mm tree
-Message-Id: <20250114064627.3C713C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-avoid_reserve-to-allow-taking-folio-from-subpool.patch removed from -mm tree
+Message-Id: <20250114064630.19611C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,246 +35,241 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: skip swapcache for swapin of synchronous swap device
+     Subject: mm/hugetlb: fix avoid_reserve to allow taking folio from subpool
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device.patch
+     mm-hugetlb-fix-avoid_reserve-to-allow-taking-folio-from-subpool.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: skip swapcache for swapin of synchronous swap device
-Date: Wed, 8 Jan 2025 10:16:49 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix avoid_reserve to allow taking folio from subpool
+Date: Tue, 7 Jan 2025 15:39:56 -0500
 
-With fast swap devices (such as zram), swapin latency is crucial to
-applications.  For shmem swapin, similar to anonymous memory swapin, we
-can skip the swapcache operation to improve swapin latency.  Testing 1G
-shmem sequential swapin without THP enabled, I observed approximately a 6%
-performance improvement: (Note: I repeated 5 times and took the mean data
-for each test)
+Patch series "mm/hugetlb: Refactor hugetlb allocation resv accounting",
+v2.
 
-w/o patch	w/ patch	changes
-534.8ms		501ms		+6.3%
+This is a follow up on Ackerley's series here as replacement:
 
-In addition, currently, we always split the large swap entry stored in the
-shmem mapping during shmem large folio swapin, which is not perfect,
-especially with a fast swap device.  We should swap in the whole large
-folio instead of splitting the precious large folios to take advantage of
-the large folios and improve the swapin latency if the swap device is
-synchronous device, which is similar to anonymous memory mTHP swapin. 
-Testing 1G shmem sequential swapin with 64K mTHP and 2M mTHP, I observed
-obvious performance improvement:
+https://lore.kernel.org/r/cover.1728684491.git.ackerleytng@google.com
 
-mTHP=64K
-w/o patch	w/ patch	changes
-550.4ms		169.6ms		+69%
+The goal of this series is to cleanup hugetlb resv accounting, especially
+during folio allocation, to decouple a few things:
 
-mTHP=2M
-w/o patch	w/ patch	changes
-542.8ms		126.8ms		+77%
+  - Hugetlb folios v.s. Hugetlbfs: IOW, the hope is in the future hugetlb
+    folios can be allocated completely without hugetlbfs.
 
-Note that skipping swapcache requires attention to concurrent swapin
-scenarios.  Fortunately the swapcache_prepare() and
-shmem_add_to_page_cache() can help identify concurrent swapin and large
-swap entry split scenarios, and return -EEXIST for retry.
+  - Decouple VMA v.s. hugetlb folio allocations: allocating a hugetlb folio
+    should not always require a hugetlbfs VMA.  For example, either it got
+    allocated from the inode level (see hugetlbfs_fallocate() where it used
+    a pesudo VMA for allocation), or it can be allocated by other kernel
+    subsystems.
 
-[akpm@linux-foundation.org: use IS_ENABLED(), tweak comment grammar]
-Link: https://lkml.kernel.org/r/3d9f3bd3bc6ec953054baff5134f66feeaae7c1e.1736301701.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+It paves way for other users to allocate hugetlb folios out of either
+system reservations, or subpools (instead of hugetlbfs, as a file system).
+For longer term, this prepares hugetlb as a separate concept versus
+hugetlbfs, so that hugetlb folios can be allocated by not only hugetlbfs
+and other things.
+
+Tests I've done:
+
+- I had a reproducer in patch 1 for the bug I found, this will start to
+  work after patch 1 or the whole set applied.
+
+- Hugetlb regression tests (on x86_64 2MBs), includes:
+
+  - All vmtests on hugetlbfs
+
+  - libhugetlbfs test suite (which may fail some tests, but no new failures
+    will be introduced by this series, so all such failures happen before
+    this series so shouldn't be relevant).
+
+
+This patch (of 7):
+
+Since commit 04f2cbe35699 ("hugetlb: guarantee that COW faults for a
+process that called mmap(MAP_PRIVATE) on hugetlbfs will succeed"),
+avoid_reserve was introduced for a special case of CoW on hugetlb private
+mappings, and only if the owner VMA is trying to allocate yet another
+hugetlb folio that is not reserved within the private vma reserved map.
+
+Later on, in commit d85f69b0b533 ("mm/hugetlb: alloc_huge_page handle
+areas hole punched by fallocate"), alloc_huge_page() enforced to not
+consume any global reservation as long as avoid_reserve=true.  This
+operation doesn't look correct, because even if it will enforce the
+allocation to not use global reservation at all, it will still try to take
+one reservation from the spool (if the subpool existed).  Then since the
+spool reserved pages take from global reservation, it'll also take one
+reservation globally.
+
+Logically it can cause global reservation to go wrong.
+
+I wrote a reproducer below, trigger this special path, and every run of
+such program will cause global reservation count to increment by one, until
+it hits the number of free pages:
+
+  #define _GNU_SOURCE             /* See feature_test_macros(7) */
+  #include <stdio.h>
+  #include <fcntl.h>
+  #include <errno.h>
+  #include <unistd.h>
+  #include <stdlib.h>
+  #include <sys/mman.h>
+
+  #define  MSIZE  (2UL << 20)
+
+  int main(int argc, char *argv[])
+  {
+      const char *path;
+      int *buf;
+      int fd, ret;
+      pid_t child;
+
+      if (argc < 2) {
+          printf("usage: %s <hugetlb_file>\n", argv[0]);
+          return -1;
+      }
+
+      path = argv[1];
+
+      fd = open(path, O_RDWR | O_CREAT, 0666);
+      if (fd < 0) {
+          perror("open failed");
+          return -1;
+      }
+
+      ret = fallocate(fd, 0, 0, MSIZE);
+      if (ret != 0) {
+          perror("fallocate");
+          return -1;
+      }
+
+      buf = mmap(NULL, MSIZE, PROT_READ|PROT_WRITE,
+                 MAP_PRIVATE, fd, 0);
+
+      if (buf == MAP_FAILED) {
+          perror("mmap() failed");
+          return -1;
+      }
+
+      /* Allocate a page */
+      *buf = 1;
+
+      child = fork();
+      if (child == 0) {
+          /* child doesn't need to do anything */
+          exit(0);
+      }
+
+      /* Trigger CoW from owner */
+      *buf = 2;
+
+      munmap(buf, MSIZE);
+      close(fd);
+      unlink(path);
+
+      return 0;
+  }
+
+It can only reproduce with a sub-mount when there're reserved pages on the
+spool, like:
+
+  # sysctl vm.nr_hugepages=128
+  # mkdir ./hugetlb-pool
+  # mount -t hugetlbfs -o min_size=8M,pagesize=2M none ./hugetlb-pool
+
+Then run the reproducer on the mountpoint:
+
+  # ./reproducer ./hugetlb-pool/test
+
+Fix it by taking the reservation from spool if available.  In general,
+avoid_reserve is IMHO more about "avoid vma resv map", not spool's.
+
+I copied stable, however I have no intention for backporting if it's not a
+clean cherry-pick, because private hugetlb mapping, and then fork() on top
+is too rare to hit.
+
+Link: https://lkml.kernel.org/r/20250107204002.2683356-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20250107204002.2683356-2-peterx@redhat.com
+Fixes: d85f69b0b533 ("mm/hugetlb: alloc_huge_page handle areas hole punched by fallocate")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Ackerley Tng <ackerleytng@google.com>
+Tested-by: Ackerley Tng <ackerleytng@google.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  110 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 105 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |   22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-skip-swapcache-for-swapin-of-synchronous-swap-device
-+++ a/mm/shmem.c
-@@ -1967,6 +1967,65 @@ unlock:
- 	return ERR_PTR(error);
- }
+--- a/mm/hugetlb.c~mm-hugetlb-fix-avoid_reserve-to-allow-taking-folio-from-subpool
++++ a/mm/hugetlb.c
+@@ -1398,8 +1398,7 @@ static unsigned long available_huge_page
  
-+static struct folio *shmem_swap_alloc_folio(struct inode *inode,
-+		struct vm_area_struct *vma, pgoff_t index,
-+		swp_entry_t entry, int order, gfp_t gfp)
-+{
-+	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct folio *new;
-+	void *shadow;
-+	int nr_pages;
-+
-+	/*
-+	 * We have arrived here because our zones are constrained, so don't
-+	 * limit chance of success with further cpuset and node constraints.
-+	 */
-+	gfp &= ~GFP_CONSTRAINT_MASK;
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && order > 0) {
-+		gfp_t huge_gfp = vma_thp_gfp_mask(vma);
-+
-+		gfp = limit_gfp_mask(huge_gfp, gfp);
-+	}
-+
-+	new = shmem_alloc_folio(gfp, order, info, index);
-+	if (!new)
-+		return ERR_PTR(-ENOMEM);
-+
-+	nr_pages = folio_nr_pages(new);
-+	if (mem_cgroup_swapin_charge_folio(new, vma ? vma->vm_mm : NULL,
-+					   gfp, entry)) {
-+		folio_put(new);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	/*
-+	 * Prevent parallel swapin from proceeding with the swap cache flag.
-+	 *
-+	 * Of course there is another possible concurrent scenario as well,
-+	 * that is to say, the swap cache flag of a large folio has already
-+	 * been set by swapcache_prepare(), while another thread may have
-+	 * already split the large swap entry stored in the shmem mapping.
-+	 * In this case, shmem_add_to_page_cache() will help identify the
-+	 * concurrent swapin and return -EEXIST.
-+	 */
-+	if (swapcache_prepare(entry, nr_pages)) {
-+		folio_put(new);
-+		return ERR_PTR(-EEXIST);
-+	}
-+
-+	__folio_set_locked(new);
-+	__folio_set_swapbacked(new);
-+	new->swap = entry;
-+
-+	mem_cgroup_swapin_uncharge_swap(entry, nr_pages);
-+	shadow = get_shadow_from_swap_cache(entry);
-+	if (shadow)
-+		workingset_refault(new, shadow);
-+	folio_add_lru(new);
-+	swap_read_folio(new, NULL);
-+	return new;
-+}
-+
- /*
-  * When a page is moved from swapcache to shmem filecache (either by the
-  * usual swapin of shmem_get_folio_gfp(), or by the less common swapoff of
-@@ -2070,7 +2129,8 @@ static int shmem_replace_folio(struct fo
- }
- 
- static void shmem_set_folio_swapin_error(struct inode *inode, pgoff_t index,
--					 struct folio *folio, swp_entry_t swap)
-+					 struct folio *folio, swp_entry_t swap,
-+					 bool skip_swapcache)
+ static struct folio *dequeue_hugetlb_folio_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+-				unsigned long address, int avoid_reserve,
+-				long chg)
++				unsigned long address, long chg)
  {
- 	struct address_space *mapping = inode->i_mapping;
- 	swp_entry_t swapin_error;
-@@ -2086,7 +2146,8 @@ static void shmem_set_folio_swapin_error
- 
- 	nr_pages = folio_nr_pages(folio);
- 	folio_wait_writeback(folio);
--	delete_from_swap_cache(folio);
-+	if (!skip_swapcache)
-+		delete_from_swap_cache(folio);
- 	/*
- 	 * Don't treat swapin error folio as alloced. Otherwise inode->i_blocks
- 	 * won't be 0 when inode is released and thus trigger WARN_ON(i_blocks)
-@@ -2190,6 +2251,7 @@ static int shmem_swapin_folio(struct ino
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct swap_info_struct *si;
  	struct folio *folio = NULL;
-+	bool skip_swapcache = false;
- 	swp_entry_t swap;
- 	int error, nr_pages;
+ 	struct mempolicy *mpol;
+@@ -1415,10 +1414,6 @@ static struct folio *dequeue_hugetlb_fol
+ 	if (!vma_has_reserves(vma, chg) && !available_huge_pages(h))
+ 		goto err;
  
-@@ -2211,6 +2273,8 @@ static int shmem_swapin_folio(struct ino
- 	/* Look it up and read it in.. */
- 	folio = swap_cache_get_folio(swap, NULL, 0);
- 	if (!folio) {
-+		int order = xa_get_order(&mapping->i_pages, index);
-+		bool fallback_order0 = false;
- 		int split_order;
+-	/* If reserves cannot be used, ensure enough pages are in the pool */
+-	if (avoid_reserve && !available_huge_pages(h))
+-		goto err;
+-
+ 	gfp_mask = htlb_alloc_mask(h);
+ 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
  
- 		/* Or update major stats only when swapin succeeds?? */
-@@ -2221,6 +2285,33 @@ static int shmem_swapin_folio(struct ino
- 		}
+@@ -1434,7 +1429,7 @@ static struct folio *dequeue_hugetlb_fol
+ 		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
+ 							nid, nodemask);
  
- 		/*
-+		 * If uffd is active for the vma, we need per-page fault
-+		 * fidelity to maintain the uffd semantics, then fallback
-+		 * to swapin order-0 folio, as well as for zswap case.
-+		 */
-+		if (order > 0 && ((vma && unlikely(userfaultfd_armed(vma))) ||
-+				  !zswap_never_enabled()))
-+			fallback_order0 = true;
-+
-+		/* Skip swapcache for synchronous device. */
-+		if (!fallback_order0 && data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
-+			folio = shmem_swap_alloc_folio(inode, vma, index, swap, order, gfp);
-+			if (!IS_ERR(folio)) {
-+				skip_swapcache = true;
-+				goto alloced;
-+			}
-+
-+			/*
-+			 * Fallback to swapin order-0 folio unless the swap entry
-+			 * already exists.
-+			 */
-+			error = PTR_ERR(folio);
-+			folio = NULL;
-+			if (error == -EEXIST)
-+				goto failed;
-+		}
-+
-+		/*
- 		 * Now swap device can only swap in order 0 folio, then we
- 		 * should split the large swap entry stored in the pagecache
- 		 * if necessary.
-@@ -2250,9 +2341,10 @@ static int shmem_swapin_folio(struct ino
- 		}
+-	if (folio && !avoid_reserve && vma_has_reserves(vma, chg)) {
++	if (folio && vma_has_reserves(vma, chg)) {
+ 		folio_set_hugetlb_restore_reserve(folio);
+ 		h->resv_huge_pages--;
+ 	}
+@@ -3051,17 +3046,6 @@ struct folio *alloc_hugetlb_folio(struct
+ 		gbl_chg = hugepage_subpool_get_pages(spool, 1);
+ 		if (gbl_chg < 0)
+ 			goto out_end_reservation;
+-
+-		/*
+-		 * Even though there was no reservation in the region/reserve
+-		 * map, there could be reservations associated with the
+-		 * subpool that can be used.  This would be indicated if the
+-		 * return value of hugepage_subpool_get_pages() is zero.
+-		 * However, if avoid_reserve is specified we still avoid even
+-		 * the subpool reservations.
+-		 */
+-		if (avoid_reserve)
+-			gbl_chg = 1;
  	}
  
-+alloced:
- 	/* We have to do this with folio locked to prevent races */
- 	folio_lock(folio);
--	if (!folio_test_swapcache(folio) ||
-+	if ((!skip_swapcache && !folio_test_swapcache(folio)) ||
- 	    folio->swap.val != swap.val ||
- 	    !shmem_confirm_swap(mapping, index, swap)) {
- 		error = -EEXIST;
-@@ -2288,7 +2380,12 @@ static int shmem_swapin_folio(struct ino
- 	if (sgp == SGP_WRITE)
- 		folio_mark_accessed(folio);
- 
--	delete_from_swap_cache(folio);
-+	if (skip_swapcache) {
-+		folio->swap.val = 0;
-+		swapcache_clear(si, swap, nr_pages);
-+	} else {
-+		delete_from_swap_cache(folio);
-+	}
- 	folio_mark_dirty(folio);
- 	swap_free_nr(swap, nr_pages);
- 	put_swap_device(si);
-@@ -2299,8 +2396,11 @@ failed:
- 	if (!shmem_confirm_swap(mapping, index, swap))
- 		error = -EEXIST;
- 	if (error == -EIO)
--		shmem_set_folio_swapin_error(inode, index, folio, swap);
-+		shmem_set_folio_swapin_error(inode, index, folio, swap,
-+					     skip_swapcache);
- unlock:
-+	if (skip_swapcache)
-+		swapcache_clear(si, swap, folio_nr_pages(folio));
- 	if (folio) {
- 		folio_unlock(folio);
- 		folio_put(folio);
+ 	/* If this allocation is not consuming a reservation, charge it now.
+@@ -3084,7 +3068,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 	 * from the global free pool (global change).  gbl_chg == 0 indicates
+ 	 * a reservation exists for the allocation.
+ 	 */
+-	folio = dequeue_hugetlb_folio_vma(h, vma, addr, avoid_reserve, gbl_chg);
++	folio = dequeue_hugetlb_folio_vma(h, vma, addr, gbl_chg);
+ 	if (!folio) {
+ 		spin_unlock_irq(&hugetlb_lock);
+ 		folio = alloc_buddy_hugetlb_folio_with_mpol(h, vma, addr);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
