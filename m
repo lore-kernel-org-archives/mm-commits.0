@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701322451FC
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF61246326
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:45:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837105; cv=none; b=kiY6ULKK91aUD9kauT4iAhVNGe1FJiAFfzv3D38BzIRDsNtjFRiJdEdoGey0SQhxaCeMP1Ao0Ft9533PCw7Wz07nQOZ4DWxhtfZPGWW7IN0Xam7/0VCd9RSbpgiW9g94J732lJ/skJoJFZtvwF9SnUY3Inocx5cSLPHtbZRCShk=
+	t=1736837107; cv=none; b=VRLmnJFiXj5vTeHvyl2OhlJsgSko4oPbOF5/xmCkXr9WnEzTGESM5S2DcHzAm9HMK4qLBRgO3cCWHnKM6H9vMZO5DsNAHI4E8EU8L92k+GzaJxw69yj/qH8Zs8xz7lMC/JZt1kbo9/cUhv2g5w/7Dg0EwXW1zPDq5FjAyFVq+Lc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837105; c=relaxed/simple;
-	bh=ZBFex2662nPnbEMDFqS4aVCKgwWVm4SFx3z49oUz4ag=;
-	h=Date:To:From:Subject:Message-Id; b=FTEU/T3vairYSnDouzCRuCLdSEs/GojI+dbnh3ydpep/Rxn0k7v4SJ9i06YybsnGVYWCgzmTF5ZluIZkjSgMzANCTYyOosjVWhP5qPUS8dWOwbKMFFQTQkSmSQp14TAB+uTIOzeUmY+1MBAOiGdMKkSNGfxbUjGoWESKEYFvVNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z0O/DBSx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837107; c=relaxed/simple;
+	bh=+ryxYL+AHvkctkbF0z5XC5+RQAU5o0p/AXNxZKh5KZ8=;
+	h=Date:To:From:Subject:Message-Id; b=luuz/NNt3qKgoWPtL2lBvtS11kcUkLAChbIi3+Y+Sln9MfLLatgh2tzaM2BzriFoytDU1KnYUng6BXnWKCk+4P50MRanw9Q65On1xLXC12BaGVLmkelxRD7nKkcIXhIxJ/TCCG2rqXQkJ2MDgLuwVadjrOFWdbS0RYOlLNPkwOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x4zYTTr5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z0O/DBSx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40ABEC4CEDD;
-	Tue, 14 Jan 2025 06:45:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x4zYTTr5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7878BC4CEDD;
+	Tue, 14 Jan 2025 06:45:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837105;
-	bh=ZBFex2662nPnbEMDFqS4aVCKgwWVm4SFx3z49oUz4ag=;
+	s=korg; t=1736837106;
+	bh=+ryxYL+AHvkctkbF0z5XC5+RQAU5o0p/AXNxZKh5KZ8=;
 	h=Date:To:From:Subject:From;
-	b=Z0O/DBSx4TCYiJipg1lnuteOLw2GaqdI/gQb4BMMaCMhHWv4FWrGLSuCT/BlT4wWF
-	 k8jFJ4NEdK/tgKwOesXM/CKRDFbkx/sQyh84mi6G0bI7LHvJdLAzyD+C/N8omNWQRn
-	 XbH6ekqe7XAxntgnb78eVAqyW1EblukXlm1+2JaI=
-Date: Mon, 13 Jan 2025 22:45:04 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ritesh.list@gmail.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=x4zYTTr56JEkWHrRBbUSdLDoLA3eALK/DpI/j88TpKGfi/Yorq+p4mARZrsV0ObrP
+	 gArZ1cDBxXnCZ8Hxujf/zX2cdK8RJeG+0xxPAefZvXfWJQypFWqroHkiGlMWEsZfgb
+	 BYtkQzoeVuHxz+HmqbhZLz+c/UlcmdcWIJYFSdmg=
+Date: Mon, 13 Jan 2025 22:45:05 -0800
+To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,kernel@xen0n.name,gregkh@linuxfoundation.org,david@redhat.com,corbet@lwn.net,chenhuacai@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-added-new-test-cases-to-the-migration-test.patch removed from -mm tree
-Message-Id: <20250114064505.40ABEC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-build-time-option-for-hotplug-memory-default-online-type.patch removed from -mm tree
+Message-Id: <20250114064506.7878BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,184 +35,288 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add new test cases to the migration test
+     Subject: mm: add build-time option for hotplug memory default online type
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-added-new-test-cases-to-the-migration-test.patch
+     mm-add-build-time-option-for-hotplug-memory-default-online-type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: selftests/mm: add new test cases to the migration test
-Date: Thu, 19 Dec 2024 04:27:20 -0600
+From: Gregory Price <gourry@gourry.net>
+Subject: mm: add build-time option for hotplug memory default online type
+Date: Fri, 20 Dec 2024 16:07:09 -0500
 
-Added three new test cases to the migration tests:
+Memory hotplug presently auto-onlines memory into a zone the kernel deems
+appropriate if CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y.
 
-1. Shared anon THP migration test
-This test will mmap shared anon memory, madvise it to
-MADV_HUGEPAGE, then do migration entry testing. One thread
-will move pages back and forth between nodes whilst other
-threads try and access them.
+The memhp_default_state boot param enables runtime config, but it's not
+possible to do this at build-time.
 
-2. Private anon hugetlb migration test
-This test will mmap private anon hugetlb memory and then
-do the migration entry testing.
+Remove CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE, and replace it with
+CONFIG_MHP_DEFAULT_ONLINE_TYPE_* choices that sync with the boot param.
 
-3. Shared anon hugetlb migration test
-This test will mmap shared anon hugetlb memory and then
-do the migration entry testing.
+Selections:
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE
+    => mhp_default_online_type = "offline"
+       Memory will not be onlined automatically.
 
-Test results
-============
- # ./tools/testing/selftests/mm/migration
- TAP version 13
- 1..6
- # Starting 6 tests from 1 test cases.
- #  RUN           migration.private_anon ...
- #            OK  migration.private_anon
- ok 1 migration.private_anon
- #  RUN           migration.shared_anon ...
- #            OK  migration.shared_anon
- ok 2 migration.shared_anon
- #  RUN           migration.private_anon_thp ...
- #            OK  migration.private_anon_thp
- ok 3 migration.private_anon_thp
- #  RUN           migration.shared_anon_thp ...
- #            OK  migration.shared_anon_thp
- ok 4 migration.shared_anon_thp
- #  RUN           migration.private_anon_htlb ...
- #            OK  migration.private_anon_htlb
- ok 5 migration.private_anon_htlb
- #  RUN           migration.shared_anon_htlb ...
- #            OK  migration.shared_anon_htlb
- ok 6 migration.shared_anon_htlb
- # PASSED: 6 / 6 tests passed.
- # Totals: pass:6 fail:0 xfail:0 xpass:0 skip:0 error:0
- #
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO
+    => mhp_default_online_type = "online"
+       Memory will be onlined automatically in a zone deemed.
+       appropriate by the kernel.
 
-Link: https://lkml.kernel.org/r/20241219102720.4487-1-donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
+    => mhp_default_online_type = "online_kernel"
+       Memory will be onlined automatically.
+       The zone may allow kernel data (e.g. ZONE_NORMAL).
+
+  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
+    => mhp_default_online_type = "online_movable"
+       Memory will be onlined automatically.
+       The zone will be ZONE_MOVABLE.
+
+Default to CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE to match the existing
+default CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=n behavior.
+
+Existing users of CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y should use
+CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO.
+
+[gourry@gourry.net: update KConfig comments]
+  Link: https://lkml.kernel.org/r/20241226182918.648799-1-gourry@gourry.net
+Link: https://lkml.kernel.org/r/20241220210709.300066-1-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/migration.c |   99 +++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
+ Documentation/admin-guide/kernel-parameters.txt |    4 
+ Documentation/admin-guide/mm/memory-hotplug.rst |    4 
+ arch/loongarch/configs/loongson3_defconfig      |    5 -
+ drivers/base/memory.c                           |    4 
+ include/linux/memory_hotplug.h                  |    5 -
+ mm/Kconfig                                      |   57 ++++++++++++--
+ mm/memory_hotplug.c                             |   33 ++++++--
+ 7 files changed, 89 insertions(+), 23 deletions(-)
 
---- a/tools/testing/selftests/mm/migration.c~selftests-mm-added-new-test-cases-to-the-migration-test
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -204,4 +204,103 @@ TEST_F_TIMEOUT(migration, private_anon_t
- 		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
+--- a/arch/loongarch/configs/loongson3_defconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/arch/loongarch/configs/loongson3_defconfig
+@@ -113,7 +113,10 @@ CONFIG_ZBUD=y
+ CONFIG_ZSMALLOC=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MEMORY_HOTPLUG=y
+-CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE=y
++# CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE is not set
++CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO=y
++# CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL is not set
++# CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE is not set
+ CONFIG_MEMORY_HOTREMOVE=y
+ CONFIG_KSM=y
+ CONFIG_TRANSPARENT_HUGEPAGE=y
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3351,8 +3351,8 @@
+ 			[KNL] Set the initial state for the memory hotplug
+ 			onlining policy. If not specified, the default value is
+ 			set according to the
+-			CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
+-			option.
++			CONFIG_MHP_DEFAULT_ONLINE_TYPE kernel config
++			options.
+ 			See Documentation/admin-guide/mm/memory-hotplug.rst.
+ 
+ 	memmap=exactmap	[KNL,X86,EARLY] Enable setting of an exact
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -280,8 +280,8 @@ The following files are currently define
+ 		       blocks; configure auto-onlining.
+ 
+ 		       The default value depends on the
+-		       CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel configuration
+-		       option.
++		       CONFIG_MHP_DEFAULT_ONLINE_TYPE kernel configuration
++		       options.
+ 
+ 		       See the ``state`` property of memory blocks for details.
+ ``block_size_bytes``   read-only: the size in bytes of a memory block.
+--- a/drivers/base/memory.c~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/drivers/base/memory.c
+@@ -512,7 +512,7 @@ static ssize_t auto_online_blocks_show(s
+ 				       struct device_attribute *attr, char *buf)
+ {
+ 	return sysfs_emit(buf, "%s\n",
+-			  online_type_to_str[mhp_default_online_type]);
++			  online_type_to_str[mhp_get_default_online_type()]);
  }
  
-+/*
-+ * migration test with shared anon THP page
-+ */
+ static ssize_t auto_online_blocks_store(struct device *dev,
+@@ -524,7 +524,7 @@ static ssize_t auto_online_blocks_store(
+ 	if (online_type < 0)
+ 		return -EINVAL;
+ 
+-	mhp_default_online_type = online_type;
++	mhp_set_default_online_type(online_type);
+ 	return count;
+ }
+ 
+--- a/include/linux/memory_hotplug.h~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/include/linux/memory_hotplug.h
+@@ -144,8 +144,6 @@ extern u64 max_mem_size;
+ 
+ extern int mhp_online_type_from_str(const char *str);
+ 
+-/* Default online_type (MMOP_*) when new memory blocks are added. */
+-extern int mhp_default_online_type;
+ /* If movable_node boot option specified */
+ extern bool movable_node_enabled;
+ static inline bool movable_node_is_enabled(void)
+@@ -303,6 +301,9 @@ static inline void __remove_memory(u64 s
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
++/* Default online_type (MMOP_*) when new memory blocks are added. */
++extern int mhp_get_default_online_type(void);
++extern void mhp_set_default_online_type(int online_type);
+ extern void __ref free_area_init_core_hotplug(struct pglist_data *pgdat);
+ extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
+ extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
+--- a/mm/Kconfig~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/mm/Kconfig
+@@ -550,20 +550,63 @@ menuconfig MEMORY_HOTPLUG
+ 
+ if MEMORY_HOTPLUG
+ 
+-config MEMORY_HOTPLUG_DEFAULT_ONLINE
+-	bool "Online the newly added memory blocks by default"
+-	depends on MEMORY_HOTPLUG
++choice
++	prompt "Memory Hotplug Default Online Type"
++	default MHP_DEFAULT_ONLINE_TYPE_OFFLINE
+ 	help
++	  Default memory type for hotplugged memory.
 +
-+TEST_F_TIMEOUT(migration, shared_anon_thp, 2*RUNTIME)
+ 	  This option sets the default policy setting for memory hotplug
+ 	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
+ 	  determines what happens to newly added memory regions. Policy setting
+ 	  can always be changed at runtime.
++
++	  The default is 'offline'.
++
++	  Select offline to defer onlining to drivers and user policy.
++	  Select auto to let the kernel choose what zones to utilize.
++	  Select online_kernel to generally allow kernel usage of this memory.
++	  Select online_movable to generally disallow kernel usage of this memory.
++
++	  Example kernel usage would be page structs and page tables.
++
+ 	  See Documentation/admin-guide/mm/memory-hotplug.rst for more information.
+ 
+-	  Say Y here if you want all hot-plugged memory blocks to appear in
+-	  'online' state by default.
+-	  Say N here if you want the default policy to keep all hot-plugged
+-	  memory blocks in 'offline' state.
++config MHP_DEFAULT_ONLINE_TYPE_OFFLINE
++	bool "offline"
++	help
++	  Hotplugged memory will not be onlined by default.
++	  Choose this for systems with drivers and user policy that
++	  handle onlining of hotplug memory policy.
++
++config MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO
++	bool "auto"
++	help
++	  Select this if you want the kernel to automatically online
++	  hotplugged memory into the zone it thinks is reasonable.
++	  This memory may be utilized for kernel data.
++
++config MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL
++	bool "kernel"
++	help
++	  Select this if you want the kernel to automatically online
++	  hotplugged memory into a zone capable of being used for kernel
++	  data. This typically means ZONE_NORMAL.
++
++config MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE
++	bool "movable"
++	help
++	  Select this if you want the kernel to automatically online
++	  hotplug memory into ZONE_MOVABLE. This memory will generally
++	  not be utilized for kernel data.
++
++	  This should only be used when the admin knows sufficient
++	  ZONE_NORMAL memory is available to describe hotplug memory,
++	  otherwise hotplug memory may fail to online. For example,
++	  sufficient kernel-capable memory (ZONE_NORMAL) must be
++	  available to allocate page structs to describe ZONE_MOVABLE.
++
++endchoice
+ 
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+--- a/mm/memory_hotplug.c~mm-add-build-time-option-for-hotplug-memory-default-online-type
++++ a/mm/memory_hotplug.c
+@@ -219,11 +219,30 @@ void put_online_mems(void)
+ 
+ bool movable_node_enabled = false;
+ 
+-#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+-int mhp_default_online_type = MMOP_OFFLINE;
+-#else
+-int mhp_default_online_type = MMOP_ONLINE;
+-#endif
++static int mhp_default_online_type = -1;
++int mhp_get_default_online_type(void)
 +{
-+	pid_t pid;
-+	uint64_t *ptr;
-+	int i;
++	if (mhp_default_online_type >= 0)
++		return mhp_default_online_type;
 +
-+	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
-+		SKIP(return, "Not enough threads or NUMA nodes available");
++	if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_OFFLINE))
++		mhp_default_online_type = MMOP_OFFLINE;
++	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_AUTO))
++		mhp_default_online_type = MMOP_ONLINE;
++	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_KERNEL))
++		mhp_default_online_type = MMOP_ONLINE_KERNEL;
++	else if (IS_ENABLED(CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE))
++		mhp_default_online_type = MMOP_ONLINE_MOVABLE;
++	else
++		mhp_default_online_type = MMOP_OFFLINE;
 +
-+	ptr = mmap(NULL, 2 * TWOMEG, PROT_READ | PROT_WRITE,
-+		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, TWOMEG);
-+	ASSERT_EQ(madvise(ptr, TWOMEG, MADV_HUGEPAGE), 0);
-+
-+	memset(ptr, 0xde, TWOMEG);
-+	for (i = 0; i < self->nthreads - 1; i++) {
-+		pid = fork();
-+		if (!pid) {
-+			prctl(PR_SET_PDEATHSIG, SIGHUP);
-+			/* Parent may have died before prctl so check now. */
-+			if (getppid() == 1)
-+				kill(getpid(), SIGHUP);
-+			access_mem(ptr);
-+		} else {
-+			self->pids[i] = pid;
-+		}
-+	}
-+
-+	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
++	return mhp_default_online_type;
 +}
 +
-+/*
-+ * migration test with private anon hugetlb page
-+ */
-+TEST_F_TIMEOUT(migration, private_anon_htlb, 2*RUNTIME)
++void mhp_set_default_online_type(int online_type)
 +{
-+	uint64_t *ptr;
-+	int i;
-+
-+	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
-+		SKIP(return, "Not enough threads or NUMA nodes available");
-+
-+	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
-+		MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	memset(ptr, 0xde, TWOMEG);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
-+			perror("Couldn't create thread");
-+
-+	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		ASSERT_EQ(pthread_cancel(self->threads[i]), 0);
++	mhp_default_online_type = online_type;
 +}
-+
-+/*
-+ * migration test with shared anon hugetlb page
-+ */
-+TEST_F_TIMEOUT(migration, shared_anon_htlb, 2*RUNTIME)
-+{
-+	pid_t pid;
-+	uint64_t *ptr;
-+	int i;
-+
-+	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
-+		SKIP(return, "Not enough threads or NUMA nodes available");
-+
-+	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
-+		MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+
-+	memset(ptr, 0xde, TWOMEG);
-+	for (i = 0; i < self->nthreads - 1; i++) {
-+		pid = fork();
-+		if (!pid) {
-+			prctl(PR_SET_PDEATHSIG, SIGHUP);
-+			/* Parent may have died before prctl so check now. */
-+			if (getppid() == 1)
-+				kill(getpid(), SIGHUP);
-+			access_mem(ptr);
-+		} else {
-+			self->pids[i] = pid;
-+		}
-+	}
-+
-+	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
-+	for (i = 0; i < self->nthreads - 1; i++)
-+		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
-+}
-+
- TEST_HARNESS_MAIN
+ 
+ static int __init setup_memhp_default_state(char *str)
+ {
+@@ -1328,7 +1347,7 @@ static int check_hotplug_memory_range(u6
+ 
+ static int online_memory_block(struct memory_block *mem, void *arg)
+ {
+-	mem->online_type = mhp_default_online_type;
++	mem->online_type = mhp_get_default_online_type();
+ 	return device_online(&mem->dev);
+ }
+ 
+@@ -1575,7 +1594,7 @@ int add_memory_resource(int nid, struct
+ 		merge_system_ram_resource(res);
+ 
+ 	/* online pages if requested */
+-	if (mhp_default_online_type != MMOP_OFFLINE)
++	if (mhp_get_default_online_type() != MMOP_OFFLINE)
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
 
