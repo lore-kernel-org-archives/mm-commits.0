@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98AEE23D3D1
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9BC823D3D9
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:44:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837048; cv=none; b=o0adxnMKdhaM7KSJYr9qHZdEMQOlSLcfLEXBgFyY2PnDrWoj9rE/B85UZKvsXZm1cnZGOZvJTrPOEef0zWsL/Bx831f1rXcas2f8uoAzUY4CBRbBh5IDS61dhxAarGEBy6HJ0KNoxCg83OHY461/XwDxTbWBeIqr/XNKcNIUFEI=
+	t=1736837049; cv=none; b=iDhnADgAnaO6vLLWIcz3DqAeciG8nZUOjwe3hECUQb3StY+j9IG3+XUxRtp852YcgKIV5eWZW52TAJkXvdo91/PBGpMh/mZz79n2VdWaMyoUyPz2OunOKAEwygQ/yqBectOJILJbah4i3Egh50uDZBx47ILfTT6eUQrCsMVCgrw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837048; c=relaxed/simple;
-	bh=ZIpyQ4oww0K9dHlCN0iZy0HzspZxTncUM06GO3s4pyw=;
-	h=Date:To:From:Subject:Message-Id; b=Nhg8hpe72xf0k8Y8TCZnUbhP7wn3wVxagS7PGT0ANsZw9Irbj37LVEBy+dTynE02LG2UB5Cl8yk79mcDhNM5zplJ+ii3NBNNHdXxICEXaOgzflHpB/wOa35AogQmCWIZ45CfCUHsJdFg8DPVgnuP24VigW7qQknnWJRfayrXxB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PCcAGF6d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837049; c=relaxed/simple;
+	bh=+maG8za/zwm6X+mCaqQLuimRaOyO61sje8oMaGbQY7o=;
+	h=Date:To:From:Subject:Message-Id; b=YlZXMdiDAhwl1OsFML1U9thfOZPA470P3pM7RDcwmZGo1k6mxppsfrocXoe76P3mzlr0enXd6vjKyG0ZbRuKWAd/VDBG3P/bE6PPcl3XUgrlNxwMxuGo1RWhlmGAae+SAoMax5mpKt9uBjdniJd4KeiJqkMqIQ1db9EqLmCMHxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MMbZ0jaw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PCcAGF6d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D433C4CEDD;
-	Tue, 14 Jan 2025 06:44:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MMbZ0jaw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E54CC4CEE4;
+	Tue, 14 Jan 2025 06:44:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837048;
-	bh=ZIpyQ4oww0K9dHlCN0iZy0HzspZxTncUM06GO3s4pyw=;
+	s=korg; t=1736837049;
+	bh=+maG8za/zwm6X+mCaqQLuimRaOyO61sje8oMaGbQY7o=;
 	h=Date:To:From:Subject:From;
-	b=PCcAGF6dNUyVtD0mXiulD0BAreBaykHzPlhzIdFKRTuKiCXuF/cB3nYLNkDh4mP4f
-	 N0bNBsFMJkiRY6K8/++clbYwdKhEL/lgHwz2XJ1qzdr4DTfo8QLcvkaR3nEkZ5RKF9
-	 OxptvWlQ6LDwuLc/uCUQoW3RLY7Qm1io3ERu9uKg=
-Date: Mon, 13 Jan 2025 22:44:07 -0800
+	b=MMbZ0jawfrwzw72fbduqv6GCCMyOLSiurJUjmSaxfl4CXvDkqLQ2Js+Pf8tZSoeVQ
+	 Ld/qjclSBl1v+i4Mco/3igVOT2lYHN1ZG/yM6FBsW9S59v38XlhxUP8y/1MzLd4uNj
+	 fW/xzK7wVO0r+O2PdX8NhLXaMIw+TRqUIHo876O0=
+Date: Mon, 13 Jan 2025 22:44:09 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,keith.lucas@oracle.com,joey.gouly@arm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aruna.ramakrishna@oracle.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch removed from -mm tree
-Message-Id: <20250114064408.6D433C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-ensure-pkey-h-define-inline-functions-only.patch removed from -mm tree
+Message-Id: <20250114064409.8E54CC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: define types using typedef in pkey-helpers.h
+     Subject: selftests/mm: ensure pkey-*.h define inline functions only
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-define-types-using-typedef-in-pkey-helpersh.patch
+     selftests-mm-ensure-pkey-h-define-inline-functions-only.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: define types using typedef in pkey-helpers.h
-Date: Mon, 9 Dec 2024 09:50:12 +0000
+Subject: selftests/mm: ensure pkey-*.h define inline functions only
+Date: Mon, 9 Dec 2024 09:50:13 +0000
 
-Using #define to define types should be avoided.  Use typedef instead. 
-Also ensure that __u* types are actually defined by including
-<linux/types.h>.
+Headers should not define non-inline functions, as this prevents them from
+being included more than once in a given program.  pkey-helpers.h and the
+arch-specific headers it includes currently define multiple such
+non-inline functions.
 
-Link: https://lkml.kernel.org/r/20241209095019.1732120-8-kevin.brodsky@arm.com
+In most cases those functions can simply be made inline - this patch does
+just that.  read_ptr() is an exception as it must not be inlined.  Since
+it is only called from protection_keys.c, we just move it there.
+
+Link: https://lkml.kernel.org/r/20241209095019.1732120-9-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -63,31 +68,111 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pkey-helpers.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/pkey-arm64.h      |    4 ++--
+ tools/testing/selftests/mm/pkey-helpers.h    |    8 +-------
+ tools/testing/selftests/mm/pkey-powerpc.h    |    4 ++--
+ tools/testing/selftests/mm/pkey-x86.h        |    6 +++---
+ tools/testing/selftests/mm/protection_keys.c |    7 +++++++
+ 5 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-define-types-using-typedef-in-pkey-helpersh
+--- a/tools/testing/selftests/mm/pkey-arm64.h~selftests-mm-ensure-pkey-h-define-inline-functions-only
++++ a/tools/testing/selftests/mm/pkey-arm64.h
+@@ -81,11 +81,11 @@ static inline int get_arch_reserved_keys
+ 	return NR_RESERVED_PKEYS;
+ }
+ 
+-void expect_fault_on_read_execonly_key(void *p1, int pkey)
++static inline void expect_fault_on_read_execonly_key(void *p1, int pkey)
+ {
+ }
+ 
+-void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
++static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
+ {
+ 	return PTR_ERR_ENOTSUP;
+ }
+--- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-ensure-pkey-h-define-inline-functions-only
 +++ a/tools/testing/selftests/mm/pkey-helpers.h
-@@ -13,13 +13,15 @@
- #include <ucontext.h>
- #include <sys/mman.h>
+@@ -84,13 +84,7 @@ extern void abort_hooks(void);
+ # define noinline __attribute__((noinline))
+ #endif
  
-+#include <linux/types.h>
+-noinline int read_ptr(int *ptr)
+-{
+-	/* Keep GCC from optimizing this away somehow */
+-	barrier();
+-	return *ptr;
+-}
+-
++noinline int read_ptr(int *ptr);
+ void expected_pkey_fault(int pkey);
+ int sys_pkey_alloc(unsigned long flags, unsigned long init_val);
+ int sys_pkey_free(unsigned long pkey);
+--- a/tools/testing/selftests/mm/pkey-powerpc.h~selftests-mm-ensure-pkey-h-define-inline-functions-only
++++ a/tools/testing/selftests/mm/pkey-powerpc.h
+@@ -91,7 +91,7 @@ static inline int get_arch_reserved_keys
+ 			return NR_RESERVED_PKEYS_64K_3KEYS;
+ }
+ 
+-void expect_fault_on_read_execonly_key(void *p1, int pkey)
++static inline void expect_fault_on_read_execonly_key(void *p1, int pkey)
+ {
+ 	/*
+ 	 * powerpc does not allow userspace to change permissions of exec-only
+@@ -105,7 +105,7 @@ void expect_fault_on_read_execonly_key(v
+ /* 4-byte instructions * 16384 = 64K page */
+ #define __page_o_noops() asm(".rept 16384 ; nop; .endr")
+ 
+-void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
++static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
+ {
+ 	void *ptr;
+ 	int ret;
+--- a/tools/testing/selftests/mm/pkey-x86.h~selftests-mm-ensure-pkey-h-define-inline-functions-only
++++ a/tools/testing/selftests/mm/pkey-x86.h
+@@ -113,7 +113,7 @@ static inline u32 pkey_bit_position(int
+ #define XSTATE_PKEY	0x200
+ #define XSTATE_BV_OFFSET	512
+ 
+-int pkey_reg_xstate_offset(void)
++static inline int pkey_reg_xstate_offset(void)
+ {
+ 	unsigned int eax;
+ 	unsigned int ebx;
+@@ -148,7 +148,7 @@ static inline int get_arch_reserved_keys
+ 	return NR_RESERVED_PKEYS;
+ }
+ 
+-void expect_fault_on_read_execonly_key(void *p1, int pkey)
++static inline void expect_fault_on_read_execonly_key(void *p1, int pkey)
+ {
+ 	int ptr_contents;
+ 
+@@ -157,7 +157,7 @@ void expect_fault_on_read_execonly_key(v
+ 	expected_pkey_fault(pkey);
+ }
+ 
+-void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
++static inline void *malloc_pkey_with_mprotect_subpage(long size, int prot, u16 pkey)
+ {
+ 	return PTR_ERR_ENOTSUP;
+ }
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-ensure-pkey-h-define-inline-functions-only
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -54,6 +54,13 @@ int test_nr;
+ u64 shadow_pkey_reg;
+ int dprint_in_signal;
+ 
++noinline int read_ptr(int *ptr)
++{
++	/* Keep GCC from optimizing this away somehow */
++	barrier();
++	return *ptr;
++}
 +
- #include "../kselftest.h"
- 
- /* Define some kernel-like types */
--#define  u8 __u8
--#define u16 __u16
--#define u32 __u32
--#define u64 __u64
-+typedef __u8	u8;
-+typedef __u16	u16;
-+typedef __u32	u32;
-+typedef __u64	u64;
- 
- #define PTR_ERR_ENOTSUP ((void *)-ENOTSUP)
- 
+ void cat_into_file(char *str, char *file)
+ {
+ 	int fd = open(file, O_RDWR);
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
