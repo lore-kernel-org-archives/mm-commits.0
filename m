@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BD0F23C6EA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1B123C6EA
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837006; cv=none; b=EY+TUg9JLM2SF7JQo7oE8ZrB3Nb17tGb0wjCB6zxvk+qM2yec2ro8snQEdOIT9VYS7cUkml3VSt4r6hiPJSZyyJ/+T6LcGzIO5XzbyFDNje9LmSl0ad0FE+mxxS2QwRAuy7ottGGrhjT2V1zaqv4rx/+9VgMnp3pZ6R0BHhiRZA=
+	t=1736837007; cv=none; b=i305negL+eep950bUTAoPpJGixhUo7lliLadevsWz/trSRcECHpTHBJW1fJKwQuA4EkhOPocOlgT/DLhiag4czYE8LJ7FtTs5hJRxAj34ksrcEmMjZd4H4J9tsa5zs/98YkVLnW9NayoRrUNAy2XgkfgRVRYF5OCapg46N6pSTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837006; c=relaxed/simple;
-	bh=aCEfXpsl+DRbeIVVNdTxqfG8ETUDGvu5IZx8e9Sl7tM=;
-	h=Date:To:From:Subject:Message-Id; b=OHLyTVhL+PGkZdmh0X2ceT68w0+PJcnvxmGuC6PI0SRV6om+Z7nIbeN1YwBpNSOt8PphZgYIFbdc/+wIeS9fzzfnYD/pk1bN0ArRxwbNpmWn+nofv1KDXy0q/gF42YJnPahoCQccaiuGmbrCvbY9eA6z1qyHY3eqd3b4VfW+DvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CvPj3b+4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837007; c=relaxed/simple;
+	bh=wnVQGVw6j9OD913l2n++VIrAWzfZzHEslCzZsxlzMWI=;
+	h=Date:To:From:Subject:Message-Id; b=sZn04xNdRsBsrx7Zr2vRogACRu4BcqxbE0fzSLcWbYowr9Sp+cjIxKbdO+4MQIeZly58c15MFWX0wI5c3uZFw2CJJ+s33foUuNlCOgEm/3XgRjXByt1bdgUf79saP6VRuHlin6PXq7HrJTMwngalIpdP+rGfMzE4UEKHvZx4RbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GtsWk/mg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CvPj3b+4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16CD1C4CEDD;
-	Tue, 14 Jan 2025 06:43:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GtsWk/mg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70E46C4CEDD;
+	Tue, 14 Jan 2025 06:43:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837006;
-	bh=aCEfXpsl+DRbeIVVNdTxqfG8ETUDGvu5IZx8e9Sl7tM=;
+	s=korg; t=1736837007;
+	bh=wnVQGVw6j9OD913l2n++VIrAWzfZzHEslCzZsxlzMWI=;
 	h=Date:To:From:Subject:From;
-	b=CvPj3b+4Vp4nlvXuB069X+gnVfnqMaK2nz+g/M/awnnoXNqQhsV9Z+nrBoZuouUVo
-	 xm0y+ILMX62i/2RkeMEkC6B8Jz+2UnIPeGTQSe6TNXkbDeV7QqWtY7jEZr3orvcG3S
-	 zatmtYgIcARHfl+eg3oUfE4dHpG0ss/6+c9lI6HQ=
-Date: Mon, 13 Jan 2025 22:43:25 -0800
+	b=GtsWk/mgG4GWVYvYM/4lQdRti4n1JwtGVOmkYfEC1UYaAdoXqTBMjKWvCNdYkDs4k
+	 DE6KcpcggUwpVIDHY11Sp/3SRVJg6AGcyUZlQPhL6cRXnPKL419y3rW2WP+W50hVDF
+	 K0/nBrTS+rClQoE3ydpbKVYNPflkcpKZyBSI1f5M=
+Date: Mon, 13 Jan 2025 22:43:26 -0800
 To: mm-commits@vger.kernel.org,zokeefe@google.com,willy@infradead.org,will@kernel.org,rientjes@google.com,peterz@infradead.org,peterx@redhat.com,muchun.song@linux.dev,mgorman@suse.de,luto@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,catalin.marinas@arm.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-zap_pte_range-handle-full-within-pmd-range.patch removed from -mm tree
-Message-Id: <20250114064326.16CD1C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch removed from -mm tree
+Message-Id: <20250114064327.70E46C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make zap_pte_range() handle full within-PMD range
+     Subject: mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)
 has been removed from the -mm tree.  Its filename was
-     mm-make-zap_pte_range-handle-full-within-pmd-range.patch
+     mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: make zap_pte_range() handle full within-PMD range
-Date: Wed, 4 Dec 2024 19:09:48 +0800
+Subject: mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)
+Date: Wed, 4 Dec 2024 19:09:49 +0800
 
-In preparation for reclaiming empty PTE pages, this commit first makes
-zap_pte_range() to handle the full within-PMD range, so that we can more
-easily detect and free PTE pages in this function in subsequent commits.
+Now in order to pursue high performance, applications mostly use some
+high-performance user-mode memory allocators, such as jemalloc or
+tcmalloc.  These memory allocators use madvise(MADV_DONTNEED or MADV_FREE)
+to release physical memory, but neither MADV_DONTNEED nor MADV_FREE will
+release page table memory, which may cause huge page table memory usage.
 
-Link: https://lkml.kernel.org/r/76c95ee641da7808cd66d642ab95841df4048295.1733305182.git.zhengqi.arch@bytedance.com
+The following are a memory usage snapshot of one process which actually
+happened on our server:
+
+        VIRT:  55t
+        RES:   590g
+        VmPTE: 110g
+
+In this case, most of the page table entries are empty.  For such a PTE
+page where all entries are empty, we can actually free it back to the
+system for others to use.
+
+As a first step, this commit aims to synchronously free the empty PTE
+pages in madvise(MADV_DONTNEED) case.  We will detect and free empty PTE
+pages in zap_pte_range(), and will add zap_details.reclaim_pt to exclude
+cases other than madvise(MADV_DONTNEED).
+
+Once an empty PTE is detected, we first try to hold the pmd lock within
+the pte lock.  If successful, we clear the pmd entry directly (fast path).
+Otherwise, we wait until the pte lock is released, then re-hold the pmd
+and pte locks and loop PTRS_PER_PTE times to check pte_none() to re-detect
+whether the PTE page is empty and free it (slow path).
+
+For other cases such as madvise(MADV_FREE), consider scanning and freeing
+empty PTE pages asynchronously in the future.
+
+The following code snippet can show the effect of optimization:
+
+        mmap 50G
+        while (1) {
+                for (; i < 1024 * 25; i++) {
+                        touch 2M memory
+                        madvise MADV_DONTNEED 2M
+                }
+        }
+
+As we can see, the memory usage of VmPTE is reduced:
+
+                        before                          after
+VIRT                   50.0 GB                        50.0 GB
+RES                     3.1 MB                         3.1 MB
+VmPTE                102640 KB                         240 KB
+
+[zhengqi.arch@bytedance.com: fix uninitialized symbol 'ptl']
+  Link: https://lkml.kernel.org/r/20241206112348.51570-1-zhengqi.arch@bytedance.com
+  Link: https://lore.kernel.org/linux-mm/224e6a4e-43b5-4080-bdd8-b0a6fb2f0853@stanley.mountain/
+Link: https://lkml.kernel.org/r/92aba2b319a734913f18ba41e7d86a265f0b84e2.1733305182.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Jann Horn <jannh@google.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -72,33 +119,241 @@ Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/mm.h |    1 
+ mm/Kconfig         |   15 +++++++++
+ mm/Makefile        |    1 
+ mm/internal.h      |   19 +++++++++++
+ mm/madvise.c       |    7 +++-
+ mm/memory.c        |   21 +++++++++++-
+ mm/pt_reclaim.c    |   71 +++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 132 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-make-zap_pte_range-handle-full-within-pmd-range
+--- a/include/linux/mm.h~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed
++++ a/include/linux/mm.h
+@@ -2320,6 +2320,7 @@ extern void pagefault_out_of_memory(void
+ struct zap_details {
+ 	struct folio *single_folio;	/* Locked folio to be unmapped */
+ 	bool even_cows;			/* Zap COWed private pages too? */
++	bool reclaim_pt;		/* Need reclaim page tables? */
+ 	zap_flags_t zap_flags;		/* Extra flags for zapping */
+ };
+ 
+--- a/mm/internal.h~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed
++++ a/mm/internal.h
+@@ -1541,4 +1541,23 @@ int walk_page_range_mm(struct mm_struct
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private);
+ 
++/* pt_reclaim.c */
++bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval);
++void free_pte(struct mm_struct *mm, unsigned long addr, struct mmu_gather *tlb,
++	      pmd_t pmdval);
++void try_to_free_pte(struct mm_struct *mm, pmd_t *pmd, unsigned long addr,
++		     struct mmu_gather *tlb);
++
++#ifdef CONFIG_PT_RECLAIM
++bool reclaim_pt_is_enabled(unsigned long start, unsigned long end,
++			   struct zap_details *details);
++#else
++static inline bool reclaim_pt_is_enabled(unsigned long start, unsigned long end,
++					 struct zap_details *details)
++{
++	return false;
++}
++#endif /* CONFIG_PT_RECLAIM */
++
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/Kconfig~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed
++++ a/mm/Kconfig
+@@ -1301,6 +1301,21 @@ config ARCH_HAS_USER_SHADOW_STACK
+ 	  The architecture has hardware support for userspace shadow call
+           stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
+ 
++config ARCH_SUPPORTS_PT_RECLAIM
++	def_bool n
++
++config PT_RECLAIM
++	bool "reclaim empty user page table pages"
++	default y
++	depends on ARCH_SUPPORTS_PT_RECLAIM && MMU && SMP
++	select MMU_GATHER_RCU_TABLE_FREE
++	help
++	  Try to reclaim empty user page table pages in paths other than munmap
++	  and exit_mmap path.
++
++	  Note: now only empty user PTE page table pages will be reclaimed.
++
++
+ source "mm/damon/Kconfig"
+ 
+ endmenu
+--- a/mm/madvise.c~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed
++++ a/mm/madvise.c
+@@ -851,7 +851,12 @@ static int madvise_free_single_vma(struc
+ static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
+ 					unsigned long start, unsigned long end)
+ {
+-	zap_page_range_single(vma, start, end - start, NULL);
++	struct zap_details details = {
++		.reclaim_pt = true,
++		.even_cows = true,
++	};
++
++	zap_page_range_single(vma, start, end - start, &details);
+ 	return 0;
+ }
+ 
+--- a/mm/Makefile~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed
++++ a/mm/Makefile
+@@ -146,3 +146,4 @@ obj-$(CONFIG_GENERIC_IOREMAP) += ioremap
+ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
+ obj-$(CONFIG_EXECMEM) += execmem.o
+ obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
++obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
+--- a/mm/memory.c~mm-pgtable-reclaim-empty-pte-page-in-madvisemadv_dontneed
 +++ a/mm/memory.c
-@@ -1718,6 +1718,7 @@ static unsigned long zap_pte_range(struc
+@@ -1436,7 +1436,7 @@ copy_page_range(struct vm_area_struct *d
+ static inline bool should_zap_cows(struct zap_details *details)
+ {
+ 	/* By default, zap all pages */
+-	if (!details)
++	if (!details || details->reclaim_pt)
+ 		return true;
+ 
+ 	/* Or, we zap COWed pages only if the caller wants to */
+@@ -1710,12 +1710,15 @@ static unsigned long zap_pte_range(struc
+ 				struct zap_details *details)
+ {
+ 	bool force_flush = false, force_break = false;
+-	bool any_skipped = false;
+ 	struct mm_struct *mm = tlb->mm;
+ 	int rss[NR_MM_COUNTERS];
+ 	spinlock_t *ptl;
+ 	pte_t *start_pte;
  	pte_t *pte;
++	pmd_t pmdval;
++	unsigned long start = addr;
++	bool can_reclaim_pt = reclaim_pt_is_enabled(start, end, details);
++	bool direct_reclaim = false;
  	int nr;
  
-+retry:
- 	tlb_change_page_size(tlb, PAGE_SIZE);
- 	init_rss_vec(rss);
- 	start_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-@@ -1757,6 +1758,13 @@ static unsigned long zap_pte_range(struc
- 	if (force_flush)
- 		tlb_flush_mmu(tlb);
+ retry:
+@@ -1728,17 +1731,24 @@ retry:
+ 	flush_tlb_batched_pending(mm);
+ 	arch_enter_lazy_mmu_mode();
+ 	do {
++		bool any_skipped = false;
++
+ 		if (need_resched())
+ 			break;
  
-+	if (addr != end) {
-+		cond_resched();
-+		force_flush = false;
-+		force_break = false;
-+		goto retry;
+ 		nr = do_zap_pte_range(tlb, vma, pte, addr, end, details, rss,
+ 				      &force_flush, &force_break, &any_skipped);
++		if (any_skipped)
++			can_reclaim_pt = false;
+ 		if (unlikely(force_break)) {
+ 			addr += nr * PAGE_SIZE;
+ 			break;
+ 		}
+ 	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
+ 
++	if (can_reclaim_pt && addr == end)
++		direct_reclaim = try_get_and_clear_pmd(mm, pmd, &pmdval);
++
+ 	add_mm_rss_vec(mm, rss);
+ 	arch_leave_lazy_mmu_mode();
+ 
+@@ -1765,6 +1775,13 @@ retry:
+ 		goto retry;
+ 	}
+ 
++	if (can_reclaim_pt) {
++		if (direct_reclaim)
++			free_pte(mm, start, tlb, pmdval);
++		else
++			try_to_free_pte(mm, pmd, start, tlb);
 +	}
 +
  	return addr;
  }
  
+diff --git a/mm/pt_reclaim.c a/mm/pt_reclaim.c
+new file mode 100644
+--- /dev/null
++++ a/mm/pt_reclaim.c
+@@ -0,0 +1,71 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/hugetlb.h>
++#include <asm-generic/tlb.h>
++#include <asm/pgalloc.h>
++
++#include "internal.h"
++
++bool reclaim_pt_is_enabled(unsigned long start, unsigned long end,
++			   struct zap_details *details)
++{
++	return details && details->reclaim_pt && (end - start >= PMD_SIZE);
++}
++
++bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval)
++{
++	spinlock_t *pml = pmd_lockptr(mm, pmd);
++
++	if (!spin_trylock(pml))
++		return false;
++
++	*pmdval = pmdp_get_lockless(pmd);
++	pmd_clear(pmd);
++	spin_unlock(pml);
++
++	return true;
++}
++
++void free_pte(struct mm_struct *mm, unsigned long addr, struct mmu_gather *tlb,
++	      pmd_t pmdval)
++{
++	pte_free_tlb(tlb, pmd_pgtable(pmdval), addr);
++	mm_dec_nr_ptes(mm);
++}
++
++void try_to_free_pte(struct mm_struct *mm, pmd_t *pmd, unsigned long addr,
++		     struct mmu_gather *tlb)
++{
++	pmd_t pmdval;
++	spinlock_t *pml, *ptl = NULL;
++	pte_t *start_pte, *pte;
++	int i;
++
++	pml = pmd_lock(mm, pmd);
++	start_pte = pte_offset_map_rw_nolock(mm, pmd, addr, &pmdval, &ptl);
++	if (!start_pte)
++		goto out_ptl;
++	if (ptl != pml)
++		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++
++	/* Check if it is empty PTE page */
++	for (i = 0, pte = start_pte; i < PTRS_PER_PTE; i++, pte++) {
++		if (!pte_none(ptep_get(pte)))
++			goto out_ptl;
++	}
++	pte_unmap(start_pte);
++
++	pmd_clear(pmd);
++
++	if (ptl != pml)
++		spin_unlock(ptl);
++	spin_unlock(pml);
++
++	free_pte(mm, addr, tlb, pmdval);
++
++	return;
++out_ptl:
++	if (start_pte)
++		pte_unmap_unlock(start_pte, ptl);
++	if (ptl != pml)
++		spin_unlock(pml);
++}
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
