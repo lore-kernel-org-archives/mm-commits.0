@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 362B723C6EA
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 275DA23C6EA
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:43:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837026; cv=none; b=YiPhmfc6iHbRDF1c+IlCpnBlWVMDCxdonN/0QV2IPHk6mRXRct87f62x0CWaeIe4faWl1ACY86D6l568kA6D07PbuWNvyTLB/ELWC5Obas4deG7VlBbwrzNLtK2q2VGlQyfOW1Wbvq0cpPkPF7Tnc7MdXcqUXwfQUvtK/gzBvMc=
+	t=1736837027; cv=none; b=ENln+ENZ86X/tYOfPZjWlMWaEiXPwCdU2+8h/2XfWwCJylwicI8ok9TFhR4gGCCf2MQStQJ6kI02E6skTlEFYlBnR81aeR7oeUqncU+Gvh0Hjm0jt7Rdl3QiagsEm5XLMKJcr17vSuTXau371Tc8xoXztJ43KOkCBCRtasP43FA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837026; c=relaxed/simple;
-	bh=sQlN60DEzHS1voBkLrsS9y900vXqyvuxFwtugOMo4UU=;
-	h=Date:To:From:Subject:Message-Id; b=OyWTg4HxZG6ikNQxwQ6txlEbtJNgrcuShI+paduZwAJvOFC6J3VFBDica16Bxk17/rAVky7iUxEGviylmPPa+vIedgWhTykQW5SQ7LEji1f+cRPvxMQ2PTZRuikWCMNzOD3N0KQ6Cm4C9X9VKGEPhZC91cJJm0eEv3828yiaR7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f6+XB9+h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837027; c=relaxed/simple;
+	bh=0Sol5aYWHyOzkCh/9suzWvo2QlsgdtcCFCTDrlOEQgM=;
+	h=Date:To:From:Subject:Message-Id; b=l0hTM3bMLogZrAr//60UupBetddRMUXIEuU8TYwRO+0i74Yy/B6/AuQugLCvYKnpJ07nXpazSA5X2N066AK6HPrMuWY3XBV0HS9yHW9Qa9kS15CLwYw43339kqDR9nOaFbsejb9IBYAxbUuZJvpXPqGQ+vvqGQdv7nsZ2yfXJY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ISWEadEL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f6+XB9+h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2967C4CEDD;
-	Tue, 14 Jan 2025 06:43:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ISWEadEL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F016BC4CEDD;
+	Tue, 14 Jan 2025 06:43:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837025;
-	bh=sQlN60DEzHS1voBkLrsS9y900vXqyvuxFwtugOMo4UU=;
+	s=korg; t=1736837027;
+	bh=0Sol5aYWHyOzkCh/9suzWvo2QlsgdtcCFCTDrlOEQgM=;
 	h=Date:To:From:Subject:From;
-	b=f6+XB9+h7NZpQboJZw5crE4X8HFeuAnMK5x9kJsNx+DYI6msPWPbbDvyDyX+4IM0q
-	 f0DXsuPftvG3eQWT6XJE/eZM/pCCWgbdlEoWc9ZS6UgMpLDwmc3pB7vWYCfXxqrrJA
-	 DIxGfuFq//VAU5jtX4NatxD7nUQgd+b0VK6pvG54=
-Date: Mon, 13 Jan 2025 22:43:45 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@Oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=ISWEadELBJppgySOTNYDTtqe6qCqunXihJnFOWvTuSl2+1ox7DuQzTRr+BVT45KpZ
+	 NWgHxKmfUghlUl02cJtT97+6rfp7JjTK6K9UIU/X1CD7zDQkTyw8GR/cYM/iJW4Ruo
+	 pztqz06Y72wgFp4hZCRwhdpq6xWCfVz5/fH+476s=
+Date: Mon, 13 Jan 2025 22:43:46 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,muchun.song@linux.dev,Liam.Howlett@Oracle.com,kaleshsingh@google.com,jeffxu@chromium.org,jannh@google.com,isaacmanjarres@google.com,hughd@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-enforce-__must_check-on-vma-merge-and-split.patch removed from -mm tree
-Message-Id: <20250114064345.C2967C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-perform-all-memfd-seal-checks-in-a-single-place.patch removed from -mm tree
+Message-Id: <20250114064346.F016BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,303 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enforce __must_check on VMA merge and split
+     Subject: mm: perform all memfd seal checks in a single place
 has been removed from the -mm tree.  Its filename was
-     mm-enforce-__must_check-on-vma-merge-and-split.patch
+     mm-perform-all-memfd-seal-checks-in-a-single-place.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: enforce __must_check on VMA merge and split
-Date: Fri, 6 Dec 2024 22:50:36 +0000
+Subject: mm: perform all memfd seal checks in a single place
+Date: Fri, 6 Dec 2024 21:28:46 +0000
 
-It is of critical importance to check the return results on VMA merge (and
-split), failure to do so can result in use-after-free's.  This bug has
-recurred, so have the compiler enforce this check to prevent any future
-repetition.
+We no longer actually need to perform these checks in the f_op->mmap()
+hook any longer.
 
-Link: https://lkml.kernel.org/r/20241206225036.273103-1-lorenzo.stoakes@oracle.com
+We already moved the operation which clears VM_MAYWRITE on a read-only
+mapping of a write-sealed memfd in order to work around the restrictions
+imposed by commit 5de195060b2e ("mm: resolve faulty mmap_region() error
+path behaviour").
+
+There is no reason for us not to simply go ahead and additionally check to
+see if any pre-existing seals are in place here rather than defer this to
+the f_op->mmap() hook.
+
+By doing this we remove more logic from shmem_mmap() which doesn't belong
+there, as well as doing the same for hugetlbfs_file_mmap().  We also
+remove dubious shared logic in mm.h which simply does not belong there
+either.
+
+It makes sense to do these checks at the earliest opportunity, we know
+these are shmem (or hugetlbfs) mappings whose relevant VMA flags will not
+change from the invoking do_mmap() so there is simply no need to wait.
+
+This also means the implementation of further memfd seal flags can be done
+within mm/memfd.c and also have the opportunity to modify VMA flags as
+necessary early in the mapping logic.
+
+[lorenzo.stoakes@oracle.com: fix typos in !memfd inline stub]
+  Link: https://lkml.kernel.org/r/7dee6c5d-480b-4c24-b98e-6fa47dbd8a23@lucifer.local
+Link: https://lkml.kernel.org/r/20241206212846.210835-1-lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jeff Xu <jeffxu@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    8 +++++---
- mm/vma.h |   26 +++++++++++++++-----------
- 2 files changed, 20 insertions(+), 14 deletions(-)
+ fs/hugetlbfs/inode.c  |    5 ---
+ include/linux/memfd.h |   23 ++++++++--------
+ include/linux/mm.h    |   55 ----------------------------------------
+ mm/memfd.c            |   44 +++++++++++++++++++++++++++++++-
+ mm/mmap.c             |   12 ++++++--
+ mm/shmem.c            |    6 ----
+ 6 files changed, 63 insertions(+), 82 deletions(-)
 
---- a/mm/vma.c~mm-enforce-__must_check-on-vma-merge-and-split
-+++ a/mm/vma.c
-@@ -447,8 +447,9 @@ void unmap_region(struct ma_state *mas,
-  * has already been checked or doesn't make sense to fail.
-  * VMA Iterator will point to the original VMA.
-  */
--static int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
--		       unsigned long addr, int new_below)
-+static __must_check int
-+__split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
-+	    unsigned long addr, int new_below)
+--- a/fs/hugetlbfs/inode.c~mm-perform-all-memfd-seal-checks-in-a-single-place
++++ a/fs/hugetlbfs/inode.c
+@@ -99,7 +99,6 @@ static const struct fs_parameter_spec hu
+ static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
  {
- 	struct vma_prepare vp;
- 	struct vm_area_struct *new;
-@@ -710,7 +711,8 @@ static bool can_merge_remove_vma(struct
-  * - The caller must hold a WRITE lock on the mm_struct->mmap_lock.
-  * - vmi must be positioned within [@vmg->vma->vm_start, @vmg->vma->vm_end).
-  */
--static struct vm_area_struct *vma_merge_existing_range(struct vma_merge_struct *vmg)
-+static __must_check struct vm_area_struct *vma_merge_existing_range(
-+		struct vma_merge_struct *vmg)
+ 	struct inode *inode = file_inode(file);
+-	struct hugetlbfs_inode_info *info = HUGETLBFS_I(inode);
+ 	loff_t len, vma_len;
+ 	int ret;
+ 	struct hstate *h = hstate_file(file);
+@@ -116,10 +115,6 @@ static int hugetlbfs_file_mmap(struct fi
+ 	vm_flags_set(vma, VM_HUGETLB | VM_DONTEXPAND);
+ 	vma->vm_ops = &hugetlb_vm_ops;
+ 
+-	ret = seal_check_write(info->seals, vma);
+-	if (ret)
+-		return ret;
+-
+ 	/*
+ 	 * page based offset in vm_pgoff could be sufficiently large to
+ 	 * overflow a loff_t when converted to byte offset.  This can
+--- a/include/linux/memfd.h~mm-perform-all-memfd-seal-checks-in-a-single-place
++++ a/include/linux/memfd.h
+@@ -7,7 +7,14 @@
+ #ifdef CONFIG_MEMFD_CREATE
+ extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned int arg);
+ struct folio *memfd_alloc_folio(struct file *memfd, pgoff_t idx);
+-unsigned int *memfd_file_seals_ptr(struct file *file);
++/*
++ * Check for any existing seals on mmap, return an error if access is denied due
++ * to sealing, or 0 otherwise.
++ *
++ * We also update VMA flags if appropriate by manipulating the VMA flags pointed
++ * to by vm_flags_ptr.
++ */
++int memfd_check_seals_mmap(struct file *file, unsigned long *vm_flags_ptr);
+ #else
+ static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned int a)
  {
- 	struct vm_area_struct *vma = vmg->vma;
- 	struct vm_area_struct *prev = vmg->prev;
---- a/mm/vma.h~mm-enforce-__must_check-on-vma-merge-and-split
-+++ a/mm/vma.h
-@@ -139,9 +139,10 @@ void validate_mm(struct mm_struct *mm);
- #define validate_mm(mm) do { } while (0)
+@@ -17,19 +24,11 @@ static inline struct folio *memfd_alloc_
+ {
+ 	return ERR_PTR(-EINVAL);
+ }
+-
+-static inline unsigned int *memfd_file_seals_ptr(struct file *file)
++static inline int memfd_check_seals_mmap(struct file *file,
++					 unsigned long *vm_flags_ptr)
+ {
+-	return NULL;
++	return 0;
+ }
  #endif
  
--int vma_expand(struct vma_merge_struct *vmg);
--int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
--	       unsigned long start, unsigned long end, pgoff_t pgoff);
-+__must_check int vma_expand(struct vma_merge_struct *vmg);
-+__must_check int vma_shrink(struct vma_iterator *vmi,
-+		struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end, pgoff_t pgoff);
+-/* Retrieve memfd seals associated with the file, if any. */
+-static inline unsigned int memfd_file_seals(struct file *file)
+-{
+-	unsigned int *sealsp = memfd_file_seals_ptr(file);
+-
+-	return sealsp ? *sealsp : 0;
+-}
+-
+ #endif /* __LINUX_MEMFD_H */
+--- a/include/linux/mm.h~mm-perform-all-memfd-seal-checks-in-a-single-place
++++ a/include/linux/mm.h
+@@ -4102,61 +4102,6 @@ void mem_dump_obj(void *object);
+ static inline void mem_dump_obj(void *object) {}
+ #endif
  
- static inline int vma_iter_store_gfp(struct vma_iterator *vmi,
- 			struct vm_area_struct *vma, gfp_t gfp)
-@@ -174,13 +175,14 @@ void unmap_region(struct ma_state *mas,
- 		struct vm_area_struct *prev, struct vm_area_struct *next);
+-static inline bool is_write_sealed(int seals)
+-{
+-	return seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE);
+-}
+-
+-/**
+- * is_readonly_sealed - Checks whether write-sealed but mapped read-only,
+- *                      in which case writes should be disallowing moving
+- *                      forwards.
+- * @seals: the seals to check
+- * @vm_flags: the VMA flags to check
+- *
+- * Returns whether readonly sealed, in which case writess should be disallowed
+- * going forward.
+- */
+-static inline bool is_readonly_sealed(int seals, vm_flags_t vm_flags)
+-{
+-	/*
+-	 * Since an F_SEAL_[FUTURE_]WRITE sealed memfd can be mapped as
+-	 * MAP_SHARED and read-only, take care to not allow mprotect to
+-	 * revert protections on such mappings. Do this only for shared
+-	 * mappings. For private mappings, don't need to mask
+-	 * VM_MAYWRITE as we still want them to be COW-writable.
+-	 */
+-	if (is_write_sealed(seals) &&
+-	    ((vm_flags & (VM_SHARED | VM_WRITE)) == VM_SHARED))
+-		return true;
+-
+-	return false;
+-}
+-
+-/**
+- * seal_check_write - Check for F_SEAL_WRITE or F_SEAL_FUTURE_WRITE flags and
+- *                    handle them.
+- * @seals: the seals to check
+- * @vma: the vma to operate on
+- *
+- * Check whether F_SEAL_WRITE or F_SEAL_FUTURE_WRITE are set; if so, do proper
+- * check/handling on the vma flags.  Return 0 if check pass, or <0 for errors.
+- */
+-static inline int seal_check_write(int seals, struct vm_area_struct *vma)
+-{
+-	if (!is_write_sealed(seals))
+-		return 0;
+-
+-	/*
+-	 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
+-	 * write seals are active.
+-	 */
+-	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE))
+-		return -EPERM;
+-
+-	return 0;
+-}
+-
+ #ifdef CONFIG_ANON_VMA_NAME
+ int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long len_in,
+--- a/mm/memfd.c~mm-perform-all-memfd-seal-checks-in-a-single-place
++++ a/mm/memfd.c
+@@ -170,7 +170,7 @@ static int memfd_wait_for_pins(struct ad
+ 	return error;
+ }
  
- /* We are about to modify the VMA's flags. */
--struct vm_area_struct *vma_modify_flags(struct vma_iterator *vmi,
-+__must_check struct vm_area_struct
-+*vma_modify_flags(struct vma_iterator *vmi,
- 		struct vm_area_struct *prev, struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
- 		unsigned long new_flags);
+-unsigned int *memfd_file_seals_ptr(struct file *file)
++static unsigned int *memfd_file_seals_ptr(struct file *file)
+ {
+ 	if (shmem_file(file))
+ 		return &SHMEM_I(file_inode(file))->seals;
+@@ -327,6 +327,48 @@ static int check_sysctl_memfd_noexec(uns
+ 	return 0;
+ }
  
- /* We are about to modify the VMA's flags and/or anon_name. */
--struct vm_area_struct
-+__must_check struct vm_area_struct
- *vma_modify_flags_name(struct vma_iterator *vmi,
- 		       struct vm_area_struct *prev,
- 		       struct vm_area_struct *vma,
-@@ -190,7 +192,7 @@ struct vm_area_struct
- 		       struct anon_vma_name *new_name);
++static inline bool is_write_sealed(unsigned int seals)
++{
++	return seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE);
++}
++
++static int check_write_seal(unsigned long *vm_flags_ptr)
++{
++	unsigned long vm_flags = *vm_flags_ptr;
++	unsigned long mask = vm_flags & (VM_SHARED | VM_WRITE);
++
++	/* If a private matting then writability is irrelevant. */
++	if (!(mask & VM_SHARED))
++		return 0;
++
++	/*
++	 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
++	 * write seals are active.
++	 */
++	if (mask & VM_WRITE)
++		return -EPERM;
++
++	/*
++	 * This is a read-only mapping, disallow mprotect() from making a
++	 * write-sealed mapping writable in future.
++	 */
++	*vm_flags_ptr &= ~VM_MAYWRITE;
++
++	return 0;
++}
++
++int memfd_check_seals_mmap(struct file *file, unsigned long *vm_flags_ptr)
++{
++	int err = 0;
++	unsigned int *seals_ptr = memfd_file_seals_ptr(file);
++	unsigned int seals = seals_ptr ? *seals_ptr : 0;
++
++	if (is_write_sealed(seals))
++		err = check_write_seal(vm_flags_ptr);
++
++	return err;
++}
++
+ SYSCALL_DEFINE2(memfd_create,
+ 		const char __user *, uname,
+ 		unsigned int, flags)
+--- a/mm/mmap.c~mm-perform-all-memfd-seal-checks-in-a-single-place
++++ a/mm/mmap.c
+@@ -368,8 +368,8 @@ unsigned long do_mmap(struct file *file,
  
- /* We are about to modify the VMA's memory policy. */
--struct vm_area_struct
-+__must_check struct vm_area_struct
- *vma_modify_policy(struct vma_iterator *vmi,
- 		   struct vm_area_struct *prev,
- 		   struct vm_area_struct *vma,
-@@ -198,7 +200,7 @@ struct vm_area_struct
- 		   struct mempolicy *new_pol);
+ 	if (file) {
+ 		struct inode *inode = file_inode(file);
+-		unsigned int seals = memfd_file_seals(file);
+ 		unsigned long flags_mask;
++		int err;
  
- /* We are about to modify the VMA's flags and/or uffd context. */
--struct vm_area_struct
-+__must_check struct vm_area_struct
- *vma_modify_flags_uffd(struct vma_iterator *vmi,
- 		       struct vm_area_struct *prev,
- 		       struct vm_area_struct *vma,
-@@ -206,11 +208,13 @@ struct vm_area_struct
- 		       unsigned long new_flags,
- 		       struct vm_userfaultfd_ctx new_ctx);
+ 		if (!file_mmap_ok(file, inode, pgoff, len))
+ 			return -EOVERFLOW;
+@@ -409,8 +409,6 @@ unsigned long do_mmap(struct file *file,
+ 			vm_flags |= VM_SHARED | VM_MAYSHARE;
+ 			if (!(file->f_mode & FMODE_WRITE))
+ 				vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
+-			else if (is_readonly_sealed(seals, vm_flags))
+-				vm_flags &= ~VM_MAYWRITE;
+ 			fallthrough;
+ 		case MAP_PRIVATE:
+ 			if (!(file->f_mode & FMODE_READ))
+@@ -430,6 +428,14 @@ unsigned long do_mmap(struct file *file,
+ 		default:
+ 			return -EINVAL;
+ 		}
++
++		/*
++		 * Check to see if we are violating any seals and update VMA
++		 * flags if necessary to avoid future seal violations.
++		 */
++		err = memfd_check_seals_mmap(file, &vm_flags);
++		if (err)
++			return (unsigned long)err;
+ 	} else {
+ 		switch (flags & MAP_TYPE) {
+ 		case MAP_SHARED:
+--- a/mm/shmem.c~mm-perform-all-memfd-seal-checks-in-a-single-place
++++ a/mm/shmem.c
+@@ -2816,12 +2816,6 @@ out_nomem:
+ static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct inode *inode = file_inode(file);
+-	struct shmem_inode_info *info = SHMEM_I(inode);
+-	int ret;
+-
+-	ret = seal_check_write(info->seals, vma);
+-	if (ret)
+-		return ret;
  
--struct vm_area_struct *vma_merge_new_range(struct vma_merge_struct *vmg);
-+__must_check struct vm_area_struct
-+*vma_merge_new_range(struct vma_merge_struct *vmg);
- 
--struct vm_area_struct *vma_merge_extend(struct vma_iterator *vmi,
--					struct vm_area_struct *vma,
--					unsigned long delta);
-+__must_check struct vm_area_struct
-+*vma_merge_extend(struct vma_iterator *vmi,
-+		  struct vm_area_struct *vma,
-+		  unsigned long delta);
- 
- void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb);
- 
+ 	file_accessed(file);
+ 	/* This is anonymous shared memory if it is unlinked at the time of mmap */
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
