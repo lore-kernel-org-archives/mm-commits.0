@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11F9C2451CE
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3E2423353A
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837170; cv=none; b=X/ADhD3nz9MTu0q2daoWzu5EQwnlA0OYALIiOZJ3pWxyH3plVa1Ifsw+dl6Xh8rv+PWOHl7LovP8F3518vl/+GuJVK8LPdv0PCnnkUlE1gMhN5e100UY3W0vLKBAJzqsqKQrkeCuyGtcVgQm0BrMC3DRDbZ0dCAz56edgn0sbhQ=
+	t=1736837170; cv=none; b=BbRVY6AW9ovC9LaZ2xju3JyiHt7Eo/l2PG9QdgYbdjZfP+nDT5kCaK8ClOzLxYjdYAJxWmg4h+AZMG5RpqqZ1/Wo7DHra8NkycHt5iduo1q2z1ZXVO0yat0cGFtzuOU0bcS+C/7HwejkNgZ7u229LxTF6JZO0GQyHLpS46Z9NTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736837170; c=relaxed/simple;
-	bh=CuA/n9rxLS6ze6h6JB02npdowCoODN4LkazXC5mckKE=;
-	h=Date:To:From:Subject:Message-Id; b=YE/SjNTLYhOkcGP4JyvMUZAdaqnYdoeSmW/wWWln+jPK56tjsN+cAMpBThCvsh+gWeC319sCoWfAU334QTlN22HNwA2SNBUsPatzmAzlGl0ytEkjhBYb2DSSJj0m/z7zJfHU8YugMjuupdgKR3Rm83J3KRkZoJbxbNN9UzhDy7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kaUn2utC; arc=none smtp.client-ip=10.30.226.201
+	bh=NI+iu5jBUx6ml7qr0gLeLP8u8YAry0366a+JWcuhcwo=;
+	h=Date:To:From:Subject:Message-Id; b=pm4pno4rlwMXyQhTQ9iJC5qIbxILl/vVBhAHxx9UIK3RDZoce5e/AXY9TBfGIMH4PR78STyW8FP/tjDZIDZwqXyEIPgqmlqmQqJocLlcUxXKfwJGV7G6c8P+IW6UiBIh79S/Ngr92ILkQkGwbyTRPKGUSnvOzVgk7oU7FySnbkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UsT5IREI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kaUn2utC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 872D5C4CEDD;
-	Tue, 14 Jan 2025 06:46:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UsT5IREI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AD9EC4CEDD;
+	Tue, 14 Jan 2025 06:46:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837169;
-	bh=CuA/n9rxLS6ze6h6JB02npdowCoODN4LkazXC5mckKE=;
+	s=korg; t=1736837170;
+	bh=NI+iu5jBUx6ml7qr0gLeLP8u8YAry0366a+JWcuhcwo=;
 	h=Date:To:From:Subject:From;
-	b=kaUn2utChIO2McmfYi9VSEeO4rhoDyNSwH+Nb+vZkDxB5nHQMQDgp/6RUys3U4/LY
-	 0zim6OHM8mKcxHqm2rhgVVoqTWtf32BNL35APUjyVk7Oc/RcfAL6EWpdsaMN474TCl
-	 mDJ3rZLNl1InGyKrTUJ46w7cuEYYnNyB2YtdEMms=
-Date: Mon, 13 Jan 2025 22:46:09 -0800
+	b=UsT5IREIX7d945SY2I5UjKFIOB+jtv/fC+tTAKfnN/dQaA5mgI0qBipfFT6f8OOA1
+	 nNGn1MlL9qdEAkEuYlW5xA3wrzO0fwTAMvUfssvpE6HjOfBLIEOTAJWP728JXy8ecM
+	 wVzEVm0OFwpHOSO8ALRpsCsqCGuSHBNyCX9PbGpg=
+Date: Mon, 13 Jan 2025 22:46:10 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes.patch removed from -mm tree
-Message-Id: <20250114064609.872D5C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-document-per-region-sz_filter_passed-stat.patch removed from -mm tree
+Message-Id: <20250114064610.9AD9EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,123 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: expose per-region filter-passed bytes
+     Subject: Docs/mm/damon/design: document per-region sz_filter_passed stat
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes.patch
+     docs-mm-damon-design-document-per-region-sz_filter_passed-stat.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: expose per-region filter-passed bytes
-Date: Mon, 6 Jan 2025 11:33:58 -0800
+Subject: Docs/mm/damon/design: document per-region sz_filter_passed stat
+Date: Mon, 6 Jan 2025 11:33:59 -0800
 
-Per-region operations set-handled DAMOS filters passed memory size
-information is provided to only DAMON core API users.  Further expose it
-to the user space by adding a new DAMON sysfs interface file under each
-scheme tried region directory.
+Update 'Regions Walking' section of design document for the newly added
+per-region operations set handling DAMOS filters-passed bytes.
 
-Link: https://lkml.kernel.org/r/20250106193401.109161-14-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250106193401.109161-15-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.h  |    2 +-
- mm/damon/sysfs-schemes.c |   19 ++++++++++++++++++-
- mm/damon/sysfs.c         |    3 ++-
- 3 files changed, 21 insertions(+), 3 deletions(-)
+ Documentation/mm/damon/design.rst |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes
-+++ a/mm/damon/sysfs.c
-@@ -1461,7 +1461,8 @@ static void damon_sysfs_schemes_tried_re
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-per-region-sz_filter_passed-stat
++++ a/Documentation/mm/damon/design.rst
+@@ -587,7 +587,8 @@ Regions Walking
  
- 	damos_sysfs_populate_region_dir(
- 			sysfs_kdamond->contexts->contexts_arr[0]->schemes,
--			ctx, t, r, s, walk_data->total_bytes_only);
-+			ctx, t, r, s, walk_data->total_bytes_only,
-+			sz_filter_passed);
- }
+ DAMOS feature allowing users access each region that a DAMOS action has just
+ applied.  Using this feature, DAMON :ref:`API <damon_design_api>` allows users
+-access full properties of the regions including the access monitoring results.
++access full properties of the regions including the access monitoring results
++and amount of the region's internal memory that passed the DAMOS filters.
+ :ref:`DAMON sysfs interface <sysfs_interface>` also allows users read the data
+ via special :ref:`files <sysfs_schemes_tried_regions>`.
  
- static int damon_sysfs_update_schemes_tried_regions(
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes
-+++ a/mm/damon/sysfs-common.h
-@@ -48,7 +48,7 @@ void damon_sysfs_schemes_update_stats(
- void damos_sysfs_populate_region_dir(struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx, struct damon_target *t,
- 		struct damon_region *r, struct damos *s,
--		bool total_bytes_only);
-+		bool total_bytes_only, unsigned long sz_filter_passed);
- 
- int damon_sysfs_schemes_clear_regions(
- 		struct damon_sysfs_schemes *sysfs_schemes);
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-expose-per-region-filter-passed-bytes
-+++ a/mm/damon/sysfs-schemes.c
-@@ -19,6 +19,7 @@ struct damon_sysfs_scheme_region {
- 	struct damon_addr_range ar;
- 	unsigned int nr_accesses;
- 	unsigned int age;
-+	unsigned long sz_filter_passed;
- 	struct list_head list;
- };
- 
-@@ -74,6 +75,15 @@ static ssize_t age_show(struct kobject *
- 	return sysfs_emit(buf, "%u\n", region->age);
- }
- 
-+static ssize_t sz_filter_passed_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_region *region = container_of(kobj,
-+			struct damon_sysfs_scheme_region, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", region->sz_filter_passed);
-+}
-+
- static void damon_sysfs_scheme_region_release(struct kobject *kobj)
- {
- 	struct damon_sysfs_scheme_region *region = container_of(kobj,
-@@ -95,11 +105,15 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_scheme_region_age_attr =
- 		__ATTR_RO_MODE(age, 0400);
- 
-+static struct kobj_attribute damon_sysfs_scheme_region_sz_filter_passed_attr =
-+		__ATTR_RO_MODE(sz_filter_passed, 0400);
-+
- static struct attribute *damon_sysfs_scheme_region_attrs[] = {
- 	&damon_sysfs_scheme_region_start_attr.attr,
- 	&damon_sysfs_scheme_region_end_attr.attr,
- 	&damon_sysfs_scheme_region_nr_accesses_attr.attr,
- 	&damon_sysfs_scheme_region_age_attr.attr,
-+	&damon_sysfs_scheme_region_sz_filter_passed_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_scheme_region);
-@@ -2105,12 +2119,14 @@ void damon_sysfs_schemes_update_stats(
-  * @r:			DAMON region to populate the directory for.
-  * @s:			Corresponding scheme.
-  * @total_bytes_only:	Whether the request is for bytes update only.
-+ * @sz_filter_passed:	Bytes of @r that passed filters of @s.
-  *
-  * Called from DAMOS walk callback while holding damon_sysfs_lock.
-  */
- void damos_sysfs_populate_region_dir(struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx, struct damon_target *t,
--		struct damon_region *r, struct damos *s, bool total_bytes_only)
-+		struct damon_region *r, struct damos *s, bool total_bytes_only,
-+		unsigned long sz_filter_passed)
- {
- 	struct damos *scheme;
- 	struct damon_sysfs_scheme_regions *sysfs_regions;
-@@ -2135,6 +2151,7 @@ void damos_sysfs_populate_region_dir(str
- 	region = damon_sysfs_scheme_region_alloc(r);
- 	if (!region)
- 		return;
-+	region->sz_filter_passed = sz_filter_passed;
- 	list_add_tail(&region->list, &sysfs_regions->regions_list);
- 	sysfs_regions->nr_regions++;
- 	if (kobject_init_and_add(&region->kobj,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
