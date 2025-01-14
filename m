@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BCE91C1F15
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA0D23A0F9
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836935; cv=none; b=h4QkGRQKdLXJC9KTM/Be6DD1KSQOCEocaZvjEIaihXEj7kwFFX/khOezPCl/Q0RjRmUxBXPiWa1t27cP29MQFH40+OsOv4xl9yMSYZ573DrvAL1Oy3QBH8utWIrewSjgnKFA9HTs7PyYjGIZsJrNOIuUQvcAf+PPi2YDVCRph7E=
+	t=1736836936; cv=none; b=OWJiucmo/QPmBqhvQ3+J+9drBZREj398UlqCWlBjIvNEMQeIFoxZUjqx588ueHu2AhzSO0zhPT+kdbRz85BhzkORUsEashAMtagK6Nlu3v1I5f7MM40OL3UyDMYKMcvRMmSpoO0zbkPiImPJePqqKFEQyVxdWyaO+ruml+m0rf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736836935; c=relaxed/simple;
-	bh=Pyk0eZEMOAcG/oI5dGtlcjfB6HrbLcYaW7tKqN1qlIc=;
-	h=Date:To:From:Subject:Message-Id; b=mRTJen6o6i8z7KEm1Gofv62qclBiqkrpu6otWu4jx0fgc1RHKQwsOiWEkQ/a7ho4+DyLB9dk+erY51NdLzqiSaUEoNx2R7wsh8NKw5ZcO40m+TrTZjnvI4OIpIZ/HdFgfhjM3nNbmfADSsvsLsjlIKMBmdyHM4//5+szuL65evs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bXtF4tgk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736836936; c=relaxed/simple;
+	bh=/0/ZTaD8tPM7xMM6iJ6mtrU9JI5vgxtTCoSbLliivU8=;
+	h=Date:To:From:Subject:Message-Id; b=Hxy59KtKjUHPmk6OvsecwXn7TNbvymoTjgthLUjlCpiodTZg4vC/I5FksCVEWCfEciLdAuY2LI2JsfbJTSgJoAzLc09+KOHieMRcmuI2dhW4vfnL/UZ8YUt4nA1wR+u0VaViJH3DyIK0e8N1WNj6sVhPW1m+XZ1LhfTIeQvJkeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kf5PfY9U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bXtF4tgk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D37C6C4CEDF;
-	Tue, 14 Jan 2025 06:42:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kf5PfY9U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB65FC4CEDD;
+	Tue, 14 Jan 2025 06:42:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836934;
-	bh=Pyk0eZEMOAcG/oI5dGtlcjfB6HrbLcYaW7tKqN1qlIc=;
+	s=korg; t=1736836933;
+	bh=/0/ZTaD8tPM7xMM6iJ6mtrU9JI5vgxtTCoSbLliivU8=;
 	h=Date:To:From:Subject:From;
-	b=bXtF4tgkKPeHOphXyBVimnTmZIEW55FesiAYJ2h80Y4dafkLACeRkddn4zrjzcOIQ
-	 OMJ+35zhQB7qIbEvY61c5wAMOV1x5WyT7LuVtnO6/OFG3f/qeGXua85oDvjfidCBE9
-	 XJWg9AbOAh0JCxu9GkNDfesfS1KZmCVL88fVNOAY=
-Date: Mon, 13 Jan 2025 22:42:14 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,jhubbard@nvidia.com,donettom@linux.ibm.com,lizhijian@fujitsu.com,akpm@linux-foundation.org
+	b=Kf5PfY9UYnGcNVxIexZNaE0jA1KRbMFg0Ge4pRpjXvkxHhDWIwSK1zFV76DRQvBUM
+	 cNT72kzl9V9zD/t5j75bLTE3CgX5CAFbJymhcT+PB9PuN6xEPIddgi9LmtVxwhq7Zh
+	 N5W8mOY8SPabmLsjU5BIcOjCbyOfP6M9W7DK2MaI=
+Date: Mon, 13 Jan 2025 22:42:13 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,pintu.ping@gmail.com,quic_pintu@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-a-few-missing-gitignore-files.patch removed from -mm tree
-Message-Id: <20250114064214.D37C6C4CEDF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_cgroup-avoid-useless-return-in-void-function.patch removed from -mm tree
+Message-Id: <20250114064213.BB65FC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add a few missing gitignore files
+     Subject: mm/hugetlb_cgroup: avoid useless return in void function
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-a-few-missing-gitignore-files.patch
+     mm-hugetlb_cgroup-avoid-useless-return-in-void-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Zhijian <lizhijian@fujitsu.com>
-Subject: selftests/mm: add a few missing gitignore files
-Date: Mon, 25 Nov 2024 14:40:36 +0800
+From: Pintu Kumar <quic_pintu@quicinc.com>
+Subject: mm/hugetlb_cgroup: avoid useless return in void function
+Date: Fri, 22 Nov 2024 23:05:58 +0530
 
-Compiled binary files should be added to .gitignore
-'git status' complains:
-   Untracked files:
-   (use "git add <file>..." to include in what will be committed)
-         mm/hugetlb_dio
-         mm/pkey_sighandler_tests_32
-         mm/pkey_sighandler_tests_64
+The return statement at the end of void function is unnecessary.  Just
+remove it as part of cleanup.
 
-Link: https://lkml.kernel.org/r/20241125064036.413536-1-lizhijian@fujitsu.com
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20241122173558.20670-1-quic_pintu@quicinc.com
+Signed-off-by: Pintu Kumar <quic_pintu@quicinc.com>
+Cc: Pintu Agarwal <pintu.ping@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/hugetlb_cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-a-few-missing-gitignore-files
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -36,6 +36,9 @@ map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
- memfd_secret
-+hugetlb_dio
-+pkey_sighandler_tests_32
-+pkey_sighandler_tests_64
- soft-dirty
- split_huge_page_test
- ksm_tests
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-avoid-useless-return-in-void-function
++++ a/mm/hugetlb_cgroup.c
+@@ -917,7 +917,6 @@ void hugetlb_cgroup_migrate(struct folio
+ 	set_hugetlb_cgroup_rsvd(new_folio, h_cg_rsvd);
+ 	list_move(&new_folio->lru, &h->hugepage_activelist);
+ 	spin_unlock_irq(&hugetlb_lock);
+-	return;
+ }
+ 
+ static struct cftype hugetlb_files[] = {
 _
 
-Patches currently in -mm which might be from lizhijian@fujitsu.com are
+Patches currently in -mm which might be from quic_pintu@quicinc.com are
 
-mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics.patch
-mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch
-mm-vmscan-fix-pgdemote_-accounting-with-lru_gen_enabled.patch
 
