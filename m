@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA0D23A0F9
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9AD1C1F15
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:42:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736836936; cv=none; b=OWJiucmo/QPmBqhvQ3+J+9drBZREj398UlqCWlBjIvNEMQeIFoxZUjqx588ueHu2AhzSO0zhPT+kdbRz85BhzkORUsEashAMtagK6Nlu3v1I5f7MM40OL3UyDMYKMcvRMmSpoO0zbkPiImPJePqqKFEQyVxdWyaO+ruml+m0rf0=
+	t=1736836936; cv=none; b=AVp4wM8ne3YJlU13nTM1S02sTniFE4XCq/po8CeFyUpfUEk2GflvmfSpPm7XMFMIIMEDbO+QsBr+gn8zsM97dolkXO3oKAmOiiR78cfFOiMhKIQ+PjkY28QvYCoe4s9oFtt6y3HRzoEOLh0hORAKSyE+JdCXKO7pl0DC3n1vOTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1736836936; c=relaxed/simple;
-	bh=/0/ZTaD8tPM7xMM6iJ6mtrU9JI5vgxtTCoSbLliivU8=;
-	h=Date:To:From:Subject:Message-Id; b=Hxy59KtKjUHPmk6OvsecwXn7TNbvymoTjgthLUjlCpiodTZg4vC/I5FksCVEWCfEciLdAuY2LI2JsfbJTSgJoAzLc09+KOHieMRcmuI2dhW4vfnL/UZ8YUt4nA1wR+u0VaViJH3DyIK0e8N1WNj6sVhPW1m+XZ1LhfTIeQvJkeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kf5PfY9U; arc=none smtp.client-ip=10.30.226.201
+	bh=r4FrSI60oGRMfhccMZaCbMs6Q/XmaSQe2qjn59Tcbcs=;
+	h=Date:To:From:Subject:Message-Id; b=u3nNgbw7UbazVY0YxtJU35mIJNSsUd5TWQ4G4lsWdzRLxWlViG73WhPifeyXu36LavbWbuQVqDWBNnnJJua6RBkzZDqFjcYK/gvzpA7ZUYfutorT3wZWb5YPiOxirCXt/89W+cBz+XIRzRZ1iks/J/eHUogRRP+LuW7NROwY7j4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pj94WLNV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kf5PfY9U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB65FC4CEDD;
-	Tue, 14 Jan 2025 06:42:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pj94WLNV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A00C4CEDF;
+	Tue, 14 Jan 2025 06:42:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736836933;
-	bh=/0/ZTaD8tPM7xMM6iJ6mtrU9JI5vgxtTCoSbLliivU8=;
+	s=korg; t=1736836936;
+	bh=r4FrSI60oGRMfhccMZaCbMs6Q/XmaSQe2qjn59Tcbcs=;
 	h=Date:To:From:Subject:From;
-	b=Kf5PfY9UYnGcNVxIexZNaE0jA1KRbMFg0Ge4pRpjXvkxHhDWIwSK1zFV76DRQvBUM
-	 cNT72kzl9V9zD/t5j75bLTE3CgX5CAFbJymhcT+PB9PuN6xEPIddgi9LmtVxwhq7Zh
-	 N5W8mOY8SPabmLsjU5BIcOjCbyOfP6M9W7DK2MaI=
-Date: Mon, 13 Jan 2025 22:42:13 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,pintu.ping@gmail.com,quic_pintu@quicinc.com,akpm@linux-foundation.org
+	b=pj94WLNVILr646FcvV9Ap7DgmEMF4Yv5E12riIMJf3aY4OMELXyHYoeTuwpNxdS7L
+	 LDO2HxZnbBKHtM3t5DFq1VQBRgsykO+FcwLOOWG/1whvDfpErMO3V3/pzzDRPZy269
+	 gmVL3ASaHW9K2i3U54qohOGxdFAgVScTqLE8xjBU=
+Date: Mon, 13 Jan 2025 22:42:15 -0800
+To: mm-commits@vger.kernel.org,tongtiangen@huawei.com,ryan.roberts@arm.com,peterx@redhat.com,pasha.tatashin@soleen.com,muchun.song@linux.dev,lorenzo.stoakes@oracle.com,jgg@ziepe.ca,jannh@google.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cgroup-avoid-useless-return-in-void-function.patch removed from -mm tree
-Message-Id: <20250114064213.BB65FC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pgtable-make-ptep_clear-non-atomic.patch removed from -mm tree
+Message-Id: <20250114064216.10A00C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: avoid useless return in void function
+     Subject: mm: pgtable: make ptep_clear() non-atomic
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-avoid-useless-return-in-void-function.patch
+     mm-pgtable-make-ptep_clear-non-atomic.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pintu Kumar <quic_pintu@quicinc.com>
-Subject: mm/hugetlb_cgroup: avoid useless return in void function
-Date: Fri, 22 Nov 2024 23:05:58 +0530
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: pgtable: make ptep_clear() non-atomic
+Date: Fri, 22 Nov 2024 15:36:52 +0800
 
-The return statement at the end of void function is unnecessary.  Just
-remove it as part of cleanup.
+In the generic ptep_get_and_clear() implementation, it is just a simple
+combination of ptep_get() and pte_clear(). But for some architectures
+(such as x86 and arm64, etc), the hardware will modify the A/D bits of the
+page table entry, so the ptep_get_and_clear() needs to be overwritten
+and implemented as an atomic operation to avoid contention, which has a
+performance cost.
 
-Link: https://lkml.kernel.org/r/20241122173558.20670-1-quic_pintu@quicinc.com
-Signed-off-by: Pintu Kumar <quic_pintu@quicinc.com>
-Cc: Pintu Agarwal <pintu.ping@gmail.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+The commit d283d422c6c4 ("x86: mm: add x86_64 support for page table
+check") adds the ptep_clear() on the x86, and makes it call
+ptep_get_and_clear() when CONFIG_PAGE_TABLE_CHECK is enabled. The page
+table check feature does not actually care about the A/D bits, so only
+ptep_get() + pte_clear() should be called. But considering that the page
+table check is a debug option, this should not have much of an impact.
+
+But then the commit de8c8e52836d ("mm: page_table_check: add hooks to
+public helpers") changed ptep_clear() to unconditionally call
+ptep_get_and_clear(), so that the CONFIG_PAGE_TABLE_CHECK check can be
+put into the page table check stubs (in include/linux/page_table_check.h).
+This also cause performance loss to the kernel without
+CONFIG_PAGE_TABLE_CHECK enabled, which doesn't make sense.
+
+Currently ptep_clear() is only used in debug code and in khugepaged
+collapse paths, which are fairly expensive. So the cost of an extra atomic
+RMW operation does not matter. But this may be used for other paths in the
+future. After all, for the present pte entry, we need to call ptep_clear()
+instead of pte_clear() to ensure that PAGE_TABLE_CHECK works properly.
+
+So to be more precise, just calling ptep_get() and pte_clear() in the
+ptep_clear().
+
+Link: https://lkml.kernel.org/r/20241122073652.54030-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Jann Horn <jannh@google.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Tong Tiangen <tongtiangen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/pgtable.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-avoid-useless-return-in-void-function
-+++ a/mm/hugetlb_cgroup.c
-@@ -917,7 +917,6 @@ void hugetlb_cgroup_migrate(struct folio
- 	set_hugetlb_cgroup_rsvd(new_folio, h_cg_rsvd);
- 	list_move(&new_folio->lru, &h->hugepage_activelist);
- 	spin_unlock_irq(&hugetlb_lock);
--	return;
+--- a/include/linux/pgtable.h~mm-pgtable-make-ptep_clear-non-atomic
++++ a/include/linux/pgtable.h
+@@ -533,7 +533,14 @@ static inline void clear_young_dirty_pte
+ static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep)
+ {
+-	ptep_get_and_clear(mm, addr, ptep);
++	pte_t pte = ptep_get(ptep);
++
++	pte_clear(mm, addr, ptep);
++	/*
++	 * No need for ptep_get_and_clear(): page table check doesn't care about
++	 * any bits that could have been set by HW concurrently.
++	 */
++	page_table_check_pte_clear(mm, pte);
  }
  
- static struct cftype hugetlb_files[] = {
+ #ifdef CONFIG_GUP_GET_PXX_LOW_HIGH
 _
 
-Patches currently in -mm which might be from quic_pintu@quicinc.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
