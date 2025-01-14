@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39FAD246354
-	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6268E243356
+	for <mm-commits@vger.kernel.org>; Tue, 14 Jan 2025 06:46:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736837197; cv=none; b=i6hXpcRxNYPxmWn/LfIAv7qu2NfIujtz8e5ZOl23Posw+3CeUbv3sTzC6k7TpyRXcZoZD6ijtEbqNfURHbLuE5aCsmg+cQKLN2aXh2Iro3JCIk+ROp2fi3Pcvc621hltrS5LiFPl+Dai0WRF0QzpKvLCCEPvdt4h9Takz0OgtcI=
+	t=1736837198; cv=none; b=cLjcHbHr8bZOSTNeJe2EtOtxzol2gWVlIIUh33DZTJZQL7A3pOR+UJB8w0x4vLTo8ZXKq0uNmS9BRbks7kmcGd7l7qOfFROUluTv9WE0ioH+Q4Q8TSXDj+soMiJwA8MRiz7Vd+2s1OEdwJ0avyzGgBkdgHRGJlcyMbUFuIBhJlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736837197; c=relaxed/simple;
-	bh=qvNJfrtmaTUlm9QVk7zBBWSl5va7JqugG+hSGTCXdBk=;
-	h=Date:To:From:Subject:Message-Id; b=uRoPMpo4W7hLboHBl3oi+EWJeovjqkQTH8y0uDhGb0F5HgreVZKdW3pv79duX2G953KMzpk2mN9ypy18aAR9S2zIcwLGq9lY5iO42s4ll9QyobcxjDfvMiIx2rw9bMx+rAoF8cCON8NOnFiD7v9vQI0d5mu631iX8u/D8FJFsRM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qWwj4hAv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736837198; c=relaxed/simple;
+	bh=QBHl+82ttr+puYRlQybt14i/R7qsH5MZ+Xi2R2839dE=;
+	h=Date:To:From:Subject:Message-Id; b=hHdFteKmXen+GggugXU4pnTWikbiGVxinBDAdUgAGOSVpbAnd3pU291a97Jc4XP9cF8yMLWrYshj6yzYv360nylfmBTiq106r3KP/B355sKDnrrnjX4FZ2hT9JBnF1qSDCj1zy1A6xmlNqElAqxwdmsfoNhDWoDwZWW34L2Dx7g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n/Ssv/gY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qWwj4hAv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D824C4CEDF;
-	Tue, 14 Jan 2025 06:46:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n/Ssv/gY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37BA3C4CEDF;
+	Tue, 14 Jan 2025 06:46:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736837197;
-	bh=qvNJfrtmaTUlm9QVk7zBBWSl5va7JqugG+hSGTCXdBk=;
+	s=korg; t=1736837198;
+	bh=QBHl+82ttr+puYRlQybt14i/R7qsH5MZ+Xi2R2839dE=;
 	h=Date:To:From:Subject:From;
-	b=qWwj4hAvvjItchKkRxo6V27rws2wlIOn1/pKVt+lBcAETbRp0i2JNgpBkRizLVI8b
-	 izwoCUnDrvf/NJk2PmliVRlQA8SiLzkY+1HCTiBoSmn95lgE4Gya97bGnwfZyacvm1
-	 2uSmrjkKj1FUS6er4LaalmA6LCjaFCZal10ZjvNE=
-Date: Mon, 13 Jan 2025 22:46:36 -0800
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,riel@surriel.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,leitao@debian.org,ackerleytng@google.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=n/Ssv/gYETxFbBcKqlNsaEzckofpLNcTupFqOk2As/kzaQdEJv8XcWxblkOnLI8Kg
+	 iTYXgoCQRyQHhYKXW/Jg45E0GQKTVdFP0BaHTm4lA3ADpUJa2Fcm2BByhf2gQCL35O
+	 BLQL8cmoZ/kJHbf4wQX4UM3fl/H3qGy9p/qVj8YI=
+Date: Mon, 13 Jan 2025 22:46:37 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,shuah@kernel.org,peterx@redhat.com,muchun.song@linux.dev,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,jannh@google.com,david@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-unify-restore-reserve-accounting-for-new-allocations.patch removed from -mm tree
-Message-Id: <20250114064637.0D824C4CEDF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-introduce-uffd-wp-mremap-regression-test.patch removed from -mm tree
+Message-Id: <20250114064638.37BA3C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,476 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: unify restore reserve accounting for new allocations
+     Subject: selftests/mm: introduce uffd-wp-mremap regression test
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-unify-restore-reserve-accounting-for-new-allocations.patch
+     selftests-mm-introduce-uffd-wp-mremap-regression-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: unify restore reserve accounting for new allocations
-Date: Tue, 7 Jan 2025 15:40:02 -0500
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: selftests/mm: introduce uffd-wp-mremap regression test
+Date: Tue, 7 Jan 2025 14:47:53 +0000
 
-Either hugetlb pages dequeued from hstate, or newly allocated from buddy,
-would require restore-reserve accounting to be managed properly.  Merge
-the two paths on it.  Add a small comment to make it slightly nicer.
+Introduce a test that registers a range of memory for
+UFFDIO_WRITEPROTECT_MODE_WP without UFFD_FEATURE_EVENT_REMAP.  First check
+that the uffd-wp bit is set for every PTE in the range.  Then mremap() the
+range to a new location and check that the uffd-wp bit is clear for every
+PTE in the range.
 
-Link: https://lkml.kernel.org/r/20250107204002.2683356-8-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: Breno Leitao <leitao@debian.org>
+Run the test for small folios, all supported THP sizes and all supported
+hugetlb sizes, and for swapped out memory, shared and private.
+
+There was previously a bug in the kernel where the uffd-wp bits remained
+set in all PTEs for this case, after fixing the kernel, the tests all
+pass.
+
+Link: https://lkml.kernel.org/r/20250107144755.1871363-3-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ tools/testing/selftests/mm/.gitignore       |    1 
+ tools/testing/selftests/mm/Makefile         |    2 
+ tools/testing/selftests/mm/run_vmtests.sh   |    1 
+ tools/testing/selftests/mm/uffd-wp-mremap.c |  380 ++++++++++++++++++
+ 4 files changed, 384 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-unify-restore-reserve-accounting-for-new-allocations
-+++ a/mm/hugetlb.c
-@@ -1365,11 +1365,6 @@ static struct folio *dequeue_hugetlb_fol
- 		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
- 							nid, nodemask);
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-introduce-uffd-wp-mremap-regression-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -27,6 +27,7 @@ protection_keys_64
+ madv_populate
+ uffd-stress
+ uffd-unit-tests
++uffd-wp-mremap
+ mlock-intersect-test
+ mlock-random-test
+ virtual_address_range
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-introduce-uffd-wp-mremap-regression-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -88,6 +88,7 @@ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += uffd-stress
+ TEST_GEN_FILES += uffd-unit-tests
++TEST_GEN_FILES += uffd-wp-mremap
+ TEST_GEN_FILES += split_huge_page_test
+ TEST_GEN_FILES += ksm_tests
+ TEST_GEN_FILES += ksm_functional_tests
+@@ -158,6 +159,7 @@ $(TEST_GEN_FILES): vm_util.c thp_setting
  
--	if (folio && !gbl_chg) {
--		folio_set_hugetlb_restore_reserve(folio);
--		h->resv_huge_pages--;
--	}
--
- 	mpol_cond_put(mpol);
- 	return folio;
+ $(OUTPUT)/uffd-stress: uffd-common.c
+ $(OUTPUT)/uffd-unit-tests: uffd-common.c
++$(OUTPUT)/uffd-wp-mremap: uffd-common.c
+ $(OUTPUT)/protection_keys: pkey_util.c
+ $(OUTPUT)/pkey_sighandler_tests: pkey_util.c
  
-@@ -3056,15 +3051,20 @@ struct folio *alloc_hugetlb_folio(struct
- 		if (!folio)
- 			goto out_uncharge_cgroup;
- 		spin_lock_irq(&hugetlb_lock);
--		if (!gbl_chg) {
--			folio_set_hugetlb_restore_reserve(folio);
--			h->resv_huge_pages--;
--		}
- 		list_add(&folio->lru, &h->hugepage_activelist);
- 		folio_ref_unfreeze(folio, 1);
- 		/* Fall through */
- 	}
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-introduce-uffd-wp-mremap-regression-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -309,6 +309,7 @@ CATEGORY="userfaultfd" run_test ${uffd_s
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
++CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
  
-+	/*
-+	 * Either dequeued or buddy-allocated folio needs to add special
-+	 * mark to the folio when it consumes a global reservation.
-+	 */
-+	if (!gbl_chg) {
-+		folio_set_hugetlb_restore_reserve(folio);
-+		h->resv_huge_pages--;
+ #cleanup
+ echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
+diff --git a/tools/testing/selftests/mm/uffd-wp-mremap.c a/tools/testing/selftests/mm/uffd-wp-mremap.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -0,0 +1,380 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#define _GNU_SOURCE
++#include <stdbool.h>
++#include <stdint.h>
++#include <fcntl.h>
++#include <assert.h>
++#include <linux/mman.h>
++#include <sys/mman.h>
++#include "../kselftest.h"
++#include "thp_settings.h"
++#include "uffd-common.h"
++
++static int pagemap_fd;
++static size_t pagesize;
++static int nr_pagesizes = 1;
++static int nr_thpsizes;
++static size_t thpsizes[20];
++static int nr_hugetlbsizes;
++static size_t hugetlbsizes[10];
++
++static int sz2ord(size_t size)
++{
++	return __builtin_ctzll(size / pagesize);
++}
++
++static int detect_thp_sizes(size_t sizes[], int max)
++{
++	int count = 0;
++	unsigned long orders;
++	size_t kb;
++	int i;
++
++	/* thp not supported at all. */
++	if (!read_pmd_pagesize())
++		return 0;
++
++	orders = thp_supported_orders();
++
++	for (i = 0; orders && count < max; i++) {
++		if (!(orders & (1UL << i)))
++			continue;
++		orders &= ~(1UL << i);
++		kb = (pagesize >> 10) << i;
++		sizes[count++] = kb * 1024;
++		ksft_print_msg("[INFO] detected THP size: %zu KiB\n", kb);
 +	}
 +
- 	hugetlb_cgroup_commit_charge(idx, pages_per_huge_page(h), h_cg, folio);
- 	/* If allocation is not consuming a reservation, also store the
- 	 * hugetlb_cgroup pointer on the page.
++	return count;
++}
++
++static void *mmap_aligned(size_t size, int prot, int flags)
++{
++	size_t mmap_size = size * 2;
++	char *mmap_mem, *mem;
++
++	mmap_mem = mmap(NULL, mmap_size, prot, flags, -1, 0);
++	if (mmap_mem == MAP_FAILED)
++		return mmap_mem;
++
++	mem = (char *)(((uintptr_t)mmap_mem + size - 1) & ~(size - 1));
++	munmap(mmap_mem, mem - mmap_mem);
++	munmap(mem + size, mmap_mem + mmap_size - mem - size);
++
++	return mem;
++}
++
++static void *alloc_one_folio(size_t size, bool private, bool hugetlb)
++{
++	bool thp = !hugetlb && size > pagesize;
++	int flags = MAP_ANONYMOUS;
++	int prot = PROT_READ | PROT_WRITE;
++	char *mem, *addr;
++
++	assert((size & (size - 1)) == 0);
++
++	if (private)
++		flags |= MAP_PRIVATE;
++	else
++		flags |= MAP_SHARED;
++
++	/*
++	 * For THP, we must explicitly enable the THP size, allocate twice the
++	 * required space then manually align.
++	 */
++	if (thp) {
++		struct thp_settings settings = *thp_current_settings();
++
++		if (private)
++			settings.hugepages[sz2ord(size)].enabled = THP_ALWAYS;
++		else
++			settings.shmem_hugepages[sz2ord(size)].enabled = SHMEM_ALWAYS;
++
++		thp_push_settings(&settings);
++
++		mem = mmap_aligned(size, prot, flags);
++	} else {
++		if (hugetlb) {
++			flags |= MAP_HUGETLB;
++			flags |= __builtin_ctzll(size) << MAP_HUGE_SHIFT;
++		}
++
++		mem = mmap(NULL, size, prot, flags, -1, 0);
++	}
++
++	if (mem == MAP_FAILED) {
++		mem = NULL;
++		goto out;
++	}
++
++	assert(((uintptr_t)mem & (size - 1)) == 0);
++
++	/*
++	 * Populate the folio by writing the first byte and check that all pages
++	 * are populated. Finally set the whole thing to non-zero data to avoid
++	 * kernel from mapping it back to the zero page.
++	 */
++	mem[0] = 1;
++	for (addr = mem; addr < mem + size; addr += pagesize) {
++		if (!pagemap_is_populated(pagemap_fd, addr)) {
++			munmap(mem, size);
++			mem = NULL;
++			goto out;
++		}
++	}
++	memset(mem, 1, size);
++out:
++	if (thp)
++		thp_pop_settings();
++
++	return mem;
++}
++
++static bool check_uffd_wp_state(void *mem, size_t size, bool expect)
++{
++	uint64_t pte;
++	void *addr;
++
++	for (addr = mem; addr < mem + size; addr += pagesize) {
++		pte = pagemap_get_entry(pagemap_fd, addr);
++		if (!!(pte & PM_UFFD_WP) != expect) {
++			ksft_test_result_fail("uffd-wp not %s for pte %lu!\n",
++					      expect ? "set" : "clear",
++					      (addr - mem) / pagesize);
++			return false;
++		}
++	}
++
++	return true;
++}
++
++static bool range_is_swapped(void *addr, size_t size)
++{
++	for (; size; addr += pagesize, size -= pagesize)
++		if (!pagemap_is_swapped(pagemap_fd, addr))
++			return false;
++	return true;
++}
++
++static void test_one_folio(size_t size, bool private, bool swapout, bool hugetlb)
++{
++	struct uffdio_writeprotect wp_prms;
++	uint64_t features = 0;
++	void *addr = NULL;
++	void *mem = NULL;
++
++	assert(!(hugetlb && swapout));
++
++	ksft_print_msg("[RUN] %s(size=%zu, private=%s, swapout=%s, hugetlb=%s)\n",
++				__func__,
++				size,
++				private ? "true" : "false",
++				swapout ? "true" : "false",
++				hugetlb ? "true" : "false");
++
++	/* Allocate a folio of required size and type. */
++	mem = alloc_one_folio(size, private, hugetlb);
++	if (!mem) {
++		ksft_test_result_fail("alloc_one_folio() failed\n");
++		goto out;
++	}
++
++	/* Register range for uffd-wp. */
++	if (userfaultfd_open(&features)) {
++		ksft_test_result_fail("userfaultfd_open() failed\n");
++		goto out;
++	}
++	if (uffd_register(uffd, mem, size, false, true, false)) {
++		ksft_test_result_fail("uffd_register() failed\n");
++		goto out;
++	}
++	wp_prms.mode = UFFDIO_WRITEPROTECT_MODE_WP;
++	wp_prms.range.start = (uintptr_t)mem;
++	wp_prms.range.len = size;
++	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &wp_prms)) {
++		ksft_test_result_fail("ioctl(UFFDIO_WRITEPROTECT) failed\n");
++		goto out;
++	}
++
++	if (swapout) {
++		madvise(mem, size, MADV_PAGEOUT);
++		if (!range_is_swapped(mem, size)) {
++			ksft_test_result_skip("MADV_PAGEOUT did not work, is swap enabled?\n");
++			goto out;
++		}
++	}
++
++	/* Check that uffd-wp is set for all PTEs in range. */
++	if (!check_uffd_wp_state(mem, size, true))
++		goto out;
++
++	/*
++	 * Move the mapping to a new, aligned location. Since
++	 * UFFD_FEATURE_EVENT_REMAP is not set, we expect the uffd-wp bit for
++	 * each PTE to be cleared in the new mapping.
++	 */
++	addr = mmap_aligned(size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS);
++	if (addr == MAP_FAILED) {
++		ksft_test_result_fail("mmap_aligned() failed\n");
++		goto out;
++	}
++	if (mremap(mem, size, size, MREMAP_FIXED | MREMAP_MAYMOVE, addr) == MAP_FAILED) {
++		ksft_test_result_fail("mremap() failed\n");
++		munmap(addr, size);
++		goto out;
++	}
++	mem = addr;
++
++	/* Check that uffd-wp is cleared for all PTEs in range. */
++	if (!check_uffd_wp_state(mem, size, false))
++		goto out;
++
++	ksft_test_result_pass("%s(size=%zu, private=%s, swapout=%s, hugetlb=%s)\n",
++				__func__,
++				size,
++				private ? "true" : "false",
++				swapout ? "true" : "false",
++				hugetlb ? "true" : "false");
++out:
++	if (mem)
++		munmap(mem, size);
++	if (uffd >= 0) {
++		close(uffd);
++		uffd = -1;
++	}
++}
++
++struct testcase {
++	size_t *sizes;
++	int *nr_sizes;
++	bool private;
++	bool swapout;
++	bool hugetlb;
++};
++
++static const struct testcase testcases[] = {
++	/* base pages. */
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = false,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = true,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = false,
++		.swapout = true,
++		.hugetlb = false,
++	},
++	{
++		.sizes = &pagesize,
++		.nr_sizes = &nr_pagesizes,
++		.private = true,
++		.swapout = true,
++		.hugetlb = false,
++	},
++
++	/* thp. */
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = false,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = true,
++		.swapout = false,
++		.hugetlb = false,
++	},
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = false,
++		.swapout = true,
++		.hugetlb = false,
++	},
++	{
++		.sizes = thpsizes,
++		.nr_sizes = &nr_thpsizes,
++		.private = true,
++		.swapout = true,
++		.hugetlb = false,
++	},
++
++	/* hugetlb. */
++	{
++		.sizes = hugetlbsizes,
++		.nr_sizes = &nr_hugetlbsizes,
++		.private = false,
++		.swapout = false,
++		.hugetlb = true,
++	},
++	{
++		.sizes = hugetlbsizes,
++		.nr_sizes = &nr_hugetlbsizes,
++		.private = true,
++		.swapout = false,
++		.hugetlb = true,
++	},
++};
++
++int main(int argc, char **argv)
++{
++	struct thp_settings settings;
++	int i, j, plan = 0;
++
++	pagesize = getpagesize();
++	nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
++	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
++						    ARRAY_SIZE(hugetlbsizes));
++
++	/* If THP is supported, save THP settings and initially disable THP. */
++	if (nr_thpsizes) {
++		thp_save_settings();
++		thp_read_settings(&settings);
++		for (i = 0; i < NR_ORDERS; i++) {
++			settings.hugepages[i].enabled = THP_NEVER;
++			settings.shmem_hugepages[i].enabled = SHMEM_NEVER;
++		}
++		thp_push_settings(&settings);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(testcases); i++)
++		plan += *testcases[i].nr_sizes;
++	ksft_set_plan(plan);
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_fail_msg("opening pagemap failed\n");
++
++	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
++		const struct testcase *tc = &testcases[i];
++
++		for (j = 0; j < *tc->nr_sizes; j++)
++			test_one_folio(tc->sizes[j], tc->private, tc->swapout,
++				       tc->hugetlb);
++	}
++
++	/* If THP is supported, restore original THP settings. */
++	if (nr_thpsizes)
++		thp_restore_settings();
++
++	i = ksft_get_fail_cnt();
++	if (i)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   i, ksft_test_num());
++	ksft_exit_pass();
++}
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
 
