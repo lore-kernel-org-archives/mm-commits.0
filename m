@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE3F1182C5
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 01:17:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9796C34CF5
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 01:17:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736903841; cv=none; b=AUaI/dITzPiPVnvZerALnp11hU+Z5VSOLAbNdWyMS1Z7bEgvJ4CBV46PkYJEvc+Kgen4lXecVAtzWQ4oizdbgonccoFxddAH2cWxU/i7hfy9QCHzwkP2SuTgQSdSURRuSkNkrM7ViLGgAWaXT2ModQOz2k5mY3CcpMQZ3PMTCzg=
+	t=1736903843; cv=none; b=kqw7xMAw6YKBkLYSCWxYRdIxyh8oRyqoQ8p/BmCkv70n4iteMPK8w18/SuF/BxlayDctC5YgUpL675XeElxVnkwI4blGI7Kw+uav7s6VZCXvCZ/wDpnENlxzJ7XDEpJnz4VCtZCBI7eSfHIcUeB01w0b+Abz/og0T76rNWGRbZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736903841; c=relaxed/simple;
-	bh=1E8pGJlwRMpJb3O0JtQNcEcSaTLVQXIrnhgoLfEdwrY=;
-	h=Date:To:From:Subject:Message-Id; b=cvbFmvZuIsCXIH1Am4bqekutI2hUKyfiC+Sc5UQVgZQXPH2t3W8DSbVEasSX3qjDgv8U+Da40K/HWriIhcZlfIup8o0N8xWv27zzFNwWsf35V1WPNXquhfKhdrafIv+WfBMB+RkZDTBptDgP40T3Ai7vSZz5iPEo9hH6gNXK1HY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O3XUm6hW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736903843; c=relaxed/simple;
+	bh=E0VZHOIaA52MQlXwky+c82McBqpjGMqVhdLjJfDip+o=;
+	h=Date:To:From:Subject:Message-Id; b=ippPadzccoGn/X8H4pIVugDEmMgdoSYaDjt+fFONHDKf2wJHYhxG0IUsahNnJY1QU/lpNHq04x8ywl/DnGRcq+ADhuIXo6BI2chyMIgy6dxKZW5ES+Z+cJ2NpUmODhNJnK8awp8qSsbi1H9k9Ml1z/bAf5wI8vv13PZ7E0HLRiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G0ECJY32; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O3XUm6hW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1302C4CEE3;
-	Wed, 15 Jan 2025 01:17:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G0ECJY32"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1358EC4CEDD;
+	Wed, 15 Jan 2025 01:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736903840;
-	bh=1E8pGJlwRMpJb3O0JtQNcEcSaTLVQXIrnhgoLfEdwrY=;
+	s=korg; t=1736903843;
+	bh=E0VZHOIaA52MQlXwky+c82McBqpjGMqVhdLjJfDip+o=;
 	h=Date:To:From:Subject:From;
-	b=O3XUm6hWJqVloOYBDO7sJBJvYcGr7M+JjgPSM/VdjonvX5DhLF1oZ7O7qZdZbMPkx
-	 KOUS7/D8oYVpkR8dAmpEGBnFj1iXfB2cExEWf7MIP5oPk4GIynvnh7zcxS3TFcItVf
-	 JXyOdh2l0ZGJy8w6SgGJXi0U7H3Mukfpmlv6o7uw=
-Date: Tue, 14 Jan 2025 17:17:19 -0800
+	b=G0ECJY32zyDS+KD2qxS+2r26BlwaHjR28XqPsHqtt5kZw++MmN2GD2faKk8a2Qxkm
+	 NOLfw+59MZAnFP+ZyuiQ0YjEm8k9b3BsgVVTxWAvAinNzhQZhDJ1m9tMfxJet4BAXV
+	 1Y/gxU4HhaS62XWB/i5hCnAzpQ4vkMFuUrl7M+Os=
+Date: Tue, 14 Jan 2025 17:17:22 -0800
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,shuah@kernel.org,oliver.sang@intel.com,khandual@linux.vnet.ibm.com,dev.jain@arm.com,david@redhat.com,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-virtual_address_range-unmap-chunks-after-validation.patch added to mm-unstable branch
-Message-Id: <20250115011720.A1302C4CEE3@smtp.kernel.org>
+Subject: + selftests-mm-vm_util-split-up-proc-self-smaps-parsing.patch added to mm-unstable branch
+Message-Id: <20250115011723.1358EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: virtual_address_range: unmap chunks after validation
+     Subject: selftests/mm: vm_util: split up /proc/self/smaps parsing
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-virtual_address_range-unmap-chunks-after-validation.patch
+     selftests-mm-vm_util-split-up-proc-self-smaps-parsing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-unmap-chunks-after-validation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-vm_util-split-up-proc-self-smaps-parsing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Subject: selftests/mm: virtual_address_range: unmap chunks after validation
-Date: Tue, 14 Jan 2025 17:06:46 +0100
+Subject: selftests/mm: vm_util: split up /proc/self/smaps parsing
+Date: Tue, 14 Jan 2025 17:06:47 +0100
 
-For each accessed chunk a PTE is created.  More than 1GiB of PTEs is used
-in this way.  Remove each PTE after validating a chunk to reduce peak
-memory usage.
+Upcoming changes want to reuse the /proc/self/smaps parsing logic to parse
+the VmFlags field.
 
-It is important to only unmap memory that previously mmap()ed, as
-unmapping other mappings like the stack, heap or executable mappings will
-crash the process.
+As that works differently from the currently parsed HugePage counters,
+split up the logic so common functionality can be shared.
 
-The mappings read from /proc/self/maps and the return values from mmap()
-don't allow a simple correlation due to merging and no guaranteed order. 
-To correlate the pointers and mappings use prctl(PR_SET_VMA_ANON_NAME). 
-While it introduces a test dependency, other alternatives would introduce
-runtime or development overhead.
+While reworking this code, also use the correct sscanf placeholder for the
+"uint64_t thp" variable.
 
-Link: https://lkml.kernel.org/r/20250114-virtual_address_range-tests-v4-2-6fd7269934a5@linutronix.de
-Fixes: 010409649885 ("selftests/mm: confirm VA exhaustion without reliance on correctness of mmap()")
+Link: https://lkml.kernel.org/r/20250114-virtual_address_range-tests-v4-3-6fd7269934a5@linutronix.de
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
@@ -88,98 +82,85 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/config                  |    1 
- tools/testing/selftests/mm/virtual_address_range.c |   33 ++++++++++-
- 2 files changed, 32 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |   42 +++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/mm/config~selftests-mm-virtual_address_range-unmap-chunks-after-validation
-+++ a/tools/testing/selftests/mm/config
-@@ -7,3 +7,4 @@ CONFIG_TEST_HMM=m
- CONFIG_GUP_TEST=y
- CONFIG_TRANSPARENT_HUGEPAGE=y
- CONFIG_MEM_SOFT_DIRTY=y
-+CONFIG_ANON_VMA_NAME=y
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-unmap-chunks-after-validation
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -10,6 +10,7 @@
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-vm_util-split-up-proc-self-smaps-parsing
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -2,6 +2,7 @@
  #include <string.h>
- #include <unistd.h>
- #include <errno.h>
-+#include <sys/prctl.h>
- #include <sys/mman.h>
- #include <sys/time.h>
  #include <fcntl.h>
-@@ -82,6 +83,24 @@ static void validate_addr(char *ptr, int
- 		ksft_exit_fail_msg("Bad address %lx\n", addr);
+ #include <dirent.h>
++#include <inttypes.h>
+ #include <sys/ioctl.h>
+ #include <linux/userfaultfd.h>
+ #include <linux/fs.h>
+@@ -193,13 +194,11 @@ err_out:
+ 	return rss_anon;
  }
  
-+static void mark_range(char *ptr, size_t size)
-+{
-+	if (prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, ptr, size, "virtual_address_range") == -1) {
-+		if (errno == EINVAL) {
-+			/* Depends on CONFIG_ANON_VMA_NAME */
-+			ksft_test_result_skip("prctl(PR_SET_VMA_ANON_NAME) not supported\n");
-+			ksft_finished();
-+		} else {
-+			ksft_exit_fail_perror("prctl(PR_SET_VMA_ANON_NAME) failed\n");
-+		}
-+	}
-+}
-+
-+static int is_marked_vma(const char *vma_name)
-+{
-+	return vma_name && !strcmp(vma_name, "[anon:virtual_address_range]\n");
-+}
-+
- static int validate_lower_address_hint(void)
+-bool __check_huge(void *addr, char *pattern, int nr_hpages,
+-		  uint64_t hpage_size)
++char *__get_smap_entry(void *addr, const char *pattern, char *buf, size_t len)
  {
- 	char *ptr;
-@@ -116,12 +135,17 @@ static int validate_complete_va_space(vo
+-	uint64_t thp = -1;
+ 	int ret;
+ 	FILE *fp;
+-	char buffer[MAX_LINE_LENGTH];
++	char *entry = NULL;
+ 	char addr_pattern[MAX_LINE_LENGTH];
  
- 	prev_end_addr = 0;
- 	while (fgets(line, sizeof(line), file)) {
-+		const char *vma_name = NULL;
-+		int vma_name_start = 0;
- 		unsigned long hop;
+ 	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
+@@ -211,23 +210,40 @@ bool __check_huge(void *addr, char *patt
+ 	if (!fp)
+ 		ksft_exit_fail_msg("%s: Failed to open file %s\n", __func__, SMAP_FILE_PATH);
  
--		if (sscanf(line, "%lx-%lx %s[rwxp-]",
--			   &start_addr, &end_addr, prot) != 3)
-+		if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %n",
-+			   &start_addr, &end_addr, prot, &vma_name_start) != 3)
- 			ksft_exit_fail_msg("cannot parse /proc/self/maps\n");
+-	if (!check_for_pattern(fp, addr_pattern, buffer, sizeof(buffer)))
++	if (!check_for_pattern(fp, addr_pattern, buf, len))
+ 		goto err_out;
  
-+		if (vma_name_start)
-+			vma_name = line + vma_name_start;
+-	/*
+-	 * Fetch the pattern in the same block and check the number of
+-	 * hugepages.
+-	 */
+-	if (!check_for_pattern(fp, pattern, buffer, sizeof(buffer)))
++	/* Fetch the pattern in the same block */
++	if (!check_for_pattern(fp, pattern, buf, len))
+ 		goto err_out;
+ 
+-	snprintf(addr_pattern, MAX_LINE_LENGTH, "%s%%9ld kB", pattern);
++	/* Trim trailing newline */
++	entry = strchr(buf, '\n');
++	if (entry)
++		*entry = '\0';
+ 
+-	if (sscanf(buffer, addr_pattern, &thp) != 1)
+-		ksft_exit_fail_msg("Reading smap error\n");
++	entry = buf + strlen(pattern);
+ 
+ err_out:
+ 	fclose(fp);
++	return entry;
++}
 +
- 		/* end of userspace mappings; ignore vsyscall mapping */
- 		if (start_addr & (1UL << 63))
- 			return 0;
-@@ -149,6 +173,9 @@ static int validate_complete_va_space(vo
- 				return 1;
- 			lseek(fd, 0, SEEK_SET);
- 
-+			if (is_marked_vma(vma_name))
-+				munmap((char *)(start_addr + hop), MAP_CHUNK_SIZE);
++bool __check_huge(void *addr, char *pattern, int nr_hpages,
++		  uint64_t hpage_size)
++{
++	char buffer[MAX_LINE_LENGTH];
++	uint64_t thp = -1;
++	char *entry;
 +
- 			hop += MAP_CHUNK_SIZE;
- 		}
- 	}
-@@ -175,6 +202,7 @@ int main(void)
- 			break;
- 		}
++	entry = __get_smap_entry(addr, pattern, buffer, sizeof(buffer));
++	if (!entry)
++		goto err_out;
++
++	if (sscanf(entry, "%9" SCNu64 " kB", &thp) != 1)
++		ksft_exit_fail_msg("Reading smap error\n");
++
++err_out:
+ 	return thp == (nr_hpages * (hpage_size >> 10));
+ }
  
-+		mark_range(ptr[i], MAP_CHUNK_SIZE);
- 		validate_addr(ptr[i], 0);
- 	}
- 	lchunks = i;
-@@ -192,6 +220,7 @@ int main(void)
- 		if (hptr[i] == MAP_FAILED)
- 			break;
- 
-+		mark_range(ptr[i], MAP_CHUNK_SIZE);
- 		validate_addr(hptr[i], 1);
- 	}
- 	hchunks = i;
 _
 
 Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
