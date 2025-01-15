@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0280D182C5
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 01:17:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE3F1182C5
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 01:17:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736903839; cv=none; b=Q6J4q7m1PGl8wsHuhwsFfNHfvCisd6tbxMXzPZ2fc/Hnt8+7Q3G65X3rE+16lJzHwel0J035ue+AsZe261uDCafo6gtTgrBzGPR8xEaxfoopDQpZx7OW6iFPkt/qrf+3gmeUfcIWKAOx1HWs4G+MgRWMKAyO0U/9jzlKT2Vti5o=
+	t=1736903841; cv=none; b=AUaI/dITzPiPVnvZerALnp11hU+Z5VSOLAbNdWyMS1Z7bEgvJ4CBV46PkYJEvc+Kgen4lXecVAtzWQ4oizdbgonccoFxddAH2cWxU/i7hfy9QCHzwkP2SuTgQSdSURRuSkNkrM7ViLGgAWaXT2ModQOz2k5mY3CcpMQZ3PMTCzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736903839; c=relaxed/simple;
-	bh=R2HMapd6+Ka4NBaCXMA1NWuFedLtHV3f4mn/tIQ8ZKQ=;
-	h=Date:To:From:Subject:Message-Id; b=iALCh4P5Lx62/HNbuCi7AwpJDeFFK8jvbvYaJbeci4teGkAiMEgd9wAkBr3Ba9gYBoPezYMDo2atykupkqXof2aZ8yM4HiWT/V36cDJ17WJlqFjBfN/4yu3qWNanB+Bxr2gZlA/+srx2VBTle37NCz+iVgbGe6fIH/jELE9/Gkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kCTE7z/T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736903841; c=relaxed/simple;
+	bh=1E8pGJlwRMpJb3O0JtQNcEcSaTLVQXIrnhgoLfEdwrY=;
+	h=Date:To:From:Subject:Message-Id; b=cvbFmvZuIsCXIH1Am4bqekutI2hUKyfiC+Sc5UQVgZQXPH2t3W8DSbVEasSX3qjDgv8U+Da40K/HWriIhcZlfIup8o0N8xWv27zzFNwWsf35V1WPNXquhfKhdrafIv+WfBMB+RkZDTBptDgP40T3Ai7vSZz5iPEo9hH6gNXK1HY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O3XUm6hW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kCTE7z/T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7782CC4CEE3;
-	Wed, 15 Jan 2025 01:17:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O3XUm6hW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1302C4CEE3;
+	Wed, 15 Jan 2025 01:17:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736903838;
-	bh=R2HMapd6+Ka4NBaCXMA1NWuFedLtHV3f4mn/tIQ8ZKQ=;
+	s=korg; t=1736903840;
+	bh=1E8pGJlwRMpJb3O0JtQNcEcSaTLVQXIrnhgoLfEdwrY=;
 	h=Date:To:From:Subject:From;
-	b=kCTE7z/T8ZgTLpBQuL1SHSXJWK/122hl4/P4NI4IdqWpsHlrFm3JueM33V/2erb0G
-	 PM6PqJDfr5ODHdHxf6Q4DAcqJKcImdO5dxjxzx4VZIBGtGvbgZoAXua2jbuYTM+FvX
-	 YOQgFMAZesayr010JMRhhxPrK5jiLrW5adhw+Xic=
-Date: Tue, 14 Jan 2025 17:17:17 -0800
+	b=O3XUm6hWJqVloOYBDO7sJBJvYcGr7M+JjgPSM/VdjonvX5DhLF1oZ7O7qZdZbMPkx
+	 KOUS7/D8oYVpkR8dAmpEGBnFj1iXfB2cExEWf7MIP5oPk4GIynvnh7zcxS3TFcItVf
+	 JXyOdh2l0ZGJy8w6SgGJXi0U7H3Mukfpmlv6o7uw=
+Date: Tue, 14 Jan 2025 17:17:19 -0800
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,shuah@kernel.org,oliver.sang@intel.com,khandual@linux.vnet.ibm.com,dev.jain@arm.com,david@redhat.com,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-virtual_address_range-mmap-without-prot_write.patch added to mm-unstable branch
-Message-Id: <20250115011718.7782CC4CEE3@smtp.kernel.org>
+Subject: + selftests-mm-virtual_address_range-unmap-chunks-after-validation.patch added to mm-unstable branch
+Message-Id: <20250115011720.A1302C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: virtual_address_range: mmap() without PROT_WRITE
+     Subject: selftests/mm: virtual_address_range: unmap chunks after validation
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-virtual_address_range-mmap-without-prot_write.patch
+     selftests-mm-virtual_address_range-unmap-chunks-after-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-mmap-without-prot_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-unmap-chunks-after-validation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,62 +59,127 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Subject: selftests/mm: virtual_address_range: mmap() without PROT_WRITE
-Date: Tue, 14 Jan 2025 17:06:45 +0100
+Subject: selftests/mm: virtual_address_range: unmap chunks after validation
+Date: Tue, 14 Jan 2025 17:06:46 +0100
 
-Patch series "selftests/mm: virtual_address_range: Reduce memory", v4.
+For each accessed chunk a PTE is created.  More than 1GiB of PTEs is used
+in this way.  Remove each PTE after validating a chunk to reduce peak
+memory usage.
 
-The selftest started failing since commit e93d2521b27f ("x86/vdso: Split
-virtual clock pages into dedicated mapping") was merged.  While debugging
-I stumbled upon some memory usage optimizations.
+It is important to only unmap memory that previously mmap()ed, as
+unmapping other mappings like the stack, heap or executable mappings will
+crash the process.
 
-With these test now runs on a VM with only 60MiB of memory.
+The mappings read from /proc/self/maps and the return values from mmap()
+don't allow a simple correlation due to merging and no guaranteed order. 
+To correlate the pointers and mappings use prctl(PR_SET_VMA_ANON_NAME). 
+While it introduces a test dependency, other alternatives would introduce
+runtime or development overhead.
 
-
-This patch (of 4):
-
-When mapping a larger chunk than physical memory is available with
-PROT_WRITE and overcommit is disabled, the mapping will fail.  This will
-prevent the test from running on systems with less then ~1GiB of memory
-and triggering an inscrutinable test failure.  As the mappings are never
-written to anyways, the flag can be removed.
-
-Link: https://lkml.kernel.org/r/20250114-virtual_address_range-tests-v4-0-6fd7269934a5@linutronix.de
-Link: https://lkml.kernel.org/r/20250114-virtual_address_range-tests-v4-1-6fd7269934a5@linutronix.de
-Fixes: 4e5ce33ceb32 ("selftests/vm: add a test for virtual address range mapping")
+Link: https://lkml.kernel.org/r/20250114-virtual_address_range-tests-v4-2-6fd7269934a5@linutronix.de
+Fixes: 010409649885 ("selftests/mm: confirm VA exhaustion without reliance on correctness of mmap()")
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Dev Jain <dev.jain@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: kernel test robot <oliver.sang@intel.com>
+Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/config                  |    1 
+ tools/testing/selftests/mm/virtual_address_range.c |   33 ++++++++++-
+ 2 files changed, 32 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-mmap-without-prot_write
+--- a/tools/testing/selftests/mm/config~selftests-mm-virtual_address_range-unmap-chunks-after-validation
++++ a/tools/testing/selftests/mm/config
+@@ -7,3 +7,4 @@ CONFIG_TEST_HMM=m
+ CONFIG_GUP_TEST=y
+ CONFIG_TRANSPARENT_HUGEPAGE=y
+ CONFIG_MEM_SOFT_DIRTY=y
++CONFIG_ANON_VMA_NAME=y
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-unmap-chunks-after-validation
 +++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -166,7 +166,7 @@ int main(void)
- 	ksft_set_plan(1);
+@@ -10,6 +10,7 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include <errno.h>
++#include <sys/prctl.h>
+ #include <sys/mman.h>
+ #include <sys/time.h>
+ #include <fcntl.h>
+@@ -82,6 +83,24 @@ static void validate_addr(char *ptr, int
+ 		ksft_exit_fail_msg("Bad address %lx\n", addr);
+ }
  
- 	for (i = 0; i < NR_CHUNKS_LOW; i++) {
--		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
-+		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ,
- 			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++static void mark_range(char *ptr, size_t size)
++{
++	if (prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, ptr, size, "virtual_address_range") == -1) {
++		if (errno == EINVAL) {
++			/* Depends on CONFIG_ANON_VMA_NAME */
++			ksft_test_result_skip("prctl(PR_SET_VMA_ANON_NAME) not supported\n");
++			ksft_finished();
++		} else {
++			ksft_exit_fail_perror("prctl(PR_SET_VMA_ANON_NAME) failed\n");
++		}
++	}
++}
++
++static int is_marked_vma(const char *vma_name)
++{
++	return vma_name && !strcmp(vma_name, "[anon:virtual_address_range]\n");
++}
++
+ static int validate_lower_address_hint(void)
+ {
+ 	char *ptr;
+@@ -116,12 +135,17 @@ static int validate_complete_va_space(vo
  
- 		if (ptr[i] == MAP_FAILED) {
-@@ -186,7 +186,7 @@ int main(void)
+ 	prev_end_addr = 0;
+ 	while (fgets(line, sizeof(line), file)) {
++		const char *vma_name = NULL;
++		int vma_name_start = 0;
+ 		unsigned long hop;
  
- 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
- 		hint = hint_addr();
--		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
-+		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ,
- 			       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-		if (sscanf(line, "%lx-%lx %s[rwxp-]",
+-			   &start_addr, &end_addr, prot) != 3)
++		if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %n",
++			   &start_addr, &end_addr, prot, &vma_name_start) != 3)
+ 			ksft_exit_fail_msg("cannot parse /proc/self/maps\n");
  
++		if (vma_name_start)
++			vma_name = line + vma_name_start;
++
+ 		/* end of userspace mappings; ignore vsyscall mapping */
+ 		if (start_addr & (1UL << 63))
+ 			return 0;
+@@ -149,6 +173,9 @@ static int validate_complete_va_space(vo
+ 				return 1;
+ 			lseek(fd, 0, SEEK_SET);
+ 
++			if (is_marked_vma(vma_name))
++				munmap((char *)(start_addr + hop), MAP_CHUNK_SIZE);
++
+ 			hop += MAP_CHUNK_SIZE;
+ 		}
+ 	}
+@@ -175,6 +202,7 @@ int main(void)
+ 			break;
+ 		}
+ 
++		mark_range(ptr[i], MAP_CHUNK_SIZE);
+ 		validate_addr(ptr[i], 0);
+ 	}
+ 	lchunks = i;
+@@ -192,6 +220,7 @@ int main(void)
  		if (hptr[i] == MAP_FAILED)
+ 			break;
+ 
++		mark_range(ptr[i], MAP_CHUNK_SIZE);
+ 		validate_addr(hptr[i], 1);
+ 	}
+ 	hchunks = i;
 _
 
 Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
