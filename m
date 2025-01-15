@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0089135944
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 22:29:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4702A14A60C
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 22:57:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736980150; cv=none; b=aJE1gYk5Sp4Z/jIsJ3gE476Gj11snGXLDCb0bmjBRbGa+KtpzxFVYsXWi3yTIRhjWlgJ57X0uUnxmDFGJdAUZDHYGUGptkCf4eWi9UjrxX7AU3Hv4Tvi/CnmCGo3DAXC15NGOmL7DI9a2um8rt0MXYAqssj4UE4Gn+XWYnSi+70=
+	t=1736981827; cv=none; b=YRPASMoCl6gNtWirihja9LXZ4HDtlpzPG3+e6anf4WUX5tKD3eT1asiY/EqQb+iGH+nVh4lAg2tV9p23B9ti1ffumqlW0aYwPxInFIgfWTpMDAwehW0zELJAcQpcE9oAH+QdeSv7RdZdSYEE+/g+6cxSBxfisIlP91iCxDz39+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736980150; c=relaxed/simple;
-	bh=1Jx/L4KLgDndq5u/U/aN8uN7vvkQPkoO0p9DfwAZk7Q=;
-	h=Date:To:From:Subject:Message-Id; b=pHCT3MpZ/IxmcFSdNU0LOO3JDn8AaFGltRK71pkpGZNkrYVW23thWoKuL0slxEURHRZAFD7t7MeOKB+FOZbADvlaD7NdC1Gs3GHGFGH1MQ/m9R+6XlXP4uqWihX1ROg7yzQKNUYplYyh3TL6vSocs6eClvmAxb3ib7vphspgv0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cikFSqFI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736981827; c=relaxed/simple;
+	bh=08bWmsvJbceQP5K+z/tyv9/+bidiHkmobKgB7C7M6hs=;
+	h=Date:To:From:Subject:Message-Id; b=NHUXn5WZ2rbDAGYhIHCn/1eGEd8gVKNMZii81v5ZFla5P0Xh6z3mmFESdaiLVPz2Ya7MnvPW4TBOoMkpffflZzdI8ldhpdTT4RC8Gyte9V4V0irNrV3ZQE9Yr6zHuvuihRHVsmiWI8fSHobgdpNct35P4eUWgzqxMaDm/pw0HNc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FU36ibf3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cikFSqFI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65365C4CED1;
-	Wed, 15 Jan 2025 22:29:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FU36ibf3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE16EC4CED1;
+	Wed, 15 Jan 2025 22:57:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736980149;
-	bh=1Jx/L4KLgDndq5u/U/aN8uN7vvkQPkoO0p9DfwAZk7Q=;
+	s=korg; t=1736981826;
+	bh=08bWmsvJbceQP5K+z/tyv9/+bidiHkmobKgB7C7M6hs=;
 	h=Date:To:From:Subject:From;
-	b=cikFSqFIyKKerz6JRuM8WmbCHbwzA+qRKmE2UMPFWRHvUzCVNCl8Waj9H2eYk7Mmh
-	 b6iPzHEDExHrQp5HZaNaWQNyCDQphVHSfTPMCQBMFRM6hWIwRaz6DYY2DJHwTtRkTj
-	 tTYqzEu+wy/QXEGCkKoAMpCweRZVcMPvPnCHRsUU=
-Date: Wed, 15 Jan 2025 14:29:08 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,senozhatsky@chromium.org,minchan@kernel.org,alexs@kernel.org,42.hyeyoo@gmail.com,akpm@linux-foundation.org
+	b=FU36ibf3Jgc4hEoqWvxsaqX0LJAv3sTnE8cW46ggBfVyORglZagsHVYk4XNQQt1se
+	 Qo8EsNqfugRfD2ov6sUjixi3W5rhiFuUNpG90eMwcQiw1olJ9xcLvOeqZSkKxr5ZJZ
+	 3uStwkuzmke9iC2IVI3TaD6UTlRYbWAGiH0HYKHo=
+Date: Wed, 15 Jan 2025 14:57:06 -0800
+To: mm-commits@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,anshuman.khandual@arm.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix.patch added to mm-unstable branch
-Message-Id: <20250115222909.65365C4CED1@smtp.kernel.org>
+Subject: + mm-kfence-use-str_write_read-helper-in-get_access_type.patch added to mm-unstable branch
+Message-Id: <20250115225706.AE16EC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zsmalloc: reset zpdesc fields in reset_zpdesc()
+     Subject: mm/kfence: use str_write_read() helper in get_access_type()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix.patch
+     mm-kfence-use-str_write_read-helper-in-get_access_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-use-str_write_read-helper-in-get_access_type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/zsmalloc: reset zpdesc fields in reset_zpdesc()
-Date: Tue, 14 Jan 2025 00:29:52 +0900
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: mm/kfence: use str_write_read() helper in get_access_type()
+Date: Wed, 15 Jan 2025 16:55:12 +0100
 
-To prepare for the future removal of struct page fields (e.g.  the removal
-of page->index [1]), update reset_zpdesc() to reset the descriptor via
-struct zpdesc instead of struct page.
+Remove hard-coded strings by using the str_write_read() helper function.
 
-As struct zpdesc overlays struct page for now, no functional change is
-intended.
-
-[1] https://lore.kernel.org/linux-mm/Z09hOy-UY9KC8WMb@casper.infradead.org
-
-Link: https://lkml.kernel.org/r/Z4Uw136VdG7vlKCL@localhost.localdomain
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20250115155511.954535-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kfence/kfence_test.c |    3 ++-
+ mm/kfence/report.c      |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix
-+++ a/mm/zsmalloc.c
-@@ -849,8 +849,8 @@ static void reset_zpdesc(struct zpdesc *
+--- a/mm/kfence/kfence_test.c~mm-kfence-use-str_write_read-helper-in-get_access_type
++++ a/mm/kfence/kfence_test.c
+@@ -20,6 +20,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
++#include <linux/string_choices.h>
+ #include <linux/tracepoint.h>
+ #include <trace/events/printk.h>
  
- 	__ClearPageMovable(page);
- 	ClearPagePrivate(page);
--	set_page_private(page, 0);
--	page->index = 0;
-+	zpdesc->zspage = NULL;
-+	zpdesc->next = NULL;
- 	__ClearPageZsmalloc(page);
+@@ -88,7 +89,7 @@ struct expect_report {
+ 
+ static const char *get_access_type(const struct expect_report *r)
+ {
+-	return r->is_write ? "write" : "read";
++	return str_write_read(r->is_write);
  }
  
+ /* Check observed report matches information in @r. */
+--- a/mm/kfence/report.c~mm-kfence-use-str_write_read-helper-in-get_access_type
++++ a/mm/kfence/report.c
+@@ -16,6 +16,7 @@
+ #include <linux/sprintf.h>
+ #include <linux/stacktrace.h>
+ #include <linux/string.h>
++#include <linux/string_choices.h>
+ #include <linux/sched/clock.h>
+ #include <trace/events/error_report.h>
+ 
+@@ -184,7 +185,7 @@ static void print_diff_canary(unsigned l
+ 
+ static const char *get_access_type(bool is_write)
+ {
+-	return is_write ? "write" : "read";
++	return str_write_read(is_write);
+ }
+ 
+ void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-mm-zsmalloc-convert-__zs_map_object-__zs_unmap_object-to-use-zpdesc.patch
-mm-zsmalloc-add-and-use-pfn-zpdesc-seeking-funcs.patch
-mm-zsmalloc-convert-obj_malloc-to-use-zpdesc.patch
-mm-zsmalloc-convert-obj_allocated-and-related-helpers-to-use-zpdesc.patch
-mm-zsmalloc-convert-init_zspage-to-use-zpdesc.patch
-mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch
-mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc.patch
-mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix.patch
-mm-zsmalloc-convert-__free_zspage-to-use-zpdesc.patch
-mm-zsmalloc-convert-location_to_obj-to-take-zpdesc.patch
-mm-zsmalloc-convert-migrate_zspage-to-use-zpdesc.patch
-mm-zsmalloc-convert-get_zspage-to-take-zpdesc.patch
+kasan-hw_tags-use-str_on_off-helper-in-kasan_init_hw_tags.patch
+mm-kfence-use-str_write_read-helper-in-get_access_type.patch
 
