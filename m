@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 991441DB55D
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 23:05:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AF5E1991B6
+	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 23:08:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736982304; cv=none; b=YM0HKfYyTKeHmjaeT4Gu41Xd8vRaarbc73uqtMwxo0dh0d0nEyb03QFGDxK+zwIrGU+vBaRqM8+MHA6yQ2dMlzu5dlye2E4tvhqaEP3Ik4Q3qpFvos0qWVVaDNeHDSpLNaRXFU34mE/YicDSJFHNdhGhqgOb6QUQ/2SbgNDtPJE=
+	t=1736982530; cv=none; b=pYeImdWfz3PqgO6gNRThDXiCE9lpRJT8xav/yU8Wu0nD+GYofWteM88fwM3MR3/mwCJzzuYykYTjbPQB/2MsCfSva1rVnsEFgxN6rng8lEOvsuS01G2QwuUbmoM5NeDd7DFoVvhvTo4kcP4vpQS6Qyw8syMkMOpNEmmz+NZMTnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736982304; c=relaxed/simple;
-	bh=3b1mwmewFgNFmqAPwqLEiA4X3m2f+fEU8zXT9ZBKxmc=;
-	h=Date:To:From:Subject:Message-Id; b=k0rEHaCFd2QGkyhEZNf1urF9gnAXPhOCAzG36bo1QTyTwWFU2i4lDtQ2YbKidGO89k1TUcgFEKg5e8YXG/klctsF9toGIyELLq6JmTNnc8hjFGxsEUvQSFU4vJDvWtXxUZYHsWd87UjdlVhmlrLjDeTQMGA4Dxbav04tsh3I2KM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YraGGCV4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736982530; c=relaxed/simple;
+	bh=6X/cm7gEAyx8E1w2nu++oOHFbSJ/5qKnuVKWdq/9laQ=;
+	h=Date:To:From:Subject:Message-Id; b=uYgPksrpbSzvDSJ2XA+xe4xzzOlTq9oZV47wgoV4mov93k0S3U96o9jrl+5Uc7Oy3AJycgm0+Y7p4cp06fhCURybv/cJ3pVPU+oLZt6nrNgo8DdmgO6HSnW5ADVnMZxqSLsQIm8oSXqmzbDZT/RL1OrBREfPxwUxja1eLexWM2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=quPBaidi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YraGGCV4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08EA6C4CED1;
-	Wed, 15 Jan 2025 23:05:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="quPBaidi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A57DC4CED1;
+	Wed, 15 Jan 2025 23:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736982304;
-	bh=3b1mwmewFgNFmqAPwqLEiA4X3m2f+fEU8zXT9ZBKxmc=;
+	s=korg; t=1736982529;
+	bh=6X/cm7gEAyx8E1w2nu++oOHFbSJ/5qKnuVKWdq/9laQ=;
 	h=Date:To:From:Subject:From;
-	b=YraGGCV4hPk1j38MfFMVM8NgHd2WcRPZHyL1PfAqEuinu4KWj+Rs+QEPtKBZHpcsZ
-	 LsTWeOnEyQboJgrP7Z9A8nWaT5H7IzN7Da6HKtWhmwrHsM5TNnDaXDuAgzaE2n/sAa
-	 974wz3ettLGuyFFxmiExqsf4bL9AUkYVErGSYI9I=
-Date: Wed, 15 Jan 2025 15:05:03 -0800
-To: mm-commits@vger.kernel.org,ryncsn@gmail.com,akpm@linux-foundation.org
+	b=quPBaidi7bA/+so9xqvca2zsVk4tW1sV+TDx8jSuP98pecp7YMofiDpM21CIleaFf
+	 QBmNwtcAOrjbvr1Gv4358oiwkJ8ajzXV1B7pFWIY+b3Iqc6JkloTv4ihhgFjOKlluD
+	 6qNrzZ+sWLygo3j4qQqAcHStm12n0ETn0P1m4PMM=
+Date: Wed, 15 Jan 2025 15:08:48 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shivankg@amd.com,byungchul@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix.patch added to mm-unstable branch
-Message-Id: <20250115230504.08EA6C4CED1@smtp.kernel.org>
+Subject: + mm-separate-move-undo-parts-from-migrate_pages_batch.patch added to mm-unstable branch
+Message-Id: <20250115230849.9A57DC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix
+     Subject: mm: separate move/undo parts from migrate_pages_batch()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix.patch
+     mm-separate-move-undo-parts-from-migrate_pages_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-separate-move-undo-parts-from-migrate_pages_batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,37 +58,192 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <ryncsn@gmail.com>
-Subject: mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix
-Date: Wed, 15 Jan 2025 18:51:57 +0800
+From: Byungchul Park <byungchul@sk.com>
+Subject: mm: separate move/undo parts from migrate_pages_batch()
+Date: Thu, 8 Aug 2024 15:53:58 +0900
 
-check kmalloc() return in setup_clusters
+Functionally, no change.  This is a preparation for luf mechanism that
+requires to use separated folio lists for its own handling during
+migration.  Refactored migrate_pages_batch() so as to separate move/undo
+parts from migrate_pages_batch().
 
-Link: https://lkml.kernel.org/r/CAMgjq7Au+o04ckHyT=iU-wVx9az=t0B-ZiC5E0bDqNrAtNOP-g@mail.gmail.com
-Signed-off-by: Kairui Song <ryncsn@gmail.com>
+Link: https://lkml.kernel.org/r/20250115103403.11882-1-byungchul@sk.com
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/migrate.c |  134 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 83 insertions(+), 51 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix
-+++ a/mm/swapfile.c
-@@ -3217,7 +3217,10 @@ static struct swap_cluster_info *setup_c
- 			local_lock_init(&cluster->lock);
- 		}
- 	} else {
--		si->global_cluster = kmalloc(sizeof(*si->global_cluster), GFP_KERNEL);
-+		si->global_cluster = kmalloc(sizeof(*si->global_cluster),
-+				     GFP_KERNEL);
-+		if (!si->global_cluster)
-+			goto err_free;
- 		for (i = 0; i < SWAP_NR_ORDERS; i++)
- 			si->global_cluster->next[i] = SWAP_ENTRY_INVALID;
- 		spin_lock_init(&si->global_cluster_lock);
+--- a/mm/migrate.c~mm-separate-move-undo-parts-from-migrate_pages_batch
++++ a/mm/migrate.c
+@@ -1687,6 +1687,81 @@ static int migrate_hugetlbs(struct list_
+ 	return nr_failed;
+ }
+ 
++static void migrate_folios_move(struct list_head *src_folios,
++		struct list_head *dst_folios,
++		free_folio_t put_new_folio, unsigned long private,
++		enum migrate_mode mode, int reason,
++		struct list_head *ret_folios,
++		struct migrate_pages_stats *stats,
++		int *retry, int *thp_retry, int *nr_failed,
++		int *nr_retry_pages)
++{
++	struct folio *folio, *folio2, *dst, *dst2;
++	bool is_thp;
++	int nr_pages;
++	int rc;
++
++	dst = list_first_entry(dst_folios, struct folio, lru);
++	dst2 = list_next_entry(dst, lru);
++	list_for_each_entry_safe(folio, folio2, src_folios, lru) {
++		is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
++		nr_pages = folio_nr_pages(folio);
++
++		cond_resched();
++
++		rc = migrate_folio_move(put_new_folio, private,
++				folio, dst, mode,
++				reason, ret_folios);
++		/*
++		 * The rules are:
++		 *	Success: folio will be freed
++		 *	-EAGAIN: stay on the unmap_folios list
++		 *	Other errno: put on ret_folios list
++		 */
++		switch (rc) {
++		case -EAGAIN:
++			*retry += 1;
++			*thp_retry += is_thp;
++			*nr_retry_pages += nr_pages;
++			break;
++		case MIGRATEPAGE_SUCCESS:
++			stats->nr_succeeded += nr_pages;
++			stats->nr_thp_succeeded += is_thp;
++			break;
++		default:
++			*nr_failed += 1;
++			stats->nr_thp_failed += is_thp;
++			stats->nr_failed_pages += nr_pages;
++			break;
++		}
++		dst = dst2;
++		dst2 = list_next_entry(dst, lru);
++	}
++}
++
++static void migrate_folios_undo(struct list_head *src_folios,
++		struct list_head *dst_folios,
++		free_folio_t put_new_folio, unsigned long private,
++		struct list_head *ret_folios)
++{
++	struct folio *folio, *folio2, *dst, *dst2;
++
++	dst = list_first_entry(dst_folios, struct folio, lru);
++	dst2 = list_next_entry(dst, lru);
++	list_for_each_entry_safe(folio, folio2, src_folios, lru) {
++		int old_page_state = 0;
++		struct anon_vma *anon_vma = NULL;
++
++		__migrate_folio_extract(dst, &old_page_state, &anon_vma);
++		migrate_folio_undo_src(folio, old_page_state & PAGE_WAS_MAPPED,
++				anon_vma, true, ret_folios);
++		list_del(&dst->lru);
++		migrate_folio_undo_dst(dst, true, put_new_folio, private);
++		dst = dst2;
++		dst2 = list_next_entry(dst, lru);
++	}
++}
++
+ /*
+  * migrate_pages_batch() first unmaps folios in the from list as many as
+  * possible, then move the unmapped folios.
+@@ -1709,7 +1784,7 @@ static int migrate_pages_batch(struct li
+ 	int pass = 0;
+ 	bool is_thp = false;
+ 	bool is_large = false;
+-	struct folio *folio, *folio2, *dst = NULL, *dst2;
++	struct folio *folio, *folio2, *dst = NULL;
+ 	int rc, rc_saved = 0, nr_pages;
+ 	LIST_HEAD(unmap_folios);
+ 	LIST_HEAD(dst_folios);
+@@ -1880,42 +1955,11 @@ move:
+ 		thp_retry = 0;
+ 		nr_retry_pages = 0;
+ 
+-		dst = list_first_entry(&dst_folios, struct folio, lru);
+-		dst2 = list_next_entry(dst, lru);
+-		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
+-			is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
+-			nr_pages = folio_nr_pages(folio);
+-
+-			cond_resched();
+-
+-			rc = migrate_folio_move(put_new_folio, private,
+-						folio, dst, mode,
+-						reason, ret_folios);
+-			/*
+-			 * The rules are:
+-			 *	Success: folio will be freed
+-			 *	-EAGAIN: stay on the unmap_folios list
+-			 *	Other errno: put on ret_folios list
+-			 */
+-			switch(rc) {
+-			case -EAGAIN:
+-				retry++;
+-				thp_retry += is_thp;
+-				nr_retry_pages += nr_pages;
+-				break;
+-			case MIGRATEPAGE_SUCCESS:
+-				stats->nr_succeeded += nr_pages;
+-				stats->nr_thp_succeeded += is_thp;
+-				break;
+-			default:
+-				nr_failed++;
+-				stats->nr_thp_failed += is_thp;
+-				stats->nr_failed_pages += nr_pages;
+-				break;
+-			}
+-			dst = dst2;
+-			dst2 = list_next_entry(dst, lru);
+-		}
++		/* Move the unmapped folios */
++		migrate_folios_move(&unmap_folios, &dst_folios,
++				put_new_folio, private, mode, reason,
++				ret_folios, stats, &retry, &thp_retry,
++				&nr_failed, &nr_retry_pages);
+ 	}
+ 	nr_failed += retry;
+ 	stats->nr_thp_failed += thp_retry;
+@@ -1924,20 +1968,8 @@ move:
+ 	rc = rc_saved ? : nr_failed;
+ out:
+ 	/* Cleanup remaining folios */
+-	dst = list_first_entry(&dst_folios, struct folio, lru);
+-	dst2 = list_next_entry(dst, lru);
+-	list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
+-		int old_page_state = 0;
+-		struct anon_vma *anon_vma = NULL;
+-
+-		__migrate_folio_extract(dst, &old_page_state, &anon_vma);
+-		migrate_folio_undo_src(folio, old_page_state & PAGE_WAS_MAPPED,
+-				       anon_vma, true, ret_folios);
+-		list_del(&dst->lru);
+-		migrate_folio_undo_dst(dst, true, put_new_folio, private);
+-		dst = dst2;
+-		dst2 = list_next_entry(dst, lru);
+-	}
++	migrate_folios_undo(&unmap_folios, &dst_folios,
++			put_new_folio, private, ret_folios);
+ 
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from ryncsn@gmail.com are
+Patches currently in -mm which might be from byungchul@sk.com are
 
-mm-swap-use-a-global-swap-cluster-for-non-rotation-devices-fix.patch
+mm-separate-move-undo-parts-from-migrate_pages_batch.patch
 
