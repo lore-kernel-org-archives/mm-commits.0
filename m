@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DEE8156C5E
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:39:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C862729A1
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:39:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737005959; cv=none; b=Kp79Ax2pbPPbbWGKzfoOviZHb6e+OPCZk+COsAmvyD9daCFAw+amxOdbOGygOCGhdj50j041OFoV7Z7P+mgOVpA3o2k4DykMEHiR7cOP0/gWjv4dx7Zm0d4P/onh2WWe24BovaNUP7NbrIXw+gYK+4ZqE/tAfl7XkDNyN238UEw=
+	t=1737005984; cv=none; b=mfYJ0vlZ23t/rMKkD6+zE0E7i+GH9QULw+crNXKLdJo0RwAke92bEEtzne8yaCQt2HqmrWUAM7KkI5aHo0UF/KfpfHe8Ah0Nucp+XFBJBmJPVimnCpPWT5sVrQLg7tt8JxwwLUqjWyvhDVQGvuX6v0EIKmzNdpC2VcIRDo+gtNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737005959; c=relaxed/simple;
-	bh=zP7rR5erUcDvtUL4iy6p1ltWyR2UCAm+47VgGRy6aJ0=;
-	h=Date:To:From:Subject:Message-Id; b=uhAdljleBfu1C9HOUs09D3WoDdEC1kcpti8gOGsqrSA1SmT+KVX1SLoEKiHyY7+LIngwrbttebmCWF+fpV7bAeJI09fl5j+HpHLn91ZH9VBnYqBSlXQVbGQ8AFfHpUr9RXDiPv7NWO1rSFw6/8Z0XkugKXwknvCx4am0D61LZ8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o8OEA+VR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737005984; c=relaxed/simple;
+	bh=8A12OKBgPznuUbyTPkvqLdnP6fT9StI8UhIOsZXjP4k=;
+	h=Date:To:From:Subject:Message-Id; b=omG3J3VLSuqJaNdkmmJKM7faujhceDQ64QgJYUsXG96lPkViHv6jIhUnAQCrhdWG0srIns7Vqz9Cd77FfDFezWqizVgJ1vhYqXktpnZ2gNX67rOL9eP4rFtlx1pyCCNkRG0MMXggl6HT/P4fFkT51JHfxrD+Vxzh/v++y7FMccw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W2IomaJu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o8OEA+VR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71103C4CED6;
-	Thu, 16 Jan 2025 05:39:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W2IomaJu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47AA8C4CED6;
+	Thu, 16 Jan 2025 05:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737005959;
-	bh=zP7rR5erUcDvtUL4iy6p1ltWyR2UCAm+47VgGRy6aJ0=;
+	s=korg; t=1737005984;
+	bh=8A12OKBgPznuUbyTPkvqLdnP6fT9StI8UhIOsZXjP4k=;
 	h=Date:To:From:Subject:From;
-	b=o8OEA+VRr/MVdetSSpys0YKJnv+CP3iJWQ3j5eVEm2wAD/BZ/ol+QiVwwBOYYyiDy
-	 q9ZZoJORpY4++kiadXC0GWFpTVBfxIcfilDlgH3Qo6SSXUPhT88EKFtr1byf8HK/JD
-	 8aHVXWOZpcm+sUTORZtwSRo7RMsk/ApXRF/a2/t4=
-Date: Wed, 15 Jan 2025 21:39:18 -0800
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=W2IomaJucV9AvZIiLo9r9vXkH3DCJFSOFCzokxKkAgu2Xpv0jClqXxyViVdeE79R+
+	 L6RkVvQ+ug8BgKh7kpAbq09tGqhuxJxkGwKh0eostbr+BV/Zm19TArErc392xnI6VB
+	 sDQOdvPYkV9OoeC1duE1Q5Y2lUz22L3UFTd5Ne+Q=
+Date: Wed, 15 Jan 2025 21:39:43 -0800
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shuah@kernel.org,riel@surriel.com,alexlzhu@fb.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] ksm-add-ksm-involvement-information-for-each-process-fix.patch removed from -mm tree
-Message-Id: <20250116053919.71103C4CED6@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch removed from -mm tree
+Message-Id: <20250116053944.47AA8C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ksm-add-ksm-involvement-information-for-each-process-fix
+     Subject: selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
 has been removed from the -mm tree.  Its filename was
-     ksm-add-ksm-involvement-information-for-each-process-fix.patch
+     selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch
 
-This patch was dropped because it was folded into ksm-add-ksm-involvement-information-for-each-process.patch
+This patch was dropped because it was folded into selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ksm-add-ksm-involvement-information-for-each-process-fix
-Date: Mon Jan 13 06:48:34 PM PST 2025
+From: Zi Yan <ziy@nvidia.com>
+Subject: selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
+Date: Wed, 15 Jan 2025 21:57:59 -0500
 
-wording tweaks, per David and akpm
+no need to test splitting to order-1
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Anonymous memory does not support order-1 folio, so there is no need to
+test splitting to order-1.  Kernel will WARN_ONCE for
+split_pmd_thp_to_order(1) test and the whole test will fail at that point.
+
+Link: https://lkml.kernel.org/r/DDA202EA-4664-4F50-A7FD-B00CBB7A624B@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Alexander Zhu <alexlzhu@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~ksm-add-ksm-involvement-information-for-each-process-fix
-+++ a/Documentation/filesystems/proc.rst
-@@ -2257,10 +2257,10 @@ Description
- ksm_rmap_items
- ^^^^^^^^^^^^^^
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -481,7 +481,7 @@ int main(int argc, char **argv)
+ 	if (argc > 1)
+ 		optional_xfs_path = argv[1];
  
--The number of ksm_rmap_item structure in use. The structure of
--ksm_rmap_item is to store the reverse mapping information for virtual
--addresses. KSM will generate a ksm_rmap_item for each ksm-scanned page
--of the process.
-+The number of ksm_rmap_item structures in use.  The structure
-+ksm_rmap_item stores the reverse mapping information for virtual
-+addresses.  KSM will generate a ksm_rmap_item for each ksm-scanned page of
-+the process.
+-	ksft_set_plan(1+9+2+9);
++	ksft_set_plan(1+8+2+9);
  
- ksm_zero_pages
- ^^^^^^^^^^^^^^
-@@ -2289,14 +2289,16 @@ ksm_merge_any
- ^^^^^^^^^^^^^
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+@@ -494,7 +494,8 @@ int main(int argc, char **argv)
+ 	split_pmd_zero_pages();
  
- It specifies whether the process'mm is added by prctl() into the candidate list
--of KSM or not, and KSM scanning is fully enabled at process level.
-+of KSM or not, and if KSM scanning is fully enabled at process level.
+ 	for (i = 0; i < 9; i++)
+-		split_pmd_thp_to_order(i);
++		if (i != 1)
++			split_pmd_thp_to_order(i);
  
- ksm_mergeable
- ^^^^^^^^^^^^^
- 
--It specifies whether any VMAs of the process'mm are currently applicable to KSM.
-+It specifies whether any VMAs of the process'mm are currently applicable
-+to KSM.
- 
--More information about KSM can be found at Documentation/admin-guide/mm/ksm.rst.
-+More information about KSM can be found in
-+Documentation/admin-guide/mm/ksm.rst.
- 
- 
- Chapter 4: Configuring procfs
+ 	split_pte_mapped_thp();
+ 	split_file_backed_thp();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-ksm-add-ksm-involvement-information-for-each-process.patch
-documentation-filesystems-procrst-fix-possessive-form-of-process.patch
+selftests-mm-use-selftests-framework-to-print-test-result.patch
+selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
 
