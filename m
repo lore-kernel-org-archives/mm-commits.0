@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1DC5661
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:37:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C943150980
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:38:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737005837; cv=none; b=NCBG0UVV+6ovVcdB+OVCeQKn1t2ZJyrB3agxDc8Jih0M/PWvbkn0iOOgK2U2LQu4cVgy9jITgdCDcl+CiXSM8GG1la8NqhreJAjwrjA3nt9re5H6cmetlHrYngf2w5wsYQWnlrA9lRyVaIdv9lq2N/JpNwdOrOGHXQaFFLcL3Z8=
+	t=1737005894; cv=none; b=Ebmn9iNjZIRIkX/yF5+zf8tue1UJXoN4S6+Ci7/Xrgb/KMkIcFWDGMURuXrVMt5OYIIjJe4sndvbtZNTxqyeO0GiFXTaCVQFDqmgVoBqhdk1s2xtY8Lc5fPyEpj5Mu2caQJO6+LNKVU4ya5d4WzI2BCYoKFI2iOD1d1OydQ2PQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737005837; c=relaxed/simple;
-	bh=17mn2Uy1n1HxNwSUCYsTRaRy7CKmsmdFY2OIfz+OdcI=;
-	h=Date:To:From:Subject:Message-Id; b=FRq1HAi/SO1KaTL8LHRMJ1Xg1Gh2QTwro6H5urOD1MfoRsdwUER+6i6PoyMtSeKLEMVbgfTg7yT3mDX5mNYOwmPA3n5wP9XIWdwcXFWtc9UfWalbbOujT6pFwZe1Ybwcvlnb9DN67iK9A4ZVvYqDe4tYsZZjy4pwpepd8648dRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ATUq50pO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737005894; c=relaxed/simple;
+	bh=zBvLsh3c4LUIuyZ9ByaeVXKo03fwdA+3PSml/CSYkh8=;
+	h=Date:To:From:Subject:Message-Id; b=VKichfnHGb/I3ZOKR9TkQS0jXIAgiM7k8UffVeEwCBpwcYU7Soz+k33IVmenIK4vW9KauQkVrD2hyb2ApmHTIspj6H1zt6daz7GhyK9wrJk+ThGgm9mSN062fXKv3leISXeLcJPk/z9Akbk/vCQW3pVvm3BWOx6u8y+BBhNvTic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2rUGEDBh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ATUq50pO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A047C4CED6;
-	Thu, 16 Jan 2025 05:37:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2rUGEDBh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FCC0C4CED6;
+	Thu, 16 Jan 2025 05:38:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737005837;
-	bh=17mn2Uy1n1HxNwSUCYsTRaRy7CKmsmdFY2OIfz+OdcI=;
+	s=korg; t=1737005893;
+	bh=zBvLsh3c4LUIuyZ9ByaeVXKo03fwdA+3PSml/CSYkh8=;
 	h=Date:To:From:Subject:From;
-	b=ATUq50pOKfbPoGJAoVVMViqaRY7krGTKpNUFZxjFDAe/BVOKaKsWbaeE5AoF+6e3F
-	 8db2kUmuMdZiuFaa33L+NWk53bx2XrLzw9m+uN+fQrcDfBz0/JPaBbdLJXLUMqGJHy
-	 vQ8goCvrn1yoJIFF9C15CcumPzJuvAlGXdLvBE4c=
-Date: Wed, 15 Jan 2025 21:37:16 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,geert@linux-m68k.org,agordeev@linux.ibm.com,guoweikang.kernel@gmail.com,akpm@linux-foundation.org
+	b=2rUGEDBhaBmN2M3S8EKnJYedEdUWVpaJyJN9D1gHxj7KsbvzRg00dvpIWv/2NVCVA
+	 q1N4YOsD8k2UW9MkijqRJjHN9tf9ISBeGJoslgwRNCv7+YnUgOC70jQk+R78xrVRX2
+	 WJyxnTaBI37SGav96vPJTi7VSE0ccRf7B3eFD7tM=
+Date: Wed, 15 Jan 2025 21:38:12 -0800
+To: mm-commits@vger.kernel.org,stevensd@chromium.org,ryncsn@gmail.com,kaleshsingh@google.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic.patch removed from -mm tree
-Message-Id: <20250116053717.1A047C4CED6@smtp.kernel.org>
+Subject: [folded-merged] mm-mglru-rework-aging-feedback-fix.patch removed from -mm tree
+Message-Id: <20250116053813.7FCC0C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch/s390: save_area_alloc default failure behavior changed to panic
+     Subject: mm-mglru-rework-aging-feedback-fix
 has been removed from the -mm tree.  Its filename was
-     arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic.patch
+     mm-mglru-rework-aging-feedback-fix.patch
 
-This patch was dropped because it was folded into mm-memblock-add-memblock_alloc_or_panic-interface.patch
+This patch was dropped because it was folded into mm-mglru-rework-aging-feedback.patch
 
 ------------------------------------------------------
-From: Guo Weikang <guoweikang.kernel@gmail.com>
-Subject: arch/s390: save_area_alloc default failure behavior changed to panic
-Date: Thu, 9 Jan 2025 11:31:36 +0800
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm-mglru-rework-aging-feedback-fix
+Date: Sun, 12 Jan 2025 23:51:37 -0700
 
-Now with the memblock_alloc_or_panic interface, save_area_alloc no longer
-needs to handle panic itself.
+restore behaviour for systems with swappiness == 200
 
-Link: https://lkml.kernel.org/r/20250109033136.2845676-1-guoweikang.kernel@gmail.com
-Link: https://lore.kernel.org/lkml/Z2fknmnNtiZbCc7x@kernel.org/
-Signed-off-by: Guo Weikang <guoweikang.kernel@gmail.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Link: https://lkml.kernel.org/r/Z4S3-aJy5dj9tBTk@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/crash_dump.c |    4 +---
- arch/s390/kernel/numa.c       |    3 +--
- arch/s390/kernel/smp.c        |    4 ----
- 3 files changed, 2 insertions(+), 9 deletions(-)
+ mm/vmscan.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/arch/s390/kernel/crash_dump.c~arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic
-+++ a/arch/s390/kernel/crash_dump.c
-@@ -63,9 +63,7 @@ struct save_area * __init save_area_allo
- {
- 	struct save_area *sa;
+--- a/mm/vmscan.c~mm-mglru-rework-aging-feedback-fix
++++ a/mm/vmscan.c
+@@ -2625,7 +2625,7 @@ static bool should_clear_pmd_young(void)
+ 	}
  
--	sa = memblock_alloc(sizeof(*sa), 8);
--	if (!sa)
--		return NULL;
-+	sa = memblock_alloc_or_panic(sizeof(*sa), 8);
+ #define evictable_min_seq(min_seq, swappiness)				\
+-	min((min_seq)[!(swappiness)], (min_seq)[(swappiness) != MAX_SWAPPINESS])
++	min((min_seq)[!(swappiness)], (min_seq)[(swappiness) <= MAX_SWAPPINESS])
  
- 	if (is_boot_cpu)
- 		list_add(&sa->list, &dump_save_areas);
---- a/arch/s390/kernel/numa.c~arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic
-+++ a/arch/s390/kernel/numa.c
-@@ -21,9 +21,8 @@ void __init numa_setup(void)
- 	nodes_clear(node_possible_map);
- 	node_set(0, node_possible_map);
- 	node_set_online(0);
--	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+	for (nid = 0; nid < MAX_NUMNODES; nid++)
- 		NODE_DATA(nid) = memblock_alloc_or_panic(sizeof(pg_data_t), 8);
--	}
- 	NODE_DATA(0)->node_spanned_pages = memblock_end_of_DRAM() >> PAGE_SHIFT;
- 	NODE_DATA(0)->node_id = 0;
- }
---- a/arch/s390/kernel/smp.c~arch-s390-save_area_alloc-default-failure-behavior-changed-to-panic
-+++ a/arch/s390/kernel/smp.c
-@@ -611,8 +611,6 @@ void __init smp_save_dump_ipl_cpu(void)
- 	if (!dump_available())
- 		return;
- 	sa = save_area_alloc(true);
--	if (!sa)
--		panic("could not allocate memory for boot CPU save area\n");
- 	regs = memblock_alloc_or_panic(512, 8);
- 	copy_oldmem_kernel(regs, __LC_FPREGS_SAVE_AREA, 512);
- 	save_area_add_regs(sa, regs);
-@@ -646,8 +644,6 @@ void __init smp_save_dump_secondary_cpus
- 		    SIGP_CC_NOT_OPERATIONAL)
- 			continue;
- 		sa = save_area_alloc(false);
--		if (!sa)
--			panic("could not allocate memory for save area\n");
- 		__pcpu_sigp_relax(addr, SIGP_STORE_STATUS_AT_ADDRESS, __pa(page));
- 		save_area_add_regs(sa, page);
- 		if (cpu_has_vx()) {
+ #define for_each_gen_type_zone(gen, type, zone)				\
+ 	for ((gen) = 0; (gen) < MAX_NR_GENS; (gen)++)			\
+@@ -2633,7 +2633,7 @@ static bool should_clear_pmd_young(void)
+ 			for ((zone) = 0; (zone) < MAX_NR_ZONES; (zone)++)
+ 
+ #define for_each_evictable_type(type, swappiness)			\
+-	for ((type) = !(swappiness); (type) <= ((swappiness) != MAX_SWAPPINESS); (type)++)
++	for ((type) = !(swappiness); (type) <= ((swappiness) <= MAX_SWAPPINESS); (type)++)
+ 
+ #define get_memcg_gen(seq)	((seq) % MEMCG_NR_GENS)
+ #define get_memcg_bin(bin)	((bin) % MEMCG_NR_BINS)
+@@ -3279,7 +3279,7 @@ static int should_skip_vma(unsigned long
+ 	if (shmem_mapping(mapping))
+ 		return !walk->swappiness;
+ 
+-	if (walk->swappiness == MAX_SWAPPINESS)
++	if (walk->swappiness > MAX_SWAPPINESS)
+ 		return true;
+ 
+ 	/* to exclude special mappings like dax, etc. */
+@@ -3739,7 +3739,7 @@ static bool inc_min_seq(struct lruvec *l
+ 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
+ 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
+ 
+-	if (type ? swappiness == MAX_SWAPPINESS : !swappiness)
++	if (type ? swappiness > MAX_SWAPPINESS : !swappiness)
+ 		goto done;
+ 
+ 	/* prevent cold/hot inversion if the type is evictable */
+@@ -3800,7 +3800,7 @@ next:
+ 	}
+ 
+ 	/* see the comment on lru_gen_folio */
+-	if (swappiness && swappiness != MAX_SWAPPINESS) {
++	if (swappiness && swappiness <= MAX_SWAPPINESS) {
+ 		unsigned long seq = lrugen->max_seq - MIN_NR_GENS;
+ 
+ 		if (min_seq[LRU_GEN_ANON] > seq && min_seq[LRU_GEN_FILE] < seq)
+@@ -4556,13 +4556,13 @@ static int isolate_folios(struct lruvec
+ 	 * 2. If !__GFP_IO, file first since clean pagecache is more likely to
+ 	 *    exist than clean swapcache.
+ 	 */
+-	if (!swappiness)
++	if (swappiness <= MIN_SWAPPINESS + 1)
+ 		type = LRU_GEN_FILE;
+ 	else if (min_seq[LRU_GEN_ANON] < min_seq[LRU_GEN_FILE])
+ 		type = LRU_GEN_ANON;
+ 	else if (swappiness == 1)
+ 		type = LRU_GEN_FILE;
+-	else if (swappiness == MAX_SWAPPINESS)
++	if (swappiness >= MAX_SWAPPINESS)
+ 		type = LRU_GEN_ANON;
+ 	else if (!(sc->gfp_mask & __GFP_IO))
+ 		type = LRU_GEN_FILE;
+@@ -5447,7 +5447,7 @@ static int run_cmd(char cmd, int memcg_i
+ 
+ 	if (swappiness < MIN_SWAPPINESS)
+ 		swappiness = get_swappiness(lruvec, sc);
+-	else if (swappiness > MAX_SWAPPINESS)
++	else if (swappiness > MAX_SWAPPINESS + 1)
+ 		goto done;
+ 
+ 	switch (cmd) {
 _
 
-Patches currently in -mm which might be from guoweikang.kernel@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-mm-memblock-add-memblock_alloc_or_panic-interface.patch
+mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch
+mm-mglru-clean-up-workingset.patch
+mm-mglru-optimize-deactivation.patch
+mm-mglru-rework-aging-feedback.patch
+mm-mglru-rework-type-selection.patch
+mm-mglru-rework-refault-detection.patch
+mm-mglru-rework-workingset-protection.patch
+mm-mglru-fix-pte-mapped-large-folios.patch
 
