@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0A7416DED2
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CABF2158524
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006263; cv=none; b=HxOhCF3GA9YYOt+F61VTIGnGfThcF8NEPE2XZkVaLLK+x1Kc9G0v6hfaKjmUVXE0kIovUp0QKQyH+nZ38FSou2pOCaLBscTmy5PcgInVX2h0lRhUsR3eiq+xhypnRbRMEdAQ2AT9/GZL7OUuu9abjfDkwm8nNfHTO2W+RrT0ANQ=
+	t=1737006265; cv=none; b=s9E9t4j53TDeCvbtVSDSAbg2ELElmNlX9v8/OZ9S7mlxu8SGrCOQ98H86l1Q53xROjNmOD6sB/HtzBXBCaKUOt2YyfOcm1HoPy810EidSOZ5JJN+8xMXBuoVHXK4CzF5lAHPjGIRWNuo3e6OFFQIyTpLGOd2567Lb3/Z+JZt/QU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006263; c=relaxed/simple;
-	bh=3zmuh3QUCsrjnhvvhCCmNBMOpPXBJi+roK57sEjCmAM=;
-	h=Date:To:From:Subject:Message-Id; b=LuxP/1MIXmloX8G59Rw79ew9kHnDcUwHrolDWBhlJhf4UWvt43yT5+qrh2QcHdXY3/CKf82KbEuGRJkbYZGJ/LC1U5Tu7X5zd3w3YiWtG93R45Vbut4+gZcLae4xYttvAxFtjDdkAoqskH2AkYjHc12U67V01IULtZVkIQ8iboc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2agfHQPw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006265; c=relaxed/simple;
+	bh=jNkDn2PKU+X80Rgv6W/PqmKUjTmRTqrcTfzvpIPPtzM=;
+	h=Date:To:From:Subject:Message-Id; b=DLGIxe25pmbBWE/nmeqWJsK7L571Gr6kHqd+dPr4AvbRYJ4ASrW+cSGfMB4L7rRtU662mCZQ/0N63e0OHCaou4lNwgJArRfNLMCdkYA8mTj03nmgHDFQgzQo2paJLIItBtRGiW2/7dW1qY/+voXdRvPSQAFPAQdqj8KqxOzEINA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xzXXuJmQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2agfHQPw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C80CFC4CED6;
-	Thu, 16 Jan 2025 05:44:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xzXXuJmQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0017C4CED6;
+	Thu, 16 Jan 2025 05:44:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006262;
-	bh=3zmuh3QUCsrjnhvvhCCmNBMOpPXBJi+roK57sEjCmAM=;
+	s=korg; t=1737006265;
+	bh=jNkDn2PKU+X80Rgv6W/PqmKUjTmRTqrcTfzvpIPPtzM=;
 	h=Date:To:From:Subject:From;
-	b=2agfHQPwE/HrkXm6IVp6PKS9PS/ijALrhYm4enhfIjaPXkCPrF1pCa9d22ATk+w2b
-	 pGgPBR0CjpJ7hrmJtwYpqGZThPtredqKdOIQnQPK6qZtz9hGfzAcpKblNzqiomh7QQ
-	 qfv2R4I8ztDbOGHu8RW36ufmFeQUu6ZgduNuIrho=
-Date: Wed, 15 Jan 2025 21:44:22 -0800
+	b=xzXXuJmQMAMG35bM5jsT5e2V5232qP9WvwAaJU5H4wou9zYQSjHhKIAwXNEf4pWB6
+	 FiX8812N0fEPqBN3U0ZKJk9KSbv3y0eBYqGVelN3gef7Ru4KMNgnesGuADjP5EsmY7
+	 gLYnfx58lmQwa7Kv5Vzz6qwLKMPIsrsX1dGbfsyI=
+Date: Wed, 15 Jan 2025 21:44:25 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-use-a-global-swap-cluster-for-non-rotation-devices.patch removed from -mm tree
-Message-Id: <20250116054422.C80CFC4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap_slots-remove-slot-cache-for-freeing-path.patch removed from -mm tree
+Message-Id: <20250116054425.A0017C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: use a global swap cluster for non-rotation devices
+     Subject: mm, swap_slots: remove slot cache for freeing path
 has been removed from the -mm tree.  Its filename was
-     mm-swap-use-a-global-swap-cluster-for-non-rotation-devices.patch
+     mm-swap_slots-remove-slot-cache-for-freeing-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: use a global swap cluster for non-rotation devices
-Date: Tue, 14 Jan 2025 01:57:31 +0800
+Subject: mm, swap_slots: remove slot cache for freeing path
+Date: Tue, 14 Jan 2025 01:57:32 +0800
 
-Non-rotational devices (SSD / ZRAM) can tolerate fragmentation, so the
-goal of the SWAP allocator is to avoid contention for clusters.  It uses a
-per-CPU cluster design, and each CPU will use a different cluster as much
-as possible.
+The slot cache for freeing path is mostly for reducing the overhead of
+si->lock.  As we have basically eliminated the si->lock usage for freeing
+path, it can be removed.
 
-However, HDDs are very sensitive to fragmentation, contention is trivial
-in comparison.  Therefore, we use one global cluster instead.  This
-ensures that each order will be written to the same cluster as much as
-possible, which helps make the I/O more continuous.
+This helps simplify the code, and avoids swap entries from being hold in
+cache upon freeing.  The delayed freeing of entries have been causing
+trouble for further optimizations for zswap [1] and in theory will also
+cause more fragmentation, and extra overhead.
 
-This ensures that the performance of the cluster allocator is as good as
-that of the old allocator.  Tests after this commit compared to those
-before this series:
+Test with build linux kernel showed both performance and fragmentation is
+better without the cache:
 
-Tested using 'make -j32' with tinyconfig, a 1G memcg limit, and HDD swap:
+tiem make -j96 / 768M memcg, 4K pages, 10G ZRAM, avg of 4 test run::
+Before:
+Sys time: 36047.78, Real time: 472.43
+After: (-7.6% sys time, -7.3% real time)
+Sys time: 33314.76, Real time: 437.67
 
-make -j32 with tinyconfig, using 1G memcg limit and HDD swap:
+time make -j96 / 1152M memcg, 64K mTHP, 10G ZRAM, avg of 4 test run:
+Before:
+Sys time: 46859.04, Real time: 562.63
+hugepages-64kB/stats/swpout: 1783392
+hugepages-64kB/stats/swpout_fallback: 240875
+After: (-23.3% sys time, -21.3% real time)
+Sys time: 35958.87, Real time: 442.69
+hugepages-64kB/stats/swpout: 1866267
+hugepages-64kB/stats/swpout_fallback: 158330
 
-Before this series:
-114.44user 29.11system 39:42.90elapsed 6%CPU (0avgtext+0avgdata 157284maxresident)k
-2901232inputs+0outputs (238877major+4227640minor)pagefaults
+Sequential SWAP should be also slightly faster, tests didn't show a
+measurable difference though, at least no regression:
 
-After this commit:
-113.90user 23.81system 38:11.77elapsed 6%CPU (0avgtext+0avgdata 157260maxresident)k
-2548728inputs+0outputs (235471major+4238110minor)pagefaults
+Swapin 4G zero page on ZRAM (time in us):
+Before (avg. 1923756)
+1912391 1927023 1927957 1916527 1918263 1914284 1934753 1940813 1921791
+After (avg. 1922290):
+1919101 1925743 1916810 1917007 1923930 1935152 1917403 1923549 1921913
 
-[ryncsn@gmail.com: check kmalloc() return in setup_clusters]
-  Link: https://lkml.kernel.org/r/CAMgjq7Au+o04ckHyT=iU-wVx9az=t0B-ZiC5E0bDqNrAtNOP-g@mail.gmail.com
-Link: https://lkml.kernel.org/r/20250113175732.48099-13-ryncsn@gmail.com
+Link: https://lore.kernel.org/all/CAMgjq7ACohT_uerSz8E_994ZZCv709Zor+43hdmesW_59W1BWw@mail.gmail.com/[1]
+Link: https://lkml.kernel.org/r/20250113175732.48099-14-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Suggested-by: Chris Li <chrisl@kernel.org>
 Cc: Baoquan He <bhe@redhat.com>
@@ -90,124 +100,382 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +
- mm/swapfile.c        |   58 +++++++++++++++++++++++++++++------------
- 2 files changed, 44 insertions(+), 16 deletions(-)
+ include/linux/swap_slots.h |    3 -
+ mm/swap_slots.c            |   78 +++---------------------------
+ mm/swapfile.c              |   89 +++++++++++++----------------------
+ 3 files changed, 44 insertions(+), 126 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-use-a-global-swap-cluster-for-non-rotation-devices
-+++ a/include/linux/swap.h
-@@ -317,6 +317,8 @@ struct swap_info_struct {
- 	unsigned int pages;		/* total of usable pages of swap */
- 	atomic_long_t inuse_pages;	/* number of those currently in use */
- 	struct percpu_cluster __percpu *percpu_cluster; /* per cpu's swap location */
-+	struct percpu_cluster *global_cluster; /* Use one global cluster for rotating device */
-+	spinlock_t global_cluster_lock;	/* Serialize usage of global cluster */
- 	struct rb_root swap_extent_root;/* root of the swap extent rbtree */
- 	struct block_device *bdev;	/* swap device or bdev of swap file */
- 	struct file *swap_file;		/* seldom referenced */
---- a/mm/swapfile.c~mm-swap-use-a-global-swap-cluster-for-non-rotation-devices
+--- a/include/linux/swap_slots.h~mm-swap_slots-remove-slot-cache-for-freeing-path
++++ a/include/linux/swap_slots.h
+@@ -16,15 +16,12 @@ struct swap_slots_cache {
+ 	swp_entry_t	*slots;
+ 	int		nr;
+ 	int		cur;
+-	spinlock_t	free_lock;  /* protects slots_ret, n_ret */
+-	swp_entry_t	*slots_ret;
+ 	int		n_ret;
+ };
+ 
+ void disable_swap_slots_cache_lock(void);
+ void reenable_swap_slots_cache_unlock(void);
+ void enable_swap_slots_cache(void);
+-void free_swap_slot(swp_entry_t entry);
+ 
+ extern bool swap_slot_cache_enabled;
+ 
+--- a/mm/swapfile.c~mm-swap_slots-remove-slot-cache-for-freeing-path
 +++ a/mm/swapfile.c
-@@ -820,7 +820,10 @@ static unsigned int alloc_swap_scan_clus
- out:
- 	relocate_cluster(si, ci);
+@@ -53,14 +53,15 @@
+ static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
+ 				 unsigned char);
+ static void free_swap_count_continuations(struct swap_info_struct *);
+-static void swap_entry_range_free(struct swap_info_struct *si, swp_entry_t entry,
+-				  unsigned int nr_pages);
++static void swap_entry_range_free(struct swap_info_struct *si,
++				  struct swap_cluster_info *ci,
++				  swp_entry_t entry, unsigned int nr_pages);
+ static void swap_range_alloc(struct swap_info_struct *si,
+ 			     unsigned int nr_entries);
+ static bool folio_swapcache_freeable(struct folio *folio);
+ static struct swap_cluster_info *lock_cluster(struct swap_info_struct *si,
+ 					      unsigned long offset);
+-static void unlock_cluster(struct swap_cluster_info *ci);
++static inline void unlock_cluster(struct swap_cluster_info *ci);
+ 
+ static DEFINE_SPINLOCK(swap_lock);
+ static unsigned int nr_swapfiles;
+@@ -261,10 +262,9 @@ static int __try_to_reclaim_swap(struct
+ 	folio_ref_sub(folio, nr_pages);
+ 	folio_set_dirty(folio);
+ 
+-	/* Only sinple page folio can be backed by zswap */
+-	if (nr_pages == 1)
+-		zswap_invalidate(entry);
+-	swap_entry_range_free(si, entry, nr_pages);
++	ci = lock_cluster(si, offset);
++	swap_entry_range_free(si, ci, entry, nr_pages);
++	unlock_cluster(ci);
+ 	ret = nr_pages;
+ out_unlock:
+ 	folio_unlock(folio);
+@@ -1128,8 +1128,10 @@ static void swap_range_free(struct swap_
+ 	 * Use atomic clear_bit operations only on zeromap instead of non-atomic
+ 	 * bitmap_clear to prevent adjacent bits corruption due to simultaneous writes.
+ 	 */
+-	for (i = 0; i < nr_entries; i++)
++	for (i = 0; i < nr_entries; i++) {
+ 		clear_bit(offset + i, si->zeromap);
++		zswap_invalidate(swp_entry(si->type, offset + i));
++	}
+ 
+ 	if (si->flags & SWP_BLKDEV)
+ 		swap_slot_free_notify =
+@@ -1434,9 +1436,9 @@ static unsigned char __swap_entry_free(s
+ 
+ 	ci = lock_cluster(si, offset);
+ 	usage = __swap_entry_free_locked(si, offset, 1);
+-	unlock_cluster(ci);
+ 	if (!usage)
+-		free_swap_slot(entry);
++		swap_entry_range_free(si, ci, swp_entry(si->type, offset), 1);
++	unlock_cluster(ci);
+ 
+ 	return usage;
+ }
+@@ -1464,13 +1466,10 @@ static bool __swap_entries_free(struct s
+ 	}
+ 	for (i = 0; i < nr; i++)
+ 		WRITE_ONCE(si->swap_map[offset + i], SWAP_HAS_CACHE);
++	if (!has_cache)
++		swap_entry_range_free(si, ci, entry, nr);
  	unlock_cluster(ci);
--	__this_cpu_write(si->percpu_cluster->next[order], next);
-+	if (si->flags & SWP_SOLIDSTATE)
-+		__this_cpu_write(si->percpu_cluster->next[order], next);
-+	else
-+		si->global_cluster->next[order] = next;
- 	return found;
+ 
+-	if (!has_cache) {
+-		for (i = 0; i < nr; i++)
+-			zswap_invalidate(swp_entry(si->type, offset + i));
+-		swap_entry_range_free(si, entry, nr);
+-	}
+ 	return has_cache;
+ 
+ fallback:
+@@ -1490,15 +1489,13 @@ fallback:
+  * Drop the last HAS_CACHE flag of swap entries, caller have to
+  * ensure all entries belong to the same cgroup.
+  */
+-static void swap_entry_range_free(struct swap_info_struct *si, swp_entry_t entry,
+-				  unsigned int nr_pages)
++static void swap_entry_range_free(struct swap_info_struct *si,
++				  struct swap_cluster_info *ci,
++				  swp_entry_t entry, unsigned int nr_pages)
+ {
+ 	unsigned long offset = swp_offset(entry);
+ 	unsigned char *map = si->swap_map + offset;
+ 	unsigned char *map_end = map + nr_pages;
+-	struct swap_cluster_info *ci;
+-
+-	ci = lock_cluster(si, offset);
+ 
+ 	/* It should never free entries across different clusters */
+ 	VM_BUG_ON(ci != offset_to_cluster(si, offset + nr_pages - 1));
+@@ -1518,7 +1515,6 @@ static void swap_entry_range_free(struct
+ 		free_cluster(si, ci);
+ 	else
+ 		partial_free_cluster(si, ci);
+-	unlock_cluster(ci);
  }
  
-@@ -881,9 +884,16 @@ static unsigned long cluster_alloc_swap_
+ static void cluster_swap_free_nr(struct swap_info_struct *si,
+@@ -1526,28 +1522,13 @@ static void cluster_swap_free_nr(struct
+ 		unsigned char usage)
+ {
  	struct swap_cluster_info *ci;
- 	unsigned int offset, found = 0;
+-	DECLARE_BITMAP(to_free, BITS_PER_LONG) = { 0 };
+-	int i, nr;
++	unsigned long end = offset + nr_pages;
  
--	/* Fast path using per CPU cluster */
--	local_lock(&si->percpu_cluster->lock);
--	offset = __this_cpu_read(si->percpu_cluster->next[order]);
-+	if (si->flags & SWP_SOLIDSTATE) {
-+		/* Fast path using per CPU cluster */
-+		local_lock(&si->percpu_cluster->lock);
-+		offset = __this_cpu_read(si->percpu_cluster->next[order]);
-+	} else {
-+		/* Serialize HDD SWAP allocation for each device. */
-+		spin_lock(&si->global_cluster_lock);
-+		offset = si->global_cluster->next[order];
-+	}
-+
- 	if (offset) {
- 		ci = lock_cluster(si, offset);
- 		/* Cluster could have been used by another order */
-@@ -975,8 +985,10 @@ new_cluster:
+ 	ci = lock_cluster(si, offset);
+-	while (nr_pages) {
+-		nr = min(BITS_PER_LONG, nr_pages);
+-		for (i = 0; i < nr; i++) {
+-			if (!__swap_entry_free_locked(si, offset + i, usage))
+-				bitmap_set(to_free, i, 1);
+-		}
+-		if (!bitmap_empty(to_free, BITS_PER_LONG)) {
+-			unlock_cluster(ci);
+-			for_each_set_bit(i, to_free, BITS_PER_LONG)
+-				free_swap_slot(swp_entry(si->type, offset + i));
+-			if (nr == nr_pages)
+-				return;
+-			bitmap_clear(to_free, 0, BITS_PER_LONG);
+-			ci = lock_cluster(si, offset);
+-		}
+-		offset += nr;
+-		nr_pages -= nr;
+-	}
++	do {
++		if (!__swap_entry_free_locked(si, offset, usage))
++			swap_entry_range_free(si, ci, swp_entry(si->type, offset), 1);
++	} while (++offset < end);
+ 	unlock_cluster(ci);
+ }
+ 
+@@ -1588,18 +1569,12 @@ void put_swap_folio(struct folio *folio,
+ 		return;
+ 
+ 	ci = lock_cluster(si, offset);
+-	if (size > 1 && swap_is_has_cache(si, offset, size)) {
+-		unlock_cluster(ci);
+-		swap_entry_range_free(si, entry, size);
+-		return;
+-	}
+-	for (int i = 0; i < size; i++, entry.val++) {
+-		if (!__swap_entry_free_locked(si, offset + i, SWAP_HAS_CACHE)) {
+-			unlock_cluster(ci);
+-			free_swap_slot(entry);
+-			if (i == size - 1)
+-				return;
+-			lock_cluster(si, offset);
++	if (swap_is_has_cache(si, offset, size))
++		swap_entry_range_free(si, ci, entry, size);
++	else {
++		for (int i = 0; i < size; i++, entry.val++) {
++			if (!__swap_entry_free_locked(si, offset + i, SWAP_HAS_CACHE))
++				swap_entry_range_free(si, ci, entry, 1);
  		}
  	}
- done:
--	local_unlock(&si->percpu_cluster->lock);
--
-+	if (si->flags & SWP_SOLIDSTATE)
-+		local_unlock(&si->percpu_cluster->lock);
-+	else
-+		spin_unlock(&si->global_cluster_lock);
- 	return found;
+ 	unlock_cluster(ci);
+@@ -1608,6 +1583,7 @@ void put_swap_folio(struct folio *folio,
+ void swapcache_free_entries(swp_entry_t *entries, int n)
+ {
+ 	int i;
++	struct swap_cluster_info *ci;
+ 	struct swap_info_struct *si = NULL;
+ 
+ 	if (n <= 0)
+@@ -1615,8 +1591,11 @@ void swapcache_free_entries(swp_entry_t
+ 
+ 	for (i = 0; i < n; ++i) {
+ 		si = _swap_info_get(entries[i]);
+-		if (si)
+-			swap_entry_range_free(si, entries[i], 1);
++		if (si) {
++			ci = lock_cluster(si, swp_offset(entries[i]));
++			swap_entry_range_free(si, ci, entries[i], 1);
++			unlock_cluster(ci);
++		}
+ 	}
  }
  
-@@ -2784,6 +2796,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	mutex_unlock(&swapon_mutex);
- 	free_percpu(p->percpu_cluster);
- 	p->percpu_cluster = NULL;
-+	kfree(p->global_cluster);
-+	p->global_cluster = NULL;
- 	vfree(swap_map);
- 	kvfree(zeromap);
- 	kvfree(cluster_info);
-@@ -3189,17 +3203,27 @@ static struct swap_cluster_info *setup_c
- 	for (i = 0; i < nr_clusters; i++)
- 		spin_lock_init(&cluster_info[i].lock);
+--- a/mm/swap_slots.c~mm-swap_slots-remove-slot-cache-for-freeing-path
++++ a/mm/swap_slots.c
+@@ -43,17 +43,15 @@ static DEFINE_MUTEX(swap_slots_cache_mut
+ /* Serialize swap slots cache enable/disable operations */
+ static DEFINE_MUTEX(swap_slots_cache_enable_mutex);
  
--	si->percpu_cluster = alloc_percpu(struct percpu_cluster);
--	if (!si->percpu_cluster)
--		goto err_free;
--
--	for_each_possible_cpu(cpu) {
--		struct percpu_cluster *cluster;
--
--		cluster = per_cpu_ptr(si->percpu_cluster, cpu);
-+	if (si->flags & SWP_SOLIDSTATE) {
-+		si->percpu_cluster = alloc_percpu(struct percpu_cluster);
-+		if (!si->percpu_cluster)
-+			goto err_free;
-+
-+		for_each_possible_cpu(cpu) {
-+			struct percpu_cluster *cluster;
-+
-+			cluster = per_cpu_ptr(si->percpu_cluster, cpu);
-+			for (i = 0; i < SWAP_NR_ORDERS; i++)
-+				cluster->next[i] = SWAP_ENTRY_INVALID;
-+			local_lock_init(&cluster->lock);
-+		}
-+	} else {
-+		si->global_cluster = kmalloc(sizeof(*si->global_cluster),
-+				     GFP_KERNEL);
-+		if (!si->global_cluster)
-+			goto err_free;
- 		for (i = 0; i < SWAP_NR_ORDERS; i++)
--			cluster->next[i] = SWAP_ENTRY_INVALID;
--		local_lock_init(&cluster->lock);
-+			si->global_cluster->next[i] = SWAP_ENTRY_INVALID;
-+		spin_lock_init(&si->global_cluster_lock);
+-static void __drain_swap_slots_cache(unsigned int type);
++static void __drain_swap_slots_cache(void);
+ 
+ #define use_swap_slot_cache (swap_slot_cache_active && swap_slot_cache_enabled)
+-#define SLOTS_CACHE 0x1
+-#define SLOTS_CACHE_RET 0x2
+ 
+ static void deactivate_swap_slots_cache(void)
+ {
+ 	mutex_lock(&swap_slots_cache_mutex);
+ 	swap_slot_cache_active = false;
+-	__drain_swap_slots_cache(SLOTS_CACHE|SLOTS_CACHE_RET);
++	__drain_swap_slots_cache();
+ 	mutex_unlock(&swap_slots_cache_mutex);
+ }
+ 
+@@ -72,7 +70,7 @@ void disable_swap_slots_cache_lock(void)
+ 	if (swap_slot_cache_initialized) {
+ 		/* serialize with cpu hotplug operations */
+ 		cpus_read_lock();
+-		__drain_swap_slots_cache(SLOTS_CACHE|SLOTS_CACHE_RET);
++		__drain_swap_slots_cache();
+ 		cpus_read_unlock();
  	}
+ }
+@@ -113,7 +111,7 @@ out:
+ static int alloc_swap_slot_cache(unsigned int cpu)
+ {
+ 	struct swap_slots_cache *cache;
+-	swp_entry_t *slots, *slots_ret;
++	swp_entry_t *slots;
  
  	/*
-@@ -3473,6 +3497,8 @@ bad_swap_unlock_inode:
- bad_swap:
- 	free_percpu(si->percpu_cluster);
- 	si->percpu_cluster = NULL;
-+	kfree(si->global_cluster);
-+	si->global_cluster = NULL;
- 	inode = NULL;
- 	destroy_swap_extents(si);
- 	swap_cgroup_swapoff(si->type);
+ 	 * Do allocation outside swap_slots_cache_mutex
+@@ -125,28 +123,19 @@ static int alloc_swap_slot_cache(unsigne
+ 	if (!slots)
+ 		return -ENOMEM;
+ 
+-	slots_ret = kvcalloc(SWAP_SLOTS_CACHE_SIZE, sizeof(swp_entry_t),
+-			     GFP_KERNEL);
+-	if (!slots_ret) {
+-		kvfree(slots);
+-		return -ENOMEM;
+-	}
+-
+ 	mutex_lock(&swap_slots_cache_mutex);
+ 	cache = &per_cpu(swp_slots, cpu);
+-	if (cache->slots || cache->slots_ret) {
++	if (cache->slots) {
+ 		/* cache already allocated */
+ 		mutex_unlock(&swap_slots_cache_mutex);
+ 
+ 		kvfree(slots);
+-		kvfree(slots_ret);
+ 
+ 		return 0;
+ 	}
+ 
+ 	if (!cache->lock_initialized) {
+ 		mutex_init(&cache->alloc_lock);
+-		spin_lock_init(&cache->free_lock);
+ 		cache->lock_initialized = true;
+ 	}
+ 	cache->nr = 0;
+@@ -160,19 +149,16 @@ static int alloc_swap_slot_cache(unsigne
+ 	 */
+ 	mb();
+ 	cache->slots = slots;
+-	cache->slots_ret = slots_ret;
+ 	mutex_unlock(&swap_slots_cache_mutex);
+ 	return 0;
+ }
+ 
+-static void drain_slots_cache_cpu(unsigned int cpu, unsigned int type,
+-				  bool free_slots)
++static void drain_slots_cache_cpu(unsigned int cpu, bool free_slots)
+ {
+ 	struct swap_slots_cache *cache;
+-	swp_entry_t *slots = NULL;
+ 
+ 	cache = &per_cpu(swp_slots, cpu);
+-	if ((type & SLOTS_CACHE) && cache->slots) {
++	if (cache->slots) {
+ 		mutex_lock(&cache->alloc_lock);
+ 		swapcache_free_entries(cache->slots + cache->cur, cache->nr);
+ 		cache->cur = 0;
+@@ -183,20 +169,9 @@ static void drain_slots_cache_cpu(unsign
+ 		}
+ 		mutex_unlock(&cache->alloc_lock);
+ 	}
+-	if ((type & SLOTS_CACHE_RET) && cache->slots_ret) {
+-		spin_lock_irq(&cache->free_lock);
+-		swapcache_free_entries(cache->slots_ret, cache->n_ret);
+-		cache->n_ret = 0;
+-		if (free_slots && cache->slots_ret) {
+-			slots = cache->slots_ret;
+-			cache->slots_ret = NULL;
+-		}
+-		spin_unlock_irq(&cache->free_lock);
+-		kvfree(slots);
+-	}
+ }
+ 
+-static void __drain_swap_slots_cache(unsigned int type)
++static void __drain_swap_slots_cache(void)
+ {
+ 	unsigned int cpu;
+ 
+@@ -224,13 +199,13 @@ static void __drain_swap_slots_cache(uns
+ 	 * There are no slots on such cpu that need to be drained.
+ 	 */
+ 	for_each_online_cpu(cpu)
+-		drain_slots_cache_cpu(cpu, type, false);
++		drain_slots_cache_cpu(cpu, false);
+ }
+ 
+ static int free_slot_cache(unsigned int cpu)
+ {
+ 	mutex_lock(&swap_slots_cache_mutex);
+-	drain_slots_cache_cpu(cpu, SLOTS_CACHE | SLOTS_CACHE_RET, true);
++	drain_slots_cache_cpu(cpu, true);
+ 	mutex_unlock(&swap_slots_cache_mutex);
+ 	return 0;
+ }
+@@ -269,39 +244,6 @@ static int refill_swap_slots_cache(struc
+ 	return cache->nr;
+ }
+ 
+-void free_swap_slot(swp_entry_t entry)
+-{
+-	struct swap_slots_cache *cache;
+-
+-	/* Large folio swap slot is not covered. */
+-	zswap_invalidate(entry);
+-
+-	cache = raw_cpu_ptr(&swp_slots);
+-	if (likely(use_swap_slot_cache && cache->slots_ret)) {
+-		spin_lock_irq(&cache->free_lock);
+-		/* Swap slots cache may be deactivated before acquiring lock */
+-		if (!use_swap_slot_cache || !cache->slots_ret) {
+-			spin_unlock_irq(&cache->free_lock);
+-			goto direct_free;
+-		}
+-		if (cache->n_ret >= SWAP_SLOTS_CACHE_SIZE) {
+-			/*
+-			 * Return slots to global pool.
+-			 * The current swap_map value is SWAP_HAS_CACHE.
+-			 * Set it to 0 to indicate it is available for
+-			 * allocation in global pool
+-			 */
+-			swapcache_free_entries(cache->slots_ret, cache->n_ret);
+-			cache->n_ret = 0;
+-		}
+-		cache->slots_ret[cache->n_ret++] = entry;
+-		spin_unlock_irq(&cache->free_lock);
+-	} else {
+-direct_free:
+-		swapcache_free_entries(&entry, 1);
+-	}
+-}
+-
+ swp_entry_t folio_alloc_swap(struct folio *folio)
+ {
+ 	swp_entry_t entry;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
