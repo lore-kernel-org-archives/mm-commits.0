@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A24D13D53B
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:48:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4B6814A62A
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:48:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006494; cv=none; b=po6bX9KOH2V82tmBKgK2F58Il5TAoFZNYkziqmUreZ1Xpys57GDg0DWmY+TVPBgMIhC4UM+7PtLyBb1ajpsYuYbB1qeiZXsdVHb2ZxEWrV+hfXHtLSqE4ra03Q8E5TU1xatn3n0nqczYTPUGxnsbE4iuzPJk/9odxC3TXv4XQyI=
+	t=1737006494; cv=none; b=C3CqqdhXkdrwcqAW7ZOrtpPG71tOeyEYR2eICbkCA9xcsSAi1Kk3yIOUY7Ko8JvKVv8T+7PAX3SWrX+pPPTTlxgVqyYIdx3fOowQ6u0fhmTnWMll7lbHOGc0GXcJsqNEBRoGTq2MpHh3XJOon34ujuzV7wMT6zvbDKTxr0I9+pA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737006494; c=relaxed/simple;
-	bh=X/xhz2Czr+oo0lpMZbyrhpjAQpaB0e0q0HOWEIrc2M0=;
-	h=Date:To:From:Subject:Message-Id; b=C7PsnlWmaqhscsqPyC9qRQ/Kl3L7m6r6JQ49Hs2NmAONGoAShKydL06xa5qzg1l/EgC2Hnj24sEWpl0dM/dN38TITpBZo/ZoCcv9/EpF6v2cQcn9HwkegJ7UMfITGk5VbmXFvyJqYB0rEJ/SzD66DDUwmEcT5VSkrhasPdYr9bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H/3ekVLr; arc=none smtp.client-ip=10.30.226.201
+	bh=duLbGGqa5eOQqAPjJT83roA0CXg1yhiUXCJ00D/Dyv4=;
+	h=Date:To:From:Subject:Message-Id; b=jqwJw8nmoEpmhKoDCgDyXGCXonXCbBhKzIVPsuPum1C1LcZzt/21CdBXS/kJgn53OFLBQWDxpHOZCdalZ9Cg7Z1Oq49WynSp3EOmYfu9EFHO6JwNpYs+tgvXFKFfNByh7Fok0hmmC1iQioToSNHSY6+02QmpxBknjoVN2pGJGEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svRvzx19; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H/3ekVLr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A6ACC4CED6;
-	Thu, 16 Jan 2025 05:48:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svRvzx19"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D44C4CEDD;
+	Thu, 16 Jan 2025 05:48:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006493;
-	bh=X/xhz2Czr+oo0lpMZbyrhpjAQpaB0e0q0HOWEIrc2M0=;
+	s=korg; t=1737006494;
+	bh=duLbGGqa5eOQqAPjJT83roA0CXg1yhiUXCJ00D/Dyv4=;
 	h=Date:To:From:Subject:From;
-	b=H/3ekVLr5KA88X4bXU3p//D0QhjlmW9wwS6If2qNxsVxyO0zL3C+KawBlUBciSK1K
-	 MJgg/dnCtXAbMgQi86YE20BzwqA51cnqEbja1ok3RYBHtO4gGz0eWu5k58EY2L2U0i
-	 eS8kXy4PLsEePGVRnkodPyasxIX7eGrUvLrLqK4s=
-Date: Wed, 15 Jan 2025 21:48:12 -0800
+	b=svRvzx19ZjyF6FZ0CdnPDCSIF6xWvn5AWvzMZq+4PXcoqt9V6mXjaOcGay7j0QVjA
+	 rtGSl4Tzi18y425UNBduz0GinhA04NYxjAxGeFYtXhRP8JFec/XKRfEgSknLDQv4/7
+	 TpnIZre8LNaa5KsWPN6gZMF2JoOjopsqC9Uox8H8=
+Date: Wed, 15 Jan 2025 21:48:13 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xarray-do-not-return-sibling-entries-from-xas_find_marked.patch removed from -mm tree
-Message-Id: <20250116054813.1A6ACC4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xarray-move-forward-index-correctly-in-xas_pause.patch removed from -mm tree
+Message-Id: <20250116054814.77D44C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,182 +35,105 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Xarray: do not return sibling entries from xas_find_marked()
+     Subject: Xarray: move forward index correctly in xas_pause()
 has been removed from the -mm tree.  Its filename was
-     xarray-do-not-return-sibling-entries-from-xas_find_marked.patch
+     xarray-move-forward-index-correctly-in-xas_pause.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: Xarray: do not return sibling entries from xas_find_marked()
-Date: Fri, 13 Dec 2024 20:25:19 +0800
+Subject: Xarray: move forward index correctly in xas_pause()
+Date: Fri, 13 Dec 2024 20:25:20 +0800
 
-Patch series "Fixes and cleanups to xarray", v5.
+After xas_load(), xas->index could point to mid of found multi-index entry
+and xas->index's bits under node->shift maybe non-zero.  The afterward
+xas_pause() will move forward xas->index with xa->node->shift with bits
+under node->shift un-masked and thus skip some index unexpectedly.
 
-This series contains some random fixes and cleanups to xarray.  Patch 1-2
-are fixes and patch 3-6 are cleanups.  More details can be found in
-respective patches.
+Consider following case:
+Assume XA_CHUNK_SHIFT is 4.
+xa_store_range(xa, 16, 31, ...)
+xa_store(xa, 32, ...)
+XA_STATE(xas, xa, 17);
+xas_for_each(&xas,...)
+xas_load(&xas)
+/* xas->index = 17, xas->xa_offset = 1, xas->xa_node->xa_shift = 4 */
+xas_pause()
+/* xas->index = 33, xas->xa_offset = 2, xas->xa_node->xa_shift = 4 */
+As we can see, index of 32 is skipped unexpectedly.
 
+Fix this by mask bit under node->xa_shift when move forward index in
+xas_pause().
 
-This patch (of 5):
+For now, this will not cause serious problems.  Only minor problem like
+cachestat return less number of page status could happen.
 
-Similar to issue fixed in commit cbc02854331ed ("XArray: Do not return
-sibling entries from xa_load()"), we may return sibling entries from
-xas_find_marked as following:
-    Thread A:               Thread B:
-                            xa_store_range(xa, entry, 6, 7, gfp);
-			    xa_set_mark(xa, 6, mark)
-    XA_STATE(xas, xa, 6);
-    xas_find_marked(&xas, 7, mark);
-    offset = xas_find_chunk(xas, advance, mark);
-    [offset is 6 which points to a valid entry]
-                            xa_store_range(xa, entry, 4, 7, gfp);
-    entry = xa_entry(xa, node, 6);
-    [entry is a sibling of 4]
-    if (!xa_is_node(entry))
-        return entry;
-
-Skip sibling entry like xas_find() does to protect caller from seeing
-sibling entry from xas_find_marked() or caller may use sibling entry
-as a valid entry and crash the kernel.
-
-Besides, load_race() test is modified to catch mentioned issue and modified
-load_race() only passes after this fix is merged.
-
-Here is an example how this bug could be triggerred in tmpfs which
-enables large folio in mapping:
-Let's take a look at involved racer:
-1. How pages could be created and dirtied in shmem file.
-write
- ksys_write
-  vfs_write
-   new_sync_write
-    shmem_file_write_iter
-     generic_perform_write
-      shmem_write_begin
-       shmem_get_folio
-        shmem_allowable_huge_orders
-        shmem_alloc_and_add_folios
-        shmem_alloc_folio
-        __folio_set_locked
-        shmem_add_to_page_cache
-         XA_STATE_ORDER(..., index, order)
-         xax_store()
-      shmem_write_end
-       folio_mark_dirty()
-
-2. How dirty pages could be deleted in shmem file.
-ioctl
- do_vfs_ioctl
-  file_ioctl
-   ioctl_preallocate
-    vfs_fallocate
-     shmem_fallocate
-      shmem_truncate_range
-       shmem_undo_range
-        truncate_inode_folio
-         filemap_remove_folio
-          page_cache_delete
-           xas_store(&xas, NULL);
-
-3. How dirty pages could be lockless searched
-sync_file_range
- ksys_sync_file_range
-  __filemap_fdatawrite_range
-   filemap_fdatawrite_wbc
-    do_writepages
-     writeback_use_writepage
-      writeback_iter
-       writeback_get_folio
-        filemap_get_folios_tag
-         find_get_entry
-          folio = xas_find_marked()
-          folio_try_get(folio)
-
-Kernel will crash as following:
-1.Create               2.Search             3.Delete
-/* write page 2,3 */
-write
- ...
-  shmem_write_begin
-   XA_STATE_ORDER(xas, i_pages, index = 2, order = 1)
-   xa_store(&xas, folio)
-  shmem_write_end
-   folio_mark_dirty()
-
-                       /* sync page 2 and page 3 */
-                       sync_file_range
-                        ...
-                         find_get_entry
-                          folio = xas_find_marked()
-                          /* offset will be 2 */
-                          offset = xas_find_chunk()
-
-                                             /* delete page 2 and page 3 */
-                                             ioctl
-                                              ...
-                                               xas_store(&xas, NULL);
-
-/* write page 0-3 */
-write
- ...
-  shmem_write_begin
-   XA_STATE_ORDER(xas, i_pages, index = 0, order = 2)
-   xa_store(&xas, folio)
-  shmem_write_end
-   folio_mark_dirty(folio)
-
-                          /* get sibling entry from offset 2 */
-                          entry = xa_entry(.., 2)
-                          /* use sibling entry as folio and crash kernel */
-                          folio_try_get(folio)
-
-Link: https://lkml.kernel.org/r/20241213122523.12764-1-shikemeng@huaweicloud.com
-Link: https://lkml.kernel.org/r/20241213122523.12764-2-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20241213122523.12764-3-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Mattew Wilcox <willy@infradead.org> [English fixes]
+Cc: Mattew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c                          |    2 ++
- tools/testing/radix-tree/multiorder.c |    4 ++++
- 2 files changed, 6 insertions(+)
+ lib/test_xarray.c |   35 +++++++++++++++++++++++++++++++++++
+ lib/xarray.c      |    1 +
+ 2 files changed, 36 insertions(+)
 
---- a/lib/xarray.c~xarray-do-not-return-sibling-entries-from-xas_find_marked
+--- a/lib/test_xarray.c~xarray-move-forward-index-correctly-in-xas_pause
++++ a/lib/test_xarray.c
+@@ -1511,6 +1511,41 @@ static noinline void check_pause(struct
+ 	XA_BUG_ON(xa, count != order_limit);
+ 
+ 	xa_destroy(xa);
++
++	index = 0;
++	for (order = XA_CHUNK_SHIFT; order > 0; order--) {
++		XA_BUG_ON(xa, xa_store_order(xa, index, order,
++					xa_mk_index(index), GFP_KERNEL));
++		index += 1UL << order;
++	}
++
++	index = 0;
++	count = 0;
++	xas_set(&xas, 0);
++	rcu_read_lock();
++	xas_for_each(&xas, entry, ULONG_MAX) {
++		XA_BUG_ON(xa, entry != xa_mk_index(index));
++		index += 1UL << (XA_CHUNK_SHIFT - count);
++		count++;
++	}
++	rcu_read_unlock();
++	XA_BUG_ON(xa, count != XA_CHUNK_SHIFT);
++
++	index = 0;
++	count = 0;
++	xas_set(&xas, XA_CHUNK_SIZE / 2 + 1);
++	rcu_read_lock();
++	xas_for_each(&xas, entry, ULONG_MAX) {
++		XA_BUG_ON(xa, entry != xa_mk_index(index));
++		index += 1UL << (XA_CHUNK_SHIFT - count);
++		count++;
++		xas_pause(&xas);
++	}
++	rcu_read_unlock();
++	XA_BUG_ON(xa, count != XA_CHUNK_SHIFT);
++
++	xa_destroy(xa);
++
+ }
+ 
+ static noinline void check_move_tiny(struct kunit *test)
+--- a/lib/xarray.c~xarray-move-forward-index-correctly-in-xas_pause
 +++ a/lib/xarray.c
-@@ -1387,6 +1387,8 @@ void *xas_find_marked(struct xa_state *x
- 		entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
- 		if (!entry && !(xa_track_free(xas->xa) && mark == XA_FREE_MARK))
- 			continue;
-+		if (xa_is_sibling(entry))
-+			continue;
- 		if (!xa_is_node(entry))
- 			return entry;
- 		xas->xa_node = xa_to_node(entry);
---- a/tools/testing/radix-tree/multiorder.c~xarray-do-not-return-sibling-entries-from-xas_find_marked
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -227,6 +227,7 @@ static void *load_creator(void *ptr)
- 			unsigned long index = (3 << RADIX_TREE_MAP_SHIFT) -
- 						(1 << order);
- 			item_insert_order(tree, index, order);
-+			xa_set_mark(tree, index, XA_MARK_1);
- 			item_delete_rcu(tree, index);
+@@ -1152,6 +1152,7 @@ void xas_pause(struct xa_state *xas)
+ 			if (!xa_is_sibling(xa_entry(xas->xa, node, offset)))
+ 				break;
  		}
- 	}
-@@ -242,8 +243,11 @@ static void *load_worker(void *ptr)
- 
- 	rcu_register_thread();
- 	while (!stop_iteration) {
-+		unsigned long find_index = (2 << RADIX_TREE_MAP_SHIFT) + 1;
- 		struct item *item = xa_load(ptr, index);
- 		assert(!xa_is_internal(item));
-+		item = xa_find(ptr, &find_index, index, XA_MARK_1);
-+		assert(!xa_is_internal(item));
- 	}
- 	rcu_unregister_thread();
- 
++		xas->xa_index &= ~0UL << node->shift;
+ 		xas->xa_index += (offset - xas->xa_offset) << node->shift;
+ 		if (xas->xa_index == 0)
+ 			xas->xa_node = XAS_BOUNDS;
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
