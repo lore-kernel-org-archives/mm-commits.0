@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB9D613B58C
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 22:16:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8991913B58C
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 22:26:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737065804; cv=none; b=jR66q/jV6kycNoGMO48Tg+dIXy8W9IF9++95Gd+MN+Y/lEwmqaK7CIbOZnBf+MoE4SO90w5p2TPTSxk/D87BjaJKvv9bo7pszD1L9rmzhFGEELv7xzprL6YkK9Dxu8pFWkifq/03ZyBl7yKe5j/pQcBuc4L60ITCIgJdBu4RwKc=
+	t=1737066391; cv=none; b=l+D2yb8Wf0gSfWfejPMSUy+s8oTr9RcxaVNkkRelly5NHlZawaE/awA8cQ50labVdl6rFx3wPspTRK8NO7BGdvcDT7UtjQWiJVZ8TF1iFYrccw8Nz5IqCc2mrgugzdpupTnXY/sQBWQ58sas8p6id2SF0n42lgh6YBLNnbXSxvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737065804; c=relaxed/simple;
-	bh=uRZ9LxBd+agXlp0x5mqDAQLX0bscgxCcyRWr6ys2MXU=;
-	h=Date:To:From:Subject:Message-Id; b=bD1mVEgBJoRhhJcRW6AmzK3o+VmkU0h0CS4wPsQf34YKUcZxh+lBAk/TCGUX7mNw1fpOhqoBvtShR3VH05Z8Ucp8oI5fT2kVF+fREgYLbPq2R0ITP3ApKGnngY/SIEDft7PaPYmiRuyneRA37EzBLitRd2U6JkJHcyF9dbRtCpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i9W3fQQx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737066391; c=relaxed/simple;
+	bh=gglgTsamVE3pE6IrYsR3rUYa+RdfrSCHsDhOa8Ss6t8=;
+	h=Date:To:From:Subject:Message-Id; b=GyVMbzIKPIlfsKAipNUuS1VMJ3cf+B+Y9dWJQ6kREP1T9bd5lyGdZKS3qWGnpSU/bfYW7FxqNrKxCrmWvtGxc68ksdHVAwi2Wzu50TpMZse6dfTXu5XcoJPHdLjgycaSINZOIeutzm/3K8aLugm5H+x8wOzBnH0aF5vJzRMnlrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uRP0vObf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i9W3fQQx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F753C4CED6;
-	Thu, 16 Jan 2025 22:16:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uRP0vObf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E465EC4CED6;
+	Thu, 16 Jan 2025 22:26:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737065804;
-	bh=uRZ9LxBd+agXlp0x5mqDAQLX0bscgxCcyRWr6ys2MXU=;
+	s=korg; t=1737066391;
+	bh=gglgTsamVE3pE6IrYsR3rUYa+RdfrSCHsDhOa8Ss6t8=;
 	h=Date:To:From:Subject:From;
-	b=i9W3fQQxWs3ecIt0h1oGpNk6o6XB+LkuxkAlr8lfBkLVns4lBcVyz3O4dmJ2mPfbi
-	 APUIpyxxraY90xC5PllfMBgEt7iY0OscigVKSRLiTlCBSmD0xBgqNHd9CGEay6ryLU
-	 c7DiD/KK+cdAuAW6tGzbcGp2VGWnjV6YGI2Zr28A=
-Date: Thu, 16 Jan 2025 14:16:43 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,surenb@google.com,akpm@linux-foundation.org
+	b=uRP0vObfB9lywQ6pZs4MK2p4DvTEasZrIbJKpsLF5hvMr7jfxwe0N2V0254YH1kI/
+	 GbC0UIay5ReSB2cukNZK2I66686MY9d10HPP5Zyihf9B0WazQilQSFIrXKRESblmgA
+	 xBEqMK9Rmv/IjljDWkccLhLSPMvFnbTPdCgqukHI=
+Date: Thu, 16 Jan 2025 14:26:30 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-add-vm_warn_on_vmg-definition.patch added to mm-unstable branch
-Message-Id: <20250116221644.4F753C4CED6@smtp.kernel.org>
+Subject: + kasan-sw_tags-use-str_on_off-helper-in-kasan_init_sw_tags.patch added to mm-unstable branch
+Message-Id: <20250116222630.E465EC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools: add VM_WARN_ON_VMG definition
+     Subject: kasan: sw_tags: use str_on_off() helper in kasan_init_sw_tags()
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-add-vm_warn_on_vmg-definition.patch
+     kasan-sw_tags-use-str_on_off-helper-in-kasan_init_sw_tags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-add-vm_warn_on_vmg-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-sw_tags-use-str_on_off-helper-in-kasan_init_sw_tags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,41 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: tools: add VM_WARN_ON_VMG definition
-Date: Thu, 16 Jan 2025 10:15:38 -0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: kasan: sw_tags: use str_on_off() helper in kasan_init_sw_tags()
+Date: Thu, 16 Jan 2025 07:24:04 +0100
 
-vma tests compilation yields the following error:
+Remove hard-coded strings by using the str_on_off() helper function.
 
-vma.c:732:9: error: implicit declaration of function ‘VM_WARN_ON_VMG’
-
-Fix it by adding missing VM_WARN_ON_VMG() definition.
-
-Link: https://lkml.kernel.org/r/20250116181538.759469-1-surenb@google.com
-Fixes: e3a7ae85f87c ("mm/debug: prefer VM_WARN_ON_VMG() to report VMG debug warnings")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Link: https://lkml.kernel.org/r/20250116062403.2496-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/vma_internal.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kasan/sw_tags.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/vma/vma_internal.h~tools-add-vm_warn_on_vmg-definition
-+++ a/tools/testing/vma/vma_internal.h
-@@ -38,6 +38,7 @@ extern unsigned long dac_mmap_min_addr;
+--- a/mm/kasan/sw_tags.c~kasan-sw_tags-use-str_on_off-helper-in-kasan_init_sw_tags
++++ a/mm/kasan/sw_tags.c
+@@ -26,6 +26,7 @@
+ #include <linux/slab.h>
+ #include <linux/stacktrace.h>
+ #include <linux/string.h>
++#include <linux/string_choices.h>
+ #include <linux/types.h>
+ #include <linux/vmalloc.h>
+ #include <linux/bug.h>
+@@ -45,7 +46,7 @@ void __init kasan_init_sw_tags(void)
+ 	kasan_init_tags();
  
- #define VM_WARN_ON(_expr) (WARN_ON(_expr))
- #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
-+#define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
- #define VM_BUG_ON(_expr) (BUG_ON(_expr))
- #define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
+ 	pr_info("KernelAddressSanitizer initialized (sw-tags, stacktrace=%s)\n",
+-		kasan_stack_collection_enabled() ? "on" : "off");
++		str_on_off(kasan_stack_collection_enabled()));
+ }
  
+ /*
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-seqlock-add-missing-parameter-documentation-for-raw_seqcount_try_begin.patch
-tools-add-vm_warn_on_vmg-definition.patch
+kasan-hw_tags-use-str_on_off-helper-in-kasan_init_hw_tags.patch
+mm-kfence-use-str_write_read-helper-in-get_access_type.patch
+mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us.patch
+kasan-sw_tags-use-str_on_off-helper-in-kasan_init_sw_tags.patch
 
