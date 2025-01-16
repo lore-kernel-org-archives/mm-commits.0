@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56BA7188A0D
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B796B18628F
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006294; cv=none; b=MDQhNS8m5ybMuqxXgzuddQFvITeb89rT8Lq8snz9ak45+lsO5spz7/WLMnrMr1VDqkXb1KpxNzLs0T1bKfMuBL25JzI0iobf2lPqeJLXa1FYT3eBprqKQGfMrP5+KcosEBL+sawRJDnoGJIlRoBjKh3WkYQSTfdTVFRmXEJ99nk=
+	t=1737006295; cv=none; b=ut7kV9c+RlO82U8mEaQcArTmbqUbZ588DkyhGHqc6SwDQ/cYJk6BH37TR+Kvrmsu1zxdfufytcyUnKU5Y07/si3S2Nv8DBgfHP3f7KrkdVN6UDNZFCDVu+ugdLBRarBt4mDj70+zS2pmvjbR6erAcW9Xtp5Du5gdWtLTlZ/ld18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006294; c=relaxed/simple;
-	bh=ThnR6ciAwqh2mqs4xM/CMYNluraphhzWYAr+Lk5jpco=;
-	h=Date:To:From:Subject:Message-Id; b=GBn1zWb/IFc/W64hx1EviHOTii3iwcq/Lbm/4+j/mlmBDh3MtV9/Gnj3T/6ytoyA9sRtG+M1v6h+xgiruZpXLYp9Rk2ae/igfwqyoxNza6NnE3Otga3xTCR9GYuSUYZhSOAECLGvuUmt96tfIHHrQC1BJ8oXxfrb28GHjF0NMnI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JyhSlWGq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006295; c=relaxed/simple;
+	bh=WHbQea4CNUZL/h/gBchWqb6bt+zboFokk8pPHjlSo0A=;
+	h=Date:To:From:Subject:Message-Id; b=GPpk5Vxkr8tywcfksGWARHudnNBLfd+xa1nnrZcJtkhdYUFu+nXjFLQymKCBZATgVP3eSgThJL/wCpzR2HnCPQGR/CMFmYI6H+uU/zPdJKQQyCqPFfuS3jNwqiqSBwQzOOzLTJa1/7zYFZFDoIGg70RHIGnyGacbDrkdeGbQnpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G9rxJexm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JyhSlWGq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B358C4CED6;
-	Thu, 16 Jan 2025 05:44:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G9rxJexm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8515DC4CED6;
+	Thu, 16 Jan 2025 05:44:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006294;
-	bh=ThnR6ciAwqh2mqs4xM/CMYNluraphhzWYAr+Lk5jpco=;
+	s=korg; t=1737006295;
+	bh=WHbQea4CNUZL/h/gBchWqb6bt+zboFokk8pPHjlSo0A=;
 	h=Date:To:From:Subject:From;
-	b=JyhSlWGqkUUf62rAZbfaBvTC5pSVHFW673YgvycWixcZfXf4je6xTjNMJyfgLU/l/
-	 V2zKWYXMLiVMYB+vXys0yEnpegq3+JLNuWu8pnv9AXuR3yQCblXSzRBImafN20bHxQ
-	 xsL+1ePHJ/vw8z5aQh1HlvGuLaK+WmBaOW4gLeXs=
-Date: Wed, 15 Jan 2025 21:44:53 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jstultz@google.com,aliceryhl@google.com,isaacmanjarres@google.com,akpm@linux-foundation.org
+	b=G9rxJexm3hduvG6hTL5cEZcL6stJt8d7X8OtneU7vh2G5j/zPtIq7zf+nPmQaAA+N
+	 7MQ7oAwdgDoWHLndZhuLzqjYaswVUFD8K2GiIuQoereHW9W9FnwFMu7emgd+/r95W1
+	 /kfkyMfnIj4lFD+sT0N4lgZTs2Fyx6y177L4bFNo=
+Date: Wed, 15 Jan 2025 21:44:55 -0800
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,mcasquer@redhat.com,david@redhat.com,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch removed from -mm tree
-Message-Id: <20250116054454.2B358C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-add-ksm-involvement-information-for-each-process.patch removed from -mm tree
+Message-Id: <20250116054455.8515DC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,209 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memfd: use strncpy_from_user() to read memfd name
+     Subject: ksm: add ksm involvement information for each process
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-use-strncpy_from_user-to-read-memfd-name.patch
+     ksm-add-ksm-involvement-information-for-each-process.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/memfd: use strncpy_from_user() to read memfd name
-Date: Fri, 10 Jan 2025 08:59:00 -0800
+From: xu xin <xu.xin16@zte.com.cn>
+Subject: ksm: add ksm involvement information for each process
+Date: Fri, 10 Jan 2025 17:40:34 +0800 (CST)
 
-The existing logic uses strnlen_user() to calculate the length of the
-memfd name from userspace and then copies the string into a buffer using
-copy_from_user().  This is error-prone, as the string length could have
-changed between the time when it was calculated and when the string was
-copied.  The existing logic handles this by ensuring that the last byte in
-the buffer is the terminating zero.
+In /proc/<pid>/ksm_stat, add two extra ksm involvement items including
+KSM_mergeable and KSM_merge_any.  It helps administrators to better know
+the system's KSM behavior at process level.
 
-This handling is contrived and can better be handled by using
-strncpy_from_user(), which gets the length of the string and copies it in
-one shot.  Therefore, simplify the logic for copying the memfd name by
-using strncpy_from_user().
+ksm_merge_any: yes/no
+	whether the process'mm is added by prctl() into the candidate list
+	of KSM or not, and fully enabled at process level.
 
-No functional change.
+ksm_mergeable: yes/no
+    whether any VMAs of the process'mm are currently applicable to KSM.
 
-Link: https://lkml.kernel.org/r/20250110165904.3437374-3-isaacmanjarres@google.com
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: John Stultz <jstultz@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Purpose
+=======
+These two items are just to improve the observability of KSM at process
+level, so that users can know if a certain process has enabled KSM.
+
+For example, if without these two items, when we look at
+/proc/<pid>/ksm_stat and there's no merging pages found, We are not sure
+whether it is because KSM was not enabled or because KSM did not
+successfully merge any pages.
+
+Although "mg" in /proc/<pid>/smaps indicate VM_MERGEABLE, it's opaque
+and not very obvious for non professionals.
+
+[akpm@linux-foundation.org: wording tweaks, per David and akpm]
+Link: https://lkml.kernel.org/r/20250110174034304QOb8eDoqtFkp3_t8mqnqc@zte.com.cn
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Mario Casquero <mcasquer@redhat.com>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ Documentation/filesystems/proc.rst |   68 +++++++++++++++++++++++++++
+ fs/proc/base.c                     |   11 ++++
+ include/linux/ksm.h                |    1 
+ mm/ksm.c                           |   19 +++++++
+ 4 files changed, 99 insertions(+)
 
---- a/mm/memfd.c~mm-memfd-use-strncpy_from_user-to-read-memfd-name
-+++ a/mm/memfd.c
-@@ -396,26 +396,18 @@ static char *alloc_name(const char __use
- 	char *name;
- 	long len;
+--- a/Documentation/filesystems/proc.rst~ksm-add-ksm-involvement-information-for-each-process
++++ a/Documentation/filesystems/proc.rst
+@@ -48,6 +48,7 @@ fixes/update part 1.1  Stefani Seibold <
+   3.11	/proc/<pid>/patch_state - Livepatch patch operation state
+   3.12	/proc/<pid>/arch_status - Task architecture specific information
+   3.13  /proc/<pid>/fd - List of symlinks to open files
++  3.14  /proc/<pid/ksm_stat - Information about the process' ksm status.
  
--	/* length includes terminating zero */
--	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
--	if (len <= 0)
--		return ERR_PTR(-EFAULT);
--	if (len > MFD_NAME_MAX_LEN + 1)
--		return ERR_PTR(-EINVAL);
--
--	name = kmalloc(len + MFD_NAME_PREFIX_LEN, GFP_KERNEL);
-+	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
- 	if (!name)
- 		return ERR_PTR(-ENOMEM);
+   4	Configuring procfs
+   4.1	Mount options
+@@ -2232,6 +2233,73 @@ The number of open files for the process
+ of stat() output for /proc/<pid>/fd for fast access.
+ -------------------------------------------------------
  
- 	strcpy(name, MFD_NAME_PREFIX);
--	if (copy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, len)) {
-+	/* returned length does not include terminating zero */
-+	len = strncpy_from_user(&name[MFD_NAME_PREFIX_LEN], uname, MFD_NAME_MAX_LEN + 1);
-+	if (len < 0) {
- 		error = -EFAULT;
- 		goto err_name;
--	}
--
--	/* terminating-zero may have changed after strnlen_user() returned */
--	if (name[len + MFD_NAME_PREFIX_LEN - 1]) {
--		error = -EFAULT;
-+	} else if (len > MFD_NAME_MAX_LEN) {
-+		error = -EINVAL;
- 		goto err_name;
++3.14 /proc/<pid/ksm_stat - Information about the process' ksm status
++--------------------------------------------------------------------
++When CONFIG_KSM is enabled, each process has this file which displays
++the information of ksm merging status.
++
++Example
++~~~~~~~
++
++::
++
++    / # cat /proc/self/ksm_stat
++    ksm_rmap_items 0
++    ksm_zero_pages 0
++    ksm_merging_pages 0
++    ksm_process_profit 0
++    ksm_merge_any: no
++    ksm_mergeable: no
++
++Description
++~~~~~~~~~~~
++
++ksm_rmap_items
++^^^^^^^^^^^^^^
++
++The number of ksm_rmap_item structures in use.  The structure
++ksm_rmap_item stores the reverse mapping information for virtual
++addresses.  KSM will generate a ksm_rmap_item for each ksm-scanned page of
++the process.
++
++ksm_zero_pages
++^^^^^^^^^^^^^^
++
++When /sys/kernel/mm/ksm/use_zero_pages is enabled, it represent how many
++empty pages are merged with kernel zero pages by KSM.
++
++ksm_merging_pages
++^^^^^^^^^^^^^^^^^
++
++It represents how many pages of this process are involved in KSM merging
++(not including ksm_zero_pages). It is the same with what
++/proc/<pid>/ksm_merging_pages shows.
++
++ksm_process_profit
++^^^^^^^^^^^^^^^^^^
++
++The profit that KSM brings (Saved bytes). KSM can save memory by merging
++identical pages, but also can consume additional memory, because it needs
++to generate a number of rmap_items to save each scanned page's brief rmap
++information. Some of these pages may be merged, but some may not be abled
++to be merged after being checked several times, which are unprofitable
++memory consumed.
++
++ksm_merge_any
++^^^^^^^^^^^^^
++
++It specifies whether the process'mm is added by prctl() into the candidate list
++of KSM or not, and if KSM scanning is fully enabled at process level.
++
++ksm_mergeable
++^^^^^^^^^^^^^
++
++It specifies whether any VMAs of the process'mm are currently applicable
++to KSM.
++
++More information about KSM can be found in
++Documentation/admin-guide/mm/ksm.rst.
++
+ 
+ Chapter 4: Configuring procfs
+ =============================
+--- a/fs/proc/base.c~ksm-add-ksm-involvement-information-for-each-process
++++ a/fs/proc/base.c
+@@ -3269,6 +3269,7 @@ static int proc_pid_ksm_stat(struct seq_
+ 				struct pid *pid, struct task_struct *task)
+ {
+ 	struct mm_struct *mm;
++	int ret = 0;
+ 
+ 	mm = get_task_mm(task);
+ 	if (mm) {
+@@ -3276,6 +3277,16 @@ static int proc_pid_ksm_stat(struct seq_
+ 		seq_printf(m, "ksm_zero_pages %ld\n", mm_ksm_zero_pages(mm));
+ 		seq_printf(m, "ksm_merging_pages %lu\n", mm->ksm_merging_pages);
+ 		seq_printf(m, "ksm_process_profit %ld\n", ksm_process_profit(mm));
++		seq_printf(m, "ksm_merge_any: %s\n",
++				test_bit(MMF_VM_MERGE_ANY, &mm->flags) ? "yes" : "no");
++		ret = mmap_read_lock_killable(mm);
++		if (ret) {
++			mmput(mm);
++			return ret;
++		}
++		seq_printf(m, "ksm_mergeable: %s\n",
++				ksm_process_mergeable(mm) ? "yes" : "no");
++		mmap_read_unlock(mm);
+ 		mmput(mm);
  	}
  
+--- a/include/linux/ksm.h~ksm-add-ksm-involvement-information-for-each-process
++++ a/include/linux/ksm.h
+@@ -93,6 +93,7 @@ void folio_migrate_ksm(struct folio *new
+ void collect_procs_ksm(const struct folio *folio, const struct page *page,
+ 		struct list_head *to_kill, int force_early);
+ long ksm_process_profit(struct mm_struct *);
++bool ksm_process_mergeable(struct mm_struct *mm);
+ 
+ #else  /* !CONFIG_KSM */
+ 
+--- a/mm/ksm.c~ksm-add-ksm-involvement-information-for-each-process
++++ a/mm/ksm.c
+@@ -3262,6 +3262,25 @@ static void wait_while_offlining(void)
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ #ifdef CONFIG_PROC_FS
++/*
++ * The process is mergeable only if any VMA is currently
++ * applicable to KSM.
++ *
++ * The mmap lock must be held in read mode.
++ */
++bool ksm_process_mergeable(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma;
++
++	mmap_assert_locked(mm);
++	VMA_ITERATOR(vmi, mm, 0);
++	for_each_vma(vmi, vma)
++		if (vma->vm_flags & VM_MERGEABLE)
++			return true;
++
++	return false;
++}
++
+ long ksm_process_profit(struct mm_struct *mm)
+ {
+ 	return (long)(mm->ksm_merging_pages + mm_ksm_zero_pages(mm)) * PAGE_SIZE -
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
 
