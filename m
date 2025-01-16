@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6166158524
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 430DA158524
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006242; cv=none; b=s9PPAr/Q2cpmXgKOx6nEAcn7aQIbND3WqtrwuvVcbv15cavxwVoIxOmxVtX5zaHTEy9bHfTzrcv0DCPWWZ6OfNnfqLcWn+dIkP//G3vi08jTr2QtL6KoFNA6i28An1noBvoM55vIe2yIm+X7CfAV4RI5SVJc61OaU7xUzq1+OxM=
+	t=1737006244; cv=none; b=eti44elQSLosfDgqdDV7d/h1a8YaQhY4eS0r55xwzNFZFzyV0HfH0N+S8yljHMiF9cwCeQqyRE3xScd7Mt0ZL8wRmSCB6b60oJOL4jR1BqgX7AnlhWwpFu9mXd59GFPdVdDSziwVA0Ktp7BuHSRc2xIh2DgcZJBt1U57qdrezT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006242; c=relaxed/simple;
-	bh=0RESbAYVzmiMRhQF4KeET24QnP09+q+j0k263gwImNc=;
-	h=Date:To:From:Subject:Message-Id; b=X3IWEP+su/ogMEODkBL4MMIDqpIC5vnjuPrykuKmOCaiiSZgodrWXLNF0PaR/cD3xWzKfkh3Tk62UycfoLhv0ueNre6lb2rLw+iraH8yt9tlpP4ifkWao9LmngyCYeNqtQ1ugnJXAv78ZNxYdcOizM6jj1KAOnSbzHAGsZp6Q9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Floix2Gt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006244; c=relaxed/simple;
+	bh=cJnFfrcPsED/r8dRAebTM+wbzAkTEu+t3htQKdGz/2A=;
+	h=Date:To:From:Subject:Message-Id; b=D8aHt+QxS2b6cFOiTMku1w6KhI/ccZgnob8ksNwfa2z4ENQJaARifFZ3jVAJkINoLfQYZWc2QUhOJvs15gJf/KQmXj2bpt2TsZbno6Qz8WPmh3iatq4Ax6gn1UxO1b7yHXhPollcfoP6UNQLGPgreJopNw0gYVdoxjygS0cjsKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u6+pEz84; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Floix2Gt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98749C4CEDD;
-	Thu, 16 Jan 2025 05:44:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u6+pEz84"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 166B9C4CEDD;
+	Thu, 16 Jan 2025 05:44:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006242;
-	bh=0RESbAYVzmiMRhQF4KeET24QnP09+q+j0k263gwImNc=;
+	s=korg; t=1737006244;
+	bh=cJnFfrcPsED/r8dRAebTM+wbzAkTEu+t3htQKdGz/2A=;
 	h=Date:To:From:Subject:From;
-	b=Floix2Gt1z7AgpPdHUJW1JBcTUM9c71xa/SLnL8G418C/X4AX4zDmI5h/i/TL3eVz
-	 HdZwOwgm8yOJDY7EepjgHjma6k1/u9Wmf31OSxrulUjcE4MTKTYIIDIOascEwbQleE
-	 oJA2dpgGhaOQweV4cMwpZNNnhmPjysg+XZkSvSyo=
-Date: Wed, 15 Jan 2025 21:44:02 -0800
+	b=u6+pEz84s6MJLdlQWYiMWx7J0/Z6DgnYgZDXycKj7bW3VaaCNINeIhTvrPFKZEJtD
+	 1fsfSKAyVhB2agxZ8GzjDXvsMRyzxX0FWIb/bl1QY59MdRCqU7i7pTkkrIkR705TUx
+	 Rzzc7cPalMqyVkNxVY31TpW29RjSoCGtMz0KaVgM=
+Date: Wed, 15 Jan 2025 21:44:03 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-minor-clean-up-for-swap-entry-allocation.patch removed from -mm tree
-Message-Id: <20250116054402.98749C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-fold-swap_info_get_cont-in-the-only-caller.patch removed from -mm tree
+Message-Id: <20250116054404.166B9C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,206 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: minor clean up for swap entry allocation
+     Subject: mm, swap: fold swap_info_get_cont in the only caller
 has been removed from the -mm tree.  Its filename was
-     mm-swap-minor-clean-up-for-swap-entry-allocation.patch
+     mm-swap-fold-swap_info_get_cont-in-the-only-caller.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: minor clean up for swap entry allocation
-Date: Tue, 14 Jan 2025 01:57:20 +0800
+Subject: mm, swap: fold swap_info_get_cont in the only caller
+Date: Tue, 14 Jan 2025 01:57:21 +0800
 
-Patch series "mm, swap: rework of swap allocator locks", v4.
+The name of the function is confusing, and the code is much easier to
+follow after folding, also rename the confusing naming "p" to more
+meaningful "si".
 
-This series greatly improved swap performance by reworking the locking
-design and simplify a lot of code path.  Test showed a up to 400%
-vm-scalability improvement with pmem as SWAP, and up to 37% reduce of
-kernel compile real time with ZRAM as SWAP (up to 60% improvement in
-system time).
-
-This is part of the new swap allocator discussed during the "Swap
-Abstraction" discussion at LSF/MM 2024, and "mTHP and swap allocator"
-discussion at LPC 2024.
-
-This is a follow up of previous swap cluster allocator series:
-https://lore.kernel.org/linux-mm/20240730-swap-allocator-v5-0-cb9c148b9297@kernel.org/
-Also enables further optimizations which will come later.
-
-Previous series introduced a fully cluster based allocator, this series
-completely get rid of the old allocator and makes the new allocator avoid
-touching the si->lock unless needed.  This bring huge performance gain and
-get rid of slot cache for freeing path.
-
-Currently, swap locking is mainly composed of two locks, cluster lock
-(ci->lock) and device lock (si->lock).  The device lock is widely used to
-protect many things, causing it to be the main bottleneck for SWAP.
-
-Cluster lock is much more fine-grained, so it will be best to use ci->lock
-instead of si->lock as much as possible.
-
-`perf lock' indicates this issue clearly.  Doing linux kernel build using
-tmpfs and ZRAM with limited memory (make -j64 with 1G memcg and 4k pages),
-result of "perf lock contention -ab sleep 3" shows:
-
-  contended   total wait     max wait     avg wait         type   caller
-     34948     53.63 s       7.11 ms      1.53 ms     spinlock   free_swap_and_cache_nr+0x350
-     16569     40.05 s       6.45 ms      2.42 ms     spinlock   get_swap_pages+0x231
-     11191     28.41 s       7.03 ms      2.54 ms     spinlock   swapcache_free_entries+0x59
-      4147     22.78 s     122.66 ms      5.49 ms     spinlock   page_vma_mapped_walk+0x6f3
-      4595      7.17 s       6.79 ms      1.56 ms     spinlock   swapcache_free_entries+0x59
-    406027      2.74 s       2.59 ms      6.74 us     spinlock   list_lru_add+0x39
-  ...snip...
-
-The top 5 caller are all users of si->lock, total wait time sums to
-several minutes in the 3 seconds time window.
-
-Following the new allocator design, many operation doesn't need to touch
-si->lock at all.  We only need to take si->lock when doing operations
-across multiple clusters (changing the cluster list).  So ideally
-allocator should always take ci->lock first, then take si->lock only if
-needed.  But due to historical reasons, ci->lock is used inside si->lock
-critical section, causing lock inversion if we simply try to acquire
-si->lock after acquiring ci->lock.
-
-This series audited all si->lock usage, clean up legacy codes, eliminate
-usage of si->lock as much as possible by introducing new designs based on
-the new cluster allocator.
-
-Old HDD allocation codes are removed, cluster allocator is adapted with
-small changes for HDD usage, test is looking OK.
-
-And this also removed slot cache for freeing path.  The performance is
-even better without it now, and this enables other clean up and
-optimizations as discussed before:
-
-https://lore.kernel.org/all/CAMgjq7ACohT_uerSz8E_994ZZCv709Zor+43hdmesW_59W1BWw@mail.gmail.com/
-
-After this series, lock contention on si->lock is nearly unobservable
-with `perf lock` with the same test above:
-
-  contended   total wait     max wait     avg wait         type   caller
-  ... snip ...
-        52    127.12 us      3.82 us      2.44 us     spinlock   move_cluster+0x2c
-        56    120.77 us     12.41 us      2.16 us     spinlock   move_cluster+0x2c
-  ... snip ...
-        10     21.96 us      2.78 us      2.20 us     spinlock   isolate_lock_cluster+0x20
-  ... snip ...
-         9     19.27 us      2.70 us      2.14 us     spinlock   move_cluster+0x2c
-  ... snip ...
-         5     11.07 us      2.70 us      2.21 us     spinlock   isolate_lock_cluster+0x20
-
-`move_cluster' and `isolate_lock_cluster' (two new introduced helper) are
-basically the only users of si->lock now, performance gain is huge, and
-LOC is reduced.
-
-Tests Results:
-
-vm-scalability
-==============
-Running `usemem --init-time -O -y -x -R -31 1G` from vm-scalability in a
-12G memory cgroup using simulated pmem as SWAP backend (32G pmem, 32
-CPUs).
-
-Using 4K folio by default, 64k mTHP and sequential access (!-R) results
-are also provided. 6 test runs for each case, Total Throughput:
-
-Test             Before (KB/s) (stdev)  After (KB/s) (stdev)   Delta
----------------------------------------------------------------------------
-Random (4K):     69937.11 (16449.77)    369816.17  (24476.68)  +428.78%
-Random (64k):    123442.83 (13207.51)   216379.00  (25024.83)  +75.28%
-Sequential (4K): 6313909.83 (148856.12) 6419860.66 (183563.38) +1.7%
-
-Sequential access will cause lower stress for the allocator so the gain is
-limited, but with random access (which is much closer to real workloads)
-the performance gain is huge.
-
-Build kernel with defconfig on tmpfs with ZRAM
-==============================================
-Below results shows a test matrix using different memory cgroup limit and
-job numbets, and scaled up progressive for a intuitive result.  Done on a
-48c96t system.
-
-6 test run for each case, it can be seen clearly that as concurrent job
-number goes higher the performance gain is higher, but even -j6 is showing
-slight improvement.
-
-   make -j<NR>     |   System Time (seconds)  |   Total Time (seconds)
- (NR / Mem / ZRAM) | (Before / After / Delta) | (Before / After / Delta)
- With 4k pages only:
-  6 / 192M / 3G    |    1533 /  1522 / -0.7%  |    1420 /  1414 / -0.3%
- 12 / 256M / 4G    |    2275 /  2226 / -2.2%  |     758 /   742 / -2.1%
- 24 / 384M / 5G    |    3596 /  3154 / -12.3% |     476 /   422 / -11.3%
- 48 / 768M / 7G    |    8159 /  3605 / -55.8% |     330 /   221 / -33.0%
- 96 / 1.5G / 10G   |   18541 /  6462 / -65.1% |     283 /   180 / -36.4%
- With 64k mTHP:
- 24 / 512M / 5G    |    3585 /  3469 /  -3.2% |     293 /   290 / -0.1%
- 48 /   1G / 7G    |    8173 /  3607 / -55.9% |     251 /   158 / -37.0%
- 96 /   2G / 10G   |   16305 /  7791 / -52.2% |     226 /   144 / -36.3%
-
-The fragmentation are reduced too:
-With: make -j96 / 1152M memcg, 64K mTHP:
-(avg of 4 test run)
-Before:
-hugepages-64kB/stats/swpout: 1696184
-hugepages-64kB/stats/swpout_fallback: 414318
-After: (-63.2% mTHP swapout failure)
-hugepages-64kB/stats/swpout: 1866267
-hugepages-64kB/stats/swpout_fallback: 158330
-
-There is a up to 65.1% improvement in sys time for build kernel test,
-and lower fragmentation rate.
-
-Build kernel with tinyconfig on tmpfs with HDD as swap:
-=======================================================
-
-This test is similar to above, but HDD test is very noisy and slow, the
-deviation is huge, so just use tinyconfig instead and take the median test
-result of 3 test run, which looks OK:
-
-Before this series:
-114.44user 29.11system 39:42.90elapsed 6%CPU
-2901232inputs+0outputs (238877major+4227640minor)pagefaults
-
-After this commit:
-113.90user 23.81system 38:11.77elapsed 6%CPU
-2548728inputs+0outputs (235471major+4238110minor)pagefaults
-
-Single thread SWAP:
-===================
-
-Sequential SWAP should also be slightly faster as we removed a lot of
-unnecessary parts. Test using micro benchmark for swapout/in 4G
-zero memory using ZRAM, 10 test runs:
-
-Swapout Before (avg. 3359304):
-3353796 3358551 3371305 3356043 3367524 3355303 3355924 3354513 3360776
-
-Swapin Before (avg. 1928698):
-1920283 1927183 1934105 1921373 1926562 1938261 1927726 1928636 1934155
-
-Swapout After (avg. 3347511, -0.4%):
-3337863 3347948 3355235 3339081 3333134 3353006 3354917 3346055 3360359
-
-Swapin After (avg. 1922290, -0.3%):
-1919101 1925743 1916810 1917007 1923930 1935152 1917403 1923549 1921913
-
-The gain is limited at noise level but seems slightly better.
-
-
-This patch (of 13):
-
-Direct reclaim can skip the whole folio after reclaimed a set of folio
-based slots.  Also simplify the code for allocation, reduce indention.
-
-Link: https://lkml.kernel.org/r/20250113175732.48099-1-ryncsn@gmail.com
-Link: https://lkml.kernel.org/r/20250113175732.48099-2-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250113175732.48099-3-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chis Li <chrisl@kernel.org> (Google)
+Cc: Chis Li <chrisl@kernel.org>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickens <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -245,108 +66,78 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   59 +++++++++++++++++++++++-------------------------
- 1 file changed, 29 insertions(+), 30 deletions(-)
+ mm/swapfile.c |   39 +++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-minor-clean-up-for-swap-entry-allocation
+--- a/mm/swapfile.c~mm-swap-fold-swap_info_get_cont-in-the-only-caller
 +++ a/mm/swapfile.c
-@@ -604,23 +604,28 @@ static bool cluster_reclaim_range(struct
- 				  unsigned long start, unsigned long end)
- {
- 	unsigned char *map = si->swap_map;
--	unsigned long offset;
-+	unsigned long offset = start;
-+	int nr_reclaim;
+@@ -1375,22 +1375,6 @@ out:
+ 	return NULL;
+ }
  
- 	spin_unlock(&ci->lock);
- 	spin_unlock(&si->lock);
- 
--	for (offset = start; offset < end; offset++) {
-+	do {
- 		switch (READ_ONCE(map[offset])) {
- 		case 0:
--			continue;
-+			offset++;
-+			break;
- 		case SWAP_HAS_CACHE:
--			if (__try_to_reclaim_swap(si, offset, TTRS_ANYWAY | TTRS_DIRECT) > 0)
--				continue;
--			goto out;
-+			nr_reclaim = __try_to_reclaim_swap(si, offset, TTRS_ANYWAY | TTRS_DIRECT);
-+			if (nr_reclaim > 0)
-+				offset += nr_reclaim;
-+			else
-+				goto out;
-+			break;
- 		default:
- 			goto out;
- 		}
+-static struct swap_info_struct *swap_info_get_cont(swp_entry_t entry,
+-					struct swap_info_struct *q)
+-{
+-	struct swap_info_struct *p;
+-
+-	p = _swap_info_get(entry);
+-
+-	if (p != q) {
+-		if (q != NULL)
+-			spin_unlock(&q->lock);
+-		if (p != NULL)
+-			spin_lock(&p->lock);
 -	}
-+	} while (offset < end);
- out:
- 	spin_lock(&si->lock);
- 	spin_lock(&ci->lock);
-@@ -838,35 +843,30 @@ new_cluster:
- 							 &found, order, usage);
- 			frags++;
- 			if (found)
--				break;
-+				goto done;
- 		}
- 
--		if (!found) {
-+		/*
-+		 * Nonfull clusters are moved to frag tail if we reached
-+		 * here, count them too, don't over scan the frag list.
-+		 */
-+		while (frags < si->frag_cluster_nr[order]) {
-+			ci = list_first_entry(&si->frag_clusters[order],
-+					      struct swap_cluster_info, list);
- 			/*
--			 * Nonfull clusters are moved to frag tail if we reached
--			 * here, count them too, don't over scan the frag list.
-+			 * Rotate the frag list to iterate, they were all failing
-+			 * high order allocation or moved here due to per-CPU usage,
-+			 * this help keeping usable cluster ahead.
- 			 */
--			while (frags < si->frag_cluster_nr[order]) {
--				ci = list_first_entry(&si->frag_clusters[order],
--						      struct swap_cluster_info, list);
--				/*
--				 * Rotate the frag list to iterate, they were all failing
--				 * high order allocation or moved here due to per-CPU usage,
--				 * this help keeping usable cluster ahead.
--				 */
--				list_move_tail(&ci->list, &si->frag_clusters[order]);
--				offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
--								 &found, order, usage);
--				frags++;
--				if (found)
--					break;
--			}
-+			list_move_tail(&ci->list, &si->frag_clusters[order]);
-+			offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
-+							 &found, order, usage);
-+			frags++;
-+			if (found)
-+				goto done;
- 		}
- 	}
- 
--	if (found)
--		goto done;
+-	return p;
+-}
 -
- 	if (!list_empty(&si->discard_clusters)) {
- 		/*
- 		 * we don't have free cluster but have some clusters in
-@@ -904,7 +904,6 @@ new_cluster:
- 				goto done;
- 		}
+ static unsigned char __swap_entry_free_locked(struct swap_info_struct *si,
+ 					      unsigned long offset,
+ 					      unsigned char usage)
+@@ -1687,14 +1671,14 @@ static int swp_entry_cmp(const void *ent
+ 
+ void swapcache_free_entries(swp_entry_t *entries, int n)
+ {
+-	struct swap_info_struct *p, *prev;
++	struct swap_info_struct *si, *prev;
+ 	int i;
+ 
+ 	if (n <= 0)
+ 		return;
+ 
+ 	prev = NULL;
+-	p = NULL;
++	si = NULL;
+ 
+ 	/*
+ 	 * Sort swap entries by swap device, so each lock is only taken once.
+@@ -1704,13 +1688,20 @@ void swapcache_free_entries(swp_entry_t
+ 	if (nr_swapfiles > 1)
+ 		sort(entries, n, sizeof(entries[0]), swp_entry_cmp, NULL);
+ 	for (i = 0; i < n; ++i) {
+-		p = swap_info_get_cont(entries[i], prev);
+-		if (p)
+-			swap_entry_range_free(p, entries[i], 1);
+-		prev = p;
++		si = _swap_info_get(entries[i]);
++
++		if (si != prev) {
++			if (prev != NULL)
++				spin_unlock(&prev->lock);
++			if (si != NULL)
++				spin_lock(&si->lock);
++		}
++		if (si)
++			swap_entry_range_free(si, entries[i], 1);
++		prev = si;
  	}
--
- done:
- 	cluster->next[order] = offset;
- 	return found;
+-	if (p)
+-		spin_unlock(&p->lock);
++	if (si)
++		spin_unlock(&si->lock);
+ }
+ 
+ int __swap_count(swp_entry_t entry)
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
