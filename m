@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C862729A1
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:39:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 913C129A1
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:40:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737005984; cv=none; b=mfYJ0vlZ23t/rMKkD6+zE0E7i+GH9QULw+crNXKLdJo0RwAke92bEEtzne8yaCQt2HqmrWUAM7KkI5aHo0UF/KfpfHe8Ah0Nucp+XFBJBmJPVimnCpPWT5sVrQLg7tt8JxwwLUqjWyvhDVQGvuX6v0EIKmzNdpC2VcIRDo+gtNk=
+	t=1737006014; cv=none; b=Ft+KQlCOBhdCK2x9XhfNg7F5MC5kWUYyJzhpOerJFQYgUHP8FRqiKJKDexPa5S0nqZ+LFB+Ivh/5G51r2jf4D4enXOwR7DqiOVNGXeOvdeWNyCQ4jwVy4Q20GfITVXICCzhRnWzLNCUO6APdGsTbjAeW6ZqoXye1S4WQFDaAp5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737005984; c=relaxed/simple;
-	bh=8A12OKBgPznuUbyTPkvqLdnP6fT9StI8UhIOsZXjP4k=;
-	h=Date:To:From:Subject:Message-Id; b=omG3J3VLSuqJaNdkmmJKM7faujhceDQ64QgJYUsXG96lPkViHv6jIhUnAQCrhdWG0srIns7Vqz9Cd77FfDFezWqizVgJ1vhYqXktpnZ2gNX67rOL9eP4rFtlx1pyCCNkRG0MMXggl6HT/P4fFkT51JHfxrD+Vxzh/v++y7FMccw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W2IomaJu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006014; c=relaxed/simple;
+	bh=KDyYdKSUIO7HzPuI/tdcnY5XOSiwpv6Gre6W5+3DJQM=;
+	h=Date:To:From:Subject:Message-Id; b=Oa8/EGT3cH1J0ZdShAd2r6orxM5XY1RT6WJqiacHrLL/0/UGvv5Zcxco1j9jbKL2p7y8GwDFoMYpyuhG8W1s5m6du7tLQB/gkZG1kLeZZlnyi6r8VldCEE1iQ6XIozwhQuHc5aSLYyI6JdRfVP6rm9OEyA5OJo6WhOlCdStEWII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YbGLt/Ys; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W2IomaJu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47AA8C4CED6;
-	Thu, 16 Jan 2025 05:39:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YbGLt/Ys"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16A16C4CED6;
+	Thu, 16 Jan 2025 05:40:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737005984;
-	bh=8A12OKBgPznuUbyTPkvqLdnP6fT9StI8UhIOsZXjP4k=;
+	s=korg; t=1737006014;
+	bh=KDyYdKSUIO7HzPuI/tdcnY5XOSiwpv6Gre6W5+3DJQM=;
 	h=Date:To:From:Subject:From;
-	b=W2IomaJucV9AvZIiLo9r9vXkH3DCJFSOFCzokxKkAgu2Xpv0jClqXxyViVdeE79R+
-	 L6RkVvQ+ug8BgKh7kpAbq09tGqhuxJxkGwKh0eostbr+BV/Zm19TArErc392xnI6VB
-	 sDQOdvPYkV9OoeC1duE1Q5Y2lUz22L3UFTd5Ne+Q=
-Date: Wed, 15 Jan 2025 21:39:43 -0800
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shuah@kernel.org,riel@surriel.com,alexlzhu@fb.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=YbGLt/Ys+LNID2TLJ2yO6ya1DRl/dOo5kiMTs+8z4zDoMnhSSYXawpXBekdXQuIZd
+	 kdWrKry2UxSBI9B4l2Chdty+GhxWfoF9t0oEx7LyLurSzxsW2j51d4ezyzkxWp/Agl
+	 IP3mUK5IwlwtXVyf0ig1lAq5ZeERf2ym8yjyHLbU=
+Date: Wed, 15 Jan 2025 21:40:13 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,anshuman.khandual@arm.com,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch removed from -mm tree
-Message-Id: <20250116053944.47AA8C4CED6@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-cow-modify-the-incorrect-checking-parameters-v2.patch removed from -mm tree
+Message-Id: <20250116054014.16A16C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
+     Subject: selftests-mm-cow-modify-the-incorrect-checking-parameters-v2
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch
+     selftests-mm-cow-modify-the-incorrect-checking-parameters-v2.patch
 
-This patch was dropped because it was folded into selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
+This patch was dropped because it was folded into selftests-mm-cow-modify-the-incorrect-checking-parameters.patch
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
-Date: Wed, 15 Jan 2025 21:57:59 -0500
+From: Hao Ge <gehao@kylinos.cn>
+Subject: selftests-mm-cow-modify-the-incorrect-checking-parameters-v2
+Date: Mon, 13 Jan 2025 13:09:08 +0800
 
-no need to test splitting to order-1
+fix other errant sites, per Anshuman
 
-Anonymous memory does not support order-1 folio, so there is no need to
-test splitting to order-1.  Kernel will WARN_ONCE for
-split_pmd_thp_to_order(1) test and the whole test will fail at that point.
-
-Link: https://lkml.kernel.org/r/DDA202EA-4664-4F50-A7FD-B00CBB7A624B@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Alexander Zhu <alexlzhu@fb.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Link: https://lkml.kernel.org/r/20250113050908.93638-1-hao.ge@linux.dev
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/cow.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -481,7 +481,7 @@ int main(int argc, char **argv)
- 	if (argc > 1)
- 		optional_xfs_path = argv[1];
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-modify-the-incorrect-checking-parameters-v2
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1490,7 +1490,7 @@ static void run_with_zeropage(non_anon_t
+ 	}
  
--	ksft_set_plan(1+9+2+9);
-+	ksft_set_plan(1+8+2+9);
- 
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
-@@ -494,7 +494,8 @@ int main(int argc, char **argv)
- 	split_pmd_zero_pages();
- 
- 	for (i = 0; i < 9; i++)
--		split_pmd_thp_to_order(i);
-+		if (i != 1)
-+			split_pmd_thp_to_order(i);
- 
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
+ 	smem = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE | MAP_ANON, -1, 0);
+-	if (mem == MAP_FAILED) {
++	if (smem == MAP_FAILED) {
+ 		ksft_test_result_fail("mmap() failed\n");
+ 		goto munmap;
+ 	}
+@@ -1591,7 +1591,7 @@ static void run_with_memfd(non_anon_test
+ 		goto close;
+ 	}
+ 	smem = mmap(NULL, pagesize, PROT_READ, MAP_SHARED, fd, 0);
+-	if (mem == MAP_FAILED) {
++	if (smem == MAP_FAILED) {
+ 		ksft_test_result_fail("mmap() failed\n");
+ 		goto munmap;
+ 	}
+@@ -1642,7 +1642,7 @@ static void run_with_tmpfile(non_anon_te
+ 		goto close;
+ 	}
+ 	smem = mmap(NULL, pagesize, PROT_READ, MAP_SHARED, fd, 0);
+-	if (mem == MAP_FAILED) {
++	if (smem == MAP_FAILED) {
+ 		ksft_test_result_fail("mmap() failed\n");
+ 		goto munmap;
+ 	}
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-selftests-mm-use-selftests-framework-to-print-test-result.patch
-selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
+selftests-mm-cow-modify-the-incorrect-checking-parameters.patch
 
