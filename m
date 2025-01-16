@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CF5614A62A
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:48:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65CE214A62A
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:48:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006496; cv=none; b=sDOjf57kBLY2v1LkRV7J4Hou9x3KvawJAy6gfQVta4qJoPAhqnkPMIgVd/wIVdvZT+ZdHQz2ozPUnMkYC/vth3bAmevtZsBQWiumkDtxnKC4GPFlTtYLh11XZ0WuMCy/2hle4R3/CIANVA2FE+MI3oM99dnk+ohiA+po8Evflng=
+	t=1737006497; cv=none; b=DxnRrIb6wPW4V0YIs2uHGaJrPHv+H08deAdXZcQZ8mL6o4s0jcS1ptH0G1knyM+z7ViNF3vdmqfhJCPjUul2vLnn45c+rcmz3v6FL/6I46/5hCd+faiErqQ2bx9XmTIEBJgJG2n4+ra+9DSOBwdUv8Oe8VWINyzkpXFgPA5UkyQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006496; c=relaxed/simple;
-	bh=LAEYtG/laRRHkjRAUg5XNJ222TUIS0ja2VqeaQOlU8o=;
-	h=Date:To:From:Subject:Message-Id; b=Se64ZTOG0aNbgA2/JMY7ouVDTbx+LGr1WSt4WqSTGWInVp4zaVMuqyKEceOHYm2lmvdsr3w0J+ftY2G5wqMDlOLzxaf5PTCgBUIHd4lcx/1F9rDW1vI2nvtWwW1du3T3eG58Z6H3d04hYMTOKnSSbzQyzHy7E/pOT9RfYiWZNaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qNO9CB0W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006497; c=relaxed/simple;
+	bh=1wawHPTR9DkErwkGEzHSauIO582Si9OLyeQWWYpvxyA=;
+	h=Date:To:From:Subject:Message-Id; b=rt4XYbKXycCUIuoVIgX3u4TeKUi+HM+QRgJ6DdICj+4cJcGCzNSSMNvwX6IqIxIkgucj9+kkfRDEJ/Unb+kGFNnnM9JqN+GojQoW+4JrmYcmLLHnuiVAo/y4SmO51zp1yR9U23s8QVVoNv9OX73x5TMUHrNtbw6JmWetJ1xXOWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nb3jr71W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qNO9CB0W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4C8CC4CED6;
-	Thu, 16 Jan 2025 05:48:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nb3jr71W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C012C4CED6;
+	Thu, 16 Jan 2025 05:48:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006495;
-	bh=LAEYtG/laRRHkjRAUg5XNJ222TUIS0ja2VqeaQOlU8o=;
+	s=korg; t=1737006497;
+	bh=1wawHPTR9DkErwkGEzHSauIO582Si9OLyeQWWYpvxyA=;
 	h=Date:To:From:Subject:From;
-	b=qNO9CB0WEDmPUKsfaA4qrh/YuWW1kvIfvWbHwqNdF/BgTOf0o6zq6z0ZcHNzP7QGX
-	 9wxYmbKyYjMHtYMNqylET2b3//hcjOG9sdNwvZIwairRmPH+htPr9gbfGnQgVKUvh6
-	 2O1/dOJ298J8f6WtEIFuFpmC2jfG+MV2Qw8Xe2wM=
-Date: Wed, 15 Jan 2025 21:48:15 -0800
+	b=nb3jr71WGIZ3KMNB2wAIS75fSc85tGRrWn6N3tm0wzBHUehcl4HOA28uu40uENmzG
+	 wxScKjrpHm70Nn7VlqOLprGPqYZdXGpJNESduSv5aFN1CBrdDU+5sTWhp9RJulmBy3
+	 a5c6XbwtIqXoS3AcyaSwnJx5t2IcfuOZu8/Um3WA=
+Date: Wed, 15 Jan 2025 21:48:16 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xarray-distinguish-large-entries-correctly-in-xas_split_alloc.patch removed from -mm tree
-Message-Id: <20250116054815.D4C8CC4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xarray-remove-repeat-check-in-xas_squash_marks.patch removed from -mm tree
+Message-Id: <20250116054817.3C012C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Xarray: distinguish large entries correctly in xas_split_alloc()
+     Subject: Xarray: remove repeat check in xas_squash_marks()
 has been removed from the -mm tree.  Its filename was
-     xarray-distinguish-large-entries-correctly-in-xas_split_alloc.patch
+     xarray-remove-repeat-check-in-xas_squash_marks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: Xarray: distinguish large entries correctly in xas_split_alloc()
-Date: Fri, 13 Dec 2024 20:25:21 +0800
+Subject: Xarray: remove repeat check in xas_squash_marks()
+Date: Fri, 13 Dec 2024 20:25:22 +0800
 
-We don't support large entries which expand two more level xa_node in
-split.  For case "xas->xa_shift + 2 * XA_CHUNK_SHIFT == order", we also
-need two level of xa_node to expand.  Distinguish entry as large entry in
-case "xas->xa_shift + 2 * XA_CHUNK_SHIFT == order".
+Caller of xas_squash_marks() has ensured xas->xa_sibs is non-zero.  Just
+remove repeat check of xas->xa_sibs in xas_squash_marks().
 
-As max order of folio in pagecache (MAX_PAGECACHE_ORDER) is <=
-(XA_CHUNK_SHIFT * 2 - 1), this change is more likely a cleanup...
-
-Link: https://lkml.kernel.org/r/20241213122523.12764-4-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20241213122523.12764-5-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Mattew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/xarray.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/lib/xarray.c~xarray-distinguish-large-entries-correctly-in-xas_split_alloc
+--- a/lib/xarray.c~xarray-remove-repeat-check-in-xas_squash_marks
 +++ a/lib/xarray.c
-@@ -1027,7 +1027,7 @@ void xas_split_alloc(struct xa_state *xa
- 	unsigned int mask = xas->xa_sibs;
+@@ -128,9 +128,6 @@ static void xas_squash_marks(const struc
+ 	unsigned int mark = 0;
+ 	unsigned int limit = xas->xa_offset + xas->xa_sibs + 1;
  
- 	/* XXX: no support for splitting really large entries yet */
--	if (WARN_ON(xas->xa_shift + 2 * XA_CHUNK_SHIFT < order))
-+	if (WARN_ON(xas->xa_shift + 2 * XA_CHUNK_SHIFT <= order))
- 		goto nomem;
- 	if (xas->xa_shift + XA_CHUNK_SHIFT > order)
- 		return;
+-	if (!xas->xa_sibs)
+-		return;
+-
+ 	do {
+ 		unsigned long *marks = xas->xa_node->marks[mark];
+ 		if (find_next_bit(marks, limit, xas->xa_offset + 1) == limit)
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
