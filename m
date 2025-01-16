@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2058F17799F
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36A86172BD5
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006278; cv=none; b=rxPvaLUXRqiJGisosfxm3M7L7WxWGHHATjnkeM/Rk5u/eormKnmMfSMrN32SBmHMUkwZe00rmdg9Sv9VWyT+kS0QAaGYEPRdLMnCLCAnJXe01gHsN30f6uklLxmoMQKqOids8I0Kz1MbUBXY4AfhK/YPNn33Ay7RZifSKk7G7Kk=
+	t=1737006280; cv=none; b=L7+Upj5Il1FWIqx4Wr7NY3s0a7WgFARyxGVlUt6ieZIhQt/90VqhvsF5D2X+xXf/Kl8ezyqmkbBj8ny/47SI8gk2XIHGWh7zX7SZLtB7p8s5sr3UFEnLF62Y787/whGawF0cAplVLUW6UqpyFHpM++wTxr1M+ioC1iKyrEMRKDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006278; c=relaxed/simple;
-	bh=5P0zCdWZchLmeWNOWBycDOkkW71/bPKHFz3G0mLAANw=;
-	h=Date:To:From:Subject:Message-Id; b=q+ECrTNGJmABEKFP96khFXRAB9BPTpSbiTGPAf3nd0P0YJjp4MJEaYskEj30HIteqboTvZH2J645NeyrChAGfV3oeXWk0N1OwspCrcAAVyTRSO2CmFhq3vgUu0ookX00VhYCs3ICi+LbfpioYYwWTay2boXBhAvFHnAJlWfy8JM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yvEy/dMH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006280; c=relaxed/simple;
+	bh=ntYtxmwVZ+9cpj1WyRkuOb1bSR0qBsX4Gn+DHWTi/OQ=;
+	h=Date:To:From:Subject:Message-Id; b=Riz4ASVKqks+zeOSNCV60xzoXMg+K722OEFMhycgfRK6fD3wTfY8KOsR05hPwjRlkdqb/HkoNLS9/YTAsGgHycTaj6XRIkYCpoUyJ8bikOw5d7URKgL6D1mPcQWxWTtkxcrAoxeul3wd2OMamMaMcRwh81ZUTD/pztbS8PDYPvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wo4W47EL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yvEy/dMH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF885C4CED6;
-	Thu, 16 Jan 2025 05:44:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wo4W47EL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01CA5C4CED6;
+	Thu, 16 Jan 2025 05:44:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006278;
-	bh=5P0zCdWZchLmeWNOWBycDOkkW71/bPKHFz3G0mLAANw=;
+	s=korg; t=1737006280;
+	bh=ntYtxmwVZ+9cpj1WyRkuOb1bSR0qBsX4Gn+DHWTi/OQ=;
 	h=Date:To:From:Subject:From;
-	b=yvEy/dMH5ID/4Cs/ZOWlhqMYeu8WLlNoX941bwUPsKtVRAKqOLFj+vBa+gzncDz7U
-	 mkxvZXNDf44M7BI0jMX1GJaGsSvfcNGXQqERDiG/QtWlhrvW0FHf5O2MtinbYeqNrT
-	 +fJy9AFeoFaolk3dbGKj26N5tvm6LidDgJexq1YI=
-Date: Wed, 15 Jan 2025 21:44:37 -0800
+	b=Wo4W47ELFdrzNP740Vuh+riraqvvPOn57qgDWtxDmAKk7cdf0oY/eExbRbENJi9qb
+	 S5qlGHRaKZu578PNhh9qOpqojAr/xXOZ5pAMNH7HXUN5ub4OXLLpOdCPrtJNZqwqPL
+	 r1N8Me6szVHbg3CYSGUGr3Tk1AwqkMySFN9emGoI=
+Date: Wed, 15 Jan 2025 21:44:39 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-rework-type-selection.patch removed from -mm tree
-Message-Id: <20250116054437.DF885C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-rework-refault-detection.patch removed from -mm tree
+Message-Id: <20250116054440.01CA5C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,179 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: rework type selection
+     Subject: mm/mglru: rework refault detection
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-rework-type-selection.patch
+     mm-mglru-rework-refault-detection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: rework type selection
-Date: Mon, 30 Dec 2024 21:35:35 -0700
+Subject: mm/mglru: rework refault detection
+Date: Mon, 30 Dec 2024 21:35:36 -0700
 
-With anon and file min_seq being able to move independently, rework type
-selection so that it is based on the total refaults from all tiers of each
-type.  Also allow a type to be selected until that type reaches
-MIN_NR_GENS, regardless of whether that type has a larger min_seq or not,
-to accommodate extreme swappiness.
+With anon and file min_seq being able to move independently, rework
+workingset protection as well so that the comparison of refaults between
+anon and file is always on an equal footing.
 
-Since some tiers of a selected type can have higher refaults than the
-first tier of the other type, use a less larger gain factor 2:3 instead of
-1:2, in order for those tiers in the selected type to be better protected.
+Specifically, make lru_gen_test_recent() return true for refaults
+happening within the distance of MAX_NR_GENS.  For example, if min_seq of
+a type is max_seq-MIN_NR_GENS, refaults from min_seq-1, i.e.,
+max_seq-MIN_NR_GENS-1, are also considered recent, since the distance
+max_seq-(max_seq-MIN_NR_GENS-1), i.e., MIN_NR_GENS+1 is less than
+MAX_NR_GENS.
 
 As an intermediate step to the final optimization, this change by itself
 should not have userspace-visiable effects beyond performance.
 
-Link: https://lkml.kernel.org/r/20241231043538.4075764-5-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20241231043538.4075764-6-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: David Stevens <stevensd@chromium.org>
+Reported-by: Kairui Song <kasong@tencent.com>
+Closes: https://lore.kernel.org/CAOUHufahuWcKf5f1Sg3emnqX+cODuR=2TQo7T4Gr-QYLujn4RA@mail.gmail.com/
 Tested-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Bharata B Rao <bharata@amd.com>
-Cc: Kairui Song <kasong@tencent.com>
+Cc: David Stevens <stevensd@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   82 +++++++++++++++-----------------------------------
- 1 file changed, 26 insertions(+), 56 deletions(-)
+ mm/workingset.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-rework-type-selection
-+++ a/mm/vmscan.c
-@@ -3085,15 +3085,20 @@ struct ctrl_pos {
- static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
- 			  struct ctrl_pos *pos)
+--- a/mm/workingset.c~mm-mglru-rework-refault-detection
++++ a/mm/workingset.c
+@@ -260,11 +260,11 @@ static void *lru_gen_eviction(struct fol
+  * Tests if the shadow entry is for a folio that was recently evicted.
+  * Fills in @lruvec, @token, @workingset with the values unpacked from shadow.
+  */
+-static bool lru_gen_test_recent(void *shadow, bool file, struct lruvec **lruvec,
++static bool lru_gen_test_recent(void *shadow, struct lruvec **lruvec,
+ 				unsigned long *token, bool *workingset)
  {
-+	int i;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
+ 	int memcg_id;
+-	unsigned long min_seq;
++	unsigned long max_seq;
+ 	struct mem_cgroup *memcg;
+ 	struct pglist_data *pgdat;
  
--	pos->refaulted = lrugen->avg_refaulted[type][tier] +
--			 atomic_long_read(&lrugen->refaulted[hist][type][tier]);
--	pos->total = lrugen->avg_total[type][tier] +
--		     lrugen->protected[hist][type][tier] +
--		     atomic_long_read(&lrugen->evicted[hist][type][tier]);
- 	pos->gain = gain;
-+	pos->refaulted = pos->total = 0;
+@@ -273,8 +273,10 @@ static bool lru_gen_test_recent(void *sh
+ 	memcg = mem_cgroup_from_id(memcg_id);
+ 	*lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+-	min_seq = READ_ONCE((*lruvec)->lrugen.min_seq[file]);
+-	return (*token >> LRU_REFS_WIDTH) == (min_seq & (EVICTION_MASK >> LRU_REFS_WIDTH));
++	max_seq = READ_ONCE((*lruvec)->lrugen.max_seq);
++	max_seq &= EVICTION_MASK >> LRU_REFS_WIDTH;
 +
-+	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
-+		pos->refaulted += lrugen->avg_refaulted[type][i] +
-+				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
-+		pos->total += lrugen->avg_total[type][i] +
-+			      lrugen->protected[hist][type][i] +
-+			      atomic_long_read(&lrugen->evicted[hist][type][i]);
-+	}
++	return abs_diff(max_seq, *token >> LRU_REFS_WIDTH) < MAX_NR_GENS;
  }
  
- static void reset_ctrl_pos(struct lruvec *lruvec, int type, bool carryover)
-@@ -4493,13 +4498,13 @@ static int get_tier_idx(struct lruvec *l
- 	struct ctrl_pos sp, pv;
+ static void lru_gen_refault(struct folio *folio, void *shadow)
+@@ -290,7 +292,7 @@ static void lru_gen_refault(struct folio
  
- 	/*
--	 * To leave a margin for fluctuations, use a larger gain factor (1:2).
-+	 * To leave a margin for fluctuations, use a larger gain factor (2:3).
- 	 * This value is chosen because any other tier would have at least twice
- 	 * as many refaults as the first tier.
- 	 */
--	read_ctrl_pos(lruvec, type, 0, 1, &sp);
-+	read_ctrl_pos(lruvec, type, 0, 2, &sp);
- 	for (tier = 1; tier < MAX_NR_TIERS; tier++) {
--		read_ctrl_pos(lruvec, type, tier, 2, &pv);
-+		read_ctrl_pos(lruvec, type, tier, 3, &pv);
- 		if (!positive_ctrl_err(&sp, &pv))
- 			break;
- 	}
-@@ -4507,68 +4512,34 @@ static int get_tier_idx(struct lruvec *l
- 	return tier - 1;
+ 	rcu_read_lock();
+ 
+-	recent = lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset);
++	recent = lru_gen_test_recent(shadow, &lruvec, &token, &workingset);
+ 	if (lruvec != folio_lruvec(folio))
+ 		goto unlock;
+ 
+@@ -331,7 +333,7 @@ static void *lru_gen_eviction(struct fol
+ 	return NULL;
  }
  
--static int get_type_to_scan(struct lruvec *lruvec, int swappiness, int *tier_idx)
-+static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
+-static bool lru_gen_test_recent(void *shadow, bool file, struct lruvec **lruvec,
++static bool lru_gen_test_recent(void *shadow, struct lruvec **lruvec,
+ 				unsigned long *token, bool *workingset)
  {
--	int type, tier;
- 	struct ctrl_pos sp, pv;
--	int gain[ANON_AND_FILE] = { swappiness, MAX_SWAPPINESS - swappiness };
+ 	return false;
+@@ -432,8 +434,7 @@ bool workingset_test_recent(void *shadow
+ 		bool recent;
  
-+	if (swappiness <= MIN_SWAPPINESS + 1)
-+		return LRU_GEN_FILE;
-+
-+	if (swappiness >= MAX_SWAPPINESS)
-+		return LRU_GEN_ANON;
- 	/*
--	 * Compare the first tier of anon with that of file to determine which
--	 * type to scan. Also need to compare other tiers of the selected type
--	 * with the first tier of the other type to determine the last tier (of
--	 * the selected type) to evict.
-+	 * Compare the sum of all tiers of anon with that of file to determine
-+	 * which type to scan.
- 	 */
--	read_ctrl_pos(lruvec, LRU_GEN_ANON, 0, gain[LRU_GEN_ANON], &sp);
--	read_ctrl_pos(lruvec, LRU_GEN_FILE, 0, gain[LRU_GEN_FILE], &pv);
--	type = positive_ctrl_err(&sp, &pv);
--
--	read_ctrl_pos(lruvec, !type, 0, gain[!type], &sp);
--	for (tier = 1; tier < MAX_NR_TIERS; tier++) {
--		read_ctrl_pos(lruvec, type, tier, gain[type], &pv);
--		if (!positive_ctrl_err(&sp, &pv))
--			break;
--	}
--
--	*tier_idx = tier - 1;
-+	read_ctrl_pos(lruvec, LRU_GEN_ANON, MAX_NR_TIERS, swappiness, &sp);
-+	read_ctrl_pos(lruvec, LRU_GEN_FILE, MAX_NR_TIERS, MAX_SWAPPINESS - swappiness, &pv);
- 
--	return type;
-+	return positive_ctrl_err(&sp, &pv);
- }
- 
- static int isolate_folios(struct lruvec *lruvec, struct scan_control *sc, int swappiness,
- 			  int *type_scanned, struct list_head *list)
- {
- 	int i;
--	int type;
--	int tier = -1;
--	DEFINE_MIN_SEQ(lruvec);
--
--	/*
--	 * Try to make the obvious choice first, and if anon and file are both
--	 * available from the same generation,
--	 * 1. Interpret swappiness 1 as file first and MAX_SWAPPINESS as anon
--	 *    first.
--	 * 2. If !__GFP_IO, file first since clean pagecache is more likely to
--	 *    exist than clean swapcache.
--	 */
--	if (swappiness <= MIN_SWAPPINESS + 1)
--		type = LRU_GEN_FILE;
--	else if (min_seq[LRU_GEN_ANON] < min_seq[LRU_GEN_FILE])
--		type = LRU_GEN_ANON;
--	else if (swappiness == 1)
--		type = LRU_GEN_FILE;
--	if (swappiness >= MAX_SWAPPINESS)
--		type = LRU_GEN_ANON;
--	else if (!(sc->gfp_mask & __GFP_IO))
--		type = LRU_GEN_FILE;
--	else
--		type = get_type_to_scan(lruvec, swappiness, &tier);
-+	int type = get_type_to_scan(lruvec, swappiness);
- 
- 	for_each_evictable_type(i, swappiness) {
- 		int scanned;
--
--		if (tier < 0)
--			tier = get_tier_idx(lruvec, type);
-+		int tier = get_tier_idx(lruvec, type);
- 
- 		*type_scanned = type;
- 
-@@ -4577,7 +4548,6 @@ static int isolate_folios(struct lruvec
- 			return scanned;
- 
- 		type = !type;
--		tier = -1;
+ 		rcu_read_lock();
+-		recent = lru_gen_test_recent(shadow, file, &eviction_lruvec,
+-					     &eviction, workingset);
++		recent = lru_gen_test_recent(shadow, &eviction_lruvec, &eviction, workingset);
+ 		rcu_read_unlock();
+ 		return recent;
  	}
- 
- 	return 0;
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
