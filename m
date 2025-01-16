@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7CA55661
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:35:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2145235944
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:36:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737005727; cv=none; b=cLKZv9OR+BdWc9Ur+CRnEZK7vsf/nkGYdzf3Rs1FQ80C9rrdAmqFA/WypAAso/3xVzQV/+rWumA6r7SRsxEoxobREGYrQYudz9x7yLHH9oAub5TUxexkHlyeTcHHZf2nWlnhYa/6CS6tdZ5Yj634ubiBpnrtyOWKOAG8TGQ0bvs=
+	t=1737005771; cv=none; b=j4+QU7erVA6rWA1QFC2IHFvS/jA/xnhIvaGKr/Y7rGLRiQGqw/A2bl5EU5yXHiB7A8uUYrvjFSZi7StdX4RvidrXBE6fIGrMAWY5FrXtBomuFRrK8+wM8vBkWZuntkoJXDhKPEp95Gfrb13iHhZ8sa7ZQDvRvjHTWAfDWoKry68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737005727; c=relaxed/simple;
-	bh=/k45BXOcA1RrA2xhi/wuhfETI2WbNvXl9uuRtnzB+1A=;
-	h=Date:To:From:Subject:Message-Id; b=W1r1ejlZmeXTxNZU/Y6mHC42i9vVFRIl3FaGTD7pwv2vdNLM+Eyds1MrVbh0l3AxdV4xdhpeUxgA3tn16hN5JUkfBqc/SMG1UCZLF13dRV95cvUJzK9Mp8Kry1v33EmbFZlLh6ZuwyjpcFpDonxvnTkrBFUpumM4i8ZAbstyKrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0W/3rKcG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737005771; c=relaxed/simple;
+	bh=es85FfWTOBvzGIEu16gxi1pkBMejM/MZLqTl5YHOwUE=;
+	h=Date:To:From:Subject:Message-Id; b=bZvy3dydJr4oaK9I46TSFkpSYrgeuYUZCVr3tG4SU3K5Ja5QeCYfk9ObjQCjNxYsUxbJiyKldnKva6FdP88DEreE7fPTDxE62lMOX1LgB2gqTiCGd8+uK026KQXJSP7hy2/sf1qGpQm4Hty63pFx8PHvBo2Ve7o7G+Mb7P0nSZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TiOwIIl5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0W/3rKcG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FB4DC4CED6;
-	Thu, 16 Jan 2025 05:35:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TiOwIIl5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDB44C4CED6;
+	Thu, 16 Jan 2025 05:36:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737005727;
-	bh=/k45BXOcA1RrA2xhi/wuhfETI2WbNvXl9uuRtnzB+1A=;
+	s=korg; t=1737005771;
+	bh=es85FfWTOBvzGIEu16gxi1pkBMejM/MZLqTl5YHOwUE=;
 	h=Date:To:From:Subject:From;
-	b=0W/3rKcG3e9A2Yggk4zgXBsZbKvt2jcioQJ5ta3ZNG+ICJ/MMGEXEX1ZpCX/G+2v9
-	 8z6InlwfZESSk5ieVh7SQ9fCZgMJEryfgOUrDc/k20HyiWuOLsgaLClc4QqjlCdK/d
-	 6vVVcLxPDVIS+TtdfncllaNu+MWwKQy4FvcoG0p8=
-Date: Wed, 15 Jan 2025 21:35:26 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=TiOwIIl5Nm/rFW/fwDttob1B1zjBpElKD7+kSOPbv1h2T9u6kE76m3+1G0U1YG3a1
+	 s6u3Mu8BGFMVr1dpf5jxWL1GvCDpgQsgCFsi6QE7MQQurn7EVJg6qUabF3kMi3AkLM
+	 s9oZZL36gi68HT7tRXgAnQX8b9dk5dlLFKt4Io6w=
+Date: Wed, 15 Jan 2025 21:36:10 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,senozhatsky@chromium.org,minchan@kernel.org,alexs@kernel.org,42.hyeyoo@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix.patch removed from -mm tree
-Message-Id: <20250116053527.3FB4DC4CED6@smtp.kernel.org>
+Subject: [folded-merged] mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix.patch removed from -mm tree
+Message-Id: <20250116053610.DDB44C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: fix function parameter kernel-doc notation
+     Subject: mm/zsmalloc: reset zpdesc fields in reset_zpdesc()
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix.patch
+     mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix.patch
 
-This patch was dropped because it was folded into mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch
+This patch was dropped because it was folded into mm-zsmalloc-convert-reset_page-to-reset_zpdesc.patch
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/zsmalloc: fix function parameter kernel-doc notation
-Date: Fri, 10 Jan 2025 22:33:05 -0800
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm/zsmalloc: reset zpdesc fields in reset_zpdesc()
+Date: Tue, 14 Jan 2025 00:29:52 +0900
 
-Use the correct function parameter name to eliminate a kernel-doc
-warning:
+To prepare for the future removal of struct page fields (e.g.  the removal
+of page->index [1]), update reset_zpdesc() to reset the descriptor via
+struct zpdesc instead of struct page.
 
-zpdesc.h:90: warning: Function parameter or struct member 'zp' not described in 'zpdesc_folio'
-zpdesc.h:90: warning: Excess function parameter 'zpdesc' description in 'zpdesc_folio'
+As struct zpdesc overlays struct page for now, no functional change is
+intended.
 
-Link: https://lkml.kernel.org/r/20250111063305.911010-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+[1] https://lore.kernel.org/linux-mm/Z09hOy-UY9KC8WMb@casper.infradead.org
+
+Link: https://lkml.kernel.org/r/Z4Uw136VdG7vlKCL@localhost.localdomain
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpdesc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zpdesc.h~mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool-fix
-+++ a/mm/zpdesc.h
-@@ -74,7 +74,7 @@ static_assert(sizeof(struct zpdesc) <= s
+--- a/mm/zsmalloc.c~mm-zsmalloc-convert-reset_page-to-reset_zpdesc-fix
++++ a/mm/zsmalloc.c
+@@ -849,8 +849,8 @@ static void reset_zpdesc(struct zpdesc *
  
- /**
-  * zpdesc_folio - The folio allocated for a zpdesc
-- * @zpdesc: The zpdesc.
-+ * @zp: The zpdesc.
-  *
-  * Zpdescs are descriptors for zpool memory. The zpool memory itself is
-  * allocated as folios that contain the zpool objects, and zpdesc uses specific
+ 	__ClearPageMovable(page);
+ 	ClearPagePrivate(page);
+-	set_page_private(page, 0);
+-	page->index = 0;
++	zpdesc->zspage = NULL;
++	zpdesc->next = NULL;
+ 	__ClearPageZsmalloc(page);
+ }
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
-mm-zsmalloc-add-zpdesc-memory-descriptor-for-zswapzpool.patch
-kasan-use-correct-kernel-doc-format.patch
-latencytop-use-correct-kernel-doc-format-for-func-params.patch
-gcov-clang-use-correct-function-param-names.patch
-ipc-utilc-complete-the-kernel-doc-function-descriptions.patch
+mm-zsmalloc-convert-__zs_map_object-__zs_unmap_object-to-use-zpdesc.patch
+mm-zsmalloc-add-and-use-pfn-zpdesc-seeking-funcs.patch
+mm-zsmalloc-convert-obj_malloc-to-use-zpdesc.patch
+mm-zsmalloc-convert-obj_allocated-and-related-helpers-to-use-zpdesc.patch
+mm-zsmalloc-convert-init_zspage-to-use-zpdesc.patch
+mm-zsmalloc-convert-obj_to_page-and-zs_free-to-use-zpdesc.patch
+mm-zsmalloc-add-two-helpers-for-zs_page_migrate-and-make-it-use-zpdesc.patch
+mm-zsmalloc-convert-reset_page-to-reset_zpdesc.patch
+mm-zsmalloc-convert-__free_zspage-to-use-zpdesc.patch
+mm-zsmalloc-convert-location_to_obj-to-take-zpdesc.patch
+mm-zsmalloc-convert-migrate_zspage-to-use-zpdesc.patch
+mm-zsmalloc-convert-get_zspage-to-take-zpdesc.patch
 
