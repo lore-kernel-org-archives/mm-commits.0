@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA336172BD5
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF97A172BD5
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006281; cv=none; b=Hn+qrJcppR51vB9rGxHpZRwEpv1421amixDk4b6+GFA2CSwc9/q+c8ViA8U7tcTz+wZ++MLzLieIjfytzAXgKlPP6c008QMHdwJmseUNRi6wtKJH0f3X6W80CAGWtbvCPaws3KUQie/58gt7u9TIF8rLAagvU8IsKgLuGa8hexA=
+	t=1737006283; cv=none; b=nEFDCMBYAM/jm+sWrs43ZTM3dS0WZaJmN5Gja8KhQjHjuTIEFXlPXy3qGUUYpzsoRwwvwhOkjefD/XWL5oBKRVLJlCf402xnWu0248zu6x82jAsEe+afNx/XE3206wmkRRcZbIEY+4U+HERsEp0acD+kHERsYoAqbvP15F2zzaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006281; c=relaxed/simple;
-	bh=V1aMRotcrLAJmQj57HkzwbKIaquzFdjfWIDcaXGnsKg=;
-	h=Date:To:From:Subject:Message-Id; b=P0GciNNODfyiS1wGP+8wWbXAJHfMGOaoNjoyUASbpnBD/XWM0pnDtDyUOCrHRQCnMzPyTc/6H/C8vzNYliC6QgXMjmpwHCRMPQUxTyl3SQNLSptkSJlHNlWM+0e4QAtSxbjlU5lny2DcT/kX1VWE0dFe1Tz1bz1wySf4DSYylh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tm9rN82u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006283; c=relaxed/simple;
+	bh=1IgqcTpq0obD9fmX6hEESZBE1viXg6xnaRfO298jGpw=;
+	h=Date:To:From:Subject:Message-Id; b=WOMjPw/bQUohnc5mMvhYJrLspgwVX1lIhNKQOBFHJaJEfM8cTWQTA3DStFz9dfccWu1EhK1AwVS+IUmXC/mRn8/wJjcSSYvXtw+9skPNlB0D6Gw8m3skyXk7w37gtL7SQbv5xs1tjE07BCaGkvUuv59d3+/RjVBWtzelQNJvcqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VBd0lAan; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tm9rN82u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A66C4CED6;
-	Thu, 16 Jan 2025 05:44:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VBd0lAan"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ACB1C4CED6;
+	Thu, 16 Jan 2025 05:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006281;
-	bh=V1aMRotcrLAJmQj57HkzwbKIaquzFdjfWIDcaXGnsKg=;
+	s=korg; t=1737006283;
+	bh=1IgqcTpq0obD9fmX6hEESZBE1viXg6xnaRfO298jGpw=;
 	h=Date:To:From:Subject:From;
-	b=tm9rN82u9NvQ/SEqgnlqVmVottEm6mghzlVdIlgohagQqIG8XNftGmngaAsfZaUNa
-	 qUJvn6708sZyOUzDhrJRwWj0uvOZ1Ng0VVfB1CMEni8pOonMaDCynNv9/zg4yoAJzd
-	 eeUHCAoqf9gnFD5jqnFSHY+KNosygsV3HvDSpdAQ=
-Date: Wed, 15 Jan 2025 21:44:40 -0800
+	b=VBd0lAanKjQcH/1LIP6//zzfNu4ky+ihJZUA7bRTwC8N/a6+ey1onc5g9CP/FHNQN
+	 7VdkO59Pe0rGZ68BKksyLZp/Dm3VrtPsoaP41mflU/Hxi+MAFx6tVsFEqrhAxc3TKQ
+	 jf3P0l9zQiIrORxUxRlJUJQqq8Qkg17TnuvEvzEw=
+Date: Wed, 15 Jan 2025 21:44:43 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,stevensd@chromium.org,kasong@tencent.com,kaleshsingh@google.com,bharata@amd.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-rework-workingset-protection.patch removed from -mm tree
-Message-Id: <20250116054441.78A66C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-fix-pte-mapped-large-folios.patch removed from -mm tree
+Message-Id: <20250116054443.9ACB1C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,728 +35,245 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: rework workingset protection
+     Subject: mm/mglru: fix PTE-mapped large folios
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-rework-workingset-protection.patch
+     mm-mglru-fix-pte-mapped-large-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: rework workingset protection
-Date: Mon, 30 Dec 2024 21:35:37 -0700
+Subject: mm/mglru: fix PTE-mapped large folios
+Date: Mon, 30 Dec 2024 21:35:38 -0700
 
-With the aging feedback no longer considering the distribution of folios
-in each generation, rework workingset protection to better distribute
-folios across MAX_NR_GENS.  This is achieved by reusing PG_workingset and
-PG_referenced/LRU_REFS_FLAGS in a slightly different way.
+Count the accessed bits from PTEs mapping the same large folio as one
+access rather than multiple accesses.
 
-For folios accessed multiple times through file descriptors, make
-lru_gen_inc_refs() set additional bits of LRU_REFS_WIDTH in folio->flags
-after PG_referenced, then PG_workingset after LRU_REFS_WIDTH.  After all
-its bits are set, i.e., LRU_REFS_FLAGS|BIT(PG_workingset), a folio is
-lazily promoted into the second oldest generation in the eviction path. 
-And when folio_inc_gen() does that, it clears LRU_REFS_FLAGS so that
-lru_gen_inc_refs() can start over.  For this case, LRU_REFS_MASK is only
-valid when PG_referenced is set.
+The last patch changed how folios accessed through page tables are
+promoted: rather than getting promoted after the accessed bit is cleared
+for the first time, a folio only gets promoted thereafter.  Counting the
+accessed bits from the same large folio as multiple accesses can cause
+that folio to be promoted prematurely, which in turn can cause
+overprotection of single-use large folios.
 
-For folios accessed multiple times through page tables, folio_update_gen()
-from a page table walk or lru_gen_set_refs() from a rmap walk sets
-PG_referenced after the accessed bit is cleared for the first time. 
-Thereafter, those two paths set PG_workingset and promote folios to the
-youngest generation.  Like folio_inc_gen(), when folio_update_gen() does
-that, it also clears PG_referenced.  For this case, LRU_REFS_MASK is not
-used.
+This patch reduced the sys time of the kernel compilation by 95% CI [2,
+5]% on Altra M128-30 with 3GB DRAM, 12GB zram, 16KB THPs and -j32.
 
-For both of the cases, after PG_workingset is set on a folio, it remains
-until this folio is either reclaimed, or "deactivated" by
-lru_gen_clear_refs().  It can be set again if lru_gen_test_recent()
-returns true upon a refault.
-
-When adding folios to the LRU lists, lru_gen_folio_seq() distributes
-them as follows:
-+---------------------------------+---------------------------------+
-|    Accessed thru page tables    | Accessed thru file descriptors  |
-+---------------------------------+---------------------------------+
-| PG_active (set while isolated)  |                                 |
-+----------------+----------------+----------------+----------------+
-| PG_workingset  | PG_referenced  | PG_workingset  | LRU_REFS_FLAGS |
-+---------------------------------+---------------------------------+
-|<--------- MIN_NR_GENS --------->|                                 |
-|<-------------------------- MAX_NR_GENS -------------------------->|
-
-After this patch, some typical client and server workloads showed
-improvements under heavy memory pressure.  For example, Python TPC-C,
-which was used to benchmark a different approach [1] to better detect
-refault distances, showed a significant decrease in total refaults:
-
-                            Before      After      Change
-  Time (seconds)            10801       10801      0%
-  Executed (transactions)   41472       43663      +5%
-  workingset_nodes          109070      120244     +10%
-  workingset_refault_anon   5019627     7281831    +45%
-  workingset_refault_file   1294678786  554855564  -57%
-  workingset_refault_total  1299698413  562137395  -57%
-
-[1] https://lore.kernel.org/20230920190244.16839-1-ryncsn@gmail.com/
-
-Link: https://lkml.kernel.org/r/20241231043538.4075764-7-yuzhao@google.com
+Link: https://lkml.kernel.org/r/20241231043538.4075764-8-yuzhao@google.com
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Kairui Song <kasong@tencent.com>
-Closes: https://lore.kernel.org/CAOUHufahuWcKf5f1Sg3emnqX+cODuR=2TQo7T4Gr-QYLujn4RA@mail.gmail.com/
+Reported-by: Barry Song <v-songbaohua@oppo.com>
 Tested-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Bharata B Rao <bharata@amd.com>
 Cc: David Stevens <stevensd@chromium.org>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   88 ++++++++++------------
- include/linux/mmzone.h    |   84 +++++++++++++--------
- mm/swap.c                 |   24 ++----
- mm/vmscan.c               |  143 +++++++++++++++++++++---------------
- mm/workingset.c           |   29 +++----
- 5 files changed, 203 insertions(+), 165 deletions(-)
+ mm/vmscan.c |  108 ++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 71 insertions(+), 37 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-rework-workingset-protection
-+++ a/include/linux/mm_inline.h
-@@ -133,31 +133,25 @@ static inline int lru_hist_from_seq(unsi
- 	return seq % NR_HIST_GENS;
- }
- 
--static inline int lru_tier_from_refs(int refs)
-+static inline int lru_tier_from_refs(int refs, bool workingset)
- {
- 	VM_WARN_ON_ONCE(refs > BIT(LRU_REFS_WIDTH));
- 
--	/* see the comment in folio_lru_refs() */
--	return order_base_2(refs + 1);
-+	/* see the comment on MAX_NR_TIERS */
-+	return workingset ? MAX_NR_TIERS - 1 : order_base_2(refs);
- }
- 
- static inline int folio_lru_refs(struct folio *folio)
- {
- 	unsigned long flags = READ_ONCE(folio->flags);
--	bool workingset = flags & BIT(PG_workingset);
- 
-+	if (!(flags & BIT(PG_referenced)))
-+		return 0;
- 	/*
--	 * Return the number of accesses beyond PG_referenced, i.e., N-1 if the
--	 * total number of accesses is N>1, since N=0,1 both map to the first
--	 * tier. lru_tier_from_refs() will account for this off-by-one. Also see
--	 * the comment on MAX_NR_TIERS.
-+	 * Return the total number of accesses including PG_referenced. Also see
-+	 * the comment on LRU_REFS_FLAGS.
- 	 */
--	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + workingset;
--}
--
--static inline void folio_clear_lru_refs(struct folio *folio)
--{
--	set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS, 0);
-+	return ((flags & LRU_REFS_MASK) >> LRU_REFS_PGOFF) + 1;
- }
- 
- static inline int folio_lru_gen(struct folio *folio)
-@@ -223,11 +217,43 @@ static inline void lru_gen_update_size(s
- 	VM_WARN_ON_ONCE(lru_gen_is_active(lruvec, old_gen) && !lru_gen_is_active(lruvec, new_gen));
- }
- 
-+static inline unsigned long lru_gen_folio_seq(struct lruvec *lruvec, struct folio *folio,
-+					      bool reclaiming)
-+{
-+	int gen;
-+	int type = folio_is_file_lru(folio);
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+
-+	/*
-+	 * +-----------------------------------+-----------------------------------+
-+	 * | Accessed through page tables and  | Accessed through file descriptors |
-+	 * | promoted by folio_update_gen()    | and protected by folio_inc_gen()  |
-+	 * +-----------------------------------+-----------------------------------+
-+	 * | PG_active (set while isolated)    |                                   |
-+	 * +-----------------+-----------------+-----------------+-----------------+
-+	 * |  PG_workingset  |  PG_referenced  |  PG_workingset  |  LRU_REFS_FLAGS |
-+	 * +-----------------------------------+-----------------------------------+
-+	 * |<---------- MIN_NR_GENS ---------->|                                   |
-+	 * |<---------------------------- MAX_NR_GENS ---------------------------->|
-+	 */
-+	if (folio_test_active(folio))
-+		gen = MIN_NR_GENS - folio_test_workingset(folio);
-+	else if (reclaiming)
-+		gen = MAX_NR_GENS;
-+	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
-+		 (folio_test_reclaim(folio) &&
-+		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
-+		gen = MIN_NR_GENS;
-+	else
-+		gen = MAX_NR_GENS - folio_test_workingset(folio);
-+
-+	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
-+}
-+
- static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
- {
- 	unsigned long seq;
- 	unsigned long flags;
--	unsigned long mask;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -237,40 +263,12 @@ static inline bool lru_gen_add_folio(str
- 
- 	if (folio_test_unevictable(folio) || !lrugen->enabled)
- 		return false;
--	/*
--	 * There are four common cases for this page:
--	 * 1. If it's hot, i.e., freshly faulted in, add it to the youngest
--	 *    generation, and it's protected over the rest below.
--	 * 2. If it can't be evicted immediately, i.e., a dirty page pending
--	 *    writeback, add it to the second youngest generation.
--	 * 3. If it should be evicted first, e.g., cold and clean from
--	 *    folio_rotate_reclaimable(), add it to the oldest generation.
--	 * 4. Everything else falls between 2 & 3 above and is added to the
--	 *    second oldest generation if it's considered inactive, or the
--	 *    oldest generation otherwise. See lru_gen_is_active().
--	 */
--	if (folio_test_active(folio))
--		seq = lrugen->max_seq;
--	else if ((type == LRU_GEN_ANON && !folio_test_swapcache(folio)) ||
--		 (folio_test_reclaim(folio) &&
--		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
--		seq = lrugen->max_seq - 1;
--	else if (reclaiming || lrugen->min_seq[type] + MIN_NR_GENS >= lrugen->max_seq)
--		seq = lrugen->min_seq[type];
--	else
--		seq = lrugen->min_seq[type] + 1;
- 
-+	seq = lru_gen_folio_seq(lruvec, folio, reclaiming);
- 	gen = lru_gen_from_seq(seq);
- 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
- 	/* see the comment on MIN_NR_GENS about PG_active */
--	mask = LRU_GEN_MASK;
--	/*
--	 * Don't clear PG_workingset here because it can affect PSI accounting
--	 * if the activation is due to workingset refault.
--	 */
--	if (folio_test_active(folio))
--		mask |= LRU_REFS_MASK | BIT(PG_referenced) | BIT(PG_active);
--	set_mask_bits(&folio->flags, mask, flags);
-+	set_mask_bits(&folio->flags, LRU_GEN_MASK | BIT(PG_active), flags);
- 
- 	lru_gen_update_size(lruvec, folio, -1, gen);
- 	/* for folio_rotate_reclaimable() */
---- a/include/linux/mmzone.h~mm-mglru-rework-workingset-protection
-+++ a/include/linux/mmzone.h
-@@ -332,66 +332,88 @@ enum lruvec_flags {
- #endif /* !__GENERATING_BOUNDS_H */
- 
- /*
-- * Evictable pages are divided into multiple generations. The youngest and the
-+ * Evictable folios are divided into multiple generations. The youngest and the
-  * oldest generation numbers, max_seq and min_seq, are monotonically increasing.
-  * They form a sliding window of a variable size [MIN_NR_GENS, MAX_NR_GENS]. An
-  * offset within MAX_NR_GENS, i.e., gen, indexes the LRU list of the
-  * corresponding generation. The gen counter in folio->flags stores gen+1 while
-- * a page is on one of lrugen->folios[]. Otherwise it stores 0.
-+ * a folio is on one of lrugen->folios[]. Otherwise it stores 0.
-  *
-- * A page is added to the youngest generation on faulting. The aging needs to
-- * check the accessed bit at least twice before handing this page over to the
-- * eviction. The first check takes care of the accessed bit set on the initial
-- * fault; the second check makes sure this page hasn't been used since then.
-- * This process, AKA second chance, requires a minimum of two generations,
-- * hence MIN_NR_GENS. And to maintain ABI compatibility with the active/inactive
-- * LRU, e.g., /proc/vmstat, these two generations are considered active; the
-- * rest of generations, if they exist, are considered inactive. See
-- * lru_gen_is_active().
-- *
-- * PG_active is always cleared while a page is on one of lrugen->folios[] so
-- * that the aging needs not to worry about it. And it's set again when a page
-- * considered active is isolated for non-reclaiming purposes, e.g., migration.
-- * See lru_gen_add_folio() and lru_gen_del_folio().
-+ * After a folio is faulted in, the aging needs to check the accessed bit at
-+ * least twice before handing this folio over to the eviction. The first check
-+ * clears the accessed bit from the initial fault; the second check makes sure
-+ * this folio hasn't been used since then. This process, AKA second chance,
-+ * requires a minimum of two generations, hence MIN_NR_GENS. And to maintain ABI
-+ * compatibility with the active/inactive LRU, e.g., /proc/vmstat, these two
-+ * generations are considered active; the rest of generations, if they exist,
-+ * are considered inactive. See lru_gen_is_active().
-+ *
-+ * PG_active is always cleared while a folio is on one of lrugen->folios[] so
-+ * that the sliding window needs not to worry about it. And it's set again when
-+ * a folio considered active is isolated for non-reclaiming purposes, e.g.,
-+ * migration. See lru_gen_add_folio() and lru_gen_del_folio().
-  *
-  * MAX_NR_GENS is set to 4 so that the multi-gen LRU can support twice the
-  * number of categories of the active/inactive LRU when keeping track of
-  * accesses through page tables. This requires order_base_2(MAX_NR_GENS+1) bits
-- * in folio->flags.
-+ * in folio->flags, masked by LRU_GEN_MASK.
-  */
- #define MIN_NR_GENS		2U
- #define MAX_NR_GENS		4U
- 
- /*
-- * Each generation is divided into multiple tiers. A page accessed N times
-- * through file descriptors is in tier order_base_2(N). A page in the first tier
-- * (N=0,1) is marked by PG_referenced unless it was faulted in through page
-- * tables or read ahead. A page in any other tier (N>1) is marked by
-- * PG_referenced and PG_workingset. This implies a minimum of two tiers is
-- * supported without using additional bits in folio->flags.
-+ * Each generation is divided into multiple tiers. A folio accessed N times
-+ * through file descriptors is in tier order_base_2(N). A folio in the first
-+ * tier (N=0,1) is marked by PG_referenced unless it was faulted in through page
-+ * tables or read ahead. A folio in the last tier (MAX_NR_TIERS-1) is marked by
-+ * PG_workingset. A folio in any other tier (1<N<5) between the first and last
-+ * is marked by additional bits of LRU_REFS_WIDTH in folio->flags.
-  *
-  * In contrast to moving across generations which requires the LRU lock, moving
-  * across tiers only involves atomic operations on folio->flags and therefore
-  * has a negligible cost in the buffered access path. In the eviction path,
-- * comparisons of refaulted/(evicted+protected) from the first tier and the
-- * rest infer whether pages accessed multiple times through file descriptors
-- * are statistically hot and thus worth protecting.
-+ * comparisons of refaulted/(evicted+protected) from the first tier and the rest
-+ * infer whether folios accessed multiple times through file descriptors are
-+ * statistically hot and thus worth protecting.
-  *
-  * MAX_NR_TIERS is set to 4 so that the multi-gen LRU can support twice the
-  * number of categories of the active/inactive LRU when keeping track of
-  * accesses through file descriptors. This uses MAX_NR_TIERS-2 spare bits in
-- * folio->flags.
-+ * folio->flags, masked by LRU_REFS_MASK.
-  */
- #define MAX_NR_TIERS		4U
- 
- #ifndef __GENERATING_BOUNDS_H
- 
--struct lruvec;
--struct page_vma_mapped_walk;
--
- #define LRU_GEN_MASK		((BIT(LRU_GEN_WIDTH) - 1) << LRU_GEN_PGOFF)
- #define LRU_REFS_MASK		((BIT(LRU_REFS_WIDTH) - 1) << LRU_REFS_PGOFF)
- 
-+/*
-+ * For folios accessed multiple times through file descriptors,
-+ * lru_gen_inc_refs() sets additional bits of LRU_REFS_WIDTH in folio->flags
-+ * after PG_referenced, then PG_workingset after LRU_REFS_WIDTH. After all its
-+ * bits are set, i.e., LRU_REFS_FLAGS|BIT(PG_workingset), a folio is lazily
-+ * promoted into the second oldest generation in the eviction path. And when
-+ * folio_inc_gen() does that, it clears LRU_REFS_FLAGS so that
-+ * lru_gen_inc_refs() can start over. Note that for this case, LRU_REFS_MASK is
-+ * only valid when PG_referenced is set.
-+ *
-+ * For folios accessed multiple times through page tables, folio_update_gen()
-+ * from a page table walk or lru_gen_set_refs() from a rmap walk sets
-+ * PG_referenced after the accessed bit is cleared for the first time.
-+ * Thereafter, those two paths set PG_workingset and promote folios to the
-+ * youngest generation. Like folio_inc_gen(), folio_update_gen() also clears
-+ * PG_referenced. Note that for this case, LRU_REFS_MASK is not used.
-+ *
-+ * For both cases above, after PG_workingset is set on a folio, it remains until
-+ * this folio is either reclaimed, or "deactivated" by lru_gen_clear_refs(). It
-+ * can be set again if lru_gen_test_recent() returns true upon a refault.
-+ */
-+#define LRU_REFS_FLAGS		(LRU_REFS_MASK | BIT(PG_referenced))
-+
-+struct lruvec;
-+struct page_vma_mapped_walk;
-+
- #ifdef CONFIG_LRU_GEN
- 
- enum {
-@@ -406,8 +428,6 @@ enum {
- 	NR_LRU_GEN_CAPS
- };
- 
--#define LRU_REFS_FLAGS		(BIT(PG_referenced) | BIT(PG_workingset))
--
- #define MIN_LRU_BATCH		BITS_PER_LONG
- #define MAX_LRU_BATCH		(MIN_LRU_BATCH * 64)
- 
---- a/mm/swap.c~mm-mglru-rework-workingset-protection
-+++ a/mm/swap.c
-@@ -387,24 +387,20 @@ static void lru_gen_inc_refs(struct foli
- 	if (folio_test_unevictable(folio))
- 		return;
- 
-+	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio)) {
--		folio_set_referenced(folio);
--		return;
--	}
--
--	if (!folio_test_workingset(folio)) {
--		folio_set_workingset(folio);
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, BIT(PG_referenced));
- 		return;
- 	}
- 
--	/* see the comment on MAX_NR_TIERS */
- 	do {
--		new_flags = old_flags & LRU_REFS_MASK;
--		if (new_flags == LRU_REFS_MASK)
--			break;
-+		if ((old_flags & LRU_REFS_MASK) == LRU_REFS_MASK) {
-+			if (!folio_test_workingset(folio))
-+				folio_set_workingset(folio);
-+			return;
-+		}
- 
--		new_flags += BIT(LRU_REFS_PGOFF);
--		new_flags |= old_flags & ~LRU_REFS_MASK;
-+		new_flags = old_flags + BIT(LRU_REFS_PGOFF);
- 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
- }
- 
-@@ -417,7 +413,7 @@ static bool lru_gen_clear_refs(struct fo
- 	if (gen < 0)
- 		return true;
- 
--	set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS, 0);
-+	set_mask_bits(&folio->flags, LRU_REFS_FLAGS | BIT(PG_workingset), 0);
- 
- 	lrugen = &folio_lruvec(folio)->lrugen;
- 	/* whether can do without shuffling under the LRU lock */
-@@ -499,7 +495,7 @@ void folio_add_lru(struct folio *folio)
- 			folio_test_unevictable(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 
--	/* see the comment in lru_gen_add_folio() */
-+	/* see the comment in lru_gen_folio_seq() */
- 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
- 	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
- 		folio_set_active(folio);
---- a/mm/vmscan.c~mm-mglru-rework-workingset-protection
+--- a/mm/vmscan.c~mm-mglru-fix-pte-mapped-large-folios
 +++ a/mm/vmscan.c
-@@ -862,6 +862,31 @@ enum folio_references {
- 	FOLIOREF_ACTIVATE,
- };
+@@ -3423,29 +3423,55 @@ static bool suitable_to_scan(int total,
+ 	return young * n >= total;
+ }
  
-+#ifdef CONFIG_LRU_GEN
-+/*
-+ * Only used on a mapped folio in the eviction (rmap walk) path, where promotion
-+ * needs to be done by taking the folio off the LRU list and then adding it back
-+ * with PG_active set. In contrast, the aging (page table walk) path uses
-+ * folio_update_gen().
-+ */
-+static bool lru_gen_set_refs(struct folio *folio)
++static void walk_update_folio(struct lru_gen_mm_walk *walk, struct folio *folio,
++			      int new_gen, bool dirty)
 +{
-+	/* see the comment on LRU_REFS_FLAGS */
-+	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, BIT(PG_referenced));
-+		return false;
-+	}
++	int old_gen;
 +
-+	set_mask_bits(&folio->flags, LRU_REFS_FLAGS, BIT(PG_workingset));
-+	return true;
++	if (!folio)
++		return;
++
++	if (dirty && !folio_test_dirty(folio) &&
++	    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
++	      !folio_test_swapcache(folio)))
++		folio_mark_dirty(folio);
++
++	if (walk) {
++		old_gen = folio_update_gen(folio, new_gen);
++		if (old_gen >= 0 && old_gen != new_gen)
++			update_batch_size(walk, folio, old_gen, new_gen);
++	} else if (lru_gen_set_refs(folio)) {
++		old_gen = folio_lru_gen(folio);
++		if (old_gen >= 0 && old_gen != new_gen)
++			folio_activate(folio);
++	}
 +}
-+#else
-+static bool lru_gen_set_refs(struct folio *folio)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_LRU_GEN */
 +
- static enum folio_references folio_check_references(struct folio *folio,
- 						  struct scan_control *sc)
+ static bool walk_pte_range(pmd_t *pmd, unsigned long start, unsigned long end,
+ 			   struct mm_walk *args)
  {
-@@ -870,7 +895,6 @@ static enum folio_references folio_check
+ 	int i;
++	bool dirty;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 	unsigned long addr;
+ 	int total = 0;
+ 	int young = 0;
++	struct folio *last = NULL;
+ 	struct lru_gen_mm_walk *walk = args->private;
+ 	struct mem_cgroup *memcg = lruvec_memcg(walk->lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
+ 	DEFINE_MAX_SEQ(walk->lruvec);
+-	int old_gen, new_gen = lru_gen_from_seq(max_seq);
++	int gen = lru_gen_from_seq(max_seq);
+ 	pmd_t pmdval;
  
- 	referenced_ptes = folio_referenced(folio, 1, sc->target_mem_cgroup,
- 					   &vm_flags);
--	referenced_folio = folio_test_clear_referenced(folio);
- 
- 	/*
- 	 * The supposedly reclaimable folio was found to be in a VM_LOCKED vma.
-@@ -888,6 +912,15 @@ static enum folio_references folio_check
- 	if (referenced_ptes == -1)
- 		return FOLIOREF_KEEP;
- 
-+	if (lru_gen_enabled()) {
-+		if (!referenced_ptes)
-+			return FOLIOREF_RECLAIM;
-+
-+		return lru_gen_set_refs(folio) ? FOLIOREF_ACTIVATE : FOLIOREF_KEEP;
-+	}
-+
-+	referenced_folio = folio_test_clear_referenced(folio);
-+
- 	if (referenced_ptes) {
- 		/*
- 		 * All mapped folios start out with page table
-@@ -1092,11 +1125,6 @@ retry:
- 		if (!sc->may_unmap && folio_mapped(folio))
- 			goto keep_locked;
- 
--		/* folio_update_gen() tried to promote this page? */
--		if (lru_gen_enabled() && !ignore_references &&
--		    folio_mapped(folio) && folio_test_referenced(folio))
--			goto keep_locked;
--
- 		/*
- 		 * The number of dirty pages determines if a node is marked
- 		 * reclaim_congested. kswapd will stall and start writing
-@@ -3159,16 +3187,19 @@ static int folio_update_gen(struct folio
- 
- 	VM_WARN_ON_ONCE(gen >= MAX_NR_GENS);
- 
-+	/* see the comment on LRU_REFS_FLAGS */
-+	if (!folio_test_referenced(folio) && !folio_test_workingset(folio)) {
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, BIT(PG_referenced));
-+		return -1;
-+	}
-+
- 	do {
- 		/* lru_gen_del_folio() has isolated this page? */
--		if (!(old_flags & LRU_GEN_MASK)) {
--			/* for shrink_folio_list() */
--			new_flags = old_flags | BIT(PG_referenced);
--			continue;
--		}
-+		if (!(old_flags & LRU_GEN_MASK))
-+			return -1;
- 
--		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_MASK | LRU_REFS_FLAGS);
--		new_flags |= (gen + 1UL) << LRU_GEN_PGOFF;
-+		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
-+		new_flags |= ((gen + 1UL) << LRU_GEN_PGOFF) | BIT(PG_workingset);
- 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
- 
- 	return ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
-@@ -3192,7 +3223,7 @@ static int folio_inc_gen(struct lruvec *
- 
- 		new_gen = (old_gen + 1) % MAX_NR_GENS;
- 
--		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_MASK | LRU_REFS_FLAGS);
-+		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
- 		new_flags |= (new_gen + 1UL) << LRU_GEN_PGOFF;
- 		/* for folio_end_writeback() */
- 		if (reclaiming)
-@@ -3370,9 +3401,11 @@ static unsigned long get_pmd_pfn(pmd_t p
- static struct folio *get_pfn_folio(unsigned long pfn, struct mem_cgroup *memcg,
- 				   struct pglist_data *pgdat)
- {
--	struct folio *folio;
-+	struct folio *folio = pfn_folio(pfn);
-+
-+	if (folio_lru_gen(folio) < 0)
-+		return NULL;
- 
--	folio = pfn_folio(pfn);
- 	if (folio_nid(folio) != pgdat->node_id)
- 		return NULL;
- 
-@@ -3749,8 +3782,7 @@ static bool inc_min_seq(struct lruvec *l
- 		while (!list_empty(head)) {
- 			struct folio *folio = lru_to_folio(head);
- 			int refs = folio_lru_refs(folio);
--			int tier = lru_tier_from_refs(refs);
--			int delta = folio_nr_pages(folio);
-+			bool workingset = folio_test_workingset(folio);
- 
- 			VM_WARN_ON_ONCE_FOLIO(folio_test_unevictable(folio), folio);
- 			VM_WARN_ON_ONCE_FOLIO(folio_test_active(folio), folio);
-@@ -3760,8 +3792,14 @@ static bool inc_min_seq(struct lruvec *l
- 			new_gen = folio_inc_gen(lruvec, folio, false);
- 			list_move_tail(&folio->lru, &lrugen->folios[new_gen][type][zone]);
- 
--			WRITE_ONCE(lrugen->protected[hist][type][tier],
--				   lrugen->protected[hist][type][tier] + delta);
-+			/* don't count the workingset being lazily promoted */
-+			if (refs + workingset != BIT(LRU_REFS_WIDTH) + 1) {
-+				int tier = lru_tier_from_refs(refs, workingset);
-+				int delta = folio_nr_pages(folio);
-+
-+				WRITE_ONCE(lrugen->protected[hist][type][tier],
-+					   lrugen->protected[hist][type][tier] + delta);
-+			}
- 
- 			if (!--remaining)
- 				return false;
-@@ -4147,16 +4185,10 @@ bool lru_gen_look_around(struct page_vma
- 			old_gen = folio_update_gen(folio, new_gen);
- 			if (old_gen >= 0 && old_gen != new_gen)
- 				update_batch_size(walk, folio, old_gen, new_gen);
--
--			continue;
--		}
--
--		old_gen = folio_lru_gen(folio);
--		if (old_gen < 0)
--			folio_set_referenced(folio);
--		else if (old_gen != new_gen) {
--			folio_clear_lru_refs(folio);
--			folio_activate(folio);
-+		} else if (lru_gen_set_refs(folio)) {
-+			old_gen = folio_lru_gen(folio);
-+			if (old_gen >= 0 && old_gen != new_gen)
-+				folio_activate(folio);
- 		}
- 	}
- 
-@@ -4317,7 +4349,8 @@ static bool sort_folio(struct lruvec *lr
- 	int zone = folio_zonenum(folio);
- 	int delta = folio_nr_pages(folio);
- 	int refs = folio_lru_refs(folio);
--	int tier = lru_tier_from_refs(refs);
-+	bool workingset = folio_test_workingset(folio);
-+	int tier = lru_tier_from_refs(refs, workingset);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 
- 	VM_WARN_ON_ONCE_FOLIO(gen >= MAX_NR_GENS, folio);
-@@ -4339,14 +4372,17 @@ static bool sort_folio(struct lruvec *lr
- 	}
- 
- 	/* protected */
--	if (tier > tier_idx || refs == BIT(LRU_REFS_WIDTH)) {
--		int hist = lru_hist_from_seq(lrugen->min_seq[type]);
--
-+	if (tier > tier_idx || refs + workingset == BIT(LRU_REFS_WIDTH) + 1) {
- 		gen = folio_inc_gen(lruvec, folio, false);
--		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
-+		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
-+
-+		/* don't count the workingset being lazily promoted */
-+		if (refs + workingset != BIT(LRU_REFS_WIDTH) + 1) {
-+			int hist = lru_hist_from_seq(lrugen->min_seq[type]);
- 
--		WRITE_ONCE(lrugen->protected[hist][type][tier],
--			   lrugen->protected[hist][type][tier] + delta);
-+			WRITE_ONCE(lrugen->protected[hist][type][tier],
-+				   lrugen->protected[hist][type][tier] + delta);
-+		}
- 		return true;
- 	}
- 
-@@ -4366,8 +4402,7 @@ static bool sort_folio(struct lruvec *lr
- 	}
- 
- 	/* waiting for writeback */
--	if (folio_test_locked(folio) || writeback ||
--	    (type == LRU_GEN_FILE && dirty)) {
-+	if (writeback || (type == LRU_GEN_FILE && dirty)) {
- 		gen = folio_inc_gen(lruvec, folio, true);
- 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
-@@ -4396,13 +4431,12 @@ static bool isolate_folio(struct lruvec
+-	pte = pte_offset_map_rw_nolock(args->mm, pmd, start & PMD_MASK, &pmdval,
+-				       &ptl);
++	pte = pte_offset_map_rw_nolock(args->mm, pmd, start & PMD_MASK, &pmdval, &ptl);
+ 	if (!pte)
  		return false;
++
+ 	if (!spin_trylock(ptl)) {
+ 		pte_unmap(pte);
+-		return false;
++		return true;
  	}
  
--	/* see the comment on MAX_NR_TIERS */
-+	/* see the comment on LRU_REFS_FLAGS */
- 	if (!folio_test_referenced(folio))
--		folio_clear_lru_refs(folio);
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, 0);
- 
- 	/* for shrink_folio_list() */
- 	folio_clear_reclaim(folio);
--	folio_clear_referenced(folio);
- 
- 	success = lru_gen_del_folio(lruvec, folio, true);
- 	VM_WARN_ON_ONCE_FOLIO(!success, folio);
-@@ -4592,31 +4626,24 @@ retry:
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
-+		DEFINE_MIN_SEQ(lruvec);
-+
- 		if (!folio_evictable(folio)) {
- 			list_del(&folio->lru);
- 			folio_putback_lru(folio);
+ 	if (unlikely(!pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
+@@ -3474,19 +3500,23 @@ restart:
+ 		if (!ptep_clear_young_notify(args->vma, addr, pte + i))
  			continue;
- 		}
  
--		if (folio_test_reclaim(folio) &&
--		    (folio_test_dirty(folio) || folio_test_writeback(folio))) {
--			/* restore LRU_REFS_FLAGS cleared by isolate_folio() */
--			if (folio_test_workingset(folio))
--				folio_set_referenced(folio);
--			continue;
--		}
+-		young++;
+-		walk->mm_stats[MM_LEAF_YOUNG]++;
++		if (last != folio) {
++			walk_update_folio(walk, last, gen, dirty);
+ 
+-		if (pte_dirty(ptent) && !folio_test_dirty(folio) &&
+-		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+-		      !folio_test_swapcache(folio)))
+-			folio_mark_dirty(folio);
++			last = folio;
++			dirty = false;
++		}
+ 
+-		old_gen = folio_update_gen(folio, new_gen);
+-		if (old_gen >= 0 && old_gen != new_gen)
+-			update_batch_size(walk, folio, old_gen, new_gen);
++		if (pte_dirty(ptent))
++			dirty = true;
++
++		young++;
++		walk->mm_stats[MM_LEAF_YOUNG]++;
+ 	}
+ 
++	walk_update_folio(walk, last, gen, dirty);
++	last = NULL;
++
+ 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
+ 		goto restart;
+ 
+@@ -3500,13 +3530,15 @@ static void walk_pmd_range_locked(pud_t
+ 				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
+ {
+ 	int i;
++	bool dirty;
+ 	pmd_t *pmd;
+ 	spinlock_t *ptl;
++	struct folio *last = NULL;
+ 	struct lru_gen_mm_walk *walk = args->private;
+ 	struct mem_cgroup *memcg = lruvec_memcg(walk->lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
+ 	DEFINE_MAX_SEQ(walk->lruvec);
+-	int old_gen, new_gen = lru_gen_from_seq(max_seq);
++	int gen = lru_gen_from_seq(max_seq);
+ 
+ 	VM_WARN_ON_ONCE(pud_leaf(*pud));
+ 
+@@ -3559,20 +3591,23 @@ static void walk_pmd_range_locked(pud_t
+ 		if (!pmdp_clear_young_notify(vma, addr, pmd + i))
+ 			goto next;
+ 
+-		walk->mm_stats[MM_LEAF_YOUNG]++;
++		if (last != folio) {
++			walk_update_folio(walk, last, gen, dirty);
+ 
+-		if (pmd_dirty(pmd[i]) && !folio_test_dirty(folio) &&
+-		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+-		      !folio_test_swapcache(folio)))
+-			folio_mark_dirty(folio);
++			last = folio;
++			dirty = false;
++		}
+ 
+-		old_gen = folio_update_gen(folio, new_gen);
+-		if (old_gen >= 0 && old_gen != new_gen)
+-			update_batch_size(walk, folio, old_gen, new_gen);
++		if (pmd_dirty(pmd[i]))
++			dirty = true;
++
++		walk->mm_stats[MM_LEAF_YOUNG]++;
+ next:
+ 		i = i > MIN_LRU_BATCH ? 0 : find_next_bit(bitmap, MIN_LRU_BATCH, i) + 1;
+ 	} while (i <= MIN_LRU_BATCH);
+ 
++	walk_update_folio(walk, last, gen, dirty);
++
+ 	arch_leave_lazy_mmu_mode();
+ 	spin_unlock(ptl);
+ done:
+@@ -4107,9 +4142,11 @@ static void lru_gen_age_node(struct pgli
+ bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
+ {
+ 	int i;
++	bool dirty;
+ 	unsigned long start;
+ 	unsigned long end;
+ 	struct lru_gen_mm_walk *walk;
++	struct folio *last = NULL;
+ 	int young = 1;
+ 	pte_t *pte = pvmw->pte;
+ 	unsigned long addr = pvmw->address;
+@@ -4120,7 +4157,7 @@ bool lru_gen_look_around(struct page_vma
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+-	int old_gen, new_gen = lru_gen_from_seq(max_seq);
++	int gen = lru_gen_from_seq(max_seq);
+ 
+ 	lockdep_assert_held(pvmw->ptl);
+ 	VM_WARN_ON_ONCE_FOLIO(folio_test_lru(folio), folio);
+@@ -4174,24 +4211,21 @@ bool lru_gen_look_around(struct page_vma
+ 		if (!ptep_clear_young_notify(vma, addr, pte + i))
+ 			continue;
+ 
+-		young++;
++		if (last != folio) {
++			walk_update_folio(walk, last, gen, dirty);
+ 
+-		if (pte_dirty(ptent) && !folio_test_dirty(folio) &&
+-		    !(folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+-		      !folio_test_swapcache(folio)))
+-			folio_mark_dirty(folio);
 -
--		if (skip_retry || folio_test_active(folio) || folio_test_referenced(folio) ||
--		    folio_mapped(folio) || folio_test_locked(folio) ||
--		    folio_test_dirty(folio) || folio_test_writeback(folio)) {
--			/* don't add rejected folios to the oldest generation */
--			set_mask_bits(&folio->flags, LRU_REFS_MASK | LRU_REFS_FLAGS,
--				      BIT(PG_active));
-+		/* retry folios that may have missed folio_rotate_reclaimable() */
-+		if (!skip_retry && !folio_test_active(folio) && !folio_mapped(folio) &&
-+		    !folio_test_dirty(folio) && !folio_test_writeback(folio)) {
-+			list_move(&folio->lru, &clean);
- 			continue;
+-		if (walk) {
+-			old_gen = folio_update_gen(folio, new_gen);
+-			if (old_gen >= 0 && old_gen != new_gen)
+-				update_batch_size(walk, folio, old_gen, new_gen);
+-		} else if (lru_gen_set_refs(folio)) {
+-			old_gen = folio_lru_gen(folio);
+-			if (old_gen >= 0 && old_gen != new_gen)
+-				folio_activate(folio);
++			last = folio;
++			dirty = false;
  		}
- 
--		/* retry folios that may have missed folio_rotate_reclaimable() */
--		list_move(&folio->lru, &clean);
-+		/* don't add rejected folios to the oldest generation */
-+		if (lru_gen_folio_seq(lruvec, folio, false) == min_seq[type])
-+			set_mask_bits(&folio->flags, LRU_REFS_FLAGS, BIT(PG_active));
++
++		if (pte_dirty(ptent))
++			dirty = true;
++
++		young++;
  	}
  
- 	spin_lock_irq(&lruvec->lru_lock);
---- a/mm/workingset.c~mm-mglru-rework-workingset-protection
-+++ a/mm/workingset.c
-@@ -239,7 +239,8 @@ static void *lru_gen_eviction(struct fol
- 	int type = folio_is_file_lru(folio);
- 	int delta = folio_nr_pages(folio);
- 	int refs = folio_lru_refs(folio);
--	int tier = lru_tier_from_refs(refs);
-+	bool workingset = folio_test_workingset(folio);
-+	int tier = lru_tier_from_refs(refs, workingset);
- 	struct mem_cgroup *memcg = folio_memcg(folio);
- 	struct pglist_data *pgdat = folio_pgdat(folio);
- 
-@@ -253,7 +254,7 @@ static void *lru_gen_eviction(struct fol
- 	hist = lru_hist_from_seq(min_seq);
- 	atomic_long_add(delta, &lrugen->evicted[hist][type][tier]);
- 
--	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, refs);
-+	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, workingset);
- }
- 
- /*
-@@ -304,24 +305,20 @@ static void lru_gen_refault(struct folio
- 	lrugen = &lruvec->lrugen;
- 
- 	hist = lru_hist_from_seq(READ_ONCE(lrugen->min_seq[type]));
--	/* see the comment in folio_lru_refs() */
--	refs = (token & (BIT(LRU_REFS_WIDTH) - 1)) + workingset;
--	tier = lru_tier_from_refs(refs);
-+	refs = (token & (BIT(LRU_REFS_WIDTH) - 1)) + 1;
-+	tier = lru_tier_from_refs(refs, workingset);
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
--	mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 
--	/*
--	 * Count the following two cases as stalls:
--	 * 1. For pages accessed through page tables, hotter pages pushed out
--	 *    hot pages which refaulted immediately.
--	 * 2. For pages accessed multiple times through file descriptors,
--	 *    they would have been protected by sort_folio().
--	 */
--	if (lru_gen_in_fault() || refs >= BIT(LRU_REFS_WIDTH) - 1) {
--		set_mask_bits(&folio->flags, 0, LRU_REFS_MASK | BIT(PG_workingset));
-+	/* see folio_add_lru() where folio_set_active() will be called */
-+	if (lru_gen_in_fault())
-+		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
++	walk_update_folio(walk, last, gen, dirty);
 +
-+	if (workingset) {
-+		folio_set_workingset(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
--	}
-+	} else
-+		set_mask_bits(&folio->flags, LRU_REFS_MASK, (refs - 1UL) << LRU_REFS_PGOFF);
- unlock:
- 	rcu_read_unlock();
- }
+ 	arch_leave_lazy_mmu_mode();
+ 
+ 	/* feedback from rmap walkers to page table walkers */
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
