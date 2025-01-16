@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1711218892D
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C7F618892D
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006298; cv=none; b=N93zTSExFNIj65Pdk4bBrtJscHJu2YzNA3WAc0BDMZD1+McoJwUj5Ym7zAxWeIAVRW83vGwTxAWTM8d5yEkakVn878ALCdYLOxxlkiTBzZWqaqVStNbZQXJiZwF+OY8HGyo26ig+FgmWG2eaAK9BEIkgIhjwD3scKpcK08maIzU=
+	t=1737006299; cv=none; b=phHaArkA+3cgeGabeb4Bys+9aPhhOERZDlvbBh3vJamOOgfyRcR8zLtnY9qBGQ2tvSW+hPwVc5Ddr9s3yPxd4iVpsltwhuCylWXCcDFt1MuC4jOIDsBp0zm0PSFtc3h/JZ4PkwW0wotujcHcTQwSFkWunrgAGu0RnLj5Ghpc1EM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006298; c=relaxed/simple;
-	bh=QheorW66Ni1CHDBZ7144PGRETCjK9izVtAoVmbXM2Xc=;
-	h=Date:To:From:Subject:Message-Id; b=J/oajatVvczHlrvQrJJfrtQ5dN94BcYNuCGKEZ7NG6oyT8A56mLGvSYBlJqWiEh4KoFIFkTS3R9wEygnncbQx0gtkc3zOCi7MelIhtldF49Lnavnx06GEylgkUgGH+rKXFk8WWcR7rkejhIEjajfx12YmlFxyyXMQ1WwkOMNeK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H1N1VphR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006299; c=relaxed/simple;
+	bh=XFNxgTLm67zI8m/fNhPPdZfh4AuNKkaAq+rhP6VX834=;
+	h=Date:To:From:Subject:Message-Id; b=T17YBiRyMbGPPSPRra/r75vVR/8fkwvDTHyrsafHg1PalJq9WjlfGMp0JdJBR9TUPIIYvtRFx09DiA6vipgtR0zAeGCYSCpwyTAeDekjRztAFkT83bSeJtRO/XjvjiTuBlPb+NmARRDqK4nGCJ0y22+Hg1uM4Y+MW9kCOfWWgyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PLiDAr8W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H1N1VphR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1BCAC4CED6;
-	Thu, 16 Jan 2025 05:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PLiDAr8W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11FF2C4CED6;
+	Thu, 16 Jan 2025 05:44:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006298;
-	bh=QheorW66Ni1CHDBZ7144PGRETCjK9izVtAoVmbXM2Xc=;
+	s=korg; t=1737006299;
+	bh=XFNxgTLm67zI8m/fNhPPdZfh4AuNKkaAq+rhP6VX834=;
 	h=Date:To:From:Subject:From;
-	b=H1N1VphRkp1ZLVfCD/UVuGNHYb5dImC2bQ7lswsSgobxMbUmDZwcBefPErNOWF65M
-	 HQL1LMS78XsUBPHLkGP+N+XTiI6F892duXXt8RKnqQ2jmC3U6Q8Tv5/l4m1pnmLi5R
-	 bmtHYKzjIYHNay8EH7qVYLTZquag0hRNOKYDIGEY=
-Date: Wed, 15 Jan 2025 21:44:57 -0800
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=PLiDAr8Wc6ed0LdY8CDpvfxI9hlY/+JMV41H9Xes5PDgxcIvjoXH9u9xI/my3ZJeS
+	 rOUlLfuDw4um5RhyKo/GvAlKVp8lDUGYOIBQJ+p70ugBLumIQCX8M4/0d41Apg1img
+	 AC5Z3qAqPKy22bA7KtGmB9pfy/fDvyvUo/VSao9o=
+Date: Wed, 15 Jan 2025 21:44:58 -0800
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shuah@kernel.org,riel@surriel.com,alexlzhu@fb.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] documentation-filesystems-procrst-fix-possessive-form-of-process.patch removed from -mm tree
-Message-Id: <20250116054457.E1BCAC4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-use-selftests-framework-to-print-test-result.patch removed from -mm tree
+Message-Id: <20250116054459.11FF2C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/filesystems/proc.rst: fix possessive form of "process"
+     Subject: selftests/mm: use selftests framework to print test result
 has been removed from the -mm tree.  Its filename was
-     documentation-filesystems-procrst-fix-possessive-form-of-process.patch
+     selftests-mm-use-selftests-framework-to-print-test-result.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Documentation/filesystems/proc.rst: fix possessive form of "process"
-Date: Fri Jan 10 04:38:41 PM PST 2025
+From: Zi Yan <ziy@nvidia.com>
+Subject: selftests/mm: use selftests framework to print test result
+Date: Fri, 10 Jan 2025 18:50:27 -0500
 
-The possessive form of "process" is "process's".  Fix up various
-misdirected attempts at this.  Also reflow some paragraphs.
+Otherwise the number of tests does not match the reality.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/20250110235028.96824-1-ziy@nvidia.com
+Fixes: 391e86971161 ("mm: selftest to verify zero-filled pages are mapped to zeropage")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Alexander Zhu <alexlzhu@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |   34 ++++++++++++++-------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   34 ++++--------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~documentation-filesystems-procrst-fix-possessive-form-of-process
-+++ a/Documentation/filesystems/proc.rst
-@@ -48,7 +48,7 @@ fixes/update part 1.1  Stefani Seibold <
-   3.11	/proc/<pid>/patch_state - Livepatch patch operation state
-   3.12	/proc/<pid>/arch_status - Task architecture specific information
-   3.13  /proc/<pid>/fd - List of symlinks to open files
--  3.14  /proc/<pid/ksm_stat - Information about the process' ksm status.
-+  3.14  /proc/<pid/ksm_stat - Information about the process's ksm status.
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-use-selftests-framework-to-print-test-result
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -108,38 +108,28 @@ static void verify_rss_anon_split_huge_p
+ 	unsigned long rss_anon_before, rss_anon_after;
+ 	size_t i;
  
-   4	Configuring procfs
-   4.1	Mount options
-@@ -485,14 +485,15 @@ Memory Area, or VMA) there is a series o
-     THPeligible:           0
-     VmFlags: rd ex mr mw me dw
+-	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
+-		printf("No THP is allocated\n");
+-		exit(EXIT_FAILURE);
+-	}
++	if (!check_huge_anon(one_page, 4, pmd_pagesize))
++		ksft_exit_fail_msg("No THP is allocated\n");
  
--The first of these lines shows the same information as is displayed for the
--mapping in /proc/PID/maps.  Following lines show the size of the mapping
--(size); the size of each page allocated when backing a VMA (KernelPageSize),
--which is usually the same as the size in the page table entries; the page size
--used by the MMU when backing a VMA (in most cases, the same as KernelPageSize);
--the amount of the mapping that is currently resident in RAM (RSS); the
--process' proportional share of this mapping (PSS); and the number of clean and
--dirty shared and private pages in the mapping.
-+The first of these lines shows the same information as is displayed for
-+the mapping in /proc/PID/maps.  Following lines show the size of the
-+mapping (size); the size of each page allocated when backing a VMA
-+(KernelPageSize), which is usually the same as the size in the page table
-+entries; the page size used by the MMU when backing a VMA (in most cases,
-+the same as KernelPageSize); the amount of the mapping that is currently
-+resident in RAM (RSS); the process's proportional share of this mapping
-+(PSS); and the number of clean and dirty shared and private pages in the
-+mapping.
+ 	rss_anon_before = rss_anon();
+-	if (!rss_anon_before) {
+-		printf("No RssAnon is allocated before split\n");
+-		exit(EXIT_FAILURE);
+-	}
++	if (!rss_anon_before)
++		ksft_exit_fail_msg("No RssAnon is allocated before split\n");
  
- The "proportional set size" (PSS) of a process is the count of pages it has
- in memory, where each page is divided by the number of processes sharing it.
-@@ -2233,8 +2234,8 @@ The number of open files for the process
- of stat() output for /proc/<pid>/fd for fast access.
- -------------------------------------------------------
+ 	/* split all THPs */
+ 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
+ 		      (uint64_t)one_page + len, 0);
  
--3.14 /proc/<pid/ksm_stat - Information about the process' ksm status
----------------------------------------------------------------------
-+3.14 /proc/<pid/ksm_stat - Information about the process's ksm status
-+---------------------------------------------------------------------
- When CONFIG_KSM is enabled, each process has this file which displays
- the information of ksm merging status.
+ 	for (i = 0; i < len; i++)
+-		if (one_page[i] != (char)0) {
+-			printf("%ld byte corrupted\n", i);
+-			exit(EXIT_FAILURE);
+-		}
++		if (one_page[i] != (char)0)
++			ksft_exit_fail_msg("%ld byte corrupted\n", i);
  
-@@ -2288,14 +2289,15 @@ memory consumed.
- ksm_merge_any
- ^^^^^^^^^^^^^
+-	if (!check_huge_anon(one_page, 0, pmd_pagesize)) {
+-		printf("Still AnonHugePages not split\n");
+-		exit(EXIT_FAILURE);
+-	}
++	if (!check_huge_anon(one_page, 0, pmd_pagesize))
++		ksft_exit_fail_msg("Still AnonHugePages not split\n");
  
--It specifies whether the process'mm is added by prctl() into the candidate list
--of KSM or not, and if KSM scanning is fully enabled at process level.
-+It specifies whether the process's 'mm is added by prctl() into the
-+candidate list of KSM or not, and if KSM scanning is fully enabled at
-+process level.
+ 	rss_anon_after = rss_anon();
+-	if (rss_anon_after >= rss_anon_before) {
+-		printf("Incorrect RssAnon value. Before: %ld After: %ld\n",
++	if (rss_anon_after >= rss_anon_before)
++		ksft_exit_fail_msg("Incorrect RssAnon value. Before: %ld After: %ld\n",
+ 		       rss_anon_before, rss_anon_after);
+-		exit(EXIT_FAILURE);
+-	}
+ }
  
- ksm_mergeable
- ^^^^^^^^^^^^^
+ void split_pmd_zero_pages(void)
+@@ -150,7 +140,7 @@ void split_pmd_zero_pages(void)
  
--It specifies whether any VMAs of the process'mm are currently applicable
--to KSM.
-+It specifies whether any VMAs of the process''s mms are currently
-+applicable to KSM.
+ 	one_page = allocate_zero_filled_hugepage(len);
+ 	verify_rss_anon_split_huge_page_all_zeroes(one_page, nr_hpages, len);
+-	printf("Split zero filled huge pages successful\n");
++	ksft_test_result_pass("Split zero filled huge pages successful\n");
+ 	free(one_page);
+ }
  
- More information about KSM can be found in
- Documentation/admin-guide/mm/ksm.rst.
-@@ -2329,7 +2331,7 @@ arguments are now protected against loca
- hidepid=invisible or hidepid=2 means hidepid=1 plus all /proc/<pid>/ will be
- fully invisible to other users.  It doesn't mean that it hides a fact whether a
- process with a specific pid value exists (it can be learned by other means, e.g.
--by "kill -0 $PID"), but it hides process' uid and gid, which may be learned by
-+by "kill -0 $PID"), but it hides process's uid and gid, which may be learned by
- stat()'ing /proc/<pid>/ otherwise.  It greatly complicates an intruder's task of
- gathering information about running processes, whether some daemon runs with
- elevated privileges, whether other user runs some sensitive program, whether
+@@ -491,7 +481,7 @@ int main(int argc, char **argv)
+ 	if (argc > 1)
+ 		optional_xfs_path = argv[1];
+ 
+-	ksft_set_plan(3+9);
++	ksft_set_plan(4+9);
+ 
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
 
