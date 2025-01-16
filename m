@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 784C5158524
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F84158524
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:44:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006253; cv=none; b=EkNO6DvLDWdQQXKwZhmAXF4aJmp3unQvMLRyQesyXijN0hkEXWGnZycpdUkbWg/mvG1gTqNXFvtUHauJT3KYOy9bBma7Yxr6sohwHRIbvl4F03pp40VqsrV27BwvpfYb5L/gmsUHq92NpJa+QN1YKktMPLXSwrSAByIupDC+UIo=
+	t=1737006255; cv=none; b=YPrVkYCXSUucv2dOXzuZ5mGxZIUHieDUlGMwHyYW7jQYkIkstYQs4n0dY60hBWbCqsfEGXMXzXpj2kXq5Xuh/9Fsy1H+1NOJ7wmThYywzjx7vX+6TTohAhP8lUXMjTNHYlwIDHnHUCglqoLfrEpI4M+D4c4xwPdn0D29IqKRYiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006253; c=relaxed/simple;
-	bh=nZ6oSlZ3ItWDsa8lJGWBSjEaK50vmg47219OO1AW2T4=;
-	h=Date:To:From:Subject:Message-Id; b=nobZHfAWgzy1j65TaybDB+OFV0t/e5h7wuxag8EeNa84p+kXAMbIUjL4roIVNJYrXDum1n9KnWycPf3xidQiF0ECAeNH2SF8LmEUgfHLkGKXKQs3qAW1WDh6fk/P1dGpnYh5gWWQhDPSiggQ39w+xiF45sxlPsA+Dxlipz7pq/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfNI5wK2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006255; c=relaxed/simple;
+	bh=OHsXUCJlPYuFdPtc7gwZC+y804qz97TIM8DGMp81dPU=;
+	h=Date:To:From:Subject:Message-Id; b=brY/0njXpV4foWczp1sFPXfP9NCNBScDbFYAySMXN8TGE4a+FWZp0EypFObHYzJQxiUFsdmtRydoY66gX9tmG0iPIBIFRB4pZ7m4KavsH8oDEMSYQ/1b5bJE4B0rWH0PHTYkOFDpRGIXOlCPY+0iK2EM91TudBa3gOO7gl3lRrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TTVNGVQU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfNI5wK2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D517C4CED6;
-	Thu, 16 Jan 2025 05:44:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TTVNGVQU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC78FC4CED6;
+	Thu, 16 Jan 2025 05:44:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006253;
-	bh=nZ6oSlZ3ItWDsa8lJGWBSjEaK50vmg47219OO1AW2T4=;
+	s=korg; t=1737006254;
+	bh=OHsXUCJlPYuFdPtc7gwZC+y804qz97TIM8DGMp81dPU=;
 	h=Date:To:From:Subject:From;
-	b=VfNI5wK2lX515Vi1t8rUuw+zOC3yKJJO5iN9tej+I7IpWviINuMJsT1MJZom+9IrR
-	 6mT9yhFy/ixCWUzlG7qDJa1KCyb4K0iEHiFypGcmZf93TLmn4I7lcjfHycImaxfBvl
-	 5uIQV2u4I21sO+sPTdySj8KFRhEWdBUbffmPZB+Q=
-Date: Wed, 15 Jan 2025 21:44:12 -0800
+	b=TTVNGVQU+wUDsyWY9Mo157ah6b1QXDO1bYkFy72AgHCmMiWgMYX0cAoQyh/kZ3VSh
+	 mrQvHhPrDyVaUGPv2+pzheaJSAX0vPw33Te4dA47tMf22WKCytukYt15AgvmaBkCDX
+	 2xCdRCL0IpglO8zLES+Pf+1pt77+6+BR8hogZJDM=
+Date: Wed, 15 Jan 2025 21:44:14 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,v-songbaohua@oppo.com,ryan.roberts@arm.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch removed from -mm tree
-Message-Id: <20250116054413.4D517C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes.patch removed from -mm tree
+Message-Id: <20250116054414.BC78FC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: hold a reference during scan and cleanup flag usage
+     Subject: mm, swap: use an enum to define all cluster flags and wrap flags changes
 has been removed from the -mm tree.  Its filename was
-     mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage.patch
+     mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: hold a reference during scan and cleanup flag usage
-Date: Tue, 14 Jan 2025 01:57:26 +0800
+Subject: mm, swap: use an enum to define all cluster flags and wrap flags changes
+Date: Tue, 14 Jan 2025 01:57:27 +0800
 
-The flag SWP_SCANNING was used as an indicator of whether a device is
-being scanned for allocation, and prevents swapoff.  Combined with
-SWP_WRITEOK, they work as a set of barriers for a clean swapoff:
+Currently, we are only using flags to indicate which list the cluster is
+on.  Using one bit for each list type might be a waste, as the list type
+grows, we will consume too many bits.  Additionally, the current mixed
+usage of '&' and '==' is a bit confusing.
 
-1. Swapoff clears SWP_WRITEOK, allocation requests will see
-   ~SWP_WRITEOK and abort as it's serialized by si->lock.
-2. Swapoff unuses all allocated entries.
-3. Swapoff waits for SWP_SCANNING flag to be cleared, so ongoing
-   allocations will stop, preventing UAF.
-4. Now swapoff can free everything safely.
+Make it clean by using an enum to define all possible cluster statuses. 
+Only an off-list cluster will have the NONE (0) flag.  And use a wrapper
+to annotate and sanitize all flag settings and list movements.
 
-This will make the allocation path have a hard dependency on si->lock. 
-Allocation always have to acquire si->lock first for setting SWP_SCANNING
-and checking SWP_WRITEOK.
-
-This commit removes this flag, and just uses the existing per-CPU refcount
-instead to prevent UAF in step 3, which serves well for such usage without
-dependency on si->lock, and scales very well too.  Just hold a reference
-during the whole scan and allocation process.  Swapoff will kill and wait
-for the counter.
-
-And for preventing any allocation from happening after step 1 so the unuse
-in step 2 can ensure all slots are free, swapoff will acquire the ci->lock
-of each cluster one by one to ensure all allocations see ~SWP_WRITEOK and
-abort.
-
-This way these dependences on si->lock are gone.  And worth noting we
-can't kill the refcount as the first step for swapoff as the unuse process
-have to acquire the refcount.
-
-Link: https://lkml.kernel.org/r/20250113175732.48099-8-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250113175732.48099-9-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
+Suggested-by: Chris Li <chrisl@kernel.org>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chis Li <chrisl@kernel.org>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickens <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -92,183 +71,185 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swapfile.c        |   90 +++++++++++++++++++++++++----------------
- 2 files changed, 57 insertions(+), 34 deletions(-)
+ include/linux/swap.h |   17 +++++++--
+ mm/swapfile.c        |   76 +++++++++++++++++++++--------------------
+ 2 files changed, 53 insertions(+), 40 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage
+--- a/include/linux/swap.h~mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes
 +++ a/include/linux/swap.h
-@@ -219,7 +219,6 @@ enum {
- 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
- 	SWP_SYNCHRONOUS_IO = (1 << 12),	/* synchronous IO is efficient */
- 					/* add others here before... */
--	SWP_SCANNING	= (1 << 14),	/* refcount in scan_swap_map */
+@@ -256,10 +256,19 @@ struct swap_cluster_info {
+ 	u8 order;
+ 	struct list_head list;
  };
- 
- #define SWAP_CLUSTER_MAX 32UL
---- a/mm/swapfile.c~mm-swap-hold-a-reference-during-scan-and-cleanup-flag-usage
-+++ a/mm/swapfile.c
-@@ -658,6 +658,8 @@ static bool cluster_alloc_range(struct s
- {
- 	unsigned int nr_pages = 1 << order;
- 
-+	lockdep_assert_held(&ci->lock);
+-#define CLUSTER_FLAG_FREE 1 /* This cluster is free */
+-#define CLUSTER_FLAG_NONFULL 2 /* This cluster is on nonfull list */
+-#define CLUSTER_FLAG_FRAG 4 /* This cluster is on nonfull list */
+-#define CLUSTER_FLAG_FULL 8 /* This cluster is on full list */
 +
++/* All on-list cluster must have a non-zero flag. */
++enum swap_cluster_flags {
++	CLUSTER_FLAG_NONE = 0, /* For temporary off-list cluster */
++	CLUSTER_FLAG_FREE,
++	CLUSTER_FLAG_NONFULL,
++	CLUSTER_FLAG_FRAG,
++	/* Clusters with flags above are allocatable */
++	CLUSTER_FLAG_USABLE = CLUSTER_FLAG_FRAG,
++	CLUSTER_FLAG_FULL,
++	CLUSTER_FLAG_DISCARD,
++	CLUSTER_FLAG_MAX,
++};
+ 
+ /*
+  * The first page in the swap file is the swap header, which is always marked
+--- a/mm/swapfile.c~mm-swap-use-an-enum-to-define-all-cluster-flags-and-wrap-flags-changes
++++ a/mm/swapfile.c
+@@ -403,7 +403,7 @@ static void discard_swap_cluster(struct
+ 
+ static inline bool cluster_is_free(struct swap_cluster_info *info)
+ {
+-	return info->flags & CLUSTER_FLAG_FREE;
++	return info->flags == CLUSTER_FLAG_FREE;
+ }
+ 
+ static inline unsigned int cluster_index(struct swap_info_struct *si,
+@@ -434,6 +434,28 @@ static inline void unlock_cluster(struct
+ 	spin_unlock(&ci->lock);
+ }
+ 
++static void move_cluster(struct swap_info_struct *si,
++			 struct swap_cluster_info *ci, struct list_head *list,
++			 enum swap_cluster_flags new_flags)
++{
++	VM_WARN_ON(ci->flags == new_flags);
++
++	BUILD_BUG_ON(1 << sizeof(ci->flags) * BITS_PER_BYTE < CLUSTER_FLAG_MAX);
++
++	if (ci->flags == CLUSTER_FLAG_NONE) {
++		list_add_tail(&ci->list, list);
++	} else {
++		if (ci->flags == CLUSTER_FLAG_FRAG) {
++			VM_WARN_ON(!si->frag_cluster_nr[ci->order]);
++			si->frag_cluster_nr[ci->order]--;
++		}
++		list_move_tail(&ci->list, list);
++	}
++	ci->flags = new_flags;
++	if (new_flags == CLUSTER_FLAG_FRAG)
++		si->frag_cluster_nr[ci->order]++;
++}
++
+ /* Add a cluster to discard list and schedule it to do discard */
+ static void swap_cluster_schedule_discard(struct swap_info_struct *si,
+ 		struct swap_cluster_info *ci)
+@@ -447,10 +469,8 @@ static void swap_cluster_schedule_discar
+ 	 */
+ 	memset(si->swap_map + idx * SWAPFILE_CLUSTER,
+ 			SWAP_MAP_BAD, SWAPFILE_CLUSTER);
+-
+-	VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
+-	list_move_tail(&ci->list, &si->discard_clusters);
+-	ci->flags = 0;
++	VM_BUG_ON(ci->flags == CLUSTER_FLAG_FREE);
++	move_cluster(si, ci, &si->discard_clusters, CLUSTER_FLAG_DISCARD);
+ 	schedule_work(&si->discard_work);
+ }
+ 
+@@ -458,12 +478,7 @@ static void __free_cluster(struct swap_i
+ {
+ 	lockdep_assert_held(&si->lock);
+ 	lockdep_assert_held(&ci->lock);
+-
+-	if (ci->flags)
+-		list_move_tail(&ci->list, &si->free_clusters);
+-	else
+-		list_add_tail(&ci->list, &si->free_clusters);
+-	ci->flags = CLUSTER_FLAG_FREE;
++	move_cluster(si, ci, &si->free_clusters, CLUSTER_FLAG_FREE);
+ 	ci->order = 0;
+ }
+ 
+@@ -479,6 +494,8 @@ static void swap_do_scheduled_discard(st
+ 	while (!list_empty(&si->discard_clusters)) {
+ 		ci = list_first_entry(&si->discard_clusters, struct swap_cluster_info, list);
+ 		list_del(&ci->list);
++		/* Must clear flag when taking a cluster off-list */
++		ci->flags = CLUSTER_FLAG_NONE;
+ 		idx = cluster_index(si, ci);
+ 		spin_unlock(&si->lock);
+ 
+@@ -519,9 +536,6 @@ static void free_cluster(struct swap_inf
+ 	lockdep_assert_held(&si->lock);
+ 	lockdep_assert_held(&ci->lock);
+ 
+-	if (ci->flags & CLUSTER_FLAG_FRAG)
+-		si->frag_cluster_nr[ci->order]--;
+-
+ 	/*
+ 	 * If the swap is discardable, prepare discard the cluster
+ 	 * instead of free it immediately. The cluster will be freed
+@@ -573,13 +587,9 @@ static void dec_cluster_info_page(struct
+ 		return;
+ 	}
+ 
+-	if (!(ci->flags & CLUSTER_FLAG_NONFULL)) {
+-		VM_BUG_ON(ci->flags & CLUSTER_FLAG_FREE);
+-		if (ci->flags & CLUSTER_FLAG_FRAG)
+-			si->frag_cluster_nr[ci->order]--;
+-		list_move_tail(&ci->list, &si->nonfull_clusters[ci->order]);
+-		ci->flags = CLUSTER_FLAG_NONFULL;
+-	}
++	if (ci->flags != CLUSTER_FLAG_NONFULL)
++		move_cluster(si, ci, &si->nonfull_clusters[ci->order],
++			     CLUSTER_FLAG_NONFULL);
+ }
+ 
+ static bool cluster_reclaim_range(struct swap_info_struct *si,
+@@ -663,11 +673,13 @@ static bool cluster_alloc_range(struct s
  	if (!(si->flags & SWP_WRITEOK))
  		return false;
  
-@@ -1059,8 +1061,6 @@ static int cluster_alloc_swap(struct swa
- {
- 	int n_ret = 0;
- 
--	si->flags += SWP_SCANNING;
--
- 	while (n_ret < nr) {
- 		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
- 
-@@ -1069,8 +1069,6 @@ static int cluster_alloc_swap(struct swa
- 		slots[n_ret++] = swp_entry(si->type, offset);
++	VM_BUG_ON(ci->flags == CLUSTER_FLAG_NONE);
++	VM_BUG_ON(ci->flags > CLUSTER_FLAG_USABLE);
++
+ 	if (cluster_is_free(ci)) {
+-		if (nr_pages < SWAPFILE_CLUSTER) {
+-			list_move_tail(&ci->list, &si->nonfull_clusters[order]);
+-			ci->flags = CLUSTER_FLAG_NONFULL;
+-		}
++		if (nr_pages < SWAPFILE_CLUSTER)
++			move_cluster(si, ci, &si->nonfull_clusters[order],
++				     CLUSTER_FLAG_NONFULL);
+ 		ci->order = order;
  	}
  
--	si->flags -= SWP_SCANNING;
--
- 	return n_ret;
- }
+@@ -675,14 +687,8 @@ static bool cluster_alloc_range(struct s
+ 	swap_range_alloc(si, nr_pages);
+ 	ci->count += nr_pages;
  
-@@ -1112,6 +1110,22 @@ static int scan_swap_map_slots(struct sw
- 	return cluster_alloc_swap(si, usage, nr, slots, order);
- }
- 
-+static bool get_swap_device_info(struct swap_info_struct *si)
-+{
-+	if (!percpu_ref_tryget_live(&si->users))
-+		return false;
-+	/*
-+	 * Guarantee the si->users are checked before accessing other
-+	 * fields of swap_info_struct, and si->flags (SWP_WRITEOK) is
-+	 * up to dated.
-+	 *
-+	 * Paired with the spin_unlock() after setup_swap_info() in
-+	 * enable_swap_info(), and smp_wmb() in swapoff.
-+	 */
-+	smp_rmb();
-+	return true;
-+}
-+
- int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_order)
- {
- 	int order = swap_entry_order(entry_order);
-@@ -1139,13 +1153,16 @@ start_over:
- 		/* requeue si to after same-priority siblings */
- 		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
- 		spin_unlock(&swap_avail_lock);
--		spin_lock(&si->lock);
--		n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
--					    n_goal, swp_entries, order);
--		spin_unlock(&si->lock);
--		if (n_ret || size > 1)
--			goto check_out;
--		cond_resched();
-+		if (get_swap_device_info(si)) {
-+			spin_lock(&si->lock);
-+			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
-+					n_goal, swp_entries, order);
-+			spin_unlock(&si->lock);
-+			put_swap_device(si);
-+			if (n_ret || size > 1)
-+				goto check_out;
-+			cond_resched();
-+		}
- 
- 		spin_lock(&swap_avail_lock);
- 		/*
-@@ -1296,16 +1313,8 @@ struct swap_info_struct *get_swap_device
- 	si = swp_swap_info(entry);
- 	if (!si)
- 		goto bad_nofile;
--	if (!percpu_ref_tryget_live(&si->users))
-+	if (!get_swap_device_info(si))
- 		goto out;
--	/*
--	 * Guarantee the si->users are checked before accessing other
--	 * fields of swap_info_struct.
--	 *
--	 * Paired with the spin_unlock() after setup_swap_info() in
--	 * enable_swap_info().
--	 */
--	smp_rmb();
- 	offset = swp_offset(entry);
- 	if (offset >= si->max)
- 		goto put_out;
-@@ -1785,10 +1794,13 @@ swp_entry_t get_swap_page_of_type(int ty
- 		goto fail;
- 
- 	/* This is called for allocating swap entry, not cache */
--	spin_lock(&si->lock);
--	if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry, 0))
--		atomic_long_dec(&nr_swap_pages);
--	spin_unlock(&si->lock);
-+	if (get_swap_device_info(si)) {
-+		spin_lock(&si->lock);
-+		if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry, 0))
-+			atomic_long_dec(&nr_swap_pages);
-+		spin_unlock(&si->lock);
-+		put_swap_device(si);
-+	}
- fail:
- 	return entry;
- }
-@@ -2562,6 +2574,25 @@ bool has_usable_swap(void)
- 	return ret;
- }
- 
-+/*
-+ * Called after clearing SWP_WRITEOK, ensures cluster_alloc_range
-+ * see the updated flags, so there will be no more allocations.
-+ */
-+static void wait_for_allocation(struct swap_info_struct *si)
-+{
-+	unsigned long offset;
-+	unsigned long end = ALIGN(si->max, SWAPFILE_CLUSTER);
-+	struct swap_cluster_info *ci;
-+
-+	BUG_ON(si->flags & SWP_WRITEOK);
-+
-+	for (offset = 0; offset < end; offset += SWAPFILE_CLUSTER) {
-+		ci = lock_cluster(si, offset);
-+		unlock_cluster(ci);
-+		offset += SWAPFILE_CLUSTER;
-+	}
-+}
-+
- SYSCALL_DEFINE1(swapoff, const char __user *, specialfile)
- {
- 	struct swap_info_struct *p = NULL;
-@@ -2632,6 +2663,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	spin_unlock(&p->lock);
- 	spin_unlock(&swap_lock);
- 
-+	wait_for_allocation(p);
-+
- 	disable_swap_slots_cache_lock();
- 
- 	set_current_oom_origin();
-@@ -2674,15 +2707,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	spin_lock(&p->lock);
- 	drain_mmlist();
- 
--	/* wait for anyone still in scan_swap_map_slots */
--	while (p->flags >= SWP_SCANNING) {
--		spin_unlock(&p->lock);
--		spin_unlock(&swap_lock);
--		schedule_timeout_uninterruptible(1);
--		spin_lock(&swap_lock);
--		spin_lock(&p->lock);
+-	if (ci->count == SWAPFILE_CLUSTER) {
+-		VM_BUG_ON(!(ci->flags &
+-			  (CLUSTER_FLAG_FREE | CLUSTER_FLAG_NONFULL | CLUSTER_FLAG_FRAG)));
+-		if (ci->flags & CLUSTER_FLAG_FRAG)
+-			si->frag_cluster_nr[ci->order]--;
+-		list_move_tail(&ci->list, &si->full_clusters);
+-		ci->flags = CLUSTER_FLAG_FULL;
 -	}
--
- 	swap_file = p->swap_file;
- 	p->swap_file = NULL;
- 	p->max = 0;
++	if (ci->count == SWAPFILE_CLUSTER)
++		move_cluster(si, ci, &si->full_clusters, CLUSTER_FLAG_FULL);
+ 
+ 	return true;
+ }
+@@ -821,9 +827,7 @@ new_cluster:
+ 		while (!list_empty(&si->nonfull_clusters[order])) {
+ 			ci = list_first_entry(&si->nonfull_clusters[order],
+ 					      struct swap_cluster_info, list);
+-			list_move_tail(&ci->list, &si->frag_clusters[order]);
+-			ci->flags = CLUSTER_FLAG_FRAG;
+-			si->frag_cluster_nr[order]++;
++			move_cluster(si, ci, &si->frag_clusters[order], CLUSTER_FLAG_FRAG);
+ 			offset = alloc_swap_scan_cluster(si, cluster_offset(si, ci),
+ 							 &found, order, usage);
+ 			frags++;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
