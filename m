@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8557917BD6
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 01:52:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1548B4C81
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 04:04:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736992334; cv=none; b=XbwTdzWU31IeCuKN7srVfI5r8I/+sZ5ruoISROEyyacnSzyNcgKUFM+K0+N9e6St8ZFkUhxtEyUe1A0duFCKMVgEMlvJrBoSybl0+9Wq6RnSkNQLhso6uNips4nCPzviwSqa1SJzGifIxj+3zcmcfDRw+MuW9/rNEuc+ASiPN3E=
+	t=1737000246; cv=none; b=GYenq5+FAZV2uCW5u1/G5+ZTjjtDVC3oX4PKwzDVBLSXuPmCSGBDZ+nYwYQwx1chtQkp1jsvaOw+sIoSJCHAQtcQeKRci5XHtBxM+emPxZHGgB8rFzZ5STXyOdmVUOoiOFOgPxAq5QJGKomZHP7SJrgdlPoey0XQ+/YAS9Vjz5c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736992334; c=relaxed/simple;
-	bh=lKWvGMiYCPiBGH1oWb6qha0pXGeKYUZ1kRL5FK4TEmc=;
-	h=Date:To:From:Subject:Message-Id; b=F/xZNsWF/TTyjhtIeR1RUU+/dWbdkvURBaSTxgO0awgWdljXM9bPrbGP3b2jXid/kOo9v6jSkzaEB8MwGOheCA3tpX20/Dxob1yId9KHw8vuVKrOWshQnZr76wAEFJD4nVcgN4OkReBTuys/03YtfGxW/UGjn0HVO4bGeMsdArA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jbk098v0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737000246; c=relaxed/simple;
+	bh=rtzUbHvOUnpYiVU0PjANQgaD9h7ZtQ1h+RyEVUlNG4w=;
+	h=Date:To:From:Subject:Message-Id; b=K8/h9FXEuhKTol/Ide0HotVKyFI5cSyz/s1dAtjTQAS1w9OeGc4zqoyS9JJNNH9bSwT7LThYzf3Io20ZNvG/Umn6tIPVFoPd6ZlWX7I0uh3FujoXX3othsP6ervDlQ7TuKTSKlAXeN4N+bvXyZyRi1TeYBywvIJvUiosRntNPMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l30jizVq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jbk098v0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01440C4CED1;
-	Thu, 16 Jan 2025 01:52:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l30jizVq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C63A0C4CEE3;
+	Thu, 16 Jan 2025 04:04:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736992334;
-	bh=lKWvGMiYCPiBGH1oWb6qha0pXGeKYUZ1kRL5FK4TEmc=;
+	s=korg; t=1737000245;
+	bh=rtzUbHvOUnpYiVU0PjANQgaD9h7ZtQ1h+RyEVUlNG4w=;
 	h=Date:To:From:Subject:From;
-	b=Jbk098v0tTlAYot2xZAkNQbRganZU+qbJG+9BUYyGTEuiIl69h9KETFnsNKYqnZNu
-	 6o6wBQUxqW1DOOgt9e7LwNE4LPeSjgD1hpayziq0b5vnyCgppLDTVj4D55UAS9PMhZ
-	 IAY3d7jUZUKfoOseYeoxiqnQZYigpW5b2TApPQOM=
-Date: Wed, 15 Jan 2025 17:52:13 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,hughd@google.com,gabriel@krisman.be,brauner@kernel.org,andrealmeid@igalia.com,karansanghvi98@gmail.com,akpm@linux-foundation.org
+	b=l30jizVqPNhUtCv1ho0sKH0GmHlBEG5NrcteDBSn1jr3jv1Vs8O3TJW02187+7y1h
+	 6Ddx7mtRtu97sjWrG6Ua+IAdWHUr79ntXAbFoIJuaNOJbrATgkztnEciv746Xm0wPI
+	 V4+fe+O5AmwMVrbrHJ5jJpr3KBmWSii+gvFZpxKw=
+Date: Wed, 15 Jan 2025 20:04:05 -0800
+To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,shuah@kernel.org,riel@surriel.com,alexlzhu@fb.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-shmem-use-signed-int-for-version-handling-in-casefold-option.patch removed from -mm tree
-Message-Id: <20250116015214.01440C4CED1@smtp.kernel.org>
+Subject: + selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch added to mm-unstable branch
+Message-Id: <20250116040405.C63A0C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,49 +34,78 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: shmem: use signed int for version handling in casefold option
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-use-signed-int-for-version-handling-in-casefold-option.patch
+The patch titled
+     Subject: selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Karan Sanghavi <karansanghvi98@gmail.com>
-Subject: mm: shmem: use signed int for version handling in casefold option
-Date: Sat, 11 Jan 2025 15:31:30 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
+Date: Wed, 15 Jan 2025 21:57:59 -0500
 
-Fixes an issue where the use of an unsigned data type in
-`shmem_parse_opt_casefold()` caused incorrect evaluation of negative
-conditions.
+no need to test splitting to order-1
 
-Link: https://lkml.kernel.org/r/20250111-unsignedcompare1601569-v3-1-c861b4221831@gmail.com
-Fixes: 58e55efd6c72 ("tmpfs: Add casefold lookup support")
-Reviewed-by: André Almeida <andrealmeid@igalia.com>
-Reviewed-by: Gabriel Krisman Bertazi <gabriel@krisman.be>
-Signed-off-by: Karan Sanghavi <karansanghvi98@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickens <hughd@google.com>
-Cc: Shuah khan <skhan@linuxfoundation.org>
+Anonymous memory does not support order-1 folio, so there is no need to
+test splitting to order-1.  Kernel will WARN_ONCE for
+split_pmd_thp_to_order(1) test and the whole test will fail at that point.
+
+Link: https://lkml.kernel.org/r/DDA202EA-4664-4F50-A7FD-B00CBB7A624B@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Alexander Zhu <alexlzhu@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-use-signed-int-for-version-handling-in-casefold-option
-+++ a/mm/shmem.c
-@@ -4368,7 +4368,7 @@ static int shmem_parse_opt_casefold(stru
- 				    bool latest_version)
- {
- 	struct shmem_options *ctx = fc->fs_private;
--	unsigned int version = UTF8_LATEST;
-+	int version = UTF8_LATEST;
- 	struct unicode_map *encoding;
- 	char *version_str = param->string + 5;
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -481,7 +481,7 @@ int main(int argc, char **argv)
+ 	if (argc > 1)
+ 		optional_xfs_path = argv[1];
  
+-	ksft_set_plan(1+9+2+9);
++	ksft_set_plan(1+8+2+9);
+ 
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+@@ -494,7 +494,8 @@ int main(int argc, char **argv)
+ 	split_pmd_zero_pages();
+ 
+ 	for (i = 0; i < 9; i++)
+-		split_pmd_thp_to_order(i);
++		if (i != 1)
++			split_pmd_thp_to_order(i);
+ 
+ 	split_pte_mapped_thp();
+ 	split_file_backed_thp();
 _
 
-Patches currently in -mm which might be from karansanghvi98@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
+selftests-mm-use-selftests-framework-to-print-test-result.patch
+selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders.patch
+selftests-mm-add-tests-for-splitting-pmd-thps-to-all-lower-orders-fix.patch
 
