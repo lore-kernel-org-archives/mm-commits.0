@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 889041DC993
-	for <mm-commits@vger.kernel.org>; Wed, 15 Jan 2025 23:42:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8557917BD6
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 01:52:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736984575; cv=none; b=RmSlbtyOukG2lKCVYE9LNDZg1DeGerrkDPWMVqvLAj30TJ5cnRMjdNfODf0isinrINbiIpvShiSeXdm7BHVIQZi8DoAFuED7NEM/rCwyISuUQ193CCp6ePiRsjbnEN37S/x9C+zJOgLTM6/wjh2D6N7fI+5c0Ig76jlsfufe6gE=
+	t=1736992334; cv=none; b=XbwTdzWU31IeCuKN7srVfI5r8I/+sZ5ruoISROEyyacnSzyNcgKUFM+K0+N9e6St8ZFkUhxtEyUe1A0duFCKMVgEMlvJrBoSybl0+9Wq6RnSkNQLhso6uNips4nCPzviwSqa1SJzGifIxj+3zcmcfDRw+MuW9/rNEuc+ASiPN3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736984575; c=relaxed/simple;
-	bh=Qxf+7DLSCHl4D+0R1f0YcBy4sxIsezOCrXxmquAzGFs=;
-	h=Date:To:From:Subject:Message-Id; b=VlEbLb0kto5HJTJBu2uujukoelQqw6fTGP63dhUjHbti9jqlcGTxfwY5Itp+NmSrvcerjB6Mccj+UoWDcqBs61JdjkqLromNsx8buP+D7d5F6eSu7YCX0rnypebAPFj55QLSIoFhi1VVNWwfvCu9W4LCOKQaJ6yjUmdoO8ZGvAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EHFBheDh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1736992334; c=relaxed/simple;
+	bh=lKWvGMiYCPiBGH1oWb6qha0pXGeKYUZ1kRL5FK4TEmc=;
+	h=Date:To:From:Subject:Message-Id; b=F/xZNsWF/TTyjhtIeR1RUU+/dWbdkvURBaSTxgO0awgWdljXM9bPrbGP3b2jXid/kOo9v6jSkzaEB8MwGOheCA3tpX20/Dxob1yId9KHw8vuVKrOWshQnZr76wAEFJD4nVcgN4OkReBTuys/03YtfGxW/UGjn0HVO4bGeMsdArA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jbk098v0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EHFBheDh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3A58C4CED1;
-	Wed, 15 Jan 2025 23:42:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jbk098v0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01440C4CED1;
+	Thu, 16 Jan 2025 01:52:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1736984575;
-	bh=Qxf+7DLSCHl4D+0R1f0YcBy4sxIsezOCrXxmquAzGFs=;
+	s=korg; t=1736992334;
+	bh=lKWvGMiYCPiBGH1oWb6qha0pXGeKYUZ1kRL5FK4TEmc=;
 	h=Date:To:From:Subject:From;
-	b=EHFBheDhGzBUNmzfUFMTb9rHQLZ4KaNJJyVoMXDDdqiupRKvSjAFvELCMlHmmdhTl
-	 Eodlyja5GR4TwVTXnu7rViCJ4LjAsusxoEPedGTS53cDw7aCsTjToOaE3xgO/kGCNW
-	 K03OwkhdOqtxGTmHVadOG0Ngjc98Y1dUBLyMm/oI=
-Date: Wed, 15 Jan 2025 15:42:54 -0800
-To: mm-commits@vger.kernel.org,mhocko@suse.com,yuntao.wang@linux.dev,akpm@linux-foundation.org
+	b=Jbk098v0tTlAYot2xZAkNQbRganZU+qbJG+9BUYyGTEuiIl69h9KETFnsNKYqnZNu
+	 6o6wBQUxqW1DOOgt9e7LwNE4LPeSjgD1hpayziq0b5vnyCgppLDTVj4D55UAS9PMhZ
+	 IAY3d7jUZUKfoOseYeoxiqnQZYigpW5b2TApPQOM=
+Date: Wed, 15 Jan 2025 17:52:13 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,hughd@google.com,gabriel@krisman.be,brauner@kernel.org,andrealmeid@igalia.com,karansanghvi98@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-the-incorrect-and-misleading-comment.patch added to mm-unstable branch
-Message-Id: <20250115234254.F3A58C4CED1@smtp.kernel.org>
+Subject: [merged] mm-shmem-use-signed-int-for-version-handling-in-casefold-option.patch removed from -mm tree
+Message-Id: <20250116015214.01440C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,76 +34,49 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/page_alloc: remove the incorrect and misleading comment
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-the-incorrect-and-misleading-comment.patch
+The quilt patch titled
+     Subject: mm: shmem: use signed int for version handling in casefold option
+has been removed from the -mm tree.  Its filename was
+     mm-shmem-use-signed-int-for-version-handling-in-casefold-option.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-the-incorrect-and-misleading-comment.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yuntao Wang <yuntao.wang@linux.dev>
-Subject: mm/page_alloc: remove the incorrect and misleading comment
-Date: Wed, 15 Jan 2025 12:16:34 +0800
+From: Karan Sanghavi <karansanghvi98@gmail.com>
+Subject: mm: shmem: use signed int for version handling in casefold option
+Date: Sat, 11 Jan 2025 15:31:30 +0000
 
-The comment removed in this patch originally belonged to the
-build_zonelists_in_zone_order() function, which was introduced by commit
-f0c0b2b808f2 ("change zonelist order: zonelist order selection logic").
+Fixes an issue where the use of an unsigned data type in
+`shmem_parse_opt_casefold()` caused incorrect evaluation of negative
+conditions.
 
-Later, commit c9bff3eebc09 ("mm, page_alloc: rip out ZONELIST_ORDER_ZONE")
-removed build_zonelists_in_zone_order() but left its comment behind.
-
-Subsequently, commit 9d3be21bf9c0 ("mm, page_alloc: simplify zonelist
-initialization") moved the node_order variable into build_zonelists(),
-making the comment originally belonged to build_zonelists_in_zone_order()
-appear as if it were part of build_zonelists().
-
-Remove this misleading comment.
-
-Link: https://lkml.kernel.org/r/20250115041634.63387-1-yuntao.wang@linux.dev
-Signed-off-by: Yuntao Wang <yuntao.wang@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20250111-unsignedcompare1601569-v3-1-c861b4221831@gmail.com
+Fixes: 58e55efd6c72 ("tmpfs: Add casefold lookup support")
+Reviewed-by: André Almeida <andrealmeid@igalia.com>
+Reviewed-by: Gabriel Krisman Bertazi <gabriel@krisman.be>
+Signed-off-by: Karan Sanghavi <karansanghvi98@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Shuah khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-the-incorrect-and-misleading-comment
-+++ a/mm/page_alloc.c
-@@ -5159,13 +5159,6 @@ static void build_thisnode_zonelists(pg_
- 	zonerefs->zone_idx = 0;
- }
- 
--/*
-- * Build zonelists ordered by zone and nodes within zones.
-- * This results in conserving DMA zone[s] until all Normal memory is
-- * exhausted, but results in overflowing to remote node while memory
-- * may still exist in local DMA zone.
-- */
--
- static void build_zonelists(pg_data_t *pgdat)
+--- a/mm/shmem.c~mm-shmem-use-signed-int-for-version-handling-in-casefold-option
++++ a/mm/shmem.c
+@@ -4368,7 +4368,7 @@ static int shmem_parse_opt_casefold(stru
+ 				    bool latest_version)
  {
- 	static int node_order[MAX_NUMNODES];
+ 	struct shmem_options *ctx = fc->fs_private;
+-	unsigned int version = UTF8_LATEST;
++	int version = UTF8_LATEST;
+ 	struct unicode_map *encoding;
+ 	char *version_str = param->string + 5;
+ 
 _
 
-Patches currently in -mm which might be from yuntao.wang@linux.dev are
+Patches currently in -mm which might be from karansanghvi98@gmail.com are
 
-mm-page_alloc-remove-the-incorrect-and-misleading-comment.patch
 
