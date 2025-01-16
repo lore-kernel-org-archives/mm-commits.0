@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23A3913B58A
-	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:45:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09584C81
+	for <mm-commits@vger.kernel.org>; Thu, 16 Jan 2025 05:48:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737006318; cv=none; b=tz393QHsSwxoeL9CA8Qc8pGdZ46viBh+pb7WNvLwkIECEQUJDHAaSniL9C8IyZMKol8EgspysPgIt9YRIkSmfo7nr6FE1MfYtZyG9b7t8XCzhNrwwY4G6i0eXVrg6+ll8ePP1wulqhZhhcqKXM5vQsRuV0/gcd1Yol/HGnIWshQ=
+	t=1737006481; cv=none; b=B0Y7khyRZHmBd08nx5AlWvlyLjf4ez0/unDC65ey1Qi63mzcicRzOg6ccZbRjLMxw1EcLp/hDspFjJU8oHeBrrkM7twf4TVctT5iymSmoVN57L7EB5aQHSiG1fyOwnTO1hrFE3hekFEbfqdtmt/rnxOiCnl/vA7KW1Sd6VqcGNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737006318; c=relaxed/simple;
-	bh=hcf3tRWEVYrX59Hw3mT6f8HYk79WHRo+VrRLGAxKtig=;
-	h=Date:To:From:Subject:Message-Id; b=mtXb8IVH+elMvbDg0y0zCkDjYSq3v4TfkUDKdShNElnQvOxC0E7Ng016CzdVCjvLSEUztUlHU9YRAOOcaMaYguV26Jvfyl2XwQqHTdltwewyQukCcgpt8AAotikLRV8MnoWArCF4FSubEN3G9Ddy7m4Ql/1cMsN1IDKSw1ieZy4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oJ6VSot9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737006481; c=relaxed/simple;
+	bh=pJpsiNkgSVaUwinx8V5KFdE4dVpQcscEMxawe0raVuo=;
+	h=Date:To:From:Subject:Message-Id; b=BICXcCio3m9BnAqJMPwscJCGbUUooDNQu+HWEenzAeAHRxAAEKOuqBoAASVBc7liiw2FCAB7Y5V5dOLptXibY4Bx9bhSIgkNinBJXp0pugILUegBzuF19hgAkzZOnK6y+fiHMVf12XyKXgrkOQ2eT+dsqXpfK3unnocxCi1AmEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RaLpKmGq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oJ6VSot9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 942E8C4CED6;
-	Thu, 16 Jan 2025 05:45:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RaLpKmGq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD82EC4CED6;
+	Thu, 16 Jan 2025 05:48:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737006316;
-	bh=hcf3tRWEVYrX59Hw3mT6f8HYk79WHRo+VrRLGAxKtig=;
+	s=korg; t=1737006480;
+	bh=pJpsiNkgSVaUwinx8V5KFdE4dVpQcscEMxawe0raVuo=;
 	h=Date:To:From:Subject:From;
-	b=oJ6VSot9RBsAW7kHLE3XhxWaOku6oIcxM6+RZnV7dNPSSKz2loO6euiU9Po1EIQ8E
-	 CB2T2/Q75RzjHDlgD7JMS2pXPaqxX4+K+Nd1sA0nKs08s7FG29kP2YMG2OSRjzeK0A
-	 cemJ2nAJePeAZlLnogeyzGslyEqDTD23k0ZPUMUE=
-Date: Wed, 15 Jan 2025 21:45:16 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,muchun.song@linux.dev,baolin.wang@linux.alibaba.com,david@redhat.com,akpm@linux-foundation.org
+	b=RaLpKmGq6hjC2KYaqGvU/VTLt5cHUiyC6dG3rzGJSRS73u4wrV5oIJjd+MriZ7w8s
+	 W7WRcWuI+17YwYS/0/ZFng1rGpPUwvnF4/BfoAHYoyjKNgX2rDjoQyPefYq4+/Mehe
+	 O3v17vn6q0kUMuls+Qbqtld8MJIqy9IUIokU0FxY=
+Date: Wed, 15 Jan 2025 21:48:00 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,pedro.falcato@gmail.com,mjguzik@gmail.com,lorenzo.stoakes@oracle.com,Jason@zx2c4.com,hch@infradead.org,david.laight@aculab.com,dan.carpenter@linaro.org,axboe@kernel.dk,arnd@kernel.org,andriy.shevchenko@linux.intel.com,David.Laight@ACULAB.COM,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-use-folio-lru-int-demote_free_hugetlb_folios.patch removed from -mm tree
-Message-Id: <20250116054516.942E8C4CED6@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] minmaxh-add-whitespace-around-operators-and-after-commas.patch removed from -mm tree
+Message-Id: <20250116054800.BD82EC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,126 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: use folio->lru int demote_free_hugetlb_folios()
+     Subject: minmax.h: add whitespace around operators and after commas
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-use-folio-lru-int-demote_free_hugetlb_folios.patch
+     minmaxh-add-whitespace-around-operators-and-after-commas.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/hugetlb: use folio->lru int demote_free_hugetlb_folios()
-Date: Mon, 13 Jan 2025 14:16:11 +0100
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: minmax.h: add whitespace around operators and after commas
+Date: Mon, 18 Nov 2024 19:11:24 +0000
 
-We are demoting hugetlb folios to smaller hugetlb folios; let's avoid
-messing with pages where avoidable and handle it more similar to
-__split_huge_page_tail().
+Patch series "minmax.h: Cleanups and minor optimisations".
 
-Link: https://lkml.kernel.org/r/20250113131611.2554758-7-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Some tidyups and minor changes to minmax.h.
+
+
+This patch (of 7):
+
+Link: https://lkml.kernel.org/r/c50365d214e04f9ba256d417c8bebbc0@AcuMS.aculab.com
+Link: https://lkml.kernel.org/r/f04b2e1310244f62826267346fde0553@AcuMS.aculab.com
+Signed-off-by: David Laight <david.laight@aculab.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/minmax.h |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-folio-lru-int-demote_free_hugetlb_folios
-+++ a/mm/hugetlb.c
-@@ -3826,13 +3826,15 @@ static long demote_free_hugetlb_folios(s
+--- a/include/linux/minmax.h~minmaxh-add-whitespace-around-operators-and-after-commas
++++ a/include/linux/minmax.h
+@@ -51,10 +51,10 @@
+  * only need to be careful to not cause warnings for
+  * pointer use.
+  */
+-#define __signed_type_use(x,ux) (2+__is_nonneg(x,ux))
+-#define __unsigned_type_use(x,ux) (1+2*(sizeof(ux)<4))
+-#define __sign_use(x,ux) (is_signed_type(typeof(ux))? \
+-	__signed_type_use(x,ux):__unsigned_type_use(x,ux))
++#define __signed_type_use(x, ux) (2 + __is_nonneg(x, ux))
++#define __unsigned_type_use(x, ux) (1 + 2 * (sizeof(ux) < 4))
++#define __sign_use(x, ux) (is_signed_type(typeof(ux)) ? \
++	__signed_type_use(x, ux) : __unsigned_type_use(x, ux))
  
- 		for (i = 0; i < pages_per_huge_page(src); i += pages_per_huge_page(dst)) {
- 			struct page *page = folio_page(folio, i);
-+			/* Careful: see __split_huge_page_tail() */
-+			struct folio *new_folio = (struct folio *)page;
+ /*
+  * To avoid warnings about casting pointers to integers
+@@ -74,15 +74,15 @@
+ #ifdef CONFIG_64BIT
+   #define __signed_type(ux) long
+ #else
+-  #define __signed_type(ux) typeof(__builtin_choose_expr(sizeof(ux)>4,1LL,1L))
++  #define __signed_type(ux) typeof(__builtin_choose_expr(sizeof(ux) > 4, 1LL, 1L))
+ #endif
+-#define __is_nonneg(x,ux) statically_true((__signed_type(ux))(x)>=0)
++#define __is_nonneg(x, ux) statically_true((__signed_type(ux))(x) >= 0)
  
--			page->mapping = NULL;
- 			clear_compound_head(page);
- 			prep_compound_page(page, dst->order);
+-#define __types_ok(x,y,ux,uy) \
+-	(__sign_use(x,ux) & __sign_use(y,uy))
++#define __types_ok(x, y, ux, uy) \
++	(__sign_use(x, ux) & __sign_use(y, uy))
  
--			init_new_hugetlb_folio(dst, page_folio(page));
--			list_add(&page->lru, &dst_list);
-+			new_folio->mapping = NULL;
-+			init_new_hugetlb_folio(dst, new_folio);
-+			list_add(&new_folio->lru, &dst_list);
- 		}
- 	}
+-#define __types_ok3(x,y,z,ux,uy,uz) \
+-	(__sign_use(x,ux) & __sign_use(y,uy) & __sign_use(z,uz))
++#define __types_ok3(x, y, z, ux, uy, uz) \
++	(__sign_use(x, ux) & __sign_use(y, uy) & __sign_use(z, uz))
  
+ #define __cmp_op_min <
+ #define __cmp_op_max >
+@@ -97,7 +97,7 @@
+ 
+ #define __careful_cmp_once(op, x, y, ux, uy) ({		\
+ 	__auto_type ux = (x); __auto_type uy = (y);	\
+-	BUILD_BUG_ON_MSG(!__types_ok(x,y,ux,uy),	\
++	BUILD_BUG_ON_MSG(!__types_ok(x, y, ux, uy),	\
+ 		#op"("#x", "#y") signedness error");	\
+ 	__cmp(op, ux, uy); })
+ 
+@@ -114,7 +114,7 @@
+ 	static_assert(__builtin_choose_expr(__is_constexpr((lo) > (hi)), 	\
+ 			(lo) <= (hi), true),					\
+ 		"clamp() low limit " #lo " greater than high limit " #hi);	\
+-	BUILD_BUG_ON_MSG(!__types_ok3(val,lo,hi,uval,ulo,uhi),			\
++	BUILD_BUG_ON_MSG(!__types_ok3(val, lo, hi, uval, ulo, uhi),		\
+ 		"clamp("#val", "#lo", "#hi") signedness error");		\
+ 	__clamp(uval, ulo, uhi); })
+ 
+@@ -154,7 +154,7 @@
+ 
+ #define __careful_op3(op, x, y, z, ux, uy, uz) ({			\
+ 	__auto_type ux = (x); __auto_type uy = (y);__auto_type uz = (z);\
+-	BUILD_BUG_ON_MSG(!__types_ok3(x,y,z,ux,uy,uz),			\
++	BUILD_BUG_ON_MSG(!__types_ok3(x, y, z, ux, uy, uz),		\
+ 		#op"3("#x", "#y", "#z") signedness error");		\
+ 	__cmp(op, ux, __cmp(op, uy, uz)); })
+ 
+@@ -326,9 +326,9 @@ static inline bool in_range32(u32 val, u
+  * Use these carefully: no type checking, and uses the arguments
+  * multiple times. Use for obvious constants only.
+  */
+-#define MIN(a,b) __cmp(min,a,b)
+-#define MAX(a,b) __cmp(max,a,b)
+-#define MIN_T(type,a,b) __cmp(min,(type)(a),(type)(b))
+-#define MAX_T(type,a,b) __cmp(max,(type)(a),(type)(b))
++#define MIN(a, b) __cmp(min, a, b)
++#define MAX(a, b) __cmp(max, a, b)
++#define MIN_T(type, a, b) __cmp(min, (type)(a), (type)(b))
++#define MAX_T(type, a, b) __cmp(max, (type)(a), (type)(b))
+ 
+ #endif	/* _LINUX_MINMAX_H */
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from David.Laight@ACULAB.COM are
 
 
