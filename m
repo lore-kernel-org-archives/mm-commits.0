@@ -1,91 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5C61F63DB;
-	Fri, 17 Jan 2025 05:13:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96A8A1A2C06;
+	Fri, 17 Jan 2025 17:10:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737090805; cv=none; b=KlYZIMHDJQOLRLvkPooYDqXKPkMQ+E07e2aiVfK/ffDEdlpk6mgR00o6YAGokDw0JXmFT321F0UGNuXkNsL73q+KXhatnuzdnrQ+bQaVK4WFXyNz7OLvRhcUQkkrohKoWWcmmMtjwcU//EepvImVSMja6/uI4c2Zrr5e68am1QY=
+	t=1737133859; cv=none; b=PtHJGyhv1pd1kXNnlb6brrBcP41u5D6OtY+TLBLQCeVSaOx5jpGaU7FbvA2mHKX1wGbv/bGA7ILGfTwC/HReLNXk6ilBGbYmT6PgOZ8dMi0+ME9f5iSlpetFuXyjdRV1bLH4/T6B172LzIxQTupfP+8lUOU7CB84Uoi3NwRj/I0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737090805; c=relaxed/simple;
-	bh=gDijFMa7NL0+tyAHamYHaEIr1TuYlKsPJDYzeDOwtPU=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=UPCr4v7+1tlpiiJUFOi7G+5/xy1eLqEzMCGT2mhx4RkQmETi+q8HRiJRaSjMpB0K1SfAcR+hv910B/2KLrArg1//fdOmBwbr0AOVIB6wgyXkA/JxaAXXLXrDGcgDj3A4is+b5uVoFfvoeKgbxLiPCDT5b4aiPW0YODItdwbm1fc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kp2AVpfz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737133859; c=relaxed/simple;
+	bh=231PICht/XzJu8EdyxcdRB6A8DLCsXaXF9+UB4Patp4=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=G03mTdOyPKTKYPrjAhLV7WJxzbWcO1t+FL1FKqUve8t1PO5P3n1TW7TpgkFtyFye792lBhxEDiMni1TA0pZPX/VqcwymFAxS9oQ1Yqq0dsP/IfPfibHzLufqfyl+M50VwT6fCMowE/1fYf10jsWlv7bm+6T62fB9qZMCx4K3/4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KyhyQvJh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kp2AVpfz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97372C4CEE0;
-	Fri, 17 Jan 2025 05:13:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737090803;
-	bh=gDijFMa7NL0+tyAHamYHaEIr1TuYlKsPJDYzeDOwtPU=;
-	h=Date:From:To:Cc:Subject:From;
-	b=kp2AVpfzpn72B9CI74Iy68ncqPh+uJIrIbGoXIpohLOKkEfPqQHJuGoETKbqtgEeL
-	 Pa/nEfgMXvp5J/pPmec1NQjF7zaheedx+DLeNvnAUc5hd7uxJKo6eofqSGJtsDrYoA
-	 kIcbtVK4KY70qINBwgNngFzUjp4qLDoQkywZEjTw=
-Date: Thu, 16 Jan 2025 21:13:22 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.13
-Message-Id: <20250116211322.19c20e534e96f37c3608792f@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KyhyQvJh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F9C7C4CEDD;
+	Fri, 17 Jan 2025 17:10:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1737133859;
+	bh=231PICht/XzJu8EdyxcdRB6A8DLCsXaXF9+UB4Patp4=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=KyhyQvJhG9GZcuMWfVJEiaz7Zp7wHghCTB1vVcY71/ropN6EKgMZqbO6Neml0qZWR
+	 6WHuC37gWow7uCt4xzG8+0b04ZcH+b7XmT6HG64+P9O913O5OY36TizDsnd5c7b56V
+	 tPcPUxSJAeT69swt3DE/zs+SL7jcKDnO9Z+p4lEqK1HBConMbW1Nle7Nc4yriZnTod
+	 JZoKujQK2KSlF+Mb18sABVEECg6Tlj7JJew4K6goKXPa/psu+Uh38StCfYEj+wzaoH
+	 77HJd9+JHeUvLbGYXEDdSDB440QWSbtKn2ToILIHhKeb+Dv5KoClE4jJrF2eRDROS7
+	 z0+LBflBiwdjQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id AE085380AA6A;
+	Fri, 17 Jan 2025 17:11:23 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.13
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250116211322.19c20e534e96f37c3608792f@linux-foundation.org>
+References: <20250116211322.19c20e534e96f37c3608792f@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20250116211322.19c20e534e96f37c3608792f@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-01-16-21-11
+X-PR-Tracked-Commit-Id: b0fce54b8c0d8e5f2b4c243c803c5996e73baee8
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: ad26fc09dabfa6a33ad5baee80479f518370b316
+Message-Id: <173713388237.2196808.12893035516705475269.pr-tracker-bot@kernel.org>
+Date: Fri, 17 Jan 2025 17:11:22 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Thu, 16 Jan 2025 21:13:22 -0800:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-01-16-21-11
 
-The following changes since commit cbc5dde0a461240046e8a41c43d7c3b76d5db952:
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/ad26fc09dabfa6a33ad5baee80479f518370b316
 
-  fs/proc: fix softlockup in __read_vmcore (part 2) (2025-01-12 19:03:38 -0800)
+Thank you!
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-01-16-21-11
-
-for you to fetch changes up to b0fce54b8c0d8e5f2b4c243c803c5996e73baee8:
-
-  ocfs2: check dir i_size in ocfs2_find_entry (2025-01-15 21:15:44 -0800)
-
-----------------------------------------------------------------
-7 singleton hotfixes.  6 are MM.  2 are cc:stable and the remainder
-address post-6.12 issues.
-
-----------------------------------------------------------------
-Ethan Carter Edwards (1):
-      mailmap: update entry for Ethan Carter Edwards
-
-Karan Sanghavi (1):
-      mm: shmem: use signed int for version handling in casefold option
-
-Liu Shixin (1):
-      mm: khugepaged: fix call hpage_collapse_scan_file() for anonymous vma
-
-Su Yue (1):
-      ocfs2: check dir i_size in ocfs2_find_entry
-
-Suren Baghdasaryan (1):
-      alloc_tag: skip pgalloc_tag_swap if profiling is disabled
-
-Yosry Ahmed (1):
-      mm: zswap: move allocations during CPU init outside the lock
-
-zihan zhou (1):
-      mm: page_alloc: fix missed updates of lowmem_reserve in adjust_managed_page_count
-
- .mailmap        |  1 +
- fs/ocfs2/dir.c  | 25 +++++++++++++++++++++----
- lib/alloc_tag.c |  3 +++
- mm/khugepaged.c |  4 ++--
- mm/page_alloc.c |  3 +++
- mm/shmem.c      |  2 +-
- mm/zswap.c      | 42 ++++++++++++++++++++++++------------------
- 7 files changed, 55 insertions(+), 25 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
