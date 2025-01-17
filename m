@@ -1,78 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38454433AD
-	for <mm-commits@vger.kernel.org>; Fri, 17 Jan 2025 02:27:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5C61F63DB;
+	Fri, 17 Jan 2025 05:13:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737080821; cv=none; b=i3BIEKXsPyE96amcvC3/XtORiUjh0OsyGm77L8UzucNX36Z4OeJVZ0H+alyFa5oTHqwyJVqN2sAXa1zclblZO8DAudGxCJKoF9hybCZC6GM9ikS3+cKUbDr2er+LXsxoTWY/iIogmISR9qaaEL5MMBQ/PqXLvrMzzC/tjuSzzqI=
+	t=1737090805; cv=none; b=KlYZIMHDJQOLRLvkPooYDqXKPkMQ+E07e2aiVfK/ffDEdlpk6mgR00o6YAGokDw0JXmFT321F0UGNuXkNsL73q+KXhatnuzdnrQ+bQaVK4WFXyNz7OLvRhcUQkkrohKoWWcmmMtjwcU//EepvImVSMja6/uI4c2Zrr5e68am1QY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737080821; c=relaxed/simple;
-	bh=xd0LhuD3Mn+XCTJDo25MLP9qE/e1bbBrDNtV35nDxGc=;
-	h=Date:To:From:Subject:Message-Id; b=LPDJvlQIurXOM7Wi4QHjtRVkIq/Kko4Hq7VjHz3YfZpbW35vYh0wFmPrBhhzUdWbmy2HmV9AQWHxGh4w75MwzmweKv/u5eEs4IFOGkTJrpEur3JtEXxIHy+1s+yaWkWwZM9DOBMisySvIhXnKmwUJeXOJRQZ+KqFcNEzj0jzrms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E/bf3/gR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737090805; c=relaxed/simple;
+	bh=gDijFMa7NL0+tyAHamYHaEIr1TuYlKsPJDYzeDOwtPU=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=UPCr4v7+1tlpiiJUFOi7G+5/xy1eLqEzMCGT2mhx4RkQmETi+q8HRiJRaSjMpB0K1SfAcR+hv910B/2KLrArg1//fdOmBwbr0AOVIB6wgyXkA/JxaAXXLXrDGcgDj3A4is+b5uVoFfvoeKgbxLiPCDT5b4aiPW0YODItdwbm1fc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kp2AVpfz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E/bf3/gR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3550C4CED6;
-	Fri, 17 Jan 2025 02:27:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kp2AVpfz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97372C4CEE0;
+	Fri, 17 Jan 2025 05:13:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737080820;
-	bh=xd0LhuD3Mn+XCTJDo25MLP9qE/e1bbBrDNtV35nDxGc=;
-	h=Date:To:From:Subject:From;
-	b=E/bf3/gR1MnNB/S6WoSfGmWCBM8d29VtC/EcGzhO3Rh4mV9l+MKHntN9haj0MsvDo
-	 S3rSTM4jq+0xuuA2MdkreFJK+2sNgeWVbsq2c7iKdkGS2qQQiAoechcm4HMgWezOu4
-	 8/wdBwswVphHDdcI7vFgGpk12hBh8hPj8H/OncOk=
-Date: Thu, 16 Jan 2025 18:27:00 -0800
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,jserv@ccns.ncku.edu.tw,corbet@lwn.net,richard120310@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1737090803;
+	bh=gDijFMa7NL0+tyAHamYHaEIr1TuYlKsPJDYzeDOwtPU=;
+	h=Date:From:To:Cc:Subject:From;
+	b=kp2AVpfzpn72B9CI74Iy68ncqPh+uJIrIbGoXIpohLOKkEfPqQHJuGoETKbqtgEeL
+	 Pa/nEfgMXvp5J/pPmec1NQjF7zaheedx+DLeNvnAUc5hd7uxJKo6eofqSGJtsDrYoA
+	 kIcbtVK4KY70qINBwgNngFzUjp4qLDoQkywZEjTw=
+Date: Thu, 16 Jan 2025 21:13:22 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] docs-mm-physical-memory-remove-zone_t.patch removed from -mm tree
-Message-Id: <20250117022700.D3550C4CED6@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.13
+Message-Id: <20250116211322.19c20e534e96f37c3608792f@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The quilt patch titled
-     Subject: docs/mm: physical memory: Remove zone_t
-has been removed from the -mm tree.  Its filename was
-     docs-mm-physical-memory-remove-zone_t.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+The following changes since commit cbc5dde0a461240046e8a41c43d7c3b76d5db952:
 
-------------------------------------------------------
-From: I Hsin Cheng <richard120310@gmail.com>
-Subject: docs/mm: physical memory: Remove zone_t
-Date: Wed, 15 Jan 2025 15:03:55 +0800
+  fs/proc: fix softlockup in __read_vmcore (part 2) (2025-01-12 19:03:38 -0800)
 
-"zone_t" doesn't exist in current code base anymore, remove the
-description of it.
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/20250115070355.41769-1-richard120310@gmail.com
-Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-01-16-21-11
 
- Documentation/mm/physical_memory.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+for you to fetch changes up to b0fce54b8c0d8e5f2b4c243c803c5996e73baee8:
 
---- a/Documentation/mm/physical_memory.rst~docs-mm-physical-memory-remove-zone_t
-+++ a/Documentation/mm/physical_memory.rst
-@@ -33,7 +33,7 @@ The entire physical address space is par
- called zones which represent ranges within memory. These ranges are usually
- determined by architectural constraints for accessing the physical memory.
- The memory range within a node that corresponds to a particular zone is
--described by a ``struct zone``, typedeffed to ``zone_t``. Each zone has
-+described by a ``struct zone``. Each zone has
- one of the types described below.
- 
- * ``ZONE_DMA`` and ``ZONE_DMA32`` historically represented memory suitable for
-_
+  ocfs2: check dir i_size in ocfs2_find_entry (2025-01-15 21:15:44 -0800)
 
-Patches currently in -mm which might be from richard120310@gmail.com are
+----------------------------------------------------------------
+7 singleton hotfixes.  6 are MM.  2 are cc:stable and the remainder
+address post-6.12 issues.
 
+----------------------------------------------------------------
+Ethan Carter Edwards (1):
+      mailmap: update entry for Ethan Carter Edwards
+
+Karan Sanghavi (1):
+      mm: shmem: use signed int for version handling in casefold option
+
+Liu Shixin (1):
+      mm: khugepaged: fix call hpage_collapse_scan_file() for anonymous vma
+
+Su Yue (1):
+      ocfs2: check dir i_size in ocfs2_find_entry
+
+Suren Baghdasaryan (1):
+      alloc_tag: skip pgalloc_tag_swap if profiling is disabled
+
+Yosry Ahmed (1):
+      mm: zswap: move allocations during CPU init outside the lock
+
+zihan zhou (1):
+      mm: page_alloc: fix missed updates of lowmem_reserve in adjust_managed_page_count
+
+ .mailmap        |  1 +
+ fs/ocfs2/dir.c  | 25 +++++++++++++++++++++----
+ lib/alloc_tag.c |  3 +++
+ mm/khugepaged.c |  4 ++--
+ mm/page_alloc.c |  3 +++
+ mm/shmem.c      |  2 +-
+ mm/zswap.c      | 42 ++++++++++++++++++++++++------------------
+ 7 files changed, 55 insertions(+), 25 deletions(-)
 
