@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E932179DC
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181A8C8CE
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737337141; cv=none; b=iLJ36ScY1/y+3lE9K8SqWm2W3PopufpaR3tT5UajBd1DzX2mIqLlK65QQWmk/5aqeHJbN6bYeji81ZMwKUIGmqoJRin93C3VqJ/ME0QqUtzThopnThG5iMkZcsSpjaK4Am8VwEjalJtFxIxsUkMGQQLmwzp+fGlUWmwDJHJaP0k=
+	t=1737337142; cv=none; b=hTWkmkd+8GlSWlg5MPuOh3P+rHaY0sKXfqr0QbBdxgILbQfubY0wkEoqkkfj2h4xXJ95Lv2lP+bUjCIHX16NhNDLx0MH/PEny7ADKHU4hkwLa8DNQ97XPu+uuJ0MSfEyuZEmL8Qko6pPfjiVc+RBZSQ7RcFcECoUUlM8v/K3AhM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737337141; c=relaxed/simple;
-	bh=vSh/kptDMGancNCDVHWN0q/I2nCpUaV9WRHJ5+W2Tcs=;
-	h=Date:To:From:Subject:Message-Id; b=III4ZIbG79IXx/DvClBolEIShtD7cx/OXs1WtHuM2ksgVaXjE+KC4rV0zjaKaZvaTkUYwIz1uTN5/kj7vojKLfClUeXrDGLr3lYKLow42S6N7iNA9P7dU2CE0GFiDy1wJeAENFxaKbcHqm1AO7gXD968LYCEqtlyCb5anljmgoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmXNkFiF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737337142; c=relaxed/simple;
+	bh=C1Y1taqRbBcwX9Euq2cCOBSdr/ZrIETNyQ6x93I6oWE=;
+	h=Date:To:From:Subject:Message-Id; b=fWvDQQSAoZZYn5tE0nsqDFbKV05e7H896n1TQU/pIlMM4zMLycbM6LFP+jLPk/yjqWSXzIdtlrFwPMItOcIbwCvalaynDiueB/FeKREAXUsJ2j9gJ4Ci4QYYudF1qEl35ynVzC5OvYzyew1ToeoH0iqo6VhuMmDzlUW39UDzbn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wVO/oMZ3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmXNkFiF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39E43C4CED6;
-	Mon, 20 Jan 2025 01:39:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wVO/oMZ3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C772C4CED6;
+	Mon, 20 Jan 2025 01:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737337140;
-	bh=vSh/kptDMGancNCDVHWN0q/I2nCpUaV9WRHJ5+W2Tcs=;
+	s=korg; t=1737337141;
+	bh=C1Y1taqRbBcwX9Euq2cCOBSdr/ZrIETNyQ6x93I6oWE=;
 	h=Date:To:From:Subject:From;
-	b=FmXNkFiFbVx7FekolT9EWM018bbH93Hsx2aDOQ7l4hdms1x/+ElGobgsRo1L7QuzG
-	 U3KivcHhkgCjzCzLoODQRpniMvG4X3cvgQC5PhrAZVMkRcPEPTlfQGrXFXHxzSgbw1
-	 7LSm8O2CYnJm60t1u+v27mBoaDfGvUsx91RYgTL8=
-Date: Sun, 19 Jan 2025 17:38:59 -0800
+	b=wVO/oMZ37KiMic2XMUxOPTItT3qYoswgATrki+XTWlAVhqlUKDea1d7Mhka8b3Zju
+	 MGd/TA9ywlXdt86wVS1+Tnqgz2KPRtRjumwg0ZRz/WufR0k5xJclFFhS0BUA8ucYt1
+	 HgEmxpwicEBhMY9HlPlvDZnWUTjixdtYq+r3uONo=
+Date: Sun, 19 Jan 2025 17:39:00 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,kirill.shutemov@linux.intel.com,hch@lst.de,hannes@cmpxchg.org,clm@meta.com,bfoster@redhat.com,axboe@kernel.dk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-change-filemap_create_folio-to-take-a-struct-kiocb.patch removed from -mm tree
-Message-Id: <20250120013900.39E43C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-filemap-use-page_cache_sync_ra-to-kick-off-read-ahead.patch removed from -mm tree
+Message-Id: <20250120013901.7C772C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,192 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/filemap: change filemap_create_folio() to take a struct kiocb
+     Subject: mm/filemap: use page_cache_sync_ra() to kick off read-ahead
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-change-filemap_create_folio-to-take-a-struct-kiocb.patch
+     mm-filemap-use-page_cache_sync_ra-to-kick-off-read-ahead.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jens Axboe <axboe@kernel.dk>
-Subject: mm/filemap: change filemap_create_folio() to take a struct kiocb
-Date: Fri, 20 Dec 2024 08:47:39 -0700
+Subject: mm/filemap: use page_cache_sync_ra() to kick off read-ahead
+Date: Fri, 20 Dec 2024 08:47:40 -0700
 
-Patch series "Uncached buffered IO", v8.
-
-5 years ago I posted patches adding support for RWF_UNCACHED, as a way to
-do buffered IO that isn't page cache persistent.  The approach back then
-was to have private pages for IO, and then get rid of them once IO was
-done.  But that then runs into all the issues that O_DIRECT has, in terms
-of synchronizing with the page cache.
-
-So here's a new approach to the same concent, but using the page cache as
-synchronization.  Due to excessive bike shedding on the naming, this is
-now named RWF_DONTCACHE, and is less special in that it's just page cache
-IO, except it prunes the ranges once IO is completed.
-
-Why do this, you may ask?  The tldr is that device speeds are only getting
-faster, while reclaim is not.  Doing normal buffered IO can be very
-unpredictable, and suck up a lot of resources on the reclaim side.  This
-leads people to use O_DIRECT as a work-around, which has its own set of
-restrictions in terms of size, offset, and length of IO.  It's also
-inherently synchronous, and now you need async IO as well.  While the
-latter isn't necessarily a big problem as we have good options available
-there, it also should not be a requirement when all you want to do is read
-or write some data without caching.
-
-Even on desktop type systems, a normal NVMe device can fill the entire
-page cache in seconds.  On the big system I used for testing, there's a
-lot more RAM, but also a lot more devices.  As can be seen in some of the
-results in the following patches, you can still fill RAM in seconds even
-when there's 1TB of it.  Hence this problem isn't solely a "big
-hyperscaler system" issue, it's common across the board.
-
-Common for both reads and writes with RWF_DONTCACHE is that they use the
-page cache for IO.  Reads work just like a normal buffered read would,
-with the only exception being that the touched ranges will get pruned
-after data has been copied.  For writes, the ranges will get writeback
-kicked off before the syscall returns, and then writeback completion will
-prune the range.  Hence writes aren't synchronous, and it's easy to
-pipeline writes using RWF_DONTCACHE.  Folios that aren't instantiated by
-RWF_DONTCACHE IO are left untouched.  This means you that uncached IO will
-take advantage of the page cache for uptodate data, but not leave anything
-it instantiated/created in cache.
-
-File systems need to support this.  This patchset adds support for the
-generic read path, which covers file systems like ext4.  Patches exist to
-add support for iomap/XFS and btrfs as well, which sit on top of this
-series.  If RWF_DONTCACHE IO is attempted on a file system that doesn't
-support it, -EOPNOTSUPP is returned.  Hence the user can rely on it either
-working as designed, or flagging and error if that's not the case.  The
-intent here is to give the application a sensible fallback path - eg, it
-may fall back to O_DIRECT if appropriate, or just live with the fact that
-uncached IO isn't available and do normal buffered IO.
-
-Adding "support" to other file systems should be trivial, most of the time
-just a one-liner adding FOP_DONTCACHE to the fop_flags in the
-file_operations struct, if the file system is using either iomap or the
-generic filemap helpers for reading and writing.
-
-Performance results are in patch 8 for reads, and you can find the write
-side results in the XFS patch adding support for DONTCACHE writes for XFS:
-
-https://git.kernel.dk/cgit/linux/commit/?h=buffered-uncached-fs.10&id=257e92de795fdff7d7e256501e024fac6da6a7f4
-
-with the tldr being that I see about a 65% improvement in performance for
-both, with fully predictable IO times.  CPU reduction is substantial as
-well, with no kswapd activity at all for reclaim when using uncached IO.
-
-Using it from applications is trivial - just set RWF_DONTCACHE for the
-read or write, using pwritev2(2) or preadv2(2).  For io_uring, same thing,
-just set RWF_DONTCACHE in sqe->rw_flags for a buffered read/write
-operation.  And that's it.
-
-Patches 1..7 are just prep patches, and should have no functional changes
-at all.  Patch 8 adds support for the filemap path for RWF_DONTCACHE
-reads, and patches 9..12 are just prep patches for supporting the write
-side of uncached writes.  In the below mentioned branch, there are then
-patches to adopt uncached reads and writes for xfs, btrfs, and ext4.  The
-latter currently relies on bit of a hack for passing whether this is an
-uncached write or not through ->write_begin(), which can hopefully go away
-once ext4 adopts iomap for buffered writes.  I say this is a hack as it's
-not the prettiest way to do it, however it is fully solid and will work
-just fine.
-
-Passes full xfstests and fsx overnight runs, no issues observed.  That
-includes the vm running the testing also using RWF_DONTCACHE on the host. 
-I'll post fsstress and fsx patches for RWF_DONTCACHE separately.  As far
-as I'm concerned, no further work needs doing here.
-
-And git tree for the patches is here:
-
-https://git.kernel.dk/cgit/linux/log/?h=buffered-uncached.10
-
-with the file system patches on top adding support for xfs/btrfs/ext4
-here:
-
-https://git.kernel.dk/cgit/linux/log/?h=buffered-uncached-fs.10
-
-
-This patch (of 12):
-
-Rather than pass in both the file and position directly from the kiocb,
-just take a struct kiocb instead.  With the kiocb being passed in, skip
-passing in the address_space separately as well.  While doing so, move the
-ki_flags checking into filemap_create_folio() as well.  In preparation for
-actually needing the kiocb in the function.
+Rather than use the page_cache_sync_readahead() helper, define our own
+ractl and use page_cache_sync_ra() directly.  In preparation for needing
+to modify ractl inside filemap_get_pages().
 
 No functional changes in this patch.
 
-Link: https://lkml.kernel.org/r/20241220154831.1086649-1-axboe@kernel.dk
-Link: https://lkml.kernel.org/r/20241220154831.1086649-2-axboe@kernel.dk
+Link: https://lkml.kernel.org/r/20241220154831.1086649-3-axboe@kernel.dk
 Signed-off-by: Jens Axboe <axboe@kernel.dk>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Chris Mason <clm@meta.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/filemap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-change-filemap_create_folio-to-take-a-struct-kiocb
+--- a/mm/filemap.c~mm-filemap-use-page_cache_sync_ra-to-kick-off-read-ahead
 +++ a/mm/filemap.c
-@@ -2431,15 +2431,17 @@ unlock_mapping:
- 	return error;
- }
- 
--static int filemap_create_folio(struct file *file,
--		struct address_space *mapping, loff_t pos,
--		struct folio_batch *fbatch)
-+static int filemap_create_folio(struct kiocb *iocb, struct folio_batch *fbatch)
+@@ -2499,7 +2499,6 @@ static int filemap_get_pages(struct kioc
  {
-+	struct address_space *mapping = iocb->ki_filp->f_mapping;
+ 	struct file *filp = iocb->ki_filp;
+ 	struct address_space *mapping = filp->f_mapping;
+-	struct file_ra_state *ra = &filp->f_ra;
+ 	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
+ 	pgoff_t last_index;
  	struct folio *folio;
- 	int error;
- 	unsigned int min_order = mapping_min_folio_order(mapping);
- 	pgoff_t index;
+@@ -2514,12 +2513,13 @@ retry:
  
-+	if (iocb->ki_flags & (IOCB_NOWAIT | IOCB_WAITQ))
-+		return -EAGAIN;
-+
- 	folio = filemap_alloc_folio(mapping_gfp_mask(mapping), min_order);
- 	if (!folio)
- 		return -ENOMEM;
-@@ -2458,7 +2460,7 @@ static int filemap_create_folio(struct f
- 	 * well to keep locking rules simple.
- 	 */
- 	filemap_invalidate_lock_shared(mapping);
--	index = (pos >> (PAGE_SHIFT + min_order)) << min_order;
-+	index = (iocb->ki_pos >> (PAGE_SHIFT + min_order)) << min_order;
- 	error = filemap_add_folio(mapping, folio, index,
- 			mapping_gfp_constraint(mapping, GFP_KERNEL));
- 	if (error == -EEXIST)
-@@ -2466,7 +2468,8 @@ static int filemap_create_folio(struct f
- 	if (error)
- 		goto error;
- 
--	error = filemap_read_folio(file, mapping->a_ops->read_folio, folio);
-+	error = filemap_read_folio(iocb->ki_filp, mapping->a_ops->read_folio,
-+					folio);
- 	if (error)
- 		goto error;
- 
-@@ -2522,9 +2525,7 @@ retry:
- 		filemap_get_read_batch(mapping, index, last_index - 1, fbatch);
- 	}
+ 	filemap_get_read_batch(mapping, index, last_index - 1, fbatch);
  	if (!folio_batch_count(fbatch)) {
--		if (iocb->ki_flags & (IOCB_NOWAIT | IOCB_WAITQ))
--			return -EAGAIN;
--		err = filemap_create_folio(filp, mapping, iocb->ki_pos, fbatch);
-+		err = filemap_create_folio(iocb, fbatch);
- 		if (err == AOP_TRUNCATED_PAGE)
- 			goto retry;
- 		return err;
++		DEFINE_READAHEAD(ractl, filp, &filp->f_ra, mapping, index);
++
+ 		if (iocb->ki_flags & IOCB_NOIO)
+ 			return -EAGAIN;
+ 		if (iocb->ki_flags & IOCB_NOWAIT)
+ 			flags = memalloc_noio_save();
+-		page_cache_sync_readahead(mapping, ra, filp, index,
+-				last_index - index);
++		page_cache_sync_ra(&ractl, last_index - index);
+ 		if (iocb->ki_flags & IOCB_NOWAIT)
+ 			memalloc_noio_restore(flags);
+ 		filemap_get_read_batch(mapping, index, last_index - 1, fbatch);
 _
 
 Patches currently in -mm which might be from axboe@kernel.dk are
