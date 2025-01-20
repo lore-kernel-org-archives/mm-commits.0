@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDCA8BEC
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48A978BEC
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737337170; cv=none; b=CXvhjR7dAD6DNzz0794ARsKO1CEM7kAGjmLejI/ovb8+WElmiOPb3t62yWwpQQ7p5bx8TGMHVnCMD/ooXoyd8XgqJJK/myhZO72Hm2SizSisRleWcY18Gj5UR35QUdTo1lUXItKDtLQEKdtWi6RjNx1ttK8FqkmihL83xDxNGn0=
+	t=1737337172; cv=none; b=DtGBh+fQ+trZo05Hto7P/dqgzECIiFHYTWELXyAFM1wmQY39FXEC32K8o15mxMAsdIxF0nYAr9/ChxF+F2nTQhQ/aqZyCjs2A5wrRBwsa2zxlqHrVNHQccGRqhBsUqZPLN0TbOIdyMYQoERP65H8YO0H4a2NMSTuATXPZyljMEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737337170; c=relaxed/simple;
-	bh=1kiG7sZyGBNR76HgcRfQ2eOJ5GNKsqI0+qRtEf5hU6Q=;
-	h=Date:To:From:Subject:Message-Id; b=UI9TuUxcgo1kk7E4nCnUQjXyFoWOBafIzDacaekQw3GI867V4WXNGNfTNq3rk67NtvEJ27vvd0Js0j/Y+mbcFuU4TNfjKscIobTtF9KurECMWu70zGcM0T1r3I6Pff6a6ykFLpD+m0C5NOJheowNErDFcVchXEjMJ4novkE5Qt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xD+8/N+j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737337172; c=relaxed/simple;
+	bh=135Ls2hhTtFX8ZcAbcaSFuhjOw7TYmXu8J4wo+//6cM=;
+	h=Date:To:From:Subject:Message-Id; b=oQkGQzK0MC7Zv+bd77rQ+dVaglTnxlaCyapv8GE0ap2HIAUtRt+9WM/w1uOlTM2RpFwKkPgg3OLYGk6GS/vu/RCzX8nm5tiKWb0fUUOueMiMlw2P41DtN40NLTGx6Eui1Bux1N0iE2cZ4seuI+A85z/Uqrk6ZvWxSZoWzbXRq2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TLbK28UY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xD+8/N+j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E92C4CED6;
-	Mon, 20 Jan 2025 01:39:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TLbK28UY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD53EC4CED6;
+	Mon, 20 Jan 2025 01:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737337170;
-	bh=1kiG7sZyGBNR76HgcRfQ2eOJ5GNKsqI0+qRtEf5hU6Q=;
+	s=korg; t=1737337171;
+	bh=135Ls2hhTtFX8ZcAbcaSFuhjOw7TYmXu8J4wo+//6cM=;
 	h=Date:To:From:Subject:From;
-	b=xD+8/N+jq1/4uMMYM8A0n1yU/QyDrt/XX/nm6pr6mqB0KDqqFiTXMWYqiorOJT9fp
-	 DWO85bKWAlIjK/nIOwwFRGDc9/gzLRlbl3PKPRmtaL4O8cyJRYiZBltpRgu8B3JUZp
-	 Q7tLP241CcVEMLWaVUzVZ0JQ+TR9vSysLG6qK3vU=
-Date: Sun, 19 Jan 2025 17:39:30 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=TLbK28UYMpg0TIgj4KrBEQpYsV6wth5dAVE3KVTkJk+R8m5uhhUd18mgYhtKanffF
+	 kFv6Ga5o/zA5Jcr8nVJlfWzFjwmjIujvEFujzlfYLiqjMGfSOJRCGpuWdkArK35K/n
+	 jyOMnpcNZbTNnren3QQbCgwIKBIvK3RQVDguxpTQ=
+Date: Sun, 19 Jan 2025 17:39:31 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@Oracle.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us.patch removed from -mm tree
-Message-Id: <20250120013930.A3E92C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] tools-add-vm_warn_on_vmg-definition.patch removed from -mm tree
+Message-Id: <20250120013931.BD53EC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: use str_high_low() helper in damos_wmark_wait_us()
+     Subject: tools: add VM_WARN_ON_VMG definition
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us.patch
+     tools-add-vm_warn_on_vmg-definition.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: mm/damon/core: use str_high_low() helper in damos_wmark_wait_us()
-Date: Thu, 16 Jan 2025 21:42:16 +0100
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: tools: add VM_WARN_ON_VMG definition
+Date: Thu, 16 Jan 2025 10:15:38 -0800
 
-Remove hard-coded strings by using the str_high_low() helper function.
+vma tests compilation yields the following error:
 
-Link: https://lkml.kernel.org/r/20250116204216.106999-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+vma.c:732:9: error: implicit declaration of function ‘VM_WARN_ON_VMG’
+
+Fix it by adding missing VM_WARN_ON_VMG() definition.
+
+Link: https://lkml.kernel.org/r/20250116181538.759469-1-surenb@google.com
+Fixes: e3a7ae85f87c ("mm/debug: prefer VM_WARN_ON_VMG() to report VMG debug warnings")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/vma/vma_internal.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/core.c~mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us
-+++ a/mm/damon/core.c
-@@ -14,6 +14,7 @@
- #include <linux/psi.h>
- #include <linux/slab.h>
- #include <linux/string.h>
-+#include <linux/string_choices.h>
+--- a/tools/testing/vma/vma_internal.h~tools-add-vm_warn_on_vmg-definition
++++ a/tools/testing/vma/vma_internal.h
+@@ -38,6 +38,7 @@ extern unsigned long dac_mmap_min_addr;
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/damon.h>
-@@ -2075,9 +2076,8 @@ static unsigned long damos_wmark_wait_us
- 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
- 		if (scheme->wmarks.activated)
- 			pr_debug("deactivate a scheme (%d) for %s wmark\n",
--					scheme->action,
--					metric > scheme->wmarks.high ?
--					"high" : "low");
-+				 scheme->action,
-+				 str_high_low(metric > scheme->wmarks.high));
- 		scheme->wmarks.activated = false;
- 		return scheme->wmarks.interval;
- 	}
+ #define VM_WARN_ON(_expr) (WARN_ON(_expr))
+ #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
++#define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
+ #define VM_BUG_ON(_expr) (BUG_ON(_expr))
+ #define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
+ 
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from surenb@google.com are
 
-ocfs2-use-str_yes_no-and-str_no_yes-helper-functions.patch
 
