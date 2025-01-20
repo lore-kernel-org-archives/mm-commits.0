@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED0B8BEC
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDCA8BEC
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737337170; cv=none; b=sFXN6xc78BNofXLOiJxW4Z31blNA3q9eJBYFFtJoNnjIMnZ6qyVTgF+5d2P9u1skwogVFmplBZ5SNb2lHdsRzEO8zZlrDMfSd3UQeqbS6O+5Cq8vcigFe9opIp6jKqtEsC4IM3QhMig7WqCjVBROQCzy0JtH1sd3RuZBIZaBL+M=
+	t=1737337170; cv=none; b=CXvhjR7dAD6DNzz0794ARsKO1CEM7kAGjmLejI/ovb8+WElmiOPb3t62yWwpQQ7p5bx8TGMHVnCMD/ooXoyd8XgqJJK/myhZO72Hm2SizSisRleWcY18Gj5UR35QUdTo1lUXItKDtLQEKdtWi6RjNx1ttK8FqkmihL83xDxNGn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737337170; c=relaxed/simple;
-	bh=7eyTnRtrA5Lw+AkYbitE74e9Sjr499pF6v8YGAEqOUA=;
-	h=Date:To:From:Subject:Message-Id; b=aryJmwHEojSXYvy/d/HGAWlqG9bhvY5U1wVYQkCBU3/G3sVWhrS/oyhG1qsjj+WPrp/f5ZRqZHMGtyqNRtDgnIjk3nu68NNxWXs54HulZfOPZ4X3xOY+Kcxfo/74iCmjz12dfjPiOvmsYWfwy0Qs2apZLkGvFYU5+x1XE1xOm+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OPdJPNs7; arc=none smtp.client-ip=10.30.226.201
+	bh=1kiG7sZyGBNR76HgcRfQ2eOJ5GNKsqI0+qRtEf5hU6Q=;
+	h=Date:To:From:Subject:Message-Id; b=UI9TuUxcgo1kk7E4nCnUQjXyFoWOBafIzDacaekQw3GI867V4WXNGNfTNq3rk67NtvEJ27vvd0Js0j/Y+mbcFuU4TNfjKscIobTtF9KurECMWu70zGcM0T1r3I6Pff6a6ykFLpD+m0C5NOJheowNErDFcVchXEjMJ4novkE5Qt8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xD+8/N+j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OPdJPNs7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C66C4CED6;
-	Mon, 20 Jan 2025 01:39:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xD+8/N+j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E92C4CED6;
+	Mon, 20 Jan 2025 01:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737337169;
-	bh=7eyTnRtrA5Lw+AkYbitE74e9Sjr499pF6v8YGAEqOUA=;
+	s=korg; t=1737337170;
+	bh=1kiG7sZyGBNR76HgcRfQ2eOJ5GNKsqI0+qRtEf5hU6Q=;
 	h=Date:To:From:Subject:From;
-	b=OPdJPNs7CFoetyu0UPdnTpSUT2LqbBZ7oFykVifzpf2Voe67wTrwdeBp1BXTLfmMs
-	 5n2EqSYnhow0kKmXx0sxIpxDSNoeazNwC0aQgMuf4YZrexdmfS4lY+U2nM9qiY07Vp
-	 FgQ/gzzQnwDIdy43hzb9DbtiybXrWgIJLblK9Z/w=
-Date: Sun, 19 Jan 2025 17:39:29 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,sfr@canb.auug.org.au,peterz@infradead.org,mingo@redhat.com,longman@redhat.com,liam.howlett@oracle.com,david@redhat.com,boqun.feng@gmail.com,surenb@google.com,akpm@linux-foundation.org
+	b=xD+8/N+jq1/4uMMYM8A0n1yU/QyDrt/XX/nm6pr6mqB0KDqqFiTXMWYqiorOJT9fp
+	 DWO85bKWAlIjK/nIOwwFRGDc9/gzLRlbl3PKPRmtaL4O8cyJRYiZBltpRgu8B3JUZp
+	 Q7tLP241CcVEMLWaVUzVZ0JQ+TR9vSysLG6qK3vU=
+Date: Sun, 19 Jan 2025 17:39:30 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] seqlock-add-missing-parameter-documentation-for-raw_seqcount_try_begin.patch removed from -mm tree
-Message-Id: <20250120013929.96C66C4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us.patch removed from -mm tree
+Message-Id: <20250120013930.A3E92C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: seqlock: add missing parameter documentation for raw_seqcount_try_begin()
+     Subject: mm/damon/core: use str_high_low() helper in damos_wmark_wait_us()
 has been removed from the -mm tree.  Its filename was
-     seqlock-add-missing-parameter-documentation-for-raw_seqcount_try_begin.patch
+     mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: seqlock: add missing parameter documentation for raw_seqcount_try_begin()
-Date: Thu, 16 Jan 2025 10:27:30 -0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: mm/damon/core: use str_high_low() helper in damos_wmark_wait_us()
+Date: Thu, 16 Jan 2025 21:42:16 +0100
 
-Add missing documentation for raw_seqcount_try_begin() start parameter.
+Remove hard-coded strings by using the str_high_low() helper function.
 
-Link: https://lkml.kernel.org/r/20250116182730.801497-1-surenb@google.com
-Fixes: dba4761a3e40 ("seqlock: add raw_seqcount_try_begin")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lore.kernel.org/all/20250116170522.23e884d5@canb.auug.org.au/
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Waiman Long <longman@redhat.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20250116204216.106999-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seqlock.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/seqlock.h~seqlock-add-missing-parameter-documentation-for-raw_seqcount_try_begin
-+++ a/include/linux/seqlock.h
-@@ -322,6 +322,7 @@ SEQCOUNT_LOCKNAME(mutex,        struct m
-  * raw_seqcount_try_begin() - begin a seqcount_t read critical section
-  *                            w/o lockdep and w/o counter stabilization
-  * @s: Pointer to seqcount_t or any of the seqcount_LOCKNAME_t variants
-+ * @start: count to be passed to read_seqcount_retry()
-  *
-  * Similar to raw_seqcount_begin(), except it enables eliding the critical
-  * section entirely if odd, instead of doing the speculation knowing it will
+--- a/mm/damon/core.c~mm-damon-core-use-str_high_low-helper-in-damos_wmark_wait_us
++++ a/mm/damon/core.c
+@@ -14,6 +14,7 @@
+ #include <linux/psi.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/string_choices.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/damon.h>
+@@ -2075,9 +2076,8 @@ static unsigned long damos_wmark_wait_us
+ 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
+ 		if (scheme->wmarks.activated)
+ 			pr_debug("deactivate a scheme (%d) for %s wmark\n",
+-					scheme->action,
+-					metric > scheme->wmarks.high ?
+-					"high" : "low");
++				 scheme->action,
++				 str_high_low(metric > scheme->wmarks.high));
+ 		scheme->wmarks.activated = false;
+ 		return scheme->wmarks.interval;
+ 	}
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
+ocfs2-use-str_yes_no-and-str_no_yes-helper-functions.patch
 
