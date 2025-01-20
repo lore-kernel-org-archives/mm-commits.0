@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70637EAC5
-	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 845DCEAC5
+	for <mm-commits@vger.kernel.org>; Mon, 20 Jan 2025 01:39:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737337165; cv=none; b=iDBidkBK6vyoohFVKz7Fn+ZRmSEL1uEWS112Pm08Y3pwToUTqaM4r9mHzti0NC6KeANsGDSRrAcqqVg2tRZZoxF8q8JUB1waH38c816yHbHpvOW3LWoP4Ra7AMtCvbAXGJLuUdCT0LWtv+dtcOfAWDOkPQCwI4hHIPvavYqTq8c=
+	t=1737337166; cv=none; b=ptrQWvbQQdhWbzm6lUg9c8j4htJOpFI3AaOLHbcr4QtYjKCFjdFmNB1nXe8d2EKDz9HgLG0MNw7O3Baf+bqM6tS6KUrsAdU8Fw5tvwWiKYTtEGmxUPtKUjwoA2eXFrZ/pjybCjYTo4GKkjOxOPizPcwP8xKTdapljZ2iYup+xow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737337165; c=relaxed/simple;
-	bh=Xj1XrQv4jhQNDV6CuwvaeZx9ULCeEEe2F3psIhkSb0M=;
-	h=Date:To:From:Subject:Message-Id; b=SMTc8LshL8E7hMBExhouzObt3sGt7l8FO/bTNirQFX2GoMieOhETRiYiuZgX5FpcCFq/d5bWyiIMvp9LICUv6VgsiMLxMdvmb4hzzAyJ0WclL9TJKTZwmMkR3hTHCspXTfcWiG5TkwIvZ/c+ZriFMtA9KhrV02+PMQHGfiIoSjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Km0huwJ1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737337166; c=relaxed/simple;
+	bh=W/iahzEXZBgL179z6Zm/QbobmpkDIO0SM0RrYYmDvqc=;
+	h=Date:To:From:Subject:Message-Id; b=da6XUdYqEdwjzFj/UCcClsSP+VdRbabwgI4wh3h8Ktrw95fOEzYzF3iWR1t+ipeFxAXbH0rS11UQgH+rWJiyzGQDvinktrEveKaX3y9mYSqrjbA9XTqUZnX6R4i7wMTfS05UQ4pv9kA6YMfnhg2ZJuH+5vndGG0AXg2y3Jkbhh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pSRhKu7S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Km0huwJ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 449BBC4CED6;
-	Mon, 20 Jan 2025 01:39:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pSRhKu7S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5728EC4CED6;
+	Mon, 20 Jan 2025 01:39:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737337165;
-	bh=Xj1XrQv4jhQNDV6CuwvaeZx9ULCeEEe2F3psIhkSb0M=;
+	s=korg; t=1737337166;
+	bh=W/iahzEXZBgL179z6Zm/QbobmpkDIO0SM0RrYYmDvqc=;
 	h=Date:To:From:Subject:From;
-	b=Km0huwJ1+P6sHqe8WEYJ+rORtYH7xNBgee2QtHdVBv523KhPS6iChWVOXr5gx3NEp
-	 ZBhRcegv1rugI6Nnqncmwh/U92DPbKx//IvMe/i+rctzAMHIEMPusCEwuSX1cKvcSN
-	 leG1avkMGbPXCk2l7QbF6UNnKUBBBaMhjs3kGZbs=
-Date: Sun, 19 Jan 2025 17:39:24 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shivankg@amd.com,byungchul@sk.com,akpm@linux-foundation.org
+	b=pSRhKu7SlqxL+3bFq0NUOOHqOo7LEASCjpxQcIiBRGk/M6JbouXY7mIrVBxlIhF2Z
+	 zR/q6hb2cMQ0iY4V5DELV+hW14Lb+hgmRsX+3OG6NgiI9xEu4R1O1On65QoGfdPBCp
+	 KX4R1RKeR9JRqqKOH1ObivqqW443zFfE96rpINH4=
+Date: Sun, 19 Jan 2025 17:39:25 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-separate-move-undo-parts-from-migrate_pages_batch.patch removed from -mm tree
-Message-Id: <20250120013925.449BBC4CED6@smtp.kernel.org>
+Subject: [merged mm-stable] zram-remove-zcomp_stream_put-from-write_incompressible_page.patch removed from -mm tree
+Message-Id: <20250120013926.5728EC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,199 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: separate move/undo parts from migrate_pages_batch()
+     Subject: zram: remove zcomp_stream_put() from write_incompressible_page()
 has been removed from the -mm tree.  Its filename was
-     mm-separate-move-undo-parts-from-migrate_pages_batch.patch
+     zram-remove-zcomp_stream_put-from-write_incompressible_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Byungchul Park <byungchul@sk.com>
-Subject: mm: separate move/undo parts from migrate_pages_batch()
-Date: Thu, 8 Aug 2024 15:53:58 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: remove zcomp_stream_put() from write_incompressible_page()
+Date: Wed, 15 Jan 2025 16:19:16 +0900
 
-Functionally, no change.  This is a preparation for luf mechanism that
-requires to use separated folio lists for its own handling during
-migration.  Refactored migrate_pages_batch() so as to separate move/undo
-parts from migrate_pages_batch().
+We cannot and should not put per-CPU compression stream in
+write_incompressible_page() because that function never gets any
+per-CPU streams in the first place.  It's zram_write_page() that
+puts the stream before it calls write_incompressible_page().
 
-Link: https://lkml.kernel.org/r/20250115103403.11882-1-byungchul@sk.com
-Signed-off-by: Byungchul Park <byungchul@sk.com>
-Reviewed-by: Shivank Garg <shivankg@amd.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250115072003.380567-1-senozhatsky@chromium.org
+Fixes: 485d11509d6d ("zram: factor out ZRAM_HUGE write")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |  134 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 83 insertions(+), 51 deletions(-)
+ drivers/block/zram/zram_drv.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/migrate.c~mm-separate-move-undo-parts-from-migrate_pages_batch
-+++ a/mm/migrate.c
-@@ -1687,6 +1687,81 @@ static int migrate_hugetlbs(struct list_
- 	return nr_failed;
- }
+--- a/drivers/block/zram/zram_drv.c~zram-remove-zcomp_stream_put-from-write_incompressible_page
++++ a/drivers/block/zram/zram_drv.c
+@@ -1683,7 +1683,6 @@ static int write_incompressible_page(str
+ 		return PTR_ERR((void *)handle);
  
-+static void migrate_folios_move(struct list_head *src_folios,
-+		struct list_head *dst_folios,
-+		free_folio_t put_new_folio, unsigned long private,
-+		enum migrate_mode mode, int reason,
-+		struct list_head *ret_folios,
-+		struct migrate_pages_stats *stats,
-+		int *retry, int *thp_retry, int *nr_failed,
-+		int *nr_retry_pages)
-+{
-+	struct folio *folio, *folio2, *dst, *dst2;
-+	bool is_thp;
-+	int nr_pages;
-+	int rc;
-+
-+	dst = list_first_entry(dst_folios, struct folio, lru);
-+	dst2 = list_next_entry(dst, lru);
-+	list_for_each_entry_safe(folio, folio2, src_folios, lru) {
-+		is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
-+		nr_pages = folio_nr_pages(folio);
-+
-+		cond_resched();
-+
-+		rc = migrate_folio_move(put_new_folio, private,
-+				folio, dst, mode,
-+				reason, ret_folios);
-+		/*
-+		 * The rules are:
-+		 *	Success: folio will be freed
-+		 *	-EAGAIN: stay on the unmap_folios list
-+		 *	Other errno: put on ret_folios list
-+		 */
-+		switch (rc) {
-+		case -EAGAIN:
-+			*retry += 1;
-+			*thp_retry += is_thp;
-+			*nr_retry_pages += nr_pages;
-+			break;
-+		case MIGRATEPAGE_SUCCESS:
-+			stats->nr_succeeded += nr_pages;
-+			stats->nr_thp_succeeded += is_thp;
-+			break;
-+		default:
-+			*nr_failed += 1;
-+			stats->nr_thp_failed += is_thp;
-+			stats->nr_failed_pages += nr_pages;
-+			break;
-+		}
-+		dst = dst2;
-+		dst2 = list_next_entry(dst, lru);
-+	}
-+}
-+
-+static void migrate_folios_undo(struct list_head *src_folios,
-+		struct list_head *dst_folios,
-+		free_folio_t put_new_folio, unsigned long private,
-+		struct list_head *ret_folios)
-+{
-+	struct folio *folio, *folio2, *dst, *dst2;
-+
-+	dst = list_first_entry(dst_folios, struct folio, lru);
-+	dst2 = list_next_entry(dst, lru);
-+	list_for_each_entry_safe(folio, folio2, src_folios, lru) {
-+		int old_page_state = 0;
-+		struct anon_vma *anon_vma = NULL;
-+
-+		__migrate_folio_extract(dst, &old_page_state, &anon_vma);
-+		migrate_folio_undo_src(folio, old_page_state & PAGE_WAS_MAPPED,
-+				anon_vma, true, ret_folios);
-+		list_del(&dst->lru);
-+		migrate_folio_undo_dst(dst, true, put_new_folio, private);
-+		dst = dst2;
-+		dst2 = list_next_entry(dst, lru);
-+	}
-+}
-+
- /*
-  * migrate_pages_batch() first unmaps folios in the from list as many as
-  * possible, then move the unmapped folios.
-@@ -1709,7 +1784,7 @@ static int migrate_pages_batch(struct li
- 	int pass = 0;
- 	bool is_thp = false;
- 	bool is_large = false;
--	struct folio *folio, *folio2, *dst = NULL, *dst2;
-+	struct folio *folio, *folio2, *dst = NULL;
- 	int rc, rc_saved = 0, nr_pages;
- 	LIST_HEAD(unmap_folios);
- 	LIST_HEAD(dst_folios);
-@@ -1880,42 +1955,11 @@ move:
- 		thp_retry = 0;
- 		nr_retry_pages = 0;
- 
--		dst = list_first_entry(&dst_folios, struct folio, lru);
--		dst2 = list_next_entry(dst, lru);
--		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
--			is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
--			nr_pages = folio_nr_pages(folio);
--
--			cond_resched();
--
--			rc = migrate_folio_move(put_new_folio, private,
--						folio, dst, mode,
--						reason, ret_folios);
--			/*
--			 * The rules are:
--			 *	Success: folio will be freed
--			 *	-EAGAIN: stay on the unmap_folios list
--			 *	Other errno: put on ret_folios list
--			 */
--			switch(rc) {
--			case -EAGAIN:
--				retry++;
--				thp_retry += is_thp;
--				nr_retry_pages += nr_pages;
--				break;
--			case MIGRATEPAGE_SUCCESS:
--				stats->nr_succeeded += nr_pages;
--				stats->nr_thp_succeeded += is_thp;
--				break;
--			default:
--				nr_failed++;
--				stats->nr_thp_failed += is_thp;
--				stats->nr_failed_pages += nr_pages;
--				break;
--			}
--			dst = dst2;
--			dst2 = list_next_entry(dst, lru);
--		}
-+		/* Move the unmapped folios */
-+		migrate_folios_move(&unmap_folios, &dst_folios,
-+				put_new_folio, private, mode, reason,
-+				ret_folios, stats, &retry, &thp_retry,
-+				&nr_failed, &nr_retry_pages);
+ 	if (!zram_can_store_page(zram)) {
+-		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
+ 		zs_free(zram->mem_pool, handle);
+ 		return -ENOMEM;
  	}
- 	nr_failed += retry;
- 	stats->nr_thp_failed += thp_retry;
-@@ -1924,20 +1968,8 @@ move:
- 	rc = rc_saved ? : nr_failed;
- out:
- 	/* Cleanup remaining folios */
--	dst = list_first_entry(&dst_folios, struct folio, lru);
--	dst2 = list_next_entry(dst, lru);
--	list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
--		int old_page_state = 0;
--		struct anon_vma *anon_vma = NULL;
--
--		__migrate_folio_extract(dst, &old_page_state, &anon_vma);
--		migrate_folio_undo_src(folio, old_page_state & PAGE_WAS_MAPPED,
--				       anon_vma, true, ret_folios);
--		list_del(&dst->lru);
--		migrate_folio_undo_dst(dst, true, put_new_folio, private);
--		dst = dst2;
--		dst2 = list_next_entry(dst, lru);
--	}
-+	migrate_folios_undo(&unmap_folios, &dst_folios,
-+			put_new_folio, private, ret_folios);
- 
- 	return rc;
- }
 _
 
-Patches currently in -mm which might be from byungchul@sk.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
