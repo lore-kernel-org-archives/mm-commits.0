@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A17C258A
-	for <mm-commits@vger.kernel.org>; Fri, 24 Jan 2025 05:52:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38A1E5588E
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jan 2025 06:03:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737697954; cv=none; b=TnMptVgy8YpyHI3V79OPou8Bzy5RPtbbEfJBNnoq2natPjCWGL6dsWYChOdaQTJ5vJdQ2kFwocVuROUZ16E5oMublPGarABqcLyTCbzeaG+yn0c0sS9b6fUNJv8Ae+AIfzt1P/JkE8FyOycAvAbuWhAKYy1GOY2xK35ItMgTEQY=
+	t=1737698600; cv=none; b=PHuNgw1oElSuj/gntkZnFt7UxU83g3QPaI+BYdqEsbfAzr3FBg1mSqp6pZFJikqephNuX+gjy5J4V0WCHU87GKkm4qxUef+vpxDoaBP4OMhrod+KA8QUPJTuu4gyXQJD3ZAwwBgXNsDY/FTaFH9+uuuCQ2/BSNCwELzEJq/oBLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737697954; c=relaxed/simple;
-	bh=pxx20HBkGg0k7ZgQIsck3Tpt0iUIdrsLeqH9WEcLJN8=;
-	h=Date:To:From:Subject:Message-Id; b=P9FIh+jlW6eB3L1aJnmnahNiK4OcEbCj632UlQ7ZtzzilKkWiZ9ikXq065p/zMLC5S4KHg10HHjI9CUZJ9aZjYh0N7mCZdICITvtaMTTmOZ2svUZl44XzlBsF0s6U92TYfz4dm7v13f5hiuJ9y2p9YHXPz0uUArM9XlTYvJgZ4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Z1t4fOM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737698600; c=relaxed/simple;
+	bh=IZ6EeCdA7xIJmjaSPB1UMcHrPK89Yfk+sEVnEcpBNsQ=;
+	h=Date:To:From:Subject:Message-Id; b=YtS4smcRXuP19hW1HUeq4pCI3gDjQY5kOFhQo3UKnxAqafTBE2VbYAig+oyFbVf89D3OrFgGp9EOcNKXQGHApIUPHtIc813fLWiISvT/z5g7G8M0mH3qwJuTbrMsf84Qq8MdCYAbpFqPRavDp4Rmtm7Zbaryh3JByqP0lAP4JMo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wHnxwK45; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Z1t4fOM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A99C1C4CED2;
-	Fri, 24 Jan 2025 05:52:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wHnxwK45"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0E7C4CED2;
+	Fri, 24 Jan 2025 06:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737697953;
-	bh=pxx20HBkGg0k7ZgQIsck3Tpt0iUIdrsLeqH9WEcLJN8=;
+	s=korg; t=1737698599;
+	bh=IZ6EeCdA7xIJmjaSPB1UMcHrPK89Yfk+sEVnEcpBNsQ=;
 	h=Date:To:From:Subject:From;
-	b=1Z1t4fOMZiUarBJpk9rDZcuAEph1M23CZMtHXGSXuJwwPaS3OpjbLPkvpAbxWCRcH
-	 GWHN0sGIa5IdnCMk2BOsRnLJV48GSn/DI2htoTJkeEszPiQTFWvU6zgYk0zuUDNjvs
-	 WgyEY6xjdx4Dze+0HAelI+bydRaaxwMk0RN6QBnA=
-Date: Thu, 23 Jan 2025 21:52:33 -0800
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosry.ahmed@linux.dev,akpm@linux-foundation.org
+	b=wHnxwK45fDHkr8iyEeZZefgg0qoD5hqNz5QuDnhrzzwXHpjv6WPLvMXAYuN8sB8qP
+	 /h77JyqycrUv2/vYO6eYWxCUnQkJKHYWBK5D+iWNbaQT+sGG1nuKYKCHoNGoYMPeZ3
+	 4PTr912I+KW7CuJD+1FauNqzC4lacZUjIPZKOS/E=
+Date: Thu, 23 Jan 2025 22:03:18 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,kevin.brodsky@arm.com,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-mailmap-update-yosry-ahmeds-email-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250124055233.A99C1C4CED2@smtp.kernel.org>
+Subject: + s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch added to mm-unstable branch
+Message-Id: <20250124060319.7F0E7C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: mailmap: update Yosry Ahmed's email address
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-mailmap-update-yosry-ahmeds-email-address.patch
+     Subject: s390/mm: add missing ctor/dtor on page table upgrade
+has been added to the -mm mm-unstable branch.  Its filename is
+     s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-mailmap-update-yosry-ahmeds-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosry.ahmed@linux.dev>
-Subject: MAINTAINERS: mailmap: update Yosry Ahmed's email address
-Date: Thu, 23 Jan 2025 23:13:44 +0000
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: s390/mm: add missing ctor/dtor on page table upgrade
+Date: Thu, 23 Jan 2025 17:03:49 +0100
 
-Moving to a linux.dev email address.
+Commit 78966b550289 ("s390: pgtable: add statistics for PUD and P4D level
+page table") misses the call to pagetable_p4d_ctor() against a newly
+allocated P4D table in crst_table_upgrade();
 
-Link: https://lkml.kernel.org/r/20250123231344.817358-1-yosry.ahmed@linux.dev
-Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Commit 68c601de75d8 ("mm: introduce ctor/dtor at PGD level") misses the
+call to pagetable_pgd_ctor() against a newly allocated PGD and the call to
+pagetable_dtor() against a newly allocated P4D that is about to be freed
+on crst_table_upgrade() PGD upgrade fail path.
+
+The missed constructors and destructor break (at least) the page table
+accounting when a process memory space is upgraded.
+
+Link: https://lkml.kernel.org/r/20250123160349.200154-1-agordeev@linux.ibm.com
+Fixes: 78966b550289 ("s390: pgtable: add statistics for PUD and P4D level page table")
+Fixes: 68c601de75d8 ("mm: introduce ctor/dtor at PGD level")
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Reported-by: Heiko Carstens <hca@linux.ibm.com>
+Closes: https://lore.kernel.org/all/20250122074954.8685-A-hca@linux.ibm.com/
+Suggested-by: Heiko Carstens <hca@linux.ibm.com>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/s390/mm/pgalloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/.mailmap~maintainers-mailmap-update-yosry-ahmeds-email-address
-+++ a/.mailmap
-@@ -740,6 +740,7 @@ Wolfram Sang <wsa@kernel.org> <wsa@the-d
- Yakir Yang <kuankuan.y@gmail.com> <ykk@rock-chips.com>
- Yanteng Si <si.yanteng@linux.dev> <siyanteng@loongson.cn>
- Ying Huang <huang.ying.caritas@gmail.com> <ying.huang@intel.com>
-+Yosry Ahmed <yosry.ahmed@linux.dev> <yosryahmed@google.com>
- Yusuke Goda <goda.yusuke@renesas.com>
- Zack Rusin <zack.rusin@broadcom.com> <zackr@vmware.com>
- Zhu Yanjun <zyjzyj2000@gmail.com> <yanjunz@nvidia.com>
---- a/MAINTAINERS~maintainers-mailmap-update-yosry-ahmeds-email-address
-+++ a/MAINTAINERS
-@@ -26028,7 +26028,7 @@ K:	zstd
+--- a/arch/s390/mm/pgalloc.c~s390-mm-add-missing-ctor-dtor-on-page-table-upgrade
++++ a/arch/s390/mm/pgalloc.c
+@@ -88,12 +88,14 @@ int crst_table_upgrade(struct mm_struct
+ 		if (unlikely(!p4d))
+ 			goto err_p4d;
+ 		crst_table_init(p4d, _REGION2_ENTRY_EMPTY);
++		pagetable_p4d_ctor(virt_to_ptdesc(p4d));
+ 	}
+ 	if (end > _REGION1_SIZE) {
+ 		pgd = crst_table_alloc(mm);
+ 		if (unlikely(!pgd))
+ 			goto err_pgd;
+ 		crst_table_init(pgd, _REGION1_ENTRY_EMPTY);
++		pagetable_pgd_ctor(virt_to_ptdesc(pgd));
+ 	}
  
- ZSWAP COMPRESSED SWAP CACHING
- M:	Johannes Weiner <hannes@cmpxchg.org>
--M:	Yosry Ahmed <yosryahmed@google.com>
-+M:	Yosry Ahmed <yosry.ahmed@linux.dev>
- M:	Nhat Pham <nphamcs@gmail.com>
- R:	Chengming Zhou <chengming.zhou@linux.dev>
- L:	linux-mm@kvack.org
+ 	spin_lock_bh(&mm->page_table_lock);
+@@ -130,6 +132,7 @@ int crst_table_upgrade(struct mm_struct
+ 	return 0;
+ 
+ err_pgd:
++	pagetable_dtor(virt_to_ptdesc(p4d));
+ 	crst_table_free(mm, p4d);
+ err_p4d:
+ 	return -ENOMEM;
 _
 
-Patches currently in -mm which might be from yosry.ahmed@linux.dev are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-maintainers-mailmap-update-yosry-ahmeds-email-address.patch
+s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch
 
