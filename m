@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56FA11D8E18;
-	Fri, 24 Jan 2025 06:20:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C1B41D8E16
+	for <mm-commits@vger.kernel.org>; Fri, 24 Jan 2025 06:28:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737699651; cv=none; b=gxUEK7IuOieHt5rx4Qfm4t88w3Q2ZCPTVgRqEWB22rhjIZCIfA/FuNt34iqABWHfT6Hy68N2O1Ej/RnU9J1GB4n9YhRazMh2pOrfkEr0F4FsW8hNP6zUxhoHq/D3EjrMytEmb3qMfKda2J5YU06JkGKeuDRZ+vsdLVSheBhWFGE=
+	t=1737700094; cv=none; b=bFlpxOCAbdopQeEmQGD2wZjOj1J9fol0ZNJUjo1K4SBvcHhs1ACtr8gIGxVJzpvr/CNd0HOHRT9wroARxnJdxRBqO+heBvkU5qvs1bVU+sqtuiwXZMb7nDRQZsgXraBv0rn1rhwXJGJ5clJZPePFixOqbUXQzUalJ5zQucUSUBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737699651; c=relaxed/simple;
-	bh=pCyJzrkdVxtlkd9wVAvQcfEuH0nsOTmaX++PPy3Ww4s=;
-	h=Date:To:From:Subject:Message-Id; b=DY6zB16pC5mJkif+rplf2oB7X93z8KWo6jP2cW2NBjhjE0GGfukoPMJXQTsGwwa0qiBtWL97Ys8ofgC1uULLmQu27GDCakgD80biTngLpd4kc7A2/CaF/jII3/3RTRSBU2doo5EnPP5YRQvxAjCEqB0QVhieAcAWqptc/CVPokE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ZNz8HEl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737700094; c=relaxed/simple;
+	bh=hoxW8Y2XrdYyBzubGF/V4/TVFkJkGnjhgvNvKHwb1ec=;
+	h=Date:To:From:Subject:Message-Id; b=haPYrxYjvAi8AAyJrY2GVskQO0CZMINrawG6j08IEtKoClZ0fKiNsKTu+IJ9PmtnsXSq2Pm9V7SKnIji2UKEjPDoDdCF5Mld3YPuTRtKNFBxzF68i1XHQK5gm82ZKfcoV9zxENhwur7mTz4uMs4bOK/J5Yw9GIQaf6caXKY85y4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IUIVTYfd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ZNz8HEl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3235C4CED2;
-	Fri, 24 Jan 2025 06:20:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IUIVTYfd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C31D3C4CED2;
+	Fri, 24 Jan 2025 06:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737699650;
-	bh=pCyJzrkdVxtlkd9wVAvQcfEuH0nsOTmaX++PPy3Ww4s=;
+	s=korg; t=1737700093;
+	bh=hoxW8Y2XrdYyBzubGF/V4/TVFkJkGnjhgvNvKHwb1ec=;
 	h=Date:To:From:Subject:From;
-	b=1ZNz8HEl5qYR7NJ8UzNuV3KMqcoO9iS20Vc/QCvoJuWG4pQ6BFt8zLuEO2yeWaGLo
-	 c0sjr2a5U+ny84a9iFZb2JL/g0hZEAmcCfy6ALddqNl72onZafHEo6NgTW0LZch9Tu
-	 XXNTcWGFutUOr0NaXJawHru2S8TkYI6fWyvD4+Eo=
-Date: Thu, 23 Jan 2025 22:20:50 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,mgorman@techsingularity.net,david@redhat.com,baolin.wang@linux.alibaba.com,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=IUIVTYfd4PGW7GQ7M3HA7rMf2vU1kqiIUmanoqeBw2epz7tBO8EHWJ5pkpN4A89yC
+	 i8zkuLMcrYtOXJJumV5cmdaYpgo/HHEwEfiudHdj7JpcJ40m5MxcHuf3H7fatzGJ0J
+	 XtDktZNyP3Ra2/arnK7JA3p6/vmbKsuN/f/jyYm0=
+Date: Thu, 23 Jan 2025 22:28:13 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-fix-ubsan-shift-out-of-bounds-warning.patch added to mm-unstable branch
-Message-Id: <20250124062050.B3235C4CED2@smtp.kernel.org>
+Subject: + ocfs2-fix-incorrect-cpu-endianness-conversion-causing-mount-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250124062813.C31D3C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/compaction: fix UBSAN shift-out-of-bounds warning
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-fix-ubsan-shift-out-of-bounds-warning.patch
+     Subject: ocfs2: fix incorrect CPU endianness conversion causing mount failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-incorrect-cpu-endianness-conversion-causing-mount-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-fix-ubsan-shift-out-of-bounds-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-incorrect-cpu-endianness-conversion-causing-mount-failure.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/compaction: fix UBSAN shift-out-of-bounds warning
-Date: Thu, 23 Jan 2025 10:10:29 +0800
+From: Heming Zhao <heming.zhao@suse.com>
+Subject: ocfs2: fix incorrect CPU endianness conversion causing mount failure
+Date: Tue, 21 Jan 2025 19:22:03 +0800
 
-syzkaller reported a UBSAN shift-out-of-bounds warning of (1UL << order)
-in isolate_freepages_block().  The bogus compound_order can be any value
-because it is union with flags.  Add back the MAX_PAGE_ORDER check to fix
-the warning.
+Commit 23aab037106d ("ocfs2: fix UBSAN warning in ocfs2_verify_volume()")
+introduced a regression bug.  The blksz_bits value is already converted to
+CPU endian in the previous code; therefore, the code shouldn't use
+le32_to_cpu() anymore.
 
-Link: https://lkml.kernel.org/r/20250123021029.2826736-1-liushixin2@huawei.com
-Fixes: 3da0272a4c7d ("mm/compaction: correctly return failure with bogus compound_order in strict mode")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Mattew Wilcox <willy@infradead.org> [English fixes]
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250121112204.12834-1-heming.zhao@suse.com
+Fixes: 23aab037106d ("ocfs2: fix UBSAN warning in ocfs2_verify_volume()")
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-fix-ubsan-shift-out-of-bounds-warning
-+++ a/mm/compaction.c
-@@ -631,7 +631,8 @@ static unsigned long isolate_freepages_b
- 		if (PageCompound(page)) {
- 			const unsigned int order = compound_order(page);
- 
--			if (blockpfn + (1UL << order) <= end_pfn) {
-+			if ((order <= MAX_PAGE_ORDER) &&
-+			    (blockpfn + (1UL << order) <= end_pfn)) {
- 				blockpfn += (1UL << order) - 1;
- 				page += (1UL << order) - 1;
- 				nr_scanned += (1UL << order) - 1;
+--- a/fs/ocfs2/super.c~ocfs2-fix-incorrect-cpu-endianness-conversion-causing-mount-failure
++++ a/fs/ocfs2/super.c
+@@ -2340,7 +2340,7 @@ static int ocfs2_verify_volume(struct oc
+ 			mlog(ML_ERROR, "found superblock with incorrect block "
+ 			     "size bits: found %u, should be 9, 10, 11, or 12\n",
+ 			     blksz_bits);
+-		} else if ((1 << le32_to_cpu(blksz_bits)) != blksz) {
++		} else if ((1 << blksz_bits) != blksz) {
+ 			mlog(ML_ERROR, "found superblock with incorrect block "
+ 			     "size: found %u, should be %u\n", 1 << blksz_bits, blksz);
+ 		} else if (le16_to_cpu(di->id2.i_super.s_major_rev_level) !=
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from heming.zhao@suse.com are
 
-mm-page_isolation-avoid-call-folio_hstate-without-hugetlb_lock.patch
-mm-compaction-fix-ubsan-shift-out-of-bounds-warning.patch
+ocfs2-fix-incorrect-cpu-endianness-conversion-causing-mount-failure.patch
 
