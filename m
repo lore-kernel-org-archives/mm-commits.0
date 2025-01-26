@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0275A25A620
-	for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 04:43:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7367125A620;
+	Sun, 26 Jan 2025 04:43:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737866582; cv=none; b=arwV0GtvQdW4JCjJE3Ew3sVRZHCghNdzuKDDsyDB86tlCIzDqqsop7vhYXzB7/EDPsaffg7rSn7tuitVvAin8Xt/CLHNPd23Sqe2cxmcfcjrInGugDeWnB686UYBbHvUx+HrvT0C9vXIQXcUVAfoQkqQp8tD82osoD2eSvODYbQ=
+	t=1737866583; cv=none; b=oAsy8XxObRuhzXYoBRXUa9T06Fg8qaon9d8HiFaNXTjuAnJFrpzHfUO32mXtX6DCjIomfM3gTio7HBKRntfnshHwodFsv76t73LQSyYek0j6lck0tUXZOn500KAt78nxzgymO1IQ7J9eygKx9jK2dxoxL4izDCt0qZwIAr4VdLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737866582; c=relaxed/simple;
-	bh=IjuL9JuMWqmd9hYvSJVpnmJ97e1vDVDyfBVIbppeRK8=;
-	h=Date:To:From:Subject:Message-Id; b=X+n8KaTiIsg1PEj6+k+pIjcEHuCm3LhCWYueE6CE8l7nl43JAnUrGoUgjUBYXv/Bdh3fGiN5Q5NoEq/ZFzmcU8lBBD00Bo4nkT5wuH+U5VWT/OT1pTVySrFPRec5JJ6qJOBzoUXYpPHGZxy3Gz3lp66eEpX5siuHQ4bGgujRdqw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y88MCUop; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737866583; c=relaxed/simple;
+	bh=+m2KE/dUv68mYkMD1zmWXybluHZ886DZKHBPpCdC0Y4=;
+	h=Date:To:From:Subject:Message-Id; b=ZKYaJika0vNLo5sr5bE5g35KY4KzFVRzGQV1LQhRmOHADWBeiMoPV79iRHeo8u373TTCq0jFWssDAYTXk59iejVTgA5EoO4oiFIDPjGXglfW3YAEYJKMTOceFuMhhi5Q78gjGju37QlX9Qbg5KvVhoyEFwKDEIvc1HwfRiuRJrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qDXtTHt6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y88MCUop"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4301AC4CED3;
-	Sun, 26 Jan 2025 04:43:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qDXtTHt6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C35A6C4CED3;
+	Sun, 26 Jan 2025 04:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737866581;
-	bh=IjuL9JuMWqmd9hYvSJVpnmJ97e1vDVDyfBVIbppeRK8=;
+	s=korg; t=1737866582;
+	bh=+m2KE/dUv68mYkMD1zmWXybluHZ886DZKHBPpCdC0Y4=;
 	h=Date:To:From:Subject:From;
-	b=Y88MCUopcUUVU6TwDWBVa3EIq4TfG86OLFd0VYaV9JaV2akXgo04MZP5YL7YReZlW
-	 BYcb9ktxqSvvljdvGAc44oacwEaOGq0cDUx4iWZ4kap7Ku/gLxvpj2qpZYqDJE+ExW
-	 JBfkSZNSUwKwd+Ecbrhuz5I+jEwhJcEH8Zz+hB2Y=
-Date: Sat, 25 Jan 2025 20:43:00 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,kevin.brodsky@arm.com,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=qDXtTHt6xBclHOxkMHJ8qaXVgq04nb60h0eKFkzQX9udotVNG97d4cWXTls0DLNAt
+	 ycyO3zjiZuoznqO3w16nsMVrY9h10aP01Cs7hObDR2KyfkpHviM1mFHgjCSKoyBhZb
+	 niCnBrC+rYBs63NTzT0WpqtjEwa5BeG/AyLapcKw=
+Date: Sat, 25 Jan 2025 20:43:02 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,sunnanyong@huawei.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,osalvador@suse.de,mgorman@techsingularity.net,david@redhat.com,baolin.wang@linux.alibaba.com,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch removed from -mm tree
-Message-Id: <20250126044301.4301AC4CED3@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-fix-ubsan-shift-out-of-bounds-warning.patch removed from -mm tree
+Message-Id: <20250126044302.C35A6C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: s390/mm: add missing ctor/dtor on page table upgrade
+     Subject: mm/compaction: fix UBSAN shift-out-of-bounds warning
 has been removed from the -mm tree.  Its filename was
-     s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch
+     mm-compaction-fix-ubsan-shift-out-of-bounds-warning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: s390/mm: add missing ctor/dtor on page table upgrade
-Date: Thu, 23 Jan 2025 17:03:49 +0100
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/compaction: fix UBSAN shift-out-of-bounds warning
+Date: Thu, 23 Jan 2025 10:10:29 +0800
 
-Commit 78966b550289 ("s390: pgtable: add statistics for PUD and P4D level
-page table") misses the call to pagetable_p4d_ctor() against a newly
-allocated P4D table in crst_table_upgrade();
+syzkaller reported a UBSAN shift-out-of-bounds warning of (1UL << order)
+in isolate_freepages_block().  The bogus compound_order can be any value
+because it is union with flags.  Add back the MAX_PAGE_ORDER check to fix
+the warning.
 
-Commit 68c601de75d8 ("mm: introduce ctor/dtor at PGD level") misses the
-call to pagetable_pgd_ctor() against a newly allocated PGD and the call to
-pagetable_dtor() against a newly allocated P4D that is about to be freed
-on crst_table_upgrade() PGD upgrade fail path.
-
-The missed constructors and destructor break (at least) the page table
-accounting when a process memory space is upgraded.
-
-Link: https://lkml.kernel.org/r/20250123160349.200154-1-agordeev@linux.ibm.com
-Fixes: 78966b550289 ("s390: pgtable: add statistics for PUD and P4D level page table")
-Fixes: 68c601de75d8 ("mm: introduce ctor/dtor at PGD level")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Reported-by: Heiko Carstens <hca@linux.ibm.com>
-Closes: https://lore.kernel.org/all/20250122074954.8685-A-hca@linux.ibm.com/
-Suggested-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20250123021029.2826736-1-liushixin2@huawei.com
+Fixes: 3da0272a4c7d ("mm/compaction: correctly return failure with bogus compound_order in strict mode")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Reviewed-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/compaction.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/s390/mm/pgalloc.c~s390-mm-add-missing-ctor-dtor-on-page-table-upgrade
-+++ a/arch/s390/mm/pgalloc.c
-@@ -88,12 +88,14 @@ int crst_table_upgrade(struct mm_struct
- 		if (unlikely(!p4d))
- 			goto err_p4d;
- 		crst_table_init(p4d, _REGION2_ENTRY_EMPTY);
-+		pagetable_p4d_ctor(virt_to_ptdesc(p4d));
- 	}
- 	if (end > _REGION1_SIZE) {
- 		pgd = crst_table_alloc(mm);
- 		if (unlikely(!pgd))
- 			goto err_pgd;
- 		crst_table_init(pgd, _REGION1_ENTRY_EMPTY);
-+		pagetable_pgd_ctor(virt_to_ptdesc(pgd));
- 	}
+--- a/mm/compaction.c~mm-compaction-fix-ubsan-shift-out-of-bounds-warning
++++ a/mm/compaction.c
+@@ -631,7 +631,8 @@ static unsigned long isolate_freepages_b
+ 		if (PageCompound(page)) {
+ 			const unsigned int order = compound_order(page);
  
- 	spin_lock_bh(&mm->page_table_lock);
-@@ -130,6 +132,7 @@ int crst_table_upgrade(struct mm_struct
- 	return 0;
- 
- err_pgd:
-+	pagetable_dtor(virt_to_ptdesc(p4d));
- 	crst_table_free(mm, p4d);
- err_p4d:
- 	return -ENOMEM;
+-			if (blockpfn + (1UL << order) <= end_pfn) {
++			if ((order <= MAX_PAGE_ORDER) &&
++			    (blockpfn + (1UL << order) <= end_pfn)) {
+ 				blockpfn += (1UL << order) - 1;
+ 				page += (1UL << order) - 1;
+ 				nr_scanned += (1UL << order) - 1;
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
+mm-page_isolation-avoid-call-folio_hstate-without-hugetlb_lock.patch
 
