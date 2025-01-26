@@ -1,101 +1,156 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA4B244C7C
-	for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 07:34:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DDE333998;
+	Sun, 26 Jan 2025 08:28:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.107.74.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737876883; cv=none; b=ukWgVPWH85Ze99NvVG2WLTi97IYtnqyKSi0x63yReeYKITKasR3mMmnPtOOjgd/ZNiT3eW85+iivkxrFCbwARdQ8J6HzrTltZl6ZS4gSVUUsLR4ziXz5n19IauIi3HI5POh1yxKcshRoQjpyotgWQ3wpmDiSzlU0bkN3WV1V4bs=
+	t=1737880094; cv=none; b=tgLIUoBWIKry/iaXDkBMjTzRJAeSzp7fOlyYyeqXp4F57rafkICgCjIm5go2e1sd92xXYIfCGYHUQAbwJ2QmQkiGRL4+npa3piTVt4LX7/ehI3CnmJ5FmdoB00EisKGfOPoZ8ShPUOrVNeilgKfx1gFd9srkoU+xYsbQLdwqIHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737876883; c=relaxed/simple;
-	bh=W5kgCczG2gXfX4YHoGnhVrbtflRY0oquhv47stxfJaU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QpYU92F8pX7GCUnt1Q5o/jvMmSJ5M6Vyn5DZzL6siqNDhwtPSk+hg45DI1DCcR/QvVm7hiNGyuwkRwJg3n4wpKXuvnRPrD9xj+iqOyiYzeSwNKlKft0ceSKlFSS/zaC90aluPFahHP1E4CA6g40TYoBLaSlthhDSH8Odtu2xvms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gWMa+n5E; arc=none smtp.client-ip=209.85.218.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1737880094; c=relaxed/simple;
+	bh=FlmhSjlBv36BlFJhqvgNmih9Nnvcz/AwSmH+Tuy/hx0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=AhHNv7rj9vhT1uHi5rrN/SVvKfSMtRd+TlMuQhSFXUAZ7dXubXLdHnOito3B8zqgCmY8iH7Ya2lgIxuhjkarUILOtlC+MLp9fi9syrjiEUbHHt8f5xQOtkCxG0hCnfk41ZgEcWQsSxZtF3VbFzysANoOtxc32Ptq728VL0t8nOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au; spf=pass smtp.mailfrom=canb.auug.org.au; dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b=HsIftm/+; arc=none smtp.client-ip=150.107.74.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=canb.auug.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=canb.auug.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gWMa+n5E"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-aab925654d9so656274766b.2
-        for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 23:34:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1737876880; x=1738481680; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=3Ja6I8BfelRwDzdo4Ow2m4/tWkFmPZNsiSgMYZIwdcQ=;
-        b=gWMa+n5Eih/OS2fDF2qgHljrJ1S/g17KZm6yjVCkpUHCv/cNSJiKW6qObC4HCZM5Lr
-         Vri2z3TYQd8NqKSRQlHh2e5bL8azJ/Mtai++kZ+FpH2tkEWb/ZTg5YygX9XPcwozQauu
-         uAIOUTmmHFMDtsdvNSoS4wucsVvmb1J6/fvH8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737876880; x=1738481680;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=3Ja6I8BfelRwDzdo4Ow2m4/tWkFmPZNsiSgMYZIwdcQ=;
-        b=Ug7LgfONLLNIybPQY2JKA/m7mX6o5cnsCVPn9m5f/4Tm2c1jcgJ22BdDBjIYLgD3dh
-         vfY0fRN6K+Ha+KJ95/ZFDbMRHJRU6ceteVrDWm9gYQfo+qyBpPAU++AOr23oCfnJW83U
-         eMArhSBWgUi4Z2MmO1Ah9dOlhAuIcAz1GogQGAnsPlw1vJHewDzW5H/WU5pEDrDwwAq+
-         K8+F0wGhFr0EOxoJI+LzmyqOeufirtnMScAyYVyVVsLPuwQOMg5RJOQWexKuyAXF4IwS
-         QgJT+Jozl5JyKbkAUNV7OVlW+DdhOgI1PvLfn26bHhvauGJwlVRsBgeLbZ9feBoi2r/x
-         3m1Q==
-X-Forwarded-Encrypted: i=1; AJvYcCU/Pfs/lGs+Yz+7pghKuMKoJBIwcmGkRNQOK4mTyt/AGSwJzYPV9tfvtPGqMVkZtvs1Q2H5acLpRgfx@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx0FAEeg+NN/0TIkAb/K4K6EGEtEGzHR/Jr8o/nwupoKNpS+inm
-	cJB2gZvRgoo12rXXPpXS7nEHfD1KL5zoG1qjbLOGpbhtYoOv557nePcaJ9ntdRMDB35tbmkgrOz
-	/P/M=
-X-Gm-Gg: ASbGncv99xcgUKJU6iAgXH8tiZUkLe50HMo8adnwtu1gSMw+f2fHO4M4sUxS6mV3POn
-	pVMN2nYDxnpc7bcZNawEyvV+4AGwE7z9Y8cHZRTOQuCoIDbBfOCGYs0P1H7OhQqnPqEC+Vp3giZ
-	GpzMFy0HDQs30bvW4HNe8VtJe0ggWXmG8qSZF6tbsBjop+GLA7PLC/JyAz2WIcPU5MkxzvVcgIX
-	ijZRMuv+W8EjuGuKxaZ5U8+o66KaDDPA9pzgAESazmra2GLEopwOw0YsbZciOYm6e1aFFVD3efn
-	wQDhsh0LLuTA3bA3sDylDl3W0VnA5kTIXAGEdlZksprnkFz7lxvufIc=
-X-Google-Smtp-Source: AGHT+IHworrpdOCrgC7Ydjm953XpI1+eghCFIoZrFfiESXkZQI2NEYkYq9ogrFlbG5SXp+EYwf3U2g==
-X-Received: by 2002:a17:907:1b03:b0:aaf:1183:e9be with SMTP id a640c23a62f3a-ab38b1e8f64mr3797459666b.2.1737876879770;
-        Sat, 25 Jan 2025 23:34:39 -0800 (PST)
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com. [209.85.218.46])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab6760b7788sm383749166b.119.2025.01.25.23.34.37
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 25 Jan 2025 23:34:38 -0800 (PST)
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-aab925654d9so656270766b.2
-        for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 23:34:37 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCU67a/5CsdBYSYRTfwaWyi/XUBaIOBkrD4opi6GyaU+0SvU2ng5NNLIdYrmgHHsp4eU/OyAiUzMV0OG@vger.kernel.org
-X-Received: by 2002:a17:907:3e23:b0:ab6:71ca:c5a1 with SMTP id
- a640c23a62f3a-ab671cac7a8mr1000998566b.19.1737876877211; Sat, 25 Jan 2025
- 23:34:37 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=canb.auug.org.au header.i=@canb.auug.org.au header.b="HsIftm/+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+	s=201702; t=1737880077;
+	bh=z7cRlnOF1/kC5po1eT9/ip29wU/LR+RPSC5FE+FsZ4Q=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=HsIftm/+ygw8TWPs5FUnrRSLDxTKvXGCX2SbPDnvBsuPQW+6n9CedYWJhcuJq6GYs
+	 OCKpXnmCMmnZJ5NCU1Rl7B3PVYW4hKh22gy9dEPBFyzRTrrvnNDiFz+hIuLF4LixSr
+	 OvFbAXFMdZ9pjcc4CehTOyh+UlgOdf7IYylhsDfu11FiSvfF8zoL/4PjszG6jjEAx1
+	 4AQj+WVJ6afu+1f7FIDN3m/GFpbDq/NoarTfO6gxvtVTiEg0gj1an8ZS08DA17Lyaf
+	 ddnMlTf40tI3h3mO5WJvlDllQyhiiCtPVyrZ+Txb1qziJmius+ppZF7XE7Xysiskyu
+	 hHsrjtaQDDdkg==
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4Ygl6h71rLz4wc2;
+	Sun, 26 Jan 2025 19:27:56 +1100 (AEDT)
+Date: Sun, 26 Jan 2025 19:27:48 +1100
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Uros Bizjak
+ <ubizjak@gmail.com>, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Dan Carpenter <dan.carpenter@linaro.org>,
+ Anders Roxell <anders.roxell@linaro.org>, Naresh Kamboju
+ <naresh.kamboju@linaro.org>
+Subject: Re: [GIT PULL] MM updates for 6.14-rc1
+Message-ID: <20250126192748.30c36ddd@canb.auug.org.au>
+In-Reply-To: <20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
+References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
+	<CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
+	<20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
- <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com> <20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
-In-Reply-To: <20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 25 Jan 2025 23:34:21 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wja7+gm-9s0-ba-FnykK2j0VWyNwOH7VzWSdMERWQzb_g@mail.gmail.com>
-X-Gm-Features: AWEUYZkYn7vCsOoXDpuiqh_WhIQ6juvNeXPMOdtfJ7eQi05yn5TIh_1iz6iMbyc
-Message-ID: <CAHk-=wja7+gm-9s0-ba-FnykK2j0VWyNwOH7VzWSdMERWQzb_g@mail.gmail.com>
-Subject: Re: [GIT PULL] MM updates for 6.14-rc1
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Uros Bizjak <ubizjak@gmail.com>, linux-mm@kvack.org, mm-commits@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, 
-	Dan Carpenter <dan.carpenter@linaro.org>, Anders Roxell <anders.roxell@linaro.org>, 
-	Naresh Kamboju <naresh.kamboju@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; boundary="Sig_/yBlNzHbr3TlgHPNsrYnF7YC";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 
-On Sat, 25 Jan 2025 at 21:00, Andrew Morton <akpm@linux-foundation.org> wrote:
+--Sig_/yBlNzHbr3TlgHPNsrYnF7YC
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+
+Hi all,
+
+On Sat, 25 Jan 2025 21:00:16 -0800 Andrew Morton <akpm@linux-foundation.org=
+> wrote:
 >
-> And I shall continue to scratch my head over
-> Documentation/rust/quick-start.rst.
+> On Sat, 25 Jan 2025 14:09:16 -0800 Linus Torvalds <torvalds@linux-foundat=
+ion.org> wrote:
+>=20
+> > On Fri, 24 Jan 2025 at 16:22, Andrew Morton <akpm@linux-foundation.org>=
+ wrote: =20
+> > >
+> > > Linus, please merge the MM updates for the 6.14 development cycle, =20
+> >=20
+> > This does not build at all for me.
+> >=20
+> > I get
+> >=20
+> >     ./arch/x86/include/asm/current.h:49:9: error: call to undeclared
+> > function '__typeof_unqual__'; ISO C99 and later do not support
+> > implicit function declarations [-Wimplicit-function-declaration]
+> >=20
+> > when running the Rust 'bindgen', and what seems to be going on is that
+> > my version of *gcc* does support __typeof_unqual__, so I end up with
+> >=20
+> >     CONFIG_CC_HAS_TYPEOF_UNQUAL=3Dy
+> >=20
+> > in my kernel config, but I think that 'bindgen' that generates the
+> > Rust bindings is based on LLVM, and clearly does not understand
+> > __typeof_unqual__.
+> >=20
+> > I have bindgen 0.69.5 (plain F40 install), in case somebody wants to te=
+st.
+> >=20
+> > Apparently few people test linux-next with Rust enabled, and the
+> > reports that I find on lkml were ignored.
 
-It really should be as simple as installing the proper distro
-packages, and then "make allmodconfig" will enable Rust. It used to be
-much more complicated. So do the pacman / apt / dnf / emerge / zypper
-command line to just install the packages, and off you go.
+I don't recall seeing them ... were they cc'd to linux-next@vger or me?
 
-Of course, that assumes you have a modern enough distro that it _has_
-sufficiently up-to-date rust packages.
+> > I do see reports of this failure on lkml from mid-December, so it's
+> > not like I'm the first person ever to see this.
+>=20
+> Well dang, nobody told me, and I assume Stephen didn't find out.
 
-So if you are on something like Debian stable, it's simply not worth the pain.
+I did not get any errors in my builds.  I am running Debian Testing on
+a PowerPC LE machine (so my x86_64 allmodconfig builds are cross
+builds).
 
-           Linus
+$ gcc --version
+gcc (Debian 14.2.0-12) 14.2.0
+$ bindgen --version
+bindgen 0.70.1
+~/next/x86_64_allmodconfig$ grep -E '(CONFIG_CC_HAS_TYPEOF_UNQUAL|_RUST)' .=
+config=20
+CONFIG_RUSTC_VERSION=3D108300
+CONFIG_RUST_IS_AVAILABLE=3Dy
+CONFIG_RUSTC_LLVM_VERSION=3D190104
+CONFIG_CC_HAS_TYPEOF_UNQUAL=3Dy
+CONFIG_RUST=3Dy
+CONFIG_RUSTC_VERSION_TEXT=3D"rustc 1.83.0 (90b35a623 2024-11-26) (built fro=
+m a source tarball)"
+CONFIG_HAVE_RUST=3Dy
+CONFIG_RUST_FW_LOADER_ABSTRACTIONS=3Dy
+CONFIG_BLK_DEV_RUST_NULL=3Dm
+CONFIG_SAMPLES_RUST=3Dy
+CONFIG_SAMPLE_RUST_MINIMAL=3Dm
+CONFIG_SAMPLE_RUST_MISC_DEVICE=3Dm
+CONFIG_SAMPLE_RUST_PRINT=3Dm
+CONFIG_SAMPLE_RUST_DRIVER_PCI=3Dm
+CONFIG_SAMPLE_RUST_DRIVER_PLATFORM=3Dm
+CONFIG_SAMPLE_RUST_HOSTPROGS=3Dy
+CONFIG_RUST_DEBUG_ASSERTIONS=3Dy
+CONFIG_RUST_OVERFLOW_CHECKS=3Dy
+CONFIG_RUST_BUILD_ASSERT_ALLOW=3Dy
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/yBlNzHbr3TlgHPNsrYnF7YC
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmeV8gQACgkQAVBC80lX
+0GzZHgf9E8QBvC0oVW7OL0q3aQv79VEhlZdbMj7imKk0yw2NIM54Y7MZqi8IZ4SR
+ODKiN0bDvbYRGix2nsFjisV+9oA0As21lZsqrhvmOFCwQiQbrZSWuPBDeZvyQioi
+5CIGSVkrI2PNPwvmsQ+9whCxRmOLEEJxivrlPct/9jXHxMOEA3OiE5qRO5V521U3
+GO4vpkDDcIREXippTUckwyvXhRnIQGUkCuH9DOoHOe0nkB+u+lk3sfdmlVhzk1Wi
+rZNp8UbNdtC4ByJGDR4tvg3cl7fGaMfFhwu7QkynPkGgYS9l7HqwCIRIsrS8mnvQ
+lVpWhvZjGaPqP2EHbrJyLhZOsVZcFA==
+=HVDT
+-----END PGP SIGNATURE-----
+
+--Sig_/yBlNzHbr3TlgHPNsrYnF7YC--
