@@ -1,56 +1,66 @@
-Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com [209.85.208.170])
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C038335BA;
-	Sun, 26 Jan 2025 17:22:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A3DA16F0CF
+	for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 18:30:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737912123; cv=none; b=rfWKdSVNKn0Vb8V3tYAiQ+tufpTYfz7bTfxsfUyotxpD6FckVF2OIlhzBT5jGEhYCSETQjORB/nnBIX4UYHf9IpdMYT+Reow4ZnPMteN8/+/uuvOV9RGf1Z8I5eTv45kYh1KgxhSXl+dv0pIaRsVYkm5FmPefK7sA+s1t1GgzmU=
+	t=1737916207; cv=none; b=B3D0h9Vi0IC4fD/phLmElbe8PjRzgvv27GblbzGilAI6Ung0UNQsIPxCKtU7DUMMt/eYGYuxDV4uvFvOzFet3jvzCUXXdAaTii3HbigYN/poDWQ4Z0HpqBXjl0KfPmO+4xVHmw+pEITa9oWs74/HSf0y/FE5GfdWg1EKNTCu7G0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737912123; c=relaxed/simple;
-	bh=zs6ULr2SHOMrcFW0jKXsZUciGnVSmGlV+R80E29pJOI=;
+	s=arc-20240116; t=1737916207; c=relaxed/simple;
+	bh=AghwpEEw3CNfdkuTexpWojIWYp3tV3xhlXQRcwkdE6g=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pdd9p5aTKlhJ/dPZzevT0kNmySWznl2qxxl9KiB62Z69YQcG9FBhXwQ8+D9glAy360XRv+FIz20VqT3jcZY6lmadujqb2oqb1jT5jGT0v6yi/4Rzmd8ZWvsj+J24WCUB65TITzcvDds9uFTSBCqg9taecyLPRN5YBnKDdmA4I88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ksXQG1eR; arc=none smtp.client-ip=209.85.208.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=bZqIl1N9iT54t0gGoLj07sWXNjw+meq2N6IvMvVYw8NRbIaGaHhafcQl/HKjdnM0IzOCmMpINcx5tsdlO0xhD5sEoXOnIaPYboh6tLqICNjth95AzuXG1uqIgjNeOVbbULKsvmc2W/s/Ruq9h8dtOLwpiOaix9xR4VWQBlKk0C0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YbeUMEcc; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ksXQG1eR"
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-30738a717ffso33664211fa.0;
-        Sun, 26 Jan 2025 09:22:01 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YbeUMEcc"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-aaf900cc7fbso596695066b.3
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 10:30:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1737912120; x=1738516920; darn=vger.kernel.org;
+        d=linux-foundation.org; s=google; t=1737916203; x=1738521003; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=7DM9kP2MSMgmAITbtSXEnuoEUycWS4C2+ntpQx2P6pc=;
-        b=ksXQG1eR2j+xBjlj8cohKpDZHzoBv356aurY0/QSImEJ/94Gm14dCSlRD3Idq7E2TP
-         CsF7CspFxqZ7i7TOSbaMBidijVCoPcMfscIWO6wNLRwZ+QOoI9Mjxpgyz0q0moYFNLS2
-         E9vi54ebHbIQ2sw3Onu6iSHjezNmVmJegPz8MrpzWEv+KUoJ9GSFSlFvFcR/LvEo64E4
-         YCQuu9V0UkytdHf+sCMBgHAzUgWGF6rUlf8T32CS3+o2zTlN9Sg1xFlBy759eBT/0YuC
-         f36YLnGa0GCX+r1+mMCKP6peX+KAb7UweLo+zSBw0ZV64yprSiWrI1LmEoyeUwETeXak
-         4fHA==
+        bh=P3M+AbIbM25cnhkMyx94VOLdqhzLPile/W0OaxM5nIY=;
+        b=YbeUMEccKCLXvl24M1vz1cIhWQm+1sQylEdJrkXkzNDcoOy4N4MJhPu5+++ScvRnAr
+         gJsqKchx6XsOWxlQQ84Lmpd0TeA/+kg6ig6WHfoCZIHFh6cf98OF/fCvy5FQzB5erIMM
+         lDe28u2cvqQg9NqZaWjn31YJEIIEV+Y709eiQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737912120; x=1738516920;
+        d=1e100.net; s=20230601; t=1737916203; x=1738521003;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=7DM9kP2MSMgmAITbtSXEnuoEUycWS4C2+ntpQx2P6pc=;
-        b=OB7L6XIcX665cO0c88IqFbEM7i238ljGbnAf2rmBmLHEXcDGnhHfoxNQewDgHmJCmW
-         fHV9HsLRzMRNb3cQ7V21WFxmf1anzZhFi848G+d3vhh3Z1D1BFlnmb4xwSBfFD+7VaIs
-         XRVZshpEEM/HmfR8cmHV+Zh4Xz0zfGalO7sG2UCMuh2r5p6zx8W+hUfYjcjEj5ZDbzmW
-         uf6XVgYWBALEDhl4xVGVLh8uATXy29sgXqcXOfut2BrBL1r0PuXcvZ8ed5XQHMGMxuoN
-         1z6KKrqK/7+y9DWe65/vQeHxheXDmxLDAXspV7qnCWXdCK2CgUaE2AyyMNAKJ/CuMDzc
-         8Gfw==
-X-Forwarded-Encrypted: i=1; AJvYcCWgnTuU2f9jDCyc/dIQwowOZia/OSulpzy2vFF5RcOdj6olpS2Vthw36+ekr1MAznE3KOMp4wUuwx0SAQ==@vger.kernel.org, AJvYcCXfAMf/EYggK2SfEjsXV0zPZH2VdWbkrbFj6GKOYAWcxaOIYh2uuZm8Tq/4ufLMKkxOi33hlbCbiTRXQO0=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw5x4A8im6egBQo3KvnyeY8a0vYNOWKxIY2sh1fw6pdXSyviP0j
-	aPUAxOPXWXupJKnd2IW1iFBxD0Gf9eKr+Yf386Xh4EpepqUS8fZEdugPDv2nHe5gLTtbOym/8tJ
-	nVtPZxzXjW/A5LDTPn6MniRUQNk3oWPLh
-X-Gm-Gg: ASbGncvstRTob17eyxLS+/FiqyCvsqvIAMdo9vXT4iS18szPJHvOkLL84aZeh6q3mGa
-	akzbrX2aJ697fEW+b+t9F40X2tuoYmBRmEx+6quchP7wppluTrYdeTIIhJwR11g==
-X-Google-Smtp-Source: AGHT+IFgvS9yepFhImhbGeUdFQWVr6GnpyPoIl8O9keAmyBDaGEaMLm6z/05su8Ey74t1Vo1lTWyxsDdrXET4sWNL7w=
-X-Received: by 2002:a2e:8e24:0:b0:2ff:c3a2:f408 with SMTP id
- 38308e7fff4ca-3072ca897b7mr108902411fa.12.1737912119834; Sun, 26 Jan 2025
- 09:21:59 -0800 (PST)
+        bh=P3M+AbIbM25cnhkMyx94VOLdqhzLPile/W0OaxM5nIY=;
+        b=E0dTvIP9hYSd+/rkB2J7M1NttZKaISr/uuqNtr2D8Ni6dSpvWg9vvA1bVo8F08NWPX
+         ssroC4JYxuqsy10N6qGl1KKeKJnqBvJRtj/cdriWGQP11oAtdTVQoQkWz13jISKqSxHp
+         8df/9ATAnQYjh9Ze8oiccZ+c5/mdkvsX5EJ6dWxDrj6OA1DRlM7z9M7E9QMqFn96+B42
+         3qO10cqNwbh0wI2DUqE/SUD2tgOuGqibhMDfGLwHF6IPBKRdNbRvfq5Xkj1srRBd5ifD
+         /2BaH/CEx6aWV+7hi2gRwXeSCg+RP5MmqYZUIMabVdNWfn1WvEWcBwtc5OeSDKNFAbNq
+         m6AQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU4nBrfTQ+ucb9dirSh3E3cds388gwFKdy/XXdnSw5MDyMqPQHcywRafDONeY7uFDBY7pw5zE4c4SEt@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzt/r5TtyvR8MPrQwoCSRd5B5hD5dozKMTB0fZMZD8miGM+owQL
+	vRy+9eH/9muVCAr3/rh/mxZrYqw34rMHnhD6iLaJjeS6GL7U0LdSwffMGmN3iKDelbdj1bwqHOx
+	28Lo=
+X-Gm-Gg: ASbGnctrLJQuHUZ08I3/xHPiUlVLC+CN1Ndo4pbunxXLT8sl7Y7sY6qBuPTifBTElNl
+	21vqRegFw4+zcfs4jhx/L52XapJC+yH/+6Os+9CNCXM+ppBFb4KgiZ48JxkBXZsgKEfrQ2DexA8
+	PNRV1z5v3VwiXH66LNQCxZVzC6DmZVpHi8Oeey69imDV2wDu3N4RLs4u7TmmfGBVVPPvgd+o1Jb
+	w/JL1hcV+7bRQzwPvhPoOXePxUCVr2cP/HgwkSo3rkVEbWKSx4qgl9MCkDGeUBayNnI2n7hAP/A
+	IoBos3xbDnbdf+udUPgqKk6to6KjmKy9yU+BDCqjVjMpvsuzwhk8roU=
+X-Google-Smtp-Source: AGHT+IEP9/0Hxt1hae/U/MQz2eCW2spPop1SY+3okUF1KXqLWzDF7GUZ/tfiPdGXpJt3HZshuSx81A==
+X-Received: by 2002:a17:907:3f90:b0:ab3:84ac:4dbc with SMTP id a640c23a62f3a-ab38ada1518mr3567691866b.0.1737916203279;
+        Sun, 26 Jan 2025 10:30:03 -0800 (PST)
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com. [209.85.208.54])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab675e11ecesm456605366b.26.2025.01.26.10.30.02
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 26 Jan 2025 10:30:02 -0800 (PST)
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-5d647d5df90so6141663a12.2
+        for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 10:30:02 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCU1KzZXgiW9aT2Ke+eHx4A1PamIVTiKdvMvIU6r4QkugxieNnJ0r/FryNkl53yyrxs6LwPw1C632RGX@vger.kernel.org
+X-Received: by 2002:a05:6402:2682:b0:5db:f83c:2473 with SMTP id
+ 4fb4d7f45d1cf-5dbf83c26bdmr17337970a12.30.1737916202070; Sun, 26 Jan 2025
+ 10:30:02 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -58,83 +68,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
- <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com> <CAFULd4ZWS4Cxv0CELosQHJh9vTqOJFdr+Fk9NMgSREr_dFG05A@mail.gmail.com>
-In-Reply-To: <CAFULd4ZWS4Cxv0CELosQHJh9vTqOJFdr+Fk9NMgSREr_dFG05A@mail.gmail.com>
-From: Uros Bizjak <ubizjak@gmail.com>
-Date: Sun, 26 Jan 2025 18:21:47 +0100
-X-Gm-Features: AWEUYZkuEliDjT-yeR1XDZT3Al8BiU_YK0ero9EzLYRQnzOxHOErGZjiRzLIpCM
-Message-ID: <CAFULd4a-2F_zKMeR0Yjo2WhRLmyoOQ1VdR2qdV34BrM-b_cQCQ@mail.gmail.com>
+ <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
+ <CAFULd4ZWS4Cxv0CELosQHJh9vTqOJFdr+Fk9NMgSREr_dFG05A@mail.gmail.com> <CAFULd4a-2F_zKMeR0Yjo2WhRLmyoOQ1VdR2qdV34BrM-b_cQCQ@mail.gmail.com>
+In-Reply-To: <CAFULd4a-2F_zKMeR0Yjo2WhRLmyoOQ1VdR2qdV34BrM-b_cQCQ@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 26 Jan 2025 10:29:45 -0800
+X-Gmail-Original-Message-ID: <CAHk-=whgufZwjAuL1PBs1gjSMK95TEhGj1SiMbNvkysWBcEPMw@mail.gmail.com>
+X-Gm-Features: AWEUYZmGdxihCLL9KpFnjKHSSUX1cviulL9CWrj_0RvMLbJiU4pvE2aXY5KXNGc
+Message-ID: <CAHk-=whgufZwjAuL1PBs1gjSMK95TEhGj1SiMbNvkysWBcEPMw@mail.gmail.com>
 Subject: Re: [GIT PULL] MM updates for 6.14-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Uros Bizjak <ubizjak@gmail.com>, Miguel Ojeda <ojeda@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
 	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: multipart/mixed; boundary="0000000000008dd86d062c9f32bd"
-
---0000000000008dd86d062c9f32bd
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 26, 2025 at 10:57=E2=80=AFAM Uros Bizjak <ubizjak@gmail.com> wr=
-ote:
+On Sun, 26 Jan 2025 at 09:22, Uros Bizjak <ubizjak@gmail.com> wrote:
 >
-> On Sat, Jan 25, 2025 at 11:09=E2=80=AFPM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > On Fri, 24 Jan 2025 at 16:22, Andrew Morton <akpm@linux-foundation.org>=
- wrote:
-> > >
-> > > Linus, please merge the MM updates for the 6.14 development cycle,
-> >
-> > This does not build at all for me.
-> >
-> > I get
-> >
-> >     ./arch/x86/include/asm/current.h:49:9: error: call to undeclared
-> > function '__typeof_unqual__'; ISO C99 and later do not support
-> > implicit function declarations [-Wimplicit-function-declaration]
-> >
-> > when running the Rust 'bindgen', and what seems to be going on is that
-> > my version of *gcc* does support __typeof_unqual__, so I end up with
-> >
-> >     CONFIG_CC_HAS_TYPEOF_UNQUAL=3Dy
-> >
-> > in my kernel config, but I think that 'bindgen' that generates the
-> > Rust bindings is based on LLVM, and clearly does not understand
->
-> __typeof_unqual__ is available in Clang 19.1.0 in all C modes as an
-> extension [1] and as reported in [2], bindgen 0,70.1 seems to parse
-> __typeof_unqual__ okay.
->
-> [1] https://releases.llvm.org/19.1.0/tools/clang/docs/ReleaseNotes.html
-> [2] https://lore.kernel.org/lkml/9fa81826-8fa6-47e4-a0a2-4916e5d042a7@sta=
-nley.mountain/
->
-> Maybe configure could detect bindgen version and disable
-> CC_HAS_TYPEOF_UNQUAL [3] if it is too old?
+> bindgen ChangeLog does not mention __typeof_unqual__, so I assume that
+> the support depends on RUSTC_LLVM_VERSION.
 
-bindgen ChangeLog does not mention __typeof_unqual__, so I assume that
-the support depends on RUSTC_LLVM_VERSION.
+That seems to be a reasonable assumption. I guess some crazy setup
+*could* install a bindgen that uses a different llvm version than
+rustc itself, but that sounds pretty damn broken.
 
-Does the attached incremental patch work for you?
+Let's add Miguel to the participants. Miguel, see
 
-Uros.
+   https://lore.kernel.org/all/CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com/
 
---0000000000008dd86d062c9f32bd
-Content-Type: text/plain; charset="US-ASCII"; name="p.diff.txt"
-Content-Disposition: attachment; filename="p.diff.txt"
-Content-Transfer-Encoding: base64
-Content-ID: <f_m6dvy9330>
-X-Attachment-Id: f_m6dvy9330
+for my "this doesn't work" report, and then Uros' suggested fix in
 
-ZGlmZiAtLWdpdCBhL2luaXQvS2NvbmZpZyBiL2luaXQvS2NvbmZpZwppbmRleCBhMTUwN2I4NzE0
-ZTQuLmQzNDIzNzFkZDE1ZCAxMDA2NDQKLS0tIGEvaW5pdC9LY29uZmlnCisrKyBiL2luaXQvS2Nv
-bmZpZwpAQCAtODk4LDcgKzg5OCw5IEBAIGNvbmZpZyBDQ19IQVNfSU5UMTI4CiAJZGVmX2Jvb2wg
-ISQoY2Mtb3B0aW9uLCQobTY0LWZsYWcpIC1EX19TSVpFT0ZfSU5UMTI4X189MCkgJiYgNjRCSVQK
-IAogY29uZmlnIENDX0hBU19UWVBFT0ZfVU5RVUFMCi0JZGVmX2Jvb2wgJChzdWNjZXNzLGVjaG8g
-J2ludCBmb28gKGludCBhKSB7IF9fdHlwZW9mX3VucXVhbF9fKGEpIGIgPSBhOyByZXR1cm4gYjsg
-fScgfCAkKENDKSAteCBjIC0gLVMgLW8gL2Rldi9udWxsKQorCWRlZl9ib29sIHkKKwlkZXBlbmRz
-IG9uICQoc3VjY2VzcyxlY2hvICdpbnQgZm9vIChpbnQgYSkgeyBfX3R5cGVvZl91bnF1YWxfXyhh
-KSBiID0gYTsgcmV0dXJuIGI7IH0nIHwgJChDQykgLXggYyAtIC1TIC1vIC9kZXYvbnVsbCkKKwlk
-ZXBlbmRzIG9uICFSVVNUIHx8IFJVU1RDX0xMVk1fVkVSU0lPTiA+PSAxOTAwMDAKIAogY29uZmln
-IENDX0lNUExJQ0lUX0ZBTExUSFJPVUdICiAJc3RyaW5nCg==
---0000000000008dd86d062c9f32bd--
+   https://lore.kernel.org/all/CAFULd4a-2F_zKMeR0Yjo2WhRLmyoOQ1VdR2qdV34BrM-b_cQCQ@mail.gmail.com/
+
+> Does the attached incremental patch work for you?
+
+That does seem to work, but I'd admittedly be happier if we could just
+find some way to dynamically disable/enable __typeof_unqual__ based on
+which compiler is used, rather than make it a config option. So that
+bindgen would not see it, but a recent enough C compiler would.
+
+We already use '__has_attribute()' for some of these things. There's a
+'__has_extension()' thing that comes from clang but that gcc also
+supports.
+
+But I can't find the list of extensions that that model supports, and
+I guess typeof_unqual isn't on that list if I find it.
+
+In the absence of something _clean_ like that, can we just do it in
+<linux/compiler-xyz.h> instead? IOW, not use the CONFIG_xyz tests for
+this at all, but do something like
+
+  /*
+   * bindgen uses LLVM even if our C compiler is gcc, so we cannot
+   * rely on CONFIG_CC_HAS_TYPEOF_UNQUAL
+   */
+  #if __clang_major__ >= 19
+  # define CC_HAS_TYPEOF_UNQUAL 1
+  #endif
+
+in <linux/compiler-clang.h> and the gcc version check for gcc (I don't
+know when __typeof_unqual__ made it)?
+
+This does show that our whole "CC_HAS_XYZ" is kind of broken for the
+Rust integration in general.
+
+                 Linus
