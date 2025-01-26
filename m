@@ -1,67 +1,94 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0E046A33B;
-	Sun, 26 Jan 2025 21:19:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67C04146A6F;
+	Sun, 26 Jan 2025 21:35:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737926398; cv=none; b=fOS1VUnBDaN2r8VlitJHrQK3kofs4JWhajnt6K7TDVyXXTB2LKgopbVWCIi+J6j3BRVxmsay60iswJdzssWSkVgCvjaMOI5KMRj0bB/nrvGbd9C9ukLciTC5pHkbwpcffquoAd+gS5SZyYd3a7XXQx2I9e9s1ycAXhE0Rm0JJ4w=
+	t=1737927343; cv=none; b=AdW/mkyIL4B5q31CHCLWcscq5zTA6MgjsklsFnoEEwIe88wuIWwGsTAHlawoS3kFRSJBoEK22pSusS5LD9/bAGcladZ1rRzpbIbLHnXnq0sN0GfbFsFnvRyI0XIzddKmrCeILQQD7kXk3BI9BZRCmLTXfSk1OLV+SuBfqbNjRow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737926398; c=relaxed/simple;
-	bh=+F9bZN/Fxihk/I5XRnJzh2oDgn02+SkIjrk11Skejyo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aQ0hrAfs5hBOoybQgTk0OZhVg+06jlL93eB+gBf9YnLHf2xYm4VZuPaKlGvBBnnjI5zuKoeEpzcqpAv8Z1S03h8k76BOz5gbMnHMlFoIFd9GnEYzAnUUDFBzdhvAGqZVZ8wSTHszlpxqsHklKdZ2B1bUFc7+Quj9PPeexesJJFo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=sE+lr97/; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1737927343; c=relaxed/simple;
+	bh=Brl44lxCl0/PDc1z0qnHaT7jx8EkP5HkYGslQCb1MwY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ITGqOj49ZxGSU63S82jfD1C++pJ59QvlRmuPGKvRWhKJA4R8tjp0GYZjSzCvE9g8GcffLXsLmXyyns2fcfWxvjeZc0ZCuxGDLAoCkRhu008DKxU3iSFicYZZfqN6RMY2yd4MJS/EoPohC3DNJppjULwvbYz4p0A7lgycts7+MR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eY9GDuWI; arc=none smtp.client-ip=209.85.214.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="sE+lr97/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=SP0H87our6hAcQr0Iut1rYjsavElxZJoRVBN900DLUc=; b=sE+lr97/U6vPHZ4reefqzuX1Kl
-	ySkazPv7r+9W4OzK1B/pLlsL7QuMddR3u2NSRy5XKMa24uyl/sxRl5FGk7n0R2VFjLnXJkf+ka0ic
-	Ugv6/YRhg9Z6XbIL778jdIuNonT1b+cvf2/lwCmAxS0D5dt1DB84UTt+oBrizXTkEX+7r5zpo9ytS
-	6lGs6WgCJ8L87uSwJgVOmpsaIkj+QH2Y7xLVF7AMuUE0+pScUoxyXfWYTHXpRhIO/xFfv8VONOgvl
-	466a1TL4E8n70dFFfpW6tvs3VUlRyNxK1Gxft5mU/iMxyfHhD+2D/EuZkTy2bwZ8ND4/6s6nueBSX
-	f/CCAvMg==;
-Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1tcA2j-00000008WRL-23IW;
-	Sun, 26 Jan 2025 21:19:45 +0000
-Date: Sun, 26 Jan 2025 21:19:45 +0000
-From: Matthew Wilcox <willy@infradead.org>
-To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Uros Bizjak <ubizjak@gmail.com>, Miguel Ojeda <ojeda@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
-	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] MM updates for 6.14-rc1
-Message-ID: <Z5am8bRw4lSJY8jF@casper.infradead.org>
-References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
- <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
- <CAFULd4ZWS4Cxv0CELosQHJh9vTqOJFdr+Fk9NMgSREr_dFG05A@mail.gmail.com>
- <CAFULd4a-2F_zKMeR0Yjo2WhRLmyoOQ1VdR2qdV34BrM-b_cQCQ@mail.gmail.com>
- <CAHk-=whgufZwjAuL1PBs1gjSMK95TEhGj1SiMbNvkysWBcEPMw@mail.gmail.com>
- <CANiq72mC7Fr6pB-D_JT9A2gCc2Yr0TLf16eRyY4_UWqRrKNVZg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eY9GDuWI"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-21634417587so7495605ad.3;
+        Sun, 26 Jan 2025 13:35:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1737927340; x=1738532140; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tUZk5Htk/qxyUPEAclI/Dus69dtfm/23zECE3Jvucj0=;
+        b=eY9GDuWI3FfUpQHbAfh6v/znKDsDQSvvn+AKNjygp4GdcfwFhaVht8LP47d07zSV0B
+         J6WMrggznvCquMKP2VBrooO4l4xdGZjbbMQhyEckblUoFbZw5HZBI+eoY1eaZD9zKcVu
+         ArspD3N1X1bOrv5Cq/fl/NNXZsxX2OuNOnP4oZZAzuv55GIiRujk6HX7YTEHgMVHYsC/
+         pq0bCcMIq24vCTHSDksCO9BoK/xJtl32aZgPjBYu6ic/IAZ5E8m3yQJcszVSl3Hgnbjb
+         PQNG1klNePV92zHfTuJ8TxQuPJqtea6uEBuG6o/GEFZb6/G0G08WQlaGh2GM9hEmdsL1
+         a5YQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1737927340; x=1738532140;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=tUZk5Htk/qxyUPEAclI/Dus69dtfm/23zECE3Jvucj0=;
+        b=n2gMtB1fAvg2UGdMMy7yBVAccxpFab2yfRWpNhB370ToOAqM93Q8ZJaklItIL2bG4d
+         qxnHbui8wPCQl4sSO/NnpnUXQHLKrImOwZzwNfrTXHIHU6NNXhxNYloO4zBF9WsnO0xa
+         iZGG3yinlKgZ7BOTdu7o+mNVgrGYsi45Dnk+voFE2Nx2RdioyoICWuEsgy4DEwW+zSdh
+         pS1ki3fY19tlM/dOaWpiKM25CVpCs0tmYS4cd/wp3oZLa9lxCp3YSGo+oAGxV7sZvg4j
+         w7BuG2UikDZqOhs3GiWbBcD6sEIeqqwnO0D8bxtekwfXkObaLfSiBjZfCkJRlCWhl/1i
+         VIBQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUAQjqZ65c8hHfm5E5HbsxORo561OEeKnKfwzjENj5IoVVzUNtdmTCUvHlNbcu17/Bp5sQQas9g4/uE+QQ=@vger.kernel.org, AJvYcCVkOtToZP42Zq1/jk/ZJtlB+nNSzH9C1HE4hhxcTiS/1rtVFAp4SjCCuLEgMHy4xrebqnhU/Zb82xb70g==@vger.kernel.org
+X-Gm-Message-State: AOJu0YzD3Tjz7Kfm5RHQB9u54G5RK50yVGSl3C/D90+R0GMYUEyFtOcl
+	w7ey3h/g8YfWGLPWhHY/89gKIAbdkS9otpKh/qnvm9KHC3xvJEsbYMJS8zp2EJIQaN91r6SRt/x
+	zwcRVUAT81ymcfIAIyKYqSl96KDU=
+X-Gm-Gg: ASbGncvxKQQXcubd4b3BchN1kplyrv2pPk/eZyH+Pq5q5+5kzTlIfwkr97bm8JFofVQ
+	Z8QOnTm6y61nfGUkgFMl30pP9xUIjg202UQR/ib0+/dEiFUOxDuk/yrG4SR+OHQ==
+X-Google-Smtp-Source: AGHT+IFL77pQ4oszIgg+JqbHknADhHVB7OhR4Nd3j6UwB8e1F9/l3cb02FFRZsH6SETj2IaBCx0I11F6PjoXrYNX8oo=
+X-Received: by 2002:a17:903:191:b0:215:6af0:11d5 with SMTP id
+ d9443c01a7336-21c355399fcmr209652665ad.1.1737927340685; Sun, 26 Jan 2025
+ 13:35:40 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANiq72mC7Fr6pB-D_JT9A2gCc2Yr0TLf16eRyY4_UWqRrKNVZg@mail.gmail.com>
+References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
+ <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
+ <CAFULd4ZWS4Cxv0CELosQHJh9vTqOJFdr+Fk9NMgSREr_dFG05A@mail.gmail.com>
+ <CAFULd4a-2F_zKMeR0Yjo2WhRLmyoOQ1VdR2qdV34BrM-b_cQCQ@mail.gmail.com>
+ <CAHk-=whgufZwjAuL1PBs1gjSMK95TEhGj1SiMbNvkysWBcEPMw@mail.gmail.com>
+ <CANiq72mC7Fr6pB-D_JT9A2gCc2Yr0TLf16eRyY4_UWqRrKNVZg@mail.gmail.com> <Z5am8bRw4lSJY8jF@casper.infradead.org>
+In-Reply-To: <Z5am8bRw4lSJY8jF@casper.infradead.org>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Sun, 26 Jan 2025 22:35:27 +0100
+X-Gm-Features: AWEUYZnWcDRfyESHzRHC0QhSMAwFP0xobxO9X26rEXlIO-PRQC4gxvO5EJ0RLAY
+Message-ID: <CANiq72=w454CKVUZ=s3tfUnGgqVOY=PNsoR-+37kZHQXgW7jYA@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.14-rc1
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Uros Bizjak <ubizjak@gmail.com>, 
+	Miguel Ojeda <ojeda@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, 
+	mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 26, 2025 at 09:28:09PM +0100, Miguel Ojeda wrote:
-> I will add a couple distro builds for linux-next in my matrix, one
-> including GCC, so that hopefully at least you don't get blocked with
-> something like this.
+On Sun, Jan 26, 2025 at 10:19=E2=80=AFPM Matthew Wilcox <willy@infradead.or=
+g> wrote:
+>
+> FYI, this was picked up:
+>
+> https://lore.kernel.org/all/CA+G9fYuP2bHnDvJwfMm6+8Y8UYk74qCw-2HsFyRzJDFi=
+Q5dbpQ@mail.gmail.com/
+>
+> But, I guess due to the xmas break, nobody figured it out.  It even
+> went to the Rust list via Dan Carpenter's response.
 
-FYI, this was picked up:
+I missed that, sorry.
 
-https://lore.kernel.org/all/CA+G9fYuP2bHnDvJwfMm6+8Y8UYk74qCw-2HsFyRzJDFiQ5dbpQ@mail.gmail.com/
-
-But, I guess due to the xmas break, nobody figured it out.  It even
-went to the Rust list via Dan Carpenter's response.
+Cheers,
+Miguel
