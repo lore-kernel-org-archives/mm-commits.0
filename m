@@ -1,92 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 853B91362;
-	Sun, 26 Jan 2025 05:00:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA4B244C7C
+	for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 07:34:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737867618; cv=none; b=bzwa/tN9ScoeWmN0vCkKr8sLcjyVnnrL+MCYrjPaXq3hsgfwAc9Tv+G2bimUtBYznXplr6p7kW5CsGTSkaURSbsAUd6BuiOsfORo+h/6m6OiaXvXx3/9inhWxOSQdM5oSx5THsUW0aCXvqdRYPWmqwtMMKUN1kG+izc6qcEKgsc=
+	t=1737876883; cv=none; b=ukWgVPWH85Ze99NvVG2WLTi97IYtnqyKSi0x63yReeYKITKasR3mMmnPtOOjgd/ZNiT3eW85+iivkxrFCbwARdQ8J6HzrTltZl6ZS4gSVUUsLR4ziXz5n19IauIi3HI5POh1yxKcshRoQjpyotgWQ3wpmDiSzlU0bkN3WV1V4bs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737867618; c=relaxed/simple;
-	bh=U2PUaDs5TSr1YUIt9JN3FKcA1FZkXyuoi7tE2ven3i4=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=Msh8x/8K+x/9uSGIFm5nhYR6Gq7XgZ+3n1Y6H/mI7SN3uaxhADq6HgHo1Quva7pOoFu6VxB4vTETcepm1gP/QX9+iaWVmGc0cO6TwFqg5nCttbTsZfC9aLCQQJbxHhqY7/clezDcPr7fV+we5NeuJ8Cn+7O7pxYjz/zOJAegHy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PG9Fi9nn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1737876883; c=relaxed/simple;
+	bh=W5kgCczG2gXfX4YHoGnhVrbtflRY0oquhv47stxfJaU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QpYU92F8pX7GCUnt1Q5o/jvMmSJ5M6Vyn5DZzL6siqNDhwtPSk+hg45DI1DCcR/QvVm7hiNGyuwkRwJg3n4wpKXuvnRPrD9xj+iqOyiYzeSwNKlKft0ceSKlFSS/zaC90aluPFahHP1E4CA6g40TYoBLaSlthhDSH8Odtu2xvms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gWMa+n5E; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PG9Fi9nn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A360BC4CED3;
-	Sun, 26 Jan 2025 05:00:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1737867617;
-	bh=U2PUaDs5TSr1YUIt9JN3FKcA1FZkXyuoi7tE2ven3i4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=PG9Fi9nnomvKUYHBZxBPCVigRFGPPv1UK+IHUoIZsAyRUgkfdoti2ObKHhnp1GiWy
-	 XKhX9mzIwqevEz0wx8XmV2KgSI4HFniqDgcD6bLPOvm2YoyYokmy3mJtGXipKjy1hr
-	 ImE/puTN750GuHyDhozUAegLJAmLOAF9yY17HaXE=
-Date: Sat, 25 Jan 2025 21:00:16 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Uros Bizjak <ubizjak@gmail.com>, linux-mm@kvack.org,
- mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell
- <sfr@canb.auug.org.au>, Dan Carpenter <dan.carpenter@linaro.org>, Anders
- Roxell <anders.roxell@linaro.org>, Naresh Kamboju
- <naresh.kamboju@linaro.org>
-Subject: Re: [GIT PULL] MM updates for 6.14-rc1
-Message-Id: <20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
-In-Reply-To: <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
-References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
-	<CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gWMa+n5E"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-aab925654d9so656274766b.2
+        for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 23:34:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1737876880; x=1738481680; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=3Ja6I8BfelRwDzdo4Ow2m4/tWkFmPZNsiSgMYZIwdcQ=;
+        b=gWMa+n5Eih/OS2fDF2qgHljrJ1S/g17KZm6yjVCkpUHCv/cNSJiKW6qObC4HCZM5Lr
+         Vri2z3TYQd8NqKSRQlHh2e5bL8azJ/Mtai++kZ+FpH2tkEWb/ZTg5YygX9XPcwozQauu
+         uAIOUTmmHFMDtsdvNSoS4wucsVvmb1J6/fvH8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1737876880; x=1738481680;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=3Ja6I8BfelRwDzdo4Ow2m4/tWkFmPZNsiSgMYZIwdcQ=;
+        b=Ug7LgfONLLNIybPQY2JKA/m7mX6o5cnsCVPn9m5f/4Tm2c1jcgJ22BdDBjIYLgD3dh
+         vfY0fRN6K+Ha+KJ95/ZFDbMRHJRU6ceteVrDWm9gYQfo+qyBpPAU++AOr23oCfnJW83U
+         eMArhSBWgUi4Z2MmO1Ah9dOlhAuIcAz1GogQGAnsPlw1vJHewDzW5H/WU5pEDrDwwAq+
+         K8+F0wGhFr0EOxoJI+LzmyqOeufirtnMScAyYVyVVsLPuwQOMg5RJOQWexKuyAXF4IwS
+         QgJT+Jozl5JyKbkAUNV7OVlW+DdhOgI1PvLfn26bHhvauGJwlVRsBgeLbZ9feBoi2r/x
+         3m1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCU/Pfs/lGs+Yz+7pghKuMKoJBIwcmGkRNQOK4mTyt/AGSwJzYPV9tfvtPGqMVkZtvs1Q2H5acLpRgfx@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx0FAEeg+NN/0TIkAb/K4K6EGEtEGzHR/Jr8o/nwupoKNpS+inm
+	cJB2gZvRgoo12rXXPpXS7nEHfD1KL5zoG1qjbLOGpbhtYoOv557nePcaJ9ntdRMDB35tbmkgrOz
+	/P/M=
+X-Gm-Gg: ASbGncv99xcgUKJU6iAgXH8tiZUkLe50HMo8adnwtu1gSMw+f2fHO4M4sUxS6mV3POn
+	pVMN2nYDxnpc7bcZNawEyvV+4AGwE7z9Y8cHZRTOQuCoIDbBfOCGYs0P1H7OhQqnPqEC+Vp3giZ
+	GpzMFy0HDQs30bvW4HNe8VtJe0ggWXmG8qSZF6tbsBjop+GLA7PLC/JyAz2WIcPU5MkxzvVcgIX
+	ijZRMuv+W8EjuGuKxaZ5U8+o66KaDDPA9pzgAESazmra2GLEopwOw0YsbZciOYm6e1aFFVD3efn
+	wQDhsh0LLuTA3bA3sDylDl3W0VnA5kTIXAGEdlZksprnkFz7lxvufIc=
+X-Google-Smtp-Source: AGHT+IHworrpdOCrgC7Ydjm953XpI1+eghCFIoZrFfiESXkZQI2NEYkYq9ogrFlbG5SXp+EYwf3U2g==
+X-Received: by 2002:a17:907:1b03:b0:aaf:1183:e9be with SMTP id a640c23a62f3a-ab38b1e8f64mr3797459666b.2.1737876879770;
+        Sat, 25 Jan 2025 23:34:39 -0800 (PST)
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com. [209.85.218.46])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab6760b7788sm383749166b.119.2025.01.25.23.34.37
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 25 Jan 2025 23:34:38 -0800 (PST)
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-aab925654d9so656270766b.2
+        for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 23:34:37 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCU67a/5CsdBYSYRTfwaWyi/XUBaIOBkrD4opi6GyaU+0SvU2ng5NNLIdYrmgHHsp4eU/OyAiUzMV0OG@vger.kernel.org
+X-Received: by 2002:a17:907:3e23:b0:ab6:71ca:c5a1 with SMTP id
+ a640c23a62f3a-ab671cac7a8mr1000998566b.19.1737876877211; Sat, 25 Jan 2025
+ 23:34:37 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
+ <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com> <20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
+In-Reply-To: <20250125210016.815b4260ad539b1e66298d98@linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sat, 25 Jan 2025 23:34:21 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wja7+gm-9s0-ba-FnykK2j0VWyNwOH7VzWSdMERWQzb_g@mail.gmail.com>
+X-Gm-Features: AWEUYZkYn7vCsOoXDpuiqh_WhIQ6juvNeXPMOdtfJ7eQi05yn5TIh_1iz6iMbyc
+Message-ID: <CAHk-=wja7+gm-9s0-ba-FnykK2j0VWyNwOH7VzWSdMERWQzb_g@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.14-rc1
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Uros Bizjak <ubizjak@gmail.com>, linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, 
+	Dan Carpenter <dan.carpenter@linaro.org>, Anders Roxell <anders.roxell@linaro.org>, 
+	Naresh Kamboju <naresh.kamboju@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Sat, 25 Jan 2025 14:09:16 -0800 Linus Torvalds <torvalds@linux-foundation.org> wrote:
-
-> On Fri, 24 Jan 2025 at 16:22, Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > Linus, please merge the MM updates for the 6.14 development cycle,
-> 
-> This does not build at all for me.
-> 
-> I get
-> 
->     ./arch/x86/include/asm/current.h:49:9: error: call to undeclared
-> function '__typeof_unqual__'; ISO C99 and later do not support
-> implicit function declarations [-Wimplicit-function-declaration]
-> 
-> when running the Rust 'bindgen', and what seems to be going on is that
-> my version of *gcc* does support __typeof_unqual__, so I end up with
-> 
->     CONFIG_CC_HAS_TYPEOF_UNQUAL=y
-> 
-> in my kernel config, but I think that 'bindgen' that generates the
-> Rust bindings is based on LLVM, and clearly does not understand
-> __typeof_unqual__.
-> 
-> I have bindgen 0.69.5 (plain F40 install), in case somebody wants to test.
-> 
-> Apparently few people test linux-next with Rust enabled, and the
-> reports that I find on lkml were ignored.
+On Sat, 25 Jan 2025 at 21:00, Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> I do see reports of this failure on lkml from mid-December, so it's
-> not like I'm the first person ever to see this.
-> 
+> And I shall continue to scratch my head over
+> Documentation/rust/quick-start.rst.
 
-Well dang, nobody told me, and I assume Stephen didn't find out.
+It really should be as simple as installing the proper distro
+packages, and then "make allmodconfig" will enable Rust. It used to be
+much more complicated. So do the pacman / apt / dnf / emerge / zypper
+command line to just install the packages, and off you go.
 
-Guys, if tree owners are carrying bad patches, please do give them a
-heads-up!
+Of course, that assumes you have a modern enough distro that it _has_
+sufficiently up-to-date rust packages.
 
-> Anyway, pulled and then unpulled again.
+So if you are on something like Debian stable, it's simply not worth the pain.
 
-OK, I've dropped Uroz's series "Enable strict percpu address space
-checks", shall resend the pull request soon.
-
-And I shall continue to scratch my head over
-Documentation/rust/quick-start.rst.
+           Linus
