@@ -1,114 +1,108 @@
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7003F20551E
-	for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 22:09:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0275A25A620
+	for <mm-commits@vger.kernel.org>; Sun, 26 Jan 2025 04:43:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737842978; cv=none; b=G8YmRAOUwaMr+WjjNXNuWW2jI8zeYbK2nHgwV2kZTXECK5a5HG9VatBdS2yQ2PMOVTiF551hpBXXBTlmtNtzdOw6u9tRRw9SlE5NTx9YQCFNKsn08AbxAW0wHpMAlbbnZ1zye0hD4BkHYDupJGXH6L2VN7dP3d+NHeD5oSHWgCA=
+	t=1737866582; cv=none; b=arwV0GtvQdW4JCjJE3Ew3sVRZHCghNdzuKDDsyDB86tlCIzDqqsop7vhYXzB7/EDPsaffg7rSn7tuitVvAin8Xt/CLHNPd23Sqe2cxmcfcjrInGugDeWnB686UYBbHvUx+HrvT0C9vXIQXcUVAfoQkqQp8tD82osoD2eSvODYbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737842978; c=relaxed/simple;
-	bh=E4e3Oq0pvFr8pCPFeOhvQY05+4aosSGMyLU7VMzUoMw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Wnu/yOW6GRAhi5A7A6BmtH/sgDufxEmHxdPTVkQV1ziA3vHZh+DtePs7TVMRDBcmxtVUOaGVyDv68rcDsX1FO/V5o8jAXtdw3NPlg2j2tyaPPIcS8vkAldRKZLVP34X9HObFjxaGE6vosecbNbBrQIlBET1Jb5iDUpu0naO397o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LFOxi4eu; arc=none smtp.client-ip=209.85.218.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1737866582; c=relaxed/simple;
+	bh=IjuL9JuMWqmd9hYvSJVpnmJ97e1vDVDyfBVIbppeRK8=;
+	h=Date:To:From:Subject:Message-Id; b=X+n8KaTiIsg1PEj6+k+pIjcEHuCm3LhCWYueE6CE8l7nl43JAnUrGoUgjUBYXv/Bdh3fGiN5Q5NoEq/ZFzmcU8lBBD00Bo4nkT5wuH+U5VWT/OT1pTVySrFPRec5JJ6qJOBzoUXYpPHGZxy3Gz3lp66eEpX5siuHQ4bGgujRdqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y88MCUop; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LFOxi4eu"
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-ab651f1dd36so628340866b.0
-        for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 14:09:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1737842974; x=1738447774; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=u3XUNfoDvfeXXLrtZ6h3wKrEUjnmzztfw8Nesk75FwA=;
-        b=LFOxi4eudYj1i9ar4tyUwpZvaXbIHGvQzhcuzwNZ5ejBcEvaRFI4ufJHACg9RqwftD
-         XrPNYGxIQc0vBkky3vnCTXH0EeqtLD5G58nqUM7SZGJD6560Iw3u7JW5Pk5HbTqCSibi
-         zbN2J9eBmkDM+6dEVPO5DMILpO7xa0oi2jAJk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737842974; x=1738447774;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=u3XUNfoDvfeXXLrtZ6h3wKrEUjnmzztfw8Nesk75FwA=;
-        b=jEkJHkF4njA5m1WeTAyeBzjRokpMIhEiZ3YfHKY2JXI6JLMn8lp6YecKQA6nUf6znF
-         uiiS50Xb0Yd/O11nN4poq97HGoX/au8sHwbVTFZaLPPzK0fXHiUOW0Ur5ArpB2wCwjbA
-         vx0gk4KuGgkMN3jvHb0WTx2KiBppvI5Osh3UtGSS6JsDMzglgT2vcwyrsDg4Zcm+RwOB
-         Aew0E+rHWmLF6R/eKdMlWUX5UPXz5QB15g0Kp+9Dl7AvM/LecB3hKeJWpiuptOEV4wQ+
-         LT9Yo6QGGeRiIWTW833JXSWeR1oYPN+tdfuO6Rvqg4arfVR4Guvm50lNFy1nVQnWUmBr
-         6d5g==
-X-Forwarded-Encrypted: i=1; AJvYcCUplC7NQOTiWBI5HWles3KOdK0GLdwpIqETkjYavtns7ckC2wYtvHM4AyR6S5x5BHzG6s4ymDrIsOQE@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz6HU3P+RFW92eNgP0N1ri2TRRFlXj113yMpg8+z0Nl2nB3yugu
-	GRGppfOCikIgpdPcP+HmLqq1AR66C8VBG/xT1UwBhP1/s9O0nB2HrMzeOHVxgkmu8C3X9C3qXnN
-	FeOQ=
-X-Gm-Gg: ASbGnctSDYfvBKCT3Sw+lLKR30yUhh/ZOL7ZvHojnCPIbIj9qraS54GRViJnDzgVDLm
-	FmTsSQJLVjoCU4H418P/0MyjquhMB0q6zMesWn4B76NJ4uAvAsks0DvJZh4Mi81e4Ylb/FiPLx+
-	fFD/8hucmmNNIIP1vsgtQXDqppkJSSw9sN7Ak42gDCWB6KKB6wch9dyAlc8f5VhsKBON+3aHg3z
-	BsMk7t2XvKP6HIzWtqBH4oFmZmzm3hUwYhGvhxF8C/ALYqazbkDg5HISMY8vVdwfweTquC9Rsix
-	5FAzwF0Ku64LUUVxf3fD59ILWP+RZWKTlXYZIu6hyf8BLgTAbh7yFdo=
-X-Google-Smtp-Source: AGHT+IHhkU2pd+lxahIaC1cMPFRyMnYmOxgSAXw1K4mn064vciGZk3behxBcFM4+thAl5sYL+bTuaQ==
-X-Received: by 2002:a17:906:6a26:b0:aa6:873b:ed8a with SMTP id a640c23a62f3a-ab38b4aa1aemr2932548566b.47.1737842974391;
-        Sat, 25 Jan 2025 14:09:34 -0800 (PST)
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com. [209.85.208.43])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ab694d05370sm84762166b.181.2025.01.25.14.09.32
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 25 Jan 2025 14:09:33 -0800 (PST)
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-5dc149e14fcso4401885a12.2
-        for <mm-commits@vger.kernel.org>; Sat, 25 Jan 2025 14:09:32 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCXWf69UVDJengr7Kij7Dd0oJi/VPgMgPkS/J5OEdgKRS6VH0vo8t0MLB8CZBEd2syYeCHvVyAu/hQWo@vger.kernel.org
-X-Received: by 2002:a05:6402:5209:b0:5db:f26d:fff8 with SMTP id
- 4fb4d7f45d1cf-5dbf26e0139mr14729546a12.22.1737842972337; Sat, 25 Jan 2025
- 14:09:32 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y88MCUop"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4301AC4CED3;
+	Sun, 26 Jan 2025 04:43:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1737866581;
+	bh=IjuL9JuMWqmd9hYvSJVpnmJ97e1vDVDyfBVIbppeRK8=;
+	h=Date:To:From:Subject:From;
+	b=Y88MCUopcUUVU6TwDWBVa3EIq4TfG86OLFd0VYaV9JaV2akXgo04MZP5YL7YReZlW
+	 BYcb9ktxqSvvljdvGAc44oacwEaOGq0cDUx4iWZ4kap7Ku/gLxvpj2qpZYqDJE+ExW
+	 JBfkSZNSUwKwd+Ecbrhuz5I+jEwhJcEH8Zz+hB2Y=
+Date: Sat, 25 Jan 2025 20:43:00 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,kevin.brodsky@arm.com,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged mm-stable] s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch removed from -mm tree
+Message-Id: <20250126044301.4301AC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20250124162248.60104eec848619a187242392@linux-foundation.org>
-In-Reply-To: <20250124162248.60104eec848619a187242392@linux-foundation.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 25 Jan 2025 14:09:16 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
-X-Gm-Features: AWEUYZn2PUxTtvEnXoKDwoOWwRzxy-y46wZW5dX8swsgm-4Dr4NisU3beoeOciI
-Message-ID: <CAHk-=whddBhfi5DUi370W3pYs+z3r2E7KYuHjwR=a1eRig5Gxg@mail.gmail.com>
-Subject: Re: [GIT PULL] MM updates for 6.14-rc1
-To: Andrew Morton <akpm@linux-foundation.org>, Uros Bizjak <ubizjak@gmail.com>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 24 Jan 2025 at 16:22, Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> Linus, please merge the MM updates for the 6.14 development cycle,
 
-This does not build at all for me.
+The quilt patch titled
+     Subject: s390/mm: add missing ctor/dtor on page table upgrade
+has been removed from the -mm tree.  Its filename was
+     s390-mm-add-missing-ctor-dtor-on-page-table-upgrade.patch
 
-I get
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-    ./arch/x86/include/asm/current.h:49:9: error: call to undeclared
-function '__typeof_unqual__'; ISO C99 and later do not support
-implicit function declarations [-Wimplicit-function-declaration]
+------------------------------------------------------
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: s390/mm: add missing ctor/dtor on page table upgrade
+Date: Thu, 23 Jan 2025 17:03:49 +0100
 
-when running the Rust 'bindgen', and what seems to be going on is that
-my version of *gcc* does support __typeof_unqual__, so I end up with
+Commit 78966b550289 ("s390: pgtable: add statistics for PUD and P4D level
+page table") misses the call to pagetable_p4d_ctor() against a newly
+allocated P4D table in crst_table_upgrade();
 
-    CONFIG_CC_HAS_TYPEOF_UNQUAL=y
+Commit 68c601de75d8 ("mm: introduce ctor/dtor at PGD level") misses the
+call to pagetable_pgd_ctor() against a newly allocated PGD and the call to
+pagetable_dtor() against a newly allocated P4D that is about to be freed
+on crst_table_upgrade() PGD upgrade fail path.
 
-in my kernel config, but I think that 'bindgen' that generates the
-Rust bindings is based on LLVM, and clearly does not understand
-__typeof_unqual__.
+The missed constructors and destructor break (at least) the page table
+accounting when a process memory space is upgraded.
 
-I have bindgen 0.69.5 (plain F40 install), in case somebody wants to test.
+Link: https://lkml.kernel.org/r/20250123160349.200154-1-agordeev@linux.ibm.com
+Fixes: 78966b550289 ("s390: pgtable: add statistics for PUD and P4D level page table")
+Fixes: 68c601de75d8 ("mm: introduce ctor/dtor at PGD level")
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Reported-by: Heiko Carstens <hca@linux.ibm.com>
+Closes: https://lore.kernel.org/all/20250122074954.8685-A-hca@linux.ibm.com/
+Suggested-by: Heiko Carstens <hca@linux.ibm.com>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Apparently few people test linux-next with Rust enabled, and the
-reports that I find on lkml were ignored.
+ arch/s390/mm/pgalloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-I do see reports of this failure on lkml from mid-December, so it's
-not like I'm the first person ever to see this.
+--- a/arch/s390/mm/pgalloc.c~s390-mm-add-missing-ctor-dtor-on-page-table-upgrade
++++ a/arch/s390/mm/pgalloc.c
+@@ -88,12 +88,14 @@ int crst_table_upgrade(struct mm_struct
+ 		if (unlikely(!p4d))
+ 			goto err_p4d;
+ 		crst_table_init(p4d, _REGION2_ENTRY_EMPTY);
++		pagetable_p4d_ctor(virt_to_ptdesc(p4d));
+ 	}
+ 	if (end > _REGION1_SIZE) {
+ 		pgd = crst_table_alloc(mm);
+ 		if (unlikely(!pgd))
+ 			goto err_pgd;
+ 		crst_table_init(pgd, _REGION1_ENTRY_EMPTY);
++		pagetable_pgd_ctor(virt_to_ptdesc(pgd));
+ 	}
+ 
+ 	spin_lock_bh(&mm->page_table_lock);
+@@ -130,6 +132,7 @@ int crst_table_upgrade(struct mm_struct
+ 	return 0;
+ 
+ err_pgd:
++	pagetable_dtor(virt_to_ptdesc(p4d));
+ 	crst_table_free(mm, p4d);
+ err_p4d:
+ 	return -ENOMEM;
+_
 
-Anyway, pulled and then unpulled again.
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-             Linus
+
