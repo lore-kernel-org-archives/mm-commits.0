@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08490195811
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EFFE19343E
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738011505; cv=none; b=HmaMA0VyDOHuNn97d6oT/eRUJFoscZejf9vsPmR9S3Fdx91Jcs/za5f3aTQrEi+IO0gw765qPJsM4xWvHTI5Tswxw3wcPUpm/cd9US2TQpJ2KVjPTGL9b1D8NarzGzQl0uYKI7L1gN476otoGV55Ey66H4Pdh4tHe7ze5hvnMJ8=
+	t=1738011507; cv=none; b=fykuv8N3QDOzO/i4vU3k4HwlhydFcG5gCWI1LmAjNOTcOcFrDhWX0QjKnEeYlKg6n+qsi+vmUo8JETh/MoeLQXKeFY1XMDyKe6fyodMQH4NddSXUttSMVwloLe0yMsUyfOtRzhiWVOL4brm9buIizeTSc/A0aDJrWd2egK/Vvf4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738011505; c=relaxed/simple;
-	bh=qHdV5J9o/xPBFqSmBRnoGNhrvZvV9pDKq+DxIjl0Rro=;
-	h=Date:To:From:Subject:Message-Id; b=r1ccC5VTOPDv3Z4ZRzak3OYGP9feRKPvqFLTe+jh4b1LJk6nv0BoJB4T1q1kW4440UmLKW9wIXUflbHsv7IpoVAiSJv301HvpSoRa/xyAhUZ7QKWPu5PtLzRY4LwBySP909jPgFtaMDW/owS1ix5tVzzlopMRc+bJB9bC5G7Nz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fk64D9LU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738011507; c=relaxed/simple;
+	bh=YuQHKMrcMDz4E5wtpY/33JhgoXwg5D7D+2zYqQ+DXpY=;
+	h=Date:To:From:Subject:Message-Id; b=AYzprKxEiUTm1M5xc6EjI+JIDU2d2pGbL5o+3ZjgNgPY4tjNCw42hMzWw+GZskkHDq7GE3XNHM6QHERCYg+eW8mcN9KFT/PppqqOjwotoz09fiA1XyQOGwGD4MRZXiXxJM8J7CFkz9tzt0AZ8iwbvXLDUMWOgxfmGj/pD4ODTEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LFe07uyM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fk64D9LU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC8E2C4CED2;
-	Mon, 27 Jan 2025 20:58:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LFe07uyM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8D71C4CED2;
+	Mon, 27 Jan 2025 20:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738011504;
-	bh=qHdV5J9o/xPBFqSmBRnoGNhrvZvV9pDKq+DxIjl0Rro=;
+	s=korg; t=1738011506;
+	bh=YuQHKMrcMDz4E5wtpY/33JhgoXwg5D7D+2zYqQ+DXpY=;
 	h=Date:To:From:Subject:From;
-	b=fk64D9LUTPOrgM5dvWyjITo8nkJdKWmDNANHTya3z0+kMiS40/vEkhhKK8jiR2NNw
-	 E9tt/HJdv+RiKTqKjytGZz0sCwJcrwr2kcf03bWT8LLEayS4uus9Xs8exIwXs1eUGB
-	 gfZ4qTQRj5RX/sC/ZjfABOC5Jtr98OYmaRO4VZy0=
-Date: Mon, 27 Jan 2025 12:58:24 -0800
+	b=LFe07uyMkeEQ/FjpZ829AD8xg0wa38q7gP3gfvSEtNgcfNmMu84034E/3VU3rS5m1
+	 PEeZCvVjS1/6h6YKaNc5nEE14oTqBtxZJ7iTeQiCKBDlDnEmbpzn6tihsxyunZA/vY
+	 +8m54XW+NkgQLhFhoMnfNCNOSZU27PQ28R5JIW+k=
+Date: Mon, 27 Jan 2025 12:58:26 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-permit-reclaim-in-recompression-handle-allocation.patch added to mm-unstable branch
-Message-Id: <20250127205824.CC8E2C4CED2@smtp.kernel.org>
+Subject: + zram-remove-writestall-zram_stats-member.patch added to mm-unstable branch
+Message-Id: <20250127205826.A8D71C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: permit reclaim in recompression handle allocation
+     Subject: zram: remove writestall zram_stats member
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-permit-reclaim-in-recompression-handle-allocation.patch
+     zram-remove-writestall-zram_stats-member.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-permit-reclaim-in-recompression-handle-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-writestall-zram_stats-member.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: permit reclaim in recompression handle allocation
-Date: Mon, 27 Jan 2025 16:29:18 +0900
+Subject: zram: remove writestall zram_stats member
+Date: Mon, 27 Jan 2025 16:29:19 +0900
 
-Recompression path can now permit direct reclaim during new zs_handle
-allocation, because it's not atomic anymore.
+There is no zsmalloc handle allocation slow path now and writestall is not
+possible any longer.  Remove it from zram_stats.
 
-Link: https://lkml.kernel.org/r/20250127072932.1289973-8-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250127072932.1289973-9-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 +--
+ drivers/block/zram/zram_drv.h |    1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-permit-reclaim-in-recompression-handle-allocation
+--- a/drivers/block/zram/zram_drv.c~zram-remove-writestall-zram_stats-member
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1988,17 +1988,11 @@ static int recompress_slot(struct zram *
- 		return 0;
+@@ -1437,9 +1437,8 @@ static ssize_t debug_stat_show(struct de
  
- 	/*
--	 * No direct reclaim (slow path) for handle allocation and no
--	 * re-compression attempt (unlike in zram_write_bvec()) since
--	 * we already have stored that object in zsmalloc. If we cannot
--	 * alloc memory for recompressed object then we bail out and
--	 * simply keep the old (existing) object in zsmalloc.
-+	 * If we cannot alloc memory for recompressed object then we bail out
-+	 * and simply keep the old (existing) object in zsmalloc.
- 	 */
- 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
--			       __GFP_KSWAPD_RECLAIM |
--			       __GFP_NOWARN |
--			       __GFP_HIGHMEM |
--			       __GFP_MOVABLE);
-+			       GFP_NOIO | __GFP_HIGHMEM | __GFP_MOVABLE);
- 	if (IS_ERR_VALUE(handle_new)) {
- 		zcomp_stream_put(zram->comps[prio], zstrm);
- 		return PTR_ERR((void *)handle_new);
+ 	down_read(&zram->init_lock);
+ 	ret = scnprintf(buf, PAGE_SIZE,
+-			"version: %d\n%8llu %8llu\n",
++			"version: %d\n0 %8llu\n",
+ 			version,
+-			(u64)atomic64_read(&zram->stats.writestall),
+ 			(u64)atomic64_read(&zram->stats.miss_free));
+ 	up_read(&zram->init_lock);
+ 
+--- a/drivers/block/zram/zram_drv.h~zram-remove-writestall-zram_stats-member
++++ a/drivers/block/zram/zram_drv.h
+@@ -78,7 +78,6 @@ struct zram_stats {
+ 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+-	atomic64_t writestall;		/* no. of write slow paths */
+ 	atomic64_t miss_free;		/* no. of missed free */
+ #ifdef	CONFIG_ZRAM_WRITEBACK
+ 	atomic64_t bd_count;		/* no. of pages in backing device */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
