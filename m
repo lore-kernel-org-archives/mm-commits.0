@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7522C195811
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08490195811
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738011503; cv=none; b=lxsMwyAr0i9LQkuVY3ljE1RkuDV/T+RkCC6cwgc2bq/WIHMgvKDSzXk9yT2z535uiUajmv7LpRckIgDQKSGpUPJvOOPMAMPBLEkyEDwZY6mcOS0VGLw5po2tOZcF9JfOqtR8fZRslqkygEVZDOKk5QevEjRDVgv2/LVv1nIo11U=
+	t=1738011505; cv=none; b=HmaMA0VyDOHuNn97d6oT/eRUJFoscZejf9vsPmR9S3Fdx91Jcs/za5f3aTQrEi+IO0gw765qPJsM4xWvHTI5Tswxw3wcPUpm/cd9US2TQpJ2KVjPTGL9b1D8NarzGzQl0uYKI7L1gN476otoGV55Ey66H4Pdh4tHe7ze5hvnMJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738011503; c=relaxed/simple;
-	bh=ZyttFUoiy+Y7xi4312aCpiwWagCmzuWrJRSdv+8UpUs=;
-	h=Date:To:From:Subject:Message-Id; b=pjaHxvW8Vo/s9mlaZvVgiM95bBFUS4KHJ5RSZOQWsZbh6umqrkVg8yaPe3DeJNkfILK6YLEyqUUv5RowfI5ZTEJbtRpELvh9vQHS5SUJsjNlR11CuB+oTvvEBD6TVp8fkYaOzSGkl8i78B3pndY038Z0AHu4Id6Y40XclCy6Zq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uHRipIfg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738011505; c=relaxed/simple;
+	bh=qHdV5J9o/xPBFqSmBRnoGNhrvZvV9pDKq+DxIjl0Rro=;
+	h=Date:To:From:Subject:Message-Id; b=r1ccC5VTOPDv3Z4ZRzak3OYGP9feRKPvqFLTe+jh4b1LJk6nv0BoJB4T1q1kW4440UmLKW9wIXUflbHsv7IpoVAiSJv301HvpSoRa/xyAhUZ7QKWPu5PtLzRY4LwBySP909jPgFtaMDW/owS1ix5tVzzlopMRc+bJB9bC5G7Nz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fk64D9LU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uHRipIfg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8150C4CED2;
-	Mon, 27 Jan 2025 20:58:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fk64D9LU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC8E2C4CED2;
+	Mon, 27 Jan 2025 20:58:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738011502;
-	bh=ZyttFUoiy+Y7xi4312aCpiwWagCmzuWrJRSdv+8UpUs=;
+	s=korg; t=1738011504;
+	bh=qHdV5J9o/xPBFqSmBRnoGNhrvZvV9pDKq+DxIjl0Rro=;
 	h=Date:To:From:Subject:From;
-	b=uHRipIfgGBmeCZ0xNgpkD3JxVCeYQtXd4FGFNrtifzoq0efOEoI7ucdgiTpCmrvl6
-	 ifOIySdPL4TTQ8orDXyyfRPVJV8rSQosA5bIaQ2+48rXUHlJg+hM4qQeh8t/CGjAVC
-	 iFYb5a4jWExtgJm5soesiIBFgML6DFku7QK3S1gE=
-Date: Mon, 27 Jan 2025 12:58:22 -0800
+	b=fk64D9LUTPOrgM5dvWyjITo8nkJdKWmDNANHTya3z0+kMiS40/vEkhhKK8jiR2NNw
+	 E9tt/HJdv+RiKTqKjytGZz0sCwJcrwr2kcf03bWT8LLEayS4uus9Xs8exIwXs1eUGB
+	 gfZ4qTQRj5RX/sC/ZjfABOC5Jtr98OYmaRO4VZy0=
+Date: Mon, 27 Jan 2025 12:58:24 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-permit-reclaim-in-zstd-custom-allocator.patch added to mm-unstable branch
-Message-Id: <20250127205822.D8150C4CED2@smtp.kernel.org>
+Subject: + zram-permit-reclaim-in-recompression-handle-allocation.patch added to mm-unstable branch
+Message-Id: <20250127205824.CC8E2C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: permit reclaim in zstd custom allocator
+     Subject: zram: permit reclaim in recompression handle allocation
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-permit-reclaim-in-zstd-custom-allocator.patch
+     zram-permit-reclaim-in-recompression-handle-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-permit-reclaim-in-zstd-custom-allocator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-permit-reclaim-in-recompression-handle-allocation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,60 +59,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: permit reclaim in zstd custom allocator
-Date: Mon, 27 Jan 2025 16:29:17 +0900
+Subject: zram: permit reclaim in recompression handle allocation
+Date: Mon, 27 Jan 2025 16:29:18 +0900
 
-When configured with pre-trained compression/decompression dictionary
-support, zstd requires custom memory allocator, which it calls internally
-from compression()/decompression() routines.  This was a tad problematic,
-because that would mean allocation from atomic context (either under entry
-spin-lock, or per-CPU local-lock or both).  Now, with non-atomic zram
-write(), those limitations are relaxed and we can allow direct and
-indirect reclaim during allocations.
+Recompression path can now permit direct reclaim during new zs_handle
+allocation, because it's not atomic anymore.
 
-The tricky part is zram read() path, which is still atomic in one
-particular case (read_compressed_page()), due to zsmalloc handling of
-object mapping.  However, in zram in order to read() something one has to
-write() it first, and write() is when zstd allocates required internal
-state memory, and write() path is non-atomic.  Because of this write()
-allocation, in theory, zstd should not call its allocator from the atomic
-read() path.  Keep the non-preemptible branch, just in case if zstd
-allocates memory from read(), but WARN_ON_ONCE() if it happens.
-
-Link: https://lkml.kernel.org/r/20250127072932.1289973-7-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250127072932.1289973-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_zstd.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
---- a/drivers/block/zram/backend_zstd.c~zram-permit-reclaim-in-zstd-custom-allocator
-+++ a/drivers/block/zram/backend_zstd.c
-@@ -24,19 +24,14 @@ struct zstd_params {
- /*
-  * For C/D dictionaries we need to provide zstd with zstd_custom_mem,
-  * which zstd uses internally to allocate/free memory when needed.
-- *
-- * This means that allocator.customAlloc() can be called from zcomp_compress()
-- * under local-lock (per-CPU compression stream), in which case we must use
-- * GFP_ATOMIC.
-- *
-- * Another complication here is that we can be configured as a swap device.
-  */
- static void *zstd_custom_alloc(void *opaque, size_t size)
- {
--	if (!preemptible())
-+	/* Technically this should not happen */
-+	if (WARN_ON_ONCE(!preemptible()))
- 		return kvzalloc(size, GFP_ATOMIC);
+--- a/drivers/block/zram/zram_drv.c~zram-permit-reclaim-in-recompression-handle-allocation
++++ a/drivers/block/zram/zram_drv.c
+@@ -1988,17 +1988,11 @@ static int recompress_slot(struct zram *
+ 		return 0;
  
--	return kvzalloc(size, __GFP_KSWAPD_RECLAIM | __GFP_NOWARN);
-+	return kvzalloc(size, GFP_NOIO | __GFP_NOWARN);
- }
- 
- static void zstd_custom_free(void *opaque, void *address)
+ 	/*
+-	 * No direct reclaim (slow path) for handle allocation and no
+-	 * re-compression attempt (unlike in zram_write_bvec()) since
+-	 * we already have stored that object in zsmalloc. If we cannot
+-	 * alloc memory for recompressed object then we bail out and
+-	 * simply keep the old (existing) object in zsmalloc.
++	 * If we cannot alloc memory for recompressed object then we bail out
++	 * and simply keep the old (existing) object in zsmalloc.
+ 	 */
+ 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
+-			       __GFP_KSWAPD_RECLAIM |
+-			       __GFP_NOWARN |
+-			       __GFP_HIGHMEM |
+-			       __GFP_MOVABLE);
++			       GFP_NOIO | __GFP_HIGHMEM | __GFP_MOVABLE);
+ 	if (IS_ERR_VALUE(handle_new)) {
+ 		zcomp_stream_put(zram->comps[prio], zstrm);
+ 		return PTR_ERR((void *)handle_new);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
