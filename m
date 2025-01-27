@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EFFE19343E
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9CB198E6F
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738011507; cv=none; b=fykuv8N3QDOzO/i4vU3k4HwlhydFcG5gCWI1LmAjNOTcOcFrDhWX0QjKnEeYlKg6n+qsi+vmUo8JETh/MoeLQXKeFY1XMDyKe6fyodMQH4NddSXUttSMVwloLe0yMsUyfOtRzhiWVOL4brm9buIizeTSc/A0aDJrWd2egK/Vvf4=
+	t=1738011509; cv=none; b=EmGyk/sdTnyfpeL6HHU13QkvmQAOEiPNxXyMc2lzu5ff2pWd4qvMKv8hrmcsaQZ8f6fpoQ+mSjYrguNNzrHEJX3S8sCLUF49jqcKX4Kqkat+OvtZmR1JrYkQF7UE4ZwCBFcxCTrUmRemU/Fu8sW9nmXX6fyXbpkJO7Brb8+bh8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738011507; c=relaxed/simple;
-	bh=YuQHKMrcMDz4E5wtpY/33JhgoXwg5D7D+2zYqQ+DXpY=;
-	h=Date:To:From:Subject:Message-Id; b=AYzprKxEiUTm1M5xc6EjI+JIDU2d2pGbL5o+3ZjgNgPY4tjNCw42hMzWw+GZskkHDq7GE3XNHM6QHERCYg+eW8mcN9KFT/PppqqOjwotoz09fiA1XyQOGwGD4MRZXiXxJM8J7CFkz9tzt0AZ8iwbvXLDUMWOgxfmGj/pD4ODTEU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LFe07uyM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738011509; c=relaxed/simple;
+	bh=lHCKGUo41rZePeadyi0b44Qiey0WFdeze1UUnqiZQgE=;
+	h=Date:To:From:Subject:Message-Id; b=uUo//DWOGLyGpr2fl6fE2tH+7MydNiRfYIuOVIeOqmxTiTZL15wSHqSHa9lOHyzJZhPfsf9bqxOo2OOJcPGDkQ3lvhKQ5KnP39+PhYwaxyD8I5bHVVu3LmuNaCkyudVv3qtB6UGZ5Ak5lWkxo5iTUaiM3E4BFuoRUP8VAUH4T/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HRoYbF3t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LFe07uyM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8D71C4CED2;
-	Mon, 27 Jan 2025 20:58:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HRoYbF3t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7727C4CED2;
+	Mon, 27 Jan 2025 20:58:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738011506;
-	bh=YuQHKMrcMDz4E5wtpY/33JhgoXwg5D7D+2zYqQ+DXpY=;
+	s=korg; t=1738011509;
+	bh=lHCKGUo41rZePeadyi0b44Qiey0WFdeze1UUnqiZQgE=;
 	h=Date:To:From:Subject:From;
-	b=LFe07uyMkeEQ/FjpZ829AD8xg0wa38q7gP3gfvSEtNgcfNmMu84034E/3VU3rS5m1
-	 PEeZCvVjS1/6h6YKaNc5nEE14oTqBtxZJ7iTeQiCKBDlDnEmbpzn6tihsxyunZA/vY
-	 +8m54XW+NkgQLhFhoMnfNCNOSZU27PQ28R5JIW+k=
-Date: Mon, 27 Jan 2025 12:58:26 -0800
+	b=HRoYbF3tbnw5Bnmx5a7vu5bZwUawt/+xKhyoNmy1Fe7yngZggYl8JG/ZcCG8OHBXk
+	 c/uL+1N5cDe3jAxVl4KvFfno264HudVXHf019xduEpBDxANF8G42WBpRFU91SGb0J6
+	 BoYsjMwsP7COchBovKbSKBsWzVgDlmi3K6HVWVEI=
+Date: Mon, 27 Jan 2025 12:58:28 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-writestall-zram_stats-member.patch added to mm-unstable branch
-Message-Id: <20250127205826.A8D71C4CED2@smtp.kernel.org>
+Subject: + zram-unlock-slot-during-recompression.patch added to mm-unstable branch
+Message-Id: <20250127205828.E7727C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: remove writestall zram_stats member
+     Subject: zram: unlock slot during recompression
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-writestall-zram_stats-member.patch
+     zram-unlock-slot-during-recompression.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-writestall-zram_stats-member.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-unlock-slot-during-recompression.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,132 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove writestall zram_stats member
-Date: Mon, 27 Jan 2025 16:29:19 +0900
+Subject: zram: unlock slot during recompression
+Date: Mon, 27 Jan 2025 16:29:20 +0900
 
-There is no zsmalloc handle allocation slow path now and writestall is not
-possible any longer.  Remove it from zram_stats.
+Recompression, like writeback, makes a local copy of slot data (we need to
+decompress it anyway) before post-processing so we can unlock slot-entry
+once we have that local copy.
 
-Link: https://lkml.kernel.org/r/20250127072932.1289973-9-senozhatsky@chromium.org
+Unlock the entry write-lock before recompression loop (secondary
+algorithms can be tried out one by one, in order of priority) and
+re-acquire it right after the loop.
+
+There is one more potentially costly operation recompress_slot() does -
+new zs_handle allocation, which can schedule().  Release the slot-entry
+write-lock before zsmalloc allocation and grab it again after the
+allocation.
+
+In both cases, once the slot-lock is re-acquired we examine slot's
+ZRAM_PP_SLOT flag to make sure that the slot has not been modified by a
+concurrent operation.
+
+Link: https://lkml.kernel.org/r/20250127072932.1289973-10-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 +--
- drivers/block/zram/zram_drv.h |    1 -
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |   53 ++++++++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 15 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-writestall-zram_stats-member
+--- a/drivers/block/zram/zram_drv.c~zram-unlock-slot-during-recompression
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1437,9 +1437,8 @@ static ssize_t debug_stat_show(struct de
+@@ -1908,6 +1908,14 @@ static int recompress_slot(struct zram *
+ 	zram_clear_flag(zram, index, ZRAM_IDLE);
  
- 	down_read(&zram->init_lock);
- 	ret = scnprintf(buf, PAGE_SIZE,
--			"version: %d\n%8llu %8llu\n",
-+			"version: %d\n0 %8llu\n",
- 			version,
--			(u64)atomic64_read(&zram->stats.writestall),
- 			(u64)atomic64_read(&zram->stats.miss_free));
- 	up_read(&zram->init_lock);
+ 	class_index_old = zs_lookup_class_index(zram->mem_pool, comp_len_old);
++
++	/*
++	 * Set prio to one past current slot's compression prio, so that
++	 * we automatically skip lower priority algorithms.
++	 */
++	prio = zram_get_priority(zram, index) + 1;
++	/* Slot data copied out - unlock its bucket */
++	zram_slot_write_unlock(zram, index);
+ 	/*
+ 	 * Iterate the secondary comp algorithms list (in order of priority)
+ 	 * and try to recompress the page.
+@@ -1916,13 +1924,6 @@ static int recompress_slot(struct zram *
+ 		if (!zram->comps[prio])
+ 			continue;
  
---- a/drivers/block/zram/zram_drv.h~zram-remove-writestall-zram_stats-member
-+++ a/drivers/block/zram/zram_drv.h
-@@ -78,7 +78,6 @@ struct zram_stats {
- 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
--	atomic64_t writestall;		/* no. of write slow paths */
- 	atomic64_t miss_free;		/* no. of missed free */
- #ifdef	CONFIG_ZRAM_WRITEBACK
- 	atomic64_t bd_count;		/* no. of pages in backing device */
+-		/*
+-		 * Skip if the object is already re-compressed with a higher
+-		 * priority algorithm (or same algorithm).
+-		 */
+-		if (prio <= zram_get_priority(zram, index))
+-			continue;
+-
+ 		num_recomps++;
+ 		zstrm = zcomp_stream_get(zram->comps[prio]);
+ 		src = kmap_local_page(page);
+@@ -1930,10 +1931,8 @@ static int recompress_slot(struct zram *
+ 				     src, &comp_len_new);
+ 		kunmap_local(src);
+ 
+-		if (ret) {
+-			zcomp_stream_put(zram->comps[prio], zstrm);
+-			return ret;
+-		}
++		if (ret)
++			break;
+ 
+ 		class_index_new = zs_lookup_class_index(zram->mem_pool,
+ 							comp_len_new);
+@@ -1949,6 +1948,19 @@ static int recompress_slot(struct zram *
+ 		break;
+ 	}
+ 
++	zram_slot_write_lock(zram, index);
++	/* Compression error */
++	if (ret) {
++		zcomp_stream_put(zram->comps[prio], zstrm);
++		return ret;
++	}
++
++	/* Slot has been modified concurrently */
++	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT)) {
++		zcomp_stream_put(zram->comps[prio], zstrm);
++		return 0;
++	}
++
+ 	/*
+ 	 * We did not try to recompress, e.g. when we have only one
+ 	 * secondary algorithm and the page is already recompressed
+@@ -1986,17 +1998,28 @@ static int recompress_slot(struct zram *
+ 	if (threshold && comp_len_new >= threshold)
+ 		return 0;
+ 
+-	/*
+-	 * If we cannot alloc memory for recompressed object then we bail out
+-	 * and simply keep the old (existing) object in zsmalloc.
+-	 */
++	/* zsmalloc handle allocation can schedule, unlock slot's bucket */
++	zram_slot_write_unlock(zram, index);
+ 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
+ 			       GFP_NOIO | __GFP_HIGHMEM | __GFP_MOVABLE);
++	zram_slot_write_lock(zram, index);
++
++	/*
++	 * If we couldn't allocate memory for recompressed object then bail
++	 * out and simply keep the old (existing) object in mempool.
++	 */
+ 	if (IS_ERR_VALUE(handle_new)) {
+ 		zcomp_stream_put(zram->comps[prio], zstrm);
+ 		return PTR_ERR((void *)handle_new);
+ 	}
+ 
++	/* Slot has been modified concurrently */
++	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT)) {
++		zcomp_stream_put(zram->comps[prio], zstrm);
++		zs_free(zram->mem_pool, handle_new);
++		return 0;
++	}
++
+ 	dst = zs_map_object(zram->mem_pool, handle_new, ZS_MM_WO);
+ 	memcpy(dst, zstrm->buffer, comp_len_new);
+ 	zcomp_stream_put(zram->comps[prio], zstrm);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
