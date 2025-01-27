@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A694E1DC9AD
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 23:21:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF04B156F57
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 23:38:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738020107; cv=none; b=bMID2nos9ti6fJO/eUFxJNrjrNJJ8Gvq+Ohe9geJtUxfICR2bnhK7p57yNwbHyv1B2A9cY1ZB/633RB8tKkkVIQ/2kP31eRJiQCjvGHXH0DcVo2yQwes+rsPwVRITtpA1OoCXfQfwJMVg6DLCCjArFVGr1sYRDDm4CRvdKl69Dk=
+	t=1738021099; cv=none; b=l2F0kTA/2jJJ/L6exELqFK0SJ4sIx09upT2qrgyKkslKHCQfC4TVgjp3VMM70GNMcGMNSIamA6p2AMe34tgKVNN/tdCjE6917xFgLi/+3NlYBdpeeEfT8bs3ugzlIpyhrvg59dop8rEuWeicLOSIJ3/FPtdhM8Ns1wmPvVTHzdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738020107; c=relaxed/simple;
-	bh=IHsQJLGRZcbWU6KmPam29NM+H2V5oOA0q7TdoNE+vOI=;
-	h=Date:To:From:Subject:Message-Id; b=jQ+FPNUjDUi2iA2hLCBmQY1oO2tITBEzANpA+SmvbMzu6Cs1pPu3vyTMEw3mJJpVwvF4Qf1UKBp73q3sVzPaWzGuuPqsmRwXliFNFjoVROHCojzWQEJOCbi+saMP669sVIsJkk/xtUgeajg7Ww4HsYpdejHQ6ogTNhQ1s9WJY1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BILrpzwM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738021099; c=relaxed/simple;
+	bh=YbG23ieK4JA2HpahplX5tNF4uBLQ6wly2eVHhk318Ik=;
+	h=Date:To:From:Subject:Message-Id; b=OEp322HH1zyM6NdQT5+Q+cHBuueFqzCId4QjGHhwdHW7vXhk0MjTZNTxT6cazrRt6zKhdq3pPaMVgnBSmB4L9ryd9r3fdM148OX7+TsMLMgvg/XPkqZ/jBOLMzlib/ugrW5N8iFqt6ogk3js2SDYIawKas/wKl+h6onYit4cjVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wNmfbZGm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BILrpzwM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF15CC4CED2;
-	Mon, 27 Jan 2025 23:21:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wNmfbZGm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BE8FC4CED2;
+	Mon, 27 Jan 2025 23:38:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738020107;
-	bh=IHsQJLGRZcbWU6KmPam29NM+H2V5oOA0q7TdoNE+vOI=;
+	s=korg; t=1738021098;
+	bh=YbG23ieK4JA2HpahplX5tNF4uBLQ6wly2eVHhk318Ik=;
 	h=Date:To:From:Subject:From;
-	b=BILrpzwM/UseEenpWF0ICqAemAWFgz9haIVIjdrLEbGne0HIjrpOYHm6V/0127Oss
-	 sUJedbXJ76av2QcRRwg1T3Q9b3gENhUEXiWTXMLXXfJAN6Xi75pUQPVFY/5Nyy6cLu
-	 PfTCSEWQAuxikOd06jYzVGINTM6Mvc7dl5Cdk40Y=
-Date: Mon, 27 Jan 2025 15:21:46 -0800
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=wNmfbZGm0oB08ftC4ZijX9eRxtMI7t15vCziZDg8nBFmbXCvWWxDhzOGzxdbvIWuW
+	 i+/ihFN+lxkTwytHaLYxs8m7t3uae9vfFXsu2Z4URlXxR1KNU0+il3WqUpDvTSBlvP
+	 GCa0W5H0b19jDh350eaeviV09xgAUxk87paZ5NhU=
+Date: Mon, 27 Jan 2025 15:38:17 -0800
+To: mm-commits@vger.kernel.org,cmllamas@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch added to mm-unstable branch
-Message-Id: <20250127232146.EF15CC4CED2@smtp.kernel.org>
+Subject: + mm-oom_kill-fix-trivial-typo-in-comment.patch added to mm-unstable branch
+Message-Id: <20250127233818.4BE8FC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: move stray ratelimit bits to v1
+     Subject: mm/oom_kill: fix trivial typo in comment
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
+     mm-oom_kill-fix-trivial-typo-in-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-fix-trivial-typo-in-comment.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,74 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: move stray ratelimit bits to v1
-Date: Thu, 23 Jan 2025 23:38:59 -0500
+From: Carlos Llamas <cmllamas@google.com>
+Subject: mm/oom_kill: fix trivial typo in comment
+Date: Thu, 23 Jan 2025 19:35:22 +0000
 
-41213dd0f816 ("memcg: move mem_cgroup_event_ratelimit to v1 code") left
-this one behind.  There are no v2 references.
+Update 'give' -> 'given' in the description of oom_reap_task_mm().
 
-Link: https://lkml.kernel.org/r/20250124043859.18808-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20250123193523.1496909-1-cmllamas@google.com
+Signed-off-by: Carlos Llamas <cmllamas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |   13 +++++++++++++
- mm/memcontrol-v1.h |   12 ------------
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol-v1.c~mm-memcontrol-move-stray-ratelimit-bits-to-v1
-+++ a/mm/memcontrol-v1.c
-@@ -490,6 +490,19 @@ static void mem_cgroup_threshold(struct
+--- a/mm/oom_kill.c~mm-oom_kill-fix-trivial-typo-in-comment
++++ a/mm/oom_kill.c
+@@ -563,7 +563,7 @@ static bool __oom_reap_task_mm(struct mm
  }
  
- /* Cgroup1: threshold notifications & softlimit tree updates */
-+
-+/*
-+ * Per memcg event counter is incremented at every pagein/pageout. With THP,
-+ * it will be incremented by the number of pages. This counter is used
-+ * to trigger some periodic events. This is straightforward and better
-+ * than using jiffies etc. to handle periodic memcg event.
-+ */
-+enum mem_cgroup_events_target {
-+	MEM_CGROUP_TARGET_THRESH,
-+	MEM_CGROUP_TARGET_SOFTLIMIT,
-+	MEM_CGROUP_NTARGETS,
-+};
-+
- struct memcg1_events_percpu {
- 	unsigned long nr_page_events;
- 	unsigned long targets[MEM_CGROUP_NTARGETS];
---- a/mm/memcontrol-v1.h~mm-memcontrol-move-stray-ratelimit-bits-to-v1
-+++ a/mm/memcontrol-v1.h
-@@ -28,18 +28,6 @@ static inline bool do_memsw_account(void
- 	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
- }
- 
--/*
-- * Per memcg event counter is incremented at every pagein/pageout. With THP,
-- * it will be incremented by the number of pages. This counter is used
-- * to trigger some periodic events. This is straightforward and better
-- * than using jiffies etc. to handle periodic memcg event.
-- */
--enum mem_cgroup_events_target {
--	MEM_CGROUP_TARGET_THRESH,
--	MEM_CGROUP_TARGET_SOFTLIMIT,
--	MEM_CGROUP_NTARGETS,
--};
--
- unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
- 
- void drain_all_stock(struct mem_cgroup *root_memcg);
+ /*
+- * Reaps the address space of the give task.
++ * Reaps the address space of the given task.
+  *
+  * Returns true on success and false if none or part of the address space
+  * has been reclaimed and the caller should retry later.
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from cmllamas@google.com are
 
-mm-memcontrol-move-memsw-charge-callbacks-to-v1.patch
-mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch
-mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
+mm-oom_kill-fix-trivial-typo-in-comment.patch
 
