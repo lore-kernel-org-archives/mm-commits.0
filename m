@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DF2C195811
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D591195811
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:58:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738011491; cv=none; b=BuU4/z1h0++PVtNWVpoEPCI991TphG6ZwNF5G/yFRFwKvWCMoNNAqAu7/MdHFH73PuGiMxKJeKwleyg7YKyNNc/chOe0zyv/sEBD7qDaU6Suwt9jdIpGgnUW0Te2jiHTf5diCuBtDRL9zLRhriEzhtVVmHZgx96oFXlaR5Vr5qw=
+	t=1738011492; cv=none; b=a5QnAZYDUqtgfAihpEPVbqePtGRTm3aII6H0rq8PK1V4/Rel1U1q8uC7m4EoqAEqFZrm8hSrM2TgSp6Llvi5TD/B/G+wuIA69nfyIHJHoLW/D8IfzraStl7Nmr1JBuxredOHTPwZAhCddiP2/GWiHRGe4NWkinGzq1/xcdIWUVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738011491; c=relaxed/simple;
-	bh=/2xEVwoZnpI0ifWYk9ZE4vfI2Qgnr4pq8fxlXwUYGtg=;
-	h=Date:To:From:Subject:Message-Id; b=p3GTdn3ENNW5VIB/4Y5W4OcZTyZ1agoY9psMI5FEzMrRkMF93DSsTYIAAP5d4gB6Uasm1MmO26KlEG4FlRl/H3UstesnnDNHtlepJWtOyAgiJuXis103X90ClfYwzx7ZWRCWyyeHHIYl11W6bzGdt+mot7tAn/3a9odqFJeQYIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=twItPp4X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738011492; c=relaxed/simple;
+	bh=Qbhg75Ty10LIiMUrtAfuXlhHpnnJ4py8MhYUIwa7MgY=;
+	h=Date:To:From:Subject:Message-Id; b=JdWnGBUci2zA6lh/OnUpBGKky64hZ0A2COHjHDF/VJ/Y2hgnW+adAqHRd58OCOrMzUWzLJgrdJJxRFOmsyTlGUo1VoTwnl6LarBztRUuCjC5bS0iFGrLWh1yRnSmyyrqBH6AAJ2iM/EHnHa0lPwoYUjjcae4lTswh9vecBSWhdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p2Qejmxg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="twItPp4X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05DDC4CED2;
-	Mon, 27 Jan 2025 20:58:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p2Qejmxg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44896C4CED2;
+	Mon, 27 Jan 2025 20:58:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738011489;
-	bh=/2xEVwoZnpI0ifWYk9ZE4vfI2Qgnr4pq8fxlXwUYGtg=;
+	s=korg; t=1738011492;
+	bh=Qbhg75Ty10LIiMUrtAfuXlhHpnnJ4py8MhYUIwa7MgY=;
 	h=Date:To:From:Subject:From;
-	b=twItPp4Xw3ke9IavEDxLJtc7pEGZi2zPqqd+tPaSbnnAG1dDe6JZ+8zdaGmvN2mc2
-	 99PcwEOgFR8P+woiXX4qUU6glQXDZHuGey/codDheSNCAO5Bd/v+S1iu2GFSsYM7FO
-	 pW+m5LH2J6gGe+kvPj+vFtW5tHFMPLaQsEwJMjAU=
-Date: Mon, 27 Jan 2025 12:58:09 -0800
+	b=p2QejmxgKRxbRqfCeRhZKo/p7SCcmkjfrcTTfJL3UKOPTFu18oZhizxB5gXSRsRYx
+	 fBdBGn7cqSlz9MMRTFJum3awDmB0mEAPKe4062sN8XfJG/K5wKusGunm9zJR6Ps1Xk
+	 BvG3wB3M9oUBiJQ8UzKHO4Vg2IH9/W+7wakLKPfg=
+Date: Mon, 27 Jan 2025 12:58:11 -0800
 To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-switch-to-non-atomic-entry-locking.patch added to mm-unstable branch
-Message-Id: <20250127205809.A05DDC4CED2@smtp.kernel.org>
+Subject: + zram-do-not-use-per-cpu-compression-streams.patch added to mm-unstable branch
+Message-Id: <20250127205812.44896C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: switch to non-atomic entry locking
+     Subject: zram: do not use per-CPU compression streams
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-switch-to-non-atomic-entry-locking.patch
+     zram-do-not-use-per-cpu-compression-streams.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-switch-to-non-atomic-entry-locking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-use-per-cpu-compression-streams.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,535 +59,456 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: switch to non-atomic entry locking
-Date: Mon, 27 Jan 2025 16:29:12 +0900
+Subject: zram: do not use per-CPU compression streams
+Date: Mon, 27 Jan 2025 16:29:13 +0900
 
-Patch series "zram: preemptible writes and occasionally preemptible
-reads", v2.
+Similarly to per-entry spin-lock per-CPU compression streams also have a
+number of shortcoming.
 
-This is Part I (aka Episode IV), which only changes zram and seems like a
-good start.  More work needs to be done, outside of zram, in order to make
-reads() preemptible in a non-occasional manner.  That work will be carried
-out independently.
+First, per-CPU stream access has to be done from a non-preemptible
+(atomic) section, which imposes the same atomicity requirements on
+compression backends as entry spin-lock do and makes it impossible to use
+algorithms that can schedule/wait/sleep during compression and
+decompression.
 
-There are more details in the commit messages, but in short:
+Second, per-CPU streams noticeably increase memory usage (actually more
+like wastage) of secondary compression streams.  The problem is that
+secondary compression streams are allocated per-CPU, just like the primary
+streams are.  Yet we never use more that one secondary stream at a time,
+because recompression is a single threaded action.  Which means that
+remaining num_online_cpu() - 1 streams are allocated for nothing, and this
+is per-priority list (we can have several secondary compression
+algorithms).  Depending on the algorithm this may lead to a significant
+memory wastage, in addition each stream also carries a workmem buffer (2
+physical pages).
 
-Currently zram runs compression and decompression in non-preemptible
-sections, e.g.
+Instead of per-CPU streams, maintain a list of idle compression streams
+and allocate new streams on-demand (something that we used to do many
+years ago).  So that zram read() and write() become non-atomic and ease
+requirements on the compression algorithm implementation.  This also means
+that we now should have only one secondary stream per-priority list.
 
-    zcomp_stream_get()     // grabs CPU local lock
-    zcomp_compress()
-
-or
-
-    zram_slot_lock()       // grabs entry spin-lock
-    zcomp_stream_get()     // grabs CPU local lock
-    zs_map_object()        // grabs rwlock and CPU local lock
-    zcomp_decompress()
-
-Potentially a little troublesome for a number of reasons.
-
-For instance, this makes it impossible to use async compression algorithms
-or/and H/W compression algorithms, which can wait for OP completion or
-resource availability.  This also restricts what compression algorithms
-can do internally, for example, zstd can allocate internal state memory
-for C/D dictionaries:
-
-do_fsync()
- do_writepages()
-  zram_bio_write()
-   zram_write_page()                          // become non-preemptible
-    zcomp_compress()
-     zstd_compress()
-      ZSTD_compress_usingCDict()
-       ZSTD_compressBegin_usingCDict_internal()
-        ZSTD_resetCCtx_usingCDict()
-         ZSTD_resetCCtx_internal()
-          zstd_custom_alloc()                 // memory allocation
-
-Not to mention that the system can be configured to maximize compression
-ratio at a cost of CPU/HW time (e.g.  lz4hc or deflate with very high
-compression level) so zram can stay in non-preemptible section (even under
-spin-lock or/and rwlock) for an extended period of time.  Aside from
-compression algorithms, this also restricts what zram can do.  One
-particular example is zram_write_page() zsmalloc handle allocation, which
-has an optimistic allocation (disallowing direct reclaim) and a
-pessimistic fallback path, which then forces zram to compress the page one
-more time.
-
-This series changes zram to not directly impose atomicity restrictions on
-compression algorithms (and on itself), which makes zram write() fully
-preemptible; zram read(), sadly, is not always preemptible.  There are
-still indirect atomicity restrictions imposed by zsmalloc().  Changing
-zsmalloc to permit preemption under zs_map_object() is a separate effort
-(Part II) and will be posted shortly.
-
-
-This patch (of 9):
-
-Concurrent modifications of meta table entries is now handled by per-entry
-spin-lock.  This has a number of shortcomings.
-
-First, this imposes atomic requirements on compression backends.  zram can
-call both zcomp_compress() and zcomp_decompress() under entry spin-lock,
-which implies that we can use only compression algorithms that don't
-schedule/sleep/wait during compression and decompression.  This, for
-instance, makes it impossible to use some of the ASYNC compression
-algorithms (H/W compression, etc.) implementations.
-
-Second, this can potentially trigger watchdogs.  For example, entry
-re-compression with secondary algorithms is performed under entry
-spin-lock.  Given that we chain secondary compression algorithms and that
-some of them can be configured for best compression ratio (and worst
-compression speed) zram can stay under spin-lock for quite some time.
-
-Do not use per-entry spin-locks and instead convert it to an atomic_t
-variable which open codes reader-writer type of lock.  This permits
-preemption from slot_lock section.
-
-Link: https://lkml.kernel.org/r/20250127072932.1289973-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20250127072932.1289973-2-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250127072932.1289973-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  155 +++++++++++++++++++-------------
- drivers/block/zram/zram_drv.h |    7 -
- 2 files changed, 98 insertions(+), 64 deletions(-)
+ drivers/block/zram/zcomp.c    |  162 +++++++++++++++++---------------
+ drivers/block/zram/zcomp.h    |   17 +--
+ drivers/block/zram/zram_drv.c |   29 +----
+ include/linux/cpuhotplug.h    |    1 
+ 4 files changed, 108 insertions(+), 101 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-switch-to-non-atomic-entry-locking
-+++ a/drivers/block/zram/zram_drv.c
-@@ -58,19 +58,57 @@ static void zram_free_page(struct zram *
- static int zram_read_from_zspool(struct zram *zram, struct page *page,
- 				 u32 index);
+--- a/drivers/block/zram/zcomp.c~zram-do-not-use-per-cpu-compression-streams
++++ a/drivers/block/zram/zcomp.c
+@@ -6,7 +6,7 @@
+ #include <linux/slab.h>
+ #include <linux/wait.h>
+ #include <linux/sched.h>
+-#include <linux/cpu.h>
++#include <linux/cpumask.h>
+ #include <linux/crypto.h>
+ #include <linux/vmalloc.h>
  
--static int zram_slot_trylock(struct zram *zram, u32 index)
-+static int zram_slot_write_trylock(struct zram *zram, u32 index)
+@@ -43,31 +43,40 @@ static const struct zcomp_ops *backends[
+ 	NULL
+ };
+ 
+-static void zcomp_strm_free(struct zcomp *comp, struct zcomp_strm *zstrm)
++static void zcomp_strm_free(struct zcomp *comp, struct zcomp_strm *strm)
  {
--	return spin_trylock(&zram->table[index].lock);
-+	int old;
-+
-+	old = atomic_cmpxchg(&zram->table[index].lock, ZRAM_ENTRY_UNLOCKED,
-+			     ZRAM_ENTRY_WRLOCKED);
-+	return old == ZRAM_ENTRY_UNLOCKED;
+-	comp->ops->destroy_ctx(&zstrm->ctx);
+-	vfree(zstrm->buffer);
+-	zstrm->buffer = NULL;
++	comp->ops->destroy_ctx(&strm->ctx);
++	vfree(strm->buffer);
++	kfree(strm);
  }
  
--static void zram_slot_lock(struct zram *zram, u32 index)
-+static void zram_slot_write_lock(struct zram *zram, u32 index)
+-static int zcomp_strm_init(struct zcomp *comp, struct zcomp_strm *zstrm)
++static struct zcomp_strm *zcomp_strm_alloc(struct zcomp *comp)
  {
--	spin_lock(&zram->table[index].lock);
-+	atomic_t *lock = &zram->table[index].lock;
-+	int old;
++	struct zcomp_strm *strm;
+ 	int ret;
+ 
+-	ret = comp->ops->create_ctx(comp->params, &zstrm->ctx);
+-	if (ret)
+-		return ret;
++	strm = kzalloc(sizeof(*strm), GFP_KERNEL);
++	if (!strm)
++		return NULL;
 +
-+	while (1) {
-+		old = atomic_cmpxchg(lock, ZRAM_ENTRY_UNLOCKED,
-+				     ZRAM_ENTRY_WRLOCKED);
-+		if (old == ZRAM_ENTRY_UNLOCKED)
-+			return;
++	INIT_LIST_HEAD(&strm->entry);
 +
-+		cond_resched();
++	ret = comp->ops->create_ctx(comp->params, &strm->ctx);
++	if (ret) {
++		kfree(strm);
++		return NULL;
 +	}
+ 
+ 	/*
+-	 * allocate 2 pages. 1 for compressed data, plus 1 extra for the
+-	 * case when compressed size is larger than the original one
++	 * allocate 2 pages. 1 for compressed data, plus 1 extra in case if
++	 * compressed data is larger than the original one.
+ 	 */
+-	zstrm->buffer = vzalloc(2 * PAGE_SIZE);
+-	if (!zstrm->buffer) {
+-		zcomp_strm_free(comp, zstrm);
+-		return -ENOMEM;
++	strm->buffer = vzalloc(2 * PAGE_SIZE);
++	if (!strm->buffer) {
++		zcomp_strm_free(comp, strm);
++		return NULL;
+ 	}
+-	return 0;
++	return strm;
  }
  
--static void zram_slot_unlock(struct zram *zram, u32 index)
-+static void zram_slot_write_unlock(struct zram *zram, u32 index)
+ static const struct zcomp_ops *lookup_backend_ops(const char *comp)
+@@ -109,13 +118,59 @@ ssize_t zcomp_available_show(const char
+ 
+ struct zcomp_strm *zcomp_stream_get(struct zcomp *comp)
  {
--	spin_unlock(&zram->table[index].lock);
-+	atomic_set(&zram->table[index].lock, ZRAM_ENTRY_UNLOCKED);
-+}
+-	local_lock(&comp->stream->lock);
+-	return this_cpu_ptr(comp->stream);
++	struct zcomp_strm *strm;
 +
-+static void zram_slot_read_lock(struct zram *zram, u32 index)
-+{
-+	atomic_t *lock = &zram->table[index].lock;
-+	int old;
++	might_sleep();
 +
 +	while (1) {
-+		old = atomic_read(lock);
-+		if (old == ZRAM_ENTRY_WRLOCKED) {
-+			cond_resched();
++		spin_lock(&comp->strm_lock);
++		if (!list_empty(&comp->idle_strm)) {
++			strm = list_first_entry(&comp->idle_strm,
++						struct zcomp_strm,
++						entry);
++			list_del(&strm->entry);
++			spin_unlock(&comp->strm_lock);
++			return strm;
++		}
++
++		/* cannot allocate new stream, wait for an idle one */
++		if (comp->avail_strm >= num_online_cpus()) {
++			spin_unlock(&comp->strm_lock);
++			wait_event(comp->strm_wait,
++				   !list_empty(&comp->idle_strm));
 +			continue;
 +		}
 +
-+		if (atomic_cmpxchg(lock, old, old + 1) == old)
-+			return;
++		/* allocate new stream */
++		comp->avail_strm++;
++		spin_unlock(&comp->strm_lock);
 +
-+		cond_resched();
++		strm = zcomp_strm_alloc(comp);
++		if (strm)
++			break;
++
++		spin_lock(&comp->strm_lock);
++		comp->avail_strm--;
++		spin_unlock(&comp->strm_lock);
++		wait_event(comp->strm_wait, !list_empty(&comp->idle_strm));
 +	}
-+}
 +
-+static void zram_slot_read_unlock(struct zram *zram, u32 index)
-+{
-+	atomic_dec(&zram->table[index].lock);
++	return strm;
  }
  
- static inline bool init_done(struct zram *zram)
-@@ -93,7 +131,6 @@ static void zram_set_handle(struct zram
- 	zram->table[index].handle = handle;
- }
- 
--/* flag operations require table entry bit_spin_lock() being held */
- static bool zram_test_flag(struct zram *zram, u32 index,
- 			enum zram_pageflags flag)
+-void zcomp_stream_put(struct zcomp *comp)
++void zcomp_stream_put(struct zcomp *comp, struct zcomp_strm *strm)
  {
-@@ -229,9 +266,9 @@ static void release_pp_slot(struct zram
- {
- 	list_del_init(&pps->entry);
- 
--	zram_slot_lock(zram, pps->index);
-+	zram_slot_write_lock(zram, pps->index);
- 	zram_clear_flag(zram, pps->index, ZRAM_PP_SLOT);
--	zram_slot_unlock(zram, pps->index);
-+	zram_slot_write_unlock(zram, pps->index);
- 
- 	kfree(pps);
+-	local_unlock(&comp->stream->lock);
++	spin_lock(&comp->strm_lock);
++	if (comp->avail_strm <= num_online_cpus()) {
++		list_add(&strm->entry, &comp->idle_strm);
++		spin_unlock(&comp->strm_lock);
++		wake_up(&comp->strm_wait);
++		return;
++	}
++
++	comp->avail_strm--;
++	spin_unlock(&comp->strm_lock);
++	zcomp_strm_free(comp, strm);
  }
-@@ -394,11 +431,11 @@ static void mark_idle(struct zram *zram,
- 		 *
- 		 * And ZRAM_WB slots simply cannot be ZRAM_IDLE.
- 		 */
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		if (!zram_allocated(zram, index) ||
- 		    zram_test_flag(zram, index, ZRAM_WB) ||
- 		    zram_test_flag(zram, index, ZRAM_SAME)) {
--			zram_slot_unlock(zram, index);
-+			zram_slot_write_unlock(zram, index);
+ 
+ int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
+@@ -148,61 +203,19 @@ int zcomp_decompress(struct zcomp *comp,
+ 	return comp->ops->decompress(comp->params, &zstrm->ctx, &req);
+ }
+ 
+-int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
+-{
+-	struct zcomp *comp = hlist_entry(node, struct zcomp, node);
+-	struct zcomp_strm *zstrm;
+-	int ret;
+-
+-	zstrm = per_cpu_ptr(comp->stream, cpu);
+-	local_lock_init(&zstrm->lock);
+-
+-	ret = zcomp_strm_init(comp, zstrm);
+-	if (ret)
+-		pr_err("Can't allocate a compression stream\n");
+-	return ret;
+-}
+-
+-int zcomp_cpu_dead(unsigned int cpu, struct hlist_node *node)
+-{
+-	struct zcomp *comp = hlist_entry(node, struct zcomp, node);
+-	struct zcomp_strm *zstrm;
+-
+-	zstrm = per_cpu_ptr(comp->stream, cpu);
+-	zcomp_strm_free(comp, zstrm);
+-	return 0;
+-}
+-
+-static int zcomp_init(struct zcomp *comp, struct zcomp_params *params)
++void zcomp_destroy(struct zcomp *comp)
+ {
+-	int ret;
+-
+-	comp->stream = alloc_percpu(struct zcomp_strm);
+-	if (!comp->stream)
+-		return -ENOMEM;
+-
+-	comp->params = params;
+-	ret = comp->ops->setup_params(comp->params);
+-	if (ret)
+-		goto cleanup;
++	struct zcomp_strm *strm;
+ 
+-	ret = cpuhp_state_add_instance(CPUHP_ZCOMP_PREPARE, &comp->node);
+-	if (ret < 0)
+-		goto cleanup;
+-
+-	return 0;
+-
+-cleanup:
+-	comp->ops->release_params(comp->params);
+-	free_percpu(comp->stream);
+-	return ret;
+-}
++	while (!list_empty(&comp->idle_strm)) {
++		strm = list_first_entry(&comp->idle_strm,
++					struct zcomp_strm,
++					entry);
++		list_del(&strm->entry);
++		zcomp_strm_free(comp, strm);
++	}
+ 
+-void zcomp_destroy(struct zcomp *comp)
+-{
+-	cpuhp_state_remove_instance(CPUHP_ZCOMP_PREPARE, &comp->node);
+ 	comp->ops->release_params(comp->params);
+-	free_percpu(comp->stream);
+ 	kfree(comp);
+ }
+ 
+@@ -229,7 +242,12 @@ struct zcomp *zcomp_create(const char *a
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+-	error = zcomp_init(comp, params);
++	INIT_LIST_HEAD(&comp->idle_strm);
++	init_waitqueue_head(&comp->strm_wait);
++	spin_lock_init(&comp->strm_lock);
++
++	comp->params = params;
++	error = comp->ops->setup_params(comp->params);
+ 	if (error) {
+ 		kfree(comp);
+ 		return ERR_PTR(error);
+--- a/drivers/block/zram/zcomp.h~zram-do-not-use-per-cpu-compression-streams
++++ a/drivers/block/zram/zcomp.h
+@@ -3,10 +3,10 @@
+ #ifndef _ZCOMP_H_
+ #define _ZCOMP_H_
+ 
+-#include <linux/local_lock.h>
+-
+ #define ZCOMP_PARAM_NO_LEVEL	INT_MIN
+ 
++#include <linux/wait.h>
++
+ /*
+  * Immutable driver (backend) parameters. The driver may attach private
+  * data to it (e.g. driver representation of the dictionary, etc.).
+@@ -31,7 +31,7 @@ struct zcomp_ctx {
+ };
+ 
+ struct zcomp_strm {
+-	local_lock_t lock;
++	struct list_head entry;
+ 	/* compression buffer */
+ 	void *buffer;
+ 	struct zcomp_ctx ctx;
+@@ -60,16 +60,15 @@ struct zcomp_ops {
+ 	const char *name;
+ };
+ 
+-/* dynamic per-device compression frontend */
+ struct zcomp {
+-	struct zcomp_strm __percpu *stream;
++	struct list_head idle_strm;
++	spinlock_t strm_lock;
++	u32 avail_strm;
++	wait_queue_head_t strm_wait;
+ 	const struct zcomp_ops *ops;
+ 	struct zcomp_params *params;
+-	struct hlist_node node;
+ };
+ 
+-int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node);
+-int zcomp_cpu_dead(unsigned int cpu, struct hlist_node *node);
+ ssize_t zcomp_available_show(const char *comp, char *buf);
+ bool zcomp_available_algorithm(const char *comp);
+ 
+@@ -77,7 +76,7 @@ struct zcomp *zcomp_create(const char *a
+ void zcomp_destroy(struct zcomp *comp);
+ 
+ struct zcomp_strm *zcomp_stream_get(struct zcomp *comp);
+-void zcomp_stream_put(struct zcomp *comp);
++void zcomp_stream_put(struct zcomp *comp, struct zcomp_strm *strm);
+ 
+ int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
+ 		   const void *src, unsigned int *dst_len);
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-use-per-cpu-compression-streams
++++ a/drivers/block/zram/zram_drv.c
+@@ -31,7 +31,6 @@
+ #include <linux/idr.h>
+ #include <linux/sysfs.h>
+ #include <linux/debugfs.h>
+-#include <linux/cpuhotplug.h>
+ #include <linux/part_stat.h>
+ #include <linux/kernel_read_file.h>
+ 
+@@ -1610,7 +1609,7 @@ static int read_compressed_page(struct z
+ 	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
+ 	kunmap_local(dst);
+ 	zs_unmap_object(zram->mem_pool, handle);
+-	zcomp_stream_put(zram->comps[prio]);
++	zcomp_stream_put(zram->comps[prio], zstrm);
+ 
+ 	return ret;
+ }
+@@ -1771,14 +1770,14 @@ compress_again:
+ 	kunmap_local(mem);
+ 
+ 	if (unlikely(ret)) {
+-		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
++		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP], zstrm);
+ 		pr_err("Compression failed! err=%d\n", ret);
+ 		zs_free(zram->mem_pool, handle);
+ 		return ret;
+ 	}
+ 
+ 	if (comp_len >= huge_class_size) {
+-		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
++		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP], zstrm);
+ 		return write_incompressible_page(zram, page, index);
+ 	}
+ 
+@@ -1802,7 +1801,7 @@ compress_again:
+ 				   __GFP_HIGHMEM |
+ 				   __GFP_MOVABLE);
+ 	if (IS_ERR_VALUE(handle)) {
+-		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
++		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP], zstrm);
+ 		atomic64_inc(&zram->stats.writestall);
+ 		handle = zs_malloc(zram->mem_pool, comp_len,
+ 				   GFP_NOIO | __GFP_HIGHMEM |
+@@ -1814,7 +1813,7 @@ compress_again:
+ 	}
+ 
+ 	if (!zram_can_store_page(zram)) {
+-		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
++		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP], zstrm);
+ 		zs_free(zram->mem_pool, handle);
+ 		return -ENOMEM;
+ 	}
+@@ -1822,7 +1821,7 @@ compress_again:
+ 	dst = zs_map_object(zram->mem_pool, handle, ZS_MM_WO);
+ 
+ 	memcpy(dst, zstrm->buffer, comp_len);
+-	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
++	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP], zstrm);
+ 	zs_unmap_object(zram->mem_pool, handle);
+ 
+ 	zram_slot_write_lock(zram, index);
+@@ -1981,7 +1980,7 @@ static int recompress_slot(struct zram *
+ 		kunmap_local(src);
+ 
+ 		if (ret) {
+-			zcomp_stream_put(zram->comps[prio]);
++			zcomp_stream_put(zram->comps[prio], zstrm);
+ 			return ret;
+ 		}
+ 
+@@ -1991,7 +1990,7 @@ static int recompress_slot(struct zram *
+ 		/* Continue until we make progress */
+ 		if (class_index_new >= class_index_old ||
+ 		    (threshold && comp_len_new >= threshold)) {
+-			zcomp_stream_put(zram->comps[prio]);
++			zcomp_stream_put(zram->comps[prio], zstrm);
  			continue;
  		}
  
-@@ -410,7 +447,7 @@ static void mark_idle(struct zram *zram,
- 			zram_set_flag(zram, index, ZRAM_IDLE);
- 		else
- 			zram_clear_flag(zram, index, ZRAM_IDLE);
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
+@@ -2049,13 +2048,13 @@ static int recompress_slot(struct zram *
+ 			       __GFP_HIGHMEM |
+ 			       __GFP_MOVABLE);
+ 	if (IS_ERR_VALUE(handle_new)) {
+-		zcomp_stream_put(zram->comps[prio]);
++		zcomp_stream_put(zram->comps[prio], zstrm);
+ 		return PTR_ERR((void *)handle_new);
  	}
+ 
+ 	dst = zs_map_object(zram->mem_pool, handle_new, ZS_MM_WO);
+ 	memcpy(dst, zstrm->buffer, comp_len_new);
+-	zcomp_stream_put(zram->comps[prio]);
++	zcomp_stream_put(zram->comps[prio], zstrm);
+ 
+ 	zs_unmap_object(zram->mem_pool, handle_new);
+ 
+@@ -2803,7 +2802,6 @@ static void destroy_devices(void)
+ 	zram_debugfs_destroy();
+ 	idr_destroy(&zram_index_idr);
+ 	unregister_blkdev(zram_major, "zram");
+-	cpuhp_remove_multi_state(CPUHP_ZCOMP_PREPARE);
  }
  
-@@ -709,7 +746,7 @@ static int scan_slots_for_writeback(stru
+ static int __init zram_init(void)
+@@ -2813,15 +2811,9 @@ static int __init zram_init(void)
  
- 		INIT_LIST_HEAD(&pps->entry);
+ 	BUILD_BUG_ON(__NR_ZRAM_PAGEFLAGS > sizeof(zram_te.flags) * 8);
  
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		if (!zram_allocated(zram, index))
- 			goto next;
- 
-@@ -731,7 +768,7 @@ static int scan_slots_for_writeback(stru
- 		place_pp_slot(zram, ctl, pps);
- 		pps = NULL;
- next:
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
- 	}
- 
- 	kfree(pps);
-@@ -822,7 +859,7 @@ static ssize_t writeback_store(struct de
- 		}
- 
- 		index = pps->index;
--		zram_slot_lock(zram, index);
-+		zram_slot_read_lock(zram, index);
- 		/*
- 		 * scan_slots() sets ZRAM_PP_SLOT and relases slot lock, so
- 		 * slots can change in the meantime. If slots are accessed or
-@@ -833,7 +870,7 @@ static ssize_t writeback_store(struct de
- 			goto next;
- 		if (zram_read_from_zspool(zram, page, index))
- 			goto next;
--		zram_slot_unlock(zram, index);
-+		zram_slot_read_unlock(zram, index);
- 
- 		bio_init(&bio, zram->bdev, &bio_vec, 1,
- 			 REQ_OP_WRITE | REQ_SYNC);
-@@ -860,7 +897,7 @@ static ssize_t writeback_store(struct de
- 		}
- 
- 		atomic64_inc(&zram->stats.bd_writes);
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		/*
- 		 * Same as above, we release slot lock during writeback so
- 		 * slot can change under us: slot_free() or slot_free() and
-@@ -882,7 +919,7 @@ static ssize_t writeback_store(struct de
- 			zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
- 		spin_unlock(&zram->wb_limit_lock);
- next:
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
- 		release_pp_slot(zram, pps);
- 
- 		cond_resched();
-@@ -1001,7 +1038,7 @@ static ssize_t read_block_state(struct f
- 	for (index = *ppos; index < nr_pages; index++) {
- 		int copied;
- 
--		zram_slot_lock(zram, index);
-+		zram_slot_read_lock(zram, index);
- 		if (!zram_allocated(zram, index))
- 			goto next;
- 
-@@ -1019,13 +1056,13 @@ static ssize_t read_block_state(struct f
- 				       ZRAM_INCOMPRESSIBLE) ? 'n' : '.');
- 
- 		if (count <= copied) {
--			zram_slot_unlock(zram, index);
-+			zram_slot_read_unlock(zram, index);
- 			break;
- 		}
- 		written += copied;
- 		count -= copied;
- next:
--		zram_slot_unlock(zram, index);
-+		zram_slot_read_unlock(zram, index);
- 		*ppos += 1;
- 	}
- 
-@@ -1455,33 +1492,31 @@ static void zram_meta_free(struct zram *
- 
- static bool zram_meta_alloc(struct zram *zram, u64 disksize)
- {
--	size_t num_pages, index;
-+	size_t num_ents, index;
- 
--	num_pages = disksize >> PAGE_SHIFT;
--	zram->table = vzalloc(array_size(num_pages, sizeof(*zram->table)));
-+	num_ents = disksize >> PAGE_SHIFT;
-+	zram->table = vzalloc(array_size(num_ents, sizeof(*zram->table)));
- 	if (!zram->table)
--		return false;
-+		goto error;
- 
- 	zram->mem_pool = zs_create_pool(zram->disk->disk_name);
--	if (!zram->mem_pool) {
--		vfree(zram->table);
--		zram->table = NULL;
--		return false;
--	}
-+	if (!zram->mem_pool)
-+		goto error;
- 
- 	if (!huge_class_size)
- 		huge_class_size = zs_huge_class_size(zram->mem_pool);
- 
--	for (index = 0; index < num_pages; index++)
--		spin_lock_init(&zram->table[index].lock);
-+	for (index = 0; index < num_ents; index++)
-+		atomic_set(&zram->table[index].lock, ZRAM_ENTRY_UNLOCKED);
-+
- 	return true;
-+
-+error:
-+	vfree(zram->table);
-+	zram->table = NULL;
-+	return false;
- }
- 
--/*
-- * To protect concurrent access to the same index entry,
-- * caller should hold this table index entry's bit_spinlock to
-- * indicate this index entry is accessing.
-- */
- static void zram_free_page(struct zram *zram, size_t index)
- {
- 	unsigned long handle;
-@@ -1602,17 +1637,17 @@ static int zram_read_page(struct zram *z
- {
- 	int ret;
- 
--	zram_slot_lock(zram, index);
-+	zram_slot_read_lock(zram, index);
- 	if (!zram_test_flag(zram, index, ZRAM_WB)) {
- 		/* Slot should be locked through out the function call */
- 		ret = zram_read_from_zspool(zram, page, index);
--		zram_slot_unlock(zram, index);
-+		zram_slot_read_unlock(zram, index);
- 	} else {
- 		/*
- 		 * The slot should be unlocked before reading from the backing
- 		 * device.
- 		 */
--		zram_slot_unlock(zram, index);
-+		zram_slot_read_unlock(zram, index);
- 
- 		ret = read_from_bdev(zram, page, zram_get_handle(zram, index),
- 				     parent);
-@@ -1655,10 +1690,10 @@ static int zram_bvec_read(struct zram *z
- static int write_same_filled_page(struct zram *zram, unsigned long fill,
- 				  u32 index)
- {
--	zram_slot_lock(zram, index);
-+	zram_slot_write_lock(zram, index);
- 	zram_set_flag(zram, index, ZRAM_SAME);
- 	zram_set_handle(zram, index, fill);
--	zram_slot_unlock(zram, index);
-+	zram_slot_write_unlock(zram, index);
- 
- 	atomic64_inc(&zram->stats.same_pages);
- 	atomic64_inc(&zram->stats.pages_stored);
-@@ -1693,11 +1728,11 @@ static int write_incompressible_page(str
- 	kunmap_local(src);
- 	zs_unmap_object(zram->mem_pool, handle);
- 
--	zram_slot_lock(zram, index);
-+	zram_slot_write_lock(zram, index);
- 	zram_set_flag(zram, index, ZRAM_HUGE);
- 	zram_set_handle(zram, index, handle);
- 	zram_set_obj_size(zram, index, PAGE_SIZE);
--	zram_slot_unlock(zram, index);
-+	zram_slot_write_unlock(zram, index);
- 
- 	atomic64_add(PAGE_SIZE, &zram->stats.compr_data_size);
- 	atomic64_inc(&zram->stats.huge_pages);
-@@ -1718,9 +1753,9 @@ static int zram_write_page(struct zram *
- 	bool same_filled;
- 
- 	/* First, free memory allocated to this slot (if any) */
--	zram_slot_lock(zram, index);
-+	zram_slot_write_lock(zram, index);
- 	zram_free_page(zram, index);
--	zram_slot_unlock(zram, index);
-+	zram_slot_write_unlock(zram, index);
- 
- 	mem = kmap_local_page(page);
- 	same_filled = page_same_filled(mem, &element);
-@@ -1790,10 +1825,10 @@ compress_again:
- 	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
- 	zs_unmap_object(zram->mem_pool, handle);
- 
--	zram_slot_lock(zram, index);
-+	zram_slot_write_lock(zram, index);
- 	zram_set_handle(zram, index, handle);
- 	zram_set_obj_size(zram, index, comp_len);
--	zram_slot_unlock(zram, index);
-+	zram_slot_write_unlock(zram, index);
- 
- 	/* Update stats */
- 	atomic64_inc(&zram->stats.pages_stored);
-@@ -1850,7 +1885,7 @@ static int scan_slots_for_recompress(str
- 
- 		INIT_LIST_HEAD(&pps->entry);
- 
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		if (!zram_allocated(zram, index))
- 			goto next;
- 
-@@ -1871,7 +1906,7 @@ static int scan_slots_for_recompress(str
- 		place_pp_slot(zram, ctl, pps);
- 		pps = NULL;
- next:
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
- 	}
- 
- 	kfree(pps);
-@@ -2162,7 +2197,7 @@ static ssize_t recompress_store(struct d
- 		if (!num_recomp_pages)
- 			break;
- 
--		zram_slot_lock(zram, pps->index);
-+		zram_slot_write_lock(zram, pps->index);
- 		if (!zram_test_flag(zram, pps->index, ZRAM_PP_SLOT))
- 			goto next;
- 
-@@ -2170,7 +2205,7 @@ static ssize_t recompress_store(struct d
- 				      &num_recomp_pages, threshold,
- 				      prio, prio_max);
- next:
--		zram_slot_unlock(zram, pps->index);
-+		zram_slot_write_unlock(zram, pps->index);
- 		release_pp_slot(zram, pps);
- 
- 		if (err) {
-@@ -2217,9 +2252,9 @@ static void zram_bio_discard(struct zram
- 	}
- 
- 	while (n >= PAGE_SIZE) {
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		zram_free_page(zram, index);
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
- 		atomic64_inc(&zram->stats.notify_free);
- 		index++;
- 		n -= PAGE_SIZE;
-@@ -2248,9 +2283,9 @@ static void zram_bio_read(struct zram *z
- 		}
- 		flush_dcache_page(bv.bv_page);
- 
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		zram_accessed(zram, index);
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
- 
- 		bio_advance_iter_single(bio, &iter, bv.bv_len);
- 	} while (iter.bi_size);
-@@ -2278,9 +2313,9 @@ static void zram_bio_write(struct zram *
- 			break;
- 		}
- 
--		zram_slot_lock(zram, index);
-+		zram_slot_write_lock(zram, index);
- 		zram_accessed(zram, index);
--		zram_slot_unlock(zram, index);
-+		zram_slot_write_unlock(zram, index);
- 
- 		bio_advance_iter_single(bio, &iter, bv.bv_len);
- 	} while (iter.bi_size);
-@@ -2321,13 +2356,13 @@ static void zram_slot_free_notify(struct
- 	zram = bdev->bd_disk->private_data;
- 
- 	atomic64_inc(&zram->stats.notify_free);
--	if (!zram_slot_trylock(zram, index)) {
-+	if (!zram_slot_write_trylock(zram, index)) {
- 		atomic64_inc(&zram->stats.miss_free);
- 		return;
- 	}
- 
- 	zram_free_page(zram, index);
--	zram_slot_unlock(zram, index);
-+	zram_slot_write_unlock(zram, index);
- }
- 
- static void zram_comp_params_reset(struct zram *zram)
---- a/drivers/block/zram/zram_drv.h~zram-switch-to-non-atomic-entry-locking
-+++ a/drivers/block/zram/zram_drv.h
-@@ -15,7 +15,6 @@
- #ifndef _ZRAM_DRV_H_
- #define _ZRAM_DRV_H_
- 
--#include <linux/rwsem.h>
- #include <linux/zsmalloc.h>
- #include <linux/crypto.h>
- 
-@@ -28,7 +27,6 @@
- #define ZRAM_SECTOR_PER_LOGICAL_BLOCK	\
- 	(1 << (ZRAM_LOGICAL_BLOCK_SHIFT - SECTOR_SHIFT))
- 
+-	ret = cpuhp_setup_state_multi(CPUHP_ZCOMP_PREPARE, "block/zram:prepare",
+-				      zcomp_cpu_up_prepare, zcomp_cpu_dead);
+-	if (ret < 0)
+-		return ret;
 -
- /*
-  * ZRAM is mainly used for memory efficiency so we want to keep memory
-  * footprint small and thus squeeze size and zram pageflags into a flags
-@@ -58,13 +56,14 @@ enum zram_pageflags {
- 	__NR_ZRAM_PAGEFLAGS,
- };
+ 	ret = class_register(&zram_control_class);
+ 	if (ret) {
+ 		pr_err("Unable to register zram-control class\n");
+-		cpuhp_remove_multi_state(CPUHP_ZCOMP_PREPARE);
+ 		return ret;
+ 	}
  
--/*-- Data structures */
-+#define ZRAM_ENTRY_UNLOCKED	0
-+#define ZRAM_ENTRY_WRLOCKED	(-1)
+@@ -2830,7 +2822,6 @@ static int __init zram_init(void)
+ 	if (zram_major <= 0) {
+ 		pr_err("Unable to get major number\n");
+ 		class_unregister(&zram_control_class);
+-		cpuhp_remove_multi_state(CPUHP_ZCOMP_PREPARE);
+ 		return -EBUSY;
+ 	}
  
- /* Allocated for each disk page */
- struct zram_table_entry {
- 	unsigned long handle;
- 	unsigned int flags;
--	spinlock_t lock;
-+	atomic_t lock;
- #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
- 	ktime_t ac_time;
- #endif
+--- a/include/linux/cpuhotplug.h~zram-do-not-use-per-cpu-compression-streams
++++ a/include/linux/cpuhotplug.h
+@@ -119,7 +119,6 @@ enum cpuhp_state {
+ 	CPUHP_MM_ZS_PREPARE,
+ 	CPUHP_MM_ZSWP_POOL_PREPARE,
+ 	CPUHP_KVM_PPC_BOOK3S_PREPARE,
+-	CPUHP_ZCOMP_PREPARE,
+ 	CPUHP_TIMERS_PREPARE,
+ 	CPUHP_TMIGR_PREPARE,
+ 	CPUHP_MIPS_SOC_PREPARE,
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
