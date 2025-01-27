@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18D5D25776
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2CB825776
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:45:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738010748; cv=none; b=n+oLC99ZXhAmSSYJA4nU4RvUrNBq8ihi4KU/j4x+8G1vU+ZrSakM+l8yJeYV1Snw8I2jHpG8LSI+H94FON69pqwtUOHr0JchNspsbNQidx+QN+OJjki9pWjtpeeHBkutnFJHiDIg/O3f/PoTJyhmuGNn2VEpYZnEbOCHWKJgiNU=
+	t=1738010750; cv=none; b=CsH3IHmUwKKuofR2hntA1As9cLclWnMoiIyNwVji3s/MFQvSk3GxYVMjNKsI4x0hoflQwYf0gXYRZ6pXGhpfTlrH+28c95UojwhbGK1nNajLQDuuERt/FPhHIEEYYBswFh7BzZb/tV7YQwWA6TA+b8oeQ3ZYimyUMdqQXEFhutI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738010748; c=relaxed/simple;
-	bh=2fmXZw33Z5NfI13Ma1UQKr2SU3xRbF4rRgSMFiOJTUk=;
-	h=Date:To:From:Subject:Message-Id; b=SOcUVZV9ft2yjlvJHlQE9A1jDBOpKo2g+SWYryiLebt0LKkc3GalIzBwS1ShsHBltWZyVZX63P9ogIpgguHDXdv5ooBp2TR9v7mLbTLtRUr3IdH/l7AedqO+vyXjKwBdlyJwi0/xDbuZOozeP05SQhrzSfwDkGckKo1xyO1OiwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oeun5XLt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738010750; c=relaxed/simple;
+	bh=8RSMgS6ntKK6J2Pp/4piDDS9jTRp5vAVNeCkzBAr4jc=;
+	h=Date:To:From:Subject:Message-Id; b=ULKadD3EFwGPdhCbEY+YHHALSgh736/PK0SCufCjOhZJIms2MoG26x5gNcQRqmfjmPTSYe1bNPkwYheDYhgYo45z0iRyAtvCHEbTVox4KkUry+XEPGIqpo3L8w3/clWzGSAAD1Kylbe7p8IqBj8llQtxFraEDjrTkQ2jktQXlFM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K2tOXa1d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oeun5XLt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5355C4CEE0;
-	Mon, 27 Jan 2025 20:45:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K2tOXa1d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11C0EC4CED2;
+	Mon, 27 Jan 2025 20:45:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738010747;
-	bh=2fmXZw33Z5NfI13Ma1UQKr2SU3xRbF4rRgSMFiOJTUk=;
+	s=korg; t=1738010750;
+	bh=8RSMgS6ntKK6J2Pp/4piDDS9jTRp5vAVNeCkzBAr4jc=;
 	h=Date:To:From:Subject:From;
-	b=Oeun5XLtYDSK/21788YTT8HT1YkzHyfo8DY+81/O5kVxWY2BY8Ib5VjtFzvzfV/QY
-	 lejD5KBAQs/eVBavYwHPHjZ/a5JYK6BnK7J3xvns3pHpvDVE9yuxtCcmOzjBFzm4wP
-	 QePXWxzDj0UNHKSnkXlSnGHjV5NUmO7A/7EUkac4=
-Date: Mon, 27 Jan 2025 12:45:47 -0800
+	b=K2tOXa1d1NWmp85jXmA+iQVbBz4uIv+UC08baYklrco4c5zJROt5CxFeL23ep8zel
+	 eD5XlfI6Ldwer+YOqczYR/a8cN+THp6icqL1pMsPTg1avJGi/arKA85aFZRwQmoMsb
+	 TMgf7JUmP6rHz8hioqHR0qe0HuQUtspFTWahwar0=
+Date: Mon, 27 Jan 2025 12:45:49 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kgdb-use-is_err_pcpu-macro.patch added to mm-unstable branch
-Message-Id: <20250127204547.C5355C4CEE0@smtp.kernel.org>
+Subject: + compilerh-introduce-typeof_unqual-macro.patch added to mm-unstable branch
+Message-Id: <20250127204550.11C0EC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kgdb: use IS_ERR_PCPU() macro
+     Subject: compiler.h: introduce TYPEOF_UNQUAL() macro
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-kgdb-use-is_err_pcpu-macro.patch
+     compilerh-introduce-typeof_unqual-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kgdb-use-is_err_pcpu-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compilerh-introduce-typeof_unqual-macro.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,78 +59,106 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Uros Bizjak <ubizjak@gmail.com>
-Subject: x86/kgdb: use IS_ERR_PCPU() macro
-Date: Mon, 27 Jan 2025 17:05:05 +0100
+Subject: compiler.h: introduce TYPEOF_UNQUAL() macro
+Date: Mon, 27 Jan 2025 17:05:06 +0100
 
-Patch series "Enable strict percpu address space checks", v4.
+Define TYPEOF_UNQUAL() to use __typeof_unqual__() as typeof operator when
+available, to return unqualified type of the expression.
 
-Enable strict percpu address space checks via x86 named address space
-qualifiers.  Percpu variables are declared in __seg_gs/__seg_fs named AS
-and kept named AS qualified until they are dereferenced via percpu
-accessor.  This approach enables various compiler checks for
-cross-namespace variable assignments.
+Current version of sparse doesn't know anything about __typeof_unqual__()
+operator.  Avoid the usage of __typeof_unqual__() when sparse checking is
+active to prevent sparse errors with unknowing keyword.
 
-Please note that current version of sparse doesn't know anything about
-__typeof_unqual__() operator.  Avoid the usage of __typeof_unqual__() when
-sparse checking is active to prevent sparse errors with unknowing keyword.
-The proposed patch by Dan Carpenter to implement __typeof_unqual__()
-handling in sparse is located at:
-
-https://lore.kernel.org/lkml/5b8d0dee-8fb6-45af-ba6c-7f74aff9a4b8@stanley.mountain/
-
-
-This patch (of 6):
-
-Use IS_ERR_PCPU() when checking the error pointer in the percpu address
-space.  This macro adds intermediate cast to unsigned long when switching
-named address spaces.
-
-The patch will avoid future build errors due to pointer address space
-mismatch with enabled strict percpu address space checks.
-
-Link: https://lkml.kernel.org/r/20250127160709.80604-1-ubizjak@gmail.com
-Link: https://lkml.kernel.org/r/20250127160709.80604-2-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20250127160709.80604-3-ubizjak@gmail.com
 Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Acked-by: Nadav Amit <nadav.amit@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Nadav Amit <nadav.amit@gmail.com>
 Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kgdb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler-clang.h |    8 ++++++++
+ include/linux/compiler-gcc.h   |    8 ++++++++
+ include/linux/compiler.h       |   20 ++++++++++++++++++++
+ 3 files changed, 36 insertions(+)
 
---- a/arch/x86/kernel/kgdb.c~x86-kgdb-use-is_err_pcpu-macro
-+++ a/arch/x86/kernel/kgdb.c
-@@ -655,7 +655,7 @@ void kgdb_arch_late(void)
- 		if (breakinfo[i].pev)
- 			continue;
- 		breakinfo[i].pev = register_wide_hw_breakpoint(&attr, NULL, NULL);
--		if (IS_ERR((void * __force)breakinfo[i].pev)) {
-+		if (IS_ERR_PCPU(breakinfo[i].pev)) {
- 			printk(KERN_ERR "kgdb: Could not allocate hw"
- 			       "breakpoints\nDisabling the kernel debugger\n");
- 			breakinfo[i].pev = NULL;
+--- a/include/linux/compiler-clang.h~compilerh-introduce-typeof_unqual-macro
++++ a/include/linux/compiler-clang.h
+@@ -128,3 +128,11 @@
+  */
+ #define ASM_INPUT_G "ir"
+ #define ASM_INPUT_RM "r"
++
++/*
++ * Declare compiler support for __typeof_unqual__() operator.
++ *
++ * Bindgen uses LLVM even if our C compiler is GCC, so we cannot
++ * rely on the auto-detected CONFIG_CC_HAS_TYPEOF_UNQUAL.
++ */
++#define CC_HAS_TYPEOF_UNQUAL (__clang_major__ >= 19)
+--- a/include/linux/compiler-gcc.h~compilerh-introduce-typeof_unqual-macro
++++ a/include/linux/compiler-gcc.h
+@@ -137,3 +137,11 @@
+ #if GCC_VERSION < 90100
+ #undef __alloc_size__
+ #endif
++
++/*
++ * Declare compiler support for __typeof_unqual__() operator.
++ *
++ * Bindgen uses LLVM even if our C compiler is GCC, so we cannot
++ * rely on the auto-detected CONFIG_CC_HAS_TYPEOF_UNQUAL.
++ */
++#define CC_HAS_TYPEOF_UNQUAL (__GNUC__ >= 14)
+--- a/include/linux/compiler.h~compilerh-introduce-typeof_unqual-macro
++++ a/include/linux/compiler.h
+@@ -191,6 +191,26 @@ void ftrace_likely_update(struct ftrace_
+ 	__v;								\
+ })
+ 
++/*
++ * Use __typeof_unqual__() when available.
++ *
++ * XXX: Remove test for __CHECKER__ once
++ * sparse learns about __typeof_unqual__().
++ */
++#if CC_HAS_TYPEOF_UNQUAL && !defined(__CHECKER__)
++# define USE_TYPEOF_UNQUAL 1
++#endif
++
++/*
++ * Define TYPEOF_UNQUAL() to use __typeof_unqual__() as typeof
++ * operator when available, to return an unqualified type of the exp.
++ */
++#if defined(USE_TYPEOF_UNQUAL)
++# define TYPEOF_UNQUAL(exp) __typeof_unqual__(exp)
++#else
++# define TYPEOF_UNQUAL(exp) __typeof__(exp)
++#endif
++
+ #endif /* __KERNEL__ */
+ 
+ /**
 _
 
 Patches currently in -mm which might be from ubizjak@gmail.com are
