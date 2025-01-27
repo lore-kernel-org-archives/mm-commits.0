@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A814E17799F
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:42:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18D5D25776
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 20:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738010527; cv=none; b=Yf0BQ1NNdTolM3VV3DIrz3ac4Mf345yzQFg3dDUyf8mqNrAXUgYPHfykMkdTPhhhlO2tbO4zzvCjHfF0LrRXJy44xqWB2486BrukA3Lw9SwOMgBkC1UxL6bo9FgleQSFl7hNz8eEd/Fhe3wBfwDcH+x4/sRqLlB4TqNUsZAO5dI=
+	t=1738010748; cv=none; b=n+oLC99ZXhAmSSYJA4nU4RvUrNBq8ihi4KU/j4x+8G1vU+ZrSakM+l8yJeYV1Snw8I2jHpG8LSI+H94FON69pqwtUOHr0JchNspsbNQidx+QN+OJjki9pWjtpeeHBkutnFJHiDIg/O3f/PoTJyhmuGNn2VEpYZnEbOCHWKJgiNU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738010527; c=relaxed/simple;
-	bh=QtLXV5S1NN53bLM2Pj5rbHPq6kovJnwqD7wDrC9dleY=;
-	h=Date:To:From:Subject:Message-Id; b=SUcL2isIsBTCprFBHxEj6jTPGUTzDf9NMAmR+OWS8/oT+uANr4B/8aE0XCUDuztFHA7mHLaVwBSVcVSabVubmIZGN2j3do9YhOAonpFMU2/GFIEaenNof5qPx2GHJRPkH63Z1AxC6ZF5fR5xn/OThxhhAH0rnNHpbdJIBJhiioQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qUjTEOpb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738010748; c=relaxed/simple;
+	bh=2fmXZw33Z5NfI13Ma1UQKr2SU3xRbF4rRgSMFiOJTUk=;
+	h=Date:To:From:Subject:Message-Id; b=SOcUVZV9ft2yjlvJHlQE9A1jDBOpKo2g+SWYryiLebt0LKkc3GalIzBwS1ShsHBltWZyVZX63P9ogIpgguHDXdv5ooBp2TR9v7mLbTLtRUr3IdH/l7AedqO+vyXjKwBdlyJwi0/xDbuZOozeP05SQhrzSfwDkGckKo1xyO1OiwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oeun5XLt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qUjTEOpb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AF41C4CED2;
-	Mon, 27 Jan 2025 20:42:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oeun5XLt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5355C4CEE0;
+	Mon, 27 Jan 2025 20:45:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738010526;
-	bh=QtLXV5S1NN53bLM2Pj5rbHPq6kovJnwqD7wDrC9dleY=;
+	s=korg; t=1738010747;
+	bh=2fmXZw33Z5NfI13Ma1UQKr2SU3xRbF4rRgSMFiOJTUk=;
 	h=Date:To:From:Subject:From;
-	b=qUjTEOpbicNhnLCURuN7ln3633yPckALdjPDhH7tJlv3ECu4iIvJKMDPBPRTVzXQR
-	 rqFPnBiX06iVJvCYJZlZGJN2gIrffagYpAj/s6Mp0Y7cWO5rPC9qBd6di4fsyCUvTf
-	 X6KP22YpnB54pOlc92V972/1KE+wEvJlHAEhG/Ew=
-Date: Mon, 27 Jan 2025 12:42:05 -0800
-To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,peterz@infradead.org,oleg@redhat.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=Oeun5XLtYDSK/21788YTT8HT1YkzHyfo8DY+81/O5kVxWY2BY8Ib5VjtFzvzfV/QY
+	 lejD5KBAQs/eVBavYwHPHjZ/a5JYK6BnK7J3xvns3pHpvDVE9yuxtCcmOzjBFzm4wP
+	 QePXWxzDj0UNHKSnkXlSnGHjV5NUmO7A/7EUkac4=
+Date: Mon, 27 Jan 2025 12:45:47 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250127204206.0AF41C4CED2@smtp.kernel.org>
+Subject: + x86-kgdb-use-is_err_pcpu-macro.patch added to mm-unstable branch
+Message-Id: <20250127204547.C5355C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel: be more careful about dup_mmap() failures and uprobe registering
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch
+     Subject: x86/kgdb: use IS_ERR_PCPU() macro
+has been added to the -mm mm-unstable branch.  Its filename is
+     x86-kgdb-use-is_err_pcpu-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kgdb-use-is_err_pcpu-macro.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,110 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: kernel: be more careful about dup_mmap() failures and uprobe registering
-Date: Mon, 27 Jan 2025 12:02:21 -0500
+From: Uros Bizjak <ubizjak@gmail.com>
+Subject: x86/kgdb: use IS_ERR_PCPU() macro
+Date: Mon, 27 Jan 2025 17:05:05 +0100
 
-If a memory allocation fails during dup_mmap(), the maple tree can be left
-in an unsafe state for other iterators besides the exit path.  All the
-locks are dropped before the exit_mmap() call (in mm/mmap.c), but the
-incomplete mm_struct can be reached through (at least) the rmap finding
-the vmas which have a pointer back to the mm_struct.
+Patch series "Enable strict percpu address space checks", v4.
 
-Up to this point, there have been no issues with being able to find an
-mm_struct that was only partially initialised.  Syzbot was able to make
-the incomplete mm_struct fail with recent forking changes, so it has been
-proven unsafe to use the mm_struct that hasn't been initialised, as
-referenced in the link below.
+Enable strict percpu address space checks via x86 named address space
+qualifiers.  Percpu variables are declared in __seg_gs/__seg_fs named AS
+and kept named AS qualified until they are dereferenced via percpu
+accessor.  This approach enables various compiler checks for
+cross-namespace variable assignments.
 
-Although 8ac662f5da19f ("fork: avoid inappropriate uprobe access to
-invalid mm") fixed the uprobe access, it does not completely remove the
-race.
+Please note that current version of sparse doesn't know anything about
+__typeof_unqual__() operator.  Avoid the usage of __typeof_unqual__() when
+sparse checking is active to prevent sparse errors with unknowing keyword.
+The proposed patch by Dan Carpenter to implement __typeof_unqual__()
+handling in sparse is located at:
 
-This patch sets the MMF_OOM_SKIP to avoid the iteration of the vmas on the
-oom side (even though this is extremely unlikely to be selected as an oom
-victim in the race window), and sets MMF_UNSTABLE to avoid other potential
-users from using a partially initialised mm_struct.
+https://lore.kernel.org/lkml/5b8d0dee-8fb6-45af-ba6c-7f74aff9a4b8@stanley.mountain/
 
-When registering vmas for uprobe, skip the vmas in an mm that is marked
-unstable.  Modifying a vma in an unstable mm may cause issues if the mm
-isn't fully initialised.
 
-Link: https://lore.kernel.org/all/6756d273.050a0220.2477f.003d.GAE@google.com/
-Link: https://lkml.kernel.org/r/20250127170221.1761366-1-Liam.Howlett@oracle.com
-Fixes: d240629148377 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+This patch (of 6):
+
+Use IS_ERR_PCPU() when checking the error pointer in the percpu address
+space.  This macro adds intermediate cast to unsigned long when switching
+named address spaces.
+
+The patch will avoid future build errors due to pointer address space
+mismatch with enabled strict percpu address space checks.
+
+Link: https://lkml.kernel.org/r/20250127160709.80604-1-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20250127160709.80604-2-ubizjak@gmail.com
+Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
+Acked-by: Nadav Amit <nadav.amit@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Brian Gerst <brgerst@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    4 ++++
- kernel/fork.c           |   17 ++++++++++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ arch/x86/kernel/kgdb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/events/uprobes.c~kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering
-+++ a/kernel/events/uprobes.c
-@@ -28,6 +28,7 @@
- #include <linux/rcupdate_trace.h>
- #include <linux/workqueue.h>
- #include <linux/srcu.h>
-+#include <linux/oom.h>          /* check_stable_address_space */
- 
- #include <linux/uprobes.h>
- 
-@@ -1260,6 +1261,9 @@ register_for_each_vma(struct uprobe *upr
- 		 * returns NULL in find_active_uprobe_rcu().
- 		 */
- 		mmap_write_lock(mm);
-+		if (check_stable_address_space(mm))
-+			goto unlock;
-+
- 		vma = find_vma(mm, info->vaddr);
- 		if (!vma || !valid_vma(vma, is_register) ||
- 		    file_inode(vma->vm_file) != uprobe->inode)
---- a/kernel/fork.c~kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering
-+++ a/kernel/fork.c
-@@ -760,7 +760,8 @@ loop_out:
- 		mt_set_in_rcu(vmi.mas.tree);
- 		ksm_fork(mm, oldmm);
- 		khugepaged_fork(mm, oldmm);
--	} else if (mpnt) {
-+	} else {
-+
- 		/*
- 		 * The entire maple tree has already been duplicated. If the
- 		 * mmap duplication fails, mark the failure point with
-@@ -768,8 +769,18 @@ loop_out:
- 		 * stop releasing VMAs that have not been duplicated after this
- 		 * point.
- 		 */
--		mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
--		mas_store(&vmi.mas, XA_ZERO_ENTRY);
-+		if (mpnt) {
-+			mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
-+			mas_store(&vmi.mas, XA_ZERO_ENTRY);
-+			/* Avoid OOM iterating a broken tree */
-+			set_bit(MMF_OOM_SKIP, &mm->flags);
-+		}
-+		/*
-+		 * The mm_struct is going to exit, but the locks will be dropped
-+		 * first.  Set the mm_struct as unstable is advisable as it is
-+		 * not fully initialised.
-+		 */
-+		set_bit(MMF_UNSTABLE, &mm->flags);
- 	}
- out:
- 	mmap_write_unlock(mm);
+--- a/arch/x86/kernel/kgdb.c~x86-kgdb-use-is_err_pcpu-macro
++++ a/arch/x86/kernel/kgdb.c
+@@ -655,7 +655,7 @@ void kgdb_arch_late(void)
+ 		if (breakinfo[i].pev)
+ 			continue;
+ 		breakinfo[i].pev = register_wide_hw_breakpoint(&attr, NULL, NULL);
+-		if (IS_ERR((void * __force)breakinfo[i].pev)) {
++		if (IS_ERR_PCPU(breakinfo[i].pev)) {
+ 			printk(KERN_ERR "kgdb: Could not allocate hw"
+ 			       "breakpoints\nDisabling the kernel debugger\n");
+ 			breakinfo[i].pev = NULL;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from ubizjak@gmail.com are
 
-kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch
+x86-kgdb-use-is_err_pcpu-macro.patch
+compilerh-introduce-typeof_unqual-macro.patch
+percpu-use-typeof_unqual-in-variable-declarations.patch
+percpu-use-typeof_unqual-in-_cpu_ptr-accessors.patch
+percpu-repurpose-__percpu-tag-as-a-named-address-space-qualifier.patch
+percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch
 
