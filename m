@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 735051DC998
-	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 23:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C6861DC998
+	for <mm-commits@vger.kernel.org>; Mon, 27 Jan 2025 23:09:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738019340; cv=none; b=VO7m+wKNyoHGZvix//geJOj+SdQR2pbnUbfpoCcQC9fj6X4Q2j64OIsmu9IKlykrvEFW5+IrDfJu1RwT/PWFPu3P5BHPsdO0bf60BJrT3GUf28lQbCJAppOnNTv7Xqg94TbJ1EzDOHrKlwwaGHKIvt5FbOF0w4YNoQQd5RQtQrg=
+	t=1738019342; cv=none; b=cipyaqExngS7CKYzqIm7LGNggK2407dh1m7N7e09UK3OCrC4W8/bjV8jCp82d+nCZv7ZwcbJ/KbIfexulF8b0r5OuVIvTSBtgZ/v/djSd3wFrzqaAEnWZ2fWQQJlxHdSLzQyvnPbjbedlnRCcjA/vH/16aZzOHqCFDohkZkpnP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738019340; c=relaxed/simple;
-	bh=iaLX28LzISQl9n43A5uMdTabPrv3bikaW8gBZlz4Esw=;
-	h=Date:To:From:Subject:Message-Id; b=M/GO4pRspkkC9titd0+VDVdNNfmzyvmnY1Fa9/rLH/k2892WGL4XhggvJEEhTlQKjCyLYyGBpMfc6CT4nHkD1xJpQf0UKsnGEw3+bMNXGoCPplpWrF0uUYcFZm4kM4HxxObsG8q+a1LV3oK0Q5G0cjj8evbrdkmlTWxMRr0EuGg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mFSg9CvR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738019342; c=relaxed/simple;
+	bh=lMWaWrZVSxZdjGQuu2BXr2Y9JhFBMqdPR4bnjhlWshA=;
+	h=Date:To:From:Subject:Message-Id; b=K5HhGg0oPnItCazPyyLndE1I3AFS3NI9h4f6M/fTRVOPA7FDTfEITv06GxlJyT7nm1HCPNWqX2U6pVkr3QN5Z+GoDxTgVZ6c4nY2z1xf9LQSsEYvJJboapA2Rxp0DpmGe5VhDNJQCkLX7d6uAXVFHUH8PKID5f16aHLz9BUXlO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XHdEVFN7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mFSg9CvR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE6CEC4CED2;
-	Mon, 27 Jan 2025 23:08:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XHdEVFN7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F241DC4CED2;
+	Mon, 27 Jan 2025 23:09:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738019339;
-	bh=iaLX28LzISQl9n43A5uMdTabPrv3bikaW8gBZlz4Esw=;
+	s=korg; t=1738019342;
+	bh=lMWaWrZVSxZdjGQuu2BXr2Y9JhFBMqdPR4bnjhlWshA=;
 	h=Date:To:From:Subject:From;
-	b=mFSg9CvRm93dnmmeBNM+QsZD7Rft2UX31UGZ0/tTHX6k+yYXsuH8dE7HEPSdwqTQn
-	 ND5lquFTxu63DJuhLksF9HZu5Pm3RxGeQ1aWJoYDikeTJjbs4NoPWRi9TXqmjM6kP3
-	 7ABu/6pJcWLt7+tQW5IESCs4kOoBpEgZdUP4y0K8=
-Date: Mon, 27 Jan 2025 15:08:59 -0800
+	b=XHdEVFN73wF9qYY1gSxIpErt0bCJ2hHs33bmmCKeOnr17bwIuaWXguCngyqyDhuhx
+	 GFRisArOAgFFpzeK+VK8ZacvBDQYrPZ5dg6kYqFBwma7Urp/vis8fHfqYtKCbKWo39
+	 XiwCzd6qIJNJjbAsYvBwG/+P04bA3BRcJzmVJgPc=
+Date: Mon, 27 Jan 2025 15:09:01 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,wangweiyang2@huawei.com,vbabka@suse.cz,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,davidf@vimeo.com,chenridong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-use-ofp_peak_unset-instead-of-1.patch added to mm-unstable branch
-Message-Id: <20250127230859.CE6CEC4CED2@smtp.kernel.org>
+Subject: + memcg-call-the-free-function-when-allocation-of-pn-fails.patch added to mm-unstable branch
+Message-Id: <20250127230901.F241DC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: use OFP_PEAK_UNSET instead of -1
+     Subject: memcg: call the free function when allocation of pn fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-use-ofp_peak_unset-instead-of-1.patch
+     memcg-call-the-free-function-when-allocation-of-pn-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-use-ofp_peak_unset-instead-of-1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-call-the-free-function-when-allocation-of-pn-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Chen Ridong <chenridong@huawei.com>
-Subject: memcg: use OFP_PEAK_UNSET instead of -1
-Date: Fri, 24 Jan 2025 07:35:11 +0000
+Subject: memcg: call the free function when allocation of pn fails
+Date: Fri, 24 Jan 2025 07:35:12 +0000
 
-Patch series "Some cleanup for memcg", v4.
+The 'free_mem_cgroup_per_node_info' function is used to free the
+'mem_cgroup_per_node' struct.  Using 'pn' as the input for the
+free_mem_cgroup_per_node_info function will be much clearer.  Call
+'free_mem_cgroup_per_node_info' when 'alloc_mem_cgroup_per_node_info'
+fails, to free 'pn' as a whole, which makes the code more cohesive.
 
-
-This patch (of 4):
-
-The 'OFP_PEAK_UNSET' has been defined, use it instead of '-1'.
-
-Link: https://lkml.kernel.org/r/20250124073514.2375622-1-chenridong@huaweicloud.com
-Link: https://lkml.kernel.org/r/20250124073514.2375622-2-chenridong@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250124073514.2375622-3-chenridong@huaweicloud.com
 Signed-off-by: Chen Ridong <chenridong@huawei.com>
 Reviewed-by: Michal Koutný <mkoutny@suse.com>
-Acked-by: David Finkel <davidf@vimeo.com>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: David Finkel <davidf@vimeo.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wang Weiyang <wangweiyang2@huawei.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
---- a/mm/memcontrol.c~memcg-use-ofp_peak_unset-instead-of-1
+--- a/mm/memcontrol.c~memcg-call-the-free-function-when-allocation-of-pn-fails
 +++ a/mm/memcontrol.c
-@@ -4004,7 +4004,7 @@ static ssize_t peak_write(struct kernfs_
- 			WRITE_ONCE(peer_ctx->value, usage);
+@@ -3424,6 +3424,16 @@ struct mem_cgroup *mem_cgroup_get_from_i
+ }
+ #endif
  
- 	/* initial write, register watcher */
--	if (ofp->value == -1)
-+	if (ofp->value == OFP_PEAK_UNSET)
- 		list_add(&ofp->list, watchers);
++static void free_mem_cgroup_per_node_info(struct mem_cgroup_per_node *pn)
++{
++	if (!pn)
++		return;
++
++	free_percpu(pn->lruvec_stats_percpu);
++	kfree(pn->lruvec_stats);
++	kfree(pn);
++}
++
+ static bool alloc_mem_cgroup_per_node_info(struct mem_cgroup *memcg, int node)
+ {
+ 	struct mem_cgroup_per_node *pn;
+@@ -3448,23 +3458,10 @@ static bool alloc_mem_cgroup_per_node_in
+ 	memcg->nodeinfo[node] = pn;
+ 	return true;
+ fail:
+-	kfree(pn->lruvec_stats);
+-	kfree(pn);
++	free_mem_cgroup_per_node_info(pn);
+ 	return false;
+ }
  
- 	WRITE_ONCE(ofp->value, usage);
+-static void free_mem_cgroup_per_node_info(struct mem_cgroup *memcg, int node)
+-{
+-	struct mem_cgroup_per_node *pn = memcg->nodeinfo[node];
+-
+-	if (!pn)
+-		return;
+-
+-	free_percpu(pn->lruvec_stats_percpu);
+-	kfree(pn->lruvec_stats);
+-	kfree(pn);
+-}
+-
+ static void __mem_cgroup_free(struct mem_cgroup *memcg)
+ {
+ 	int node;
+@@ -3472,7 +3469,7 @@ static void __mem_cgroup_free(struct mem
+ 	obj_cgroup_put(memcg->orig_objcg);
+ 
+ 	for_each_node(node)
+-		free_mem_cgroup_per_node_info(memcg, node);
++		free_mem_cgroup_per_node_info(memcg->nodeinfo[node]);
+ 	memcg1_free_events(memcg);
+ 	kfree(memcg->vmstats);
+ 	free_percpu(memcg->vmstats_percpu);
 _
 
 Patches currently in -mm which might be from chenridong@huawei.com are
