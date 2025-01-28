@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6695213DDAE
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:09:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A012613CA93
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:09:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738022995; cv=none; b=QGEP3S0nGBM38LNHYEjJejGTUhgUBDB7mXRZ2+Af9n9tMW5BEaGIlx4j8OBmmn2EO8iZ/fiJEda05APX0OFdV4tyEWUoJHnQ9rIKk4mnrg2rHAm0SU9zFZC77AU0RmY1GkSoN8mJPa4pNtVn0A+sEG3gkcQiPvNnxhEgoUDzUgc=
+	t=1738022997; cv=none; b=S5d8f6FofStzmYS+aTPyVpMpkH4ysZzf8AvVWQ8h41HCE8DY1iy2SwKKalDh4kmh38fkkmcq7oBkzGiYHiGKOqJahJhu8Mf/yD3bVSuqVLbf5huUxACOm67CkCZE2A38CbJOcwXJPIO3c0kPvEaibA8RzpZgeR6BfJDZR6aQ+X4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738022995; c=relaxed/simple;
-	bh=ys5m04l/XQ9vH68ayT1VxayQYfG7loFUto53YmB2r2w=;
-	h=Date:To:From:Subject:Message-Id; b=u2kg838A5Tt8m5l757/ySYaQQyyYMne+u8wsGLBoWBTLSJBl3+4yPcDZYrw7ksItstFAuYP9yFpkmaBoHKdzq4hm+p1l6rq6AeIXK1TTlGDN3qorMfXucmEhSpvKhMltPFnvSOYH2VToZa9gCEN2lWBUcCHuaWkYpCWb7/hNHwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DaO74Uux; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738022997; c=relaxed/simple;
+	bh=JYlc+fY+7njciEHYByjWlN3VRQkjaa5dugZVn0ZVHAQ=;
+	h=Date:To:From:Subject:Message-Id; b=sfbyb3+u1Ndx/kHu7xgriQjuVOd5p30UempaVvcV+Zi5nF4mUFT5IXpbr65Jtb55Yz7C0R8aYbPEmi9w2Y8/2t51i/osQyNJ+SRWUzXQkINB0251KQz/vy+rGPdrhWDW3/kEJc96RT7Ube3whbsEESTSj7KDsltx27/W2KCth9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l/unNsz0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DaO74Uux"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8ACC4CEE0;
-	Tue, 28 Jan 2025 00:09:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l/unNsz0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC29C4CED2;
+	Tue, 28 Jan 2025 00:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738022992;
-	bh=ys5m04l/XQ9vH68ayT1VxayQYfG7loFUto53YmB2r2w=;
+	s=korg; t=1738022997;
+	bh=JYlc+fY+7njciEHYByjWlN3VRQkjaa5dugZVn0ZVHAQ=;
 	h=Date:To:From:Subject:From;
-	b=DaO74Uux4AFqoCy6B36AoX9OhOUUntEriILQOt85IPPmL0w0Q+4QP8LDzqIrzZ4Cz
-	 WEiyQqyw72PBzSpCur7sqPM7GK3EJBPj2AOivi5jNCA9TYUWS3Fx7ouvRe2/zRD1wA
-	 O2sa1+AEDTmc3UerkJtd6R+4xZanZXlEVXEhGNbE=
-Date: Mon, 27 Jan 2025 16:09:52 -0800
+	b=l/unNsz0XFqvfMy2Buqcg7izZ4HS/SXOuVtTV/oZOg7vCDNCrdbxhsuC4LbGnw5cF
+	 UloruDm19F2O7Ry1h05uUE67M4Uz6/z4aGUa9XWMMe3quMyszdsFpjPIM8gxglMZD3
+	 hlCJXpEX7CI31Dz4l/WbYiEThP09lEq8E5GcwKB8=
+Date: Mon, 27 Jan 2025 16:09:56 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usama.arif@bytedance.com,rppt@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot.patch added to mm-unstable branch
-Message-Id: <20250128000952.CB8ACC4CEE0@smtp.kernel.org>
+Subject: + mm-hugetlb-set-migratetype-for-bootmem-folios.patch added to mm-unstable branch
+Message-Id: <20250128000957.4BC29C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: allow for alternate vmemmap section init at boot
+     Subject: mm/hugetlb: set migratetype for bootmem folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot.patch
+     mm-hugetlb-set-migratetype-for-bootmem-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-set-migratetype-for-bootmem-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/sparse: allow for alternate vmemmap section init at boot
-Date: Mon, 27 Jan 2025 23:21:51 +0000
+Subject: mm/hugetlb: set migratetype for bootmem folios
+Date: Mon, 27 Jan 2025 23:21:52 +0000
 
-Add functions that are called just before the per-section memmap is
-initialized and just before the memmap page structures are initialized. 
-They are called sparse_vmemmap_init_nid_early and
-sparse_vmemmap_init_nid_late, respectively.
+The pageblocks that back memblock allocated hugetlb folios might not have
+the migrate type set, in the CONFIG_DEFERRED_STRUCT_PAGE_INIT case.
 
-This allows for mm subsystems to add calls to initialize memmap and page
-structures in a specific way, if using SPARSEMEM_VMEMMAP.  Specifically,
-hugetlb can pre-HVO bootmem allocated pages that way, so that no time and
-resources are wasted on allocating vmemmap pages, only to free them later
-(and possibly unnecessarily running the system out of memory in the
-process).
+memblock allocated hugetlb folios might be given to the buddy allocator
+eventually (if nr_hugepages is lowered), so make sure that the migrate
+type for the pageblocks contained in them is set when initializing them. 
+Set it to the default that memmap init also uses (MIGRATE_MOVABLE).
 
-Refactor some code and export a few convenience functions for external
-use.
-
-In sparse_init_nid, skip any sections that are already initialized, e.g. 
-they have been initialized by sparse_vmemmap_init_nid_early already.
-
-The hugetlb code to use these functions will be added in a later commit.
-
-Export section_map_size, as any alternate memmap init code will want to
-use it.
-
-The config option to enable this is SPARSEMEM_VMEMMAP_PREINIT, which is
-dependent on and architecture-specific option,
-ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT.  This is done because a section flag
-is used, and the number of flags available is architecture-dependent (see
-mmzone.h).  Architecures can decide if there is room for the flag and
-enable the option.  Fortunately, as of right now, all sparse vmemmap using
-architectures do have room.
-
-Link: https://lkml.kernel.org/r/20250127232207.3888640-12-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250127232207.3888640-13-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -113,305 +90,54 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h     |    1 
- include/linux/mmzone.h |   35 +++++++++++++++
- mm/Kconfig             |    8 +++
- mm/bootmem_info.c      |    4 +
- mm/mm_init.c           |    3 +
- mm/sparse-vmemmap.c    |   23 ++++++++++
- mm/sparse.c            |   87 +++++++++++++++++++++++++++++----------
- 7 files changed, 139 insertions(+), 22 deletions(-)
+ mm/hugetlb.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/include/linux/mm.h~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/include/linux/mm.h
-@@ -3828,6 +3828,7 @@ static inline void print_vma_addr(char *
- #endif
+--- a/mm/hugetlb.c~mm-hugetlb-set-migratetype-for-bootmem-folios
++++ a/mm/hugetlb.c
+@@ -36,6 +36,7 @@
+ #include <linux/memory.h>
+ #include <linux/mm_inline.h>
+ #include <linux/padata.h>
++#include <linux/page-isolation.h>
  
- void *sparse_buffer_alloc(unsigned long size);
-+unsigned long section_map_size(void);
- struct page * __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
---- a/include/linux/mmzone.h~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/include/linux/mmzone.h
-@@ -1934,6 +1934,9 @@ enum {
- #ifdef CONFIG_ZONE_DEVICE
- 	SECTION_TAINT_ZONE_DEVICE_BIT,
- #endif
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
-+	SECTION_IS_VMEMMAP_PREINIT_BIT,
-+#endif
- 	SECTION_MAP_LAST_BIT,
- };
- 
-@@ -1944,6 +1947,9 @@ enum {
- #ifdef CONFIG_ZONE_DEVICE
- #define SECTION_TAINT_ZONE_DEVICE	BIT(SECTION_TAINT_ZONE_DEVICE_BIT)
- #endif
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
-+#define SECTION_IS_VMEMMAP_PREINIT	BIT(SECTION_IS_VMEMMAP_PREINIT_BIT)
-+#endif
- #define SECTION_MAP_MASK		(~(BIT(SECTION_MAP_LAST_BIT) - 1))
- #define SECTION_NID_SHIFT		SECTION_MAP_LAST_BIT
- 
-@@ -1998,6 +2004,30 @@ static inline int online_device_section(
- }
- #endif
- 
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
-+static inline int preinited_vmemmap_section(struct mem_section *section)
-+{
-+	return (section &&
-+		(section->section_mem_map & SECTION_IS_VMEMMAP_PREINIT));
-+}
-+
-+void sparse_vmemmap_init_nid_early(int nid);
-+void sparse_vmemmap_init_nid_late(int nid);
-+
-+#else
-+static inline int preinited_vmemmap_section(struct mem_section *section)
-+{
-+	return 0;
-+}
-+static inline void sparse_vmemmap_init_nid_early(int nid)
-+{
-+}
-+
-+static inline void sparse_vmemmap_init_nid_late(int nid)
-+{
-+}
-+#endif
-+
- static inline int online_section_nr(unsigned long nr)
- {
- 	return online_section(__nr_to_section(nr));
-@@ -2035,6 +2065,9 @@ static inline int pfn_section_valid(stru
- }
- #endif
- 
-+void sparse_init_early_section(int nid, struct page *map, unsigned long pnum,
-+			       unsigned long flags);
-+
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
- /**
-  * pfn_valid - check if there is a valid memory map entry for a PFN
-@@ -2116,6 +2149,8 @@ void sparse_init(void);
- #else
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
-+#define sparse_vmemmap_init_nid_early(_nid, _use) do {} while (0)
-+#define sparse_vmemmap_init_nid_late(_nid) do {} while (0)
- #define pfn_in_present_section pfn_valid
- #define subsection_map_init(_pfn, _nr_pages) do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
---- a/mm/bootmem_info.c~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/mm/bootmem_info.c
-@@ -88,7 +88,9 @@ static void __init register_page_bootmem
- 
- 	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
- 
--	register_page_bootmem_memmap(section_nr, memmap, PAGES_PER_SECTION);
-+	if (!preinited_vmemmap_section(ms))
-+		register_page_bootmem_memmap(section_nr, memmap,
-+				PAGES_PER_SECTION);
- 
- 	usage = ms->usage;
- 	page = virt_to_page(usage);
---- a/mm/Kconfig~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/mm/Kconfig
-@@ -489,6 +489,14 @@ config SPARSEMEM_VMEMMAP
- 	  SPARSEMEM_VMEMMAP uses a virtually mapped memmap to optimise
- 	  pfn_to_page and page_to_pfn operations.  This is the most
- 	  efficient option when sufficient kernel resources are available.
-+
-+config ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
-+	bool
-+
-+config SPARSEMEM_VMEMMAP_PREINIT
-+	bool "Early init of sparse memory virtual memmap"
-+	depends on SPARSEMEM_VMEMMAP && ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
-+	default y
- #
- # Select this config option from the architecture Kconfig, if it is preferred
- # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
---- a/mm/mm_init.c~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/mm/mm_init.c
-@@ -1862,6 +1862,9 @@ void __init free_area_init(unsigned long
- 		}
- 	}
- 
-+	for_each_node_state(nid, N_MEMORY)
-+		sparse_vmemmap_init_nid_late(nid);
-+
- 	calc_nr_kernel_pages();
- 	memmap_init();
- 
---- a/mm/sparse.c~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/mm/sparse.c
-@@ -408,13 +408,13 @@ static void __init check_usemap_section_
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--static unsigned long __init section_map_size(void)
-+unsigned long __init section_map_size(void)
- {
- 	return ALIGN(sizeof(struct page) * PAGES_PER_SECTION, PMD_SIZE);
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
+@@ -3258,6 +3259,26 @@ static void __init hugetlb_folio_init_vm
+ 	prep_compound_head((struct page *)folio, huge_page_order(h));
  }
  
- #else
--static unsigned long __init section_map_size(void)
-+unsigned long __init section_map_size(void)
- {
- 	return PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
- }
-@@ -495,6 +495,44 @@ void __weak __meminit vmemmap_populate_p
- {
- }
- 
-+static void *sparse_usagebuf __meminitdata;
-+static void *sparse_usagebuf_end __meminitdata;
-+
 +/*
-+ * Helper function that is used for generic section initialization, and
-+ * can also be used by any hooks added above.
-+ */
-+void __init sparse_init_early_section(int nid, struct page *map,
-+				      unsigned long pnum, unsigned long flags)
-+{
-+	BUG_ON(!sparse_usagebuf || sparse_usagebuf >= sparse_usagebuf_end);
-+	check_usemap_section_nr(nid, sparse_usagebuf);
-+	sparse_init_one_section(__nr_to_section(pnum), pnum, map,
-+			sparse_usagebuf, SECTION_IS_EARLY | flags);
-+	sparse_usagebuf = (void *)sparse_usagebuf + mem_section_usage_size();
-+}
-+
-+static int __init sparse_usage_init(int nid, unsigned long map_count)
-+{
-+	unsigned long size;
-+
-+	size = mem_section_usage_size() * map_count;
-+	sparse_usagebuf = sparse_early_usemaps_alloc_pgdat_section(
-+				NODE_DATA(nid), size);
-+	if (!sparse_usagebuf) {
-+		sparse_usagebuf_end = NULL;
-+		return -ENOMEM;
-+	}
-+
-+	sparse_usagebuf_end = sparse_usagebuf + size;
-+	return 0;
-+}
-+
-+static void __init sparse_usage_fini(void)
-+{
-+	sparse_usagebuf = sparse_usagebuf_end = NULL;
-+}
-+
- /*
-  * Initialize sparse on a specific node. The node spans [pnum_begin, pnum_end)
-  * And number of present sections in this node is map_count.
-@@ -503,47 +541,54 @@ static void __init sparse_init_nid(int n
- 				   unsigned long pnum_end,
- 				   unsigned long map_count)
- {
--	struct mem_section_usage *usage;
- 	unsigned long pnum;
- 	struct page *map;
-+	struct mem_section *ms;
- 
--	usage = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nid),
--			mem_section_usage_size() * map_count);
--	if (!usage) {
-+	if (sparse_usage_init(nid, map_count)) {
- 		pr_err("%s: node[%d] usemap allocation failed", __func__, nid);
- 		goto failed;
- 	}
-+
- 	sparse_buffer_init(map_count * section_map_size(), nid);
-+
-+	sparse_vmemmap_init_nid_early(nid);
-+
- 	for_each_present_section_nr(pnum_begin, pnum) {
- 		unsigned long pfn = section_nr_to_pfn(pnum);
- 
- 		if (pnum >= pnum_end)
- 			break;
- 
--		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
--				nid, NULL, NULL);
--		if (!map) {
--			pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
--			       __func__, nid);
--			pnum_begin = pnum;
--			sparse_buffer_fini();
--			goto failed;
-+		ms = __nr_to_section(pnum);
-+		if (!preinited_vmemmap_section(ms)) {
-+			map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
-+					nid, NULL, NULL);
-+			if (!map) {
-+				pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
-+				       __func__, nid);
-+				pnum_begin = pnum;
-+				sparse_usage_fini();
-+				sparse_buffer_fini();
-+				goto failed;
-+			}
-+			sparse_init_early_section(nid, map, pnum, 0);
- 		}
--		check_usemap_section_nr(nid, usage);
--		sparse_init_one_section(__nr_to_section(pnum), pnum, map, usage,
--				SECTION_IS_EARLY);
--		usage = (void *) usage + mem_section_usage_size();
- 	}
-+	sparse_usage_fini();
- 	sparse_buffer_fini();
- 	return;
- failed:
--	/* We failed to allocate, mark all the following pnums as not present */
-+	/*
-+	 * We failed to allocate, mark all the following pnums as not present,
-+	 * except the ones already initialized earlier.
-+	 */
- 	for_each_present_section_nr(pnum_begin, pnum) {
--		struct mem_section *ms;
--
- 		if (pnum >= pnum_end)
- 			break;
- 		ms = __nr_to_section(pnum);
-+		if (!preinited_vmemmap_section(ms))
-+			ms->section_mem_map = 0;
- 		ms->section_mem_map = 0;
- 	}
- }
---- a/mm/sparse-vmemmap.c~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot
-+++ a/mm/sparse-vmemmap.c
-@@ -470,3 +470,26 @@ struct page * __meminit __populate_secti
- 
- 	return pfn_to_page(pfn);
- }
-+
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP_PREINIT
-+/*
-+ * This is called just before initializing sections for a NUMA node.
-+ * Any special initialization that needs to be done before the
-+ * generic initialization can be done from here. Sections that
-+ * are initialized in hooks called from here will be skipped by
-+ * the generic initialization.
-+ */
-+void __init sparse_vmemmap_init_nid_early(int nid)
-+{
-+}
-+
-+/*
-+ * This is called just before the initialization of page structures
-+ * through memmap_init. Zones are now initialized, so any work that
-+ * needs to be done that needs zone information can be done from
++ * memblock-allocated pageblocks might not have the migrate type set
++ * if marked with the 'noinit' flag. Set it to the default (MIGRATE_MOVABLE)
 + * here.
++ *
++ * Note that this will not write the page struct, it is ok (and necessary)
++ * to do this on vmemmap optimized folios.
 + */
-+void __init sparse_vmemmap_init_nid_late(int nid)
++static void __init hugetlb_bootmem_init_migratetype(struct folio *folio,
++							  struct hstate *h)
 +{
++	unsigned long nr_pages = pages_per_huge_page(h), i;
++
++	WARN_ON_ONCE(!pageblock_aligned(folio_pfn(folio)));
++
++	for (i = 0; i < nr_pages; i += pageblock_nr_pages)
++		set_pageblock_migratetype(folio_page(folio, i),
++					  MIGRATE_MOVABLE);
 +}
-+#endif
++
+ static void __init prep_and_add_bootmem_folios(struct hstate *h,
+ 					struct list_head *folio_list)
+ {
+@@ -3279,6 +3300,7 @@ static void __init prep_and_add_bootmem_
+ 					HUGETLB_VMEMMAP_RESERVE_PAGES,
+ 					pages_per_huge_page(h));
+ 		}
++		hugetlb_bootmem_init_migratetype(folio, h);
+ 		/* Subdivide locks to achieve better parallel performance */
+ 		spin_lock_irqsave(&hugetlb_lock, flags);
+ 		__prep_account_new_huge_page(h, folio_nid(folio));
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
