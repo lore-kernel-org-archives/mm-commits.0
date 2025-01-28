@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1105170A1B
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:10:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 014AD170A1B
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:10:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738023021; cv=none; b=RpGxoVDPscPGl6ta78oVWKUGN5Fcc9alGIa8BCcEIbQSOKB8xE3WKMwSXRgCuoEw7vP0tuUxnbHggqC7q19Q1nmmHK31aSEg0E7xHuUwv5v5zSwIWiEjaqNnU/RFQxI5ieNaD8k7HVKKmPgVsaR0s6D22lB4ZXBNUFGzX5+QEjc=
+	t=1738023024; cv=none; b=eI/6A9Xr+QMPTE685okPN2IrxTbSG7zxpF2ryM/9XkU65jqeX68e/uxzEXe6PGi3kjUwqkHlzjRo+d8HvutMcZwNProErBX6EB6UghGAVfAV9D3RydmC9dMS5dmvl6BRZ0vqDY1QggfQkB1AIn19J5gGeaG4Mvkp8zV5e3pBh54=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738023021; c=relaxed/simple;
-	bh=myIJkYRsSlD22Bm8qo+xgxUrs+v3kdMzY1MVhOR3xTQ=;
-	h=Date:To:From:Subject:Message-Id; b=WoyLX6Wbt/Q9DVIH/cnpA1FBT2Oy6fJaCJjLF2l7Fb2DQurEBaeNlMB5hxZylGlFx7j+HJg2P53I0spbqhIhmNEM+kqI2F2sMMy2RVw75y5eo1Ruqp9rI2zdHpllebe/OEAFiAoHagLq/BAKSZ3JP8EgEn+y6oauUs5Z0Z84oFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U0gbLMET; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738023024; c=relaxed/simple;
+	bh=fSPDXLL9g3xalYN8sdDwwM38VFws7etPzcpZPW+NDqU=;
+	h=Date:To:From:Subject:Message-Id; b=RgH4EIS69FKtULvmM5BsIaNWM1NHoVU2kIB7dhvWYL10QiFEOrX8zCJq3s4McS7Keh283eJkLwRg7xK12O2tLbvaLOK2WwV6qHP3DK+k+CqT0MsddbqsJyQqf63ITtC7nrniy4dahUUMb8LclCN+anI2Ye6/aTGCS4qmAMKKn5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ekVv9uLL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U0gbLMET"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3A47C4CED2;
-	Tue, 28 Jan 2025 00:10:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ekVv9uLL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44EAC4CED2;
+	Tue, 28 Jan 2025 00:10:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738023021;
-	bh=myIJkYRsSlD22Bm8qo+xgxUrs+v3kdMzY1MVhOR3xTQ=;
+	s=korg; t=1738023023;
+	bh=fSPDXLL9g3xalYN8sdDwwM38VFws7etPzcpZPW+NDqU=;
 	h=Date:To:From:Subject:From;
-	b=U0gbLMETf7F7IJ66/mSqzT43YL3BShlopFQhGpZujros50iuHziPN68g8j5mBpeR/
-	 rbh0CHbbRg5NUFMalTuht0nX9/pcIoJtTbg565ta/KmcgxEwrApnxrrEWfAj9pzYVu
-	 GuDsgnKrOOECFVQ/oYsVnbCOAKAIIoGrP92yDif8=
-Date: Mon, 27 Jan 2025 16:10:21 -0800
+	b=ekVv9uLLFIjSyrQKcKpYCvvcNZ0IOCHWKEJ+tqBl2KU8l/Jhle018T2R4+W2aGXqi
+	 0Oio8CUu3K6C2XffNupa9eSv1o51x8HXs2J+lhwkAsrLQ5++Lr7JHDnt6nFX6vGii/
+	 vhGFhA7M35a5I4FhpP4GF23C3BvSgt+SYAQo7RMM=
+Date: Mon, 27 Jan 2025 16:10:23 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usama.arif@bytedance.com,rppt@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-setup-call-hugetlb_bootmem_alloc-early.patch added to mm-unstable branch
-Message-Id: <20250128001021.A3A47C4CED2@smtp.kernel.org>
+Subject: + x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch added to mm-unstable branch
+Message-Id: <20250128001023.B44EAC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/setup: call hugetlb_bootmem_alloc early
+     Subject: x86/mm: set ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-setup-call-hugetlb_bootmem_alloc-early.patch
+     x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-setup-call-hugetlb_bootmem_alloc-early.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: x86/setup: call hugetlb_bootmem_alloc early
-Date: Mon, 27 Jan 2025 23:22:01 +0000
+Subject: x86/mm: set ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
+Date: Mon, 27 Jan 2025 23:22:02 +0000
 
-Call hugetlb_bootmem_allloc in an earlier spot in setup, after
-hugelb_cma_reserve.  This will make vmemmap preinit of the sections
-covered by the allocated hugetlb pages possible.
+Now that hugetlb bootmem pages are allocated earlier, and available for
+section preinit (HVO-style), set ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT for
+x86_64, so that is can be done.
 
-Link: https://lkml.kernel.org/r/20250127232207.3888640-22-fvdl@google.com
+This enables pre-HVO on x86_64.
+
+Link: https://lkml.kernel.org/r/20250127232207.3888640-23-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Cc: Usama Arif <usama.arif@bytedance.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -86,23 +88,19 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/x86/kernel/setup.c~x86-setup-call-hugetlb_bootmem_alloc-early
-+++ a/arch/x86/kernel/setup.c
-@@ -1108,8 +1108,10 @@ void __init setup_arch(char **cmdline_p)
- 	initmem_init();
- 	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
- 
--	if (boot_cpu_has(X86_FEATURE_GBPAGES))
-+	if (boot_cpu_has(X86_FEATURE_GBPAGES)) {
- 		hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
-+		hugetlb_bootmem_alloc();
-+	}
- 
- 	/*
- 	 * Reserve memory for crash kernel after SRAT is parsed so that it
+--- a/arch/x86/Kconfig~x86-mm-set-arch_want_sparsemem_vmemmap_preinit
++++ a/arch/x86/Kconfig
+@@ -146,6 +146,7 @@ config X86
+ 	select ARCH_WANT_LD_ORPHAN_WARN
+ 	select ARCH_WANT_OPTIMIZE_DAX_VMEMMAP	if X86_64
+ 	select ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP	if X86_64
++	select ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT if X86_64
+ 	select ARCH_WANTS_THP_SWAP		if X86_64
+ 	select ARCH_HAS_PARANOID_L1D_FLUSH
+ 	select BUILDTIME_TABLE_SORT
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
