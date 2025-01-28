@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B343515FD01
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:10:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C3F9176AB5
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:10:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738023007; cv=none; b=m+M71hZS/Igilj+DfJRvEbyG9JQhirdZwiLosegy4a0EXRdVlyxb7NlJQwMIEnIgZekUv0m/7w/XXuau3NBgLXeZLXe4GffVG44Ie+zWFe+Oj3aPzG8oaTbBwWd+TiSBAhnTVEFJVC5iQ8RNeCywdRdvG8W8S99S6fICqvcVLWo=
+	t=1738023010; cv=none; b=Abg1M2IReD/T9V2HytuMN76UXCQahkyDKT7/xSU1lCtM9VkLkKLWex+ejo0OBW5aBk70raTcOhd/UPdhbVPkC3hEhcwSkBDpijrZJcizynkwXA/wegyIUS2ZztJkODc22ohEPZJi/RlwsWJUwOhy0zmNRxmRmOILyyLeBqhKDGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738023007; c=relaxed/simple;
-	bh=Nt7yxCzsiBkuSpExRgy+IGD2iUEVzCtDSsWzjXtBSp8=;
-	h=Date:To:From:Subject:Message-Id; b=I+nEIxLVrq//w8bis7IBnBTTJxn5i19hNME239mRiX/Z0yok1gXaz1THkui+cPHcGU9SflEPqGXDtvbp/PtK8IwUlGf03Ce/xf7k047g6h4Qp947AbPZEP3EIHaysazjryYtE2JgDu6/sWb+uROaF3xR2d4KtllSGZv05yfYeXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e48k/PaG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738023010; c=relaxed/simple;
+	bh=9wK85jMggRT2Fdct8GJ4CFPveHKL+lBpCb+fRe4oolI=;
+	h=Date:To:From:Subject:Message-Id; b=CVV5PQt2LfWACRzfhaTsaPTugY1uyBAFJXsni8BNnaXVEyeKxILWTOqXRTml4dBJFhHlxlw9gavxGI4dfCnrNE953u+Ql4NbAVRHgwptG2OBJEMUxgoHkDRoBf4SnPL0L1pxW95p2o46vkIG94AsC8YbG6cbrTByq8aE6HK4jRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eNwvY+fM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e48k/PaG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 828A9C4CED2;
-	Tue, 28 Jan 2025 00:10:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eNwvY+fM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9E7C4CED2;
+	Tue, 28 Jan 2025 00:10:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738023007;
-	bh=Nt7yxCzsiBkuSpExRgy+IGD2iUEVzCtDSsWzjXtBSp8=;
+	s=korg; t=1738023010;
+	bh=9wK85jMggRT2Fdct8GJ4CFPveHKL+lBpCb+fRe4oolI=;
 	h=Date:To:From:Subject:From;
-	b=e48k/PaG1jrLLfwB4clETErczstqPgGBKmErzcMNSfnaRhvBBwJ4qMbTH73XOockp
-	 IeXtMTCF45+wuy8jQi9oHjR2sGUg+L/1qK3GZaoidB/tNiad8+P2Yrd7Ptr/zCW1Kt
-	 4SQnvv/wCXHrBfu5UiUPYcvC5dkNBw92xJUHm7Cg=
-Date: Mon, 27 Jan 2025 16:10:06 -0800
+	b=eNwvY+fMWHB34aqL3MMtxKI3SuDOj/eSXzci/yrBTxAZC18Wg11Ep4LkW9YplPqLz
+	 PSwcu3ZeBq/J+pp4BELRiTib9wxW6cm4ouoxiZ6rR4e1sRt9j8WN/u1AG1LGxRymwt
+	 N2FOm8ZnbkEWwN4pZNPUysxfGj0j8/LNdKnmQNXE=
+Date: Mon, 27 Jan 2025 16:10:09 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usama.arif@bytedance.com,rppt@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch added to mm-unstable branch
-Message-Id: <20250128001007.828A9C4CED2@smtp.kernel.org>
+Subject: + mm-hugetlb-move-huge_boot_pages-list-init-to-hugetlb_bootmem_alloc.patch added to mm-unstable branch
+Message-Id: <20250128001009.EA9E7C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: deal with multiple calls to hugetlb_bootmem_alloc
+     Subject: mm/hugetlb: move huge_boot_pages list init to hugetlb_bootmem_alloc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
+     mm-hugetlb-move-huge_boot_pages-list-init-to-hugetlb_bootmem_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-move-huge_boot_pages-list-init-to-hugetlb_bootmem_alloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: deal with multiple calls to hugetlb_bootmem_alloc
-Date: Mon, 27 Jan 2025 23:21:56 +0000
+Subject: mm/hugetlb: move huge_boot_pages list init to hugetlb_bootmem_alloc
+Date: Mon, 27 Jan 2025 23:21:57 +0000
 
-Architectures that want pre-HVO of hugetlb vmemmap pages will need to call
-hugetlb_bootmem_alloc from an earlier spot in boot (before sparse_init). 
-To facilitate some architectures doing this, protect hugetlb_bootmem_alloc
-against multiple calls.
+Instead of initializing the per-node hugetlb bootmem pages list from the
+alloc function, we can now do it in a somewhat cleaner way, since there is
+an explicit hugetlb_bootmem_alloc function.  Initialize the lists there.
 
-Also provide a helper function to check if it's been called, so that the
-early HVO code, to be added later, can see if there is anything to do.
-
-Link: https://lkml.kernel.org/r/20250127232207.3888640-17-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250127232207.3888640-18-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -90,63 +86,58 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 ++++++
- mm/hugetlb.c            |   12 ++++++++++++
- 2 files changed, 18 insertions(+)
+ mm/hugetlb.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc
-+++ a/include/linux/hugetlb.h
-@@ -175,6 +175,7 @@ extern int sysctl_hugetlb_shm_group;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
- 
- void hugetlb_bootmem_alloc(void);
-+bool hugetlb_bootmem_allocated(void);
- 
- /* arch callbacks */
- 
-@@ -1256,6 +1257,11 @@ static inline bool hugetlbfs_pagecache_p
- static inline void hugetlb_bootmem_alloc(void)
- {
- }
-+
-+static inline bool hugetlb_bootmem_allocated(void)
-+{
-+	return false;
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
---- a/mm/hugetlb.c~mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc
+--- a/mm/hugetlb.c~mm-hugetlb-move-huge_boot_pages-list-init-to-hugetlb_bootmem_alloc
 +++ a/mm/hugetlb.c
-@@ -4911,16 +4911,28 @@ static int __init default_hugepagesz_set
- }
- hugetlb_early_param("default_hugepagesz", default_hugepagesz_setup);
+@@ -3579,7 +3579,6 @@ static unsigned long __init hugetlb_page
+ static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
+ {
+ 	unsigned long allocated;
+-	static bool initialized __initdata;
  
-+static bool __hugetlb_bootmem_allocated __initdata;
-+
-+bool __init hugetlb_bootmem_allocated(void)
-+{
-+	return __hugetlb_bootmem_allocated;
-+}
-+
+ 	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
+ 	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
+@@ -3587,17 +3586,6 @@ static void __init hugetlb_hstate_alloc_
+ 		return;
+ 	}
+ 
+-	/* hugetlb_hstate_alloc_pages will be called many times, initialize huge_boot_pages once */
+-	if (!initialized) {
+-		int i = 0;
+-
+-		for (i = 0; i < MAX_NUMNODES; i++)
+-			INIT_LIST_HEAD(&huge_boot_pages[i]);
+-		h->next_nid_to_alloc = first_online_node;
+-		h->next_nid_to_free = first_online_node;
+-		initialized = true;
+-	}
+-
+ 	/* do node specific alloc */
+ 	if (hugetlb_hstate_alloc_pages_specific_nodes(h))
+ 		return;
+@@ -4921,13 +4909,20 @@ bool __init hugetlb_bootmem_allocated(vo
  void __init hugetlb_bootmem_alloc(void)
  {
  	struct hstate *h;
++	int i;
  
-+	if (__hugetlb_bootmem_allocated)
-+		return;
+ 	if (__hugetlb_bootmem_allocated)
+ 		return;
+ 
++	for (i = 0; i < MAX_NUMNODES; i++)
++		INIT_LIST_HEAD(&huge_boot_pages[i]);
 +
  	hugetlb_parse_params();
  
  	for_each_hstate(h) {
++		h->next_nid_to_alloc = first_online_node;
++		h->next_nid_to_free = first_online_node;
++
  		if (hstate_is_gigantic(h))
  			hugetlb_hstate_alloc_pages(h);
  	}
-+
-+	__hugetlb_bootmem_allocated = true;
- }
- 
- static unsigned int allowed_mems_nr(struct hstate *h)
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
