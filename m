@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A012613CA93
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:09:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C7314D6F9
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:09:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738022997; cv=none; b=S5d8f6FofStzmYS+aTPyVpMpkH4ysZzf8AvVWQ8h41HCE8DY1iy2SwKKalDh4kmh38fkkmcq7oBkzGiYHiGKOqJahJhu8Mf/yD3bVSuqVLbf5huUxACOm67CkCZE2A38CbJOcwXJPIO3c0kPvEaibA8RzpZgeR6BfJDZR6aQ+X4=
+	t=1738022999; cv=none; b=dN4rb1IzfxEf+YMAAMZ/tIBrz107lhwMlFT71TuHnoY8aYGYd1ega2ZwPnICavjWjmZsfi1BZSjo1SFxReGV1zeHSxZIa7m1rxe7zPHL0OLYgBl934QzoZxIVdzlVAQm3uZMF811/+WcVNSmPTFufBX05kYDvuayg0b6NqBFeDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738022997; c=relaxed/simple;
-	bh=JYlc+fY+7njciEHYByjWlN3VRQkjaa5dugZVn0ZVHAQ=;
-	h=Date:To:From:Subject:Message-Id; b=sfbyb3+u1Ndx/kHu7xgriQjuVOd5p30UempaVvcV+Zi5nF4mUFT5IXpbr65Jtb55Yz7C0R8aYbPEmi9w2Y8/2t51i/osQyNJ+SRWUzXQkINB0251KQz/vy+rGPdrhWDW3/kEJc96RT7Ube3whbsEESTSj7KDsltx27/W2KCth9c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l/unNsz0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738022999; c=relaxed/simple;
+	bh=SFr1D4Djoxbe/yaxy4uM8y6Ce+g+QIrYAazzqrCbpTs=;
+	h=Date:To:From:Subject:Message-Id; b=jgVP8Ukj4S5JyM/eh/mEPyciNgWpZH+mVRTanT1ADKccDUKE7aVFl5CWFnqbOEicAKsVCB+1wniltNoXTbG1wmi57sEvu49M5iHXowWxJ9VJaDn2fSGjeh2HEAfM5JtuL31TqUKLE0i7fvisixeu8kOVRHjlsROmoPaz62RuG6U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OwnQlmIh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l/unNsz0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC29C4CED2;
-	Tue, 28 Jan 2025 00:09:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OwnQlmIh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E133C4CED2;
+	Tue, 28 Jan 2025 00:09:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738022997;
-	bh=JYlc+fY+7njciEHYByjWlN3VRQkjaa5dugZVn0ZVHAQ=;
+	s=korg; t=1738022999;
+	bh=SFr1D4Djoxbe/yaxy4uM8y6Ce+g+QIrYAazzqrCbpTs=;
 	h=Date:To:From:Subject:From;
-	b=l/unNsz0XFqvfMy2Buqcg7izZ4HS/SXOuVtTV/oZOg7vCDNCrdbxhsuC4LbGnw5cF
-	 UloruDm19F2O7Ry1h05uUE67M4Uz6/z4aGUa9XWMMe3quMyszdsFpjPIM8gxglMZD3
-	 hlCJXpEX7CI31Dz4l/WbYiEThP09lEq8E5GcwKB8=
-Date: Mon, 27 Jan 2025 16:09:56 -0800
+	b=OwnQlmIh9f7Iv37vYH1iRdWXuDXJq+s7m8GH0X3N5Hmirp3j43bzd9bp2N5tqxoUa
+	 OWjYNxmkvfNEone6ZD6+pRc/HiBhtT43t8lYzlgYo5VQBn8HI02yfvQATCbvyC9X5v
+	 c+B9ZH4B2T5tTQ+p6qbFKh90c/DQ8uDH49d5BDDQ=
+Date: Mon, 27 Jan 2025 16:09:58 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usama.arif@bytedance.com,rppt@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-set-migratetype-for-bootmem-folios.patch added to mm-unstable branch
-Message-Id: <20250128000957.4BC29C4CED2@smtp.kernel.org>
+Subject: + mm-define-__init_reserved_page_zone-function.patch added to mm-unstable branch
+Message-Id: <20250128000959.5E133C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: set migratetype for bootmem folios
+     Subject: mm: define __init_reserved_page_zone function
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-set-migratetype-for-bootmem-folios.patch
+     mm-define-__init_reserved_page_zone-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-set-migratetype-for-bootmem-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-define-__init_reserved_page_zone-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: set migratetype for bootmem folios
-Date: Mon, 27 Jan 2025 23:21:52 +0000
+Subject: mm: define __init_reserved_page_zone function
+Date: Mon, 27 Jan 2025 23:21:53 +0000
 
-The pageblocks that back memblock allocated hugetlb folios might not have
-the migrate type set, in the CONFIG_DEFERRED_STRUCT_PAGE_INIT case.
+Sometimes page structs must be unconditionally initialized as reserved,
+regardless of DEFERRED_STRUCT_PAGE_INIT.
 
-memblock allocated hugetlb folios might be given to the buddy allocator
-eventually (if nr_hugepages is lowered), so make sure that the migrate
-type for the pageblocks contained in them is set when initializing them. 
-Set it to the default that memmap init also uses (MIGRATE_MOVABLE).
+Define a function, __init_reserved_page_zone, containing code that already
+did all of the work in init_reserved_page, and make it available for use.
 
-Link: https://lkml.kernel.org/r/20250127232207.3888640-13-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250127232207.3888640-14-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -90,54 +88,77 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ mm/internal.h |    1 +
+ mm/mm_init.c  |   38 +++++++++++++++++++++++---------------
+ 2 files changed, 24 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-set-migratetype-for-bootmem-folios
-+++ a/mm/hugetlb.c
-@@ -36,6 +36,7 @@
- #include <linux/memory.h>
- #include <linux/mm_inline.h>
- #include <linux/padata.h>
-+#include <linux/page-isolation.h>
+--- a/mm/internal.h~mm-define-__init_reserved_page_zone-function
++++ a/mm/internal.h
+@@ -1448,6 +1448,7 @@ static inline bool pte_needs_soft_dirty_
  
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-@@ -3258,6 +3259,26 @@ static void __init hugetlb_folio_init_vm
- 	prep_compound_head((struct page *)folio, huge_page_order(h));
- }
+ void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid);
++void __meminit __init_reserved_page_zone(unsigned long pfn, int nid);
+ 
+ /* shrinker related functions */
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+--- a/mm/mm_init.c~mm-define-__init_reserved_page_zone-function
++++ a/mm/mm_init.c
+@@ -650,6 +650,28 @@ static inline void fixup_hashdist(void)
+ static inline void fixup_hashdist(void) {}
+ #endif /* CONFIG_NUMA */
  
 +/*
-+ * memblock-allocated pageblocks might not have the migrate type set
-+ * if marked with the 'noinit' flag. Set it to the default (MIGRATE_MOVABLE)
-+ * here.
-+ *
-+ * Note that this will not write the page struct, it is ok (and necessary)
-+ * to do this on vmemmap optimized folios.
++ * Initialize a reserved page unconditionally, finding its zone first.
 + */
-+static void __init hugetlb_bootmem_init_migratetype(struct folio *folio,
-+							  struct hstate *h)
++void __meminit __init_reserved_page_zone(unsigned long pfn, int nid)
 +{
-+	unsigned long nr_pages = pages_per_huge_page(h), i;
++	pg_data_t *pgdat;
++	int zid;
 +
-+	WARN_ON_ONCE(!pageblock_aligned(folio_pfn(folio)));
++	pgdat = NODE_DATA(nid);
 +
-+	for (i = 0; i < nr_pages; i += pageblock_nr_pages)
-+		set_pageblock_migratetype(folio_page(folio, i),
-+					  MIGRATE_MOVABLE);
++	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++
++		if (zone_spans_pfn(zone, pfn))
++			break;
++	}
++	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
++
++	if (pageblock_aligned(pfn))
++		set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_MOVABLE);
 +}
 +
- static void __init prep_and_add_bootmem_folios(struct hstate *h,
- 					struct list_head *folio_list)
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
  {
-@@ -3279,6 +3300,7 @@ static void __init prep_and_add_bootmem_
- 					HUGETLB_VMEMMAP_RESERVE_PAGES,
- 					pages_per_huge_page(h));
- 		}
-+		hugetlb_bootmem_init_migratetype(folio, h);
- 		/* Subdivide locks to achieve better parallel performance */
- 		spin_lock_irqsave(&hugetlb_lock, flags);
- 		__prep_account_new_huge_page(h, folio_nid(folio));
+@@ -708,24 +730,10 @@ defer_init(int nid, unsigned long pfn, u
+ 
+ static void __meminit init_reserved_page(unsigned long pfn, int nid)
+ {
+-	pg_data_t *pgdat;
+-	int zid;
+-
+ 	if (early_page_initialised(pfn, nid))
+ 		return;
+ 
+-	pgdat = NODE_DATA(nid);
+-
+-	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+-		struct zone *zone = &pgdat->node_zones[zid];
+-
+-		if (zone_spans_pfn(zone, pfn))
+-			break;
+-	}
+-	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
+-
+-	if (pageblock_aligned(pfn))
+-		set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_MOVABLE);
++	__init_reserved_page_zone(pfn, nid);
+ }
+ #else
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat) {}
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
