@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F6D91B59A
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 01:20:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB641F5FA
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 01:20:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738027218; cv=none; b=DGzPiea5kcj2ufHwzXAY9R5mf+Sg1Um7s3fX71NsaCtwZU7KLTvWQVPu1GtNHqbU4+FuDMc0W6OnR+FA3xPwjF1FlQfpq4daXjDGHgpBNUi2Eca3/Fo26idzo/BOcECM9k6c2xOL6SlaOwzz+ABeE9toKHSs57s5QnP6j86LqZ8=
+	t=1738027218; cv=none; b=oSX3LJ98XiesbzL4wnuz5M7KNoXJz8G7BlWsgAbhcixEQn28XHw/uoYc1fi/zW4XJugsD2fdNvWldGxPzQtigBttNAZb0R9VIekguvULUySkfDbKkIslyGUR4Tv7oZmMuwZcwzwTlEaKQFCM3Z5a0Ymakyusyvly66N6M7Cxo/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1738027218; c=relaxed/simple;
-	bh=7Vlg9k2+T1fz014C82sshDDVB+tIuLskNx0ZGfozmSI=;
-	h=Date:To:From:Subject:Message-Id; b=hGkbdxXPEigv1kB+oSpK9UAly9KJnwa/6KrD38eW2U03fEzzasUNhEalytAFLLJKJI03LXxQNXkl+5Lzq2qWKtZyKKWcrGlF5ELDxYCunPp3LwsC5dMc0QBK+eFw7r7cBLcI1sNvLyPsGSjTxGgevsQcWg1BNJYKUVLWdpSw58Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eNCfufyR; arc=none smtp.client-ip=10.30.226.201
+	bh=CR4rp8LjI3VdPYbHe1NIZJjwCElzqtO87xZkvV3+ZxY=;
+	h=Date:To:From:Subject:Message-Id; b=cP9Q5wRUoClbsqykAeJSNiIx7f6juYN8jNZ4VXkca8AEOniYrxLU8yC/Lbh7WHQlHkPeItwwkosofjlrZ4zQU80wYUdcLr0EIm6MnucCyoqzpvjCucjlAjsC7g+sWVvx4bjdN6cSLTh6G0wvacH6hCAALepi0iC7Y+5QTUbLewg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZEo5v2dx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eNCfufyR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFC5BC4CED2;
-	Tue, 28 Jan 2025 01:20:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZEo5v2dx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF8FCC4CEE0;
+	Tue, 28 Jan 2025 01:20:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738027216;
-	bh=7Vlg9k2+T1fz014C82sshDDVB+tIuLskNx0ZGfozmSI=;
+	s=korg; t=1738027218;
+	bh=CR4rp8LjI3VdPYbHe1NIZJjwCElzqtO87xZkvV3+ZxY=;
 	h=Date:To:From:Subject:From;
-	b=eNCfufyRq2tTNE/PrKcpFAkJC0gXkSxKYpMOew/fBo3phEEcxYtiV3hlxrD8ls9Ic
-	 kQPLKnomQvYDxzvg+VnjuNRBM65sRVu9E3bj4zRJzMnihTKfdDIFeHhc42AjMbSiDm
-	 gnN4S/fmvCASa88VrcppgIBchetQcKJCn7zkZaRU=
-Date: Mon, 27 Jan 2025 17:20:15 -0800
+	b=ZEo5v2dx4pPWxsqqCIPuMWpL+pSvl6pNSqIhixPTElR772gm4Kr9uU1lu0Zzzd5PO
+	 ekDyR+MRbXkDCigZhSZ3RNu898/ZGt9wGrzaKn/PtsO+SJdbo8N/iXjoCMAW5RUaVk
+	 j4i7wM99aMo2pfwMpVHpwYZvR01AWUTtCefin3ow=
+Date: Mon, 27 Jan 2025 17:20:17 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mclapinski@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch added to mm-unstable branch
-Message-Id: <20250128012015.EFC5BC4CED2@smtp.kernel.org>
+Subject: + mm-compaction-make-proactive-compaction-high-watermark-configurable-via-sysctl.patch added to mm-unstable branch
+Message-Id: <20250128012017.EF8FCC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/compaction: remove low watermark cap for proactive compaction
+     Subject: mm/compaction: make proactive compaction high watermark configurable via sysctl
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch
+     mm-compaction-make-proactive-compaction-high-watermark-configurable-via-sysctl.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-make-proactive-compaction-high-watermark-configurable-via-sysctl.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,58 +59,94 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Michal Clapinski <mclapinski@google.com>
-Subject: mm/compaction: remove low watermark cap for proactive compaction
-Date: Mon, 27 Jan 2025 22:50:19 +0100
+Subject: mm/compaction: make proactive compaction high watermark configurable via sysctl
+Date: Mon, 27 Jan 2025 22:50:20 +0100
 
-Patch series "mm/compaction: allow more aggressive proactive compaction",
-v3.
+Currently, the difference between the high and low watermarks for
+proactive compaction is hardcoded to 10.  This hardcoded difference is too
+large for free page reporting to work well.
 
-Our goal is to keep memory usage of a VM low on the host.  For that
-reason, we use free page reporting which by default reports free pages of
-order 9 and larger to the host to be freed.  The feature works well only
-if the memory in the guest is not fragmented below pages of order 9. 
-Proactive compaction can be reused to achieve defragmentation after some
-parameter tweaking.
+Add a new sysctl, `compaction_proactiveness_leeway`, to control the
+difference between the high and low watermarks.
 
-When the fragmentation score (lower is better) gets larger than the high
-watermark, proactive compaction kicks in.  Compaction stops when the score
-goes below the low watermark (or no progress is made and backoff kicks
-in).  Let's define the difference between high and low watermarks as
-leeway.  Before these changes, the minimum possible value for low
-watermark was 5 and the leeway was hardcoded to 10 (so minimum possible
-value for high watermark was 15).
-
-
-This patch (of 3):
-
-Previously a min cap of 5 has been set in the commit introducing proactive
-compaction.  This was to make sure users don't hurt themselves by setting
-the proactiveness to 100 and making their system unresponsive.  But the
-compaction mechanism has a backoff mechanism that will sleep for 30s if no
-progress is made, so I don't see a significant risk here.  My system (20GB
-of memory) has been perfectly fine with proactiveness set to 100 and
-leeway set to 0.
-
-Link: https://lkml.kernel.org/r/20250127215020.4023545-2-mclapinski@google.com
+Link: https://lkml.kernel.org/r/20250127215020.4023545-3-mclapinski@google.com
 Signed-off-by: Michal Clapinski <mclapinski@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/sysctl/vm.rst |   17 +++++++++++++++++
+ mm/compaction.c                         |   12 +++++++++++-
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-remove-low-watermark-cap-for-proactive-compaction
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-make-proactive-compaction-high-watermark-configurable-via-sysctl
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -27,6 +27,7 @@ Currently, these files are in /proc/sys/
+ - admin_reserve_kbytes
+ - compact_memory
+ - compaction_proactiveness
++- compaction_proactiveness_leeway
+ - compact_unevictable_allowed
+ - dirty_background_bytes
+ - dirty_background_ratio
+@@ -133,6 +134,22 @@ proactive compaction is not being effect
+ Be careful when setting it to extreme values like 100, as that may
+ cause excessive background compaction activity.
+ 
++compaction_proactiveness_leeway
++===============================
++
++This tunable controls the difference between high and low watermarks for
++proactive compaction. This tunable takes a value in the range [0, 100] with
++a default value of 10. Higher values will result in proactive compaction
++triggering less often but doing more work when it does trigger.
++
++Proactive compaction triggers when fragmentation score (lower is better) gets
++larger than high watermark. Compaction stops when the score gets smaller or
++equal to low watermark (or when no progress is being made).
++The watermarks are calculated as follows:
++
++low_wmark = 100 - compaction_proactiveness;
++high_wmark = low_wmark + compaction_proactiveness_leeway;
++
+ compact_unevictable_allowed
+ ===========================
+ 
+--- a/mm/compaction.c~mm-compaction-make-proactive-compaction-high-watermark-configurable-via-sysctl
 +++ a/mm/compaction.c
-@@ -2256,7 +2256,7 @@ static unsigned int fragmentation_score_
- 	 * activity in case a user sets the proactiveness tunable
+@@ -1924,6 +1924,7 @@ static int sysctl_compact_unevictable_al
+  * background. It takes values in the range [0, 100].
+  */
+ static unsigned int __read_mostly sysctl_compaction_proactiveness = 20;
++static unsigned int __read_mostly sysctl_compaction_proactiveness_leeway = 10;
+ static int sysctl_extfrag_threshold = 500;
+ static int __read_mostly sysctl_compact_memory;
+ 
+@@ -2257,7 +2258,7 @@ static unsigned int fragmentation_score_
  	 * close to 100 (maximum).
  	 */
--	wmark_low = max(100U - sysctl_compaction_proactiveness, 5U);
-+	wmark_low = 100U - sysctl_compaction_proactiveness;
- 	return low ? wmark_low : min(wmark_low + 10, 100U);
+ 	wmark_low = 100U - sysctl_compaction_proactiveness;
+-	return low ? wmark_low : min(wmark_low + 10, 100U);
++	return low ? wmark_low : min(wmark_low + sysctl_compaction_proactiveness_leeway, 100U);
  }
  
+ static bool should_proactive_compact_node(pg_data_t *pgdat)
+@@ -3308,6 +3309,15 @@ static struct ctl_table vm_compaction[]
+ 		.mode		= 0644,
+ 		.proc_handler	= compaction_proactiveness_sysctl_handler,
+ 		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE_HUNDRED,
++	},
++	{
++		.procname	= "compaction_proactiveness_leeway",
++		.data		= &sysctl_compaction_proactiveness_leeway,
++		.maxlen		= sizeof(sysctl_compaction_proactiveness_leeway),
++		.mode		= 0644,
++		.proc_handler	= compaction_proactiveness_sysctl_handler,
++		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ 	{
 _
 
 Patches currently in -mm which might be from mclapinski@google.com are
