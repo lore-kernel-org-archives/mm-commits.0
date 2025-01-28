@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8381033CFC
-	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:09:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1338133CFC
+	for <mm-commits@vger.kernel.org>; Tue, 28 Jan 2025 00:09:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738022980; cv=none; b=pe+xuBALLZZGenocN5rp3RY9en4IaguBU0dlH0Dyd2PG8rUlEXzMPDxBTqFzkx6P3gVULQBWBnq1AM4HQ6Irsnskv8OfwUrhwtJtLkGbklk2a4DBubPs6TJGrmPGwoF55iWogK0Qh9uegEQicd8CB4VVJPZfv8YI8Q9STtxJIfo=
+	t=1738022984; cv=none; b=pe5LqXRKY2lNSKR4st5zhZrwm10YxXqnPHv0KvCVbLsJp8fAQ5g2aeAt9/Qg30sqqN6dq4MGD/VvF7ftFAIH1YxCD1g03JeRKr6Lbin7EGLI+Ax77xwjyJQFVlBzkC3+2JD3lOf2p7uMbpoFOWslgI1IMaabLRr8ftMe9hR/0AI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738022980; c=relaxed/simple;
-	bh=+IXHXozBKepGH+M6Kx3dc3gQJIQoWV7jnE+evxfaULg=;
-	h=Date:To:From:Subject:Message-Id; b=M6iHVH/JFQrhCMECRdGLWdl8FMObWikWS+po0kGj5JODLI1rkMhxz2S4xRvf7a/SXHmI2lEPCqOGpNUhyUVSF5qgNLwGSDQ9U6eHN5W/7SH8jQoAvwhEpclxEcjRpk9wsNHJW5ebzctN7DmJ7Vb7t4W71BZVJGDPK5ZwGrYpLOU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E9t+eaHU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738022984; c=relaxed/simple;
+	bh=tU3Q4qcqObPDAsah8Xl5EK1m8Hn1QKt7x55xGpXvoEs=;
+	h=Date:To:From:Subject:Message-Id; b=o2ZhteHDLm1s03LJIoEevqFecZPg+hsrWP/hYBeIWVCvFuAhvliWR1p6cUr3NgkawyiTdg+/1oqnmMZpzrIzPtvMg/CYmRdFZkcMuNUMvMShg5QTuEnG4O6pS8yuplDs8Vu7pJj8GDg0hG0XrPQfRjMJk0j3W2jc90xSRoR1c7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AaK6xaY2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E9t+eaHU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 567DEC4CEE0;
-	Tue, 28 Jan 2025 00:09:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AaK6xaY2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65324C4CED2;
+	Tue, 28 Jan 2025 00:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738022980;
-	bh=+IXHXozBKepGH+M6Kx3dc3gQJIQoWV7jnE+evxfaULg=;
+	s=korg; t=1738022982;
+	bh=tU3Q4qcqObPDAsah8Xl5EK1m8Hn1QKt7x55xGpXvoEs=;
 	h=Date:To:From:Subject:From;
-	b=E9t+eaHUZobU34/x8ZLip/BMHfC7pgeqYWtmj3CSw/ggKJV2Kn3LSW7q/9Dnh44qV
-	 aIiN4am3hVDBYnXDDt2dOEJSluLM+BHiXA1gVF6VDQsbA8YfcZ+OwFaK4OTWWsL7t1
-	 Yau82z9xQs5TZpIx6w2OVoUz2AHyVPSYtzXyi8r4=
-Date: Mon, 27 Jan 2025 16:09:39 -0800
+	b=AaK6xaY2dU/myeSkpSsvMoKFeSuJjLXkyKn/PC1Qq9UCEcEdv9nEcgXiiCBjRM/Qf
+	 02fYZ3vrqlxWeGcGYPSRY0uL7oW22pheTOLyioyyNbPLfvxRCSv37EaLTbmFDxDQC4
+	 +n93dhfj9M6OT8qR+n6Y1QiKG3TWOr/LI8p6/eW8=
+Date: Mon, 27 Jan 2025 16:09:41 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usama.arif@bytedance.com,rppt@kernel.org,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-redundant-__clearpagereserved.patch added to mm-unstable branch
-Message-Id: <20250128000940.567DEC4CEE0@smtp.kernel.org>
+Subject: + mm-hugetlb-use-online-nodes-for-bootmem-allocation.patch added to mm-unstable branch
+Message-Id: <20250128000942.65324C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove redundant __ClearPageReserved
+     Subject: mm/hugetlb: use online nodes for bootmem allocation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-remove-redundant-__clearpagereserved.patch
+     mm-hugetlb-use-online-nodes-for-bootmem-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-redundant-__clearpagereserved.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-online-nodes-for-bootmem-allocation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: remove redundant __ClearPageReserved
-Date: Mon, 27 Jan 2025 23:21:46 +0000
+Subject: mm/hugetlb: use online nodes for bootmem allocation
+Date: Mon, 27 Jan 2025 23:21:47 +0000
 
-In hugetlb_folio_init_tail_vmemmap, the reserved flag is cleared for the
-tail page just before it is zeroed out, which is redundant.  Remove the
-__ClearPageReserved call.
+Later commits will move hugetlb bootmem allocation to earlier in init,
+when N_MEMORY has not yet been set on nodes.  Use online nodes instead. 
+At most, this wastes just a few cycles once during boot (and most likely
+none).
 
-Link: https://lkml.kernel.org/r/20250127232207.3888640-7-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250127232207.3888640-8-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -86,19 +87,31 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-redundant-__clearpagereserved
+--- a/mm/hugetlb.c~mm-hugetlb-use-online-nodes-for-bootmem-allocation
 +++ a/mm/hugetlb.c
-@@ -3202,7 +3202,6 @@ static void __init hugetlb_folio_init_ta
- 	for (pfn = head_pfn + start_page_number; pfn < end_pfn; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
+@@ -3152,7 +3152,7 @@ int __alloc_bootmem_huge_page(struct hst
+ 		goto found;
+ 	}
+ 	/* allocate from next node when distributing huge pages */
+-	for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node, &node_states[N_MEMORY]) {
++	for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node, &node_states[N_ONLINE]) {
+ 		m = memblock_alloc_try_nid_raw(
+ 				huge_page_size(h), huge_page_size(h),
+ 				0, MEMBLOCK_ALLOC_ACCESSIBLE, node);
+@@ -4550,8 +4550,8 @@ void __init hugetlb_add_hstate(unsigned
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+ 	INIT_LIST_HEAD(&h->hugepage_activelist);
+-	h->next_nid_to_alloc = first_memory_node;
+-	h->next_nid_to_free = first_memory_node;
++	h->next_nid_to_alloc = first_online_node;
++	h->next_nid_to_free = first_online_node;
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+ 					huge_page_size(h)/SZ_1K);
  
--		__ClearPageReserved(folio_page(folio, pfn - head_pfn));
- 		__init_single_page(page, pfn, zone, nid);
- 		prep_compound_tail((struct page *)folio, pfn - head_pfn);
- 		ret = page_ref_freeze(page, 1);
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
