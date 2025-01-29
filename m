@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 311801E3DEC
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3594F1D63EE
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738193190; cv=none; b=qcj/aYUDShvxIY3jny1COAYMWQMFA36554Dc9But1+P6hNlXmK+qhTjU5MMPQuqqlIu5uQA9XYWtPXApFZ7SJslnpvPXh5C6famEStxHsb55LXDOrw+37skHQ0ByouckES42YDTT7z+uRdfpM6xCand0nHoeZvA+MIDCqQcFpoQ=
+	t=1738193192; cv=none; b=nuBm7CgPYk2IhwBpRYo7MemGoE+E3AK141LTIuDklu5W0vab+FbppoUoEv8Gh14KJlq5aM+riVomIImfANOSpP+mSnR3HXmYTLt2WFggWn2p3ddVhAJsSf09BnBbHzozVKEFN7nEEXFcfJoTNZaenhi6HlLlILGUT6746YJbSZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738193190; c=relaxed/simple;
-	bh=5rNb0oZE+JekkGUfdJTI2uRY5poJsHtZuykDcWx4Ryw=;
-	h=Date:To:From:Subject:Message-Id; b=pU5HA1IHbCNuowvWxgcng0u8JBp/jJBH5aXXCC0FR7i+HzU006kxnRVqQl8Pe3fZWbIREb5ugUneVtlEYHq5MnLC+W/2/7USxPpDRIE0oQQSHqg1dmlDTIu4BWZMar8nrDZ2aEK3phT1JgaBNISUlFGwoERqi8bbYA5kTEEGzos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RyvUV/qE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738193192; c=relaxed/simple;
+	bh=7as2bJ5FSADrjKJ+njsrACtWSZ8b6h22X6wMmj8dHAI=;
+	h=Date:To:From:Subject:Message-Id; b=j2KpSGtPYyBu1uy7pf63FMa6RNtVUyDgBRehMokVpVGmQ9aBG+LKgSq9ksdkdnz2ziVLtxLZnXYgre9SCxy9/VjyYRyAKBfz/1R0cnhxz+98brWfW2Emd9eCMYfQAE74BMopkxYgWPgqcStWvxZSOdTlY4OEt6/1v2OTea/49EI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RtVPIOOs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RyvUV/qE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C676C4CED1;
-	Wed, 29 Jan 2025 23:26:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RtVPIOOs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 018F4C4CED1;
+	Wed, 29 Jan 2025 23:26:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738193189;
-	bh=5rNb0oZE+JekkGUfdJTI2uRY5poJsHtZuykDcWx4Ryw=;
+	s=korg; t=1738193192;
+	bh=7as2bJ5FSADrjKJ+njsrACtWSZ8b6h22X6wMmj8dHAI=;
 	h=Date:To:From:Subject:From;
-	b=RyvUV/qErS1s89iiR7U/kUoADLNHwTBOBUor84Bd8+lJYrHBi0PCYItnxERCXjMtR
-	 wRX8oa+vrW9vNI9/g58g4BNGqgprGjQ140qkGdlGh9cdVoWHv+MO3/Jx+zXJfOR/TY
-	 PVbUBueAt9HZzqiDpgDcpWkZNSAEjmjnr8Dz9IuA=
-Date: Wed, 29 Jan 2025 15:26:29 -0800
+	b=RtVPIOOsL4KRG5obIuW/mSCfX1N77mOH1uOJ7cLOc5yKLX1tVWXpNkk7o9a44moyF
+	 wF8GGdz3GiocwgEnM7uaxZ3INH9pvoxFdQIfT1mZaN7k1qvA4GYwd0tkWHWWVqaYb8
+	 a0G9OzZrMwArgGgXmgiL3dC9EaSOU9pb9IkQIyTY=
+Date: Wed, 29 Jan 2025 15:26:31 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-simplify-zone-intersection-check.patch added to mm-unstable branch
-Message-Id: <20250129232629.8C676C4CED1@smtp.kernel.org>
+Subject: + mm-cma-introduce-a-cma-validate-function.patch added to mm-unstable branch
+Message-Id: <20250129232632.018F4C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: simplify zone intersection check
+     Subject: mm/cma: introduce a cma validate function
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-simplify-zone-intersection-check.patch
+     mm-cma-introduce-a-cma-validate-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-simplify-zone-intersection-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-introduce-a-cma-validate-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/cma: simplify zone intersection check
-Date: Wed, 29 Jan 2025 22:41:52 +0000
+Subject: mm/cma: introduce a cma validate function
+Date: Wed, 29 Jan 2025 22:41:53 +0000
 
-cma_activate_area walks all pages in the area, checking their zone
-individually to see if the area resides in more than one zone.
+Define a function to check if a CMA area is valid, which means: do its
+ranges not cross any zone boundaries.  Store the result in the newly
+created flags for each CMA area, so that multiple calls are dealt with.
 
-Make this a little more efficient by using the recently introduced
-pfn_range_intersects_zones() function.  Store the NUMA node id (if any) in
-the cma structure to facilitate this.
+This allows for checking the validity of a CMA area early, which is needed
+later in order to be able to allocate hugetlb bootmem pages from it with
+pre-HVO.
 
-Link: https://lkml.kernel.org/r/20250129224157.2046079-24-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250129224157.2046079-25-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -88,71 +89,146 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   13 ++++++-------
- mm/cma.h |    2 ++
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ include/linux/cma.h |    5 +++
+ mm/cma.c            |   60 +++++++++++++++++++++++++++++++++---------
+ mm/cma.h            |    8 ++++-
+ 3 files changed, 60 insertions(+), 13 deletions(-)
 
---- a/mm/cma.c~mm-cma-simplify-zone-intersection-check
-+++ a/mm/cma.c
-@@ -103,7 +103,6 @@ static void __init cma_activate_area(str
+--- a/include/linux/cma.h~mm-cma-introduce-a-cma-validate-function
++++ a/include/linux/cma.h
+@@ -60,6 +60,7 @@ extern void cma_reserve_pages_on_error(s
+ #ifdef CONFIG_CMA
+ struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp);
+ bool cma_free_folio(struct cma *cma, const struct folio *folio);
++bool cma_validate_zones(struct cma *cma);
+ #else
+ static inline struct folio *cma_alloc_folio(struct cma *cma, int order, gfp_t gfp)
  {
- 	unsigned long pfn, base_pfn;
- 	int allocrange, r;
--	struct zone *zone;
- 	struct cma_memrange *cmr;
+@@ -70,6 +71,10 @@ static inline bool cma_free_folio(struct
+ {
+ 	return false;
+ }
++static inline bool cma_validate_zones(struct cma *cma)
++{
++	return false;
++}
+ #endif
  
- 	for (allocrange = 0; allocrange < cma->nranges; allocrange++) {
-@@ -124,12 +123,8 @@ static void __init cma_activate_area(str
- 		 * CMA resv range to be in the same zone.
- 		 */
- 		WARN_ON_ONCE(!pfn_valid(base_pfn));
--		zone = page_zone(pfn_to_page(base_pfn));
--		for (pfn = base_pfn + 1; pfn < base_pfn + cmr->count; pfn++) {
--			WARN_ON_ONCE(!pfn_valid(pfn));
--			if (page_zone(pfn_to_page(pfn)) != zone)
--				goto cleanup;
--		}
-+		if (pfn_range_intersects_zones(cma->nid, base_pfn, cmr->count))
-+			goto cleanup;
- 
- 		for (pfn = base_pfn; pfn < base_pfn + cmr->count;
- 		     pfn += pageblock_nr_pages)
-@@ -261,6 +256,7 @@ int __init cma_init_reserved_mem(phys_ad
- 	cma->ranges[0].base_pfn = PFN_DOWN(base);
- 	cma->ranges[0].count = cma->count;
- 	cma->nranges = 1;
-+	cma->nid = NUMA_NO_NODE;
- 
- 	*res_cma = cma;
- 
-@@ -497,6 +493,7 @@ int __init cma_declare_contiguous_multi(
- 	}
- 
- 	cma->nranges = nr;
-+	cma->nid = nid;
- 	*res_cma = cma;
- 
- out:
-@@ -684,6 +681,8 @@ static int __init __cma_declare_contiguo
- 	if (ret)
- 		memblock_phys_free(base, size);
- 
-+	(*res_cma)->nid = nid;
-+
- 	return ret;
+ #endif
+--- a/mm/cma.c~mm-cma-introduce-a-cma-validate-function
++++ a/mm/cma.c
+@@ -99,6 +99,49 @@ static void cma_clear_bitmap(struct cma
+ 	spin_unlock_irqrestore(&cma->lock, flags);
  }
  
---- a/mm/cma.h~mm-cma-simplify-zone-intersection-check
++/*
++ * Check if a CMA area contains no ranges that intersect with
++ * multiple zones. Store the result in the flags in case
++ * this gets called more than once.
++ */
++bool cma_validate_zones(struct cma *cma)
++{
++	int r;
++	unsigned long base_pfn;
++	struct cma_memrange *cmr;
++	bool valid_bit_set;
++
++	/*
++	 * If already validated, return result of previous check.
++	 * Either the valid or invalid bit will be set if this
++	 * check has already been done. If neither is set, the
++	 * check has not been performed yet.
++	 */
++	valid_bit_set = test_bit(CMA_ZONES_VALID, &cma->flags);
++	if (valid_bit_set || test_bit(CMA_ZONES_INVALID, &cma->flags))
++		return valid_bit_set;
++
++	for (r = 0; r < cma->nranges; r++) {
++		cmr = &cma->ranges[r];
++		base_pfn = cmr->base_pfn;
++
++		/*
++		 * alloc_contig_range() requires the pfn range specified
++		 * to be in the same zone. Simplify by forcing the entire
++		 * CMA resv range to be in the same zone.
++		 */
++		WARN_ON_ONCE(!pfn_valid(base_pfn));
++		if (pfn_range_intersects_zones(cma->nid, base_pfn, cmr->count)) {
++			set_bit(CMA_ZONES_INVALID, &cma->flags);
++			return false;
++		}
++	}
++
++	set_bit(CMA_ZONES_VALID, &cma->flags);
++
++	return true;
++}
++
+ static void __init cma_activate_area(struct cma *cma)
+ {
+ 	unsigned long pfn, base_pfn;
+@@ -113,19 +156,12 @@ static void __init cma_activate_area(str
+ 			goto cleanup;
+ 	}
+ 
++	if (!cma_validate_zones(cma))
++		goto cleanup;
++
+ 	for (r = 0; r < cma->nranges; r++) {
+ 		cmr = &cma->ranges[r];
+ 		base_pfn = cmr->base_pfn;
+-
+-		/*
+-		 * alloc_contig_range() requires the pfn range specified
+-		 * to be in the same zone. Simplify by forcing the entire
+-		 * CMA resv range to be in the same zone.
+-		 */
+-		WARN_ON_ONCE(!pfn_valid(base_pfn));
+-		if (pfn_range_intersects_zones(cma->nid, base_pfn, cmr->count))
+-			goto cleanup;
+-
+ 		for (pfn = base_pfn; pfn < base_pfn + cmr->count;
+ 		     pfn += pageblock_nr_pages)
+ 			init_cma_reserved_pageblock(pfn_to_page(pfn));
+@@ -145,7 +181,7 @@ cleanup:
+ 		bitmap_free(cma->ranges[r].bitmap);
+ 
+ 	/* Expose all pages to the buddy, they are useless for CMA. */
+-	if (!cma->reserve_pages_on_error) {
++	if (!test_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags)) {
+ 		for (r = 0; r < allocrange; r++) {
+ 			cmr = &cma->ranges[r];
+ 			for (pfn = cmr->base_pfn;
+@@ -172,7 +208,7 @@ core_initcall(cma_init_reserved_areas);
+ 
+ void __init cma_reserve_pages_on_error(struct cma *cma)
+ {
+-	cma->reserve_pages_on_error = true;
++	set_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags);
+ }
+ 
+ static int __init cma_new_area(const char *name, phys_addr_t size,
+--- a/mm/cma.h~mm-cma-introduce-a-cma-validate-function
 +++ a/mm/cma.h
-@@ -50,6 +50,8 @@ struct cma {
+@@ -49,11 +49,17 @@ struct cma {
+ 	/* kobject requires dynamic object */
  	struct cma_kobject *cma_kobj;
  #endif
- 	bool reserve_pages_on_error;
-+	/* NUMA node (NUMA_NO_NODE if unspecified) */
-+	int nid;
+-	bool reserve_pages_on_error;
++	unsigned long flags;
+ 	/* NUMA node (NUMA_NO_NODE if unspecified) */
+ 	int nid;
  };
  
++enum cma_flags {
++	CMA_RESERVE_PAGES_ON_ERROR,
++	CMA_ZONES_VALID,
++	CMA_ZONES_INVALID,
++};
++
  extern struct cma cma_areas[MAX_CMA_AREAS];
+ extern unsigned int cma_area_count;
+ 
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
