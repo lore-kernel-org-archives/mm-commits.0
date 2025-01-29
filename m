@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905501DA4E
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 04:10:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BA9B1DA4E
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 04:10:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738123803; cv=none; b=Lu4am+8IsdHs8KG0EA56kmLqBEUFirgjmn5nj3tckky4lJe2NZPn9S1EPLuNRZco4VaCiiDuibk7P1IKwBZDA2SwO/0RU+I4jPhfx8iC0vAAtnD6pc/tWQnI1JDdn24SsoHR2wH23xrabdGPb/m4u9GFaPgq7UNBFSTGbMk8ojM=
+	t=1738123805; cv=none; b=uYpjYeQQ48H5jQ6WNrjUUe0m1BSFV5qDUp2H3ThCW4n++apTNIknrcoPaHkrLt2nIDlGpoVCO36EsnZJCtwXc2Sjf3IQHqpX6PyY22zAsXl4tJ3dpTMnDnKYBgUU88BH2cO5EMbRHzAcrN4zIcHrZkX5BiGEyr1yiUfmQbCVseI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738123803; c=relaxed/simple;
-	bh=6iPP3iDKnqfD4XKSRKF7vbG6ji5mwb+Wh52TGidcpqc=;
-	h=Date:To:From:Subject:Message-Id; b=N41dZz2xFYhbKrOlQcLeR2B3arvf5HonRUPqfLk3lJhvj++irhgbm60YvlTcVO1cQimJhOJ+8vGBtfE1QZvNFx2zBYhZCso9tVSeP4iIvkGbLtbuFdMPFCB5WOOCk3A/HAK947OSkih8ioGeKuXfH3k9DoEwwu+D+zCWEzNuXfU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U7W4SvlY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738123805; c=relaxed/simple;
+	bh=GxplRwQOznfIlhL752lUs7VF/jwLYhrkoos2b3QihOM=;
+	h=Date:To:From:Subject:Message-Id; b=qgaLhxDV0PJcEMspLOsGopsAbYNz/C8Icd6TsACFkErj0ljIERvvbcJquRSQ1AgMrnR/VZtx9gSqWaXgPHbKpRuak8aZrGzwtI6yUck+BNMTMzyhXZVQ1/pi0Du6F/e1VUTFLoWh6nmX164Sgc9d3qZKfsIqUu6PlSVrH04DGQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jhTxlk6J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U7W4SvlY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE0B3C4CED3;
-	Wed, 29 Jan 2025 04:10:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jhTxlk6J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57BCCC4CED3;
+	Wed, 29 Jan 2025 04:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738123802;
-	bh=6iPP3iDKnqfD4XKSRKF7vbG6ji5mwb+Wh52TGidcpqc=;
+	s=korg; t=1738123805;
+	bh=GxplRwQOznfIlhL752lUs7VF/jwLYhrkoos2b3QihOM=;
 	h=Date:To:From:Subject:From;
-	b=U7W4SvlYbt0beDXuKlzYXY1qFZPwKQk+1jcT7/gNmYm8UlDlIIz1DPZ3sFYs6f5AY
-	 wnBEOVBzr9Q1ULs/XvMQOQqHm/UhpDEeNqSA8OAqiaC9S+knz65ZxRfzVNVNolXJo9
-	 NdgFBXHQcJvZCQW6LrYcTrdbmFVDW6lp9xffhcsU=
-Date: Tue, 28 Jan 2025 20:10:02 -0800
+	b=jhTxlk6JMB9ZMOpBcZkTNAUm4/dWJ6P2p4dTA7GOJgdIS18OrOM2XNnJNmLaRQzgP
+	 IkhdU12G2kK8kfxBaNuNvGkkTPR+8zHryJBhdNJCcOeWvOEM8Sc/RDTZzqxzSksIbu
+	 7mtN44PYnWEgd6TFolkeRzGJ8j+49EKqNJG4H/Bs=
+Date: Tue, 28 Jan 2025 20:10:04 -0800
 To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,yosryahmed@google.com,ying.huang@intel.com,yangyicong@hisilicon.com,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shahuang@redhat.com,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,mingo@redhat.com,mfo@canonical.com,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,ioworker0@gmail.com,hpa@zytor.com,gshan@redhat.com,david@redhat.com,dave.hansen@linux.intel.com,chrisl@kernel.org,catalin.marinas@arm.com,bp@alien8.de,baolin.wang@linux.alibaba.com,aou@eecs.berkeley.edu,anshuman.khandual@arm.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch added to mm-unstable branch
-Message-Id: <20250129041002.CE0B3C4CED3@smtp.kernel.org>
+Subject: + mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap.patch added to mm-unstable branch
+Message-Id: <20250129041005.57BCCC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: support batched unmap for lazyfree large folios during reclamation
+     Subject: mm: avoid splitting pmd for lazyfree pmd-mapped THP in try_to_unmap
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch
+     mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: support batched unmap for lazyfree large folios during reclamation
-Date: Wed, 15 Jan 2025 16:38:07 +1300
+Subject: mm: avoid splitting pmd for lazyfree pmd-mapped THP in try_to_unmap
+Date: Wed, 15 Jan 2025 16:38:08 +1300
 
-Currently, the PTEs and rmap of a large folio are removed one at a time. 
-This is not only slow but also causes the large folio to be unnecessarily
-added to deferred_split, which can lead to races between the
-deferred_split shrinker callback and memory reclamation.  This patch
-releases all PTEs and rmap entries in a batch.  Currently, it only handles
-lazyfree large folios.
+The try_to_unmap_one() function currently handles PMD-mapped THPs
+inefficiently.  It first splits the PMD into PTEs, copies the dirty state
+from the PMD to the PTEs, iterates over the PTEs to locate the dirty
+state, and then marks the THP as swap-backed.  This process involves
+unnecessary PMD splitting and redundant iteration.  Instead, this
+functionality can be efficiently managed in
+__discard_anon_folio_pmd_locked(), avoiding the extra steps and improving
+performance.
 
-The below microbench tries to reclaim 128MB lazyfree large folios
-whose sizes are 64KiB:
+The following microbenchmark redirties folios after invoking MADV_FREE,
+then measures the time taken to perform memory reclamation (actually set
+those folios swapbacked again) on the redirtied folios.
 
  #include <stdio.h>
  #include <sys/mman.h>
@@ -79,26 +82,6 @@ whose sizes are 64KiB:
 
  #define SIZE 128*1024*1024  // 128 MB
 
- unsigned long read_split_deferred()
- {
- 	FILE *file = fopen("/sys/kernel/mm/transparent_hugepage"
-			"/hugepages-64kB/stats/split_deferred", "r");
- 	if (!file) {
- 		perror("Error opening file");
- 		return 0;
- 	}
-
- 	unsigned long value;
- 	if (fscanf(file, "%lu", &value) != 1) {
- 		perror("Error reading value");
- 		fclose(file);
- 		return 0;
- 	}
-
- 	fclose(file);
- 	return value;
- }
-
  int main(int argc, char *argv[])
  {
  	while(1) {
@@ -106,70 +89,80 @@ whose sizes are 64KiB:
  				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
  		memset((void *)p, 1, SIZE);
-
  		madvise((void *)p, SIZE, MADV_FREE);
+ 		/* redirty after MADV_FREE */
+ 		memset((void *)p, 1, SIZE);
 
- 		clock_t start_time = clock();
- 		unsigned long start_split = read_split_deferred();
+		clock_t start_time = clock();
  		madvise((void *)p, SIZE, MADV_PAGEOUT);
  		clock_t end_time = clock();
- 		unsigned long end_split = read_split_deferred();
 
  		double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
- 		printf("Time taken by reclamation: %f seconds, split_deferred: %ld\n",
- 			elapsed_time, end_split - start_split);
+ 		printf("Time taken by reclamation: %f seconds\n", elapsed_time);
 
  		munmap((void *)p, SIZE);
  	}
  	return 0;
  }
 
+Testing results are as below,
 w/o patch:
 ~ # ./a.out
-Time taken by reclamation: 0.177418 seconds, split_deferred: 2048
-Time taken by reclamation: 0.178348 seconds, split_deferred: 2048
-Time taken by reclamation: 0.174525 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171620 seconds, split_deferred: 2048
-Time taken by reclamation: 0.172241 seconds, split_deferred: 2048
-Time taken by reclamation: 0.174003 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171058 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171993 seconds, split_deferred: 2048
-Time taken by reclamation: 0.169829 seconds, split_deferred: 2048
-Time taken by reclamation: 0.172895 seconds, split_deferred: 2048
-Time taken by reclamation: 0.176063 seconds, split_deferred: 2048
-Time taken by reclamation: 0.172568 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171185 seconds, split_deferred: 2048
-Time taken by reclamation: 0.170632 seconds, split_deferred: 2048
-Time taken by reclamation: 0.170208 seconds, split_deferred: 2048
-Time taken by reclamation: 0.174192 seconds, split_deferred: 2048
-...
+Time taken by reclamation: 0.007300 seconds
+Time taken by reclamation: 0.007226 seconds
+Time taken by reclamation: 0.007295 seconds
+Time taken by reclamation: 0.007731 seconds
+Time taken by reclamation: 0.007134 seconds
+Time taken by reclamation: 0.007285 seconds
+Time taken by reclamation: 0.007720 seconds
+Time taken by reclamation: 0.007128 seconds
+Time taken by reclamation: 0.007710 seconds
+Time taken by reclamation: 0.007712 seconds
+Time taken by reclamation: 0.007236 seconds
+Time taken by reclamation: 0.007690 seconds
+Time taken by reclamation: 0.007174 seconds
+Time taken by reclamation: 0.007670 seconds
+Time taken by reclamation: 0.007169 seconds
+Time taken by reclamation: 0.007305 seconds
+Time taken by reclamation: 0.007432 seconds
+Time taken by reclamation: 0.007158 seconds
+Time taken by reclamation: 0.007133 seconds
+…
 
-w/ patch:
+w/ patch
+
 ~ # ./a.out
-Time taken by reclamation: 0.074231 seconds, split_deferred: 0
-Time taken by reclamation: 0.071026 seconds, split_deferred: 0
-Time taken by reclamation: 0.072029 seconds, split_deferred: 0
-Time taken by reclamation: 0.071873 seconds, split_deferred: 0
-Time taken by reclamation: 0.073573 seconds, split_deferred: 0
-Time taken by reclamation: 0.071906 seconds, split_deferred: 0
-Time taken by reclamation: 0.073604 seconds, split_deferred: 0
-Time taken by reclamation: 0.075903 seconds, split_deferred: 0
-Time taken by reclamation: 0.073191 seconds, split_deferred: 0
-Time taken by reclamation: 0.071228 seconds, split_deferred: 0
-Time taken by reclamation: 0.071391 seconds, split_deferred: 0
-Time taken by reclamation: 0.071468 seconds, split_deferred: 0
-Time taken by reclamation: 0.071896 seconds, split_deferred: 0
-Time taken by reclamation: 0.072508 seconds, split_deferred: 0
-Time taken by reclamation: 0.071884 seconds, split_deferred: 0
-Time taken by reclamation: 0.072433 seconds, split_deferred: 0
-Time taken by reclamation: 0.071939 seconds, split_deferred: 0
-...
+Time taken by reclamation: 0.002124 seconds
+Time taken by reclamation: 0.002116 seconds
+Time taken by reclamation: 0.002150 seconds
+Time taken by reclamation: 0.002261 seconds
+Time taken by reclamation: 0.002137 seconds
+Time taken by reclamation: 0.002173 seconds
+Time taken by reclamation: 0.002063 seconds
+Time taken by reclamation: 0.002088 seconds
+Time taken by reclamation: 0.002169 seconds
+Time taken by reclamation: 0.002124 seconds
+Time taken by reclamation: 0.002111 seconds
+Time taken by reclamation: 0.002224 seconds
+Time taken by reclamation: 0.002297 seconds
+Time taken by reclamation: 0.002260 seconds
+Time taken by reclamation: 0.002246 seconds
+Time taken by reclamation: 0.002272 seconds
+Time taken by reclamation: 0.002277 seconds
+Time taken by reclamation: 0.002462 seconds
+…
 
-Link: https://lkml.kernel.org/r/20250115033808.40641-4-21cnbao@gmail.com
+This patch significantly speeds up try_to_unmap_one() by allowing it
+to skip redirtied THPs without splitting the PMD.
+
+Link: https://lkml.kernel.org/r/20250115033808.40641-5-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Lance Yang <ioworker0@gmail.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lance Yang <ioworker0@gmail.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chis Li <chrisl@kernel.org>
@@ -182,7 +175,6 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Mauricio Faria de Oliveira <mfo@canonical.com>
@@ -198,106 +190,82 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   47 +++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 41 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |   24 +++++++++++++++++-------
+ mm/rmap.c        |   13 ++++++++++---
+ 2 files changed, 27 insertions(+), 10 deletions(-)
 
---- a/mm/rmap.c~mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation
-+++ a/mm/rmap.c
-@@ -1642,6 +1642,25 @@ void folio_remove_rmap_pmd(struct folio
- #endif
+--- a/mm/huge_memory.c~mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap
++++ a/mm/huge_memory.c
+@@ -3070,8 +3070,12 @@ static bool __discard_anon_folio_pmd_loc
+ 	int ref_count, map_count;
+ 	pmd_t orig_pmd = *pmdp;
+ 
+-	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd))
++	if (pmd_dirty(orig_pmd))
++		folio_set_dirty(folio);
++	if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
++		folio_set_swapbacked(folio);
+ 		return false;
++	}
+ 
+ 	orig_pmd = pmdp_huge_clear_flush(vma, addr, pmdp);
+ 
+@@ -3098,8 +3102,15 @@ static bool __discard_anon_folio_pmd_loc
+ 	 *
+ 	 * The only folio refs must be one from isolation plus the rmap(s).
+ 	 */
+-	if (folio_test_dirty(folio) || pmd_dirty(orig_pmd) ||
+-	    ref_count != map_count + 1) {
++	if (pmd_dirty(orig_pmd))
++		folio_set_dirty(folio);
++	if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
++		folio_set_swapbacked(folio);
++		set_pmd_at(mm, addr, pmdp, orig_pmd);
++		return false;
++	}
++
++	if (ref_count != map_count + 1) {
+ 		set_pmd_at(mm, addr, pmdp, orig_pmd);
+ 		return false;
+ 	}
+@@ -3119,12 +3130,11 @@ bool unmap_huge_pmd_locked(struct vm_are
+ {
+ 	VM_WARN_ON_FOLIO(!folio_test_pmd_mappable(folio), folio);
+ 	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
++	VM_WARN_ON_FOLIO(folio_test_swapbacked(folio), folio);
+ 	VM_WARN_ON_ONCE(!IS_ALIGNED(addr, HPAGE_PMD_SIZE));
+ 
+-	if (folio_test_anon(folio) && !folio_test_swapbacked(folio))
+-		return __discard_anon_folio_pmd_locked(vma, addr, pmdp, folio);
+-
+-	return false;
++	return __discard_anon_folio_pmd_locked(vma, addr, pmdp, folio);
  }
  
-+/* We support batch unmapping of PTEs for lazyfree large folios */
-+static inline bool can_batch_unmap_folio_ptes(unsigned long addr,
-+			struct folio *folio, pte_t *ptep)
-+{
-+	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
-+	int max_nr = folio_nr_pages(folio);
-+	pte_t pte = ptep_get(ptep);
-+
-+	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
-+		return false;
-+	if (pte_none(pte) || pte_unused(pte) || !pte_present(pte))
-+		return false;
-+	if (pte_pfn(pte) != folio_pfn(folio))
-+		return false;
-+
-+	return folio_pte_batch(folio, addr, ptep, pte, max_nr, fpb_flags, NULL,
-+			       NULL, NULL) == max_nr;
-+}
-+
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
-@@ -1655,6 +1674,7 @@ static bool try_to_unmap_one(struct foli
- 	bool anon_exclusive, ret = true;
- 	struct mmu_notifier_range range;
- 	enum ttu_flags flags = (enum ttu_flags)(long)arg;
-+	int nr_pages = 1;
- 	unsigned long pfn;
- 	unsigned long hsz = 0;
- 
-@@ -1780,6 +1800,16 @@ static bool try_to_unmap_one(struct foli
- 				hugetlb_vma_unlock_write(vma);
- 			}
- 			pteval = huge_ptep_clear_flush(vma, address, pvmw.pte);
-+		} else if (folio_test_large(folio) && !(flags & TTU_HWPOISON) &&
-+				can_batch_unmap_folio_ptes(address, folio, pvmw.pte)) {
-+			nr_pages = folio_nr_pages(folio);
-+			flush_cache_range(vma, range.start, range.end);
-+			pteval = get_and_clear_full_ptes(mm, address, pvmw.pte, nr_pages, 0);
-+			if (should_defer_flush(mm, flags))
-+				set_tlb_ubc_flush_pending(mm, pteval, address,
-+					address + folio_size(folio));
-+			else
-+				flush_tlb_range(vma, range.start, range.end);
- 		} else {
- 			flush_cache_page(vma, address, pfn);
- 			/* Nuke the page table entry. */
-@@ -1875,7 +1905,7 @@ static bool try_to_unmap_one(struct foli
- 					 * redirtied either using the page table or a previously
- 					 * obtained GUP reference.
- 					 */
--					set_pte_at(mm, address, pvmw.pte, pteval);
-+					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
- 					folio_set_swapbacked(folio);
- 					goto walk_abort;
- 				} else if (ref_count != 1 + map_count) {
-@@ -1888,10 +1918,10 @@ static bool try_to_unmap_one(struct foli
- 					 * We'll come back here later and detect if the folio was
- 					 * dirtied when the additional reference is gone.
- 					 */
--					set_pte_at(mm, address, pvmw.pte, pteval);
-+					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
- 					goto walk_abort;
- 				}
--				dec_mm_counter(mm, MM_ANONPAGES);
-+				add_mm_counter(mm, MM_ANONPAGES, -nr_pages);
- 				goto discard;
- 			}
- 
-@@ -1943,13 +1973,18 @@ static bool try_to_unmap_one(struct foli
- 			dec_mm_counter(mm, mm_counter_file(folio));
+ static void remap_page(struct folio *folio, unsigned long nr, int flags)
+--- a/mm/rmap.c~mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap
++++ a/mm/rmap.c
+@@ -1724,9 +1724,16 @@ static bool try_to_unmap_one(struct foli
  		}
- discard:
--		if (unlikely(folio_test_hugetlb(folio)))
-+		if (unlikely(folio_test_hugetlb(folio))) {
- 			hugetlb_remove_rmap(folio);
--		else
--			folio_remove_rmap_pte(folio, subpage, vma);
-+		} else {
-+			folio_remove_rmap_ptes(folio, subpage, nr_pages, vma);
-+			folio_ref_sub(folio, nr_pages - 1);
-+		}
- 		if (vma->vm_flags & VM_LOCKED)
- 			mlock_drain_local();
- 		folio_put(folio);
-+		/* We have already batched the entire folio */
-+		if (nr_pages > 1)
-+			goto walk_done;
- 		continue;
- walk_abort:
- 		ret = false;
+ 
+ 		if (!pvmw.pte) {
+-			if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd,
+-						  folio))
+-				goto walk_done;
++			if (folio_test_anon(folio) && !folio_test_swapbacked(folio)) {
++				if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd, folio))
++					goto walk_done;
++				/*
++				 * unmap_huge_pmd_locked has either already marked
++				 * the folio as swap-backed or decided to retain it
++				 * due to GUP or speculative references.
++				 */
++				goto walk_abort;
++			}
+ 
+ 			if (flags & TTU_SPLIT_HUGE_PMD) {
+ 				/*
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
