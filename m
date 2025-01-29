@@ -1,234 +1,139 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2B91B4140
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 11:32:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2CAF1E04BE
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 17:15:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738150328; cv=none; b=oAqTtcBdPMn0iJuJkLReFis9m9clBWGnZxyJagltNDbvxbfSb4AcDSaICwVGLOOUE6XJsQqgNAOY3iGWjpRqn6bb/IZ26ATY07dumPCAR3AHoi9/8fuTlnCGQv4LUDrOZhMvI4cqiS8URe/lZUqbXMIoYfwr6qDAnutwKxeC9js=
+	t=1738170910; cv=none; b=t3tuu88gdBx56BgLVA3SjF6LVEuRPtIg4sr6k/R8wPhOZs/zIIGAyxtbbmfkxkkp6S9b6M0LXNrZbsF4b32AAI04UpqGw6LD8LO59qZIIHdyiDsWon6Pk5kIh6bSci+SnSMz59imk6r0AfMUC5rAWGSmFIL6/n//UtG9VDz52Is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738150328; c=relaxed/simple;
-	bh=ec+PkL1HiZlJFikdV5YMVhNyV41Bfg4BY1lo69uHnTI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E43Oy0aNnUIQ+SFBDD0lmjZ+gyWs6p9ev09YW/JzvHSRRcvzAJkEWm2sRAcLyayyiJ//Soe0o5wVQSrSlcEayZStaSkK8US5zedtCq6hHnLabCNxE+RwWF3K4d7CEGE39443qaWsh4pJhGjMQwK1cj8LftXzLyx2NINPeIlnLfM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=VCrp/9QG; arc=none smtp.client-ip=209.85.216.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1738170910; c=relaxed/simple;
+	bh=CGO/f4Bac8C2gpxKd2TWti31NdBiF1wDjsLwWPvKspc=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=ck1g2iDxRUfF+ndtqBNyAsFsTEph66NzDdmKnU1E3JXKmhoMdLlp+ojmoTPzwVYJaXuwo/SOl5f5phKE01qFb4rIIHspTTmHxd3jZsDXNotXqlhlNk0qD7LTiGjoSXr6dK3qAfeQ0cWYva9usb+Uq4GqPKwyG/qpPD4Yh4Yg/iA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=GNrWIVfk; arc=none smtp.client-ip=209.85.214.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="VCrp/9QG"
-Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-2eec9b3a1bbso9311896a91.3
-        for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 03:32:06 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="GNrWIVfk"
+Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-21625b4f978so307065ad.0
+        for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 09:15:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1738150325; x=1738755125; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=xtnss+Gb5XikH7vvXdfEhwKL9wwVbD0ioOTKi33yexc=;
-        b=VCrp/9QGtHIDeI83aeszii2IurjYZe/aiv3k8460wRQa2ingx4G22e+Wh5Wak9jyta
-         5uO9HsMlzonxSLytJkI5fcVXCWu+24bNH9YW46v8Ua/gEFtiwTG/kT51SfID5/J+jdbT
-         ODpCUm+IcohGn+7+NenaihwrGJ3YutO6DQccQ=
+        d=google.com; s=20230601; t=1738170908; x=1738775708; darn=vger.kernel.org;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=9gH+YSZ1zmMCHSxiUQyhq1Bw/glWnnyFqEqhQoLAovA=;
+        b=GNrWIVfk4VNIBYDM0EDJ4/gYP1IPQeJ/+uUIEnKv8tatyOFBb1SpGzSXGqGqkTAlmL
+         vdPgbfUj9jg9ZUjIuoAm+ey4/0Hot/BfspwoIgXQq2+Oi7gDNs6dpoRn5nxA5Y2IHLkI
+         tenggLNFkvsN3DXESZOWQjWFjs2MdSC3WhMAGxJXgxxIuvPrz//QJpQyb45EZzD3j/rz
+         EgmJOMBquDTaRuVJWF/RJHVH2sflwIMGA+ELvz9X7v+u2ypPm1QpoURNeBtgk8eNPqGY
+         0gL/7L2J4JLrkMjR54vTMcFqkww5A9ccsU+gmutzWGRCjRaKyJ6Fua0nAEcasbAdUSo3
+         NflQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1738150325; x=1738755125;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xtnss+Gb5XikH7vvXdfEhwKL9wwVbD0ioOTKi33yexc=;
-        b=D8y0UjbX2R7JbplXNzCRZ6prnMXuZzV3pMosDjpMtiXSfeFTM9GyGLRIi4trVu9R29
-         9j2AiRuFPsjA9OYnJY7WGmjLwXuYOws9EGPXpsWWeRwenoboubb6S5GxNi/3Cwadi/09
-         0/fBw6BaAInbPL0bWFFdH83xy0tOrFQh2EGi6WJT4snV9ghPWZ8Rr1s2l1yLpF2M9NZZ
-         A7z3DYa1+4nS0HTxc6dCuMPZ4sw50QCcAIP5ZQ4lyTzKKciqcXHg6yhyjiRKn+t/Wtmh
-         iHzuI/y53gfDcGzfTjOslGijmi/d4MN/oKam8dPzJXr0Hu5P79YJ6pAVEimpues61t9U
-         moBA==
-X-Gm-Message-State: AOJu0YxyED5NchiU+CzTzkTs1IIiTR7+wUU3u0X+yOJVaFAZjav7HjEf
-	mhSdPhzMYdZmvy8SJ6GizgKT9RZWAuYyqZ3L4tPqCoBjZuvz+A9P/8HTyF23Iw==
-X-Gm-Gg: ASbGncuWqubti9ifbbjsAw2o9i1OktqM99WofZpl5BQ1XEfWWAsSidL9OxfbRk57P71
-	E4EZi6klvFL8VUOr+HlHa1pdaG0aGTcoZUAWAGpDp0mcfMAsS4PLPwwaydO/J/GFRdbgOxnrRPy
-	q/QACy7y7BZoYu088hQdGi1p8Gsjl6VT2TZX9fJE7+u2ThMYo42qYQnKfdEBrB/lrEE259BMmI/
-	yHZPG6laqZFG8PdiZAivld8h5KWxD+GWP+xbkMnwNPwB6h14JEhJkaR9kCw1T4NWG9Q22cIKD23
-	cLYuKJSUf40I6ckBLHs=
-X-Google-Smtp-Source: AGHT+IEoH4L62Z3tLPXsj1rmsaqPiyQdfC7h227o4qHkZfLB3ElVOl5BNu45WfHkXjD/gV1qG8qXzw==
-X-Received: by 2002:a17:90b:4d06:b0:2ee:ab29:1a57 with SMTP id 98e67ed59e1d1-2f83abb3553mr4205184a91.2.1738150325505;
-        Wed, 29 Jan 2025 03:32:05 -0800 (PST)
-Received: from google.com ([2401:fa00:8f:203:d794:9e7a:5186:857e])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2f83bc98144sm1397410a91.2.2025.01.29.03.32.03
+        d=1e100.net; s=20230601; t=1738170908; x=1738775708;
+        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=9gH+YSZ1zmMCHSxiUQyhq1Bw/glWnnyFqEqhQoLAovA=;
+        b=ugOv5OmpkF+GMF+/WSREwpTN1hhjYYgEHWfNmN2KkF9vb9RN7aIfeEOg2WYwESAC75
+         UoiLD58jSA7Va4Yoes6w48TftSHRxDr05jRa1O+DPqqqeqwoifEKzu/Ffrdet9jf0+FI
+         Iv7QdMKtQ/kdwhk+X0ycCI2eZqK2JpLO0aXEaTumso9LpxGvYjUR9U0PD6kdff+nKnBJ
+         C2Mm70TBnsnusMdpJkZo+f65XjCxjLflPm2FQjme4u6mKW7Qh1IXvWjjp30PcbbF6Y4v
+         MSFEvJLd4PMTHwErwRnAsxVC2uNE6Ylrs4WeTFGw3Xtif7X+0OMzN/YLAOuO+7STz29D
+         42gA==
+X-Gm-Message-State: AOJu0YwD5UkGWCgsM1PR5TqCwTONbweAtZ+23JD+DOYU5F50BxnakAIt
+	GuYrN2BbZUSH7cKrdgrHAJa/lxIGKwi/GfKf/ro1PvW5XPPcR/G4Kcf9Q00S5w==
+X-Gm-Gg: ASbGnctyBYyzURaG8M5ALN0v61ZbpxIfqHg9F89aZvehQrcMIiIZhuL9qpvijKuUoHD
+	5LCWibSyII7sohct90fHOkk/8OQOR3WBxb8ny5VcZ+3n5u6F9F8Miv0Qz/mJGbodaJ8SiU2HkMN
+	uSrhZqDeivqjwibrLTOqNC0yTZFBaLcQL1L63ScqqHbaIB8szRW5HvO+ynbghHWPN3gtEBmOK/f
+	rOHsUyY1BiOtQHyVzLscAVtG6R0+YWcPdPEEXyvZq02I/gbAYznkrwTPmdcFsHnm1mjtFvJFDgi
+	Rey1NCauOnOq0MpPXAnx6mXM8pGFKAgh4/JB7C1jfWU=
+X-Google-Smtp-Source: AGHT+IHbIimiAIsjiZVjX02mLBsPolVm2/N+ESrZ6+rKVYwZe4bSzSkhdFaivEyQUxfWmnKTr6Hlvg==
+X-Received: by 2002:a17:903:950:b0:215:9ab0:402 with SMTP id d9443c01a7336-21dd809407fmr2972885ad.18.1738170907700;
+        Wed, 29 Jan 2025 09:15:07 -0800 (PST)
+Received: from [2620:0:1008:15:39d6:5c4:c4b3:d929] ([2620:0:1008:15:39d6:5c4:c4b3:d929])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-72f8a6a002csm11524739b3a.21.2025.01.29.09.15.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Jan 2025 03:32:05 -0800 (PST)
-Date: Wed, 29 Jan 2025 20:31:59 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
+        Wed, 29 Jan 2025 09:15:06 -0800 (PST)
+Date: Wed, 29 Jan 2025 09:15:06 -0800 (PST)
+From: David Rientjes <rientjes@google.com>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, minchan@kernel.org, 
-	senozhatsky@chromium.org, Uros Bizjak <ubizjak@gmail.com>
-Subject: Re: + zram-switch-to-non-atomic-entry-locking.patch added to
- mm-unstable branch
-Message-ID: <eqdrqsj5tgvbq5ocahgl3e6wog53l4fi5qjhejhklbpm5z64yb@oqrqm6vvf7vi>
-References: <20250127205809.A05DDC4CED2@smtp.kernel.org>
+cc: mm-commits@vger.kernel.org, stable@vger.kernel.org, 
+    sourabhjain@linux.ibm.com, pavrampu@linux.ibm.com, muchun.song@linux.dev, 
+    luizcap@redhat.com, gang.li@linux.dev, donettom@linux.ibm.com, 
+    daniel.m.jordan@oracle.com, ritesh.list@gmail.com
+Subject: Re: + mm-hugetlb-fix-hugepage-allocation-for-interleaved-memory-nodes.patch
+ added to mm-hotfixes-unstable branch
+In-Reply-To: <20250129042805.E4770C4CED3@smtp.kernel.org>
+Message-ID: <c2cf3b8f-41f9-fff6-4e9e-1999be619345@google.com>
+References: <20250129042805.E4770C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250127205809.A05DDC4CED2@smtp.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
 
-Cc-ing Uros,
+On Tue, 28 Jan 2025, Andrew Morton wrote:
 
-On (25/01/27 12:58), Andrew Morton wrote:
-[..]
-> -static int zram_slot_trylock(struct zram *zram, u32 index)
-> +static int zram_slot_write_trylock(struct zram *zram, u32 index)
->  {
-> -	return spin_trylock(&zram->table[index].lock);
-> +	int old;
-> +
-> +	old = atomic_cmpxchg(&zram->table[index].lock, ZRAM_ENTRY_UNLOCKED,
-> +			     ZRAM_ENTRY_WRLOCKED);
-> +	return old == ZRAM_ENTRY_UNLOCKED;
->  }
->  
-> -static void zram_slot_lock(struct zram *zram, u32 index)
-> +static void zram_slot_write_lock(struct zram *zram, u32 index)
->  {
-> -	spin_lock(&zram->table[index].lock);
-> +	atomic_t *lock = &zram->table[index].lock;
-> +	int old;
-> +
-> +	while (1) {
-> +		old = atomic_cmpxchg(lock, ZRAM_ENTRY_UNLOCKED,
-> +				     ZRAM_ENTRY_WRLOCKED);
-> +		if (old == ZRAM_ENTRY_UNLOCKED)
-> +			return;
-> +
-> +		cond_resched();
-> +	}
->  }
->  
-> -static void zram_slot_unlock(struct zram *zram, u32 index)
-> +static void zram_slot_write_unlock(struct zram *zram, u32 index)
->  {
-> -	spin_unlock(&zram->table[index].lock);
-> +	atomic_set(&zram->table[index].lock, ZRAM_ENTRY_UNLOCKED);
-> +}
-> +
-> +static void zram_slot_read_lock(struct zram *zram, u32 index)
-> +{
-> +	atomic_t *lock = &zram->table[index].lock;
-> +	int old;
-> +
-> +	while (1) {
-> +		old = atomic_read(lock);
-> +		if (old == ZRAM_ENTRY_WRLOCKED) {
-> +			cond_resched();
-> +			continue;
-> +		}
-> +
-> +		if (atomic_cmpxchg(lock, old, old + 1) == old)
-> +			return;
-> +
-> +		cond_resched();
-> +	}
-> +}
-> +
-> +static void zram_slot_read_unlock(struct zram *zram, u32 index)
-> +{
-> +	atomic_dec(&zram->table[index].lock);
->  }
+> From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+> Subject: mm/hugetlb: fix hugepage allocation for interleaved memory nodes
+> Date: Sat, 11 Jan 2025 16:36:55 +0530
+> 
+> gather_bootmem_prealloc() assumes the start nid as 0 and size as
+> num_node_state(N_MEMORY).  That means in case if memory attached numa
+> nodes are interleaved, then gather_bootmem_prealloc_parallel() will fail
+> to scan few of these nodes.
+> 
+> Since memory attached numa nodes can be interleaved in any fashion, hence
+> ensure that the current code checks for all numa node ids
+> (.size = nr_node_ids). Let's still keep max_threads as N_MEMORY, so that
+> it can distributes all nr_node_ids among the these many no. threads.
+> 
+> e.g. qemu cmdline
+> ========================
+> numa_cmd="-numa node,nodeid=1,memdev=mem1,cpus=2-3 -numa node,nodeid=0,cpus=0-1 -numa dist,src=0,dst=1,val=20"
+> mem_cmd="-object memory-backend-ram,id=mem1,size=16G"
+> 
+> w/o this patch for cmdline (default_hugepagesz=1GB hugepagesz=1GB hugepages=2):
+> ==========================
+> ~ # cat /proc/meminfo  |grep -i huge
+> AnonHugePages:         0 kB
+> ShmemHugePages:        0 kB
+> FileHugePages:         0 kB
+> HugePages_Total:       0
+> HugePages_Free:        0
+> HugePages_Rsvd:        0
+> HugePages_Surp:        0
+> Hugepagesize:    1048576 kB
+> Hugetlb:               0 kB
+> 
+> with this patch for cmdline (default_hugepagesz=1GB hugepagesz=1GB hugepages=2):
+> ===========================
+> ~ # cat /proc/meminfo |grep -i huge
+> AnonHugePages:         0 kB
+> ShmemHugePages:        0 kB
+> FileHugePages:         0 kB
+> HugePages_Total:       2
+> HugePages_Free:        2
+> HugePages_Rsvd:        0
+> HugePages_Surp:        0
+> Hugepagesize:    1048576 kB
+> Hugetlb:         2097152 kB
+> 
+> Link: https://lkml.kernel.org/r/f8d8dad3a5471d284f54185f65d575a6aaab692b.1736592534.git.ritesh.list@gmail.com
+> Fixes: b78b27d02930 ("hugetlb: parallelize 1G hugetlb initialization")
+> Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+> Reported-by: Pavithra Prakash <pavrampu@linux.ibm.com>
+> Suggested-by: Muchun Song <muchun.song@linux.dev>
+> Tested-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+> Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
+> Cc: Donet Tom <donettom@linux.ibm.com>
+> Cc: Gang Li <gang.li@linux.dev>
+> Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+> Cc: David Rientjes <rientjes@google.com>
 
-Hello Andrew,
+Acked-by: David Rientjes <rientjes@google.com>
 
-I think I want to make these look as close to zsmalloc implementation
-as possible.
-
-A simple patch below.  No functional changes.  (also renamed
-zram_slot_write_trylock() to zram_slot_try_write_lock() which is a
-more common naming convention for functions of that sort.)
-
-Would you prefer a complete re-spin of the series, with these changes
-squashed, or a "fixup" patch?
-
----
- drivers/block/zram/zram_drv.c | 41 +++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index d73e8374e9cc..9622fcad2115 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -59,28 +59,26 @@ static void zram_free_page(struct zram *zram, size_t index);
- static int zram_read_from_zspool(struct zram *zram, struct page *page,
- 				 u32 index);
- 
--static int zram_slot_write_trylock(struct zram *zram, u32 index)
-+static bool zram_slot_try_write_lock(struct zram *zram, u32 index)
- {
--	int old;
-+	atomic_t *lock = &zram->table[index].lock;
-+	int old = ZRAM_ENTRY_UNLOCKED;
- 
--	old = atomic_cmpxchg(&zram->table[index].lock, ZRAM_ENTRY_UNLOCKED,
--			     ZRAM_ENTRY_WRLOCKED);
--	return old == ZRAM_ENTRY_UNLOCKED;
-+	return atomic_try_cmpxchg(lock, &old, ZRAM_ENTRY_WRLOCKED);
- }
- 
- static void zram_slot_write_lock(struct zram *zram, u32 index)
- {
- 	atomic_t *lock = &zram->table[index].lock;
--	int old;
--
--	while (1) {
--		old = atomic_cmpxchg(lock, ZRAM_ENTRY_UNLOCKED,
--				     ZRAM_ENTRY_WRLOCKED);
--		if (old == ZRAM_ENTRY_UNLOCKED)
--			return;
-+	int old = atomic_read(lock);
- 
--		cond_resched();
--	}
-+	do {
-+		if (old != ZRAM_ENTRY_UNLOCKED) {
-+			cond_resched();
-+			old = atomic_read(lock);
-+			continue;
-+		}
-+	} while (!atomic_try_cmpxchg(lock, &old, ZRAM_ENTRY_WRLOCKED));
- }
- 
- static void zram_slot_write_unlock(struct zram *zram, u32 index)
-@@ -91,20 +89,15 @@ static void zram_slot_write_unlock(struct zram *zram, u32 index)
- static void zram_slot_read_lock(struct zram *zram, u32 index)
- {
- 	atomic_t *lock = &zram->table[index].lock;
--	int old;
-+	int old = atomic_read(lock);
- 
--	while (1) {
--		old = atomic_read(lock);
-+	do {
- 		if (old == ZRAM_ENTRY_WRLOCKED) {
- 			cond_resched();
-+			old = atomic_read(lock);
- 			continue;
- 		}
--
--		if (atomic_cmpxchg(lock, old, old + 1) == old)
--			return;
--
--		cond_resched();
--	}
-+	} while (!atomic_try_cmpxchg(lock, &old, old + 1));
- }
- 
- static void zram_slot_read_unlock(struct zram *zram, u32 index)
-@@ -2315,7 +2308,7 @@ static void zram_slot_free_notify(struct block_device *bdev,
- 	zram = bdev->bd_disk->private_data;
- 
- 	atomic64_inc(&zram->stats.notify_free);
--	if (!zram_slot_write_trylock(zram, index)) {
-+	if (!zram_slot_try_write_lock(zram, index)) {
- 		atomic64_inc(&zram->stats.miss_free);
- 		return;
- 	}
--- 
-2.48.1.262.g85cc9f2d1e-goog
-
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
