@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 881F11D63EE
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:26:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B06F1E3DFD
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:26:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738193163; cv=none; b=Bh9cAV3UTJclAr7FjUOcUMSK2Tx25llSaXlEamVOzwogbytP96B4nMr11+Y1glQ36GaEJiVHro3WX8AJ76UX8FuywN8yrTUq9GpjMpKW86sqNO5+bAWC67VsBDW5DtQ7kLN8K8gP4dIpxKgHMShrhzCn7EnRfto/so9BxH+TuRk=
+	t=1738193166; cv=none; b=ucAq9T5N7v2ae7tEvEjwVmRmN8kxbaEFzkdRAAbAZW8P+ruuFJa5Cz4w1U0GSZFfPM0etti4B4S6YD7ZF9pfOekJnhup2EV6OZFbdslypTXnA0XuNgXhoE0HoL0pCZu7y3zc92Yjf6xGDwF3VRaxpkmqBXqYP7YZMfjHfJuqGIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738193163; c=relaxed/simple;
-	bh=b790inwQAoJqz6a+L2edwUwXrjmICQ6wuUcNgk/YfTc=;
-	h=Date:To:From:Subject:Message-Id; b=lSG0bBz+ldoi6sTgQK5gglS3HcK5jt92ExbMRTLJikgaG0qOd/dF+2PTf4aqQ6lAPukacdNsrKVb5yAQYzD1eNrRmXFE+8y8zh7z7e4cUVcIq/Poho45/hD5pierKVb4S8E3c7QUyktVibYrXyF6flVjNTy+1sGSF8pT8F6O0Kk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UBa+Ml3T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738193166; c=relaxed/simple;
+	bh=eiYtll1iUyr7cAmWI5Mx/a2z3xfuf1vQYXILFQJypj4=;
+	h=Date:To:From:Subject:Message-Id; b=e6Eu+C8mYT1/Cxh+TUzqWs1QjVODvD4qGQwLPgi9WnTsjqzYITymmACIX0uDFXYzrEj9/KnoCVTXJw7tnkb9FL8U07eb+LNEX/qtf2QbO2zRr1W8inJ/hREWJf7Ta5aJif5baqDbhHaa8YU9MYPJb3lAthDTE73ncVpHKVPkJno=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TuCHpEzg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UBa+Ml3T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 540B9C4CED1;
-	Wed, 29 Jan 2025 23:26:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TuCHpEzg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7DADC4CED1;
+	Wed, 29 Jan 2025 23:26:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738193163;
-	bh=b790inwQAoJqz6a+L2edwUwXrjmICQ6wuUcNgk/YfTc=;
+	s=korg; t=1738193165;
+	bh=eiYtll1iUyr7cAmWI5Mx/a2z3xfuf1vQYXILFQJypj4=;
 	h=Date:To:From:Subject:From;
-	b=UBa+Ml3T8gHbOLmV4akQoHpq1fZ/JInavujr+G12MwklqwJ6hb7lAnMTxyj1cIq4n
-	 57OwiNxOXkbOItG7EbCfEwa3J58ClNlchLSz8D+wsuP/4jKZ29dJVPNR0RxBOHi1+4
-	 wy2LIJdHCo36ITM5AUF3IDcqRKQpqYaC+wjq33KM=
-Date: Wed, 29 Jan 2025 15:26:02 -0800
+	b=TuCHpEzgmee+ffMn/jXtEgdzXfkK5sJ/xuZqV1/JPb/ccNoI5FuBQ385T0HuSGy0I
+	 ZUy+Jki4BHbrQmSrRPhLDwU9xE7Ep83CssTi7SznHNHTVAJ5G+v7XEjz44MP2/W+Ps
+	 tfXtegF60oF+3mYa79y39klKHcy9PF5Hcbqbp948=
+Date: Wed, 29 Jan 2025 15:26:05 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-define-__init_reserved_page_zone-function.patch added to mm-unstable branch
-Message-Id: <20250129232603.540B9C4CED1@smtp.kernel.org>
+Subject: + mm-hugetlb-check-bootmem-pages-for-zone-intersections.patch added to mm-unstable branch
+Message-Id: <20250129232605.C7DADC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: define __init_reserved_page_zone function
+     Subject: mm/hugetlb: check bootmem pages for zone intersections
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-define-__init_reserved_page_zone-function.patch
+     mm-hugetlb-check-bootmem-pages-for-zone-intersections.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-define-__init_reserved_page_zone-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-check-bootmem-pages-for-zone-intersections.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm: define __init_reserved_page_zone function
-Date: Wed, 29 Jan 2025 22:41:42 +0000
+Subject: mm/hugetlb: check bootmem pages for zone intersections
+Date: Wed, 29 Jan 2025 22:41:43 +0000
 
-Sometimes page structs must be unconditionally initialized as reserved,
-regardless of DEFERRED_STRUCT_PAGE_INIT.
+Bootmem hugetlb pages are allocated using memblock, which isn't (and
+mostly can't be) aware of zones.
 
-Define a function, __init_reserved_page_zone, containing code that already
-did all of the work in init_reserved_page, and make it available for use.
+So, they may end up crossing zone boundaries.  This would create
+confusion, a hugetlb page that is part of multiple zones is bad.  Worse,
+HVO might then end up stealthily re-assigning pages to a different zone
+when a hugetlb page is freed, since the tail page structures beyond the
+first vmemmap page would inherit the zone of the first page structures.
 
-Link: https://lkml.kernel.org/r/20250129224157.2046079-14-fvdl@google.com
+While the chance of this happening is low, you can definitely create a
+configuration where this happens (especially using ZONE_MOVABLE).
+
+To avoid this issue, check if bootmem hugetlb pages intersect with
+multiple zones during the gather phase, and discard them, handing them to
+the page allocator, if they do.  Record the number of invalid bootmem
+pages per node and subtract them from the number of available pages at the
+end, making it easier to do these checks in multiple places later on.
+
+Link: https://lkml.kernel.org/r/20250129224157.2046079-15-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -87,77 +99,160 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    1 +
- mm/mm_init.c  |   38 +++++++++++++++++++++++---------------
- 2 files changed, 24 insertions(+), 15 deletions(-)
+ mm/hugetlb.c  |   61 ++++++++++++++++++++++++++++++++++++++++++++++--
+ mm/internal.h |    2 +
+ mm/mm_init.c  |   25 +++++++++++++++++++
+ 3 files changed, 86 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-define-__init_reserved_page_zone-function
-+++ a/mm/internal.h
-@@ -1448,6 +1448,7 @@ static inline bool pte_needs_soft_dirty_
+--- a/mm/hugetlb.c~mm-hugetlb-check-bootmem-pages-for-zone-intersections
++++ a/mm/hugetlb.c
+@@ -63,6 +63,7 @@ static unsigned long hugetlb_cma_size_in
+ static unsigned long hugetlb_cma_size __initdata;
  
- void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid);
-+void __meminit __init_reserved_page_zone(unsigned long pfn, int nid);
+ __initdata struct list_head huge_boot_pages[MAX_NUMNODES];
++__initdata unsigned long hstate_boot_nrinvalid[HUGE_MAX_HSTATE];
  
- /* shrinker related functions */
- unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
---- a/mm/mm_init.c~mm-define-__init_reserved_page_zone-function
-+++ a/mm/mm_init.c
-@@ -650,6 +650,28 @@ static inline void fixup_hashdist(void)
- static inline void fixup_hashdist(void) {}
- #endif /* CONFIG_NUMA */
+ /*
+  * Due to ordering constraints across the init code for various
+@@ -3309,6 +3310,44 @@ static void __init prep_and_add_bootmem_
+ 	}
+ }
  
-+/*
-+ * Initialize a reserved page unconditionally, finding its zone first.
-+ */
-+void __meminit __init_reserved_page_zone(unsigned long pfn, int nid)
++static bool __init hugetlb_bootmem_page_zones_valid(int nid,
++						    struct huge_bootmem_page *m)
 +{
-+	pg_data_t *pgdat;
-+	int zid;
++	unsigned long start_pfn;
++	bool valid;
 +
-+	pgdat = NODE_DATA(nid);
++	start_pfn = virt_to_phys(m) >> PAGE_SHIFT;
 +
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		struct zone *zone = &pgdat->node_zones[zid];
++	valid = !pfn_range_intersects_zones(nid, start_pfn,
++			pages_per_huge_page(m->hstate));
++	if (!valid)
++		hstate_boot_nrinvalid[hstate_index(m->hstate)]++;
 +
-+		if (zone_spans_pfn(zone, pfn))
-+			break;
-+	}
-+	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
-+
-+	if (pageblock_aligned(pfn))
-+		set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_MOVABLE);
++	return valid;
 +}
 +
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
++/*
++ * Free a bootmem page that was found to be invalid (intersecting with
++ * multiple zones).
++ *
++ * Since it intersects with multiple zones, we can't just do a free
++ * operation on all pages at once, but instead have to walk all
++ * pages, freeing them one by one.
++ */
++static void __init hugetlb_bootmem_free_invalid_page(int nid, struct page *page,
++					     struct hstate *h)
++{
++	unsigned long npages = pages_per_huge_page(h);
++	unsigned long pfn;
++
++	while (npages--) {
++		pfn = page_to_pfn(page);
++		__init_reserved_page_zone(pfn, nid);
++		free_reserved_page(page);
++		page++;
++	}
++}
++
+ /*
+  * Put bootmem huge pages into the standard lists after mem_map is up.
+  * Note: This only applies to gigantic (order > MAX_PAGE_ORDER) pages.
+@@ -3316,14 +3355,25 @@ static void __init prep_and_add_bootmem_
+ static void __init gather_bootmem_prealloc_node(unsigned long nid)
  {
-@@ -708,24 +730,10 @@ defer_init(int nid, unsigned long pfn, u
+ 	LIST_HEAD(folio_list);
+-	struct huge_bootmem_page *m;
++	struct huge_bootmem_page *m, *tm;
+ 	struct hstate *h = NULL, *prev_h = NULL;
  
- static void __meminit init_reserved_page(unsigned long pfn, int nid)
+-	list_for_each_entry(m, &huge_boot_pages[nid], list) {
++	list_for_each_entry_safe(m, tm, &huge_boot_pages[nid], list) {
+ 		struct page *page = virt_to_page(m);
+ 		struct folio *folio = (void *)page;
+ 
+ 		h = m->hstate;
++		if (!hugetlb_bootmem_page_zones_valid(nid, m)) {
++			/*
++			 * Can't use this page. Initialize the
++			 * page structures if that hasn't already
++			 * been done, and give them to the page
++			 * allocator.
++			 */
++			hugetlb_bootmem_free_invalid_page(nid, page, h);
++			continue;
++		}
++
+ 		/*
+ 		 * It is possible to have multiple huge page sizes (hstates)
+ 		 * in this list.  If so, process each size separately.
+@@ -3595,13 +3645,20 @@ static void __init hugetlb_init_hstates(
+ static void __init report_hugepages(void)
  {
--	pg_data_t *pgdat;
--	int zid;
--
- 	if (early_page_initialised(pfn, nid))
- 		return;
+ 	struct hstate *h;
++	unsigned long nrinvalid;
  
--	pgdat = NODE_DATA(nid);
--
--	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--		struct zone *zone = &pgdat->node_zones[zid];
--
--		if (zone_spans_pfn(zone, pfn))
--			break;
--	}
--	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
--
--	if (pageblock_aligned(pfn))
--		set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_MOVABLE);
-+	__init_reserved_page_zone(pfn, nid);
+ 	for_each_hstate(h) {
+ 		char buf[32];
+ 
++		nrinvalid = hstate_boot_nrinvalid[hstate_index(h)];
++		h->max_huge_pages -= nrinvalid;
++
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+ 		pr_info("HugeTLB: registered %s page size, pre-allocated %ld pages\n",
+ 			buf, h->free_huge_pages);
++		if (nrinvalid)
++			pr_info("HugeTLB: %s page size: %lu invalid page%s discarded\n",
++					buf, nrinvalid, nrinvalid > 1 ? "s" : "");
+ 		pr_info("HugeTLB: %d KiB vmemmap can be freed for a %s page\n",
+ 			hugetlb_vmemmap_optimizable_size(h) / SZ_1K, buf);
+ 	}
+--- a/mm/internal.h~mm-hugetlb-check-bootmem-pages-for-zone-intersections
++++ a/mm/internal.h
+@@ -658,6 +658,8 @@ static inline struct page *pageblock_pfn
  }
- #else
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat) {}
+ 
+ void set_zone_contiguous(struct zone *zone);
++bool pfn_range_intersects_zones(int nid, unsigned long start_pfn,
++			   unsigned long nr_pages);
+ 
+ static inline void clear_zone_contiguous(struct zone *zone)
+ {
+--- a/mm/mm_init.c~mm-hugetlb-check-bootmem-pages-for-zone-intersections
++++ a/mm/mm_init.c
+@@ -2287,6 +2287,31 @@ void set_zone_contiguous(struct zone *zo
+ 	zone->contiguous = true;
+ }
+ 
++/*
++ * Check if a PFN range intersects multiple zones on one or more
++ * NUMA nodes. Specify the @nid argument if it is known that this
++ * PFN range is on one node, NUMA_NO_NODE otherwise.
++ */
++bool pfn_range_intersects_zones(int nid, unsigned long start_pfn,
++			   unsigned long nr_pages)
++{
++	struct zone *zone, *izone = NULL;
++
++	for_each_zone(zone) {
++		if (nid != NUMA_NO_NODE && zone_to_nid(zone) != nid)
++			continue;
++
++		if (zone_intersects(zone, start_pfn, nr_pages)) {
++			if (izone != NULL)
++				return true;
++			izone = zone;
++		}
++
++	}
++
++	return false;
++}
++
+ static void __init mem_init_print_info(void);
+ void __init page_alloc_init_late(void)
+ {
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
