@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A58BC42A92
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:25:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76EA21D90B1
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:25:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738193137; cv=none; b=WrhDLjQUhTk2L2kuScVitIPeIZz8CnES2Z9gEmszxAOGE20kT1jm+DUkBQvg3HkaowLB6/eK9x3Z0xtGS9w5fC0cO9M4Q1Hkly1rdm9WVlAGeL/nF8m282c7SvdXkW3em+TmfdR3SjbH73gNgPrgS0AW4YDkxydq89WLLTRH3ZI=
+	t=1738193140; cv=none; b=hb6PNDKy6nk2lu3Njzl+cK4PlEtAHFv5nnXUFOwTGmlSJWLBADXpBiowmv0I9mi1GoIviWkpLO5N3Ii8LfFH1yzilpul2uSwMB0C0tjICsDNPiIwvoOhmEcr23pExdFbnfbpAQ4d3KlvDZuMaewczCCncOU3WncZRHC1T0/AXjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738193137; c=relaxed/simple;
-	bh=3ZUnDGp+lr3D9+yxZTajberc9oPuJ7OedtM7glH1ehM=;
-	h=Date:To:From:Subject:Message-Id; b=Fw9APdEKQPfcadQX1+icsUpiun5T2vzjxEsd1V4VXVb0LiqAtrCgM49djvP7d2zMe5fFTFzwHmDAYzhTAnjbzDQeBbDxpAnH0/WdVABjbRn1Y/fOH4mky/ybECMKf/O091j/uLc9t3hQuhWsIRGCIVs/u1eBsiFJrY6WakmwzC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vtBGtplc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738193140; c=relaxed/simple;
+	bh=1dIx8JSdsDe5fcODYzalvtqMdzc7Gw3fD6CNWd81pis=;
+	h=Date:To:From:Subject:Message-Id; b=Bc9OfCE4hgW3PKRcWVrKCGisqqUiz/SNEJtttoojdqIE9jCB9Z/wpul5natB1mL167QujkDmF/jY6sywLmyl+EbTE1xDT6ret8gub6MPBbllnhoDEv+e3gUWmsUvNZClzaMCqKFkAyicUuTmki1sShdoaXKmClDEZ4q73OsVOoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nPpZyBbV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vtBGtplc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56045C4CED1;
-	Wed, 29 Jan 2025 23:25:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nPpZyBbV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D68DC4CED1;
+	Wed, 29 Jan 2025 23:25:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738193137;
-	bh=3ZUnDGp+lr3D9+yxZTajberc9oPuJ7OedtM7glH1ehM=;
+	s=korg; t=1738193140;
+	bh=1dIx8JSdsDe5fcODYzalvtqMdzc7Gw3fD6CNWd81pis=;
 	h=Date:To:From:Subject:From;
-	b=vtBGtplcwZYiXBG7NubM0+5KBYJVeNYXyKuiPVDRnhvhg3ikbfWFbPIyz6j5FtdqM
-	 WRndFkWMi6QVyAIZv8A3VOzZ4KSJyJ0X4VbsmBnhauwTn5NZ8BobDGS2V12VO8yfuf
-	 qKuLO+vU/udE54vSVoGHFuIW9AQZ1qllnGbyyRjs=
-Date: Wed, 29 Jan 2025 15:25:36 -0800
+	b=nPpZyBbVkJ1RzNiAtFbTTZCfiRDQEGqr1y2Rbek8r+BQwX07SnKbdhrIISrOPcwtM
+	 /KriSWK55VwwNBg1v9Ro0qfFNuVsH32eMh0Z8qUXVB/T4eqyN4cEsa6rncyvTxhYyf
+	 TiIhLmV9mTo7mlC/Tc4dptMamJYVy9LmWrBm5UWc=
+Date: Wed, 29 Jan 2025 15:25:39 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-introduce-cma_intersects-function.patch added to mm-unstable branch
-Message-Id: <20250129232537.56045C4CED1@smtp.kernel.org>
+Subject: + mm-hugetlb-use-cma_declare_contiguous_multi.patch added to mm-unstable branch
+Message-Id: <20250129232540.2D68DC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: introduce cma_intersects function
+     Subject: mm, hugetlb: use cma_declare_contiguous_multi
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-introduce-cma_intersects-function.patch
+     mm-hugetlb-use-cma_declare_contiguous_multi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-introduce-cma_intersects-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-cma_declare_contiguous_multi.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/cma: introduce cma_intersects function
-Date: Wed, 29 Jan 2025 22:41:32 +0000
+Subject: mm, hugetlb: use cma_declare_contiguous_multi
+Date: Wed, 29 Jan 2025 22:41:33 +0000
 
-Now that CMA areas can have multiple physical ranges, code can't assume a
-CMA struct represents a base_pfn plus a size, as returned from
-cma_get_base.
+hugetlb_cma is fine with using multiple CMA ranges, as long as it can get
+its gigantic pages allocated from them.  So, use
+cma_declare_contiguous_multi to allow for multiple ranges, increasing the
+chances of getting what we want on systems with gaps in physical memory.
 
-Most cases are ok though, since they all explicitly refer to CMA areas
-that were created using existing interfaces (cma_declare_contiguous_nid or
-cma_init_reserved_mem), which guarantees they have just one physical
-range.
-
-An exception is the s390 code, which walks all CMA ranges to see if they
-intersect with a range of memory that is about to be hotremoved.  So, in
-the future, it might run in to multi-range areas.  To keep this check
-working, define a cma_intersects function.  This just checks if a physaddr
-range intersects any of the ranges.  Use it in the s390 check.
-
-Link: https://lkml.kernel.org/r/20250129224157.2046079-4-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250129224157.2046079-5-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -91,77 +80,29 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/init.c |   13 +++++--------
- include/linux/cma.h |    1 +
- mm/cma.c            |   21 +++++++++++++++++++++
- 3 files changed, 27 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/s390/mm/init.c~mm-cma-introduce-cma_intersects-function
-+++ a/arch/s390/mm/init.c
-@@ -239,16 +239,13 @@ struct s390_cma_mem_data {
- static int s390_cma_check_range(struct cma *cma, void *data)
- {
- 	struct s390_cma_mem_data *mem_data;
--	unsigned long start, end;
- 
- 	mem_data = data;
--	start = cma_get_base(cma);
--	end = start + cma_get_size(cma);
--	if (end < mem_data->start)
--		return 0;
--	if (start >= mem_data->end)
--		return 0;
--	return -EBUSY;
-+
-+	if (cma_intersects(cma, mem_data->start, mem_data->end))
-+		return -EBUSY;
-+
-+	return 0;
- }
- 
- static int s390_cma_mem_notifier(struct notifier_block *nb,
---- a/include/linux/cma.h~mm-cma-introduce-cma_intersects-function
-+++ a/include/linux/cma.h
-@@ -53,6 +53,7 @@ extern bool cma_pages_valid(struct cma *
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
- 
- extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
-+extern bool cma_intersects(struct cma *cma, unsigned long start, unsigned long end);
- 
- extern void cma_reserve_pages_on_error(struct cma *cma);
- 
---- a/mm/cma.c~mm-cma-introduce-cma_intersects-function
-+++ a/mm/cma.c
-@@ -988,3 +988,24 @@ int cma_for_each_area(int (*it)(struct c
- 
- 	return 0;
- }
-+
-+bool cma_intersects(struct cma *cma, unsigned long start, unsigned long end)
-+{
-+	int r;
-+	struct cma_memrange *cmr;
-+	unsigned long rstart, rend;
-+
-+	for (r = 0; r < cma->nranges; r++) {
-+		cmr = &cma->ranges[r];
-+
-+		rstart = PFN_PHYS(cmr->base_pfn);
-+		rend = PFN_PHYS(cmr->base_pfn + cmr->count);
-+		if (end < rstart)
-+			continue;
-+		if (start >= rend)
-+			continue;
-+		return true;
-+	}
-+
-+	return false;
-+}
+--- a/mm/hugetlb.c~mm-hugetlb-use-cma_declare_contiguous_multi
++++ a/mm/hugetlb.c
+@@ -7738,9 +7738,8 @@ void __init hugetlb_cma_reserve(int orde
+ 		 * may be returned to CMA allocator in the case of
+ 		 * huge page demotion.
+ 		 */
+-		res = cma_declare_contiguous_nid(0, size, 0,
+-					PAGE_SIZE << order,
+-					HUGETLB_PAGE_ORDER, false, name,
++		res = cma_declare_contiguous_multi(size, PAGE_SIZE << order,
++					HUGETLB_PAGE_ORDER, name,
+ 					&hugetlb_cma[nid], nid);
+ 		if (res) {
+ 			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
