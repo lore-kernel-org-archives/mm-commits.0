@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69DE51E5018
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:25:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7916C1E5710
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:25:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738193152; cv=none; b=L0xyQ8cgMwy4qWwiPyA65Q7Su5UHGlOWNwNsyyZiNQu/d0MBIIIYtWTtWTDxIyxiKI7K/5ywE5Gsf1Er/6cP8AymKLKQ863PPlfs+nTU1cZibZtx1P5qmwJHcgfH+C+jjkDOs1I9sEKf0LB4K5amAmGpJd1+9iXXycPMegMjs+0=
+	t=1738193154; cv=none; b=jwA61/Z889pP6IbyeNmSgObOWCGwoUm2ClENpotvQMOlnIvA0rtNgfapivL+ikbBbFl7LFO9nRlep91f1MoLkMSTBEU9ZZ3f5nkph9oRG9MS8LOVBHKSHPTLERNYEyT2O0qqxaZGuSAfUEJT9v9py7bbseeo1kP1ppvFij0xxDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738193152; c=relaxed/simple;
-	bh=Qo/XTtksGjwkMnrkv2TOaOTLYz39EEdPxcF5vuOsBaQ=;
-	h=Date:To:From:Subject:Message-Id; b=Yal7sm1EjqnviGS9wC3ySAWznitHVhbUq2W4nDqPm4oDT5B6+P0lGwm2CCI0v62Pi6TM2NX9c7RfDI8DWlRyzr5oT3HsNFF3vf/24S85Cv4cn5boKXXE1LJwDJMmRZH1gmWbHu9F09PhLqEbNGGLr3Qt6ilZJE1hYL4NHuSn4mw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rbMf/W+o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738193154; c=relaxed/simple;
+	bh=ZCCOJhOX85wSj7/zBX4Wzv4ujFJq9rMYf43ramXZygM=;
+	h=Date:To:From:Subject:Message-Id; b=G4q0/gU7DY4Q2CDBoR8iB8VLIdsdMQ+yoL+6Z5oIScIHiLK1nSmyTU7lZggSe6cM9sTvRmRFceSymVOdhoDuQaVyRP5KqssUS4FF0X6YEc05XFYJEX1T7bT7Nx9ejYChdAvSwbQd0jAN9Ge+Sfv8a6hQLoDaybjhG9CeSo07vMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jyOg/JvC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rbMf/W+o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3876C4CED1;
-	Wed, 29 Jan 2025 23:25:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jyOg/JvC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC8DAC4CED3;
+	Wed, 29 Jan 2025 23:25:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738193151;
-	bh=Qo/XTtksGjwkMnrkv2TOaOTLYz39EEdPxcF5vuOsBaQ=;
+	s=korg; t=1738193154;
+	bh=ZCCOJhOX85wSj7/zBX4Wzv4ujFJq9rMYf43ramXZygM=;
 	h=Date:To:From:Subject:From;
-	b=rbMf/W+ow2rOkLNqw651w+uJ+oc98rOYBXYYGtNBrkGFBTWiz1Dvg0FL4S6hEFs91
-	 w3ZMnqnA0I6IMdmLZeRZ4CvbfXzgp2MXRq/Gy9cgLg4jh6/Kg4LMGZ3g9MGyCUl4NE
-	 H/hASl152jcw3k4p2gbASo5M1pSpSXVkyQN+SHbQ=
-Date: Wed, 29 Jan 2025 15:25:51 -0800
+	b=jyOg/JvCYW2SSz0cb+YyBFeWMMy/wEjX2D1v95D8UvWSiFkzPLH9mGg9H01CBRYTj
+	 7QWDU6MP2Yzoj27E/rRZKUSRwBHuTRBgiTBe/0l3pTwfT5u+OHav9CDOUkWEq8o3kS
+	 EAae3xkupp8WL7yLNuKXKFf50R+YwByltfNTWK38=
+Date: Wed, 29 Jan 2025 15:25:53 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch added to mm-unstable branch
-Message-Id: <20250129232551.D3876C4CED1@smtp.kernel.org>
+Subject: + mm-bootmem_info-export-register_page_bootmem_memmap.patch added to mm-unstable branch
+Message-Id: <20250129232553.DC8DAC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: make register_page_bootmem_memmap handle PTE mappings
+     Subject: mm/bootmem_info: export register_page_bootmem_memmap
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch
+     mm-bootmem_info-export-register_page_bootmem_memmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-export-register_page_bootmem_memmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,30 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: x86/mm: make register_page_bootmem_memmap handle PTE mappings
-Date: Wed, 29 Jan 2025 22:41:38 +0000
+Subject: mm/bootmem_info: export register_page_bootmem_memmap
+Date: Wed, 29 Jan 2025 22:41:39 +0000
 
-register_page_bootmem_memmap expects that vmemmap pages handed to it are
-PMD-mapped, and that the number of pages to call get_page_bootmem on is
-PMD-aligned.
+If other mm code wants to use this function for early memmap inialization
+(on the platforms that have it), it should be made available properly, not
+just unconditionally in mm.h
 
-This is currently a correct assumption, but will no longer be true once
-pre-HVO of hugetlb pages is implemented.
+Make this function available for such cases.
 
-Make it handle PTE-mapped vmemmap pages and a nr_pages argument that is
-not necessarily PAGES_PER_SECTION.
-
-Link: https://lkml.kernel.org/r/20250129224157.2046079-10-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250129224157.2046079-11-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -91,42 +87,56 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ arch/powerpc/mm/init_64.c    |    1 +
+ include/linux/bootmem_info.h |    7 +++++++
+ include/linux/mm.h           |    3 ---
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/arch/x86/mm/init_64.c~x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings
-+++ a/arch/x86/mm/init_64.c
-@@ -1599,11 +1599,12 @@ void register_page_bootmem_memmap(unsign
- 		}
- 		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
+--- a/arch/powerpc/mm/init_64.c~mm-bootmem_info-export-register_page_bootmem_memmap
++++ a/arch/powerpc/mm/init_64.c
+@@ -41,6 +41,7 @@
+ #include <linux/libfdt.h>
+ #include <linux/memremap.h>
+ #include <linux/memory.h>
++#include <linux/bootmem_info.h>
  
--		if (!boot_cpu_has(X86_FEATURE_PSE)) {
-+		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(*pmd))
-+			continue;
+ #include <asm/pgalloc.h>
+ #include <asm/page.h>
+--- a/include/linux/bootmem_info.h~mm-bootmem_info-export-register_page_bootmem_memmap
++++ a/include/linux/bootmem_info.h
+@@ -18,6 +18,8 @@ enum bootmem_type {
+ 
+ #ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
+ void __init register_page_bootmem_info_node(struct pglist_data *pgdat);
++void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
++				  unsigned long nr_pages);
+ 
+ void get_page_bootmem(unsigned long info, struct page *page,
+ 		enum bootmem_type type);
+@@ -58,6 +60,11 @@ static inline void register_page_bootmem
+ {
+ }
+ 
++static inline void register_page_bootmem_memmap(unsigned long section_nr,
++		struct page *map, unsigned long nr_pages)
++{
++}
 +
-+		if (!boot_cpu_has(X86_FEATURE_PSE) || !pmd_leaf(*pmd)) {
- 			next = (addr + PAGE_SIZE) & PAGE_MASK;
--			pmd = pmd_offset(pud, addr);
--			if (pmd_none(*pmd))
--				continue;
- 			get_page_bootmem(section_nr, pmd_page(*pmd),
- 					 MIX_SECTION_INFO);
+ static inline void put_page_bootmem(struct page *page)
+ {
+ }
+--- a/include/linux/mm.h~mm-bootmem_info-export-register_page_bootmem_memmap
++++ a/include/linux/mm.h
+@@ -3918,9 +3918,6 @@ static inline bool vmemmap_can_optimize(
+ }
+ #endif
  
-@@ -1614,12 +1615,7 @@ void register_page_bootmem_memmap(unsign
- 					 SECTION_INFO);
- 		} else {
- 			next = pmd_addr_end(addr, end);
+-void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+-				  unsigned long nr_pages);
 -
--			pmd = pmd_offset(pud, addr);
--			if (pmd_none(*pmd))
--				continue;
--
--			nr_pmd_pages = 1 << get_order(PMD_SIZE);
-+			nr_pmd_pages = (next - addr) >> PAGE_SHIFT;
- 			page = pmd_page(*pmd);
- 			while (nr_pmd_pages--)
- 				get_page_bootmem(section_nr, page++,
+ enum mf_flags {
+ 	MF_COUNT_INCREASED = 1 << 0,
+ 	MF_ACTION_REQUIRED = 1 << 1,
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
