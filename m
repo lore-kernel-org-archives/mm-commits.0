@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96013171CD;
-	Wed, 29 Jan 2025 04:28:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D63233987
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 05:37:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738124886; cv=none; b=jLtyrA5dcwFRVpX+UfbkAJ4nGcCqUNy6enTVRnT8+YzR5gXQcbNZJaLnmey0PjwVB4Xm/8V6dT4bJWwLPzzdjca8kAvQCvHRO6f5MLXxXsdckzj8AGAk6C5gnPsRS1Lq3H8QFfH4oAnpvN71OEVr3GyemWYBfPA1EXBkahvYIqk=
+	t=1738129032; cv=none; b=KplG//Ja93c4T3N7cn5M6Bw8hwHy9WUbWcKbmAAYLpMPmuCSq4/nvXPFbCLyKHLd9gXq0f8uvFgGMALVzAE0YCeL2GVVLgRVDtYw3+hj7aX2JKmxbhYby55QQMeXGRpnt9rs3zNgG+J64ywgkZbYhOS5Tv7akgMWCCGhDJHSCSA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738124886; c=relaxed/simple;
-	bh=ycSVABy2R70qONhrAYJLr6ebppwRB7CxtaFE0WwC5aA=;
-	h=Date:To:From:Subject:Message-Id; b=H4LT7RW06BJeX6HslKt4fFl1AtGJe4WoIhxHhp7Ty62Wi1KJ3wi3AuNCjo/xaqsyZoJJVaAmcWIcclJHYuSkj7YCsAFyBminsZ15upBADehwp0nwGdAjlLtnIzIhRWMgUFmFm4P2V2BfJQOJHCKj2M9CLRYNgz3E/opCKKdonDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L7wJDfGh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738129032; c=relaxed/simple;
+	bh=7Anfg6GId4YjCHJl5tkXIuAgLpllBf6WhbgJtYHMUu8=;
+	h=Date:To:From:Subject:Message-Id; b=c+LCCz/FKttGMSBDRs/xiDY1qWOwMqoUH+kQFG6JMdXiVIC3794W1U/7j/5iz6/r7S0/bTitNJ4L9mcOIZ90hEE/Yvg89vJxhVqpl+x8QoOAWui/FLNBaqZIav4gipu+N1yWoM9YeagsN8138zFQbyBJyf1XYJgOKqEFvDeDbC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KzihJkul; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L7wJDfGh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4770C4CED3;
-	Wed, 29 Jan 2025 04:28:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KzihJkul"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68A10C4CED3;
+	Wed, 29 Jan 2025 05:37:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738124886;
-	bh=ycSVABy2R70qONhrAYJLr6ebppwRB7CxtaFE0WwC5aA=;
+	s=korg; t=1738129031;
+	bh=7Anfg6GId4YjCHJl5tkXIuAgLpllBf6WhbgJtYHMUu8=;
 	h=Date:To:From:Subject:From;
-	b=L7wJDfGhAh0G5XtVhnlHmw+cImARSBLUdqV4btro4+CiRDb4uCDqPXGpISoV6fXms
-	 HjiGI9vsCDnQ/s5vQXQZNQ54TuwciOgL6Wu/sDPVnSzpXCDKtef4RqYrcANjpthMEQ
-	 yBGdhHibXK0F87yKzMihkKVIMSKP1vDrVB3fM07E=
-Date: Tue, 28 Jan 2025 20:28:05 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sourabhjain@linux.ibm.com,rientjes@google.com,pavrampu@linux.ibm.com,muchun.song@linux.dev,luizcap@redhat.com,gang.li@linux.dev,donettom@linux.ibm.com,daniel.m.jordan@oracle.com,ritesh.list@gmail.com,akpm@linux-foundation.org
+	b=KzihJkulVLYxOeKufiIfbLxLRmjdbbRoOlPSsqZQva/rplSu3sYsmPtrChcNA4LHV
+	 0dBh/gAQIJM4rnz0+hlrrFFb8UBk04N75x4G0RMr5S/RIpaoy/o/8cUga3TSv5P/L+
+	 2zsj1ApbnSJEoVQTAv3Lc61dI7wt7d0zGFNb1hZg=
+Date: Tue, 28 Jan 2025 21:37:10 -0800
+To: mm-commits@vger.kernel.org,hughd@google.com,qasdev00@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-hugepage-allocation-for-interleaved-memory-nodes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250129042805.E4770C4CED3@smtp.kernel.org>
+Subject: [nacked] mm-shmem-fix-invalid-ptr_errnull-call-in-shmem_xattr_handler_set.patch removed from -mm tree
+Message-Id: <20250129053711.68A10C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,107 +34,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/hugetlb: fix hugepage allocation for interleaved memory nodes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-hugepage-allocation-for-interleaved-memory-nodes.patch
+The quilt patch titled
+     Subject: mm/shmem: fix invalid PTR_ERR(NULL) call in shmem_xattr_handler_set()
+has been removed from the -mm tree.  Its filename was
+     mm-shmem-fix-invalid-ptr_errnull-call-in-shmem_xattr_handler_set.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-hugepage-allocation-for-interleaved-memory-nodes.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Subject: mm/hugetlb: fix hugepage allocation for interleaved memory nodes
-Date: Sat, 11 Jan 2025 16:36:55 +0530
+From: Qasim Ijaz <qasdev00@gmail.com>
+Subject: mm/shmem: fix invalid PTR_ERR(NULL) call in shmem_xattr_handler_set()
+Date: Tue, 28 Jan 2025 23:54:08 +0000
 
-gather_bootmem_prealloc() assumes the start nid as 0 and size as
-num_node_state(N_MEMORY).  That means in case if memory attached numa
-nodes are interleaved, then gather_bootmem_prealloc_parallel() will fail
-to scan few of these nodes.
+In shmem_xattr_handler_set() if simple_xattr_set() succeeds and the
+pointer returned is not an error pointer, then old_xattr will be set to
+NULL in the body of the following if statement:
 
-Since memory attached numa nodes can be interleaved in any fashion, hence
-ensure that the current code checks for all numa node ids
-(.size = nr_node_ids). Let's still keep max_threads as N_MEMORY, so that
-it can distributes all nr_node_ids among the these many no. threads.
+    if (!IS_ERR(old_xattr))
 
-e.g. qemu cmdline
-========================
-numa_cmd="-numa node,nodeid=1,memdev=mem1,cpus=2-3 -numa node,nodeid=0,cpus=0-1 -numa dist,src=0,dst=1,val=20"
-mem_cmd="-object memory-backend-ram,id=mem1,size=16G"
+Later on shmem_xattr_handler_set() calls:
 
-w/o this patch for cmdline (default_hugepagesz=1GB hugepagesz=1GB hugepages=2):
-==========================
-~ # cat /proc/meminfo  |grep -i huge
-AnonHugePages:         0 kB
-ShmemHugePages:        0 kB
-FileHugePages:         0 kB
-HugePages_Total:       0
-HugePages_Free:        0
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-Hugepagesize:    1048576 kB
-Hugetlb:               0 kB
+    return PTR_ERR(old_xattr);
 
-with this patch for cmdline (default_hugepagesz=1GB hugepagesz=1GB hugepages=2):
-===========================
-~ # cat /proc/meminfo |grep -i huge
-AnonHugePages:         0 kB
-ShmemHugePages:        0 kB
-FileHugePages:         0 kB
-HugePages_Total:       2
-HugePages_Free:        2
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-Hugepagesize:    1048576 kB
-Hugetlb:         2097152 kB
+The PTR_ERR macro is used to extract an error code from an error pointer
+and NULL is not an error pointer, PTR_ERR(NULL) simply results in 0.
 
-Link: https://lkml.kernel.org/r/f8d8dad3a5471d284f54185f65d575a6aaab692b.1736592534.git.ritesh.list@gmail.com
-Fixes: b78b27d02930 ("hugetlb: parallelize 1G hugetlb initialization")
-Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reported-by: Pavithra Prakash <pavrampu@linux.ibm.com>
-Suggested-by: Muchun Song <muchun.song@linux.dev>
-Tested-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Gang Li <gang.li@linux.dev>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+To improve correctness and readability, refactor the error handling to
+have an explicit default return value of 0 (success) in "ret".  If
+simple_xattr_set() returns an error pointer, store its error code in
+"ret".
+
+Link: https://lkml.kernel.org/r/20250128235408.11229-1-qasdev00@gmail.com
+Signed-off-by: Qasim Ijaz <qasdev00@gmail.com>
+Cc: Hugh Dickens <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-hugepage-allocation-for-interleaved-memory-nodes
-+++ a/mm/hugetlb.c
-@@ -3309,7 +3309,7 @@ static void __init gather_bootmem_preall
- 		.thread_fn	= gather_bootmem_prealloc_parallel,
- 		.fn_arg		= NULL,
- 		.start		= 0,
--		.size		= num_node_state(N_MEMORY),
-+		.size		= nr_node_ids,
- 		.align		= 1,
- 		.min_chunk	= 1,
- 		.max_threads	= num_node_state(N_MEMORY),
+--- a/mm/shmem.c~mm-shmem-fix-invalid-ptr_errnull-call-in-shmem_xattr_handler_set
++++ a/mm/shmem.c
+@@ -4301,6 +4301,7 @@ static int shmem_xattr_handler_set(const
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	struct simple_xattr *old_xattr;
+ 	size_t ispace = 0;
++	int ret = 0;
+ 
+ 	name = xattr_full_name(handler, name);
+ 	if (value && sbinfo->max_inodes) {
+@@ -4316,7 +4317,9 @@ static int shmem_xattr_handler_set(const
+ 	}
+ 
+ 	old_xattr = simple_xattr_set(&info->xattrs, name, value, size, flags);
+-	if (!IS_ERR(old_xattr)) {
++	if (IS_ERR(old_xattr)) {
++		ret = PTR_ERR(old_xattr);
++	} else {
+ 		ispace = 0;
+ 		if (old_xattr && sbinfo->max_inodes)
+ 			ispace = simple_xattr_space(old_xattr->name,
+@@ -4326,12 +4329,13 @@ static int shmem_xattr_handler_set(const
+ 		inode_set_ctime_current(inode);
+ 		inode_inc_iversion(inode);
+ 	}
++
+ 	if (ispace) {
+ 		raw_spin_lock(&sbinfo->stat_lock);
+ 		sbinfo->free_ispace += ispace;
+ 		raw_spin_unlock(&sbinfo->stat_lock);
+ 	}
+-	return PTR_ERR(old_xattr);
++	return ret;
+ }
+ 
+ static const struct xattr_handler shmem_security_xattr_handler = {
 _
 
-Patches currently in -mm which might be from ritesh.list@gmail.com are
+Patches currently in -mm which might be from qasdev00@gmail.com are
 
-mm-hugetlb-fix-hugepage-allocation-for-interleaved-memory-nodes.patch
 
