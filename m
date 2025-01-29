@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBB8D1DF99B
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:26:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 311801E3DEC
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 23:26:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738193187; cv=none; b=IRVxMqECQuf1q8NGb27GCmGYkSNWh6gRZ+7H3BKOqLvZb6E9ONA1mnAWy2C8tAX1SFq2K5x8e0SK8kQUYjMV+vsXUF+7jExw2Rg60/mD7Qpjn1p5kiCeQjyoZOjujSraK/dFpW1iKnW0wUaDBSh2qh6YvbTKnYK3ED16O2aVK0I=
+	t=1738193190; cv=none; b=qcj/aYUDShvxIY3jny1COAYMWQMFA36554Dc9But1+P6hNlXmK+qhTjU5MMPQuqqlIu5uQA9XYWtPXApFZ7SJslnpvPXh5C6famEStxHsb55LXDOrw+37skHQ0ByouckES42YDTT7z+uRdfpM6xCand0nHoeZvA+MIDCqQcFpoQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738193187; c=relaxed/simple;
-	bh=e+4v5jEnli+RUM6Ztiw0l8wnSfsomOsccVz5PGY83ho=;
-	h=Date:To:From:Subject:Message-Id; b=UvV0SFO7xKVsITN4f2rAUy5ZZlmi2wcSsHprjoyZCU+Rp0ZjPrntXXUkwO4COzoTzwOFDQLEdQcBJbwYPrLdpPStpUZ/5YsnT7wApk4huGCEnguoqYw4tVbTQg2MUXY7CRrqlbO18m4CBsrCNoKSpLBXSfkW5Eqnkb55TFSsDzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDN+/nDl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738193190; c=relaxed/simple;
+	bh=5rNb0oZE+JekkGUfdJTI2uRY5poJsHtZuykDcWx4Ryw=;
+	h=Date:To:From:Subject:Message-Id; b=pU5HA1IHbCNuowvWxgcng0u8JBp/jJBH5aXXCC0FR7i+HzU006kxnRVqQl8Pe3fZWbIREb5ugUneVtlEYHq5MnLC+W/2/7USxPpDRIE0oQQSHqg1dmlDTIu4BWZMar8nrDZ2aEK3phT1JgaBNISUlFGwoERqi8bbYA5kTEEGzos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RyvUV/qE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDN+/nDl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90E0FC4CED1;
-	Wed, 29 Jan 2025 23:26:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RyvUV/qE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C676C4CED1;
+	Wed, 29 Jan 2025 23:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738193187;
-	bh=e+4v5jEnli+RUM6Ztiw0l8wnSfsomOsccVz5PGY83ho=;
+	s=korg; t=1738193189;
+	bh=5rNb0oZE+JekkGUfdJTI2uRY5poJsHtZuykDcWx4Ryw=;
 	h=Date:To:From:Subject:From;
-	b=IDN+/nDlWl1VMq8GTCF3V3CXXhS3BYCJO2fX1rr7A8zZZPIwoZuCIJd1eIo0LevVN
-	 sSr7k8mQ7CBAg3sZopbwY1unFk7asek3BBiQ6+gSuqug5ImI5WxOqSx2kHn6Vk0NAA
-	 9ynz9GGHKP4Q5HgbPHuoT4z21Sia58sI6DmnwypM=
-Date: Wed, 29 Jan 2025 15:26:27 -0800
+	b=RyvUV/qErS1s89iiR7U/kUoADLNHwTBOBUor84Bd8+lJYrHBi0PCYItnxERCXjMtR
+	 wRX8oa+vrW9vNI9/g58g4BNGqgprGjQ140qkGdlGh9cdVoWHv+MO3/Jx+zXJfOR/TY
+	 PVbUBueAt9HZzqiDpgDcpWkZNSAEjmjnr8Dz9IuA=
+Date: Wed, 29 Jan 2025 15:26:29 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch added to mm-unstable branch
-Message-Id: <20250129232627.90E0FC4CED1@smtp.kernel.org>
+Subject: + mm-cma-simplify-zone-intersection-check.patch added to mm-unstable branch
+Message-Id: <20250129232629.8C676C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: set ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
+     Subject: mm/cma: simplify zone intersection check
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch
+     mm-cma-simplify-zone-intersection-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-simplify-zone-intersection-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: x86/mm: set ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
-Date: Wed, 29 Jan 2025 22:41:51 +0000
+Subject: mm/cma: simplify zone intersection check
+Date: Wed, 29 Jan 2025 22:41:52 +0000
 
-Now that hugetlb bootmem pages are allocated earlier, and available for
-section preinit (HVO-style), set ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT for
-x86_64, so that is can be done.
+cma_activate_area walks all pages in the area, checking their zone
+individually to see if the area resides in more than one zone.
 
-This enables pre-HVO on x86_64.
+Make this a little more efficient by using the recently introduced
+pfn_range_intersects_zones() function.  Store the NUMA node id (if any) in
+the cma structure to facilitate this.
 
-Link: https://lkml.kernel.org/r/20250129224157.2046079-23-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250129224157.2046079-24-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -87,19 +88,71 @@ Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/cma.c |   13 ++++++-------
+ mm/cma.h |    2 ++
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
---- a/arch/x86/Kconfig~x86-mm-set-arch_want_sparsemem_vmemmap_preinit
-+++ a/arch/x86/Kconfig
-@@ -146,6 +146,7 @@ config X86
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select ARCH_WANT_OPTIMIZE_DAX_VMEMMAP	if X86_64
- 	select ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP	if X86_64
-+	select ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT if X86_64
- 	select ARCH_WANTS_THP_SWAP		if X86_64
- 	select ARCH_HAS_PARANOID_L1D_FLUSH
- 	select BUILDTIME_TABLE_SORT
+--- a/mm/cma.c~mm-cma-simplify-zone-intersection-check
++++ a/mm/cma.c
+@@ -103,7 +103,6 @@ static void __init cma_activate_area(str
+ {
+ 	unsigned long pfn, base_pfn;
+ 	int allocrange, r;
+-	struct zone *zone;
+ 	struct cma_memrange *cmr;
+ 
+ 	for (allocrange = 0; allocrange < cma->nranges; allocrange++) {
+@@ -124,12 +123,8 @@ static void __init cma_activate_area(str
+ 		 * CMA resv range to be in the same zone.
+ 		 */
+ 		WARN_ON_ONCE(!pfn_valid(base_pfn));
+-		zone = page_zone(pfn_to_page(base_pfn));
+-		for (pfn = base_pfn + 1; pfn < base_pfn + cmr->count; pfn++) {
+-			WARN_ON_ONCE(!pfn_valid(pfn));
+-			if (page_zone(pfn_to_page(pfn)) != zone)
+-				goto cleanup;
+-		}
++		if (pfn_range_intersects_zones(cma->nid, base_pfn, cmr->count))
++			goto cleanup;
+ 
+ 		for (pfn = base_pfn; pfn < base_pfn + cmr->count;
+ 		     pfn += pageblock_nr_pages)
+@@ -261,6 +256,7 @@ int __init cma_init_reserved_mem(phys_ad
+ 	cma->ranges[0].base_pfn = PFN_DOWN(base);
+ 	cma->ranges[0].count = cma->count;
+ 	cma->nranges = 1;
++	cma->nid = NUMA_NO_NODE;
+ 
+ 	*res_cma = cma;
+ 
+@@ -497,6 +493,7 @@ int __init cma_declare_contiguous_multi(
+ 	}
+ 
+ 	cma->nranges = nr;
++	cma->nid = nid;
+ 	*res_cma = cma;
+ 
+ out:
+@@ -684,6 +681,8 @@ static int __init __cma_declare_contiguo
+ 	if (ret)
+ 		memblock_phys_free(base, size);
+ 
++	(*res_cma)->nid = nid;
++
+ 	return ret;
+ }
+ 
+--- a/mm/cma.h~mm-cma-simplify-zone-intersection-check
++++ a/mm/cma.h
+@@ -50,6 +50,8 @@ struct cma {
+ 	struct cma_kobject *cma_kobj;
+ #endif
+ 	bool reserve_pages_on_error;
++	/* NUMA node (NUMA_NO_NODE if unspecified) */
++	int nid;
+ };
+ 
+ extern struct cma cma_areas[MAX_CMA_AREAS];
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
