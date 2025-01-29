@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 952971DA4E
-	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 04:09:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 174B71DA4E
+	for <mm-commits@vger.kernel.org>; Wed, 29 Jan 2025 04:09:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738123796; cv=none; b=gMSJCHrvL4Ykr1IIvlvSMhhjwRZ/Ult8et5e7ba7W6PJQT4/rVi7W2cwM8FShEGiQpolluSPnJPq4l7BosUb42hyMVih5Auim+lgADHHB4wo1sGYkXkaEyqcXzC6W+bjHUu2QWbnYHDgFMclDZGNV7xMZZd/7QRKd6ENNoVi0w8=
+	t=1738123799; cv=none; b=EdeGWbnnZeQTC5R7sz8u82VN8t9Ppycq3YRCZKtWGUJInLxKsmsqmmYljfJju4+iFf5kZYqA6JE9467A5MyNAdd3kCJUsXx8NwIKTNSnXFBBXeYQL5ZT2VXLZ9SHqna24gdRUAy8BVt4q1suIymnANnSAPG47bKtkpkSFpyBEA0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738123796; c=relaxed/simple;
-	bh=kKZbo+LV7Q6m89O7BKjHt9/rN7EhvQykwOXlwHlTmgM=;
-	h=Date:To:From:Subject:Message-Id; b=RjlrxVJZr3R0WGwmZuiszTOuwQ95Xjps6RP13lN2lCwjncUuPkRbkexi0bw4szkWWK0HEHwiId3UwSy5coHX7oJeFdZYHT7Gz95ks1TVyNytkQx0Sn70wPfCm8j5yfhzIDKoE+As+aIxP/YmzqbYXt9wlFdsJK8O5JUxS7w4ooA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U498IRJe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738123799; c=relaxed/simple;
+	bh=6e/ST+eKXAdZ7XfcMMPIqoC0OtbL3iuRUBTQfEqNQOM=;
+	h=Date:To:From:Subject:Message-Id; b=rCSEV13o035PoX7hBwbzYuM3JEWC7ky+guMoExvzvUiu8RYnLggTCaca0vwj4ZgDbGIAWiKXA8BWQmOBeGjNzTcviVhFv83vhAyCUyhOo+s5SkLsyJSqS5mHjXbk35QlBb61VzBLctSduwCWO/GzfDEC0g5kh5b2Zq/I3Z8+3Qg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UieHdUdS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U498IRJe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B5F4C4CED3;
-	Wed, 29 Jan 2025 04:09:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UieHdUdS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7011FC4CED3;
+	Wed, 29 Jan 2025 04:09:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738123796;
-	bh=kKZbo+LV7Q6m89O7BKjHt9/rN7EhvQykwOXlwHlTmgM=;
+	s=korg; t=1738123798;
+	bh=6e/ST+eKXAdZ7XfcMMPIqoC0OtbL3iuRUBTQfEqNQOM=;
 	h=Date:To:From:Subject:From;
-	b=U498IRJeqJF5C2if/dlJYzMgc7/NuWyne7ekTfWcpmJRM0JH7oNbKI1m5cUk9XKBQ
-	 WT4ZckojL6RPZxPIx1z9glk366iKzOtLX+GnmmcflvwUzAVBMGBjaLddeLsjFRRB76
-	 /AQLbE5zdLeotc2ydZvMROIKYQ4WwKiX/qhT3fh8=
-Date: Tue, 28 Jan 2025 20:09:55 -0800
+	b=UieHdUdS38XotMqW4G3GikkkKbPAK6DUs8L2ude3/Jbipu0Hg8wI8InBYcs1lH3us
+	 U8HDS2S0HvM8DG582VZMebwWPy8fSgxhIJ7KpCP71r+jm9V/yjWUO5JissO7kX1Fd5
+	 +Dcmw2mkDbaxr+MuFqm7Erc1IGhfs7SjkZqCzv5c=
+Date: Tue, 28 Jan 2025 20:09:57 -0800
 To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,yosryahmed@google.com,ying.huang@intel.com,yangyicong@hisilicon.com,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shahuang@redhat.com,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,mingo@redhat.com,mfo@canonical.com,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,ioworker0@gmail.com,hpa@zytor.com,gshan@redhat.com,david@redhat.com,dave.hansen@linux.intel.com,chrisl@kernel.org,catalin.marinas@arm.com,bp@alien8.de,baolin.wang@linux.alibaba.com,aou@eecs.berkeley.edu,anshuman.khandual@arm.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-set-folio-swapbacked-iff-folios-are-dirty-in-try_to_unmap_one.patch added to mm-unstable branch
-Message-Id: <20250129040956.1B5F4C4CED3@smtp.kernel.org>
+Subject: + mm-support-tlbbatch-flush-for-a-range-of-ptes.patch added to mm-unstable branch
+Message-Id: <20250129040958.7011FC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: set folio swapbacked iff folios are dirty in try_to_unmap_one
+     Subject: mm: support tlbbatch flush for a range of PTEs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-set-folio-swapbacked-iff-folios-are-dirty-in-try_to_unmap_one.patch
+     mm-support-tlbbatch-flush-for-a-range-of-ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-folio-swapbacked-iff-folios-are-dirty-in-try_to_unmap_one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-tlbbatch-flush-for-a-range-of-ptes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,174 +59,237 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: set folio swapbacked iff folios are dirty in try_to_unmap_one
-Date: Wed, 15 Jan 2025 16:38:05 +1300
+Subject: mm: support tlbbatch flush for a range of PTEs
+Date: Wed, 15 Jan 2025 16:38:06 +1300
 
-Patch series "mm: batched unmap lazyfree large folios during reclamation",
-v3.
+This patch lays the groundwork for supporting batch PTE unmapping in
+try_to_unmap_one().  It introduces range handling for TLB batch flushing,
+with the range currently set to the size of PAGE_SIZE.
 
-Commit 735ecdfaf4e8 ("mm/vmscan: avoid split lazyfree THP during
-shrink_folio_list()") prevents the splitting of MADV_FREE'd THP in
-madvise.c.  However, those folios are still added to the deferred_split
-list in try_to_unmap_one() because we are unmapping PTEs and removing rmap
-entries one by one.
+The function __flush_tlb_range_nosync() is architecture-specific and is
+only used within arch/arm64.  This function requires the mm structure
+instead of the vma structure.  To allow its reuse by
+arch_tlbbatch_add_pending(), which operates with mm but not vma, this
+patch modifies the argument of __flush_tlb_range_nosync() to take mm as
+its parameter.
 
-Firstly, this has rendered the following counter somewhat confusing,
-/sys/kernel/mm/transparent_hugepage/hugepages-size/stats/split_deferred
-The split_deferred counter was originally designed to track operations
-such as partial unmap or madvise of large folios.  However, in practice,
-most split_deferred cases arise from memory reclamation of aligned
-lazyfree mTHPs as observed by Tangquan.  This discrepancy has made the
-split_deferred counter highly misleading.
-
-Secondly, this approach is slow because it requires iterating through each
-PTE and removing the rmap one by one for a large folio.  In fact, all PTEs
-of a pte-mapped large folio should be unmapped at once, and the entire
-folio should be removed from the rmap as a whole.
-
-Thirdly, it also increases the risk of a race condition where lazyfree
-folios are incorrectly set back to swapbacked, as a speculative folio_get
-may occur in the shrinker's callback.  deferred_split_scan() might call
-folio_try_get(folio) since we have added the folio to split_deferred list
-while removing rmap for the 1st subpage, and while we are scanning the 2nd
-to nr_pages PTEs of this folio in try_to_unmap_one(), the entire mTHP
-could be transitioned back to swap-backed because the reference count is
-incremented, which can make "ref_count == 1 + map_count" within
-try_to_unmap_one() false.
-
-   /*
-    * The only page refs must be one from isolation
-    * plus the rmap(s) (dropped by discard:).
-    */
-   if (ref_count == 1 + map_count &&
-       (!folio_test_dirty(folio) ||
-        ...
-        (vma->vm_flags & VM_DROPPABLE))) {
-           dec_mm_counter(mm, MM_ANONPAGES);
-           goto discard;
-   }
-
-This patchset resolves the issue by marking only genuinely dirty folios as
-swap-backed, as suggested by David, and transitioning to batched unmapping
-of entire folios in try_to_unmap_one().  Consequently, the deferred_split
-count drops to zero, and memory reclamation performance improves
-significantly — reclaiming 64KiB lazyfree large folios is now 2.5x
-faster(The specific data is embedded in the changelog of patch 3/4).
-
-By the way, while the patchset is primarily aimed at PTE-mapped large
-folios, Baolin and Lance also found that try_to_unmap_one() handles
-lazyfree redirtied PMD-mapped large folios inefficiently — it splits the
-PMD into PTEs and iterates over them.  This patchset removes the
-unnecessary splitting, enabling us to skip redirtied PMD-mapped large
-folios 3.5X faster during memory reclamation.  (The specific data can be
-found in the changelog of patch 4/4).
-
-
-This patch (of 4):
-
-The refcount may be temporarily or long-term increased, but this does not
-change the fundamental nature of the folio already being lazy- freed. 
-Therefore, we only reset 'swapbacked' when we are certain the folio is
-dirty and not droppable.
-
-Link: https://lkml.kernel.org/r/20250115033808.40641-1-21cnbao@gmail.com
-Link: https://lkml.kernel.org/r/20250115033808.40641-2-21cnbao@gmail.com
-Fixes: 6c8e2a256915 ("mm: fix race between MADV_FREE reclaim and blkdev direct IO read")
+Link: https://lkml.kernel.org/r/20250115033808.40641-3-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Lance Yang <ioworker0@gmail.com>
-Cc: Mauricio Faria de Oliveira <mfo@canonical.com>
-Cc: Chis Li <chrisl@kernel.org> (Google)
+Acked-by: Will Deacon <will@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shaoqin Huang <shahuang@redhat.com>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Yicong Yang <yangyicong@hisilicon.com>
+
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chis Li <chrisl@kernel.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Mauricio Faria de Oliveira <mfo@canonical.com>
 Cc: Tangquan Zheng <zhengtangquan@oppo.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Shaoqin Huang <shahuang@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   49 ++++++++++++++++++++++---------------------------
- 1 file changed, 22 insertions(+), 27 deletions(-)
+ arch/arm64/include/asm/tlbflush.h |   25 +++++++++++++------------
+ arch/arm64/mm/contpte.c           |    2 +-
+ arch/riscv/include/asm/tlbflush.h |    5 +++--
+ arch/riscv/mm/tlbflush.c          |    5 +++--
+ arch/x86/include/asm/tlbflush.h   |    5 +++--
+ mm/rmap.c                         |   12 +++++++-----
+ 6 files changed, 30 insertions(+), 24 deletions(-)
 
---- a/mm/rmap.c~mm-set-folio-swapbacked-iff-folios-are-dirty-in-try_to_unmap_one
-+++ a/mm/rmap.c
-@@ -1868,34 +1868,29 @@ static bool try_to_unmap_one(struct foli
- 				 */
- 				smp_rmb();
+--- a/arch/arm64/include/asm/tlbflush.h~mm-support-tlbbatch-flush-for-a-range-of-ptes
++++ a/arch/arm64/include/asm/tlbflush.h
+@@ -322,13 +322,6 @@ static inline bool arch_tlbbatch_should_
+ 	return true;
+ }
  
--				/*
--				 * The only page refs must be one from isolation
--				 * plus the rmap(s) (dropped by discard:).
--				 */
--				if (ref_count == 1 + map_count &&
--				    (!folio_test_dirty(folio) ||
--				     /*
--				      * Unlike MADV_FREE mappings, VM_DROPPABLE
--				      * ones can be dropped even if they've
--				      * been dirtied.
--				      */
--				     (vma->vm_flags & VM_DROPPABLE))) {
--					dec_mm_counter(mm, MM_ANONPAGES);
--					goto discard;
--				}
+-static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
+-					     struct mm_struct *mm,
+-					     unsigned long uaddr)
+-{
+-	__flush_tlb_page_nosync(mm, uaddr);
+-}
 -
--				/*
--				 * If the folio was redirtied, it cannot be
--				 * discarded. Remap the page to page table.
--				 */
--				set_pte_at(mm, address, pvmw.pte, pteval);
--				/*
--				 * Unlike MADV_FREE mappings, VM_DROPPABLE ones
--				 * never get swap backed on failure to drop.
--				 */
--				if (!(vma->vm_flags & VM_DROPPABLE))
-+				if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
-+					/*
-+					 * redirtied either using the page table or a previously
-+					 * obtained GUP reference.
-+					 */
-+					set_pte_at(mm, address, pvmw.pte, pteval);
- 					folio_set_swapbacked(folio);
--				goto walk_abort;
-+					goto walk_abort;
-+				} else if (ref_count != 1 + map_count) {
-+					/*
-+					 * Additional reference. Could be a GUP reference or any
-+					 * speculative reference. GUP users must mark the folio
-+					 * dirty if there was a modification. This folio cannot be
-+					 * reclaimed right now either way, so act just like nothing
-+					 * happened.
-+					 * We'll come back here later and detect if the folio was
-+					 * dirtied when the additional reference is gone.
-+					 */
-+					set_pte_at(mm, address, pvmw.pte, pteval);
-+					goto walk_abort;
-+				}
-+				dec_mm_counter(mm, MM_ANONPAGES);
-+				goto discard;
- 			}
+ /*
+  * If mprotect/munmap/etc occurs during TLB batched flushing, we need to
+  * synchronise all the TLBI issued with a DSB to avoid the race mentioned in
+@@ -448,7 +441,7 @@ static inline bool __flush_tlb_range_lim
+ 	return false;
+ }
  
- 			if (swap_duplicate(entry) < 0) {
+-static inline void __flush_tlb_range_nosync(struct vm_area_struct *vma,
++static inline void __flush_tlb_range_nosync(struct mm_struct *mm,
+ 				     unsigned long start, unsigned long end,
+ 				     unsigned long stride, bool last_level,
+ 				     int tlb_level)
+@@ -460,12 +453,12 @@ static inline void __flush_tlb_range_nos
+ 	pages = (end - start) >> PAGE_SHIFT;
+ 
+ 	if (__flush_tlb_range_limit_excess(start, end, pages, stride)) {
+-		flush_tlb_mm(vma->vm_mm);
++		flush_tlb_mm(mm);
+ 		return;
+ 	}
+ 
+ 	dsb(ishst);
+-	asid = ASID(vma->vm_mm);
++	asid = ASID(mm);
+ 
+ 	if (last_level)
+ 		__flush_tlb_range_op(vale1is, start, pages, stride, asid,
+@@ -474,7 +467,7 @@ static inline void __flush_tlb_range_nos
+ 		__flush_tlb_range_op(vae1is, start, pages, stride, asid,
+ 				     tlb_level, true, lpa2_is_enabled());
+ 
+-	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, start, end);
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
+ }
+ 
+ static inline void __flush_tlb_range(struct vm_area_struct *vma,
+@@ -482,7 +475,7 @@ static inline void __flush_tlb_range(str
+ 				     unsigned long stride, bool last_level,
+ 				     int tlb_level)
+ {
+-	__flush_tlb_range_nosync(vma, start, end, stride,
++	__flush_tlb_range_nosync(vma->vm_mm, start, end, stride,
+ 				 last_level, tlb_level);
+ 	dsb(ish);
+ }
+@@ -533,6 +526,14 @@ static inline void __flush_tlb_kernel_pg
+ 	dsb(ish);
+ 	isb();
+ }
++
++static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
++		struct mm_struct *mm,
++		unsigned long start,
++		unsigned long end)
++{
++	__flush_tlb_range_nosync(mm, start, end, PAGE_SIZE, true, 3);
++}
+ #endif
+ 
+ #endif
+--- a/arch/arm64/mm/contpte.c~mm-support-tlbbatch-flush-for-a-range-of-ptes
++++ a/arch/arm64/mm/contpte.c
+@@ -335,7 +335,7 @@ int contpte_ptep_clear_flush_young(struc
+ 		 * eliding the trailing DSB applies here.
+ 		 */
+ 		addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
+-		__flush_tlb_range_nosync(vma, addr, addr + CONT_PTE_SIZE,
++		__flush_tlb_range_nosync(vma->vm_mm, addr, addr + CONT_PTE_SIZE,
+ 					 PAGE_SIZE, true, 3);
+ 	}
+ 
+--- a/arch/riscv/include/asm/tlbflush.h~mm-support-tlbbatch-flush-for-a-range-of-ptes
++++ a/arch/riscv/include/asm/tlbflush.h
+@@ -60,8 +60,9 @@ void flush_pmd_tlb_range(struct vm_area_
+ 
+ bool arch_tlbbatch_should_defer(struct mm_struct *mm);
+ void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
+-			       struct mm_struct *mm,
+-			       unsigned long uaddr);
++		struct mm_struct *mm,
++		unsigned long start,
++		unsigned long end);
+ void arch_flush_tlb_batched_pending(struct mm_struct *mm);
+ void arch_tlbbatch_flush(struct arch_tlbflush_unmap_batch *batch);
+ 
+--- a/arch/riscv/mm/tlbflush.c~mm-support-tlbbatch-flush-for-a-range-of-ptes
++++ a/arch/riscv/mm/tlbflush.c
+@@ -186,8 +186,9 @@ bool arch_tlbbatch_should_defer(struct m
+ }
+ 
+ void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
+-			       struct mm_struct *mm,
+-			       unsigned long uaddr)
++		struct mm_struct *mm,
++		unsigned long start,
++		unsigned long end)
+ {
+ 	cpumask_or(&batch->cpumask, &batch->cpumask, mm_cpumask(mm));
+ }
+--- a/arch/x86/include/asm/tlbflush.h~mm-support-tlbbatch-flush-for-a-range-of-ptes
++++ a/arch/x86/include/asm/tlbflush.h
+@@ -278,8 +278,9 @@ static inline u64 inc_mm_tlb_gen(struct
+ }
+ 
+ static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
+-					     struct mm_struct *mm,
+-					     unsigned long uaddr)
++		struct mm_struct *mm,
++		unsigned long start,
++		unsigned long end)
+ {
+ 	inc_mm_tlb_gen(mm);
+ 	cpumask_or(&batch->cpumask, &batch->cpumask, mm_cpumask(mm));
+--- a/mm/rmap.c~mm-support-tlbbatch-flush-for-a-range-of-ptes
++++ a/mm/rmap.c
+@@ -672,7 +672,8 @@ void try_to_unmap_flush_dirty(void)
+ 	(TLB_FLUSH_BATCH_PENDING_MASK / 2)
+ 
+ static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval,
+-				      unsigned long uaddr)
++		unsigned long start,
++		unsigned long end)
+ {
+ 	struct tlbflush_unmap_batch *tlb_ubc = &current->tlb_ubc;
+ 	int batch;
+@@ -681,7 +682,7 @@ static void set_tlb_ubc_flush_pending(st
+ 	if (!pte_accessible(mm, pteval))
+ 		return;
+ 
+-	arch_tlbbatch_add_pending(&tlb_ubc->arch, mm, uaddr);
++	arch_tlbbatch_add_pending(&tlb_ubc->arch, mm, start, end);
+ 	tlb_ubc->flush_required = true;
+ 
+ 	/*
+@@ -757,7 +758,8 @@ void flush_tlb_batched_pending(struct mm
+ }
+ #else
+ static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval,
+-				      unsigned long uaddr)
++		unsigned long start,
++		unsigned long end)
+ {
+ }
+ 
+@@ -1792,7 +1794,7 @@ static bool try_to_unmap_one(struct foli
+ 				 */
+ 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
+ 
+-				set_tlb_ubc_flush_pending(mm, pteval, address);
++				set_tlb_ubc_flush_pending(mm, pteval, address, address + PAGE_SIZE);
+ 			} else {
+ 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 			}
+@@ -2164,7 +2166,7 @@ static bool try_to_migrate_one(struct fo
+ 				 */
+ 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
+ 
+-				set_tlb_ubc_flush_pending(mm, pteval, address);
++				set_tlb_ubc_flush_pending(mm, pteval, address, address + PAGE_SIZE);
+ 			} else {
+ 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 			}
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
