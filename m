@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1EFF139B
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:40:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20BD31F1934
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:41:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738280459; cv=none; b=Koy8S4ulcji9NdAxaBK45kgenpxRD2Of083evrcM5ElZF9uknX+DXvdRDFRMX3NcVqNOigN9mwHfxjk+wUQVB8exa0jH6e7b8Djx5JHDQ5+uldaNKUFyJCoNcXgddBso2RkDj9AA8NTxPAsuRhet96Xvm7Y35bNQ/OwZZ6DsxTg=
+	t=1738280462; cv=none; b=PPlEhkbpuVQfS+iVKOtl62a0Jm00l8cmr8gYShiMU0HqOSDakCFBvr68fwGoiJF2lTAGKYSzNZypMa0cjfkMNLpTRNKcDr6C0hXeLAY6WyIXiOg1354cYcQjYQSTleyGxQ4inFrzwhifYuIjzZi9C5GaYdU1QzMnpqmFu9pKgdA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738280459; c=relaxed/simple;
-	bh=epAdGRoXwrsRpOHphvUUrs/QDUn2clGrOHlOK58uw0A=;
-	h=Date:To:From:Subject:Message-Id; b=nf4Ad1Ri0RrmZm1KSYaNaVef0iKUyv4WzTCAZC/OFeL3ZsKQ2Wb/nByig2MJGo3vQHa5kX+suO8s4DK4p2LZ8HJlYTVYUnH1P7WoAVBQ4tXEWCiSaB8lb82Nf6w98ZOD3XoaTuQHdHytbQA9fbbRVg06d5Atn6saKpA6LwTDIdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1axKgCTd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738280462; c=relaxed/simple;
+	bh=J+a9VAifpv17XRlD25LVTbXOj/hV+3OiSyG/AQH2aJQ=;
+	h=Date:To:From:Subject:Message-Id; b=JTyPhesxZecUWlUNCGK7W9dB6dZhfKCnglWGUDEEjpifC05o2b+HWYLyLQii7K1oySTsKgpw1M+lc8/SMcuerS5mK2eDckZHCEuR2cAIWQeTW0PKQdxZMpbqKONgWgMfuljV1jrqrayJuUwHRO2eS1oV0G5davmb0tgnVjsoqUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J6WvOxSp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1axKgCTd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8384AC4CED2;
-	Thu, 30 Jan 2025 23:40:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J6WvOxSp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC5D9C4CED2;
+	Thu, 30 Jan 2025 23:41:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738280459;
-	bh=epAdGRoXwrsRpOHphvUUrs/QDUn2clGrOHlOK58uw0A=;
+	s=korg; t=1738280462;
+	bh=J+a9VAifpv17XRlD25LVTbXOj/hV+3OiSyG/AQH2aJQ=;
 	h=Date:To:From:Subject:From;
-	b=1axKgCTd2CU280Yqv5gEFhLPZhz+DD62xf13XGRbwgW9AqwzHoFKv1Wat4INDvvRp
-	 JZUfWrV8LftmYexrTwiFw2mfu9QmRyz+hSBRwAHhkKPh21x1cwNrW9QcxVXwqERdhc
-	 hTIgL5Jm8EAQzTJlIjZJ0H05/xx5tod0pskGOIJA=
-Date: Thu, 30 Jan 2025 15:40:59 -0800
+	b=J6WvOxSpH9xc9u9KD2b2Bnj2d6HOi66T5XVoKQpWXevY9VqWIkq2AmdtByQGzBWmq
+	 oRhNO3Q7qp1dwmqWPz7kAgKs3KCoV6l4JXwffmOn0Qhk4Ub+IIGwKl5uqyo57POmb4
+	 Wc5X5+k47N7fm8lOE4h60mjR+Z1BkFatZ21H6+GE=
+Date: Thu, 30 Jan 2025 15:41:01 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,vbabka@suse.cz,tursulin@ursulin.net,rostedt@goodmis.org,rodrigo.vivi@intel.com,ran.xiaokai@zte.com.cn,osalvador@suse.de,nphamcs@gmail.com,miklos@szeredi.hu,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,josef@toxicpanda.com,joonas.lahtinen@linux.intel.com,jason@zx2c4.com,jani.nikula@linux.intel.com,hannes@cmpxchg.org,gehao@kylinos.cn,david@redhat.com,dan.carpenter@linaro.org,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,brauner@kernel.org,axboe@kernel.dk,andi.shyti@linux.intel.com,airlied@gmail.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq.patch added to mm-unstable branch
-Message-Id: <20250130234059.8384AC4CED2@smtp.kernel.org>
+Subject: + mm-remove-pg_reclaim.patch added to mm-unstable branch
+Message-Id: <20250130234101.DC5D9C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: check PG_dropbehind instead of PG_reclaim in lru_gen_folio_seq()
+     Subject: mm: remove PG_reclaim
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq.patch
+     mm-remove-pg_reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pg_reclaim.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/mglru: check PG_dropbehind instead of PG_reclaim in lru_gen_folio_seq()
-Date: Thu, 30 Jan 2025 12:00:46 +0200
+Subject: mm: remove PG_reclaim
+Date: Thu, 30 Jan 2025 12:00:47 +0200
 
-Kernel sets PG_dropcache instead of PG_reclaim everywhere.  Check
-PG_dropcache in lru_gen_folio_seq().
+Nobody sets the flag anymore.
 
-No need to check for dirty and writeback as there's no conflict with
-PG_readahead anymore.
+Remove the PG_reclaim, making PG_readhead exclusive user of the page flag
+bit.
 
-Link: https://lkml.kernel.org/r/20250130100050.1868208-9-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20250130100050.1868208-10-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Cc: Dave Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: gehao <gehao@kylinos.cn>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jason A. Donenfeld <jason@zx2c4.com>
@@ -96,25 +96,456 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Tvrtko Ursulin <tursulin@ursulin.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/fuse/dev.c                          |    2 
+ fs/proc/page.c                         |    2 
+ include/linux/mm_inline.h              |   15 -----
+ include/linux/page-flags.h             |   15 +----
+ include/trace/events/mmflags.h         |    2 
+ include/uapi/linux/kernel-page-flags.h |    2 
+ mm/filemap.c                           |   12 ----
+ mm/migrate.c                           |   10 ---
+ mm/page-writeback.c                    |   16 ------
+ mm/page_io.c                           |   15 +----
+ mm/swap.c                              |   61 +----------------------
+ mm/vmscan.c                            |    7 --
+ tools/mm/page-types.c                  |    8 ---
+ 13 files changed, 22 insertions(+), 145 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq
+--- a/fs/fuse/dev.c~mm-remove-pg_reclaim
++++ a/fs/fuse/dev.c
+@@ -827,7 +827,7 @@ static int fuse_check_folio(struct folio
+ 	       1 << PG_lru |
+ 	       1 << PG_active |
+ 	       1 << PG_workingset |
+-	       1 << PG_reclaim |
++	       1 << PG_readahead |
+ 	       1 << PG_waiters |
+ 	       LRU_GEN_MASK | LRU_REFS_MASK))) {
+ 		dump_page(&folio->page, "fuse: trying to steal weird page");
+--- a/fs/proc/page.c~mm-remove-pg_reclaim
++++ a/fs/proc/page.c
+@@ -189,7 +189,7 @@ u64 stable_page_flags(const struct page
+ 	u |= kpf_copy_bit(k, KPF_LRU,		PG_lru);
+ 	u |= kpf_copy_bit(k, KPF_REFERENCED,	PG_referenced);
+ 	u |= kpf_copy_bit(k, KPF_ACTIVE,	PG_active);
+-	u |= kpf_copy_bit(k, KPF_RECLAIM,	PG_reclaim);
++	u |= kpf_copy_bit(k, KPF_READAHEAD,	PG_readahead);
+ 
+ #define SWAPCACHE ((1 << PG_swapbacked) | (1 << PG_swapcache))
+ 	if ((k & SWAPCACHE) == SWAPCACHE)
+--- a/include/linux/mm_inline.h~mm-remove-pg_reclaim
 +++ a/include/linux/mm_inline.h
-@@ -241,8 +241,7 @@ static inline unsigned long lru_gen_foli
- 	else if (reclaiming)
- 		gen = MAX_NR_GENS;
- 	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
--		 (folio_test_reclaim(folio) &&
--		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
-+		 folio_test_dropbehind(folio))
- 		gen = MIN_NR_GENS;
+@@ -270,7 +270,6 @@ static inline bool lru_gen_add_folio(str
+ 	set_mask_bits(&folio->flags, LRU_GEN_MASK | BIT(PG_active), flags);
+ 
+ 	lru_gen_update_size(lruvec, folio, -1, gen);
+-	/* for folio_rotate_reclaimable() */
+ 	if (reclaiming)
+ 		list_add_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
  	else
- 		gen = MAX_NR_GENS - folio_test_workingset(folio);
+@@ -350,20 +349,6 @@ void lruvec_add_folio(struct lruvec *lru
+ }
+ 
+ static __always_inline
+-void lruvec_add_folio_tail(struct lruvec *lruvec, struct folio *folio)
+-{
+-	enum lru_list lru = folio_lru_list(folio);
+-
+-	if (lru_gen_add_folio(lruvec, folio, true))
+-		return;
+-
+-	update_lru_size(lruvec, lru, folio_zonenum(folio),
+-			folio_nr_pages(folio));
+-	/* This is not expected to be used on LRU_UNEVICTABLE */
+-	list_add_tail(&folio->lru, &lruvec->lists[lru]);
+-}
+-
+-static __always_inline
+ void lruvec_del_folio(struct lruvec *lruvec, struct folio *folio)
+ {
+ 	enum lru_list lru = folio_lru_list(folio);
+--- a/include/linux/page-flags.h~mm-remove-pg_reclaim
++++ a/include/linux/page-flags.h
+@@ -63,8 +63,8 @@
+  * might lose their PG_swapbacked flag when they simply can be dropped (e.g. as
+  * a result of MADV_FREE).
+  *
+- * PG_referenced, PG_reclaim are used for page reclaim for anonymous and
+- * file-backed pagecache (see mm/vmscan.c).
++ * PG_referenced is used for page reclaim for anonymous and file-backed
++ * pagecache (see mm/vmscan.c).
+  *
+  * PG_arch_1 is an architecture specific page state bit.  The generic code
+  * guarantees that this bit is cleared for a page when it first is entered into
+@@ -107,7 +107,7 @@ enum pageflags {
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+ 	PG_private_2,		/* If pagecache, has fs aux data */
+-	PG_reclaim,		/* To be reclaimed asap */
++	PG_readahead,
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
+ 	PG_unevictable,		/* Page is "unevictable"  */
+ 	PG_dropbehind,		/* drop pages on IO completion */
+@@ -129,8 +129,6 @@ enum pageflags {
+ #endif
+ 	__NR_PAGEFLAGS,
+ 
+-	PG_readahead = PG_reclaim,
+-
+ 	/* Anonymous memory (and shmem) */
+ 	PG_swapcache = PG_owner_priv_1, /* Swap page: swp_entry_t in private */
+ 	/* Some filesystems */
+@@ -168,7 +166,7 @@ enum pageflags {
+ 	PG_xen_remapped = PG_owner_priv_1,
+ 
+ 	/* non-lru isolated movable page */
+-	PG_isolated = PG_reclaim,
++	PG_isolated = PG_readahead,
+ 
+ 	/* Only valid for buddy pages. Used to track pages that are reported */
+ 	PG_reported = PG_uptodate,
+@@ -187,7 +185,7 @@ enum pageflags {
+ 	/* At least one page in this folio has the hwpoison flag set */
+ 	PG_has_hwpoisoned = PG_active,
+ 	PG_large_rmappable = PG_workingset, /* anon or file-backed */
+-	PG_partially_mapped = PG_reclaim, /* was identified to be partially mapped */
++	PG_partially_mapped = PG_readahead, /* was identified to be partially mapped */
+ };
+ 
+ #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
+@@ -594,9 +592,6 @@ TESTPAGEFLAG(Writeback, writeback, PF_NO
+ 	TESTSCFLAG(Writeback, writeback, PF_NO_TAIL)
+ FOLIO_FLAG(mappedtodisk, FOLIO_HEAD_PAGE)
+ 
+-/* PG_readahead is only used for reads; PG_reclaim is only for writes */
+-PAGEFLAG(Reclaim, reclaim, PF_NO_TAIL)
+-	TESTCLEARFLAG(Reclaim, reclaim, PF_NO_TAIL)
+ FOLIO_FLAG(readahead, FOLIO_HEAD_PAGE)
+ 	FOLIO_TEST_CLEAR_FLAG(readahead, FOLIO_HEAD_PAGE)
+ 
+--- a/include/trace/events/mmflags.h~mm-remove-pg_reclaim
++++ a/include/trace/events/mmflags.h
+@@ -177,7 +177,7 @@ TRACE_DEFINE_ENUM(___GFP_LAST_BIT);
+ 	DEF_PAGEFLAG_NAME(private_2),					\
+ 	DEF_PAGEFLAG_NAME(writeback),					\
+ 	DEF_PAGEFLAG_NAME(head),					\
+-	DEF_PAGEFLAG_NAME(reclaim),					\
++	DEF_PAGEFLAG_NAME(readahead),					\
+ 	DEF_PAGEFLAG_NAME(swapbacked),					\
+ 	DEF_PAGEFLAG_NAME(unevictable),					\
+ 	DEF_PAGEFLAG_NAME(dropbehind)					\
+--- a/include/uapi/linux/kernel-page-flags.h~mm-remove-pg_reclaim
++++ a/include/uapi/linux/kernel-page-flags.h
+@@ -15,7 +15,7 @@
+ #define KPF_ACTIVE		6
+ #define KPF_SLAB		7
+ #define KPF_WRITEBACK		8
+-#define KPF_RECLAIM		9
++#define KPF_READAHEAD		9
+ #define KPF_BUDDY		10
+ 
+ /* 11-20: new additions in 2.6.31 */
+--- a/mm/filemap.c~mm-remove-pg_reclaim
++++ a/mm/filemap.c
+@@ -1626,18 +1626,6 @@ void folio_end_writeback(struct folio *f
+ 	VM_BUG_ON_FOLIO(!folio_test_writeback(folio), folio);
+ 
+ 	/*
+-	 * folio_test_clear_reclaim() could be used here but it is an
+-	 * atomic operation and overkill in this particular case. Failing
+-	 * to shuffle a folio marked for immediate reclaim is too mild
+-	 * a gain to justify taking an atomic operation penalty at the
+-	 * end of every folio writeback.
+-	 */
+-	if (folio_test_reclaim(folio)) {
+-		folio_clear_reclaim(folio);
+-		folio_rotate_reclaimable(folio);
+-	}
+-
+-	/*
+ 	 * Writeback does not hold a folio reference of its own, relying
+ 	 * on truncation to wait for the clearing of PG_writeback.
+ 	 * But here we must make sure that the folio is not freed and
+--- a/mm/migrate.c~mm-remove-pg_reclaim
++++ a/mm/migrate.c
+@@ -690,6 +690,8 @@ void folio_migrate_flags(struct folio *n
+ 		folio_set_young(newfolio);
+ 	if (folio_test_idle(folio))
+ 		folio_set_idle(newfolio);
++	if (folio_test_readahead(folio))
++		folio_set_readahead(newfolio);
+ 
+ 	folio_migrate_refs(newfolio, folio);
+ 	/*
+@@ -732,14 +734,6 @@ void folio_migrate_flags(struct folio *n
+ 	if (folio_test_writeback(newfolio))
+ 		folio_end_writeback(newfolio);
+ 
+-	/*
+-	 * PG_readahead shares the same bit with PG_reclaim.  The above
+-	 * end_page_writeback() may clear PG_readahead mistakenly, so set the
+-	 * bit after that.
+-	 */
+-	if (folio_test_readahead(folio))
+-		folio_set_readahead(newfolio);
+-
+ 	folio_copy_owner(newfolio, folio);
+ 	pgalloc_tag_swap(newfolio, folio);
+ 
+--- a/mm/page_io.c~mm-remove-pg_reclaim
++++ a/mm/page_io.c
+@@ -37,14 +37,11 @@ static void __end_swap_bio_write(struct
+ 		 * Re-dirty the page in order to avoid it being reclaimed.
+ 		 * Also print a dire warning that things will go BAD (tm)
+ 		 * very quickly.
+-		 *
+-		 * Also clear PG_reclaim to avoid folio_rotate_reclaimable()
+ 		 */
+ 		folio_mark_dirty(folio);
+ 		pr_alert_ratelimited("Write-error on swap-device (%u:%u:%llu)\n",
+ 				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
+ 				     (unsigned long long)bio->bi_iter.bi_sector);
+-		folio_clear_reclaim(folio);
+ 	}
+ 	folio_end_writeback(folio);
+ }
+@@ -350,19 +347,17 @@ static void sio_write_complete(struct ki
+ 
+ 	if (ret != sio->len) {
+ 		/*
+-		 * In the case of swap-over-nfs, this can be a
+-		 * temporary failure if the system has limited
+-		 * memory for allocating transmit buffers.
+-		 * Mark the page dirty and avoid
+-		 * folio_rotate_reclaimable but rate-limit the
+-		 * messages.
++		 * In the case of swap-over-nfs, this can be a temporary failure
++		 * if the system has limited memory for allocating transmit
++		 * buffers.
++		 *
++		 * Mark the page dirty but rate-limit the messages.
+ 		 */
+ 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
+ 				   ret, swap_dev_pos(page_swap_entry(page)));
+ 		for (p = 0; p < sio->pages; p++) {
+ 			page = sio->bvec[p].bv_page;
+ 			set_page_dirty(page);
+-			ClearPageReclaim(page);
+ 		}
+ 	}
+ 
+--- a/mm/page-writeback.c~mm-remove-pg_reclaim
++++ a/mm/page-writeback.c
+@@ -2888,22 +2888,8 @@ bool folio_mark_dirty(struct folio *foli
+ {
+ 	struct address_space *mapping = folio_mapping(folio);
+ 
+-	if (likely(mapping)) {
+-		/*
+-		 * readahead/folio_deactivate could remain
+-		 * PG_readahead/PG_reclaim due to race with folio_end_writeback
+-		 * About readahead, if the folio is written, the flags would be
+-		 * reset. So no problem.
+-		 * About folio_deactivate, if the folio is redirtied,
+-		 * the flag will be reset. So no problem. but if the
+-		 * folio is used by readahead it will confuse readahead
+-		 * and make it restart the size rampup process. But it's
+-		 * a trivial problem.
+-		 */
+-		if (folio_test_reclaim(folio))
+-			folio_clear_reclaim(folio);
++	if (likely(mapping))
+ 		return mapping->a_ops->dirty_folio(mapping, folio);
+-	}
+ 
+ 	return noop_dirty_folio(mapping, folio);
+ }
+--- a/mm/swap.c~mm-remove-pg_reclaim
++++ a/mm/swap.c
+@@ -59,14 +59,10 @@ struct cpu_fbatches {
+ #ifdef CONFIG_SMP
+ 	struct folio_batch lru_activate;
+ #endif
+-	/* Protecting the following batches which require disabling interrupts */
+-	local_lock_t lock_irq;
+-	struct folio_batch lru_move_tail;
+ };
+ 
+ static DEFINE_PER_CPU(struct cpu_fbatches, cpu_fbatches) = {
+ 	.lock = INIT_LOCAL_LOCK(lock),
+-	.lock_irq = INIT_LOCAL_LOCK(lock_irq),
+ };
+ 
+ static void __page_cache_release(struct folio *folio, struct lruvec **lruvecp,
+@@ -175,29 +171,20 @@ static void folio_batch_move_lru(struct
+ }
+ 
+ static void __folio_batch_add_and_move(struct folio_batch __percpu *fbatch,
+-		struct folio *folio, move_fn_t move_fn,
+-		bool on_lru, bool disable_irq)
++		struct folio *folio, move_fn_t move_fn, bool on_lru)
+ {
+-	unsigned long flags;
+-
+ 	if (on_lru && !folio_test_clear_lru(folio))
+ 		return;
+ 
+ 	folio_get(folio);
+ 
+-	if (disable_irq)
+-		local_lock_irqsave(&cpu_fbatches.lock_irq, flags);
+-	else
+-		local_lock(&cpu_fbatches.lock);
++	local_lock(&cpu_fbatches.lock);
+ 
+ 	if (!folio_batch_add(this_cpu_ptr(fbatch), folio) || folio_test_large(folio) ||
+ 	    lru_cache_disabled())
+ 		folio_batch_move_lru(this_cpu_ptr(fbatch), move_fn);
+ 
+-	if (disable_irq)
+-		local_unlock_irqrestore(&cpu_fbatches.lock_irq, flags);
+-	else
+-		local_unlock(&cpu_fbatches.lock);
++	local_unlock(&cpu_fbatches.lock);
+ }
+ 
+ #define folio_batch_add_and_move(folio, op, on_lru)						\
+@@ -205,37 +192,9 @@ static void __folio_batch_add_and_move(s
+ 		&cpu_fbatches.op,								\
+ 		folio,										\
+ 		op,										\
+-		on_lru,										\
+-		offsetof(struct cpu_fbatches, op) >= offsetof(struct cpu_fbatches, lock_irq)	\
++		on_lru										\
+ 	)
+ 
+-static void lru_move_tail(struct lruvec *lruvec, struct folio *folio)
+-{
+-	if (folio_test_unevictable(folio))
+-		return;
+-
+-	lruvec_del_folio(lruvec, folio);
+-	folio_clear_active(folio);
+-	lruvec_add_folio_tail(lruvec, folio);
+-	__count_vm_events(PGROTATED, folio_nr_pages(folio));
+-}
+-
+-/*
+- * Writeback is about to end against a folio which has been marked for
+- * immediate reclaim.  If it still appears to be reclaimable, move it
+- * to the tail of the inactive list.
+- *
+- * folio_rotate_reclaimable() must disable IRQs, to prevent nasty races.
+- */
+-void folio_rotate_reclaimable(struct folio *folio)
+-{
+-	if (folio_test_locked(folio) || folio_test_dirty(folio) ||
+-	    folio_test_unevictable(folio))
+-		return;
+-
+-	folio_batch_add_and_move(folio, lru_move_tail, true);
+-}
+-
+ void lru_note_cost(struct lruvec *lruvec, bool file,
+ 		   unsigned int nr_io, unsigned int nr_rotated)
+ {
+@@ -578,17 +537,6 @@ void lru_add_drain_cpu(int cpu)
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_add);
+ 
+-	fbatch = &fbatches->lru_move_tail;
+-	/* Disabling interrupts below acts as a compiler barrier. */
+-	if (data_race(folio_batch_count(fbatch))) {
+-		unsigned long flags;
+-
+-		/* No harm done if a racing interrupt already did this */
+-		local_lock_irqsave(&cpu_fbatches.lock_irq, flags);
+-		folio_batch_move_lru(fbatch, lru_move_tail);
+-		local_unlock_irqrestore(&cpu_fbatches.lock_irq, flags);
+-	}
+-
+ 	fbatch = &fbatches->lru_deactivate;
+ 	if (folio_batch_count(fbatch))
+ 		folio_batch_move_lru(fbatch, lru_deactivate);
+@@ -682,7 +630,6 @@ static bool cpu_needs_drain(unsigned int
+ 
+ 	/* Check these in order of likelihood that they're not zero */
+ 	return folio_batch_count(&fbatches->lru_add) ||
+-		folio_batch_count(&fbatches->lru_move_tail) ||
+ 		folio_batch_count(&fbatches->lru_deactivate) ||
+ 		folio_batch_count(&fbatches->lru_lazyfree) ||
+ 		folio_batch_count(&fbatches->lru_activate) ||
+--- a/mm/vmscan.c~mm-remove-pg_reclaim
++++ a/mm/vmscan.c
+@@ -3221,9 +3221,6 @@ static int folio_inc_gen(struct lruvec *
+ 
+ 		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
+ 		new_flags |= (new_gen + 1UL) << LRU_GEN_PGOFF;
+-		/* for folio_end_writeback() */
+-		if (reclaiming)
+-			new_flags |= BIT(PG_reclaim);
+ 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
+ 
+ 	lru_gen_update_size(lruvec, folio, old_gen, new_gen);
+@@ -4465,9 +4462,6 @@ static bool isolate_folio(struct lruvec
+ 	if (!folio_test_referenced(folio))
+ 		set_mask_bits(&folio->flags, LRU_REFS_MASK, 0);
+ 
+-	/* for shrink_folio_list() */
+-	folio_clear_reclaim(folio);
+-
+ 	success = lru_gen_del_folio(lruvec, folio, true);
+ 	VM_WARN_ON_ONCE_FOLIO(!success, folio);
+ 
+@@ -4664,7 +4658,6 @@ retry:
+ 			continue;
+ 		}
+ 
+-		/* retry folios that may have missed folio_rotate_reclaimable() */
+ 		if (!skip_retry && !folio_test_active(folio) && !folio_mapped(folio) &&
+ 		    !folio_test_dirty(folio) && !folio_test_writeback(folio)) {
+ 			list_move(&folio->lru, &clean);
+--- a/tools/mm/page-types.c~mm-remove-pg_reclaim
++++ a/tools/mm/page-types.c
+@@ -85,7 +85,6 @@
+  * not part of kernel API
+  */
+ #define KPF_ANON_EXCLUSIVE	47
+-#define KPF_READAHEAD		48
+ #define KPF_SLUB_FROZEN		50
+ #define KPF_SLUB_DEBUG		51
+ #define KPF_FILE		61
+@@ -108,7 +107,7 @@ static const char * const page_flag_name
+ 	[KPF_ACTIVE]		= "A:active",
+ 	[KPF_SLAB]		= "S:slab",
+ 	[KPF_WRITEBACK]		= "W:writeback",
+-	[KPF_RECLAIM]		= "I:reclaim",
++	[KPF_READAHEAD]		= "I:readahead",
+ 	[KPF_BUDDY]		= "B:buddy",
+ 
+ 	[KPF_MMAP]		= "M:mmap",
+@@ -139,7 +138,6 @@ static const char * const page_flag_name
+ 	[KPF_ARCH_2]		= "H:arch_2",
+ 
+ 	[KPF_ANON_EXCLUSIVE]	= "d:anon_exclusive",
+-	[KPF_READAHEAD]		= "I:readahead",
+ 	[KPF_SLUB_FROZEN]	= "A:slub_frozen",
+ 	[KPF_SLUB_DEBUG]	= "E:slub_debug",
+ 
+@@ -484,10 +482,6 @@ static uint64_t expand_overloaded_flags(
+ 			flags ^= BIT(ERROR) | BIT(SLUB_DEBUG);
+ 	}
+ 
+-	/* PG_reclaim is overloaded as PG_readahead in the read path */
+-	if ((flags & (BIT(RECLAIM) | BIT(WRITEBACK))) == BIT(RECLAIM))
+-		flags ^= BIT(RECLAIM) | BIT(READAHEAD);
+-
+ 	if (pme & PM_SOFT_DIRTY)
+ 		flags |= BIT(SOFTDIRTY);
+ 	if (pme & PM_FILE)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
