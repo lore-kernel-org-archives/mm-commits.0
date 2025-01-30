@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E7E3139B
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:40:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5851139B
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:40:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738280455; cv=none; b=F9ARqhd84vumrSmKKM5mRiBBq76fhc/zYvJvmMSWVqqda+XbxsK3SSZ7T7K5mYRmeulXjIGaXGpPgXv7YXde29aVCLeApfopASCImpgZYV94o8MBoZS+Mp11EKPsKq6Z7c/msRzKWVFCpT6LpFkD47nTljqZNAXKMhpXEPtH4bk=
+	t=1738280458; cv=none; b=dFC7QAo88NpE708lE4/DPf4TMphl/vyJdWyJ4VOoJEGNKx6PxDXInk+xW/5joBAqLCdBj7Snk4xY7H3v8Dx5uMUcAuq0SPioquIdTYOxKdap4fl5FoZ/PPetkjKZ1bJM8XLcAmFD9kvvdE3/8AQJT0tIta02IsnGUDo06DCitT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738280455; c=relaxed/simple;
-	bh=QEkz6pv3foTFs//XhslfCF8ajVcsXFB7EwDEr36ncZw=;
-	h=Date:To:From:Subject:Message-Id; b=krwtdwDNy449dhWaAohA20xRhZsV/n3LQLcgp5sNZQhDyIFv7tza62UYLIlTw7G1Ia/waoXoh0L4gu9U5LFtGQunRFDpMyaNfzT+eFERIlpWZWrl5U5FzbsCGPS10HPHNh/4IKcz60q79vVqZKRf6B5yaQ1ltsXYvtLFUwoi0sU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F5N7p8kr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738280458; c=relaxed/simple;
+	bh=mbb5laJ1CAuVk+R+fsYc8xNgCDxhpFbXNOTg34U20K8=;
+	h=Date:To:From:Subject:Message-Id; b=I32E6JyecKokNP/DO+2VWqOxBFTC0q7AhVBXe729Y9gV2l3f4VhoOyO/4kD7jaOPAiYu91sWqpKwhT3arTs/Z/qgMXb3AA6Bgal9l8n8Zx7e1q2/Gz8YAAGhWNKy6LLqOqc6NAN1OPch2CmjByyo53P776/y1jvL01VsdrbH/2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wpaNU1ez; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F5N7p8kr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044A0C4CED2;
-	Thu, 30 Jan 2025 23:40:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wpaNU1ez"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E018C4CED3;
+	Thu, 30 Jan 2025 23:40:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738280455;
-	bh=QEkz6pv3foTFs//XhslfCF8ajVcsXFB7EwDEr36ncZw=;
+	s=korg; t=1738280457;
+	bh=mbb5laJ1CAuVk+R+fsYc8xNgCDxhpFbXNOTg34U20K8=;
 	h=Date:To:From:Subject:From;
-	b=F5N7p8krDO3J3QVFm9VYKmWIjGDdRKVyI/jYVN4Yr9dRubUJySq7WwQ9WmXkhPaSB
-	 CepmKBZngvElYHiRtpeRI0bRJj0JLWLnoRiLAs+O9ku3KMtrbbDVbwpktCCdM67iq+
-	 uvprAcA7RQaI93QsyUFP8Nahf7zueliy2BeGRPzE=
-Date: Thu, 30 Jan 2025 15:40:54 -0800
+	b=wpaNU1ezzMjBlI8qVAeUsvPLCM9OXr1Urm5WKp1DjfOKkyAPz3N097lLGfLZkmgZG
+	 aWC6elIARWr2AgOvq9vuIC8w1JeugrOkGc1jFPdIFRRM6zQ54sLuOsTF0RFgCaU0xf
+	 HnG551dxt0YpK5XBFmGVvI4JmVrqQb0CGTFCdG+o=
+Date: Thu, 30 Jan 2025 15:40:56 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,vbabka@suse.cz,tursulin@ursulin.net,rostedt@goodmis.org,rodrigo.vivi@intel.com,ran.xiaokai@zte.com.cn,osalvador@suse.de,nphamcs@gmail.com,miklos@szeredi.hu,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,josef@toxicpanda.com,joonas.lahtinen@linux.intel.com,jason@zx2c4.com,jani.nikula@linux.intel.com,hannes@cmpxchg.org,gehao@kylinos.cn,david@redhat.com,dan.carpenter@linaro.org,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,brauner@kernel.org,axboe@kernel.dk,andi.shyti@linux.intel.com,airlied@gmail.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim.patch added to mm-unstable branch
-Message-Id: <20250130234055.044A0C4CED2@smtp.kernel.org>
+Subject: + mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list.patch added to mm-unstable branch
+Message-Id: <20250130234057.4E018C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: use PG_dropbehind instead of PG_reclaim
+     Subject: mm/vmscan: use PG_dropbehind instead of PG_reclaim in shrink_folio_list()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim.patch
+     mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/vmscan: use PG_dropbehind instead of PG_reclaim
-Date: Thu, 30 Jan 2025 12:00:44 +0200
+Subject: mm/vmscan: use PG_dropbehind instead of PG_reclaim in shrink_folio_list()
+Date: Thu, 30 Jan 2025 12:00:45 +0200
 
 The recently introduced PG_dropbehind allows for freeing folios
 immediately after writeback.  Unlike PG_reclaim, it does not need vmscan
 to be involved to get the folio freed.
 
 Instead of using folio_set_reclaim(), use folio_set_dropbehind() in
-pageout().
+shrink_folio_list().
 
 It is safe to leave PG_dropbehind on the folio if, for some reason (bug?),
 the folio is not in a writeback state after ->writepage().  In these
 cases, the kernel had to clear PG_reclaim as it shared a page flag bit
 with PG_readahead.
 
-Link: https://lkml.kernel.org/r/20250130100050.1868208-7-kirill.shutemov@linux.intel.com
+Also use PG_dropbehind instead PG_reclaim to detect I/O congestion.
+
+Link: https://lkml.kernel.org/r/20250130100050.1868208-8-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
@@ -106,34 +108,90 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   30 ++++++++----------------------
+ 1 file changed, 8 insertions(+), 22 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim
+--- a/mm/vmscan.c~mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list
 +++ a/mm/vmscan.c
-@@ -692,19 +692,16 @@ static pageout_t pageout(struct folio *f
- 		if (shmem_mapping(mapping) && folio_test_large(folio))
- 			wbc.list = folio_list;
+@@ -1140,7 +1140,7 @@ retry:
+ 		 * for immediate reclaim are making it to the end of
+ 		 * the LRU a second time.
+ 		 */
+-		if (writeback && folio_test_reclaim(folio))
++		if (writeback && folio_test_dropbehind(folio))
+ 			stat->nr_congested += nr_pages;
  
--		folio_set_reclaim(folio);
-+		folio_set_dropbehind(folio);
-+
- 		res = mapping->a_ops->writepage(&folio->page, &wbc);
- 		if (res < 0)
- 			handle_write_error(mapping, folio, res);
- 		if (res == AOP_WRITEPAGE_ACTIVATE) {
--			folio_clear_reclaim(folio);
-+			folio_clear_dropbehind(folio);
- 			return PAGE_ACTIVATE;
- 		}
+ 		/*
+@@ -1149,7 +1149,7 @@ retry:
+ 		 *
+ 		 * 1) If reclaim is encountering an excessive number
+ 		 *    of folios under writeback and this folio has both
+-		 *    the writeback and reclaim flags set, then it
++		 *    the writeback and dropbehind flags set, then it
+ 		 *    indicates that folios are being queued for I/O but
+ 		 *    are being recycled through the LRU before the I/O
+ 		 *    can complete. Waiting on the folio itself risks an
+@@ -1173,7 +1173,7 @@ retry:
+ 		 *    would probably show more reasons.
+ 		 *
+ 		 * 3) Legacy memcg encounters a folio that already has the
+-		 *    reclaim flag set. memcg does not have any dirty folio
++		 *    dropbehind flag set. memcg does not have any dirty folio
+ 		 *    throttling so we could easily OOM just because too many
+ 		 *    folios are in writeback and there is nothing else to
+ 		 *    reclaim. Wait for the writeback to complete.
+@@ -1190,30 +1190,16 @@ retry:
+ 		if (folio_test_writeback(folio)) {
+ 			/* Case 1 above */
+ 			if (current_is_kswapd() &&
+-			    folio_test_reclaim(folio) &&
++			    folio_test_dropbehind(folio) &&
+ 			    test_bit(PGDAT_WRITEBACK, &pgdat->flags)) {
+ 				stat->nr_immediate += nr_pages;
+ 				goto activate_locked;
  
--		if (!folio_test_writeback(folio)) {
--			/* synchronous write or broken a_ops? */
--			folio_clear_reclaim(folio);
--		}
- 		trace_mm_vmscan_write_folio(folio);
- 		node_stat_add_folio(folio, NR_VMSCAN_WRITE);
- 		return PAGE_SUCCESS;
+ 			/* Case 2 above */
+ 			} else if (writeback_throttling_sane(sc) ||
+-			    !folio_test_reclaim(folio) ||
++			    !folio_test_dropbehind(folio) ||
+ 			    !may_enter_fs(folio, sc->gfp_mask)) {
+-				/*
+-				 * This is slightly racy -
+-				 * folio_end_writeback() might have
+-				 * just cleared the reclaim flag, then
+-				 * setting the reclaim flag here ends up
+-				 * interpreted as the readahead flag - but
+-				 * that does not matter enough to care.
+-				 * What we do want is for this folio to
+-				 * have the reclaim flag set next time
+-				 * memcg reclaim reaches the tests above,
+-				 * so it will then wait for writeback to
+-				 * avoid OOM; and it's also appropriate
+-				 * in global reclaim.
+-				 */
+-				folio_set_reclaim(folio);
++				folio_set_dropbehind(folio);
+ 				stat->nr_writeback += nr_pages;
+ 				goto activate_locked;
+ 
+@@ -1368,7 +1354,7 @@ retry:
+ 			 */
+ 			if (folio_is_file_lru(folio) &&
+ 			    (!current_is_kswapd() ||
+-			     !folio_test_reclaim(folio) ||
++			     !folio_test_dropbehind(folio) ||
+ 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+@@ -1378,7 +1364,7 @@ retry:
+ 				 */
+ 				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
+ 						nr_pages);
+-				folio_set_reclaim(folio);
++				folio_set_dropbehind(folio);
+ 
+ 				goto activate_locked;
+ 			}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
