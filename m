@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB46419AD8D
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:46:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70D637081F
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:59:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738280785; cv=none; b=u0ZZSZEfOjNrnSYVCQvZFnWJHPSa+s4blQyTfmUUPaKMxcj1TEQO59rvC0oZVRnc/OU6w2X0ReikKamlz01sE21Nf1nuMqcgTxngVuLtR+CGSNuRWHZuqapky7XdOsGx722Ov8OLGD+tx4U6Nl9ORiU487s3JoYhYTf50UUuvWY=
+	t=1738281594; cv=none; b=CnGLXP6fyvG8IGh2FQi8Ezc/6RBjO2n19WEd+eXA35CVXklivj5BpqcUt6CkHBp2PlYKgEH67hVgTr5bhnDejvwRwke/aMpmq+Q4uBzpxwfT5MbshNBwLEfdDnIiyM8X/LAPv1Np+2Td99IAYuu0ZZvZxr74UZlUmjdUllCv5jE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738280785; c=relaxed/simple;
-	bh=Pd5Un4Utqlx5IEh0MbRkNR5DCXueA0TrPaJRwR1bNFQ=;
-	h=Date:To:From:Subject:Message-Id; b=pGhUBLMbQLsBzPkHUPaKy8cQWaJ9GxvFnf2TX5AN+qf9Hr96Hr56izKHKwT5cIv6BJnNyg+tFxa/awXTcCvGuOM9nLbMUenyLC2lofxdn21R7Z3wcKEtm++KP90Y1gPQbTnEzJebnx8VkOjd7zVVtVyMKJuf5I3P2aLdiLWyN6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UMGA3e04; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738281594; c=relaxed/simple;
+	bh=nyu8KZwUFW2R52o0s3j0+DudGv0/kD+RpiTBO7V98Qs=;
+	h=Date:To:From:Subject:Message-Id; b=eo5v8BMERqhmDd/dvBYbXfV9klG9xbtvGVuIE8t5c5r6FPaEdYWjUC1w2DuCyue+N4/C8ATorMF75mzp+T0WbSdiojO2a8Z0OgeSdWbbDmMIB07yzWr5jELhAJ6YV2IAs3erMPvDrMgNjuY2BG5ZPOAFcdNPhvjiJUHbh/GSSZo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T7XhsSYI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UMGA3e04"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35E7DC4CED2;
-	Thu, 30 Jan 2025 23:46:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T7XhsSYI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFC84C4CED2;
+	Thu, 30 Jan 2025 23:59:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738280785;
-	bh=Pd5Un4Utqlx5IEh0MbRkNR5DCXueA0TrPaJRwR1bNFQ=;
+	s=korg; t=1738281592;
+	bh=nyu8KZwUFW2R52o0s3j0+DudGv0/kD+RpiTBO7V98Qs=;
 	h=Date:To:From:Subject:From;
-	b=UMGA3e04tYOF+RLNn/ZI2bQDoB8C//PyU+7uno29wdKrDR2qPsbKpML2Fshdxh4jr
-	 6IalKmfYwKWX9GlnrmZQEYgnQtlvySlED+Zpq7zxnHLolCeFKo+3pYEPulRsCT9wlz
-	 FEPpGMkwFWuEXc3h4fktLiB82g9VlHII3OmeUTV8=
-Date: Thu, 30 Jan 2025 15:46:24 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,corbet@lwn.net,bilbao@vt.edu,carlos.bilbao@kernel.org,akpm@linux-foundation.org
+	b=T7XhsSYIbxU+PjK+CuLBGvi4kovFlkOlvrS17ogqqg9LE6zMXGTYWOhW7swZN0rLe
+	 zYs7LFKvzXHPoeXoGExp3lVJJNAwpIHtO5D1RZjzuDtx/GAQbRoOSinrwbfvXs+jHt
+	 szmRu468kV3+mWX95PXbr6o3MiHixHFEY7DuZrio=
+Date: Thu, 30 Jan 2025 15:59:52 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tamird@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-maintainers-docs-update-my-email-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250130234625.35E7DC4CED2@smtp.kernel.org>
+Subject: + maintainers-add-lib-test_xarrayc.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250130235952.AFC84C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap, MAINTAINERS, docs: update Carlos's email address
+     Subject: MAINTAINERS: add lib/test_xarray.c
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-maintainers-docs-update-my-email-address.patch
+     maintainers-add-lib-test_xarrayc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-maintainers-docs-update-my-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-lib-test_xarrayc.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,93 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Carlos Bilbao <carlos.bilbao@kernel.org>
-Subject: mailmap, MAINTAINERS, docs: update Carlos's email address
-Date: Wed, 29 Jan 2025 19:22:44 -0600
+From: Tamir Duberstein <tamird@gmail.com>
+Subject: MAINTAINERS: add lib/test_xarray.c
+Date: Wed, 29 Jan 2025 16:13:49 -0500
 
-Update .mailmap to reflect my new (and final) primary email address,
-carlos.bilbao@kernel.org.  Also update contact information in files
-Documentation/translations/sp_SP/index.rst and MAINTAINERS.
+Ensure test-only changes are sent to the relevant maintainer.
 
-Link: https://lkml.kernel.org/r/20250130012248.1196208-1-carlos.bilbao@kernel.org
-Signed-off-by: Carlos Bilbao <carlos.bilbao@kernel.org>
-Cc: Carlos Bilbao <bilbao@vt.edu>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20250129-xarray-test-maintainer-v1-1-482e31f30f47@gmail.com
+Signed-off-by: Tamir Duberstein <tamird@gmail.com>
 Cc: Mattew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap                                   |    4 +++-
- Documentation/translations/sp_SP/index.rst |    2 +-
- MAINTAINERS                                |    8 ++++----
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/translations/sp_SP/index.rst~mailmap-maintainers-docs-update-my-email-address
-+++ a/Documentation/translations/sp_SP/index.rst
-@@ -7,7 +7,7 @@ Traducción al español
- 
- 	\kerneldocCJKoff
- 
--:maintainer: Carlos Bilbao <carlos.bilbao.osdev@gmail.com>
-+:maintainer: Carlos Bilbao <carlos.bilbao@kernel.org>
- 
- .. _sp_disclaimer:
- 
---- a/.mailmap~mailmap-maintainers-docs-update-my-email-address
-+++ a/.mailmap
-@@ -148,7 +148,9 @@ Bryan Tan <bryan-bt.tan@broadcom.com> <b
- Cai Huoqing <cai.huoqing@linux.dev> <caihuoqing@baidu.com>
- Can Guo <quic_cang@quicinc.com> <cang@codeaurora.org>
- Carl Huang <quic_cjhuang@quicinc.com> <cjhuang@codeaurora.org>
--Carlos Bilbao <carlos.bilbao.osdev@gmail.com> <carlos.bilbao@amd.com>
-+Carlos Bilbao <carlos.bilbao@kernel.org> <carlos.bilbao@amd.com>
-+Carlos Bilbao <carlos.bilbao@kernel.org> <carlos.bilbao.osdev@gmail.com>
-+Carlos Bilbao <carlos.bilbao@kernel.org> <bilbao@vt.edu>
- Changbin Du <changbin.du@intel.com> <changbin.du@gmail.com>
- Changbin Du <changbin.du@intel.com> <changbin.du@intel.com>
- Chao Yu <chao@kernel.org> <chao2.yu@samsung.com>
---- a/MAINTAINERS~mailmap-maintainers-docs-update-my-email-address
+--- a/MAINTAINERS~maintainers-add-lib-test_xarrayc
 +++ a/MAINTAINERS
-@@ -1084,7 +1084,7 @@ F:	drivers/video/fbdev/geode/
+@@ -25681,6 +25681,7 @@ F:	Documentation/core-api/xarray.rst
+ F:	include/linux/idr.h
+ F:	include/linux/xarray.h
+ F:	lib/idr.c
++F:	lib/test_xarray.c
+ F:	lib/xarray.c
+ F:	tools/testing/radix-tree
  
- AMD HSMP DRIVER
- M:	Naveen Krishna Chatradhi <naveenkrishna.chatradhi@amd.com>
--R:	Carlos Bilbao <carlos.bilbao.osdev@gmail.com>
-+R:	Carlos Bilbao <carlos.bilbao@kernel.org>
- L:	platform-driver-x86@vger.kernel.org
- S:	Maintained
- F:	Documentation/arch/x86/amd_hsmp.rst
-@@ -5839,7 +5839,7 @@ F:	drivers/usb/atm/cxacru.c
- 
- CONFIDENTIAL COMPUTING THREAT MODEL FOR X86 VIRTUALIZATION (SNP/TDX)
- M:	Elena Reshetova <elena.reshetova@intel.com>
--M:	Carlos Bilbao <carlos.bilbao.osdev@gmail.com>
-+M:	Carlos Bilbao <carlos.bilbao@kernel.org>
- S:	Maintained
- F:	Documentation/security/snp-tdx-threat-model.rst
- 
-@@ -11298,7 +11298,7 @@ S:	Orphan
- F:	drivers/video/fbdev/imsttfb.c
- 
- INDEX OF FURTHER KERNEL DOCUMENTATION
--M:	Carlos Bilbao <carlos.bilbao.osdev@gmail.com>
-+M:	Carlos Bilbao <carlos.bilbao@kernel.org>
- S:	Maintained
- F:	Documentation/process/kernel-docs.rst
- 
-@@ -22159,7 +22159,7 @@ Q:	http://patchwork.linuxtv.org/project/
- F:	drivers/media/dvb-frontends/sp2*
- 
- SPANISH DOCUMENTATION
--M:	Carlos Bilbao <carlos.bilbao.osdev@gmail.com>
-+M:	Carlos Bilbao <carlos.bilbao@kernel.org>
- R:	Avadhut Naik <avadhut.naik@amd.com>
- S:	Maintained
- F:	Documentation/translations/sp_SP/
 _
 
-Patches currently in -mm which might be from carlos.bilbao@kernel.org are
+Patches currently in -mm which might be from tamird@gmail.com are
 
-mailmap-maintainers-docs-update-my-email-address.patch
-mailmap-remove-redundant-mappings-of-emails.patch
+maintainers-add-lib-test_xarrayc.patch
 
