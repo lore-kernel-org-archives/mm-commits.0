@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CF7D3987D;
-	Thu, 30 Jan 2025 22:39:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2178912C499
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 22:50:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738276790; cv=none; b=EixCfwqEobYyPJbfFc99Hdr8HDq5v50qR9RYt5m6Ba6kRttKjjnk8VT5QfA7dE0zTp2GOy06wcdCZm5LPpv8BR8Pr/PlEk4Ln465Dioilu4YLmrDDmpLgi63K94gjQEaTWKUIaniOJkRoD7WF1horEqae4EQe4kXcSYotRF0/sg=
+	t=1738277460; cv=none; b=el+FI8/UrRvq3ulVc34ynRkA0cTkZd8h9R1S9dcqJiGhgoz7BdBorUCSBQQ6Y/396xEOGgkzqIlGzH4S2bnXaWCRfwZjbc3/gbt4YcbG/lEUPwVH/lurSZ4X7C4OyGomqy0yXsvxLWb4Y7ptqlPXa2/XiQa4pmb7cAKKz9fHxV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738276790; c=relaxed/simple;
-	bh=xBi8k8k0fa7Y7B8ARc3ifazTtPrMd7L7S5+HT9Opo+Y=;
-	h=Date:To:From:Subject:Message-Id; b=kF1OAqMLUXonbJzhppMZX4gOuZKzu0xcYTerPDJKyR61LV1KGJQjp6jQAfPod38IinTNqPPq4cefsBTu/7w8KSKIwwyXGaAOPbqIhLVwEoAqeE3eDANejpD5gghIysxukE6HilDI0S3JsPmQGXlOxGKPxaSWpEg99McX8Cy2szM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lgkAS/sp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738277460; c=relaxed/simple;
+	bh=gYwOuT2EhNLGbM19pxiyYxSYfEBgsc4S/S7MLIITKAE=;
+	h=Date:To:From:Subject:Message-Id; b=Jn7ebjPdH2H0ZD1Z9FdBY6jVtkBmkmojCSSMtuElieJKLpapGjCDOMwPFhJYSD46D9PmIzJX8bru8oYUbgJC+TQi6hkKDjOF4nlKTW3rUR/6KRfVFFRbaJRGKv1KJPPiYHvM6u43acXNRp6jvoWuGT+ecG3ROxS/RfiYi6Pxl6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RzK8t6uc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lgkAS/sp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99EBEC4CED2;
-	Thu, 30 Jan 2025 22:39:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RzK8t6uc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 739DCC4CED2;
+	Thu, 30 Jan 2025 22:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738276789;
-	bh=xBi8k8k0fa7Y7B8ARc3ifazTtPrMd7L7S5+HT9Opo+Y=;
+	s=korg; t=1738277459;
+	bh=gYwOuT2EhNLGbM19pxiyYxSYfEBgsc4S/S7MLIITKAE=;
 	h=Date:To:From:Subject:From;
-	b=lgkAS/sp4Qt5tT+I5ezA5tEblTgGGtNRH8fdIqBTY+cVELsc7TyIuyq8jP4blxOuo
-	 W9k0Kaaze88Y+CO+YA/q1WCthyJyf1XfrLOJv8GQaonCRePzrdfPtOntwZoXn7jF3k
-	 XFqMioQHPkqmf53AyvA6HvlmgsxSOM7vsu/PkrKE=
-Date: Thu, 30 Jan 2025 14:39:48 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,ojeda@kernel.org,luiz.von.dentz@intel.com,lkp@intel.com,geert@linux-m68k.org,anna-maria@linutronix.de,eahariha@linux.microsoft.com,akpm@linux-foundation.org
+	b=RzK8t6uciemM8F2XsjRk4cWnrDmm24W0Otnj6OpcczmSbvB9RnToF9o0KWN3dOyVD
+	 PGnGkj3NuhGzzvrvWrYC54INOFWqLxPquTfVZ0lKPSYYycJvyMm3sx8e7rxnsJwiL1
+	 Uy6sjSxfyKw1X8ZZKZp5BODlYxtISQyZuhig98dE=
+Date: Thu, 30 Jan 2025 14:50:58 -0800
+To: mm-commits@vger.kernel.org,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + jiffies-cast-to-unsigned-long-for-secs_to_jiffies-conversion.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250130223949.99EBEC4CED2@smtp.kernel.org>
+Subject: + mm-swap-fix-reclaim-offset-calculation-error-during-allocation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250130225059.739DCC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: jiffies: cast to unsigned long for secs_to_jiffies() conversion
+     Subject: mm, swap: fix reclaim offset calculation error during allocation
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     jiffies-cast-to-unsigned-long-for-secs_to_jiffies-conversion.patch
+     mm-swap-fix-reclaim-offset-calculation-error-during-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jiffies-cast-to-unsigned-long-for-secs_to_jiffies-conversion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-reclaim-offset-calculation-error-during-allocation.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,62 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: jiffies: cast to unsigned long for secs_to_jiffies() conversion
-Date: Thu, 30 Jan 2025 19:26:58 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: fix reclaim offset calculation error during allocation
+Date: Thu, 30 Jan 2025 19:51:31 +0800
 
-While converting users of msecs_to_jiffies(), lkp reported that some range
-checks would always be true because of the mismatch between the implied
-int value of secs_to_jiffies() vs the unsigned long return value of the
-msecs_to_jiffies() calls it was replacing.  Fix this by casting
-secs_to_jiffies() values as unsigned long.
+There is a code error that will cause the swap entry allocator to reclaim
+and check the whole cluster with an unexpected tail offset instead of the
+part that needs to be reclaimed.  This may cause corruption of the swap
+map, so fix it.
 
-Link: https://lkml.kernel.org/r/20250130192701.99626-1-eahariha@linux.microsoft.com
-Fixes: b35108a51cf7ba ("jiffies: Define secs_to_jiffies()")
-Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202501301334.NB6NszQR-lkp@intel.com/
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Luiz Augusto von Dentz <luiz.von.dentz@intel.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.13+]
+Link: https://lkml.kernel.org/r/20250130115131.37777-1-ryncsn@gmail.com
+Fixes: 3b644773eefd ("mm, swap: reduce contention on device lock")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Chis Li <chrisl@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |    2 +-
+ mm/swapfile.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/jiffies.h~jiffies-cast-to-unsigned-long-for-secs_to_jiffies-conversion
-+++ a/include/linux/jiffies.h
-@@ -537,7 +537,7 @@ static __always_inline unsigned long mse
-  *
-  * Return: jiffies value
-  */
--#define secs_to_jiffies(_secs) ((_secs) * HZ)
-+#define secs_to_jiffies(_secs) (unsigned long)((_secs) * HZ)
- 
- extern unsigned long __usecs_to_jiffies(const unsigned int u);
- #if !(USEC_PER_SEC % HZ)
+--- a/mm/swapfile.c~mm-swap-fix-reclaim-offset-calculation-error-during-allocation
++++ a/mm/swapfile.c
+@@ -794,7 +794,7 @@ static unsigned int alloc_swap_scan_clus
+ 		if (!cluster_scan_range(si, ci, offset, nr_pages, &need_reclaim))
+ 			continue;
+ 		if (need_reclaim) {
+-			ret = cluster_reclaim_range(si, ci, start, end);
++			ret = cluster_reclaim_range(si, ci, offset, offset + nr_pages);
+ 			/*
+ 			 * Reclaim drops ci->lock and cluster could be used
+ 			 * by another order. Not checking flag as off-list
 _
 
-Patches currently in -mm which might be from eahariha@linux.microsoft.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-jiffies-cast-to-unsigned-long-for-secs_to_jiffies-conversion.patch
-scsi-lpfc-convert-timeouts-to-secs_to_jiffies.patch
-accel-habanalabs-convert-timeouts-to-secs_to_jiffies.patch
-alsa-ac97-convert-timeouts-to-secs_to_jiffies.patch
-btrfs-convert-timeouts-to-secs_to_jiffies.patch
-rbd-convert-timeouts-to-secs_to_jiffies.patch
-libceph-convert-timeouts-to-secs_to_jiffies.patch
-libata-zpodd-convert-timeouts-to-secs_to_jiffies.patch
-xfs-convert-timeouts-to-secs_to_jiffies.patch
-power-supply-da9030-convert-timeouts-to-secs_to_jiffies.patch
-nvme-convert-timeouts-to-secs_to_jiffies.patch
-spi-spi-fsl-lpspi-convert-timeouts-to-secs_to_jiffies.patch
-spi-spi-imx-convert-timeouts-to-secs_to_jiffies.patch
-platform-x86-amd-pmf-convert-timeouts-to-secs_to_jiffies.patch
-platform-x86-thinkpad_acpi-convert-timeouts-to-secs_to_jiffies.patch
-rdma-bnxt_re-convert-timeouts-to-secs_to_jiffies.patch
+mm-swap-fix-reclaim-offset-calculation-error-during-allocation.patch
 
