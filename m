@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5851139B
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:40:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1EFF139B
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:40:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738280458; cv=none; b=dFC7QAo88NpE708lE4/DPf4TMphl/vyJdWyJ4VOoJEGNKx6PxDXInk+xW/5joBAqLCdBj7Snk4xY7H3v8Dx5uMUcAuq0SPioquIdTYOxKdap4fl5FoZ/PPetkjKZ1bJM8XLcAmFD9kvvdE3/8AQJT0tIta02IsnGUDo06DCitT8=
+	t=1738280459; cv=none; b=Koy8S4ulcji9NdAxaBK45kgenpxRD2Of083evrcM5ElZF9uknX+DXvdRDFRMX3NcVqNOigN9mwHfxjk+wUQVB8exa0jH6e7b8Djx5JHDQ5+uldaNKUFyJCoNcXgddBso2RkDj9AA8NTxPAsuRhet96Xvm7Y35bNQ/OwZZ6DsxTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738280458; c=relaxed/simple;
-	bh=mbb5laJ1CAuVk+R+fsYc8xNgCDxhpFbXNOTg34U20K8=;
-	h=Date:To:From:Subject:Message-Id; b=I32E6JyecKokNP/DO+2VWqOxBFTC0q7AhVBXe729Y9gV2l3f4VhoOyO/4kD7jaOPAiYu91sWqpKwhT3arTs/Z/qgMXb3AA6Bgal9l8n8Zx7e1q2/Gz8YAAGhWNKy6LLqOqc6NAN1OPch2CmjByyo53P776/y1jvL01VsdrbH/2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wpaNU1ez; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738280459; c=relaxed/simple;
+	bh=epAdGRoXwrsRpOHphvUUrs/QDUn2clGrOHlOK58uw0A=;
+	h=Date:To:From:Subject:Message-Id; b=nf4Ad1Ri0RrmZm1KSYaNaVef0iKUyv4WzTCAZC/OFeL3ZsKQ2Wb/nByig2MJGo3vQHa5kX+suO8s4DK4p2LZ8HJlYTVYUnH1P7WoAVBQ4tXEWCiSaB8lb82Nf6w98ZOD3XoaTuQHdHytbQA9fbbRVg06d5Atn6saKpA6LwTDIdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1axKgCTd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wpaNU1ez"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E018C4CED3;
-	Thu, 30 Jan 2025 23:40:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1axKgCTd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8384AC4CED2;
+	Thu, 30 Jan 2025 23:40:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738280457;
-	bh=mbb5laJ1CAuVk+R+fsYc8xNgCDxhpFbXNOTg34U20K8=;
+	s=korg; t=1738280459;
+	bh=epAdGRoXwrsRpOHphvUUrs/QDUn2clGrOHlOK58uw0A=;
 	h=Date:To:From:Subject:From;
-	b=wpaNU1ezzMjBlI8qVAeUsvPLCM9OXr1Urm5WKp1DjfOKkyAPz3N097lLGfLZkmgZG
-	 aWC6elIARWr2AgOvq9vuIC8w1JeugrOkGc1jFPdIFRRM6zQ54sLuOsTF0RFgCaU0xf
-	 HnG551dxt0YpK5XBFmGVvI4JmVrqQb0CGTFCdG+o=
-Date: Thu, 30 Jan 2025 15:40:56 -0800
+	b=1axKgCTd2CU280Yqv5gEFhLPZhz+DD62xf13XGRbwgW9AqwzHoFKv1Wat4INDvvRp
+	 JZUfWrV8LftmYexrTwiFw2mfu9QmRyz+hSBRwAHhkKPh21x1cwNrW9QcxVXwqERdhc
+	 hTIgL5Jm8EAQzTJlIjZJ0H05/xx5tod0pskGOIJA=
+Date: Thu, 30 Jan 2025 15:40:59 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,vbabka@suse.cz,tursulin@ursulin.net,rostedt@goodmis.org,rodrigo.vivi@intel.com,ran.xiaokai@zte.com.cn,osalvador@suse.de,nphamcs@gmail.com,miklos@szeredi.hu,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,josef@toxicpanda.com,joonas.lahtinen@linux.intel.com,jason@zx2c4.com,jani.nikula@linux.intel.com,hannes@cmpxchg.org,gehao@kylinos.cn,david@redhat.com,dan.carpenter@linaro.org,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,brauner@kernel.org,axboe@kernel.dk,andi.shyti@linux.intel.com,airlied@gmail.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list.patch added to mm-unstable branch
-Message-Id: <20250130234057.4E018C4CED3@smtp.kernel.org>
+Subject: + mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq.patch added to mm-unstable branch
+Message-Id: <20250130234059.8384AC4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: use PG_dropbehind instead of PG_reclaim in shrink_folio_list()
+     Subject: mm/mglru: check PG_dropbehind instead of PG_reclaim in lru_gen_folio_seq()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list.patch
+     mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/vmscan: use PG_dropbehind instead of PG_reclaim in shrink_folio_list()
-Date: Thu, 30 Jan 2025 12:00:45 +0200
+Subject: mm/mglru: check PG_dropbehind instead of PG_reclaim in lru_gen_folio_seq()
+Date: Thu, 30 Jan 2025 12:00:46 +0200
 
-The recently introduced PG_dropbehind allows for freeing folios
-immediately after writeback.  Unlike PG_reclaim, it does not need vmscan
-to be involved to get the folio freed.
+Kernel sets PG_dropcache instead of PG_reclaim everywhere.  Check
+PG_dropcache in lru_gen_folio_seq().
 
-Instead of using folio_set_reclaim(), use folio_set_dropbehind() in
-shrink_folio_list().
+No need to check for dirty and writeback as there's no conflict with
+PG_readahead anymore.
 
-It is safe to leave PG_dropbehind on the folio if, for some reason (bug?),
-the folio is not in a writeback state after ->writepage().  In these
-cases, the kernel had to clear PG_reclaim as it shared a page flag bit
-with PG_readahead.
-
-Also use PG_dropbehind instead PG_reclaim to detect I/O congestion.
-
-Link: https://lkml.kernel.org/r/20250130100050.1868208-8-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20250130100050.1868208-9-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
@@ -108,90 +100,21 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   30 ++++++++----------------------
- 1 file changed, 8 insertions(+), 22 deletions(-)
+ include/linux/mm_inline.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-use-pg_dropbehind-instead-of-pg_reclaim-in-shrink_folio_list
-+++ a/mm/vmscan.c
-@@ -1140,7 +1140,7 @@ retry:
- 		 * for immediate reclaim are making it to the end of
- 		 * the LRU a second time.
- 		 */
--		if (writeback && folio_test_reclaim(folio))
-+		if (writeback && folio_test_dropbehind(folio))
- 			stat->nr_congested += nr_pages;
- 
- 		/*
-@@ -1149,7 +1149,7 @@ retry:
- 		 *
- 		 * 1) If reclaim is encountering an excessive number
- 		 *    of folios under writeback and this folio has both
--		 *    the writeback and reclaim flags set, then it
-+		 *    the writeback and dropbehind flags set, then it
- 		 *    indicates that folios are being queued for I/O but
- 		 *    are being recycled through the LRU before the I/O
- 		 *    can complete. Waiting on the folio itself risks an
-@@ -1173,7 +1173,7 @@ retry:
- 		 *    would probably show more reasons.
- 		 *
- 		 * 3) Legacy memcg encounters a folio that already has the
--		 *    reclaim flag set. memcg does not have any dirty folio
-+		 *    dropbehind flag set. memcg does not have any dirty folio
- 		 *    throttling so we could easily OOM just because too many
- 		 *    folios are in writeback and there is nothing else to
- 		 *    reclaim. Wait for the writeback to complete.
-@@ -1190,30 +1190,16 @@ retry:
- 		if (folio_test_writeback(folio)) {
- 			/* Case 1 above */
- 			if (current_is_kswapd() &&
--			    folio_test_reclaim(folio) &&
-+			    folio_test_dropbehind(folio) &&
- 			    test_bit(PGDAT_WRITEBACK, &pgdat->flags)) {
- 				stat->nr_immediate += nr_pages;
- 				goto activate_locked;
- 
- 			/* Case 2 above */
- 			} else if (writeback_throttling_sane(sc) ||
--			    !folio_test_reclaim(folio) ||
-+			    !folio_test_dropbehind(folio) ||
- 			    !may_enter_fs(folio, sc->gfp_mask)) {
--				/*
--				 * This is slightly racy -
--				 * folio_end_writeback() might have
--				 * just cleared the reclaim flag, then
--				 * setting the reclaim flag here ends up
--				 * interpreted as the readahead flag - but
--				 * that does not matter enough to care.
--				 * What we do want is for this folio to
--				 * have the reclaim flag set next time
--				 * memcg reclaim reaches the tests above,
--				 * so it will then wait for writeback to
--				 * avoid OOM; and it's also appropriate
--				 * in global reclaim.
--				 */
--				folio_set_reclaim(folio);
-+				folio_set_dropbehind(folio);
- 				stat->nr_writeback += nr_pages;
- 				goto activate_locked;
- 
-@@ -1368,7 +1354,7 @@ retry:
- 			 */
- 			if (folio_is_file_lru(folio) &&
- 			    (!current_is_kswapd() ||
--			     !folio_test_reclaim(folio) ||
-+			     !folio_test_dropbehind(folio) ||
- 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
- 				/*
- 				 * Immediately reclaim when written back.
-@@ -1378,7 +1364,7 @@ retry:
- 				 */
- 				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
- 						nr_pages);
--				folio_set_reclaim(folio);
-+				folio_set_dropbehind(folio);
- 
- 				goto activate_locked;
- 			}
+--- a/include/linux/mm_inline.h~mm-mglru-check-pg_dropbehind-instead-of-pg_reclaim-in-lru_gen_folio_seq
++++ a/include/linux/mm_inline.h
+@@ -241,8 +241,7 @@ static inline unsigned long lru_gen_foli
+ 	else if (reclaiming)
+ 		gen = MAX_NR_GENS;
+ 	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
+-		 (folio_test_reclaim(folio) &&
+-		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
++		 folio_test_dropbehind(folio))
+ 		gen = MIN_NR_GENS;
+ 	else
+ 		gen = MAX_NR_GENS - folio_test_workingset(folio);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
