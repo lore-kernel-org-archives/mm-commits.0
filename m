@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D492A1537C6
-	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:41:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A76C91537C6
+	for <mm-commits@vger.kernel.org>; Thu, 30 Jan 2025 23:41:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738280468; cv=none; b=KWGzjfpS0GjavocFM3QmfHbvi86LiP6C1zPtO7i+iTBko2cy3OXjlqd5WZLEnz03spbquGTY+aDT/7UOj+FZq0T+ObUlTxivDJjW87jkW5Gvz+fWYH9cKRTAZMRqT+ISlZ5JKmXGWjxijZmMreXaVgCl3m0HUAlzCJ0J5VA1090=
+	t=1738280471; cv=none; b=eSJ72HAUuwv/dGm7yUpzVwCzZ1ksstbvDFO75dRmJfHpes4sRouTlSOJsTLSOvd6ayg9RA9r4UgWeufuSo9BZerqUnvFoY9j0rquALII8jpe5AYVOTB7EqGjn5LDMWdAsShUgM/XmHztIVeKl1pcbOIK25Tj6GMYbvQlq0Nhwn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738280468; c=relaxed/simple;
-	bh=cmTIh8ZS0dCySobjdXqlg6G2613PznuyxkhPO1T8+dc=;
-	h=Date:To:From:Subject:Message-Id; b=aC4vqTGkYyroQnz7HJ11n4CbBk9LdB8Pp814gkXRaogmn6rDhtbhbWQG4jJIkw8jMpPZmB/znLBTdebnprsmnBdqR0T1hGD6yHuCOHavPExDc5x4KUG4Pdi71a+4Tk09XDrtNwnMevetVgkbocxh+7BV73/KrRn2pyiN6BYbmH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kcxFSATh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738280471; c=relaxed/simple;
+	bh=NKuk9+T2NX48Y+VEic00xEvBvoxY0QZ38Dp6zwarIjk=;
+	h=Date:To:From:Subject:Message-Id; b=q0x/sHdmDXA8p6ivTSoa8tzS4s9T7npwD95zy+7ZeNgIGMCoMdG5ysNwiaSD4lbankKAVEdLnigBEn/qWrxfXlyoaoxcZ+1faf9FLyJHgSncBAZitoiqvwmHvAhE0ATdHbxCBQjtg5a50rkoSZ7YImmtC6YhgAUnNVk7zI0t2rY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=09NXudyY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kcxFSATh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D631C4CED2;
-	Thu, 30 Jan 2025 23:41:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="09NXudyY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECA61C4CED2;
+	Thu, 30 Jan 2025 23:41:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738280468;
-	bh=cmTIh8ZS0dCySobjdXqlg6G2613PznuyxkhPO1T8+dc=;
+	s=korg; t=1738280471;
+	bh=NKuk9+T2NX48Y+VEic00xEvBvoxY0QZ38Dp6zwarIjk=;
 	h=Date:To:From:Subject:From;
-	b=kcxFSAThXHDMQ2eJ1uLpWIB21TjLGNP1iewRcm0EO+pAZlJtJhqQaxdO6nJtFyEzZ
-	 De44nQwSdQJnEECZG9FcUNKdUV3KdAWeAllT4sFVkDfwnBgb0nBJtizCYZvTaia9ma
-	 bLUvxSk+GkvpT8uv07Gf5WYd5rBbPgjC7Le5woec=
-Date: Thu, 30 Jan 2025 15:41:08 -0800
+	b=09NXudyYyiavIFzAaj1JkfMHSiFNP7RR898yXvm+irT9rxNDqjdJbWaNrtc+6gYft
+	 zwHrjynCjJrJmn52DwRSpgVz4mGhHxeSPrQvVz8jB0I73np9tXjMPpyC0pBlAEan1B
+	 WlMHFO6W9wxjYoLu9Cc5kpbiKZ8gYIb+Cfa4NSjE=
+Date: Thu, 30 Jan 2025 15:41:10 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,willy@infradead.org,vbabka@suse.cz,tursulin@ursulin.net,rostedt@goodmis.org,rodrigo.vivi@intel.com,ran.xiaokai@zte.com.cn,osalvador@suse.de,nphamcs@gmail.com,miklos@szeredi.hu,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,josef@toxicpanda.com,joonas.lahtinen@linux.intel.com,jason@zx2c4.com,jani.nikula@linux.intel.com,hannes@cmpxchg.org,gehao@kylinos.cn,david@redhat.com,dan.carpenter@linaro.org,christophe.leroy@csgroup.eu,chengming.zhou@linux.dev,brauner@kernel.org,axboe@kernel.dk,andi.shyti@linux.intel.com,airlied@gmail.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-do-not-demote-pg_dropbehind-folios.patch added to mm-unstable branch
-Message-Id: <20250130234108.9D631C4CED2@smtp.kernel.org>
+Subject: + mm-rename-pg_dropbehind-to-pg_reclaim.patch added to mm-unstable branch
+Message-Id: <20250130234110.ECA61C4CED2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: do not demote PG_dropbehind folios
+     Subject: mm: rename PG_dropbehind to PG_reclaim
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-do-not-demote-pg_dropbehind-folios.patch
+     mm-rename-pg_dropbehind-to-pg_reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-do-not-demote-pg_dropbehind-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-pg_dropbehind-to-pg_reclaim.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/vmscan: do not demote PG_dropbehind folios
-Date: Thu, 30 Jan 2025 12:00:48 +0200
+Subject: mm: rename PG_dropbehind to PG_reclaim
+Date: Thu, 30 Jan 2025 12:00:49 +0200
 
-PG_dropbehind flag indicates that the folio need to be freed immediately. 
-No point in demoting it.
+Now as PG_reclaim is gone, its name can be reclaimed for better use :)
 
-Link: https://lkml.kernel.org/r/20250130100050.1868208-11-kirill.shutemov@linux.intel.com
+Rename PG_dropbehind to PG_reclaim and rename all helpers around it.
+
+Link: https://lkml.kernel.org/r/20250130100050.1868208-12-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -93,24 +95,360 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Tvrtko Ursulin <tursulin@ursulin.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    2 -
+ include/linux/mm_inline.h                 |    2 -
+ include/linux/page-flags.h                |    8 ++--
+ include/linux/pagemap.h                   |    2 -
+ include/trace/events/mmflags.h            |    2 -
+ mm/filemap.c                              |   34 ++++++++++----------
+ mm/migrate.c                              |    4 +-
+ mm/readahead.c                            |    4 +-
+ mm/swap.c                                 |    2 -
+ mm/truncate.c                             |    2 -
+ mm/vmscan.c                               |   22 ++++++------
+ mm/zswap.c                                |    2 -
+ 12 files changed, 43 insertions(+), 43 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-do-not-demote-pg_dropbehind-folios
+--- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+@@ -329,7 +329,7 @@ void __shmem_writeback(size_t size, stru
+ 		if (!folio_mapped(folio) && folio_clear_dirty_for_io(folio)) {
+ 			int ret;
+ 
+-			folio_set_dropbehind(folio);
++			folio_set_reclaim(folio);
+ 			ret = mapping->a_ops->writepage(&folio->page, &wbc);
+ 			if (!ret)
+ 				goto put;
+--- a/include/linux/mm_inline.h~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/include/linux/mm_inline.h
+@@ -241,7 +241,7 @@ static inline unsigned long lru_gen_foli
+ 	else if (reclaiming)
+ 		gen = MAX_NR_GENS;
+ 	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
+-		 folio_test_dropbehind(folio))
++		 folio_test_reclaim(folio))
+ 		gen = MIN_NR_GENS;
+ 	else
+ 		gen = MAX_NR_GENS - folio_test_workingset(folio);
+--- a/include/linux/page-flags.h~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/include/linux/page-flags.h
+@@ -110,7 +110,7 @@ enum pageflags {
+ 	PG_readahead,
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
+ 	PG_unevictable,		/* Page is "unevictable"  */
+-	PG_dropbehind,		/* drop pages on IO completion */
++	PG_reclaim,		/* drop pages on IO completion */
+ #ifdef CONFIG_MMU
+ 	PG_mlocked,		/* Page is vma mlocked */
+ #endif
+@@ -595,9 +595,9 @@ FOLIO_FLAG(mappedtodisk, FOLIO_HEAD_PAGE
+ FOLIO_FLAG(readahead, FOLIO_HEAD_PAGE)
+ 	FOLIO_TEST_CLEAR_FLAG(readahead, FOLIO_HEAD_PAGE)
+ 
+-FOLIO_FLAG(dropbehind, FOLIO_HEAD_PAGE)
+-	FOLIO_TEST_CLEAR_FLAG(dropbehind, FOLIO_HEAD_PAGE)
+-	__FOLIO_SET_FLAG(dropbehind, FOLIO_HEAD_PAGE)
++FOLIO_FLAG(reclaim, FOLIO_HEAD_PAGE)
++	FOLIO_TEST_CLEAR_FLAG(reclaim, FOLIO_HEAD_PAGE)
++	__FOLIO_SET_FLAG(reclaim, FOLIO_HEAD_PAGE)
+ 
+ #ifdef CONFIG_HIGHMEM
+ /*
+--- a/include/linux/pagemap.h~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/include/linux/pagemap.h
+@@ -1360,7 +1360,7 @@ struct readahead_control {
+ 	pgoff_t _index;
+ 	unsigned int _nr_pages;
+ 	unsigned int _batch_count;
+-	bool dropbehind;
++	bool reclaim;
+ 	bool _workingset;
+ 	unsigned long _pflags;
+ };
+--- a/include/trace/events/mmflags.h~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/include/trace/events/mmflags.h
+@@ -180,7 +180,7 @@ TRACE_DEFINE_ENUM(___GFP_LAST_BIT);
+ 	DEF_PAGEFLAG_NAME(readahead),					\
+ 	DEF_PAGEFLAG_NAME(swapbacked),					\
+ 	DEF_PAGEFLAG_NAME(unevictable),					\
+-	DEF_PAGEFLAG_NAME(dropbehind)					\
++	DEF_PAGEFLAG_NAME(reclaim)					\
+ IF_HAVE_PG_MLOCK(mlocked)						\
+ IF_HAVE_PG_HWPOISON(hwpoison)						\
+ IF_HAVE_PG_IDLE(idle)							\
+--- a/mm/filemap.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/mm/filemap.c
+@@ -1591,11 +1591,11 @@ int folio_wait_private_2_killable(struct
+ EXPORT_SYMBOL(folio_wait_private_2_killable);
+ 
+ /*
+- * If folio was marked as dropbehind, then pages should be dropped when writeback
++ * If folio was marked as reclaim, then pages should be dropped when writeback
+  * completes. Do that now. If we fail, it's likely because of a big folio -
+- * just reset dropbehind for that case and latter completions should invalidate.
++ * just reset reclaim for that case and latter completions should invalidate.
+  */
+-static void folio_end_dropbehind_write(struct folio *folio)
++static void folio_end_reclaim_write(struct folio *folio)
+ {
+ 	/*
+ 	 * Hitting !in_task() should not happen off RWF_DONTCACHE writeback,
+@@ -1621,7 +1621,7 @@ static void folio_end_dropbehind_write(s
+  */
+ void folio_end_writeback(struct folio *folio)
+ {
+-	bool folio_dropbehind = false;
++	bool folio_reclaim = false;
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_writeback(folio), folio);
+ 
+@@ -1633,13 +1633,13 @@ void folio_end_writeback(struct folio *f
+ 	 */
+ 	folio_get(folio);
+ 	if (!folio_test_dirty(folio))
+-		folio_dropbehind = folio_test_clear_dropbehind(folio);
++		folio_reclaim = folio_test_clear_reclaim(folio);
+ 	if (__folio_end_writeback(folio))
+ 		folio_wake_bit(folio, PG_writeback);
+ 	acct_reclaim_writeback(folio);
+ 
+-	if (folio_dropbehind)
+-		folio_end_dropbehind_write(folio);
++	if (folio_reclaim)
++		folio_end_reclaim_write(folio);
+ 	folio_put(folio);
+ }
+ EXPORT_SYMBOL(folio_end_writeback);
+@@ -1963,7 +1963,7 @@ no_page:
+ 			if (fgp_flags & FGP_ACCESSED)
+ 				__folio_set_referenced(folio);
+ 			if (fgp_flags & FGP_DONTCACHE)
+-				__folio_set_dropbehind(folio);
++				__folio_set_reclaim(folio);
+ 
+ 			err = filemap_add_folio(mapping, folio, index, gfp);
+ 			if (!err)
+@@ -1987,8 +1987,8 @@ no_page:
+ 	if (!folio)
+ 		return ERR_PTR(-ENOENT);
+ 	/* not an uncached lookup, clear uncached if set */
+-	if (folio_test_dropbehind(folio) && !(fgp_flags & FGP_DONTCACHE))
+-		folio_clear_dropbehind(folio);
++	if (folio_test_reclaim(folio) && !(fgp_flags & FGP_DONTCACHE))
++		folio_clear_reclaim(folio);
+ 	return folio;
+ }
+ EXPORT_SYMBOL(__filemap_get_folio);
+@@ -2486,7 +2486,7 @@ static int filemap_create_folio(struct k
+ 	if (!folio)
+ 		return -ENOMEM;
+ 	if (iocb->ki_flags & IOCB_DONTCACHE)
+-		__folio_set_dropbehind(folio);
++		__folio_set_reclaim(folio);
+ 
+ 	/*
+ 	 * Protect against truncate / hole punch. Grabbing invalidate_lock
+@@ -2533,7 +2533,7 @@ static int filemap_readahead(struct kioc
+ 	if (iocb->ki_flags & IOCB_NOIO)
+ 		return -EAGAIN;
+ 	if (iocb->ki_flags & IOCB_DONTCACHE)
+-		ractl.dropbehind = 1;
++		ractl.reclaim = 1;
+ 	page_cache_async_ra(&ractl, folio, last_index - folio->index);
+ 	return 0;
+ }
+@@ -2564,7 +2564,7 @@ retry:
+ 		if (iocb->ki_flags & IOCB_NOWAIT)
+ 			flags = memalloc_noio_save();
+ 		if (iocb->ki_flags & IOCB_DONTCACHE)
+-			ractl.dropbehind = 1;
++			ractl.reclaim = 1;
+ 		page_cache_sync_ra(&ractl, last_index - index);
+ 		if (iocb->ki_flags & IOCB_NOWAIT)
+ 			memalloc_noio_restore(flags);
+@@ -2612,15 +2612,15 @@ static inline bool pos_same_folio(loff_t
+ 	return (pos1 >> shift == pos2 >> shift);
+ }
+ 
+-static void filemap_end_dropbehind_read(struct address_space *mapping,
++static void filemap_end_reclaim_read(struct address_space *mapping,
+ 					struct folio *folio)
+ {
+-	if (!folio_test_dropbehind(folio))
++	if (!folio_test_reclaim(folio))
+ 		return;
+ 	if (folio_test_writeback(folio) || folio_test_dirty(folio))
+ 		return;
+ 	if (folio_trylock(folio)) {
+-		if (folio_test_clear_dropbehind(folio))
++		if (folio_test_clear_reclaim(folio))
+ 			folio_unmap_invalidate(mapping, folio, 0);
+ 		folio_unlock(folio);
+ 	}
+@@ -2742,7 +2742,7 @@ put_folios:
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			struct folio *folio = fbatch.folios[i];
+ 
+-			filemap_end_dropbehind_read(mapping, folio);
++			filemap_end_reclaim_read(mapping, folio);
+ 			folio_put(folio);
+ 		}
+ 		folio_batch_init(&fbatch);
+--- a/mm/migrate.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/mm/migrate.c
+@@ -683,8 +683,8 @@ void folio_migrate_flags(struct folio *n
+ 		folio_set_dirty(newfolio);
+ 
+ 	/* TODO: free the folio on migration? */
+-	if (folio_test_dropbehind(folio))
+-		folio_set_dropbehind(newfolio);
++	if (folio_test_reclaim(folio))
++		folio_set_reclaim(newfolio);
+ 
+ 	if (folio_test_young(folio))
+ 		folio_set_young(newfolio);
+--- a/mm/readahead.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/mm/readahead.c
+@@ -185,8 +185,8 @@ static struct folio *ractl_alloc_folio(s
+ 	struct folio *folio;
+ 
+ 	folio = filemap_alloc_folio(gfp_mask, order);
+-	if (folio && ractl->dropbehind)
+-		__folio_set_dropbehind(folio);
++	if (folio && ractl->reclaim)
++		__folio_set_reclaim(folio);
+ 
+ 	return folio;
+ }
+--- a/mm/swap.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/mm/swap.c
+@@ -406,7 +406,7 @@ static bool lru_gen_clear_refs(struct fo
+  */
+ void folio_mark_accessed(struct folio *folio)
+ {
+-	if (folio_test_dropbehind(folio))
++	if (folio_test_reclaim(folio))
+ 		return;
+ 	if (lru_gen_enabled()) {
+ 		lru_gen_inc_refs(folio);
+--- a/mm/truncate.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/mm/truncate.c
+@@ -488,7 +488,7 @@ unsigned long mapping_try_invalidate(str
+ 			if (!ret) {
+ 				if (!folio_test_unevictable(folio) &&
+ 				    !folio_mapped(folio))
+-					folio_set_dropbehind(folio);
++					folio_set_reclaim(folio);
+ 
+ 				/* Likely in the lru cache of a remote CPU */
+ 				if (nr_failed)
+--- a/mm/vmscan.c~mm-rename-pg_dropbehind-to-pg_reclaim
 +++ a/mm/vmscan.c
+@@ -692,13 +692,13 @@ static pageout_t pageout(struct folio *f
+ 		if (shmem_mapping(mapping) && folio_test_large(folio))
+ 			wbc.list = folio_list;
+ 
+-		folio_set_dropbehind(folio);
++		folio_set_reclaim(folio);
+ 
+ 		res = mapping->a_ops->writepage(&folio->page, &wbc);
+ 		if (res < 0)
+ 			handle_write_error(mapping, folio, res);
+ 		if (res == AOP_WRITEPAGE_ACTIVATE) {
+-			folio_clear_dropbehind(folio);
++			folio_clear_reclaim(folio);
+ 			return PAGE_ACTIVATE;
+ 		}
+ 
+@@ -1140,7 +1140,7 @@ retry:
+ 		 * for immediate reclaim are making it to the end of
+ 		 * the LRU a second time.
+ 		 */
+-		if (writeback && folio_test_dropbehind(folio))
++		if (writeback && folio_test_reclaim(folio))
+ 			stat->nr_congested += nr_pages;
+ 
+ 		/*
+@@ -1149,7 +1149,7 @@ retry:
+ 		 *
+ 		 * 1) If reclaim is encountering an excessive number
+ 		 *    of folios under writeback and this folio has both
+-		 *    the writeback and dropbehind flags set, then it
++		 *    the writeback and reclaim flags set, then it
+ 		 *    indicates that folios are being queued for I/O but
+ 		 *    are being recycled through the LRU before the I/O
+ 		 *    can complete. Waiting on the folio itself risks an
+@@ -1173,7 +1173,7 @@ retry:
+ 		 *    would probably show more reasons.
+ 		 *
+ 		 * 3) Legacy memcg encounters a folio that already has the
+-		 *    dropbehind flag set. memcg does not have any dirty folio
++		 *    reclaim flag set. memcg does not have any dirty folio
+ 		 *    throttling so we could easily OOM just because too many
+ 		 *    folios are in writeback and there is nothing else to
+ 		 *    reclaim. Wait for the writeback to complete.
+@@ -1190,16 +1190,16 @@ retry:
+ 		if (folio_test_writeback(folio)) {
+ 			/* Case 1 above */
+ 			if (current_is_kswapd() &&
+-			    folio_test_dropbehind(folio) &&
++			    folio_test_reclaim(folio) &&
+ 			    test_bit(PGDAT_WRITEBACK, &pgdat->flags)) {
+ 				stat->nr_immediate += nr_pages;
+ 				goto activate_locked;
+ 
+ 			/* Case 2 above */
+ 			} else if (writeback_throttling_sane(sc) ||
+-			    !folio_test_dropbehind(folio) ||
++			    !folio_test_reclaim(folio) ||
+ 			    !may_enter_fs(folio, sc->gfp_mask)) {
+-				folio_set_dropbehind(folio);
++				folio_set_reclaim(folio);
+ 				stat->nr_writeback += nr_pages;
+ 				goto activate_locked;
+ 
 @@ -1231,7 +1231,7 @@ retry:
  		 * Before reclaiming the folio, try to relocate
  		 * its contents to another node.
  		 */
--		if (do_demote_pass &&
-+		if (do_demote_pass && !folio_test_dropbehind(folio) &&
+-		if (do_demote_pass && !folio_test_dropbehind(folio) &&
++		if (do_demote_pass && !folio_test_reclaim(folio) &&
  		    (thp_migration_supported() || !folio_test_large(folio))) {
  			list_add(&folio->lru, &demote_folios);
  			folio_unlock(folio);
+@@ -1354,7 +1354,7 @@ retry:
+ 			 */
+ 			if (folio_is_file_lru(folio) &&
+ 			    (!current_is_kswapd() ||
+-			     !folio_test_dropbehind(folio) ||
++			     !folio_test_reclaim(folio) ||
+ 			     !test_bit(PGDAT_DIRTY, &pgdat->flags))) {
+ 				/*
+ 				 * Immediately reclaim when written back.
+@@ -1364,7 +1364,7 @@ retry:
+ 				 */
+ 				node_stat_mod_folio(folio, NR_VMSCAN_IMMEDIATE,
+ 						nr_pages);
+-				folio_set_dropbehind(folio);
++				folio_set_reclaim(folio);
+ 
+ 				goto activate_locked;
+ 			}
+--- a/mm/zswap.c~mm-rename-pg_dropbehind-to-pg_reclaim
++++ a/mm/zswap.c
+@@ -1103,7 +1103,7 @@ static int zswap_writeback_entry(struct
+ 	folio_mark_uptodate(folio);
+ 
+ 	/* free the folio after writeback */
+-	folio_set_dropbehind(folio);
++	folio_set_reclaim(folio);
+ 
+ 	/* start writeback */
+ 	__swap_writepage(folio, &wbc);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
