@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12FC523A9;
-	Fri, 31 Jan 2025 01:44:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1D9FF9FE
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 21:45:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738287876; cv=none; b=csZnHu/PUvXfYaI6oJWQl76LOnEpXRi/uhG0LEbUe8kFichLPusH/VrnAkM8JQJpLl4qTZZ1ytMbQXjPpJcWJ5SJ5ceKEXbll4usL6C2A8SrksAqC0sNpiYNYwwPYLi6LEYgsUmmN7GMnsw1hhLXSWTUxiOzku81AJEEhX3Wp40=
+	t=1738359929; cv=none; b=gwEqEf4tqw/9F2TNkCxvbMXQjZLmECGPoUEQLz7Eue9bNFnq7rmq3ErHJbu2iFnD5Nh6gMm5Ri+4Atulaz2Om3G/M+PGEFyuATRKaYD62Q0ReozrtUe+y3wAexazwA5+s9crbpAlte9XQZIyrpTf6rG0GkCItrwFCLgbBFtfldc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738287876; c=relaxed/simple;
-	bh=V5XXWtC72CVWnAF75ZdXH3wBassW4aNhCpFJtKue878=;
-	h=Date:To:From:Subject:Message-Id; b=ngFw/wUGUzUm1FJWKZyPStVzKEsPWxw56oz71fYA/Y8k8NihY+Qa4xaxf5lWqf1+GUMB/QWCVma4IG8otsV8+F5Ea8xfhiEwpFEBmF+fKhXT5O4oHKrcnxCTm7HCno/jJU3sjjikXReka4Mrd3oWIXDkDiGHJMKBAKPYNuPz95Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l8y8jHkE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738359929; c=relaxed/simple;
+	bh=rbfb1xqPoYeAHg8oa7QfpxRg9NjcCsmhRiXGpNzLIy4=;
+	h=Date:To:From:Subject:Message-Id; b=NBd7IhFS+NkRKnZpkIevsAHkQyTXXmJJfsMBoQrE6m0WZDHHUF909QR6ZhYYNRaq6JKa341hMotkX/Vxd2N+centEV7yUF//Yc+TI7EGYm4sEy4LMleaGsj2t1jLHBa+oO2CAYrlTk8O+UQD3LxCjx8ZTJ/KPCO+m7zzFZdVCd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQeXsA+5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l8y8jHkE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 617DBC4CED2;
-	Fri, 31 Jan 2025 01:44:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQeXsA+5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C62CC4CED1;
+	Fri, 31 Jan 2025 21:45:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738287875;
-	bh=V5XXWtC72CVWnAF75ZdXH3wBassW4aNhCpFJtKue878=;
+	s=korg; t=1738359928;
+	bh=rbfb1xqPoYeAHg8oa7QfpxRg9NjcCsmhRiXGpNzLIy4=;
 	h=Date:To:From:Subject:From;
-	b=l8y8jHkE0XAy1aZdTe0ZurWFn0UcwgYRko4uRKjoTwYlvgMESYgcwlcEggVSFuEKX
-	 DhLP8gC+22WY31lI+YaRqixlU03wywZrehIPuj8YjyLMKoQTzMoiY253ek4LqsIYiX
-	 gLG85vGKM0b/6e6i6UzYe2RU0RjQl0Vs7oc3zZVs=
-Date: Thu, 30 Jan 2025 17:44:34 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,stable@vger.kernel.org,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,42.hyeyoo@gmail.com,akpm@linux-foundation.org
+	b=tQeXsA+5w4a2XHHE0q6fKc+Nu2F4iMTCkJgVOWuGK+0Kfg2z518UE0+ipEBkqvHe1
+	 Umaw/GIi03GkMEohUzBtiPcWSsd4R2pO/oTGmbNjYd99k4W6F7BByaM9LJC/WMUfsF
+	 kC+umojj6HHfv6Z5f+6LW4eC2v4RqJeu5QtqLEjU=
+Date: Fri, 31 Jan 2025 13:45:27 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,souravpanda@google.com,rientjes@google.com,pasha.tatashin@soleen.com,nathan@kernel.org,kaiyang2@cs.cmu.edu,joel.granados@kernel.org,intelfx@intelfx.name,hannes@cmpxchg.org,david@redhat.com,david.laight@aculab.com,bvanassche@acm.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-inconsistency-when-zswap_store_page-fails.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250131014435.617DBC4CED2@smtp.kernel.org>
+Subject: + mm-fix-clang-w=1-compiler-warnings.patch added to mm-unstable branch
+Message-Id: <20250131214528.5C62CC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: fix inconsistency when zswap_store_page() fails
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-fix-inconsistency-when-zswap_store_page-fails.patch
+     Subject: mm: Fix clang W=1 compiler warnings
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-clang-w=1-compiler-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-inconsistency-when-zswap_store_page-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-clang-w=1-compiler-warnings.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,107 +58,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/zswap: fix inconsistency when zswap_store_page() fails
-Date: Wed, 29 Jan 2025 19:08:44 +0900
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: mm: Fix clang W=1 compiler warnings
+Date: Fri, 31 Jan 2025 11:12:23 -0800
 
-Commit b7c0ccdfbafd ("mm: zswap: support large folios in zswap_store()")
-skips charging any zswap entries when it failed to zswap the entire folio.
+Commit 30c2de0a267c ("mm/vmstat: fix a W=1 clang compiler warning")
+suppresses some but not all compiler warnings that are reported by clang
+when building mm/ with W=1.  Hence revert commit 30c2de0a267c and instead
+make NR_LRU_BASE and NR_ZONE_LRU_BASE integer constants instead of
+enumeration constants.  Additionally, convert the item##_NORMAL constants
+from type enum vm_event_item into int before subtracting ZONE_NORMAL.  The
+latter constant has type enum zone_type.
 
-However, when some base pages are zswapped but it failed to zswap the
-entire folio, the zswap operation is rolled back.  When freeing zswap
-entries for those pages, zswap_entry_free() uncharges the zswap entries
-that were not previously charged, causing zswap charging to become
-inconsistent.
-
-This inconsistency triggers two warnings with following steps:
-  # On a machine with 64GiB of RAM and 36GiB of zswap
-  $ stress-ng --bigheap 2 # wait until the OOM-killer kills stress-ng
-  $ sudo reboot
-
-  The two warnings are:
-    in mm/memcontrol.c:163, function obj_cgroup_release():
-      WARN_ON_ONCE(nr_bytes & (PAGE_SIZE - 1));
-
-    in mm/page_counter.c:60, function page_counter_cancel():
-      if (WARN_ONCE(new < 0, "page_counter underflow: %ld nr_pages=%lu\n",
-	  new, nr_pages))
-
-zswap_stored_pages also becomes inconsistent in the same way.
-
-As suggested by Kanchana, increment zswap_stored_pages and charge zswap
-entries within zswap_store_page() when it succeeds.  This way,
-zswap_entry_free() will decrement the counter and uncharge the entries
-when it failed to zswap the entire folio.
-
-While this could potentially be optimized by batching objcg charging and
-incrementing the counter, let's focus on fixing the bug this time and
-leave the optimization for later after some evaluation.
-
-After resolving the inconsistency, the warnings disappear.
-
-Link: https://lkml.kernel.org/r/20250129100844.2935-1-42.hyeyoo@gmail.com
-Fixes: b7c0ccdfbafd ("mm: zswap: support large folios in zswap_store()")
-Co-developed-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Link: https://lkml.kernel.org/r/20250131191231.1370466-1-bvanassche@acm.org
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Ivan Shapovalov <intelfx@intelfx.name>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Laight <david.laight@aculab.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joel Granados <joel.granados@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Sourav Panda <souravpanda@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/linux/mmzone.h |   26 +++++++++++++++++++++-----
+ include/linux/vmstat.h |    9 +++++++--
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-inconsistency-when-zswap_store_page-fails
-+++ a/mm/zswap.c
-@@ -1504,11 +1504,14 @@ static ssize_t zswap_store_page(struct p
- 	entry->pool = pool;
- 	entry->swpentry = page_swpentry;
- 	entry->objcg = objcg;
-+	if (objcg)
-+		obj_cgroup_charge_zswap(objcg, entry->length);
- 	entry->referenced = true;
- 	if (entry->length) {
- 		INIT_LIST_HEAD(&entry->lru);
- 		zswap_lru_add(&zswap_list_lru, entry);
- 	}
-+	atomic_long_inc(&zswap_stored_pages);
+--- a/include/linux/mmzone.h~mm-fix-clang-w=1-compiler-warnings
++++ a/include/linux/mmzone.h
+@@ -135,11 +135,20 @@ enum numa_stat_item {
+ #define NR_VM_NUMA_EVENT_ITEMS 0
+ #endif
  
- 	return entry->length;
++/*
++ * NR_ZONE_LRU_BASE and NR_VM_ZONE_STAT_ITEMS are often added to enumeration
++ * constants of another type than enum_zone_stat_item. Define these constants
++ * as an integer instead of enum node_stat_item to prevent that the compiler
++ * warns about enumeration type mismatches when these constants are used.
++ */
++#define NR_ZONE_LRU_BASE	(__NR_ZONE_LRU_BASE + 0)
++#define NR_VM_ZONE_STAT_ITEMS	(__NR_VM_ZONE_STAT_ITEMS + 0)
++
+ enum zone_stat_item {
+ 	/* First 128 byte cacheline (assuming 64 bit words) */
+ 	NR_FREE_PAGES,
+-	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
+-	NR_ZONE_INACTIVE_ANON = NR_ZONE_LRU_BASE,
++	__NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
++	NR_ZONE_INACTIVE_ANON = __NR_ZONE_LRU_BASE,
+ 	NR_ZONE_ACTIVE_ANON,
+ 	NR_ZONE_INACTIVE_FILE,
+ 	NR_ZONE_ACTIVE_FILE,
+@@ -155,11 +164,18 @@ enum zone_stat_item {
+ #ifdef CONFIG_UNACCEPTED_MEMORY
+ 	NR_UNACCEPTED,
+ #endif
+-	NR_VM_ZONE_STAT_ITEMS };
++	__NR_VM_ZONE_STAT_ITEMS };
++
++/*
++ * enum lru_list constants are often added to NR_LRU_BASE. Define NR_LRU_BASE
++ * as an integer instead of enum node_stat_item to prevent that the compiler
++ * warns about enumeration type mismatches.
++ */
++#define NR_LRU_BASE (__NR_LRU_BASE + 0)
  
-@@ -1526,7 +1529,6 @@ bool zswap_store(struct folio *folio)
- 	struct obj_cgroup *objcg = NULL;
- 	struct mem_cgroup *memcg = NULL;
- 	struct zswap_pool *pool;
--	size_t compressed_bytes = 0;
- 	bool ret = false;
- 	long index;
+ enum node_stat_item {
+-	NR_LRU_BASE,
+-	NR_INACTIVE_ANON = NR_LRU_BASE, /* must match order of LRU_[IN]ACTIVE */
++	__NR_LRU_BASE,
++	NR_INACTIVE_ANON = __NR_LRU_BASE, /*must match order of LRU_[IN]ACTIVE*/
+ 	NR_ACTIVE_ANON,		/*  "     "     "   "       "         */
+ 	NR_INACTIVE_FILE,	/*  "     "     "   "       "         */
+ 	NR_ACTIVE_FILE,		/*  "     "     "   "       "         */
+--- a/include/linux/vmstat.h~mm-fix-clang-w=1-compiler-warnings
++++ a/include/linux/vmstat.h
+@@ -135,8 +135,13 @@ static inline void vm_events_fold_cpu(in
+ #define count_vm_vma_lock_event(x) do {} while (0)
+ #endif
  
-@@ -1569,15 +1571,11 @@ bool zswap_store(struct folio *folio)
- 		bytes = zswap_store_page(page, objcg, pool);
- 		if (bytes < 0)
- 			goto put_pool;
--		compressed_bytes += bytes;
- 	}
++/*
++ * item##_NORMAL has type enum vm_event_item while ZONE_NORMAL and zid have
++ * type enum zone_type. Suppress compiler warnings about mixing different
++ * enumeration types by converting item##_NORMAL into an int with '+ 0'.
++ */
+ #define __count_zid_vm_events(item, zid, delta) \
+-	__count_vm_events(item##_NORMAL - ZONE_NORMAL + zid, delta)
++	__count_vm_events((item##_NORMAL + 0) - ZONE_NORMAL + zid, delta)
  
--	if (objcg) {
--		obj_cgroup_charge_zswap(objcg, compressed_bytes);
-+	if (objcg)
- 		count_objcg_events(objcg, ZSWPOUT, nr_pages);
--	}
+ /*
+  * Zone and node-based page accounting with per cpu differentials.
+@@ -515,7 +520,7 @@ static inline const char *node_stat_name
  
--	atomic_long_add(nr_pages, &zswap_stored_pages);
- 	count_vm_events(ZSWPOUT, nr_pages);
+ static inline const char *lru_list_name(enum lru_list lru)
+ {
+-	return node_stat_name(NR_LRU_BASE + (enum node_stat_item)lru) + 3; // skip "nr_"
++	return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
+ }
  
- 	ret = true;
+ #if defined(CONFIG_VM_EVENT_COUNTERS) || defined(CONFIG_MEMCG)
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from bvanassche@acm.org are
 
-mm-zsmalloc-add-__maybe_unused-attribute-for-is_first_zpdesc.patch
-mm-zswap-fix-inconsistency-when-zswap_store_page-fails.patch
+procfs-fix-a-locking-bug-in-a-vmcore_add_device_dump-error-path.patch
+mm-fix-clang-w=1-compiler-warnings.patch
 
