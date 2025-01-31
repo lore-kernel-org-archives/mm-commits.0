@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C27F1F2C28
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 21:53:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2AE91F3D53
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 21:54:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738360439; cv=none; b=S1wL4wI/eO/KUMT2oey5O+gwGCxzEnMpTlz1MtxYN8fRJC3zddhI2qNKMDZ/A98RVTgOlWpFIXm+U4n82YYUMXZqgCe8FnGXBEmK24KPRTO+jOSYulGwPzaIsFxlj9unoft2ZsPxqbU/16Iv5EZxVLJNI0mIFJZG/2068RV9/d4=
+	t=1738360441; cv=none; b=hjtgzhRymEjO5mAmnOsSKEn4MMGFdxrtjbfeIUad4Vu19hOjq6x6r+Wl8GVDXf0uGo+cGM7YGFBrXoaqKaRZsCC2zOQSRcTOhoD00erFyISbJ4GccvxIXMxRIIZplt8weXs1fY/GDsdiEH+CVWQKFhsO/RRw02mRAmkqrPhuO3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738360439; c=relaxed/simple;
-	bh=+Araq9A+gGaDcqFmZDzNzok3w86RWYOwypXA8cuCUSo=;
-	h=Date:To:From:Subject:Message-Id; b=QtoKOV1UnO4ythP6m/POXn9X8O6wi+qBSIbAJ6X3PLOsKFUTdtbHCF3AC5khhClU3fM7EfrcHzHczXhV60oz08wmBFWjjB2n6gVcF+HKfUR+x83raS7Be6wKxBBJgdkwvx5/jtCA9PRLI2eoDWnn5m1IbulWaqZDpwFAhOQWGEY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eMzAxXr5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738360441; c=relaxed/simple;
+	bh=/un7Jnq05fkwM0LPcvoYtT/lsuVuE8eDJP5l1ajS+7Q=;
+	h=Date:To:From:Subject:Message-Id; b=M9FSDfUSpbAbFnLAy7AJJWCc7/DQY5fg8q6TDANtFSYM00OWMC4JSSWYd5f6Ep+hKRzqY6BqtEPXsIgYt9gqnYmkO8WvZ6oCY5jR+BTHL5PHL2SoHiIlml/kVh5I2qdTAiXNs0o8O5ln5ZpO8lRYGAzMBcEsH4TvTS0bRH+zqvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zhOfaOrP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eMzAxXr5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4538C4CEE1;
-	Fri, 31 Jan 2025 21:53:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zhOfaOrP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39C4FC4CED1;
+	Fri, 31 Jan 2025 21:54:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738360438;
-	bh=+Araq9A+gGaDcqFmZDzNzok3w86RWYOwypXA8cuCUSo=;
+	s=korg; t=1738360441;
+	bh=/un7Jnq05fkwM0LPcvoYtT/lsuVuE8eDJP5l1ajS+7Q=;
 	h=Date:To:From:Subject:From;
-	b=eMzAxXr5DeMdzbJKQQOjIiLkHuzRUJ6qmUl0BPbhFuZU5+Sv8RU/CJ4M9SmNPGnnk
-	 tXlClNewEXRwluyXcljOWKNfYudyeU6N3sfVv7ysWxTG+KmLMxluwnGTI+by+r9dB+
-	 BY4yhu1JayrOUmZEAqdArel0Ls8WQ1cwRaZhUGkE=
-Date: Fri, 31 Jan 2025 13:53:58 -0800
+	b=zhOfaOrPU8QY8Va0Wm2y+7c7DACF4cfiJz8KrKXNz5/iRNwLplgAIL9i0R68pd8vH
+	 IMCno7tEqnJvdd7rADMG9qfX39Fqzr+hPJ01UByqXMnSIhQo+4NlUb1gyW+78nwXmI
+	 tt0mnI7Elcsa4rna24+njosNsyRds4lXVSXKIXio=
+Date: Fri, 31 Jan 2025 13:54:00 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,soci@c64.rulez.org,mcanal@igalia.com,jayakumar.lkml@gmail.com,deller@gmx.de,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-provide-mapping_wrprotect_page-function.patch added to mm-unstable branch
-Message-Id: <20250131215358.A4538C4CEE1@smtp.kernel.org>
+Subject: + fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch added to mm-unstable branch
+Message-Id: <20250131215401.39C4FC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: provide mapping_wrprotect_page() function
+     Subject: fb_defio: do not use deprecated page->mapping, index fields
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-provide-mapping_wrprotect_page-function.patch
+     fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-mapping_wrprotect_page-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,148 +59,149 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: provide mapping_wrprotect_page() function
-Date: Fri, 31 Jan 2025 18:28:57 +0000
+Subject: fb_defio: do not use deprecated page->mapping, index fields
+Date: Fri, 31 Jan 2025 18:28:58 +0000
 
-In the fb_defio video driver, page dirty state is used to determine when
-frame buffer pages have been changed, allowing for batched, deferred I/O
-to be performed for efficiency.
+With the introduction of mapping_wrprotect_page() there is no need to use
+folio_mkclean() in order to write-protect mappings of frame buffer pages,
+and therefore no need to inappropriately set kernel-allocated page->index,
+mapping fields to permit this operation.
 
-This implementation had only one means of doing so effectively - the use
-of the folio_mkclean() function.
+Instead, store the pointer to the page cache object for the mapped driver
+in the fb_deferred_io object, and use the already stored page offset from
+the pageref object to look up mappings in order to write-protect them.
 
-However, this use of the function is inappropriate, as the fb_defio
-implementation allocates kernel memory to back the framebuffer, and then
-is forced to specified page->index, mapping fields in order to permit the
-folio_mkclean() rmap traversal to proceed correctly.
+This is justified, as for the page objects to store a mapping pointer at
+the point of assignment of pages, they must all reference the same
+underlying address_space object.  Since the life time of the pagerefs is
+also the lifetime of the fb_deferred_io object, storing the pointer here
+makes snese.
 
-It is not correct to specify these fields on kernel-allocated memory, and
-moreover since these are not folios, page->index, mapping are deprecated
-fields, soon to be removed.
+This eliminates the need for all of the logic around setting and
+maintaining page->index,mapping which we remove.
 
-We therefore need to provide a means by which we can correctly traverse
-the reverse mapping and write-protect mappings for a page backing an
-address_space page cache object at a given offset.
+This eliminates the use of folio_mkclean() entirely but otherwise should
+have no functional change.
 
-This patch provides this - mapping_wrprotect_page() allows for this
-operation to be performed for a specified address_space, offset and page,
-without requiring a folio nor, of course, an inappropriate use of
-page->index, mapping.
-
-With this provided, we can subequently adjust the fb_defio implementation
-to make use of this function and avoid incorrect invocation of
-folio_mkclean() and more importantly, incorrect manipulation of
-page->index, mapping fields.
-
-Link: https://lkml.kernel.org/r/c802c17cdba59e3455f3d7db07659d5da0ed6dc1.1738347308.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/3542c5bb74d2487cf45d1d02ee5e73a05c4d279a.1738347308.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Tested-by: Kajtar Zsolt <soci@c64.rulez.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Kajtar Zsolt <soci@c64.rulez.org>
 Cc: Maíra Canal <mcanal@igalia.com>
 Cc: Mattew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 +
- mm/rmap.c            |   73 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 76 insertions(+)
+ drivers/video/fbdev/core/fb_defio.c |   38 +++++++-------------------
+ include/linux/fb.h                  |    1 
+ 2 files changed, 12 insertions(+), 27 deletions(-)
 
---- a/include/linux/rmap.h~mm-provide-mapping_wrprotect_page-function
-+++ a/include/linux/rmap.h
-@@ -739,6 +739,9 @@ unsigned long page_address_in_vma(const
-  */
- int folio_mkclean(struct folio *);
- 
-+int mapping_wrprotect_page(struct address_space *mapping, pgoff_t pgoff,
-+		unsigned long nr_pages, struct page *page);
-+
- int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
- 		      struct vm_area_struct *vma);
- 
---- a/mm/rmap.c~mm-provide-mapping_wrprotect_page-function
-+++ a/mm/rmap.c
-@@ -1129,6 +1129,79 @@ int folio_mkclean(struct folio *folio)
+--- a/drivers/video/fbdev/core/fb_defio.c~fb_defio-do-not-use-deprecated-page-mapping-index-fields
++++ a/drivers/video/fbdev/core/fb_defio.c
+@@ -69,14 +69,6 @@ out:
+ 	return pageref;
  }
- EXPORT_SYMBOL_GPL(folio_mkclean);
  
-+struct wrprotect_file_state {
-+	int cleaned;
-+	pgoff_t pgoff;
-+	unsigned long pfn;
-+	unsigned long nr_pages;
-+};
-+
-+static bool mapping_wrprotect_page_one(struct folio *folio,
-+		struct vm_area_struct *vma, unsigned long address, void *arg)
-+{
-+	struct wrprotect_file_state *state = (struct wrprotect_file_state *)arg;
-+	struct page_vma_mapped_walk pvmw = {
-+		.pfn		= state->pfn,
-+		.nr_pages	= state->nr_pages,
-+		.pgoff		= state->pgoff,
-+		.vma		= vma,
-+		.address	= address,
-+		.flags		= PVMW_SYNC,
-+	};
-+
-+	state->cleaned += page_vma_mkclean_one(&pvmw);
-+
-+	return true;
-+}
-+
-+static void __rmap_walk_file(struct folio *folio, struct address_space *mapping,
-+			     pgoff_t pgoff_start, unsigned long nr_pages,
-+			     struct rmap_walk_control *rwc, bool locked);
-+
-+/**
-+ * mapping_wrprotect_page() - Write protect all mappings of this page.
-+ *
-+ * @mapping:	The mapping whose reverse mapping should be traversed.
-+ * @pgoff:	The page offset at which @page is mapped within @mapping.
-+ * @nr_pages:	The number of physically contiguous base pages spanned.
-+ * @page:	The page mapped in @mapping at @pgoff.
-+ *
-+ * Traverses the reverse mapping, finding all VMAs which contain a shared
-+ * mapping of the single @page in @mapping at offset @pgoff and write-protecting
-+ * the mappings.
-+ *
-+ * The page does not have to be a folio, but rather can be a kernel allocation
-+ * that is mapped into userland. We therefore do not require that the page maps
-+ * to a folio with a valid mapping or index field, rather these are specified in
-+ * @mapping and @pgoff.
-+ *
-+ * Return: the number of write-protected PTEs, or an error.
-+ */
-+int mapping_wrprotect_page(struct address_space *mapping, pgoff_t pgoff,
-+		unsigned long nr_pages, struct page *page)
-+{
-+	struct wrprotect_file_state state = {
-+		.cleaned = 0,
-+		.pgoff = pgoff,
-+		.pfn = page_to_pfn(page),
-+		.nr_pages = nr_pages,
-+	};
-+	struct rmap_walk_control rwc = {
-+		.arg = (void *)&state,
-+		.rmap_one = mapping_wrprotect_page_one,
-+		.invalid_vma = invalid_mkclean_vma,
-+	};
-+
-+	if (!mapping)
-+		return 0;
-+
-+	__rmap_walk_file(/* folio = */NULL, mapping, pgoff, nr_pages, &rwc,
-+			 /* locked = */false);
-+
-+	return state.cleaned;
-+}
-+EXPORT_SYMBOL_GPL(mapping_wrprotect_page);
-+
- /**
-  * pfn_mkclean_range - Cleans the PTEs (including PMDs) mapped with range of
-  *                     [@pfn, @pfn + @nr_pages) at the specific offset (@pgoff)
+-static void fb_deferred_io_pageref_clear(struct fb_deferred_io_pageref *pageref)
+-{
+-	struct page *page = pageref->page;
+-
+-	if (page)
+-		page->mapping = NULL;
+-}
+-
+ static struct fb_deferred_io_pageref *fb_deferred_io_pageref_get(struct fb_info *info,
+ 								 unsigned long offset,
+ 								 struct page *page)
+@@ -140,13 +132,10 @@ static vm_fault_t fb_deferred_io_fault(s
+ 	if (!page)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	if (vmf->vma->vm_file)
+-		page->mapping = vmf->vma->vm_file->f_mapping;
+-	else
++	if (!vmf->vma->vm_file)
+ 		printk(KERN_ERR "no mapping available\n");
+ 
+-	BUG_ON(!page->mapping);
+-	page->index = vmf->pgoff; /* for folio_mkclean() */
++	BUG_ON(!info->fbdefio->mapping);
+ 
+ 	vmf->page = page;
+ 	return 0;
+@@ -194,9 +183,9 @@ static vm_fault_t fb_deferred_io_track_p
+ 
+ 	/*
+ 	 * We want the page to remain locked from ->page_mkwrite until
+-	 * the PTE is marked dirty to avoid folio_mkclean() being called
+-	 * before the PTE is updated, which would leave the page ignored
+-	 * by defio.
++	 * the PTE is marked dirty to avoid mapping_wrprotect_page()
++	 * being called before the PTE is updated, which would leave
++	 * the page ignored by defio.
+ 	 * Do this by locking the page here and informing the caller
+ 	 * about it with VM_FAULT_LOCKED.
+ 	 */
+@@ -274,14 +263,13 @@ static void fb_deferred_io_work(struct w
+ 	struct fb_deferred_io_pageref *pageref, *next;
+ 	struct fb_deferred_io *fbdefio = info->fbdefio;
+ 
+-	/* here we mkclean the pages, then do all deferred IO */
++	/* here we wrprotect the page's mappings, then do all deferred IO. */
+ 	mutex_lock(&fbdefio->lock);
+ 	list_for_each_entry(pageref, &fbdefio->pagereflist, list) {
+-		struct folio *folio = page_folio(pageref->page);
++		struct page *page = pageref->page;
++		pgoff_t pgoff = pageref->offset >> PAGE_SHIFT;
+ 
+-		folio_lock(folio);
+-		folio_mkclean(folio);
+-		folio_unlock(folio);
++		mapping_wrprotect_page(fbdefio->mapping, pgoff, 1, page);
+ 	}
+ 
+ 	/* driver's callback with pagereflist */
+@@ -337,6 +325,7 @@ void fb_deferred_io_open(struct fb_info
+ {
+ 	struct fb_deferred_io *fbdefio = info->fbdefio;
+ 
++	fbdefio->mapping = file->f_mapping;
+ 	file->f_mapping->a_ops = &fb_deferred_io_aops;
+ 	fbdefio->open_count++;
+ }
+@@ -344,13 +333,7 @@ EXPORT_SYMBOL_GPL(fb_deferred_io_open);
+ 
+ static void fb_deferred_io_lastclose(struct fb_info *info)
+ {
+-	unsigned long i;
+-
+ 	flush_delayed_work(&info->deferred_work);
+-
+-	/* clear out the mapping that we setup */
+-	for (i = 0; i < info->npagerefs; ++i)
+-		fb_deferred_io_pageref_clear(&info->pagerefs[i]);
+ }
+ 
+ void fb_deferred_io_release(struct fb_info *info)
+@@ -370,5 +353,6 @@ void fb_deferred_io_cleanup(struct fb_in
+ 
+ 	kvfree(info->pagerefs);
+ 	mutex_destroy(&fbdefio->lock);
++	fbdefio->mapping = NULL;
+ }
+ EXPORT_SYMBOL_GPL(fb_deferred_io_cleanup);
+--- a/include/linux/fb.h~fb_defio-do-not-use-deprecated-page-mapping-index-fields
++++ a/include/linux/fb.h
+@@ -225,6 +225,7 @@ struct fb_deferred_io {
+ 	int open_count; /* number of opened files; protected by fb_info lock */
+ 	struct mutex lock; /* mutex that protects the pageref list */
+ 	struct list_head pagereflist; /* list of pagerefs for touched pages */
++	struct address_space *mapping; /* page cache object for fb device */
+ 	/* callback */
+ 	struct page *(*get_page)(struct fb_info *info, unsigned long offset);
+ 	void (*deferred_io)(struct fb_info *info, struct list_head *pagelist);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
