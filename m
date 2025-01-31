@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2AE91F3D53
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 21:54:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8688E1EC011
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 22:23:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738360441; cv=none; b=hjtgzhRymEjO5mAmnOsSKEn4MMGFdxrtjbfeIUad4Vu19hOjq6x6r+Wl8GVDXf0uGo+cGM7YGFBrXoaqKaRZsCC2zOQSRcTOhoD00erFyISbJ4GccvxIXMxRIIZplt8weXs1fY/GDsdiEH+CVWQKFhsO/RRw02mRAmkqrPhuO3E=
+	t=1738362208; cv=none; b=BKHjWMQ5lNHe0CG++qoMLG+DXHcsNRcrSbPvyN+JQPQkzYlxYLC66TW2QkOKyISvw71pTdxW50STYseqg8/xUs+BcLxzhl6MXLj2l/DQQkjxmC76AtiEzpTwSRflUDJwTfsbUVNMuTyvu8/6uzNQvFz8201lVEH75GvHer9Kci4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738360441; c=relaxed/simple;
-	bh=/un7Jnq05fkwM0LPcvoYtT/lsuVuE8eDJP5l1ajS+7Q=;
-	h=Date:To:From:Subject:Message-Id; b=M9FSDfUSpbAbFnLAy7AJJWCc7/DQY5fg8q6TDANtFSYM00OWMC4JSSWYd5f6Ep+hKRzqY6BqtEPXsIgYt9gqnYmkO8WvZ6oCY5jR+BTHL5PHL2SoHiIlml/kVh5I2qdTAiXNs0o8O5ln5ZpO8lRYGAzMBcEsH4TvTS0bRH+zqvM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zhOfaOrP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738362208; c=relaxed/simple;
+	bh=35XxKi2sZqpBFurIw99cz5w30jS3DYS/PMJK8wnvUtM=;
+	h=Date:To:From:Subject:Message-Id; b=aG0pIHvVOIOfAgRUMwRjkGVN9SYqSSO1kyg3WVuuHLHb0K81bwNWIPIQaB06X9c9KiSP/sSQBP4jAqmtnzSffWb1LcelHxTfT1hnWJ+fB9Hh7rd9w6zuch093oPkHVcb3cTv/AAnaYub9fpyykyRUxGkHUhcORPEyyioLE+V/bo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Leg4TMjW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zhOfaOrP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39C4FC4CED1;
-	Fri, 31 Jan 2025 21:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Leg4TMjW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC35EC4CEE1;
+	Fri, 31 Jan 2025 22:23:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738360441;
-	bh=/un7Jnq05fkwM0LPcvoYtT/lsuVuE8eDJP5l1ajS+7Q=;
+	s=korg; t=1738362207;
+	bh=35XxKi2sZqpBFurIw99cz5w30jS3DYS/PMJK8wnvUtM=;
 	h=Date:To:From:Subject:From;
-	b=zhOfaOrPU8QY8Va0Wm2y+7c7DACF4cfiJz8KrKXNz5/iRNwLplgAIL9i0R68pd8vH
-	 IMCno7tEqnJvdd7rADMG9qfX39Fqzr+hPJ01UByqXMnSIhQo+4NlUb1gyW+78nwXmI
-	 tt0mnI7Elcsa4rna24+njosNsyRds4lXVSXKIXio=
-Date: Fri, 31 Jan 2025 13:54:00 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,soci@c64.rulez.org,mcanal@igalia.com,jayakumar.lkml@gmail.com,deller@gmx.de,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Leg4TMjWDwL9ajxb35b24jKBU2HLREvQFE02QHuzDiEVYuFBkZM49kOh3iXHlcCQF
+	 q1J3Itjcyd3p5W+wc3jTVvvp8G1viaFnOvJXm6Yz5mqHyLIBurs3UJyOYI/ssOZb/4
+	 rKucegvdOFAk9h1apzlHhdPfrd7OFUvENUQU5WhU=
+Date: Fri, 31 Jan 2025 14:23:27 -0800
+To: mm-commits@vger.kernel.org,riel@surriel.com,revest@google.com,rcn@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch added to mm-unstable branch
-Message-Id: <20250131215401.39C4FC4CED1@smtp.kernel.org>
+Subject: + mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250131222327.DC35EC4CEE1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fb_defio: do not use deprecated page->mapping, index fields
-has been added to the -mm mm-unstable branch.  Its filename is
-     fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+     Subject: mm,madvise,hugetlb: check for 0-length range after end address adjustment
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,160 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fb_defio: do not use deprecated page->mapping, index fields
-Date: Fri, 31 Jan 2025 18:28:58 +0000
+From: Ricardo Cañuelo Navarro <rcn@igalia.com>
+Subject: mm,madvise,hugetlb: check for 0-length range after end address adjustment
+Date: Fri, 31 Jan 2025 15:37:49 +0100
 
-With the introduction of mapping_wrprotect_page() there is no need to use
-folio_mkclean() in order to write-protect mappings of frame buffer pages,
-and therefore no need to inappropriately set kernel-allocated page->index,
-mapping fields to permit this operation.
+Add a sanity check to madvise_dontneed_free() to address a corner case in
+madvise where a race condition causes the current vma being processed to
+be backed by a different page size.
 
-Instead, store the pointer to the page cache object for the mapped driver
-in the fb_deferred_io object, and use the already stored page offset from
-the pageref object to look up mappings in order to write-protect them.
+During a madvise(MADV_DONTNEED) call on a memory region registered with a
+userfaultfd, there's a period of time where the process mm lock is
+temporarily released in order to send a UFFD_EVENT_REMOVE and let
+userspace handle the event.  During this time, the vma covering the
+current address range may change due to an explicit mmap done concurrently
+by another thread.
 
-This is justified, as for the page objects to store a mapping pointer at
-the point of assignment of pages, they must all reference the same
-underlying address_space object.  Since the life time of the pagerefs is
-also the lifetime of the fb_deferred_io object, storing the pointer here
-makes snese.
+If, after that change, the memory region, which was originally backed by
+4KB pages, is now backed by hugepages, the end address is rounded down to
+a hugepage boundary to avoid data loss (see "Fixes" below).  This rounding
+may cause the end address to be truncated to the same address as the
+start.
 
-This eliminates the need for all of the logic around setting and
-maintaining page->index,mapping which we remove.
+Make this corner case follow the same semantics as in other similar cases
+where the requested region has zero length (ie.  return 0).
 
-This eliminates the use of folio_mkclean() entirely but otherwise should
-have no functional change.
+This will make madvise_walk_vmas() continue to the next vma in the range
+(this time holding the process mm lock) which, due to the prev pointer
+becoming stale because of the vma change, will be the same hugepage-backed
+vma that was just checked before.  The next time madvise_dontneed_free()
+runs for this vma, if the start address isn't aligned to a hugepage
+boundary, it'll return -EINVAL, which is also in line with the madvise
+api.
 
-Link: https://lkml.kernel.org/r/3542c5bb74d2487cf45d1d02ee5e73a05c4d279a.1738347308.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by: Kajtar Zsolt <soci@c64.rulez.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Maíra Canal <mcanal@igalia.com>
-Cc: Mattew Wilcox <willy@infradead.org>
+From userspace perspective, madvise() will return EINVAL because the start
+address isn't aligned according to the new vma alignment requirements
+(hugepage), even though it was correctly page-aligned when the call was
+issued.
+
+Link: https://lkml.kernel.org/r/20250131143749.1435006-1-rcn@igalia.com
+Fixes: 8ebe0a5eaaeb ("mm,madvise,hugetlb: fix unexpected data loss with MADV_DONTNEED on hugetlbfs")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ricardo Cañuelo Navarro <rcn@igalia.com>
+Cc: Florent Revest <revest@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/core/fb_defio.c |   38 +++++++-------------------
- include/linux/fb.h                  |    1 
- 2 files changed, 12 insertions(+), 27 deletions(-)
+ mm/madvise.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/drivers/video/fbdev/core/fb_defio.c~fb_defio-do-not-use-deprecated-page-mapping-index-fields
-+++ a/drivers/video/fbdev/core/fb_defio.c
-@@ -69,14 +69,6 @@ out:
- 	return pageref;
- }
- 
--static void fb_deferred_io_pageref_clear(struct fb_deferred_io_pageref *pageref)
--{
--	struct page *page = pageref->page;
--
--	if (page)
--		page->mapping = NULL;
--}
--
- static struct fb_deferred_io_pageref *fb_deferred_io_pageref_get(struct fb_info *info,
- 								 unsigned long offset,
- 								 struct page *page)
-@@ -140,13 +132,10 @@ static vm_fault_t fb_deferred_io_fault(s
- 	if (!page)
- 		return VM_FAULT_SIGBUS;
- 
--	if (vmf->vma->vm_file)
--		page->mapping = vmf->vma->vm_file->f_mapping;
--	else
-+	if (!vmf->vma->vm_file)
- 		printk(KERN_ERR "no mapping available\n");
- 
--	BUG_ON(!page->mapping);
--	page->index = vmf->pgoff; /* for folio_mkclean() */
-+	BUG_ON(!info->fbdefio->mapping);
- 
- 	vmf->page = page;
- 	return 0;
-@@ -194,9 +183,9 @@ static vm_fault_t fb_deferred_io_track_p
- 
- 	/*
- 	 * We want the page to remain locked from ->page_mkwrite until
--	 * the PTE is marked dirty to avoid folio_mkclean() being called
--	 * before the PTE is updated, which would leave the page ignored
--	 * by defio.
-+	 * the PTE is marked dirty to avoid mapping_wrprotect_page()
-+	 * being called before the PTE is updated, which would leave
-+	 * the page ignored by defio.
- 	 * Do this by locking the page here and informing the caller
- 	 * about it with VM_FAULT_LOCKED.
- 	 */
-@@ -274,14 +263,13 @@ static void fb_deferred_io_work(struct w
- 	struct fb_deferred_io_pageref *pageref, *next;
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
- 
--	/* here we mkclean the pages, then do all deferred IO */
-+	/* here we wrprotect the page's mappings, then do all deferred IO. */
- 	mutex_lock(&fbdefio->lock);
- 	list_for_each_entry(pageref, &fbdefio->pagereflist, list) {
--		struct folio *folio = page_folio(pageref->page);
-+		struct page *page = pageref->page;
-+		pgoff_t pgoff = pageref->offset >> PAGE_SHIFT;
- 
--		folio_lock(folio);
--		folio_mkclean(folio);
--		folio_unlock(folio);
-+		mapping_wrprotect_page(fbdefio->mapping, pgoff, 1, page);
+--- a/mm/madvise.c~mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment
++++ a/mm/madvise.c
+@@ -933,7 +933,9 @@ static long madvise_dontneed_free(struct
+ 			 */
+ 			end = vma->vm_end;
+ 		}
+-		VM_WARN_ON(start >= end);
++		if (start == end)
++			return 0;
++		VM_WARN_ON(start > end);
  	}
  
- 	/* driver's callback with pagereflist */
-@@ -337,6 +325,7 @@ void fb_deferred_io_open(struct fb_info
- {
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
- 
-+	fbdefio->mapping = file->f_mapping;
- 	file->f_mapping->a_ops = &fb_deferred_io_aops;
- 	fbdefio->open_count++;
- }
-@@ -344,13 +333,7 @@ EXPORT_SYMBOL_GPL(fb_deferred_io_open);
- 
- static void fb_deferred_io_lastclose(struct fb_info *info)
- {
--	unsigned long i;
--
- 	flush_delayed_work(&info->deferred_work);
--
--	/* clear out the mapping that we setup */
--	for (i = 0; i < info->npagerefs; ++i)
--		fb_deferred_io_pageref_clear(&info->pagerefs[i]);
- }
- 
- void fb_deferred_io_release(struct fb_info *info)
-@@ -370,5 +353,6 @@ void fb_deferred_io_cleanup(struct fb_in
- 
- 	kvfree(info->pagerefs);
- 	mutex_destroy(&fbdefio->lock);
-+	fbdefio->mapping = NULL;
- }
- EXPORT_SYMBOL_GPL(fb_deferred_io_cleanup);
---- a/include/linux/fb.h~fb_defio-do-not-use-deprecated-page-mapping-index-fields
-+++ a/include/linux/fb.h
-@@ -225,6 +225,7 @@ struct fb_deferred_io {
- 	int open_count; /* number of opened files; protected by fb_info lock */
- 	struct mutex lock; /* mutex that protects the pageref list */
- 	struct list_head pagereflist; /* list of pagerefs for touched pages */
-+	struct address_space *mapping; /* page cache object for fb device */
- 	/* callback */
- 	struct page *(*get_page)(struct fb_info *info, unsigned long offset);
- 	void (*deferred_io)(struct fb_info *info, struct list_head *pagelist);
+ 	if (behavior == MADV_DONTNEED || behavior == MADV_DONTNEED_LOCKED)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from rcn@igalia.com are
 
-mm-simplify-vma-merge-structure-and-expand-comments.patch
-mm-further-refactor-commit_merge.patch
-mm-eliminate-adj_start-parameter-from-commit_merge.patch
-mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
-mm-completely-abstract-unnecessary-adj_start-calculation.patch
-mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
-mm-provide-mapping_wrprotect_page-function.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
 
