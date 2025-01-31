@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C1661494AD
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 22:39:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CD2E1494AD
+	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 22:40:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738363199; cv=none; b=OtF/apqXtXI/J7pk/HF6BdW4OpfyBOYM0okrMWLlrI+btqyQOeGnFl9ftP5KFfuw1V8MSusdCY3MRkAb0S0C0gUbgEBo4Jx4OodZLa51r3fVXFZ/q7qcRc2uPHCJSIZFj2aVuU2iuf4lJR14+EQmSGt9VVn9mkclvvRi+x2YgOw=
+	t=1738363202; cv=none; b=SbpQceNaiUhvzrhgWed+t8kW1xAk+G38bd4+ZdmI9e6a5mzuev78aqbY6BWmf9yGPo94D89hP13NFYxzU9oq0rEPS1WhjvQkhBAC1p+V/P2AxKK/CHAW4wCCgFm81ffugsV/mWjLrwcVZyVAYMYiHIw5BNu3AczfJQgM3p5D67Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738363199; c=relaxed/simple;
-	bh=LqfL+oUqCoku86x2imVBQwE8g76X8D1eRpOJPy7Yiak=;
-	h=Date:To:From:Subject:Message-Id; b=fqsmwnkj26NsqB5F8hiIf4I2BfT+AOdJ3euN4fdcyZ35bbfKS7Jmea6/7ah7rXCLbDGzvCSE+30lJaT7CPmvmN/FSSuYX22uB2US40xqwdMHuyzepEjWphKRvbN+FuhnVh/VsBv6bvFPGeQ4CEwkfwKtfmICwJl6XwjB9rx/Y4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OwJxNDgi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738363202; c=relaxed/simple;
+	bh=xua5VjFV0o65qu9abE27Et1feD+7J2vrvd5FegqIQwQ=;
+	h=Date:To:From:Subject:Message-Id; b=gv52rYxOvI1lvxRDvAikRnVxoMb4+BBM4ZCUaBx4/J46Q+oEG3LAfrNXf05gV/v1KDC5daPr5Ui+XzD/cy1hsqDt7ohJQwC12g3e8HRpamUMujDp5IfFTWadK0EBH6rDbVVZDab1Fa1X5VRTv6zHW1qQk1svweKEn3ibFy+nPMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c2dpIQWW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OwJxNDgi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1FF7C4CED1;
-	Fri, 31 Jan 2025 22:39:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c2dpIQWW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64E60C4CED1;
+	Fri, 31 Jan 2025 22:40:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738363198;
-	bh=LqfL+oUqCoku86x2imVBQwE8g76X8D1eRpOJPy7Yiak=;
+	s=korg; t=1738363201;
+	bh=xua5VjFV0o65qu9abE27Et1feD+7J2vrvd5FegqIQwQ=;
 	h=Date:To:From:Subject:From;
-	b=OwJxNDgity006DalTiokVyp2+MtYv7eLc3Q6t/IWIesvCa3pHyn0+PhtpMamvMwz5
-	 wmC4C1LPDCRTxzyDEy4cu5kl1GQH6RdLFs+EwJtrh6kEzv0WnU/Om2QuW1OQRHmwPD
-	 BX2riGkIR7VtRyPyZpPdgItPMN+vLWaxm4dL/cpo=
-Date: Fri, 31 Jan 2025 14:39:58 -0800
+	b=c2dpIQWWfFtWu4QZmUbOrGegg3CtWWEROaQfEBjFlFzv+LZrQQ4AEO2kqP2S+b3qq
+	 XtLofSUTEM0P54QwdAOSh03ViGaoD8IJ3k/ORgmFSRuSBbBeoHXABvyu/1fgB4Xa+j
+	 Zwe5yw+ePics6NJJ80nkKY1TKuPJQRRllYtiipQo=
+Date: Fri, 31 Jan 2025 14:40:00 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch added to mm-unstable branch
-Message-Id: <20250131223958.D1FF7C4CED1@smtp.kernel.org>
+Subject: + mm-completely-abstract-unnecessary-adj_start-calculation.patch added to mm-unstable branch
+Message-Id: <20250131224001.64E60C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make vmg->target consistent and further simplify commit_merge()
+     Subject: mm: completely abstract unnecessary adj_start calculation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+     mm-completely-abstract-unnecessary-adj_start-calculation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-completely-abstract-unnecessary-adj_start-calculation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,98 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: make vmg->target consistent and further simplify commit_merge()
-Date: Fri, 31 Jan 2025 12:31:52 +0000
+Subject: mm: completely abstract unnecessary adj_start calculation
+Date: Fri, 31 Jan 2025 12:31:53 +0000
 
-It is confusing for vmg->target to sometimes be the target merged VMA and
-in one case not.
+The adj_start calculation has been a constant source of confusion in the
+VMA merge code.
 
-Fix this by having commit_merge() use its awareness of the
-vmg->_adjust_next_start case to know that it is manipulating a separate
-vma, abstracted in the 'vma' local variable.
+There are two cases to consider, one where we adjust the start of the
+vmg->middle VMA (i.e.  the vmg->__adjust_middle_start merge flag is set),
+in which case adj_start is calculated as:
 
-Place removal and adjust VMA determination logic into
-init_multi_vma_prep(), as the flags give us enough information to do so,
-and since this is the function that sets up the vma_prepare struct it
-makes sense to do so here.
+(1) adj_start = vmg->end - vmg->middle->vm_start
 
-Doing this significantly simplifies commit_merge(), allowing us to
-eliminate the 'merge_target' handling, initialise the VMA iterator in a
-more sensible place and simply return vmg->target consistently.
+And the case where we adjust the start of the vmg->next VMA (i.e.  the
+vmg->__adjust_next_start merge flag is set), in which case adj_start is
+calculated as:
 
-This also allows us to simplify setting vmg->target in
-vma_merge_existing_range() since we are then left only with two cases -
-merge left (or both) where the target is vmg->prev or merge right in which
-the target is vmg->next.
+(2) adj_start = -(vmg->middle->vm_end - vmg->end)
 
-This makes it easy for somebody reading the code to know what VMA will
-actually be the one returned and merged into and removes a great deal of
-the confusing 'adjust' nonsense.
+We apply (1) thusly:
+
+vmg->middle->vm_start =
+	vmg->middle->vm_start + vmg->end - vmg->middle->vm_start
+
+Which simplifies to:
+
+vmg->middle->vm_start = vmg->end
+
+Similarly, we apply (2) as:
+
+vmg->next->vm_start =
+	vmg->next->vm_start + -(vmg->middle->vm_end - vmg->end)
+
+Noting that for these VMAs to be mergeable vmg->middle->vm_end ==
+vmg->next->vm_start and so this simplifies to:
+
+vmg->next->vm_start =
+	vmg->next->vm_start + -(vmg->next->vm_start - vmg->end)
+
+Which simplifies to:
+
+vmg->next->vm_start = vmg->end
+
+Therefore in each case, we simply need to adjust the start of the VMA to
+vmg->end (!) and can do away with this adj_start calculation.  The only
+caveat is that we must ensure we update the vm_pgoff field correctly.
+
+We therefore abstract this entire calculation to a new function
+vmg_adjust_set_range() which performs this calculation and sets the
+adjusted VMA's new range using the general vma_set_range() function.
+
+We also must update vma_adjust_trans_huge() which expects the
+now-abstracted adj_start parameter.  It turns out this is wholly
+unnecessary.
+
+In vma_adjust_trans_huge() the relevant code is:
+
+	if (adjust_next > 0) {
+		struct vm_area_struct *next = find_vma(vma->vm_mm, vma->vm_end);
+		unsigned long nstart = next->vm_start;
+		nstart += adjust_next;
+		split_huge_pmd_if_needed(next, nstart);
+	}
+
+The only case where this is relevant is when vmg->__adjust_middle_start is
+specified (in which case adj_next would have been positive), i.e.  the one
+in which the vma specified is vmg->prev and this the sought 'next' VMA
+would be vmg->middle.
+
+We can therefore eliminate the find_vma() invocation altogether and simply
+provide the vmg->middle VMA in this instance, or NULL otherwise.
+
+Again we have an adj_next offset calculation:
+
+next->vm_start + vmg->end - vmg->middle->vm_start
+
+Where next == vmg->middle this simplifies to vmg->end as previously
+demonstrated.
+
+Therefore nstart is equal to vmg->end, which is already passed to
+vma_adjust_trans_huge() via the 'end' parameter and so this code (rather
+delightfully) simplifies to:
+
+	if (next)
+		split_huge_pmd_if_needed(next, end);
+
+With these changes in place, it becomes silly for commit_merge() to return
+vmg->target, as it is always the same and threaded through vmg, so we
+finally change commit_merge() to return an error value once again.
 
 This patch has no change in functional behaviour.
 
-Link: https://lkml.kernel.org/r/50f96e31ab1980eaaf1006e34a4f6e6dad9320b8.1738326519.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/7bce2cd4b5afb56211822835d145471280c3dccc.1738326519.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jann Horn <jannh@google.com>
@@ -97,242 +158,267 @@ Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |  119 +++++++++++++++++++++++++++--------------------------
- mm/vma.h |    6 --
- 2 files changed, 62 insertions(+), 63 deletions(-)
+ include/linux/huge_mm.h          |    4 -
+ mm/huge_memory.c                 |   19 +----
+ mm/vma.c                         |   99 +++++++++++++----------------
+ tools/testing/vma/vma_internal.h |    4 -
+ 4 files changed, 57 insertions(+), 69 deletions(-)
 
---- a/mm/vma.c~mm-make-vmg-target-consistent-and-further-simplify-commit_merge
-+++ a/mm/vma.c
-@@ -106,24 +106,40 @@ static inline bool are_anon_vmas_compati
-  * init_multi_vma_prep() - Initializer for struct vma_prepare
-  * @vp: The vma_prepare struct
-  * @vma: The vma that will be altered once locked
-- * @next: The next vma if it is to be adjusted
-- * @remove: The first vma to be removed
-- * @remove2: The second vma to be removed
-+ * @vmg: The merge state that will be used to determine adjustment and VMA
-+ *       removal.
-  */
- static void init_multi_vma_prep(struct vma_prepare *vp,
- 				struct vm_area_struct *vma,
--				struct vm_area_struct *next,
--				struct vm_area_struct *remove,
--				struct vm_area_struct *remove2)
-+				struct vma_merge_struct *vmg)
- {
-+	struct vm_area_struct *adjust;
-+	struct vm_area_struct **remove = &vp->remove;
-+
- 	memset(vp, 0, sizeof(struct vma_prepare));
- 	vp->vma = vma;
- 	vp->anon_vma = vma->anon_vma;
--	vp->remove = remove ? remove : remove2;
--	vp->remove2 = remove ? remove2 : NULL;
--	vp->adj_next = next;
--	if (!vp->anon_vma && next)
--		vp->anon_vma = next->anon_vma;
-+
-+	if (vmg && vmg->__remove_middle) {
-+		*remove = vmg->middle;
-+		remove = &vp->remove2;
-+	}
-+	if (vmg && vmg->__remove_next)
-+		*remove = vmg->next;
-+
-+	if (vmg && vmg->__adjust_middle_start)
-+		adjust = vmg->middle;
-+	else if (vmg && vmg->__adjust_next_start)
-+		adjust = vmg->next;
-+	else
-+		adjust = NULL;
-+
-+	vp->adj_next = adjust;
-+	if (!vp->anon_vma && adjust)
-+		vp->anon_vma = adjust->anon_vma;
-+
-+	VM_WARN_ON(vp->anon_vma && adjust && adjust->anon_vma &&
-+		   vp->anon_vma != adjust->anon_vma);
+--- a/include/linux/huge_mm.h~mm-completely-abstract-unnecessary-adj_start-calculation
++++ a/include/linux/huge_mm.h
+@@ -404,7 +404,7 @@ int madvise_collapse(struct vm_area_stru
+ 		     struct vm_area_struct **prev,
+ 		     unsigned long start, unsigned long end);
+ void vma_adjust_trans_huge(struct vm_area_struct *vma, unsigned long start,
+-			   unsigned long end, long adjust_next);
++			   unsigned long end, struct vm_area_struct *next);
+ spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma);
+ spinlock_t *__pud_trans_huge_lock(pud_t *pud, struct vm_area_struct *vma);
  
- 	vp->file = vma->vm_file;
- 	if (vp->file)
-@@ -360,7 +376,7 @@ again:
-  */
- static void init_vma_prep(struct vma_prepare *vp, struct vm_area_struct *vma)
+@@ -571,7 +571,7 @@ static inline int madvise_collapse(struc
+ static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
+ 					 unsigned long start,
+ 					 unsigned long end,
+-					 long adjust_next)
++					 struct vm_area_struct *next)
  {
--	init_multi_vma_prep(vp, vma, NULL, NULL, NULL);
-+	init_multi_vma_prep(vp, vma, NULL);
+ }
+ static inline int is_swap_pmd(pmd_t pmd)
+--- a/mm/huge_memory.c~mm-completely-abstract-unnecessary-adj_start-calculation
++++ a/mm/huge_memory.c
+@@ -3017,9 +3017,9 @@ static inline void split_huge_pmd_if_nee
  }
  
- /*
-@@ -634,76 +650,63 @@ void validate_mm(struct mm_struct *mm)
-  */
- static struct vm_area_struct *commit_merge(struct vma_merge_struct *vmg)
+ void vma_adjust_trans_huge(struct vm_area_struct *vma,
+-			     unsigned long start,
+-			     unsigned long end,
+-			     long adjust_next)
++			   unsigned long start,
++			   unsigned long end,
++			   struct vm_area_struct *next)
  {
--	struct vm_area_struct *remove = NULL;
--	struct vm_area_struct *remove2 = NULL;
-+	struct vm_area_struct *vma;
- 	struct vma_prepare vp;
--	struct vm_area_struct *adjust = NULL;
-+	struct vm_area_struct *adjust;
- 	long adj_start;
--	bool merge_target;
+ 	/* Check if we need to split start first. */
+ 	split_huge_pmd_if_needed(vma, start);
+@@ -3027,16 +3027,9 @@ void vma_adjust_trans_huge(struct vm_are
+ 	/* Check if we need to split end next. */
+ 	split_huge_pmd_if_needed(vma, end);
  
- 	/*
- 	 * If modifying an existing VMA and we don't remove vmg->middle, then we
- 	 * shrink the adjacent VMA.
- 	 */
- 	if (vmg->__adjust_middle_start) {
-+		vma = vmg->target;
- 		adjust = vmg->middle;
- 		/* The POSITIVE value by which we offset vmg->middle->vm_start. */
- 		adj_start = vmg->end - vmg->middle->vm_start;
--		merge_target = true;
-+
-+		 /* Note: vma iterator must be pointing to 'start'. */
-+		vma_iter_config(vmg->vmi, vmg->start, vmg->end);
- 	} else if (vmg->__adjust_next_start) {
-+		/*
-+		 * In this case alone, the VMA we manipulate is vmg->middle, but
-+		 * we ultimately return vmg->next.
-+		 */
-+		vma = vmg->middle;
- 		adjust = vmg->next;
- 		/* The NEGATIVE value by which we offset vmg->next->vm_start. */
- 		adj_start = -(vmg->middle->vm_end - vmg->end);
--		/*
--		 * In all cases but this - merge right, shrink next - we write
--		 * vmg->target to the maple tree and return this as the merged VMA.
--		 */
--		merge_target = false;
-+
-+		vma_iter_config(vmg->vmi, vmg->next->vm_start + adj_start,
-+				vmg->next->vm_end);
- 	} else {
-+		vma = vmg->target;
- 		adjust = NULL;
- 		adj_start = 0;
--		merge_target = true;
+-	/*
+-	 * If we're also updating the next vma vm_start,
+-	 * check if we need to split it.
+-	 */
+-	if (adjust_next > 0) {
+-		struct vm_area_struct *next = find_vma(vma->vm_mm, vma->vm_end);
+-		unsigned long nstart = next->vm_start;
+-		nstart += adjust_next;
+-		split_huge_pmd_if_needed(next, nstart);
 -	}
--
--	if (vmg->__remove_middle)
--		remove = vmg->middle;
--	if (vmg->__remove_next)
--		remove2 = vmg->next;
--
--	init_multi_vma_prep(&vp, vmg->target, adjust, remove, remove2);
++	/* If we're incrementing next->vm_start, we might need to split it. */
++	if (next)
++		split_huge_pmd_if_needed(next, end);
+ }
  
--	VM_WARN_ON(vp.anon_vma && adjust && adjust->anon_vma &&
--		   vp.anon_vma != adjust->anon_vma);
--
--	if (merge_target) {
--		/* Note: vma iterator must be pointing to 'start'. */
-+		 /* Note: vma iterator must be pointing to 'start'. */
- 		vma_iter_config(vmg->vmi, vmg->start, vmg->end);
--	} else {
--		vma_iter_config(vmg->vmi, adjust->vm_start + adj_start,
--				adjust->vm_end);
- 	}
+ static void unmap_folio(struct folio *folio)
+--- a/mm/vma.c~mm-completely-abstract-unnecessary-adj_start-calculation
++++ a/mm/vma.c
+@@ -513,7 +513,7 @@ __split_vma(struct vma_iterator *vmi, st
+ 	init_vma_prep(&vp, vma);
+ 	vp.insert = new;
+ 	vma_prepare(&vp);
+-	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
++	vma_adjust_trans_huge(vma, vma->vm_start, addr, NULL);
  
--	if (vma_iter_prealloc(vmg->vmi, vmg->target))
-+	init_multi_vma_prep(&vp, vma, vmg);
+ 	if (new_below) {
+ 		vma->vm_start = addr;
+@@ -644,46 +644,44 @@ void validate_mm(struct mm_struct *mm)
+ #endif /* CONFIG_DEBUG_VM_MAPLE_TREE */
+ 
+ /*
+- * Actually perform the VMA merge operation.
+- *
+- * On success, returns the merged VMA. Otherwise returns NULL.
++ * Based on the vmg flag indicating whether we need to adjust the vm_start field
++ * for the middle or next VMA, we calculate what the range of the newly adjusted
++ * VMA ought to be, and set the VMA's range accordingly.
+  */
+-static struct vm_area_struct *commit_merge(struct vma_merge_struct *vmg)
++static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
+ {
+-	struct vm_area_struct *vma;
+-	struct vma_prepare vp;
+ 	struct vm_area_struct *adjust;
+-	long adj_start;
++	pgoff_t pgoff;
+ 
+-	/*
+-	 * If modifying an existing VMA and we don't remove vmg->middle, then we
+-	 * shrink the adjacent VMA.
+-	 */
+ 	if (vmg->__adjust_middle_start) {
+-		vma = vmg->target;
+ 		adjust = vmg->middle;
+-		/* The POSITIVE value by which we offset vmg->middle->vm_start. */
+-		adj_start = vmg->end - vmg->middle->vm_start;
+-
+-		 /* Note: vma iterator must be pointing to 'start'. */
+-		vma_iter_config(vmg->vmi, vmg->start, vmg->end);
++		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
+ 	} else if (vmg->__adjust_next_start) {
+-		/*
+-		 * In this case alone, the VMA we manipulate is vmg->middle, but
+-		 * we ultimately return vmg->next.
+-		 */
+-		vma = vmg->middle;
+ 		adjust = vmg->next;
+-		/* The NEGATIVE value by which we offset vmg->next->vm_start. */
+-		adj_start = -(vmg->middle->vm_end - vmg->end);
++		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
++	} else {
++		return;
++	}
 +
-+	if (vma_iter_prealloc(vmg->vmi, vma))
- 		return NULL;
++	vma_set_range(adjust, vmg->end, adjust->vm_end, pgoff);
++}
++
++/*
++ * Actually perform the VMA merge operation.
++ *
++ * Returns 0 on success, or an error value on failure.
++ */
++static int commit_merge(struct vma_merge_struct *vmg)
++{
++	struct vm_area_struct *vma;
++	struct vma_prepare vp;
+ 
+-		vma_iter_config(vmg->vmi, vmg->next->vm_start + adj_start,
+-				vmg->next->vm_end);
++	if (vmg->__adjust_next_start) {
++		/* We manipulate middle and adjust next, which is the target. */
++		vma = vmg->middle;
++		vma_iter_config(vmg->vmi, vmg->end, vmg->next->vm_end);
+ 	} else {
+ 		vma = vmg->target;
+-		adjust = NULL;
+-		adj_start = 0;
+-
+ 		 /* Note: vma iterator must be pointing to 'start'. */
+ 		vma_iter_config(vmg->vmi, vmg->start, vmg->end);
+ 	}
+@@ -691,22 +689,22 @@ static struct vm_area_struct *commit_mer
+ 	init_multi_vma_prep(&vp, vma, vmg);
+ 
+ 	if (vma_iter_prealloc(vmg->vmi, vma))
+-		return NULL;
++		return -ENOMEM;
  
  	vma_prepare(&vp);
--	vma_adjust_trans_huge(vmg->target, vmg->start, vmg->end, adj_start);
--	vma_set_range(vmg->target, vmg->start, vmg->end, vmg->pgoff);
+-	vma_adjust_trans_huge(vma, vmg->start, vmg->end, adj_start);
++	/*
++	 * THP pages may need to do additional splits if we increase
++	 * middle->vm_start.
++	 */
++	vma_adjust_trans_huge(vma, vmg->start, vmg->end,
++			      vmg->__adjust_middle_start ? vmg->middle : NULL);
+ 	vma_set_range(vma, vmg->start, vmg->end, vmg->pgoff);
 -
--	if (merge_target)
--		vma_iter_store(vmg->vmi, vmg->target);
-+	vma_adjust_trans_huge(vma, vmg->start, vmg->end, adj_start);
-+	vma_set_range(vma, vmg->start, vmg->end, vmg->pgoff);
- 
- 	if (adj_start) {
- 		adjust->vm_start += adj_start;
- 		adjust->vm_pgoff += PHYS_PFN(adj_start);
+-	if (adj_start) {
+-		adjust->vm_start += adj_start;
+-		adjust->vm_pgoff += PHYS_PFN(adj_start);
+-	}
 -
--		if (!merge_target)
--			vma_iter_store(vmg->vmi, adjust);
- 	}
++	vmg_adjust_set_range(vmg);
+ 	vma_iter_store(vmg->vmi, vmg->target);
  
--	vma_complete(&vp, vmg->vmi, vmg->target->vm_mm);
-+	vma_iter_store(vmg->vmi, vmg->target);
-+
-+	vma_complete(&vp, vmg->vmi, vma->vm_mm);
+ 	vma_complete(&vp, vmg->vmi, vma->vm_mm);
  
--	return merge_target ? vmg->target : vmg->next;
-+	return vmg->target;
+-	return vmg->target;
++	return 0;
  }
  
  /* We can only remove VMAs when merging if they do not have a close hook. */
-@@ -833,11 +836,15 @@ static __must_check struct vm_area_struc
- 	/* No matter what happens, we will be adjusting middle. */
- 	vma_start_write(middle);
- 
--	if (merge_left)
--		vma_start_write(prev);
--
--	if (merge_right)
-+	if (merge_right) {
- 		vma_start_write(next);
-+		vmg->target = next;
-+	}
-+
-+	if (merge_left) {
-+		vma_start_write(prev);
-+		vmg->target = prev;
-+	}
- 
- 	if (merge_both) {
- 		/*
-@@ -847,7 +854,6 @@ static __must_check struct vm_area_struc
- 		 *  extend  delete  delete
- 		 */
- 
--		vmg->target = prev;
- 		vmg->start = prev->vm_start;
- 		vmg->end = next->vm_end;
- 		vmg->pgoff = prev->vm_pgoff;
-@@ -868,7 +874,6 @@ static __must_check struct vm_area_struc
- 		 *  extend shrink/delete
- 		 */
- 
--		vmg->target = prev;
- 		vmg->start = prev->vm_start;
- 		vmg->pgoff = prev->vm_pgoff;
- 
-@@ -892,7 +897,6 @@ static __must_check struct vm_area_struc
- 		VM_WARN_ON_VMG(vmg->start > middle->vm_start && prev && middle != prev, vmg);
- 
- 		if (vmg->__remove_middle) {
--			vmg->target = next;
+@@ -749,7 +747,7 @@ static __must_check struct vm_area_struc
+ {
+ 	struct vm_area_struct *middle = vmg->middle;
+ 	struct vm_area_struct *prev = vmg->prev;
+-	struct vm_area_struct *next, *res;
++	struct vm_area_struct *next;
+ 	struct vm_area_struct *anon_dup = NULL;
+ 	unsigned long start = vmg->start;
+ 	unsigned long end = vmg->end;
+@@ -900,12 +898,7 @@ static __must_check struct vm_area_struc
  			vmg->end = next->vm_end;
  			vmg->pgoff = next->vm_pgoff - pglen;
  		} else {
-@@ -903,7 +907,6 @@ static __must_check struct vm_area_struc
- 			 * merged VMA is NOT vmg->target, but rather vmg->next.
- 			 */
+-			/*
+-			 * We shrink middle and expand next.
+-			 *
+-			 * IMPORTANT: This is the ONLY case where the final
+-			 * merged VMA is NOT vmg->target, but rather vmg->next.
+-			 */
++			/* We shrink middle and expand next. */
  			vmg->__adjust_next_start = true;
--			vmg->target = middle;
  			vmg->start = middle->vm_start;
  			vmg->end = start;
- 			vmg->pgoff = middle->vm_pgoff;
---- a/mm/vma.h~mm-make-vmg-target-consistent-and-further-simplify-commit_merge
-+++ a/mm/vma.h
-@@ -82,11 +82,7 @@ struct vma_merge_struct {
- 	struct vm_area_struct *prev;
- 	struct vm_area_struct *middle;
- 	struct vm_area_struct *next;
--	/*
--	 * This is the VMA we ultimately target to become the merged VMA, except
--	 * for the one exception of merge right, shrink next (for details of
--	 * this scenario see vma_merge_existing_range()).
--	 */
-+	/* This is the VMA we ultimately target to become the merged VMA. */
- 	struct vm_area_struct *target;
- 	/*
- 	 * Initially, the start, end, pgoff fields are provided by the caller
+@@ -918,8 +911,10 @@ static __must_check struct vm_area_struc
+ 	if (err)
+ 		goto abort;
+ 
+-	res = commit_merge(vmg);
+-	if (!res) {
++	err = commit_merge(vmg);
++	if (err) {
++		VM_WARN_ON(err != -ENOMEM);
++
+ 		if (anon_dup)
+ 			unlink_anon_vmas(anon_dup);
+ 
+@@ -927,9 +922,9 @@ static __must_check struct vm_area_struc
+ 		return NULL;
+ 	}
+ 
+-	khugepaged_enter_vma(res, vmg->flags);
++	khugepaged_enter_vma(vmg->target, vmg->flags);
+ 	vmg->state = VMA_MERGE_SUCCESS;
+-	return res;
++	return vmg->target;
+ 
+ abort:
+ 	vma_iter_set(vmg->vmi, start);
+@@ -1092,7 +1087,7 @@ int vma_expand(struct vma_merge_struct *
+ 	if (remove_next)
+ 		vmg->__remove_next = true;
+ 
+-	if (!commit_merge(vmg))
++	if (commit_merge(vmg))
+ 		goto nomem;
+ 
+ 	return 0;
+@@ -1132,7 +1127,7 @@ int vma_shrink(struct vma_iterator *vmi,
+ 
+ 	init_vma_prep(&vp, vma);
+ 	vma_prepare(&vp);
+-	vma_adjust_trans_huge(vma, start, end, 0);
++	vma_adjust_trans_huge(vma, start, end, NULL);
+ 
+ 	vma_iter_clear(vmi);
+ 	vma_set_range(vma, start, end, pgoff);
+--- a/tools/testing/vma/vma_internal.h~mm-completely-abstract-unnecessary-adj_start-calculation
++++ a/tools/testing/vma/vma_internal.h
+@@ -796,12 +796,12 @@ static inline void vma_start_write(struc
+ static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
+ 					 unsigned long start,
+ 					 unsigned long end,
+-					 long adjust_next)
++					 struct vm_area_struct *next)
+ {
+ 	(void)vma;
+ 	(void)start;
+ 	(void)end;
+-	(void)adjust_next;
++	(void)next;
+ }
+ 
+ static inline void vma_iter_free(struct vma_iterator *vmi)
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
