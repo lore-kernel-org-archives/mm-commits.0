@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2941487C1
-	for <mm-commits@vger.kernel.org>; Fri, 31 Jan 2025 23:33:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC28812A177
+	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:50:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738366392; cv=none; b=Ys1Tord5QsCVpcF/WJ1DC9SZa4EO2cPm4nqB4RAQiswIyGl4ayj86j/9wi1kmFnsQ/2AH7kC5cwo47EBYgLXiDNIQMMUlvCHCxI3b9LMyqMiQWOFPvmahBGCjdi+bteMt2Xs1vw6AhwkgUrdX/OSeR32GPyQv2ttZNRwanwB7jc=
+	t=1738410622; cv=none; b=sW63AF9cDfn2vg/P6H3sMD+MuLx5eYiFZl12wB4einTil+ro9hlSk+5rjBXfJerLN5nJb2cQ13aLcMufUMSER2uPCFa2L/lvaY67eqMfIMF1LGFHoPLde+daPC8LLxOJvtrrLqTzPzxdulvZlwy48f5mgKJ5LrpTPLIEaQ56PAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738366392; c=relaxed/simple;
-	bh=g0L7yHRzPCvCoila6FSv8B1283hxJLGIh9gYiL7fDB4=;
-	h=Date:To:From:Subject:Message-Id; b=iHXUq8zVPLexiMy4QhH3LIDiUlNqsDcLofrehdL2I5DvR7YiT24oEkJxA+hvMvEhMm2EhROzprvdfNvJ5J2kpJ764TELK067kYwo78TAwEDylHq92MWDOOXTR3c0hDZarrELv7d7NP33o1eHjFPPwjzPjzOf2/GAcX+4tMfqjOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdyIBaHc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410622; c=relaxed/simple;
+	bh=6wOcURlT4XdWxkGoCnQb+7T53P9R7mIAmvX/aybK+Z0=;
+	h=Date:To:From:Subject:Message-Id; b=fxADDLFCWlVW3mbpKKaxyNMnYB40c0BNpo0ukVF7bzK3MbHyy8dRtyD73W4H4yJCMfpNr4FsMMoQKhJPuyEWewFgZyxW5aamtZ90VDxo4ZbwZGKTG2Vr5wn8LlTWh3H0dK7+TpCCyf9K7qjwZ+5CVc0islNPpUPJI4FXwKg5beY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOZvbYs6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdyIBaHc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D663C4CED1;
-	Fri, 31 Jan 2025 23:33:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOZvbYs6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30A35C4CEE1;
+	Sat,  1 Feb 2025 11:50:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738366391;
-	bh=g0L7yHRzPCvCoila6FSv8B1283hxJLGIh9gYiL7fDB4=;
+	s=korg; t=1738410621;
+	bh=6wOcURlT4XdWxkGoCnQb+7T53P9R7mIAmvX/aybK+Z0=;
 	h=Date:To:From:Subject:From;
-	b=IdyIBaHcoynkb+JTx14yMVtlqWDui5PunPzm/yJQBiwka7nkwc+yMLQNSsun0KZSf
-	 flQaJsqGnTqU/s18spBEF5ysq3Ho4DQet7i2Ffafy/xYzUeEEEs/zAS6FLHXFrvxHT
-	 pTc7wO4xYBRdBeTCE6OJIwr4JHrVIwEG/Xh74dXA=
-Date: Fri, 31 Jan 2025 15:33:10 -0800
-To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,masahiroy@kernel.org,lkp@intel.com,arnd@arndb.de,andy.shevchenko@gmail.com,nathan@kernel.org,akpm@linux-foundation.org
+	b=KOZvbYs6D67SafMzVNzbtSVqCofCWd/hz9KHu9U0zxFAo1jpuXgutyDJD3kdMLpkF
+	 Chz6+R0KOW/v7EP09CIz6+WFm0DYxFRLgVHWFE++zBh5YRrjpVwkKpl1dGP2HqTp1o
+	 edyHjiKyVVLE3IAScUvLj8RWJe+5XrjxLTrT3iTc=
+Date: Sat, 01 Feb 2025 03:50:20 -0800
+To: mm-commits@vger.kernel.org,kaiyang2@cs.cmu.edu,lizhijian@fujitsu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250131233311.8D663C4CED1@smtp.kernel.org>
+Subject: [folded-merged] mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch removed from -mm tree
+Message-Id: <20250201115021.30A35C4CEE1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,89 +34,56 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: scripts/Makefile.extrawarn: do not show clang's non-kprintf warnings at W=1
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1.patch
+The quilt patch titled
+     Subject: mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics.patch
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: scripts/Makefile.extrawarn: do not show clang's non-kprintf warnings at W=1
-Date: Fri, 31 Jan 2025 15:55:28 -0700
+From: Li Zhijian <lizhijian@fujitsu.com>
+Subject: mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2
+Date: Sat, 11 Jan 2025 09:52:53 +0800
 
-Clang's -Wformat-overflow and -Wformat-truncation have chosen to check
-'%p' unlike GCC but it does not know about the kernel's pointer extensions
-in lib/vsprintf.c, so the developers split that part of the warning out
-for the kernel to disable because there will always be false positives.
+introduce local nr_demoted to fix nr_reclaimed double counting
 
-Commit 908dd508276d ("kbuild: enable -Wformat-truncation on clang") did
-disabled these warnings but only in a block that would be called when W=1
-was not passed, so they would appear with W=1.  Move the disabling of the
-non-kprintf warnings to a block that always runs so that they are never
-seen, regardless of warning level.
-
-Link: https://lkml.kernel.org/r/20250131-makefile-extrawarn-fix-clang-format-non-kprintf-v1-1-6c6747ada0d4@kernel.org
-Fixes: 908dd508276d ("kbuild: enable -Wformat-truncation on clang")
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202501291646.VtwF98qd-lkp@intel.com/
-Cc: Andriy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
+Link: https://lkml.kernel.org/r/20250111015253.425693-1-lizhijian@fujitsu.com
+Fixes: f77f0c751478 ("mm,memcg: provide per-cgroup counters for NUMA balancing operations")
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.extrawarn |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/scripts/Makefile.extrawarn~scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1
-+++ a/scripts/Makefile.extrawarn
-@@ -31,6 +31,11 @@ KBUILD_CFLAGS-$(CONFIG_CC_NO_ARRAY_BOUND
- ifdef CONFIG_CC_IS_CLANG
- # The kernel builds with '-std=gnu11' so use of GNU extensions is acceptable.
- KBUILD_CFLAGS += -Wno-gnu
-+
-+# Clang checks for overflow/truncation with '%p', while GCC does not:
-+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111219
-+KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow-non-kprintf)
-+KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation-non-kprintf)
- else
+--- a/mm/vmscan.c~mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics-v2
++++ a/mm/vmscan.c
+@@ -1086,7 +1086,7 @@ static unsigned int shrink_folio_list(st
+ 	struct folio_batch free_folios;
+ 	LIST_HEAD(ret_folios);
+ 	LIST_HEAD(demote_folios);
+-	unsigned int nr_reclaimed = 0;
++	unsigned int nr_reclaimed = 0, nr_demoted = 0;
+ 	unsigned int pgactivate = 0;
+ 	bool do_demote_pass;
+ 	struct swap_iocb *plug = NULL;
+@@ -1550,8 +1550,9 @@ keep:
+ 	/* 'folio_list' is always empty here */
  
- # gcc inanely warns about local variables called 'main'
-@@ -102,11 +107,6 @@ KBUILD_CFLAGS += $(call cc-disable-warni
- KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow)
- ifdef CONFIG_CC_IS_GCC
- KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation)
--else
--# Clang checks for overflow/truncation with '%p', while GCC does not:
--# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111219
--KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow-non-kprintf)
--KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation-non-kprintf)
- endif
- KBUILD_CFLAGS += $(call cc-disable-warning, stringop-truncation)
- 
+ 	/* Migrate folios selected for demotion */
+-	stat->nr_demoted += demote_folio_list(&demote_folios, pgdat);
+-	nr_reclaimed += stat->nr_demoted;
++	nr_demoted = demote_folio_list(&demote_folios, pgdat);
++	nr_reclaimed += nr_demoted;
++	stat->nr_demoted += nr_demoted;
+ 	/* Folios that could not be demoted are still in @demote_folios */
+ 	if (!list_empty(&demote_folios)) {
+ 		/* Folios which weren't demoted go back on @folio_list */
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from lizhijian@fujitsu.com are
 
-scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1.patch
+mm-vmscan-accumulate-nr_demoted-for-accurate-demotion-statistics.patch
 
