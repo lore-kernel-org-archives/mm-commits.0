@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4223D153565
-	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:54:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE1A153565
+	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:54:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738410850; cv=none; b=ZxZau+JX1PMKIQ58SLjgzyRZ97QIJq603J//vQxQE698tdgFMqKcKC9AJEj7QPwKiM1xrzAeb62L9r7uauLhqMVtASMZp/ZmOVcCMN9uwiUD0BFS3xKVM4uMcaE/getlrjuvP/Akscm2iuBVhBPs+CzijLd0o+eQgXJjo2G5cz8=
+	t=1738410851; cv=none; b=BKLz5TZuGCuExXFXWapPRS/ii0elH8tFDEVVLqOM0lSbCk1m4va7RTVb/EYJVvUZHb5mCHnC9+4PvnCL0hEiPPGaFjQiAdrRC2Ghkg78bootxM5E368QtQO+xNDwusiE/aoiVqmo11EPoSeV3XwefZscbcOb8TxbMKz25gjWPlc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738410850; c=relaxed/simple;
-	bh=PJX/v5ukucF7HLK/0gQr6tNyi/1VXGjrPJh0uWPEkxY=;
-	h=Date:To:From:Subject:Message-Id; b=SOkCWjOO56bsEbDw6YvCwfzBueZLxRUnb2D7AwueT78Wqc1k7WXwtlp9DsEbx7KZZ4GbZbQ/DAseUFCMHChqTcRkUEMKgCiWHPWSr0YMJw6FQ6Kmla+26nHON0Tq5j/oAe0CIRYl+Sf9vmSNR8C9zlkcsLhCKvIPuXH+nyDvTF8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dZN2SZty; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410851; c=relaxed/simple;
+	bh=y3kk5p8VAxMHQtc5blfSJyFxla24gdyzwpWnnLCg2lA=;
+	h=Date:To:From:Subject:Message-Id; b=oc0rG1p+g5o7Cks1yXKNDw+R3xWvNy6uHl9pxwpDh2C6h6Tj1Mu+lTJv2fNakMAIhZidT22fks1eLTZPj5NHsKcaDeeH5XZM7iZiq57zQefcgogOZvcCry+fBbyEFFqZgAceOSXOL75NueebTqK7iLF1nN901zOIQ6pZnl6IUvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=156LIRrx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dZN2SZty"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B05F3C4CED3;
-	Sat,  1 Feb 2025 11:54:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="156LIRrx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA083C4CED3;
+	Sat,  1 Feb 2025 11:54:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738410849;
-	bh=PJX/v5ukucF7HLK/0gQr6tNyi/1VXGjrPJh0uWPEkxY=;
+	s=korg; t=1738410850;
+	bh=y3kk5p8VAxMHQtc5blfSJyFxla24gdyzwpWnnLCg2lA=;
 	h=Date:To:From:Subject:From;
-	b=dZN2SZty2VTA8ixuggAIr/fhXBu30H1dm/WDPgijjnHKS7U8yNKBnRoalEhK3kkVp
-	 VJNrVAztAT6cJlaVcGaBCgfVjyz2ahLsOXNTk1gSKess6tCPG4brBTqMpRj92Kl3VE
-	 mvEYO+gMm8ZsuVdV20kDl2by2ZBgSYjWtC6LKVBw=
-Date: Sat, 01 Feb 2025 03:54:09 -0800
-To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,peterz@infradead.org,oleg@redhat.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
+	b=156LIRrx2f0tXAkogIb5vi3cQ+dXZP6ITa/VDvgsszOAQiMfuDtza4NZrG00rADJo
+	 2vrDvIUuWYwOxSH5KSukmp033CF5EeeRHzftxXolbQc/V/mcY/10Io1It3Gp3mvfz+
+	 GP7G3R7H8KOCpp2yqg29vmQ2bffdsArzMWJxkU04=
+Date: Sat, 01 Feb 2025 03:54:10 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch removed from -mm tree
-Message-Id: <20250201115409.B05F3C4CED3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-compaction-use-the-proper-flag-to-determine-watermarks.patch removed from -mm tree
+Message-Id: <20250201115410.DA083C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,137 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel: be more careful about dup_mmap() failures and uprobe registering
+     Subject: mm: compaction: use the proper flag to determine watermarks
 has been removed from the -mm tree.  Its filename was
-     kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch
+     mm-compaction-use-the-proper-flag-to-determine-watermarks.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: kernel: be more careful about dup_mmap() failures and uprobe registering
-Date: Mon, 27 Jan 2025 12:02:21 -0500
+From: yangge <yangge1116@126.com>
+Subject: mm: compaction: use the proper flag to determine watermarks
+Date: Sat, 25 Jan 2025 14:53:57 +0800
 
-If a memory allocation fails during dup_mmap(), the maple tree can be left
-in an unsafe state for other iterators besides the exit path.  All the
-locks are dropped before the exit_mmap() call (in mm/mmap.c), but the
-incomplete mm_struct can be reached through (at least) the rmap finding
-the vmas which have a pointer back to the mm_struct.
+There are 4 NUMA nodes on my machine, and each NUMA node has 32GB of
+memory.  I have configured 16GB of CMA memory on each NUMA node, and
+starting a 32GB virtual machine with device passthrough is extremely slow,
+taking almost an hour.
 
-Up to this point, there have been no issues with being able to find an
-mm_struct that was only partially initialised.  Syzbot was able to make
-the incomplete mm_struct fail with recent forking changes, so it has been
-proven unsafe to use the mm_struct that hasn't been initialised, as
-referenced in the link below.
+Long term GUP cannot allocate memory from CMA area, so a maximum of 16 GB
+of no-CMA memory on a NUMA node can be used as virtual machine memory. 
+There is 16GB of free CMA memory on a NUMA node, which is sufficient to
+pass the order-0 watermark check, causing the __compaction_suitable()
+function to consistently return true.
 
-Although 8ac662f5da19f ("fork: avoid inappropriate uprobe access to
-invalid mm") fixed the uprobe access, it does not completely remove the
-race.
+For costly allocations, if the __compaction_suitable() function always
+returns true, it causes the __alloc_pages_slowpath() function to fail to
+exit at the appropriate point.  This prevents timely fallback to
+allocating memory on other nodes, ultimately resulting in excessively long
+virtual machine startup times.
 
-This patch sets the MMF_OOM_SKIP to avoid the iteration of the vmas on the
-oom side (even though this is extremely unlikely to be selected as an oom
-victim in the race window), and sets MMF_UNSTABLE to avoid other potential
-users from using a partially initialised mm_struct.
+Call trace:
+__alloc_pages_slowpath
+    if (compact_result == COMPACT_SKIPPED ||
+        compact_result == COMPACT_DEFERRED)
+        goto nopage; // should exit __alloc_pages_slowpath() from here
 
-When registering vmas for uprobe, skip the vmas in an mm that is marked
-unstable.  Modifying a vma in an unstable mm may cause issues if the mm
-isn't fully initialised.
+We could use the real unmovable allocation context to have
+__zone_watermark_unusable_free() subtract CMA pages, and thus we won't
+pass the order-0 check anymore once the non-CMA part is exhausted.  There
+is some risk that in some different scenario the compaction could in fact
+migrate pages from the exhausted non-CMA part of the zone to the CMA part
+and succeed, and we'll skip it instead.  But only __GFP_NORETRY
+allocations should be affected in the immediate "goto nopage" when
+compaction is skipped, others will attempt with DEF_COMPACT_PRIORITY
+anyway and won't fail without trying to compact-migrate the non-CMA
+pageblocks into CMA pageblocks first, so it should be fine.
 
-Link: https://lore.kernel.org/all/6756d273.050a0220.2477f.003d.GAE@google.com/
-Link: https://lkml.kernel.org/r/20250127170221.1761366-1-Liam.Howlett@oracle.com
-Fixes: d24062914837 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+After this fix, it only takes a few tens of seconds to start a 32GB
+virtual machine with device passthrough functionality.
+
+Link: https://lore.kernel.org/lkml/1736335854-548-1-git-send-email-yangge1116@126.com/
+Link: https://lkml.kernel.org/r/1737788037-8439-1-git-send-email-yangge1116@126.com
+Signed-off-by: yangge <yangge1116@126.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    4 ++++
- kernel/fork.c           |   17 ++++++++++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ mm/compaction.c |   29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
 
---- a/kernel/events/uprobes.c~kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering
-+++ a/kernel/events/uprobes.c
-@@ -28,6 +28,7 @@
- #include <linux/rcupdate_trace.h>
- #include <linux/workqueue.h>
- #include <linux/srcu.h>
-+#include <linux/oom.h>          /* check_stable_address_space */
+--- a/mm/compaction.c~mm-compaction-use-the-proper-flag-to-determine-watermarks
++++ a/mm/compaction.c
+@@ -2491,7 +2491,8 @@ bool compaction_zonelist_suitable(struct
+  */
+ static enum compact_result
+ compaction_suit_allocation_order(struct zone *zone, unsigned int order,
+-				 int highest_zoneidx, unsigned int alloc_flags)
++				 int highest_zoneidx, unsigned int alloc_flags,
++				 bool async)
+ {
+ 	unsigned long watermark;
  
- #include <linux/uprobes.h>
+@@ -2500,6 +2501,23 @@ compaction_suit_allocation_order(struct
+ 			      alloc_flags))
+ 		return COMPACT_SUCCESS;
  
-@@ -1260,6 +1261,9 @@ register_for_each_vma(struct uprobe *upr
- 		 * returns NULL in find_active_uprobe_rcu().
- 		 */
- 		mmap_write_lock(mm);
-+		if (check_stable_address_space(mm))
-+			goto unlock;
++	/*
++	 * For unmovable allocations (without ALLOC_CMA), check if there is enough
++	 * free memory in the non-CMA pageblocks. Otherwise compaction could form
++	 * the high-order page in CMA pageblocks, which would not help the
++	 * allocation to succeed. However, limit the check to costly order async
++	 * compaction (such as opportunistic THP attempts) because there is the
++	 * possibility that compaction would migrate pages from non-CMA to CMA
++	 * pageblock.
++	 */
++	if (order > PAGE_ALLOC_COSTLY_ORDER && async &&
++	    !(alloc_flags & ALLOC_CMA)) {
++		watermark = low_wmark_pages(zone) + compact_gap(order);
++		if (!__zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
++					   0, zone_page_state(zone, NR_FREE_PAGES)))
++			return COMPACT_SKIPPED;
++	}
 +
- 		vma = find_vma(mm, info->vaddr);
- 		if (!vma || !valid_vma(vma, is_register) ||
- 		    file_inode(vma->vm_file) != uprobe->inode)
---- a/kernel/fork.c~kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering
-+++ a/kernel/fork.c
-@@ -760,7 +760,8 @@ loop_out:
- 		mt_set_in_rcu(vmi.mas.tree);
- 		ksm_fork(mm, oldmm);
- 		khugepaged_fork(mm, oldmm);
--	} else if (mpnt) {
-+	} else {
-+
- 		/*
- 		 * The entire maple tree has already been duplicated. If the
- 		 * mmap duplication fails, mark the failure point with
-@@ -768,8 +769,18 @@ loop_out:
- 		 * stop releasing VMAs that have not been duplicated after this
- 		 * point.
- 		 */
--		mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
--		mas_store(&vmi.mas, XA_ZERO_ENTRY);
-+		if (mpnt) {
-+			mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
-+			mas_store(&vmi.mas, XA_ZERO_ENTRY);
-+			/* Avoid OOM iterating a broken tree */
-+			set_bit(MMF_OOM_SKIP, &mm->flags);
-+		}
-+		/*
-+		 * The mm_struct is going to exit, but the locks will be dropped
-+		 * first.  Set the mm_struct as unstable is advisable as it is
-+		 * not fully initialised.
-+		 */
-+		set_bit(MMF_UNSTABLE, &mm->flags);
+ 	if (!compaction_suitable(zone, order, highest_zoneidx))
+ 		return COMPACT_SKIPPED;
+ 
+@@ -2535,7 +2553,8 @@ compact_zone(struct compact_control *cc,
+ 	if (!is_via_compact_memory(cc->order)) {
+ 		ret = compaction_suit_allocation_order(cc->zone, cc->order,
+ 						       cc->highest_zoneidx,
+-						       cc->alloc_flags);
++						       cc->alloc_flags,
++						       cc->mode == MIGRATE_ASYNC);
+ 		if (ret != COMPACT_CONTINUE)
+ 			return ret;
  	}
- out:
- 	mmap_write_unlock(mm);
+@@ -3038,7 +3057,8 @@ static bool kcompactd_node_suitable(pg_d
+ 
+ 		ret = compaction_suit_allocation_order(zone,
+ 				pgdat->kcompactd_max_order,
+-				highest_zoneidx, ALLOC_WMARK_MIN);
++				highest_zoneidx, ALLOC_WMARK_MIN,
++				false);
+ 		if (ret == COMPACT_CONTINUE)
+ 			return true;
+ 	}
+@@ -3079,7 +3099,8 @@ static void kcompactd_do_work(pg_data_t
+ 			continue;
+ 
+ 		ret = compaction_suit_allocation_order(zone,
+-				cc.order, zoneid, ALLOC_WMARK_MIN);
++				cc.order, zoneid, ALLOC_WMARK_MIN,
++				false);
+ 		if (ret != COMPACT_CONTINUE)
+ 			continue;
+ 
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
 
