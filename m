@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F237153565;
-	Sat,  1 Feb 2025 11:54:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EA4D153565
+	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:54:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738410844; cv=none; b=gyw9AYn219xk0lZNy4O2X2ELJTtRETNwzQE4KOBkxQvU145u3HYlV6s48rTHeUoyM8dZnlMaqcYulEg132rNsslI3O6KM3B0n34siTURXi4hPq9qUtFFf65Vy6LorQJTLs0oFR83fEX9LF1afN5fjTdtXFMzvxXhKg8qruwUwS8=
+	t=1738410845; cv=none; b=sobPeAgLxHBxD3kmq3ekHfx8adTUI1pt0hU9xr8mLlt5dHeTkfLOUB35Bqh1rSHsaVe59Bc3/5kkhDHnYzgqUQ32zwweiFLyKfN6r1bCAvZhHWpyuGyGfciq7kEpi4xVhfs9o8l1063uYKGYknvbQZDpphBm0kIsDeLUpubIi5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738410844; c=relaxed/simple;
-	bh=98BZOki32toT1tf6uxmK12RprrZPSDsrvPQxRW7Zorg=;
-	h=Date:To:From:Subject:Message-Id; b=NVGxaLklL9Pu6Vf3aNDXhRgLFgQaHg/MDrdbpofkm/q8DRqqyoCMYB3A2RYG0phMPWQxM9IcD7xci7NgXp1XxUK65LOpeDdWbXZMSeDes8aMLQNUPpcMJpVcPD/TxtHkubwdrA7krLQ1Vf9HZHcEO7ZbqB41zFZqJGOFDn4GD74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ztFpVMJM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410845; c=relaxed/simple;
+	bh=r8YOAjVntww9GhcStb9T6UUrMdpZ3WfncmhHUTC2ye4=;
+	h=Date:To:From:Subject:Message-Id; b=beXrw1grm5XVaKogY5DKiqAZ97GRxavrMIBKriWKB/Zli+2HFRXV1yN8gDBKgcOTQUX2ZBQYgJQUF6ySMoZ6FbmG/DXOMagYrvUzzpztiE1OkV5syzW6aMmp28RYxLXBe1NsBZDijQ19XCCzv7y0yxTJsw9alffuFAH4lc0JJlA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pi2MOe0u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ztFpVMJM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC910C4CED3;
-	Sat,  1 Feb 2025 11:54:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pi2MOe0u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8AACC4CED3;
+	Sat,  1 Feb 2025 11:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738410843;
-	bh=98BZOki32toT1tf6uxmK12RprrZPSDsrvPQxRW7Zorg=;
+	s=korg; t=1738410845;
+	bh=r8YOAjVntww9GhcStb9T6UUrMdpZ3WfncmhHUTC2ye4=;
 	h=Date:To:From:Subject:From;
-	b=ztFpVMJMQSvjMwP6RJ9TC4ktmsCVKSOjnxEBaX1y8xerAZV72Gy0sfkQ/T0vaEqRn
-	 O6LoI0kTU+5s8mgTiJoaXPuXjJgoyZSlqjiNbjsNUL+kILguUg8cwo4Rlb6WsL1ci+
-	 jly3We4zaBQB2vTWKsmr2HGrFFtQ9wdt9LIZm+dg=
-Date: Sat, 01 Feb 2025 03:54:03 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kbingham@kernel.org,baohua@kernel.org,jan.kiszka@siemens.com,akpm@linux-foundation.org
+	b=Pi2MOe0uWo3LBQewQSpFzubT7C5EbnETcr3VPJmwoyUZN/BG/jJ0rWMoQjQG+ZhwX
+	 T6EYYqAFVWGR54O8LXatoY2fzMrd6e6YUInynvamal0W+jKbP6Io6QqwhBm6/uDY6B
+	 QfmagEd4JppfJtJ6FIQq4vbLow+yThLRWumS+N8k=
+Date: Sat, 01 Feb 2025 03:54:04 -0800
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosry.ahmed@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task.patch removed from -mm tree
-Message-Id: <20250201115403.BC910C4CED3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mailmap-update-yosry-ahmeds-email-address.patch removed from -mm tree
+Message-Id: <20250201115404.E8AACC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb: fix aarch64 userspace detection in get_current_task
+     Subject: MAINTAINERS: mailmap: update Yosry Ahmed's email address
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task.patch
+     maintainers-mailmap-update-yosry-ahmeds-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: fix aarch64 userspace detection in get_current_task
-Date: Fri, 10 Jan 2025 11:36:33 +0100
+From: Yosry Ahmed <yosry.ahmed@linux.dev>
+Subject: MAINTAINERS: mailmap: update Yosry Ahmed's email address
+Date: Thu, 23 Jan 2025 23:13:44 +0000
 
-At least recent gdb releases (seen with 14.2) return SP_EL0 as signed long
-which lets the right-shift always return 0.
+Moving to a linux.dev email address.
 
-Link: https://lkml.kernel.org/r/dcd2fabc-9131-4b48-8419-6444e2d67454@siemens.com
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250123231344.817358-1-yosry.ahmed@linux.dev
+Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-fix-aarch64-userspace-detection-in-get_current_task
-+++ a/scripts/gdb/linux/cpus.py
-@@ -167,7 +167,7 @@ def get_current_task(cpu):
-             var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
-             return per_cpu(var_ptr, cpu).dereference()
-     elif utils.is_target_arch("aarch64"):
--        current_task_addr = gdb.parse_and_eval("$SP_EL0")
-+        current_task_addr = gdb.parse_and_eval("(unsigned long)$SP_EL0")
-         if (current_task_addr >> 63) != 0:
-             current_task = current_task_addr.cast(task_ptr_type)
-             return current_task.dereference()
+--- a/.mailmap~maintainers-mailmap-update-yosry-ahmeds-email-address
++++ a/.mailmap
+@@ -761,6 +761,7 @@ Wolfram Sang <wsa@kernel.org> <wsa@the-d
+ Yakir Yang <kuankuan.y@gmail.com> <ykk@rock-chips.com>
+ Yanteng Si <si.yanteng@linux.dev> <siyanteng@loongson.cn>
+ Ying Huang <huang.ying.caritas@gmail.com> <ying.huang@intel.com>
++Yosry Ahmed <yosry.ahmed@linux.dev> <yosryahmed@google.com>
+ Yusuke Goda <goda.yusuke@renesas.com>
+ Zack Rusin <zack.rusin@broadcom.com> <zackr@vmware.com>
+ Zhu Yanjun <zyjzyj2000@gmail.com> <yanjunz@nvidia.com>
+--- a/MAINTAINERS~maintainers-mailmap-update-yosry-ahmeds-email-address
++++ a/MAINTAINERS
+@@ -26213,7 +26213,7 @@ K:	zstd
+ 
+ ZSWAP COMPRESSED SWAP CACHING
+ M:	Johannes Weiner <hannes@cmpxchg.org>
+-M:	Yosry Ahmed <yosryahmed@google.com>
++M:	Yosry Ahmed <yosry.ahmed@linux.dev>
+ M:	Nhat Pham <nphamcs@gmail.com>
+ R:	Chengming Zhou <chengming.zhou@linux.dev>
+ L:	linux-mm@kvack.org
 _
 
-Patches currently in -mm which might be from jan.kiszka@siemens.com are
+Patches currently in -mm which might be from yosry.ahmed@linux.dev are
 
+mm-z3fold-remove-z3fold.patch
+mm-zbud-remove-zbud.patch
 
