@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E83153565
-	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:54:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4223D153565
+	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:54:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738410848; cv=none; b=RfR4lwsEoDLj7POLMLlDFzEc8sdqcZOnZWql3tEaf+/1+tf9vFwAWbUmUMer8MFeK7xLvjim9dtnBBQcx1PePCTVIaCoUwSc+OiAlJnerFMmqVhuTR7rOIgySZh49rAD0LByH6964kJvNfmm/gxjss6gmH3biWb39JLsfsbVJn0=
+	t=1738410850; cv=none; b=ZxZau+JX1PMKIQ58SLjgzyRZ97QIJq603J//vQxQE698tdgFMqKcKC9AJEj7QPwKiM1xrzAeb62L9r7uauLhqMVtASMZp/ZmOVcCMN9uwiUD0BFS3xKVM4uMcaE/getlrjuvP/Akscm2iuBVhBPs+CzijLd0o+eQgXJjo2G5cz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738410848; c=relaxed/simple;
-	bh=31SJBrEkDiqrk+ZKS9o1Kz02SpUchoghWeus5PM9Lj0=;
-	h=Date:To:From:Subject:Message-Id; b=g8Gn7/jEcV6/Icn+sptHMJ7dUGjMkPaXl8tkqYSNBb6L7TSfes5Dlb8W9Nb2SRiw8LDkxt2xxsk2qfusrqbz18QGDqgcfk6mGyawb59Xl1saT12/ZmRyetilQjboAKGiUym07CHOSTpz5UUlGTPb/LMfelZW0UlGBH71zkC7wvo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=akCnLJ/A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410850; c=relaxed/simple;
+	bh=PJX/v5ukucF7HLK/0gQr6tNyi/1VXGjrPJh0uWPEkxY=;
+	h=Date:To:From:Subject:Message-Id; b=SOkCWjOO56bsEbDw6YvCwfzBueZLxRUnb2D7AwueT78Wqc1k7WXwtlp9DsEbx7KZZ4GbZbQ/DAseUFCMHChqTcRkUEMKgCiWHPWSr0YMJw6FQ6Kmla+26nHON0Tq5j/oAe0CIRYl+Sf9vmSNR8C9zlkcsLhCKvIPuXH+nyDvTF8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dZN2SZty; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="akCnLJ/A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BD23C4CED3;
-	Sat,  1 Feb 2025 11:54:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dZN2SZty"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B05F3C4CED3;
+	Sat,  1 Feb 2025 11:54:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738410848;
-	bh=31SJBrEkDiqrk+ZKS9o1Kz02SpUchoghWeus5PM9Lj0=;
+	s=korg; t=1738410849;
+	bh=PJX/v5ukucF7HLK/0gQr6tNyi/1VXGjrPJh0uWPEkxY=;
 	h=Date:To:From:Subject:From;
-	b=akCnLJ/AyjKjZBi/wz+ixA29PmzdFUrbq9I/k71ad+UW1H9fZY394zhZIYytB2kIZ
-	 V7yqUSVB0XeLDhBCqBI11oCkLQIRm5z84mmvtJieka3dwYSW9b13PJsVsYUo6EbOWe
-	 Qt6zvL+vco56SURuUMjTi/fpIrvZK9FB2AoXCiBk=
-Date: Sat, 01 Feb 2025 03:54:07 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,rppt@kernel.org,rafael@kernel.org,lenb@kernel.org,jhubbard@nvidia.com,hyeonggon.yoo@sk.com,david@redhat.com,bfaccini@nvidia.com,akpm@linux-foundation.org
+	b=dZN2SZty2VTA8ixuggAIr/fhXBu30H1dm/WDPgijjnHKS7U8yNKBnRoalEhK3kkVp
+	 VJNrVAztAT6cJlaVcGaBCgfVjyz2ahLsOXNTk1gSKess6tCPG4brBTqMpRj92Kl3VE
+	 mvEYO+gMm8ZsuVdV20kDl2by2ZBgSYjWtC6LKVBw=
+Date: Sat, 01 Feb 2025 03:54:09 -0800
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,peterz@infradead.org,oleg@redhat.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,jannh@google.com,Liam.Howlett@Oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fake-numa-handle-cases-with-no-srat-info.patch removed from -mm tree
-Message-Id: <20250201115408.5BD23C4CED3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch removed from -mm tree
+Message-Id: <20250201115409.B05F3C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/fake-numa: handle cases with no SRAT info
+     Subject: kernel: be more careful about dup_mmap() failures and uprobe registering
 has been removed from the -mm tree.  Its filename was
-     mm-fake-numa-handle-cases-with-no-srat-info.patch
+     kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bruno Faccini <bfaccini@nvidia.com>
-Subject: mm/fake-numa: handle cases with no SRAT info
-Date: Mon, 27 Jan 2025 09:16:23 -0800
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: kernel: be more careful about dup_mmap() failures and uprobe registering
+Date: Mon, 27 Jan 2025 12:02:21 -0500
 
-Handle more gracefully cases where no SRAT information is available, like
-in VMs with no Numa support, and allow fake-numa configuration to complete
-successfully in these cases
+If a memory allocation fails during dup_mmap(), the maple tree can be left
+in an unsafe state for other iterators besides the exit path.  All the
+locks are dropped before the exit_mmap() call (in mm/mmap.c), but the
+incomplete mm_struct can be reached through (at least) the rmap finding
+the vmas which have a pointer back to the mm_struct.
 
-Link: https://lkml.kernel.org/r/20250127171623.1523171-1-bfaccini@nvidia.com
-Fixes: 63db8170bf34 (“mm/fake-numa: allow later numa node hotplug”)
-Signed-off-by: Bruno Faccini <bfaccini@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hyeonggon Yoo <hyeonggon.yoo@sk.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Up to this point, there have been no issues with being able to find an
+mm_struct that was only partially initialised.  Syzbot was able to make
+the incomplete mm_struct fail with recent forking changes, so it has been
+proven unsafe to use the mm_struct that hasn't been initialised, as
+referenced in the link below.
+
+Although 8ac662f5da19f ("fork: avoid inappropriate uprobe access to
+invalid mm") fixed the uprobe access, it does not completely remove the
+race.
+
+This patch sets the MMF_OOM_SKIP to avoid the iteration of the vmas on the
+oom side (even though this is extremely unlikely to be selected as an oom
+victim in the race window), and sets MMF_UNSTABLE to avoid other potential
+users from using a partially initialised mm_struct.
+
+When registering vmas for uprobe, skip the vmas in an mm that is marked
+unstable.  Modifying a vma in an unstable mm may cause issues if the mm
+isn't fully initialised.
+
+Link: https://lore.kernel.org/all/6756d273.050a0220.2477f.003d.GAE@google.com/
+Link: https://lkml.kernel.org/r/20250127170221.1761366-1-Liam.Howlett@oracle.com
+Fixes: d24062914837 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa/srat.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ kernel/events/uprobes.c |    4 ++++
+ kernel/fork.c           |   17 ++++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
---- a/drivers/acpi/numa/srat.c~mm-fake-numa-handle-cases-with-no-srat-info
-+++ a/drivers/acpi/numa/srat.c
-@@ -95,9 +95,13 @@ int __init fix_pxm_node_maps(int max_nid
- 	int i, j, index = -1, count = 0;
- 	nodemask_t nodes_to_enable;
+--- a/kernel/events/uprobes.c~kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering
++++ a/kernel/events/uprobes.c
+@@ -28,6 +28,7 @@
+ #include <linux/rcupdate_trace.h>
+ #include <linux/workqueue.h>
+ #include <linux/srcu.h>
++#include <linux/oom.h>          /* check_stable_address_space */
  
--	if (numa_off || srat_disabled())
-+	if (numa_off)
- 		return -1;
+ #include <linux/uprobes.h>
  
-+	/* no or incomplete node/PXM mapping set, nothing to do */
-+	if (srat_disabled())
-+		return 0;
+@@ -1260,6 +1261,9 @@ register_for_each_vma(struct uprobe *upr
+ 		 * returns NULL in find_active_uprobe_rcu().
+ 		 */
+ 		mmap_write_lock(mm);
++		if (check_stable_address_space(mm))
++			goto unlock;
 +
- 	/* find fake nodes PXM mapping */
- 	for (i = 0; i < MAX_NUMNODES; i++) {
- 		if (node_to_pxm_map[i] != PXM_INVAL) {
-@@ -117,6 +121,11 @@ int __init fix_pxm_node_maps(int max_nid
- 			}
- 		}
+ 		vma = find_vma(mm, info->vaddr);
+ 		if (!vma || !valid_vma(vma, is_register) ||
+ 		    file_inode(vma->vm_file) != uprobe->inode)
+--- a/kernel/fork.c~kernel-be-more-careful-about-dup_mmap-failures-and-uprobe-registering
++++ a/kernel/fork.c
+@@ -760,7 +760,8 @@ loop_out:
+ 		mt_set_in_rcu(vmi.mas.tree);
+ 		ksm_fork(mm, oldmm);
+ 		khugepaged_fork(mm, oldmm);
+-	} else if (mpnt) {
++	} else {
++
+ 		/*
+ 		 * The entire maple tree has already been duplicated. If the
+ 		 * mmap duplication fails, mark the failure point with
+@@ -768,8 +769,18 @@ loop_out:
+ 		 * stop releasing VMAs that have not been duplicated after this
+ 		 * point.
+ 		 */
+-		mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
+-		mas_store(&vmi.mas, XA_ZERO_ENTRY);
++		if (mpnt) {
++			mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
++			mas_store(&vmi.mas, XA_ZERO_ENTRY);
++			/* Avoid OOM iterating a broken tree */
++			set_bit(MMF_OOM_SKIP, &mm->flags);
++		}
++		/*
++		 * The mm_struct is going to exit, but the locks will be dropped
++		 * first.  Set the mm_struct as unstable is advisable as it is
++		 * not fully initialised.
++		 */
++		set_bit(MMF_UNSTABLE, &mm->flags);
  	}
-+	if (index == -1) {
-+		pr_debug("No node/PXM mapping has been set\n");
-+		/* nothing more to be done */
-+		return 0;
-+	}
- 	if (WARN(index != max_nid, "%d max nid  when expected %d\n",
- 		      index, max_nid))
- 		return -1;
+ out:
+ 	mmap_write_unlock(mm);
 _
 
-Patches currently in -mm which might be from bfaccini@nvidia.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
 
