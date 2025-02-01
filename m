@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D93B85336D
-	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 23:47:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B877E5336D
+	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 23:47:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738453642; cv=none; b=k5B6ELl1qTz339YMMKEDIOe91KCaczg2OqKRImwyiyfWitKWXJ8OZ9xlmyVLCY5xHtI+YreDoi9jcrytZbE8CrNZJSAST3e7RWFUfNe0JKNMcwsX39cm+uu/ipxCENBBK4fzUft8TEP+j/8Z9qOyYo6j2uiO0ZQcPeRhhWa6Nb8=
+	t=1738453644; cv=none; b=Rm1V9aMA6tmv7h2C1ArujeT3TYK2iiPC6W0Tqa+MMaq36H7siCTLknXn1UD5NydGrUX4mWI/zHLE8KCCCdtfL8rrGXjAUHrWLnaOqX8FFxAMiqtnQykgNweSSJmJKUW0Ijjto8RKPP169cZFBkdeoWVW3KpTgKm2wyydQ6BV5PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738453642; c=relaxed/simple;
-	bh=BaRlDaW3Py2Pb2he4t6m6wx/bc80woGbJrVotQcnEJs=;
-	h=Date:To:From:Subject:Message-Id; b=T/tIAsC4N0XmC2jUA55JU5DZjaKDn0fFrhsH4jJeqwHPvAIykTYxTS3UDuMnOtRyTpscTDeowfFHXdrl9375RpLOC4F312dSw0yKAFPUoveu5kXXmQIj8qtAoHcFEWkWj5ZIGG4Q9EocI+1CYKtRQ0TCKsvlikslW71VUf+LQdA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=im5X9GSn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738453644; c=relaxed/simple;
+	bh=Po/L+QyqUikyIvFO476uim7AGmS1eA6qJJSvZDHCOQk=;
+	h=Date:To:From:Subject:Message-Id; b=oCD+f48MLoQKKFY3WNA6gaIN7lSQtv7Ck7X3/FP8vCUEWR3NnXxj4b4bEa3wGFuWPkbU2zika/JP90QexQmU2mMg3zINdd17LbUfHzMwFl84vkotjg/vuXAyCHaDVKNrlT/a3Ai8VnqWcCbEGhuwNi6Jtecnmn7RPAwczEe3cnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDV0niMo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="im5X9GSn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2343BC4CED3;
-	Sat,  1 Feb 2025 23:47:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDV0niMo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C3A1C4CED3;
+	Sat,  1 Feb 2025 23:47:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738453641;
-	bh=BaRlDaW3Py2Pb2he4t6m6wx/bc80woGbJrVotQcnEJs=;
+	s=korg; t=1738453644;
+	bh=Po/L+QyqUikyIvFO476uim7AGmS1eA6qJJSvZDHCOQk=;
 	h=Date:To:From:Subject:From;
-	b=im5X9GSnkUqK71kkX/stoMW5CWiFtdhYkrr/0SjT7f5ee7XSOCT65SGIOyAF9q318
-	 GBeQfNwb/WOI1olKe1F8MCp/jP95hp4vPSIN4yYeTgOtPhgL9cn2ytHYRUpLmyogn4
-	 bM6GKcGATcoSuooL8EgP/8CZh6Hc1BMBu6gienAE=
-Date: Sat, 01 Feb 2025 15:47:20 -0800
+	b=aDV0niMox3DzBYuxiLclYJiRyja7xh9Hw1FhSqMRqrIid0vcQMDbQihcsGADCuEB/
+	 uGfMQSL/KV0RE3SduzvgE7wjXcgGkUe17sXjDO0/K5S7wHJA1FhmK0AIL6erUiePHt
+	 LrlxsuC6kcEOshuAEvKdcBq+EES2Wtw7+d4flMvw=
+Date: Sat, 01 Feb 2025 15:47:23 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,quic_zhenhuah@quicinc.com,peterz@infradead.org,pasha.tatashin@soleen.com,minchan@google.com,kent.overstreet@linux.dev,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch added to mm-unstable branch
-Message-Id: <20250201234721.2343BC4CED3@smtp.kernel.org>
+Subject: + alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch added to mm-unstable branch
+Message-Id: <20250201234724.1C3A1C4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: avoid extra mem_alloc_profiling_enabled() checks
+     Subject: alloc_tag: uninline code gated by mem_alloc_profiling_key in slab allocator
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
+     alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,132 +59,140 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: avoid extra mem_alloc_profiling_enabled() checks
-Date: Sat, 1 Feb 2025 15:18:00 -0800
+Subject: alloc_tag: uninline code gated by mem_alloc_profiling_key in slab allocator
+Date: Sat, 1 Feb 2025 15:18:01 -0800
 
-Refactor code to avoid extra mem_alloc_profiling_enabled() checks inside
-pgalloc_tag_get() function which is often called after that check was
-already done.
+When a sizable code section is protected by a disabled static key, that
+code gets into the instruction cache even though it's not executed and
+consumes the cache, increasing cache misses.  This can be remedied by
+moving such code into a separate uninlined function.  On a Pixel6 phone,
+slab allocation profiling overhead measured with
+CONFIG_MEM_ALLOC_PROFILING=y and profiling disabled is:
 
-Link: https://lkml.kernel.org/r/20250201231803.2661189-1-surenb@google.com
+             baseline             modified
+Big core     3.31%                0.17%
+Medium core  3.79%                0.57%
+Little core  6.68%                1.28%
+
+This improvement comes at the expense of the configuration when profiling
+gets enabled, since there is now an additional function call.  The
+overhead from this additional call on Pixel6 is:
+
+Big core     0.66%
+Middle core  1.23%
+Little core  2.42%
+
+However this is negligible when compared with the overall overhead of the
+memory allocation profiling when it is enabled.
+
+On x86 this patch does not make noticeable difference because the overhead
+with mem_alloc_profiling_key disabled is much lower (under 1%) to start
+with, so any improvement is less visible and hard to distinguish from the
+noise.  The overhead from additional call when profiling is enabled is
+also within noise levels.
+
+Link: https://lkml.kernel.org/r/20250201231803.2661189-2-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: David Wang <00107082@163.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Minchan Kim <minchan@google.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zhenhua Huang <quic_zhenhuah@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgalloc_tag.h |   33 ++++++++++++++++++---------------
- lib/alloc_tag.c             |    6 +++---
- mm/page_alloc.c             |    3 +--
- 3 files changed, 22 insertions(+), 20 deletions(-)
+ mm/slub.c |   51 ++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 32 insertions(+), 19 deletions(-)
 
---- a/include/linux/pgalloc_tag.h~mm-avoid-extra-mem_alloc_profiling_enabled-checks
-+++ a/include/linux/pgalloc_tag.h
-@@ -205,28 +205,32 @@ static inline void pgalloc_tag_sub(struc
- 	}
+--- a/mm/slub.c~alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator
++++ a/mm/slub.c
+@@ -2000,7 +2000,8 @@ int alloc_slab_obj_exts(struct slab *sla
+ 	return 0;
  }
  
--static inline struct alloc_tag *pgalloc_tag_get(struct page *page)
+-static inline void free_slab_obj_exts(struct slab *slab)
 +/* Should be called only if mem_alloc_profiling_enabled() */
-+static inline struct alloc_tag *__pgalloc_tag_get(struct page *page)
++static noinline void free_slab_obj_exts(struct slab *slab)
  {
- 	struct alloc_tag *tag = NULL;
-+	union pgtag_ref_handle handle;
-+	union codetag_ref ref;
+ 	struct slabobj_ext *obj_exts;
  
--	if (mem_alloc_profiling_enabled()) {
--		union pgtag_ref_handle handle;
--		union codetag_ref ref;
+@@ -2077,33 +2078,37 @@ prepare_slab_obj_exts_hook(struct kmem_c
+ 	return slab_obj_exts(slab) + obj_to_index(s, slab, p);
+ }
+ 
+-static inline void
+-alloc_tagging_slab_alloc_hook(struct kmem_cache *s, void *object, gfp_t flags)
++/* Should be called only if mem_alloc_profiling_enabled() */
++static noinline void
++__alloc_tagging_slab_alloc_hook(struct kmem_cache *s, void *object, gfp_t flags)
+ {
+-	if (need_slab_obj_ext()) {
+-		struct slabobj_ext *obj_exts;
++	struct slabobj_ext *obj_exts;
+ 
+-		obj_exts = prepare_slab_obj_exts_hook(s, flags, object);
+-		/*
+-		 * Currently obj_exts is used only for allocation profiling.
+-		 * If other users appear then mem_alloc_profiling_enabled()
+-		 * check should be added before alloc_tag_add().
+-		 */
+-		if (likely(obj_exts))
+-			alloc_tag_add(&obj_exts->ref, current->alloc_tag, s->size);
+-	}
++	obj_exts = prepare_slab_obj_exts_hook(s, flags, object);
++	/*
++	 * Currently obj_exts is used only for allocation profiling.
++	 * If other users appear then mem_alloc_profiling_enabled()
++	 * check should be added before alloc_tag_add().
++	 */
++	if (likely(obj_exts))
++		alloc_tag_add(&obj_exts->ref, current->alloc_tag, s->size);
+ }
+ 
+ static inline void
+-alloc_tagging_slab_free_hook(struct kmem_cache *s, struct slab *slab, void **p,
+-			     int objects)
++alloc_tagging_slab_alloc_hook(struct kmem_cache *s, void *object, gfp_t flags)
++{
++	if (need_slab_obj_ext())
++		__alloc_tagging_slab_alloc_hook(s, object, flags);
++}
++
++/* Should be called only if mem_alloc_profiling_enabled() */
++static noinline void
++__alloc_tagging_slab_free_hook(struct kmem_cache *s, struct slab *slab, void **p,
++			       int objects)
+ {
+ 	struct slabobj_ext *obj_exts;
+ 	int i;
+ 
+-	if (!mem_alloc_profiling_enabled())
+-		return;
 -
--		if (get_page_tag_ref(page, &ref, &handle)) {
--			alloc_tag_sub_check(&ref);
--			if (ref.ct)
--				tag = ct_to_alloc_tag(ref.ct);
--			put_page_tag_ref(handle);
--		}
-+	if (get_page_tag_ref(page, &ref, &handle)) {
-+		alloc_tag_sub_check(&ref);
-+		if (ref.ct)
-+			tag = ct_to_alloc_tag(ref.ct);
-+		put_page_tag_ref(handle);
+ 	/* slab->obj_exts might not be NULL if it was created for MEMCG accounting. */
+ 	if (s->flags & (SLAB_NO_OBJ_EXT | SLAB_NOLEAKTRACE))
+ 		return;
+@@ -2119,6 +2124,14 @@ alloc_tagging_slab_free_hook(struct kmem
  	}
- 
- 	return tag;
  }
  
--static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr)
-+static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr)
- {
--	if (mem_alloc_profiling_enabled() && tag)
-+	struct alloc_tag *tag;
++static inline void
++alloc_tagging_slab_free_hook(struct kmem_cache *s, struct slab *slab, void **p,
++			     int objects)
++{
++	if (mem_alloc_profiling_enabled())
++		__alloc_tagging_slab_free_hook(s, slab, p, objects);
++}
 +
-+	if (!mem_alloc_profiling_enabled())
-+		return;
-+
-+	tag = __pgalloc_tag_get(page);
-+	if (tag)
- 		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
- }
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
  
-@@ -241,8 +245,7 @@ static inline void clear_page_tag_ref(st
- static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
- 				   unsigned int nr) {}
- static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
--static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
--static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
-+static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr) {}
- static inline void alloc_tag_sec_init(void) {}
- static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
- static inline void pgalloc_tag_swap(struct folio *new, struct folio *old) {}
---- a/lib/alloc_tag.c~mm-avoid-extra-mem_alloc_profiling_enabled-checks
-+++ a/lib/alloc_tag.c
-@@ -174,7 +174,7 @@ void pgalloc_tag_split(struct folio *fol
- 	if (!mem_alloc_profiling_enabled())
- 		return;
- 
--	tag = pgalloc_tag_get(&folio->page);
-+	tag = __pgalloc_tag_get(&folio->page);
- 	if (!tag)
- 		return;
- 
-@@ -200,10 +200,10 @@ void pgalloc_tag_swap(struct folio *new,
- 	if (!mem_alloc_profiling_enabled())
- 		return;
- 
--	tag_old = pgalloc_tag_get(&old->page);
-+	tag_old = __pgalloc_tag_get(&old->page);
- 	if (!tag_old)
- 		return;
--	tag_new = pgalloc_tag_get(&new->page);
-+	tag_new = __pgalloc_tag_get(&new->page);
- 	if (!tag_new)
- 		return;
- 
---- a/mm/page_alloc.c~mm-avoid-extra-mem_alloc_profiling_enabled-checks
-+++ a/mm/page_alloc.c
-@@ -4832,12 +4832,11 @@ void __free_pages(struct page *page, uns
- {
- 	/* get PageHead before we drop reference */
- 	int head = PageHead(page);
--	struct alloc_tag *tag = pgalloc_tag_get(page);
- 
- 	if (put_page_testzero(page))
- 		free_frozen_pages(page, order);
- 	else if (!head) {
--		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
-+		pgalloc_tag_sub_pages(page, (1 << order) - 1);
- 		while (order-- > 0)
- 			free_frozen_pages(page + (1 << order), order);
- 	}
+ static inline void
 _
 
 Patches currently in -mm which might be from surenb@google.com are
