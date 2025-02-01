@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22553153565;
-	Sat,  1 Feb 2025 11:54:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B79F9153565;
+	Sat,  1 Feb 2025 11:54:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738410852; cv=none; b=MnFeD64CkbCc9KT7B2dpUCvaDdfkjUpY68ErZOz8ZgQPYva3x57MiC8XVcQJYCaYiKwAdq1SUj/RFxy+mmpjWCDlY1Z1epgQJewJF1fCe5e6pBxtfXKxrZcLbkJxE7Wci07EFTC/Uwv5S0AQdVB/QceP9sYispFaMVq5HtqcEps=
+	t=1738410853; cv=none; b=W/1xcQrMSm6rbEBDWr/n0qoIvR51Eg7IuYDeY6Tt8rB7DUWoq39ReoRe8c9oHbVaYzvIU0NzY9yb7eabaP6wpw1kxXGJm8Q5czBLXHLmp377Va1N22+BkI2TsJDBWDOOkpayK8s9Y0TVp7tDc/2EEVPzBozrqejagZt7tNyS0XY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738410852; c=relaxed/simple;
-	bh=78hzdtyjlOkhhhM/MpG6ZbrRfnzj6otwvb7Fow+WeOA=;
-	h=Date:To:From:Subject:Message-Id; b=iJ5J1mjDpormJpw4cVnAu5c9HKjC4QZzgW0FX9rrfJdwVQrYMKVayrbP1oAHmgT1buAK2z9/fxBhw+7fvQj6Ixd7QDEUHJDSarN9YQUHzH3BiXy2y+YPyjc4YtDai3eIR2pAPqQe+/VydniylT9ba0Mh1ztLnCretA9LOtdEpL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TnyJhMXc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410853; c=relaxed/simple;
+	bh=BmZsaWgibptChufQXydmUZxVgTanbW0NqgQ6lIew7gk=;
+	h=Date:To:From:Subject:Message-Id; b=V1t0R2Bky5X/uHReUQLiB7g7nukDFJ96KV9+8f+Ln6URqJuN3kumBoykRArbQNlo+RgAg/OfNcxcg7JgeaU1ceRDS2DjsK3yzYAD46WQBksttwneRyvFUUKK9CfqZaW38rJp9gGUr3raPeKl73YZ6yoqwNYNtBmj0d7u+KtwdlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v4OXZ4Qc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TnyJhMXc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC835C4CEE3;
-	Sat,  1 Feb 2025 11:54:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v4OXZ4Qc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 264AFC4CED3;
+	Sat,  1 Feb 2025 11:54:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738410852;
-	bh=78hzdtyjlOkhhhM/MpG6ZbrRfnzj6otwvb7Fow+WeOA=;
+	s=korg; t=1738410853;
+	bh=BmZsaWgibptChufQXydmUZxVgTanbW0NqgQ6lIew7gk=;
 	h=Date:To:From:Subject:From;
-	b=TnyJhMXcRXh/2wE0LCmNUdJlMkEBnWurOlZPwGdvnv+vDbaOmuvjBK4PaSUF1rG5Z
-	 Eo5l5b/xUpaL9enNTImXuLtNGDY8PU3TzCnCRr+YmwY6dgiwA1p5DiMkliGcecOTaU
-	 W8N9aQoqNYE5r4ow8bbWXMrIMsvwwf8R/1UNwzXs=
-Date: Sat, 01 Feb 2025 03:54:11 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,n.zhandarovich@fintech.ru,akpm@linux-foundation.org
+	b=v4OXZ4QcyYW5y5fOfJ/7+MRpakProLN8xJ8jf6SQeoCl5DDkfgB2X1LBnOSHW4y4k
+	 9xpkYeixcZ8roFOLEc8mOyzWT57DZ/GPr4BUVVe7o/5uwnbkQ/SYwT31plf8nFG0B2
+	 sfXDt+jaihqQBZbvRI2Pld8enl9XQlG1C8VJYwas=
+Date: Sat, 01 Feb 2025 03:54:12 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,glider@google.com,dvyukov@google.com,cl@linux.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-possible-int-overflows-in-nilfs_fiemap.patch removed from -mm tree
-Message-Id: <20250201115411.EC835C4CEE3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kfence-skip-__gfp_thisnode-allocations-on-numa-systems.patch removed from -mm tree
+Message-Id: <20250201115413.264AFC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix possible int overflows in nilfs_fiemap()
+     Subject: kfence: skip __GFP_THISNODE allocations on NUMA systems
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-possible-int-overflows-in-nilfs_fiemap.patch
+     kfence-skip-__gfp_thisnode-allocations-on-numa-systems.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nikita Zhandarovich <n.zhandarovich@fintech.ru>
-Subject: nilfs2: fix possible int overflows in nilfs_fiemap()
-Date: Sat, 25 Jan 2025 07:20:53 +0900
+From: Marco Elver <elver@google.com>
+Subject: kfence: skip __GFP_THISNODE allocations on NUMA systems
+Date: Fri, 24 Jan 2025 13:01:38 +0100
 
-Since nilfs_bmap_lookup_contig() in nilfs_fiemap() calculates its result
-by being prepared to go through potentially maxblocks == INT_MAX blocks,
-the value in n may experience an overflow caused by left shift of blkbits.
+On NUMA systems, __GFP_THISNODE indicates that an allocation _must_ be on
+a particular node, and failure to allocate on the desired node will result
+in a failed allocation.
 
-While it is extremely unlikely to occur, play it safe and cast right hand
-expression to wider type to mitigate the issue.
+Skip __GFP_THISNODE allocations if we are running on a NUMA system, since
+KFENCE can't guarantee which node its pool pages are allocated on.
 
-Found by Linux Verification Center (linuxtesting.org) with static analysis
-tool SVACE.
-
-Link: https://lkml.kernel.org/r/20250124222133.5323-1-konishi.ryusuke@gmail.com
-Fixes: 622daaff0a89 ("nilfs2: fiemap support")
-Signed-off-by: Nikita Zhandarovich <n.zhandarovich@fintech.ru>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20250124120145.410066-1-elver@google.com
+Fixes: 236e9f153852 ("kfence: skip all GFP_ZONEMASK allocations")
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Chistoph Lameter <cl@linux.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/kfence/core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/nilfs2/inode.c~nilfs2-fix-possible-int-overflows-in-nilfs_fiemap
-+++ a/fs/nilfs2/inode.c
-@@ -1186,7 +1186,7 @@ int nilfs_fiemap(struct inode *inode, st
- 			if (size) {
- 				if (phys && blkphy << blkbits == phys + size) {
- 					/* The current extent goes on */
--					size += n << blkbits;
-+					size += (u64)n << blkbits;
- 				} else {
- 					/* Terminate the current extent */
- 					ret = fiemap_fill_next_extent(
-@@ -1199,14 +1199,14 @@ int nilfs_fiemap(struct inode *inode, st
- 					flags = FIEMAP_EXTENT_MERGED;
- 					logical = blkoff << blkbits;
- 					phys = blkphy << blkbits;
--					size = n << blkbits;
-+					size = (u64)n << blkbits;
- 				}
- 			} else {
- 				/* Start a new extent */
- 				flags = FIEMAP_EXTENT_MERGED;
- 				logical = blkoff << blkbits;
- 				phys = blkphy << blkbits;
--				size = n << blkbits;
-+				size = (u64)n << blkbits;
- 			}
- 			blkoff += n;
- 		}
+--- a/mm/kfence/core.c~kfence-skip-__gfp_thisnode-allocations-on-numa-systems
++++ a/mm/kfence/core.c
+@@ -21,6 +21,7 @@
+ #include <linux/log2.h>
+ #include <linux/memblock.h>
+ #include <linux/moduleparam.h>
++#include <linux/nodemask.h>
+ #include <linux/notifier.h>
+ #include <linux/panic_notifier.h>
+ #include <linux/random.h>
+@@ -1084,6 +1085,7 @@ void *__kfence_alloc(struct kmem_cache *
+ 	 * properties (e.g. reside in DMAable memory).
+ 	 */
+ 	if ((flags & GFP_ZONEMASK) ||
++	    ((flags & __GFP_THISNODE) && num_online_nodes() > 1) ||
+ 	    (s->flags & (SLAB_CACHE_DMA | SLAB_CACHE_DMA32))) {
+ 		atomic_long_inc(&counters[KFENCE_COUNTER_SKIP_INCOMPAT]);
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from n.zhandarovich@fintech.ru are
+Patches currently in -mm which might be from elver@google.com are
 
 
