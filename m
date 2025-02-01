@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE1A153565
-	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:54:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22553153565;
+	Sat,  1 Feb 2025 11:54:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738410851; cv=none; b=BKLz5TZuGCuExXFXWapPRS/ii0elH8tFDEVVLqOM0lSbCk1m4va7RTVb/EYJVvUZHb5mCHnC9+4PvnCL0hEiPPGaFjQiAdrRC2Ghkg78bootxM5E368QtQO+xNDwusiE/aoiVqmo11EPoSeV3XwefZscbcOb8TxbMKz25gjWPlc=
+	t=1738410852; cv=none; b=MnFeD64CkbCc9KT7B2dpUCvaDdfkjUpY68ErZOz8ZgQPYva3x57MiC8XVcQJYCaYiKwAdq1SUj/RFxy+mmpjWCDlY1Z1epgQJewJF1fCe5e6pBxtfXKxrZcLbkJxE7Wci07EFTC/Uwv5S0AQdVB/QceP9sYispFaMVq5HtqcEps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738410851; c=relaxed/simple;
-	bh=y3kk5p8VAxMHQtc5blfSJyFxla24gdyzwpWnnLCg2lA=;
-	h=Date:To:From:Subject:Message-Id; b=oc0rG1p+g5o7Cks1yXKNDw+R3xWvNy6uHl9pxwpDh2C6h6Tj1Mu+lTJv2fNakMAIhZidT22fks1eLTZPj5NHsKcaDeeH5XZM7iZiq57zQefcgogOZvcCry+fBbyEFFqZgAceOSXOL75NueebTqK7iLF1nN901zOIQ6pZnl6IUvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=156LIRrx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410852; c=relaxed/simple;
+	bh=78hzdtyjlOkhhhM/MpG6ZbrRfnzj6otwvb7Fow+WeOA=;
+	h=Date:To:From:Subject:Message-Id; b=iJ5J1mjDpormJpw4cVnAu5c9HKjC4QZzgW0FX9rrfJdwVQrYMKVayrbP1oAHmgT1buAK2z9/fxBhw+7fvQj6Ixd7QDEUHJDSarN9YQUHzH3BiXy2y+YPyjc4YtDai3eIR2pAPqQe+/VydniylT9ba0Mh1ztLnCretA9LOtdEpL8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TnyJhMXc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="156LIRrx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA083C4CED3;
-	Sat,  1 Feb 2025 11:54:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TnyJhMXc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC835C4CEE3;
+	Sat,  1 Feb 2025 11:54:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738410850;
-	bh=y3kk5p8VAxMHQtc5blfSJyFxla24gdyzwpWnnLCg2lA=;
+	s=korg; t=1738410852;
+	bh=78hzdtyjlOkhhhM/MpG6ZbrRfnzj6otwvb7Fow+WeOA=;
 	h=Date:To:From:Subject:From;
-	b=156LIRrx2f0tXAkogIb5vi3cQ+dXZP6ITa/VDvgsszOAQiMfuDtza4NZrG00rADJo
-	 2vrDvIUuWYwOxSH5KSukmp033CF5EeeRHzftxXolbQc/V/mcY/10Io1It3Gp3mvfz+
-	 GP7G3R7H8KOCpp2yqg29vmQ2bffdsArzMWJxkU04=
-Date: Sat, 01 Feb 2025 03:54:10 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=TnyJhMXcRXh/2wE0LCmNUdJlMkEBnWurOlZPwGdvnv+vDbaOmuvjBK4PaSUF1rG5Z
+	 Eo5l5b/xUpaL9enNTImXuLtNGDY8PU3TzCnCRr+YmwY6dgiwA1p5DiMkliGcecOTaU
+	 W8N9aQoqNYE5r4ow8bbWXMrIMsvwwf8R/1UNwzXs=
+Date: Sat, 01 Feb 2025 03:54:11 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,n.zhandarovich@fintech.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-compaction-use-the-proper-flag-to-determine-watermarks.patch removed from -mm tree
-Message-Id: <20250201115410.DA083C4CED3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-possible-int-overflows-in-nilfs_fiemap.patch removed from -mm tree
+Message-Id: <20250201115411.EC835C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,137 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: compaction: use the proper flag to determine watermarks
+     Subject: nilfs2: fix possible int overflows in nilfs_fiemap()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-use-the-proper-flag-to-determine-watermarks.patch
+     nilfs2-fix-possible-int-overflows-in-nilfs_fiemap.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: yangge <yangge1116@126.com>
-Subject: mm: compaction: use the proper flag to determine watermarks
-Date: Sat, 25 Jan 2025 14:53:57 +0800
+From: Nikita Zhandarovich <n.zhandarovich@fintech.ru>
+Subject: nilfs2: fix possible int overflows in nilfs_fiemap()
+Date: Sat, 25 Jan 2025 07:20:53 +0900
 
-There are 4 NUMA nodes on my machine, and each NUMA node has 32GB of
-memory.  I have configured 16GB of CMA memory on each NUMA node, and
-starting a 32GB virtual machine with device passthrough is extremely slow,
-taking almost an hour.
+Since nilfs_bmap_lookup_contig() in nilfs_fiemap() calculates its result
+by being prepared to go through potentially maxblocks == INT_MAX blocks,
+the value in n may experience an overflow caused by left shift of blkbits.
 
-Long term GUP cannot allocate memory from CMA area, so a maximum of 16 GB
-of no-CMA memory on a NUMA node can be used as virtual machine memory. 
-There is 16GB of free CMA memory on a NUMA node, which is sufficient to
-pass the order-0 watermark check, causing the __compaction_suitable()
-function to consistently return true.
+While it is extremely unlikely to occur, play it safe and cast right hand
+expression to wider type to mitigate the issue.
 
-For costly allocations, if the __compaction_suitable() function always
-returns true, it causes the __alloc_pages_slowpath() function to fail to
-exit at the appropriate point.  This prevents timely fallback to
-allocating memory on other nodes, ultimately resulting in excessively long
-virtual machine startup times.
+Found by Linux Verification Center (linuxtesting.org) with static analysis
+tool SVACE.
 
-Call trace:
-__alloc_pages_slowpath
-    if (compact_result == COMPACT_SKIPPED ||
-        compact_result == COMPACT_DEFERRED)
-        goto nopage; // should exit __alloc_pages_slowpath() from here
-
-We could use the real unmovable allocation context to have
-__zone_watermark_unusable_free() subtract CMA pages, and thus we won't
-pass the order-0 check anymore once the non-CMA part is exhausted.  There
-is some risk that in some different scenario the compaction could in fact
-migrate pages from the exhausted non-CMA part of the zone to the CMA part
-and succeed, and we'll skip it instead.  But only __GFP_NORETRY
-allocations should be affected in the immediate "goto nopage" when
-compaction is skipped, others will attempt with DEF_COMPACT_PRIORITY
-anyway and won't fail without trying to compact-migrate the non-CMA
-pageblocks into CMA pageblocks first, so it should be fine.
-
-After this fix, it only takes a few tens of seconds to start a 32GB
-virtual machine with device passthrough functionality.
-
-Link: https://lore.kernel.org/lkml/1736335854-548-1-git-send-email-yangge1116@126.com/
-Link: https://lkml.kernel.org/r/1737788037-8439-1-git-send-email-yangge1116@126.com
-Signed-off-by: yangge <yangge1116@126.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250124222133.5323-1-konishi.ryusuke@gmail.com
+Fixes: 622daaff0a89 ("nilfs2: fiemap support")
+Signed-off-by: Nikita Zhandarovich <n.zhandarovich@fintech.ru>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ fs/nilfs2/inode.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-use-the-proper-flag-to-determine-watermarks
-+++ a/mm/compaction.c
-@@ -2491,7 +2491,8 @@ bool compaction_zonelist_suitable(struct
-  */
- static enum compact_result
- compaction_suit_allocation_order(struct zone *zone, unsigned int order,
--				 int highest_zoneidx, unsigned int alloc_flags)
-+				 int highest_zoneidx, unsigned int alloc_flags,
-+				 bool async)
- {
- 	unsigned long watermark;
- 
-@@ -2500,6 +2501,23 @@ compaction_suit_allocation_order(struct
- 			      alloc_flags))
- 		return COMPACT_SUCCESS;
- 
-+	/*
-+	 * For unmovable allocations (without ALLOC_CMA), check if there is enough
-+	 * free memory in the non-CMA pageblocks. Otherwise compaction could form
-+	 * the high-order page in CMA pageblocks, which would not help the
-+	 * allocation to succeed. However, limit the check to costly order async
-+	 * compaction (such as opportunistic THP attempts) because there is the
-+	 * possibility that compaction would migrate pages from non-CMA to CMA
-+	 * pageblock.
-+	 */
-+	if (order > PAGE_ALLOC_COSTLY_ORDER && async &&
-+	    !(alloc_flags & ALLOC_CMA)) {
-+		watermark = low_wmark_pages(zone) + compact_gap(order);
-+		if (!__zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
-+					   0, zone_page_state(zone, NR_FREE_PAGES)))
-+			return COMPACT_SKIPPED;
-+	}
-+
- 	if (!compaction_suitable(zone, order, highest_zoneidx))
- 		return COMPACT_SKIPPED;
- 
-@@ -2535,7 +2553,8 @@ compact_zone(struct compact_control *cc,
- 	if (!is_via_compact_memory(cc->order)) {
- 		ret = compaction_suit_allocation_order(cc->zone, cc->order,
- 						       cc->highest_zoneidx,
--						       cc->alloc_flags);
-+						       cc->alloc_flags,
-+						       cc->mode == MIGRATE_ASYNC);
- 		if (ret != COMPACT_CONTINUE)
- 			return ret;
- 	}
-@@ -3038,7 +3057,8 @@ static bool kcompactd_node_suitable(pg_d
- 
- 		ret = compaction_suit_allocation_order(zone,
- 				pgdat->kcompactd_max_order,
--				highest_zoneidx, ALLOC_WMARK_MIN);
-+				highest_zoneidx, ALLOC_WMARK_MIN,
-+				false);
- 		if (ret == COMPACT_CONTINUE)
- 			return true;
- 	}
-@@ -3079,7 +3099,8 @@ static void kcompactd_do_work(pg_data_t
- 			continue;
- 
- 		ret = compaction_suit_allocation_order(zone,
--				cc.order, zoneid, ALLOC_WMARK_MIN);
-+				cc.order, zoneid, ALLOC_WMARK_MIN,
-+				false);
- 		if (ret != COMPACT_CONTINUE)
- 			continue;
- 
+--- a/fs/nilfs2/inode.c~nilfs2-fix-possible-int-overflows-in-nilfs_fiemap
++++ a/fs/nilfs2/inode.c
+@@ -1186,7 +1186,7 @@ int nilfs_fiemap(struct inode *inode, st
+ 			if (size) {
+ 				if (phys && blkphy << blkbits == phys + size) {
+ 					/* The current extent goes on */
+-					size += n << blkbits;
++					size += (u64)n << blkbits;
+ 				} else {
+ 					/* Terminate the current extent */
+ 					ret = fiemap_fill_next_extent(
+@@ -1199,14 +1199,14 @@ int nilfs_fiemap(struct inode *inode, st
+ 					flags = FIEMAP_EXTENT_MERGED;
+ 					logical = blkoff << blkbits;
+ 					phys = blkphy << blkbits;
+-					size = n << blkbits;
++					size = (u64)n << blkbits;
+ 				}
+ 			} else {
+ 				/* Start a new extent */
+ 				flags = FIEMAP_EXTENT_MERGED;
+ 				logical = blkoff << blkbits;
+ 				phys = blkphy << blkbits;
+-				size = n << blkbits;
++				size = (u64)n << blkbits;
+ 			}
+ 			blkoff += n;
+ 		}
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from n.zhandarovich@fintech.ru are
 
 
