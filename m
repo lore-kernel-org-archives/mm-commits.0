@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEB9612A177
-	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:50:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA22D153565
+	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 11:53:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738410659; cv=none; b=NgnA1HU6gaxyPog8KyM6RPaoq5Sa3e5hkA//TygGCF11uGpMV6HDmuM9Q2GGi9u0Mzjg2broRx3zsBnKXdj+KoWovbtdHCO1qxTk5UUc8DLBG2HDr78jKRbMceHBhoEK1gcIclE2Q/OuF4XWMfRtofQLeupDCVVC/Xj0IN767sQ=
+	t=1738410838; cv=none; b=LX8gAYDoKOotEEd4LNu3XGbzpxe9HTXPUE+n+G14nYzRD7WZB//pIQaBvmizn+HAC2Gt+If1ijM6xmZ4RnNWNLtzV0m/aDdcFMFCIrbEwaExhLqiUOSh9JowuMunYNIQ62Y6WVFAGzyrr3wabiIPwaeatZw25aI9NWtwA4WXdq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738410659; c=relaxed/simple;
-	bh=9CgfSvo11Ii6s80tX6UQkDk2PxlK+pR/bCnhges6m8w=;
-	h=Date:To:From:Subject:Message-Id; b=k3shxiowHr2u6yqW7EWN3w/1s9u2hzWfBunbDs6NVoJWcvC4pVTEP1qNZLEGFap9Su+WuXGo04kT96+fa2IBorz1vZ2k5GHelPUfjiBABVnffeq5pF+Rd+PBnYmXxrgRdtCf7vi+YYsjBOZZt2wVo9govnv9rMHkUPzc701Yw/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c5JrrCy8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738410838; c=relaxed/simple;
+	bh=Bfz4i2ue4m+2YomGLb1CCaj8XaGJUP94tDH1iPdyJxs=;
+	h=Date:To:From:Subject:Message-Id; b=CTW6t1HzJ/AfpYByNp/REMoGBWPXRjPurbegia/erNHZOtjGnrdkwUbJVBcNpyvnFGRi/lUNFH8wFT5l7WXOBOyBG7ARXL5bNlihDi3sctifaxWirOhgqoECBpKJIlbGs2qIWeAHFxBLkjncysC7xvieViMJ9cmTu+QFaNCEB90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TBzXp/uE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c5JrrCy8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47719C4CED3;
-	Sat,  1 Feb 2025 11:50:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TBzXp/uE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07F8DC4CED3;
+	Sat,  1 Feb 2025 11:53:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738410659;
-	bh=9CgfSvo11Ii6s80tX6UQkDk2PxlK+pR/bCnhges6m8w=;
+	s=korg; t=1738410838;
+	bh=Bfz4i2ue4m+2YomGLb1CCaj8XaGJUP94tDH1iPdyJxs=;
 	h=Date:To:From:Subject:From;
-	b=c5JrrCy8xgOjkH89UOkNs+XrkCdVilWJKylgGIe+yT8lCdip44UXbn6yjgLYMJ1v1
-	 Z1UBCwtRC0x616LncNzcfsvBDQIN2gXl5LXS2axLa1lMaF62wkL1hyS34rfc0Gh05u
-	 vLiCbq8uTf72RTIgy+r+ZwNVkKqmoG0JbGp+5L/E=
-Date: Sat, 01 Feb 2025 03:50:58 -0800
-To: mm-commits@vger.kernel.org,jhubbard@nvidia.com,david@redhat.com,apopple@nvidia.com,aijun.sun@unisoc.com,zhaoyang.huang@unisoc.com,akpm@linux-foundation.org
+	b=TBzXp/uEOa71kT7DcrYnUx1NK6M7GSwRfnMqBGx35uMbzz3Hr07ztUsn8AKt5UqO6
+	 eLlJb8eLaUUPFkeaAJbIr86EpG6xRfO+v4GUMELwvbJb94Gi3vg+yv4kY2mmWRlEII
+	 yCZpcsGjPqg3wf0o6e6y+df7A0f3Ls+Qk2intH8I=
+Date: Sat, 01 Feb 2025 03:53:57 -0800
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,mgorman@techsingularity.net,hughd@google.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-gup-fix-infinite-loop-within-__get_longterm_locked-v3.patch removed from -mm tree
-Message-Id: <20250201115059.47719C4CED3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmscan-fix-hard-lockup-in-function-isolate_lru_folios.patch removed from -mm tree
+Message-Id: <20250201115358.07F8DC4CED3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,205 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-gup-fix-infinite-loop-within-__get_longterm_locked-v3
+     Subject: mm/vmscan: fix hard LOCKUP in function isolate_lru_folios
 has been removed from the -mm tree.  Its filename was
-     mm-gup-fix-infinite-loop-within-__get_longterm_locked-v3.patch
+     mm-vmscan-fix-hard-lockup-in-function-isolate_lru_folios.patch
 
-This patch was dropped because it was folded into mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm-gup-fix-infinite-loop-within-__get_longterm_locked-v3
-Date: Wed, 22 Jan 2025 09:26:04 +0800
+From: liuye <liuye@kylinos.cn>
+Subject: mm/vmscan: fix hard LOCKUP in function isolate_lru_folios
+Date: Tue, 19 Nov 2024 14:08:42 +0800
 
-move definition of local
+This fixes the following hard lockup in isolate_lru_folios() during memory
+reclaim.  If the LRU mostly contains ineligible folios this may trigger
+watchdog.
 
-Link: https://lkml.kernel.org/r/20250122012604.3654667-1-zhaoyang.huang@unisoc.com
-Fixes: 67e139b02d99 ("mm/gup.c: refactor check_and_migrate_movable_pages()")
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Aijun Sun <aijun.sun@unisoc.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+watchdog: Watchdog detected hard LOCKUP on cpu 173
+RIP: 0010:native_queued_spin_lock_slowpath+0x255/0x2a0
+Call Trace:
+	_raw_spin_lock_irqsave+0x31/0x40
+	folio_lruvec_lock_irqsave+0x5f/0x90
+	folio_batch_move_lru+0x91/0x150
+	lru_add_drain_per_cpu+0x1c/0x40
+	process_one_work+0x17d/0x350
+	worker_thread+0x27b/0x3a0
+	kthread+0xe8/0x120
+	ret_from_fork+0x34/0x50
+	ret_from_fork_asm+0x1b/0x30
+
+lruvec->lru_lock owner：
+
+PID: 2865     TASK: ffff888139214d40  CPU: 40   COMMAND: "kswapd0"
+ #0 [fffffe0000945e60] crash_nmi_callback at ffffffffa567a555
+ #1 [fffffe0000945e68] nmi_handle at ffffffffa563b171
+ #2 [fffffe0000945eb0] default_do_nmi at ffffffffa6575920
+ #3 [fffffe0000945ed0] exc_nmi at ffffffffa6575af4
+ #4 [fffffe0000945ef0] end_repeat_nmi at ffffffffa6601dde
+    [exception RIP: isolate_lru_folios+403]
+    RIP: ffffffffa597df53  RSP: ffffc90006fb7c28  RFLAGS: 00000002
+    RAX: 0000000000000001  RBX: ffffc90006fb7c60  RCX: ffffea04a2196f88
+    RDX: ffffc90006fb7c60  RSI: ffffc90006fb7c60  RDI: ffffea04a2197048
+    RBP: ffff88812cbd3010   R8: ffffea04a2197008   R9: 0000000000000001
+    R10: 0000000000000000  R11: 0000000000000001  R12: ffffea04a2197008
+    R13: ffffea04a2197048  R14: ffffc90006fb7de8  R15: 0000000003e3e937
+    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
+    <NMI exception stack>
+ #5 [ffffc90006fb7c28] isolate_lru_folios at ffffffffa597df53
+ #6 [ffffc90006fb7cf8] shrink_active_list at ffffffffa597f788
+ #7 [ffffc90006fb7da8] balance_pgdat at ffffffffa5986db0
+ #8 [ffffc90006fb7ec0] kswapd at ffffffffa5987354
+ #9 [ffffc90006fb7ef8] kthread at ffffffffa5748238
+crash>
+
+Scenario:
+User processe are requesting a large amount of memory and keep page active.
+Then a module continuously requests memory from ZONE_DMA32 area.
+Memory reclaim will be triggered due to ZONE_DMA32 watermark alarm reached.
+However pages in the LRU(active_anon) list are mostly from
+the ZONE_NORMAL area.
+
+Reproduce:
+Terminal 1: Construct to continuously increase pages active(anon).
+mkdir /tmp/memory
+mount -t tmpfs -o size=1024000M tmpfs /tmp/memory
+dd if=/dev/zero of=/tmp/memory/block bs=4M
+tail /tmp/memory/block
+
+Terminal 2:
+vmstat -a 1
+active will increase.
+procs ---memory--- ---swap-- ---io---- -system-- ---cpu--- ...
+ r  b   swpd   free  inact active   si   so    bi    bo
+ 1  0   0 1445623076 45898836 83646008    0    0     0
+ 1  0   0 1445623076 43450228 86094616    0    0     0
+ 1  0   0 1445623076 41003480 88541364    0    0     0
+ 1  0   0 1445623076 38557088 90987756    0    0     0
+ 1  0   0 1445623076 36109688 93435156    0    0     0
+ 1  0   0 1445619552 33663256 95881632    0    0     0
+ 1  0   0 1445619804 31217140 98327792    0    0     0
+ 1  0   0 1445619804 28769988 100774944    0    0     0
+ 1  0   0 1445619804 26322348 103222584    0    0     0
+ 1  0   0 1445619804 23875592 105669340    0    0     0
+
+cat /proc/meminfo | head
+Active(anon) increase.
+MemTotal:       1579941036 kB
+MemFree:        1445618500 kB
+MemAvailable:   1453013224 kB
+Buffers:            6516 kB
+Cached:         128653956 kB
+SwapCached:            0 kB
+Active:         118110812 kB
+Inactive:       11436620 kB
+Active(anon):   115345744 kB
+Inactive(anon):   945292 kB
+
+When the Active(anon) is 115345744 kB, insmod module triggers
+the ZONE_DMA32 watermark.
+
+perf record -e vmscan:mm_vmscan_lru_isolate -aR
+perf script
+isolate_mode=0 classzone=1 order=1 nr_requested=32 nr_scanned=2
+nr_skipped=2 nr_taken=0 lru=active_anon
+isolate_mode=0 classzone=1 order=1 nr_requested=32 nr_scanned=0
+nr_skipped=0 nr_taken=0 lru=active_anon
+isolate_mode=0 classzone=1 order=0 nr_requested=32 nr_scanned=28835844
+nr_skipped=28835844 nr_taken=0 lru=active_anon
+isolate_mode=0 classzone=1 order=1 nr_requested=32 nr_scanned=28835844
+nr_skipped=28835844 nr_taken=0 lru=active_anon
+isolate_mode=0 classzone=1 order=0 nr_requested=32 nr_scanned=29
+nr_skipped=29 nr_taken=0 lru=active_anon
+isolate_mode=0 classzone=1 order=0 nr_requested=32 nr_scanned=0
+nr_skipped=0 nr_taken=0 lru=active_anon
+
+See nr_scanned=28835844.
+28835844 * 4k = 115343376KB approximately equal to 115345744 kB.
+
+If increase Active(anon) to 1000G then insmod module triggers
+the ZONE_DMA32 watermark. hard lockup will occur.
+
+In my device nr_scanned = 0000000003e3e937 when hard lockup.
+Convert to memory size 0x0000000003e3e937 * 4KB = 261072092 KB.
+
+   [ffffc90006fb7c28] isolate_lru_folios at ffffffffa597df53
+    ffffc90006fb7c30: 0000000000000020 0000000000000000
+    ffffc90006fb7c40: ffffc90006fb7d40 ffff88812cbd3000
+    ffffc90006fb7c50: ffffc90006fb7d30 0000000106fb7de8
+    ffffc90006fb7c60: ffffea04a2197008 ffffea0006ed4a48
+    ffffc90006fb7c70: 0000000000000000 0000000000000000
+    ffffc90006fb7c80: 0000000000000000 0000000000000000
+    ffffc90006fb7c90: 0000000000000000 0000000000000000
+    ffffc90006fb7ca0: 0000000000000000 0000000003e3e937
+    ffffc90006fb7cb0: 0000000000000000 0000000000000000
+    ffffc90006fb7cc0: 8d7c0b56b7874b00 ffff88812cbd3000
+
+About the Fixes:
+Why did it take eight years to be discovered?
+
+The problem requires the following conditions to occur:
+1. The device memory should be large enough.
+2. Pages in the LRU(active_anon) list are mostly from the ZONE_NORMAL area.
+3. The memory in ZONE_DMA32 needs to reach the watermark.
+
+If the memory is not large enough, or if the usage design of ZONE_DMA32
+area memory is reasonable, this problem is difficult to detect.
+
+notes:
+The problem is most likely to occur in ZONE_DMA32 and ZONE_NORMAL,
+but other suitable scenarios may also trigger the problem.
+
+Link: https://lkml.kernel.org/r/20241119060842.274072-1-liuye@kylinos.cn
+Fixes: b2e18757f2c9 ("mm, vmscan: begin reclaiming pages on a per-node basis")
+Signed-off-by: liuye <liuye@kylinos.cn>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Yang Shi <yang@os.amperecomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    1 +
+ mm/vmscan.c          |    6 +++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-fix-infinite-loop-within-__get_longterm_locked-v3
-+++ a/mm/gup.c
-@@ -2324,9 +2324,9 @@ static void collect_longterm_unpinnable_
- 		struct list_head *movable_folio_list,
- 		struct pages_or_folios *pofs)
- {
--	unsigned long i;
- 	struct folio *prev_folio = NULL;
- 	bool drain_allow = true;
-+	unsigned long i;
+--- a/include/linux/swap.h~mm-vmscan-fix-hard-lockup-in-function-isolate_lru_folios
++++ a/include/linux/swap.h
+@@ -222,6 +222,7 @@ enum {
+ };
  
- 	for (i = 0; i < pofs->nr_entries; i++) {
- 		struct folio *folio = pofs_get_folio(pofs, i);
+ #define SWAP_CLUSTER_MAX 32UL
++#define SWAP_CLUSTER_MAX_SKIPPED (SWAP_CLUSTER_MAX << 10)
+ #define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
+ 
+ /* Bit flag in swap_map */
+--- a/mm/vmscan.c~mm-vmscan-fix-hard-lockup-in-function-isolate_lru_folios
++++ a/mm/vmscan.c
+@@ -1692,6 +1692,7 @@ static unsigned long isolate_lru_folios(
+ 	unsigned long nr_skipped[MAX_NR_ZONES] = { 0, };
+ 	unsigned long skipped = 0;
+ 	unsigned long scan, total_scan, nr_pages;
++	unsigned long max_nr_skipped = 0;
+ 	LIST_HEAD(folios_skipped);
+ 
+ 	total_scan = 0;
+@@ -1706,9 +1707,12 @@ static unsigned long isolate_lru_folios(
+ 		nr_pages = folio_nr_pages(folio);
+ 		total_scan += nr_pages;
+ 
+-		if (folio_zonenum(folio) > sc->reclaim_idx) {
++		/* Using max_nr_skipped to prevent hard LOCKUP*/
++		if (max_nr_skipped < SWAP_CLUSTER_MAX_SKIPPED &&
++		    (folio_zonenum(folio) > sc->reclaim_idx)) {
+ 			nr_skipped[folio_zonenum(folio)] += nr_pages;
+ 			move_to = &folios_skipped;
++			max_nr_skipped++;
+ 			goto move;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-gup-fix-infinite-loop-within-__get_longterm_locked.patch
 
