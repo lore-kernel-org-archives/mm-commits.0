@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E5CB5336D
-	for <mm-commits@vger.kernel.org>; Sat,  1 Feb 2025 23:47:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06E8C209692
+	for <mm-commits@vger.kernel.org>; Mon,  3 Feb 2025 23:47:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738453646; cv=none; b=NSLfRaZ3DQd34dKwHeazKejRos4WELJrMk4h4iXNyGsFJSi+l9nqKzRaghR0WjG3knA8NMGr9ORQkzIKQMG6NElBR6wxmqVpo0IC7RwouuNnWXNcw8u0dvQ8eMKsa8H5zM/y4s19McD9siik+MUmhvIWTZUT6rUwgxeNx4Ba2Ys=
+	t=1738626448; cv=none; b=C8et1YOyxDXZi/QvT0cyu7z6wqiSVF4HlakM0TsKk6Dv9SB0z4VK1kjNzHz9JXXXBBjEv8EqYr0/PfXABvfsOgJ3PN1GoCwsPXNsL0ZAwqgYrmLVvIsckuHoaYhS+8CptCPb4iO1BSk3Pmqa7ZAsDMJm7bKn+d4D0963MSYCSDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738453646; c=relaxed/simple;
-	bh=wYFw6cYYLo47vI0C51Uk95VJdxz2owTxRQ+qF4HIDlo=;
-	h=Date:To:From:Subject:Message-Id; b=h7chhqXIyh1wZV9e0gW8ytUxp8q3hBV67t788SBtuXJbK42Y5pJ/A58+0vT3zrGl30zodv9Dgc0nPmyPd4jfThVGAVv6X6TP7G8KPLRYy0EhITZwND3oaqm2b+toc7j3fzicxqZV2Ge0R3jj5/FqSKoF1PBkf2pdpZ9Ynrj3pkA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q1bX04p9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738626448; c=relaxed/simple;
+	bh=zbPBAlOvSynBM4aVfrzZT6Mnah+Sy+2usjlaOZm6DSw=;
+	h=Date:To:From:Subject:Message-Id; b=B5mcqbk4Gepn6A4TtW8FKulDB6xAN2l+ZEoVPw47sG0TZcsFUdM04b3kpgMmkLgOjbZZjyBu2g18cckp3gSw4fDLJhk1ObMozW/TT4da7dz7C3YLDHudceA/BRU1kGFVBL8ZbQE98oBEFudFHvmL+S86cL6jObA8qwkZmMSFRCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yz86lSF7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q1bX04p9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D419C4CEE1;
-	Sat,  1 Feb 2025 23:47:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yz86lSF7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 538B1C4CEE0;
+	Mon,  3 Feb 2025 23:47:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738453646;
-	bh=wYFw6cYYLo47vI0C51Uk95VJdxz2owTxRQ+qF4HIDlo=;
+	s=korg; t=1738626447;
+	bh=zbPBAlOvSynBM4aVfrzZT6Mnah+Sy+2usjlaOZm6DSw=;
 	h=Date:To:From:Subject:From;
-	b=q1bX04p96sLBKfllS9YyTKzdJotzWtSbUQ7R61hVroKO8ckCKEQoJP2CiPuzikZE1
-	 htn6vb6DW1Lxb6jTpRAQBpIlzMaGA//3nCZRSTFKJgBKpru7MPqlGlu/oL50w3HuwY
-	 8WETDTfi8u/hTLcJ30WnqxIOxxmYsfYSVaAiduJs=
-Date: Sat, 01 Feb 2025 15:47:25 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,quic_zhenhuah@quicinc.com,peterz@infradead.org,pasha.tatashin@soleen.com,minchan@google.com,kent.overstreet@linux.dev,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=Yz86lSF7g7xOI0HZq5A89J0IG7bFeXCz/T1TqIosQ/wx01p815abovdmZs/9zmeyO
+	 HXtzZakKTt8qHl1jYG+ppuFKDGKaKcR2rk1gLoc+r1KY4Q8guAZGITXyKvrRhrowvU
+	 llCDGQgXMGIfWi2jyyCivDhAc+7TnKybdKMskcOs=
+Date: Mon, 03 Feb 2025 15:47:26 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,skhan@linuxfoundation.org,luis.hernandez093@gmail.com,jserv@ccns.ncku.edu.tw,davidgow@google.com,eleanor15x@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch added to mm-unstable branch
-Message-Id: <20250201234726.5D419C4CEE1@smtp.kernel.org>
+Subject: + lib-math-add-kunit-test-suite-for-gcd.patch added to mm-nonmm-unstable branch
+Message-Id: <20250203234727.538B1C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: uninline code gated by mem_alloc_profiling_key in page allocator
-has been added to the -mm mm-unstable branch.  Its filename is
-     alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
+     Subject: lib/math: add Kunit test suite for gcd()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-math-add-kunit-test-suite-for-gcd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-add-kunit-test-suite-for-gcd.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,235 +58,132 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: uninline code gated by mem_alloc_profiling_key in page allocator
-Date: Sat, 1 Feb 2025 15:18:02 -0800
+From: Yu-Chun Lin <eleanor15x@gmail.com>
+Subject: lib/math: add Kunit test suite for gcd()
+Date: Mon, 3 Feb 2025 15:54:00 +0800
 
-When a sizable code section is protected by a disabled static key, that
-code gets into the instruction cache even though it's not executed and
-consumes the cache, increasing cache misses. This can be remedied by
-moving such code into a separate uninlined function.
-On a Pixel6 phone, page allocation profiling overhead measured with
-CONFIG_MEM_ALLOC_PROFILING=y and profiling disabled is:
+Add a KUnit test suite for the gcd() function.  This test suite verifies
+the correctness of gcd() across various scenarios, including edge cases.
 
-             baseline             modified
-Big core     4.93%                1.53%
-Medium core  4.39%                1.41%
-Little core  1.02%                0.36%
-
-This improvement comes at the expense of the configuration when profiling
-gets enabled, since there is now an additional function call. The overhead
-from this additional call on Pixel6 is:
-
-Big core     0.24%
-Middle core  0.63%
-Little core  1.1%
-
-However this is negligible when compared with the overall overhead of the
-memory allocation profiling when it is enabled.
-On x86 this patch does not make noticeable difference because the overhead
-with mem_alloc_profiling_key disabled is much lower (under 1%) to start
-with, so any improvement is less visible and hard to distinguish from the
-noise. The overhead from additional call when profiling is enabled is also
-within noise levels.
-
-Link: https://lkml.kernel.org/r/20250201231803.2661189-3-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zhenhua Huang <quic_zhenhuah@quicinc.com>
+Link: https://lkml.kernel.org/r/20250203075400.3431330-1-eleanor15x@gmail.com
+Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: David Gow <davidgow@google.com>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Cc: Shuah khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgalloc_tag.h |   60 ++------------------------
- mm/page_alloc.c             |   78 ++++++++++++++++++++++++++++++++++
- 2 files changed, 83 insertions(+), 55 deletions(-)
+ lib/Kconfig.debug          |   13 ++++++++
+ lib/math/Makefile          |    3 +
+ lib/math/tests/Makefile    |    1 
+ lib/math/tests/gcd_kunit.c |   56 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 72 insertions(+), 1 deletion(-)
 
---- a/include/linux/pgalloc_tag.h~alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator
-+++ a/include/linux/pgalloc_tag.h
-@@ -162,47 +162,13 @@ static inline void update_page_tag_ref(u
- 	}
- }
+--- a/lib/Kconfig.debug~lib-math-add-kunit-test-suite-for-gcd
++++ a/lib/Kconfig.debug
+@@ -3197,6 +3197,19 @@ config INT_SQRT_KUNIT_TEST
  
--static inline void clear_page_tag_ref(struct page *page)
--{
--	if (mem_alloc_profiling_enabled()) {
--		union pgtag_ref_handle handle;
--		union codetag_ref ref;
--
--		if (get_page_tag_ref(page, &ref, &handle)) {
--			set_codetag_empty(&ref);
--			update_page_tag_ref(handle, &ref);
--			put_page_tag_ref(handle);
--		}
--	}
--}
--
--static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
--				   unsigned int nr)
--{
--	if (mem_alloc_profiling_enabled()) {
--		union pgtag_ref_handle handle;
--		union codetag_ref ref;
--
--		if (get_page_tag_ref(page, &ref, &handle)) {
--			alloc_tag_add(&ref, task->alloc_tag, PAGE_SIZE * nr);
--			update_page_tag_ref(handle, &ref);
--			put_page_tag_ref(handle);
--		}
--	}
--}
-+/* Should be called only if mem_alloc_profiling_enabled() */
-+void __clear_page_tag_ref(struct page *page);
+ 	  If unsure, say N
  
--static inline void pgalloc_tag_sub(struct page *page, unsigned int nr)
-+static inline void clear_page_tag_ref(struct page *page)
- {
--	if (mem_alloc_profiling_enabled()) {
--		union pgtag_ref_handle handle;
--		union codetag_ref ref;
--
--		if (get_page_tag_ref(page, &ref, &handle)) {
--			alloc_tag_sub(&ref, PAGE_SIZE * nr);
--			update_page_tag_ref(handle, &ref);
--			put_page_tag_ref(handle);
--		}
--	}
-+	if (mem_alloc_profiling_enabled())
-+		__clear_page_tag_ref(page);
- }
- 
- /* Should be called only if mem_alloc_profiling_enabled() */
-@@ -222,18 +188,6 @@ static inline struct alloc_tag *__pgallo
- 	return tag;
- }
- 
--static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr)
--{
--	struct alloc_tag *tag;
--
--	if (!mem_alloc_profiling_enabled())
--		return;
--
--	tag = __pgalloc_tag_get(page);
--	if (tag)
--		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
--}
--
- void pgalloc_tag_split(struct folio *folio, int old_order, int new_order);
- void pgalloc_tag_swap(struct folio *new, struct folio *old);
- 
-@@ -242,10 +196,6 @@ void __init alloc_tag_sec_init(void);
- #else /* CONFIG_MEM_ALLOC_PROFILING */
- 
- static inline void clear_page_tag_ref(struct page *page) {}
--static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
--				   unsigned int nr) {}
--static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
--static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr) {}
- static inline void alloc_tag_sec_init(void) {}
- static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
- static inline void pgalloc_tag_swap(struct folio *new, struct folio *old) {}
---- a/mm/page_alloc.c~alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator
-+++ a/mm/page_alloc.c
-@@ -1041,6 +1041,84 @@ static void kernel_init_pages(struct pag
- 	kasan_enable_current();
- }
- 
-+#ifdef CONFIG_MEM_ALLOC_PROFILING
++config GCD_KUNIT_TEST
++	tristate "Greatest common divisor test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the gcd() function,
++	  which computes the greatest common divisor of two numbers.
 +
-+/* Should be called only if mem_alloc_profiling_enabled() */
-+void __clear_page_tag_ref(struct page *page)
++	  This test suite verifies the correctness of gcd() across various
++	  scenarios, including edge cases.
++
++	  If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
+ 
+ config ARCH_USE_MEMTEST
+--- a/lib/math/Makefile~lib-math-add-kunit-test-suite-for-gcd
++++ a/lib/math/Makefile
+@@ -9,4 +9,5 @@ obj-$(CONFIG_INT_POW_TEST)  += tests/int
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
+ obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
+-obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += tests/int_sqrt_kunit.o
+\ No newline at end of file
++obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += tests/int_sqrt_kunit.o
++obj-$(CONFIG_GCD_KUNIT_TEST) += tests/gcd_kunit.o
+diff --git a/lib/math/tests/gcd_kunit.c a/lib/math/tests/gcd_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/gcd_kunit.c
+@@ -0,0 +1,56 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <kunit/test.h>
++#include <linux/gcd.h>
++#include <linux/limits.h>
++
++struct test_case_params {
++	unsigned long val1;
++	unsigned long val2;
++	unsigned long expected_result;
++	const char *name;
++};
++
++static const struct test_case_params params[] = {
++	{ 48, 18, 6, "GCD of 48 and 18" },
++	{ 18, 48, 6, "GCD of 18 and 48" },
++	{ 56, 98, 14, "GCD of 56 and 98" },
++	{ 17, 13, 1, "Coprime numbers" },
++	{ 101, 103, 1, "Coprime numbers" },
++	{ 270, 192, 6, "GCD of 270 and 192" },
++	{ 0, 5, 5, "GCD with zero" },
++	{ 7, 0, 7, "GCD with zero reversed" },
++	{ 36, 36, 36, "GCD of identical numbers" },
++	{ ULONG_MAX, 1, 1, "GCD of max ulong and 1" },
++	{ ULONG_MAX, ULONG_MAX, ULONG_MAX, "GCD of max ulong values" },
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
 +{
-+	union pgtag_ref_handle handle;
-+	union codetag_ref ref;
-+
-+	if (get_page_tag_ref(page, &ref, &handle)) {
-+		set_codetag_empty(&ref);
-+		update_page_tag_ref(handle, &ref);
-+		put_page_tag_ref(handle);
-+	}
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
 +}
 +
-+/* Should be called only if mem_alloc_profiling_enabled() */
-+static noinline
-+void __pgalloc_tag_add(struct page *page, struct task_struct *task,
-+		       unsigned int nr)
-+{
-+	union pgtag_ref_handle handle;
-+	union codetag_ref ref;
++KUNIT_ARRAY_PARAM(gcd, params, get_desc);
 +
-+	if (get_page_tag_ref(page, &ref, &handle)) {
-+		alloc_tag_add(&ref, task->alloc_tag, PAGE_SIZE * nr);
-+		update_page_tag_ref(handle, &ref);
-+		put_page_tag_ref(handle);
-+	}
++static void gcd_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, gcd(tc->val1, tc->val2));
 +}
 +
-+static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
-+				   unsigned int nr)
-+{
-+	if (mem_alloc_profiling_enabled())
-+		__pgalloc_tag_add(page, task, nr);
-+}
++static struct kunit_case math_gcd_test_cases[] = {
++	KUNIT_CASE_PARAM(gcd_test, gcd_gen_params),
++	{}
++};
 +
-+/* Should be called only if mem_alloc_profiling_enabled() */
-+static noinline
-+void __pgalloc_tag_sub(struct page *page, unsigned int nr)
-+{
-+	union pgtag_ref_handle handle;
-+	union codetag_ref ref;
++static struct kunit_suite gcd_test_suite = {
++	.name = "math-gcd",
++	.test_cases = math_gcd_test_cases,
++};
 +
-+	if (get_page_tag_ref(page, &ref, &handle)) {
-+		alloc_tag_sub(&ref, PAGE_SIZE * nr);
-+		update_page_tag_ref(handle, &ref);
-+		put_page_tag_ref(handle);
-+	}
-+}
++kunit_test_suite(gcd_test_suite);
 +
-+static inline void pgalloc_tag_sub(struct page *page, unsigned int nr)
-+{
-+	if (mem_alloc_profiling_enabled())
-+		__pgalloc_tag_sub(page, nr);
-+}
-+
-+static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr)
-+{
-+	struct alloc_tag *tag;
-+
-+	if (!mem_alloc_profiling_enabled())
-+		return;
-+
-+	tag = __pgalloc_tag_get(page);
-+	if (tag)
-+		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
-+}
-+
-+#else /* CONFIG_MEM_ALLOC_PROFILING */
-+
-+static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
-+				   unsigned int nr) {}
-+static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
-+static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr) {}
-+
-+#endif /* CONFIG_MEM_ALLOC_PROFILING */
-+
- __always_inline bool free_pages_prepare(struct page *page,
- 			unsigned int order)
- {
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("math.gcd KUnit test suite");
++MODULE_AUTHOR("Yu-Chun Lin <eleanor15x@gmail.com>");
+--- a/lib/math/tests/Makefile~lib-math-add-kunit-test-suite-for-gcd
++++ a/lib/math/tests/Makefile
+@@ -2,3 +2,4 @@
+ 
+ obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
+ obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += int_sqrt_kunit.o
++obj-$(CONFIG_GCD_KUNIT_TEST) += gcd_kunit.o
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from eleanor15x@gmail.com are
 
-mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
-alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
-alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
+lib-math-add-kunit-test-suite-for-gcd.patch
 
