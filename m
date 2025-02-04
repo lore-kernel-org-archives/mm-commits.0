@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C9825A642
-	for <mm-commits@vger.kernel.org>; Tue,  4 Feb 2025 00:55:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B107A25A642
+	for <mm-commits@vger.kernel.org>; Tue,  4 Feb 2025 00:55:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738630542; cv=none; b=qJkgzHdRzNnmCDLssUWulbR74tNOFbRiya4V3W4WS8y7YCVK2yxc139XcuTvGCuodsLe1gnOlgjUF2yypQvIBf/btihWcu+aBWrfl74okWvkCiPIJaV+icjt8y4LE6kE+AAuqFYBSOi5NEKDA234QEVOA/urkGA3KX/EqG48bOc=
+	t=1738630543; cv=none; b=CHR/bbIZnEnEE8Fd1j5xsBoAmlUf15BMPI9HXjhagIcPjAnCcxEr1Vkcj4nEHQtluXV33lVbTgBqGdyR6qrGziGG6fTnfOrCdjPgSzvNvB4TjUOFu/ynk8GMvaTQpKpcQWXkIXi88qnsyb4h/pXkqdQNDK9mfGApSHwyOmVPZQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738630542; c=relaxed/simple;
-	bh=BJR96WeL76Tj13QlDnI8mDFTy4IvVfpRGfLSlkpX5H0=;
-	h=Date:To:From:Subject:Message-Id; b=WnX5bzYz4XPBWZpc34jUc/Z+ybtMfwqq7+KAeiMI/Y0vmd0nga+4hTVG8XuVrq6wjBf9doy97NMxSYeaNnOxNDfniB2usPFtUxJ3XYlXiEsojBqlAQDM6A6tuH2R3NC9Y/Tl7cwdvJUwr0NxHqBZVN73I5ddWwemRlEPmiqwKL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tvX+b542; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738630543; c=relaxed/simple;
+	bh=+b4mUTsJ6cy5d7T4KXREtVI7X8H3hqaaTiCk1k1XZgE=;
+	h=Date:To:From:Subject:Message-Id; b=EplRRuEKMKg1hWAx6iRAnYS/uG08d8MiZf9yIvkMnU+caCjbda9FVRu/FholgXFBTfT/w/fejlUdsALriTPcgkonwOhKQhyG7fnWdyn/YQg/4vq2U3UxqA9knFsVHCa/o40aNcCL2vlIRSzKXHb79RQZHBiWh3oBN2Q+AHCAz/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mpRLBTjL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tvX+b542"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 077FCC4CEE0;
-	Tue,  4 Feb 2025 00:55:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mpRLBTjL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13872C4CEE4;
+	Tue,  4 Feb 2025 00:55:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738630541;
-	bh=BJR96WeL76Tj13QlDnI8mDFTy4IvVfpRGfLSlkpX5H0=;
+	s=korg; t=1738630543;
+	bh=+b4mUTsJ6cy5d7T4KXREtVI7X8H3hqaaTiCk1k1XZgE=;
 	h=Date:To:From:Subject:From;
-	b=tvX+b5420ZF4XeTkZXbSf/L5qRoZpkYLvDToDH8vctC8XBMfspixqfVHl+I6fxTn/
-	 lY9Q5RLjXNtKcjAqREAiQWnyW2zhbKkbyxGpKx0f+258AThvQrClbXHjf9/ml9y4da
-	 NByOW2pY4b/ibW+87yIxOScwCVbeB1uyMc6lJpi4=
-Date: Mon, 03 Feb 2025 16:55:40 -0800
+	b=mpRLBTjLQBB9JIb6wiRcogzJg/d7iXBwOfackYeJHZ69GehCJk6F+WYgOpjVOiZSo
+	 1jXr4/qjmhJ7VQvEL2clkBudZA1teCQP2s809FDAg1/sX/9PJmsf4FRVc/RM3z1fE/
+	 t1iPA+wEtt5J8qcBukZOZwGBsTa56cV0oN5O2+KI=
+Date: Mon, 03 Feb 2025 16:55:42 -0800
 To: mm-commits@vger.kernel.org,mpe@ellerman.id.au,mahesh@linux.ibm.com,maddy@linux.ibm.com,hbathini@linux.ibm.com,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-initialize-elf-lowest-address-to-ulong_max.patch added to mm-nonmm-unstable branch
-Message-Id: <20250204005541.077FCC4CEE0@smtp.kernel.org>
+Subject: + crash-remove-an-unused-argument-from-reserve_crashkernel_generic.patch added to mm-nonmm-unstable branch
+Message-Id: <20250204005543.13872C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: initialize ELF lowest address to ULONG_MAX
+     Subject: crash: remove an unused argument from reserve_crashkernel_generic()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-initialize-elf-lowest-address-to-ulong_max.patch
+     crash-remove-an-unused-argument-from-reserve_crashkernel_generic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-initialize-elf-lowest-address-to-ulong_max.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-remove-an-unused-argument-from-reserve_crashkernel_generic.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: kexec: initialize ELF lowest address to ULONG_MAX
-Date: Fri, 31 Jan 2025 17:08:24 +0530
+Subject: crash: remove an unused argument from reserve_crashkernel_generic()
+Date: Fri, 31 Jan 2025 17:08:25 +0530
 
-Patch series "powerpc/crash: use generic crashkernel reservation", v3.
+cmdline argument is not used in reserve_crashkernel_generic() so remove
+it.  Correspondingly, all the callers have been updated as well.
 
-Commit 0ab97169aa05 ("crash_core: add generic function to do reservation")
-added a generic function to reserve crashkernel memory.  So let's use the
-same function on powerpc and remove the architecture-specific code that
-essentially does the same thing.
+No functional change intended.
 
-The generic crashkernel reservation also provides a way to split the
-crashkernel reservation into high and low memory reservations, which can
-be enabled for powerpc in the future.
-
-Additionally move powerpc to use generic APIs to locate memory hole for
-kexec segments while loading kdump kernel.
-
-
-This patch (of 7):
-
-kexec_elf_load() loads an ELF executable and sets the address of the
-lowest PT_LOAD section to the address held by the lowest_load_addr
-function argument.
-
-To determine the lowest PT_LOAD address, a local variable lowest_addr
-(type unsigned long) is initialized to UINT_MAX.  After loading each
-PT_LOAD, its address is compared to lowest_addr.  If a loaded PT_LOAD
-address is lower, lowest_addr is updated.  However, setting lowest_addr to
-UINT_MAX won't work when the kernel image is loaded above 4G, as the
-returned lowest PT_LOAD address would be invalid.  This is resolved by
-initializing lowest_addr to ULONG_MAX instead.
-
-This issue was discovered while implementing crashkernel high/low
-reservation on the PowerPC architecture.
-
-Link: https://lkml.kernel.org/r/20250131113830.925179-1-sourabhjain@linux.ibm.com
-Link: https://lkml.kernel.org/r/20250131113830.925179-2-sourabhjain@linux.ibm.com
-Fixes: a0458284f062 ("powerpc: Add support code for kexec_file_load()")
+Link: https://lkml.kernel.org/r/20250131113830.925179-3-sourabhjain@linux.ibm.com
 Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
 Acked-by: Hari Bathini <hbathini@linux.ibm.com>
 Acked-by: Baoquan He <bhe@redhat.com>
@@ -106,20 +77,156 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/mm/init.c          |    6 ++----
+ arch/loongarch/kernel/setup.c |    5 ++---
+ arch/riscv/mm/init.c          |    6 ++----
+ arch/x86/kernel/setup.c       |    6 ++----
+ include/linux/crash_reserve.h |   11 +++++------
+ kernel/crash_reserve.c        |    9 ++++-----
+ 6 files changed, 17 insertions(+), 26 deletions(-)
 
---- a/kernel/kexec_elf.c~kexec-initialize-elf-lowest-address-to-ulong_max
-+++ a/kernel/kexec_elf.c
-@@ -390,7 +390,7 @@ int kexec_elf_load(struct kimage *image,
- 			 struct kexec_buf *kbuf,
- 			 unsigned long *lowest_load_addr)
+--- a/arch/arm64/mm/init.c~crash-remove-an-unused-argument-from-reserve_crashkernel_generic
++++ a/arch/arm64/mm/init.c
+@@ -98,21 +98,19 @@ static void __init arch_reserve_crashker
  {
--	unsigned long lowest_addr = UINT_MAX;
-+	unsigned long lowest_addr = ULONG_MAX;
+ 	unsigned long long low_size = 0;
+ 	unsigned long long crash_base, crash_size;
+-	char *cmdline = boot_command_line;
+ 	bool high = false;
  	int ret;
- 	size_t i;
  
+ 	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
+ 		return;
+ 
+-	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
++	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+ 				&crash_size, &crash_base,
+ 				&low_size, &high);
+ 	if (ret)
+ 		return;
+ 
+-	reserve_crashkernel_generic(cmdline, crash_size, crash_base,
+-				    low_size, high);
++	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
+ }
+ 
+ static phys_addr_t __init max_zone_phys(phys_addr_t zone_limit)
+--- a/arch/loongarch/kernel/setup.c~crash-remove-an-unused-argument-from-reserve_crashkernel_generic
++++ a/arch/loongarch/kernel/setup.c
+@@ -259,18 +259,17 @@ static void __init arch_reserve_crashker
+ 	int ret;
+ 	unsigned long long low_size = 0;
+ 	unsigned long long crash_base, crash_size;
+-	char *cmdline = boot_command_line;
+ 	bool high = false;
+ 
+ 	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
+ 		return;
+ 
+-	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
++	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+ 				&crash_size, &crash_base, &low_size, &high);
+ 	if (ret)
+ 		return;
+ 
+-	reserve_crashkernel_generic(cmdline, crash_size, crash_base, low_size, high);
++	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
+ }
+ 
+ static void __init fdt_setup(void)
+--- a/arch/riscv/mm/init.c~crash-remove-an-unused-argument-from-reserve_crashkernel_generic
++++ a/arch/riscv/mm/init.c
+@@ -1392,21 +1392,19 @@ static void __init arch_reserve_crashker
+ {
+ 	unsigned long long low_size = 0;
+ 	unsigned long long crash_base, crash_size;
+-	char *cmdline = boot_command_line;
+ 	bool high = false;
+ 	int ret;
+ 
+ 	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
+ 		return;
+ 
+-	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
++	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+ 				&crash_size, &crash_base,
+ 				&low_size, &high);
+ 	if (ret)
+ 		return;
+ 
+-	reserve_crashkernel_generic(cmdline, crash_size, crash_base,
+-				    low_size, high);
++	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
+ }
+ 
+ void __init paging_init(void)
+--- a/arch/x86/kernel/setup.c~crash-remove-an-unused-argument-from-reserve_crashkernel_generic
++++ a/arch/x86/kernel/setup.c
+@@ -472,14 +472,13 @@ static void __init memblock_x86_reserve_
+ static void __init arch_reserve_crashkernel(void)
+ {
+ 	unsigned long long crash_base, crash_size, low_size = 0;
+-	char *cmdline = boot_command_line;
+ 	bool high = false;
+ 	int ret;
+ 
+ 	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
+ 		return;
+ 
+-	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
++	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+ 				&crash_size, &crash_base,
+ 				&low_size, &high);
+ 	if (ret)
+@@ -490,8 +489,7 @@ static void __init arch_reserve_crashker
+ 		return;
+ 	}
+ 
+-	reserve_crashkernel_generic(cmdline, crash_size, crash_base,
+-				    low_size, high);
++	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
+ }
+ 
+ static struct resource standard_io_resources[] = {
+--- a/include/linux/crash_reserve.h~crash-remove-an-unused-argument-from-reserve_crashkernel_generic
++++ a/include/linux/crash_reserve.h
+@@ -32,13 +32,12 @@ int __init parse_crashkernel(char *cmdli
+ #define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
+ #endif
+ 
+-void __init reserve_crashkernel_generic(char *cmdline,
+-		unsigned long long crash_size,
+-		unsigned long long crash_base,
+-		unsigned long long crash_low_size,
+-		bool high);
++void __init reserve_crashkernel_generic(unsigned long long crash_size,
++					unsigned long long crash_base,
++					unsigned long long crash_low_size,
++					bool high);
+ #else
+-static inline void __init reserve_crashkernel_generic(char *cmdline,
++static inline void __init reserve_crashkernel_generic(
+ 		unsigned long long crash_size,
+ 		unsigned long long crash_base,
+ 		unsigned long long crash_low_size,
+--- a/kernel/crash_reserve.c~crash-remove-an-unused-argument-from-reserve_crashkernel_generic
++++ a/kernel/crash_reserve.c
+@@ -375,11 +375,10 @@ static int __init reserve_crashkernel_lo
+ 	return 0;
+ }
+ 
+-void __init reserve_crashkernel_generic(char *cmdline,
+-			     unsigned long long crash_size,
+-			     unsigned long long crash_base,
+-			     unsigned long long crash_low_size,
+-			     bool high)
++void __init reserve_crashkernel_generic(unsigned long long crash_size,
++					unsigned long long crash_base,
++					unsigned long long crash_low_size,
++					bool high)
+ {
+ 	unsigned long long search_end = CRASH_ADDR_LOW_MAX, search_base = 0;
+ 	bool fixed_base = false;
 _
 
 Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
