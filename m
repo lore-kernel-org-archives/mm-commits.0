@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5FDDEC4;
-	Tue,  4 Feb 2025 00:10:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F6625A657
+	for <mm-commits@vger.kernel.org>; Tue,  4 Feb 2025 00:31:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738627812; cv=none; b=WcmqGYVtSoQ7iBGACsCSMBGQWpsPmN0S6fOKaeFR06b2EfPjjeiJ8T8i0YofOzkhlwXpE0aTx3oSJwmJfvBiGwX5P7myfPSgwswsdbTJ9HxBDmN24hQEgrL9TKufl3mmCIP1TGLmOge3E0G4PGuQlMwaWIqvp9sFqz5XTyz0TTM=
+	t=1738629069; cv=none; b=q7REg+HPrmIPxOPW1v7GAvDnwIMawu62n09xOZyCVcn9OFtLCFIsGQMuaTTCmX8PsJLZBhROp2+XIObq6ObqcMDOBJQcxwrexkSCPlzSIJDtLXIBCbq7lVmeFS/kT5WkD3hcG3GwfJzPNBDOnMUnZxIS4xTxaXHways6DUJ3gVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738627812; c=relaxed/simple;
-	bh=xBaElG02xERNC8mCCsfk4hDl/oPxekjIo/PskY7ZRT8=;
-	h=Date:To:From:Subject:Message-Id; b=kSO5jGKV07cTMlD5ZWJa8BF1dKa09fmWus4e7yDNuyedngR1gS3vx6AzSFGyXxbB+QEbLAQ/+gURIOdM3ZjLwhiqfqhXga4/xxRjCD7jHGEnVLJKL0kIepv8CQRWE2xHKKrMbzWhEzI0K3oTC/MzObfGkV1b3iQzDKDq+DIY6+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qCLSMt0H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738629069; c=relaxed/simple;
+	bh=JvwOr1mPYW+c35fu+0SmmRxy5wPeoga9npa+0dWWrUM=;
+	h=Date:To:From:Subject:Message-Id; b=bZCbUUvvYiw+SwjrxqGH0YvWsVIlA6uhbHRHsiRtd6ruI0OdSyNdiCDNJQ0Ngb2Cu27YFD/Da4xue/kiczz15B4vRvltELD4yCyF9gr6uZhjurU0fqnD3gd7MBUYpDc621vM49OAmIj8bb+tNcDgKkEuvkpURnt8A/3rPJFzE6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tzidhR0Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qCLSMt0H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2177AC4CEE0;
-	Tue,  4 Feb 2025 00:10:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tzidhR0Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D958C4CEE0;
+	Tue,  4 Feb 2025 00:31:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738627811;
-	bh=xBaElG02xERNC8mCCsfk4hDl/oPxekjIo/PskY7ZRT8=;
+	s=korg; t=1738629069;
+	bh=JvwOr1mPYW+c35fu+0SmmRxy5wPeoga9npa+0dWWrUM=;
 	h=Date:To:From:Subject:From;
-	b=qCLSMt0HiK9YZi+zO7Scn+YNkYDdA8bbsJxMir5ZI5seYKgF3MEJ+0I/f8zP8Jmta
-	 2AHFc+vHRryyLoVuFLBJJMXqiyRme6KGPjfirURb0Cxs9CiQ10xL0dclG3jVv1v8/t
-	 ubIgZt5HX+tXyJcXWTw7UoK1QLavspHB9CmJogLo=
-Date: Mon, 03 Feb 2025 16:10:10 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,riel@surriel.com,revest@google.com,rcn@igalia.com,akpm@linux-foundation.org
+	b=tzidhR0ZCxZ3F04+hYDRXky0ddgI8cDV1X4rxK48Z6kvTTlubVeorSJT9N7kN4bNR
+	 4n8dHC23VGEvxIzQh2DXizYRctG/TVj8HF/57OZz13OFPBiGgZkf5ay/zrlqrVKkDo
+	 +uROL3OVRIOEQPnnFIAUCmPAQK14nkF/B+/td6gg=
+Date: Mon, 03 Feb 2025 16:31:08 -0800
+To: mm-commits@vger.kernel.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,lkp@intel.com,kent.overstreet@linux.dev,justinstitt@google.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250204001011.2177AC4CEE0@smtp.kernel.org>
+Subject: + alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250204003109.1D958C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,madvise,hugetlb: check for 0-length range after end address adjustment
+     Subject: alloc_tag: work around clang-14 build issue with __builtin_object_size()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
+     alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,78 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ricardo Cañuelo Navarro <rcn@igalia.com>
-Subject: mm,madvise,hugetlb: check for 0-length range after end address adjustment
-Date: Mon, 3 Feb 2025 08:52:06 +0100
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag: work around clang-14 build issue with __builtin_object_size()
+Date: Sat, 1 Feb 2025 12:05:03 -0800
 
-Add a sanity check to madvise_dontneed_free() to address a corner case in
-madvise where a race condition causes the current vma being processed to
-be backed by a different page size.
+Additional condition in the allocation hooks causes Clang version 14
+(tested on 14.0.6) to treat the allocated object size as unknown at
+compile-time (__builtin_object_size(obj, 1) returns -1) even though both
+branches of that condition yield the same result.  Other versions of Clang
+(tested with 13.0.1, 15.0.7, 16.0.6 and 17.0.6) compile the same code
+without issues.  Add build-time Clang version check which removes this
+condition and effectively restores the unconditional tag store/restore
+flow when compiled with clang-14.
 
-During a madvise(MADV_DONTNEED) call on a memory region registered with a
-userfaultfd, there's a period of time where the process mm lock is
-temporarily released in order to send a UFFD_EVENT_REMOVE and let
-userspace handle the event.  During this time, the vma covering the
-current address range may change due to an explicit mmap done concurrently
-by another thread.
-
-If, after that change, the memory region, which was originally backed by
-4KB pages, is now backed by hugepages, the end address is rounded down to
-a hugepage boundary to avoid data loss (see "Fixes" below).  This rounding
-may cause the end address to be truncated to the same address as the
-start.
-
-Make this corner case follow the same semantics as in other similar cases
-where the requested region has zero length (ie.  return 0).
-
-This will make madvise_walk_vmas() continue to the next vma in the range
-(this time holding the process mm lock) which, due to the prev pointer
-becoming stale because of the vma change, will be the same hugepage-backed
-vma that was just checked before.  The next time madvise_dontneed_free()
-runs for this vma, if the start address isn't aligned to a hugepage
-boundary, it'll return -EINVAL, which is also in line with the madvise
-api.
-
-From userspace perspective, madvise() will return EINVAL because the start
-address isn't aligned according to the new vma alignment requirements
-(hugepage), even though it was correctly page-aligned when the call was
-issued.
-
-Link: https://lkml.kernel.org/r/20250203075206.1452208-1-rcn@igalia.com
-Fixes: 8ebe0a5eaaeb ("mm,madvise,hugetlb: fix unexpected data loss with MADV_DONTNEED on hugetlbfs")
-Signed-off-by: Ricardo Cañuelo Navarro <rcn@igalia.com>
-Cc: Florent Revest <revest@google.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250201200503.2532357-1-surenb@google.com
+Fixes: 07438779313c ("alloc_tag: avoid current->alloc_tag manipulations when profiling is disabled")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202501310832.kiAeOt2z-lkp@intel.com/
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/alloc_tag.h |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
---- a/mm/madvise.c~mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment
-+++ a/mm/madvise.c
-@@ -933,7 +933,16 @@ static long madvise_dontneed_free(struct
- 			 */
- 			end = vma->vm_end;
- 		}
--		VM_WARN_ON(start >= end);
-+		/*
-+		 * If the memory region between start and end was
-+		 * originally backed by 4kB pages and then remapped to
-+		 * be backed by hugepages while mmap_lock was dropped,
-+		 * the adjustment for hugetlb vma above may have rounded
-+		 * end down to the start address.
-+		 */
-+		if (start == end)
-+			return 0;
-+		VM_WARN_ON(start > end);
- 	}
+--- a/include/linux/alloc_tag.h~alloc_tag-work-around-clang-14-issue-with-__builtin_object_size
++++ a/include/linux/alloc_tag.h
+@@ -222,10 +222,23 @@ static inline void alloc_tag_sub(union c
  
- 	if (behavior == MADV_DONTNEED || behavior == MADV_DONTNEED_LOCKED)
+ #endif /* CONFIG_MEM_ALLOC_PROFILING */
+ 
++/* See https://lore.kernel.org/all/202501310832.kiAeOt2z-lkp@intel.com/ */
++#if defined(CONFIG_CC_IS_CLANG) && CONFIG_CLANG_VERSION >= 140000 && CONFIG_CLANG_VERSION < 150000
++static inline bool store_current_tag(void)
++{
++	return true;
++}
++#else
++static inline bool store_current_tag(void)
++{
++	return mem_alloc_profiling_enabled();
++}
++#endif
++
+ #define alloc_hooks_tag(_tag, _do_alloc)				\
+ ({									\
+ 	typeof(_do_alloc) _res;						\
+-	if (mem_alloc_profiling_enabled()) {				\
++	if (store_current_tag()) {					\
+ 		struct alloc_tag * __maybe_unused _old;			\
+ 		_old = alloc_tag_save(_tag);				\
+ 		_res = _do_alloc;					\
 _
 
-Patches currently in -mm which might be from rcn@igalia.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
+alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch
+mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
 
