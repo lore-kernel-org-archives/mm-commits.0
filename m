@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F219725A65D
-	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82DB525A65D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738721799; cv=none; b=C7dAZYH6bgD/vC5mXoWdz+Wx1IscX0wHZB2hu2tpOsPjuPyBN5SQNstH7vH5IsENpOzjHTD905orwUKDKxGpY8LX25IQ0YvzZ+Zq1VzktfhIFx2mLW1+hYsq0/m4xWFeZwflIR4eJg75+3ZV3QH+Jk3qgKIAM/mHLNS107iGuXY=
+	t=1738721801; cv=none; b=JQAdW8YpND8ioetyFdq1k5/HXvk0yb2P9JSn3aDpBRPiDrhrj5n47uCjNkeBsOtHPif1Lf7ohFLQxtdvKXV0ZrVH+0L3ig6mPR2F14c2ER313z3foTDLyeCWhZJZWK2r01yO1k2GUm2WSGcbFEKylXygxMSdEbhEUFSorR99NeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738721799; c=relaxed/simple;
-	bh=smmzVqDZrhqVDwLpD385/ZeN4W049SCWvC3oV6fa3mg=;
-	h=Date:To:From:Subject:Message-Id; b=ScJK420R1MJZel4dme+x2GbZADBr97MpEtxdRoOwj2n8WqunyYcDOASDAZMCPN6cWOGe2d803Ce9Zu+xctuihnEUAADS+v8Sd39cRRm2llMPgr95S9CGNVE6zWbJ5dzjZA3SkJaR9FHkV4Lyp6znvPqzjvTGTX9/iP0fsvNOMx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MglmtlCf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738721801; c=relaxed/simple;
+	bh=ngF0IR+O8qRlU7TycMyGxd9Oc5AG8ip9dU18pPoocuM=;
+	h=Date:To:From:Subject:Message-Id; b=BSAEnQSlJk9LcA4w087/hUwspX+Jve87VfU9KXtPU2DywoNh6BU0hjb7vukMnVAQwRjRsa9C4ABTBZJWlru05KIFyshOixV1ZoizXuOKr7Ic3EpYpOlln6d089eAqXvudaBf8rZurs9gugcRCbylTZzDojL9NdeKupkU9mAA6Q8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FAe2I+mH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MglmtlCf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F965C4CEDF;
-	Wed,  5 Feb 2025 02:16:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FAe2I+mH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46F8EC4CEDF;
+	Wed,  5 Feb 2025 02:16:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738721798;
-	bh=smmzVqDZrhqVDwLpD385/ZeN4W049SCWvC3oV6fa3mg=;
+	s=korg; t=1738721801;
+	bh=ngF0IR+O8qRlU7TycMyGxd9Oc5AG8ip9dU18pPoocuM=;
 	h=Date:To:From:Subject:From;
-	b=MglmtlCfqCydsJI3u+yMLTBl+EV2IWjIELMK38QhuemqqyO/ubOyAd/0wTOgWEBsK
-	 k8y7tdO7wU8dKfFXBZ+5zJyB1XVDOifFtXVtGc0G64ggNeFtUcycCp5KPqe6RVKxMR
-	 oNcoJDf86ATgS9sc+0qE/RwnuMnCgd2Vyf18+RzI=
-Date: Tue, 04 Feb 2025 18:16:37 -0800
+	b=FAe2I+mH4Jn2qoohgAYGuBS4hTv+agzFSFSa2Uc8Z88LQ4PVTEUOoYkuJkIUhQgbH
+	 Nb0PyQC30kcCSLBE0xd/6KxyyOW0lmsOU7b49nIcPmvnnyOTpmU19ERAtOeYjtmSbQ
+	 i8OkPx46l+1oEFmv5wqyeK4tM8xrNqAOJU7V10xI=
+Date: Tue, 04 Feb 2025 18:16:40 -0800
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + huge_memory-add-vmf_insert_folio_pud.patch added to mm-unstable branch
-Message-Id: <20250205021638.5F965C4CEDF@smtp.kernel.org>
+Subject: + huge_memory-add-vmf_insert_folio_pmd.patch added to mm-unstable branch
+Message-Id: <20250205021641.46F8EC4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: huge_memory: add vmf_insert_folio_pud()
+     Subject: huge_memory: add vmf_insert_folio_pmd()
 has been added to the -mm mm-unstable branch.  Its filename is
-     huge_memory-add-vmf_insert_folio_pud.patch
+     huge_memory-add-vmf_insert_folio_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-add-vmf_insert_folio_pud.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/huge_memory-add-vmf_insert_folio_pmd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: huge_memory: add vmf_insert_folio_pud()
-Date: Wed, 5 Feb 2025 09:48:12 +1100
+Subject: huge_memory: add vmf_insert_folio_pmd()
+Date: Wed, 5 Feb 2025 09:48:13 +1100
 
 Currently DAX folio/page reference counts are managed differently to
 normal pages.  To allow these to be managed the same as normal pages
-introduce vmf_insert_folio_pud.  This will map the entire PUD-sized folio
+introduce vmf_insert_folio_pmd.  This will map the entire PMD-sized folio
 and take references as it would for a normally mapped page.
 
-This is distinct from the current mechanism, vmf_insert_pfn_pud, which
-simply inserts a special devmap PUD entry into the page table without
+This is distinct from the current mechanism, vmf_insert_pfn_pmd, which
+simply inserts a special devmap PMD entry into the page table without
 holding a reference to the page for the mapping.
 
-Link: https://lkml.kernel.org/r/ef0f8d6a6fd340531613c351c99c98fd6f94ad93.1738709036.git-series.apopple@nvidia.com
+It is not currently useful to implement a more generic vmf_insert_folio()
+which selects the correct behaviour based on folio_order().  This is
+because PTE faults require only a subpage of the folio to be PTE mapped
+rather than the entire folio.  It would be possible to add this context
+somewhere but callers already need to handle PTE faults and PMD faults
+separately so a more generic function is not useful.
+
+Link: https://lkml.kernel.org/r/9f10e88441f3cb26eff6be0c9ef5997844c8c24e.1738709036.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Asahi Lina <lina@asahilina.net>
@@ -82,6 +88,7 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Dan Wiliams <dan.j.williams@intel.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -112,189 +119,132 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/huge_mm.h |    1 
- mm/huge_memory.c        |   96 +++++++++++++++++++++++++++++++++-----
- 2 files changed, 85 insertions(+), 12 deletions(-)
+ mm/huge_memory.c        |   61 +++++++++++++++++++++++++++++++-------
+ 2 files changed, 51 insertions(+), 11 deletions(-)
 
---- a/include/linux/huge_mm.h~huge_memory-add-vmf_insert_folio_pud
+--- a/include/linux/huge_mm.h~huge_memory-add-vmf_insert_folio_pmd
 +++ a/include/linux/huge_mm.h
 @@ -39,6 +39,7 @@ int change_huge_pmd(struct mmu_gather *t
  
  vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write);
  vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write);
-+vm_fault_t vmf_insert_folio_pud(struct vm_fault *vmf, struct folio *folio, bool write);
++vm_fault_t vmf_insert_folio_pmd(struct vm_fault *vmf, struct folio *folio, bool write);
+ vm_fault_t vmf_insert_folio_pud(struct vm_fault *vmf, struct folio *folio, bool write);
  
  enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_UNSUPPORTED,
---- a/mm/huge_memory.c~huge_memory-add-vmf_insert_folio_pud
+--- a/mm/huge_memory.c~huge_memory-add-vmf_insert_folio_pmd
 +++ a/mm/huge_memory.c
-@@ -1482,19 +1482,17 @@ static void insert_pfn_pud(struct vm_are
+@@ -1375,20 +1375,20 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 	return __do_huge_pmd_anonymous_page(vmf);
+ }
+ 
+-static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write,
+ 		pgtable_t pgtable)
+ {
  	struct mm_struct *mm = vma->vm_mm;
- 	pgprot_t prot = vma->vm_page_prot;
- 	pud_t entry;
+ 	pmd_t entry;
 -	spinlock_t *ptl;
  
--	ptl = pud_lock(mm, pud);
- 	if (!pud_none(*pud)) {
+-	ptl = pmd_lock(mm, pmd);
++	lockdep_assert_held(pmd_lockptr(mm, pmd));
++
+ 	if (!pmd_none(*pmd)) {
  		if (write) {
- 			if (WARN_ON_ONCE(pud_pfn(*pud) != pfn_t_to_pfn(pfn)))
+ 			if (pmd_pfn(*pmd) != pfn_t_to_pfn(pfn)) {
+ 				WARN_ON_ONCE(!is_huge_zero_pmd(*pmd));
 -				goto out_unlock;
-+				return;
- 			entry = pud_mkyoung(*pud);
- 			entry = maybe_pud_mkwrite(pud_mkdirty(entry), vma);
- 			if (pudp_set_access_flags(vma, addr, pud, entry, 1))
- 				update_mmu_cache_pud(vma, addr, pud);
++				return -EEXIST;
+ 			}
+ 			entry = pmd_mkyoung(*pmd);
+ 			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+@@ -1396,7 +1396,7 @@ static void insert_pfn_pmd(struct vm_are
+ 				update_mmu_cache_pmd(vma, addr, pmd);
  		}
+ 
 -		goto out_unlock;
-+		return;
++		return -EEXIST;
  	}
  
- 	entry = pud_mkhuge(pfn_t_pud(pfn, prot));
-@@ -1508,9 +1506,6 @@ static void insert_pfn_pud(struct vm_are
- 	}
- 	set_pud_at(mm, addr, pud, entry);
- 	update_mmu_cache_pud(vma, addr, pud);
+ 	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
+@@ -1417,11 +1417,7 @@ static void insert_pfn_pmd(struct vm_are
+ 
+ 	set_pmd_at(mm, addr, pmd, entry);
+ 	update_mmu_cache_pmd(vma, addr, pmd);
 -
 -out_unlock:
 -	spin_unlock(ptl);
+-	if (pgtable)
+-		pte_free(mm, pgtable);
++	return 0;
  }
  
  /**
-@@ -1528,6 +1523,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	unsigned long addr = vmf->address & PUD_MASK;
+@@ -1440,6 +1436,8 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
  	struct vm_area_struct *vma = vmf->vma;
  	pgprot_t pgprot = vma->vm_page_prot;
+ 	pgtable_t pgtable = NULL;
 +	spinlock_t *ptl;
++	int error;
  
  	/*
- 	 * If we had pud_special, we could avoid all these restrictions,
-@@ -1545,10 +1541,55 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
+ 	 * If we had pmd_special, we could avoid all these restrictions,
+@@ -1462,12 +1460,53 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
+ 	}
  
  	track_pfn_insert(vma, &pgprot, pfn);
- 
-+	ptl = pud_lock(vma->vm_mm, vmf->pud);
- 	insert_pfn_pud(vma, addr, vmf->pud, pfn, write);
++	ptl = pmd_lock(vma->vm_mm, vmf->pmd);
++	error = insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write, pgtable);
 +	spin_unlock(ptl);
-+
++	if (error && pgtable)
++		pte_free(vma->vm_mm, pgtable);
+ 
+-	insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write, pgtable);
  	return VM_FAULT_NOPAGE;
  }
- EXPORT_SYMBOL_GPL(vmf_insert_pfn_pud);
-+
-+/**
-+ * vmf_insert_folio_pud - insert a pud size folio mapped by a pud entry
-+ * @vmf: Structure describing the fault
-+ * @folio: folio to insert
-+ * @write: whether it's a write fault
-+ *
-+ * Return: vm_fault_t value.
-+ */
-+vm_fault_t vmf_insert_folio_pud(struct vm_fault *vmf, struct folio *folio, bool write)
+ EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
+ 
++vm_fault_t vmf_insert_folio_pmd(struct vm_fault *vmf, struct folio *folio, bool write)
 +{
 +	struct vm_area_struct *vma = vmf->vma;
-+	unsigned long addr = vmf->address & PUD_MASK;
-+	pud_t *pud = vmf->pud;
++	unsigned long addr = vmf->address & PMD_MASK;
 +	struct mm_struct *mm = vma->vm_mm;
 +	spinlock_t *ptl;
++	pgtable_t pgtable = NULL;
++	int error;
 +
 +	if (addr < vma->vm_start || addr >= vma->vm_end)
 +		return VM_FAULT_SIGBUS;
 +
-+	if (WARN_ON_ONCE(folio_order(folio) != PUD_ORDER))
++	if (WARN_ON_ONCE(folio_order(folio) != PMD_ORDER))
 +		return VM_FAULT_SIGBUS;
 +
-+	ptl = pud_lock(mm, pud);
-+
-+	/*
-+	 * If there is already an entry present we assume the folio is
-+	 * already mapped, hence no need to take another reference. We
-+	 * still call insert_pfn_pud() though in case the mapping needs
-+	 * upgrading to writeable.
-+	 */
-+	if (pud_none(*vmf->pud)) {
-+		folio_get(folio);
-+		folio_add_file_rmap_pud(folio, &folio->page, vma);
-+		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PUD_NR);
++	if (arch_needs_pgtable_deposit()) {
++		pgtable = pte_alloc_one(vma->vm_mm);
++		if (!pgtable)
++			return VM_FAULT_OOM;
 +	}
-+	insert_pfn_pud(vma, addr, vmf->pud, pfn_to_pfn_t(folio_pfn(folio)), write);
++
++	ptl = pmd_lock(mm, vmf->pmd);
++	if (pmd_none(*vmf->pmd)) {
++		folio_get(folio);
++		folio_add_file_rmap_pmd(folio, &folio->page, vma);
++		add_mm_counter(mm, mm_counter_file(folio), HPAGE_PMD_NR);
++	}
++	error = insert_pfn_pmd(vma, addr, vmf->pmd, pfn_to_pfn_t(folio_pfn(folio)),
++			       vma->vm_page_prot, write, pgtable);
 +	spin_unlock(ptl);
++	if (error && pgtable)
++		pte_free(mm, pgtable);
 +
 +	return VM_FAULT_NOPAGE;
 +}
-+EXPORT_SYMBOL_GPL(vmf_insert_folio_pud);
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- 
- void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
-@@ -2146,7 +2187,8 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 			zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
- 	} else if (is_huge_zero_pmd(orig_pmd)) {
--		zap_deposited_table(tlb->mm, pmd);
-+		if (!vma_is_dax(vma) || arch_needs_pgtable_deposit())
-+			zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
- 	} else {
- 		struct folio *folio = NULL;
-@@ -2646,12 +2688,23 @@ int zap_huge_pud(struct mmu_gather *tlb,
- 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
- 	arch_check_zapped_pud(vma, orig_pud);
- 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
--	if (vma_is_special_huge(vma)) {
-+	if (!vma_is_dax(vma) && vma_is_special_huge(vma)) {
- 		spin_unlock(ptl);
- 		/* No zero page support yet */
- 	} else {
--		/* No support for anonymous PUD pages yet */
--		BUG();
-+		struct page *page = NULL;
-+		struct folio *folio;
++EXPORT_SYMBOL_GPL(vmf_insert_folio_pmd);
 +
-+		/* No support for anonymous PUD pages or migration yet */
-+		VM_WARN_ON_ONCE(vma_is_anonymous(vma) || !pud_present(orig_pud));
-+
-+		page = pud_page(orig_pud);
-+		folio = page_folio(page);
-+		folio_remove_rmap_pud(folio, page, vma);
-+		add_mm_counter(tlb->mm, mm_counter_file(folio), -HPAGE_PUD_NR);
-+
-+		spin_unlock(ptl);
-+		tlb_remove_page_size(tlb, page, HPAGE_PUD_SIZE);
- 	}
- 	return 1;
- }
-@@ -2659,6 +2712,10 @@ int zap_huge_pud(struct mmu_gather *tlb,
- static void __split_huge_pud_locked(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long haddr)
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static pud_t maybe_pud_mkwrite(pud_t pud, struct vm_area_struct *vma)
  {
-+	struct folio *folio;
-+	struct page *page;
-+	pud_t old_pud;
-+
- 	VM_BUG_ON(haddr & ~HPAGE_PUD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PUD_SIZE, vma);
-@@ -2666,7 +2723,22 @@ static void __split_huge_pud_locked(stru
- 
- 	count_vm_event(THP_SPLIT_PUD);
- 
--	pudp_huge_clear_flush(vma, haddr, pud);
-+	old_pud = pudp_huge_clear_flush(vma, haddr, pud);
-+
-+	if (!vma_is_dax(vma))
-+		return;
-+
-+	page = pud_page(old_pud);
-+	folio = page_folio(page);
-+
-+	if (!folio_test_dirty(folio) && pud_dirty(old_pud))
-+		folio_mark_dirty(folio);
-+	if (!folio_test_referenced(folio) && pud_young(old_pud))
-+		folio_set_referenced(folio);
-+	folio_remove_rmap_pud(folio, page, vma);
-+	folio_put(folio);
-+	add_mm_counter(vma->vm_mm, mm_counter_file(folio),
-+		-HPAGE_PUD_NR);
- }
- 
- void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
