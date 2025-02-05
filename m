@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95CBF1E505
-	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:15:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D013625A65D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738721759; cv=none; b=I43NYiaURW4XFcb642y+kzOxy1GNPRt5Dh6b60qyG480EzZl3FWSbbhjyY0Fd19pRCzTR068ConOaPb0llc4HWAM3c+z2QPKqDrnCJs2m8XIBGm9NvuMUf35DXY9KER3eCEdWe6dp0eca9yy/4nKlNlgixhcgWFahVO9jikLma4=
+	t=1738721762; cv=none; b=BmKdJfo2eRhLE6b/BgmdLQs0bc3fmNYbtAk0x98sfxElYCB8lqTMDrbZ3stReaB3gseL1KEIadfr7qBho0tqxB8+WoySTeDmLSyYePz4ODq6zxnlytoV28bPehVV5rXnybjL/GH+9JtUlN7cbXWPwRIv8CLnRz8y1Iq1PJEBBbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738721759; c=relaxed/simple;
-	bh=E8zZowS1eH9Y+RbhEsOn1PLDGBux1GTNnsio2IGUMV4=;
-	h=Date:To:From:Subject:Message-Id; b=Gs6pjf+pMOeztqUt/B4a8A1jGyMGtOSKkx0PwXntQH0eY47PrM0OTj9MEAG5F0QUiNX/MIwiEeAS0n+3zAU+9ThcmexU+RsWHJCwQysubdB32G7rovC6Wara5mLkAXV6cX5wAPh7SniRNFnC1sH5/OTmiteWQOXCEi7kDH3INsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TijTVytj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738721762; c=relaxed/simple;
+	bh=ejXOSQEowYNDizx0JlX2QwVXOmj91MY/Ska/WebzPuA=;
+	h=Date:To:From:Subject:Message-Id; b=L9yIa9zOnIUBzWUDqOZESfqjQa2YPjWJ6Pr+YhMD/eIRjwN7JHi+SQO7FLjGV2oF2miA+efwCOQg/c1bnBoHp6/vouR6SIB03kSTwGRkydyeGAlx/qryneZ54JBDkTqWUF01mgR89rgxQiBbmaT016FOr0jSmhQ9zZRgDfSGbd0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oFUnoxVy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TijTVytj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE616C4CEDF;
-	Wed,  5 Feb 2025 02:15:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oFUnoxVy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A258C4CEDF;
+	Wed,  5 Feb 2025 02:16:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738721759;
-	bh=E8zZowS1eH9Y+RbhEsOn1PLDGBux1GTNnsio2IGUMV4=;
+	s=korg; t=1738721762;
+	bh=ejXOSQEowYNDizx0JlX2QwVXOmj91MY/Ska/WebzPuA=;
 	h=Date:To:From:Subject:From;
-	b=TijTVytjiu0PRY5Azu/3Zuvtqq3OVFc1bZXej0DkFG1LRFl0ihNo8O8t2KhSNzbXU
-	 515g8ReNJ4F4KylKpYMXvgoeSEWm5zc66CCfJDJ16/NoH5vq50vdVLHWtpWSvc1rk/
-	 5iTjt+OwMcQ9VYs7nLhqVez1GnDkHUx1usLE0O6o=
-Date: Tue, 04 Feb 2025 18:15:58 -0800
+	b=oFUnoxVyf+D3CV1G0LyDZFJ/73T7R4f6rlYldDNMLlA7fXxF3Zu7Pro8AHUnnBPnm
+	 PVLEwXm3fvzE7XcSBHDGRF2SfrrUGk+SPe0bIlWSQFYeqpYPppwXk99LFEoLqKR5GR
+	 eiJU0uUCFJl//9/XYnkxpaPFZ3A/eQD1C2qss1IU=
+Date: Tue, 04 Feb 2025 18:16:01 -0800
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-dax-refactor-wait-for-dax-idle-page.patch added to mm-unstable branch
-Message-Id: <20250205021558.DE616C4CEDF@smtp.kernel.org>
+Subject: + fs-dax-create-a-common-implementation-to-break-dax-layouts.patch added to mm-unstable branch
+Message-Id: <20250205021602.8A258C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/dax: refactor wait for dax idle page
+     Subject: fs/dax: create a common implementation to break DAX layouts
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-dax-refactor-wait-for-dax-idle-page.patch
+     fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-refactor-wait-for-dax-idle-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: fs/dax: refactor wait for dax idle page
-Date: Wed, 5 Feb 2025 09:48:01 +1100
+Subject: fs/dax: create a common implementation to break DAX layouts
+Date: Wed, 5 Feb 2025 09:48:02 +1100
 
-A FS DAX page is considered idle when its refcount drops to one.  This is
-currently open-coded in all file systems supporting FS DAX.  Move the idle
-detection to a common function to make future changes easier.
+Prior to freeing a block file systems supporting FS DAX must check that
+the associated pages are both unmapped from user-space and not undergoing
+DMA or other access from eg.  get_user_pages().  This is achieved by
+unmapping the file range and scanning the FS DAX page-cache to see if any
+pages within the mapping have an elevated refcount.
 
-Link: https://lkml.kernel.org/r/8e6f61482cd0c0be1750ecd5b7412fbfab414e49.1738709036.git-series.apopple@nvidia.com
+This is done using two functions - dax_layout_busy_page_range() which
+returns a page to wait for the refcount to become idle on.  Rather than
+open-code this introduce a common implementation to both unmap and wait
+for the page to become idle.
+
+Link: https://lkml.kernel.org/r/28fcec91d5a764aa58ce897cc6739a4bebdf7840.1738709036.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Theodore Ts'o <tytso@mit.edu>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Asahi Lina <lina@asahilina.net>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -88,6 +93,7 @@ Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -98,6 +104,7 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Ted Ts'o <tytso@mit.edu>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
@@ -106,69 +113,246 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c     |    5 +----
- fs/fuse/dax.c       |    4 +---
- fs/xfs/xfs_inode.c  |    4 +---
- include/linux/dax.h |    8 ++++++++
- 4 files changed, 11 insertions(+), 10 deletions(-)
+ fs/dax.c            |   33 +++++++++++++++++++++++++++++++++
+ fs/ext4/inode.c     |   13 +------------
+ fs/fuse/dax.c       |   27 +++------------------------
+ fs/xfs/xfs_inode.c  |   26 +++++++-------------------
+ fs/xfs/xfs_inode.h  |    2 +-
+ include/linux/dax.h |   23 ++++++++++++++++++-----
+ 6 files changed, 63 insertions(+), 61 deletions(-)
 
---- a/fs/ext4/inode.c~fs-dax-refactor-wait-for-dax-idle-page
-+++ a/fs/ext4/inode.c
-@@ -3922,10 +3922,7 @@ int ext4_break_layouts(struct inode *ino
- 		if (!page)
- 			return 0;
- 
--		error = ___wait_var_event(&page->_refcount,
--				atomic_read(&page->_refcount) == 1,
--				TASK_INTERRUPTIBLE, 0, 0,
--				ext4_wait_dax_page(inode));
-+		error = dax_wait_page_idle(page, ext4_wait_dax_page, inode);
- 	} while (error == 0);
- 
- 	return error;
---- a/fs/fuse/dax.c~fs-dax-refactor-wait-for-dax-idle-page
-+++ a/fs/fuse/dax.c
-@@ -677,9 +677,7 @@ static int __fuse_dax_break_layouts(stru
- 		return 0;
- 
- 	*retry = true;
--	return ___wait_var_event(&page->_refcount,
--			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
--			0, 0, fuse_wait_dax_page(inode));
-+	return dax_wait_page_idle(page, fuse_wait_dax_page, inode);
+--- a/fs/dax.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
++++ a/fs/dax.c
+@@ -845,6 +845,39 @@ int dax_delete_mapping_entry(struct addr
+ 	return ret;
  }
  
- int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
---- a/fs/xfs/xfs_inode.c~fs-dax-refactor-wait-for-dax-idle-page
-+++ a/fs/xfs/xfs_inode.c
-@@ -3017,9 +3017,7 @@ xfs_break_dax_layouts(
- 		return 0;
- 
- 	*retry = true;
--	return ___wait_var_event(&page->_refcount,
--			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
--			0, 0, xfs_wait_dax_page(inode));
-+	return dax_wait_page_idle(page, xfs_wait_dax_page, inode);
- }
- 
- int
---- a/include/linux/dax.h~fs-dax-refactor-wait-for-dax-idle-page
-+++ a/include/linux/dax.h
-@@ -207,6 +207,14 @@ int dax_zero_range(struct inode *inode,
- int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
- 		const struct iomap_ops *ops);
- 
-+static inline int dax_wait_page_idle(struct page *page,
-+				void (cb)(struct inode *),
-+				struct inode *inode)
++static int wait_page_idle(struct page *page,
++			void (cb)(struct inode *),
++			struct inode *inode)
 +{
-+	return ___wait_var_event(page, page_ref_count(page) == 1,
++	return ___wait_var_event(page, dax_page_is_idle(page),
 +				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
 +}
 +
++/*
++ * Unmaps the inode and waits for any DMA to complete prior to deleting the
++ * DAX mapping entries for the range.
++ */
++int dax_break_layout(struct inode *inode, loff_t start, loff_t end,
++		void (cb)(struct inode *))
++{
++	struct page *page;
++	int error = 0;
++
++	if (!dax_mapping(inode->i_mapping))
++		return 0;
++
++	do {
++		page = dax_layout_busy_page_range(inode->i_mapping, start, end);
++		if (!page)
++			break;
++
++		error = wait_page_idle(page, cb, inode);
++	} while (error == 0);
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(dax_break_layout);
++
+ /*
+  * Invalidate DAX entry if it is clean.
+  */
+--- a/fs/ext4/inode.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
++++ a/fs/ext4/inode.c
+@@ -3911,21 +3911,10 @@ static void ext4_wait_dax_page(struct in
+ 
+ int ext4_break_layouts(struct inode *inode)
+ {
+-	struct page *page;
+-	int error;
+-
+ 	if (WARN_ON_ONCE(!rwsem_is_locked(&inode->i_mapping->invalidate_lock)))
+ 		return -EINVAL;
+ 
+-	do {
+-		page = dax_layout_busy_page(inode->i_mapping);
+-		if (!page)
+-			return 0;
+-
+-		error = dax_wait_page_idle(page, ext4_wait_dax_page, inode);
+-	} while (error == 0);
+-
+-	return error;
++	return dax_break_layout_inode(inode, ext4_wait_dax_page);
+ }
+ 
+ /*
+--- a/fs/fuse/dax.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
++++ a/fs/fuse/dax.c
+@@ -666,33 +666,12 @@ static void fuse_wait_dax_page(struct in
+ 	filemap_invalidate_lock(inode->i_mapping);
+ }
+ 
+-/* Should be called with mapping->invalidate_lock held exclusively */
+-static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
+-				    loff_t start, loff_t end)
+-{
+-	struct page *page;
+-
+-	page = dax_layout_busy_page_range(inode->i_mapping, start, end);
+-	if (!page)
+-		return 0;
+-
+-	*retry = true;
+-	return dax_wait_page_idle(page, fuse_wait_dax_page, inode);
+-}
+-
++/* Should be called with mapping->invalidate_lock held exclusively. */
+ int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
+ 				  u64 dmap_end)
+ {
+-	bool	retry;
+-	int	ret;
+-
+-	do {
+-		retry = false;
+-		ret = __fuse_dax_break_layouts(inode, &retry, dmap_start,
+-					       dmap_end);
+-	} while (ret == 0 && retry);
+-
+-	return ret;
++	return dax_break_layout(inode, dmap_start, dmap_end,
++				fuse_wait_dax_page);
+ }
+ 
+ ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
+--- a/fs/xfs/xfs_inode.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
++++ a/fs/xfs/xfs_inode.c
+@@ -2732,21 +2732,17 @@ xfs_mmaplock_two_inodes_and_break_dax_la
+ 	struct xfs_inode	*ip2)
+ {
+ 	int			error;
+-	bool			retry;
+ 	struct page		*page;
+ 
+ 	if (ip1->i_ino > ip2->i_ino)
+ 		swap(ip1, ip2);
+ 
+ again:
+-	retry = false;
+ 	/* Lock the first inode */
+ 	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
+-	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
+-	if (error || retry) {
++	error = xfs_break_dax_layouts(VFS_I(ip1));
++	if (error) {
+ 		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
+-		if (error == 0 && retry)
+-			goto again;
+ 		return error;
+ 	}
+ 
+@@ -2761,7 +2757,7 @@ again:
+ 	 * for this nested lock case.
+ 	 */
+ 	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
+-	if (page && page_ref_count(page) != 1) {
++	if (!dax_page_is_idle(page)) {
+ 		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
+ 		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
+ 		goto again;
+@@ -3005,19 +3001,11 @@ xfs_wait_dax_page(
+ 
+ int
+ xfs_break_dax_layouts(
+-	struct inode		*inode,
+-	bool			*retry)
++	struct inode		*inode)
+ {
+-	struct page		*page;
+-
+ 	xfs_assert_ilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL);
+ 
+-	page = dax_layout_busy_page(inode->i_mapping);
+-	if (!page)
+-		return 0;
+-
+-	*retry = true;
+-	return dax_wait_page_idle(page, xfs_wait_dax_page, inode);
++	return dax_break_layout_inode(inode, xfs_wait_dax_page);
+ }
+ 
+ int
+@@ -3035,8 +3023,8 @@ xfs_break_layouts(
+ 		retry = false;
+ 		switch (reason) {
+ 		case BREAK_UNMAP:
+-			error = xfs_break_dax_layouts(inode, &retry);
+-			if (error || retry)
++			error = xfs_break_dax_layouts(inode);
++			if (error)
+ 				break;
+ 			fallthrough;
+ 		case BREAK_WRITE:
+--- a/fs/xfs/xfs_inode.h~fs-dax-create-a-common-implementation-to-break-dax-layouts
++++ a/fs/xfs/xfs_inode.h
+@@ -603,7 +603,7 @@ xfs_itruncate_extents(
+ 	return xfs_itruncate_extents_flags(tpp, ip, whichfork, new_size, 0);
+ }
+ 
+-int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
++int	xfs_break_dax_layouts(struct inode *inode);
+ int	xfs_break_layouts(struct inode *inode, uint *iolock,
+ 		enum layout_break_reason reason);
+ 
+--- a/include/linux/dax.h~fs-dax-create-a-common-implementation-to-break-dax-layouts
++++ a/include/linux/dax.h
+@@ -207,12 +207,9 @@ int dax_zero_range(struct inode *inode,
+ int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+ 		const struct iomap_ops *ops);
+ 
+-static inline int dax_wait_page_idle(struct page *page,
+-				void (cb)(struct inode *),
+-				struct inode *inode)
++static inline bool dax_page_is_idle(struct page *page)
+ {
+-	return ___wait_var_event(page, page_ref_count(page) == 1,
+-				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
++	return page && page_ref_count(page) == 1;
+ }
+ 
  #if IS_ENABLED(CONFIG_DAX)
- int dax_read_lock(void);
- void dax_read_unlock(int id);
+@@ -228,6 +225,15 @@ static inline void dax_read_unlock(int i
+ {
+ }
+ #endif /* CONFIG_DAX */
++
++#if !IS_ENABLED(CONFIG_FS_DAX)
++static inline int __must_check dax_break_layout(struct inode *inode,
++			    loff_t start, loff_t end, void (cb)(struct inode *))
++{
++	return 0;
++}
++#endif
++
+ bool dax_alive(struct dax_device *dax_dev);
+ void *dax_get_private(struct dax_device *dax_dev);
+ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+@@ -251,6 +257,13 @@ vm_fault_t dax_finish_sync_fault(struct
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 				      pgoff_t index);
++int __must_check dax_break_layout(struct inode *inode, loff_t start,
++				loff_t end, void (cb)(struct inode *));
++static inline int __must_check dax_break_layout_inode(struct inode *inode,
++						void (cb)(struct inode *))
++{
++	return dax_break_layout(inode, 0, LLONG_MAX, cb);
++}
+ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 				  struct inode *dest, loff_t destoff,
+ 				  loff_t len, bool *is_same,
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
