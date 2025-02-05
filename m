@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126DF25A65D
-	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B36625A65D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738721811; cv=none; b=gC5S72bP+HQt4k4VB2S8NGPxIG3jMIoA6/WCTQejkwjnEbsYkO044T/9kJuJjEdyrgbTnhOzO7qvs+QTMMBogyO6DlcWk0GD0mIUTEZsyBdxvkTmL5qJAO/rCgkgX/zRd2950hGQAgd5beDSkMqxrhN4de0e7h/F60VZL1otnuY=
+	t=1738721818; cv=none; b=ZCghwobBA2hgxEsTYapHBL6g1bCxDIhQcGsb4S4H5dG182nsrN+PVVE2xTSo70RnKjnwZwsP82KVwcsO8tNbvLP96r+8Jie6fqWNojH4ZROFzDWClZ6KNA3D1Xvi9LgPrGVrN/O35XdAA/ItEbl2I69QwBFRNvs7Dn22SYrQ2tk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738721811; c=relaxed/simple;
-	bh=nouAZVgCl29BjuApBiGXzmtIvD/z7ejLi2th+fxi9JY=;
-	h=Date:To:From:Subject:Message-Id; b=OHtMg6uZuAL2E4KQtlL4V0niB8X/k1Rphm0DKFIHRKELtoVmNVMqkiUoK7CG0UiZGf9uNFt7ZhiobfSqBIzduPz0XjkIPuHzJS9NEkpgdtFsOsyOg0FiWoqJQ7ko9oqUdr+3o/Vh+ukj7ah3Fa2mFSnH/JhzkQ6Delj6O9Ghp2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZemjhoZP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738721818; c=relaxed/simple;
+	bh=8Qy2Rvl5I2nuSYcjc6bkHiyX3J6txKMNPOKUB+yeZYQ=;
+	h=Date:To:From:Subject:Message-Id; b=dKuVfNf0onqM9xDsXktNdraWmxV12n2E/UsmPDmtaCY3yhVyJ2QxO7MUpdg7wKuA0TrEI3HTMWfYqMMgjNBXDb3mO5kxVROw4/nX4Qtg+EDToV3eqmSfLC/lhR02kuaIPcfv8n7OZrMjE6xfloRCVrA3UkzQ3k3Eq0r/q45xcfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HHjf35HW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZemjhoZP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F43EC4CEDF;
-	Wed,  5 Feb 2025 02:16:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HHjf35HW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CDAC4CEDF;
+	Wed,  5 Feb 2025 02:16:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738721810;
-	bh=nouAZVgCl29BjuApBiGXzmtIvD/z7ejLi2th+fxi9JY=;
+	s=korg; t=1738721818;
+	bh=8Qy2Rvl5I2nuSYcjc6bkHiyX3J6txKMNPOKUB+yeZYQ=;
 	h=Date:To:From:Subject:From;
-	b=ZemjhoZPYZKVv6yYB8x3ibhBEQOB0tYj2hhJ3xMHUcxS2HTv1bYoZhkjrAdOlg778
-	 4Z5+S9hEruZC0w4RMnVffXqbQSfvd7l5lDXtQ66Lc7wCQRtM0v3fqR72OKho9Yz/VX
-	 iyzeN+9BNMzCyfmNOZnWgT28naRC6VXlA/5MPbdA=
-Date: Tue, 04 Feb 2025 18:16:49 -0800
+	b=HHjf35HW4GkKUIbX7KIuL13yY/ozEqEEq4JKmUsbZ7UBJ/iSbgVmeLDwyhq3Ep7i3
+	 9ELNEyJEZ7TGBm32TbkylWdDgDdTpbUQdkCuFrC5Wv02RUZnui1CpeiSF3DOXW926U
+	 SnEaUKuxvEMd+F1T8Br59/KcTXV7iAqYznvFX7SQ=
+Date: Tue, 04 Feb 2025 18:16:57 -0800
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-dax-properly-refcount-fs-dax-pages.patch added to mm-unstable branch
-Message-Id: <20250205021650.5F43EC4CEDF@smtp.kernel.org>
+Subject: + device-dax-properly-refcount-device-dax-pages-when-mapping.patch added to mm-unstable branch
+Message-Id: <20250205021657.F1CDAC4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/dax: properly refcount fs dax pages
+     Subject: device/dax: properly refcount device dax pages when mapping
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-dax-properly-refcount-fs-dax-pages.patch
+     device-dax-properly-refcount-device-dax-pages-when-mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-properly-refcount-fs-dax-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/device-dax-properly-refcount-device-dax-pages-when-mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: fs/dax: properly refcount fs dax pages
-Date: Wed, 5 Feb 2025 09:48:16 +1100
+Subject: device/dax: properly refcount device dax pages when mapping
+Date: Wed, 5 Feb 2025 09:48:17 +1100
 
-Currently fs dax pages are considered free when the refcount drops to one
-and their refcounts are not increased when mapped via PTEs or decreased
-when unmapped.  This requires special logic in mm paths to detect that
-these pages should not be properly refcounted, and to detect when the
-refcount drops to one instead of zero.
+Device DAX pages are currently not reference counted when mapped, instead
+relying on the devmap PTE bit to ensure mapping code will not get/put
+references.  This requires special handling in various page table walkers,
+particularly GUP, to manage references on the underlying pgmap to ensure
+the pages remain valid.
 
-On the other hand get_user_pages(), etc.  will properly refcount fs dax
-pages by taking a reference and dropping it when the page is unpinned.
+However there is no reason these pages can't be refcounted properly at map
+time.  Doning so eliminates the need for the devmap PTE bit, freeing up a
+precious PTE bit.  It also simplifies GUP as it no longer needs to manage
+the special pgmap references and can instead just treat the pages normally
+as defined by vm_normal_page().
 
-Tracking this special behaviour requires extra PTE bits (eg.  pte_devmap)
-and introduces rules that are potentially confusing and specific to FS DAX
-pages.  To fix this, and to possibly allow removal of the special PTE bits
-in future, convert the fs dax page refcounts to be zero based and instead
-take a reference on the page each time it is mapped as is currently the
-case for normal pages.
-
-This may also allow a future clean-up to remove the pgmap refcounting that
-is currently done in mm/gup.c.
-
-Link: https://lkml.kernel.org/r/b5c33b201b9dc0131d8bb33b31661645c68bf398.1738709036.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/7d65e855fcdc5cee12b4500a557b2ad961bdc8f2.1738709036.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Asahi Lina <lina@asahilina.net>
@@ -92,6 +84,7 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Dan Wiliams <dan.j.williams@intel.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -121,721 +114,93 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/pmem.c    |    4 
- fs/dax.c                 |  200 ++++++++++++++++++++++---------------
- fs/fuse/virtio_fs.c      |    3 
- include/linux/dax.h      |    2 
- include/linux/mm.h       |   27 ----
- include/linux/mm_types.h |    7 +
- mm/gup.c                 |    9 -
- mm/huge_memory.c         |    6 -
- mm/internal.h            |    2 
- mm/memory-failure.c      |    6 -
- mm/memory.c              |    6 -
- mm/memremap.c            |   47 ++++----
- mm/mm_init.c             |    9 -
- mm/swap.c                |    2 
- 14 files changed, 171 insertions(+), 159 deletions(-)
+ drivers/dax/device.c |   15 +++++++++------
+ mm/memremap.c        |   13 ++++++-------
+ 2 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/drivers/nvdimm/pmem.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/drivers/nvdimm/pmem.c
-@@ -513,7 +513,7 @@ static int pmem_attach_disk(struct devic
- 
- 	pmem->disk = disk;
- 	pmem->pgmap.owner = pmem;
--	pmem->pfn_flags = PFN_DEV;
-+	pmem->pfn_flags = 0;
- 	if (is_nd_pfn(dev)) {
- 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
- 		pmem->pgmap.ops = &fsdax_pagemap_ops;
-@@ -522,7 +522,6 @@ static int pmem_attach_disk(struct devic
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
- 		pmem->pfn_pad = resource_size(res) -
- 			range_len(&pmem->pgmap.range);
--		pmem->pfn_flags |= PFN_MAP;
- 		bb_range = pmem->pgmap.range;
- 		bb_range.start += pmem->data_offset;
- 	} else if (pmem_should_map_pages(dev)) {
-@@ -532,7 +531,6 @@ static int pmem_attach_disk(struct devic
- 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
- 		pmem->pgmap.ops = &fsdax_pagemap_ops;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
--		pmem->pfn_flags |= PFN_MAP;
- 		bb_range = pmem->pgmap.range;
- 	} else {
- 		addr = devm_memremap(dev, pmem->phys_addr,
---- a/fs/dax.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/fs/dax.c
-@@ -71,6 +71,11 @@ static unsigned long dax_to_pfn(void *en
- 	return xa_to_value(entry) >> DAX_SHIFT;
- }
- 
-+static struct folio *dax_to_folio(void *entry)
-+{
-+	return page_folio(pfn_to_page(dax_to_pfn(entry)));
-+}
-+
- static void *dax_make_entry(pfn_t pfn, unsigned long flags)
- {
- 	return xa_mk_value(flags | (pfn_t_to_pfn(pfn) << DAX_SHIFT));
-@@ -338,28 +343,15 @@ static unsigned long dax_entry_size(void
- 		return PAGE_SIZE;
- }
- 
--static unsigned long dax_end_pfn(void *entry)
--{
--	return dax_to_pfn(entry) + dax_entry_size(entry) / PAGE_SIZE;
--}
--
--/*
-- * Iterate through all mapped pfns represented by an entry, i.e. skip
-- * 'empty' and 'zero' entries.
-- */
--#define for_each_mapped_pfn(entry, pfn) \
--	for (pfn = dax_to_pfn(entry); \
--			pfn < dax_end_pfn(entry); pfn++)
--
- /*
-  * A DAX page is considered shared if it has no mapping set and ->share (which
-  * shares the ->index field) is non-zero. Note this may return false even if the
-  * page is shared between multiple files but has not yet actually been mapped
-  * into multiple address spaces.
-  */
--static inline bool dax_page_is_shared(struct page *page)
-+static inline bool dax_folio_is_shared(struct folio *folio)
- {
--	return !page->mapping && page->share;
-+	return !folio->mapping && folio->share;
- }
- 
- /*
-@@ -372,88 +364,129 @@ static inline bool dax_page_is_shared(st
-  * recover ->mapping and ->index information. For example by implementing
-  * dax_holder_operations.
-  */
--static void dax_page_make_shared(struct page *page)
-+static void dax_folio_make_shared(struct folio *folio)
- {
- 	/*
--	 * page is not currently shared so mark it as shared by clearing
--	 * page->mapping.
-+	 * folio is not currently shared so mark it as shared by clearing
-+	 * folio->mapping.
- 	 */
--	page->mapping = NULL;
-+	folio->mapping = NULL;
- 
- 	/*
--	 * page has previously been mapped into one address space so set the
-+	 * folio has previously been mapped into one address space so set the
- 	 * share count.
- 	 */
--	page->share = 1;
-+	folio->share = 1;
- }
- 
--static inline unsigned long dax_page_share_put(struct page *page)
-+static inline unsigned long dax_folio_put(struct folio *folio)
- {
--	WARN_ON_ONCE(!page->share);
--	return --page->share;
-+	unsigned long ref;
-+
-+	if (!dax_folio_is_shared(folio))
-+		ref = 0;
-+	else
-+		ref = --folio->share;
-+
-+	WARN_ON_ONCE(ref < 0);
-+	if (!ref) {
-+		folio->mapping = NULL;
-+		if (folio_order(folio)) {
-+			struct dev_pagemap *pgmap = page_pgmap(&folio->page);
-+			unsigned int order = folio_order(folio);
-+			unsigned int i;
-+
-+			for (i = 0; i < (1UL << order); i++) {
-+				struct page *page = folio_page(folio, i);
-+
-+				ClearPageHead(page);
-+				clear_compound_head(page);
-+
-+				/*
-+				 * Reset pgmap which was over-written by
-+				 * prep_compound_page().
-+				 */
-+				page_folio(page)->pgmap = pgmap;
-+
-+				/* Make sure this isn't set to TAIL_MAPPING */
-+				page->mapping = NULL;
-+				page->share = 0;
-+				WARN_ON_ONCE(page_ref_count(page));
-+			}
-+		}
-+	}
-+
-+	return ref;
-+}
-+
-+static void dax_folio_init(void *entry)
-+{
-+	struct folio *folio = dax_to_folio(entry);
-+	int order = dax_entry_order(entry);
-+
-+	/*
-+	 * Folio should have been split back to order-0 pages in
-+	 * dax_folio_put() when they were removed from their
-+	 * final mapping.
-+	 */
-+	WARN_ON_ONCE(folio_order(folio));
-+
-+	if (order > 0) {
-+		prep_compound_page(&folio->page, order);
-+		if (order > 1)
-+			INIT_LIST_HEAD(&folio->_deferred_list);
-+		WARN_ON_ONCE(folio_ref_count(folio));
-+	}
- }
- 
- static void dax_associate_entry(void *entry, struct address_space *mapping,
--		struct vm_area_struct *vma, unsigned long address, bool shared)
-+				struct vm_area_struct *vma, unsigned long address, bool shared)
- {
--	unsigned long size = dax_entry_size(entry), pfn, index;
--	int i = 0;
-+	unsigned long size = dax_entry_size(entry), index;
-+	struct folio *folio = dax_to_folio(entry);
- 
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
- 		return;
- 
- 	index = linear_page_index(vma, address & ~(size - 1));
--	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
--
--		if (shared && (page->mapping || page->share)) {
--			if (page->mapping)
--				dax_page_make_shared(page);
--
--			WARN_ON_ONCE(!page->share);
--			page->share++;
--		} else {
--			WARN_ON_ONCE(page->mapping);
--			page->mapping = mapping;
--			page->index = index + i++;
--		}
-+	if (shared && (folio->mapping || dax_folio_is_shared(folio))) {
-+		if (folio->mapping)
-+			dax_folio_make_shared(folio);
-+
-+		WARN_ON_ONCE(!folio->share);
-+		WARN_ON_ONCE(dax_entry_order(entry) != folio_order(folio));
-+		folio->share++;
-+	} else {
-+		WARN_ON_ONCE(folio->mapping);
-+		dax_folio_init(entry);
-+		folio = dax_to_folio(entry);
-+		folio->mapping = mapping;
-+		folio->index = index;
- 	}
- }
- 
- static void dax_disassociate_entry(void *entry, struct address_space *mapping,
--		bool trunc)
-+				bool trunc)
- {
--	unsigned long pfn;
-+	struct folio *folio = dax_to_folio(entry);
- 
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
- 		return;
- 
--	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
--
--		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		if (dax_page_is_shared(page)) {
--			/* keep the shared flag if this page is still shared */
--			if (dax_page_share_put(page) > 0)
--				continue;
--		} else
--			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
--		page->mapping = NULL;
--		page->index = 0;
--	}
-+	dax_folio_put(folio);
- }
- 
- static struct page *dax_busy_page(void *entry)
- {
--	unsigned long pfn;
-+	struct folio *folio = dax_to_folio(entry);
- 
--	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
-+	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry))
-+		return NULL;
- 
--		if (page_ref_count(page) > 1)
--			return page;
--	}
--	return NULL;
-+	if (folio_ref_count(folio) - folio_mapcount(folio))
-+		return &folio->page;
-+	else
-+		return NULL;
- }
- 
- /**
-@@ -786,7 +819,7 @@ struct page *dax_layout_busy_page(struct
- EXPORT_SYMBOL_GPL(dax_layout_busy_page);
- 
- static int __dax_invalidate_entry(struct address_space *mapping,
--					  pgoff_t index, bool trunc)
-+				  pgoff_t index, bool trunc)
- {
- 	XA_STATE(xas, &mapping->i_pages, index);
- 	int ret = 0;
-@@ -954,7 +987,8 @@ void dax_break_layout_final(struct inode
- 		wait_page_idle_uninterruptible(page, inode);
- 	} while (true);
- 
--	dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
-+	if (!page)
-+		dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
- }
- EXPORT_SYMBOL_GPL(dax_break_layout_final);
- 
-@@ -1040,8 +1074,10 @@ static void *dax_insert_entry(struct xa_
- 		void *old;
- 
- 		dax_disassociate_entry(entry, mapping, false);
--		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
--				shared);
-+		if (!(flags & DAX_ZERO_PAGE))
-+			dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
-+						shared);
-+
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
-@@ -1229,9 +1265,7 @@ static int dax_iomap_direct_access(const
- 		goto out;
- 	if (pfn_t_to_pfn(*pfnp) & (PHYS_PFN(size)-1))
- 		goto out;
--	/* For larger pages we need devmap */
--	if (length > 1 && !pfn_t_devmap(*pfnp))
--		goto out;
-+
- 	rc = 0;
- 
- out_check_addr:
-@@ -1338,7 +1372,7 @@ static vm_fault_t dax_load_hole(struct x
- 
- 	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn, DAX_ZERO_PAGE);
- 
--	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
-+	ret = vmf_insert_page_mkwrite(vmf, pfn_t_to_page(pfn), false);
- 	trace_dax_load_hole(inode, vmf, ret);
- 	return ret;
- }
-@@ -1809,7 +1843,8 @@ static vm_fault_t dax_fault_iter(struct
- 	loff_t pos = (loff_t)xas->xa_index << PAGE_SHIFT;
- 	bool write = iter->flags & IOMAP_WRITE;
- 	unsigned long entry_flags = pmd ? DAX_PMD : 0;
--	int err = 0;
-+	struct folio *folio;
-+	int ret, err = 0;
- 	pfn_t pfn;
- 	void *kaddr;
- 
-@@ -1841,17 +1876,18 @@ static vm_fault_t dax_fault_iter(struct
- 			return dax_fault_return(err);
+--- a/drivers/dax/device.c~device-dax-properly-refcount-device-dax-pages-when-mapping
++++ a/drivers/dax/device.c
+@@ -126,11 +126,12 @@ static vm_fault_t __dev_dax_pte_fault(st
+ 		return VM_FAULT_SIGBUS;
  	}
  
-+	folio = dax_to_folio(*entry);
- 	if (dax_fault_is_synchronous(iter, vmf->vma))
- 		return dax_fault_synchronous_pfnp(pfnp, pfn);
+-	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
++	pfn = phys_to_pfn_t(phys, 0);
  
--	/* insert PMD pfn */
-+	folio_ref_inc(folio);
- 	if (pmd)
--		return vmf_insert_pfn_pmd(vmf, pfn, write);
-+		ret = vmf_insert_folio_pmd(vmf, pfn_folio(pfn_t_to_pfn(pfn)), write);
-+	else
-+		ret = vmf_insert_page_mkwrite(vmf, pfn_t_to_page(pfn), write);
-+	folio_put(folio);
+ 	dax_set_mapping(vmf, pfn, fault_size);
  
--	/* insert PTE pfn */
--	if (write)
--		return vmf_insert_mixed_mkwrite(vmf->vma, vmf->address, pfn);
 -	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
-+	return ret;
++	return vmf_insert_page_mkwrite(vmf, pfn_t_to_page(pfn),
++					vmf->flags & FAULT_FLAG_WRITE);
  }
  
- static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
-@@ -2090,6 +2126,7 @@ dax_insert_pfn_mkwrite(struct vm_fault *
- {
- 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
- 	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, order);
-+	struct folio *folio;
- 	void *entry;
- 	vm_fault_t ret;
- 
-@@ -2107,14 +2144,17 @@ dax_insert_pfn_mkwrite(struct vm_fault *
- 	xas_set_mark(&xas, PAGECACHE_TAG_DIRTY);
- 	dax_lock_entry(&xas, entry);
- 	xas_unlock_irq(&xas);
-+	folio = pfn_folio(pfn_t_to_pfn(pfn));
-+	folio_ref_inc(folio);
- 	if (order == 0)
--		ret = vmf_insert_mixed_mkwrite(vmf->vma, vmf->address, pfn);
-+		ret = vmf_insert_page_mkwrite(vmf, &folio->page, true);
- #ifdef CONFIG_FS_DAX_PMD
- 	else if (order == PMD_ORDER)
--		ret = vmf_insert_pfn_pmd(vmf, pfn, FAULT_FLAG_WRITE);
-+		ret = vmf_insert_folio_pmd(vmf, folio, FAULT_FLAG_WRITE);
- #endif
- 	else
- 		ret = VM_FAULT_FALLBACK;
-+	folio_put(folio);
- 	dax_unlock_entry(&xas, entry);
- 	trace_dax_insert_pfn_mkwrite(mapping->host, vmf, ret);
- 	return ret;
---- a/fs/fuse/virtio_fs.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/fs/fuse/virtio_fs.c
-@@ -1017,8 +1017,7 @@ static long virtio_fs_direct_access(stru
- 	if (kaddr)
- 		*kaddr = fs->window_kaddr + offset;
- 	if (pfn)
--		*pfn = phys_to_pfn_t(fs->window_phys_addr + offset,
--					PFN_DEV | PFN_MAP);
-+		*pfn = phys_to_pfn_t(fs->window_phys_addr + offset, 0);
- 	return nr_pages > max_nr_pages ? max_nr_pages : nr_pages;
- }
- 
---- a/include/linux/dax.h~fs-dax-properly-refcount-fs-dax-pages
-+++ a/include/linux/dax.h
-@@ -209,7 +209,7 @@ int dax_truncate_page(struct inode *inod
- 
- static inline bool dax_page_is_idle(struct page *page)
- {
--	return page && page_ref_count(page) == 1;
-+	return page && page_ref_count(page) == 0;
- }
- 
- #if IS_ENABLED(CONFIG_DAX)
---- a/include/linux/mm.h~fs-dax-properly-refcount-fs-dax-pages
-+++ a/include/linux/mm.h
-@@ -1098,6 +1098,8 @@ int vma_is_stack_for_current(struct vm_a
- struct mmu_gather;
- struct inode;
- 
-+extern void prep_compound_page(struct page *page, unsigned int order);
-+
- /*
-  * compound_order() can be called without holding a reference, which means
-  * that niceties like page_folio() don't work.  These callers should be
-@@ -1419,25 +1421,6 @@ vm_fault_t finish_fault(struct vm_fault
-  *   back into memory.
-  */
- 
--#if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
--DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
--
--bool __put_devmap_managed_folio_refs(struct folio *folio, int refs);
--static inline bool put_devmap_managed_folio_refs(struct folio *folio, int refs)
--{
--	if (!static_branch_unlikely(&devmap_managed_key))
--		return false;
--	if (!folio_is_zone_device(folio))
--		return false;
--	return __put_devmap_managed_folio_refs(folio, refs);
--}
--#else /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
--static inline bool put_devmap_managed_folio_refs(struct folio *folio, int refs)
--{
--	return false;
--}
--#endif /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
--
- /* 127: arbitrary random number, small enough to assemble well */
- #define folio_ref_zero_or_close_to_overflow(folio) \
- 	((unsigned int) folio_ref_count(folio) + 127u <= 127u)
-@@ -1552,12 +1535,6 @@ static inline void put_page(struct page
- {
- 	struct folio *folio = page_folio(page);
- 
--	/*
--	 * For some devmap managed pages we need to catch refcount transition
--	 * from 2 to 1:
--	 */
--	if (put_devmap_managed_folio_refs(folio, 1))
--		return;
- 	folio_put(folio);
- }
- 
---- a/include/linux/mm_types.h~fs-dax-properly-refcount-fs-dax-pages
-+++ a/include/linux/mm_types.h
-@@ -295,6 +295,8 @@ typedef struct {
-  *    anonymous memory.
-  * @index: Offset within the file, in units of pages.  For anonymous memory,
-  *    this is the index from the beginning of the mmap.
-+ * @share: number of DAX mappings that reference this folio. See
-+ *    dax_associate_entry.
-  * @private: Filesystem per-folio data (see folio_attach_private()).
-  * @swap: Used for swp_entry_t if folio_test_swapcache().
-  * @_mapcount: Do not access this member directly.  Use folio_mapcount() to
-@@ -344,7 +346,10 @@ struct folio {
- 				struct dev_pagemap *pgmap;
- 			};
- 			struct address_space *mapping;
--			pgoff_t index;
-+			union {
-+				pgoff_t index;
-+				unsigned long share;
-+			};
- 			union {
- 				void *private;
- 				swp_entry_t swap;
---- a/mm/gup.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/gup.c
-@@ -96,8 +96,7 @@ retry:
- 	 * belongs to this folio.
- 	 */
- 	if (unlikely(page_folio(page) != folio)) {
--		if (!put_devmap_managed_folio_refs(folio, refs))
--			folio_put_refs(folio, refs);
-+		folio_put_refs(folio, refs);
- 		goto retry;
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+@@ -169,11 +170,12 @@ static vm_fault_t __dev_dax_pmd_fault(st
+ 		return VM_FAULT_SIGBUS;
  	}
  
-@@ -116,8 +115,7 @@ static void gup_put_folio(struct folio *
- 			refs *= GUP_PIN_COUNTING_BIAS;
- 	}
+-	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
++	pfn = phys_to_pfn_t(phys, 0);
  
--	if (!put_devmap_managed_folio_refs(folio, refs))
--		folio_put_refs(folio, refs);
-+	folio_put_refs(folio, refs);
+ 	dax_set_mapping(vmf, pfn, fault_size);
+ 
+-	return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
++	return vmf_insert_folio_pmd(vmf, page_folio(pfn_t_to_page(pfn)),
++				vmf->flags & FAULT_FLAG_WRITE);
  }
  
- /**
-@@ -565,8 +563,7 @@ static struct folio *try_grab_folio_fast
- 	 */
- 	if (unlikely((flags & FOLL_LONGTERM) &&
- 		     !folio_is_longterm_pinnable(folio))) {
--		if (!put_devmap_managed_folio_refs(folio, refs))
--			folio_put_refs(folio, refs);
-+		folio_put_refs(folio, refs);
- 		return NULL;
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+@@ -214,11 +216,12 @@ static vm_fault_t __dev_dax_pud_fault(st
+ 		return VM_FAULT_SIGBUS;
  	}
  
---- a/mm/huge_memory.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/huge_memory.c
-@@ -2221,7 +2221,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 						tlb->fullmm);
- 	arch_check_zapped_pmd(vma, orig_pmd);
- 	tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
--	if (vma_is_special_huge(vma)) {
-+	if (!vma_is_dax(vma) && vma_is_special_huge(vma)) {
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
-@@ -2877,13 +2877,15 @@ static void __split_huge_pmd_locked(stru
- 		 */
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(mm, pmd);
--		if (vma_is_special_huge(vma))
-+		if (!vma_is_dax(vma) && vma_is_special_huge(vma))
- 			return;
- 		if (unlikely(is_pmd_migration_entry(old_pmd))) {
- 			swp_entry_t entry;
+-	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
++	pfn = phys_to_pfn_t(phys, 0);
  
- 			entry = pmd_to_swp_entry(old_pmd);
- 			folio = pfn_swap_entry_folio(entry);
-+		} else if (is_huge_zero_pmd(old_pmd)) {
-+			return;
- 		} else {
- 			page = pmd_page(old_pmd);
- 			folio = page_folio(page);
---- a/mm/internal.h~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/internal.h
-@@ -735,8 +735,6 @@ static inline void prep_compound_tail(st
- 	set_page_private(p, 0);
+ 	dax_set_mapping(vmf, pfn, fault_size);
+ 
+-	return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
++	return vmf_insert_folio_pud(vmf, page_folio(pfn_t_to_page(pfn)),
++				vmf->flags & FAULT_FLAG_WRITE);
  }
- 
--extern void prep_compound_page(struct page *page, unsigned int order);
--
- void post_alloc_hook(struct page *page, unsigned int order, gfp_t gfp_flags);
- extern bool free_pages_prepare(struct page *page, unsigned int order);
- 
---- a/mm/memory.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/memory.c
-@@ -3828,13 +3828,15 @@ static vm_fault_t do_wp_page(struct vm_f
- 	if (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
--		 * VM_PFNMAP VMA.
-+		 * VM_PFNMAP VMA. FS DAX also wants ops->pfn_mkwrite called.
- 		 *
- 		 * We should not cow pages in a shared writeable mapping.
- 		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
- 		 */
--		if (!vmf->page)
-+		if (!vmf->page || is_fsdax_page(vmf->page)) {
-+			vmf->page = NULL;
- 			return wp_pfn_shared(vmf);
-+		}
- 		return wp_page_shared(vmf, folio);
- 	}
- 
---- a/mm/memory-failure.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/memory-failure.c
-@@ -419,18 +419,18 @@ static unsigned long dev_pagemap_mapping
- 	pud = pud_offset(p4d, address);
- 	if (!pud_present(*pud))
- 		return 0;
--	if (pud_devmap(*pud))
-+	if (pud_trans_huge(*pud))
- 		return PUD_SHIFT;
- 	pmd = pmd_offset(pud, address);
- 	if (!pmd_present(*pmd))
- 		return 0;
--	if (pmd_devmap(*pmd))
-+	if (pmd_trans_huge(*pmd))
- 		return PMD_SHIFT;
- 	pte = pte_offset_map(pmd, address);
- 	if (!pte)
- 		return 0;
- 	ptent = ptep_get(pte);
--	if (pte_present(ptent) && pte_devmap(ptent))
-+	if (pte_present(ptent))
- 		ret = PAGE_SHIFT;
- 	pte_unmap(pte);
- 	return ret;
---- a/mm/memremap.c~fs-dax-properly-refcount-fs-dax-pages
+ #else
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+--- a/mm/memremap.c~device-dax-properly-refcount-device-dax-pages-when-mapping
 +++ a/mm/memremap.c
-@@ -458,8 +458,13 @@ EXPORT_SYMBOL_GPL(get_dev_pagemap);
- 
- void free_zone_device_folio(struct folio *folio)
+@@ -460,11 +460,10 @@ void free_zone_device_folio(struct folio
  {
--	if (WARN_ON_ONCE(!folio->pgmap->ops ||
--			!folio->pgmap->ops->page_free))
-+	struct dev_pagemap *pgmap = folio->pgmap;
-+
-+	if (WARN_ON_ONCE(!pgmap->ops))
-+		return;
-+
-+	if (WARN_ON_ONCE(pgmap->type != MEMORY_DEVICE_FS_DAX &&
-+			 !pgmap->ops->page_free))
+ 	struct dev_pagemap *pgmap = folio->pgmap;
+ 
+-	if (WARN_ON_ONCE(!pgmap->ops))
+-		return;
+-
+-	if (WARN_ON_ONCE(pgmap->type != MEMORY_DEVICE_FS_DAX &&
+-			 !pgmap->ops->page_free))
++	if (WARN_ON_ONCE((!pgmap->ops &&
++			  pgmap->type != MEMORY_DEVICE_GENERIC) ||
++			 (pgmap->ops && !pgmap->ops->page_free &&
++			  pgmap->type != MEMORY_DEVICE_FS_DAX)))
  		return;
  
  	mem_cgroup_uncharge(folio);
-@@ -484,26 +489,36 @@ void free_zone_device_folio(struct folio
- 	 * For other types of ZONE_DEVICE pages, migration is either
- 	 * handled differently or not done at all, so there is no need
- 	 * to clear folio->mapping.
-+	 *
-+	 * FS DAX pages clear the mapping when the folio->share count hits
-+	 * zero which indicating the page has been removed from the file
-+	 * system mapping.
+@@ -494,7 +493,8 @@ void free_zone_device_folio(struct folio
+ 	 * zero which indicating the page has been removed from the file
+ 	 * system mapping.
  	 */
--	folio->mapping = NULL;
--	folio->pgmap->ops->page_free(folio_page(folio, 0));
-+	if (pgmap->type != MEMORY_DEVICE_FS_DAX)
-+		folio->mapping = NULL;
+-	if (pgmap->type != MEMORY_DEVICE_FS_DAX)
++	if (pgmap->type != MEMORY_DEVICE_FS_DAX &&
++	    pgmap->type != MEMORY_DEVICE_GENERIC)
+ 		folio->mapping = NULL;
  
--	switch (folio->pgmap->type) {
-+	switch (pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
- 	case MEMORY_DEVICE_COHERENT:
--		put_dev_pagemap(folio->pgmap);
-+		pgmap->ops->page_free(folio_page(folio, 0));
-+		put_dev_pagemap(pgmap);
- 		break;
- 
--	case MEMORY_DEVICE_FS_DAX:
- 	case MEMORY_DEVICE_GENERIC:
- 		/*
+ 	switch (pgmap->type) {
+@@ -509,7 +509,6 @@ void free_zone_device_folio(struct folio
  		 * Reset the refcount to 1 to prepare for handing out the page
  		 * again.
  		 */
-+		pgmap->ops->page_free(folio_page(folio, 0));
+-		pgmap->ops->page_free(folio_page(folio, 0));
  		folio_set_count(folio, 1);
  		break;
  
-+	case MEMORY_DEVICE_FS_DAX:
-+		wake_up_var(&folio->page);
-+		break;
-+
- 	case MEMORY_DEVICE_PCI_P2PDMA:
-+		pgmap->ops->page_free(folio_page(folio, 0));
- 		break;
- 	}
- }
-@@ -519,21 +534,3 @@ void zone_device_page_init(struct page *
- 	lock_page(page);
- }
- EXPORT_SYMBOL_GPL(zone_device_page_init);
--
--#ifdef CONFIG_FS_DAX
--bool __put_devmap_managed_folio_refs(struct folio *folio, int refs)
--{
--	if (folio->pgmap->type != MEMORY_DEVICE_FS_DAX)
--		return false;
--
--	/*
--	 * fsdax page refcounts are 1-based, rather than 0-based: if
--	 * refcount is 1, then the page is free and the refcount is
--	 * stable because nobody holds a reference on the page.
--	 */
--	if (folio_ref_sub_return(folio, refs) == 1)
--		wake_up_var(&folio->_refcount);
--	return true;
--}
--EXPORT_SYMBOL(__put_devmap_managed_folio_refs);
--#endif /* CONFIG_FS_DAX */
---- a/mm/mm_init.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/mm_init.c
-@@ -1017,23 +1017,22 @@ static void __ref __init_zone_device_pag
- 	}
- 
- 	/*
--	 * ZONE_DEVICE pages other than MEMORY_TYPE_GENERIC and
--	 * MEMORY_TYPE_FS_DAX pages are released directly to the driver page
--	 * allocator which will set the page count to 1 when allocating the
--	 * page.
-+	 * ZONE_DEVICE pages other than MEMORY_TYPE_GENERIC are released
-+	 * directly to the driver page allocator which will set the page count
-+	 * to 1 when allocating the page.
- 	 *
- 	 * MEMORY_TYPE_GENERIC and MEMORY_TYPE_FS_DAX pages automatically have
- 	 * their refcount reset to one whenever they are freed (ie. after
- 	 * their refcount drops to 0).
- 	 */
- 	switch (pgmap->type) {
-+	case MEMORY_DEVICE_FS_DAX:
- 	case MEMORY_DEVICE_PRIVATE:
- 	case MEMORY_DEVICE_COHERENT:
- 	case MEMORY_DEVICE_PCI_P2PDMA:
- 		set_page_count(page, 0);
- 		break;
- 
--	case MEMORY_DEVICE_FS_DAX:
- 	case MEMORY_DEVICE_GENERIC:
- 		break;
- 	}
---- a/mm/swap.c~fs-dax-properly-refcount-fs-dax-pages
-+++ a/mm/swap.c
-@@ -956,8 +956,6 @@ void folios_put_refs(struct folio_batch
- 				unlock_page_lruvec_irqrestore(lruvec, flags);
- 				lruvec = NULL;
- 			}
--			if (put_devmap_managed_folio_refs(folio, nr_refs))
--				continue;
- 			if (folio_ref_sub_and_test(folio, nr_refs))
- 				free_zone_device_folio(folio);
- 			continue;
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
