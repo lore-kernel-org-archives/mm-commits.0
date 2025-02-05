@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3607E20E316
-	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 03:10:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B3D315198F
+	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 23:35:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738725029; cv=none; b=Uo6OQDXkjIsbSC2rKPyV9YnYSeKiLCAJQUMNxePJgYOR04r2KjEssdYX8zLJwoC4HgLofQyOyaFBtQKkpaFWVznfgIThFlTbpAmcKyXHTJnEuVw3TdztOUMvMOdSzOBRg7+MZRBliyBVG4OPKnhMkxuwDBLTRvUaNvS8sxFo+CA=
+	t=1738798524; cv=none; b=rQsWpY41j4TvwBurZvlUwwJeKYnBO5ZPupBAhNsq/5/PtuxXHh2HbBNmlcm1h1iExB6fF9Wq9GSPC/UYZUmbIiK891PpcwE1HvNqPMptQ0kHFNtitMQ7KWw/46OppLse0Rx44yUuySkbdk9OmPztVosZA8BJfpwmdcXh8HmMbno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738725029; c=relaxed/simple;
-	bh=prUb+JboBbFFwFxg7cAX4NhSUzLGyUfNNOSXUqZDoNs=;
-	h=Date:To:From:Subject:Message-Id; b=aZfRqBroyUsL8yHL001m05BAdYACuDR5JuM4w4Ti6AMdWy8fdRgSpxbp//YRWJq/WX3D6UdP/tTOGceRkYWie0HJhuL09KI5IuPkx6faPdhdiAN2Nculxi8Z35nUYePHoz+Y+3ldygyzRiamo/jm9PXvwjSkKmpBugSHInnLmUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K2e2aK+S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738798524; c=relaxed/simple;
+	bh=rTlqZ6FBfMsdbz2RCS43ZYK0QCmEgpVVGTp/WPmMSuY=;
+	h=Date:To:From:Subject:Message-Id; b=ci4aooxd3pt40Qs2h75+Q4WBgo+nbnJb7ei/CMnrV8KIdPQ1i+IS6AFDW5YV4XG+ZhTMqhKHlmK//GYai2Ekq4XM9l51ocMdx0clD18vIhE8Cg6pEcvKL4/E98Qwhu6PemgIrOL8e2u3DctZMktVGq+k3uS5M2ANoimuKby1aXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pYkh2lZ5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K2e2aK+S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86569C4CEDF;
-	Wed,  5 Feb 2025 03:10:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pYkh2lZ5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD919C4CED1;
+	Wed,  5 Feb 2025 23:35:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738725028;
-	bh=prUb+JboBbFFwFxg7cAX4NhSUzLGyUfNNOSXUqZDoNs=;
+	s=korg; t=1738798523;
+	bh=rTlqZ6FBfMsdbz2RCS43ZYK0QCmEgpVVGTp/WPmMSuY=;
 	h=Date:To:From:Subject:From;
-	b=K2e2aK+SYJwxvs6I6RwvId4eZk6RVHqBazoyVtZzc8iCUn+8gG8G+J9MJRRkc5efw
-	 NBNK14s5Abbow9jLEH6QG7LhWbvVea3+FxW8ZMbdAztPVsV3uLezNCg9ovVZXBFnZ/
-	 uiT8gKRF5yiLyFL88J/ox62ETvWQUpGaHJ3EafZ0=
-Date: Tue, 04 Feb 2025 19:10:27 -0800
-To: mm-commits@vger.kernel.org,tytso@mit.edu,lorenzo.stoakes@oracle.com,linux@leemhuis.info,kees@kernel.org,joe@perches.com,bryan.odonoghue@linaro.org,vbabka@suse.cz,akpm@linux-foundation.org
+	b=pYkh2lZ5or8uaV/Op1NaugNgpNEC1U8whLOL6IZeUJ1Xj+2jLnNQBcij7v67eF1Uq
+	 7jf/12YirC6f18lwhYOarRcUV11AXOZeZiPejEMVpCdijPwjDfUtvIx7F+hruzb0BM
+	 ZSDHugMs7uoyBRaT9tUHBxcHVw9alfIsjiZ7wth0=
+Date: Wed, 05 Feb 2025 15:35:23 -0800
+To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,masahiroy@kernel.org,lkp@intel.com,arnd@arndb.de,andy.shevchenko@gmail.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + get_maintainer-stop-reporting-subsystem-status-as-maintainer-role.patch added to mm-nonmm-unstable branch
-Message-Id: <20250205031028.86569C4CEDF@smtp.kernel.org>
+Subject: [merged] scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1.patch removed from -mm tree
+Message-Id: <20250205233523.AD919C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,108 +34,72 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: get_maintainer: stop reporting subsystem status as maintainer role
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     get_maintainer-stop-reporting-subsystem-status-as-maintainer-role.patch
+The quilt patch titled
+     Subject: scripts/Makefile.extrawarn: do not show clang's non-kprintf warnings at W=1
+has been removed from the -mm tree.  Its filename was
+     scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-stop-reporting-subsystem-status-as-maintainer-role.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: get_maintainer: stop reporting subsystem status as maintainer role
-Date: Mon, 03 Feb 2025 12:13:17 +0100
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: scripts/Makefile.extrawarn: do not show clang's non-kprintf warnings at W=1
+Date: Fri, 31 Jan 2025 15:55:28 -0700
 
-After introducing the --substatus option, we can stop adjusting the
-reported maintainer role by the subsystem's status.
+Clang's -Wformat-overflow and -Wformat-truncation have chosen to check
+'%p' unlike GCC but it does not know about the kernel's pointer extensions
+in lib/vsprintf.c, so the developers split that part of the warning out
+for the kernel to disable because there will always be false positives.
 
-For compatibility with the --git-chief-penguins option, keep the "chief
-penguin" role.
+Commit 908dd508276d ("kbuild: enable -Wformat-truncation on clang") did
+disabled these warnings but only in a block that would be called when W=1
+was not passed, so they would appear with W=1.  Move the disabling of the
+non-kprintf warnings to a block that always runs so that they are never
+seen, regardless of warning level.
 
-Link: https://lkml.kernel.org/r/20250203-b4-get_maintainer-v2-2-83ba008b491f@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Bryan O'Donoghue <bryan.odonoghue@linaro.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Thorsten Leemhuis <linux@leemhuis.info>
+Link: https://lkml.kernel.org/r/20250131-makefile-extrawarn-fix-clang-format-non-kprintf-v1-1-6c6747ada0d4@kernel.org
+Fixes: 908dd508276d ("kbuild: enable -Wformat-truncation on clang")
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202501291646.VtwF98qd-lkp@intel.com/
+Cc: Andriy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ scripts/Makefile.extrawarn |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-stop-reporting-subsystem-status-as-maintainer-role
-+++ a/scripts/get_maintainer.pl
-@@ -1084,7 +1084,7 @@ MAINTAINER field selection options:
-     --moderated => include moderated lists(s) if any (default: true)
-     --s => include subscriber only list(s) if any (default: false)
-     --remove-duplicates => minimize duplicate email names/addresses
--    --roles => show roles (status:subsystem, git-signer, list, etc...)
-+    --roles => show roles (role:subsystem, git-signer, list, etc...)
-     --rolestats => show roles and statistics (commits/total_commits, %)
-     --substatus => show subsystem status if not Maintained (default: match --roles)"
-     --file-emails => add email addresses found in -f file (default: 0 (off))
-@@ -1298,8 +1298,9 @@ sub get_maintainer_role {
-     my $start = find_starting_index($index);
-     my $end = find_ending_index($index);
+--- a/scripts/Makefile.extrawarn~scripts-makefileextrawarn-do-not-show-clangs-non-kprintf-warnings-at-w=1
++++ a/scripts/Makefile.extrawarn
+@@ -31,6 +31,11 @@ KBUILD_CFLAGS-$(CONFIG_CC_NO_ARRAY_BOUND
+ ifdef CONFIG_CC_IS_CLANG
+ # The kernel builds with '-std=gnu11' so use of GNU extensions is acceptable.
+ KBUILD_CFLAGS += -Wno-gnu
++
++# Clang checks for overflow/truncation with '%p', while GCC does not:
++# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111219
++KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow-non-kprintf)
++KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation-non-kprintf)
+ else
  
--    my $role = "unknown";
-+    my $role = "maintainer";
-     my $subsystem = get_subsystem_name($index);
-+    my $status = "unknown";
- 
-     for ($i = $start + 1; $i < $end; $i++) {
- 	my $tv = $typevalue[$i];
-@@ -1307,23 +1308,13 @@ sub get_maintainer_role {
- 	    my $ptype = $1;
- 	    my $pvalue = $2;
- 	    if ($ptype eq "S") {
--		$role = $pvalue;
-+		$status = $pvalue;
- 	    }
- 	}
-     }
- 
--    $role = lc($role);
--    if      ($role eq "supported") {
--	$role = "supporter";
--    } elsif ($role eq "maintained") {
--	$role = "maintainer";
--    } elsif ($role eq "odd fixes") {
--	$role = "odd fixer";
--    } elsif ($role eq "orphan") {
--	$role = "orphan minder";
--    } elsif ($role eq "obsolete") {
--	$role = "obsolete minder";
--    } elsif ($role eq "buried alive in reporters") {
-+    $status = lc($status);
-+    if ($status eq "buried alive in reporters") {
- 	$role = "chief penguin";
-     }
+ # gcc inanely warns about local variables called 'main'
+@@ -102,11 +107,6 @@ KBUILD_CFLAGS += $(call cc-disable-warni
+ KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow)
+ ifdef CONFIG_CC_IS_GCC
+ KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation)
+-else
+-# Clang checks for overflow/truncation with '%p', while GCC does not:
+-# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111219
+-KBUILD_CFLAGS += $(call cc-disable-warning, format-overflow-non-kprintf)
+-KBUILD_CFLAGS += $(call cc-disable-warning, format-truncation-non-kprintf)
+ endif
+ KBUILD_CFLAGS += $(call cc-disable-warning, stringop-truncation)
  
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-get_maintainer-add-substatus-for-reporting-subsystem-status.patch
-get_maintainer-stop-reporting-subsystem-status-as-maintainer-role.patch
 
