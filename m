@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FF16153836
-	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8690225A65D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738721771; cv=none; b=DuDd2iUaQo5xxuNCa/YqdhS/njve0Ixm42CQQrZ1JaS6PKyHi4hokbMKt7o0JAcvR5DJU81ZLt2kBobF+tcDRnN4jf4pdOx5JKyyGz3WZbX3Z+jGP6ivl61xhs8kYfBgP9bDC1nsYvSN9Ayzu0GRIuKovhUnrcEDlofViukd/eU=
+	t=1738721774; cv=none; b=sire33auFXkdK5KciAI1wQtJQb5HBHRowDHCNYjSlGJe+MSkiJ2SRmFXA2hbzAf3tBI7gv6NajazqVf7HWCQdNpY8ELbWIsP5istNC4uvSQPQly3FEMSlYeA/AVCbTM1lvgImZvXdadBQ+Li9UhXWeVDoN6X3PTjeNAwayYkXDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738721771; c=relaxed/simple;
-	bh=9VM5mN02zBdOwa1dCS+RqdoFVqn3k6Y9KvTucX8DHoM=;
-	h=Date:To:From:Subject:Message-Id; b=iBEwahzFwCNEfMax23x9qHigBbxySNSPGH//Ec6kh0IQjQ6krPcOxq+ElM3aG/KiYG0LyK0ermtt8PFJr+nmCO3bDqFF7OAGBeq3J9fi6A/As7tZNkGqheyeV7oZh8HNcGsTdJEZ5zc/uWa7+vqSKtKsRXDWsimMqh9eDyNSraQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UCEXO6I1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738721774; c=relaxed/simple;
+	bh=xteX4jDZKWY5vHOMCLARvNWdqeaKyxn05Yo3FN8BbBI=;
+	h=Date:To:From:Subject:Message-Id; b=Wsj8WrblvPfYnnaCmrcgrihOk/bUn3NBKfnQDXmaD9iZeMQwa/SOBqCTWf2nEaLZqmLquJ5Kubnt98JIuCX6kIhSHgtgCs1jlNSbZ9F/KxkK4T6UTLwD6v4OGcnngGsfcOQsjDMzWVNEPIIpm3lIoGu0uIkv7YOmGYNZ4zSojqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NmNouUyX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UCEXO6I1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C67CC4CEDF;
-	Wed,  5 Feb 2025 02:16:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NmNouUyX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CC24C4CEDF;
+	Wed,  5 Feb 2025 02:16:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738721770;
-	bh=9VM5mN02zBdOwa1dCS+RqdoFVqn3k6Y9KvTucX8DHoM=;
+	s=korg; t=1738721774;
+	bh=xteX4jDZKWY5vHOMCLARvNWdqeaKyxn05Yo3FN8BbBI=;
 	h=Date:To:From:Subject:From;
-	b=UCEXO6I1NVOiBroK8F11kKIKP0fLu4Tei8xoavRf3B2FfjVy6GfXnl/swaItt57dP
-	 hCCfC0fYPX5Pn1J+8jyZJbXFYrESomJUsoqfTjg0km0McfqMawsstwNWNYbv4+6b1e
-	 zJGIR/c4uDoNcFYAd12nPsm2uhYKBaw28u8oh/FI=
-Date: Tue, 04 Feb 2025 18:16:10 -0800
+	b=NmNouUyXZNQncROA8yL3s5uXizW6itoyihFKeq0aUdna9roqWCOo3OlkD8N4dqZ6j
+	 H9P/0a52tRI0xZuk7CKOikZyDYnpoqORM+XMr1Ht98vWQwK6+bPVRrBwojWXllAOOb
+	 uZZPHDgQofXVHrBbtKftdFbl9d4xxUlcDM4yXNf0=
+Date: Tue, 04 Feb 2025 18:16:13 -0800
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch added to mm-unstable branch
-Message-Id: <20250205021610.9C67CC4CEDF@smtp.kernel.org>
+Subject: + fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch added to mm-unstable branch
+Message-Id: <20250205021614.4CC24C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/dax: ensure all pages are idle prior to filesystem unmount
+     Subject: fs/dax: remove PAGE_MAPPING_DAX_SHARED mapping flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
+     fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: fs/dax: ensure all pages are idle prior to filesystem unmount
-Date: Wed, 5 Feb 2025 09:48:04 +1100
+Subject: fs/dax: remove PAGE_MAPPING_DAX_SHARED mapping flag
+Date: Wed, 5 Feb 2025 09:48:05 +1100
 
-File systems call dax_break_mapping() prior to reallocating file system
-blocks to ensure the page is not undergoing any DMA or other accesses. 
-Generally this is needed when a file is truncated to ensure that if a
-block is reallocated nothing is writing to it.  However filesystems
-currently don't call this when an FS DAX inode is evicted.
+The page ->mapping pointer can have magic values like
+PAGE_MAPPING_DAX_SHARED and PAGE_MAPPING_ANON for page owner specific
+usage.  Currently PAGE_MAPPING_DAX_SHARED and PAGE_MAPPING_ANON alias to
+the same value.  This isn't a problem because FS DAX pages are never seen
+by the anonymous mapping code and vice versa.
 
-This can cause problems when the file system is unmounted as a page can
-continue to be under going DMA or other remote access after unmount.  This
-means if the file system is remounted any truncate or other operation
-which requires the underlying file system block to be freed will not wait
-for the remote access to complete.  Therefore a busy block may be
-reallocated to a new file leading to corruption.
+However a future change will make FS DAX pages more like normal pages, so
+folio_test_anon() must not return true for a FS DAX page.
 
-Link: https://lkml.kernel.org/r/6f23832debd919787c57fc5ef19561a45c034bce.1738709036.git-series.apopple@nvidia.com
+We could explicitly test for a FS DAX page in folio_test_anon(), etc. 
+however the PAGE_MAPPING_DAX_SHARED flag isn't actually needed.  Instead
+we can use the page->mapping field to implicitly track the first mapping
+of a page.  If page->mapping is non-NULL it implies the page is associated
+with a single mapping at page->index.  If the page is associated with a
+second mapping clear page->mapping and set page->share to 1.
+
+This is possible because a shared mapping implies the file-system
+implements dax_holder_operations which makes the ->mapping and ->index,
+which is a union with ->share, unused.
+
+The page is considered shared when page->mapping == NULL and page->share >
+0 or page->mapping != NULL, implying it is present in at least one address
+space.  This also makes it easier for a future change to detect when a
+page is first mapped into an address space which requires special
+handling.
+
+Link: https://lkml.kernel.org/r/43ec2089396e367fda2835c27717604b9bafe880.1738709036.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Asahi Lina <lina@asahilina.net>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Dan Wiliams <dan.j.williams@intel.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: linmiaohe <linmiaohe@huawei.com>
@@ -100,130 +118,120 @@ Cc: Mattew Wilcox <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Dan Wiliams <dan.j.williams@intel.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   27 +++++++++++++++++++++++++++
- fs/ext4/inode.c     |    2 ++
- fs/xfs/xfs_super.c  |   12 ++++++++++++
- include/linux/dax.h |    5 +++++
- 4 files changed, 46 insertions(+)
+ fs/dax.c                   |   55 +++++++++++++++++++++--------------
+ include/linux/page-flags.h |    6 ---
+ 2 files changed, 34 insertions(+), 27 deletions(-)
 
---- a/fs/dax.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
+--- a/fs/dax.c~fs-dax-remove-page_mapping_dax_shared-mapping-flag
 +++ a/fs/dax.c
-@@ -883,6 +883,13 @@ static int wait_page_idle(struct page *p
- 				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
+@@ -351,39 +351,48 @@ static unsigned long dax_end_pfn(void *e
+ 	for (pfn = dax_to_pfn(entry); \
+ 			pfn < dax_end_pfn(entry); pfn++)
+ 
++/*
++ * A DAX page is considered shared if it has no mapping set and ->share (which
++ * shares the ->index field) is non-zero. Note this may return false even if the
++ * page is shared between multiple files but has not yet actually been mapped
++ * into multiple address spaces.
++ */
+ static inline bool dax_page_is_shared(struct page *page)
+ {
+-	return page->mapping == PAGE_MAPPING_DAX_SHARED;
++	return !page->mapping && page->share;
  }
  
-+static void wait_page_idle_uninterruptible(struct page *page,
-+					struct inode *inode)
-+{
-+	___wait_var_event(page, dax_page_is_idle(page),
-+			TASK_UNINTERRUPTIBLE, 0, 0, schedule());
-+}
-+
  /*
-  * Unmaps the inode and waits for any DMA to complete prior to deleting the
-  * DAX mapping entries for the range.
-@@ -918,6 +925,26 @@ int dax_break_layout(struct inode *inode
- }
- EXPORT_SYMBOL_GPL(dax_break_layout);
- 
-+void dax_break_layout_final(struct inode *inode)
-+{
-+	struct page *page;
-+
-+	if (!dax_mapping(inode->i_mapping))
-+		return;
-+
-+	do {
-+		page = dax_layout_busy_page_range(inode->i_mapping, 0,
-+						LLONG_MAX);
-+		if (!page)
-+			break;
-+
-+		wait_page_idle_uninterruptible(page, inode);
-+	} while (true);
-+
-+	dax_delete_mapping_range(inode->i_mapping, 0, LLONG_MAX);
-+}
-+EXPORT_SYMBOL_GPL(dax_break_layout_final);
-+
- /*
-  * Invalidate DAX entry if it is clean.
+- * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
+- * refcount.
++ * When it is called by dax_insert_entry(), the shared flag will indicate
++ * whether this entry is shared by multiple files. If the page has not
++ * previously been associated with any mappings the ->mapping and ->index
++ * fields will be set. If it has already been associated with a mapping
++ * the mapping will be cleared and the share count set. It's then up to
++ * reverse map users like memory_failure() to call back into the filesystem to
++ * recover ->mapping and ->index information. For example by implementing
++ * dax_holder_operations.
   */
---- a/fs/ext4/inode.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
-+++ a/fs/ext4/inode.c
-@@ -181,6 +181,8 @@ void ext4_evict_inode(struct inode *inod
- 
- 	trace_ext4_evict_inode(inode);
- 
-+	dax_break_layout_final(inode);
-+
- 	if (EXT4_I(inode)->i_flags & EXT4_EA_INODE_FL)
- 		ext4_evict_ea_inode(inode);
- 	if (inode->i_nlink) {
---- a/fs/xfs/xfs_super.c~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
-+++ a/fs/xfs/xfs_super.c
-@@ -751,6 +751,17 @@ xfs_fs_drop_inode(
- 	return generic_drop_inode(inode);
- }
- 
-+STATIC void
-+xfs_fs_evict_inode(
-+	struct inode		*inode)
-+{
-+	if (IS_DAX(inode))
-+		dax_break_layout_final(inode);
-+
-+	truncate_inode_pages_final(&inode->i_data);
-+	clear_inode(inode);
-+}
-+
- static void
- xfs_mount_free(
- 	struct xfs_mount	*mp)
-@@ -1215,6 +1226,7 @@ static const struct super_operations xfs
- 	.destroy_inode		= xfs_fs_destroy_inode,
- 	.dirty_inode		= xfs_fs_dirty_inode,
- 	.drop_inode		= xfs_fs_drop_inode,
-+	.evict_inode		= xfs_fs_evict_inode,
- 	.put_super		= xfs_fs_put_super,
- 	.sync_fs		= xfs_fs_sync_fs,
- 	.freeze_fs		= xfs_fs_freeze,
---- a/include/linux/dax.h~fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount
-+++ a/include/linux/dax.h
-@@ -232,6 +232,10 @@ static inline int __must_check dax_break
+-static inline void dax_page_share_get(struct page *page)
++static void dax_page_make_shared(struct page *page)
  {
- 	return 0;
- }
+-	if (page->mapping != PAGE_MAPPING_DAX_SHARED) {
+-		/*
+-		 * Reset the index if the page was already mapped
+-		 * regularly before.
+-		 */
+-		if (page->mapping)
+-			page->share = 1;
+-		page->mapping = PAGE_MAPPING_DAX_SHARED;
+-	}
+-	page->share++;
++	/*
++	 * page is not currently shared so mark it as shared by clearing
++	 * page->mapping.
++	 */
++	page->mapping = NULL;
 +
-+static inline void dax_break_layout_final(struct inode *inode)
-+{
-+}
- #endif
- 
- bool dax_alive(struct dax_device *dax_dev);
-@@ -266,6 +270,7 @@ static inline int __must_check dax_break
- {
- 	return dax_break_layout(inode, 0, LLONG_MAX, cb);
++	/*
++	 * page has previously been mapped into one address space so set the
++	 * share count.
++	 */
++	page->share = 1;
  }
-+void dax_break_layout_final(struct inode *inode);
- int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- 				  struct inode *dest, loff_t destoff,
- 				  loff_t len, bool *is_same,
+ 
+ static inline unsigned long dax_page_share_put(struct page *page)
+ {
++	WARN_ON_ONCE(!page->share);
+ 	return --page->share;
+ }
+ 
+-/*
+- * When it is called in dax_insert_entry(), the shared flag will indicate that
+- * whether this entry is shared by multiple files.  If so, set the page->mapping
+- * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
+- */
+ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ 		struct vm_area_struct *vma, unsigned long address, bool shared)
+ {
+@@ -397,8 +406,12 @@ static void dax_associate_entry(void *en
+ 	for_each_mapped_pfn(entry, pfn) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+-		if (shared) {
+-			dax_page_share_get(page);
++		if (shared && (page->mapping || page->share)) {
++			if (page->mapping)
++				dax_page_make_shared(page);
++
++			WARN_ON_ONCE(!page->share);
++			page->share++;
+ 		} else {
+ 			WARN_ON_ONCE(page->mapping);
+ 			page->mapping = mapping;
+--- a/include/linux/page-flags.h~fs-dax-remove-page_mapping_dax_shared-mapping-flag
++++ a/include/linux/page-flags.h
+@@ -710,12 +710,6 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemma
+ #define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
+ #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
+ 
+-/*
+- * Different with flags above, this flag is used only for fsdax mode.  It
+- * indicates that this page->mapping is now under reflink case.
+- */
+-#define PAGE_MAPPING_DAX_SHARED	((void *)0x1)
+-
+ static __always_inline bool folio_mapping_flags(const struct folio *folio)
+ {
+ 	return ((unsigned long)folio->mapping & PAGE_MAPPING_FLAGS) != 0;
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
