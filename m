@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B36625A65D
-	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 02:16:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49DEC20E316
+	for <mm-commits@vger.kernel.org>; Wed,  5 Feb 2025 03:10:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738721818; cv=none; b=ZCghwobBA2hgxEsTYapHBL6g1bCxDIhQcGsb4S4H5dG182nsrN+PVVE2xTSo70RnKjnwZwsP82KVwcsO8tNbvLP96r+8Jie6fqWNojH4ZROFzDWClZ6KNA3D1Xvi9LgPrGVrN/O35XdAA/ItEbl2I69QwBFRNvs7Dn22SYrQ2tk=
+	t=1738725027; cv=none; b=ppugpJhw80yifSvoXDPoCqDgzvlzTH5gNBRzMjLZEMmNUyOqQMPPbslbDBYHt1yzmWWnwvWCKKZe28/lZAaoIpqWFRNS+eD5kTz0lmT0FxuIkzKvbj4olnCgaP5yV61BgptKEmmQpgcRcf+mB7VWRHYZUnMyoC0uT+SjfXQ987Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738721818; c=relaxed/simple;
-	bh=8Qy2Rvl5I2nuSYcjc6bkHiyX3J6txKMNPOKUB+yeZYQ=;
-	h=Date:To:From:Subject:Message-Id; b=dKuVfNf0onqM9xDsXktNdraWmxV12n2E/UsmPDmtaCY3yhVyJ2QxO7MUpdg7wKuA0TrEI3HTMWfYqMMgjNBXDb3mO5kxVROw4/nX4Qtg+EDToV3eqmSfLC/lhR02kuaIPcfv8n7OZrMjE6xfloRCVrA3UkzQ3k3Eq0r/q45xcfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HHjf35HW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738725027; c=relaxed/simple;
+	bh=d4/vuDgVjph2yPefbVIZDBcjte/8bnVH6ustZR2tRdY=;
+	h=Date:To:From:Subject:Message-Id; b=MDINAEoJE/7G5peJxWxn+0MccTwdVK+ybL8DgiDhH6htdsg/WOxSD2csxJzP5NueX3MnX9doIrKPGYUGFO7vZnW1K+a7seWYWojg0syWYfQccu9OCppXTMCYRGqkkhuwnDdRiHM1z/Mm+QvBr33krcpjpnElNK3CKuKNAEi5iTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2DxJ6cta; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HHjf35HW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1CDAC4CEDF;
-	Wed,  5 Feb 2025 02:16:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2DxJ6cta"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AFC4C4CEDF;
+	Wed,  5 Feb 2025 03:10:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738721818;
-	bh=8Qy2Rvl5I2nuSYcjc6bkHiyX3J6txKMNPOKUB+yeZYQ=;
+	s=korg; t=1738725026;
+	bh=d4/vuDgVjph2yPefbVIZDBcjte/8bnVH6ustZR2tRdY=;
 	h=Date:To:From:Subject:From;
-	b=HHjf35HW4GkKUIbX7KIuL13yY/ozEqEEq4JKmUsbZ7UBJ/iSbgVmeLDwyhq3Ep7i3
-	 9ELNEyJEZ7TGBm32TbkylWdDgDdTpbUQdkCuFrC5Wv02RUZnui1CpeiSF3DOXW926U
-	 SnEaUKuxvEMd+F1T8Br59/KcTXV7iAqYznvFX7SQ=
-Date: Tue, 04 Feb 2025 18:16:57 -0800
-To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=2DxJ6ctaK69AMwhf0o2nliR1axNZ96l3VRFbMKYrYKgFscMPNcZ6AnllEOLUIlp7A
+	 tEAl2VvVSQBWRbiZ09olQxxq3BExbIcgMTKZWzW9sWPBoP25PaY3I/b+cilm0cGl6k
+	 ggstjLsyPdIGCM2hAO59wLLlNyOcEWUM9bNfvL1s=
+Date: Tue, 04 Feb 2025 19:10:25 -0800
+To: mm-commits@vger.kernel.org,tytso@mit.edu,lorenzo.stoakes@oracle.com,linux@leemhuis.info,kees@kernel.org,joe@perches.com,bryan.odonoghue@linaro.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + device-dax-properly-refcount-device-dax-pages-when-mapping.patch added to mm-unstable branch
-Message-Id: <20250205021657.F1CDAC4CEDF@smtp.kernel.org>
+Subject: + get_maintainer-add-substatus-for-reporting-subsystem-status.patch added to mm-nonmm-unstable branch
+Message-Id: <20250205031026.8AFC4C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: device/dax: properly refcount device dax pages when mapping
-has been added to the -mm mm-unstable branch.  Its filename is
-     device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+     Subject: get_maintainer: add --substatus for reporting subsystem status
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     get_maintainer-add-substatus-for-reporting-subsystem-status.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-add-substatus-for-reporting-subsystem-status.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,170 +58,217 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: device/dax: properly refcount device dax pages when mapping
-Date: Wed, 5 Feb 2025 09:48:17 +1100
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: get_maintainer: add --substatus for reporting subsystem status
+Date: Mon, 03 Feb 2025 12:13:16 +0100
 
-Device DAX pages are currently not reference counted when mapped, instead
-relying on the devmap PTE bit to ensure mapping code will not get/put
-references.  This requires special handling in various page table walkers,
-particularly GUP, to manage references on the underlying pgmap to ensure
-the pages remain valid.
+Patch series "get_maintainer: report subsystem status separately", v2.
 
-However there is no reason these pages can't be refcounted properly at map
-time.  Doning so eliminates the need for the devmap PTE bit, freeing up a
-precious PTE bit.  It also simplifies GUP as it no longer needs to manage
-the special pgmap references and can instead just treat the pages normally
-as defined by vm_normal_page().
+The subsystem status (S: field) can inform a patch submitter if the
+subsystem is well maintained or e.g.  maintainers are missing.  In
+get_maintainer, it is currently reported with --role(stats) by adjusting
+the maintainer role for any status different from Maintained.  This has
+two downsides:
 
-Link: https://lkml.kernel.org/r/7d65e855fcdc5cee12b4500a557b2ad961bdc8f2.1738709036.git-series.apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Tested-by: Alison Schofield <alison.schofield@intel.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Asahi Lina <lina@asahilina.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Chunyan Zhang <zhang.lyra@gmail.com>
-Cc: Dan Wiliams <dan.j.williams@intel.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: linmiaohe <linmiaohe@huawei.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Mattew Wilcox <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
+- if a subsystem has only reviewers or mailing lists and no maintainers,
+  the status is not reported. For example Orphan subsystems typically
+  have no maintainers so there's nobody to report as orphan minder.
+
+- the Supported status means that someone is paid for maintaining, but
+  it is reported as "supporter" for all the maintainers, which can be
+  incorrect (only some of them may be paid). People (including myself)
+  have been also confused about what "supporter" means.
+
+The second point has been brought up in 2022 and the discussion in the end
+resulted in adjusting documentation only [1].  I however agree with Ted's
+points that it's misleading to take the subsystem status and apply it to
+all maintainers [2].
+
+The attempt to modify get_maintainer output was retracted after Joe
+objected that the status becomes not reported at all [3].  This series
+addresses that concern by reporting the status (unless it's the most
+common Maintained one) on separate lines that follow the reported emails,
+using a new --substatus parameter.  Care is taken to reduce the noise to
+minimum by not reporting the most common Maintained status, by detault
+require no opt-in that would need the users to discover the new parameter,
+and at the same time not to break existing git --cc-cmd usage.
+
+[1] https://lore.kernel.org/all/20221006162413.858527-1-bryan.odonoghue@linaro.org/
+[2] https://lore.kernel.org/all/Yzen4X1Na0MKXHs9@mit.edu/
+[3] https://lore.kernel.org/all/30776fe75061951777da8fa6618ae89bea7a8ce4.camel@perches.com/
+
+
+This patch (of 2):
+
+The subsystem status is currently reported with --role(stats) by adjusting
+the maintainer role for any status different from Maintained.  This has
+two downsides:
+
+- if a subsystem has only reviewers or mailing lists and no maintainers,
+  the status is not reported (i.e. typically, Orphan subsystems have no
+  maintainers)
+
+- the Supported status means that someone is paid for maintaining, but
+  it is reported as "supporter" for all the maintainers, which can be
+  incorrect. People have been also confused about what "supporter"
+  means.
+
+This patch introduces a new --substatus option and functionality aimed to
+report the subsystem status separately, without adjusting the reported
+maintainer role.  After the e-mails are output, the status of subsystems
+will follow, for example:
+
+...
+linux-kernel@vger.kernel.org (open list:LIBRARY CODE)
+LIBRARY CODE status: Supported
+
+In order to allow replacing the role rewriting seamlessly, the new
+option works as follows:
+
+- it is automatically enabled when --email and --role are enabled
+  (the defaults include --email and --rolestats which implies --role)
+
+- usages with --norolestats e.g. for git's --cc-cmd will thus need no
+  adjustments
+
+- the most common Maintained status is not reported at all, to reduce
+  unnecessary noise
+
+- THE REST catch-all section (contains lkml) status is not reported
+
+- the existing --subsystem and --status options are unaffected so their
+  users will need no adjustments
+
+Link: https://lkml.kernel.org/r/20250203-b4-get_maintainer-v2-0-83ba008b491f@suse.cz
+Link: https://lkml.kernel.org/r/20250203-b4-get_maintainer-v2-1-83ba008b491f@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Bryan O'Donoghue <bryan.odonoghue@linaro.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <kees@kernel.org>
 Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
+Cc: Thorsten Leemhuis <linux@leemhuis.info>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   15 +++++++++------
- mm/memremap.c        |   13 ++++++-------
- 2 files changed, 15 insertions(+), 13 deletions(-)
+ scripts/get_maintainer.pl |   28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
 
---- a/drivers/dax/device.c~device-dax-properly-refcount-device-dax-pages-when-mapping
-+++ a/drivers/dax/device.c
-@@ -126,11 +126,12 @@ static vm_fault_t __dev_dax_pte_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
+--- a/scripts/get_maintainer.pl~get_maintainer-add-substatus-for-reporting-subsystem-status
++++ a/scripts/get_maintainer.pl
+@@ -50,6 +50,7 @@ my $output_multiline = 1;
+ my $output_separator = ", ";
+ my $output_roles = 0;
+ my $output_rolestats = 1;
++my $output_substatus = undef;
+ my $output_section_maxlen = 50;
+ my $scm = 0;
+ my $tree = 1;
+@@ -269,6 +270,7 @@ if (!GetOptions(
+ 		'separator=s' => \$output_separator,
+ 		'subsystem!' => \$subsystem,
+ 		'status!' => \$status,
++		'substatus!' => \$output_substatus,
+ 		'scm!' => \$scm,
+ 		'tree!' => \$tree,
+ 		'web!' => \$web,
+@@ -314,6 +316,10 @@ $output_multiline = 0 if ($output_separa
+ $output_rolestats = 1 if ($interactive);
+ $output_roles = 1 if ($output_rolestats);
  
--	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, 0);
++if (!defined $output_substatus) {
++    $output_substatus = $email && $output_roles;
++}
++
+ if ($sections || $letters ne "") {
+     $sections = 1;
+     $email = 0;
+@@ -637,6 +643,7 @@ my @web = ();
+ my @bug = ();
+ my @subsystem = ();
+ my @status = ();
++my @substatus = ();
+ my %deduplicate_name_hash = ();
+ my %deduplicate_address_hash = ();
  
- 	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
-+	return vmf_insert_page_mkwrite(vmf, pfn_t_to_page(pfn),
-+					vmf->flags & FAULT_FLAG_WRITE);
+@@ -651,6 +658,11 @@ if ($scm) {
+     output(@scm);
  }
  
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
-@@ -169,11 +170,12 @@ static vm_fault_t __dev_dax_pmd_fault(st
- 		return VM_FAULT_SIGBUS;
++if ($output_substatus) {
++    @substatus = uniq(@substatus);
++    output(@substatus);
++}
++
+ if ($status) {
+     @status = uniq(@status);
+     output(@status);
+@@ -859,6 +871,7 @@ sub get_maintainers {
+     @bug = ();
+     @subsystem = ();
+     @status = ();
++    @substatus = ();
+     %deduplicate_name_hash = ();
+     %deduplicate_address_hash = ();
+     if ($email_git_all_signature_types) {
+@@ -1073,6 +1086,7 @@ MAINTAINER field selection options:
+     --remove-duplicates => minimize duplicate email names/addresses
+     --roles => show roles (status:subsystem, git-signer, list, etc...)
+     --rolestats => show roles and statistics (commits/total_commits, %)
++    --substatus => show subsystem status if not Maintained (default: match --roles)"
+     --file-emails => add email addresses found in -f file (default: 0 (off))
+     --fixes => for patches, add signatures of commits with 'Fixes: <commit>' (default: 1 (on))
+   --scm => print SCM tree(s) if any
+@@ -1335,7 +1349,9 @@ sub add_categories {
+     my $start = find_starting_index($index);
+     my $end = find_ending_index($index);
+ 
+-    push(@subsystem, $typevalue[$start]);
++    my $subsystem = $typevalue[$start];
++    push(@subsystem, $subsystem);
++    my $status = "Unknown";
+ 
+     for ($i = $start + 1; $i < $end; $i++) {
+ 	my $tv = $typevalue[$i];
+@@ -1386,8 +1402,8 @@ sub add_categories {
+ 		}
+ 	    } elsif ($ptype eq "R") {
+ 		if ($email_reviewer) {
+-		    my $subsystem = get_subsystem_name($i);
+-		    push_email_addresses($pvalue, "reviewer:$subsystem" . $suffix);
++		    my $subs = get_subsystem_name($i);
++		    push_email_addresses($pvalue, "reviewer:$subs" . $suffix);
+ 		}
+ 	    } elsif ($ptype eq "T") {
+ 		push(@scm, $pvalue . $suffix);
+@@ -1397,9 +1413,14 @@ sub add_categories {
+ 		push(@bug, $pvalue . $suffix);
+ 	    } elsif ($ptype eq "S") {
+ 		push(@status, $pvalue . $suffix);
++		$status = $pvalue;
+ 	    }
  	}
- 
--	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, 0);
- 
- 	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
-+	return vmf_insert_folio_pmd(vmf, page_folio(pfn_t_to_page(pfn)),
-+				vmf->flags & FAULT_FLAG_WRITE);
+     }
++
++    if ($subsystem ne "THE REST" and $status ne "Maintained") {
++	push(@substatus, $subsystem . " status: " . $status . $suffix)
++    }
  }
  
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-@@ -214,11 +216,12 @@ static vm_fault_t __dev_dax_pud_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, 0);
- 
- 	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
-+	return vmf_insert_folio_pud(vmf, page_folio(pfn_t_to_page(pfn)),
-+				vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
---- a/mm/memremap.c~device-dax-properly-refcount-device-dax-pages-when-mapping
-+++ a/mm/memremap.c
-@@ -460,11 +460,10 @@ void free_zone_device_folio(struct folio
- {
- 	struct dev_pagemap *pgmap = folio->pgmap;
- 
--	if (WARN_ON_ONCE(!pgmap->ops))
--		return;
--
--	if (WARN_ON_ONCE(pgmap->type != MEMORY_DEVICE_FS_DAX &&
--			 !pgmap->ops->page_free))
-+	if (WARN_ON_ONCE((!pgmap->ops &&
-+			  pgmap->type != MEMORY_DEVICE_GENERIC) ||
-+			 (pgmap->ops && !pgmap->ops->page_free &&
-+			  pgmap->type != MEMORY_DEVICE_FS_DAX)))
- 		return;
- 
- 	mem_cgroup_uncharge(folio);
-@@ -494,7 +493,8 @@ void free_zone_device_folio(struct folio
- 	 * zero which indicating the page has been removed from the file
- 	 * system mapping.
- 	 */
--	if (pgmap->type != MEMORY_DEVICE_FS_DAX)
-+	if (pgmap->type != MEMORY_DEVICE_FS_DAX &&
-+	    pgmap->type != MEMORY_DEVICE_GENERIC)
- 		folio->mapping = NULL;
- 
- 	switch (pgmap->type) {
-@@ -509,7 +509,6 @@ void free_zone_device_folio(struct folio
- 		 * Reset the refcount to 1 to prepare for handing out the page
- 		 * again.
- 		 */
--		pgmap->ops->page_free(folio_page(folio, 0));
- 		folio_set_count(folio, 1);
- 		break;
- 
+ sub email_inuse {
+@@ -1903,6 +1924,7 @@ EOT
+ 		$done = 1;
+ 		$output_rolestats = 0;
+ 		$output_roles = 0;
++		$output_substatus = 0;
+ 		last;
+ 	    } elsif ($nr =~ /^\d+$/ && $nr > 0 && $nr <= $count) {
+ 		$selected{$nr - 1} = !$selected{$nr - 1};
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-fuse-fix-dax-truncate-punch_hole-fault-path.patch
-fs-dax-return-unmapped-busy-pages-from-dax_layout_busy_page_range.patch
-fs-dax-dont-skip-locked-entries-when-scanning-entries.patch
-fs-dax-refactor-wait-for-dax-idle-page.patch
-fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
-fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
-fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
-fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch
-mm-gup-remove-redundant-check-for-pci-p2pdma-page.patch
-mm-mm_init-move-p2pdma-page-refcount-initialisation-to-p2pdma.patch
-mm-allow-compound-zone-device-pages.patch
-mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
-mm-memory-add-vmf_insert_page_mkwrite.patch
-rmap-add-support-for-pud-sized-mappings-to-rmap.patch
-huge_memory-add-vmf_insert_folio_pud.patch
-huge_memory-add-vmf_insert_folio_pmd.patch
-mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
-fs-dax-properly-refcount-fs-dax-pages.patch
-device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+get_maintainer-add-substatus-for-reporting-subsystem-status.patch
+get_maintainer-stop-reporting-subsystem-status-as-maintainer-role.patch
 
