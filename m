@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE17F2248AC
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 08:05:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9867F224AFF
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 08:05:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738829138; cv=none; b=qI86rYnq3SrVCAtBMaVqcMCqRCymfE6MPs3FlUmruYLvOTPgZQagnDVXCZu9RKq8o9E+eB5ANMzPWPLDW9UA1opmUVQHnTDI+Ol+UfCE7MwnSLHlP2pe3iQjeK3SphhPzFVQtQPKom5wSRmaiaB7qNN1YiY4ViExNNphnHDhq+E=
+	t=1738829139; cv=none; b=ozg7nrrwEKnRNV9SI1zyKUEHncPcAjdgsny5hyeJ+ntjxrod52/gOUKKJWqtl/e9G90M/PJrfCwSQo9C2vYdXVqerUlhLc/CsYQh12asuMbbyXVn9uMiIPoHFih7Hbo4OsR6HGU/d+7Bc1tmsaedCzbmAakFx/2N3krB5bUQehw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738829138; c=relaxed/simple;
-	bh=rAzI4O8jRMzs/jT1T03qd3MIsyz6ixlmr5BMMC9jqRI=;
-	h=Date:To:From:Subject:Message-Id; b=pXuTBjpHlKNZ6AfkvPd56/zCC8D3Nmwy3mw6hr4ANgJ0uik3+OMzXJoXuy2NEC4tYpeWhlvrU2daHCQQPSxBqYCtOnSWf3HObrGH7/sAKaMWqwwFC7zg4aishLqBL317I07WfC2MHo1bTd9DlgTfEjBatX6UkavNpnvILLrru2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ySfJ4cbK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738829139; c=relaxed/simple;
+	bh=4msVd2nHnrt38SE05aq1JkUO7/ET5I2A7n27G/xfLrM=;
+	h=Date:To:From:Subject:Message-Id; b=mbmNmYNfRzsxM9MVHw13sBnlrNaTEFNK8M+dcqVNoVjhlYvvmn5F1WKRORF4ABv6zLNA32vR7a25VnECg+I0HDhNocbE63sgTuSy+TsgM2us5T5XtvbTKsr3NM63/Kz4C7mYW3p4lEUth2K2xA1kTzt701nJhEqm/OZ7a/qW2Ow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vuLWd2r1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ySfJ4cbK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52BD6C4CEE2;
-	Thu,  6 Feb 2025 08:05:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vuLWd2r1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69315C4CEDD;
+	Thu,  6 Feb 2025 08:05:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738829137;
-	bh=rAzI4O8jRMzs/jT1T03qd3MIsyz6ixlmr5BMMC9jqRI=;
+	s=korg; t=1738829139;
+	bh=4msVd2nHnrt38SE05aq1JkUO7/ET5I2A7n27G/xfLrM=;
 	h=Date:To:From:Subject:From;
-	b=ySfJ4cbKzJ9FFLMY7pgQtweCjsfccOObEnhiqI6hS2XehUXoggXYQ46LjyL4WU/gD
-	 H+2JxYfesJaYYyFBjDRUw+53kghGkcDN6dTfMl3gOIWekEgSFcjsS920ZBCRi6BITT
-	 pv/0cnzAX9Rg7WvqvxNneFtW/2CTRf/u8XOYkFtQ=
-Date: Thu, 06 Feb 2025 00:05:36 -0800
+	b=vuLWd2r1AEt64FOZN5QE4JXh6cVP/LRiaPloxSO4zao1l1LLmFWmqyxtwNYWUbSRh
+	 znLDAV81boEGFgtQlFxRc9ltECmX/ebXi1cTaylD8qelhVatdD4tFWpSlVM7i78wvf
+	 n2e/R/9H3lqcG/ltuRTulqdhKhhyBNVlAFx4wpb4=
+Date: Thu, 06 Feb 2025 00:05:38 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch added to mm-unstable branch
-Message-Id: <20250206080537.52BD6C4CEE2@smtp.kernel.org>
+Subject: + mm-huge_memory-add-buddy-allocator-like-folio_split.patch added to mm-unstable branch
+Message-Id: <20250206080539.69315C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: move folio split common code to __folio_split()
+     Subject: mm/huge_memory: add buddy allocator like folio_split()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+     mm-huge_memory-add-buddy-allocator-like-folio_split.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-buddy-allocator-like-folio_split.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: move folio split common code to __folio_split()
-Date: Tue, 4 Feb 2025 22:14:12 -0500
+Subject: mm/huge_memory: add buddy allocator like folio_split()
+Date: Tue, 4 Feb 2025 22:14:13 -0500
 
-This is a preparation patch for folio_split().
+folio_split() splits a large folio in the same way as buddy allocator
+splits a large free page for allocation.  The purpose is to minimize the
+number of folios after the split.  For example, if user wants to free the
+3rd subpage in a order-9 folio, folio_split() will split the order-9 folio
+as:
 
-In the upcoming patch folio_split() will share folio unmapping and
-remapping code with split_huge_page_to_list_to_order(), so move the code
-to a common function __folio_split() first.
+O-0, O-0, O-0, O-0, O-2, O-3, O-4, O-5, O-6, O-7, O-8 if it is anon
+O-1,      O-0, O-0, O-2, O-3, O-4, O-5, O-6, O-7, O-9 if it is pagecache
 
-Link: https://lkml.kernel.org/r/20250205031417.1771278-3-ziy@nvidia.com
+Since anon folio does not support order-1 yet.
+
+It generates fewer folios than existing page split approach, which splits
+the order-9 to 512 order-0 folios.
+
+folio_split() and existing split_huge_page_to_list_to_order() share the
+folio unmapping and remapping code in __folio_split() and the common
+backend split code in __split_unmapped_folio() using uniform_split
+variable to distinguish their operations.
+
+uniform_split_supported() and non_uniform_split_supported() are added to
+factor out check code and will be used outside __folio_split() in the
+following commit.
+
+Link: https://lkml.kernel.org/r/20250205031417.1771278-4-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -84,133 +101,191 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |  107 +++++++++++++++++++++++----------------------
- 1 file changed, 57 insertions(+), 50 deletions(-)
+ mm/huge_memory.c |  134 ++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 97 insertions(+), 37 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-move-folio-split-common-code-to-__folio_split
+--- a/mm/huge_memory.c~mm-huge_memory-add-buddy-allocator-like-folio_split
 +++ a/mm/huge_memory.c
-@@ -3854,57 +3854,9 @@ after_split:
+@@ -3854,12 +3854,68 @@ after_split:
  	return ret;
  }
  
--/*
-- * This function splits a large folio into smaller folios of order @new_order.
-- * @page can point to any page of the large folio to split. The split operation
-- * does not change the position of @page.
-- *
-- * Prerequisites:
-- *
-- * 1) The caller must hold a reference on the @page's owning folio, also known
-- *    as the large folio.
-- *
-- * 2) The large folio must be locked.
-- *
-- * 3) The folio must not be pinned. Any unexpected folio references, including
-- *    GUP pins, will result in the folio not getting split; instead, the caller
-- *    will receive an -EAGAIN.
-- *
-- * 4) @new_order > 1, usually. Splitting to order-1 anonymous folios is not
-- *    supported for non-file-backed folios, because folio->_deferred_list, which
-- *    is used by partially mapped folios, is stored in subpage 2, but an order-1
-- *    folio only has subpages 0 and 1. File-backed order-1 folios are supported,
-- *    since they do not use _deferred_list.
-- *
-- * After splitting, the caller's folio reference will be transferred to @page,
-- * resulting in a raised refcount of @page after this call. The other pages may
-- * be freed if they are not mapped.
-- *
-- * If @list is null, tail pages will be added to LRU list, otherwise, to @list.
-- *
-- * Pages in @new_order will inherit the mapping, flags, and so on from the
-- * huge page.
-- *
-- * Returns 0 if the huge page was split successfully.
-- *
-- * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP) or if
-- * the folio was concurrently removed from the page cache.
-- *
-- * Returns -EBUSY when trying to split the huge zeropage, if the folio is
-- * under writeback, if fs-specific folio metadata cannot currently be
-- * released, or if some unexpected race happened (e.g., anon VMA disappeared,
-- * truncation).
-- *
-- * Callers should ensure that the order respects the address space mapping
-- * min-order if one is set for non-anonymous folios.
-- *
-- * Returns -EINVAL when trying to split to an order that is incompatible
-- * with the folio. Splitting to order 0 is compatible with all folios.
-- */
--int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
--				     unsigned int new_order)
-+static int __folio_split(struct folio *folio, unsigned int new_order,
-+		struct page *page, struct list_head *list)
- {
--	struct folio *folio = page_folio(page);
- 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
- 	/* reset xarray order to new order after split */
- 	XA_STATE_ORDER(xas, &folio->mapping->i_pages, folio->index, new_order);
-@@ -4114,6 +4066,61 @@ out:
- 	return ret;
- }
- 
-+/*
-+ * This function splits a large folio into smaller folios of order @new_order.
-+ * @page can point to any page of the large folio to split. The split operation
-+ * does not change the position of @page.
-+ *
-+ * Prerequisites:
-+ *
-+ * 1) The caller must hold a reference on the @page's owning folio, also known
-+ *    as the large folio.
-+ *
-+ * 2) The large folio must be locked.
-+ *
-+ * 3) The folio must not be pinned. Any unexpected folio references, including
-+ *    GUP pins, will result in the folio not getting split; instead, the caller
-+ *    will receive an -EAGAIN.
-+ *
-+ * 4) @new_order > 1, usually. Splitting to order-1 anonymous folios is not
-+ *    supported for non-file-backed folios, because folio->_deferred_list, which
-+ *    is used by partially mapped folios, is stored in subpage 2, but an order-1
-+ *    folio only has subpages 0 and 1. File-backed order-1 folios are supported,
-+ *    since they do not use _deferred_list.
-+ *
-+ * After splitting, the caller's folio reference will be transferred to @page,
-+ * resulting in a raised refcount of @page after this call. The other pages may
-+ * be freed if they are not mapped.
-+ *
-+ * If @list is null, tail pages will be added to LRU list, otherwise, to @list.
-+ *
-+ * Pages in @new_order will inherit the mapping, flags, and so on from the
-+ * huge page.
-+ *
-+ * Returns 0 if the huge page was split successfully.
-+ *
-+ * Returns -EAGAIN if the folio has unexpected reference (e.g., GUP) or if
-+ * the folio was concurrently removed from the page cache.
-+ *
-+ * Returns -EBUSY when trying to split the huge zeropage, if the folio is
-+ * under writeback, if fs-specific folio metadata cannot currently be
-+ * released, or if some unexpected race happened (e.g., anon VMA disappeared,
-+ * truncation).
-+ *
-+ * Callers should ensure that the order respects the address space mapping
-+ * min-order if one is set for non-anonymous folios.
-+ *
-+ * Returns -EINVAL when trying to split to an order that is incompatible
-+ * with the folio. Splitting to order 0 is compatible with all folios.
-+ */
-+int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
-+				     unsigned int new_order)
++static bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
++		bool warns)
 +{
-+	struct folio *folio = page_folio(page);
++	/* order-1 is not supported for anonymous THP. */
++	if (folio_test_anon(folio) && new_order == 1) {
++		VM_WARN_ONCE(warns, "Cannot split to order-1 folio");
++		return false;
++	}
 +
-+	return __folio_split(folio, new_order, page, list);
++	/*
++	 * No split if the file system does not support large folio.
++	 * Note that we might still have THPs in such mappings due to
++	 * CONFIG_READ_ONLY_THP_FOR_FS. But in that case, the mapping
++	 * does not actually support large folios properly.
++	 */
++	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
++	    !mapping_large_folio_support(folio->mapping)) {
++		VM_WARN_ONCE(warns,
++			"Cannot split file folio to non-0 order");
++		return false;
++	}
++
++	/* Only swapping a whole PMD-mapped folio is supported */
++	if (folio_test_swapcache(folio)) {
++		VM_WARN_ONCE(warns,
++			"Cannot split swapcache folio to non-0 order");
++		return false;
++	}
++
++	return true;
 +}
 +
- int min_order_for_split(struct folio *folio)
++/* See comments in non_uniform_split_supported() */
++static bool uniform_split_supported(struct folio *folio, unsigned int new_order,
++		bool warns)
++{
++	if (folio_test_anon(folio) && new_order == 1) {
++		VM_WARN_ONCE(warns, "Cannot split to order-1 folio");
++		return false;
++	}
++
++	if (new_order) {
++		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
++		    !mapping_large_folio_support(folio->mapping)) {
++			VM_WARN_ONCE(warns,
++				"Cannot split file folio to non-0 order");
++			return false;
++		}
++		if (folio_test_swapcache(folio)) {
++			VM_WARN_ONCE(warns,
++				"Cannot split swapcache folio to non-0 order");
++			return false;
++		}
++	}
++	return true;
++}
++
+ static int __folio_split(struct folio *folio, unsigned int new_order,
+-		struct page *page, struct list_head *list)
++		struct page *page, struct list_head *list, bool uniform_split)
  {
- 	if (folio_test_anon(folio))
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+-	/* reset xarray order to new order after split */
+-	XA_STATE_ORDER(xas, &folio->mapping->i_pages, folio->index, new_order);
++	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
+ 	bool is_anon = folio_test_anon(folio);
+ 	struct address_space *mapping = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+@@ -3874,29 +3930,11 @@ static int __folio_split(struct folio *f
+ 	if (new_order >= folio_order(folio))
+ 		return -EINVAL;
+ 
+-	if (is_anon) {
+-		/* order-1 is not supported for anonymous THP. */
+-		if (new_order == 1) {
+-			VM_WARN_ONCE(1, "Cannot split to order-1 folio");
+-			return -EINVAL;
+-		}
+-	} else if (new_order) {
+-		/*
+-		 * No split if the file system does not support large folio.
+-		 * Note that we might still have THPs in such mappings due to
+-		 * CONFIG_READ_ONLY_THP_FOR_FS. But in that case, the mapping
+-		 * does not actually support large folios properly.
+-		 */
+-		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+-		    !mapping_large_folio_support(folio->mapping)) {
+-			VM_WARN_ONCE(1,
+-				"Cannot split file folio to non-0 order");
+-			return -EINVAL;
+-		}
+-	}
++	if (uniform_split && !uniform_split_supported(folio, new_order, true))
++		return -EINVAL;
+ 
+-	/* Only swapping a whole PMD-mapped folio is supported */
+-	if (folio_test_swapcache(folio) && new_order)
++	if (!uniform_split &&
++	    !non_uniform_split_supported(folio, new_order, true))
+ 		return -EINVAL;
+ 
+ 	is_hzp = is_huge_zero_folio(folio);
+@@ -3953,10 +3991,13 @@ static int __folio_split(struct folio *f
+ 			goto out;
+ 		}
+ 
+-		xas_split_alloc(&xas, folio, folio_order(folio), gfp);
+-		if (xas_error(&xas)) {
+-			ret = xas_error(&xas);
+-			goto out;
++		if (uniform_split) {
++			xas_set_order(&xas, folio->index, new_order);
++			xas_split_alloc(&xas, folio, folio_order(folio), gfp);
++			if (xas_error(&xas)) {
++				ret = xas_error(&xas);
++				goto out;
++			}
+ 		}
+ 
+ 		anon_vma = NULL;
+@@ -4021,7 +4062,6 @@ static int __folio_split(struct folio *f
+ 		if (mapping) {
+ 			int nr = folio_nr_pages(folio);
+ 
+-			xas_split(&xas, folio, folio_order(folio));
+ 			if (folio_test_pmd_mappable(folio) &&
+ 			    new_order < HPAGE_PMD_ORDER) {
+ 				if (folio_test_swapbacked(folio)) {
+@@ -4035,12 +4075,8 @@ static int __folio_split(struct folio *f
+ 			}
+ 		}
+ 
+-		if (is_anon) {
+-			mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+-			mod_mthp_stat(new_order, MTHP_STAT_NR_ANON, 1 << (order - new_order));
+-		}
+-		__split_huge_page(page, list, end, new_order);
+-		ret = 0;
++		ret = __split_unmapped_folio(page_folio(page), new_order,
++				page, list, end, &xas, mapping, uniform_split);
+ 	} else {
+ 		spin_unlock(&ds_queue->split_queue_lock);
+ fail:
+@@ -4118,7 +4154,31 @@ int split_huge_page_to_list_to_order(str
+ {
+ 	struct folio *folio = page_folio(page);
+ 
+-	return __folio_split(folio, new_order, page, list);
++	return __folio_split(folio, new_order, page, list, true);
++}
++
++/*
++ * folio_split: split a folio at offset_in_new_order to a new_order folio
++ * @folio: folio to split
++ * @new_order: the order of the new folio
++ * @page: a page within the new folio
++ *
++ * return: 0: successful, <0 failed (if -ENOMEM is returned, @folio might be
++ * split but not to @new_order, the caller needs to check)
++ *
++ * Split a folio at offset_in_new_order to a new_order folio, leave the
++ * remaining subpages of the original folio as large as possible. For example,
++ * split an order-9 folio at its third order-3 subpages to an order-3 folio.
++ * There are 2^6=64 order-3 subpages in an order-9 folio and the result will be
++ * a set of folios with different order and the new folio is in bracket:
++ * [order-4, {order-3}, order-3, order-5, order-6, order-7, order-8].
++ *
++ * After split, folio is left locked for caller.
++ */
++int folio_split(struct folio *folio, unsigned int new_order,
++		struct page *page, struct list_head *list)
++{
++	return __folio_split(folio, new_order, page, list, false);
+ }
+ 
+ int min_order_for_split(struct folio *folio)
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
