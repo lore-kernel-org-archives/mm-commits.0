@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A02192248BB
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63E8B224B11
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738828666; cv=none; b=Wuw+LEu+eYwyJCe3KM3p07W/3a9cEirJ91AkuFr7+xAuYIJDNrhXSSUpTO1JuCeAF6RjN3RYibytuZ+L1GdmANhw1rykcCQjjMOgPsoaUcX7Ua02mDp0+O/59zAGjNSTno6VXPHoIGL0ITWw/M4wG5oAirewGJu4kBzaz30/VNc=
+	t=1738828668; cv=none; b=Xr98s3Gx65uvgTOcI3N9+ZvMUPshAm/ETYSQ+byaRp9o9zmsAqVHmHewEOP15P/FciE/XtGY2JCr3aVr38JHlC8jKKTDncFv8GpAH93WlYs+BTLbwce5ZbqJLpu2ZzVVsvtUOJ9NusS6sSQ5C5MvkgDRsuodeTrOqN4Lljhl/pQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738828666; c=relaxed/simple;
-	bh=db43QfQG3CeWhYNqTxtlbH7q3+eqm5KfsF4J5E31pUw=;
-	h=Date:To:From:Subject:Message-Id; b=eY8mVB5YSGnjQx5fmro/yW3fNj1zKbt/cyHvmew0m739wsxEYUnKSL+epuqvUQYCIgn6u88EpzIWP0SrwB53NhdYToODbxp4rYfLGpM6Z4wyu5zAA1v1JDn0qsUpH5Nx6zkDIuqKGF5tH9JtAwN/p2pL0QndvdSzA88UyxkzJpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jM34PQzo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738828668; c=relaxed/simple;
+	bh=HMAd/huzVyMt1vgLvvYLL7wUetG0qW59m3nZpm1S1L4=;
+	h=Date:To:From:Subject:Message-Id; b=C7cu+p70Zqpne16u4XwN8I8ocr/YvNPEZiKjVeD4lvXjtKEV/uzu1PTMyOmFYQPjM4fw1Fq7iUx/6R0J+dphpx3DNbvpH8Re4Z78OVZTkuQd8DxxgjvQuXk1NbA++fbTzjgt8ZQjI9uxCDBcRcNwXAAVf8pHhx8pkBk1U8Jnv/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H/Dau1IP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jM34PQzo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C425C4CEDD;
-	Thu,  6 Feb 2025 07:57:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H/Dau1IP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A1ACC4CEDD;
+	Thu,  6 Feb 2025 07:57:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738828666;
-	bh=db43QfQG3CeWhYNqTxtlbH7q3+eqm5KfsF4J5E31pUw=;
+	s=korg; t=1738828668;
+	bh=HMAd/huzVyMt1vgLvvYLL7wUetG0qW59m3nZpm1S1L4=;
 	h=Date:To:From:Subject:From;
-	b=jM34PQzollZ23d1vcAqp7A5UCGh03TD+aIZU984kO52lIaNB/z2nIGcE+6HfeOqmU
-	 vQxsc+Zkdce+7y3Y4KlJc/A6IKEYQ7Vku+lPwLkHmGJ3ld/lFJ64LVq0snVda6FRmQ
-	 ev6F4oRP2mb0oVtOKAxVX+5Hv397UdHLS57e6N/4=
-Date: Wed, 05 Feb 2025 23:57:45 -0800
+	b=H/Dau1IPWN4Vf2ro9YLDo/r/xxgqZvfJoz96HZ8XjKN2yqtiJnlno6jD5YNUdj7xt
+	 io/fGgy2HXDxOcFN8JTq7Pc4ugXGfQBzSwAl9FvmZmpE/UMVbeTUHUIQYH6zMGZ8si
+	 tPe2/3d9En4lEVE2Jf8Qy0chs3HLC/nHUkwwX+Zk=
+Date: Wed, 05 Feb 2025 23:57:47 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfilec-remove-the-incorrect-code-comment.patch added to mm-unstable branch
-Message-Id: <20250206075746.6C425C4CEDD@smtp.kernel.org>
+Subject: + mm-swapfilec-open-code-cluster_alloc_swap.patch added to mm-unstable branch
+Message-Id: <20250206075748.3A1ACC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swapfile.c: remove the incorrect code comment
+     Subject: mm/swapfile.c: open code cluster_alloc_swap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfilec-remove-the-incorrect-code-comment.patch
+     mm-swapfilec-open-code-cluster_alloc_swap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-remove-the-incorrect-code-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-open-code-cluster_alloc_swap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,35 +59,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swapfile.c: remove the incorrect code comment
-Date: Wed, 5 Feb 2025 17:27:20 +0800
+Subject: mm/swapfile.c: open code cluster_alloc_swap()
+Date: Wed, 5 Feb 2025 17:27:21 +0800
 
-Since commit eb085574a752 ("mm, swap: fix race between swapoff and some
-swap operations"), the non_swap_entry() checking has been taken off from
-function __swap_duplicate().  Hence, in the kernel-doc comment, the line
-'swp_entry is migration entry -> EINVAL' is obsolete.  Remove that line to
-avoid misleading people.
+It's only called in scan_swap_map_slots().
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-12-bhe@redhat.com
+And also remove the stale code comment in scan_swap_map_slots() because
+it's not fit for the current cluster allocation mechanism.
+
+Link: https://lkml.kernel.org/r/20250205092721.9395-13-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Chis Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/swapfile.c |   38 ++++++++++----------------------------
+ 1 file changed, 10 insertions(+), 28 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-remove-the-incorrect-code-comment
+--- a/mm/swapfile.c~mm-swapfilec-open-code-cluster_alloc_swap
 +++ a/mm/swapfile.c
-@@ -3525,7 +3525,6 @@ void si_swapinfo(struct sysinfo *val)
-  * Returns error code in following case.
-  * - success -> 0
-  * - swp_entry is invalid -> EINVAL
-- * - swp_entry is migration entry -> EINVAL
-  * - swap-cache reference is requested but there is already one. -> EEXIST
-  * - swap-cache reference is requested but the entry is not used. -> ENOENT
-  * - swap-mapped reference requested but needs continued swap count. -> ENOMEM
+@@ -1158,39 +1158,13 @@ static void swap_range_free(struct swap_
+ 	swap_usage_sub(si, nr_entries);
+ }
+ 
+-static int cluster_alloc_swap(struct swap_info_struct *si,
+-			     unsigned char usage, int nr,
+-			     swp_entry_t slots[], int order)
+-{
+-	int n_ret = 0;
+-
+-	while (n_ret < nr) {
+-		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
+-
+-		if (!offset)
+-			break;
+-		slots[n_ret++] = swp_entry(si->type, offset);
+-	}
+-
+-	return n_ret;
+-}
+-
+ static int scan_swap_map_slots(struct swap_info_struct *si,
+ 			       unsigned char usage, int nr,
+ 			       swp_entry_t slots[], int order)
+ {
+ 	unsigned int nr_pages = 1 << order;
++	int n_ret = 0;
+ 
+-	/*
+-	 * We try to cluster swap pages by allocating them sequentially
+-	 * in swap.  Once we've allocated SWAPFILE_CLUSTER pages this
+-	 * way, however, we resort to first-free allocation, starting
+-	 * a new cluster.  This prevents us from scattering swap pages
+-	 * all over the entire swap partition, so that we reduce
+-	 * overall disk seek times between swap pages.  -- sct
+-	 * But we do now try to find an empty cluster.  -Andrea
+-	 * And we let swap pages go all over an SSD partition.  Hugh
+-	 */
+ 	if (order > 0) {
+ 		/*
+ 		 * Should not even be attempting large allocations when huge
+@@ -1210,7 +1184,15 @@ static int scan_swap_map_slots(struct sw
+ 			return 0;
+ 	}
+ 
+-	return cluster_alloc_swap(si, usage, nr, slots, order);
++	while (n_ret < nr) {
++		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
++
++		if (!offset)
++			break;
++		slots[n_ret++] = swp_entry(si->type, offset);
++	}
++
++	return n_ret;
+ }
+ 
+ static bool get_swap_device_info(struct swap_info_struct *si)
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
