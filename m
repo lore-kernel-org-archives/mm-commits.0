@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E02224AFD
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:40:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D28781FDA8C
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:42:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738827644; cv=none; b=YAWWhKFlAWq3Q42Rs6p/Cq3CMG8qd3MPd3F0W3haLnrk9HRd9n8zAlrfrf1GuGTAV6v6TS/ln8t9CKS0jNJShrW4UC/Nt03W5a7MJkr/MpbUx8efF9RIMpDUj+Ww0PnHWfwXLVTsnUCbHWMcAOITwM/V2Kw1b03RZedozE+EsCQ=
+	t=1738827752; cv=none; b=eb2P41PqvSl7UQFTPdT5KvP4WSjdWWBIGfINwrgAH/V9H6DUoJw0AB/mq3pdDcLO0M4fWGYXapAuklW2harAY+ipPvOdA71e/OERgklQbYxF5rDfAw2QsV/X1HwtQqs/eJc4aR2FGnqlFwyfwwRWN/zKjcv4FiZs/Fu5lf/nsiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738827644; c=relaxed/simple;
-	bh=KXpRi1yhBni8JbrHgkQirOIrEKBIX9ZsPPMZ5ao6FOI=;
-	h=Date:To:From:Subject:Message-Id; b=NCJKJgKkfh8U/SsO9PXxiuHLiNYp3ZNUUNpN8PkyReTvL73YGai/7slOqI2fDpvvnkrCW6vTuQNuFu6RZLnfDlSP51aVwa0MOyUozOcAieHTr9ChSudnsqgXAlVUjIJGIVlI7q1riqiEiFrPsM/8mXwKfOfQqU55c8A6HuUyXGE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wTtLRAet; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738827752; c=relaxed/simple;
+	bh=wMertulFtF23DAzjvu/MkDbjF3MWZuuF63tZWayQR2M=;
+	h=Date:To:From:Subject:Message-Id; b=VvzNPRKSy6uUjV5PDIVVHFgE1EbHlXm56uUCS/4otPY+PC2yZAaRSWnyWT7UE4UHLRjuJby+E6bUSiEG1oEODgSLLdTyoZpZZqmsxFDqlX6ag3VzrnlXJ7MyVRL6DdFHa7OmIuFe75OfJ34SFX9Lawfs1lGjbTOJV/v32wxJorc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ymQnKe6u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wTtLRAet"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C18D8C4CEDD;
-	Thu,  6 Feb 2025 07:40:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ymQnKe6u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86EFAC4CEDD;
+	Thu,  6 Feb 2025 07:42:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738827642;
-	bh=KXpRi1yhBni8JbrHgkQirOIrEKBIX9ZsPPMZ5ao6FOI=;
+	s=korg; t=1738827751;
+	bh=wMertulFtF23DAzjvu/MkDbjF3MWZuuF63tZWayQR2M=;
 	h=Date:To:From:Subject:From;
-	b=wTtLRAetAAmyFiS/fQaprhFGkqgpAzRN9JAkE6oTOpeOCZ/NWXNoWIUugCF2ztHl7
-	 P7hohJgV8ZBAw3LXyizT1MzYPtmjm2RfdA/pAsJX5kGdP9jW+KB3e8BL7b0S+4rTEq
-	 6RBzJ8MvG7VIyoMGr4YigLZdxLAyyhM8HtpscZ9M=
-Date: Wed, 05 Feb 2025 23:40:42 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,dave@stgolabs.net,sj@kernel.org,akpm@linux-foundation.org
+	b=ymQnKe6uZdwCEpGniqZ5ygTXOsVgEl3UFO/MnV9/Lvj6pclGYIMRefnblTcqxP46U
+	 fN44Xgxap8DZeUT3Uve7BL388n8ONk54qIk44RXRy04HFI3wDO6ff63jAlNxuFgVwp
+	 lHONzLR0/YYoLt+HOHWteM9h9k5cQES+k+Zu5VWI=
+Date: Wed, 05 Feb 2025 23:42:30 -0800
+To: mm-commits@vger.kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch added to mm-unstable branch
-Message-Id: <20250206074042.C18D8C4CEDD@smtp.kernel.org>
+Subject: + mm-memfd-fix-spelling-and-grammatical-issues.patch added to mm-unstable branch
+Message-Id: <20250206074231.86EFAC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: remove redundant mmap_lock operations from process_madvise()
+     Subject: mm/memfd: fix spelling and grammatical issues
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
+     mm-memfd-fix-spelling-and-grammatical-issues.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-fix-spelling-and-grammatical-issues.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,83 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: remove redundant mmap_lock operations from process_madvise()
-Date: Wed, 5 Feb 2025 22:15:17 -0800
+From: Liu Ye <liuye@kylinos.cn>
+Subject: mm/memfd: fix spelling and grammatical issues
+Date: Thu, 6 Feb 2025 14:09:58 +0800
 
-Optimize redundant mmap lock operations from process_madvise() by directly
-doing the mmap locking first, and then the remaining works for all ranges
-in the loop.
+The comment "If a private mapping then writability is irrelevant" contains
+a typo.  It should be "If a private mapping then writability is
+irrelevant".  The comment "SEAL_EXEC implys SEAL_WRITE, making W^X from
+the start." contains a typo.  It should be "SEAL_EXEC implies SEAL_WRITE,
+making W^X from the start."
 
-Link: https://lkml.kernel.org/r/20250206061517.2958-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250206060958.98010-1-liuye@kylinos.cn
+Signed-off-by: Liu Ye <liuye@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ mm/memfd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise
-+++ a/mm/madvise.c
-@@ -1761,9 +1761,26 @@ static ssize_t vector_madvise(struct mm_
- 
- 	total_len = iov_iter_count(iter);
- 
-+	ret = madvise_lock(mm, behavior);
-+	if (ret)
-+		return ret;
-+
- 	while (iov_iter_count(iter)) {
--		ret = do_madvise(mm, (unsigned long)iter_iov_addr(iter),
--				 iter_iov_len(iter), behavior);
-+		unsigned long start = (unsigned long)iter_iov_addr(iter);
-+		size_t len_in = iter_iov_len(iter);
-+		size_t len;
-+
-+		if (!is_valid_madvise(start, len_in, behavior)) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		len = PAGE_ALIGN(len_in);
-+		if (start + len == start)
-+			ret = 0;
-+		else
-+			ret = madvise_do_behavior(mm, start, len_in, len,
-+					behavior);
- 		/*
- 		 * An madvise operation is attempting to restart the syscall,
- 		 * but we cannot proceed as it would not be correct to repeat
-@@ -1779,12 +1796,17 @@ static ssize_t vector_madvise(struct mm_
- 				ret = -EINTR;
- 				break;
- 			}
-+
-+			/* Drop and reacquire lock to unwind race. */
-+			madvise_unlock(mm, behavior);
-+			madvise_lock(mm, behavior);
- 			continue;
- 		}
- 		if (ret < 0)
- 			break;
- 		iov_iter_advance(iter, iter_iov_len(iter));
+--- a/mm/memfd.c~mm-memfd-fix-spelling-and-grammatical-issues
++++ a/mm/memfd.c
+@@ -259,7 +259,7 @@ static int memfd_add_seals(struct file *
  	}
-+	madvise_unlock(mm, behavior);
  
- 	ret = (total_len - iov_iter_count(iter)) ? : ret;
+ 	/*
+-	 * SEAL_EXEC implys SEAL_WRITE, making W^X from the start.
++	 * SEAL_EXEC implies SEAL_WRITE, making W^X from the start.
+ 	 */
+ 	if (seals & F_SEAL_EXEC && inode->i_mode & 0111)
+ 		seals |= F_SEAL_SHRINK|F_SEAL_GROW|F_SEAL_WRITE|F_SEAL_FUTURE_WRITE;
+@@ -337,7 +337,7 @@ static int check_write_seal(unsigned lon
+ 	unsigned long vm_flags = *vm_flags_ptr;
+ 	unsigned long mask = vm_flags & (VM_SHARED | VM_WRITE);
+ 
+-	/* If a private matting then writability is irrelevant. */
++	/* If a private mapping then writability is irrelevant. */
+ 	if (!(mask & VM_SHARED))
+ 		return 0;
  
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
-mm-madvise-split-out-madvise-input-validity-check.patch
-mm-madvise-split-out-madvise-behavior-execution.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
+mm-memfd-fix-spelling-and-grammatical-issues.patch
 
