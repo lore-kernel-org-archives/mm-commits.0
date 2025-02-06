@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6199B2248B5
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47D2A225403
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738828647; cv=none; b=qpqYu4GFxpiSb91ycsh6iI7dX1BuETbELNxd64AoUgA+dDkM++hOqzMRS+QBvnUd3K6YhCHzOBMJ4Mz4fdqChwEwSPEVGSvlKWVVy+7h7oY9Vo7gPC9Ml5ZSUf2RTB2DoUcw6LWM853OrZzlqJhzpzGj3TeKPJT2RBH2rIIKTJo=
+	t=1738828649; cv=none; b=lScgJ7E3j6ldYLH8qh3ivTIiBcQCM3hRDpFf+ul1ikI/C8lVPOANNO7TQQVPLjQV8c5Vn59t3H1ChU/d+iC0EdW85XnA1CdHORpINydzPkQgERBZottVYUlsS8IwyXEXs9UM++NjY+6wBnHWeZspseJnpyhJArizS3KE6ilXVX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738828647; c=relaxed/simple;
-	bh=nS7K+7wHN+/XGUMJxQAQ0ChZG25fFVY8Xh1MbYgP6mE=;
-	h=Date:To:From:Subject:Message-Id; b=A2evOLjNy2zEy0ZaDTzmMeRpPZqnDtEbUZkf1rx06I8wLS+Eoc6J70T/yZ6+pTJHsootVIjJP8VFfZvxY47eu0GGe2ElayZuDaUbJnv8Hj/4elHC4KfMdjXRggPOAHQgHFEapYZeFOlaHux9AysRLVoNE0rwCE3Kg3yElYiAOAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XCtgpV15; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738828649; c=relaxed/simple;
+	bh=/+Zmbm/2HoGr/aitqd8ksRnLRkUjCdcMSqdfORLicV4=;
+	h=Date:To:From:Subject:Message-Id; b=e/fwibt9IRHE7+3NBkZnl1iSXj3FHAmrIJ87xVNZZAIeMiUk35ycFawmHxi0M+4IjaJMtOjfWWvzdlTxtKFiMnJhOkHy2vnaTD1hipP+Mo3vchZYpkerln8BTRMNIhBHUhXZeOiVRrG4H/Bl2UGGs2s9fTAI2iu2A0y9/Y/Y/PE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L92D59uL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XCtgpV15"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEEEFC4CEE0;
-	Thu,  6 Feb 2025 07:57:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L92D59uL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7F7EC4CEE5;
+	Thu,  6 Feb 2025 07:57:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738828646;
-	bh=nS7K+7wHN+/XGUMJxQAQ0ChZG25fFVY8Xh1MbYgP6mE=;
+	s=korg; t=1738828648;
+	bh=/+Zmbm/2HoGr/aitqd8ksRnLRkUjCdcMSqdfORLicV4=;
 	h=Date:To:From:Subject:From;
-	b=XCtgpV15Mrm6Aayw2JiUEDh2zQNvqI8bZKBCk8d2XMUi/CjmvkfUi5OVsFTBZA5Mm
-	 kPR8O3ETgJM+khdZ0pRv8qIno5VRWc7z0AoEbAGjDcFDuqWkbSCWOkWwMtf8WtmCEv
-	 R+MgSnfMCxvfmZRmBR7VYJR90LwpkGYN2rier/3w=
-Date: Wed, 05 Feb 2025 23:57:26 -0800
+	b=L92D59uLM4JZkiK3VyN1EupoGi6DyYGQoLv3qQSJyRmk3r1qjzuzgIshvnlXi+60/
+	 50hceExDGE6djnHZ9aAJV1Zx1f1xDZc34T/Bfma1qBhLhd51ovO/kyYvQOOYa5KhMP
+	 J5jqcWNqufOFi/T2jDmjAA+FwAbU23vRPiVnr864=
+Date: Wed, 05 Feb 2025 23:57:28 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap_statec-fix-the-obsolete-code-comment.patch added to mm-unstable branch
-Message-Id: <20250206075726.BEEEFC4CEE0@smtp.kernel.org>
+Subject: + mm-swap_statec-optimize-the-code-in-clear_shadow_from_swap_cache.patch added to mm-unstable branch
+Message-Id: <20250206075728.A7F7EC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap_state.c: fix the obsolete code comment
+     Subject: mm/swap_state.c: optimize the code in clear_shadow_from_swap_cache()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap_statec-fix-the-obsolete-code-comment.patch
+     mm-swap_statec-optimize-the-code-in-clear_shadow_from_swap_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_statec-fix-the-obsolete-code-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_statec-optimize-the-code-in-clear_shadow_from_swap_cache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,44 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swap_state.c: fix the obsolete code comment
-Date: Wed, 5 Feb 2025 17:27:10 +0800
+Subject: mm/swap_state.c: optimize the code in clear_shadow_from_swap_cache()
+Date: Wed, 5 Feb 2025 17:27:11 +0800
 
-Patch series "Tiny cleanup and improvements about SWAP code".
+Use ALIGN to achieve the same effect and simplify the code.
 
-These are all made during review and from reading the patchset "[PATCH v3
-00/13] mm, swap: rework of swap allocator locks" from Kairui.
-
-
-This patch (of 12):
-
-Since commit 85a1333417a7 ("mm/swap: use dedicated entry for swap in
-folio"), there's a dedicated field in folio for swap entry.  Let's update
-the code comment above add_to_swap_cache() accordingly.
-
-Link: https://lkml.kernel.org/r/20250205092721.9395-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20250205092721.9395-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250205092721.9395-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Baoquan he <bhe@redhat.com>
-Cc: Chis Li <chrisl@kernel.org> (Google)
+Cc: Chis Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/swap_state.c~mm-swap_statec-fix-the-obsolete-code-comment
+--- a/mm/swap_state.c~mm-swap_statec-optimize-the-code-in-clear_shadow_from_swap_cache
 +++ a/mm/swap_state.c
-@@ -85,7 +85,7 @@ void *get_shadow_from_swap_cache(swp_ent
+@@ -270,9 +270,7 @@ void clear_shadow_from_swap_cache(int ty
+ 		xa_unlock_irq(&address_space->i_pages);
  
- /*
-  * add_to_swap_cache resembles filemap_add_folio on swapper_space,
-- * but sets SwapCache flag and private instead of mapping and index.
-+ * but sets SwapCache flag and 'swap' instead of mapping and index.
-  */
- int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
- 			gfp_t gfp, void **shadowp)
+ 		/* search the next swapcache until we meet end */
+-		curr >>= SWAP_ADDRESS_SPACE_SHIFT;
+-		curr++;
+-		curr <<= SWAP_ADDRESS_SPACE_SHIFT;
++		curr = ALIGN((curr + 1), SWAP_ADDRESS_SPACE_PAGES);
+ 		if (curr > end)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
