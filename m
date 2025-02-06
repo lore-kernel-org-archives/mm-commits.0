@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD592376F2
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 23:19:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B371B2288D9
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 23:19:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738883988; cv=none; b=VpaKy6EnnqkTklCcb8i1yl/Ks2qzlQdPDVAYf7vfmQyZdLjDeUnG31yS06TvSDb2JXVM9Gw3KNsf+q2HztGrTIj/SzqnkMsxOlZlcceT4nKsM995B581X3B9EQ2U/B6o8YVXQ9NAncvuXgkAfKHP+T07SH3wZijvT1A/xScoBQ8=
+	t=1738883989; cv=none; b=HvH9PP07o8yyin+SU/gBrn7BytePG5JSjSaJQLfE180Fx70c5NHdQrPAwhv4yvsc6T0OU4dSguvpYqNqwTYXlOjVFza7p7iGNYQlRAjE78u7xe6LvS5h450VVLmRwozzS74rVE9F9qe8lqpzKpGr/ZQyFbeej70Ul0HWKbB8YhM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738883988; c=relaxed/simple;
-	bh=DYH7zmjX0yViLkjvBP8yl12hUnMt8mJsDDoVqEUxoW0=;
-	h=Date:To:From:Subject:Message-Id; b=uexiq7rWS+O/h5JkTSubftXaQ1NI2r1gZmafmMjSzOJPMs2s8/k9pYRFCOWi7CKE5mrM3nUEmWAyd1ZRcGMFwv6/paTp3PBPKYbNak3a3ayYBc0GJdZvjElaFjapQNqTT+8tgu8xk+tnSZU8YzozK5oQHgQK5zyyeBAgBLFG1ZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=apEHKosG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738883989; c=relaxed/simple;
+	bh=h4k0YkXwixdKzEYoy1o6ESUGPUOvkX/syFgs4LdHB/o=;
+	h=Date:To:From:Subject:Message-Id; b=B1gHoONmgXTn66xHHuBjhxcVXcwbmvctVfS5HmdmQLJI0gfTPnxNgN72xuXirp/iJGMl/VJvTOZSiS8wBvjHXjmuMeNkMQXaSXwczU98ebCKkMcfS+fpHUUZLyblE2QrShWeAPEsPBNV1jgRvtp3GzSQKA4mrOAfWMpXlBFIYao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=khmqzNXZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="apEHKosG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42C4AC4CEDD;
-	Thu,  6 Feb 2025 23:19:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="khmqzNXZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BF12C4CEE2;
+	Thu,  6 Feb 2025 23:19:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738883988;
-	bh=DYH7zmjX0yViLkjvBP8yl12hUnMt8mJsDDoVqEUxoW0=;
+	s=korg; t=1738883989;
+	bh=h4k0YkXwixdKzEYoy1o6ESUGPUOvkX/syFgs4LdHB/o=;
 	h=Date:To:From:Subject:From;
-	b=apEHKosGh07guPdRSTpySA6MP5xijL4I3ko37SlUqUXPLHLBw5fCtdJvm8ZV36uc8
-	 V4IppvS7Ee5AQd56rorgZDAcQEuIYrdaXM5mmu8tsJ7czhsyZkhpwIAxGKlcrMpBl4
-	 A9+DF9xkHr/fFNuwsluEvtM+cTEBK2Bedx3cEcaA=
-Date: Thu, 06 Feb 2025 15:19:47 -0800
+	b=khmqzNXZSONHONtC+lU32Yv5n6YRlT9mNU1IvHBy2nom9tZ8tOLsMDsgd0pHL57fo
+	 dGWXgECSkyyX+joVEOlL+qvk3CbpY1Hon5lIWURxz6a0hDWd4hOIRUoQuBpV5FBS5K
+	 GFvrpkBJlPt5xR88nxpQ0rEdQWA1ExUZjr66rK14=
+Date: Thu, 06 Feb 2025 15:19:48 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yaozhenguo1@gmail.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-round-robin-bootmem-allocation.patch added to mm-unstable branch
-Message-Id: <20250206231948.42C4AC4CEDD@smtp.kernel.org>
+Subject: + mm-hugetlb-remove-redundant-__clearpagereserved.patch added to mm-unstable branch
+Message-Id: <20250206231949.7BF12C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix round-robin bootmem allocation
+     Subject: mm/hugetlb: remove redundant __ClearPageReserved
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-round-robin-bootmem-allocation.patch
+     mm-hugetlb-remove-redundant-__clearpagereserved.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-round-robin-bootmem-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-redundant-__clearpagereserved.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: fix round-robin bootmem allocation
-Date: Thu, 6 Feb 2025 18:50:45 +0000
+Subject: mm/hugetlb: remove redundant __ClearPageReserved
+Date: Thu, 6 Feb 2025 18:50:46 +0000
 
-Commit b5389086ad7b ("hugetlbfs: extend the definition of hugepages
-parameter to support node allocation") changed the NUMA_NO_NODE
-round-robin allocation behavior in case of a failure to allocate from one
-NUMA node.  The code originally moved on to the next node to try again,
-but now it immediately breaks out of the loop.
+In hugetlb_folio_init_tail_vmemmap, the reserved flag is cleared for the
+tail page just before it is zeroed out, which is redundant.  Remove the
+__ClearPageReserved call.
 
-Restore the original behavior.
-
-Link: https://lkml.kernel.org/r/20250206185109.1210657-6-fvdl@google.com
-Fixes: b5389086ad7b ("hugetlbfs: extend the definition of hugepages parameter to support node allocation")
+Link: https://lkml.kernel.org/r/20250206185109.1210657-7-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -87,52 +81,23 @@ Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-round-robin-bootmem-allocation
+--- a/mm/hugetlb.c~mm-hugetlb-remove-redundant-__clearpagereserved
 +++ a/mm/hugetlb.c
-@@ -3156,16 +3156,13 @@ int __alloc_bootmem_huge_page(struct hst
- 		m = memblock_alloc_try_nid_raw(
- 				huge_page_size(h), huge_page_size(h),
- 				0, MEMBLOCK_ALLOC_ACCESSIBLE, node);
--		/*
--		 * Use the beginning of the huge page to store the
--		 * huge_bootmem_page struct (until gather_bootmem
--		 * puts them into the mem_map).
--		 */
--		if (!m)
--			return 0;
--		goto found;
-+		if (m)
-+			break;
- 	}
+@@ -3202,7 +3202,6 @@ static void __init hugetlb_folio_init_ta
+ 	for (pfn = head_pfn + start_page_number; pfn < end_pfn; pfn++) {
+ 		struct page *page = pfn_to_page(pfn);
  
-+	if (!m)
-+		return 0;
-+
- found:
- 
- 	/*
-@@ -3177,7 +3174,14 @@ found:
- 	 */
- 	memblock_reserved_mark_noinit(virt_to_phys((void *)m + PAGE_SIZE),
- 		huge_page_size(h) - PAGE_SIZE);
--	/* Put them into a private list first because mem_map is not up yet */
-+	/*
-+	 * Use the beginning of the huge page to store the
-+	 * huge_bootmem_page struct (until gather_bootmem
-+	 * puts them into the mem_map).
-+	 *
-+	 * Put them into a private list first because mem_map
-+	 * is not up yet.
-+	 */
- 	INIT_LIST_HEAD(&m->list);
- 	list_add(&m->list, &huge_boot_pages[node]);
- 	m->hstate = h;
+-		__ClearPageReserved(folio_page(folio, pfn - head_pfn));
+ 		__init_single_page(page, pfn, zone, nid);
+ 		prep_compound_tail((struct page *)folio, pfn - head_pfn);
+ 		ret = page_ref_freeze(page, 1);
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
