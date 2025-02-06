@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08938224AFB
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 251B22253E9
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738828653; cv=none; b=Yw7nIbb0d5XO29ZdBorVRvvWztBRmPeJHvp99oDTzXHtqsVObcUubG5z+70Mlp6lf7iANBsmE3iJSmQFKcs0sfKXG3RRh2Tff/SfpPy8+ETz+jtuPhBeq7mEFNTA3hf8VSt5kCri3tH77xFK5KXHEUcuULuNRVQCnGx3xdHBaFw=
+	t=1738828655; cv=none; b=DGYGY9L6jjrQaZy7DYzn01LlkfbTIuot0FURfwg5PEnz7pRgRRmJB8PN5eD2Rax6OoX3w2eedy4kBPGm4ykaLN5qu9Ub3Xhgud/mgUjBd24vwPThcWYGJF9KhD3v4YCW4RVp+Evxj/WmIkxgFm5wD5YaxPnffBKvwke4IrGtnpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738828653; c=relaxed/simple;
-	bh=iKbNqm0jWb0Q+mAXXDlReROUx2ruj743W7VLs13O000=;
-	h=Date:To:From:Subject:Message-Id; b=DriYSdIK/pbBuH3zMs8BchIzWTB9eW21xlb0dMmblApnDbGvhkfO0AAH+XKkKZ/RzfBAKvyyw0cOvef5TtvUagD1uTsCjSpL5aqSV8myk+aQMi8lt1CWkuy2jvCsWqGARo25F0CYpd+6TkilBOHWyS/IULbNZipHercwCTYUW2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ro1wRCTu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738828655; c=relaxed/simple;
+	bh=4e6M2H3a0mG7YmUHsd/yRZtezwN7tZJoZjGZB4vWgVc=;
+	h=Date:To:From:Subject:Message-Id; b=CFrK2S86bpZX4Z2a7Y874Fnf+KoZ1L7kQzY5dNmoQmWyX0Lyvlr15P9Kc6a6fpbBf0BcvEdrNM+tWRw9ecaduTqghxbv+gDWoVwvgUrJEvD7GxWWykMPCfNG/Yd4aFOynI9/B6wHG1IrBcE52iO9C6g0vyL12TlgE7NJ9isc3hU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QBNNHajB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ro1wRCTu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B04F7C4CEDD;
-	Thu,  6 Feb 2025 07:57:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QBNNHajB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82D8CC4CEDD;
+	Thu,  6 Feb 2025 07:57:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738828652;
-	bh=iKbNqm0jWb0Q+mAXXDlReROUx2ruj743W7VLs13O000=;
+	s=korg; t=1738828654;
+	bh=4e6M2H3a0mG7YmUHsd/yRZtezwN7tZJoZjGZB4vWgVc=;
 	h=Date:To:From:Subject:From;
-	b=Ro1wRCTuM1u1a+IgOEuO8JCJ+z3/Jm47pbzT0wECoaYXvpamIc1i6n4GloF+DObxs
-	 213hXeS/a/BWW+n7dTM9Z5E8Kmnl8oP9WKL2o+/XM/0N60gFPasObMXbcSdexm9ZYE
-	 lD6q9+4LQn7wIJNglgRyA95zBauP1yVNS/jdHYBw=
-Date: Wed, 05 Feb 2025 23:57:32 -0800
+	b=QBNNHajBA2XeAFCfHJrOl4MITHvtEeNBWJYSq+pg020GEnZK4pR3TrkiET3ih7mUW
+	 qYtRgHGKehrBvMTCTlUoLsGOhwDpXjesrdAxrR3TgEDig4xw1Ymhd+yhSiVtub9Mug
+	 D5d0JYC26NyDeqXL+axLCbx7c6ZvTSXHhn50MM7w=
+Date: Wed, 05 Feb 2025 23:57:34 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch added to mm-unstable branch
-Message-Id: <20250206075732.B04F7C4CEDD@smtp.kernel.org>
+Subject: + mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch added to mm-unstable branch
+Message-Id: <20250206075734.82D8CC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: skip scanning cluster range if it's empty cluster
+     Subject: mm/swap: rename swap_is_has_cache() to swap_only_has_cache()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch
+     mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swap: skip scanning cluster range if it's empty cluster
-Date: Wed, 5 Feb 2025 17:27:13 +0800
+Subject: mm/swap: rename swap_is_has_cache() to swap_only_has_cache()
+Date: Wed, 5 Feb 2025 17:27:14 +0800
 
-Since ci->lock has been taken when isolating cluster from
-si->free_clusters or taking si->percpu_cluster->next[order], it's
-unnecessary to scan and check the cluster range availability if i'ts empty
-cluster, and this can accelerate the huge page swapping.
+There are two predicates in the name of swap_is_has_cache() which is
+confusing.  Renaming it to remove the confusion and can better reflect its
+functionality.
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-5-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250205092721.9395-6-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Chis Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/swapfile.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-skip-scanning-cluster-range-if-its-empty-cluster
+--- a/mm/swapfile.c~mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache
 +++ a/mm/swapfile.c
-@@ -729,6 +729,9 @@ static bool cluster_scan_range(struct sw
- 	unsigned long offset, end = start + nr_pages;
- 	unsigned char *map = si->swap_map;
+@@ -161,7 +161,7 @@ static long swap_usage_in_pages(struct s
+ /* Reclaim directly, bypass the slot cache and don't touch device lock */
+ #define TTRS_DIRECT		0x8
  
-+	if (cluster_is_empty(ci))
-+		return true;
-+
- 	for (offset = start; offset < end; offset++) {
- 		switch (READ_ONCE(map[offset])) {
- 		case 0:
+-static bool swap_is_has_cache(struct swap_info_struct *si,
++static bool swap_only_has_cache(struct swap_info_struct *si,
+ 			      unsigned long offset, int nr_pages)
+ {
+ 	unsigned char *map = si->swap_map + offset;
+@@ -243,7 +243,7 @@ static int __try_to_reclaim_swap(struct
+ 	 * reference or pending writeback, and can't be allocated to others.
+ 	 */
+ 	ci = lock_cluster(si, offset);
+-	need_reclaim = swap_is_has_cache(si, offset, nr_pages);
++	need_reclaim = swap_only_has_cache(si, offset, nr_pages);
+ 	unlock_cluster(ci);
+ 	if (!need_reclaim)
+ 		goto out_unlock;
+@@ -1572,7 +1572,7 @@ void put_swap_folio(struct folio *folio,
+ 		return;
+ 
+ 	ci = lock_cluster(si, offset);
+-	if (swap_is_has_cache(si, offset, size))
++	if (swap_only_has_cache(si, offset, size))
+ 		swap_entry_range_free(si, ci, entry, size);
+ 	else {
+ 		for (int i = 0; i < size; i++, entry.val++) {
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
