@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A4E225415
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08938224AFB
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738828651; cv=none; b=I0ri9N4qSuAPSWxVOQgavb7OdWIFB4pKodYBukZZg5DDxaG26ECPeVo6fFQddf7bGVIZ2CdJC+CXOuxa5SN/mrLSM/YyiGiUWQvhtllVc7jcypiy6PzuIw9+u6Txw0LGj0QBhhV/22dbIWr/DSQJyEkBmj4Vcr0IHnToJ0ESRIY=
+	t=1738828653; cv=none; b=Yw7nIbb0d5XO29ZdBorVRvvWztBRmPeJHvp99oDTzXHtqsVObcUubG5z+70Mlp6lf7iANBsmE3iJSmQFKcs0sfKXG3RRh2Tff/SfpPy8+ETz+jtuPhBeq7mEFNTA3hf8VSt5kCri3tH77xFK5KXHEUcuULuNRVQCnGx3xdHBaFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738828651; c=relaxed/simple;
-	bh=PvtsbNfDWjstMItOLJtgb+fEe0ipnbKg3PXQxzSamuk=;
-	h=Date:To:From:Subject:Message-Id; b=OCUrTsKWHgrxx89QTB7gFdsbIG9lKt8GepPzg0RgMoEWHJZRQpQ/uBOXwl9pwBkCixtZk/WVBYO2Ors99IhjzrGiIceGDnESGqkVujFRB4gfeGoRCPPRC6d5qFI3zI4ekDPaza1P586qI5vs5KAIcehX+rACAfM3H/kvdL/Nv7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eigUj2pW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738828653; c=relaxed/simple;
+	bh=iKbNqm0jWb0Q+mAXXDlReROUx2ruj743W7VLs13O000=;
+	h=Date:To:From:Subject:Message-Id; b=DriYSdIK/pbBuH3zMs8BchIzWTB9eW21xlb0dMmblApnDbGvhkfO0AAH+XKkKZ/RzfBAKvyyw0cOvef5TtvUagD1uTsCjSpL5aqSV8myk+aQMi8lt1CWkuy2jvCsWqGARo25F0CYpd+6TkilBOHWyS/IULbNZipHercwCTYUW2E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ro1wRCTu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eigUj2pW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8083CC4CEE0;
-	Thu,  6 Feb 2025 07:57:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ro1wRCTu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B04F7C4CEDD;
+	Thu,  6 Feb 2025 07:57:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738828650;
-	bh=PvtsbNfDWjstMItOLJtgb+fEe0ipnbKg3PXQxzSamuk=;
+	s=korg; t=1738828652;
+	bh=iKbNqm0jWb0Q+mAXXDlReROUx2ruj743W7VLs13O000=;
 	h=Date:To:From:Subject:From;
-	b=eigUj2pWGWqY718gwix6qjAAq10GoWRJDg53caNX9mfyQCZr7EfWd9nVPZYCvKXoj
-	 hv5/cih6EhyjzCxQdGqEKWFBpuMMQnWeo+ehlz8O0sN0r2MNT9mgez9awPt3NGc/+7
-	 RAQtUCHkhYp18Xai0aETyfgEkJUTC/VTDUYYYEC4=
-Date: Wed, 05 Feb 2025 23:57:29 -0800
+	b=Ro1wRCTuM1u1a+IgOEuO8JCJ+z3/Jm47pbzT0wECoaYXvpamIc1i6n4GloF+DObxs
+	 213hXeS/a/BWW+n7dTM9Z5E8Kmnl8oP9WKL2o+/XM/0N60gFPasObMXbcSdexm9ZYE
+	 lD6q9+4LQn7wIJNglgRyA95zBauP1yVNS/jdHYBw=
+Date: Wed, 05 Feb 2025 23:57:32 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-swap_flag_prio_shift.patch added to mm-unstable branch
-Message-Id: <20250206075730.8083CC4CEE0@smtp.kernel.org>
+Subject: + mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch added to mm-unstable branch
+Message-Id: <20250206075732.B04F7C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: remove SWAP_FLAG_PRIO_SHIFT
+     Subject: mm/swap: skip scanning cluster range if it's empty cluster
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-remove-swap_flag_prio_shift.patch
+     mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-swap_flag_prio_shift.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swap: remove SWAP_FLAG_PRIO_SHIFT
-Date: Wed, 5 Feb 2025 17:27:12 +0800
+Subject: mm/swap: skip scanning cluster range if it's empty cluster
+Date: Wed, 5 Feb 2025 17:27:13 +0800
 
-It doesn't make sense to have a zero value of shift.  Remove it to avoid
-confusion.
+Since ci->lock has been taken when isolating cluster from
+si->free_clusters or taking si->percpu_cluster->next[order], it's
+unnecessary to scan and check the cluster range availability if i'ts empty
+cluster, and this can accelerate the huge page swapping.
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-4-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250205092721.9395-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Chis Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/swapfile.c        |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/swapfile.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/swap.h~mm-swap-remove-swap_flag_prio_shift
-+++ a/include/linux/swap.h
-@@ -24,7 +24,6 @@ struct pagevec;
- 
- #define SWAP_FLAG_PREFER	0x8000	/* set if swap priority specified */
- #define SWAP_FLAG_PRIO_MASK	0x7fff
--#define SWAP_FLAG_PRIO_SHIFT	0
- #define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
- #define SWAP_FLAG_DISCARD_ONCE	0x20000 /* discard swap area at swapon-time */
- #define SWAP_FLAG_DISCARD_PAGES 0x40000 /* discard page-clusters after use */
---- a/mm/swapfile.c~mm-swap-remove-swap_flag_prio_shift
+--- a/mm/swapfile.c~mm-swap-skip-scanning-cluster-range-if-its-empty-cluster
 +++ a/mm/swapfile.c
-@@ -3449,8 +3449,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	mutex_lock(&swapon_mutex);
- 	prio = -1;
- 	if (swap_flags & SWAP_FLAG_PREFER)
--		prio =
--		  (swap_flags & SWAP_FLAG_PRIO_MASK) >> SWAP_FLAG_PRIO_SHIFT;
-+		prio = swap_flags & SWAP_FLAG_PRIO_MASK;
- 	enable_swap_info(si, prio, swap_map, cluster_info, zeromap);
+@@ -729,6 +729,9 @@ static bool cluster_scan_range(struct sw
+ 	unsigned long offset, end = start + nr_pages;
+ 	unsigned char *map = si->swap_map;
  
- 	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
++	if (cluster_is_empty(ci))
++		return true;
++
+ 	for (offset = start; offset < end; offset++) {
+ 		switch (READ_ONCE(map[offset])) {
+ 		case 0:
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
