@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A70B2253F8
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62E092253F8
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738828662; cv=none; b=XalxIM3oX4k8e5n947+MQgQNdul9aoAc0QWHIe0XtA1kvTn+bsGnHuZVWOhXCNOAa8IIg3xMIb8+4bR6dTTXophTmDHXgHttV6KgqEhJPe0+UvNLZjYn9QbIfUHxybrDfd204ZX41DuJ9ZbB0hEDI+5UIKqhhK37sY7D+PI/qsA=
+	t=1738828665; cv=none; b=p7EAtLMATRe4VOua/9o+V1ws3xcN/rU38tDl6WpOVCmAIHBbu/x5f2d8lC7HRuChubBj7myL/pNtgAXZEJRyeroQBY0sVTEUPw37iZUpz2PpWczQ51Y/QSGkvFoMC8EW9FvBlqUxfSZdd4qXFps+Owj2YH4Ee1MQSWSR6H8tFYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738828662; c=relaxed/simple;
-	bh=uYWtPlIGJRWnUqF34XbSnm487FZjsKNeLP/PIlh8rQs=;
-	h=Date:To:From:Subject:Message-Id; b=aRv34B1aPrlGvD40fF+o2waeSUsAcuW084bDzd2afBeCCXoCEtnouQxWGpJxyogaUjGgDhg/895dLIUK2nlPOA3q9M3i305Ghw769yUQizOUju4TzoweQJHYCpptl5mjrxiEAF1ueBml4FQMsanE69+xBd6uN18CfMq00SkvnfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kL5LzrWK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738828665; c=relaxed/simple;
+	bh=no5ZhfiABRWchS6ZIeIWt98iyhzbobSINx6pzu34/IQ=;
+	h=Date:To:From:Subject:Message-Id; b=oYOnrqOIsOWY0c8+xpcmo+6S7wguFjsTv/LpeuilS9IzXTvggORLiiB9h8B2qzDnCzvMWRVp5h+OiU3AVauu6ifOHfJCYqpJXIA0FGGh28B2KA24ofFzj5M1ySwwZ8gQL+oRUfXxCS2/HnuAo0+bWxVLl3AmC67y4XEfgkL9liQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2Xa9/nc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kL5LzrWK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3F81C4CEDD;
-	Thu,  6 Feb 2025 07:57:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2Xa9/nc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF59FC4CEDD;
+	Thu,  6 Feb 2025 07:57:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738828662;
-	bh=uYWtPlIGJRWnUqF34XbSnm487FZjsKNeLP/PIlh8rQs=;
+	s=korg; t=1738828663;
+	bh=no5ZhfiABRWchS6ZIeIWt98iyhzbobSINx6pzu34/IQ=;
 	h=Date:To:From:Subject:From;
-	b=kL5LzrWKT1TLP8rx5+CshOc3gKNDjlVgOZdDQzPxQYupynoJB7HZGavAUHTPgCF4x
-	 KQutQzzOaRd/7XvvWFWB7zN47BK9nvxV03kpB3k53Z705TMqYW8wvBdn29ZB88pMeP
-	 d1TKfps1vujd9bgyNlaHio7TjZqYQC9AzQgvwMe4=
-Date: Wed, 05 Feb 2025 23:57:41 -0800
+	b=E2Xa9/nc1uZeuRnE/PKzotZFXkpYBZBCkaWaJHUvTbj/cO7MkUKG/rhu4u8MLfrFn
+	 NkQpb88Ve6Q82FOY/2ssj5zIfCQIQQpu9o1w0UY1QfQjqKyyrzwgeudW/RkgW5ixK2
+	 uGfLjE6w6nzKpoAw8fbyQwZPlh8fpmk7MxvR4RKk=
+Date: Wed, 05 Feb 2025 23:57:43 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfilec-remove-the-unneeded-checking.patch added to mm-unstable branch
-Message-Id: <20250206075741.E3F81C4CEDD@smtp.kernel.org>
+Subject: + mm-swap-rename-swap_swapcount-to-swap_entry_swapped.patch added to mm-unstable branch
+Message-Id: <20250206075743.BF59FC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swapfile.c: remove the unneeded checking
+     Subject: mm/swap: rename swap_swapcount() to swap_entry_swapped()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfilec-remove-the-unneeded-checking.patch
+     mm-swap-rename-swap_swapcount-to-swap_entry_swapped.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-remove-the-unneeded-checking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-rename-swap_swapcount-to-swap_entry_swapped.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swapfile.c: remove the unneeded checking
-Date: Wed, 5 Feb 2025 17:27:18 +0800
+Subject: mm/swap: rename swap_swapcount() to swap_entry_swapped()
+Date: Wed, 5 Feb 2025 17:27:19 +0800
 
-In free_swap_and_cache_nr(), invocation of get_swap_device() has done the
-checking if it's a swap entry.  So remove the redundant checking here.
+The new function name can reflect the real behaviour of the function more
+clearly and more accurately.  And the renaming avoids the confusion
+between swap_swapcount() and swp_swapcount().
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-10-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250205092721.9395-11-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Chis Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/swap.h |    6 +++---
+ mm/swap_state.c      |    2 +-
+ mm/swapfile.c        |    6 +++---
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-remove-the-unneeded-checking
-+++ a/mm/swapfile.c
-@@ -1784,9 +1784,6 @@ void free_swap_and_cache_nr(swp_entry_t
- 	bool any_only_cache = false;
- 	unsigned long offset;
+--- a/include/linux/swap.h~mm-swap-rename-swap_swapcount-to-swap_entry_swapped
++++ a/include/linux/swap.h
+@@ -500,7 +500,7 @@ int find_first_swap(dev_t *device);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t swapdev_block(int, pgoff_t);
+ extern int __swap_count(swp_entry_t entry);
+-extern int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry);
++extern bool swap_entry_swapped(struct swap_info_struct *si, swp_entry_t entry);
+ extern int swp_swapcount(swp_entry_t entry);
+ struct swap_info_struct *swp_swap_info(swp_entry_t entry);
+ struct backing_dev_info;
+@@ -583,9 +583,9 @@ static inline int __swap_count(swp_entry
+ 	return 0;
+ }
  
--	if (non_swap_entry(entry))
--		return;
--
- 	si = get_swap_device(entry);
- 	if (!si)
- 		return;
+-static inline int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
++static inline bool swap_entry_swapped(struct swap_info_struct *si, swp_entry_t entry)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ static inline int swp_swapcount(swp_entry_t entry)
+--- a/mm/swapfile.c~mm-swap-rename-swap_swapcount-to-swap_entry_swapped
++++ a/mm/swapfile.c
+@@ -1615,7 +1615,7 @@ int __swap_count(swp_entry_t entry)
+  * This does not give an exact answer when swap count is continued,
+  * but does include the high COUNT_CONTINUED flag to allow for that.
+  */
+-int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
++bool swap_entry_swapped(struct swap_info_struct *si, swp_entry_t entry)
+ {
+ 	pgoff_t offset = swp_offset(entry);
+ 	struct swap_cluster_info *ci;
+@@ -1624,7 +1624,7 @@ int swap_swapcount(struct swap_info_stru
+ 	ci = lock_cluster(si, offset);
+ 	count = swap_count(si->swap_map[offset]);
+ 	unlock_cluster(ci);
+-	return count;
++	return !!count;
+ }
+ 
+ /*
+@@ -1710,7 +1710,7 @@ static bool folio_swapped(struct folio *
+ 		return false;
+ 
+ 	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
+-		return swap_swapcount(si, entry) != 0;
++		return swap_entry_swapped(si, entry);
+ 
+ 	return swap_page_trans_huge_swapped(si, entry, folio_order(folio));
+ }
+--- a/mm/swap_state.c~mm-swap-rename-swap_swapcount-to-swap_entry_swapped
++++ a/mm/swap_state.c
+@@ -457,7 +457,7 @@ struct folio *__read_swap_cache_async(sw
+ 		 * as SWAP_HAS_CACHE.  That's done in later part of code or
+ 		 * else swap_off will be aborted if we return NULL.
+ 		 */
+-		if (!swap_swapcount(si, entry) && swap_slot_cache_enabled)
++		if (!swap_entry_swapped(si, entry) && swap_slot_cache_enabled)
+ 			goto put_and_return;
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
