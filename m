@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDFE4224882
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:40:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E9AA2248B5
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:40:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738827638; cv=none; b=V0Jz2TTwjfsFcqnk19UF3V4HhtjZQm5yoE+ZV2YpuR/3lLUFV0jr9+1bDgz9Yb0LBzwz/VjERtOm/ce8MhVNhJpW1RAns4+WgBLDy6l+QnvMb+x/x0tuBDCBCqVoFguojCwKfHBugaMZSO9FNEt2IjjRnXdkf9dg5pQErEWTnwY=
+	t=1738827641; cv=none; b=R97MG9tSJSUh/Onj1MPJiy1D92De7IeSvxZbshYzp3WuEoWpCcICayjrDNgBtoS1wVjD6amf9SSAcMtIl5NMCalcU7+8H/yPDi+6hp1schSxWulrTOogrGmjOkOb3GFMst20bZJk3CkkZ5+3JsP6EsPztPAVnaiCIk4dy5DOmTc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738827638; c=relaxed/simple;
-	bh=i94q2gCf47YfdSn63yPrCCn6Rv6AcFFuz+QQIotvmfA=;
-	h=Date:To:From:Subject:Message-Id; b=J/zpVL6lm8Sh92IoK38PKE97E5TQLskTet7XvahzrqgleG2aro2mbWzV033YMQw0fmsMuJ/7n4+fW3+zMamyFdpnXOdrc+mbJ5JC+blm343pKCwHbbCqZdSba8Xrfmf+DgfMyNTiM+HX5q4gZFAiqE3tI7lYAbm3QmfaTMQpEEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gakezdy4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738827641; c=relaxed/simple;
+	bh=Mkyb/6nN5rp8vm8eWLinFdJO6kw2Eg2JEvMO3+UyHXc=;
+	h=Date:To:From:Subject:Message-Id; b=ZSRD4bRdR5EAP65KqyB1wVObpnX6nlYxAxuv9zrTPnnGecrSG6h5vnPDjs77QiYjLX5TYOt9eImVx8kNrTHD+T6cdIGSNzW+hepRN4uNf0mFRccpYPAvfwflQ1NpCrr9OACgNn1mA2Vm49CuaSmg8a/4FWhII0708jChcMUxA1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1mZYFxtV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gakezdy4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A22C4CEDD;
-	Thu,  6 Feb 2025 07:40:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1mZYFxtV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCB55C4CEDD;
+	Thu,  6 Feb 2025 07:40:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738827637;
-	bh=i94q2gCf47YfdSn63yPrCCn6Rv6AcFFuz+QQIotvmfA=;
+	s=korg; t=1738827640;
+	bh=Mkyb/6nN5rp8vm8eWLinFdJO6kw2Eg2JEvMO3+UyHXc=;
 	h=Date:To:From:Subject:From;
-	b=gakezdy4ec8502aDdlt4gLfLR5fjFFj687xQ2wFnt+1SOpNOvQhYOlvrEsPQXlu8j
-	 uHIEVY6rlCgFm72u7N/O3Kk/Si2H02lusAqB45UyU3wDtzQlyGftk23HfDv7uW2V9/
-	 6C8RnoDgXNkzlQbMN0jVbVLaHI3sKR3UtqKX6+TM=
-Date: Wed, 05 Feb 2025 23:40:37 -0800
+	b=1mZYFxtVINuDgQdHM+IgOVrs+R7EM34Tx28to/EdLYI0wYnTf7SvR5CLSQiChNkR6
+	 7O3ZOofT3m4ewPYf9ZdjRY3IYXh/HiGNuuxUwZaG3neYUkV74YDp4xfEhjp6AHRoVi
+	 zt7urLHSjF3SLC1T0T5PSiNHlt6UhwLZda18kH00=
+Date: Wed, 05 Feb 2025 23:40:39 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,dave@stgolabs.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-split-out-madvise-input-validity-check.patch added to mm-unstable branch
-Message-Id: <20250206074037.B3A22C4CEDD@smtp.kernel.org>
+Subject: + mm-madvise-split-out-madvise-behavior-execution.patch added to mm-unstable branch
+Message-Id: <20250206074040.CCB55C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: split out madvise input validity check
+     Subject: mm/madvise: split out madvise() behavior execution
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-split-out-madvise-input-validity-check.patch
+     mm-madvise-split-out-madvise-behavior-execution.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-split-out-madvise-input-validity-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-split-out-madvise-behavior-execution.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,78 +59,102 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: split out madvise input validity check
-Date: Wed, 5 Feb 2025 22:15:15 -0800
+Subject: mm/madvise: split out madvise() behavior execution
+Date: Wed, 5 Feb 2025 22:15:16 -0800
 
-Split out the madvise parameters validation logic from do_madvise(), for
-easy reuse of the logic from a future change.
+Split out the madvise behavior applying logic from do_madvise() to make
+it easier to reuse from the following change.
 
-Link: https://lkml.kernel.org/r/20250206061517.2958-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250206061517.2958-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ mm/madvise.c |   53 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 30 insertions(+), 23 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-split-out-madvise-input-validity-check
+--- a/mm/madvise.c~mm-madvise-split-out-madvise-behavior-execution
 +++ a/mm/madvise.c
-@@ -1601,6 +1601,27 @@ static void madvise_unlock(struct mm_str
- 		mmap_read_unlock(mm);
+@@ -1622,6 +1622,35 @@ static bool is_valid_madvise(unsigned lo
+ 	return true;
  }
  
-+static bool is_valid_madvise(unsigned long start, size_t len_in, int behavior)
++static int madvise_do_behavior(struct mm_struct *mm,
++		unsigned long start, size_t len_in, size_t len, int behavior)
 +{
-+	size_t len;
++	struct blk_plug plug;
++	unsigned long end;
++	int error;
 +
-+	if (!madvise_behavior_valid(behavior))
-+		return false;
++#ifdef CONFIG_MEMORY_FAILURE
++	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE)
++		return madvise_inject_error(behavior, start, start + len_in);
++#endif
++	start = untagged_addr_remote(mm, start);
++	end = start + len;
 +
-+	if (!PAGE_ALIGNED(start))
-+		return false;
-+	len = PAGE_ALIGN(len_in);
-+
-+	/* Check to see whether len was rounded up from small -ve to zero */
-+	if (len_in && !len)
-+		return false;
-+
-+	if (start + len < start)
-+		return false;
-+
-+	return true;
++	blk_start_plug(&plug);
++	switch (behavior) {
++	case MADV_POPULATE_READ:
++	case MADV_POPULATE_WRITE:
++		error = madvise_populate(mm, start, end, behavior);
++		break;
++	default:
++		error = madvise_walk_vmas(mm, start, end, behavior,
++					  madvise_vma_behavior);
++		break;
++	}
++	blk_finish_plug(&plug);
++	return error;
 +}
 +
  /*
   * The madvise(2) system call.
   *
-@@ -1680,20 +1701,11 @@ int do_madvise(struct mm_struct *mm, uns
+@@ -1699,7 +1728,6 @@ int do_madvise(struct mm_struct *mm, uns
+ 	unsigned long end;
+ 	int error;
  	size_t len;
- 	struct blk_plug plug;
+-	struct blk_plug plug;
  
--	if (!madvise_behavior_valid(behavior))
-+	if (!is_valid_madvise(start, len_in, behavior))
+ 	if (!is_valid_madvise(start, len_in, behavior))
  		return -EINVAL;
- 
--	if (!PAGE_ALIGNED(start))
--		return -EINVAL;
- 	len = PAGE_ALIGN(len_in);
+@@ -1713,28 +1741,7 @@ int do_madvise(struct mm_struct *mm, uns
+ 	error = madvise_lock(mm, behavior);
+ 	if (error)
+ 		return error;
 -
--	/* Check to see whether len was rounded up from small -ve to zero */
--	if (len_in && !len)
--		return -EINVAL;
+-#ifdef CONFIG_MEMORY_FAILURE
+-	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE)
+-		return madvise_inject_error(behavior, start, start + len_in);
+-#endif
 -
- 	end = start + len;
--	if (end < start)
--		return -EINVAL;
+-	start = untagged_addr_remote(mm, start);
+-	end = start + len;
+-
+-	blk_start_plug(&plug);
+-	switch (behavior) {
+-	case MADV_POPULATE_READ:
+-	case MADV_POPULATE_WRITE:
+-		error = madvise_populate(mm, start, end, behavior);
+-		break;
+-	default:
+-		error = madvise_walk_vmas(mm, start, end, behavior,
+-					  madvise_vma_behavior);
+-		break;
+-	}
+-	blk_finish_plug(&plug);
+-
++	error = madvise_do_behavior(mm, start, len_in, len, behavior);
+ 	madvise_unlock(mm, behavior);
  
- 	if (end == start)
- 		return 0;
+ 	return error;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
