@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBC902253F8
-	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A70B2253F8
+	for <mm-commits@vger.kernel.org>; Thu,  6 Feb 2025 07:57:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738828660; cv=none; b=sSaImWZ8qNZAQdSlEfnKR6Uxkefj/4JdfGZWhMZkj9GxIVp0US1YHJWL1PKUlCs7LkjqC/FaLJhBKY8gRXkt7tV111+owH1+nGdB3QdMoSdj4JCIi+3y2nh8xLbR7Pil+hSX1y+NS67kNLC7qJkeACcBlWaxW/afo7gTCwQ8Tg8=
+	t=1738828662; cv=none; b=XalxIM3oX4k8e5n947+MQgQNdul9aoAc0QWHIe0XtA1kvTn+bsGnHuZVWOhXCNOAa8IIg3xMIb8+4bR6dTTXophTmDHXgHttV6KgqEhJPe0+UvNLZjYn9QbIfUHxybrDfd204ZX41DuJ9ZbB0hEDI+5UIKqhhK37sY7D+PI/qsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738828660; c=relaxed/simple;
-	bh=SFrctGadRCX9UBT/LbTLGmE4MgzwHpAZCztQgmjot7g=;
-	h=Date:To:From:Subject:Message-Id; b=LYchP5zuPQe9NdC3qzwg7rpxVa453yPYWp4xeQpuYo9SF4SaxE41WsTw9ZJbYoTJcnTpDmueJFfSl004UhqYruzCsB/Bcl9q7RbVzJ8tq2iTmEMpHzBNrMHab5CLOV96AzObqfz21ixANj7LcDvVp97a02smvXobYtst0La/eXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fFzikEGV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738828662; c=relaxed/simple;
+	bh=uYWtPlIGJRWnUqF34XbSnm487FZjsKNeLP/PIlh8rQs=;
+	h=Date:To:From:Subject:Message-Id; b=aRv34B1aPrlGvD40fF+o2waeSUsAcuW084bDzd2afBeCCXoCEtnouQxWGpJxyogaUjGgDhg/895dLIUK2nlPOA3q9M3i305Ghw769yUQizOUju4TzoweQJHYCpptl5mjrxiEAF1ueBml4FQMsanE69+xBd6uN18CfMq00SkvnfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kL5LzrWK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fFzikEGV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BB96C4CEDD;
-	Thu,  6 Feb 2025 07:57:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kL5LzrWK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3F81C4CEDD;
+	Thu,  6 Feb 2025 07:57:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738828660;
-	bh=SFrctGadRCX9UBT/LbTLGmE4MgzwHpAZCztQgmjot7g=;
+	s=korg; t=1738828662;
+	bh=uYWtPlIGJRWnUqF34XbSnm487FZjsKNeLP/PIlh8rQs=;
 	h=Date:To:From:Subject:From;
-	b=fFzikEGVH/uOmG/sHzoaIhUdimAdUyPaggLXTAzQHnWae7WF8BYsz1nykfqwfbY27
-	 Cigw7C0EnSh4JaX1W7reGWqNWpjkmGY5cnxf8WA45WG+t8U3jjtHoEl9CbokEpqhj7
-	 BFtNn8tyOzAcb2ZhM2L7fUk0esLiyBGb3ESElLGE=
-Date: Wed, 05 Feb 2025 23:57:39 -0800
+	b=kL5LzrWKT1TLP8rx5+CshOc3gKNDjlVgOZdDQzPxQYupynoJB7HZGavAUHTPgCF4x
+	 KQutQzzOaRd/7XvvWFWB7zN47BK9nvxV03kpB3k53Z705TMqYW8wvBdn29ZB88pMeP
+	 d1TKfps1vujd9bgyNlaHio7TjZqYQC9AzQgvwMe4=
+Date: Wed, 05 Feb 2025 23:57:41 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap_statec-remove-the-meaningless-code-comment.patch added to mm-unstable branch
-Message-Id: <20250206075740.2BB96C4CEDD@smtp.kernel.org>
+Subject: + mm-swapfilec-remove-the-unneeded-checking.patch added to mm-unstable branch
+Message-Id: <20250206075741.E3F81C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap_state.c: remove the meaningless code comment
+     Subject: mm/swapfile.c: remove the unneeded checking
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap_statec-remove-the-meaningless-code-comment.patch
+     mm-swapfilec-remove-the-unneeded-checking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_statec-remove-the-meaningless-code-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-remove-the-unneeded-checking.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swap_state.c: remove the meaningless code comment
-Date: Wed, 5 Feb 2025 17:27:17 +0800
+Subject: mm/swapfile.c: remove the unneeded checking
+Date: Wed, 5 Feb 2025 17:27:18 +0800
 
-Since commit 8d93b41c09d1 ("mm: Convert add_to_swap_cache to XArray"),
-there's no returned _EEXIT, so the code comment doesn't make sense any
-more.
+In free_swap_and_cache_nr(), invocation of get_swap_device() has done the
+checking if it's a swap entry.  So remove the redundant checking here.
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-9-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250205092721.9395-10-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Chis Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/swapfile.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/swap_state.c~mm-swap_statec-remove-the-meaningless-code-comment
-+++ a/mm/swap_state.c
-@@ -203,10 +203,6 @@ bool add_to_swap(struct folio *folio)
- 	err = add_to_swap_cache(folio, entry,
- 			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN, NULL);
- 	if (err)
--		/*
--		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
--		 * clear SWAP_HAS_CACHE flag.
--		 */
- 		goto fail;
- 	/*
- 	 * Normally the folio will be dirtied in unmap because its
+--- a/mm/swapfile.c~mm-swapfilec-remove-the-unneeded-checking
++++ a/mm/swapfile.c
+@@ -1784,9 +1784,6 @@ void free_swap_and_cache_nr(swp_entry_t
+ 	bool any_only_cache = false;
+ 	unsigned long offset;
+ 
+-	if (non_swap_entry(entry))
+-		return;
+-
+ 	si = get_swap_device(entry);
+ 	if (!si)
+ 		return;
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
