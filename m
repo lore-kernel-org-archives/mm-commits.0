@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFDD61F5FD
-	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 00:40:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8569317E4
+	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 00:45:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738888828; cv=none; b=fCQ9k1Q0PsQuHYQlvRbLPBdd7sSTvaQuPzjtq2sdRDIGEqWwCn8wij3ORIcQ/w4I9ad8OWy8QmbOdtknsvZbN+ch6ZPqAN4gDz0tSCD1p985jAkVWVOK+WGWBe/Rld69I0+pvhNZKxgqzlrSUwSNWcrv4k+mO+PQ5QSUAjd1J7w=
+	t=1738889142; cv=none; b=CJkJNHzDOjYDFRzX2T48Zc4VPVTDG2kOinAvmYGfqTRn0XjoPvJnJmtnZs3kzzpUZPuFll8k2upRrBin+fWL0STzd6elgmo3jozlzU/D64AUbNiMCEnI3Hrnm3Dw8gv2gDIy3kV0Vffb7bqGnjIyvguVTAyxUU3o5ENHgx+hNsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738888828; c=relaxed/simple;
-	bh=m1yPIMGjh6jkPDU3XPLnOwcQ+sfTiAMwqXI6F8vUA1s=;
-	h=Date:To:From:Subject:Message-Id; b=DxToDdQX3CTG9bCzy20L6wa9jhYpKS7F8o0FsmW5VWy2GQpb7diORQ4zClb/1Mawl/SCTUPb4qfyCszdqfkn7rzGSz9mdZJIpHwrPQNkUY4LLVK3D2Yu7Ly6Mta7K7ZSsFzj4Na1jb2sucZlCEOhrLSjqlrjfv4t4dB2Tgxma+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sh+QGFYz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738889142; c=relaxed/simple;
+	bh=D5o7R9PB+mQwF3Ob0vpW2R8P5fredq/09wkD3anl7FE=;
+	h=Date:To:From:Subject:Message-Id; b=iPwee6Qnw3cLpluSguHC/O+fgP/7XlQMVc5s75Cf5/wpIk6g9R5GDWpXNaVSJa1BQJDAL+/Zbr3wJlUoxSAMwqRAkNCw/dAIzMzAfobsNDZBoezzTnfoKuU8rEU2oFu9VDzPA3bYpNgrosr9hqegcgngf7uEpyg++2QbndmSFs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=girqQeYD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sh+QGFYz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B9D7C4CEDD;
-	Fri,  7 Feb 2025 00:40:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="girqQeYD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD573C4CEDD;
+	Fri,  7 Feb 2025 00:45:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738888828;
-	bh=m1yPIMGjh6jkPDU3XPLnOwcQ+sfTiAMwqXI6F8vUA1s=;
+	s=korg; t=1738889141;
+	bh=D5o7R9PB+mQwF3Ob0vpW2R8P5fredq/09wkD3anl7FE=;
 	h=Date:To:From:Subject:From;
-	b=Sh+QGFYzCDCOJWMmJLUCvR9kFFa6svV9JahdoU1aMbKkGG2Qqo+l1AkinGcANPO1u
-	 9siVU9U3tS+9iyxJLnfqsvijTSXBmLFp/5vbKI60tEaJ26GPg6J97XugwF+T0KwBcf
-	 Tp+1p+Dnq4cfAA1Age0W+vl4a6PJnJeyRQsjBrSc=
-Date: Thu, 06 Feb 2025 16:40:27 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,fdmanana@suse.com,dennis@kernel.org,mhocko@suse.com,akpm@linux-foundation.org
+	b=girqQeYDCFqIrBvaznezh9g8Clh33+ZnZ+zQcAz6G+nPeD7xLeaxSxodhu7wLVp3V
+	 1d7XbJHg1A+cppBfr6k00G673WCgv0O1ab1EgIai2eU+6yFYtELGWh3zo5B0ESYuP2
+	 GOYAVT9R06y0t+0K1pjejrTQVSSoRy/h+2JfXFIg=
+Date: Thu, 06 Feb 2025 16:45:40 -0800
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-percpu-do-not-consider-sleepable-allocations-atomic.patch added to mm-unstable branch
-Message-Id: <20250207004028.7B9D7C4CEDD@smtp.kernel.org>
+Subject: + mm-kmemleak-add-support-for-dumping-physical-and-__percpu-object-info.patch added to mm-unstable branch
+Message-Id: <20250207004540.DD573C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, percpu: do not consider sleepable allocations atomic
+     Subject: mm: kmemleak: add support for dumping physical and __percpu object info
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-percpu-do-not-consider-sleepable-allocations-atomic.patch
+     mm-kmemleak-add-support-for-dumping-physical-and-__percpu-object-info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-do-not-consider-sleepable-allocations-atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-add-support-for-dumping-physical-and-__percpu-object-info.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,86 +58,137 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, percpu: do not consider sleepable allocations atomic
-Date: Thu, 6 Feb 2025 13:26:33 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: add support for dumping physical and __percpu object info
+Date: Thu, 6 Feb 2025 11:45:36 +0000
 
-28307d938fb2 ("percpu: make pcpu_alloc() aware of current gfp context")
-has fixed a reclaim recursion for scoped GFP_NOFS context.  It has done
-that by avoiding taking pcpu_alloc_mutex.  This is a correct solution as
-the worker context with full GFP_KERNEL allocation/reclaim power and which
-is using the same lock cannot block the NOFS pcpu_alloc caller.
+Patch series "mm: kmemleak: Usability improvements".
 
-On the other hand this is a very conservative approach that could lead to
-failures because pcpu_alloc lockless implementation is quite limited.
+Following a recent false positive tracking that led to commit 488b5b9eca68
+("mm: kmemleak: fix upper boundary check for physical address objects"), I
+needed kmemleak to give me more debug information about the objects it is
+tracking.  This lead to the first patch of this series.  The second patch
+changes the kmemleak-test module to show the raw pointers for debugging
+purposes.
 
-We have a bug report about premature failures when scsi array of 193
-devices is scanned.  Sometimes (not consistently) the scanning aborts
-because the iscsid daemon fails to create the queue for a random scsi
-device during the scan.  iscsid itslef is running with PR_SET_IO_FLUSHER
-set so all allocations from this process context are GFP_NOIO.  This in
-turn makes any pcpu_alloc lockless (without pcpu_alloc_mutex) which leads
-to pre-mature failures.
 
-It has turned out that iscsid has worked around this by dropping
-PR_SET_IO_FLUSHER (https://github.com/open-iscsi/open-iscsi/pull/382) when
-scanning host.  But we can do better in this case on the kernel side and
-use pcpu_alloc_mutex for NOIO resp.  NOFS constrained allocation scopes
-too.  We just need the WQ worker to never trigger IO/FS reclaim.  Achieve
-that by enforcing scoped GFP_NOIO for the whole execution of
-pcpu_balance_workfn (this will imply NOFS constrain as well).  This will
-remove the dependency chain and preserve the full allocation power of the
-pcpu_alloc call.
+This patch (of 2):
 
-While at it make is_atomic really test for blockable allocations.
+Currently, echo dump=...  > /sys/kernel/debug/kmemleak only looks up the
+main virtual address object tree.  However, for debugging, it's useful to
+dump information about physical address and __percpu objects.
 
-Link: https://lkml.kernel.org/r/20250206122633.167896-1-mhocko@kernel.org
-Fixes: 28307d938fb2 ("percpu: make pcpu_alloc() aware of current gfp context
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Filipe David Manana <fdmanana@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
+Search all three object trees for the dump= command and also print the
+type of the object if not virtual: "(phys)" or "(percpu)".  In addition,
+allow search by alias (pointer within the object).
+
+Link: https://lkml.kernel.org/r/20250206114537.2597764-1-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20250206114537.2597764-2-catalin.marinas@arm.com
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/kmemleak.c |   52 ++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 39 insertions(+), 13 deletions(-)
 
---- a/mm/percpu.c~mm-percpu-do-not-consider-sleepable-allocations-atomic
-+++ a/mm/percpu.c
-@@ -1745,7 +1745,7 @@ void __percpu *pcpu_alloc_noprof(size_t
- 	gfp = current_gfp_context(gfp);
- 	/* whitelisted flags that can be passed to the backing allocators */
- 	pcpu_gfp = gfp & (GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
--	is_atomic = (gfp & GFP_KERNEL) != GFP_KERNEL;
-+	is_atomic = !gfpflags_allow_blocking(gfp);
- 	do_warn = !(gfp & __GFP_NOWARN);
- 
- 	/*
-@@ -2191,7 +2191,12 @@ static void pcpu_balance_workfn(struct w
- 	 * to grow other chunks.  This then gives pcpu_reclaim_populated() time
- 	 * to move fully free chunks to the active list to be freed if
- 	 * appropriate.
-+	 *
-+	 * Enforce GFP_NOIO allocations because we have pcpu_alloc users
-+	 * constrained to GFP_NOIO/NOFS contexts and they could form lock
-+	 * dependency through pcpu_alloc_mutex
- 	 */
-+	unsigned int flags = memalloc_noio_save();
- 	mutex_lock(&pcpu_alloc_mutex);
- 	spin_lock_irq(&pcpu_lock);
- 
-@@ -2202,6 +2207,7 @@ static void pcpu_balance_workfn(struct w
- 
- 	spin_unlock_irq(&pcpu_lock);
- 	mutex_unlock(&pcpu_alloc_mutex);
-+	memalloc_noio_restore(flags);
+--- a/mm/kmemleak.c~mm-kmemleak-add-support-for-dumping-physical-and-__percpu-object-info
++++ a/mm/kmemleak.c
+@@ -352,6 +352,15 @@ static bool unreferenced_object(struct k
+ 			       jiffies_last_scan);
  }
  
- /**
++static const char *__object_type_str(struct kmemleak_object *object)
++{
++	if (object->flags & OBJECT_PHYS)
++		return " (phys)";
++	if (object->flags & OBJECT_PERCPU)
++		return " (percpu)";
++	return "";
++}
++
+ /*
+  * Printing of the unreferenced objects information to the seq file. The
+  * print_unreferenced function must be called with the object->lock held.
+@@ -364,8 +373,9 @@ static void print_unreferenced(struct se
+ 	unsigned int nr_entries;
+ 
+ 	nr_entries = stack_depot_fetch(object->trace_handle, &entries);
+-	warn_or_seq_printf(seq, "unreferenced object 0x%08lx (size %zu):\n",
+-			  object->pointer, object->size);
++	warn_or_seq_printf(seq, "unreferenced object%s 0x%08lx (size %zu):\n",
++			   __object_type_str(object),
++			   object->pointer, object->size);
+ 	warn_or_seq_printf(seq, "  comm \"%s\", pid %d, jiffies %lu\n",
+ 			   object->comm, object->pid, object->jiffies);
+ 	hex_dump_object(seq, object);
+@@ -384,10 +394,10 @@ static void print_unreferenced(struct se
+  */
+ static void dump_object_info(struct kmemleak_object *object)
+ {
+-	pr_notice("Object 0x%08lx (size %zu):\n",
+-			object->pointer, object->size);
++	pr_notice("Object%s 0x%08lx (size %zu):\n",
++		  __object_type_str(object), object->pointer, object->size);
+ 	pr_notice("  comm \"%s\", pid %d, jiffies %lu\n",
+-			object->comm, object->pid, object->jiffies);
++		  object->comm, object->pid, object->jiffies);
+ 	pr_notice("  min_count = %d\n", object->min_count);
+ 	pr_notice("  count = %d\n", object->count);
+ 	pr_notice("  flags = 0x%x\n", object->flags);
+@@ -1998,25 +2008,41 @@ static int kmemleak_open(struct inode *i
+ 	return seq_open(file, &kmemleak_seq_ops);
+ }
+ 
+-static int dump_str_object_info(const char *str)
++static bool __dump_str_object_info(unsigned long addr, unsigned int objflags)
+ {
+ 	unsigned long flags;
+ 	struct kmemleak_object *object;
++
++	object = __find_and_get_object(addr, 1, objflags);
++	if (!object)
++		return false;
++
++	raw_spin_lock_irqsave(&object->lock, flags);
++	dump_object_info(object);
++	raw_spin_unlock_irqrestore(&object->lock, flags);
++
++	put_object(object);
++
++	return true;
++}
++
++static int dump_str_object_info(const char *str)
++{
+ 	unsigned long addr;
++	bool found = false;
+ 
+ 	if (kstrtoul(str, 0, &addr))
+ 		return -EINVAL;
+-	object = find_and_get_object(addr, 0);
+-	if (!object) {
++
++	found |= __dump_str_object_info(addr, 0);
++	found |= __dump_str_object_info(addr, OBJECT_PHYS);
++	found |= __dump_str_object_info(addr, OBJECT_PERCPU);
++
++	if (!found) {
+ 		pr_info("Unknown object at 0x%08lx\n", addr);
+ 		return -EINVAL;
+ 	}
+ 
+-	raw_spin_lock_irqsave(&object->lock, flags);
+-	dump_object_info(object);
+-	raw_spin_unlock_irqrestore(&object->lock, flags);
+-
+-	put_object(object);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
-mm-percpu-do-not-consider-sleepable-allocations-atomic.patch
+mm-kmemleak-add-support-for-dumping-physical-and-__percpu-object-info.patch
+samples-kmemleak-print-the-raw-pointers-for-debugging-purposes.patch
 
