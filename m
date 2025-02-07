@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93006DDA9
-	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 00:30:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F49FDDA9
+	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 00:30:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738888220; cv=none; b=mf9DCaJZdS6t38IvAqmS4m4FD430Yrg7DG6tDlpYk0s6sOEDPOf+7WQro8z9pj9edMscmJUcf9o2cK2RR7z8Q0Kyq/VNW+iQuQuLXqJ8sortnxIKS6W7QthaDXABNEIbEAaMEhdOv7D60gJXHF+aJp+3cJNlDpypm7JDPSdqgSU=
+	t=1738888222; cv=none; b=mCC4jkyEnzjH4OIwXY1ab7SE9c2fUoTwT01K0a57ahvXQhqgPQpNd5HIgNzH/qjzwK6ZQF3F7A2s6gMB1pxhIp5xjMSdCeFl4ehrj2gDL5H3du1RmTjShN1CZSd2UHGRqBaCWn59s9eu9Q+qX+2MNwIDwMmEZSTNRIstRfIEyIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738888220; c=relaxed/simple;
-	bh=J10kHFKTupPwUv9jFu1HVtHuno8S/AZdu3PU/dArRLg=;
-	h=Date:To:From:Subject:Message-Id; b=Hz8e6QYDC09QZwsV62L87ntP2zMlOYX9LeP6PtIwNfIcH/YDoDRnx/t5FSq1/hG/E2bjgh7twJv/j8WGJ/aqd2tJcCzFay4omQAcBvJLKWtRDATREnv8TPiqUXtpk1zks88QVP4YrynzIfmFJeNeSbAmKdHH6YBgh8KQbzt0qvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TzstbJw7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738888222; c=relaxed/simple;
+	bh=hC2RfObrPER5I+7YD0Ns/07Gs5qj4MFnN/2EcLveOOc=;
+	h=Date:To:From:Subject:Message-Id; b=EtZ0hxONCqmuucZUs7pXP3XNf+adNMk56gg1gaXigU9ASBlZdA5ur5mfeGtWqohBUisugJhJJoG2y4kmQQt+kAZc6de0nuBRw31U8rrqc7HwAT5wvmbO53y57VbIeT4kITL+W6+FQYDzBVwLk8eQo7w3bqAJhUfnhxTvLikZBBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oXbZr0XL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TzstbJw7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFEE4C4CEDD;
-	Fri,  7 Feb 2025 00:30:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oXbZr0XL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69DAAC4CEDD;
+	Fri,  7 Feb 2025 00:30:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738888220;
-	bh=J10kHFKTupPwUv9jFu1HVtHuno8S/AZdu3PU/dArRLg=;
+	s=korg; t=1738888222;
+	bh=hC2RfObrPER5I+7YD0Ns/07Gs5qj4MFnN/2EcLveOOc=;
 	h=Date:To:From:Subject:From;
-	b=TzstbJw7j7Ah6pu1pZ0v+piXsKG+ipSnxSp7WWC6j4aHWIl/mP6cgXlnK8Gm/iK8Q
-	 1c6Nowv3g8dahBdAacOKLbMHKmYq2trokHrliEOGd6z+qpUQuCP84CCurd0mBhg3lN
-	 YP6FvVpMAZ2/BpVB2Q1LYsjo0e6TcW+ldnqRXOn4=
-Date: Thu, 06 Feb 2025 16:30:19 -0800
+	b=oXbZr0XL74QF17unugmE6fUSzJIgnFc+1A8QSXP2jbpr6dLiQ5hJ8kq2l7WTqvlJH
+	 AhA92Zw7eEirv2Pr5j6JG1opnQvOXZuKcVY3xdif1ZsfUxdxaknAbHK/kTdDq0IABs
+	 phCONU3U+5mfulCIiTngO1sV5g0zGtbvZKOaCwC8=
+Date: Thu, 06 Feb 2025 16:30:21 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,usama.arif@bytedance.com,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,robh+dt@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-add-kho-support.patch added to mm-nonmm-unstable branch
-Message-Id: <20250207003019.EFEE4C4CEDD@smtp.kernel.org>
+Subject: + memblock-add-kho-support-for-reserve_mem.patch added to mm-nonmm-unstable branch
+Message-Id: <20250207003022.69DAAC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: add KHO support
+     Subject: memblock: add KHO support for reserve_mem
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-add-kho-support.patch
+     memblock-add-kho-support-for-reserve_mem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-add-kho-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-add-kho-support-for-reserve_mem.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Graf <graf@amazon.com>
-Subject: x86: add KHO support
-Date: Thu, 6 Feb 2025 15:27:52 +0200
+Subject: memblock: add KHO support for reserve_mem
+Date: Thu, 6 Feb 2025 15:27:53 +0200
 
-We now have all bits in place to support KHO kexecs.  This patch adds
-awareness of KHO in the kexec file as well as boot path for x86 and adds
-the respective kconfig option to the architecture so that it can use KHO
-successfully.
+Linux has recently gained support for "reserve_mem": A mechanism to
+allocate a region of memory early enough in boot that we can cross our
+fingers and hope it stays at the same location during most boots, so we
+can store for example ftrace buffers into it.
 
-In addition, it enlightens it decompression code with KHO so that its
-KASLR location finder only considers memory regions that are not already
-occupied by KHO memory.
+Thanks to KASLR, we can never be really sure that "reserve_mem"
+allocations are static across kexec.  Let's teach it KHO awareness so that
+it serializes its reservations on kexec exit and deserializes them again
+on boot, preserving the exact same mapping across kexec.
 
-Link: https://lkml.kernel.org/r/20250206132754.2596694-13-rppt@kernel.org
+This is an example user for KHO in the KHO patch set to ensure we have at
+least one (not very controversial) user in the tree before extending KHO's
+use to more subsystems.
+
+Link: https://lkml.kernel.org/r/20250206132754.2596694-14-rppt@kernel.org
 Signed-off-by: Alexander Graf <graf@amazon.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -107,276 +112,170 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                       |    3 +
- arch/x86/boot/compressed/kaslr.c       |   52 ++++++++++++++++++++++-
- arch/x86/include/asm/setup.h           |    4 +
- arch/x86/include/uapi/asm/setup_data.h |   13 +++++
- arch/x86/kernel/e820.c                 |   18 +++++++
- arch/x86/kernel/kexec-bzimage64.c      |   36 +++++++++++++++
- arch/x86/kernel/setup.c                |   25 +++++++++++
- arch/x86/realmode/init.c               |    2 
- 8 files changed, 151 insertions(+), 2 deletions(-)
+ mm/memblock.c |  131 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 131 insertions(+)
 
---- a/arch/x86/boot/compressed/kaslr.c~x86-add-kho-support
-+++ a/arch/x86/boot/compressed/kaslr.c
-@@ -760,6 +760,55 @@ static void process_e820_entries(unsigne
- 	}
- }
+--- a/mm/memblock.c~memblock-add-kho-support-for-reserve_mem
++++ a/mm/memblock.c
+@@ -16,6 +16,9 @@
+ #include <linux/kmemleak.h>
+ #include <linux/seq_file.h>
+ #include <linux/memblock.h>
++#include <linux/kexec_handover.h>
++#include <linux/kexec.h>
++#include <linux/libfdt.h>
  
-+/*
-+ * If KHO is active, only process its scratch areas to ensure we are not
-+ * stepping onto preserved memory.
-+ */
-+#ifdef CONFIG_KEXEC_HANDOVER
-+static bool process_kho_entries(unsigned long minimum, unsigned long image_size)
+ #include <asm/sections.h>
+ #include <linux/io.h>
+@@ -2423,6 +2426,70 @@ int reserve_mem_find_by_name(const char
+ }
+ EXPORT_SYMBOL_GPL(reserve_mem_find_by_name);
+ 
++static bool __init reserve_mem_kho_revive(const char *name, phys_addr_t size,
++					  phys_addr_t align)
 +{
-+	struct kho_mem *kho_scratch;
-+	struct setup_data *ptr;
-+	int i, nr_areas = 0;
++	const void *fdt = kho_get_fdt();
++	const char *path = "/reserve_mem";
++	int node, child, err;
 +
-+	ptr = (struct setup_data *)(unsigned long)boot_params_ptr->hdr.setup_data;
-+	while (ptr) {
-+		if (ptr->type == SETUP_KEXEC_KHO) {
-+			struct kho_data *kho = (struct kho_data *)ptr->data;
-+
-+			kho_scratch = (void *)kho->scratch_addr;
-+			nr_areas = kho->scratch_size / sizeof(*kho_scratch);
-+
-+			break;
-+		}
-+
-+		ptr = (struct setup_data *)(unsigned long)ptr->next;
-+	}
-+
-+	if (!nr_areas)
++	if (!IS_ENABLED(CONFIG_KEXEC_HANDOVER))
 +		return false;
 +
-+	for (i = 0; i < nr_areas; i++) {
-+		struct kho_mem *area = &kho_scratch[i];
-+		struct mem_vector region = {
-+			.start = area->addr,
-+			.size = area->size,
-+		};
++	if (!fdt)
++		return false;
 +
-+		if (process_mem_region(&region, minimum, image_size))
-+			break;
++	node = fdt_path_offset(fdt, "/reserve_mem");
++	if (node < 0)
++		return false;
++
++	err = fdt_node_check_compatible(fdt, node, "reserve_mem-v1");
++	if (err) {
++		pr_warn("Node '%s' has unknown compatible", path);
++		return false;
 +	}
 +
-+	return true;
-+}
-+#else
-+static inline bool process_kho_entries(unsigned long minimum,
-+				       unsigned long image_size)
-+{
++	fdt_for_each_subnode(child, fdt, node) {
++		const struct kho_mem *mem;
++		const char *child_name;
++		int len;
++
++		/* Search for old kernel's reserved_mem with the same name */
++		child_name = fdt_get_name(fdt, child, NULL);
++		if (strcmp(name, child_name))
++			continue;
++
++		err = fdt_node_check_compatible(fdt, child, "reserve_mem_map-v1");
++		if (err) {
++			pr_warn("Node '%s/%s' has unknown compatible", path, name);
++			continue;
++		}
++
++		mem = fdt_getprop(fdt, child, "mem", &len);
++		if (!mem || len != sizeof(*mem))
++			continue;
++
++		if (mem->addr & (align - 1)) {
++			pr_warn("KHO reserved_mem '%s' has wrong alignment (0x%lx, 0x%lx)",
++				name, (long)align, (long)mem->addr);
++			continue;
++		}
++
++		if (mem->size != size) {
++			pr_warn("KHO reserved_mem '%s' has wrong size (0x%lx != 0x%lx)",
++				name, (long)mem->size, (long)size);
++			continue;
++		}
++
++		reserved_mem_add(mem->addr, mem->size, name);
++		pr_info("Revived memory reservation '%s' from KHO", name);
++
++		return true;
++	}
++
 +	return false;
 +}
-+#endif
 +
- static unsigned long find_random_phys_addr(unsigned long minimum,
- 					   unsigned long image_size)
- {
-@@ -775,7 +824,8 @@ static unsigned long find_random_phys_ad
- 		return 0;
- 	}
+ /*
+  * Parse reserve_mem=nn:align:name
+  */
+@@ -2478,6 +2545,11 @@ static int __init reserve_mem(char *p)
+ 	if (reserve_mem_find_by_name(name, &start, &tmp))
+ 		return -EBUSY;
  
--	if (!process_efi_entries(minimum, image_size))
-+	if (!process_kho_entries(minimum, image_size) &&
-+	    !process_efi_entries(minimum, image_size))
- 		process_e820_entries(minimum, image_size);
- 
- 	phys_addr = slots_fetch_random();
---- a/arch/x86/include/asm/setup.h~x86-add-kho-support
-+++ a/arch/x86/include/asm/setup.h
-@@ -66,6 +66,10 @@ extern void x86_ce4100_early_setup(void)
- static inline void x86_ce4100_early_setup(void) { }
- #endif
- 
-+#ifdef CONFIG_KEXEC_HANDOVER
-+#include <linux/kexec_handover.h>
-+#endif
++	/* Pick previous allocations up from KHO if available */
++	if (reserve_mem_kho_revive(name, size, align))
++		return 1;
 +
- #ifndef _SETUP
- 
- #include <asm/espfix.h>
---- a/arch/x86/include/uapi/asm/setup_data.h~x86-add-kho-support
-+++ a/arch/x86/include/uapi/asm/setup_data.h
-@@ -13,7 +13,8 @@
- #define SETUP_CC_BLOB			7
- #define SETUP_IMA			8
- #define SETUP_RNG_SEED			9
--#define SETUP_ENUM_MAX			SETUP_RNG_SEED
-+#define SETUP_KEXEC_KHO			10
-+#define SETUP_ENUM_MAX			SETUP_KEXEC_KHO
- 
- #define SETUP_INDIRECT			(1<<31)
- #define SETUP_TYPE_MAX			(SETUP_ENUM_MAX | SETUP_INDIRECT)
-@@ -78,6 +79,16 @@ struct ima_setup_data {
- 	__u64 size;
- } __attribute__((packed));
- 
-+/*
-+ * Locations of kexec handover metadata
-+ */
-+struct kho_data {
-+	__u64 dt_addr;
-+	__u64 dt_size;
-+	__u64 scratch_addr;
-+	__u64 scratch_size;
-+} __attribute__((packed));
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _UAPI_ASM_X86_SETUP_DATA_H */
---- a/arch/x86/Kconfig~x86-add-kho-support
-+++ a/arch/x86/Kconfig
-@@ -2091,6 +2091,9 @@ config ARCH_SUPPORTS_KEXEC_BZIMAGE_VERIF
- config ARCH_SUPPORTS_KEXEC_JUMP
- 	def_bool y
- 
-+config ARCH_SUPPORTS_KEXEC_HANDOVER
-+	def_bool y
-+
- config ARCH_SUPPORTS_CRASH_DUMP
- 	def_bool X86_64 || (X86_32 && HIGHMEM)
- 
---- a/arch/x86/kernel/e820.c~x86-add-kho-support
-+++ a/arch/x86/kernel/e820.c
-@@ -1329,6 +1329,24 @@ void __init e820__memblock_setup(void)
- 		memblock_add(entry->addr, entry->size);
- 	}
- 
-+	/*
-+	 * At this point with KHO we only allocate from scratch memory.
-+	 * At the same time, we configure memblock to only allow
-+	 * allocations from memory below ISA_END_ADDRESS which is not
-+	 * a natural scratch region, because Linux ignores memory below
-+	 * ISA_END_ADDRESS at runtime. Beside very few (if any) early
-+	 * allocations, we must allocate real-mode trapoline below
-+	 * ISA_END_ADDRESS.
-+	 *
-+	 * To make sure that we can actually perform allocations during
-+	 * this phase, let's mark memory below ISA_END_ADDRESS as scratch
-+	 * so we can allocate from there in a scratch-only world.
-+	 *
-+	 * After real mode trampoline is allocated, we clear scratch
-+	 * marking from the memory below ISA_END_ADDRESS
-+	 */
-+	memblock_mark_kho_scratch(0, ISA_END_ADDRESS);
-+
- 	/* Throw away partial pages: */
- 	memblock_trim_memory(PAGE_SIZE);
- 
---- a/arch/x86/kernel/kexec-bzimage64.c~x86-add-kho-support
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -233,6 +233,31 @@ setup_ima_state(const struct kimage *ima
- #endif /* CONFIG_IMA_KEXEC */
++	/* TODO: Allocation must be outside of scratch region */
+ 	start = memblock_phys_alloc(size, align);
+ 	if (!start)
+ 		return -ENOMEM;
+@@ -2488,6 +2560,65 @@ static int __init reserve_mem(char *p)
  }
+ __setup("reserve_mem=", reserve_mem);
  
-+static void setup_kho(const struct kimage *image, struct boot_params *params,
-+		      unsigned long params_load_addr,
-+		      unsigned int setup_data_offset)
++static int reserve_mem_kho_write_map(void *fdt, struct reserve_mem_table *map)
 +{
-+#ifdef CONFIG_KEXEC_HANDOVER
-+	struct setup_data *sd = (void *)params + setup_data_offset;
-+	struct kho_data *kho = (void *)sd + sizeof(*sd);
++	int err = 0;
++	const char compatible[] = "reserve_mem_map-v1";
++	struct kho_mem mem = {
++		.addr = map->start,
++		.size = map->size,
++	};
 +
-+	sd->type = SETUP_KEXEC_KHO;
-+	sd->len = sizeof(struct kho_data);
++	err |= fdt_begin_node(fdt, map->name);
++	err |= fdt_property(fdt, "compatible", compatible, sizeof(compatible));
++	err |= fdt_property(fdt, "mem", &mem, sizeof(mem));
++	err |= fdt_end_node(fdt);
 +
-+	/* Only add if we have all KHO images in place */
-+	if (!image->kho.dt.buffer || !image->kho.scratch.buffer)
-+		return;
-+
-+	/* Add setup data */
-+	kho->dt_addr = image->kho.dt.mem;
-+	kho->dt_size = image->kho.dt.bufsz;
-+	kho->scratch_addr = image->kho.scratch.mem;
-+	kho->scratch_size = image->kho.scratch.bufsz;
-+	sd->next = params->hdr.setup_data;
-+	params->hdr.setup_data = params_load_addr + setup_data_offset;
-+#endif /* CONFIG_KEXEC_HANDOVER */
++	return err;
 +}
 +
- static int
- setup_boot_parameters(struct kimage *image, struct boot_params *params,
- 		      unsigned long params_load_addr,
-@@ -312,6 +337,13 @@ setup_boot_parameters(struct kimage *ima
- 				     sizeof(struct ima_setup_data);
- 	}
- 
-+	if (IS_ENABLED(CONFIG_KEXEC_HANDOVER)) {
-+		/* Setup space to store preservation metadata */
-+		setup_kho(image, params, params_load_addr, setup_data_offset);
-+		setup_data_offset += sizeof(struct setup_data) +
-+				     sizeof(struct kho_data);
-+	}
-+
- 	/* Setup RNG seed */
- 	setup_rng_seed(params, params_load_addr, setup_data_offset);
- 
-@@ -479,6 +511,10 @@ static void *bzImage64_load(struct kimag
- 		kbuf.bufsz += sizeof(struct setup_data) +
- 			      sizeof(struct ima_setup_data);
- 
-+	if (IS_ENABLED(CONFIG_KEXEC_HANDOVER))
-+		kbuf.bufsz += sizeof(struct setup_data) +
-+			      sizeof(struct kho_data);
-+
- 	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
- 	if (!params)
- 		return ERR_PTR(-ENOMEM);
---- a/arch/x86/kernel/setup.c~x86-add-kho-support
-+++ a/arch/x86/kernel/setup.c
-@@ -385,6 +385,28 @@ int __init ima_get_kexec_buffer(void **a
- }
- #endif
- 
-+static void __init add_kho(u64 phys_addr, u32 data_len)
++static int reserve_mem_kho_notifier(struct notifier_block *self,
++				    unsigned long cmd, void *v)
 +{
-+#ifdef CONFIG_KEXEC_HANDOVER
-+	struct kho_data *kho;
-+	u64 addr = phys_addr + sizeof(struct setup_data);
-+	u64 size = data_len - sizeof(struct setup_data);
++	const char compatible[] = "reserve_mem-v1";
++	void *fdt = v;
++	int err = 0;
++	int i;
 +
-+	kho = early_memremap(addr, size);
-+	if (!kho) {
-+		pr_warn("setup: failed to memremap kho data (0x%llx, 0x%llx)\n",
-+			addr, size);
-+		return;
++	switch (cmd) {
++	case KEXEC_KHO_ABORT:
++		return NOTIFY_DONE;
++	case KEXEC_KHO_DUMP:
++		/* Handled below */
++		break;
++	default:
++		return NOTIFY_BAD;
 +	}
 +
-+	kho_populate(kho->dt_addr, kho->scratch_addr, kho->scratch_size);
++	if (!reserved_mem_count)
++		return NOTIFY_DONE;
 +
-+	early_memunmap(kho, size);
-+#else
-+	pr_warn("Passed KHO data, but CONFIG_KEXEC_HANDOVER not set. Ignoring.\n");
-+#endif
++	err |= fdt_begin_node(fdt, "reserve_mem");
++	err |= fdt_property(fdt, "compatible", compatible, sizeof(compatible));
++	for (i = 0; i < reserved_mem_count; i++)
++		err |= reserve_mem_kho_write_map(fdt, &reserved_mem_table[i]);
++	err |= fdt_end_node(fdt);
++
++	return err ? NOTIFY_BAD : NOTIFY_DONE;
 +}
 +
- static void __init parse_setup_data(void)
- {
- 	struct setup_data *data;
-@@ -413,6 +435,9 @@ static void __init parse_setup_data(void
- 		case SETUP_IMA:
- 			add_early_ima_buffer(pa_data);
- 			break;
-+		case SETUP_KEXEC_KHO:
-+			add_kho(pa_data, data_len);
-+			break;
- 		case SETUP_RNG_SEED:
- 			data = early_memremap(pa_data, data_len);
- 			add_bootloader_randomness(data->data, data->len);
---- a/arch/x86/realmode/init.c~x86-add-kho-support
-+++ a/arch/x86/realmode/init.c
-@@ -65,6 +65,8 @@ void __init reserve_real_mode(void)
- 	 * setup_arch().
- 	 */
- 	memblock_reserve(0, SZ_1M);
++static struct notifier_block reserve_mem_kho_nb = {
++	.notifier_call = reserve_mem_kho_notifier,
++};
 +
-+	memblock_clear_kho_scratch(0, SZ_1M);
- }
- 
- static void __init sme_sev_setup_real_mode(struct trampoline_header *th)
++static int __init reserve_mem_init(void)
++{
++	register_kho_notifier(&reserve_mem_kho_nb);
++
++	return 0;
++}
++core_initcall(reserve_mem_init);
++
+ #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_ARCH_KEEP_MEMBLOCK)
+ static const char * const flagname[] = {
+ 	[ilog2(MEMBLOCK_HOTPLUG)] = "HOTPLUG",
 _
 
 Patches currently in -mm which might be from graf@amazon.com are
