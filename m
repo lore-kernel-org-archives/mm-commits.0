@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65C501CD205;
-	Fri,  7 Feb 2025 23:45:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EF4A1A01C6
+	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 23:51:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738971952; cv=none; b=SjISLpPryjb6Khd7cENyKY3alBE/SiuwbI/huyKFXarQZ6+0TVuZ6CqawHQUMrToisX9IF8dsMPBZeNlNZ1oIlOPziqGe5uB4VJGTf3HVE6LmxkYtvUF5AZqw1g3EK7mMMCmJwVUOn41Et6gnQS2nrDUwi8O8DQ0qL/Hy0maGg0=
+	t=1738972281; cv=none; b=MOXZ7zHk4uBIL2tjHPpfHMHWEHNDrl8d7N7zzK6kxiGDNWbjD0oYNEMOwT2vzfGAEffOLi/43TI+XM0ubJ3f5MH8uqEGL8c8HxeOMvyHDy8WPeEkVX9skuIimCNNRKrNjRaDxzmaSTxmKHkCRLcvefa53ltEzGuDZnFpd3itwu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738971952; c=relaxed/simple;
-	bh=uP6+4r7ii2HvcZBOLKWBVvyKrbzXwnMW1I8lMq95Obw=;
-	h=Date:To:From:Subject:Message-Id; b=J65VJXTSnKZQkU9GiR+PHn931svKiWo9sTXHDgwTDDD/kW8oaPAmNMqxqQeWeMO9Q2xKsQe48bJqaEWs4aZIa3egsxtUP1BdHTjkmO9JiYugnyipWnAxR4fc4DVwp1u6evHFqUAr3teFW/3LjXzXp0kQEAOcSJI2WgPA/RCMg00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xxl83R8f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738972281; c=relaxed/simple;
+	bh=GNEvm8cuAXuX5hP6Udee8+z/WZmBq5ozDZukn9fxtM4=;
+	h=Date:To:From:Subject:Message-Id; b=NSid0kRScl8fVSCHDj3ftYF4BtbnpQ8XEks/M4dTyPzpBNzFTUimHkfPbfaHPuYOyOuV9EJ5tFzJlois1SQOKt81AYZGyYcfVSolH9JcMMoQCl/zSFScLq40Kh8arv4WxXhbbiJpGAE/VVoIApgXSjMXf/W9Gkl/ps9xUPE5jFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IajqUpqh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xxl83R8f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF7FCC4CED1;
-	Fri,  7 Feb 2025 23:45:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IajqUpqh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F1CC4CED1;
+	Fri,  7 Feb 2025 23:51:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738971951;
-	bh=uP6+4r7ii2HvcZBOLKWBVvyKrbzXwnMW1I8lMq95Obw=;
+	s=korg; t=1738972281;
+	bh=GNEvm8cuAXuX5hP6Udee8+z/WZmBq5ozDZukn9fxtM4=;
 	h=Date:To:From:Subject:From;
-	b=Xxl83R8ff0eTi33QU8EIevpDngIacrGZ6m4T78w52+3NoVNfRJbwwxoGNgcci61w1
-	 2LfQRb3s999ys5cyJkSpZOMbej6ZFPyB3ASQL0f9b2CNL1SlskE14u0B/FEz2H0hma
-	 utxkaSo9P1Cg9h7Bl4+XGpwUokuJxH5OV+cWL3vA=
-Date: Fri, 07 Feb 2025 15:45:51 -0800
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=IajqUpqhjmTO80lPL6PyOg87KKkix23PtBkKJZJzHCOo8JToU9ug6AsGcGJ+hh/0T
+	 5fFWG2lnLS2eEUOaESouXDv2h8a7eYG2+eSm6iwYvud3VjBHPus8tukMfYnz+5r9nu
+	 dxNjnjqql+6IzPdjnSpQpWcwVgNM4xVWEXSt7fgE=
+Date: Fri, 07 Feb 2025 15:51:20 -0800
+To: mm-commits@vger.kernel.org,yuehongwu@tencent.com,urezki@gmail.com,tglx@linutronix.de,rostedt@goodmis.org,qiang.zhang1211@gmail.com,paulmck@kernel.org,mengensun@tencent.com,mathieu.desnoyers@efficios.com,josh@joshtriplett.org,joel@joelfernandes.org,jiangshanlai@gmail.com,boqun.feng@gmail.com,bigeasy@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch added to mm-unstable branch
-Message-Id: <20250207234551.BF7FCC4CED1@smtp.kernel.org>
+Subject: + rcu-provide-a-static-initializer-for-hlist_nulls_head.patch added to mm-nonmm-unstable branch
+Message-Id: <20250207235121.04F1CC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: avoid applying DAMOS action to same entity multiple times
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
+     Subject: rcu: provide a static initializer for hlist_nulls_head
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     rcu-provide-a-static-initializer-for-hlist_nulls_head.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rcu-provide-a-static-initializer-for-hlist_nulls_head.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,206 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: avoid applying DAMOS action to same entity multiple times
-Date: Fri, 7 Feb 2025 13:20:33 -0800
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: rcu: provide a static initializer for hlist_nulls_head
+Date: Mon, 3 Feb 2025 16:05:22 +0100
 
-'paddr' DAMON operations set can apply a DAMOS scheme's action to a large
-folio multiple times in single DAMOS-regions-walk if the folio is laid on
-multiple DAMON regions.  Add a field for DAMOS scheme object that can be
-used by the underlying ops to know what was the last entity that the
-scheme's action has applied.  The core layer unsets the field when each
-DAMOS-regions-walk is done for the given scheme.  And update 'paddr' ops
-to use the infrastructure to avoid the problem.
+Patch series "ucount: Simplify refcounting with rcuref_t".
 
-Link: https://lkml.kernel.org/r/20250207212033.45269-3-sj@kernel.org
-Fixes: 57223ac29584 ("mm/damon/paddr: support the pageout scheme")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Usama Arif <usamaarif642@gmail.com>
-Closes: https://lore.kernel.org/20250203225604.44742-3-usamaarif642@gmail.com
-Cc: <stable@vger.kernel.org>
+I noticed that the atomic_dec_and_lock_irqsave() in put_ucounts() loops
+sometimes even during boot.  Something like 2-3 iterations but still. 
+This series replaces the refcounting with rcuref_t and adds a RCU lookup.
+
+This allows a lockless lookup in alloc_ucounts() if the entry is available
+and a cmpxchg()less put of the item.
+
+
+This patch (of 4):
+
+Provide a static initializer for hlist_nulls_head so that it can be used
+in statically defined data structures.
+
+Link: https://lkml.kernel.org/r/20250203150525.456525-1-bigeasy@linutronix.de
+Link: https://lkml.kernel.org/r/20250203150525.456525-2-bigeasy@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Acked-by:Thomas Gleixner <tglx@linutronix.de>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Lai jiangshan <jiangshanlai@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mengen Sun <mengensun@tencent.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: YueHong Wu <yuehongwu@tencent.com>
+Cc: Zqiang <qiang.zhang1211@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   11 +++++++++++
- mm/damon/core.c       |    1 +
- mm/damon/paddr.c      |   39 +++++++++++++++++++++++++++------------
- 3 files changed, 39 insertions(+), 12 deletions(-)
+ include/linux/list_nulls.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/damon.h~mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times
-+++ a/include/linux/damon.h
-@@ -432,6 +432,7 @@ struct damos_access_pattern {
-  * @wmarks:		Watermarks for automated (in)activation of this scheme.
-  * @target_nid:		Destination node if @action is "migrate_{hot,cold}".
-  * @filters:		Additional set of &struct damos_filter for &action.
-+ * @last_applied:	Last @action applied ops-managing entity.
-  * @stat:		Statistics of this scheme.
-  * @list:		List head for siblings.
-  *
-@@ -454,6 +455,15 @@ struct damos_access_pattern {
-  * implementation could check pages of the region and skip &action to respect
-  * &filters
-  *
-+ * The minimum entity that @action can be applied depends on the underlying
-+ * &struct damon_operations.  Since it may not be aligned with the core layer
-+ * abstract, namely &struct damon_region, &struct damon_operations could apply
-+ * @action to same entity multiple times.  Large folios that underlying on
-+ * multiple &struct damon region objects could be such examples.  The &struct
-+ * damon_operations can use @last_applied to avoid that.  DAMOS core logic
-+ * unsets @last_applied when each regions walking for applying the scheme is
-+ * finished.
-+ *
-  * After applying the &action to each region, &stat_count and &stat_sz is
-  * updated to reflect the number of regions and total size of regions that the
-  * &action is applied.
-@@ -477,6 +487,7 @@ struct damos {
- 		int target_nid;
- 	};
- 	struct list_head filters;
-+	void *last_applied;
- 	struct damos_stat stat;
- 	struct list_head list;
- };
---- a/mm/damon/core.c~mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times
-+++ a/mm/damon/core.c
-@@ -1851,6 +1851,7 @@ static void kdamond_apply_schemes(struct
- 		s->next_apply_sis = c->passed_sample_intervals +
- 			(s->apply_interval_us ? s->apply_interval_us :
- 			 c->attrs.aggr_interval) / sample_interval;
-+		s->last_applied = NULL;
- 	}
- }
+--- a/include/linux/list_nulls.h~rcu-provide-a-static-initializer-for-hlist_nulls_head
++++ a/include/linux/list_nulls.h
+@@ -28,6 +28,7 @@ struct hlist_nulls_node {
+ #define NULLS_MARKER(value) (1UL | (((long)value) << 1))
+ #define INIT_HLIST_NULLS_HEAD(ptr, nulls) \
+ 	((ptr)->first = (struct hlist_nulls_node *) NULLS_MARKER(nulls))
++#define HLIST_NULLS_HEAD_INIT(nulls) {.first = (struct hlist_nulls_node *)NULLS_MARKER(nulls)}
  
---- a/mm/damon/paddr.c~mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times
-+++ a/mm/damon/paddr.c
-@@ -243,6 +243,17 @@ static bool damos_pa_filter_out(struct d
- 	return false;
- }
- 
-+static bool damon_pa_invalid_damos_folio(struct folio *folio, struct damos *s)
-+{
-+	if (!folio)
-+		return true;
-+	if (folio == s->last_applied) {
-+		folio_put(folio);
-+		return true;
-+	}
-+	return false;
-+}
-+
- static unsigned long damon_pa_pageout(struct damon_region *r, struct damos *s,
- 		unsigned long *sz_filter_passed)
- {
-@@ -250,6 +261,7 @@ static unsigned long damon_pa_pageout(st
- 	LIST_HEAD(folio_list);
- 	bool install_young_filter = true;
- 	struct damos_filter *filter;
-+	struct folio *folio;
- 
- 	/* check access in page level again by default */
- 	damos_for_each_filter(filter, s) {
-@@ -268,9 +280,8 @@ static unsigned long damon_pa_pageout(st
- 
- 	addr = r->ar.start;
- 	while (addr < r->ar.end) {
--		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
--
--		if (!folio) {
-+		folio = damon_get_folio(PHYS_PFN(addr));
-+		if (damon_pa_invalid_damos_folio(folio, s)) {
- 			addr += PAGE_SIZE;
- 			continue;
- 		}
-@@ -296,6 +307,7 @@ put_folio:
- 		damos_destroy_filter(filter);
- 	applied = reclaim_pages(&folio_list);
- 	cond_resched();
-+	s->last_applied = folio;
- 	return applied * PAGE_SIZE;
- }
- 
-@@ -304,12 +316,12 @@ static inline unsigned long damon_pa_mar
- 		unsigned long *sz_filter_passed)
- {
- 	unsigned long addr, applied = 0;
-+	struct folio *folio;
- 
- 	addr = r->ar.start;
- 	while (addr < r->ar.end) {
--		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
--
--		if (!folio) {
-+		folio = damon_get_folio(PHYS_PFN(addr));
-+		if (damon_pa_invalid_damos_folio(folio, s)) {
- 			addr += PAGE_SIZE;
- 			continue;
- 		}
-@@ -328,6 +340,7 @@ put_folio:
- 		addr += folio_size(folio);
- 		folio_put(folio);
- 	}
-+	s->last_applied = folio;
- 	return applied * PAGE_SIZE;
- }
- 
-@@ -471,12 +484,12 @@ static unsigned long damon_pa_migrate(st
- {
- 	unsigned long addr, applied;
- 	LIST_HEAD(folio_list);
-+	struct folio *folio;
- 
- 	addr = r->ar.start;
- 	while (addr < r->ar.end) {
--		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
--
--		if (!folio) {
-+		folio = damon_get_folio(PHYS_PFN(addr));
-+		if (damon_pa_invalid_damos_folio(folio, s)) {
- 			addr += PAGE_SIZE;
- 			continue;
- 		}
-@@ -495,6 +508,7 @@ put_folio:
- 	}
- 	applied = damon_pa_migrate_pages(&folio_list, s->target_nid);
- 	cond_resched();
-+	s->last_applied = folio;
- 	return applied * PAGE_SIZE;
- }
- 
-@@ -512,15 +526,15 @@ static unsigned long damon_pa_stat(struc
- {
- 	unsigned long addr;
- 	LIST_HEAD(folio_list);
-+	struct folio *folio;
- 
- 	if (!damon_pa_scheme_has_filter(s))
- 		return 0;
- 
- 	addr = r->ar.start;
- 	while (addr < r->ar.end) {
--		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
--
--		if (!folio) {
-+		folio = damon_get_folio(PHYS_PFN(addr));
-+		if (damon_pa_invalid_damos_folio(folio, s)) {
- 			addr += PAGE_SIZE;
- 			continue;
- 		}
-@@ -530,6 +544,7 @@ static unsigned long damon_pa_stat(struc
- 		addr += folio_size(folio);
- 		folio_put(folio);
- 	}
-+	s->last_applied = folio;
- 	return 0;
- }
+ #define hlist_nulls_entry(ptr, type, member) container_of(ptr,type,member)
  
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
-mm-madvise-split-out-madvise-input-validity-check.patch
-mm-madvise-split-out-madvise-behavior-execution.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
-mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
+rcu-provide-a-static-initializer-for-hlist_nulls_head.patch
+ucount-replace-get_ucounts_or_wrap-with-atomic_inc_not_zero.patch
+ucount-use-rcu-for-ucounts-lookups.patch
+ucount-use-rcuref_t-for-reference-counting.patch
 
