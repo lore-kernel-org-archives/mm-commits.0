@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E43A1A01C6
-	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 23:51:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2DD718FDAE
+	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 23:51:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738972283; cv=none; b=u7WWDPy4UaPXXk7e5rfkxNWIoeRXir28GfhTWxyB6UHFgcyFnPqzOy77bqq4EGsodsZgUmML6xl2LMEuIyDqUoIXgnQ6B1hZ63+FNXqy7Nm9bJ7OGLhfcjd4u2XEPk6KSzgccy/h6tdPZMdrD9rfrf8sbJtZk7QNZSw4IlKewoE=
+	t=1738972285; cv=none; b=ugmrF6AX7x7byuOXE1bbYK9eB8YBML75xNJZ8QIqD0n1aV1vYN5C5T6vUBbZijtdpbv1x6Mqtlmmd6Gjp2d2UXvyQa3OfcCZ2vol4+1mvip7pBZg8RHgK8jKA51Zy0fSfVtCL5A+xm7jgL0oyVx1krLVsHySwp8Rfm0P17+LoaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738972283; c=relaxed/simple;
-	bh=qMonobQAljkjWiZEN9w/baxTikGVDC6rf4+QZg9MeIQ=;
-	h=Date:To:From:Subject:Message-Id; b=m77SBxv1NW5acqvF3zLYQQahtV1eyt+g9+fXL9nltEgUpYUNVB2fUVWj6r3UHx5+Y5CXGwFtC5oVZ8JaavM9HrKGlJPmczrLUdMWHbiPnSlZ9gqhJjTzXkWiY67A0vJF4GowHnp0adCasEtopZ86Kcasd5L5q2UWA5efp08c8Uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h3I1zrNP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738972285; c=relaxed/simple;
+	bh=C78NHdZfmhSQEU+PuY37qkDz1cKO31B0gFnzUdvPTLM=;
+	h=Date:To:From:Subject:Message-Id; b=KzcyEYLMlmr7FFnT2HHqOxn4Amr/KkEmCoRn09PhjA3EngduW9s7yDPxlkTA2qK9MNZ45Oa4n7oYtwjjjBaTf2Ck70D36Jwsdu4i8rXMTGkP9CGvqd2CEuHH5ud36nVX9kyxdL2K3xdovK0Hq7QDlmsEf09i+VVI+gxW4dTlYFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TG+3vyYZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h3I1zrNP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1100CC4CED1;
-	Fri,  7 Feb 2025 23:51:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TG+3vyYZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31733C4CED1;
+	Fri,  7 Feb 2025 23:51:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738972283;
-	bh=qMonobQAljkjWiZEN9w/baxTikGVDC6rf4+QZg9MeIQ=;
+	s=korg; t=1738972285;
+	bh=C78NHdZfmhSQEU+PuY37qkDz1cKO31B0gFnzUdvPTLM=;
 	h=Date:To:From:Subject:From;
-	b=h3I1zrNPW/AeeEPfFiiy1jxqTGJq2vRThHUhUhiGwno4pjrT4qYrKKB8KaU/AJEOz
-	 98fXWWjW/jqswy272Q3nGpAqc1o0rT0UwVnyrldfZX7zgzojPVOM6bw+4BvGwcPDzi
-	 j7INyU+jYeaouyJ8OMnywAOebhrx+xC+uklfzwcA=
-Date: Fri, 07 Feb 2025 15:51:22 -0800
+	b=TG+3vyYZflwRgdIW3Z4YA9/BIdB2JyWhOGJsTeTeVJVFwYJuLPBS3S54ZAwp3cMX6
+	 P4OF7FVjvENuEWcDIUHzSonqcwrUwVDDA6CGwnSiPiInna2pIuG+XUdiuA13qUtHOE
+	 YD3pINHs/iBSgX0Jz3LZxBUKUCt8zHOuOCmnRwEg=
+Date: Fri, 07 Feb 2025 15:51:24 -0800
 To: mm-commits@vger.kernel.org,yuehongwu@tencent.com,urezki@gmail.com,tglx@linutronix.de,rostedt@goodmis.org,qiang.zhang1211@gmail.com,paulmck@kernel.org,mengensun@tencent.com,mathieu.desnoyers@efficios.com,josh@joshtriplett.org,joel@joelfernandes.org,jiangshanlai@gmail.com,boqun.feng@gmail.com,bigeasy@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ucount-replace-get_ucounts_or_wrap-with-atomic_inc_not_zero.patch added to mm-nonmm-unstable branch
-Message-Id: <20250207235123.1100CC4CED1@smtp.kernel.org>
+Subject: + ucount-use-rcu-for-ucounts-lookups.patch added to mm-nonmm-unstable branch
+Message-Id: <20250207235125.31733C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ucount: replace get_ucounts_or_wrap() with atomic_inc_not_zero()
+     Subject: ucount: use RCU for ucounts lookups
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ucount-replace-get_ucounts_or_wrap-with-atomic_inc_not_zero.patch
+     ucount-use-rcu-for-ucounts-lookups.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucount-replace-get_ucounts_or_wrap-with-atomic_inc_not_zero.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucount-use-rcu-for-ucounts-lookups.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: ucount: replace get_ucounts_or_wrap() with atomic_inc_not_zero()
-Date: Mon, 3 Feb 2025 16:05:23 +0100
+Subject: ucount: use RCU for ucounts lookups
+Date: Mon, 3 Feb 2025 16:05:24 +0100
 
-get_ucounts_or_wrap() increments the counter and if the counter is
-negative then it decrements it again in order to reset the previous
-increment.  This statement can be replaced with atomic_inc_not_zero() to
-only increment the counter if it is not yet 0.
+The ucounts element is looked up under ucounts_lock.  This can be
+optimized by using RCU for a lockless lookup and return and element if the
+reference can be obtained.
 
-This simplifies the get function because the put (if the get failed) can
-be removed.  atomic_inc_not_zero() is implement as a cmpxchg() loop which
-can be repeated several times if another get/put is performed in parallel.
-This will be optimized later.
+Replace hlist_head with hlist_nulls_head which is RCU compatible.  Let
+find_ucounts() search for the required item within a RCU section and
+return the item if a reference could be obtained.  This means
+alloc_ucounts() will always return an element (unless the memory
+allocation failed).  Let put_ucounts() RCU free the element if the
+reference counter dropped to zero.
 
-Increment the reference counter only if not yet dropped to zero.
-
-Link: https://lkml.kernel.org/r/20250203150525.456525-3-bigeasy@linutronix.de
+Link: https://lkml.kernel.org/r/20250203150525.456525-4-bigeasy@linutronix.de
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
 Cc: Acked-by:Thomas Gleixner <tglx@linutronix.de>
@@ -91,56 +90,160 @@ Cc: Zqiang <qiang.zhang1211@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ucount.c |   24 ++++++------------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ include/linux/user_namespace.h |    4 +
+ kernel/ucount.c                |   75 ++++++++++++++++---------------
+ 2 files changed, 43 insertions(+), 36 deletions(-)
 
---- a/kernel/ucount.c~ucount-replace-get_ucounts_or_wrap-with-atomic_inc_not_zero
+--- a/include/linux/user_namespace.h~ucount-use-rcu-for-ucounts-lookups
++++ a/include/linux/user_namespace.h
+@@ -5,6 +5,7 @@
+ #include <linux/kref.h>
+ #include <linux/nsproxy.h>
+ #include <linux/ns_common.h>
++#include <linux/rculist_nulls.h>
+ #include <linux/sched.h>
+ #include <linux/workqueue.h>
+ #include <linux/rwsem.h>
+@@ -115,9 +116,10 @@ struct user_namespace {
+ } __randomize_layout;
+ 
+ struct ucounts {
+-	struct hlist_node node;
++	struct hlist_nulls_node node;
+ 	struct user_namespace *ns;
+ 	kuid_t uid;
++	struct rcu_head rcu;
+ 	atomic_t count;
+ 	atomic_long_t ucount[UCOUNT_COUNTS];
+ 	atomic_long_t rlimit[UCOUNT_RLIMIT_COUNTS];
+--- a/kernel/ucount.c~ucount-use-rcu-for-ucounts-lookups
 +++ a/kernel/ucount.c
-@@ -146,25 +146,16 @@ static void hlist_add_ucounts(struct uco
+@@ -15,7 +15,10 @@ struct ucounts init_ucounts = {
+ };
+ 
+ #define UCOUNTS_HASHTABLE_BITS 10
+-static struct hlist_head ucounts_hashtable[(1 << UCOUNTS_HASHTABLE_BITS)];
++#define UCOUNTS_HASHTABLE_ENTRIES (1 << UCOUNTS_HASHTABLE_BITS)
++static struct hlist_nulls_head ucounts_hashtable[UCOUNTS_HASHTABLE_ENTRIES] = {
++	[0 ... UCOUNTS_HASHTABLE_ENTRIES - 1] = HLIST_NULLS_HEAD_INIT(0)
++};
+ static DEFINE_SPINLOCK(ucounts_lock);
+ 
+ #define ucounts_hashfn(ns, uid)						\
+@@ -24,7 +27,6 @@ static DEFINE_SPINLOCK(ucounts_lock);
+ #define ucounts_hashentry(ns, uid)	\
+ 	(ucounts_hashtable + ucounts_hashfn(ns, uid))
+ 
+-
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_set *
+ set_lookup(struct ctl_table_root *root)
+@@ -127,22 +129,28 @@ void retire_userns_sysctls(struct user_n
+ #endif
+ }
+ 
+-static struct ucounts *find_ucounts(struct user_namespace *ns, kuid_t uid, struct hlist_head *hashent)
++static struct ucounts *find_ucounts(struct user_namespace *ns, kuid_t uid,
++				    struct hlist_nulls_head *hashent)
+ {
+ 	struct ucounts *ucounts;
++	struct hlist_nulls_node *pos;
+ 
+-	hlist_for_each_entry(ucounts, hashent, node) {
+-		if (uid_eq(ucounts->uid, uid) && (ucounts->ns == ns))
+-			return ucounts;
++	guard(rcu)();
++	hlist_nulls_for_each_entry_rcu(ucounts, pos, hashent, node) {
++		if (uid_eq(ucounts->uid, uid) && (ucounts->ns == ns)) {
++			if (atomic_inc_not_zero(&ucounts->count))
++				return ucounts;
++		}
+ 	}
+ 	return NULL;
+ }
+ 
+ static void hlist_add_ucounts(struct ucounts *ucounts)
+ {
+-	struct hlist_head *hashent = ucounts_hashentry(ucounts->ns, ucounts->uid);
++	struct hlist_nulls_head *hashent = ucounts_hashentry(ucounts->ns, ucounts->uid);
++
+ 	spin_lock_irq(&ucounts_lock);
+-	hlist_add_head(&ucounts->node, hashent);
++	hlist_nulls_add_head_rcu(&ucounts->node, hashent);
  	spin_unlock_irq(&ucounts_lock);
  }
  
--static inline bool get_ucounts_or_wrap(struct ucounts *ucounts)
--{
--	/* Returns true on a successful get, false if the count wraps. */
--	return !atomic_add_negative(1, &ucounts->count);
--}
--
- struct ucounts *get_ucounts(struct ucounts *ucounts)
- {
--	if (!get_ucounts_or_wrap(ucounts)) {
--		put_ucounts(ucounts);
--		ucounts = NULL;
--	}
--	return ucounts;
-+	if (atomic_inc_not_zero(&ucounts->count))
-+		return ucounts;
-+	return NULL;
- }
+@@ -155,37 +163,33 @@ struct ucounts *get_ucounts(struct ucoun
  
  struct ucounts *alloc_ucounts(struct user_namespace *ns, kuid_t uid)
  {
- 	struct hlist_head *hashent = ucounts_hashentry(ns, uid);
--	bool wrapped;
- 	struct ucounts *ucounts, *new = NULL;
+-	struct hlist_head *hashent = ucounts_hashentry(ns, uid);
+-	struct ucounts *ucounts, *new = NULL;
++	struct hlist_nulls_head *hashent = ucounts_hashentry(ns, uid);
++	struct ucounts *ucounts, *new;
++
++	ucounts = find_ucounts(ns, uid, hashent);
++	if (ucounts)
++		return ucounts;
++
++	new = kzalloc(sizeof(*new), GFP_KERNEL);
++	if (!new)
++		return NULL;
++
++	new->ns = ns;
++	new->uid = uid;
++	atomic_set(&new->count, 1);
  
  	spin_lock_irq(&ucounts_lock);
-@@ -189,14 +180,11 @@ struct ucounts *alloc_ucounts(struct use
- 			return new;
- 		}
- 	}
+ 	ucounts = find_ucounts(ns, uid, hashent);
+-	if (!ucounts) {
++	if (ucounts) {
+ 		spin_unlock_irq(&ucounts_lock);
 -
--	wrapped = !get_ucounts_or_wrap(ucounts);
-+	if (!atomic_inc_not_zero(&ucounts->count))
-+		ucounts = NULL;
- 	spin_unlock_irq(&ucounts_lock);
- 	kfree(new);
--	if (wrapped) {
--		put_ucounts(ucounts);
--		return NULL;
--	}
+-		new = kzalloc(sizeof(*new), GFP_KERNEL);
+-		if (!new)
+-			return NULL;
+-
+-		new->ns = ns;
+-		new->uid = uid;
+-		atomic_set(&new->count, 1);
+-
+-		spin_lock_irq(&ucounts_lock);
+-		ucounts = find_ucounts(ns, uid, hashent);
+-		if (!ucounts) {
+-			hlist_add_head(&new->node, hashent);
+-			get_user_ns(new->ns);
+-			spin_unlock_irq(&ucounts_lock);
+-			return new;
+-		}
++		kfree(new);
++		return ucounts;
+ 	}
+-	if (!atomic_inc_not_zero(&ucounts->count))
+-		ucounts = NULL;
+-	spin_unlock_irq(&ucounts_lock);
+-	kfree(new);
+ 
+-	return ucounts;
++	hlist_nulls_add_head_rcu(&new->node, hashent);
++	get_user_ns(new->ns);
++	spin_unlock_irq(&ucounts_lock);
++	return new;
+ }
+ 
+ void put_ucounts(struct ucounts *ucounts)
+@@ -193,10 +197,11 @@ void put_ucounts(struct ucounts *ucounts
+ 	unsigned long flags;
+ 
+ 	if (atomic_dec_and_lock_irqsave(&ucounts->count, &ucounts_lock, flags)) {
+-		hlist_del_init(&ucounts->node);
++		hlist_nulls_del_rcu(&ucounts->node);
+ 		spin_unlock_irqrestore(&ucounts_lock, flags);
 +
- 	return ucounts;
+ 		put_user_ns(ucounts->ns);
+-		kfree(ucounts);
++		kfree_rcu(ucounts, rcu);
+ 	}
  }
  
 _
