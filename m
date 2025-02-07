@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5619C8CE
-	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 00:30:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C65C8CE
+	for <mm-commits@vger.kernel.org>; Fri,  7 Feb 2025 00:30:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738888207; cv=none; b=LDgqSMVr4f1JccT5Ch62kTdosKPOrjtK9Hvg9qDuEKNtWjbelqWdtykkUF02icXkvcA61RFGTqOS5XNl37+GOBoafOJpWR3pue2V+mFvvg0hEbivj6WjXKN5+iHnwtrN7quAhBJX69JNFmALN70Qxmm87K5yZEB27QX5eFr4YOA=
+	t=1738888210; cv=none; b=neUpP1W6lBe2W1dEOPfDyenj+mFNv8foIO0cu0qY0wyU49DGQIPJluEzi1bBsZJuqZgJLCdp4M5mBXJfIWpqI/OyskqS1MmyNUnm8MzXEpWZsuB7TKqAUh2ZZItnhXUqdB+UeEAeNJqH5V939EUEThlIe5XBB5oBsTN0zymY+Rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738888207; c=relaxed/simple;
-	bh=zPh9LQZeDwVqVyYGhf+Gh5LqFEBtC4cCYSvA7ieGU5U=;
-	h=Date:To:From:Subject:Message-Id; b=XV0l7cFwffs/WiQNi3igVWUUTNJQSBzLlxctExvYqlxzx37c76zW+VKGRAuQQfBpUagMM2DjEVVYt+kKZfDdsqbVYKNntueQNvboNPOkp7j3nDABOEUVVYlc4jpljFXLo7fVtJyHJBjus9CR2dj192nb/eReaE/ylq7pxUn76yU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=18VMl6OZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738888210; c=relaxed/simple;
+	bh=uIbok1tNdEgwLjEwwJvvcEK1ypZIkEVHP4Ax3+14LSg=;
+	h=Date:To:From:Subject:Message-Id; b=oHJrrj9V9uheZnOhPcOLK1BlCjsZHOjvGOAbgdX88Wp8+Gupp0RtKZNSFukFUfMi6LONqQ3r0ucTl1tboyZxQ5U3Ir7j5RdHKflp5f7Uy/Oxr1XccCaFOhc9mhrW+ZSuBTj50CJX2jD7GHBQhYbOQUWWTjIhzFMjlAeMKZVH4mE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sK3wVPOf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="18VMl6OZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45FB4C4CEE0;
-	Fri,  7 Feb 2025 00:30:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sK3wVPOf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4410C4CEDD;
+	Fri,  7 Feb 2025 00:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738888207;
-	bh=zPh9LQZeDwVqVyYGhf+Gh5LqFEBtC4cCYSvA7ieGU5U=;
+	s=korg; t=1738888210;
+	bh=uIbok1tNdEgwLjEwwJvvcEK1ypZIkEVHP4Ax3+14LSg=;
 	h=Date:To:From:Subject:From;
-	b=18VMl6OZnf1KhQNyst0GOG+DBS8r+m5X2alNRsP5ADn3dcedMCTllLoE5Z4wUJhGR
-	 qAvVk8ESVTYCdplsNRiFVF4utuRY6K++O9Z/dRcFhH3/ToqwRPGVChPp8RjSc9Txcw
-	 b1ZENSih3cLlLRMxA9yC4bs5S+ICSrKpUyZeeP60=
-Date: Thu, 06 Feb 2025 16:30:06 -0800
+	b=sK3wVPOfrv83EAU3AVGzlnO7OyBkh4INrNFRtDTMEjCreiX+u5nBUKXzdjjMS93g5
+	 lUkaUlSBmkm+JSXQ2M10oKZbqw1FtuzsTXmO7KPsRw8zSjBsgmaSOmDobuzsY7b+ic
+	 DNhAmdUpZblZfoKFnc3KlUjlkHhI4MeYe55+Oghw=
+Date: Thu, 06 Feb 2025 16:30:09 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,usama.arif@bytedance.com,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,robh+dt@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-add-kexec-handover-kho-generation-helpers.patch added to mm-nonmm-unstable branch
-Message-Id: <20250207003007.45FB4C4CEE0@smtp.kernel.org>
+Subject: + kexec-add-kho-parsing-support.patch added to mm-nonmm-unstable branch
+Message-Id: <20250207003009.E4410C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: add Kexec HandOver (KHO) generation helpers
+     Subject: kexec: add KHO parsing support
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-add-kexec-handover-kho-generation-helpers.patch
+     kexec-add-kho-parsing-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-add-kexec-handover-kho-generation-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-add-kho-parsing-support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Graf <graf@amazon.com>
-Subject: kexec: add Kexec HandOver (KHO) generation helpers
-Date: Thu, 6 Feb 2025 15:27:45 +0200
+Subject: kexec: add KHO parsing support
+Date: Thu, 6 Feb 2025 15:27:46 +0200
 
-This patch adds the core infrastructure to generate Kexec HandOver
-metadata.  Kexec HandOver is a mechanism that allows Linux to preserve
-state - arbitrary properties as well as memory locations - across kexec.
+When we have a KHO kexec, we get a device tree and scratch region to
+populate the state of the system.  Provide helper functions that allow
+architecture code to easily handle memory reservations based on them and
+give device drivers visibility into the KHO DT and memory reservations so
+they can recover their own state.
 
-It does so using 2 concepts:
-
-  1) Device Tree - Every KHO kexec carries a KHO specific flattened
-     device tree blob that describes the state of the system. Device
-     drivers can register to KHO to serialize their state before kexec.
-
-  2) Scratch Regions - CMA regions that we allocate in the first kernel.
-     CMA gives us the guarantee that no handover pages land in those
-     regions, because handover pages must be at a static physical memory
-     location. We use these regions as the place to load future kexec
-     images so that they won't collide with any handover data.
-
-Link: https://lkml.kernel.org/r/20250206132754.2596694-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20250206132754.2596694-7-rppt@kernel.org
 Signed-off-by: Alexander Graf <graf@amazon.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -114,661 +104,386 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-kho      |   53 +
- Documentation/admin-guide/kernel-parameters.txt |   24 
- MAINTAINERS                                     |    1 
- include/linux/kexec.h                           |   18 
- include/linux/kexec_handover.h                  |   10 
- kernel/Makefile                                 |    1 
- kernel/kexec_handover.c                         |  450 ++++++++++++++
- mm/internal.h                                   |    3 
- mm/mm_init.c                                    |    8 
- 9 files changed, 565 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-firmware-kho |    9 
+ MAINTAINERS                                  |    1 
+ include/linux/kexec.h                        |   12 
+ kernel/kexec_handover.c                      |  268 ++++++++++++++++-
+ mm/memblock.c                                |    1 
+ 5 files changed, 290 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-kernel-kho a/Documentation/ABI/testing/sysfs-kernel-kho
+diff --git a/Documentation/ABI/testing/sysfs-firmware-kho a/Documentation/ABI/testing/sysfs-firmware-kho
 new file mode 100644
 --- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-kho
-@@ -0,0 +1,53 @@
-+What:		/sys/kernel/kho/active
++++ a/Documentation/ABI/testing/sysfs-firmware-kho
+@@ -0,0 +1,9 @@
++What:		/sys/firmware/kho/dt
 +Date:		December 2023
 +Contact:	Alexander Graf <graf@amazon.com>
 +Description:
-+		Kexec HandOver (KHO) allows Linux to transition the state of
-+		compatible drivers into the next kexec'ed kernel. To do so,
-+		device drivers will serialize their current state into a DT.
-+		While the state is serialized, they are unable to perform
-+		any modifications to state that was serialized, such as
-+		handed over memory allocations.
-+
-+		When this file contains "1", the system is in the transition
-+		state. When contains "0", it is not. To switch between the
-+		two states, echo the respective number into this file.
-+
-+What:		/sys/kernel/kho/dt_max
-+Date:		December 2023
-+Contact:	Alexander Graf <graf@amazon.com>
-+Description:
-+		KHO needs to allocate a buffer for the DT that gets
-+		generated before it knows the final size. By default, it
-+		will allocate 10 MiB for it. You can write to this file
-+		to modify the size of that allocation.
-+
-+What:		/sys/kernel/kho/dt
-+Date:		December 2023
-+Contact:	Alexander Graf <graf@amazon.com>
-+Description:
-+		When KHO is active, the kernel exposes the generated DT that
-+		carries its current KHO state in this file. Kexec user space
-+		tooling can use this as input file for the KHO payload image.
-+
-+What:		/sys/kernel/kho/scratch_len
-+Date:		December 2023
-+Contact:	Alexander Graf <graf@amazon.com>
-+Description:
-+		To support continuous KHO kexecs, we need to reserve
-+		physically contiguous memory regions that will always stay
-+		available for future kexec allocations. This file describes
-+		the length of these memory regions. Kexec user space tooling
-+		can use this to determine where it should place its payload
-+		images.
-+
-+What:		/sys/kernel/kho/scratch_phys
-+Date:		December 2023
-+Contact:	Alexander Graf <graf@amazon.com>
-+Description:
-+		To support continuous KHO kexecs, we need to reserve
-+		physically contiguous memory regions that will always stay
-+		available for future kexec allocations. This file describes
-+		the physical location of these memory regions. Kexec user space
-+		tooling can use this to determine where it should place its
-+		payload images.
---- a/Documentation/admin-guide/kernel-parameters.txt~kexec-add-kexec-handover-kho-generation-helpers
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2705,6 +2705,30 @@
- 	kgdbwait	[KGDB,EARLY] Stop kernel execution and enter the
- 			kernel debugger at the earliest opportunity.
- 
-+	kho=		[KEXEC,EARLY]
-+			Format: { "0" | "1" | "off" | "on" | "y" | "n" }
-+			Enables or disables Kexec HandOver.
-+			"0" | "off" | "n" - kexec handover is disabled
-+			"1" | "on" | "y" - kexec handover is enabled
-+
-+	kho_scratch=	[KEXEC,EARLY]
-+			Format: nn[KMG],mm[KMG] | nn%
-+			Defines the size of the KHO scratch region. The KHO
-+			scratch regions are physically contiguous memory
-+			ranges that can only be used for non-kernel
-+			allocations. That way, even when memory is heavily
-+			fragmented with handed over memory, the kexeced
-+			kernel will always have enough contiguous ranges to
-+			bootstrap itself.
-+
-+			It is possible to specify the exact amount of
-+			memory in the form of "nn[KMG],mm[KMG]" where the
-+			first parameter defines the size of a global
-+			scratch area and the second parameter defines the
-+			size of additional per-node scratch areas.
-+			The form "nn%" defines scale factor (in percents)
-+			of memory that was used during boot.
-+
- 	kmac=		[MIPS] Korina ethernet MAC address.
- 			Configure the RouterBoard 532 series on-chip
- 			Ethernet adapter MAC address.
---- a/include/linux/kexec.h~kexec-add-kexec-handover-kho-generation-helpers
++		When the kernel was booted with Kexec HandOver (KHO),
++		the device tree that carries metadata about the previous
++		kernel's state is in this file. This file may disappear
++		when all consumers of it finished to interpret their
++		metadata.
+--- a/include/linux/kexec.h~kexec-add-kho-parsing-support
 +++ a/include/linux/kexec.h
-@@ -492,6 +492,24 @@ void set_kexec_sig_enforced(void);
- static inline void set_kexec_sig_enforced(void) {}
- #endif
+@@ -499,12 +499,24 @@ enum kho_event {
+ };
  
-+/* KHO Notifier index */
-+enum kho_event {
-+	KEXEC_KHO_DUMP = 0,
-+	KEXEC_KHO_ABORT = 1,
-+};
-+
-+struct notifier_block;
-+
-+#ifdef CONFIG_KEXEC_HANDOVER
-+int register_kho_notifier(struct notifier_block *nb);
-+int unregister_kho_notifier(struct notifier_block *nb);
-+void kho_memory_init(void);
-+#else
-+static inline int register_kho_notifier(struct notifier_block *nb) { return 0; }
-+static inline int unregister_kho_notifier(struct notifier_block *nb) { return 0; }
-+static inline void kho_memory_init(void) {}
-+#endif /* CONFIG_KEXEC_HANDOVER */
-+
- #endif /* !defined(__ASSEBMLY__) */
+ struct notifier_block;
++struct kho_mem;
  
- #endif /* LINUX_KEXEC_H */
-diff --git a/include/linux/kexec_handover.h a/include/linux/kexec_handover.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/kexec_handover.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef LINUX_KEXEC_HANDOVER_H
-+#define LINUX_KEXEC_HANDOVER_H
+ #ifdef CONFIG_KEXEC_HANDOVER
++void kho_populate(phys_addr_t dt_phys, phys_addr_t scratch_phys,
++		  u64 scratch_len);
++const void *kho_get_fdt(void);
++void kho_return_mem(const struct kho_mem *mem);
++void *kho_claim_mem(const struct kho_mem *mem);
+ int register_kho_notifier(struct notifier_block *nb);
+ int unregister_kho_notifier(struct notifier_block *nb);
+ void kho_memory_init(void);
+ #else
++static inline void kho_populate(phys_addr_t dt_phys, phys_addr_t scratch_phys,
++				u64 scratch_len) {}
++static inline void *kho_get_fdt(void) { return NULL; }
++static inline void kho_return_mem(const struct kho_mem *mem) { }
++static inline void *kho_claim_mem(const struct kho_mem *mem) { return NULL; }
 +
-+struct kho_mem {
-+	phys_addr_t addr;
-+	phys_addr_t size;
-+};
-+
-+#endif /* LINUX_KEXEC_HANDOVER_H */
-diff --git a/kernel/kexec_handover.c a/kernel/kexec_handover.c
-new file mode 100644
---- /dev/null
+ static inline int register_kho_notifier(struct notifier_block *nb) { return 0; }
+ static inline int unregister_kho_notifier(struct notifier_block *nb) { return 0; }
+ static inline void kho_memory_init(void) {}
+--- a/kernel/kexec_handover.c~kexec-add-kho-parsing-support
 +++ a/kernel/kexec_handover.c
-@@ -0,0 +1,450 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * kexec_handover.c - kexec handover metadata processing
-+ * Copyright (C) 2023 Alexander Graf <graf@amazon.com>
-+ * Copyright (C) 2025 Microsoft Corporation, Mike Rapoport <rppt@kernel.org>
-+ */
-+
-+#define pr_fmt(fmt) "KHO: " fmt
-+
-+#include <linux/cma.h>
-+#include <linux/kexec.h>
-+#include <linux/sysfs.h>
-+#include <linux/libfdt.h>
-+#include <linux/memblock.h>
-+#include <linux/notifier.h>
-+#include <linux/kexec_handover.h>
-+#include <linux/page-isolation.h>
-+
-+static bool kho_enable __ro_after_init;
-+
-+static int __init kho_parse_enable(char *p)
-+{
-+	return kstrtobool(p, &kho_enable);
-+}
-+early_param("kho", kho_parse_enable);
-+
-+/*
-+ * With KHO enabled, memory can become fragmented because KHO regions may
-+ * be anywhere in physical address space. The scratch regions give us a
-+ * safe zones that we will never see KHO allocations from. This is where we
-+ * can later safely load our new kexec images into and then use the scratch
-+ * area for early allocations that happen before page allocator is
-+ * initialized.
-+ */
-+static struct kho_mem *kho_scratch;
-+static unsigned int kho_scratch_cnt;
-+
-+struct kho_out {
-+	struct blocking_notifier_head chain_head;
+@@ -51,6 +51,15 @@ static struct kho_out kho_out = {
+ 	.dt_max = 10 * SZ_1M,
+ };
+ 
++struct kho_in {
 +	struct kobject *kobj;
-+	struct mutex lock;
-+	void *dt;
-+	u64 dt_len;
-+	u64 dt_max;
-+	bool active;
++	phys_addr_t kho_scratch_phys;
++	phys_addr_t handover_phys;
++	u32 handover_len;
 +};
 +
-+static struct kho_out kho_out = {
-+	.chain_head = BLOCKING_NOTIFIER_INIT(kho_out.chain_head),
-+	.lock = __MUTEX_INITIALIZER(kho_out.lock),
-+	.dt_max = 10 * SZ_1M,
-+};
++static struct kho_in kho_in;
 +
-+int register_kho_notifier(struct notifier_block *nb)
+ int register_kho_notifier(struct notifier_block *nb)
+ {
+ 	return blocking_notifier_chain_register(&kho_out.chain_head, nb);
+@@ -63,6 +72,89 @@ int unregister_kho_notifier(struct notif
+ }
+ EXPORT_SYMBOL_GPL(unregister_kho_notifier);
+ 
++const void *kho_get_fdt(void)
 +{
-+	return blocking_notifier_chain_register(&kho_out.chain_head, nb);
++	if (!kho_in.handover_phys)
++		return NULL;
++
++	return __va(kho_in.handover_phys);
 +}
-+EXPORT_SYMBOL_GPL(register_kho_notifier);
++EXPORT_SYMBOL_GPL(kho_get_fdt);
 +
-+int unregister_kho_notifier(struct notifier_block *nb)
++static void kho_return_pfn(ulong pfn)
 +{
-+	return blocking_notifier_chain_unregister(&kho_out.chain_head, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_kho_notifier);
++	struct page *page = pfn_to_online_page(pfn);
 +
-+static ssize_t dt_read(struct file *file, struct kobject *kobj,
-+		       struct bin_attribute *attr, char *buf,
-+		       loff_t pos, size_t count)
-+{
-+	mutex_lock(&kho_out.lock);
-+	memcpy(buf, attr->private + pos, count);
-+	mutex_unlock(&kho_out.lock);
-+
-+	return count;
-+}
-+
-+struct bin_attribute bin_attr_dt_kern = __BIN_ATTR(dt, 0400, dt_read, NULL, 0);
-+
-+static int kho_expose_dt(void *fdt)
-+{
-+	long fdt_len = fdt_totalsize(fdt);
-+	int err;
-+
-+	kho_out.dt = fdt;
-+	kho_out.dt_len = fdt_len;
-+
-+	bin_attr_dt_kern.size = fdt_totalsize(fdt);
-+	bin_attr_dt_kern.private = fdt;
-+	err = sysfs_create_bin_file(kho_out.kobj, &bin_attr_dt_kern);
-+
-+	return err;
-+}
-+
-+static void kho_abort(void)
-+{
-+	if (!kho_out.active)
++	if (WARN_ON(!page))
 +		return;
-+
-+	sysfs_remove_bin_file(kho_out.kobj, &bin_attr_dt_kern);
-+
-+	kvfree(kho_out.dt);
-+	kho_out.dt = NULL;
-+	kho_out.dt_len = 0;
-+
-+	blocking_notifier_call_chain(&kho_out.chain_head, KEXEC_KHO_ABORT, NULL);
-+
-+	kho_out.active = false;
++	__free_page(page);
 +}
 +
-+static int kho_serialize(void)
++/**
++ * kho_return_mem - Notify the kernel that initially reserved memory is no
++ * longer needed.
++ * @mem: memory range that was preserved during kexec handover
++ *
++ * When the last consumer of a page returns their memory, kho returns the page
++ * to the buddy allocator as free page.
++ */
++void kho_return_mem(const struct kho_mem *mem)
 +{
-+	void *fdt = NULL;
-+	int err = -ENOMEM;
++	unsigned long start_pfn, end_pfn, pfn;
 +
-+	fdt = kvmalloc(kho_out.dt_max, GFP_KERNEL);
-+	if (!fdt)
-+		goto out;
++	start_pfn = PFN_DOWN(mem->addr);
++	end_pfn = PFN_UP(mem->addr + mem->size);
 +
-+	if (fdt_create(fdt, kho_out.dt_max)) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	err = fdt_finish_reservemap(fdt);
-+	if (err)
-+		goto out;
-+
-+	err = fdt_begin_node(fdt, "");
-+	if (err)
-+		goto out;
-+
-+	err = fdt_property_string(fdt, "compatible", "kho-v1");
-+	if (err)
-+		goto out;
-+
-+	/* Loop through all kho dump functions */
-+	err = blocking_notifier_call_chain(&kho_out.chain_head, KEXEC_KHO_DUMP, fdt);
-+	err = notifier_to_errno(err);
-+	if (err)
-+		goto out;
-+
-+	/* Close / */
-+	err =  fdt_end_node(fdt);
-+	if (err)
-+		goto out;
-+
-+	err = fdt_finish(fdt);
-+	if (err)
-+		goto out;
-+
-+	if (WARN_ON(fdt_check_header(fdt))) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+
-+	err = kho_expose_dt(fdt);
-+
-+out:
-+	if (err) {
-+		pr_err("failed to serialize state: %d", err);
-+		kho_abort();
-+	}
-+	return err;
++	for (pfn = start_pfn; pfn < end_pfn; pfn++)
++		kho_return_pfn(pfn);
 +}
++EXPORT_SYMBOL_GPL(kho_return_mem);
 +
-+/* Handling for /sys/kernel/kho */
-+
-+#define KHO_ATTR_RO(_name) \
-+	static struct kobj_attribute _name##_attr = __ATTR_RO_MODE(_name, 0400)
-+#define KHO_ATTR_RW(_name) \
-+	static struct kobj_attribute _name##_attr = __ATTR_RW_MODE(_name, 0600)
-+
-+static ssize_t active_store(struct kobject *dev, struct kobj_attribute *attr,
-+			    const char *buf, size_t size)
++static int kho_claim_pfn(ulong pfn)
 +{
-+	ssize_t retsize = size;
-+	bool val = false;
-+	int ret;
++	struct page *page = pfn_to_online_page(pfn);
 +
-+	if (kstrtobool(buf, &val) < 0)
-+		return -EINVAL;
-+
-+	if (!kho_enable)
-+		return -EOPNOTSUPP;
-+	if (!kho_scratch_cnt)
++	if (!page)
 +		return -ENOMEM;
 +
-+	mutex_lock(&kho_out.lock);
-+	if (val != kho_out.active) {
-+		if (val) {
-+			ret = kho_serialize();
-+			if (ret) {
-+				retsize = -EINVAL;
-+				goto out;
-+			}
-+			kho_out.active = true;
-+		} else {
-+			kho_abort();
-+		}
++	/* almost as free_reserved_page(), just don't free the page */
++	ClearPageReserved(page);
++	init_page_count(page);
++	adjust_managed_page_count(page, 1);
++
++	return 0;
++}
++
++/**
++ * kho_claim_mem - Notify the kernel that a handed over memory range is now
++ * in use
++ * @mem: memory range that was preserved during kexec handover
++ *
++ * A kernel subsystem preserved that range during handover and it is going
++ * to reuse this range after kexec. The pages in the range are treated as
++ * allocated, but not %PG_reserved.
++ *
++ * Return: virtual address of the preserved memory range
++ */
++void *kho_claim_mem(const struct kho_mem *mem)
++{
++	unsigned long start_pfn, end_pfn, pfn;
++	void *va = __va(mem->addr);
++
++	start_pfn = PFN_DOWN(mem->addr);
++	end_pfn = PFN_UP(mem->addr + mem->size);
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++		int err = kho_claim_pfn(pfn);
++
++		if (err)
++			return NULL;
 +	}
 +
-+out:
-+	mutex_unlock(&kho_out.lock);
-+	return retsize;
++	return va;
 +}
++EXPORT_SYMBOL_GPL(kho_claim_mem);
 +
-+static ssize_t active_show(struct kobject *dev, struct kobj_attribute *attr,
-+			   char *buf)
-+{
-+	ssize_t ret;
+ static ssize_t dt_read(struct file *file, struct kobject *kobj,
+ 		       struct bin_attribute *attr, char *buf,
+ 		       loff_t pos, size_t count)
+@@ -273,6 +365,30 @@ static const struct attribute *kho_out_a
+ 	NULL,
+ };
+ 
++/* Handling for /sys/firmware/kho */
++static BIN_ATTR_SIMPLE_RO(dt_fw);
 +
-+	mutex_lock(&kho_out.lock);
-+	ret = sysfs_emit(buf, "%d\n", kho_out.active);
-+	mutex_unlock(&kho_out.lock);
-+
-+	return ret;
-+}
-+KHO_ATTR_RW(active);
-+
-+static ssize_t dt_max_store(struct kobject *dev, struct kobj_attribute *attr,
-+			    const char *buf, size_t size)
-+{
-+	u64 val;
-+
-+	if (kstrtoull(buf, 0, &val))
-+		return -EINVAL;
-+
-+	/* FDT already exists, it's too late to change dt_max */
-+	if (kho_out.dt_len)
-+		return -EBUSY;
-+
-+	kho_out.dt_max = val;
-+
-+	return size;
-+}
-+
-+static ssize_t dt_max_show(struct kobject *dev, struct kobj_attribute *attr,
-+			   char *buf)
-+{
-+	return sysfs_emit(buf, "0x%llx\n", kho_out.dt_max);
-+}
-+KHO_ATTR_RW(dt_max);
-+
-+static ssize_t scratch_len_show(struct kobject *dev, struct kobj_attribute *attr,
-+				char *buf)
-+{
-+	ssize_t count = 0;
-+
-+	for (int i = 0; i < kho_scratch_cnt; i++)
-+		count += sysfs_emit_at(buf, count, "0x%llx\n", kho_scratch[i].size);
-+
-+	return count;
-+}
-+KHO_ATTR_RO(scratch_len);
-+
-+static ssize_t scratch_phys_show(struct kobject *dev, struct kobj_attribute *attr,
-+				 char *buf)
-+{
-+	ssize_t count = 0;
-+
-+	for (int i = 0; i < kho_scratch_cnt; i++)
-+		count += sysfs_emit_at(buf, count, "0x%llx\n", kho_scratch[i].addr);
-+
-+	return count;
-+}
-+KHO_ATTR_RO(scratch_phys);
-+
-+static const struct attribute *kho_out_attrs[] = {
-+	&active_attr.attr,
-+	&dt_max_attr.attr,
-+	&scratch_phys_attr.attr,
-+	&scratch_len_attr.attr,
-+	NULL,
-+};
-+
-+static __init int kho_out_sysfs_init(void)
++static __init int kho_in_sysfs_init(const void *fdt)
 +{
 +	int err;
 +
-+	kho_out.kobj = kobject_create_and_add("kho", kernel_kobj);
-+	if (!kho_out.kobj)
++	kho_in.kobj = kobject_create_and_add("kho", firmware_kobj);
++	if (!kho_in.kobj)
 +		return -ENOMEM;
 +
-+	err = sysfs_create_files(kho_out.kobj, kho_out_attrs);
++	bin_attr_dt_fw.size = fdt_totalsize(fdt);
++	bin_attr_dt_fw.private = (void *)fdt;
++	err = sysfs_create_bin_file(kho_in.kobj, &bin_attr_dt_fw);
 +	if (err)
 +		goto err_put_kobj;
 +
 +	return 0;
 +
 +err_put_kobj:
-+	kobject_put(kho_out.kobj);
++	kobject_put(kho_in.kobj);
 +	return err;
 +}
 +
-+static __init int kho_init(void)
-+{
-+	int err;
+ static __init int kho_out_sysfs_init(void)
+ {
+ 	int err;
+@@ -294,6 +410,7 @@ err_put_kobj:
+ 
+ static __init int kho_init(void)
+ {
++	const void *fdt = kho_get_fdt();
+ 	int err;
+ 
+ 	if (!kho_enable)
+@@ -303,6 +420,21 @@ static __init int kho_init(void)
+ 	if (err)
+ 		return err;
+ 
++	if (fdt) {
++		err = kho_in_sysfs_init(fdt);
++		/*
++		 * Failure to create /sys/firmware/kho/dt does not prevent
++		 * reviving state from KHO and setting up KHO for the next
++		 * kexec.
++		 */
++		if (err)
++			pr_err("failed exposing handover FDT in sysfs\n");
 +
-+	if (!kho_enable)
-+		return -EINVAL;
++		kho_scratch = __va(kho_in.kho_scratch_phys);
 +
-+	err = kho_out_sysfs_init();
-+	if (err)
-+		return err;
-+
-+	for (int i = 0; i < kho_scratch_cnt; i++) {
-+		unsigned long base_pfn = PHYS_PFN(kho_scratch[i].addr);
-+		unsigned long count = kho_scratch[i].size >> PAGE_SHIFT;
-+		unsigned long pfn;
-+
-+		for (pfn = base_pfn; pfn < base_pfn + count;
-+		     pfn += pageblock_nr_pages)
-+			init_cma_reserved_pageblock(pfn_to_page(pfn));
++		return 0;
 +	}
 +
-+	return 0;
-+}
-+late_initcall(kho_init);
-+
+ 	for (int i = 0; i < kho_scratch_cnt; i++) {
+ 		unsigned long base_pfn = PHYS_PFN(kho_scratch[i].addr);
+ 		unsigned long count = kho_scratch[i].size >> PAGE_SHIFT;
+@@ -444,7 +576,141 @@ err_disable_kho:
+ 	kho_enable = false;
+ }
+ 
 +/*
-+ * The scratch areas are scaled by default as percent of memory allocated from
-+ * memblock. A user can override the scale with command line parameter:
-+ *
-+ * kho_scratch=N%
-+ *
-+ * It is also possible to explicitly define size for a global and per-node
-+ * scratch areas:
-+ *
-+ * kho_scratch=n[KMG],m[KMG]
-+ *
-+ * The explicit size definition takes precedence over scale definition.
++ * Scan the DT for any memory ranges and make sure they are reserved in
++ * memblock, otherwise they will end up in a weird state on free lists.
 + */
-+static unsigned int scratch_scale __initdata = 200;
-+static phys_addr_t scratch_size_global __initdata;
-+static phys_addr_t scratch_size_pernode __initdata;
-+
-+static int __init kho_parse_scratch_size(char *p)
++static void kho_init_reserved_pages(void)
 +{
-+	unsigned long size, size_pernode;
-+	char *endptr, *oldp = p;
++	const void *fdt = kho_get_fdt();
++	int offset = 0, depth = 0, initial_depth = 0, len;
 +
-+	if (!p)
-+		return -EINVAL;
-+
-+	size = simple_strtoul(p, &endptr, 0);
-+	if (*endptr == '%') {
-+		scratch_scale = size;
-+		pr_notice("scratch scale is %d percent\n", scratch_scale);
-+	} else {
-+		size = memparse(p, &p);
-+		if (!size || p == oldp)
-+			return -EINVAL;
-+
-+		if (*p != ',')
-+			return -EINVAL;
-+
-+		size_pernode = memparse(p + 1, &p);
-+		if (!size_pernode)
-+			return -EINVAL;
-+
-+		scratch_size_global = size;
-+		scratch_size_pernode = size_pernode;
-+		scratch_scale = 0;
-+
-+		pr_notice("scratch areas: global: %lluMB pernode: %lldMB\n",
-+			  (u64)(scratch_size_global >> 20),
-+			  (u64)(scratch_size_pernode >> 20));
-+	}
-+
-+	return 0;
-+}
-+early_param("kho_scratch", kho_parse_scratch_size);
-+
-+static phys_addr_t __init scratch_size(int nid)
-+{
-+	phys_addr_t size;
-+
-+	if (scratch_scale) {
-+		size = memblock_reserved_kern_size(nid) * scratch_scale / 100;
-+	} else {
-+		if (numa_valid_node(nid))
-+			size = scratch_size_pernode;
-+		else
-+			size = scratch_size_global;
-+	}
-+
-+	return round_up(size, CMA_MIN_ALIGNMENT_BYTES);
-+}
-+
-+/**
-+ * kho_reserve_scratch - Reserve a contiguous chunk of memory for kexec
-+ *
-+ * With KHO we can preserve arbitrary pages in the system. To ensure we still
-+ * have a large contiguous region of memory when we search the physical address
-+ * space for target memory, let's make sure we always have a large CMA region
-+ * active. This CMA region will only be used for movable pages which are not a
-+ * problem for us during KHO because we can just move them somewhere else.
-+ */
-+static void kho_reserve_scratch(void)
-+{
-+	phys_addr_t addr, size;
-+	int nid, i = 1;
-+
-+	if (!kho_enable)
++	if (!fdt)
 +		return;
 +
-+	/* FIXME: deal with node hot-plug/remove */
-+	kho_scratch_cnt = num_online_nodes() + 1;
-+	size = kho_scratch_cnt * sizeof(*kho_scratch);
-+	kho_scratch = memblock_alloc(size, PAGE_SIZE);
-+	if (!kho_scratch)
-+		goto err_disable_kho;
++	/* Go through the mem list and add 1 for each reference */
++	for (offset = 0;
++	     offset >= 0 && depth >= initial_depth;
++	     offset = fdt_next_node(fdt, offset, &depth)) {
++		const struct kho_mem *mems;
++		u32 i;
 +
-+	/* reserve large contiguous area for allocations without nid */
-+	size = scratch_size(NUMA_NO_NODE);
-+	addr = memblock_phys_alloc(size, CMA_MIN_ALIGNMENT_BYTES);
-+	if (!addr)
-+		goto err_free_scratch_desc;
++		mems = fdt_getprop(fdt, offset, "mem", &len);
++		if (!mems || len & (sizeof(*mems) - 1))
++			continue;
 +
-+	kho_scratch[0].addr = addr;
-+	kho_scratch[0].size = size;
++		for (i = 0; i < len; i += sizeof(*mems)) {
++			const struct kho_mem *mem = &mems[i];
 +
-+	for_each_online_node(nid) {
-+		size = scratch_size(nid);
-+		addr = memblock_alloc_range_nid(size, CMA_MIN_ALIGNMENT_BYTES,
-+						0, MEMBLOCK_ALLOC_ACCESSIBLE,
-+						nid, true);
-+		if (!addr)
-+			goto err_free_scratch_areas;
++			memblock_reserve(mem->addr, mem->size);
++		}
++	}
++}
 +
-+		kho_scratch[i].addr = addr;
-+		kho_scratch[i].size = size;
-+		i++;
++static void __init kho_release_scratch(void)
++{
++	phys_addr_t start, end;
++	u64 i;
++
++	memmap_init_kho_scratch_pages();
++
++	/*
++	 * Mark scratch mem as CMA before we return it. That way we
++	 * ensure that no kernel allocations happen on it. That means
++	 * we can reuse it as scratch memory again later.
++	 */
++	__for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
++			     MEMBLOCK_KHO_SCRATCH, &start, &end, NULL) {
++		ulong start_pfn = pageblock_start_pfn(PFN_DOWN(start));
++		ulong end_pfn = pageblock_align(PFN_UP(end));
++		ulong pfn;
++
++		for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages)
++			set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_CMA);
++	}
++}
++
+ void __init kho_memory_init(void)
+ {
+-	kho_reserve_scratch();
++	if (!kho_get_fdt()) {
++		kho_reserve_scratch();
++	} else {
++		kho_init_reserved_pages();
++		kho_release_scratch();
++	}
++}
++
++void __init kho_populate(phys_addr_t handover_dt_phys, phys_addr_t scratch_phys,
++			 u64 scratch_len)
++{
++	void *handover_dt;
++	struct kho_mem *scratch;
++
++	/* Determine the real size of the DT */
++	handover_dt = early_memremap(handover_dt_phys, sizeof(struct fdt_header));
++	if (!handover_dt) {
++		pr_warn("setup: failed to memremap kexec FDT (0x%llx)\n", handover_dt_phys);
++		return;
 +	}
 +
-+	return;
++	if (fdt_check_header(handover_dt)) {
++		pr_warn("setup: kexec handover FDT is invalid (0x%llx)\n", handover_dt_phys);
++		early_memunmap(handover_dt, PAGE_SIZE);
++		return;
++	}
 +
-+err_free_scratch_areas:
-+	for (i--; i >= 0; i--)
-+		memblock_phys_free(kho_scratch[i].addr, kho_scratch[i].size);
-+err_free_scratch_desc:
-+	memblock_free(kho_scratch, kho_scratch_cnt * sizeof(*kho_scratch));
-+err_disable_kho:
-+	kho_enable = false;
-+}
++	kho_in.handover_len = fdt_totalsize(handover_dt);
++	kho_in.handover_phys = handover_dt_phys;
 +
-+void __init kho_memory_init(void)
-+{
-+	kho_reserve_scratch();
-+}
---- a/kernel/Makefile~kexec-add-kexec-handover-kho-generation-helpers
-+++ a/kernel/Makefile
-@@ -75,6 +75,7 @@ obj-$(CONFIG_CRASH_DUMP) += crash_core.o
- obj-$(CONFIG_KEXEC) += kexec.o
- obj-$(CONFIG_KEXEC_FILE) += kexec_file.o
- obj-$(CONFIG_KEXEC_ELF) += kexec_elf.o
-+obj-$(CONFIG_KEXEC_HANDOVER) += kexec_handover.o
- obj-$(CONFIG_BACKTRACE_SELF_TEST) += backtracetest.o
- obj-$(CONFIG_COMPAT) += compat.o
- obj-$(CONFIG_CGROUPS) += cgroup/
---- a/MAINTAINERS~kexec-add-kexec-handover-kho-generation-helpers
++	early_memunmap(handover_dt, sizeof(struct fdt_header));
++
++	/* Reserve the DT so we can still access it in late boot */
++	memblock_reserve(kho_in.handover_phys, kho_in.handover_len);
++
++	kho_in.kho_scratch_phys = scratch_phys;
++	kho_scratch_cnt = scratch_len / sizeof(*kho_scratch);
++	scratch = early_memremap(scratch_phys, scratch_len);
++	if (!scratch) {
++		pr_warn("setup: failed to memremap kexec scratch (0x%llx)\n", scratch_phys);
++		return;
++	}
++
++	/*
++	 * We pass a safe contiguous blocks of memory to use for early boot
++	 * purporses from the previous kernel so that we can resize the
++	 * memblock array as needed.
++	 */
++	for (int i = 0; i < kho_scratch_cnt; i++) {
++		struct kho_mem *area = &scratch[i];
++		u64 size = area->size;
++
++		memblock_add(area->addr, size);
++
++		if (WARN_ON(memblock_mark_kho_scratch(area->addr, size))) {
++			pr_err("Kexec failed to mark the scratch region. Disabling KHO revival.");
++			kho_in.handover_len = 0;
++			kho_in.handover_phys = 0;
++			scratch = NULL;
++			break;
++		}
++		pr_debug("Marked 0x%pa+0x%pa as scratch", &area->addr, &size);
++	}
++
++	early_memunmap(scratch, scratch_len);
++
++	if (!scratch)
++		return;
++
++	memblock_reserve(scratch_phys, scratch_len);
++
++	/*
++	 * Now that we have a viable region of scratch memory, let's tell
++	 * the memblocks allocator to only use that for any allocations.
++	 * That way we ensure that nothing scribbles over in use data while
++	 * we initialize the page tables which we will need to ingest all
++	 * memory reservations from the previous kernel.
++	 */
++	memblock_set_kho_scratch_only();
++
++	pr_info("setup: Found kexec handover data. Will skip init for some devices\n");
+ }
+--- a/MAINTAINERS~kexec-add-kho-parsing-support
 +++ a/MAINTAINERS
 @@ -12820,6 +12820,7 @@ M:	Eric Biederman <ebiederm@xmission.com
  L:	kexec@lists.infradead.org
  S:	Maintained
  W:	http://kernel.org/pub/linux/utils/kernel/kexec/
-+F:	Documentation/ABI/testing/sysfs-kernel-kho
++F:	Documentation/ABI/testing/sysfs-firmware-kho
+ F:	Documentation/ABI/testing/sysfs-kernel-kho
  F:	include/linux/kexec.h
  F:	include/uapi/linux/kexec.h
- F:	kernel/kexec*
---- a/mm/internal.h~kexec-add-kexec-handover-kho-generation-helpers
-+++ a/mm/internal.h
-@@ -841,9 +841,6 @@ int
- isolate_migratepages_range(struct compact_control *cc,
- 			   unsigned long low_pfn, unsigned long end_pfn);
+--- a/mm/memblock.c~kexec-add-kho-parsing-support
++++ a/mm/memblock.c
+@@ -2366,6 +2366,7 @@ void __init memblock_free_all(void)
+ 	free_unused_memmap();
+ 	reset_all_zones_managed_pages();
  
--/* Free whole pageblock and set its migration type to MIGRATE_CMA. */
--void init_cma_reserved_pageblock(struct page *page);
--
- #endif /* CONFIG_COMPACTION || CONFIG_CMA */
- 
- struct cma;
---- a/mm/mm_init.c~kexec-add-kexec-handover-kho-generation-helpers
-+++ a/mm/mm_init.c
-@@ -25,6 +25,7 @@
- #include <linux/pti.h>
- #include <linux/pgtable.h>
- #include <linux/stackdepot.h>
-+#include <linus/kexec.h>
- #include <linux/swap.h>
- #include <linux/cma.h>
- #include <linux/crash_dump.h>
-@@ -2722,6 +2723,13 @@ void __init mm_core_init(void)
- 	report_meminit();
- 	kmsan_init_shadow();
- 	stack_depot_early_init();
-+
-+	/*
-+	 * KHO memory setup must happen while memblock is still active, but
-+	 * as close as possible to buddy initialization
-+	 */
-+	kho_memory_init();
-+
- 	mem_init();
- 	kmem_cache_init();
- 	/*
++	memblock_clear_kho_scratch_only();
+ 	pages = free_low_memory_core_early();
+ 	totalram_pages_add(pages);
+ }
 _
 
 Patches currently in -mm which might be from graf@amazon.com are
