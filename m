@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A821F45979
-	for <mm-commits@vger.kernel.org>; Sat,  8 Feb 2025 02:13:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F942AD32
+	for <mm-commits@vger.kernel.org>; Sat,  8 Feb 2025 02:27:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738980826; cv=none; b=A+nR9Lcwi1tEYC49VQADxIg5kyiHQoo8D0l+FfHrNZd8zXhuEAuhHkffBug0BcznYg7ZHat3jK+DoK4r1r8LFj06+zcoAZAxrpPAl/WGuq9CVX4zdjobvj/9+eS0BJ4k6kDXZmuRy/Ju9UIHzfBQ/H6EbN2RojiL6re7vUlKCF8=
+	t=1738981679; cv=none; b=adgVaKSC7a0wZfrOp6D9NoP6eXwKukGU2eC3LXZOwUzvboTLXs3Bkt7b23qD3zRnbsrnbavLKXzIB+rPur2Pzct85AWzvqOBmBunQ9WAa1gaoWNYQuXNiXVTXBAUmRV/DJtLXjBBXQFrdmeHqHjLM1i6VOt1Wttrv9xNp6Sa9RA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738980826; c=relaxed/simple;
-	bh=yzKoP+KC7rvC8TU2odvHRhOovif6Ht5PO0byyTy3IHU=;
-	h=Date:To:From:Subject:Message-Id; b=rv1AJufU0O8VtOCwbB82ozCMagrXC1RtHhCmxWW649Cb90D4hjoYMFh4isGtSTL5yrXjwdzM8M3kI1UiQRSNKk8xZ9SnhogcjwFbTzIaGevq9jVCjjzJdL9PJ/rNSbaSs8kETKRFsMFZS+QQXnlMlpAzWmEZBwXKQAHg5jLxgxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lkgISngD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738981679; c=relaxed/simple;
+	bh=OpsMfh42dvLpNV4/UH1MjFGHLMbtrMfkKA9CS0daqOI=;
+	h=Date:To:From:Subject:Message-Id; b=HkvHPtjMAigdQNFvboHDm5soT86WwVHWjn5Z+krf4dijOIJ52vbmDVejsEpnPXKWixn7nzW3lhCsOZm2TKRzYZfAHxcnS8pTOYf8b5AdYD1+ZVfPAWP1FaUvzwlGekDFZi1u7f+FFnboDhnGqYMyFp3oMOtjEEX4599grqBj8PM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wRVdo7+X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lkgISngD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB723C4CED1;
-	Sat,  8 Feb 2025 02:13:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wRVdo7+X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28F5EC4CED1;
+	Sat,  8 Feb 2025 02:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738980826;
-	bh=yzKoP+KC7rvC8TU2odvHRhOovif6Ht5PO0byyTy3IHU=;
+	s=korg; t=1738981679;
+	bh=OpsMfh42dvLpNV4/UH1MjFGHLMbtrMfkKA9CS0daqOI=;
 	h=Date:To:From:Subject:From;
-	b=lkgISngDrVDtJgwkM/KZHZkXNWGXTNREp5AXKDEZUP0hKJ0xmRa2vMpQ0AYt5+45F
-	 H9ADbNEftZMdcaf3JzO7JwuxMFmZOiRSNs3KU6ZQLSPAYNpNrb1oIHimFFvfyPQYKu
-	 Z8k1imUfVX1YiL8H1u7hCzieBGEfLGHXw6g95TW0=
-Date: Fri, 07 Feb 2025 18:13:45 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,rakie.kim@sk.com,rafael@kernel.org,lenb@kernel.org,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,dave.jiang@intel.com,dan.j.williams@intel.com,42.hyeyoo@gmail.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=wRVdo7+XxQYDsndtgigPMfZpbVqh0f5evDE9FlBgLKXi6IdHIG1/QDzz0/UhMWt0q
+	 8sQ2s1BIaeJR4RVN/okMySonzJ448N7K1fBbZLjB4JQc9LjJtk1lAkYX0rHl4EGLGp
+	 U/J3RSWzZF9jj3OaugnunhE9HkHp8tbXI5XuvaWA=
+Date: Fri, 07 Feb 2025 18:27:58 -0800
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,gary@garyguo.net,dwaipayanray1@gmail.com,charmitro@posteo.net,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,apw@canonical.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,kurti@invicto.ai,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-weighted-interleave-auto-tuning.patch added to mm-unstable branch
-Message-Id: <20250208021345.EB723C4CED1@smtp.kernel.org>
+Subject: + checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch added to mm-nonmm-unstable branch
+Message-Id: <20250208022759.28F5EC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: Weighted Interleave Auto-tuning
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-weighted-interleave-auto-tuning.patch
+     Subject: checkpatch: add warning for pr_* and dev_* macros without a trailing newline
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-weighted-interleave-auto-tuning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,467 +58,182 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/mempolicy: Weighted Interleave Auto-tuning
-Date: Fri, 7 Feb 2025 12:13:35 -0800
+From: Alban Kurti <kurti@invicto.ai>
+Subject: checkpatch: add warning for pr_* and dev_* macros without a trailing newline
+Date: Fri, 07 Feb 2025 18:39:06 +0000 (UTC)
 
-On machines with multiple memory nodes, interleaving page allocations
-across nodes allows for better utilization of each node's bandwidth. 
-Previous work by Gregory Price [1] introduced weighted interleave, which
-allowed for pages to be allocated across nodes according to user-set
-ratios.
+Add a new check in scripts/checkpatch.pl to detect usage of pr_(level) and
+dev_(level) macros (for both C and Rust) when the string literal does not
+end with '\n'.  Missing trailing newlines can lead to incomplete log lines
+that do not appear properly in dmesg or in console output.  To show an
+example of this working after applying the patch we can run the script on
+the commit that likely motivated this need/issue:
 
-Ideally, these weights should be proportional to their bandwidth, so that
-under bandwidth pressure, each node uses its maximal efficient bandwidth
-and prevents latency from increasing exponentially.
+  ./scripts/checkpatch.pl --strict -g "f431c5c581fa1"
 
-At the same time, we want these weights to be as small as possible. 
-Having ratios that involve large co-prime numbers like 7639:1345:7 leads
-to awkward and inefficient allocations, since the node with weight 7 will
-remain mostly unused (and despite being proportional to bandwidth, will
-not aid in relieving the bandwidth pressure in the other two nodes).
+Also, the patch is able to handle correctly if there is a printing call
+without a newline which then has a newline printed via pr_cont for both
+Rust and C alike.  If there is no newline printed and the patch ends or
+there is another pr_* call before a newline with pr_cont is printed it
+will show a warning.  Not implemented for dev_cont because it is not clear
+to me if that is used at all.
 
-This patch introduces an auto-configuration mode for the interleave
-weights that aims to balance the two goals of setting node weights to be
-proportional to their bandwidths and keeping the weight values low.  In
-order to perform the weight re-scaling, we use an internal "weightiness"
-value (fixed to 32) that defines interleave aggression.
+One false warning that will be generated due to this change is in case we
+have a patch that modifies a `pr_* call without a newline` which has a
+pr_cont with a newline following it.  In this case there will be a warning
+but because the patch does not include the following pr_cont it will warn
+there is nothing creating a newline.  I have modified the warning to be
+softer due to this known problem.
 
-In this auto configuration mode, node weights are dynamically updated
-every time there is a hotplug event that introduces new bandwidth.
+I have tested with comments, whitespace, differen orders of pr_* calls and
+pr_cont and the only case that I suspect to be a problem is the one
+outlined above.
 
-Users can also enter manual mode by writing "N" or "0" to the new "auto"
-sysfs interface.  When a user enters manual mode, the system stops
-dynamically updating any of the node weights, even during hotplug events
-that can shift the optimal weight distribution.  The system also enters
-manual mode any time a user sets a node's weight directly by using the
-nodeN interface introduced in [1].  On the other hand, auto mode is only
-entered by explicitly writing "Y" or "1" to the auto interface.
-
-There is one functional change that this patch makes to the existing
-weighted_interleave ABI: previously, writing 0 directly to a nodeN
-interface was said to reset the weight to the system default.  Before this
-patch, the default for all weights were 1, which meant that writing 0 and
-1 were functionally equivalent.
-
-This patch introduces "real" defaults, but moves away from letting users
-use 0 as a "set to default" interface.  Rather, users who want to use
-system defaults should use auto mode.  This patch seems to be the
-appropriate place to make this change, since we would like to remove this
-usage before users begin to rely on the feature in userspace.  Moreover,
-users will not be losing any functionality; they can still write 1 into a
-node if they want a weight of 1.  Thus, we deprecate the "write zero to
-reset" feature in favor of returning an error, the same way we would
-return an error when the user writes any other invalid weight to the
-interface.
-
-[1] https://lore.kernel.org/linux-mm/20240202170238.90004-1-gregory.price@memverge.com/
-
-Link: https://lkml.kernel.org/r/20250207201335.2105488-1-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Co-developed-by: Gregory Price <gourry@gourry.net>
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Dan Wiliams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Link: https://lkml.kernel.org/r/20250207-checkpatch-newline2-v4-1-26d8e80d0059@invicto.ai
+Signed-off-by: Alban Kurti <kurti@invicto.ai>
+Suggested-by: Miguel Ojeda <ojeda@kernel.org>
+Closes: https://github.com/Rust-for-Linux/linux/issues/1140
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Benno Lossin <benno.lossin@proton.me>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Charalampos Mitrodimas <charmitro@posteo.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave |   38 +
- drivers/acpi/numa/hmat.c                                                |    1 
- drivers/base/node.c                                                     |    7 
- include/linux/mempolicy.h                                               |    4 
- mm/mempolicy.c                                                          |  200 +++++++++-
- 5 files changed, 233 insertions(+), 17 deletions(-)
+ scripts/checkpatch.pl |   96 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
-@@ -20,6 +20,38 @@ Description:	Weight configuration interf
- 		Minimum weight: 1
- 		Maximum weight: 255
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline
++++ a/scripts/checkpatch.pl
+@@ -77,6 +77,8 @@ my ${CONFIG_} = "CONFIG_";
  
--		Writing an empty string or `0` will reset the weight to the
--		system default. The system default may be set by the kernel
--		or drivers at boot or during hotplug events.
-+		Writing invalid values (i.e. any values not in [1,255],
-+		empty string, ...) will return -EINVAL.
+ my %maybe_linker_symbol; # for externs in c exceptions, when seen in *vmlinux.lds.h
+ 
++my $pending_log = undef;
 +
-+		Changing the weight to a valid value will automatically
-+		update the system to manual mode as well.
+ sub help {
+ 	my ($exitcode) = @_;
+ 
+@@ -3878,6 +3880,91 @@ sub process {
+ 			}
+ 		}
+ 
++# check for pr_* and dev_* logs without a newline for C and Rust files to avoid missing log messages
++  my $pr_cont_pattern = qr{
++      \b
++      pr_cont!?
++      \s*
++      \(
++      \s*
++      "([^"]*)"
++      [^)]*
++      \)
++  }x;
++  my $log_macro_pattern = qr{
++      \b
++      (
++          pr_(?:emerg|alert|crit|err|warn|notice|info|debug)
++        | dev_(?:emerg|alert|crit|err|warn|notice|info|dbg)
++      )
++      (!?)
++      \s*
++      \(
++      \s*
++      "([^"]*)"
++  }x;
 +
-+What:		/sys/kernel/mm/mempolicy/weighted_interleave/auto
-+Date:		February 2025
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Auto-weighting configuration interface
++  if ($realfile =~ /\.(?:c|h|rs)$/) {
++      if ($rawline =~ /^\+/) {
++          my $cleanline = $rawline;
++          $cleanline =~ s/^[+\s]+//;
++          $cleanline =~ s/\r?$//;
++          $cleanline =~ s{/\*.*?\*/}{}g;
++          $cleanline =~ s{//.*}{}g;
 +
-+		Configuration mode for weighted interleave. A 'Y' indicates
-+		that the system is in auto mode, and a 'N' indicates that
-+		the system is in manual mode. All other values are invalid.
++          if ($pending_log) {
++              if ($cleanline =~ /$pr_cont_pattern/) {
++                  my $cont_string_arg = $1;
++                  if ($cont_string_arg =~ /\\n$/) {
++                      $pending_log = undef;
++                  }
++              } elsif ($cleanline =~ /$log_macro_pattern/) {
++                  WARN($pending_log->{lang} . "_LOG_NO_NEWLINE",
++                       "Possible usage of $pending_log->{macro_call} without a trailing newline.\n" .
++                       $pending_log->{herecurr});
 +
-+		In auto mode, all node weights are re-calculated and overwritten
-+		(visible via the nodeN interfaces) whenever new bandwidth data
-+		is made available during either boot or hotplug events.
++                  $pending_log = undef;
 +
-+		In manual mode, node weights can only be updated by the user.
-+		Note that nodes that are onlined with previously set / defaulted
-+		weights will inherit those weights. If they were not previously
-+		set or are onlined with missing bandwidth data, they will be
-+		defaulted to a weight of 1.
++                  my $macro_call  = $1;
++                  my $maybe_excl  = $2;
++                  my $string_arg  = $3;
++                  $string_arg =~ s/\s+$//;
 +
-+		Writing Y or 1 to the interface will enable auto mode, while
-+		writing N or 0 will enable manual mode. All other strings will
-+		be ignored, and -EINVAL will be returned.
++                  if ($realfile =~ /\.rs$/ && $maybe_excl ne '!') {
++                      return;
++                  }
 +
-+		If Y or 1 is written to the interface but the recalculation or
-+		updates fail at any point (-ENOMEM or -ENODEV), then the system
-+		will remain in manual mode.
++                  if ($string_arg !~ /\\n$/ && $string_arg !~ /\n$/) {
++                      $pending_log = {
++                          macro_call => $macro_call,
++                          herecurr => $herecurr,
++                          lang => ($realfile =~ /\.rs$/) ? "Rust" : "C",
++                      };
++                  }
++              }
++          } else {
++              if ($cleanline =~ /$log_macro_pattern/) {
++                  my $macro_call = $1;
++                  my $maybe_excl = $2;
++                  my $string_arg = $3;
++                  $string_arg =~ s/\s+$//;
 +
-+		Writing a new weight to a node directly via the nodeN interface
-+		will also automatically update the system to manual mode.
---- a/drivers/acpi/numa/hmat.c~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/drivers/acpi/numa/hmat.c
-@@ -20,6 +20,7 @@
- #include <linux/list_sort.h>
- #include <linux/memregion.h>
- #include <linux/memory.h>
-+#include <linux/mempolicy.h>
- #include <linux/mutex.h>
- #include <linux/node.h>
- #include <linux/sysfs.h>
---- a/drivers/base/node.c~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/drivers/base/node.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/memory.h>
-+#include <linux/mempolicy.h>
- #include <linux/vmstat.h>
- #include <linux/notifier.h>
- #include <linux/node.h>
-@@ -214,6 +215,12 @@ void node_set_perf_attrs(unsigned int ni
- 			break;
++                  if ($realfile =~ /\.rs$/ && $maybe_excl ne '!') {
++                      return;
++                  }
++
++                  if ($string_arg !~ /\\n$/ && $string_arg !~ /\n$/) {
++                      $pending_log = {
++                          macro_call => $macro_call,
++                          herecurr   => $herecurr,
++                          lang       => ($realfile =~ /\.rs$/) ? "Rust" : "C",
++                      };
++                  }
++              }
++          }
++      }
++  }
++
+ # check for .L prefix local symbols in .S files
+ 		if ($realfile =~ /\.S$/ &&
+ 		    $line =~ /^\+\s*(?:[A-Z]+_)?SYM_[A-Z]+_(?:START|END)(?:_[A-Z_]+)?\s*\(\s*\.L/) {
+@@ -7670,6 +7757,15 @@ sub process {
  		}
  	}
-+
-+	/* When setting CPU access coordinates, update mempolicy */
-+	if (access == ACCESS_COORDINATE_CPU) {
-+		if (mempolicy_set_node_perf(nid, coord))
-+			pr_info("failed to set node%d mempolicy attrs\n", nid);
-+	}
- }
- EXPORT_SYMBOL_GPL(node_set_perf_attrs);
  
---- a/include/linux/mempolicy.h~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/include/linux/mempolicy.h
-@@ -11,6 +11,7 @@
- #include <linux/slab.h>
- #include <linux/rbtree.h>
- #include <linux/spinlock.h>
-+#include <linux/node.h>
- #include <linux/nodemask.h>
- #include <linux/pagemap.h>
- #include <uapi/linux/mempolicy.h>
-@@ -178,6 +179,9 @@ static inline bool mpol_is_preferred_man
- 
- extern bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone);
- 
-+extern int mempolicy_set_node_perf(unsigned int node,
-+				   struct access_coordinate *coords);
++# pending log means a pr_* without an ending newline has not
++# been followed by a pr_cont call with a newline at the end
++  if ($pending_log) {
++    WARN($pending_log->{lang} . "_LOG_NO_NEWLINE",
++      "Usage of $pending_log->{macro_call} without a trailing newline.\n" .
++      $pending_log->{herecurr});
++    $pending_log = undef;
++  }
 +
- #else
- 
- struct mempolicy {};
---- a/mm/mempolicy.c~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/mm/mempolicy.c
-@@ -109,6 +109,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/printk.h>
- #include <linux/swapops.h>
-+#include <linux/gcd.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
-@@ -138,16 +139,18 @@ static struct mempolicy default_policy =
- 
- static struct mempolicy preferred_node_policy[MAX_NUMNODES];
- 
-+static uint64_t *node_bw_table;
-+
- /*
-- * iw_table is the sysfs-set interleave weight table, a value of 0 denotes
-- * system-default value should be used. A NULL iw_table also denotes that
-- * system-default values should be used. Until the system-default table
-- * is implemented, the system-default is always 1.
-- *
-+ * iw_table is the interleave weight table.
-+ * If bandwidth data is available and the user is in auto mode, the table
-+ * is populated with default values in [1,255].
-  * iw_table is RCU protected
-  */
- static u8 __rcu *iw_table;
- static DEFINE_MUTEX(iw_table_lock);
-+static const int weightiness = 32;
-+static bool weighted_interleave_auto = true;
- 
- static u8 get_il_weight(int node)
- {
-@@ -156,14 +159,114 @@ static u8 get_il_weight(int node)
- 
- 	rcu_read_lock();
- 	table = rcu_dereference(iw_table);
--	/* if no iw_table, use system default */
- 	weight = table ? table[node] : 1;
--	/* if value in iw_table is 0, use system default */
--	weight = weight ? weight : 1;
- 	rcu_read_unlock();
- 	return weight;
- }
- 
-+/*
-+ * Convert bandwidth values into weighted interleave weights.
-+ * Call with iw_table_lock.
-+ */
-+static void reduce_interleave_weights(uint64_t *bw, u8 *new_iw)
-+{
-+	uint64_t sum_bw = 0, sum_iw = 0;
-+	uint64_t scaling_factor = 1, iw_gcd = 1;
-+	unsigned int i = 0;
-+
-+	/* Recalculate the bandwidth distribution given the new info */
-+	for (i = 0; i < nr_node_ids; i++)
-+		sum_bw += bw[i];
-+
-+	/* If node is not set or has < 1% of total bw, use minimum value of 1 */
-+	for (i = 0; i < nr_node_ids; i++) {
-+		if (bw[i]) {
-+			scaling_factor = 100 * bw[i];
-+			new_iw[i] = max(scaling_factor / sum_bw, 1);
-+		} else {
-+			new_iw[i] = 1;
-+		}
-+		sum_iw += new_iw[i];
-+	}
-+
-+	/*
-+	 * Scale each node's share of the total bandwidth from percentages
-+	 * to whole numbers in the range [1, weightiness]
-+	 */
-+	for (i = 0; i < nr_node_ids; i++) {
-+		scaling_factor = weightiness * new_iw[i];
-+		new_iw[i] = max(scaling_factor / sum_iw, 1);
-+		if (i == 0)
-+			iw_gcd = new_iw[0];
-+		iw_gcd = gcd(iw_gcd, new_iw[i]);
-+	}
-+
-+	/* 1:2 is strictly better than 16:32. Reduce by the weights' GCD. */
-+	for (i = 0; i < nr_node_ids; i++)
-+		new_iw[i] /= iw_gcd;
-+}
-+
-+int mempolicy_set_node_perf(unsigned int node, struct access_coordinate *coords)
-+{
-+	uint64_t *old_bw, *new_bw;
-+	uint64_t bw_val;
-+	u8 *old_iw, *new_iw;
-+
-+	/*
-+	 * Bandwidths above this limit cause rounding errors when reducing
-+	 * weights. This value is ~16 exabytes, which is unreasonable anyways.
-+	 */
-+	bw_val = min(coords->read_bandwidth, coords->write_bandwidth);
-+	if (bw_val > (U64_MAX / 10))
-+		return -EINVAL;
-+
-+	new_bw = kcalloc(nr_node_ids, sizeof(uint64_t), GFP_KERNEL);
-+	if (!new_bw)
-+		return -ENOMEM;
-+
-+	new_iw = kcalloc(nr_node_ids, sizeof(u8), GFP_KERNEL);
-+	if (!new_iw) {
-+		kfree(new_bw);
-+		return -ENOMEM;
-+	}
-+
-+	/*
-+	 * Update bandwidth info, even in manual mode. That way, when switching
-+	 * to auto mode in the future, iw_table can be overwritten using
-+	 * accurate bw data.
-+	 */
-+	mutex_lock(&iw_table_lock);
-+	old_bw = node_bw_table;
-+	old_iw = rcu_dereference_protected(iw_table,
-+					   lockdep_is_held(&iw_table_lock));
-+
-+	if (old_bw)
-+		memcpy(new_bw, old_bw, nr_node_ids * sizeof(uint64_t));
-+	new_bw[node] = bw_val;
-+	node_bw_table = new_bw;
-+
-+	if (weighted_interleave_auto) {
-+		reduce_interleave_weights(new_bw, new_iw);
-+	} else if (old_iw) {
-+		/*
-+		 * The first time mempolicy_set_node_perf is called, old_iw
-+		 * (iw_table) is null. If that is the case, assign a zeroed
-+		 * table to it. Otherwise, free the newly allocated iw_table.
-+		 */
-+		mutex_unlock(&iw_table_lock);
-+		kfree(new_iw);
-+		kfree(old_bw);
-+		return 0;
-+	}
-+
-+	rcu_assign_pointer(iw_table, new_iw);
-+	mutex_unlock(&iw_table_lock);
-+	synchronize_rcu();
-+	kfree(old_iw);
-+	kfree(old_bw);
-+	return 0;
-+}
-+
- /**
-  * numa_nearest_node - Find nearest node by state
-  * @node: Node id to start the search
-@@ -1998,10 +2101,7 @@ static unsigned int weighted_interleave_
- 	table = rcu_dereference(iw_table);
- 	/* calculate the total weight */
- 	for_each_node_mask(nid, nodemask) {
--		/* detect system default usage */
--		weight = table ? table[nid] : 1;
--		weight = weight ? weight : 1;
--		weight_total += weight;
-+		weight_total += table ? table[nid] : 1;
- 	}
- 
- 	/* Calculate the node offset based on totals */
-@@ -2010,7 +2110,6 @@ static unsigned int weighted_interleave_
- 	while (target) {
- 		/* detect system default usage */
- 		weight = table ? table[nid] : 1;
--		weight = weight ? weight : 1;
- 		if (target < weight)
- 			break;
- 		target -= weight;
-@@ -3410,7 +3509,7 @@ static ssize_t node_store(struct kobject
- 	node_attr = container_of(attr, struct iw_node_attr, kobj_attr);
- 	if (count == 0 || sysfs_streq(buf, ""))
- 		weight = 0;
--	else if (kstrtou8(buf, 0, &weight))
-+	else if (kstrtou8(buf, 0, &weight) || weight == 0)
- 		return -EINVAL;
- 
- 	new = kzalloc(nr_node_ids, GFP_KERNEL);
-@@ -3427,11 +3526,68 @@ static ssize_t node_store(struct kobject
- 	mutex_unlock(&iw_table_lock);
- 	synchronize_rcu();
- 	kfree(old);
-+	weighted_interleave_auto = false;
- 	return count;
- }
- 
- static struct iw_node_attr **node_attrs;
- 
-+static ssize_t weighted_interleave_mode_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	if (weighted_interleave_auto)
-+		return sysfs_emit(buf, "Y\n");
-+	else
-+		return sysfs_emit(buf, "N\n");
-+}
-+
-+static ssize_t weighted_interleave_mode_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	uint64_t *bw;
-+	u8 *old_iw, *new_iw;
-+
-+	if (count == 0)
-+		return -EINVAL;
-+
-+	if (sysfs_streq(buf, "N") || sysfs_streq(buf, "0")) {
-+		weighted_interleave_auto = false;
-+		return count;
-+	} else if (!sysfs_streq(buf, "Y") && !sysfs_streq(buf, "1")) {
-+		return -EINVAL;
-+	}
-+
-+	new_iw = kcalloc(nr_node_ids, sizeof(u8), GFP_KERNEL);
-+	if (!new_iw)
-+		return -ENOMEM;
-+
-+	mutex_lock(&iw_table_lock);
-+	bw = node_bw_table;
-+
-+	if (!bw) {
-+		mutex_unlock(&iw_table_lock);
-+		kfree(new_iw);
-+		return -ENODEV;
-+	}
-+
-+	old_iw = rcu_dereference_protected(iw_table,
-+					   lockdep_is_held(&iw_table_lock));
-+
-+	reduce_interleave_weights(bw, new_iw);
-+	rcu_assign_pointer(iw_table, new_iw);
-+	mutex_unlock(&iw_table_lock);
-+
-+	synchronize_rcu();
-+	kfree(old_iw);
-+
-+	weighted_interleave_auto = true;
-+	return count;
-+}
-+
-+static struct kobj_attribute wi_attr =
-+	__ATTR(auto, 0664, weighted_interleave_mode_show,
-+			   weighted_interleave_mode_store);
-+
- static void sysfs_wi_node_release(struct iw_node_attr *node_attr,
- 				  struct kobject *parent)
- {
-@@ -3489,6 +3645,15 @@ static int add_weight_node(int nid, stru
- 	return 0;
- }
- 
-+static struct attribute *wi_default_attrs[] = {
-+	&wi_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group wi_attr_group = {
-+	.attrs = wi_default_attrs,
-+};
-+
- static int add_weighted_interleave_group(struct kobject *root_kobj)
- {
- 	struct kobject *wi_kobj;
-@@ -3505,6 +3670,13 @@ static int add_weighted_interleave_group
- 		return err;
- 	}
- 
-+	err = sysfs_create_group(wi_kobj, &wi_attr_group);
-+	if (err) {
-+		pr_err("failed to add sysfs [auto]\n");
-+		kobject_put(wi_kobj);
-+		return err;
-+	}
-+
- 	for_each_node_state(nid, N_POSSIBLE) {
- 		err = add_weight_node(nid, wi_kobj);
- 		if (err) {
+ 	# If we have no input at all, then there is nothing to report on
+ 	# so just keep quiet.
+ 	if ($#rawlines == -1) {
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from kurti@invicto.ai are
 
-mm-mempolicy-weighted-interleave-auto-tuning.patch
+checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
 
