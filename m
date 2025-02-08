@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F942AD32
-	for <mm-commits@vger.kernel.org>; Sat,  8 Feb 2025 02:27:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1513213B7A3
+	for <mm-commits@vger.kernel.org>; Sat,  8 Feb 2025 02:51:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738981679; cv=none; b=adgVaKSC7a0wZfrOp6D9NoP6eXwKukGU2eC3LXZOwUzvboTLXs3Bkt7b23qD3zRnbsrnbavLKXzIB+rPur2Pzct85AWzvqOBmBunQ9WAa1gaoWNYQuXNiXVTXBAUmRV/DJtLXjBBXQFrdmeHqHjLM1i6VOt1Wttrv9xNp6Sa9RA=
+	t=1738983078; cv=none; b=Elpjg2f3w0FidGB55UfFjUz+sgsoRnPilZTSbUzlcd2YlTPkGAvwj1ZUw1HWwEUAJ2Y7q76zVGco+OYWSMXQqOPM8johpm4T9SwNkDDY0cGpybxt0uNY2LUrQ/x1i0Au4pFLJ9sror2bk4InTu3QvFA3nDq2KEIUl9mkE+GuIVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738981679; c=relaxed/simple;
-	bh=OpsMfh42dvLpNV4/UH1MjFGHLMbtrMfkKA9CS0daqOI=;
-	h=Date:To:From:Subject:Message-Id; b=HkvHPtjMAigdQNFvboHDm5soT86WwVHWjn5Z+krf4dijOIJ52vbmDVejsEpnPXKWixn7nzW3lhCsOZm2TKRzYZfAHxcnS8pTOYf8b5AdYD1+ZVfPAWP1FaUvzwlGekDFZi1u7f+FFnboDhnGqYMyFp3oMOtjEEX4599grqBj8PM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wRVdo7+X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738983078; c=relaxed/simple;
+	bh=ALMjGXpP0s01nfLxAGyhiMeowdMteoANZSR9E5tVec8=;
+	h=Date:To:From:Subject:Message-Id; b=rVPZDP537p12mWJCfIOburVjrTUUl2gMd3Gb0LpkIXG75DPjX79LSiS4m11Q46Oe7rnIM/8Ki9BO56KCLteP66qVBWROo8YktA8qXVer5zEGDDe+/Y6pRNpDvUpbTpjedf5lvfzmkthzMnmE99eTlafhPq3fd1TH5tV61jYc7JU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SdJ0AZCj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wRVdo7+X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28F5EC4CED1;
-	Sat,  8 Feb 2025 02:27:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SdJ0AZCj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76219C4CED1;
+	Sat,  8 Feb 2025 02:51:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1738981679;
-	bh=OpsMfh42dvLpNV4/UH1MjFGHLMbtrMfkKA9CS0daqOI=;
+	s=korg; t=1738983074;
+	bh=ALMjGXpP0s01nfLxAGyhiMeowdMteoANZSR9E5tVec8=;
 	h=Date:To:From:Subject:From;
-	b=wRVdo7+XxQYDsndtgigPMfZpbVqh0f5evDE9FlBgLKXi6IdHIG1/QDzz0/UhMWt0q
-	 8sQ2s1BIaeJR4RVN/okMySonzJ448N7K1fBbZLjB4JQc9LjJtk1lAkYX0rHl4EGLGp
-	 U/J3RSWzZF9jj3OaugnunhE9HkHp8tbXI5XuvaWA=
-Date: Fri, 07 Feb 2025 18:27:58 -0800
-To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,gary@garyguo.net,dwaipayanray1@gmail.com,charmitro@posteo.net,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,benno.lossin@proton.me,apw@canonical.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,kurti@invicto.ai,akpm@linux-foundation.org
+	b=SdJ0AZCjh+pzLTK2PgANnK6/qTbhdwW5/w+3IY6Yd3My872f2rPdNr1LGdsr7IMc1
+	 QiUVYZBIEdrm7MOybEvC9NnQaFaay/LJ4fHxStTx7MylUmveuGxN3+RalJPQxFYY7Z
+	 6QLQRl6ICnw1ti699ZdGE2ijcGH3zspA6LK7+qec=
+Date: Fri, 07 Feb 2025 18:51:13 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch added to mm-nonmm-unstable branch
-Message-Id: <20250208022759.28F5EC4CED1@smtp.kernel.org>
+Subject: + mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch added to mm-unstable branch
+Message-Id: <20250208025114.76219C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: add warning for pr_* and dev_* macros without a trailing newline
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
+     Subject: mm: use READ/WRITE_ONCE() for vma->vm_flags on migrate, mprotect
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,182 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alban Kurti <kurti@invicto.ai>
-Subject: checkpatch: add warning for pr_* and dev_* macros without a trailing newline
-Date: Fri, 07 Feb 2025 18:39:06 +0000 (UTC)
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: use READ/WRITE_ONCE() for vma->vm_flags on migrate, mprotect
+Date: Fri, 7 Feb 2025 17:24:42 +0000
 
-Add a new check in scripts/checkpatch.pl to detect usage of pr_(level) and
-dev_(level) macros (for both C and Rust) when the string literal does not
-end with '\n'.  Missing trailing newlines can lead to incomplete log lines
-that do not appear properly in dmesg or in console output.  To show an
-example of this working after applying the patch we can run the script on
-the commit that likely motivated this need/issue:
+According to the syzbot report referenced here, it is possible to
+encounter a race between mprotect() writing to the vma->vm_flags field and
+migration checking whether the VMA is locked.
 
-  ./scripts/checkpatch.pl --strict -g "f431c5c581fa1"
+There is no real problem with timing here per se, only that torn
+reads/writes may occur.  Therefore, as a proximate fix, ensure both
+operations READ_ONCE() and WRITE_ONCE() to avoid this.
 
-Also, the patch is able to handle correctly if there is a printing call
-without a newline which then has a newline printed via pr_cont for both
-Rust and C alike.  If there is no newline printed and the patch ends or
-there is another pr_* call before a newline with pr_cont is printed it
-will show a warning.  Not implemented for dev_cont because it is not clear
-to me if that is used at all.
+This race is possible due to the ability to look up VMAs via the rmap,
+which migration does in this case, which takes no mmap or VMA lock and
+therefore does not preclude an operation to modify a VMA.
 
-One false warning that will be generated due to this change is in case we
-have a patch that modifies a `pr_* call without a newline` which has a
-pr_cont with a newline following it.  In this case there will be a warning
-but because the patch does not include the following pr_cont it will warn
-there is nothing creating a newline.  I have modified the warning to be
-softer due to this known problem.
+When the final update of VMA flags is performed by mprotect, this will
+cause the rmap lock to be taken while the VMA is inserted on split/merge.
 
-I have tested with comments, whitespace, differen orders of pr_* calls and
-pr_cont and the only case that I suspect to be a problem is the one
-outlined above.
+However the means by which we perform splits/merges in the kernel is that
+we perform the split/merge operation on the VMA, acquiring/releasing locks
+as needed, and only then, after having done so, modifying fields.
 
-Link: https://lkml.kernel.org/r/20250207-checkpatch-newline2-v4-1-26d8e80d0059@invicto.ai
-Signed-off-by: Alban Kurti <kurti@invicto.ai>
-Suggested-by: Miguel Ojeda <ojeda@kernel.org>
-Closes: https://github.com/Rust-for-Linux/linux/issues/1140
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Benno Lossin <benno.lossin@proton.me>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Trevor Gross <tmgross@umich.edu>
-Cc: Charalampos Mitrodimas <charmitro@posteo.net>
+We should carefully examine and determine whether we can combine the two
+operations so as to avoid such races, and whether it might be possible to
+otherwise annotate these rmap field accesses.
+
+Link: https://lkml.kernel.org/r/20250207172442.78836-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: syzbot+c2e5712cbb14c95d4847@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67a34e60.050a0220.50516.0040.GAE@google.com/
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   96 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
+ mm/migrate.c  |    2 +-
+ mm/mprotect.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline
-+++ a/scripts/checkpatch.pl
-@@ -77,6 +77,8 @@ my ${CONFIG_} = "CONFIG_";
- 
- my %maybe_linker_symbol; # for externs in c exceptions, when seen in *vmlinux.lds.h
- 
-+my $pending_log = undef;
-+
- sub help {
- 	my ($exitcode) = @_;
- 
-@@ -3878,6 +3880,91 @@ sub process {
- 			}
+--- a/mm/migrate.c~mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect
++++ a/mm/migrate.c
+@@ -328,7 +328,7 @@ static bool remove_migration_pte(struct
+ 				folio_add_file_rmap_pte(folio, new, vma);
+ 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
  		}
+-		if (vma->vm_flags & VM_LOCKED)
++		if (READ_ONCE(vma->vm_flags) & VM_LOCKED)
+ 			mlock_drain_local();
  
-+# check for pr_* and dev_* logs without a newline for C and Rust files to avoid missing log messages
-+  my $pr_cont_pattern = qr{
-+      \b
-+      pr_cont!?
-+      \s*
-+      \(
-+      \s*
-+      "([^"]*)"
-+      [^)]*
-+      \)
-+  }x;
-+  my $log_macro_pattern = qr{
-+      \b
-+      (
-+          pr_(?:emerg|alert|crit|err|warn|notice|info|debug)
-+        | dev_(?:emerg|alert|crit|err|warn|notice|info|dbg)
-+      )
-+      (!?)
-+      \s*
-+      \(
-+      \s*
-+      "([^"]*)"
-+  }x;
-+
-+  if ($realfile =~ /\.(?:c|h|rs)$/) {
-+      if ($rawline =~ /^\+/) {
-+          my $cleanline = $rawline;
-+          $cleanline =~ s/^[+\s]+//;
-+          $cleanline =~ s/\r?$//;
-+          $cleanline =~ s{/\*.*?\*/}{}g;
-+          $cleanline =~ s{//.*}{}g;
-+
-+          if ($pending_log) {
-+              if ($cleanline =~ /$pr_cont_pattern/) {
-+                  my $cont_string_arg = $1;
-+                  if ($cont_string_arg =~ /\\n$/) {
-+                      $pending_log = undef;
-+                  }
-+              } elsif ($cleanline =~ /$log_macro_pattern/) {
-+                  WARN($pending_log->{lang} . "_LOG_NO_NEWLINE",
-+                       "Possible usage of $pending_log->{macro_call} without a trailing newline.\n" .
-+                       $pending_log->{herecurr});
-+
-+                  $pending_log = undef;
-+
-+                  my $macro_call  = $1;
-+                  my $maybe_excl  = $2;
-+                  my $string_arg  = $3;
-+                  $string_arg =~ s/\s+$//;
-+
-+                  if ($realfile =~ /\.rs$/ && $maybe_excl ne '!') {
-+                      return;
-+                  }
-+
-+                  if ($string_arg !~ /\\n$/ && $string_arg !~ /\n$/) {
-+                      $pending_log = {
-+                          macro_call => $macro_call,
-+                          herecurr => $herecurr,
-+                          lang => ($realfile =~ /\.rs$/) ? "Rust" : "C",
-+                      };
-+                  }
-+              }
-+          } else {
-+              if ($cleanline =~ /$log_macro_pattern/) {
-+                  my $macro_call = $1;
-+                  my $maybe_excl = $2;
-+                  my $string_arg = $3;
-+                  $string_arg =~ s/\s+$//;
-+
-+                  if ($realfile =~ /\.rs$/ && $maybe_excl ne '!') {
-+                      return;
-+                  }
-+
-+                  if ($string_arg !~ /\\n$/ && $string_arg !~ /\n$/) {
-+                      $pending_log = {
-+                          macro_call => $macro_call,
-+                          herecurr   => $herecurr,
-+                          lang       => ($realfile =~ /\.rs$/) ? "Rust" : "C",
-+                      };
-+                  }
-+              }
-+          }
-+      }
-+  }
-+
- # check for .L prefix local symbols in .S files
- 		if ($realfile =~ /\.S$/ &&
- 		    $line =~ /^\+\s*(?:[A-Z]+_)?SYM_[A-Z]+_(?:START|END)(?:_[A-Z_]+)?\s*\(\s*\.L/) {
-@@ -7670,6 +7757,15 @@ sub process {
- 		}
- 	}
+ 		trace_remove_migration_pte(pvmw.address, pte_val(pte),
+--- a/mm/mprotect.c~mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect
++++ a/mm/mprotect.c
+@@ -607,7 +607,7 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	       unsigned long start, unsigned long end, unsigned long newflags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	unsigned long oldflags = vma->vm_flags;
++	unsigned long oldflags = READ_ONCE(vma->vm_flags);
+ 	long nrpages = (end - start) >> PAGE_SHIFT;
+ 	unsigned int mm_cp_flags = 0;
+ 	unsigned long charged = 0;
+@@ -627,7 +627,7 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	 * uncommon case, so doesn't need to be very optimized.
+ 	 */
+ 	if (arch_has_pfn_modify_check() &&
+-	    (vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
++	    (oldflags & (VM_PFNMAP|VM_MIXEDMAP)) &&
+ 	    (newflags & VM_ACCESS_FLAGS) == 0) {
+ 		pgprot_t new_pgprot = vm_get_page_prot(newflags);
  
-+# pending log means a pr_* without an ending newline has not
-+# been followed by a pr_cont call with a newline at the end
-+  if ($pending_log) {
-+    WARN($pending_log->{lang} . "_LOG_NO_NEWLINE",
-+      "Usage of $pending_log->{macro_call} without a trailing newline.\n" .
-+      $pending_log->{herecurr});
-+    $pending_log = undef;
-+  }
-+
- 	# If we have no input at all, then there is nothing to report on
- 	# so just keep quiet.
- 	if ($#rawlines == -1) {
+@@ -676,7 +676,7 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	 * held in write mode.
+ 	 */
+ 	vma_start_write(vma);
+-	vm_flags_reset(vma, newflags);
++	vm_flags_reset_once(vma, newflags);
+ 	if (vma_wants_manual_pte_write_upgrade(vma))
+ 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+ 	vma_set_page_prot(vma);
 _
 
-Patches currently in -mm which might be from kurti@invicto.ai are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
+mm-simplify-vma-merge-structure-and-expand-comments.patch
+mm-further-refactor-commit_merge.patch
+mm-eliminate-adj_start-parameter-from-commit_merge.patch
+mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+mm-completely-abstract-unnecessary-adj_start-calculation.patch
+mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
+mm-provide-mapping_wrprotect_range-function.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
 
