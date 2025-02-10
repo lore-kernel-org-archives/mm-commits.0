@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393DC25EF8E
-	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:06:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B67242586FA
+	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:06:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739228789; cv=none; b=IZq5HjdDvNeYmTs+xXT5G8X8Khq3nAwTYURr8ISVl6OujWFtdOpgW0Lq/aii7XYiV5qw9ETEdkO7M2F1SpY0QlG40Gay8mdAT6uDciPL7RSoKhBhi8ADNajdiozhs1N4EmarRi3RTGAMY3fci1WkY0kPj7Zx+MIhKHe5gWyTAIQ=
+	t=1739228791; cv=none; b=XPnr9LTEsx/1CzjMRbsulg9rqyxhSoFoPE3s5tYwyzpqEW9N8JdOFB3KujLk11BksVZ1Tf2H7iQgCnlh3we1lDW/YG2Qfx5dhphebKOyC1baoiIu2FsKtmNC/nhmpam3qYq2DIfHRj5noakAxywIVd/l0njREAapHg30zkPJhZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739228789; c=relaxed/simple;
-	bh=he9yDYyC8fMkpPgsT8qWxhXcPdaIBnYciHcZWs24Qdk=;
-	h=Date:To:From:Subject:Message-Id; b=aZl2AB/3ZQjp+vHg/UYNs6EmMVhU+YrNIMJ+TMyWumitPtfYoif5dn/4VpmF8j71WAu+GMkzOZRoIesdzxXAvQxBvaXV653SK7NGxlXlyT37nfWOmpCKiFvkjHRlflUBI75sMUYckSe1wT6WVXo3M2RoR0y6mPO5jfP0opksxS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G/ZEGKBZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739228791; c=relaxed/simple;
+	bh=wvDcFv0yVa0sLh/Q80YwYrbNDbTadDLGtWJeZL7mQt8=;
+	h=Date:To:From:Subject:Message-Id; b=hqRnRiYmB8X40ZOBF/JUUOvfGSxgmGFbip/CnJhUuCGtHU7qefXS8brOjudXpoFJZnF0IV8GRkFp4ZyGcMuE0LWc9AWX5a+oYCm2bzlSM1nSQ7JCtw5vx3EuDR2Wla7ovMsVJ62nF0MoZEazbf5cuCjvlcOwkni5medC/PNVK9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kKc1B8bf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G/ZEGKBZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09FA1C4CED1;
-	Mon, 10 Feb 2025 23:06:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kKc1B8bf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ABBCC4CED1;
+	Mon, 10 Feb 2025 23:06:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739228789;
-	bh=he9yDYyC8fMkpPgsT8qWxhXcPdaIBnYciHcZWs24Qdk=;
+	s=korg; t=1739228791;
+	bh=wvDcFv0yVa0sLh/Q80YwYrbNDbTadDLGtWJeZL7mQt8=;
 	h=Date:To:From:Subject:From;
-	b=G/ZEGKBZalguPyw/jqxdHy0mQNcbve3alpIJCkORQNeFQ4UB+MlXrglY2RtWSY6bY
-	 gmopEArNgWiNysQYKBaP2MBXgjfHhfKCE3xaXV+fWNsY0JneyFZmJxthXf/mCOjrVf
-	 J+z3hls13lv3ZsCx8unK4w1BJjWOPD4Qj9jUshhU=
-Date: Mon, 10 Feb 2025 15:06:28 -0800
+	b=kKc1B8bf9ai4zYu4Cj/dYifA3v0OezWnHsrHVdEFBd45jknms6bDsaM3qVZvmTc9N
+	 NNn94MjSxKMdLxmazE5gKsoIV0qH2XNNcnU8FRRcchxKIg7i80q6/yt7Hoq+BUVsBm
+	 yp4mXuBFwcDijSGquFFfiz6mVi5OH7m21xMhOcf0=
+Date: Mon, 10 Feb 2025 15:06:31 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,sj@kernel.org,si.yanteng@linux.dev,simona.vetter@ffwll.ch,peterz@infradead.org,peterx@redhat.com,pasha.tatashin@soleen.com,oleg@redhat.com,mhiramat@kernel.org,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kherbst@redhat.com,jhubbard@nvidia.com,jglisse@redhat.com,jgg@nvidia.com,jannh@google.com,dakr@kernel.org,corbet@lwn.net,apopple@nvidia.com,alexs@kernel.org,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries.patch added to mm-unstable branch
-Message-Id: <20250210230629.09FA1C4CED1@smtp.kernel.org>
+Subject: + mm-rmap-avoid-ebusy-from-make_device_exclusive.patch added to mm-unstable branch
+Message-Id: <20250210230631.8ABBCC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: keep mapcount untouched for device-exclusive entries
+     Subject: mm/rmap: avoid -EBUSY from make_device_exclusive()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries.patch
+     mm-rmap-avoid-ebusy-from-make_device_exclusive.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-avoid-ebusy-from-make_device_exclusive.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: keep mapcount untouched for device-exclusive entries
-Date: Mon, 10 Feb 2025 20:37:58 +0100
+Subject: mm/rmap: avoid -EBUSY from make_device_exclusive()
+Date: Mon, 10 Feb 2025 20:37:59 +0100
 
-Now that conversion to device-exclusive does no longer perform an rmap
-walk and all page_vma_mapped_walk() users were taught to properly handle
-device-exclusive entries, let's treat device-exclusive entries just as if
-they would be present, similar to how we handle device-private entries
-already.
+Failing to obtain the folio lock, for example because the folio is
+concurrently getting migrated or swapped out, can easily make the callers
+fail: for example, the hmm selftest can sometimes be observed to fail
+because of this.  Instead of forcing the caller to retry, let's simply
+retry in this to-be-expected case.
 
-This fixes swapout/migration/split/hwpoison of folios with
-device-exclusive entries.
+Similarly, avoid spurious failures simply because we raced with someone
+(e.g., swapout) modifying the page table such that our folio_walk fails.
 
-We only had to take care of page_vma_mapped_walk() users, because these
-traditionally assume pte_present().  Other page table walkers already have
-to handle !pte_present(), and some of them might simply skip them (e.g.,
-MADV_PAGEOUT) if they are not specialized on them.  This change doesn't
-modify the latter.
+Simply unconditionally lock the folio, and retry GUP if our folio_walk
+fails.  Note that the folio_walk repeatedly failing is not something we
+expect.
 
-Note that while folios with device-exclusive PTEs can now get migrated,
-khugepaged will not collapse a THP if there is device-exclusive PTE. 
-Doing so might also not be desired if the device frequently performs
-atomics to the same page.  Similarly, KSM will never merge order-0 folios
-that are device-exclusive.
+Note that we might want to avoid grabbing the folio lock at some point;
+for now, keep that as is and only unconditionally lock the folio.
 
-Link: https://lkml.kernel.org/r/20250210193801.781278-17-david@redhat.com
-Fixes: b756a3b5e7ea ("mm: device exclusive memory access")
+With this change, the hmm selftests don't fail simply because the folio is
+already locked.  While this fixes the selftests in some cases, it's likely
+not something that deserves a "Fixes:".
+
+Link: https://lkml.kernel.org/r/20250210193801.781278-18-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -112,59 +110,49 @@ Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   17 +----------------
- mm/rmap.c   |    7 -------
- 2 files changed, 1 insertion(+), 23 deletions(-)
+ mm/rmap.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries
-+++ a/mm/memory.c
-@@ -743,20 +743,6 @@ static void restore_exclusive_pte(struct
+--- a/mm/rmap.c~mm-rmap-avoid-ebusy-from-make_device_exclusive
++++ a/mm/rmap.c
+@@ -2435,6 +2435,7 @@ struct page *make_device_exclusive(struc
+ 	struct page *page;
+ 	swp_entry_t entry;
+ 	pte_t swp_pte;
++	int ret;
  
- 	VM_BUG_ON_FOLIO(pte_write(pte) && (!folio_test_anon(folio) &&
- 					   PageAnonExclusive(page)), folio);
--
--	/*
--	 * No need to take a page reference as one was already
--	 * created when the swap entry was made.
--	 */
--	if (folio_test_anon(folio))
--		folio_add_anon_rmap_pte(folio, page, vma, address, RMAP_NONE);
--	else
--		/*
--		 * Currently device exclusive access only supports anonymous
--		 * memory so the entry shouldn't point to a filebacked page.
--		 */
--		WARN_ON_ONCE(1);
--
- 	set_pte_at(vma->vm_mm, address, ptep, pte);
+ 	mmap_assert_locked(mm);
+ 	addr = PAGE_ALIGN_DOWN(addr);
+@@ -2448,6 +2449,7 @@ struct page *make_device_exclusive(struc
+ 	 * fault will trigger a conversion to an ordinary
+ 	 * (non-device-exclusive) PTE and issue a MMU_NOTIFY_EXCLUSIVE.
+ 	 */
++retry:
+ 	page = get_user_page_vma_remote(mm, addr,
+ 					FOLL_GET | FOLL_WRITE | FOLL_SPLIT_PMD,
+ 					&vma);
+@@ -2460,9 +2462,10 @@ struct page *make_device_exclusive(struc
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 	}
+ 
+-	if (!folio_trylock(folio)) {
++	ret = folio_lock_killable(folio);
++	if (ret) {
+ 		folio_put(folio);
+-		return ERR_PTR(-EBUSY);
++		return ERR_PTR(ret);
+ 	}
  
  	/*
-@@ -1628,8 +1614,7 @@ static inline int zap_nonpresent_ptes(st
- 		 */
- 		WARN_ON_ONCE(!vma_is_anonymous(vma));
- 		rss[mm_counter(folio)]--;
--		if (is_device_private_entry(entry))
--			folio_remove_rmap_pte(folio, page, vma);
-+		folio_remove_rmap_pte(folio, page, vma);
+@@ -2488,7 +2491,7 @@ struct page *make_device_exclusive(struc
+ 		mmu_notifier_invalidate_range_end(&range);
+ 		folio_unlock(folio);
  		folio_put(folio);
- 	} else if (!non_swap_entry(entry)) {
- 		/* Genuine swap entries, hence a private anon pages */
---- a/mm/rmap.c~mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries
-+++ a/mm/rmap.c
-@@ -2511,13 +2511,6 @@ struct page *make_device_exclusive(struc
- 	/* The pte is writable, uffd-wp does not apply. */
- 	set_pte_at(mm, addr, fw.ptep, swp_pte);
+-		return ERR_PTR(-EBUSY);
++		goto retry;
+ 	}
  
--	/*
--	 * TODO: The device-exclusive PFN swap PTE holds a folio reference but
--	 * does not count as a mapping (mapcount), which is wrong and must be
--	 * fixed, otherwise RMAP walks don't behave as expected.
--	 */
--	folio_remove_rmap_pte(folio, page, vma);
--
- 	folio_walk_end(&fw, vma);
- 	mmu_notifier_invalidate_range_end(&range);
- 	*foliop = folio;
+ 	/* Nuke the page table entry so we get the uptodate dirty bit. */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
