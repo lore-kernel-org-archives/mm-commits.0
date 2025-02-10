@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA0852586FA
-	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:06:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49D9E25EF9A
+	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:06:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739228762; cv=none; b=R7aB85gKztihdHcoRIODdqJSZVaSums8iTwGRTFpLWXul8PL0IYGmcOjkyyy0LmMOqLdVk2TFZzXre7itwX4cXH2gVqqMv93YB0Yf+/6Tb6HJD6mmkMkX482mebvLFe4ZKMNdhO9KsylrphOwYrbRy/YGeGpxbHg778Yx5uofGs=
+	t=1739228765; cv=none; b=GS/0zEpgF9EU2DFop4sKm7rBBojJqberqAENuB0tzNZkaPvxH13glFYGB4doJmLu7L+mCiT8UFE8uoRGUtKUBUV4SK5nS7CYo7Ld+aZWtaD2XspV9ehWBvJxWSg+U1jDK9v8vFZRcWhl12ogax4WqZRi27T8Aztn0mhXeQ6YtSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739228762; c=relaxed/simple;
-	bh=Mzl7wcgCGNdkMtccrX7ZQMha+om2rh3xV59mPb7Vw1U=;
-	h=Date:To:From:Subject:Message-Id; b=q8cogsCODsfZXffVmLAJHYT4MoquuycmeUFqc0dug5cNRboPKyDd5Gq5v8XuGMZOoz+q9fn1LHOGQ978NhXP4tsDr8ZvVuTIdaUVd2Ip7+W6ZDub6zOe/xKvCV4FS7tXk2b0wH5jWPCS2lYt7gZeiNeTqRAaLZRxsYnJWylNpNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YDq/glB6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739228765; c=relaxed/simple;
+	bh=MTM64qFS1Q8A5IvNVYD/oD6mVkpeow+CI609Jawizfw=;
+	h=Date:To:From:Subject:Message-Id; b=KszQLRdKqUpTUhcymgBNKbuONzos3h36P1lqd3lkjuaBp4KwjaKQQxXhhoZMNzwpdcuDZ8EiviqAL3qjhYZ7ne81bq0hWwIUWZNDBI51EZnGD8/jZlyC2eKO1mO7y44kh55D6nbnSOmCGEawYoG9h55zvl0IFMKiEfGeuRvOV4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vWuQGD5F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YDq/glB6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A762C4CED1;
-	Mon, 10 Feb 2025 23:06:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vWuQGD5F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B727C4CED1;
+	Mon, 10 Feb 2025 23:06:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739228762;
-	bh=Mzl7wcgCGNdkMtccrX7ZQMha+om2rh3xV59mPb7Vw1U=;
+	s=korg; t=1739228764;
+	bh=MTM64qFS1Q8A5IvNVYD/oD6mVkpeow+CI609Jawizfw=;
 	h=Date:To:From:Subject:From;
-	b=YDq/glB62pu4eAtQY4zf/tUgFcLDwY+nJyqiLP9co0xVzyCS3I/FpGsC0vUhKUn2f
-	 5DibxreuUe3xK8GGv7PRYzlNZvpjwyQmnoU4zgmKDfF95dCsNolcEgj1V3H6RtAo59
-	 0V6zWSkKxLQ2wjcXnzUBnwJpFgEOatdyXJYEkS5E=
-Date: Mon, 10 Feb 2025 15:06:01 -0800
+	b=vWuQGD5FZSOWQMHH/kxcFZVWOr0iq+xtDQdyVthIQvwLXrLAsYhW09SPTyyNB2r3c
+	 u1SIglY4Cjg4I5JvQ/sQEcQZSkZHF/0P/xmnBPJRanllaL4b0+b9secNGh3pwuLQle
+	 G6FJYADzgIHSy0I8ZOdAXviBycM42ODyZCQy8kRI=
+Date: Mon, 10 Feb 2025 15:06:03 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,sj@kernel.org,si.yanteng@linux.dev,simona.vetter@ffwll.ch,peterz@infradead.org,peterx@redhat.com,pasha.tatashin@soleen.com,oleg@redhat.com,mhiramat@kernel.org,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kherbst@redhat.com,jhubbard@nvidia.com,jglisse@redhat.com,jgg@nvidia.com,jannh@google.com,dakr@kernel.org,corbet@lwn.net,apopple@nvidia.com,alexs@kernel.org,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-detect-writability-in-restore_exclusive_pte-through-can_change_pte_writable.patch added to mm-unstable branch
-Message-Id: <20250210230602.3A762C4CED1@smtp.kernel.org>
+Subject: + mm-use-single-swp_device_exclusive-entry-type.patch added to mm-unstable branch
+Message-Id: <20250210230604.9B727C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: detect writability in restore_exclusive_pte() through can_change_pte_writable()
+     Subject: mm: use single SWP_DEVICE_EXCLUSIVE entry type
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-detect-writability-in-restore_exclusive_pte-through-can_change_pte_writable.patch
+     mm-use-single-swp_device_exclusive-entry-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-detect-writability-in-restore_exclusive_pte-through-can_change_pte_writable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-single-swp_device_exclusive-entry-type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: detect writability in restore_exclusive_pte() through can_change_pte_writable()
-Date: Mon, 10 Feb 2025 20:37:47 +0100
+Subject: mm: use single SWP_DEVICE_EXCLUSIVE entry type
+Date: Mon, 10 Feb 2025 20:37:48 +0100
 
-Let's do it just like mprotect write-upgrade or during NUMA-hinting faults
-on PROT_NONE PTEs: detect if the PTE can be writable by using
-can_change_pte_writable().
+There is no need for the distinction anymore; let's merge the readable and
+writable device-exclusive entries into a single device-exclusive entry
+type.
 
-Set the PTE only dirty if the folio is dirty: we might not necessarily
-have a write access, and setting the PTE writable doesn't require setting
-the PTE dirty.
-
->From a CPU perspective, these entries are clean.  So only set the PTE
-dirty if the folios is dirty.
-
-With this change in place, there is no need to have separate readable and
-writable device-exclusive entry types, and we'll merge them next
-separately.
-
-Note that, during fork(), we first convert the device-exclusive entries
-back to ordinary PTEs, and we only ever allow conversion of writable PTEs
-to device-exclusive -- only mprotect can currently change them to
-readable-device-exclusive.  Consequently, we always expect
-PageAnonExclusive(page)==true and can_change_pte_writable()==true, unless
-we are dealing with soft-dirty tracking or uffd-wp.  But reusing
-can_change_pte_writable() for now is cleaner.
-
-Link: https://lkml.kernel.org/r/20250210193801.781278-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20250210193801.781278-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Simona Vetter <simona.vetter@ffwll.ch>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Cc: Alex Shi <alexs@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: Jann Horn <jannh@google.com>
@@ -106,44 +88,138 @@ Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: SeongJae Park <sj@kernel.org>
-Cc: Simona Vetter <simona.vetter@ffwll.ch>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yanteng Si <si.yanteng@linux.dev>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ include/linux/swap.h    |    7 +++----
+ include/linux/swapops.h |   27 ++++-----------------------
+ mm/mprotect.c           |    8 --------
+ mm/page_table_check.c   |    5 ++---
+ mm/rmap.c               |    2 +-
+ 5 files changed, 10 insertions(+), 39 deletions(-)
 
---- a/mm/memory.c~mm-memory-detect-writability-in-restore_exclusive_pte-through-can_change_pte_writable
-+++ a/mm/memory.c
-@@ -725,18 +725,21 @@ static void restore_exclusive_pte(struct
- 	struct folio *folio = page_folio(page);
- 	pte_t orig_pte;
- 	pte_t pte;
--	swp_entry_t entry;
+--- a/include/linux/swap.h~mm-use-single-swp_device_exclusive-entry-type
++++ a/include/linux/swap.h
+@@ -74,14 +74,13 @@ static inline int current_is_kswapd(void
+  * to a special SWP_DEVICE_{READ|WRITE} entry.
+  *
+  * When a page is mapped by the device for exclusive access we set the CPU page
+- * table entries to special SWP_DEVICE_EXCLUSIVE_* entries.
++ * table entries to a special SWP_DEVICE_EXCLUSIVE entry.
+  */
+ #ifdef CONFIG_DEVICE_PRIVATE
+-#define SWP_DEVICE_NUM 4
++#define SWP_DEVICE_NUM 3
+ #define SWP_DEVICE_WRITE (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM)
+ #define SWP_DEVICE_READ (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM+1)
+-#define SWP_DEVICE_EXCLUSIVE_WRITE (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM+2)
+-#define SWP_DEVICE_EXCLUSIVE_READ (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM+3)
++#define SWP_DEVICE_EXCLUSIVE (MAX_SWAPFILES+SWP_HWPOISON_NUM+SWP_MIGRATION_NUM+2)
+ #else
+ #define SWP_DEVICE_NUM 0
+ #endif
+--- a/include/linux/swapops.h~mm-use-single-swp_device_exclusive-entry-type
++++ a/include/linux/swapops.h
+@@ -186,26 +186,16 @@ static inline bool is_writable_device_pr
+ 	return unlikely(swp_type(entry) == SWP_DEVICE_WRITE);
+ }
  
- 	orig_pte = ptep_get(ptep);
- 	pte = pte_mkold(mk_pte(page, READ_ONCE(vma->vm_page_prot)));
- 	if (pte_swp_soft_dirty(orig_pte))
- 		pte = pte_mksoft_dirty(pte);
+-static inline swp_entry_t make_readable_device_exclusive_entry(pgoff_t offset)
++static inline swp_entry_t make_device_exclusive_entry(pgoff_t offset)
+ {
+-	return swp_entry(SWP_DEVICE_EXCLUSIVE_READ, offset);
+-}
+-
+-static inline swp_entry_t make_writable_device_exclusive_entry(pgoff_t offset)
+-{
+-	return swp_entry(SWP_DEVICE_EXCLUSIVE_WRITE, offset);
++	return swp_entry(SWP_DEVICE_EXCLUSIVE, offset);
+ }
  
--	entry = pte_to_swp_entry(orig_pte);
- 	if (pte_swp_uffd_wp(orig_pte))
- 		pte = pte_mkuffd_wp(pte);
--	else if (is_writable_device_exclusive_entry(entry))
--		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
-+
-+	if ((vma->vm_flags & VM_WRITE) &&
-+	    can_change_pte_writable(vma, address, pte)) {
-+		if (folio_test_dirty(folio))
-+			pte = pte_mkdirty(pte);
-+		pte = pte_mkwrite(pte, vma);
-+	}
+ static inline bool is_device_exclusive_entry(swp_entry_t entry)
+ {
+-	return swp_type(entry) == SWP_DEVICE_EXCLUSIVE_READ ||
+-		swp_type(entry) == SWP_DEVICE_EXCLUSIVE_WRITE;
++	return swp_type(entry) == SWP_DEVICE_EXCLUSIVE;
+ }
  
- 	VM_BUG_ON_FOLIO(pte_write(pte) && (!folio_test_anon(folio) &&
- 					   PageAnonExclusive(page)), folio);
+-static inline bool is_writable_device_exclusive_entry(swp_entry_t entry)
+-{
+-	return unlikely(swp_type(entry) == SWP_DEVICE_EXCLUSIVE_WRITE);
+-}
+ #else /* CONFIG_DEVICE_PRIVATE */
+ static inline swp_entry_t make_readable_device_private_entry(pgoff_t offset)
+ {
+@@ -227,12 +217,7 @@ static inline bool is_writable_device_pr
+ 	return false;
+ }
+ 
+-static inline swp_entry_t make_readable_device_exclusive_entry(pgoff_t offset)
+-{
+-	return swp_entry(0, 0);
+-}
+-
+-static inline swp_entry_t make_writable_device_exclusive_entry(pgoff_t offset)
++static inline swp_entry_t make_device_exclusive_entry(pgoff_t offset)
+ {
+ 	return swp_entry(0, 0);
+ }
+@@ -242,10 +227,6 @@ static inline bool is_device_exclusive_e
+ 	return false;
+ }
+ 
+-static inline bool is_writable_device_exclusive_entry(swp_entry_t entry)
+-{
+-	return false;
+-}
+ #endif /* CONFIG_DEVICE_PRIVATE */
+ 
+ #ifdef CONFIG_MIGRATION
+--- a/mm/mprotect.c~mm-use-single-swp_device_exclusive-entry-type
++++ a/mm/mprotect.c
+@@ -225,14 +225,6 @@ static long change_pte_range(struct mmu_
+ 				newpte = swp_entry_to_pte(entry);
+ 				if (pte_swp_uffd_wp(oldpte))
+ 					newpte = pte_swp_mkuffd_wp(newpte);
+-			} else if (is_writable_device_exclusive_entry(entry)) {
+-				entry = make_readable_device_exclusive_entry(
+-							swp_offset(entry));
+-				newpte = swp_entry_to_pte(entry);
+-				if (pte_swp_soft_dirty(oldpte))
+-					newpte = pte_swp_mksoft_dirty(newpte);
+-				if (pte_swp_uffd_wp(oldpte))
+-					newpte = pte_swp_mkuffd_wp(newpte);
+ 			} else if (is_pte_marker_entry(entry)) {
+ 				/*
+ 				 * Ignore error swap entries unconditionally,
+--- a/mm/page_table_check.c~mm-use-single-swp_device_exclusive-entry-type
++++ a/mm/page_table_check.c
+@@ -196,9 +196,8 @@ EXPORT_SYMBOL(__page_table_check_pud_cle
+ /* Whether the swap entry cached writable information */
+ static inline bool swap_cached_writable(swp_entry_t entry)
+ {
+-	return is_writable_device_exclusive_entry(entry) ||
+-	    is_writable_device_private_entry(entry) ||
+-	    is_writable_migration_entry(entry);
++	return is_writable_device_private_entry(entry) ||
++	       is_writable_migration_entry(entry);
+ }
+ 
+ static inline void page_table_check_pte_flags(pte_t pte)
+--- a/mm/rmap.c~mm-use-single-swp_device_exclusive-entry-type
++++ a/mm/rmap.c
+@@ -2492,7 +2492,7 @@ struct page *make_device_exclusive(struc
+ 	 * do_swap_page() will trigger the conversion back while holding the
+ 	 * folio lock.
+ 	 */
+-	entry = make_writable_device_exclusive_entry(page_to_pfn(page));
++	entry = make_device_exclusive_entry(page_to_pfn(page));
+ 	swp_pte = swp_entry_to_pte(entry);
+ 	if (pte_soft_dirty(fw.pte))
+ 		swp_pte = pte_swp_mksoft_dirty(swp_pte);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
