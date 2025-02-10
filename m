@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058E125E442
-	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:06:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF74625EF92
+	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:06:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739228769; cv=none; b=CNEFAwDam7Ay5kuoyDJlouwuYGhe0xj0gPHYvdSA3yqHQr14C71tXxTVnYIa1kb0naBpTDXoCoI+jerE6tYW0xGylT5x9Kv6HjOmsCuU3jTDxeEsVTaKqEu0D6DMxcEux/fbq/Zf8tR6ZsiDrkvvnSo3ltqwECwGD2lvM1TI4Bo=
+	t=1739228771; cv=none; b=GGxzeIswCc+DgPGsxVezwnOAMZlzLIDiWEuIJ9QKcigSbENYyinZ67cB2pBfKLcR1beNY96u0+a3gxj4t4DauggNYG2glrEhgDpZplGh7wUJ27TlDJzXYk3HhV/BE7d94g2vloL0b9VkS1tcBBacUd7VkWpzhJ9owFPDo2bl8Tc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739228769; c=relaxed/simple;
-	bh=nEPWOezpwX06jiC9IykPCl5+JP2SNnW4y9pNLS68vag=;
-	h=Date:To:From:Subject:Message-Id; b=eCQmrLV8KsqkrdL6UAnIJgwibZWnR7rvUwvQ7YsBxCXxpyNq53Ex1LW23CzWnJGcaPpWU5EOXzlYSoPOGWOkB8ghfcH6WuZ8GISDffDdT6ccpenWbN1NwoUPnblGLrwq1fQTw/7BK46WXx3EdqgwYhCRRIbI55zUsxfFMALfObY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u5vbvgws; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739228771; c=relaxed/simple;
+	bh=Hlat8vPbIl3TIYbKW9Rnj5yGV2F1/WJZSywgghtbsVY=;
+	h=Date:To:From:Subject:Message-Id; b=UfAbH0EfAlS/iuwfW9+Jo/v3it4LEBTEMFXGgrOyOICSMYRuHQO6bSTGSp6S7gxgmkCUzNZgTB9B5V4IGIrJZkWps19TohpH2Rdow2m91DDzRxaik1R2HKgNTija03kyhjwOtpPl4r0GMJHmQV6OzvTJuNl3N/g1N2Qz+8/Ji7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sAcPHwDV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u5vbvgws"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77E92C4CED1;
-	Mon, 10 Feb 2025 23:06:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sAcPHwDV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9464C4CED1;
+	Mon, 10 Feb 2025 23:06:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739228768;
-	bh=nEPWOezpwX06jiC9IykPCl5+JP2SNnW4y9pNLS68vag=;
+	s=korg; t=1739228770;
+	bh=Hlat8vPbIl3TIYbKW9Rnj5yGV2F1/WJZSywgghtbsVY=;
 	h=Date:To:From:Subject:From;
-	b=u5vbvgwsok6g+kPhquRPuP8EH37fiGhYFWvhm0hARZUYtyHty2VvQVF4eN4vu4N36
-	 VVWYuSHhwDgKh8navCEhynY5yT+L7qApeRY/wBLS9caj2UZRWn+C3rQwc4wTOwFTU/
-	 dRCh5BpnFUjGSa94+PkWecSNN3Wj+sf2PsScOCV8=
-Date: Mon, 10 Feb 2025 15:06:07 -0800
+	b=sAcPHwDVtusLsQr2Ub2E5/xaK8ZxLxIBuftd0bZs2NLBIIXr6ctf6LoLXgILQ+XOU
+	 pyygAFIU3NLJt3L9RaijJSGPmzClQcBYvEEh71ye8xiVQbletPUXfSXRQVVAXCXJ7j
+	 Yxc+oWblYwe5m9o4dMrnT2zzzI/ehQiOve+wxVog=
+Date: Mon, 10 Feb 2025 15:06:10 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,sj@kernel.org,si.yanteng@linux.dev,simona.vetter@ffwll.ch,peterz@infradead.org,peterx@redhat.com,pasha.tatashin@soleen.com,oleg@redhat.com,mhiramat@kernel.org,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kherbst@redhat.com,jhubbard@nvidia.com,jglisse@redhat.com,jgg@nvidia.com,jannh@google.com,dakr@kernel.org,corbet@lwn.net,apopple@nvidia.com,alexs@kernel.org,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_vma_mapped-device-exclusive-entries-are-not-migration-entries.patch added to mm-unstable branch
-Message-Id: <20250210230608.77E92C4CED1@smtp.kernel.org>
+Subject: + kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page.patch added to mm-unstable branch
+Message-Id: <20250210230610.B9464C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_vma_mapped: device-exclusive entries are not migration entries
+     Subject: kernel/events/uprobes: handle device-exclusive entries correctly in __replace_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_vma_mapped-device-exclusive-entries-are-not-migration-entries.patch
+     kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-device-exclusive-entries-are-not-migration-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_vma_mapped: device-exclusive entries are not migration entries
-Date: Mon, 10 Feb 2025 20:37:49 +0100
+Subject: kernel/events/uprobes: handle device-exclusive entries correctly in __replace_page()
+Date: Mon, 10 Feb 2025 20:37:50 +0100
 
-It's unclear why they would be considered migration entries; they are not.
+Ever since commit b756a3b5e7ea ("mm: device exclusive memory access") we
+can return with a device-exclusive entry from page_vma_mapped_walk().
 
-Likely we'll never really trigger that case in practice, because migration
-(including folio split) of a folio that has device-exclusive entries is
-never started, as we would detect "additional references":
-device-exclusive entries adjust the mapcount, but not the refcount.
+__replace_page() is not prepared for that, so teach it about these PFN
+swap PTEs.  Note that device-private entries are so far not applicable on
+that path, because GUP would never have returned such folios (conversion
+to device-private happens by page migration, not in-place conversion of
+the PTE).
 
-Link: https://lkml.kernel.org/r/20250210193801.781278-8-david@redhat.com
+There is a race between GUP and us locking the folio to look it up using
+page_vma_mapped_walk(), so this is likely a fix (unless something else
+could prevent that race, but it doesn't look like).  pte_pfn() on
+something that is not a present pte could give use garbage, and we'd
+wrongly mess up the mapcount because it was already adjusted by calling
+folio_remove_rmap_pte() when making the entry device-exclusive.
+
+Link: https://lkml.kernel.org/r/20250210193801.781278-9-david@redhat.com
 Fixes: b756a3b5e7ea ("mm: device exclusive memory access")
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: Jann Horn <jannh@google.com>
@@ -98,21 +107,45 @@ Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/events/uprobes.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped-device-exclusive-entries-are-not-migration-entries
-+++ a/mm/page_vma_mapped.c
-@@ -111,8 +111,7 @@ static bool check_pte(struct page_vma_ma
- 			return false;
- 		entry = pte_to_swp_entry(ptent);
+--- a/kernel/events/uprobes.c~kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page
++++ a/kernel/events/uprobes.c
+@@ -173,6 +173,7 @@ static int __replace_page(struct vm_area
+ 	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
+ 	int err;
+ 	struct mmu_notifier_range range;
++	pte_t pte;
  
--		if (!is_migration_entry(entry) &&
--		    !is_device_exclusive_entry(entry))
-+		if (!is_migration_entry(entry))
- 			return false;
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, addr,
+ 				addr + PAGE_SIZE);
+@@ -192,6 +193,16 @@ static int __replace_page(struct vm_area
+ 	if (!page_vma_mapped_walk(&pvmw))
+ 		goto unlock;
+ 	VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
++	pte = ptep_get(pvmw.pte);
++
++	/*
++	 * Handle PFN swap PTES, such as device-exclusive ones, that actually
++	 * map pages: simply trigger GUP again to fix it up.
++	 */
++	if (unlikely(!pte_present(pte))) {
++		page_vma_mapped_walk_done(&pvmw);
++		goto unlock;
++	}
  
- 		pfn = swp_offset_pfn(entry);
+ 	if (new_page) {
+ 		folio_get(new_folio);
+@@ -206,7 +217,7 @@ static int __replace_page(struct vm_area
+ 		inc_mm_counter(mm, MM_ANONPAGES);
+ 	}
+ 
+-	flush_cache_page(vma, addr, pte_pfn(ptep_get(pvmw.pte)));
++	flush_cache_page(vma, addr, pte_pfn(pte));
+ 	ptep_clear_flush(vma, addr, pvmw.pte);
+ 	if (new_page)
+ 		set_pte_at(mm, addr, pvmw.pte,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
