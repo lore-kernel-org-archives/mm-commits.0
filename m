@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC8571EC00E
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:03:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A79B527293C
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:03:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739314988; cv=none; b=BVnAYg2Om09QgYHHcrWwpm4l1W/C6jInujZqoSNI5dVx7jOr07MXS2IzTa8AW+AdEEDLE7YLlEvLqrm8l1fLbZwgYXsSJoltwAJhxta95EuJsbf/IbDpkJPNiqQYRu7B4nf6inGIm/DeJkMg0POOfhIBpEtn9VsCXcwlsZid/zY=
+	t=1739314989; cv=none; b=Xi+c+38EuQVv3kuzyY/jIGDyY57M0nww6kazMU72fZf3nK1aPne40Fsli9ft8LwWClHTtyQgnQ4fPleSPl7pwlQ5B7fNmmOCFL7JxvG2irgOU79He6klpTUAvDmh9FP4wpc66/kWeNTGsxEv55YYmJrLhiWG20JHO0LvQsu4lpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739314988; c=relaxed/simple;
-	bh=PRmKgIy06dBiPSOi8jT+cJ4dTI8wMV2d370+l4lBWiM=;
-	h=Date:To:From:Subject:Message-Id; b=jLi/mJyikAGTurcc+f2GUObcdKlbJtnC/XcRgnyZQ00ve1aKLKqkvPH6WV3a8uwKgs68pbYhIFuNBH7glccg4xnCPB8k4Y3URtSuynDmEhqw9mwaVDG/5Z0Xw6it/WH5Z3saiGGvGNHyT6lMjD67JOHCFPjB1OLt/oO2CDoq2DI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z10cnnFM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739314989; c=relaxed/simple;
+	bh=ttWGUcr9O8S9deJyuIQ/8CvLjIkYh8dx+a79YQE5lEk=;
+	h=Date:To:From:Subject:Message-Id; b=NwiQsLp+5taOMlaG6CFJidVffpTOS5eEXM91mzjAPNXt/PFWE/WfvrJHcLywtbBcb8LrmcXE/3dS2l8MToHcsVPevfl5ybhP7ZZfbnf3bzIG0oJdQ6LWQ2Du4DDZXnMlR0cyOGO6x89rnxTxrQEIu3E8u1QD38FgX9dIJjpmgSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zGEfWxDK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z10cnnFM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40CC8C4CEE6;
-	Tue, 11 Feb 2025 23:03:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zGEfWxDK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D7A3C4CEDD;
+	Tue, 11 Feb 2025 23:03:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739314988;
-	bh=PRmKgIy06dBiPSOi8jT+cJ4dTI8wMV2d370+l4lBWiM=;
+	s=korg; t=1739314989;
+	bh=ttWGUcr9O8S9deJyuIQ/8CvLjIkYh8dx+a79YQE5lEk=;
 	h=Date:To:From:Subject:From;
-	b=z10cnnFM7VoSUzCnKdC0dEMmcMWhFZcANelxp+UYMV1iDZxnDo+zoxDENfmWhIsUN
-	 oj6BGM+8Mxkj5PtceaW/EawtDm3jgglH+w7XzxJMdHitYWOHQDZN6xVo02hDiU5+M4
-	 lWrWQ8OiqrRAUl4alqmvXMEcPM2d9g9ZLl0h+TYU=
-Date: Tue, 11 Feb 2025 15:03:07 -0800
+	b=zGEfWxDKlVlIc8XC8LgjdL3d+OCOq6Wm5KP1xcphjcznFNFSXTBoo26hOxDL5fcR/
+	 8CgqtQ5JsdRss3IuC90BlCQGh6g+CFcVBnZ8Jwd8rrVhGtP7bzmKIuCh706FCdiOHU
+	 hkL1H1eh6uY2+6I1dmNhRVY/TGqFdrVfcFeFvbm0=
+Date: Tue, 11 Feb 2025 15:03:08 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch added to mm-unstable branch
-Message-Id: <20250211230308.40CC8C4CEE6@smtp.kernel.org>
+Subject: + mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch added to mm-unstable branch
+Message-Id: <20250211230309.7D7A3C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: add folio_split() to debugfs testing interface.
+     Subject: mm/truncate: use buddy allocator like folio split for truncate operation.
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+     mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: add folio_split() to debugfs testing interface.
-Date: Tue, 11 Feb 2025 10:50:31 -0500
+Subject: mm/truncate: use buddy allocator like folio split for truncate operation.
+Date: Tue, 11 Feb 2025 10:50:32 -0500
 
-This allows to test folio_split() by specifying an additional in folio
-page offset parameter to split_huge_page debugfs interface.
+Instead of splitting the large folio uniformly during truncation, try to
+use buddy allocator like split at the start of truncation range to
+minimize the number of resulting folios if it is supported. 
+try_folio_split() is introduced to use folio_split() if supported and fall
+back to uniform split otherwise.
 
-Link: https://lkml.kernel.org/r/20250211155034.268962-7-ziy@nvidia.com
+For example, to truncate a order-4 folio
+[0, 1, 2, 3, 4, 5, ..., 15]
+between [3, 10] (inclusive), folio_split() splits the folio to
+[0,1], [2], [3], [4..7], [8..15] and [3], [4..7] can be dropped and
+[8..15] is kept with zeros in [8..10], then another folio_split() is
+done at 10, so [8..10] can be dropped.
+
+One possible optimization is to make folio_split() to split a folio based
+on a given range, like [3..10] above.  But that complicates folio_split(),
+so it will be investigated when necessary.
+
+Link: https://lkml.kernel.org/r/20250211155034.268962-8-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -81,117 +95,131 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   47 ++++++++++++++++++++++++++++++++-------------
- 1 file changed, 34 insertions(+), 13 deletions(-)
+ include/linux/huge_mm.h |   36 ++++++++++++++++++++++++++++++++++++
+ mm/huge_memory.c        |    4 ++--
+ mm/truncate.c           |   31 ++++++++++++++++++++++++++++++-
+ 3 files changed, 68 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-folio_split-to-debugfs-testing-interface
+--- a/include/linux/huge_mm.h~mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation
++++ a/include/linux/huge_mm.h
+@@ -343,6 +343,36 @@ int split_huge_page_to_list_to_order(str
+ 		unsigned int new_order);
+ int min_order_for_split(struct folio *folio);
+ int split_folio_to_list(struct folio *folio, struct list_head *list);
++bool uniform_split_supported(struct folio *folio, unsigned int new_order,
++		bool warns);
++bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
++		bool warns);
++int folio_split(struct folio *folio, unsigned int new_order, struct page *page,
++		struct list_head *list);
++/*
++ * try_folio_split - try to split a @folio at @page using non uniform split.
++ * @folio: folio to be split
++ * @page: split to order-0 at the given page
++ * @list: store the after-split folios
++ *
++ * Try to split a @folio at @page using non uniform split to order-0, if
++ * non uniform split is not supported, fall back to uniform split.
++ *
++ * Return: 0: split is successful, otherwise split failed.
++ */
++static inline int try_folio_split(struct folio *folio, struct page *page,
++		struct list_head *list)
++{
++	int ret = min_order_for_split(folio);
++
++	if (ret < 0)
++		return ret;
++
++	if (!non_uniform_split_supported(folio, 0, false))
++		return split_huge_page_to_list_to_order(&folio->page, list,
++				ret);
++	return folio_split(folio, ret, page, list);
++}
+ static inline int split_huge_page(struct page *page)
+ {
+ 	struct folio *folio = page_folio(page);
+@@ -534,6 +564,12 @@ static inline int split_folio_to_list(st
+ {
+ 	return 0;
+ }
++
++static inline int try_folio_split(struct folio *folio, struct page *page,
++		struct list_head *list)
++{
++	return 0;
++}
+ 
+ static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
+ #define split_huge_pmd(__vma, __pmd, __address)	\
+--- a/mm/huge_memory.c~mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation
 +++ a/mm/huge_memory.c
-@@ -4285,7 +4285,8 @@ static inline bool vma_not_suitable_for_
+@@ -3636,7 +3636,7 @@ after_split:
+ 	return ret;
  }
  
- static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
--				unsigned long vaddr_end, unsigned int new_order)
-+				unsigned long vaddr_end, unsigned int new_order,
-+				long in_folio_offset)
+-static bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
++bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
+ 		bool warns)
  {
- 	int ret = 0;
- 	struct task_struct *task;
-@@ -4369,8 +4370,16 @@ static int split_huge_pages_pid(int pid,
- 		if (!folio_test_anon(folio) && folio->mapping != mapping)
- 			goto unlock;
- 
--		if (!split_folio_to_order(folio, target_order))
--			split++;
-+		if (in_folio_offset < 0 ||
-+		    in_folio_offset >= folio_nr_pages(folio)) {
-+			if (!split_folio_to_order(folio, target_order))
-+				split++;
-+		} else {
-+			struct page *split_at = folio_page(folio,
-+							   in_folio_offset);
-+			if (!folio_split(folio, target_order, split_at, NULL))
-+				split++;
-+		}
- 
- unlock:
- 
-@@ -4393,7 +4402,8 @@ out:
+ 	/* order-1 is not supported for anonymous THP. */
+@@ -3669,7 +3669,7 @@ static bool non_uniform_split_supported(
  }
  
- static int split_huge_pages_in_file(const char *file_path, pgoff_t off_start,
--				pgoff_t off_end, unsigned int new_order)
-+				pgoff_t off_end, unsigned int new_order,
-+				long in_folio_offset)
+ /* See comments in non_uniform_split_supported() */
+-static bool uniform_split_supported(struct folio *folio, unsigned int new_order,
++bool uniform_split_supported(struct folio *folio, unsigned int new_order,
+ 		bool warns)
  {
- 	struct filename *file;
- 	struct file *candidate;
-@@ -4442,8 +4452,15 @@ static int split_huge_pages_in_file(cons
- 		if (folio->mapping != mapping)
- 			goto unlock;
+ 	if (folio_test_anon(folio) && new_order == 1) {
+--- a/mm/truncate.c~mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation
++++ a/mm/truncate.c
+@@ -192,6 +192,7 @@ bool truncate_inode_partial_folio(struct
+ {
+ 	loff_t pos = folio_pos(folio);
+ 	unsigned int offset, length;
++	struct page *split_at, *split_at2;
  
--		if (!split_folio_to_order(folio, target_order))
--			split++;
-+		if (in_folio_offset < 0 || in_folio_offset >= nr_pages) {
-+			if (!split_folio_to_order(folio, target_order))
-+				split++;
-+		} else {
-+			struct page *split_at = folio_page(folio,
-+							   in_folio_offset);
-+			if (!folio_split(folio, target_order, split_at, NULL))
-+				split++;
-+		}
- 
- unlock:
- 		folio_unlock(folio);
-@@ -4476,6 +4493,7 @@ static ssize_t split_huge_pages_write(st
- 	int pid;
- 	unsigned long vaddr_start, vaddr_end;
- 	unsigned int new_order = 0;
-+	long in_folio_offset = -1;
- 
- 	ret = mutex_lock_interruptible(&split_debug_mutex);
- 	if (ret)
-@@ -4504,30 +4522,33 @@ static ssize_t split_huge_pages_write(st
- 			goto out;
- 		}
- 
--		ret = sscanf(tok_buf, "0x%lx,0x%lx,%d", &off_start,
--			    &off_end, &new_order);
--		if (ret != 2 && ret != 3) {
-+		ret = sscanf(tok_buf, "0x%lx,0x%lx,%d,%ld", &off_start, &off_end,
-+				&new_order, &in_folio_offset);
-+		if (ret != 2 && ret != 3 && ret != 4) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
--		ret = split_huge_pages_in_file(file_path, off_start, off_end, new_order);
-+		ret = split_huge_pages_in_file(file_path, off_start, off_end,
-+				new_order, in_folio_offset);
- 		if (!ret)
- 			ret = input_len;
- 
- 		goto out;
- 	}
- 
--	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d", &pid, &vaddr_start, &vaddr_end, &new_order);
-+	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d,%ld", &pid, &vaddr_start,
-+			&vaddr_end, &new_order, &in_folio_offset);
- 	if (ret == 1 && pid == 1) {
- 		split_huge_pages_all();
- 		ret = strlen(input_buf);
- 		goto out;
--	} else if (ret != 3 && ret != 4) {
-+	} else if (ret != 3 && ret != 4 && ret != 5) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
--	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order);
-+	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order,
-+			in_folio_offset);
- 	if (!ret)
- 		ret = strlen(input_buf);
- out:
+ 	if (pos < start)
+ 		offset = start - pos;
+@@ -221,8 +222,36 @@ bool truncate_inode_partial_folio(struct
+ 		folio_invalidate(folio, offset, length);
+ 	if (!folio_test_large(folio))
+ 		return true;
+-	if (split_folio(folio) == 0)
++
++	split_at = folio_page(folio, PAGE_ALIGN_DOWN(offset) / PAGE_SIZE);
++	split_at2 = folio_page(folio,
++			PAGE_ALIGN_DOWN(offset + length) / PAGE_SIZE);
++
++	if (!try_folio_split(folio, split_at, NULL)) {
++		/*
++		 * try to split at offset + length to make sure folios within
++		 * the range can be dropped, especially to avoid memory waste
++		 * for shmem truncate
++		 */
++		struct folio *folio2 = page_folio(split_at2);
++
++		if (!folio_try_get(folio2))
++			goto no_split;
++
++		if (!folio_test_large(folio2))
++			goto out;
++
++		if (!folio_trylock(folio2))
++			goto out;
++
++		/* split result does not matter here */
++		try_folio_split(folio2, split_at2, NULL);
++		folio_unlock(folio2);
++out:
++		folio_put(folio2);
++no_split:
+ 		return true;
++	}
+ 	if (folio_test_dirty(folio))
+ 		return false;
+ 	truncate_inode_folio(folio->mapping, folio);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
