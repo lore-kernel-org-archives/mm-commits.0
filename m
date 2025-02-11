@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E2BB26BDB0
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 02:02:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E75013214
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 03:53:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739239366; cv=none; b=dTnOiATTTpj1ON8UMagxu5GIZ85p/3emnA7hSbyXqyyuy3Y6Dn0hNfQrdPx3lOYQxdLEpKh4OJIbM6ZeeHNLDSi7Rx7AWDjnS+swyMPYjf4HsL5n/adDh2G2rA6JPehKivOaaQZhKYL1Ogtm+jkdm7aWVNOCL0hpP4VlOr56LBc=
+	t=1739246014; cv=none; b=cZCirunRPHjzgirZ8GQT4tqmOD8U1Hn/NWPDOMqTRpMylBkIFFijOpP/bi6WIXNx+xyVHPtyppv+dFcC1y+bEmpmnK9yC+4IlB3pRjjO7ZarJGR8sB0XiAwcnOAmBADXwaCUvUSt/RH3WJ+iQ9SfpgfSdlZ3rJuz9go8kD+pDsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739239366; c=relaxed/simple;
-	bh=Km+kFPWZ17bQQ+WRooIUiaftYEoppP1WSufCPp37kE0=;
-	h=Date:To:From:Subject:Message-Id; b=clowYeHLwauUZX5tc9Stf26zLTpWtdpN+fSWdYnEkvnvb6mpKBRYZCHVvHhO0+ZuaniDP5AegeU4U6U3AB0gPs/lHVZr042Ti5z4ee7dYGJgx66ghjKFDHIYse/qcnjlH59hTnF2le+ejcpqTJjIw9DTDJrYQvLEoALBjUUfLVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZCOgLtIy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739246014; c=relaxed/simple;
+	bh=+86Uq/Fm3djaDORuSjcrmJdY3rf4rhd2Ml0q/nRu22c=;
+	h=Date:To:From:Subject:Message-Id; b=cSlWUF8aw60oOI2OzvAgR4b25CYsacAj7DzFnDxA3h3i2G4et8xZM4AohCwLjvQ7RzexLYTopbS5UIlLALm2d95L4gtxyuw/n3UVtAjZZbBh7RopbE7dJzk/KxTjY7QNkkOlQ1HWVTGojdC/yjK3mSxWM6oaqCAuDnb1YtRSpOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1X7+48wt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZCOgLtIy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B843C4CED1;
-	Tue, 11 Feb 2025 02:02:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1X7+48wt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 322C9C4CEDD;
+	Tue, 11 Feb 2025 03:53:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739239364;
-	bh=Km+kFPWZ17bQQ+WRooIUiaftYEoppP1WSufCPp37kE0=;
+	s=korg; t=1739246013;
+	bh=+86Uq/Fm3djaDORuSjcrmJdY3rf4rhd2Ml0q/nRu22c=;
 	h=Date:To:From:Subject:From;
-	b=ZCOgLtIycQ5J2ToHBnk/d/WwibamUu/ZzX3wqt9zJ9tTxHa2JoXxtWfqdijhhBgH5
-	 4fN70NaH2FtVcBllDXUXQg3vzcaY4yv3L8qbt14L5UoiBJZygf8ltf3VY54kjfIL/k
-	 nXuTV/8yuMqLdmpi+QtIduP4WhjAd2JK21SEFL9U=
-Date: Mon, 10 Feb 2025 18:02:43 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,soci@c64.rulez.org,simona.vetter@ffwll.ch,mcanal@igalia.com,jayakumar.lkml@gmail.com,deller@gmx.de,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=1X7+48wtuZN093PAtUDs9DREixQ6A3c2Mf7On1Bnbdor0I0Pfin3v1iACrrzYW9Ai
+	 q3VqvB1VZoPsjHscTEwTLtITc/BxAaIAsMnux8Qog8JV5B7KfGwL+rn7jskHKjLx1d
+	 g7Zjv3axuFr+VzdlogL/3CAiEhFVphFX7r/e3kaI=
+Date: Mon, 10 Feb 2025 19:53:32 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,souravpanda@google.com,rientjes@google.com,pasha.tatashin@soleen.com,nathan@kernel.org,kaiyang2@cs.cmu.edu,joel.granados@kernel.org,intelfx@intelfx.name,hannes@cmpxchg.org,david@redhat.com,david.laight@aculab.com,bvanassche@acm.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch added to mm-unstable branch
-Message-Id: <20250211020244.0B843C4CED1@smtp.kernel.org>
+Subject: [alternative-merged] mm-fix-clang-w=1-compiler-warnings.patch removed from -mm tree
+Message-Id: <20250211035333.322C9C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,91 +34,122 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: fixup unused variable warnings
-has been added to the -mm mm-unstable branch.  Its filename is
-     fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
+The quilt patch titled
+     Subject: mm: fix clang W=1 compiler warnings
+has been removed from the -mm tree.  Its filename was
+     mm-fix-clang-w=1-compiler-warnings.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: fixup unused variable warnings
-Date: Sun, 9 Feb 2025 06:29:25 +0000
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: mm: fix clang W=1 compiler warnings
+Date: Fri, 31 Jan 2025 11:12:23 -0800
 
-Unfortunately fb_defio being enabled by nommu devices seems enormously
-ingrained in the kernel to the point that it's not feasible to address
-that in this series, so we use an ifdef to workaround.
+Commit 30c2de0a267c ("mm/vmstat: fix a W=1 clang compiler warning")
+suppresses some but not all compiler warnings that are reported by clang
+when building mm/ with W=1.  Hence revert commit 30c2de0a267c and instead
+make NR_LRU_BASE and NR_ZONE_LRU_BASE integer constants instead of
+enumeration constants.  Additionally, convert the item##_NORMAL constants
+from type enum vm_event_item into int before subtracting ZONE_NORMAL.  The
+latter constant has type enum zone_type.
 
-However this workaround unfortunately missed some unused variables -
-correct this.
-
-This has been tested locally with W=1 and confirmed to resolve the issue.
-
-Link: https://lkml.kernel.org/r/d4018405-2762-4385-a816-e54cc23839ac@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20250131191231.1370466-1-bvanassche@acm.org
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ivan Shapovalov <intelfx@intelfx.name>
+Cc: David Laight <david.laight@aculab.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Kajtar Zsolt <soci@c64.rulez.org>
-Cc: Maíra Canal <mcanal@igalia.com>
-Cc: Mattew Wilcox <willy@infradead.org>
-Cc: Simona Vetter <simona.vetter@ffwll.ch>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kaiyang Zhao <kaiyang2@cs.cmu.edu>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Sourav Panda <souravpanda@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/core/fb_defio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |   26 +++++++++++++++++++++-----
+ include/linux/vmstat.h |    9 +++++++--
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
---- a/drivers/video/fbdev/core/fb_defio.c~fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix
-+++ a/drivers/video/fbdev/core/fb_defio.c
-@@ -265,15 +265,15 @@ static void fb_deferred_io_work(struct w
+--- a/include/linux/mmzone.h~mm-fix-clang-w=1-compiler-warnings
++++ a/include/linux/mmzone.h
+@@ -135,11 +135,20 @@ enum numa_stat_item {
+ #define NR_VM_NUMA_EVENT_ITEMS 0
+ #endif
  
- 	/* here we wrprotect the page's mappings, then do all deferred IO. */
- 	mutex_lock(&fbdefio->lock);
-+#ifdef CONFIG_MMU
- 	list_for_each_entry(pageref, &fbdefio->pagereflist, list) {
- 		struct page *page = pageref->page;
- 		pgoff_t pgoff = pageref->offset >> PAGE_SHIFT;
++/*
++ * NR_ZONE_LRU_BASE and NR_VM_ZONE_STAT_ITEMS are often added to enumeration
++ * constants of another type than enum_zone_stat_item. Define these constants
++ * as an integer instead of enum node_stat_item to prevent that the compiler
++ * warns about enumeration type mismatches when these constants are used.
++ */
++#define NR_ZONE_LRU_BASE	(__NR_ZONE_LRU_BASE + 0)
++#define NR_VM_ZONE_STAT_ITEMS	(__NR_VM_ZONE_STAT_ITEMS + 0)
++
+ enum zone_stat_item {
+ 	/* First 128 byte cacheline (assuming 64 bit words) */
+ 	NR_FREE_PAGES,
+-	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
+-	NR_ZONE_INACTIVE_ANON = NR_ZONE_LRU_BASE,
++	__NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
++	NR_ZONE_INACTIVE_ANON = __NR_ZONE_LRU_BASE,
+ 	NR_ZONE_ACTIVE_ANON,
+ 	NR_ZONE_INACTIVE_FILE,
+ 	NR_ZONE_ACTIVE_FILE,
+@@ -155,11 +164,18 @@ enum zone_stat_item {
+ #ifdef CONFIG_UNACCEPTED_MEMORY
+ 	NR_UNACCEPTED,
+ #endif
+-	NR_VM_ZONE_STAT_ITEMS };
++	__NR_VM_ZONE_STAT_ITEMS };
++
++/*
++ * enum lru_list constants are often added to NR_LRU_BASE. Define NR_LRU_BASE
++ * as an integer instead of enum node_stat_item to prevent that the compiler
++ * warns about enumeration type mismatches.
++ */
++#define NR_LRU_BASE (__NR_LRU_BASE + 0)
  
--#ifdef CONFIG_MMU
- 		mapping_wrprotect_range(fbdefio->mapping, pgoff,
- 					page_to_pfn(page), 1);
--#endif
- 	}
-+#endif
+ enum node_stat_item {
+-	NR_LRU_BASE,
+-	NR_INACTIVE_ANON = NR_LRU_BASE, /* must match order of LRU_[IN]ACTIVE */
++	__NR_LRU_BASE,
++	NR_INACTIVE_ANON = __NR_LRU_BASE, /*must match order of LRU_[IN]ACTIVE*/
+ 	NR_ACTIVE_ANON,		/*  "     "     "   "       "         */
+ 	NR_INACTIVE_FILE,	/*  "     "     "   "       "         */
+ 	NR_ACTIVE_FILE,		/*  "     "     "   "       "         */
+--- a/include/linux/vmstat.h~mm-fix-clang-w=1-compiler-warnings
++++ a/include/linux/vmstat.h
+@@ -135,8 +135,13 @@ static inline void vm_events_fold_cpu(in
+ #define count_vm_vma_lock_event(x) do {} while (0)
+ #endif
  
- 	/* driver's callback with pagereflist */
- 	fbdefio->deferred_io(info, &fbdefio->pagereflist);
++/*
++ * item##_NORMAL has type enum vm_event_item while ZONE_NORMAL and zid have
++ * type enum zone_type. Suppress compiler warnings about mixing different
++ * enumeration types by converting item##_NORMAL into an int with '+ 0'.
++ */
+ #define __count_zid_vm_events(item, zid, delta) \
+-	__count_vm_events(item##_NORMAL - ZONE_NORMAL + zid, delta)
++	__count_vm_events((item##_NORMAL + 0) - ZONE_NORMAL + zid, delta)
+ 
+ /*
+  * Zone and node-based page accounting with per cpu differentials.
+@@ -515,7 +520,7 @@ static inline const char *node_stat_name
+ 
+ static inline const char *lru_list_name(enum lru_list lru)
+ {
+-	return node_stat_name(NR_LRU_BASE + (enum node_stat_item)lru) + 3; // skip "nr_"
++	return node_stat_name(NR_LRU_BASE + lru) + 3; // skip "nr_"
+ }
+ 
+ #if defined(CONFIG_VM_EVENT_COUNTERS) || defined(CONFIG_MEMCG)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from bvanassche@acm.org are
 
-mm-simplify-vma-merge-structure-and-expand-comments.patch
-mm-further-refactor-commit_merge.patch
-mm-eliminate-adj_start-parameter-from-commit_merge.patch
-mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
-mm-completely-abstract-unnecessary-adj_start-calculation.patch
-mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
-mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
-mm-provide-mapping_wrprotect_range-function.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
+procfs-fix-a-locking-bug-in-a-vmcore_add_device_dump-error-path.patch
 
