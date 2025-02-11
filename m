@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFFDA27293C
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:07:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBD73272908
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:10:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739315265; cv=none; b=EkQwTpnQ7q/xAouFQcCVYKdrMMRf6F4hzvnBtVLY85a9jBy4cc8Ol0uqYQkNRVVVkzQQwUxzbrdrUnQ1kPJb9g8XHHf6j1GDl4x/GGNo8eg7BySOwoRyuyWynLoIpl7MjO12ZPOtyq4+eBh0yeFQBZhWaIy4STedlVZKbvYPjcY=
+	t=1739315437; cv=none; b=twccYOtSLEz8ev06sW0h2pGkcT/El6Jwn8XBsNql0NeaFi85QMapXjirTPvI9DzFT4pufE+BC+UN4IrrI2i5R3fZCcJld49eejFx0Di3c8i4FBKyMuYVEU1HC+3Bak5hbayZ8uJWKpXEXcr6H4EHFj6q4lpPe8qvZiMEgkbnUcY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739315265; c=relaxed/simple;
-	bh=gAvGa4yYQxl2ZhSpIxXiXxK8euuYDalzVYyd9odNYKQ=;
-	h=Date:To:From:Subject:Message-Id; b=Plwc2fdA0r1u5udiQ9OEVaH2GFX5OyehPyKwf3UYp9zcv3+iinrtKTHlDPr0fHM39X7Ok8DpJfjBW8OgkPZlJFw3/h3UT88Oa9dxuypvFl7nGztO1xeU0GYkod5Oh0J0FdtQLkNjdiQ/FyfPyy/CoMoxRe7U17g+5PeyKBiuaoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a0lwhEbQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739315437; c=relaxed/simple;
+	bh=DUAPpF5Fm7c28b9QqbJWUH5zQxEU37InIVExBiyKZIU=;
+	h=Date:To:From:Subject:Message-Id; b=nv6wjBuVlZmEjvj8ZnAfCOOnnVVyrHh2Vyf2aqiPqmgP1wj8zIK89CU7svt4twWkOEpG0W5J+CZBTlJxJJv9dnNJbeh1XmArwKasNENj6WikwfBnG5yrUOfK64lFifH6ZiwOai2ZkQmZVdlqTu1oydI0pym/67iLPuKca1Vy988=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X99lxfnM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a0lwhEbQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4481C4CEDD;
-	Tue, 11 Feb 2025 23:07:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X99lxfnM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53273C4CEDD;
+	Tue, 11 Feb 2025 23:10:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739315264;
-	bh=gAvGa4yYQxl2ZhSpIxXiXxK8euuYDalzVYyd9odNYKQ=;
+	s=korg; t=1739315436;
+	bh=DUAPpF5Fm7c28b9QqbJWUH5zQxEU37InIVExBiyKZIU=;
 	h=Date:To:From:Subject:From;
-	b=a0lwhEbQGRWh/od6fZvgaUxXukYJf87HpIxmQOIMEumgNQsCsqwLwHS4cSKseTKMx
-	 L1tXVomr7h15EuZi4o1f6sgodD104ql+WCRkUb4zR7Sz2b5TytbqrBzluszUpQqZ5b
-	 6hV2+Tz0oiffMcxW8C4mmoM7txjY1fheZfgrtyek=
-Date: Tue, 11 Feb 2025 15:07:44 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,aneesh.kumar@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=X99lxfnMYUqujATgrPlKwA7reXd45nx6JXeV2t0EYa5zGe+8H4wG8VTifa8VfpYd5
+	 y+B21FlxgKQthVmsd5JEhjIwTmG0KXkb4UnT9/wGAJI4Qhcn0i4GoOJ+Q3CQ8o7uyd
+	 p/RBrPxLkZXCF6ybNo1hpUB3JYBx568d4VvOswic=
+Date: Tue, 11 Feb 2025 15:10:35 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,hannes@cmpxchg.org,david@redhat.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmu_gather-update-comment-on-rcu-freeing.patch added to mm-unstable branch
-Message-Id: <20250211230744.A4481C4CEDD@smtp.kernel.org>
+Subject: + mm-damon-introduce-damos-filter-type-hugepage_size.patch added to mm-unstable branch
+Message-Id: <20250211231036.53273C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmu_gather: update comment on RCU freeing
+     Subject: mm/damon: introduce DAMOS filter type hugepage_size
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmu_gather-update-comment-on-rcu-freeing.patch
+     mm-damon-introduce-damos-filter-type-hugepage_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-update-comment-on-rcu-freeing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-introduce-damos-filter-type-hugepage_size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,135 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/mmu_gather: update comment on RCU freeing
-Date: Tue, 11 Feb 2025 13:00:23 +0000
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm/damon: introduce DAMOS filter type hugepage_size
+Date: Tue, 11 Feb 2025 12:43:40 +0000
 
-Some recent discussion on LMKL [0] brought up some interesting and useful
-additional context on RCU-freeing for pagetables.
+Patch series "mm/damon: add support for hugepage_size DAMOS filter", v5.
 
-Note down some extra info in here, in particular a) be concrete about the
-reason why an arch might not have an IPI and b) add the interesting
-paravirt details.
+hugepage_size DAMOS filter can be used to gather statistics to check if
+memory regions of specific access tempratures are backed by hugepages of a
+size in a specific range.  This filter can help to observe and prove the
+effectivenes of different schemes for shrinking/collapsing hugepages.
 
-[0] https://lore.kernel.org/linux-kernel/20250206044346.3810242-2-riel@surriel.com/
 
-Link: https://lkml.kernel.org/r/20250211-mmugather-comment-v1-1-1ac1e0c765d2@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Will Deacon <will@kernel.org>
+This patch (of 4):
+
+This is to gather statistics to check if memory regions of specific access
+tempratures are backed by pages of a size in a specific range.  This
+filter can help to observe and prove the effectivenes of different schemes
+for shrinking/collapsing hugepages.
+
+Link: https://lkml.kernel.org/r/20250211124437.278873-1-usamaarif642@gmail.com
+Link: https://lkml.kernel.org/r/20250211124437.278873-2-usamaarif642@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ include/linux/damon.h    |   13 +++++++++++++
+ mm/damon/core.c          |    3 +++
+ mm/damon/paddr.c         |    6 ++++++
+ mm/damon/sysfs-schemes.c |    1 +
+ 4 files changed, 23 insertions(+)
 
---- a/mm/mmu_gather.c~mm-mmu_gather-update-comment-on-rcu-freeing
-+++ a/mm/mmu_gather.c
-@@ -246,8 +246,16 @@ static void __tlb_remove_table_free(stru
-  * IRQs delays the completion of the TLB flush we can never observe an already
-  * freed page.
-  *
-- * Architectures that do not have this (PPC) need to delay the freeing by some
-- * other means, this is that means.
-+ * Not all systems IPI every CPU for this purpose:
-+ *
-+ * - Some architectures have HW support for cross-CPU synchronisation of TLB
-+ *   flushes, so there's no IPI at all.
-+ *
-+ * - Paravirt guests can do this TLB flushing in the hypervisor, or coordinate
-+ *   with the hypervisor to defer flushing on preempted vCPUs.
-+ *
-+ * Such systems need to delay the freeing by some other means, this is that
-+ * means.
-  *
-  * What we do is batch the freed directory pages (tables) and RCU free them.
-  * We use the sched RCU variant, as that guarantees that IRQ/preempt disabling
+--- a/include/linux/damon.h~mm-damon-introduce-damos-filter-type-hugepage_size
++++ a/include/linux/damon.h
+@@ -36,6 +36,16 @@ struct damon_addr_range {
+ };
+ 
+ /**
++ * struct damon_size_range - Represents size for filter to operate on [@min, @max].
++ * @min:	Min size (inclusive).
++ * @max:	Max size (inclusive).
++ */
++struct damon_size_range {
++	unsigned long min;
++	unsigned long max;
++};
++
++/**
+  * struct damon_region - Represents a monitoring target region.
+  * @ar:			The address range of the region.
+  * @sampling_addr:	Address of the sample for the next access check.
+@@ -326,6 +336,7 @@ struct damos_stat {
+  * @DAMOS_FILTER_TYPE_ANON:	Anonymous pages.
+  * @DAMOS_FILTER_TYPE_MEMCG:	Specific memcg's pages.
+  * @DAMOS_FILTER_TYPE_YOUNG:	Recently accessed pages.
++ * @DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:	Page is part of a hugepage.
+  * @DAMOS_FILTER_TYPE_ADDR:	Address range.
+  * @DAMOS_FILTER_TYPE_TARGET:	Data Access Monitoring target.
+  * @NR_DAMOS_FILTER_TYPES:	Number of filter types.
+@@ -345,6 +356,7 @@ enum damos_filter_type {
+ 	DAMOS_FILTER_TYPE_ANON,
+ 	DAMOS_FILTER_TYPE_MEMCG,
+ 	DAMOS_FILTER_TYPE_YOUNG,
++	DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
+ 	DAMOS_FILTER_TYPE_ADDR,
+ 	DAMOS_FILTER_TYPE_TARGET,
+ 	NR_DAMOS_FILTER_TYPES,
+@@ -376,6 +388,7 @@ struct damos_filter {
+ 		unsigned short memcg_id;
+ 		struct damon_addr_range addr_range;
+ 		int target_idx;
++		struct damon_size_range sz_range;
+ 	};
+ 	struct list_head list;
+ };
+--- a/mm/damon/core.c~mm-damon-introduce-damos-filter-type-hugepage_size
++++ a/mm/damon/core.c
+@@ -776,6 +776,9 @@ static void damos_commit_filter_arg(
+ 	case DAMOS_FILTER_TYPE_TARGET:
+ 		dst->target_idx = src->target_idx;
+ 		break;
++	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
++		dst->sz_range = src->sz_range;
++		break;
+ 	default:
+ 		break;
+ 	}
+--- a/mm/damon/paddr.c~mm-damon-introduce-damos-filter-type-hugepage_size
++++ a/mm/damon/paddr.c
+@@ -203,6 +203,7 @@ static bool damos_pa_filter_match(struct
+ {
+ 	bool matched = false;
+ 	struct mem_cgroup *memcg;
++	size_t folio_sz;
+ 
+ 	switch (filter->type) {
+ 	case DAMOS_FILTER_TYPE_ANON:
+@@ -222,6 +223,11 @@ static bool damos_pa_filter_match(struct
+ 		if (matched)
+ 			damon_folio_mkold(folio);
+ 		break;
++	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
++		folio_sz = folio_size(folio);
++		matched = filter->sz_range.min <= folio_sz &&
++			  folio_sz <= filter->sz_range.max;
++		break;
+ 	default:
+ 		break;
+ 	}
+--- a/mm/damon/sysfs-schemes.c~mm-damon-introduce-damos-filter-type-hugepage_size
++++ a/mm/damon/sysfs-schemes.c
+@@ -329,6 +329,7 @@ static const char * const damon_sysfs_sc
+ 	"anon",
+ 	"memcg",
+ 	"young",
++	"hugepage_size",
+ 	"addr",
+ 	"target",
+ };
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-mmu_gather-update-comment-on-rcu-freeing.patch
+mm-damon-ops-have-damon_get_folio-return-folio-even-for-tail-pages.patch
+mm-damon-introduce-damos-filter-type-hugepage_size.patch
+mm-damon-sysfs-schemes-add-files-for-setting-damos_filter-sz_range.patch
+docs-abi-damon-document-damos-sysfs-files-to-set-the-min-max-folio_size.patch
+docs-admin-guide-mm-damon-usage-document-hugepage_size-filter-type.patch
 
