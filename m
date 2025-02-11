@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D25BE1E871
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 01:02:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B6973597B
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 01:12:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739235778; cv=none; b=ek7gha5Gi9LsEUkmDV8r/tMRfPvesvTMFukMI2CU0e9VaZWoFwqaJsyK8ABvywM4eduC7SFtNnjIwKEMZWtAB6zxIglly6SvA7KGsVzc2v8Pl/Na9/DVUycJ0CekPUSnBHUM5Z+UKJzp8p7/8Zw5dKawq7LStlQVbeHihxwb9E4=
+	t=1739236328; cv=none; b=LvB4IEnpZY4a+wxNdW491xTJ77bfVc0qljRfPxglVHDmNtYDUxHCkGDCPESTn/SkCaBCtNJc/o+o5L7tLnv2ifzaZesgvvsCasLtVkHhckWRKlxWfwatWQFimey7ul6PyxSy77AicOf+Y1zhk7LwQ1//Bt4dpPke5+sWFsLY8sI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739235778; c=relaxed/simple;
-	bh=Nvr7lYBtlydxo2gnX2WctaaG4uZebuTgjQCle8LKNsM=;
-	h=Date:To:From:Subject:Message-Id; b=fMd//C+B4QfVG/hl4K7jcwR9x12FPejgw03oJxk5O9uNbRs/R4CjcjNSB9Wac1SNBUaoJJf5p8UOu4Hcj2oQaqnke8DFh7k1QlMF1MpRGTGGDOHcCckyeG1GJBU+oLAYXhaKLK9XaHHa724RLbqTJlRH8La6AzgkRXFu6vYgLcE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KfhNZTHs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739236328; c=relaxed/simple;
+	bh=71REf9MxxPZM0am+6ZJfcrZAPk0TBBPpnc0Lx3AIId4=;
+	h=Date:To:From:Subject:Message-Id; b=aN9t++tJ+Ud1BV2WeSwbTmmtplppup/neAzRUSLpbWUtm0B9ZCUAXnzBx+Wu6pdMX+lWQX7s+caGbGJlaN8EpxSkQb3RzmHXNAUhs9OFiDdE0xCHr8MUaOxv3q/nsGQiH4WW+bRfwiqPrIstPcloXmhvHO8s3/48TnVtYBMVGS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vZ/SxpaT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KfhNZTHs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A9BAC4CED1;
-	Tue, 11 Feb 2025 01:02:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vZ/SxpaT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7250EC4CED1;
+	Tue, 11 Feb 2025 01:12:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739235776;
-	bh=Nvr7lYBtlydxo2gnX2WctaaG4uZebuTgjQCle8LKNsM=;
+	s=korg; t=1739236327;
+	bh=71REf9MxxPZM0am+6ZJfcrZAPk0TBBPpnc0Lx3AIId4=;
 	h=Date:To:From:Subject:From;
-	b=KfhNZTHsCu0PeiIB00rrz7Fe5oHX0mxbLIArLSTpPR3ZSrQSfye4ax+l4XKiY5RFS
-	 eMm7cIr5ttouJSMLjo4koslEpL/xqAYriSZAbV2eIP0kUUgcNbEmqf9AMEmpGRWFDN
-	 uODPJuR2Wp/AJIpqbXnbXiAHkEKyGxuHz0bmj6CQ=
-Date: Mon, 10 Feb 2025 17:02:55 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aisheng.dong@nxp.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=vZ/SxpaTFOOi5MEvW+vy3J3+8fx/Sbe134okT9S37WikkyToXVKmXw52Btggx7HEZ
+	 k67A5bCgZNJ+BDRtixvG4b+5aHtzLXU78wl6b6MYfU6OZKkXVuKYtZClnmzRS5QIuU
+	 KdiNkdRdUmOg6vQywEXDd2Q/nrz1MXBOeZiJeMnc=
+Date: Mon, 10 Feb 2025 17:12:06 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,skhan@linuxfoundation.org,luis.hernandez093@gmail.com,jserv@ccns.ncku.edu.tw,davidgow@google.com,eleanor15x@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch added to mm-unstable branch
-Message-Id: <20250211010256.3A9BAC4CED1@smtp.kernel.org>
+Subject: [to-be-updated] lib-math-add-kunit-test-suite-for-gcd.patch removed from -mm tree
+Message-Id: <20250211011207.7250EC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,124 +34,139 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/cma: using per-CMA locks to improve concurrent allocation performance
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch
+The quilt patch titled
+     Subject: lib/math: add Kunit test suite for gcd()
+has been removed from the -mm tree.  Its filename was
+     lib-math-add-kunit-test-suite-for-gcd.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Ge Yang <yangge1116@126.com>
-Subject: mm/cma: using per-CMA locks to improve concurrent allocation performance
-Date: Mon, 10 Feb 2025 09:56:06 +0800
+From: Yu-Chun Lin <eleanor15x@gmail.com>
+Subject: lib/math: add Kunit test suite for gcd()
+Date: Mon, 3 Feb 2025 15:54:00 +0800
 
-For different CMAs, concurrent allocation of CMA memory ideally should not
-require synchronization using locks.  Currently, a global cma_mutex lock
-is employed to synchronize all CMA allocations, which can impact the
-performance of concurrent allocations across different CMAs.
+Add a KUnit test suite for the gcd() function.  This test suite verifies
+the correctness of gcd() across various scenarios, including edge cases.
 
-To test the performance impact, follow these steps:
-1. Boot the kernel with the command line argument hugetlb_cma=30G to
-   allocate a 30GB CMA area specifically for huge page allocations. (note:
-   on my machine, which has 3 nodes, each node is initialized with 10G of
-   CMA)
-2. Use the dd command with parameters if=/dev/zero of=/dev/shm/file bs=1G
-   count=30 to fully utilize the CMA area by writing zeroes to a file in
-   /dev/shm.
-3. Open three terminals and execute the following commands simultaneously:
-   (Note: Each of these commands attempts to allocate 10GB [2621440 * 4KB
-   pages] of CMA memory.)
-   On Terminal 1: time echo 2621440 > /sys/kernel/debug/cma/hugetlb1/alloc
-   On Terminal 2: time echo 2621440 > /sys/kernel/debug/cma/hugetlb2/alloc
-   On Terminal 3: time echo 2621440 > /sys/kernel/debug/cma/hugetlb3/alloc
-
-We attempt to allocate pages through the CMA debug interface and use the
-time command to measure the duration of each allocation.
-Performance comparison:
-             Without this patch      With this patch
-Terminal1        ~7s                     ~7s
-Terminal2       ~14s                     ~8s
-Terminal3       ~21s                     ~7s
-
-To solve problem above, we could use per-CMA locks to improve concurrent
-allocation performance.  This would allow each CMA to be managed
-independently, reducing the need for a global lock and thus improving
-scalability and performance.
-
-Link: https://lkml.kernel.org/r/1739152566-744-1-git-send-email-yangge1116@126.com
-Signed-off-by: Ge Yang <yangge1116@126.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Aisheng Dong <aisheng.dong@nxp.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20250203075400.3431330-1-eleanor15x@gmail.com
+Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
+Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: David Gow <davidgow@google.com>
+Cc: Luis Felipe Hernandez <luis.hernandez093@gmail.com>
+Cc: Shuah khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    7 ++++---
- mm/cma.h |    1 +
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ lib/Kconfig.debug          |   13 ++++++++
+ lib/math/Makefile          |    3 +
+ lib/math/tests/Makefile    |    1 
+ lib/math/tests/gcd_kunit.c |   56 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 72 insertions(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance
-+++ a/mm/cma.c
-@@ -34,7 +34,6 @@
+--- a/lib/Kconfig.debug~lib-math-add-kunit-test-suite-for-gcd
++++ a/lib/Kconfig.debug
+@@ -3197,6 +3197,19 @@ config INT_SQRT_KUNIT_TEST
  
- struct cma cma_areas[MAX_CMA_AREAS];
- unsigned int cma_area_count;
--static DEFINE_MUTEX(cma_mutex);
+ 	  If unsure, say N
  
- static int __init __cma_declare_contiguous_nid(phys_addr_t base,
- 			phys_addr_t size, phys_addr_t limit,
-@@ -175,6 +174,8 @@ static void __init cma_activate_area(str
- 
- 	spin_lock_init(&cma->lock);
- 
-+	mutex_init(&cma->alloc_mutex);
++config GCD_KUNIT_TEST
++	tristate "Greatest common divisor test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the gcd() function,
++	  which computes the greatest common divisor of two numbers.
 +
- #ifdef CONFIG_CMA_DEBUGFS
- 	INIT_HLIST_HEAD(&cma->mem_head);
- 	spin_lock_init(&cma->mem_head_lock);
-@@ -813,9 +814,9 @@ static int cma_range_alloc(struct cma *c
- 		spin_unlock_irq(&cma->lock);
++	  This test suite verifies the correctness of gcd() across various
++	  scenarios, including edge cases.
++
++	  If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
  
- 		pfn = cmr->base_pfn + (bitmap_no << cma->order_per_bit);
--		mutex_lock(&cma_mutex);
-+		mutex_lock(&cma->alloc_mutex);
- 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA, gfp);
--		mutex_unlock(&cma_mutex);
-+		mutex_unlock(&cma->alloc_mutex);
- 		if (ret == 0) {
- 			page = pfn_to_page(pfn);
- 			break;
---- a/mm/cma.h~mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance
-+++ a/mm/cma.h
-@@ -39,6 +39,7 @@ struct cma {
- 	unsigned long	available_count;
- 	unsigned int order_per_bit; /* Order of pages represented by one bit */
- 	spinlock_t	lock;
-+	struct mutex alloc_mutex;
- #ifdef CONFIG_CMA_DEBUGFS
- 	struct hlist_head mem_head;
- 	spinlock_t mem_head_lock;
+ config ARCH_USE_MEMTEST
+--- a/lib/math/Makefile~lib-math-add-kunit-test-suite-for-gcd
++++ a/lib/math/Makefile
+@@ -9,4 +9,5 @@ obj-$(CONFIG_INT_POW_TEST)  += tests/int
+ obj-$(CONFIG_TEST_DIV64)	+= test_div64.o
+ obj-$(CONFIG_TEST_MULDIV64)	+= test_mul_u64_u64_div_u64.o
+ obj-$(CONFIG_RATIONAL_KUNIT_TEST) += rational-test.o
+-obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += tests/int_sqrt_kunit.o
+\ No newline at end of file
++obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += tests/int_sqrt_kunit.o
++obj-$(CONFIG_GCD_KUNIT_TEST) += tests/gcd_kunit.o
+diff --git a/lib/math/tests/gcd_kunit.c a/lib/math/tests/gcd_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/math/tests/gcd_kunit.c
+@@ -0,0 +1,56 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <kunit/test.h>
++#include <linux/gcd.h>
++#include <linux/limits.h>
++
++struct test_case_params {
++	unsigned long val1;
++	unsigned long val2;
++	unsigned long expected_result;
++	const char *name;
++};
++
++static const struct test_case_params params[] = {
++	{ 48, 18, 6, "GCD of 48 and 18" },
++	{ 18, 48, 6, "GCD of 18 and 48" },
++	{ 56, 98, 14, "GCD of 56 and 98" },
++	{ 17, 13, 1, "Coprime numbers" },
++	{ 101, 103, 1, "Coprime numbers" },
++	{ 270, 192, 6, "GCD of 270 and 192" },
++	{ 0, 5, 5, "GCD with zero" },
++	{ 7, 0, 7, "GCD with zero reversed" },
++	{ 36, 36, 36, "GCD of identical numbers" },
++	{ ULONG_MAX, 1, 1, "GCD of max ulong and 1" },
++	{ ULONG_MAX, ULONG_MAX, ULONG_MAX, "GCD of max ulong values" },
++};
++
++static void get_desc(const struct test_case_params *tc, char *desc)
++{
++	strscpy(desc, tc->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(gcd, params, get_desc);
++
++static void gcd_test(struct kunit *test)
++{
++	const struct test_case_params *tc = (const struct test_case_params *)test->param_value;
++
++	KUNIT_EXPECT_EQ(test, tc->expected_result, gcd(tc->val1, tc->val2));
++}
++
++static struct kunit_case math_gcd_test_cases[] = {
++	KUNIT_CASE_PARAM(gcd_test, gcd_gen_params),
++	{}
++};
++
++static struct kunit_suite gcd_test_suite = {
++	.name = "math-gcd",
++	.test_cases = math_gcd_test_cases,
++};
++
++kunit_test_suite(gcd_test_suite);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("math.gcd KUnit test suite");
++MODULE_AUTHOR("Yu-Chun Lin <eleanor15x@gmail.com>");
+--- a/lib/math/tests/Makefile~lib-math-add-kunit-test-suite-for-gcd
++++ a/lib/math/tests/Makefile
+@@ -2,3 +2,4 @@
+ 
+ obj-$(CONFIG_INT_POW_TEST) += int_pow_kunit.o
+ obj-$(CONFIG_INT_SQRT_KUNIT_TEST) += int_sqrt_kunit.o
++obj-$(CONFIG_GCD_KUNIT_TEST) += gcd_kunit.o
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from eleanor15x@gmail.com are
 
-mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch
 
