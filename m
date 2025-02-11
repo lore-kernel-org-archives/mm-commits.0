@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2E72182D7
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 01:22:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84CEF26BDB7
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 02:02:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739236921; cv=none; b=U4swtpxxOzMJR2Y43BNAPKnoJivHWR5LkvHidPe5tTlgWS9CNCLAFc4ENKHcellnZhQOCGTswCNCbk3CZevLfg7fvC+YrETM7bkq4HPgNgrktfG+ZakN/LaGXff/ZA1XUIz/XnYMp7/D2LB8S2Q4WMvVbxgv3tu60cXSgjYuuFQ=
+	t=1739239357; cv=none; b=NHBT7kymU8cEij7OIh491KfN3HSyIbAEODd1/hDRXNzx2ytbBT22Msgbri+TSN6RWmWcMVaunYONMEfHspJD5eN2dv4u5eRtqzLMCRbbgll0PLXRBSL4PLka03teuRgJR0Aq3eBBMF+numz2PjQcN8yCMAWJ9xDGBUS4N40kkL0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739236921; c=relaxed/simple;
-	bh=D61CyT/TeiQMZThfHNr3ThNKgFy6o2abt3qBEPiP7/g=;
-	h=Date:To:From:Subject:Message-Id; b=pPoNnvzn6h+RUGsvMANxOkSVTP1tAPUMYWz9c63IyaZi3vIeN2JJ7qyU8LTYuv9rR+MODPG3k5vGx8N2r+RZlQvyxnXOxYntKRcIpVlB1SjrZbnDvaeE5e51Q3ByRUzC22C9o0nZygFVKyVkqvOjkOOCbBgIts3I6mXtGRAkdn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P4M0FqYR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739239357; c=relaxed/simple;
+	bh=gCtHlAU7Nh3BDSAeMNtEdYkcU739X1s01QaDnvFadQ4=;
+	h=Date:To:From:Subject:Message-Id; b=XnfLiSlFzTOJqpDZ9W+vJNx17lpLTfYQe++qMNn0E8vDlTuydZQEcdabZf+YuXPO49He20ujdiVuhHyujSIi5VR4vJqCr6cOBqyoh7hqOlyCSdY+vcf2EYhvuuQo99onXvt1+Y2doBfjqnFexmuzvozkj2MrALJCesSVdMc35fk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BEaQgWNF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P4M0FqYR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D37C4CED1;
-	Tue, 11 Feb 2025 01:22:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BEaQgWNF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2698C4CED1;
+	Tue, 11 Feb 2025 02:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739236921;
-	bh=D61CyT/TeiQMZThfHNr3ThNKgFy6o2abt3qBEPiP7/g=;
+	s=korg; t=1739239357;
+	bh=gCtHlAU7Nh3BDSAeMNtEdYkcU739X1s01QaDnvFadQ4=;
 	h=Date:To:From:Subject:From;
-	b=P4M0FqYRRgwXA3FvjQr5a2fu//yIcHVefEyGWAvkJ1RKR2mw6fSYu5mjqCrK9i+Gx
-	 SbKZhEwSu9BCwUeLMX3DAkJJYgVTMJbNpM+mneCeCO/uTdYZmBMH7AuqEKWFJ0yOTU
-	 cdvH6OcKTHfcBT7zL431RvLr9t0YA2PH8u52E/so=
-Date: Mon, 10 Feb 2025 17:22:00 -0800
-To: mm-commits@vger.kernel.org,ericsalem@gmail.com,akpm@linux-foundation.org
+	b=BEaQgWNF+agpnwSfqK7KaGPsdMmlRQXTy4r2/OLSXBF1C41k+rAJ5xZRcc9dPewON
+	 jpJqh6brxF7jEolk1oxCoEcJLHKWvecVZooh+Pg5TpHVRd8F26kG73yZ+r2kCcU88m
+	 B29qFS2pVHODZmPWJtvRNdhsc4W5foAjWNMY6Vmo=
+Date: Mon, 10 Feb 2025 18:02:36 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,soci@c64.rulez.org,simona.vetter@ffwll.ch,mcanal@igalia.com,jayakumar.lkml@gmail.com,deller@gmx.de,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fixed-typo.patch added to mm-unstable branch
-Message-Id: <20250211012201.68D37C4CED1@smtp.kernel.org>
+Subject: + mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch added to mm-unstable branch
+Message-Id: <20250211020236.E2698C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mm: fix typo
+     Subject: mm: refactor rmap_walk_file() to separate out traversal logic
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fixed-typo.patch
+     mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fixed-typo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,34 +58,214 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Eric Salem <ericsalem@gmail.com>
-Subject: selftests: mm: fix typo
-Date: Sat, 8 Feb 2025 20:36:36 -0600
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: refactor rmap_walk_file() to separate out traversal logic
+Date: Sat, 8 Feb 2025 15:52:54 +0000
 
-Fix misspelling.
+Patch series "expose mapping wrprotect, fix fb_defio use", v3.
 
-Link: https://lkml.kernel.org/r/77e0e915-36c3-4c95-84b8-0b73aaa17951@gmail.com
-Signed-off-by: Eric Salem <ericsalem@gmail.com>
+Right now the only means by which we can write-protect a range using the
+reverse mapping is via folio_mkclean().
+
+However this is not always the appropriate means of doing so, specifically
+in the case of the framebuffer deferred I/O logic (fb_defio enabled by
+CONFIG_FB_DEFERRED_IO).  There, kernel pages are mapped read-only and
+write-protect faults used to batch up I/O operations.
+
+Each time the deferred work is done, folio_mkclean() is used to mark the
+framebuffer page as having had I/O performed on it.  However doing so
+requires the kernel page (perhaps allocated via vmalloc()) to have its
+page->mapping, index fields set so the rmap can find everything that maps
+it in order to write-protect.
+
+This is problematic as firstly, these fields should not be set for
+kernel-allocated memory, and secondly these are not folios (it's not user
+memory) and page->index, mapping fields are now deprecated and soon to be
+removed.
+
+The removal of these fields is imminent, rendering this series more urgent
+than it might first appear.
+
+The implementers cannot be blamed for having used this however, as there
+is simply no other way of performing this operation correctly.
+
+This series fixes this - we provide the mapping_wrprotect_range() function
+to allow the reverse mapping to be used to look up mappings from the page
+cache object (i.e.  its address_space pointer) at a specific offset.
+
+The fb_defio logic already stores this offset, and can simply be expanded
+to keep track of the page cache object, so the change then becomes
+straight-forward.
+
+This series should have no functional change.
+
+
+This patch (of 3):
+
+In order to permit the traversal of the reverse mapping at a specified
+mapping and offset rather than those specified by an input folio, we need
+to separate out the portion of the rmap file logic which deals with this
+traversal from those parts of the logic which interact with the folio.
+
+This patch achieves this by adding a new static __rmap_walk_file()
+function which rmap_walk_file() invokes.
+
+This function permits the ability to pass NULL folio, on the assumption
+that the caller has provided for this correctly in the callbacks specified
+in the rmap_walk_control object.
+
+Though it provides for this, and adds debug asserts to ensure that, should
+a folio be specified, these are equal to the mapping and offset specified
+in the folio, there should be no functional change as a result of this
+patch.
+
+The reason for adding this is to enable for future changes to permit users
+to be able to traverse mappings of userland-mapped kernel memory,
+write-protecting those mappings to enable page_mkwrite() or pfn_mkwrite()
+fault handlers to be retriggered on subsequent dirty.
+
+Link: https://lkml.kernel.org/r/cover.1739029358.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/0d1acec0cba1e5a12f9b53efcabc397541c90517.1739029358.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Kajtar Zsolt <soci@c64.rulez.org>
+Cc: Maíra Canal <mcanal@igalia.com>
+Cc: Mattew Wilcox <willy@infradead.org> [English fixes]
+Cc: Simona Vetter <simona.vetter@ffwll.ch>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |   79 ++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 53 insertions(+), 26 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-fixed-typo
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -323,7 +323,7 @@ int uffd_test_ctx_init(uint64_t features
- 	ret = userfaultfd_open(&features);
- 	if (ret) {
- 		if (errmsg)
--			*errmsg = "possible lack of priviledge";
-+			*errmsg = "possible lack of privilege";
- 		return ret;
- 	}
+--- a/mm/rmap.c~mm-refactor-rmap_walk_file-to-separate-out-traversal-logic
++++ a/mm/rmap.c
+@@ -2673,35 +2673,37 @@ static void rmap_walk_anon(struct folio
+ 		anon_vma_unlock_read(anon_vma);
+ }
  
+-/*
+- * rmap_walk_file - do something to file page using the object-based rmap method
+- * @folio: the folio to be handled
+- * @rwc: control variable according to each walk type
+- * @locked: caller holds relevant rmap lock
++/**
++ * __rmap_walk_file() - Traverse the reverse mapping for a file-backed mapping
++ * of a page mapped within a specified page cache object at a specified offset.
+  *
+- * Find all the mappings of a folio using the mapping pointer and the vma chains
+- * contained in the address_space struct it points to.
++ * @folio: 		Either the folio whose mappings to traverse, or if NULL,
++ * 			the callbacks specified in @rwc will be configured such
++ * 			as to be able to look up mappings correctly.
++ * @mapping: 		The page cache object whose mapping VMAs we intend to
++ * 			traverse. If @folio is non-NULL, this should be equal to
++ *			folio_mapping(folio).
++ * @pgoff_start:	The offset within @mapping of the page which we are
++ * 			looking up. If @folio is non-NULL, this should be equal
++ * 			to folio_pgoff(folio).
++ * @nr_pages:		The number of pages mapped by the mapping. If @folio is
++ *			non-NULL, this should be equal to folio_nr_pages(folio).
++ * @rwc:		The reverse mapping walk control object describing how
++ *			the traversal should proceed.
++ * @locked:		Is the @mapping already locked? If not, we acquire the
++ *			lock.
+  */
+-static void rmap_walk_file(struct folio *folio,
+-		struct rmap_walk_control *rwc, bool locked)
++static void __rmap_walk_file(struct folio *folio, struct address_space *mapping,
++			     pgoff_t pgoff_start, unsigned long nr_pages,
++			     struct rmap_walk_control *rwc, bool locked)
+ {
+-	struct address_space *mapping = folio_mapping(folio);
+-	pgoff_t pgoff_start, pgoff_end;
++	pgoff_t pgoff_end = pgoff_start + nr_pages - 1;
+ 	struct vm_area_struct *vma;
+ 
+-	/*
+-	 * The page lock not only makes sure that page->mapping cannot
+-	 * suddenly be NULLified by truncation, it makes sure that the
+-	 * structure at mapping cannot be freed and reused yet,
+-	 * so we can safely take mapping->i_mmap_rwsem.
+-	 */
+-	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+-
+-	if (!mapping)
+-		return;
++	VM_WARN_ON_FOLIO(folio && mapping != folio_mapping(folio), folio);
++	VM_WARN_ON_FOLIO(folio && pgoff_start != folio_pgoff(folio), folio);
++	VM_WARN_ON_FOLIO(folio && nr_pages != folio_nr_pages(folio), folio);
+ 
+-	pgoff_start = folio_pgoff(folio);
+-	pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;
+ 	if (!locked) {
+ 		if (i_mmap_trylock_read(mapping))
+ 			goto lookup;
+@@ -2716,8 +2718,7 @@ static void rmap_walk_file(struct folio
+ lookup:
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap,
+ 			pgoff_start, pgoff_end) {
+-		unsigned long address = vma_address(vma, pgoff_start,
+-			       folio_nr_pages(folio));
++		unsigned long address = vma_address(vma, pgoff_start, nr_pages);
+ 
+ 		VM_BUG_ON_VMA(address == -EFAULT, vma);
+ 		cond_resched();
+@@ -2730,12 +2731,38 @@ lookup:
+ 		if (rwc->done && rwc->done(folio))
+ 			goto done;
+ 	}
+-
+ done:
+ 	if (!locked)
+ 		i_mmap_unlock_read(mapping);
+ }
+ 
++/*
++ * rmap_walk_file - do something to file page using the object-based rmap method
++ * @folio: the folio to be handled
++ * @rwc: control variable according to each walk type
++ * @locked: caller holds relevant rmap lock
++ *
++ * Find all the mappings of a folio using the mapping pointer and the vma chains
++ * contained in the address_space struct it points to.
++ */
++static void rmap_walk_file(struct folio *folio,
++		struct rmap_walk_control *rwc, bool locked)
++{
++	/*
++	 * The folio lock not only makes sure that folio->mapping cannot
++	 * suddenly be NULLified by truncation, it makes sure that the structure
++	 * at mapping cannot be freed and reused yet, so we can safely take
++	 * mapping->i_mmap_rwsem.
++	 */
++	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++
++	if (!folio->mapping)
++		return;
++
++	__rmap_walk_file(folio, folio->mapping, folio->index,
++			 folio_nr_pages(folio), rwc, locked);
++}
++
+ void rmap_walk(struct folio *folio, struct rmap_walk_control *rwc)
+ {
+ 	if (unlikely(folio_test_ksm(folio)))
 _
 
-Patches currently in -mm which might be from ericsalem@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-selftests-mm-fixed-typo.patch
+mm-simplify-vma-merge-structure-and-expand-comments.patch
+mm-further-refactor-commit_merge.patch
+mm-eliminate-adj_start-parameter-from-commit_merge.patch
+mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+mm-completely-abstract-unnecessary-adj_start-calculation.patch
+mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
+mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
+mm-provide-mapping_wrprotect_range-function.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
 
