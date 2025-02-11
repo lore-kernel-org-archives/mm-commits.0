@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC6AD26460F
-	for <mm-commits@vger.kernel.org>; Mon, 10 Feb 2025 23:57:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D25BE1E871
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 01:02:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739231874; cv=none; b=jQgjrLjCPDD8ykT33rd/b8e3pBvndJ88eNJaHt7OTNj8w7lSkxo7+BD4rBCQbDm/za8+5aXOxeyfPl5nQ0slhU3acWaaww/B3+Qgk61dqhOcWTqGvpCdyVgGpG2RrpGqXJgaY93RohHF9OLOLamAG6YOxPnNmPoeSFKB/5gz27E=
+	t=1739235778; cv=none; b=ek7gha5Gi9LsEUkmDV8r/tMRfPvesvTMFukMI2CU0e9VaZWoFwqaJsyK8ABvywM4eduC7SFtNnjIwKEMZWtAB6zxIglly6SvA7KGsVzc2v8Pl/Na9/DVUycJ0CekPUSnBHUM5Z+UKJzp8p7/8Zw5dKawq7LStlQVbeHihxwb9E4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739231874; c=relaxed/simple;
-	bh=nhxc70zrEiY0ZaqtBqDgumEgrO0Y4ytzQCs48OnLrhE=;
-	h=Date:To:From:Subject:Message-Id; b=XnpuzdR92s/+hZmCbwZAj2ktN8UAMFcOoAhKRu0p+9gK42YAuH8VzLWCQThYTaHI8DknEk1vL/VT6nAsTkGEs4YwXjbdSqgv7o+kRREoyzSX776sne7iCAEfqicWi3CBBvOWYeOOAAcpqePHVY738L1k7yQTyzW7rl6nJ8l2HXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zb8ZLS5U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739235778; c=relaxed/simple;
+	bh=Nvr7lYBtlydxo2gnX2WctaaG4uZebuTgjQCle8LKNsM=;
+	h=Date:To:From:Subject:Message-Id; b=fMd//C+B4QfVG/hl4K7jcwR9x12FPejgw03oJxk5O9uNbRs/R4CjcjNSB9Wac1SNBUaoJJf5p8UOu4Hcj2oQaqnke8DFh7k1QlMF1MpRGTGGDOHcCckyeG1GJBU+oLAYXhaKLK9XaHHa724RLbqTJlRH8La6AzgkRXFu6vYgLcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KfhNZTHs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zb8ZLS5U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41E07C4CED1;
-	Mon, 10 Feb 2025 23:57:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KfhNZTHs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A9BAC4CED1;
+	Tue, 11 Feb 2025 01:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739231874;
-	bh=nhxc70zrEiY0ZaqtBqDgumEgrO0Y4ytzQCs48OnLrhE=;
+	s=korg; t=1739235776;
+	bh=Nvr7lYBtlydxo2gnX2WctaaG4uZebuTgjQCle8LKNsM=;
 	h=Date:To:From:Subject:From;
-	b=zb8ZLS5Um3cSuBEXC7A6Jje2q+XcuZpODfXtGVMFtaJO6IoBFog8WkRgLJaiB1NAD
-	 QygTjneUUee4TiVzLBhyqEFVOa8/jeYDCnDB6q1pPcUYbhLuhLgj+qUODyWL0v7WXq
-	 qKCBvLpbI0YJZghkD+VlRDpHh7UE4dHE27FSxQ7Q=
-Date: Mon, 10 Feb 2025 15:57:53 -0800
-To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,mhocko@suse.com,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,dave.hansen@linux.intel.com,apw@canonical.com,bertrand.wlodarczyk@intel.com,akpm@linux-foundation.org
+	b=KfhNZTHsCu0PeiIB00rrz7Fe5oHX0mxbLIArLSTpPR3ZSrQSfye4ax+l4XKiY5RFS
+	 eMm7cIr5ttouJSMLjo4koslEpL/xqAYriSZAbV2eIP0kUUgcNbEmqf9AMEmpGRWFDN
+	 uODPJuR2Wp/AJIpqbXnbXiAHkEKyGxuHz0bmj6CQ=
+Date: Mon, 10 Feb 2025 17:02:55 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aisheng.dong@nxp.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmscan-cleanup-add-for_each_managed_zone_pgdat-macro.patch added to mm-unstable branch
-Message-Id: <20250210235754.41E07C4CED1@smtp.kernel.org>
+Subject: + mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch added to mm-unstable branch
+Message-Id: <20250211010256.3A9BAC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmscan, cleanup: add for_each_managed_zone_pgdat macro
+     Subject: mm/cma: using per-CMA locks to improve concurrent allocation performance
 has been added to the -mm mm-unstable branch.  Its filename is
-     vmscan-cleanup-add-for_each_managed_zone_pgdat-macro.patch
+     mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmscan-cleanup-add-for_each_managed_zone_pgdat-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,209 +58,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bertrand Wlodarczyk <bertrand.wlodarczyk@intel.com>
-Subject: vmscan, cleanup: add for_each_managed_zone_pgdat macro
-Date: Mon, 10 Feb 2025 17:07:49 +0100
+From: Ge Yang <yangge1116@126.com>
+Subject: mm/cma: using per-CMA locks to improve concurrent allocation performance
+Date: Mon, 10 Feb 2025 09:56:06 +0800
 
-The macro is introduced to eliminate redundancy in the repeated iteration
-over managed zones in pgdat data structure, reducing the potential for
-errors. This change doesn't introduce any functional modifications.
-Due to concentration of the pattern in vmscan.c the macro is placed
-locally in that file.
+For different CMAs, concurrent allocation of CMA memory ideally should not
+require synchronization using locks.  Currently, a global cma_mutex lock
+is employed to synchronize all CMA allocations, which can impact the
+performance of concurrent allocations across different CMAs.
 
-Link: https://lkml.kernel.org/r/20250210160818.686-1-bertrand.wlodarczyk@intel.com
-Signed-off-by: Bertrand Wlodarczyk <bertrand.wlodarczyk@intel.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
+To test the performance impact, follow these steps:
+1. Boot the kernel with the command line argument hugetlb_cma=30G to
+   allocate a 30GB CMA area specifically for huge page allocations. (note:
+   on my machine, which has 3 nodes, each node is initialized with 10G of
+   CMA)
+2. Use the dd command with parameters if=/dev/zero of=/dev/shm/file bs=1G
+   count=30 to fully utilize the CMA area by writing zeroes to a file in
+   /dev/shm.
+3. Open three terminals and execute the following commands simultaneously:
+   (Note: Each of these commands attempts to allocate 10GB [2621440 * 4KB
+   pages] of CMA memory.)
+   On Terminal 1: time echo 2621440 > /sys/kernel/debug/cma/hugetlb1/alloc
+   On Terminal 2: time echo 2621440 > /sys/kernel/debug/cma/hugetlb2/alloc
+   On Terminal 3: time echo 2621440 > /sys/kernel/debug/cma/hugetlb3/alloc
+
+We attempt to allocate pages through the CMA debug interface and use the
+time command to measure the duration of each allocation.
+Performance comparison:
+             Without this patch      With this patch
+Terminal1        ~7s                     ~7s
+Terminal2       ~14s                     ~8s
+Terminal3       ~21s                     ~7s
+
+To solve problem above, we could use per-CMA locks to improve concurrent
+allocation performance.  This would allow each CMA to be managed
+independently, reducing the need for a global lock and thus improving
+scalability and performance.
+
+Link: https://lkml.kernel.org/r/1739152566-744-1-git-send-email-yangge1116@126.com
+Signed-off-by: Ge Yang <yangge1116@126.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Aisheng Dong <aisheng.dong@nxp.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   83 +++++++++++++++++++-------------------------------
- 1 file changed, 32 insertions(+), 51 deletions(-)
+ mm/cma.c |    7 ++++---
+ mm/cma.h |    1 +
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~vmscan-cleanup-add-for_each_managed_zone_pgdat-macro
-+++ a/mm/vmscan.c
-@@ -271,6 +271,25 @@ static int sc_swappiness(struct scan_con
- }
- #endif
+--- a/mm/cma.c~mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance
++++ a/mm/cma.c
+@@ -34,7 +34,6 @@
  
-+/* for_each_managed_zone_pgdat - helper macro to iterate over all managed zones in a pgdat up to
-+ * and including the specified highidx
-+ * @zone: The current zone in the iterator
-+ * @pgdat: The pgdat which node_zones are being iterated
-+ * @idx: The index variable
-+ * @highidx: The index of the highest zone to return
-+ *
-+ * This macro iterates through all managed zones up to and including the specified highidx.
-+ * The zone iterator enters an invalid state after macro call and must be reinitialized
-+ * before it can be used again.
-+ */
-+#define for_each_managed_zone_pgdat(zone, pgdat, idx, highidx)	\
-+	for ((idx) = 0, (zone) = (pgdat)->node_zones;		\
-+	    (idx) <= (highidx);					\
-+	    (idx)++, (zone)++)					\
-+		if (!managed_zone(zone))			\
-+			continue;				\
-+		else
+ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned int cma_area_count;
+-static DEFINE_MUTEX(cma_mutex);
+ 
+ static int __init __cma_declare_contiguous_nid(phys_addr_t base,
+ 			phys_addr_t size, phys_addr_t limit,
+@@ -175,6 +174,8 @@ static void __init cma_activate_area(str
+ 
+ 	spin_lock_init(&cma->lock);
+ 
++	mutex_init(&cma->alloc_mutex);
 +
- static void set_task_reclaim_state(struct task_struct *task,
- 				   struct reclaim_state *rs)
- {
-@@ -396,13 +415,9 @@ static unsigned long lruvec_lru_size(str
- {
- 	unsigned long size = 0;
- 	int zid;
-+	struct zone *zone;
+ #ifdef CONFIG_CMA_DEBUGFS
+ 	INIT_HLIST_HEAD(&cma->mem_head);
+ 	spin_lock_init(&cma->mem_head_lock);
+@@ -813,9 +814,9 @@ static int cma_range_alloc(struct cma *c
+ 		spin_unlock_irq(&cma->lock);
  
--	for (zid = 0; zid <= zone_idx; zid++) {
--		struct zone *zone = &lruvec_pgdat(lruvec)->node_zones[zid];
--
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, lruvec_pgdat(lruvec), zid, zone_idx) {
- 		if (!mem_cgroup_disabled())
- 			size += mem_cgroup_get_zone_lru_size(lruvec, lru, zid);
- 		else
-@@ -495,7 +510,7 @@ static bool skip_throttle_noprogress(pg_
- {
- 	int reclaimable = 0, write_pending = 0;
- 	int i;
--
-+	struct zone *zone;
- 	/*
- 	 * If kswapd is disabled, reschedule if necessary but do not
- 	 * throttle as the system is likely near OOM.
-@@ -508,12 +523,7 @@ static bool skip_throttle_noprogress(pg_
- 	 * throttle as throttling will occur when the folios cycle
- 	 * towards the end of the LRU if still under writeback.
- 	 */
--	for (i = 0; i < MAX_NR_ZONES; i++) {
--		struct zone *zone = pgdat->node_zones + i;
--
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, i, MAX_NR_ZONES - 1) {
- 		reclaimable += zone_reclaimable_pages(zone);
- 		write_pending += zone_page_state_snapshot(zone,
- 						  NR_ZONE_WRITE_PENDING);
-@@ -2372,17 +2382,13 @@ static void prepare_scan_control(pg_data
- 		unsigned long total_high_wmark = 0;
- 		unsigned long free, anon;
- 		int z;
-+		struct zone *zone;
- 
- 		free = sum_zone_node_page_state(pgdat->node_id, NR_FREE_PAGES);
- 		file = node_page_state(pgdat, NR_ACTIVE_FILE) +
- 			   node_page_state(pgdat, NR_INACTIVE_FILE);
- 
--		for (z = 0; z < MAX_NR_ZONES; z++) {
--			struct zone *zone = &pgdat->node_zones[z];
--
--			if (!managed_zone(zone))
--				continue;
--
-+		for_each_managed_zone_pgdat(zone, pgdat, z, MAX_NR_ZONES - 1) {
- 			total_high_wmark += high_wmark_pages(zone);
- 		}
- 
-@@ -5851,6 +5857,7 @@ static inline bool should_continue_recla
- 	unsigned long pages_for_compaction;
- 	unsigned long inactive_lru_pages;
- 	int z;
-+	struct zone *zone;
- 
- 	/* If not in reclaim/compaction mode, stop */
- 	if (!in_reclaim_compaction(sc))
-@@ -5870,11 +5877,7 @@ static inline bool should_continue_recla
- 		return false;
- 
- 	/* If compaction would go ahead or the allocation would succeed, stop */
--	for (z = 0; z <= sc->reclaim_idx; z++) {
--		struct zone *zone = &pgdat->node_zones[z];
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, z, sc->reclaim_idx) {
- 		/* Allocation can already succeed, nothing to do */
- 		if (zone_watermark_ok(zone, sc->order, min_wmark_pages(zone),
- 				      sc->reclaim_idx, 0))
-@@ -6401,11 +6404,7 @@ static bool allow_direct_reclaim(pg_data
- 	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
- 		return true;
- 
--	for (i = 0; i <= ZONE_NORMAL; i++) {
--		zone = &pgdat->node_zones[i];
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, i, ZONE_NORMAL) {
- 		if (!zone_reclaimable_pages(zone))
- 			continue;
- 
-@@ -6710,12 +6709,7 @@ static bool pgdat_balanced(pg_data_t *pg
- 	 * Check watermarks bottom-up as lower zones are more likely to
- 	 * meet watermarks.
- 	 */
--	for (i = 0; i <= highest_zoneidx; i++) {
--		zone = pgdat->node_zones + i;
--
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
- 		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
- 			mark = promo_wmark_pages(zone);
- 		else
-@@ -6800,11 +6794,7 @@ static bool kswapd_shrink_node(pg_data_t
- 
- 	/* Reclaim a number of pages proportional to the number of zones */
- 	sc->nr_to_reclaim = 0;
--	for (z = 0; z <= sc->reclaim_idx; z++) {
--		zone = pgdat->node_zones + z;
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, z, sc->reclaim_idx) {
- 		sc->nr_to_reclaim += max(high_wmark_pages(zone), SWAP_CLUSTER_MAX);
- 	}
- 
-@@ -6835,12 +6825,7 @@ update_reclaim_active(pg_data_t *pgdat,
- 	int i;
- 	struct zone *zone;
- 
--	for (i = 0; i <= highest_zoneidx; i++) {
--		zone = pgdat->node_zones + i;
--
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
- 		if (active)
- 			set_bit(ZONE_RECLAIM_ACTIVE, &zone->flags);
- 		else
-@@ -6901,11 +6886,7 @@ static int balance_pgdat(pg_data_t *pgda
- 	 * stall or direct reclaim until kswapd is finished.
- 	 */
- 	nr_boost_reclaim = 0;
--	for (i = 0; i <= highest_zoneidx; i++) {
--		zone = pgdat->node_zones + i;
--		if (!managed_zone(zone))
--			continue;
--
-+	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
- 		nr_boost_reclaim += zone->watermark_boost;
- 		zone_boosts[i] = zone->watermark_boost;
- 	}
+ 		pfn = cmr->base_pfn + (bitmap_no << cma->order_per_bit);
+-		mutex_lock(&cma_mutex);
++		mutex_lock(&cma->alloc_mutex);
+ 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA, gfp);
+-		mutex_unlock(&cma_mutex);
++		mutex_unlock(&cma->alloc_mutex);
+ 		if (ret == 0) {
+ 			page = pfn_to_page(pfn);
+ 			break;
+--- a/mm/cma.h~mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance
++++ a/mm/cma.h
+@@ -39,6 +39,7 @@ struct cma {
+ 	unsigned long	available_count;
+ 	unsigned int order_per_bit; /* Order of pages represented by one bit */
+ 	spinlock_t	lock;
++	struct mutex alloc_mutex;
+ #ifdef CONFIG_CMA_DEBUGFS
+ 	struct hlist_head mem_head;
+ 	spinlock_t mem_head_lock;
 _
 
-Patches currently in -mm which might be from bertrand.wlodarczyk@intel.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
-vmscan-cleanup-add-for_each_managed_zone_pgdat-macro.patch
+mm-cma-using-per-cma-locks-to-improve-concurrent-allocation-performance.patch
 
