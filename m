@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBD9927180A
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:53:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04DFB271801
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:55:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739318004; cv=none; b=Nme6CIhyy0DtTi2Fwngdp6OWeJv/m5lKIHQQHs0DFUOvpRagPV0yxT0LcxA1y08N1goWQ3OSONclKjllirZT9zKaUhVH3Egz9k1K3dWbhKgqGr6Vj/CZ23VveO5c8gourxIc6/E1CgBiK0ByZI6OSimA6wB5dpZBGTFDPCMrO3Y=
+	t=1739318151; cv=none; b=uXfHIjwSCPg1ZJEnm+Zj4BqvvOStiv44rxhp4EAHezbd7zf6dyqgDlAdvw+ky/IMF8UueADyYNoJt33y6L/xL2VzHeQuphy5UKMNyWZPxP04P9jXBDay0fjVs7+8WhH0vZN6fMBWgam5EUiBVQckm/ZZE3opnnk9VGnyVEAXi5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739318004; c=relaxed/simple;
-	bh=yg/7HKAuwCg2WiRusD02UzJqW0ZVtEWdMXZQYKj2cSA=;
-	h=Date:To:From:Subject:Message-Id; b=unaM523mQQTuGmJnTyC/iOjSvdp+kD4+9aEYll//BvkWiaz3uoQraoTNns8WWTmpVEgRG9gdERSzEQz7eKJze4LSVHDr27Gd6NAPhFN3mH6w58tHF1l2/Q+MsSIldyq1V+1nAYE+Lz0s0zWXsy3BPKHbJ8N/g8czC3/Sbl7gj4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=frv3kFQP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739318151; c=relaxed/simple;
+	bh=pxXrxTlhk9CnVwbrqNRApZAuBiwNoCPv587pKua63Pw=;
+	h=Date:To:From:Subject:Message-Id; b=Ka667PqNYRWVlt6HjEcGfxAksAKLi6Hb6M3/XO2E/qh8cnIwVajUg1FaDNS0BU4l4187xryKEzY5RJDd4gGm2VLJcIP1PW9iKkwe2hRzgGM4NpoNqOjEGTNfcr6WrlUD2B0O/Waw515Na2abFQvtYPBK17zwKA5I8Lp77ZVHeHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hTJy4/ph; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="frv3kFQP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50BA4C4CEDD;
-	Tue, 11 Feb 2025 23:53:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hTJy4/ph"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E0BC4CEDD;
+	Tue, 11 Feb 2025 23:55:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739318003;
-	bh=yg/7HKAuwCg2WiRusD02UzJqW0ZVtEWdMXZQYKj2cSA=;
+	s=korg; t=1739318150;
+	bh=pxXrxTlhk9CnVwbrqNRApZAuBiwNoCPv587pKua63Pw=;
 	h=Date:To:From:Subject:From;
-	b=frv3kFQPJGQjDLV5S5IyckMZIy7wxs5+ZKLf2LmzW7gwdHbsbJ1lK68l65kPlRt+u
-	 CFf0pRgnwdy+vNLiGbHPgK3IsHvEJr80JURa0s6fhTLq+J+VLcoICoEWr+E44ysETf
-	 yLmbqANeT59lxZ3/1casneYKAW9HK/R61dqY7SDY=
-Date: Tue, 11 Feb 2025 15:53:22 -0800
-To: mm-commits@vger.kernel.org,yi1.lai@linux.intel.com,sj@kernel.org,shakeel.butt@linux.dev,naresh.kamboju@linaro.org,howlett@gmail.com,dave@stgolabs.net,arnd@arndb.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=hTJy4/phXxWyyycSP7MgK7l5NwcJnXmnBRXWUL8ibAY9a17BdVwLGS0VDnpm2fM5P
+	 BnUnyXBvc1dvZyVwauUTH1z1z/A0/os0d8gD7K0mdx4/l2inH6bBB4lXq2UrZRtr3E
+	 IjLX9/QTVayOrw8mAwtV8XUk9yZo6uUv3IrT1fG8=
+Date: Tue, 11 Feb 2025 15:55:49 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch added to mm-unstable branch
-Message-Id: <20250211235323.50BA4C4CEDD@smtp.kernel.org>
+Subject: + mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch added to mm-unstable branch
+Message-Id: <20250211235550.62E0BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: fix madvise_[un]lock() issue
+     Subject: mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
+     mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,97 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: fix madvise_[un]lock() issue
-Date: Tue, 11 Feb 2025 10:44:26 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes
+Date: Tue Feb 11 03:55:07 PM PST 2025
 
-We are asymmetric in our locking/unlocking in the case of memory failure
-madvise() behaviour options, correct this and abstract the memory failure
-check.
+WARNING: suspect code indent for conditional statements (8, 12)
+#57: FILE: mm/madvise.c:1598:
++	if (is_memory_failure(behavior))
++	    return 0;
 
-Link: https://lkml.kernel.org/r/2f448f7b-1da7-4099-aa9e-0179d47fde40@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: "Lai, Yi" <yi1.lai@linux.intel.com>
-Closes: https://lore.kernel.org/Z6rgiVp7221r4JZ5@ly-workstation
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Tested-by: SeongJae Park <sj@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Liam R. Howlett <howlett@gmail.com>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+WARNING: Statements should start on a tabstop
+#58: FILE: mm/madvise.c:1599:
++	    return 0;
+
+WARNING: suspect code indent for conditional statements (8, 12)
+#72: FILE: mm/madvise.c:1612:
++	if (is_memory_failure(behavior))
++	    return;
+
+WARNING: Statements should start on a tabstop
+#73: FILE: mm/madvise.c:1613:
++	    return;
+
+Please run checkpatch prior to sending patches
+
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-split-out-mmap-locking-operations-for-madvise-fix
+--- a/mm/madvise.c~mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes
 +++ a/mm/madvise.c
-@@ -1575,14 +1575,29 @@ int madvise_set_anon_name(struct mm_stru
- }
- #endif /* CONFIG_ANON_VMA_NAME */
+@@ -1596,7 +1596,7 @@ static bool is_memory_failure(int behavi
+ static int madvise_lock(struct mm_struct *mm, int behavior)
+ {
+ 	if (is_memory_failure(behavior))
+-	    return 0;
++		return 0;
  
--static int madvise_lock(struct mm_struct *mm, int behavior)
--{
--
- #ifdef CONFIG_MEMORY_FAILURE
--	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE)
--		return 0;
-+static bool is_memory_failure(int behavior)
-+{
-+	switch (behavior) {
-+	case MADV_HWPOISON:
-+	case MADV_SOFT_OFFLINE:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+#else
-+static bool is_memory_failure(int behavior)
-+{
-+	return false;
-+}
- #endif
- 
-+static int madvise_lock(struct mm_struct *mm, int behavior)
-+{
-+	if (is_memory_failure(behavior))
-+	    return 0;
-+
  	if (madvise_need_mmap_write(behavior)) {
  		if (mmap_write_lock_killable(mm))
- 			return -EINTR;
-@@ -1590,11 +1605,13 @@ static int madvise_lock(struct mm_struct
- 		mmap_read_lock(mm);
- 	}
- 	return 0;
--
- }
- 
+@@ -1610,7 +1610,7 @@ static int madvise_lock(struct mm_struct
  static void madvise_unlock(struct mm_struct *mm, int behavior)
  {
-+	if (is_memory_failure(behavior))
-+	    return;
-+
+ 	if (is_memory_failure(behavior))
+-	    return;
++		return;
+ 
  	if (madvise_need_mmap_write(behavior))
  		mmap_write_unlock(mm);
- 	else
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-simplify-vma-merge-structure-and-expand-comments.patch
-mm-further-refactor-commit_merge.patch
-mm-eliminate-adj_start-parameter-from-commit_merge.patch
-mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
-mm-completely-abstract-unnecessary-adj_start-calculation.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
-mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
-mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
-mm-provide-mapping_wrprotect_range-function.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
-mm-madvise-handle-madv_hwpoisonsoft_offline-from-madvise_unlock.patch
+mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-fix.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
+lib-plistc-add-shortcut-for-plist_requeue-fix.patch
 
