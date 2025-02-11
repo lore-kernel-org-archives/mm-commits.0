@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 721AB26BD8E
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 03:58:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AE326BD8E
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 03:58:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739246292; cv=none; b=IwQz6gyWD4PTo9hDf/ynjCoRACH8rG8aKwS6Ousy9TgqqAyTNSfC3ODS7WDjle1cfPaE8BCLCmxonyB/6ttdAP0ghRoWA643v5qThOwRo8mbWYF9G7ZrrrSNeyEelqHOdKn2Dnv4JhlG5UONjKo4F0mFnKjppllWqyEGVpJxfho=
+	t=1739246303; cv=none; b=WPsBIA0Fq5wSz8jFQdw6E93zTSdpEuISzB7N9y+Aa5V0RKvndOfy5gHzwADJWghIADSPfBbm+zWh3ZUgiF4iQ+aCp6Nun1HD1sKiU3yUdV/ec3Gz5V7qbpzDPLXeGbOuWIxHKKlt4gqj7koedh6XNJthmfjdv5PYeqfwJLpc/Yc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739246292; c=relaxed/simple;
-	bh=eFDGt6G1H9S5oUF1vUj5x/GPvLo++C/csPkU1F8xLMw=;
-	h=Date:To:From:Subject:Message-Id; b=VzIiZZYD45e0686hiGEozyWaIj4Na6106y8yrssPYISv+enKgstmquiQ1ab3r0aVjgCLjDaOv12y5ZPwJjusY/5Bs+gAS8eHfzm47Mjd2/ivqAx24WNV1log2Wmf65ZWMcp6h0GVSAiyHBK0MZWqD1I1JUp8Ap6vXsckYgfDTgw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D5Kjrxhz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739246303; c=relaxed/simple;
+	bh=vwECTZQPOMi2jRqJgIy5nCB+skR5MQ/oBqTDwojASsA=;
+	h=Date:To:From:Subject:Message-Id; b=hQL8o9jjo6aedW8hSdIz5Bl5/EuLwBV7b7xZR+RqSiTUlxkDmK3K1sZSZYKYOKq5uvs8ENz7jisS071RmRfulb37mg41eYMoJ+jF2p7cwZ79kNlMN/6QkEJ/z9XP6TMH3Vl32Fekicz4rIiifnbnZvlcJ2rv1G8A2QUvigHrUyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0uEZY6FL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D5Kjrxhz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6966C4CEDD;
-	Tue, 11 Feb 2025 03:58:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0uEZY6FL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7640CC4CEDD;
+	Tue, 11 Feb 2025 03:58:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739246291;
-	bh=eFDGt6G1H9S5oUF1vUj5x/GPvLo++C/csPkU1F8xLMw=;
+	s=korg; t=1739246302;
+	bh=vwECTZQPOMi2jRqJgIy5nCB+skR5MQ/oBqTDwojASsA=;
 	h=Date:To:From:Subject:From;
-	b=D5Kjrxhz8lHh/WKr/w4QVDyrImE2iIyyH0dEFbu7jj7KOdT4v7M6i0lVFiP95TmkG
-	 FjCsIRW29tNCNnmf+NrcTxcEZqCPNMUedV7xS5S+hixciOAilYtu2t+TZXrCeni0GR
-	 BYAZcQ1ct93/rkYr+Qn1LR6NiHZWBOf82Zu+dWvo=
-Date: Mon, 10 Feb 2025 19:58:11 -0800
+	b=0uEZY6FLqwoD+fbBc/su0eEtV4HBSVQl1phkaEopFdogn0BiWk8vXhZOk/m7M2NQt
+	 Ban6wgYqKYpXT3qvO8RhDTb/UpHWqtzTh1+Z8j41/d+4ZR9Ewh7fAeiM/eSSEF/aMv
+	 icJnTtc/xT4GUHYDqiyI4mlzABZWEHdp44WcWo6A=
+Date: Mon, 10 Feb 2025 19:58:21 -0800
 To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4ig5lehrdigdldgrlbgf5czogzml4igvycm9yigzvcm1hdcbjagfyywn0zxjz=.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250211035811.B6966C4CEDD@smtp.kernel.org>
+Subject: + getdelays-fix-error-format-characters.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250211035822.7640CC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: getdelays: fix error format characters
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4ig5lehrdigdldgrlbgf5czogzml4igvycm9yigzvcm1hdcbjagfyywn0zxjz=.patch
+     getdelays-fix-error-format-characters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4ig5lehrdigdldgrlbgf5czogzml4igvycm9yigzvcm1hdcbjagfyywn0zxjz=.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/getdelays-fix-error-format-characters.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -116,7 +116,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  tools/accounting/getdelays.c |   32 ++++++++++++++++----------------
  1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/tools/accounting/getdelays.c~=utf-8bw1bbveniigxpbnv4ig5lehrdigdldgrlbgf5czogzml4igvycm9yigzvcm1hdcbjagfyywn0zxjz=
+--- a/tools/accounting/getdelays.c~getdelays-fix-error-format-characters
 +++ a/tools/accounting/getdelays.c
 @@ -196,22 +196,22 @@ static int get_family_id(int sd)
  
@@ -161,5 +161,5 @@ _
 
 Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4ig5lehrdigdldgrlbgf5czogzml4igvycm9yigzvcm1hdcbjagfyywn0zxjz=.patch
+getdelays-fix-error-format-characters.patch
 
