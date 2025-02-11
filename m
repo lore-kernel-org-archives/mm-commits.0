@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AE326BD8E
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 03:58:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BF8C8488
+	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 04:05:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739246303; cv=none; b=WPsBIA0Fq5wSz8jFQdw6E93zTSdpEuISzB7N9y+Aa5V0RKvndOfy5gHzwADJWghIADSPfBbm+zWh3ZUgiF4iQ+aCp6Nun1HD1sKiU3yUdV/ec3Gz5V7qbpzDPLXeGbOuWIxHKKlt4gqj7koedh6XNJthmfjdv5PYeqfwJLpc/Yc=
+	t=1739246711; cv=none; b=hlYvr+zrBZhXlnCMSwmJDDQG8tifvAsrXElIZLcEGICUX+Ob1TJ6G29tDeR7xe3hhtgjaTyfBDN/gGqE9M+5TNR5FN8aRTAbuzVbY5DCRMccUg1MlWcgAY8EvZSjAUZWY6rBDc0vo4jRsBUACaBSm1kwPwLhDIJPvcvtwGufmy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739246303; c=relaxed/simple;
-	bh=vwECTZQPOMi2jRqJgIy5nCB+skR5MQ/oBqTDwojASsA=;
-	h=Date:To:From:Subject:Message-Id; b=hQL8o9jjo6aedW8hSdIz5Bl5/EuLwBV7b7xZR+RqSiTUlxkDmK3K1sZSZYKYOKq5uvs8ENz7jisS071RmRfulb37mg41eYMoJ+jF2p7cwZ79kNlMN/6QkEJ/z9XP6TMH3Vl32Fekicz4rIiifnbnZvlcJ2rv1G8A2QUvigHrUyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0uEZY6FL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739246711; c=relaxed/simple;
+	bh=9X/2DXNdRNNMHvacFHjz70X7cq6H73+S5yM/d5nt2Tg=;
+	h=Date:To:From:Subject:Message-Id; b=mT04Bj9ejOv8NL7/F+QYxLt8Lc2gaw1AFyW06rtdv/J9f+Zd/bqWzbubMVJowsqrPkwms1AgPKQUAJLsKbPVuHZCFk1b93Nul0Sg6+tutxZrkDk269M5PUFADqCKoBCRPb9zRnuugXuAaFQCJm8HO4ukIW5EHmjwDbZWeg8+L+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eb1t96/e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0uEZY6FL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7640CC4CEDD;
-	Tue, 11 Feb 2025 03:58:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eb1t96/e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F96EC4CEDD;
+	Tue, 11 Feb 2025 04:05:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739246302;
-	bh=vwECTZQPOMi2jRqJgIy5nCB+skR5MQ/oBqTDwojASsA=;
+	s=korg; t=1739246709;
+	bh=9X/2DXNdRNNMHvacFHjz70X7cq6H73+S5yM/d5nt2Tg=;
 	h=Date:To:From:Subject:From;
-	b=0uEZY6FLqwoD+fbBc/su0eEtV4HBSVQl1phkaEopFdogn0BiWk8vXhZOk/m7M2NQt
-	 Ban6wgYqKYpXT3qvO8RhDTb/UpHWqtzTh1+Z8j41/d+4ZR9Ewh7fAeiM/eSSEF/aMv
-	 icJnTtc/xT4GUHYDqiyI4mlzABZWEHdp44WcWo6A=
-Date: Mon, 10 Feb 2025 19:58:21 -0800
-To: mm-commits@vger.kernel.org,zhang.yunkai@zte.com.cn,ye.xingchen@zte.com.cn,xu.xin16@zte.com.cn,wang.yong12@zte.com.cn,tu.qiang35@zte.com.cn,jiang.kun2@zte.com.cn,he.peilin@zte.com.cn,fan.yu9@zte.com.cn,david@redhat.com,bsingharora@gmail.com,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=Eb1t96/eJ80fkOG8J8REXuAFwokh8s2xNSUlY/4Y1eaWbSNAPnnCWD5zcDmdA9O+F
+	 SFewUQgUdpqdGbPnPQ5BFbn+lv//AKagGgmkrLuwgSsBDAja+ZIw7RPCLdJ5zM5Aiv
+	 dM3iiksumrq2aQx4GY41LOyrdauD5fOR8r55nstY=
+Date: Mon, 10 Feb 2025 20:05:08 -0800
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,jiang.kun2@zte.com.cn,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + getdelays-fix-error-format-characters.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250211035822.7640CC4CEDD@smtp.kernel.org>
+Subject: + taskstats-modify-taskstats-version.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250211040509.8F96EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: getdelays: fix error format characters
+     Subject: taskstats: modify taskstats version
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     getdelays-fix-error-format-characters.patch
+     taskstats-modify-taskstats-version.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/getdelays-fix-error-format-characters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-modify-taskstats-version.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,107 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: getdelays: fix error format characters
-Date: Sat, 8 Feb 2025 14:44:00 +0800 (CST)
+Subject: taskstats: modify taskstats version
+Date: Sat, 8 Feb 2025 14:49:01 +0800 (CST)
 
-getdelays had a compilation issue because the format string was not
-updated when the "delay min" was added.  For example, after adding the
-"delay min" in printf, there were 7 strings but only 6 "%s" format
-specifiers.  Similarly, after adding the 't->cpu_delay_total', there were
-7 variables but only 6 format characters specifiers, causing compilation
-issues as follows.  This commit fixes these issues to ensure that
-getdelays compiles correctly.
+After adding "delay max" and "delay min" to the taskstats structure, the
+taskstats version needs to be updated.
 
-root@xx:~/linux-next/tools/accounting$ make
-getdelays.c:199:9: warning: format `%llu' expects argument of type
-`long long unsigned int', but argument 8 has type `char *' [-Wformat=]
-  199 |  printf("\n\nCPU   %15s%15s%15s%15s%15s%15s\n"
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.....
-  216 |         "delay total", "delay average", "delay max", "delay min",
-      |                                                      ~~~~~~~~~~~
-      |                                                      |
-      |                                                      char *
-getdelays.c:200:21: note: format string is defined here
-  200 |         "      %15llu%15llu%15llu%15llu%15.3fms%13.6fms\n"
-      |                ~~~~~^
-      |                     |
-      |                     long long unsigned int
-      |                %15s
-getdelays.c:199:9: warning: format `%f' expects argument of type
-`double', but argument 12 has type `long long unsigned int' [-Wformat=]
-  199 |  printf("\n\nCPU   %15s%15s%15s%15s%15s%15s\n"
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.....
-  220 |         (unsigned long long)t->cpu_delay_total,
-      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      |         |
-      |         long long unsigned int
-.....
-
-Link: https://lkml.kernel.org/r/20250208144400544RduNRhwIpT3m2JyRBqskZ@zte.com.cn
+Link: https://lkml.kernel.org/r/20250208144901218Q5ptVpqsQkb2MOEmW4Ujn@zte.com.cn
 Fixes: f65c64f311ee ("delayacct: add delay min to record delay peak")
-Reviewed-by: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: Kun Jiang <jiang.kun2@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Peilin He <he.peilin@zte.com.cn>
-Cc: Qiang Tu <tu.qiang35@zte.com.cn>
-Cc: wangyong <wang.yong12@zte.com.cn>
-Cc: ye xingchen <ye.xingchen@zte.com.cn>
-Cc: Yunkai Zhang <zhang.yunkai@zte.com.cn>
+Reviewed-by: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/getdelays.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ include/uapi/linux/taskstats.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/accounting/getdelays.c~getdelays-fix-error-format-characters
-+++ a/tools/accounting/getdelays.c
-@@ -196,22 +196,22 @@ static int get_family_id(int sd)
+--- a/include/uapi/linux/taskstats.h~taskstats-modify-taskstats-version
++++ a/include/uapi/linux/taskstats.h
+@@ -34,7 +34,7 @@
+  */
  
- static void print_delayacct(struct taskstats *t)
- {
--	printf("\n\nCPU   %15s%15s%15s%15s%15s%15s\n"
--	       "      %15llu%15llu%15llu%15llu%15.3fms%13.6fms\n"
--	       "IO    %15s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n"
--	       "SWAP  %15s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n"
--	       "RECLAIM  %12s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n"
--	       "THRASHING%12s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n"
--	       "COMPACT  %12s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n"
--	       "WPCOPY   %12s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n"
--	       "IRQ   %15s%15s%15s%15s\n"
--	       "      %15llu%15llu%15.3fms%13.6fms\n",
-+	printf("\n\nCPU   %15s%15s%15s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "IO    %15s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "SWAP  %15s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "RECLAIM  %12s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "THRASHING%12s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "COMPACT  %12s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "WPCOPY   %12s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n"
-+	       "IRQ   %15s%15s%15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms%13.6fms%13.6fms\n",
- 	       "count", "real total", "virtual total",
- 	       "delay total", "delay average", "delay max", "delay min",
- 	       (unsigned long long)t->cpu_count,
+ 
+-#define TASKSTATS_VERSION	14
++#define TASKSTATS_VERSION	15
+ #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
+ 					 * in linux/sched.h */
+ 
 _
 
 Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
 getdelays-fix-error-format-characters.patch
+taskstats-modify-taskstats-version.patch
 
