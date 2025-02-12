@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04DFB271801
-	for <mm-commits@vger.kernel.org>; Tue, 11 Feb 2025 23:55:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3806A8493
+	for <mm-commits@vger.kernel.org>; Wed, 12 Feb 2025 00:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739318151; cv=none; b=uXfHIjwSCPg1ZJEnm+Zj4BqvvOStiv44rxhp4EAHezbd7zf6dyqgDlAdvw+ky/IMF8UueADyYNoJt33y6L/xL2VzHeQuphy5UKMNyWZPxP04P9jXBDay0fjVs7+8WhH0vZN6fMBWgam5EUiBVQckm/ZZE3opnnk9VGnyVEAXi5A=
+	t=1739318862; cv=none; b=tXOy05X2QMMnPyMnSFgmatBz0H87u1OmUBTgHQlSzN25Y3jy09LGRRufRCRunDhKg4kmRQ4MaKlpsonaVR0fw0X1WTLaxMUYOjAU524QzNoRygUoocKtpaH9lQDi8ZckdMY5SuxtkovIGpE3yQUKNdpTxbDNU74a0ja9ZjUTkRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739318151; c=relaxed/simple;
-	bh=pxXrxTlhk9CnVwbrqNRApZAuBiwNoCPv587pKua63Pw=;
-	h=Date:To:From:Subject:Message-Id; b=Ka667PqNYRWVlt6HjEcGfxAksAKLi6Hb6M3/XO2E/qh8cnIwVajUg1FaDNS0BU4l4187xryKEzY5RJDd4gGm2VLJcIP1PW9iKkwe2hRzgGM4NpoNqOjEGTNfcr6WrlUD2B0O/Waw515Na2abFQvtYPBK17zwKA5I8Lp77ZVHeHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hTJy4/ph; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739318862; c=relaxed/simple;
+	bh=Gk+r9NOZtKPDctUcRNWMLHLoTO24z0YNd47GCH8INgE=;
+	h=Date:To:From:Subject:Message-Id; b=nOgunLEcL1itVcs0f+Q3GDshHjA3ZskmHnBjA/LHwC2ENl+VFmUkiaOSs+mkJF7XFDwjrJ8WeCqxD4RoC+RdN61GB9cu51xW+rBDbCa4A1Hg8TBbiH/WHL7+dwkTW3Av1MUm0qKkzSk+yaUGAKUUeNLx7glWap4juX6f0JB8jFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HCNE5tkN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hTJy4/ph"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E0BC4CEDD;
-	Tue, 11 Feb 2025 23:55:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HCNE5tkN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CC62C4CEDD;
+	Wed, 12 Feb 2025 00:07:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739318150;
-	bh=pxXrxTlhk9CnVwbrqNRApZAuBiwNoCPv587pKua63Pw=;
+	s=korg; t=1739318860;
+	bh=Gk+r9NOZtKPDctUcRNWMLHLoTO24z0YNd47GCH8INgE=;
 	h=Date:To:From:Subject:From;
-	b=hTJy4/phXxWyyycSP7MgK7l5NwcJnXmnBRXWUL8ibAY9a17BdVwLGS0VDnpm2fM5P
-	 BnUnyXBvc1dvZyVwauUTH1z1z/A0/os0d8gD7K0mdx4/l2inH6bBB4lXq2UrZRtr3E
-	 IjLX9/QTVayOrw8mAwtV8XUk9yZo6uUv3IrT1fG8=
-Date: Tue, 11 Feb 2025 15:55:49 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=HCNE5tkN1KPXO7walAVGupa7A5RtGudmH3FcAB4aifH/FNuOE7dJ285RGE6HqWQ+7
+	 aMg4/mPfFdXke/a5GQtVfdJJnBBzlzpA7xk0zLm4jl9Rn6u635HukWOarq9OH3U0H7
+	 JdxLCmUhjAkRuR8tF6F2sOlNg2Uodwh90rh4Q6N4=
+Date: Tue, 11 Feb 2025 16:07:40 -0800
+To: mm-commits@vger.kernel.org,yaozhenguo1@gmail.com,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,fvdl@google.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20250211235550.62E0BC4CEDD@smtp.kernel.org>
+Subject: + mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250212000740.9CC62C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+     Subject: mm: hugetlb: avoid fallback for specific node allocation of 1G pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes
-Date: Tue Feb 11 03:55:07 PM PST 2025
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: mm: hugetlb: avoid fallback for specific node allocation of 1G pages
+Date: Mon, 10 Feb 2025 22:48:56 -0500
 
-WARNING: suspect code indent for conditional statements (8, 12)
-#57: FILE: mm/madvise.c:1598:
-+	if (is_memory_failure(behavior))
-+	    return 0;
+When using the HugeTLB kernel command-line to allocate 1G pages from a
+specific node, such as:
 
-WARNING: Statements should start on a tabstop
-#58: FILE: mm/madvise.c:1599:
-+	    return 0;
+   default_hugepagesz=1G hugepages=1:1
 
-WARNING: suspect code indent for conditional statements (8, 12)
-#72: FILE: mm/madvise.c:1612:
-+	if (is_memory_failure(behavior))
-+	    return;
+If node 1 happens to not have enough memory for the requested number of 1G
+pages, the allocation falls back to other nodes.  A quick way to reproduce
+this is by creating a KVM guest with a memory-less node and trying to
+allocate 1 1G page from it.  Instead of failing, the allocation will
+fallback to other nodes.
 
-WARNING: Statements should start on a tabstop
-#73: FILE: mm/madvise.c:1613:
-+	    return;
+This defeats the purpose of node specific allocation.  Also, specific node
+allocation for 2M pages don't have this behavior: the allocation will just
+fail for the pages it can't satisfy.
 
-Please run checkpatch prior to sending patches
+This issue happens because HugeTLB calls memblock_alloc_try_nid_raw() for
+1G boot-time allocation as this function falls back to other nodes if the
+allocation can't be satisfied.  Use memblock_alloc_exact_nid_raw()
+instead, which ensures that the allocation will only be satisfied from the
+specified node.
 
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20250211034856.629371-1-luizcap@redhat.com
+Fixes: b5389086ad7b ("hugetlbfs: extend the definition of hugepages parameter to support node allocation")
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
+Cc: Frank van der Linden <fvdl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes
-+++ a/mm/madvise.c
-@@ -1596,7 +1596,7 @@ static bool is_memory_failure(int behavi
- static int madvise_lock(struct mm_struct *mm, int behavior)
- {
- 	if (is_memory_failure(behavior))
--	    return 0;
-+		return 0;
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages
++++ a/mm/hugetlb.c
+@@ -3145,7 +3145,7 @@ int __alloc_bootmem_huge_page(struct hst
  
- 	if (madvise_need_mmap_write(behavior)) {
- 		if (mmap_write_lock_killable(mm))
-@@ -1610,7 +1610,7 @@ static int madvise_lock(struct mm_struct
- static void madvise_unlock(struct mm_struct *mm, int behavior)
- {
- 	if (is_memory_failure(behavior))
--	    return;
-+		return;
- 
- 	if (madvise_need_mmap_write(behavior))
- 		mmap_write_unlock(mm);
+ 	/* do node specific alloc */
+ 	if (nid != NUMA_NO_NODE) {
+-		m = memblock_alloc_try_nid_raw(huge_page_size(h), huge_page_size(h),
++		m = memblock_alloc_exact_nid_raw(huge_page_size(h), huge_page_size(h),
+ 				0, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
+ 		if (!m)
+ 			return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
-mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-fix.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
-lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch
 
