@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3806A8493
-	for <mm-commits@vger.kernel.org>; Wed, 12 Feb 2025 00:07:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 814053C00
+	for <mm-commits@vger.kernel.org>; Wed, 12 Feb 2025 00:13:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739318862; cv=none; b=tXOy05X2QMMnPyMnSFgmatBz0H87u1OmUBTgHQlSzN25Y3jy09LGRRufRCRunDhKg4kmRQ4MaKlpsonaVR0fw0X1WTLaxMUYOjAU524QzNoRygUoocKtpaH9lQDi8ZckdMY5SuxtkovIGpE3yQUKNdpTxbDNU74a0ja9ZjUTkRQ=
+	t=1739319235; cv=none; b=ex4yd2gluofr5G3fPOgKts6J+HGrzStgrq+cugoAzEAcQrXDdycJoOVRPKxJsS9D8Mtb+4KQi78br1mVM6M59KrO9g83m9acDgyLlt7gK00kYbxr0PFQRqMfI54oCCHL+PuKHXsciS3do0ww9MHyoyBtb5MQyvojBRqP2Fjp6YY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739318862; c=relaxed/simple;
-	bh=Gk+r9NOZtKPDctUcRNWMLHLoTO24z0YNd47GCH8INgE=;
-	h=Date:To:From:Subject:Message-Id; b=nOgunLEcL1itVcs0f+Q3GDshHjA3ZskmHnBjA/LHwC2ENl+VFmUkiaOSs+mkJF7XFDwjrJ8WeCqxD4RoC+RdN61GB9cu51xW+rBDbCa4A1Hg8TBbiH/WHL7+dwkTW3Av1MUm0qKkzSk+yaUGAKUUeNLx7glWap4juX6f0JB8jFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HCNE5tkN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739319235; c=relaxed/simple;
+	bh=5GeOR8EW26w2wjbUP46Je+aO+qcgbnv4O4ujwZFeJY0=;
+	h=Date:To:From:Subject:Message-Id; b=j+u0t99qRwOLSfcRnsQozzSqnzZ3fXcsK+86Coq6hdM3oVaNotZ3Qx1ppIJLk109N4jB4CJBvU7kIOGV/BADZmjTb3r7YfpFA36+WzVxQidea8SaWZAEZWbnnScmaWMnXXarpeKCIgTvC20/xRsh0VdtJtOoPBr77NbhbHQf9ZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fqsX6W27; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HCNE5tkN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CC62C4CEDD;
-	Wed, 12 Feb 2025 00:07:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fqsX6W27"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6AF0C4CEDD;
+	Wed, 12 Feb 2025 00:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739318860;
-	bh=Gk+r9NOZtKPDctUcRNWMLHLoTO24z0YNd47GCH8INgE=;
+	s=korg; t=1739319234;
+	bh=5GeOR8EW26w2wjbUP46Je+aO+qcgbnv4O4ujwZFeJY0=;
 	h=Date:To:From:Subject:From;
-	b=HCNE5tkN1KPXO7walAVGupa7A5RtGudmH3FcAB4aifH/FNuOE7dJ285RGE6HqWQ+7
-	 aMg4/mPfFdXke/a5GQtVfdJJnBBzlzpA7xk0zLm4jl9Rn6u635HukWOarq9OH3U0H7
-	 JdxLCmUhjAkRuR8tF6F2sOlNg2Uodwh90rh4Q6N4=
-Date: Tue, 11 Feb 2025 16:07:40 -0800
-To: mm-commits@vger.kernel.org,yaozhenguo1@gmail.com,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,fvdl@google.com,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
+	b=fqsX6W27yUINrFmeS0JUyt4eqcrco3g3CgpIj0KBVXBVn75q0isvB9xS2M/foWcEC
+	 l4Vk8Qy2siGUbvb1fjWb270qR9rf/pXt/4gHCc5yEx8r+d6rVSaFhfXejjTxw7JEV4
+	 93I962hr4j0MSgGGZcHoTpivhOEe1a+ctVHAQGfo=
+Date: Tue, 11 Feb 2025 16:13:53 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,will@kernel.org,peterz@infradead.org,npiggin@gmail.com,aneesh.kumar@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250212000740.9CC62C4CEDD@smtp.kernel.org>
+Subject: + mm-mmu_gather-remove-unused-__tlb_remove_page.patch added to mm-unstable branch
+Message-Id: <20250212001354.D6AF0C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: hugetlb: avoid fallback for specific node allocation of 1G pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch
+     Subject: mm/mmu_gather: remove unused __tlb_remove_page()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmu_gather-remove-unused-__tlb_remove_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-remove-unused-__tlb_remove_page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,60 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm: hugetlb: avoid fallback for specific node allocation of 1G pages
-Date: Mon, 10 Feb 2025 22:48:56 -0500
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/mmu_gather: remove unused __tlb_remove_page()
+Date: Tue, 11 Feb 2025 18:13:39 +0800
 
-When using the HugeTLB kernel command-line to allocate 1G pages from a
-specific node, such as:
+Nobody is using __tlb_remove_page() now, clean it up.
 
-   default_hugepagesz=1G hugepages=1:1
+And also remove the code comment above tlb_remove_page() because it's not
+meaningful any more.
 
-If node 1 happens to not have enough memory for the requested number of 1G
-pages, the allocation falls back to other nodes.  A quick way to reproduce
-this is by creating a KVM guest with a memory-less node and trying to
-allocate 1 1G page from it.  Instead of failing, the allocation will
-fallback to other nodes.
+Link: https://lkml.kernel.org/r/Z6si0/A/zzEF/bFJ@MiWiFi-R3L-srv
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Will Deacon <will@kernel.org>
 
-This defeats the purpose of node specific allocation.  Also, specific node
-allocation for 2M pages don't have this behavior: the allocation will just
-fail for the pages it can't satisfy.
-
-This issue happens because HugeTLB calls memblock_alloc_try_nid_raw() for
-1G boot-time allocation as this function falls back to other nodes if the
-allocation can't be satisfied.  Use memblock_alloc_exact_nid_raw()
-instead, which ensures that the allocation will only be satisfied from the
-specified node.
-
-Link: https://lkml.kernel.org/r/20250211034856.629371-1-luizcap@redhat.com
-Fixes: b5389086ad7b ("hugetlbfs: extend the definition of hugepages parameter to support node allocation")
-Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
-Cc: Frank van der Linden <fvdl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/tlb.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages
-+++ a/mm/hugetlb.c
-@@ -3145,7 +3145,7 @@ int __alloc_bootmem_huge_page(struct hst
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-remove-unused-__tlb_remove_page
++++ a/include/asm-generic/tlb.h
+@@ -502,16 +502,6 @@ static inline void tlb_remove_page_size(
+ 		tlb_flush_mmu(tlb);
+ }
  
- 	/* do node specific alloc */
- 	if (nid != NUMA_NO_NODE) {
--		m = memblock_alloc_try_nid_raw(huge_page_size(h), huge_page_size(h),
-+		m = memblock_alloc_exact_nid_raw(huge_page_size(h), huge_page_size(h),
- 				0, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
- 		if (!m)
- 			return 0;
+-static __always_inline bool __tlb_remove_page(struct mmu_gather *tlb,
+-		struct page *page, bool delay_rmap)
+-{
+-	return __tlb_remove_page_size(tlb, page, delay_rmap, PAGE_SIZE);
+-}
+-
+-/* tlb_remove_page
+- *	Similar to __tlb_remove_page but will call tlb_flush_mmu() itself when
+- *	required.
+- */
+ static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
+ {
+ 	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
 _
 
-Patches currently in -mm which might be from luizcap@redhat.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-hugetlb-avoid-fallback-for-specific-node-allocation-of-1g-pages.patch
+mm-swap_statec-fix-the-obsolete-code-comment.patch
+mm-swap_statec-optimize-the-code-in-clear_shadow_from_swap_cache.patch
+mm-swap-remove-swap_flag_prio_shift.patch
+mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch
+mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch
+mm-swapfilec-update-the-code-comment-above-swap_count_continued.patch
+mm-swapfilec-update-the-code-comment-above-swap_count_continued-v2.patch
+mm-swapfilec-optimize-code-in-setup_clusters.patch
+mm-swap_statec-remove-the-meaningless-code-comment.patch
+mm-swapfilec-remove-the-unneeded-checking.patch
+mm-swap-rename-swap_swapcount-to-swap_entry_swapped.patch
+mm-swapfilec-remove-the-incorrect-code-comment.patch
+mm-swapfilec-open-code-cluster_alloc_swap.patch
+mm-mmu_gather-remove-unused-__tlb_remove_page.patch
+mm-mmu_gather-clean-up-the-stale-code-comment.patch
 
