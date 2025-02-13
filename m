@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FED2266B49
-	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 22:26:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2489A23A9BB
+	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 22:34:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739485586; cv=none; b=lxFamomGEsX+4k6BkcpECGyXTzC7ZqK0wl9DI1ZUdMxLtT8fN2owVhVzepUog5KhoDyI5z0R6Ljasus2o0M7a3W1BPxnq+DtXNoliqD9uepGjrTOtUYSSuW9i0h6qH+eqVTU9xZfbcwffalI8vzeWFrqi57wl3D859nBLI3sGvU=
+	t=1739486044; cv=none; b=dttIRZ0mSfF7CDLkFC5Fmvjasg+O17cTlwNnkuBz3k7G48jX2sD6auE2lwd2eb5Mjxy4310xia3kl5fQAPYe56wMn1r4uayugRyPn/MbVEVoynwzmGMX88DSH2+9fMhr2wrvf+y3ftYJRG0HCdDl3vRQAOe1FHPDTEU/Hxisfak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739485586; c=relaxed/simple;
-	bh=2i4HtMIR2L6pYE7mmWToEf462lhlqdh94mEzmD9t27s=;
-	h=Date:To:From:Subject:Message-Id; b=nA1fNeywIMCaE/VMCFGdULrN0bn7NAklkToYZC5k4/ExUkffLzRos6bYHfJekEapg0BoUdbgHOcNtfHN59cHP0y8yKSozVcv5WdMk7si2fZQe0p8d48BJEK5fYWpxxV+vyev4V6WNUh/27FW3pRfC2PPWMye5i6gwacouunRUng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s028dOuy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739486044; c=relaxed/simple;
+	bh=sMCBpfwlgkRFAPDy51G3QABAPzkf5fm+vxFCb5N/qAE=;
+	h=Date:To:From:Subject:Message-Id; b=TvOcJFQ9QCiKePEGssUp53f8hHEruFVWEvH2y/qz5YDEH/HyrEPhPqUTpdQbmKvD9gjct6Z+vYge0JCFZRV006OpdRG8/QxGQsm5pMmZURpwGqaYcfseDo+V9LA/kIe7hpnFRTl65RCzlvKEEkmqp5NA6oECTJ2KAhNXj1PT21A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L5rKE0jK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s028dOuy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3676C4CEE2;
-	Thu, 13 Feb 2025 22:26:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L5rKE0jK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82A9CC4CEE5;
+	Thu, 13 Feb 2025 22:34:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739485585;
-	bh=2i4HtMIR2L6pYE7mmWToEf462lhlqdh94mEzmD9t27s=;
+	s=korg; t=1739486043;
+	bh=sMCBpfwlgkRFAPDy51G3QABAPzkf5fm+vxFCb5N/qAE=;
 	h=Date:To:From:Subject:From;
-	b=s028dOuys8T4DJ7l7LQpVrh8tXj30EIxrRLJEd1eynHah/TOFHMJP8/CLM3m2yNkf
-	 bMrl8yHgXCeekI22E7uCtI2FWyqq+6bJNx+ckotNsGvHA0VUV7wCm6oZtT1LOokT24
-	 NlFJG4gKamLld6PI4In0yFzLHeImYdM1xV8PKv+Q=
-Date: Thu, 13 Feb 2025 14:26:25 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,guanjun@linux.alibaba.com,akpm@linux-foundation.org
+	b=L5rKE0jKQxVozhzByhJTcETDKJ8luryvLqW2wJA1bYBWEQbwXW8q+Jt4tU+ZaMk18
+	 kuR4kXVroYglDaHf2ITjpN6j/GuhsXsqpJZnOiOKqf6R03U+EEV8Htzsc18qj4DQcZ
+	 Xwgmjw3TLJ37d7aLiVfgemsNDq/6ZJJRs0h+x61E=
+Date: Thu, 13 Feb 2025 14:34:02 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,linmiaohe@huawei.com,kasong@tencent.com,hughd@google.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio.patch added to mm-unstable branch
-Message-Id: <20250213222625.C3676C4CEE2@smtp.kernel.org>
+Subject: + mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch added to mm-unstable branch
+Message-Id: <20250213223403.82A9CC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: filemap: remove redundant folio_test_large check in filemap_free_folio
+     Subject: mm/filemap: use xas_try_split() in __filemap_add_folio().
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio.patch
+     mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,282 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guanjun <guanjun@linux.alibaba.com>
-Subject: filemap: remove redundant folio_test_large check in filemap_free_folio
-Date: Thu, 13 Feb 2025 13:56:12 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/filemap: use xas_try_split() in __filemap_add_folio().
+Date: Wed, 12 Feb 2025 22:43:54 -0500
 
-The folio_test_large() check in filemap_free_folio() is unnecessary
-because folio_nr_pages(), which is called internally already performs this
-check.  Removing the redundant condition simplifies the code and avoids
-double validation.
+Patch series "Minimize xa_node allocation during xarry split".
 
-This change improves code readability and reduces unnecessary operations
-in the folio freeing path.
+When splitting a multi-index entry in XArray from order-n to order-m,
+existing xas_split_alloc()+xas_split() approach requires
 
-Link: https://lkml.kernel.org/r/20250213055612.490993-1-guanjun@linux.alibaba.com
-Signed-off-by: Guanjun <guanjun@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+	2^(n % XA_CHUNK_SHIFT)
+
+xa_node allocations.  But its callers, __filemap_add_folio() and
+shmem_split_large_entry(), use at most 1 xa_node.  To minimize xa_node
+allocation and remove the limitation of no split from order-12 (or above)
+to order-0 (or anything between 0 and 5)[1], xas_try_split() was added[2],
+which allocates
+
+	(n / XA_CHUNK_SHIFT - m / XA_CHUNK_SHIFT) xa_node. It is used
+
+for non-uniform folio split, but can be used by __filemap_add_folio() and
+shmem_split_large_entry().
+
+xas_split_alloc() and xas_split() split an order-9 to order-0:
+
+         ---------------------------------
+         |   |   |   |   |   |   |   |   |
+         | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+         |   |   |   |   |   |   |   |   |
+         ---------------------------------
+           |   |                   |   |
+     -------   ---               ---   -------
+     |           |     ...       |           |
+     V           V               V           V
+----------- -----------     ----------- -----------
+| xa_node | | xa_node | ... | xa_node | | xa_node |
+----------- -----------     ----------- -----------
+
+xas_try_split() splits an order-9 to order-0:
+   ---------------------------------
+   |   |   |   |   |   |   |   |   |
+   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+   |   |   |   |   |   |   |   |   |
+   ---------------------------------
+     |
+     |
+     V
+-----------
+| xa_node |
+-----------
+
+xas_try_split() is designed to be called iteratively with
+
+	n = m + 1. 
+
+xas_try_split_mini_order() is added to minmize the number of calls to
+xas_try_split() by telling the caller the next minimal order to split to
+instead of n - 1.  Splitting order-n to order-m when
+
+	m = l * XA_CHUNK_SHIFT
+
+does not require xa_node allocation and requires 1 xa_node when
+
+	n = l * XA_CHUNK_SHIFT and m = n - 1,
+
+so it is OK to use xas_try_split() with n > m + 1 when no new xa_node is
+needed.
+
+xfstests quick group test passed on xfs and tmpfs.
+
+
+This patch (of 2):
+
+During __filemap_add_folio(), a shadow entry is covering n slots and a
+folio covers m slots with m < n is to be added.  Instead of splitting all
+n slots, only the m slots covered by the folio need to be split and the
+remaining n-m shadow entries can be retained with orders ranging from m to
+n-1.  This method only requires
+
+	(n/XA_CHUNK_SHIFT) - (m/XA_CHUNK_SHIFT)
+
+new xa_nodes instead of
+	(n % XA_CHUNK_SHIFT) * ((n/XA_CHUNK_SHIFT) - (m/XA_CHUNK_SHIFT))
+
+new xa_nodes, compared to the original xas_split_alloc() + xas_split()
+one.  For example, to insert an order-0 folio when an order-9 shadow entry
+is present (assuming XA_CHUNK_SHIFT is 6), 1 xa_node is needed instead of
+8.
+
+xas_try_split_min_order() is introduced to reduce the number of calls to
+xas_try_split() during split.
+
+Link: https://lkml.kernel.org/r/20250213034355.516610-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250213034355.516610-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mattew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/xarray.h |    7 +++++
+ lib/xarray.c           |   25 +++++++++++++++++++++
+ mm/filemap.c           |   46 ++++++++++++++++-----------------------
+ 3 files changed, 51 insertions(+), 27 deletions(-)
 
---- a/mm/filemap.c~filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio
-+++ a/mm/filemap.c
-@@ -227,15 +227,12 @@ void __filemap_remove_folio(struct folio
- void filemap_free_folio(struct address_space *mapping, struct folio *folio)
+--- a/include/linux/xarray.h~mm-filemap-use-xas_try_split-in-__filemap_add_folio
++++ a/include/linux/xarray.h
+@@ -1557,6 +1557,7 @@ void xas_split(struct xa_state *, void *
+ void xas_split_alloc(struct xa_state *, void *entry, unsigned int order, gfp_t);
+ void xas_try_split(struct xa_state *xas, void *entry, unsigned int order,
+ 		gfp_t gfp);
++unsigned int xas_try_split_min_order(unsigned int order);
+ #else
+ static inline int xa_get_order(struct xarray *xa, unsigned long index)
  {
- 	void (*free_folio)(struct folio *);
--	int refs = 1;
- 
- 	free_folio = mapping->a_ops->free_folio;
- 	if (free_folio)
- 		free_folio(folio);
- 
--	if (folio_test_large(folio))
--		refs = folio_nr_pages(folio);
--	folio_put_refs(folio, refs);
-+	folio_put_refs(folio, folio_nr_pages(folio));
+@@ -1583,6 +1584,12 @@ static inline void xas_try_split(struct
+ 		unsigned int order, gfp_t gfp)
+ {
  }
++
++static inline unsigned int xas_try_split_min_order(unsigned int order)
++{
++	return 0;
++}
++
+ #endif
  
  /**
+--- a/lib/xarray.c~mm-filemap-use-xas_try_split-in-__filemap_add_folio
++++ a/lib/xarray.c
+@@ -1134,6 +1134,28 @@ void xas_split(struct xa_state *xas, voi
+ EXPORT_SYMBOL_GPL(xas_split);
+ 
+ /**
++ * xas_try_split_min_order() - Minimal split order xas_try_split() can accept
++ * @order: Current entry order.
++ *
++ * xas_try_split() can split a multi-index entry to smaller than @order - 1 if
++ * no new xa_node is needed. This function provides the minimal order
++ * xas_try_split() supports.
++ *
++ * Return: the minimal order xas_try_split() supports
++ *
++ * Context: Any context.
++ *
++ */
++unsigned int xas_try_split_min_order(unsigned int order)
++{
++	if (order % XA_CHUNK_SHIFT == 0)
++		return order == 0 ? 0 : order - 1;
++
++	return order - (order % XA_CHUNK_SHIFT);
++}
++EXPORT_SYMBOL_GPL(xas_try_split_min_order);
++
++/**
+  * xas_try_split() - Try to split a multi-index entry.
+  * @xas: XArray operation state.
+  * @entry: New entry to store in the array.
+@@ -1145,6 +1167,9 @@ EXPORT_SYMBOL_GPL(xas_split);
+  * be allocated, the function will use @gfp to get one. If more xa_node are
+  * needed, the function gives EINVAL error.
+  *
++ * NOTE: use xas_try_split_min_order() to get next split order instead of
++ * @order - 1 if you want to minmize xas_try_split() calls.
++ *
+  * Context: Any context.  The caller should hold the xa_lock.
+  */
+ void xas_try_split(struct xa_state *xas, void *entry, unsigned int order,
+--- a/mm/filemap.c~mm-filemap-use-xas_try_split-in-__filemap_add_folio
++++ a/mm/filemap.c
+@@ -857,11 +857,10 @@ EXPORT_SYMBOL_GPL(replace_page_cache_fol
+ noinline int __filemap_add_folio(struct address_space *mapping,
+ 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
+ {
+-	XA_STATE(xas, &mapping->i_pages, index);
+-	void *alloced_shadow = NULL;
+-	int alloced_order = 0;
++	XA_STATE_ORDER(xas, &mapping->i_pages, index, folio_order(folio));
+ 	bool huge;
+ 	long nr;
++	unsigned int forder = folio_order(folio);
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_test_swapbacked(folio), folio);
+@@ -870,7 +869,6 @@ noinline int __filemap_add_folio(struct
+ 	mapping_set_update(&xas, mapping);
+ 
+ 	VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
+-	xas_set_order(&xas, index, folio_order(folio));
+ 	huge = folio_test_hugetlb(folio);
+ 	nr = folio_nr_pages(folio);
+ 
+@@ -880,7 +878,7 @@ noinline int __filemap_add_folio(struct
+ 	folio->index = xas.xa_index;
+ 
+ 	for (;;) {
+-		int order = -1, split_order = 0;
++		int order = -1;
+ 		void *entry, *old = NULL;
+ 
+ 		xas_lock_irq(&xas);
+@@ -898,21 +896,26 @@ noinline int __filemap_add_folio(struct
+ 				order = xas_get_order(&xas);
+ 		}
+ 
+-		/* entry may have changed before we re-acquire the lock */
+-		if (alloced_order && (old != alloced_shadow || order != alloced_order)) {
+-			xas_destroy(&xas);
+-			alloced_order = 0;
+-		}
+-
+ 		if (old) {
+-			if (order > 0 && order > folio_order(folio)) {
++			if (order > 0 && order > forder) {
++				unsigned int split_order = max(forder,
++						xas_try_split_min_order(order));
++
+ 				/* How to handle large swap entries? */
+ 				BUG_ON(shmem_mapping(mapping));
+-				if (!alloced_order) {
+-					split_order = order;
+-					goto unlock;
++
++				while (order > forder) {
++					xas_set_order(&xas, index, split_order);
++					xas_try_split(&xas, old, order,
++						      GFP_NOWAIT);
++					if (xas_error(&xas))
++						goto unlock;
++					order = split_order;
++					split_order =
++						max(xas_try_split_min_order(
++							    split_order),
++						    forder);
+ 				}
+-				xas_split(&xas, old, order);
+ 				xas_reset(&xas);
+ 			}
+ 			if (shadowp)
+@@ -936,17 +939,6 @@ noinline int __filemap_add_folio(struct
+ unlock:
+ 		xas_unlock_irq(&xas);
+ 
+-		/* split needed, alloc here and retry. */
+-		if (split_order) {
+-			xas_split_alloc(&xas, old, split_order, gfp);
+-			if (xas_error(&xas))
+-				goto error;
+-			alloced_shadow = old;
+-			alloced_order = split_order;
+-			xas_reset(&xas);
+-			continue;
+-		}
+-
+ 		if (!xas_nomem(&xas, gfp))
+ 			break;
+ 	}
 _
 
-Patches currently in -mm which might be from guanjun@linux.alibaba.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
