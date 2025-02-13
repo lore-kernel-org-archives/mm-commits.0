@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 561EE1714B7
-	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 21:47:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C891714B7
+	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 21:47:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739483245; cv=none; b=Ra9hFlxzSfjPWcIGpSEhDWPv3O2T0pAMmJIE2rkw6RhuUzZxRvmqsjjwsvOudpKaom8PxtJX8UFBn/ERT5vpqLV4JtCJ4+bmImr3UFGcuO1DDbt8oNNCfjJ5/wV5xYjLSZXcuKW1pbfLJuj7YchWL96KTjx0QCf4dYRaU1GIcYQ=
+	t=1739483247; cv=none; b=kuwILe+0vs7SsipZXdCx1VsB4fzFfoeiMJHbSn0s8Jn3BuOVXMpRy8i3YyAtU9aLJp8T3WZtKoFC2bCyTocwOHy81HpZCAMic1JlDmPhMZiVpp+0zUT4xc4U83AZIR2o9zJxEAdp6S8SkF02uuJ1Lsv9MX75F41GEHMIgqqlzy4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739483245; c=relaxed/simple;
-	bh=iVIKdnlaKjbtEs4Xg/CX79c6KlvNE4551hE92rAM+7M=;
-	h=Date:To:From:Subject:Message-Id; b=RrZrVYxAhae4NtoR9J0Bl8OoRnjDBLo5YU44ib1DdOO+4gTkNjissW10slO0kr5OZmTDZNWRwVpvwd57d3wf1ecf1R5jcykldQONJoRRqLXOz+rLSxa46JwuNyYbTnwkb7bngBR3ixSCaPRng7GO0TD5ZjPfEM6rVwqj/Ek6+J4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cJMIYKvW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739483247; c=relaxed/simple;
+	bh=kXlD+BxR4FVKbHppnJoW3RdIb5aqyCKnejuLKjs7mAg=;
+	h=Date:To:From:Subject:Message-Id; b=RQugVT9P+G2EcTMpuaOTGPvvMwb/BpzEGq4e5cCRFWYVJlUkq7j3M/01B5HHOXkdRsSt7rjlD2sPtWF+fTHGCVq3ypwRJv9Cazs8YNHqZQAwcWydjKyTllv51yhcxZKe0ij4CqZJDumt2HzHvgXbd7QH32pFoG51HrccomNvL9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ajKjgFTi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cJMIYKvW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B020EC4CED1;
-	Thu, 13 Feb 2025 21:47:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ajKjgFTi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD0D1C4CED1;
+	Thu, 13 Feb 2025 21:47:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739483244;
-	bh=iVIKdnlaKjbtEs4Xg/CX79c6KlvNE4551hE92rAM+7M=;
+	s=korg; t=1739483246;
+	bh=kXlD+BxR4FVKbHppnJoW3RdIb5aqyCKnejuLKjs7mAg=;
 	h=Date:To:From:Subject:From;
-	b=cJMIYKvW+/tcYZswPAhlNiy+3Gm3RthMJ9xkPcR+R1OBrvlHvVpqyS+aZDFJHvyyp
-	 YnKagPsDZjZHft3PeifD6Ac5FNUxyOk4h9Z8I1K3svFsxev9Tr1+Nnw3o14UU02E9X
-	 VfEuADeY5bUVSt1Gl3/6+ifdDOAON0W5Q01SwshI=
-Date: Thu, 13 Feb 2025 13:47:24 -0800
+	b=ajKjgFTipoYHXpF/5oca4sz+bleB8RDGTn+jrehVzVwW9i+z1NJ2uQCZIQiu+q6ys
+	 qVEp3pm4uqq3RFNiWeQdgP/UGLrCNNwJPGmsQNmkqQfnh6PxXw3hEayHjAGCuiq6Cl
+	 /1y7HDgXe/rqt2UW72+OuUtRpbnJcnXJIzxX2aaE=
+Date: Thu, 13 Feb 2025 13:47:26 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,paulmck@kernel.org,liam.howlett@oracle.com,kaleshsingh@google.com,jhubbard@nvidia.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch added to mm-unstable branch
-Message-Id: <20250213214724.B020EC4CED1@smtp.kernel.org>
+Subject: + selftests-mm-rename-guard-pages-to-guard-regions.patch added to mm-unstable branch
+Message-Id: <20250213214726.CD0D1C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: allow guard regions in file-backed and read-only mappings
+     Subject: selftests/mm: rename guard-pages to guard-regions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
+     selftests-mm-rename-guard-pages-to-guard-regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-rename-guard-pages-to-guard-regions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,169 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: allow guard regions in file-backed and read-only mappings
-Date: Thu, 13 Feb 2025 18:17:00 +0000
+Subject: selftests/mm: rename guard-pages to guard-regions
+Date: Thu, 13 Feb 2025 18:17:01 +0000
 
-Patch series "mm: permit guard regions for file-backed/shmem mappings".
+The feature formerly referred to as guard pages is more correctly referred
+to as 'guard regions', as in fact no pages are ever allocated in the
+process of installing the regions.
 
-The guard regions feature was initially implemented to support anonymous
-mappings only, excluding shmem.
+To avoid confusion, rename the tests accordingly.
 
-This was done so as to introduce the feature carefully and incrementally
-and to be conservative when considering the various caveats and corner
-cases that are applicable to file-backed mappings but not to anonymous
-ones.
-
-Now this feature has landed in 6.13, it is time to revisit this and to
-extend this functionality to file-backed and shmem mappings.
-
-In order to make this maximally useful, and since one may map file-backed
-mappings read-only (for instance ELF images), we also remove the
-restriction on read-only mappings and permit the establishment of guard
-regions in any non-hugetlb, non-mlock()'d mapping.
-
-It is permissible to permit the establishment of guard regions in
-read-only mappings because the guard regions only reduce access to the
-mapping, and when removed simply reinstate the existing attributes of the
-underlying VMA, meaning no access violations can occur.
-
-While the change in kernel code introduced in this series is small, the
-majority of the effort here is spent in extending the testing to assert
-that the feature works correctly across numerous file-backed mapping
-scenarios.
-
-Every single guard region self-test performed against anonymous memory
-(which is relevant and not anon-only) has now been updated to also be
-performed against shmem and a mapping of a file in the working directory.
-
-This confirms that all cases also function correctly for file-backed guard
-regions.
-
-In addition a number of other tests are added for specific file-backed
-mapping scenarios.
-
-There are a number of other concerns that one might have with regard to
-guard regions, addressed below:
-
-Readahead
-~~~~~~~~~
-
-Readahead is a process through which the page cache is populated on the
-assumption that sequential reads will occur, thus amortising I/O and,
-through a clever use of the PG_readahead folio flag establishing during
-major fault and checked upon minor fault, provides for asynchronous I/O to
-occur as dat is processed, reducing I/O stalls as data is faulted in.
-
-Guard regions do not alter this mechanism which operates at the folio and
-fault level, but does of course prevent the faulting of folios that would
-otherwise be mapped.
-
-In the instance of a major fault prior to a guard region, synchronous
-readahead will occur including populating folios in the page cache which
-the guard regions will, in the case of the mapping in question, prevent
-access to.
-
-In addition, if PG_readahead is placed in a folio that is now
-inaccessible, this will prevent asynchronous readahead from occurring as
-it would otherwise do.
-
-However, there are mechanisms for heuristically resetting this within
-readahead regardless, which will 'recover' correct readahead behaviour.
-
-Readahead presumes sequential data access, the presence of a guard region
-clearly indicates that, at least in the guard region, no such sequential
-access will occur, as it cannot occur there.
-
-So this should have very little impact on any real workload.  The far more
-important point is as to whether readahead causes incorrect or
-inappropriate mapping of ranges disallowed by the presence of guard
-regions - this is not the case, as readahead does not 'pre-fault' memory
-in this fashion.
-
-At any rate, any mechanism which would attempt to do so would hit the
-usual page fault paths, which correctly handle PTE markers as with
-anonymous mappings.
-
-Fault-Around
-~~~~~~~~~~~~
-
-The fault-around logic, in a similar vein to readahead, attempts to
-improve efficiency with regard to file-backed memory mappings, however it
-differs in that it does not try to fetch folios into the page cache that
-are about to be accessed, but rather pre-maps a range of folios around the
-faulting address.
-
-Guard regions making use of PTE markers makes this relatively trivial, as
-this case is already handled - see filemap_map_folio_range() and
-filemap_map_order0_folio() - in both instances, the solution is to simply
-keep the established page table mappings and let the fault handler take
-care of PTE markers, as per the comment:
-
-	/*
-	 * NOTE: If there're PTE markers, we'll leave them to be
-	 * handled in the specific fault path, and it'll prohibit
-	 * the fault-around logic.
-	 */
-
-This works, as establishing guard regions results in page table mappings
-with PTE markers, and clearing them removes them.
-
-Truncation
-~~~~~~~~~~
-
-File truncation will not eliminate existing guard regions, as the
-truncation operation will ultimately zap the range via
-unmap_mapping_range(), which specifically excludes PTE markers.
-
-Zapping
-~~~~~~~
-
-Zapping is, as with anonymous mappings, handled by zap_nonpresent_ptes(),
-which specifically deals with guard entries, leaving them intact except in
-instances such as process teardown or munmap() where they need to be
-removed.
-
-Reclaim
-~~~~~~~
-
-When reclaim is performed on file-backed folios, it ultimately invokes
-try_to_unmap_one() via the rmap.  If the folio is non-large, then
-map_pte() will ultimately abort the operation for the guard region
-mapping.  If large, then check_pte() will determine that this is a
-non-device private entry/device-exclusive entry 'swap' PTE and thus abort
-the operation in that instance.
-
-Therefore, no odd things happen in the instance of reclaim being attempted
-upon a file-backed guard region.
-
-Hole Punching
-~~~~~~~~~~~~~
-
-This updates the page cache and ultimately invokes unmap_mapping_range(),
-which explicitly leaves PTE markers in place.
-
-Because the establishment of guard regions zapped any existing mappings to
-file-backed folios, once the guard regions are removed then the
-hole-punched region will be faulted in as usual and everything will behave
-as expected.
-
-
-This patch (of 4):
-
-There is no reason to disallow guard regions in file-backed mappings -
-readahead and fault-around both function correctly in the presence of PTE
-markers, equally other operations relating to memory-mapped files function
-correctly.
-
-Additionally, read-only mappings if introducing guard-regions, only
-restrict the mapping further, which means there is no violation of any
-access rights by permitting this to be so.
-
-Removing this restriction allows for read-only mapped files (such as
-executable files) correctly which would otherwise not be permitted.
-
-Link: https://lkml.kernel.org/r/cover.1739469950.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/d885cb259174736c2830a5dfe07f81b214ef3faa.1739469950.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1c3cd04a3f69b5756b94bda701ac88325a9be18b.1739469950.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jann Horn <jannh@google.com>
@@ -236,26 +83,2681 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ tools/testing/selftests/mm/.gitignore      |    2 
+ tools/testing/selftests/mm/Makefile        |    2 
+ tools/testing/selftests/mm/guard-pages.c   | 1320 -------------------
+ tools/testing/selftests/mm/guard-regions.c | 1320 +++++++++++++++++++
+ 4 files changed, 1322 insertions(+), 1322 deletions(-)
 
---- a/mm/madvise.c~mm-allow-guard-regions-in-file-backed-and-read-only-mappings
-+++ a/mm/madvise.c
-@@ -1051,13 +1051,7 @@ static bool is_valid_guard_vma(struct vm
- 	if (!allow_locked)
- 		disallowed |= VM_LOCKED;
- 
--	if (!vma_is_anonymous(vma))
--		return false;
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-rename-guard-pages-to-guard-regions
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -57,4 +57,4 @@ droppable
+ hugetlb_dio
+ pkey_sighandler_tests_32
+ pkey_sighandler_tests_64
+-guard-pages
++guard-regions
+diff --git a/tools/testing/selftests/mm/guard-pages.c a/tools/testing/selftests/mm/guard-pages.c
+deleted file mode 100644
+--- a/tools/testing/selftests/mm/guard-pages.c
++++ /dev/null
+@@ -1,1320 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
 -
--	if ((vma->vm_flags & (VM_MAYWRITE | disallowed)) != VM_MAYWRITE)
--		return false;
+-#define _GNU_SOURCE
+-#include "../kselftest_harness.h"
+-#include <asm-generic/mman.h> /* Force the import of the tools version. */
+-#include <assert.h>
+-#include <errno.h>
+-#include <fcntl.h>
+-#include <linux/userfaultfd.h>
+-#include <setjmp.h>
+-#include <signal.h>
+-#include <stdbool.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <sys/ioctl.h>
+-#include <sys/mman.h>
+-#include <sys/syscall.h>
+-#include <sys/uio.h>
+-#include <unistd.h>
 -
--	return true;
-+	return !(vma->vm_flags & disallowed);
- }
+-/*
+- * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
+- *
+- * "If the signal occurs other than as the result of calling the abort or raise
+- *  function, the behavior is undefined if the signal handler refers to any
+- *  object with static storage duration other than by assigning a value to an
+- *  object declared as volatile sig_atomic_t"
+- */
+-static volatile sig_atomic_t signal_jump_set;
+-static sigjmp_buf signal_jmp_buf;
+-
+-/*
+- * Ignore the checkpatch warning, we must read from x but don't want to do
+- * anything with it in order to trigger a read page fault. We therefore must use
+- * volatile to stop the compiler from optimising this away.
+- */
+-#define FORCE_READ(x) (*(volatile typeof(x) *)x)
+-
+-static int userfaultfd(int flags)
+-{
+-	return syscall(SYS_userfaultfd, flags);
+-}
+-
+-static void handle_fatal(int c)
+-{
+-	if (!signal_jump_set)
+-		return;
+-
+-	siglongjmp(signal_jmp_buf, c);
+-}
+-
+-static int pidfd_open(pid_t pid, unsigned int flags)
+-{
+-	return syscall(SYS_pidfd_open, pid, flags);
+-}
+-
+-static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
+-				   size_t n, int advice, unsigned int flags)
+-{
+-	return syscall(__NR_process_madvise, pidfd, iovec, n, advice, flags);
+-}
+-
+-/*
+- * Enable our signal catcher and try to read/write the specified buffer. The
+- * return value indicates whether the read/write succeeds without a fatal
+- * signal.
+- */
+-static bool try_access_buf(char *ptr, bool write)
+-{
+-	bool failed;
+-
+-	/* Tell signal handler to jump back here on fatal signal. */
+-	signal_jump_set = true;
+-	/* If a fatal signal arose, we will jump back here and failed is set. */
+-	failed = sigsetjmp(signal_jmp_buf, 0) != 0;
+-
+-	if (!failed) {
+-		if (write)
+-			*ptr = 'x';
+-		else
+-			FORCE_READ(ptr);
+-	}
+-
+-	signal_jump_set = false;
+-	return !failed;
+-}
+-
+-/* Try and read from a buffer, return true if no fatal signal. */
+-static bool try_read_buf(char *ptr)
+-{
+-	return try_access_buf(ptr, false);
+-}
+-
+-/* Try and write to a buffer, return true if no fatal signal. */
+-static bool try_write_buf(char *ptr)
+-{
+-	return try_access_buf(ptr, true);
+-}
+-
+-/*
+- * Try and BOTH read from AND write to a buffer, return true if BOTH operations
+- * succeed.
+- */
+-static bool try_read_write_buf(char *ptr)
+-{
+-	return try_read_buf(ptr) && try_write_buf(ptr);
+-}
+-
+-FIXTURE(guard_pages)
+-{
+-	unsigned long page_size;
+-};
+-
+-FIXTURE_SETUP(guard_pages)
+-{
+-	struct sigaction act = {
+-		.sa_handler = &handle_fatal,
+-		.sa_flags = SA_NODEFER,
+-	};
+-
+-	sigemptyset(&act.sa_mask);
+-	if (sigaction(SIGSEGV, &act, NULL))
+-		ksft_exit_fail_perror("sigaction");
+-
+-	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
+-};
+-
+-FIXTURE_TEARDOWN(guard_pages)
+-{
+-	struct sigaction act = {
+-		.sa_handler = SIG_DFL,
+-		.sa_flags = SA_NODEFER,
+-	};
+-
+-	sigemptyset(&act.sa_mask);
+-	sigaction(SIGSEGV, &act, NULL);
+-}
+-
+-TEST_F(guard_pages, basic)
+-{
+-	const unsigned long NUM_PAGES = 10;
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	ptr = mmap(NULL, NUM_PAGES * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_PRIVATE | MAP_ANON, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Trivially assert we can touch the first page. */
+-	ASSERT_TRUE(try_read_write_buf(ptr));
+-
+-	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Establish that 1st page SIGSEGV's. */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-
+-	/* Ensure we can touch everything else.*/
+-	for (i = 1; i < NUM_PAGES; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Establish a guard page at the end of the mapping. */
+-	ASSERT_EQ(madvise(&ptr[(NUM_PAGES - 1) * page_size], page_size,
+-			  MADV_GUARD_INSTALL), 0);
+-
+-	/* Check that both guard pages result in SIGSEGV. */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[(NUM_PAGES - 1) * page_size]));
+-
+-	/* Remove the first guard page. */
+-	ASSERT_FALSE(madvise(ptr, page_size, MADV_GUARD_REMOVE));
+-
+-	/* Make sure we can touch it. */
+-	ASSERT_TRUE(try_read_write_buf(ptr));
+-
+-	/* Remove the last guard page. */
+-	ASSERT_FALSE(madvise(&ptr[(NUM_PAGES - 1) * page_size], page_size,
+-			     MADV_GUARD_REMOVE));
+-
+-	/* Make sure we can touch it. */
+-	ASSERT_TRUE(try_read_write_buf(&ptr[(NUM_PAGES - 1) * page_size]));
+-
+-	/*
+-	 *  Test setting a _range_ of pages, namely the first 3. The first of
+-	 *  these be faulted in, so this also tests that we can install guard
+-	 *  pages over backed pages.
+-	 */
+-	ASSERT_EQ(madvise(ptr, 3 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure they are all guard pages. */
+-	for (i = 0; i < 3; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Make sure the rest are not. */
+-	for (i = 3; i < NUM_PAGES; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Remove guard pages. */
+-	ASSERT_EQ(madvise(ptr, NUM_PAGES * page_size, MADV_GUARD_REMOVE), 0);
+-
+-	/* Now make sure we can touch everything. */
+-	for (i = 0; i < NUM_PAGES; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/*
+-	 * Now remove all guard pages, make sure we don't remove existing
+-	 * entries.
+-	 */
+-	ASSERT_EQ(madvise(ptr, NUM_PAGES * page_size, MADV_GUARD_REMOVE), 0);
+-
+-	for (i = 0; i < NUM_PAGES * page_size; i += page_size) {
+-		char chr = ptr[i];
+-
+-		ASSERT_EQ(chr, 'x');
+-	}
+-
+-	ASSERT_EQ(munmap(ptr, NUM_PAGES * page_size), 0);
+-}
+-
+-/* Assert that operations applied across multiple VMAs work as expected. */
+-TEST_F(guard_pages, multi_vma)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr_region, *ptr, *ptr1, *ptr2, *ptr3;
+-	int i;
+-
+-	/* Reserve a 100 page region over which we can install VMAs. */
+-	ptr_region = mmap(NULL, 100 * page_size, PROT_NONE,
+-			  MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_region, MAP_FAILED);
+-
+-	/* Place a VMA of 10 pages size at the start of the region. */
+-	ptr1 = mmap(ptr_region, 10 * page_size, PROT_READ | PROT_WRITE,
+-		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr1, MAP_FAILED);
+-
+-	/* Place a VMA of 5 pages size 50 pages into the region. */
+-	ptr2 = mmap(&ptr_region[50 * page_size], 5 * page_size,
+-		    PROT_READ | PROT_WRITE,
+-		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr2, MAP_FAILED);
+-
+-	/* Place a VMA of 20 pages size at the end of the region. */
+-	ptr3 = mmap(&ptr_region[80 * page_size], 20 * page_size,
+-		    PROT_READ | PROT_WRITE,
+-		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr3, MAP_FAILED);
+-
+-	/* Unmap gaps. */
+-	ASSERT_EQ(munmap(&ptr_region[10 * page_size], 40 * page_size), 0);
+-	ASSERT_EQ(munmap(&ptr_region[55 * page_size], 25 * page_size), 0);
+-
+-	/*
+-	 * We end up with VMAs like this:
+-	 *
+-	 * 0    10 .. 50   55 .. 80   100
+-	 * [---]      [---]      [---]
+-	 */
+-
+-	/*
+-	 * Now mark the whole range as guard pages and make sure all VMAs are as
+-	 * such.
+-	 */
+-
+-	/*
+-	 * madvise() is certifiable and lets you perform operations over gaps,
+-	 * everything works, but it indicates an error and errno is set to
+-	 * -ENOMEM. Also if anything runs out of memory it is set to
+-	 * -ENOMEM. You are meant to guess which is which.
+-	 */
+-	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_INSTALL), -1);
+-	ASSERT_EQ(errno, ENOMEM);
+-
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr1[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	for (i = 0; i < 5; i++) {
+-		char *curr = &ptr2[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	for (i = 0; i < 20; i++) {
+-		char *curr = &ptr3[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Now remove guar pages over range and assert the opposite. */
+-
+-	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_REMOVE), -1);
+-	ASSERT_EQ(errno, ENOMEM);
+-
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr1[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	for (i = 0; i < 5; i++) {
+-		char *curr = &ptr2[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	for (i = 0; i < 20; i++) {
+-		char *curr = &ptr3[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Now map incompatible VMAs in the gaps. */
+-	ptr = mmap(&ptr_region[10 * page_size], 40 * page_size,
+-		   PROT_READ | PROT_WRITE | PROT_EXEC,
+-		   MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-	ptr = mmap(&ptr_region[55 * page_size], 25 * page_size,
+-		   PROT_READ | PROT_WRITE | PROT_EXEC,
+-		   MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/*
+-	 * We end up with VMAs like this:
+-	 *
+-	 * 0    10 .. 50   55 .. 80   100
+-	 * [---][xxxx][---][xxxx][---]
+-	 *
+-	 * Where 'x' signifies VMAs that cannot be merged with those adjacent to
+-	 * them.
+-	 */
+-
+-	/* Multiple VMAs adjacent to one another should result in no error. */
+-	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_INSTALL), 0);
+-	for (i = 0; i < 100; i++) {
+-		char *curr = &ptr_region[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_REMOVE), 0);
+-	for (i = 0; i < 100; i++) {
+-		char *curr = &ptr_region[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr_region, 100 * page_size), 0);
+-}
+-
+-/*
+- * Assert that batched operations performed using process_madvise() work as
+- * expected.
+- */
+-TEST_F(guard_pages, process_madvise)
+-{
+-	const unsigned long page_size = self->page_size;
+-	pid_t pid = getpid();
+-	int pidfd = pidfd_open(pid, 0);
+-	char *ptr_region, *ptr1, *ptr2, *ptr3;
+-	ssize_t count;
+-	struct iovec vec[6];
+-
+-	ASSERT_NE(pidfd, -1);
+-
+-	/* Reserve region to map over. */
+-	ptr_region = mmap(NULL, 100 * page_size, PROT_NONE,
+-			  MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_region, MAP_FAILED);
+-
+-	/*
+-	 * 10 pages offset 1 page into reserve region. We MAP_POPULATE so we
+-	 * overwrite existing entries and test this code path against
+-	 * overwriting existing entries.
+-	 */
+-	ptr1 = mmap(&ptr_region[page_size], 10 * page_size,
+-		    PROT_READ | PROT_WRITE,
+-		    MAP_FIXED | MAP_ANON | MAP_PRIVATE | MAP_POPULATE, -1, 0);
+-	ASSERT_NE(ptr1, MAP_FAILED);
+-	/* We want guard markers at start/end of each VMA. */
+-	vec[0].iov_base = ptr1;
+-	vec[0].iov_len = page_size;
+-	vec[1].iov_base = &ptr1[9 * page_size];
+-	vec[1].iov_len = page_size;
+-
+-	/* 5 pages offset 50 pages into reserve region. */
+-	ptr2 = mmap(&ptr_region[50 * page_size], 5 * page_size,
+-		    PROT_READ | PROT_WRITE,
+-		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr2, MAP_FAILED);
+-	vec[2].iov_base = ptr2;
+-	vec[2].iov_len = page_size;
+-	vec[3].iov_base = &ptr2[4 * page_size];
+-	vec[3].iov_len = page_size;
+-
+-	/* 20 pages offset 79 pages into reserve region. */
+-	ptr3 = mmap(&ptr_region[79 * page_size], 20 * page_size,
+-		    PROT_READ | PROT_WRITE,
+-		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr3, MAP_FAILED);
+-	vec[4].iov_base = ptr3;
+-	vec[4].iov_len = page_size;
+-	vec[5].iov_base = &ptr3[19 * page_size];
+-	vec[5].iov_len = page_size;
+-
+-	/* Free surrounding VMAs. */
+-	ASSERT_EQ(munmap(ptr_region, page_size), 0);
+-	ASSERT_EQ(munmap(&ptr_region[11 * page_size], 39 * page_size), 0);
+-	ASSERT_EQ(munmap(&ptr_region[55 * page_size], 24 * page_size), 0);
+-	ASSERT_EQ(munmap(&ptr_region[99 * page_size], page_size), 0);
+-
+-	/* Now guard in one step. */
+-	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
+-
+-	/* OK we don't have permission to do this, skip. */
+-	if (count == -1 && errno == EPERM)
+-		ksft_exit_skip("No process_madvise() permissions, try running as root.\n");
+-
+-	/* Returns the number of bytes advised. */
+-	ASSERT_EQ(count, 6 * page_size);
+-
+-	/* Now make sure the guarding was applied. */
+-
+-	ASSERT_FALSE(try_read_write_buf(ptr1));
+-	ASSERT_FALSE(try_read_write_buf(&ptr1[9 * page_size]));
+-
+-	ASSERT_FALSE(try_read_write_buf(ptr2));
+-	ASSERT_FALSE(try_read_write_buf(&ptr2[4 * page_size]));
+-
+-	ASSERT_FALSE(try_read_write_buf(ptr3));
+-	ASSERT_FALSE(try_read_write_buf(&ptr3[19 * page_size]));
+-
+-	/* Now do the same with unguard... */
+-	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
+-
+-	/* ...and everything should now succeed. */
+-
+-	ASSERT_TRUE(try_read_write_buf(ptr1));
+-	ASSERT_TRUE(try_read_write_buf(&ptr1[9 * page_size]));
+-
+-	ASSERT_TRUE(try_read_write_buf(ptr2));
+-	ASSERT_TRUE(try_read_write_buf(&ptr2[4 * page_size]));
+-
+-	ASSERT_TRUE(try_read_write_buf(ptr3));
+-	ASSERT_TRUE(try_read_write_buf(&ptr3[19 * page_size]));
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr1, 10 * page_size), 0);
+-	ASSERT_EQ(munmap(ptr2, 5 * page_size), 0);
+-	ASSERT_EQ(munmap(ptr3, 20 * page_size), 0);
+-	close(pidfd);
+-}
+-
+-/* Assert that unmapping ranges does not leave guard markers behind. */
+-TEST_F(guard_pages, munmap)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr, *ptr_new1, *ptr_new2;
+-
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Guard first and last pages. */
+-	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
+-	ASSERT_EQ(madvise(&ptr[9 * page_size], page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Assert that they are guarded. */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[9 * page_size]));
+-
+-	/* Unmap them. */
+-	ASSERT_EQ(munmap(ptr, page_size), 0);
+-	ASSERT_EQ(munmap(&ptr[9 * page_size], page_size), 0);
+-
+-	/* Map over them.*/
+-	ptr_new1 = mmap(ptr, page_size, PROT_READ | PROT_WRITE,
+-			MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_new1, MAP_FAILED);
+-	ptr_new2 = mmap(&ptr[9 * page_size], page_size, PROT_READ | PROT_WRITE,
+-			MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_new2, MAP_FAILED);
+-
+-	/* Assert that they are now not guarded. */
+-	ASSERT_TRUE(try_read_write_buf(ptr_new1));
+-	ASSERT_TRUE(try_read_write_buf(ptr_new2));
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Assert that mprotect() operations have no bearing on guard markers. */
+-TEST_F(guard_pages, mprotect)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Guard the middle of the range. */
+-	ASSERT_EQ(madvise(&ptr[5 * page_size], 2 * page_size,
+-			  MADV_GUARD_INSTALL), 0);
+-
+-	/* Assert that it is indeed guarded. */
+-	ASSERT_FALSE(try_read_write_buf(&ptr[5 * page_size]));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[6 * page_size]));
+-
+-	/* Now make these pages read-only. */
+-	ASSERT_EQ(mprotect(&ptr[5 * page_size], 2 * page_size, PROT_READ), 0);
+-
+-	/* Make sure the range is still guarded. */
+-	ASSERT_FALSE(try_read_buf(&ptr[5 * page_size]));
+-	ASSERT_FALSE(try_read_buf(&ptr[6 * page_size]));
+-
+-	/* Make sure we can guard again without issue.*/
+-	ASSERT_EQ(madvise(&ptr[5 * page_size], 2 * page_size,
+-			  MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure the range is, yet again, still guarded. */
+-	ASSERT_FALSE(try_read_buf(&ptr[5 * page_size]));
+-	ASSERT_FALSE(try_read_buf(&ptr[6 * page_size]));
+-
+-	/* Now unguard the whole range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
+-
+-	/* Make sure the whole range is readable. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Split and merge VMAs and make sure guard pages still behave. */
+-TEST_F(guard_pages, split_merge)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr, *ptr_new;
+-	int i;
+-
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Guard the whole range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure the whole range is guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Now unmap some pages in the range so we split. */
+-	ASSERT_EQ(munmap(&ptr[2 * page_size], page_size), 0);
+-	ASSERT_EQ(munmap(&ptr[5 * page_size], page_size), 0);
+-	ASSERT_EQ(munmap(&ptr[8 * page_size], page_size), 0);
+-
+-	/* Make sure the remaining ranges are guarded post-split. */
+-	for (i = 0; i < 2; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-	for (i = 2; i < 5; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-	for (i = 6; i < 8; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-	for (i = 9; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Now map them again - the unmap will have cleared the guards. */
+-	ptr_new = mmap(&ptr[2 * page_size], page_size, PROT_READ | PROT_WRITE,
+-		       MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_new, MAP_FAILED);
+-	ptr_new = mmap(&ptr[5 * page_size], page_size, PROT_READ | PROT_WRITE,
+-		       MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_new, MAP_FAILED);
+-	ptr_new = mmap(&ptr[8 * page_size], page_size, PROT_READ | PROT_WRITE,
+-		       MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_new, MAP_FAILED);
+-
+-	/* Now make sure guard pages are established. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-		bool result = try_read_write_buf(curr);
+-		bool expect_true = i == 2 || i == 5 || i == 8;
+-
+-		ASSERT_TRUE(expect_true ? result : !result);
+-	}
+-
+-	/* Now guard everything again. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure the whole range is guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Now split the range into three. */
+-	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
+-	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size, PROT_READ), 0);
+-
+-	/* Make sure the whole range is guarded for read. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_buf(curr));
+-	}
+-
+-	/* Now reset protection bits so we merge the whole thing. */
+-	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ | PROT_WRITE), 0);
+-	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size,
+-			   PROT_READ | PROT_WRITE), 0);
+-
+-	/* Make sure the whole range is still guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Split range into 3 again... */
+-	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
+-	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size, PROT_READ), 0);
+-
+-	/* ...and unguard the whole range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
+-
+-	/* Make sure the whole range is remedied for read. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_buf(curr));
+-	}
+-
+-	/* Merge them again. */
+-	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ | PROT_WRITE), 0);
+-	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size,
+-			   PROT_READ | PROT_WRITE), 0);
+-
+-	/* Now ensure the merged range is remedied for read/write. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Assert that MADV_DONTNEED does not remove guard markers. */
+-TEST_F(guard_pages, dontneed)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Back the whole range. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		*curr = 'y';
+-	}
+-
+-	/* Guard every other page. */
+-	for (i = 0; i < 10; i += 2) {
+-		char *curr = &ptr[i * page_size];
+-		int res = madvise(curr, page_size, MADV_GUARD_INSTALL);
+-
+-		ASSERT_EQ(res, 0);
+-	}
+-
+-	/* Indicate that we don't need any of the range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_DONTNEED), 0);
+-
+-	/* Check to ensure guard markers are still in place. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-		bool result = try_read_buf(curr);
+-
+-		if (i % 2 == 0) {
+-			ASSERT_FALSE(result);
+-		} else {
+-			ASSERT_TRUE(result);
+-			/* Make sure we really did get reset to zero page. */
+-			ASSERT_EQ(*curr, '\0');
+-		}
+-
+-		/* Now write... */
+-		result = try_write_buf(&ptr[i * page_size]);
+-
+-		/* ...and make sure same result. */
+-		ASSERT_TRUE(i % 2 != 0 ? result : !result);
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Assert that mlock()'ed pages work correctly with guard markers. */
+-TEST_F(guard_pages, mlock)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Populate. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		*curr = 'y';
+-	}
+-
+-	/* Lock. */
+-	ASSERT_EQ(mlock(ptr, 10 * page_size), 0);
+-
+-	/* Now try to guard, should fail with EINVAL. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), -1);
+-	ASSERT_EQ(errno, EINVAL);
+-
+-	/* OK unlock. */
+-	ASSERT_EQ(munlock(ptr, 10 * page_size), 0);
+-
+-	/* Guard first half of range, should now succeed. */
+-	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure guard works. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-		bool result = try_read_write_buf(curr);
+-
+-		if (i < 5) {
+-			ASSERT_FALSE(result);
+-		} else {
+-			ASSERT_TRUE(result);
+-			ASSERT_EQ(*curr, 'x');
+-		}
+-	}
+-
+-	/*
+-	 * Now lock the latter part of the range. We can't lock the guard pages,
+-	 * as this would result in the pages being populated and the guarding
+-	 * would cause this to error out.
+-	 */
+-	ASSERT_EQ(mlock(&ptr[5 * page_size], 5 * page_size), 0);
+-
+-	/*
+-	 * Now remove guard pages, we permit mlock()'d ranges to have guard
+-	 * pages removed as it is a non-destructive operation.
+-	 */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
+-
+-	/* Now check that no guard pages remain. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/*
+- * Assert that moving, extending and shrinking memory via mremap() retains
+- * guard markers where possible.
+- *
+- * - Moving a mapping alone should retain markers as they are.
+- */
+-TEST_F(guard_pages, mremap_move)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr, *ptr_new;
+-
+-	/* Map 5 pages. */
+-	ptr = mmap(NULL, 5 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Place guard markers at both ends of the 5 page span. */
+-	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
+-	ASSERT_EQ(madvise(&ptr[4 * page_size], page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure the guard pages are in effect. */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
+-
+-	/* Map a new region we will move this range into. Doing this ensures
+-	 * that we have reserved a range to map into.
+-	 */
+-	ptr_new = mmap(NULL, 5 * page_size, PROT_NONE, MAP_ANON | MAP_PRIVATE,
+-		       -1, 0);
+-	ASSERT_NE(ptr_new, MAP_FAILED);
+-
+-	ASSERT_EQ(mremap(ptr, 5 * page_size, 5 * page_size,
+-			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr_new), ptr_new);
+-
+-	/* Make sure the guard markers are retained. */
+-	ASSERT_FALSE(try_read_write_buf(ptr_new));
+-	ASSERT_FALSE(try_read_write_buf(&ptr_new[4 * page_size]));
+-
+-	/*
+-	 * Clean up - we only need reference the new pointer as we overwrote the
+-	 * PROT_NONE range and moved the existing one.
+-	 */
+-	munmap(ptr_new, 5 * page_size);
+-}
+-
+-/*
+- * Assert that moving, extending and shrinking memory via mremap() retains
+- * guard markers where possible.
+- *
+- * Expanding should retain guard pages, only now in different position. The user
+- * will have to remove guard pages manually to fix up (they'd have to do the
+- * same if it were a PROT_NONE mapping).
+- */
+-TEST_F(guard_pages, mremap_expand)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr, *ptr_new;
+-
+-	/* Map 10 pages... */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-	/* ...But unmap the last 5 so we can ensure we can expand into them. */
+-	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
+-
+-	/* Place guard markers at both ends of the 5 page span. */
+-	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
+-	ASSERT_EQ(madvise(&ptr[4 * page_size], page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure the guarding is in effect. */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
+-
+-	/* Now expand to 10 pages. */
+-	ptr = mremap(ptr, 5 * page_size, 10 * page_size, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/*
+-	 * Make sure the guard markers are retained in their original positions.
+-	 */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
+-
+-	/* Reserve a region which we can move to and expand into. */
+-	ptr_new = mmap(NULL, 20 * page_size, PROT_NONE,
+-		       MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr_new, MAP_FAILED);
+-
+-	/* Now move and expand into it. */
+-	ptr = mremap(ptr, 10 * page_size, 20 * page_size,
+-		     MREMAP_MAYMOVE | MREMAP_FIXED, ptr_new);
+-	ASSERT_EQ(ptr, ptr_new);
+-
+-	/*
+-	 * Again, make sure the guard markers are retained in their original positions.
+-	 */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
+-
+-	/*
+-	 * A real user would have to remove guard markers, but would reasonably
+-	 * expect all characteristics of the mapping to be retained, including
+-	 * guard markers.
+-	 */
+-
+-	/* Cleanup. */
+-	munmap(ptr, 20 * page_size);
+-}
+-/*
+- * Assert that moving, extending and shrinking memory via mremap() retains
+- * guard markers where possible.
+- *
+- * Shrinking will result in markers that are shrunk over being removed. Again,
+- * if the user were using a PROT_NONE mapping they'd have to manually fix this
+- * up also so this is OK.
+- */
+-TEST_F(guard_pages, mremap_shrink)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	/* Map 5 pages. */
+-	ptr = mmap(NULL, 5 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Place guard markers at both ends of the 5 page span. */
+-	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
+-	ASSERT_EQ(madvise(&ptr[4 * page_size], page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Make sure the guarding is in effect. */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
+-
+-	/* Now shrink to 3 pages. */
+-	ptr = mremap(ptr, 5 * page_size, 3 * page_size, MREMAP_MAYMOVE);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* We expect the guard marker at the start to be retained... */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-
+-	/* ...But remaining pages will not have guard markers. */
+-	for (i = 1; i < 3; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/*
+-	 * As with expansion, a real user would have to remove guard pages and
+-	 * fixup. But you'd have to do similar manual things with PROT_NONE
+-	 * mappings too.
+-	 */
+-
+-	/*
+-	 * If we expand back to the original size, the end marker will, of
+-	 * course, no longer be present.
+-	 */
+-	ptr = mremap(ptr, 3 * page_size, 5 * page_size, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Again, we expect the guard marker at the start to be retained... */
+-	ASSERT_FALSE(try_read_write_buf(ptr));
+-
+-	/* ...But remaining pages will not have guard markers. */
+-	for (i = 1; i < 5; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_TRUE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	munmap(ptr, 5 * page_size);
+-}
+-
+-/*
+- * Assert that forking a process with VMAs that do not have VM_WIPEONFORK set
+- * retain guard pages.
+- */
+-TEST_F(guard_pages, fork)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	pid_t pid;
+-	int i;
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Establish guard pages in the first 5 pages. */
+-	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	pid = fork();
+-	ASSERT_NE(pid, -1);
+-	if (!pid) {
+-		/* This is the child process now. */
+-
+-		/* Assert that the guarding is in effect. */
+-		for (i = 0; i < 10; i++) {
+-			char *curr = &ptr[i * page_size];
+-			bool result = try_read_write_buf(curr);
+-
+-			ASSERT_TRUE(i >= 5 ? result : !result);
+-		}
+-
+-		/* Now unguard the range.*/
+-		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
+-
+-		exit(0);
+-	}
+-
+-	/* Parent process. */
+-
+-	/* Parent simply waits on child. */
+-	waitpid(pid, NULL, 0);
+-
+-	/* Child unguard does not impact parent page table state. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-		bool result = try_read_write_buf(curr);
+-
+-		ASSERT_TRUE(i >= 5 ? result : !result);
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/*
+- * Assert expected behaviour after we fork populated ranges of anonymous memory
+- * and then guard and unguard the range.
+- */
+-TEST_F(guard_pages, fork_cow)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	pid_t pid;
+-	int i;
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Populate range. */
+-	for (i = 0; i < 10 * page_size; i++) {
+-		char chr = 'a' + (i % 26);
+-
+-		ptr[i] = chr;
+-	}
+-
+-	pid = fork();
+-	ASSERT_NE(pid, -1);
+-	if (!pid) {
+-		/* This is the child process now. */
+-
+-		/* Ensure the range is as expected. */
+-		for (i = 0; i < 10 * page_size; i++) {
+-			char expected = 'a' + (i % 26);
+-			char actual = ptr[i];
+-
+-			ASSERT_EQ(actual, expected);
+-		}
+-
+-		/* Establish guard pages across the whole range. */
+-		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-		/* Remove it. */
+-		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
+-
+-		/*
+-		 * By removing the guard pages, the page tables will be
+-		 * cleared. Assert that we are looking at the zero page now.
+-		 */
+-		for (i = 0; i < 10 * page_size; i++) {
+-			char actual = ptr[i];
+-
+-			ASSERT_EQ(actual, '\0');
+-		}
+-
+-		exit(0);
+-	}
+-
+-	/* Parent process. */
+-
+-	/* Parent simply waits on child. */
+-	waitpid(pid, NULL, 0);
+-
+-	/* Ensure the range is unchanged in parent anon range. */
+-	for (i = 0; i < 10 * page_size; i++) {
+-		char expected = 'a' + (i % 26);
+-		char actual = ptr[i];
+-
+-		ASSERT_EQ(actual, expected);
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/*
+- * Assert that forking a process with VMAs that do have VM_WIPEONFORK set
+- * behave as expected.
+- */
+-TEST_F(guard_pages, fork_wipeonfork)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	pid_t pid;
+-	int i;
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Mark wipe on fork. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_WIPEONFORK), 0);
+-
+-	/* Guard the first 5 pages. */
+-	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	pid = fork();
+-	ASSERT_NE(pid, -1);
+-	if (!pid) {
+-		/* This is the child process now. */
+-
+-		/* Guard will have been wiped. */
+-		for (i = 0; i < 10; i++) {
+-			char *curr = &ptr[i * page_size];
+-
+-			ASSERT_TRUE(try_read_write_buf(curr));
+-		}
+-
+-		exit(0);
+-	}
+-
+-	/* Parent process. */
+-
+-	waitpid(pid, NULL, 0);
+-
+-	/* Guard markers should be in effect.*/
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-		bool result = try_read_write_buf(curr);
+-
+-		ASSERT_TRUE(i >= 5 ? result : !result);
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Ensure that MADV_FREE retains guard entries as expected. */
+-TEST_F(guard_pages, lazyfree)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Guard range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Ensure guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Lazyfree range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_FREE), 0);
+-
+-	/* This should leave the guard markers in place. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Ensure that MADV_POPULATE_READ, MADV_POPULATE_WRITE behave as expected. */
+-TEST_F(guard_pages, populate)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Guard range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Populate read should error out... */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_POPULATE_READ), -1);
+-	ASSERT_EQ(errno, EFAULT);
+-
+-	/* ...as should populate write. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_POPULATE_WRITE), -1);
+-	ASSERT_EQ(errno, EFAULT);
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Ensure that MADV_COLD, MADV_PAGEOUT do not remove guard markers. */
+-TEST_F(guard_pages, cold_pageout)
+-{
+-	const unsigned long page_size = self->page_size;
+-	char *ptr;
+-	int i;
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Guard range. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* Ensured guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Now mark cold. This should have no impact on guard markers. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_COLD), 0);
+-
+-	/* Should remain guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* OK, now page out. This should equally, have no effect on markers. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_PAGEOUT), 0);
+-
+-	/* Should remain guarded. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-/* Ensure that guard pages do not break userfaultd. */
+-TEST_F(guard_pages, uffd)
+-{
+-	const unsigned long page_size = self->page_size;
+-	int uffd;
+-	char *ptr;
+-	int i;
+-	struct uffdio_api api = {
+-		.api = UFFD_API,
+-		.features = 0,
+-	};
+-	struct uffdio_register reg;
+-	struct uffdio_range range;
+-
+-	/* Set up uffd. */
+-	uffd = userfaultfd(0);
+-	if (uffd == -1 && errno == EPERM)
+-		ksft_exit_skip("No userfaultfd permissions, try running as root.\n");
+-	ASSERT_NE(uffd, -1);
+-
+-	ASSERT_EQ(ioctl(uffd, UFFDIO_API, &api), 0);
+-
+-	/* Map 10 pages. */
+-	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
+-		   MAP_ANON | MAP_PRIVATE, -1, 0);
+-	ASSERT_NE(ptr, MAP_FAILED);
+-
+-	/* Register the range with uffd. */
+-	range.start = (unsigned long)ptr;
+-	range.len = 10 * page_size;
+-	reg.range = range;
+-	reg.mode = UFFDIO_REGISTER_MODE_MISSING;
+-	ASSERT_EQ(ioctl(uffd, UFFDIO_REGISTER, &reg), 0);
+-
+-	/* Guard the range. This should not trigger the uffd. */
+-	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
+-
+-	/* The guarding should behave as usual with no uffd intervention. */
+-	for (i = 0; i < 10; i++) {
+-		char *curr = &ptr[i * page_size];
+-
+-		ASSERT_FALSE(try_read_write_buf(curr));
+-	}
+-
+-	/* Cleanup. */
+-	ASSERT_EQ(ioctl(uffd, UFFDIO_UNREGISTER, &range), 0);
+-	close(uffd);
+-	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+-}
+-
+-TEST_HARNESS_MAIN
+diff --git a/tools/testing/selftests/mm/guard-regions.c a/tools/testing/selftests/mm/guard-regions.c
+new file mode 100664
+--- /dev/null
++++ a/tools/testing/selftests/mm/guard-regions.c
+@@ -0,0 +1,1320 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#define _GNU_SOURCE
++#include "../kselftest_harness.h"
++#include <asm-generic/mman.h> /* Force the import of the tools version. */
++#include <assert.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <linux/userfaultfd.h>
++#include <setjmp.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/ioctl.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <sys/uio.h>
++#include <unistd.h>
++
++/*
++ * Ignore the checkpatch warning, as per the C99 standard, section 7.14.1.1:
++ *
++ * "If the signal occurs other than as the result of calling the abort or raise
++ *  function, the behavior is undefined if the signal handler refers to any
++ *  object with static storage duration other than by assigning a value to an
++ *  object declared as volatile sig_atomic_t"
++ */
++static volatile sig_atomic_t signal_jump_set;
++static sigjmp_buf signal_jmp_buf;
++
++/*
++ * Ignore the checkpatch warning, we must read from x but don't want to do
++ * anything with it in order to trigger a read page fault. We therefore must use
++ * volatile to stop the compiler from optimising this away.
++ */
++#define FORCE_READ(x) (*(volatile typeof(x) *)x)
++
++static int userfaultfd(int flags)
++{
++	return syscall(SYS_userfaultfd, flags);
++}
++
++static void handle_fatal(int c)
++{
++	if (!signal_jump_set)
++		return;
++
++	siglongjmp(signal_jmp_buf, c);
++}
++
++static int pidfd_open(pid_t pid, unsigned int flags)
++{
++	return syscall(SYS_pidfd_open, pid, flags);
++}
++
++static ssize_t sys_process_madvise(int pidfd, const struct iovec *iovec,
++				   size_t n, int advice, unsigned int flags)
++{
++	return syscall(__NR_process_madvise, pidfd, iovec, n, advice, flags);
++}
++
++/*
++ * Enable our signal catcher and try to read/write the specified buffer. The
++ * return value indicates whether the read/write succeeds without a fatal
++ * signal.
++ */
++static bool try_access_buf(char *ptr, bool write)
++{
++	bool failed;
++
++	/* Tell signal handler to jump back here on fatal signal. */
++	signal_jump_set = true;
++	/* If a fatal signal arose, we will jump back here and failed is set. */
++	failed = sigsetjmp(signal_jmp_buf, 0) != 0;
++
++	if (!failed) {
++		if (write)
++			*ptr = 'x';
++		else
++			FORCE_READ(ptr);
++	}
++
++	signal_jump_set = false;
++	return !failed;
++}
++
++/* Try and read from a buffer, return true if no fatal signal. */
++static bool try_read_buf(char *ptr)
++{
++	return try_access_buf(ptr, false);
++}
++
++/* Try and write to a buffer, return true if no fatal signal. */
++static bool try_write_buf(char *ptr)
++{
++	return try_access_buf(ptr, true);
++}
++
++/*
++ * Try and BOTH read from AND write to a buffer, return true if BOTH operations
++ * succeed.
++ */
++static bool try_read_write_buf(char *ptr)
++{
++	return try_read_buf(ptr) && try_write_buf(ptr);
++}
++
++FIXTURE(guard_regions)
++{
++	unsigned long page_size;
++};
++
++FIXTURE_SETUP(guard_regions)
++{
++	struct sigaction act = {
++		.sa_handler = &handle_fatal,
++		.sa_flags = SA_NODEFER,
++	};
++
++	sigemptyset(&act.sa_mask);
++	if (sigaction(SIGSEGV, &act, NULL))
++		ksft_exit_fail_perror("sigaction");
++
++	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
++};
++
++FIXTURE_TEARDOWN(guard_regions)
++{
++	struct sigaction act = {
++		.sa_handler = SIG_DFL,
++		.sa_flags = SA_NODEFER,
++	};
++
++	sigemptyset(&act.sa_mask);
++	sigaction(SIGSEGV, &act, NULL);
++}
++
++TEST_F(guard_regions, basic)
++{
++	const unsigned long NUM_PAGES = 10;
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	ptr = mmap(NULL, NUM_PAGES * page_size, PROT_READ | PROT_WRITE,
++		   MAP_PRIVATE | MAP_ANON, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Trivially assert we can touch the first page. */
++	ASSERT_TRUE(try_read_write_buf(ptr));
++
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Establish that 1st page SIGSEGV's. */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++
++	/* Ensure we can touch everything else.*/
++	for (i = 1; i < NUM_PAGES; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Establish a guard page at the end of the mapping. */
++	ASSERT_EQ(madvise(&ptr[(NUM_PAGES - 1) * page_size], page_size,
++			  MADV_GUARD_INSTALL), 0);
++
++	/* Check that both guard pages result in SIGSEGV. */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[(NUM_PAGES - 1) * page_size]));
++
++	/* Remove the first guard page. */
++	ASSERT_FALSE(madvise(ptr, page_size, MADV_GUARD_REMOVE));
++
++	/* Make sure we can touch it. */
++	ASSERT_TRUE(try_read_write_buf(ptr));
++
++	/* Remove the last guard page. */
++	ASSERT_FALSE(madvise(&ptr[(NUM_PAGES - 1) * page_size], page_size,
++			     MADV_GUARD_REMOVE));
++
++	/* Make sure we can touch it. */
++	ASSERT_TRUE(try_read_write_buf(&ptr[(NUM_PAGES - 1) * page_size]));
++
++	/*
++	 *  Test setting a _range_ of pages, namely the first 3. The first of
++	 *  these be faulted in, so this also tests that we can install guard
++	 *  pages over backed pages.
++	 */
++	ASSERT_EQ(madvise(ptr, 3 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure they are all guard pages. */
++	for (i = 0; i < 3; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Make sure the rest are not. */
++	for (i = 3; i < NUM_PAGES; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Remove guard pages. */
++	ASSERT_EQ(madvise(ptr, NUM_PAGES * page_size, MADV_GUARD_REMOVE), 0);
++
++	/* Now make sure we can touch everything. */
++	for (i = 0; i < NUM_PAGES; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/*
++	 * Now remove all guard pages, make sure we don't remove existing
++	 * entries.
++	 */
++	ASSERT_EQ(madvise(ptr, NUM_PAGES * page_size, MADV_GUARD_REMOVE), 0);
++
++	for (i = 0; i < NUM_PAGES * page_size; i += page_size) {
++		char chr = ptr[i];
++
++		ASSERT_EQ(chr, 'x');
++	}
++
++	ASSERT_EQ(munmap(ptr, NUM_PAGES * page_size), 0);
++}
++
++/* Assert that operations applied across multiple VMAs work as expected. */
++TEST_F(guard_regions, multi_vma)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr_region, *ptr, *ptr1, *ptr2, *ptr3;
++	int i;
++
++	/* Reserve a 100 page region over which we can install VMAs. */
++	ptr_region = mmap(NULL, 100 * page_size, PROT_NONE,
++			  MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_region, MAP_FAILED);
++
++	/* Place a VMA of 10 pages size at the start of the region. */
++	ptr1 = mmap(ptr_region, 10 * page_size, PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr1, MAP_FAILED);
++
++	/* Place a VMA of 5 pages size 50 pages into the region. */
++	ptr2 = mmap(&ptr_region[50 * page_size], 5 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr2, MAP_FAILED);
++
++	/* Place a VMA of 20 pages size at the end of the region. */
++	ptr3 = mmap(&ptr_region[80 * page_size], 20 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr3, MAP_FAILED);
++
++	/* Unmap gaps. */
++	ASSERT_EQ(munmap(&ptr_region[10 * page_size], 40 * page_size), 0);
++	ASSERT_EQ(munmap(&ptr_region[55 * page_size], 25 * page_size), 0);
++
++	/*
++	 * We end up with VMAs like this:
++	 *
++	 * 0    10 .. 50   55 .. 80   100
++	 * [---]      [---]      [---]
++	 */
++
++	/*
++	 * Now mark the whole range as guard pages and make sure all VMAs are as
++	 * such.
++	 */
++
++	/*
++	 * madvise() is certifiable and lets you perform operations over gaps,
++	 * everything works, but it indicates an error and errno is set to
++	 * -ENOMEM. Also if anything runs out of memory it is set to
++	 * -ENOMEM. You are meant to guess which is which.
++	 */
++	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_INSTALL), -1);
++	ASSERT_EQ(errno, ENOMEM);
++
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr1[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	for (i = 0; i < 5; i++) {
++		char *curr = &ptr2[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	for (i = 0; i < 20; i++) {
++		char *curr = &ptr3[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Now remove guar pages over range and assert the opposite. */
++
++	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_REMOVE), -1);
++	ASSERT_EQ(errno, ENOMEM);
++
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr1[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	for (i = 0; i < 5; i++) {
++		char *curr = &ptr2[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	for (i = 0; i < 20; i++) {
++		char *curr = &ptr3[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Now map incompatible VMAs in the gaps. */
++	ptr = mmap(&ptr_region[10 * page_size], 40 * page_size,
++		   PROT_READ | PROT_WRITE | PROT_EXEC,
++		   MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	ptr = mmap(&ptr_region[55 * page_size], 25 * page_size,
++		   PROT_READ | PROT_WRITE | PROT_EXEC,
++		   MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/*
++	 * We end up with VMAs like this:
++	 *
++	 * 0    10 .. 50   55 .. 80   100
++	 * [---][xxxx][---][xxxx][---]
++	 *
++	 * Where 'x' signifies VMAs that cannot be merged with those adjacent to
++	 * them.
++	 */
++
++	/* Multiple VMAs adjacent to one another should result in no error. */
++	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_INSTALL), 0);
++	for (i = 0; i < 100; i++) {
++		char *curr = &ptr_region[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++	ASSERT_EQ(madvise(ptr_region, 100 * page_size, MADV_GUARD_REMOVE), 0);
++	for (i = 0; i < 100; i++) {
++		char *curr = &ptr_region[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr_region, 100 * page_size), 0);
++}
++
++/*
++ * Assert that batched operations performed using process_madvise() work as
++ * expected.
++ */
++TEST_F(guard_regions, process_madvise)
++{
++	const unsigned long page_size = self->page_size;
++	pid_t pid = getpid();
++	int pidfd = pidfd_open(pid, 0);
++	char *ptr_region, *ptr1, *ptr2, *ptr3;
++	ssize_t count;
++	struct iovec vec[6];
++
++	ASSERT_NE(pidfd, -1);
++
++	/* Reserve region to map over. */
++	ptr_region = mmap(NULL, 100 * page_size, PROT_NONE,
++			  MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_region, MAP_FAILED);
++
++	/*
++	 * 10 pages offset 1 page into reserve region. We MAP_POPULATE so we
++	 * overwrite existing entries and test this code path against
++	 * overwriting existing entries.
++	 */
++	ptr1 = mmap(&ptr_region[page_size], 10 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE | MAP_POPULATE, -1, 0);
++	ASSERT_NE(ptr1, MAP_FAILED);
++	/* We want guard markers at start/end of each VMA. */
++	vec[0].iov_base = ptr1;
++	vec[0].iov_len = page_size;
++	vec[1].iov_base = &ptr1[9 * page_size];
++	vec[1].iov_len = page_size;
++
++	/* 5 pages offset 50 pages into reserve region. */
++	ptr2 = mmap(&ptr_region[50 * page_size], 5 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr2, MAP_FAILED);
++	vec[2].iov_base = ptr2;
++	vec[2].iov_len = page_size;
++	vec[3].iov_base = &ptr2[4 * page_size];
++	vec[3].iov_len = page_size;
++
++	/* 20 pages offset 79 pages into reserve region. */
++	ptr3 = mmap(&ptr_region[79 * page_size], 20 * page_size,
++		    PROT_READ | PROT_WRITE,
++		    MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr3, MAP_FAILED);
++	vec[4].iov_base = ptr3;
++	vec[4].iov_len = page_size;
++	vec[5].iov_base = &ptr3[19 * page_size];
++	vec[5].iov_len = page_size;
++
++	/* Free surrounding VMAs. */
++	ASSERT_EQ(munmap(ptr_region, page_size), 0);
++	ASSERT_EQ(munmap(&ptr_region[11 * page_size], 39 * page_size), 0);
++	ASSERT_EQ(munmap(&ptr_region[55 * page_size], 24 * page_size), 0);
++	ASSERT_EQ(munmap(&ptr_region[99 * page_size], page_size), 0);
++
++	/* Now guard in one step. */
++	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_INSTALL, 0);
++
++	/* OK we don't have permission to do this, skip. */
++	if (count == -1 && errno == EPERM)
++		ksft_exit_skip("No process_madvise() permissions, try running as root.\n");
++
++	/* Returns the number of bytes advised. */
++	ASSERT_EQ(count, 6 * page_size);
++
++	/* Now make sure the guarding was applied. */
++
++	ASSERT_FALSE(try_read_write_buf(ptr1));
++	ASSERT_FALSE(try_read_write_buf(&ptr1[9 * page_size]));
++
++	ASSERT_FALSE(try_read_write_buf(ptr2));
++	ASSERT_FALSE(try_read_write_buf(&ptr2[4 * page_size]));
++
++	ASSERT_FALSE(try_read_write_buf(ptr3));
++	ASSERT_FALSE(try_read_write_buf(&ptr3[19 * page_size]));
++
++	/* Now do the same with unguard... */
++	count = sys_process_madvise(pidfd, vec, 6, MADV_GUARD_REMOVE, 0);
++
++	/* ...and everything should now succeed. */
++
++	ASSERT_TRUE(try_read_write_buf(ptr1));
++	ASSERT_TRUE(try_read_write_buf(&ptr1[9 * page_size]));
++
++	ASSERT_TRUE(try_read_write_buf(ptr2));
++	ASSERT_TRUE(try_read_write_buf(&ptr2[4 * page_size]));
++
++	ASSERT_TRUE(try_read_write_buf(ptr3));
++	ASSERT_TRUE(try_read_write_buf(&ptr3[19 * page_size]));
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr1, 10 * page_size), 0);
++	ASSERT_EQ(munmap(ptr2, 5 * page_size), 0);
++	ASSERT_EQ(munmap(ptr3, 20 * page_size), 0);
++	close(pidfd);
++}
++
++/* Assert that unmapping ranges does not leave guard markers behind. */
++TEST_F(guard_regions, munmap)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr, *ptr_new1, *ptr_new2;
++
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Guard first and last pages. */
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
++	ASSERT_EQ(madvise(&ptr[9 * page_size], page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Assert that they are guarded. */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[9 * page_size]));
++
++	/* Unmap them. */
++	ASSERT_EQ(munmap(ptr, page_size), 0);
++	ASSERT_EQ(munmap(&ptr[9 * page_size], page_size), 0);
++
++	/* Map over them.*/
++	ptr_new1 = mmap(ptr, page_size, PROT_READ | PROT_WRITE,
++			MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_new1, MAP_FAILED);
++	ptr_new2 = mmap(&ptr[9 * page_size], page_size, PROT_READ | PROT_WRITE,
++			MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_new2, MAP_FAILED);
++
++	/* Assert that they are now not guarded. */
++	ASSERT_TRUE(try_read_write_buf(ptr_new1));
++	ASSERT_TRUE(try_read_write_buf(ptr_new2));
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Assert that mprotect() operations have no bearing on guard markers. */
++TEST_F(guard_regions, mprotect)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Guard the middle of the range. */
++	ASSERT_EQ(madvise(&ptr[5 * page_size], 2 * page_size,
++			  MADV_GUARD_INSTALL), 0);
++
++	/* Assert that it is indeed guarded. */
++	ASSERT_FALSE(try_read_write_buf(&ptr[5 * page_size]));
++	ASSERT_FALSE(try_read_write_buf(&ptr[6 * page_size]));
++
++	/* Now make these pages read-only. */
++	ASSERT_EQ(mprotect(&ptr[5 * page_size], 2 * page_size, PROT_READ), 0);
++
++	/* Make sure the range is still guarded. */
++	ASSERT_FALSE(try_read_buf(&ptr[5 * page_size]));
++	ASSERT_FALSE(try_read_buf(&ptr[6 * page_size]));
++
++	/* Make sure we can guard again without issue.*/
++	ASSERT_EQ(madvise(&ptr[5 * page_size], 2 * page_size,
++			  MADV_GUARD_INSTALL), 0);
++
++	/* Make sure the range is, yet again, still guarded. */
++	ASSERT_FALSE(try_read_buf(&ptr[5 * page_size]));
++	ASSERT_FALSE(try_read_buf(&ptr[6 * page_size]));
++
++	/* Now unguard the whole range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
++
++	/* Make sure the whole range is readable. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Split and merge VMAs and make sure guard pages still behave. */
++TEST_F(guard_regions, split_merge)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr, *ptr_new;
++	int i;
++
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Guard the whole range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure the whole range is guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Now unmap some pages in the range so we split. */
++	ASSERT_EQ(munmap(&ptr[2 * page_size], page_size), 0);
++	ASSERT_EQ(munmap(&ptr[5 * page_size], page_size), 0);
++	ASSERT_EQ(munmap(&ptr[8 * page_size], page_size), 0);
++
++	/* Make sure the remaining ranges are guarded post-split. */
++	for (i = 0; i < 2; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++	for (i = 2; i < 5; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++	for (i = 6; i < 8; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++	for (i = 9; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Now map them again - the unmap will have cleared the guards. */
++	ptr_new = mmap(&ptr[2 * page_size], page_size, PROT_READ | PROT_WRITE,
++		       MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_new, MAP_FAILED);
++	ptr_new = mmap(&ptr[5 * page_size], page_size, PROT_READ | PROT_WRITE,
++		       MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_new, MAP_FAILED);
++	ptr_new = mmap(&ptr[8 * page_size], page_size, PROT_READ | PROT_WRITE,
++		       MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_new, MAP_FAILED);
++
++	/* Now make sure guard pages are established. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++		bool result = try_read_write_buf(curr);
++		bool expect_true = i == 2 || i == 5 || i == 8;
++
++		ASSERT_TRUE(expect_true ? result : !result);
++	}
++
++	/* Now guard everything again. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure the whole range is guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Now split the range into three. */
++	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
++	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size, PROT_READ), 0);
++
++	/* Make sure the whole range is guarded for read. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_buf(curr));
++	}
++
++	/* Now reset protection bits so we merge the whole thing. */
++	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ | PROT_WRITE), 0);
++	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size,
++			   PROT_READ | PROT_WRITE), 0);
++
++	/* Make sure the whole range is still guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Split range into 3 again... */
++	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ), 0);
++	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size, PROT_READ), 0);
++
++	/* ...and unguard the whole range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
++
++	/* Make sure the whole range is remedied for read. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_buf(curr));
++	}
++
++	/* Merge them again. */
++	ASSERT_EQ(mprotect(ptr, 3 * page_size, PROT_READ | PROT_WRITE), 0);
++	ASSERT_EQ(mprotect(&ptr[7 * page_size], 3 * page_size,
++			   PROT_READ | PROT_WRITE), 0);
++
++	/* Now ensure the merged range is remedied for read/write. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Assert that MADV_DONTNEED does not remove guard markers. */
++TEST_F(guard_regions, dontneed)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Back the whole range. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		*curr = 'y';
++	}
++
++	/* Guard every other page. */
++	for (i = 0; i < 10; i += 2) {
++		char *curr = &ptr[i * page_size];
++		int res = madvise(curr, page_size, MADV_GUARD_INSTALL);
++
++		ASSERT_EQ(res, 0);
++	}
++
++	/* Indicate that we don't need any of the range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_DONTNEED), 0);
++
++	/* Check to ensure guard markers are still in place. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++		bool result = try_read_buf(curr);
++
++		if (i % 2 == 0) {
++			ASSERT_FALSE(result);
++		} else {
++			ASSERT_TRUE(result);
++			/* Make sure we really did get reset to zero page. */
++			ASSERT_EQ(*curr, '\0');
++		}
++
++		/* Now write... */
++		result = try_write_buf(&ptr[i * page_size]);
++
++		/* ...and make sure same result. */
++		ASSERT_TRUE(i % 2 != 0 ? result : !result);
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Assert that mlock()'ed pages work correctly with guard markers. */
++TEST_F(guard_regions, mlock)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Populate. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		*curr = 'y';
++	}
++
++	/* Lock. */
++	ASSERT_EQ(mlock(ptr, 10 * page_size), 0);
++
++	/* Now try to guard, should fail with EINVAL. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), -1);
++	ASSERT_EQ(errno, EINVAL);
++
++	/* OK unlock. */
++	ASSERT_EQ(munlock(ptr, 10 * page_size), 0);
++
++	/* Guard first half of range, should now succeed. */
++	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure guard works. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++		bool result = try_read_write_buf(curr);
++
++		if (i < 5) {
++			ASSERT_FALSE(result);
++		} else {
++			ASSERT_TRUE(result);
++			ASSERT_EQ(*curr, 'x');
++		}
++	}
++
++	/*
++	 * Now lock the latter part of the range. We can't lock the guard pages,
++	 * as this would result in the pages being populated and the guarding
++	 * would cause this to error out.
++	 */
++	ASSERT_EQ(mlock(&ptr[5 * page_size], 5 * page_size), 0);
++
++	/*
++	 * Now remove guard pages, we permit mlock()'d ranges to have guard
++	 * pages removed as it is a non-destructive operation.
++	 */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
++
++	/* Now check that no guard pages remain. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/*
++ * Assert that moving, extending and shrinking memory via mremap() retains
++ * guard markers where possible.
++ *
++ * - Moving a mapping alone should retain markers as they are.
++ */
++TEST_F(guard_regions, mremap_move)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr, *ptr_new;
++
++	/* Map 5 pages. */
++	ptr = mmap(NULL, 5 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Place guard markers at both ends of the 5 page span. */
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
++	ASSERT_EQ(madvise(&ptr[4 * page_size], page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure the guard pages are in effect. */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
++
++	/* Map a new region we will move this range into. Doing this ensures
++	 * that we have reserved a range to map into.
++	 */
++	ptr_new = mmap(NULL, 5 * page_size, PROT_NONE, MAP_ANON | MAP_PRIVATE,
++		       -1, 0);
++	ASSERT_NE(ptr_new, MAP_FAILED);
++
++	ASSERT_EQ(mremap(ptr, 5 * page_size, 5 * page_size,
++			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr_new), ptr_new);
++
++	/* Make sure the guard markers are retained. */
++	ASSERT_FALSE(try_read_write_buf(ptr_new));
++	ASSERT_FALSE(try_read_write_buf(&ptr_new[4 * page_size]));
++
++	/*
++	 * Clean up - we only need reference the new pointer as we overwrote the
++	 * PROT_NONE range and moved the existing one.
++	 */
++	munmap(ptr_new, 5 * page_size);
++}
++
++/*
++ * Assert that moving, extending and shrinking memory via mremap() retains
++ * guard markers where possible.
++ *
++ * Expanding should retain guard pages, only now in different position. The user
++ * will have to remove guard pages manually to fix up (they'd have to do the
++ * same if it were a PROT_NONE mapping).
++ */
++TEST_F(guard_regions, mremap_expand)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr, *ptr_new;
++
++	/* Map 10 pages... */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	/* ...But unmap the last 5 so we can ensure we can expand into them. */
++	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
++
++	/* Place guard markers at both ends of the 5 page span. */
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
++	ASSERT_EQ(madvise(&ptr[4 * page_size], page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure the guarding is in effect. */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
++
++	/* Now expand to 10 pages. */
++	ptr = mremap(ptr, 5 * page_size, 10 * page_size, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/*
++	 * Make sure the guard markers are retained in their original positions.
++	 */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
++
++	/* Reserve a region which we can move to and expand into. */
++	ptr_new = mmap(NULL, 20 * page_size, PROT_NONE,
++		       MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr_new, MAP_FAILED);
++
++	/* Now move and expand into it. */
++	ptr = mremap(ptr, 10 * page_size, 20 * page_size,
++		     MREMAP_MAYMOVE | MREMAP_FIXED, ptr_new);
++	ASSERT_EQ(ptr, ptr_new);
++
++	/*
++	 * Again, make sure the guard markers are retained in their original positions.
++	 */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
++
++	/*
++	 * A real user would have to remove guard markers, but would reasonably
++	 * expect all characteristics of the mapping to be retained, including
++	 * guard markers.
++	 */
++
++	/* Cleanup. */
++	munmap(ptr, 20 * page_size);
++}
++/*
++ * Assert that moving, extending and shrinking memory via mremap() retains
++ * guard markers where possible.
++ *
++ * Shrinking will result in markers that are shrunk over being removed. Again,
++ * if the user were using a PROT_NONE mapping they'd have to manually fix this
++ * up also so this is OK.
++ */
++TEST_F(guard_regions, mremap_shrink)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	/* Map 5 pages. */
++	ptr = mmap(NULL, 5 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Place guard markers at both ends of the 5 page span. */
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
++	ASSERT_EQ(madvise(&ptr[4 * page_size], page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Make sure the guarding is in effect. */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++	ASSERT_FALSE(try_read_write_buf(&ptr[4 * page_size]));
++
++	/* Now shrink to 3 pages. */
++	ptr = mremap(ptr, 5 * page_size, 3 * page_size, MREMAP_MAYMOVE);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* We expect the guard marker at the start to be retained... */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++
++	/* ...But remaining pages will not have guard markers. */
++	for (i = 1; i < 3; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/*
++	 * As with expansion, a real user would have to remove guard pages and
++	 * fixup. But you'd have to do similar manual things with PROT_NONE
++	 * mappings too.
++	 */
++
++	/*
++	 * If we expand back to the original size, the end marker will, of
++	 * course, no longer be present.
++	 */
++	ptr = mremap(ptr, 3 * page_size, 5 * page_size, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Again, we expect the guard marker at the start to be retained... */
++	ASSERT_FALSE(try_read_write_buf(ptr));
++
++	/* ...But remaining pages will not have guard markers. */
++	for (i = 1; i < 5; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_TRUE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	munmap(ptr, 5 * page_size);
++}
++
++/*
++ * Assert that forking a process with VMAs that do not have VM_WIPEONFORK set
++ * retain guard pages.
++ */
++TEST_F(guard_regions, fork)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	pid_t pid;
++	int i;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Establish guard pages in the first 5 pages. */
++	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
++
++	pid = fork();
++	ASSERT_NE(pid, -1);
++	if (!pid) {
++		/* This is the child process now. */
++
++		/* Assert that the guarding is in effect. */
++		for (i = 0; i < 10; i++) {
++			char *curr = &ptr[i * page_size];
++			bool result = try_read_write_buf(curr);
++
++			ASSERT_TRUE(i >= 5 ? result : !result);
++		}
++
++		/* Now unguard the range.*/
++		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
++
++		exit(0);
++	}
++
++	/* Parent process. */
++
++	/* Parent simply waits on child. */
++	waitpid(pid, NULL, 0);
++
++	/* Child unguard does not impact parent page table state. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++		bool result = try_read_write_buf(curr);
++
++		ASSERT_TRUE(i >= 5 ? result : !result);
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/*
++ * Assert expected behaviour after we fork populated ranges of anonymous memory
++ * and then guard and unguard the range.
++ */
++TEST_F(guard_regions, fork_cow)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	pid_t pid;
++	int i;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Populate range. */
++	for (i = 0; i < 10 * page_size; i++) {
++		char chr = 'a' + (i % 26);
++
++		ptr[i] = chr;
++	}
++
++	pid = fork();
++	ASSERT_NE(pid, -1);
++	if (!pid) {
++		/* This is the child process now. */
++
++		/* Ensure the range is as expected. */
++		for (i = 0; i < 10 * page_size; i++) {
++			char expected = 'a' + (i % 26);
++			char actual = ptr[i];
++
++			ASSERT_EQ(actual, expected);
++		}
++
++		/* Establish guard pages across the whole range. */
++		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++		/* Remove it. */
++		ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_REMOVE), 0);
++
++		/*
++		 * By removing the guard pages, the page tables will be
++		 * cleared. Assert that we are looking at the zero page now.
++		 */
++		for (i = 0; i < 10 * page_size; i++) {
++			char actual = ptr[i];
++
++			ASSERT_EQ(actual, '\0');
++		}
++
++		exit(0);
++	}
++
++	/* Parent process. */
++
++	/* Parent simply waits on child. */
++	waitpid(pid, NULL, 0);
++
++	/* Ensure the range is unchanged in parent anon range. */
++	for (i = 0; i < 10 * page_size; i++) {
++		char expected = 'a' + (i % 26);
++		char actual = ptr[i];
++
++		ASSERT_EQ(actual, expected);
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/*
++ * Assert that forking a process with VMAs that do have VM_WIPEONFORK set
++ * behave as expected.
++ */
++TEST_F(guard_regions, fork_wipeonfork)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	pid_t pid;
++	int i;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Mark wipe on fork. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_WIPEONFORK), 0);
++
++	/* Guard the first 5 pages. */
++	ASSERT_EQ(madvise(ptr, 5 * page_size, MADV_GUARD_INSTALL), 0);
++
++	pid = fork();
++	ASSERT_NE(pid, -1);
++	if (!pid) {
++		/* This is the child process now. */
++
++		/* Guard will have been wiped. */
++		for (i = 0; i < 10; i++) {
++			char *curr = &ptr[i * page_size];
++
++			ASSERT_TRUE(try_read_write_buf(curr));
++		}
++
++		exit(0);
++	}
++
++	/* Parent process. */
++
++	waitpid(pid, NULL, 0);
++
++	/* Guard markers should be in effect.*/
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++		bool result = try_read_write_buf(curr);
++
++		ASSERT_TRUE(i >= 5 ? result : !result);
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Ensure that MADV_FREE retains guard entries as expected. */
++TEST_F(guard_regions, lazyfree)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Guard range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Ensure guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Lazyfree range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_FREE), 0);
++
++	/* This should leave the guard markers in place. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Ensure that MADV_POPULATE_READ, MADV_POPULATE_WRITE behave as expected. */
++TEST_F(guard_regions, populate)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Guard range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Populate read should error out... */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_POPULATE_READ), -1);
++	ASSERT_EQ(errno, EFAULT);
++
++	/* ...as should populate write. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_POPULATE_WRITE), -1);
++	ASSERT_EQ(errno, EFAULT);
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Ensure that MADV_COLD, MADV_PAGEOUT do not remove guard markers. */
++TEST_F(guard_regions, cold_pageout)
++{
++	const unsigned long page_size = self->page_size;
++	char *ptr;
++	int i;
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Guard range. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* Ensured guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Now mark cold. This should have no impact on guard markers. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_COLD), 0);
++
++	/* Should remain guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* OK, now page out. This should equally, have no effect on markers. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_PAGEOUT), 0);
++
++	/* Should remain guarded. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++/* Ensure that guard pages do not break userfaultd. */
++TEST_F(guard_regions, uffd)
++{
++	const unsigned long page_size = self->page_size;
++	int uffd;
++	char *ptr;
++	int i;
++	struct uffdio_api api = {
++		.api = UFFD_API,
++		.features = 0,
++	};
++	struct uffdio_register reg;
++	struct uffdio_range range;
++
++	/* Set up uffd. */
++	uffd = userfaultfd(0);
++	if (uffd == -1 && errno == EPERM)
++		ksft_exit_skip("No userfaultfd permissions, try running as root.\n");
++	ASSERT_NE(uffd, -1);
++
++	ASSERT_EQ(ioctl(uffd, UFFDIO_API, &api), 0);
++
++	/* Map 10 pages. */
++	ptr = mmap(NULL, 10 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE, -1, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++
++	/* Register the range with uffd. */
++	range.start = (unsigned long)ptr;
++	range.len = 10 * page_size;
++	reg.range = range;
++	reg.mode = UFFDIO_REGISTER_MODE_MISSING;
++	ASSERT_EQ(ioctl(uffd, UFFDIO_REGISTER, &reg), 0);
++
++	/* Guard the range. This should not trigger the uffd. */
++	ASSERT_EQ(madvise(ptr, 10 * page_size, MADV_GUARD_INSTALL), 0);
++
++	/* The guarding should behave as usual with no uffd intervention. */
++	for (i = 0; i < 10; i++) {
++		char *curr = &ptr[i * page_size];
++
++		ASSERT_FALSE(try_read_write_buf(curr));
++	}
++
++	/* Cleanup. */
++	ASSERT_EQ(ioctl(uffd, UFFDIO_UNREGISTER, &range), 0);
++	close(uffd);
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
++
++TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-rename-guard-pages-to-guard-regions
++++ a/tools/testing/selftests/mm/Makefile
+@@ -97,7 +97,7 @@ TEST_GEN_FILES += hugetlb_fault_after_ma
+ TEST_GEN_FILES += hugetlb_madv_vs_map
+ TEST_GEN_FILES += hugetlb_dio
+ TEST_GEN_FILES += droppable
+-TEST_GEN_FILES += guard-pages
++TEST_GEN_FILES += guard-regions
  
- static bool is_guard_pte_marker(pte_t ptent)
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_FILES += soft-dirty
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
