@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57203271823
-	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 00:31:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C6E3BBC1
+	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 00:32:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739406694; cv=none; b=mbJXIv2q2z81nxCZ1pTDogdQION0JJWmT5JJh1H0KJ3LH1FqphbW7JEbmucAIkZi2fXE96TVf3a1FM1QkrkBi2rY2cJLjdilenefEHlgMDSblx4xKLbB9F+a3ccZmChUrX5MBlY4GbDQOeubBFFlZGi2+PiipNrWbDrP5V6TRmE=
+	t=1739406752; cv=none; b=iRjoy2qTbhp5pexPTQS3ClHyrfEWlymSCKwOV+HZv0HWCPgljCmKzyCqznUc6xM21ub1qQl4rZXM2BWCSdjisBWOscWlNUxcZHvv8VRewTP/ECE6zcdG4BGzoW/Wx0pKFFda0xmBxZctKLFcH6MyFJgvcshzrsu8gGiBiGearbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739406694; c=relaxed/simple;
-	bh=ZQgQL4o0NbH7VIAByt36ucaOKMHYJrx1sfap+OYzxs0=;
-	h=Date:To:From:Subject:Message-Id; b=GZtxYa7H+4pRiDTbo4I2F5KK93qEGF1jOo9ZilGBQUdvS3IJ6lJkbLGEtOF7ifbbV2Y5FhSduJLEswPDXB0C7qe4f/VRe+T/8TWWBSWT/6TniqTzFUz9HXY42+iBNnVGdVYSNSDfkO4ysmVuln2xkHhy54tTqpskVl8nLGi3MTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tvOntQ4k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739406752; c=relaxed/simple;
+	bh=+f8udS+HA5tedYyXx6sBUBkrIEN/zfcG8u+ijaICIco=;
+	h=Date:To:From:Subject:Message-Id; b=PpxmhqxGouU2iFdUG5Jf1NJbJ6WQZfx14KPjeuM3JNulWfskeWhQ+3lESaeJGcsHTcHHoxSQHpubkyjkR9eUpNZ1bazA/UzaGqqUxn24zte29+g83O+DoUfDnaJEtt3lMA0LtbRvzu656Z5B7QQdG1N5yurMsrGnhpWCITn2NkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FaKdUkiM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tvOntQ4k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97989C4CEDF;
-	Thu, 13 Feb 2025 00:31:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FaKdUkiM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D61A8C4CEDF;
+	Thu, 13 Feb 2025 00:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739406693;
-	bh=ZQgQL4o0NbH7VIAByt36ucaOKMHYJrx1sfap+OYzxs0=;
+	s=korg; t=1739406751;
+	bh=+f8udS+HA5tedYyXx6sBUBkrIEN/zfcG8u+ijaICIco=;
 	h=Date:To:From:Subject:From;
-	b=tvOntQ4kVzQ9TDXv0Ht68fMeDLdhunC9HYwp8zNIN/XztFUicqINdmpIlbC2ZIBpa
-	 2Y++O4vAl+eH3AA6N+PLG8OUz58RSpqbBqjMwLzGSxie1KypFJ7MJF7J9mnmgKX/3X
-	 w6vF19LgtSQ+oFwVyO+Nq9YwmgYuw5mu+b+nTQ/k=
-Date: Wed, 12 Feb 2025 16:31:32 -0800
-To: mm-commits@vger.kernel.org,shivankg@amd.com,rppt@kernel.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=FaKdUkiMEaYe2bOEMB5jHGJZIvmPj+s1jMk2JffEEIME+rjlNcKQvQw2Aoel5YqMh
+	 HL80paFW1MlG1D1OoBQIXGxWj5Ijiv8J5lagEoQe9BAkk2JOnJCX7fwtnP8MOO577S
+	 Z1i0iMpixruvbjHOJXmRm4njBR4LhDqTmMF5Zomc=
+Date: Wed, 12 Feb 2025 16:32:31 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_initc-use-round_up-to-calculate-usermap-size.patch added to mm-unstable branch
-Message-Id: <20250213003133.97989C4CEDF@smtp.kernel.org>
+Subject: + xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch added to mm-unstable branch
+Message-Id: <20250213003231.D61A8C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init.c: use round_up() to calculate usermap size
+     Subject: correct the function name
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_initc-use-round_up-to-calculate-usermap-size.patch
+     xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-use-round_up-to-calculate-usermap-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/mm_init.c: use round_up() to calculate usermap size
-Date: Wed, 12 Feb 2025 01:38:18 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: correct the function name
+Date: Tue, 11 Feb 2025 20:48:55 -0500
 
-Since pageblock_nr_pages and BITS_PER_LONG are power of 2, we could use
-round_up() to calculate it.
-
-Also we have renamed blockflags to pageblock_flags, adjust the comment
-accordingly.
-
-Link: https://lkml.kernel.org/r/20250212013818.873-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: Shivank Garg <shivankg@amd.com>
-Reviewed-by: Shivank Garg <shivankg@amd.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/32DDC973-FAF8-48A8-831E-01E2ABA2966B@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/test_xarray.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-mm_initc-use-round_up-to-calculate-usermap-size
-+++ a/mm/mm_init.c
-@@ -1450,7 +1450,7 @@ void __meminit init_currently_empty_zone
+--- a/lib/test_xarray.c~xarray-add-xas_try_split-to-split-a-multi-index-entry-fix
++++ a/lib/test_xarray.c
+@@ -1868,7 +1868,7 @@ static void check_split_2(struct xarray
+ 	xa_set_mark(xa, index, XA_MARK_1);
  
- #ifndef CONFIG_SPARSEMEM
- /*
-- * Calculate the size of the zone->blockflags rounded to an unsigned long
-+ * Calculate the size of the zone->pageblock_flags rounded to an unsigned long
-  * Start by making sure zonesize is a multiple of pageblock_order by rounding
-  * up. Then use 1 NR_PAGEBLOCK_BITS worth of bits per pageblock, finally
-  * round what is now in bits to nearest long in bits, then return it in
-@@ -1461,10 +1461,10 @@ static unsigned long __init usemap_size(
- 	unsigned long usemapsize;
- 
- 	zonesize += zone_start_pfn & (pageblock_nr_pages-1);
--	usemapsize = roundup(zonesize, pageblock_nr_pages);
-+	usemapsize = round_up(zonesize, pageblock_nr_pages);
- 	usemapsize = usemapsize >> pageblock_order;
- 	usemapsize *= NR_PAGEBLOCK_BITS;
--	usemapsize = roundup(usemapsize, BITS_PER_LONG);
-+	usemapsize = round_up(usemapsize, BITS_PER_LONG);
- 
- 	return usemapsize / BITS_PER_BYTE;
- }
+ 	xas_lock(&xas);
+-	xas_try_halve(&xas, xa, order, GFP_KERNEL);
++	xas_try_split(&xas, xa, order, GFP_KERNEL);
+ 	if (((new_order / XA_CHUNK_SHIFT) < (order / XA_CHUNK_SHIFT)) &&
+ 	    new_order < order - 1) {
+ 		XA_BUG_ON(xa, !xas_error(&xas) || xas_error(&xas) != -EINVAL);
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-mm_initc-use-round_up-to-align-movable-range.patch
-mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory.patch
-mm-mm_initc-use-round_up-to-calculate-usermap-size.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
 
