@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1622036E4
-	for <mm-commits@vger.kernel.org>; Wed, 12 Feb 2025 22:39:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7A35645
+	for <mm-commits@vger.kernel.org>; Thu, 13 Feb 2025 00:01:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739399963; cv=none; b=J8bxsrd95zU1kXqqrmOxsDbUNffAVs/oQnGdtPgGf4m3DhcVt88pWp8KqKs8V30Bsos5cuAfXhlr8x2wvQALLhitqnHeuG6KLWMOpz4Phn+Cm3FxdAxF7txReRpQj0bLSCljVP8EFVWCUOhaFqJY7ef5fSNtXs892CKcqXwu6EQ=
+	t=1739404919; cv=none; b=t6KLe4kDOx+orDsfcoAEDhBhmcZQAo1B6ct5k9vYEXV3tULV6r4BDUg15s3KuNW7DULuTjgs3uLmtomjjcEfvJLJpGLp2KFJAtTkO6JN89i59XHnl5ss6i/H1Ch6mt187LAFG6xApvGnRwRR6SeQdT2HMXRUkhxSlbtwZKds928=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739399963; c=relaxed/simple;
-	bh=dlkP5orDJr42qG0ppvrtnC4Lv5IOmQW8/TGlPAvoR9M=;
-	h=Date:To:From:Subject:Message-Id; b=pHVA6337kEIhF7bpfLW+AgV6T1UqQwyUXLRUHcCFglKz/DAQvy3vWvAC16nOZfWBEaiqxXlmpheZbmhTsVA9JT+6TkCG8DvcXPprGf0U+pSS36NdQ1sQNWt4NiJ4bru9uRjBrjqIM4Sc4stqp+E8v+G3IKKOKt1E9FQhpJ43NZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sMEgrQ2y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739404919; c=relaxed/simple;
+	bh=/E0nFeDjeLbiZUsnqs6gCxYV/1b8PUwMyXL3NIAmpbU=;
+	h=Date:To:From:Subject:Message-Id; b=Xj587BkRJas2LeyOBu7gbRIhKS8+aO4jN1SKypYxQVsarRodSgFc0q+kcEaV7V7qYlJ+v0zkyTHaasGOttCqvSEMGG5o+dcucuwbnWryRQi0jDye6T2EvqAmeEKBBZi1joKjLPS/qsEEVRWXz6e4/nOvTHp+RG7FWtHTbgB5YGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EkaO3PjF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sMEgrQ2y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8A4DC4CEDF;
-	Wed, 12 Feb 2025 22:39:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EkaO3PjF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05DB8C4CEDF;
+	Thu, 13 Feb 2025 00:01:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739399962;
-	bh=dlkP5orDJr42qG0ppvrtnC4Lv5IOmQW8/TGlPAvoR9M=;
+	s=korg; t=1739404919;
+	bh=/E0nFeDjeLbiZUsnqs6gCxYV/1b8PUwMyXL3NIAmpbU=;
 	h=Date:To:From:Subject:From;
-	b=sMEgrQ2yB8HhW2OtCnLDX1DZJlUOBchISYIH+PJtIWA1T4YswVxxz7zBDa1oBGx7B
-	 xgHjU/5QW8U/BQgRbUMvDyG5kKjhqcXVG5Mav/4PtMZxa5IhTBcZN2iNhKvQKAI3yj
-	 ad0u/JU2XbUc0esJxbMvV7E84v5eGMBS6dRWnAGo=
-Date: Wed, 12 Feb 2025 14:39:22 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,rakie.kim@sk.com,rafael@kernel.org,lenb@kernel.org,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,dave.jiang@intel.com,dan.j.williams@intel.com,42.hyeyoo@gmail.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=EkaO3PjF/tqZmALzAl9b88fROlGvECii91jdWbnBLLNPjJk3edexMMFuhBnJU0NgU
+	 pBVe4flOBL9ySHGQshKT+mUQaKHkUlVMYqXWm0Uadqg+fTxkvLqOe0RPvqArcl1/tV
+	 FAkHYfBVVjANwOS/A0t6ZjVh4yoO3vhB7NHoJKXY=
+Date: Wed, 12 Feb 2025 16:01:58 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,richard.henderson@linaro.org,mattst88@gmail.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,agordeev@linux.ibm.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mempolicy-weighted-interleave-auto-tuning.patch removed from -mm tree
-Message-Id: <20250212223922.C8A4DC4CEDF@smtp.kernel.org>
+Subject: + alpha-use-str_yes_no-helper-in-pci_dac_dma_supported.patch added to mm-nonmm-unstable branch
+Message-Id: <20250213000159.05DB8C4CEDF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,474 +34,73 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mempolicy: Weighted Interleave Auto-tuning
-has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-weighted-interleave-auto-tuning.patch
+The patch titled
+     Subject: alpha: Use str_yes_no() helper in pci_dac_dma_supported()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     alpha-use-str_yes_no-helper-in-pci_dac_dma_supported.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alpha-use-str_yes_no-helper-in-pci_dac_dma_supported.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/mempolicy: Weighted Interleave Auto-tuning
-Date: Fri, 7 Feb 2025 12:13:35 -0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: alpha: Use str_yes_no() helper in pci_dac_dma_supported()
+Date: Wed, 12 Feb 2025 12:14:47 +0100
 
-On machines with multiple memory nodes, interleaving page allocations
-across nodes allows for better utilization of each node's bandwidth. 
-Previous work by Gregory Price [1] introduced weighted interleave, which
-allowed for pages to be allocated across nodes according to user-set
-ratios.
+Remove hard-coded strings by using the str_yes_no() helper function.
 
-Ideally, these weights should be proportional to their bandwidth, so that
-under bandwidth pressure, each node uses its maximal efficient bandwidth
-and prevents latency from increasing exponentially.
-
-At the same time, we want these weights to be as small as possible. 
-Having ratios that involve large co-prime numbers like 7639:1345:7 leads
-to awkward and inefficient allocations, since the node with weight 7 will
-remain mostly unused (and despite being proportional to bandwidth, will
-not aid in relieving the bandwidth pressure in the other two nodes).
-
-This patch introduces an auto-configuration mode for the interleave
-weights that aims to balance the two goals of setting node weights to be
-proportional to their bandwidths and keeping the weight values low.  In
-order to perform the weight re-scaling, we use an internal "weightiness"
-value (fixed to 32) that defines interleave aggression.
-
-In this auto configuration mode, node weights are dynamically updated
-every time there is a hotplug event that introduces new bandwidth.
-
-Users can also enter manual mode by writing "N" or "0" to the new "auto"
-sysfs interface.  When a user enters manual mode, the system stops
-dynamically updating any of the node weights, even during hotplug events
-that can shift the optimal weight distribution.  The system also enters
-manual mode any time a user sets a node's weight directly by using the
-nodeN interface introduced in [1].  On the other hand, auto mode is only
-entered by explicitly writing "Y" or "1" to the auto interface.
-
-There is one functional change that this patch makes to the existing
-weighted_interleave ABI: previously, writing 0 directly to a nodeN
-interface was said to reset the weight to the system default.  Before this
-patch, the default for all weights were 1, which meant that writing 0 and
-1 were functionally equivalent.
-
-This patch introduces "real" defaults, but moves away from letting users
-use 0 as a "set to default" interface.  Rather, users who want to use
-system defaults should use auto mode.  This patch seems to be the
-appropriate place to make this change, since we would like to remove this
-usage before users begin to rely on the feature in userspace.  Moreover,
-users will not be losing any functionality; they can still write 1 into a
-node if they want a weight of 1.  Thus, we deprecate the "write zero to
-reset" feature in favor of returning an error, the same way we would
-return an error when the user writes any other invalid weight to the
-interface.
-
-[1] https://lore.kernel.org/linux-mm/20240202170238.90004-1-gregory.price@memverge.com/
-
-Link: https://lkml.kernel.org/r/20250207201335.2105488-1-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Co-developed-by: Gregory Price <gourry@gourry.net>
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Dan Wiliams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Link: https://lkml.kernel.org/r/20250212111449.3675-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave |   38 +
- drivers/acpi/numa/hmat.c                                                |    1 
- drivers/base/node.c                                                     |    7 
- include/linux/mempolicy.h                                               |    4 
- mm/mempolicy.c                                                          |  200 +++++++++-
- 5 files changed, 233 insertions(+), 17 deletions(-)
+ arch/alpha/kernel/pci_iommu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
-@@ -20,6 +20,38 @@ Description:	Weight configuration interf
- 		Minimum weight: 1
- 		Maximum weight: 255
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-use-str_yes_no-helper-in-pci_dac_dma_supported
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -13,6 +13,7 @@
+ #include <linux/log2.h>
+ #include <linux/dma-map-ops.h>
+ #include <linux/iommu-helper.h>
++#include <linux/string_choices.h>
  
--		Writing an empty string or `0` will reset the weight to the
--		system default. The system default may be set by the kernel
--		or drivers at boot or during hotplug events.
-+		Writing invalid values (i.e. any values not in [1,255],
-+		empty string, ...) will return -EINVAL.
-+
-+		Changing the weight to a valid value will automatically
-+		update the system to manual mode as well.
-+
-+What:		/sys/kernel/mm/mempolicy/weighted_interleave/auto
-+Date:		February 2025
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Auto-weighting configuration interface
-+
-+		Configuration mode for weighted interleave. A 'Y' indicates
-+		that the system is in auto mode, and a 'N' indicates that
-+		the system is in manual mode. All other values are invalid.
-+
-+		In auto mode, all node weights are re-calculated and overwritten
-+		(visible via the nodeN interfaces) whenever new bandwidth data
-+		is made available during either boot or hotplug events.
-+
-+		In manual mode, node weights can only be updated by the user.
-+		Note that nodes that are onlined with previously set / defaulted
-+		weights will inherit those weights. If they were not previously
-+		set or are onlined with missing bandwidth data, they will be
-+		defaulted to a weight of 1.
-+
-+		Writing Y or 1 to the interface will enable auto mode, while
-+		writing N or 0 will enable manual mode. All other strings will
-+		be ignored, and -EINVAL will be returned.
-+
-+		If Y or 1 is written to the interface but the recalculation or
-+		updates fail at any point (-ENOMEM or -ENODEV), then the system
-+		will remain in manual mode.
-+
-+		Writing a new weight to a node directly via the nodeN interface
-+		will also automatically update the system to manual mode.
---- a/drivers/acpi/numa/hmat.c~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/drivers/acpi/numa/hmat.c
-@@ -20,6 +20,7 @@
- #include <linux/list_sort.h>
- #include <linux/memregion.h>
- #include <linux/memory.h>
-+#include <linux/mempolicy.h>
- #include <linux/mutex.h>
- #include <linux/node.h>
- #include <linux/sysfs.h>
---- a/drivers/base/node.c~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/drivers/base/node.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/memory.h>
-+#include <linux/mempolicy.h>
- #include <linux/vmstat.h>
- #include <linux/notifier.h>
- #include <linux/node.h>
-@@ -214,6 +215,12 @@ void node_set_perf_attrs(unsigned int ni
- 			break;
- 		}
- 	}
-+
-+	/* When setting CPU access coordinates, update mempolicy */
-+	if (access == ACCESS_COORDINATE_CPU) {
-+		if (mempolicy_set_node_perf(nid, coord))
-+			pr_info("failed to set node%d mempolicy attrs\n", nid);
-+	}
+ #include <asm/io.h>
+ #include <asm/hwrpb.h>
+@@ -212,7 +213,7 @@ static int pci_dac_dma_supported(struct
+ 
+ 	/* If both conditions above are met, we are fine. */
+ 	DBGA("pci_dac_dma_supported %s from %ps\n",
+-	     ok ? "yes" : "no", __builtin_return_address(0));
++	     str_yes_no(ok), __builtin_return_address(0));
+ 
+ 	return ok;
  }
- EXPORT_SYMBOL_GPL(node_set_perf_attrs);
- 
---- a/include/linux/mempolicy.h~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/include/linux/mempolicy.h
-@@ -11,6 +11,7 @@
- #include <linux/slab.h>
- #include <linux/rbtree.h>
- #include <linux/spinlock.h>
-+#include <linux/node.h>
- #include <linux/nodemask.h>
- #include <linux/pagemap.h>
- #include <uapi/linux/mempolicy.h>
-@@ -178,6 +179,9 @@ static inline bool mpol_is_preferred_man
- 
- extern bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone);
- 
-+extern int mempolicy_set_node_perf(unsigned int node,
-+				   struct access_coordinate *coords);
-+
- #else
- 
- struct mempolicy {};
---- a/mm/mempolicy.c~mm-mempolicy-weighted-interleave-auto-tuning
-+++ a/mm/mempolicy.c
-@@ -109,6 +109,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/printk.h>
- #include <linux/swapops.h>
-+#include <linux/gcd.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
-@@ -138,16 +139,18 @@ static struct mempolicy default_policy =
- 
- static struct mempolicy preferred_node_policy[MAX_NUMNODES];
- 
-+static uint64_t *node_bw_table;
-+
- /*
-- * iw_table is the sysfs-set interleave weight table, a value of 0 denotes
-- * system-default value should be used. A NULL iw_table also denotes that
-- * system-default values should be used. Until the system-default table
-- * is implemented, the system-default is always 1.
-- *
-+ * iw_table is the interleave weight table.
-+ * If bandwidth data is available and the user is in auto mode, the table
-+ * is populated with default values in [1,255].
-  * iw_table is RCU protected
-  */
- static u8 __rcu *iw_table;
- static DEFINE_MUTEX(iw_table_lock);
-+static const int weightiness = 32;
-+static bool weighted_interleave_auto = true;
- 
- static u8 get_il_weight(int node)
- {
-@@ -156,14 +159,114 @@ static u8 get_il_weight(int node)
- 
- 	rcu_read_lock();
- 	table = rcu_dereference(iw_table);
--	/* if no iw_table, use system default */
- 	weight = table ? table[node] : 1;
--	/* if value in iw_table is 0, use system default */
--	weight = weight ? weight : 1;
- 	rcu_read_unlock();
- 	return weight;
- }
- 
-+/*
-+ * Convert bandwidth values into weighted interleave weights.
-+ * Call with iw_table_lock.
-+ */
-+static void reduce_interleave_weights(uint64_t *bw, u8 *new_iw)
-+{
-+	uint64_t sum_bw = 0, sum_iw = 0;
-+	uint64_t scaling_factor = 1, iw_gcd = 1;
-+	unsigned int i = 0;
-+
-+	/* Recalculate the bandwidth distribution given the new info */
-+	for (i = 0; i < nr_node_ids; i++)
-+		sum_bw += bw[i];
-+
-+	/* If node is not set or has < 1% of total bw, use minimum value of 1 */
-+	for (i = 0; i < nr_node_ids; i++) {
-+		if (bw[i]) {
-+			scaling_factor = 100 * bw[i];
-+			new_iw[i] = max(scaling_factor / sum_bw, 1);
-+		} else {
-+			new_iw[i] = 1;
-+		}
-+		sum_iw += new_iw[i];
-+	}
-+
-+	/*
-+	 * Scale each node's share of the total bandwidth from percentages
-+	 * to whole numbers in the range [1, weightiness]
-+	 */
-+	for (i = 0; i < nr_node_ids; i++) {
-+		scaling_factor = weightiness * new_iw[i];
-+		new_iw[i] = max(scaling_factor / sum_iw, 1);
-+		if (i == 0)
-+			iw_gcd = new_iw[0];
-+		iw_gcd = gcd(iw_gcd, new_iw[i]);
-+	}
-+
-+	/* 1:2 is strictly better than 16:32. Reduce by the weights' GCD. */
-+	for (i = 0; i < nr_node_ids; i++)
-+		new_iw[i] /= iw_gcd;
-+}
-+
-+int mempolicy_set_node_perf(unsigned int node, struct access_coordinate *coords)
-+{
-+	uint64_t *old_bw, *new_bw;
-+	uint64_t bw_val;
-+	u8 *old_iw, *new_iw;
-+
-+	/*
-+	 * Bandwidths above this limit cause rounding errors when reducing
-+	 * weights. This value is ~16 exabytes, which is unreasonable anyways.
-+	 */
-+	bw_val = min(coords->read_bandwidth, coords->write_bandwidth);
-+	if (bw_val > (U64_MAX / 10))
-+		return -EINVAL;
-+
-+	new_bw = kcalloc(nr_node_ids, sizeof(uint64_t), GFP_KERNEL);
-+	if (!new_bw)
-+		return -ENOMEM;
-+
-+	new_iw = kcalloc(nr_node_ids, sizeof(u8), GFP_KERNEL);
-+	if (!new_iw) {
-+		kfree(new_bw);
-+		return -ENOMEM;
-+	}
-+
-+	/*
-+	 * Update bandwidth info, even in manual mode. That way, when switching
-+	 * to auto mode in the future, iw_table can be overwritten using
-+	 * accurate bw data.
-+	 */
-+	mutex_lock(&iw_table_lock);
-+	old_bw = node_bw_table;
-+	old_iw = rcu_dereference_protected(iw_table,
-+					   lockdep_is_held(&iw_table_lock));
-+
-+	if (old_bw)
-+		memcpy(new_bw, old_bw, nr_node_ids * sizeof(uint64_t));
-+	new_bw[node] = bw_val;
-+	node_bw_table = new_bw;
-+
-+	if (weighted_interleave_auto) {
-+		reduce_interleave_weights(new_bw, new_iw);
-+	} else if (old_iw) {
-+		/*
-+		 * The first time mempolicy_set_node_perf is called, old_iw
-+		 * (iw_table) is null. If that is the case, assign a zeroed
-+		 * table to it. Otherwise, free the newly allocated iw_table.
-+		 */
-+		mutex_unlock(&iw_table_lock);
-+		kfree(new_iw);
-+		kfree(old_bw);
-+		return 0;
-+	}
-+
-+	rcu_assign_pointer(iw_table, new_iw);
-+	mutex_unlock(&iw_table_lock);
-+	synchronize_rcu();
-+	kfree(old_iw);
-+	kfree(old_bw);
-+	return 0;
-+}
-+
- /**
-  * numa_nearest_node - Find nearest node by state
-  * @node: Node id to start the search
-@@ -1998,10 +2101,7 @@ static unsigned int weighted_interleave_
- 	table = rcu_dereference(iw_table);
- 	/* calculate the total weight */
- 	for_each_node_mask(nid, nodemask) {
--		/* detect system default usage */
--		weight = table ? table[nid] : 1;
--		weight = weight ? weight : 1;
--		weight_total += weight;
-+		weight_total += table ? table[nid] : 1;
- 	}
- 
- 	/* Calculate the node offset based on totals */
-@@ -2010,7 +2110,6 @@ static unsigned int weighted_interleave_
- 	while (target) {
- 		/* detect system default usage */
- 		weight = table ? table[nid] : 1;
--		weight = weight ? weight : 1;
- 		if (target < weight)
- 			break;
- 		target -= weight;
-@@ -3410,7 +3509,7 @@ static ssize_t node_store(struct kobject
- 	node_attr = container_of(attr, struct iw_node_attr, kobj_attr);
- 	if (count == 0 || sysfs_streq(buf, ""))
- 		weight = 0;
--	else if (kstrtou8(buf, 0, &weight))
-+	else if (kstrtou8(buf, 0, &weight) || weight == 0)
- 		return -EINVAL;
- 
- 	new = kzalloc(nr_node_ids, GFP_KERNEL);
-@@ -3427,11 +3526,68 @@ static ssize_t node_store(struct kobject
- 	mutex_unlock(&iw_table_lock);
- 	synchronize_rcu();
- 	kfree(old);
-+	weighted_interleave_auto = false;
- 	return count;
- }
- 
- static struct iw_node_attr **node_attrs;
- 
-+static ssize_t weighted_interleave_mode_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	if (weighted_interleave_auto)
-+		return sysfs_emit(buf, "Y\n");
-+	else
-+		return sysfs_emit(buf, "N\n");
-+}
-+
-+static ssize_t weighted_interleave_mode_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	uint64_t *bw;
-+	u8 *old_iw, *new_iw;
-+
-+	if (count == 0)
-+		return -EINVAL;
-+
-+	if (sysfs_streq(buf, "N") || sysfs_streq(buf, "0")) {
-+		weighted_interleave_auto = false;
-+		return count;
-+	} else if (!sysfs_streq(buf, "Y") && !sysfs_streq(buf, "1")) {
-+		return -EINVAL;
-+	}
-+
-+	new_iw = kcalloc(nr_node_ids, sizeof(u8), GFP_KERNEL);
-+	if (!new_iw)
-+		return -ENOMEM;
-+
-+	mutex_lock(&iw_table_lock);
-+	bw = node_bw_table;
-+
-+	if (!bw) {
-+		mutex_unlock(&iw_table_lock);
-+		kfree(new_iw);
-+		return -ENODEV;
-+	}
-+
-+	old_iw = rcu_dereference_protected(iw_table,
-+					   lockdep_is_held(&iw_table_lock));
-+
-+	reduce_interleave_weights(bw, new_iw);
-+	rcu_assign_pointer(iw_table, new_iw);
-+	mutex_unlock(&iw_table_lock);
-+
-+	synchronize_rcu();
-+	kfree(old_iw);
-+
-+	weighted_interleave_auto = true;
-+	return count;
-+}
-+
-+static struct kobj_attribute wi_attr =
-+	__ATTR(auto, 0664, weighted_interleave_mode_show,
-+			   weighted_interleave_mode_store);
-+
- static void sysfs_wi_node_release(struct iw_node_attr *node_attr,
- 				  struct kobject *parent)
- {
-@@ -3489,6 +3645,15 @@ static int add_weight_node(int nid, stru
- 	return 0;
- }
- 
-+static struct attribute *wi_default_attrs[] = {
-+	&wi_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group wi_attr_group = {
-+	.attrs = wi_default_attrs,
-+};
-+
- static int add_weighted_interleave_group(struct kobject *root_kobj)
- {
- 	struct kobject *wi_kobj;
-@@ -3505,6 +3670,13 @@ static int add_weighted_interleave_group
- 		return err;
- 	}
- 
-+	err = sysfs_create_group(wi_kobj, &wi_attr_group);
-+	if (err) {
-+		pr_err("failed to add sysfs [auto]\n");
-+		kobject_put(wi_kobj);
-+		return err;
-+	}
-+
- 	for_each_node_state(nid, N_POSSIBLE) {
- 		err = add_weight_node(nid, wi_kobj);
- 		if (err) {
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
+alpha-use-str_yes_no-helper-in-pci_dac_dma_supported.patch
 
