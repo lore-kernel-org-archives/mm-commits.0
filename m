@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5B5EEAB
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2425824A3
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739578700; cv=none; b=q55h6a0VI2URDfKPtfokWOm/8++0sOkcR90DCujLWiAVQouIgtwZ7i/M4p49LmYVUSQU1MNIF/8JLrPG23e73Iaiuvkii2qkItd+rdLiJ7xTs6+Uovmm02Nt0CbrGbrNhVeSdQ47oybtak6R1WDOxMR+ddw7T8H76jZEpjJMsWA=
+	t=1739578700; cv=none; b=Yw6+cR+mANi+lWqJ6qIKUYkFrnMOl31FZJrtlZwKVWtpF57cwOvpXMg+aNLvZfN46Pz0BB0uvT1/1wsAMppzNYYjQMK5LBg2UspnmhRnZr9u3daBHmoY5DWyD63vT1AxIRZJOh8wT8RYa73Fpxinmr5fkHCF5mDROWSn+Ows388=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1739578700; c=relaxed/simple;
-	bh=hWd3UeRVaf21p7+SzJgxdhzLKN5h2EJZoCMjRXa07DA=;
-	h=Date:To:From:Subject:Message-Id; b=XacVrGmakpJQJibMvwo68i0NggNwJ2Ej78B1GC81GbkcPlmXlTEqnuE0n4n7eIxkZtuIflOvQ7jIjow7b9TiBhMKm6hILRTI/oVddEuFhIz5Pbioa5atoSR0TLQJ5t4zirYKG9/eVXu4IB8cK8WeQWcOENMzH8vc8CJWQsPIuMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K6BOtmDT; arc=none smtp.client-ip=10.30.226.201
+	bh=BhEKqoi+6yYJuHFpRtTvJSo9rUBJyjDJ2Bft0nXUTso=;
+	h=Date:To:From:Subject:Message-Id; b=a6krYfvsOovvO1X2FolqyOhPaRbBeI9sdhwkzzuk8PGzPnxzUZ2zvHNyOeymfnaMqHZaAwj7ys2a+zKJFyfeJMYS4QGz80svh7b6mEuLf3qtcVyHFey/tq/F3/AOtci17EhGkM3rfRalAMfnpjPdXVZ4DIMVg+THV4j/dsTraH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nr7Z7vAH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K6BOtmDT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D92A4C4CED1;
-	Sat, 15 Feb 2025 00:18:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nr7Z7vAH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3CEC4CEE2;
+	Sat, 15 Feb 2025 00:18:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739578698;
-	bh=hWd3UeRVaf21p7+SzJgxdhzLKN5h2EJZoCMjRXa07DA=;
+	s=korg; t=1739578700;
+	bh=BhEKqoi+6yYJuHFpRtTvJSo9rUBJyjDJ2Bft0nXUTso=;
 	h=Date:To:From:Subject:From;
-	b=K6BOtmDTSwD5d6nA+DOM+cyCbGKNgRyvTKLh3bB/zzRrS7bmSu8Hz7k/Rxbbe8YCd
-	 QMgekeDahXiSfhdKRjT0KO/XERFwQCdsk14Ul++I8AslPE+EMVt1WFrLpFQeVkXJyb
-	 JWLcbbFwdAMABqKgD+GDpZIOitxIQphF2++VOqnM=
-Date: Fri, 14 Feb 2025 16:18:18 -0800
+	b=nr7Z7vAHg+1OGXtuWkEDnFZmC9Smwx42tSie9IBhEgNuNaqjhHZs59eYHzJD7XRdc
+	 O1sdZaLWYZgGXGfb64dVwPaiiWI6H2ZuBe2pY82RLme7VwGfeGH4elabNZzsQJaRCa
+	 iO57NmBD387T8+hL6Ygcik5LCMdU85SqaNCDIVwY=
+Date: Fri, 14 Feb 2025 16:18:19 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-filter-out-recomp-targets-based-on-priority.patch added to mm-unstable branch
-Message-Id: <20250215001818.D92A4C4CED1@smtp.kernel.org>
+Subject: + zram-rework-recompression-loop.patch added to mm-unstable branch
+Message-Id: <20250215001820.2D3CEC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: filter out recomp targets based on priority
+     Subject: zram: rework recompression loop
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-filter-out-recomp-targets-based-on-priority.patch
+     zram-rework-recompression-loop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-filter-out-recomp-targets-based-on-priority.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-rework-recompression-loop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: filter out recomp targets based on priority
-Date: Fri, 14 Feb 2025 13:50:20 +0900
+Subject: zram: rework recompression loop
+Date: Fri, 14 Feb 2025 13:50:21 +0900
 
-Do no select for post processing slots that are already compressed with
-same or higher priority compression algorithm.
+This reworks recompression loop handling:
 
-This should save some memory, as previously we would still put those
-entries into corresponding post-processing buckets and filter them out
-later in recompress_slot().
+- set a rule that stream-put NULLs the stream pointer If the loop
+  returns with a non-NULL stream then it's a successfull recompression,
+  otherwise the stream should always be NULL.
 
-Link: https://lkml.kernel.org/r/20250214045208.1388854-9-senozhatsky@chromium.org
+- do not count the number of recompressions Mark object as
+  incompressible as soon as the algorithm with the highest priority failed
+  to compress that object.
+
+- count compression errors as resource usage Even if compression has
+  failed, we still need to bump num_recomp_pages counter.
+
+Link: https://lkml.kernel.org/r/20250214045208.1388854-10-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
@@ -79,71 +85,117 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ drivers/block/zram/zram_drv.c |   53 +++++++++++---------------------
+ 1 file changed, 19 insertions(+), 34 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-filter-out-recomp-targets-based-on-priority
+--- a/drivers/block/zram/zram_drv.c~zram-rework-recompression-loop
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1864,7 +1864,7 @@ static int zram_bvec_write(struct zram *
- #define RECOMPRESS_IDLE		(1 << 0)
- #define RECOMPRESS_HUGE		(1 << 1)
+@@ -1929,9 +1929,8 @@ static int recompress_slot(struct zram *
+ 	unsigned int comp_len_new;
+ 	unsigned int class_index_old;
+ 	unsigned int class_index_new;
+-	u32 num_recomps = 0;
+ 	void *src, *dst;
+-	int ret;
++	int ret = 0;
  
--static int scan_slots_for_recompress(struct zram *zram, u32 mode,
-+static int scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio_max,
- 				     struct zram_pp_ctl *ctl)
- {
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
-@@ -1896,6 +1896,10 @@ static int scan_slots_for_recompress(str
- 		    zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
- 			goto next;
- 
-+		/* Already compressed with same of higher priority */
-+		if (zram_get_priority(zram, index) + 1 >= prio_max)
-+			goto next;
-+
- 		pps->index = index;
- 		place_pp_slot(zram, ctl, pps);
- 		pps = NULL;
-@@ -1952,6 +1956,16 @@ static int recompress_slot(struct zram *
- 	zram_clear_flag(zram, index, ZRAM_IDLE);
- 
- 	class_index_old = zs_lookup_class_index(zram->mem_pool, comp_len_old);
-+
-+	prio = max(prio, zram_get_priority(zram, index) + 1);
-+	/*
-+	 * Recompression slots scan should not select slots that are
-+	 * already compressed with a higher priority algorithm, but
-+	 * just in case
-+	 */
-+	if (prio >= prio_max)
-+		return 0;
-+
- 	/*
- 	 * Iterate the secondary comp algorithms list (in order of priority)
- 	 * and try to recompress the page.
-@@ -1960,13 +1974,6 @@ static int recompress_slot(struct zram *
+ 	handle_old = zram_get_handle(zram, index);
+ 	if (!handle_old)
+@@ -1974,7 +1973,6 @@ static int recompress_slot(struct zram *
  		if (!zram->comps[prio])
  			continue;
  
--		/*
--		 * Skip if the object is already re-compressed with a higher
--		 * priority algorithm (or same algorithm).
--		 */
--		if (prio <= zram_get_priority(zram, index))
--			continue;
--
- 		num_recomps++;
+-		num_recomps++;
  		zstrm = zcomp_stream_get(zram->comps[prio]);
  		src = kmap_local_page(page);
-@@ -2191,7 +2198,7 @@ static ssize_t recompress_store(struct d
- 		goto release_init_lock;
+ 		ret = zcomp_compress(zram->comps[prio], zstrm,
+@@ -1983,7 +1981,8 @@ static int recompress_slot(struct zram *
+ 
+ 		if (ret) {
+ 			zcomp_stream_put(zstrm);
+-			return ret;
++			zstrm = NULL;
++			break;
+ 		}
+ 
+ 		class_index_new = zs_lookup_class_index(zram->mem_pool,
+@@ -1993,6 +1992,7 @@ static int recompress_slot(struct zram *
+ 		if (class_index_new >= class_index_old ||
+ 		    (threshold && comp_len_new >= threshold)) {
+ 			zcomp_stream_put(zstrm);
++			zstrm = NULL;
+ 			continue;
+ 		}
+ 
+@@ -2001,14 +2001,6 @@ static int recompress_slot(struct zram *
  	}
  
--	scan_slots_for_recompress(zram, mode, ctl);
-+	scan_slots_for_recompress(zram, mode, prio_max, ctl);
+ 	/*
+-	 * We did not try to recompress, e.g. when we have only one
+-	 * secondary algorithm and the page is already recompressed
+-	 * using that algorithm
+-	 */
+-	if (!zstrm)
+-		return 0;
+-
+-	/*
+ 	 * Decrement the limit (if set) on pages we can recompress, even
+ 	 * when current recompression was unsuccessful or did not compress
+ 	 * the page below the threshold, because we still spent resources
+@@ -2017,38 +2009,31 @@ static int recompress_slot(struct zram *
+ 	if (*num_recomp_pages)
+ 		*num_recomp_pages -= 1;
  
- 	ret = len;
- 	while ((pps = select_pp_slot(ctl))) {
+-	if (class_index_new >= class_index_old) {
++	/* Compression error */
++	if (ret)
++		return ret;
++
++	if (!zstrm) {
+ 		/*
+ 		 * Secondary algorithms failed to re-compress the page
+-		 * in a way that would save memory, mark the object as
+-		 * incompressible so that we will not try to compress
+-		 * it again.
++		 * in a way that would save memory.
+ 		 *
+-		 * We need to make sure that all secondary algorithms have
+-		 * failed, so we test if the number of recompressions matches
+-		 * the number of active secondary algorithms.
++		 * Mark the object incompressible if the max-priority
++		 * algorithm couldn't re-compress it.
+ 		 */
+-		if (num_recomps == zram->num_active_comps - 1)
+-			zram_set_flag(zram, index, ZRAM_INCOMPRESSIBLE);
++		if (prio < zram->num_active_comps)
++			return 0;
++		zram_set_flag(zram, index, ZRAM_INCOMPRESSIBLE);
+ 		return 0;
+ 	}
+ 
+-	/* Successful recompression but above threshold */
+-	if (threshold && comp_len_new >= threshold)
+-		return 0;
+-
+ 	/*
+-	 * No direct reclaim (slow path) for handle allocation and no
+-	 * re-compression attempt (unlike in zram_write_bvec()) since
+-	 * we already have stored that object in zsmalloc. If we cannot
+-	 * alloc memory for recompressed object then we bail out and
+-	 * simply keep the old (existing) object in zsmalloc.
++	 * We are holding per-CPU stream mutex and entry lock so better
++	 * avoid direct reclaim.  Allocation error is not fatal since
++	 * we still have the old object in the mem_pool.
+ 	 */
+ 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
+-			       __GFP_KSWAPD_RECLAIM |
+-			       __GFP_NOWARN |
+-			       __GFP_HIGHMEM |
+-			       __GFP_MOVABLE);
++			       GFP_NOWAIT | __GFP_HIGHMEM | __GFP_MOVABLE);
+ 	if (IS_ERR_VALUE(handle_new)) {
+ 		zcomp_stream_put(zstrm);
+ 		return PTR_ERR((void *)handle_new);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
