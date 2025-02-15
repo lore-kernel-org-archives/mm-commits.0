@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1BA3FBB3
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26E026EB7D
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739580139; cv=none; b=mIuh7nYwS+jCdiT9FDChihFMv/sSgAuiDaV8aBYtuMtS7Vzl5sn8imoijSgpS9p4qptAhN2DwGHlm1L1UkpmfWi9ZVEX8aCuhiXai8X5buGGPJyfgLel/bbKJjD9LdyVXDacxwSh3DctQg3F9ZGhPjZE4P1TLGMvd38APvCcbGU=
+	t=1739580141; cv=none; b=WTfcNbQtVhE+Qu8GTiW5M3ODiCeql2IyJV2h/g/er/4PysOVUwbrMwktvJmWBR5yfIPzRNa19+1wtIDFFvooCk84hvJivDc9S3RyZdOlxegjnfQw+93pTEBnDJFESsGjRE6upqO6h9VAkuyOGJJip4sR959MzqzYFGBni+N/+TY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739580139; c=relaxed/simple;
-	bh=/WJ3jk3eOSvzQqyrNIMyP6im6ZjCfqWBDJL48iskZVc=;
-	h=Date:To:From:Subject:Message-Id; b=ZWwuJ34+bL9YxSEridR5SiiCaChViPWswznp3zzJLzFWF7MDfpif891udli60t8Ys7XiWjBVk83tNYXwvOzrHgA9TNipWzAOwAmJHkmII2BYEbswN9bPAqgjmw2ge4g8aHT/NOgzvyscW9moVPfHR7rHT9JhRMsa5hOa98Mf9G8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m4w8Qj1p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739580141; c=relaxed/simple;
+	bh=O7V8lcjkKwUNH/nRhsBrkhgM9NQQdtKyl6OH6iecJnc=;
+	h=Date:To:From:Subject:Message-Id; b=AVTs87p/pQf8pv9f7Gk7FV0GbqQOp0WncuD4wegD2DwuKwz5cbzh81y9HinRkNKhTuGe1eAciG4MvPbAxN4F2FhiuPBzZ2059hWJj2T5yC4gZnIrlTKZsX96KiJGWqAam5rUW40K0TlddiYWHhjiHldUpa+1SF+LISNMO1SAMfs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yo4GVF+S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m4w8Qj1p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15947C4CED1;
-	Sat, 15 Feb 2025 00:42:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yo4GVF+S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81563C4CED1;
+	Sat, 15 Feb 2025 00:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739580139;
-	bh=/WJ3jk3eOSvzQqyrNIMyP6im6ZjCfqWBDJL48iskZVc=;
+	s=korg; t=1739580140;
+	bh=O7V8lcjkKwUNH/nRhsBrkhgM9NQQdtKyl6OH6iecJnc=;
 	h=Date:To:From:Subject:From;
-	b=m4w8Qj1pRU6lsWFkgJKqtlVEp+sd/nJL4/J7gOhGlg1Z7wanqCR/Xn08nQXZwCU9+
-	 f2RTt5GhEHdX2D/nyT1F+godZW8TNVrJe4u0Vr7rsXERUQOkymNmVb+YluzelBCmcL
-	 HNVue44vyWrdQoShCe9oHguffvQAvIrkWPz99GuA=
-Date: Fri, 14 Feb 2025 16:42:18 -0800
+	b=yo4GVF+SczRLFRpNcHA8sxhXPL6aN2LXWbTtyYnUlS5C/UGhttBfyePpkntcWHIIq
+	 jO39twaMhFWs1B8CpxDv7zw9O7DXvI9UN7xC2MksIkCbSyvoi7vbxriqClWQt2WiCi
+	 Ys0InYG7TKTnryfNASM4sWQVKKwIvSIAvNpX9SNE=
+Date: Fri, 14 Feb 2025 16:42:20 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch added to mm-unstable branch
-Message-Id: <20250215004219.15947C4CED1@smtp.kernel.org>
+Subject: + mm-move-mmap_init_lock-out-of-the-header-file.patch added to mm-unstable branch
+Message-Id: <20250215004220.81563C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: allow vma_start_read_locked/vma_start_read_locked_nested to fail
+     Subject: mm: move mmap_init_lock() out of the header file
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+     mm-move-mmap_init_lock-out-of-the-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-mmap_init_lock-out-of-the-header-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: allow vma_start_read_locked/vma_start_read_locked_nested to fail
-Date: Thu, 13 Feb 2025 14:46:44 -0800
+Subject: mm: move mmap_init_lock() out of the header file
+Date: Thu, 13 Feb 2025 14:46:45 -0800
 
-With upcoming replacement of vm_lock with vm_refcnt, we need to handle a
-possibility of vma_start_read_locked/vma_start_read_locked_nested failing
-due to refcount overflow.  Prepare for such possibility by changing these
-APIs and adjusting their users.
+mmap_init_lock() is used only from mm_init() in fork.c, therefore it does
+not have to reside in the header file.  This move lets us avoid including
+additional headers in mmap_lock.h later, when mmap_init_lock() needs to
+initialize rcuwait object.
 
-Link: https://lkml.kernel.org/r/20250213224655.1680278-8-surenb@google.com
+Link: https://lkml.kernel.org/r/20250213224655.1680278-9-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Tested-by: Shivank Garg <shivankg@amd.com>
   Link: https://lkml.kernel.org/r/5e19ec93-8307-47c2-bb13-3ddf7150624e@amd.com
 Cc: Christian Brauner <brauner@kernel.org>
@@ -83,7 +84,7 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Klara Modin <klarasmodin@gmail.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -96,91 +97,45 @@ Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++++--
- mm/userfaultfd.c   |   30 +++++++++++++++++++++++-------
- 2 files changed, 27 insertions(+), 9 deletions(-)
+ include/linux/mmap_lock.h |    6 ------
+ kernel/fork.c             |    6 ++++++
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm.h~mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail
-+++ a/include/linux/mm.h
-@@ -747,10 +747,11 @@ static inline bool vma_start_read(struct
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-  */
--static inline void vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
-+static inline bool vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
+--- a/include/linux/mmap_lock.h~mm-move-mmap_init_lock-out-of-the-header-file
++++ a/include/linux/mmap_lock.h
+@@ -122,12 +122,6 @@ static inline bool mmap_lock_speculate_r
+ 
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
+-static inline void mmap_init_lock(struct mm_struct *mm)
+-{
+-	init_rwsem(&mm->mmap_lock);
+-	mm_lock_seqcount_init(mm);
+-}
+-
+ static inline void mmap_write_lock(struct mm_struct *mm)
  {
- 	mmap_assert_locked(vma->vm_mm);
- 	down_read_nested(&vma->vm_lock.lock, subclass);
-+	return true;
+ 	__mmap_lock_trace_start_locking(mm, true);
+--- a/kernel/fork.c~mm-move-mmap_init_lock-out-of-the-header-file
++++ a/kernel/fork.c
+@@ -1230,6 +1230,12 @@ static void mm_init_uprobes_state(struct
+ #endif
  }
  
- /*
-@@ -759,10 +760,11 @@ static inline void vma_start_read_locked
-  * not be used in such cases because it might fail due to mm_lock_seq overflow.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-  */
--static inline void vma_start_read_locked(struct vm_area_struct *vma)
-+static inline bool vma_start_read_locked(struct vm_area_struct *vma)
++static void mmap_init_lock(struct mm_struct *mm)
++{
++	init_rwsem(&mm->mmap_lock);
++	mm_lock_seqcount_init(mm);
++}
++
+ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
+ 	struct user_namespace *user_ns)
  {
- 	mmap_assert_locked(vma->vm_mm);
- 	down_read(&vma->vm_lock.lock);
-+	return true;
- }
- 
- static inline void vma_end_read(struct vm_area_struct *vma)
---- a/mm/userfaultfd.c~mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail
-+++ a/mm/userfaultfd.c
-@@ -84,8 +84,12 @@ static struct vm_area_struct *uffd_lock_
- 
- 	mmap_read_lock(mm);
- 	vma = find_vma_and_prepare_anon(mm, address);
--	if (!IS_ERR(vma))
--		vma_start_read_locked(vma);
-+	if (!IS_ERR(vma)) {
-+		bool locked = vma_start_read_locked(vma);
-+
-+		if (!locked)
-+			vma = ERR_PTR(-EAGAIN);
-+	}
- 
- 	mmap_read_unlock(mm);
- 	return vma;
-@@ -1482,12 +1486,24 @@ static int uffd_move_lock(struct mm_stru
- 
- 	mmap_read_lock(mm);
- 	err = find_vmas_mm_locked(mm, dst_start, src_start, dst_vmap, src_vmap);
--	if (!err) {
--		vma_start_read_locked(*dst_vmap);
--		if (*dst_vmap != *src_vmap)
--			vma_start_read_locked_nested(*src_vmap,
--						SINGLE_DEPTH_NESTING);
-+	if (err)
-+		goto out;
-+
-+	if (!vma_start_read_locked(*dst_vmap)) {
-+		err = -EAGAIN;
-+		goto out;
- 	}
-+
-+	/* Nothing further to do if both vmas are locked. */
-+	if (*dst_vmap == *src_vmap)
-+		goto out;
-+
-+	if (!vma_start_read_locked_nested(*src_vmap, SINGLE_DEPTH_NESTING)) {
-+		/* Undo dst_vmap locking if src_vmap failed to lock */
-+		vma_end_read(*dst_vmap);
-+		err = -EAGAIN;
-+	}
-+out:
- 	mmap_read_unlock(mm);
- 	return err;
- }
 _
 
 Patches currently in -mm which might be from surenb@google.com are
