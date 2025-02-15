@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FD5DC2ED;
-	Sat, 15 Feb 2025 00:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE444C8F
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739579442; cv=none; b=TNIEgHJ0sWnMdmO0Me+aaueA24euk1aAagDK8RZ1+FnsKO3SBmQzXqaZZZ0uGpXW1y4EI6S+xj5WgAhGFTZmCOKlMUCQwK/aRD9A6nHweePHhbO7DHaueOspf/MgMQ8qTihZNwp/NT0mSH2uBrmXVs3Izqif2qWNS9YarthkAyw=
+	t=1739580130; cv=none; b=fpJ5fs4wjQa90bdBouVl86bWCJVQYfScMas7Wp5SCSqGRae6DbtzDsyeiM9sFzle/xvz4AhjYVTWk8xKmZ07Ne5wYQIc9/6qyZDqLCMpak3/pZLnKoiD3VI0atf2TbklFI5ecTCBYJ3A1/xSZE0gBXaC/h9ikMyKRfQCFqCY8To=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739579442; c=relaxed/simple;
-	bh=FqnvkTgQM7Put0NwV0Tc9gzroKjdSy4h5xd/kKVX6oE=;
-	h=Date:To:From:Subject:Message-Id; b=sRRez3pKH3qAlkUjhEEAECWnY8Axz4fegpoD28C4wNcxrgTalMcFhQ1tCuXyBxN/SVUfJoSzFtezaxlV1OvGl62UJIWifrj2tTQXhtnUk0oXc7VKq8IRqoN7FLYNm0EYDJ1d5z033173f9HrbRq+ZjX7RE0u0Cf1TkwEoDx3HhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=biatnH26; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739580130; c=relaxed/simple;
+	bh=gtwMZWwMAbpErItVZnPiQU3PYGok8JikHYDiQptLSIc=;
+	h=Date:To:From:Subject:Message-Id; b=ZYMVkjQndlYqWq5gciSzynq5CT7l21n290WFf3PkRkFwUEMk/Nd+ttFphQezhz+fc/NU+faYftDxPbUt3h9E0FhLGteHX9aERxtpRf+Y/3k3+N9fmF1Fb2XMxygUvfbpAj0uc8S36t0kw8qhgsPHccy7NALYSuLMcT0nBQi0n9M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W0e4J19O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="biatnH26"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABF16C4CED1;
-	Sat, 15 Feb 2025 00:30:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W0e4J19O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED366C4CED1;
+	Sat, 15 Feb 2025 00:42:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739579440;
-	bh=FqnvkTgQM7Put0NwV0Tc9gzroKjdSy4h5xd/kKVX6oE=;
+	s=korg; t=1739580129;
+	bh=gtwMZWwMAbpErItVZnPiQU3PYGok8JikHYDiQptLSIc=;
 	h=Date:To:From:Subject:From;
-	b=biatnH26pnsTXQfqJLmbhm8eBBEw88f9b/8JIHJAs7EDHmoNoYJytF8Pm3TbB+XTr
-	 gomWXlEfyxBVFoB4kbLZohMr36P+XOZDD5dPGmXbnjoHHFm0Y4/SM2Pq8PkQDnMucp
-	 GebNiBaQ/6ik+VdTzSuJVe0WGhkIoQpFnRL6JbLw=
-Date: Fri, 14 Feb 2025 16:30:40 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,liwang@redhat.com,Liam.Howlett@oracle.com,kent.overstreet@linux.dev,kees@kernel.org,jeffxu@chromium.org,david@redhat.com,dave.hansen@intel.com,dalias@libc.org,brauner@kernel.org,axelrasmussen@google.com,avagin@google.com,jhubbard@nvidia.com,akpm@linux-foundation.org
+	b=W0e4J19O+0wq8mxSttGCDcgYIHwWeQZLfYHnhl6XShr2OOAfvE5uUzcGjURAAQft5
+	 qGXofQtY7abDF2Is72Cnm+lS5nHHIHVYMl/cfTyqVDOgUlO3z8LvH+STUZ9E2LiscU
+	 mUBE14O5ovQCyCDCZrxXFxpGMIJtsiZzOvkOc6fA=
+Date: Fri, 14 Feb 2025 16:42:08 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-selftests-mm-remove-local-__nr_-definitions.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250215003040.ABF16C4CED1@smtp.kernel.org>
+Subject: + mm-introduce-vma_start_read_locked_nested-helpers.patch added to mm-unstable branch
+Message-Id: <20250215004208.ED366C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "selftests/mm: remove local __NR_* definitions"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-selftests-mm-remove-local-__nr_-definitions.patch
+     Subject: mm: introduce vma_start_read_locked{_nested} helpers
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-introduce-vma_start_read_locked_nested-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-selftests-mm-remove-local-__nr_-definitions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma_start_read_locked_nested-helpers.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,304 +58,203 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Revert "selftests/mm: remove local __NR_* definitions"
-Date: Thu, 13 Feb 2025 19:38:50 -0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: introduce vma_start_read_locked{_nested} helpers
+Date: Thu, 13 Feb 2025 14:46:38 -0800
 
-This reverts commit a5c6bc590094a1a73cf6fa3f505e1945d2bf2461.
+Patch series "reimplement per-vma lock as a refcount", v10.
 
-The general approach described in commit e076eaca5906 ("selftests: break
-the dependency upon local header files") was taken one step too far here:
-it should not have been extended to include the syscall numbers.  This is
-because doing so would require per-arch support in tools/include/uapi, and
-no such support exists.
+Back when per-vma locks were introduces, vm_lock was moved out of
+vm_area_struct in [1] because of the performance regression caused by
+false cacheline sharing.  Recent investigation [2] revealed that the
+regressions is limited to a rather old Broadwell microarchitecture and
+even there it can be mitigated by disabling adjacent cacheline
+prefetching, see [3].
 
-This revert fixes two separate reports of test failures, from Dave
-Hansen[1], and Li Wang[2].  An excerpt of Dave's report:
+Splitting single logical structure into multiple ones leads to more
+complicated management, extra pointer dereferences and overall less
+maintainable code.  When that split-away part is a lock, it complicates
+things even further.  With no performance benefits, there are no reasons
+for this split.  Merging the vm_lock back into vm_area_struct also allows
+vm_area_struct to use SLAB_TYPESAFE_BY_RCU later in this patchset.
 
-Before this commit (a5c6bc590094a1a73cf6fa3f505e1945d2bf2461) things are
-fine.  But after, I get:
+This patchset:
 
-	running PKEY tests for unsupported CPU/OS
+1. moves vm_lock back into vm_area_struct, aligning it at the
+   cacheline boundary and changing the cache to be cacheline-aligned to
+   minimize cacheline sharing;
 
-An excerpt of Li's report:
+2. changes vm_area_struct initialization to mark new vma as detached
+   until it is inserted into vma tree;
 
-    I just found that mlock2_() return a wrong value in mlock2-test
+3. replaces vm_lock and vma->detached flag with a reference counter;
 
-[1] https://lore.kernel.org/dc585017-6740-4cab-a536-b12b37a7582d@intel.com
-[2] https://lore.kernel.org/CAEemH2eW=UMu9+turT2jRie7+6ewUazXmA6kL+VBo3cGDGU6RA@mail.gmail.com
+4. regroups vm_area_struct members to fit them into 3 cachelines;
 
-Link: https://lkml.kernel.org/r/20250214033850.235171-1-jhubbard@nvidia.com
-Fixes: a5c6bc590094 ("selftests/mm: remove local __NR_* definitions")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Li Wang <liwang@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+5. changes vm_area_struct cache to SLAB_TYPESAFE_BY_RCU to allow for
+   their reuse and to minimize call_rcu() calls.
+
+Pagefault microbenchmarks show performance improvement:
+Hmean     faults/cpu-1    507926.5547 (   0.00%)   506519.3692 *  -0.28%*
+Hmean     faults/cpu-4    479119.7051 (   0.00%)   481333.6802 *   0.46%*
+Hmean     faults/cpu-7    452880.2961 (   0.00%)   455845.6211 *   0.65%*
+Hmean     faults/cpu-12   347639.1021 (   0.00%)   352004.2254 *   1.26%*
+Hmean     faults/cpu-21   200061.2238 (   0.00%)   229597.0317 *  14.76%*
+Hmean     faults/cpu-30   145251.2001 (   0.00%)   164202.5067 *  13.05%*
+Hmean     faults/cpu-48   106848.4434 (   0.00%)   120641.5504 *  12.91%*
+Hmean     faults/cpu-56    92472.3835 (   0.00%)   103464.7916 *  11.89%*
+Hmean     faults/sec-1    507566.1468 (   0.00%)   506139.0811 *  -0.28%*
+Hmean     faults/sec-4   1880478.2402 (   0.00%)  1886795.6329 *   0.34%*
+Hmean     faults/sec-7   3106394.3438 (   0.00%)  3140550.7485 *   1.10%*
+Hmean     faults/sec-12  4061358.4795 (   0.00%)  4112477.0206 *   1.26%*
+Hmean     faults/sec-21  3988619.1169 (   0.00%)  4577747.1436 *  14.77%*
+Hmean     faults/sec-30  3909839.5449 (   0.00%)  4311052.2787 *  10.26%*
+Hmean     faults/sec-48  4761108.4691 (   0.00%)  5283790.5026 *  10.98%*
+Hmean     faults/sec-56  4885561.4590 (   0.00%)  5415839.4045 *  10.85%*
+
+
+This patch (of 18):
+
+Introduce helper functions which can be used to read-lock a VMA when
+holding mmap_lock for read.  Replace direct accesses to vma->vm_lock with
+these new helpers.
+
+Link: https://lkml.kernel.org/r/20250213224655.1680278-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20250213224655.1680278-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Tested-by: Shivank Garg <shivankg@amd.com>
+  Link: https://lkml.kernel.org/r/5e19ec93-8307-47c2-bb13-3ddf7150624e@amd.com
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugepage-mremap.c      |    2 -
- tools/testing/selftests/mm/ksm_functional_tests.c |    8 +++++-
- tools/testing/selftests/mm/memfd_secret.c         |   14 ++++++++++-
- tools/testing/selftests/mm/mkdirty.c              |    8 +++++-
- tools/testing/selftests/mm/mlock2.h               |    1 
- tools/testing/selftests/mm/protection_keys.c      |    2 -
- tools/testing/selftests/mm/uffd-common.c          |    4 +++
- tools/testing/selftests/mm/uffd-stress.c          |   15 +++++++++++-
- tools/testing/selftests/mm/uffd-unit-tests.c      |   14 ++++++++++-
- 9 files changed, 60 insertions(+), 8 deletions(-)
+ include/linux/mm.h |   24 ++++++++++++++++++++++++
+ mm/userfaultfd.c   |   22 +++++-----------------
+ 2 files changed, 29 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/hugepage-mremap.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/hugepage-mremap.c
-@@ -15,7 +15,7 @@
- #define _GNU_SOURCE
- #include <stdlib.h>
- #include <stdio.h>
--#include <asm-generic/unistd.h>
-+#include <unistd.h>
- #include <sys/mman.h>
- #include <errno.h>
- #include <fcntl.h> /* Definition of O_* constants */
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -11,7 +11,7 @@
- #include <string.h>
- #include <stdbool.h>
- #include <stdint.h>
--#include <asm-generic/unistd.h>
-+#include <unistd.h>
- #include <errno.h>
- #include <fcntl.h>
- #include <sys/mman.h>
-@@ -369,6 +369,7 @@ unmap:
- 	munmap(map, size);
+--- a/include/linux/mm.h~mm-introduce-vma_start_read_locked_nested-helpers
++++ a/include/linux/mm.h
+@@ -735,6 +735,30 @@ static inline bool vma_start_read(struct
+ 	return true;
  }
  
-+#ifdef __NR_userfaultfd
- static void test_unmerge_uffd_wp(void)
++/*
++ * Use only while holding mmap read lock which guarantees that locking will not
++ * fail (nobody can concurrently write-lock the vma). vma_start_read() should
++ * not be used in such cases because it might fail due to mm_lock_seq overflow.
++ * This functionality is used to obtain vma read lock and drop the mmap read lock.
++ */
++static inline void vma_start_read_locked_nested(struct vm_area_struct *vma, int subclass)
++{
++	mmap_assert_locked(vma->vm_mm);
++	down_read_nested(&vma->vm_lock->lock, subclass);
++}
++
++/*
++ * Use only while holding mmap read lock which guarantees that locking will not
++ * fail (nobody can concurrently write-lock the vma). vma_start_read() should
++ * not be used in such cases because it might fail due to mm_lock_seq overflow.
++ * This functionality is used to obtain vma read lock and drop the mmap read lock.
++ */
++static inline void vma_start_read_locked(struct vm_area_struct *vma)
++{
++	mmap_assert_locked(vma->vm_mm);
++	down_read(&vma->vm_lock->lock);
++}
++
+ static inline void vma_end_read(struct vm_area_struct *vma)
  {
- 	struct uffdio_writeprotect uffd_writeprotect;
-@@ -429,6 +430,7 @@ close_uffd:
- unmap:
- 	munmap(map, size);
- }
-+#endif
+ 	rcu_read_lock(); /* keeps vma alive till the end of up_read */
+--- a/mm/userfaultfd.c~mm-introduce-vma_start_read_locked_nested-helpers
++++ a/mm/userfaultfd.c
+@@ -84,16 +84,8 @@ static struct vm_area_struct *uffd_lock_
  
- /* Verify that KSM can be enabled / queried with prctl. */
- static void test_prctl(void)
-@@ -684,7 +686,9 @@ int main(int argc, char **argv)
- 		exit(test_child_ksm());
+ 	mmap_read_lock(mm);
+ 	vma = find_vma_and_prepare_anon(mm, address);
+-	if (!IS_ERR(vma)) {
+-		/*
+-		 * We cannot use vma_start_read() as it may fail due to
+-		 * false locked (see comment in vma_start_read()). We
+-		 * can avoid that by directly locking vm_lock under
+-		 * mmap_lock, which guarantees that nobody can lock the
+-		 * vma for write (vma_start_write()) under us.
+-		 */
+-		down_read(&vma->vm_lock->lock);
+-	}
++	if (!IS_ERR(vma))
++		vma_start_read_locked(vma);
+ 
+ 	mmap_read_unlock(mm);
+ 	return vma;
+@@ -1491,14 +1483,10 @@ static int uffd_move_lock(struct mm_stru
+ 	mmap_read_lock(mm);
+ 	err = find_vmas_mm_locked(mm, dst_start, src_start, dst_vmap, src_vmap);
+ 	if (!err) {
+-		/*
+-		 * See comment in uffd_lock_vma() as to why not using
+-		 * vma_start_read() here.
+-		 */
+-		down_read(&(*dst_vmap)->vm_lock->lock);
++		vma_start_read_locked(*dst_vmap);
+ 		if (*dst_vmap != *src_vmap)
+-			down_read_nested(&(*src_vmap)->vm_lock->lock,
+-					 SINGLE_DEPTH_NESTING);
++			vma_start_read_locked_nested(*src_vmap,
++						SINGLE_DEPTH_NESTING);
  	}
- 
-+#ifdef __NR_userfaultfd
- 	tests++;
-+#endif
- 
- 	ksft_print_header();
- 	ksft_set_plan(tests);
-@@ -696,7 +700,9 @@ int main(int argc, char **argv)
- 	test_unmerge();
- 	test_unmerge_zero_pages();
- 	test_unmerge_discarded();
-+#ifdef __NR_userfaultfd
- 	test_unmerge_uffd_wp();
-+#endif
- 
- 	test_prot_none();
- 
---- a/tools/testing/selftests/mm/memfd_secret.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/memfd_secret.c
-@@ -17,7 +17,7 @@
- 
- #include <stdlib.h>
- #include <string.h>
--#include <asm-generic/unistd.h>
-+#include <unistd.h>
- #include <errno.h>
- #include <stdio.h>
- #include <fcntl.h>
-@@ -28,6 +28,8 @@
- #define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
- #define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
- 
-+#ifdef __NR_memfd_secret
-+
- #define PATTERN	0x55
- 
- static const int prot = PROT_READ | PROT_WRITE;
-@@ -332,3 +334,13 @@ int main(int argc, char *argv[])
- 
- 	ksft_finished();
- }
-+
-+#else /* __NR_memfd_secret */
-+
-+int main(int argc, char *argv[])
-+{
-+	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_memfd_secret */
---- a/tools/testing/selftests/mm/mkdirty.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/mkdirty.c
-@@ -9,7 +9,7 @@
-  */
- #include <fcntl.h>
- #include <signal.h>
--#include <asm-generic/unistd.h>
-+#include <unistd.h>
- #include <string.h>
- #include <errno.h>
- #include <stdlib.h>
-@@ -265,6 +265,7 @@ munmap:
- 	munmap(mmap_mem, mmap_size);
- }
- 
-+#ifdef __NR_userfaultfd
- static void test_uffdio_copy(void)
- {
- 	struct uffdio_register uffdio_register;
-@@ -322,6 +323,7 @@ munmap:
- 	munmap(dst, pagesize);
- 	free(src);
- }
-+#endif /* __NR_userfaultfd */
- 
- int main(void)
- {
-@@ -334,7 +336,9 @@ int main(void)
- 			       thpsize / 1024);
- 		tests += 3;
- 	}
-+#ifdef __NR_userfaultfd
- 	tests += 1;
-+#endif /* __NR_userfaultfd */
- 
- 	ksft_print_header();
- 	ksft_set_plan(tests);
-@@ -364,7 +368,9 @@ int main(void)
- 	if (thpsize)
- 		test_pte_mapped_thp();
- 	/* Placing a fresh page via userfaultfd may set the PTE dirty. */
-+#ifdef __NR_userfaultfd
- 	test_uffdio_copy();
-+#endif /* __NR_userfaultfd */
- 
- 	err = ksft_get_fail_cnt();
- 	if (err)
---- a/tools/testing/selftests/mm/mlock2.h~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/mlock2.h
-@@ -3,7 +3,6 @@
- #include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
--#include <asm-generic/unistd.h>
- 
- static int mlock2_(void *start, size_t len, int flags)
- {
---- a/tools/testing/selftests/mm/protection_keys.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -42,7 +42,7 @@
- #include <sys/wait.h>
- #include <sys/stat.h>
- #include <fcntl.h>
--#include <asm-generic/unistd.h>
-+#include <unistd.h>
- #include <sys/ptrace.h>
- #include <setjmp.h>
- 
---- a/tools/testing/selftests/mm/uffd-common.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -673,7 +673,11 @@ int uffd_open_dev(unsigned int flags)
- 
- int uffd_open_sys(unsigned int flags)
- {
-+#ifdef __NR_userfaultfd
- 	return syscall(__NR_userfaultfd, flags);
-+#else
-+	return -1;
-+#endif
- }
- 
- int uffd_open(unsigned int flags)
---- a/tools/testing/selftests/mm/uffd-stress.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -33,10 +33,11 @@
-  * pthread_mutex_lock will also verify the atomicity of the memory
-  * transfer (UFFDIO_COPY).
-  */
--#include <asm-generic/unistd.h>
-+
- #include "uffd-common.h"
- 
- uint64_t features;
-+#ifdef __NR_userfaultfd
- 
- #define BOUNCE_RANDOM		(1<<0)
- #define BOUNCE_RACINGFAULTS	(1<<1)
-@@ -471,3 +472,15 @@ int main(int argc, char **argv)
- 	       nr_pages, nr_pages_per_cpu);
- 	return userfaultfd_stress();
- }
-+
-+#else /* __NR_userfaultfd */
-+
-+#warning "missing __NR_userfaultfd definition"
-+
-+int main(void)
-+{
-+	printf("skip: Skipping userfaultfd test (missing __NR_userfaultfd)\n");
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_userfaultfd */
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~revert-selftests-mm-remove-local-__nr_-definitions
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -5,11 +5,12 @@
-  *  Copyright (C) 2015-2023  Red Hat, Inc.
-  */
- 
--#include <asm-generic/unistd.h>
- #include "uffd-common.h"
- 
- #include "../../../../mm/gup_test.h"
- 
-+#ifdef __NR_userfaultfd
-+
- /* The unit test doesn't need a large or random size, make it 32MB for now */
- #define  UFFD_TEST_MEM_SIZE               (32UL << 20)
- 
-@@ -1558,3 +1559,14 @@ int main(int argc, char *argv[])
- 	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
- }
- 
-+#else /* __NR_userfaultfd */
-+
-+#warning "missing __NR_userfaultfd definition"
-+
-+int main(void)
-+{
-+	printf("Skipping %s (missing __NR_userfaultfd)\n", __file__);
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_userfaultfd */
+ 	mmap_read_unlock(mm);
+ 	return err;
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-revert-selftests-mm-remove-local-__nr_-definitions.patch
+alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch
+mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
+mm-introduce-vma_start_read_locked_nested-helpers.patch
+mm-move-per-vma-lock-into-vm_area_struct.patch
+mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
+mm-mark-vmas-detached-upon-exit.patch
+types-move-struct-rcuwait-into-typesh.patch
+mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+mm-move-mmap_init_lock-out-of-the-header-file.patch
+mm-uninline-the-main-body-of-vma_start_write.patch
+refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
+refcount-introduce-__refcount_addinc_not_zero_limited_acquire.patch
+mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch
+mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
+mm-remove-extra-vma_numab_state_init-call.patch
+mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+mm-make-vma-cache-slab_typesafe_by_rcu.patch
+docs-mm-document-latest-changes-to-vm_lock.patch
 
