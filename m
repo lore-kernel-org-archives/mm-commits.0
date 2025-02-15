@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422FD80C02
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFE13126C18
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739580153; cv=none; b=sx8jUZ2duSU8T6G6UxBiX+B7yYyQn3j65usUMIVKADjT332tGd5K5y1DnzmIZKx4jhzCZq4hDNHzatK6urz9VnLJfTtApVjjRsuuSvhBUyPZEJzI4HuXjHgv310EnnepG50UqKCb48uq1ZR4voouYYdzfH51XcsVd/ft0W8hCHs=
+	t=1739580154; cv=none; b=sUGqDkwR2suI/rrbP6Hg2MPzY96VDG4U1JiccVKvVgHGl156JVq8V5c/ezVg4+4qde1JwmADltI15L3+2PQh1bpRXkYOABoyUZs5HZOZAz7mmjWlSTJq0TgaoUziV9LdYOuRtpj/LT6vB4lOkLyJPhGKKJwW3fNFC1O6nA4Gdsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739580153; c=relaxed/simple;
-	bh=UIMG8u1N7MKbSAYWkSDonA4m7RPxteRGnO7pC7ee4bY=;
-	h=Date:To:From:Subject:Message-Id; b=fVyoyBh2G/l0XYfbiMGgyWrkJIPCDZteiBA6GyPm3IWYJPS5UcnQJ4SyPM7U9ZVKUzcrr9oyA9B85EWk5KJGeqOmcgMd2kJAKoD7gY5ZC4TBrSHenRtI6G9R9Y0Fk3XZegWMxkgAmhOT8/t+SuDGLtAAuN+I0kLE+BfG+JbB36s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bp2ATpxn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739580154; c=relaxed/simple;
+	bh=6SRUBGpHK0hwIM9l96pt82B8qBjAHf4uwO8yXrkAkqw=;
+	h=Date:To:From:Subject:Message-Id; b=RHuRS0Cdanr2oGFxq4VYJ1VmahrBa/G0gtKlot6JB8kGjBYRoPxNrnlE2b3PVHOzIJdAQoPP2onW3bi/PynyVnOUjWSyJBtVHolbcDV9ZEK0/9HY8rZLHjmqRSZ50O87XEq8dsq9qXKPHVeSEEA3Sc1GCUejNWpqc6rYgKgFZkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lhq1tLep; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bp2ATpxn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F864C4CEE2;
-	Sat, 15 Feb 2025 00:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lhq1tLep"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8478DC4CEE6;
+	Sat, 15 Feb 2025 00:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739580153;
-	bh=UIMG8u1N7MKbSAYWkSDonA4m7RPxteRGnO7pC7ee4bY=;
+	s=korg; t=1739580154;
+	bh=6SRUBGpHK0hwIM9l96pt82B8qBjAHf4uwO8yXrkAkqw=;
 	h=Date:To:From:Subject:From;
-	b=Bp2ATpxnSr4pXz2oQD/hFHqD4G7UltqVrOBbD1jPl8BKrma1n7jvti+fwGBM2cyXF
-	 4W7aUxR9bI+SvJVsIcC+31kAp/522roOzFQugxhlWXrV8EAt6k+rGM+qI4nxBf/uow
-	 q7xZoBtI/wnwFmH4MuK51na30NDXy3iY1Try0oBo=
-Date: Fri, 14 Feb 2025 16:42:32 -0800
+	b=lhq1tLepzEGimrwLWHd6n0RAdWF6QbaQFnFr329qkeJtOmEJz170IVAM7NNJuTaqY
+	 w/Ncz61ydxoZ1263qhUdHU1pz6NbT2wHw2QwBOmYJqA76iozSonFKpcSg7ampFqY1L
+	 1c+eAHRmxuWHIIsHA7aA1bE3GELDZdZG06r+D5MM=
+Date: Fri, 14 Feb 2025 16:42:34 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch added to mm-unstable branch
-Message-Id: <20250215004233.0F864C4CEE2@smtp.kernel.org>
+Subject: + mm-make-vma-cache-slab_typesafe_by_rcu.patch added to mm-unstable branch
+Message-Id: <20250215004234.8478DC4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: prepare lock_vma_under_rcu() for vma reuse possibility
+     Subject: mm: make vma cache SLAB_TYPESAFE_BY_RCU
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+     mm-make-vma-cache-slab_typesafe_by_rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vma-cache-slab_typesafe_by_rcu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: prepare lock_vma_under_rcu() for vma reuse possibility
-Date: Thu, 13 Feb 2025 14:46:53 -0800
+Subject: mm: make vma cache SLAB_TYPESAFE_BY_RCU
+Date: Thu, 13 Feb 2025 14:46:54 -0800
 
-Once we make vma cache SLAB_TYPESAFE_BY_RCU, it will be possible for a vma
-to be reused and attached to another mm after lock_vma_under_rcu() locks
-the vma.  lock_vma_under_rcu() should ensure that vma_start_read() is
-using the original mm and after locking the vma it should ensure that
-vma->vm_mm has not changed from under us.
+To enable SLAB_TYPESAFE_BY_RCU for vma cache we need to ensure that
+object reuse before RCU grace period is over will be detected by
+lock_vma_under_rcu().
 
-Link: https://lkml.kernel.org/r/20250213224655.1680278-17-surenb@google.com
+Current checks are sufficient as long as vma is detached before it is
+freed.  The only place this is not currently happening is in exit_mmap(). 
+Add the missing vma_mark_detached() in exit_mmap().
+
+Another issue which might trick lock_vma_under_rcu() during vma reuse is
+vm_area_dup(), which copies the entire content of the vma into a new one,
+overriding new vma's vm_refcnt and temporarily making it appear as
+attached.  This might trick a racing lock_vma_under_rcu() to operate on a
+reused vma if it found the vma before it got reused.  To prevent this
+situation, we should ensure that vm_refcnt stays at detached state (0)
+when it is copied and advances to attached state only after it is added
+into the vma tree.  Introduce vm_area_init_from() which preserves new
+vma's vm_refcnt and use it in vm_area_dup().  Since all vmas are in
+detached state with no current readers when they are freed,
+
+lock_vma_under_rcu() will not be able to take vm_refcnt after vma got
+detached even if vma is reused. vma_mark_attached() in modified to
+include a release fence to ensure all stores to the vma happen before
+vm_refcnt gets initialized.
+
+Finally, make vm_area_cachep SLAB_TYPESAFE_BY_RCU. This will facilitate
+vm_area_struct reuse and will minimize the number of call_rcu() calls.
+
+Link: https://lkml.kernel.org/r/20250213224655.1680278-18-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Shivank Garg <shivankg@amd.com>
@@ -103,78 +124,313 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 ++++++++----
- mm/memory.c        |    7 ++++---
- 2 files changed, 12 insertions(+), 7 deletions(-)
+ include/linux/mm.h               |    4 -
+ include/linux/mm_types.h         |   13 +++--
+ include/linux/slab.h             |    6 --
+ kernel/fork.c                    |   73 ++++++++++++++++++-----------
+ mm/mmap.c                        |    3 -
+ mm/vma.c                         |   11 +---
+ mm/vma.h                         |    2 
+ tools/include/linux/refcount.h   |    5 +
+ tools/testing/vma/linux/atomic.h |    1 
+ tools/testing/vma/vma_internal.h |    9 ---
+ 10 files changed, 71 insertions(+), 56 deletions(-)
 
---- a/include/linux/mm.h~mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility
+--- a/include/linux/mm.h~mm-make-vma-cache-slab_typesafe_by_rcu
 +++ a/include/linux/mm.h
-@@ -739,10 +739,13 @@ static inline void vma_refcount_put(stru
-  * Try to read-lock a vma. The function is allowed to occasionally yield false
-  * locked result to avoid performance overhead, in which case we fall back to
-  * using mmap_lock. The function should never yield false unlocked result.
-+ * False locked result is possible if mm_lock_seq overflows or if vma gets
-+ * reused and attached to a different mm before we lock it.
-  * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
-  * detached.
-  */
--static inline struct vm_area_struct *vma_start_read(struct vm_area_struct *vma)
-+static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
-+						    struct vm_area_struct *vma)
- {
- 	int oldcnt;
+@@ -258,8 +258,6 @@ void setup_initial_init_mm(void *start_c
+ struct vm_area_struct *vm_area_alloc(struct mm_struct *);
+ struct vm_area_struct *vm_area_dup(struct vm_area_struct *);
+ void vm_area_free(struct vm_area_struct *);
+-/* Use only if VMA has no other users */
+-void __vm_area_free(struct vm_area_struct *vma);
  
-@@ -753,7 +756,7 @@ static inline struct vm_area_struct *vma
- 	 * we don't rely on for anything - the mm_lock_seq read against which we
- 	 * need ordering is below.
- 	 */
--	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(vma->vm_mm->mm_lock_seq.sequence))
-+	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence))
- 		return NULL;
+ #ifndef CONFIG_MMU
+ extern struct rb_root nommu_region_tree;
+@@ -890,7 +888,7 @@ static inline void vma_mark_attached(str
+ {
+ 	vma_assert_write_locked(vma);
+ 	vma_assert_detached(vma);
+-	refcount_set(&vma->vm_refcnt, 1);
++	refcount_set_release(&vma->vm_refcnt, 1);
+ }
+ 
+ void vma_mark_detached(struct vm_area_struct *vma);
+--- a/include/linux/mm_types.h~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/include/linux/mm_types.h
+@@ -575,6 +575,12 @@ static inline void *folio_get_private(st
+ typedef unsigned long vm_flags_t;
+ 
+ /*
++ * freeptr_t represents a SLUB freelist pointer, which might be encoded
++ * and not dereferenceable if CONFIG_SLAB_FREELIST_HARDENED is enabled.
++ */
++typedef struct { unsigned long v; } freeptr_t;
++
++/*
+  * A region containing a mapping of a non-memory backed file under NOMMU
+  * conditions.  These are held in a global tree and are pinned by the VMAs that
+  * map parts of them.
+@@ -677,6 +683,9 @@ struct vma_numab_state {
+  *
+  * Only explicitly marked struct members may be accessed by RCU readers before
+  * getting a stable reference.
++ *
++ * WARNING: when adding new members, please update vm_area_init_from() to copy
++ * them during vm_area_struct content duplication.
+  */
+ struct vm_area_struct {
+ 	/* The first cache line has the info for VMA tree walking. */
+@@ -687,9 +696,7 @@ struct vm_area_struct {
+ 			unsigned long vm_start;
+ 			unsigned long vm_end;
+ 		};
+-#ifdef CONFIG_PER_VMA_LOCK
+-		struct rcu_head vm_rcu;	/* Used for deferred freeing. */
+-#endif
++		freeptr_t vm_freeptr; /* Pointer used by SLAB_TYPESAFE_BY_RCU */
+ 	};
  
  	/*
-@@ -780,7 +783,7 @@ static inline struct vm_area_struct *vma
- 	 * after it has been unlocked.
- 	 * This pairs with RELEASE semantics in vma_end_write_all().
- 	 */
--	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&vma->vm_mm->mm_lock_seq))) {
-+	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
- 		vma_refcount_put(vma);
- 		return NULL;
- 	}
-@@ -914,7 +917,8 @@ struct vm_area_struct *lock_vma_under_rc
- #else /* CONFIG_PER_VMA_LOCK */
+--- a/include/linux/slab.h~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/include/linux/slab.h
+@@ -244,12 +244,6 @@ enum _slab_flag_bits {
+ #endif
  
- static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
--static inline struct vm_area_struct *vma_start_read(struct vm_area_struct *vma)
-+static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
-+						    struct vm_area_struct *vma)
- 		{ return NULL; }
- static inline void vma_end_read(struct vm_area_struct *vma) {}
- static inline void vma_start_write(struct vm_area_struct *vma) {}
---- a/mm/memory.c~mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility
-+++ a/mm/memory.c
-@@ -6447,7 +6447,7 @@ retry:
- 	if (!vma)
- 		goto inval;
+ /*
+- * freeptr_t represents a SLUB freelist pointer, which might be encoded
+- * and not dereferenceable if CONFIG_SLAB_FREELIST_HARDENED is enabled.
+- */
+-typedef struct { unsigned long v; } freeptr_t;
+-
+-/*
+  * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
+  *
+  * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
+--- a/kernel/fork.c~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/kernel/fork.c
+@@ -449,6 +449,42 @@ struct vm_area_struct *vm_area_alloc(str
+ 	return vma;
+ }
  
--	vma = vma_start_read(vma);
-+	vma = vma_start_read(mm, vma);
- 	if (IS_ERR_OR_NULL(vma)) {
- 		/* Check if the VMA got isolated after we found it */
- 		if (PTR_ERR(vma) == -EAGAIN) {
-@@ -6467,8 +6467,9 @@ retry:
- 	 * fields are accessible for RCU readers.
- 	 */
++static void vm_area_init_from(const struct vm_area_struct *src,
++			      struct vm_area_struct *dest)
++{
++	dest->vm_mm = src->vm_mm;
++	dest->vm_ops = src->vm_ops;
++	dest->vm_start = src->vm_start;
++	dest->vm_end = src->vm_end;
++	dest->anon_vma = src->anon_vma;
++	dest->vm_pgoff = src->vm_pgoff;
++	dest->vm_file = src->vm_file;
++	dest->vm_private_data = src->vm_private_data;
++	vm_flags_init(dest, src->vm_flags);
++	memcpy(&dest->vm_page_prot, &src->vm_page_prot,
++	       sizeof(dest->vm_page_prot));
++	/*
++	 * src->shared.rb may be modified concurrently when called from
++	 * dup_mmap(), but the clone will reinitialize it.
++	 */
++	data_race(memcpy(&dest->shared, &src->shared, sizeof(dest->shared)));
++	memcpy(&dest->vm_userfaultfd_ctx, &src->vm_userfaultfd_ctx,
++	       sizeof(dest->vm_userfaultfd_ctx));
++#ifdef CONFIG_ANON_VMA_NAME
++	dest->anon_name = src->anon_name;
++#endif
++#ifdef CONFIG_SWAP
++	memcpy(&dest->swap_readahead_info, &src->swap_readahead_info,
++	       sizeof(dest->swap_readahead_info));
++#endif
++#ifndef CONFIG_MMU
++	dest->vm_region = src->vm_region;
++#endif
++#ifdef CONFIG_NUMA
++	dest->vm_policy = src->vm_policy;
++#endif
++}
++
+ struct vm_area_struct *vm_area_dup(struct vm_area_struct *orig)
+ {
+ 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+@@ -458,11 +494,7 @@ struct vm_area_struct *vm_area_dup(struc
  
--	/* Check since vm_start/vm_end might change before we lock the VMA */
--	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
-+	/* Check if the vma we locked is the right one. */
-+	if (unlikely(vma->vm_mm != mm ||
-+		     address < vma->vm_start || address >= vma->vm_end))
- 		goto inval_end_read;
+ 	ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
+ 	ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
+-	/*
+-	 * orig->shared.rb may be modified concurrently, but the clone
+-	 * will be reinitialized.
+-	 */
+-	data_race(memcpy(new, orig, sizeof(*new)));
++	vm_area_init_from(orig, new);
+ 	vma_lock_init(new, true);
+ 	INIT_LIST_HEAD(&new->anon_vma_chain);
+ 	vma_numab_state_init(new);
+@@ -471,7 +503,7 @@ struct vm_area_struct *vm_area_dup(struc
+ 	return new;
+ }
  
- 	rcu_read_unlock();
+-void __vm_area_free(struct vm_area_struct *vma)
++void vm_area_free(struct vm_area_struct *vma)
+ {
+ 	/* The vma should be detached while being destroyed. */
+ 	vma_assert_detached(vma);
+@@ -480,25 +512,6 @@ void __vm_area_free(struct vm_area_struc
+ 	kmem_cache_free(vm_area_cachep, vma);
+ }
+ 
+-#ifdef CONFIG_PER_VMA_LOCK
+-static void vm_area_free_rcu_cb(struct rcu_head *head)
+-{
+-	struct vm_area_struct *vma = container_of(head, struct vm_area_struct,
+-						  vm_rcu);
+-
+-	__vm_area_free(vma);
+-}
+-#endif
+-
+-void vm_area_free(struct vm_area_struct *vma)
+-{
+-#ifdef CONFIG_PER_VMA_LOCK
+-	call_rcu(&vma->vm_rcu, vm_area_free_rcu_cb);
+-#else
+-	__vm_area_free(vma);
+-#endif
+-}
+-
+ static void account_kernel_stack(struct task_struct *tsk, int account)
+ {
+ 	if (IS_ENABLED(CONFIG_VMAP_STACK)) {
+@@ -3156,6 +3169,11 @@ void __init mm_cache_init(void)
+ 
+ void __init proc_caches_init(void)
+ {
++	struct kmem_cache_args args = {
++		.use_freeptr_offset = true,
++		.freeptr_offset = offsetof(struct vm_area_struct, vm_freeptr),
++	};
++
+ 	sighand_cachep = kmem_cache_create("sighand_cache",
+ 			sizeof(struct sighand_struct), 0,
+ 			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_TYPESAFE_BY_RCU|
+@@ -3172,8 +3190,9 @@ void __init proc_caches_init(void)
+ 			sizeof(struct fs_struct), 0,
+ 			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT,
+ 			NULL);
+-	vm_area_cachep = KMEM_CACHE(vm_area_struct,
+-			SLAB_HWCACHE_ALIGN|SLAB_NO_MERGE|SLAB_PANIC|
++	vm_area_cachep = kmem_cache_create("vm_area_struct",
++			sizeof(struct vm_area_struct), &args,
++			SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_TYPESAFE_BY_RCU|
+ 			SLAB_ACCOUNT);
+ 	mmap_init();
+ 	nsproxy_cache_init();
+--- a/mm/mmap.c~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/mm/mmap.c
+@@ -1305,7 +1305,8 @@ void exit_mmap(struct mm_struct *mm)
+ 	do {
+ 		if (vma->vm_flags & VM_ACCOUNT)
+ 			nr_accounted += vma_pages(vma);
+-		remove_vma(vma, /* unreachable = */ true);
++		vma_mark_detached(vma);
++		remove_vma(vma);
+ 		count++;
+ 		cond_resched();
+ 		vma = vma_next(&vmi);
+--- a/mm/vma.c~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/mm/vma.c
+@@ -420,19 +420,14 @@ static bool can_vma_merge_right(struct v
+ /*
+  * Close a vm structure and free it.
+  */
+-void remove_vma(struct vm_area_struct *vma, bool unreachable)
++void remove_vma(struct vm_area_struct *vma)
+ {
+ 	might_sleep();
+ 	vma_close(vma);
+ 	if (vma->vm_file)
+ 		fput(vma->vm_file);
+ 	mpol_put(vma_policy(vma));
+-	if (unreachable) {
+-		vma_mark_detached(vma);
+-		__vm_area_free(vma);
+-	} else {
+-		vm_area_free(vma);
+-	}
++	vm_area_free(vma);
+ }
+ 
+ /*
+@@ -1218,7 +1213,7 @@ static void vms_complete_munmap_vmas(str
+ 	/* Remove and clean up vmas */
+ 	mas_set(mas_detach, 0);
+ 	mas_for_each(mas_detach, vma, ULONG_MAX)
+-		remove_vma(vma, /* unreachable = */ false);
++		remove_vma(vma);
+ 
+ 	vm_unacct_memory(vms->nr_accounted);
+ 	validate_mm(mm);
+--- a/mm/vma.h~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/mm/vma.h
+@@ -218,7 +218,7 @@ int do_vmi_munmap(struct vma_iterator *v
+ 		  unsigned long start, size_t len, struct list_head *uf,
+ 		  bool unlock);
+ 
+-void remove_vma(struct vm_area_struct *vma, bool unreachable);
++void remove_vma(struct vm_area_struct *vma);
+ 
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
+ 		struct vm_area_struct *prev, struct vm_area_struct *next);
+--- a/tools/include/linux/refcount.h~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/tools/include/linux/refcount.h
+@@ -60,6 +60,11 @@ static inline void refcount_set(refcount
+ 	atomic_set(&r->refs, n);
+ }
+ 
++static inline void refcount_set_release(refcount_t *r, unsigned int n)
++{
++	atomic_set_release(&r->refs, n);
++}
++
+ static inline unsigned int refcount_read(const refcount_t *r)
+ {
+ 	return atomic_read(&r->refs);
+--- a/tools/testing/vma/linux/atomic.h~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/tools/testing/vma/linux/atomic.h
+@@ -7,6 +7,7 @@
+ #define atomic_inc(x) uatomic_inc(x)
+ #define atomic_read(x) uatomic_read(x)
+ #define atomic_set(x, y) uatomic_set(x, y)
++#define atomic_set_release(x, y) uatomic_set(x, y)
+ #define U8_MAX UCHAR_MAX
+ 
+ #ifndef atomic_cmpxchg_relaxed
+--- a/tools/testing/vma/vma_internal.h~mm-make-vma-cache-slab_typesafe_by_rcu
++++ a/tools/testing/vma/vma_internal.h
+@@ -476,7 +476,7 @@ static inline void vma_mark_attached(str
+ {
+ 	vma_assert_write_locked(vma);
+ 	vma_assert_detached(vma);
+-	refcount_set(&vma->vm_refcnt, 1);
++	refcount_set_release(&vma->vm_refcnt, 1);
+ }
+ 
+ static inline void vma_mark_detached(struct vm_area_struct *vma)
+@@ -696,14 +696,9 @@ static inline void mpol_put(struct mempo
+ {
+ }
+ 
+-static inline void __vm_area_free(struct vm_area_struct *vma)
+-{
+-	free(vma);
+-}
+-
+ static inline void vm_area_free(struct vm_area_struct *vma)
+ {
+-	__vm_area_free(vma);
++	free(vma);
+ }
+ 
+ static inline void lru_add_drain(void)
 _
 
 Patches currently in -mm which might be from surenb@google.com are
