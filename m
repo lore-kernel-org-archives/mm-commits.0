@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26E026EB7D
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1C86664C6
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739580141; cv=none; b=WTfcNbQtVhE+Qu8GTiW5M3ODiCeql2IyJV2h/g/er/4PysOVUwbrMwktvJmWBR5yfIPzRNa19+1wtIDFFvooCk84hvJivDc9S3RyZdOlxegjnfQw+93pTEBnDJFESsGjRE6upqO6h9VAkuyOGJJip4sR959MzqzYFGBni+N/+TY=
+	t=1739580142; cv=none; b=udKlVsF7hssTyTXPv4Urb3dOzTNTEpvdqOKWCk83FN5+WStyTISYaqSFeksfOCPK/aROolDHUxqpBOXPSxTKEXAbe0ljLhOi0XTyqd9X3Dak8ZDW6bcSErx1LiQBy62/DMcHNMhJ/4uZy0EAajBrwavMs2n3sxsLjSCVg0F9EqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739580141; c=relaxed/simple;
-	bh=O7V8lcjkKwUNH/nRhsBrkhgM9NQQdtKyl6OH6iecJnc=;
-	h=Date:To:From:Subject:Message-Id; b=AVTs87p/pQf8pv9f7Gk7FV0GbqQOp0WncuD4wegD2DwuKwz5cbzh81y9HinRkNKhTuGe1eAciG4MvPbAxN4F2FhiuPBzZ2059hWJj2T5yC4gZnIrlTKZsX96KiJGWqAam5rUW40K0TlddiYWHhjiHldUpa+1SF+LISNMO1SAMfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yo4GVF+S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739580142; c=relaxed/simple;
+	bh=yMwtwKIpwwfwCEKZZkRAsmNIhH9ohy4miWf53qhocJE=;
+	h=Date:To:From:Subject:Message-Id; b=UNZ1LOOlmw85jnKq9DezGWglDgz6hGxNkRvjpjI4dKDuUpoSzyagRoRcv7vBFxNI1vtdZOl8Me1g2kcr2wckhlIkkTiMXsFQIb9vjdcAuTYfKdXGWk3u0lXcYju+7HhnFqpaFVe9A+pR3hvCVP7cE5LOgEzL0cPDm+Y/NGnDzq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D7YCJjA9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yo4GVF+S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81563C4CED1;
-	Sat, 15 Feb 2025 00:42:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D7YCJjA9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D15AC4CED1;
+	Sat, 15 Feb 2025 00:42:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739580140;
-	bh=O7V8lcjkKwUNH/nRhsBrkhgM9NQQdtKyl6OH6iecJnc=;
+	s=korg; t=1739580142;
+	bh=yMwtwKIpwwfwCEKZZkRAsmNIhH9ohy4miWf53qhocJE=;
 	h=Date:To:From:Subject:From;
-	b=yo4GVF+SczRLFRpNcHA8sxhXPL6aN2LXWbTtyYnUlS5C/UGhttBfyePpkntcWHIIq
-	 jO39twaMhFWs1B8CpxDv7zw9O7DXvI9UN7xC2MksIkCbSyvoi7vbxriqClWQt2WiCi
-	 Ys0InYG7TKTnryfNASM4sWQVKKwIvSIAvNpX9SNE=
-Date: Fri, 14 Feb 2025 16:42:20 -0800
+	b=D7YCJjA9B2DszCJX6s2lG4N60LdcBL7/urIiszqmikM3Su9NecY22xfz2dd9k/6n3
+	 JNsQpkiRBqarbtuWDo4RxrApWKZ0vOVYdRXDrRWU5JQfeKn6YdcoagDY/3oXVNKevT
+	 tsmaIMZHLK/QtVF4uWldS+D0KpOh6VbGCt8A6DsY=
+Date: Fri, 14 Feb 2025 16:42:21 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-mmap_init_lock-out-of-the-header-file.patch added to mm-unstable branch
-Message-Id: <20250215004220.81563C4CED1@smtp.kernel.org>
+Subject: + mm-uninline-the-main-body-of-vma_start_write.patch added to mm-unstable branch
+Message-Id: <20250215004222.0D15AC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move mmap_init_lock() out of the header file
+     Subject: mm: uninline the main body of vma_start_write()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-mmap_init_lock-out-of-the-header-file.patch
+     mm-uninline-the-main-body-of-vma_start_write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-mmap_init_lock-out-of-the-header-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uninline-the-main-body-of-vma_start_write.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: move mmap_init_lock() out of the header file
-Date: Thu, 13 Feb 2025 14:46:45 -0800
+Subject: mm: uninline the main body of vma_start_write()
+Date: Thu, 13 Feb 2025 14:46:46 -0800
 
-mmap_init_lock() is used only from mm_init() in fork.c, therefore it does
-not have to reside in the header file.  This move lets us avoid including
-additional headers in mmap_lock.h later, when mmap_init_lock() needs to
-initialize rcuwait object.
+vma_start_write() is used in many places and will grow in size very soon. 
+It is not used in performance critical paths and uninlining it should
+limit the future code size growth.  No functional changes.
 
-Link: https://lkml.kernel.org/r/20250213224655.1680278-9-surenb@google.com
+Link: https://lkml.kernel.org/r/20250213224655.1680278-10-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -102,40 +101,61 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |    6 ------
- kernel/fork.c             |    6 ++++++
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mm.h |   12 +++---------
+ mm/memory.c        |   14 ++++++++++++++
+ 2 files changed, 17 insertions(+), 9 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-move-mmap_init_lock-out-of-the-header-file
-+++ a/include/linux/mmap_lock.h
-@@ -122,12 +122,6 @@ static inline bool mmap_lock_speculate_r
- 
- #endif /* CONFIG_PER_VMA_LOCK */
- 
--static inline void mmap_init_lock(struct mm_struct *mm)
--{
--	init_rwsem(&mm->mmap_lock);
--	mm_lock_seqcount_init(mm);
--}
--
- static inline void mmap_write_lock(struct mm_struct *mm)
- {
- 	__mmap_lock_trace_start_locking(mm, true);
---- a/kernel/fork.c~mm-move-mmap_init_lock-out-of-the-header-file
-+++ a/kernel/fork.c
-@@ -1230,6 +1230,12 @@ static void mm_init_uprobes_state(struct
- #endif
+--- a/include/linux/mm.h~mm-uninline-the-main-body-of-vma_start_write
++++ a/include/linux/mm.h
+@@ -787,6 +787,8 @@ static bool __is_vma_write_locked(struct
+ 	return (vma->vm_lock_seq == *mm_lock_seq);
  }
  
-+static void mmap_init_lock(struct mm_struct *mm)
-+{
-+	init_rwsem(&mm->mmap_lock);
-+	mm_lock_seqcount_init(mm);
-+}
++void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq);
 +
- static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
- 	struct user_namespace *user_ns)
- {
+ /*
+  * Begin writing to a VMA.
+  * Exclude concurrent readers under the per-VMA lock until the currently
+@@ -799,15 +801,7 @@ static inline void vma_start_write(struc
+ 	if (__is_vma_write_locked(vma, &mm_lock_seq))
+ 		return;
+ 
+-	down_write(&vma->vm_lock.lock);
+-	/*
+-	 * We should use WRITE_ONCE() here because we can have concurrent reads
+-	 * from the early lockless pessimistic check in vma_start_read().
+-	 * We don't really care about the correctness of that early check, but
+-	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
+-	 */
+-	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
+-	up_write(&vma->vm_lock.lock);
++	__vma_start_write(vma, mm_lock_seq);
+ }
+ 
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+--- a/mm/memory.c~mm-uninline-the-main-body-of-vma_start_write
++++ a/mm/memory.c
+@@ -6348,6 +6348,20 @@ fail:
+ #endif
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
++void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq)
++{
++	down_write(&vma->vm_lock.lock);
++	/*
++	 * We should use WRITE_ONCE() here because we can have concurrent reads
++	 * from the early lockless pessimistic check in vma_start_read().
++	 * We don't really care about the correctness of that early check, but
++	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
++	 */
++	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
++	up_write(&vma->vm_lock.lock);
++}
++EXPORT_SYMBOL_GPL(__vma_start_write);
++
+ /*
+  * Lookup and lock a VMA under RCU protection. Returned VMA is guaranteed to be
+  * stable and not isolated. If the VMA is not found or is being modified the
 _
 
 Patches currently in -mm which might be from surenb@google.com are
