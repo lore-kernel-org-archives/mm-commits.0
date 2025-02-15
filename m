@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FFED1C84D9
-	for <mm-commits@vger.kernel.org>; Fri, 14 Feb 2025 23:40:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1733F19CC06
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:05:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739576436; cv=none; b=qqt2npEo9rKfS6zqpag/LsVHq8RqptyoPmS4dwihwp1EgdHNq2CaaOdtNIsQQFJJKKTIFdRvFbVQu3tqB5Pt211GjpIJeKtund5DvscS5g+KWJOrAVGnk1PbszCT26xp7AYBQpFyfd2OYYUA5WTBgiGQkrVbvhiZGaqGMDTmqCo=
+	t=1739577920; cv=none; b=MNHKQxjoyGEjbh8PqkSk4lYjtk0sBuAPXJ2FkHIjPWCSmlSJLvyh9o8lqOWJvEoAatTXiyZKlzpDDCMUFHpP14i8WmAXnfDsHZZaYwpaOW7u9vSyYygHLT5tqQ4SnjnWpUlx6Znef7X76yVtU8rtuy6N6gF3npSWzNGsGyEGEXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739576436; c=relaxed/simple;
-	bh=0wO5uFSmMOiWXoo/XJ4O13F/0y1n5Wi7Etk8riVXnYo=;
-	h=Date:To:From:Subject:Message-Id; b=l8XP/+a8CX8fqihyTujbHcp6GBlNcdJEl5+TEi+vJDDOODWy+liZ2eevc0YJ86KQ0QkDA8m5yZN2/6gd+WXecP/iJ6xM2y1JPNTpFNYaojw6L0/rwb9QQNE78RiEj4O/L1c9vLFYG8n35WjxA2jjZBypWXGu2JMsJLtTjw0grMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IlYYNSI4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739577920; c=relaxed/simple;
+	bh=FtDBJCiaQFQmOPijU0Scn5bM7i4SlPG5eTl5tmmmP+Q=;
+	h=Date:To:From:Subject:Message-Id; b=qi7QGk25p7TmVzzjLk4+LFN2odBFwwuJkbNO4nWpBlNkWOhFrt/3hiUMutTM2wLcFLRZG5u4Fgb7W5Z7Tx/BKJ/QX1QsyHovVNRBxJG4THegqTB3zArEcLtgfGYA8tBwwydStlfhYxe73iz5WhqGhTLAfnEF4+D0L1iC/CBYuUg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTOyYDvN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IlYYNSI4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCF54C4CED1;
-	Fri, 14 Feb 2025 23:40:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTOyYDvN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73C0CC4CEE2;
+	Sat, 15 Feb 2025 00:05:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739576434;
-	bh=0wO5uFSmMOiWXoo/XJ4O13F/0y1n5Wi7Etk8riVXnYo=;
+	s=korg; t=1739577919;
+	bh=FtDBJCiaQFQmOPijU0Scn5bM7i4SlPG5eTl5tmmmP+Q=;
 	h=Date:To:From:Subject:From;
-	b=IlYYNSI4nrqZFPARS+8/fMd//XjvWrRExVg4gGjnO3XZQSemdIARra3BWT0LuhRbl
-	 mYzth1prF11YrDjWyarduqJNCrNfUpf1NehG/PvZGqc231akTmZaZxOZEqA3pK2yMm
-	 GrkdT1rO0CMWYISxSAQPQH8mOUowciY2yzGYLhwM=
-Date: Fri, 14 Feb 2025 15:40:34 -0800
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jane.chu@oracle.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=JTOyYDvNgK5UVNvH9B06QhnxLPD6INqSAvyUiXaanAKR21xo/q+7QCL4t3Dtho2F3
+	 27CHjWw6ifbAMQCmpdjWXO3jJiW/6QslDP3ZE21VnOaTnuoZRKPHZ0eY49q7GFJ7R4
+	 6iVSgw0V/i2K/0H+0QeQlEeN2ASre9HrqVt04w/0=
+Date: Fri, 14 Feb 2025 16:05:18 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,kurt.hackel@oracle.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,kovalev@altlinux.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-use-folios-more-widely-within-dax.patch added to mm-unstable branch
-Message-Id: <20250214234034.BCF54C4CED1@smtp.kernel.org>
+Subject: + ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access.patch added to mm-nonmm-unstable branch
+Message-Id: <20250215000519.73C0CC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dax: use folios more widely within DAX
-has been added to the -mm mm-unstable branch.  Its filename is
-     dax-use-folios-more-widely-within-dax.patch
+     Subject: ocfs2: validate l_tree_depth to avoid out-of-bounds access
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-use-folios-more-widely-within-dax.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,131 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: dax: use folios more widely within DAX
-Date: Mon, 16 Dec 2024 15:53:56 +0000
+From: Vasiliy Kovalev <kovalev@altlinux.org>
+Subject: ocfs2: validate l_tree_depth to avoid out-of-bounds access
+Date: Fri, 14 Feb 2025 11:49:08 +0300
 
-Convert from pfn to folio instead of page and use those folios throughout
-to avoid accesses to page->index and page->mapping.
+The l_tree_depth field is 16-bit (__le16), but the actual maximum depth is
+limited to OCFS2_MAX_PATH_DEPTH.
 
-Link: https://lkml.kernel.org/r/20241216155408.8102-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Cc: Dan Willaims <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Add a check to prevent out-of-bounds access if l_tree_depth has an invalid
+value, which may occur when reading from a corrupted mounted disk [1].
+
+Link: https://lkml.kernel.org/r/20250214084908.736528-1-kovalev@altlinux.org
+Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
+Reported-by: syzbot+66c146268dc88f4341fd@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=66c146268dc88f4341fd [1]
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Kurt Hackel <kurt.hackel@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Vasiliy Kovalev <kovalev@altlinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   53 +++++++++++++++++++++++++++--------------------------
- 1 file changed, 27 insertions(+), 26 deletions(-)
+ fs/ocfs2/alloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/fs/dax.c~dax-use-folios-more-widely-within-dax
-+++ a/fs/dax.c
-@@ -320,38 +320,39 @@ static unsigned long dax_end_pfn(void *e
- 	for (pfn = dax_to_pfn(entry); \
- 			pfn < dax_end_pfn(entry); pfn++)
+--- a/fs/ocfs2/alloc.c~ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access
++++ a/fs/ocfs2/alloc.c
+@@ -1803,6 +1803,14 @@ static int __ocfs2_find_path(struct ocfs
  
--static inline bool dax_page_is_shared(struct page *page)
-+static inline bool dax_folio_is_shared(struct folio *folio)
- {
--	return page->mapping == PAGE_MAPPING_DAX_SHARED;
-+	return folio->mapping == PAGE_MAPPING_DAX_SHARED;
- }
- 
- /*
-- * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
-+ * Set the folio->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
-  * refcount.
-  */
--static inline void dax_page_share_get(struct page *page)
-+static inline void dax_folio_share_get(struct folio *folio)
- {
--	if (page->mapping != PAGE_MAPPING_DAX_SHARED) {
-+	if (folio->mapping != PAGE_MAPPING_DAX_SHARED) {
- 		/*
- 		 * Reset the index if the page was already mapped
- 		 * regularly before.
- 		 */
--		if (page->mapping)
--			page->share = 1;
--		page->mapping = PAGE_MAPPING_DAX_SHARED;
-+		if (folio->mapping)
-+			folio->page.share = 1;
-+		folio->mapping = PAGE_MAPPING_DAX_SHARED;
- 	}
--	page->share++;
-+	folio->page.share++;
- }
- 
--static inline unsigned long dax_page_share_put(struct page *page)
-+static inline unsigned long dax_folio_share_put(struct folio *folio)
- {
--	return --page->share;
-+	return --folio->page.share;
- }
- 
- /*
-- * When it is called in dax_insert_entry(), the shared flag will indicate that
-- * whether this entry is shared by multiple files.  If so, set the page->mapping
-- * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
-+ * When it is called in dax_insert_entry(), the shared flag will indicate
-+ * that whether this entry is shared by multiple files.  If so, set
-+ * the folio->mapping PAGE_MAPPING_DAX_SHARED, and use page->share
-+ * as refcount.
-  */
- static void dax_associate_entry(void *entry, struct address_space *mapping,
- 		struct vm_area_struct *vma, unsigned long address, bool shared)
-@@ -364,14 +365,14 @@ static void dax_associate_entry(void *en
- 
- 	index = linear_page_index(vma, address & ~(size - 1));
- 	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
-+		struct folio *folio = pfn_folio(pfn);
- 
- 		if (shared) {
--			dax_page_share_get(page);
-+			dax_folio_share_get(folio);
- 		} else {
--			WARN_ON_ONCE(page->mapping);
--			page->mapping = mapping;
--			page->index = index + i++;
-+			WARN_ON_ONCE(folio->mapping);
-+			folio->mapping = mapping;
-+			folio->index = index + i++;
- 		}
- 	}
- }
-@@ -385,17 +386,17 @@ static void dax_disassociate_entry(void
- 		return;
- 
- 	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
-+		struct folio *folio = pfn_folio(pfn);
- 
--		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		if (dax_page_is_shared(page)) {
-+		WARN_ON_ONCE(trunc && folio_ref_count(folio) > 1);
-+		if (dax_folio_is_shared(folio)) {
- 			/* keep the shared flag if this page is still shared */
--			if (dax_page_share_put(page) > 0)
-+			if (dax_folio_share_put(folio) > 0)
- 				continue;
- 		} else
--			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
--		page->mapping = NULL;
--		page->index = 0;
-+			WARN_ON_ONCE(folio->mapping && folio->mapping != mapping);
-+		folio->mapping = NULL;
-+		folio->index = 0;
- 	}
- }
- 
+ 	el = root_el;
+ 	while (el->l_tree_depth) {
++		if (unlikely(le16_to_cpu(el->l_tree_depth) >= OCFS2_MAX_PATH_DEPTH)) {
++			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
++				    "Owner %llu has invalid tree depth %u in extent list\n",
++				    (unsigned long long)ocfs2_metadata_cache_owner(ci),
++				    le16_to_cpu(el->l_tree_depth));
++			ret = -EROFS;
++			goto out;
++		}
+ 		if (le16_to_cpu(el->l_next_free_rec) == 0) {
+ 			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
+ 				    "Owner %llu has empty extent list at depth %u\n",
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from kovalev@altlinux.org are
 
-dax-remove-access-to-page-index.patch
-dax-use-folios-more-widely-within-dax.patch
+ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access.patch
 
