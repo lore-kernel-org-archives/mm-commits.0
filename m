@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1C86664C6
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C696424B29
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:42:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739580142; cv=none; b=udKlVsF7hssTyTXPv4Urb3dOzTNTEpvdqOKWCk83FN5+WStyTISYaqSFeksfOCPK/aROolDHUxqpBOXPSxTKEXAbe0ljLhOi0XTyqd9X3Dak8ZDW6bcSErx1LiQBy62/DMcHNMhJ/4uZy0EAajBrwavMs2n3sxsLjSCVg0F9EqA=
+	t=1739580143; cv=none; b=jGSxgu/1Hb7mW4OzLml8q4CkxadHMNszvzZsfH6QrBdG0O36lty60SkEsq0bceM4DNB7LrrJubDxPnYojdmv8qqVVYProfmpyYwjT8TT1Sfhorub9Tr7gtbkRxLAjLNELwpPCStt/7J/4wLxoPIr1nxOJOhq+6UTiKAuC1dro4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739580142; c=relaxed/simple;
-	bh=yMwtwKIpwwfwCEKZZkRAsmNIhH9ohy4miWf53qhocJE=;
-	h=Date:To:From:Subject:Message-Id; b=UNZ1LOOlmw85jnKq9DezGWglDgz6hGxNkRvjpjI4dKDuUpoSzyagRoRcv7vBFxNI1vtdZOl8Me1g2kcr2wckhlIkkTiMXsFQIb9vjdcAuTYfKdXGWk3u0lXcYju+7HhnFqpaFVe9A+pR3hvCVP7cE5LOgEzL0cPDm+Y/NGnDzq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D7YCJjA9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739580143; c=relaxed/simple;
+	bh=Tz91EdVMVChkqE9lSEYs41tw83miRITfhFTpTkOXs38=;
+	h=Date:To:From:Subject:Message-Id; b=YvzxR4hTaDbKSyhf1kPX4kyn4DBJpzS5tJvd9RARR2RMYLUEa5ZjvQqJS3EGIjcYmAnej9sHuMLi9Je+84i8l4D6OnCVR3xkdhTRaohlkvmRI+UJV4i/+vVNaaUBpquF797zlZHzaOC/PJz9hAFugI6KqtBqru4N1N3RxpRkmsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vx1SmYK8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D7YCJjA9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D15AC4CED1;
-	Sat, 15 Feb 2025 00:42:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vx1SmYK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 920D9C4CED1;
+	Sat, 15 Feb 2025 00:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739580142;
-	bh=yMwtwKIpwwfwCEKZZkRAsmNIhH9ohy4miWf53qhocJE=;
+	s=korg; t=1739580143;
+	bh=Tz91EdVMVChkqE9lSEYs41tw83miRITfhFTpTkOXs38=;
 	h=Date:To:From:Subject:From;
-	b=D7YCJjA9B2DszCJX6s2lG4N60LdcBL7/urIiszqmikM3Su9NecY22xfz2dd9k/6n3
-	 JNsQpkiRBqarbtuWDo4RxrApWKZ0vOVYdRXDrRWU5JQfeKn6YdcoagDY/3oXVNKevT
-	 tsmaIMZHLK/QtVF4uWldS+D0KpOh6VbGCt8A6DsY=
-Date: Fri, 14 Feb 2025 16:42:21 -0800
+	b=Vx1SmYK879VCa8pnXuB8j+R3L/wuLhojvrMon2dVZR1vRbTtY9U7oTwgJeOVxbIpE
+	 OK71H3yu8SwkgNVMU9x4DVjOHscPHJNpe8Nj04jzJY4ZY2dZF4ZOZuXgRMJpdo+mor
+	 Z4qWRzPwxi7cc4WIJT7fwjFv6CXXQGyaY2Nam1X8=
+Date: Fri, 14 Feb 2025 16:42:23 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hdanton@sina.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uninline-the-main-body-of-vma_start_write.patch added to mm-unstable branch
-Message-Id: <20250215004222.0D15AC4CED1@smtp.kernel.org>
+Subject: + refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch added to mm-unstable branch
+Message-Id: <20250215004223.920D9C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: uninline the main body of vma_start_write()
+     Subject: refcount: provide ops for cases when object's memory can be reused
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uninline-the-main-body-of-vma_start_write.patch
+     refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uninline-the-main-body-of-vma_start_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,19 +59,118 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: uninline the main body of vma_start_write()
-Date: Thu, 13 Feb 2025 14:46:46 -0800
+Subject: refcount: provide ops for cases when object's memory can be reused
+Date: Thu, 13 Feb 2025 14:46:47 -0800
 
-vma_start_write() is used in many places and will grow in size very soon. 
-It is not used in performance critical paths and uninlining it should
-limit the future code size growth.  No functional changes.
+For speculative lookups where a successful inc_not_zero() pins the object,
+but where we still need to double check if the object acquired is indeed
+the one we set out to acquire (identity check), needs this validation to
+happen *after* the increment.  Similarly, when a new object is initialized
+and its memory might have been previously occupied by another object, all
+stores to initialize the object should happen *before* refcount
+initialization.
 
-Link: https://lkml.kernel.org/r/20250213224655.1680278-10-surenb@google.com
+Notably SLAB_TYPESAFE_BY_RCU is one such an example when this ordering is
+required for reference counting.
+
+Add refcount_{add|inc}_not_zero_acquire() to guarantee the proper ordering
+between acquiring a reference count on an object and performing the
+identity check for that object.
+
+Add refcount_set_release() to guarantee proper ordering between stores
+initializing object attributes and the store initializing the refcount. 
+refcount_set_release() should be done after all other object attributes
+are initialized.  Once refcount_set_release() is called, the object should
+be considered visible to other tasks even if it was not yet added into an
+object collection normally used to discover it.  This is because other
+tasks might have discovered the object previously occupying the same
+memory and after memory reuse they can succeed in taking refcount for the
+new object and start using it.
+
+Object reuse example to consider:
+
+consumer:
+    obj = lookup(collection, key);
+    if (!refcount_inc_not_zero_acquire(&obj->ref))
+        return;
+    if (READ_ONCE(obj->key) != key) { /* identity check */
+        put_ref(obj);
+        return;
+    }
+    use(obj->value);
+
+                 producer:
+                     remove(collection, obj->key);
+                     if (!refcount_dec_and_test(&obj->ref))
+                         return;
+                     obj->key = KEY_INVALID;
+                     free(obj);
+                     obj = malloc(); /* obj is reused */
+                     obj->key = new_key;
+                     obj->value = new_value;
+                     refcount_set_release(obj->ref, 1);
+                     add(collection, new_key, obj);
+
+refcount_{add|inc}_not_zero_acquire() is required to prevent the following
+reordering when refcount_inc_not_zero() is used instead:
+
+consumer:
+    obj = lookup(collection, key);
+    if (READ_ONCE(obj->key) != key) { /* reordered identity check */
+        put_ref(obj);
+        return;
+    }
+                 producer:
+                     remove(collection, obj->key);
+                     if (!refcount_dec_and_test(&obj->ref))
+                         return;
+                     obj->key = KEY_INVALID;
+                     free(obj);
+                     obj = malloc(); /* obj is reused */
+                     obj->key = new_key;
+                     obj->value = new_value;
+                     refcount_set_release(obj->ref, 1);
+                     add(collection, new_key, obj);
+
+    if (!refcount_inc_not_zero(&obj->ref))
+        return;
+    use(obj->value); /* USING WRONG OBJECT */
+
+refcount_set_release() is required to prevent the following reordering
+when refcount_set() is used instead:
+
+consumer:
+    obj = lookup(collection, key);
+
+                 producer:
+                     remove(collection, obj->key);
+                     if (!refcount_dec_and_test(&obj->ref))
+                         return;
+                     obj->key = KEY_INVALID;
+                     free(obj);
+                     obj = malloc(); /* obj is reused */
+                     obj->key = new_key; /* new_key == old_key */
+                     refcount_set(obj->ref, 1);
+
+    if (!refcount_inc_not_zero_acquire(&obj->ref))
+        return;
+    if (READ_ONCE(obj->key) != key) { /* pass since new_key == old_key */
+        put_ref(obj);
+        return;
+    }
+    use(obj->value); /* USING STALE obj->value */
+
+                     obj->value = new_value; /* reordered store */
+                     add(collection, key, obj);
+
+Link: https://lkml.kernel.org/r/20250213224655.1680278-11-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>	[slab]
 Tested-by: Shivank Garg <shivankg@amd.com>
   Link: https://lkml.kernel.org/r/5e19ec93-8307-47c2-bb13-3ddf7150624e@amd.com
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -84,6 +183,7 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Klara Modin <klarasmodin@gmail.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -91,71 +191,273 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@google.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 +++---------
- mm/memory.c        |   14 ++++++++++++++
- 2 files changed, 17 insertions(+), 9 deletions(-)
+ Documentation/RCU/whatisRCU.rst               |   10 +
+ Documentation/core-api/refcount-vs-atomic.rst |   37 ++++-
+ include/linux/refcount.h                      |  106 ++++++++++++++++
+ include/linux/slab.h                          |    9 +
+ 4 files changed, 156 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm.h~mm-uninline-the-main-body-of-vma_start_write
-+++ a/include/linux/mm.h
-@@ -787,6 +787,8 @@ static bool __is_vma_write_locked(struct
- 	return (vma->vm_lock_seq == *mm_lock_seq);
- }
+--- a/Documentation/core-api/refcount-vs-atomic.rst~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused
++++ a/Documentation/core-api/refcount-vs-atomic.rst
+@@ -86,7 +86,19 @@ Memory ordering guarantee changes:
+  * none (both fully unordered)
  
-+void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq);
+ 
+-case 2) - increment-based ops that return no value
++case 2) - non-"Read/Modify/Write" (RMW) ops with release ordering
++-------------------------------------------
 +
- /*
-  * Begin writing to a VMA.
-  * Exclude concurrent readers under the per-VMA lock until the currently
-@@ -799,15 +801,7 @@ static inline void vma_start_write(struc
- 	if (__is_vma_write_locked(vma, &mm_lock_seq))
- 		return;
++Function changes:
++
++ * atomic_set_release() --> refcount_set_release()
++
++Memory ordering guarantee changes:
++
++ * none (both provide RELEASE ordering)
++
++
++case 3) - increment-based ops that return no value
+ --------------------------------------------------
  
--	down_write(&vma->vm_lock.lock);
--	/*
--	 * We should use WRITE_ONCE() here because we can have concurrent reads
--	 * from the early lockless pessimistic check in vma_start_read().
--	 * We don't really care about the correctness of that early check, but
--	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
--	 */
--	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
--	up_write(&vma->vm_lock.lock);
-+	__vma_start_write(vma, mm_lock_seq);
+ Function changes:
+@@ -98,7 +110,7 @@ Memory ordering guarantee changes:
+ 
+  * none (both fully unordered)
+ 
+-case 3) - decrement-based RMW ops that return no value
++case 4) - decrement-based RMW ops that return no value
+ ------------------------------------------------------
+ 
+ Function changes:
+@@ -110,7 +122,7 @@ Memory ordering guarantee changes:
+  * fully unordered --> RELEASE ordering
+ 
+ 
+-case 4) - increment-based RMW ops that return a value
++case 5) - increment-based RMW ops that return a value
+ -----------------------------------------------------
+ 
+ Function changes:
+@@ -126,7 +138,20 @@ Memory ordering guarantees changes:
+    result of obtaining pointer to the object!
+ 
+ 
+-case 5) - generic dec/sub decrement-based RMW ops that return a value
++case 6) - increment-based RMW ops with acquire ordering that return a value
++-----------------------------------------------------
++
++Function changes:
++
++ * atomic_inc_not_zero() --> refcount_inc_not_zero_acquire()
++ * no atomic counterpart --> refcount_add_not_zero_acquire()
++
++Memory ordering guarantees changes:
++
++ * fully ordered --> ACQUIRE ordering on success
++
++
++case 7) - generic dec/sub decrement-based RMW ops that return a value
+ ---------------------------------------------------------------------
+ 
+ Function changes:
+@@ -139,7 +164,7 @@ Memory ordering guarantees changes:
+  * fully ordered --> RELEASE ordering + ACQUIRE ordering on success
+ 
+ 
+-case 6) other decrement-based RMW ops that return a value
++case 8) other decrement-based RMW ops that return a value
+ ---------------------------------------------------------
+ 
+ Function changes:
+@@ -154,7 +179,7 @@ Memory ordering guarantees changes:
+ .. note:: atomic_add_unless() only provides full order on success.
+ 
+ 
+-case 7) - lock-based RMW
++case 9) - lock-based RMW
+ ------------------------
+ 
+ Function changes:
+--- a/Documentation/RCU/whatisRCU.rst~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused
++++ a/Documentation/RCU/whatisRCU.rst
+@@ -971,6 +971,16 @@ unfortunately any spinlock in a ``SLAB_T
+ initialized after each and every call to kmem_cache_alloc(), which renders
+ reference-free spinlock acquisition completely unsafe.  Therefore, when
+ using ``SLAB_TYPESAFE_BY_RCU``, make proper use of a reference counter.
++If using refcount_t, the specialized refcount_{add|inc}_not_zero_acquire()
++and refcount_set_release() APIs should be used to ensure correct operation
++ordering when verifying object identity and when initializing newly
++allocated objects. Acquire fence in refcount_{add|inc}_not_zero_acquire()
++ensures that identity checks happen *after* reference count is taken.
++refcount_set_release() should be called after a newly allocated object is
++fully initialized and release fence ensures that new values are visible
++*before* refcount can be successfully taken by other users. Once
++refcount_set_release() is called, the object should be considered visible
++by other tasks.
+ (Those willing to initialize their locks in a kmem_cache constructor
+ may also use locking, including cache-friendly sequence locking.)
+ 
+--- a/include/linux/refcount.h~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused
++++ a/include/linux/refcount.h
+@@ -87,6 +87,15 @@
+  * The decrements dec_and_test() and sub_and_test() also provide acquire
+  * ordering on success.
+  *
++ * refcount_{add|inc}_not_zero_acquire() and refcount_set_release() provide
++ * acquire and release ordering for cases when the memory occupied by the
++ * object might be reused to store another object. This is important for the
++ * cases where secondary validation is required to detect such reuse, e.g.
++ * SLAB_TYPESAFE_BY_RCU. The secondary validation checks have to happen after
++ * the refcount is taken, hence acquire order is necessary. Similarly, when the
++ * object is initialized, all stores to its attributes should be visible before
++ * the refcount is set, otherwise a stale attribute value might be used by
++ * another task which succeeds in taking a refcount to the new object.
+  */
+ 
+ #ifndef _LINUX_REFCOUNT_H
+@@ -126,6 +135,31 @@ static inline void refcount_set(refcount
  }
  
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
---- a/mm/memory.c~mm-uninline-the-main-body-of-vma_start_write
-+++ a/mm/memory.c
-@@ -6348,6 +6348,20 @@ fail:
- #endif
- 
- #ifdef CONFIG_PER_VMA_LOCK
-+void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq)
+ /**
++ * refcount_set_release - set a refcount's value with release ordering
++ * @r: the refcount
++ * @n: value to which the refcount will be set
++ *
++ * This function should be used when memory occupied by the object might be
++ * reused to store another object -- consider SLAB_TYPESAFE_BY_RCU.
++ *
++ * Provides release memory ordering which will order previous memory operations
++ * against this store. This ensures all updates to this object are visible
++ * once the refcount is set and stale values from the object previously
++ * occupying this memory are overwritten with new ones.
++ *
++ * This function should be called only after new object is fully initialized.
++ * After this call the object should be considered visible to other tasks even
++ * if it was not yet added into an object collection normally used to discover
++ * it. This is because other tasks might have discovered the object previously
++ * occupying the same memory and after memory reuse they can succeed in taking
++ * refcount to the new object and start using it.
++ */
++static inline void refcount_set_release(refcount_t *r, int n)
 +{
-+	down_write(&vma->vm_lock.lock);
-+	/*
-+	 * We should use WRITE_ONCE() here because we can have concurrent reads
-+	 * from the early lockless pessimistic check in vma_start_read().
-+	 * We don't really care about the correctness of that early check, but
-+	 * we should use WRITE_ONCE() for cleanliness and to keep KCSAN happy.
-+	 */
-+	WRITE_ONCE(vma->vm_lock_seq, mm_lock_seq);
-+	up_write(&vma->vm_lock.lock);
++	atomic_set_release(&r->refs, n);
 +}
-+EXPORT_SYMBOL_GPL(__vma_start_write);
 +
- /*
-  * Lookup and lock a VMA under RCU protection. Returned VMA is guaranteed to be
-  * stable and not isolated. If the VMA is not found or is being modified the
++/**
+  * refcount_read - get a refcount's value
+  * @r: the refcount
+  *
+@@ -178,6 +212,52 @@ static inline __must_check bool refcount
+ 	return __refcount_add_not_zero(i, r, NULL);
+ }
+ 
++static inline __must_check __signed_wrap
++bool __refcount_add_not_zero_acquire(int i, refcount_t *r, int *oldp)
++{
++	int old = refcount_read(r);
++
++	do {
++		if (!old)
++			break;
++	} while (!atomic_try_cmpxchg_acquire(&r->refs, &old, old + i));
++
++	if (oldp)
++		*oldp = old;
++
++	if (unlikely(old < 0 || old + i < 0))
++		refcount_warn_saturate(r, REFCOUNT_ADD_NOT_ZERO_OVF);
++
++	return old;
++}
++
++/**
++ * refcount_add_not_zero_acquire - add a value to a refcount with acquire ordering unless it is 0
++ *
++ * @i: the value to add to the refcount
++ * @r: the refcount
++ *
++ * Will saturate at REFCOUNT_SATURATED and WARN.
++ *
++ * This function should be used when memory occupied by the object might be
++ * reused to store another object -- consider SLAB_TYPESAFE_BY_RCU.
++ *
++ * Provides acquire memory ordering on success, it is assumed the caller has
++ * guaranteed the object memory to be stable (RCU, etc.). It does provide a
++ * control dependency and thereby orders future stores. See the comment on top.
++ *
++ * Use of this function is not recommended for the normal reference counting
++ * use case in which references are taken and released one at a time.  In these
++ * cases, refcount_inc_not_zero_acquire() should instead be used to increment a
++ * reference count.
++ *
++ * Return: false if the passed refcount is 0, true otherwise
++ */
++static inline __must_check bool refcount_add_not_zero_acquire(int i, refcount_t *r)
++{
++	return __refcount_add_not_zero_acquire(i, r, NULL);
++}
++
+ static inline __signed_wrap
+ void __refcount_add(int i, refcount_t *r, int *oldp)
+ {
+@@ -236,6 +316,32 @@ static inline __must_check bool refcount
+ 	return __refcount_inc_not_zero(r, NULL);
+ }
+ 
++static inline __must_check bool __refcount_inc_not_zero_acquire(refcount_t *r, int *oldp)
++{
++	return __refcount_add_not_zero_acquire(1, r, oldp);
++}
++
++/**
++ * refcount_inc_not_zero_acquire - increment a refcount with acquire ordering unless it is 0
++ * @r: the refcount to increment
++ *
++ * Similar to refcount_inc_not_zero(), but provides acquire memory ordering on
++ * success.
++ *
++ * This function should be used when memory occupied by the object might be
++ * reused to store another object -- consider SLAB_TYPESAFE_BY_RCU.
++ *
++ * Provides acquire memory ordering on success, it is assumed the caller has
++ * guaranteed the object memory to be stable (RCU, etc.). It does provide a
++ * control dependency and thereby orders future stores. See the comment on top.
++ *
++ * Return: true if the increment was successful, false otherwise
++ */
++static inline __must_check bool refcount_inc_not_zero_acquire(refcount_t *r)
++{
++	return __refcount_inc_not_zero_acquire(r, NULL);
++}
++
+ static inline void __refcount_inc(refcount_t *r, int *oldp)
+ {
+ 	__refcount_add(1, r, oldp);
+--- a/include/linux/slab.h~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused
++++ a/include/linux/slab.h
+@@ -136,6 +136,15 @@ enum _slab_flag_bits {
+  * rcu_read_lock before reading the address, then rcu_read_unlock after
+  * taking the spinlock within the structure expected at that address.
+  *
++ * Note that object identity check has to be done *after* acquiring a
++ * reference, therefore user has to ensure proper ordering for loads.
++ * Similarly, when initializing objects allocated with SLAB_TYPESAFE_BY_RCU,
++ * the newly allocated object has to be fully initialized *before* its
++ * refcount gets initialized and proper ordering for stores is required.
++ * refcount_{add|inc}_not_zero_acquire() and refcount_set_release() are
++ * designed with the proper fences required for reference counting objects
++ * allocated with SLAB_TYPESAFE_BY_RCU.
++ *
+  * Note that it is not possible to acquire a lock within a structure
+  * allocated with SLAB_TYPESAFE_BY_RCU without first acquiring a reference
+  * as described above.  The reason is that SLAB_TYPESAFE_BY_RCU pages
 _
 
 Patches currently in -mm which might be from surenb@google.com are
