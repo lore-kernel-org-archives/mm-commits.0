@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A037513C809
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1758F8624B
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739578708; cv=none; b=Zf6ppYRmmjPO3yWdJz3ZbqzD93u8HA9ofFtNQNC4h/Wo9cl8NVfl9BR6v+XJk497RcIKg56HqgrqxCIMILmpCoarIAC7h+EvQR0H45LA9L7QgoxBSBSArtkt47wZbqUou3wUxDv4gZ17EjT4K514XN0Nvqpq04+qVcKfm9MVvvM=
+	t=1739578711; cv=none; b=LEzkTe9Bw2H9Ru12HokT4IY4d63LYzQjJCU5PtpDmcvFKhsOWnZeb8eYOyXr02sJ8dvrgNmM4lVw1iPZakbd0iSXIxbC2sLkUEECdLtrMGmObk26ZJxypOrmpqILkwroLd8bJDDSpQ5Y7zSBhz/MFn0oN6mkiLLLH7xULbkGjO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739578708; c=relaxed/simple;
-	bh=2HI3aZfxZPZ6QFhwj299o5X/y9iRg4wV3I44lUVDF7k=;
-	h=Date:To:From:Subject:Message-Id; b=Y9FTplFIUSWEZwTxEqk7kORpQU1h6iOD2ep+Bj0hPeQkNhJL0dDZOxXpd8MyZJwc3+WiV0nKwlDwwaPpHKBwrr8KLts2uXgzgNIazC/bJ97HHRooIZ+itT2kn5aORfJmLnJCGe9/5CQtf6WAXgDm+6BRNAdD+kj4IAcff3Ps7R0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SQC5ZjJL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739578711; c=relaxed/simple;
+	bh=jONHCKAosFkVCDkd8dT4NHuI/72edm7z+4OQjQ7tN7w=;
+	h=Date:To:From:Subject:Message-Id; b=MyJPFDSuorhV3i36S8YZ8sdxVKzgZ8OrZ5EyZfasq2MZfSD+Z8nVT+PfI3qj2Gmw1gwzVzar1t6C+Kpv8ARxDUWlRMzwc/ieibiW50k0DxAH7DvxfwAOHgJNc+X9WIR63co/gHOBiQk60XoCbA+pQalT6hWhM+s4UfoxyX7MHVk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U5xk6lSN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SQC5ZjJL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 742CEC4CED1;
-	Sat, 15 Feb 2025 00:18:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U5xk6lSN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF616C4CED1;
+	Sat, 15 Feb 2025 00:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739578708;
-	bh=2HI3aZfxZPZ6QFhwj299o5X/y9iRg4wV3I44lUVDF7k=;
+	s=korg; t=1739578711;
+	bh=jONHCKAosFkVCDkd8dT4NHuI/72edm7z+4OQjQ7tN7w=;
 	h=Date:To:From:Subject:From;
-	b=SQC5ZjJLsjzuOFj07XseqkmLbwOeGQkOPkdskb2kHuVdZ53wPspKfrL7JYDRwFHi9
-	 DwY0wPfsppboOFiI0n0Oqwh4B8vU6aIAvVmPe0L0BrWlrq9aFU2e8dgnLBaLU+hv2r
-	 ye5sG82+QoDS0Kw6I/BeZfzcipfXKYFCIAflOV9I=
-Date: Fri, 14 Feb 2025 16:18:27 -0800
+	b=U5xk6lSNqxtEa2GM0Xokam6sZbNUqKVFeNnU+NucrcERObxsbDOLrrtsMSh42JDZA
+	 DUqncSZtYkKqsbsbHsxVGfdpLDVoh/GAsjIgrkhh01/xzxvqvuMI87pnOtnroI+4Oa
+	 6jUlMQ1m9S4TVjg2Vu+beJ40AnRq1obmdLnqDRJc=
+Date: Fri, 14 Feb 2025 16:18:29 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-do-not-leak-page-on-recompress_store-error-path.patch added to mm-unstable branch
-Message-Id: <20250215001828.742CEC4CED1@smtp.kernel.org>
+Subject: + zram-do-not-leak-page-on-writeback_store-error-path.patch added to mm-unstable branch
+Message-Id: <20250215001830.DF616C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: do not leak page on recompress_store error path
+     Subject: zram: do not leak page on writeback_store error path
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-do-not-leak-page-on-recompress_store-error-path.patch
+     zram-do-not-leak-page-on-writeback_store-error-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-leak-page-on-recompress_store-error-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-leak-page-on-writeback_store-error-path.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not leak page on recompress_store error path
-Date: Fri, 14 Feb 2025 13:50:27 +0900
+Subject: zram: do not leak page on writeback_store error path
+Date: Fri, 14 Feb 2025 13:50:28 +0900
 
 Ensure the page used for local object data is freed on error out path.
 
-Link: https://lkml.kernel.org/r/20250214045208.1388854-16-senozhatsky@chromium.org
-Fixes: 3f909a60cec1 ("zram: rework recompress target selection strategy")
+Link: https://lkml.kernel.org/r/20250214045208.1388854-17-senozhatsky@chromium.org
+Fixes: 330edc2bc059 (zram: rework writeback target selection strategy)
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
@@ -75,26 +75,26 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-do-not-leak-page-on-recompress_store-error-path
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-leak-page-on-writeback_store-error-path
 +++ a/drivers/block/zram/zram_drv.c
-@@ -2059,7 +2059,7 @@ static ssize_t recompress_store(struct d
- 	struct zram_pp_slot *pps;
- 	u32 mode = 0, threshold = 0;
- 	u32 prio, prio_max;
+@@ -829,7 +829,7 @@ static ssize_t writeback_store(struct de
+ 	unsigned long index = 0;
+ 	struct bio bio;
+ 	struct bio_vec bio_vec;
 -	struct page *page;
 +	struct page *page = NULL;
- 	ssize_t ret;
+ 	ssize_t ret = len;
+ 	int mode, err;
+ 	unsigned long blk_idx = 0;
+@@ -971,8 +971,10 @@ next:
  
- 	prio = ZRAM_SECONDARY_COMP;
-@@ -2203,9 +2203,9 @@ next:
- 		cond_resched();
- 	}
- 
+ 	if (blk_idx)
+ 		free_block_bdev(zram, blk_idx);
 -	__free_page(page);
--
++
  release_init_lock:
 +	if (page)
 +		__free_page(page);
