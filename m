@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74E3E13BC26
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A037513C809
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739578707; cv=none; b=bCyYf36fFaTmWQ0I37KbT/zc+J4pB5ybFxZe1Yfn3BTxoMgvcrnO3+J3N4DWEIPwOWWS6/cC8E8vazutsgWoX6c5cgx9OvNOdLfDvDAykdW8UzoqkO0pK5TLP/71oLH64pU0s6pGV2U3GqYM4GnPiXZwHwI+nTBhlRCLvC0xsxE=
+	t=1739578708; cv=none; b=Zf6ppYRmmjPO3yWdJz3ZbqzD93u8HA9ofFtNQNC4h/Wo9cl8NVfl9BR6v+XJk497RcIKg56HqgrqxCIMILmpCoarIAC7h+EvQR0H45LA9L7QgoxBSBSArtkt47wZbqUou3wUxDv4gZ17EjT4K514XN0Nvqpq04+qVcKfm9MVvvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739578707; c=relaxed/simple;
-	bh=HS4y1WKhIpPPihX4fvUwCStHDqXL5yVy3sPxygY5Y48=;
-	h=Date:To:From:Subject:Message-Id; b=mhmMoJhEkiCeV4cDUlq/gVrGbM+Bsyrpo8m0m8eYsZzfnjPbcTk9U6NMDuH2IvGsMv8vf2QuqnjXwD70M0f8+10mgJDtPSsf/UfycyGuu2xhaDm6cO0lC/kaCJXvMpQ6xTscnXK2/nNmyR9GnPRyb0fLKlJu+JQjeA/vIG+vS8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5Z8/0Xm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739578708; c=relaxed/simple;
+	bh=2HI3aZfxZPZ6QFhwj299o5X/y9iRg4wV3I44lUVDF7k=;
+	h=Date:To:From:Subject:Message-Id; b=Y9FTplFIUSWEZwTxEqk7kORpQU1h6iOD2ep+Bj0hPeQkNhJL0dDZOxXpd8MyZJwc3+WiV0nKwlDwwaPpHKBwrr8KLts2uXgzgNIazC/bJ97HHRooIZ+itT2kn5aORfJmLnJCGe9/5CQtf6WAXgDm+6BRNAdD+kj4IAcff3Ps7R0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SQC5ZjJL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5Z8/0Xm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46AACC4CED1;
-	Sat, 15 Feb 2025 00:18:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SQC5ZjJL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 742CEC4CED1;
+	Sat, 15 Feb 2025 00:18:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739578707;
-	bh=HS4y1WKhIpPPihX4fvUwCStHDqXL5yVy3sPxygY5Y48=;
+	s=korg; t=1739578708;
+	bh=2HI3aZfxZPZ6QFhwj299o5X/y9iRg4wV3I44lUVDF7k=;
 	h=Date:To:From:Subject:From;
-	b=B5Z8/0Xmdvm9beKoB+51LEW8bWQWJvjzhd1Wb5ARoxSv7lLtoVggl/kKuLKslg33f
-	 GrMehkTD8mGSZ/lmmB8q7q9wQ6j9C40Zr2kD6JK+XL5DWp9GdoHG6DZfe3oYgOTEeh
-	 DnYuYzGEXn/QX0SlfQQ39KuXnFspr1Kib9IkFscM=
-Date: Fri, 14 Feb 2025 16:18:26 -0800
+	b=SQC5ZjJLsjzuOFj07XseqkmLbwOeGQkOPkdskb2kHuVdZ53wPspKfrL7JYDRwFHi9
+	 DwY0wPfsppboOFiI0n0Oqwh4B8vU6aIAvVmPe0L0BrWlrq9aFU2e8dgnLBaLU+hv2r
+	 ye5sG82+QoDS0Kw6I/BeZfzcipfXKYFCIAflOV9I=
+Date: Fri, 14 Feb 2025 16:18:27 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-permit-reclaim-in-zstd-custom-allocator.patch added to mm-unstable branch
-Message-Id: <20250215001827.46AACC4CED1@smtp.kernel.org>
+Subject: + zram-do-not-leak-page-on-recompress_store-error-path.patch added to mm-unstable branch
+Message-Id: <20250215001828.742CEC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: permit reclaim in zstd custom allocator
+     Subject: zram: do not leak page on recompress_store error path
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-permit-reclaim-in-zstd-custom-allocator.patch
+     zram-do-not-leak-page-on-recompress_store-error-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-permit-reclaim-in-zstd-custom-allocator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-leak-page-on-recompress_store-error-path.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: permit reclaim in zstd custom allocator
-Date: Fri, 14 Feb 2025 13:50:26 +0900
+Subject: zram: do not leak page on recompress_store error path
+Date: Fri, 14 Feb 2025 13:50:27 +0900
 
-When configured with pre-trained compression/decompression dictionary
-support, zstd requires custom memory allocator, which it calls internally
-from compression()/decompression() routines.  That means allocation from
-atomic context (either under entry spin-lock, or per-CPU local-lock or
-both).  Now, with non-atomic zram read()/write(), those limitations are
-relaxed and we can allow direct and indirect reclaim.
+Ensure the page used for local object data is freed on error out path.
 
-Link: https://lkml.kernel.org/r/20250214045208.1388854-15-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250214045208.1388854-16-senozhatsky@chromium.org
+Fixes: 3f909a60cec1 ("zram: rework recompress target selection strategy")
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
@@ -79,34 +75,32 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_zstd.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/backend_zstd.c~zram-permit-reclaim-in-zstd-custom-allocator
-+++ a/drivers/block/zram/backend_zstd.c
-@@ -24,19 +24,14 @@ struct zstd_params {
- /*
-  * For C/D dictionaries we need to provide zstd with zstd_custom_mem,
-  * which zstd uses internally to allocate/free memory when needed.
-- *
-- * This means that allocator.customAlloc() can be called from zcomp_compress()
-- * under local-lock (per-CPU compression stream), in which case we must use
-- * GFP_ATOMIC.
-- *
-- * Another complication here is that we can be configured as a swap device.
-  */
- static void *zstd_custom_alloc(void *opaque, size_t size)
- {
--	if (!preemptible())
-+	/* Technically this should not happen */
-+	if (WARN_ON_ONCE(!preemptible()))
- 		return kvzalloc(size, GFP_ATOMIC);
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-leak-page-on-recompress_store-error-path
++++ a/drivers/block/zram/zram_drv.c
+@@ -2059,7 +2059,7 @@ static ssize_t recompress_store(struct d
+ 	struct zram_pp_slot *pps;
+ 	u32 mode = 0, threshold = 0;
+ 	u32 prio, prio_max;
+-	struct page *page;
++	struct page *page = NULL;
+ 	ssize_t ret;
  
--	return kvzalloc(size, __GFP_KSWAPD_RECLAIM | __GFP_NOWARN);
-+	return kvzalloc(size, GFP_NOIO | __GFP_NOWARN);
- }
+ 	prio = ZRAM_SECONDARY_COMP;
+@@ -2203,9 +2203,9 @@ next:
+ 		cond_resched();
+ 	}
  
- static void zstd_custom_free(void *opaque, void *address)
+-	__free_page(page);
+-
+ release_init_lock:
++	if (page)
++		__free_page(page);
+ 	release_pp_ctl(zram, ctl);
+ 	atomic_set(&zram->pp_in_progress, 0);
+ 	up_read(&zram->init_lock);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
