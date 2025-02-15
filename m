@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98F884400
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:11:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7D7EF4ED
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739578280; cv=none; b=AD+NjgGV/7IytqXXcYDslZjzUp/5h6fSS8CJuZjYM4gWBDvRk6Wh1i6uO8z7M3DwPKBjIk6KDQLjJ5A8eLd/WqY6P5br8ZI4l0sSzaUnJvbECpraxl0IG+NvAR34uF1NuE/Z2PhnICoWRusXjpR6V0rCy+6aIHZMKu1fegXtqkk=
+	t=1739578690; cv=none; b=EEyEfaCQo2LmXkNdidyqDkjLZkeOWqdnF3fR99B+ZnkS457MtiPMYVJ0Y5mFk7zwx+jeJLtMf5Szuwa1eKTtnvWqIrajS6dgiYtDNyTsOhiONgxHYvwE5oHTXUpTXpaCsZKm3H8l8XzwEgrjDsTYk/GP2OCSl3EYwCYQfc851ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739578280; c=relaxed/simple;
-	bh=JbHvOyhqdgSHnSNbX2ngEyrTJANjtFd6H4IoyTRPjow=;
-	h=Date:To:From:Subject:Message-Id; b=osZPVDI4WD+tkOe7bGTCT9qA5/g9pXOl8W4mYx/H5OVWBlGC7NqLrVu1ySzY1TVKkf3RWn9a+y577KbPzjusOB5pDWQnzUiwkiYV3p8/7KDKhnwcYe7YhKrMOvydYyfnHXmVFnWM+/G7UGM8wDa1/S+fcGAuhKWYNAtJ/gs3oo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YR8AcVDl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739578690; c=relaxed/simple;
+	bh=3onaeqajy6lGAiqDH3OEehaac3qWn6sBVBkVwgm1PO0=;
+	h=Date:To:From:Subject:Message-Id; b=rZsrdH3+shQP175sPg4t3WOUYji0BPhTGGWsjenlq0Ly7QzFFqmSUQGUBE8AWW/jQL6DlKPnAbghHsyQwIM5xg9OL81D6KvvMHbWNVzC9w6ab8y3E+YgZwH9+jkxOJiNll0kB7/dRcLSCvgMY0W7XvH9xenbMoecKKUzK5xTxYY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zetCpcmM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YR8AcVDl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88802C4CED1;
-	Sat, 15 Feb 2025 00:11:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zetCpcmM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BBB6C4CED1;
+	Sat, 15 Feb 2025 00:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739578278;
-	bh=JbHvOyhqdgSHnSNbX2ngEyrTJANjtFd6H4IoyTRPjow=;
+	s=korg; t=1739578689;
+	bh=3onaeqajy6lGAiqDH3OEehaac3qWn6sBVBkVwgm1PO0=;
 	h=Date:To:From:Subject:From;
-	b=YR8AcVDlLjacV8XbX/NXKsKsWbkByOCl7NOIsUgplQTK0q+HS70R36mQXA2ln7mdn
-	 97HUcfngF3qjznEdytMPA6ngR4yAwIryT8/O//4LNrFyTlFxTFkiLs9HtotDCjfKmq
-	 h/o8qTp3hoEdwHjpQYbtMXXak/IpZCmNpTH/3zdg=
-Date: Fri, 14 Feb 2025 16:11:17 -0800
-To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,yosryahmed@google.com,ying.huang@intel.com,yangyicong@hisilicon.com,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shahuang@redhat.com,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,mingo@redhat.com,mfo@canonical.com,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,ioworker0@gmail.com,hpa@zytor.com,gshan@redhat.com,david@redhat.com,dave.hansen@linux.intel.com,chrisl@kernel.org,catalin.marinas@arm.com,bp@alien8.de,baolin.wang@linux.alibaba.com,aou@eecs.berkeley.edu,anshuman.khandual@arm.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=zetCpcmM4gmHfwBPQGyFoxkp4fVYucvdnCKz2a1fG8ZYkdBbCcFUJ6hIoDdLKIE4J
+	 xG4ZhOPLD65FPlnQ8UlIngZznzbROjZUc6SerUmeUdsBaiaqgCqDLVcW27KrXf16Ae
+	 ENuCg4hqsu3sJnb75XAnh9u+v1nqqQBwILm/dJtI=
+Date: Fri, 14 Feb 2025 16:18:08 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch added to mm-unstable branch
-Message-Id: <20250215001118.88802C4CED1@smtp.kernel.org>
+Subject: + zram-sleepable-entry-locking.patch added to mm-unstable branch
+Message-Id: <20250215001809.3BBB6C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: support batched unmap for lazyfree large folios during reclamation
+     Subject: zram: sleepable entry locking
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch
+     zram-sleepable-entry-locking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-sleepable-entry-locking.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,278 +58,335 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm: support batched unmap for lazyfree large folios during reclamation
-Date: Fri, 14 Feb 2025 22:30:14 +1300
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: sleepable entry locking
+Date: Fri, 14 Feb 2025 13:50:13 +0900
 
-Currently, the PTEs and rmap of a large folio are removed one at a time. 
-This is not only slow but also causes the large folio to be unnecessarily
-added to deferred_split, which can lead to races between the
-deferred_split shrinker callback and memory reclamation.  This patch
-releases all PTEs and rmap entries in a batch.  Currently, it only handles
-lazyfree large folios.
+Patch series "zsmalloc/zram: there be preemption", v6.
 
-The below microbench tries to reclaim 128MB lazyfree large folios
-whose sizes are 64KiB:
+Currently zram runs compression and decompression in non-preemptible
+sections, e.g.
 
- #include <stdio.h>
- #include <sys/mman.h>
- #include <string.h>
- #include <time.h>
+    zcomp_stream_get()     // grabs CPU local lock
+    zcomp_compress()
 
- #define SIZE 128*1024*1024  // 128 MB
+or
 
- unsigned long read_split_deferred()
- {
- 	FILE *file = fopen("/sys/kernel/mm/transparent_hugepage"
-			"/hugepages-64kB/stats/split_deferred", "r");
- 	if (!file) {
- 		perror("Error opening file");
- 		return 0;
- 	}
+    zram_slot_lock()       // grabs entry spin-lock
+    zcomp_stream_get()     // grabs CPU local lock
+    zs_map_object()        // grabs rwlock and CPU local lock
+    zcomp_decompress()
 
- 	unsigned long value;
- 	if (fscanf(file, "%lu", &value) != 1) {
- 		perror("Error reading value");
- 		fclose(file);
- 		return 0;
- 	}
+Potentially a little troublesome for a number of reasons.
 
- 	fclose(file);
- 	return value;
- }
+For instance, this makes it impossible to use async compression algorithms
+or/and H/W compression algorithms, which can wait for OP completion or
+resource availability.  This also restricts what compression algorithms
+can do internally, for example, zstd can allocate internal state memory
+for C/D dictionaries:
 
- int main(int argc, char *argv[])
- {
- 	while(1) {
- 		volatile int *p = mmap(0, SIZE, PROT_READ | PROT_WRITE,
- 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+do_fsync()
+ do_writepages()
+  zram_bio_write()
+   zram_write_page()                          // become non-preemptible
+    zcomp_compress()
+     zstd_compress()
+      ZSTD_compress_usingCDict()
+       ZSTD_compressBegin_usingCDict_internal()
+        ZSTD_resetCCtx_usingCDict()
+         ZSTD_resetCCtx_internal()
+          zstd_custom_alloc()                 // memory allocation
 
- 		memset((void *)p, 1, SIZE);
+Not to mention that the system can be configured to maximize compression
+ratio at a cost of CPU/HW time (e.g.  lz4hc or deflate with very high
+compression level) so zram can stay in non-preemptible section (even under
+spin-lock or/and rwlock) for an extended period of time.  Aside from
+compression algorithms, this also restricts what zram can do.  One
+particular example is zram_write_page() zsmalloc handle allocation, which
+has an optimistic allocation (disallowing direct reclaim) and a
+pessimistic fallback path, which then forces zram to compress the page one
+more time.
 
- 		madvise((void *)p, SIZE, MADV_FREE);
+This series changes zram to not directly impose atomicity restrictions on
+compression algorithms (and on itself), which makes zram write() fully
+preemptible; zram read(), sadly, is not always preemptible yet.  There are
+still indirect atomicity restrictions imposed by zsmalloc().  One notable
+example is object mapping API, which returns with: a) local CPU lock held
+b) zspage rwlock held
 
- 		clock_t start_time = clock();
- 		unsigned long start_split = read_split_deferred();
- 		madvise((void *)p, SIZE, MADV_PAGEOUT);
- 		clock_t end_time = clock();
- 		unsigned long end_split = read_split_deferred();
+First, zsmalloc's zspage lock is converted from rwlock to a special type
+of RW-lookalike look with some extra guarantees/features.  Second, a new
+handle mapping is introduced which doesn't use per-CPU buffers (and hence
+no local CPU lock), does fewer memcpy() calls, but requires users to
+provide a pointer to temp buffer for object copy-in (when needed).  Third,
+zram is converted to the new zsmalloc mapping API and thus zram read()
+becomes preemptible.
 
- 		double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
- 		printf("Time taken by reclamation: %f seconds, split_deferred: %ld\n",
- 			elapsed_time, end_split - start_split);
 
- 		munmap((void *)p, SIZE);
- 	}
- 	return 0;
- }
+This patch (of 17):
 
-w/o patch:
-~ # ./a.out
-Time taken by reclamation: 0.177418 seconds, split_deferred: 2048
-Time taken by reclamation: 0.178348 seconds, split_deferred: 2048
-Time taken by reclamation: 0.174525 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171620 seconds, split_deferred: 2048
-Time taken by reclamation: 0.172241 seconds, split_deferred: 2048
-Time taken by reclamation: 0.174003 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171058 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171993 seconds, split_deferred: 2048
-Time taken by reclamation: 0.169829 seconds, split_deferred: 2048
-Time taken by reclamation: 0.172895 seconds, split_deferred: 2048
-Time taken by reclamation: 0.176063 seconds, split_deferred: 2048
-Time taken by reclamation: 0.172568 seconds, split_deferred: 2048
-Time taken by reclamation: 0.171185 seconds, split_deferred: 2048
-Time taken by reclamation: 0.170632 seconds, split_deferred: 2048
-Time taken by reclamation: 0.170208 seconds, split_deferred: 2048
-Time taken by reclamation: 0.174192 seconds, split_deferred: 2048
-...
+Concurrent modifications of meta table entries is now handled by per-entry
+spin-lock.  This has a number of shortcomings.
 
-w/ patch:
-~ # ./a.out
-Time taken by reclamation: 0.074231 seconds, split_deferred: 0
-Time taken by reclamation: 0.071026 seconds, split_deferred: 0
-Time taken by reclamation: 0.072029 seconds, split_deferred: 0
-Time taken by reclamation: 0.071873 seconds, split_deferred: 0
-Time taken by reclamation: 0.073573 seconds, split_deferred: 0
-Time taken by reclamation: 0.071906 seconds, split_deferred: 0
-Time taken by reclamation: 0.073604 seconds, split_deferred: 0
-Time taken by reclamation: 0.075903 seconds, split_deferred: 0
-Time taken by reclamation: 0.073191 seconds, split_deferred: 0
-Time taken by reclamation: 0.071228 seconds, split_deferred: 0
-Time taken by reclamation: 0.071391 seconds, split_deferred: 0
-Time taken by reclamation: 0.071468 seconds, split_deferred: 0
-Time taken by reclamation: 0.071896 seconds, split_deferred: 0
-Time taken by reclamation: 0.072508 seconds, split_deferred: 0
-Time taken by reclamation: 0.071884 seconds, split_deferred: 0
-Time taken by reclamation: 0.072433 seconds, split_deferred: 0
-Time taken by reclamation: 0.071939 seconds, split_deferred: 0
-...
+First, this imposes atomic requirements on compression backends.  zram can
+call both zcomp_compress() and zcomp_decompress() under entry spin-lock,
+which implies that we can use only compression algorithms that don't
+schedule/sleep/wait during compression and decompression.  This, for
+instance, makes it impossible to use some of the ASYNC compression
+algorithms (H/W compression, etc.) implementations.
 
-Link: https://lkml.kernel.org/r/20250214093015.51024-4-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chis Li <chrisl@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mauricio Faria de Oliveira <mfo@canonical.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shaoqin Huang <shahuang@redhat.com>
-Cc: Tangquan Zheng <zhengtangquan@oppo.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Second, this can potentially trigger watchdogs.  For example, entry
+re-compression with secondary algorithms is performed under entry
+spin-lock.  Given that we chain secondary compression algorithms and that
+some of them can be configured for best compression ratio (and worst
+compression speed) zram can stay under spin-lock for quite some time.
+
+Having a per-entry mutex (or, for instance, a rw-semaphore) significantly
+increases sizeof() of each entry and hence the meta table.  Therefore
+entry locking returns back to bit locking, as before, however, this time
+also preempt-rt friendly, because if waits-on-bit instead of
+spinning-on-bit.  Lock owners are also now permitted to schedule, which is
+a first step on the path of making zram non-atomic.
+
+Link: https://lkml.kernel.org/r/20250214045208.1388854-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250214045208.1388854-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   72 ++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 50 insertions(+), 22 deletions(-)
+ drivers/block/zram/zram_drv.c |  105 ++++++++++++++++++++++++++++----
+ drivers/block/zram/zram_drv.h |   20 ++++--
+ 2 files changed, 108 insertions(+), 17 deletions(-)
 
---- a/mm/rmap.c~mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation
-+++ a/mm/rmap.c
-@@ -1722,6 +1722,25 @@ void folio_remove_rmap_pmd(struct folio
- #endif
- }
+--- a/drivers/block/zram/zram_drv.c~zram-sleepable-entry-locking
++++ a/drivers/block/zram/zram_drv.c
+@@ -58,19 +58,99 @@ static void zram_free_page(struct zram *
+ static int zram_read_from_zspool(struct zram *zram, struct page *page,
+ 				 u32 index);
  
-+/* We support batch unmapping of PTEs for lazyfree large folios */
-+static inline bool can_batch_unmap_folio_ptes(unsigned long addr,
-+			struct folio *folio, pte_t *ptep)
-+{
-+	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
-+	int max_nr = folio_nr_pages(folio);
-+	pte_t pte = ptep_get(ptep);
-+
-+	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
-+		return false;
-+	if (pte_unused(pte))
-+		return false;
-+	if (pte_pfn(pte) != folio_pfn(folio))
-+		return false;
-+
-+	return folio_pte_batch(folio, addr, ptep, pte, max_nr, fpb_flags, NULL,
-+			       NULL, NULL) == max_nr;
+-static int zram_slot_trylock(struct zram *zram, u32 index)
++static void zram_slot_lock_init(struct zram *zram, u32 index)
+ {
+-	return spin_trylock(&zram->table[index].lock);
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	lockdep_init_map(&zram->table[index].dep_map,
++			 "zram->table[index].lock",
++			 &zram->lock_class, 0);
++#endif
 +}
 +
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++static inline bool __slot_trylock(struct zram *zram, u32 index)
++{
++	struct lockdep_map *dep_map = &zram->table[index].dep_map;
++	unsigned long *lock = &zram->table[index].flags;
++
++	if (!test_and_set_bit_lock(ZRAM_ENTRY_LOCK, lock)) {
++		mutex_acquire(dep_map, 0, 1, _RET_IP_);
++		lock_acquired(dep_map, _RET_IP_);
++		return true;
++	}
++
++	lock_contended(dep_map, _RET_IP_);
++	return false;
++}
++
++static inline void __slot_lock(struct zram *zram, u32 index)
++{
++	struct lockdep_map *dep_map = &zram->table[index].dep_map;
++	unsigned long *lock = &zram->table[index].flags;
++
++	mutex_acquire(dep_map, 0, 0, _RET_IP_);
++	wait_on_bit_lock(lock, ZRAM_ENTRY_LOCK, TASK_UNINTERRUPTIBLE);
++	lock_acquired(dep_map, _RET_IP_);
++}
++
++static inline void __slot_unlock(struct zram *zram, u32 index)
++{
++	struct lockdep_map *dep_map = &zram->table[index].dep_map;
++	unsigned long *lock = &zram->table[index].flags;
++
++	mutex_release(dep_map, _RET_IP_);
++	clear_and_wake_up_bit(ZRAM_ENTRY_LOCK, lock);
++}
++#else
++static inline bool __slot_trylock(struct zram *zram, u32 index)
++{
++	unsigned long *lock = &zram->table[index].flags;
++
++	if (!test_and_set_bit_lock(ZRAM_ENTRY_LOCK, lock))
++		return true;
++	return false;
++}
++
++static inline void __slot_lock(struct zram *zram, u32 index)
++{
++	unsigned long *lock = &zram->table[index].flags;
++
++	wait_on_bit_lock(lock, ZRAM_ENTRY_LOCK, TASK_UNINTERRUPTIBLE);
++}
++
++static inline void __slot_unlock(struct zram *zram, u32 index)
++{
++	unsigned long *lock = &zram->table[index].flags;
++
++	clear_and_wake_up_bit(ZRAM_ENTRY_LOCK, lock);
++}
++#endif /* CONFIG_DEBUG_LOCK_ALLOC */
++
++/*
++ * entry locking rules:
++ *
++ * 1) Lock is exclusive
++ *
++ * 2) lock() function can sleep waiting for the lock
++ *
++ * 3) Lock owner can sleep
++ *
++ * 4) Use TRY lock variant when in atomic context
++ *    - must check return value and handle locking failers
++ */
++static __must_check bool zram_slot_trylock(struct zram *zram, u32 index)
++{
++	return __slot_trylock(zram, index);
+ }
+ 
+ static void zram_slot_lock(struct zram *zram, u32 index)
+ {
+-	spin_lock(&zram->table[index].lock);
++	return __slot_lock(zram, index);
+ }
+ 
+ static void zram_slot_unlock(struct zram *zram, u32 index)
+ {
+-	spin_unlock(&zram->table[index].lock);
++	return __slot_unlock(zram, index);
+ }
+ 
+ static inline bool init_done(struct zram *zram)
+@@ -93,7 +173,6 @@ static void zram_set_handle(struct zram
+ 	zram->table[index].handle = handle;
+ }
+ 
+-/* flag operations require table entry bit_spin_lock() being held */
+ static bool zram_test_flag(struct zram *zram, u32 index,
+ 			enum zram_pageflags flag)
+ {
+@@ -1473,15 +1552,11 @@ static bool zram_meta_alloc(struct zram
+ 		huge_class_size = zs_huge_class_size(zram->mem_pool);
+ 
+ 	for (index = 0; index < num_pages; index++)
+-		spin_lock_init(&zram->table[index].lock);
++		zram_slot_lock_init(zram, index);
++
+ 	return true;
+ }
+ 
+-/*
+- * To protect concurrent access to the same index entry,
+- * caller should hold this table index entry's bit_spinlock to
+- * indicate this index entry is accessing.
+- */
+ static void zram_free_page(struct zram *zram, size_t index)
+ {
+ 	unsigned long handle;
+@@ -2625,6 +2700,10 @@ static int zram_add(void)
+ 	if (ret)
+ 		goto out_cleanup_disk;
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	lockdep_register_key(&zram->lock_class);
++#endif
++
+ 	zram_debugfs_register(zram);
+ 	pr_info("Added device: %s\n", zram->disk->disk_name);
+ 	return device_id;
+@@ -2681,6 +2760,10 @@ static int zram_remove(struct zram *zram
+ 	 */
+ 	zram_reset_device(zram);
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	lockdep_unregister_key(&zram->lock_class);
++#endif
++
+ 	put_disk(zram->disk);
+ 	kfree(zram);
+ 	return 0;
+--- a/drivers/block/zram/zram_drv.h~zram-sleepable-entry-locking
++++ a/drivers/block/zram/zram_drv.h
+@@ -28,7 +28,6 @@
+ #define ZRAM_SECTOR_PER_LOGICAL_BLOCK	\
+ 	(1 << (ZRAM_LOGICAL_BLOCK_SHIFT - SECTOR_SHIFT))
+ 
+-
  /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
-@@ -1735,6 +1754,7 @@ static bool try_to_unmap_one(struct foli
- 	struct page *subpage;
- 	struct mmu_notifier_range range;
- 	enum ttu_flags flags = (enum ttu_flags)(long)arg;
-+	unsigned long nr_pages = 1, end_addr;
- 	unsigned long pfn;
- 	unsigned long hsz = 0;
+  * ZRAM is mainly used for memory efficiency so we want to keep memory
+  * footprint small and thus squeeze size and zram pageflags into a flags
+@@ -46,6 +45,7 @@
+ /* Flags for zram pages (table[page_no].flags) */
+ enum zram_pageflags {
+ 	ZRAM_SAME = ZRAM_FLAG_SHIFT,	/* Page consists the same element */
++	ZRAM_ENTRY_LOCK, /* entry access lock bit */
+ 	ZRAM_WB,	/* page is stored on backing_device */
+ 	ZRAM_PP_SLOT,	/* Selected for post-processing */
+ 	ZRAM_HUGE,	/* Incompressible page */
+@@ -58,13 +58,18 @@ enum zram_pageflags {
+ 	__NR_ZRAM_PAGEFLAGS,
+ };
  
-@@ -1874,23 +1894,26 @@ static bool try_to_unmap_one(struct foli
- 			if (pte_dirty(pteval))
- 				folio_mark_dirty(folio);
- 		} else if (likely(pte_present(pteval))) {
--			flush_cache_page(vma, address, pfn);
--			/* Nuke the page table entry. */
--			if (should_defer_flush(mm, flags)) {
--				/*
--				 * We clear the PTE but do not flush so potentially
--				 * a remote CPU could still be writing to the folio.
--				 * If the entry was previously clean then the
--				 * architecture must guarantee that a clear->dirty
--				 * transition on a cached TLB entry is written through
--				 * and traps if the PTE is unmapped.
--				 */
--				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
-+			if (folio_test_large(folio) && !(flags & TTU_HWPOISON) &&
-+			    can_batch_unmap_folio_ptes(address, folio, pvmw.pte))
-+				nr_pages = folio_nr_pages(folio);
-+			end_addr = address + nr_pages * PAGE_SIZE;
-+			flush_cache_range(vma, address, end_addr);
- 
--				set_tlb_ubc_flush_pending(mm, pteval, address, address + PAGE_SIZE);
--			} else {
--				pteval = ptep_clear_flush(vma, address, pvmw.pte);
--			}
-+			/* Nuke the page table entry. */
-+			pteval = get_and_clear_full_ptes(mm, address, pvmw.pte, nr_pages, 0);
-+			/*
-+			 * We clear the PTE but do not flush so potentially
-+			 * a remote CPU could still be writing to the folio.
-+			 * If the entry was previously clean then the
-+			 * architecture must guarantee that a clear->dirty
-+			 * transition on a cached TLB entry is written through
-+			 * and traps if the PTE is unmapped.
-+			 */
-+			if (should_defer_flush(mm, flags))
-+				set_tlb_ubc_flush_pending(mm, pteval, address, end_addr);
-+			else
-+				flush_tlb_range(vma, address, end_addr);
- 			if (pte_dirty(pteval))
- 				folio_mark_dirty(folio);
- 		} else {
-@@ -1968,7 +1991,7 @@ static bool try_to_unmap_one(struct foli
- 					 * redirtied either using the page table or a previously
- 					 * obtained GUP reference.
- 					 */
--					set_pte_at(mm, address, pvmw.pte, pteval);
-+					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
- 					folio_set_swapbacked(folio);
- 					goto walk_abort;
- 				} else if (ref_count != 1 + map_count) {
-@@ -1981,10 +2004,10 @@ static bool try_to_unmap_one(struct foli
- 					 * We'll come back here later and detect if the folio was
- 					 * dirtied when the additional reference is gone.
- 					 */
--					set_pte_at(mm, address, pvmw.pte, pteval);
-+					set_ptes(mm, address, pvmw.pte, pteval, nr_pages);
- 					goto walk_abort;
- 				}
--				dec_mm_counter(mm, MM_ANONPAGES);
-+				add_mm_counter(mm, MM_ANONPAGES, -nr_pages);
- 				goto discard;
- 			}
- 
-@@ -2049,13 +2072,18 @@ static bool try_to_unmap_one(struct foli
- 			dec_mm_counter(mm, mm_counter_file(folio));
- 		}
- discard:
--		if (unlikely(folio_test_hugetlb(folio)))
-+		if (unlikely(folio_test_hugetlb(folio))) {
- 			hugetlb_remove_rmap(folio);
--		else
--			folio_remove_rmap_pte(folio, subpage, vma);
-+		} else {
-+			folio_remove_rmap_ptes(folio, subpage, nr_pages, vma);
-+			folio_ref_sub(folio, nr_pages - 1);
-+		}
- 		if (vma->vm_flags & VM_LOCKED)
- 			mlock_drain_local();
- 		folio_put(folio);
-+		/* We have already batched the entire folio */
-+		if (nr_pages > 1)
-+			goto walk_done;
- 		continue;
- walk_abort:
- 		ret = false;
+-/*-- Data structures */
+-
+-/* Allocated for each disk page */
++/*
++ * Allocated for each disk page.  We use bit-lock (ZRAM_ENTRY_LOCK bit
++ * of flags) to save memory.  There can be plenty of entries and standard
++ * locking primitives (e.g. mutex) will significantly increase sizeof()
++ * of each entry and hence of the meta table.
++ */
+ struct zram_table_entry {
+ 	unsigned long handle;
+-	unsigned int flags;
+-	spinlock_t lock;
++	unsigned long flags;
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	struct lockdep_map dep_map;
++#endif
+ #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
+ 	ktime_t ac_time;
+ #endif
+@@ -137,5 +142,8 @@ struct zram {
+ 	struct dentry *debugfs_dir;
+ #endif
+ 	atomic_t pp_in_progress;
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	struct lock_class_key lock_class;
++#endif
+ };
+ #endif
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-set-folio-swapbacked-iff-folios-are-dirty-in-try_to_unmap_one.patch
-mm-support-tlbbatch-flush-for-a-range-of-ptes.patch
-mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch
-mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap.patch
+zram-sleepable-entry-locking.patch
+zram-permit-preemption-with-active-compression-stream.patch
+zram-remove-unused-crypto-include.patch
+zram-remove-max_comp_streams-device-attr.patch
+zram-remove-two-staged-handle-allocation.patch
+zram-remove-writestall-zram_stats-member.patch
+zram-limit-max-recompress-prio-to-num_active_comps.patch
+zram-filter-out-recomp-targets-based-on-priority.patch
+zram-rework-recompression-loop.patch
+zsmalloc-rename-pool-lock.patch
+zsmalloc-make-zspage-lock-preemptible.patch
+zsmalloc-introduce-new-object-mapping-api.patch
+zram-switch-to-new-zsmalloc-object-mapping-api.patch
+zram-permit-reclaim-in-zstd-custom-allocator.patch
+zram-do-not-leak-page-on-recompress_store-error-path.patch
+zram-do-not-leak-page-on-writeback_store-error-path.patch
+zram-add-might_sleep-to-zcomp-api.patch
 
