@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D8F13541B
-	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C05B13541B
+	for <mm-commits@vger.kernel.org>; Sat, 15 Feb 2025 00:18:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739578703; cv=none; b=fTRk6SueAvGc+gE4QePMs0LV6WJ4BSr4460SCH/Ef0scBE9rujovXGqM51CIrUA69TJtHum5XmGFaPuo+JRu5jTPVsmSRK82uukpqAvEmKNP71I2/HvImmaiphfLLuTXFkjD+6FpIhXlr7jSQPJqL5McIbhvmUsl10CFu93o2bU=
+	t=1739578704; cv=none; b=VwozJCaFhi/6nOt27B1Puf/HFpN/0VbGS4qilLJsUQl6PS8OjybEsGzI+VydpOtopYXe+0TfnNMov6EiyCfLxax2oe/llHJ6aJEqf7/mj5KZ3GLFpELdEaN54PDRjJZ8Sy+GcdmuIJASFHdkxh1IkwoqpXutq7Eyvbpg6ZLUa/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739578703; c=relaxed/simple;
-	bh=ov3+nJ1vpcPWTG3/mpLzTIhQypcQIy9BAcnoiNpnwLk=;
-	h=Date:To:From:Subject:Message-Id; b=qRJNzQ+74z4kCMUiMquVjYrfnW0eCzHczOBPC/wO7PWvuswF8GDSB1bmgXFMrxysVrAvSsZezQv1GVglOpZ+D1I0uK9UgAOzqymwyNEccLGP16HSVxAfN+cHsmm8KIhfMRvbt/NkByg6B37G3hT5ZDLhG4S/Oj+I/LvasHCfHMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oFar1lrJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739578704; c=relaxed/simple;
+	bh=ZfHB0palwTdqwBLeORd/jnljm97M2LPEFY4Z8b7bXOE=;
+	h=Date:To:From:Subject:Message-Id; b=FjxHWy14HQMrEaplc0AzaS4LTOXdA6JGj3RkxeKQYCgJ+1u7bFlvdowi+yrFjWplOyk87lr/H5D0gdCSfUnkuiyWOo4mfU19BvhhoEYglwtAvDvxY7Wu4sbSL3E5HPxoqasNyj/boOP83QOMlPRT4Aa0Gfvp1ZckKFpi8G/NJks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pVvmB3uL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oFar1lrJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D11F3C4CED1;
-	Sat, 15 Feb 2025 00:18:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pVvmB3uL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D847C4CED1;
+	Sat, 15 Feb 2025 00:18:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739578702;
-	bh=ov3+nJ1vpcPWTG3/mpLzTIhQypcQIy9BAcnoiNpnwLk=;
+	s=korg; t=1739578704;
+	bh=ZfHB0palwTdqwBLeORd/jnljm97M2LPEFY4Z8b7bXOE=;
 	h=Date:To:From:Subject:From;
-	b=oFar1lrJo51dw8QkBcE5PRBan4saKbOOAwi7iKrbHGkqdLFQtUzP3bzKIzSyc7NaC
-	 6feMyI9RI8tlnA+MIRcjqeXs4ZkYybajIaUjEx8H7uKEYf+9CUpRIgozKllsZudC0s
-	 qmZcUodnKG+WOwVawbr4Qd04jHDsnhkE4983bQWY=
-Date: Fri, 14 Feb 2025 16:18:22 -0800
+	b=pVvmB3uLNrRhtJKVPqtGd4QySOWsFY4Fynk7HiCLOSAiO3AF/0HvO/qcfc5q1YTIN
+	 DmJIU+WpkiJNrouvbB/doeEv5wXuxKuhjz5qML1DtM4CDSpXA0hsMJT7v5T/CObl1J
+	 0X8aWjanw29Mz6fcfKnwMPAb8hQr63TCX26fLCmQ=
+Date: Fri, 14 Feb 2025 16:18:23 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-make-zspage-lock-preemptible.patch added to mm-unstable branch
-Message-Id: <20250215001822.D11F3C4CED1@smtp.kernel.org>
+Subject: + zsmalloc-introduce-new-object-mapping-api.patch added to mm-unstable branch
+Message-Id: <20250215001824.2D847C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: make zspage lock preemptible
+     Subject: zsmalloc: introduce new object mapping API
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-make-zspage-lock-preemptible.patch
+     zsmalloc-introduce-new-object-mapping-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-make-zspage-lock-preemptible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-introduce-new-object-mapping-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,430 +59,256 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: make zspage lock preemptible
-Date: Fri, 14 Feb 2025 13:50:23 +0900
+Subject: zsmalloc: introduce new object mapping API
+Date: Fri, 14 Feb 2025 13:50:24 +0900
 
-In order to implement preemptible object mapping we need a zspage lock
-that satisfies several preconditions:
-- it should be reader-write type of a lock
-- it should be possible to hold it from any context, but also being
-  preemptible if the context allows it
-- we never sleep while acquiring but can sleep while holding in read
-  mode
+Current object mapping API is a little cumbersome.  First, it's
+inconsistent, sometimes it returns with page-faults disabled and sometimes
+with page-faults enabled.  Second, and most importantly, it enforces
+atomicity restrictions on its users.  zs_map_object() has to return a
+liner object address which is not always possible because some objects
+span multiple physical (non-contiguous) pages.  For such objects zsmalloc
+uses a per-CPU buffer to which object's data is copied before a pointer to
+that per-CPU buffer is returned back to the caller.  This leads to
+another, final, issue - extra memcpy().  Since the caller gets a pointer
+to per-CPU buffer it can memcpy() data only to that buffer, and during
+zs_unmap_object() zsmalloc will memcpy() from that per-CPU buffer to
+physical pages that object in question spans across.
 
-An rwsemaphore doesn't suffice, due to atomicity requirements, rwlock
-doesn't satisfy due to reader-preemptability requirement.  It's also worth
-to mention, that per-zspage rwsem is a little too memory heavy (we can
-easily have double digits megabytes used only on rwsemaphores).
+New API splits functions by access mode:
+- zs_obj_read_begin(handle, local_copy)
+  Returns a pointer to handle memory.  For objects that span two
+  physical pages a local_copy buffer is used to store object's
+  data before the address is returned to the caller.  Otherwise
+  the object's page is kmap_local mapped directly.
 
-Switch over from rwlock_t to a atomic_t-based implementation of a
-reader-writer semaphore that satisfies all of the preconditions.
+- zs_obj_read_end(handle, buf)
+  Unmaps the page if it was kmap_local mapped by zs_obj_read_begin().
 
-The spin-lock based zspage_lock is suggested by Hillf Danton.
+- zs_obj_write(handle, buf, len)
+  Copies len-bytes from compression buffer to handle memory
+  (takes care of objects that span two pages).  This does not
+  need any additional (e.g. per-CPU) buffers and writes the data
+  directly to zsmalloc pool pages.
 
-Link: https://lkml.kernel.org/r/20250214045208.1388854-12-senozhatsky@chromium.org
+In terms of performance, on a synthetic and completely reproducible
+test that allocates fixed number of objects of fixed sizes and
+iterates over those objects, first mapping in RO then in RW mode:
+
+OLD API
+=======
+
+3 first results out of 10
+
+  369,205,778      instructions        #    0.80  insn per cycle
+   40,467,926      branches            #  113.732 M/sec
+
+  369,002,122      instructions        #    0.62  insn per cycle
+   40,426,145      branches            #  189.361 M/sec
+
+  369,036,706      instructions        #    0.63  insn per cycle
+   40,430,860      branches            #  204.105 M/sec
+
+[..]
+
+NEW API
+=======
+
+3 first results out of 10
+
+  265,799,293      instructions        #    0.51  insn per cycle
+   29,834,567      branches            #  170.281 M/sec
+
+  265,765,970      instructions        #    0.55  insn per cycle
+   29,829,019      branches            #  161.602 M/sec
+
+  265,764,702      instructions        #    0.51  insn per cycle
+   29,828,015      branches            #  189.677 M/sec
+
+[..]
+
+T-test on all 10 runs
+=====================
+
+Difference at 95.0% confidence
+   -1.03219e+08 +/- 55308.7
+   -27.9705% +/- 0.0149878%
+   (Student's t, pooled s = 58864.4)
+
+The old API will stay around until the remaining users switch
+to the new one.  After that we'll also remove zsmalloc per-CPU
+buffer and CPU hotplug handling.
+
+The split of map(RO) and map(WO) into read_{begin/end}/write is
+suggested by Yosry Ahmed.
+
+Link: https://lkml.kernel.org/r/20250214045208.1388854-13-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Hillf Danton <hdanton@sina.com>
+Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |  246 +++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 192 insertions(+), 54 deletions(-)
+ include/linux/zsmalloc.h |    8 ++
+ mm/zsmalloc.c            |  129 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 137 insertions(+)
 
---- a/mm/zsmalloc.c~zsmalloc-make-zspage-lock-preemptible
+--- a/include/linux/zsmalloc.h~zsmalloc-introduce-new-object-mapping-api
++++ a/include/linux/zsmalloc.h
+@@ -58,4 +58,12 @@ unsigned long zs_compact(struct zs_pool
+ unsigned int zs_lookup_class_index(struct zs_pool *pool, unsigned int size);
+ 
+ void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
++
++void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
++			void *local_copy);
++void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
++		     void *handle_mem);
++void zs_obj_write(struct zs_pool *pool, unsigned long handle,
++		  void *handle_mem, size_t mem_len);
++
+ #endif
+--- a/mm/zsmalloc.c~zsmalloc-introduce-new-object-mapping-api
 +++ a/mm/zsmalloc.c
-@@ -226,6 +226,9 @@ struct zs_pool {
- 	/* protect zspage migration/compaction */
- 	rwlock_t lock;
- 	atomic_t compaction_in_progress;
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	struct lock_class_key lock_class;
-+#endif
- };
- 
- static inline void zpdesc_set_first(struct zpdesc *zpdesc)
-@@ -257,6 +260,18 @@ static inline void free_zpdesc(struct zp
- 	__free_page(page);
- }
- 
-+#define ZS_PAGE_UNLOCKED	0
-+#define ZS_PAGE_WRLOCKED	-1
-+
-+struct zspage_lock {
-+	spinlock_t lock;
-+	int cnt;
-+
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	struct lockdep_map dep_map;
-+#endif
-+};
-+
- struct zspage {
- 	struct {
- 		unsigned int huge:HUGE_BITS;
-@@ -269,7 +284,7 @@ struct zspage {
- 	struct zpdesc *first_zpdesc;
- 	struct list_head list; /* fullness list */
- 	struct zs_pool *pool;
--	rwlock_t lock;
-+	struct zspage_lock zsl;
- };
- 
- struct mapping_area {
-@@ -279,6 +294,148 @@ struct mapping_area {
- 	enum zs_mapmode vm_mm; /* mapping mode */
- };
- 
-+static void zspage_lock_init(struct zspage *zspage)
-+{
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	lockdep_init_map(&zspage->zsl.dep_map, "zspage->lock",
-+			 &zspage->pool->lock_class, 0);
-+#endif
-+
-+	spin_lock_init(&zspage->zsl.lock);
-+	zspage->zsl.cnt = ZS_PAGE_UNLOCKED;
-+}
-+
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+static inline void __read_lock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	rwsem_acquire_read(&zsl->dep_map, 0, 0, _RET_IP_);
-+
-+	spin_lock(&zsl->lock);
-+	zsl->cnt++;
-+	spin_unlock(&zsl->lock);
-+
-+	lock_acquired(&zsl->dep_map, _RET_IP_);
-+}
-+
-+static inline void __read_unlock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	rwsem_release(&zsl->dep_map, _RET_IP_);
-+
-+	spin_lock(&zsl->lock);
-+	zsl->cnt--;
-+	spin_unlock(&zsl->lock);
-+}
-+
-+static inline bool __write_trylock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	spin_lock(&zsl->lock);
-+	if (zsl->cnt == ZS_PAGE_UNLOCKED) {
-+		zsl->cnt = ZS_PAGE_WRLOCKED;
-+		rwsem_acquire(&zsl->dep_map, 0, 1, _RET_IP_);
-+		lock_acquired(&zsl->dep_map, _RET_IP_);
-+		return true;
-+	}
-+
-+	lock_contended(&zsl->dep_map, _RET_IP_);
-+	spin_unlock(&zsl->lock);
-+	return false;
-+}
-+
-+static inline void __write_unlock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	rwsem_release(&zsl->dep_map, _RET_IP_);
-+
-+	zsl->cnt = ZS_PAGE_UNLOCKED;
-+	spin_unlock(&zsl->lock);
-+}
-+#else
-+static inline void __read_lock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	spin_lock(&zsl->lock);
-+	zsl->cnt++;
-+	spin_unlock(&zsl->lock);
-+}
-+
-+static inline void __read_unlock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	spin_lock(&zsl->lock);
-+	zsl->cnt--;
-+	spin_unlock(&zsl->lock);
-+}
-+
-+static inline bool __write_trylock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	spin_lock(&zsl->lock);
-+	if (zsl->cnt == ZS_PAGE_UNLOCKED) {
-+		zsl->cnt = ZS_PAGE_WRLOCKED;
-+		return true;
-+	}
-+
-+	spin_unlock(&zsl->lock);
-+	return false;
-+}
-+
-+static inline void __write_unlock(struct zspage *zspage)
-+{
-+	struct zspage_lock *zsl = &zspage->zsl;
-+
-+	zsl->cnt = ZS_PAGE_UNLOCKED;
-+	spin_unlock(&zsl->lock);
-+}
-+#endif /* CONFIG_DEBUG_LOCK_ALLOC */
-+
-+/*
-+ * The zspage lock can be held from atomic contexts, but it needs to remain
-+ * preemptible when held for reading because it remains held outside of those
-+ * atomic contexts, otherwise we unnecessarily lose preemptibility.
-+ *
-+ * To achieve this, the following rules are enforced on readers and writers:
-+ *
-+ * - Writers are blocked by both writers and readers, while readers are only
-+ *   blocked by writers (i.e. normal rwlock semantics).
-+ *
-+ * - Writers are always atomic (to allow readers to spin waiting for them).
-+ *
-+ * - Writers always use trylock (as the lock may be held be sleeping readers).
-+ *
-+ * - Readers may spin on the lock (as they can only wait for atomic writers).
-+ *
-+ * - Readers may sleep while holding the lock (as writes only use trylock).
-+ */
-+static void zspage_read_lock(struct zspage *zspage)
-+{
-+	return __read_lock(zspage);
-+}
-+
-+static void zspage_read_unlock(struct zspage *zspage)
-+{
-+	return __read_unlock(zspage);
-+}
-+
-+static __must_check bool zspage_write_trylock(struct zspage *zspage)
-+{
-+	return __write_trylock(zspage);
-+}
-+
-+static void zspage_write_unlock(struct zspage *zspage)
-+{
-+	return __write_unlock(zspage);
-+}
-+
- /* huge object: pages_per_zspage == 1 && maxobj_per_zspage == 1 */
- static void SetZsHugePage(struct zspage *zspage)
- {
-@@ -290,12 +447,6 @@ static bool ZsHugePage(struct zspage *zs
- 	return zspage->huge;
- }
- 
--static void migrate_lock_init(struct zspage *zspage);
--static void migrate_read_lock(struct zspage *zspage);
--static void migrate_read_unlock(struct zspage *zspage);
--static void migrate_write_lock(struct zspage *zspage);
--static void migrate_write_unlock(struct zspage *zspage);
--
- #ifdef CONFIG_COMPACTION
- static void kick_deferred_free(struct zs_pool *pool);
- static void init_deferred_free(struct zs_pool *pool);
-@@ -992,7 +1143,9 @@ static struct zspage *alloc_zspage(struc
- 		return NULL;
- 
- 	zspage->magic = ZSPAGE_MAGIC;
--	migrate_lock_init(zspage);
-+	zspage->pool = pool;
-+	zspage->class = class->index;
-+	zspage_lock_init(zspage);
- 
- 	for (i = 0; i < class->pages_per_zspage; i++) {
- 		struct zpdesc *zpdesc;
-@@ -1015,8 +1168,6 @@ static struct zspage *alloc_zspage(struc
- 
- 	create_page_chain(class, zspage, zpdescs);
- 	init_zspage(class, zspage);
--	zspage->pool = pool;
--	zspage->class = class->index;
- 
- 	return zspage;
- }
-@@ -1217,7 +1368,7 @@ void *zs_map_object(struct zs_pool *pool
- 	 * zs_unmap_object API so delegate the locking from class to zspage
- 	 * which is smaller granularity.
- 	 */
--	migrate_read_lock(zspage);
-+	zspage_read_lock(zspage);
- 	read_unlock(&pool->lock);
- 
- 	class = zspage_class(pool, zspage);
-@@ -1277,7 +1428,7 @@ void zs_unmap_object(struct zs_pool *poo
- 	}
- 	local_unlock(&zs_map_area.lock);
- 
--	migrate_read_unlock(zspage);
-+	zspage_read_unlock(zspage);
+@@ -1432,6 +1432,135 @@ void zs_unmap_object(struct zs_pool *poo
  }
  EXPORT_SYMBOL_GPL(zs_unmap_object);
  
-@@ -1671,18 +1822,18 @@ static void lock_zspage(struct zspage *z
- 	/*
- 	 * Pages we haven't locked yet can be migrated off the list while we're
- 	 * trying to lock them, so we need to be careful and only attempt to
--	 * lock each page under migrate_read_lock(). Otherwise, the page we lock
-+	 * lock each page under zspage_read_lock(). Otherwise, the page we lock
- 	 * may no longer belong to the zspage. This means that we may wait for
- 	 * the wrong page to unlock, so we must take a reference to the page
--	 * prior to waiting for it to unlock outside migrate_read_lock().
-+	 * prior to waiting for it to unlock outside zspage_read_lock().
- 	 */
- 	while (1) {
--		migrate_read_lock(zspage);
-+		zspage_read_lock(zspage);
- 		zpdesc = get_first_zpdesc(zspage);
- 		if (zpdesc_trylock(zpdesc))
- 			break;
- 		zpdesc_get(zpdesc);
--		migrate_read_unlock(zspage);
-+		zspage_read_unlock(zspage);
- 		zpdesc_wait_locked(zpdesc);
- 		zpdesc_put(zpdesc);
- 	}
-@@ -1693,41 +1844,16 @@ static void lock_zspage(struct zspage *z
- 			curr_zpdesc = zpdesc;
- 		} else {
- 			zpdesc_get(zpdesc);
--			migrate_read_unlock(zspage);
-+			zspage_read_unlock(zspage);
- 			zpdesc_wait_locked(zpdesc);
- 			zpdesc_put(zpdesc);
--			migrate_read_lock(zspage);
-+			zspage_read_lock(zspage);
- 		}
- 	}
--	migrate_read_unlock(zspage);
-+	zspage_read_unlock(zspage);
- }
- #endif /* CONFIG_COMPACTION */
- 
--static void migrate_lock_init(struct zspage *zspage)
--{
--	rwlock_init(&zspage->lock);
--}
--
--static void migrate_read_lock(struct zspage *zspage) __acquires(&zspage->lock)
--{
--	read_lock(&zspage->lock);
--}
--
--static void migrate_read_unlock(struct zspage *zspage) __releases(&zspage->lock)
--{
--	read_unlock(&zspage->lock);
--}
--
--static void migrate_write_lock(struct zspage *zspage)
--{
--	write_lock(&zspage->lock);
--}
--
--static void migrate_write_unlock(struct zspage *zspage)
--{
--	write_unlock(&zspage->lock);
--}
--
- #ifdef CONFIG_COMPACTION
- 
- static const struct movable_operations zsmalloc_mops;
-@@ -1769,7 +1895,7 @@ static bool zs_page_isolate(struct page
- }
- 
- static int zs_page_migrate(struct page *newpage, struct page *page,
--		enum migrate_mode mode)
-+			   enum migrate_mode mode)
- {
- 	struct zs_pool *pool;
- 	struct size_class *class;
-@@ -1785,9 +1911,6 @@ static int zs_page_migrate(struct page *
- 
- 	VM_BUG_ON_PAGE(!zpdesc_is_isolated(zpdesc), zpdesc_page(zpdesc));
- 
--	/* We're committed, tell the world that this is a Zsmalloc page. */
--	__zpdesc_set_zsmalloc(newzpdesc);
--
- 	/* The page is locked, so this pointer must remain valid */
- 	zspage = get_zspage(zpdesc);
- 	pool = zspage->pool;
-@@ -1803,8 +1926,15 @@ static int zs_page_migrate(struct page *
- 	 * the class lock protects zpage alloc/free in the zspage.
- 	 */
- 	spin_lock(&class->lock);
--	/* the migrate_write_lock protects zpage access via zs_map_object */
--	migrate_write_lock(zspage);
-+	/* the zspage write_lock protects zpage access via zs_map_object */
-+	if (!zspage_write_trylock(zspage)) {
-+		spin_unlock(&class->lock);
-+		write_unlock(&pool->lock);
-+		return -EINVAL;
++void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
++			void *local_copy)
++{
++	struct zspage *zspage;
++	struct zpdesc *zpdesc;
++	unsigned long obj, off;
++	unsigned int obj_idx;
++	struct size_class *class;
++	void *addr;
++
++	WARN_ON(in_interrupt());
++
++	/* Guarantee we can get zspage from handle safely */
++	read_lock(&pool->lock);
++	obj = handle_to_obj(handle);
++	obj_to_location(obj, &zpdesc, &obj_idx);
++	zspage = get_zspage(zpdesc);
++
++	/* Make sure migration doesn't move any pages in this zspage */
++	zspage_read_lock(zspage);
++	read_unlock(&pool->lock);
++
++	class = zspage_class(pool, zspage);
++	off = offset_in_page(class->size * obj_idx);
++
++	if (off + class->size <= PAGE_SIZE) {
++		/* this object is contained entirely within a page */
++		addr = kmap_local_zpdesc(zpdesc);
++		addr += off;
++	} else {
++		size_t sizes[2];
++
++		/* this object spans two pages */
++		sizes[0] = PAGE_SIZE - off;
++		sizes[1] = class->size - sizes[0];
++		addr = local_copy;
++
++		memcpy_from_page(addr, zpdesc_page(zpdesc),
++				 off, sizes[0]);
++		zpdesc = get_next_zpdesc(zpdesc);
++		memcpy_from_page(addr + sizes[0],
++				 zpdesc_page(zpdesc),
++				 0, sizes[1]);
 +	}
 +
-+	/* We're committed, tell the world that this is a Zsmalloc page. */
-+	__zpdesc_set_zsmalloc(newzpdesc);
- 
- 	offset = get_first_obj_offset(zpdesc);
- 	s_addr = kmap_local_zpdesc(zpdesc);
-@@ -1835,7 +1965,7 @@ static int zs_page_migrate(struct page *
- 	 */
- 	write_unlock(&pool->lock);
- 	spin_unlock(&class->lock);
--	migrate_write_unlock(zspage);
-+	zspage_write_unlock(zspage);
- 
- 	zpdesc_get(newzpdesc);
- 	if (zpdesc_zone(newzpdesc) != zpdesc_zone(zpdesc)) {
-@@ -1971,9 +2101,11 @@ static unsigned long __zs_compact(struct
- 		if (!src_zspage)
- 			break;
- 
--		migrate_write_lock(src_zspage);
-+		if (!zspage_write_trylock(src_zspage))
-+			break;
++	if (!ZsHugePage(zspage))
++		addr += ZS_HANDLE_SIZE;
 +
- 		migrate_zspage(pool, src_zspage, dst_zspage);
--		migrate_write_unlock(src_zspage);
-+		zspage_write_unlock(src_zspage);
- 
- 		fg = putback_zspage(class, src_zspage);
- 		if (fg == ZS_INUSE_RATIO_0) {
-@@ -2233,7 +2365,9 @@ struct zs_pool *zs_create_pool(const cha
- 	 * trigger compaction manually. Thus, ignore return code.
- 	 */
- 	zs_register_shrinker(pool);
--
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	lockdep_register_key(&pool->lock_class);
-+#endif
- 	return pool;
- 
- err:
-@@ -2270,6 +2404,10 @@ void zs_destroy_pool(struct zs_pool *poo
- 		kfree(class);
- 	}
- 
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	lockdep_unregister_key(&pool->lock_class);
-+#endif
++	return addr;
++}
++EXPORT_SYMBOL_GPL(zs_obj_read_begin);
 +
- 	destroy_cache(pool);
- 	kfree(pool->name);
- 	kfree(pool);
++void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
++		     void *handle_mem)
++{
++	struct zspage *zspage;
++	struct zpdesc *zpdesc;
++	unsigned long obj, off;
++	unsigned int obj_idx;
++	struct size_class *class;
++
++	obj = handle_to_obj(handle);
++	obj_to_location(obj, &zpdesc, &obj_idx);
++	zspage = get_zspage(zpdesc);
++	class = zspage_class(pool, zspage);
++	off = offset_in_page(class->size * obj_idx);
++
++	if (off + class->size <= PAGE_SIZE) {
++		if (!ZsHugePage(zspage))
++			off += ZS_HANDLE_SIZE;
++		handle_mem -= off;
++		kunmap_local(handle_mem);
++	}
++
++	zspage_read_unlock(zspage);
++}
++EXPORT_SYMBOL_GPL(zs_obj_read_end);
++
++void zs_obj_write(struct zs_pool *pool, unsigned long handle,
++		  void *handle_mem, size_t mem_len)
++{
++	struct zspage *zspage;
++	struct zpdesc *zpdesc;
++	unsigned long obj, off;
++	unsigned int obj_idx;
++	struct size_class *class;
++
++	WARN_ON(in_interrupt());
++
++	/* Guarantee we can get zspage from handle safely */
++	read_lock(&pool->lock);
++	obj = handle_to_obj(handle);
++	obj_to_location(obj, &zpdesc, &obj_idx);
++	zspage = get_zspage(zpdesc);
++
++	/* Make sure migration doesn't move any pages in this zspage */
++	zspage_read_lock(zspage);
++	read_unlock(&pool->lock);
++
++	class = zspage_class(pool, zspage);
++	off = offset_in_page(class->size * obj_idx);
++
++	if (off + class->size <= PAGE_SIZE) {
++		/* this object is contained entirely within a page */
++		void *dst = kmap_local_zpdesc(zpdesc);
++
++		if (!ZsHugePage(zspage))
++			off += ZS_HANDLE_SIZE;
++		memcpy(dst + off, handle_mem, mem_len);
++		kunmap_local(dst);
++	} else {
++		/* this object spans two pages */
++		size_t sizes[2];
++
++		off += ZS_HANDLE_SIZE;
++		sizes[0] = PAGE_SIZE - off;
++		sizes[1] = mem_len - sizes[0];
++
++		memcpy_to_page(zpdesc_page(zpdesc), off,
++			       handle_mem, sizes[0]);
++		zpdesc = get_next_zpdesc(zpdesc);
++		memcpy_to_page(zpdesc_page(zpdesc), 0,
++			       handle_mem + sizes[0], sizes[1]);
++	}
++
++	zspage_read_unlock(zspage);
++}
++EXPORT_SYMBOL_GPL(zs_obj_write);
++
+ /**
+  * zs_huge_class_size() - Returns the size (in bytes) of the first huge
+  *                        zsmalloc &size_class.
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
