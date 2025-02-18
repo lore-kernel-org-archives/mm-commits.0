@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 455EA1D554
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 03:54:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53FE91D554
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 03:54:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739850859; cv=none; b=de/cqHEcoBumsdrNqJ2cRcQg3B4BCL7QJGbH5dSVXP9kZRq0eF2amIc2EqEIbnJ3xjnyjeLt7INZPwpbcch/elpLKPNBTYL7fmtwOVdFpaugSI/WTnaLs2JUxGS1l7dAIuYXUEH4MVgMo6bImFuvTffv4mW/KFmjDSwsbwiGdI4=
+	t=1739850860; cv=none; b=pUlKlhgD5CZrggem7k4fc7FugSBHnzt1IMpnTicGAcWLIdJ4e/6TBvylEm8OGeT6sTk29XmsvKggCQ5YOO5NoXL1OujRbUMjFd03x2aQwt4TAxY7MHmY5BRoDjDlkeqY5/5a7BrwT4w2KKSDHzpNA2dy24rhGFebdQ+NSQoaWlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739850859; c=relaxed/simple;
-	bh=OErPelLnMe9bpsyT6n3SbRj85mcJYBOrlQ1NcIhFaiA=;
-	h=Date:To:From:Subject:Message-Id; b=oSpi3R8UiV3bhY9nC7SmNWbUacJskkOO84nULdL0qNz9MQhhxnZKi1wgog8KB6g5oh5hvGtqMfKSltyMHriQOkhsYFM8V68q7LZ71+M+YotFmxqbUazhtgpYV2647+UMXbB/rIXm1P5Tqbhyv86VcVpssIzXoVt8hB+Zz7YERpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WUlpAnhw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739850860; c=relaxed/simple;
+	bh=LPa/XAGseyKyUj+qEyGegV0VIh0obe1DrP1Q6PMccb0=;
+	h=Date:To:From:Subject:Message-Id; b=aTR3p+SysWqdbEyBgONOIwNucgMBKrAD9N0bKdTPEAIzAVHQ/pOZAUSe0O4tXsj4slPER6YeKGD1QbCFafD7eZCPsCEwm/VJtVSCQsXvMakieCayRiRHODSrovEafaOnB8+kCXDO3+NM46/0nqU33q9LtrhZ06/kJtFfShU+eTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uvLXHHaA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WUlpAnhw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85A2C4CEE6;
-	Tue, 18 Feb 2025 03:54:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uvLXHHaA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4743C4CEE6;
+	Tue, 18 Feb 2025 03:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739850857;
-	bh=OErPelLnMe9bpsyT6n3SbRj85mcJYBOrlQ1NcIhFaiA=;
+	s=korg; t=1739850859;
+	bh=LPa/XAGseyKyUj+qEyGegV0VIh0obe1DrP1Q6PMccb0=;
 	h=Date:To:From:Subject:From;
-	b=WUlpAnhwZQXHBT+OFdk/Depy9qLtNFMVSQa4oPZNSeOxc1DHjfqnZ8MPyM9KF3aIv
-	 lhA9QDN8bLwO+1YkmlPlceBX5pEanq0QWZU1qh4NHyG0HKktEmUFswi2B2Y1j2XT2d
-	 1efPpDmgIDnQJyEd34uHk+3l1dBH3r5825fOQiFY=
-Date: Mon, 17 Feb 2025 19:54:17 -0800
+	b=uvLXHHaAjvyE34qIhHqQ9FSwREeR05+G3q5yN6arY8x9A+oG9mYJhlzJWwiFXL1g3
+	 ko2ew+AoNPtfdJSMa34bQ1Bo6T0DjVwj1m35tYfpx/7GoQTv1mkM4jfx+JIEffo7Op
+	 FSpwCfzLVFETbrixmfP07YIG6UwHHcHJfJKzgXtc=
+Date: Mon, 17 Feb 2025 19:54:19 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,steven.price@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,maddy@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,corbet@lwn.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-powerpc-drop-generic_ptdump-from-mpc885_ads_defconfig.patch added to mm-unstable branch
-Message-Id: <20250218035417.A85A2C4CEE6@smtp.kernel.org>
+Subject: + docs-arm64-drop-ptdump-config-options-from-ptdumprst.patch added to mm-unstable branch
+Message-Id: <20250218035419.A4743C4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch/powerpc: drop GENERIC_PTDUMP from mpc885_ads_defconfig
+     Subject: docs: arm64: drop PTDUMP config options from ptdump.rst
 has been added to the -mm mm-unstable branch.  Its filename is
-     arch-powerpc-drop-generic_ptdump-from-mpc885_ads_defconfig.patch
+     docs-arm64-drop-ptdump-config-options-from-ptdumprst.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-powerpc-drop-generic_ptdump-from-mpc885_ads_defconfig.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-arm64-drop-ptdump-config-options-from-ptdumprst.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arch/powerpc: drop GENERIC_PTDUMP from mpc885_ads_defconfig
-Date: Mon, 17 Feb 2025 09:52:17 +0530
+Subject: docs: arm64: drop PTDUMP config options from ptdump.rst
+Date: Mon, 17 Feb 2025 09:52:18 +0530
 
-GENERIC_PTDUMP gets selected on powerpc explicitly and hence can be
-dropped off from mpc885_ads_defconfig.
+Both GENERIC_PTDUMP and PTDUMP_CORE are not user selectable config
+options.  Just drop these from documentation.
 
-Link: https://lkml.kernel.org/r/20250217042220.32920-3-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20250217042220.32920-4-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Suggested-by: Steven Price <steven.price@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Steven Price <steven.price@arm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/configs/mpc885_ads_defconfig |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/arch/arm64/ptdump.rst |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/powerpc/configs/mpc885_ads_defconfig~arch-powerpc-drop-generic_ptdump-from-mpc885_ads_defconfig
-+++ a/arch/powerpc/configs/mpc885_ads_defconfig
-@@ -78,4 +78,3 @@ CONFIG_DEBUG_VM_PGTABLE=y
- CONFIG_DETECT_HUNG_TASK=y
- CONFIG_BDI_SWITCH=y
- CONFIG_PPC_EARLY_DEBUG=y
--CONFIG_GENERIC_PTDUMP=y
+--- a/Documentation/arch/arm64/ptdump.rst~docs-arm64-drop-ptdump-config-options-from-ptdumprst
++++ a/Documentation/arch/arm64/ptdump.rst
+@@ -22,8 +22,6 @@ offlining of memory being accessed by th
+ In order to dump the kernel page tables, enable the following
+ configurations and mount debugfs::
+ 
+- CONFIG_GENERIC_PTDUMP=y
+- CONFIG_PTDUMP_CORE=y
+  CONFIG_PTDUMP_DEBUGFS=y
+ 
+  mount -t debugfs nodev /sys/kernel/debug
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
