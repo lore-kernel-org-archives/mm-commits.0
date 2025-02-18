@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32633A1B6
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:34:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24EF13C1F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:47:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739853263; cv=none; b=nwF/ZrpFmy49OttOerEEmNErM5QzX2M8ZBXG9cKaKssmF3WyFj1Nc65qHEX2XclyuyBf5pUkjHIDgK9wNn0qceprCoj7a3l+zyzPZYJc1HFQnWMP42S5xuZf/mBr97V+mfUC9tI2wOQtad9Y/1hxwoU1jL98n1dmketjU/+OG8M=
+	t=1739854049; cv=none; b=Nm2rdG6azv8JYJ3rKR4Qyj+45Xa2y+onE81fM3QJVgLh0vhimeDWkEv0mQ4CTQOwksAw+Z3ZtDlpPKO0cxruMHR7EZL/YFXW02yCRAAtN9mOLmBLU94N7imqOZ+M54eEEMM3Y2ZBQLhfKger9jC/zrUNVH88eLpwu1a+M8X4oW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739853263; c=relaxed/simple;
-	bh=C4WXNIlghh12pZjVKt8q8W4Ojh5+fAzYNZTglfWwcos=;
-	h=Date:To:From:Subject:Message-Id; b=hQVNMvCJH6MRTVxwIpqZ6UdD4Nkh2657PqEvbeez0K4W/cES9ndTxZaMy0PKp25uUXf3yvf8UbCpFDpNxyfQ21AO6YChNl67FyVI3Wlj6CTxYq97DtWybXHc9SaadCKjGFFDA6CqtMzQHl8xL8nssJ1P+/Rl2OGhFQzy5wUmmcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ChdNx6BJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739854049; c=relaxed/simple;
+	bh=dfqa8TPofUL+3KA8a2I1s9yYlCoel4P3xlwelDNHlhI=;
+	h=Date:To:From:Subject:Message-Id; b=DzsMtsT8jXBcvx+fsAIbrnJtBvAmU73rT6pzYAEy/8ZoegSLK+P0qBofl28bvEsNKevGEPV2xrnoO8ChjcH+Lk1k9eC9wkKP/b1yE6m1UP3W+vKJSd66pvOqvKUyVvhojKFouj/eU+65Ti5s7S0Tgo4XHqk2kSmX7i8RXlB6q3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CSsm+wPR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ChdNx6BJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13EE1C4CEE2;
-	Tue, 18 Feb 2025 04:34:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CSsm+wPR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E9DCC4CEE2;
+	Tue, 18 Feb 2025 04:47:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739853263;
-	bh=C4WXNIlghh12pZjVKt8q8W4Ojh5+fAzYNZTglfWwcos=;
+	s=korg; t=1739854048;
+	bh=dfqa8TPofUL+3KA8a2I1s9yYlCoel4P3xlwelDNHlhI=;
 	h=Date:To:From:Subject:From;
-	b=ChdNx6BJLYKH2yCsNPldjhgcZYwz/UHauO1BKL/ygr3IdvZSToWbjHgPLjYV4Qrvf
-	 3rpvzyQKLRiuw8L4K0RsI8/+b5BsEas11O9s88XNzk4/aEWn2bLHbv/u94vLDhY2JB
-	 pYU2FfqKkFFRBTMndtXvzjOeshEoXvdkycgffERg=
-Date: Mon, 17 Feb 2025 20:34:22 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=CSsm+wPRFQWmwQSmDmHYriAXlBhKaXNOd5RA9ExmqcEBgTmoKfxhRbCvbB3YhSZ+n
+	 kLl1LVhyd9rw8O7twhWKjDuAbWIARyCp6IfDAyOAtQyhdDZN3Ysut5PCdDw6obk3FY
+	 qnX6gyXkmlCAWL1QbvveKRwF7wAUm/Lj0safsW1s=
+Date: Mon, 17 Feb 2025 20:47:27 -0800
+To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-wait-for-hugepage-folios-to-be-freed.patch added to mm-unstable branch
-Message-Id: <20250218043423.13EE1C4CEE2@smtp.kernel.org>
+Subject: + fuse-fix-dax-truncate-punch_hole-fault-path.patch added to mm-unstable branch
+Message-Id: <20250218044728.6E9DCC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: wait for hugepage folios to be freed
+     Subject: fuse: Fix dax truncate/punch_hole fault path
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-wait-for-hugepage-folios-to-be-freed.patch
+     fuse-fix-dax-truncate-punch_hole-fault-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-wait-for-hugepage-folios-to-be-freed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-fix-dax-truncate-punch_hole-fault-path.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,118 +58,161 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ge Yang <yangge1116@126.com>
-Subject: mm/hugetlb: wait for hugepage folios to be freed
-Date: Sat, 15 Feb 2025 15:20:26 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: fuse: Fix dax truncate/punch_hole fault path
+Date: Tue, 18 Feb 2025 14:55:17 +1100
 
-Since the introduction of commit b65d4adbc0f0 ("mm: hugetlb: defer freeing
-of HugeTLB pages"), which supports deferring the freeing of HugeTLB pages,
-the allocation of contiguous memory through cma_alloc() may fail
-probabilistically.
+Patch series "fs/dax: Fix ZONE_DEVICE page reference counts", v8.
 
-In the CMA allocation process, if it is found that the CMA area is occupied
-by in-use hugepage folios, these in-use hugepage folios need to be migrated
-to another location. When there are no available hugepage folios in the
-free HugeTLB pool during the migration of in-use HugeTLB pages, new folios
-are allocated from the buddy system. A temporary state is set on the newly
-allocated folio. Upon completion of the hugepage folio migration, the
-temporary state is transferred from the new folios to the old folios.
-Normally, when the old folios with the temporary state are freed, it is
-directly released back to the buddy system. However, due to the deferred
-freeing of HugeTLB pages, the PageBuddy() check fails, ultimately leading
-to the failure of cma_alloc().
+Device and FS DAX pages have always maintained their own page reference
+counts without following the normal rules for page reference counting.  In
+particular pages are considered free when the refcount hits one rather
+than zero and refcounts are not added when mapping the page.
 
-Here is a simplified call trace illustrating the process:
-cma_alloc()
-    ->__alloc_contig_migrate_range() // Migrate in-use hugepage
-        ->unmap_and_move_huge_page()
-            ->folio_putback_hugetlb() // Free old folios
-    ->test_pages_isolated()
-        ->__test_page_isolated_in_pageblock()
-             ->PageBuddy(page) // Check if the page is in buddy
+Tracking this requires special PTE bits (PTE_DEVMAP) and a secondary
+mechanism for allowing GUP to hold references on the page (see
+get_dev_pagemap).  However there doesn't seem to be any reason why FS DAX
+pages need their own reference counting scheme.
 
-To resolve this issue, we have implemented a function named
-wait_for_hugepage_folios_freed(). This function ensures that the hugepage
-folios are properly released back to the buddy system after their migration
-is completed. By invoking wait_for_hugepage_folios_freed() before calling
-PageBuddy(), we ensure that PageBuddy() will succeed.
+By treating the refcounts on these pages the same way as normal pages we
+can remove a lot of special checks.  In particular pXd_trans_huge()
+becomes the same as pXd_leaf(), although I haven't made that change here. 
+It also frees up a valuable SW define PTE bit on architectures that have
+devmap PTE bits defined.
 
-Link: https://lkml.kernel.org/r/1739604026-2258-1-git-send-email-yangge1116@126.com
-Fixes: b65d4adbc0f0 ("mm: hugetlb: defer freeing of HugeTLB pages")
-Signed-off-by: Ge Yang <yangge1116@126.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
+It also almost certainly allows further clean-up of the devmap managed
+functions, but I have left that as a future improvment.  It also enables
+support for compound ZONE_DEVICE pages which is one of my primary
+motivators for doing this work.
+
+
+This patch (of 20):
+
+FS DAX requires file systems to call into the DAX layout prior to
+unlinking inodes to ensure there is no ongoing DMA or other remote access
+to the direct mapped page.  The fuse file system implements
+fuse_dax_break_layouts() to do this which includes a comment indicating
+that passing dmap_end == 0 leads to unmapping of the whole file.
+
+However this is not true - passing dmap_end == 0 will not unmap anything
+before dmap_start, and further more dax_layout_busy_page_range() will not
+scan any of the range to see if there maybe ongoing DMA access to the
+range.  Fix this by passing -1 for dmap_end to fuse_dax_break_layouts()
+which will invalidate the entire file range to
+dax_layout_busy_page_range().
+
+Link: https://lkml.kernel.org/r/cover.a782e309b1328f961da88abddbbc48e5b4579021.1739850794.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/f09a34b6c40032022e4ddee6fadb7cc676f08867.1739850794.git-series.apopple@nvidia.com
+Fixes: 6ae330cad6ef ("virtiofs: serialize truncate/punch_hole and dax fault path")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Tested-by: Alison Schofield <alison.schofield@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Asahi Lina <lina@asahilina.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Dan Willaims <dan.j.williams@intel.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Will Deacon <will@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- mm/hugetlb.c            |    8 ++++++++
- mm/page_isolation.c     |   10 ++++++++++
- 3 files changed, 23 insertions(+)
+ fs/fuse/dax.c  |    1 -
+ fs/fuse/dir.c  |    2 +-
+ fs/fuse/file.c |    4 ++--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-wait-for-hugepage-folios-to-be-freed
-+++ a/include/linux/hugetlb.h
-@@ -682,6 +682,7 @@ struct huge_bootmem_page {
- 
- int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
- int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
-+void wait_for_hugepage_folios_freed(void);
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 				unsigned long addr, bool cow_from_owner);
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
-@@ -1066,6 +1067,10 @@ static inline int replace_free_hugepage_
- 	return 0;
+--- a/fs/fuse/dax.c~fuse-fix-dax-truncate-punch_hole-fault-path
++++ a/fs/fuse/dax.c
+@@ -682,7 +682,6 @@ static int __fuse_dax_break_layouts(stru
+ 			0, 0, fuse_wait_dax_page(inode));
  }
  
-+static inline void wait_for_hugepage_folios_freed(void)
-+{
-+}
-+
- static inline struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 					   unsigned long addr,
- 					   bool cow_from_owner)
---- a/mm/hugetlb.c~mm-hugetlb-wait-for-hugepage-folios-to-be-freed
-+++ a/mm/hugetlb.c
-@@ -2943,6 +2943,14 @@ int replace_free_hugepage_folios(unsigne
- 	return ret;
- }
+-/* dmap_end == 0 leads to unmapping of whole file */
+ int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
+ 				  u64 dmap_end)
+ {
+--- a/fs/fuse/dir.c~fuse-fix-dax-truncate-punch_hole-fault-path
++++ a/fs/fuse/dir.c
+@@ -1940,7 +1940,7 @@ int fuse_do_setattr(struct mnt_idmap *id
+ 	if (FUSE_IS_DAX(inode) && is_truncate) {
+ 		filemap_invalidate_lock(mapping);
+ 		fault_blocked = true;
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err) {
+ 			filemap_invalidate_unlock(mapping);
+ 			return err;
+--- a/fs/fuse/file.c~fuse-fix-dax-truncate-punch_hole-fault-path
++++ a/fs/fuse/file.c
+@@ -253,7 +253,7 @@ static int fuse_open(struct inode *inode
  
-+void wait_for_hugepage_folios_freed(void)
-+{
-+	struct hstate *h;
-+
-+	for_each_hstate(h)
-+		flush_free_hpage_work(h);
-+}
-+
- typedef enum {
- 	/*
- 	 * For either 0/1: we checked the per-vma resv map, and one resv
---- a/mm/page_isolation.c~mm-hugetlb-wait-for-hugepage-folios-to-be-freed
-+++ a/mm/page_isolation.c
-@@ -615,6 +615,16 @@ int test_pages_isolated(unsigned long st
- 	int ret;
- 
- 	/*
-+	 * Due to the deferred freeing of HugeTLB folios, the hugepage folios may
-+	 * not immediately release to the buddy system. This can cause PageBuddy()
-+	 * to fail in __test_page_isolated_in_pageblock(). To ensure that the
-+	 * hugepage folios are properly released back to the buddy system, we
-+	 * invoke the wait_for_hugepage_folios_freed() function to wait for the
-+	 * release to complete.
-+	 */
-+	wait_for_hugepage_folios_freed();
-+
-+	/*
- 	 * Note: pageblock_nr_pages != MAX_PAGE_ORDER. Then, chunks of free
- 	 * pages are not aligned to pageblock_nr_pages.
- 	 * Then we just check migratetype first.
+ 	if (dax_truncate) {
+ 		filemap_invalidate_lock(inode->i_mapping);
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err)
+ 			goto out_inode_unlock;
+ 	}
+@@ -3196,7 +3196,7 @@ static long fuse_file_fallocate(struct f
+ 	inode_lock(inode);
+ 	if (block_faults) {
+ 		filemap_invalidate_lock(inode->i_mapping);
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err)
+ 			goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-hugetlb-wait-for-hugepage-folios-to-be-freed.patch
+fuse-fix-dax-truncate-punch_hole-fault-path.patch
+fs-dax-return-unmapped-busy-pages-from-dax_layout_busy_page_range.patch
+fs-dax-dont-skip-locked-entries-when-scanning-entries.patch
+fs-dax-refactor-wait-for-dax-idle-page.patch
+fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
+fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
+fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
+fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch
+mm-gup-remove-redundant-check-for-pci-p2pdma-page.patch
+mm-mm_init-move-p2pdma-page-refcount-initialisation-to-p2pdma.patch
+mm-allow-compound-zone-device-pages.patch
+mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
+mm-memory-add-vmf_insert_page_mkwrite.patch
+mm-rmap-add-support-for-pud-sized-mappings-to-rmap.patch
+mm-huge_memory-add-vmf_insert_folio_pud.patch
+mm-huge_memory-add-vmf_insert_folio_pmd.patch
+mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
+fs-dax-properly-refcount-fs-dax-pages.patch
+device-dax-properly-refcount-device-dax-pages-when-mapping.patch
 
