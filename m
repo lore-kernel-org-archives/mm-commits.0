@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A489118E1F
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 03:16:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E0818E1F;
+	Tue, 18 Feb 2025 03:20:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739848589; cv=none; b=LHUz8B9Fj9Mvqg3qLZJKYiQUWIA1N/f/mFbrG8v5/8T2qBRxNZlbCQ6isBCkAt2cs1rPRlYzAH0Za+IZSC5ocffiUivfMPGfPQyqquViaq0i/EJASTAL7v+XeS4SmpjrJZW3l8GIvR0FIMPDyxYxknflutl6/2M5x1rOPNfkoIw=
+	t=1739848821; cv=none; b=LKwzNwjIV5PCy1tLMRGzF9M8UhRPy2NyBaLapNW3jN3APXLLOp89lBiNxtbXJaOy9P709pKT4qZ61tkCj4TxlFQHlD4zqI3wqasJINdHl5fljI+qStEc4/f3fHR8P/WmREf4nXBSyVHTWk1GMp5Or+uIg3BK2X+axYdAfg+JbpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739848589; c=relaxed/simple;
-	bh=+uHSEUTY53STmFWAEWhjaezt1/gUkAkBCdk4iSyvf28=;
-	h=Date:To:From:Subject:Message-Id; b=FpPGV67+YA7J93G2JR5EgkBGTzKy5zPdkm55yjKrdJeELzeTWXMiubGpzQeFhBQ2mRB16cI+AXVkCX7d9GlPnhwPL5qXMu1xqiOUJa1qVpWCfv5O85J04caoK6TmwFCa14hiT4VzAJfODoX8sr8IrZtmHwuh3TPpfgQUmcvQFWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VQt27Yvr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739848821; c=relaxed/simple;
+	bh=KF4DQ2/NJ1H2cmVnfFvuQ3ovoGDiXjXoL2PMgJ90MTU=;
+	h=Date:To:From:Subject:Message-Id; b=ZLCvBfujp41QRnJME2JoejYso0O2hVLy3oILzhe/KcfFIFMKcUqhdXX0Zn0IYRfGqspKZhrlTYwL86szvnbG977SwLLOr3Kzt2WlqbnJxVTP8DdID/MkKbgTuTnJY8DXtDotea+ID7sz7FOwvxEB/o9ENUGDWQUhEoJ4ToXe8JQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ILgXXLwL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VQt27Yvr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D24C4CED1;
-	Tue, 18 Feb 2025 03:16:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ILgXXLwL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B56C4CED1;
+	Tue, 18 Feb 2025 03:20:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739848589;
-	bh=+uHSEUTY53STmFWAEWhjaezt1/gUkAkBCdk4iSyvf28=;
+	s=korg; t=1739848820;
+	bh=KF4DQ2/NJ1H2cmVnfFvuQ3ovoGDiXjXoL2PMgJ90MTU=;
 	h=Date:To:From:Subject:From;
-	b=VQt27YvrByj5tXv0Rfox4ZbnEZrWn7bDsWzAXFeOuoGJXbk7KKSSkFNr3kIVVh/fS
-	 nODdLpGaS/5kQJdcnDQTLSewGo543kzqyzmr/MJ5wWf3J895ase30gZ9I1zO+ZaVIq
-	 6cwHfNiPRGbVyo7BmFxsS8VVRT/CJZQaR9ncuk/0=
-Date: Mon, 17 Feb 2025 19:16:28 -0800
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,surenb@google.com,akpm@linux-foundation.org
+	b=ILgXXLwLQ0NyW+6xEACxW9d3KsIqb/e2ScuKQI1JO+zDPhcNAHHVsnlt5VrqI187M
+	 Daq5NMVM9cuZkzbuZb+l83oWJJlrn6KWwHHOnGf2HyaH4BT7s7LMnzdnsFjLfRSgO6
+	 shtdhVrTKxlpxi6fcX35qvtKEuAEAEHt+vqiB5/A=
+Date: Mon, 17 Feb 2025 19:20:20 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,stable@vger.kernel.org,sammy@sammy.net,kevin.brodsky@arm.com,geert@linux-m68k.org,dave.hansen@linux.intel.com,haoxiang_li2024@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch added to mm-unstable branch
-Message-Id: <20250218031629.06D24C4CED1@smtp.kernel.org>
+Subject: + m68k-sun3-add-check-for-__pgd_alloc.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250218032020.B5B56C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: fix title underlines in refcount-vs-atomic.rst
-has been added to the -mm mm-unstable branch.  Its filename is
-     refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
+     Subject: m68k: sun3: add check for __pgd_alloc()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     m68k-sun3-add-check-for-__pgd_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-sun3-add-check-for-__pgd_alloc.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,67 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: docs: fix title underlines in refcount-vs-atomic.rst
-Date: Mon, 17 Feb 2025 08:16:45 -0800
+From: Haoxiang Li <haoxiang_li2024@163.com>
+Subject: m68k: sun3: add check for __pgd_alloc()
+Date: Tue, 18 Feb 2025 00:00:17 +0800
 
-Fix title underlines for newly updated refcount-vs-atomic.rst
+Add check for the return value of __pgd_alloc() in pgd_alloc() to prevent
+null pointer dereference.
 
-Link: https://lkml.kernel.org/r/20250217161645.3137927-1-surenb@google.com
-Fixes: 03b412c8b184 ("refcount: provide ops for cases when object's memory can be reused")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20250217160017.2375536-1-haoxiang_li2024@163.com
+Fixes: a9b3c355c2e6 ("asm-generic: pgalloc: provide generic __pgd_{alloc,free}")
+Signed-off-by: Haoxiang Li <haoxiang_li2024@163.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Sam Creasey <sammy@sammy.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/refcount-vs-atomic.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/m68k/include/asm/sun3_pgalloc.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/Documentation/core-api/refcount-vs-atomic.rst~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix
-+++ a/Documentation/core-api/refcount-vs-atomic.rst
-@@ -87,7 +87,7 @@ Memory ordering guarantee changes:
+--- a/arch/m68k/include/asm/sun3_pgalloc.h~m68k-sun3-add-check-for-__pgd_alloc
++++ a/arch/m68k/include/asm/sun3_pgalloc.h
+@@ -44,8 +44,10 @@ static inline pgd_t * pgd_alloc(struct m
+ 	pgd_t *new_pgd;
  
- 
- case 2) - non-"Read/Modify/Write" (RMW) ops with release ordering
---------------------------------------------
-+-----------------------------------------------------------------
- 
- Function changes:
- 
-@@ -139,7 +139,7 @@ Memory ordering guarantees changes:
- 
- 
- case 6) - increment-based RMW ops with acquire ordering that return a value
-------------------------------------------------------
-+---------------------------------------------------------------------------
- 
- Function changes:
+ 	new_pgd = __pgd_alloc(mm, 0);
+-	memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
+-	memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
++	if (likely(new_pgd != NULL)) {
++		memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
++		memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
++	}
+ 	return new_pgd;
+ }
  
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from haoxiang_li2024@163.com are
 
-alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch
-mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
-alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
-alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
-mm-introduce-vma_start_read_locked_nested-helpers.patch
-mm-move-per-vma-lock-into-vm_area_struct.patch
-mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
-mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
-mm-mark-vmas-detached-upon-exit.patch
-types-move-struct-rcuwait-into-typesh.patch
-mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
-mm-move-mmap_init_lock-out-of-the-header-file.patch
-mm-uninline-the-main-body-of-vma_start_write.patch
-refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
-refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
-refcount-introduce-__refcount_addinc_not_zero_limited_acquire.patch
-mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
-mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch
-mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
-mm-remove-extra-vma_numab_state_init-call.patch
-mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
-mm-make-vma-cache-slab_typesafe_by_rcu.patch
-docs-mm-document-latest-changes-to-vm_lock.patch
+m68k-sun3-add-check-for-__pgd_alloc.patch
 
