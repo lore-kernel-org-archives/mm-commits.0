@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41BEE1D63E8
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 23:14:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C991DDC35
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 23:29:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739920479; cv=none; b=qkLXuTtyDO0an/9gA/qhlOv2h+/0OtPaEwdhTxTGFPJmRE99zjWxKmjW+sqqDBkfoY+ekx14uFJX1ctQcW1osETLF5He2iJsjnu6M6SOYi5ak6UzO3xNmu0ZLEhrjVytcYeqo4RkKBFRkSCuFhtSOEo/F24ikWRPyIIg9JpaYzw=
+	t=1739921371; cv=none; b=EBhkL+1utUh6NOz011WnOVHAZgjJGsI2afU5VYeBL6mbMr1DKNHnsJrbi9Avv4oD5UqfgYjZC3Lz/8RXHasukt7GiTu/WDssymZC29uFD7bZ4UQuaF21tTqXN2HTNo5naJLx8mWW6FnH82GBfqYoyuwkSdlHnf9uISZo/tcHnCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739920479; c=relaxed/simple;
-	bh=3GRcB0qVtBsYrwo4fnGaBkShkr915wndde7DKbkEzTU=;
-	h=Date:To:From:Subject:Message-Id; b=j7rkaEcH27dQUAaoZMP0hGyR14M8mzIvwK3RRP9QKjkPb42a0qG+DH9AtEuK8acDHqbPBV1fDB8aldaXwHcSjyoek4soyMvtDopsQehPEo20piWGjfjas3vda1pWGfWimdNLyieVCar802ILRCe10Cmp6zkZ6fcVnvNskQP1OSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XYGdNwmv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739921371; c=relaxed/simple;
+	bh=8VlWyHEKmbGhUH9BEVqFyP0z9TuSSZLhZwZkYi+OEfE=;
+	h=Date:To:From:Subject:Message-Id; b=V6Fa64b4GG4rVDezBQs526tQlJK0amfn9Ivyow349sPu0gJ/vpmwvO8gaF6MZTCVXnzNEqPNWFvOFL+f9JdDEWKJ6ILdxucTseKrHinXbfOU7XMmh27aKFsSICHGomS5023WDPszANlmmLVT63OhxONuh698DHcjqN7umaC0Dh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cl+K0C2Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XYGdNwmv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A88A5C4CEE2;
-	Tue, 18 Feb 2025 23:14:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cl+K0C2Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 074BBC4CEE2;
+	Tue, 18 Feb 2025 23:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739920478;
-	bh=3GRcB0qVtBsYrwo4fnGaBkShkr915wndde7DKbkEzTU=;
+	s=korg; t=1739921371;
+	bh=8VlWyHEKmbGhUH9BEVqFyP0z9TuSSZLhZwZkYi+OEfE=;
 	h=Date:To:From:Subject:From;
-	b=XYGdNwmvLlG+yItxzwMNJVJsXyZmagm8cUgF8LfOp18YQJFVfEMkEqN/Bm1ieuP2I
-	 Qbz6ddK6aLlb50U4KXxXY1CGpNMv2ssBomKumnGFRA0sSXcB/A/Bz8eU5fGynHif05
-	 xYroIVNkzWvXdms/Wfeu9w/YV7jSzPMYAEMtcdB8=
-Date: Tue, 18 Feb 2025 15:14:38 -0800
-To: mm-commits@vger.kernel.org,sw@simonwunderlich.de,quic_skakitap@quicinc.com,qmo@kernel.org,othacehe@gnu.org,nao.horiguchi@gmail.com,kees@kernel.org,gregkh@linuxfoundation.org,eugen.hristev@linaro.org,elder@kernel.org,antonio@mandelbit.com,jarkko@kernel.org,akpm@linux-foundation.org
+	b=cl+K0C2ZwRFySv4BDcueycb+YDChuROLUkvMw4ybAgtY4M/UlHDCj6JG7O7v4+usv
+	 GG69aoseDoAhUmvaR3tVacv7hmHc/v+uKGqazQFawqyYnKhTxCXV91c4/g4gQ/rAu1
+	 kVV5pXAMT41QO3c0bs1MooPPYsQDClvHYURo3ty4=
+Date: Tue, 18 Feb 2025 15:29:30 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,jserv@ccns.ncku.edu.tw,corbet@lwn.net,eleanor15x@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-remove-never-used-parityio-email.patch added to mm-nonmm-unstable branch
-Message-Id: <20250218231438.A88A5C4CEE2@smtp.kernel.org>
+Subject: [merged] documentation-core-api-min_heap-update-for-variable-types-change.patch removed from -mm tree
+Message-Id: <20250218232931.074BBC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,68 +34,48 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mailmap: remove never used @parity.io email
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-remove-never-used-parityio-email.patch
+The quilt patch titled
+     Subject: Documentation/core-api: min_heap: update for variable types change
+has been removed from the -mm tree.  Its filename was
+     documentation-core-api-min_heap-update-for-variable-types-change.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-remove-never-used-parityio-email.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jarkko Sakkinen <jarkko@kernel.org>
-Subject: mailmap: remove never used @parity.io email
-Date: Tue, 18 Feb 2025 19:05:55 +0200
+From: Yu-Chun Lin <eleanor15x@gmail.com>
+Subject: Documentation/core-api: min_heap: update for variable types change
+Date: Sat, 15 Feb 2025 23:54:21 +0800
 
-As this employment lasted only four months and was never used over here,
-let's just rip it off for good.
+Update the documentation to reflect the change in variable types of 'nr'
+and 'size' from 'int' to 'size_t', ensuring consistency with commit
+dec6c0aac4fc ("lib min_heap: Switch to size_t").
 
-Link: https://lkml.kernel.org/r/20250218170557.68371-1-jarkko@kernel.org
-Signed-off-by: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Alex Elder <elder@kernel.org>
-Cc: Antonio Quartulli <antonio@mandelbit.com>
-Cc: Eugen Hristev <eugen.hristev@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Mathieu Othacehe <othacehe@gnu.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Quentin Monnet <qmo@kernel.org>
-Cc: Satya Priya Kakitapalli <quic_skakitap@quicinc.com>
-Cc: Simon Wunderlich <sw@simonwunderlich.de>
+Link: https://lkml.kernel.org/r/20250215155421.2010336-1-eleanor15x@gmail.com
+Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
+Acked-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/core-api/min_heap.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/.mailmap~mailmap-remove-never-used-parityio-email
-+++ a/.mailmap
-@@ -303,7 +303,6 @@ Jan Glauber <jan.glauber@gmail.com> <jgl
- Jan Kuliga <jtkuliga.kdev@gmail.com> <jankul@alatek.krakow.pl>
- Jarkko Sakkinen <jarkko@kernel.org> <jarkko.sakkinen@linux.intel.com>
- Jarkko Sakkinen <jarkko@kernel.org> <jarkko@profian.com>
--Jarkko Sakkinen <jarkko@kernel.org> <jarkko.sakkinen@parity.io>
- Jason Gunthorpe <jgg@ziepe.ca> <jgg@mellanox.com>
- Jason Gunthorpe <jgg@ziepe.ca> <jgg@nvidia.com>
- Jason Gunthorpe <jgg@ziepe.ca> <jgunthorpe@obsidianresearch.com>
+--- a/Documentation/core-api/min_heap.rst~documentation-core-api-min_heap-update-for-variable-types-change
++++ a/Documentation/core-api/min_heap.rst
+@@ -47,8 +47,8 @@ Example:
+ 
+     #define MIN_HEAP_PREALLOCATED(_type, _name, _nr)
+     struct _name {
+-        int nr;         /* Number of elements in the heap */
+-        int size;       /* Maximum number of elements that can be held */
++        size_t nr;         /* Number of elements in the heap */
++        size_t size;       /* Maximum number of elements that can be held */
+         _type *data;    /* Pointer to the heap data */
+         _type preallocated[_nr];  /* Static preallocated array */
+     }
 _
 
-Patches currently in -mm which might be from jarkko@kernel.org are
+Patches currently in -mm which might be from eleanor15x@gmail.com are
 
-mailmap-remove-never-used-parityio-email.patch
 
