@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A86717597
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:53:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33B6914B086
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:53:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739847237; cv=none; b=UszZY+gyswjE7C8VXY5lvPNc8SYgVgeYjivGV1SnlJb4N6wYe7ELZxwXoXc4TBKJR9AivbPQ6PjdWRFlA+X1FO6BVjtm10vb05xfhGDCDyccomftAaYmv2w4qISmZsNKczQdBwI7Jqx4FGxQ/cFQ0aZsaYE6nZl0cwLhnPcJvuI=
+	t=1739847239; cv=none; b=NXmtQHFtSufium6maPEst4eSSeHc2dPE2IG/GRvNUkkHiQAStg3A3JpVbcieOwPR8Nbw5MdZ5CaE469cGRSTEdIpmTisE8avnvG0QKdMxaMMSaR+e+QbyheAtlixeXBS3RaHM4xB7exwne1V6iAbDhx0rN+Q5FzVoRV+2C5FcHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739847237; c=relaxed/simple;
-	bh=BKnYHZ5MH+qH/5BKW5KIxSMd1Y5mpSE1hHlfjRt2z8s=;
-	h=Date:To:From:Subject:Message-Id; b=oVAW1ZuOULlyWMHHi4GZhphLh5QQvKFfxJTiJ1wbJUV1BXMIt4J5FtKh2kLrUPuUVf7BMLNo3swp/LxNNePU/78yOiP3vFmwE6QHjBuMKY8S2dPg8xMa+R7X6AWxzd5jmc3KDoI7qI5QzAXi8BD3WMF4wtOsxb9sDVvA3y52law=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qjHEDFzL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739847239; c=relaxed/simple;
+	bh=0+pfRKzgisYUyQM9Ru2W8xenrbl8ms17D52mQb/m4/Q=;
+	h=Date:To:From:Subject:Message-Id; b=sqCRkDg0SqNb5HSqL8QNZBVmA6bGI6gLLGu/5mu58dARX4b4oMRWxd8OvhJmbWFI3QjhW5kH21ZSp7d9KO9tN1RUgMqPVgE6qUovKKo2O3bJ6qqoPADrLp4PEaz+WyK/01vBl1gnZxlS5HIb3KqNjD3j1NfNcXBYc/CXVJzNGm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S1GsALTj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qjHEDFzL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3C88C4CED1;
-	Tue, 18 Feb 2025 02:53:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S1GsALTj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0139FC4CED1;
+	Tue, 18 Feb 2025 02:53:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739847236;
-	bh=BKnYHZ5MH+qH/5BKW5KIxSMd1Y5mpSE1hHlfjRt2z8s=;
+	s=korg; t=1739847239;
+	bh=0+pfRKzgisYUyQM9Ru2W8xenrbl8ms17D52mQb/m4/Q=;
 	h=Date:To:From:Subject:From;
-	b=qjHEDFzL7hH8hkkBxByhowVLwLtmENkJBwYcPH1vOMJ7lAX03MQfTchxXLyhiRdZa
-	 Hxec6eMENUl0uX5RX9CoFFQGwKQNlUQFOT1WTFuf/oKRBRQzd4PYELX2OqfkQiV8Ls
-	 ARULWnDDr+HFakyEb8ZAAmPDt74bztFfeaGIchN8=
-Date: Mon, 17 Feb 2025 18:53:56 -0800
+	b=S1GsALTjSNDZUj5CYGMgZU1NBZ/cv/kJ6IOHCd21V9IWz+w2RuOxTue0h6RfRkIpb
+	 XDcCAxne30jx8txSkNUq4VML3JAD1h4nffSuzxz706dn04OFrOSBb3Sb4HT0sAjPfz
+	 AEIGEu60s4wII3kQky3YkQJj5GQwNFUPBMD+VA/c=
+Date: Mon, 17 Feb 2025 18:53:58 -0800
 To: mm-commits@vger.kernel.org,tzungbi@kernel.org,teknoraver@meta.com,serge@hallyn.com,rui.zhang@intel.com,robh@kernel.org,rafael@kernel.org,mazziesaccount@gmail.com,lukasz.luba@arm.com,lgirdwood@gmail.com,kernel@pengutronix.de,groeck@chromium.org,festevam@denx.de,daniel.lezcano@linaro.org,corbet@lwn.net,broonie@kernel.org,bleung@chromium.org,a.fatoum@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + reboot-describe-do_kernel_restarts-cmd-argument-in-kernel-doc.patch added to mm-nonmm-unstable branch
-Message-Id: <20250218025356.D3C88C4CED1@smtp.kernel.org>
+Subject: + reboot-rename-now-misleading-__hw_protection_shutdown-symbols.patch added to mm-nonmm-unstable branch
+Message-Id: <20250218025359.0139FC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: reboot: describe do_kernel_restart's cmd argument in kernel-doc
+     Subject: reboot: rename now misleading __hw_protection_shutdown symbols
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     reboot-describe-do_kernel_restarts-cmd-argument-in-kernel-doc.patch
+     reboot-rename-now-misleading-__hw_protection_shutdown-symbols.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reboot-describe-do_kernel_restarts-cmd-argument-in-kernel-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reboot-rename-now-misleading-__hw_protection_shutdown-symbols.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Subject: reboot: describe do_kernel_restart's cmd argument in kernel-doc
-Date: Mon, 17 Feb 2025 21:39:44 +0100
+Subject: reboot: rename now misleading __hw_protection_shutdown symbols
+Date: Mon, 17 Feb 2025 21:39:45 +0100
 
-A W=1 build rightfully complains about the function's kernel-doc being
-incomplete.
+The __hw_protection_shutdown function name has become misleading since it
+can cause either a shutdown (poweroff) or a reboot depending on its
+argument.
 
-Describe its single parameter to fix this.
+To avoid further confusion, let's rename it, so it doesn't suggest that a
+poweroff is all it can do.
 
-Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-4-e1c09b090c0c@pengutronix.de
+Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-5-e1c09b090c0c@pengutronix.de
 Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
 Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
 Cc: Benson Leung <bleung@chromium.org>
@@ -88,21 +90,65 @@ Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/reboot.h |    8 ++++----
+ kernel/reboot.c        |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/kernel/reboot.c~reboot-describe-do_kernel_restarts-cmd-argument-in-kernel-doc
+--- a/include/linux/reboot.h~reboot-rename-now-misleading-__hw_protection_shutdown-symbols
++++ a/include/linux/reboot.h
+@@ -188,17 +188,17 @@ extern void orderly_reboot(void);
+  */
+ enum hw_protection_action { HWPROT_ACT_SHUTDOWN, HWPROT_ACT_REBOOT };
+ 
+-void __hw_protection_shutdown(const char *reason, int ms_until_forced,
+-			      enum hw_protection_action action);
++void __hw_protection_trigger(const char *reason, int ms_until_forced,
++			     enum hw_protection_action action);
+ 
+ static inline void hw_protection_reboot(const char *reason, int ms_until_forced)
+ {
+-	__hw_protection_shutdown(reason, ms_until_forced, HWPROT_ACT_REBOOT);
++	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_REBOOT);
+ }
+ 
+ static inline void hw_protection_shutdown(const char *reason, int ms_until_forced)
+ {
+-	__hw_protection_shutdown(reason, ms_until_forced, HWPROT_ACT_SHUTDOWN);
++	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_SHUTDOWN);
+ }
+ 
+ /*
+--- a/kernel/reboot.c~reboot-rename-now-misleading-__hw_protection_shutdown-symbols
 +++ a/kernel/reboot.c
-@@ -229,6 +229,9 @@ EXPORT_SYMBOL(unregister_restart_handler
+@@ -1008,7 +1008,7 @@ static void hw_failure_emergency_schedul
+ }
+ 
  /**
-  *	do_kernel_restart - Execute kernel restart handler call chain
+- * __hw_protection_shutdown - Trigger an emergency system shutdown or reboot
++ * __hw_protection_trigger - Trigger an emergency system shutdown or reboot
   *
-+ *	@cmd: pointer to buffer containing command to execute for restart
-+ *		or %NULL
-+ *
-  *	Calls functions registered with register_restart_handler.
-  *
-  *	Expected to be called from machine_restart as last step of the restart
+  * @reason:		Reason of emergency shutdown or reboot to be printed.
+  * @ms_until_forced:	Time to wait for orderly shutdown or reboot before
+@@ -1022,8 +1022,8 @@ static void hw_failure_emergency_schedul
+  * pending even if the previous request has given a large timeout for forced
+  * shutdown/reboot.
+  */
+-void __hw_protection_shutdown(const char *reason, int ms_until_forced,
+-			      enum hw_protection_action action)
++void __hw_protection_trigger(const char *reason, int ms_until_forced,
++			     enum hw_protection_action action)
+ {
+ 	static atomic_t allow_proceed = ATOMIC_INIT(1);
+ 
+@@ -1043,7 +1043,7 @@ void __hw_protection_shutdown(const char
+ 	else
+ 		orderly_poweroff(true);
+ }
+-EXPORT_SYMBOL_GPL(__hw_protection_shutdown);
++EXPORT_SYMBOL_GPL(__hw_protection_trigger);
+ 
+ static int __init reboot_setup(char *str)
+ {
 _
 
 Patches currently in -mm which might be from a.fatoum@pengutronix.de are
