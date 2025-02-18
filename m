@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E78141AF0CB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 06:41:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BB01AF0CB
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 06:41:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739860865; cv=none; b=VN5bDKmnCCW6wFZ1avruHNLN9rkvNNaRJtseuIglyGaFqgT/OclUFwHOphUWPp3mfRCSCDK5NIk5DAHtuF7fO8TvGdo7TvvTaT4YxE10xPyNPE9zzPxSCFncvMllChAMzdO6BslJbk/KjVcLJiTFCDDtYkjXg1gaWofEHFwqUzk=
+	t=1739860866; cv=none; b=WTPGdJry5IddYuxRhRyBGAMC/NXJCufj5rnkg0mr9pFI0UwerKJkhj3wTkUBrvC0o9hRtBBkfn9fJZjqdwobCfyTJ+I7rM6Zc54BYIHXPihBVkQpjR48OzhjR0C7TZ8VBLLNLh6O2IekEjmTXx05HLwDT34WaMJuOy7okTsyQ84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739860865; c=relaxed/simple;
-	bh=9PTKojZ4702Hfzg+yH34pS9rW/3IRcMDzqC3i1X3VyM=;
-	h=Date:To:From:Subject:Message-Id; b=E5+kp7iqmtTdQa9zAh11s6mqCZ8ODNpWwg9oNtyL7YNkuNZGrGXtDRYF54uE/CEpcw4/UprEZnK6HxtsO01MGxht+fn7TDx6IytaXlYbVtUc/hYjIV0Eb+rxQXQJibrh4vtPD4Mtlwd5Go+BbsXFokJKwER3K5rKXj1jMEwAlnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SWNV1Ifb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739860866; c=relaxed/simple;
+	bh=USKp2I3VY3WJhhvQrzWe1Tc3sy5BfWuXB+DGTu+I4OI=;
+	h=Date:To:From:Subject:Message-Id; b=eizCBvQNKW9qrpqw2bCEcNkInbIj8YxZBXcfpgrXfg4YgpV/KdABO4AQ0nl8mIznNCX9R6C+5MgZzf9zgLy/fmffkODSOKZ0IY3EIWLubl3hzxsJWsFb3aK+ZsrWZGGThnOV0hDQo+yacHb2G5ni7tLlHQOhSv2Ht3cqzMKPWW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dSqwInFY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SWNV1Ifb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8833C4CEE2;
-	Tue, 18 Feb 2025 06:41:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dSqwInFY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D57C2C4CEE2;
+	Tue, 18 Feb 2025 06:41:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739860864;
-	bh=9PTKojZ4702Hfzg+yH34pS9rW/3IRcMDzqC3i1X3VyM=;
+	s=korg; t=1739860865;
+	bh=USKp2I3VY3WJhhvQrzWe1Tc3sy5BfWuXB+DGTu+I4OI=;
 	h=Date:To:From:Subject:From;
-	b=SWNV1IfbD3eW4Olpm+4KU5cJzLyYb3nTRvxAVOiCjCac6ddvTW5iWKwTtMsk/HUxo
-	 3C5OsFblrRZKEo3xkDrlBiGduHDkCCE+vy0dyXWDmCL3WlD7osk9jeK6RtjG39RzgH
-	 hXJYbvvHl2DOvyQfcrZj8eVLNHO+Cq8dUoIR8Vc0=
-Date: Mon, 17 Feb 2025 22:41:04 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,rostedt@goodmis.org,npache@redhat.com,glider@google.com,dvyukov@google.com,bigeasy@linutronix.de,andreyknvl@gmail.com,longman@redhat.com,akpm@linux-foundation.org
+	b=dSqwInFYBWsV8sOanfbEMqwLBNff97PvaB13TZdty7dg57ixhdnARVLDtYEpAS/DR
+	 vvtau2juSioEojL+fwQTh7qiA+ZREPDVjEPMxlC8AVHCGJAbTYG+6sDO4YdTFYdeVQ
+	 e2+IBcssT/H0DGp9m4HGEzSLCRW6IloEvz75NNeE=
+Date: Mon, 17 Feb 2025 22:41:05 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,geert@linux-m68k.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-dont-call-find_vm_area-in-a-preempt_rt-kernel.patch removed from -mm tree
-Message-Id: <20250218064104.B8833C4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] test_xarray-fix-failure-in-check_pause-when-config_xarray_multi-is-not-defined.patch removed from -mm tree
+Message-Id: <20250218064105.D57C2C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: don't call find_vm_area() in a PREEMPT_RT kernel
+     Subject: test_xarray: fix failure in check_pause when CONFIG_XARRAY_MULTI is not defined
 has been removed from the -mm tree.  Its filename was
-     kasan-dont-call-find_vm_area-in-a-preempt_rt-kernel.patch
+     test_xarray-fix-failure-in-check_pause-when-config_xarray_multi-is-not-defined.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: kasan: don't call find_vm_area() in a PREEMPT_RT kernel
-Date: Mon, 17 Feb 2025 15:44:02 -0500
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: test_xarray: fix failure in check_pause when CONFIG_XARRAY_MULTI is not defined
+Date: Fri, 14 Feb 2025 00:36:59 +0800
 
-The following bug report was found when running a PREEMPT_RT debug kernel.
+In case CONFIG_XARRAY_MULTI is not defined, xa_store_order can store a
+multi-index entry but xas_for_each can't tell sbiling entry from valid
+entry.  So the check_pause failed when we store a multi-index entry and
+wish xas_for_each can handle it normally.  Avoid to store multi-index
+entry when CONFIG_XARRAY_MULTI is disabled to fix the failure.
 
- BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
- in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 140605, name: kunit_try_catch
- preempt_count: 1, expected: 0
-
- Call trace:
-  rt_spin_lock+0x70/0x140
-  find_vmap_area+0x84/0x168
-  find_vm_area+0x1c/0x50
-  print_address_description.constprop.0+0x2a0/0x320
-  print_report+0x108/0x1f8
-  kasan_report+0x90/0xc8
-
-Since commit e30a0361b851 ("kasan: make report_lock a raw spinlock"),
-report_lock was changed to raw_spinlock_t to fix another similar
-PREEMPT_RT problem.  That alone isn't enough to cover other corner cases.
-
-print_address_description() is always invoked under the report_lock.  The
-context under this lock is always atomic even on PREEMPT_RT. 
-find_vm_area() acquires vmap_node::busy.lock which is a spinlock_t,
-becoming a sleeping lock on PREEMPT_RT and must not be acquired in atomic
-context.
-
-Don't invoke find_vm_area() on PREEMPT_RT and just print the address. 
-Non-PREEMPT_RT builds remain unchanged.  Add a DEFINE_WAIT_OVERRIDE_MAP()
-macro to tell lockdep that this lock nesting is allowed because the
-PREEMPT_RT part (which is invalid) has been taken care of.  This macro was
-first introduced in commit 0cce06ba859a ("debugobjects,locking: Annotate
-debug_object_fill_pool() wait type violation").
-
-Link: https://lkml.kernel.org/r/20250217204402.60533-1-longman@redhat.com
-Fixes: e30a0361b851 ("kasan: make report_lock a raw spinlock")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Suggested-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20250213163659.414309-1-shikemeng@huaweicloud.com
+Fixes: c9ba5249ef8b ("Xarray: move forward index correctly in xas_pause()")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Closes: https://lore.kernel.org/r/CAMuHMdU_bfadUO=0OZ=AoQ9EAmQPA4wsLCBqohXR+QCeCKRn4A@mail.gmail.com
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ lib/test_xarray.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/mm/kasan/report.c~kasan-dont-call-find_vm_area-in-a-preempt_rt-kernel
-+++ a/mm/kasan/report.c
-@@ -370,6 +370,36 @@ static inline bool init_task_stack_addr(
- 			sizeof(init_thread_union.stack));
- }
- 
-+/*
-+ * This function is invoked with report_lock (a raw_spinlock) held. A
-+ * PREEMPT_RT kernel cannot call find_vm_area() as it will acquire a sleeping
-+ * rt_spinlock.
-+ *
-+ * For !RT kernel, the PROVE_RAW_LOCK_NESTING config option will print a
-+ * lockdep warning for this raw_spinlock -> spinlock dependency. This config
-+ * option is enabled by default to ensure better test coverage to expose this
-+ * kind of RT kernel problem. This lockdep splat, however, can be suppressed
-+ * by using DEFINE_WAIT_OVERRIDE_MAP() if it serves a useful purpose and the
-+ * invalid PREEMPT_RT case has been taken care of.
-+ */
-+static inline struct vm_struct *kasan_find_vm_area(void *addr)
-+{
-+	static DEFINE_WAIT_OVERRIDE_MAP(vmalloc_map, LD_WAIT_SLEEP);
-+	struct vm_struct *va;
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		return NULL;
-+
-+	/*
-+	 * Suppress lockdep warning and fetch vmalloc area of the
-+	 * offending address.
-+	 */
-+	lock_map_acquire_try(&vmalloc_map);
-+	va = find_vm_area(addr);
-+	lock_map_release(&vmalloc_map);
-+	return va;
-+}
-+
- static void print_address_description(void *addr, u8 tag,
- 				      struct kasan_report_info *info)
+--- a/lib/test_xarray.c~test_xarray-fix-failure-in-check_pause-when-config_xarray_multi-is-not-defined
++++ a/lib/test_xarray.c
+@@ -1418,7 +1418,7 @@ static noinline void check_pause(struct
  {
-@@ -399,7 +429,7 @@ static void print_address_description(vo
+ 	XA_STATE(xas, xa, 0);
+ 	void *entry;
+-	unsigned int order;
++	int order;
+ 	unsigned long index = 1;
+ 	unsigned int count = 0;
+ 
+@@ -1450,7 +1450,7 @@ static noinline void check_pause(struct
+ 	xa_destroy(xa);
+ 
+ 	index = 0;
+-	for (order = XA_CHUNK_SHIFT; order > 0; order--) {
++	for (order = order_limit - 1; order >= 0; order--) {
+ 		XA_BUG_ON(xa, xa_store_order(xa, index, order,
+ 					xa_mk_index(index), GFP_KERNEL));
+ 		index += 1UL << order;
+@@ -1462,24 +1462,25 @@ static noinline void check_pause(struct
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, entry, ULONG_MAX) {
+ 		XA_BUG_ON(xa, entry != xa_mk_index(index));
+-		index += 1UL << (XA_CHUNK_SHIFT - count);
++		index += 1UL << (order_limit - count - 1);
+ 		count++;
  	}
+ 	rcu_read_unlock();
+-	XA_BUG_ON(xa, count != XA_CHUNK_SHIFT);
++	XA_BUG_ON(xa, count != order_limit);
  
- 	if (is_vmalloc_addr(addr)) {
--		struct vm_struct *va = find_vm_area(addr);
-+		struct vm_struct *va = kasan_find_vm_area(addr);
- 
- 		if (va) {
- 			pr_err("The buggy address belongs to the virtual mapping at\n"
-@@ -409,6 +439,8 @@ static void print_address_description(vo
- 			pr_err("\n");
- 
- 			page = vmalloc_to_page(addr);
-+		} else {
-+			pr_err("The buggy address %px belongs to a vmalloc virtual mapping\n", addr);
- 		}
+ 	index = 0;
+ 	count = 0;
+-	xas_set(&xas, XA_CHUNK_SIZE / 2 + 1);
++	/* test unaligned index */
++	xas_set(&xas, 1 % (1UL << (order_limit - 1)));
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, entry, ULONG_MAX) {
+ 		XA_BUG_ON(xa, entry != xa_mk_index(index));
+-		index += 1UL << (XA_CHUNK_SHIFT - count);
++		index += 1UL << (order_limit - count - 1);
+ 		count++;
+ 		xas_pause(&xas);
  	}
+ 	rcu_read_unlock();
+-	XA_BUG_ON(xa, count != XA_CHUNK_SHIFT);
++	XA_BUG_ON(xa, count != order_limit);
+ 
+ 	xa_destroy(xa);
  
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
 
