@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D14B149E17
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:54:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A94BF1494CF
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:54:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739847247; cv=none; b=h1uWhirEjBP9Q/gHp+RnKDkP8WklTVstgQG9kE5SzlLm1WsPjYI3SQr3rDqJHeCYtnamJ4H2xf68LNJOxSqQJzh8JhuPhGnikhTyW8PAgmfMXK0FyGjJQaJUP+fKCTXxvu0xoWlFC+U2N7G3uQMfBuW1B9MXJdKNqlyeBCg8cSU=
+	t=1739847250; cv=none; b=Zvlp9rje32GTFyoFUpHUX+RfLpohHGeiS5eBtqH6YWTFK0QlFFJgY+BKKC8Yi2whW8otT7FZXTn4LFmO4HMt237ki99w10KgdkifVZhwXRkZvUNSOymVGvsghd1ONAEpsYAOf9hB41k2eQCK7aSQvRXzqNq25k1fXJ/NqHdaLy4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739847247; c=relaxed/simple;
-	bh=6P34nZ8Qhu9f8bCXiTrzdrAjL3T6W5lJHkpnKMVBzp4=;
-	h=Date:To:From:Subject:Message-Id; b=i8nPlLuATRZA5FyEzwaN5jB8yaPzgERBrD3arlTZM57HtoSQUvi5WEYUVngspSJPM8lxKbJNdKk1xyAD3C6nSdI0hrRyaBSowR/jqxsFGuHtPtuqVMvS9DJfBcqqSgZPlTc5n04YicrYQBule3NLK/0+O/XM5wdjxwEVuBSlTqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wZQBFpEK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739847250; c=relaxed/simple;
+	bh=dVGPC+PON3DO2sZ7q4RuAIXKoIfSrGfp8ghTPhnYUU4=;
+	h=Date:To:From:Subject:Message-Id; b=Un0jL6uz+tfAYhim5XdAa9B6h+NsNrtHzcrI4oxuL25sd8ZEybwfCHNZlXUn/Z6000fAvGBhzHgjAFW3y5HQ9T4antWo9F9ytEOZwNhOoEXEIPP+CDe7IAdjA2Oyx/SzueoR3tlIghD3nLvYxG1qVzg88pyAbDMLChNUMPt7cxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zw8OkQix; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wZQBFpEK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51C9FC4CED1;
-	Tue, 18 Feb 2025 02:54:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zw8OkQix"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10CF2C4CED1;
+	Tue, 18 Feb 2025 02:54:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739847247;
-	bh=6P34nZ8Qhu9f8bCXiTrzdrAjL3T6W5lJHkpnKMVBzp4=;
+	s=korg; t=1739847250;
+	bh=dVGPC+PON3DO2sZ7q4RuAIXKoIfSrGfp8ghTPhnYUU4=;
 	h=Date:To:From:Subject:From;
-	b=wZQBFpEKvnkog/8FcFmsiiP1UvPuQgk+abu6ts0SMBR+gjwoTYpxGs0eDWkCIMgon
-	 EU5la9TFH3kS+xjqmQFYOL5NxjUXOJ/6Opwl5P6wAnkAj3oTKlj7Oxsh02nk9NI5jn
-	 okKwBJO12aHGRZzlrxlcl+FiQo/SsQdYMkBasgbE=
-Date: Mon, 17 Feb 2025 18:54:06 -0800
+	b=zw8OkQixKlQWd8yLuu304FGj0Q3rmbPkYi8/CBxDGJ1BJfCY6xCHvkAx/Wm0D4Kii
+	 qXAPLmfphTY+T+uxcbFIv/JGUtIjlt5ZtcFx2nPao5feXscYZ/O7Rpq3kaVkF19aVQ
+	 FnRPCAMBXFWTKyDEH+Ynj7BhL5KWoK+s6Mw++/RU=
+Date: Mon, 17 Feb 2025 18:54:09 -0800
 To: mm-commits@vger.kernel.org,tzungbi@kernel.org,teknoraver@meta.com,serge@hallyn.com,rui.zhang@intel.com,robh@kernel.org,rafael@kernel.org,mazziesaccount@gmail.com,lukasz.luba@arm.com,lgirdwood@gmail.com,kernel@pengutronix.de,groeck@chromium.org,festevam@denx.de,daniel.lezcano@linaro.org,corbet@lwn.net,broonie@kernel.org,bleung@chromium.org,a.fatoum@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + regulator-allow-user-configuration-of-hardware-protection-action.patch added to mm-nonmm-unstable branch
-Message-Id: <20250218025407.51C9FC4CED1@smtp.kernel.org>
+Subject: + platform-chrome-cros_ec_lpc-prepare-for-hw_protection_shutdown-removal.patch added to mm-nonmm-unstable branch
+Message-Id: <20250218025410.10CF2C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: regulator: allow user configuration of hardware protection action
+     Subject: platform/chrome: cros_ec_lpc: prepare for hw_protection_shutdown removal
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     regulator-allow-user-configuration-of-hardware-protection-action.patch
+     platform-chrome-cros_ec_lpc-prepare-for-hw_protection_shutdown-removal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/regulator-allow-user-configuration-of-hardware-protection-action.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/platform-chrome-cros_ec_lpc-prepare-for-hw_protection_shutdown-removal.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Subject: regulator: allow user configuration of hardware protection action
-Date: Mon, 17 Feb 2025 21:39:48 +0100
+Subject: platform/chrome: cros_ec_lpc: prepare for hw_protection_shutdown removal
+Date: Mon, 17 Feb 2025 21:39:49 +0100
 
-When the core detects permanent regulator hardware failure or imminent
-power failure of a critical supply, it will call hw_protection_shutdown in
-an attempt to do a limited orderly shutdown followed by powering off the
-system.
+In the general case, a driver doesn't know which of system shutdown or
+reboot is the better action to take to protect hardware in an emergency
+situation.  For this reason, hw_protection_shutdown is going to be removed
+in favor of hw_protection_trigger, which defaults to shutdown, but may be
+configured at kernel runtime to be a reboot instead.
 
-This doesn't work out well for many unattended embedded systems that don't
-have support for shutdown and that power on automatically when power is
-supplied:
+The ChromeOS EC situation is different as we do know that shutdown is the
+correct action as the EC is programmed to force reset after the short
+period, thus replace hw_protection_shutdown with __hw_protection_trigger
+with HWPROT_ACT_SHUTDOWN as argument to maintain the same behavior.
 
-  - A brief power cycle gets detected by the driver
-  - The kernel powers down the system and SoC goes into shutdown mode
-  - Power is restored
-  - The system remains oblivious to the restored power
-  - System needs to be manually power cycled for a duration long enough
-    to drain the capacitors
+No functional change.
 
-Allow users to fix this by calling the newly introduced
-hw_protection_trigger() instead: This way the hw_protection commandline or
-sysfs parameter is used to dictate the policy of dealing with the
-regulator fault.
-
-Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-8-e1c09b090c0c@pengutronix.de
+Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-9-e1c09b090c0c@pengutronix.de
 Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
-Reviewed-by: Matti Vaittinen <mazziesaccount@gmail.com>
+Acked-by: Tzung-Bi Shih <tzungbi@kernel.org>
 Cc: Benson Leung <bleung@chromium.org>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: Fabio Estevam <festevam@denx.de>
@@ -96,6 +87,7 @@ Cc: Liam Girdwood <lgirdwood@gmail.com>
 Cc: Lukasz Luba <lukasz.luba@arm.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Matteo Croce <teknoraver@meta.com>
+Cc: Matti Vaittinen <mazziesaccount@gmail.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Rob Herring (Arm) <robh@kernel.org>
 Cc: Rui Zhang <rui.zhang@intel.com>
@@ -104,65 +96,20 @@ Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/core.c        |    4 ++--
- drivers/regulator/irq_helpers.c |   16 ++++++++--------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/platform/chrome/cros_ec_lpc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/regulator/core.c~regulator-allow-user-configuration-of-hardware-protection-action
-+++ a/drivers/regulator/core.c
-@@ -5262,8 +5262,8 @@ static void regulator_handle_critical(st
- 	if (!reason)
+--- a/drivers/platform/chrome/cros_ec_lpc.c~platform-chrome-cros_ec_lpc-prepare-for-hw_protection_shutdown-removal
++++ a/drivers/platform/chrome/cros_ec_lpc.c
+@@ -454,7 +454,7 @@ static void cros_ec_lpc_acpi_notify(acpi
+ 		blocking_notifier_call_chain(&ec_dev->panic_notifier, 0, ec_dev);
+ 		kobject_uevent_env(&ec_dev->dev->kobj, KOBJ_CHANGE, (char **)env);
+ 		/* Begin orderly shutdown. EC will force reset after a short period. */
+-		hw_protection_shutdown("CrOS EC Panic", -1);
++		__hw_protection_trigger("CrOS EC Panic", -1, HWPROT_ACT_SHUTDOWN);
+ 		/* Do not query for other events after a panic is reported */
  		return;
- 
--	hw_protection_shutdown(reason,
--			       rdev->constraints->uv_less_critical_window_ms);
-+	hw_protection_trigger(reason,
-+			      rdev->constraints->uv_less_critical_window_ms);
- }
- 
- /**
---- a/drivers/regulator/irq_helpers.c~regulator-allow-user-configuration-of-hardware-protection-action
-+++ a/drivers/regulator/irq_helpers.c
-@@ -64,16 +64,16 @@ static void regulator_notifier_isr_work(
- reread:
- 	if (d->fatal_cnt && h->retry_cnt > d->fatal_cnt) {
- 		if (!d->die)
--			return hw_protection_shutdown("Regulator HW failure? - no IC recovery",
--						      REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
-+			return hw_protection_trigger("Regulator HW failure? - no IC recovery",
-+						     REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
- 		ret = d->die(rid);
- 		/*
- 		 * If the 'last resort' IC recovery failed we will have
- 		 * nothing else left to do...
- 		 */
- 		if (ret)
--			return hw_protection_shutdown("Regulator HW failure. IC recovery failed",
--						      REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
-+			return hw_protection_trigger("Regulator HW failure. IC recovery failed",
-+						     REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
- 
- 		/*
- 		 * If h->die() was implemented we assume recovery has been
-@@ -263,14 +263,14 @@ fail_out:
- 	if (d->fatal_cnt && h->retry_cnt > d->fatal_cnt) {
- 		/* If we have no recovery, just try shut down straight away */
- 		if (!d->die) {
--			hw_protection_shutdown("Regulator failure. Retry count exceeded",
--					       REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
-+			hw_protection_trigger("Regulator failure. Retry count exceeded",
-+					      REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
- 		} else {
- 			ret = d->die(rid);
- 			/* If die() failed shut down as a last attempt to save the HW */
- 			if (ret)
--				hw_protection_shutdown("Regulator failure. Recovery failed",
--						       REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
-+				hw_protection_trigger("Regulator failure. Recovery failed",
-+						      REGULATOR_FORCED_SAFETY_SHUTDOWN_WAIT_MS);
- 		}
  	}
- 
 _
 
 Patches currently in -mm which might be from a.fatoum@pengutronix.de are
