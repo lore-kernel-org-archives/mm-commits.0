@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498FF1CDA2D;
-	Tue, 18 Feb 2025 03:56:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69D2F17BB3F;
+	Tue, 18 Feb 2025 04:00:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739851003; cv=none; b=YApnE/MDG7Y/THh//vNaQ++2/33dMSyLf9rw5VMDy9zxSwt92nEtiAWHGRkVx9KTe1DUNfz9G9G50LexDoo9Ywre0iYdZnrECocUs/q+UkGrE62bD4WlVFlNRYRPEMJdRwiKmbrpzUBB24ugNRAwePVR3gbToUIHgcwExsb3XTg=
+	t=1739851254; cv=none; b=cvqPgajQa3e3pqs0kUTINIYfHDwcvvSYN5l31tnBm86X4fh744XjK6a0fAQDxZx2Ah3KYdaKYMdFesLmvubxuddnR6aAf5lrjIXA/ussIafNln5QXhGVURuZeejE/BB7NdBAV6z/++BZjazBtnZ+I9uer8SzkuPvMFDTEZntfx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739851003; c=relaxed/simple;
-	bh=bhkogdJzEzDvTrTOklcd+YkvUy29eMVWMpI0jQzZgpA=;
-	h=Date:To:From:Subject:Message-Id; b=RNuUF8HV2KsgSJK9CVs/nLjE0emUzp+LwVIEAZ7VA74P4gyhx3Xm2h/F+ckwgYOs4A+gq2U+vgvyt/tpLWljR4FKKvbPw0gVHKGmbw2AkwmSGzADSGapT+5HG1jKejVE1NVFfRu2Aq2S8Qb0sIp7KMbsuX7uutrglWXaqDuik6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nQD5FqMj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739851254; c=relaxed/simple;
+	bh=p+YDTmBP4uZLmJuUxl4KiBvoVM9QF6srX6CEw8LCUew=;
+	h=Date:To:From:Subject:Message-Id; b=BRx8sqchoqVS023Ba2t1aGWiXPazgdrv4eVjKVl4rHJDP6xzPOj3ALe4Qq15kUQ56IWLmavK4QGbcjD3oNP12TLbdv5lye06Fe9KpHgPNel/ctu6pllTWX19Hp0uVkJQUqUqbpdBuLr7IEuxraEJcOcivtJuIULKnApHiDu2VZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OZRzjqDV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nQD5FqMj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A38A8C4CEE6;
-	Tue, 18 Feb 2025 03:56:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OZRzjqDV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3A82C4CEE6;
+	Tue, 18 Feb 2025 04:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739851002;
-	bh=bhkogdJzEzDvTrTOklcd+YkvUy29eMVWMpI0jQzZgpA=;
+	s=korg; t=1739851253;
+	bh=p+YDTmBP4uZLmJuUxl4KiBvoVM9QF6srX6CEw8LCUew=;
 	h=Date:To:From:Subject:From;
-	b=nQD5FqMjgtxLXL2cosa95w5/aNZRYvGK/yMDV9aD680Of0vs3CmQH4WARWIcbRM70
-	 qET/Q4cXsHDYkog+y6zRNOF533abwvR4pieIwI+mRFxmrai/Lg/pnFypnmiMQQA2nr
-	 kjo9Mdu8mIeK62D9mNMb40kZHHYgPlmPMRZRQ5sQ=
-Date: Mon, 17 Feb 2025 19:56:42 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,muchun.song@linux.dev,linux@armlinux.org.uk,hughd@google.com,ezra.buehler@husqvarnagroup.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=OZRzjqDVbh8Y7t/1FzJL31d96UykzXH+XRo1PBsAqpP1k480sw/Jsb4VvD0ZHfHrn
+	 Y/2ArAySPniaj9rgSgL+4fTXe7Ms67IpltL60cts67wMPix6xadeFJu9Yuy6uXXASQ
+	 FKTzQhO8D9gCOp5P5NkCaodaudZ0dk/ER0sZGn6w=
+Date: Mon, 17 Feb 2025 20:00:53 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,mhocko@suse.com,linmiaohe@huawei.com,david@redhat.com,mawupeng1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-pgtable-fix-null-pointer-dereference-issue.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250218035642.A38A8C4CEE6@smtp.kernel.org>
+Subject: + mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250218040053.B3A82C4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm: pgtable: fix NULL pointer dereference issue
+     Subject: mm: memory-failure: update ttu flag inside unmap_poisoned_folio
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm-pgtable-fix-null-pointer-dereference-issue.patch
+     mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-pgtable-fix-null-pointer-dereference-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,148 +58,230 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: arm: pgtable: fix NULL pointer dereference issue
-Date: Mon, 17 Feb 2025 10:49:24 +0800
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: mm: memory-failure: update ttu flag inside unmap_poisoned_folio
+Date: Mon, 17 Feb 2025 09:43:27 +0800
 
-When update_mmu_cache_range() is called by update_mmu_cache(), the vmf
-parameter is NULL, which will cause a NULL pointer dereference issue in
-adjust_pte():
+Patch series "mm: memory_failure: unmap poisoned folio during migrate
+properly", v3.
 
-Unable to handle kernel NULL pointer dereference at virtual address 00000030 when read
-Hardware name: Atmel AT91SAM9
-PC is at update_mmu_cache_range+0x1e0/0x278
-LR is at pte_offset_map_rw_nolock+0x18/0x2c
-Call trace:
- update_mmu_cache_range from remove_migration_pte+0x29c/0x2ec
- remove_migration_pte from rmap_walk_file+0xcc/0x130
- rmap_walk_file from remove_migration_ptes+0x90/0xa4
- remove_migration_ptes from migrate_pages_batch+0x6d4/0x858
- migrate_pages_batch from migrate_pages+0x188/0x488
- migrate_pages from compact_zone+0x56c/0x954
- compact_zone from compact_node+0x90/0xf0
- compact_node from kcompactd+0x1d4/0x204
- kcompactd from kthread+0x120/0x12c
- kthread from ret_from_fork+0x14/0x38
-Exception stack(0xc0d8bfb0 to 0xc0d8bff8)
+Fix two bugs during folio migration if the folio is poisoned.
 
-To fix it, do not rely on whether 'ptl' is equal to decide whether to hold
-the pte lock, but decide it by whether CONFIG_SPLIT_PTE_PTLOCKS is
-enabled.  In addition, if two vmas map to the same PTE page, there is no
-need to hold the pte lock again, otherwise a deadlock will occur.  Just
-add the need_lock parameter to let adjust_pte() know this information.
 
-Link: https://lkml.kernel.org/r/20250217024924.57996-1-zhengqi.arch@bytedance.com
-Fixes: fc9c45b71f43 ("arm: adjust_pte() use pte_offset_map_rw_nolock()")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Ezra Buehler <ezra.buehler@husqvarnagroup.com>
-Closes: https://lore.kernel.org/lkml/CAM1KZSmZ2T_riHvay+7cKEFxoPgeVpHkVFTzVVEQ1BO0cLkHEQ@mail.gmail.com/
+This patch (of 3):
+
+Commit 6da6b1d4a7df ("mm/hwpoison: convert TTU_IGNORE_HWPOISON to
+TTU_HWPOISON") introduce TTU_HWPOISON to replace TTU_IGNORE_HWPOISON in
+order to stop send SIGBUS signal when accessing an error page after a
+memory error on a clean folio.  However during page migration, anon folio
+must be set with TTU_HWPOISON during unmap_*().  For pagecache we need
+some policy just like the one in hwpoison_user_mappings to set this flag. 
+So move this policy from hwpoison_user_mappings to unmap_poisoned_folio to
+handle this warning properly.
+
+Warning will be produced during unamp poison folio with the following log:
+
+  ------------[ cut here ]------------
+  WARNING: CPU: 1 PID: 365 at mm/rmap.c:1847 try_to_unmap_one+0x8fc/0xd3c
+  Modules linked in:
+  CPU: 1 UID: 0 PID: 365 Comm: bash Tainted: G        W          6.13.0-rc1-00018-gacdb4bbda7ab #42
+  Tainted: [W]=WARN
+  Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
+  pstate: 20400005 (nzCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+  pc : try_to_unmap_one+0x8fc/0xd3c
+  lr : try_to_unmap_one+0x3dc/0xd3c
+  Call trace:
+   try_to_unmap_one+0x8fc/0xd3c (P)
+   try_to_unmap_one+0x3dc/0xd3c (L)
+   rmap_walk_anon+0xdc/0x1f8
+   rmap_walk+0x3c/0x58
+   try_to_unmap+0x88/0x90
+   unmap_poisoned_folio+0x30/0xa8
+   do_migrate_range+0x4a0/0x568
+   offline_pages+0x5a4/0x670
+   memory_block_action+0x17c/0x374
+   memory_subsys_offline+0x3c/0x78
+   device_offline+0xa4/0xd0
+   state_store+0x8c/0xf0
+   dev_attr_store+0x18/0x2c
+   sysfs_kf_write+0x44/0x54
+   kernfs_fop_write_iter+0x118/0x1a8
+   vfs_write+0x3a8/0x4bc
+   ksys_write+0x6c/0xf8
+   __arm64_sys_write+0x1c/0x28
+   invoke_syscall+0x44/0x100
+   el0_svc_common.constprop.0+0x40/0xe0
+   do_el0_svc+0x1c/0x28
+   el0_svc+0x30/0xd0
+   el0t_64_sync_handler+0xc8/0xcc
+   el0t_64_sync+0x198/0x19c
+  ---[ end trace 0000000000000000 ]---
+
+Link: https://lkml.kernel.org/r/20250217014329.3610326-1-mawupeng1@huawei.com
+Link: https://lkml.kernel.org/r/20250217014329.3610326-2-mawupeng1@huawei.com
+Fixes: 6da6b1d4a7df ("mm/hwpoison: convert TTU_IGNORE_HWPOISON to TTU_HWPOISON")
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickens <hughd@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Russel King <linux@armlinux.org.uk>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault-armv.c |   37 +++++++++++++++++++++++++------------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ mm/internal.h       |    5 ++-
+ mm/memory-failure.c |   61 +++++++++++++++++++++---------------------
+ mm/memory_hotplug.c |    3 +-
+ 3 files changed, 36 insertions(+), 33 deletions(-)
 
---- a/arch/arm/mm/fault-armv.c~arm-pgtable-fix-null-pointer-dereference-issue
-+++ a/arch/arm/mm/fault-armv.c
-@@ -62,7 +62,7 @@ static int do_adjust_pte(struct vm_area_
+--- a/mm/internal.h~mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio
++++ a/mm/internal.h
+@@ -1115,7 +1115,7 @@ static inline int find_next_best_node(in
+  * mm/memory-failure.c
+  */
+ #ifdef CONFIG_MEMORY_FAILURE
+-void unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu);
++int unmap_poisoned_folio(struct folio *folio, unsigned long pfn, bool must_kill);
+ void shake_folio(struct folio *folio);
+ extern int hwpoison_filter(struct page *p);
+ 
+@@ -1138,8 +1138,9 @@ unsigned long page_mapped_in_vma(const s
+ 		struct vm_area_struct *vma);
+ 
+ #else
+-static inline void unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
++static inline int unmap_poisoned_folio(struct folio *folio, unsigned long pfn, bool must_kill)
+ {
++	return -EBUSY;
+ }
+ #endif
+ 
+--- a/mm/memory-failure.c~mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio
++++ a/mm/memory-failure.c
+@@ -1556,8 +1556,34 @@ static int get_hwpoison_page(struct page
+ 	return ret;
  }
  
- static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
--		      unsigned long pfn, struct vm_fault *vmf)
-+		      unsigned long pfn, bool need_lock)
+-void unmap_poisoned_folio(struct folio *folio, enum ttu_flags ttu)
++int unmap_poisoned_folio(struct folio *folio, unsigned long pfn, bool must_kill)
  {
- 	spinlock_t *ptl;
- 	pgd_t *pgd;
-@@ -99,12 +99,11 @@ again:
- 	if (!pte)
- 		return 0;
++	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC | TTU_HWPOISON;
++	struct address_space *mapping;
++
++	if (folio_test_swapcache(folio)) {
++		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
++		ttu &= ~TTU_HWPOISON;
++	}
++
++	/*
++	 * Propagate the dirty bit from PTEs to struct page first, because we
++	 * need this to decide if we should kill or just drop the page.
++	 * XXX: the dirty test could be racy: set_page_dirty() may not always
++	 * be called inside page lock (it's recommended but not enforced).
++	 */
++	mapping = folio_mapping(folio);
++	if (!must_kill && !folio_test_dirty(folio) && mapping &&
++	    mapping_can_writeback(mapping)) {
++		if (folio_mkclean(folio)) {
++			folio_set_dirty(folio);
++		} else {
++			ttu &= ~TTU_HWPOISON;
++			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
++				pfn);
++		}
++	}
++
+ 	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
+ 		struct address_space *mapping;
  
+@@ -1572,7 +1598,7 @@ void unmap_poisoned_folio(struct folio *
+ 		if (!mapping) {
+ 			pr_info("%#lx: could not lock mapping for mapped hugetlb folio\n",
+ 				folio_pfn(folio));
+-			return;
++			return -EBUSY;
+ 		}
+ 
+ 		try_to_unmap(folio, ttu|TTU_RMAP_LOCKED);
+@@ -1580,6 +1606,8 @@ void unmap_poisoned_folio(struct folio *
+ 	} else {
+ 		try_to_unmap(folio, ttu);
+ 	}
++
++	return folio_mapped(folio) ? -EBUSY : 0;
+ }
+ 
+ /*
+@@ -1589,8 +1617,6 @@ void unmap_poisoned_folio(struct folio *
+ static bool hwpoison_user_mappings(struct folio *folio, struct page *p,
+ 		unsigned long pfn, int flags)
+ {
+-	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC | TTU_HWPOISON;
+-	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success;
+ 	int forcekill;
+@@ -1613,29 +1639,6 @@ static bool hwpoison_user_mappings(struc
+ 	if (!folio_mapped(folio))
+ 		return true;
+ 
+-	if (folio_test_swapcache(folio)) {
+-		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
+-		ttu &= ~TTU_HWPOISON;
+-	}
+-
 -	/*
--	 * If we are using split PTE locks, then we need to take the page
--	 * lock here.  Otherwise we are using shared mm->page_table_lock
--	 * which is already locked, thus cannot take it.
+-	 * Propagate the dirty bit from PTEs to struct page first, because we
+-	 * need this to decide if we should kill or just drop the page.
+-	 * XXX: the dirty test could be racy: set_page_dirty() may not always
+-	 * be called inside page lock (it's recommended but not enforced).
 -	 */
--	if (ptl != vmf->ptl) {
-+	if (need_lock) {
-+		/*
-+		 * Use nested version here to indicate that we are already
-+		 * holding one similar spinlock.
-+		 */
- 		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
- 		if (unlikely(!pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
- 			pte_unmap_unlock(pte, ptl);
-@@ -114,7 +113,7 @@ again:
+-	mapping = folio_mapping(folio);
+-	if (!(flags & MF_MUST_KILL) && !folio_test_dirty(folio) && mapping &&
+-	    mapping_can_writeback(mapping)) {
+-		if (folio_mkclean(folio)) {
+-			folio_set_dirty(folio);
+-		} else {
+-			ttu &= ~TTU_HWPOISON;
+-			pr_info("%#lx: corrupted page was clean: dropped without side effects\n",
+-				pfn);
+-		}
+-	}
+-
+ 	/*
+ 	 * First collect all the processes that have the page
+ 	 * mapped in dirty form.  This has to be done before try_to_unmap,
+@@ -1643,9 +1646,7 @@ static bool hwpoison_user_mappings(struc
+ 	 */
+ 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
  
- 	ret = do_adjust_pte(vma, address, pfn, pte);
- 
--	if (ptl != vmf->ptl)
-+	if (need_lock)
- 		spin_unlock(ptl);
- 	pte_unmap(pte);
- 
-@@ -123,9 +122,10 @@ again:
- 
- static void
- make_coherent(struct address_space *mapping, struct vm_area_struct *vma,
--	      unsigned long addr, pte_t *ptep, unsigned long pfn,
--	      struct vm_fault *vmf)
-+	      unsigned long addr, pte_t *ptep, unsigned long pfn)
- {
-+	const unsigned long pmd_start_addr = ALIGN_DOWN(addr, PMD_SIZE);
-+	const unsigned long pmd_end_addr = pmd_start_addr + PMD_SIZE;
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *mpnt;
- 	unsigned long offset;
-@@ -142,6 +142,14 @@ make_coherent(struct address_space *mapp
- 	flush_dcache_mmap_lock(mapping);
- 	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff) {
- 		/*
-+		 * If we are using split PTE locks, then we need to take the pte
-+		 * lock. Otherwise we are using shared mm->page_table_lock which
-+		 * is already locked, thus cannot take it.
-+		 */
-+		bool need_lock = IS_ENABLED(CONFIG_SPLIT_PTE_PTLOCKS);
-+		unsigned long mpnt_addr;
+-	unmap_poisoned_folio(folio, ttu);
+-
+-	unmap_success = !folio_mapped(folio);
++	unmap_success = !unmap_poisoned_folio(folio, pfn, flags & MF_MUST_KILL);
+ 	if (!unmap_success)
+ 		pr_err("%#lx: failed to unmap page (folio mapcount=%d)\n",
+ 		       pfn, folio_mapcount(folio));
+--- a/mm/memory_hotplug.c~mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio
++++ a/mm/memory_hotplug.c
+@@ -1833,7 +1833,8 @@ static void do_migrate_range(unsigned lo
+ 			if (WARN_ON(folio_test_lru(folio)))
+ 				folio_isolate_lru(folio);
+ 			if (folio_mapped(folio))
+-				unmap_poisoned_folio(folio, TTU_IGNORE_MLOCK);
++				unmap_poisoned_folio(folio, pfn, false);
 +
-+		/*
- 		 * If this VMA is not in our MM, we can ignore it.
- 		 * Note that we intentionally mask out the VMA
- 		 * that we are fixing up.
-@@ -151,7 +159,12 @@ make_coherent(struct address_space *mapp
- 		if (!(mpnt->vm_flags & VM_MAYSHARE))
  			continue;
- 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
--		aliases += adjust_pte(mpnt, mpnt->vm_start + offset, pfn, vmf);
-+		mpnt_addr = mpnt->vm_start + offset;
-+
-+		/* Avoid deadlocks by not grabbing the same PTE lock again. */
-+		if (mpnt_addr >= pmd_start_addr && mpnt_addr < pmd_end_addr)
-+			need_lock = false;
-+		aliases += adjust_pte(mpnt, mpnt_addr, pfn, need_lock);
- 	}
- 	flush_dcache_mmap_unlock(mapping);
- 	if (aliases)
-@@ -194,7 +207,7 @@ void update_mmu_cache_range(struct vm_fa
- 		__flush_dcache_folio(mapping, folio);
- 	if (mapping) {
- 		if (cache_is_vivt())
--			make_coherent(mapping, vma, addr, ptep, pfn, vmf);
-+			make_coherent(mapping, vma, addr, ptep, pfn);
- 		else if (vma->vm_flags & VM_EXEC)
- 			__flush_icache_all();
- 	}
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-pgtable-fix-incorrect-reclaim-of-non-empty-pte-pages.patch
-arm-pgtable-fix-null-pointer-dereference-issue.patch
+mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio.patch
+mm-memory-hotplug-check-folio-ref-count-first-in-do_migrate_range.patch
+hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio.patch
 
