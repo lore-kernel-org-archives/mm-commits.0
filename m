@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F19A83C1F
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:47:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C20213C1F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:48:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739854080; cv=none; b=E0WZqLW2qm7CtVefUG6FHyPdb7oeTcbQRgpd7uLZmMToCcuDyBvsRpgR2oxsCshy1Z3F7Jisv6HEGPHSmYpQ/zawdIo7bPbBuDRtIicB6xvwHORb/Sb2BEbZpz/sAAe7uQ76AR54J6gpagF8D5dWGi5NJzxWrMOjq0tSOCWRORc=
+	t=1739854086; cv=none; b=BxUe8IMzlcn1hE5H9WFACtLhmXqbiQ0ap7ojp0onyhibTPTMIsPQB3a/oqdz3EG02Rrxj//3Uy3i5Crt0h8Coph1Y22OGt8VkzwO9AiStkibUvj5h5Q786bWDbLxkGQwacaZsMAhURx8zn1GzAV1HpnNfDHVYs6hoqysUZP9P04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739854080; c=relaxed/simple;
-	bh=1AV2hSJWQewX3GZOoZLW+qA4fw/EButfR3N+4y+CfgY=;
-	h=Date:To:From:Subject:Message-Id; b=TDNCuljTPkIxU4hBeJsZgDddVzixdvjINQUzlGKBoHlW+ibdw7frqVwbWqQWUfH4CwdeoLVAPATL/ESVrDVG44wgwuknrAVlaAd8TCeqzo0uxYJxRZzZg+0wM8my9pGYUlCEiSc2UWMjOMDigIOWSV4Lh+M8P2UCtLtYkzKB40g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hHKXFU21; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739854086; c=relaxed/simple;
+	bh=dwTthdnU0StO7u98VptzcttTbDALR2L0zV1cEm78nu0=;
+	h=Date:To:From:Subject:Message-Id; b=XopBDPocuwR7tLAEWCUw5IiaJrkSjKei9e9PeDQwiGA4KTTmzWUYoXgcasdXXvjwQSjDJzUNMsbMIPs4te1GfxctdJoVpVIuj+t3ym8ee++aGRvNGbahsWTv6GvHRN9ZKe2tmL7ohBAB2LNVYoia6ET4EzCcFvEKbtwbty0XJGw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=duH+Q7/e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hHKXFU21"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EF86C4CEE2;
-	Tue, 18 Feb 2025 04:47:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="duH+Q7/e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F8BCC4CEE2;
+	Tue, 18 Feb 2025 04:48:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739854079;
-	bh=1AV2hSJWQewX3GZOoZLW+qA4fw/EButfR3N+4y+CfgY=;
+	s=korg; t=1739854086;
+	bh=dwTthdnU0StO7u98VptzcttTbDALR2L0zV1cEm78nu0=;
 	h=Date:To:From:Subject:From;
-	b=hHKXFU2152GZfR8T/COnl0etEAx4w5714qnKW9SYIQm0fVU67FJoWwChK+nDDhnyT
-	 o9ajoNZ65se1+pt3LquJhibFs+kEmIdQ/JgxzJUcQl4mjUVTME/Bc78CjTkiAVMUg1
-	 Hc2sZwsUVqZIiJ4OODtrrdjWimN3ZIaTIKYasjoY=
-Date: Mon, 17 Feb 2025 20:47:58 -0800
+	b=duH+Q7/eXsQoGMnWODuilKlbcTPlyO30qhyxUkJuGKYYkBCoatdGM6m/S7GrPumaX
+	 3C8BzB4Sl2T+cNpt3YX7hd4kOTVbCOf+TFkwZsT67sU+yh1DcjVj1j1tzX5lCGqli/
+	 CRSxzJQbHdnxm1Zzn6m30bR+meoOby+SdhMzWQaE=
+Date: Mon, 17 Feb 2025 20:48:05 -0800
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allow-compound-zone-device-pages.patch added to mm-unstable branch
-Message-Id: <20250218044759.5EF86C4CEE2@smtp.kernel.org>
+Subject: + mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch added to mm-unstable branch
+Message-Id: <20250218044806.2F8BCC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: allow compound zone device pages
+     Subject: mm/memory: enhance insert_page_into_pte_locked() to create writable mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-allow-compound-zone-device-pages.patch
+     mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-compound-zone-device-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,35 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm: allow compound zone device pages
-Date: Tue, 18 Feb 2025 14:55:27 +1100
+Subject: mm/memory: enhance insert_page_into_pte_locked() to create writable mappings
+Date: Tue, 18 Feb 2025 14:55:28 +1100
 
-Zone device pages are used to represent various type of device memory
-managed by device drivers.  Currently compound zone device pages are not
-supported.  This is because MEMORY_DEVICE_FS_DAX pages are the only user
-of higher order zone device pages and have their own page reference
-counting.
+In preparation for using insert_page() for DAX, enhance
+insert_page_into_pte_locked() to handle establishing writable mappings. 
+Recall that DAX returns VM_FAULT_NOPAGE after installing a PTE which
+bypasses the typical set_pte_range() in finish_fault.
 
-A future change will unify FS DAX reference counting with normal page
-reference counting rules and remove the special FS DAX reference counting.
-Supporting that requires compound zone device pages.
-
-Supporting compound zone device pages requires compound_head() to
-distinguish between head and tail pages whilst still preserving the
-special struct page fields that are specific to zone device pages.
-
-A tail page is distinguished by having bit zero being set in
-page->compound_head, with the remaining bits pointing to the head page. 
-For zone device pages page->compound_head is shared with page->pgmap.
-
-The page->pgmap field must be common to all pages within a folio, even if
-the folio spans memory sections.  Therefore pgmap is the same for both
-head and tail pages and can be moved into the folio and we can use the
-standard scheme to find compound_head from a tail page.
-
-Link: https://lkml.kernel.org/r/5106a9ab1b2eaa8e6f1429fcb3cd1e86ecbb0a29.1739850794.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/ee748e555fb0dc190994a0fd59a57b9c43a17dc9.1739850794.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
@@ -108,6 +90,7 @@ Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Logan Gunthorpe <logang@deltatee.com>
@@ -126,311 +109,101 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    3 ++-
- drivers/pci/p2pdma.c                   |    6 +++---
- include/linux/memremap.h               |    6 +++---
- include/linux/migrate.h                |    4 ++--
- include/linux/mm_types.h               |    9 +++++++--
- include/linux/mmzone.h                 |   12 +++++++++++-
- lib/test_hmm.c                         |    3 ++-
- mm/hmm.c                               |    2 +-
- mm/memory.c                            |    4 +++-
- mm/memremap.c                          |   14 +++++++-------
- mm/migrate_device.c                    |    7 +++++--
- mm/mlock.c                             |    2 ++
- mm/mm_init.c                           |    2 +-
- 13 files changed, 49 insertions(+), 25 deletions(-)
+ mm/memory.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-allow-compound-zone-device-pages
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -88,7 +88,8 @@ struct nouveau_dmem {
- 
- static struct nouveau_dmem_chunk *nouveau_page_to_chunk(struct page *page)
- {
--	return container_of(page->pgmap, struct nouveau_dmem_chunk, pagemap);
-+	return container_of(page_pgmap(page), struct nouveau_dmem_chunk,
-+			    pagemap);
- }
- 
- static struct nouveau_drm *page_to_drm(struct page *page)
---- a/drivers/pci/p2pdma.c~mm-allow-compound-zone-device-pages
-+++ a/drivers/pci/p2pdma.c
-@@ -202,7 +202,7 @@ static const struct attribute_group p2pm
- 
- static void p2pdma_page_free(struct page *page)
- {
--	struct pci_p2pdma_pagemap *pgmap = to_p2p_pgmap(page->pgmap);
-+	struct pci_p2pdma_pagemap *pgmap = to_p2p_pgmap(page_pgmap(page));
- 	/* safe to dereference while a reference is held to the percpu ref */
- 	struct pci_p2pdma *p2pdma =
- 		rcu_dereference_protected(pgmap->provider->p2pdma, 1);
-@@ -1025,8 +1025,8 @@ enum pci_p2pdma_map_type
- pci_p2pdma_map_segment(struct pci_p2pdma_map_state *state, struct device *dev,
- 		       struct scatterlist *sg)
- {
--	if (state->pgmap != sg_page(sg)->pgmap) {
--		state->pgmap = sg_page(sg)->pgmap;
-+	if (state->pgmap != page_pgmap(sg_page(sg))) {
-+		state->pgmap = page_pgmap(sg_page(sg));
- 		state->map = pci_p2pdma_map_type(state->pgmap, dev);
- 		state->bus_off = to_p2p_pgmap(state->pgmap)->bus_offset;
- 	}
---- a/include/linux/memremap.h~mm-allow-compound-zone-device-pages
-+++ a/include/linux/memremap.h
-@@ -161,7 +161,7 @@ static inline bool is_device_private_pag
- {
- 	return IS_ENABLED(CONFIG_DEVICE_PRIVATE) &&
- 		is_zone_device_page(page) &&
--		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
-+		page_pgmap(page)->type == MEMORY_DEVICE_PRIVATE;
- }
- 
- static inline bool folio_is_device_private(const struct folio *folio)
-@@ -173,13 +173,13 @@ static inline bool is_pci_p2pdma_page(co
- {
- 	return IS_ENABLED(CONFIG_PCI_P2PDMA) &&
- 		is_zone_device_page(page) &&
--		page->pgmap->type == MEMORY_DEVICE_PCI_P2PDMA;
-+		page_pgmap(page)->type == MEMORY_DEVICE_PCI_P2PDMA;
- }
- 
- static inline bool is_device_coherent_page(const struct page *page)
- {
- 	return is_zone_device_page(page) &&
--		page->pgmap->type == MEMORY_DEVICE_COHERENT;
-+		page_pgmap(page)->type == MEMORY_DEVICE_COHERENT;
- }
- 
- static inline bool folio_is_device_coherent(const struct folio *folio)
---- a/include/linux/migrate.h~mm-allow-compound-zone-device-pages
-+++ a/include/linux/migrate.h
-@@ -205,8 +205,8 @@ struct migrate_vma {
- 	unsigned long		end;
- 
- 	/*
--	 * Set to the owner value also stored in page->pgmap->owner for
--	 * migrating out of device private memory. The flags also need to
-+	 * Set to the owner value also stored in page_pgmap(page)->owner
-+	 * for migrating out of device private memory. The flags also need to
- 	 * be set to MIGRATE_VMA_SELECT_DEVICE_PRIVATE.
- 	 * The caller should always set this field when using mmu notifier
- 	 * callbacks to avoid device MMU invalidations for device private
---- a/include/linux/mm_types.h~mm-allow-compound-zone-device-pages
-+++ a/include/linux/mm_types.h
-@@ -130,8 +130,11 @@ struct page {
- 			unsigned long compound_head;	/* Bit zero is set */
- 		};
- 		struct {	/* ZONE_DEVICE pages */
--			/** @pgmap: Points to the hosting device page map. */
--			struct dev_pagemap *pgmap;
-+			/*
-+			 * The first word is used for compound_head or folio
-+			 * pgmap
-+			 */
-+			void *_unused_pgmap_compound_head;
- 			void *zone_device_data;
- 			/*
- 			 * ZONE_DEVICE private pages are counted as being
-@@ -300,6 +303,7 @@ typedef struct {
-  * @_refcount: Do not access this member directly.  Use folio_ref_count()
-  *    to find how many references there are to this folio.
-  * @memcg_data: Memory Control Group data.
-+ * @pgmap: Metadata for ZONE_DEVICE mappings
-  * @virtual: Virtual address in the kernel direct map.
-  * @_last_cpupid: IDs of last CPU and last process that accessed the folio.
-  * @_entire_mapcount: Do not use directly, call folio_entire_mapcount().
-@@ -338,6 +342,7 @@ struct folio {
- 	/* private: */
- 				};
- 	/* public: */
-+				struct dev_pagemap *pgmap;
- 			};
- 			struct address_space *mapping;
- 			pgoff_t index;
---- a/include/linux/mmzone.h~mm-allow-compound-zone-device-pages
-+++ a/include/linux/mmzone.h
-@@ -1158,6 +1158,12 @@ static inline bool is_zone_device_page(c
- 	return page_zonenum(page) == ZONE_DEVICE;
- }
- 
-+static inline struct dev_pagemap *page_pgmap(const struct page *page)
-+{
-+	VM_WARN_ON_ONCE_PAGE(!is_zone_device_page(page), page);
-+	return page_folio(page)->pgmap;
-+}
-+
- /*
-  * Consecutive zone device pages should not be merged into the same sgl
-  * or bvec segment with other types of pages or if they belong to different
-@@ -1173,7 +1179,7 @@ static inline bool zone_device_pages_hav
- 		return false;
- 	if (!is_zone_device_page(a))
- 		return true;
--	return a->pgmap == b->pgmap;
-+	return page_pgmap(a) == page_pgmap(b);
- }
- 
- extern void memmap_init_zone_device(struct zone *, unsigned long,
-@@ -1188,6 +1194,10 @@ static inline bool zone_device_pages_hav
- {
- 	return true;
- }
-+static inline struct dev_pagemap *page_pgmap(const struct page *page)
-+{
-+	return NULL;
-+}
- #endif
- 
- static inline bool folio_is_zone_device(const struct folio *folio)
---- a/lib/test_hmm.c~mm-allow-compound-zone-device-pages
-+++ a/lib/test_hmm.c
-@@ -195,7 +195,8 @@ static int dmirror_fops_release(struct i
- 
- static struct dmirror_chunk *dmirror_page_to_chunk(struct page *page)
- {
--	return container_of(page->pgmap, struct dmirror_chunk, pagemap);
-+	return container_of(page_pgmap(page), struct dmirror_chunk,
-+			    pagemap);
- }
- 
- static struct dmirror_device *dmirror_page_to_device(struct page *page)
---- a/mm/hmm.c~mm-allow-compound-zone-device-pages
-+++ a/mm/hmm.c
-@@ -248,7 +248,7 @@ static int hmm_vma_handle_pte(struct mm_
- 		 * just report the PFN.
- 		 */
- 		if (is_device_private_entry(entry) &&
--		    pfn_swap_entry_to_page(entry)->pgmap->owner ==
-+		    page_pgmap(pfn_swap_entry_to_page(entry))->owner ==
- 		    range->dev_private_owner) {
- 			cpu_flags = HMM_PFN_VALID;
- 			if (is_writable_device_private_entry(entry))
---- a/mm/memory.c~mm-allow-compound-zone-device-pages
+--- a/mm/memory.c~mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings
 +++ a/mm/memory.c
-@@ -4316,6 +4316,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			vmf->page = pfn_swap_entry_to_page(entry);
- 			ret = remove_device_exclusive_entry(vmf);
- 		} else if (is_device_private_entry(entry)) {
-+			struct dev_pagemap *pgmap;
- 			if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
- 				/*
- 				 * migrate_to_ram is not yet ready to operate
-@@ -4340,7 +4341,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 			 */
- 			get_page(vmf->page);
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			ret = vmf->page->pgmap->ops->migrate_to_ram(vmf);
-+			pgmap = page_pgmap(vmf->page);
-+			ret = pgmap->ops->migrate_to_ram(vmf);
- 			put_page(vmf->page);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
---- a/mm/memremap.c~mm-allow-compound-zone-device-pages
-+++ a/mm/memremap.c
-@@ -458,8 +458,8 @@ EXPORT_SYMBOL_GPL(get_dev_pagemap);
- 
- void free_zone_device_folio(struct folio *folio)
- {
--	if (WARN_ON_ONCE(!folio->page.pgmap->ops ||
--			!folio->page.pgmap->ops->page_free))
-+	if (WARN_ON_ONCE(!folio->pgmap->ops ||
-+			!folio->pgmap->ops->page_free))
- 		return;
- 
- 	mem_cgroup_uncharge(folio);
-@@ -486,12 +486,12 @@ void free_zone_device_folio(struct folio
- 	 * to clear folio->mapping.
- 	 */
- 	folio->mapping = NULL;
--	folio->page.pgmap->ops->page_free(folio_page(folio, 0));
-+	folio->pgmap->ops->page_free(folio_page(folio, 0));
- 
--	switch (folio->page.pgmap->type) {
-+	switch (folio->pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
- 	case MEMORY_DEVICE_COHERENT:
--		put_dev_pagemap(folio->page.pgmap);
-+		put_dev_pagemap(folio->pgmap);
- 		break;
- 
- 	case MEMORY_DEVICE_FS_DAX:
-@@ -514,7 +514,7 @@ void zone_device_page_init(struct page *
- 	 * Drivers shouldn't be allocating pages after calling
- 	 * memunmap_pages().
- 	 */
--	WARN_ON_ONCE(!percpu_ref_tryget_live(&page->pgmap->ref));
-+	WARN_ON_ONCE(!percpu_ref_tryget_live(&page_pgmap(page)->ref));
- 	set_page_count(page, 1);
- 	lock_page(page);
+@@ -2126,19 +2126,39 @@ static int validate_page_before_insert(s
  }
-@@ -523,7 +523,7 @@ EXPORT_SYMBOL_GPL(zone_device_page_init)
- #ifdef CONFIG_FS_DAX
- bool __put_devmap_managed_folio_refs(struct folio *folio, int refs)
+ 
+ static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
+-			unsigned long addr, struct page *page, pgprot_t prot)
++				unsigned long addr, struct page *page,
++				pgprot_t prot, bool mkwrite)
  {
--	if (folio->page.pgmap->type != MEMORY_DEVICE_FS_DAX)
-+	if (folio->pgmap->type != MEMORY_DEVICE_FS_DAX)
- 		return false;
+ 	struct folio *folio = page_folio(page);
+-	pte_t pteval;
++	pte_t pteval = ptep_get(pte);
++
++	if (!pte_none(pteval)) {
++		if (!mkwrite)
++			return -EBUSY;
++
++		/* see insert_pfn(). */
++		if (pte_pfn(pteval) != page_to_pfn(page)) {
++			WARN_ON_ONCE(!is_zero_pfn(pte_pfn(pteval)));
++			return -EFAULT;
++		}
++		pteval = maybe_mkwrite(pteval, vma);
++		pteval = pte_mkyoung(pteval);
++		if (ptep_set_access_flags(vma, addr, pte, pteval, 1))
++			update_mmu_cache(vma, addr, pte);
++		return 0;
++	}
  
- 	/*
---- a/mm/migrate_device.c~mm-allow-compound-zone-device-pages
-+++ a/mm/migrate_device.c
-@@ -106,6 +106,7 @@ again:
- 	arch_enter_lazy_mmu_mode();
+-	if (!pte_none(ptep_get(pte)))
+-		return -EBUSY;
+ 	/* Ok, finally just insert the thing.. */
+ 	pteval = mk_pte(page, prot);
+ 	if (unlikely(is_zero_folio(folio))) {
+ 		pteval = pte_mkspecial(pteval);
+ 	} else {
+ 		folio_get(folio);
++		pteval = mk_pte(page, prot);
++		if (mkwrite) {
++			pteval = pte_mkyoung(pteval);
++			pteval = maybe_mkwrite(pte_mkdirty(pteval), vma);
++		}
+ 		inc_mm_counter(vma->vm_mm, mm_counter_file(folio));
+ 		folio_add_file_rmap_pte(folio, page, vma);
+ 	}
+@@ -2147,7 +2167,7 @@ static int insert_page_into_pte_locked(s
+ }
  
- 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
-+		struct dev_pagemap *pgmap;
- 		unsigned long mpfn = 0, pfn;
- 		struct folio *folio;
- 		struct page *page;
-@@ -133,9 +134,10 @@ again:
- 				goto next;
+ static int insert_page(struct vm_area_struct *vma, unsigned long addr,
+-			struct page *page, pgprot_t prot)
++			struct page *page, pgprot_t prot, bool mkwrite)
+ {
+ 	int retval;
+ 	pte_t *pte;
+@@ -2160,7 +2180,8 @@ static int insert_page(struct vm_area_st
+ 	pte = get_locked_pte(vma->vm_mm, addr, &ptl);
+ 	if (!pte)
+ 		goto out;
+-	retval = insert_page_into_pte_locked(vma, pte, addr, page, prot);
++	retval = insert_page_into_pte_locked(vma, pte, addr, page, prot,
++					mkwrite);
+ 	pte_unmap_unlock(pte, ptl);
+ out:
+ 	return retval;
+@@ -2174,7 +2195,7 @@ static int insert_page_in_batch_locked(s
+ 	err = validate_page_before_insert(vma, page);
+ 	if (err)
+ 		return err;
+-	return insert_page_into_pte_locked(vma, pte, addr, page, prot);
++	return insert_page_into_pte_locked(vma, pte, addr, page, prot, false);
+ }
  
- 			page = pfn_swap_entry_to_page(entry);
-+			pgmap = page_pgmap(page);
- 			if (!(migrate->flags &
- 				MIGRATE_VMA_SELECT_DEVICE_PRIVATE) ||
--			    page->pgmap->owner != migrate->pgmap_owner)
-+			    pgmap->owner != migrate->pgmap_owner)
- 				goto next;
+ /* insert_pages() amortizes the cost of spinlock operations
+@@ -2310,7 +2331,7 @@ int vm_insert_page(struct vm_area_struct
+ 		BUG_ON(vma->vm_flags & VM_PFNMAP);
+ 		vm_flags_set(vma, VM_MIXEDMAP);
+ 	}
+-	return insert_page(vma, addr, page, vma->vm_page_prot);
++	return insert_page(vma, addr, page, vma->vm_page_prot, false);
+ }
+ EXPORT_SYMBOL(vm_insert_page);
  
- 			mpfn = migrate_pfn(page_to_pfn(page)) |
-@@ -151,12 +153,13 @@ again:
- 				goto next;
- 			}
- 			page = vm_normal_page(migrate->vma, addr, pte);
-+			pgmap = page_pgmap(page);
- 			if (page && !is_zone_device_page(page) &&
- 			    !(migrate->flags & MIGRATE_VMA_SELECT_SYSTEM))
- 				goto next;
- 			else if (page && is_device_coherent_page(page) &&
- 			    (!(migrate->flags & MIGRATE_VMA_SELECT_DEVICE_COHERENT) ||
--			     page->pgmap->owner != migrate->pgmap_owner))
-+			     pgmap->owner != migrate->pgmap_owner))
- 				goto next;
- 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
- 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
---- a/mm/mlock.c~mm-allow-compound-zone-device-pages
-+++ a/mm/mlock.c
-@@ -368,6 +368,8 @@ static int mlock_pte_range(pmd_t *pmd, u
- 		if (is_huge_zero_pmd(*pmd))
- 			goto out;
- 		folio = pmd_folio(*pmd);
-+		if (folio_is_zone_device(folio))
-+			goto out;
- 		if (vma->vm_flags & VM_LOCKED)
- 			mlock_folio(folio);
- 		else
---- a/mm/mm_init.c~mm-allow-compound-zone-device-pages
-+++ a/mm/mm_init.c
-@@ -998,7 +998,7 @@ static void __ref __init_zone_device_pag
- 	 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
- 	 * ever freed or placed on a driver-private list.
- 	 */
--	page->pgmap = pgmap;
-+	page_folio(page)->pgmap = pgmap;
- 	page->zone_device_data = NULL;
- 
- 	/*
+@@ -2590,7 +2611,7 @@ static vm_fault_t __vm_insert_mixed(stru
+ 		 * result in pfn_t_has_page() == false.
+ 		 */
+ 		page = pfn_to_page(pfn_t_to_pfn(pfn));
+-		err = insert_page(vma, addr, page, pgprot);
++		err = insert_page(vma, addr, page, pgprot, mkwrite);
+ 	} else {
+ 		return insert_pfn(vma, addr, pfn, pgprot, mkwrite);
+ 	}
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
