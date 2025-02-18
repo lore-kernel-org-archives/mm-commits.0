@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E0818E1F;
-	Tue, 18 Feb 2025 03:20:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E55718E1F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 03:30:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739848821; cv=none; b=LKwzNwjIV5PCy1tLMRGzF9M8UhRPy2NyBaLapNW3jN3APXLLOp89lBiNxtbXJaOy9P709pKT4qZ61tkCj4TxlFQHlD4zqI3wqasJINdHl5fljI+qStEc4/f3fHR8P/WmREf4nXBSyVHTWk1GMp5Or+uIg3BK2X+axYdAfg+JbpA=
+	t=1739849400; cv=none; b=cLYyGY31CHhBJAzONUMZx0DF+LjcVLNPY0okXcQc7fZDdKzgkgARZZm2MTnuh8F/stMlCEp5GfmbbdQksd0CC3Bn95lY6Cg0bkf09VxzCMRVnVU01PhzBRDOdvXqDTL5k1gtsRzw38lqLfcp9RQrwZt+Ko4ETQGBMKFxCtoMbf4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739848821; c=relaxed/simple;
-	bh=KF4DQ2/NJ1H2cmVnfFvuQ3ovoGDiXjXoL2PMgJ90MTU=;
-	h=Date:To:From:Subject:Message-Id; b=ZLCvBfujp41QRnJME2JoejYso0O2hVLy3oILzhe/KcfFIFMKcUqhdXX0Zn0IYRfGqspKZhrlTYwL86szvnbG977SwLLOr3Kzt2WlqbnJxVTP8DdID/MkKbgTuTnJY8DXtDotea+ID7sz7FOwvxEB/o9ENUGDWQUhEoJ4ToXe8JQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ILgXXLwL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739849400; c=relaxed/simple;
+	bh=PWuvqeMpjNEGLpjHkt/mgplP7M/kvpBCtYzKf/6cWNo=;
+	h=Date:To:From:Subject:Message-Id; b=WiNaLxkmUAxc8VawPSR9LDmDqg6ejn2k2IanALDcWUi2fRJqBUMr7wdXLAp4oItXdgYup15lc3PvObTjurOFfbD0RZtX8p8/Kq9D1lfw2tZRFFhyXQLjJ7irMKXirBssQ0BE8QtnsI4TQJqA5hftU/Vzir3yYny4iS8G5vPuJCM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EFzUF8Mb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ILgXXLwL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B56C4CED1;
-	Tue, 18 Feb 2025 03:20:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EFzUF8Mb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16EF2C4CEE6;
+	Tue, 18 Feb 2025 03:30:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739848820;
-	bh=KF4DQ2/NJ1H2cmVnfFvuQ3ovoGDiXjXoL2PMgJ90MTU=;
+	s=korg; t=1739849400;
+	bh=PWuvqeMpjNEGLpjHkt/mgplP7M/kvpBCtYzKf/6cWNo=;
 	h=Date:To:From:Subject:From;
-	b=ILgXXLwLQ0NyW+6xEACxW9d3KsIqb/e2ScuKQI1JO+zDPhcNAHHVsnlt5VrqI187M
-	 Daq5NMVM9cuZkzbuZb+l83oWJJlrn6KWwHHOnGf2HyaH4BT7s7LMnzdnsFjLfRSgO6
-	 shtdhVrTKxlpxi6fcX35qvtKEuAEAEHt+vqiB5/A=
-Date: Mon, 17 Feb 2025 19:20:20 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,stable@vger.kernel.org,sammy@sammy.net,kevin.brodsky@arm.com,geert@linux-m68k.org,dave.hansen@linux.intel.com,haoxiang_li2024@163.com,akpm@linux-foundation.org
+	b=EFzUF8MbYdhxWc0GTExK9/gTbrde1QeEvYDzWknyyY1Ov19DTt2cXbyS2g9J4iEwb
+	 1BtPBoA/fSBTtwKa3p5FPeu901QCEVinzTROR8lngKCWzJMHzwZEu32oQoEfu8X8B0
+	 oUBrZOInojNSe8i9b84MYkP6j6wqS/3fWld7jF/o=
+Date: Mon, 17 Feb 2025 19:29:59 -0800
+To: mm-commits@vger.kernel.org,yazen.ghannam@amd.com,tony.luck@intel.com,tianruidong@linux.alibaba.com,tglx@linutronix.de,peterz@infradead.org,nao.horiguchi@gmail.com,mingo@redhat.com,linmiaohe@huawei.com,jpoimboe@kernel.org,Jonathan.Cameron@huawei.com,jarkko@kernel.org,jane.chu@oracle.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,baolin.wang@linux.alibaba.com,xueshuai@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + m68k-sun3-add-check-for-__pgd_alloc.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250218032020.B5B56C4CED1@smtp.kernel.org>
+Subject: + x86-mce-collect-error-message-for-severities-below-mce_panic_severity.patch added to mm-unstable branch
+Message-Id: <20250218033000.16EF2C4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: m68k: sun3: add check for __pgd_alloc()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     m68k-sun3-add-check-for-__pgd_alloc.patch
+     Subject: x86/mce: collect error message for severities below MCE_PANIC_SEVERITY
+has been added to the -mm mm-unstable branch.  Its filename is
+     x86-mce-collect-error-message-for-severities-below-mce_panic_severity.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-sun3-add-check-for-__pgd_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mce-collect-error-message-for-severities-below-mce_panic_severity.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,46 +58,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Haoxiang Li <haoxiang_li2024@163.com>
-Subject: m68k: sun3: add check for __pgd_alloc()
-Date: Tue, 18 Feb 2025 00:00:17 +0800
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+Subject: x86/mce: collect error message for severities below MCE_PANIC_SEVERITY
+Date: Mon, 17 Feb 2025 14:33:31 +0800
 
-Add check for the return value of __pgd_alloc() in pgd_alloc() to prevent
-null pointer dereference.
+Patch series "mm/hwpoison: Fix regressions in memory failure handling", v2.
 
-Link: https://lkml.kernel.org/r/20250217160017.2375536-1-haoxiang_li2024@163.com
-Fixes: a9b3c355c2e6 ("asm-generic: pgalloc: provide generic __pgd_{alloc,free}")
-Signed-off-by: Haoxiang Li <haoxiang_li2024@163.com>
+This series addresses three regressions identified in memory failure
+handling, as discovered using ras-tools[1]:
+
+- `./einj_mem_uc copyin -f`
+- `./einj_mem_uc futex -f`
+- `./einj_mem_uc instr`
+
+The regressions in the copyin and futex cases were caused by the
+replacement of `EX_TYPE_UACCESS` with `EX_TYPE_EFAULT_REG` in some
+copy-from-user operations, leading to kernel panics.  The instr case
+regression resulted from the PTE entry not being marked as hwpoison,
+causing the system to send unnecessary SIGBUS signals.
+
+These fixes ensure proper handling of memory errors and prevent kernel
+panics and unnecessary signal dispatch.
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/aegl/ras-tools.git
+
+
+This patch (of 5):
+
+Currently, mce_no_way_out() only collects error messages when the error
+severity is equal to `MCE_PANIC_SEVERITY`.  To improve diagnostics, modify
+the behavior to also collect error messages when the severity is less than
+`MCE_PANIC_SEVERITY`.
+
+Link: https://lkml.kernel.org/r/20250217063335.22257-1-xueshuai@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20250217063335.22257-2-xueshuai@linux.alibaba.com
+Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Cc: Acked-by:Thomas Gleixner <tglx@linutronix.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Borislav Betkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Sam Creasey <sammy@sammy.net>
-Cc: <stable@vger.kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: linmiaohe <linmiaohe@huawei.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ruidong Tian <tianruidong@linux.alibaba.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Yazen Ghannam <yazen.ghannam@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/sun3_pgalloc.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/mce/core.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
---- a/arch/m68k/include/asm/sun3_pgalloc.h~m68k-sun3-add-check-for-__pgd_alloc
-+++ a/arch/m68k/include/asm/sun3_pgalloc.h
-@@ -44,8 +44,10 @@ static inline pgd_t * pgd_alloc(struct m
- 	pgd_t *new_pgd;
+--- a/arch/x86/kernel/cpu/mce/core.c~x86-mce-collect-error-message-for-severities-below-mce_panic_severity
++++ a/arch/x86/kernel/cpu/mce/core.c
+@@ -925,12 +925,13 @@ static __always_inline void quirk_zen_if
+  * Do a quick check if any of the events requires a panic.
+  * This decides if we keep the events around or clear them.
+  */
+-static __always_inline int mce_no_way_out(struct mce_hw_err *err, char **msg, unsigned long *validp,
+-					  struct pt_regs *regs)
++static __always_inline bool mce_no_way_out(struct mce_hw_err *err, char **msg,
++					   unsigned long *validp,
++					   struct pt_regs *regs)
+ {
+ 	struct mce *m = &err->m;
+ 	char *tmp = *msg;
+-	int i;
++	int i, cur_sev = MCE_NO_SEVERITY, sev;
  
- 	new_pgd = __pgd_alloc(mm, 0);
--	memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
--	memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
-+	if (likely(new_pgd != NULL)) {
-+		memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
-+		memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
-+	}
- 	return new_pgd;
+ 	for (i = 0; i < this_cpu_read(mce_num_banks); i++) {
+ 		m->status = mce_rdmsrl(mca_msr_reg(i, MCA_STATUS));
+@@ -945,13 +946,17 @@ static __always_inline int mce_no_way_ou
+ 			quirk_zen_ifu(i, m, regs);
+ 
+ 		m->bank = i;
+-		if (mce_severity(m, regs, &tmp, true) >= MCE_PANIC_SEVERITY) {
++		sev = mce_severity(m, regs, &tmp, true);
++		if (sev >= cur_sev) {
+ 			mce_read_aux(err, i);
+ 			*msg = tmp;
+-			return 1;
++			cur_sev = sev;
+ 		}
++
++		if (cur_sev == MCE_PANIC_SEVERITY)
++			return true;
+ 	}
+-	return 0;
++	return false;
  }
  
+ /*
 _
 
-Patches currently in -mm which might be from haoxiang_li2024@163.com are
+Patches currently in -mm which might be from xueshuai@linux.alibaba.com are
 
-m68k-sun3-add-check-for-__pgd_alloc.patch
+x86-mce-collect-error-message-for-severities-below-mce_panic_severity.patch
+x86-mce-dump-error-msg-from-severities.patch
+x86-mce-add-ex_type_efault_reg-as-in-kernel-recovery-context-to-fix-copy-from-user-operations-regression.patch
+mm-hwpoison-fix-incorrect-not-recovered-report-for-recovered-clean-pages.patch
+mm-memory-failure-move-return-value-documentation-to-function-declaration.patch
 
