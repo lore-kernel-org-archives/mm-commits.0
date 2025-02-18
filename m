@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A73717A5BE
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 03:30:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE9CB19F115;
+	Tue, 18 Feb 2025 03:30:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739849402; cv=none; b=hQ0bHiIEGRDUlbuyTZqQB6g25N6RV5Q4ODC5XGkNZ/9pw66pHFqY79eV6s8/g/GBpT2j9+selioZlReIx38VdeYRZy5lrRENTS5jJTEX1YyVrit9m6x6jQ1dEDpASQkjbejwv3ACRxAzPO9w5+4OX9LIpECkh3owxUxdjmzPBfw=
+	t=1739849405; cv=none; b=UccUtBfeaVQAoKgvIh20PysrzRs/bRTNKoVoZwg9GLolS4PRZpmRSHQOb5e2HY3TPZUb1uJO2hJAghnZpy5qKEaP3kywUTI66oYzcU7OooACOZEgpQXGiiXMD+4AwlchGFnq8/WB97dfOfp/akSQEAGywi/br6JhaI45dk+VkSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739849402; c=relaxed/simple;
-	bh=dOusRb2yI8TnGhroLCW9TQV82SKEypOmhQ5P5xcknxc=;
-	h=Date:To:From:Subject:Message-Id; b=qlvg1HH8XhG16JUblz3yHqvErsfD3XKrZVYCmR7caN1QU+Ov7X+NJwKDplSz079q4WW37qpIOAOhbhw8Quj6O7rzEQaK1kNgO/XKPDffzqifOkKlz8XDkvN5sWfyZU2IgkeeMxIC5juMFlEqmS9XapO5eixeqrKYhcN+/I/dD54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OzQHdNfJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739849405; c=relaxed/simple;
+	bh=weL8xmE4l3Bx/MdvXdm65Gox2/U0dEiS50cMaIv8G0s=;
+	h=Date:To:From:Subject:Message-Id; b=rx/mq2vmBnBYrG8ywPTk3D7RE0hGo01r+o6DcRNcguUR0QCbrz7VWKDQaCIdl/vA+60qsCiPjusOsz7xyEUuDc5/BG7IRJNTY9/hnNxrs4LYjWV/IqcweXjuUTLYNV7S6JPyAsa/4ZLg024+Dn8D/Vc4ieDYuX4iDrPa/9cZbXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bJ5DVxLi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OzQHdNfJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34C4DC4CEE6;
-	Tue, 18 Feb 2025 03:30:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bJ5DVxLi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5382EC4CEE6;
+	Tue, 18 Feb 2025 03:30:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739849402;
-	bh=dOusRb2yI8TnGhroLCW9TQV82SKEypOmhQ5P5xcknxc=;
+	s=korg; t=1739849404;
+	bh=weL8xmE4l3Bx/MdvXdm65Gox2/U0dEiS50cMaIv8G0s=;
 	h=Date:To:From:Subject:From;
-	b=OzQHdNfJ4xr97w6pqQHG+x9ZwCsFAQnf8foE0BgqXTrIWkkom/GqiH7Lfszg2UZIk
-	 ooxUj5/VrdDZSHbyiGvO4mkDGDLCHYrBeknbjyCo4uHoNyk2hCOWTugp5ESEhV/TGX
-	 4XCNZejCY3TH36V8kDA5zQHS+RY092rJuvMBzvGM=
-Date: Mon, 17 Feb 2025 19:30:01 -0800
-To: mm-commits@vger.kernel.org,yazen.ghannam@amd.com,tony.luck@intel.com,tianruidong@linux.alibaba.com,tglx@linutronix.de,peterz@infradead.org,nao.horiguchi@gmail.com,mingo@redhat.com,linmiaohe@huawei.com,jpoimboe@kernel.org,Jonathan.Cameron@huawei.com,jarkko@kernel.org,jane.chu@oracle.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,baolin.wang@linux.alibaba.com,xueshuai@linux.alibaba.com,akpm@linux-foundation.org
+	b=bJ5DVxLihPsPtxHQVXeawe9SEDgpKl6rAtu8vKq6PZma53S1gFvcByyJ7V5MsjElc
+	 oCogfXBHiBKDGVpQYkeNp2n+JPN/ZJAitb1Ldsz0cOsha2L48WQK3URlHpsh7TQHdg
+	 /CQvGufqqhGraGv6567dtb10PEdTPYD5aFu1saCc=
+Date: Mon, 17 Feb 2025 19:30:03 -0800
+To: mm-commits@vger.kernel.org,yazen.ghannam@amd.com,tony.luck@intel.com,tianruidong@linux.alibaba.com,tglx@linutronix.de,stable@vger.kernel.org,peterz@infradead.org,nao.horiguchi@gmail.com,mingo@redhat.com,linmiaohe@huawei.com,jpoimboe@kernel.org,Jonathan.Cameron@huawei.com,jarkko@kernel.org,jane.chu@oracle.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,baolin.wang@linux.alibaba.com,xueshuai@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mce-dump-error-msg-from-severities.patch added to mm-unstable branch
-Message-Id: <20250218033002.34C4DC4CEE6@smtp.kernel.org>
+Subject: + x86-mce-add-ex_type_efault_reg-as-in-kernel-recovery-context-to-fix-copy-from-user-operations-regression.patch added to mm-unstable branch
+Message-Id: <20250218033004.5382EC4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mce: dump error msg from severities
+     Subject: x86/mce: add EX_TYPE_EFAULT_REG as in-kernel recovery context to fix copy-from-user operations regression
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mce-dump-error-msg-from-severities.patch
+     x86-mce-add-ex_type_efault_reg-as-in-kernel-recovery-context-to-fix-copy-from-user-operations-regression.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mce-dump-error-msg-from-severities.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mce-add-ex_type_efault_reg-as-in-kernel-recovery-context-to-fix-copy-from-user-operations-regression.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shuai Xue <xueshuai@linux.alibaba.com>
-Subject: x86/mce: dump error msg from severities
-Date: Mon, 17 Feb 2025 14:33:32 +0800
+Subject: x86/mce: add EX_TYPE_EFAULT_REG as in-kernel recovery context to fix copy-from-user operations regression
+Date: Mon, 17 Feb 2025 14:33:33 +0800
 
-The message in severities is useful for identifying the type of MCE that
-has occurred; dump it if it is valid.
+Commit 4c132d1d844a ("x86/futex: Remove .fixup usage") introduced a new
+extable fixup type, EX_TYPE_EFAULT_REG, and later patches updated the
+extable fixup type for copy-from-user operations, changing it from
+EX_TYPE_UACCESS to EX_TYPE_EFAULT_REG.
 
-Link: https://lkml.kernel.org/r/20250217063335.22257-3-xueshuai@linux.alibaba.com
+Specifically, commit 99641e094d6c ("x86/uaccess: Remove .fixup usage")
+altered the extable fixup type for the get_user family, while commit
+4c132d1d844a ("x86/futex: Remove .fixup usage") addressed the futex
+operations.  This change inadvertently caused a regression where the error
+context for some copy-from-user operations no longer functions as an
+in-kernel recovery context, leading to kernel panics with the message:
+"Machine check: Data load in unrecoverable area of kernel."
+
+To fix the regression, add EX_TYPE_EFAULT_REG as a in-kernel recovery
+context for copy-from-user operations.
+
+Link: https://lkml.kernel.org/r/20250217063335.22257-4-xueshuai@linux.alibaba.com
 Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Fixes: 4c132d1d844a ("x86/futex: Remove .fixup usage")
+Cc: <stable@vger.kernel.org>
 Cc: Acked-by:Thomas Gleixner <tglx@linutronix.de>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -86,20 +101,62 @@ Cc: Yazen Ghannam <yazen.ghannam@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mce/core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/cpu/mce/severity.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/arch/x86/kernel/cpu/mce/core.c~x86-mce-dump-error-msg-from-severities
-+++ a/arch/x86/kernel/cpu/mce/core.c
-@@ -1456,6 +1456,8 @@ static void queue_task_work(struct mce_h
- 	if (count > 1)
- 		return;
+--- a/arch/x86/kernel/cpu/mce/severity.c~x86-mce-add-ex_type_efault_reg-as-in-kernel-recovery-context-to-fix-copy-from-user-operations-regression
++++ a/arch/x86/kernel/cpu/mce/severity.c
+@@ -16,6 +16,7 @@
+ #include <asm/traps.h>
+ #include <asm/insn.h>
+ #include <asm/insn-eval.h>
++#include <linux/extable.h>
  
-+	if (msg)
-+		pr_err("%s\n", msg);
- 	task_work_add(current, &current->mce_kill_me, TWA_RESUME);
- }
+ #include "internal.h"
  
+@@ -285,7 +286,8 @@ static bool is_copy_from_user(struct pt_
+  */
+ static noinstr int error_context(struct mce *m, struct pt_regs *regs)
+ {
+-	int fixup_type;
++	const struct exception_table_entry *e;
++	int fixup_type, imm;
+ 	bool copy_user;
+ 
+ 	if ((m->cs & 3) == 3)
+@@ -294,9 +296,14 @@ static noinstr int error_context(struct
+ 	if (!mc_recoverable(m->mcgstatus))
+ 		return IN_KERNEL;
+ 
++	e = search_exception_tables(m->ip);
++	if (!e)
++		return IN_KERNEL;
++
+ 	/* Allow instrumentation around external facilities usage. */
+ 	instrumentation_begin();
+-	fixup_type = ex_get_fixup_type(m->ip);
++	fixup_type = FIELD_GET(EX_DATA_TYPE_MASK, e->data);
++	imm  = FIELD_GET(EX_DATA_IMM_MASK,  e->data);
+ 	copy_user  = is_copy_from_user(regs);
+ 	instrumentation_end();
+ 
+@@ -304,9 +311,13 @@ static noinstr int error_context(struct
+ 	case EX_TYPE_UACCESS:
+ 		if (!copy_user)
+ 			return IN_KERNEL;
+-		m->kflags |= MCE_IN_KERNEL_COPYIN;
+-		fallthrough;
+-
++		m->kflags |= MCE_IN_KERNEL_COPYIN | MCE_IN_KERNEL_RECOV;
++		return IN_KERNEL_RECOV;
++	case EX_TYPE_IMM_REG:
++		if (!copy_user || imm != -EFAULT)
++			return IN_KERNEL;
++		m->kflags |= MCE_IN_KERNEL_COPYIN | MCE_IN_KERNEL_RECOV;
++		return IN_KERNEL_RECOV;
+ 	case EX_TYPE_FAULT_MCE_SAFE:
+ 	case EX_TYPE_DEFAULT_MCE_SAFE:
+ 		m->kflags |= MCE_IN_KERNEL_RECOV;
 _
 
 Patches currently in -mm which might be from xueshuai@linux.alibaba.com are
