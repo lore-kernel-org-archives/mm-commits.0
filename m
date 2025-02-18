@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245CC19F104;
-	Tue, 18 Feb 2025 04:00:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53E2D12CDA5
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:07:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739851259; cv=none; b=H6jIyZRChYCTzINDnQICkcHwAkk/6sygdqNL1jRpsSAGAjl5zkrJD4uYIN8eDXdd7ae0F0cS+pEpMU7b6i/3sAdwA0RbHH4XBqDVp72q7DmWyjZm5wOMazJ8ZofCt+NAs47lmgjyKl89szA4X4A/276WOLGno4WXtKfxSDZiUO8=
+	t=1739851641; cv=none; b=TvOCUslsNGHrgCSUT5HiAAtsOXEasXbgR4UGZq0++qDc2cO6hJJwChOrHZZmbpJKFjsT7IH+OJq4FJAxzXgfdKKz/Aely4Ymz/9cowT3R04g3Ap5Fkusn0w1H/yhkdsYEVMViJdbYWGri4lETdV4fTMn8Pq5S08ZYsW9NE0F5fM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739851259; c=relaxed/simple;
-	bh=ZU183XEyphSbCiHBcDUtFHGQY9Je9687LZvTUtxG5/4=;
-	h=Date:To:From:Subject:Message-Id; b=W98QJFT0fEtUWmm8v0dRbQh3Ej5qs3aLH3YqBFcvrgWDc2zPfy+0+Qmw8p8T7lFvMKq3ygmrna4qpyTJfVySQc7+cuz+Gti+5MNGSCAoDReDcaMx01R39YYh9quHy5z7SuwDwkuq96XekCgoSSW5OVj2AkdlJ8iON+JhTz5lBtY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L6LfZ1mT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739851641; c=relaxed/simple;
+	bh=jKuds4sYbA7/TiNlDcB+Y2RZajMasp+h4UrXJN9k+gM=;
+	h=Date:To:From:Subject:Message-Id; b=XEkOSXH1lBSQnYb9qzqg0ahntc2kF6LODGqIHNwL6lJa2BHJ/Hh9BqCdgDuB9nElwVNiMBBP0vTB+cCt5MuHFE2SXoaSu4jttUG+L0SK4rsfGrU2GKll/uVLoYAZZWz5MyqlZDxeykRmSaVLQ9xcPcBCymKCagQgV3zg6DdzRg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t9oknF7G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L6LfZ1mT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96763C4CEE6;
-	Tue, 18 Feb 2025 04:00:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t9oknF7G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA180C4CEE6;
+	Tue, 18 Feb 2025 04:07:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739851258;
-	bh=ZU183XEyphSbCiHBcDUtFHGQY9Je9687LZvTUtxG5/4=;
+	s=korg; t=1739851639;
+	bh=jKuds4sYbA7/TiNlDcB+Y2RZajMasp+h4UrXJN9k+gM=;
 	h=Date:To:From:Subject:From;
-	b=L6LfZ1mTArjfXrPN5Ug+KqtvBGK2kUH3fPBgjPK7Oys6anVG9gwwzJauleLQLAMI9
-	 0DCuuhbq3m+mBs0Yl84c1zcuvxT8+iwIU05QMjyEM6ca9VOG38LsA4Il9bkhV025pi
-	 sxZuJnhc9OLn8MghNZHKqTC/2UDBvDS1cEubzPzw=
-Date: Mon, 17 Feb 2025 20:00:58 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,mhocko@suse.com,linmiaohe@huawei.com,david@redhat.com,mawupeng1@huawei.com,akpm@linux-foundation.org
+	b=t9oknF7GCuIX9z9X1DfP8pcRXDHqxaQcgJBAgulH118zLWM3F2qjyTjyx/XEt0vDV
+	 hs1O/TLyL4k2ZCUgpkG0sC370qpwJyI0pcz7i3sVIgZrr7Z7b2UGk3+JQMQ2I4uNCQ
+	 CT5KQty+mw0P7CGcyWCSUY96Cw3PwFNeNa67L+mM=
+Date: Mon, 17 Feb 2025 20:07:19 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250218040058.96763C4CEE6@smtp.kernel.org>
+Subject: + mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split-fix.patch added to mm-unstable branch
+Message-Id: <20250218040719.AA180C4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hwpoison, memory_hotplug: lock folio before unmap hwpoisoned folio
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio.patch
+     Subject: mm/huge_memory: check folio_test_anon() before mapping_large_folio_support()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,91 +58,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ma Wupeng <mawupeng1@huawei.com>
-Subject: hwpoison, memory_hotplug: lock folio before unmap hwpoisoned folio
-Date: Mon, 17 Feb 2025 09:43:29 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: check folio_test_anon() before mapping_large_folio_support()
+Date: Sun, 16 Feb 2025 09:01:29 -0500
 
-Commit b15c87263a69 ("hwpoison, memory_hotplug: allow hwpoisoned pages to
-be offlined) add page poison checks in do_migrate_range in order to make
-offline hwpoisoned page possible by introducing isolate_lru_page and
-try_to_unmap for hwpoisoned page.  However folio lock must be held before
-calling try_to_unmap.  Add it to fix this problem.
+Otherwise mapping_large_folio_support() complains.
 
-Warning will be produced if folio is not locked during unmap:
-
-  ------------[ cut here ]------------
-  kernel BUG at ./include/linux/swapops.h:400!
-  Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
-  Modules linked in:
-  CPU: 4 UID: 0 PID: 411 Comm: bash Tainted: G        W          6.13.0-rc1-00016-g3c434c7ee82a-dirty #41
-  Tainted: [W]=WARN
-  Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
-  pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-  pc : try_to_unmap_one+0xb08/0xd3c
-  lr : try_to_unmap_one+0x3dc/0xd3c
-  Call trace:
-   try_to_unmap_one+0xb08/0xd3c (P)
-   try_to_unmap_one+0x3dc/0xd3c (L)
-   rmap_walk_anon+0xdc/0x1f8
-   rmap_walk+0x3c/0x58
-   try_to_unmap+0x88/0x90
-   unmap_poisoned_folio+0x30/0xa8
-   do_migrate_range+0x4a0/0x568
-   offline_pages+0x5a4/0x670
-   memory_block_action+0x17c/0x374
-   memory_subsys_offline+0x3c/0x78
-   device_offline+0xa4/0xd0
-   state_store+0x8c/0xf0
-   dev_attr_store+0x18/0x2c
-   sysfs_kf_write+0x44/0x54
-   kernfs_fop_write_iter+0x118/0x1a8
-   vfs_write+0x3a8/0x4bc
-   ksys_write+0x6c/0xf8
-   __arm64_sys_write+0x1c/0x28
-   invoke_syscall+0x44/0x100
-   el0_svc_common.constprop.0+0x40/0xe0
-   do_el0_svc+0x1c/0x28
-   el0_svc+0x30/0xd0
-   el0t_64_sync_handler+0xc8/0xcc
-   el0t_64_sync+0x198/0x19c
-  Code: f9407be0 b5fff320 d4210000 17ffff97 (d4210000)
-  ---[ end trace 0000000000000000 ]---
-
-Link: https://lkml.kernel.org/r/20250217014329.3610326-4-mawupeng1@huawei.com
-Fixes: b15c87263a69 ("hwpoison, memory_hotplug: allow hwpoisoned pages to be offlined")
-Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/4483B46A-FEAF-46D9-AFF4-F0DF34864633@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   48 ++++++++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
---- a/mm/memory_hotplug.c~hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio
-+++ a/mm/memory_hotplug.c
-@@ -1832,8 +1832,11 @@ static void do_migrate_range(unsigned lo
- 		    (folio_test_large(folio) && folio_test_has_hwpoisoned(folio))) {
- 			if (WARN_ON(folio_test_lru(folio)))
- 				folio_isolate_lru(folio);
--			if (folio_mapped(folio))
-+			if (folio_mapped(folio)) {
-+				folio_lock(folio);
- 				unmap_poisoned_folio(folio, pfn, false);
-+				folio_unlock(folio);
-+			}
- 
- 			goto put_folio;
+--- a/mm/huge_memory.c~mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split-fix
++++ a/mm/huge_memory.c
+@@ -3723,20 +3723,19 @@ after_split:
+ static bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
+ 		bool warns)
+ {
+-	/* order-1 is not supported for anonymous THP. */
+-	if (folio_test_anon(folio) && new_order == 1) {
+-		VM_WARN_ONCE(warns, "Cannot split to order-1 folio");
+-		return false;
+-	}
+-
+-	/*
+-	 * No split if the file system does not support large folio.
+-	 * Note that we might still have THPs in such mappings due to
+-	 * CONFIG_READ_ONLY_THP_FOR_FS. But in that case, the mapping
+-	 * does not actually support large folios properly.
+-	 */
+-	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
++	if (folio_test_anon(folio)) {
++		/* order-1 is not supported for anonymous THP. */
++		VM_WARN_ONCE(warns && new_order == 1,
++				"Cannot split to order-1 folio");
++		return new_order != 1;
++	} else if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+ 	    !mapping_large_folio_support(folio->mapping)) {
++		/*
++		 * No split if the file system does not support large folio.
++		 * Note that we might still have THPs in such mappings due to
++		 * CONFIG_READ_ONLY_THP_FOR_FS. But in that case, the mapping
++		 * does not actually support large folios properly.
++		 */
+ 		VM_WARN_ONCE(warns,
+ 			"Cannot split file folio to non-0 order");
+ 		return false;
+@@ -3756,24 +3755,25 @@ static bool non_uniform_split_supported(
+ static bool uniform_split_supported(struct folio *folio, unsigned int new_order,
+ 		bool warns)
+ {
+-	if (folio_test_anon(folio) && new_order == 1) {
+-		VM_WARN_ONCE(warns, "Cannot split to order-1 folio");
+-		return false;
+-	}
+-
+-	if (new_order) {
++	if (folio_test_anon(folio)) {
++		VM_WARN_ONCE(warns && new_order == 1,
++				"Cannot split to order-1 folio");
++		return new_order != 1;
++	} else  if (new_order) {
+ 		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+ 		    !mapping_large_folio_support(folio->mapping)) {
+ 			VM_WARN_ONCE(warns,
+ 				"Cannot split file folio to non-0 order");
+ 			return false;
  		}
+-		if (folio_test_swapcache(folio)) {
+-			VM_WARN_ONCE(warns,
+-				"Cannot split swapcache folio to non-0 order");
+-			return false;
+-		}
+ 	}
++
++	if (new_order && folio_test_swapcache(folio)) {
++		VM_WARN_ONCE(warns,
++			"Cannot split swapcache folio to non-0 order");
++		return false;
++	}
++
+ 	return true;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mawupeng1@huawei.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio.patch
-mm-memory-hotplug-check-folio-ref-count-first-in-do_migrate_range.patch
-hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split-fix.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
