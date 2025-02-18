@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25953C1F
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:48:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A95F71AB52F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:48:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739854100; cv=none; b=SwQ1dL9mVMpOcT2qhJoRvaSGIkS6YqYBtNRaS/3jHmk4TwWhJL9kLnfozCeJrAErnwRLQi+0DP+xHDjdtnvzZ/Uzh4bZEouwcfTlN/hqlWXJvIYXPsLwxMW8K6+w0a4iPYqRvS96SBwycbooPjvdUr62dN6+FreOaEIlaaJCjTg=
+	t=1739854102; cv=none; b=tidI/rL+XT4E3F/H3U/Ox6iOM3QB/5gHjkebSrSvu5sgNPuzZtByCZySdEygIIExVXeMjPGZl31Zylg1RHu2jBdR9oB7TxXDLTRAFictgjZb8gJ0M4X6H0roBTd4LYmm3bIBHOs5FqB0st2FDPuRHUd9VmKXWXpjxc3BS/5coZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739854100; c=relaxed/simple;
-	bh=zCKyYQmjG/BXTeHPPap5HtfY2GEzEAVCFHjmKq+qYOA=;
-	h=Date:To:From:Subject:Message-Id; b=eo3nsuflzHxP4K7yGZ46+RZzISDDmnQdnOTKFzPVvW6/byoioWJbWxOYMHC34qLU6AQU8izl8WHGjNmyYqq194Dx3MIurEnXDhmHoOjb4JjLPiu12tliAMHfDgL/vAtvd+QMjdHH6yWTUukoN0bO52mSZRgDsy+7yzPz+Eg9XYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WcBvqoZV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739854102; c=relaxed/simple;
+	bh=+AUHUuF8o5tcd7/JMdV6nmZev9+skbAh9W4G9Bu6MhU=;
+	h=Date:To:From:Subject:Message-Id; b=GswyOLEH1n5uz77Gh20o1B4NYYFRSRPqD7peml5krKYK7NWBkc+8fvtQ/1awd6rW2vLaGuP0e0qGVVqkFwEQ3G5AMS26rujfQvvvazfXlv7WrqT9kmktcGZv0g8JUu+ArUfxx3OibpQPRgNjVzz56wqFkqZPEB0oeHZTk640NzM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FA2XN6Q2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WcBvqoZV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0FDBC4CEE2;
-	Tue, 18 Feb 2025 04:48:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FA2XN6Q2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74C2DC4CEE2;
+	Tue, 18 Feb 2025 04:48:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739854099;
-	bh=zCKyYQmjG/BXTeHPPap5HtfY2GEzEAVCFHjmKq+qYOA=;
+	s=korg; t=1739854102;
+	bh=+AUHUuF8o5tcd7/JMdV6nmZev9+skbAh9W4G9Bu6MhU=;
 	h=Date:To:From:Subject:From;
-	b=WcBvqoZVXu5MN5Q39paWeRGkSZeK9Im0gh4blYJ1NhMM04T5wlFUsl0aQkxRSFjG+
-	 xkhaSWCRsTE+vhSwdgWz15Y9CL+9lkNO52RSIPqDH+Lw4Dh7h0fZ3/H42J9q0Vyf/5
-	 QFUS5SDl+7y31G3rNESlXrywI7hNHGQvJ3a1V6/I=
-Date: Mon, 17 Feb 2025 20:48:19 -0800
-To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=FA2XN6Q2dcjDyfHba7zo6GJwNe9XYlU3/C8hAuWuswVly6B0lH2+Cso0Co9t3GdEA
+	 w41cxYpwWprv4TdpFjMThi0D569nOrx1g3tbEs3hMlWwi4Go3YQZBWU5+GiQ+Vz2V4
+	 Gt1bS952B64OXRdSXBQOMiZZdubK6gE5PjI7ROhw=
+Date: Mon, 17 Feb 2025 20:48:21 -0800
+To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,apopple@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,dan.j.williams@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch added to mm-unstable branch
-Message-Id: <20250218044819.B0FDBC4CEE2@smtp.kernel.org>
+Subject: + dcssblk-mark-dax-broken-remove-fs_dax_limited-support.patch added to mm-unstable branch
+Message-Id: <20250218044822.74C2DC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: don't allow FOLL_LONGTERM pinning of FS DAX pages
+     Subject: dcssblk: mark DAX broken, remove FS_DAX_LIMITED support
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
+     dcssblk-mark-dax-broken-remove-fs_dax_limited-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dcssblk-mark-dax-broken-remove-fs_dax_limited-support.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/gup: don't allow FOLL_LONGTERM pinning of FS DAX pages
-Date: Tue, 18 Feb 2025 14:55:33 +1100
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dcssblk: mark DAX broken, remove FS_DAX_LIMITED support
+Date: Tue, 18 Feb 2025 14:55:34 +1100
 
-Longterm pinning of FS DAX pages should already be disallowed by various
-pXX_devmap checks.  However a future change will cause these checks to be
-invalid for FS DAX pages so make folio_is_longterm_pinnable() return false
-for FS DAX pages.
+The dcssblk driver has long needed special case supoprt to enable limited
+dax operation, so called CONFIG_FS_DAX_LIMITED.  This mode works around
+the incomplete support for ZONE_DEVICE on s390 by forgoing the ability of
+dax-mapped pages to support GUP.
 
-Link: https://lkml.kernel.org/r/9cc175f877358da2fcf1b2b769030d457c16c5dc.1739850794.git-series.apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Now, pending cleanups to fsdax that fix its reference counting [1] depend
+on the ability of all dax drivers to supply ZONE_DEVICE pages.
+
+To allow that work to move forward, dax support needs to be paused for
+dcssblk until ZONE_DEVICE support arrives.  That work has been known for a
+few years [2], and the removal of "pte_devmap" requirements [3] makes the
+conversion easier.
+
+For now, place the support behind CONFIG_BROKEN, and remove PFN_SPECIAL
+(dcssblk was the only user).
+
+Link: http://lore.kernel.org/cover.9f0e45d52f5cff58807831b6b867084d0b14b61c.1725941415.git-series.apopple@nvidia.com [1]
+Link: http://lore.kernel.org/20210820210318.187742e8@thinkpad/ [2]
+Link: http://lore.kernel.org/4511465a4f8429f45e2ac70d2e65dc5e1df1eb47.1725941415.git-series.apopple@nvidia.com [3]
+Link: https://lkml.kernel.org/r/f6a6adc9628745c5545378dcbd64fe68ea8e5ae2.1739850794.git-series.apopple@nvidia.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Tested-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Asahi Lina <lina@asahilina.net>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: WANG Xuerui <kernel@xen0n.name>
@@ -108,67 +122,107 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |   11 +++++++++++
- include/linux/mm.h       |    7 +++++++
- 2 files changed, 18 insertions(+)
+ Documentation/filesystems/dax.rst |    1 -
+ drivers/s390/block/Kconfig        |   12 ++++++++++--
+ drivers/s390/block/dcssblk.c      |   27 +++++++++++++++++----------
+ 3 files changed, 27 insertions(+), 13 deletions(-)
 
---- a/include/linux/memremap.h~mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages
-+++ a/include/linux/memremap.h
-@@ -187,6 +187,17 @@ static inline bool folio_is_device_coher
- 	return is_device_coherent_page(&folio->page);
+--- a/Documentation/filesystems/dax.rst~dcssblk-mark-dax-broken-remove-fs_dax_limited-support
++++ a/Documentation/filesystems/dax.rst
+@@ -207,7 +207,6 @@ implement direct_access.
+ 
+ These block devices may be used for inspiration:
+ - brd: RAM backed block device driver
+-- dcssblk: s390 dcss block device driver
+ - pmem: NVDIMM persistent memory driver
+ 
+ 
+--- a/drivers/s390/block/dcssblk.c~dcssblk-mark-dax-broken-remove-fs_dax_limited-support
++++ a/drivers/s390/block/dcssblk.c
+@@ -534,6 +534,21 @@ static const struct attribute_group *dcs
+ 	NULL,
+ };
+ 
++static int dcssblk_setup_dax(struct dcssblk_dev_info *dev_info)
++{
++	struct dax_device *dax_dev;
++
++	if (!IS_ENABLED(CONFIG_DCSSBLK_DAX))
++		return 0;
++
++	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
++	if (IS_ERR(dax_dev))
++		return PTR_ERR(dax_dev);
++	set_dax_synchronous(dax_dev);
++	dev_info->dax_dev = dax_dev;
++	return dax_add_host(dev_info->dax_dev, dev_info->gd);
++}
++
+ /*
+  * device attribute for adding devices
+  */
+@@ -547,7 +562,6 @@ dcssblk_add_store(struct device *dev, st
+ 	int rc, i, j, num_of_segments;
+ 	struct dcssblk_dev_info *dev_info;
+ 	struct segment_info *seg_info, *temp;
+-	struct dax_device *dax_dev;
+ 	char *local_buf;
+ 	unsigned long seg_byte_size;
+ 
+@@ -674,14 +688,7 @@ dcssblk_add_store(struct device *dev, st
+ 	if (rc)
+ 		goto put_dev;
+ 
+-	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
+-	if (IS_ERR(dax_dev)) {
+-		rc = PTR_ERR(dax_dev);
+-		goto put_dev;
+-	}
+-	set_dax_synchronous(dax_dev);
+-	dev_info->dax_dev = dax_dev;
+-	rc = dax_add_host(dev_info->dax_dev, dev_info->gd);
++	rc = dcssblk_setup_dax(dev_info);
+ 	if (rc)
+ 		goto out_dax;
+ 
+@@ -917,7 +924,7 @@ __dcssblk_direct_access(struct dcssblk_d
+ 		*kaddr = __va(dev_info->start + offset);
+ 	if (pfn)
+ 		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
+-				PFN_DEV|PFN_SPECIAL);
++				      PFN_DEV);
+ 
+ 	return (dev_sz - offset) / PAGE_SIZE;
  }
+--- a/drivers/s390/block/Kconfig~dcssblk-mark-dax-broken-remove-fs_dax_limited-support
++++ a/drivers/s390/block/Kconfig
+@@ -4,13 +4,21 @@ comment "S/390 block device drivers"
  
-+static inline bool is_fsdax_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		page_pgmap(page)->type == MEMORY_DEVICE_FS_DAX;
-+}
-+
-+static inline bool folio_is_fsdax(const struct folio *folio)
-+{
-+	return is_fsdax_page(&folio->page);
-+}
-+
- #ifdef CONFIG_ZONE_DEVICE
- void zone_device_page_init(struct page *page);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
---- a/include/linux/mm.h~mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages
-+++ a/include/linux/mm.h
-@@ -2109,6 +2109,13 @@ static inline bool folio_is_longterm_pin
- 	if (folio_is_device_coherent(folio))
- 		return false;
+ config DCSSBLK
+ 	def_tristate m
+-	select FS_DAX_LIMITED
+-	select DAX
+ 	prompt "DCSSBLK support"
+ 	depends on S390 && BLOCK
+ 	help
+ 	  Support for dcss block device
  
-+	/*
-+	 * Filesystems can only tolerate transient delays to truncate and
-+	 * hole-punch operations
-+	 */
-+	if (folio_is_fsdax(folio))
-+		return false;
++config DCSSBLK_DAX
++	def_bool y
++	depends on DCSSBLK
++	# requires S390 ZONE_DEVICE support
++	depends on BROKEN
++	select DAX
++	prompt "DCSSBLK DAX support"
++	help
++	  Enable DAX operation for the dcss block device
 +
- 	/* Otherwise, non-movable zone folios can be pinned. */
- 	return !folio_is_zone_movable(folio);
- 
+ config DASD
+ 	def_tristate y
+ 	prompt "Support for DASD devices"
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-fuse-fix-dax-truncate-punch_hole-fault-path.patch
-fs-dax-return-unmapped-busy-pages-from-dax_layout_busy_page_range.patch
-fs-dax-dont-skip-locked-entries-when-scanning-entries.patch
-fs-dax-refactor-wait-for-dax-idle-page.patch
-fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
-fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
-fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
-fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch
-mm-gup-remove-redundant-check-for-pci-p2pdma-page.patch
-mm-mm_init-move-p2pdma-page-refcount-initialisation-to-p2pdma.patch
-mm-allow-compound-zone-device-pages.patch
-mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
-mm-memory-add-vmf_insert_page_mkwrite.patch
-mm-rmap-add-support-for-pud-sized-mappings-to-rmap.patch
-mm-huge_memory-add-vmf_insert_folio_pud.patch
-mm-huge_memory-add-vmf_insert_folio_pmd.patch
-mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
-fs-dax-properly-refcount-fs-dax-pages.patch
-device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+dcssblk-mark-dax-broken-remove-fs_dax_limited-support.patch
 
