@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D365D1714C6
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:28:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EE0DA47
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:30:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739852917; cv=none; b=gxMP+EPbz4rBUJ2a3hY1g/OXKXD48t9cHQ/aW089Ic2A7ejtpaLHXc35bj0CdQ/sx/OjCxtNuyiqTK6rdM7KKq2nyqExi2TFXo/KzidNboJ5Mbem+904VsNfxRn9cCd+WgpABNOAqPT8oMIzLLU3jSKmvlfAghqcg3/SGWBXINo=
+	t=1739853047; cv=none; b=JK484CSVbMEOiZ001fhHICJ1JzNzsM1xoLCBZxyJwcVPN7ngFkOvhZdTJVrOYgK5yepGDFULwYHnK4aaHgquJNSn9IgMsyo9RGYFt9ykueyzZdimvoPuxg1JAGo52hmg+CwoDjTolkXynauZ3UasGctWD93WYewg2PbYxEmyJ04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739852917; c=relaxed/simple;
-	bh=RDjRElPz0BV7qL3RrW/fCS5MMZkm4q3ZWTBkhQyJ7Js=;
-	h=Date:To:From:Subject:Message-Id; b=lYfhDX1HBr0Lzdb72ahDgbgloh8hABf1QjQOuDrtG1AHN7kpaWc7/PBduLpzHy6XOuUu5eLgHjppvcD9rlWZ1QEntF/w8493fXGKFUKkc9kP0tkk8KMQqIEzlWLhi3Tdo0MLvEmaIe+Apbc0a3AWYTF6bCUn7+bLPMrb0l6KJH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gs9O7hRr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739853047; c=relaxed/simple;
+	bh=nB/luIG1pT1L8LK2Xt7HJbbGxS+ep89yCw+GBv7swqA=;
+	h=Date:To:From:Subject:Message-Id; b=VyBonH29J8d3cAkaIkXsxLI/IuOQKp+E8dM+oIqRznLHydbvgGdbQQONV7KPfWBnw4SC4cx+CEtC0XHTnGGU+oN45o3dK0POrCLbxS/gdjjw1XGgEM1Ciou0Ao5KqxDqlra8cOhWkMXdmsnzX/qeiA5y/SmIIjQUvKt/RQ4W+W0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sJxCAVLo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gs9O7hRr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36CB0C4CEE2;
-	Tue, 18 Feb 2025 04:28:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sJxCAVLo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE765C4CEE2;
+	Tue, 18 Feb 2025 04:30:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739852917;
-	bh=RDjRElPz0BV7qL3RrW/fCS5MMZkm4q3ZWTBkhQyJ7Js=;
+	s=korg; t=1739853046;
+	bh=nB/luIG1pT1L8LK2Xt7HJbbGxS+ep89yCw+GBv7swqA=;
 	h=Date:To:From:Subject:From;
-	b=Gs9O7hRrpTk+gnpxLnb0Rl8+K0SmJRiPY5PGLN6bYtwL0iJralHY04DFrWLX4UTmN
-	 wboHdoOK/xhBbHIsdEss65phxOPwNVlV0RR493/go5ruk151QXQKLPAnhZs3u11B9V
-	 hJi/5LfGZQnotGJDn24Nz5IbCI5YmQQ7fxHQ63Us=
-Date: Mon, 17 Feb 2025 20:28:36 -0800
+	b=sJxCAVLo8MH184vtuerc0apMdavPpcTNQfyKjh66kEbv+uq6Jyi/f5nmzTNHt6+UU
+	 mtnNS526NJ7OvmFLuRXRAhLnc3dgZ0/bCGSubsV7GKDHs9ORWIQ7gd1QP6BqJMla55
+	 WkT/h3pJPgsH+hnptj8s4y2cTvET4J9ZByccG8cw=
+Date: Mon, 17 Feb 2025 20:30:46 -0800
 To: mm-commits@vger.kernel.org,ujwal.kundur@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-fix-doc-link-to-fault-injectionrst.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250218042837.36CB0C4CEE2@smtp.kernel.org>
+Subject: + selftests-mm-fix-spelling.patch added to mm-unstable branch
+Message-Id: <20250218043046.AE765C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: fix doc link to fault-injection.rst
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     documentation-fix-doc-link-to-fault-injectionrst.patch
+     Subject: selftests/mm: fix spelling
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-fix-spelling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-fix-doc-link-to-fault-injectionrst.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-spelling.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,33 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ujwal Kundur <ujwal.kundur@gmail.com>
-Subject: Documentation: fix doc link to fault-injection.rst
-Date: Sat, 15 Feb 2025 16:21:07 +0530
+Subject: selftests/mm: fix spelling
+Date: Sat, 15 Feb 2025 13:48:03 +0530
 
-Fix incorrect reference to fault-injection docs
+Fix misspelling flagged by codespell.
 
-Link: https://lkml.kernel.org/r/20250215105106.734-1-ujwal.kundur@gmail.com
+Link: https://lkml.kernel.org/r/20250215081803.1793-1-ujwal.kundur@gmail.com
 Signed-off-by: Ujwal Kundur <ujwal.kundur@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
+ tools/testing/selftests/mm/uffd-common.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~documentation-fix-doc-link-to-fault-injectionrst
-+++ a/lib/Kconfig.debug
-@@ -2103,7 +2103,7 @@ config FAIL_SKB_REALLOC
- 	  reallocated, catching possible invalid pointers to the skb.
- 
- 	  For more information, check
--	  Documentation/dev-tools/fault-injection/fault-injection.rst
-+	  Documentation/fault-injection/fault-injection.rst
- 
- config FAULT_INJECTION_CONFIGFS
- 	bool "Configfs interface for fault-injection capabilities"
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-fix-spelling
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -348,7 +348,7 @@ int uffd_test_ctx_init(uint64_t features
+ 	/*
+ 	 * After initialization of area_src, we must explicitly release pages
+ 	 * for area_dst to make sure it's fully empty.  Otherwise we could have
+-	 * some area_dst pages be errornously initialized with zero pages,
++	 * some area_dst pages be erroneously initialized with zero pages,
+ 	 * hence we could hit memory corruption later in the test.
+ 	 *
+ 	 * One example is when THP is globally enabled, above allocate_area()
 _
 
 Patches currently in -mm which might be from ujwal.kundur@gmail.com are
 
 documentation-fix-doc-link-to-fault-injectionrst.patch
+selftests-mm-fix-spelling.patch
 
