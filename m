@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C99F1AF0CB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 06:41:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 426D51AF0CB
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 06:41:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739860861; cv=none; b=eHD4YF/WDUZsJHk1a904Ws1iF1p1SEWlI+sBBX92QGStr80D18492bEGVnKODIrlH8DbGKkFvpiVf0Yc9g4ZagA9EyCtIwHxpqqrvYNRjyAcF2nbVLJqZpcxOc0h+yBScrBrcyqVz7qyj7AU/ua0SUHmBjNAkX6ZGfS3mVD2GTI=
+	t=1739860863; cv=none; b=dVikUKpIsMyzbUBmG35EU4vH1wZ1OtcDGh9wLD0Uma9KdngJ1hEv1Q6VDUaofqyzoil9xiwQOF2TAoHAaviiuqTOXfKxIzNqEuSs0NcPjmDkE2jb9XZFQsV3g3nJVvSh5pHVcxtDOC/4cqYVdxQotQ3XEWj+1BNrRjQMx35Zm08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739860861; c=relaxed/simple;
-	bh=kK7sbMxyyevbRYjwk88X5/0Eq+yFnkDNVo1zWuW+uEw=;
-	h=Date:To:From:Subject:Message-Id; b=HAQofr3r5JeQby5razeZxI0EwbLMTdz3rjSGVXlHJk0XiDydtJNKAiSyFc1sITO3P6yyqkqUPxqGd8Nm+6SMeOIqKmE1aem5xFVnuQS1BGkDKRTa298Mp9Zg/KVguRHTh+ZGi4qBxlE+f+IZZZb5yx+hqGRJoKK11vaMBBQs54g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GI5Yj6b0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739860863; c=relaxed/simple;
+	bh=QiG/UEXBO8vn67s0Q2Tg4LckTDwFRXMAtEhFFGQf3qU=;
+	h=Date:To:From:Subject:Message-Id; b=JhCBWiPHvPginevlKS0OIEIrbamxX0HBWIr4XrdONeuh/wD6igZ3lTQaOEEi8a7pNPA14L+V7wev0VWyGzl/24/hTiRtCf5+bKuJmOhN5yq+VB2ZCVvtIZ5vTph4f9TzzG5rT9dTdHzhO3yAL7Eqsl5ll6MZ1BIijNNvaEV6WuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VdLjoSFT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GI5Yj6b0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51395C4CEE2;
-	Tue, 18 Feb 2025 06:41:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VdLjoSFT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5ADBC4CEE2;
+	Tue, 18 Feb 2025 06:41:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739860861;
-	bh=kK7sbMxyyevbRYjwk88X5/0Eq+yFnkDNVo1zWuW+uEw=;
+	s=korg; t=1739860863;
+	bh=QiG/UEXBO8vn67s0Q2Tg4LckTDwFRXMAtEhFFGQf3qU=;
 	h=Date:To:From:Subject:From;
-	b=GI5Yj6b0uWX+zEzptstRf93c9NBzFBi+L8X82ZlMtENiYu+eGLUfj32f7VS5AIkEv
-	 pgodCAm271KuAEydmmMSpbj8PNZcUAYTGLSJUJMMPRUtghnoMohTSpDM/sJe8BQaIx
-	 03ML1Yb4PsgvtIRm3gqPDocoJ5ylpQSE308NEDXo=
-Date: Mon, 17 Feb 2025 22:41:00 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,npache@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=VdLjoSFT9/utM65W2D09c0rguLQd9q2hEo6LAFFZMow4bnplkYX804EPTPmnpy53c
+	 TxEh9vvDuo3FPGCO0j/WTjmgGRbdX1Of5Lwlb5qx1pJx+bFXjGBqrwFqX/cxe78CgO
+	 iSzwPe7uiBtn/redjdgJhTffJm5ZktSGkLKWtYGs=
+Date: Mon, 17 Feb 2025 22:41:02 -0800
+To: mm-commits@vger.kernel.org,ndesaulniers@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-check-for-running-thp-tests.patch removed from -mm tree
-Message-Id: <20250218064101.51395C4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-nicks-contact-info.patch removed from -mm tree
+Message-Id: <20250218064102.E5ADBC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix check for running THP tests
+     Subject: MAINTAINERS: update Nick's contact info
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-check-for-running-thp-tests.patch
+     maintainers-update-nicks-contact-info.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: fix check for running THP tests
-Date: Wed, 12 Feb 2025 17:44:25 +0000
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: MAINTAINERS: update Nick's contact info
+Date: Wed, 12 Feb 2025 09:35:20 -0800
 
-When testing if we should try to compact memory or drop caches before we
-run the THP or HugeTLB tests we use | as an or operator.  This doesn't
-work since run_vmtests.sh is written in shell where this is used to pipe
-the output of the first argument into the second.  Instead use the shell's
--o operator.
+Updated .mailmap, but forgot these other places.
 
-Link: https://lkml.kernel.org/r/20250212-kselftest-mm-no-hugepages-v1-1-44702f538522@kernel.org
-Fixes: b433ffa8dbac ("selftests: mm: perform some system cleanup before using hugepages")
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Reviewed-by: Nico Pache <npache@redhat.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250212173523.3979840-1-ndesaulniers@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/process/embargoed-hardware-issues.rst                    |    2 +-
+ Documentation/translations/sp_SP/process/embargoed-hardware-issues.rst |    2 +-
+ MAINTAINERS                                                            |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-fix-check-for-running-thp-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -220,7 +220,7 @@ run_test() {
- 	if test_selected ${CATEGORY}; then
- 		# On memory constrainted systems some tests can fail to allocate hugepages.
- 		# perform some cleanup before the test for a higher success rate.
--		if [ ${CATEGORY} == "thp" ] | [ ${CATEGORY} == "hugetlb" ]; then
-+		if [ ${CATEGORY} == "thp" -o ${CATEGORY} == "hugetlb" ]; then
- 			echo 3 > /proc/sys/vm/drop_caches
- 			sleep 2
- 			echo 1 > /proc/sys/vm/compact_memory
+--- a/Documentation/process/embargoed-hardware-issues.rst~maintainers-update-nicks-contact-info
++++ a/Documentation/process/embargoed-hardware-issues.rst
+@@ -308,7 +308,7 @@ an involved disclosed party. The current
+ 
+   Google	Kees Cook <keescook@chromium.org>
+ 
+-  LLVM		Nick Desaulniers <ndesaulniers@google.com>
++  LLVM		Nick Desaulniers <nick.desaulniers+lkml@gmail.com>
+   ============= ========================================================
+ 
+ If you want your organization to be added to the ambassadors list, please
+--- a/Documentation/translations/sp_SP/process/embargoed-hardware-issues.rst~maintainers-update-nicks-contact-info
++++ a/Documentation/translations/sp_SP/process/embargoed-hardware-issues.rst
+@@ -287,7 +287,7 @@ revelada involucrada. La lista de embaja
+ 
+   Google	Kees Cook <keescook@chromium.org>
+ 
+-  LLVM		Nick Desaulniers <ndesaulniers@google.com>
++  LLVM		Nick Desaulniers <nick.desaulniers+lkml@gmail.com>
+   ============= ========================================================
+ 
+ Si quiere que su organización se añada a la lista de embajadores, por
+--- a/MAINTAINERS~maintainers-update-nicks-contact-info
++++ a/MAINTAINERS
+@@ -5655,7 +5655,7 @@ F:	.clang-format
+ 
+ CLANG/LLVM BUILD SUPPORT
+ M:	Nathan Chancellor <nathan@kernel.org>
+-R:	Nick Desaulniers <ndesaulniers@google.com>
++R:	Nick Desaulniers <nick.desaulniers+lkml@gmail.com>
+ R:	Bill Wendling <morbo@google.com>
+ R:	Justin Stitt <justinstitt@google.com>
+ L:	llvm@lists.linux.dev
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-selftests-mm-fix-thuge-gen-test-name-uniqueness.patch
-selftests-mm-allow-tests-to-run-with-no-huge-pages-support.patch
 
