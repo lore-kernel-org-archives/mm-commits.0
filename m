@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 719541714C6
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:27:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D365D1714C6
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:28:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739852822; cv=none; b=uuXXi3BiMPbOqKuyiAQfuoxrbk25tEUV6yW2FpXivglLJS8zIXt6GqJsZd67ZyrHUTqDrE+zU0022x/Lb1sxkiIWKrTmMCfmt7A6T0sSGmHYprxyVhOCKhVHHda8n3zj4TR9ldX2R5XzBsGTN+RrPENiVlR2o7GxzBz9k5pN3GQ=
+	t=1739852917; cv=none; b=gxMP+EPbz4rBUJ2a3hY1g/OXKXD48t9cHQ/aW089Ic2A7ejtpaLHXc35bj0CdQ/sx/OjCxtNuyiqTK6rdM7KKq2nyqExi2TFXo/KzidNboJ5Mbem+904VsNfxRn9cCd+WgpABNOAqPT8oMIzLLU3jSKmvlfAghqcg3/SGWBXINo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739852822; c=relaxed/simple;
-	bh=eDpTmU67SEnuycc790OOevX18vw2rnHh2/Z1rNjfnlg=;
-	h=Date:To:From:Subject:Message-Id; b=qjXox4IsilImCtTOGwluZKKHU3VJPBHS0cvx/O6cZ+VAZ79AghEp1UsTut3zDCXZTKtKUBE7I56ZRi+hYp97os/DLgS8pH44AeFvncVbmNB2v4be21CHdxxUWds7dg9DXBfSS1ohJwkltWBP8iuziwbDs2YvUYyZG5kQNkAVL/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Adolo3d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739852917; c=relaxed/simple;
+	bh=RDjRElPz0BV7qL3RrW/fCS5MMZkm4q3ZWTBkhQyJ7Js=;
+	h=Date:To:From:Subject:Message-Id; b=lYfhDX1HBr0Lzdb72ahDgbgloh8hABf1QjQOuDrtG1AHN7kpaWc7/PBduLpzHy6XOuUu5eLgHjppvcD9rlWZ1QEntF/w8493fXGKFUKkc9kP0tkk8KMQqIEzlWLhi3Tdo0MLvEmaIe+Apbc0a3AWYTF6bCUn7+bLPMrb0l6KJH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gs9O7hRr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Adolo3d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F27C4CEE2;
-	Tue, 18 Feb 2025 04:27:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gs9O7hRr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36CB0C4CEE2;
+	Tue, 18 Feb 2025 04:28:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739852821;
-	bh=eDpTmU67SEnuycc790OOevX18vw2rnHh2/Z1rNjfnlg=;
+	s=korg; t=1739852917;
+	bh=RDjRElPz0BV7qL3RrW/fCS5MMZkm4q3ZWTBkhQyJ7Js=;
 	h=Date:To:From:Subject:From;
-	b=2Adolo3dejI71+6VtIKKeBpHTuKNKQR614bIhcUj7g2ULKYlxOQiNM8iYkqntpNUq
-	 VlsEJz/hvw5avhdN31TNJyqp8qK1DPqbPabGqnooF8VpJXQddyCoOu853Hm01kM6Kx
-	 u5H0KA77Rsk2+/f+aDMGtTQtjupRSokqxP0y+/mM=
-Date: Mon, 17 Feb 2025 20:27:01 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,jserv@ccns.ncku.edu.tw,corbet@lwn.net,eleanor15x@gmail.com,akpm@linux-foundation.org
+	b=Gs9O7hRrpTk+gnpxLnb0Rl8+K0SmJRiPY5PGLN6bYtwL0iJralHY04DFrWLX4UTmN
+	 wboHdoOK/xhBbHIsdEss65phxOPwNVlV0RR493/go5ruk151QXQKLPAnhZs3u11B9V
+	 hJi/5LfGZQnotGJDn24Nz5IbCI5YmQQ7fxHQ63Us=
+Date: Mon, 17 Feb 2025 20:28:36 -0800
+To: mm-commits@vger.kernel.org,ujwal.kundur@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-core-api-min_heap-update-for-variable-types-change.patch added to mm-nonmm-unstable branch
-Message-Id: <20250218042701.C2F27C4CEE2@smtp.kernel.org>
+Subject: + documentation-fix-doc-link-to-fault-injectionrst.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250218042837.36CB0C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/core-api: min_heap: update for variable types change
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     documentation-core-api-min_heap-update-for-variable-types-change.patch
+     Subject: Documentation: fix doc link to fault-injection.rst
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     documentation-fix-doc-link-to-fault-injectionrst.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-core-api-min_heap-update-for-variable-types-change.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-fix-doc-link-to-fault-injectionrst.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu-Chun Lin <eleanor15x@gmail.com>
-Subject: Documentation/core-api: min_heap: update for variable types change
-Date: Sat, 15 Feb 2025 23:54:21 +0800
+From: Ujwal Kundur <ujwal.kundur@gmail.com>
+Subject: Documentation: fix doc link to fault-injection.rst
+Date: Sat, 15 Feb 2025 16:21:07 +0530
 
-Update the documentation to reflect the change in variable types of 'nr'
-and 'size' from 'int' to 'size_t', ensuring consistency with commit
-dec6c0aac4fc ("lib min_heap: Switch to size_t").
+Fix incorrect reference to fault-injection docs
 
-Link: https://lkml.kernel.org/r/20250215155421.2010336-1-eleanor15x@gmail.com
-Signed-off-by: Yu-Chun Lin <eleanor15x@gmail.com>
-Acked-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20250215105106.734-1-ujwal.kundur@gmail.com
+Signed-off-by: Ujwal Kundur <ujwal.kundur@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/min_heap.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/min_heap.rst~documentation-core-api-min_heap-update-for-variable-types-change
-+++ a/Documentation/core-api/min_heap.rst
-@@ -47,8 +47,8 @@ Example:
+--- a/lib/Kconfig.debug~documentation-fix-doc-link-to-fault-injectionrst
++++ a/lib/Kconfig.debug
+@@ -2103,7 +2103,7 @@ config FAIL_SKB_REALLOC
+ 	  reallocated, catching possible invalid pointers to the skb.
  
-     #define MIN_HEAP_PREALLOCATED(_type, _name, _nr)
-     struct _name {
--        int nr;         /* Number of elements in the heap */
--        int size;       /* Maximum number of elements that can be held */
-+        size_t nr;         /* Number of elements in the heap */
-+        size_t size;       /* Maximum number of elements that can be held */
-         _type *data;    /* Pointer to the heap data */
-         _type preallocated[_nr];  /* Static preallocated array */
-     }
+ 	  For more information, check
+-	  Documentation/dev-tools/fault-injection/fault-injection.rst
++	  Documentation/fault-injection/fault-injection.rst
+ 
+ config FAULT_INJECTION_CONFIGFS
+ 	bool "Configfs interface for fault-injection capabilities"
 _
 
-Patches currently in -mm which might be from eleanor15x@gmail.com are
+Patches currently in -mm which might be from ujwal.kundur@gmail.com are
 
-documentation-core-api-min_heap-update-for-variable-types-change.patch
+documentation-fix-doc-link-to-fault-injectionrst.patch
 
