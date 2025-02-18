@@ -1,124 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BB01AF0CB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 06:41:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990CDC2FA
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 08:48:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739860866; cv=none; b=WTPGdJry5IddYuxRhRyBGAMC/NXJCufj5rnkg0mr9pFI0UwerKJkhj3wTkUBrvC0o9hRtBBkfn9fJZjqdwobCfyTJ+I7rM6Zc54BYIHXPihBVkQpjR48OzhjR0C7TZ8VBLLNLh6O2IekEjmTXx05HLwDT34WaMJuOy7okTsyQ84=
+	t=1739868537; cv=none; b=p4fB+Q0BHNdao3M2J2sPrq2/4pFgMgdC042Y5NgLubyhSJdzGUrJdfw6N2NRL5+bUHpCevYfIbLuVtki3iPBlR1VDsC4AvI0xZdm0I7hbCrG7FneNjruL2dP13PnD6r70Uf0F11I4UbdA9vt7tj3B15PKpNdqGqoyQcHYANaXjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739860866; c=relaxed/simple;
-	bh=USKp2I3VY3WJhhvQrzWe1Tc3sy5BfWuXB+DGTu+I4OI=;
-	h=Date:To:From:Subject:Message-Id; b=eizCBvQNKW9qrpqw2bCEcNkInbIj8YxZBXcfpgrXfg4YgpV/KdABO4AQ0nl8mIznNCX9R6C+5MgZzf9zgLy/fmffkODSOKZ0IY3EIWLubl3hzxsJWsFb3aK+ZsrWZGGThnOV0hDQo+yacHb2G5ni7tLlHQOhSv2Ht3cqzMKPWW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dSqwInFY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739868537; c=relaxed/simple;
+	bh=kH/e1SU6FvJqYbGaPpivjO2OzyMjuNGbB+2dUAGjkqM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=UInxf/idCGK6qcceK3DV9giXxvTTaXTA3ijtMsnBPY+fvGaYfGP47TxGA42AEmx1M2LpfcjtUqK8NQiW8gvWbV+oAPYsgC8Tg/MEb6MJ1uY0Q5n2puWR5ktFnalUYRbVKCIhTmIL+wHWZ/hr6RTTWiw9vDnw7ri2TJAs/TgC7V8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FR11jy0w; arc=none smtp.client-ip=209.85.167.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dSqwInFY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D57C2C4CEE2;
-	Tue, 18 Feb 2025 06:41:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739860865;
-	bh=USKp2I3VY3WJhhvQrzWe1Tc3sy5BfWuXB+DGTu+I4OI=;
-	h=Date:To:From:Subject:From;
-	b=dSqwInFYBWsV8sOanfbEMqwLBNff97PvaB13TZdty7dg57ixhdnARVLDtYEpAS/DR
-	 vvtau2juSioEojL+fwQTh7qiA+ZREPDVjEPMxlC8AVHCGJAbTYG+6sDO4YdTFYdeVQ
-	 e2+IBcssT/H0DGp9m4HGEzSLCRW6IloEvz75NNeE=
-Date: Mon, 17 Feb 2025 22:41:05 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,geert@linux-m68k.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] test_xarray-fix-failure-in-check_pause-when-config_xarray_multi-is-not-defined.patch removed from -mm tree
-Message-Id: <20250218064105.D57C2C4CEE2@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FR11jy0w"
+Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-3f3edbef7d2so572228b6e.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 00:48:54 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1739868533; x=1740473333; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=w1MmnCayVmCKnV17R+SPQYgsQpqgqtnHQEQyD/XwNmA=;
+        b=FR11jy0wXl7ANMGv4MirxqU4VDwjmWApBl7omPp1NUAkUmb4hSX0h5A76mAh6NsTJX
+         RS9pNyNG4y68hU3gf+q87y+et0kxQbrbqv4s6AY2PeckudXOYd3//Kmwf0n7kIv1FCCl
+         azSgJ7Yojo5mqxEezibc0nLD2b9i6cuD1C3FSwfyzkJ4lS2k+FQz8vvCD6lpI/8vKder
+         S1vt2bJs9z6k5ILhtwr+JmkPXKm8SsajEj6zA0AjgkxIVzGnwwSw8JFi9sOn7Yp4jdlH
+         BtTlXc6cECnyuB1GcGWspI3pGElgLtPnrjdC50BI3v/8a20/RRXMydlF2YIQM4mknPoq
+         ww2Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739868533; x=1740473333;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=w1MmnCayVmCKnV17R+SPQYgsQpqgqtnHQEQyD/XwNmA=;
+        b=OXazTrzql2+B9akKYSV54/9yY/ykW3E5yL26vHFu3QuHXyY56X25Z1xu0M3efC53q3
+         FZ55tlr3cY2091oSzs7ru0TJjWCbfZ/AcZuAzkKzqgDs2DTXaqnnYwF/teqe6B2TiLZ+
+         eGSdrcqM8hYv6woKrIcouBYifJHAd7gJ9IlHQPGfgFZsSq0Mk3sELV7baY9QL6Y50y4Z
+         Ns0EvuBwcyDOpHNq2r4IXaQysKMVAt62msvTPDRJP8dIaI9w0WhcOET0hSDvGm9GzKGo
+         b/iC9nZ5UAh/2B4WX5eLraiaCEzbeiFgM2BdmaXsZWJOMbN4+zH3cqG7RHEGgbCCAABt
+         Akaw==
+X-Gm-Message-State: AOJu0YybilQ5EdXDYH5/KYyrmrE2F1croCMrijS7qFQMLV36uwgjkT5q
+	xWfZezdcDw3xt+YArj+Nb45pim2eHodGwWCBqWLH/Kv4YT211xxP/+LYjbF6bi8+s2C6jPXaiuc
+	VWaGUR5eSivSzYii9WlEHbB/QeFzEfyFVK1p5OA==
+X-Gm-Gg: ASbGncsswthcU9YzEXvFmxMmWlHxdMPB2vSan7xgjD1rWCIaxbXkjRlOSbW71SAdJw0
+	e8YnDtlu5nZdeozZGKhPP0W7+wvKM3fPmqIGO0PBYO1EWpNdjTKm7GffXt7S2kx2jYAdUyopJ7w
+	arpeWtB12A9DDMQA==
+X-Google-Smtp-Source: AGHT+IGKo2lwEL+RUGRydqR3jceHxtioue+DTzHuZf9dPYrRZoDgTL+WjY72pd3VLgoqDoGXBpJUrDuGYgnJ/htLGbU=
+X-Received: by 2002:a05:6808:2e8d:b0:3f3:e6a2:34b9 with SMTP id
+ 5614622812f47-3f3eb12db4dmr8305991b6e.37.1739868533448; Tue, 18 Feb 2025
+ 00:48:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20250218042407.5B384C4CEE2@smtp.kernel.org>
+In-Reply-To: <20250218042407.5B384C4CEE2@smtp.kernel.org>
+From: Suchit K <suchitkarunakaran@gmail.com>
+Date: Tue, 18 Feb 2025 14:18:42 +0530
+X-Gm-Features: AWEUYZkV9QlJMDjNKKzVP-826---tJynjpRZCzptdtGbE8SNdkTdMiyJ9hu_57A
+Message-ID: <CAO9wTFiAphJkat=64R9EmWC+SqQ_ysmyHDVV30E+sHLhYt2_Rg@mail.gmail.com>
+Subject: Re: + documentation-mm-fix-spelling-mistake.patch added to
+ mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org
+Content-Type: text/plain; charset="UTF-8"
 
+Hi Andrew, I'm not sure what my next step should be. Should I find the
+original patch message and reply with something specific?
 
-The quilt patch titled
-     Subject: test_xarray: fix failure in check_pause when CONFIG_XARRAY_MULTI is not defined
-has been removed from the -mm tree.  Its filename was
-     test_xarray-fix-failure-in-check_pause-when-config_xarray_multi-is-not-defined.patch
-
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: test_xarray: fix failure in check_pause when CONFIG_XARRAY_MULTI is not defined
-Date: Fri, 14 Feb 2025 00:36:59 +0800
-
-In case CONFIG_XARRAY_MULTI is not defined, xa_store_order can store a
-multi-index entry but xas_for_each can't tell sbiling entry from valid
-entry.  So the check_pause failed when we store a multi-index entry and
-wish xas_for_each can handle it normally.  Avoid to store multi-index
-entry when CONFIG_XARRAY_MULTI is disabled to fix the failure.
-
-Link: https://lkml.kernel.org/r/20250213163659.414309-1-shikemeng@huaweicloud.com
-Fixes: c9ba5249ef8b ("Xarray: move forward index correctly in xas_pause()")
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Closes: https://lore.kernel.org/r/CAMuHMdU_bfadUO=0OZ=AoQ9EAmQPA4wsLCBqohXR+QCeCKRn4A@mail.gmail.com
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/test_xarray.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
---- a/lib/test_xarray.c~test_xarray-fix-failure-in-check_pause-when-config_xarray_multi-is-not-defined
-+++ a/lib/test_xarray.c
-@@ -1418,7 +1418,7 @@ static noinline void check_pause(struct
- {
- 	XA_STATE(xas, xa, 0);
- 	void *entry;
--	unsigned int order;
-+	int order;
- 	unsigned long index = 1;
- 	unsigned int count = 0;
- 
-@@ -1450,7 +1450,7 @@ static noinline void check_pause(struct
- 	xa_destroy(xa);
- 
- 	index = 0;
--	for (order = XA_CHUNK_SHIFT; order > 0; order--) {
-+	for (order = order_limit - 1; order >= 0; order--) {
- 		XA_BUG_ON(xa, xa_store_order(xa, index, order,
- 					xa_mk_index(index), GFP_KERNEL));
- 		index += 1UL << order;
-@@ -1462,24 +1462,25 @@ static noinline void check_pause(struct
- 	rcu_read_lock();
- 	xas_for_each(&xas, entry, ULONG_MAX) {
- 		XA_BUG_ON(xa, entry != xa_mk_index(index));
--		index += 1UL << (XA_CHUNK_SHIFT - count);
-+		index += 1UL << (order_limit - count - 1);
- 		count++;
- 	}
- 	rcu_read_unlock();
--	XA_BUG_ON(xa, count != XA_CHUNK_SHIFT);
-+	XA_BUG_ON(xa, count != order_limit);
- 
- 	index = 0;
- 	count = 0;
--	xas_set(&xas, XA_CHUNK_SIZE / 2 + 1);
-+	/* test unaligned index */
-+	xas_set(&xas, 1 % (1UL << (order_limit - 1)));
- 	rcu_read_lock();
- 	xas_for_each(&xas, entry, ULONG_MAX) {
- 		XA_BUG_ON(xa, entry != xa_mk_index(index));
--		index += 1UL << (XA_CHUNK_SHIFT - count);
-+		index += 1UL << (order_limit - count - 1);
- 		count++;
- 		xas_pause(&xas);
- 	}
- 	rcu_read_unlock();
--	XA_BUG_ON(xa, count != XA_CHUNK_SHIFT);
-+	XA_BUG_ON(xa, count != order_limit);
- 
- 	xa_destroy(xa);
- 
-_
-
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
-
-
+On Tue, 18 Feb 2025 at 09:54, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+>
+> The patch titled
+>      Subject: Documentation/mm: fix spelling mistake
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      documentation-mm-fix-spelling-mistake.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-fix-spelling-mistake.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Suchit K <suchitkarunakaran@gmail.com>
+> Subject: Documentation/mm: fix spelling mistake
+> Date: Sat, 15 Feb 2025 22:30:42 +0530
+>
+> The word watermark was misspelled as "watemark".
+>
+> Link: https://lkml.kernel.org/r/CAO9wTFhe4sf1eVVgijt2cdLPPsUHBj7B=HN-380_JSpve5KbvQ@mail.gmail.com
+> Signed-off-by: Suchit <suchitkarunakaran@gmail.com>
+> Cc: Shuah Khan <skhan@linuxfoundation.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  Documentation/mm/balance.rst |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> --- a/Documentation/mm/balance.rst~documentation-mm-fix-spelling-mistake
+> +++ a/Documentation/mm/balance.rst
+> @@ -81,7 +81,7 @@ Page stealing from process memory and sh
+>  alleviate memory pressure on any zone in the page's node that has fallen below
+>  its watermark.
+>
+> -watemark[WMARK_MIN/WMARK_LOW/WMARK_HIGH]/low_on_memory/zone_wake_kswapd: These
+> +watermark[WMARK_MIN/WMARK_LOW/WMARK_HIGH]/low_on_memory/zone_wake_kswapd: These
+>  are per-zone fields, used to determine when a zone needs to be balanced. When
+>  the number of pages falls below watermark[WMARK_MIN], the hysteric field
+>  low_on_memory gets set. This stays set till the number of free pages becomes
+> _
+>
+> Patches currently in -mm which might be from suchitkarunakaran@gmail.com are
+>
+> documentation-mm-fix-spelling-mistake.patch
+>
