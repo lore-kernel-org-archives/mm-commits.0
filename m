@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58F7A155A4D;
-	Tue, 18 Feb 2025 03:08:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A489118E1F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 03:16:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739848085; cv=none; b=RSI1MjVLWgO1EBbHL6AOHPgXwemjieaJibgwvjs7dqvpmDRm36O4YvE+0/rD9OhA5cKZZFSBwvNUfBm5NEopZyAGcWtbSnf+oLc3GTrcVJINRYr5l4DJHyD/B0fqRx4O7fhHt6YUWURTCvxIjoPhlkDcP1hyMCbW1zZBhopCYp0=
+	t=1739848589; cv=none; b=LHUz8B9Fj9Mvqg3qLZJKYiQUWIA1N/f/mFbrG8v5/8T2qBRxNZlbCQ6isBCkAt2cs1rPRlYzAH0Za+IZSC5ocffiUivfMPGfPQyqquViaq0i/EJASTAL7v+XeS4SmpjrJZW3l8GIvR0FIMPDyxYxknflutl6/2M5x1rOPNfkoIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739848085; c=relaxed/simple;
-	bh=oTlFsX6aZVrtdL09xzaP0vAPsZFlP+QEOX2tiSGMTDM=;
-	h=Date:To:From:Subject:Message-Id; b=b2lhsa8FTM09F4pIQdRGDd3w2gURPBySQQEvzb55cvlxVpgIb09eY94fie/4Rs1nfKM2dNEzeUWjaNsOJLucqPhjeYGD6SZu2AJEmG7zUzTDBV63lXStBBCWicqR+ydgVW7wW18tB+s3HZdongV+ctsT9GlOBV3S03cmdAb0f2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LAZIkyqT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739848589; c=relaxed/simple;
+	bh=+uHSEUTY53STmFWAEWhjaezt1/gUkAkBCdk4iSyvf28=;
+	h=Date:To:From:Subject:Message-Id; b=FpPGV67+YA7J93G2JR5EgkBGTzKy5zPdkm55yjKrdJeELzeTWXMiubGpzQeFhBQ2mRB16cI+AXVkCX7d9GlPnhwPL5qXMu1xqiOUJa1qVpWCfv5O85J04caoK6TmwFCa14hiT4VzAJfODoX8sr8IrZtmHwuh3TPpfgQUmcvQFWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VQt27Yvr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LAZIkyqT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4E76C4CED1;
-	Tue, 18 Feb 2025 03:08:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VQt27Yvr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D24C4CED1;
+	Tue, 18 Feb 2025 03:16:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739848084;
-	bh=oTlFsX6aZVrtdL09xzaP0vAPsZFlP+QEOX2tiSGMTDM=;
+	s=korg; t=1739848589;
+	bh=+uHSEUTY53STmFWAEWhjaezt1/gUkAkBCdk4iSyvf28=;
 	h=Date:To:From:Subject:From;
-	b=LAZIkyqT5uVRfFJkEMtkOfxqo5aMWNtjodM3dHnm28griRO+XMwIPc3TaMOWiWZze
-	 7h4/ho1wj/tSUO2cQc4ZTW6bvVS5seLYOrwsSOQqvztDEDjmrYxLv3a4j0GtUPSR8K
-	 Wd3WtHUCeBnVGeYfe5jNS95m2nBHKmkNCydOtcag=
-Date: Mon, 17 Feb 2025 19:08:04 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,oliver.sang@intel.com,sj@kernel.org,akpm@linux-foundation.org
+	b=VQt27YvrByj5tXv0Rfox4ZbnEZrWn7bDsWzAXFeOuoGJXbk7KKSSkFNr3kIVVh/fS
+	 nODdLpGaS/5kQJdcnDQTLSewGo543kzqyzmr/MJ5wWf3J895ase30gZ9I1zO+ZaVIq
+	 6cwHfNiPRGbVyo7BmFxsS8VVRT/CJZQaR9ncuk/0=
+Date: Mon, 17 Feb 2025 19:16:28 -0800
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250218030804.A4E76C4CED1@smtp.kernel.org>
+Subject: + refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch added to mm-unstable branch
+Message-Id: <20250218031629.06D24C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/damos_quota_goal: handle minimum quota that cannot be further reduced
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
+     Subject: docs: fix title underlines in refcount-vs-atomic.rst
+has been added to the -mm mm-unstable branch.  Its filename is
+     refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/damos_quota_goal: handle minimum quota that cannot be further reduced
-Date: Mon, 17 Feb 2025 10:23:04 -0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: docs: fix title underlines in refcount-vs-atomic.rst
+Date: Mon, 17 Feb 2025 08:16:45 -0800
 
-damos_quota_goal.py selftest see if DAMOS quota goals tuning feature
-increases or reduces the effective size quota for given score as expected.
-The tuning feature sets the minimum quota size as one byte, so if the
-effective size quota is already one, we cannot expect it further be
-reduced.  However the test is not aware of the edge case, and fails since
-it shown no expected change of the effective quota.  Handle the case by
-updating the failure logic for no change to see if it was the case, and
-simply skips to next test input.
+Fix title underlines for newly updated refcount-vs-atomic.rst
 
-Link: https://lkml.kernel.org/r/20250217182304.45215-1-sj@kernel.org
-Fixes: f1c07c0a1662b ("selftests/damon: add a test for DAMOS quota goal")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202502171423.b28a918d-lkp@intel.com
-Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.10.x]
+Link: https://lkml.kernel.org/r/20250217161645.3137927-1-surenb@google.com
+Fixes: 03b412c8b184 ("refcount: provide ops for cases when object's memory can be reused")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/damos_quota_goal.py |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/core-api/refcount-vs-atomic.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/damos_quota_goal.py~selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced
-+++ a/tools/testing/selftests/damon/damos_quota_goal.py
-@@ -63,6 +63,9 @@ def main():
-             if last_effective_bytes != 0 else -1.0))
+--- a/Documentation/core-api/refcount-vs-atomic.rst~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix
++++ a/Documentation/core-api/refcount-vs-atomic.rst
+@@ -87,7 +87,7 @@ Memory ordering guarantee changes:
  
-         if last_effective_bytes == goal.effective_bytes:
-+            # effective quota was already minimum that cannot be more reduced
-+            if expect_increase is False and last_effective_bytes == 1:
-+                continue
-             print('efective bytes not changed: %d' % goal.effective_bytes)
-             exit(1)
+ 
+ case 2) - non-"Read/Modify/Write" (RMW) ops with release ordering
+--------------------------------------------
++-----------------------------------------------------------------
+ 
+ Function changes:
+ 
+@@ -139,7 +139,7 @@ Memory ordering guarantees changes:
+ 
+ 
+ case 6) - increment-based RMW ops with acquire ordering that return a value
+------------------------------------------------------
++---------------------------------------------------------------------------
+ 
+ Function changes:
  
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
-mm-madvise-split-out-madvise-input-validity-check.patch
-mm-madvise-split-out-madvise-behavior-execution.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
-mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
-mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
-mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
-mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
+alloc_tag-work-around-clang-14-issue-with-__builtin_object_size.patch
+mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
+mm-introduce-vma_start_read_locked_nested-helpers.patch
+mm-move-per-vma-lock-into-vm_area_struct.patch
+mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
+mm-mark-vmas-detached-upon-exit.patch
+types-move-struct-rcuwait-into-typesh.patch
+mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+mm-move-mmap_init_lock-out-of-the-header-file.patch
+mm-uninline-the-main-body-of-vma_start_write.patch
+refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
+refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
+refcount-introduce-__refcount_addinc_not_zero_limited_acquire.patch
+mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch
+mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
+mm-remove-extra-vma_numab_state_init-call.patch
+mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+mm-make-vma-cache-slab_typesafe_by_rcu.patch
+docs-mm-document-latest-changes-to-vm_lock.patch
 
