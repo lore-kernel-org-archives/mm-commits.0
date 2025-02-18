@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE301B3922;
-	Tue, 18 Feb 2025 06:40:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 332EA1B4159;
+	Tue, 18 Feb 2025 06:40:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739860846; cv=none; b=Fol8EH2nW/dmyME+X/wnlDAESbi/oiQW96kJdRWkVJW+DtUJtblJMlMAQOHHFwhCLjJsADT8MnPpMgeY1OhIC10D6u6X/8Oo2cY9xmRUbdhXVeuPpkGEUdCr3K3T8U8/TfAshKjTuYl/iU83LxVAC5Emxzka9m7Dgglo3xAAbfs=
+	t=1739860847; cv=none; b=qeZsDrRz756w8ziVnIychwOS5/mwXIVwKutezGVrHFxsfZVPLplNgeLBnprZ31FQjAuaSW9xv+YT0HkapkFVCVW+HlfQSX9aR8UCdRauttdWddtoS7xTAo1Pm9vsBPpg77xysVyDfD1CpsyyC0T2bGhwbyTlbqgYrq2Q722HGNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739860846; c=relaxed/simple;
-	bh=Yt4Bnl/mOMZkdILTiHb24V5CHhW/cmwAghYn/J1DJ6k=;
-	h=Date:To:From:Subject:Message-Id; b=HAyJzvFcfUOZ3Y11wFrEIh1F3eOM54yRDhj4+NV3S8AWDI9Tq0FOJ2fywgzLJ2CJ//Q5AuWetEvCxAAk/Bls7sy0W3iu91AM34qMSV+gMvZ1uYAJPVU73nxeQLXjy+kgcF3jaeUCPhIjZamhNaGj/4ZIkFLwA4cE6DEyAZgtN4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rDN8UJ0c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739860847; c=relaxed/simple;
+	bh=QiNdiN8LZuVeMhiPg+rqN+jFIUMM583w2b4BVwweG2o=;
+	h=Date:To:From:Subject:Message-Id; b=cv8KnDq/Z+xj9OrPLfUHvSMwmrVDNEFdzds2KwI7F8lAfx2Fxt2tFRNFkVYZqKEEg34Sz3o8oa3EMsB/HcCAz5PLs9NaQxCFgAFy+3DJ7FM9NLxWnZw2z+vjmdk39Neb7m2t3i0bTR3pSLNBLs/sQX/tNqVfWVazuvlHp+xNL+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a5A8AJeR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rDN8UJ0c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4413C4CEE6;
-	Tue, 18 Feb 2025 06:40:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a5A8AJeR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E45CCC4CEE2;
+	Tue, 18 Feb 2025 06:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739860845;
-	bh=Yt4Bnl/mOMZkdILTiHb24V5CHhW/cmwAghYn/J1DJ6k=;
+	s=korg; t=1739860847;
+	bh=QiNdiN8LZuVeMhiPg+rqN+jFIUMM583w2b4BVwweG2o=;
 	h=Date:To:From:Subject:From;
-	b=rDN8UJ0cRT9Kg0cAEb1sIpCxi80C0o9C/cJDdD5KtyRSnfvDbp1qVzQcrkrMrCiO0
-	 ZPx+JhOiJGKYjEJGER+ZzcMfqR5kLL4Dg9D0PyH9/pcAFBa429TbTSFdb5Lj79FApv
-	 74nc0yWh1fupGnDK3r5EMHjHNS88JJDokOihrZIY=
-Date: Mon, 17 Feb 2025 22:40:45 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,stable@vger.kernel.org,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,42.hyeyoo@gmail.com,akpm@linux-foundation.org
+	b=a5A8AJeRmSSny9koLT8+cS0cBONRyrq5hFftLUkc1meeQANsThVMlrrmkXJgmm7g7
+	 6bZzWhbmQLXvNTDOBVDsVLElCm5WM5zVZu2QDKRLGaljwPswA9HP5hiVgC36Ku2wAq
+	 5AZQnApJe4gbimv6VdwtVnNl8GdqyTwWK8sjAYvc=
+Date: Mon, 17 Feb 2025 22:40:46 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,riel@surriel.com,revest@google.com,osalvador@suse.de,rcn@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-zswap-fix-inconsistency-when-zswap_store_page-fails.patch removed from -mm tree
-Message-Id: <20250218064045.A4413C4CEE6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch removed from -mm tree
+Message-Id: <20250218064046.E45CCC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,166 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: fix inconsistency when zswap_store_page() fails
+     Subject: mm,madvise,hugetlb: check for 0-length range after end address adjustment
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-fix-inconsistency-when-zswap_store_page-fails.patch
+     mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/zswap: fix inconsistency when zswap_store_page() fails
-Date: Wed, 29 Jan 2025 19:08:44 +0900
+From: Ricardo Cañuelo Navarro <rcn@igalia.com>
+Subject: mm,madvise,hugetlb: check for 0-length range after end address adjustment
+Date: Mon, 3 Feb 2025 08:52:06 +0100
 
-Commit b7c0ccdfbafd ("mm: zswap: support large folios in zswap_store()")
-skips charging any zswap entries when it failed to zswap the entire folio.
+Add a sanity check to madvise_dontneed_free() to address a corner case in
+madvise where a race condition causes the current vma being processed to
+be backed by a different page size.
 
-However, when some base pages are zswapped but it failed to zswap the
-entire folio, the zswap operation is rolled back.  When freeing zswap
-entries for those pages, zswap_entry_free() uncharges the zswap entries
-that were not previously charged, causing zswap charging to become
-inconsistent.
+During a madvise(MADV_DONTNEED) call on a memory region registered with a
+userfaultfd, there's a period of time where the process mm lock is
+temporarily released in order to send a UFFD_EVENT_REMOVE and let
+userspace handle the event.  During this time, the vma covering the
+current address range may change due to an explicit mmap done concurrently
+by another thread.
 
-This inconsistency triggers two warnings with following steps:
-  # On a machine with 64GiB of RAM and 36GiB of zswap
-  $ stress-ng --bigheap 2 # wait until the OOM-killer kills stress-ng
-  $ sudo reboot
+If, after that change, the memory region, which was originally backed by
+4KB pages, is now backed by hugepages, the end address is rounded down to
+a hugepage boundary to avoid data loss (see "Fixes" below).  This rounding
+may cause the end address to be truncated to the same address as the
+start.
 
-  The two warnings are:
-    in mm/memcontrol.c:163, function obj_cgroup_release():
-      WARN_ON_ONCE(nr_bytes & (PAGE_SIZE - 1));
+Make this corner case follow the same semantics as in other similar cases
+where the requested region has zero length (ie.  return 0).
 
-    in mm/page_counter.c:60, function page_counter_cancel():
-      if (WARN_ONCE(new < 0, "page_counter underflow: %ld nr_pages=%lu\n",
-	  new, nr_pages))
+This will make madvise_walk_vmas() continue to the next vma in the range
+(this time holding the process mm lock) which, due to the prev pointer
+becoming stale because of the vma change, will be the same hugepage-backed
+vma that was just checked before.  The next time madvise_dontneed_free()
+runs for this vma, if the start address isn't aligned to a hugepage
+boundary, it'll return -EINVAL, which is also in line with the madvise
+api.
 
-zswap_stored_pages also becomes inconsistent in the same way.
+From userspace perspective, madvise() will return EINVAL because the start
+address isn't aligned according to the new vma alignment requirements
+(hugepage), even though it was correctly page-aligned when the call was
+issued.
 
-As suggested by Kanchana, increment zswap_stored_pages and charge zswap
-entries within zswap_store_page() when it succeeds.  This way,
-zswap_entry_free() will decrement the counter and uncharge the entries
-when it failed to zswap the entire folio.
-
-While this could potentially be optimized by batching objcg charging and
-incrementing the counter, let's focus on fixing the bug this time and
-leave the optimization for later after some evaluation.
-
-After resolving the inconsistency, the warnings disappear.
-
-[42.hyeyoo@gmail.com: refactor zswap_store_page()]
-  Link: https://lkml.kernel.org/r/20250131082037.2426-1-42.hyeyoo@gmail.com
-Link: https://lkml.kernel.org/r/20250129100844.2935-1-42.hyeyoo@gmail.com
-Fixes: b7c0ccdfbafd ("mm: zswap: support large folios in zswap_store()")
-Co-developed-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20250203075206.1452208-1-rcn@igalia.com
+Fixes: 8ebe0a5eaaeb ("mm,madvise,hugetlb: fix unexpected data loss with MADV_DONTNEED on hugetlbfs")
+Signed-off-by: Ricardo Cañuelo Navarro <rcn@igalia.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Florent Revest <revest@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ mm/madvise.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-fix-inconsistency-when-zswap_store_page-fails
-+++ a/mm/zswap.c
-@@ -1445,9 +1445,9 @@ resched:
- * main API
- **********************************/
- 
--static ssize_t zswap_store_page(struct page *page,
--				struct obj_cgroup *objcg,
--				struct zswap_pool *pool)
-+static bool zswap_store_page(struct page *page,
-+			     struct obj_cgroup *objcg,
-+			     struct zswap_pool *pool)
- {
- 	swp_entry_t page_swpentry = page_swap_entry(page);
- 	struct zswap_entry *entry, *old;
-@@ -1456,7 +1456,7 @@ static ssize_t zswap_store_page(struct p
- 	entry = zswap_entry_cache_alloc(GFP_KERNEL, page_to_nid(page));
- 	if (!entry) {
- 		zswap_reject_kmemcache_fail++;
--		return -EINVAL;
-+		return false;
+--- a/mm/madvise.c~mmmadvisehugetlb-check-for-0-length-range-after-end-address-adjustment
++++ a/mm/madvise.c
+@@ -933,7 +933,16 @@ static long madvise_dontneed_free(struct
+ 			 */
+ 			end = vma->vm_end;
+ 		}
+-		VM_WARN_ON(start >= end);
++		/*
++		 * If the memory region between start and end was
++		 * originally backed by 4kB pages and then remapped to
++		 * be backed by hugepages while mmap_lock was dropped,
++		 * the adjustment for hugetlb vma above may have rounded
++		 * end down to the start address.
++		 */
++		if (start == end)
++			return 0;
++		VM_WARN_ON(start > end);
  	}
  
- 	if (!zswap_compress(page, entry, pool))
-@@ -1483,13 +1483,17 @@ static ssize_t zswap_store_page(struct p
- 
- 	/*
- 	 * The entry is successfully compressed and stored in the tree, there is
--	 * no further possibility of failure. Grab refs to the pool and objcg.
--	 * These refs will be dropped by zswap_entry_free() when the entry is
--	 * removed from the tree.
-+	 * no further possibility of failure. Grab refs to the pool and objcg,
-+	 * charge zswap memory, and increment zswap_stored_pages.
-+	 * The opposite actions will be performed by zswap_entry_free()
-+	 * when the entry is removed from the tree.
- 	 */
- 	zswap_pool_get(pool);
--	if (objcg)
-+	if (objcg) {
- 		obj_cgroup_get(objcg);
-+		obj_cgroup_charge_zswap(objcg, entry->length);
-+	}
-+	atomic_long_inc(&zswap_stored_pages);
- 
- 	/*
- 	 * We finish initializing the entry while it's already in xarray.
-@@ -1510,13 +1514,13 @@ static ssize_t zswap_store_page(struct p
- 		zswap_lru_add(&zswap_list_lru, entry);
- 	}
- 
--	return entry->length;
-+	return true;
- 
- store_failed:
- 	zpool_free(pool->zpool, entry->handle);
- compress_failed:
- 	zswap_entry_cache_free(entry);
--	return -EINVAL;
-+	return false;
- }
- 
- bool zswap_store(struct folio *folio)
-@@ -1526,7 +1530,6 @@ bool zswap_store(struct folio *folio)
- 	struct obj_cgroup *objcg = NULL;
- 	struct mem_cgroup *memcg = NULL;
- 	struct zswap_pool *pool;
--	size_t compressed_bytes = 0;
- 	bool ret = false;
- 	long index;
- 
-@@ -1564,20 +1567,14 @@ bool zswap_store(struct folio *folio)
- 
- 	for (index = 0; index < nr_pages; ++index) {
- 		struct page *page = folio_page(folio, index);
--		ssize_t bytes;
- 
--		bytes = zswap_store_page(page, objcg, pool);
--		if (bytes < 0)
-+		if (!zswap_store_page(page, objcg, pool))
- 			goto put_pool;
--		compressed_bytes += bytes;
- 	}
- 
--	if (objcg) {
--		obj_cgroup_charge_zswap(objcg, compressed_bytes);
-+	if (objcg)
- 		count_objcg_events(objcg, ZSWPOUT, nr_pages);
--	}
- 
--	atomic_long_add(nr_pages, &zswap_stored_pages);
- 	count_vm_events(ZSWPOUT, nr_pages);
- 
- 	ret = true;
+ 	if (behavior == MADV_DONTNEED || behavior == MADV_DONTNEED_LOCKED)
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from rcn@igalia.com are
 
 
