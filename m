@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BC614A4E0
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:56:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58F7A155A4D;
+	Tue, 18 Feb 2025 03:08:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739847385; cv=none; b=Bv/iWFrZ8B9jslAgdeh+Xr/upj5xKfKm89GF/YY1V+i2cABWSJg9QL2l24S7RORY3Uy4N7bi5qdUC/LALAbokD1rCyG76vMBYiYIu5DJ+/ymR1f63sPUNSwsv5VJk4+UD7l/JhVhwrz3KX5Bh+Ib9uGm1SUQpun4Kdzm8WvcmYo=
+	t=1739848085; cv=none; b=RSI1MjVLWgO1EBbHL6AOHPgXwemjieaJibgwvjs7dqvpmDRm36O4YvE+0/rD9OhA5cKZZFSBwvNUfBm5NEopZyAGcWtbSnf+oLc3GTrcVJINRYr5l4DJHyD/B0fqRx4O7fhHt6YUWURTCvxIjoPhlkDcP1hyMCbW1zZBhopCYp0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739847385; c=relaxed/simple;
-	bh=vqQdCjfTUtUqDuZx7/dwOOCRqDTbwrEhauWbhTIZT5Y=;
-	h=Date:To:From:Subject:Message-Id; b=tOYWSAl2ILqD5ktOWLd9qO/GqAtA/7bdrM8Vcl3lq4ubgxKKofRefPhwTYVg9u8FQMywgjZwzP3arNTfWjqDktkSNB24vD19QSczmsvf0UrZmnkThiVo70s8nhQ4NRsYmZ9Krf1dvSbSFTScy3rCVluGuG1jr2I8LhV8q/LEWxk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rtWE/XB0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739848085; c=relaxed/simple;
+	bh=oTlFsX6aZVrtdL09xzaP0vAPsZFlP+QEOX2tiSGMTDM=;
+	h=Date:To:From:Subject:Message-Id; b=b2lhsa8FTM09F4pIQdRGDd3w2gURPBySQQEvzb55cvlxVpgIb09eY94fie/4Rs1nfKM2dNEzeUWjaNsOJLucqPhjeYGD6SZu2AJEmG7zUzTDBV63lXStBBCWicqR+ydgVW7wW18tB+s3HZdongV+ctsT9GlOBV3S03cmdAb0f2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LAZIkyqT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtWE/XB0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2CFC4CED1;
-	Tue, 18 Feb 2025 02:56:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LAZIkyqT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4E76C4CED1;
+	Tue, 18 Feb 2025 03:08:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739847385;
-	bh=vqQdCjfTUtUqDuZx7/dwOOCRqDTbwrEhauWbhTIZT5Y=;
+	s=korg; t=1739848084;
+	bh=oTlFsX6aZVrtdL09xzaP0vAPsZFlP+QEOX2tiSGMTDM=;
 	h=Date:To:From:Subject:From;
-	b=rtWE/XB0n1SEGxcf+blXLgT5HOVuezOstxpBXQmiSl9DUzbtGTsiv+yigxCorIEIy
-	 X0cnIuOkGBqb5ld8wTKRlF1QWzx4yww0fXHPIrC0tGi0EmW8G1k1WSV6RHyzlAkgLg
-	 PWlpWLcUNbaww/P6pggNegXBqkdrzov5QYelMu50=
-Date: Mon, 17 Feb 2025 18:56:25 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=LAZIkyqT5uVRfFJkEMtkOfxqo5aMWNtjodM3dHnm28griRO+XMwIPc3TaMOWiWZze
+	 7h4/ho1wj/tSUO2cQc4ZTW6bvVS5seLYOrwsSOQqvztDEDjmrYxLv3a4j0GtUPSR8K
+	 Wd3WtHUCeBnVGeYfe5jNS95m2nBHKmkNCydOtcag=
+Date: Mon, 17 Feb 2025 19:08:04 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,oliver.sang@intel.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-remove-folio_file_mapping.patch added to mm-unstable branch
-Message-Id: <20250218025625.9C2CFC4CED1@smtp.kernel.org>
+Subject: + selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250218030804.A4E76C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: remove folio_file_mapping()
-has been added to the -mm mm-unstable branch.  Its filename is
-     fs-remove-folio_file_mapping.patch
+     Subject: selftests/damon/damos_quota_goal: handle minimum quota that cannot be further reduced
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-folio_file_mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,59 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: remove folio_file_mapping()
-Date: Mon, 17 Feb 2025 19:20:08 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon/damos_quota_goal: handle minimum quota that cannot be further reduced
+Date: Mon, 17 Feb 2025 10:23:04 -0800
 
-No callers of this function remain as filesystems no longer see swapfile
-pages through their normal read/write paths.
+damos_quota_goal.py selftest see if DAMOS quota goals tuning feature
+increases or reduces the effective size quota for given score as expected.
+The tuning feature sets the minimum quota size as one byte, so if the
+effective size quota is already one, we cannot expect it further be
+reduced.  However the test is not aware of the edge case, and fails since
+it shown no expected change of the effective quota.  Handle the case by
+updating the failure logic for no change to see if it was the case, and
+simply skips to next test input.
 
-Link: https://lkml.kernel.org/r/20250217192009.437916-3-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20250217182304.45215-1-sj@kernel.org
+Fixes: f1c07c0a1662b ("selftests/damon: add a test for DAMOS quota goal")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202502171423.b28a918d-lkp@intel.com
+Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.10.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   20 --------------------
- 1 file changed, 20 deletions(-)
+ tools/testing/selftests/damon/damos_quota_goal.py |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/pagemap.h~fs-remove-folio_file_mapping
-+++ a/include/linux/pagemap.h
-@@ -536,26 +536,6 @@ struct address_space *folio_mapping(stru
- struct address_space *swapcache_mapping(struct folio *);
+--- a/tools/testing/selftests/damon/damos_quota_goal.py~selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced
++++ a/tools/testing/selftests/damon/damos_quota_goal.py
+@@ -63,6 +63,9 @@ def main():
+             if last_effective_bytes != 0 else -1.0))
  
- /**
-- * folio_file_mapping - Find the mapping this folio belongs to.
-- * @folio: The folio.
-- *
-- * For folios which are in the page cache, return the mapping that this
-- * page belongs to.  Folios in the swap cache return the mapping of the
-- * swap file or swap device where the data is stored.  This is different
-- * from the mapping returned by folio_mapping().  The only reason to
-- * use it is if, like NFS, you return 0 from ->activate_swapfile.
-- *
-- * Do not call this for folios which aren't in the page cache or swap cache.
-- */
--static inline struct address_space *folio_file_mapping(struct folio *folio)
--{
--	if (unlikely(folio_test_swapcache(folio)))
--		return swapcache_mapping(folio);
--
--	return folio->mapping;
--}
--
--/**
-  * folio_flush_mapping - Find the file mapping this folio belongs to.
-  * @folio: The folio.
-  *
+         if last_effective_bytes == goal.effective_bytes:
++            # effective quota was already minimum that cannot be more reduced
++            if expect_increase is False and last_effective_bytes == 1:
++                continue
+             print('efective bytes not changed: %d' % goal.effective_bytes)
+             exit(1)
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-dax-remove-access-to-page-index.patch
-dax-use-folios-more-widely-within-dax.patch
-fs-convert-block_commit_write-to-take-a-folio.patch
-fs-remove-page_file_mapping.patch
-fs-remove-folio_file_mapping.patch
-ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
-ocfs2-remove-reference-to-bh-b_page.patch
+selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
+mm-madvise-split-out-madvise-input-validity-check.patch
+mm-madvise-split-out-madvise-behavior-execution.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
+mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
+mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
+mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
+mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
 
