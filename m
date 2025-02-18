@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCC1E1D86C7
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 23:38:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 911F31DE2C5
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 23:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739921897; cv=none; b=TxeG0M1ptH5ZJ1LZRYmfX9YXs40OX2/IRezsHFkVZeDqy6QA/oFxAQe6EeGBQMXjUfcpx/RuLMRUUZYVa9nUQodjYhYYRZq2gSkA6O/Yz+WwSolTmnofr3SUNASzlGc9JFZkysGLUsG+BDzEsw2/0d249hCgQJFQy1x0OXArZjw=
+	t=1739921899; cv=none; b=kfyTdkvMdLBcCkzKup4+J4eAc+iP/63DB/eY075BISoIy6felegM5wb8B+eiKs5EChqGOIFi7KaWTUxmznZksGMkhpqPzYgWRYQnbDjk5FUQS5i7YWf+qLfSQ/pAUV+73TnSh7I+MxYY0N3GvRP9EH7gZSAIYjbyvg8v45XqSqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739921897; c=relaxed/simple;
-	bh=ND1IB3tdyhK1Cg/up6QlTGvw8Kv0NUSYUgyYZXL7xHE=;
-	h=Date:To:From:Subject:Message-Id; b=Sqw7elvROBZ/NNnL2QdYQWa2alJ2Ds97M1q2rTTjSiz/StIhjEt72wAm2BIFQkSRFoFu1terIjCjrbAIxR7n/+As2YoIpCoVrw0BoOy0rq6CEGoG084WD5pJDmTAqKnrc1g4M43d6XwiSAnRcscutFqTkn0zhrIN6xyr469AJ7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p2jh+5Mq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739921899; c=relaxed/simple;
+	bh=wAQSIySQQ0j3bkMl8PBTnweCa6KlPHVtCla54XZye/Q=;
+	h=Date:To:From:Subject:Message-Id; b=f11/RdZUww+rNJoJv9sNDi3dQgNMGjXxSo5DSXMDeveMjvZO8sbxnp4Dw1AYxHEdTxGO8iRWWoRqmQgtmi2ge+5TKEMxMZ7YBIVykyTiT+I1D9Go/wXwwadzcdk53/5fWUx2AxGX4mPtJF6zdwuAjcRJKMV1k0JGdb7FdluzZ+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sZUFTL64; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p2jh+5Mq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26DB6C4CEE2;
-	Tue, 18 Feb 2025 23:38:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sZUFTL64"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2394C4CEE2;
+	Tue, 18 Feb 2025 23:38:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739921897;
-	bh=ND1IB3tdyhK1Cg/up6QlTGvw8Kv0NUSYUgyYZXL7xHE=;
+	s=korg; t=1739921899;
+	bh=wAQSIySQQ0j3bkMl8PBTnweCa6KlPHVtCla54XZye/Q=;
 	h=Date:To:From:Subject:From;
-	b=p2jh+5Mqaa8IjdX9xbjoP+IdOBJSiG4kuRNe6kRWAyh+RG5NM/Ne8iPqeHhchEhiq
-	 3e+qKuGjo+VconnRugMOfVtyyYyhrQsWw13ALbYJMOATSdAlckFRg1gEGeYp9q7MKE
-	 SjZh10KVp3Qjx2aSCUim3O7WxpNf7KmsB01nyl1Q=
-Date: Tue, 18 Feb 2025 15:38:16 -0800
+	b=sZUFTL64yFThcQHitOtW4Ne2+vI5na2wei2Frex85Ox7yJGwVo4RgA7Ld6zqXqcII
+	 k0g7hVkROH7OSy0z8fL3iC/kSlmi1g1VQTu7utHT4lOP8Tgj6mpn6m38njMPH6hMum
+	 Eapxb0Bg+hwQGJJcgUO2EIIU3iXPrEmVs5hnDK0U=
+Date: Tue, 18 Feb 2025 15:38:18 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch added to mm-unstable branch
-Message-Id: <20250218233817.26DB6C4CEE2@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-hugepage_size-filter.patch added to mm-unstable branch
+Message-Id: <20250218233818.F2394C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: fix typo on DAMOS filters usage doc link
+     Subject: Docs/mm/damon/design: document hugepage_size filter
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
+     docs-mm-damon-design-document-hugepage_size-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-hugepage_size-filter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,46 +59,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: fix typo on DAMOS filters usage doc link
-Date: Tue, 18 Feb 2025 14:37:04 -0800
+Subject: Docs/mm/damon/design: document hugepage_size filter
+Date: Tue, 18 Feb 2025 14:37:05 -0800
 
-Patch series "Docs/mm/damon: misc DAMOS filters documentation fixes and
-improves".
+'hugepage_size' DAMOS filter type is not documented on the design doc.
+Add a description of the type.
 
-Fix and improve DAMOS filters documentation by fixing a copy-paste typo,
-adding hugepage_size filter documentation on design doc, moving logic
-details from usage to design, clarify DAMOS filters handling sequence
-based on handling layer, and re-organizing the filters type list for
-easier understanding of the handling sequence.
-
-
-This patch (of 5):
-
-The link from DAMOS filters design doc to usage doc has a typo calling
-filters as watermarks.  Fix it.
-
-Link: https://lkml.kernel.org/r/20250218223708.53437-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250218223708.53437-2-sj@kernel.org
-Fixes: d31f5626a0e1 ("Docs/mm/damon/design: add links to sections of DAMON sysfs interface usage doc")
+Link: https://lkml.kernel.org/r/20250218223708.53437-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-hugepage_size-filter
 +++ a/Documentation/mm/damon/design.rst
-@@ -617,7 +617,7 @@ Below ``type`` of filters are currently
-     - Applied to pages that belonging to a given DAMON monitoring target.
+@@ -610,6 +610,9 @@ Below ``type`` of filters are currently
+     - Applied to pages that are accessed after the last access check from the
+       scheme.
+     - Handled by operations set layer.  Supported by only ``paddr`` set.
++- pages that managed in a given size range
++    - Applied to pages that managed in a given size range.
++    - Handled by operations set layer.  Supported by only ``paddr`` set.
+ - address range
+     - Applied to pages that belonging to a given address range.
      - Handled by the core logic.
- 
--To know how user-space can set the watermarks via :ref:`DAMON sysfs interface
-+To know how user-space can set the filters via :ref:`DAMON sysfs interface
- <sysfs_interface>`, refer to :ref:`filters <sysfs_filters>` part of the
- documentation.
- 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
