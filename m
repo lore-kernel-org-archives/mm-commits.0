@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E7CB4C7C
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:56:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7BC614A4E0
+	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 02:56:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739847384; cv=none; b=fVzO5xo0+185cUbusMKCBK9gLFwmiDJoNBYBEcP9kjHtrhtbtVZ2zdfT45r7SA+5Ju2kMZUxO+Tl8uNylyR72CsE199oFk9V1APwFDCK3a1y4TgOIWQmIyq+7Nr7aE9ggXpbRmBnUQ/dMJPD3QAuJm7jdUEGsIIBhYvN5hhqMuM=
+	t=1739847385; cv=none; b=Bv/iWFrZ8B9jslAgdeh+Xr/upj5xKfKm89GF/YY1V+i2cABWSJg9QL2l24S7RORY3Uy4N7bi5qdUC/LALAbokD1rCyG76vMBYiYIu5DJ+/ymR1f63sPUNSwsv5VJk4+UD7l/JhVhwrz3KX5Bh+Ib9uGm1SUQpun4Kdzm8WvcmYo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739847384; c=relaxed/simple;
-	bh=40EJp7DBkCgrBj6rBLRwfYDFr6BqJRb/xw73BP7UMM4=;
-	h=Date:To:From:Subject:Message-Id; b=jp1uAiFd1mTV0Bu+48tStlnyMMgUZTjtFtr0g1nigyNeqOwqwNZXVbfgfiYZJmGS1004oPYKc7VaYlvqOfJI2PKVrUmTHRWx5Jzq11nwCOFGynvpRUAvjoiHnJJNkkO+kZLykMBsyAuq2IPSiGbxsYc4ecOXODKz+2x8FroXBwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wkGT4lhS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739847385; c=relaxed/simple;
+	bh=vqQdCjfTUtUqDuZx7/dwOOCRqDTbwrEhauWbhTIZT5Y=;
+	h=Date:To:From:Subject:Message-Id; b=tOYWSAl2ILqD5ktOWLd9qO/GqAtA/7bdrM8Vcl3lq4ubgxKKofRefPhwTYVg9u8FQMywgjZwzP3arNTfWjqDktkSNB24vD19QSczmsvf0UrZmnkThiVo70s8nhQ4NRsYmZ9Krf1dvSbSFTScy3rCVluGuG1jr2I8LhV8q/LEWxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rtWE/XB0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wkGT4lhS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE8D9C4CED1;
-	Tue, 18 Feb 2025 02:56:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtWE/XB0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2CFC4CED1;
+	Tue, 18 Feb 2025 02:56:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739847383;
-	bh=40EJp7DBkCgrBj6rBLRwfYDFr6BqJRb/xw73BP7UMM4=;
+	s=korg; t=1739847385;
+	bh=vqQdCjfTUtUqDuZx7/dwOOCRqDTbwrEhauWbhTIZT5Y=;
 	h=Date:To:From:Subject:From;
-	b=wkGT4lhSL7UGDFz+CcIDRJ0503iBi6G/Y4IplJ/3HE7l0ySijATyqQeu9NeGJoS8d
-	 m2hIgAU0EeKNph8EeHDhBWjldoDxMKNG3AI33zTor2CwnmWFv/4/b5/SJbXmyEsXVg
-	 ugi1jm2/bckjIr9xEzCMtVW2cgaRl5XOn+ehONyw=
-Date: Mon, 17 Feb 2025 18:56:23 -0800
+	b=rtWE/XB0n1SEGxcf+blXLgT5HOVuezOstxpBXQmiSl9DUzbtGTsiv+yigxCorIEIy
+	 X0cnIuOkGBqb5ld8wTKRlF1QWzx4yww0fXHPIrC0tGi0EmW8G1k1WSV6RHyzlAkgLg
+	 PWlpWLcUNbaww/P6pggNegXBqkdrzov5QYelMu50=
+Date: Mon, 17 Feb 2025 18:56:25 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-remove-page_file_mapping.patch added to mm-unstable branch
-Message-Id: <20250218025623.CE8D9C4CED1@smtp.kernel.org>
+Subject: + fs-remove-folio_file_mapping.patch added to mm-unstable branch
+Message-Id: <20250218025625.9C2CFC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: remove page_file_mapping()
+     Subject: fs: remove folio_file_mapping()
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-remove-page_file_mapping.patch
+     fs-remove-folio_file_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-page_file_mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-folio_file_mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: remove page_file_mapping()
-Date: Mon, 17 Feb 2025 19:20:07 +0000
+Subject: fs: remove folio_file_mapping()
+Date: Mon, 17 Feb 2025 19:20:08 +0000
 
-This wrapper has no more callers.  Delete it.
+No callers of this function remain as filesystems no longer see swapfile
+pages through their normal read/write paths.
 
-Link: https://lkml.kernel.org/r/20250217192009.437916-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250217192009.437916-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/pagemap.h |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
---- a/include/linux/pagemap.h~fs-remove-page_file_mapping
+--- a/include/linux/pagemap.h~fs-remove-folio_file_mapping
 +++ a/include/linux/pagemap.h
-@@ -575,11 +575,6 @@ static inline struct address_space *foli
- 	return folio_mapping(folio);
- }
+@@ -536,26 +536,6 @@ struct address_space *folio_mapping(stru
+ struct address_space *swapcache_mapping(struct folio *);
  
--static inline struct address_space *page_file_mapping(struct page *page)
+ /**
+- * folio_file_mapping - Find the mapping this folio belongs to.
+- * @folio: The folio.
+- *
+- * For folios which are in the page cache, return the mapping that this
+- * page belongs to.  Folios in the swap cache return the mapping of the
+- * swap file or swap device where the data is stored.  This is different
+- * from the mapping returned by folio_mapping().  The only reason to
+- * use it is if, like NFS, you return 0 from ->activate_swapfile.
+- *
+- * Do not call this for folios which aren't in the page cache or swap cache.
+- */
+-static inline struct address_space *folio_file_mapping(struct folio *folio)
 -{
--	return folio_file_mapping(page_folio(page));
+-	if (unlikely(folio_test_swapcache(folio)))
+-		return swapcache_mapping(folio);
+-
+-	return folio->mapping;
 -}
 -
- /**
-  * folio_inode - Get the host inode for this folio.
+-/**
+  * folio_flush_mapping - Find the file mapping this folio belongs to.
   * @folio: The folio.
+  *
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
