@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D4861AAE0D
-	for <mm-commits@vger.kernel.org>; Tue, 18 Feb 2025 04:48:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 830771A8404;
+	Tue, 18 Feb 2025 05:45:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739854113; cv=none; b=io4DkxMp6G8DrIV+rN5QdUfSPURNp3SrzYPc+mLFqr9JIGGnrArVID3lJpr1DVK+8vd4ZUzvnFbEkZjRwFhgBKYsijk//WPof3O/syOWk+JrhnmqOAQTFwxEZBx1Kvr1IDhmn00mee6OvpFcIQsnPV1l+Nlc+sUJxQFK5CCZTb8=
+	t=1739857551; cv=none; b=vADfaMWWYt5tkJgcVCuaNF6fGXe8kIHhUL8a8jvRZR9voIvtwNwwOZBY+HlGQSm1G9E1ipF1SBfmMKphf6XOxEdOAKawfytwqR56KSr/fF91NOiwfWLSAMnjFJ1m9LgTLPMdMhDz0qAnXm0w/hmehyE5d99im1QgFcg9DOW7Z9A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739854113; c=relaxed/simple;
-	bh=zhETHkhaXSpP39TFVSOaJ0L6ycHbRkQijY3ZwY8aVEY=;
-	h=Date:To:From:Subject:Message-Id; b=nuf+x6f8ztBO7cLatlFzbq2Cz907PdAK+n1w59wupakPv4oGlFyp0/hd89KdnxV+GgAL0O2FBj9TlvLyjEdYGkinqCheqRyQ9l4HGhMsGipwUbNW5D/UCCM1jxx6+XWIOpdUJgCi1e/6s0atuCS4DtCfORCHoS7MClv+SdPcN+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dU0Y3bjg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739857551; c=relaxed/simple;
+	bh=cV8vd0F67RnBQ7kN7mtYnybGILd+NAtSawbsYGsTjDE=;
+	h=Date:To:From:Subject:Message-Id; b=R67wLrTMJ3Qps2NsFv9gXXpMbFQl9quP8YcUvb3T1bW4+8cgRk0hSpGUFu346wXYZVqIjjwRLhWN98OavlBsq1diRhWNoMAsdhiqPrvS9iuer+XSSwzoOyuhuLOb1hozcCKSxSn+ss5NW8P7gXHWFr8t0kbfYl+XLphucORnqhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b0+ii5k+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dU0Y3bjg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D91BC4CEE2;
-	Tue, 18 Feb 2025 04:48:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b0+ii5k+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 344E2C4CEE6;
+	Tue, 18 Feb 2025 05:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739854113;
-	bh=zhETHkhaXSpP39TFVSOaJ0L6ycHbRkQijY3ZwY8aVEY=;
+	s=korg; t=1739857551;
+	bh=cV8vd0F67RnBQ7kN7mtYnybGILd+NAtSawbsYGsTjDE=;
 	h=Date:To:From:Subject:From;
-	b=dU0Y3bjgNhv+psogFpCSkJLVd9NUf9U7V6pa0oH8nRR5mjLdOOD2m+6/Sx1FcYTl0
-	 X13EQJMjxj2kE3uwNvOnjmZQF25u3S7aL7h8pQ9+trDpxb5yuj/BfOsizQWjLGrWqy
-	 WkSZM6vpojG/GSlizca2oG1W2BFl9Yq39C8XCdfU=
-Date: Mon, 17 Feb 2025 20:48:32 -0800
-To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=b0+ii5k+JhyfGSIJ3F9rhVsBUqO2C9LiyJWzjoH7snhsPBmWFA1J5iIWLyMpwtIvi
+	 a5jukpcpNOpRILEh23+e+gGjwzxjPCjDYFNbNY4FWI49bdfCEJ1YnYhvu+0QqN+F+q
+	 aoSusOgc/tzwWDzRnM2lcxDMeeVTNss5bv2iun04=
+Date: Mon, 17 Feb 2025 21:45:50 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterz@infradead.org,osalvador@suse.de,luto@kernel.org,dave.hansen@linux.intel.com,byungchul@sk.com,42.hyeyoo@gmail.com,gwan-gyeong.mun@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + device-dax-properly-refcount-device-dax-pages-when-mapping.patch added to mm-unstable branch
-Message-Id: <20250218044833.1D91BC4CEE2@smtp.kernel.org>
+Subject: + x86-vmemmap-use-direct-mapped-va-instead-of-vmemmap-based-va.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250218054551.344E2C4CEE6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: device/dax: properly refcount device dax pages when mapping
-has been added to the -mm mm-unstable branch.  Its filename is
-     device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+     Subject: x86/vmemmap: use direct-mapped VA instead of vmemmap-based VA
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     x86-vmemmap-use-direct-mapped-va-instead-of-vmemmap-based-va.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-vmemmap-use-direct-mapped-va-instead-of-vmemmap-based-va.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,171 +58,201 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: device/dax: properly refcount device dax pages when mapping
-Date: Tue, 18 Feb 2025 14:55:36 +1100
+From: Gwan-gyeong Mun <gwan-gyeong.mun@intel.com>
+Subject: x86/vmemmap: use direct-mapped VA instead of vmemmap-based VA
+Date: Mon, 17 Feb 2025 13:41:33 +0200
 
-Device DAX pages are currently not reference counted when mapped, instead
-relying on the devmap PTE bit to ensure mapping code will not get/put
-references.  This requires special handling in various page table walkers,
-particularly GUP, to manage references on the underlying pgmap to ensure
-the pages remain valid.
+Address an Oops issues when performing test of loading XE GPU driver
+module after applying the GPU SVM and Xe SVM patch series[1] and the Dept
+patch series[2].
 
-However there is no reason these pages can't be refcounted properly at map
-time.  Doning so eliminates the need for the devmap PTE bit, freeing up a
-precious PTE bit.  It also simplifies GUP as it no longer needs to manage
-the special pgmap references and can instead just treat the pages normally
-as defined by vm_normal_page().
+The issue occurs when loading the xe driver via modprobe [3], which adds a
+struct page for device memory via devm_memremap_pages().  When a process
+leads the addition of a struct page to vmemmap (e.g.  hot-plug), the page
+table update for the newly added vmemmap-based virtual address is updated
+first in init_mm's page table and then synchronized later.
 
-Link: https://lkml.kernel.org/r/9d9d33b418dd1aab9323203488305085389f62c1.1739850794.git-series.apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Tested-by: Alison Schofield <alison.schofield@intel.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Asahi Lina <lina@asahilina.net>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Chunyan Zhang <zhang.lyra@gmail.com>
-Cc: Dan Wiliams <dan.j.williams@intel.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
+If the vmemmap-based virtual address is accessed through the process's
+page table before this sync, a page fault will occur.  This patch
+translates vmemmap-based virtual address to direct-mapped virtual address
+and use it, if the current top-level page table is not init_mm's page
+table when accessing a vmemmap-based virtual address before this sync.
+
+[1] https://lore.kernel.org/dri-devel/20250213021112.1228481-1-matthew.brost@intel.com/
+[2] https://lore.kernel.org/lkml/20240508094726.35754-1-byungchul@sk.com/
+[3]
+[   49.103630] xe 0000:00:04.0: [drm] Available VRAM: 0x0000000800000000, 0x00000002fb800000
+[   49.116710] BUG: unable to handle page fault for address: ffffeb3ff1200000
+[   49.117175] #PF: supervisor write access in kernel mode
+[   49.117511] #PF: error_code(0x0002) - not-present page
+[   49.117835] PGD 0 P4D 0 
+[   49.118015] Oops: Oops: 0002 [#1] PREEMPT SMP NOPTI
+[   49.118366] CPU: 3 UID: 0 PID: 302 Comm: modprobe Tainted: G        W          6.13.0-drm-tip-test+ #62
+[   49.118976] Tainted: [W]=WARN
+[   49.119179] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[   49.119710] RIP: 0010:vmemmap_set_pmd+0xff/0x230
+[   49.120011] Code: 77 22 02 a9 ff ff 1f 00 74 58 48 8b 3d 62 77 22 02 48 85 ff 0f 85 9a 00 00 00 48 8d 7d 08 48 89 e9 31 c0 48 89 ea 48 83 e7 f8 <48> c7 45 00 00 00 00 00 48 29 f9 48 c7 45 48 00 00 00 00 83 c1 50
+[   49.121158] RSP: 0018:ffffc900016d37a8 EFLAGS: 00010282
+[   49.121502] RAX: 0000000000000000 RBX: ffff888164000000 RCX: ffffeb3ff1200000
+[   49.121966] RDX: ffffeb3ff1200000 RSI: 80000000000001e3 RDI: ffffeb3ff1200008
+[   49.122499] RBP: ffffeb3ff1200000 R08: ffffeb3ff1280000 R09: 0000000000000000
+[   49.123032] R10: ffff88817b94dc48 R11: 0000000000000003 R12: ffffeb3ff1280000
+[   49.123566] R13: 0000000000000000 R14: ffff88817b94dc48 R15: 8000000163e001e3
+[   49.124096] FS:  00007f53ae71d740(0000) GS:ffff88843fd80000(0000) knlGS:0000000000000000
+[   49.124698] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   49.125129] CR2: ffffeb3ff1200000 CR3: 000000017c7d2000 CR4: 0000000000750ef0
+[   49.125662] PKRU: 55555554
+[   49.125880] Call Trace:
+[   49.126078]  <TASK>
+[   49.126252]  ? __die_body.cold+0x19/0x26
+[   49.126509]  ? page_fault_oops+0xa2/0x240
+[   49.126736]  ? preempt_count_add+0x47/0xa0
+[   49.126968]  ? search_module_extables+0x4a/0x80
+[   49.127224]  ? exc_page_fault+0x206/0x230
+[   49.127454]  ? asm_exc_page_fault+0x22/0x30
+[   49.127691]  ? vmemmap_set_pmd+0xff/0x230
+[   49.127919]  vmemmap_populate_hugepages+0x176/0x180
+[   49.128194]  vmemmap_populate+0x34/0x80
+[   49.128416]  __populate_section_memmap+0x41/0x90
+[   49.128676]  sparse_add_section+0x121/0x3e0
+[   49.128914]  __add_pages+0xba/0x150
+[   49.129116]  add_pages+0x1d/0x70
+[   49.129305]  memremap_pages+0x3dc/0x810
+[   49.129529]  devm_memremap_pages+0x1c/0x60
+[   49.129762]  xe_devm_add+0x8b/0x100 [xe]
+[   49.130072]  xe_tile_init_noalloc+0x6a/0x70 [xe]
+[   49.130408]  xe_device_probe+0x48c/0x740 [xe]
+[   49.130714]  ? __pfx___drmm_mutex_release+0x10/0x10
+[   49.130982]  ? __drmm_add_action+0x85/0xd0
+[   49.131208]  ? __pfx___drmm_mutex_release+0x10/0x10
+[   49.131478]  xe_pci_probe+0x7ef/0xd90 [xe]
+[   49.131777]  ? _raw_spin_unlock_irqrestore+0x66/0x90
+[   49.132049]  ? lockdep_hardirqs_on+0xba/0x140
+[   49.132290]  pci_device_probe+0x99/0x110
+[   49.132510]  really_probe+0xdb/0x340
+[   49.132710]  ? pm_runtime_barrier+0x50/0x90
+[   49.132941]  ? __pfx___driver_attach+0x10/0x10
+[   49.133190]  __driver_probe_device+0x78/0x110
+[   49.133433]  driver_probe_device+0x1f/0xa0
+[   49.133661]  __driver_attach+0xba/0x1c0
+[   49.133874]  bus_for_each_dev+0x7a/0xd0
+[   49.134089]  bus_add_driver+0x114/0x200
+[   49.134302]  driver_register+0x6e/0xc0
+[   49.134515]  xe_init+0x1e/0x50 [xe]
+[   49.134827]  ? __pfx_xe_init+0x10/0x10 [xe]
+[   49.134926] xe 0000:00:04.0: [drm:process_one_work] GT1: GuC CT safe-mode canceled
+[   49.135112]  do_one_initcall+0x5b/0x2b0
+[   49.135734]  ? rcu_is_watching+0xd/0x40
+[   49.135995]  ? __kmalloc_cache_noprof+0x231/0x310
+[   49.136315]  do_init_module+0x60/0x210
+[   49.136572]  init_module_from_file+0x86/0xc0
+[   49.136863]  idempotent_init_module+0x12b/0x340
+[   49.137156]  __x64_sys_finit_module+0x61/0xc0
+[   49.137437]  do_syscall_64+0x69/0x140
+[   49.137681]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[   49.137953] RIP: 0033:0x7f53ae1261fd
+[   49.138153] Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d e3 fa 0c 00 f7 d8 64 89 01 48
+[   49.139117] RSP: 002b:00007ffd0e9021e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000139
+[   49.139525] RAX: ffffffffffffffda RBX: 000055c02951ee50 RCX: 00007f53ae1261fd
+[   49.139905] RDX: 0000000000000000 RSI: 000055bfff125478 RDI: 0000000000000010
+[   49.140282] RBP: 000055bfff125478 R08: 00007f53ae1f6b20 R09: 00007ffd0e902230
+[   49.140663] R10: 000055c029522000 R11: 0000000000000246 R12: 0000000000040000
+[   49.141040] R13: 000055c02951ef80 R14: 0000000000000000 R15: 000055c029521fc0
+[   49.141424]  </TASK>
+[   49.141552] Modules linked in: xe(+) drm_ttm_helper gpu_sched drm_suballoc_helper drm_gpuvm drm_exec drm_gpusvm i2c_algo_bit drm_buddy video wmi ttm drm_display_helper drm_kms_helper crct10dif_pclmul crc32_pclmul i2c_piix4 e1000 ghash_clmulni_intel i2c_smbus fuse
+[   49.142824] CR2: ffffeb3ff1200000
+[   49.143010] ---[ end trace 0000000000000000 ]---
+[   49.143268] RIP: 0010:vmemmap_set_pmd+0xff/0x230
+[   49.143523] Code: 77 22 02 a9 ff ff 1f 00 74 58 48 8b 3d 62 77 22 02 48 85 ff 0f 85 9a 00 00 00 48 8d 7d 08 48 89 e9 31 c0 48 89 ea 48 83 e7 f8 <48> c7 45 00 00 00 00 00 48 29 f9 48 c7 45 48 00 00 00 00 83 c1 50
+[   49.144489] RSP: 0018:ffffc900016d37a8 EFLAGS: 00010282
+[   49.144775] RAX: 0000000000000000 RBX: ffff888164000000 RCX: ffffeb3ff1200000
+[   49.145154] RDX: ffffeb3ff1200000 RSI: 80000000000001e3 RDI: ffffeb3ff1200008
+[   49.145536] RBP: ffffeb3ff1200000 R08: ffffeb3ff1280000 R09: 0000000000000000
+[   49.145914] R10: ffff88817b94dc48 R11: 0000000000000003 R12: ffffeb3ff1280000
+[   49.146292] R13: 0000000000000000 R14: ffff88817b94dc48 R15: 8000000163e001e3
+[   49.146671] FS:  00007f53ae71d740(0000) GS:ffff88843fd80000(0000) knlGS:0000000000000000
+[   49.147097] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   49.147407] CR2: ffffeb3ff1200000 CR3: 000000017c7d2000 CR4: 0000000000750ef0
+[   49.147786] PKRU: 55555554
+[   49.147941] note: modprobe[302] exited with irqs disabled
+
+When a process leads the addition of a struct page to vmemmap
+(e.g. hot-plug), the page table update for the newly added vmemmap-based
+virtual address is updated first in init_mm's page table and then
+synchronized later.
+If the vmemmap-based virtual address is accessed through the process's
+page table before this sync, a page fault will occur.
+
+This translates vmemmap-based virtual address to direct-mapped virtual
+address and use it, if the current top-level page table is not init_mm's
+page table when accessing a vmemmap-based virtual address before this sync.
+
+Link: https://lkml.kernel.org/r/20250217114133.400063-2-gwan-gyeong.mun@intel.com
+Fixes: faf1c0008a33 ("x86/vmemmap: optimize for consecutive sections in partial populated PMDs")
+Signed-off-by: Gwan-gyeong Mun <gwan-gyeong.mun@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   15 +++++++++------
- mm/memremap.c        |   13 ++++++-------
- 2 files changed, 15 insertions(+), 13 deletions(-)
+ arch/x86/mm/init_64.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
---- a/drivers/dax/device.c~device-dax-properly-refcount-device-dax-pages-when-mapping
-+++ a/drivers/dax/device.c
-@@ -125,11 +125,12 @@ static vm_fault_t __dev_dax_pte_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
+--- a/arch/x86/mm/init_64.c~x86-vmemmap-use-direct-mapped-va-instead-of-vmemmap-based-va
++++ a/arch/x86/mm/init_64.c
+@@ -844,6 +844,17 @@ void __init paging_init(void)
+  */
+ static unsigned long unused_pmd_start __meminitdata;
  
--	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, 0);
- 
- 	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
-+	return vmf_insert_page_mkwrite(vmf, pfn_t_to_page(pfn),
-+					vmf->flags & FAULT_FLAG_WRITE);
- }
- 
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
-@@ -168,11 +169,12 @@ static vm_fault_t __dev_dax_pmd_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, 0);
- 
- 	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
-+	return vmf_insert_folio_pmd(vmf, page_folio(pfn_t_to_page(pfn)),
-+				vmf->flags & FAULT_FLAG_WRITE);
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-@@ -213,11 +215,12 @@ static vm_fault_t __dev_dax_pud_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, 0);
- 
- 	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
-+	return vmf_insert_folio_pud(vmf, page_folio(pfn_t_to_page(pfn)),
-+				vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
---- a/mm/memremap.c~device-dax-properly-refcount-device-dax-pages-when-mapping
-+++ a/mm/memremap.c
-@@ -460,11 +460,10 @@ void free_zone_device_folio(struct folio
++static void * __meminit vmemmap_va_to_kaddr(unsigned long vmemmap_va)
++{
++	void *kaddr = (void *)vmemmap_va;
++	pgd_t *pgd = __va(read_cr3_pa());
++
++	if (init_mm.pgd != pgd)
++		kaddr = __va(slow_virt_to_phys(kaddr));
++
++	return kaddr;
++}
++
+ static void __meminit vmemmap_flush_unused_pmd(void)
  {
- 	struct dev_pagemap *pgmap = folio->pgmap;
- 
--	if (WARN_ON_ONCE(!pgmap->ops))
--		return;
--
--	if (WARN_ON_ONCE(pgmap->type != MEMORY_DEVICE_FS_DAX &&
--			 !pgmap->ops->page_free))
-+	if (WARN_ON_ONCE((!pgmap->ops &&
-+			  pgmap->type != MEMORY_DEVICE_GENERIC) ||
-+			 (pgmap->ops && !pgmap->ops->page_free &&
-+			  pgmap->type != MEMORY_DEVICE_FS_DAX)))
- 		return;
- 
- 	mem_cgroup_uncharge(folio);
-@@ -494,7 +493,8 @@ void free_zone_device_folio(struct folio
- 	 * zero which indicating the page has been removed from the file
- 	 * system mapping.
+ 	if (!unused_pmd_start)
+@@ -851,7 +862,7 @@ static void __meminit vmemmap_flush_unus
+ 	/*
+ 	 * Clears (unused_pmd_start, PMD_END]
  	 */
--	if (pgmap->type != MEMORY_DEVICE_FS_DAX)
-+	if (pgmap->type != MEMORY_DEVICE_FS_DAX &&
-+	    pgmap->type != MEMORY_DEVICE_GENERIC)
- 		folio->mapping = NULL;
+-	memset((void *)unused_pmd_start, PAGE_UNUSED,
++	memset(vmemmap_va_to_kaddr(unused_pmd_start), PAGE_UNUSED,
+ 	       ALIGN(unused_pmd_start, PMD_SIZE) - unused_pmd_start);
+ 	unused_pmd_start = 0;
+ }
+@@ -882,7 +893,7 @@ static void __meminit __vmemmap_use_sub_
+ 	 * case the first memmap never gets initialized e.g., because the memory
+ 	 * block never gets onlined).
+ 	 */
+-	memset((void *)start, 0, sizeof(struct page));
++	memset(vmemmap_va_to_kaddr(start), 0, sizeof(struct page));
+ }
  
- 	switch (pgmap->type) {
-@@ -509,7 +509,6 @@ void free_zone_device_folio(struct folio
- 		 * Reset the refcount to 1 to prepare for handing out the page
- 		 * again.
- 		 */
--		pgmap->ops->page_free(folio_page(folio, 0));
- 		folio_set_count(folio, 1);
- 		break;
+ static void __meminit vmemmap_use_sub_pmd(unsigned long start, unsigned long end)
+@@ -924,7 +935,7 @@ static void __meminit vmemmap_use_new_su
+ 	 * Mark with PAGE_UNUSED the unused parts of the new memmap range
+ 	 */
+ 	if (!IS_ALIGNED(start, PMD_SIZE))
+-		memset((void *)page, PAGE_UNUSED, start - page);
++		memset(vmemmap_va_to_kaddr(page), PAGE_UNUSED, start - page);
  
+ 	/*
+ 	 * We want to avoid memset(PAGE_UNUSED) when populating the vmemmap of
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from gwan-gyeong.mun@intel.com are
 
-fuse-fix-dax-truncate-punch_hole-fault-path.patch
-fs-dax-return-unmapped-busy-pages-from-dax_layout_busy_page_range.patch
-fs-dax-dont-skip-locked-entries-when-scanning-entries.patch
-fs-dax-refactor-wait-for-dax-idle-page.patch
-fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
-fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
-fs-dax-ensure-all-pages-are-idle-prior-to-filesystem-unmount.patch
-fs-dax-remove-page_mapping_dax_shared-mapping-flag.patch
-mm-gup-remove-redundant-check-for-pci-p2pdma-page.patch
-mm-mm_init-move-p2pdma-page-refcount-initialisation-to-p2pdma.patch
-mm-allow-compound-zone-device-pages.patch
-mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
-mm-memory-add-vmf_insert_page_mkwrite.patch
-mm-rmap-add-support-for-pud-sized-mappings-to-rmap.patch
-mm-huge_memory-add-vmf_insert_folio_pud.patch
-mm-huge_memory-add-vmf_insert_folio_pmd.patch
-mm-gup-dont-allow-foll_longterm-pinning-of-fs-dax-pages.patch
-fs-dax-properly-refcount-fs-dax-pages.patch
-device-dax-properly-refcount-device-dax-pages-when-mapping.patch
+x86-vmemmap-use-direct-mapped-va-instead-of-vmemmap-based-va.patch
 
