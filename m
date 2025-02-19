@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C695629
-	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 00:04:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C8B1C01
+	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 00:04:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739923452; cv=none; b=u9FbwTaAXu8yFghsEIyoUxcBVIni9KPPRqSRt11ikqfpMVSP+UmbJetRAdXbbQaQ2Jq5SREsOrsLycBiTtDol+rxxsLvgFwt9OASNA+BpmpF3Tv82tb0GlNDnSkBRzIDB9AOpqM6gsIjIqa/cC9FV/yBecR0w19qRv6yaq523y4=
+	t=1739923455; cv=none; b=d5dzcVpaeNByURP0HVfgNq9uDONwcWhhjdOpjM4Hz2rWpYQlgGSGWN7xErVygRF5BOopQJoL6rCvEXuAx0koZqTNbjXu9K99bM6YUAPZDw75ZEPSZ/R1+Bg/vxr3lmDAH9DrsTcnDty/dX9h5S2E4Gb0ZXZxlzxS8gizdqWqJ6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739923452; c=relaxed/simple;
-	bh=ljlfALp2CPy1F6CucfTNn/5qWPD0jqNBKU3ERqPn/Fs=;
-	h=Date:To:From:Subject:Message-Id; b=l4SP6NZ9bGBS4OVLCE+s8t2hovy3mAXoULool24EwWA7EnptP5b84/Vz70P2bi7GQUbhU8JvwnzZdTSBR+tYiZ9ozXLlqyKXF+XMvzL5YAmgJaCudC/W/rKhu0yyEiNeQb8146gqBl/IXyqBC+2ig5LhXD4ipAE8MzlVgcdUlM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NGx4snnG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739923455; c=relaxed/simple;
+	bh=B66sDriHhN4YqvHzefzkEpMHrF4lZ9+cPQgVnURKUy0=;
+	h=Date:To:From:Subject:Message-Id; b=VDZWcdWdMq3zbFWNXw7U+y2jvlfDSPSwPzpxzvuT4DGlKjrvFqCe5J187RSOSumYwmaSHFMwk5UuPlfwXCpV8IxHJDYO4duuZitJHaHF/LkwMD3XjsJuUnSkTd2x7fvZQRbmh+ngzeB2I35X8Sk44IWiIlDESvdKa6B0evG4xzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kRCLNBXJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NGx4snnG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EFEEC4CEE2;
-	Wed, 19 Feb 2025 00:04:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kRCLNBXJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34D04C4CEE2;
+	Wed, 19 Feb 2025 00:04:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739923451;
-	bh=ljlfALp2CPy1F6CucfTNn/5qWPD0jqNBKU3ERqPn/Fs=;
+	s=korg; t=1739923455;
+	bh=B66sDriHhN4YqvHzefzkEpMHrF4lZ9+cPQgVnURKUy0=;
 	h=Date:To:From:Subject:From;
-	b=NGx4snnGpZtSjq9KEflerGb5LzyADIOVUnec7vj4HLxzkC95Tp/7axeUJXSx60BdN
-	 y8ldtkDc/EeMyJzMkh+dj7WqJCYjSECishuSlm8zMh8Dm1KiQ8llPU1u30EvGkWfq2
-	 AcrHsqTvLqaNEr4n1XaqHJD870iTWktmJQSIWpHI=
-Date: Tue, 18 Feb 2025 16:04:10 -0800
+	b=kRCLNBXJc7DrliXNYGhB26kQV0aD8OYOgDKWC3rhwe/KpTau2eWKWwLAfZt4Gfqzs
+	 nzRSkGSxYIpJJmviZcWJ0bnpycEKwIAQvtKdjFmhwguSl7y/23jiuhJ9Lc8GXj8+o7
+	 gldNoRJyg2a2gZT+jaUEwkQvXkcDtfL50KREsS24=
+Date: Tue, 18 Feb 2025 16:04:14 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-convert-cmdline-parameters-from-setup-to-early.patch added to mm-unstable branch
-Message-Id: <20250219000411.7EFEEC4CEE2@smtp.kernel.org>
+Subject: + x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch added to mm-unstable branch
+Message-Id: <20250219000415.34D04C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: convert cmdline parameters from setup to early
+     Subject: x86/mm: make register_page_bootmem_memmap handle PTE mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-convert-cmdline-parameters-from-setup-to-early.patch
+     x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-cmdline-parameters-from-setup-to-early.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: convert cmdline parameters from setup to early
-Date: Tue, 18 Feb 2025 18:16:35 +0000
+Subject: x86/mm: make register_page_bootmem_memmap handle PTE mappings
+Date: Tue, 18 Feb 2025 18:16:36 +0000
 
-Convert the cmdline parameters (hugepagesz, hugepages, default_hugepagesz
-and hugetlb_free_vmemmap) to early parameters.
+register_page_bootmem_memmap expects that vmemmap pages handed to it are
+PMD-mapped, and that the number of pages to call get_page_bootmem on is
+PMD-aligned.
 
-Since parse_early_param might run before MMU setups on some platforms
-(powerpc), validation of huge page sizes as specified in command line
-parameters would fail.  So instead, for the hstate-related values, just
-record the them and parse them on demand, from hugetlb_bootmem_alloc.
+This is currently a correct assumption, but will no longer be true once
+pre-HVO of hugetlb pages is implemented.
 
-The allocation of hugetlb bootmem pages is now done in
-hugetlb_bootmem_alloc, which is called explicitly at the start of
-mm_core_init().  core_initcall would be too late, as that happens with
-memblock already torn down.
+Make it handle PTE-mapped vmemmap pages and a nr_pages argument that is
+not necessarily PAGES_PER_SECTION.
 
-This change will allow earlier allocation and initialization of bootmem
-hugetlb pages later on.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20250218181656.207178-8-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250218181656.207178-9-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -100,347 +92,44 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   14 -
- include/linux/hugetlb.h                         |    6 
- mm/hugetlb.c                                    |  133 +++++++++++---
- mm/hugetlb_vmemmap.c                            |    6 
- mm/mm_init.c                                    |    3 
- 5 files changed, 126 insertions(+), 36 deletions(-)
+ arch/x86/mm/init_64.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-convert-cmdline-parameters-from-setup-to-early
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1861,7 +1861,7 @@
- 	hpet_mmap=	[X86, HPET_MMAP] Allow userspace to mmap HPET
- 			registers.  Default set by CONFIG_HPET_MMAP_DEFAULT.
- 
--	hugepages=	[HW] Number of HugeTLB pages to allocate at boot.
-+	hugepages=	[HW,EARLY] Number of HugeTLB pages to allocate at boot.
- 			If this follows hugepagesz (below), it specifies
- 			the number of pages of hugepagesz to be allocated.
- 			If this is the first HugeTLB parameter on the command
-@@ -1873,12 +1873,12 @@
- 				<node>:<integer>[,<node>:<integer>]
- 
- 	hugepagesz=
--			[HW] The size of the HugeTLB pages.  This is used in
--			conjunction with hugepages (above) to allocate huge
--			pages of a specific size at boot.  The pair
--			hugepagesz=X hugepages=Y can be specified once for
--			each supported huge page size. Huge page sizes are
--			architecture dependent.  See also
-+			[HW,EARLY] The size of the HugeTLB pages.  This is
-+			used in conjunction with hugepages (above) to
-+			allocate huge pages of a specific size at boot. The
-+			pair hugepagesz=X hugepages=Y can be specified once
-+			for each supported huge page size. Huge page sizes
-+			are architecture dependent. See also
- 			Documentation/admin-guide/mm/hugetlbpage.rst.
- 			Format: size[KMG]
- 
---- a/include/linux/hugetlb.h~mm-hugetlb-convert-cmdline-parameters-from-setup-to-early
-+++ a/include/linux/hugetlb.h
-@@ -174,6 +174,8 @@ struct address_space *hugetlb_folio_mapp
- extern int sysctl_hugetlb_shm_group;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
- 
-+void hugetlb_bootmem_alloc(void);
-+
- /* arch callbacks */
- 
- #ifndef CONFIG_HIGHPTE
-@@ -1250,6 +1252,10 @@ static inline bool hugetlbfs_pagecache_p
- {
- 	return false;
- }
-+
-+static inline void hugetlb_bootmem_alloc(void)
-+{
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
---- a/mm/hugetlb.c~mm-hugetlb-convert-cmdline-parameters-from-setup-to-early
-+++ a/mm/hugetlb.c
-@@ -40,6 +40,7 @@
- #include <asm/page.h>
- #include <asm/pgalloc.h>
- #include <asm/tlb.h>
-+#include <asm/setup.h>
- 
- #include <linux/io.h>
- #include <linux/hugetlb.h>
-@@ -62,6 +63,24 @@ static unsigned long hugetlb_cma_size __
- 
- __initdata struct list_head huge_boot_pages[MAX_NUMNODES];
- 
-+/*
-+ * Due to ordering constraints across the init code for various
-+ * architectures, hugetlb hstate cmdline parameters can't simply
-+ * be early_param. early_param might call the setup function
-+ * before valid hugetlb page sizes are determined, leading to
-+ * incorrect rejection of valid hugepagesz= options.
-+ *
-+ * So, record the parameters early and consume them whenever the
-+ * init code is ready for them, by calling hugetlb_parse_params().
-+ */
-+
-+/* one (hugepagesz=,hugepages=) pair per hstate, one default_hugepagesz */
-+#define HUGE_MAX_CMDLINE_ARGS	(2 * HUGE_MAX_HSTATE + 1)
-+struct hugetlb_cmdline {
-+	char *val;
-+	int (*setup)(char *val);
-+};
-+
- /* for command line parsing */
- static struct hstate * __initdata parsed_hstate;
- static unsigned long __initdata default_hstate_max_huge_pages;
-@@ -69,6 +88,20 @@ static bool __initdata parsed_valid_huge
- static bool __initdata parsed_default_hugepagesz;
- static unsigned int default_hugepages_in_node[MAX_NUMNODES] __initdata;
- 
-+static char hstate_cmdline_buf[COMMAND_LINE_SIZE] __initdata;
-+static int hstate_cmdline_index __initdata;
-+static struct hugetlb_cmdline hugetlb_params[HUGE_MAX_CMDLINE_ARGS] __initdata;
-+static int hugetlb_param_index __initdata;
-+static __init int hugetlb_add_param(char *s, int (*setup)(char *val));
-+static __init void hugetlb_parse_params(void);
-+
-+#define hugetlb_early_param(str, func) \
-+static __init int func##args(char *s) \
-+{ \
-+	return hugetlb_add_param(s, func); \
-+} \
-+early_param(str, func##args)
-+
- /*
-  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
-  * free_huge_pages, and surplus_huge_pages.
-@@ -3484,6 +3517,8 @@ static void __init hugetlb_hstate_alloc_
- 
- 		for (i = 0; i < MAX_NUMNODES; i++)
- 			INIT_LIST_HEAD(&huge_boot_pages[i]);
-+		h->next_nid_to_alloc = first_online_node;
-+		h->next_nid_to_free = first_online_node;
- 		initialized = true;
- 	}
- 
-@@ -4546,8 +4581,6 @@ void __init hugetlb_add_hstate(unsigned
- 	for (i = 0; i < MAX_NUMNODES; ++i)
- 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
- 	INIT_LIST_HEAD(&h->hugepage_activelist);
--	h->next_nid_to_alloc = first_online_node;
--	h->next_nid_to_free = first_online_node;
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
- 					huge_page_size(h)/SZ_1K);
- 
-@@ -4572,6 +4605,42 @@ static void __init hugepages_clear_pages
- 	}
- }
- 
-+static __init int hugetlb_add_param(char *s, int (*setup)(char *))
-+{
-+	size_t len;
-+	char *p;
-+
-+	if (hugetlb_param_index >= HUGE_MAX_CMDLINE_ARGS)
-+		return -EINVAL;
-+
-+	len = strlen(s) + 1;
-+	if (len + hstate_cmdline_index > sizeof(hstate_cmdline_buf))
-+		return -EINVAL;
-+
-+	p = &hstate_cmdline_buf[hstate_cmdline_index];
-+	memcpy(p, s, len);
-+	hstate_cmdline_index += len;
-+
-+	hugetlb_params[hugetlb_param_index].val = p;
-+	hugetlb_params[hugetlb_param_index].setup = setup;
-+
-+	hugetlb_param_index++;
-+
-+	return 0;
-+}
-+
-+static __init void hugetlb_parse_params(void)
-+{
-+	int i;
-+	struct hugetlb_cmdline *hcp;
-+
-+	for (i = 0; i < hugetlb_param_index; i++) {
-+		hcp = &hugetlb_params[i];
-+
-+		hcp->setup(hcp->val);
-+	}
-+}
-+
- /*
-  * hugepages command line processing
-  * hugepages normally follows a valid hugepagsz or default_hugepagsz
-@@ -4591,7 +4660,7 @@ static int __init hugepages_setup(char *
- 	if (!parsed_valid_hugepagesz) {
- 		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
- 		parsed_valid_hugepagesz = true;
--		return 1;
-+		return -EINVAL;
- 	}
- 
- 	/*
-@@ -4645,24 +4714,16 @@ static int __init hugepages_setup(char *
+--- a/arch/x86/mm/init_64.c~x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings
++++ a/arch/x86/mm/init_64.c
+@@ -1610,11 +1610,14 @@ void register_page_bootmem_memmap(unsign
  		}
- 	}
+ 		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
  
--	/*
--	 * Global state is always initialized later in hugetlb_init.
--	 * But we need to allocate gigantic hstates here early to still
--	 * use the bootmem allocator.
--	 */
--	if (hugetlb_max_hstate && hstate_is_gigantic(parsed_hstate))
--		hugetlb_hstate_alloc_pages(parsed_hstate);
--
- 	last_mhp = mhp;
- 
--	return 1;
-+	return 0;
- 
- invalid:
- 	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
- 	hugepages_clear_pages_in_node();
--	return 1;
-+	return -EINVAL;
- }
--__setup("hugepages=", hugepages_setup);
-+hugetlb_early_param("hugepages", hugepages_setup);
- 
- /*
-  * hugepagesz command line processing
-@@ -4681,7 +4742,7 @@ static int __init hugepagesz_setup(char
- 
- 	if (!arch_hugetlb_valid_size(size)) {
- 		pr_err("HugeTLB: unsupported hugepagesz=%s\n", s);
--		return 1;
-+		return -EINVAL;
- 	}
- 
- 	h = size_to_hstate(size);
-@@ -4696,7 +4757,7 @@ static int __init hugepagesz_setup(char
- 		if (!parsed_default_hugepagesz ||  h != &default_hstate ||
- 		    default_hstate.max_huge_pages) {
- 			pr_warn("HugeTLB: hugepagesz=%s specified twice, ignoring\n", s);
--			return 1;
-+			return -EINVAL;
- 		}
- 
- 		/*
-@@ -4706,14 +4767,14 @@ static int __init hugepagesz_setup(char
- 		 */
- 		parsed_hstate = h;
- 		parsed_valid_hugepagesz = true;
--		return 1;
-+		return 0;
- 	}
- 
- 	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
- 	parsed_valid_hugepagesz = true;
--	return 1;
-+	return 0;
- }
--__setup("hugepagesz=", hugepagesz_setup);
-+hugetlb_early_param("hugepagesz", hugepagesz_setup);
- 
- /*
-  * default_hugepagesz command line input
-@@ -4727,14 +4788,14 @@ static int __init default_hugepagesz_set
- 	parsed_valid_hugepagesz = false;
- 	if (parsed_default_hugepagesz) {
- 		pr_err("HugeTLB: default_hugepagesz previously specified, ignoring %s\n", s);
--		return 1;
-+		return -EINVAL;
- 	}
- 
- 	size = (unsigned long)memparse(s, NULL);
- 
- 	if (!arch_hugetlb_valid_size(size)) {
- 		pr_err("HugeTLB: unsupported default_hugepagesz=%s\n", s);
--		return 1;
-+		return -EINVAL;
- 	}
- 
- 	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
-@@ -4751,17 +4812,33 @@ static int __init default_hugepagesz_set
- 	 */
- 	if (default_hstate_max_huge_pages) {
- 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
--		for_each_online_node(i)
--			default_hstate.max_huge_pages_node[i] =
--				default_hugepages_in_node[i];
--		if (hstate_is_gigantic(&default_hstate))
--			hugetlb_hstate_alloc_pages(&default_hstate);
-+		/*
-+		 * Since this is an early parameter, we can't check
-+		 * NUMA node state yet, so loop through MAX_NUMNODES.
-+		 */
-+		for (i = 0; i < MAX_NUMNODES; i++) {
-+			if (default_hugepages_in_node[i] != 0)
-+				default_hstate.max_huge_pages_node[i] =
-+					default_hugepages_in_node[i];
+-		if (!boot_cpu_has(X86_FEATURE_PSE)) {
++		pmd = pmd_offset(pud, addr);
++		if (pmd_none(*pmd)) {
++			next = (addr + PAGE_SIZE) & PAGE_MASK;
++			continue;
 +		}
- 		default_hstate_max_huge_pages = 0;
- 	}
- 
--	return 1;
-+	return 0;
-+}
-+hugetlb_early_param("default_hugepagesz", default_hugepagesz_setup);
 +
-+void __init hugetlb_bootmem_alloc(void)
-+{
-+	struct hstate *h;
-+
-+	hugetlb_parse_params();
-+
-+	for_each_hstate(h) {
-+		if (hstate_is_gigantic(h))
-+			hugetlb_hstate_alloc_pages(h);
-+	}
- }
--__setup("default_hugepagesz=", default_hugepagesz_setup);
++		if (!boot_cpu_has(X86_FEATURE_PSE) || !pmd_leaf(*pmd)) {
+ 			next = (addr + PAGE_SIZE) & PAGE_MASK;
+-			pmd = pmd_offset(pud, addr);
+-			if (pmd_none(*pmd))
+-				continue;
+ 			get_page_bootmem(section_nr, pmd_page(*pmd),
+ 					 MIX_SECTION_INFO);
  
- static unsigned int allowed_mems_nr(struct hstate *h)
- {
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-convert-cmdline-parameters-from-setup-to-early
-+++ a/mm/hugetlb_vmemmap.c
-@@ -444,7 +444,11 @@ DEFINE_STATIC_KEY_FALSE(hugetlb_optimize
- EXPORT_SYMBOL(hugetlb_optimize_vmemmap_key);
- 
- static bool vmemmap_optimize_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON);
--core_param(hugetlb_free_vmemmap, vmemmap_optimize_enabled, bool, 0);
-+static int __init hugetlb_vmemmap_optimize_param(char *buf)
-+{
-+	return kstrtobool(buf, &vmemmap_optimize_enabled);
-+}
-+early_param("hugetlb_free_vmemmap", hugetlb_vmemmap_optimize_param);
- 
- static int __hugetlb_vmemmap_restore_folio(const struct hstate *h,
- 					   struct folio *folio, unsigned long flags)
---- a/mm/mm_init.c~mm-hugetlb-convert-cmdline-parameters-from-setup-to-early
-+++ a/mm/mm_init.c
-@@ -30,6 +30,7 @@
- #include <linux/crash_dump.h>
- #include <linux/execmem.h>
- #include <linux/vmstat.h>
-+#include <linux/hugetlb.h>
- #include "internal.h"
- #include "slab.h"
- #include "shuffle.h"
-@@ -2654,6 +2655,8 @@ static void __init mem_init_print_info(v
-  */
- void __init mm_core_init(void)
- {
-+	hugetlb_bootmem_alloc();
-+
- 	/* Initializations relying on SMP setup */
- 	BUILD_BUG_ON(MAX_ZONELISTS > 2);
- 	build_all_zonelists(NULL);
+@@ -1625,12 +1628,7 @@ void register_page_bootmem_memmap(unsign
+ 					 SECTION_INFO);
+ 		} else {
+ 			next = pmd_addr_end(addr, end);
+-
+-			pmd = pmd_offset(pud, addr);
+-			if (pmd_none(*pmd))
+-				continue;
+-
+-			nr_pmd_pages = 1 << get_order(PMD_SIZE);
++			nr_pmd_pages = (next - addr) >> PAGE_SHIFT;
+ 			page = pmd_page(*pmd);
+ 			while (nr_pmd_pages--)
+ 				get_page_bootmem(section_nr, page++,
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
