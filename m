@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6044A1D7E30;
-	Wed, 19 Feb 2025 23:28:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DD8421B9E9
+	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 23:30:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740007682; cv=none; b=bEUuBuo+fZPWvRDr2UJ0QM/A+m0d3yIm5TUQo7g4eQbklzbyzmj5MhE8HWXmDi1hq3OwJjH+8E27hS2lLxJcGizL+Jci3LJzZ8Mo73e9xWu+H8AqzpXM6kLDbnQWgIS38KVEFwp9RtVW+XOAjZFcC8xYKIfTRNOAFfW1E9DYqIc=
+	t=1740007844; cv=none; b=ojWt56LD2oKXBtOZ4n/nqAXz/FwNqe11qJKywZKZa16ViY8gJqOXRkhr3Sl1wAJVGe9zzLuoif9JV/oiK+kMDL2dH6gr8cmBsJmWxbaPPn+Gzb1a7DhokwHib7g3hDpEUO0aJOvmCk3aYok1VMLsJddkrto1SSJMLSwiD4dUbW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740007682; c=relaxed/simple;
-	bh=iGI9XFpGJ+DOM31pAarTDjvshjQGUBKEThXpRdT3zKg=;
-	h=Date:To:From:Subject:Message-Id; b=DwqvkADFp3JL2JzoZ2mX2NJgXkb1j/Fajv1eJmKF/87/TLyLwRlwNw8KN7k8/bTRF3h3NruEaUf1sHwzXbyaEJztXeKYGM9ItAqJgzMyxLOarBU3IvnjNFDDft7WDGNfe5aUYmzGN3xlDBdiykOIvLtEgpk92lecHgeqr67rYlg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eu5g9Mec; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740007844; c=relaxed/simple;
+	bh=7/ahxFDGt21CbL/x+A66rHx0UkDrpgZ8aAGEEefxh94=;
+	h=Date:To:From:Subject:Message-Id; b=LYbdEckFXM5W/57iIZzN82Bs8m7gqCAirw8AF5LMy1wpf+JA9KM+Nz5SAFvK7xqBhCLubZx8LoNoXym3Uj/FG2eTn5hiLP66fa6fLWm18jfsFts8vt/QmHRoyknbnOaudei1cO9vjss3Uh30ghMnLngPqnRk1BOuUPcEuVGt24Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BmizHcTr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eu5g9Mec"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB234C4CED1;
-	Wed, 19 Feb 2025 23:28:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BmizHcTr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C24AC4CED1;
+	Wed, 19 Feb 2025 23:30:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740007681;
-	bh=iGI9XFpGJ+DOM31pAarTDjvshjQGUBKEThXpRdT3zKg=;
+	s=korg; t=1740007843;
+	bh=7/ahxFDGt21CbL/x+A66rHx0UkDrpgZ8aAGEEefxh94=;
 	h=Date:To:From:Subject:From;
-	b=Eu5g9Mec4FlQP3NNvHjKNoOmm1MpFpXDsLVYCoZ4oIe37SLSAzOuZ+sdT4KEtu4pw
-	 l78yE80m8GdBSyUyCRqKdUG8g8H3dHqU4/MBFPxE20dCVU9SX1t96YggrLj0I677FO
-	 PqucIFO+UNe/IVSPVb50QdMYa5DEnfWegtRD1zWM=
-Date: Wed, 19 Feb 2025 15:28:01 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=BmizHcTrO1SiEEgMv3bjng4YjwzxO8v1KGClBCOiqkssweMaFNX3nZFrI+OzdC6LC
+	 FtfjuQagRSC2JYrhHV1yu/w3mo5q1P9bHepKhQTcix0n5vIiCkjzRv5lHyoM6Sgl4t
+	 EBG68IxfV4XKbBJEMAd8xLY7h9GphE7SX1DP/iGo=
+Date: Wed, 19 Feb 2025 15:30:43 -0800
+To: mm-commits@vger.kernel.org,shivankg@amd.com,dhowells@redhat.com,dev.jain@arm.com,brauner@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250219232801.BB234C4CED1@smtp.kernel.org>
+Subject: + mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch added to mm-unstable branch
+Message-Id: <20250219233043.9C24AC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: wait for hugetlb folios to be freed
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch
+     Subject: mm/folio_queue: delete __folio_order and use folio_order directly
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,119 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ge Yang <yangge1116@126.com>
-Subject: mm/hugetlb: wait for hugetlb folios to be freed
-Date: Wed, 19 Feb 2025 11:46:44 +0800
+From: Liu Ye <liuye@kylinos.cn>
+Subject: mm/folio_queue: delete __folio_order and use folio_order directly
+Date: Wed, 12 Feb 2025 10:58:42 +0800
 
-Since the introduction of commit c77c0a8ac4c52 ("mm/hugetlb: defer freeing
-of huge pages if in non-task context"), which supports deferring the
-freeing of hugetlb pages, the allocation of contiguous memory through
-cma_alloc() may fail probabilistically.
+__folio_order is the same as folio_order, remove __folio_order and then
+just include mm.h and use folio_order directly.
 
-In the CMA allocation process, if it is found that the CMA area is
-occupied by in-use hugetlb folios, these in-use hugetlb folios need to be
-migrated to another location.  When there are no available hugetlb folios
-in the free hugetlb pool during the migration of in-use hugetlb folios,
-new folios are allocated from the buddy system.  A temporary state is set
-on the newly allocated folio.  Upon completion of the hugetlb folio
-migration, the temporary state is transferred from the new folios to the
-old folios.  Normally, when the old folios with the temporary state are
-freed, it is directly released back to the buddy system.  However, due to
-the deferred freeing of hugetlb pages, the PageBuddy() check fails,
-ultimately leading to the failure of cma_alloc().
-
-Here is a simplified call trace illustrating the process:
-cma_alloc()
-    ->__alloc_contig_migrate_range() // Migrate in-use hugetlb folios
-        ->unmap_and_move_huge_page()
-            ->folio_putback_hugetlb() // Free old folios
-    ->test_pages_isolated()
-        ->__test_page_isolated_in_pageblock()
-             ->PageBuddy(page) // Check if the page is in buddy
-
-To resolve this issue, we have implemented a function named
-wait_for_freed_hugetlb_folios().  This function ensures that the hugetlb
-folios are properly released back to the buddy system after their
-migration is completed.  By invoking wait_for_freed_hugetlb_folios()
-before calling PageBuddy(), we ensure that PageBuddy() will succeed.
-
-Link: https://lkml.kernel.org/r/1739936804-18199-1-git-send-email-yangge1116@126.com
-Fixes: c77c0a8ac4c52 ("mm/hugetlb: defer freeing of huge pages if in non-task context")
-Signed-off-by: Ge Yang <yangge1116@126.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250212025843.80283-2-liuye@kylinos.cn
+Signed-off-by: Liu Ye <liuye@kylinos.cn>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- mm/hugetlb.c            |    8 ++++++++
- mm/page_isolation.c     |   10 ++++++++++
- 3 files changed, 23 insertions(+)
+ include/linux/folio_queue.h |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
-+++ a/include/linux/hugetlb.h
-@@ -682,6 +682,7 @@ struct huge_bootmem_page {
+--- a/include/linux/folio_queue.h~mm-folio_queue-delete-__folio_order-and-use-folio_order-directly
++++ a/include/linux/folio_queue.h
+@@ -15,6 +15,7 @@
+ #define _LINUX_FOLIO_QUEUE_H
  
- int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
- int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
-+void wait_for_freed_hugetlb_folios(void);
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 				unsigned long addr, bool cow_from_owner);
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
-@@ -1066,6 +1067,10 @@ static inline int replace_free_hugepage_
- 	return 0;
+ #include <linux/pagevec.h>
++#include <linux/mm.h>
+ 
+ /*
+  * Segment in a queue of running buffers.  Each segment can hold a number of
+@@ -216,13 +217,6 @@ static inline void folioq_unmark3(struct
+ 	clear_bit(slot, &folioq->marks3);
  }
  
-+static inline void wait_for_freed_hugetlb_folios(void)
-+{
-+}
-+
- static inline struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 					   unsigned long addr,
- 					   bool cow_from_owner)
---- a/mm/hugetlb.c~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
-+++ a/mm/hugetlb.c
-@@ -2943,6 +2943,14 @@ int replace_free_hugepage_folios(unsigne
- 	return ret;
+-static inline unsigned int __folio_order(struct folio *folio)
+-{
+-	if (!folio_test_large(folio))
+-		return 0;
+-	return folio->_flags_1 & 0xff;
+-}
+-
+ /**
+  * folioq_append: Add a folio to a folio queue segment
+  * @folioq: The segment to add to
+@@ -241,7 +235,7 @@ static inline unsigned int folioq_append
+ 	unsigned int slot = folioq->vec.nr++;
+ 
+ 	folioq->vec.folios[slot] = folio;
+-	folioq->orders[slot] = __folio_order(folio);
++	folioq->orders[slot] = folio_order(folio);
+ 	return slot;
  }
  
-+void wait_for_freed_hugetlb_folios(void)
-+{
-+	if (llist_empty(&hpage_freelist))
-+		return;
-+
-+	flush_work(&free_hpage_work);
-+}
-+
- typedef enum {
- 	/*
- 	 * For either 0/1: we checked the per-vma resv map, and one resv
---- a/mm/page_isolation.c~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
-+++ a/mm/page_isolation.c
-@@ -608,6 +608,16 @@ int test_pages_isolated(unsigned long st
- 	int ret;
+@@ -263,7 +257,7 @@ static inline unsigned int folioq_append
+ 	unsigned int slot = folioq->vec.nr++;
  
- 	/*
-+	 * Due to the deferred freeing of hugetlb folios, the hugepage folios may
-+	 * not immediately release to the buddy system. This can cause PageBuddy()
-+	 * to fail in __test_page_isolated_in_pageblock(). To ensure that the
-+	 * hugetlb folios are properly released back to the buddy system, we
-+	 * invoke the wait_for_freed_hugetlb_folios() function to wait for the
-+	 * release to complete.
-+	 */
-+	wait_for_freed_hugetlb_folios();
-+
-+	/*
- 	 * Note: pageblock_nr_pages != MAX_PAGE_ORDER. Then, chunks of free
- 	 * pages are not aligned to pageblock_nr_pages.
- 	 * Then we just check migratetype first.
+ 	folioq->vec.folios[slot] = folio;
+-	folioq->orders[slot] = __folio_order(folio);
++	folioq->orders[slot] = folio_order(folio);
+ 	folioq_mark(folioq, slot);
+ 	return slot;
+ }
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch
+mm-memfd-fix-spelling-and-grammatical-issues.patch
+mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
 
