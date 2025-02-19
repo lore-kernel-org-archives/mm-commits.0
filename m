@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9EB51BDCF
-	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 01:10:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BD1118BB8E
+	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 04:04:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739927447; cv=none; b=cax6MZEVwqb9e74iRKw4+zZeG9Lls3n75oGHKEiDAyljNj67JC68r9YWoTrEOeSotdOCy1/jwYLJ1YwV/8SjB2j6UrXrEId4qffoYG0JnurwJ6CvUfGfRIfT/xnrTG9wm2P9gwD69BJxMgOr2OcgIHKWiW269v+qsL6oIh7w3GE=
+	t=1739937860; cv=none; b=hTzj22m7PF2uI3FijcYt0wIK72Qz8UoyzNvhTGmdjaA26/ljHBjiVRmjRye13zUW3QciLzJ1Znlz/LYwcpnQZGzSIMduWB3pFi7vcQiwL/aDSOYzshwlBL4hmoaLSZpnTsobzcdOOYa7rPG2+ucWi5JQG0HjenR2GM+VjF4c7fI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739927447; c=relaxed/simple;
-	bh=E1FN1nVEGjYf7KXNvZN2mZJPwMKSoXaJzHG3O1mZre8=;
-	h=Date:To:From:Subject:Message-Id; b=e0HId3qZs/KTfpvKpBkEH45lsFkeubFS49wPd23VhiMamqthBvIc3TiHScyGVkjKkRtyVYtTTJ03eJPJKOSSqyFEKgKozp3uXyoh7zwkOSKaMK5LHCXwL1RO7qVRaSRX4mhYefuHeYoDy8jWk6EGm9EPP5J3QHp9v0A+7W36nmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gtyrMfBY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739937860; c=relaxed/simple;
+	bh=gmHa0NcPYTHrnxGfdq5fXvYqsTW5QlHSKYkBjTCmS+w=;
+	h=Date:To:From:Subject:Message-Id; b=Z/OEUIxwcU3FlxlYSJ8phqOoY+MO3H2d4bNADvkAPBQQgh7XAsoor9SZxh+MJq4/LS0gItET42PzazVFQqthfPp89tQQb0CdaDLTd+b3NIRMIHewzTZ4vyIekxI1G7yyKGJxLR5xKSW42Vo02bRJiOXaTDCvsOM3ebkSzwJhfew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UliMUTOZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gtyrMfBY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2972BC4CEE2;
-	Wed, 19 Feb 2025 01:10:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UliMUTOZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77632C4CED1;
+	Wed, 19 Feb 2025 04:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739927447;
-	bh=E1FN1nVEGjYf7KXNvZN2mZJPwMKSoXaJzHG3O1mZre8=;
+	s=korg; t=1739937859;
+	bh=gmHa0NcPYTHrnxGfdq5fXvYqsTW5QlHSKYkBjTCmS+w=;
 	h=Date:To:From:Subject:From;
-	b=gtyrMfBYu3oOPWMqAIGyGR/QErVQMFXluMYu0Fj4MGVD25uIbGoq/Ijr9nyJ96xQI
-	 84yVtqLMuyUrdV4paVbULQvl+z1NC3SyAgvEekuiSfPGQjpoOC4Lkv1LeXFR0/Vb/0
-	 /j2nGk2OZMTSyWE7U+84R2cy4eb3KQLzr8wq9OTY=
-Date: Tue, 18 Feb 2025 17:10:46 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=UliMUTOZI+L0Lk3IkoBCL3p3IxMTF0WV5JM4L4DgDarjXPfeSVYNbwS5qWvhdAj5q
+	 dEOJbUhhQX5iJVezKtQZOKdZvsVFf9/Vopmf9VpgjlK3nqDhukr9M1H2kEJ49+zpsr
+	 5MnB/3XUJA/f79q2gVDI9yO5m0yL1RgFtfgNGoUs=
+Date: Tue, 18 Feb 2025 20:04:18 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,surenb@google.com,baohua@kernel.org,gaoxu2@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch added to mm-unstable branch
-Message-Id: <20250219011047.2972BC4CEE2@smtp.kernel.org>
+Subject: + mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250219040419.77632C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem: use xas_try_split() in shmem_split_large_entry()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
+     Subject: mm: fix possible NULL pointer dereference in __swap_duplicate
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,142 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/shmem: use xas_try_split() in shmem_split_large_entry()
-Date: Tue, 18 Feb 2025 18:54:44 -0500
+From: gaoxu <gaoxu2@honor.com>
+Subject: mm: fix possible NULL pointer dereference in __swap_duplicate
+Date: Wed, 19 Feb 2025 01:56:28 +0000
 
-During shmem_split_large_entry(), large swap entries are covering n slots
-and an order-0 folio needs to be inserted.
+Add a NULL check on the return value of swp_swap_info in __swap_duplicate
+to prevent crashes caused by NULL pointer dereference.
 
-Instead of splitting all n slots, only the 1 slot covered by the folio
-need to be split and the remaining n-1 shadow entries can be retained with
-orders ranging from 0 to n-1.  This method only requires
-(n/XA_CHUNK_SHIFT) new xa_nodes instead of (n % XA_CHUNK_SHIFT) *
-(n/XA_CHUNK_SHIFT) new xa_nodes, compared to the original
-xas_split_alloc() + xas_split() one.
+The reason why swp_swap_info() returns NULL is unclear; it may be due to
+CPU cache issues or DDR bit flips.  The probability of this issue is very
+small, and the stack info we encountered is as follows:
 
-For example, to split an order-9 large swap entry (assuming XA_CHUNK_SHIFT
-is 6), 1 xa_node is needed instead of 8.
+Unable to handle kernel NULL pointer dereference at virtual address
+0000000000000058
+[RB/E]rb_sreason_str_set: sreason_str set null_pointer
+Mem abort info:
+  ESR = 0x0000000096000005
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x05: level 1 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000005, ISS2 = 0x00000000
+  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+user pgtable: 4k pages, 39-bit VAs, pgdp=00000008a80e5000
+[0000000000000058] pgd=0000000000000000, p4d=0000000000000000,
+pud=0000000000000000
+Internal error: Oops: 0000000096000005 [#1] PREEMPT SMP
+Skip md ftrace buffer dump for: 0x1609e0
+...
+pc : swap_duplicate+0x44/0x164
+lr : copy_page_range+0x508/0x1e78
+sp : ffffffc0f2a699e0
+x29: ffffffc0f2a699e0 x28: ffffff8a5b28d388 x27: ffffff8b06603388
+x26: ffffffdf7291fe70 x25: 0000000000000006 x24: 0000000000100073
+x23: 00000000002d2d2f x22: 0000000000000008 x21: 0000000000000000
+x20: 00000000002d2d2f x19: 18000000002d2d2f x18: ffffffdf726faec0
+x17: 0000000000000000 x16: 0010000000000001 x15: 0040000000000001
+x14: 0400000000000001 x13: ff7ffffffffffb7f x12: ffeffffffffffbff
+x11: ffffff8a5c7e1898 x10: 0000000000000018 x9 : 0000000000000006
+x8 : 1800000000000000 x7 : 0000000000000000 x6 : ffffff8057c01f10
+x5 : 000000000000a318 x4 : 0000000000000000 x3 : 0000000000000000
+x2 : 0000006daf200000 x1 : 0000000000000001 x0 : 18000000002d2d2f
+Call trace:
+ swap_duplicate+0x44/0x164
+ copy_page_range+0x508/0x1e78
+ copy_process+0x1278/0x21cc
+ kernel_clone+0x90/0x438
+ __arm64_sys_clone+0x5c/0x8c
+ invoke_syscall+0x58/0x110
+ do_el0_svc+0x8c/0xe0
+ el0_svc+0x38/0x9c
+ el0t_64_sync_handler+0x44/0xec
+ el0t_64_sync+0x1a8/0x1ac
+Code: 9139c35a 71006f3f 54000568 f8797b55 (f9402ea8)
+---[ end trace 0000000000000000 ]---
+Kernel panic - not syncing: Oops: Fatal exception
+SMP: stopping secondary CPUs
 
-xas_try_split_min_order() is used to reduce the number of calls to
-xas_try_split() during split.
+The patch seems to only provide a workaround, but there are no more
+effective software solutions to handle the bit flips problem.  This path
+will change the issue from a system crash to a process exception, thereby
+reducing the impact on the entire machine.
 
-Link: https://lkml.kernel.org/r/20250218235444.1543173-3-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickens <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Mattew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Signed-off-by: gao xu <gaoxu2@honor.com>
+
+Link: https://lkml.kernel.org/r/e223b0e6ba2f4924984b1917cc717bd5@honor.com
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   43 ++++++++++++++++---------------------------
- 1 file changed, 16 insertions(+), 27 deletions(-)
+ mm/swapfile.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-use-xas_try_split-in-shmem_split_large_entry
-+++ a/mm/shmem.c
-@@ -2162,14 +2162,14 @@ static int shmem_split_large_entry(struc
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	XA_STATE_ORDER(xas, &mapping->i_pages, index, 0);
--	void *alloced_shadow = NULL;
--	int alloced_order = 0, i;
-+	int split_order = 0;
-+	int i;
+--- a/mm/swapfile.c~mm-fix-possible-null-pointer-dereference-in-__swap_duplicate
++++ a/mm/swapfile.c
+@@ -3542,6 +3542,10 @@ static int __swap_duplicate(swp_entry_t
+ 	int err, i;
  
- 	/* Convert user data gfp flags to xarray node gfp flags */
- 	gfp &= GFP_RECLAIM_MASK;
+ 	si = swp_swap_info(entry);
++	if (WARN_ON_ONCE(!si)) {
++		pr_err("%s%08lx\n", Bad_file, entry.val);
++		return -EINVAL;
++	}
  
- 	for (;;) {
--		int order = -1, split_order = 0;
-+		int order = -1;
- 		void *old = NULL;
- 
- 		xas_lock_irq(&xas);
-@@ -2181,20 +2181,21 @@ static int shmem_split_large_entry(struc
- 
- 		order = xas_get_order(&xas);
- 
--		/* Swap entry may have changed before we re-acquire the lock */
--		if (alloced_order &&
--		    (old != alloced_shadow || order != alloced_order)) {
--			xas_destroy(&xas);
--			alloced_order = 0;
--		}
--
- 		/* Try to split large swap entry in pagecache */
- 		if (order > 0) {
--			if (!alloced_order) {
--				split_order = order;
--				goto unlock;
-+			int cur_order = order;
-+
-+			split_order = xas_try_split_min_order(cur_order);
-+
-+			while (cur_order > 0) {
-+				xas_set_order(&xas, index, split_order);
-+				xas_try_split(&xas, old, cur_order, GFP_NOWAIT);
-+				if (xas_error(&xas))
-+					goto unlock;
-+				cur_order = split_order;
-+				split_order =
-+					xas_try_split_min_order(split_order);
- 			}
--			xas_split(&xas, old, order);
- 
- 			/*
- 			 * Re-set the swap entry after splitting, and the swap
-@@ -2213,26 +2214,14 @@ static int shmem_split_large_entry(struc
- unlock:
- 		xas_unlock_irq(&xas);
- 
--		/* split needed, alloc here and retry. */
--		if (split_order) {
--			xas_split_alloc(&xas, old, split_order, gfp);
--			if (xas_error(&xas))
--				goto error;
--			alloced_shadow = old;
--			alloced_order = split_order;
--			xas_reset(&xas);
--			continue;
--		}
--
- 		if (!xas_nomem(&xas, gfp))
- 			break;
- 	}
- 
--error:
- 	if (xas_error(&xas))
- 		return xas_error(&xas);
- 
--	return alloced_order;
-+	return split_order;
- }
- 
- /*
+ 	offset = swp_offset(entry);
+ 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from gaoxu2@honor.com are
 
-selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
-mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
-selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
-xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
-mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
-mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
-mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
-mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
-mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
-selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
-mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
-mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
+mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
 
