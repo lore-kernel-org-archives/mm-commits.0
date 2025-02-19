@@ -1,155 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BD1118BB8E
-	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 04:04:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0573E43151
+	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 11:28:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739937860; cv=none; b=hTzj22m7PF2uI3FijcYt0wIK72Qz8UoyzNvhTGmdjaA26/ljHBjiVRmjRye13zUW3QciLzJ1Znlz/LYwcpnQZGzSIMduWB3pFi7vcQiwL/aDSOYzshwlBL4hmoaLSZpnTsobzcdOOYa7rPG2+ucWi5JQG0HjenR2GM+VjF4c7fI=
+	t=1739964508; cv=none; b=BQy+dyDyFeTZO4DFOQOAUUaNLi2AIU+nFLUWEeElIhMRRpBleYyMwP1VtZBgWL4oAXhHVOZArDbA8URmCJlu/iLvRDUlaMZlZ3UFmQdSDGQyr2qVUfahktTw5bMKsyWfwVvM5I+92pJ/hXVTDyUSuhpXYGZvQzKYByrXo0tuG1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739937860; c=relaxed/simple;
-	bh=gmHa0NcPYTHrnxGfdq5fXvYqsTW5QlHSKYkBjTCmS+w=;
-	h=Date:To:From:Subject:Message-Id; b=Z/OEUIxwcU3FlxlYSJ8phqOoY+MO3H2d4bNADvkAPBQQgh7XAsoor9SZxh+MJq4/LS0gItET42PzazVFQqthfPp89tQQb0CdaDLTd+b3NIRMIHewzTZ4vyIekxI1G7yyKGJxLR5xKSW42Vo02bRJiOXaTDCvsOM3ebkSzwJhfew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UliMUTOZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739964508; c=relaxed/simple;
+	bh=Nq+vle5wWZTD8b9+O3h3IP/17qeIXGp+THGRn8qgUnc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ast/lHvl9Ygjghd+7lQJB/fySVX7WUlNrkaHBDNSiMsQsjDXcgvnwq5PZpORqaSF6QcK5pyq/F8vqVy0EMvBplxuqqTLxUG4oqFvf+oTp14QE9dt5zfvE6HuqEA6Ucv0SX0rbytGidsgDAJC094VI574nl5MHaiwDsE62pPpEPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=G6ZhK2DQ; arc=none smtp.client-ip=209.85.161.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UliMUTOZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77632C4CED1;
-	Wed, 19 Feb 2025 04:04:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1739937859;
-	bh=gmHa0NcPYTHrnxGfdq5fXvYqsTW5QlHSKYkBjTCmS+w=;
-	h=Date:To:From:Subject:From;
-	b=UliMUTOZI+L0Lk3IkoBCL3p3IxMTF0WV5JM4L4DgDarjXPfeSVYNbwS5qWvhdAj5q
-	 dEOJbUhhQX5iJVezKtQZOKdZvsVFf9/Vopmf9VpgjlK3nqDhukr9M1H2kEJ49+zpsr
-	 5MnB/3XUJA/f79q2gVDI9yO5m0yL1RgFtfgNGoUs=
-Date: Tue, 18 Feb 2025 20:04:18 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,surenb@google.com,baohua@kernel.org,gaoxu2@honor.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250219040419.77632C4CED1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G6ZhK2DQ"
+Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-5fcfeda1040so334809eaf.3
+        for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 03:28:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1739964506; x=1740569306; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Nq+vle5wWZTD8b9+O3h3IP/17qeIXGp+THGRn8qgUnc=;
+        b=G6ZhK2DQrkOvYsP7HHj30In/VWqRJ7zEk/Z4qud9rJXzPipPCxW1wnn9I6Xu+F6F+y
+         T+Ffdt+wpU5NJSX+NIczhRpTFxWRynV7o8pHde867WolbglZbjhe0v6Hao5+D3noTQ51
+         EjWK1ysluk6qImD9Ag5ei8RPBazvEeMijjSweJ7ECaRpWcLdj2CbWT7ku/aoAy3qqb6H
+         IWH+At+XkpsD0qPGXIF6bHR3TRNoUq9B4DCrq6kkKgQaXycnWCO+wgpVn5gujfwGo3TL
+         NTYSTDzkTJUeGbhwFhSnj0DHgSL7laQWYqY6t8X0PBm78X9N1bQhBsdZyo/0gD9dgzIq
+         sJzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739964506; x=1740569306;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Nq+vle5wWZTD8b9+O3h3IP/17qeIXGp+THGRn8qgUnc=;
+        b=WoVOFlDifoE1d1ZzVahAAf7HxaFSKd6Gs7e9N8oBAEfl07W7xcE1RvG0Nkb4+ruRLa
+         MAAvuWdL24HmxWeh+Us4Qwdui90ax7ojquKVWJT2PPB5nm8jF/yyJH9e0RVQGNK5Gf4y
+         aFt2+F62cWd/gi1LwfJyM9Me45y4mE9n6NziwDs3HsG5FzTbunCnIZpXdplX6hJwFy8Z
+         INhSWkp/GEy6cYZqTsAVW5Inw0sBQlV4vCB//HheiS4Rq5CXL0ukvDSN4nthk2moBDug
+         BxPr19vUEXA1ulOB6bgSUYsJ4UZBQbFPRms6598W8A5NAcs7Hc05U/a2z59HH3lhsMR9
+         tIcA==
+X-Gm-Message-State: AOJu0YxK7+NTTfEkRxzFb9HIs2GyjaQzm+fryYSRH8JMbOxJxi4bGcXq
+	g5Alc+Mu5LMK5XRDYjhRSvYAUFzWy5xX1Xcs8MLxJ5eL8XJV0rT74yjdzIUsoGsx6gxQ2IlxxdT
+	60LGOX8j6MgUPJIHLxVECNrGr2T0=
+X-Gm-Gg: ASbGncsGPK4wm1s2ouUnP8c6ltuJoyw0K+6Gr72/3vdClnbYzzCIsDsGEH9mkh5XBgC
+	n9j8iVzrKS5Y6111PKpaQ1NhJ/Ur6I979P/RqW/9c6TrquQiBQ88RiiExlI+9gbcsUDfRqa50v2
+	xyWS5SEsHPktZEKA==
+X-Google-Smtp-Source: AGHT+IHvW8ccnsNo33doBuTkUgbBJKQgrn7BtYeNRr6JBx6f/SlBuTFh/KBguHyFC8hy3kajHKH4ZTQJkwXiA9atE4M=
+X-Received: by 2002:a05:6808:2e97:b0:3f3:cf73:3e40 with SMTP id
+ 5614622812f47-3f3eb0c63eemr13685944b6e.17.1739964505613; Wed, 19 Feb 2025
+ 03:28:25 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20250218042407.5B384C4CEE2@smtp.kernel.org> <CAO9wTFiAphJkat=64R9EmWC+SqQ_ysmyHDVV30E+sHLhYt2_Rg@mail.gmail.com>
+ <20250218142603.c16ee5bf2148eabb411e9e0e@linux-foundation.org>
+In-Reply-To: <20250218142603.c16ee5bf2148eabb411e9e0e@linux-foundation.org>
+From: Suchit K <suchitkarunakaran@gmail.com>
+Date: Wed, 19 Feb 2025 16:58:13 +0530
+X-Gm-Features: AWEUYZlDEAiwmrGo74sGMrcHZ42eZUY1AqgGXUoJ58E1b-Nu4mGli7NqtLA5dw4
+Message-ID: <CAO9wTFi3VVy3BagGFafsLqqVc5RwTDNHghRoHuOKCW8mWDyfJg@mail.gmail.com>
+Subject: Re: + documentation-mm-fix-spelling-mistake.patch added to
+ mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, skhan@linuxfoundation.org
+Content-Type: text/plain; charset="UTF-8"
 
+Alright thanks.
 
-The patch titled
-     Subject: mm: fix possible NULL pointer dereference in __swap_duplicate
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: gaoxu <gaoxu2@honor.com>
-Subject: mm: fix possible NULL pointer dereference in __swap_duplicate
-Date: Wed, 19 Feb 2025 01:56:28 +0000
-
-Add a NULL check on the return value of swp_swap_info in __swap_duplicate
-to prevent crashes caused by NULL pointer dereference.
-
-The reason why swp_swap_info() returns NULL is unclear; it may be due to
-CPU cache issues or DDR bit flips.  The probability of this issue is very
-small, and the stack info we encountered is as follows:
-
-Unable to handle kernel NULL pointer dereference at virtual address
-0000000000000058
-[RB/E]rb_sreason_str_set: sreason_str set null_pointer
-Mem abort info:
-  ESR = 0x0000000096000005
-  EC = 0x25: DABT (current EL), IL = 32 bits
-  SET = 0, FnV = 0
-  EA = 0, S1PTW = 0
-  FSC = 0x05: level 1 translation fault
-Data abort info:
-  ISV = 0, ISS = 0x00000005, ISS2 = 0x00000000
-  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-user pgtable: 4k pages, 39-bit VAs, pgdp=00000008a80e5000
-[0000000000000058] pgd=0000000000000000, p4d=0000000000000000,
-pud=0000000000000000
-Internal error: Oops: 0000000096000005 [#1] PREEMPT SMP
-Skip md ftrace buffer dump for: 0x1609e0
-...
-pc : swap_duplicate+0x44/0x164
-lr : copy_page_range+0x508/0x1e78
-sp : ffffffc0f2a699e0
-x29: ffffffc0f2a699e0 x28: ffffff8a5b28d388 x27: ffffff8b06603388
-x26: ffffffdf7291fe70 x25: 0000000000000006 x24: 0000000000100073
-x23: 00000000002d2d2f x22: 0000000000000008 x21: 0000000000000000
-x20: 00000000002d2d2f x19: 18000000002d2d2f x18: ffffffdf726faec0
-x17: 0000000000000000 x16: 0010000000000001 x15: 0040000000000001
-x14: 0400000000000001 x13: ff7ffffffffffb7f x12: ffeffffffffffbff
-x11: ffffff8a5c7e1898 x10: 0000000000000018 x9 : 0000000000000006
-x8 : 1800000000000000 x7 : 0000000000000000 x6 : ffffff8057c01f10
-x5 : 000000000000a318 x4 : 0000000000000000 x3 : 0000000000000000
-x2 : 0000006daf200000 x1 : 0000000000000001 x0 : 18000000002d2d2f
-Call trace:
- swap_duplicate+0x44/0x164
- copy_page_range+0x508/0x1e78
- copy_process+0x1278/0x21cc
- kernel_clone+0x90/0x438
- __arm64_sys_clone+0x5c/0x8c
- invoke_syscall+0x58/0x110
- do_el0_svc+0x8c/0xe0
- el0_svc+0x38/0x9c
- el0t_64_sync_handler+0x44/0xec
- el0t_64_sync+0x1a8/0x1ac
-Code: 9139c35a 71006f3f 54000568 f8797b55 (f9402ea8)
----[ end trace 0000000000000000 ]---
-Kernel panic - not syncing: Oops: Fatal exception
-SMP: stopping secondary CPUs
-
-The patch seems to only provide a workaround, but there are no more
-effective software solutions to handle the bit flips problem.  This path
-will change the issue from a system crash to a process exception, thereby
-reducing the impact on the entire machine.
-
-Signed-off-by: gao xu <gaoxu2@honor.com>
-
-Link: https://lkml.kernel.org/r/e223b0e6ba2f4924984b1917cc717bd5@honor.com
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/swapfile.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
---- a/mm/swapfile.c~mm-fix-possible-null-pointer-dereference-in-__swap_duplicate
-+++ a/mm/swapfile.c
-@@ -3542,6 +3542,10 @@ static int __swap_duplicate(swp_entry_t
- 	int err, i;
- 
- 	si = swp_swap_info(entry);
-+	if (WARN_ON_ONCE(!si)) {
-+		pr_err("%s%08lx\n", Bad_file, entry.val);
-+		return -EINVAL;
-+	}
- 
- 	offset = swp_offset(entry);
- 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
-_
-
-Patches currently in -mm which might be from gaoxu2@honor.com are
-
-mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
-
+On Wed, 19 Feb 2025 at 03:56, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> On Tue, 18 Feb 2025 14:18:42 +0530 Suchit K <suchitkarunakaran@gmail.com> wrote:
+>
+> > Hi Andrew, I'm not sure what my next step should be. Should I find the
+> > original patch message and reply with something specific?
+>
+> No, no further actions are required.
