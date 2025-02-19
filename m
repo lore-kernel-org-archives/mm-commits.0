@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DD8421B9E9
-	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 23:30:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CDE31DE4EF
+	for <mm-commits@vger.kernel.org>; Wed, 19 Feb 2025 23:42:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740007844; cv=none; b=ojWt56LD2oKXBtOZ4n/nqAXz/FwNqe11qJKywZKZa16ViY8gJqOXRkhr3Sl1wAJVGe9zzLuoif9JV/oiK+kMDL2dH6gr8cmBsJmWxbaPPn+Gzb1a7DhokwHib7g3hDpEUO0aJOvmCk3aYok1VMLsJddkrto1SSJMLSwiD4dUbW8=
+	t=1740008521; cv=none; b=QxzeolKq06Whu/aN83CwyiJO3h/0SzdJfbvwNP01+4CNouoq4ssGu5CRqUPeC2obV5Ur0eIxQVm28tTy3lTvIRZqsQdeY23ahz9bbnsgcOacCxrZYbx+FS757/CdcYas8tTVoNKuaACN7hLt0Ro5djY3s5sXVGdDLbHkI4GhhQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740007844; c=relaxed/simple;
-	bh=7/ahxFDGt21CbL/x+A66rHx0UkDrpgZ8aAGEEefxh94=;
-	h=Date:To:From:Subject:Message-Id; b=LYbdEckFXM5W/57iIZzN82Bs8m7gqCAirw8AF5LMy1wpf+JA9KM+Nz5SAFvK7xqBhCLubZx8LoNoXym3Uj/FG2eTn5hiLP66fa6fLWm18jfsFts8vt/QmHRoyknbnOaudei1cO9vjss3Uh30ghMnLngPqnRk1BOuUPcEuVGt24Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BmizHcTr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740008521; c=relaxed/simple;
+	bh=QA1Kz7B89szwtsLi1hENLg+IlEoBk+kNZzX0s7kti7o=;
+	h=Date:To:From:Subject:Message-Id; b=dWdqaKPmCgt6y/Ur6rt7h+wtpMn4fIUpFDh/t0FpgYV0YehcHxEBaWG7mwtt7zYsPrw5dLqNNZN4pGk4cweBpmKjTIKdjQ9szGCI/w+0ArfEEobI7bWVTRz5ejuHM4zAK6WQ24uBAoNtVcoafM+RdO7v2FjJ1KIE9df4CvMyGAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BGJ8phty; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BmizHcTr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C24AC4CED1;
-	Wed, 19 Feb 2025 23:30:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BGJ8phty"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F19FDC4CEE0;
+	Wed, 19 Feb 2025 23:42:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740007843;
-	bh=7/ahxFDGt21CbL/x+A66rHx0UkDrpgZ8aAGEEefxh94=;
+	s=korg; t=1740008521;
+	bh=QA1Kz7B89szwtsLi1hENLg+IlEoBk+kNZzX0s7kti7o=;
 	h=Date:To:From:Subject:From;
-	b=BmizHcTrO1SiEEgMv3bjng4YjwzxO8v1KGClBCOiqkssweMaFNX3nZFrI+OzdC6LC
-	 FtfjuQagRSC2JYrhHV1yu/w3mo5q1P9bHepKhQTcix0n5vIiCkjzRv5lHyoM6Sgl4t
-	 EBG68IxfV4XKbBJEMAd8xLY7h9GphE7SX1DP/iGo=
-Date: Wed, 19 Feb 2025 15:30:43 -0800
-To: mm-commits@vger.kernel.org,shivankg@amd.com,dhowells@redhat.com,dev.jain@arm.com,brauner@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=BGJ8phtyIHmho04WDf1Swj/ue5Frs9Bt762o5VFMO3/NwrUoMs+S2RLhtTX6uOLSz
+	 ZlUfCa6guUiUnU+FgNGTYQqqLk4fiMlVwkW2qX/C01UkZ8Ez5giP/STQgq/GjW9ZB/
+	 G4oYQJueAgCtnyl+tQbWdj9TEdjvcoycNXfn4zZM=
+Date: Wed, 19 Feb 2025 15:42:00 -0800
+To: mm-commits@vger.kernel.org,linmiaohe@huawei.com,david@redhat.com,mawupeng1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch added to mm-unstable branch
-Message-Id: <20250219233043.9C24AC4CED1@smtp.kernel.org>
+Subject: + mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250219234200.F19FDC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/folio_queue: delete __folio_order and use folio_order directly
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
+     Subject: mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,71 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Ye <liuye@kylinos.cn>
-Subject: mm/folio_queue: delete __folio_order and use folio_order directly
-Date: Wed, 12 Feb 2025 10:58:42 +0800
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3
+Date: Wed, 19 Feb 2025 14:06:52 +0800
 
-__folio_order is the same as folio_order, remove __folio_order and then
-just include mm.h and use folio_order directly.
+unmap_poisoned_folio(): remove shadowed local `mapping', per Miaohe
 
-Link: https://lkml.kernel.org/r/20250212025843.80283-2-liuye@kylinos.cn
-Signed-off-by: Liu Ye <liuye@kylinos.cn>
-Reviewed-by: Shivank Garg <shivankg@amd.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20250219060653.3849083-1-mawupeng1@huawei.com
+Fixes: 6da6b1d4a7df ("mm/hwpoison: convert TTU_IGNORE_HWPOISON to TTU_HWPOISON")
+Suggested-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/folio_queue.h |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/memory-failure.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/folio_queue.h~mm-folio_queue-delete-__folio_order-and-use-folio_order-directly
-+++ a/include/linux/folio_queue.h
-@@ -15,6 +15,7 @@
- #define _LINUX_FOLIO_QUEUE_H
+--- a/mm/memory-failure.c~mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3
++++ a/mm/memory-failure.c
+@@ -1585,8 +1585,6 @@ int unmap_poisoned_folio(struct folio *f
+ 	}
  
- #include <linux/pagevec.h>
-+#include <linux/mm.h>
- 
- /*
-  * Segment in a queue of running buffers.  Each segment can hold a number of
-@@ -216,13 +217,6 @@ static inline void folioq_unmark3(struct
- 	clear_bit(slot, &folioq->marks3);
- }
- 
--static inline unsigned int __folio_order(struct folio *folio)
--{
--	if (!folio_test_large(folio))
--		return 0;
--	return folio->_flags_1 & 0xff;
--}
+ 	if (folio_test_hugetlb(folio) && !folio_test_anon(folio)) {
+-		struct address_space *mapping;
 -
- /**
-  * folioq_append: Add a folio to a folio queue segment
-  * @folioq: The segment to add to
-@@ -241,7 +235,7 @@ static inline unsigned int folioq_append
- 	unsigned int slot = folioq->vec.nr++;
- 
- 	folioq->vec.folios[slot] = folio;
--	folioq->orders[slot] = __folio_order(folio);
-+	folioq->orders[slot] = folio_order(folio);
- 	return slot;
- }
- 
-@@ -263,7 +257,7 @@ static inline unsigned int folioq_append
- 	unsigned int slot = folioq->vec.nr++;
- 
- 	folioq->vec.folios[slot] = folio;
--	folioq->orders[slot] = __folio_order(folio);
-+	folioq->orders[slot] = folio_order(folio);
- 	folioq_mark(folioq, slot);
- 	return slot;
- }
+ 		/*
+ 		 * For hugetlb folios in shared mappings, try_to_unmap
+ 		 * could potentially call huge_pmd_unshare.  Because of
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-memfd-fix-spelling-and-grammatical-issues.patch
-mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
+mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio.patch
+mm-memory-failure-update-ttu-flag-inside-unmap_poisoned_folio-v3.patch
+mm-memory-hotplug-check-folio-ref-count-first-in-do_migrate_range.patch
+hwpoison-memory_hotplug-lock-folio-before-unmap-hwpoisoned-folio.patch
 
