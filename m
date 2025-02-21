@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEAB642A95
-	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DB3342A95
+	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740181353; cv=none; b=O26OVf+JcKbFf8Pjsp6E+C++065D/G+GiIuHgv2szImiGfkOSuXwdQzgq1OQuzynKGv1151YJ5GL76UhNOWLnSCN0bRcE2EC3iI9Q+4OEk+upAgefJ6q/XQl3SNjWQ6sJWbpfu0yT2um9fPLD/w4bxzCz3eay4LRztYPmw1VKb0=
+	t=1740181356; cv=none; b=Iz97wWQaGV0pnzmfwDmjWo3kdHThbu5YghBqpbn+GJqQzRBQIYYhWLH7p7wr9qDwUTezkz74K0NJ0+M/KvvOwX56GmfZDafELxPLvaOphvneuFS9jfjVUfVcGgjuj/1cZCoS6OIzq2it4Ip94gCRkfF5QZu5MXoHqCKPmWBc1KI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740181353; c=relaxed/simple;
-	bh=s9n0RaIyowTmV9RYsAITdiVSnXDmqDAnHBhvf+F3VeI=;
-	h=Date:To:From:Subject:Message-Id; b=iirQa2bmP1w71xfjTentFIkPJ/LpFh3E1QKwhMeev2Er8+gL/Ge3oLhIUFTiRtJ7PqvenxdoMKgz1uwqoyuXmtgJETx5XcRFOzMpTAWq+jdbDzcFzR9uICZ9GOUqJGRD4Xxz5ts4esYZjhHbZKsEpgyD2c+2/LOvFi2GHpm6OmU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKGmFOU6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740181356; c=relaxed/simple;
+	bh=EK4RKkFsqe59exMBa+1JggxT9ee6I5oKObnfQWAsCI4=;
+	h=Date:To:From:Subject:Message-Id; b=S0ryfdqw3hHAyeqfUh2QstNPIQqjQUxse+Ml1NYXy8fy3KTantLL+rOSir1wmupAu54ZANlsyzJ3+xoW2kuzTM0MTyY2hOkpEsw4boxzPW+HbAEElMieWOT5JuCUCxOHaX4XEQNFaUb9tWjdRylp8GsX3snoQMbNZ2z+nM6A4Dk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HU+gwVC4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKGmFOU6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF5FC4CEE4;
-	Fri, 21 Feb 2025 23:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HU+gwVC4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00890C4CED6;
+	Fri, 21 Feb 2025 23:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740181353;
-	bh=s9n0RaIyowTmV9RYsAITdiVSnXDmqDAnHBhvf+F3VeI=;
+	s=korg; t=1740181356;
+	bh=EK4RKkFsqe59exMBa+1JggxT9ee6I5oKObnfQWAsCI4=;
 	h=Date:To:From:Subject:From;
-	b=ZKGmFOU6BUWIzXlRw6fbEl0ic9iB21nNCtrlTQ5XGdX1u4NWuNzA4omBLPZg0RS3b
-	 uPVN5g/W87sLyFtZYY9M6GB0hIsuJHtlDTBdInnAPagbdbMK0iHdjiQ85OfUBFRnaa
-	 O8J4qmAxATRfSF0cn7ky4M//6SkLs3HxJ6Au+uqo=
-Date: Fri, 21 Feb 2025 15:42:32 -0800
+	b=HU+gwVC4Ieh/J5xszBIBD81pJUm31d+bvmOKdXByxpzVMGMs67r8o9nt5gPShPHZn
+	 D7rXGsrfXY2j203kHEbhXLbUYjyjX+foIM7grb7JqQAkhxmlWXPGPRZldrwFMak4jy
+	 FI9hhNUSNe1hxSZDr4OVDna5z4EouL5XoG/ZbIPE=
+Date: Fri, 21 Feb 2025 15:42:35 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-unused-crypto-include.patch added to mm-unstable branch
-Message-Id: <20250221234233.2FF5FC4CEE4@smtp.kernel.org>
+Subject: + zram-remove-max_comp_streams-device-attr.patch added to mm-unstable branch
+Message-Id: <20250221234236.00890C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: remove unused crypto include
+     Subject: zram: remove max_comp_streams device attr
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-unused-crypto-include.patch
+     zram-remove-max_comp_streams-device-attr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-unused-crypto-include.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-max_comp_streams-device-attr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove unused crypto include
-Date: Sat, 22 Feb 2025 07:25:34 +0900
+Subject: zram: remove max_comp_streams device attr
+Date: Sat, 22 Feb 2025 07:25:35 +0900
 
-We stopped using crypto API (for the time being), so remove its include
-and replace CRYPTO_MAX_ALG_NAME with a local define.
+max_comp_streams device attribute has been defunct since May 2016 when
+zram switched to per-CPU compression streams, remove it.
 
-Link: https://lkml.kernel.org/r/20250221222958.2225035-4-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250221222958.2225035-5-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -74,51 +74,189 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |    1 -
- drivers/block/zram/zram_drv.c |    4 +++-
- drivers/block/zram/zram_drv.h |    1 -
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram  |    8 ----
+ Documentation/admin-guide/blockdev/zram.rst |   36 +++++-------------
+ drivers/block/zram/zram_drv.c               |   23 -----------
+ 3 files changed, 10 insertions(+), 57 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-remove-unused-crypto-include
-+++ a/drivers/block/zram/zcomp.c
-@@ -7,7 +7,6 @@
- #include <linux/wait.h>
- #include <linux/sched.h>
- #include <linux/cpuhotplug.h>
--#include <linux/crypto.h>
- #include <linux/vmalloc.h>
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-remove-max_comp_streams-device-attr
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -22,14 +22,6 @@ Description:
+ 		device. The reset operation frees all the memory associated
+ 		with this device.
  
- #include "zcomp.h"
---- a/drivers/block/zram/zram_drv.c~zram-remove-unused-crypto-include
+-What:		/sys/block/zram<id>/max_comp_streams
+-Date:		February 2014
+-Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+-Description:
+-		The max_comp_streams file is read-write and specifies the
+-		number of backend's zcomp_strm compression streams (number of
+-		concurrent compress operations).
+-
+ What:		/sys/block/zram<id>/comp_algorithm
+ Date:		February 2014
+ Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+--- a/Documentation/admin-guide/blockdev/zram.rst~zram-remove-max_comp_streams-device-attr
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -54,7 +54,7 @@ The list of possible return codes:
+ If you use 'echo', the returned value is set by the 'echo' utility,
+ and, in general case, something like::
+ 
+-	echo 3 > /sys/block/zram0/max_comp_streams
++	echo foo > /sys/block/zram0/comp_algorithm
+ 	if [ $? -ne 0 ]; then
+ 		handle_error
+ 	fi
+@@ -73,21 +73,7 @@ This creates 4 devices: /dev/zram{0,1,2,
+ num_devices parameter is optional and tells zram how many devices should be
+ pre-created. Default: 1.
+ 
+-2) Set max number of compression streams
+-========================================
+-
+-Regardless of the value passed to this attribute, ZRAM will always
+-allocate multiple compression streams - one per online CPU - thus
+-allowing several concurrent compression operations. The number of
+-allocated compression streams goes down when some of the CPUs
+-become offline. There is no single-compression-stream mode anymore,
+-unless you are running a UP system or have only 1 CPU online.
+-
+-To find out how many streams are currently available::
+-
+-	cat /sys/block/zram0/max_comp_streams
+-
+-3) Select compression algorithm
++2) Select compression algorithm
+ ===============================
+ 
+ Using comp_algorithm device attribute one can see available and
+@@ -107,7 +93,7 @@ Examples::
+ For the time being, the `comp_algorithm` content shows only compression
+ algorithms that are supported by zram.
+ 
+-4) Set compression algorithm parameters: Optional
++3) Set compression algorithm parameters: Optional
+ =================================================
+ 
+ Compression algorithms may support specific parameters which can be
+@@ -138,7 +124,7 @@ better the compression ratio, it even ca
+ algorithms), for other algorithms `level` is acceleration level (the higher
+ the value the lower the compression ratio).
+ 
+-5) Set Disksize
++4) Set Disksize
+ ===============
+ 
+ Set disk size by writing the value to sysfs node 'disksize'.
+@@ -158,7 +144,7 @@ There is little point creating a zram of
+ since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
+ size of the disk when not in use so a huge zram is wasteful.
+ 
+-6) Set memory limit: Optional
++5) Set memory limit: Optional
+ =============================
+ 
+ Set memory limit by writing the value to sysfs node 'mem_limit'.
+@@ -177,7 +163,7 @@ Examples::
+ 	# To disable memory limit
+ 	echo 0 > /sys/block/zram0/mem_limit
+ 
+-7) Activate
++6) Activate
+ ===========
+ 
+ ::
+@@ -188,7 +174,7 @@ Examples::
+ 	mkfs.ext4 /dev/zram1
+ 	mount /dev/zram1 /tmp
+ 
+-8) Add/remove zram devices
++7) Add/remove zram devices
+ ==========================
+ 
+ zram provides a control interface, which enables dynamic (on-demand) device
+@@ -208,7 +194,7 @@ execute::
+ 
+ 	echo X > /sys/class/zram-control/hot_remove
+ 
+-9) Stats
++8) Stats
+ ========
+ 
+ Per-device statistics are exported as various nodes under /sys/block/zram<id>/
+@@ -228,8 +214,6 @@ mem_limit         	WO	specifies the maxi
+ writeback_limit   	WO	specifies the maximum amount of write IO zram
+ 				can write out to backing device as 4KB unit
+ writeback_limit_enable  RW	show and set writeback_limit feature
+-max_comp_streams  	RW	the number of possible concurrent compress
+-				operations
+ comp_algorithm    	RW	show and change the compression algorithm
+ algorithm_params	WO	setup compression algorithm parameters
+ compact           	WO	trigger memory compaction
+@@ -310,7 +294,7 @@ a single line of text and contains the f
+ 		Unit: 4K bytes
+  ============== =============================================================
+ 
+-10) Deactivate
++9) Deactivate
+ ==============
+ 
+ ::
+@@ -318,7 +302,7 @@ a single line of text and contains the f
+ 	swapoff /dev/zram0
+ 	umount /dev/zram1
+ 
+-11) Reset
++10) Reset
+ =========
+ 
+ 	Write any positive value to 'reset' sysfs node::
+--- a/drivers/block/zram/zram_drv.c~zram-remove-max_comp_streams-device-attr
 +++ a/drivers/block/zram/zram_drv.c
-@@ -44,6 +44,8 @@ static DEFINE_MUTEX(zram_index_mutex);
- static int zram_major;
- static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
+@@ -1109,27 +1109,6 @@ static void zram_debugfs_register(struct
+ static void zram_debugfs_unregister(struct zram *zram) {};
+ #endif
  
-+#define ZRAM_MAX_ALGO_NAME_SZ	128
-+
- /* Module params (documentation at end) */
- static unsigned int num_devices = 1;
- /*
-@@ -1154,7 +1156,7 @@ static int __comp_algorithm_store(struct
- 	size_t sz;
- 
- 	sz = strlen(buf);
--	if (sz >= CRYPTO_MAX_ALG_NAME)
-+	if (sz >= ZRAM_MAX_ALGO_NAME_SZ)
- 		return -E2BIG;
- 
- 	compressor = kstrdup(buf, GFP_KERNEL);
---- a/drivers/block/zram/zram_drv.h~zram-remove-unused-crypto-include
-+++ a/drivers/block/zram/zram_drv.h
-@@ -17,7 +17,6 @@
- 
- #include <linux/rwsem.h>
- #include <linux/zsmalloc.h>
--#include <linux/crypto.h>
- 
- #include "zcomp.h"
- 
+-/*
+- * We switched to per-cpu streams and this attr is not needed anymore.
+- * However, we will keep it around for some time, because:
+- * a) we may revert per-cpu streams in the future
+- * b) it's visible to user space and we need to follow our 2 years
+- *    retirement rule; but we already have a number of 'soon to be
+- *    altered' attrs, so max_comp_streams need to wait for the next
+- *    layoff cycle.
+- */
+-static ssize_t max_comp_streams_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	return scnprintf(buf, PAGE_SIZE, "%d\n", num_online_cpus());
+-}
+-
+-static ssize_t max_comp_streams_store(struct device *dev,
+-		struct device_attribute *attr, const char *buf, size_t len)
+-{
+-	return len;
+-}
+-
+ static void comp_algorithm_set(struct zram *zram, u32 prio, const char *alg)
+ {
+ 	/* Do not free statically defined compression algorithms */
+@@ -2546,7 +2525,6 @@ static DEVICE_ATTR_WO(reset);
+ static DEVICE_ATTR_WO(mem_limit);
+ static DEVICE_ATTR_WO(mem_used_max);
+ static DEVICE_ATTR_WO(idle);
+-static DEVICE_ATTR_RW(max_comp_streams);
+ static DEVICE_ATTR_RW(comp_algorithm);
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ static DEVICE_ATTR_RW(backing_dev);
+@@ -2568,7 +2546,6 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_mem_limit.attr,
+ 	&dev_attr_mem_used_max.attr,
+ 	&dev_attr_idle.attr,
+-	&dev_attr_max_comp_streams.attr,
+ 	&dev_attr_comp_algorithm.attr,
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ 	&dev_attr_backing_dev.attr,
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
