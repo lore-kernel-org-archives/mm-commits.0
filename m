@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B64CD42A95
-	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEAB642A95
+	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740181350; cv=none; b=Eutf4ofGuYvTZxUJlU8LWHJJb6SXbtr8rsE9f9+1ASaSIyAZO5NlHpd1STl/GgMw9xeeVPd2g53HSFz8ld7E5/gshN5UG5exV69XIB9rogEnd0+HUpOTi4gx0mgfQKIkIhDhljJ4wmt6SCMUH3xEZnkZyud/G+o4Bv0oERd0TMg=
+	t=1740181353; cv=none; b=O26OVf+JcKbFf8Pjsp6E+C++065D/G+GiIuHgv2szImiGfkOSuXwdQzgq1OQuzynKGv1151YJ5GL76UhNOWLnSCN0bRcE2EC3iI9Q+4OEk+upAgefJ6q/XQl3SNjWQ6sJWbpfu0yT2um9fPLD/w4bxzCz3eay4LRztYPmw1VKb0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740181350; c=relaxed/simple;
-	bh=rMDanMMkJFr/o0+JgDP3cUK3wZZmUJPnezRFKf53rSU=;
-	h=Date:To:From:Subject:Message-Id; b=u8/JCdnS2FLv26fjsiZW7hGE51xiolqRRdNfdiGEWZOamrOePoMLxKZ/HcVlJboM2DMgSSCaXI2Wrj1YPfzoyYK7LfHpXXVr/gspk+ukmWzOcTBJpS0Pbq+eSh1aF9iHBmXXAI+OUOnW1EogVruffDmNBWbPLSdNwcZLvHlyDNc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L4pRSXQc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740181353; c=relaxed/simple;
+	bh=s9n0RaIyowTmV9RYsAITdiVSnXDmqDAnHBhvf+F3VeI=;
+	h=Date:To:From:Subject:Message-Id; b=iirQa2bmP1w71xfjTentFIkPJ/LpFh3E1QKwhMeev2Er8+gL/Ge3oLhIUFTiRtJ7PqvenxdoMKgz1uwqoyuXmtgJETx5XcRFOzMpTAWq+jdbDzcFzR9uICZ9GOUqJGRD4Xxz5ts4esYZjhHbZKsEpgyD2c+2/LOvFi2GHpm6OmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKGmFOU6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L4pRSXQc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 664DEC4CED6;
-	Fri, 21 Feb 2025 23:42:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKGmFOU6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF5FC4CEE4;
+	Fri, 21 Feb 2025 23:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740181350;
-	bh=rMDanMMkJFr/o0+JgDP3cUK3wZZmUJPnezRFKf53rSU=;
+	s=korg; t=1740181353;
+	bh=s9n0RaIyowTmV9RYsAITdiVSnXDmqDAnHBhvf+F3VeI=;
 	h=Date:To:From:Subject:From;
-	b=L4pRSXQcHC/puC18U5qP8oGogEjtcWKnfEUY1wj/3HlRJN0bVfqV7LeYqAnTXYSBw
-	 3vzS/DMNBWgqMjyf9t0LZEO/V9/oIfckMN6hdAxaEAbisGhlXJlJ/jKmjtqONLR0CV
-	 7d7t+Z6hJQjhQSjAMtxGNZUYQ87LyUWIS5aF5wh4=
-Date: Fri, 21 Feb 2025 15:42:29 -0800
+	b=ZKGmFOU6BUWIzXlRw6fbEl0ic9iB21nNCtrlTQ5XGdX1u4NWuNzA4omBLPZg0RS3b
+	 uPVN5g/W87sLyFtZYY9M6GB0hIsuJHtlDTBdInnAPagbdbMK0iHdjiQ85OfUBFRnaa
+	 O8J4qmAxATRfSF0cn7ky4M//6SkLs3HxJ6Au+uqo=
+Date: Fri, 21 Feb 2025 15:42:32 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-permit-preemption-with-active-compression-stream.patch added to mm-unstable branch
-Message-Id: <20250221234230.664DEC4CED6@smtp.kernel.org>
+Subject: + zram-remove-unused-crypto-include.patch added to mm-unstable branch
+Message-Id: <20250221234233.2FF5FC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: permit preemption with active compression stream
+     Subject: zram: remove unused crypto include
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-permit-preemption-with-active-compression-stream.patch
+     zram-remove-unused-crypto-include.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-permit-preemption-with-active-compression-stream.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-unused-crypto-include.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,242 +59,65 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: permit preemption with active compression stream
-Date: Sat, 22 Feb 2025 07:25:33 +0900
+Subject: zram: remove unused crypto include
+Date: Sat, 22 Feb 2025 07:25:34 +0900
 
-Currently, per-CPU stream access is done from a non-preemptible (atomic)
-section, which imposes the same atomicity requirements on compression
-backends as entry spin-lock, and makes it impossible to use algorithms
-that can schedule/wait/sleep during compression and decompression.
+We stopped using crypto API (for the time being), so remove its include
+and replace CRYPTO_MAX_ALG_NAME with a local define.
 
-Switch to preemptible per-CPU model, similar to the one used in zswap. 
-Instead of a per-CPU local lock, each stream carries a mutex which is
-locked throughout entire time zram uses it for compression or
-decompression, so that cpu-dead event waits for zram to stop using a
-particular per-CPU stream and release it.
-
-Link: https://lkml.kernel.org/r/20250221222958.2225035-3-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250221222958.2225035-4-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Reviewed-by: Yosry Ahmed <yosry.ahmed@linux.dev>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |   41 ++++++++++++++++++++++----------
- drivers/block/zram/zcomp.h    |    6 ++--
- drivers/block/zram/zram_drv.c |   20 +++++++--------
- 3 files changed, 42 insertions(+), 25 deletions(-)
+ drivers/block/zram/zcomp.c    |    1 -
+ drivers/block/zram/zram_drv.c |    4 +++-
+ drivers/block/zram/zram_drv.h |    1 -
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-permit-preemption-with-active-compression-stream
+--- a/drivers/block/zram/zcomp.c~zram-remove-unused-crypto-include
 +++ a/drivers/block/zram/zcomp.c
-@@ -6,7 +6,7 @@
- #include <linux/slab.h>
+@@ -7,7 +7,6 @@
  #include <linux/wait.h>
  #include <linux/sched.h>
--#include <linux/cpu.h>
-+#include <linux/cpuhotplug.h>
- #include <linux/crypto.h>
+ #include <linux/cpuhotplug.h>
+-#include <linux/crypto.h>
  #include <linux/vmalloc.h>
  
-@@ -109,13 +109,29 @@ ssize_t zcomp_available_show(const char
- 
- struct zcomp_strm *zcomp_stream_get(struct zcomp *comp)
- {
--	local_lock(&comp->stream->lock);
--	return this_cpu_ptr(comp->stream);
-+	for (;;) {
-+		struct zcomp_strm *zstrm = raw_cpu_ptr(comp->stream);
-+
-+		/*
-+		 * Inspired by zswap
-+		 *
-+		 * stream is returned with ->mutex locked which prevents
-+		 * cpu_dead() from releasing this stream under us, however
-+		 * there is still a race window between raw_cpu_ptr() and
-+		 * mutex_lock(), during which we could have been migrated
-+		 * from a CPU that has already destroyed its stream.  If
-+		 * so then unlock and re-try on the current CPU.
-+		 */
-+		mutex_lock(&zstrm->lock);
-+		if (likely(zstrm->buffer))
-+			return zstrm;
-+		mutex_unlock(&zstrm->lock);
-+	}
- }
- 
--void zcomp_stream_put(struct zcomp *comp)
-+void zcomp_stream_put(struct zcomp_strm *zstrm)
- {
--	local_unlock(&comp->stream->lock);
-+	mutex_unlock(&zstrm->lock);
- }
- 
- int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
-@@ -151,12 +167,9 @@ int zcomp_decompress(struct zcomp *comp,
- int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
- {
- 	struct zcomp *comp = hlist_entry(node, struct zcomp, node);
--	struct zcomp_strm *zstrm;
-+	struct zcomp_strm *zstrm = per_cpu_ptr(comp->stream, cpu);
- 	int ret;
- 
--	zstrm = per_cpu_ptr(comp->stream, cpu);
--	local_lock_init(&zstrm->lock);
--
- 	ret = zcomp_strm_init(comp, zstrm);
- 	if (ret)
- 		pr_err("Can't allocate a compression stream\n");
-@@ -166,16 +179,17 @@ int zcomp_cpu_up_prepare(unsigned int cp
- int zcomp_cpu_dead(unsigned int cpu, struct hlist_node *node)
- {
- 	struct zcomp *comp = hlist_entry(node, struct zcomp, node);
--	struct zcomp_strm *zstrm;
-+	struct zcomp_strm *zstrm = per_cpu_ptr(comp->stream, cpu);
- 
--	zstrm = per_cpu_ptr(comp->stream, cpu);
-+	mutex_lock(&zstrm->lock);
- 	zcomp_strm_free(comp, zstrm);
-+	mutex_unlock(&zstrm->lock);
- 	return 0;
- }
- 
- static int zcomp_init(struct zcomp *comp, struct zcomp_params *params)
- {
--	int ret;
-+	int ret, cpu;
- 
- 	comp->stream = alloc_percpu(struct zcomp_strm);
- 	if (!comp->stream)
-@@ -186,6 +200,9 @@ static int zcomp_init(struct zcomp *comp
- 	if (ret)
- 		goto cleanup;
- 
-+	for_each_possible_cpu(cpu)
-+		mutex_init(&per_cpu_ptr(comp->stream, cpu)->lock);
-+
- 	ret = cpuhp_state_add_instance(CPUHP_ZCOMP_PREPARE, &comp->node);
- 	if (ret < 0)
- 		goto cleanup;
---- a/drivers/block/zram/zcomp.h~zram-permit-preemption-with-active-compression-stream
-+++ a/drivers/block/zram/zcomp.h
-@@ -3,7 +3,7 @@
- #ifndef _ZCOMP_H_
- #define _ZCOMP_H_
- 
--#include <linux/local_lock.h>
-+#include <linux/mutex.h>
- 
- #define ZCOMP_PARAM_NO_LEVEL	INT_MIN
- 
-@@ -31,7 +31,7 @@ struct zcomp_ctx {
- };
- 
- struct zcomp_strm {
--	local_lock_t lock;
-+	struct mutex lock;
- 	/* compression buffer */
- 	void *buffer;
- 	struct zcomp_ctx ctx;
-@@ -77,7 +77,7 @@ struct zcomp *zcomp_create(const char *a
- void zcomp_destroy(struct zcomp *comp);
- 
- struct zcomp_strm *zcomp_stream_get(struct zcomp *comp);
--void zcomp_stream_put(struct zcomp *comp);
-+void zcomp_stream_put(struct zcomp_strm *zstrm);
- 
- int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
- 		   const void *src, unsigned int *dst_len);
---- a/drivers/block/zram/zram_drv.c~zram-permit-preemption-with-active-compression-stream
+ #include "zcomp.h"
+--- a/drivers/block/zram/zram_drv.c~zram-remove-unused-crypto-include
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1613,7 +1613,7 @@ static int read_compressed_page(struct z
- 	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
- 	kunmap_local(dst);
- 	zs_unmap_object(zram->mem_pool, handle);
--	zcomp_stream_put(zram->comps[prio]);
-+	zcomp_stream_put(zstrm);
+@@ -44,6 +44,8 @@ static DEFINE_MUTEX(zram_index_mutex);
+ static int zram_major;
+ static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
  
- 	return ret;
- }
-@@ -1774,14 +1774,14 @@ compress_again:
- 	kunmap_local(mem);
++#define ZRAM_MAX_ALGO_NAME_SZ	128
++
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
+ /*
+@@ -1154,7 +1156,7 @@ static int __comp_algorithm_store(struct
+ 	size_t sz;
  
- 	if (unlikely(ret)) {
--		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+		zcomp_stream_put(zstrm);
- 		pr_err("Compression failed! err=%d\n", ret);
- 		zs_free(zram->mem_pool, handle);
- 		return ret;
- 	}
+ 	sz = strlen(buf);
+-	if (sz >= CRYPTO_MAX_ALG_NAME)
++	if (sz >= ZRAM_MAX_ALGO_NAME_SZ)
+ 		return -E2BIG;
  
- 	if (comp_len >= huge_class_size) {
--		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+		zcomp_stream_put(zstrm);
- 		return write_incompressible_page(zram, page, index);
- 	}
+ 	compressor = kstrdup(buf, GFP_KERNEL);
+--- a/drivers/block/zram/zram_drv.h~zram-remove-unused-crypto-include
++++ a/drivers/block/zram/zram_drv.h
+@@ -17,7 +17,6 @@
  
-@@ -1805,7 +1805,7 @@ compress_again:
- 				   __GFP_HIGHMEM |
- 				   __GFP_MOVABLE);
- 	if (IS_ERR_VALUE(handle)) {
--		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+		zcomp_stream_put(zstrm);
- 		atomic64_inc(&zram->stats.writestall);
- 		handle = zs_malloc(zram->mem_pool, comp_len,
- 				   GFP_NOIO | __GFP_HIGHMEM |
-@@ -1817,7 +1817,7 @@ compress_again:
- 	}
+ #include <linux/rwsem.h>
+ #include <linux/zsmalloc.h>
+-#include <linux/crypto.h>
  
- 	if (!zram_can_store_page(zram)) {
--		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+		zcomp_stream_put(zstrm);
- 		zs_free(zram->mem_pool, handle);
- 		return -ENOMEM;
- 	}
-@@ -1825,7 +1825,7 @@ compress_again:
- 	dst = zs_map_object(zram->mem_pool, handle, ZS_MM_WO);
- 
- 	memcpy(dst, zstrm->buffer, comp_len);
--	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-+	zcomp_stream_put(zstrm);
- 	zs_unmap_object(zram->mem_pool, handle);
- 
- 	zram_slot_lock(zram, index);
-@@ -1984,7 +1984,7 @@ static int recompress_slot(struct zram *
- 		kunmap_local(src);
- 
- 		if (ret) {
--			zcomp_stream_put(zram->comps[prio]);
-+			zcomp_stream_put(zstrm);
- 			return ret;
- 		}
- 
-@@ -1994,7 +1994,7 @@ static int recompress_slot(struct zram *
- 		/* Continue until we make progress */
- 		if (class_index_new >= class_index_old ||
- 		    (threshold && comp_len_new >= threshold)) {
--			zcomp_stream_put(zram->comps[prio]);
-+			zcomp_stream_put(zstrm);
- 			continue;
- 		}
- 
-@@ -2052,13 +2052,13 @@ static int recompress_slot(struct zram *
- 			       __GFP_HIGHMEM |
- 			       __GFP_MOVABLE);
- 	if (IS_ERR_VALUE(handle_new)) {
--		zcomp_stream_put(zram->comps[prio]);
-+		zcomp_stream_put(zstrm);
- 		return PTR_ERR((void *)handle_new);
- 	}
- 
- 	dst = zs_map_object(zram->mem_pool, handle_new, ZS_MM_WO);
- 	memcpy(dst, zstrm->buffer, comp_len_new);
--	zcomp_stream_put(zram->comps[prio]);
-+	zcomp_stream_put(zstrm);
- 
- 	zs_unmap_object(zram->mem_pool, handle_new);
+ #include "zcomp.h"
  
 _
 
