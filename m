@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CDC42A95
-	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC1C24C67B
+	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740181360; cv=none; b=roxOYW0BeEqJnfA+mNRk8Pymg8Kc5WCf0Xp83ZB7CgFXPYWDB3zY0+sWGn2h0oEQ3gHimeIEf/HR/M2vYWOyRyeDPjJmFvCRMzJf5eE3xEFYUzwa2Xqz57arLh84eUEwFDXGb8Qi5sv0rI/P5T2DfpHP+5QLu9EliMRU484NpjM=
+	t=1740181363; cv=none; b=FT7FP98BD++7XnG1lzZDYvjo2BSNMJEVcQvOPPGrGExg6vjLyGqyXplRHXjVliWF1WPlOVSWi99vjEz3IvndBb7ma01qFPsR3gpXJ2kyPEWc+oUkhs8S1eXU/OWm3A3KzcQzzlVWewKq1hfs6uRLBTGgo8dOv1TfVd2EsuPaSOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740181360; c=relaxed/simple;
-	bh=eZvDRqQJh31hiM7Xb9FUWZFFv7o70H0KjlS/b54riWo=;
-	h=Date:To:From:Subject:Message-Id; b=VuZXjJOIdYcAALUDdS3bDkRWV8Nb7uN9NACp57VrujNMENC6buFC9U9b8EvtqA83Hhbt/R1ELNt8HTrcCBI3JW5j6afvjJmSAHc1sAzf8kGMrEbodpjZ2ZqMpUiUyQx+paDzuGDhDnZGZf35EKlFWOie0nkuraRC31ibgt4LDJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AKvgN68K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740181363; c=relaxed/simple;
+	bh=x2bv/6WWekCTjMIFTZ4ttCm3QUXwBQTeSNj9je6l46Y=;
+	h=Date:To:From:Subject:Message-Id; b=M/2eQ9PjaZepEmwDLp6oeTcyY4SYPBMjgKkWYaxcARllhUdiHUL+YlugfABwC+XA2xFh0rthMBpW3SZVVy4o4+yRXvfJL1m88Qndx28k5evmdGgcYq7Q8ARac7waebfaAxGsKh+f5aUzVfrnT0d6i1KBroNz/G3cHGAOAxsyU0s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGAopBoB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AKvgN68K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 898C9C4CED6;
-	Fri, 21 Feb 2025 23:42:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGAopBoB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2FC8C4CED6;
+	Fri, 21 Feb 2025 23:42:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740181360;
-	bh=eZvDRqQJh31hiM7Xb9FUWZFFv7o70H0KjlS/b54riWo=;
+	s=korg; t=1740181362;
+	bh=x2bv/6WWekCTjMIFTZ4ttCm3QUXwBQTeSNj9je6l46Y=;
 	h=Date:To:From:Subject:From;
-	b=AKvgN68KxwqZ47tBziB42AKZrvrTwPZpOlgXnH/BlJjhS9PGDgMOywD6HbuJxynJd
-	 2jKPq3YmNTvtPRcelqoBywExmELUVBPscoSkkXQXJbtMQgtE0flGCT1DSTNh3Vk4DI
-	 ro0Xggo/F0dldJHn6kJ3Dmp/NxO9IXmM+7KSQg8c=
-Date: Fri, 21 Feb 2025 15:42:40 -0800
+	b=XGAopBoBN5B2o5M4eCjbujGOfNJJ0K1982eDc1PcLRx3V+BH+dwMJ6qaVDdwCSzEw
+	 iE/hf8LPFoYt6ccRkLS8d8NSgEAVxizY1rR+jZA1Hrj4zhfVR8FEKCdErvGdREh8UO
+	 25kn71GWvqdp7klbx0h3GjwSfnot56wkxE9aOPi4=
+Date: Fri, 21 Feb 2025 15:42:42 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-writestall-zram_stats-member.patch added to mm-unstable branch
-Message-Id: <20250221234240.898C9C4CED6@smtp.kernel.org>
+Subject: + zram-limit-max-recompress-prio-to-num_active_comps.patch added to mm-unstable branch
+Message-Id: <20250221234242.D2FC8C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: remove writestall zram_stats member
+     Subject: zram: limit max recompress prio to num_active_comps
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-writestall-zram_stats-member.patch
+     zram-limit-max-recompress-prio-to-num_active_comps.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-writestall-zram_stats-member.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-limit-max-recompress-prio-to-num_active_comps.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove writestall zram_stats member
-Date: Sat, 22 Feb 2025 07:25:37 +0900
+Subject: zram: limit max recompress prio to num_active_comps
+Date: Sat, 22 Feb 2025 07:25:38 +0900
 
-There is no zsmalloc handle allocation slow path now and writestall is not
-possible any longer.  Remove it from zram_stats.
+Use the actual number of algorithms zram was configure with instead of
+theoretical limit of ZRAM_MAX_COMPS.
 
-Link: https://lkml.kernel.org/r/20250221222958.2225035-7-senozhatsky@chromium.org
+Also make sure that min prio is not above max prio.
+
+Link: https://lkml.kernel.org/r/20250221222958.2225035-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -74,33 +76,63 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 +--
- drivers/block/zram/zram_drv.h |    1 -
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-writestall-zram_stats-member
+--- a/drivers/block/zram/zram_drv.c~zram-limit-max-recompress-prio-to-num_active_comps
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1443,9 +1443,8 @@ static ssize_t debug_stat_show(struct de
+@@ -2031,16 +2031,19 @@ static ssize_t recompress_store(struct d
+ 				struct device_attribute *attr,
+ 				const char *buf, size_t len)
+ {
+-	u32 prio = ZRAM_SECONDARY_COMP, prio_max = ZRAM_MAX_COMPS;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	char *args, *param, *val, *algo = NULL;
+ 	u64 num_recomp_pages = ULLONG_MAX;
+ 	struct zram_pp_ctl *ctl = NULL;
+ 	struct zram_pp_slot *pps;
+ 	u32 mode = 0, threshold = 0;
++	u32 prio, prio_max;
+ 	struct page *page;
+ 	ssize_t ret;
  
- 	down_read(&zram->init_lock);
- 	ret = scnprintf(buf, PAGE_SIZE,
--			"version: %d\n%8llu %8llu\n",
-+			"version: %d\n0 %8llu\n",
- 			version,
--			(u64)atomic64_read(&zram->stats.writestall),
- 			(u64)atomic64_read(&zram->stats.miss_free));
- 	up_read(&zram->init_lock);
++	prio = ZRAM_SECONDARY_COMP;
++	prio_max = zram->num_active_comps;
++
+ 	args = skip_spaces(buf);
+ 	while (*args) {
+ 		args = next_arg(args, &param, &val);
+@@ -2093,7 +2096,7 @@ static ssize_t recompress_store(struct d
+ 			if (prio == ZRAM_PRIMARY_COMP)
+ 				prio = ZRAM_SECONDARY_COMP;
  
---- a/drivers/block/zram/zram_drv.h~zram-remove-writestall-zram_stats-member
-+++ a/drivers/block/zram/zram_drv.h
-@@ -84,7 +84,6 @@ struct zram_stats {
- 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
--	atomic64_t writestall;		/* no. of write slow paths */
- 	atomic64_t miss_free;		/* no. of missed free */
- #ifdef	CONFIG_ZRAM_WRITEBACK
- 	atomic64_t bd_count;		/* no. of pages in backing device */
+-			prio_max = min(prio + 1, ZRAM_MAX_COMPS);
++			prio_max = prio + 1;
+ 			continue;
+ 		}
+ 	}
+@@ -2121,7 +2124,7 @@ static ssize_t recompress_store(struct d
+ 				continue;
+ 
+ 			if (!strcmp(zram->comp_algs[prio], algo)) {
+-				prio_max = min(prio + 1, ZRAM_MAX_COMPS);
++				prio_max = prio + 1;
+ 				found = true;
+ 				break;
+ 			}
+@@ -2133,6 +2136,12 @@ static ssize_t recompress_store(struct d
+ 		}
+ 	}
+ 
++	prio_max = min(prio_max, (u32)zram->num_active_comps);
++	if (prio >= prio_max) {
++		ret = -EINVAL;
++		goto release_init_lock;
++	}
++
+ 	page = alloc_page(GFP_KERNEL);
+ 	if (!page) {
+ 		ret = -ENOMEM;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
