@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4178F42A95
-	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CDC42A95
+	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:42:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740181359; cv=none; b=qFDmGI0b/3ghFm6yZnydbG4DYgau1TJdF33V+5CxYRIVpUvkwG9Pzp8zuesx8Qfp+wfEdJiWeyCarQstT8cvXhUecXTsf914cqDUidUZEWLIAZzt/gIeYfDutTnAUaDz97e+aZXSvBdfRsfVBEGdR8jlPbfIxB8h1cnsuD917WU=
+	t=1740181360; cv=none; b=roxOYW0BeEqJnfA+mNRk8Pymg8Kc5WCf0Xp83ZB7CgFXPYWDB3zY0+sWGn2h0oEQ3gHimeIEf/HR/M2vYWOyRyeDPjJmFvCRMzJf5eE3xEFYUzwa2Xqz57arLh84eUEwFDXGb8Qi5sv0rI/P5T2DfpHP+5QLu9EliMRU484NpjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740181359; c=relaxed/simple;
-	bh=3IOnc5Kbwd6V/hz5naUKse18XLbXMWyKeJ31my4CE84=;
-	h=Date:To:From:Subject:Message-Id; b=tnrkJkvt37uQlib/zbhFM0OyN8587ANln3IqvKXoarxmSaf1Ce2qjvbmzG0d7jq02EW7Dy5LwxbBQdDT0WcJQm0jgJyLxQeU9UhDcyHuw83AiinwChcjJO+UIWGS9LSQUsIosqMPKSkaXuhiCac2lJSNoOwnjX7wrY/JUw/OXow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hnmpdyyk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740181360; c=relaxed/simple;
+	bh=eZvDRqQJh31hiM7Xb9FUWZFFv7o70H0KjlS/b54riWo=;
+	h=Date:To:From:Subject:Message-Id; b=VuZXjJOIdYcAALUDdS3bDkRWV8Nb7uN9NACp57VrujNMENC6buFC9U9b8EvtqA83Hhbt/R1ELNt8HTrcCBI3JW5j6afvjJmSAHc1sAzf8kGMrEbodpjZ2ZqMpUiUyQx+paDzuGDhDnZGZf35EKlFWOie0nkuraRC31ibgt4LDJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AKvgN68K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hnmpdyyk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AD53C4CED6;
-	Fri, 21 Feb 2025 23:42:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AKvgN68K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 898C9C4CED6;
+	Fri, 21 Feb 2025 23:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740181358;
-	bh=3IOnc5Kbwd6V/hz5naUKse18XLbXMWyKeJ31my4CE84=;
+	s=korg; t=1740181360;
+	bh=eZvDRqQJh31hiM7Xb9FUWZFFv7o70H0KjlS/b54riWo=;
 	h=Date:To:From:Subject:From;
-	b=HnmpdyykNNBTqMsctT/ZYXP93z/jja69RR+6mnP+JYoa4thC40UljmZ7XTDMMFhQu
-	 UL27ZwWFMZX6iIN80Hb8VjmDrtKVQMhRQgvzPxy5OeIgJYQphlj0spPjEBTBA2fmZ4
-	 BhdbEZknwePJnvW19E8D25Ygkb95yC1dfaQf+Ang=
-Date: Fri, 21 Feb 2025 15:42:38 -0800
+	b=AKvgN68KxwqZ47tBziB42AKZrvrTwPZpOlgXnH/BlJjhS9PGDgMOywD6HbuJxynJd
+	 2jKPq3YmNTvtPRcelqoBywExmELUVBPscoSkkXQXJbtMQgtE0flGCT1DSTNh3Vk4DI
+	 ro0Xggo/F0dldJHn6kJ3Dmp/NxO9IXmM+7KSQg8c=
+Date: Fri, 21 Feb 2025 15:42:40 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-second-stage-of-handle-allocation.patch added to mm-unstable branch
-Message-Id: <20250221234238.9AD53C4CED6@smtp.kernel.org>
+Subject: + zram-remove-writestall-zram_stats-member.patch added to mm-unstable branch
+Message-Id: <20250221234240.898C9C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: remove second stage of handle allocation
+     Subject: zram: remove writestall zram_stats member
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-second-stage-of-handle-allocation.patch
+     zram-remove-writestall-zram_stats-member.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-second-stage-of-handle-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-writestall-zram_stats-member.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove second stage of handle allocation
-Date: Sat, 22 Feb 2025 07:25:36 +0900
+Subject: zram: remove writestall zram_stats member
+Date: Sat, 22 Feb 2025 07:25:37 +0900
 
-Previously zram write() was atomic which required us to pass
-__GFP_KSWAPD_RECLAIM to zsmalloc handle allocation on a fast path and
-attempt a slow path allocation (with recompression) if the fast path
-failed.
+There is no zsmalloc handle allocation slow path now and writestall is not
+possible any longer.  Remove it from zram_stats.
 
-Since we are not in atomic context anymore we can permit direct reclaim
-during handle allocation, and hence can have a single allocation path. 
-There is no slow path anymore so we don't unlock per-CPU stream (and don't
-lose compressed data) which means that there is no need to do
-recompression now (which should reduce CPU and battery usage).
-
-Link: https://lkml.kernel.org/r/20250221222958.2225035-6-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250221222958.2225035-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -82,81 +74,33 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   38 +++++---------------------------
- 1 file changed, 6 insertions(+), 32 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 +--
+ drivers/block/zram/zram_drv.h |    1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-second-stage-of-handle-allocation
+--- a/drivers/block/zram/zram_drv.c~zram-remove-writestall-zram_stats-member
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1729,11 +1729,11 @@ static int write_incompressible_page(str
- static int zram_write_page(struct zram *zram, struct page *page, u32 index)
- {
- 	int ret = 0;
--	unsigned long handle = -ENOMEM;
--	unsigned int comp_len = 0;
-+	unsigned long handle;
-+	unsigned int comp_len;
- 	void *dst, *mem;
- 	struct zcomp_strm *zstrm;
--	unsigned long element = 0;
-+	unsigned long element;
- 	bool same_filled;
+@@ -1443,9 +1443,8 @@ static ssize_t debug_stat_show(struct de
  
- 	/* First, free memory allocated to this slot (if any) */
-@@ -1747,7 +1747,6 @@ static int zram_write_page(struct zram *
- 	if (same_filled)
- 		return write_same_filled_page(zram, element, index);
+ 	down_read(&zram->init_lock);
+ 	ret = scnprintf(buf, PAGE_SIZE,
+-			"version: %d\n%8llu %8llu\n",
++			"version: %d\n0 %8llu\n",
+ 			version,
+-			(u64)atomic64_read(&zram->stats.writestall),
+ 			(u64)atomic64_read(&zram->stats.miss_free));
+ 	up_read(&zram->init_lock);
  
--compress_again:
- 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
- 	mem = kmap_local_page(page);
- 	ret = zcomp_compress(zram->comps[ZRAM_PRIMARY_COMP], zstrm,
-@@ -1757,7 +1756,6 @@ compress_again:
- 	if (unlikely(ret)) {
- 		zcomp_stream_put(zstrm);
- 		pr_err("Compression failed! err=%d\n", ret);
--		zs_free(zram->mem_pool, handle);
- 		return ret;
- 	}
- 
-@@ -1766,35 +1764,11 @@ compress_again:
- 		return write_incompressible_page(zram, page, index);
- 	}
- 
--	/*
--	 * handle allocation has 2 paths:
--	 * a) fast path is executed with preemption disabled (for
--	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
--	 *  since we can't sleep;
--	 * b) slow path enables preemption and attempts to allocate
--	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
--	 *  put per-cpu compression stream and, thus, to re-do
--	 *  the compression once handle is allocated.
--	 *
--	 * if we have a 'non-null' handle here then we are coming
--	 * from the slow path and handle has already been allocated.
--	 */
--	if (IS_ERR_VALUE(handle))
--		handle = zs_malloc(zram->mem_pool, comp_len,
--				   __GFP_KSWAPD_RECLAIM |
--				   __GFP_NOWARN |
--				   __GFP_HIGHMEM |
--				   __GFP_MOVABLE);
-+	handle = zs_malloc(zram->mem_pool, comp_len,
-+			   GFP_NOIO | __GFP_HIGHMEM | __GFP_MOVABLE);
- 	if (IS_ERR_VALUE(handle)) {
- 		zcomp_stream_put(zstrm);
--		atomic64_inc(&zram->stats.writestall);
--		handle = zs_malloc(zram->mem_pool, comp_len,
--				   GFP_NOIO | __GFP_HIGHMEM |
--				   __GFP_MOVABLE);
--		if (IS_ERR_VALUE(handle))
--			return PTR_ERR((void *)handle);
--
--		goto compress_again;
-+		return PTR_ERR((void *)handle);
- 	}
- 
- 	if (!zram_can_store_page(zram)) {
+--- a/drivers/block/zram/zram_drv.h~zram-remove-writestall-zram_stats-member
++++ a/drivers/block/zram/zram_drv.h
+@@ -84,7 +84,6 @@ struct zram_stats {
+ 	atomic64_t huge_pages_since;	/* no. of huge pages since zram set up */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+-	atomic64_t writestall;		/* no. of write slow paths */
+ 	atomic64_t miss_free;		/* no. of missed free */
+ #ifdef	CONFIG_ZRAM_WRITEBACK
+ 	atomic64_t bd_count;		/* no. of pages in backing device */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
