@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32DB3FD4
-	for <mm-commits@vger.kernel.org>; Sat, 22 Feb 2025 00:21:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64BBA3FD4
+	for <mm-commits@vger.kernel.org>; Sat, 22 Feb 2025 00:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740183712; cv=none; b=R32CxnJs37mtFX1rsfI50re5K/k2twRyH1/OoG4+i3sfJ91Xd7bt9VCWDX+eufasFtSzgFKuuKao8oQOG5VM8oZxNHx19rtUWeBAJcuhhNQoZwQ0T7JQ069YX60JHMxZjAtpZz4WilSaZNbx3fRJjS2O9MazyIyBmFAseXx8DzQ=
+	t=1740183717; cv=none; b=hS5H2kD2B/T+5AFowpGF6C0gpqPXnpBQycBBe6nHTowrpyST09TdPC2mosFLlensP2xz5tVmKFWDhX9wH98G6Z2/2VqVrJ8GyGakBuL1toYZ1mLm3Y774mVZi49dY4qUhbWL82v+rYT2xRSC5Juu6j2BF9HU2WP809hkaPtD6v8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740183712; c=relaxed/simple;
-	bh=u9ogOeunMDmaMDl4dc7SeVbMQDDrQBxnQ+lcCNT80gk=;
-	h=Date:To:From:Subject:Message-Id; b=TnW5Sa7S0INnAzNF/Cf0s0pLmadp9q7fhGxuTaq63Ukw0AI+zkBflJ7pTB8aulg1JrQFlqimrKVXFgqwKSEFxl8khjHu/a6rk1W/FNh23EILm+gzfIjwjGOFo6zBywHk2nObU/NK+Iwa9znBgqyYySe0luPNuGB58S53QFunh2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tuTiZuov; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740183717; c=relaxed/simple;
+	bh=odI5O/YF2NtMcxXjA9kcuKY/pdP1c5biM9RIkM0ohtY=;
+	h=Date:To:From:Subject:Message-Id; b=DaLNFb3vExzDvNTTDtfkTf5lZl5Xz7knk40+PdA+IbZwR2b1SzK2OEVj/RgiwhUXB/ezm9SEjUY/GY3Lygd2Z3FazsAn/1m6M1TP5iT5QnqStqbTrgGNw1hB7NTl+huDT6ZHddjKHgvFDg6k42/iq9c45MjOxJof6SE2cM9dAjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lIy6y70v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tuTiZuov"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E623C4CED6;
-	Sat, 22 Feb 2025 00:21:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lIy6y70v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEE65C4CED6;
+	Sat, 22 Feb 2025 00:21:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740183712;
-	bh=u9ogOeunMDmaMDl4dc7SeVbMQDDrQBxnQ+lcCNT80gk=;
+	s=korg; t=1740183716;
+	bh=odI5O/YF2NtMcxXjA9kcuKY/pdP1c5biM9RIkM0ohtY=;
 	h=Date:To:From:Subject:From;
-	b=tuTiZuovWqV7cfeTxVbucI0DqlkDC5Kz0ECOiuhp4KjfmJqJdalwmIKtDv+CQcNW7
-	 HYNczu0YilKzw0L0qqD7yCK4dd+qe7xbbeLIvxNlj7Rd2BqEgvRe6rGCzJYt9BIhke
-	 ydOVxhPJXz76RjXYuPrxM43XMRymuq8+LM2rf2f4=
-Date: Fri, 21 Feb 2025 16:21:51 -0800
+	b=lIy6y70vO1mFivwT2ltV2qUgWQNJOkxx7IRY/zQW4cC6/qql5YH5H1g4UdpEqjxYJ
+	 cW2cz2FgxJyZgR4iAvpX05qzk06bPSG50UUzDf3uif7JCeUb/E5QbKPI1FkFr3bxg/
+	 S4gy0sjf1RqoZ0kAuwF0cI3ZwGUle4IsqyXD0Vc8=
+Date: Fri, 21 Feb 2025 16:21:56 -0800
 To: mm-commits@vger.kernel.org,oleg@redhat.com,kees@kernel.org,ebiederm@xmission.com,corbet@lwn.net,brauner@kernel.org,alexander@mihalicyn.com,mkoutny@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-pid-allow-pid_max-to-be-set-per-pid-namespace.patch added to mm-nonmm-unstable branch
-Message-Id: <20250222002152.1E623C4CED6@smtp.kernel.org>
+Subject: + pid-optional-first-fit-pid-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20250222002156.BEE65C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "pid: allow pid_max to be set per pid namespace"
+     Subject: pid: Optional first-fit pid allocation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     revert-pid-allow-pid_max-to-be-set-per-pid-namespace.patch
+     pid-optional-first-fit-pid-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-pid-allow-pid_max-to-be-set-per-pid-namespace.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pid-optional-first-fit-pid-allocation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,54 +58,18 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Koutný <mkoutny@suse.com>
-Subject: Revert "pid: allow pid_max to be set per pid namespace"
-Date: Fri, 21 Feb 2025 18:02:48 +0100
+From: =?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
+Subject: pid: Optional first-fit pid allocation
+Date: Fri, 21 Feb 2025 18:02:49 +0100
 
-Patch series "Alternative "pid_max" for 32-bit userspace".
+Noone would need to use this allocation strategy (it's slower, pid
+numbers collide sooner). Its primary purpose are pid namespaces in
+conjunction with pids.max cgroup limit which keeps (virtual) pid numbers
+below the given limit. This is for 32-bit userspace programs that may
+not work well with pid numbers above 65536.
 
-pid_max is sort of a legacy limit (its value and partially the concept
-too, given the existence of pids cgroup controller).  It is tempting to
-make the pid_max value part of a pid namespace to provide compat
-environment for 32-bit applications [1].  On the other hand, it provides
-yet another mechanism for limitation of task count.  Even without
-namespacing of pid_max value, the configuration of conscious limit is
-confusing for users [2].
-
-This series builds upon the idea of restricting the number (amount) of
-tasks by pids controller and ensuring that number (pid) never exceeds the
-amount of tasks.  This would not currently work out of the box because
-next-fit pid allocation would continue to assign numbers (pids) higher
-than the actual amount (there would be gaps in the lower range of the
-interval).  The patch 2/2 implements this idea by extending semantics of
-ns_last_pid knob to allow first-fit numbering.  (The implementation has
-clumsy ifdefery, which can might be dropped since it's too x86-centric.)
-
-The patch 1/2 is a mere revert to simplify pid_max to one global limit
-only.
-
-[1] https://lore.kernel.org/r/20241122132459.135120-1-aleksandr.mikhalitsyn@canonical.com/
-[2] https://lore.kernel.org/r/bnxhqrq7tip6jl2hu6jsvxxogdfii7ugmafbhgsogovrchxfyp@kagotkztqurt/
-
-
-This patch (of 2):
-
-This reverts commit 7863dcc72d0f4b13a641065670426435448b3d80.
-
-It is already difficult for users to troubleshoot which of multiple pid
-limits restricts their workload.  I'm afraid making pid_max
-per-(hierarchical-)NS will contribute to confusion.  Also, the
-implementation copies the limit upon creation from parent, this pattern
-showed cumbersome with some attributes in legacy cgroup controllers --
-it's subject to race condition between parent's limit modification and
-children creation and once copied it must be changed in the descendant.
-
-This is very similar to what pids.max of a cgroup (already) does that can
-be used as an alternative.
-
-Link: https://lkml.kernel.org/r/20250221170249.890014-1-mkoutny@suse.com
-Link: https://lore.kernel.org/r/bnxhqrq7tip6jl2hu6jsvxxogdfii7ugmafbhgsogovrchxfyp@kagotkztqurt/
-Link: https://lkml.kernel.org/r/20250221170249.890014-2-mkoutny@suse.com
+Link: https://lore.kernel.org/r/20241122132459.135120-1-aleksandr.mikhalitsyn@canonical.com/
+Link: https://lkml.kernel.org/r/20250221170249.890014-3-mkoutny@suse.com
 Signed-off-by: Michal Koutný <mkoutny@suse.com>
 Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -116,395 +80,134 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h               |    3 
- include/linux/pid_namespace.h     |   10 --
- kernel/pid.c                      |  125 +---------------------------
- kernel/pid_namespace.c            |   43 ++-------
- kernel/sysctl.c                   |    9 ++
- kernel/trace/pid_list.c           |    2 
- kernel/trace/trace.h              |    2 
- kernel/trace/trace_sched_switch.c |    2 
- 8 files changed, 35 insertions(+), 161 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    2 +
+ include/linux/pid_namespace.h               |    3 +
+ kernel/pid.c                                |   12 ++++++-
+ kernel/pid_namespace.c                      |   28 +++++++++++++-----
+ 4 files changed, 36 insertions(+), 9 deletions(-)
 
---- a/include/linux/pid.h~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
-+++ a/include/linux/pid.h
-@@ -108,6 +108,9 @@ extern void exchange_tids(struct task_st
- extern void transfer_pid(struct task_struct *old, struct task_struct *new,
- 			 enum pid_type);
+--- a/Documentation/admin-guide/sysctl/kernel.rst~pid-optional-first-fit-pid-allocation
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -1043,6 +1043,8 @@ The last pid allocated in the current (t
+ lives in) pid namespace. When selecting a pid for a next task on fork
+ kernel tries to allocate a number starting from this one.
  
-+extern int pid_max;
-+extern int pid_max_min, pid_max_max;
++When set to -1, first-fit pid numbering is used instead of the next-fit.
 +
- /*
-  * look up a PID in the hash table. Must be called with the tasklist_lock
-  * or rcu_read_lock() held.
---- a/include/linux/pid_namespace.h~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
+ 
+ powersave-nap (PPC only)
+ ========================
+--- a/include/linux/pid_namespace.h~pid-optional-first-fit-pid-allocation
 +++ a/include/linux/pid_namespace.h
-@@ -30,7 +30,6 @@ struct pid_namespace {
- 	struct task_struct *child_reaper;
- 	struct kmem_cache *pid_cachep;
- 	unsigned int level;
--	int pid_max;
- 	struct pid_namespace *parent;
- #ifdef CONFIG_BSD_PROCESS_ACCT
- 	struct fs_pin *bacct;
-@@ -39,14 +38,9 @@ struct pid_namespace {
- 	struct ucounts *ucounts;
- 	int reboot;	/* group exit code if this pidns was rebooted */
- 	struct ns_common ns;
--	struct work_struct	work;
--#ifdef CONFIG_SYSCTL
--	struct ctl_table_set	set;
--	struct ctl_table_header *sysctls;
--#if defined(CONFIG_MEMFD_CREATE)
-+#if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
+@@ -41,6 +41,9 @@ struct pid_namespace {
+ #if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
  	int memfd_noexec_scope;
  #endif
--#endif
++#ifdef CONFIG_IA32_EMULATION
++	bool pid_noncyclic;
++#endif
  } __randomize_layout;
  
  extern struct pid_namespace init_pid_ns;
-@@ -123,8 +117,6 @@ static inline int reboot_pid_ns(struct p
- extern struct pid_namespace *task_active_pid_ns(struct task_struct *tsk);
- void pidhash_init(void);
- void pid_idr_init(void);
--int register_pidns_sysctls(struct pid_namespace *pidns);
--void unregister_pidns_sysctls(struct pid_namespace *pidns);
- 
- static inline bool task_is_in_init_pid_ns(struct task_struct *tsk)
- {
---- a/kernel/pid.c~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
+--- a/kernel/pid.c~pid-optional-first-fit-pid-allocation
 +++ a/kernel/pid.c
-@@ -61,8 +61,10 @@ struct pid init_struct_pid = {
- 	}, }
- };
- 
--static int pid_max_min = RESERVED_PIDS + 1;
--static int pid_max_max = PID_MAX_LIMIT;
-+int pid_max = PID_MAX_DEFAULT;
-+
-+int pid_max_min = RESERVED_PIDS + 1;
-+int pid_max_max = PID_MAX_LIMIT;
- 
- /*
-  * PID-map pages start out as NULL, they get allocated upon
-@@ -81,7 +83,6 @@ struct pid_namespace init_pid_ns = {
- #ifdef CONFIG_PID_NS
- 	.ns.ops = &pidns_operations,
- #endif
--	.pid_max = PID_MAX_DEFAULT,
- #if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
- 	.memfd_noexec_scope = MEMFD_NOEXEC_SCOPE_EXEC,
- #endif
-@@ -190,7 +191,6 @@ struct pid *alloc_pid(struct pid_namespa
+@@ -191,6 +191,10 @@ struct pid *alloc_pid(struct pid_namespa
  
  	for (i = ns->level; i >= 0; i--) {
  		int tid = 0;
--		int pid_max = READ_ONCE(tmp->pid_max);
++		bool pid_noncyclic = 0;
++#ifdef CONFIG_IA32_EMULATION
++		pid_noncyclic = READ_ONCE(tmp->pid_noncyclic);
++#endif
  
  		if (set_tid_size) {
  			tid = set_tid[ns->level - i];
-@@ -644,118 +644,17 @@ SYSCALL_DEFINE2(pidfd_open, pid_t, pid,
- 	return fd;
- }
- 
--#ifdef CONFIG_SYSCTL
--static struct ctl_table_set *pid_table_root_lookup(struct ctl_table_root *root)
--{
--	return &task_active_pid_ns(current)->set;
--}
--
--static int set_is_seen(struct ctl_table_set *set)
--{
--	return &task_active_pid_ns(current)->set == set;
--}
--
--static int pid_table_root_permissions(struct ctl_table_header *head,
--				      const struct ctl_table *table)
--{
--	struct pid_namespace *pidns =
--		container_of(head->set, struct pid_namespace, set);
--	int mode = table->mode;
--
--	if (ns_capable(pidns->user_ns, CAP_SYS_ADMIN) ||
--	    uid_eq(current_euid(), make_kuid(pidns->user_ns, 0)))
--		mode = (mode & S_IRWXU) >> 6;
--	else if (in_egroup_p(make_kgid(pidns->user_ns, 0)))
--		mode = (mode & S_IRWXG) >> 3;
--	else
--		mode = mode & S_IROTH;
--	return (mode << 6) | (mode << 3) | mode;
--}
--
--static void pid_table_root_set_ownership(struct ctl_table_header *head,
--					 kuid_t *uid, kgid_t *gid)
--{
--	struct pid_namespace *pidns =
--		container_of(head->set, struct pid_namespace, set);
--	kuid_t ns_root_uid;
--	kgid_t ns_root_gid;
--
--	ns_root_uid = make_kuid(pidns->user_ns, 0);
--	if (uid_valid(ns_root_uid))
--		*uid = ns_root_uid;
--
--	ns_root_gid = make_kgid(pidns->user_ns, 0);
--	if (gid_valid(ns_root_gid))
--		*gid = ns_root_gid;
--}
--
--static struct ctl_table_root pid_table_root = {
--	.lookup		= pid_table_root_lookup,
--	.permissions	= pid_table_root_permissions,
--	.set_ownership	= pid_table_root_set_ownership,
--};
--
--static const struct ctl_table pid_table[] = {
--	{
--		.procname	= "pid_max",
--		.data		= &init_pid_ns.pid_max,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &pid_max_min,
--		.extra2		= &pid_max_max,
--	},
--};
--#endif
--
--int register_pidns_sysctls(struct pid_namespace *pidns)
--{
--#ifdef CONFIG_SYSCTL
--	struct ctl_table *tbl;
--
--	setup_sysctl_set(&pidns->set, &pid_table_root, set_is_seen);
--
--	tbl = kmemdup(pid_table, sizeof(pid_table), GFP_KERNEL);
--	if (!tbl)
--		return -ENOMEM;
--	tbl->data = &pidns->pid_max;
--	pidns->pid_max = min(pid_max_max, max_t(int, pidns->pid_max,
--			     PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
--
--	pidns->sysctls = __register_sysctl_table(&pidns->set, "kernel", tbl,
--						 ARRAY_SIZE(pid_table));
--	if (!pidns->sysctls) {
--		kfree(tbl);
--		retire_sysctl_set(&pidns->set);
--		return -ENOMEM;
--	}
--#endif
--	return 0;
--}
--
--void unregister_pidns_sysctls(struct pid_namespace *pidns)
--{
--#ifdef CONFIG_SYSCTL
--	const struct ctl_table *tbl;
--
--	tbl = pidns->sysctls->ctl_table_arg;
--	unregister_sysctl_table(pidns->sysctls);
--	retire_sysctl_set(&pidns->set);
--	kfree(tbl);
--#endif
--}
--
- void __init pid_idr_init(void)
- {
- 	/* Verify no one has done anything silly: */
- 	BUILD_BUG_ON(PID_MAX_LIMIT >= PIDNS_ADDING);
- 
- 	/* bump default and minimum pid_max based on number of cpus */
--	init_pid_ns.pid_max = min(pid_max_max, max_t(int, init_pid_ns.pid_max,
--				  PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
-+	pid_max = min(pid_max_max, max_t(int, pid_max,
-+				PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
- 	pid_max_min = max_t(int, pid_max_min,
- 				PIDS_PER_CPU_MIN * num_possible_cpus());
--	pr_info("pid_max: default: %u minimum: %u\n", init_pid_ns.pid_max, pid_max_min);
-+	pr_info("pid_max: default: %u minimum: %u\n", pid_max, pid_max_min);
- 
- 	idr_init(&init_pid_ns.idr);
- 
-@@ -766,16 +665,6 @@ void __init pid_idr_init(void)
- 			NULL);
- }
- 
--static __init int pid_namespace_sysctl_init(void)
--{
--#ifdef CONFIG_SYSCTL
--	/* "kernel" directory will have already been initialized. */
--	BUG_ON(register_pidns_sysctls(&init_pid_ns));
--#endif
--	return 0;
--}
--subsys_initcall(pid_namespace_sysctl_init);
--
- static struct file *__pidfd_fget(struct task_struct *task, int fd)
- {
- 	struct file *file;
---- a/kernel/pid_namespace.c~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
+@@ -235,8 +239,12 @@ struct pid *alloc_pid(struct pid_namespa
+ 			 * Store a null pointer so find_pid_ns does not find
+ 			 * a partially initialized PID (see below).
+ 			 */
+-			nr = idr_alloc_cyclic(&tmp->idr, NULL, pid_min,
+-					      pid_max, GFP_ATOMIC);
++			if (likely(!pid_noncyclic))
++				nr = idr_alloc_cyclic(&tmp->idr, NULL, pid_min,
++						      pid_max, GFP_ATOMIC);
++			else
++				nr = idr_alloc(&tmp->idr, NULL, pid_min,
++						      pid_max, GFP_ATOMIC);
+ 		}
+ 		spin_unlock_irq(&pidmap_lock);
+ 		idr_preload_end();
+--- a/kernel/pid_namespace.c~pid-optional-first-fit-pid-allocation
 +++ a/kernel/pid_namespace.c
-@@ -70,8 +70,6 @@ static void dec_pid_namespaces(struct uc
- 	dec_ucount(ucounts, UCOUNT_PID_NAMESPACES);
- }
- 
--static void destroy_pid_namespace_work(struct work_struct *work);
--
- static struct pid_namespace *create_pid_namespace(struct user_namespace *user_ns,
- 	struct pid_namespace *parent_pid_ns)
- {
-@@ -107,27 +105,17 @@ static struct pid_namespace *create_pid_
- 		goto out_free_idr;
- 	ns->ns.ops = &pidns_operations;
- 
--	ns->pid_max = parent_pid_ns->pid_max;
--	err = register_pidns_sysctls(ns);
--	if (err)
--		goto out_free_inum;
--
- 	refcount_set(&ns->ns.count, 1);
- 	ns->level = level;
- 	ns->parent = get_pid_ns(parent_pid_ns);
- 	ns->user_ns = get_user_ns(user_ns);
- 	ns->ucounts = ucounts;
- 	ns->pid_allocated = PIDNS_ADDING;
--	INIT_WORK(&ns->work, destroy_pid_namespace_work);
--
+@@ -114,6 +114,9 @@ static struct pid_namespace *create_pid_
  #if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
  	ns->memfd_noexec_scope = pidns_memfd_noexec_scope(parent_pid_ns);
  #endif
--
++#ifdef CONFIG_IA32_EMULATION
++	ns->pid_noncyclic = READ_ONCE(parent_pid_ns->pid_noncyclic);
++#endif
  	return ns;
  
--out_free_inum:
--	ns_free_inum(&ns->ns);
  out_free_idr:
- 	idr_destroy(&ns->idr);
- 	kmem_cache_free(pid_ns_cachep, ns);
-@@ -149,28 +137,12 @@ static void delayed_free_pidns(struct rc
- 
- static void destroy_pid_namespace(struct pid_namespace *ns)
- {
--	unregister_pidns_sysctls(ns);
--
- 	ns_free_inum(&ns->ns);
- 
- 	idr_destroy(&ns->idr);
- 	call_rcu(&ns->rcu, delayed_free_pidns);
+@@ -260,7 +263,7 @@ void zap_pid_ns_processes(struct pid_nam
+ 	return;
  }
  
--static void destroy_pid_namespace_work(struct work_struct *work)
--{
--	struct pid_namespace *ns =
--		container_of(work, struct pid_namespace, work);
--
--	do {
--		struct pid_namespace *parent;
--
--		parent = ns->parent;
--		destroy_pid_namespace(ns);
--		ns = parent;
--	} while (ns != &init_pid_ns && refcount_dec_and_test(&ns->ns.count));
--}
--
- struct pid_namespace *copy_pid_ns(unsigned long flags,
- 	struct user_namespace *user_ns, struct pid_namespace *old_ns)
+-#ifdef CONFIG_CHECKPOINT_RESTORE
++#if defined(CONFIG_CHECKPOINT_RESTORE) || defined(CONFIG_IA32_EMULATION)
+ static int pid_ns_ctl_handler(const struct ctl_table *table, int write,
+ 		void *buffer, size_t *lenp, loff_t *ppos)
  {
-@@ -183,8 +155,15 @@ struct pid_namespace *copy_pid_ns(unsign
+@@ -271,12 +274,23 @@ static int pid_ns_ctl_handler(const stru
+ 	if (write && !checkpoint_restore_ns_capable(pid_ns->user_ns))
+ 		return -EPERM;
  
- void put_pid_ns(struct pid_namespace *ns)
- {
--	if (ns && ns != &init_pid_ns && refcount_dec_and_test(&ns->ns.count))
--		schedule_work(&ns->work);
-+	struct pid_namespace *parent;
-+
-+	while (ns != &init_pid_ns) {
-+		parent = ns->parent;
-+		if (!refcount_dec_and_test(&ns->ns.count))
-+			break;
-+		destroy_pid_namespace(ns);
-+		ns = parent;
-+	}
- }
- EXPORT_SYMBOL_GPL(put_pid_ns);
- 
-@@ -295,7 +274,6 @@ static int pid_ns_ctl_handler(const stru
- 	next = idr_get_cursor(&pid_ns->idr) - 1;
+-	next = idr_get_cursor(&pid_ns->idr) - 1;
++	next = -1;
++#ifdef CONFIG_IA32_EMULATION
++	if (!pid_ns->pid_noncyclic)
++#endif
++		next += idr_get_cursor(&pid_ns->idr);
  
  	tmp.data = &next;
--	tmp.extra2 = &pid_ns->pid_max;
  	ret = proc_dointvec_minmax(&tmp, write, buffer, lenp, ppos);
- 	if (!ret && write)
- 		idr_set_cursor(&pid_ns->idr, next + 1);
-@@ -303,6 +281,7 @@ static int pid_ns_ctl_handler(const stru
+-	if (!ret && write)
+-		idr_set_cursor(&pid_ns->idr, next + 1);
++	if (!ret && write) {
++		if (next > -1)
++			idr_set_cursor(&pid_ns->idr, next + 1);
++		else if (!IS_ENABLED(CONFIG_IA32_EMULATION))
++			ret = -EINVAL;
++#ifdef CONFIG_IA32_EMULATION
++		WRITE_ONCE(pid_ns->pid_noncyclic, next == -1);
++#endif
++	}
+ 
  	return ret;
  }
- 
-+extern int pid_max;
- static const struct ctl_table pid_ns_ctl_table[] = {
- 	{
- 		.procname = "ns_last_pid",
-@@ -310,7 +289,7 @@ static const struct ctl_table pid_ns_ctl
+@@ -288,11 +302,11 @@ static const struct ctl_table pid_ns_ctl
+ 		.maxlen = sizeof(int),
  		.mode = 0666, /* permissions are checked in the handler */
  		.proc_handler = pid_ns_ctl_handler,
- 		.extra1 = SYSCTL_ZERO,
--		.extra2 = &init_pid_ns.pid_max,
-+		.extra2 = &pid_max,
+-		.extra1 = SYSCTL_ZERO,
++		.extra1 = SYSCTL_NEG_ONE,
+ 		.extra2 = &pid_max,
  	},
  };
- #endif	/* CONFIG_CHECKPOINT_RESTORE */
---- a/kernel/sysctl.c~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
-+++ a/kernel/sysctl.c
-@@ -1804,6 +1804,15 @@ static const struct ctl_table kern_table
- 	},
+-#endif	/* CONFIG_CHECKPOINT_RESTORE */
++#endif	/* CONFIG_CHECKPOINT_RESTORE || CONFIG_IA32_EMULATION */
+ 
+ int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd)
+ {
+@@ -449,7 +463,7 @@ static __init int pid_namespaces_init(vo
+ {
+ 	pid_ns_cachep = KMEM_CACHE(pid_namespace, SLAB_PANIC | SLAB_ACCOUNT);
+ 
+-#ifdef CONFIG_CHECKPOINT_RESTORE
++#if defined(CONFIG_CHECKPOINT_RESTORE) || defined(CONFIG_IA32_EMULATION)
+ 	register_sysctl_init("kernel", pid_ns_ctl_table);
  #endif
- 	{
-+		.procname	= "pid_max",
-+		.data		= &pid_max,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &pid_max_min,
-+		.extra2		= &pid_max_max,
-+	},
-+	{
- 		.procname	= "panic_on_oops",
- 		.data		= &panic_on_oops,
- 		.maxlen		= sizeof(int),
---- a/kernel/trace/pid_list.c~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
-+++ a/kernel/trace/pid_list.c
-@@ -414,7 +414,7 @@ struct trace_pid_list *trace_pid_list_al
- 	int i;
  
- 	/* According to linux/thread.h, pids can be no bigger that 30 bits */
--	WARN_ON_ONCE(init_pid_ns.pid_max > (1 << 30));
-+	WARN_ON_ONCE(pid_max > (1 << 30));
- 
- 	pid_list = kzalloc(sizeof(*pid_list), GFP_KERNEL);
- 	if (!pid_list)
---- a/kernel/trace/trace.h~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
-+++ a/kernel/trace/trace.h
-@@ -732,6 +732,8 @@ extern unsigned long tracing_thresh;
- 
- /* PID filtering */
- 
-+extern int pid_max;
-+
- bool trace_find_filtered_pid(struct trace_pid_list *filtered_pids,
- 			     pid_t search_pid);
- bool trace_ignore_this_task(struct trace_pid_list *filtered_pids,
---- a/kernel/trace/trace_sched_switch.c~revert-pid-allow-pid_max-to-be-set-per-pid-namespace
-+++ a/kernel/trace/trace_sched_switch.c
-@@ -442,7 +442,7 @@ int trace_alloc_tgid_map(void)
- 	if (tgid_map)
- 		return 0;
- 
--	tgid_map_max = init_pid_ns.pid_max;
-+	tgid_map_max = pid_max;
- 	map = kvcalloc(tgid_map_max + 1, sizeof(*tgid_map),
- 		       GFP_KERNEL);
- 	if (!map)
 _
 
 Patches currently in -mm which might be from mkoutny@suse.com are
