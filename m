@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5146342A95
-	for <mm-commits@vger.kernel.org>; Fri, 21 Feb 2025 23:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6059F2AD21;
+	Sat, 22 Feb 2025 00:00:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740181384; cv=none; b=PlNiTmi3WCNdLj3e2ObgECTLZjFlhhkyBxsmn8kl9D+WrBtZnjIyAtz4WM8OSd6jkFWtefN8XtSq/QKE8BQV4GQO30G62xL3LFeBcQf++vAwQ52RwppH3EBSgmjrsVHhpqpw31qYLrBST3JCzZECpLiYYMaZRD03IDGjWWh/6z8=
+	t=1740182409; cv=none; b=JChO+eA0AibV8ac3BSmZIk6Z5sRWFtVvDYA9QgvLFHcaT7fiEVRZgl/Vj4adox6qVPbyEyjHkTw4LoDWzIHeLdt3b88zLWIdWhDE5t7l7qM8qRyCe0lPe8Ogc+fNUtPxiHOSk28EF2OwiDvEa17hBtrkcV1q/AYM/ljhkNfVPTk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740181384; c=relaxed/simple;
-	bh=wgqCOj2kO9XZBtYot+Xf8iXsmTYstW0z1uiZNFM3JLs=;
-	h=Date:To:From:Subject:Message-Id; b=htXl+6x4Xm013kdtOyD7WGSP/VtEu1qjFbK5BbOC/b1coIsO6DRS3lNDRyIMYdNmY5WassFX4MdEodIRjA51gOPit+gZKP9t42iS3Hfc18lZdLZWewN9cSWFUU64cFQEkzc3EJVRO+9G9zmLsPJu3aJ1EPHuL8Tu4+B7VteRRlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Q5m1rKz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740182409; c=relaxed/simple;
+	bh=rsO+qylWbsFaZVdLRNNVEsSI+G6f3HMc3CF6cbKwew8=;
+	h=Date:To:From:Subject:Message-Id; b=E3AMMp3TQniNWihKrclChwSrZDDmFb502cBJE5I15UUKVnDG+brfKbAUXE5pJTUO2Km9r5MZP9GxfHbNi6QWpjdNycmf1Fn2SyS5NW4lh5Hs1i16JRXGne9XGDx7NNvKtMp/nJNC8hw2HMZ8/h809f5EgdxL6rpvpdOIaJ0t9bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bz3hSf2L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Q5m1rKz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEF6C4CED6;
-	Fri, 21 Feb 2025 23:43:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bz3hSf2L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAC1BC4CED6;
+	Sat, 22 Feb 2025 00:00:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740181384;
-	bh=wgqCOj2kO9XZBtYot+Xf8iXsmTYstW0z1uiZNFM3JLs=;
+	s=korg; t=1740182408;
+	bh=rsO+qylWbsFaZVdLRNNVEsSI+G6f3HMc3CF6cbKwew8=;
 	h=Date:To:From:Subject:From;
-	b=1Q5m1rKzKfHBTWk6jr8C/ovtJnWrEeyHcDz8CxYKdrWqQslr9ccgEDyYd3BonoOfF
-	 yK5SlxhB5cvzdpFbt/ijA2ygBeXPokb024VEKoBFMhnxvw1YZwYwGNpT3MMt1xqSMw
-	 V4213rzlEd0YVGbhtDYOB5U9U4uqp/qi6oz9bsPM=
-Date: Fri, 21 Feb 2025 15:43:03 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=Bz3hSf2LxXbGg6AIrRn9R/CIgWfU0dbUD+6aMHKUxrocTF7BoC7cq02EfUszxOsuj
+	 Otx9NVkpWrJBS+s3ez/6Si2MyKY/0EQ8xNRvKFENma4TIHVVIswiSPduf71voRDjbM
+	 0FAlk31LwtAxT+RqiJM+993eZ1xbW4vooY7looZ0=
+Date: Fri, 21 Feb 2025 16:00:08 -0800
+To: mm-commits@vger.kernel.org,wei.liu@kernel.org,tglx@linutronix.de,takakura@valinux.co.jp,stable@vger.kernel.org,pmladek@suse.com,john.ogness@linutronix.de,jani.nikula@intel.com,haiyangz@microsoft.com,gregkh@linuxfoundation.org,decui@microsoft.com,bhe@redhat.com,hamzamahfooz@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-add-might_sleep-to-zcomp-api.patch added to mm-unstable branch
-Message-Id: <20250221234304.1CEF6C4CED6@smtp.kernel.org>
+Subject: + panic-call-panic-handlers-before-panic_other_cpus_shutdown.patch added to mm-nonmm-unstable branch
+Message-Id: <20250222000008.AAC1BC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: add might_sleep to zcomp API
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-add-might_sleep-to-zcomp-api.patch
+     Subject: panic: call panic handlers before panic_other_cpus_shutdown()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-call-panic-handlers-before-panic_other_cpus_shutdown.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-add-might_sleep-to-zcomp-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-call-panic-handlers-before-panic_other_cpus_shutdown.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: add might_sleep to zcomp API
-Date: Sat, 22 Feb 2025 07:25:48 +0900
+From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Subject: panic: call panic handlers before panic_other_cpus_shutdown()
+Date: Fri, 21 Feb 2025 16:30:52 -0500
 
-Explicitly state that zcomp compress/decompress must be called from
-non-atomic context.
+Since the panic handlers may require certain cpus to be online to panic
+gracefully, we should call them before turning off SMP.  Without this
+re-ordering, on Hyper-V hv_panic_vmbus_unload() times out, because the
+vmbus channel is bound to VMBUS_CONNECT_CPU and unless the crashing cpu is
+the same as VMBUS_CONNECT_CPU, VMBUS_CONNECT_CPU will be offlined by
+crash_smp_send_stop() before the vmbus channel can be deconstructed.
 
-Link: https://lkml.kernel.org/r/20250221222958.2225035-18-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Link: https://lkml.kernel.org/r/20250221213055.133849-1-hamzamahfooz@linux.microsoft.com
+Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Baoquan he <bhe@redhat.com>
+Cc: Dexuan Cui <decui@microsoft.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Ryo Takakura <takakura@valinux.co.jp>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/panic.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-add-might_sleep-to-zcomp-api
-+++ a/drivers/block/zram/zcomp.c
-@@ -146,6 +146,7 @@ int zcomp_compress(struct zcomp *comp, s
- 	};
- 	int ret;
+--- a/kernel/panic.c~panic-call-panic-handlers-before-panic_other_cpus_shutdown
++++ a/kernel/panic.c
+@@ -372,16 +372,16 @@ void panic(const char *fmt, ...)
+ 	if (!_crash_kexec_post_notifiers)
+ 		__crash_kexec(NULL);
  
-+	might_sleep();
- 	ret = comp->ops->compress(comp->params, &zstrm->ctx, &req);
- 	if (!ret)
- 		*dst_len = req.dst_len;
-@@ -162,6 +163,7 @@ int zcomp_decompress(struct zcomp *comp,
- 		.dst_len = PAGE_SIZE,
- 	};
+-	panic_other_cpus_shutdown(_crash_kexec_post_notifiers);
+-
+-	printk_legacy_allow_panic_sync();
+-
+ 	/*
+ 	 * Run any panic handlers, including those that might need to
+ 	 * add information to the kmsg dump output.
+ 	 */
+ 	atomic_notifier_call_chain(&panic_notifier_list, 0, buf);
  
-+	might_sleep();
- 	return comp->ops->decompress(comp->params, &zstrm->ctx, &req);
- }
++	panic_other_cpus_shutdown(_crash_kexec_post_notifiers);
++
++	printk_legacy_allow_panic_sync();
++
+ 	panic_print_sys_info(false);
  
+ 	kmsg_dump_desc(KMSG_DUMP_PANIC, buf);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from hamzamahfooz@linux.microsoft.com are
 
-zram-sleepable-entry-locking.patch
-zram-permit-preemption-with-active-compression-stream.patch
-zram-remove-unused-crypto-include.patch
-zram-remove-max_comp_streams-device-attr.patch
-zram-remove-second-stage-of-handle-allocation.patch
-zram-remove-writestall-zram_stats-member.patch
-zram-limit-max-recompress-prio-to-num_active_comps.patch
-zram-filter-out-recomp-targets-based-on-priority.patch
-zram-rework-recompression-loop.patch
-zsmalloc-rename-pool-lock.patch
-zsmalloc-make-zspage-lock-preemptible.patch
-zsmalloc-introduce-new-object-mapping-api.patch
-zram-switch-to-new-zsmalloc-object-mapping-api.patch
-zram-permit-reclaim-in-zstd-custom-allocator.patch
-zram-do-not-leak-page-on-recompress_store-error-path.patch
-zram-do-not-leak-page-on-writeback_store-error-path.patch
-zram-add-might_sleep-to-zcomp-api.patch
-zsmalloc-zram-there-be-preemption.patch
+panic-call-panic-handlers-before-panic_other_cpus_shutdown.patch
 
