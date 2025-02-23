@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2920428F4
-	for <mm-commits@vger.kernel.org>; Sun, 23 Feb 2025 01:51:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE4317583
+	for <mm-commits@vger.kernel.org>; Sun, 23 Feb 2025 03:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740275471; cv=none; b=hW2g7aBRbcsJZAquXdVUyDU1Y+V349Acy2et5UTjYgrApqMGHBkLWMR35/UIdhhaZGxTFblQzvyxBJlmRPFScXlXD60kXz9nVADETPe+M2eyogVFa0oEgdugkoynx5SC2KiOL7ZlWWCPdjHO68QvqgVB64wIT7iumyA9S6AFHHU=
+	t=1740279631; cv=none; b=mM64NLvmKVY63mS4pn2KR7HEO4a839DE18qREfbIyOgikUZn6O5+TF0fSBkXbwWvzLsJOBX/gdY/6WTELHVwTmxe6aY4/57CUj6BeWvVkarPoxXxA5Depl11fUYe3qT9rZO6JzR8xBHmXqTmTU0s1Ee+EIleuQ37Wk5AR4g/P5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740275471; c=relaxed/simple;
-	bh=UxPZbR6Z5dTW5oudFUCDEKAMT83lV5bQeGq7d5OlJi8=;
-	h=Date:To:From:Subject:Message-Id; b=u+4nnSFIn3+S/RkLSRejlkXq3ANWNwlBZJPW13uQDdGJTo5vormUWeHefu63Awd+ARXnyyKTfD0Id5vGRV8tUJyUHuvl0oIUS6YLJY3sXK/or1QHq8/Ik+QZ6d2faGNregiJajww28e+dpkJCZV4uy11yUYVjB57mOGowWhbrKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TA9p+eZr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740279631; c=relaxed/simple;
+	bh=fsKH+o45HvUY9hDIR59mf/I+PZc0ZEo8idYflTRirEk=;
+	h=Date:To:From:Subject:Message-Id; b=KaYo7MT4cF2VcHnaPCG1vQ/DpFuYbb+71aXwqqX3iWfJ1+aXQ4/i5wx8VHbeJ33C/2WX02BY8MkwRoig3pVi7SaDEb5QhfJ9yhDr65lo6yMqNAF4lb3wCHuonod6eXQqgCx1f2jFKL2OHfXfkOQkDiHzH5woLWw2F5dy1YGpWGk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxgQzkjQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TA9p+eZr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6D68C4CED1;
-	Sun, 23 Feb 2025 01:51:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxgQzkjQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6B5C4CEE4;
+	Sun, 23 Feb 2025 03:00:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740275470;
-	bh=UxPZbR6Z5dTW5oudFUCDEKAMT83lV5bQeGq7d5OlJi8=;
+	s=korg; t=1740279630;
+	bh=fsKH+o45HvUY9hDIR59mf/I+PZc0ZEo8idYflTRirEk=;
 	h=Date:To:From:Subject:From;
-	b=TA9p+eZrdhlTZCm9erG0ta4BvG2WO9iI31hTSJLqCT0EKzTDVfEYyGxC4gSvnXmbf
-	 taARiEV2Ex3GzLMpqOBkn5ofb7Q49hcvkO4Bbq5o0+f/6nCitCy8tfHB0wBvidhu3M
-	 2Q++P6OfKAxJE5uN1uIxiqEnhVyP4bllLPqhn5o8=
-Date: Sat, 22 Feb 2025 17:51:10 -0800
-To: mm-commits@vger.kernel.org,mail@florommel.de,kbingham@kernel.org,jan.kiszka@siemens.com,jackmanb@google.com,akpm@linux-foundation.org
+	b=YxgQzkjQPc+CN5VAwgfgujWFGcy+/VKigvQBL3gZgQSDJ1jodAuoBNNK0XllvdBzx
+	 upysNNnX9fwlBCZ8r5MIn+Suqachw+bGG84xtDA+3B5KHM8tvQpIls492nYF6zN9pF
+	 3xuQM5LZw5DVkIAug0l8ArP0Hddf24ApPzKCKo64=
+Date: Sat, 22 Feb 2025 19:00:30 -0800
+To: mm-commits@vger.kernel.org,quic_zijuhu@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-add-lx_per_cpu_ptr.patch added to mm-nonmm-unstable branch
-Message-Id: <20250223015110.D6D68C4CED1@smtp.kernel.org>
+Subject: + rhashtable-remove-needless-return-in-three-void-apis.patch added to mm-nonmm-unstable branch
+Message-Id: <20250223030030.8A6B5C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb: add $lx_per_cpu_ptr()
+     Subject: rhashtable: remove needless return in three void APIs
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-add-lx_per_cpu_ptr.patch
+     rhashtable-remove-needless-return-in-three-void-apis.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-lx_per_cpu_ptr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rhashtable-remove-needless-return-in-three-void-apis.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,94 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: scripts/gdb: add $lx_per_cpu_ptr()
-Date: Thu, 20 Feb 2025 12:23:40 +0000
+From: Zijun Hu <quic_zijuhu@quicinc.com>
+Subject: rhashtable: remove needless return in three void APIs
+Date: Fri, 21 Feb 2025 05:02:21 -0800
 
-We currently have $lx_per_cpu() which works fine for stuff that kernel
-code would access via per_cpu().  But this doesn't work for stuff that
-kernel code accesses via per_cpu_ptr():
+Remove needless 'return' in the following void APIs:
 
-(gdb) p $lx_per_cpu(node_data[1].node_zones[2]->per_cpu_pageset)
-Cannot access memory at address 0xffff11105fbd6c28
+ rhltable_walk_enter()
+ rhltable_free_and_destroy()
+ rhltable_destroy()
 
-This is because we take the address of the pointer and use that as the
-offset, instead of using the stored value.
+Since both the API and callee involved are void functions.
 
-Add a GDB version that mirrors the kernel API, which uses the pointer
-value.
-
-To be consistent with per_cpu_ptr(), we need to return the pointer value
-instead of dereferencing it for the user.  Therefore, move the existing
-dereference out of the per_cpu() Python helper and do that only in the
-$lx_per_cpu() implementation.
-
-Link: https://lkml.kernel.org/r/20250220-lx-per-cpu-ptr-v2-1-945dee8d8d38@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Florian Rommel <mail@florommel.de>
-Cc: Kieran Bingham <kbingham@kernel.org>
+Link: https://lkml.kernel.org/r/20250221-rmv_return-v1-16-cc8dff275827@quicinc.com
+Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ include/linux/rhashtable.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-lx_per_cpu_ptr
-+++ a/scripts/gdb/linux/cpus.py
-@@ -46,7 +46,7 @@ def per_cpu(var_ptr, cpu):
-             # !CONFIG_SMP case
-             offset = 0
-     pointer = var_ptr.cast(utils.get_long_type()) + offset
--    return pointer.cast(var_ptr.type).dereference()
-+    return pointer.cast(var_ptr.type)
+--- a/include/linux/rhashtable.h~rhashtable-remove-needless-return-in-three-void-apis
++++ a/include/linux/rhashtable.h
+@@ -1259,7 +1259,7 @@ static inline int rhashtable_replace_fas
+ static inline void rhltable_walk_enter(struct rhltable *hlt,
+ 				       struct rhashtable_iter *iter)
+ {
+-	return rhashtable_walk_enter(&hlt->ht, iter);
++	rhashtable_walk_enter(&hlt->ht, iter);
+ }
  
+ /**
+@@ -1275,12 +1275,12 @@ static inline void rhltable_free_and_des
+ 							     void *arg),
+ 					     void *arg)
+ {
+-	return rhashtable_free_and_destroy(&hlt->ht, free_fn, arg);
++	rhashtable_free_and_destroy(&hlt->ht, free_fn, arg);
+ }
  
- cpu_mask = {}
-@@ -149,11 +149,29 @@ Note that VAR has to be quoted as string
-         super(PerCpu, self).__init__("lx_per_cpu")
+ static inline void rhltable_destroy(struct rhltable *hlt)
+ {
+-	return rhltable_free_and_destroy(hlt, NULL, NULL);
++	rhltable_free_and_destroy(hlt, NULL, NULL);
+ }
  
-     def invoke(self, var, cpu=-1):
--        return per_cpu(var.address, cpu)
-+        return per_cpu(var.address, cpu).dereference()
- 
- 
- PerCpu()
- 
-+
-+class PerCpuPtr(gdb.Function):
-+    """Return per-cpu pointer.
-+
-+$lx_per_cpu_ptr("VAR"[, CPU]): Return the per-cpu pointer called VAR for the
-+given CPU number. If CPU is omitted, the CPU of the current context is used.
-+Note that VAR has to be quoted as string."""
-+
-+    def __init__(self):
-+        super(PerCpuPtr, self).__init__("lx_per_cpu_ptr")
-+
-+    def invoke(self, var, cpu=-1):
-+        return per_cpu(var, cpu)
-+
-+
-+PerCpuPtr()
-+
-+
- def get_current_task(cpu):
-     task_ptr_type = task_type.get_type().pointer()
- 
+ #endif /* _LINUX_RHASHTABLE_H */
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from quic_zijuhu@quicinc.com are
 
-mm-mmu_gather-update-comment-on-rcu-freeing.patch
-selftests-mm-report-errno-when-things-fail-in-gup_longterm.patch
-selftests-mm-fix-assumption-that-sudo-is-present.patch
-selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch
-selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch
-selftests-mm-uffd-rename-nr_cpus-nr_threads.patch
-selftests-mm-print-some-details-when-uffd-stress-gets-bad-params.patch
-selftests-mm-dont-fail-uffd-stress-if-too-many-cpus.patch
-selftests-mm-skip-map_populate-on-weird-filesystems.patch
-selftests-mm-skip-gup_longerm-tests-on-weird-filesystems.patch
-scripts-gdb-add-lx_per_cpu_ptr.patch
+rhashtable-remove-needless-return-in-three-void-apis.patch
+cpu-remove-needless-return-in-void-api-suspend_enable_secondary_cpus.patch
+mm-mmu_gather-remove-needless-return-in-void-api-tlb_remove_page.patch
 
