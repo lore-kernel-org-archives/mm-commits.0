@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F24728F4
-	for <mm-commits@vger.kernel.org>; Sun, 23 Feb 2025 01:45:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B28228F4
+	for <mm-commits@vger.kernel.org>; Sun, 23 Feb 2025 01:45:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740275131; cv=none; b=P2peIMvcnAvfkXzHpGCYEipCdBkwAQycNzzirrlr0HtRsgr0QSER5hUDJAQt0DPkQvW0lDRiFGyLttuFb5YMBasspp9mUX+hLP4ZpjxnBajGI4ktBmSlC6aXlWtPDvitCfI6bRzApxJB7YEUUeOe8MRUHvmE55s4dpwZPPD4p1E=
+	t=1740275133; cv=none; b=gQv2FrnL8636fuvQJRu9cJH7s4UxAv0d6cyF41D9Fah6BW+g9t61bmEbNrMtuWU9rQjD+KvP9+rSuUZZ1NOaM1kV13dw7sQVJqevZqJ25kfcA0ONDEk/j0Du1xiXLB9C6A7qgkngwCaxf512mCKAqRX1XtY3juu9KSRg6D1btP8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740275131; c=relaxed/simple;
-	bh=rIf+3xmACH09n8xhcxAYMPwDWNN9NhCctc44Z+7gDCg=;
-	h=Date:To:From:Subject:Message-Id; b=VisXhZSJNQcreNmCN7L9f1uWPDAwiLutwzTbn6/gWRhQO+Xi3Jtg9Sxrui7Ic/7G5bDZq9cgaiAdKHq4wcjdr11enMUDgDz69pThRlFuQ1HOLiZIrgyEvuKJGI5+bySJ1p+GTqhVu5p4DF9/BCBRqKaYtlOODqnZkYoM82jL0Eo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B3uEiXMq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740275133; c=relaxed/simple;
+	bh=9dZQT4hGWWWRb3LnLjUDg331NILs5vwhk05Ahe7EWWQ=;
+	h=Date:To:From:Subject:Message-Id; b=J5k3Ecu0mztlANKHrk2sy3P2FOh+pn9LD+ebz0WV+Q7i8cCa8ex2TdFOZv0DUwk3ddIVCK5GXo7Mv4IHny9X9jzinsCUEGN5DAFKfwHhDWYgYL1B334j2EsoLAtEIe7tGZslgsZ3A77b9n333eTDb0akLmCGMAlPf90mSuH83rA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EPbtQP0Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B3uEiXMq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1979C4CED1;
-	Sun, 23 Feb 2025 01:45:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EPbtQP0Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4592C4CED1;
+	Sun, 23 Feb 2025 01:45:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740275131;
-	bh=rIf+3xmACH09n8xhcxAYMPwDWNN9NhCctc44Z+7gDCg=;
+	s=korg; t=1740275132;
+	bh=9dZQT4hGWWWRb3LnLjUDg331NILs5vwhk05Ahe7EWWQ=;
 	h=Date:To:From:Subject:From;
-	b=B3uEiXMqn607kWgQspFsDEGnvxXOHCpLRpE4RYPqc6XLTLVx0fj3+Tnm6UYIvXSRe
-	 ck2mCUSdyhdAyOAS6VOGytTAwgP/h/zHB3k0pfI4VS3h+WC5WSB8uG6Urj88HuGXeR
-	 hV3a85IdsEtASETOSKzTz1fI57T2FzoyzSzRGChE=
-Date: Sat, 22 Feb 2025 17:45:30 -0800
+	b=EPbtQP0YNb6IbAQawmtoBg1Xb/MS0Hu6qYdqyANFAnwWJtNAmeV5Z8IgOcailJBVn
+	 hUAQpbKmppI8OO8xUO5hTBdacIuJSCdenmlzfazD6y7oxSFsAxvjuVPl1VyF/ELwHp
+	 JwkqZ5ZSKIzCYycnyIzkhM5oyt4mLdRk0r4GIur4=
+Date: Sat, 22 Feb 2025 17:45:32 -0800
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-correct-comment-in-swap_usage_sub.patch added to mm-unstable branch
-Message-Id: <20250223014530.E1979C4CED1@smtp.kernel.org>
+Subject: + mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch added to mm-unstable branch
+Message-Id: <20250223014532.B4592C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: correct comment in swap_usage_sub()
+     Subject: mm: swap: remove stale comment of swap_reclaim_full_clusters()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-correct-comment-in-swap_usage_sub.patch
+     mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-correct-comment-in-swap_usage_sub.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm, swap: correct comment in swap_usage_sub()
-Date: Sun, 23 Feb 2025 00:08:49 +0800
+Subject: mm: swap: remove stale comment of swap_reclaim_full_clusters()
+Date: Sun, 23 Feb 2025 00:08:50 +0800
 
-We will add si back to plist in swap_usage_sub(), just correct the wrong
-comment which says we will remove si from plist in swap_usage_sub().
+swap_reclaim_full_clusters() has no return value now, just remove the
+stale comment which says swap_reclaim_full_clusters() wil return a bool
+value.
 
-Link: https://lkml.kernel.org/r/20250222160850.505274-6-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250222160850.505274-7-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-correct-comment-in-swap_usage_sub
+--- a/mm/swapfile.c~mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters
 +++ a/mm/swapfile.c
-@@ -1098,7 +1098,7 @@ static void swap_usage_sub(struct swap_i
+@@ -820,7 +820,6 @@ out:
+ 	return found;
+ }
  
- 	/*
- 	 * If device is not full, and SWAP_USAGE_OFFLIST_BIT is set,
--	 * remove it from the plist.
-+	 * add it to the plist.
- 	 */
- 	if (unlikely(val & SWAP_USAGE_OFFLIST_BIT))
- 		add_to_avail_list(si, false);
+-/* Return true if reclaimed a whole cluster */
+ static void swap_reclaim_full_clusters(struct swap_info_struct *si, bool force)
+ {
+ 	long to_scan = 1;
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
