@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B28228F4
-	for <mm-commits@vger.kernel.org>; Sun, 23 Feb 2025 01:45:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2920428F4
+	for <mm-commits@vger.kernel.org>; Sun, 23 Feb 2025 01:51:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740275133; cv=none; b=gQv2FrnL8636fuvQJRu9cJH7s4UxAv0d6cyF41D9Fah6BW+g9t61bmEbNrMtuWU9rQjD+KvP9+rSuUZZ1NOaM1kV13dw7sQVJqevZqJ25kfcA0ONDEk/j0Du1xiXLB9C6A7qgkngwCaxf512mCKAqRX1XtY3juu9KSRg6D1btP8=
+	t=1740275471; cv=none; b=hW2g7aBRbcsJZAquXdVUyDU1Y+V349Acy2et5UTjYgrApqMGHBkLWMR35/UIdhhaZGxTFblQzvyxBJlmRPFScXlXD60kXz9nVADETPe+M2eyogVFa0oEgdugkoynx5SC2KiOL7ZlWWCPdjHO68QvqgVB64wIT7iumyA9S6AFHHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740275133; c=relaxed/simple;
-	bh=9dZQT4hGWWWRb3LnLjUDg331NILs5vwhk05Ahe7EWWQ=;
-	h=Date:To:From:Subject:Message-Id; b=J5k3Ecu0mztlANKHrk2sy3P2FOh+pn9LD+ebz0WV+Q7i8cCa8ex2TdFOZv0DUwk3ddIVCK5GXo7Mv4IHny9X9jzinsCUEGN5DAFKfwHhDWYgYL1B334j2EsoLAtEIe7tGZslgsZ3A77b9n333eTDb0akLmCGMAlPf90mSuH83rA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EPbtQP0Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740275471; c=relaxed/simple;
+	bh=UxPZbR6Z5dTW5oudFUCDEKAMT83lV5bQeGq7d5OlJi8=;
+	h=Date:To:From:Subject:Message-Id; b=u+4nnSFIn3+S/RkLSRejlkXq3ANWNwlBZJPW13uQDdGJTo5vormUWeHefu63Awd+ARXnyyKTfD0Id5vGRV8tUJyUHuvl0oIUS6YLJY3sXK/or1QHq8/Ik+QZ6d2faGNregiJajww28e+dpkJCZV4uy11yUYVjB57mOGowWhbrKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TA9p+eZr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EPbtQP0Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4592C4CED1;
-	Sun, 23 Feb 2025 01:45:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TA9p+eZr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6D68C4CED1;
+	Sun, 23 Feb 2025 01:51:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740275132;
-	bh=9dZQT4hGWWWRb3LnLjUDg331NILs5vwhk05Ahe7EWWQ=;
+	s=korg; t=1740275470;
+	bh=UxPZbR6Z5dTW5oudFUCDEKAMT83lV5bQeGq7d5OlJi8=;
 	h=Date:To:From:Subject:From;
-	b=EPbtQP0YNb6IbAQawmtoBg1Xb/MS0Hu6qYdqyANFAnwWJtNAmeV5Z8IgOcailJBVn
-	 hUAQpbKmppI8OO8xUO5hTBdacIuJSCdenmlzfazD6y7oxSFsAxvjuVPl1VyF/ELwHp
-	 JwkqZ5ZSKIzCYycnyIzkhM5oyt4mLdRk0r4GIur4=
-Date: Sat, 22 Feb 2025 17:45:32 -0800
-To: mm-commits@vger.kernel.org,ryncsn@gmail.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=TA9p+eZrdhlTZCm9erG0ta4BvG2WO9iI31hTSJLqCT0EKzTDVfEYyGxC4gSvnXmbf
+	 taARiEV2Ex3GzLMpqOBkn5ofb7Q49hcvkO4Bbq5o0+f/6nCitCy8tfHB0wBvidhu3M
+	 2Q++P6OfKAxJE5uN1uIxiqEnhVyP4bllLPqhn5o8=
+Date: Sat, 22 Feb 2025 17:51:10 -0800
+To: mm-commits@vger.kernel.org,mail@florommel.de,kbingham@kernel.org,jan.kiszka@siemens.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch added to mm-unstable branch
-Message-Id: <20250223014532.B4592C4CED1@smtp.kernel.org>
+Subject: + scripts-gdb-add-lx_per_cpu_ptr.patch added to mm-nonmm-unstable branch
+Message-Id: <20250223015110.D6D68C4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: remove stale comment of swap_reclaim_full_clusters()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch
+     Subject: scripts/gdb: add $lx_per_cpu_ptr()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-add-lx_per_cpu_ptr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-lx_per_cpu_ptr.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm: swap: remove stale comment of swap_reclaim_full_clusters()
-Date: Sun, 23 Feb 2025 00:08:50 +0800
+From: Brendan Jackman <jackmanb@google.com>
+Subject: scripts/gdb: add $lx_per_cpu_ptr()
+Date: Thu, 20 Feb 2025 12:23:40 +0000
 
-swap_reclaim_full_clusters() has no return value now, just remove the
-stale comment which says swap_reclaim_full_clusters() wil return a bool
+We currently have $lx_per_cpu() which works fine for stuff that kernel
+code would access via per_cpu().  But this doesn't work for stuff that
+kernel code accesses via per_cpu_ptr():
+
+(gdb) p $lx_per_cpu(node_data[1].node_zones[2]->per_cpu_pageset)
+Cannot access memory at address 0xffff11105fbd6c28
+
+This is because we take the address of the pointer and use that as the
+offset, instead of using the stored value.
+
+Add a GDB version that mirrors the kernel API, which uses the pointer
 value.
 
-Link: https://lkml.kernel.org/r/20250222160850.505274-7-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kairui Song <ryncsn@gmail.com>
+To be consistent with per_cpu_ptr(), we need to return the pointer value
+instead of dereferencing it for the user.  Therefore, move the existing
+dereference out of the per_cpu() Python helper and do that only in the
+$lx_per_cpu() implementation.
+
+Link: https://lkml.kernel.org/r/20250220-lx-per-cpu-ptr-v2-1-945dee8d8d38@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Florian Rommel <mail@florommel.de>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    1 -
- 1 file changed, 1 deletion(-)
+ scripts/gdb/linux/cpus.py |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters
-+++ a/mm/swapfile.c
-@@ -820,7 +820,6 @@ out:
- 	return found;
- }
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-lx_per_cpu_ptr
++++ a/scripts/gdb/linux/cpus.py
+@@ -46,7 +46,7 @@ def per_cpu(var_ptr, cpu):
+             # !CONFIG_SMP case
+             offset = 0
+     pointer = var_ptr.cast(utils.get_long_type()) + offset
+-    return pointer.cast(var_ptr.type).dereference()
++    return pointer.cast(var_ptr.type)
  
--/* Return true if reclaimed a whole cluster */
- static void swap_reclaim_full_clusters(struct swap_info_struct *si, bool force)
- {
- 	long to_scan = 1;
+ 
+ cpu_mask = {}
+@@ -149,11 +149,29 @@ Note that VAR has to be quoted as string
+         super(PerCpu, self).__init__("lx_per_cpu")
+ 
+     def invoke(self, var, cpu=-1):
+-        return per_cpu(var.address, cpu)
++        return per_cpu(var.address, cpu).dereference()
+ 
+ 
+ PerCpu()
+ 
++
++class PerCpuPtr(gdb.Function):
++    """Return per-cpu pointer.
++
++$lx_per_cpu_ptr("VAR"[, CPU]): Return the per-cpu pointer called VAR for the
++given CPU number. If CPU is omitted, the CPU of the current context is used.
++Note that VAR has to be quoted as string."""
++
++    def __init__(self):
++        super(PerCpuPtr, self).__init__("lx_per_cpu_ptr")
++
++    def invoke(self, var, cpu=-1):
++        return per_cpu(var, cpu)
++
++
++PerCpuPtr()
++
++
+ def get_current_task(cpu):
+     task_ptr_type = task_type.get_type().pointer()
+ 
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-swap-avoid-losting-cluster-in-swap_reclaim_full_clusters.patch
-mm-swap-use-correct-step-in-loop-to-wait-all-clusters-in-wait_for_allocation.patch
-mm-swap-avoid-bug_on-in-relocate_cluster.patch
-mm-swap-remove-setting-swap_map_bad-for-discard-cluster.patch
-mm-swap-correct-comment-in-swap_usage_sub.patch
-mm-swap-remove-stale-comment-of-swap_reclaim_full_clusters.patch
+mm-mmu_gather-update-comment-on-rcu-freeing.patch
+selftests-mm-report-errno-when-things-fail-in-gup_longterm.patch
+selftests-mm-fix-assumption-that-sudo-is-present.patch
+selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch
+selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch
+selftests-mm-uffd-rename-nr_cpus-nr_threads.patch
+selftests-mm-print-some-details-when-uffd-stress-gets-bad-params.patch
+selftests-mm-dont-fail-uffd-stress-if-too-many-cpus.patch
+selftests-mm-skip-map_populate-on-weird-filesystems.patch
+selftests-mm-skip-gup_longerm-tests-on-weird-filesystems.patch
+scripts-gdb-add-lx_per_cpu_ptr.patch
 
