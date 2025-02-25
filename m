@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80DBD5B211
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:26:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908E05B211
+	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:26:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740454004; cv=none; b=EilTNQQt+vKxFr8w/bcjnPKMGECNVbb3rLCSksxOoorurvk9i6RhSjMageKwtDpHqZEVUoqecoL/f4FmuqF9Htk0rHBjQrMbCngcjJemObO74jJ27zy7LErtLqYeGytZrUvlDzyOutXNdCr3Xko+8BgSAWjUxuaaae5Kju7vKcI=
+	t=1740454006; cv=none; b=lziTkkl8PI0u6xmuAU3nH9e1r7oU6vP2yMfXqNurZRqmcvd3fMSWxDZfQjBWlIZUOwhwzYIje8nFBIVFjmySj/4M4TqqfSO67FlWgw9PGWLgq43b3zX5t0hf1G3/fw9vxDUnBdcxuBlIRHEKLIp2ja3E/L7ox8v5LtGz0JfADzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740454004; c=relaxed/simple;
-	bh=SRhpFn1onKZU4ToACbcIeh0LKRUX3pAEkxq2tR0sreY=;
-	h=Date:To:From:Subject:Message-Id; b=Cq43pKt5pF+UbZhGN1Dzp1sbQqbsxDDCG/tZkzsg3ClLmIn399ToGe5VmZIcLgQ7TcYjSuQLZ+42E6jO2Gr6BQAu2yQidFb8N4k21TdOZrKokI34t5JQPK8YxemklZI0pVt0IxalmivpUX+iTY+CZNqvs/+gvC0VwQ3ENSXrepE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oxI/2fsp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740454006; c=relaxed/simple;
+	bh=TXabxRNXIKEZXo6Q52O80ytygwFVlYq/dP0WGi5OQxM=;
+	h=Date:To:From:Subject:Message-Id; b=ZHXZ6UQasS/CkPRVTS8kHBWDT+8J2Da10iaIWSDPVns+wZ1hYqdkGm7JUp4e1HhqC0SEH9e2RqxA62+bpydQ/6001el6DeIe9U+4GCpi9b+9Yacd6HzJFsKcLViucH8x5USeF839qGC5o+T0rk/xhmMfRMPLGWIeeuKZoCQC0Lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a/iXqanY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oxI/2fsp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6BE8C4CED6;
-	Tue, 25 Feb 2025 03:26:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a/iXqanY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0447BC4CED6;
+	Tue, 25 Feb 2025 03:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740454004;
-	bh=SRhpFn1onKZU4ToACbcIeh0LKRUX3pAEkxq2tR0sreY=;
+	s=korg; t=1740454006;
+	bh=TXabxRNXIKEZXo6Q52O80ytygwFVlYq/dP0WGi5OQxM=;
 	h=Date:To:From:Subject:From;
-	b=oxI/2fsp8ooKsfBwfp2U7LVpmtXwiWc6YKmMtXLVdXlPTTOKn9rO8uZfsalcR4GI3
-	 aEiv/dHzChI3NxwtUl7yPlCYgS86m5xW+snhV9MH+zAafy+hqZHQVBGsD7r6uFSqTd
-	 nu2rYY/KqEnB8NFacf4kq8XSTF4EF3GeDYEhx5l8=
-Date: Mon, 24 Feb 2025 19:26:43 -0800
+	b=a/iXqanYUWqqVa7By/sqmXlGT2n0O0L+XBHPW3+OFOfRJh8yE/XjxWhYDyV08/fh2
+	 Y2eaB7HbMcFCy+uOX4cLd+ciWpWLOspQqxYoDFA8QchjqPVYocMy6AlamQ3DBCBG8K
+	 m9r/TV1hOx3xdCk+0G+/7FzAAVXBCMKjub9yy3r8=
+Date: Mon, 24 Feb 2025 19:26:45 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,v-songbaohua@oppo.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-dont-update-the-counter-up-front.patch added to mm-unstable branch
-Message-Id: <20250225032643.E6BE8C4CED6@smtp.kernel.org>
+Subject: + mm-swap-use-percpu-cluster-as-allocation-fast-path.patch added to mm-unstable branch
+Message-Id: <20250225032646.0447BC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: don't update the counter up-front
+     Subject: mm, swap: use percpu cluster as allocation fast path
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-dont-update-the-counter-up-front.patch
+     mm-swap-use-percpu-cluster-as-allocation-fast-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-dont-update-the-counter-up-front.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-percpu-cluster-as-allocation-fast-path.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: don't update the counter up-front
-Date: Tue, 25 Feb 2025 02:02:09 +0800
+Subject: mm, swap: use percpu cluster as allocation fast path
+Date: Tue, 25 Feb 2025 02:02:10 +0800
 
-The counter update before allocation design was useful to avoid
-unnecessary scan when device is full, so it will abort early if the
-counter indicates the device is full.  But that is an uncommon case, and
-now scanning of a full device is very fast, so the up-front update is not
-helpful any more.
+Current allocation workflow first traverses the plist with a global lock
+held, after choosing a device, it uses the percpu cluster on that swap
+device.  This commit moves the percpu cluster variable out of being tied
+to individual swap devices, making it a global percpu variable, and will
+be used directly for allocation as a fast path.
 
-Remove it and simplify the slot allocation logic.
+The global percpu cluster variable will never point to a HDD device, and
+allocations on a HDD device are still globally serialized.
 
-Link: https://lkml.kernel.org/r/20250224180212.22802-5-ryncsn@gmail.com
+This improves the allocator performance and prepares for removal of the
+slot cache in later commits.  There shouldn't be much observable behavior
+change, except one thing: this changes how swap device allocation rotation
+works.
+
+Currently, each allocation will rotate the plist, and because of the
+existence of slot cache (one order 0 allocation usually returns 64
+entries), swap devices of the same priority are rotated for every 64 order
+0 entries consumed.  High order allocations are different, they will
+bypass the slot cache, and so swap device is rotated for every 16K, 32K,
+or up to 2M allocation.
+
+The rotation rule was never clearly defined or documented, it was changed
+several times without mentioning.
+
+After this commit, and once slot cache is gone in later commits, swap
+device rotation will happen for every consumed cluster.  Ideally non-HDD
+devices will be rotated if 2M space has been consumed for each order. 
+Fragmented clusters will rotate the device faster, which seems OK.  HDD
+devices is rotated for every allocation regardless of the allocation
+order, which should be OK too and trivial.
+
+This commit also slightly changes allocation behaviour for slot cache. 
+The new added cluster allocation fast path may allocate entries from
+different device to the slot cache, this is not observable from user
+space, only impact performance very slightly, and slot cache will be just
+gone in next commit, so this can be ignored.
+
+Link: https://lkml.kernel.org/r/20250224180212.22802-6-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -86,47 +115,283 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+ include/linux/swap.h |   11 +--
+ mm/swapfile.c        |  136 +++++++++++++++++++++++++++--------------
+ 2 files changed, 95 insertions(+), 52 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-dont-update-the-counter-up-front
+--- a/include/linux/swap.h~mm-swap-use-percpu-cluster-as-allocation-fast-path
++++ a/include/linux/swap.h
+@@ -284,12 +284,10 @@ enum swap_cluster_flags {
+ #endif
+ 
+ /*
+- * We assign a cluster to each CPU, so each CPU can allocate swap entry from
+- * its own cluster and swapout sequentially. The purpose is to optimize swapout
+- * throughput.
++ * We keep using same cluster for rotational device so IO will be sequential.
++ * The purpose is to optimize SWAP throughput on these device.
+  */
+-struct percpu_cluster {
+-	local_lock_t lock; /* Protect the percpu_cluster above */
++struct swap_sequential_cluster {
+ 	unsigned int next[SWAP_NR_ORDERS]; /* Likely next allocation offset */
+ };
+ 
+@@ -315,8 +313,7 @@ struct swap_info_struct {
+ 	atomic_long_t frag_cluster_nr[SWAP_NR_ORDERS];
+ 	unsigned int pages;		/* total of usable pages of swap */
+ 	atomic_long_t inuse_pages;	/* number of those currently in use */
+-	struct percpu_cluster __percpu *percpu_cluster; /* per cpu's swap location */
+-	struct percpu_cluster *global_cluster; /* Use one global cluster for rotating device */
++	struct swap_sequential_cluster *global_cluster; /* Use one global cluster for rotating device */
+ 	spinlock_t global_cluster_lock;	/* Serialize usage of global cluster */
+ 	struct rb_root swap_extent_root;/* root of the swap extent rbtree */
+ 	struct block_device *bdev;	/* swap device or bdev of swap file */
+--- a/mm/swapfile.c~mm-swap-use-percpu-cluster-as-allocation-fast-path
 +++ a/mm/swapfile.c
-@@ -1201,22 +1201,10 @@ int get_swap_pages(int n_goal, swp_entry
+@@ -116,6 +116,18 @@ static atomic_t proc_poll_event = ATOMIC
+ 
+ atomic_t nr_rotate_swap = ATOMIC_INIT(0);
+ 
++struct percpu_swap_cluster {
++	struct swap_info_struct *si[SWAP_NR_ORDERS];
++	unsigned long offset[SWAP_NR_ORDERS];
++	local_lock_t lock;
++};
++
++static DEFINE_PER_CPU(struct percpu_swap_cluster, percpu_swap_cluster) = {
++	.si = { NULL },
++	.offset = { SWAP_ENTRY_INVALID },
++	.lock = INIT_LOCAL_LOCK(),
++};
++
+ static struct swap_info_struct *swap_type_to_swap_info(int type)
+ {
+ 	if (type >= MAX_SWAPFILES)
+@@ -539,7 +551,7 @@ static bool swap_do_scheduled_discard(st
+ 		ci = list_first_entry(&si->discard_clusters, struct swap_cluster_info, list);
+ 		/*
+ 		 * Delete the cluster from list to prepare for discard, but keep
+-		 * the CLUSTER_FLAG_DISCARD flag, there could be percpu_cluster
++		 * the CLUSTER_FLAG_DISCARD flag, percpu_swap_cluster could be
+ 		 * pointing to it, or ran into by relocate_cluster.
+ 		 */
+ 		list_del(&ci->list);
+@@ -805,10 +817,12 @@ static unsigned int alloc_swap_scan_clus
+ out:
+ 	relocate_cluster(si, ci);
+ 	unlock_cluster(ci);
+-	if (si->flags & SWP_SOLIDSTATE)
+-		__this_cpu_write(si->percpu_cluster->next[order], next);
+-	else
++	if (si->flags & SWP_SOLIDSTATE) {
++		__this_cpu_write(percpu_swap_cluster.si[order], si);
++		__this_cpu_write(percpu_swap_cluster.offset[order], next);
++	} else {
+ 		si->global_cluster->next[order] = next;
++	}
+ 	return found;
+ }
+ 
+@@ -862,9 +876,8 @@ static void swap_reclaim_work(struct wor
+ }
+ 
+ /*
+- * Try to get swap entries with specified order from current cpu's swap entry
+- * pool (a cluster). This might involve allocating a new cluster for current CPU
+- * too.
++ * Try to allocate swap entries with specified order and try set a new
++ * cluster for current CPU too.
+  */
+ static unsigned long cluster_alloc_swap_entry(struct swap_info_struct *si, int order,
+ 					      unsigned char usage)
+@@ -872,18 +885,12 @@ static unsigned long cluster_alloc_swap_
+ 	struct swap_cluster_info *ci;
+ 	unsigned int offset, found = 0;
+ 
+-	if (si->flags & SWP_SOLIDSTATE) {
+-		/* Fast path using per CPU cluster */
+-		local_lock(&si->percpu_cluster->lock);
+-		offset = __this_cpu_read(si->percpu_cluster->next[order]);
+-	} else {
++	if (!(si->flags & SWP_SOLIDSTATE)) {
+ 		/* Serialize HDD SWAP allocation for each device. */
+ 		spin_lock(&si->global_cluster_lock);
+ 		offset = si->global_cluster->next[order];
+-	}
+-
+-	if (offset) {
+ 		ci = lock_cluster(si, offset);
++
+ 		/* Cluster could have been used by another order */
+ 		if (cluster_is_usable(ci, order)) {
+ 			if (cluster_is_empty(ci))
+@@ -973,9 +980,7 @@ new_cluster:
+ 		}
+ 	}
+ done:
+-	if (si->flags & SWP_SOLIDSTATE)
+-		local_unlock(&si->percpu_cluster->lock);
+-	else
++	if (!(si->flags & SWP_SOLIDSTATE))
+ 		spin_unlock(&si->global_cluster_lock);
+ 	return found;
+ }
+@@ -1196,6 +1201,49 @@ static bool get_swap_device_info(struct
+ 	return true;
+ }
+ 
++/*
++ * Fast path try to get swap entries with specified order from current
++ * CPU's swap entry pool (a cluster).
++ */
++static int swap_alloc_fast(swp_entry_t entries[],
++			   unsigned char usage,
++			   int order, int n_goal)
++{
++	struct swap_cluster_info *ci;
++	struct swap_info_struct *si;
++	unsigned int offset, found;
++	int n_ret = 0;
++
++	n_goal = min(n_goal, SWAP_BATCH);
++
++	/*
++	 * Once allocated, swap_info_struct will never be completely freed,
++	 * so checking it's liveness by get_swap_device_info is enough.
++	 */
++	si = __this_cpu_read(percpu_swap_cluster.si[order]);
++	offset = __this_cpu_read(percpu_swap_cluster.offset[order]);
++	if (!si || !offset || !get_swap_device_info(si))
++		return 0;
++
++	while (offset) {
++		ci = lock_cluster(si, offset);
++		if (!cluster_is_usable(ci, order))
++			break;
++		if (cluster_is_empty(ci))
++			offset = cluster_offset(si, ci);
++		found = alloc_swap_scan_cluster(si, ci, offset, order, usage);
++		if (!found)
++			break;
++		entries[n_ret++] = swp_entry(si->type, found);
++		if (n_ret == n_goal)
++			break;
++		offset = __this_cpu_read(percpu_swap_cluster.offset[order]);
++	}
++
++	put_swap_device(si);
++	return n_ret;
++}
++
+ int get_swap_pages(int n_goal, swp_entry_t swp_entries[], int entry_order)
+ {
  	int order = swap_entry_order(entry_order);
- 	unsigned long size = 1 << order;
- 	struct swap_info_struct *si, *next;
--	long avail_pgs;
+@@ -1204,19 +1252,36 @@ int get_swap_pages(int n_goal, swp_entry
  	int n_ret = 0;
  	int node;
  
++	/* Fast path using percpu cluster */
++	local_lock(&percpu_swap_cluster.lock);
++	n_ret = swap_alloc_fast(swp_entries,
++				SWAP_HAS_CACHE,
++				order, n_goal);
++	if (n_ret == n_goal)
++		goto out;
++
++	n_goal = min_t(int, n_goal - n_ret, SWAP_BATCH);
++	/* Rotate the device and switch to a new cluster */
  	spin_lock(&swap_avail_lock);
--
--	avail_pgs = atomic_long_read(&nr_swap_pages) / size;
--	if (avail_pgs <= 0) {
--		spin_unlock(&swap_avail_lock);
--		goto noswap;
--	}
--
--	n_goal = min3((long)n_goal, (long)SWAP_BATCH, avail_pgs);
--
--	atomic_long_sub(n_goal * size, &nr_swap_pages);
--
  start_over:
  	node = numa_node_id();
  	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
-@@ -1250,10 +1238,8 @@ start_over:
- 	spin_unlock(&swap_avail_lock);
+-		/* requeue si to after same-priority siblings */
+ 		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
+ 		spin_unlock(&swap_avail_lock);
+ 		if (get_swap_device_info(si)) {
+-			n_ret = scan_swap_map_slots(si, SWAP_HAS_CACHE,
+-					n_goal, swp_entries, order);
++			/*
++			 * For order 0 allocation, try best to fill the request
++			 * as it's used by slot cache.
++			 *
++			 * For mTHP allocation, it always have n_goal == 1,
++			 * and falling a mTHP swapin will just make the caller
++			 * fallback to order 0 allocation, so just bail out.
++			 */
++			n_ret += scan_swap_map_slots(si, SWAP_HAS_CACHE, n_goal,
++					swp_entries + n_ret, order);
+ 			put_swap_device(si);
+ 			if (n_ret || size > 1)
+-				goto check_out;
++				goto out;
+ 		}
  
- check_out:
--	if (n_ret < n_goal)
--		atomic_long_add((long)(n_goal - n_ret) * size,
--				&nr_swap_pages);
--noswap:
-+	atomic_long_sub(n_ret * size, &nr_swap_pages);
-+
+ 		spin_lock(&swap_avail_lock);
+@@ -1234,12 +1299,10 @@ start_over:
+ 		if (plist_node_empty(&next->avail_lists[node]))
+ 			goto start_over;
+ 	}
+-
+ 	spin_unlock(&swap_avail_lock);
+-
+-check_out:
++out:
++	local_unlock(&percpu_swap_cluster.lock);
+ 	atomic_long_sub(n_ret * size, &nr_swap_pages);
+-
  	return n_ret;
  }
  
+@@ -2725,8 +2788,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	arch_swap_invalidate_area(p->type);
+ 	zswap_swapoff(p->type);
+ 	mutex_unlock(&swapon_mutex);
+-	free_percpu(p->percpu_cluster);
+-	p->percpu_cluster = NULL;
+ 	kfree(p->global_cluster);
+ 	p->global_cluster = NULL;
+ 	vfree(swap_map);
+@@ -3125,7 +3186,7 @@ static struct swap_cluster_info *setup_c
+ 	unsigned long nr_clusters = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+ 	struct swap_cluster_info *cluster_info;
+ 	unsigned long i, j, idx;
+-	int cpu, err = -ENOMEM;
++	int err = -ENOMEM;
+ 
+ 	cluster_info = kvcalloc(nr_clusters, sizeof(*cluster_info), GFP_KERNEL);
+ 	if (!cluster_info)
+@@ -3134,20 +3195,7 @@ static struct swap_cluster_info *setup_c
+ 	for (i = 0; i < nr_clusters; i++)
+ 		spin_lock_init(&cluster_info[i].lock);
+ 
+-	if (si->flags & SWP_SOLIDSTATE) {
+-		si->percpu_cluster = alloc_percpu(struct percpu_cluster);
+-		if (!si->percpu_cluster)
+-			goto err_free;
+-
+-		for_each_possible_cpu(cpu) {
+-			struct percpu_cluster *cluster;
+-
+-			cluster = per_cpu_ptr(si->percpu_cluster, cpu);
+-			for (i = 0; i < SWAP_NR_ORDERS; i++)
+-				cluster->next[i] = SWAP_ENTRY_INVALID;
+-			local_lock_init(&cluster->lock);
+-		}
+-	} else {
++	if (!(si->flags & SWP_SOLIDSTATE)) {
+ 		si->global_cluster = kmalloc(sizeof(*si->global_cluster),
+ 				     GFP_KERNEL);
+ 		if (!si->global_cluster)
+@@ -3424,8 +3472,6 @@ free_swap_address_space:
+ bad_swap_unlock_inode:
+ 	inode_unlock(inode);
+ bad_swap:
+-	free_percpu(si->percpu_cluster);
+-	si->percpu_cluster = NULL;
+ 	kfree(si->global_cluster);
+ 	si->global_cluster = NULL;
+ 	inode = NULL;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
