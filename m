@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34B2C22170C
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 22:40:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3BE2151991;
+	Tue, 25 Feb 2025 23:19:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740523239; cv=none; b=KMf//gFZTwbMG6hZoo7AEgsDmtGgy5Gp3zlfEcfF84PL5DTJfZEPr14ifyBZBFLaL4Q2u4oAKuR6uBd55UibNcbQkF9MC635cb4JX1VxthopvWdAgQ3O6lpeXJOFAuFQf4RjK8FWUqlJWJBuXgKPBa00nlUd3zoX/4IkWIlf9PQ=
+	t=1740525559; cv=none; b=Ixr5cfg73PfuKP6rpkbvnIgc3vetrQ/7ozksWMOObO/ndRfSbFG+EsJrXixEgJoi7gyTI44YjQA7UXDVwWCIJZNm/H4PNpokdcGEi/eWlrBT+WgxFxDwqDk2DGZ0v/OXy3RppOsCgXYNTDh4dnb4qgymBMexQgxAwZwSsIKKbmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740523239; c=relaxed/simple;
-	bh=r+Y9Nv0UIbD9JMjwWvEHlAeq57vv8N0JzFeGgtBke6g=;
-	h=Date:To:From:Subject:Message-Id; b=dEjhgYisqpjIqfvFGAuBxcCnKHTu5J6O9BBubt1bg0sxw8bCnBqS5kCg/b16ZPKAsSzbZY7sCt3J2MoTpD/SW/w+FihBFIr7VWIdQ9ViqAgZBhBFJn2Ft+s4mTbvF/1CZD/hzRdI8J+aEhEWRUoZZZZMjcZOCEP6TOXlcfvjmx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IiR/72n6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740525559; c=relaxed/simple;
+	bh=CM8cMgLsoifca4gB+YqGwkLQSiG8AImNJWvjycxeiOc=;
+	h=Date:To:From:Subject:Message-Id; b=AvrlpelYDmjNdPnFjmZynnPmVIKkwF937duKTuNYpuU828BQImwFDRe8//dK1S9fy1KUemeI3+lV2JF/tK1RC/PqJjEsXUzyoadz4BkiCgRyRcQzNT5+/GDuvEz7bKWgqEcyQZHL8v+KxAJJzf9Fu5ReMW3t8cABLJbzpCMr200=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ihC2jObH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IiR/72n6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EA61C4CEDD;
-	Tue, 25 Feb 2025 22:40:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ihC2jObH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F27DC4CEDD;
+	Tue, 25 Feb 2025 23:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740523238;
-	bh=r+Y9Nv0UIbD9JMjwWvEHlAeq57vv8N0JzFeGgtBke6g=;
+	s=korg; t=1740525558;
+	bh=CM8cMgLsoifca4gB+YqGwkLQSiG8AImNJWvjycxeiOc=;
 	h=Date:To:From:Subject:From;
-	b=IiR/72n6ADymByYgxAr+fO2KipfKAvHZn/Mw99ud/z9+sox3cFVqSR3qZFasijbBT
-	 vgICg0WOAfxzFHAHnmmKOGWNavzmxTHvroHJUgnKpEnGALKXCyyQxD7bT3Lake4Sh2
-	 3RJfLnB1jdd3afy2567kWmjUZ+LQfxesbRpiH10I=
-Date: Tue, 25 Feb 2025 14:40:38 -0800
-To: mm-commits@vger.kernel.org,xiubli@redhat.com,tiwai@suse.de,tiwai@suse.com,sre@kernel.org,Shyam-sundar.S-k@amd.com,shawnguo@kernel.org,s.hauer@pengutronix.de,selvin.xavier@broadcom.com,sagi@grimberg.me,perex@perex.cz,ogabbay@kernel.org,nicolas.palix@imag.fr,mkl@pengutronix.de,martin.petersen@oracle.com,leon@kernel.org,kbusch@kernel.org,kalesh-anakkur.purayil@broadcom.com,julia.lawall@inria.fr,josef@toxicpanda.com,jgg@ziepe.ca,james.smart@broadcom.com,james.bottomley@HansenPartnership.com,ilpo.jarvinen@linux.intel.com,idryomov@gmail.com,hmh@hmh.eng.br,hdegoede@redhat.com,hch@lst.de,frank.li@nxp.com,festevam@gmail.com,dsterba@suse.com,dongsheng.yang@easystack.cn,dlemoal@kernel.org,djwong@kernel.org,dick.kennedy@broadcom.com,cmaiolino@redhat.com,clm@fb.com,cem@kernel.org,cassel@kernel.org,broonie@kernel.org,axboe@kernel.dk,eahariha@linux.microsoft.com,akpm@linux-foundation.org
+	b=ihC2jObH/Sy+gNwvm/IPJa+AFizgP175SB8EeAZNC4Szy3KgSIt1pE1ZHQ7YRtxen
+	 f509dmcoilG1/TiA1c/NkVV7YEJiRHi8uYKxQmDjqqGYghOwiRFOgmfdhRmsSiyFdN
+	 pV7u0muvQltzw0M1MF9OYMza921dpJGp+dveytBE=
+Date: Tue, 25 Feb 2025 15:19:17 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rdma-bnxt_re-convert-timeouts-to-secs_to_jiffies.patch added to mm-nonmm-unstable branch
-Message-Id: <20250225224038.9EA61C4CEDD@smtp.kernel.org>
+Subject: + selftests-damon-damos_quota-make-real-expectation-of-quota-exceeds.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250225231918.5F27DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: RDMA/bnxt_re: convert timeouts to secs_to_jiffies()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rdma-bnxt_re-convert-timeouts-to-secs_to_jiffies.patch
+     Subject: selftests/damon/damos_quota: make real expectation of quota exceeds
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-damon-damos_quota-make-real-expectation-of-quota-exceeds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rdma-bnxt_re-convert-timeouts-to-secs_to_jiffies.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-damos_quota-make-real-expectation-of-quota-exceeds.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,104 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: RDMA/bnxt_re: convert timeouts to secs_to_jiffies()
-Date: Tue, 25 Feb 2025 20:17:30 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon/damos_quota: make real expectation of quota exceeds
+Date: Tue, 25 Feb 2025 14:23:31 -0800
 
-Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-secs_to_jiffies().  As the value here is a multiple of 1000, use
-secs_to_jiffies() instead of msecs_to_jiffies() to avoid the
-multiplication
+Patch series "selftests/damon: three fixes for false results".
 
-This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-the following Coccinelle rules:
+Fix three DAMON selftest bugs that cause two and one false positive
+failures and successes.
 
-@depends on patch@
-expression E;
-@@
 
--msecs_to_jiffies
-+secs_to_jiffies
-(E
-- * \( 1000 \| MSEC_PER_SEC \)
-)
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20250225-converge-secs-to-jiffies-part-two-v3-16-a43967e36c88@linux.microsoft.com
-Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-Cc: Carlos Maiolino <cem@kernel.org>
-Cc: Carlos Maiolino <cmaiolino@redhat.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Damien Le Maol <dlemoal@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Dick Kennedy <dick.kennedy@broadcom.com>
-Cc: Dongsheng Yang <dongsheng.yang@easystack.cn>
-Cc: Fabio Estevam <festevam@gmail.com>
-Cc: Frank Li <frank.li@nxp.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ilpo Jarvinen <ilpo.jarvinen@linux.intel.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: James Smart <james.smart@broadcom.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Kalesh Anakkur Purayil <kalesh-anakkur.purayil@broadcom.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Nicolas Palix <nicolas.palix@imag.fr>
-Cc: Niklas Cassel <cassel@kernel.org>
-Cc: Oded Gabbay <ogabbay@kernel.org>
-Cc: Sagi Grimberg <sagi@grimberg.me>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Selvin Thyparampil Xavier <selvin.xavier@broadcom.com>
-Cc: Shawn Guo <shawnguo@kernel.org>
-Cc: Shyam-sundar S-k <Shyam-sundar.S-k@amd.com>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Xiubo Li <xiubli@redhat.com>
+damos_quota.py assumes the quota will always exceeded.  But whether quota
+will be exceeded or not depend on the monitoring results.  Actually the
+monitored workload has chaning access pattern and hence sometimes the
+quota may not really be exceeded.  As a result, false positive test
+failures happen.  Expect how much time the quota will be exceeded by
+checking the monitoring results, and use it instead of the naive
+assumption.
+
+Link: https://lkml.kernel.org/r/20250225222333.505646-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250225222333.505646-2-sj@kernel.org
+Fixes: 51f58c9da14b ("selftests/damon: add a test for DAMOS quota")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/damon/damos_quota.py |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c~rdma-bnxt_re-convert-timeouts-to-secs_to_jiffies
-+++ a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -160,7 +160,7 @@ static int __wait_for_resp(struct bnxt_q
- 		wait_event_timeout(cmdq->waitq,
- 				   !crsqe->is_in_used ||
- 				   test_bit(ERR_DEVICE_DETACHED, &cmdq->flags),
--				   msecs_to_jiffies(rcfw->max_timeout * 1000));
-+				   secs_to_jiffies(rcfw->max_timeout));
+--- a/tools/testing/selftests/damon/damos_quota.py~selftests-damon-damos_quota-make-real-expectation-of-quota-exceeds
++++ a/tools/testing/selftests/damon/damos_quota.py
+@@ -51,16 +51,19 @@ def main():
+         nr_quota_exceeds = scheme.stats.qt_exceeds
  
- 		if (!crsqe->is_in_used)
- 			return 0;
+     wss_collected.sort()
++    nr_expected_quota_exceeds = 0
+     for wss in wss_collected:
+         if wss > sz_quota:
+             print('quota is not kept: %s > %s' % (wss, sz_quota))
+             print('collected samples are as below')
+             print('\n'.join(['%d' % wss for wss in wss_collected]))
+             exit(1)
++        if wss == sz_quota:
++            nr_expected_quota_exceeds += 1
+ 
+-    if nr_quota_exceeds < len(wss_collected):
+-        print('quota is not always exceeded: %d > %d' %
+-              (len(wss_collected), nr_quota_exceeds))
++    if nr_quota_exceeds < nr_expected_quota_exceeds:
++        print('quota is exceeded less than expected: %d < %d' %
++              (nr_quota_exceeds, nr_expected_quota_exceeds))
+         exit(1)
+ 
+ if __name__ == '__main__':
 _
 
-Patches currently in -mm which might be from eahariha@linux.microsoft.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-coccinelle-misc-secs_to_jiffies-patch-expressions-too.patch
-scsi-lpfc-convert-timeouts-to-secs_to_jiffies.patch
-accel-habanalabs-convert-timeouts-to-secs_to_jiffies.patch
-alsa-ac97-convert-timeouts-to-secs_to_jiffies.patch
-btrfs-convert-timeouts-to-secs_to_jiffies.patch
-libceph-convert-timeouts-to-secs_to_jiffies.patch
-ata-libata-zpodd-convert-timeouts-to-secs_to_jiffies.patch
-xfs-convert-timeouts-to-secs_to_jiffies.patch
-power-supply-da9030-convert-timeouts-to-secs_to_jiffies.patch
-nvme-convert-timeouts-to-secs_to_jiffies.patch
-spi-spi-fsl-lpspi-convert-timeouts-to-secs_to_jiffies.patch
-spi-spi-imx-convert-timeouts-to-secs_to_jiffies.patch
-platform-x86-amd-pmf-convert-timeouts-to-secs_to_jiffies.patch
-platform-x86-thinkpad_acpi-convert-timeouts-to-secs_to_jiffies.patch
-rdma-bnxt_re-convert-timeouts-to-secs_to_jiffies.patch
+selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
+selftests-damon-damos_quota-make-real-expectation-of-quota-exceeds.patch
+selftests-damon-damon_nr_regions-set-ops-update-for-merge-results-check-to-100ms.patch
+selftests-damon-damon_nr_regions-sort-collected-regiosn-before-checking-with-min-max-boundaries.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
+mm-madvise-split-out-madvise-input-validity-check.patch
+mm-madvise-split-out-madvise-behavior-execution.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
+mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
+mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
+mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
+mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
+mm-damon-introduce-damos-filter-type-hugepage_size-fix.patch
+docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
+docs-mm-damon-design-document-hugepage_size-filter.patch
+docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch
+docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch
+docs-mm-damon-design-categorize-damos-filter-types-based-on-handling-layer.patch
+mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch
+docs-mm-damon-design-document-unmapped-damos-filter-type.patch
 
