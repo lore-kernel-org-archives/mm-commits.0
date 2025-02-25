@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B1E38DD1;
-	Tue, 25 Feb 2025 02:26:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAEF933EC
+	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 02:28:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740450371; cv=none; b=rJSytPMUjHGUFPS2e7OHC1FvCZ4Y+FGPbYgsECROLUKu+pv3S/TIwrHqnxCa/UKN8/WjKA21r5myExDnPgtV9HVF3VBFsrTF4gPcCMhkmSkBFnP7ugpRIAWA2AbqT4Sz9mBfvQqEw8KGkkjwfamWP2OceTKCQvjgNDGJeJFU0kQ=
+	t=1740450496; cv=none; b=Bh0RG7kSrnDR3+N1jXiq5qH6ocVj5ez+97ZPVcGkeQJGgdLbvVSIXJckya6wo2kIrj97XrAehXUeHBYKuICOtPNmSdRI3AivFPG2/j7oXZ+d2BUUK8uwxNSQb+VwQELBIdQT/o5MoyBG3PhTYwNPpqn0iKAqwUmYAfvXOShhm78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740450371; c=relaxed/simple;
-	bh=ZPlj2NexSxdf/IJflaJWyUmjLgF0OgMvZK0d3AzhWno=;
-	h=Date:To:From:Subject:Message-Id; b=nM5Z4AYAJWD3NAmWM435D7KZ1laLAkSZKSQwjYXSsce4KhdaWIO5BfLK4nhZtKhY/gGusWaa/hWqsyNkX/GK3wZxZS6N86gKY3gTxCVUm1cLMlPhqb7gDQC6l1l9EVOL1DTMqG4rweFPQvOjDvGNMKYtTpu5XCY6rPnCLr/2Ibk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=As9BvsTN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740450496; c=relaxed/simple;
+	bh=vbJI28dJqnEh96qoGU5Uy2PRYCactkcqnYfmySdgKYk=;
+	h=Date:To:From:Subject:Message-Id; b=Q3lhZXNE9W8c9s2cfDKPDEUpCERrOGnoMDV9dguS+3IjX0zKF+hKJ1R8Jg+Jf6zHxREJMdnfajyJiA58QgSiOKnxSm4zQpzJEBZdC8yKqfSJA6DnhB7d7e/zVvh3EeBSg7DkePKpiD3LxGJunRw5UhKaJFJKbZ0ZTuHYl05WX4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W+1PopJr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="As9BvsTN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2EE3C4CED6;
-	Tue, 25 Feb 2025 02:26:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W+1PopJr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C29BC4CED6;
+	Tue, 25 Feb 2025 02:28:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740450370;
-	bh=ZPlj2NexSxdf/IJflaJWyUmjLgF0OgMvZK0d3AzhWno=;
+	s=korg; t=1740450496;
+	bh=vbJI28dJqnEh96qoGU5Uy2PRYCactkcqnYfmySdgKYk=;
 	h=Date:To:From:Subject:From;
-	b=As9BvsTNYEDDDhRt95bdXuafAYW9av1zKbU6Zc7TjPp1B4twPTpAvHnswozaFWUzC
-	 qHTV/3Qp5CE1fEfPSt35hZ+3AiV4sMZYA16ncoUo0cskLx9YbVObKKwmnTqWzwPy1B
-	 loYs9/QJFIMRolccD5lRU4zWCCt+W3r72GZZR59Q=
-Date: Mon, 24 Feb 2025 18:26:10 -0800
-To: mm-commits@vger.kernel.org,trond.myklebust@hammerspace.com,stable@vger.kernel.org,anna.schumaker@oracle.com,snitzer@kernel.org,akpm@linux-foundation.org
+	b=W+1PopJrgY2U71pg9lQxO5Lzgn03SDdQBzGgpSXzS1DaqVM99RYDlBycKIhD2py5S
+	 j252R6DGQHK87TZUQBZV6VhApDyHI0TEEKrrN/h35TjOG69CP+JjC341CxfFRi/jUI
+	 WF72mIt4mDKwcqcZZhuz2Tg63J0b5163HJ3GrGdk=
+Date: Mon, 24 Feb 2025 18:28:15 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250225022610.B2EE3C4CED6@smtp.kernel.org>
+Subject: + mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch added to mm-unstable branch
+Message-Id: <20250225022816.2C29BC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: NFS: fix nfs_release_folio() to not call nfs_wb_folio() from kcompactd
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+     Subject: mm: page_alloc: don't steal single pages from biggest buddy
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,119 +58,227 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Snitzer <snitzer@kernel.org>
-Subject: NFS: fix nfs_release_folio() to not call nfs_wb_folio() from kcompactd
-Date: Mon, 24 Feb 2025 19:33:01 -0500
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: don't steal single pages from biggest buddy
+Date: Mon, 24 Feb 2025 19:08:24 -0500
 
-Add PF_KCOMPACTD flag and current_is_kcompactd() helper to check for it so
-nfs_release_folio() can skip calling nfs_wb_folio() from kcompactd.
+The fallback code searches for the biggest buddy first in an attempt to
+steal the whole block and encourage type grouping down the line.
 
-Otherwise NFS can deadlock waiting for kcompactd induced writeback which
-recurses back to NFS (which triggers writeback to NFSD via NFS loopback
-mount on the same host, NFSD blocks waiting for XFS's call to
-__filemap_get_folio):
+The approach used to be this:
 
-6070.550357] INFO: task kcompactd0:58 blocked for more than 4435 seconds.
+- Non-movable requests will split the largest buddy and steal the
+  remainder. This splits up contiguity, but it allows subsequent
+  requests of this type to fall back into adjacent space.
 
-{---
-[58] "kcompactd0"
-[<0>] folio_wait_bit+0xe8/0x200
-[<0>] folio_wait_writeback+0x2b/0x80
-[<0>] nfs_wb_folio+0x80/0x1b0 [nfs]
-[<0>] nfs_release_folio+0x68/0x130 [nfs]
-[<0>] split_huge_page_to_list_to_order+0x362/0x840
-[<0>] migrate_pages_batch+0x43d/0xb90
-[<0>] migrate_pages_sync+0x9a/0x240
-[<0>] migrate_pages+0x93c/0x9f0
-[<0>] compact_zone+0x8e2/0x1030
-[<0>] compact_node+0xdb/0x120
-[<0>] kcompactd+0x121/0x2e0
-[<0>] kthread+0xcf/0x100
-[<0>] ret_from_fork+0x31/0x40
-[<0>] ret_from_fork_asm+0x1a/0x30
----}
+- Movable requests go and look for the smallest buddy instead. The
+  thinking is that movable requests can be compacted, so grouping is
+  less important than retaining contiguity.
 
-Link: https://lkml.kernel.org/r/20250225003301.25693-1-snitzer@kernel.org
-Fixes: 96780ca55e3cb ("NFS: fix up nfs_release_folio() to try to release the page")
-Signed-off-by: Mike Snitzer <snitzer@kernel.org>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: <stable@vger.kernel.org>
+c0cd6f557b90 ("mm: page_alloc: fix freelist movement during block
+conversion") enforces freelist type hygiene, which restricts stealing to
+either claiming the whole block or just taking the requested chunk; no
+additional pages or buddy remainders can be stolen any more.
+
+The patch mishandled when to switch to finding the smallest buddy in that
+new reality.  As a result, it may steal the exact request size, but from
+the biggest buddy.  This causes fracturing for no good reason.
+
+Fix this by committing to the new behavior: either steal the whole block,
+or fall back to the smallest buddy.
+
+Remove single-page stealing from steal_suitable_fallback().  Rename it to
+try_to_steal_block() to make the intentions clear.  If this fails, always
+fall back to the smallest buddy.
+
+The following is from 4 runs of mmtest's thpchallenge.  "Pollute" is
+single page fallback, "steal" is conversion of a partially used block. 
+The numbers for free block conversions (omitted) are comparable.
+
+				     vanilla	      patched
+
+@pollute[unmovable from reclaimable]:	  27		  106
+@pollute[unmovable from movable]:	  82		   46
+@pollute[reclaimable from unmovable]:	 256		   83
+@pollute[reclaimable from movable]:	  46		    8
+@pollute[movable from unmovable]:	4841		  868
+@pollute[movable from reclaimable]:	5278		12568
+
+@steal[unmovable from reclaimable]:	  11		   12
+@steal[unmovable from movable]:		 113		   49
+@steal[reclaimable from unmovable]:	  19		   34
+@steal[reclaimable from movable]:	  47		   21
+@steal[movable from unmovable]:		 250		  183
+@steal[movable from reclaimable]:	  81		   93
+
+The allocator appears to do a better job at keeping stealing and polluting
+to the first fallback preference.  As a result, the numbers for "from
+movable" - the least preferred fallback option, and most detrimental to
+compactability - are down across the board.
+
+Link: https://lkml.kernel.org/r/20250225001023.1494422-2-hannes@cmpxchg.org
+Fixes: c0cd6f557b90 ("mm: page_alloc: fix freelist movement during block conversion")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Brendan Jackman <jackmanb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c              |    3 ++-
- include/linux/compaction.h |    5 +++++
- include/linux/sched.h      |    2 +-
- mm/compaction.c            |    3 +++
- 4 files changed, 11 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   80 +++++++++++++++++++---------------------------
+ 1 file changed, 34 insertions(+), 46 deletions(-)
 
---- a/fs/nfs/file.c~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
-+++ a/fs/nfs/file.c
-@@ -29,6 +29,7 @@
- #include <linux/pagemap.h>
- #include <linux/gfp.h>
- #include <linux/swap.h>
-+#include <linux/compaction.h>
+--- a/mm/page_alloc.c~mm-page_alloc-dont-steal-single-pages-from-biggest-buddy
++++ a/mm/page_alloc.c
+@@ -1986,13 +1986,12 @@ static inline bool boost_watermark(struc
+  * can claim the whole pageblock for the requested migratetype. If not, we check
+  * the pageblock for constituent pages; if at least half of the pages are free
+  * or compatible, we can still claim the whole block, so pages freed in the
+- * future will be put on the correct free list. Otherwise, we isolate exactly
+- * the order we need from the fallback block and leave its migratetype alone.
++ * future will be put on the correct free list.
+  */
+ static struct page *
+-steal_suitable_fallback(struct zone *zone, struct page *page,
+-			int current_order, int order, int start_type,
+-			unsigned int alloc_flags, bool whole_block)
++try_to_steal_block(struct zone *zone, struct page *page,
++		   int current_order, int order, int start_type,
++		   unsigned int alloc_flags)
+ {
+ 	int free_pages, movable_pages, alike_pages;
+ 	unsigned long start_pfn;
+@@ -2005,7 +2004,7 @@ steal_suitable_fallback(struct zone *zon
+ 	 * highatomic accounting.
+ 	 */
+ 	if (is_migrate_highatomic(block_type))
+-		goto single_page;
++		return NULL;
  
- #include <linux/uaccess.h>
- #include <linux/filelock.h>
-@@ -457,7 +458,7 @@ static bool nfs_release_folio(struct fol
- 	/* If the private flag is set, then the folio is not freeable */
- 	if (folio_test_private(folio)) {
- 		if ((current_gfp_context(gfp) & GFP_KERNEL) != GFP_KERNEL ||
--		    current_is_kswapd())
-+		    current_is_kswapd() || current_is_kcompactd())
- 			return false;
- 		if (nfs_wb_folio(folio->mapping->host, folio) < 0)
- 			return false;
---- a/include/linux/compaction.h~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
-+++ a/include/linux/compaction.h
-@@ -80,6 +80,11 @@ static inline unsigned long compact_gap(
- 	return 2UL << order;
- }
+ 	/* Take ownership for orders >= pageblock_order */
+ 	if (current_order >= pageblock_order) {
+@@ -2026,14 +2025,10 @@ steal_suitable_fallback(struct zone *zon
+ 	if (boost_watermark(zone) && (alloc_flags & ALLOC_KSWAPD))
+ 		set_bit(ZONE_BOOSTED_WATERMARK, &zone->flags);
  
-+static inline int current_is_kcompactd(void)
-+{
-+	return current->flags & PF_KCOMPACTD;
-+}
-+
- #ifdef CONFIG_COMPACTION
+-	/* We are not allowed to try stealing from the whole block */
+-	if (!whole_block)
+-		goto single_page;
+-
+ 	/* moving whole block can fail due to zone boundary conditions */
+ 	if (!prep_move_freepages_block(zone, page, &start_pfn, &free_pages,
+ 				       &movable_pages))
+-		goto single_page;
++		return NULL;
  
- extern unsigned int extfrag_for_order(struct zone *zone, unsigned int order);
---- a/include/linux/sched.h~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
-+++ a/include/linux/sched.h
-@@ -1701,7 +1701,7 @@ extern struct pid *cad_pid;
- #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
- #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
- #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
--#define PF__HOLE__00010000	0x00010000
-+#define PF_KCOMPACTD		0x00010000	/* I am kcompactd */
- #define PF_KSWAPD		0x00020000	/* I am kswapd */
- #define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
- #define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
---- a/mm/compaction.c~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
-+++ a/mm/compaction.c
-@@ -3181,6 +3181,7 @@ static int kcompactd(void *p)
- 	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
- 	long timeout = default_timeout;
- 
-+	tsk->flags | PF_KCOMPACTD;
- 	set_freezable();
- 
- 	pgdat->kcompactd_max_order = 0;
-@@ -3237,6 +3238,8 @@ static int kcompactd(void *p)
- 			pgdat->proactive_compact_trigger = false;
+ 	/*
+ 	 * Determine how many pages are compatible with our allocation.
+@@ -2066,9 +2061,7 @@ steal_suitable_fallback(struct zone *zon
+ 		return __rmqueue_smallest(zone, order, start_type);
  	}
  
-+	tsk->flags &= ~PF_KCOMPACTD;
-+
- 	return 0;
+-single_page:
+-	page_del_and_expand(zone, page, order, current_order, block_type);
+-	return page;
++	return NULL;
  }
+ 
+ /*
+@@ -2250,14 +2243,19 @@ static bool unreserve_highatomic_pageblo
+ }
+ 
+ /*
+- * Try finding a free buddy page on the fallback list and put it on the free
+- * list of requested migratetype, possibly along with other pages from the same
+- * block, depending on fragmentation avoidance heuristics. Returns true if
+- * fallback was found so that __rmqueue_smallest() can grab it.
++ * Try finding a free buddy page on the fallback list.
++ *
++ * This will attempt to steal a whole pageblock for the requested type
++ * to ensure grouping of such requests in the future.
++ *
++ * If a whole block cannot be stolen, regress to __rmqueue_smallest()
++ * logic to at least break up as little contiguity as possible.
+  *
+  * The use of signed ints for order and current_order is a deliberate
+  * deviation from the rest of this file, to make the for loop
+  * condition simpler.
++ *
++ * Return the stolen page, or NULL if none can be found.
+  */
+ static __always_inline struct page *
+ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype,
+@@ -2291,45 +2289,35 @@ __rmqueue_fallback(struct zone *zone, in
+ 		if (fallback_mt == -1)
+ 			continue;
+ 
+-		/*
+-		 * We cannot steal all free pages from the pageblock and the
+-		 * requested migratetype is movable. In that case it's better to
+-		 * steal and split the smallest available page instead of the
+-		 * largest available page, because even if the next movable
+-		 * allocation falls back into a different pageblock than this
+-		 * one, it won't cause permanent fragmentation.
+-		 */
+-		if (!can_steal && start_migratetype == MIGRATE_MOVABLE
+-					&& current_order > order)
+-			goto find_smallest;
++		if (!can_steal)
++			break;
+ 
+-		goto do_steal;
++		page = get_page_from_free_area(area, fallback_mt);
++		page = try_to_steal_block(zone, page, current_order, order,
++					  start_migratetype, alloc_flags);
++		if (page)
++			goto got_one;
+ 	}
+ 
+-	return NULL;
++	if (alloc_flags & ALLOC_NOFRAGMENT)
++		return NULL;
+ 
+-find_smallest:
++	/* No luck stealing blocks. Find the smallest fallback page */
+ 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+ 				start_migratetype, false, &can_steal);
+-		if (fallback_mt != -1)
+-			break;
+-	}
+-
+-	/*
+-	 * This should not happen - we already found a suitable fallback
+-	 * when looking for the largest page.
+-	 */
+-	VM_BUG_ON(current_order > MAX_PAGE_ORDER);
++		if (fallback_mt == -1)
++			continue;
+ 
+-do_steal:
+-	page = get_page_from_free_area(area, fallback_mt);
++		page = get_page_from_free_area(area, fallback_mt);
++		page_del_and_expand(zone, page, order, current_order, fallback_mt);
++		goto got_one;
++	}
+ 
+-	/* take off list, maybe claim block, expand remainder */
+-	page = steal_suitable_fallback(zone, page, current_order, order,
+-				       start_migratetype, alloc_flags, can_steal);
++	return NULL;
+ 
++got_one:
+ 	trace_mm_page_alloc_extfrag(page, order, current_order,
+ 		start_migratetype, fallback_mt);
  
 _
 
-Patches currently in -mm which might be from snitzer@kernel.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch
+mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
+mm-memcontrol-move-memsw-charge-callbacks-to-v1.patch
+mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch
+mm-page_alloc-remove-remnants-of-unlocked-migratetype-updates.patch
+mm-page_alloc-group-fallback-functions-together.patch
 
