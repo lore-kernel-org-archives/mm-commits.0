@@ -1,104 +1,176 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A4F207662
-	for <mm-commits@vger.kernel.org>; Mon, 24 Feb 2025 10:46:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B1E38DD1;
+	Tue, 25 Feb 2025 02:26:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740394010; cv=none; b=lPZr1jRy8ZrL5vBdoe57dobPRhb+Vnt8Kzk9hvMfIM0J1jfR6H2Afv3rMflMg7lX+Y4HaRyXpYDcUiI/92J6fbRPcQ7t5OfvAIjy0NpeXQNWDCYqZ/kW8r/+iRP+91a8X9nxdR6TOiBsyxQe784apMnDu0NTgnQI0h2xwHc0cL4=
+	t=1740450371; cv=none; b=rJSytPMUjHGUFPS2e7OHC1FvCZ4Y+FGPbYgsECROLUKu+pv3S/TIwrHqnxCa/UKN8/WjKA21r5myExDnPgtV9HVF3VBFsrTF4gPcCMhkmSkBFnP7ugpRIAWA2AbqT4Sz9mBfvQqEw8KGkkjwfamWP2OceTKCQvjgNDGJeJFU0kQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740394010; c=relaxed/simple;
-	bh=Wvy+EpnPqII0HNiFxLDgYEUP5XldifCm2OP/StDgrPg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hRIUqnvbtBHAUmr3UOBA5tOf3rVxPMS7p20AEbruLNcYTKhE3YMY8epwGnNSLqF3pmaSCHnBlP7ZLbaoUw0YeuJUhECNnEVjZcnCcIVPOg4PlPg0ugjvEUhQwWwkreZ1TWuXwQvv3e+apwvyLYGcz8fkQgaT72ubQz8b+R4YFD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GW28w7Ck; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740450371; c=relaxed/simple;
+	bh=ZPlj2NexSxdf/IJflaJWyUmjLgF0OgMvZK0d3AzhWno=;
+	h=Date:To:From:Subject:Message-Id; b=nM5Z4AYAJWD3NAmWM435D7KZ1laLAkSZKSQwjYXSsce4KhdaWIO5BfLK4nhZtKhY/gGusWaa/hWqsyNkX/GK3wZxZS6N86gKY3gTxCVUm1cLMlPhqb7gDQC6l1l9EVOL1DTMqG4rweFPQvOjDvGNMKYtTpu5XCY6rPnCLr/2Ibk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=As9BvsTN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GW28w7Ck"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C5A1C4CED6;
-	Mon, 24 Feb 2025 10:46:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1740394010;
-	bh=Wvy+EpnPqII0HNiFxLDgYEUP5XldifCm2OP/StDgrPg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GW28w7CkYryl1hJHxyo7F32EN4j89DBjY51hZB8OQe+qvwYO6VWl2xTJR3nlDz1mn
-	 YUC/3Ofu8mWvpXIF5bHINPIqJW9e1Kw6noAZ4hVbmg8QWZL2B+Fz4KR6fCkW/D/m41
-	 1WZbt7AZsxTcrS0+68UjjcCOIYvxMDYSW3ot4GftMz2iZ+cTFuFvdRDC+BtD+mV/gw
-	 P83HxMtNwimCMVURM4DQaRGkpLbFa28oHe/UfoLXc+3A4lmRokADly66OUClMPAW9R
-	 esbFnJ/x73b0R3NGoP7/58EnvDo6bfruVJX0W8W9Ua5AOzQfCJNaWBfBL/cm8g4yJw
-	 YoPXqMQHWGNmw==
-Date: Mon, 24 Feb 2025 11:46:45 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, oleg@redhat.com, kees@kernel.org, 
-	ebiederm@xmission.com, corbet@lwn.net, alexander@mihalicyn.com, mkoutny@suse.com
-Subject: Re: + pid-optional-first-fit-pid-allocation.patch added to
- mm-nonmm-unstable branch
-Message-ID: <20250224-sojabohnen-benehmen-47cb3c852560@brauner>
-References: <20250222002156.BEE65C4CED6@smtp.kernel.org>
- <20250224-gemurmel-gebracht-595943846c93@brauner>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="As9BvsTN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2EE3C4CED6;
+	Tue, 25 Feb 2025 02:26:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1740450370;
+	bh=ZPlj2NexSxdf/IJflaJWyUmjLgF0OgMvZK0d3AzhWno=;
+	h=Date:To:From:Subject:From;
+	b=As9BvsTNYEDDDhRt95bdXuafAYW9av1zKbU6Zc7TjPp1B4twPTpAvHnswozaFWUzC
+	 qHTV/3Qp5CE1fEfPSt35hZ+3AiV4sMZYA16ncoUo0cskLx9YbVObKKwmnTqWzwPy1B
+	 loYs9/QJFIMRolccD5lRU4zWCCt+W3r72GZZR59Q=
+Date: Mon, 24 Feb 2025 18:26:10 -0800
+To: mm-commits@vger.kernel.org,trond.myklebust@hammerspace.com,stable@vger.kernel.org,anna.schumaker@oracle.com,snitzer@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250225022610.B2EE3C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250224-gemurmel-gebracht-595943846c93@brauner>
 
-On Mon, Feb 24, 2025 at 11:41:20AM +0100, Christian Brauner wrote:
-> On Fri, Feb 21, 2025 at 04:21:56PM -0800, Andrew Morton wrote:
-> > 
-> > The patch titled
-> >      Subject: pid: Optional first-fit pid allocation
-> > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-> >      pid-optional-first-fit-pid-allocation.patch
-> > 
-> > This patch will shortly appear at
-> >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pid-optional-first-fit-pid-allocation.patch
-> > 
-> > This patch will later appear in the mm-nonmm-unstable branch at
-> >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > 
-> > Before you just go and hit "reply", please:
-> >    a) Consider who else should be cc'ed
-> >    b) Prefer to cc a suitable mailing list as well
-> >    c) Ideally: find the original patch on the mailing list and do a
-> >       reply-to-all to that, adding suitable additional cc's
-> > 
-> > *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> > 
-> > The -mm tree is included into linux-next via the mm-everything
-> > branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > and is updated there every 2-3 working days
-> > 
-> > ------------------------------------------------------
-> > From: =?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
-> > Subject: pid: Optional first-fit pid allocation
-> > Date: Fri, 21 Feb 2025 18:02:49 +0100
-> > 
-> > Noone would need to use this allocation strategy (it's slower, pid
-> > numbers collide sooner). Its primary purpose are pid namespaces in
-> > conjunction with pids.max cgroup limit which keeps (virtual) pid numbers
-> > below the given limit. This is for 32-bit userspace programs that may
-> > not work well with pid numbers above 65536.
-> > 
-> > Link: https://lore.kernel.org/r/20241122132459.135120-1-aleksandr.mikhalitsyn@canonical.com/
-> > Link: https://lkml.kernel.org/r/20250221170249.890014-3-mkoutny@suse.com
-> > Signed-off-by: Michal Koutný <mkoutny@suse.com>
-> > Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
-> > Cc: Christian Brauner <brauner@kernel.org>
-> > Cc: Eric Biederman <ebiederm@xmission.com>
-> > Cc: Jonathan Corbet <corbet@lwn.net>
-> > Cc: Kees Cook <kees@kernel.org>
-> > Cc: Oleg Nesterov <oleg@redhat.com>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> 
-> Hm, I've never received this patch yet it reverts something and then
-> substitutes another approach and has no Acks? Don't get me wrong I'm not
-> objecting to it per se but I did not have any chance to actually look at
-> it.
 
-Found it. Seems to have been put into another folder for some reason.
+The patch titled
+     Subject: NFS: fix nfs_release_folio() to not call nfs_wb_folio() from kcompactd
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Mike Snitzer <snitzer@kernel.org>
+Subject: NFS: fix nfs_release_folio() to not call nfs_wb_folio() from kcompactd
+Date: Mon, 24 Feb 2025 19:33:01 -0500
+
+Add PF_KCOMPACTD flag and current_is_kcompactd() helper to check for it so
+nfs_release_folio() can skip calling nfs_wb_folio() from kcompactd.
+
+Otherwise NFS can deadlock waiting for kcompactd induced writeback which
+recurses back to NFS (which triggers writeback to NFSD via NFS loopback
+mount on the same host, NFSD blocks waiting for XFS's call to
+__filemap_get_folio):
+
+6070.550357] INFO: task kcompactd0:58 blocked for more than 4435 seconds.
+
+{---
+[58] "kcompactd0"
+[<0>] folio_wait_bit+0xe8/0x200
+[<0>] folio_wait_writeback+0x2b/0x80
+[<0>] nfs_wb_folio+0x80/0x1b0 [nfs]
+[<0>] nfs_release_folio+0x68/0x130 [nfs]
+[<0>] split_huge_page_to_list_to_order+0x362/0x840
+[<0>] migrate_pages_batch+0x43d/0xb90
+[<0>] migrate_pages_sync+0x9a/0x240
+[<0>] migrate_pages+0x93c/0x9f0
+[<0>] compact_zone+0x8e2/0x1030
+[<0>] compact_node+0xdb/0x120
+[<0>] kcompactd+0x121/0x2e0
+[<0>] kthread+0xcf/0x100
+[<0>] ret_from_fork+0x31/0x40
+[<0>] ret_from_fork_asm+0x1a/0x30
+---}
+
+Link: https://lkml.kernel.org/r/20250225003301.25693-1-snitzer@kernel.org
+Fixes: 96780ca55e3cb ("NFS: fix up nfs_release_folio() to try to release the page")
+Signed-off-by: Mike Snitzer <snitzer@kernel.org>
+Cc: Anna Schumaker <anna.schumaker@oracle.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/nfs/file.c              |    3 ++-
+ include/linux/compaction.h |    5 +++++
+ include/linux/sched.h      |    2 +-
+ mm/compaction.c            |    3 +++
+ 4 files changed, 11 insertions(+), 2 deletions(-)
+
+--- a/fs/nfs/file.c~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
++++ a/fs/nfs/file.c
+@@ -29,6 +29,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/gfp.h>
+ #include <linux/swap.h>
++#include <linux/compaction.h>
+ 
+ #include <linux/uaccess.h>
+ #include <linux/filelock.h>
+@@ -457,7 +458,7 @@ static bool nfs_release_folio(struct fol
+ 	/* If the private flag is set, then the folio is not freeable */
+ 	if (folio_test_private(folio)) {
+ 		if ((current_gfp_context(gfp) & GFP_KERNEL) != GFP_KERNEL ||
+-		    current_is_kswapd())
++		    current_is_kswapd() || current_is_kcompactd())
+ 			return false;
+ 		if (nfs_wb_folio(folio->mapping->host, folio) < 0)
+ 			return false;
+--- a/include/linux/compaction.h~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
++++ a/include/linux/compaction.h
+@@ -80,6 +80,11 @@ static inline unsigned long compact_gap(
+ 	return 2UL << order;
+ }
+ 
++static inline int current_is_kcompactd(void)
++{
++	return current->flags & PF_KCOMPACTD;
++}
++
+ #ifdef CONFIG_COMPACTION
+ 
+ extern unsigned int extfrag_for_order(struct zone *zone, unsigned int order);
+--- a/include/linux/sched.h~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
++++ a/include/linux/sched.h
+@@ -1701,7 +1701,7 @@ extern struct pid *cad_pid;
+ #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
+ #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
+ #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
+-#define PF__HOLE__00010000	0x00010000
++#define PF_KCOMPACTD		0x00010000	/* I am kcompactd */
+ #define PF_KSWAPD		0x00020000	/* I am kswapd */
+ #define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
+ #define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
+--- a/mm/compaction.c~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
++++ a/mm/compaction.c
+@@ -3181,6 +3181,7 @@ static int kcompactd(void *p)
+ 	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
+ 	long timeout = default_timeout;
+ 
++	tsk->flags | PF_KCOMPACTD;
+ 	set_freezable();
+ 
+ 	pgdat->kcompactd_max_order = 0;
+@@ -3237,6 +3238,8 @@ static int kcompactd(void *p)
+ 			pgdat->proactive_compact_trigger = false;
+ 	}
+ 
++	tsk->flags &= ~PF_KCOMPACTD;
++
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from snitzer@kernel.org are
+
+nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+
