@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 813831853
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:31:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BBBF367
+	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:38:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740454284; cv=none; b=R7o1WqR8ELFA9NjV4D45C/Nh7r8qWPqeFavEFxLfwStD4Shpc8LNzoNY+aVBkTdPBwN/yXcl+ur6uUfZmz7pnPcjr3vLpCc5YBsLo2dUim6ojer4gV2MrPAGkrhgoL0llYy/oQohx52Zvjz/VN1YgMbetWnIY1R5gTf+zENPMfU=
+	t=1740454705; cv=none; b=AFSpgcbh6rJG+WrEJi1tQPaKEsXxs574lVm01ncPRVG21iUvas2q6sdbmA97Dw13B9ZX2uiAfcw1N0gTHE7xU/ogjr9BbTlRy0PRlO4HXW9cnAoMTrb5TZHyAIEKXR8t9OU6ZNzjV8P3rLk0W9d3fAmG5tq30vrxdtRTw3/qAZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740454284; c=relaxed/simple;
-	bh=fhbjlfMBxLDG7DYYOUhhGc1pP57lULiE3ZkTh5tw2to=;
-	h=Date:To:From:Subject:Message-Id; b=gUWRL5x1puEoDB253UZwYmbh7Aqba6t4kGmUt5J3ZPGCXv0IkzNaui/2sXtOCImriDq7L77y4bMGtiPICId1tiRkUUuTsFD7p9IXRZ/1VHuBU0Nvb/WvO4gHBLxINyQ7QWhtCEbhtGg4PQnIOEdxlQJAJtYgxHvmwSQmLvOuebI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIODZPDD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740454705; c=relaxed/simple;
+	bh=2r+Ee8CIVdi7nxFMcgybPsgVGFocxrKfArRqjiev6Rg=;
+	h=Date:To:From:Subject:Message-Id; b=rrI4iQ79xEHcbnjjOwrul0cT/URWH7BGiTuU2k9DH00AKqxCtNpRFM6i1faNmkzQTAYBOGntz4HMzYW0ay1wgcPrn3exQ3UQvusnU6LpkJ5OGyUQJs8BjzIjRJgcOr0J0fO8FYoeBcmEs4914l8NS3oZqrTV+i5/ZHNiNDXsMP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DrtoruNR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIODZPDD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2546C4CEE2;
-	Tue, 25 Feb 2025 03:31:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DrtoruNR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46AFC4CEE2;
+	Tue, 25 Feb 2025 03:38:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740454284;
-	bh=fhbjlfMBxLDG7DYYOUhhGc1pP57lULiE3ZkTh5tw2to=;
+	s=korg; t=1740454704;
+	bh=2r+Ee8CIVdi7nxFMcgybPsgVGFocxrKfArRqjiev6Rg=;
 	h=Date:To:From:Subject:From;
-	b=qIODZPDD8lwEgunHABiMlbyLPAWMKtkyKGZoqMVK08bv3cx1ouMeHSsEbMRdxhUc6
-	 1ZWuiSBm/Sb6BVE5Dp70A6UQcVpmj4znHoIs3N3Zoh9XnWqK+fHOAOhnrQqYfwmL78
-	 qTM1EnncT7vIRpfAqm66ey8ExLt/zUnqF3FiV49I=
-Date: Mon, 24 Feb 2025 19:31:23 -0800
-To: mm-commits@vger.kernel.org,seanjc@google.com,pbonzini@redhat.com,binbin.wu@linux.intel.com,suhui@nfschina.com,akpm@linux-foundation.org
+	b=DrtoruNRjc/iIhIGhB02sI5rMpAO0L1J+LRy1xO0Om1x4bf0xtiqO+eZsw81fTX73
+	 M4ZduS56WNs1XoE/np+dEQz3J6h1iR5jP5kLQBUKRTNPDObMTIpNPHI6PRD9bOU2pA
+	 ZeyNouTWJag4ZaiqwCuWQeF+MYn69tp3RlhIYihI=
+Date: Mon, 24 Feb 2025 19:38:24 -0800
+To: mm-commits@vger.kernel.org,tzungbi@kernel.org,joel.granados@kernel.org,a.fatoum@pengutronix.de,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250225033123.F2546C4CEE2@smtp.kernel.org>
+Subject: + reboot-add-support-for-configuring-emergency-hardware-protection-action-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250225033824.A46AFC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: include/linux/log2.h: mark is_power_of_2() with __always_inline
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
+     Subject: reboot: hide unused hw_protection_attr
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     reboot-add-support-for-configuring-emergency-hardware-protection-action-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/reboot-add-support-for-configuring-emergency-hardware-protection-action-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Su Hui <suhui@nfschina.com>
-Subject: include/linux/log2.h: mark is_power_of_2() with __always_inline
-Date: Fri, 21 Feb 2025 15:16:25 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: reboot: hide unused hw_protection_attr
+Date: Mon, 24 Feb 2025 15:16:09 +0100
 
-When building kernel with randconfig, there is an error:
+The reference to hw_protection_attr is inside of an #ifdef block, but the
+definition is not:
 
-In function `kvm_is_cr4_bit_set',inlined from
-`kvm_update_cpuid_runtime' at arch/x86/kvm/cpuid.c:310:9:
+kernel/reboot.c:1092:30: error: unused variable 'hw_protection_attr' [-Werror,-Wunused-variable]
+ 1092 | static struct kobj_attribute hw_protection_attr = __ATTR_RW(hw_protection);
+      |                              ^~~~~~~~~~~~~~~~~~
 
-include/linux/compiler_types.h:542:38: error: call to
-`__compiletime_assert_380' declared with attribute error:
-BUILD_BUG_ON failed: !is_power_of_2(cr4_bit).
+Add another #ifdef to match the first.
 
-'!is_power_of_2(X86_CR4_OSXSAVE)' is False, but gcc treats is_power_of_2()
-as non-inline function and a compilation error happens. Fix this by marking
-is_power_of_2() with __always_inline.
-
-Link: https://lkml.kernel.org/r/20250221071624.1356899-1-suhui@nfschina.com
-Signed-off-by: Su Hui <suhui@nfschina.com>
-Cc: Binbin Wu <binbin.wu@linux.intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Link: https://lkml.kernel.org/r/20250224141849.1546019-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
+Cc: Ahmad Fatoum <a.fatoum@pengutronix.de>
+Cc: Joel Granados <joel.granados@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/reboot.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/log2.h~include-linux-log2h-mark-is_power_of_2-with-__always_inline
-+++ a/include/linux/log2.h
-@@ -41,7 +41,7 @@ int __ilog2_u64(u64 n)
-  * *not* considered a power of two.
-  * Return: true if @n is a power of 2, otherwise false.
-  */
--static inline __attribute__((const))
-+static __always_inline __attribute__((const))
- bool is_power_of_2(unsigned long n)
+--- a/kernel/reboot.c~reboot-add-support-for-configuring-emergency-hardware-protection-action-fix
++++ a/kernel/reboot.c
+@@ -1071,6 +1071,7 @@ static int __init hw_protection_setup(ch
+ }
+ __setup("hw_protection=", hw_protection_setup);
+ 
++#ifdef CONFIG_SYSFS
+ static ssize_t hw_protection_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr, char *buf)
  {
- 	return (n != 0 && ((n & (n - 1)) == 0));
+@@ -1090,6 +1091,7 @@ static ssize_t hw_protection_store(struc
+ 	return count;
+ }
+ static struct kobj_attribute hw_protection_attr = __ATTR_RW(hw_protection);
++#endif
+ 
+ static int __init reboot_setup(char *str)
+ {
 _
 
-Patches currently in -mm which might be from suhui@nfschina.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
+reboot-add-support-for-configuring-emergency-hardware-protection-action-fix.patch
 
