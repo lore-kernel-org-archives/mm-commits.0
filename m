@@ -1,519 +1,201 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A9AE33EC
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 02:28:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A3F828E3F;
+	Tue, 25 Feb 2025 02:32:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740450500; cv=none; b=KKFp6zCX6eqwZCkr+MqYacMfaU/dT643SVBZ/dOS54jjavNOcUMOhfEZGkAAFct1W9D5i7brDvbTRQ5CmTMGefDmjX/0xrPI2KDmQHfQOx/lJpddofze0+mKsEal7TnCPIcTe351eHJ3BO1ja6RR4Hze3f6lAVel9IYsDNe8BLo=
+	t=1740450751; cv=none; b=tKlwuzS35nwloO2eqJerOc8eeIXP1osj8N+tN24kte41xe3mCv4RJ5wyr2dCvQSVnM2giNQUUxoYwZcIEFRsQE8kGiAa/DXvU2AeG5Htmo0ppi9pwu5/X4MEO9HXih+ivOah3f/sogLJjAOl9QbTAxgJSR6Bm3/q50p4h3cVrTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740450500; c=relaxed/simple;
-	bh=9d/xKV6r76r1hR7esQ3h4qmc1AuKujcAueApk0efjLg=;
-	h=Date:To:From:Subject:Message-Id; b=J6DSHB4jpV00J5NUXGjedfkXOOltxkDzzF/KdAamN3SQ+U5080rNUmcx9NZvJ5CxQ4M+Uqx3pd7fZTNB3YJ3puMeQJ4ibhannQcM9TCsTClusBLu8GkAnF2ZhCeoPl5idJXnYokjnFeh8nbsp7SQJrOFTEyGspJySkFQErifQpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=so7S5u65; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740450751; c=relaxed/simple;
+	bh=e4auH0yVBTzBKgxXEiQiymraFd0Un++IQSNpEj3Kdaw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nBzcIdpSpJwOaQkAv+beKDxmjV6V23pjyz2bRDHQrsoFGDAk/yr+7flaLVZFRFlVi3/C4+BUC3JXiTMeQQS/fkpigPxkU11f0Th/oRDZbsPfa8zAWX1kB+mIC3o4xJ5nuARkcQsyWMTOlyLu3q/HGqIOKdFGoU/6YhMdJAOppU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zf8pLezH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="so7S5u65"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AFCEC4CED6;
-	Tue, 25 Feb 2025 02:28:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740450500;
-	bh=9d/xKV6r76r1hR7esQ3h4qmc1AuKujcAueApk0efjLg=;
-	h=Date:To:From:Subject:From;
-	b=so7S5u65rlVDbQfoSchXMTLObPHjCY31MGsvlprrnsOz45AUnSpNZEDAOJdJn0lHZ
-	 yM0nSEGstmOjqLnkMyBc95ZjrFW1HoiHTF3qgQsbahsn++4WFC4Lrg8d8H8eUDLcl5
-	 XIDp1Q/hpmrwkXnckkSqoFEsP7LUPQLCr73ip6os=
-Date: Mon, 24 Feb 2025 18:28:19 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-group-fallback-functions-together.patch added to mm-unstable branch
-Message-Id: <20250225022820.4AFCEC4CED6@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zf8pLezH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96ABAC4CED6;
+	Tue, 25 Feb 2025 02:32:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1740450750;
+	bh=e4auH0yVBTzBKgxXEiQiymraFd0Un++IQSNpEj3Kdaw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Zf8pLezHlw32flnQqIpx4hHoNIPcRiynbGnmkc1OpoPPVHN4Nhtmcyr1lg/ZSZSPx
+	 hVaLTqSzc6jEap2oUjyRdSziWkjjUEy1lnP6se8AnKPaR9jgmGbr9P7GKqV7GiNCY4
+	 y+T6b4AWIvEMauQYcsBnQAu365tCQtTFwzFmvWTZ+hOXqkVhbnqSDoAVsDbIgXXV6N
+	 bgfbTp7Jd2DyJIVSuHy+AS16yn15MDun4TIFYLz5s1+TCoxR1P1PAeekS2T8vOox02
+	 5Rq5/TgeKkk7RJ5IMeeqFveTHz7oS7kcLKx/KaM8byzBjK9x7zHwO/RRwf9FVI+cr/
+	 GpkAQOKJoRSlg==
+Date: Mon, 24 Feb 2025 21:32:29 -0500
+From: Mike Snitzer <snitzer@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, trond.myklebust@hammerspace.com,
+	stable@vger.kernel.org, anna.schumaker@oracle.com
+Subject: Re: +
+ nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+ added to mm-hotfixes-unstable branch
+Message-ID: <Z70rvb6aEpF3eKJg@kernel.org>
+References: <20250225022610.B2EE3C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250225022610.B2EE3C4CED6@smtp.kernel.org>
 
+Hi Andrew,
 
-The patch titled
-     Subject: mm: page_alloc: group fallback functions together
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-group-fallback-functions-together.patch
+Please see inlined comment below (I found a bug and replied to the
+original patch with v2 but wasn't quick enough).
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-group-fallback-functions-together.patch
+On Mon, Feb 24, 2025 at 06:26:10PM -0800, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: NFS: fix nfs_release_folio() to not call nfs_wb_folio() from kcompactd
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+> 
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Mike Snitzer <snitzer@kernel.org>
+> Subject: NFS: fix nfs_release_folio() to not call nfs_wb_folio() from kcompactd
+> Date: Mon, 24 Feb 2025 19:33:01 -0500
+> 
+> Add PF_KCOMPACTD flag and current_is_kcompactd() helper to check for it so
+> nfs_release_folio() can skip calling nfs_wb_folio() from kcompactd.
+> 
+> Otherwise NFS can deadlock waiting for kcompactd induced writeback which
+> recurses back to NFS (which triggers writeback to NFSD via NFS loopback
+> mount on the same host, NFSD blocks waiting for XFS's call to
+> __filemap_get_folio):
+> 
+> 6070.550357] INFO: task kcompactd0:58 blocked for more than 4435 seconds.
+> 
+> {---
+> [58] "kcompactd0"
+> [<0>] folio_wait_bit+0xe8/0x200
+> [<0>] folio_wait_writeback+0x2b/0x80
+> [<0>] nfs_wb_folio+0x80/0x1b0 [nfs]
+> [<0>] nfs_release_folio+0x68/0x130 [nfs]
+> [<0>] split_huge_page_to_list_to_order+0x362/0x840
+> [<0>] migrate_pages_batch+0x43d/0xb90
+> [<0>] migrate_pages_sync+0x9a/0x240
+> [<0>] migrate_pages+0x93c/0x9f0
+> [<0>] compact_zone+0x8e2/0x1030
+> [<0>] compact_node+0xdb/0x120
+> [<0>] kcompactd+0x121/0x2e0
+> [<0>] kthread+0xcf/0x100
+> [<0>] ret_from_fork+0x31/0x40
+> [<0>] ret_from_fork_asm+0x1a/0x30
+> ---}
+> 
+> Link: https://lkml.kernel.org/r/20250225003301.25693-1-snitzer@kernel.org
+> Fixes: 96780ca55e3cb ("NFS: fix up nfs_release_folio() to try to release the page")
+> Signed-off-by: Mike Snitzer <snitzer@kernel.org>
+> Cc: Anna Schumaker <anna.schumaker@oracle.com>
+> Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  fs/nfs/file.c              |    3 ++-
+>  include/linux/compaction.h |    5 +++++
+>  include/linux/sched.h      |    2 +-
+>  mm/compaction.c            |    3 +++
+>  4 files changed, 11 insertions(+), 2 deletions(-)
+> 
+> --- a/fs/nfs/file.c~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
+> +++ a/fs/nfs/file.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/pagemap.h>
+>  #include <linux/gfp.h>
+>  #include <linux/swap.h>
+> +#include <linux/compaction.h>
+>  
+>  #include <linux/uaccess.h>
+>  #include <linux/filelock.h>
+> @@ -457,7 +458,7 @@ static bool nfs_release_folio(struct fol
+>  	/* If the private flag is set, then the folio is not freeable */
+>  	if (folio_test_private(folio)) {
+>  		if ((current_gfp_context(gfp) & GFP_KERNEL) != GFP_KERNEL ||
+> -		    current_is_kswapd())
+> +		    current_is_kswapd() || current_is_kcompactd())
+>  			return false;
+>  		if (nfs_wb_folio(folio->mapping->host, folio) < 0)
+>  			return false;
+> --- a/include/linux/compaction.h~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
+> +++ a/include/linux/compaction.h
+> @@ -80,6 +80,11 @@ static inline unsigned long compact_gap(
+>  	return 2UL << order;
+>  }
+>  
+> +static inline int current_is_kcompactd(void)
+> +{
+> +	return current->flags & PF_KCOMPACTD;
+> +}
+> +
+>  #ifdef CONFIG_COMPACTION
+>  
+>  extern unsigned int extfrag_for_order(struct zone *zone, unsigned int order);
+> --- a/include/linux/sched.h~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
+> +++ a/include/linux/sched.h
+> @@ -1701,7 +1701,7 @@ extern struct pid *cad_pid;
+>  #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
+>  #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
+>  #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
+> -#define PF__HOLE__00010000	0x00010000
+> +#define PF_KCOMPACTD		0x00010000	/* I am kcompactd */
+>  #define PF_KSWAPD		0x00020000	/* I am kswapd */
+>  #define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
+>  #define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
+> --- a/mm/compaction.c~nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd
+> +++ a/mm/compaction.c
+> @@ -3181,6 +3181,7 @@ static int kcompactd(void *p)
+>  	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
+>  	long timeout = default_timeout;
+>  
+> +	tsk->flags | PF_KCOMPACTD;
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This should be: tsk->flags |= PF_KCOMPACTD;
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Sorry for the trouble, v2 is available here:
+https://lore.kernel.org/linux-nfs/20250225022002.26141-1-snitzer@kernel.org/
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: group fallback functions together
-Date: Mon, 24 Feb 2025 19:08:26 -0500
-
-The way the fallback rules are spread out makes them hard to follow.  Move
-the functions next to each other at least.
-
-Link: https://lkml.kernel.org/r/20250225001023.1494422-4-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |  394 +++++++++++++++++++++++-----------------------
- 1 file changed, 197 insertions(+), 197 deletions(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-group-fallback-functions-together
-+++ a/mm/page_alloc.c
-@@ -1903,6 +1903,43 @@ static void change_pageblock_range(struc
- 	}
- }
- 
-+static inline bool boost_watermark(struct zone *zone)
-+{
-+	unsigned long max_boost;
-+
-+	if (!watermark_boost_factor)
-+		return false;
-+	/*
-+	 * Don't bother in zones that are unlikely to produce results.
-+	 * On small machines, including kdump capture kernels running
-+	 * in a small area, boosting the watermark can cause an out of
-+	 * memory situation immediately.
-+	 */
-+	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
-+		return false;
-+
-+	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
-+			watermark_boost_factor, 10000);
-+
-+	/*
-+	 * high watermark may be uninitialised if fragmentation occurs
-+	 * very early in boot so do not boost. We do not fall
-+	 * through and boost by pageblock_nr_pages as failing
-+	 * allocations that early means that reclaim is not going
-+	 * to help and it may even be impossible to reclaim the
-+	 * boosted watermark resulting in a hang.
-+	 */
-+	if (!max_boost)
-+		return false;
-+
-+	max_boost = max(pageblock_nr_pages, max_boost);
-+
-+	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
-+		max_boost);
-+
-+	return true;
-+}
-+
- /*
-  * When we are falling back to another migratetype during allocation, try to
-  * steal extra free pages from the same pageblocks to satisfy further
-@@ -1944,41 +1981,38 @@ static bool can_steal_fallback(unsigned
- 	return false;
- }
- 
--static inline bool boost_watermark(struct zone *zone)
-+/*
-+ * Check whether there is a suitable fallback freepage with requested order.
-+ * If only_stealable is true, this function returns fallback_mt only if
-+ * we can steal other freepages all together. This would help to reduce
-+ * fragmentation due to mixed migratetype pages in one pageblock.
-+ */
-+int find_suitable_fallback(struct free_area *area, unsigned int order,
-+			int migratetype, bool only_stealable, bool *can_steal)
- {
--	unsigned long max_boost;
-+	int i;
-+	int fallback_mt;
- 
--	if (!watermark_boost_factor)
--		return false;
--	/*
--	 * Don't bother in zones that are unlikely to produce results.
--	 * On small machines, including kdump capture kernels running
--	 * in a small area, boosting the watermark can cause an out of
--	 * memory situation immediately.
--	 */
--	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
--		return false;
-+	if (area->nr_free == 0)
-+		return -1;
- 
--	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
--			watermark_boost_factor, 10000);
-+	*can_steal = false;
-+	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
-+		fallback_mt = fallbacks[migratetype][i];
-+		if (free_area_empty(area, fallback_mt))
-+			continue;
- 
--	/*
--	 * high watermark may be uninitialised if fragmentation occurs
--	 * very early in boot so do not boost. We do not fall
--	 * through and boost by pageblock_nr_pages as failing
--	 * allocations that early means that reclaim is not going
--	 * to help and it may even be impossible to reclaim the
--	 * boosted watermark resulting in a hang.
--	 */
--	if (!max_boost)
--		return false;
-+		if (can_steal_fallback(order, migratetype))
-+			*can_steal = true;
- 
--	max_boost = max(pageblock_nr_pages, max_boost);
-+		if (!only_stealable)
-+			return fallback_mt;
- 
--	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
--		max_boost);
-+		if (*can_steal)
-+			return fallback_mt;
-+	}
- 
--	return true;
-+	return -1;
- }
- 
- /*
-@@ -2055,175 +2089,6 @@ try_to_steal_block(struct zone *zone, st
- }
- 
- /*
-- * Check whether there is a suitable fallback freepage with requested order.
-- * If only_stealable is true, this function returns fallback_mt only if
-- * we can steal other freepages all together. This would help to reduce
-- * fragmentation due to mixed migratetype pages in one pageblock.
-- */
--int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool only_stealable, bool *can_steal)
--{
--	int i;
--	int fallback_mt;
--
--	if (area->nr_free == 0)
--		return -1;
--
--	*can_steal = false;
--	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
--		fallback_mt = fallbacks[migratetype][i];
--		if (free_area_empty(area, fallback_mt))
--			continue;
--
--		if (can_steal_fallback(order, migratetype))
--			*can_steal = true;
--
--		if (!only_stealable)
--			return fallback_mt;
--
--		if (*can_steal)
--			return fallback_mt;
--	}
--
--	return -1;
--}
--
--/*
-- * Reserve the pageblock(s) surrounding an allocation request for
-- * exclusive use of high-order atomic allocations if there are no
-- * empty page blocks that contain a page with a suitable order
-- */
--static void reserve_highatomic_pageblock(struct page *page, int order,
--					 struct zone *zone)
--{
--	int mt;
--	unsigned long max_managed, flags;
--
--	/*
--	 * The number reserved as: minimum is 1 pageblock, maximum is
--	 * roughly 1% of a zone. But if 1% of a zone falls below a
--	 * pageblock size, then don't reserve any pageblocks.
--	 * Check is race-prone but harmless.
--	 */
--	if ((zone_managed_pages(zone) / 100) < pageblock_nr_pages)
--		return;
--	max_managed = ALIGN((zone_managed_pages(zone) / 100), pageblock_nr_pages);
--	if (zone->nr_reserved_highatomic >= max_managed)
--		return;
--
--	spin_lock_irqsave(&zone->lock, flags);
--
--	/* Recheck the nr_reserved_highatomic limit under the lock */
--	if (zone->nr_reserved_highatomic >= max_managed)
--		goto out_unlock;
--
--	/* Yoink! */
--	mt = get_pageblock_migratetype(page);
--	/* Only reserve normal pageblocks (i.e., they can merge with others) */
--	if (!migratetype_is_mergeable(mt))
--		goto out_unlock;
--
--	if (order < pageblock_order) {
--		if (move_freepages_block(zone, page, mt, MIGRATE_HIGHATOMIC) == -1)
--			goto out_unlock;
--		zone->nr_reserved_highatomic += pageblock_nr_pages;
--	} else {
--		change_pageblock_range(page, order, MIGRATE_HIGHATOMIC);
--		zone->nr_reserved_highatomic += 1 << order;
--	}
--
--out_unlock:
--	spin_unlock_irqrestore(&zone->lock, flags);
--}
--
--/*
-- * Used when an allocation is about to fail under memory pressure. This
-- * potentially hurts the reliability of high-order allocations when under
-- * intense memory pressure but failed atomic allocations should be easier
-- * to recover from than an OOM.
-- *
-- * If @force is true, try to unreserve pageblocks even though highatomic
-- * pageblock is exhausted.
-- */
--static bool unreserve_highatomic_pageblock(const struct alloc_context *ac,
--						bool force)
--{
--	struct zonelist *zonelist = ac->zonelist;
--	unsigned long flags;
--	struct zoneref *z;
--	struct zone *zone;
--	struct page *page;
--	int order;
--	int ret;
--
--	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->highest_zoneidx,
--								ac->nodemask) {
--		/*
--		 * Preserve at least one pageblock unless memory pressure
--		 * is really high.
--		 */
--		if (!force && zone->nr_reserved_highatomic <=
--					pageblock_nr_pages)
--			continue;
--
--		spin_lock_irqsave(&zone->lock, flags);
--		for (order = 0; order < NR_PAGE_ORDERS; order++) {
--			struct free_area *area = &(zone->free_area[order]);
--			unsigned long size;
--
--			page = get_page_from_free_area(area, MIGRATE_HIGHATOMIC);
--			if (!page)
--				continue;
--
--			/*
--			 * It should never happen but changes to
--			 * locking could inadvertently allow a per-cpu
--			 * drain to add pages to MIGRATE_HIGHATOMIC
--			 * while unreserving so be safe and watch for
--			 * underflows.
--			 */
--			size = max(pageblock_nr_pages, 1UL << order);
--			size = min(size, zone->nr_reserved_highatomic);
--			zone->nr_reserved_highatomic -= size;
--
--			/*
--			 * Convert to ac->migratetype and avoid the normal
--			 * pageblock stealing heuristics. Minimally, the caller
--			 * is doing the work and needs the pages. More
--			 * importantly, if the block was always converted to
--			 * MIGRATE_UNMOVABLE or another type then the number
--			 * of pageblocks that cannot be completely freed
--			 * may increase.
--			 */
--			if (order < pageblock_order)
--				ret = move_freepages_block(zone, page,
--							   MIGRATE_HIGHATOMIC,
--							   ac->migratetype);
--			else {
--				move_to_free_list(page, zone, order,
--						  MIGRATE_HIGHATOMIC,
--						  ac->migratetype);
--				change_pageblock_range(page, order,
--						       ac->migratetype);
--				ret = 1;
--			}
--			/*
--			 * Reserving the block(s) already succeeded,
--			 * so this should not fail on zone boundaries.
--			 */
--			WARN_ON_ONCE(ret == -1);
--			if (ret > 0) {
--				spin_unlock_irqrestore(&zone->lock, flags);
--				return ret;
--			}
--		}
--		spin_unlock_irqrestore(&zone->lock, flags);
--	}
--
--	return false;
--}
--
--/*
-  * Try finding a free buddy page on the fallback list.
-  *
-  * This will attempt to steal a whole pageblock for the requested type
-@@ -3143,6 +3008,141 @@ out:
- 	return page;
- }
- 
-+/*
-+ * Reserve the pageblock(s) surrounding an allocation request for
-+ * exclusive use of high-order atomic allocations if there are no
-+ * empty page blocks that contain a page with a suitable order
-+ */
-+static void reserve_highatomic_pageblock(struct page *page, int order,
-+					 struct zone *zone)
-+{
-+	int mt;
-+	unsigned long max_managed, flags;
-+
-+	/*
-+	 * The number reserved as: minimum is 1 pageblock, maximum is
-+	 * roughly 1% of a zone. But if 1% of a zone falls below a
-+	 * pageblock size, then don't reserve any pageblocks.
-+	 * Check is race-prone but harmless.
-+	 */
-+	if ((zone_managed_pages(zone) / 100) < pageblock_nr_pages)
-+		return;
-+	max_managed = ALIGN((zone_managed_pages(zone) / 100), pageblock_nr_pages);
-+	if (zone->nr_reserved_highatomic >= max_managed)
-+		return;
-+
-+	spin_lock_irqsave(&zone->lock, flags);
-+
-+	/* Recheck the nr_reserved_highatomic limit under the lock */
-+	if (zone->nr_reserved_highatomic >= max_managed)
-+		goto out_unlock;
-+
-+	/* Yoink! */
-+	mt = get_pageblock_migratetype(page);
-+	/* Only reserve normal pageblocks (i.e., they can merge with others) */
-+	if (!migratetype_is_mergeable(mt))
-+		goto out_unlock;
-+
-+	if (order < pageblock_order) {
-+		if (move_freepages_block(zone, page, mt, MIGRATE_HIGHATOMIC) == -1)
-+			goto out_unlock;
-+		zone->nr_reserved_highatomic += pageblock_nr_pages;
-+	} else {
-+		change_pageblock_range(page, order, MIGRATE_HIGHATOMIC);
-+		zone->nr_reserved_highatomic += 1 << order;
-+	}
-+
-+out_unlock:
-+	spin_unlock_irqrestore(&zone->lock, flags);
-+}
-+
-+/*
-+ * Used when an allocation is about to fail under memory pressure. This
-+ * potentially hurts the reliability of high-order allocations when under
-+ * intense memory pressure but failed atomic allocations should be easier
-+ * to recover from than an OOM.
-+ *
-+ * If @force is true, try to unreserve pageblocks even though highatomic
-+ * pageblock is exhausted.
-+ */
-+static bool unreserve_highatomic_pageblock(const struct alloc_context *ac,
-+						bool force)
-+{
-+	struct zonelist *zonelist = ac->zonelist;
-+	unsigned long flags;
-+	struct zoneref *z;
-+	struct zone *zone;
-+	struct page *page;
-+	int order;
-+	int ret;
-+
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->highest_zoneidx,
-+								ac->nodemask) {
-+		/*
-+		 * Preserve at least one pageblock unless memory pressure
-+		 * is really high.
-+		 */
-+		if (!force && zone->nr_reserved_highatomic <=
-+					pageblock_nr_pages)
-+			continue;
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		for (order = 0; order < NR_PAGE_ORDERS; order++) {
-+			struct free_area *area = &(zone->free_area[order]);
-+			unsigned long size;
-+
-+			page = get_page_from_free_area(area, MIGRATE_HIGHATOMIC);
-+			if (!page)
-+				continue;
-+
-+			/*
-+			 * It should never happen but changes to
-+			 * locking could inadvertently allow a per-cpu
-+			 * drain to add pages to MIGRATE_HIGHATOMIC
-+			 * while unreserving so be safe and watch for
-+			 * underflows.
-+			 */
-+			size = max(pageblock_nr_pages, 1UL << order);
-+			size = min(size, zone->nr_reserved_highatomic);
-+			zone->nr_reserved_highatomic -= size;
-+
-+			/*
-+			 * Convert to ac->migratetype and avoid the normal
-+			 * pageblock stealing heuristics. Minimally, the caller
-+			 * is doing the work and needs the pages. More
-+			 * importantly, if the block was always converted to
-+			 * MIGRATE_UNMOVABLE or another type then the number
-+			 * of pageblocks that cannot be completely freed
-+			 * may increase.
-+			 */
-+			if (order < pageblock_order)
-+				ret = move_freepages_block(zone, page,
-+							   MIGRATE_HIGHATOMIC,
-+							   ac->migratetype);
-+			else {
-+				move_to_free_list(page, zone, order,
-+						  MIGRATE_HIGHATOMIC,
-+						  ac->migratetype);
-+				change_pageblock_range(page, order,
-+						       ac->migratetype);
-+				ret = 1;
-+			}
-+			/*
-+			 * Reserving the block(s) already succeeded,
-+			 * so this should not fail on zone boundaries.
-+			 */
-+			WARN_ON_ONCE(ret == -1);
-+			if (ret > 0) {
-+				spin_unlock_irqrestore(&zone->lock, flags);
-+				return ret;
-+			}
-+		}
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+	}
-+
-+	return false;
-+}
-+
- static inline long __zone_watermark_unusable_free(struct zone *z,
- 				unsigned int order, unsigned int alloc_flags)
- {
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch
-mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
-mm-memcontrol-move-memsw-charge-callbacks-to-v1.patch
-mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch
-mm-page_alloc-remove-remnants-of-unlocked-migratetype-updates.patch
-mm-page_alloc-group-fallback-functions-together.patch
-
+>  	set_freezable();
+>  
+>  	pgdat->kcompactd_max_order = 0;
+> @@ -3237,6 +3238,8 @@ static int kcompactd(void *p)
+>  			pgdat->proactive_compact_trigger = false;
+>  	}
+>  
+> +	tsk->flags &= ~PF_KCOMPACTD;
+> +
+>  	return 0;
+>  }
+>  
+> _
+> 
+> Patches currently in -mm which might be from snitzer@kernel.org are
+> 
+> nfs-fix-nfs_release_folio-to-not-call-nfs_wb_folio-from-kcompactd.patch
+> 
