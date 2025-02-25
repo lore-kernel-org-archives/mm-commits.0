@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1B51151991;
-	Tue, 25 Feb 2025 23:19:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6F5E151991;
+	Tue, 25 Feb 2025 23:19:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740525560; cv=none; b=TJpjzCR9LsnHYnAcToIYwTV0IetVH3k3o9yxyjyyJL/SmMNQ6PdDMTAYUHBBRQy1nRjCQWJgCK0bODnEaViF2yr4y+bRafyUvJSVzkrgZ/Loq5v0IrGgQQR5oDPgoW0L2YUSwrUGmk3iaUGAdMPjZwybpUFmVgs9DZolQ2eRzy8=
+	t=1740525562; cv=none; b=ny5i3egPLFM9/xdxEWilTONI5d/Qzu0HxHCxrmueNqfW3vijEMViYuu6rWINMKlg7jc1d7Sr/oqB615tD9Aq2ZsQasNXNqNmopwh5rlLLSbQd7Kzg2VVnDIYyXKLdRv7WBmpqU9ZZK11BhItocBZgtzL72ok0G9gNwPzmAgFSFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740525560; c=relaxed/simple;
-	bh=3X7DdTcn036EgNAKgISSh615AsRfxWx+rLlTucRCkZ8=;
-	h=Date:To:From:Subject:Message-Id; b=luKvOaCshfWAUe4dDCNx84+1229xaec/Xf7cFgG0VSuteE+YlCZwxNLV+KMROXXSy31UsnhItw12uQiNN4icxTk8xl972QUAi1O3RTD3sPmfnT4lX1U+OzLR2kPOE1P4t9p5C8ZEH17OUtpPGJfOcFN9Zwv5r/ZXSztJYychdAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N/9r+0DG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740525562; c=relaxed/simple;
+	bh=7UCsWHe+C0SYWUryeewQYV6tkfwDNOa4b79y0Ynkyhs=;
+	h=Date:To:From:Subject:Message-Id; b=SZTBLv8Iltn4Pq4s9SyHmmLwt9PznZlSwNsTm4yVaY7DvStM8RO/ohnaHesMULHdrCFmM+48M5lNM7hzYL9ofV4dUJMvi0vTOe9ZJdY0403aRZh7v8V43t9uFMk9XPn5QP4OSo5fJOaivPMBhcAjI47ek9mzrrBwuXXVyqIDPkE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfL+0PD4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N/9r+0DG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43229C4CEDD;
-	Tue, 25 Feb 2025 23:19:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfL+0PD4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3021CC4CEDD;
+	Tue, 25 Feb 2025 23:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740525560;
-	bh=3X7DdTcn036EgNAKgISSh615AsRfxWx+rLlTucRCkZ8=;
+	s=korg; t=1740525562;
+	bh=7UCsWHe+C0SYWUryeewQYV6tkfwDNOa4b79y0Ynkyhs=;
 	h=Date:To:From:Subject:From;
-	b=N/9r+0DGe1nmXVDleR7Plby4rWWPo9/rAvuFM/xc8mehTUXgBYwJrPfVssyFbtPTR
-	 I+0LgSV51aHkfFt7YG/3yqzAoKuebmHVtAm2oPi+VKIYRERlh27BLhAnIW7017X+fV
-	 Vv7N2weFBqNIJ1sOErWxKEeuSoigALQ7Ct/1en70=
-Date: Tue, 25 Feb 2025 15:19:19 -0800
+	b=rfL+0PD4j+yn322dgeywyr6MwEagQdm1pWP+CmXULxLsKIXwi6SpZGU60yzxscwLA
+	 XM44DU27BLSV4i4C14Aix/xZJlvZVT/18nUhBNhobKY4fPHXjpe1Fkr5XYceiBDlIK
+	 ln1myHK7hxOMJQp/PeWhpLPoQ/rbkgu/xo6N5HuQ=
+Date: Tue, 25 Feb 2025 15:19:21 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-damon_nr_regions-set-ops-update-for-merge-results-check-to-100ms.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250225231920.43229C4CEDD@smtp.kernel.org>
+Subject: + selftests-damon-damon_nr_regions-sort-collected-regiosn-before-checking-with-min-max-boundaries.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250225231922.3021CC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/damon_nr_regions: set ops update for merge results check to 100ms
+     Subject: selftests/damon/damon_nr_regions: sort collected regiosn before checking with min/max boundaries
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-damon-damon_nr_regions-set-ops-update-for-merge-results-check-to-100ms.patch
+     selftests-damon-damon_nr_regions-sort-collected-regiosn-before-checking-with-min-max-boundaries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-damon_nr_regions-set-ops-update-for-merge-results-check-to-100ms.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-damon_nr_regions-sort-collected-regiosn-before-checking-with-min-max-boundaries.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/damon_nr_regions: set ops update for merge results check to 100ms
-Date: Tue, 25 Feb 2025 14:23:32 -0800
+Subject: selftests/damon/damon_nr_regions: sort collected regiosn before checking with min/max boundaries
+Date: Tue, 25 Feb 2025 14:23:33 -0800
 
-damon_nr_regions.py updates max_nr_regions to a number smaller than
-expected number of real regions and confirms DAMON respect the harsh
-limit.  To give time for DAMON to make changes for the regions, 3
-aggregation intervals (300 milliseconds) are given.
+damon_nr_regions.py starts DAMON, periodically collect number of regions
+in snapshots, and see if it is in the requested range.  The check code
+assumes the numbers are sorted on the collection list, but there is no
+such guarantee.  Hence this can result in false positive test success. 
+Sort the list before doing the check.
 
-The internal mechanism works with not only the max_nr_regions, but also
-sz_limit, though.  It avoids merging region if that casn make region of
-size larger than sz_limit.  In the test, sz_limit is set too small to
-achive the new max_nr_regions, unless it is updated for the new
-min_nr_regions.  But the update is done only once per operations set
-update interval, which is one second by default.
-
-Hence, the test randomly incurs false positive failures.  Fix it by
-setting the ops interval same to aggregation interval, to make sure
-sz_limit is updated by the time of the check.
-
-Link: https://lkml.kernel.org/r/20250225222333.505646-3-sj@kernel.org
-Fixes: 8bf890c81612 ("selftests/damon/damon_nr_regions: test online-tuned max_nr_regions")
+Link: https://lkml.kernel.org/r/20250225222333.505646-4-sj@kernel.org
+Fixes: 781497347d1b ("selftests/damon: implement test for min/max_nr_regions")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: <stable@vger.kernel.org>
@@ -89,16 +79,16 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  tools/testing/selftests/damon/damon_nr_regions.py |    1 +
  1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/damon/damon_nr_regions.py~selftests-damon-damon_nr_regions-set-ops-update-for-merge-results-check-to-100ms
+--- a/tools/testing/selftests/damon/damon_nr_regions.py~selftests-damon-damon_nr_regions-sort-collected-regiosn-before-checking-with-min-max-boundaries
 +++ a/tools/testing/selftests/damon/damon_nr_regions.py
-@@ -109,6 +109,7 @@ def main():
-     attrs = kdamonds.kdamonds[0].contexts[0].monitoring_attrs
-     attrs.min_nr_regions = 3
-     attrs.max_nr_regions = 7
-+    attrs.update_us = 100000
-     err = kdamonds.kdamonds[0].commit()
-     if err is not None:
-         proc.terminate()
+@@ -65,6 +65,7 @@ def test_nr_regions(real_nr_regions, min
+ 
+     test_name = 'nr_regions test with %d/%d/%d real/min/max nr_regions' % (
+             real_nr_regions, min_nr_regions, max_nr_regions)
++    collected_nr_regions.sort()
+     if (collected_nr_regions[0] < min_nr_regions or
+         collected_nr_regions[-1] > max_nr_regions):
+         print('fail %s' % test_name)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
