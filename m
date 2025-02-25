@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ABEB610D
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:01:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FB3633EC
+	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:04:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740452469; cv=none; b=I2ypi0q/S9ZXv6V6j2cVhCRg/p198+3Ugyk11D6zAr8s401e8coKBMZFj8ikDKAqJm5isYdXjZrs67MxnWLAEWdiMgKHNB1fIvLJfxYUpM0lWurZuCCjQ9jqK2Cox3nVmEfgLPCjeKFrbGq6gz9VRh7UCoKK7zlumta18ddBaKc=
+	t=1740452666; cv=none; b=Hp0u2P8j4WL7dfByVYeLX6noe5DMbTz6qh4E66WMyxamHrrZbUxNyzITaGryefscPbtaBL8YxOt7lcpXO8+MgWTopIw+JDtDtjnyMd7soClRhKsU/kUE83s6+jCExPbISV8RzpHryNAJ8D4X2F2sAAE6I9/kpgEKryMRt+DqF5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740452469; c=relaxed/simple;
-	bh=nCgZaNLvKyJhagPOWkNXQMscfAoSqqjSfJKJPh2BbqM=;
-	h=Date:To:From:Subject:Message-Id; b=jUvFI5ZoXFCeJk6+xAHeZ7gj6RbrXUAjFqpoDfYBWcnemeUrih7GWQElPLK66Ik92SZWj/ht7lRxCNyOaVm4Jw4xKC4SytnrEAMHh6xM72N5q9q2eezv/6cb7fEKE0ccSpFEev74TAsIFi9lv/wHvWMEJTXL0vgcfL6drwopEfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=djMY7Rn8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740452666; c=relaxed/simple;
+	bh=3vsSe0BKp96Ee+c7tOtfUAvIKxohrTN/JtXDQMC80lE=;
+	h=Date:To:From:Subject:Message-Id; b=VbcidQ0ZJI0VLFW1TaqHRp0QAG58RMjRVzniMZgUqGQH5CDwmULZU7WI06Cyi2BB+FgNOogF9Fx2Q943JgIYu0v8Ef2w2N0HD81CdEKOdK61L6uFEyg2GpG8AvdCkRH44lb1e9dfzctmyHMREYsEMXu738lTsLInaodS5HFT2Co=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BhfYhcdd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="djMY7Rn8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D97A2C4CED6;
-	Tue, 25 Feb 2025 03:01:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BhfYhcdd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E4FC4CED6;
+	Tue, 25 Feb 2025 03:04:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740452468;
-	bh=nCgZaNLvKyJhagPOWkNXQMscfAoSqqjSfJKJPh2BbqM=;
+	s=korg; t=1740452665;
+	bh=3vsSe0BKp96Ee+c7tOtfUAvIKxohrTN/JtXDQMC80lE=;
 	h=Date:To:From:Subject:From;
-	b=djMY7Rn8/intDOQ6Cmgy+kkC6dz7XEPyJhH1cg8z0TpMIFj1tr+7sDRc1+vzTRWyH
-	 /qbDlhf8XW2+v9X1fYpmkLYu9VP9eWHZL3nW01BBLrpqcK3mCRFu6blHMRNjrCl+DC
-	 KQ87u0kf7MW/Uwh45n7Z3sRKbQJvXK9DR989XGGE=
-Date: Mon, 24 Feb 2025 19:01:08 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,pasha.tatashin@soleen.com,muchun.song@linux.dev,hannes@cmpxchg.org,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
+	b=BhfYhcddENe5NsRM1Q+GCGJIwIgSS0CzfO3q4mnCFqJJr9XMnqJIL1qeAfLJzdFnx
+	 UIR0pdxCo2s+M1lqIETH73O3g95muN/FTPdFBjzImW7A0HH16ZJ2vtSOGSsfVuBhOn
+	 VlN2grJACmWYEiot16Ng1oxC4oegYH8P9Lm8/vQ8=
+Date: Mon, 24 Feb 2025 19:04:24 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,peterx@redhat.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,hughd@google.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-use-new-iteration-api.patch added to mm-unstable branch
-Message-Id: <20250225030108.D97A2C4CED6@smtp.kernel.org>
+Subject: + mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch added to mm-unstable branch
+Message-Id: <20250225030425.78E4FC4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_owner: use new iteration API
+     Subject: mm: make page_mapped_in_vma() hugetlb walk aware
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-use-new-iteration-api.patch
+     mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-use-new-iteration-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,209 +58,106 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm: page_owner: use new iteration API
-Date: Mon, 24 Feb 2025 16:59:08 -0500
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm: make page_mapped_in_vma() hugetlb walk aware
+Date: Mon, 24 Feb 2025 14:14:45 -0700
 
-The page_ext_next() function assumes that page extension objects for a
-page order allocation always reside in the same memory section, which may
-not be true and could lead to crashes.  Use the new page_ext iteration API
-instead.
+When a process consumes a UE in a page, the memory failure handler
+attempts to collect information for a potential SIGBUS.  If the page is an
+anonymous page, page_mapped_in_vma(page, vma) is invoked in order to
 
-Link: https://lkml.kernel.org/r/badc717329c288c58b7abf7513603aa3042c008c.1740434344.git.luizcap@redhat.com
-Fixes: cf54f310d0d3 ("mm/hugetlb: use __GFP_COMP for gigantic folios")
-Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Yu Zhao <yuzhao@google.com>
+  1. retrieve the vaddr from the process' address space,
+
+  2. verify that the vaddr is indeed mapped to the poisoned page,
+     where 'page' is the precise small page with UE.
+
+It's been observed that when injecting poison to a non-head subpage of an
+anonymous hugetlb page, no SIGBUS shows up, while injecting to the head
+page produces a SIGBUS.  The cause is that, though hugetlb_walk() returns
+a valid pmd entry (on x86), but check_pte() detects mismatch between the
+head page per the pmd and the input subpage.  Thus the vaddr is considered
+not mapped to the subpage and the process is not collected for SIGBUS
+purpose.  This is the calling stack:
+
+      collect_procs_anon
+        page_mapped_in_vma
+          page_vma_mapped_walk
+            hugetlb_walk
+              huge_pte_lock
+                check_pte
+
+check_pte() header says that it
+"check if [pvmw->pfn, @pvmw->pfn + @pvmw->nr_pages) is mapped at the @pvmw->pte"
+but practically works only if pvmw->pfn is the head page pfn at pvmw->pte.
+Hindsight acknowledging that some pvmw->pte could point to a hugepage of
+some sort such that it makes sense to make check_pte() work for hugepage.
+
+Link: https://lkml.kernel.org/r/20250224211445.2663312-1-jane.chu@oracle.com
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: linmiaohe <linmiaohe@huawei.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   61 +++++++++++++++++++++-------------------------
- 1 file changed, 29 insertions(+), 32 deletions(-)
+ mm/page_vma_mapped.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-use-new-iteration-api
-+++ a/mm/page_owner.c
-@@ -229,17 +229,19 @@ static void dec_stack_record_count(depot
- 			handle);
- }
- 
--static inline void __update_page_owner_handle(struct page_ext *page_ext,
-+static inline void __update_page_owner_handle(struct page *page,
- 					      depot_stack_handle_t handle,
- 					      unsigned short order,
- 					      gfp_t gfp_mask,
- 					      short last_migrate_reason, u64 ts_nsec,
- 					      pid_t pid, pid_t tgid, char *comm)
+--- a/mm/page_vma_mapped.c~mm-make-page_mapped_in_vma-hugetlb-walk-aware
++++ a/mm/page_vma_mapped.c
+@@ -84,6 +84,7 @@ again:
+  * mapped at the @pvmw->pte
+  * @pvmw: page_vma_mapped_walk struct, includes a pair pte and pfn range
+  * for checking
++ * @pte_nr: the number of small pages described by @pvmw->pte.
+  *
+  * page_vma_mapped_walk() found a place where pfn range is *potentially*
+  * mapped. check_pte() has to validate this.
+@@ -100,7 +101,7 @@ again:
+  * Otherwise, return false.
+  *
+  */
+-static bool check_pte(struct page_vma_mapped_walk *pvmw)
++static bool check_pte(struct page_vma_mapped_walk *pvmw, unsigned long pte_nr)
  {
--	int i;
-+	struct page_ext_iter iter;
-+	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
- 
--	for (i = 0; i < (1 << order); i++) {
-+	rcu_read_lock();
-+	for_each_page_ext(page, 1 << order, page_ext, iter) {
- 		page_owner = get_page_owner(page_ext);
- 		page_owner->handle = handle;
- 		page_owner->order = order;
-@@ -252,20 +254,22 @@ static inline void __update_page_owner_h
- 			sizeof(page_owner->comm));
- 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
--		page_ext = page_ext_next(page_ext);
+ 	unsigned long pfn;
+ 	pte_t ptent = ptep_get(pvmw->pte);
+@@ -132,7 +133,11 @@ static bool check_pte(struct page_vma_ma
+ 		pfn = pte_pfn(ptent);
  	}
-+	rcu_read_unlock();
+ 
+-	return (pfn - pvmw->pfn) < pvmw->nr_pages;
++	if ((pfn + pte_nr - 1) < pvmw->pfn)
++		return false;
++	if (pfn > (pvmw->pfn + pvmw->nr_pages - 1))
++		return false;
++	return true;
  }
  
--static inline void __update_page_owner_free_handle(struct page_ext *page_ext,
-+static inline void __update_page_owner_free_handle(struct page *page,
- 						   depot_stack_handle_t handle,
- 						   unsigned short order,
- 						   pid_t pid, pid_t tgid,
- 						   u64 free_ts_nsec)
- {
--	int i;
-+	struct page_ext_iter iter;
-+	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
+ /* Returns true if the two ranges overlap.  Careful to not overflow. */
+@@ -207,7 +212,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 			return false;
  
--	for (i = 0; i < (1 << order); i++) {
-+	rcu_read_lock();
-+	for_each_page_ext(page, 1 << order, page_ext, iter) {
- 		page_owner = get_page_owner(page_ext);
- 		/* Only __reset_page_owner() wants to clear the bit */
- 		if (handle) {
-@@ -275,8 +279,8 @@ static inline void __update_page_owner_f
- 		page_owner->free_ts_nsec = free_ts_nsec;
- 		page_owner->free_pid = current->pid;
- 		page_owner->free_tgid = current->tgid;
--		page_ext = page_ext_next(page_ext);
+ 		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
+-		if (!check_pte(pvmw))
++		if (!check_pte(pvmw, pages_per_huge_page(hstate)))
+ 			return not_found(pvmw);
+ 		return true;
  	}
-+	rcu_read_unlock();
- }
- 
- void __reset_page_owner(struct page *page, unsigned short order)
-@@ -293,11 +297,11 @@ void __reset_page_owner(struct page *pag
- 
- 	page_owner = get_page_owner(page_ext);
- 	alloc_handle = page_owner->handle;
-+	page_ext_put(page_ext);
- 
- 	handle = save_stack(GFP_NOWAIT | __GFP_NOWARN);
--	__update_page_owner_free_handle(page_ext, handle, order, current->pid,
-+	__update_page_owner_free_handle(page, handle, order, current->pid,
- 					current->tgid, free_ts_nsec);
--	page_ext_put(page_ext);
- 
- 	if (alloc_handle != early_handle)
- 		/*
-@@ -313,19 +317,13 @@ void __reset_page_owner(struct page *pag
- noinline void __set_page_owner(struct page *page, unsigned short order,
- 					gfp_t gfp_mask)
- {
--	struct page_ext *page_ext;
- 	u64 ts_nsec = local_clock();
- 	depot_stack_handle_t handle;
- 
- 	handle = save_stack(gfp_mask);
--
--	page_ext = page_ext_get(page);
--	if (unlikely(!page_ext))
--		return;
--	__update_page_owner_handle(page_ext, handle, order, gfp_mask, -1,
-+	__update_page_owner_handle(page, handle, order, gfp_mask, -1,
- 				   ts_nsec, current->pid, current->tgid,
- 				   current->comm);
--	page_ext_put(page_ext);
- 	inc_stack_record_count(handle, gfp_mask, 1 << order);
- }
- 
-@@ -344,26 +342,24 @@ void __set_page_owner_migrate_reason(str
- 
- void __split_page_owner(struct page *page, int old_order, int new_order)
- {
--	int i;
--	struct page_ext *page_ext = page_ext_get(page);
-+	struct page_ext_iter iter;
-+	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
- 
--	if (unlikely(!page_ext))
--		return;
--
--	for (i = 0; i < (1 << old_order); i++) {
-+	rcu_read_lock();
-+	for_each_page_ext(page, 1 << old_order, page_ext, iter) {
- 		page_owner = get_page_owner(page_ext);
- 		page_owner->order = new_order;
--		page_ext = page_ext_next(page_ext);
- 	}
--	page_ext_put(page_ext);
-+	rcu_read_unlock();
- }
- 
- void __folio_copy_owner(struct folio *newfolio, struct folio *old)
- {
--	int i;
- 	struct page_ext *old_ext;
- 	struct page_ext *new_ext;
-+	struct page_ext *page_ext;
-+	struct page_ext_iter iter;
- 	struct page_owner *old_page_owner;
- 	struct page_owner *new_page_owner;
- 	depot_stack_handle_t migrate_handle;
-@@ -381,7 +377,7 @@ void __folio_copy_owner(struct folio *ne
- 	old_page_owner = get_page_owner(old_ext);
- 	new_page_owner = get_page_owner(new_ext);
- 	migrate_handle = new_page_owner->handle;
--	__update_page_owner_handle(new_ext, old_page_owner->handle,
-+	__update_page_owner_handle(&newfolio->page, old_page_owner->handle,
- 				   old_page_owner->order, old_page_owner->gfp_mask,
- 				   old_page_owner->last_migrate_reason,
- 				   old_page_owner->ts_nsec, old_page_owner->pid,
-@@ -391,7 +387,7 @@ void __folio_copy_owner(struct folio *ne
- 	 * will be freed after migration. Keep them until then as they may be
- 	 * useful.
- 	 */
--	__update_page_owner_free_handle(new_ext, 0, old_page_owner->order,
-+	__update_page_owner_free_handle(&newfolio->page, 0, old_page_owner->order,
- 					old_page_owner->free_pid,
- 					old_page_owner->free_tgid,
- 					old_page_owner->free_ts_nsec);
-@@ -400,11 +396,12 @@ void __folio_copy_owner(struct folio *ne
- 	 * for the new one and the old folio otherwise there will be an imbalance
- 	 * when subtracting those pages from the stack.
- 	 */
--	for (i = 0; i < (1 << new_page_owner->order); i++) {
-+	rcu_read_lock();
-+	for_each_page_ext(&old->page, 1 << new_page_owner->order, page_ext, iter) {
-+		old_page_owner = get_page_owner(page_ext);
- 		old_page_owner->handle = migrate_handle;
--		old_ext = page_ext_next(old_ext);
--		old_page_owner = get_page_owner(old_ext);
- 	}
-+	rcu_read_unlock();
- 
- 	page_ext_put(new_ext);
- 	page_ext_put(old_ext);
-@@ -813,7 +810,7 @@ static void init_pages_in_zone(pg_data_t
- 				goto ext_put_continue;
- 
- 			/* Found early allocated page */
--			__update_page_owner_handle(page_ext, early_handle, 0, 0,
-+			__update_page_owner_handle(page, early_handle, 0, 0,
- 						   -1, local_clock(), current->pid,
- 						   current->tgid, current->comm);
- 			count++;
+@@ -290,7 +295,7 @@ restart:
+ 			goto next_pte;
+ 		}
+ this_pte:
+-		if (check_pte(pvmw))
++		if (check_pte(pvmw, 1))
+ 			return true;
+ next_pte:
+ 		do {
 _
 
-Patches currently in -mm which might be from luizcap@redhat.com are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-mm-page_ext-make-lookup_page_ext-public.patch
-mm-page_ext-add-an-iteration-api-for-page-extensions.patch
-mm-page_table_check-use-new-iteration-api.patch
-mm-page_owner-use-new-iteration-api.patch
+mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch
 
