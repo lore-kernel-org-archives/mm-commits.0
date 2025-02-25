@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E4E35B211
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:26:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80DBD5B211
+	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:26:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740454002; cv=none; b=XBI7czEWNZY0+wWeTCMaCiNKY+mImI0BS4kTX6f8/aYNj8GdPYVewqviCbVz+3/jZXvhUpAD1jeW9KZVUD9w/3cNl92TH8IoCEF+LmpNcgZsGQtOa8cSdyvINB5HwDiewYXzSLtfwFKMI7bsQ1w8Cxtw98XT+XQ4Rv4ftVeyEUk=
+	t=1740454004; cv=none; b=EilTNQQt+vKxFr8w/bcjnPKMGECNVbb3rLCSksxOoorurvk9i6RhSjMageKwtDpHqZEVUoqecoL/f4FmuqF9Htk0rHBjQrMbCngcjJemObO74jJ27zy7LErtLqYeGytZrUvlDzyOutXNdCr3Xko+8BgSAWjUxuaaae5Kju7vKcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740454002; c=relaxed/simple;
-	bh=3F1KY3xg9Ff9JDmcn4O2XbXhfHLK0Va2p1enjgU/xDc=;
-	h=Date:To:From:Subject:Message-Id; b=kUsE11YWmXePKHWB3rkqO20VzXR4IShIiPy4MOMmZrgKpxbUk644MtoYla7i1PzCf0MGFYGd5tyfq7ec0Nbog8HKFy2ZTGV8fNCTLNnQLvktMj0hDzY3K0qo78LHSTZ26o4vf+bvhh0puI4LJaruxsHQ1RakpIGli/UVE6FOEjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cYLC8ESW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740454004; c=relaxed/simple;
+	bh=SRhpFn1onKZU4ToACbcIeh0LKRUX3pAEkxq2tR0sreY=;
+	h=Date:To:From:Subject:Message-Id; b=Cq43pKt5pF+UbZhGN1Dzp1sbQqbsxDDCG/tZkzsg3ClLmIn399ToGe5VmZIcLgQ7TcYjSuQLZ+42E6jO2Gr6BQAu2yQidFb8N4k21TdOZrKokI34t5JQPK8YxemklZI0pVt0IxalmivpUX+iTY+CZNqvs/+gvC0VwQ3ENSXrepE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oxI/2fsp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cYLC8ESW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89C7AC4CED6;
-	Tue, 25 Feb 2025 03:26:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oxI/2fsp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6BE8C4CED6;
+	Tue, 25 Feb 2025 03:26:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740454001;
-	bh=3F1KY3xg9Ff9JDmcn4O2XbXhfHLK0Va2p1enjgU/xDc=;
+	s=korg; t=1740454004;
+	bh=SRhpFn1onKZU4ToACbcIeh0LKRUX3pAEkxq2tR0sreY=;
 	h=Date:To:From:Subject:From;
-	b=cYLC8ESW+imSXwqpwCgEwQmyQazPX2ApI7LIhydIPm81hE/YPuncUFWdzaUv3HHeU
-	 5Zb//jwvpU6aXnhT9LmXB35+Ck08lgADY7xNAqJeF3CAsgwiQP5O6mk+SLIGkBQR8L
-	 TwxgZHbhq5CiEhsBO/9zU32PfbdMx+FThNaW8I6w=
-Date: Mon, 24 Feb 2025 19:26:41 -0800
+	b=oxI/2fsp8ooKsfBwfp2U7LVpmtXwiWc6YKmMtXLVdXlPTTOKn9rO8uZfsalcR4GI3
+	 aEiv/dHzChI3NxwtUl7yPlCYgS86m5xW+snhV9MH+zAafy+hqZHQVBGsD7r6uFSqTd
+	 nu2rYY/KqEnB8NFacf4kq8XSTF4EF3GeDYEhx5l8=
+Date: Mon, 24 Feb 2025 19:26:43 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,v-songbaohua@oppo.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-avoid-redundant-swap-device-pinning.patch added to mm-unstable branch
-Message-Id: <20250225032641.89C7AC4CED6@smtp.kernel.org>
+Subject: + mm-swap-dont-update-the-counter-up-front.patch added to mm-unstable branch
+Message-Id: <20250225032643.E6BE8C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: avoid redundant swap device pinning
+     Subject: mm, swap: don't update the counter up-front
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-avoid-redundant-swap-device-pinning.patch
+     mm-swap-dont-update-the-counter-up-front.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-avoid-redundant-swap-device-pinning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-dont-update-the-counter-up-front.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: avoid redundant swap device pinning
-Date: Tue, 25 Feb 2025 02:02:08 +0800
+Subject: mm, swap: don't update the counter up-front
+Date: Tue, 25 Feb 2025 02:02:09 +0800
 
-Currently __read_swap_cache_async() has get/put_swap_device() calls to
-increase/decrease a swap device reference to prevent swapoff.  While some
-of its callers have already held the swap device reference, e.g in
-do_swap_page() and shmem_swapin_folio() where __read_swap_cache_async()
-will finally called.  Now there are only two callers not holding a swap
-device reference, so make them hold a reference instead.  And drop the
-get/put_swap_device calls in __read_swap_cache_async.  This should reduce
-the overhead for swap in during page fault slightly.
+The counter update before allocation design was useful to avoid
+unnecessary scan when device is full, so it will abort early if the
+counter indicates the device is full.  But that is an uncommon case, and
+now scanning of a full device is very fast, so the up-front update is not
+helpful any more.
 
-Link: https://lkml.kernel.org/r/20250224180212.22802-4-ryncsn@gmail.com
+Remove it and simplify the slot allocation logic.
+
+Link: https://lkml.kernel.org/r/20250224180212.22802-5-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
@@ -87,87 +86,46 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   14 ++++++++------
- mm/zswap.c      |    6 ++++++
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ mm/swapfile.c |   18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-avoid-redundant-swap-device-pinning
-+++ a/mm/swap_state.c
-@@ -426,17 +426,13 @@ struct folio *__read_swap_cache_async(sw
- 		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
- 		bool skip_if_exists)
- {
--	struct swap_info_struct *si;
-+	struct swap_info_struct *si = swp_swap_info(entry);
- 	struct folio *folio;
- 	struct folio *new_folio = NULL;
- 	struct folio *result = NULL;
- 	void *shadow = NULL;
+--- a/mm/swapfile.c~mm-swap-dont-update-the-counter-up-front
++++ a/mm/swapfile.c
+@@ -1201,22 +1201,10 @@ int get_swap_pages(int n_goal, swp_entry
+ 	int order = swap_entry_order(entry_order);
+ 	unsigned long size = 1 << order;
+ 	struct swap_info_struct *si, *next;
+-	long avail_pgs;
+ 	int n_ret = 0;
+ 	int node;
  
- 	*new_page_allocated = false;
--	si = get_swap_device(entry);
--	if (!si)
--		return NULL;
+ 	spin_lock(&swap_avail_lock);
 -
- 	for (;;) {
- 		int err;
- 		/*
-@@ -532,7 +528,6 @@ fail_unlock:
- 	put_swap_folio(new_folio, entry);
- 	folio_unlock(new_folio);
- put_and_return:
--	put_swap_device(si);
- 	if (!(*new_page_allocated) && new_folio)
- 		folio_put(new_folio);
- 	return result;
-@@ -552,11 +547,16 @@ struct folio *read_swap_cache_async(swp_
- 		struct vm_area_struct *vma, unsigned long addr,
- 		struct swap_iocb **plug)
- {
-+	struct swap_info_struct *si;
- 	bool page_allocated;
- 	struct mempolicy *mpol;
- 	pgoff_t ilx;
- 	struct folio *folio;
+-	avail_pgs = atomic_long_read(&nr_swap_pages) / size;
+-	if (avail_pgs <= 0) {
+-		spin_unlock(&swap_avail_lock);
+-		goto noswap;
+-	}
+-
+-	n_goal = min3((long)n_goal, (long)SWAP_BATCH, avail_pgs);
+-
+-	atomic_long_sub(n_goal * size, &nr_swap_pages);
+-
+ start_over:
+ 	node = numa_node_id();
+ 	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
+@@ -1250,10 +1238,8 @@ start_over:
+ 	spin_unlock(&swap_avail_lock);
  
-+	si = get_swap_device(entry);
-+	if (!si)
-+		return NULL;
+ check_out:
+-	if (n_ret < n_goal)
+-		atomic_long_add((long)(n_goal - n_ret) * size,
+-				&nr_swap_pages);
+-noswap:
++	atomic_long_sub(n_ret * size, &nr_swap_pages);
 +
- 	mpol = get_vma_policy(vma, addr, 0, &ilx);
- 	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 					&page_allocated, false);
-@@ -564,6 +564,8 @@ struct folio *read_swap_cache_async(swp_
- 
- 	if (page_allocated)
- 		swap_read_folio(folio, plug);
-+
-+	put_swap_device(si);
- 	return folio;
+ 	return n_ret;
  }
- 
---- a/mm/zswap.c~mm-swap-avoid-redundant-swap-device-pinning
-+++ a/mm/zswap.c
-@@ -1051,14 +1051,20 @@ static int zswap_writeback_entry(struct
- 	struct folio *folio;
- 	struct mempolicy *mpol;
- 	bool folio_was_allocated;
-+	struct swap_info_struct *si;
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_NONE,
- 	};
- 
- 	/* try to allocate swap cache folio */
-+	si = get_swap_device(swpentry);
-+	if (!si)
-+		return -EEXIST;
-+
- 	mpol = get_task_policy(current);
- 	folio = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
- 				NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
-+	put_swap_device(si);
- 	if (!folio)
- 		return -ENOMEM;
  
 _
 
