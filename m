@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F44B64A
-	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:28:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 813831853
+	for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 03:31:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740454083; cv=none; b=I4zpng+sj6kU1gkKDKPGLR8dNjtiawupnoHz72OW4UlwfJuEnVIVfaThnbyAmZZVDp5yCV+zdwAm9SSGlZtVnlCNF8vvWhN2jwPkgoHqTDu79Q8gnKwrTY+YfgDmY4yPajbeBntbOog5bHH6I6d3LZe44Fa6HOUmKkGnSsIDJv4=
+	t=1740454284; cv=none; b=R7o1WqR8ELFA9NjV4D45C/Nh7r8qWPqeFavEFxLfwStD4Shpc8LNzoNY+aVBkTdPBwN/yXcl+ur6uUfZmz7pnPcjr3vLpCc5YBsLo2dUim6ojer4gV2MrPAGkrhgoL0llYy/oQohx52Zvjz/VN1YgMbetWnIY1R5gTf+zENPMfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740454083; c=relaxed/simple;
-	bh=Ui3LqUovzKxOEvEHfBdZvVk3Yqb+uoqVuHVF+5393do=;
-	h=Date:To:From:Subject:Message-Id; b=jLD7knl2bvaO2L/SJBDHJpCvXzALxg3Ea/Q2PuTnTKbmlhR2nIBBtUuTYXpiyCriDUf7OfqW1iDS2B9M4rGDBgxSaFJPoNsiu2i1WUNXUZP3QPhK0t5O58gK3PDAZZorsvYSZAmwOzevT4FQE6Pbzw0DIvww1MkONQRJYBJWx/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P8YLidfw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740454284; c=relaxed/simple;
+	bh=fhbjlfMBxLDG7DYYOUhhGc1pP57lULiE3ZkTh5tw2to=;
+	h=Date:To:From:Subject:Message-Id; b=gUWRL5x1puEoDB253UZwYmbh7Aqba6t4kGmUt5J3ZPGCXv0IkzNaui/2sXtOCImriDq7L77y4bMGtiPICId1tiRkUUuTsFD7p9IXRZ/1VHuBU0Nvb/WvO4gHBLxINyQ7QWhtCEbhtGg4PQnIOEdxlQJAJtYgxHvmwSQmLvOuebI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIODZPDD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P8YLidfw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1159C4CEE2;
-	Tue, 25 Feb 2025 03:28:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIODZPDD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2546C4CEE2;
+	Tue, 25 Feb 2025 03:31:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740454082;
-	bh=Ui3LqUovzKxOEvEHfBdZvVk3Yqb+uoqVuHVF+5393do=;
+	s=korg; t=1740454284;
+	bh=fhbjlfMBxLDG7DYYOUhhGc1pP57lULiE3ZkTh5tw2to=;
 	h=Date:To:From:Subject:From;
-	b=P8YLidfwT46uCJnS1PMl1/sQ8wCwY4UV1bwqNLWbiDxP+yKKx4iO70mRKbEzAnCDT
-	 4nmBcTs6wDhvAY3InUpSJxcZC0Ft5vyhHbdwgvGekUIfI8cUyxvCQI01h/M+xRD/pR
-	 Cy5NHne0NXmCZSo/UwNZNoyk6dOMgnoxddIOKzAE=
-Date: Mon, 24 Feb 2025 19:28:02 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@lst.de,akpm@linux-foundation.org
+	b=qIODZPDD8lwEgunHABiMlbyLPAWMKtkyKGZoqMVK08bv3cx1ouMeHSsEbMRdxhUc6
+	 1ZWuiSBm/Sb6BVE5Dp70A6UQcVpmj4znHoIs3N3Zoh9XnWqK+fHOAOhnrQqYfwmL78
+	 qTM1EnncT7vIRpfAqm66ey8ExLt/zUnqF3FiV49I=
+Date: Mon, 24 Feb 2025 19:31:23 -0800
+To: mm-commits@vger.kernel.org,seanjc@google.com,pbonzini@redhat.com,binbin.wu@linux.intel.com,suhui@nfschina.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-drop-myself-from-reviewers.patch added to mm-unstable branch
-Message-Id: <20250225032802.D1159C4CEE2@smtp.kernel.org>
+Subject: + include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250225033123.F2546C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc: drop Christoph from Reviewers
-has been added to the -mm mm-unstable branch.  Its filename is
-     vmalloc-drop-myself-from-reviewers.patch
+     Subject: include/linux/log2.h: mark is_power_of_2() with __always_inline
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-drop-myself-from-reviewers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,36 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: vmalloc: drop Christoph from Reviewers
-Date: Mon, 24 Feb 2025 08:30:33 -0800
+From: Su Hui <suhui@nfschina.com>
+Subject: include/linux/log2.h: mark is_power_of_2() with __always_inline
+Date: Fri, 21 Feb 2025 15:16:25 +0800
 
-I haven't been doing as much review as I should.  As part of reducing my
-inbox flow drop me from the official Reviewers.  I might still chime in on
-patches occasionally.
+When building kernel with randconfig, there is an error:
 
-Link: https://lkml.kernel.org/r/20250224163033.350072-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+In function `kvm_is_cr4_bit_set',inlined from
+`kvm_update_cpuid_runtime' at arch/x86/kvm/cpuid.c:310:9:
+
+include/linux/compiler_types.h:542:38: error: call to
+`__compiletime_assert_380' declared with attribute error:
+BUILD_BUG_ON failed: !is_power_of_2(cr4_bit).
+
+'!is_power_of_2(X86_CR4_OSXSAVE)' is False, but gcc treats is_power_of_2()
+as non-inline function and a compilation error happens. Fix this by marking
+is_power_of_2() with __always_inline.
+
+Link: https://lkml.kernel.org/r/20250221071624.1356899-1-suhui@nfschina.com
+Signed-off-by: Su Hui <suhui@nfschina.com>
+Cc: Binbin Wu <binbin.wu@linux.intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/log2.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~vmalloc-drop-myself-from-reviewers
-+++ a/MAINTAINERS
-@@ -25286,7 +25286,6 @@ F:	tools/testing/vsock/
- VMALLOC
- M:	Andrew Morton <akpm@linux-foundation.org>
- R:	Uladzislau Rezki <urezki@gmail.com>
--R:	Christoph Hellwig <hch@infradead.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
+--- a/include/linux/log2.h~include-linux-log2h-mark-is_power_of_2-with-__always_inline
++++ a/include/linux/log2.h
+@@ -41,7 +41,7 @@ int __ilog2_u64(u64 n)
+  * *not* considered a power of two.
+  * Return: true if @n is a power of 2, otherwise false.
+  */
+-static inline __attribute__((const))
++static __always_inline __attribute__((const))
+ bool is_power_of_2(unsigned long n)
+ {
+ 	return (n != 0 && ((n & (n - 1)) == 0));
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from suhui@nfschina.com are
 
-vmalloc-drop-myself-from-reviewers.patch
+include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
 
