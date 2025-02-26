@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEB25155C83
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:36:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1E5EEAFA;
+	Wed, 26 Feb 2025 02:42:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740537412; cv=none; b=I0dgcrRwy+3XdNFuep+suRnfUwn0plPcpzCbGqm1nLoNvLyetTGIF0e1ZkRxk+WxEj48KJeywy5o3xGJx3XVUiP7PWLfTQKyVAU40MbxF4EfGdAsV1yF7qhjqK6ke5aZW56N0ih7s8arMGVy0KcFs9RULI06GAt2ieZK0dpGddo=
+	t=1740537740; cv=none; b=M+2CU00PP1pSbhotlAC4VbM2L7mAa5e0AGonYnTGHHFnE+RwquwSA7/BVgiaUEPDXcatDf2XENuO07m1PP3Hum4t2wM41MEswX3FrzvnxvWIsR/Sqg8VYQybf65q7SGOBgn77ROApizf2R0nsWVJTq7klOaWDihPyG18bEpFlHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740537412; c=relaxed/simple;
-	bh=ALSVd/NW1TqgUGwH85Jqej3CJToRzzAin1qApLbivnc=;
-	h=Date:To:From:Subject:Message-Id; b=ImXPWEXIM1/Pv1wc11NLsGqcXkk7EQYWsiEFoWR2476X46Ggvb22NbMPxsNBd/5XyS1taOl2RqtIffYYRr/dIEsPxdK8IQaX+p7CNz/bJ2pns99tVI534682M10m7EoPW0cyGS10zgiXTc+Plp7kIebYoTJz9/GT2qZFEvOaXGE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AEXtFbmc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740537740; c=relaxed/simple;
+	bh=InW+IK7VHo43o9VPaLYHULMbSes36obf0v5JILCw6w4=;
+	h=Date:To:From:Subject:Message-Id; b=OzRIv6q1rDkEa+qJmrbu3+VOwLJQ1xXCXrcskcnSMScH366XDmfh6EkSi93KDvbzJfo1uQ9ySMAhHFoquNRMiBine06Z4CI6JY5r2DoK1m8fc8pqAq5uVBkLG2c6XMfUQj55jYTgzLnMvJjOetAGcgmvnrnI2XbhJRM2uk/gNr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NA7iMfZx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AEXtFbmc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69FCFC4CEDD;
-	Wed, 26 Feb 2025 02:36:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NA7iMfZx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FC05C4CEDD;
+	Wed, 26 Feb 2025 02:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740537411;
-	bh=ALSVd/NW1TqgUGwH85Jqej3CJToRzzAin1qApLbivnc=;
+	s=korg; t=1740537740;
+	bh=InW+IK7VHo43o9VPaLYHULMbSes36obf0v5JILCw6w4=;
 	h=Date:To:From:Subject:From;
-	b=AEXtFbmc1LbNYOP9Jv/FDpWUJ8vdpkRVjN+8UDqot5pTAWkEvPV7Avl1nv7X/Ji9Z
-	 zJrahVLXmfucH7x/52xHi5tzOA4ZRG2a4QbJG6pJzHfT46U5Y+wXDexdjOiXp09Zn8
-	 lKmhWodjffmFxKiuEcHJ6oM2CwRO/IQc1xpI8y1A=
-Date: Tue, 25 Feb 2025 18:36:50 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,rppt@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=NA7iMfZxbKv006PVmIdnp9GBqZwEzatlDkr1AnDcEFhuccnS/hRHxPIhTZTzmScnN
+	 LLzOkvazk/l/VGjh2XaLcExzFQLjnW2tZ0T8BC+iCosCTgjBrPFIrsPg+Thb735wMz
+	 MgO4PXTigyjYVKf73pKl0nA13/ufUKw23M5Mtn2M=
+Date: Tue, 25 Feb 2025 18:42:19 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,stable@vger.kernel.org,davem@davemloft.net,herbert@gondor.apana.org.au,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-remove-tlb_remove_page_ptdesc.patch added to mm-unstable branch
-Message-Id: <20250226023651.69FCFC4CEDD@smtp.kernel.org>
+Subject: + mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250226024220.2FC05C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pgtable: remove tlb_remove_page_ptdesc()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-remove-tlb_remove_page_ptdesc.patch
+     Subject: mm: zswap: fix crypto_free_acomp deadlock in zswap_cpu_comp_dead
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-remove-tlb_remove_page_ptdesc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: remove tlb_remove_page_ptdesc()
-Date: Tue, 25 Feb 2025 11:45:56 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: mm: zswap: fix crypto_free_acomp deadlock in zswap_cpu_comp_dead
+Date: Tue, 25 Feb 2025 16:53:58 +0800
 
-The tlb_remove_ptdesc()/tlb_remove_table() is specially designed for page
-table pages, and now all architectures have been converted to use it to
-remove page table pages.  So let's remove tlb_remove_page_ptdesc(), it
-currently has no users and should not be used for page table pages.
+Call crypto_free_acomp outside of the mutex in zswap_cpu_comp_dead() as
+otherwise this could deadlock as the allocation path may lead back into
+zswap while holding the same lock.  Zap the pointers to acomp and buffer
+after freeing.
 
-Link: https://lkml.kernel.org/r/3df04c8494339073b71be4acb2d92e108ecd1b60.1740454179.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickens <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Also move the NULL check on acomp_ctx so that it takes place before
+the mutex dereference.
+
+Link: https://lkml.kernel.org/r/Z72FJnbA39zWh4zS@gondor.apana.org.au
+Fixes: 12dcb0ef5406 ("mm: zswap: properly synchronize freeing resources during CPU hotunplug")
+Reported-by: syzbot+1a517ccfcbc6a7ab0f82@syzkaller.appspotmail.com
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/zswap.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/include/asm-generic/tlb.h~mm-pgtable-remove-tlb_remove_page_ptdesc
-+++ a/include/asm-generic/tlb.h
-@@ -511,12 +511,6 @@ static inline void tlb_remove_ptdesc(str
- 	tlb_remove_table(tlb, pt);
+--- a/mm/zswap.c~mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead
++++ a/mm/zswap.c
+@@ -881,18 +881,23 @@ static int zswap_cpu_comp_dead(unsigned
+ {
+ 	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
+ 	struct crypto_acomp_ctx *acomp_ctx = per_cpu_ptr(pool->acomp_ctx, cpu);
++	struct crypto_acomp *acomp = NULL;
++
++	if (IS_ERR_OR_NULL(acomp_ctx))
++		return 0;
+ 
+ 	mutex_lock(&acomp_ctx->mutex);
+-	if (!IS_ERR_OR_NULL(acomp_ctx)) {
+-		if (!IS_ERR_OR_NULL(acomp_ctx->req))
+-			acomp_request_free(acomp_ctx->req);
+-		acomp_ctx->req = NULL;
+-		if (!IS_ERR_OR_NULL(acomp_ctx->acomp))
+-			crypto_free_acomp(acomp_ctx->acomp);
+-		kfree(acomp_ctx->buffer);
+-	}
++	if (!IS_ERR_OR_NULL(acomp_ctx->req))
++		acomp_request_free(acomp_ctx->req);
++	acomp_ctx->req = NULL;
++	acomp = acomp_ctx->acomp;
++	acomp_ctx->acomp = NULL;
++	kfree(acomp_ctx->buffer);
++	acomp_ctx->buffer = NULL;
+ 	mutex_unlock(&acomp_ctx->mutex);
+ 
++	crypto_free_acomp(acomp);
++
+ 	return 0;
  }
  
--/* Like tlb_remove_ptdesc, but for page-like page directories. */
--static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
--{
--	tlb_remove_page(tlb, ptdesc_page(pt));
--}
--
- static inline void tlb_change_page_size(struct mmu_gather *tlb,
- 						     unsigned int page_size)
- {
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
-arm-pgtable-fix-null-pointer-dereference-issue.patch
-mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch
-mm-pgtable-change-pt-parameter-of-tlb_remove_ptdesc-to-struct-ptdesc.patch
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch
-riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch
-x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch
-mm-pgtable-remove-tlb_remove_page_ptdesc.patch
+mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch
 
