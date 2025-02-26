@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD8026AA9E
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 22:07:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2005C25E44D
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 22:07:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740607628; cv=none; b=EXYK8i6UzmkfnRSGscF24ezY572kf3IB7rki59Rhi79cst/3VORCJslnV1uhFNB95c/HANwWgP9aF8DHMPgparqAnvbhBq9mS4WQEFyHe58AxrvR++FLxTPgjSHW881urg/Dst71ggwEr5oYOsMNIE0GFpFIC7Wxh1Y+BcOxruw=
+	t=1740607629; cv=none; b=FOVx/EhWCnCSWZav7j6XV84CnNcEXdGMjn003pHIUOkIXPoF0UkL1vOpuAnDQab3F1AR74FFr+fZQrNSlUz2UafBCHteM5oFfSdhJqUcyTw7ySeboVJocQ8YTC7ABv95sznczMuvychWeI1513NiqoboeR/ad5hp/0PqFXJ1cVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740607628; c=relaxed/simple;
-	bh=l09wkjBCVvLj6InYmR1P1T6/uHrQNuLlJfX4PgrV3mA=;
-	h=Date:To:From:Subject:Message-Id; b=HmXBPcGnZM7p+KS9UaF75bsNgT8oDU+DmFKjhfncmrbrq57D6XeA41PTWurvwxrkCUWGGKlZiZh+MuAPOAZWBXTQniRCETkZxW8AcylNH1fhJ44Z4AMRLicIasHsWDAe0AHDDiRwFEcKTND6bWuPflSpiH+lS0sp4hTCTMEAXic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svrCG65H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740607629; c=relaxed/simple;
+	bh=gAgjI0onngHA8wD8wY/w1w0iasSL4SQzVQPSilZCFZs=;
+	h=Date:To:From:Subject:Message-Id; b=NiGupXXRdWqdC2abMShdI/TecYumPruY9GGINo8cfd/P7udmZPT3ETqjkoda3W+9HvY2fN9vjo7V9/lNscop1PXQLuMHLrtN1vmGZB6Uxs7yuU2ph0jBav9KKsvM3yJM888lIYjpI26N2vVRucHSZqv2gQj1HJpJHPy40txsq9Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ClpjkkSq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svrCG65H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43DFBC4CED6;
-	Wed, 26 Feb 2025 22:07:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClpjkkSq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DCF0C4CEE7;
+	Wed, 26 Feb 2025 22:07:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740607627;
-	bh=l09wkjBCVvLj6InYmR1P1T6/uHrQNuLlJfX4PgrV3mA=;
+	s=korg; t=1740607628;
+	bh=gAgjI0onngHA8wD8wY/w1w0iasSL4SQzVQPSilZCFZs=;
 	h=Date:To:From:Subject:From;
-	b=svrCG65HRUEP3uGQDueF7mJdv0ehRHX9/Lw31TcwBH40Ge6ckhd7qwRLDRCR2dMqB
-	 /ZgYfq4sUoZ3aUgjTRIFWGBCmcyW/uU92E78O4nPLa5L0dHzkLg4N3ZlpR7QDB2xQn
-	 QcB1eZl3pKZva54KN0aLsGfio92PYlG/15wV93zQ=
-Date: Wed, 26 Feb 2025 14:07:06 -0800
+	b=ClpjkkSqeLUoseIk3IDi0pWgk2War2OV9BZOHyc3YswyqYzERgwCzZyFw0Le/VWYw
+	 zfyr2+OOWZAxG8ulf2+srVOiMFM8dCCbIfC+KK6aiadDqqw7kGocQZDCTslHnPa9T+
+	 I6RwqtM7OuDnTdMrf/yHZSeJb3zLfljDHc7Bpx58=
+Date: Wed, 26 Feb 2025 14:07:07 -0800
 To: mm-commits@vger.kernel.org,jglisse@redhat.com,jgg@nvidia.com,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_hmm-make-dmirror_atomic_map-consume-a-single-page.patch added to mm-unstable branch
-Message-Id: <20250226220707.43DFBC4CED6@smtp.kernel.org>
+Subject: + mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte.patch added to mm-unstable branch
+Message-Id: <20250226220708.7DCF0C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_hmm: make dmirror_atomic_map() consume a single page
+     Subject: mm/memory: remove PageAnonExclusive sanity-check in restore_exclusive_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-test_hmm-make-dmirror_atomic_map-consume-a-single-page.patch
+     mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-make-dmirror_atomic_map-consume-a-single-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,87 +59,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: lib/test_hmm: make dmirror_atomic_map() consume a single page
-Date: Wed, 26 Feb 2025 14:22:53 +0100
+Subject: mm/memory: remove PageAnonExclusive sanity-check in restore_exclusive_pte()
+Date: Wed, 26 Feb 2025 14:22:54 +0100
 
-Patch series "mm: cleanups for device-exclusive entries (hmm)", v2.
+In commit b832a354d787 ("mm/memory: page_add_anon_rmap() ->
+folio_add_anon_rmap_pte()") we accidentally changed the sanity check to
+essentially ignore anonymous folio by mis-placing the "!" ...  but we
+really always only get anonymous folios in restore_exclusive_pte().
 
-Some smaller device-exclusive cleanups I have lying around.
+However, in the meantime we removed the separate "writable
+device-exclusive entries" and always detect if the PTE can be writable
+using can_change_pte_writable() -- which also consults PageAnonExclusive.
 
+So let's just get rid of this sanity check completely.
 
-This patch (of 5):
-
-The caller now always passes a single page; let's simplify, and return "0"
-on success.
-
-Link: https://lkml.kernel.org/r/20250226132257.2826043-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20250226132257.2826043-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20250226132257.2826043-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |   32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ mm/memory.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/lib/test_hmm.c~lib-test_hmm-make-dmirror_atomic_map-consume-a-single-page
-+++ a/lib/test_hmm.c
-@@ -707,34 +707,23 @@ static int dmirror_check_atomic(struct d
- 	return 0;
- }
- 
--static int dmirror_atomic_map(unsigned long start, unsigned long end,
--			      struct page **pages, struct dmirror *dmirror)
-+static int dmirror_atomic_map(unsigned long addr, struct page *page,
-+		struct dmirror *dmirror)
- {
--	unsigned long pfn, mapped = 0;
--	int i;
-+	void *entry;
- 
- 	/* Map the migrated pages into the device's page tables. */
- 	mutex_lock(&dmirror->mutex);
- 
--	for (i = 0, pfn = start >> PAGE_SHIFT; pfn < (end >> PAGE_SHIFT); pfn++, i++) {
--		void *entry;
--
--		if (!pages[i])
--			continue;
--
--		entry = pages[i];
--		entry = xa_tag_pointer(entry, DPT_XA_TAG_ATOMIC);
--		entry = xa_store(&dmirror->pt, pfn, entry, GFP_ATOMIC);
--		if (xa_is_err(entry)) {
--			mutex_unlock(&dmirror->mutex);
--			return xa_err(entry);
--		}
--
--		mapped++;
-+	entry = xa_tag_pointer(page, DPT_XA_TAG_ATOMIC);
-+	entry = xa_store(&dmirror->pt, addr >> PAGE_SHIFT, entry, GFP_ATOMIC);
-+	if (xa_is_err(entry)) {
-+		mutex_unlock(&dmirror->mutex);
-+		return xa_err(entry);
+--- a/mm/memory.c~mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte
++++ a/mm/memory.c
+@@ -740,9 +740,6 @@ static void restore_exclusive_pte(struct
+ 			pte = pte_mkdirty(pte);
+ 		pte = pte_mkwrite(pte, vma);
  	}
+-
+-	VM_BUG_ON_FOLIO(pte_write(pte) && (!folio_test_anon(folio) &&
+-					   PageAnonExclusive(page)), folio);
+ 	set_pte_at(vma->vm_mm, address, ptep, pte);
  
- 	mutex_unlock(&dmirror->mutex);
--	return mapped;
-+	return 0;
- }
- 
- static int dmirror_migrate_finalize_and_map(struct migrate_vma *args,
-@@ -804,8 +793,7 @@ static int dmirror_exclusive(struct dmir
- 			break;
- 		}
- 
--		ret = dmirror_atomic_map(addr, addr + PAGE_SIZE, &page, dmirror);
--		ret = ret == 1 ? 0 : -EBUSY;
-+		ret = dmirror_atomic_map(addr, page, dmirror);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 	}
+ 	/*
 _
 
 Patches currently in -mm which might be from david@redhat.com are
