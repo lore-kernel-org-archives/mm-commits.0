@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F1C155C83
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:36:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEB25155C83
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:36:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740537409; cv=none; b=NaVjnIvy13nhePpSYr9tPv8egFMamRltKv9ojuQs8gUzMpTOnTDTFkJwhZy4fnqW/PNt0sJcB4E/T6iM5EgwXIA8tMqu94Xvf0iqyYKxyC8o3vRbfF7reST6MZRmElFDUdXXJI/YxVX5E91DFwz0x3TcwKJadzOf6sg/LeIM+g0=
+	t=1740537412; cv=none; b=I0dgcrRwy+3XdNFuep+suRnfUwn0plPcpzCbGqm1nLoNvLyetTGIF0e1ZkRxk+WxEj48KJeywy5o3xGJx3XVUiP7PWLfTQKyVAU40MbxF4EfGdAsV1yF7qhjqK6ke5aZW56N0ih7s8arMGVy0KcFs9RULI06GAt2ieZK0dpGddo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740537409; c=relaxed/simple;
-	bh=NTcEZQ2cY/kuyrMuY6hkxjVnqam08QLWoZ9UlNQfF7k=;
-	h=Date:To:From:Subject:Message-Id; b=Xo2Ep1JcjME8TfvNVYpOJrfFpcNuwHLVe8EZS40aVWNe5VokdI2Kus5fhXzMlhBH4kj5I+Y8YxH9WT9eZX9MuY98U7Lss9kZWUgfhjK6DgXtmryajjXvRvzWnj0IxzCfFhbe2XXzj0/hQLNMUE296D+6pgYek/Rj+Ep2DOY5Njw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MqZozLex; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740537412; c=relaxed/simple;
+	bh=ALSVd/NW1TqgUGwH85Jqej3CJToRzzAin1qApLbivnc=;
+	h=Date:To:From:Subject:Message-Id; b=ImXPWEXIM1/Pv1wc11NLsGqcXkk7EQYWsiEFoWR2476X46Ggvb22NbMPxsNBd/5XyS1taOl2RqtIffYYRr/dIEsPxdK8IQaX+p7CNz/bJ2pns99tVI534682M10m7EoPW0cyGS10zgiXTc+Plp7kIebYoTJz9/GT2qZFEvOaXGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AEXtFbmc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MqZozLex"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DCC8C4CEDD;
-	Wed, 26 Feb 2025 02:36:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AEXtFbmc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69FCFC4CEDD;
+	Wed, 26 Feb 2025 02:36:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740537409;
-	bh=NTcEZQ2cY/kuyrMuY6hkxjVnqam08QLWoZ9UlNQfF7k=;
+	s=korg; t=1740537411;
+	bh=ALSVd/NW1TqgUGwH85Jqej3CJToRzzAin1qApLbivnc=;
 	h=Date:To:From:Subject:From;
-	b=MqZozLexJ7qZZNA9M6Pvb2N7wb+Pc6T1Bl7xqI2bMZPjbQGMjqktB9yuU0psQH1Eh
-	 5zwQrNiZQarXv7j1pomiypIIsbGEDsQqPZGyy23g5HuxxneMZ4vaDzAIvtK9wLjrzL
-	 +eblzh8DE68tC3BriJSyy3tHhTryoh7Lmt4TKlsw=
-Date: Tue, 25 Feb 2025 18:36:48 -0800
+	b=AEXtFbmc1LbNYOP9Jv/FDpWUJ8vdpkRVjN+8UDqot5pTAWkEvPV7Avl1nv7X/Ji9Z
+	 zJrahVLXmfucH7x/52xHi5tzOA4ZRG2a4QbJG6pJzHfT46U5Y+wXDexdjOiXp09Zn8
+	 lKmhWodjffmFxKiuEcHJ6oM2CwRO/IQc1xpI8y1A=
+Date: Tue, 25 Feb 2025 18:36:50 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,rppt@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch added to mm-unstable branch
-Message-Id: <20250226023649.4DCC8C4CEDD@smtp.kernel.org>
+Subject: + mm-pgtable-remove-tlb_remove_page_ptdesc.patch added to mm-unstable branch
+Message-Id: <20250226023651.69FCFC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: pgtable: convert to use tlb_remove_ptdesc()
+     Subject: mm: pgtable: remove tlb_remove_page_ptdesc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch
+     mm-pgtable-remove-tlb_remove_page_ptdesc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-remove-tlb_remove_page_ptdesc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: x86: pgtable: convert to use tlb_remove_ptdesc()
-Date: Tue, 25 Feb 2025 11:45:55 +0800
+Subject: mm: pgtable: remove tlb_remove_page_ptdesc()
+Date: Tue, 25 Feb 2025 11:45:56 +0800
 
-The x86 has already been converted to use struct ptdesc, so convert it to
-use tlb_remove_ptdesc() instead of tlb_remove_table().
+The tlb_remove_ptdesc()/tlb_remove_table() is specially designed for page
+table pages, and now all architectures have been converted to use it to
+remove page table pages.  So let's remove tlb_remove_page_ptdesc(), it
+currently has no users and should not be used for page table pages.
 
-Link: https://lkml.kernel.org/r/36ad56b7e06fa4b17fb23c4fc650e8e0d72bb3cd.1740454179.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/3df04c8494339073b71be4acb2d92e108ecd1b60.1740454179.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -79,7 +82,6 @@ Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
 Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Will Deacon <will@kernel.org>
@@ -87,45 +89,24 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/asm-generic/tlb.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/arch/x86/mm/pgtable.c~x86-pgtable-convert-to-use-tlb_remove_ptdesc
-+++ a/arch/x86/mm/pgtable.c
-@@ -45,7 +45,7 @@ early_param("userpte", setup_userpte);
- void ___pte_free_tlb(struct mmu_gather *tlb, struct page *pte)
- {
- 	paravirt_release_pte(page_to_pfn(pte));
--	tlb_remove_table(tlb, page_ptdesc(pte));
-+	tlb_remove_ptdesc(tlb, page_ptdesc(pte));
+--- a/include/asm-generic/tlb.h~mm-pgtable-remove-tlb_remove_page_ptdesc
++++ a/include/asm-generic/tlb.h
+@@ -511,12 +511,6 @@ static inline void tlb_remove_ptdesc(str
+ 	tlb_remove_table(tlb, pt);
  }
  
- #if CONFIG_PGTABLE_LEVELS > 2
-@@ -59,21 +59,21 @@ void ___pmd_free_tlb(struct mmu_gather *
- #ifdef CONFIG_X86_PAE
- 	tlb->need_flush_all = 1;
- #endif
--	tlb_remove_table(tlb, virt_to_ptdesc(pmd));
-+	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pmd));
- }
- 
- #if CONFIG_PGTABLE_LEVELS > 3
- void ___pud_free_tlb(struct mmu_gather *tlb, pud_t *pud)
+-/* Like tlb_remove_ptdesc, but for page-like page directories. */
+-static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
+-{
+-	tlb_remove_page(tlb, ptdesc_page(pt));
+-}
+-
+ static inline void tlb_change_page_size(struct mmu_gather *tlb,
+ 						     unsigned int page_size)
  {
- 	paravirt_release_pud(__pa(pud) >> PAGE_SHIFT);
--	tlb_remove_table(tlb, virt_to_ptdesc(pud));
-+	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pud));
- }
- 
- #if CONFIG_PGTABLE_LEVELS > 4
- void ___p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d)
- {
- 	paravirt_release_p4d(__pa(p4d) >> PAGE_SHIFT);
--	tlb_remove_table(tlb, virt_to_ptdesc(p4d));
-+	tlb_remove_ptdesc(tlb, virt_to_ptdesc(p4d));
- }
- #endif	/* CONFIG_PGTABLE_LEVELS > 4 */
- #endif	/* CONFIG_PGTABLE_LEVELS > 3 */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
