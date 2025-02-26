@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DFA27DA73
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 05:46:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49CAB20D4F3
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 05:48:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740548792; cv=none; b=Eti2L+ZNE2KU21tFhI9fl9o7ScQzwyPrgoqsWyE2nEZpiy/r2JtShdqfWER3U38Sm3OmnhGSgYJYpmbrRm7qsdJuzh5LkjWiZq6s9HgpBEs1h/tTHV/IqIsWCeY6XAypgVSE9HGjEPAt2NuHqwkqMSxroQZcx5q54sNepznBvRQ=
+	t=1740548918; cv=none; b=BIvpEyLOvCQn0GYNhwJS6qX7vRoe5t1WQoa3GtYSoLzWyDNUr0hfKtt3Uc3S+rxPlDaiXo/kWtsUyorPhb+1quLxAESrxSs51eZSyNoWUO2/XyaVznQVv9w7A7gq3oFvK7mm/+mWngX+xvhQtObzdhuHdxDXYhspkwybdGHlUKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740548792; c=relaxed/simple;
-	bh=yGhjeS+h7M+2qhanUxpduf7vpL6uqoSVz5qYdFtC0Qw=;
-	h=Date:To:From:Subject:Message-Id; b=lyRPdMcBgDvFw+8OWJ/p10JiErdjE5FWAc8d9mnu5uABjEKctJ2vm8VdfrZeSg//HdZC8leMr3QobET4tySfVErEnXl3Y/xJJhLJP6ZnsCeypd/RivG9FXIemVZZ+z7w1Mfd2Y1X2PdvOV/+YKRhvLWvmBYna5RxDHoR1Eok0lA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VV/gMBr6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740548918; c=relaxed/simple;
+	bh=sMeM0bsF2FWjHfszyNJV424mpU5Q289UOp+CM1sYo1Y=;
+	h=Date:To:From:Subject:Message-Id; b=gzlvcKYSNuvt2l5AhDEA7lMbthQqUmhQKLzGqTUYvzbirzTRPgHLzHLHcrKQoZDQisxZreZ+/IAGXh3q9kOIIzPulOTrZvpdueQVPQ+RAW4PSvKOnufG0l9nuRRJ6IGp5EV4IsNSAOsMKOntZBsReJu022ATsgnC+Tmaxid1Fp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=17e8PcID; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VV/gMBr6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA654C4CED6;
-	Wed, 26 Feb 2025 05:46:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="17e8PcID"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5924C4CED6;
+	Wed, 26 Feb 2025 05:48:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740548792;
-	bh=yGhjeS+h7M+2qhanUxpduf7vpL6uqoSVz5qYdFtC0Qw=;
+	s=korg; t=1740548917;
+	bh=sMeM0bsF2FWjHfszyNJV424mpU5Q289UOp+CM1sYo1Y=;
 	h=Date:To:From:Subject:From;
-	b=VV/gMBr6FMgU6tC3HWULRiLbu1SXX+IvxHg3ZeqEeejXKnvg/Z42X6s4R0xjk+B1C
-	 xaPTB02n4BT5YGaL9RWYx3AL7/t2Waz1doYjcZvX3HveN7F3hg1+bxlli19CHfLJHe
-	 dz8MBxytkXUTpq0Z9ak2aTih4RC/3MVb1Gh3KXg4=
-Date: Tue, 25 Feb 2025 21:46:31 -0800
-To: mm-commits@vger.kernel.org,kasong@tencent.com,bhe@redhat.com,sfr@canb.auug.org.au,akpm@linux-foundation.org
+	b=17e8PcIDOti5wy3nEOl2ts2XNPaaeGKcXzV8ngWrAW/KNKgBfYLgp52wjpSyXQJqw
+	 +d/whZaUmwcZfx6ADK8qfdc9X1LQTVccQ5bQeu79AG8iYExZKLikhL+h12sWBFPWsK
+	 pn/h/PXZEsw5XjoK6JNCag0B3XmzvGnCnVE767Yo=
+Date: Tue, 25 Feb 2025 21:48:37 -0800
+To: mm-commits@vger.kernel.org,linux@weissschuh.net,kbingham@kernel.org,jan.kiszka@siemens.com,antonio@mandelbit.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-simplify-folio-swap-allocation-fix.patch added to mm-unstable branch
-Message-Id: <20250226054631.EA654C4CED6@smtp.kernel.org>
+Subject: + scripts-gdb-linux-symbolspy-address-changes-to-module_sect_attrs.patch added to mm-nonmm-unstable branch
+Message-Id: <20250226054837.A5924C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fix up for "mm, swap: simplify folio swap allocation"
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-simplify-folio-swap-allocation-fix.patch
+     Subject: scripts/gdb/linux/symbols.py: address changes to module_sect_attrs
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-linux-symbolspy-address-changes-to-module_sect_attrs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-simplify-folio-swap-allocation-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-linux-symbolspy-address-changes-to-module_sect_attrs.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,36 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: fix up for "mm, swap: simplify folio swap allocation"
-Date: Wed, 26 Feb 2025 15:54:33 +1100
+From: Antonio Quartulli <antonio@mandelbit.com>
+Subject: scripts/gdb/linux/symbols.py: address changes to module_sect_attrs
+Date: Fri, 21 Feb 2025 21:40:34 +0100
 
-folio_alloc_swap() should be inlined
+When loading symbols from kernel modules we used to iterate
+from 0 to module_sect_attrs::nsections, in order to
+retrieve their name and address.
 
-Link: https://lkml.kernel.org/r/20250226161217.1e7c5ae1@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
+However module_sect_attrs::nsections has been removed from
+the struct by a previous commit.
+
+Re-arrange the iteration by accessing all items in
+module_sect_attrs::grp::bin_attrs[] until NULL is found
+(it's a NULL terminated array).
+
+At the same time the symbol address cannot be extracted
+from module_sect_attrs::attrs[]::address anymore because
+it has also been deleted. Fetch it from
+module_sect_attrs::grp::bin_attrs[]::private as described
+in 4b2c11e4aaf7.
+
+Link: https://lkml.kernel.org/r/20250221204034.4430-1-antonio@mandelbit.com
+Fixes: d8959b947a8d ("module: sysfs: Drop member 'module_sect_attrs::nsections'")
+Fixes: 4b2c11e4aaf7 ("module: sysfs: Drop member 'module_sect_attr::address'")
+Signed-off-by: Antonio Quartulli <antonio@mandelbit.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/symbols.py |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-simplify-folio-swap-allocation-fix
-+++ a/include/linux/swap.h
-@@ -587,7 +587,7 @@ static inline int swp_swapcount(swp_entr
- 	return 0;
- }
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-linux-symbolspy-address-changes-to-module_sect_attrs
++++ a/scripts/gdb/linux/symbols.py
+@@ -15,6 +15,7 @@ import gdb
+ import os
+ import re
  
--static int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask)
-+static inline int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask)
- {
- 	return -EINVAL;
- }
++from itertools import count
+ from linux import modules, utils, constants
+ 
+ 
+@@ -95,10 +96,14 @@ lx-symbols command."""
+         except gdb.error:
+             return str(module_addr)
+ 
+-        attrs = sect_attrs['attrs']
+-        section_name_to_address = {
+-            attrs[n]['battr']['attr']['name'].string(): attrs[n]['address']
+-            for n in range(int(sect_attrs['nsections']))}
++        section_name_to_address = {}
++        for i in count():
++            # this is a NULL terminated array
++            if sect_attrs['grp']['bin_attrs'][i] == 0x0:
++                break
++
++            attr = sect_attrs['grp']['bin_attrs'][i].dereference()
++            section_name_to_address[attr['attr']['name'].string()] = attr['private']
+ 
+         textaddr = section_name_to_address.get(".text", module_addr)
+         args = []
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from antonio@mandelbit.com are
 
-mm-swap-simplify-folio-swap-allocation-fix.patch
+scripts-gdb-linux-symbolspy-address-changes-to-module_sect_attrs.patch
 
