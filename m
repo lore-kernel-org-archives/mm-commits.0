@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AFFB258CE6
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 21:43:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE2212253FD
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 21:51:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740606219; cv=none; b=BC9E7GiTsTI5CZnnM9xAkiT/Mbl5ELgDsb1SJBdTbzqs0Ya5TPf25BOXnTz+D6skFxAQnxrtPF3ujrqZFZUXffzwUxuAjlwpPedMfEvhj/tTcPrQwLi5+pg5oPfChmd0gKWMLQ0QU5Sv7Y0+lDliN+2ngYSLiuDTONGLwPFmbV4=
+	t=1740606697; cv=none; b=IULynw7J2RXB68CW6bgTIaGtHgoJf9GckKZ3x4l0KUcO+JxDuaOAmJD6gHRPUQSrsB7g++827QDZe3FMOc883qRGVgVKkEpk3NBCW17A/0unlW4qNZwJg6DaHa3Odf9BYjJVRjWwiq+jRrbSaMCMezLMMxyEa9Ar8emYN6u7B7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740606219; c=relaxed/simple;
-	bh=0pGYn6K0fFtTaFGjsB8NFj1V8bJOTo3T56peQbwGdNM=;
-	h=Date:To:From:Subject:Message-Id; b=kBaJBypMAHsBKJCCMtNl+IzAH31K2VeQdML9VnyrGxjKAaGDFWO+QVBA9ffVQ0nvOPuRdmHEWBeppu4s99cG0kRFz7kh1mqOLbuTqsXvucBB3O9yEas1ZgUb/gNBKpSmshMcOC89P9+nLHCyggWblnpxFpPErIbVr08AoynzKls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tyiN5h93; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740606697; c=relaxed/simple;
+	bh=QkTT9oXUdUo2WtL7b0+CgaKY627fpwXJPuI2XVAppJU=;
+	h=Date:To:From:Subject:Message-Id; b=i5PUu5r9IN/QC0ayvI2IgjBy2QywvC0HTKWbLVTaeMSdCNUw33+C6EiZGqvQ7OWoriW/nNYe6L0fbP0A7kBx6utpIS7AA8lIlEluwprIpejcQhX6dA6CZz5q6cp5i68eHPhQE57Fs2Y9t31xVY9dbXfLo0fuLLCYWsIrFcDktCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m6F/Fi1K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tyiN5h93"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9B5AC4CEE7;
-	Wed, 26 Feb 2025 21:43:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m6F/Fi1K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 638A7C4CED6;
+	Wed, 26 Feb 2025 21:51:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740606219;
-	bh=0pGYn6K0fFtTaFGjsB8NFj1V8bJOTo3T56peQbwGdNM=;
+	s=korg; t=1740606696;
+	bh=QkTT9oXUdUo2WtL7b0+CgaKY627fpwXJPuI2XVAppJU=;
 	h=Date:To:From:Subject:From;
-	b=tyiN5h93iXHIVZPdFrOVmPpvGtm7UOoegASjGVzHrgHiTMvcY/L2dpTRCXv8qg7xp
-	 ayy0H/z+9yDS05hJAutbjMEtfTHpZt1Q0y9l5Dy3CvRjGkdFtlpyQsmVrQIwHi2yXx
-	 X2UGK1xcSrbQJOcIFLLrkW1fO5rUtt65ZOvpzQ3I=
-Date: Wed, 26 Feb 2025 13:43:38 -0800
-To: mm-commits@vger.kernel.org,djwong@kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=m6F/Fi1Kb7cvV4Av3U0nZCfM/vvqVhaqEnDYgffoepWdCKWWF1gSiV5x/XzK40VaZ
+	 zFAvH559IYSXhQlZhQtiny7htEED81SsUYjwd5YnyDTpylP4LsZD4qR9vNwcXw8aFL
+	 LfXU5XvWeZDNyNYjfA1Dw84HaCOnk9P6+VXwiMMU=
+Date: Wed, 26 Feb 2025 13:51:35 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-assert-the-folio-is-locked-in-folio_start_writeback.patch added to mm-unstable branch
-Message-Id: <20250226214338.E9B5AC4CEE7@smtp.kernel.org>
+Subject: + userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250226215136.638A7C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: assert the folio is locked in folio_start_writeback()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
+     Subject: userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: assert the folio is locked in folio_start_writeback()
-Date: Wed, 26 Feb 2025 15:36:12 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix
+Date: Wed Feb 26 01:50:26 PM PST 2025
 
-The folio must be locked when we start writeback in order to prevent
-writeback from being started twice on the same folio.  I don't expect this
-to catch any problems, but it should be good documentation.
+reflow comment to 80 cols, s/end/end up/
 
-Link: https://lkml.kernel.org/r/20250226153614.3774896-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/userfaultfd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/page-writeback.c~mm-assert-the-folio-is-locked-in-folio_start_writeback
-+++ a/mm/page-writeback.c
-@@ -3109,6 +3109,7 @@ void __folio_start_writeback(struct foli
- 	int access_ret;
+--- a/mm/userfaultfd.c~userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix
++++ a/mm/userfaultfd.c
+@@ -1272,11 +1272,11 @@ retry:
  
- 	VM_BUG_ON_FOLIO(folio_test_writeback(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 
- 	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		XA_STATE(xas, &mapping->i_pages, folio_index(folio));
+ 			locked = folio_trylock(folio);
+ 			/*
+-			 * We avoid waiting for folio lock with a raised refcount
+-			 * for large folios because extra refcounts will result in
+-			 * split_folio() failing later and retrying. If multiple
+-			 * tasks are trying to move a large folio we can end
+-			 * livelocking.
++			 * We avoid waiting for folio lock with a raised
++			 * refcount for large folios because extra refcounts
++			 * will result in split_folio() failing later and
++			 * retrying.  If multiple tasks are trying to move a
++			 * large folio we can end up livelocking.
+ 			 */
+ 			if (!locked && folio_test_large(folio)) {
+ 				spin_unlock(src_ptl);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dax-remove-access-to-page-index.patch
-dax-use-folios-more-widely-within-dax.patch
-fs-convert-block_commit_write-to-take-a-folio.patch
-fs-remove-page_file_mapping.patch
-fs-remove-folio_file_mapping.patch
-mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
-ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
-ocfs2-remove-reference-to-bh-b_page.patch
+nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback-fix.patch
+userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix.patch
+mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
+lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
 
