@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29E8529D0E;
-	Wed, 26 Feb 2025 21:32:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891742745E;
+	Wed, 26 Feb 2025 21:32:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740605534; cv=none; b=j+yfsSzX2Alw48nmoSUCAJBS+uAnjZ1FDBBaKxgQpyUdGSF6QdtghgvnJgsju0ZAzu7Azz5Cc6ksxRhHJcO/CM54jngp9sNmuQJHMpTOql9+pw9p+hMXmGsiNnmmOZcdbvvZTGkE3/t5IACGltX655/Pvzdo4HlPSGGoOQ7hJ+8=
+	t=1740605535; cv=none; b=b5OQxmvdBRPA6JguZksDOJDlOm7dEDE4qeS9eZ9AfXAnK3sMggLua1rfkzj7nREHMctTVquJOaoz3NSINVr9KtEM+RFqh38sQWJEdLm5/RoePffm3l+kCfRm6MCdLTMenbi/FAmjSk0m66KICl5m1wC3HCOrtViLut/rN5L8/B8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740605534; c=relaxed/simple;
-	bh=gi2q+tJWhkUJiEm722FTjk0vRpivjtfSyIcoAVeGDR0=;
-	h=Date:To:From:Subject:Message-Id; b=ZR9F8TaBWiZytL5BD1ZfZF1sI6LTOkJjyLdIg8OkA5jQf6RvNvUvjm7yrc4TXJXGjV7fesqorBcEdPrVAF0csNO34kVwm/rDhwJnW8lInj0UeNwcJaNvIKEvbv4oVZeIIASXXV37GWzalBXtCAaMdtuf+bO3wbwEEQ++SbzqLHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OM1zyWfo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740605535; c=relaxed/simple;
+	bh=uXSePFVCUMGaYm5BxxVJKlXEJQpALJXdsJNqK5bnCZw=;
+	h=Date:To:From:Subject:Message-Id; b=nVnfpiPH31JbE2T3R5Ow16rco/57njh7L1EXDG3EpByeUMArVYjLwgrVBnm0VsCPf35kHNW9WKTT5Vju+Scu1kHzjWmrJO63SooW4XHaTWPWSaeKb+sp3zH4RbKuwDfZT14kMjxE6vVueLSame2KX+RhSBRXPSOGOH3OT+DRVfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pjbe2Iqc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OM1zyWfo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9031EC4CED6;
-	Wed, 26 Feb 2025 21:32:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pjbe2Iqc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF780C4CEE9;
+	Wed, 26 Feb 2025 21:32:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740605533;
-	bh=gi2q+tJWhkUJiEm722FTjk0vRpivjtfSyIcoAVeGDR0=;
+	s=korg; t=1740605535;
+	bh=uXSePFVCUMGaYm5BxxVJKlXEJQpALJXdsJNqK5bnCZw=;
 	h=Date:To:From:Subject:From;
-	b=OM1zyWfosuhZekym3Q2m7XNpmERXajkoNJBChCAuiJdMi6awUN7IzpnYcJTFyCuKa
-	 sKchg2JERtcUc0J3O4kqA5JhFeOKUjpOAMPHD7htsonsNDtW/Z2djIZECYXrb7wwkl
-	 cH5/0HQT4p7gXyNkMctzHCglooHTAVD8CQFe7FlA=
-Date: Wed, 26 Feb 2025 13:32:13 -0800
+	b=Pjbe2IqcfG16Uv5TMqb+PJzeMGnzXuo6oWZkB0swPQ0WQ6j3UoQYVaVzler01HPe5
+	 HZxDsQimtpO28XyMZosjzTtnydZyNmVVvWvzr4R/zaaY6QZsoXYe1ZpTgxe+J/VFeZ
+	 DwZekMilnurbQ/dkxHbuOjC+pvIG4SsFrJ5GTzXE=
+Date: Wed, 26 Feb 2025 13:32:14 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,v-songbaohua@oppo.com,stable@vger.kernel.org,peterx@redhat.com,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,kaleshsingh@google.com,jannh@google.com,hughd@google.com,david@redhat.com,aarcange@redhat.com,21cnbao@gmail.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250226213213.9031EC4CED6@smtp.kernel.org>
+Subject: + userfaultfd-fix-pte-unmapping-stack-allocated-pte-copies.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250226213214.EF780C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: do not block on locking a large folio with raised refcount
+     Subject: userfaultfd: fix PTE unmapping stack-allocated PTE copies
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount.patch
+     userfaultfd-fix-pte-unmapping-stack-allocated-pte-copies.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-fix-pte-unmapping-stack-allocated-pte-copies.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: userfaultfd: do not block on locking a large folio with raised refcount
-Date: Wed, 26 Feb 2025 10:55:08 -0800
+Subject: userfaultfd: fix PTE unmapping stack-allocated PTE copies
+Date: Wed, 26 Feb 2025 10:55:09 -0800
 
-Lokesh recently raised an issue about UFFDIO_MOVE getting into a deadlock
-state when it goes into split_folio() with raised folio refcount. 
-split_folio() expects the reference count to be exactly mapcount +
-num_pages_in_folio + 1 (see can_split_folio()) and fails with EAGAIN
-otherwise.
+Current implementation of move_pages_pte() copies source and destination
+PTEs in order to detect concurrent changes to PTEs involved in the move. 
+However these copies are also used to unmap the PTEs, which will fail if
+CONFIG_HIGHPTE is enabled because the copies are allocated on the stack. 
+Fix this by using the actual PTEs which were kmap()ed.
 
-If multiple processes are trying to move the same large folio, they raise
-the refcount (all tasks succeed in that) then one of them succeeds in
-locking the folio, while others will block in folio_lock() while keeping
-the refcount raised.  The winner of this race will proceed with calling
-split_folio() and will fail returning EAGAIN to the caller and unlocking
-the folio.  The next competing process will get the folio locked and will
-go through the same flow.  In the meantime the original winner will be
-retried and will block in folio_lock(), getting into the queue of waiting
-processes only to repeat the same path.  All this results in a livelock.
-
-An easy fix would be to avoid waiting for the folio lock while holding
-folio refcount, similar to madvise_free_huge_pmd() where folio lock is
-acquired before raising the folio refcount.  Since we lock and take a
-refcount of the folio while holding the PTE lock, changing the order of
-these operations should not break anything.
-
-Modify move_pages_pte() to try locking the folio first and if that fails
-and the folio is large then return EAGAIN without touching the folio
-refcount.  If the folio is single-page then split_folio() is not called,
-so we don't have this issue.  Lokesh has a reproducer [1] and I verified
-that this change fixes the issue.
-
-[1] https://github.com/lokeshgidra/uffd_move_ioctl_deadlock
-
-Link: https://lkml.kernel.org/r/20250226185510.2732648-2-surenb@google.com
+Link: https://lkml.kernel.org/r/20250226185510.2732648-3-surenb@google.com
 Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Lokesh Gidra <lokeshgidra@google.com>
+Reported-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
@@ -105,53 +80,74 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ mm/userfaultfd.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount
+--- a/mm/userfaultfd.c~userfaultfd-fix-pte-unmapping-stack-allocated-pte-copies
 +++ a/mm/userfaultfd.c
-@@ -1250,6 +1250,7 @@ retry:
- 		 */
- 		if (!src_folio) {
- 			struct folio *folio;
-+			bool locked;
- 
- 			/*
- 			 * Pin the page while holding the lock to be sure the
-@@ -1269,12 +1270,26 @@ retry:
- 				goto out;
- 			}
- 
-+			locked = folio_trylock(folio);
-+			/*
-+			 * We avoid waiting for folio lock with a raised refcount
-+			 * for large folios because extra refcounts will result in
-+			 * split_folio() failing later and retrying. If multiple
-+			 * tasks are trying to move a large folio we can end
-+			 * livelocking.
-+			 */
-+			if (!locked && folio_test_large(folio)) {
-+				spin_unlock(src_ptl);
-+				err = -EAGAIN;
-+				goto out;
-+			}
-+
- 			folio_get(folio);
- 			src_folio = folio;
- 			src_folio_pte = orig_src_pte;
+@@ -1290,8 +1290,8 @@ retry:
  			spin_unlock(src_ptl);
  
--			if (!folio_trylock(src_folio)) {
-+			if (!locked) {
- 				pte_unmap(&orig_src_pte);
- 				pte_unmap(&orig_dst_pte);
+ 			if (!locked) {
+-				pte_unmap(&orig_src_pte);
+-				pte_unmap(&orig_dst_pte);
++				pte_unmap(src_pte);
++				pte_unmap(dst_pte);
  				src_pte = dst_pte = NULL;
+ 				/* now we can block and wait */
+ 				folio_lock(src_folio);
+@@ -1307,8 +1307,8 @@ retry:
+ 		/* at this point we have src_folio locked */
+ 		if (folio_test_large(src_folio)) {
+ 			/* split_folio() can block */
+-			pte_unmap(&orig_src_pte);
+-			pte_unmap(&orig_dst_pte);
++			pte_unmap(src_pte);
++			pte_unmap(dst_pte);
+ 			src_pte = dst_pte = NULL;
+ 			err = split_folio(src_folio);
+ 			if (err)
+@@ -1333,8 +1333,8 @@ retry:
+ 				goto out;
+ 			}
+ 			if (!anon_vma_trylock_write(src_anon_vma)) {
+-				pte_unmap(&orig_src_pte);
+-				pte_unmap(&orig_dst_pte);
++				pte_unmap(src_pte);
++				pte_unmap(dst_pte);
+ 				src_pte = dst_pte = NULL;
+ 				/* now we can block and wait */
+ 				anon_vma_lock_write(src_anon_vma);
+@@ -1352,8 +1352,8 @@ retry:
+ 		entry = pte_to_swp_entry(orig_src_pte);
+ 		if (non_swap_entry(entry)) {
+ 			if (is_migration_entry(entry)) {
+-				pte_unmap(&orig_src_pte);
+-				pte_unmap(&orig_dst_pte);
++				pte_unmap(src_pte);
++				pte_unmap(dst_pte);
+ 				src_pte = dst_pte = NULL;
+ 				migration_entry_wait(mm, src_pmd, src_addr);
+ 				err = -EAGAIN;
+@@ -1396,8 +1396,8 @@ retry:
+ 			src_folio = folio;
+ 			src_folio_pte = orig_src_pte;
+ 			if (!folio_trylock(src_folio)) {
+-				pte_unmap(&orig_src_pte);
+-				pte_unmap(&orig_dst_pte);
++				pte_unmap(src_pte);
++				pte_unmap(dst_pte);
+ 				src_pte = dst_pte = NULL;
+ 				/* now we can block and wait */
+ 				folio_lock(src_folio);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
