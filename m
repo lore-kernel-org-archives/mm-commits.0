@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28A1225E822;
-	Wed, 26 Feb 2025 22:51:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A962225E83F
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 23:01:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740610306; cv=none; b=mbpl80IXDH8VWpaH6IHsiixiR0m1ZjbPQ7mE4C5i65xBBKUf/da3AEWUiOiOTT6XExU57GmAEUcVWLtaPoLgFzC8xY2604uzY0VLlWWpEUtqwtpi7/jIslDBa4ZDvBEMMgY/PDDumJqf9VS/0kj1Lu+fyeyWkxWRktjg2JdhQHA=
+	t=1740610906; cv=none; b=jF58HviYwRJSutYlfVf80fGniijmKsaRH9CVSDF5c3qSBgxxAnsn7WzokUIeoGugrI0532vv+xJ83BDo6jSn6gbNzlkPI4CHbjSAL1/lmGurDDy1oLMtouWp6x885K6aaQ7lRQ/BYV3fVwTk9s+Cy10ogHg3rc7cD3yuOK41kns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740610306; c=relaxed/simple;
-	bh=Zk9H/cYUSDxYBBD1ojGOTnmifz7fArhPPn70CaJTTqU=;
-	h=Date:To:From:Subject:Message-Id; b=WBwAM0lFHP+vyFoIR+mEBoqbVVUzLtAcJVsLCueyNwJ4GlYoJoR1lJqVDsKnOeah0Bhr55ti6Kki8LGDcrKYG2cvQJ94KHudi/rmAaRRTQWFhwtBYK03vEuhXW5IPUvcIH0iRJH0+6YPYP9/knwOQBSbXCbPmOIycMaZSWXcHQ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2euAZnt9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740610906; c=relaxed/simple;
+	bh=QRBzN1cwcOduo04OutvGRuxQBOMIA8hfZJdSmzqTWMg=;
+	h=Date:To:From:Subject:Message-Id; b=lwsqiljSAMgUFJxvgDaQGQWFRBb4/HzYnH+oHiSt+fZMf7mauNYn7gl6051pLzFv2EdriF+tGVx/3tEfqZlhmboi4+s4za3AWVjDCP6spGuMPMAu5A6tlxrCKwEXaaA99uwpR8zE+Ftn1NeJ33gwVWuMbuocQhXT7mNQ4iwxPms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eCZ3+lA9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2euAZnt9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 876E8C4CED6;
-	Wed, 26 Feb 2025 22:51:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eCZ3+lA9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F5E9C4CED6;
+	Wed, 26 Feb 2025 23:01:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740610305;
-	bh=Zk9H/cYUSDxYBBD1ojGOTnmifz7fArhPPn70CaJTTqU=;
+	s=korg; t=1740610906;
+	bh=QRBzN1cwcOduo04OutvGRuxQBOMIA8hfZJdSmzqTWMg=;
 	h=Date:To:From:Subject:From;
-	b=2euAZnt9eH3um/fE3S62Nc3x4fJPptvH2YyjJZBCJj9GB80M/mgpzei//UZxmPd1H
-	 p4D11kXVxJLUE7dSkhGAkSOzMKP5xNH2adUtOImukPtVY5GvreVWobheMw5hzZy1TH
-	 8L4/14BD3Ba0/xUPpPjE52qFLppNrzK+2wQ9Kr8U=
-Date: Wed, 26 Feb 2025 14:51:44 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,surenb@google.com,stable@vger.kernel.org,mmaslanka@google.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,bgeffon@google.com,akpm@linux-foundation.org
+	b=eCZ3+lA9W7sRqjwXZZQnLYGUZLkHbFiz05UT6vGje3iOddG4yESsougILEd8r6KV6
+	 9+ih5FQuHs/uRHDavrhZd3P6sU4jalL36UuIEzhl5Fu/iEeOQy9Hnv6p3dh1gPxwbk
+	 GZn7rf0zI4JI3tBCjWlP4k3WQB9mhu70yeoEPuBk=
+Date: Wed, 26 Feb 2025 15:01:45 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,mgorman@suse.de,bhe@redhat.com,krisman@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-finish_fault-handling-for-large-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250226225145.876E8C4CED6@smtp.kernel.org>
+Subject: + revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250226230146.4F5E9C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix finish_fault() handling for large folios
+     Subject: Revert "mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone"
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-finish_fault-handling-for-large-folios.patch
+     revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-finish_fault-handling-for-large-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,79 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Brian Geffon <bgeffon@google.com>
-Subject: mm: fix finish_fault() handling for large folios
-Date: Wed, 26 Feb 2025 11:23:41 -0500
+From: Gabriel Krisman Bertazi <krisman@suse.de>
+Subject: Revert "mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone"
+Date: Tue, 25 Feb 2025 22:22:58 -0500
 
-When handling faults for anon shmem finish_fault() will attempt to install
-ptes for the entire folio.  Unfortunately if it encounters a single
-non-pte_none entry in that range it will bail, even if the pte that
-triggered the fault is still pte_none.  When this situation happens the
-fault will be retried endlessly never making forward progress.
+Commit 96a5c186efff ("mm/page_alloc.c: don't show protection in zone's
+->lowmem_reserve[] for empty zone") removes the protection of lower zones
+from allocations targeting memory-less high zones.  This had an unintended
+impact on the pattern of reclaims because it makes the high-zone-targeted
+allocation more likely to succeed in lower zones, which adds pressure to
+said zones.  I.e, the following corresponding checks in
+zone_watermark_ok/zone_watermark_fast are less likely to trigger:
 
-This patch fixes this behavior and if it detects that a pte in the range
-is not pte_none it will fall back to setting a single pte.
+        if (free_pages <= min + z->lowmem_reserve[highest_zoneidx])
+                return false;
 
-Link: https://lkml.kernel.org/r/20250226162341.915535-1-bgeffon@google.com
-Fixes: 43e027e41423 ("mm: memory: extend finish_fault() to support large folio")
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: Marek Maslanka <mmaslanka@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickens <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+As a result, we are observing an increase in reclaim and kswapd scans, due
+to the increased pressure.  This was initially observed as increased
+latency in filesystem operations when benchmarking with fio on a machine
+with some memory-less zones, but it has since been associated with
+increased contention in locks related to memory reclaim.  By reverting
+this patch, the original performance was recovered on that machine.
+
+The original commit was introduced as a clarification of the
+/proc/zoneinfo output, so it doesn't seem there are usecases depending on
+it, making the revert a simple solution.
+
+For reference, I collected vmstat with and without this patch on a freshly
+booted system running intensive randread io from an nvme for 5 minutes.  I
+got:
+
+rpm-6.12.0-slfo.1.2 ->  pgscan_kswapd 5629543865
+Patched             ->  pgscan_kswapd 33580844
+
+33M scans is similar to what we had in kernels predating this patch. 
+These numbers is fairly representative of the workload on this machine, as
+measured in several runs.  So we are talking about a 2-order of magnitude
+increase.
+
+Link: https://lkml.kernel.org/r/20250226032258.234099-1-krisman@suse.de
+Fixes: 96a5c186efff ("mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone")
+Signed-off-by: Gabriel Krisman Bertazi <krisman@suse.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory.c~mm-fix-finish_fault-handling-for-large-folios
-+++ a/mm/memory.c
-@@ -5185,7 +5185,11 @@ vm_fault_t finish_fault(struct vm_fault
- 	bool is_cow = (vmf->flags & FAULT_FLAG_WRITE) &&
- 		      !(vma->vm_flags & VM_SHARED);
- 	int type, nr_pages;
--	unsigned long addr = vmf->address;
-+	unsigned long addr;
-+	bool needs_fallback = false;
-+
-+fallback:
-+	addr = vmf->address;
+--- a/mm/page_alloc.c~revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone
++++ a/mm/page_alloc.c
+@@ -5851,11 +5851,10 @@ static void setup_per_zone_lowmem_reserv
  
- 	/* Did we COW the page? */
- 	if (is_cow)
-@@ -5224,7 +5228,8 @@ vm_fault_t finish_fault(struct vm_fault
- 	 * approach also applies to non-anonymous-shmem faults to avoid
- 	 * inflating the RSS of the process.
- 	 */
--	if (!vma_is_anon_shmem(vma) || unlikely(userfaultfd_armed(vma))) {
-+	if (!vma_is_anon_shmem(vma) || unlikely(userfaultfd_armed(vma)) ||
-+			unlikely(needs_fallback)) {
- 		nr_pages = 1;
- 	} else if (nr_pages > 1) {
- 		pgoff_t idx = folio_page_idx(folio, page);
-@@ -5260,9 +5265,9 @@ vm_fault_t finish_fault(struct vm_fault
- 		ret = VM_FAULT_NOPAGE;
- 		goto unlock;
- 	} else if (nr_pages > 1 && !pte_range_none(vmf->pte, nr_pages)) {
--		update_mmu_tlb_range(vma, addr, vmf->pte, nr_pages);
--		ret = VM_FAULT_NOPAGE;
--		goto unlock;
-+		needs_fallback = true;
-+		pte_unmap_unlock(vmf->pte, vmf->ptl);
-+		goto fallback;
- 	}
+ 			for (j = i + 1; j < MAX_NR_ZONES; j++) {
+ 				struct zone *upper_zone = &pgdat->node_zones[j];
+-				bool empty = !zone_managed_pages(upper_zone);
  
- 	folio_ref_add(folio, nr_pages - 1);
+ 				managed_pages += zone_managed_pages(upper_zone);
+ 
+-				if (clear || empty)
++				if (clear)
+ 					zone->lowmem_reserve[j] = 0;
+ 				else
+ 					zone->lowmem_reserve[j] = managed_pages / ratio;
 _
 
-Patches currently in -mm which might be from bgeffon@google.com are
+Patches currently in -mm which might be from krisman@suse.de are
 
-mm-fix-finish_fault-handling-for-large-folios.patch
+revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
 
