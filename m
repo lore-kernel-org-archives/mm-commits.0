@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905A2155C83
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:36:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C389D155C83
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:36:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740537402; cv=none; b=lBcgHDMK4hlz3DpxJrsvrRcbD+b3fTXsCTxmwlppdajGGLztoIKuSXfvrPBgLY6uOZGn2056jyVgIkES5mwYsp293BV/JfdoUUVW3Y6mRKnf5FDJVW7sxbRZEEvltJdWlOY3XVJJZ9PywaQpeeAp13lxT0Zyvz6Rn8VsL022iWw=
+	t=1740537407; cv=none; b=BVT/c1WBirkwnIJRT6Q/Ak7mwdlo2OWIvGPDW5aLuynGOuT9/RFyvmh56o8vG/A4GUp9vqyNVBJ5OqWHCc0bO9weKbk5EZ3we/lm4BAYiooq7VNjPcecsK9P1UE5xZl+gqS5A3OEkGPqRAwimICVzkMRgy8eFbP89bUN42m+NoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740537402; c=relaxed/simple;
-	bh=W2fREgYhBcODMEsNTUYZ+/0jcWivJFGt70pE5JmwYQE=;
-	h=Date:To:From:Subject:Message-Id; b=gIeNJfd0+MPcmJ7jSwGK/PvxuAa/nKNvxgkTgKMBCNjbaJMTMYNG/uZaNvyfiexLxucqlymtoCNCFMro55l3isF0TgkO1sc+l7ycxmFhtTMVfUJ56iGhXA0ig60aUgZ5IJXTHEe0Y5kiRoVbx7/3F44AzfqgrE+FdGpWyQB9cTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tTT5pLrp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740537407; c=relaxed/simple;
+	bh=Z5LPiEW7KHafKL84lLBv4wySz4CKxyeDzqK2OyOxvqc=;
+	h=Date:To:From:Subject:Message-Id; b=X9diyNu/c0Mm2jiMNcRvIVBYvxA8CiKBv5XoMUyoO6lIyiodhvpb4gvk6sJYth6UlEJQjTG7aMyQbSnj+POjoOveWxjVek384zDVi4kc3HvZxAaOADgS1PxU6hgMR9uDotn35AUmWRE819xJENbF1Y6sU3xSpTETozLE4Nu8GGY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m3onWo5b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tTT5pLrp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F0ABC4CEDD;
-	Wed, 26 Feb 2025 02:36:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m3onWo5b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38BD0C4CEDD;
+	Wed, 26 Feb 2025 02:36:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740537402;
-	bh=W2fREgYhBcODMEsNTUYZ+/0jcWivJFGt70pE5JmwYQE=;
+	s=korg; t=1740537407;
+	bh=Z5LPiEW7KHafKL84lLBv4wySz4CKxyeDzqK2OyOxvqc=;
 	h=Date:To:From:Subject:From;
-	b=tTT5pLrp6u0CujRAcJcp6Ys5KAFnVYxJYdY9Z8pm33vJAkPaqk304cfw22lnw+zg1
-	 SbHaIl+dheoWc4EUu/tOG/fih4/bRnbJykAQxDfVu7Upb1N6yyytzIT4RF/j59dgJ1
-	 Tla6ceWio/lPsn/lhR4QfkibB+RetLzTPcSQc0yw=
-Date: Tue, 25 Feb 2025 18:36:41 -0800
+	b=m3onWo5bDvlV1uqp0VUTlHC/VGY5tLDJuJ5Wh9VwVaE+8r0t/4X3uTlg9V3s3vQaj
+	 CAveStNdAHwYi0TFGxjhpWLwXTEPFfxpqmQWuAkSG9FRwkbu6D0d3l6nCReVp9uNOT
+	 CZx2BC+7+ZkDGLdRKGqZhsA/fPRiFwpf3N6bpgDo=
+Date: Tue, 25 Feb 2025 18:36:46 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,rppt@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch added to mm-unstable branch
-Message-Id: <20250226023642.0F0ABC4CEDD@smtp.kernel.org>
+Subject: + riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch added to mm-unstable branch
+Message-Id: <20250226023647.38BD0C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pgtable: convert some architectures to use tlb_remove_ptdesc()
+     Subject: riscv: pgtable: unconditionally use tlb_remove_ptdesc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch
+     riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: convert some architectures to use tlb_remove_ptdesc()
-Date: Tue, 25 Feb 2025 11:45:53 +0800
+Subject: riscv: pgtable: unconditionally use tlb_remove_ptdesc()
+Date: Tue, 25 Feb 2025 11:45:54 +0800
 
-Now, the nine architectures of csky, hexagon, loongarch, m68k, mips,
-nios2, openrisc, sh and um do not select CONFIG_MMU_GATHER_RCU_TABLE_FREE,
-and just call pagetable_dtor() + tlb_remove_page_ptdesc() (the wrapper of
-tlb_remove_page()).  This is the same as the implementation of
-tlb_remove_{ptdesc|table}() under !CONFIG_MMU_GATHER_TABLE_FREE, so
-convert these architectures to use tlb_remove_ptdesc().
+To support fast gup, the commit 69be3fb111e7 ("riscv: enable
+MMU_GATHER_RCU_TABLE_FREE for SMP && MMU") did the following:
 
-The ultimate goal is to make the architecture only use tlb_remove_ptdesc()
-or tlb_remove_table() for page table pages.
+1) use tlb_remove_page_ptdesc() for those platforms which use IPI to
+   perform TLB shootdown
 
-Link: https://lkml.kernel.org/r/19db3e8673b67bad2f1df1ab37f1c89d99eacfea.1740454179.git.zhengqi.arch@bytedance.com
+2) use tlb_remove_ptdesc() for those platforms which use SBI to perform
+   TLB shootdown
+
+The tlb_remove_page_ptdesc() is the wrapper of the tlb_remove_page().  By
+design, the tlb_remove_page() should be used to remove a normal page from
+a page table entry, and should not be used for page table pages.
+
+The tlb_remove_ptdesc() is the wrapper of the tlb_remove_table(), which is
+designed specifically for freeing page table pages.  If the
+CONFIG_MMU_GATHER_TABLE_FREE is enabled, the tlb_remove_table() will use
+semi RCU to free page table pages, that is:
+
+ - batch table freeing: asynchronous free by RCU
+ - single table freeing: IPI + synchronous free
+
+If the CONFIG_MMU_GATHER_TABLE_FREE is disabled, the tlb_remove_table()
+will fall back to pagetable_dtor() + tlb_remove_page().
+
+For case 1), since we need to perform TLB shootdown before freeing the
+page table page, the local_irq_save() in fast gup can block the freeing
+and protect the fast gup page walker.  Therefore we can ensure safety by
+just using tlb_remove_page_ptdesc().  In addition, we can also the
+tlb_remove_ptdesc()/tlb_remove_table() to achieve it, and it doesn't
+matter whether CONFIG_MMU_GATHER_RCU_TABLE_FREE is selected.  And in
+theory, the performance of freeing pages asynchronously via RCU will not
+be lower than synchronous free.
+
+For case 2), since local_irq_save() only disable S-privilege IPI irq but
+not M-privilege's, which is used by the SBI implementation to perform TLB
+shootdown, so we must select CONFIG_MMU_GATHER_RCU_TABLE_FREE and use
+tlb_remove_ptdesc() to ensure safety.  The riscv selects this config for
+SMP && MMU, the CONFIG_RISCV_SBI is dependent on MMU.  Therefore, only the
+UP system may have the situation where CONFIG_MMU_GATHER_RCU_TABLE_FREE is
+disabled but CONFIG_RISCV_SBI is enabled.  But there is no freeing vs fast
+gup race in the UP system.
+
+So, in summary, we can use tlb_remove_ptdesc() to support fast gup in all
+cases, and this interface is specifically designed for page table pages. 
+So let's use it unconditionally.
+
+Link: https://lkml.kernel.org/r/9025595e895515515c95e48db54b29afa489c41d.1740454179.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -94,148 +130,71 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/include/asm/pgalloc.h      |    3 +--
- arch/hexagon/include/asm/pgalloc.h   |    3 +--
- arch/loongarch/include/asm/pgalloc.h |    3 +--
- arch/m68k/include/asm/sun3_pgalloc.h |    3 +--
- arch/mips/include/asm/pgalloc.h      |    3 +--
- arch/nios2/include/asm/pgalloc.h     |    9 ++++-----
- arch/openrisc/include/asm/pgalloc.h  |    3 +--
- arch/sh/include/asm/pgalloc.h        |    3 +--
- arch/um/include/asm/pgalloc.h        |    9 +++------
- 9 files changed, 14 insertions(+), 25 deletions(-)
+ arch/riscv/include/asm/pgalloc.h |   26 ++++----------------------
+ 1 file changed, 4 insertions(+), 22 deletions(-)
 
---- a/arch/csky/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/csky/include/asm/pgalloc.h
-@@ -63,8 +63,7 @@ static inline pgd_t *pgd_alloc(struct mm
+--- a/arch/riscv/include/asm/pgalloc.h~riscv-pgtable-unconditionally-use-tlb_remove_ptdesc
++++ a/arch/riscv/include/asm/pgalloc.h
+@@ -15,24 +15,6 @@
+ #define __HAVE_ARCH_PUD_FREE
+ #include <asm-generic/pgalloc.h>
  
- #define __pte_free_tlb(tlb, pte, address)		\
- do {							\
--	pagetable_dtor(page_ptdesc(pte));		\
--	tlb_remove_page_ptdesc(tlb, page_ptdesc(pte));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));	\
- } while (0)
+-/*
+- * While riscv platforms with riscv_ipi_for_rfence as true require an IPI to
+- * perform TLB shootdown, some platforms with riscv_ipi_for_rfence as false use
+- * SBI to perform TLB shootdown. To keep software pagetable walkers safe in this
+- * case we switch to RCU based table free (MMU_GATHER_RCU_TABLE_FREE). See the
+- * comment below 'ifdef CONFIG_MMU_GATHER_RCU_TABLE_FREE' in include/asm-generic/tlb.h
+- * for more details.
+- */
+-static inline void riscv_tlb_remove_ptdesc(struct mmu_gather *tlb, void *pt)
+-{
+-	if (riscv_use_sbi_for_rfence()) {
+-		tlb_remove_ptdesc(tlb, pt);
+-	} else {
+-		pagetable_dtor(pt);
+-		tlb_remove_page_ptdesc(tlb, pt);
+-	}
+-}
+-
+ static inline void pmd_populate_kernel(struct mm_struct *mm,
+ 	pmd_t *pmd, pte_t *pte)
+ {
+@@ -108,14 +90,14 @@ static inline void __pud_free_tlb(struct
+ 				  unsigned long addr)
+ {
+ 	if (pgtable_l4_enabled)
+-		riscv_tlb_remove_ptdesc(tlb, virt_to_ptdesc(pud));
++		tlb_remove_ptdesc(tlb, virt_to_ptdesc(pud));
+ }
  
- extern void pagetable_init(void);
---- a/arch/hexagon/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/hexagon/include/asm/pgalloc.h
-@@ -89,8 +89,7 @@ static inline void pmd_populate_kernel(s
+ static inline void __p4d_free_tlb(struct mmu_gather *tlb, p4d_t *p4d,
+ 				  unsigned long addr)
+ {
+ 	if (pgtable_l5_enabled)
+-		riscv_tlb_remove_ptdesc(tlb, virt_to_ptdesc(p4d));
++		tlb_remove_ptdesc(tlb, virt_to_ptdesc(p4d));
+ }
+ #endif /* __PAGETABLE_PMD_FOLDED */
  
- #define __pte_free_tlb(tlb, pte, addr)				\
- do {								\
--	pagetable_dtor((page_ptdesc(pte)));			\
--	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
+@@ -143,7 +125,7 @@ static inline pgd_t *pgd_alloc(struct mm
+ static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
+ 				  unsigned long addr)
+ {
+-	riscv_tlb_remove_ptdesc(tlb, virt_to_ptdesc(pmd));
++	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pmd));
+ }
  
- #endif
---- a/arch/loongarch/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/loongarch/include/asm/pgalloc.h
-@@ -57,8 +57,7 @@ static inline pte_t *pte_alloc_one_kerne
+ #endif /* __PAGETABLE_PMD_FOLDED */
+@@ -151,7 +133,7 @@ static inline void __pmd_free_tlb(struct
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
+ 				  unsigned long addr)
+ {
+-	riscv_tlb_remove_ptdesc(tlb, page_ptdesc(pte));
++	tlb_remove_ptdesc(tlb, page_ptdesc(pte));
+ }
+ #endif /* CONFIG_MMU */
  
- #define __pte_free_tlb(tlb, pte, address)			\
- do {								\
--	pagetable_dtor(page_ptdesc(pte));			\
--	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
- 
- #ifndef __PAGETABLE_PMD_FOLDED
---- a/arch/m68k/include/asm/sun3_pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/m68k/include/asm/sun3_pgalloc.h
-@@ -19,8 +19,7 @@ extern const char bad_pmd_string[];
- 
- #define __pte_free_tlb(tlb, pte, addr)				\
- do {								\
--	pagetable_dtor(page_ptdesc(pte));			\
--	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
- 
- static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd, pte_t *pte)
---- a/arch/mips/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -50,8 +50,7 @@ extern pgd_t *pgd_alloc(struct mm_struct
- 
- #define __pte_free_tlb(tlb, pte, address)			\
- do {								\
--	pagetable_dtor(page_ptdesc(pte));			\
--	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
- 
- #ifndef __PAGETABLE_PMD_FOLDED
---- a/arch/nios2/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/nios2/include/asm/pgalloc.h
-@@ -28,10 +28,9 @@ static inline void pmd_populate(struct m
- 
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
- 
--#define __pte_free_tlb(tlb, pte, addr)					\
--	do {								\
--		pagetable_dtor(page_ptdesc(pte));			\
--		tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
--	} while (0)
-+#define __pte_free_tlb(tlb, pte, addr)				\
-+do {								\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
-+} while (0)
- 
- #endif /* _ASM_NIOS2_PGALLOC_H */
---- a/arch/openrisc/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/openrisc/include/asm/pgalloc.h
-@@ -66,8 +66,7 @@ extern pte_t *pte_alloc_one_kernel(struc
- 
- #define __pte_free_tlb(tlb, pte, addr)				\
- do {								\
--	pagetable_dtor(page_ptdesc(pte));			\
--	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
- 
- #endif
---- a/arch/sh/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/sh/include/asm/pgalloc.h
-@@ -34,8 +34,7 @@ static inline void pmd_populate(struct m
- 
- #define __pte_free_tlb(tlb, pte, addr)				\
- do {								\
--	pagetable_dtor(page_ptdesc(pte));			\
--	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
- 
- #endif /* __ASM_SH_PGALLOC_H */
---- a/arch/um/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc
-+++ a/arch/um/include/asm/pgalloc.h
-@@ -27,24 +27,21 @@ extern pgd_t *pgd_alloc(struct mm_struct
- 
- #define __pte_free_tlb(tlb, pte, address)			\
- do {								\
--	pagetable_dtor(page_ptdesc(pte));			\
--	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
-+	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
- } while (0)
- 
- #if CONFIG_PGTABLE_LEVELS > 2
- 
- #define __pmd_free_tlb(tlb, pmd, address)			\
- do {								\
--	pagetable_dtor(virt_to_ptdesc(pmd));			\
--	tlb_remove_page_ptdesc((tlb), virt_to_ptdesc(pmd));	\
-+	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd));		\
- } while (0)
- 
- #if CONFIG_PGTABLE_LEVELS > 3
- 
- #define __pud_free_tlb(tlb, pud, address)			\
- do {								\
--	pagetable_dtor(virt_to_ptdesc(pud));		\
--	tlb_remove_page_ptdesc((tlb), virt_to_ptdesc(pud));	\
-+	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pud));		\
- } while (0)
- 
- #endif
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
