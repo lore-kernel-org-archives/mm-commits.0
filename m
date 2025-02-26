@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D821025CC80
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 22:25:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA18525D8E6;
+	Wed, 26 Feb 2025 22:28:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740608748; cv=none; b=Xd4i9VUS0ZEAxbqTMkpn9JEFndnCu35yn+y7EISvWqe1nRlDxV+/bxxL0gXYaoW7QPQbPyAWhWbhv7x5EoJM7ku1pY6fmvugg4bKWl77pziouMgwRf4al2iZhiVFjesZR3MpMqNPtWYU87MQdgyQY262zb0rkxK48AgsPX/JEas=
+	t=1740608893; cv=none; b=sQFEEUDp4P2pGVY7nqo3pQSjZU8fG5QEqGVhCwT8hffKzZ0uhVcPAnjtPAiosJG6lnWeQdmL6kygZvQqq1iqxzLwS8ppnrM8yu4YuB1/b7OOPaztPDAA1798JUOsWug8f9WlS5oVmlGpkltvVQX8KQtTu4absgHdh02RfHrdMsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740608748; c=relaxed/simple;
-	bh=gxvht1MW+q4Em89gZCkT693qJ36dwtAjnR1nOpZXvpo=;
-	h=Date:To:From:Subject:Message-Id; b=PGJUJtYDw7BzawwbZyloljk/EQSKshxoO/rxX7eupp+Ub+RYtDOgUYasNqn+G1Dqpb0CssXBMyyKGqhPvewA89+v8GLGXlHqf9MHPEzqCec0CWVTfDK3xNIYjh3Dis6eoa1K4z6/AJWkwYhV1JAYGIRIgTT92oD64UsWuZBgbLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xv6iQW/6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740608893; c=relaxed/simple;
+	bh=BMeDzl1zxvxT6RodstGj8AYYyAqmq+zj0xWxdFig3kE=;
+	h=Date:To:From:Subject:Message-Id; b=Ztkt0QGI9TRiCsj2AHmQREb6SoqRZal4BgT0KO9VVtKoMrdSAH0vNyAh5WN3NXJ72H9lk6O7EJgB66vALB1g7xVJvI7R2TBxCwBzMbSkUdSYWi7uV1tMEhdrhqn7lzGN+PXZW1IfOInu/TKooSAVJcTy1hsGzznuhhFnB4O9fos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rPKJSJNp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xv6iQW/6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EAEAC4CED6;
-	Wed, 26 Feb 2025 22:25:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rPKJSJNp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EBD2C4CED6;
+	Wed, 26 Feb 2025 22:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740608748;
-	bh=gxvht1MW+q4Em89gZCkT693qJ36dwtAjnR1nOpZXvpo=;
+	s=korg; t=1740608893;
+	bh=BMeDzl1zxvxT6RodstGj8AYYyAqmq+zj0xWxdFig3kE=;
 	h=Date:To:From:Subject:From;
-	b=Xv6iQW/6lCGUUVnkIywVOy8kFR1hqrNgKKXIGSCipozUEoyxRKnloQMn9kSNXU6Wv
-	 6VZgU16hIwkb3T1ts42IcMkhdMdogL9+OF7mnZcGyuF0F/E0tebX306HEaxNu4oTSC
-	 Ssd8xcb0vx6gKs96Fvht0+aIeSVFz8PfGnqQJQO4=
-Date: Wed, 26 Feb 2025 14:25:47 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,steven.price@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,maddy@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,corbet@lwn.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=rPKJSJNpcVJT+64akyKhnX6Azk6oDvRRLyLI8BfRuJxMznwzANgdxLUWIC4LWwekG
+	 EPv9WO9awftOY2g//Wz/sfUZaPH95Pwk2wteDq73DYk+vEWruOZt2LmdCitgU11Ndq
+	 Tndc2cee/2uMwv4Aon67Cnc9dDSkvqcg0NzITYG4=
+Date: Wed, 26 Feb 2025 14:28:12 -0800
+To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,hch@infradead.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-generic_ptdump-and-ptdump_core.patch added to mm-unstable branch
-Message-Id: <20250226222548.4EAEAC4CED6@smtp.kernel.org>
+Subject: + mm-dont-skip-arch_sync_kernel_mappings-in-error-paths.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250226222813.1EBD2C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rename GENERIC_PTDUMP and PTDUMP_CORE
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rename-generic_ptdump-and-ptdump_core.patch
+     Subject: mm: don't skip arch_sync_kernel_mappings() in error paths
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-dont-skip-arch_sync_kernel_mappings-in-error-paths.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-generic_ptdump-and-ptdump_core.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-skip-arch_sync_kernel_mappings-in-error-paths.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,296 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: rename GENERIC_PTDUMP and PTDUMP_CORE
-Date: Wed, 26 Feb 2025 17:54:04 +0530
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: don't skip arch_sync_kernel_mappings() in error paths
+Date: Wed, 26 Feb 2025 12:16:09 +0000
 
-Platforms subscribe into generic ptdump implementation via GENERIC_PTDUMP.
-But generic ptdump gets enabled via PTDUMP_CORE.  These configs
-combination is confusing as they sound very similar and does not
-differentiate between platform's feature subscription and feature
-enablement for ptdump.  Rename the configs as ARCH_HAS_PTDUMP and PTDUMP
-making it more clear and improve readability.
+Fix callers that previously skipped calling arch_sync_kernel_mappings() if
+an error occurred during a pgtable update.  The call is still required to
+sync any pgtable updates that may have occurred prior to hitting the error
+condition.
 
-Link: https://lkml.kernel.org/r/20250226122404.1927473-6-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu> (powerpc)
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Cc: Will Deacon <will@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Steven Price <steven.price@arm.com>
+These are theoretical bugs discovered during code review.
+
+Link: https://lkml.kernel.org/r/20250226121610.2401743-1-ryan.roberts@arm.com
+Fixes: 2ba3e6947aed ("mm/vmalloc: track which page-table levels were modified")
+Fixes: 0c95cba49255 ("mm: apply_to_pte_range warn and fail if a large pte is encountered")
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christop Hellwig <hch@infradead.org>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig              |    2 +-
- arch/arm64/include/asm/ptdump.h |    4 ++--
- arch/arm64/kvm/Kconfig          |    4 ++--
- arch/arm64/mm/Makefile          |    2 +-
- arch/powerpc/Kconfig            |    2 +-
- arch/powerpc/mm/Makefile        |    2 +-
- arch/riscv/Kconfig              |    2 +-
- arch/riscv/mm/Makefile          |    2 +-
- arch/s390/Kconfig               |    2 +-
- arch/s390/mm/Makefile           |    2 +-
- arch/x86/Kconfig                |    2 +-
- arch/x86/Kconfig.debug          |    2 +-
- arch/x86/mm/Makefile            |    2 +-
- mm/Kconfig.debug                |   12 ++++++------
- mm/Makefile                     |    2 +-
- 15 files changed, 22 insertions(+), 22 deletions(-)
+ mm/memory.c  |    6 ++++--
+ mm/vmalloc.c |    4 ++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/ptdump.h~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/arm64/include/asm/ptdump.h
-@@ -7,7 +7,7 @@
+--- a/mm/memory.c~mm-dont-skip-arch_sync_kernel_mappings-in-error-paths
++++ a/mm/memory.c
+@@ -3051,8 +3051,10 @@ static int __apply_to_page_range(struct
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none(*pgd) && !create)
+ 			continue;
+-		if (WARN_ON_ONCE(pgd_leaf(*pgd)))
+-			return -EINVAL;
++		if (WARN_ON_ONCE(pgd_leaf(*pgd))) {
++			err = -EINVAL;
++			break;
++		}
+ 		if (!pgd_none(*pgd) && WARN_ON_ONCE(pgd_bad(*pgd))) {
+ 			if (!create)
+ 				continue;
+--- a/mm/vmalloc.c~mm-dont-skip-arch_sync_kernel_mappings-in-error-paths
++++ a/mm/vmalloc.c
+@@ -586,13 +586,13 @@ static int vmap_small_pages_range_noflus
+ 			mask |= PGTBL_PGD_MODIFIED;
+ 		err = vmap_pages_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
+ 		if (err)
+-			return err;
++			break;
+ 	} while (pgd++, addr = next, addr != end);
  
- #include <linux/ptdump.h>
+ 	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
+ 		arch_sync_kernel_mappings(start, end);
  
--#ifdef CONFIG_PTDUMP_CORE
-+#ifdef CONFIG_PTDUMP
+-	return 0;
++	return err;
+ }
  
- #include <linux/mm_types.h>
- #include <linux/seq_file.h>
-@@ -70,6 +70,6 @@ static inline void ptdump_debugfs_regist
- #else
- static inline void note_page(struct ptdump_state *pt_st, unsigned long addr,
- 			     int level, u64 val) { }
--#endif /* CONFIG_PTDUMP_CORE */
-+#endif /* CONFIG_PTDUMP */
- 
- #endif /* __ASM_PTDUMP_H */
---- a/arch/arm64/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/arm64/Kconfig
-@@ -41,6 +41,7 @@ config ARM64
- 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_NONLEAF_PMD_YOUNG if ARM64_HAFT
-+	select ARCH_HAS_PTDUMP
- 	select ARCH_HAS_PTE_DEVMAP
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_HW_PTE_YOUNG
-@@ -157,7 +158,6 @@ config ARM64
- 	select GENERIC_IRQ_SHOW_LEVEL
- 	select GENERIC_LIB_DEVMEM_IS_ALLOWED
- 	select GENERIC_PCI_IOMAP
--	select GENERIC_PTDUMP
- 	select GENERIC_SCHED_CLOCK
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL
---- a/arch/arm64/kvm/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/arm64/kvm/Kconfig
-@@ -71,8 +71,8 @@ config PTDUMP_STAGE2_DEBUGFS
- 	depends on KVM
- 	depends on DEBUG_KERNEL
- 	depends on DEBUG_FS
--	depends on GENERIC_PTDUMP
--	select PTDUMP_CORE
-+	depends on ARCH_HAS_PTDUMP
-+	select PTDUMP
- 	default n
- 	help
- 	  Say Y here if you want to show the stage-2 kernel pagetables
---- a/arch/arm64/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/arm64/mm/Makefile
-@@ -5,7 +5,7 @@ obj-y				:= dma-mapping.o extable.o faul
- 				   context.o proc.o pageattr.o fixmap.o
- obj-$(CONFIG_ARM64_CONTPTE)	+= contpte.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
--obj-$(CONFIG_PTDUMP_CORE)	+= ptdump.o
-+obj-$(CONFIG_PTDUMP)		+= ptdump.o
- obj-$(CONFIG_PTDUMP_DEBUGFS)	+= ptdump_debugfs.o
- obj-$(CONFIG_TRANS_TABLE)	+= trans_pgd.o
- obj-$(CONFIG_TRANS_TABLE)	+= trans_pgd-asm.o
---- a/arch/powerpc/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/powerpc/Kconfig
-@@ -148,6 +148,7 @@ config PPC
- 	select ARCH_HAS_PHYS_TO_DMA
- 	select ARCH_HAS_PMEM_API
- 	select ARCH_HAS_PREEMPT_LAZY
-+	select ARCH_HAS_PTDUMP
- 	select ARCH_HAS_PTE_DEVMAP		if PPC_BOOK3S_64
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SCALED_CPUTIME		if VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
-@@ -206,7 +207,6 @@ config PPC
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IRQ_SHOW_LEVEL
- 	select GENERIC_PCI_IOMAP		if PCI
--	select GENERIC_PTDUMP
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL
- 	select GENERIC_VDSO_TIME_NS
---- a/arch/powerpc/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/powerpc/mm/Makefile
-@@ -15,5 +15,5 @@ obj-$(CONFIG_NUMA) += numa.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
- obj-$(CONFIG_NOT_COHERENT_CACHE) += dma-noncoherent.o
- obj-$(CONFIG_PPC_COPRO_BASE)	+= copro_fault.o
--obj-$(CONFIG_PTDUMP_CORE)	+= ptdump/
-+obj-$(CONFIG_PTDUMP)		+= ptdump/
- obj-$(CONFIG_KASAN)		+= kasan/
---- a/arch/riscv/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/riscv/Kconfig
-@@ -43,6 +43,7 @@ config RISCV
- 	select ARCH_HAS_PMEM_API
- 	select ARCH_HAS_PREEMPT_LAZY
- 	select ARCH_HAS_PREPARE_SYNC_CORE_CMD
-+	select ARCH_HAS_PTDUMP if MMU
- 	select ARCH_HAS_PTE_DEVMAP if 64BIT && MMU
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SET_DIRECT_MAP if MMU
-@@ -112,7 +113,6 @@ config RISCV
- 	select GENERIC_IRQ_SHOW_LEVEL
- 	select GENERIC_LIB_DEVMEM_IS_ALLOWED
- 	select GENERIC_PCI_IOMAP
--	select GENERIC_PTDUMP if MMU
- 	select GENERIC_SCHED_CLOCK
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL if MMU && 64BIT
---- a/arch/riscv/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/riscv/mm/Makefile
-@@ -19,7 +19,7 @@ obj-y += context.o
- obj-y += pmem.o
- 
- obj-$(CONFIG_HUGETLB_PAGE) += hugetlbpage.o
--obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
-+obj-$(CONFIG_PTDUMP) += ptdump.o
- obj-$(CONFIG_KASAN)   += kasan_init.o
- 
- ifdef CONFIG_KASAN
---- a/arch/s390/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/s390/Kconfig
-@@ -96,6 +96,7 @@ config S390
- 	select ARCH_HAS_MEM_ENCRYPT
- 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
- 	select ARCH_HAS_PREEMPT_LAZY
-+	select ARCH_HAS_PTDUMP
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SCALED_CPUTIME
- 	select ARCH_HAS_SET_DIRECT_MAP
-@@ -163,7 +164,6 @@ config S390
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_ENTRY
- 	select GENERIC_GETTIMEOFDAY
--	select GENERIC_PTDUMP
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL
- 	select GENERIC_VDSO_TIME_NS
---- a/arch/s390/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/s390/mm/Makefile
-@@ -9,6 +9,6 @@ obj-y		+= page-states.o pageattr.o pgtab
- obj-$(CONFIG_CMM)		+= cmm.o
- obj-$(CONFIG_DEBUG_VIRTUAL)	+= physaddr.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
--obj-$(CONFIG_PTDUMP_CORE)	+= dump_pagetables.o
-+obj-$(CONFIG_PTDUMP)		+= dump_pagetables.o
- obj-$(CONFIG_PGSTE)		+= gmap.o
- obj-$(CONFIG_PFAULT)		+= pfault.o
---- a/arch/x86/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/x86/Kconfig
-@@ -26,6 +26,7 @@ config X86_64
- 	depends on 64BIT
- 	# Options that are inherently 64-bit kernel only:
- 	select ARCH_HAS_GIGANTIC_PAGE
-+	select ARCH_HAS_PTDUMP
- 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
- 	select ARCH_SUPPORTS_PER_VMA_LOCK
- 	select ARCH_SUPPORTS_HUGE_PFNMAP if TRANSPARENT_HUGEPAGE
-@@ -175,7 +176,6 @@ config X86
- 	select GENERIC_IRQ_RESERVATION_MODE
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_PENDING_IRQ		if SMP
--	select GENERIC_PTDUMP
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL
- 	select GENERIC_GETTIMEOFDAY
---- a/arch/x86/Kconfig.debug~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/x86/Kconfig.debug
-@@ -59,7 +59,7 @@ config EARLY_PRINTK_USB_XDBC
- config EFI_PGT_DUMP
- 	bool "Dump the EFI pagetable"
- 	depends on EFI
--	select PTDUMP_CORE
-+	select PTDUMP
- 	help
- 	  Enable this if you want to dump the EFI page table before
- 	  enabling virtual mode. This can be used to debug miscellaneous
---- a/arch/x86/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/arch/x86/mm/Makefile
-@@ -39,7 +39,7 @@ CFLAGS_fault.o := -I $(src)/../include/a
- obj-$(CONFIG_X86_32)		+= pgtable_32.o iomap_32.o
- 
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
--obj-$(CONFIG_PTDUMP_CORE)	+= dump_pagetables.o
-+obj-$(CONFIG_PTDUMP)		+= dump_pagetables.o
- obj-$(CONFIG_PTDUMP_DEBUGFS)	+= debug_pagetables.o
- 
- obj-$(CONFIG_HIGHMEM)		+= highmem_32.o
---- a/mm/Kconfig.debug~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/mm/Kconfig.debug
-@@ -186,9 +186,9 @@ config ARCH_HAS_DEBUG_WX
- config DEBUG_WX
- 	bool "Warn on W+X mappings at boot"
- 	depends on ARCH_HAS_DEBUG_WX
--	depends on GENERIC_PTDUMP
-+	depends on ARCH_HAS_PTDUMP
- 	depends on MMU
--	select PTDUMP_CORE
-+	select PTDUMP
- 	help
- 	  Generate a warning if any W+X mappings are found at boot.
- 
-@@ -213,18 +213,18 @@ config DEBUG_WX
- 
- 	  If in doubt, say "Y".
- 
--config GENERIC_PTDUMP
-+config ARCH_HAS_PTDUMP
- 	bool
- 
--config PTDUMP_CORE
-+config PTDUMP
- 	bool
- 
- config PTDUMP_DEBUGFS
- 	bool "Export kernel pagetable layout to userspace via debugfs"
- 	depends on DEBUG_KERNEL
- 	depends on DEBUG_FS
--	depends on GENERIC_PTDUMP
--	select PTDUMP_CORE
-+	depends on ARCH_HAS_PTDUMP
-+	select PTDUMP
- 	help
- 	  Say Y here if you want to show the kernel pagetable layout in a
- 	  debugfs file. This information is only useful for kernel developers
---- a/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
-+++ a/mm/Makefile
-@@ -139,7 +139,7 @@ obj-$(CONFIG_ZONE_DEVICE) += memremap.o
- obj-$(CONFIG_HMM_MIRROR) += hmm.o
- obj-$(CONFIG_MEMFD_CREATE) += memfd.o
- obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
--obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
-+obj-$(CONFIG_PTDUMP) += ptdump.o
- obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
- obj-$(CONFIG_IO_MAPPING) += io-mapping.o
- obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
+ /*
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-configs-drop-generic_ptdump-from-debugconfig.patch
-arch-powerpc-drop-generic_ptdump-from-mpc885_ads_defconfig.patch
-docs-arm64-drop-ptdump-config-options-from-ptdumprst.patch
-mm-make-debug_wx-depdendent-on-generic_ptdump.patch
-mm-rename-generic_ptdump-and-ptdump_core.patch
+mm-dont-skip-arch_sync_kernel_mappings-in-error-paths.patch
+mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long.patch
 
