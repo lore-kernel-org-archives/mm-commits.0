@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 448DC26BD86
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 22:07:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A3C826BD90
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 22:07:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740607631; cv=none; b=mN8pAH/n3mraWLNBbmoOD4cGTSUCZ7qkZk5lQvUNla5a747hIauy0Xfi8c3xt0u7tIzPSYFhJgaSQkxcRRzhOTxbZD+DzwfLqWdiCVbMh4A/fya+TExyiWlMvULVhls0U6XVmo+OPRxnDZc2ZWC5niIyRhS59H/c+IIjjkuHkV0=
+	t=1740607631; cv=none; b=l+XokyCx7mxeiRRKFhcJZrMOlxoOyt/Ko/K9VRWgslvOaRe1Sevy0aeZAXGTDV/95VUdI5SohkLzX82cX5kAv7LlycppKzmj1M16Sa9xHkIR/W7C7DvxuSHhBAowONK/b2+WxriQ+ngYQIvdUnv6a7J/4s7T7F+rwY8rc2CZy9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1740607631; c=relaxed/simple;
-	bh=Jkfi6rKgWYKsK4COhXAdeWtZxTGOU9gbMH3UD1QWnQY=;
-	h=Date:To:From:Subject:Message-Id; b=mBV0Q2/PrT9iukQ8jNdClNoyABArxWlplPlUvqCOZBk6+WBDmcmSe0aRQYbfVMCHspozNuJRJw1Xe15+bfz+pXGyT+qsBFEARHSNvI7ZPS4ar4atZ7i4VWCVxVnnyX2iiIPwace+jrV+yA6tDcBXKQFEB4BUveaFsuqdnEigDcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0flyUMqZ; arc=none smtp.client-ip=10.30.226.201
+	bh=OzLP3/iisklz61ULgAEAdIgVkE/Jk5iFiFJsbm5KNTw=;
+	h=Date:To:From:Subject:Message-Id; b=P0x7fZBRIolRWzOkJtPoSxyZVul8AQnEeUS017YBMsflcti7ulb9IfjoZxvWwbiwRB6fR60V59pDpOf9GE4TKC6/jhrI113KXLbAvrbqCit9Ah0wDINjwtdm2wbfw2nqUAUFW3CADWJvDVgfKHku0ApJpZ4yBna+4y5St+QsSdw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w5r4zmC5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0flyUMqZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A315FC4CED6;
-	Wed, 26 Feb 2025 22:07:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w5r4zmC5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA3CC4CEE7;
+	Wed, 26 Feb 2025 22:07:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740607629;
-	bh=Jkfi6rKgWYKsK4COhXAdeWtZxTGOU9gbMH3UD1QWnQY=;
+	s=korg; t=1740607630;
+	bh=OzLP3/iisklz61ULgAEAdIgVkE/Jk5iFiFJsbm5KNTw=;
 	h=Date:To:From:Subject:From;
-	b=0flyUMqZe15/UbDnqNsuKs3ShYNF4O2w51Wnh8rjwUUVU79zcWih/raNeX7hK9F/3
-	 dyoQKnbvq2hxCNN6q4eYvIasTbO51t0ihzvEPAwhp2UZoAfMNYF/NIxqT1A2jzwXdr
-	 TT7HaDmcybYLnMkH/t8G3yp3I8NFNRIVq1kvoOXw=
-Date: Wed, 26 Feb 2025 14:07:09 -0800
+	b=w5r4zmC5MU2cCk/ZNYrXldWbosATq/bgVL6nNl4xWaC1VQ1OvgUk0XvIDvR7myEmG
+	 S5TNPVLwlmGhUttRnqhM84a39owPEnEfGP5+ffAf20U4LjEHfa2VcKm2xU6nlY4UgB
+	 XFGGoHgwJYIOW4JSs5nB+ADGWXyi8p9OT0M1I1Bg=
+Date: Wed, 26 Feb 2025 14:07:10 -0800
 To: mm-commits@vger.kernel.org,jglisse@redhat.com,jgg@nvidia.com,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-pass-folio-and-pte-to-restore_exclusive_pte.patch added to mm-unstable branch
-Message-Id: <20250226220709.A315FC4CED6@smtp.kernel.org>
+Subject: + mm-memory-document-restore_exclusive_pte.patch added to mm-unstable branch
+Message-Id: <20250226220710.DAA3CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: pass folio and pte to restore_exclusive_pte()
+     Subject: mm/memory: document restore_exclusive_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-pass-folio-and-pte-to-restore_exclusive_pte.patch
+     mm-memory-document-restore_exclusive_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-pass-folio-and-pte-to-restore_exclusive_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-document-restore_exclusive_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,92 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: pass folio and pte to restore_exclusive_pte()
-Date: Wed, 26 Feb 2025 14:22:55 +0100
+Subject: mm/memory: document restore_exclusive_pte()
+Date: Wed, 26 Feb 2025 14:22:56 +0100
 
-Let's pass the folio and the pte to restore_exclusive_pte(), so we can
-avoid repeated page_folio() and ptep_get().  To do that, pass the pte to
-try_restore_exclusive_pte() and use a folio in there already.
+Let's document how this function is to be used, and why the folio lock is
+involved.
 
-While at it, just avoid the "swp_entry_t entry" variable in
-try_restore_exclusive_pte() and add a folio-locked check to
-restore_exclusive_pte().
-
-Link: https://lkml.kernel.org/r/20250226132257.2826043-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20250226132257.2826043-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ mm/memory.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/mm/memory.c~mm-memory-pass-folio-and-pte-to-restore_exclusive_pte
+--- a/mm/memory.c~mm-memory-document-restore_exclusive_pte
 +++ a/mm/memory.c
-@@ -719,14 +719,13 @@ struct folio *vm_normal_folio_pmd(struct
+@@ -718,6 +718,32 @@ struct folio *vm_normal_folio_pmd(struct
+ }
  #endif
  
++/**
++ * restore_exclusive_pte - Restore a device-exclusive entry
++ * @vma: VMA covering @address
++ * @folio: the mapped folio
++ * @page: the mapped folio page
++ * @address: the virtual address
++ * @ptep: pte pointer into the locked page table mapping the folio page
++ * @orig_pte: pte value at @ptep
++ *
++ * Restore a device-exclusive non-swap entry to an ordinary present pte.
++ *
++ * The folio and the page table must be locked, and MMU notifiers must have
++ * been called to invalidate any (exclusive) device mappings.
++ *
++ * Locking the folio makes sure that anybody who just converted the pte to
++ * a device-exclusive entry can map it into the device to make forward
++ * progress without others converting it back until the folio was unlocked.
++ *
++ * If the folio lock ever becomes an issue, we can stop relying on the folio
++ * lock; it might make some scenarios with heavy thrashing less likely to
++ * make forward progress, but these scenarios might not be valid use cases.
++ *
++ * Note that the folio lock does not protect against all cases of concurrent
++ * page table modifications (e.g., MADV_DONTNEED, mprotect), so device drivers
++ * must use MMU notifiers to sync against any concurrent changes.
++ */
  static void restore_exclusive_pte(struct vm_area_struct *vma,
--				  struct page *page, unsigned long address,
--				  pte_t *ptep)
-+		struct folio *folio, struct page *page, unsigned long address,
-+		pte_t *ptep, pte_t orig_pte)
- {
--	struct folio *folio = page_folio(page);
--	pte_t orig_pte;
- 	pte_t pte;
- 
--	orig_pte = ptep_get(ptep);
-+	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
-+
- 	pte = pte_mkold(mk_pte(page, READ_ONCE(vma->vm_page_prot)));
- 	if (pte_swp_soft_dirty(orig_pte))
- 		pte = pte_mksoft_dirty(pte);
-@@ -753,16 +752,15 @@ static void restore_exclusive_pte(struct
-  * Tries to restore an exclusive pte if the page lock can be acquired without
-  * sleeping.
-  */
--static int
--try_restore_exclusive_pte(pte_t *src_pte, struct vm_area_struct *vma,
--			unsigned long addr)
-+static int try_restore_exclusive_pte(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep, pte_t orig_pte)
- {
--	swp_entry_t entry = pte_to_swp_entry(ptep_get(src_pte));
--	struct page *page = pfn_swap_entry_to_page(entry);
-+	struct page *page = pfn_swap_entry_to_page(pte_to_swp_entry(orig_pte));
-+	struct folio *folio = page_folio(page);
- 
--	if (trylock_page(page)) {
--		restore_exclusive_pte(vma, page, addr, src_pte);
--		unlock_page(page);
-+	if (folio_trylock(folio)) {
-+		restore_exclusive_pte(vma, folio, page, addr, ptep, orig_pte);
-+		folio_unlock(folio);
- 		return 0;
- 	}
- 
-@@ -868,7 +866,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		 * (ie. COW) mappings.
- 		 */
- 		VM_BUG_ON(!is_cow_mapping(src_vma->vm_flags));
--		if (try_restore_exclusive_pte(src_pte, src_vma, addr))
-+		if (try_restore_exclusive_pte(src_vma, addr, src_pte, orig_pte))
- 			return -EBUSY;
- 		return -ENOENT;
- 	} else if (is_pte_marker_entry(entry)) {
-@@ -4030,7 +4028,8 @@ static vm_fault_t remove_device_exclusiv
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
- 				&vmf->ptl);
- 	if (likely(vmf->pte && pte_same(ptep_get(vmf->pte), vmf->orig_pte)))
--		restore_exclusive_pte(vma, vmf->page, vmf->address, vmf->pte);
-+		restore_exclusive_pte(vma, folio, vmf->page, vmf->address,
-+				      vmf->pte, vmf->orig_pte);
- 
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 		struct folio *folio, struct page *page, unsigned long address,
+ 		pte_t *ptep, pte_t orig_pte)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
