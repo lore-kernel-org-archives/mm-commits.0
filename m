@@ -1,100 +1,151 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D94B1624E0
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:22:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30267155C83
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 02:36:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740536557; cv=none; b=iJT2wVEbe2kPaKd0E7GcDvNoHGo9xNktutLu+9jkTixq4EQXDcPnRZeHWKPQG4qpzgGHrbFdn8PJmL8UdEh0e1lTIJAO09jmKWmsezlQYHGlt8mN2HML14t+cZai8Uq5EAEfX3Cd2Wzc/4ilDQ4ve1M8g7VxaQzNrEo8oQtx8HI=
+	t=1740537398; cv=none; b=N56PdG1Z5s/d0iwFfgVn3r8Tl6FJi6j1XyyEw/3J0bpgGeMkM5P0zp0rVp8JysZmxAZEJBZf/VHI2waRzn4tM9pZEhvKSqXrHjyT+bMjTyG3e+/SdrmfrujHMg6OMHi1fBwiBH155PzEZTauHVh649+XqPKSobgmUcL4tS4YHjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740536557; c=relaxed/simple;
-	bh=HcC5Ut1hNrTX6svqPAx/JMxMRHfZjZsMZuRyGxAeJ+E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Fr37G3KXef1eZ763xbJr8EfEZgkiSUTevGaHCzIy2FE9jGMImTpoBU/eKzbhocXaOoS1nhiADsi5+sz04bl30ieTXK0z0l2NmAT0wbB/ugbQwKmXYhRAXG01/pSux/KXKAme7+nMn1VwQOYgRuwBaKE7cOlVWb95KkDIdaV3GJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iw4rrtOj; arc=none smtp.client-ip=209.85.218.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1740537398; c=relaxed/simple;
+	bh=kZk57c9BOSaeatL+He1/TWef6hw/Pej1roaol9Xac6s=;
+	h=Date:To:From:Subject:Message-Id; b=OthunkmwzNTgbhlnynTetDnqtQPd2HFAKFYDPDfiXKTdzEPbKKS7j9GyXFy3rdxKXMoCNbNDgD2PpG5YjA2+zruY+8QwsXt6aM4wsMpqy7csebIxSTcTK77Ta2wqeUDXA22NzjLTePF7I9E6xR9O8+BZ/GtHv1WuFnUXpbddfgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cLBW9PRD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iw4rrtOj"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-aaeec07b705so1049564966b.2
-        for <mm-commits@vger.kernel.org>; Tue, 25 Feb 2025 18:22:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1740536554; x=1741141354; darn=vger.kernel.org;
-        h=user-agent:in-reply-to:content-disposition:mime-version:references
-         :reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=K8tZ49WFho0BEJOJCYVPAkiM8Hu/TdWSvSCG/EdklLI=;
-        b=iw4rrtOjXGYf43Ql0lvI4qtrkzvcgXlc5i/PYVfNTM61GeuFHLKZPVfsHf6NnS3HCy
-         ZpknZGhm6+8DngPnvI7RMQ4kbrXAqxj8VKFdYGNcugzidCnpGSCTAfxASFDTDAMtRd82
-         90ZkK6scjTIZXkizYM7Gm8L1j8gMDhLHsQ86S4sWpBStR3j6ffur0Rk102QaOya5kAmC
-         soWFOfSJuv+zjJUrxkhG4wgwzIkQYlIj2VHcHYBJ3YXf29A5FHWMInas/s9OQgfnTd1y
-         uyfWhctIAnobP33hsq1EvuHlsMr37X5iGIPZibkPPY/SRq7cZBFinQB/BTHEClR9AAIL
-         DqjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740536554; x=1741141354;
-        h=user-agent:in-reply-to:content-disposition:mime-version:references
-         :reply-to:message-id:subject:cc:to:from:date:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=K8tZ49WFho0BEJOJCYVPAkiM8Hu/TdWSvSCG/EdklLI=;
-        b=tsBqXIhQfzE6lOojM+ZIG5dQtqLQ3DzBi74EnD2D5A254vWlUixCEZcp87LIkrVafW
-         RCQ4CGoCzMrvkygk7HHhQZTeTS4k1rszKBW4lXiw9oFHrB+P5F0NPa5uNT5mEPalBmDY
-         ciLtwYb/uNrErDfhdMhXKC3lj/T72Ze3n6K2MEjiOihkrzQOrjaKl2oscwt91sBC5c5z
-         X/h1lf8Hqfh7KEz464/CzyE+EhdOounlIjvuLkb01CTS7x1DHWp1lFEnBBVmIMD1zXkU
-         //R4Iy0UF6aRAyn3tL1AxpDDDNGzxd3jGuKsTk4G6cvb2JLHgMS1TdP649f4UuUACxc7
-         wpOw==
-X-Forwarded-Encrypted: i=1; AJvYcCX6p720UpyE6ByNZihP+xD3tkzk340DB25ymDFzK0ey/S1tqaYORJsLJEPACWa8GtmrdqgersmktujY@vger.kernel.org
-X-Gm-Message-State: AOJu0YwV5Ww5gCgxWutrr0f7ZJ7eflgoRwzfw2pn93wYRuZ/DdFATJME
-	mBGtcLXk+EJVXUx1daEyKiOVylnm2cbSbml7SPTBY/V5mvOmWxEz
-X-Gm-Gg: ASbGncuoft5wvUWrQ/qChVVuSLBxBxiXWiV6Dy6owWxKxTlXGRlnTkpSlm5nJZ1wDIn
-	xGtYmzdD7Hbe4jXEPT9h/IFXJCzidHuEvmh/EdKmmbHxzfppffF5VPAi9HUmgxJMBi/AqZBFlZf
-	rb4AAVvaqTRivPWwfRCMy2vDraf4sCdgmFBhHS0QDNqLbI/6h61dISI4M7hrecoxw0qJ7ZnkNib
-	OMLWdJfNSLlAOUQZrSOBMVyI45UJUa/U1Nr+onKqCD7RFdNFdqDj+mA1s5Pey7LtC/PzWKTHAhY
-	epJfjMxRsM0plXc3w+XoGflklA==
-X-Google-Smtp-Source: AGHT+IEJABHEiumPPwUsp3qetkr0M3qiTDXxYgyIhj+2dd5ShIIJNnRVCikkAKHr3QKNnmexRwupbQ==
-X-Received: by 2002:a17:906:318b:b0:abb:b322:2b37 with SMTP id a640c23a62f3a-abc0d9888eemr1479245766b.7.1740536554371;
-        Tue, 25 Feb 2025 18:22:34 -0800 (PST)
-Received: from localhost ([185.92.221.13])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-abed1d5ae56sm242435166b.57.2025.02.25.18.22.33
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Tue, 25 Feb 2025 18:22:33 -0800 (PST)
-Date: Wed, 26 Feb 2025 02:22:33 +0000
-From: Wei Yang <richard.weiyang@gmail.com>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
-	michel@lespinasse.org, richard.weiyang@gmail.com
-Subject: Re: +
- lib-interval_tree-skip-the-check-before-go-to-the-right-subtree.patch added
- to mm-nonmm-unstable branch
-Message-ID: <20250226022233.wjvxv2o6672vhkky@master>
-Reply-To: Wei Yang <richard.weiyang@gmail.com>
-References: <20250225042234.AC256C4CEDD@smtp.kernel.org>
- <Z725ERN5KDAANgD6@casper.infradead.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cLBW9PRD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81B27C4CEDD;
+	Wed, 26 Feb 2025 02:36:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1740537397;
+	bh=kZk57c9BOSaeatL+He1/TWef6hw/Pej1roaol9Xac6s=;
+	h=Date:To:From:Subject:From;
+	b=cLBW9PRDKnSX1tNTxdqNAjgY5asWGMLv0XPbj6Bn/vx+HiibgUMjHEBCyBqBajjZn
+	 lU19/ODTOli5JoBjWK7kZW//HKWd8+y72oRx4EjrN2WK0phibQPfozbY6fT11Ngwy9
+	 jm36qv35s+3vVxSmmQXcw99WLVC3SlHSZyqBKTQI=
+Date: Tue, 25 Feb 2025 18:36:36 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,rppt@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch added to mm-unstable branch
+Message-Id: <20250226023637.81B27C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Z725ERN5KDAANgD6@casper.infradead.org>
-User-Agent: NeoMutt/20170113 (1.7.2)
 
-On Tue, Feb 25, 2025 at 12:35:29PM +0000, Matthew Wilcox wrote:
->On Mon, Feb 24, 2025 at 08:22:34PM -0800, Andrew Morton wrote:
->> The patch titled
->>      Subject: lib/interval_tree: skip the check before go to the right subtree
->> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->>      lib-interval_tree-skip-the-check-before-go-to-the-right-subtree.patch
->
->I don't think this patch should be added.  There's no claim of any
->performance win.  Wei has a long history of tweaky little patches that
->may or may not be buggy.  The interval tree has been around a long time
->and doesn't have a test suite.  This feels like unnecessary risk.
 
-Your concern is understandable. A change in fundamental data structure should
-be very careful. But I thought we don't take things personal.
+The patch titled
+     Subject: mm: pgtable: make generic tlb_remove_table() use struct ptdesc
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch
 
--- 
-Wei Yang
-Help you, Help me
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: pgtable: make generic tlb_remove_table() use struct ptdesc
+Date: Tue, 25 Feb 2025 11:45:51 +0800
+
+Patch series "remove tlb_remove_page_ptdesc()", v2.
+
+As suggested by Peter Zijlstra below [1], this series aims to remove
+tlb_remove_page_ptdesc().
+
+: Fundamentally tlb_remove_page() is about removing *pages* as from a PTE,
+: there should not be a page-table anywhere near here *ever*.
+:
+: Yes, some architectures use tlb_remove_page() for page-tables too, but
+: that is more or less an implementation detail that can be fixed.
+
+After this series, all architectures use tlb_remove_table() or
+tlb_remove_ptdesc() to remove the page table pages.  In the future, once
+all architectures using tlb_remove_table() have also converted to using
+struct ptdesc (eg.  powerpc), it may be possible to use only
+tlb_remove_ptdesc().
+
+[1] https://lore.kernel.org/linux-mm/20250103111457.GC22934@noisy.programming.kicks-ass.net/
+
+
+This patch (of 6):
+
+Now only arm will call tlb_remove_ptdesc()/tlb_remove_table() when
+CONFIG_MMU_GATHER_TABLE_FREE is disabled.  In this case, the type of the
+table parameter is actually struct ptdesc * instead of struct page *.
+
+Since struct ptdesc still overlaps with struct page and has not been
+separated from it, forcing the table parameter to struct page * will not
+cause any problems at this time.  But this is definitely incorrect and
+needs to be fixed.  So just like the generic __tlb_remove_table(), let
+generic tlb_remove_table() use struct ptdesc by default when
+CONFIG_MMU_GATHER_TABLE_FREE is disabled.
+
+Link: https://lkml.kernel.org/r/cover.1740454179.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/5be8c3ab7bd68510bf0db4cf84010f4dfe372917.1740454179.git.zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/asm-generic/tlb.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/include/asm-generic/tlb.h~mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc
++++ a/include/asm-generic/tlb.h
+@@ -232,10 +232,10 @@ static inline void tlb_remove_page(struc
+  */
+ static inline void tlb_remove_table(struct mmu_gather *tlb, void *table)
+ {
+-	struct page *page = (struct page *)table;
++	struct ptdesc *ptdesc = (struct ptdesc *)table;
+ 
+-	pagetable_dtor(page_ptdesc(page));
+-	tlb_remove_page(tlb, page);
++	pagetable_dtor(ptdesc);
++	tlb_remove_page(tlb, ptdesc_page(ptdesc));
+ }
+ #endif /* CONFIG_MMU_GATHER_TABLE_FREE */
+ 
+_
+
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+
+arm-pgtable-fix-null-pointer-dereference-issue.patch
+mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch
+mm-pgtable-change-pt-parameter-of-tlb_remove_ptdesc-to-struct-ptdesc.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch
+riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch
+x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch
+mm-pgtable-remove-tlb_remove_page_ptdesc.patch
+
