@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1E5EEAFA;
-	Wed, 26 Feb 2025 02:42:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 220CB218821
+	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 03:54:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740537740; cv=none; b=M+2CU00PP1pSbhotlAC4VbM2L7mAa5e0AGonYnTGHHFnE+RwquwSA7/BVgiaUEPDXcatDf2XENuO07m1PP3Hum4t2wM41MEswX3FrzvnxvWIsR/Sqg8VYQybf65q7SGOBgn77ROApizf2R0nsWVJTq7klOaWDihPyG18bEpFlHM=
+	t=1740542061; cv=none; b=g8UoKVo5XoNs9M2IGvLN35zf6jzJuxfmSRPML7uh2aDL2hGinWvzPmmaD4OpIbffhrNzBXHGdqtf5Lx83iY9wAwWbqV7bc1jTwnrqi1GMAQ6ZaAmzwiJH0BkZkNIHYYldZAAxTxoBiYYbErVOr2byrkLY4OQr+o+PsfIxk7ZiZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740537740; c=relaxed/simple;
-	bh=InW+IK7VHo43o9VPaLYHULMbSes36obf0v5JILCw6w4=;
-	h=Date:To:From:Subject:Message-Id; b=OzRIv6q1rDkEa+qJmrbu3+VOwLJQ1xXCXrcskcnSMScH366XDmfh6EkSi93KDvbzJfo1uQ9ySMAhHFoquNRMiBine06Z4CI6JY5r2DoK1m8fc8pqAq5uVBkLG2c6XMfUQj55jYTgzLnMvJjOetAGcgmvnrnI2XbhJRM2uk/gNr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NA7iMfZx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740542061; c=relaxed/simple;
+	bh=63pH/E1VExADrzglpxbiwPAKHqnYaWQZ52/rY7ZbrzI=;
+	h=Date:To:From:Subject:Message-Id; b=W4Z4LPStpjBeVQpEbiGNvFnHFJudldFjVZTKIjmDFB6rfZ7jltwiUcoWX4uSfD/uZuCTKxDuuOYAgD1Do/9hemOTaXvt+n0VDecHc4stlYrGuAHLhSGpK8QiO43/8rdJXdIc/pbpmtI8oIfn78ct20EFl4DShSPrzK+WM072jv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vu3JZct8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NA7iMfZx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FC05C4CEDD;
-	Wed, 26 Feb 2025 02:42:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vu3JZct8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66C86C4CED6;
+	Wed, 26 Feb 2025 03:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740537740;
-	bh=InW+IK7VHo43o9VPaLYHULMbSes36obf0v5JILCw6w4=;
+	s=korg; t=1740542059;
+	bh=63pH/E1VExADrzglpxbiwPAKHqnYaWQZ52/rY7ZbrzI=;
 	h=Date:To:From:Subject:From;
-	b=NA7iMfZxbKv006PVmIdnp9GBqZwEzatlDkr1AnDcEFhuccnS/hRHxPIhTZTzmScnN
-	 LLzOkvazk/l/VGjh2XaLcExzFQLjnW2tZ0T8BC+iCosCTgjBrPFIrsPg+Thb735wMz
-	 MgO4PXTigyjYVKf73pKl0nA13/ufUKw23M5Mtn2M=
-Date: Tue, 25 Feb 2025 18:42:19 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,stable@vger.kernel.org,davem@davemloft.net,herbert@gondor.apana.org.au,akpm@linux-foundation.org
+	b=Vu3JZct8Ev48qX+WhRvOJ9Zr8JwRb56l91ggISqNUZVQH5PZ3k36LleBdRDXfLBcx
+	 nmIOgiOTjWsDaopkY5aPX199D5ZTxLz04+htTL2NJT1skkOgz5nnch92oXGU37XBvo
+	 1efanvLx9RbpFCRoQTk+Q9C50/pz1+HrjrsEx5Ew=
+Date: Tue, 25 Feb 2025 19:54:18 -0800
+To: mm-commits@vger.kernel.org,james.bottomley@HansenPartnership.com,eahariha@linux.microsoft.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250226024220.2FC05C4CEDD@smtp.kernel.org>
+Subject: + scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250226035419.66C86C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: fix crypto_free_acomp deadlock in zswap_cpu_comp_dead
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch
+     Subject: scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: mm: zswap: fix crypto_free_acomp deadlock in zswap_cpu_comp_dead
-Date: Tue, 25 Feb 2025 16:53:58 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix
+Date: Tue Feb 25 07:32:03 PM PST 2025
 
-Call crypto_free_acomp outside of the mutex in zswap_cpu_comp_dead() as
-otherwise this could deadlock as the allocation path may lead back into
-zswap while holding the same lock.  Zap the pointers to acomp and buffer
-after freeing.
+fix build
 
-Also move the NULL check on acomp_ctx so that it takes place before
-the mutex dereference.
-
-Link: https://lkml.kernel.org/r/Z72FJnbA39zWh4zS@gondor.apana.org.au
-Fixes: 12dcb0ef5406 ("mm: zswap: properly synchronize freeing resources during CPU hotunplug")
-Reported-by: syzbot+1a517ccfcbc6a7ab0f82@syzkaller.appspotmail.com
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Easwar Hariharan <eahariha@linux.microsoft.com>
+Cc: James Bottomley <james.bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ drivers/scsi/lpfc/lpfc_sli.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead
-+++ a/mm/zswap.c
-@@ -881,18 +881,23 @@ static int zswap_cpu_comp_dead(unsigned
- {
- 	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
- 	struct crypto_acomp_ctx *acomp_ctx = per_cpu_ptr(pool->acomp_ctx, cpu);
-+	struct crypto_acomp *acomp = NULL;
-+
-+	if (IS_ERR_OR_NULL(acomp_ctx))
-+		return 0;
- 
- 	mutex_lock(&acomp_ctx->mutex);
--	if (!IS_ERR_OR_NULL(acomp_ctx)) {
--		if (!IS_ERR_OR_NULL(acomp_ctx->req))
--			acomp_request_free(acomp_ctx->req);
--		acomp_ctx->req = NULL;
--		if (!IS_ERR_OR_NULL(acomp_ctx->acomp))
--			crypto_free_acomp(acomp_ctx->acomp);
--		kfree(acomp_ctx->buffer);
--	}
-+	if (!IS_ERR_OR_NULL(acomp_ctx->req))
-+		acomp_request_free(acomp_ctx->req);
-+	acomp_ctx->req = NULL;
-+	acomp = acomp_ctx->acomp;
-+	acomp_ctx->acomp = NULL;
-+	kfree(acomp_ctx->buffer);
-+	acomp_ctx->buffer = NULL;
- 	mutex_unlock(&acomp_ctx->mutex);
- 
-+	crypto_free_acomp(acomp);
-+
- 	return 0;
+--- a/drivers/scsi/lpfc/lpfc_sli.c~scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix
++++ a/drivers/scsi/lpfc/lpfc_sli.c
+@@ -3954,7 +3954,7 @@ void lpfc_poll_eratt(struct timer_list *
+ 	else
+ 		/* Restart the timer for next eratt poll */
+ 		mod_timer(&phba->eratt_poll,
+-			  jiffies + secs_to_jiffies(phba->eratt_poll_interval);
++			  jiffies + secs_to_jiffies(phba->eratt_poll_interval));
+ 	return;
  }
  
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-zswap-fix-crypto_free_acomp-deadlock-in-zswap_cpu_comp_dead.patch
+nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback-fix.patch
+mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
+lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
 
