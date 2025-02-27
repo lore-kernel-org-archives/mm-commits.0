@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 107D125E82A
-	for <mm-commits@vger.kernel.org>; Wed, 26 Feb 2025 23:04:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B31C2C9
+	for <mm-commits@vger.kernel.org>; Thu, 27 Feb 2025 00:27:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740611052; cv=none; b=YSH2lp62JEZ65sfEz85WR73dMAYmS1zL1I+ltAAOplNautvql6POO13f7KA10FUZ4pPTy/tdLUSS322kHgp/4fzN6ccjVrqEUA2I1Mri5FlInsD27+oRldrKpd8pH5hRH8hCzqX1nlD7W8SYrrLUYuMwhCSMyVdCZLNXjoOfjfg=
+	t=1740616034; cv=none; b=SRJaLn8Ccxk9fdBP2fEjcqI1Bwya4E7Pt6a80oAiXxnpkySglnZbPHetheBOQ5YzTIFEBBwwGiqStWBGyRlFowkCLfh1zL84DCQjdhnKWfHCNDLDGGd3Jts+fQJcrqrBqsmkVchvIokaDtbnGz9zI9Uk1C0ou3ZWrgxIxljvfYo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740611052; c=relaxed/simple;
-	bh=eJZ3ZJG5taxSwmk9QCq3b7oN9QblZhP9jPMON/hqeRE=;
-	h=Date:To:From:Subject:Message-Id; b=iUa2F+JRZig7KKGgsnM4iFM2+faCdTqwG1wd9Hc8mWNbtJbJOg1GKfbkl2LXosDGBv2xjEP7/HFaLXT3FmNvq7z5GoLzMTHe7ezqyZiPPc1muxQ2Hs1F+Hvz/ua92eom21gj/hvlgECMjvX2FxTwqsS8evL+hWbCm4FeASZLZhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NBTnip4e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740616034; c=relaxed/simple;
+	bh=YB6bXn8YK1uyNe/d3Vj2fFK4jeOsjYTVVo5oqcN2aEg=;
+	h=Date:To:From:Subject:Message-Id; b=sFBFcH8sY942hBLif5Tyexbd9MveXp0kIXySX0sMRAdccXT+P1D3XQmPouo8SMrHHuURlD4uecWZLyusS8LajC6nq75v2VGixQOpQLRRlQWCDjkwzN/sz1BGX7BZFe99MpONIG0eC1p6z+AtF7DD0kaImkSiaZQIq3koNatojuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hec9kji/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NBTnip4e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD64C4CED6;
-	Wed, 26 Feb 2025 23:04:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hec9kji/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0C14C4CED6;
+	Thu, 27 Feb 2025 00:27:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740611051;
-	bh=eJZ3ZJG5taxSwmk9QCq3b7oN9QblZhP9jPMON/hqeRE=;
+	s=korg; t=1740616033;
+	bh=YB6bXn8YK1uyNe/d3Vj2fFK4jeOsjYTVVo5oqcN2aEg=;
 	h=Date:To:From:Subject:From;
-	b=NBTnip4eEqGwUN3GxPUKiz9lez8bpWzjdgVBeSPE0eidlnOws+hdXxBDif4wT+J3X
-	 xkpxJzlrLE4wKV2IKaloaUXxBLJamLpK93YE+eyoAeQEm+sD7LWv+Tcp9hP38OKRO0
-	 3YYAjXEbjCNxyusXst/KjhUW65QhEMKqZRIrYp+0=
-Date: Wed, 26 Feb 2025 15:04:10 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=hec9kji/AILtSHDOdfULCMdRIr9rG5tx/RKagfFtmweqeS8B5EAxiLxS0ihVCikBh
+	 QjobFdWdGzlPAdPp/OeI27ACdybNhyL6EojZKvxnbrszXq+Wt4aNT2eOr314WoIwY+
+	 +l1pGGtx6u4RcZrZB4mhC4I6+PlXZ0D2/B1pvyms=
+Date: Wed, 26 Feb 2025 16:27:13 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-kernel-bug-when-userfaultfd_move-encounters-swapcache-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250226230411.5AD64C4CED6@smtp.kernel.org>
+Subject: + xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch added to mm-unstable branch
+Message-Id: <20250227002713.B0C14C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: minor cleanup according to Peter Xu
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-kernel-bug-when-userfaultfd_move-encounters-swapcache-fix.patch
+     Subject: xarray-add-xas_try_split-to-split-a-multi-index-entry-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-kernel-bug-when-userfaultfd_move-encounters-swapcache-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: minor cleanup according to Peter Xu
-Date: Wed, 26 Feb 2025 15:22:17 +1300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xarray-add-xas_try_split-to-split-a-multi-index-entry-fix
+Date: Wed Feb 26 04:11:24 PM PST 2025
 
-According to Peter Xu:
-1. Unnecessary line move.
-2. Can drop this folio check as it just did check
-   "!IS_ERR_OR_NULL(folio)"
-3. Not sure if it can do any harm, but maybe still nicer
-   to put swap before locking folio.
+export xas_destroy to modules for lib/test_xarray.c
 
-Link: https://lkml.kernel.org/r/20250226024411.47092-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/xarray.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/userfaultfd.c~mm-fix-kernel-bug-when-userfaultfd_move-encounters-swapcache-fix
-+++ a/mm/userfaultfd.c
-@@ -1105,8 +1105,8 @@ static int move_swap_pte(struct mm_struc
- 
- 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
- 	set_pte_at(mm, dst_addr, dst_pte, orig_src_pte);
--
- 	double_pt_unlock(dst_ptl, src_ptl);
-+
- 	return 0;
+--- a/lib/xarray.c~xarray-add-xas_try_split-to-split-a-multi-index-entry-fix
++++ a/lib/xarray.c
+@@ -278,6 +278,7 @@ void xas_destroy(struct xa_state *xas)
+ 		xas->xa_alloc = node = next;
+ 	}
  }
++EXPORT_SYMBOL_GPL(xas_destroy);
  
-@@ -1373,7 +1373,7 @@ retry:
- 			folio = filemap_get_folio(swap_address_space(entry),
- 					swap_cache_index(entry));
- 		if (!IS_ERR_OR_NULL(folio)) {
--			if (folio && folio_test_large(folio)) {
-+			if (folio_test_large(folio)) {
- 				err = -EBUSY;
- 				folio_put(folio);
- 				goto out;
-@@ -1384,10 +1384,10 @@ retry:
- 				pte_unmap(&orig_src_pte);
- 				pte_unmap(&orig_dst_pte);
- 				src_pte = dst_pte = NULL;
--				/* now we can block and wait */
--				folio_lock(src_folio);
- 				put_swap_device(si);
- 				si = NULL;
-+				/* now we can block and wait */
-+				folio_lock(src_folio);
- 				goto retry;
- 			}
- 		}
+ /**
+  * xas_nomem() - Allocate memory if needed.
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-kernel-bug-when-userfaultfd_move-encounters-swapcache.patch
-mm-fix-kernel-bug-when-userfaultfd_move-encounters-swapcache-fix.patch
-mm-set-folio-swapbacked-iff-folios-are-dirty-in-try_to_unmap_one.patch
-mm-support-tlbbatch-flush-for-a-range-of-ptes.patch
-mm-support-batched-unmap-for-lazyfree-large-folios-during-reclamation.patch
-mm-avoid-splitting-pmd-for-lazyfree-pmd-mapped-thp-in-try_to_unmap.patch
+nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback-fix.patch
+userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix.patch
+mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry-fix.patch
+lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
 
