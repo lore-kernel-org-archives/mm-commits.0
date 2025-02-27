@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85EF32777EE
-	for <mm-commits@vger.kernel.org>; Thu, 27 Feb 2025 22:29:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74B429D0E
+	for <mm-commits@vger.kernel.org>; Thu, 27 Feb 2025 22:33:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740695369; cv=none; b=orZge4jLhd4kU1nbLvgZzwZpEkVM9Z7KkU9Z/iQ5rfkqWof93YTxNihcr6HBwbqFDU1gAu2NIRHv6qeEoqDbfMt03E3GKHuCkQ/hsbCxNOMAPqRe1iMZnmQqN1+jvr2Rzerg7o7Xlir3X5Q9C9Y9xNdbZ8U9ajCxBqe4S9UylIU=
+	t=1740695593; cv=none; b=DYsvg9IQg37ov+GH1uNkjvLj56AM6wDEssRyqAKtChyKNVDkItPFX4EQ6nkIVUOkOFYk9gbq7MBKbd5+X1YNpYFHVxc1iYE5Y68sc/2aw00u63girbZRWIPGrb3hQUOE+hfvy0L06DIrnh3/oj1nIu+G41q84UNUwXtD6qupBKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740695369; c=relaxed/simple;
-	bh=gj8ZWQKpfLfpiHGD8TnHflGUoYCRas5t/xY/gT+dnlA=;
-	h=Date:To:From:Subject:Message-Id; b=JOPpl6sZsD2OgpEf5Ua8s67F5+0K4jEmVz5Z/HMVCOL1UYLXr8R8MQotGqYM3JZPoufEaMHyg1+Vc+64ydl32/cqHbPC3sacvl7lR83G9vJAUNj8Q2jRQHY9wdZhqJZByJgRGwtGLL4JyFqKtsMsexlxthVhYiYIpPpFL+0j++c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dTStI/Oe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740695593; c=relaxed/simple;
+	bh=5yZncDb/Ho/3otKFufKcMfGxgOqp3A0LfmTBiF0dGWk=;
+	h=Date:To:From:Subject:Message-Id; b=S8eZFetUAAKF1nfqe9NHklbTEkPZFt2vi/ri06ZBkUMfsK9FMOK88hd1ElQno4PyXpBXYNcS13C7Ci7Y1pnkmO3sn1DQHzwaKP5xgFDbPvPyO55p3nz8lmJrEXF1g3jw0OxelfZoeCx5n4dLkRC6m0jC12JHfoDR3cbUPo4RPhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hJCxfv9v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dTStI/Oe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFE41C4CEDD;
-	Thu, 27 Feb 2025 22:29:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hJCxfv9v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F602C4CEDD;
+	Thu, 27 Feb 2025 22:33:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1740695369;
-	bh=gj8ZWQKpfLfpiHGD8TnHflGUoYCRas5t/xY/gT+dnlA=;
+	s=korg; t=1740695593;
+	bh=5yZncDb/Ho/3otKFufKcMfGxgOqp3A0LfmTBiF0dGWk=;
 	h=Date:To:From:Subject:From;
-	b=dTStI/OetVO0FH9dsk077FrwsLOaIM671pdJgXASwblqqQdow8P+StCsHLN28bHG3
-	 ++QDknl2xt+eRkNzpvmAdFeUHBHM91he63JjtwsWRl9gvja30xTJdjHGlR8Acy7w7O
-	 1BfGx7aQE2duZVEkOyguc780woN54YRRbtBem788=
-Date: Thu, 27 Feb 2025 14:29:28 -0800
-To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,fvdl@google.com,akpm@linux-foundation.org
+	b=hJCxfv9v2728ShCZS7xFb2U//WP3/1DRRcyF9V+yNLK4qHQUagxc9U7XcledhRdD8
+	 R2UBK5UJiNHfkGp0PyTbCOZzV36RJ3bZ9HwEasibYEYeb9wapXC9/OVuL2U/mNxZKD
+	 1biuO3yXUNFV2iyWmu5g6Qai8bemtFE8WOejLrKM=
+Date: Thu, 27 Feb 2025 14:33:12 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,hannes@cmpxchg.org,david@redhat.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix.patch added to mm-unstable branch
-Message-Id: <20250227222928.DFE41C4CEDD@smtp.kernel.org>
+Subject: + mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change.patch added to mm-unstable branch
+Message-Id: <20250227223313.2F602C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make SPARSEMEM_VMEMMAP_PREINIT an internal option
+     Subject: mm/page_alloc: add lockdep assertion for pageblock type change
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix.patch
+     mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,109 +58,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Frank van der Linden <fvdl@google.com>
-Subject: mm: make SPARSEMEM_VMEMMAP_PREINIT an internal option
-Date: Thu, 27 Feb 2025 18:57:17 +0000
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: add lockdep assertion for pageblock type change
+Date: Thu, 27 Feb 2025 16:15:47 +0000
 
-SPARSEMEM_VMEMMAP_PREINIT is not useful as a user-facing option, it is
-just something that should be selected if a subsystem wishes to do vmemmap
-preinit.  That's currently only HUGETLB_PAGE_OPTIMIZE_VMEMMAP.
+Since the migratetype hygiene patches [0], the locking here is
+a bit more formalised, so write it down with an assert.
 
-So, make it a default-less option that is only selected by
-HUGETLB_PAGE_OPTIMIZE_VMEMMAP, iff the architecture has noted it is
-capable of doing hugetlb vmemmap preinit.  That is done via
-ARCH_WANT_HUGETLB_VMEMMAP_PREINIT, renamed from
-ARCH_WANT_SPARSE_VMEMMAP_PREINIT.
+[0] https://lore.kernel.org/lkml/20240320180429.678181-3-hannes@cmpxchg.org/T/
 
-Link: https://lkml.kernel.org/r/20250227185717.1265644-1-fvdl@google.com
-Fixes: a916062fdd134 ("mm/sparse: allow for alternate vmemmap section init at boot")
-Signed-off-by: Frank van der Linden <fvdl@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20250227-pageblock-lockdep-v1-1-3701efb331bb@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- fs/Kconfig       |    1 +
- mm/Kconfig       |    9 ++++-----
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ include/linux/memory_hotplug.h |    1 +
+ mm/memory_hotplug.c            |    5 +++++
+ mm/page_alloc.c                |    4 ++++
+ 3 files changed, 10 insertions(+)
 
---- a/arch/x86/Kconfig~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix
-+++ a/arch/x86/Kconfig
-@@ -146,6 +146,7 @@ config X86
- 	select ARCH_WANT_LD_ORPHAN_WARN
- 	select ARCH_WANT_OPTIMIZE_DAX_VMEMMAP	if X86_64
- 	select ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP	if X86_64
-+	select ARCH_WANT_HUGETLB_VMEMMAP_PREINIT if X86_64
- 	select ARCH_WANTS_THP_SWAP		if X86_64
- 	select ARCH_HAS_PARANOID_L1D_FLUSH
- 	select BUILDTIME_TABLE_SORT
---- a/fs/Kconfig~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix
-+++ a/fs/Kconfig
-@@ -286,6 +286,7 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- 	def_bool HUGETLB_PAGE
- 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
- 	depends on SPARSEMEM_VMEMMAP
-+	select SPARSEMEM_VMEMMAP_PREINIT if ARCH_WANT_HUGETLB_VMEMMAP_PREINIT
+--- a/include/linux/memory_hotplug.h~mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change
++++ a/include/linux/memory_hotplug.h
+@@ -175,6 +175,7 @@ void put_online_mems(void);
  
- config HUGETLB_PMD_PAGE_TABLE_SHARING
- 	def_bool HUGETLB_PAGE
---- a/mm/Kconfig~mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix
-+++ a/mm/Kconfig
-@@ -443,13 +443,9 @@ config SPARSEMEM_VMEMMAP
- 	  pfn_to_page and page_to_pfn operations.  This is the most
- 	  efficient option when sufficient kernel resources are available.
+ void mem_hotplug_begin(void);
+ void mem_hotplug_done(void);
++bool in_mem_hotplug(void);
  
--config ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
-+config SPARSEMEM_VMEMMAP_PREINIT
- 	bool
+ /* See kswapd_is_running() */
+ static inline void pgdat_kswapd_lock(pg_data_t *pgdat)
+--- a/mm/memory_hotplug.c~mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change
++++ a/mm/memory_hotplug.c
+@@ -267,6 +267,11 @@ void mem_hotplug_done(void)
+ 	cpus_read_unlock();
+ }
  
--config SPARSEMEM_VMEMMAP_PREINIT
--	bool "Early init of sparse memory virtual memmap"
--	depends on SPARSEMEM_VMEMMAP && ARCH_WANT_SPARSEMEM_VMEMMAP_PREINIT
--	default y
- #
- # Select this config option from the architecture Kconfig, if it is preferred
- # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
-@@ -460,6 +456,9 @@ config ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
- config ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
- 	bool
- 
-+config ARCH_WANT_HUGETLB_VMEMMAP_PREINIT
-+	bool
++bool in_mem_hotplug(void)
++{
++	return percpu_is_write_locked(&mem_hotplug_lock);
++}
 +
- config HAVE_MEMBLOCK_PHYS_MAP
- 	bool
+ u64 max_mem_size = U64_MAX;
  
+ /* add this memory to iomem resource */
+--- a/mm/page_alloc.c~mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change
++++ a/mm/page_alloc.c
+@@ -417,6 +417,10 @@ void set_pfnblock_flags_mask(struct page
+ 
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
++	lockdep_assert_once(system_state == SYSTEM_BOOTING ||
++		in_mem_hotplug() ||
++		lockdep_is_held(&page_zone(page)->lock));
++
+ 	if (unlikely(page_group_by_mobility_disabled &&
+ 		     migratetype < MIGRATE_PCPTYPES))
+ 		migratetype = MIGRATE_UNMOVABLE;
 _
 
-Patches currently in -mm which might be from fvdl@google.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-cma-export-total-and-free-number-of-pages-for-cma-areas.patch
-mm-cma-support-multiple-contiguous-ranges-if-requested.patch
-mm-cma-introduce-cma_intersects-function.patch
-mm-hugetlb-use-cma_declare_contiguous_multi.patch
-mm-hugetlb-remove-redundant-__clearpagereserved.patch
-mm-hugetlb-use-online-nodes-for-bootmem-allocation.patch
-mm-hugetlb-convert-cmdline-parameters-from-setup-to-early.patch
-x86-mm-make-register_page_bootmem_memmap-handle-pte-mappings.patch
-mm-bootmem_info-export-register_page_bootmem_memmap.patch
-mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot.patch
-mm-sparse-allow-for-alternate-vmemmap-section-init-at-boot-fix.patch
-mm-hugetlb-set-migratetype-for-bootmem-folios.patch
-mm-define-__init_reserved_page_zone-function.patch
-mm-hugetlb-check-bootmem-pages-for-zone-intersections.patch
-mm-sparse-add-vmemmap__hvo-functions.patch
-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
-mm-hugetlb-move-huge_boot_pages-list-init-to-hugetlb_bootmem_alloc.patch
-mm-hugetlb-add-pre-hvo-framework.patch
-mm-hugetlb_vmemmap-fix-hugetlb_vmemmap_restore_folios-definition.patch
-mm-hugetlb-do-pre-hvo-for-bootmem-allocated-pages.patch
-x86-setup-call-hugetlb_bootmem_alloc-early.patch
-x86-mm-set-arch_want_sparsemem_vmemmap_preinit.patch
-mm-cma-simplify-zone-intersection-check.patch
-mm-cma-introduce-a-cma-validate-function.patch
-mm-cma-introduce-interface-for-early-reservations.patch
-mm-hugetlb-add-hugetlb_cma_only-cmdline-option.patch
-mm-hugetlb-enable-bootmem-allocation-from-cma-areas.patch
-mm-hugetlb-move-hugetlb-cma-code-in-to-its-own-file.patch
+mm-mmu_gather-update-comment-on-rcu-freeing.patch
+selftests-mm-report-errno-when-things-fail-in-gup_longterm.patch
+selftests-mm-fix-assumption-that-sudo-is-present.patch
+selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch
+selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch
+selftests-mm-uffd-rename-nr_cpus-nr_threads.patch
+selftests-mm-print-some-details-when-uffd-stress-gets-bad-params.patch
+selftests-mm-dont-fail-uffd-stress-if-too-many-cpus.patch
+selftests-mm-skip-map_populate-on-weird-filesystems.patch
+selftests-mm-skip-gup_longerm-tests-on-weird-filesystems.patch
+mm-page_alloc-warn-on-nr_reserved_highatomic-underflow.patch
+mm-page_alloc-clarify-terminology-in-migratetype-fallback-code.patch
+mm-page_alloc-clarify-should_claim_block-commentary.patch
+mm-page_alloc-add-lockdep-assertion-for-pageblock-type-change.patch
+scripts-gdb-add-lx_per_cpu_ptr.patch
 
