@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 063341F0E5F
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 23:33:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12CC32AEF1
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 23:47:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741044816; cv=none; b=qKvXEvLdrdCXggpNazFX3UJbqJI4NBfRWkevArdcVNj93Sz6jeQ4m6oLVfYdzrU2TH6dWJKcCyIyUBXkvviOTfVkgDiFKjfseOMikxN7oxDpFQ/wAEZGUMbqTREAj0sy5elY35N0rVhayTT5cfLgNPQapaBLvXjLc9FruPW8x9M=
+	t=1741045659; cv=none; b=blLbX5aCww+JIBQPdADEGEWB5rdyPiSIlTOR+ZekAewHVZLKNsLxJC0HZLRf1wNy0mTYRUwCt9FV9/Y+6E1JS0q/RIz5dFigwz6CAGBnRjjrRV2sJ16ROu2teOIaXmELKa8rjXZYYveCGsHddph0Fa0wlZA1X1BTI+4/sxWhGP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741044816; c=relaxed/simple;
-	bh=J7hBhWzemV+aSmzUHOBzW3U0G0sFci+WSu2P1pWurYY=;
-	h=Date:To:From:Subject:Message-Id; b=EEi1Yr1GsYgAQamkqrlAeLH/WmJdqFHS5ThR8kTeLDyyZfC3RknbB9j6Qf7wzRHgnsTLGfzML9TimjFEDLsBivv3285ys+GB2VsFNdGz7DwZzB71V8sqbi5s+KGhp5ZJrlwiROMvj7eVej0UfCNrsaUV1xqeAI3lkMOlHCao+g0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZf7hFEf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741045659; c=relaxed/simple;
+	bh=CnZjCtfgOCt2z8TgiqpGq3OtSsXKjaoRQRC8Fksw/Ec=;
+	h=Date:To:From:Subject:Message-Id; b=otA8nZve5JpZlF6ZrIWtqAQAXSaBqajOUQoXWIsguFMOU/qXFyYDPYXT9VbUFjOFH8jZkr2D+5aPelT135KCgrEfms8hy/ikk68JVxdhM7nwn28x9K2HDewfdDyeiAPrJShqCtWd/LsWlYF1xGrndvp+SycWtUi2H0Jp3cJclSc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BPVVuCtA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZf7hFEf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C895EC4CEE9;
-	Mon,  3 Mar 2025 23:33:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BPVVuCtA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39838C4CEE8;
+	Mon,  3 Mar 2025 23:47:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741044815;
-	bh=J7hBhWzemV+aSmzUHOBzW3U0G0sFci+WSu2P1pWurYY=;
+	s=korg; t=1741045658;
+	bh=CnZjCtfgOCt2z8TgiqpGq3OtSsXKjaoRQRC8Fksw/Ec=;
 	h=Date:To:From:Subject:From;
-	b=jZf7hFEf6K2o6AcE2PrlEUKWhY9eltSp6/Qww8Eo3d8xUjAmAhEuVklb9MLGu3+nB
-	 mau7/fnh+bhcvq5kXk6iWRPng9Yt++qTsMS53zW4KsJJozRJbzC7/lFMrpO0HzJqf1
-	 PYTckyAV0GJT4m6kXtHAsq9gYT4tj++69bFHgvEE=
-Date: Mon, 03 Mar 2025 15:33:35 -0800
-To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=BPVVuCtAZJLoSuCFMqEssRA2tcZUeq8uS4EHVpEj++9puaufxwwBCDZXxpSrMyyrq
+	 qIh/9zlq6zHUKZ9im99vHbgOjsIN4k74e8lt5yBVAqy9cawBFNz+AVpv9DqT1UQdpx
+	 JBwDoLoTATLGrdK+lEnW+hslIiClC/Azet1JtZnk=
+Date: Mon, 03 Mar 2025 15:47:37 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,rppt@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,geert@linux-m68k.org,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-thread-state-through-move-page-table-operation.patch added to mm-unstable branch
-Message-Id: <20250303233335.C895EC4CEE9@smtp.kernel.org>
+Subject: + mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2.patch added to mm-unstable branch
+Message-Id: <20250303234738.39838C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: thread state through move page table operation
+     Subject: mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-thread-state-through-move-page-table-operation.patch
+     mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-thread-state-through-move-page-table-operation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,516 +58,205 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: thread state through move page table operation
-Date: Mon, 3 Mar 2025 11:08:37 +0000
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
+Date: Mon, 3 Mar 2025 15:26:03 +0800
 
-Finish refactoring the page table logic by threading the PMC state
-throughout the operation, allowing us to control the operation as we go.
+remove the do { ... } while construct, per Geert
 
-Additionally, update the old_addr, new_addr fields in move_page_tables()
-as we progress through the process making use of the fact we have this
-state object now to track this.
-
-With these changes made, not only is the code far more readable, but we
-can finally transmit state throughout the entire operation, which lays the
-groundwork for sensibly making changes in future to how the mremap()
-operation is performed.
-
-Additionally take the opportunity to refactor the means of determining the
-progress of the operation, abstracting this to pmc_progress() and
-simplifying the logic to make it clearer what's going on.
-
-Link: https://lkml.kernel.org/r/4cc18ebfc0cb32e9e42d86503cef3265108343e4.1740911247.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
+Link: https://lkml.kernel.org/r/20250303072603.45423-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickens <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 
- mm/mremap.c   |  196 +++++++++++++++++++++++++++---------------------
- 2 files changed, 117 insertions(+), 82 deletions(-)
+ arch/csky/include/asm/pgalloc.h      |    6 ++----
+ arch/hexagon/include/asm/pgalloc.h   |    6 ++----
+ arch/loongarch/include/asm/pgalloc.h |    6 ++----
+ arch/m68k/include/asm/sun3_pgalloc.h |    6 ++----
+ arch/mips/include/asm/pgalloc.h      |    6 ++----
+ arch/nios2/include/asm/pgalloc.h     |    6 ++----
+ arch/openrisc/include/asm/pgalloc.h  |    6 ++----
+ arch/sh/include/asm/pgalloc.h        |    6 ++----
+ arch/um/include/asm/pgalloc.h        |   18 ++++++------------
+ 9 files changed, 22 insertions(+), 44 deletions(-)
 
---- a/mm/internal.h~mm-mremap-thread-state-through-move-page-table-operation
-+++ a/mm/internal.h
-@@ -39,6 +39,9 @@ struct folio_batch;
-  *
-  * Use the PAGETABLE_MOVE() macro to initialise this struct.
-  *
-+ * The old_addr and new_addr fields are updated as the page table move is
-+ * executed.
-+ *
-  * NOTE: The page table move is affected by reading from [old_addr, old_end),
-  * and old_addr may be updated for better page table alignment, so len_in
-  * represents the length of the range being copied as specified by the user.
---- a/mm/mremap.c~mm-mremap-thread-state-through-move-page-table-operation
-+++ a/mm/mremap.c
-@@ -107,8 +107,7 @@ static pmd_t *get_old_pmd(struct mm_stru
- 	return pmd;
+--- a/arch/csky/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/csky/include/asm/pgalloc.h
+@@ -61,10 +61,8 @@ static inline pgd_t *pgd_alloc(struct mm
+ 	return ret;
  }
  
--static pud_t *alloc_new_pud(struct mm_struct *mm, struct vm_area_struct *vma,
--			    unsigned long addr)
-+static pud_t *alloc_new_pud(struct mm_struct *mm, unsigned long addr)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -121,13 +120,12 @@ static pud_t *alloc_new_pud(struct mm_st
- 	return pud_alloc(mm, p4d, addr);
+-#define __pte_free_tlb(tlb, pte, address)		\
+-do {							\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));	\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, address)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+ 
+ extern void pagetable_init(void);
+ extern void mmu_init(unsigned long min_pfn, unsigned long max_pfn);
+--- a/arch/hexagon/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/hexagon/include/asm/pgalloc.h
+@@ -87,9 +87,7 @@ static inline void pmd_populate_kernel(s
+ 		max_kernel_seg = pmdindex;
  }
  
--static pmd_t *alloc_new_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
--			    unsigned long addr)
-+static pmd_t *alloc_new_pmd(struct mm_struct *mm, unsigned long addr)
- {
- 	pud_t *pud;
- 	pmd_t *pmd;
+-#define __pte_free_tlb(tlb, pte, addr)				\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, addr)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
  
--	pud = alloc_new_pud(mm, vma, addr);
-+	pud = alloc_new_pud(mm, addr);
- 	if (!pud)
- 		return NULL;
- 
-@@ -171,17 +169,19 @@ static pte_t move_soft_dirty_pte(pte_t p
+ #endif
+--- a/arch/loongarch/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/loongarch/include/asm/pgalloc.h
+@@ -55,10 +55,8 @@ static inline pte_t *pte_alloc_one_kerne
  	return pte;
  }
  
--static int move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
--		unsigned long old_addr, unsigned long old_end,
--		struct vm_area_struct *new_vma, pmd_t *new_pmd,
--		unsigned long new_addr, bool need_rmap_locks)
-+static int move_ptes(struct pagetable_move_control *pmc,
-+		unsigned long extent, pmd_t *old_pmd, pmd_t *new_pmd)
+-#define __pte_free_tlb(tlb, pte, address)			\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, address)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte));
+ 
+ #ifndef __PAGETABLE_PMD_FOLDED
+ 
+--- a/arch/m68k/include/asm/sun3_pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/m68k/include/asm/sun3_pgalloc.h
+@@ -17,10 +17,8 @@
+ 
+ extern const char bad_pmd_string[];
+ 
+-#define __pte_free_tlb(tlb, pte, addr)				\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, addr)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+ 
+ static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd, pte_t *pte)
  {
-+	struct vm_area_struct *vma = pmc->old;
- 	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_pte, *new_pte, pte;
- 	pmd_t dummy_pmdval;
- 	spinlock_t *old_ptl, *new_ptl;
- 	bool force_flush = false;
-+	unsigned long old_addr = pmc->old_addr;
-+	unsigned long new_addr = pmc->new_addr;
-+	unsigned long old_end = old_addr + extent;
- 	unsigned long len = old_end - old_addr;
- 	int err = 0;
+--- a/arch/mips/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/mips/include/asm/pgalloc.h
+@@ -48,10 +48,8 @@ static inline void pud_populate(struct m
+ extern void pgd_init(void *addr);
+ extern pgd_t *pgd_alloc(struct mm_struct *mm);
  
-@@ -203,7 +203,7 @@ static int move_ptes(struct vm_area_stru
- 	 *   serialize access to individual ptes, but only rmap traversal
- 	 *   order guarantees that we won't miss both the old and new ptes).
- 	 */
--	if (need_rmap_locks)
-+	if (pmc->need_rmap_locks)
- 		take_rmap_locks(vma);
+-#define __pte_free_tlb(tlb, pte, address)			\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, address)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
  
- 	/*
-@@ -277,7 +277,7 @@ static int move_ptes(struct vm_area_stru
- 	pte_unmap(new_pte - 1);
- 	pte_unmap_unlock(old_pte - 1, old_ptl);
- out:
--	if (need_rmap_locks)
-+	if (pmc->need_rmap_locks)
- 		drop_rmap_locks(vma);
- 	return err;
- }
-@@ -292,10 +292,11 @@ static inline bool arch_supports_page_ta
+ #ifndef __PAGETABLE_PMD_FOLDED
+ 
+--- a/arch/nios2/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/nios2/include/asm/pgalloc.h
+@@ -28,9 +28,7 @@ static inline void pmd_populate(struct m
+ 
+ extern pgd_t *pgd_alloc(struct mm_struct *mm);
+ 
+-#define __pte_free_tlb(tlb, pte, addr)				\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, addr)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+ 
+ #endif /* _ASM_NIOS2_PGALLOC_H */
+--- a/arch/openrisc/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/openrisc/include/asm/pgalloc.h
+@@ -64,9 +64,7 @@ extern inline pgd_t *pgd_alloc(struct mm
+ 
+ extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
+ 
+-#define __pte_free_tlb(tlb, pte, addr)				\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, addr)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
+ 
  #endif
- 
- #ifdef CONFIG_HAVE_MOVE_PMD
--static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
--		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
-+static bool move_normal_pmd(struct pagetable_move_control *pmc,
-+			pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	spinlock_t *old_ptl, *new_ptl;
-+	struct vm_area_struct *vma = pmc->old;
- 	struct mm_struct *mm = vma->vm_mm;
- 	bool res = false;
- 	pmd_t pmd;
-@@ -341,7 +342,7 @@ static bool move_normal_pmd(struct vm_ar
- 	 * We don't have to worry about the ordering of src and dst
- 	 * ptlocks because exclusive mmap_lock prevents deadlock.
- 	 */
--	old_ptl = pmd_lock(vma->vm_mm, old_pmd);
-+	old_ptl = pmd_lock(mm, old_pmd);
- 	new_ptl = pmd_lockptr(mm, new_pmd);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -358,7 +359,7 @@ static bool move_normal_pmd(struct vm_ar
- 	VM_BUG_ON(!pmd_none(*new_pmd));
- 
- 	pmd_populate(mm, new_pmd, pmd_pgtable(pmd));
--	flush_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
-+	flush_tlb_range(vma, pmc->old_addr, pmc->old_addr + PMD_SIZE);
- out_unlock:
- 	if (new_ptl != old_ptl)
- 		spin_unlock(new_ptl);
-@@ -367,19 +368,19 @@ out_unlock:
- 	return res;
+--- a/arch/sh/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/sh/include/asm/pgalloc.h
+@@ -32,9 +32,7 @@ static inline void pmd_populate(struct m
+ 	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
  }
- #else
--static inline bool move_normal_pmd(struct vm_area_struct *vma,
--		unsigned long old_addr, unsigned long new_addr, pmd_t *old_pmd,
--		pmd_t *new_pmd)
-+static inline bool move_normal_pmd(struct pagetable_move_control *pmc,
-+		pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	return false;
- }
- #endif
  
- #if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_HAVE_MOVE_PUD)
--static bool move_normal_pud(struct vm_area_struct *vma, unsigned long old_addr,
--		  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
-+static bool move_normal_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
- {
- 	spinlock_t *old_ptl, *new_ptl;
-+	struct vm_area_struct *vma = pmc->old;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t pud;
+-#define __pte_free_tlb(tlb, pte, addr)				\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, addr)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
  
-@@ -405,7 +406,7 @@ static bool move_normal_pud(struct vm_ar
- 	 * We don't have to worry about the ordering of src and dst
- 	 * ptlocks because exclusive mmap_lock prevents deadlock.
- 	 */
--	old_ptl = pud_lock(vma->vm_mm, old_pud);
-+	old_ptl = pud_lock(mm, old_pud);
- 	new_ptl = pud_lockptr(mm, new_pud);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -417,7 +418,7 @@ static bool move_normal_pud(struct vm_ar
- 	VM_BUG_ON(!pud_none(*new_pud));
- 
- 	pud_populate(mm, new_pud, pud_pgtable(pud));
--	flush_tlb_range(vma, old_addr, old_addr + PUD_SIZE);
-+	flush_tlb_range(vma, pmc->old_addr, pmc->old_addr + PUD_SIZE);
- 	if (new_ptl != old_ptl)
- 		spin_unlock(new_ptl);
- 	spin_unlock(old_ptl);
-@@ -425,19 +426,19 @@ static bool move_normal_pud(struct vm_ar
- 	return true;
- }
- #else
--static inline bool move_normal_pud(struct vm_area_struct *vma,
--		unsigned long old_addr, unsigned long new_addr, pud_t *old_pud,
--		pud_t *new_pud)
-+static inline bool move_normal_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
- {
- 	return false;
- }
- #endif
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
--			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
-+static bool move_huge_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
- {
- 	spinlock_t *old_ptl, *new_ptl;
-+	struct vm_area_struct *vma = pmc->old;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t pud;
- 
-@@ -452,7 +453,7 @@ static bool move_huge_pud(struct vm_area
- 	 * We don't have to worry about the ordering of src and dst
- 	 * ptlocks because exclusive mmap_lock prevents deadlock.
- 	 */
--	old_ptl = pud_lock(vma->vm_mm, old_pud);
-+	old_ptl = pud_lock(mm, old_pud);
- 	new_ptl = pud_lockptr(mm, new_pud);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -465,8 +466,8 @@ static bool move_huge_pud(struct vm_area
- 
- 	/* Set the new pud */
- 	/* mark soft_ditry when we add pud level soft dirty support */
--	set_pud_at(mm, new_addr, new_pud, pud);
--	flush_pud_tlb_range(vma, old_addr, old_addr + HPAGE_PUD_SIZE);
-+	set_pud_at(mm, pmc->new_addr, new_pud, pud);
-+	flush_pud_tlb_range(vma, pmc->old_addr, pmc->old_addr + HPAGE_PUD_SIZE);
- 	if (new_ptl != old_ptl)
- 		spin_unlock(new_ptl);
- 	spin_unlock(old_ptl);
-@@ -496,10 +497,12 @@ enum pgt_entry {
-  * destination pgt_entry.
+ #endif /* __ASM_SH_PGALLOC_H */
+--- a/arch/um/include/asm/pgalloc.h~mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2
++++ a/arch/um/include/asm/pgalloc.h
+@@ -25,24 +25,18 @@
   */
- static __always_inline unsigned long get_extent(enum pgt_entry entry,
--			unsigned long old_addr, unsigned long old_end,
--			unsigned long new_addr)
-+						struct pagetable_move_control *pmc)
- {
- 	unsigned long next, extent, mask, size;
-+	unsigned long old_addr = pmc->old_addr;
-+	unsigned long old_end = pmc->old_end;
-+	unsigned long new_addr = pmc->new_addr;
+ extern pgd_t *pgd_alloc(struct mm_struct *);
  
- 	switch (entry) {
- 	case HPAGE_PMD:
-@@ -529,37 +532,53 @@ static __always_inline unsigned long get
- }
+-#define __pte_free_tlb(tlb, pte, address)			\
+-do {								\
+-	tlb_remove_ptdesc((tlb), page_ptdesc(pte));		\
+-} while (0)
++#define __pte_free_tlb(tlb, pte, address)	\
++	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
  
- /*
-+ * Should move_pgt_entry() acquire the rmap locks? This is either expressed in
-+ * the PMC, or overridden in the case of normal, larger page tables.
-+ */
-+static bool should_take_rmap_locks(struct pagetable_move_control *pmc,
-+				   enum pgt_entry entry)
-+{
-+	if (pmc->need_rmap_locks)
-+		return true;
-+
-+	switch (entry) {
-+	case NORMAL_PMD:
-+	case NORMAL_PUD:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/*
-  * Attempts to speedup the move by moving entry at the level corresponding to
-  * pgt_entry. Returns true if the move was successful, else false.
-  */
--static bool move_pgt_entry(enum pgt_entry entry, struct vm_area_struct *vma,
--			unsigned long old_addr, unsigned long new_addr,
--			void *old_entry, void *new_entry, bool need_rmap_locks)
-+static bool move_pgt_entry(struct pagetable_move_control *pmc,
-+			   enum pgt_entry entry, void *old_entry, void *new_entry)
- {
- 	bool moved = false;
-+	bool need_rmap_locks = should_take_rmap_locks(pmc, entry);
+ #if CONFIG_PGTABLE_LEVELS > 2
  
- 	/* See comment in move_ptes() */
- 	if (need_rmap_locks)
--		take_rmap_locks(vma);
-+		take_rmap_locks(pmc->old);
+-#define __pmd_free_tlb(tlb, pmd, address)			\
+-do {								\
+-	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd));		\
+-} while (0)
++#define __pmd_free_tlb(tlb, pmd, address)	\
++	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd))
  
- 	switch (entry) {
- 	case NORMAL_PMD:
--		moved = move_normal_pmd(vma, old_addr, new_addr, old_entry,
--					new_entry);
-+		moved = move_normal_pmd(pmc, old_entry, new_entry);
- 		break;
- 	case NORMAL_PUD:
--		moved = move_normal_pud(vma, old_addr, new_addr, old_entry,
--					new_entry);
-+		moved = move_normal_pud(pmc, old_entry, new_entry);
- 		break;
- 	case HPAGE_PMD:
- 		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--			move_huge_pmd(vma, old_addr, new_addr, old_entry,
-+			move_huge_pmd(pmc->old, pmc->old_addr, pmc->new_addr, old_entry,
- 				      new_entry);
- 		break;
- 	case HPAGE_PUD:
- 		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--			move_huge_pud(vma, old_addr, new_addr, old_entry,
--				      new_entry);
-+			move_huge_pud(pmc, old_entry, new_entry);
- 		break;
+ #if CONFIG_PGTABLE_LEVELS > 3
  
- 	default:
-@@ -568,7 +587,7 @@ static bool move_pgt_entry(enum pgt_entr
- 	}
+-#define __pud_free_tlb(tlb, pud, address)			\
+-do {								\
+-	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pud));		\
+-} while (0)
++#define __pud_free_tlb(tlb, pud, address)	\
++	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pud))
  
- 	if (need_rmap_locks)
--		drop_rmap_locks(vma);
-+		drop_rmap_locks(pmc->old);
- 
- 	return moved;
- }
-@@ -704,19 +723,48 @@ static void try_realign_addr(struct page
- 	pmc->new_addr &= pagetable_mask;
- }
- 
-+/* Is the page table move operation done? */
-+static bool pmc_done(struct pagetable_move_control *pmc)
-+{
-+	return pmc->old_addr >= pmc->old_end;
-+}
-+
-+/* Advance to the next page table, offset by extent bytes. */
-+static void pmc_next(struct pagetable_move_control *pmc, unsigned long extent)
-+{
-+	pmc->old_addr += extent;
-+	pmc->new_addr += extent;
-+}
-+
-+/*
-+ * Determine how many bytes in the specified input range have had their page
-+ * tables moved so far.
-+ */
-+static unsigned long pmc_progress(struct pagetable_move_control *pmc)
-+{
-+	unsigned long orig_old_addr = pmc->old_end - pmc->len_in;
-+	unsigned long old_addr = pmc->old_addr;
-+
-+	/*
-+	 * Prevent negative return values when {old,new}_addr was realigned but
-+	 * we broke out of the loop in move_page_tables() for the first PMD
-+	 * itself.
-+	 */
-+	return old_addr < orig_old_addr ? 0 : old_addr - orig_old_addr;
-+}
-+
- unsigned long move_page_tables(struct pagetable_move_control *pmc)
- {
--	unsigned long extent, old_end;
-+	unsigned long extent;
- 	struct mmu_notifier_range range;
- 	pmd_t *old_pmd, *new_pmd;
- 	pud_t *old_pud, *new_pud;
--	unsigned long old_addr, new_addr;
--	struct vm_area_struct *vma = pmc->old;
-+	struct mm_struct *mm = pmc->old->vm_mm;
- 
- 	if (!pmc->len_in)
- 		return 0;
- 
--	if (is_vm_hugetlb_page(vma))
-+	if (is_vm_hugetlb_page(pmc->old))
- 		return move_hugetlb_page_tables(pmc->old, pmc->new, pmc->old_addr,
- 						pmc->new_addr, pmc->len_in);
- 
-@@ -725,87 +773,71 @@ unsigned long move_page_tables(struct pa
- 	 * Only realign if the mremap copying hits a PMD boundary.
- 	 */
- 	try_realign_addr(pmc, PMD_MASK);
--	/* These may have been changed. */
--	old_addr = pmc->old_addr;
--	new_addr = pmc->new_addr;
--	old_end = pmc->old_end;
--
--	flush_cache_range(vma, old_addr, old_end);
--	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
--				old_addr, old_end);
-+
-+	flush_cache_range(pmc->old, pmc->old_addr, pmc->old_end);
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, mm,
-+				pmc->old_addr, pmc->old_end);
- 	mmu_notifier_invalidate_range_start(&range);
- 
--	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
-+	for (; !pmc_done(pmc); pmc_next(pmc, extent)) {
- 		cond_resched();
- 		/*
- 		 * If extent is PUD-sized try to speed up the move by moving at the
- 		 * PUD level if possible.
- 		 */
--		extent = get_extent(NORMAL_PUD, old_addr, old_end, new_addr);
-+		extent = get_extent(NORMAL_PUD, pmc);
- 
--		old_pud = get_old_pud(vma->vm_mm, old_addr);
-+		old_pud = get_old_pud(mm, pmc->old_addr);
- 		if (!old_pud)
- 			continue;
--		new_pud = alloc_new_pud(vma->vm_mm, vma, new_addr);
-+		new_pud = alloc_new_pud(mm, pmc->new_addr);
- 		if (!new_pud)
- 			break;
- 		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
- 			if (extent == HPAGE_PUD_SIZE) {
--				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
--					       old_pud, new_pud, pmc->need_rmap_locks);
-+				move_pgt_entry(pmc, HPAGE_PUD, old_pud, new_pud);
- 				/* We ignore and continue on error? */
- 				continue;
- 			}
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
--			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
--					   old_pud, new_pud, true))
-+			if (move_pgt_entry(pmc, NORMAL_PUD, old_pud, new_pud))
- 				continue;
- 		}
- 
--		extent = get_extent(NORMAL_PMD, old_addr, old_end, new_addr);
--		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
-+		extent = get_extent(NORMAL_PMD, pmc);
-+		old_pmd = get_old_pmd(mm, pmc->old_addr);
- 		if (!old_pmd)
- 			continue;
--		new_pmd = alloc_new_pmd(vma->vm_mm, vma, new_addr);
-+		new_pmd = alloc_new_pmd(mm, pmc->new_addr);
- 		if (!new_pmd)
- 			break;
- again:
- 		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd) ||
- 		    pmd_devmap(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE &&
--			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, pmc->need_rmap_locks))
-+			    move_pgt_entry(pmc, HPAGE_PMD, old_pmd, new_pmd))
- 				continue;
--			split_huge_pmd(vma, old_pmd, old_addr);
-+			split_huge_pmd(pmc->old, old_pmd, pmc->old_addr);
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PMD) &&
- 			   extent == PMD_SIZE) {
- 			/*
- 			 * If the extent is PMD-sized, try to speed the move by
- 			 * moving at the PMD level if possible.
- 			 */
--			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, true))
-+			if (move_pgt_entry(pmc, NORMAL_PMD, old_pmd, new_pmd))
- 				continue;
- 		}
- 		if (pmd_none(*old_pmd))
- 			continue;
- 		if (pte_alloc(pmc->new->vm_mm, new_pmd))
- 			break;
--		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
--			      pmc->new, new_pmd, new_addr, pmc->need_rmap_locks) < 0)
-+		if (move_ptes(pmc, extent, old_pmd, new_pmd) < 0)
- 			goto again;
- 	}
- 
- 	mmu_notifier_invalidate_range_end(&range);
- 
--	/*
--	 * Prevent negative return values when {old,new}_addr was realigned
--	 * but we broke out of the above loop for the first PMD itself.
--	 */
--	if (old_addr < old_end - pmc->len_in)
--		return 0;
--
--	return pmc->len_in + old_addr - old_end;	/* how much done */
-+	return pmc_progress(pmc);
- }
- 
- /* Set vrm->delta to the difference in VMA size specified by user. */
+ #endif
+ #endif
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-abort-vma_modify-on-merge-out-of-memory-failure.patch
-mm-simplify-vma-merge-structure-and-expand-comments.patch
-mm-further-refactor-commit_merge.patch
-mm-eliminate-adj_start-parameter-from-commit_merge.patch
-mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
-mm-completely-abstract-unnecessary-adj_start-calculation.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
-mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
-mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
-mm-provide-mapping_wrprotect_range-function.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
-mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
-selftests-mm-rename-guard-pages-to-guard-regions.patch
-tools-selftests-expand-all-guard-region-tests-to-file-backed.patch
-tools-selftests-add-file-shmem-backed-mapping-guard-region-tests.patch
-fs-proc-task_mmu-add-guard-region-bit-to-pagemap.patch
-tools-selftests-add-guard-region-test-for-proc-pid-pagemap.patch
-tools-selftests-add-guard-region-test-for-proc-pid-pagemap-fix.patch
-mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
-mm-mremap-refactor-mremap-system-call-implementation.patch
-mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
-mm-mremap-initial-refactor-of-move_vma.patch
-mm-mremap-complete-refactor-of-move_vma.patch
-mm-mremap-refactor-move_page_tables-abstracting-state.patch
-mm-mremap-thread-state-through-move-page-table-operation.patch
+arm-pgtable-fix-null-pointer-dereference-issue.patch
+mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch
+mm-pgtable-change-pt-parameter-of-tlb_remove_ptdesc-to-struct-ptdesc.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2.patch
+riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch
+x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch
+mm-pgtable-remove-tlb_remove_page_ptdesc.patch
 
