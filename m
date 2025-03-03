@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FDDF198A2F
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:32:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117EB198A2F
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:32:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741041123; cv=none; b=FcIwtQVO55kxtKWpZffcTRo5f1K+UJ6vATTSHUz0CMwMRAtIcOr/XP9n56YmyzhDx17XPpLbQpf8/29yRZ4skILdBANJHqOqMgVrUuONoHCP7TylgAmIMK3Mwro89krCpsvOlousjPFClPA1WChIMz1HuJUF+V8Nid/aa208dPI=
+	t=1741041125; cv=none; b=juumD+e1KTjSIOhBe1yvYX935+y+F/9Uoi55tJ39ounxpc7PU1HvG6giE1H43KL/UZFpj4LZ2SiOH9+RORxmUw8U9XwO1LbuIoNtaP+9xIMvG9fNPvChyCXk1zYxzJHt9nSgobk+ov1AUikyd+11lqQb13/iDAVvJbJ7mTp/aKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741041123; c=relaxed/simple;
-	bh=7il9K1jVvxezjcqlYCbLnXQVBJ8WmkZx/cmIomWWCVg=;
-	h=Date:To:From:Subject:Message-Id; b=WhvZ83niR7kP3Ou7yszf4Nx1VkMWmqx4HCRfMYOVKL07izKyoiP9ua6xOqh4rF3sDld/ms9pZ1q6uASLwhGANpH8tvlJ7L1rNb2oKTeP3I18mGKJgZpwXUnIN090sANitKUik7f+Suxc6N5PFTFZAeuYkSfyI0QQHTVhZTozfNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eTxKv+8j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741041125; c=relaxed/simple;
+	bh=yzmFaM1jKaD9xgHrc/lsFjnn2YLnG7uv9Q1Jh/7sEiQ=;
+	h=Date:To:From:Subject:Message-Id; b=V8m7x4hwIK1i3Id1y0auXED9jQZIl3rnJdi1/YXVlxeOIpyJL6UclxMNVRzLyvDdIrzplQV/hUTGWdoScOa9UzOHJbwbAMAGVWbBdoCxste/R0pkg1iLXXzZD6B9xYNlO9SiWU5yb825wpcOip+yrGhY6gWKeXDMrX0mbre+FjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wlFo66bf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eTxKv+8j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A788BC4CED6;
-	Mon,  3 Mar 2025 22:32:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wlFo66bf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71883C4CED6;
+	Mon,  3 Mar 2025 22:32:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741041122;
-	bh=7il9K1jVvxezjcqlYCbLnXQVBJ8WmkZx/cmIomWWCVg=;
+	s=korg; t=1741041124;
+	bh=yzmFaM1jKaD9xgHrc/lsFjnn2YLnG7uv9Q1Jh/7sEiQ=;
 	h=Date:To:From:Subject:From;
-	b=eTxKv+8jGzg6Q6Upg8sERlykTq7/XZWiKpahMWK68fIHcgVSPDP4gKLT67FU1STyO
-	 MnFa2tH4YZqqUcWa7PiG8CiXQze0mWC8Gu0K0CiOvc9AOth0CxuLQxH+tj+5VOvbVT
-	 QrS1dFHED6P0IoRYUdoLSq+CC+6DdiRf6HxOvek0=
-Date: Mon, 03 Mar 2025 14:32:02 -0800
+	b=wlFo66bfVw9TwHUCXSIqc6pLXqMnBovjmfbUnHLg8F8eBs4J5WEu+RCtfeA2SqlUX
+	 e2yLk9JVHt2Lpx0lNpvMKIBj//BLa8KGDvgtfzGt96z7hKPWxF3XJIhzSoMwTo/p5W
+	 9/jMrQ9xWjRcwNVEc9RW4nzKqoNvVHIRY/WVBEz4=
+Date: Mon, 03 Mar 2025 14:32:03 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-for-intervals-auto-tuning.patch added to mm-unstable branch
-Message-Id: <20250303223202.A788BC4CED6@smtp.kernel.org>
+Subject: + docs-abi-damon-document-intervals-auto-tuning-abi.patch added to mm-unstable branch
+Message-Id: <20250303223204.71883C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document for intervals auto-tuning
+     Subject: Docs/ABI/damon: document intervals auto-tuning ABI
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-document-for-intervals-auto-tuning.patch
+     docs-abi-damon-document-intervals-auto-tuning-abi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-for-intervals-auto-tuning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-intervals-auto-tuning-abi.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,83 +59,60 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document for intervals auto-tuning
-Date: Mon, 3 Mar 2025 14:17:24 -0800
+Subject: Docs/ABI/damon: document intervals auto-tuning ABI
+Date: Mon, 3 Mar 2025 14:17:25 -0800
 
-Document the design of DAMON sampling and aggregation intervals
-auto-tuning.
+Document the DAMON user-space ABI for DAMON sampling and aggregation
+intervals auto-tuning.
 
-Link: https://lkml.kernel.org/r/20250303221726.484227-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250303221726.484227-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   46 ++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   30 ++++++++++++++
+ 1 file changed, 30 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-for-intervals-auto-tuning
-+++ a/Documentation/mm/damon/design.rst
-@@ -313,6 +313,10 @@ sufficient for the given purpose, it sho
- lowered.  It is recommended to be set proportional to ``aggregation interval``.
- By default, the ratio is set as ``1/20``, and it is still recommended.
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-intervals-auto-tuning-abi
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -91,6 +91,36 @@ Description:	Writing a value to this fil
+ 		DAMON context in microseconds as the value.  Reading this file
+ 		returns the value.
  
-+Based on the manual tuning guide, DAMON provides more intuitive knob-based
-+intervals auto tuning mechanism.  Please refer to :ref:`the design document of
-+the feature <damon_design_monitoring_intervals_autotuning>` for detail.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/access_bp
++Date:		Feb 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the monitoring intervals
++		auto-tuning target DAMON-observed access events ratio within
++		the given time interval (aggrs in same directory), in bp
++		(1/10,000).  Reading this file returns the value.
 +
- Refer to below documents for an example tuning based on the above guide.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/aggrs
++Date:		Feb 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the time interval to achieve
++		the monitoring intervals auto-tuning target DAMON-observed
++		access events ratio (access_bp in same directory) within.
++		Reading this file returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/min_sample_us
++Date:		Feb 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the minimum value of
++		auto-tuned sampling interval in microseconds.  Reading this
++		file returns the value.
++
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/max_sample_us
++Date:		Feb 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the maximum value of
++		auto-tuned sampling interval in microseconds.  Reading this
++		file returns the value.
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/min
  
- .. toctree::
-@@ -321,6 +325,48 @@ Refer to below documents for an example
-    monitoring_intervals_tuning_example
- 
- 
-+.. _damon_design_monitoring_intervals_autotuning:
-+
-+Monitoring Intervals Auto-tuning
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+DAMON provides automatic tuning of the ``sampling interval`` and ``aggregation
-+interval`` based on the :ref:`the tuning guide idea
-+<damon_design_monitoring_params_tuning_guide>`.  The tuning mechanism allows
-+users to set the aimed amount of access events to observe via DAMON within
-+given time interval.  The target can be specified by the user as a ratio of
-+DAMON-observed access events to the theoretical maximum amount of the events
-+(``access_bp``) that measured within a given number of aggregations
-+(``aggrs``).
-+
-+The DAMON-observed access events are calculated in byte granularity based on
-+DAMON :ref:`region assumption <damon_design_region_based_sample>`.  For
-+example, if a region of size ``X`` bytes of ``Y`` ``nr_accesses`` is found, it
-+means ``X * Y`` access events are observed by DAMON.  Theoretical maximum
-+access events for the region is calculated in same way, but replacing ``Y``
-+with theoretical maximum ``nr_accesses``, which can be calculated as
-+``aggregation interval / sampling interval``.
-+
-+The mechanism calculates the ratio of access events for ``aggrs`` aggregations,
-+and increases or decrease the ``sampleing interval`` and ``aggregation
-+interval`` in same ratio, if the observed access ratio is lower or higher than
-+the target, respectively.  The ratio of the intervals change is decided in
-+proportion to the distance between current samples ratio and the target ratio.
-+
-+The user can further set the minimum and maximum ``sampling interval`` that can
-+be set by the tuning mechanism using two parameters (``min_sample_us`` and
-+``max_sample_us``).  Because the tuning mechanism changes ``sampling interval``
-+and ``aggregation interval`` in same ratio always, the minimum and maximum
-+``aggregation interval`` after each of the tuning changes can automatically set
-+together.
-+
-+The tuning is turned off by default, and need to be set explicitly by the user.
-+As a rule of thumbs and the Parreto principle, 4% access samples ratio target
-+is recommended.  Note that Parreto principle (80/20 rule) has applied twice.
-+That is, assumes 4% (20% of 20%) DAMON-observed access events ratio (source)
-+to capture 64% (80% multipled by 80%) real access events (outcomes).
-+
-+
- .. _damon_design_damos:
- 
- Operation Schemes
+ WDate:		Mar 2022
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
