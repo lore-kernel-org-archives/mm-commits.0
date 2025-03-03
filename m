@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F00E1EEA2A;
-	Mon,  3 Mar 2025 23:09:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C73471EEA2A
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 23:10:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741043400; cv=none; b=ApmdkiiG2dUUozSDS1PTLp7QHoezvJtKS2dx67kf4k1Nm52CvRoj6HdIEKHeHjpy8PgmiHEYXvkF8d4Sh/mJUqLYS2eA2h+1dLUzwlnmoWXY3dGHSeXiNmKjJQ4TsLFIMIZ/cyVFTIsRIOSquIROa/+pEWB5Ew1eerMNEZ9dQzU=
+	t=1741043401; cv=none; b=s7XDsVbm3N/qwp6ibDi0gJfHu/hHI/6LPcpJwraBJ3Z0bIpCGl3P5f4MXeY+3T/3cEZ9s49NxRFreMAoNHRT7RCAGqKI0qXAVjk8MlZ7as+612YBSRPoB46jxKzO6N6xJwrkwXMeWkEKHRzr0Y/doTvlCMZXr0yXVXpVJcu8aqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741043400; c=relaxed/simple;
-	bh=MAz/x+KHtUREKMB+Fol7xfDD7n7h6jaU1MsBejAp9xQ=;
-	h=Date:To:From:Subject:Message-Id; b=jssO7otckeEVuzLpqNzYnN8SxaipXL74+uewheeZuvE7d2N5bnWkURDdtHbQsoE5PgU+iqvj/4iKn/hK2GtJfA+k6FvJ0yU58xUsNZypSeH5MD+jPxJjucMGnTae9z4JhVcHxHogIiMjWcYbHzSXqi2ToZi2n458Z0c43xW2FwA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZjnKnN+C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741043401; c=relaxed/simple;
+	bh=cuxEJiWDu5K43mQPbMxpfZOZt9gPiudCLEOkJE+ggn0=;
+	h=Date:To:From:Subject:Message-Id; b=XSYWg5fD3j1gFat7xKMdtjqswRZ1PI0jrg6IW3zckwATQm+DdGZa/e9OhGSfmbZD68ygNscTxJeQNqxav69Su1XFByIgyfcRaVlD0EByHPwn95yhkxF+EFKr7JWJiCfrT+N6aI+OsoKlOd8k9uRecHdopGEquJzmw0LkDW+56xw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aGVhu8Lz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZjnKnN+C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9117DC4CEE8;
-	Mon,  3 Mar 2025 23:09:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aGVhu8Lz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C7B1C4CEE8;
+	Mon,  3 Mar 2025 23:10:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741043399;
-	bh=MAz/x+KHtUREKMB+Fol7xfDD7n7h6jaU1MsBejAp9xQ=;
+	s=korg; t=1741043401;
+	bh=cuxEJiWDu5K43mQPbMxpfZOZt9gPiudCLEOkJE+ggn0=;
 	h=Date:To:From:Subject:From;
-	b=ZjnKnN+Cmrplgogk4lllvJwyRdFe+Tf99nsJsv1+Cm6ntrs8CxtrZv82UGX/V+Yek
-	 nge62F9jDsGsInqntAo39D92mcbn1nuBlzSHo0z709nkK7BLLDHBOLR5XLNWrhUQe+
-	 oIDa5CdJt2h8qA/gmabcWCbW1u6tCf44MK5MjzO0=
-Date: Mon, 03 Mar 2025 15:09:59 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,jgross@suse.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=aGVhu8Lz8i2ixAAO96/jZ2bP/0q5+mTXiVBjt5OdpjoQ9KQ/gQW9Q4NO5H8cuIuBV
+	 sRz5jSqZM865+aCY6rd7jYYfYkPZFbVF49t9v4ajtWBHn6Nz5rW5GYZRokJA3vj/QH
+	 YVdQ6/sEdCMrVHVuLDqlFBMATyleLAqxHQSx/l60=
+Date: Mon, 03 Mar 2025 15:10:01 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,mingo@redhat.com,jgross@suse.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-mm-avoid-calling-arch_enter-leave_lazy_mmu-in-set_ptes.patch added to mm-unstable branch
-Message-Id: <20250303230959.9117DC4CEE8@smtp.kernel.org>
+Subject: + revert-x86-xen-allow-nesting-of-same-lazy-mode.patch added to mm-unstable branch
+Message-Id: <20250303231001.9C7B1C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sparc/mm: avoid calling arch_enter/leave_lazy_mmu() in set_ptes
+     Subject: Revert "x86/xen: allow nesting of same lazy mode"
 has been added to the -mm mm-unstable branch.  Its filename is
-     sparc-mm-avoid-calling-arch_enter-leave_lazy_mmu-in-set_ptes.patch
+     revert-x86-xen-allow-nesting-of-same-lazy-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-mm-avoid-calling-arch_enter-leave_lazy_mmu-in-set_ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-x86-xen-allow-nesting-of-same-lazy-mode.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,35 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: sparc/mm: avoid calling arch_enter/leave_lazy_mmu() in set_ptes
-Date: Mon, 3 Mar 2025 14:15:38 +0000
+Subject: Revert "x86/xen: allow nesting of same lazy mode"
+Date: Mon, 3 Mar 2025 14:15:39 +0000
 
-With commit 1a10a44dfc1d ("sparc64: implement the new page table range
-API") set_ptes was added to the sparc architecture.  The implementation
-included calling arch_enter/leave_lazy_mmu() calls.
+Commit 49147beb0ccb ("x86/xen: allow nesting of same lazy mode") was added
+as a solution for a core-mm code change where
+arch_[enter|leave]_lazy_mmu_mode() started to be called in a nested
+manner; see commit bcc6cc832573 ("mm: add default definition of
+set_ptes()").
 
-The patch removes the usage of arch_enter/leave_lazy_mmu() since this
-implies nesting of lazy mmu regions which is not supported.  Without this
-fix, lazy mmu mode is effectively disabled because we exit the mode after
-the first set_ptes:
+However, now that we have fixed the API to avoid nesting, we no longer
+need this capability in the x86 implementation.
 
-remap_pte_range()
-  -> arch_enter_lazy_mmu()
-  -> set_ptes()
-      -> arch_enter_lazy_mmu()
-      -> arch_leave_lazy_mmu()
-  -> arch_leave_lazy_mmu()
+Additionally, from code review, I don't believe the fix was ever robust in
+the case of preemption occurring while in the nested lazy mode.  The
+implementation usually deals with preemption by calling
+arch_leave_lazy_mmu_mode() from xen_start_context_switch() for the
+outgoing task if we are in the lazy mmu mode.  Then in
+xen_end_context_switch(), it restarts the lazy mode by calling
+arch_enter_lazy_mmu_mode() for an incoming task that was in the lazy mode
+when it was switched out.  But arch_leave_lazy_mmu_mode() will only unwind
+a single level of nesting.  If we are in the double nest, then it's not
+fully unwound and per-cpu variables are left in a bad state.
 
-Powerpc suffered the same problem and fixed it in a corresponding way with
-commit 47b8def9358c ("powerpc/mm: Avoid calling
-arch_enter/leave_lazy_mmu() in set_ptes").
+So the correct solution is to remove the possibility of nesting from the
+higher level (which has now been done) and remove this x86-specific
+solution.
 
-Link: https://lkml.kernel.org/r/20250303141542.3371656-5-ryan.roberts@arm.com
-Fixes: 1a10a44dfc1d ("sparc64: implement the new page table range API")
+Link: https://lkml.kernel.org/r/20250303141542.3371656-6-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Andreas Larsson <andreas@gaisler.com>
-Cc: <stable@vger.kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -101,27 +103,54 @@ Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |    2 --
- 1 file changed, 2 deletions(-)
+ arch/x86/include/asm/xen/hypervisor.h |   15 ++-------------
+ arch/x86/xen/enlighten_pv.c           |    1 -
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
---- a/arch/sparc/include/asm/pgtable_64.h~sparc-mm-avoid-calling-arch_enter-leave_lazy_mmu-in-set_ptes
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -936,7 +936,6 @@ static inline void __set_pte_at(struct m
- static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
- 		pte_t *ptep, pte_t pte, unsigned int nr)
- {
--	arch_enter_lazy_mmu_mode();
- 	for (;;) {
- 		__set_pte_at(mm, addr, ptep, pte, 0);
- 		if (--nr == 0)
-@@ -945,7 +944,6 @@ static inline void set_ptes(struct mm_st
- 		pte_val(pte) += PAGE_SIZE;
- 		addr += PAGE_SIZE;
- 	}
--	arch_leave_lazy_mmu_mode();
- }
- #define set_ptes set_ptes
+--- a/arch/x86/include/asm/xen/hypervisor.h~revert-x86-xen-allow-nesting-of-same-lazy-mode
++++ a/arch/x86/include/asm/xen/hypervisor.h
+@@ -72,18 +72,10 @@ enum xen_lazy_mode {
+ };
  
+ DECLARE_PER_CPU(enum xen_lazy_mode, xen_lazy_mode);
+-DECLARE_PER_CPU(unsigned int, xen_lazy_nesting);
+ 
+ static inline void enter_lazy(enum xen_lazy_mode mode)
+ {
+-	enum xen_lazy_mode old_mode = this_cpu_read(xen_lazy_mode);
+-
+-	if (mode == old_mode) {
+-		this_cpu_inc(xen_lazy_nesting);
+-		return;
+-	}
+-
+-	BUG_ON(old_mode != XEN_LAZY_NONE);
++	BUG_ON(this_cpu_read(xen_lazy_mode) != XEN_LAZY_NONE);
+ 
+ 	this_cpu_write(xen_lazy_mode, mode);
+ }
+@@ -92,10 +84,7 @@ static inline void leave_lazy(enum xen_l
+ {
+ 	BUG_ON(this_cpu_read(xen_lazy_mode) != mode);
+ 
+-	if (this_cpu_read(xen_lazy_nesting) == 0)
+-		this_cpu_write(xen_lazy_mode, XEN_LAZY_NONE);
+-	else
+-		this_cpu_dec(xen_lazy_nesting);
++	this_cpu_write(xen_lazy_mode, XEN_LAZY_NONE);
+ }
+ 
+ enum xen_lazy_mode xen_get_lazy_mode(void);
+--- a/arch/x86/xen/enlighten_pv.c~revert-x86-xen-allow-nesting-of-same-lazy-mode
++++ a/arch/x86/xen/enlighten_pv.c
+@@ -99,7 +99,6 @@ struct tls_descs {
+ };
+ 
+ DEFINE_PER_CPU(enum xen_lazy_mode, xen_lazy_mode) = XEN_LAZY_NONE;
+-DEFINE_PER_CPU(unsigned int, xen_lazy_nesting);
+ 
+ enum xen_lazy_mode xen_get_lazy_mode(void)
+ {
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
