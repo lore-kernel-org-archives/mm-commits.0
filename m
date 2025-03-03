@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA15123A562
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:55:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 356ED23908C
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:55:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741042546; cv=none; b=SQEuRrNYcQeDCHnNDZAd2ipGyWDDKooACwxrvRrk9PQngA7NfQdS70q9D+ZIFW2feOuwPE1yat9kdifxClp+BXrV8WMiwWS8XjW6hO0YxwWYRNjZKIuRafp8RL6EK2/XCBq02fKEKzyvkw46wKLQhw/wbGnb8/sxr5VB/FSkcgw=
+	t=1741042551; cv=none; b=ClxLRVeKvab006N3fPj+4Qo9Tm28FQLpO+IQQK4Qbr1kLF/+KRoixD5Po9qPVdU6VtFatmtEXI3m7axSQi6ZIJWFeGYVWgVbH+pE7qDfjL21kvl+e2tVHskev7J6CAMaKkgTyNE/2Wx3F42+Kc2afYRxXFwPjMkdOrvxTB99TCU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741042546; c=relaxed/simple;
-	bh=/Ex+LMMG2bTsuMj68PZL5VSMnkJSmpalUJ13J9eY7NM=;
-	h=Date:To:From:Subject:Message-Id; b=uDQImxWB8LEjxCvMs83lmAaqr+XKtD/uj+nGBaIlOSnqyiunO2RRW54n4DK2DxNc7I3/qWALrpJ/H1ctzn+WGkupuio2qiE2sItjSVOHCBKZnpWxk1TBGP71J6ubkMBevJUx/vSgOJnOok0tQDpkc7UCq+/6OWhpl/LsXvCWM04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nSNkgs1d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741042551; c=relaxed/simple;
+	bh=rkc2QGdAo74kvEQC+qgfKK+j1cmKy7hI3pW/kt7CVWI=;
+	h=Date:To:From:Subject:Message-Id; b=t6LpC8BxFiyYGt3tzDXPtnk1WQn3VHLytKeI70JfdrG5PzFTchyKvOq0QJi6lVHNt+rigXFyVkXR8EOWaNR+6jhdxU6RpS/DozMo4H0LV2IJSnUgR/fnwGDWK9u38P8BjlyIa3JRTH0c4u095nZA2BJPGfEaxXh91evrcKVQ3mQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkQYXusy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nSNkgs1d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AE78C4CEE8;
-	Mon,  3 Mar 2025 22:55:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkQYXusy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CDDEC4CEE8;
+	Mon,  3 Mar 2025 22:55:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741042546;
-	bh=/Ex+LMMG2bTsuMj68PZL5VSMnkJSmpalUJ13J9eY7NM=;
+	s=korg; t=1741042550;
+	bh=rkc2QGdAo74kvEQC+qgfKK+j1cmKy7hI3pW/kt7CVWI=;
 	h=Date:To:From:Subject:From;
-	b=nSNkgs1df1Hlo+hBs9BjYqUh0Mnd49JMo9WKBrcP1Iwq4NMEvVjYDd6q9bf3V2mXb
-	 H1tcJGYxNmbloaIZnJvCW0vh4Cg6p5ZD2CgUrfXrfsTmPWuSDtyETwMjbXbQI9pQ/8
-	 yy+VaGRmNLOVKSRNKsDMGaInmZgSnTn6tclJH8o8=
-Date: Mon, 03 Mar 2025 14:55:45 -0800
+	b=TkQYXusysePQPC4cx+acEuDDMTjXme8gzUrb/yq6LNARybOiB6tDbqUm49t2w5nJf
+	 KD9aALbx4Lf+aPV8P0+fU0k9EvgKK+w5NZbdFkexjIKd5FJFX1JEoGc7otog1UO5L8
+	 Gv5irsxOGkLHGS68Bdfi5Qmzvw/8W1MxSLp4HpV0=
+Date: Mon, 03 Mar 2025 14:55:50 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-_pincount-in-folio-to-page-on-32bit.patch added to mm-unstable branch
-Message-Id: <20250303225546.7AE78C4CEE8@smtp.kernel.org>
+Subject: + mm-move-_entire_mapcount-in-folio-to-page-on-32bit.patch added to mm-unstable branch
+Message-Id: <20250303225550.9CDDEC4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move _pincount in folio to page[2] on 32bit
+     Subject: mm: move _entire_mapcount in folio to page[2] on 32bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-_pincount-in-folio-to-page-on-32bit.patch
+     mm-move-_entire_mapcount-in-folio-to-page-on-32bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-_pincount-in-folio-to-page-on-32bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-_entire_mapcount-in-folio-to-page-on-32bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,29 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: move _pincount in folio to page[2] on 32bit
-Date: Mon, 3 Mar 2025 17:29:58 +0100
+Subject: mm: move _entire_mapcount in folio to page[2] on 32bit
+Date: Mon, 3 Mar 2025 17:29:59 +0100
 
 Let's free up some space on 32bit in page[1] by moving the _pincount to
 page[2].
 
-For order-1 folios (never anon folios!) on 32bit, we will now also use the
-GUP_PIN_COUNTING_BIAS approach.  A fully-mapped order-1 folio requires 2
-references.  With GUP_PIN_COUNTING_BIAS being 1024, we'd detect such
-folios as "maybe pinned" with 512 full mappings, instead of 1024 for
-order-0.  As anon folios are out of the picture (which are the most
-relevant users of checking for pinnings on *mapped* pages) and we are
-talking about 32bit, this is not expected to cause any trouble.
+Ordinary folios only use the entire mapcount with PMD mappings, so order-1
+folios don't apply.  Similarly, hugetlb folios are always larger than
+order-1, turning the entire mapcount essentially unused for all order-1
+folios.  Moving it to order-1 folios will not change anything.
 
-In __dump_page(), copy one additional folio page if we detect a folio with
-an order > 1, so we can dump the pincount on order > 1 folios reliably.
+On 32bit, simply check in folio_entire_mapcount() whether we have an
+order-1 folio, and return 0 in that case.
 
 Note that THPs on 32bit are not particularly common (and we don't care too
 much about performance), but we want to keep it working reliably, because
 likely we want to use large folios there as well in the future,
 independent of PMD leaf support.
 
-Once we dynamically allocate "struct folio", fortunately the 32bit
-specifics will likely go away again; even small folios could then have a
-pincount and folio_has_pincount() would essentially always return "true".
+Once we dynamically allocate "struct folio", the 32bit specifics will go
+away again; even small folios could then have a pincount.
 
-Link: https://lkml.kernel.org/r/20250303163014.1128035-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20250303163014.1128035-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -108,181 +104,95 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   11 +++++++++--
- include/linux/mm_types.h |    5 +++++
- mm/debug.c               |   10 +++++++++-
- mm/gup.c                 |    8 ++++----
- mm/internal.h            |    3 ++-
- mm/page_alloc.c          |   14 +++++++++++---
- 6 files changed, 40 insertions(+), 11 deletions(-)
+ include/linux/mm.h       |    2 ++
+ include/linux/mm_types.h |    3 ++-
+ mm/internal.h            |    5 +++--
+ mm/page_alloc.c          |   12 ++++++++----
+ 4 files changed, 15 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~mm-move-_pincount-in-folio-to-page-on-32bit
+--- a/include/linux/mm.h~mm-move-_entire_mapcount-in-folio-to-page-on-32bit
 +++ a/include/linux/mm.h
-@@ -2004,6 +2004,13 @@ static inline struct folio *pfn_folio(un
- 	return page_folio(pfn_to_page(pfn));
+@@ -1333,6 +1333,8 @@ static inline int is_vmalloc_or_module_a
+ static inline int folio_entire_mapcount(const struct folio *folio)
+ {
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
++	if (!IS_ENABLED(CONFIG_64BIT) && unlikely(folio_large_order(folio) == 1))
++		return 0;
+ 	return atomic_read(&folio->_entire_mapcount) + 1;
  }
  
-+static inline bool folio_has_pincount(const struct folio *folio)
-+{
-+	if (IS_ENABLED(CONFIG_64BIT))
-+		return folio_test_large(folio);
-+	return folio_order(folio) > 1;
-+}
-+
- /**
-  * folio_maybe_dma_pinned - Report if a folio may be pinned for DMA.
-  * @folio: The folio.
-@@ -2020,7 +2027,7 @@ static inline struct folio *pfn_folio(un
-  * get that many refcounts, and b) all the callers of this routine are
-  * expected to be able to deal gracefully with a false positive.
-  *
-- * For large folios, the result will be exactly correct. That's because
-+ * For most large folios, the result will be exactly correct. That's because
-  * we have more tracking data available: the _pincount field is used
-  * instead of the GUP_PIN_COUNTING_BIAS scheme.
-  *
-@@ -2031,7 +2038,7 @@ static inline struct folio *pfn_folio(un
-  */
- static inline bool folio_maybe_dma_pinned(struct folio *folio)
- {
--	if (folio_test_large(folio))
-+	if (folio_has_pincount(folio))
- 		return atomic_read(&folio->_pincount) > 0;
- 
- 	/*
---- a/include/linux/mm_types.h~mm-move-_pincount-in-folio-to-page-on-32bit
+--- a/include/linux/mm_types.h~mm-move-_entire_mapcount-in-folio-to-page-on-32bit
 +++ a/include/linux/mm_types.h
-@@ -387,7 +387,9 @@ struct folio {
+@@ -385,9 +385,9 @@ struct folio {
+ 			union {
+ 				struct {
  					atomic_t _large_mapcount;
- 					atomic_t _entire_mapcount;
+-					atomic_t _entire_mapcount;
  					atomic_t _nr_pages_mapped;
-+#ifdef CONFIG_64BIT
+ #ifdef CONFIG_64BIT
++					atomic_t _entire_mapcount;
  					atomic_t _pincount;
-+#endif /* CONFIG_64BIT */
+ #endif /* CONFIG_64BIT */
  				};
- 				unsigned long _usable_1[4];
- 			};
-@@ -406,6 +408,9 @@ struct folio {
- 			unsigned long _head_2;
+@@ -409,6 +409,7 @@ struct folio {
  	/* public: */
  			struct list_head _deferred_list;
-+#ifndef CONFIG_64BIT
-+			atomic_t _pincount;
-+#endif /* !CONFIG_64BIT */
+ #ifndef CONFIG_64BIT
++			atomic_t _entire_mapcount;
+ 			atomic_t _pincount;
+ #endif /* !CONFIG_64BIT */
  	/* private: the union with struct page is transitional */
- 		};
- 		struct page __page_2;
---- a/mm/debug.c~mm-move-_pincount-in-folio-to-page-on-32bit
-+++ a/mm/debug.c
-@@ -79,12 +79,17 @@ static void __dump_folio(struct folio *f
- 			folio_ref_count(folio), mapcount, mapping,
- 			folio->index + idx, pfn);
- 	if (folio_test_large(folio)) {
-+		int pincount = 0;
-+
-+		if (folio_has_pincount(folio))
-+			pincount = atomic_read(&folio->_pincount);
-+
- 		pr_warn("head: order:%u mapcount:%d entire_mapcount:%d nr_pages_mapped:%d pincount:%d\n",
- 				folio_order(folio),
- 				folio_mapcount(folio),
- 				folio_entire_mapcount(folio),
- 				folio_nr_pages_mapped(folio),
--				atomic_read(&folio->_pincount));
-+				pincount);
- 	}
- 
- #ifdef CONFIG_MEMCG
-@@ -146,6 +151,9 @@ again:
- 	if (idx < MAX_FOLIO_NR_PAGES) {
- 		memcpy(&folio, foliop, 2 * sizeof(struct page));
- 		nr_pages = folio_nr_pages(&folio);
-+		if (nr_pages > 1)
-+			memcpy(&folio.__page_2, &foliop->__page_2,
-+			       sizeof(struct page));
- 		foliop = &folio;
- 	}
- 
---- a/mm/gup.c~mm-move-_pincount-in-folio-to-page-on-32bit
-+++ a/mm/gup.c
-@@ -109,7 +109,7 @@ static void gup_put_folio(struct folio *
- 		if (is_zero_folio(folio))
- 			return;
- 		node_stat_mod_folio(folio, NR_FOLL_PIN_RELEASED, refs);
--		if (folio_test_large(folio))
-+		if (folio_has_pincount(folio))
- 			atomic_sub(refs, &folio->_pincount);
- 		else
- 			refs *= GUP_PIN_COUNTING_BIAS;
-@@ -164,7 +164,7 @@ int __must_check try_grab_folio(struct f
- 		 * Increment the normal page refcount field at least once,
- 		 * so that the page really is pinned.
- 		 */
--		if (folio_test_large(folio)) {
-+		if (folio_has_pincount(folio)) {
- 			folio_ref_add(folio, refs);
- 			atomic_add(refs, &folio->_pincount);
- 		} else {
-@@ -223,7 +223,7 @@ void folio_add_pin(struct folio *folio)
- 	 * page refcount field at least once, so that the page really is
- 	 * pinned.
- 	 */
--	if (folio_test_large(folio)) {
-+	if (folio_has_pincount(folio)) {
- 		WARN_ON_ONCE(atomic_read(&folio->_pincount) < 1);
- 		folio_ref_inc(folio);
- 		atomic_inc(&folio->_pincount);
-@@ -575,7 +575,7 @@ static struct folio *try_grab_folio_fast
- 	 * is pinned.  That's why the refcount from the earlier
- 	 * try_get_folio() is left intact.
- 	 */
--	if (folio_test_large(folio))
-+	if (folio_has_pincount(folio))
- 		atomic_add(refs, &folio->_pincount);
- 	else
- 		folio_ref_add(folio,
---- a/mm/internal.h~mm-move-_pincount-in-folio-to-page-on-32bit
+--- a/mm/internal.h~mm-move-_entire_mapcount-in-folio-to-page-on-32bit
 +++ a/mm/internal.h
-@@ -721,7 +721,8 @@ static inline void prep_compound_head(st
+@@ -719,10 +719,11 @@ static inline void prep_compound_head(st
+ 
+ 	folio_set_order(folio, order);
  	atomic_set(&folio->_large_mapcount, -1);
- 	atomic_set(&folio->_entire_mapcount, -1);
+-	atomic_set(&folio->_entire_mapcount, -1);
  	atomic_set(&folio->_nr_pages_mapped, 0);
--	atomic_set(&folio->_pincount, 0);
-+	if (IS_ENABLED(CONFIG_64BIT) || order > 1)
-+		atomic_set(&folio->_pincount, 0);
+-	if (IS_ENABLED(CONFIG_64BIT) || order > 1)
++	if (IS_ENABLED(CONFIG_64BIT) || order > 1) {
+ 		atomic_set(&folio->_pincount, 0);
++		atomic_set(&folio->_entire_mapcount, -1);
++	}
  	if (order > 1)
  		INIT_LIST_HEAD(&folio->_deferred_list);
  }
---- a/mm/page_alloc.c~mm-move-_pincount-in-folio-to-page-on-32bit
+--- a/mm/page_alloc.c~mm-move-_entire_mapcount-in-folio-to-page-on-32bit
 +++ a/mm/page_alloc.c
-@@ -963,9 +963,11 @@ static int free_tail_page_prepare(struct
- 			bad_page(page, "nonzero nr_pages_mapped");
- 			goto out;
- 		}
--		if (unlikely(atomic_read(&folio->_pincount))) {
--			bad_page(page, "nonzero pincount");
+@@ -951,10 +951,6 @@ static int free_tail_page_prepare(struct
+ 	switch (page - head_page) {
+ 	case 1:
+ 		/* the first tail page: these may be in place of ->mapping */
+-		if (unlikely(folio_entire_mapcount(folio))) {
+-			bad_page(page, "nonzero entire_mapcount");
 -			goto out;
-+		if (IS_ENABLED(CONFIG_64BIT)) {
-+			if (unlikely(atomic_read(&folio->_pincount))) {
-+				bad_page(page, "nonzero pincount");
-+				goto out;
-+			}
- 		}
- 		break;
- 	case 2:
-@@ -974,6 +976,12 @@ static int free_tail_page_prepare(struct
- 			bad_page(page, "on deferred list");
+-		}
+ 		if (unlikely(folio_large_mapcount(folio))) {
+ 			bad_page(page, "nonzero large_mapcount");
+ 			goto out;
+@@ -964,6 +960,10 @@ static int free_tail_page_prepare(struct
  			goto out;
  		}
-+		if (!IS_ENABLED(CONFIG_64BIT)) {
-+			if (unlikely(atomic_read(&folio->_pincount))) {
-+				bad_page(page, "nonzero pincount");
+ 		if (IS_ENABLED(CONFIG_64BIT)) {
++			if (unlikely(atomic_read(&folio->_entire_mapcount) + 1)) {
++				bad_page(page, "nonzero entire_mapcount");
 +				goto out;
 +			}
-+		}
- 		break;
- 	case 3:
- 		/* the third tail page: hugetlb specifics overlap ->mappings */
+ 			if (unlikely(atomic_read(&folio->_pincount))) {
+ 				bad_page(page, "nonzero pincount");
+ 				goto out;
+@@ -977,6 +977,10 @@ static int free_tail_page_prepare(struct
+ 			goto out;
+ 		}
+ 		if (!IS_ENABLED(CONFIG_64BIT)) {
++			if (unlikely(atomic_read(&folio->_entire_mapcount) + 1)) {
++				bad_page(page, "nonzero entire_mapcount");
++				goto out;
++			}
+ 			if (unlikely(atomic_read(&folio->_pincount))) {
+ 				bad_page(page, "nonzero pincount");
+ 				goto out;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
