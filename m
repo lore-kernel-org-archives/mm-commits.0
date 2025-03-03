@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 409E723A99C
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:55:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E5D3238D27
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:55:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741042554; cv=none; b=YbItronBBnOS58PaHygjcvWxJZllwh25GK7pM05GyqD8jxv9Zi9PnFh0RDtLIDJWEqydu5hJfuh0Gnykv6Vop9wqho8A7rCHhKVdw6rL7iAn8C7KZUP8x/vK6za+9xfHEHSBjkbhXwF6Ydw2FD9sQETn94rUL6hWK6I+/mwOm+U=
+	t=1741042557; cv=none; b=a3gVqZBwp939sLryY2qmzZlQ11CqYL2QrUAV9i9daESIbhV4qjzYv5uuVOcfxPewIdgmvM0f8aiI3o6QvGbo5CaaltB1fI6VBdVnzDPYMOvVKhNuXIRdL9s1HGggKnbtjSuBYnHGu6W/hoJmRGjhO49BoUL9COmazk3nW3P3ElY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741042554; c=relaxed/simple;
-	bh=nWg4aPvdjRglGMQ7OSxIETZysqSUUGnHgLgwaWzTHKk=;
-	h=Date:To:From:Subject:Message-Id; b=hHSZDGwTLLtkR/T3nihx1B3wQlv5d919DNiTURx3KMN0iZR2PMdK2AoydNETYKEeQpT//dWBiISyYFkYkIDgI1JfaNhmcqkis+F+dEGzLiqYC6arvg5xx2gDSzScVBlKpUXOXk7cU47ZTPrj70Z1JvilYIodhfi/uPnZmfDLGZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gBfQreLI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741042557; c=relaxed/simple;
+	bh=hqGU3q0xWPEuHlW3lJEGkzMBDWmTw9YgOmp/psaZy70=;
+	h=Date:To:From:Subject:Message-Id; b=eNq5nnhqVOYiLICVKB69hG9G7j5riwkxfYUyaWYGBoL6NG52WdNFJ702iHh5FisBnB3cRZVhpm9QoVp/hKbduN78qUtRbuIjudBCQZo2b7/0kskCuohz3ZeR/TjRBi1ma967wd39aDAI//q4oHeoWZ7Tmoudw4q4CyUxg1hPJ40=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hiaWn0Ko; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gBfQreLI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 063CEC4CEE8;
-	Mon,  3 Mar 2025 22:55:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hiaWn0Ko"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECA4BC4CEE8;
+	Mon,  3 Mar 2025 22:55:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741042554;
-	bh=nWg4aPvdjRglGMQ7OSxIETZysqSUUGnHgLgwaWzTHKk=;
+	s=korg; t=1741042557;
+	bh=hqGU3q0xWPEuHlW3lJEGkzMBDWmTw9YgOmp/psaZy70=;
 	h=Date:To:From:Subject:From;
-	b=gBfQreLIdVyL3OGq453QyAQmLvfeKJeBDDZuW1xCI8DrfQ4nEeUPZgS6UKfCdCN7P
-	 ybHIoe5nLhzSRUXW8iqET0/ekjP6SjkNEbSYB0D0EXW3TZKlUAw16JvFOvY5x+qezN
-	 e3uyQYpLNt6LTqBSC7TUipjs/n+3kghz7r5lDoi0=
-Date: Mon, 03 Mar 2025 14:55:53 -0800
+	b=hiaWn0Kog9mkzvVh6IhfebDEKggCLNxG2XBjhHo4EseDmw3sBrnhEcuo+iQUx3Mfv
+	 0ds9FeH2ZMrInnyw6CvgBweKtzs5LU8/3/6oifgmE02KVhuQzlEA/LtaVlhomF8xyI
+	 4aE5Ja/o7hmN39GV3djFHAvTI74na7IiW8u6uHkM=
+Date: Mon, 03 Mar 2025 14:55:56 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-pass-dst_vma-to-folio_dup_file_rmap_pte-and-friends.patch added to mm-unstable branch
-Message-Id: <20250303225554.063CEC4CEE8@smtp.kernel.org>
+Subject: + mm-rmap-pass-vma-to-__folio_add_rmap.patch added to mm-unstable branch
+Message-Id: <20250303225556.ECA4BC4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: pass dst_vma to folio_dup_file_rmap_pte() and friends
+     Subject: mm/rmap: pass vma to __folio_add_rmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-pass-dst_vma-to-folio_dup_file_rmap_pte-and-friends.patch
+     mm-rmap-pass-vma-to-__folio_add_rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-pass-dst_vma-to-folio_dup_file_rmap_pte-and-friends.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-pass-vma-to-__folio_add_rmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: pass dst_vma to folio_dup_file_rmap_pte() and friends
-Date: Mon, 3 Mar 2025 17:30:00 +0100
+Subject: mm/rmap: pass vma to __folio_add_rmap()
+Date: Mon, 3 Mar 2025 17:30:01 +0100
 
-We'll need access to the destination MM when modifying the large mapcount
-of a non-hugetlb large folios next.  So pass in the destination VMA.
+We'll need access to the destination MM when modifying the mapcount large
+folios next.  So pass in the VMA.
 
-Link: https://lkml.kernel.org/r/20250303163014.1128035-8-david@redhat.com
+Link: https://lkml.kernel.org/r/20250303163014.1128035-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -88,192 +88,40 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   42 ++++++++++++++++++++++++-----------------
- mm/huge_memory.c     |    2 -
- mm/memory.c          |   10 ++++-----
- 3 files changed, 31 insertions(+), 23 deletions(-)
+ mm/rmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-pass-dst_vma-to-folio_dup_file_rmap_pte-and-friends
-+++ a/include/linux/rmap.h
-@@ -335,7 +335,8 @@ static inline void hugetlb_remove_rmap(s
+--- a/mm/rmap.c~mm-rmap-pass-vma-to-__folio_add_rmap
++++ a/mm/rmap.c
+@@ -1242,8 +1242,8 @@ int pfn_mkclean_range(unsigned long pfn,
  }
  
- static __always_inline void __folio_dup_file_rmap(struct folio *folio,
--		struct page *page, int nr_pages, enum rmap_level level)
-+		struct page *page, int nr_pages, struct vm_area_struct *dst_vma,
-+		enum rmap_level level)
+ static __always_inline unsigned int __folio_add_rmap(struct folio *folio,
+-		struct page *page, int nr_pages, enum rmap_level level,
+-		int *nr_pmdmapped)
++		struct page *page, int nr_pages, struct vm_area_struct *vma,
++		enum rmap_level level, int *nr_pmdmapped)
  {
+ 	atomic_t *mapped = &folio->_nr_pages_mapped;
  	const int orig_nr_pages = nr_pages;
+@@ -1411,7 +1411,7 @@ static __always_inline void __folio_add_
  
-@@ -366,45 +367,47 @@ static __always_inline void __folio_dup_
-  * @folio:	The folio to duplicate the mappings of
-  * @page:	The first page to duplicate the mappings of
-  * @nr_pages:	The number of pages of which the mapping will be duplicated
-+ * @dst_vma:	The destination vm area
-  *
-  * The page range of the folio is defined by [page, page + nr_pages)
-  *
-  * The caller needs to hold the page table lock.
-  */
- static inline void folio_dup_file_rmap_ptes(struct folio *folio,
--		struct page *page, int nr_pages)
-+		struct page *page, int nr_pages, struct vm_area_struct *dst_vma)
- {
--	__folio_dup_file_rmap(folio, page, nr_pages, RMAP_LEVEL_PTE);
-+	__folio_dup_file_rmap(folio, page, nr_pages, dst_vma, RMAP_LEVEL_PTE);
- }
+ 	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
  
- static __always_inline void folio_dup_file_rmap_pte(struct folio *folio,
--		struct page *page)
-+		struct page *page, struct vm_area_struct *dst_vma)
- {
--	__folio_dup_file_rmap(folio, page, 1, RMAP_LEVEL_PTE);
-+	__folio_dup_file_rmap(folio, page, 1, dst_vma, RMAP_LEVEL_PTE);
- }
+-	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
++	nr = __folio_add_rmap(folio, page, nr_pages, vma, level, &nr_pmdmapped);
  
- /**
-  * folio_dup_file_rmap_pmd - duplicate a PMD mapping of a page range of a folio
-  * @folio:	The folio to duplicate the mapping of
-  * @page:	The first page to duplicate the mapping of
-+ * @dst_vma:	The destination vm area
-  *
-  * The page range of the folio is defined by [page, page + HPAGE_PMD_NR)
-  *
-  * The caller needs to hold the page table lock.
-  */
- static inline void folio_dup_file_rmap_pmd(struct folio *folio,
--		struct page *page)
-+		struct page *page, struct vm_area_struct *dst_vma)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, RMAP_LEVEL_PTE);
-+	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, RMAP_LEVEL_PTE);
- #else
- 	WARN_ON_ONCE(true);
- #endif
- }
+ 	if (likely(!folio_test_ksm(folio)))
+ 		__page_check_anon_rmap(folio, page, vma, address);
+@@ -1582,7 +1582,7 @@ static __always_inline void __folio_add_
  
- static __always_inline int __folio_try_dup_anon_rmap(struct folio *folio,
--		struct page *page, int nr_pages, struct vm_area_struct *src_vma,
--		enum rmap_level level)
-+		struct page *page, int nr_pages, struct vm_area_struct *dst_vma,
-+		struct vm_area_struct *src_vma, enum rmap_level level)
- {
- 	const int orig_nr_pages = nr_pages;
- 	bool maybe_pinned;
-@@ -470,6 +473,7 @@ static __always_inline int __folio_try_d
-  * @folio:	The folio to duplicate the mappings of
-  * @page:	The first page to duplicate the mappings of
-  * @nr_pages:	The number of pages of which the mapping will be duplicated
-+ * @dst_vma:	The destination vm area
-  * @src_vma:	The vm area from which the mappings are duplicated
-  *
-  * The page range of the folio is defined by [page, page + nr_pages)
-@@ -488,16 +492,18 @@ static __always_inline int __folio_try_d
-  * Returns 0 if duplicating the mappings succeeded. Returns -EBUSY otherwise.
-  */
- static inline int folio_try_dup_anon_rmap_ptes(struct folio *folio,
--		struct page *page, int nr_pages, struct vm_area_struct *src_vma)
-+		struct page *page, int nr_pages, struct vm_area_struct *dst_vma,
-+		struct vm_area_struct *src_vma)
- {
--	return __folio_try_dup_anon_rmap(folio, page, nr_pages, src_vma,
--					 RMAP_LEVEL_PTE);
-+	return __folio_try_dup_anon_rmap(folio, page, nr_pages, dst_vma,
-+					 src_vma, RMAP_LEVEL_PTE);
- }
+ 	VM_WARN_ON_FOLIO(folio_test_anon(folio), folio);
  
- static __always_inline int folio_try_dup_anon_rmap_pte(struct folio *folio,
--		struct page *page, struct vm_area_struct *src_vma)
-+		struct page *page, struct vm_area_struct *dst_vma,
-+		struct vm_area_struct *src_vma)
- {
--	return __folio_try_dup_anon_rmap(folio, page, 1, src_vma,
-+	return __folio_try_dup_anon_rmap(folio, page, 1, dst_vma, src_vma,
- 					 RMAP_LEVEL_PTE);
- }
+-	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
++	nr = __folio_add_rmap(folio, page, nr_pages, vma, level, &nr_pmdmapped);
+ 	__folio_mod_stat(folio, nr, nr_pmdmapped);
  
-@@ -506,6 +512,7 @@ static __always_inline int folio_try_dup
-  *				 of a folio
-  * @folio:	The folio to duplicate the mapping of
-  * @page:	The first page to duplicate the mapping of
-+ * @dst_vma:	The destination vm area
-  * @src_vma:	The vm area from which the mapping is duplicated
-  *
-  * The page range of the folio is defined by [page, page + HPAGE_PMD_NR)
-@@ -524,11 +531,12 @@ static __always_inline int folio_try_dup
-  * Returns 0 if duplicating the mapping succeeded. Returns -EBUSY otherwise.
-  */
- static inline int folio_try_dup_anon_rmap_pmd(struct folio *folio,
--		struct page *page, struct vm_area_struct *src_vma)
-+		struct page *page, struct vm_area_struct *dst_vma,
-+		struct vm_area_struct *src_vma)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	return __folio_try_dup_anon_rmap(folio, page, HPAGE_PMD_NR, src_vma,
--					 RMAP_LEVEL_PMD);
-+	return __folio_try_dup_anon_rmap(folio, page, HPAGE_PMD_NR, dst_vma,
-+					 src_vma, RMAP_LEVEL_PMD);
- #else
- 	WARN_ON_ONCE(true);
- 	return -EBUSY;
---- a/mm/huge_memory.c~mm-rmap-pass-dst_vma-to-folio_dup_file_rmap_pte-and-friends
-+++ a/mm/huge_memory.c
-@@ -1782,7 +1782,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	src_folio = page_folio(src_page);
- 
- 	folio_get(src_folio);
--	if (unlikely(folio_try_dup_anon_rmap_pmd(src_folio, src_page, src_vma))) {
-+	if (unlikely(folio_try_dup_anon_rmap_pmd(src_folio, src_page, dst_vma, src_vma))) {
- 		/* Page maybe pinned: split and retry the fault on PTEs. */
- 		folio_put(src_folio);
- 		pte_free(dst_mm, pgtable);
---- a/mm/memory.c~mm-rmap-pass-dst_vma-to-folio_dup_file_rmap_pte-and-friends
-+++ a/mm/memory.c
-@@ -866,7 +866,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		folio_get(folio);
- 		rss[mm_counter(folio)]++;
- 		/* Cannot fail as these pages cannot get pinned. */
--		folio_try_dup_anon_rmap_pte(folio, page, src_vma);
-+		folio_try_dup_anon_rmap_pte(folio, page, dst_vma, src_vma);
- 
- 		/*
- 		 * We do not preserve soft-dirty information, because so
-@@ -1020,14 +1020,14 @@ copy_present_ptes(struct vm_area_struct
- 		folio_ref_add(folio, nr);
- 		if (folio_test_anon(folio)) {
- 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
--								  nr, src_vma))) {
-+								  nr, dst_vma, src_vma))) {
- 				folio_ref_sub(folio, nr);
- 				return -EAGAIN;
- 			}
- 			rss[MM_ANONPAGES] += nr;
- 			VM_WARN_ON_FOLIO(PageAnonExclusive(page), folio);
- 		} else {
--			folio_dup_file_rmap_ptes(folio, page, nr);
-+			folio_dup_file_rmap_ptes(folio, page, nr, dst_vma);
- 			rss[mm_counter_file(folio)] += nr;
- 		}
- 		if (any_writable)
-@@ -1045,7 +1045,7 @@ copy_present_ptes(struct vm_area_struct
- 		 * guarantee the pinned page won't be randomly replaced in the
- 		 * future.
- 		 */
--		if (unlikely(folio_try_dup_anon_rmap_pte(folio, page, src_vma))) {
-+		if (unlikely(folio_try_dup_anon_rmap_pte(folio, page, dst_vma, src_vma))) {
- 			/* Page may be pinned, we have to copy. */
- 			folio_put(folio);
- 			err = copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
-@@ -1055,7 +1055,7 @@ copy_present_ptes(struct vm_area_struct
- 		rss[MM_ANONPAGES]++;
- 		VM_WARN_ON_FOLIO(PageAnonExclusive(page), folio);
- 	} else {
--		folio_dup_file_rmap_pte(folio, page);
-+		folio_dup_file_rmap_pte(folio, page, dst_vma);
- 		rss[mm_counter_file(folio)]++;
- 	}
- 
+ 	/* See comments in folio_add_anon_rmap_*() */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
