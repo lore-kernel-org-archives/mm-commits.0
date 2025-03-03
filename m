@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A151238D27
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:55:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A40A1EEA47
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:56:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741042559; cv=none; b=CzBkK3/dhraXq96/yCZ7ldcB8zxhxj9O8EcCJ+WS9zUxhyxq9UHyTAJx3hVIQ/t/oKaueG2q0s5zFMEp/Piypx1egH+RASNs1HxvyJqEOXyWXycC8IxJWZuopTQMm9tn8ylNOhUbEQ/qNhF1illS6DjmyGtplCGHtvsKt+bKy0g=
+	t=1741042562; cv=none; b=LA9UlaBHOEm/SdstNzv5a4WdXRsyIZHd8s9GxoI7fjo+mglmRycBtnkFtwlagy7VbWAcPheAkRhKQnQa1jkvCnDkcyQy4WJDN8NxXyDgaiHSiYDba6IOIOY/Hl2Z0FHSBI9OXuYpRc6/7tX3a7E//SwfwhwCdpJHYb2ZEAGt81g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741042559; c=relaxed/simple;
-	bh=OPFWfTfDBgwRL0gghCL8uDJeBCOfRuyxxfz6MiC+7KA=;
-	h=Date:To:From:Subject:Message-Id; b=BaDpYwzoIDp4PktFcrCp/dwsA1g7l0KUfviGLYO4dJBXD8cczSpzIy5IdOGde1fHbz89AHpAzEFAkotB+GFXBgV5MMr0QblIB9B6BMBM75QJqGSWK6NVFNl5IiYD51QMJtL/4KwiLSA/YWvtilzYYxI4fgHIGN4ZSD6LKDx5DZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lHhb7uvt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741042562; c=relaxed/simple;
+	bh=KlBELUZ73H8XuSQnYACvRINonpgVBMIBVKMQRp9jAsY=;
+	h=Date:To:From:Subject:Message-Id; b=Sz8GbUGmoLEKle2FYMi/jmK019ywSYiqzQP6ltnZrY+uQrgSuTgzz60EmcG/rex6EubNe4N11sNbCzgCvKG/TshK7ZKOrAee3zNpLpNwsHdKmNwA7bVq8CPaZ1ZLwWHrj2xq/OBLnOroaz2ZGIZYfZ1WdkSyo3/N2raDYMACFSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DPHBpZP6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lHhb7uvt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DA94C4CEE8;
-	Mon,  3 Mar 2025 22:55:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DPHBpZP6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD91C4CEE8;
+	Mon,  3 Mar 2025 22:56:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741042559;
-	bh=OPFWfTfDBgwRL0gghCL8uDJeBCOfRuyxxfz6MiC+7KA=;
+	s=korg; t=1741042561;
+	bh=KlBELUZ73H8XuSQnYACvRINonpgVBMIBVKMQRp9jAsY=;
 	h=Date:To:From:Subject:From;
-	b=lHhb7uvtailt3E5LkpZK2eU9pBuxELwZiJMZeZE1RP7BO5x5a7IHtZvOQKM8MvlFy
-	 MumHi7YxisB8WvyFMmQ+ZglVgxQemV4LropDrzAnoaftl9PgIUMXQ0X5Lvbd7+60rR
-	 agevanimDZ5aFioShvnJorpylMYb3L9wHJeKDBIg=
-Date: Mon, 03 Mar 2025 14:55:58 -0800
+	b=DPHBpZP6+FaZoCPhS29OmoVMFAs1Ot1gmHHaeWkr5rdtgGovKuLIB+S9dsBlWah7L
+	 INUhjuntEympfMpTBi6USJC/DV1O0PVOOnhn3QKF6wMrN57DDYnAaVvmywO+8wxwGf
+	 /Gp8EcJJCFV7mLWfJTDXEwPcF1PY9UJPSAYCBzto=
+Date: Mon, 03 Mar 2025 14:56:01 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb.patch added to mm-unstable branch
-Message-Id: <20250303225559.1DA94C4CEE8@smtp.kernel.org>
+Subject: + bit_spinlock-__always_inline-unlock-functions.patch added to mm-unstable branch
+Message-Id: <20250303225601.ACD91C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: abstract large mapcount operations for large folios (!hugetlb)
+     Subject: bit_spinlock: __always_inline (un)lock functions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb.patch
+     bit_spinlock-__always_inline-unlock-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bit_spinlock-__always_inline-unlock-functions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: abstract large mapcount operations for large folios (!hugetlb)
-Date: Mon, 3 Mar 2025 17:30:02 +0100
+Subject: bit_spinlock: __always_inline (un)lock functions
+Date: Mon, 3 Mar 2025 17:30:03 +0100
 
-Let's abstract the operations so we can extend these operations easily.
+The compiler might decide that it is a smart idea to not inline
+bit_spin_lock(), primarily when a couple of functions in the same file end
+up calling it.  Especially when used in RMAP map/unmap code next, the
+compiler sometimes decides to not inline, which is then observable in some
+micro-benchmarks.
 
-Link: https://lkml.kernel.org/r/20250303163014.1128035-10-david@redhat.com
+Let's simply flag all lock/unlock functions as __always_inline;
+arch_test_and_set_bit_lock() and friends are already tagged like that (but
+not test_and_set_bit_lock() for some reason).
+
+If ever a problem, we could split it into a fast and a slow path, and only
+force the fast path to be inlined.  But there is nothing particularly
+"big" here.
+
+Link: https://lkml.kernel.org/r/20250303163014.1128035-11-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -87,131 +99,47 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   32 ++++++++++++++++++++++++++++----
- mm/rmap.c            |   14 ++++++--------
- 2 files changed, 34 insertions(+), 12 deletions(-)
+ include/linux/bit_spinlock.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb
-+++ a/include/linux/rmap.h
-@@ -173,6 +173,30 @@ static inline void anon_vma_merge(struct
- 
- struct anon_vma *folio_get_anon_vma(const struct folio *folio);
- 
-+static inline void folio_set_large_mapcount(struct folio *folio, int mapcount,
-+		struct vm_area_struct *vma)
-+{
-+	/* Note: mapcounts start at -1. */
-+	atomic_set(&folio->_large_mapcount, mapcount - 1);
-+}
-+
-+static inline void folio_add_large_mapcount(struct folio *folio,
-+		int diff, struct vm_area_struct *vma)
-+{
-+	atomic_add(diff, &folio->_large_mapcount);
-+}
-+
-+static inline void folio_sub_large_mapcount(struct folio *folio,
-+		int diff, struct vm_area_struct *vma)
-+{
-+	atomic_sub(diff, &folio->_large_mapcount);
-+}
-+
-+#define folio_inc_large_mapcount(folio, vma) \
-+	folio_add_large_mapcount(folio, 1, vma)
-+#define folio_dec_large_mapcount(folio, vma) \
-+	folio_sub_large_mapcount(folio, 1, vma)
-+
- /* RMAP flags, currently only relevant for some anon rmap operations. */
- typedef int __bitwise rmap_t;
- 
-@@ -352,12 +376,12 @@ static __always_inline void __folio_dup_
- 		do {
- 			atomic_inc(&page->_mapcount);
- 		} while (page++, --nr_pages > 0);
--		atomic_add(orig_nr_pages, &folio->_large_mapcount);
-+		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
- 		break;
- 	case RMAP_LEVEL_PMD:
- 	case RMAP_LEVEL_PUD:
- 		atomic_inc(&folio->_entire_mapcount);
--		atomic_inc(&folio->_large_mapcount);
-+		folio_inc_large_mapcount(folio, dst_vma);
- 		break;
- 	}
- }
-@@ -451,7 +475,7 @@ static __always_inline int __folio_try_d
- 				ClearPageAnonExclusive(page);
- 			atomic_inc(&page->_mapcount);
- 		} while (page++, --nr_pages > 0);
--		atomic_add(orig_nr_pages, &folio->_large_mapcount);
-+		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
- 		break;
- 	case RMAP_LEVEL_PMD:
- 	case RMAP_LEVEL_PUD:
-@@ -461,7 +485,7 @@ static __always_inline int __folio_try_d
- 			ClearPageAnonExclusive(page);
- 		}
- 		atomic_inc(&folio->_entire_mapcount);
--		atomic_inc(&folio->_large_mapcount);
-+		folio_inc_large_mapcount(folio, dst_vma);
- 		break;
- 	}
- 	return 0;
---- a/mm/rmap.c~mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb
-+++ a/mm/rmap.c
-@@ -1266,7 +1266,7 @@ static __always_inline unsigned int __fo
- 		    atomic_add_return_relaxed(first, mapped) < ENTIRELY_MAPPED)
- 			nr = first;
- 
--		atomic_add(orig_nr_pages, &folio->_large_mapcount);
-+		folio_add_large_mapcount(folio, orig_nr_pages, vma);
- 		break;
- 	case RMAP_LEVEL_PMD:
- 	case RMAP_LEVEL_PUD:
-@@ -1290,7 +1290,7 @@ static __always_inline unsigned int __fo
- 				nr = 0;
- 			}
- 		}
--		atomic_inc(&folio->_large_mapcount);
-+		folio_inc_large_mapcount(folio, vma);
- 		break;
- 	}
- 	return nr;
-@@ -1556,14 +1556,12 @@ void folio_add_new_anon_rmap(struct foli
- 				SetPageAnonExclusive(page);
- 		}
- 
--		/* increment count (starts at -1) */
--		atomic_set(&folio->_large_mapcount, nr - 1);
-+		folio_set_large_mapcount(folio, nr, vma);
- 		atomic_set(&folio->_nr_pages_mapped, nr);
- 	} else {
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_entire_mapcount, 0);
--		/* increment count (starts at -1) */
--		atomic_set(&folio->_large_mapcount, 0);
-+		folio_set_large_mapcount(folio, 1, vma);
- 		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
- 		if (exclusive)
- 			SetPageAnonExclusive(&folio->page);
-@@ -1665,7 +1663,7 @@ static __always_inline void __folio_remo
- 			break;
- 		}
- 
--		atomic_sub(nr_pages, &folio->_large_mapcount);
-+		folio_sub_large_mapcount(folio, nr_pages, vma);
- 		do {
- 			last += atomic_add_negative(-1, &page->_mapcount);
- 		} while (page++, --nr_pages > 0);
-@@ -1678,7 +1676,7 @@ static __always_inline void __folio_remo
- 		break;
- 	case RMAP_LEVEL_PMD:
- 	case RMAP_LEVEL_PUD:
--		atomic_dec(&folio->_large_mapcount);
-+		folio_dec_large_mapcount(folio, vma);
- 		last = atomic_add_negative(-1, &folio->_entire_mapcount);
- 		if (last) {
- 			nr = atomic_sub_return_relaxed(ENTIRELY_MAPPED, mapped);
+--- a/include/linux/bit_spinlock.h~bit_spinlock-__always_inline-unlock-functions
++++ a/include/linux/bit_spinlock.h
+@@ -13,7 +13,7 @@
+  * Don't use this unless you really need to: spin_lock() and spin_unlock()
+  * are significantly faster.
+  */
+-static inline void bit_spin_lock(int bitnum, unsigned long *addr)
++static __always_inline void bit_spin_lock(int bitnum, unsigned long *addr)
+ {
+ 	/*
+ 	 * Assuming the lock is uncontended, this never enters
+@@ -38,7 +38,7 @@ static inline void bit_spin_lock(int bit
+ /*
+  * Return true if it was acquired
+  */
+-static inline int bit_spin_trylock(int bitnum, unsigned long *addr)
++static __always_inline int bit_spin_trylock(int bitnum, unsigned long *addr)
+ {
+ 	preempt_disable();
+ #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
+@@ -54,7 +54,7 @@ static inline int bit_spin_trylock(int b
+ /*
+  *  bit-based spin_unlock()
+  */
+-static inline void bit_spin_unlock(int bitnum, unsigned long *addr)
++static __always_inline void bit_spin_unlock(int bitnum, unsigned long *addr)
+ {
+ #ifdef CONFIG_DEBUG_SPINLOCK
+ 	BUG_ON(!test_bit(bitnum, addr));
+@@ -71,7 +71,7 @@ static inline void bit_spin_unlock(int b
+  *  non-atomic version, which can be used eg. if the bit lock itself is
+  *  protecting the rest of the flags in the word.
+  */
+-static inline void __bit_spin_unlock(int bitnum, unsigned long *addr)
++static __always_inline void __bit_spin_unlock(int bitnum, unsigned long *addr)
+ {
+ #ifdef CONFIG_DEBUG_SPINLOCK
+ 	BUG_ON(!test_bit(bitnum, addr));
 _
 
 Patches currently in -mm which might be from david@redhat.com are
