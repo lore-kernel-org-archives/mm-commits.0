@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87CDB20EB
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 23:33:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5F6D20EB
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 23:33:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741044808; cv=none; b=S1lYwm0oPFJNcc7IvLFN0O6b9NSaj+gWBUE0kYuCtgbVReYKnE1D5T3/oGA/kPMNWY/1bgHoxXiqIln/Te91uh0VMmxYknYj2tAVqGmZjRaO7aR33j2oq1uSlk7nsgUUN9H+a0bUtzY7u1CiehGdrKnJNW7sGIOt0ekXK+yBrCI=
+	t=1741044810; cv=none; b=teF9TzV8CIlTXZ67Rfpx7A7oajojqT2hxU8kC8XbtZkbV+LmwLn9Qr3EpI8fPTrDd+4AF9n35aaT3xMmocUYUu4msJUy86DDS3ImMytP8Emha8Y13+w6eoFCnWurgEfc2dFdPW+Cn4Q1UF9jyW5Ra9tHkdQ3ymrRIlbbDTOmL60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741044808; c=relaxed/simple;
-	bh=9sUzLD0Kc2Kq4tIRhc3aBUzJrZJVfs9IWqFi0biqjbg=;
-	h=Date:To:From:Subject:Message-Id; b=aDuyj+STC2UoNtTLkdb6D6MRifs4svuhA+TF3XbslZlUJQoQdV7e53cAwDrNYuNquKF6Zxzs+6v2ojQlQHx3hpKgGNREZ36byK103ODzMEu3PqKq247lRxB2ZvbgjsRXx4u3UST1E5MpIrPryOQlw7xPgQEiMLkY1ZALk8k/LDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JYhrJJh5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741044810; c=relaxed/simple;
+	bh=ezTBoH/0Y1391pQobPjtpAbp4g3GYxMfDAy2iSWWZOw=;
+	h=Date:To:From:Subject:Message-Id; b=AkUfkagrXXdHuhMt4zWAfkV2FwlaS7dKmsIhP95XqR6C2DyTK9nFZbW1/UNXyr3qjUQw0yFjdQFzXFhQ1sFGkXdeRE+SAucRk4xAf8odoIOSifDPsQ2ds2t6KlcZZ2fQxDSvp9JXQ1Dk3HDxcbYwGtiXHnoczAVaTQpJlzbBVdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y4a0bcXz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JYhrJJh5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 336DEC4CEE8;
-	Mon,  3 Mar 2025 23:33:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y4a0bcXz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 701B6C4CEE8;
+	Mon,  3 Mar 2025 23:33:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741044808;
-	bh=9sUzLD0Kc2Kq4tIRhc3aBUzJrZJVfs9IWqFi0biqjbg=;
+	s=korg; t=1741044810;
+	bh=ezTBoH/0Y1391pQobPjtpAbp4g3GYxMfDAy2iSWWZOw=;
 	h=Date:To:From:Subject:From;
-	b=JYhrJJh5ttzH3Oz0ELQFGkMMO3pkhnSRIs2JRcOEtXPNErbZf4jlT/r7TDPV5OlY1
-	 XEjLojN4Z6Wu+iyYWL+U9bpORBv8Az9QjZhDxsvfncvniteYmHTgVRK3f/zSIA4nVL
-	 0aonymKG48rZ0YRVYft4U11bzBNYsmVqE6Nj9I2k=
-Date: Mon, 03 Mar 2025 15:33:27 -0800
+	b=Y4a0bcXzgXx/Mlp31pmoWsUkksHgrf2j0i8kTdQbP8HJ2fv7jnO6YtMMdDAHtiS1N
+	 EOZb7SYUe+jf6Iuf3LxVoJwU1Os/xmiXSjEwuZpgPy1EWlgXXhp7iWO1m3rUc5r3Qp
+	 gPompGFwfjoXfPhblTHsLvJLPHfHCwn6W0iv/w0k=
+Date: Mon, 03 Mar 2025 15:33:29 -0800
 To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-initial-refactor-of-move_vma.patch added to mm-unstable branch
-Message-Id: <20250303233328.336DEC4CEE8@smtp.kernel.org>
+Subject: + mm-mremap-complete-refactor-of-move_vma.patch added to mm-unstable branch
+Message-Id: <20250303233330.701B6C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: initial refactor of move_vma()
+     Subject: mm/mremap: complete refactor of move_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-initial-refactor-of-move_vma.patch
+     mm-mremap-complete-refactor-of-move_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-initial-refactor-of-move_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-complete-refactor-of-move_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: initial refactor of move_vma()
-Date: Mon, 3 Mar 2025 11:08:34 +0000
+Subject: mm/mremap: complete refactor of move_vma()
+Date: Mon, 3 Mar 2025 11:08:35 +0000
 
-Update move_vma() to use the threaded VRM object, de-duplicate code and
-separate into smaller functions to aid readability and debug-ability.
+We invoke ksm_madvise() with an intentionally dummy flags field, so no
+need to pass around.
 
-This in turn allows further simplification of expand_vma() as we can
-simply thread VRM through the function.
+Additionally, the code tries to be 'clever' with account_start,
+account_end, using these to both check that vma->vm_start != 0 and that we
+ought to account the newly split portion of VMA post-move, either before
+or after it.
 
-We also take the opportunity to abstract the account charging page count
-into the VRM in order that we can correctly thread this through the
-operation.
+We need to do this because we intentionally removed VM_ACCOUNT on the VMA
+prior to unmapping, so we don't erroneously unaccount memory (we have
+already calculated the correct amount to account and accounted it, any
+subsequent subtraction will be incorrect).
 
-We additionally do the same for tracking mm statistics - exec_vm,
-stack_vm, data_vm, and locked_vm.
+This patch significantly expands the comment (from 2002!) about
+'concealing' the flag to make it abundantly clear what's going on, as well
+as adding and expanding a number of other comments also.
 
-As part of this change, we slightly modify when locked pages statistics
-are counted for in mm_struct statistics.  However this should cause no
-issues, as there is no chance of underflow, nor will any rlimit failures
-occur as a result.
+We can remove account_start, account_end by instead tracking when we
+account (i.e.  vma->vm_flags has the VM_ACCOUNT flag set, and this is not
+an MREMAP_DONTUNMAP operation), and figuring out when to reinstate the
+VM_ACCOUNT flag on prior/subsequent VMAs separately.
 
-This is an intermediate step before a further refactoring of move_vma() in
-order to aid review.
+We additionally break the function into logical pieces and attack the very
+confusing error handling logic (where, for instance, new_addr is set to
+err).
 
-Link: https://lkml.kernel.org/r/b4e64684d6ac753d5a66c0da0da5f4b94d033859.1740911247.git.lorenzo.stoakes@oracle.com
+After this change the code is considerably more readable and easy to
+manipulate.
+
+Link: https://lkml.kernel.org/r/61a8071433adf3815713523a5c1db62cbe1e55a1.1740911247.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Jann Horn <jannh@google.com>
@@ -91,322 +99,363 @@ Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |  186 ++++++++++++++++++++++++++++++++------------------
- 1 file changed, 122 insertions(+), 64 deletions(-)
+ mm/mremap.c |  292 ++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 203 insertions(+), 89 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-initial-refactor-of-move_vma
+--- a/mm/mremap.c~mm-mremap-complete-refactor-of-move_vma
 +++ a/mm/mremap.c
-@@ -67,6 +67,7 @@ struct vma_remap_struct {
- 	bool locked; /* Was the VMA mlock()'d (has the VM_LOCKED flag set). */
- 	enum mremap_operation remap_type; /* expand, shrink, etc. */
- 	bool mmap_locked; /* Is current->mm currently write-locked? */
-+	unsigned long charged; /* If VM_ACCOUNT, # pages to account. */
- };
+@@ -889,13 +889,13 @@ static void vrm_stat_account(struct vma_
+  * Perform checks  before attempting to write a VMA prior to it being
+  * moved.
+  */
+-static unsigned long prep_move_vma(struct vma_remap_struct *vrm,
+-				   unsigned long *vm_flags_ptr)
++static unsigned long prep_move_vma(struct vma_remap_struct *vrm)
+ {
+ 	unsigned long err;
+ 	struct vm_area_struct *vma = vrm->vma;
+ 	unsigned long old_addr = vrm->addr;
+ 	unsigned long old_len = vrm->old_len;
++	unsigned long dummy = vma->vm_flags;
  
- static pud_t *get_old_pud(struct mm_struct *mm, unsigned long addr)
-@@ -821,35 +822,88 @@ static unsigned long vrm_set_new_addr(st
+ 	/*
+ 	 * We'd prefer to avoid failure later on in do_munmap:
+@@ -921,56 +921,150 @@ static unsigned long prep_move_vma(struc
+ 	 * so KSM can come around to merge on vma and new_vma afterwards.
+ 	 */
+ 	err = ksm_madvise(vma, old_addr, old_addr + old_len,
+-			  MADV_UNMERGEABLE, vm_flags_ptr);
++			  MADV_UNMERGEABLE, &dummy);
+ 	if (err)
+ 		return err;
+ 
  	return 0;
  }
  
--static unsigned long move_vma(struct vm_area_struct *vma,
--		unsigned long old_addr, unsigned long old_len,
--		unsigned long new_len, unsigned long new_addr,
--		bool *locked, unsigned long flags,
--		struct vm_userfaultfd_ctx *uf, struct list_head *uf_unmap)
+-static unsigned long move_vma(struct vma_remap_struct *vrm)
 +/*
-+ * Keep track of pages which have been added to the memory mapping. If the VMA
-+ * is accounted, also check to see if there is sufficient memory.
++ * Unmap source VMA for VMA move, turning it from a copy to a move, being
++ * careful to ensure we do not underflow memory account while doing so if an
++ * accountable move.
 + *
-+ * Returns true on success, false if insufficient memory to charge.
++ * This is best effort, if we fail to unmap then we simply try
 + */
-+static bool vrm_charge(struct vma_remap_struct *vrm)
++static void unmap_source_vma(struct vma_remap_struct *vrm)
  {
--	long to_account = new_len - old_len;
--	struct mm_struct *mm = vma->vm_mm;
+ 	struct mm_struct *mm = current->mm;
++	unsigned long addr = vrm->addr;
++	unsigned long len = vrm->old_len;
+ 	struct vm_area_struct *vma = vrm->vma;
 -	struct vm_area_struct *new_vma;
 -	unsigned long vm_flags = vma->vm_flags;
+-	unsigned long old_addr = vrm->addr, new_addr = vrm->new_addr;
+-	unsigned long old_len = vrm->old_len, new_len = vrm->new_len;
 -	unsigned long new_pgoff;
 -	unsigned long moved_len;
--	bool account_start = false;
--	bool account_end = false;
+-	unsigned long account_start = false;
+-	unsigned long account_end = false;
 -	unsigned long hiwater_vm;
--	int err = 0;
++	VMA_ITERATOR(vmi, mm, addr);
+ 	int err;
 -	bool need_rmap_locks;
 -	struct vma_iterator vmi;
-+	unsigned long charged;
-+
-+	if (!(vrm->vma->vm_flags & VM_ACCOUNT))
-+		return true;
++	unsigned long vm_start;
++	unsigned long vm_end;
++	/*
++	 * It might seem odd that we check for MREMAP_DONTUNMAP here, given this
++	 * function implies that we unmap the original VMA, which seems
++	 * contradictory.
++	 *
++	 * However, this occurs when this operation was attempted and an error
++	 * arose, in which case we _do_ wish to unmap the _new_ VMA, which means
++	 * we actually _do_ want it be unaccounted.
++	 */
++	bool accountable_move = (vma->vm_flags & VM_ACCOUNT) &&
++		!(vrm->flags & MREMAP_DONTUNMAP);
+ 
+-	err = prep_move_vma(vrm, &vm_flags);
+-	if (err)
+-		return err;
++	/*
++	 * So we perform a trick here to prevent incorrect accounting. Any merge
++	 * or new VMA allocation performed in copy_vma() does not adjust
++	 * accounting, it is expected that callers handle this.
++	 *
++	 * And indeed we already have, accounting appropriately in the case of
++	 * both in vrm_charge().
++	 *
++	 * However, when we unmap the existing VMA (to effect the move), this
++	 * code will, if the VMA has VM_ACCOUNT set, attempt to unaccount
++	 * removed pages.
++	 *
++	 * To avoid this we temporarily clear this flag, reinstating on any
++	 * portions of the original VMA that remain.
++	 */
++	if (accountable_move) {
++		vm_flags_clear(vma, VM_ACCOUNT);
++		/* We are about to split vma, so store the start/end. */
++		vm_start = vma->vm_start;
++		vm_end = vma->vm_end;
++	}
+ 
+-	/* If accounted, charge the number of bytes the operation will use. */
+-	if (!vrm_charge(vrm))
+-		return -ENOMEM;
++	err = do_vmi_munmap(&vmi, mm, addr, len, vrm->uf_unmap, /* unlock= */false);
++	vrm->vma = NULL; /* Invalidated. */
++	if (err) {
++		/* OOM: unable to split vma, just get accounts right */
++		vm_acct_memory(len >> PAGE_SHIFT);
++		return;
++	}
 +
 +	/*
-+	 * If we don't unmap the old mapping, then we account the entirety of
-+	 * the length of the new one. Otherwise it's just the delta in size.
++	 * If we mremap() from a VMA like this:
++	 *
++	 *    addr  end
++	 *     |     |
++	 *     v     v
++	 * |-------------|
++	 * |             |
++	 * |-------------|
++	 *
++	 * Having cleared VM_ACCOUNT from the whole VMA, after we unmap above
++	 * we'll end up with:
++	 *
++	 *    addr  end
++	 *     |     |
++	 *     v     v
++	 * |---|     |---|
++	 * | A |     | B |
++	 * |---|     |---|
++	 *
++	 * The VMI is still pointing at addr, so vma_prev() will give us A, and
++	 * a subsequent or lone vma_next() will give as B.
++	 *
++	 * do_vmi_munmap() will have restored the VMI back to addr.
 +	 */
-+	if (vrm->flags & MREMAP_DONTUNMAP)
-+		charged = vrm->new_len >> PAGE_SHIFT;
-+	else
-+		charged = vrm->delta >> PAGE_SHIFT;
++	if (accountable_move) {
++		unsigned long end = addr + len;
 +
++		if (vm_start < addr) {
++			struct vm_area_struct *prev = vma_prev(&vmi);
 +
-+	/* This accounts 'charged' pages of memory. */
-+	if (security_vm_enough_memory_mm(current->mm, charged))
-+		return false;
++			vm_flags_set(prev, VM_ACCOUNT); /* Acquires VMA lock. */
++		}
 +
-+	vrm->charged = charged;
-+	return true;
-+}
++		if (vm_end > end) {
++			struct vm_area_struct *next = vma_next(&vmi);
 +
-+/*
-+ * an error has occurred so we will not be using vrm->charged memory. Unaccount
-+ * this memory if the VMA is accounted.
-+ */
-+static void vrm_uncharge(struct vma_remap_struct *vrm)
-+{
-+	if (!(vrm->vma->vm_flags & VM_ACCOUNT))
-+		return;
-+
-+	vm_unacct_memory(vrm->charged);
-+	vrm->charged = 0;
-+}
-+
-+/*
-+ * Update mm exec_vm, stack_vm, data_vm, and locked_vm fields as needed to
-+ * account for 'bytes' memory used, and if locked, indicate this in the VRM so
-+ * we can handle this correctly later.
-+ */
-+static void vrm_stat_account(struct vma_remap_struct *vrm,
-+			     unsigned long bytes)
-+{
-+	unsigned long pages = bytes >> PAGE_SHIFT;
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma = vrm->vma;
-+
-+	vm_stat_account(mm, vma->vm_flags, pages);
-+	if (vma->vm_flags & VM_LOCKED) {
-+		mm->locked_vm += pages;
-+		vrm->locked = true;
++			vm_flags_set(next, VM_ACCOUNT); /* Acquires VMA lock. */
++		}
 +	}
 +}
 +
 +/*
-+ * Perform checks  before attempting to write a VMA prior to it being
-+ * moved.
++ * Copy vrm->vma over to vrm->new_addr possibly adjusting size as part of the
++ * process. Additionally handle an error occurring on moving of page tables,
++ * where we reset vrm state to cause unmapping of the new VMA.
++ *
++ * Outputs the newly installed VMA to new_vma_ptr. Returns 0 on success or an
++ * error code.
 + */
-+static unsigned long prep_move_vma(struct vma_remap_struct *vrm,
-+				   unsigned long *vm_flags_ptr)
++static int copy_vma_and_data(struct vma_remap_struct *vrm,
++			     struct vm_area_struct **new_vma_ptr)
 +{
-+	unsigned long err;
-+	struct vm_area_struct *vma = vrm->vma;
-+	unsigned long old_addr = vrm->addr;
-+	unsigned long old_len = vrm->old_len;
++	unsigned long internal_offset = vrm->addr - vrm->vma->vm_start;
++	unsigned long internal_pgoff = internal_offset >> PAGE_SHIFT;
++	unsigned long new_pgoff = vrm->vma->vm_pgoff + internal_pgoff;
++	unsigned long moved_len;
++	bool need_rmap_locks;
++	struct vm_area_struct *vma;
++	struct vm_area_struct *new_vma;
++	int err = 0;
  
- 	/*
- 	 * We'd prefer to avoid failure later on in do_munmap:
- 	 * which may split one vma into three before unmapping.
- 	 */
--	if (mm->map_count >= sysctl_max_map_count - 3)
-+	if (current->mm->map_count >= sysctl_max_map_count - 3)
+-	vma_start_write(vma);
+-	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
+-	new_vma = copy_vma(&vrm->vma, new_addr, new_len, new_pgoff,
++	new_vma = copy_vma(&vrm->vma, vrm->new_addr, vrm->new_len, new_pgoff,
+ 			   &need_rmap_locks);
+-	/* This may have been updated. */
+-	vma = vrm->vma;
+ 	if (!new_vma) {
+ 		vrm_uncharge(vrm);
++		*new_vma_ptr = NULL;
  		return -ENOMEM;
+ 	}
++	vma = vrm->vma;
  
--	if (unlikely(flags & MREMAP_DONTUNMAP))
--		to_account = new_len;
--
- 	if (vma->vm_ops && vma->vm_ops->may_split) {
- 		if (vma->vm_start != old_addr)
- 			err = vma->vm_ops->may_split(vma, old_addr);
-@@ -867,22 +921,46 @@ static unsigned long move_vma(struct vm_
- 	 * so KSM can come around to merge on vma and new_vma afterwards.
- 	 */
- 	err = ksm_madvise(vma, old_addr, old_addr + old_len,
--						MADV_UNMERGEABLE, &vm_flags);
-+			  MADV_UNMERGEABLE, vm_flags_ptr);
- 	if (err)
- 		return err;
- 
--	if (vm_flags & VM_ACCOUNT) {
--		if (security_vm_enough_memory_mm(mm, to_account >> PAGE_SHIFT))
--			return -ENOMEM;
+-	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
+-				     need_rmap_locks, false);
+-	if (moved_len < old_len) {
++	moved_len = move_page_tables(vma, vrm->addr, new_vma,
++				     vrm->new_addr, vrm->old_len,
++				     need_rmap_locks, /* for_stack= */false);
++	if (moved_len < vrm->old_len)
+ 		err = -ENOMEM;
+-	} else if (vma->vm_ops && vma->vm_ops->mremap) {
++	else if (vma->vm_ops && vma->vm_ops->mremap)
+ 		err = vma->vm_ops->mremap(new_vma);
 -	}
-+	return 0;
+ 
+ 	if (unlikely(err)) {
+ 		/*
+@@ -978,28 +1072,84 @@ static unsigned long move_vma(struct vma
+ 		 * which will succeed since page tables still there,
+ 		 * and then proceed to unmap new area instead of old.
+ 		 */
+-		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len,
+-				 true, false);
+-		vma = new_vma;
+-		old_len = new_len;
+-		old_addr = new_addr;
+-		new_addr = err;
++		move_page_tables(new_vma, vrm->new_addr, vma, vrm->addr,
++				 moved_len, /* need_rmap_locks = */true,
++				 /* for_stack= */false);
++		vrm->vma = new_vma;
++		vrm->old_len = vrm->new_len;
++		vrm->addr = vrm->new_addr;
+ 	} else {
+ 		mremap_userfaultfd_prep(new_vma, vrm->uf);
+ 	}
+ 
+-	if (is_vm_hugetlb_page(vma)) {
++	if (is_vm_hugetlb_page(vma))
+ 		clear_vma_resv_huge_pages(vma);
+-	}
+ 
+-	/* Conceal VM_ACCOUNT so old reservation is not undone */
+-	if (vm_flags & VM_ACCOUNT && !(vrm->flags & MREMAP_DONTUNMAP)) {
+-		vm_flags_clear(vma, VM_ACCOUNT);
+-		if (vma->vm_start < old_addr)
+-			account_start = true;
+-		if (vma->vm_end > old_addr + old_len)
+-			account_end = true;
+-	}
++	/* Tell pfnmap has moved from this vma */
++	if (unlikely(vma->vm_flags & VM_PFNMAP))
++		untrack_pfn_clear(vma);
++
++	*new_vma_ptr = new_vma;
++	return err;
++}
++
++/*
++ * Perform final tasks for MADV_DONTUNMAP operation, clearing mlock() and
++ * account flags on remaining VMA by convention (it cannot be mlock()'d any
++ * longer, as pages in range are no longer mapped), and removing anon_vma_chain
++ * links from it (if the entire VMA was copied over).
++ */
++static void dontunmap_complete(struct vma_remap_struct *vrm,
++			       struct vm_area_struct *new_vma)
++{
++	unsigned long start = vrm->addr;
++	unsigned long end = vrm->addr + vrm->old_len;
++	unsigned long old_start = vrm->vma->vm_start;
++	unsigned long old_end = vrm->vma->vm_end;
++
++	/*
++	 * We always clear VM_LOCKED[ONFAULT] | VM_ACCOUNT on the old
++	 * vma.
++	 */
++	vm_flags_clear(vrm->vma, VM_LOCKED_MASK | VM_ACCOUNT);
++
++	/*
++	 * anon_vma links of the old vma is no longer needed after its page
++	 * table has been moved.
++	 */
++	if (new_vma != vrm->vma && start == old_start && end == old_end)
++		unlink_anon_vmas(vrm->vma);
++
++	/* Because we won't unmap we don't need to touch locked_vm. */
 +}
 +
 +static unsigned long move_vma(struct vma_remap_struct *vrm)
 +{
 +	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma = vrm->vma;
 +	struct vm_area_struct *new_vma;
-+	unsigned long vm_flags = vma->vm_flags;
-+	unsigned long old_addr = vrm->addr, new_addr = vrm->new_addr;
-+	unsigned long old_len = vrm->old_len, new_len = vrm->new_len;
-+	unsigned long new_pgoff;
-+	unsigned long moved_len;
-+	unsigned long account_start = false;
-+	unsigned long account_end = false;
 +	unsigned long hiwater_vm;
 +	int err;
-+	bool need_rmap_locks;
-+	struct vma_iterator vmi;
 +
-+	err = prep_move_vma(vrm, &vm_flags);
++	err = prep_move_vma(vrm);
 +	if (err)
 +		return err;
 +
 +	/* If accounted, charge the number of bytes the operation will use. */
 +	if (!vrm_charge(vrm))
 +		return -ENOMEM;
- 
- 	vma_start_write(vma);
- 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
--	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
-+	new_vma = copy_vma(&vrm->vma, new_addr, new_len, new_pgoff,
- 			   &need_rmap_locks);
-+	/* This may have been updated. */
-+	vma = vrm->vma;
- 	if (!new_vma) {
--		if (vm_flags & VM_ACCOUNT)
--			vm_unacct_memory(to_account >> PAGE_SHIFT);
-+		vrm_uncharge(vrm);
- 		return -ENOMEM;
- 	}
- 
-@@ -907,7 +985,7 @@ static unsigned long move_vma(struct vm_
- 		old_addr = new_addr;
- 		new_addr = err;
- 	} else {
--		mremap_userfaultfd_prep(new_vma, uf);
-+		mremap_userfaultfd_prep(new_vma, vrm->uf);
- 	}
- 
- 	if (is_vm_hugetlb_page(vma)) {
-@@ -915,7 +993,7 @@ static unsigned long move_vma(struct vm_
- 	}
- 
- 	/* Conceal VM_ACCOUNT so old reservation is not undone */
--	if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP)) {
-+	if (vm_flags & VM_ACCOUNT && !(vrm->flags & MREMAP_DONTUNMAP)) {
- 		vm_flags_clear(vma, VM_ACCOUNT);
- 		if (vma->vm_start < old_addr)
- 			account_start = true;
-@@ -933,13 +1011,12 @@ static unsigned long move_vma(struct vm_
- 	 * If this were a serious issue, we'd add a flag to do_munmap().
- 	 */
- 	hiwater_vm = mm->hiwater_vm;
--	vm_stat_account(mm, vma->vm_flags, new_len >> PAGE_SHIFT);
- 
- 	/* Tell pfnmap has moved from this vma */
- 	if (unlikely(vma->vm_flags & VM_PFNMAP))
- 		untrack_pfn_clear(vma);
- 
--	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
-+	if (unlikely(!err && (vrm->flags & MREMAP_DONTUNMAP))) {
- 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
- 		vm_flags_clear(vma, VM_LOCKED_MASK);
- 
-@@ -952,22 +1029,20 @@ static unsigned long move_vma(struct vm_
- 			unlink_anon_vmas(vma);
- 
- 		/* Because we won't unmap we don't need to touch locked_vm */
-+		vrm_stat_account(vrm, new_len);
- 		return new_addr;
- 	}
- 
-+	vrm_stat_account(vrm, new_len);
 +
- 	vma_iter_init(&vmi, mm, old_addr);
--	if (do_vmi_munmap(&vmi, mm, old_addr, old_len, uf_unmap, false) < 0) {
-+	if (do_vmi_munmap(&vmi, mm, old_addr, old_len, vrm->uf_unmap, false) < 0) {
- 		/* OOM: unable to split vma, just get accounts right */
--		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
-+		if (vm_flags & VM_ACCOUNT && !(vrm->flags & MREMAP_DONTUNMAP))
- 			vm_acct_memory(old_len >> PAGE_SHIFT);
- 		account_start = account_end = false;
- 	}
- 
--	if (vm_flags & VM_LOCKED) {
--		mm->locked_vm += new_len >> PAGE_SHIFT;
--		*locked = true;
--	}
--
- 	mm->hiwater_vm = hiwater_vm;
- 
- 	/* Restore VM_ACCOUNT if one or two pieces of vma left */
-@@ -1138,9 +1213,7 @@ static unsigned long mremap_to(struct vm
- 	if (err)
- 		return err;
- 
--	return move_vma(vrm->vma, vrm->addr, vrm->old_len, vrm->new_len,
--			vrm->new_addr, &vrm->locked, vrm->flags,
--			vrm->uf, vrm->uf_unmap);
-+	return move_vma(vrm);
- }
- 
- static int vma_expandable(struct vm_area_struct *vma, unsigned long delta)
-@@ -1245,17 +1318,11 @@ static unsigned long check_mremap_params
- static unsigned long expand_vma_in_place(struct vma_remap_struct *vrm)
- {
- 	struct mm_struct *mm = current->mm;
--	long pages = vrm->delta >> PAGE_SHIFT;
- 	struct vm_area_struct *vma = vrm->vma;
- 	VMA_ITERATOR(vmi, mm, vma->vm_end);
--	long charged = 0;
--
--	if (vma->vm_flags & VM_ACCOUNT) {
--		if (security_vm_enough_memory_mm(mm, pages))
--			return -ENOMEM;
- 
--		charged = pages;
--	}
-+	if (!vrm_charge(vrm))
-+		return -ENOMEM;
++	/* We don't want racing faults. */
++	vma_start_write(vrm->vma);
++
++	/* Perform copy step. */
++	err = copy_vma_and_data(vrm, &new_vma);
++	/*
++	 * If we established the copied-to VMA, we attempt to recover from the
++	 * error by setting the destination VMA to the source VMA and unmapping
++	 * it below.
++	 */
++	if (err && !new_vma)
++		return err;
  
  	/*
- 	 * Function vma_merge_extend() is called on the
-@@ -1268,15 +1335,11 @@ static unsigned long expand_vma_in_place
+ 	 * If we failed to move page tables we still do total_vm increment
+@@ -1012,51 +1162,15 @@ static unsigned long move_vma(struct vma
  	 */
- 	vma = vrm->vma = vma_merge_extend(&vmi, vma, vrm->delta);
- 	if (!vma) {
--		vm_unacct_memory(charged);
-+		vrm_uncharge(vrm);
- 		return -ENOMEM;
- 	}
+ 	hiwater_vm = mm->hiwater_vm;
  
--	vm_stat_account(mm, vma->vm_flags, pages);
--	if (vma->vm_flags & VM_LOCKED) {
--		mm->locked_vm += pages;
--		vrm->locked = true;
+-	/* Tell pfnmap has moved from this vma */
+-	if (unlikely(vma->vm_flags & VM_PFNMAP))
+-		untrack_pfn_clear(vma);
+-
+-	if (unlikely(!err && (vrm->flags & MREMAP_DONTUNMAP))) {
+-		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
+-		vm_flags_clear(vma, VM_LOCKED_MASK);
+-
+-		/*
+-		 * anon_vma links of the old vma is no longer needed after its page
+-		 * table has been moved.
+-		 */
+-		if (new_vma != vma && vma->vm_start == old_addr &&
+-			vma->vm_end == (old_addr + old_len))
+-			unlink_anon_vmas(vma);
+-
+-		/* Because we won't unmap we don't need to touch locked_vm */
+-		vrm_stat_account(vrm, new_len);
+-		return new_addr;
 -	}
-+	vrm_stat_account(vrm, vrm->delta);
+-
+-	vrm_stat_account(vrm, new_len);
+-
+-	vma_iter_init(&vmi, mm, old_addr);
+-	if (do_vmi_munmap(&vmi, mm, old_addr, old_len, vrm->uf_unmap, false) < 0) {
+-		/* OOM: unable to split vma, just get accounts right */
+-		if (vm_flags & VM_ACCOUNT && !(vrm->flags & MREMAP_DONTUNMAP))
+-			vm_acct_memory(old_len >> PAGE_SHIFT);
+-		account_start = account_end = false;
+-	}
++	vrm_stat_account(vrm, vrm->new_len);
++	if (unlikely(!err && (vrm->flags & MREMAP_DONTUNMAP)))
++		dontunmap_complete(vrm, new_vma);
++	else
++		unmap_source_vma(vrm);
  
- 	return 0;
- }
-@@ -1316,11 +1379,7 @@ static bool align_hugetlb(struct vma_rem
- static unsigned long expand_vma(struct vma_remap_struct *vrm)
- {
- 	unsigned long err;
--	struct vm_area_struct *vma = vrm->vma;
- 	unsigned long addr = vrm->addr;
--	unsigned long old_len = vrm->old_len;
--	unsigned long new_len = vrm->new_len;
--	unsigned long flags = vrm->flags;
+ 	mm->hiwater_vm = hiwater_vm;
  
- 	err = resize_is_valid(vrm);
- 	if (err)
-@@ -1353,7 +1412,7 @@ static unsigned long expand_vma(struct v
- 	 */
- 
- 	/* We're not allowed to move the VMA, so error out. */
--	if (!(flags & MREMAP_MAYMOVE))
-+	if (!(vrm->flags & MREMAP_MAYMOVE))
- 		return -ENOMEM;
- 
- 	/* Find a new location to move the VMA to. */
-@@ -1361,8 +1420,7 @@ static unsigned long expand_vma(struct v
- 	if (err)
- 		return err;
- 
--	return move_vma(vma, addr, old_len, new_len, vrm->new_addr,
--			&vrm->locked, flags, vrm->uf, vrm->uf_unmap);
-+	return move_vma(vrm);
+-	/* Restore VM_ACCOUNT if one or two pieces of vma left */
+-	if (account_start) {
+-		vma = vma_prev(&vmi);
+-		vm_flags_set(vma, VM_ACCOUNT);
+-	}
+-
+-	if (account_end) {
+-		vma = vma_next(&vmi);
+-		vm_flags_set(vma, VM_ACCOUNT);
+-	}
+-
+-	return new_addr;
++	return err ? (unsigned long)err : vrm->new_addr;
  }
  
  /*
