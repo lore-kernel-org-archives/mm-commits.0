@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117EB198A2F
-	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:32:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED2A198A2F
+	for <mm-commits@vger.kernel.org>; Mon,  3 Mar 2025 22:32:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741041125; cv=none; b=juumD+e1KTjSIOhBe1yvYX935+y+F/9Uoi55tJ39ounxpc7PU1HvG6giE1H43KL/UZFpj4LZ2SiOH9+RORxmUw8U9XwO1LbuIoNtaP+9xIMvG9fNPvChyCXk1zYxzJHt9nSgobk+ov1AUikyd+11lqQb13/iDAVvJbJ7mTp/aKY=
+	t=1741041126; cv=none; b=Rkw9wPj6Uxk819OdTPpzx9RPq664yS4IdX8Oi2oDCLCOpx6u0pagjM6qXzOkPCsKMEysmFnt2A8jKAmgY4cMqIXTsi4RsTqH0wuVFyNotDiy7pOeRgekoIySg1D9RNLtyiWYedp4DP0wtBFOjzUuhqNHtx4fa9Sk96TZQ8eZL0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741041125; c=relaxed/simple;
-	bh=yzmFaM1jKaD9xgHrc/lsFjnn2YLnG7uv9Q1Jh/7sEiQ=;
-	h=Date:To:From:Subject:Message-Id; b=V8m7x4hwIK1i3Id1y0auXED9jQZIl3rnJdi1/YXVlxeOIpyJL6UclxMNVRzLyvDdIrzplQV/hUTGWdoScOa9UzOHJbwbAMAGVWbBdoCxste/R0pkg1iLXXzZD6B9xYNlO9SiWU5yb825wpcOip+yrGhY6gWKeXDMrX0mbre+FjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wlFo66bf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741041126; c=relaxed/simple;
+	bh=WBImMuuMyJC2xFIA8hsIK/CIbuHK4f46+oDkDMFvqJc=;
+	h=Date:To:From:Subject:Message-Id; b=TIUzzvd8Bh94U6s47SVdxihP44gTDS5LzFSPsGQw2m+WZsx8vyHMrEWItz6rGXOjWFZ+RSTtMDxIoj16OTFSRDH/l9+QnbcjwtyW2R0+TMGDv5v3doYOJft8O/LxIFqkNNGwBNtgAr87YHwusFTHQIXo6WqFxPlA0xSYbgk9g1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aVBo3m7s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wlFo66bf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71883C4CED6;
-	Mon,  3 Mar 2025 22:32:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aVBo3m7s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53699C4CED6;
+	Mon,  3 Mar 2025 22:32:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741041124;
-	bh=yzmFaM1jKaD9xgHrc/lsFjnn2YLnG7uv9Q1Jh/7sEiQ=;
+	s=korg; t=1741041126;
+	bh=WBImMuuMyJC2xFIA8hsIK/CIbuHK4f46+oDkDMFvqJc=;
 	h=Date:To:From:Subject:From;
-	b=wlFo66bfVw9TwHUCXSIqc6pLXqMnBovjmfbUnHLg8F8eBs4J5WEu+RCtfeA2SqlUX
-	 e2yLk9JVHt2Lpx0lNpvMKIBj//BLa8KGDvgtfzGt96z7hKPWxF3XJIhzSoMwTo/p5W
-	 9/jMrQ9xWjRcwNVEc9RW4nzKqoNvVHIRY/WVBEz4=
-Date: Mon, 03 Mar 2025 14:32:03 -0800
+	b=aVBo3m7sJ3+GsWfNxkj8Sg22qZfrabTXxnSUtWAcRYcKgBXaETXzkb6qZM2KUNDYe
+	 EFpIlJi3Iwhmg3Wl/WfiacIgx70XLKqW4TajFdGlcHbE00aGJvN2UtvllvPj2vsn/7
+	 yGGSizTg+5SLITrhRxEzoEzrE1gWLOlq7EeGRIXI=
+Date: Mon, 03 Mar 2025 14:32:05 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-intervals-auto-tuning-abi.patch added to mm-unstable branch
-Message-Id: <20250303223204.71883C4CED6@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch added to mm-unstable branch
+Message-Id: <20250303223206.53699C4CED6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document intervals auto-tuning ABI
+     Subject: Docs/admin-guide/mm/damon/usage: add intervals_goal directory on the hierarchy
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-abi-damon-document-intervals-auto-tuning-abi.patch
+     docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-intervals-auto-tuning-abi.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,60 +59,83 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document intervals auto-tuning ABI
-Date: Mon, 3 Mar 2025 14:17:25 -0800
+Subject: Docs/admin-guide/mm/damon/usage: add intervals_goal directory on the hierarchy
+Date: Mon, 3 Mar 2025 14:17:26 -0800
 
-Document the DAMON user-space ABI for DAMON sampling and aggregation
+Document DAMON sysfs interface usage for DAMON sampling and aggregation
 intervals auto-tuning.
 
-Link: https://lkml.kernel.org/r/20250303221726.484227-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250303221726.484227-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   30 ++++++++++++++
- 1 file changed, 30 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   25 +++++++++++++++++
+ Documentation/mm/damon/design.rst            |    4 ++
+ 2 files changed, 29 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-intervals-auto-tuning-abi
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -91,6 +91,36 @@ Description:	Writing a value to this fil
- 		DAMON context in microseconds as the value.  Reading this file
- 		returns the value.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -64,6 +64,7 @@ comma (",").
+     │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations
+     │ │ │ │ │ :ref:`monitoring_attrs <sysfs_monitoring_attrs>`/
+     │ │ │ │ │ │ intervals/sample_us,aggr_us,update_us
++    │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
+     │ │ │ │ │ │ nr_regions/min,max
+     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
+     │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target
+@@ -132,6 +133,11 @@ Users can write below commands for the k
+ - ``off``: Stop running.
+ - ``commit``: Read the user inputs in the sysfs files except ``state`` file
+   again.
++- ``update_tuned_intervals``: Update the contents of ``sample_us`` and
++  ``aggr_us`` files of the kdamond with the auto-tuning applied ``sampling
++  interval`` and ``aggregation interval`` for the files.  Please refer to
++  :ref:`intervals_goal section <damon_usage_sysfs_monitoring_intervals_goal>`
++  for more details.
+ - ``commit_schemes_quota_goals``: Read the DAMON-based operation schemes'
+   :ref:`quota goals <sysfs_schemes_quota_goals>`.
+ - ``update_schemes_stats``: Update the contents of stats files for each
+@@ -213,6 +219,25 @@ writing to and rading from the files.
+ For more details about the intervals and monitoring regions range, please refer
+ to the Design document (:doc:`/mm/damon/design`).
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/access_bp
-+Date:		Feb 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the monitoring intervals
-+		auto-tuning target DAMON-observed access events ratio within
-+		the given time interval (aggrs in same directory), in bp
-+		(1/10,000).  Reading this file returns the value.
++.. _damon_usage_sysfs_monitoring_intervals_goal:
 +
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/aggrs
-+Date:		Feb 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the time interval to achieve
-+		the monitoring intervals auto-tuning target DAMON-observed
-+		access events ratio (access_bp in same directory) within.
-+		Reading this file returns the value.
++contexts/<N>/monitoring_attrs/intervals/intervals_goal/
++-------------------------------------------------------
 +
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/min_sample_us
-+Date:		Feb 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the minimum value of
-+		auto-tuned sampling interval in microseconds.  Reading this
-+		file returns the value.
++Under the ``intervals`` directory, one directory for automated tuning of
++``sample_us`` and ``aggr_us``, namely ``intervals_goal`` directory also exists.
++Under the directory, four files for the auto-tuning control, namely
++``access_bp``, ``aggrs``, ``min_sample_us`` and ``max_sample_us`` exist.
++Please refer to  the :ref:`design document of the feature
++<damon_design_monitoring_intervals_autotuning>` for the internal of the tuning
++mechanism.  Reading and writing the four files under ``intervals_goal``
++directory shows and updates the tuning parameters that described in the
++:ref:design doc <damon_design_monitoring_intervals_autotuning>` with the same
++names.  The tuning starts with the user-set ``sample_us`` and ``aggr_us``.  The
++tuning-applied current values of the two intervals can be read from the
++``sample_us`` and ``aggr_us`` files after writing ``update_tuned_intervals`` to
++the ``state`` file.
 +
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/intrvals_goal/max_sample_us
-+Date:		Feb 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the maximum value of
-+		auto-tuned sampling interval in microseconds.  Reading this
-+		file returns the value.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/nr_regions/min
+ .. _sysfs_targets:
  
- WDate:		Mar 2022
+ contexts/<N>/targets/
+--- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy
++++ a/Documentation/mm/damon/design.rst
+@@ -366,6 +366,10 @@ is recommended.  Note that Parreto princ
+ That is, assumes 4% (20% of 20%) DAMON-observed access events ratio (source)
+ to capture 64% (80% multipled by 80%) real access events (outcomes).
+ 
++To know how user-space can use this feature via :ref:`DAMON sysfs interface
++<sysfs_interface>`, refer to :ref:`intervals_goal <sysfs_scheme>` part of
++the documentation.
++
+ 
+ .. _damon_design_damos:
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
