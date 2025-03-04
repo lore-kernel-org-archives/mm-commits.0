@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C8CF25F794
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 20:45:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7D0259C83
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 20:45:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741121147; cv=none; b=rETsIT6m9mwpfzeXMBAypJPvU0JhdxqDMFUoA3CvX7XLxx3sDuBuLHngjxHTCqbUkil8EWGos1MvvhdWeqqCaUz3fEJ61S6xFeT1BLfrkK/Vr40Pnj1x4Y+Ca9zRo5Sq2/HssI5fAShg0oGUvqNu0btWsV0YMcZ+jigh2KQUeho=
+	t=1741121149; cv=none; b=VIbBn/fPTWj356fkmBf5bzNnhBVPhn+PKtxZ2Ennrf3FQ3Jvg+WkdC09YbVJmV6yzPoYFGnnUmFYJdske3mdPrIKPnl6mP3PyL0HURue4264n0Y7yUN6BuECwlxf51ieQmNGlaEm2KucQaOZa7qMkqXwldO29bvsN533NEKssq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741121147; c=relaxed/simple;
-	bh=3Z9xPCOwBg/cXc2DhxlAoSzNZ4TlfhYjt9s16qolSjk=;
-	h=Date:To:From:Subject:Message-Id; b=qa7uY1Ptkw5LnfBcGz8EyU/e3yF2fE3D8dFw3ziWezSc1jLZMDuVjac1o24GtcQntZEy83RdUGwpFMeEbuadkWsenM8NW34sDgQZP3iHwz8tploCDVnIJ5xMq7zv3Fmx5Q6BOeja9j3/pxAxH4SvcVlPL9fs6fIrObfXnEOZ1Fo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WWkQ858P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741121149; c=relaxed/simple;
+	bh=eltBOcfLlK7rv66MMwZdv0Au7Kh2dGex2day/xsX1FU=;
+	h=Date:To:From:Subject:Message-Id; b=Q9pzlDtt0qvYhx35ftmHG+w89I5kIwIF2C3Ziou8asmsVbcECxtd+f/JHFZVfggJSWz5kGUu/vjUAjMzFYitTyv7afKXiQ6y7rl0rW4w+Isv9pANFTfMdK5aOynB7+zksXBU0OO4F/VNtk+aYspElCy7opzeIfNGwhnOUAeQR7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kq7OSGK9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WWkQ858P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 110F6C4CEE5;
-	Tue,  4 Mar 2025 20:45:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kq7OSGK9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E1ACC4CEE5;
+	Tue,  4 Mar 2025 20:45:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741121147;
-	bh=3Z9xPCOwBg/cXc2DhxlAoSzNZ4TlfhYjt9s16qolSjk=;
+	s=korg; t=1741121149;
+	bh=eltBOcfLlK7rv66MMwZdv0Au7Kh2dGex2day/xsX1FU=;
 	h=Date:To:From:Subject:From;
-	b=WWkQ858PfBmBrko3pQBA02eWXCI/SeJhgzZA/9/utSpZ+zCvIjL6cYfIu4n6K9A3V
-	 UKfZjy64ElnlztonE/6k5pFtISmy5EYiBFSdmJXholZtlIs14Jr1zUWHh9GE2druz0
-	 kln4fGcwWfztGamsoddLg6VI00KMy0g8LtVugqJY=
-Date: Tue, 04 Mar 2025 12:45:46 -0800
+	b=Kq7OSGK9nOgTnTUQehQXiOfc4KzHBINfjPiWMOU93uNTIuhqhLTT6Je7yjz+cSiPe
+	 OfQLeb55QvfVzfenMYRhjniKkzWUd8M+1m4R0owxcPNzpjDajUga8zaqslKmriUpVl
+	 Y+JVFNz71S4DJEUScfhpvN8FdiH5EoHU1wDRMBTo=
+Date: Tue, 04 Mar 2025 12:45:48 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,jack@suse.cz,brauner@kernel.org,ast@kernel.org,yizhou.tang@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-rename-variables-in-trace_balance_dirty_pages.patch added to mm-unstable branch
-Message-Id: <20250304204547.110F6C4CEE5@smtp.kernel.org>
+Subject: + writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch added to mm-unstable branch
+Message-Id: <20250304204549.2E1ACC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: writeback: rename variables in trace_balance_dirty_pages()
+     Subject: writeback: fix calculations in trace_balance_dirty_pages() for cgwb
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-rename-variables-in-trace_balance_dirty_pages.patch
+     writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-rename-variables-in-trace_balance_dirty_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,73 +59,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Tang Yizhou <yizhou.tang@shopee.com>
-Subject: writeback: rename variables in trace_balance_dirty_pages()
-Date: Tue, 4 Mar 2025 19:03:17 +0800
+Subject: writeback: fix calculations in trace_balance_dirty_pages() for cgwb
+Date: Tue, 4 Mar 2025 19:03:18 +0800
 
-Rename bdi_setpoint and bdi_dirty in the tracepoint to wb_setpoint and
-wb_dirty, respectively. These changes were omitted by Tejun in the cgroup
-writeback patchset.
+In the commit dcc25ae76eb7 ("writeback: move global_dirty_limit into
+wb_domain") of the cgroup writeback backpressure propagation patchset,
+Tejun made some adaptations to trace_balance_dirty_pages() for cgroup
+writeback.  However, this adaptation was incomplete and Tejun missed
+further adaptation in the subsequent patches.
 
-Link: https://lkml.kernel.org/r/20250304110318.159567-3-yizhou.tang@shopee.com
+In the cgroup writeback scenario, if sdtc in balance_dirty_pages() is
+assigned to mdtc, then upon entering trace_balance_dirty_pages(),
+__entry->limit should be assigned based on the dirty_limit of the
+corresponding memcg's wb_domain, rather than global_wb_domain.
+
+To address this issue and simplify the implementation, introduce a 'limit'
+field in struct dirty_throttle_control to store the hard_limit value
+computed in wb_position_ratio() by calling hard_dirty_limit().  This field
+will then be used in trace_balance_dirty_pages() to assign the value to
+__entry->limit.
+
+Link: https://lkml.kernel.org/r/20250304110318.159567-4-yizhou.tang@shopee.com
+Fixes: dcc25ae76eb7 ("writeback: move global_dirty_limit into wb_domain")
 Signed-off-by: Tang Yizhou <yizhou.tang@shopee.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/writeback.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/writeback.h        |    1 +
+ include/trace/events/writeback.h |    5 ++---
+ mm/page-writeback.c              |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/trace/events/writeback.h~writeback-rename-variables-in-trace_balance_dirty_pages
-+++ a/include/trace/events/writeback.h
-@@ -646,8 +646,8 @@ TRACE_EVENT(balance_dirty_pages,
- 		__field(unsigned long,	limit)
- 		__field(unsigned long,	setpoint)
- 		__field(unsigned long,	dirty)
--		__field(unsigned long,	bdi_setpoint)
--		__field(unsigned long,	bdi_dirty)
-+		__field(unsigned long,	wb_setpoint)
-+		__field(unsigned long,	wb_dirty)
- 		__field(unsigned long,	dirty_ratelimit)
- 		__field(unsigned long,	task_ratelimit)
- 		__field(unsigned int,	dirtied)
-@@ -667,9 +667,9 @@ TRACE_EVENT(balance_dirty_pages,
- 		__entry->setpoint	= (global_wb_domain.dirty_limit +
- 						freerun) / 2;
- 		__entry->dirty		= dtc->dirty;
--		__entry->bdi_setpoint	= __entry->setpoint *
-+		__entry->wb_setpoint	= __entry->setpoint *
- 						dtc->wb_thresh / (dtc->thresh + 1);
--		__entry->bdi_dirty	= dtc->wb_dirty;
-+		__entry->wb_dirty	= dtc->wb_dirty;
- 		__entry->dirty_ratelimit = KBps(dirty_ratelimit);
- 		__entry->task_ratelimit	= KBps(task_ratelimit);
- 		__entry->dirtied	= dirtied;
-@@ -685,7 +685,7 @@ TRACE_EVENT(balance_dirty_pages,
+--- a/include/linux/writeback.h~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
++++ a/include/linux/writeback.h
+@@ -326,6 +326,7 @@ struct dirty_throttle_control {
+ 	unsigned long		dirty;		/* file_dirty + write + nfs */
+ 	unsigned long		thresh;		/* dirty threshold */
+ 	unsigned long		bg_thresh;	/* dirty background threshold */
++	unsigned long		limit;		/* hard dirty limit */
  
- 	TP_printk("bdi %s: "
- 		  "limit=%lu setpoint=%lu dirty=%lu "
--		  "bdi_setpoint=%lu bdi_dirty=%lu "
-+		  "wb_setpoint=%lu wb_dirty=%lu "
- 		  "dirty_ratelimit=%lu task_ratelimit=%lu "
- 		  "dirtied=%u dirtied_pause=%u "
- 		  "paused=%lu pause=%ld period=%lu think=%ld cgroup_ino=%lu",
-@@ -693,8 +693,8 @@ TRACE_EVENT(balance_dirty_pages,
- 		  __entry->limit,
- 		  __entry->setpoint,
- 		  __entry->dirty,
--		  __entry->bdi_setpoint,
--		  __entry->bdi_dirty,
-+		  __entry->wb_setpoint,
-+		  __entry->wb_dirty,
- 		  __entry->dirty_ratelimit,
- 		  __entry->task_ratelimit,
- 		  __entry->dirtied,
+ 	unsigned long		wb_dirty;	/* per-wb counterparts */
+ 	unsigned long		wb_thresh;
+--- a/include/trace/events/writeback.h~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
++++ a/include/trace/events/writeback.h
+@@ -663,9 +663,8 @@ TRACE_EVENT(balance_dirty_pages,
+ 		unsigned long freerun = (dtc->thresh + dtc->bg_thresh) / 2;
+ 		strscpy_pad(__entry->bdi, bdi_dev_name(wb->bdi), 32);
+ 
+-		__entry->limit		= global_wb_domain.dirty_limit;
+-		__entry->setpoint	= (global_wb_domain.dirty_limit +
+-						freerun) / 2;
++		__entry->limit		= dtc->limit;
++		__entry->setpoint	= (dtc->limit + freerun) / 2;
+ 		__entry->dirty		= dtc->dirty;
+ 		__entry->wb_setpoint	= __entry->setpoint *
+ 						dtc->wb_thresh / (dtc->thresh + 1);
+--- a/mm/page-writeback.c~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
++++ a/mm/page-writeback.c
+@@ -1072,7 +1072,7 @@ static void wb_position_ratio(struct dir
+ 	struct bdi_writeback *wb = dtc->wb;
+ 	unsigned long write_bw = READ_ONCE(wb->avg_write_bandwidth);
+ 	unsigned long freerun = dirty_freerun_ceiling(dtc->thresh, dtc->bg_thresh);
+-	unsigned long limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
++	unsigned long limit = dtc->limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
+ 	unsigned long wb_thresh = dtc->wb_thresh;
+ 	unsigned long x_intercept;
+ 	unsigned long setpoint;		/* dirty pages' target balance point */
 _
 
 Patches currently in -mm which might be from yizhou.tang@shopee.com are
