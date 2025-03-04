@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EC7615ADA6
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 02:53:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 854C213C81B;
+	Tue,  4 Mar 2025 02:59:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741056804; cv=none; b=VYV/br3GP/L6lP5xH3Q37T7/XvLnk/J1LQSfBluIJkQg+Mc5X8NwbpG/hAIjgzCFcQHlqEvm20WnbkUEPA6d7hAOsDPyWyAwjH/spWyVFC75eJ5NCN7ORrGpXKDPZ+4tvnA36szUkkrd37iHYe8EIhhtYJeJWO75FsFCbZlS3+g=
+	t=1741057158; cv=none; b=ckAAe4nF6m+FV14jqtn7jppz4zhA3md/tUs1WgQWu9b6FW2Ogl0MHwjuQ/jf0q2o3X4pdojQH/4SswezBHlJ0QWdv/YTMZyNJPzm+37JYMEL5qgY3eoL/wTkcvYPiJIYwlMh6RvIaNLZjdsbJUxoUeX/SuMeAr9rR2+v7/Q2S9c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741056804; c=relaxed/simple;
-	bh=aFVRZgV9gWYwmVo8XHW3Fsx4n+NTSdmc8bM1mFdH8QM=;
-	h=Date:To:From:Subject:Message-Id; b=loXfJiqGstpU//sNeJuymyxpvX63KB7llkIBHXDVXhmDbmgHOskM34L4vyHbv2SPWcsJ0m55fFQSIiv0/2fN2hhwhUIDzziIDdXtkj97kE0cz7FdCkx5Ef+75vYhvMSFtmBBPpPn47kbezN8i6fVmXRjCXVsieaASE0Sku+NXgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yWFaLsrl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741057158; c=relaxed/simple;
+	bh=Z2Qjdkt6YSU8BpjclkHX2vv8TlZX9IoYQ9qnI5D4l/I=;
+	h=Date:To:From:Subject:Message-Id; b=fH5etGR8FpDBkrkjMYk+ewzvhpsRg3GhlnaPBDgrKFVo+28TXiAslGub+50iwkpNxTWCJvFRzIp3BxoGVvEQkpshso6/ZS6m2KRT8vHgGEtXvKpXVkTYtcktuejqKvyEL92mrSa/sCkBPxVbZLHmemobwnisZnhXC/425EKYyD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vKG0//3T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yWFaLsrl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71756C4CEE4;
-	Tue,  4 Mar 2025 02:53:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vKG0//3T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCBFC4CEE4;
+	Tue,  4 Mar 2025 02:59:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741056803;
-	bh=aFVRZgV9gWYwmVo8XHW3Fsx4n+NTSdmc8bM1mFdH8QM=;
+	s=korg; t=1741057157;
+	bh=Z2Qjdkt6YSU8BpjclkHX2vv8TlZX9IoYQ9qnI5D4l/I=;
 	h=Date:To:From:Subject:From;
-	b=yWFaLsrllUBWRkXdVl+g8awI1zQwxVdJAKkZv/c4pDc5Tyef+T52W6S+oGTKQzhw6
-	 mAyeKvUfFp+OuoSone6z8YDOpE1PHB9DudooM3R4c2o31Itzh95i41N+VujE+EZbzt
-	 pGIpH5JDoFmmslJ9OC6g/v7roI5dxj0sj/nmQXF8=
-Date: Mon, 03 Mar 2025 18:53:22 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=vKG0//3Tq3DVTn7jvRRaez0XQWr/9i3+aqNR+Te+P9NEpZE+4/RoKQySH41y6trwY
+	 DB4GIsOhy83O+PvbxCt1CwtWrB6rnBKIi/BMYGT5W6br3ypnD5KbaONnKLpmyJC/gX
+	 YW/W2j1cyYZ25VHoatfXrqDMQjWEXjerp61Ctt7E=
+Date: Mon, 03 Mar 2025 18:59:17 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,shivankg@amd.com,ryan.roberts@arm.com,quic_charante@quicinc.com,liushixin2@huawei.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250304025323.71756C4CEE4@smtp.kernel.org>
+Subject: + mm-migrate-fix-shmem-xarray-update-during-migration.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250304025917.BBCBFC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: respect core layer filters' allowance decision on ops layer
+     Subject: mm/migrate: fix shmem xarray update during migration
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
+     mm-migrate-fix-shmem-xarray-update-during-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-shmem-xarray-update-during-migration.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,111 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: respect core layer filters' allowance decision on ops layer
-Date: Fri, 28 Feb 2025 09:53:36 -0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: fix shmem xarray update during migration
+Date: Fri, 28 Feb 2025 12:49:53 -0500
 
-Filtering decisions are made in filters evaluation order.  Once a decision
-is made by a filter, filters that scheduled to be evaluated after the
-decision-made filter should just respect it.  This is the intended and
-documented behavior.  Since core layer-handled filters are evaluated
-before operations layer-handled filters, decisions made on core layer
-should respected by ops layer.
+Pagecache uses multi-index entries for large folio, so does shmem.  Only
+swap cache still stores multiple entries for a single large folio.  Commit
+fc346d0a70a1 ("mm: migrate high-order folios in swap cache correctly")
+fixed swap cache but got shmem wrong by storing multiple entries for a
+large shmem folio.
 
-In case of reject filters, the decision is respected, since core
-layer-rejected regions are not passed to ops layer.  But in case of allow
-filters, ops layer filters don't know if the region has passed to them
-because it was allowed by core filters or just because it didn't match to
-any core layer.  The current wrong implementation assumes it was due to
-not matched by any core filters.  As a reuslt, the decision is not
-respected.  Pass the missing information to ops layer using a new filed in
-'struct damos', and make the ops layer filters respect it.
+This results in a soft lockup as reported by Liu Shixin.
 
-Link: https://lkml.kernel.org/r/20250228175336.42781-1-sj@kernel.org
-Fixes: 491fee286e56 ("mm/damon/core: support damos_filter->allow")
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Fix it by storing a single entry for a shmem folio.
+
+Link: https://lkml.kernel.org/r/20250228174953.2222831-1-ziy@nvidia.com
+Fixes: fc346d0a70a1 ("mm: migrate high-order folios in swap cache correctly")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Liu Shixin <liushixin2@huawei.com>
+Closes: https://lore.kernel.org/all/28546fb4-5210-bf75-16d6-43e1f8646080@huawei.com/
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 +++++
- mm/damon/core.c       |    6 +++++-
- mm/damon/paddr.c      |    3 +++
- 3 files changed, 13 insertions(+), 1 deletion(-)
+ mm/migrate.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer
-+++ a/include/linux/damon.h
-@@ -470,6 +470,11 @@ struct damos {
- 	unsigned long next_apply_sis;
- 	/* informs if ongoing DAMOS walk for this scheme is finished */
- 	bool walk_completed;
-+	/*
-+	 * If the current region in the filtering stage is allowed by core
-+	 * layer-handled filters.  If true, operations layer allows it, too.
-+	 */
-+	bool core_filters_allowed;
- /* public: */
- 	struct damos_quota quota;
- 	struct damos_watermarks wmarks;
---- a/mm/damon/core.c~mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer
-+++ a/mm/damon/core.c
-@@ -1429,9 +1429,13 @@ static bool damos_filter_out(struct damo
- {
- 	struct damos_filter *filter;
- 
-+	s->core_filters_allowed = false;
- 	damos_for_each_filter(filter, s) {
--		if (damos_filter_match(ctx, t, r, filter))
-+		if (damos_filter_match(ctx, t, r, filter)) {
-+			if (filter->allow)
-+				s->core_filters_allowed = true;
- 			return !filter->allow;
-+		}
- 	}
- 	return false;
- }
---- a/mm/damon/paddr.c~mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer
-+++ a/mm/damon/paddr.c
-@@ -236,6 +236,9 @@ static bool damos_pa_filter_out(struct d
- {
- 	struct damos_filter *filter;
- 
-+	if (scheme->core_filters_allowed)
-+		return false;
-+
- 	damos_for_each_filter(filter, scheme) {
- 		if (damos_pa_filter_match(filter, folio))
- 			return !filter->allow;
+--- a/mm/migrate.c~mm-migrate-fix-shmem-xarray-update-during-migration
++++ a/mm/migrate.c
+@@ -524,7 +524,11 @@ static int __folio_migrate_mapping(struc
+ 			folio_set_swapcache(newfolio);
+ 			newfolio->private = folio_get_private(folio);
+ 		}
+-		entries = nr;
++		/* shmem uses high-order entry */
++		if (!folio_test_anon(folio))
++			entries = 1;
++		else
++			entries = nr;
+ 	} else {
+ 		VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
+ 		entries = 1;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-selftests-damon-damos_quota_goal-handle-minimum-quota-that-cannot-be-further-reduced.patch
-selftests-damon-damos_quota-make-real-expectation-of-quota-exceeds.patch
-selftests-damon-damon_nr_regions-set-ops-update-for-merge-results-check-to-100ms.patch
-selftests-damon-damon_nr_regions-sort-collected-regiosn-before-checking-with-min-max-boundaries.patch
-mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
-mm-madvise-split-out-madvise-input-validity-check.patch
-mm-madvise-split-out-madvise-behavior-execution.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
-mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
-mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
-mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
-mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
-mm-damon-introduce-damos-filter-type-hugepage_size-fix.patch
-docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
-docs-mm-damon-design-document-hugepage_size-filter.patch
-docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch
-docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch
-docs-mm-damon-design-categorize-damos-filter-types-based-on-handling-layer.patch
-mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch
-docs-mm-damon-design-document-unmapped-damos-filter-type.patch
-mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning.patch
-mm-damon-core-implement-intervals-auto-tuning.patch
-mm-damon-sysfs-implement-intervals-tuning-goal-directory.patch
-mm-damon-sysfs-commit-intervals-tuning-goal.patch
-mm-damon-sysfs-implement-a-command-to-update-auto-tuned-monitoring-intervals.patch
-docs-mm-damon-design-document-for-intervals-auto-tuning.patch
-docs-abi-damon-document-intervals-auto-tuning-abi.patch
-docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch
+mm-migrate-fix-shmem-xarray-update-during-migration.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation.patch
+mm-truncate-use-buddy-allocator-like-folio-split-for-truncate-operation-fix.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
