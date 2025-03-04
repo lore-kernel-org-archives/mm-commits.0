@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36DB1273FE
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 04:52:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 304551FA178
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 20:24:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741063942; cv=none; b=A/zgbgaUF5jPiKvXyQ6lJEG7zL8CWXPgdWMdaYGg6JWtSqVhCt0Y/mrzoj4MWDqg0Ud0rNsPpEXU+ZruXLTh3UDZPB1XixJbI0iWLKXk3k5zynXUBKjM6fHU6LVo53x+uzv3YfpI21b8TdytzRFA2QXqoKDa5oBYeoy8ZJNX5MU=
+	t=1741119881; cv=none; b=amjMp4p5zTATKnkA6XnKoRd9ZBLls4cUolljm7RD0xXBEOlw8z3v5v3Kvs3wrBHSW1rF0QOx/T7eAw4pCmzCgD6gJKxNHUnP49XMOPml+XHLIg2P3owomKhN7xcdfhYACYua4i/Sskm9FWA1X4Z02+NPPoIE9nnjHF3YW583N0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741063942; c=relaxed/simple;
-	bh=5KSRLnH8mtnjS85td22CFLtJrPlN3k3N3SvkvRdVcrU=;
-	h=Date:To:From:Subject:Message-Id; b=mwHfpST344b/3bi5vRbgOd1HXp8zGkkeyCQrlf+Eet6X+skQzTp8jjLxPhTBQi5rZXmcyf/aFpCO1/HZqm4XCoyhqDT2IbD/xmCylkOm8RG4BEBeM2JRTbgzWrPFTUOsWdRg7Ybj37kq9V7115Y0/bBIsFyKUglkq68HIHgyXG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NqLP1OCb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741119881; c=relaxed/simple;
+	bh=xHfk613d6gV69hQ1SqpwdFOK8ge1M+WyjRYu9/19mtU=;
+	h=Date:To:From:Subject:Message-Id; b=RmA845P4IPBwH0aNcQlANGJfnukHLVDDS8DGKLV+R2xajBbWq/TJHFxwBIWzBPHLUqqiXQrZDcp7hmDIytp1G4uvrzkSvBf4zWCNGkHpwTLlI0RYiiRUoH5sowiHo4wwPRiy6TkCbZ6TEUz8I+onYFRNKZOhMd9KMh824u5FqkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3gQ/N3M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NqLP1OCb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99BA6C4CEE5;
-	Tue,  4 Mar 2025 04:52:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3gQ/N3M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6D5C4CEE5;
+	Tue,  4 Mar 2025 20:24:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741063941;
-	bh=5KSRLnH8mtnjS85td22CFLtJrPlN3k3N3SvkvRdVcrU=;
+	s=korg; t=1741119879;
+	bh=xHfk613d6gV69hQ1SqpwdFOK8ge1M+WyjRYu9/19mtU=;
 	h=Date:To:From:Subject:From;
-	b=NqLP1OCb2uZ+igk0I6ZJ1rfL9zUxZhCX1qoOXlT6xwHn9XduP0aKf0OWcHuxhVME+
-	 GSsm2BErGAt5Dy6G82ePHyhwThRK7fFON97upT8vvA2MLdBzh3WjrtPE9TwlDArOPc
-	 Xpa8GWfa+yJ4wlJx/beCRMidvq95k8ynDE1yvX6Q=
-Date: Mon, 03 Mar 2025 20:52:20 -0800
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,corbet@lwn.net,thomas.prescher@cyberus-technology.de,akpm@linux-foundation.org
+	b=C3gQ/N3MJEYlflhk+rUJ2GKVeLirwALkZtxngA2bzWaPVHUcn9Sh3NqItgajOrbHC
+	 pBxAYLipHFY1uZi1SnYOEbNFR9lV+dqfFJ3hNb1JGvMl4ZrT6ERm79bZ3l1O7fBXev
+	 NbdcvNRfOHAlfEVjIkjQdvERXYqkVd2y7MLm6zoU=
+Date: Tue, 04 Mar 2025 12:24:38 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-log-time-needed-to-allocate-hugepages.patch added to mm-unstable branch
-Message-Id: <20250304045221.99BA6C4CEE5@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250304202439.8A6D5C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: hugetlb: log time needed to allocate hugepages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-log-time-needed-to-allocate-hugepages.patch
+     Subject: mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-log-time-needed-to-allocate-hugepages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Prescher <thomas.prescher@cyberus-technology.de>
-Subject: mm: hugetlb: log time needed to allocate hugepages
-Date: Thu, 27 Feb 2025 23:45:07 +0100
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
+Date: Tue, 4 Mar 2025 21:21:06 +0800
 
-Having this information allows users to easily tune the
-hugepages_node_threads parameter.
+In dissolve_free_huge_page(), free huge pages are dissolved without
+adjusting surplus count. However, free huge pages may be accounted as
+surplus pages, and will lead to wrong surplus count.
 
-Link: https://lkml.kernel.org/r/20250227-hugepage-parameter-v2-3-7db8c6dc0453@cyberus-technology.de
-Signed-off-by: Thomas Prescher <thomas.prescher@cyberus-technology.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
+I reproduce this issue on qemu. The steps are:
+1) Node1 is memory-less at first. Hot-add memory to node1 by executing
+the two commands in qemu monitor:
+  object_add memory-backend-ram,id=mem1,size=1G
+  device_add pc-dimm,id=dimm1,memdev=mem1,node=1
+2) online one memory block of Node1 with：
+  echo online_movable > /sys/devices/system/node/node1/memoryX/state
+3) create 64 huge pages for node1
+4) run a program to reserve (don't consume) all the huge pages
+5) echo 0 > nr_huge_pages for node1. After this step, free huge pages in
+Node1 are surplus.
+6) create 80 huge pages for node0
+7) offline memory of node1, The memory range to offline contains the free
+surplus huge pages created in step3) ~ step5)
+  echo offline > /sys/devices/system/node/node1/memoryX/state
+8) kill the program in step 4)
+
+The result:
+           Node0     Node1
+total       80        0
+free        80        0
+surplus     0         61
+
+To fix it, adjust surplus when destroying huge pages if the node has
+surplus pages in dissolve_free_hugetlb_folio().
+
+The result with this patch:
+           Node0     Node1
+total       80        0
+free        80        0
+surplus     0         0
+
+Link: https://lkml.kernel.org/r/20250304132106.2872754-1-tujinjiang@huawei.com
+Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/hugetlb.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-log-time-needed-to-allocate-hugepages
+--- a/mm/hugetlb.c~mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page
 +++ a/mm/hugetlb.c
-@@ -3603,6 +3603,9 @@ static unsigned long __init hugetlb_page
- 		.numa_aware	= true
- 	};
+@@ -2135,6 +2135,8 @@ retry:
  
-+	unsigned long jiffies_start;
-+	unsigned long jiffies_end;
+ 	if (!folio_ref_count(folio)) {
+ 		struct hstate *h = folio_hstate(folio);
++		bool adjust_surplus = false;
 +
- 	job.thread_fn	= hugetlb_pages_alloc_boot_node;
- 	job.start	= 0;
- 	job.size	= h->max_huge_pages;
-@@ -3630,7 +3633,14 @@ static unsigned long __init hugetlb_page
+ 		if (!available_huge_pages(h))
+ 			goto out;
  
- 	job.max_threads	= hugepage_allocation_threads;
- 	job.min_chunk	= h->max_huge_pages / hugepage_allocation_threads;
-+
-+	jiffies_start = jiffies;
- 	padata_do_multithreaded(&job);
-+	jiffies_end = jiffies;
-+
-+	pr_info("HugeTLB: allocation took %dms with hugepage_allocation_threads=%ld\n",
-+		jiffies_to_msecs(jiffies_end - jiffies_start),
-+		hugepage_allocation_threads);
+@@ -2157,7 +2159,9 @@ retry:
+ 			goto retry;
+ 		}
  
- 	return h->nr_huge_pages;
- }
+-		remove_hugetlb_folio(h, folio, false);
++		if (h->surplus_huge_pages_node[folio_nid(folio)])
++			adjust_surplus = true;
++		remove_hugetlb_folio(h, folio, adjust_surplus);
+ 		h->max_huge_pages--;
+ 		spin_unlock_irq(&hugetlb_lock);
+ 
+@@ -2177,7 +2181,7 @@ retry:
+ 			rc = hugetlb_vmemmap_restore_folio(h, folio);
+ 			if (rc) {
+ 				spin_lock_irq(&hugetlb_lock);
+-				add_hugetlb_folio(h, folio, false);
++				add_hugetlb_folio(h, folio, adjust_surplus);
+ 				h->max_huge_pages++;
+ 				goto out;
+ 			}
 _
 
-Patches currently in -mm which might be from thomas.prescher@cyberus-technology.de are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-mm-hugetlb-improve-parallel-huge-page-allocation-time.patch
-mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option.patch
-mm-hugetlb-log-time-needed-to-allocate-hugepages.patch
+mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
+mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
 
