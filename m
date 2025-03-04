@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD15E25F99E
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 23:19:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A74AA1FDE01
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 23:19:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741130344; cv=none; b=W46CgLEVUg7zdzF18G3hIC92uFaSRXDclRSvNBmSQaHHHxHAuUnuPpCrMYoXXshBzpeFSyyzBADZ6E/6mlPju+JUxmZB9QzFgroGHGCC2BnHmzc6iUOMN9OkeqBn9bg/116h7hwzGuAo6P5MUZnHCKF7nXKlP38UFzgKHl6AqlE=
+	t=1741130346; cv=none; b=lAux987MuYnAbicsXPJrg8PuevGTbA+3Mc39XUkNP/SSkg/M7KI/lEhm6PMgNPu3CDyEV2iSk2/25JcBUcawPx/60yCA6CAQ1X7/onuf6+oHPFt0zyCM7Xa93qwB7D3UhkHPiriG8AV5UgGZMOh5BtiQTMoeMUTwlB1XHVLLlj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741130344; c=relaxed/simple;
-	bh=z3axrroJICePNnUUo8aD0+ObaurVeX42AkOLBMuZpaQ=;
-	h=Date:To:From:Subject:Message-Id; b=q8/oM7oNnFMQRGfXssUGOfG5S6Mok7iSWs6v84jDFi1s1n0j6wBvrFpNQZLFTCrWnS8mnKUrnFZMJfbn5hRXxnLtilxiTrhdknY3JjOVd4r1DAZKIVaH4IMaSdXJSHkyy8Th28bQGN8eg4VI3slQ8gM+uPQXLdTU7MqwO0ZRi0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c5Vk6IHn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741130346; c=relaxed/simple;
+	bh=Ek/cGPMJJ5NhNdRg0oAti2rdiXxB65quvh3fSQ0dHUs=;
+	h=Date:To:From:Subject:Message-Id; b=BBQHceG2GwCjKJqVmheXx71Z20tL25QH1czBVUJBj5h0lQw8N6nzyICJzINf/8kZ14ElxWiwGiu0kjbIYkShX/q+zncCW08pBCHkhMlTJm+9gsoWfxXPevh3t2HiZWejpGBnDA4YEnbOmYpqXdH5IW4UBjwGMuJvXhfEz1hZ/Hg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2LOOahYu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c5Vk6IHn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40888C4CEE5;
-	Tue,  4 Mar 2025 23:19:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2LOOahYu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23316C4CEE5;
+	Tue,  4 Mar 2025 23:19:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741130344;
-	bh=z3axrroJICePNnUUo8aD0+ObaurVeX42AkOLBMuZpaQ=;
+	s=korg; t=1741130346;
+	bh=Ek/cGPMJJ5NhNdRg0oAti2rdiXxB65quvh3fSQ0dHUs=;
 	h=Date:To:From:Subject:From;
-	b=c5Vk6IHngwlGkprT5Fco44HBRE8/sen34G8mnf+Wnzw6gbgrk5K/37wlM8iIe0M+3
-	 qu+1ZCjGnRcRqWZtxeIXuR/t0SfBzQAJwF814VACHlaus3PhvWPKsUFoOZ2Wqb5AdO
-	 mMP/05Gqh/KK6iqNkC62FatbiT0oXZuzHVBO7U8w=
-Date: Tue, 04 Mar 2025 15:19:03 -0800
+	b=2LOOahYu5e6WvllR7Y/emCI5Jv7LjqlGIna/I3tF+1dMavDe63abaz7bxHtjOZSQe
+	 ugPhh9wV6QoNugVTF0xPfxTTc2k4Aq1uS1U3sgOX84Cs7ODkBrZUCqwgfMQIutYcNO
+	 VljMRt7FQaXfZM6bwmkHe9b/zFkEmF8FSmOs1V7I=
+Date: Tue, 04 Mar 2025 15:19:05 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-support-ops_filters.patch added to mm-unstable branch
-Message-Id: <20250304231904.40888C4CEE5@smtp.kernel.org>
+Subject: + mm-damon-core-support-committing-ops_filters.patch added to mm-unstable branch
+Message-Id: <20250304231906.23316C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: support ops_filters
+     Subject: mm/damon/core: support committing ops_filters
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-paddr-support-ops_filters.patch
+     mm-damon-core-support-committing-ops_filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-ops_filters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-support-committing-ops_filters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,61 +59,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: support ops_filters
-Date: Tue, 4 Mar 2025 13:19:06 -0800
+Subject: mm/damon/core: support committing ops_filters
+Date: Tue, 4 Mar 2025 13:19:07 -0800
 
-DAMON keeps all DAMOS filters in damos->filters.  Upcoming changes will
-make it to use damos->ops_filters for all operations layer handled DAMOS
-filters, though.  DAMON physical address space operations set
-implementation (paddr) is not ready for the changes, since it handles only
-damos->filters.  To avoid any breakage during the upcoming changes, make
-paddr to handle both lists.  After the change is made, ->filters support
-on paddr can be safely removed.
+DAMON kernel API callers should use damon_commit_ctx() to install DAMON
+parameters including DAMOS filters.  But damos_commit_ops_filters(), which
+is called by damon_commit_ctx() for filters installing, is not handling
+damos->ops_filters.  Hence, no DAMON kernel API caller can use
+damos->ops_filters.  Do the committing of the ops_filters to make it
+usable.
 
-Link: https://lkml.kernel.org/r/20250304211913.53574-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250304211913.53574-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/damon/core.c |   40 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-ops_filters
-+++ a/mm/damon/paddr.c
-@@ -260,6 +260,10 @@ static bool damos_pa_filter_out(struct d
- 		if (damos_pa_filter_match(filter, folio))
- 			return !filter->allow;
- 	}
-+	damos_for_each_ops_filter(filter, scheme) {
-+		if (damos_pa_filter_match(filter, folio))
-+			return !filter->allow;
-+	}
- 	return false;
+--- a/mm/damon/core.c~mm-damon-core-support-committing-ops_filters
++++ a/mm/damon/core.c
+@@ -820,7 +820,7 @@ static void damos_commit_filter(
+ 	damos_commit_filter_arg(dst, src);
  }
  
-@@ -290,6 +294,12 @@ static unsigned long damon_pa_pageout(st
- 			break;
- 		}
- 	}
-+	damos_for_each_ops_filter(filter, s) {
-+		if (filter->type == DAMOS_FILTER_TYPE_YOUNG) {
-+			install_young_filter = false;
-+			break;
-+		}
-+	}
- 	if (install_young_filter) {
- 		filter = damos_new_filter(
- 				DAMOS_FILTER_TYPE_YOUNG, true, false);
-@@ -538,6 +548,8 @@ static bool damon_pa_scheme_has_filter(s
- 
- 	damos_for_each_filter(f, s)
- 		return true;
-+	damos_for_each_ops_filter(f, s)
-+		return true;
- 	return false;
+-static int damos_commit_filters(struct damos *dst, struct damos *src)
++static int damos_commit_core_filters(struct damos *dst, struct damos *src)
+ {
+ 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
+ 	int i = 0, j = 0;
+@@ -848,6 +848,44 @@ static int damos_commit_filters(struct d
+ 	return 0;
  }
  
++static int damos_commit_ops_filters(struct damos *dst, struct damos *src)
++{
++	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
++	int i = 0, j = 0;
++
++	damos_for_each_ops_filter_safe(dst_filter, next, dst) {
++		src_filter = damos_nth_filter(i++, src);
++		if (src_filter)
++			damos_commit_filter(dst_filter, src_filter);
++		else
++			damos_destroy_filter(dst_filter);
++	}
++
++	damos_for_each_ops_filter_safe(src_filter, next, src) {
++		if (j++ < i)
++			continue;
++
++		new_filter = damos_new_filter(
++				src_filter->type, src_filter->matching,
++				src_filter->allow);
++		if (!new_filter)
++			return -ENOMEM;
++		damos_commit_filter_arg(new_filter, src_filter);
++		damos_add_filter(dst, new_filter);
++	}
++	return 0;
++}
++
++static int damos_commit_filters(struct damos *dst, struct damos *src)
++{
++	int err;
++
++	err = damos_commit_core_filters(dst, src);
++	if (err)
++		return err;
++	return damos_commit_ops_filters(dst, src);
++}
++
+ static struct damos *damon_nth_scheme(int n, struct damon_ctx *ctx)
+ {
+ 	struct damos *s;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
