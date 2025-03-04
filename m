@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7D0259C83
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 20:45:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 398702E337D;
+	Tue,  4 Mar 2025 21:05:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741121149; cv=none; b=VIbBn/fPTWj356fkmBf5bzNnhBVPhn+PKtxZ2Ennrf3FQ3Jvg+WkdC09YbVJmV6yzPoYFGnnUmFYJdske3mdPrIKPnl6mP3PyL0HURue4264n0Y7yUN6BuECwlxf51ieQmNGlaEm2KucQaOZa7qMkqXwldO29bvsN533NEKssq0=
+	t=1741122347; cv=none; b=XV91Ilt/wWzG45lOKTrmhdBqLfJRCEOt/P6MdXI3kn5+OL5HRDth75YnXIHbtppAABZE+rcHay6yK5P3v/HnwhKjwCUJIY17iktK/FkZ+jSqKqHNdoE6l1KSwN29Tat27aDzp0lioAVNMk8kr4UEt1NU1TbaPtOwvGqQyw8ozDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741121149; c=relaxed/simple;
-	bh=eltBOcfLlK7rv66MMwZdv0Au7Kh2dGex2day/xsX1FU=;
-	h=Date:To:From:Subject:Message-Id; b=Q9pzlDtt0qvYhx35ftmHG+w89I5kIwIF2C3Ziou8asmsVbcECxtd+f/JHFZVfggJSWz5kGUu/vjUAjMzFYitTyv7afKXiQ6y7rl0rW4w+Isv9pANFTfMdK5aOynB7+zksXBU0OO4F/VNtk+aYspElCy7opzeIfNGwhnOUAeQR7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kq7OSGK9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741122347; c=relaxed/simple;
+	bh=p/YmkFWD96a273eY0RGKJJXae0CjD04Bl0XKgZ3cT/g=;
+	h=Date:To:From:Subject:Message-Id; b=Th1UMTH7TFLvkx8UFWzlzqcc1bUNNQ6piTn0M1NnT8EVONyLHpFl+3jp5t9pNlaKijDR4SGo+ytUU+o8/4gCGnIPMJ4NROxx5ZBx8FcpHlfkgepxJZGLGO8HfuNITnUJVHJJjMZgaFACEHJFix9Nq7FSwCLURKKwBW9pyXSdsDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jsumTwG9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kq7OSGK9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E1ACC4CEE5;
-	Tue,  4 Mar 2025 20:45:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jsumTwG9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BE79C4CEE5;
+	Tue,  4 Mar 2025 21:05:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741121149;
-	bh=eltBOcfLlK7rv66MMwZdv0Au7Kh2dGex2day/xsX1FU=;
+	s=korg; t=1741122346;
+	bh=p/YmkFWD96a273eY0RGKJJXae0CjD04Bl0XKgZ3cT/g=;
 	h=Date:To:From:Subject:From;
-	b=Kq7OSGK9nOgTnTUQehQXiOfc4KzHBINfjPiWMOU93uNTIuhqhLTT6Je7yjz+cSiPe
-	 OfQLeb55QvfVzfenMYRhjniKkzWUd8M+1m4R0owxcPNzpjDajUga8zaqslKmriUpVl
-	 Y+JVFNz71S4DJEUScfhpvN8FdiH5EoHU1wDRMBTo=
-Date: Tue, 04 Mar 2025 12:45:48 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,jack@suse.cz,brauner@kernel.org,ast@kernel.org,yizhou.tang@shopee.com,akpm@linux-foundation.org
+	b=jsumTwG9xMKOOCES68HAnwCnqR54qjB00gIgLOQl69M9hISFLyCCbOuwugIyedFBY
+	 00VP1mDdvnuS8GDaK3LRPQzMzs1O8bZL2OZpsD3x6k9nYLxx7I/PkPVyCkSC2PaKIh
+	 N4kJJyKyx0APjaMVMxULZaL89Tq9zwAlCotUYtws=
+Date: Tue, 04 Mar 2025 13:05:45 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,shivankg@amd.com,ryan.roberts@arm.com,quic_charante@quicinc.com,liushixin2@huawei.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch added to mm-unstable branch
-Message-Id: <20250304204549.2E1ACC4CEE5@smtp.kernel.org>
+Subject: [to-be-updated] mm-migrate-fix-shmem-xarray-update-during-migration.patch removed from -mm tree
+Message-Id: <20250304210546.8BE79C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,109 +34,72 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: writeback: fix calculations in trace_balance_dirty_pages() for cgwb
-has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
+The quilt patch titled
+     Subject: mm/migrate: fix shmem xarray update during migration
+has been removed from the -mm tree.  Its filename was
+     mm-migrate-fix-shmem-xarray-update-during-migration.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Tang Yizhou <yizhou.tang@shopee.com>
-Subject: writeback: fix calculations in trace_balance_dirty_pages() for cgwb
-Date: Tue, 4 Mar 2025 19:03:18 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: fix shmem xarray update during migration
+Date: Fri, 28 Feb 2025 12:49:53 -0500
 
-In the commit dcc25ae76eb7 ("writeback: move global_dirty_limit into
-wb_domain") of the cgroup writeback backpressure propagation patchset,
-Tejun made some adaptations to trace_balance_dirty_pages() for cgroup
-writeback.  However, this adaptation was incomplete and Tejun missed
-further adaptation in the subsequent patches.
+Pagecache uses multi-index entries for large folio, so does shmem.  Only
+swap cache still stores multiple entries for a single large folio.  Commit
+fc346d0a70a1 ("mm: migrate high-order folios in swap cache correctly")
+fixed swap cache but got shmem wrong by storing multiple entries for a
+large shmem folio.
 
-In the cgroup writeback scenario, if sdtc in balance_dirty_pages() is
-assigned to mdtc, then upon entering trace_balance_dirty_pages(),
-__entry->limit should be assigned based on the dirty_limit of the
-corresponding memcg's wb_domain, rather than global_wb_domain.
+This results in a soft lockup as reported by Liu Shixin.
 
-To address this issue and simplify the implementation, introduce a 'limit'
-field in struct dirty_throttle_control to store the hard_limit value
-computed in wb_position_ratio() by calling hard_dirty_limit().  This field
-will then be used in trace_balance_dirty_pages() to assign the value to
-__entry->limit.
+Fix it by storing a single entry for a shmem folio.
 
-Link: https://lkml.kernel.org/r/20250304110318.159567-4-yizhou.tang@shopee.com
-Fixes: dcc25ae76eb7 ("writeback: move global_dirty_limit into wb_domain")
-Signed-off-by: Tang Yizhou <yizhou.tang@shopee.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Link: https://lkml.kernel.org/r/20250228174953.2222831-1-ziy@nvidia.com
+Fixes: fc346d0a70a1 ("mm: migrate high-order folios in swap cache correctly")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Liu Shixin <liushixin2@huawei.com>
+Closes: https://lore.kernel.org/all/28546fb4-5210-bf75-16d6-43e1f8646080@huawei.com/
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h        |    1 +
- include/trace/events/writeback.h |    5 ++---
- mm/page-writeback.c              |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/migrate.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/include/linux/writeback.h~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
-+++ a/include/linux/writeback.h
-@@ -326,6 +326,7 @@ struct dirty_throttle_control {
- 	unsigned long		dirty;		/* file_dirty + write + nfs */
- 	unsigned long		thresh;		/* dirty threshold */
- 	unsigned long		bg_thresh;	/* dirty background threshold */
-+	unsigned long		limit;		/* hard dirty limit */
- 
- 	unsigned long		wb_dirty;	/* per-wb counterparts */
- 	unsigned long		wb_thresh;
---- a/include/trace/events/writeback.h~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
-+++ a/include/trace/events/writeback.h
-@@ -663,9 +663,8 @@ TRACE_EVENT(balance_dirty_pages,
- 		unsigned long freerun = (dtc->thresh + dtc->bg_thresh) / 2;
- 		strscpy_pad(__entry->bdi, bdi_dev_name(wb->bdi), 32);
- 
--		__entry->limit		= global_wb_domain.dirty_limit;
--		__entry->setpoint	= (global_wb_domain.dirty_limit +
--						freerun) / 2;
-+		__entry->limit		= dtc->limit;
-+		__entry->setpoint	= (dtc->limit + freerun) / 2;
- 		__entry->dirty		= dtc->dirty;
- 		__entry->wb_setpoint	= __entry->setpoint *
- 						dtc->wb_thresh / (dtc->thresh + 1);
---- a/mm/page-writeback.c~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
-+++ a/mm/page-writeback.c
-@@ -1072,7 +1072,7 @@ static void wb_position_ratio(struct dir
- 	struct bdi_writeback *wb = dtc->wb;
- 	unsigned long write_bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long freerun = dirty_freerun_ceiling(dtc->thresh, dtc->bg_thresh);
--	unsigned long limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
-+	unsigned long limit = dtc->limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
- 	unsigned long wb_thresh = dtc->wb_thresh;
- 	unsigned long x_intercept;
- 	unsigned long setpoint;		/* dirty pages' target balance point */
+--- a/mm/migrate.c~mm-migrate-fix-shmem-xarray-update-during-migration
++++ a/mm/migrate.c
+@@ -524,7 +524,11 @@ static int __folio_migrate_mapping(struc
+ 			folio_set_swapcache(newfolio);
+ 			newfolio->private = folio_get_private(folio);
+ 		}
+-		entries = nr;
++		/* shmem uses high-order entry */
++		if (!folio_test_anon(folio))
++			entries = 1;
++		else
++			entries = nr;
+ 	} else {
+ 		VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
+ 		entries = 1;
 _
 
-Patches currently in -mm which might be from yizhou.tang@shopee.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter.patch
-writeback-rename-variables-in-trace_balance_dirty_pages.patch
-writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
