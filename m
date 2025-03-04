@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8894424DFE1
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 23:19:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2C3260384
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 23:19:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741130356; cv=none; b=nGh17oqJNmie4bLdRqqCn2tMJqzjKeyGLHlKW1ylmZdBY1i08gzZrTlXBj+r73j4pK7lf7V5k0BOEJjwQSYEqY1Ey5z/2BZVAWShAEhFwF4trx1X2dOcZt7Zqby6PjsMPehJ+tR6Rdqv0R1RljxV5TuP66gj4xX3dW8IxlMkM/M=
+	t=1741130358; cv=none; b=YxUmwX0o+OR9HEsPghy5WPtjorgIPYPHoOnRmDJuh6b7DkS0P5ukrpR4K6ZrA9ZVpYhw97yCQAblwjUUnatmxXMG73sWmG3HxO8yMEXAoLeYZQiIJLgLEONZaNLrlp12K8s57ZZAkZ6ue50Hezbis7GnZhmRpjakdYKbMNlOJBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741130356; c=relaxed/simple;
-	bh=JmBlbvQx/nZDqk4tYDnL7gfsHdZYQcYNN6PU9UMOSXA=;
-	h=Date:To:From:Subject:Message-Id; b=eCsMbv2fX4LEx8DGg8ya1VrhE1M7g30bzOJyxFE2Ll+R813dE+I+TfHxFvFs/Q2ZEbVjYpWBnkXU3Cpbo94Z8RWdrRJTYuq6xaO4d6yWtjLw6vibzsdfJ2oaHBR6faiNOT07eaCFNTu4GzK4OhqTk+HhDPN5ZAvhVSio1fY3Z28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pxpVhws2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741130358; c=relaxed/simple;
+	bh=gAxHnCGVJe/MXfk/7vVIlmRZqIY30BsF8enCrvkpAEc=;
+	h=Date:To:From:Subject:Message-Id; b=BdwsNv2ara2bfhxMAYTtPnruEJxwjKiI0XH7pyO2dkWwXdOkgFfzOE/QYUKVEdVnQI8GoEeowbHeZvvaiKzfm3zpOIZqV3kUL2o8vuBcAxduJxXiYBvBtFQBRSZsOiQ6tsRTNP8hQ2WIQLpt3Q0Sip1IT/Xd6+DWhlwD9Gej08s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1sDOjffv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pxpVhws2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F40B7C4CEE5;
-	Tue,  4 Mar 2025 23:19:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1sDOjffv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D94F2C4CEE5;
+	Tue,  4 Mar 2025 23:19:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741130356;
-	bh=JmBlbvQx/nZDqk4tYDnL7gfsHdZYQcYNN6PU9UMOSXA=;
+	s=korg; t=1741130357;
+	bh=gAxHnCGVJe/MXfk/7vVIlmRZqIY30BsF8enCrvkpAEc=;
 	h=Date:To:From:Subject:From;
-	b=pxpVhws2zbDjMcsi3OQjzLpU7bnpH+tXRzKcQ7zH3QpJCnwH1rSwMX0xYGAbXZhp6
-	 jRXCTcOw0FCw1UKswZboW1eo7YZKJ/+OMud1CmiYuXwfsMYOy/9FtDelMSPYtS3BtQ
-	 ZnMrXJEdKqV6Ih9FeMlanFIqjKouxRavWR+1kDxw=
-Date: Tue, 04 Mar 2025 15:19:15 -0800
+	b=1sDOjffvY0iPA/lGFB002HA608ar/9L09P5oykAkLIazJ6tmMoJSzwckr3DHQ4asL
+	 aPMXPCgj/JGbj543qYxmcaOUUIg86nxQogX7T0cnw3fg+QF1F+K/bYDxsN8McgNG1U
+	 nOyZ2Q/Y5KhaOBKbL+hbFKhhP5amykRLZ0ZL6rCw=
+Date: Tue, 04 Mar 2025 15:19:17 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-respect-ops_filters_default_reject.patch added to mm-unstable branch
-Message-Id: <20250304231915.F40B7C4CEE5@smtp.kernel.org>
+Subject: + docs-mm-damon-design-update-for-changed-filter-default-behavior.patch added to mm-unstable branch
+Message-Id: <20250304231917.D94F2C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: respect ops_filters_default_reject
+     Subject: Docs/mm/damon/design: update for changed filter-default behavior
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-paddr-respect-ops_filters_default_reject.patch
+     docs-mm-damon-design-update-for-changed-filter-default-behavior.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-respect-ops_filters_default_reject.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-changed-filter-default-behavior.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: respect ops_filters_default_reject
-Date: Tue, 4 Mar 2025 13:19:12 -0800
+Subject: Docs/mm/damon/design: update for changed filter-default behavior
+Date: Tue, 4 Mar 2025 13:19:13 -0800
 
-Use damos->ops_filters_default_reject, which is set based on the installed
-filters' behaviors, from physical address space DAMON operations set.
+Update the design documentation for changed DAMOS filters default
+allowance behaviors.
 
-Link: https://lkml.kernel.org/r/20250304211913.53574-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250304211913.53574-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-respect-ops_filters_default_reject
-+++ a/mm/damon/paddr.c
-@@ -260,7 +260,7 @@ static bool damos_pa_filter_out(struct d
- 		if (damos_pa_filter_match(filter, folio))
- 			return !filter->allow;
- 	}
--	return false;
-+	return scheme->ops_filters_default_reject;
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-changed-filter-default-behavior
++++ a/Documentation/mm/damon/design.rst
+@@ -631,9 +631,10 @@ When multiple filters are installed, the
+ core layer are evaluated first.  After that, the group of filters that handled
+ by the operations layer are evaluated.  Filters in each of the groups are
+ evaluated in the installed order.  If a part of memory is matched to one of the
+-filter, next filters are ignored.  If the memory passes through the filters
++filter, next filters are ignored.  If the part passes through the filters
+ evaluation stage because it is not matched to any of the filters, applying the
+-scheme's action to it is allowed, same to the behavior when no filter exists.
++scheme's action to it depends on the last filter's allowance type.  If the last
++filter was for allowing, the part of memory will be rejected, and vice versa.
  
- static bool damon_pa_invalid_damos_folio(struct folio *folio, struct damos *s)
+ For example, let's assume 1) a filter for allowing anonymous pages and 2)
+ another filter for rejecting young pages are installed in the order.  If a page
+@@ -645,11 +646,6 @@ second reject-filter blocks it.  If the
+ the page will pass through the filters evaluation stage since there is no
+ matching filter, and the action will be applied to the page.
+ 
+-Note that the action can equally be applied to memory that either explicitly
+-filter-allowed or filters evaluation stage passed.  It means that installing
+-allow-filters at the end of the list makes no practical change but only
+-filters-checking overhead.
+-
+ Below ``type`` of filters are currently supported.
+ 
+ - Core layer handled
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
