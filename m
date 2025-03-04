@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38FE9154BF5
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 00:38:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A941531C1
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 00:38:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741048719; cv=none; b=FK4IyLmMXS8NAizBoulCdDn1p/MfZj9dKvcHOI/ntSNukOz5J4fe9B0e+2p0aaSCrH1sGJeh9bbpOspf3XyMu3PfleeRKMxd/K/qRO9j+5nYp37KZyc4S/M9VU5lmhFcqiYm2K2OIdhmhaYxXEqHJ+sIQVsJB0iLUKU+qFA2oYM=
+	t=1741048721; cv=none; b=W3YDUobVUk3R/bxL00HWRxZbabtNSdt9W+rd5cFEI9KKEqkvR4TOyLK6o2eQk6cTFg6XvEpq1WXc8/UFTp/xFJlEVrb+YX5w2or63jAi9JN8tfIBIbnzokS45czfTbQ83BFJWVH5W+zvWEmCsH++HPlvn1/dl9NRHDiqiVnzLgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741048719; c=relaxed/simple;
-	bh=Ak6sxk43rZM9kk1b7bExWJ9qBuoF+FdfiOeAJqOkVDg=;
-	h=Date:To:From:Subject:Message-Id; b=KN8mFatvHJ0UZ3OfoarI+8xyKsOCh8rqKbi1Q9QgQKTNDC2fANylbDR6qwsq7i2/fbaH2RhPc29yz+ouIBBOh31WY4CDnD6b/FmWfPi6Dx9K/jwxcgck92VljH7+v8sjS5YS6RqNlzeE2Wrq02VTS4UhaEpQT2DnmAkchjKVQxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d7gkRtuK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741048721; c=relaxed/simple;
+	bh=ECCh28A6Fl+gshCxRYcG4TtNzRpkGfRizC1iE+Kocn0=;
+	h=Date:To:From:Subject:Message-Id; b=ph84mkHZ4794NhILFsouJPp31adwgGQH+3XeN6OZ2Bz3PC6nT/hNw2x+4Xi91P5B/0u4Ewny9Pu8wcbO5xODeT/lU2uyT2fKpld1nerkc4ncJ3VpiHgdCFX2vlQLEzDfJisDoOvzhdpcjaK00RMrBwZy/adWpBN4pL7mH+NEmVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZYVg/BQO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d7gkRtuK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C50C4CEE4;
-	Tue,  4 Mar 2025 00:38:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZYVg/BQO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF95C4CEE4;
+	Tue,  4 Mar 2025 00:38:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741048718;
-	bh=Ak6sxk43rZM9kk1b7bExWJ9qBuoF+FdfiOeAJqOkVDg=;
+	s=korg; t=1741048721;
+	bh=ECCh28A6Fl+gshCxRYcG4TtNzRpkGfRizC1iE+Kocn0=;
 	h=Date:To:From:Subject:From;
-	b=d7gkRtuKjq/TqN5kLfHGw/c+Jc0iMm2KtVZJoxwjCZvrso08vD/b4soS+5kaZyHK0
-	 vxyz9Jc716AN7ACqFWtfRFdbE8isq9w/QuHhcLv+Y1aXsBW3AYpBtm2hrfuwSysxa9
-	 rJ+5WcapsNPDqY0KhWHrYuH9Dp1K70d/sWcoh1mE=
-Date: Mon, 03 Mar 2025 16:38:37 -0800
+	b=ZYVg/BQOBTOCL/z3XpaC6y2xvC5Be7zBBnXsW2sZKWjoL2gxuPDPdPatHarMH7n7B
+	 Tu+O6WzKL908aw5V5D43RB+e3fzSXMu2MuRG9Q+wnRjvJjKdA+M0KxyJJYNaXHi0U8
+	 Uq7zG2YN8k+uCvx01X3p93Mbn9l7U5VD1OTdZqv8=
+Date: Mon, 03 Mar 2025 16:38:40 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-max_comp_streams-device-attr.patch added to mm-unstable branch
-Message-Id: <20250304003838.87C50C4CEE4@smtp.kernel.org>
+Subject: + zram-remove-second-stage-of-handle-allocation.patch added to mm-unstable branch
+Message-Id: <20250304003841.3BF95C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: remove max_comp_streams device attr
+     Subject: zram: remove second stage of handle allocation
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-max_comp_streams-device-attr.patch
+     zram-remove-second-stage-of-handle-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-max_comp_streams-device-attr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-second-stage-of-handle-allocation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove max_comp_streams device attr
-Date: Mon, 3 Mar 2025 11:03:13 +0900
+Subject: zram: remove second stage of handle allocation
+Date: Mon, 3 Mar 2025 11:03:14 +0900
 
-max_comp_streams device attribute has been defunct since May 2016 when
-zram switched to per-CPU compression streams, remove it.
+Previously zram write() was atomic which required us to pass
+__GFP_KSWAPD_RECLAIM to zsmalloc handle allocation on a fast path and
+attempt a slow path allocation (with recompression) if the fast path
+failed.
 
-Link: https://lkml.kernel.org/r/20250303022425.285971-5-senozhatsky@chromium.org
+Since we are not in atomic context anymore we can permit direct reclaim
+during handle allocation, and hence can have a single allocation path. 
+There is no slow path anymore so we don't unlock per-CPU stream (and don't
+lose compressed data) which means that there is no need to do
+recompression now (which should reduce CPU and battery usage).
+
+Link: https://lkml.kernel.org/r/20250303022425.285971-6-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
@@ -75,189 +83,82 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram  |    8 ----
- Documentation/admin-guide/blockdev/zram.rst |   36 +++++-------------
- drivers/block/zram/zram_drv.c               |   23 -----------
- 3 files changed, 10 insertions(+), 57 deletions(-)
+ drivers/block/zram/zram_drv.c |   39 +++++---------------------------
+ 1 file changed, 7 insertions(+), 32 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-remove-max_comp_streams-device-attr
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -22,14 +22,6 @@ Description:
- 		device. The reset operation frees all the memory associated
- 		with this device.
- 
--What:		/sys/block/zram<id>/max_comp_streams
--Date:		February 2014
--Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
--Description:
--		The max_comp_streams file is read-write and specifies the
--		number of backend's zcomp_strm compression streams (number of
--		concurrent compress operations).
--
- What:		/sys/block/zram<id>/comp_algorithm
- Date:		February 2014
- Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-remove-max_comp_streams-device-attr
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -54,7 +54,7 @@ The list of possible return codes:
- If you use 'echo', the returned value is set by the 'echo' utility,
- and, in general case, something like::
- 
--	echo 3 > /sys/block/zram0/max_comp_streams
-+	echo foo > /sys/block/zram0/comp_algorithm
- 	if [ $? -ne 0 ]; then
- 		handle_error
- 	fi
-@@ -73,21 +73,7 @@ This creates 4 devices: /dev/zram{0,1,2,
- num_devices parameter is optional and tells zram how many devices should be
- pre-created. Default: 1.
- 
--2) Set max number of compression streams
--========================================
--
--Regardless of the value passed to this attribute, ZRAM will always
--allocate multiple compression streams - one per online CPU - thus
--allowing several concurrent compression operations. The number of
--allocated compression streams goes down when some of the CPUs
--become offline. There is no single-compression-stream mode anymore,
--unless you are running a UP system or have only 1 CPU online.
--
--To find out how many streams are currently available::
--
--	cat /sys/block/zram0/max_comp_streams
--
--3) Select compression algorithm
-+2) Select compression algorithm
- ===============================
- 
- Using comp_algorithm device attribute one can see available and
-@@ -107,7 +93,7 @@ Examples::
- For the time being, the `comp_algorithm` content shows only compression
- algorithms that are supported by zram.
- 
--4) Set compression algorithm parameters: Optional
-+3) Set compression algorithm parameters: Optional
- =================================================
- 
- Compression algorithms may support specific parameters which can be
-@@ -138,7 +124,7 @@ better the compression ratio, it even ca
- algorithms), for other algorithms `level` is acceleration level (the higher
- the value the lower the compression ratio).
- 
--5) Set Disksize
-+4) Set Disksize
- ===============
- 
- Set disk size by writing the value to sysfs node 'disksize'.
-@@ -158,7 +144,7 @@ There is little point creating a zram of
- since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
- size of the disk when not in use so a huge zram is wasteful.
- 
--6) Set memory limit: Optional
-+5) Set memory limit: Optional
- =============================
- 
- Set memory limit by writing the value to sysfs node 'mem_limit'.
-@@ -177,7 +163,7 @@ Examples::
- 	# To disable memory limit
- 	echo 0 > /sys/block/zram0/mem_limit
- 
--7) Activate
-+6) Activate
- ===========
- 
- ::
-@@ -188,7 +174,7 @@ Examples::
- 	mkfs.ext4 /dev/zram1
- 	mount /dev/zram1 /tmp
- 
--8) Add/remove zram devices
-+7) Add/remove zram devices
- ==========================
- 
- zram provides a control interface, which enables dynamic (on-demand) device
-@@ -208,7 +194,7 @@ execute::
- 
- 	echo X > /sys/class/zram-control/hot_remove
- 
--9) Stats
-+8) Stats
- ========
- 
- Per-device statistics are exported as various nodes under /sys/block/zram<id>/
-@@ -228,8 +214,6 @@ mem_limit         	WO	specifies the maxi
- writeback_limit   	WO	specifies the maximum amount of write IO zram
- 				can write out to backing device as 4KB unit
- writeback_limit_enable  RW	show and set writeback_limit feature
--max_comp_streams  	RW	the number of possible concurrent compress
--				operations
- comp_algorithm    	RW	show and change the compression algorithm
- algorithm_params	WO	setup compression algorithm parameters
- compact           	WO	trigger memory compaction
-@@ -310,7 +294,7 @@ a single line of text and contains the f
- 		Unit: 4K bytes
-  ============== =============================================================
- 
--10) Deactivate
-+9) Deactivate
- ==============
- 
- ::
-@@ -318,7 +302,7 @@ a single line of text and contains the f
- 	swapoff /dev/zram0
- 	umount /dev/zram1
- 
--11) Reset
-+10) Reset
- =========
- 
- 	Write any positive value to 'reset' sysfs node::
---- a/drivers/block/zram/zram_drv.c~zram-remove-max_comp_streams-device-attr
+--- a/drivers/block/zram/zram_drv.c~zram-remove-second-stage-of-handle-allocation
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1103,27 +1103,6 @@ static void zram_debugfs_register(struct
- static void zram_debugfs_unregister(struct zram *zram) {};
- #endif
- 
--/*
-- * We switched to per-cpu streams and this attr is not needed anymore.
-- * However, we will keep it around for some time, because:
-- * a) we may revert per-cpu streams in the future
-- * b) it's visible to user space and we need to follow our 2 years
-- *    retirement rule; but we already have a number of 'soon to be
-- *    altered' attrs, so max_comp_streams need to wait for the next
-- *    layoff cycle.
-- */
--static ssize_t max_comp_streams_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	return scnprintf(buf, PAGE_SIZE, "%d\n", num_online_cpus());
--}
--
--static ssize_t max_comp_streams_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
--{
--	return len;
--}
--
- static void comp_algorithm_set(struct zram *zram, u32 prio, const char *alg)
+@@ -1723,11 +1723,11 @@ static int write_incompressible_page(str
+ static int zram_write_page(struct zram *zram, struct page *page, u32 index)
  {
- 	/* Do not free statically defined compression algorithms */
-@@ -2540,7 +2519,6 @@ static DEVICE_ATTR_WO(reset);
- static DEVICE_ATTR_WO(mem_limit);
- static DEVICE_ATTR_WO(mem_used_max);
- static DEVICE_ATTR_WO(idle);
--static DEVICE_ATTR_RW(max_comp_streams);
- static DEVICE_ATTR_RW(comp_algorithm);
- #ifdef CONFIG_ZRAM_WRITEBACK
- static DEVICE_ATTR_RW(backing_dev);
-@@ -2562,7 +2540,6 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_mem_limit.attr,
- 	&dev_attr_mem_used_max.attr,
- 	&dev_attr_idle.attr,
--	&dev_attr_max_comp_streams.attr,
- 	&dev_attr_comp_algorithm.attr,
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	&dev_attr_backing_dev.attr,
+ 	int ret = 0;
+-	unsigned long handle = -ENOMEM;
+-	unsigned int comp_len = 0;
++	unsigned long handle;
++	unsigned int comp_len;
+ 	void *dst, *mem;
+ 	struct zcomp_strm *zstrm;
+-	unsigned long element = 0;
++	unsigned long element;
+ 	bool same_filled;
+ 
+ 	/* First, free memory allocated to this slot (if any) */
+@@ -1741,7 +1741,6 @@ static int zram_write_page(struct zram *
+ 	if (same_filled)
+ 		return write_same_filled_page(zram, element, index);
+ 
+-compress_again:
+ 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
+ 	mem = kmap_local_page(page);
+ 	ret = zcomp_compress(zram->comps[ZRAM_PRIMARY_COMP], zstrm,
+@@ -1751,7 +1750,6 @@ compress_again:
+ 	if (unlikely(ret)) {
+ 		zcomp_stream_put(zstrm);
+ 		pr_err("Compression failed! err=%d\n", ret);
+-		zs_free(zram->mem_pool, handle);
+ 		return ret;
+ 	}
+ 
+@@ -1760,35 +1758,12 @@ compress_again:
+ 		return write_incompressible_page(zram, page, index);
+ 	}
+ 
+-	/*
+-	 * handle allocation has 2 paths:
+-	 * a) fast path is executed with preemption disabled (for
+-	 *  per-cpu streams) and has __GFP_DIRECT_RECLAIM bit clear,
+-	 *  since we can't sleep;
+-	 * b) slow path enables preemption and attempts to allocate
+-	 *  the page with __GFP_DIRECT_RECLAIM bit set. we have to
+-	 *  put per-cpu compression stream and, thus, to re-do
+-	 *  the compression once handle is allocated.
+-	 *
+-	 * if we have a 'non-null' handle here then we are coming
+-	 * from the slow path and handle has already been allocated.
+-	 */
+-	if (IS_ERR_VALUE(handle))
+-		handle = zs_malloc(zram->mem_pool, comp_len,
+-				   __GFP_KSWAPD_RECLAIM |
+-				   __GFP_NOWARN |
+-				   __GFP_HIGHMEM |
+-				   __GFP_MOVABLE);
++	handle = zs_malloc(zram->mem_pool, comp_len,
++			   GFP_NOIO | __GFP_NOWARN |
++			   __GFP_HIGHMEM | __GFP_MOVABLE);
+ 	if (IS_ERR_VALUE(handle)) {
+ 		zcomp_stream_put(zstrm);
+-		atomic64_inc(&zram->stats.writestall);
+-		handle = zs_malloc(zram->mem_pool, comp_len,
+-				   GFP_NOIO | __GFP_HIGHMEM |
+-				   __GFP_MOVABLE);
+-		if (IS_ERR_VALUE(handle))
+-			return PTR_ERR((void *)handle);
+-
+-		goto compress_again;
++		return PTR_ERR((void *)handle);
+ 	}
+ 
+ 	if (!zram_can_store_page(zram)) {
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
