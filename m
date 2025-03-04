@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2636E15ADA6
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 00:38:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA3AE15855C
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 00:38:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741048732; cv=none; b=EUpMdRn3QBgxPPPhMTK9VS4cyjv6WVY2gaOyFjIBMVc46dch0v9cxPfV5Qme97cy1AMiTcBPGI7dLr961vGA9StE0CJpOQGOdhVUOpnHEGqgIMfAyCanrrX4+49PLJOXwSWjIEOdu7NNf1LYAbbK5AF/En2oO4S2V7SsbJQhQ2o=
+	t=1741048733; cv=none; b=Byv0fFwJ6gpsbyewDjJ335aaoQFHAwzyHF85AvtCw+YAFZ2fGZgU1f4fR5bVFOmuNGQ/svCtHeb1yFDFloMkTY9NsbCmOFF353OrDS59siMdbVaRWkudIBvrHmY4iIveH298tgN7nc404T7ihYMBAMjpp3E3WyQyArOP87Ml6kc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741048732; c=relaxed/simple;
-	bh=qPd9P3f1dwVhbyKvVOqIkvLPs4RHfMSZBQX4tSCdNU0=;
-	h=Date:To:From:Subject:Message-Id; b=Gn3hqhdP4X9j2dWFT59MwJHw+uv21Vo3Ykkr4l2hgpSRLrS30k+A0YdgVa/c8dv2a1TrU+kY4HLMeQQpBYQ2G7zY3hdNFpovcheKdniKLdk9NBW9TSvKEb8HVnbdX3Ke4RZO51WvVetxPVKGiEMnztgtFV5Luhr2uzgOa6VjeZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=addgeYOK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741048733; c=relaxed/simple;
+	bh=ZE/dmN7B+7w7VOCTo4ZnNT2W9gNvIloKAIHm1MgiFx0=;
+	h=Date:To:From:Subject:Message-Id; b=cZ87UkHZzSa9CjysGZnyw6xHIJRP2Zp/EsBDx24s2V00eSQC6q/rh9YEln9Y185YEl/sxMbVe1WwNIYQHjT3Ssy15b0j51MFMY8TB9GlfNQ6a4eqPIS0rPZL/aHEFjIqId8j65rWRbRgMvGBpjlwVdcXVCsZKPGU/7fLfrcKxHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k1CpXi/j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="addgeYOK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9516FC4CEE8;
-	Tue,  4 Mar 2025 00:38:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k1CpXi/j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99EE2C4CEE4;
+	Tue,  4 Mar 2025 00:38:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741048731;
-	bh=qPd9P3f1dwVhbyKvVOqIkvLPs4RHfMSZBQX4tSCdNU0=;
+	s=korg; t=1741048733;
+	bh=ZE/dmN7B+7w7VOCTo4ZnNT2W9gNvIloKAIHm1MgiFx0=;
 	h=Date:To:From:Subject:From;
-	b=addgeYOKZl7Ay+RuW7uLSHYrfJvbzS9t0kGp1KbHxwwpuuMVBgpRmfBYSD2ZO6lDe
-	 pfGTE7CP8peAUZGsfwgPcq9icPfXQ529Jf0ZJ/CfZoXZkamc9umO2Q2mz7wPcmLSwC
-	 gZ8P/agVnDK0LlBLayADNqxNN1gYivQF2t3cmLg0=
-Date: Mon, 03 Mar 2025 16:38:51 -0800
+	b=k1CpXi/jLrMoWLcoSNxoQ8fywKmuO0NsTzAnrTd/RzOpxczcX9nn2x+ENTP07ohpZ
+	 /GJsEP6ZjHvdzXSHWdWemVvnibaRT6U4ZgyMK+bXOvZXUMoUOOuvECRyzHvZumWK/3
+	 4Tdi2LsKFoDd5BPO1nFVZZWUx/LT70TyhRvK943I=
+Date: Mon, 03 Mar 2025 16:38:53 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-rework-recompression-loop.patch added to mm-unstable branch
-Message-Id: <20250304003851.9516FC4CEE8@smtp.kernel.org>
+Subject: + zram-move-post-processing-target-allocation.patch added to mm-unstable branch
+Message-Id: <20250304003853.99EE2C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: rework recompression loop
+     Subject: zram: move post-processing target allocation
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-rework-recompression-loop.patch
+     zram-move-post-processing-target-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-rework-recompression-loop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-move-post-processing-target-allocation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: rework recompression loop
-Date: Mon, 3 Mar 2025 11:03:19 +0900
+Subject: zram: move post-processing target allocation
+Date: Mon, 3 Mar 2025 11:03:20 +0900
 
-This reworks recompression loop handling:
+Allocate post-processing target in place_pp_slot().  This simplifies
+scan_slots_for_writeback() and scan_slots_for_recompress() loops because
+we don't need to track pps pointer state anymore.  Previously we have to
+explicitly NULL the point if it has been added to a post-processing bucket
+or re-use previously allocated pointer otherwise and make sure we don't
+leak the memory in the end.
 
-- set a rule that stream-put NULLs the stream pointer If the loop
-  returns with a non-NULL stream then it's a successful recompression,
-  otherwise the stream should always be NULL.
+We are also fine doing GFP_NOIO allocation, as post-processing can be
+called under memory pressure so we better pick as many slots as we can as
+soon as we can and start post-processing them, possibly saving the memory.
+Allocation failure there is not fatal, we will post-process whatever we
+put into the buckets on previous iterations.
 
-- do not count the number of recompressions Mark object as
-  incompressible as soon as the algorithm with the highest priority failed
-  to compress that object.
-
-- count compression errors as resource usage Even if compression has
-  failed, we still need to bump num_recomp_pages counter.
-
-Link: https://lkml.kernel.org/r/20250303022425.285971-11-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250303022425.285971-12-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
@@ -85,118 +85,112 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   54 +++++++++++---------------------
- 1 file changed, 20 insertions(+), 34 deletions(-)
+ drivers/block/zram/zram_drv.c |   50 ++++++++++++++------------------
+ 1 file changed, 22 insertions(+), 28 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-rework-recompression-loop
+--- a/drivers/block/zram/zram_drv.c~zram-move-post-processing-target-allocation
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1888,9 +1888,8 @@ static int recompress_slot(struct zram *
- 	unsigned int comp_len_new;
- 	unsigned int class_index_old;
- 	unsigned int class_index_new;
--	u32 num_recomps = 0;
- 	void *src, *dst;
--	int ret;
-+	int ret = 0;
+@@ -295,15 +295,24 @@ static void release_pp_ctl(struct zram *
+ 	kfree(ctl);
+ }
  
- 	handle_old = zram_get_handle(zram, index);
- 	if (!handle_old)
-@@ -1933,7 +1932,6 @@ static int recompress_slot(struct zram *
- 		if (!zram->comps[prio])
- 			continue;
- 
--		num_recomps++;
- 		zstrm = zcomp_stream_get(zram->comps[prio]);
- 		src = kmap_local_page(page);
- 		ret = zcomp_compress(zram->comps[prio], zstrm,
-@@ -1942,7 +1940,8 @@ static int recompress_slot(struct zram *
- 
- 		if (ret) {
- 			zcomp_stream_put(zstrm);
--			return ret;
-+			zstrm = NULL;
-+			break;
- 		}
- 
- 		class_index_new = zs_lookup_class_index(zram->mem_pool,
-@@ -1952,6 +1951,7 @@ static int recompress_slot(struct zram *
- 		if (class_index_new >= class_index_old ||
- 		    (threshold && comp_len_new >= threshold)) {
- 			zcomp_stream_put(zstrm);
-+			zstrm = NULL;
- 			continue;
- 		}
- 
-@@ -1960,14 +1960,6 @@ static int recompress_slot(struct zram *
- 	}
- 
- 	/*
--	 * We did not try to recompress, e.g. when we have only one
--	 * secondary algorithm and the page is already recompressed
--	 * using that algorithm
--	 */
--	if (!zstrm)
--		return 0;
--
--	/*
- 	 * Decrement the limit (if set) on pages we can recompress, even
- 	 * when current recompression was unsuccessful or did not compress
- 	 * the page below the threshold, because we still spent resources
-@@ -1976,38 +1968,32 @@ static int recompress_slot(struct zram *
- 	if (*num_recomp_pages)
- 		*num_recomp_pages -= 1;
- 
--	if (class_index_new >= class_index_old) {
-+	/* Compression error */
-+	if (ret)
-+		return ret;
+-static void place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
+-			  struct zram_pp_slot *pps)
++static bool place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
++			  u32 index)
+ {
+-	u32 idx;
++	struct zram_pp_slot *pps;
++	u32 bid;
 +
-+	if (!zstrm) {
- 		/*
- 		 * Secondary algorithms failed to re-compress the page
--		 * in a way that would save memory, mark the object as
--		 * incompressible so that we will not try to compress
--		 * it again.
-+		 * in a way that would save memory.
- 		 *
--		 * We need to make sure that all secondary algorithms have
--		 * failed, so we test if the number of recompressions matches
--		 * the number of active secondary algorithms.
-+		 * Mark the object incompressible if the max-priority
-+		 * algorithm couldn't re-compress it.
- 		 */
--		if (num_recomps == zram->num_active_comps - 1)
--			zram_set_flag(zram, index, ZRAM_INCOMPRESSIBLE);
-+		if (prio < zram->num_active_comps)
-+			return 0;
-+		zram_set_flag(zram, index, ZRAM_INCOMPRESSIBLE);
- 		return 0;
++	pps = kmalloc(sizeof(*pps), GFP_NOIO | __GFP_NOWARN);
++	if (!pps)
++		return false;
+ 
+-	idx = zram_get_obj_size(zram, pps->index) / PP_BUCKET_SIZE_RANGE;
+-	list_add(&pps->entry, &ctl->pp_buckets[idx]);
++	INIT_LIST_HEAD(&pps->entry);
++	pps->index = index;
++
++	bid = zram_get_obj_size(zram, pps->index) / PP_BUCKET_SIZE_RANGE;
++	list_add(&pps->entry, &ctl->pp_buckets[bid]);
+ 
+ 	zram_set_flag(zram, pps->index, ZRAM_PP_SLOT);
++	return true;
+ }
+ 
+ static struct zram_pp_slot *select_pp_slot(struct zram_pp_ctl *ctl)
+@@ -737,15 +746,8 @@ static int scan_slots_for_writeback(stru
+ 				    unsigned long index,
+ 				    struct zram_pp_ctl *ctl)
+ {
+-	struct zram_pp_slot *pps = NULL;
+-
+ 	for (; nr_pages != 0; index++, nr_pages--) {
+-		if (!pps)
+-			pps = kmalloc(sizeof(*pps), GFP_KERNEL);
+-		if (!pps)
+-			return -ENOMEM;
+-
+-		INIT_LIST_HEAD(&pps->entry);
++		bool ok = true;
+ 
+ 		zram_slot_lock(zram, index);
+ 		if (!zram_allocated(zram, index))
+@@ -765,14 +767,13 @@ static int scan_slots_for_writeback(stru
+ 		    !zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
+ 			goto next;
+ 
+-		pps->index = index;
+-		place_pp_slot(zram, ctl, pps);
+-		pps = NULL;
++		ok = place_pp_slot(zram, ctl, index);
+ next:
+ 		zram_slot_unlock(zram, index);
++		if (!ok)
++			break;
  	}
  
--	/* Successful recompression but above threshold */
--	if (threshold && comp_len_new >= threshold)
--		return 0;
+-	kfree(pps);
+ 	return 0;
+ }
+ 
+@@ -1827,16 +1828,10 @@ static int scan_slots_for_recompress(str
+ 				     struct zram_pp_ctl *ctl)
+ {
+ 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
+-	struct zram_pp_slot *pps = NULL;
+ 	unsigned long index;
+ 
+ 	for (index = 0; index < nr_pages; index++) {
+-		if (!pps)
+-			pps = kmalloc(sizeof(*pps), GFP_KERNEL);
+-		if (!pps)
+-			return -ENOMEM;
 -
- 	/*
--	 * No direct reclaim (slow path) for handle allocation and no
--	 * re-compression attempt (unlike in zram_write_bvec()) since
--	 * we already have stored that object in zsmalloc. If we cannot
--	 * alloc memory for recompressed object then we bail out and
--	 * simply keep the old (existing) object in zsmalloc.
-+	 * We are holding per-CPU stream mutex and entry lock so better
-+	 * avoid direct reclaim.  Allocation error is not fatal since
-+	 * we still have the old object in the mem_pool.
- 	 */
- 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
--			       __GFP_KSWAPD_RECLAIM |
--			       __GFP_NOWARN |
--			       __GFP_HIGHMEM |
--			       __GFP_MOVABLE);
-+			       GFP_NOIO | __GFP_NOWARN |
-+			       __GFP_HIGHMEM | __GFP_MOVABLE);
- 	if (IS_ERR_VALUE(handle_new)) {
- 		zcomp_stream_put(zstrm);
- 		return PTR_ERR((void *)handle_new);
+-		INIT_LIST_HEAD(&pps->entry);
++		bool ok = true;
+ 
+ 		zram_slot_lock(zram, index);
+ 		if (!zram_allocated(zram, index))
+@@ -1859,14 +1854,13 @@ static int scan_slots_for_recompress(str
+ 		if (zram_get_priority(zram, index) + 1 >= prio_max)
+ 			goto next;
+ 
+-		pps->index = index;
+-		place_pp_slot(zram, ctl, pps);
+-		pps = NULL;
++		ok = place_pp_slot(zram, ctl, index);
+ next:
+ 		zram_slot_unlock(zram, index);
++		if (!ok)
++			break;
+ 	}
+ 
+-	kfree(pps);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
