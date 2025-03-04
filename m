@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADEE027814C
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 23:19:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99AF91FAC4C
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 23:19:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741130352; cv=none; b=q8chJXCGDRP+jUDD3H2n1aGHgYDmkH3tl5rb1MVN2h3y8VEKFNM6QRzMj3QTP18psv2kHXRBqzmc5iTXQBRiNO4iaTb+aSv+NwM9IhylCa3CTkmbXAg7OENxzjELNz/FNrDXlrCPY9zLmUdt2xutptV0NkujpPZWR82Adu00Ls4=
+	t=1741130354; cv=none; b=m8kZUQz/gGksAQDr7ij3jqZDv/cpHvQpzyQjAp9LHSNy4rDllzh40jRxDOIS5Ra0yV9J1n/XWNpUZ6Rn0GXPQp8hLDzRujd2u917FHoALdrC9+7sNO9S4YBjtNK989dsKr0z2mSomjXe70wEgO5KGs4+aSguP/cy/oH37T0Zw+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741130352; c=relaxed/simple;
-	bh=bmhltNgYzbPjB09WNns9XONg3XkrrhDnBeVaxZ89Ivs=;
-	h=Date:To:From:Subject:Message-Id; b=VFwIBgHbtjjRTXleuEXlnf0Q5rAClyknJ679N8xT263lv4jXTwX+Bb0dpsr+YYmJJE6OcKuMsvIhBFrUahiBvHc8Www3+8SjlMwBLxjy8Nuc3G+wroxJ7gvcvShrEX3ZY5VX2rQ/5RrLEWnrm1rU8WGHkbaSDXM/4/Pw9hDPpW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IErU+nOZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741130354; c=relaxed/simple;
+	bh=z86oUtv55JHNFZttWyFc9XsQUxRLZWDqBoYC7DM+oKc=;
+	h=Date:To:From:Subject:Message-Id; b=oMfhQj8+LcHRtgNZlXJeP/kuZj2A60ojqLNIJ9kMrgxJxS+DEj7dI+L93KD6W+C5QiZmYR12SD7+jCDkmOvrlYGpL2xRelEN6MCq3zJ9u5NxwBbOWOM9NDdrDG/11+kH2iqEAm1xFHdibKFRtudjXO5oCCCQOMkjtGdec3QkboY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K2xr4btQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IErU+nOZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17C13C4CEE9;
-	Tue,  4 Mar 2025 23:19:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K2xr4btQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08FE5C4CEE9;
+	Tue,  4 Mar 2025 23:19:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741130352;
-	bh=bmhltNgYzbPjB09WNns9XONg3XkrrhDnBeVaxZ89Ivs=;
+	s=korg; t=1741130354;
+	bh=z86oUtv55JHNFZttWyFc9XsQUxRLZWDqBoYC7DM+oKc=;
 	h=Date:To:From:Subject:From;
-	b=IErU+nOZKqQys2YlzKTfiIM/0BXsM4I4xBQQw29Kz8CfibPit6Ecls6WTNyql/cuO
-	 z0TRF0EB9Z5uiTS2hmTvLooj2sF1PdHy1euQoAea4z26uH7jMsOi7YruleWaOjbHaV
-	 0MfH4/fpom9muK2aCTHuUjbwY4Gpsop9eX3liy5w=
-Date: Tue, 04 Mar 2025 15:19:11 -0800
+	b=K2xr4btQgCpeJYZAzYRR76W10fnO+7wEBHk62WtrhM7I6Z7Ng2g6/meI2DfMxV+ic
+	 0tri3GVeigDvdkWMuXfjsKlKvYq9bGBfpX1nIXetF+LoJqASJyyB1s9MSsW4CIy/dP
+	 cdU1dKxNsX+H/Y2zC8n8+81cnz21kPBd2C+BVbH0=
+Date: Tue, 04 Mar 2025 15:19:13 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos.patch added to mm-unstable branch
-Message-Id: <20250304231912.17C13C4CEE9@smtp.kernel.org>
+Subject: + mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch added to mm-unstable branch
+Message-Id: <20250304231914.08FE5C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: add default allow/reject behavior fields to struct damos
+     Subject: mm/damon/core: set damos_filter default allowance behavior based on installed filters
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos.patch
+     mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,87 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: add default allow/reject behavior fields to struct damos
-Date: Tue, 4 Mar 2025 13:19:10 -0800
+Subject: mm/damon/core: set damos_filter default allowance behavior based on installed filters
+Date: Tue, 4 Mar 2025 13:19:11 -0800
 
-Current default allow/reject behavior of filters handling stage has made
-before introduction of the allow behavior.  For allow-filters usage, it is
-confusing and inefficient.
+Decide whether to allow or reject by default on core and opertions layer
+handled filters evaluation stages.  It is decided as the opposite of the
+last installed filter's behavior.  If there is no filter at all, allow by
+default.  If there is any operations layer handled filters, core layer's
+filtering stage sets allowing as the default behavior regardless of the
+last filter of core layer-handling ones, since the last filter of core
+layer handled filters in the case is not really the last filter of the
+entire filtering stage.
 
-It is more intuitive to decide the default filtering stage allow/reject
-behavior as opposite to the last filter's behavior.  The decision should
-be made separately for core and operations layers' filtering stages, since
-last core layer-handled filter is not really a last filter if there are
-operations layer handling filters.
+Also, make the core layer's DAMOS filters handling stage uses the newly
+set behavior field.
 
-Keeping separate decisions for the two categories can make the logic
-simpler.  Add fields for storing the two decisions.
-
-Link: https://lkml.kernel.org/r/20250304211913.53574-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250304211913.53574-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/core.c |   34 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos
-+++ a/include/linux/damon.h
-@@ -502,6 +502,9 @@ struct damos {
- 	 * layer-handled filters.  If true, operations layer allows it, too.
- 	 */
- 	bool core_filters_allowed;
-+	/* whether to reject core/ops filters umatched regions */
-+	bool core_filters_default_reject;
-+	bool ops_filters_default_reject;
- /* public: */
- 	struct damos_quota quota;
- 	struct damos_watermarks wmarks;
+--- a/mm/damon/core.c~mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters
++++ a/mm/damon/core.c
+@@ -891,6 +891,32 @@ static int damos_commit_ops_filters(stru
+ 	return 0;
+ }
+ 
++/**
++ * damos_filters_default_reject() - decide whether to reject memory that didn't
++ *				    match with any given filter.
++ * @filters:	Given DAMOS filters of a group.
++ */
++static bool damos_filters_default_reject(struct list_head *filters)
++{
++	struct damos_filter *last_filter;
++
++	if (list_empty(filters))
++		return false;
++	last_filter = list_last_entry(filters, struct damos_filter, list);
++	return last_filter->allow;
++}
++
++static void damos_set_filters_default_reject(struct damos *s)
++{
++	if (!list_empty(&s->ops_filters))
++		s->core_filters_default_reject = false;
++	else
++		s->core_filters_default_reject =
++			damos_filters_default_reject(&s->filters);
++	s->ops_filters_default_reject =
++		damos_filters_default_reject(&s->ops_filters);
++}
++
+ static int damos_commit_filters(struct damos *dst, struct damos *src)
+ {
+ 	int err;
+@@ -898,7 +924,11 @@ static int damos_commit_filters(struct d
+ 	err = damos_commit_core_filters(dst, src);
+ 	if (err)
+ 		return err;
+-	return damos_commit_ops_filters(dst, src);
++	err = damos_commit_ops_filters(dst, src);
++	if (err)
++		return err;
++	damos_set_filters_default_reject(dst);
++	return 0;
+ }
+ 
+ static struct damos *damon_nth_scheme(int n, struct damon_ctx *ctx)
+@@ -1580,7 +1610,7 @@ static bool damos_filter_out(struct damo
+ 			return !filter->allow;
+ 		}
+ 	}
+-	return false;
++	return s->core_filters_default_reject;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
