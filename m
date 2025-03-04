@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C0279F5
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 04:34:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BF8479F5
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 04:34:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741062877; cv=none; b=heFbuiy7U31SoZR5b8x5zIyoriMhiEAQKKaTfeID25WPBG8KaN+ImaRC6DWI2FDiaohXCyP1x062RoOFGkhMz+sDPx5QYm98B2Ebe54v9e4Kgn5Ky0t/BatiOBc6iunGKdcAdwpNSSed+2am03LOfjVveArdZzElHEJ+aU1Al2o=
+	t=1741062880; cv=none; b=tUzTBrK0+YahGAqUnQclErkDiCCNg/8eIyoBHNt21MJ8v+s0Q5MdEZc8MZIPUsjZFIPGoUClJJwwlIH4eJq1YfDzZREpdjJVVP7Q8UvhDRbXr/KoUhS8hWqTh5b8HfNYly0GSAMOUxSHddNwNSKWbLLCHXpwNZe2taaelQpZbHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741062877; c=relaxed/simple;
-	bh=jqfB5FN4BZ9H5oU9p3VleUbcUXXCkGgFbvkzu/vXRVQ=;
-	h=Date:To:From:Subject:Message-Id; b=O1JAfc2j9QfIJbiGpp/PLBlzcytQvBtf1vWkE86UOwdicP+owrrVKD9HsPsow5ivZQ64ikcu1IcTArMIQLQHfkxJLEiBd+YbB/GrzevhMHV30hzOND+5VVd2KNsLP0BjD8xFfd7GjU3/Wd3HthMYtWlwKOHsM+aFXw10sZzyIks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rp5DzBW1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741062880; c=relaxed/simple;
+	bh=H7ugmBXuZiDN+XsTlob6OPhj3g6ASZuzr5bfQeXhOwA=;
+	h=Date:To:From:Subject:Message-Id; b=SKowNzVRiHNKM8WPj7A7nr2efCv0dqI/uAe/Zl75z19sNRhrjdPfgNeY+58bvYUZAwMTv1tw5sTP0OUPNjmWxL67ngQEbrWYWLGTq/hEOaFOBlmj2R7InOIQDu672PArPixlZ1G/ZKQWGr3ghX6ZePIWWPwqjmjtKO220Ks7aRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qI6cw9+F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rp5DzBW1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9501C4CEE5;
-	Tue,  4 Mar 2025 04:34:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qI6cw9+F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC0A4C4CEE7;
+	Tue,  4 Mar 2025 04:34:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741062876;
-	bh=jqfB5FN4BZ9H5oU9p3VleUbcUXXCkGgFbvkzu/vXRVQ=;
+	s=korg; t=1741062880;
+	bh=H7ugmBXuZiDN+XsTlob6OPhj3g6ASZuzr5bfQeXhOwA=;
 	h=Date:To:From:Subject:From;
-	b=Rp5DzBW1jfG7pq0mMksR+ACDTdpBq/WBoYDxCYJIWYB0v7h6vMQH93QTDocj7iX82
-	 k83wqq6Rzs17TLZ7LSqAdvNphTig3UzJ+OIoaonLcP3BtGPXNPw2Ufm+7DrenYA/NT
-	 wZR/Bq7LEf1KU2XTygXgx+n0G82MrmzxN3/J8dJY=
-Date: Mon, 03 Mar 2025 20:34:36 -0800
+	b=qI6cw9+F8HLFZ6/JhNrmrGrocLSr7TnJj0bMVHdUr7mOs/JXge5ZKHysEXRg38Lwp
+	 YWYxV7fRRh8bWXyRc2i14B9Dndf9KVIabJuNjFu7o+qKBb3FQlsoE0wMhIQF3o3rHV
+	 NHATmDvk75n0vm5SsguhLiSCl2/EwbEKyVzyJNzQ=
+Date: Mon, 03 Mar 2025 20:34:39 -0800
 To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + page_counter-track-failcnt-only-for-legacy-cgroups.patch added to mm-unstable branch
-Message-Id: <20250304043436.D9501C4CEE5@smtp.kernel.org>
+Subject: + page_counter-reduce-struct-page_counter-size.patch added to mm-unstable branch
+Message-Id: <20250304043439.EC0A4C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: page_counter: track failcnt only for legacy cgroups
+     Subject: page_counter: reduce struct page_counter size
 has been added to the -mm mm-unstable branch.  Its filename is
-     page_counter-track-failcnt-only-for-legacy-cgroups.patch
+     page_counter-reduce-struct-page_counter-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_counter-track-failcnt-only-for-legacy-cgroups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_counter-reduce-struct-page_counter-size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: page_counter: track failcnt only for legacy cgroups
-Date: Thu, 27 Feb 2025 23:58:07 -0800
+Subject: page_counter: reduce struct page_counter size
+Date: Thu, 27 Feb 2025 23:58:08 -0800
 
-Currently page_counter tracks failcnt for counters used by v1 and v2
-controllers.  However failcnt is only exported for v1 deployment and thus
-there is no need to maintain it in v2.  The oom report does expose failcnt
-for memory and swap in v2 but v2 already maintains MEMCG_MAX and
-MEMCG_SWAP_MAX event counters which can be used.
+The struct page_counter has explicit padding for better cache alignment. 
+The commit c6f53ed8f213a ("mm, memcg: cg2 memory{.swap,}.peak write
+handlers") added a field to the struct page_counter and accidently
+increased its size.  Let's move the failcnt field which is v1-only field
+to the same cacheline of usage to reduce the size of struct page_counter.
 
-Link: https://lkml.kernel.org/r/20250228075808.207484-3-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250228075808.207484-4-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -77,145 +77,34 @@ Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_counter.h |    4 +++-
- mm/hugetlb_cgroup.c          |   31 ++++++++++++++-----------------
- mm/memcontrol.c              |   12 ++++++++++--
- mm/page_counter.c            |    4 +++-
- 4 files changed, 30 insertions(+), 21 deletions(-)
+ include/linux/page_counter.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/page_counter.h~page_counter-track-failcnt-only-for-legacy-cgroups
+--- a/include/linux/page_counter.h~page_counter-reduce-struct-page_counter-size
 +++ a/include/linux/page_counter.h
-@@ -28,12 +28,13 @@ struct page_counter {
+@@ -9,10 +9,12 @@
+ 
+ struct page_counter {
+ 	/*
+-	 * Make sure 'usage' does not share cacheline with any other field. The
+-	 * memcg->memory.usage is a hot member of struct mem_cgroup.
++	 * Make sure 'usage' does not share cacheline with any other field in
++	 * v2. The memcg->memory.usage is a hot member of struct mem_cgroup.
+ 	 */
+ 	atomic_long_t usage;
++	unsigned long failcnt; /* v1-only field */
++
+ 	CACHELINE_PADDING(_pad1_);
+ 
+ 	/* effective memory.min and memory.min usage tracking */
+@@ -28,7 +30,6 @@ struct page_counter {
  	unsigned long watermark;
  	/* Latest cg2 reset watermark */
  	unsigned long local_watermark;
--	unsigned long failcnt;
-+	unsigned long failcnt; /* v1-only field */
+-	unsigned long failcnt; /* v1-only field */
  
  	/* Keep all the read most fields in a separete cacheline. */
  	CACHELINE_PADDING(_pad2_);
- 
- 	bool protection_support;
-+	bool track_failcnt;
- 	unsigned long min;
- 	unsigned long low;
- 	unsigned long high;
-@@ -58,6 +59,7 @@ static inline void page_counter_init(str
- 	counter->max = PAGE_COUNTER_MAX;
- 	counter->parent = parent;
- 	counter->protection_support = protection_support;
-+	counter->track_failcnt = false;
- }
- 
- static inline unsigned long page_counter_read(struct page_counter *counter)
---- a/mm/hugetlb_cgroup.c~page_counter-track-failcnt-only-for-legacy-cgroups
-+++ a/mm/hugetlb_cgroup.c
-@@ -101,10 +101,9 @@ static void hugetlb_cgroup_init(struct h
- 	int idx;
- 
- 	for (idx = 0; idx < HUGE_MAX_HSTATE; idx++) {
--		struct page_counter *fault_parent = NULL;
--		struct page_counter *rsvd_parent = NULL;
-+		struct page_counter *fault, *fault_parent = NULL;
-+		struct page_counter *rsvd, *rsvd_parent = NULL;
- 		unsigned long limit;
--		int ret;
- 
- 		if (parent_h_cgroup) {
- 			fault_parent = hugetlb_cgroup_counter_from_cgroup(
-@@ -112,24 +111,22 @@ static void hugetlb_cgroup_init(struct h
- 			rsvd_parent = hugetlb_cgroup_counter_from_cgroup_rsvd(
- 				parent_h_cgroup, idx);
- 		}
--		page_counter_init(hugetlb_cgroup_counter_from_cgroup(h_cgroup,
--								     idx),
--				  fault_parent, false);
--		page_counter_init(
--			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
--			rsvd_parent, false);
-+		fault = hugetlb_cgroup_counter_from_cgroup(h_cgroup, idx);
-+		rsvd = hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx);
-+
-+		page_counter_init(fault, fault_parent, false);
-+		page_counter_init(rsvd, rsvd_parent, false);
-+
-+		if (!cgroup_subsys_on_dfl(hugetlb_cgrp_subsys)) {
-+			fault->track_failcnt = true;
-+			rsvd->track_failcnt = true;
-+		}
- 
- 		limit = round_down(PAGE_COUNTER_MAX,
- 				   pages_per_huge_page(&hstates[idx]));
- 
--		ret = page_counter_set_max(
--			hugetlb_cgroup_counter_from_cgroup(h_cgroup, idx),
--			limit);
--		VM_BUG_ON(ret);
--		ret = page_counter_set_max(
--			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
--			limit);
--		VM_BUG_ON(ret);
-+		VM_BUG_ON(page_counter_set_max(fault, limit));
-+		VM_BUG_ON(page_counter_set_max(rsvd, limit));
- 	}
- }
- 
---- a/mm/memcontrol.c~page_counter-track-failcnt-only-for-legacy-cgroups
-+++ a/mm/memcontrol.c
-@@ -1572,16 +1572,23 @@ void mem_cgroup_print_oom_meminfo(struct
- 	/* Use static buffer, for the caller is holding oom_lock. */
- 	static char buf[SEQ_BUF_SIZE];
- 	struct seq_buf s;
-+	unsigned long memory_failcnt;
- 
- 	lockdep_assert_held(&oom_lock);
- 
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		memory_failcnt = atomic_long_read(&memcg->memory_events[MEMCG_MAX]);
-+	else
-+		memory_failcnt = memcg->memory.failcnt;
-+
- 	pr_info("memory: usage %llukB, limit %llukB, failcnt %lu\n",
- 		K((u64)page_counter_read(&memcg->memory)),
--		K((u64)READ_ONCE(memcg->memory.max)), memcg->memory.failcnt);
-+		K((u64)READ_ONCE(memcg->memory.max)), memory_failcnt);
- 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		pr_info("swap: usage %llukB, limit %llukB, failcnt %lu\n",
- 			K((u64)page_counter_read(&memcg->swap)),
--			K((u64)READ_ONCE(memcg->swap.max)), memcg->swap.failcnt);
-+			K((u64)READ_ONCE(memcg->swap.max)),
-+			atomic_long_read(&memcg->memory_events[MEMCG_SWAP_MAX]));
- #ifdef CONFIG_MEMCG_V1
- 	else {
- 		pr_info("memory+swap: usage %llukB, limit %llukB, failcnt %lu\n",
-@@ -3622,6 +3629,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		page_counter_init(&memcg->memory, &parent->memory, memcg_on_dfl);
- 		page_counter_init(&memcg->swap, &parent->swap, false);
- #ifdef CONFIG_MEMCG_V1
-+		memcg->memory.track_failcnt = !memcg_on_dfl;
- 		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
- 		page_counter_init(&memcg->kmem, &parent->kmem, false);
- 		page_counter_init(&memcg->tcpmem, &parent->tcpmem, false);
---- a/mm/page_counter.c~page_counter-track-failcnt-only-for-legacy-cgroups
-+++ a/mm/page_counter.c
-@@ -121,6 +121,7 @@ bool page_counter_try_charge(struct page
- {
- 	struct page_counter *c;
- 	bool protection = track_protection(counter);
-+	bool track_failcnt = counter->track_failcnt;
- 
- 	for (c = counter; c; c = c->parent) {
- 		long new;
-@@ -146,7 +147,8 @@ bool page_counter_try_charge(struct page
- 			 * inaccuracy in the failcnt which is only used
- 			 * to report stats.
- 			 */
--			data_race(c->failcnt++);
-+			if (track_failcnt)
-+				data_race(c->failcnt++);
- 			*fail = c;
- 			goto failed;
- 		}
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
