@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F211C273FE
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 04:47:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8707E273FE
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 04:52:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741063639; cv=none; b=cI4NOdHItaZt+T5zA6JhY4Lk/QbvKj4s6NOtskIhZrGdzjMYIIR+VfIcJ9Q9pJQHlVb2aM/sGMEfc1FQ5hoXZgFxjyrzhruLW93cosEeV2l0l2vjMwkkdEEcSgFew3jksOhHP2ZLuTbO8M12T+S2kWDjDAWWe6iK9h/VY8oVwa0=
+	t=1741063935; cv=none; b=UnFZr9o8zvu1YHsh6YhNaqxpYr9dSi+4W/tY3mD3qlMf2VSV9EiiBi+uePFQdzbCk3k1t3ijTT+BlLN7dV8dKBbwExa4tObRaF2CftSvgpw6PP+gHBGR1r4wxau2GWBZ7SdZPq3HBeeJrvxbkOdErvVeFtPj1Z78iWNetsvEh2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741063639; c=relaxed/simple;
-	bh=+UsZo45Cnr/bY5GfFlGYdpuJCqjxy0IHDzkfb3cSJ6c=;
-	h=Date:To:From:Subject:Message-Id; b=gNP/FgZEitr00YLn5M0GpjxJi9u8YhCpOtrwGGTFrSjM+J6Phd8oZmrkwg+p0VUk04WBoQCGUnDZQxbcJIKX60l5S/Y+aLmrBMGXOYnLPof3vsIrzHi9/rXAfiKPc2fnuYt66p37z0kJbTSVSc3xJMJEyXgJYsJIdHTLzu3dYnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t6PJVtAr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741063935; c=relaxed/simple;
+	bh=CnmOw9SwKPD/RzzeVfcaa/IdCVM1HnoDMZNxWAs8evw=;
+	h=Date:To:From:Subject:Message-Id; b=iJIXkyDQlhB1MmaR0Q2Mgo+NtxwAc4o+lKrOhLd9v7Txs6ZM82iFE4G2ihBvK8r5zDtSWKoYKV+gCeVrStwzpUJS9TIsYUw3QJNvbopXyHGFho4tz/0/vX4mZj8PNUskmCCNP8yHr+rsb8FGahjO/7wfkF8p93AGHgXap1v6VLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZZZz+MtH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t6PJVtAr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64AB7C4CEE5;
-	Tue,  4 Mar 2025 04:47:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZZZz+MtH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8909C4CEE5;
+	Tue,  4 Mar 2025 04:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741063638;
-	bh=+UsZo45Cnr/bY5GfFlGYdpuJCqjxy0IHDzkfb3cSJ6c=;
+	s=korg; t=1741063935;
+	bh=CnmOw9SwKPD/RzzeVfcaa/IdCVM1HnoDMZNxWAs8evw=;
 	h=Date:To:From:Subject:From;
-	b=t6PJVtArQMTZkLBT2PGIw4c9EJiGu52p0fwooIy5Mp0t9VvOoG4y42vKwEtHSKZu8
-	 3UIrguNvDHWDxUfaAA1gfO69sjJ2mL7etvTk69zhqHzphqCZILWg4g6ZydU/MpwKPo
-	 3houwYm78VxuoFlkqGyV6Inh/SW/wRNbGU9LDB40=
-Date: Mon, 03 Mar 2025 20:47:17 -0800
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=ZZZz+MtH3EB1dcp0AjFb6UzWf8GcfhWGvmxk9a2GEB/a8v5Z/Q0KMwwbtSN5gtIQa
+	 Ng/0kEDw4PUt5jOLdXKff4rG1OIqcWC0RdHLBK/m/3BtFl/PTG6bUSlq9NXSU9M8Jv
+	 iOJ/2AAISsyL7aIj/fy+1Ke0tcCZxQdfHy/XiaFI=
+Date: Mon, 03 Mar 2025 20:52:14 -0800
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,corbet@lwn.net,thomas.prescher@cyberus-technology.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-bypass-root-memcg-check-for-skmem-charging.patch added to mm-unstable branch
-Message-Id: <20250304044718.64AB7C4CEE5@smtp.kernel.org>
+Subject: + mm-hugetlb-improve-parallel-huge-page-allocation-time.patch added to mm-unstable branch
+Message-Id: <20250304045214.E8909C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: bypass root memcg check for skmem charging
+     Subject: mm: hugetlb: improve parallel huge page allocation time
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-bypass-root-memcg-check-for-skmem-charging.patch
+     mm-hugetlb-improve-parallel-huge-page-allocation-time.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-bypass-root-memcg-check-for-skmem-charging.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-improve-parallel-huge-page-allocation-time.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,44 +58,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: bypass root memcg check for skmem charging
-Date: Thu, 27 Feb 2025 18:23:54 -0800
+From: Thomas Prescher <thomas.prescher@cyberus-technology.de>
+Subject: mm: hugetlb: improve parallel huge page allocation time
+Date: Thu, 27 Feb 2025 23:45:05 +0100
 
-The root memcg is never associated with a socket in mem_cgroup_sk_alloc,
-so there is no need to check if the given memcg is root for the skmem
-charging code path.
+Patch series "Add a command line option that enables control of how many
+threads should be used to allocate huge pages", v2.
 
-Link: https://lkml.kernel.org/r/20250228022354.2624249-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Allocating huge pages can take a very long time on servers with terabytes
+of memory even when they are allocated at boot time where the allocation
+happens in parallel.
+
+Before this series, the kernel used a hard coded value of 2 threads per
+NUMA node for these allocations.  This value might have been good enough
+in the past but it is not sufficient to fully utilize newer systems.
+
+This series changes the default so the kernel uses 25% of the available
+hardware threads for these allocations.  In addition, we allow the user
+that wish to micro-optimize the allocation time to override this value via
+a new kernel parameter.
+
+We tested this on 2 generations of Xeon CPUs and the results show a big
+improvement of the overall allocation time.
+
++-----------------------+-------+-------+-------+-------+-------+
+| threads               |   8   |   16  |   32  |   64  |   128 |
++-----------------------+-------+-------+-------+-------+-------+
+| skylake      144 cpus |   44s |   22s |   16s |   19s |   20s |
+| cascade lake 192 cpus |   39s |   20s |   11s |   10s |    9s |
++-----------------------+-------+-------+-------+-------+-------+
+
+On skylake, we see an improvment of 2.75x when using 32 threads, on
+cascade lake we can get even better at 4.3x when we use 128 threads.
+
+This speedup is quite significant and users of large machines like these
+should have the option to make the machines boot as fast as possible.
+
+
+This patch (of 3):
+
+Before this patch, the kernel currently used a hard coded value of 2
+threads per NUMA node for these allocations.
+
+This patch changes this policy and the kernel now uses 25% of the
+available hardware threads for the allocations.
+
+Link: https://lkml.kernel.org/r/20250227-hugepage-parameter-v2-0-7db8c6dc0453@cyberus-technology.de
+Link: https://lkml.kernel.org/r/20250227-hugepage-parameter-v2-1-7db8c6dc0453@cyberus-technology.de
+Signed-off-by: Thomas Prescher <thomas.prescher@cyberus-technology.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
---- a/mm/memcontrol.c~memcg-bypass-root-memcg-check-for-skmem-charging
-+++ a/mm/memcontrol.c
-@@ -4888,7 +4888,7 @@ bool mem_cgroup_charge_skmem(struct mem_
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return memcg1_charge_skmem(memcg, nr_pages, gfp_mask);
+--- a/mm/hugetlb.c~mm-hugetlb-improve-parallel-huge-page-allocation-time
++++ a/mm/hugetlb.c
+@@ -14,9 +14,11 @@
+ #include <linux/pagemap.h>
+ #include <linux/mempolicy.h>
+ #include <linux/compiler.h>
++#include <linux/cpumask.h>
+ #include <linux/cpuset.h>
+ #include <linux/mutex.h>
+ #include <linux/memblock.h>
++#include <linux/minmax.h>
+ #include <linux/sysfs.h>
+ #include <linux/slab.h>
+ #include <linux/sched/mm.h>
+@@ -3600,31 +3602,31 @@ static unsigned long __init hugetlb_page
+ 		.numa_aware	= true
+ 	};
  
--	if (try_charge(memcg, gfp_mask, nr_pages) == 0) {
-+	if (try_charge_memcg(memcg, gfp_mask, nr_pages) == 0) {
- 		mod_memcg_state(memcg, MEMCG_SOCK, nr_pages);
- 		return true;
- 	}
++	unsigned int num_allocation_threads = max(num_online_cpus() / 4, 1);
++
+ 	job.thread_fn	= hugetlb_pages_alloc_boot_node;
+ 	job.start	= 0;
+ 	job.size	= h->max_huge_pages;
+ 
+ 	/*
+-	 * job.max_threads is twice the num_node_state(N_MEMORY),
++	 * job.max_threads is 25% of the available cpu threads by default.
+ 	 *
+-	 * Tests below indicate that a multiplier of 2 significantly improves
+-	 * performance, and although larger values also provide improvements,
+-	 * the gains are marginal.
++	 * On large servers with terabytes of memory, huge page allocation
++	 * can consume a considerably amount of time.
+ 	 *
+-	 * Therefore, choosing 2 as the multiplier strikes a good balance between
+-	 * enhancing parallel processing capabilities and maintaining efficient
+-	 * resource management.
++	 * Tests below show how long it takes to allocate 1 TiB of memory with 2MiB huge pages.
++	 * 2MiB huge pages. Using more threads can significantly improve allocation time.
+ 	 *
+-	 * +------------+-------+-------+-------+-------+-------+
+-	 * | multiplier |   1   |   2   |   3   |   4   |   5   |
+-	 * +------------+-------+-------+-------+-------+-------+
+-	 * | 256G 2node | 358ms | 215ms | 157ms | 134ms | 126ms |
+-	 * | 2T   4node | 979ms | 679ms | 543ms | 489ms | 481ms |
+-	 * | 50G  2node | 71ms  | 44ms  | 37ms  | 30ms  | 31ms  |
+-	 * +------------+-------+-------+-------+-------+-------+
++	 * +-----------------------+-------+-------+-------+-------+-------+
++	 * | threads               |   8   |   16  |   32  |   64  |   128 |
++	 * +-----------------------+-------+-------+-------+-------+-------+
++	 * | skylake      144 cpus |   44s |   22s |   16s |   19s |   20s |
++	 * | cascade lake 192 cpus |   39s |   20s |   11s |   10s |    9s |
++	 * +-----------------------+-------+-------+-------+-------+-------+
+ 	 */
+-	job.max_threads	= num_node_state(N_MEMORY) * 2;
+-	job.min_chunk	= h->max_huge_pages / num_node_state(N_MEMORY) / 2;
++
++	job.max_threads	= num_allocation_threads;
++	job.min_chunk	= h->max_huge_pages / num_allocation_threads;
+ 	padata_do_multithreaded(&job);
+ 
+ 	return h->nr_huge_pages;
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from thomas.prescher@cyberus-technology.de are
 
-memcg-add-hierarchical-effective-limits-for-v2.patch
-memcg-dont-call-propagate_protected_usage-for-v1.patch
-page_counter-track-failcnt-only-for-legacy-cgroups.patch
-page_counter-reduce-struct-page_counter-size.patch
-memcg-bypass-root-memcg-check-for-skmem-charging.patch
+mm-hugetlb-improve-parallel-huge-page-allocation-time.patch
+mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option.patch
+mm-hugetlb-log-time-needed-to-allocate-hugepages.patch
 
