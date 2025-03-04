@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 304551FA178
-	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 20:24:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E00C4156C76
+	for <mm-commits@vger.kernel.org>; Tue,  4 Mar 2025 20:45:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741119881; cv=none; b=amjMp4p5zTATKnkA6XnKoRd9ZBLls4cUolljm7RD0xXBEOlw8z3v5v3Kvs3wrBHSW1rF0QOx/T7eAw4pCmzCgD6gJKxNHUnP49XMOPml+XHLIg2P3owomKhN7xcdfhYACYua4i/Sskm9FWA1X4Z02+NPPoIE9nnjHF3YW583N0M=
+	t=1741121145; cv=none; b=uH97taAAgNgVIdBDrnEN7G2edT+rYAJb1pqMHhp/ZPVnwGsqHQM3vFlFrdmVwQd1ctHTiWrCOqEViyRv1yvbHDGO0l+bvhjsqP/BFN214I2GQJ8NT3ikmcAGB7eGxnPu+dWQ72iFtZU/zdQFlMubvdzcPWV6c/3H3g+AlEpgRCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741119881; c=relaxed/simple;
-	bh=xHfk613d6gV69hQ1SqpwdFOK8ge1M+WyjRYu9/19mtU=;
-	h=Date:To:From:Subject:Message-Id; b=RmA845P4IPBwH0aNcQlANGJfnukHLVDDS8DGKLV+R2xajBbWq/TJHFxwBIWzBPHLUqqiXQrZDcp7hmDIytp1G4uvrzkSvBf4zWCNGkHpwTLlI0RYiiRUoH5sowiHo4wwPRiy6TkCbZ6TEUz8I+onYFRNKZOhMd9KMh824u5FqkU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3gQ/N3M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741121145; c=relaxed/simple;
+	bh=r/0ZdLXoG4lZLgNPhftZNpJKrcKLv+7/u8AQt3Z+NSw=;
+	h=Date:To:From:Subject:Message-Id; b=EM/6JNZlrgMLD5Q+UgekQp1y+LYCViBhW9KDZ0EYpLD4E6Yb+aHaeFalrfz8TR9dovH1zohxEjJv8ZlH1kuY/NZcC+MSlFSHihAn5sMdWjkPWNNPfAPjKrG4B4+LInwp+m8phZPZGMp40m8eNLCzAzsWXLiTnwKewNDPNr9NqRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p6YZwylu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3gQ/N3M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A6D5C4CEE5;
-	Tue,  4 Mar 2025 20:24:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p6YZwylu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DB46C4CEE5;
+	Tue,  4 Mar 2025 20:45:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741119879;
-	bh=xHfk613d6gV69hQ1SqpwdFOK8ge1M+WyjRYu9/19mtU=;
+	s=korg; t=1741121144;
+	bh=r/0ZdLXoG4lZLgNPhftZNpJKrcKLv+7/u8AQt3Z+NSw=;
 	h=Date:To:From:Subject:From;
-	b=C3gQ/N3MJEYlflhk+rUJ2GKVeLirwALkZtxngA2bzWaPVHUcn9Sh3NqItgajOrbHC
-	 pBxAYLipHFY1uZi1SnYOEbNFR9lV+dqfFJ3hNb1JGvMl4ZrT6ERm79bZ3l1O7fBXev
-	 NbdcvNRfOHAlfEVjIkjQdvERXYqkVd2y7MLm6zoU=
-Date: Tue, 04 Mar 2025 12:24:38 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=p6YZwyluZUBtUx/XafvkENtMXL8Y80VyIGR0VsimSPk3+tPfm9DjNuMjAVw/4Cdlg
+	 KJLS7B6dm/6FGg3FKEuRLHse7Y/lGGArf5kIhocfU0Bfv7ym0DzMEXN4tmtGfeRCsZ
+	 fz1d9Q1puj25JDO/gQZC/ta7W0v/qg1MkCPYuyfc=
+Date: Tue, 04 Mar 2025 12:45:43 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,jack@suse.cz,brauner@kernel.org,ast@kernel.org,yizhou.tang@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250304202439.8A6D5C4CEE5@smtp.kernel.org>
+Subject: + writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter.patch added to mm-unstable branch
+Message-Id: <20250304204544.4DB46C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
+     Subject: writeback: let trace_balance_dirty_pages() take struct dtc as parameter
+has been added to the -mm mm-unstable branch.  Its filename is
+     writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,96 +58,195 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
-Date: Tue, 4 Mar 2025 21:21:06 +0800
+From: Tang Yizhou <yizhou.tang@shopee.com>
+Subject: writeback: let trace_balance_dirty_pages() take struct dtc as parameter
+Date: Tue, 4 Mar 2025 19:03:16 +0800
 
-In dissolve_free_huge_page(), free huge pages are dissolved without
-adjusting surplus count. However, free huge pages may be accounted as
-surplus pages, and will lead to wrong surplus count.
+Patch series "Fix calculations in trace_balance_dirty_pages() for cgwb", v2.
 
-I reproduce this issue on qemu. The steps are:
-1) Node1 is memory-less at first. Hot-add memory to node1 by executing
-the two commands in qemu monitor:
-  object_add memory-backend-ram,id=mem1,size=1G
-  device_add pc-dimm,id=dimm1,memdev=mem1,node=1
-2) online one memory block of Node1 with：
-  echo online_movable > /sys/devices/system/node/node1/memoryX/state
-3) create 64 huge pages for node1
-4) run a program to reserve (don't consume) all the huge pages
-5) echo 0 > nr_huge_pages for node1. After this step, free huge pages in
-Node1 are surplus.
-6) create 80 huge pages for node0
-7) offline memory of node1, The memory range to offline contains the free
-surplus huge pages created in step3) ~ step5)
-  echo offline > /sys/devices/system/node/node1/memoryX/state
-8) kill the program in step 4)
+In my experiment, I found that the output of trace_balance_dirty_pages()
+in the cgroup writeback scenario was strange because
+trace_balance_dirty_pages() always uses global_wb_domain.dirty_limit for
+related calculations instead of the dirty_limit of the corresponding
+memcg's wb_domain.
 
-The result:
-           Node0     Node1
-total       80        0
-free        80        0
-surplus     0         61
+The basic idea of the fix is to store the hard dirty limit value computed
+in wb_position_ratio() into struct dirty_throttle_control and use it for
+calculations in trace_balance_dirty_pages().
 
-To fix it, adjust surplus when destroying huge pages if the node has
-surplus pages in dissolve_free_hugetlb_folio().
 
-The result with this patch:
-           Node0     Node1
-total       80        0
-free        80        0
-surplus     0         0
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20250304132106.2872754-1-tujinjiang@huawei.com
-Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Currently, trace_balance_dirty_pages() already has 12 parameters.  In the
+patch #3, I initially attempted to introduce an additional parameter. 
+However, in include/linux/trace_events.h, bpf_trace_run12() only supports
+up to 12 parameters and bpf_trace_run13() does not exist.
+
+To reduce the number of parameters in trace_balance_dirty_pages(), we can
+make it accept a pointer to struct dirty_throttle_control as a parameter. 
+To achieve this, we need to move the definition of struct
+dirty_throttle_control from mm/page-writeback.c to
+include/linux/writeback.h.
+
+Link: https://lkml.kernel.org/r/20250304110318.159567-1-yizhou.tang@shopee.com
+Link: https://lkml.kernel.org/r/20250304110318.159567-2-yizhou.tang@shopee.com
+Signed-off-by: Tang Yizhou <yizhou.tang@shopee.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Tang Yizhou <yizhou.tang@shopee.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/writeback.h        |   23 +++++++++++++++++++
+ include/trace/events/writeback.h |   16 ++++---------
+ mm/page-writeback.c              |   35 +----------------------------
+ 3 files changed, 31 insertions(+), 43 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page
-+++ a/mm/hugetlb.c
-@@ -2135,6 +2135,8 @@ retry:
- 
- 	if (!folio_ref_count(folio)) {
- 		struct hstate *h = folio_hstate(folio);
-+		bool adjust_surplus = false;
+--- a/include/linux/writeback.h~writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter
++++ a/include/linux/writeback.h
+@@ -313,6 +313,29 @@ static inline void cgroup_writeback_umou
+ /*
+  * mm/page-writeback.c
+  */
++/* consolidated parameters for balance_dirty_pages() and its subroutines */
++struct dirty_throttle_control {
++#ifdef CONFIG_CGROUP_WRITEBACK
++	struct wb_domain	*dom;
++	struct dirty_throttle_control *gdtc;	/* only set in memcg dtc's */
++#endif
++	struct bdi_writeback	*wb;
++	struct fprop_local_percpu *wb_completions;
 +
- 		if (!available_huge_pages(h))
- 			goto out;
++	unsigned long		avail;		/* dirtyable */
++	unsigned long		dirty;		/* file_dirty + write + nfs */
++	unsigned long		thresh;		/* dirty threshold */
++	unsigned long		bg_thresh;	/* dirty background threshold */
++
++	unsigned long		wb_dirty;	/* per-wb counterparts */
++	unsigned long		wb_thresh;
++	unsigned long		wb_bg_thresh;
++
++	unsigned long		pos_ratio;
++	bool			freerun;
++	bool			dirty_exceeded;
++};
++
+ void laptop_io_completion(struct backing_dev_info *info);
+ void laptop_sync_completion(void);
+ void laptop_mode_timer_fn(struct timer_list *t);
+--- a/include/trace/events/writeback.h~writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter
++++ a/include/trace/events/writeback.h
+@@ -629,11 +629,7 @@ TRACE_EVENT(bdi_dirty_ratelimit,
+ TRACE_EVENT(balance_dirty_pages,
  
-@@ -2157,7 +2159,9 @@ retry:
- 			goto retry;
- 		}
+ 	TP_PROTO(struct bdi_writeback *wb,
+-		 unsigned long thresh,
+-		 unsigned long bg_thresh,
+-		 unsigned long dirty,
+-		 unsigned long bdi_thresh,
+-		 unsigned long bdi_dirty,
++		 struct dirty_throttle_control *dtc,
+ 		 unsigned long dirty_ratelimit,
+ 		 unsigned long task_ratelimit,
+ 		 unsigned long dirtied,
+@@ -641,7 +637,7 @@ TRACE_EVENT(balance_dirty_pages,
+ 		 long pause,
+ 		 unsigned long start_time),
  
--		remove_hugetlb_folio(h, folio, false);
-+		if (h->surplus_huge_pages_node[folio_nid(folio)])
-+			adjust_surplus = true;
-+		remove_hugetlb_folio(h, folio, adjust_surplus);
- 		h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
+-	TP_ARGS(wb, thresh, bg_thresh, dirty, bdi_thresh, bdi_dirty,
++	TP_ARGS(wb, dtc,
+ 		dirty_ratelimit, task_ratelimit,
+ 		dirtied, period, pause, start_time),
  
-@@ -2177,7 +2181,7 @@ retry:
- 			rc = hugetlb_vmemmap_restore_folio(h, folio);
- 			if (rc) {
- 				spin_lock_irq(&hugetlb_lock);
--				add_hugetlb_folio(h, folio, false);
-+				add_hugetlb_folio(h, folio, adjust_surplus);
- 				h->max_huge_pages++;
- 				goto out;
- 			}
+@@ -664,16 +660,16 @@ TRACE_EVENT(balance_dirty_pages,
+ 	),
+ 
+ 	TP_fast_assign(
+-		unsigned long freerun = (thresh + bg_thresh) / 2;
++		unsigned long freerun = (dtc->thresh + dtc->bg_thresh) / 2;
+ 		strscpy_pad(__entry->bdi, bdi_dev_name(wb->bdi), 32);
+ 
+ 		__entry->limit		= global_wb_domain.dirty_limit;
+ 		__entry->setpoint	= (global_wb_domain.dirty_limit +
+ 						freerun) / 2;
+-		__entry->dirty		= dirty;
++		__entry->dirty		= dtc->dirty;
+ 		__entry->bdi_setpoint	= __entry->setpoint *
+-						bdi_thresh / (thresh + 1);
+-		__entry->bdi_dirty	= bdi_dirty;
++						dtc->wb_thresh / (dtc->thresh + 1);
++		__entry->bdi_dirty	= dtc->wb_dirty;
+ 		__entry->dirty_ratelimit = KBps(dirty_ratelimit);
+ 		__entry->task_ratelimit	= KBps(task_ratelimit);
+ 		__entry->dirtied	= dirtied;
+--- a/mm/page-writeback.c~writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter
++++ a/mm/page-writeback.c
+@@ -120,29 +120,6 @@ EXPORT_SYMBOL(laptop_mode);
+ 
+ struct wb_domain global_wb_domain;
+ 
+-/* consolidated parameters for balance_dirty_pages() and its subroutines */
+-struct dirty_throttle_control {
+-#ifdef CONFIG_CGROUP_WRITEBACK
+-	struct wb_domain	*dom;
+-	struct dirty_throttle_control *gdtc;	/* only set in memcg dtc's */
+-#endif
+-	struct bdi_writeback	*wb;
+-	struct fprop_local_percpu *wb_completions;
+-
+-	unsigned long		avail;		/* dirtyable */
+-	unsigned long		dirty;		/* file_dirty + write + nfs */
+-	unsigned long		thresh;		/* dirty threshold */
+-	unsigned long		bg_thresh;	/* dirty background threshold */
+-
+-	unsigned long		wb_dirty;	/* per-wb counterparts */
+-	unsigned long		wb_thresh;
+-	unsigned long		wb_bg_thresh;
+-
+-	unsigned long		pos_ratio;
+-	bool			freerun;
+-	bool			dirty_exceeded;
+-};
+-
+ /*
+  * Length of period for aging writeout fractions of bdis. This is an
+  * arbitrarily chosen number. The longer the period, the slower fractions will
+@@ -1962,11 +1939,7 @@ free_running:
+ 		 */
+ 		if (pause < min_pause) {
+ 			trace_balance_dirty_pages(wb,
+-						  sdtc->thresh,
+-						  sdtc->bg_thresh,
+-						  sdtc->dirty,
+-						  sdtc->wb_thresh,
+-						  sdtc->wb_dirty,
++						  sdtc,
+ 						  dirty_ratelimit,
+ 						  task_ratelimit,
+ 						  pages_dirtied,
+@@ -1991,11 +1964,7 @@ free_running:
+ 
+ pause:
+ 		trace_balance_dirty_pages(wb,
+-					  sdtc->thresh,
+-					  sdtc->bg_thresh,
+-					  sdtc->dirty,
+-					  sdtc->wb_thresh,
+-					  sdtc->wb_dirty,
++					  sdtc,
+ 					  dirty_ratelimit,
+ 					  task_ratelimit,
+ 					  pages_dirtied,
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from yizhou.tang@shopee.com are
 
-mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
-mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+writeback-let-trace_balance_dirty_pages-take-struct-dtc-as-parameter.patch
+writeback-rename-variables-in-trace_balance_dirty_pages.patch
+writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
 
