@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C47B7207675
-	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:32:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95275207A1D
+	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:32:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741217520; cv=none; b=ZVTQ4LnYJ08O+O8dlpeZt4kyVxLeW6RWNfhobufL3Xma3ch45zpOU54vcz261++6zA4dWRtKl+pDM5bSWirYb2cM7o+Tv3swo4bYQWZV0UNJgyXG3iWEsHzJYowsgRQJJq8922o00/abqjVKCML0tx3PLFEK5E6BP6OY+regQRY=
+	t=1741217521; cv=none; b=H4j22IigLmA97tNZUqjwmKSJkcv31pOTrW3864BDWUChoPKUhEBz4vsgpJ57cXDIpqhbu7Maec1MCP8QuOVRVtRXVZMuYxJKpYv2XHqSFWTkTH1Mj9vAnIqvRX4m3Nj45Viis13NKahBaohNHUFmi7uNPV7eQ1KtGP1QR/VNNgM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741217520; c=relaxed/simple;
-	bh=M75B2mmQ9KRcu5f5aXLnq+kztPynUrtjPOHLltwGTec=;
-	h=Date:To:From:Subject:Message-Id; b=fWzwKFK4ZdkMA8NfdT9TeAGQ2Iqgsfi6B9FtTLxlxtrFTaH+JTJ7nssuR5SPd+/eQhPULnR6X0vyt4CfGNRgNbuQNORWWQFG44Ne0NOmyPxu2VDQo5x4QuPQezZWUsmlrb6WEkn2rAhT1YZTi9Xm0Fhr317cgyM3cm99+0EL+3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GsjfPglN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741217521; c=relaxed/simple;
+	bh=BbcvuasGiQ3g25vTqCrf5JJIDsA1hD5wryNqB3gdEi0=;
+	h=Date:To:From:Subject:Message-Id; b=YCSYzrW+F0NO410jBjnEb6k+lfGdXk+cYe3MNDrph3+FQopAD7R9TnLGO0JJXCM8o9bBh4GdORO/lnbXB1iR601MhqNKIdIU1pxxJ3ILcbT0XARf862ISqgOWd7C7GhIlmr71HYkmVulAsV47DajIwaQXlgPdYxAPO6kFdw4Ej8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nCrgr+7C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GsjfPglN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20439C4CEE9;
-	Wed,  5 Mar 2025 23:32:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nCrgr+7C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4707FC4CEE9;
+	Wed,  5 Mar 2025 23:32:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741217520;
-	bh=M75B2mmQ9KRcu5f5aXLnq+kztPynUrtjPOHLltwGTec=;
+	s=korg; t=1741217521;
+	bh=BbcvuasGiQ3g25vTqCrf5JJIDsA1hD5wryNqB3gdEi0=;
 	h=Date:To:From:Subject:From;
-	b=GsjfPglNDi6rZACHIiWHwvWW9/+b8k99Kist6JeUrF5/fQY0jKurnovAJYqjpxswO
-	 lSGRzBfz+QsjeK96wwNmC1J0IisZ5c+MYjaaKmHpk644IFEx4R+E3T/Wpm6Z6K64E2
-	 LOE35rPT1FIe8vb1e9ISJWeIkY8IxdDD7SP/kvqU=
-Date: Wed, 05 Mar 2025 15:31:59 -0800
+	b=nCrgr+7Ct7zE6VE+YvWEqt8xZATb2AwkQsinCDSeXF2dVqMnKVSjeGNXO+7Lv6274
+	 dp6ySAU8by5+GlxjEIZcItO3HjqS8Zy9bEphcQEHEGmaLvvKxFNKl5wbkKVsIeyIfJ
+	 XuGTtuodpn616iy1ciDNzJ6KrepJS+nwzjh7SgSo=
+Date: Wed, 05 Mar 2025 15:32:00 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch added to mm-unstable branch
-Message-Id: <20250305233200.20439C4CEE9@smtp.kernel.org>
+Subject: + mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch added to mm-unstable branch
+Message-Id: <20250305233201.4707FC4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: commit filters in {core,ops}_filters directories
+     Subject: mm/damon/core: expose damos_filter_for_ops() to DAMON kernel API callers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
+     mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: commit filters in {core,ops}_filters directories
-Date: Wed, 5 Mar 2025 14:27:28 -0800
+Subject: mm/damon/core: expose damos_filter_for_ops() to DAMON kernel API callers
+Date: Wed, 5 Mar 2025 14:27:29 -0800
 
-Connect user inputs for files under core_filters and ops_filters with
-DAMON, so that the files can really function.  Becasuse {core,ops}_filters
-are easier to be managed in terms of expecting filters evaluation order,
-add filters in {core,ops}_filters before 'filters' directory.
+damos_filter_for_ops() can be useful to avoid putting wrong type of
+filters in wrong place.  Make it be exposed to DAMON kernel API callers.
 
-Link: https://lkml.kernel.org/r/20250305222733.59089-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250305222733.59089-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    1 +
+ mm/damon/core.c       |    9 ++++++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2143,8 +2143,6 @@ static struct damos *damon_sysfs_mk_sche
- 	struct damon_sysfs_quotas *sysfs_quotas = sysfs_scheme->quotas;
- 	struct damon_sysfs_weights *sysfs_weights = sysfs_quotas->weights;
- 	struct damon_sysfs_watermarks *sysfs_wmarks = sysfs_scheme->watermarks;
--	struct damon_sysfs_scheme_filters *sysfs_filters =
--		sysfs_scheme->filters;
- 	struct damos *scheme;
- 	int err;
+--- a/include/linux/damon.h~mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers
++++ a/include/linux/damon.h
+@@ -894,6 +894,7 @@ void damon_update_region_access_rate(str
+ struct damos_filter *damos_new_filter(enum damos_filter_type type,
+ 		bool matching, bool allow);
+ void damos_add_filter(struct damos *s, struct damos_filter *f);
++bool damos_filter_for_ops(enum damos_filter_type type);
+ void damos_destroy_filter(struct damos_filter *f);
  
-@@ -2184,7 +2182,17 @@ static struct damos *damon_sysfs_mk_sche
- 		return NULL;
- 	}
+ struct damos_quota_goal *damos_new_quota_goal(
+--- a/mm/damon/core.c~mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers
++++ a/mm/damon/core.c
+@@ -281,7 +281,14 @@ struct damos_filter *damos_new_filter(en
+ 	return filter;
+ }
  
--	err = damon_sysfs_add_scheme_filters(scheme, sysfs_filters);
-+	err = damon_sysfs_add_scheme_filters(scheme, sysfs_scheme->core_filters);
-+	if (err) {
-+		damon_destroy_scheme(scheme);
-+		return NULL;
-+	}
-+	err = damon_sysfs_add_scheme_filters(scheme, sysfs_scheme->ops_filters);
-+	if (err) {
-+		damon_destroy_scheme(scheme);
-+		return NULL;
-+	}
-+	err = damon_sysfs_add_scheme_filters(scheme, sysfs_scheme->filters);
- 	if (err) {
- 		damon_destroy_scheme(scheme);
- 		return NULL;
+-static bool damos_filter_for_ops(enum damos_filter_type type)
++/**
++ * damos_filter_for_ops() - Return if the filter is ops-hndled one.
++ * @type:	type of the filter.
++ *
++ * Return: true if the filter of @type needs to be handled by ops layer, false
++ * otherwise.
++ */
++bool damos_filter_for_ops(enum damos_filter_type type)
+ {
+ 	switch (type) {
+ 	case DAMOS_FILTER_TYPE_ADDR:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
