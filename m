@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85C691EF0BC
-	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:44:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051BB207673
+	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:45:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741218287; cv=none; b=WiXH7Lb4ZBUOwoGYumZOcnEz+EMdFXf8IpREpdKR2+E7Ie6CAfNdusg6yLVQpp3XR/1518ugkZkZX83fJ6qCGBuUlGDVIVy7YeDMjvBIb8Pd3i122KMtlDceWxh1IxoMwTkq7f2OtcAl8UctLHfYL+jQ/0plt0K6VFnHyv0NLcI=
+	t=1741218308; cv=none; b=Ya1pAFz4Q337ga/spUqFdDWmRAL1sc5OI/ehORNWufRrJDpeHI60pjIE9rJtgG/EPhEZZX/uqsz8SCGi39kjBn44NdaT5zLG0rDTY42KoVHHCFzsInllK2IHRM3I8x+I0xmx0FFvAnDXXrG1Az/1vwJ/xDE/P6lZ1ObAAKI7FwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741218287; c=relaxed/simple;
-	bh=cBqp04W7No05c52/WpjMSCQfVBqpG+Q6OtBIU3EZoYs=;
-	h=Date:To:From:Subject:Message-Id; b=CMKlC789p57JJ2CBvBWjuiXGkpQi+c7m5cfYnWYCb3y3wuut4AlWEGZW9U9UKb9DWS5b5o2NEVMiurHrKxwPli2gfoE+txfqa7r3Jshoc6xv28eKmOOlvWWrCe5LFXivedYjdWv0HnHm/Zk35j43zVMi2CGsPQmQblEbKp8/THU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eAV2VGwJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741218308; c=relaxed/simple;
+	bh=4cvRlUc3rI2xi5J0tbDDSIPTx3MVmFyTLGgvMGvricI=;
+	h=Date:To:From:Subject:Message-Id; b=fYzCOWjGg6ZB9sAv1Cva3CpuWL6i0B+YlIF3ZFtfPVEAX15rdcfxYDoZDmBetqbN6CdtcI73ronoes/C8TqgVU4X8/6+WrXM8nps4BbU7AnJhnWUrYny2tgIVLAIjbDFamCRJ8mNR2obImNqpvnjuM6dXQPmyxYKyBksRFjg99A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T8XgEXjm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eAV2VGwJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCD4AC4CED1;
-	Wed,  5 Mar 2025 23:44:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T8XgEXjm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F03FC4CED1;
+	Wed,  5 Mar 2025 23:45:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741218286;
-	bh=cBqp04W7No05c52/WpjMSCQfVBqpG+Q6OtBIU3EZoYs=;
+	s=korg; t=1741218307;
+	bh=4cvRlUc3rI2xi5J0tbDDSIPTx3MVmFyTLGgvMGvricI=;
 	h=Date:To:From:Subject:From;
-	b=eAV2VGwJQGFvOaKztQ8U2OuKj+VIATyCHR68+3lD1BIsFw9Naf7DpQI5dozRwaWyN
-	 mqD82shOL9IsGwQTVwZOIrmy1gyIQrOkRMzxBDznCF32Y3wyJL9y7cwCl9XYPjyCr0
-	 BfkK4jDNRX9bv6eK4tKCmM3gEO5KJveGl6M1Dczo=
-Date: Wed, 05 Mar 2025 15:44:46 -0800
-To: mm-commits@vger.kernel.org,mika.westerberg@linux.intel.com,lizhijian@fujitsu.com,Jonathan.Cameron@huawei.com,ilpo.jarvinen@linux.intel.com,huang.ying.caritas@gmail.com,dan.j.williams@intel.com,bhelgaas@google.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=T8XgEXjmIHlMmDBPA+k6ZpIR0u3EMN1E0W/4dyS0YQ5r7v5ij8pYfM7p2SUU65u7g
+	 3blF2xuE2cBAnPnm6KzuxP2jji7hF3eWD5Fn562QsWr4dT2CouiQacLF/ngCXaGlKc
+	 5reUJ9NYBIztUWdLgDabDEnX6K+2S/r3E1uUGQMo=
+Date: Wed, 05 Mar 2025 15:45:06 -0800
+To: mm-commits@vger.kernel.org,mika.westerberg@linux.intel.com,Jonathan.Cameron@huawei.com,ilpo.jarvinen@linux.intel.com,huang.ying.caritas@gmail.com,dan.j.williams@intel.com,bhelgaas@google.com,andriy.shevchenko@linux.intel.com,lizhijian@fujitsu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] resource-fix-resource-leak-in-get_free_mem_region-fix.patch removed from -mm tree
-Message-Id: <20250305234446.CCD4AC4CED1@smtp.kernel.org>
+Subject: [to-be-updated] resource-fix-resource-leak-in-get_free_mem_region.patch removed from -mm tree
+Message-Id: <20250305234507.5F03FC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: resource-fix-resource-leak-in-get_free_mem_region-fix
+     Subject: resource: fix resource leak in get_free_mem_region()
 has been removed from the -mm tree.  Its filename was
-     resource-fix-resource-leak-in-get_free_mem_region-fix.patch
+     resource-fix-resource-leak-in-get_free_mem_region.patch
 
-This patch was dropped because it was folded into resource-fix-resource-leak-in-get_free_mem_region.patch
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: resource-fix-resource-leak-in-get_free_mem_region-fix
-Date: Tue Mar  4 04:11:59 PM PST 2025
+From: Li Zhijian <lizhijian@fujitsu.com>
+Subject: resource: fix resource leak in get_free_mem_region()
+Date: Tue, 4 Mar 2025 12:34:15 +0800
 
-fix braceology
+The leak is detected by the kernel memory leak detector (`kmemleak`)
+following a `cxl create-region` failure:
 
+ cxl_acpi ACPI0017:00: decoder0.0: created region2
+ cxl region2: HPA allocation error (-34) for size:0x0000000100000000 in CXL Window 0 [mem 0xa90000000-0x1a8fffffff flags 0x200]
+ kmemleak: 1 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
+
+    __kmalloc_cache_noprof+0x28c/0x350
+    get_free_mem_region+0x45/0x380
+    alloc_free_mem_region+0x1d/0x30
+    size_store+0x180/0x290 [cxl_core]
+    kernfs_fop_write_iter+0x13f/0x1e0
+    vfs_write+0x37c/0x540
+    ksys_write+0x68/0xe0
+    do_syscall_64+0x6e/0x190
+    entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+[akpm@linux-foundation.org: fix braceology]
+Link: https://lkml.kernel.org/r/20250304043415.610286-1-lizhijian@fujitsu.com
+Fixes: 14b80582c43e ("resource: Introduce alloc_free_mem_region()")
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Dan Wiliams <dan.j.williams@intel.com>
 Cc: "Huang, Ying" <huang.ying.caritas@gmail.com>
 Cc: Ilpo Jarvinen <ilpo.jarvinen@linux.intel.com>
 Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
 Cc: Mika Westeberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/resource.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/kernel/resource.c~resource-fix-resource-leak-in-get_free_mem_region-fix
+--- a/kernel/resource.c~resource-fix-resource-leak-in-get_free_mem_region
 +++ a/kernel/resource.c
-@@ -1998,10 +1998,11 @@ get_free_mem_region(struct device *dev,
+@@ -1998,8 +1998,11 @@ get_free_mem_region(struct device *dev,
  	if (flags & GFR_REQUEST_REGION) {
  		free_resource(res);
  		devres_free(dr);
 -	} else if (dev)
 +	} else if (dev) {
  		devm_release_action(dev, remove_free_mem_region, res);
--	else
 +	} else {
- 		free_resource(res);
++		free_resource(res);
 +	}
  
  	return ERR_PTR(-ERANGE);
  }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizhijian@fujitsu.com are
 
-nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback-fix.patch
-userfaultfd-do-not-block-on-locking-a-large-folio-with-raised-refcount-fix.patch
-mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
-selftests-mm-print-some-details-when-uffd-stress-gets-bad-params-fix.patch
-selftests-mm-dont-fail-uffd-stress-if-too-many-cpus-fix.patch
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-mm-mremap-initial-refactor-of-move_vma-fix.patch
-mm-mremap-thread-state-through-move-page-table-operation-fix.patch
-mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option-fix.patch
-lib-plistc-add-shortcut-for-plist_requeue-fix.patch
-scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
-signal-avoid-clearing-tif_sigpending-in-recalc_sigpending-if-unset-fix.patch
-resource-fix-resource-leak-in-get_free_mem_region.patch
 
