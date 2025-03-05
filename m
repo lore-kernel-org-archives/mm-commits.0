@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 274322E3397
-	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:32:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 984692063D6
+	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:32:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741217524; cv=none; b=B90mb3s97kXMdDj0y5wKAYAMAQ4ppQuLDTOT9hW4Fw8C1XzXOD2poEHSyBE45LlcGsQo165m+EItAHR2BWh4NF+kwDB5uOtXYyAUpBW+uM63JAiq2nffPLNAlHk8LMeDHEItdGJYNgokILfXLv2AoT6IXYVx0msDltXaQelWMe4=
+	t=1741217525; cv=none; b=Nr+b5B+BsdjjCBp6xUYny6S67bwb4I2XXSzghrgUgqIqgjcXuBgUGi7OtbwCdrLGmpskBIUTSh79AVFS86yjUv/XmmoehxbzemvB5DJA68D9RlfwaKYRHs2T7tUxdbJeVemXULpl6euDP7cnR2DgKpFSWlALmwV8n+7CU+JD/g0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741217524; c=relaxed/simple;
-	bh=sj1Le0Jrqm8HIoQXeNV1E+FIkpNkLu20USozhSj68Co=;
-	h=Date:To:From:Subject:Message-Id; b=mT/ck5gqs2+zDne4F+KeCETspajkNlQegcOAN7BU0CnWdWxGx3r42Cn8xCR5Qf9g2pYXGCPVB8Hq9E155Fyu30If3fSeUjtd4YIhX2JU8PEofx9KuVncF+Amovf2u0Ozw42BVmLhkPDPnZ54mTDyg6r+a1ble1dWEvP7GKOVIf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=StuPuupY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741217525; c=relaxed/simple;
+	bh=HCgqyzYVJoKGSCk8LZFJeoHAvf+H1QyiDVJ1ByrSnnE=;
+	h=Date:To:From:Subject:Message-Id; b=dSJUt+eEcdxX9ylMJzXmWfTXj9q1eYu+ZdklWMqmV2xWLqOtOJ9h2gncpiULxep3SwM1OX88sFtE4QNowPUgr4PYEdeXqy0/PslNqbhaWpXcSrdU6jsJfaTie+btyKKMUADkdpHKcLyN51hNw9jreFoQN+4Fz4czsd5C5rz0q48=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TPaiXxKA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="StuPuupY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8D1DC4CEEE;
-	Wed,  5 Mar 2025 23:32:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TPaiXxKA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1280FC4CEE7;
+	Wed,  5 Mar 2025 23:32:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741217524;
-	bh=sj1Le0Jrqm8HIoQXeNV1E+FIkpNkLu20USozhSj68Co=;
+	s=korg; t=1741217525;
+	bh=HCgqyzYVJoKGSCk8LZFJeoHAvf+H1QyiDVJ1ByrSnnE=;
 	h=Date:To:From:Subject:From;
-	b=StuPuupYYywgolAUj4NwVxpKJP2lq989lzFSdAt7U+1iuRQZ7vzOy6pZOWzZXJfhW
-	 sXJbdTynRigCoEp9d3QvNrZq3lH/EI5NPUCG1AhGzGF2MqMzrNQyoAOlG365M4IZe9
-	 4CG/wBEN+K64olgmZInFdxFi6X/lIdqJtLGfvqfY=
-Date: Wed, 05 Mar 2025 15:32:03 -0800
+	b=TPaiXxKABQqUOxJfLLGmfxgcp1Q+L/6J9RsQMUQGC5dj9rC7Nrch+1awn86EGiI47
+	 aRLNalx+HeyrpLX3j4j/2nJKMUz30vyQFpxSduRYSiT3YAUYT4IFEAqD6UdgmQn1ii
+	 h+I7WV4kK9JXBj0NXIATt68BiafETCG+5prd/H0k=
+Date: Wed, 05 Mar 2025 15:32:04 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch added to mm-unstable branch
-Message-Id: <20250305233203.E8D1DC4CEEE@smtp.kernel.org>
+Subject: + docs-abi-damon-document-coreops_filters-directories.patch added to mm-unstable branch
+Message-Id: <20250305233205.1280FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: return error when for attempts to install filters on wrong sysfs directory
+     Subject: Docs/ABI/damon: document {core,ops}_filters directories
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
+     docs-abi-damon-document-coreops_filters-directories.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-coreops_filters-directories.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,58 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: return error when for attempts to install filters on wrong sysfs directory
-Date: Wed, 5 Mar 2025 14:27:31 -0800
+Subject: Docs/ABI/damon: document {core,ops}_filters directories
+Date: Wed, 5 Mar 2025 14:27:32 -0800
 
-Return error if the user tries to install a DAMOS filter on DAMOS filters
-sysfs directory that assumed to be used for filters that handled by a
-DAMON layer that not same to that for the installing filter.
+Document the new DAMOS filters sysfs directories on ABI doc.
 
-Link: https://lkml.kernel.org/r/20250305222733.59089-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250305222733.59089-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   16 ++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory
-+++ a/mm/damon/sysfs-schemes.c
-@@ -362,6 +362,23 @@ static ssize_t type_show(struct kobject
- 			damon_sysfs_scheme_filter_type_strs[filter->type]);
- }
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-coreops_filters-directories
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -409,6 +409,22 @@ Description:	Writing 'Y' or 'N' to this
+ 		applying the scheme's action to the memory that satisfies the
+ 		'type' and the 'matching' of the directory.
  
-+static bool damos_sysfs_scheme_filter_valid_type(
-+		enum damos_sysfs_filter_handle_layer layer,
-+		enum damos_filter_type type)
-+{
-+	switch (layer) {
-+	case DAMOS_SYSFS_FILTER_HANDLE_LAYER_BOTH:
-+		return true;
-+	case DAMOS_SYSFS_FILTER_HANDLE_LAYER_CORE:
-+		return !damos_filter_for_ops(type);
-+	case DAMOS_SYSFS_FILTER_HANDLE_LAYER_OPS:
-+		return damos_filter_for_ops(type);
-+	default:
-+		break;
-+	}
-+	return false;
-+}
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters
++Date:		Feb 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Directory for DAMON core layer-handled DAMOS filters.  Files
++		under this directory works same to those of
++		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
++		directory.
 +
- static ssize_t type_store(struct kobject *kobj,
- 		struct kobj_attribute *attr, const char *buf, size_t count)
- {
-@@ -373,6 +390,9 @@ static ssize_t type_store(struct kobject
- 	for (type = 0; type < NR_DAMOS_FILTER_TYPES; type++) {
- 		if (sysfs_streq(buf, damon_sysfs_scheme_filter_type_strs[
- 					type])) {
-+			if (!damos_sysfs_scheme_filter_valid_type(
-+						filter->handle_layer, type))
-+				break;
- 			filter->type = type;
- 			ret = count;
- 			break;
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/ops_filters
++Date:		Feb 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Directory for DAMON operations set layer-handled DAMOS filters.
++		Files under this directory works same to those of
++		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
++		directory.
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/nr_tried
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
