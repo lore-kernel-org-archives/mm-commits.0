@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53034207A3F
-	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:32:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 274322E3397
+	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 23:32:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741217523; cv=none; b=f5OWl5C8PvLJrO1Xwa2r2tIixrAq+NU5j+HEmmL4gp9lE54028Ih6wuwufioEUm+vJ/eKV2vNDXkfe9vduACWqrLNMNnM8R6VEuUWz57nbEoK4FF6dlCJqFKJLJxOd62pIS8z8RCU2rbb3RzKX/52A/7pFdGIlmTJmJEK0be6gY=
+	t=1741217524; cv=none; b=B90mb3s97kXMdDj0y5wKAYAMAQ4ppQuLDTOT9hW4Fw8C1XzXOD2poEHSyBE45LlcGsQo165m+EItAHR2BWh4NF+kwDB5uOtXYyAUpBW+uM63JAiq2nffPLNAlHk8LMeDHEItdGJYNgokILfXLv2AoT6IXYVx0msDltXaQelWMe4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741217523; c=relaxed/simple;
-	bh=2b7j1nIvfISzp32gkouN9UeYe4QyH7HZC2HgBpT8K9g=;
-	h=Date:To:From:Subject:Message-Id; b=tiTnvQ5Jr1L8yfLIeF/Yk0d7p27avJEnSM+mtiJZeANFX1i7sQNKvdcijW2FZXNIhF19MtTxNv/XqkKMfVBgJwNUkmuo/4xYrqrObMNR/Ddg+lMtXsmd9oUlIOLWPwTLRQ88RKQykAD7jihKQdz2KR5n5UpKauGoEMT5LR7cRno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QuXMGbyn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741217524; c=relaxed/simple;
+	bh=sj1Le0Jrqm8HIoQXeNV1E+FIkpNkLu20USozhSj68Co=;
+	h=Date:To:From:Subject:Message-Id; b=mT/ck5gqs2+zDne4F+KeCETspajkNlQegcOAN7BU0CnWdWxGx3r42Cn8xCR5Qf9g2pYXGCPVB8Hq9E155Fyu30If3fSeUjtd4YIhX2JU8PEofx9KuVncF+Amovf2u0Ozw42BVmLhkPDPnZ54mTDyg6r+a1ble1dWEvP7GKOVIf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=StuPuupY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QuXMGbyn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6C87C4CEE7;
-	Wed,  5 Mar 2025 23:32:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="StuPuupY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8D1DC4CEEE;
+	Wed,  5 Mar 2025 23:32:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741217522;
-	bh=2b7j1nIvfISzp32gkouN9UeYe4QyH7HZC2HgBpT8K9g=;
+	s=korg; t=1741217524;
+	bh=sj1Le0Jrqm8HIoQXeNV1E+FIkpNkLu20USozhSj68Co=;
 	h=Date:To:From:Subject:From;
-	b=QuXMGbyn0LDCOPLSnFtMPaFomDe9gNgV7sUtfUvwq5keL6uL7kZO1UFeSx+y3d74v
-	 fCajSN1aShxLImIgHWgj8h19XZMKkoWiYpVUwwpeJ8lmRzeD/F5U9cEVx/UxlNB/O+
-	 ozFc8EK065lckIqMCOMA4Qy3yPatvKe3KcXq/mX4=
-Date: Wed, 05 Mar 2025 15:32:02 -0800
+	b=StuPuupYYywgolAUj4NwVxpKJP2lq989lzFSdAt7U+1iuRQZ7vzOy6pZOWzZXJfhW
+	 sXJbdTynRigCoEp9d3QvNrZq3lH/EI5NPUCG1AhGzGF2MqMzrNQyoAOlG365M4IZe9
+	 4CG/wBEN+K64olgmZInFdxFi6X/lIdqJtLGfvqfY=
+Date: Wed, 05 Mar 2025 15:32:03 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch added to mm-unstable branch
-Message-Id: <20250305233202.B6C87C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch added to mm-unstable branch
+Message-Id: <20250305233203.E8D1DC4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: record filters of which layer should be added to the given filters directory
+     Subject: mm/damon/sysfs-schemes: return error when for attempts to install filters on wrong sysfs directory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
+     mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,132 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: record filters of which layer should be added to the given filters directory
-Date: Wed, 5 Mar 2025 14:27:30 -0800
+Subject: mm/damon/sysfs-schemes: return error when for attempts to install filters on wrong sysfs directory
+Date: Wed, 5 Mar 2025 14:27:31 -0800
 
-Unlike their name and assumed purposes, {core,ops}_filters DAMOS sysfs
-directories are allowing installing any type of filters.  As a first step
-for preventing such wrong installments, add information about filters that
-handled by what layer should the installed to the given filters directory
-in the DAMOS sysfs internal data structures.
+Return error if the user tries to install a DAMOS filter on DAMOS filters
+sysfs directory that assumed to be used for filters that handled by a
+DAMON layer that not same to that for the installing filter.
 
-Link: https://lkml.kernel.org/r/20250305222733.59089-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250305222733.59089-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   46 ++++++++++++++++++++++++++++---------
- 1 file changed, 36 insertions(+), 10 deletions(-)
+ mm/damon/sysfs-schemes.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory
 +++ a/mm/damon/sysfs-schemes.c
-@@ -309,8 +309,18 @@ static const struct kobj_type damon_sysf
-  * filter directory
-  */
- 
-+/*
-+ * enum damos_sysfs_filter_handle_layer - Layers handling filters of a dir.
-+ */
-+enum damos_sysfs_filter_handle_layer {
-+	DAMOS_SYSFS_FILTER_HANDLE_LAYER_CORE,
-+	DAMOS_SYSFS_FILTER_HANDLE_LAYER_OPS,
-+	DAMOS_SYSFS_FILTER_HANDLE_LAYER_BOTH,
-+};
-+
- struct damon_sysfs_scheme_filter {
- 	struct kobject kobj;
-+	enum damos_sysfs_filter_handle_layer handle_layer;
- 	enum damos_filter_type type;
- 	bool matching;
- 	bool allow;
-@@ -320,9 +330,15 @@ struct damon_sysfs_scheme_filter {
- 	int target_idx;
- };
- 
--static struct damon_sysfs_scheme_filter *damon_sysfs_scheme_filter_alloc(void)
-+static struct damon_sysfs_scheme_filter *damon_sysfs_scheme_filter_alloc(
-+		enum damos_sysfs_filter_handle_layer layer)
- {
--	return kzalloc(sizeof(struct damon_sysfs_scheme_filter), GFP_KERNEL);
-+	struct damon_sysfs_scheme_filter *filter;
-+
-+	filter = kzalloc(sizeof(struct damon_sysfs_scheme_filter), GFP_KERNEL);
-+	if (filter)
-+		filter->handle_layer = layer;
-+	return filter;
+@@ -362,6 +362,23 @@ static ssize_t type_show(struct kobject
+ 			damon_sysfs_scheme_filter_type_strs[filter->type]);
  }
  
- /* Should match with enum damos_filter_type */
-@@ -595,14 +611,20 @@ static const struct kobj_type damon_sysf
- 
- struct damon_sysfs_scheme_filters {
- 	struct kobject kobj;
-+	enum damos_sysfs_filter_handle_layer handle_layer;
- 	struct damon_sysfs_scheme_filter **filters_arr;
- 	int nr;
- };
- 
- static struct damon_sysfs_scheme_filters *
--damon_sysfs_scheme_filters_alloc(void)
-+damon_sysfs_scheme_filters_alloc(enum damos_sysfs_filter_handle_layer layer)
- {
--	return kzalloc(sizeof(struct damon_sysfs_scheme_filters), GFP_KERNEL);
-+	struct damon_sysfs_scheme_filters *filters;
++static bool damos_sysfs_scheme_filter_valid_type(
++		enum damos_sysfs_filter_handle_layer layer,
++		enum damos_filter_type type)
++{
++	switch (layer) {
++	case DAMOS_SYSFS_FILTER_HANDLE_LAYER_BOTH:
++		return true;
++	case DAMOS_SYSFS_FILTER_HANDLE_LAYER_CORE:
++		return !damos_filter_for_ops(type);
++	case DAMOS_SYSFS_FILTER_HANDLE_LAYER_OPS:
++		return damos_filter_for_ops(type);
++	default:
++		break;
++	}
++	return false;
++}
 +
-+	filters = kzalloc(sizeof(struct damon_sysfs_scheme_filters), GFP_KERNEL);
-+	if (filters)
-+		filters->handle_layer = layer;
-+	return filters;
- }
- 
- static void damon_sysfs_scheme_filters_rm_dirs(
-@@ -635,7 +657,8 @@ static int damon_sysfs_scheme_filters_ad
- 	filters->filters_arr = filters_arr;
- 
- 	for (i = 0; i < nr_filters; i++) {
--		filter = damon_sysfs_scheme_filter_alloc();
-+		filter = damon_sysfs_scheme_filter_alloc(
-+				filters->handle_layer);
- 		if (!filter) {
- 			damon_sysfs_scheme_filters_rm_dirs(filters);
- 			return -ENOMEM;
-@@ -1607,11 +1630,11 @@ static int damon_sysfs_scheme_set_waterm
- }
- 
- static int damon_sysfs_scheme_set_filters(struct damon_sysfs_scheme *scheme,
--		const char *name,
-+		enum damos_sysfs_filter_handle_layer layer, const char *name,
- 		struct damon_sysfs_scheme_filters **filters_ptr)
+ static ssize_t type_store(struct kobject *kobj,
+ 		struct kobj_attribute *attr, const char *buf, size_t count)
  {
- 	struct damon_sysfs_scheme_filters *filters =
--		damon_sysfs_scheme_filters_alloc();
-+		damon_sysfs_scheme_filters_alloc(layer);
- 	int err;
- 
- 	if (!filters)
-@@ -1630,15 +1653,18 @@ static int damos_sysfs_set_filter_dirs(s
- {
- 	int err;
- 
--	err = damon_sysfs_scheme_set_filters(scheme, "filters",
-+	err = damon_sysfs_scheme_set_filters(scheme,
-+			DAMOS_SYSFS_FILTER_HANDLE_LAYER_BOTH, "filters",
- 			&scheme->filters);
- 	if (err)
- 		return err;
--	err = damon_sysfs_scheme_set_filters(scheme, "core_filters",
-+	err = damon_sysfs_scheme_set_filters(scheme,
-+			DAMOS_SYSFS_FILTER_HANDLE_LAYER_CORE, "core_filters",
- 			&scheme->core_filters);
- 	if (err)
- 		goto put_filters_out;
--	err = damon_sysfs_scheme_set_filters(scheme, "ops_filters",
-+	err = damon_sysfs_scheme_set_filters(scheme,
-+			DAMOS_SYSFS_FILTER_HANDLE_LAYER_OPS, "ops_filters",
- 			&scheme->ops_filters);
- 	if (err)
- 		goto put_core_filters_out;
+@@ -373,6 +390,9 @@ static ssize_t type_store(struct kobject
+ 	for (type = 0; type < NR_DAMOS_FILTER_TYPES; type++) {
+ 		if (sysfs_streq(buf, damon_sysfs_scheme_filter_type_strs[
+ 					type])) {
++			if (!damos_sysfs_scheme_filter_valid_type(
++						filter->handle_layer, type))
++				break;
+ 			filter->type = type;
+ 			ret = count;
+ 			break;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
