@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D684250C0A
-	for <mm-commits@vger.kernel.org>; Wed,  5 Mar 2025 21:38:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CF6C259CAC;
+	Wed,  5 Mar 2025 21:42:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741210734; cv=none; b=lYpFwKf5j6CeUI/3NvL5/j2tRMyKj4ckx0jsM8N9AJX8lc180aq+0k9iCpWSHDRElG8OAeCvD36WyCR8PzDMfmTQOD5mHiEEZyTC0lW1BL2FZEUZBfjsujNMDopZXxdpU6DGcQn4B9KP6sbw5UpZHTazzn8kKmI+udwjUZg+0co=
+	t=1741210923; cv=none; b=alNw8aROdjY7K93A3pvLWL+Qk9zgfblcf4weZtfxCHzZmFJgnZ3qHmHunk/ygcRXQsgRhFfaiOSvLj9O3Ir7PmAEA9zlTj75mqFD5v2944A6c0sgwkyWZtnSHcKGh9W1Ayn+ktElgUly7jbrmgFvOb7Mtc0SzF7J7H2fgvSCpT4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741210734; c=relaxed/simple;
-	bh=KssyBvbSSRbz9my6s8nK1jrAvfQOk9kPfBYi10l1xIk=;
-	h=Date:To:From:Subject:Message-Id; b=XtsZB33WRnsGWWobWOaZRPGMICfoDKEDpwq7euHpi+xXnisSGJD+6G1FNownfOexO91I1rzPstHDNhLyKsXp981uCUPdaz13lDqZzOGezXYpbdYwvXFU/j/0hkt/Ob4GQnJGRltKWiY982xgb6sUN0pRJi/RzSUogDpUDse2Qsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hq0WYKPy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741210923; c=relaxed/simple;
+	bh=MEYlErtMNJGu33by+TzxsernoAlyBfFr0DR1qd9lK7s=;
+	h=Date:To:From:Subject:Message-Id; b=gkwytEsEVdpHGeAxJVQytJ1pOxj0cc6BJczYjHWgHZNruKRN4JSp4egFGIOX+sRHQqeQDKrmbJ02NZMSGrQz6KHk3DgVdFSyAcr1AE0XN5Eky1oL88bW+bPhOhXJ7FhlzvXWd6/eQs0Cki8juP0KUir4W2MWKD/vfqZisO9wEpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BI+sRnJX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hq0WYKPy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 472C2C4CED1;
-	Wed,  5 Mar 2025 21:38:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BI+sRnJX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB55CC4CED1;
+	Wed,  5 Mar 2025 21:42:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741210733;
-	bh=KssyBvbSSRbz9my6s8nK1jrAvfQOk9kPfBYi10l1xIk=;
+	s=korg; t=1741210922;
+	bh=MEYlErtMNJGu33by+TzxsernoAlyBfFr0DR1qd9lK7s=;
 	h=Date:To:From:Subject:From;
-	b=Hq0WYKPyOxJFlqsDx/jV41xp/YTdbjvntNfYK6LcPWFuy9ET4TeSrj5TtlDJD2TiB
-	 cp6L5r5WsSQZIWDdTZp9ZKeAee56JCIcMyVJg/VJ9aLuaYr+u4Iu8S4PsWI9ERM1LT
-	 ZMpXDyUKeXhy+ilf+6RI5A0doiCOBsRIe7I9whMg=
-Date: Wed, 05 Mar 2025 13:38:52 -0800
-To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,rafael@kernel.org,osalvador@suse.de,lenb@kernel.org,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,harry.yoo@oracle.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,dave.jiang@intel.com,dan.j.williams@intel.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=BI+sRnJXarI7PG91EIILoliHTDaVJc7h3igxHYNINav3DhNukARL1XN9YBcNNrLgE
+	 KS1cVW4LH5CMBaC1uCdnsTRPALTXYcxUGZUx2BfcZVXFE5phER4KhR1lVv3S3QV79y
+	 bPq/ZJZzumo74VDDLyPZenbruc2tcmqbIDARx5Ec=
+Date: Wed, 05 Mar 2025 13:42:01 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,ryan.roberts@arm.com,quic_charante@quicinc.com,liushixin2@huawei.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-weighted-interleave-auto-tuning-v7.patch added to mm-unstable branch
-Message-Id: <20250305213853.472C2C4CED1@smtp.kernel.org>
+Subject: + mm-migrate-fix-shmem-xarray-update-during-migration.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250305214202.BB55CC4CED1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: Weighted Interleave Auto-tuning
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-weighted-interleave-auto-tuning-v7.patch
+     Subject: mm/migrate: fix shmem xarray update during migration
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate-fix-shmem-xarray-update-during-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-weighted-interleave-auto-tuning-v7.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-shmem-xarray-update-during-migration.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,629 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/mempolicy: Weighted Interleave Auto-tuning
-Date: Wed, 5 Mar 2025 12:05:05 -0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: fix shmem xarray update during migration
+Date: Wed, 5 Mar 2025 15:04:03 -0500
 
-On machines with multiple memory nodes, interleaving page allocations
-across nodes allows for better utilization of each node's bandwidth. 
-Previous work by Gregory Price [1] introduced weighted interleave, which
-allowed for pages to be allocated across nodes according to user-set
-ratios.
+A shmem folio can be either in page cache or in swap cache, but not at the
+same time.  Namely, once it is in swap cache, folio->mapping should be
+NULL, and the folio is no longer in a shmem mapping.
 
-Ideally, these weights should be proportional to their bandwidth, so that
-under bandwidth pressure, each node uses its maximal efficient bandwidth
-and prevents latency from increasing exponentially.
+In __folio_migrate_mapping(), to determine the number of xarray entries to
+update, folio_test_swapbacked() is used, but that conflates shmem in page
+cache case and shmem in swap cache case.  It leads to xarray multi-index
+entry corruption, since it turns a sibling entry to a normal entry during
+xas_store() (see [1] for a userspace reproduction).  Fix it by only using
+folio_test_swapcache() to determine whether xarray is storing swap cache
+entries or not to choose the right number of xarray entries to update.
 
-Previously, weighted interleave's default weights were just 1s -- which
-would be equivalent to the (unweighted) interleave mempolicy, which goes
-through the nodes in a round-robin fashion, ignoring bandwidth
-information.
+[1] https://lore.kernel.org/linux-mm/Z8idPCkaJW1IChjT@casper.infradead.org/
 
-This patch has two main goals:
+Note:
+In __split_huge_page(), folio_test_anon() && folio_test_swapcache() is
+used to get swap_cache address space, but that ignores the shmem folio in
+swap cache case.  It could lead to NULL pointer dereferencing when a
+in-swap-cache shmem folio is split at __xa_store(), since
+!folio_test_anon() is true and folio->mapping is NULL.  But fortunately,
+its caller split_huge_page_to_list_to_order() bails out early with EBUSY
+when folio->mapping is NULL.  So no need to take care of it here.
 
-  Firstly, it makes weighted interleave easier to use for users who wish
-  to relieve bandwidth pressure when using nodes with varying bandwidth
-  (CXL).  By providing a set of "real" default weights that just work out
-  of the box, users who might not have the capability (or wish to) perform
-  experimentation to find the most optimal weights for their system can
-  still take advantage of bandwidth-informed weighted interleave.
-
-  Secondly, it allows for weighted interleave to dynamically adjust to
-  hotplugged memory with new bandwidth information.  Instead of manually
-  updating node weights every time new bandwidth information is reported
-  or taken off, weighted interleave adjusts and provides a new set of
-  default weights for weighted interleave to use when there is a change in
-  bandwidth information.
-
-To meet these goals, this patch introduces an auto-configuration mode for
-the interleave weights that provides a reasonable set of default weights,
-calculated using bandwidth data reported by the system.  In auto mode,
-weights are dynamically adjusted based on whatever the current bandwidth
-information reports (and responds to hotplug events).
-
-This patch still supports users manually writing weights into the nodeN
-sysfs interface by entering into manual mode.  When a user enters manual
-mode, the system stops dynamically updating any of the node weights, even
-during hotplug events that shift the optimal weight distribution.
-
-A new sysfs interface "auto" is introduced, which allows users to switch
-between the auto (writing 1 or Y) and manual (writing 0 or N) modes.  The
-system also automatically enters manual mode when a nodeN interface is
-manually written to.
-
-There is one functional change that this patch makes to the existing
-weighted_interleave ABI: previously, writing 0 directly to a nodeN
-interface was said to reset the weight to the system default.  Before this
-patch, the default for all weights were 1, which meant that writing 0 and
-1 were functionally equivalent.
-
-[1] https://lore.kernel.org/linux-mm/20240202170238.90004-1-gregory.price@memverge.com/
-
-Link: https://lkml.kernel.org/r/20250305200506.2529583-1-joshua.hahnjy@gmail.com
-Suggested-by: Yunjeong Mun <yunjeong.mun@sk.com>
-Suggested-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: Ying Huang <ying.huang@linux.alibaba.com>
-Suggested-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Co-developed-by: Gregory Price <gourry@gourry.net>
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Dan Willaims <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
+Link: https://lkml.kernel.org/r/20250305200403.2822855-1-ziy@nvidia.com
+Fixes: fc346d0a70a1 ("mm: migrate high-order folios in swap cache correctly")
+Reported-by: Liu Shixin <liushixin2@huawei.com>
+Closes: https://lore.kernel.org/all/28546fb4-5210-bf75-16d6-43e1f8646080@huawei.com/
+Suggested-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave |   34 -
- drivers/base/node.c                                                     |    9 
- include/linux/mempolicy.h                                               |    9 
- mm/mempolicy.c                                                          |  318 ++++++++--
- 4 files changed, 311 insertions(+), 59 deletions(-)
+ mm/migrate.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave~mm-mempolicy-weighted-interleave-auto-tuning-v7
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
-@@ -20,6 +20,34 @@ Description:	Weight configuration interf
- 		Minimum weight: 1
- 		Maximum weight: 255
- 
--		Writing an empty string or `0` will reset the weight to the
--		system default. The system default may be set by the kernel
--		or drivers at boot or during hotplug events.
-+		Writing invalid values (i.e. any values not in [1,255],
-+		empty string, ...) will return -EINVAL.
-+
-+		Changing the weight to a valid value will automatically
-+		update the system to manual mode as well.
-+
-+What:		/sys/kernel/mm/mempolicy/weighted_interleave/auto
-+Date:		February 2025
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Auto-weighting configuration interface
-+
-+		Configuration mode for weighted interleave. A 'Y' indicates
-+		that the system is in auto mode, and a 'N' indicates that
-+		the system is in manual mode.
-+
-+		In auto mode, all node weights are re-calculated and overwritten
-+		(visible via the nodeN interfaces) whenever new bandwidth data
-+		is made available during either boot or hotplug events.
-+
-+		In manual mode, node weights can only be updated by the user.
-+		Note that nodes that are onlined with previously set weights
-+		will inherit those weights. If they were not previously set or
-+		are onlined with missing bandwidth data, the weights will use
-+		a default weight of 1.
-+
-+		Writing Y or 1 to the interface will enable auto mode, while
-+		writing N or 0 will enable manual mode. All other strings will
-+		be ignored, and -EINVAL will be returned.
-+
-+		Writing a new weight to a node directly via the nodeN interface
-+		will also automatically update the system to manual mode.
---- a/drivers/base/node.c~mm-mempolicy-weighted-interleave-auto-tuning-v7
-+++ a/drivers/base/node.c
-@@ -7,6 +7,7 @@
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/memory.h>
-+#include <linux/mempolicy.h>
- #include <linux/vmstat.h>
- #include <linux/notifier.h>
- #include <linux/node.h>
-@@ -214,6 +215,14 @@ void node_set_perf_attrs(unsigned int ni
- 			break;
- 		}
- 	}
-+
-+	/* When setting CPU access coordinates, update mempolicy */
-+	if (access == ACCESS_COORDINATE_CPU) {
-+		if (mempolicy_set_node_perf(nid, coord)) {
-+			pr_info("failed to set mempolicy attrs for node %d\n",
-+				nid);
-+		}
-+	}
- }
- EXPORT_SYMBOL_GPL(node_set_perf_attrs);
- 
---- a/include/linux/mempolicy.h~mm-mempolicy-weighted-interleave-auto-tuning-v7
-+++ a/include/linux/mempolicy.h
-@@ -11,6 +11,7 @@
- #include <linux/slab.h>
- #include <linux/rbtree.h>
- #include <linux/spinlock.h>
-+#include <linux/node.h>
- #include <linux/nodemask.h>
- #include <linux/pagemap.h>
- #include <uapi/linux/mempolicy.h>
-@@ -56,6 +57,11 @@ struct mempolicy {
- 	} w;
- };
- 
-+struct weighted_interleave_state {
-+	bool mode_auto;
-+	u8 iw_table[]; /* A null iw_table is interpreted as an array of 1s. */
-+};
-+
- /*
-  * Support for managing mempolicy data objects (clone, copy, destroy)
-  * The default fast path of a NULL MPOL_DEFAULT policy is always inlined.
-@@ -178,6 +184,9 @@ static inline bool mpol_is_preferred_man
- 
- extern bool apply_policy_zone(struct mempolicy *policy, enum zone_type zone);
- 
-+extern int mempolicy_set_node_perf(unsigned int node,
-+				   struct access_coordinate *coords);
-+
- #else
- 
- struct mempolicy {};
---- a/mm/mempolicy.c~mm-mempolicy-weighted-interleave-auto-tuning-v7
-+++ a/mm/mempolicy.c
-@@ -109,6 +109,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/printk.h>
- #include <linux/swapops.h>
-+#include <linux/gcd.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
-@@ -139,31 +140,135 @@ static struct mempolicy default_policy =
- static struct mempolicy preferred_node_policy[MAX_NUMNODES];
- 
- /*
-- * iw_table is the sysfs-set interleave weight table, a value of 0 denotes
-- * system-default value should be used. A NULL iw_table also denotes that
-- * system-default values should be used. Until the system-default table
-- * is implemented, the system-default is always 1.
-- *
-- * iw_table is RCU protected
-+ * weightiness balances the tradeoff between small weights (cycles through nodes
-+ * faster, more fair/even distribution) and large weights (smaller errors
-+ * between actual bandwidth ratios and weight ratios). 32 is a number that has
-+ * been found to perform at a reasonable compromise between the two goals.
-  */
--static u8 __rcu *iw_table;
--static DEFINE_MUTEX(iw_table_lock);
-+static const int weightiness = 32;
-+
-+/* wi_state is RCU protected */
-+static struct weighted_interleave_state __rcu *wi_state;
-+static unsigned int *node_bw_table;
-+
-+/*
-+ * wi_state_lock protects both wi_state and node_bw_table.
-+ * node_bw_table is only used by writers to update wi_state.
-+ */
-+static DEFINE_MUTEX(wi_state_lock);
- 
- static u8 get_il_weight(int node)
- {
--	u8 *table;
--	u8 weight;
-+	u8 weight = 1;
- 
- 	rcu_read_lock();
--	table = rcu_dereference(iw_table);
--	/* if no iw_table, use system default */
--	weight = table ? table[node] : 1;
--	/* if value in iw_table is 0, use system default */
--	weight = weight ? weight : 1;
-+	if (rcu_access_pointer(wi_state))
-+		weight = rcu_dereference(wi_state)->iw_table[node];
- 	rcu_read_unlock();
-+
- 	return weight;
- }
- 
-+/*
-+ * Convert bandwidth values into weighted interleave weights.
-+ * Call with wi_state_lock.
-+ */
-+static void reduce_interleave_weights(unsigned int *bw, u8 *new_iw)
-+{
-+	u64 sum_bw = 0;
-+	unsigned int cast_sum_bw, scaling_factor = 1, iw_gcd = 0;
-+	int nid;
-+
-+	for_each_node_state(nid, N_MEMORY)
-+		sum_bw += bw[nid];
-+
-+	/* Scale bandwidths to whole numbers in the range [1, weightiness] */
-+	for_each_node_state(nid, N_MEMORY) {
-+		/*
-+		 * Try not to perform 64-bit division.
-+		 * If sum_bw < scaling_factor, then sum_bw < U32_MAX.
-+		 * If sum_bw > scaling_factor, then round the weight up to 1.
-+		 */
-+		scaling_factor = weightiness * bw[nid];
-+		if (bw[nid] && sum_bw < scaling_factor) {
-+			cast_sum_bw = (unsigned int)sum_bw;
-+			new_iw[nid] = scaling_factor / cast_sum_bw;
-+		} else {
-+			new_iw[nid] = 1;
-+		}
-+		if (!iw_gcd)
-+			iw_gcd = new_iw[nid];
-+		iw_gcd = gcd(iw_gcd, new_iw[nid]);
-+	}
-+
-+	/* 1:2 is strictly better than 16:32. Reduce by the weights' GCD. */
-+	for_each_node_state(nid, N_MEMORY)
-+		new_iw[nid] /= iw_gcd;
-+}
-+
-+int mempolicy_set_node_perf(unsigned int node, struct access_coordinate *coords)
-+{
-+	struct weighted_interleave_state *new_wi_state, *old_wi_state = NULL;
-+	unsigned int *old_bw, *new_bw;
-+	unsigned int bw_val;
-+	int i;
-+
-+	bw_val = min(coords->read_bandwidth, coords->write_bandwidth);
-+	new_bw = kcalloc(nr_node_ids, sizeof(unsigned int), GFP_KERNEL);
-+	if (!new_bw)
-+		return -ENOMEM;
-+
-+	new_wi_state = kzalloc(struct_size(new_wi_state, iw_table, nr_node_ids),
-+			       GFP_KERNEL);
-+	if (!new_wi_state) {
-+		kfree(new_bw);
-+		return -ENOMEM;
-+	}
-+	for (i = 0; i < nr_node_ids; i++)
-+		new_wi_state->iw_table[i] = 1;
-+
-+	/*
-+	 * Update bandwidth info, even in manual mode. That way, when switching
-+	 * to auto mode in the future, iw_table can be overwritten using
-+	 * accurate bw data.
-+	 */
-+	mutex_lock(&wi_state_lock);
-+
-+	old_bw = node_bw_table;
-+	if (old_bw)
-+		memcpy(new_bw, old_bw, nr_node_ids * sizeof(unsigned int));
-+	new_bw[node] = bw_val;
-+	node_bw_table = new_bw;
-+
-+	/* wi_state not initialized yet; assume auto == true */
-+	if (!rcu_access_pointer(wi_state))
-+		goto reduce;
-+
-+	old_wi_state = rcu_dereference_protected(wi_state,
-+					lockdep_is_held(&wi_state_lock));
-+	if (old_wi_state->mode_auto)
-+		goto reduce;
-+
-+	mutex_unlock(&wi_state_lock);
-+	kfree(new_wi_state);
-+	kfree(old_bw);
-+	return 0;
-+
-+reduce:
-+	new_wi_state->mode_auto = true;
-+	reduce_interleave_weights(new_bw, new_wi_state->iw_table);
-+	rcu_assign_pointer(wi_state, new_wi_state);
-+
-+	mutex_unlock(&wi_state_lock);
-+	if (old_wi_state) {
-+		synchronize_rcu();
-+		kfree(old_wi_state);
-+	}
-+	kfree(old_bw);
-+
-+	return 0;
-+}
-+
- /**
-  * numa_nearest_node - Find nearest node by state
-  * @node: Node id to start the search
-@@ -1988,34 +2093,33 @@ static unsigned int weighted_interleave_
- 	u8 *table;
- 	unsigned int weight_total = 0;
- 	u8 weight;
--	int nid;
-+	int nid = 0;
- 
- 	nr_nodes = read_once_policy_nodemask(pol, &nodemask);
- 	if (!nr_nodes)
- 		return numa_node_id();
- 
- 	rcu_read_lock();
--	table = rcu_dereference(iw_table);
-+	if (!rcu_access_pointer(wi_state))
-+		goto out;
-+
-+	table = rcu_dereference(wi_state)->iw_table;
- 	/* calculate the total weight */
--	for_each_node_mask(nid, nodemask) {
--		/* detect system default usage */
--		weight = table ? table[nid] : 1;
--		weight = weight ? weight : 1;
--		weight_total += weight;
--	}
-+	for_each_node_mask(nid, nodemask)
-+		weight_total += table ? table[nid] : 1;
- 
- 	/* Calculate the node offset based on totals */
- 	target = ilx % weight_total;
- 	nid = first_node(nodemask);
- 	while (target) {
- 		/* detect system default usage */
--		weight = table ? table[nid] : 1;
--		weight = weight ? weight : 1;
-+		weight = table[nid];
- 		if (target < weight)
- 			break;
- 		target -= weight;
- 		nid = next_node_in(nid, nodemask);
- 	}
-+out:
- 	rcu_read_unlock();
- 	return nid;
- }
-@@ -2411,13 +2515,14 @@ static unsigned long alloc_pages_bulk_we
- 		struct mempolicy *pol, unsigned long nr_pages,
- 		struct page **page_array)
- {
-+	struct weighted_interleave_state *state;
- 	struct task_struct *me = current;
- 	unsigned int cpuset_mems_cookie;
- 	unsigned long total_allocated = 0;
- 	unsigned long nr_allocated = 0;
- 	unsigned long rounds;
- 	unsigned long node_pages, delta;
--	u8 *table, *weights, weight;
-+	u8 *weights, weight;
- 	unsigned int weight_total = 0;
- 	unsigned long rem_pages = nr_pages;
- 	nodemask_t nodes;
-@@ -2467,17 +2572,19 @@ static unsigned long alloc_pages_bulk_we
- 		return total_allocated;
- 
- 	rcu_read_lock();
--	table = rcu_dereference(iw_table);
--	if (table)
--		memcpy(weights, table, nr_node_ids);
--	rcu_read_unlock();
-+	if (rcu_access_pointer(wi_state)) {
-+		state = rcu_dereference(wi_state);
-+		memcpy(weights, state->iw_table, nr_node_ids * sizeof(u8));
-+		rcu_read_unlock();
-+	} else {
-+		rcu_read_unlock();
-+		for (i = 0; i < nr_node_ids; i++)
-+			weights[i] = 1;
-+	}
- 
- 	/* calculate total, detect system default usage */
--	for_each_node_mask(node, nodes) {
--		if (!weights[node])
--			weights[node] = 1;
-+	for_each_node_mask(node, nodes)
- 		weight_total += weights[node];
--	}
- 
- 	/*
- 	 * Calculate rounds/partial rounds to minimize __alloc_pages_bulk calls.
-@@ -3402,36 +3509,112 @@ static ssize_t node_show(struct kobject
- static ssize_t node_store(struct kobject *kobj, struct kobj_attribute *attr,
- 			  const char *buf, size_t count)
- {
-+	struct weighted_interleave_state *new_wi_state, *old_wi_state = NULL;
- 	struct iw_node_attr *node_attr;
--	u8 *new;
--	u8 *old;
- 	u8 weight = 0;
-+	int i;
- 
- 	node_attr = container_of(attr, struct iw_node_attr, kobj_attr);
- 	if (count == 0 || sysfs_streq(buf, ""))
- 		weight = 0;
--	else if (kstrtou8(buf, 0, &weight))
-+	else if (kstrtou8(buf, 0, &weight) || weight == 0)
- 		return -EINVAL;
- 
--	new = kzalloc(nr_node_ids, GFP_KERNEL);
--	if (!new)
-+	new_wi_state = kzalloc(struct_size(new_wi_state, iw_table, nr_node_ids),
-+			       GFP_KERNEL);
-+	if (!new_wi_state)
- 		return -ENOMEM;
- 
--	mutex_lock(&iw_table_lock);
--	old = rcu_dereference_protected(iw_table,
--					lockdep_is_held(&iw_table_lock));
--	if (old)
--		memcpy(new, old, nr_node_ids);
--	new[node_attr->nid] = weight;
--	rcu_assign_pointer(iw_table, new);
--	mutex_unlock(&iw_table_lock);
--	synchronize_rcu();
--	kfree(old);
-+	mutex_lock(&wi_state_lock);
-+	if (rcu_access_pointer(wi_state)) {
-+		old_wi_state = rcu_dereference_protected(wi_state,
-+					lockdep_is_held(&wi_state_lock));
-+		memcpy(new_wi_state->iw_table, old_wi_state->iw_table,
-+					nr_node_ids * sizeof(u8));
-+	} else {
-+		for (i = 0; i < nr_node_ids; i++)
-+			new_wi_state->iw_table[i] = 1;
-+	}
-+	new_wi_state->iw_table[node_attr->nid] = weight;
-+	new_wi_state->mode_auto = false;
-+
-+	rcu_assign_pointer(wi_state, new_wi_state);
-+	mutex_unlock(&wi_state_lock);
-+	if (old_wi_state) {
-+		synchronize_rcu();
-+		kfree(old_wi_state);
-+	}
- 	return count;
- }
- 
- static struct iw_node_attr **node_attrs;
- 
-+static ssize_t weighted_interleave_auto_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	bool wi_auto = true;
-+
-+	rcu_read_lock();
-+	if (rcu_access_pointer(wi_state))
-+		wi_auto = rcu_dereference(wi_state)->mode_auto;
-+	rcu_read_unlock();
-+
-+	return sysfs_emit(buf, "%s\n", str_true_false(wi_auto));
-+}
-+
-+static ssize_t weighted_interleave_auto_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct weighted_interleave_state *new_wi_state, *old_wi_state = NULL;
-+	unsigned int *bw;
-+	bool input;
-+	int i;
-+
-+	if (kstrtobool(buf, &input))
-+		return -EINVAL;
-+
-+	new_wi_state = kzalloc(struct_size(new_wi_state, iw_table, nr_node_ids),
-+			       GFP_KERNEL);
-+	if (!new_wi_state)
-+		return -ENOMEM;
-+	for (i = 0; i < nr_node_ids; i++)
-+		new_wi_state->iw_table[i] = 1;
-+
-+	mutex_lock(&wi_state_lock);
-+	if (!input) {
-+		if (rcu_access_pointer(wi_state)) {
-+			old_wi_state = rcu_dereference_protected(wi_state,
-+					lockdep_is_held(&wi_state_lock));
-+			memcpy(new_wi_state->iw_table, old_wi_state->iw_table,
-+					nr_node_ids * sizeof(u8));
-+		}
-+		goto update_wi_state;
-+	}
-+
-+	bw = node_bw_table;
-+	if (!bw) {
-+		mutex_unlock(&wi_state_lock);
-+		kfree(new_wi_state);
-+		return -ENODEV;
-+	}
-+
-+	new_wi_state->mode_auto = true;
-+	reduce_interleave_weights(bw, new_wi_state->iw_table);
-+
-+update_wi_state:
-+	rcu_assign_pointer(wi_state, new_wi_state);
-+	mutex_unlock(&wi_state_lock);
-+	if (old_wi_state) {
-+		synchronize_rcu();
-+		kfree(old_wi_state);
-+	}
-+	return count;
-+}
-+
-+static struct kobj_attribute wi_attr =
-+	__ATTR(auto, 0664, weighted_interleave_auto_show,
-+			   weighted_interleave_auto_store);
-+
- static void sysfs_wi_node_release(struct iw_node_attr *node_attr,
- 				  struct kobject *parent)
- {
-@@ -3489,6 +3672,15 @@ static int add_weight_node(int nid, stru
- 	return 0;
- }
- 
-+static struct attribute *wi_default_attrs[] = {
-+	&wi_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group wi_attr_group = {
-+	.attrs = wi_default_attrs,
-+};
-+
- static int add_weighted_interleave_group(struct kobject *root_kobj)
- {
- 	struct kobject *wi_kobj;
-@@ -3505,6 +3697,13 @@ static int add_weighted_interleave_group
- 		return err;
+--- a/mm/migrate.c~mm-migrate-fix-shmem-xarray-update-during-migration
++++ a/mm/migrate.c
+@@ -518,15 +518,13 @@ static int __folio_migrate_mapping(struc
+ 	if (folio_test_anon(folio) && folio_test_large(folio))
+ 		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
+ 	folio_ref_add(newfolio, nr); /* add cache reference */
+-	if (folio_test_swapbacked(folio)) {
++	if (folio_test_swapbacked(folio))
+ 		__folio_set_swapbacked(newfolio);
+-		if (folio_test_swapcache(folio)) {
+-			folio_set_swapcache(newfolio);
+-			newfolio->private = folio_get_private(folio);
+-		}
++	if (folio_test_swapcache(folio)) {
++		folio_set_swapcache(newfolio);
++		newfolio->private = folio_get_private(folio);
+ 		entries = nr;
+ 	} else {
+-		VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
+ 		entries = 1;
  	}
  
-+	err = sysfs_create_group(wi_kobj, &wi_attr_group);
-+	if (err) {
-+		pr_err("failed to add sysfs [auto]\n");
-+		kobject_put(wi_kobj);
-+		return err;
-+	}
-+
- 	for_each_node_state(nid, N_POSSIBLE) {
- 		err = add_weight_node(nid, wi_kobj);
- 		if (err) {
-@@ -3519,15 +3718,22 @@ static int add_weighted_interleave_group
- 
- static void mempolicy_kobj_release(struct kobject *kobj)
- {
--	u8 *old;
-+	struct weighted_interleave_state *old_wi_state;
-+
-+	mutex_lock(&wi_state_lock);
-+	if (!rcu_access_pointer(wi_state)) {
-+		mutex_unlock(&wi_state_lock);
-+		goto out;
-+	}
-+
-+	old_wi_state = rcu_dereference_protected(wi_state,
-+			lockdep_is_held(&wi_state_lock));
- 
--	mutex_lock(&iw_table_lock);
--	old = rcu_dereference_protected(iw_table,
--					lockdep_is_held(&iw_table_lock));
--	rcu_assign_pointer(iw_table, NULL);
--	mutex_unlock(&iw_table_lock);
-+	rcu_assign_pointer(wi_state, NULL);
-+	mutex_unlock(&wi_state_lock);
- 	synchronize_rcu();
--	kfree(old);
-+	kfree(old_wi_state);
-+out:
- 	kfree(node_attrs);
- 	kfree(kobj);
- }
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-mempolicy-weighted-interleave-auto-tuning-v7.patch
+mm-migrate-fix-shmem-xarray-update-during-migration.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
 
