@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D49419F127
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 05:37:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED36A367;
+	Thu,  6 Mar 2025 05:37:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239446; cv=none; b=Wp1cMT1yDGHVL0iwk8vUnL0dF7b3YiJJ3ryhYnit6z4Noa1f9wgiBFE+iy45AQUdVY2hQOw9hwuNvIqG0rHCpwLvsc1YEUOD+/Owuz2SggU0mRH5pEHk5AWVVn0sgTSTSQzLCVdyZ6sDObWOholr3HWrI3ahL18wwNJiTIlmh4A=
+	t=1741239449; cv=none; b=Qf5pOYGnx0CYvBd/r+raWfUi/C/ON55J7BV5JRpm1aORHQSnnEGhU87aqXHdOZkghNhPm8id4LStOdUPwoYSMKkCc2ACgIZ7rdO+ndXQrN8sxIlycBes80JPO44gmh+Pi6/1Gjw6eWTFSK2ndVd/lHM5MUadlteKdVFoAN9pz10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239446; c=relaxed/simple;
-	bh=w4BLC1MudiHcPmGqFZSLkig/NQJeVRSokP0YSeldeNk=;
-	h=Date:To:From:Subject:Message-Id; b=bHIEKCFUUzcaqRo8dEupcJHgY+lGf15YruzxkbpScG0hqLeME0kINbZZYcN65c30ps9GlOUsQISGy60ousqaxbX1O93TKbSehtjUbAEOjGf/fNwxKmfaihT4TRXeoBu0uY0q05qLNqxZcA0zd22JEvLvNDi53yIBpA+Kz6uyGKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PmoUVvJU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741239449; c=relaxed/simple;
+	bh=obpiEw14KF47SJUHEowbo6xpFnJa8gGe64tSBOi2S/g=;
+	h=Date:To:From:Subject:Message-Id; b=QSPEAiDaVvBwAReJUtzHcmoDxuoImCqI7ExZBO3r6eJtx3/RFWH5OWvtyXtjg2JfJtgiM2pFk1votthh1Ts3KDIF0OWZEq1WTkm3rQYLrFr4jdkGTLfw0wndNfTLBREPw8OOs8BM3SLjvdpPO5yFcn0ht2+0glOkWrHy++WfPgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YNggxEt3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PmoUVvJU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E434CC4CEE4;
-	Thu,  6 Mar 2025 05:37:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YNggxEt3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C94C4CEE4;
+	Thu,  6 Mar 2025 05:37:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239446;
-	bh=w4BLC1MudiHcPmGqFZSLkig/NQJeVRSokP0YSeldeNk=;
+	s=korg; t=1741239448;
+	bh=obpiEw14KF47SJUHEowbo6xpFnJa8gGe64tSBOi2S/g=;
 	h=Date:To:From:Subject:From;
-	b=PmoUVvJUjWmxDKsJMtAykH5OmyD6A6aeeXd6l5y4ayQZN/bZgtXG+uI/EtKiQ+fav
-	 +ksK3JCwk+iYMcIstHjarRr9dweOJ71Bhqgvs5LLFhKYog2kZ7+cEOO+ukcHCVGpOC
-	 dTTIsvH2EQhBlcFtcRHOxKrDnWTqBsJJ3dlgOqW0=
-Date: Wed, 05 Mar 2025 21:37:25 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,surenb@google.com,baohua@kernel.org,gaoxu2@honor.com,akpm@linux-foundation.org
+	b=YNggxEt3qRJYluV8+RA/B9jrgHhwVPhTd7Y4yFOLVLrftIASWPQ8abS8pF6vcXTsd
+	 RSkgf3ybRGOdeTpo2z98RZBKtpncoRRxiOhLc05dF9AsJ9bGVtwPA4Z2NElL2kahZZ
+	 cYAq/3EoUx7l4OJFfXRsHJ/93gKI3qFOjV2ZA0DI=
+Date: Wed, 05 Mar 2025 21:37:27 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch removed from -mm tree
-Message-Id: <20250306053725.E434CC4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch removed from -mm tree
+Message-Id: <20250306053728.65C94C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,126 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix possible NULL pointer dereference in __swap_duplicate
+     Subject: mm/hugetlb: wait for hugetlb folios to be freed
 has been removed from the -mm tree.  Its filename was
-     mm-fix-possible-null-pointer-dereference-in-__swap_duplicate.patch
+     mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: gao xu <gaoxu2@honor.com>
-Subject: mm: fix possible NULL pointer dereference in __swap_duplicate
-Date: Wed, 19 Feb 2025 01:56:28 +0000
+From: Ge Yang <yangge1116@126.com>
+Subject: mm/hugetlb: wait for hugetlb folios to be freed
+Date: Wed, 19 Feb 2025 11:46:44 +0800
 
-Add a NULL check on the return value of swp_swap_info in __swap_duplicate
-to prevent crashes caused by NULL pointer dereference.
+Since the introduction of commit c77c0a8ac4c52 ("mm/hugetlb: defer freeing
+of huge pages if in non-task context"), which supports deferring the
+freeing of hugetlb pages, the allocation of contiguous memory through
+cma_alloc() may fail probabilistically.
 
-The reason why swp_swap_info() returns NULL is unclear; it may be due
-to CPU cache issues or DDR bit flips.  The probability of this issue is
-very small - it has been observed to occur approximately 1 in 500,000
-times per week.  The stack info we encountered is as follows:
+In the CMA allocation process, if it is found that the CMA area is
+occupied by in-use hugetlb folios, these in-use hugetlb folios need to be
+migrated to another location.  When there are no available hugetlb folios
+in the free hugetlb pool during the migration of in-use hugetlb folios,
+new folios are allocated from the buddy system.  A temporary state is set
+on the newly allocated folio.  Upon completion of the hugetlb folio
+migration, the temporary state is transferred from the new folios to the
+old folios.  Normally, when the old folios with the temporary state are
+freed, it is directly released back to the buddy system.  However, due to
+the deferred freeing of hugetlb pages, the PageBuddy() check fails,
+ultimately leading to the failure of cma_alloc().
 
-Unable to handle kernel NULL pointer dereference at virtual address
-0000000000000058
-[RB/E]rb_sreason_str_set: sreason_str set null_pointer
-Mem abort info:
-  ESR = 0x0000000096000005
-  EC = 0x25: DABT (current EL), IL = 32 bits
-  SET = 0, FnV = 0
-  EA = 0, S1PTW = 0
-  FSC = 0x05: level 1 translation fault
-Data abort info:
-  ISV = 0, ISS = 0x00000005, ISS2 = 0x00000000
-  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
-user pgtable: 4k pages, 39-bit VAs, pgdp=00000008a80e5000
-[0000000000000058] pgd=0000000000000000, p4d=0000000000000000,
-pud=0000000000000000
-Internal error: Oops: 0000000096000005 [#1] PREEMPT SMP
-Skip md ftrace buffer dump for: 0x1609e0
-...
-pc : swap_duplicate+0x44/0x164
-lr : copy_page_range+0x508/0x1e78
-sp : ffffffc0f2a699e0
-x29: ffffffc0f2a699e0 x28: ffffff8a5b28d388 x27: ffffff8b06603388
-x26: ffffffdf7291fe70 x25: 0000000000000006 x24: 0000000000100073
-x23: 00000000002d2d2f x22: 0000000000000008 x21: 0000000000000000
-x20: 00000000002d2d2f x19: 18000000002d2d2f x18: ffffffdf726faec0
-x17: 0000000000000000 x16: 0010000000000001 x15: 0040000000000001
-x14: 0400000000000001 x13: ff7ffffffffffb7f x12: ffeffffffffffbff
-x11: ffffff8a5c7e1898 x10: 0000000000000018 x9 : 0000000000000006
-x8 : 1800000000000000 x7 : 0000000000000000 x6 : ffffff8057c01f10
-x5 : 000000000000a318 x4 : 0000000000000000 x3 : 0000000000000000
-x2 : 0000006daf200000 x1 : 0000000000000001 x0 : 18000000002d2d2f
-Call trace:
- swap_duplicate+0x44/0x164
- copy_page_range+0x508/0x1e78
- copy_process+0x1278/0x21cc
- kernel_clone+0x90/0x438
- __arm64_sys_clone+0x5c/0x8c
- invoke_syscall+0x58/0x110
- do_el0_svc+0x8c/0xe0
- el0_svc+0x38/0x9c
- el0t_64_sync_handler+0x44/0xec
- el0t_64_sync+0x1a8/0x1ac
-Code: 9139c35a 71006f3f 54000568 f8797b55 (f9402ea8)
----[ end trace 0000000000000000 ]---
-Kernel panic - not syncing: Oops: Fatal exception
-SMP: stopping secondary CPUs
+Here is a simplified call trace illustrating the process:
+cma_alloc()
+    ->__alloc_contig_migrate_range() // Migrate in-use hugetlb folios
+        ->unmap_and_move_huge_page()
+            ->folio_putback_hugetlb() // Free old folios
+    ->test_pages_isolated()
+        ->__test_page_isolated_in_pageblock()
+             ->PageBuddy(page) // Check if the page is in buddy
 
-The patch seems to only provide a workaround, but there are no more
-effective software solutions to handle the bit flips problem.  This path
-will change the issue from a system crash to a process exception, thereby
-reducing the impact on the entire machine.
+To resolve this issue, we have implemented a function named
+wait_for_freed_hugetlb_folios().  This function ensures that the hugetlb
+folios are properly released back to the buddy system after their
+migration is completed.  By invoking wait_for_freed_hugetlb_folios()
+before calling PageBuddy(), we ensure that PageBuddy() will succeed.
 
-akpm: this is probably a kernel bug, but this patch keeps the system
-running and doesn't reduce that bug's debuggability.
-
-Link: https://lkml.kernel.org/r/e223b0e6ba2f4924984b1917cc717bd5@honor.com
-Signed-off-by: gao xu <gaoxu2@honor.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Link: https://lkml.kernel.org/r/1739936804-18199-1-git-send-email-yangge1116@126.com
+Fixes: c77c0a8ac4c5 ("mm/hugetlb: defer freeing of huge pages if in non-task context")
+Signed-off-by: Ge Yang <yangge1116@126.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/hugetlb.h |    5 +++++
+ mm/hugetlb.c            |    8 ++++++++
+ mm/page_isolation.c     |   10 ++++++++++
+ 3 files changed, 23 insertions(+)
 
---- a/mm/swapfile.c~mm-fix-possible-null-pointer-dereference-in-__swap_duplicate
-+++ a/mm/swapfile.c
-@@ -3542,6 +3542,10 @@ static int __swap_duplicate(swp_entry_t
- 	int err, i;
+--- a/include/linux/hugetlb.h~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
++++ a/include/linux/hugetlb.h
+@@ -682,6 +682,7 @@ struct huge_bootmem_page {
  
- 	si = swp_swap_info(entry);
-+	if (WARN_ON_ONCE(!si)) {
-+		pr_err("%s%08lx\n", Bad_file, entry.val);
-+		return -EINVAL;
-+	}
+ int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
++void wait_for_freed_hugetlb_folios(void);
+ struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+ 				unsigned long addr, bool cow_from_owner);
+ struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
+@@ -1066,6 +1067,10 @@ static inline int replace_free_hugepage_
+ 	return 0;
+ }
  
- 	offset = swp_offset(entry);
- 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
++static inline void wait_for_freed_hugetlb_folios(void)
++{
++}
++
+ static inline struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+ 					   unsigned long addr,
+ 					   bool cow_from_owner)
+--- a/mm/hugetlb.c~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
++++ a/mm/hugetlb.c
+@@ -2943,6 +2943,14 @@ int replace_free_hugepage_folios(unsigne
+ 	return ret;
+ }
+ 
++void wait_for_freed_hugetlb_folios(void)
++{
++	if (llist_empty(&hpage_freelist))
++		return;
++
++	flush_work(&free_hpage_work);
++}
++
+ typedef enum {
+ 	/*
+ 	 * For either 0/1: we checked the per-vma resv map, and one resv
+--- a/mm/page_isolation.c~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
++++ a/mm/page_isolation.c
+@@ -608,6 +608,16 @@ int test_pages_isolated(unsigned long st
+ 	int ret;
+ 
+ 	/*
++	 * Due to the deferred freeing of hugetlb folios, the hugepage folios may
++	 * not immediately release to the buddy system. This can cause PageBuddy()
++	 * to fail in __test_page_isolated_in_pageblock(). To ensure that the
++	 * hugetlb folios are properly released back to the buddy system, we
++	 * invoke the wait_for_freed_hugetlb_folios() function to wait for the
++	 * release to complete.
++	 */
++	wait_for_freed_hugetlb_folios();
++
++	/*
+ 	 * Note: pageblock_nr_pages != MAX_PAGE_ORDER. Then, chunks of free
+ 	 * pages are not aligned to pageblock_nr_pages.
+ 	 * Then we just check migratetype first.
 _
 
-Patches currently in -mm which might be from gaoxu2@honor.com are
+Patches currently in -mm which might be from yangge1116@126.com are
 
 
