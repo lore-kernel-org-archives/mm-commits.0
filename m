@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B85E1F63F0
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BED6A20764B
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297101; cv=none; b=LoDGm5ojtteg4Niv2f2KhaP/5BEmlGDW2tATC0YZywaXI0JT92avnpF1P/ILr9GF0FaQ4lzJv3q3K8jZecQa87rkrjdI6rRYWlYVD8lzRxQDqcmwgZkkRh2oCTycWDEK4BZJpwcp2XPxwFHi5Gq4vwU57ULkUJvm0sQji+beTkw=
+	t=1741297102; cv=none; b=o/6cBcy3njZDDti2nJqPb9EiLtehDaAtRUorFDYRaa1Odf38u1WYgMwfq2S3uD48PWduGJIzJHHs9SZAwpPuhXmBvvpgNJhGvDr+QPJNRfq22moHiP1g1UfPl/dM6IaZX0rYZ/xe49TVdMUQ+Znn6kTxDWEEimAB0Pq3MNIIOhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297101; c=relaxed/simple;
-	bh=b4Ec58T//YNwaLRk9+Y5Oc+aeSZ1rAeuEhgVpSiftF0=;
-	h=Date:To:From:Subject:Message-Id; b=kh08rKabhE9ZFVV/+uQjpL+nGVTQsUEBw0+qBje+UnfDy5Itzzu4oZ4PZemW5JCdaocPJ/CYymtbrHFX99SRrinzZTa3/27+y5MPSCHcDQHBvUSpHL8filrNmUMsA2f0CI3mjOvdEaQPNNE9CVmz1vW1Ylh5tmhCGb806wPY/nA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y7C7Ihy8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297102; c=relaxed/simple;
+	bh=zwutTK+/k7fYRvWcyOtMSutzBu+TNT+ZjDuRzrp5dh8=;
+	h=Date:To:From:Subject:Message-Id; b=WnKChl9kBVBoBQUceP25Ofa9sJ5+hz3c95PmJhluBzY3pyDVtNgcevcMthmDKhPsu6Cb0Kj6oS66z+WMH52pBjCBVicNxGaLm4sa0HQW0LF7PzbP4XQRUfnJH9C2WhQZqCBhVstJmM86LDHCdbjoeZSW8bu4dMt42zsen8gUK5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xwev5Zjv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y7C7Ihy8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2665C4CEE0;
-	Thu,  6 Mar 2025 21:38:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xwev5Zjv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22B5CC4CEE0;
+	Thu,  6 Mar 2025 21:38:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297101;
-	bh=b4Ec58T//YNwaLRk9+Y5Oc+aeSZ1rAeuEhgVpSiftF0=;
+	s=korg; t=1741297102;
+	bh=zwutTK+/k7fYRvWcyOtMSutzBu+TNT+ZjDuRzrp5dh8=;
 	h=Date:To:From:Subject:From;
-	b=y7C7Ihy8VzS6Vt6rn5tW6GF0WSrKfeS1s1UzYirfGMiZHAsHx3FVoHirlj8CaY/Nx
-	 8HfWHYysmFfjshrF1Iqe4f7x3o3NwexPtUCkiZopJZ9529VwWfT16Q6tPDg7ekJlvR
-	 TtNPoeKp7HDolPpJ48gXJf/gyCIYEQe0B8twKrpY=
-Date: Thu, 06 Mar 2025 13:38:20 -0800
+	b=xwev5ZjvpGgMxHirQCzjdYMQf+Uh54YmIBm2B1FfwXHbqKHrrHLsHl68VNNA7d6/X
+	 z11T5II3Hc9g8ESIuDN8536hcUj4n0+xoXeJXZ3VZF3XoGZNhdEzdwgjNkzOQkRKIk
+	 iwJo8Vb9vxlPOgYYFKwPj2FxiLBV6s7rqEZ1fw8c=
+Date: Thu, 06 Mar 2025 13:38:21 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch added to mm-unstable branch
-Message-Id: <20250306213820.E2665C4CEE0@smtp.kernel.org>
+Subject: + mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch added to mm-unstable branch
+Message-Id: <20250306213822.22B5CC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: validate user inputs from damon_sysfs_commit_input()
+     Subject: mm/damon/core: invoke kdamond_call() after merging is done if possible
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
+     mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,100 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: validate user inputs from damon_sysfs_commit_input()
-Date: Thu, 6 Mar 2025 09:58:56 -0800
+Subject: mm/damon/core: invoke kdamond_call() after merging is done if possible
+Date: Thu, 6 Mar 2025 09:58:57 -0800
 
-Patch series "mm/damon/sysfs: commit parameters online via damon_call()".
+kdamond_call() callers may iterate the regions, so better to call it when
+the number of regions is as small as possible.  It is when
+kdamond_merge_regions() is finished.  Invoke it on the point.
 
-Due to the lack of ways to synchronously access DAMON internal data, DAMON
-sysfs interface is using damon_callback hooks with its own synchronization
-mechanism.  The mechanism is built on top of damon_callback hooks in an
-ineifficient and complicated way.
+This change is also aimed to make future changes for carrying online
+parameters commit with damon_call() easier.  The commit operation should
+be able to make sequence between other aggregation interval based
+operations including regioins merging and aggregation reset.  Placing
+damon_call() invocation after the regions merging makes the sequence
+handling simpler.
 
-Patch series "mm/damon: replace most damon_callback usages in sysfs with
-new core functions", which starts with commit e035320fd38e
-("mm/damon/sysfs-schemes: remove unnecessary schemes existence check in
-damon_sysfs_schemes_clear_regions()") introduced two new DAMON kernel API
-functions that providing the synchronous access, replaced most
-damon_callback hooks usage in DAMON sysfs interface, and cleaned up
-unnecessary code.
-
-Continue the replacement and cleanup works.  Update the last DAMON sysfs'
-usage of its own synchronization mechanism, namely online DAMON parameters
-commit, to use damon_call() instead of the damon_callback hooks and the
-hard-to-maintain core-external synchronization mechanism.  Then remove the
-no more be used code due to the change, and more unused code that just not
-yet cleaned up.
-
-The first four patches (patches 1-4) of this series makes DAMON sysfs
-interface's online parameters commit to use damon_call().  Then, following
-three patches (patches 5-7) remove the DAMON sysfs interface's own
-synchronization mechanism and its usages, which is no more be used by
-anyone due to the first four patches.  Finally, six patches (8-13) do more
-cleanup of outdated comment and unused code.
-
-
-This patch (of 13):
-
-Online DAMON parameters commit via DAMON sysfs interface can make kdamond
-stop.  This behavior was made because it can make the implementation
-simpler.  The implementation tries committing the parameter without
-validation.  If it finds something wrong in the middle of the parameters
-update, it returns error without reverting the partially committed
-parameters back.  It is safe though, since it immediately breaks kdamond
-main loop in the case of the error return.
-
-Users can make the wrong parameters by mistake, though.  Stopping kdamond
-in the case is not very useful behavior.  Also this makes it difficult to
-utilize damon_call() instead of damon_callback hook for online parameters
-update, since damon_call() cannot immediately break kdamond main loop in
-the middle.
-
-Validate the input parameters and return error when it fails before
-starting parameters updates.  In case of mistakenly wrong parameters,
-kdamond can continue running with the old and valid parameters.
-
-Link: https://lkml.kernel.org/r/20250306175908.66300-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250306175908.66300-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/damon/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input
-+++ a/mm/damon/sysfs.c
-@@ -1449,11 +1449,11 @@ static struct damon_ctx *damon_sysfs_bui
-  * damon_sysfs_commit_input() - Commit user inputs to a running kdamond.
-  * @kdamond:	The kobject wrapper for the associated kdamond.
-  *
-- * If the sysfs input is wrong, the kdamond will be terminated.
-+ * Returns error if the sysfs input is wrong.
-  */
- static int damon_sysfs_commit_input(struct damon_sysfs_kdamond *kdamond)
- {
--	struct damon_ctx *param_ctx;
-+	struct damon_ctx *param_ctx, *test_ctx;
- 	int err;
+--- a/mm/damon/core.c~mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible
++++ a/mm/damon/core.c
+@@ -2420,7 +2420,6 @@ static int kdamond_fn(void *data)
+ 		if (ctx->callback.after_sampling &&
+ 				ctx->callback.after_sampling(ctx))
+ 			break;
+-		kdamond_call(ctx, false);
  
- 	if (!damon_sysfs_kdamond_running(kdamond))
-@@ -1465,7 +1465,15 @@ static int damon_sysfs_commit_input(stru
- 	param_ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
- 	if (IS_ERR(param_ctx))
- 		return PTR_ERR(param_ctx);
-+	test_ctx = damon_new_ctx();
-+	err = damon_commit_ctx(test_ctx, param_ctx);
-+	if (err) {
-+		damon_sysfs_destroy_targets(test_ctx);
-+		damon_destroy_ctx(test_ctx);
-+		goto out;
-+	}
- 	err = damon_commit_ctx(kdamond->damon_ctx, param_ctx);
-+out:
- 	damon_sysfs_destroy_targets(param_ctx);
- 	damon_destroy_ctx(param_ctx);
- 	return err;
+ 		kdamond_usleep(sample_interval);
+ 		ctx->passed_sample_intervals++;
+@@ -2438,9 +2437,10 @@ static int kdamond_fn(void *data)
+ 		}
+ 
+ 		/*
+-		 * do kdamond_apply_schemes() after kdamond_merge_regions() if
+-		 * possible, to reduce overhead
++		 * do kdamond_call() and kdamond_apply_schemes() after
++		 * kdamond_merge_regions() if possible, to reduce overhead
+ 		 */
++		kdamond_call(ctx, false);
+ 		if (!list_empty(&ctx->schemes))
+ 			kdamond_apply_schemes(ctx);
+ 		else
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
