@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1466029CF0;
-	Thu,  6 Mar 2025 05:37:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D523029CF0
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 05:37:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239455; cv=none; b=DCwptZTA5EzguxtcZlWZYnJuh7BIFMYmKL1wAwVw1sh1VrW0ImywkRkvAVa0rflAlNyDS+gjHVTvfm3mXoRqqQP9rjyB8lf8MZdwgtVDgAOUsQwU+83qiASYXXRr9lcTi177p15Lt42lkPSaXeVYdyj4hQ05iCZGqEq0IWTUN9s=
+	t=1741239457; cv=none; b=gRtnuVfIHw5tpNVVzVGvxr7dNoYbNnk8QWtISQRMTLyg+KjsoKM4AWZskiWzh5rEKHJAetrRVcGa5CqNl6uUZBPq/392PokX2HdELavcaox61+B+VBiyk6l//kTS/Kj0Rh5/10gCXcMoo5jfHPS0JRXpZlFJLrh36/IATgM4jjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239455; c=relaxed/simple;
-	bh=1jg6giIZcpOQ54WNpMzlcKpBDWP/7S85MFGyS0t6Etc=;
-	h=Date:To:From:Subject:Message-Id; b=QyF97QCDUNzMr1wm8ymY+aiMAp237zhwe+56EUe5nqhduEvUrr06iyvBAaqdzd22lob9pxFHzxiVqIBX0lvDy1pkYk7LAwTT763AHJrRaut15jSwwrxv2+WItxh7ZzO7oozj7oNBfXM1tisUeVu0dntles3p6ZZoM77EFYmlvq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HGyY/ucn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741239457; c=relaxed/simple;
+	bh=vjFdWe5O58wA5jGZwOms8+Bjz5weDRUdUpxVlDJUwIE=;
+	h=Date:To:From:Subject:Message-Id; b=KpBX71wQKNfZ7TQc0FeKmFmAR5Rupw+3sxBe5bQZYhFieASc0G3ae+6Vq3zinCtUkTaPLzdhcaiK2lWAr53WBvXkvf7I/1zaEETMqUM0fvr+6DD19wA2ciHp4OgCUwHHSoLKEK/5QnlckzgNDT8iK7WD4OXZyYCumijjrSjGOa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aFeqyyGo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HGyY/ucn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED46C4CEE4;
-	Thu,  6 Mar 2025 05:37:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aFeqyyGo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 496F1C4CEE4;
+	Thu,  6 Mar 2025 05:37:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239455;
-	bh=1jg6giIZcpOQ54WNpMzlcKpBDWP/7S85MFGyS0t6Etc=;
+	s=korg; t=1741239457;
+	bh=vjFdWe5O58wA5jGZwOms8+Bjz5weDRUdUpxVlDJUwIE=;
 	h=Date:To:From:Subject:From;
-	b=HGyY/ucnWMZ2DMD6/gqLRnekKNTOnC95QDzu3CyxsDvKoFwJ2VtHtNyygUbCwYarA
-	 v8YIieD5MwCZVM/4NS0cUc8RZUZDfSATki1PkL68KNqitEaXuO8Dp/8BTqjHuTJEqM
-	 lPfXtbyH+6TupHvZIasRMBc7hecveicAXjmR+L5s=
-Date: Wed, 05 Mar 2025 21:37:34 -0800
-To: mm-commits@vger.kernel.org,trond.myklebust@hammerspace.com,stable@vger.kernel.org,anna.schumaker@oracle.com,snitzer@kernel.org,akpm@linux-foundation.org
+	b=aFeqyyGoFHBudcv7cTbR08pgn9CGBtXdI9be/xT/r5Mdivk8NDp5EQA36g0TQnwrY
+	 5m+lUuYmKl7saKxemWPkmB7sKXRncVE+a7y5JensgCiskID2Tl+8x6DIhhNpCfae4E
+	 xLshl35RSn0gFOgYLu3DtTgeBjNkcyX1H1ddsPLk=
+Date: Wed, 05 Mar 2025 21:37:36 -0800
+To: mm-commits@vger.kernel.org,seanjc@google.com,pbonzini@redhat.com,binbin.wu@linux.intel.com,suhui@nfschina.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback.patch removed from -mm tree
-Message-Id: <20250306053734.DED46C4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch removed from -mm tree
+Message-Id: <20250306053737.496F1C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: NFS: fix nfs_release_folio() to not deadlock via kcompactd writeback
+     Subject: include/linux/log2.h: mark is_power_of_2() with __always_inline
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback.patch
+     include-linux-log2h-mark-is_power_of_2-with-__always_inline.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Snitzer <snitzer@kernel.org>
-Subject: NFS: fix nfs_release_folio() to not deadlock via kcompactd writeback
-Date: Mon, 24 Feb 2025 21:20:02 -0500
+From: Su Hui <suhui@nfschina.com>
+Subject: include/linux/log2.h: mark is_power_of_2() with __always_inline
+Date: Fri, 21 Feb 2025 15:16:25 +0800
 
-Add PF_KCOMPACTD flag and current_is_kcompactd() helper to check for it so
-nfs_release_folio() can skip calling nfs_wb_folio() from kcompactd.
+When building kernel with randconfig, there is an error:
 
-Otherwise NFS can deadlock waiting for kcompactd enduced writeback which
-recurses back to NFS (which triggers writeback to NFSD via NFS loopback
-mount on the same host, NFSD blocks waiting for XFS's call to
-__filemap_get_folio):
+In function `kvm_is_cr4_bit_set',inlined from
+`kvm_update_cpuid_runtime' at arch/x86/kvm/cpuid.c:310:9:
 
-6070.550357] INFO: task kcompactd0:58 blocked for more than 4435 seconds.
+include/linux/compiler_types.h:542:38: error: call to
+`__compiletime_assert_380' declared with attribute error:
+BUILD_BUG_ON failed: !is_power_of_2(cr4_bit).
 
-{---
-[58] "kcompactd0"
-[<0>] folio_wait_bit+0xe8/0x200
-[<0>] folio_wait_writeback+0x2b/0x80
-[<0>] nfs_wb_folio+0x80/0x1b0 [nfs]
-[<0>] nfs_release_folio+0x68/0x130 [nfs]
-[<0>] split_huge_page_to_list_to_order+0x362/0x840
-[<0>] migrate_pages_batch+0x43d/0xb90
-[<0>] migrate_pages_sync+0x9a/0x240
-[<0>] migrate_pages+0x93c/0x9f0
-[<0>] compact_zone+0x8e2/0x1030
-[<0>] compact_node+0xdb/0x120
-[<0>] kcompactd+0x121/0x2e0
-[<0>] kthread+0xcf/0x100
-[<0>] ret_from_fork+0x31/0x40
-[<0>] ret_from_fork_asm+0x1a/0x30
----}
+'!is_power_of_2(X86_CR4_OSXSAVE)' is False, but gcc treats is_power_of_2()
+as non-inline function and a compilation error happens. Fix this by marking
+is_power_of_2() with __always_inline.
 
-[akpm@linux-foundation.org: fix build]
-Link: https://lkml.kernel.org/r/20250225022002.26141-1-snitzer@kernel.org
-Fixes: 96780ca55e3c ("NFS: fix up nfs_release_folio() to try to release the page")
-Signed-off-by: Mike Snitzer <snitzer@kernel.org>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250221071624.1356899-1-suhui@nfschina.com
+Signed-off-by: Su Hui <suhui@nfschina.com>
+Cc: Binbin Wu <binbin.wu@linux.intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c              |    3 ++-
- include/linux/compaction.h |    5 +++++
- include/linux/sched.h      |    2 +-
- mm/compaction.c            |    3 +++
- 4 files changed, 11 insertions(+), 2 deletions(-)
+ include/linux/log2.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nfs/file.c~nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback
-+++ a/fs/nfs/file.c
-@@ -29,6 +29,7 @@
- #include <linux/pagemap.h>
- #include <linux/gfp.h>
- #include <linux/swap.h>
-+#include <linux/compaction.h>
- 
- #include <linux/uaccess.h>
- #include <linux/filelock.h>
-@@ -457,7 +458,7 @@ static bool nfs_release_folio(struct fol
- 	/* If the private flag is set, then the folio is not freeable */
- 	if (folio_test_private(folio)) {
- 		if ((current_gfp_context(gfp) & GFP_KERNEL) != GFP_KERNEL ||
--		    current_is_kswapd())
-+		    current_is_kswapd() || current_is_kcompactd())
- 			return false;
- 		if (nfs_wb_folio(folio->mapping->host, folio) < 0)
- 			return false;
---- a/include/linux/compaction.h~nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback
-+++ a/include/linux/compaction.h
-@@ -80,6 +80,11 @@ static inline unsigned long compact_gap(
- 	return 2UL << order;
- }
- 
-+static inline int current_is_kcompactd(void)
-+{
-+	return current->flags & PF_KCOMPACTD;
-+}
-+
- #ifdef CONFIG_COMPACTION
- 
- extern unsigned int extfrag_for_order(struct zone *zone, unsigned int order);
---- a/include/linux/sched.h~nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback
-+++ a/include/linux/sched.h
-@@ -1701,7 +1701,7 @@ extern struct pid *cad_pid;
- #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
- #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
- #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
--#define PF__HOLE__00010000	0x00010000
-+#define PF_KCOMPACTD		0x00010000	/* I am kcompactd */
- #define PF_KSWAPD		0x00020000	/* I am kswapd */
- #define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
- #define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
---- a/mm/compaction.c~nfs-fix-nfs_release_folio-to-not-deadlock-via-kcompactd-writeback
-+++ a/mm/compaction.c
-@@ -3181,6 +3181,7 @@ static int kcompactd(void *p)
- 	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
- 	long timeout = default_timeout;
- 
-+	current->flags |= PF_KCOMPACTD;
- 	set_freezable();
- 
- 	pgdat->kcompactd_max_order = 0;
-@@ -3237,6 +3238,8 @@ static int kcompactd(void *p)
- 			pgdat->proactive_compact_trigger = false;
- 	}
- 
-+	current->flags &= ~PF_KCOMPACTD;
-+
- 	return 0;
- }
- 
+--- a/include/linux/log2.h~include-linux-log2h-mark-is_power_of_2-with-__always_inline
++++ a/include/linux/log2.h
+@@ -41,7 +41,7 @@ int __ilog2_u64(u64 n)
+  * *not* considered a power of two.
+  * Return: true if @n is a power of 2, otherwise false.
+  */
+-static inline __attribute__((const))
++static __always_inline __attribute__((const))
+ bool is_power_of_2(unsigned long n)
+ {
+ 	return (n != 0 && ((n & (n - 1)) == 0));
 _
 
-Patches currently in -mm which might be from snitzer@kernel.org are
+Patches currently in -mm which might be from suhui@nfschina.com are
 
 
