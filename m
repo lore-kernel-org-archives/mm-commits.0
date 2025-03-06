@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AB91207A0E
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:10:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B85E1F63F0
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741295457; cv=none; b=OFAng8esjrYtKBRVj0W+KjdUSkVsdNW/Mnw3x+VS74bphBcdzcn9fgU52oqrJC8PVvkzQEAN9quAiPYDNcq6kzaCaWcctgNn3eMrX+tYXjfjZ15s+quZmspZULxFM1PdU9Isl0Ev6EZXKknzeRDZvnOm0o+8U7ivD6K8z/am/0Y=
+	t=1741297101; cv=none; b=LoDGm5ojtteg4Niv2f2KhaP/5BEmlGDW2tATC0YZywaXI0JT92avnpF1P/ILr9GF0FaQ4lzJv3q3K8jZecQa87rkrjdI6rRYWlYVD8lzRxQDqcmwgZkkRh2oCTycWDEK4BZJpwcp2XPxwFHi5Gq4vwU57ULkUJvm0sQji+beTkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741295457; c=relaxed/simple;
-	bh=zzJFR9e/sQo804InZOOYKtd52ENu6CvjI5KMyayBqY4=;
-	h=Date:To:From:Subject:Message-Id; b=rgRvLIFvtgBd2mLzuuoZt58M0B/vqMs7nALhSsuE2Q7vND2xnaWts68/13r2VaFF2Hvfd5EI+oRzpqDcbFSFeQXcYAJLVVjb6daKqse9vNWN3EL2OCKT80wdkNf7K31tVacYxsV8rNjKBUl9FCMEjbbn4C049vWTVVcx3pcc/T8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cGOv6gnG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297101; c=relaxed/simple;
+	bh=b4Ec58T//YNwaLRk9+Y5Oc+aeSZ1rAeuEhgVpSiftF0=;
+	h=Date:To:From:Subject:Message-Id; b=kh08rKabhE9ZFVV/+uQjpL+nGVTQsUEBw0+qBje+UnfDy5Itzzu4oZ4PZemW5JCdaocPJ/CYymtbrHFX99SRrinzZTa3/27+y5MPSCHcDQHBvUSpHL8filrNmUMsA2f0CI3mjOvdEaQPNNE9CVmz1vW1Ylh5tmhCGb806wPY/nA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y7C7Ihy8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cGOv6gnG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75228C4CEE0;
-	Thu,  6 Mar 2025 21:10:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y7C7Ihy8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2665C4CEE0;
+	Thu,  6 Mar 2025 21:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741295456;
-	bh=zzJFR9e/sQo804InZOOYKtd52ENu6CvjI5KMyayBqY4=;
+	s=korg; t=1741297101;
+	bh=b4Ec58T//YNwaLRk9+Y5Oc+aeSZ1rAeuEhgVpSiftF0=;
 	h=Date:To:From:Subject:From;
-	b=cGOv6gnGU34ktof2zWGkV0GURMVbOkjzHXLZlfr8oScnDyHUjXNlzmjzAf4vB3h+/
-	 UwiInmQZcdWz0XQ5/r4YfdWHXKmPgn82v3VTHbsYPjMzWp1iSpbYepXO5O80lz9GtL
-	 mQwfBW46zG5dIF7fvNHFaDwN/DQAEZkz4O1mXFWs=
-Date: Thu, 06 Mar 2025 13:10:55 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,willy@infradead.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=y7C7Ihy8VzS6Vt6rn5tW6GF0WSrKfeS1s1UzYirfGMiZHAsHx3FVoHirlj8CaY/Nx
+	 8HfWHYysmFfjshrF1Iqe4f7x3o3NwexPtUCkiZopJZ9529VwWfT16Q6tPDg7ekJlvR
+	 TtNPoeKp7HDolPpJ48gXJf/gyCIYEQe0B8twKrpY=
+Date: Thu, 06 Mar 2025 13:38:20 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch added to mm-unstable branch
-Message-Id: <20250306211056.75228C4CEE0@smtp.kernel.org>
+Subject: + mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch added to mm-unstable branch
+Message-Id: <20250306213820.E2665C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: page_io: zswap: do not crash the kernel on decompression failure
+     Subject: mm/damon/sysfs: validate user inputs from damon_sysfs_commit_input()
 has been added to the -mm mm-unstable branch.  Its filename is
-     page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
+     mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,323 +58,160 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: page_io: zswap: do not crash the kernel on decompression failure
-Date: Thu, 6 Mar 2025 12:50:10 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: validate user inputs from damon_sysfs_commit_input()
+Date: Thu, 6 Mar 2025 09:58:56 -0800
 
-Currently, we crash the kernel when a decompression failure occurs in
-zswap (either because of memory corruption, or a bug in the compression
-algorithm).  This is overkill.  We should only SIGBUS the unfortunate
-process asking for the zswap entry on zswap load, and skip the corrupted
-entry in zswap writeback.
+Patch series "mm/damon/sysfs: commit parameters online via damon_call()".
 
-See [1] for a recent upstream discussion about this.
+Due to the lack of ways to synchronously access DAMON internal data, DAMON
+sysfs interface is using damon_callback hooks with its own synchronization
+mechanism.  The mechanism is built on top of damon_callback hooks in an
+ineifficient and complicated way.
 
-The zswap writeback case is relatively straightforward to fix.  For the
-zswap_load() case, we change the return behavior:
+Patch series "mm/damon: replace most damon_callback usages in sysfs with
+new core functions", which starts with commit e035320fd38e
+("mm/damon/sysfs-schemes: remove unnecessary schemes existence check in
+damon_sysfs_schemes_clear_regions()") introduced two new DAMON kernel API
+functions that providing the synchronous access, replaced most
+damon_callback hooks usage in DAMON sysfs interface, and cleaned up
+unnecessary code.
 
-* Return 0 on success.
-* Return -ENOENT (with the folio locked) if zswap does not own the
-  swapped out content.
-* Return -EIO if zswap owns the swapped out content, but encounters a
-  decompression failure for some reasons. The folio will be unlocked,
-  but not be marked up-to-date, which will eventually cause the process
-  requesting the page to SIGBUS (see the handling of not-up-to-date
-  folio in do_swap_page() in mm/memory.c), without crashing the kernel.
-* Return -EINVAL if we encounter a large folio, as large folio should
-  not be swapped in while zswap is being used. Similar to the -EIO case,
-  we also unlock the folio but do not mark it as up-to-date to SIGBUS
-  the faulting process.
+Continue the replacement and cleanup works.  Update the last DAMON sysfs'
+usage of its own synchronization mechanism, namely online DAMON parameters
+commit, to use damon_call() instead of the damon_callback hooks and the
+hard-to-maintain core-external synchronization mechanism.  Then remove the
+no more be used code due to the change, and more unused code that just not
+yet cleaned up.
 
-As a side effect, we require one extra zswap tree traversal in the load
-and writeback paths.  Quick benchmarking on a kernel build test shows no
-performance difference:
+The first four patches (patches 1-4) of this series makes DAMON sysfs
+interface's online parameters commit to use damon_call().  Then, following
+three patches (patches 5-7) remove the DAMON sysfs interface's own
+synchronization mechanism and its usages, which is no more be used by
+anyone due to the first four patches.  Finally, six patches (8-13) do more
+cleanup of outdated comment and unused code.
 
-With the new scheme:
-real: mean: 125.1s, stdev: 0.12s
-user: mean: 3265.23s, stdev: 9.62s
-sys: mean: 2156.41s, stdev: 13.98s
 
-The old scheme:
-real: mean: 125.78s, stdev: 0.45s
-user: mean: 3287.18s, stdev: 5.95s
-sys: mean: 2177.08s, stdev: 26.52s
+This patch (of 13):
 
-Link: https://lore.kernel.org/all/ZsiLElTykamcYZ6J@casper.infradead.org/ [1]
-Link: https://lkml.kernel.org/r/20250306205011.784787-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Online DAMON parameters commit via DAMON sysfs interface can make kdamond
+stop.  This behavior was made because it can make the implementation
+simpler.  The implementation tries committing the parameter without
+validation.  If it finds something wrong in the middle of the parameters
+update, it returns error without reverting the partially committed
+parameters back.  It is safe though, since it immediately breaks kdamond
+main loop in the case of the error return.
+
+Users can make the wrong parameters by mistake, though.  Stopping kdamond
+in the case is not very useful behavior.  Also this makes it difficult to
+utilize damon_call() instead of damon_callback hook for online parameters
+update, since damon_call() cannot immediately break kdamond main loop in
+the middle.
+
+Validate the input parameters and return error when it fails before
+starting parameters updates.  In case of mistakenly wrong parameters,
+kdamond can continue running with the old and valid parameters.
+
+Link: https://lkml.kernel.org/r/20250306175908.66300-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    6 +-
- mm/page_io.c          |    6 +-
- mm/zswap.c            |  118 +++++++++++++++++++++++++++-------------
- 3 files changed, 87 insertions(+), 43 deletions(-)
+ mm/damon/sysfs.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/include/linux/zswap.h~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
-+++ a/include/linux/zswap.h
-@@ -26,7 +26,7 @@ struct zswap_lruvec_state {
- 
- unsigned long zswap_total_pages(void);
- bool zswap_store(struct folio *folio);
--bool zswap_load(struct folio *folio);
-+int zswap_load(struct folio *folio);
- void zswap_invalidate(swp_entry_t swp);
- int zswap_swapon(int type, unsigned long nr_pages);
- void zswap_swapoff(int type);
-@@ -44,9 +44,9 @@ static inline bool zswap_store(struct fo
- 	return false;
- }
- 
--static inline bool zswap_load(struct folio *folio)
-+static inline int zswap_load(struct folio *folio)
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input
++++ a/mm/damon/sysfs.c
+@@ -1449,11 +1449,11 @@ static struct damon_ctx *damon_sysfs_bui
+  * damon_sysfs_commit_input() - Commit user inputs to a running kdamond.
+  * @kdamond:	The kobject wrapper for the associated kdamond.
+  *
+- * If the sysfs input is wrong, the kdamond will be terminated.
++ * Returns error if the sysfs input is wrong.
+  */
+ static int damon_sysfs_commit_input(struct damon_sysfs_kdamond *kdamond)
  {
--	return false;
-+	return -ENOENT;
- }
+-	struct damon_ctx *param_ctx;
++	struct damon_ctx *param_ctx, *test_ctx;
+ 	int err;
  
- static inline void zswap_invalidate(swp_entry_t swp) {}
---- a/mm/page_io.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
-+++ a/mm/page_io.c
-@@ -638,11 +638,11 @@ void swap_read_folio(struct folio *folio
- 	if (swap_read_folio_zeromap(folio)) {
- 		folio_unlock(folio);
- 		goto finish;
--	} else if (zswap_load(folio)) {
--		folio_unlock(folio);
--		goto finish;
- 	}
- 
-+	if (zswap_load(folio) != -ENOENT)
-+		goto finish;
-+
- 	/* We have to read from slower devices. Increase zswap protection. */
- 	zswap_folio_swapin(folio);
- 
---- a/mm/zswap.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
-+++ a/mm/zswap.c
-@@ -62,6 +62,8 @@ static u64 zswap_reject_reclaim_fail;
- static u64 zswap_reject_compress_fail;
- /* Compressed page was too big for the allocator to (optimally) store */
- static u64 zswap_reject_compress_poor;
-+/* Load or writeback failed due to decompression failure */
-+static u64 zswap_decompress_fail;
- /* Store failed because underlying allocator could not get memory */
- static u64 zswap_reject_alloc_fail;
- /* Store failed because the entry metadata could not be allocated (rare) */
-@@ -985,11 +987,12 @@ unlock:
- 	return comp_ret == 0 && alloc_ret == 0;
- }
- 
--static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
-+static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
- {
- 	struct zpool *zpool = entry->pool->zpool;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
-+	int decomp_ret, dlen;
- 	u8 *src, *obj;
- 
- 	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
-@@ -1012,11 +1015,21 @@ static void zswap_decompress(struct zswa
- 	sg_init_table(&output, 1);
- 	sg_set_folio(&output, folio, PAGE_SIZE, 0);
- 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
--	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
--	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
-+	decomp_ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
-+	dlen = acomp_ctx->req->dlen;
- 
- 	zpool_obj_read_end(zpool, entry->handle, obj);
- 	acomp_ctx_put_unlock(acomp_ctx);
-+
-+	if (!decomp_ret && dlen == PAGE_SIZE)
-+		return true;
-+
-+	zswap_decompress_fail++;
-+	pr_alert_ratelimited("Decompression error from zswap (%d:%lu %s %u->%d)\n",
-+						swp_type(entry->swpentry),
-+						swp_offset(entry->swpentry),
-+						entry->pool->tfm_name, entry->length, dlen);
-+	return false;
- }
- 
- /*********************************
-@@ -1046,6 +1059,7 @@ static int zswap_writeback_entry(struct
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_NONE,
- 	};
-+	int ret = 0;
- 
- 	/* try to allocate swap cache folio */
- 	si = get_swap_device(swpentry);
-@@ -1067,8 +1081,8 @@ static int zswap_writeback_entry(struct
- 	 * and freed when invalidated by the concurrent shrinker anyway.
- 	 */
- 	if (!folio_was_allocated) {
--		folio_put(folio);
--		return -EEXIST;
-+		ret = -EEXIST;
-+		goto out;
- 	}
- 
- 	/*
-@@ -1081,14 +1095,17 @@ static int zswap_writeback_entry(struct
- 	 * be dereferenced.
- 	 */
- 	tree = swap_zswap_tree(swpentry);
--	if (entry != xa_cmpxchg(tree, offset, entry, NULL, GFP_KERNEL)) {
--		delete_from_swap_cache(folio);
--		folio_unlock(folio);
--		folio_put(folio);
--		return -ENOMEM;
-+	if (entry != xa_load(tree, offset)) {
-+		ret = -ENOMEM;
-+		goto out;
- 	}
- 
--	zswap_decompress(entry, folio);
-+	if (!zswap_decompress(entry, folio)) {
-+		ret = -EIO;
+ 	if (!damon_sysfs_kdamond_running(kdamond))
+@@ -1465,7 +1465,15 @@ static int damon_sysfs_commit_input(stru
+ 	param_ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
+ 	if (IS_ERR(param_ctx))
+ 		return PTR_ERR(param_ctx);
++	test_ctx = damon_new_ctx();
++	err = damon_commit_ctx(test_ctx, param_ctx);
++	if (err) {
++		damon_sysfs_destroy_targets(test_ctx);
++		damon_destroy_ctx(test_ctx);
 +		goto out;
 +	}
-+
-+	xa_erase(tree, offset);
- 
- 	count_vm_event(ZSWPWB);
- 	if (entry->objcg)
-@@ -1104,9 +1121,14 @@ static int zswap_writeback_entry(struct
- 
- 	/* start writeback */
- 	__swap_writepage(folio, &wbc);
--	folio_put(folio);
- 
--	return 0;
+ 	err = damon_commit_ctx(kdamond->damon_ctx, param_ctx);
 +out:
-+	if (ret && ret != -EEXIST) {
-+		delete_from_swap_cache(folio);
-+		folio_unlock(folio);
-+	}
-+	folio_put(folio);
-+	return ret;
- }
- 
- /*********************************
-@@ -1606,7 +1628,26 @@ check_old:
- 	return ret;
- }
- 
--bool zswap_load(struct folio *folio)
-+/**
-+ * zswap_load() - load a page from zswap
-+ * @folio: folio to load
-+ *
-+ * Return: 0 on success, or one of the following error codes:
-+ *
-+ *  -EIO: if the swapped out content was in zswap, but could not be loaded
-+ *  into the page due to a decompression failure. The folio is unlocked, but
-+ *  NOT marked up-to-date, so that an IO error is emitted (e.g. do_swap_page()
-+ *  will SIGBUS).
-+ *
-+ *  -EINVAL: if the swapped out content was in zswap, but the page belongs
-+ *  to a large folio, which is not supported by zswap. The folio is unlocked,
-+ *  but NOT marked up-to-date, so that an IO error is emitted (e.g.
-+ *  do_swap_page() will SIGBUS).
-+ *
-+ *  -ENOENT: if the swapped out content was not in zswap. The folio remains
-+ *  locked on return.
-+ */
-+int zswap_load(struct folio *folio)
- {
- 	swp_entry_t swp = folio->swap;
- 	pgoff_t offset = swp_offset(swp);
-@@ -1617,18 +1658,32 @@ bool zswap_load(struct folio *folio)
- 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
- 
- 	if (zswap_never_enabled())
--		return false;
-+		return -ENOENT;
- 
- 	/*
- 	 * Large folios should not be swapped in while zswap is being used, as
- 	 * they are not properly handled. Zswap does not properly load large
- 	 * folios, and a large folio may only be partially in zswap.
--	 *
--	 * Return true without marking the folio uptodate so that an IO error is
--	 * emitted (e.g. do_swap_page() will sigbus).
- 	 */
--	if (WARN_ON_ONCE(folio_test_large(folio)))
--		return true;
-+	if (WARN_ON_ONCE(folio_test_large(folio))) {
-+		folio_unlock(folio);
-+		return -EINVAL;
-+	}
-+
-+	entry = xa_load(tree, offset);
-+	if (!entry)
-+		return -ENOENT;
-+
-+	if (!zswap_decompress(entry, folio)) {
-+		folio_unlock(folio);
-+		return -EIO;
-+	}
-+
-+	folio_mark_uptodate(folio);
-+
-+	count_vm_event(ZSWPIN);
-+	if (entry->objcg)
-+		count_objcg_events(entry->objcg, ZSWPIN, 1);
- 
- 	/*
- 	 * When reading into the swapcache, invalidate our entry. The
-@@ -1642,27 +1697,14 @@ bool zswap_load(struct folio *folio)
- 	 * files, which reads into a private page and may free it if
- 	 * the fault fails. We remain the primary owner of the entry.)
- 	 */
--	if (swapcache)
--		entry = xa_erase(tree, offset);
--	else
--		entry = xa_load(tree, offset);
--
--	if (!entry)
--		return false;
--
--	zswap_decompress(entry, folio);
--
--	count_vm_event(ZSWPIN);
--	if (entry->objcg)
--		count_objcg_events(entry->objcg, ZSWPIN, 1);
--
- 	if (swapcache) {
--		zswap_entry_free(entry);
- 		folio_mark_dirty(folio);
-+		xa_erase(tree, offset);
-+		zswap_entry_free(entry);
- 	}
- 
--	folio_mark_uptodate(folio);
--	return true;
-+	folio_unlock(folio);
-+	return 0;
- }
- 
- void zswap_invalidate(swp_entry_t swp)
-@@ -1757,6 +1799,8 @@ static int zswap_debugfs_init(void)
- 			   zswap_debugfs_root, &zswap_reject_compress_fail);
- 	debugfs_create_u64("reject_compress_poor", 0444,
- 			   zswap_debugfs_root, &zswap_reject_compress_poor);
-+	debugfs_create_u64("decompress_fail", 0444,
-+			   zswap_debugfs_root, &zswap_decompress_fail);
- 	debugfs_create_u64("written_back_pages", 0444,
- 			   zswap_debugfs_root, &zswap_written_back_pages);
- 	debugfs_create_file("pool_total_size", 0444,
+ 	damon_sysfs_destroy_targets(param_ctx);
+ 	damon_destroy_ctx(param_ctx);
+ 	return err;
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
+mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
+mm-damon-core-initialize-damos-walk_completed-in-damon_new_scheme.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
+mm-madvise-split-out-madvise-input-validity-check.patch
+mm-madvise-split-out-madvise-behavior-execution.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
+mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
+mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
+mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
+mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
+mm-damon-introduce-damos-filter-type-hugepage_size-fix.patch
+docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
+docs-mm-damon-design-document-hugepage_size-filter.patch
+docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch
+docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch
+docs-mm-damon-design-categorize-damos-filter-types-based-on-handling-layer.patch
+mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch
+docs-mm-damon-design-document-unmapped-damos-filter-type.patch
+mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning.patch
+mm-damon-core-implement-intervals-auto-tuning.patch
+mm-damon-sysfs-implement-intervals-tuning-goal-directory.patch
+mm-damon-sysfs-commit-intervals-tuning-goal.patch
+mm-damon-sysfs-implement-a-command-to-update-auto-tuned-monitoring-intervals.patch
+docs-mm-damon-design-document-for-intervals-auto-tuning.patch
+docs-mm-damon-design-document-for-intervals-auto-tuning-fix.patch
+docs-abi-damon-document-intervals-auto-tuning-abi.patch
+docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch
+mm-damon-core-introduce-damos-ops_filters.patch
+mm-damon-paddr-support-ops_filters.patch
+mm-damon-core-support-committing-ops_filters.patch
+mm-damon-core-put-ops-handled-filters-to-damos-ops_filters.patch
+mm-damon-paddr-support-only-damos-ops_filters.patch
+mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos.patch
+mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch
+mm-damon-paddr-respect-ops_filters_default_reject.patch
+docs-mm-damon-design-update-for-changed-filter-default-behavior.patch
+mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
+mm-damon-sysfs-schemes-implement-core_filters-and-ops_filters-directories.patch
+mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
+mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
+mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
+mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
+docs-abi-damon-document-coreops_filters-directories.patch
+docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
+mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
+mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
+mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
+mm-damon-sysfs-handle-commit-command-using-damon_call.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
+mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
+mm-damon-remove-damon_callback-private.patch
+mm-damon-remove-before_start-of-damon_callback.patch
+mm-damon-remove-damon_callback-after_sampling.patch
+mm-damon-remove-damon_callback-before_damos_apply.patch
+mm-damon-remove-damon_operations-reset_aggregated.patch
 
