@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C369A155342
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:10:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F915205AC0;
+	Thu,  6 Mar 2025 22:18:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741299026; cv=none; b=pIJnoplgdPwQK1Ezoec9jEMhQ6JN7zFBZn2EqAgyUz+ayMGv+i8EE970hLUlN8fAKiXxZBy79Men8uB0ltlfyIptyvRwBeRMo/pMmLz8NoSzbgTxdJs+qTB9me8VvhDvOKRHzlLFeubbgt9ttPMjDayy+69UxAMdxgU8wlyTfGE=
+	t=1741299484; cv=none; b=iz5sfLh76Uo5QW4MW5ZeD4aDo6G9bglxSQZKxZc6FeIclBwWK7In2vQ8rDCsxFKdrrq2AUxi5ezJrf/vtbwJnNETeZCwGLGnTic6+3aWlrNeAL1eym4FoyPb1oeO3pT6UJSLkWg9lRb2xA7PTpaZr2JolVxWS9h6w/y56jWvNMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741299026; c=relaxed/simple;
-	bh=l4j3Yo+rruS2eCRVl+HFyPHS0ZrmiZQAFiQjPdNz7/g=;
-	h=Date:To:From:Subject:Message-Id; b=YwKXuQcLrgoeyFzpzf9wirxF4swu/16SllnVL0eTXJ2nlSRrW8DyF90D7jERMNTcOIOTxGQ1PG9COd3ezU0ms16uAger34+D4W3FTWR80aV3rX1kc0PZkReByOp0QawUXn+o7sLX9jGEM8FZBCPQAmDuki95PfPTILvaZETuU7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LGy08OFa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741299484; c=relaxed/simple;
+	bh=/XemML4mcWHVZ9HCmXU9SOO4LTBBwmRNCIcxd2MamzY=;
+	h=Date:To:From:Subject:Message-Id; b=Z8W8Lc+ouqq9HCaeZl7d9eWZ47wmNVLgOK89npG1FXgymdO7dWxjhU3aGzuKZ3iHNJ41J+zqCvCTjwJGIl4IGCBiTV7F4X2oTZV8tdP//PR6DswGNFVJTGuiDHB1HtXleRK68t9DHhkHTi7lE1HwqpetlcEH8TTbluutsKjBZyk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OAqWPL8i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LGy08OFa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CAB3C4CEE0;
-	Thu,  6 Mar 2025 22:10:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OAqWPL8i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 074EAC4CEE0;
+	Thu,  6 Mar 2025 22:18:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741299026;
-	bh=l4j3Yo+rruS2eCRVl+HFyPHS0ZrmiZQAFiQjPdNz7/g=;
+	s=korg; t=1741299484;
+	bh=/XemML4mcWHVZ9HCmXU9SOO4LTBBwmRNCIcxd2MamzY=;
 	h=Date:To:From:Subject:From;
-	b=LGy08OFafVHuZL5UGkLXJST7gUexvXh0STlZiuvDtcCtsGrAISNd26sXG68DaISUX
-	 YvcCoG57A/ZNwo7KAAadVC13KRTWAEupwsuJEyfA5zD36G0AudKByvmBGf7VH72Eoj
-	 pW33aMmJUeidoEzMuPPSTjW+0G/+WDfbhyKNkByU=
-Date: Thu, 06 Mar 2025 14:10:25 -0800
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,zhiyuzhang999@gmail.com,akpm@linux-foundation.org
+	b=OAqWPL8i9UT2JEnXot52L3Kyf4mbOZgmN4+BIprH1PXHYNcCMYAnRn10me0U/Ui0i
+	 xd63BttlB19cYw2PHkGwz281pLTJM3c6h5UMdlT7R0ie3uNA4pZB2cTgf1LtlTeIID
+	 JW3NGuEtBpE3o5BDfGSLg23BFMAbrx2XzS/g08G0=
+Date: Thu, 06 Mar 2025 14:18:03 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250306221026.2CAB3C4CEE0@smtp.kernel.org>
+Subject: + mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch added to mm-unstable branch
+Message-Id: <20250306221804.074EAC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: squashfs: fix invalid pointer dereference in squashfs_cache_delete
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch
+     Subject: mm/mremap: correctly handle partial mremap() of VMA starting at 0
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,167 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhiyu Zhang <zhiyuzhang999@gmail.com>
-Subject: squashfs: fix invalid pointer dereference in squashfs_cache_delete
-Date: Thu, 6 Mar 2025 21:28:55 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: correctly handle partial mremap() of VMA starting at 0
+Date: Thu, 6 Mar 2025 10:33:57 +0000
 
-When mounting a squashfs fails, squashfs_cache_init() may return an error
-pointer (e.g., -ENOMEM) instead of NULL.  However, squashfs_cache_delete()
-only checks for a NULL cache, and attempts to dereference the invalid
-pointer.  This leads to a kernel crash (BUG: unable to handle kernel
-paging request in squashfs_cache_delete).
+Patch series "refactor mremap and fix bug", v2.
 
-This patch fixes the issue by checking IS_ERR(cache) before accessing it.
+The existing mremap() logic has grown organically over a very long period
+of time, resulting in code that is in many parts, very difficult to follow
+and full of subtleties and sources of confusion.
 
-Link: https://lkml.kernel.org/r/20250306132855.2030-1-zhiyuzhang999@gmail.com
-Fixes: 49ff29240ebb ("squashfs: make squashfs_cache_init() return ERR_PTR(-ENOMEM)")
-Signed-off-by: Zhiyu Zhang <zhiyuzhang999@gmail.com>
-Reported-by: Zhiyu Zhang <zhiyuzhang999@gmail.com>
-Closes: https://lore.kernel.org/linux-fsdevel/CALf2hKvaq8B4u5yfrE+BYt7aNguao99mfWxHngA+=o5hwzjdOg@mail.gmail.com/
-Tested-by: Zhiyu Zhang <zhiyuzhang999@gmail.com>
-Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+In addition, it is difficult to thread state through the operation
+correctly, as function arguments have expanded, some parameters are
+expected to be temporarily altered during the operation, others are
+intended to remain static and some can be overridden.
+
+This series completely refactors the mremap implementation, sensibly
+separating functions, adding comments to explain the more subtle aspects
+of the implementation and making use of small structs to thread state
+through everything.
+
+The reason for doing so is to lay the groundwork for planned future
+changes to the mremap logic, changes which require the ability to easily
+pass around state.
+
+Additionally, it would be unhelpful to add yet more logic to code that is
+already difficult to follow without first refactoring it like this.
+
+The first patch in this series additionally fixes a bug when a VMA with
+start address zero is partially remapped.
+
+Tested on real hardware under heavy workload and all self tests are
+passing.
+
+
+This patch (of 7):
+
+Consider the case of a partial mremap() (that results in a VMA split) of
+an accountable VMA (i.e.  which has the VM_ACCOUNT flag set) whose start
+address is zero, with the MREMAP_MAYMOVE flag specified and a scenario
+where a move does in fact occur:
+
+       addr  end
+        |     |
+        v     v
+    |-------------|
+    |     vma     |
+    |-------------|
+    0
+
+This move is affected by unmapping the range [addr, end).  In order to
+prevent an incorrect decrement of accounted memory which has already been
+determined, the mremap() code in move_vma() clears VM_ACCOUNT from the VMA
+prior to doing so, before reestablishing it in each of the VMAs
+post-split:
+
+    addr  end
+     |     |
+     v     v
+ |---|     |---|
+ | A |     | B |
+ |---|     |---|
+
+Commit 6b73cff239e5 ("mm: change munmap splitting order and move_vma()")
+changed this logic such as to determine whether there is a need to do so
+by establishing account_start and account_end and, in the instance where
+such an operation is required, assigning them to vma->vm_start and
+vma->vm_end.
+
+Later the code checks if the operation is required for 'A' referenced
+above thusly:
+
+	if (account_start) {
+		...
+	}
+
+However, if the VMA described above has vma->vm_start == 0, which is now
+assigned to account_start, this branch will not be executed.
+
+As a result, the VMA 'A' above will remain stripped of its VM_ACCOUNT
+flag, incorrectly.
+
+The fix is to simply convert these variables to booleans and set them as
+required.
+
+Link: https://lkml.kernel.org/r/cover.1741256580.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/94681428faba4c34a76e2de1c875629372aae3d5.1741256580.git.lorenzo.stoakes@oracle.com
+Fixes: 6b73cff239e5 ("mm: change munmap splitting order and move_vma()")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/cache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/squashfs/cache.c~squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete
-+++ a/fs/squashfs/cache.c
-@@ -198,7 +198,7 @@ void squashfs_cache_delete(struct squash
- {
- 	int i, j;
+--- a/mm/mremap.c~mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0
++++ a/mm/mremap.c
+@@ -705,8 +705,8 @@ static unsigned long move_vma(struct vm_
+ 	unsigned long vm_flags = vma->vm_flags;
+ 	unsigned long new_pgoff;
+ 	unsigned long moved_len;
+-	unsigned long account_start = 0;
+-	unsigned long account_end = 0;
++	bool account_start = false;
++	bool account_end = false;
+ 	unsigned long hiwater_vm;
+ 	int err = 0;
+ 	bool need_rmap_locks;
+@@ -790,9 +790,9 @@ static unsigned long move_vma(struct vm_
+ 	if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP)) {
+ 		vm_flags_clear(vma, VM_ACCOUNT);
+ 		if (vma->vm_start < old_addr)
+-			account_start = vma->vm_start;
++			account_start = true;
+ 		if (vma->vm_end > old_addr + old_len)
+-			account_end = vma->vm_end;
++			account_end = true;
+ 	}
  
--	if (cache == NULL)
-+	if (IS_ERR(cache) || cache == NULL)
- 		return;
+ 	/*
+@@ -832,7 +832,7 @@ static unsigned long move_vma(struct vm_
+ 		/* OOM: unable to split vma, just get accounts right */
+ 		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
+ 			vm_acct_memory(old_len >> PAGE_SHIFT);
+-		account_start = account_end = 0;
++		account_start = account_end = false;
+ 	}
  
- 	for (i = 0; i < cache->entries; i++) {
+ 	if (vm_flags & VM_LOCKED) {
 _
 
-Patches currently in -mm which might be from zhiyuzhang999@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch
+mm-simplify-vma-merge-structure-and-expand-comments.patch
+mm-further-refactor-commit_merge.patch
+mm-eliminate-adj_start-parameter-from-commit_merge.patch
+mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+mm-completely-abstract-unnecessary-adj_start-calculation.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
+mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
+mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
+mm-provide-mapping_wrprotect_range-function.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
+mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
+selftests-mm-rename-guard-pages-to-guard-regions.patch
+selftests-mm-rename-guard-pages-to-guard-regions-fix.patch
+tools-selftests-expand-all-guard-region-tests-to-file-backed.patch
+tools-selftests-add-file-shmem-backed-mapping-guard-region-tests.patch
+fs-proc-task_mmu-add-guard-region-bit-to-pagemap.patch
+tools-selftests-add-guard-region-test-for-proc-pid-pagemap.patch
+tools-selftests-add-guard-region-test-for-proc-pid-pagemap-fix.patch
+mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
+mm-mremap-refactor-mremap-system-call-implementation.patch
+mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
+mm-mremap-initial-refactor-of-move_vma.patch
+mm-mremap-complete-refactor-of-move_vma.patch
+mm-mremap-refactor-move_page_tables-abstracting-state.patch
+mm-mremap-thread-state-through-move-page-table-operation.patch
 
