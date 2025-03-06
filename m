@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23D325CC88
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964F320012D
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297113; cv=none; b=t3pmmoirwiq+hZ2S0oNoqfqSmub2bv575wH+Y9WkBEfJU1RdV82CwSt/WOwfK9TlYlTyRK+6xPpFLKK5cKrTqd3RWyZoEKKAqzuM2jcy+ntnO6vgJEKen/penPcCt8LICEijm67O1Z9yl/vgSR7l0ylASK0fi+Ib1Mn5uegBISI=
+	t=1741297115; cv=none; b=IbPXND/FHc6VcKWk+1/8qHU0SH2Wv0sQgcvhA22GQEsnpxJriTJGYWTJGGWtCHNOTLlI/1KgDaJSsLsc7s7rDZbfrlXBVBJbbtb8ry2Y5tdBBAM04JDrjezGgRbzT3SE4KJv4nZRnBrgOhfAoBYVqUgtLWzVhS7pCFnBO7x5NnI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297113; c=relaxed/simple;
-	bh=tvIsmhXYT1G9f4SjqKJgbpx/3WxAj+Mo95jiWZWNYO4=;
-	h=Date:To:From:Subject:Message-Id; b=C1gum7aCWLKVKYtRs70Zh/hdPYdFUSFhn7ewcrFh1xYrQQwTrpYZzDKz3O3roUP5EBwyW5GLHLoRJG2MPEpGNuznpBMW0jwFVApfNoZqhrhSBzrqsXRNa/USULRhNu0TKWguucLGUayhfGKgyzPT8OsTWMg+4eT3Dftf2nDasrQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=szG0XUNh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297115; c=relaxed/simple;
+	bh=l/JMdr4Vbkd9PvIpwphPjzd1ylFGNXtslcw0gwgjph0=;
+	h=Date:To:From:Subject:Message-Id; b=oZwFyjyjCQ2TxH7WhZzuRlLLr5wAFE+4zzmeBKAa5juY0gPKfmhNt2B4Ql9LH01efOfEKIU/f1L3Zhbv4pf5UF4Ajcyk99TNO87NLDxlDOj4cx10l3TA9ebbcLg+5xhRvSQT6dKGVX16aFgxSKh1ZSvYqhbBYpIpeWMkHPKbANg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Edb2zMlo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="szG0XUNh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AE2FC4CEE0;
-	Thu,  6 Mar 2025 21:38:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Edb2zMlo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0686C4CEE0;
+	Thu,  6 Mar 2025 21:38:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297113;
-	bh=tvIsmhXYT1G9f4SjqKJgbpx/3WxAj+Mo95jiWZWNYO4=;
+	s=korg; t=1741297115;
+	bh=l/JMdr4Vbkd9PvIpwphPjzd1ylFGNXtslcw0gwgjph0=;
 	h=Date:To:From:Subject:From;
-	b=szG0XUNh4SN6euihxacL/xjK+Ct/VMxontLtQhSKKijaxNS3C7N/FlSbcyCymN2CQ
-	 HTEw/TKFxUhhSv50JIXrSWJobpG7aWla7DuqfLRrnqsN6IsH7O1Tk8BsNE/sgwLS80
-	 xht1iscmaZkGDC1405k0rYg5N4FoeQMJOJDNRVYw=
-Date: Thu, 06 Mar 2025 13:38:32 -0800
+	b=Edb2zMlofHnzaUqfywSp0rSinUu5hc80iSKH4w9qinLFRflpnCzdfEq9UR8HAY2TO
+	 Xt38UBvnzlpTym/CuUIba8Fmz7F7RWEAvEDTZ66sTjgAzeg+JPjZOv9MkDdpKCouVF
+	 MuozqSJtK8rTz3PudyNjikR5QtQx+8to+9Omvea4=
+Date: Thu, 06 Mar 2025 13:38:34 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-remove-damon_callback-after_sampling.patch added to mm-unstable branch
-Message-Id: <20250306213833.8AE2FC4CEE0@smtp.kernel.org>
+Subject: + mm-damon-remove-damon_callback-before_damos_apply.patch added to mm-unstable branch
+Message-Id: <20250306213834.F0686C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: remove damon_callback->after_sampling
+     Subject: mm/damon: remove damon_callback->before_damos_apply
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-remove-damon_callback-after_sampling.patch
+     mm-damon-remove-damon_callback-before_damos_apply.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon_callback-after_sampling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon_callback-before_damos_apply.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,66 +59,73 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove damon_callback->after_sampling
-Date: Thu, 6 Mar 2025 09:59:06 -0800
+Subject: mm/damon: remove damon_callback->before_damos_apply
+Date: Thu, 6 Mar 2025 09:59:07 -0800
 
-The callback was used by DAMON sysfs interface for reading DAMON internal
-data.  But it is no more being used, and damon_call() can do similar works
-in a better way.  Remove it.
+The hook was introduced to let DAMON kernel API users access DAMOS
+schemes-eligible regions in a safe way.  Now it is no more used by anyone,
+and the functionality is provided in a better way by damos_walk().  Remove
+it.
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-12-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   11 ++++-------
- mm/damon/core.c       |    3 ---
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ include/linux/damon.h |    5 -----
+ mm/damon/core.c       |   13 ++++---------
+ 2 files changed, 4 insertions(+), 14 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-damon_callback-after_sampling
+--- a/include/linux/damon.h~mm-damon-remove-damon_callback-before_damos_apply
 +++ a/include/linux/damon.h
-@@ -604,7 +604,6 @@ struct damon_operations {
-  * struct damon_callback - Monitoring events notification callbacks.
+@@ -605,7 +605,6 @@ struct damon_operations {
   *
   * @after_wmarks_check:	Called after each schemes' watermarks check.
-- * @after_sampling:	Called after each sampling.
   * @after_aggregation:	Called after each aggregation.
-  * @before_damos_apply:	Called before applying DAMOS action.
+- * @before_damos_apply:	Called before applying DAMOS action.
   * @before_terminate:	Called before terminating the monitoring.
-@@ -617,17 +616,15 @@ struct damon_operations {
-  * attributes of the monitoring context while it's deactivated due to the
-  * watermarks, this is the good place to do.
   *
-- * The monitoring thread calls @after_sampling and @after_aggregation for each
-- * of the sampling intervals and aggregation intervals, respectively.
-- * Therefore, users can safely access the monitoring results without additional
-- * protection.  For the reason, users are recommended to use these callback for
-- * the accesses to the results.
-+ * The monitoring thread calls @after_aggregation for each of the aggregation
-+ * intervals.  Therefore, users can safely access the monitoring results
-+ * without additional protection.  For the reason, users are recommended to use
-+ * these callback for the accesses to the results.
-  *
-  * If any callback returns non-zero, monitoring stops.
-  */
+  * The monitoring thread (&damon_ctx.kdamond) calls @before_terminate just
+@@ -626,10 +625,6 @@ struct damon_operations {
  struct damon_callback {
  	int (*after_wmarks_check)(struct damon_ctx *context);
--	int (*after_sampling)(struct damon_ctx *context);
  	int (*after_aggregation)(struct damon_ctx *context);
- 	int (*before_damos_apply)(struct damon_ctx *context,
- 			struct damon_target *target,
---- a/mm/damon/core.c~mm-damon-remove-damon_callback-after_sampling
+-	int (*before_damos_apply)(struct damon_ctx *context,
+-			struct damon_target *target,
+-			struct damon_region *region,
+-			struct damos *scheme);
+ 	void (*before_terminate)(struct damon_ctx *context);
+ };
+ 
+--- a/mm/damon/core.c~mm-damon-remove-damon_callback-before_damos_apply
 +++ a/mm/damon/core.c
-@@ -2431,9 +2431,6 @@ static int kdamond_fn(void *data)
- 
- 		if (ctx->ops.prepare_access_checks)
- 			ctx->ops.prepare_access_checks(ctx);
--		if (ctx->callback.after_sampling &&
--				ctx->callback.after_sampling(ctx))
--			break;
- 
- 		kdamond_usleep(sample_interval);
- 		ctx->passed_sample_intervals++;
+@@ -1731,7 +1731,6 @@ static void damos_apply_scheme(struct da
+ 	struct timespec64 begin, end;
+ 	unsigned long sz_applied = 0;
+ 	unsigned long sz_ops_filter_passed = 0;
+-	int err = 0;
+ 	/*
+ 	 * We plan to support multiple context per kdamond, as DAMON sysfs
+ 	 * implies with 'nr_contexts' file.  Nevertheless, only single context
+@@ -1771,14 +1770,10 @@ static void damos_apply_scheme(struct da
+ 		if (damos_filter_out(c, t, r, s))
+ 			return;
+ 		ktime_get_coarse_ts64(&begin);
+-		if (c->callback.before_damos_apply)
+-			err = c->callback.before_damos_apply(c, t, r, s);
+-		if (!err) {
+-			trace_damos_before_apply(cidx, sidx, tidx, r,
+-					damon_nr_regions(t), do_trace);
+-			sz_applied = c->ops.apply_scheme(c, t, r, s,
+-					&sz_ops_filter_passed);
+-		}
++		trace_damos_before_apply(cidx, sidx, tidx, r,
++				damon_nr_regions(t), do_trace);
++		sz_applied = c->ops.apply_scheme(c, t, r, s,
++				&sz_ops_filter_passed);
+ 		damos_walk_call_walk(c, t, r, s, sz_ops_filter_passed);
+ 		ktime_get_coarse_ts64(&end);
+ 		quota->total_charged_ns += timespec64_to_ns(&end) -
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
