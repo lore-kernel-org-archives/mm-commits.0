@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52F7119E98B;
-	Thu,  6 Mar 2025 05:37:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60ADC19E98B
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 05:37:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239476; cv=none; b=eFSrLCW2iKSxYMaKgj8zwQPXF2RDjX3qk+Wc+f5qrJ7CVtD6mRkzDN/zFujpvxFIzckkl3jwUjO9wvJ2MnboLRskCNjk8BLe3F4qN2iIA5666sXPWsIdoGggqVp4Swp+/YDBtPHXSyW6Z+7CMxz7AUwPG+lzlto/gK4oFVSVjkw=
+	t=1741239477; cv=none; b=f1PrtahjIy1hVh8rmf4VP5r8OZqEkNzc9D7ftO/vejI/Auv1KNekT+IeLBWJ7hhpFyIETWfR6by8mLwYKaO+Z2rj1hrjNVZ15DDKT+YB4JcFzIXt9MzBBUYBIO5cmKQYm5i6A9UkU5u627VXJLTVUqk2pCZrzs93kW2f+x7rxeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239476; c=relaxed/simple;
-	bh=iBr+rfjfy6v6aHM+Xx+3YvVaBH/E0MbgeQihU6Zo7fY=;
-	h=Date:To:From:Subject:Message-Id; b=nLD8r+R3R1Tj/71RED+wM12GcN4NBpuE6WebyqrDzgZXa36Fgo3dfoQpIll6kwqb9u7RT4tRpGGUsKeE2/tyUfrJwhepDrZBadGiwi8voUWrUmn8B94iJXxjWcKwyH4c9vjOCLXjX1ihM3WysXcmgnqrU0Zco5OK53nJAuk9RYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0DIpZBke; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741239477; c=relaxed/simple;
+	bh=pen8Re400Cd6NgE43qxaHsCPV4PaoP4aQxVlguLcFzc=;
+	h=Date:To:From:Subject:Message-Id; b=EiJGcpt4jxs6u3xywVEsI/dO+U13HLrIpppxMmzAeOf+wcKvciUex0PeHuHjIHH9m0oQIv72qbCzrDJBE/BRqd4zHzrryQ0G2xhXp3Ku+nnpmmrEUR0pgIPKLJYhi1dnrenWdiq84KLuRMuTlAGIAKkmJVJ4qu45PkMUnaRz8YQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mbtngt3u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0DIpZBke"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 280FDC4CEE8;
-	Thu,  6 Mar 2025 05:37:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mbtngt3u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37497C4CEE4;
+	Thu,  6 Mar 2025 05:37:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239476;
-	bh=iBr+rfjfy6v6aHM+Xx+3YvVaBH/E0MbgeQihU6Zo7fY=;
+	s=korg; t=1741239477;
+	bh=pen8Re400Cd6NgE43qxaHsCPV4PaoP4aQxVlguLcFzc=;
 	h=Date:To:From:Subject:From;
-	b=0DIpZBkens+fIoRkrcLUtMwWx57jvAIRZ9tg8PpAVvCzJ9aAMgyaLt7tg3YPZZKww
-	 zXVI6Jajmf7G1jUbKPF99HiXBAd8IKIWvq0CndTRGftucNIFOeSYC0z6SWx0IjmHvU
-	 J5tCNpC86HK2t4L2X1zI7RoVpejn3EUVMG8bxsYg=
-Date: Wed, 05 Mar 2025 21:37:55 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,mhocko@suse.com,mgorman@suse.de,bhe@redhat.com,krisman@suse.de,akpm@linux-foundation.org
+	b=mbtngt3uqHR8QYq/FgHFsqNNv61XvJeLPKPc46wq09Vjp8K38ACjk/8JSSrE6W9M/
+	 M3iB8cHRG8146gfv1ulmevfoYMp04KaCKX7HZgIOgMBsN0iXZGiK5odoFMJZ4zbhc6
+	 0hwjtDtQkbxWDPhOMrvw9OvKAjXe/b/bpxxLorX8=
+Date: Wed, 05 Mar 2025 21:37:56 -0800
+To: mm-commits@vger.kernel.org,jens.wiklander@linaro.org,jarkko@kernel.org,herbert@gondor.apana.org.au,sumit.garg@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch removed from -mm tree
-Message-Id: <20250306053756.280FDC4CEE8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mailmap-update-sumit-gargs-email-address.patch removed from -mm tree
+Message-Id: <20250306053757.37497C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Revert "mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone"
+     Subject: MAINTAINERS: .mailmap: update Sumit Garg's email address
 has been removed from the -mm tree.  Its filename was
-     revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone.patch
+     maintainers-mailmap-update-sumit-gargs-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gabriel Krisman Bertazi <krisman@suse.de>
-Subject: Revert "mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone"
-Date: Tue, 25 Feb 2025 22:22:58 -0500
+From: Sumit Garg <sumit.garg@linaro.org>
+Subject: MAINTAINERS: .mailmap: update Sumit Garg's email address
+Date: Thu, 27 Feb 2025 17:02:28 +0530
 
-Commit 96a5c186efff ("mm/page_alloc.c: don't show protection in zone's
-->lowmem_reserve[] for empty zone") removes the protection of lower zones
-from allocations targeting memory-less high zones.  This had an unintended
-impact on the pattern of reclaims because it makes the high-zone-targeted
-allocation more likely to succeed in lower zones, which adds pressure to
-said zones.  I.e, the following corresponding checks in
-zone_watermark_ok/zone_watermark_fast are less likely to trigger:
+Update Sumit Garg's email address to @kernel.org.
 
-        if (free_pages <= min + z->lowmem_reserve[highest_zoneidx])
-                return false;
-
-As a result, we are observing an increase in reclaim and kswapd scans, due
-to the increased pressure.  This was initially observed as increased
-latency in filesystem operations when benchmarking with fio on a machine
-with some memory-less zones, but it has since been associated with
-increased contention in locks related to memory reclaim.  By reverting
-this patch, the original performance was recovered on that machine.
-
-The original commit was introduced as a clarification of the
-/proc/zoneinfo output, so it doesn't seem there are usecases depending on
-it, making the revert a simple solution.
-
-For reference, I collected vmstat with and without this patch on a freshly
-booted system running intensive randread io from an nvme for 5 minutes.  I
-got:
-
-rpm-6.12.0-slfo.1.2 ->  pgscan_kswapd 5629543865
-Patched             ->  pgscan_kswapd 33580844
-
-33M scans is similar to what we had in kernels predating this patch. 
-These numbers is fairly representative of the workload on this machine, as
-measured in several runs.  So we are talking about a 2-order of magnitude
-increase.
-
-Link: https://lkml.kernel.org/r/20250226032258.234099-1-krisman@suse.de
-Fixes: 96a5c186efff ("mm/page_alloc.c: don't show protection in zone's ->lowmem_reserve[] for empty zone")
-Signed-off-by: Gabriel Krisman Bertazi <krisman@suse.de>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250227113228.1809449-1-sumit.garg@linaro.org
+Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Jens Wiklander <jens.wiklander@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~revert-mm-page_allocc-dont-show-protection-in-zones-lowmem_reserve-for-empty-zone
-+++ a/mm/page_alloc.c
-@@ -5849,11 +5849,10 @@ static void setup_per_zone_lowmem_reserv
+--- a/.mailmap~maintainers-mailmap-update-sumit-gargs-email-address
++++ a/.mailmap
+@@ -689,6 +689,7 @@ Subbaraman Narayanamurthy <quic_subbaram
+ Subhash Jadavani <subhashj@codeaurora.org>
+ Sudarshan Rajagopalan <quic_sudaraja@quicinc.com> <sudaraja@codeaurora.org>
+ Sudeep Holla <sudeep.holla@arm.com> Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>
++Sumit Garg <sumit.garg@kernel.org> <sumit.garg@linaro.org>
+ Sumit Semwal <sumit.semwal@ti.com>
+ Surabhi Vishnoi <quic_svishnoi@quicinc.com> <svishnoi@codeaurora.org>
+ Sven Eckelmann <sven@narfation.org> <seckelmann@datto.com>
+--- a/MAINTAINERS~maintainers-mailmap-update-sumit-gargs-email-address
++++ a/MAINTAINERS
+@@ -12864,7 +12864,7 @@ F:	include/keys/trusted_dcp.h
+ F:	security/keys/trusted-keys/trusted_dcp.c
  
- 			for (j = i + 1; j < MAX_NR_ZONES; j++) {
- 				struct zone *upper_zone = &pgdat->node_zones[j];
--				bool empty = !zone_managed_pages(upper_zone);
+ KEYS-TRUSTED-TEE
+-M:	Sumit Garg <sumit.garg@linaro.org>
++M:	Sumit Garg <sumit.garg@kernel.org>
+ L:	linux-integrity@vger.kernel.org
+ L:	keyrings@vger.kernel.org
+ S:	Supported
+@@ -17658,7 +17658,7 @@ F:	Documentation/ABI/testing/sysfs-bus-o
+ F:	drivers/tee/optee/
  
- 				managed_pages += zone_managed_pages(upper_zone);
+ OP-TEE RANDOM NUMBER GENERATOR (RNG) DRIVER
+-M:	Sumit Garg <sumit.garg@linaro.org>
++M:	Sumit Garg <sumit.garg@kernel.org>
+ L:	op-tee@lists.trustedfirmware.org
+ S:	Maintained
+ F:	drivers/char/hw_random/optee-rng.c
+@@ -23268,7 +23268,7 @@ F:	include/media/i2c/tw9910.h
  
--				if (clear || empty)
-+				if (clear)
- 					zone->lowmem_reserve[j] = 0;
- 				else
- 					zone->lowmem_reserve[j] = managed_pages / ratio;
+ TEE SUBSYSTEM
+ M:	Jens Wiklander <jens.wiklander@linaro.org>
+-R:	Sumit Garg <sumit.garg@linaro.org>
++R:	Sumit Garg <sumit.garg@kernel.org>
+ L:	op-tee@lists.trustedfirmware.org
+ S:	Maintained
+ F:	Documentation/ABI/testing/sysfs-class-tee
 _
 
-Patches currently in -mm which might be from krisman@suse.de are
+Patches currently in -mm which might be from sumit.garg@linaro.org are
 
 
