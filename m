@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC8119E971;
-	Thu,  6 Mar 2025 05:37:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD70619E971;
+	Thu,  6 Mar 2025 05:37:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239472; cv=none; b=L6kOdTiu0zVhTOjeWiEe2kKZvs1A4i+Fxm/owp7qWBvwoa6JeSRkVMXAfwDzADLEiuqwrYu75VBVe3gwAaH0SrxEZwxhkwrxpQ4n1+9on9OIfCJguFofJeztxwV0y7AJBcvKP5h/eht1iNJsgy92cjLyE33C5eFhIUowYGe2j3w=
+	t=1741239473; cv=none; b=oN9VE8isvYE+RiWDgnk8V3XJL3ZKnhhxY64gBNkaP2h2aSpXcrv0msTik6/+nWY5KVLFwenxDokuyfSGnTj5YcuQJChEAi6wLOanWKGKCfY1Djl2S74HwXPglsDR8Dyv8Kiuqa5sy/UnHrFoVGRZOzXr9w0v1qe4XLgynCOjRUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239472; c=relaxed/simple;
-	bh=S2l8rV+bdh4PUE44lsR8vKLHeLZo+PZ4iBQ7YAAQ5d0=;
-	h=Date:To:From:Subject:Message-Id; b=aN5hUJKIU1cIKEx7eXw45L7G5LzyZXjn+HhBZf+7fONZ7Uxaw6DSBZMSpKRbzkqIVJiBgQSgZcW78hw2/VAvNFtFkJeQxbvLSjtOkBPjIHiSv0JRUqHbjRbMIuC/mzc/DNz1YYzypq/JicyPbozIzJMozfEUC00dEcQXy0WJKdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e8vywQwG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741239473; c=relaxed/simple;
+	bh=V93DcyGj0jCFtgGFQIpnCtMRSaijC4/CPK2U7bcgS1E=;
+	h=Date:To:From:Subject:Message-Id; b=K7Sxf8k6sTqQo/EyIEYdijX7bkgvf0JLyekPwjmv2i1cObeA+2U4GKLg2RYPWkr1Kq7Xt6kG4yOGclenLZTqIpxQiPWfxyaJN7kuALnAofqjrTUJUXqLulqNSxZTD/WYMYV9qCQOiaxkmZbnKjR0MKfGa9ym9zqSpBUoKZxk2f0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xJoOiHC0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e8vywQwG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75271C4CEE4;
-	Thu,  6 Mar 2025 05:37:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xJoOiHC0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5176C4CEE4;
+	Thu,  6 Mar 2025 05:37:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239472;
-	bh=S2l8rV+bdh4PUE44lsR8vKLHeLZo+PZ4iBQ7YAAQ5d0=;
+	s=korg; t=1741239473;
+	bh=V93DcyGj0jCFtgGFQIpnCtMRSaijC4/CPK2U7bcgS1E=;
 	h=Date:To:From:Subject:From;
-	b=e8vywQwGhlVeRvU56zTPCiVQWHEBvOcjIhK89RQ8FrBnx74ebxf3A1p6xD1cpHYVl
-	 1pegTlod/CcPqdjCduXW/4+SeTJqid575PKkTt50aXNRNRr+LlisBRPYVRXRdyKGV0
-	 uG52VyHt+yyuz1MJkZrObxv7kiMMrGYJolgHNdKQ=
-Date: Wed, 05 Mar 2025 21:37:51 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,hch@infradead.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=xJoOiHC0wLeIlkb9ErgLJ1Lg05BT/W4Vua+hJ7q74Zeb3ORSjW4KYEHlnZsLq4Bo7
+	 8fze1t9GolfmM+F88iBYhmI5n8bOgFPACq4T253uPjErJtTHZJE21fb0PEdk9RFIuY
+	 DMUGNdbZRAHy0EU1pREbgWPYfygoQ3h7iLYmZZII=
+Date: Wed, 05 Mar 2025 21:37:53 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,surenb@google.com,stable@vger.kernel.org,mmaslanka@google.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,bgeffon@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-dont-skip-arch_sync_kernel_mappings-in-error-paths.patch removed from -mm tree
-Message-Id: <20250306053752.75271C4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-finish_fault-handling-for-large-folios.patch removed from -mm tree
+Message-Id: <20250306053753.A5176C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: don't skip arch_sync_kernel_mappings() in error paths
+     Subject: mm: fix finish_fault() handling for large folios
 has been removed from the -mm tree.  Its filename was
-     mm-dont-skip-arch_sync_kernel_mappings-in-error-paths.patch
+     mm-fix-finish_fault-handling-for-large-folios.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: don't skip arch_sync_kernel_mappings() in error paths
-Date: Wed, 26 Feb 2025 12:16:09 +0000
+From: Brian Geffon <bgeffon@google.com>
+Subject: mm: fix finish_fault() handling for large folios
+Date: Wed, 26 Feb 2025 11:23:41 -0500
 
-Fix callers that previously skipped calling arch_sync_kernel_mappings() if
-an error occurred during a pgtable update.  The call is still required to
-sync any pgtable updates that may have occurred prior to hitting the error
-condition.
+When handling faults for anon shmem finish_fault() will attempt to install
+ptes for the entire folio.  Unfortunately if it encounters a single
+non-pte_none entry in that range it will bail, even if the pte that
+triggered the fault is still pte_none.  When this situation happens the
+fault will be retried endlessly never making forward progress.
 
-These are theoretical bugs discovered during code review.
+This patch fixes this behavior and if it detects that a pte in the range
+is not pte_none it will fall back to setting a single pte.
 
-Link: https://lkml.kernel.org/r/20250226121610.2401743-1-ryan.roberts@arm.com
-Fixes: 2ba3e6947aed ("mm/vmalloc: track which page-table levels were modified")
-Fixes: 0c95cba49255 ("mm: apply_to_pte_range warn and fail if a large pte is encountered")
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christop Hellwig <hch@infradead.org>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+[bgeffon@google.com: tweak whitespace]
+  Link: https://lkml.kernel.org/r/20250227133236.1296853-1-bgeffon@google.com
+Link: https://lkml.kernel.org/r/20250226162341.915535-1-bgeffon@google.com
+Fixes: 43e027e41423 ("mm: memory: extend finish_fault() to support large folio")
+Signed-off-by: Brian Geffon <bgeffon@google.com>
+Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Marek Maslanka <mmaslanka@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickens <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c  |    6 ++++--
- mm/vmalloc.c |    4 ++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/memory.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/mm/memory.c~mm-dont-skip-arch_sync_kernel_mappings-in-error-paths
+--- a/mm/memory.c~mm-fix-finish_fault-handling-for-large-folios
 +++ a/mm/memory.c
-@@ -3051,8 +3051,10 @@ static int __apply_to_page_range(struct
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(*pgd) && !create)
- 			continue;
--		if (WARN_ON_ONCE(pgd_leaf(*pgd)))
--			return -EINVAL;
-+		if (WARN_ON_ONCE(pgd_leaf(*pgd))) {
-+			err = -EINVAL;
-+			break;
-+		}
- 		if (!pgd_none(*pgd) && WARN_ON_ONCE(pgd_bad(*pgd))) {
- 			if (!create)
- 				continue;
---- a/mm/vmalloc.c~mm-dont-skip-arch_sync_kernel_mappings-in-error-paths
-+++ a/mm/vmalloc.c
-@@ -586,13 +586,13 @@ static int vmap_small_pages_range_noflus
- 			mask |= PGTBL_PGD_MODIFIED;
- 		err = vmap_pages_p4d_range(pgd, addr, next, prot, pages, &nr, &mask);
- 		if (err)
--			return err;
-+			break;
- 	} while (pgd++, addr = next, addr != end);
+@@ -5185,7 +5185,11 @@ vm_fault_t finish_fault(struct vm_fault
+ 	bool is_cow = (vmf->flags & FAULT_FLAG_WRITE) &&
+ 		      !(vma->vm_flags & VM_SHARED);
+ 	int type, nr_pages;
+-	unsigned long addr = vmf->address;
++	unsigned long addr;
++	bool needs_fallback = false;
++
++fallback:
++	addr = vmf->address;
  
- 	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
- 		arch_sync_kernel_mappings(start, end);
+ 	/* Did we COW the page? */
+ 	if (is_cow)
+@@ -5224,7 +5228,8 @@ vm_fault_t finish_fault(struct vm_fault
+ 	 * approach also applies to non-anonymous-shmem faults to avoid
+ 	 * inflating the RSS of the process.
+ 	 */
+-	if (!vma_is_anon_shmem(vma) || unlikely(userfaultfd_armed(vma))) {
++	if (!vma_is_anon_shmem(vma) || unlikely(userfaultfd_armed(vma)) ||
++	    unlikely(needs_fallback)) {
+ 		nr_pages = 1;
+ 	} else if (nr_pages > 1) {
+ 		pgoff_t idx = folio_page_idx(folio, page);
+@@ -5260,9 +5265,9 @@ vm_fault_t finish_fault(struct vm_fault
+ 		ret = VM_FAULT_NOPAGE;
+ 		goto unlock;
+ 	} else if (nr_pages > 1 && !pte_range_none(vmf->pte, nr_pages)) {
+-		update_mmu_tlb_range(vma, addr, vmf->pte, nr_pages);
+-		ret = VM_FAULT_NOPAGE;
+-		goto unlock;
++		needs_fallback = true;
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		goto fallback;
+ 	}
  
--	return 0;
-+	return err;
- }
- 
- /*
+ 	folio_ref_add(folio, nr_pages - 1);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from bgeffon@google.com are
 
-mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long.patch
-mm-fix-lazy-mmu-docs-and-usage.patch
-fs-proc-task_mmu-reduce-scope-of-lazy-mmu-region.patch
-sparc-mm-disable-preemption-in-lazy-mmu-mode.patch
-sparc-mm-avoid-calling-arch_enter-leave_lazy_mmu-in-set_ptes.patch
-revert-x86-xen-allow-nesting-of-same-lazy-mode.patch
 
