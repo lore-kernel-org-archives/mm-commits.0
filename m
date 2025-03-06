@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1AF2207A34
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A541A207A34
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297109; cv=none; b=bvdEjsObfKUsIEc6uL6G0y5o2CgvDP11sq/NApCMXmuMByORuq4D7/limyFUSQsNUPE2ove3FI7TcdXlhSM0O9jyNWSGxN1hH2RICGI9WMDV3INuSN1fwDwmB4MeC6hxuupFyuHVePKNcMoE7M5z8DR1qjWgrtGDzRnkNVhNf9c=
+	t=1741297109; cv=none; b=da4GUTNyMcqO9kB/aDlWaJ9H30GlnOdv2zmbHZm+4LOTYhU5bX/wpBbogVS48pz70zhsUJfLRDqk94YCFTYiWbDWZXLqlpEUKmQjpxq3qs9kpT4yTGwd6V2ZBQ2wYURMbPWyQh9MvA6DAnRyIFqzvn88yAWQIsR9b/yOaHiyZEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741297109; c=relaxed/simple;
-	bh=hH7kOdI56OJpwyQaBurYunzcGZJif+Z5StsgORb4mRU=;
-	h=Date:To:From:Subject:Message-Id; b=fiMpKH5gGQhAWeuXOLez6QepuFgBc60pF7sWy/JDxt4X//fWU4gwyQU3Q6nnj2NwHU2JCkE+XmkbVOpTg+48gfyEEmxtmElXgXtwbylPc/oskeHzNDXdHgMrXXy0Rf8uqBPmU4LScl/IPuOoeQ6B2JOL97O/TOcR3yFUHTLsHpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zvlgQ8ZV; arc=none smtp.client-ip=10.30.226.201
+	bh=vsTA88KNRPJ8/HEGlThvovR8FoFZ5ubRlmzhh0MtulU=;
+	h=Date:To:From:Subject:Message-Id; b=t0yy+lG1Y1v8ahfc0B7xvxdhkz55/unE9pQLy02CwqYFYjBP+IM7Co5HVPHGbeebeGMLaMyaOkcYmQLpaIeKvYCr1Zo3K3yX9ZWoPqHnZ8hu77CdQ1sdQJ1/TVxxMQpa0sFAJqTEXb9xy/rapZD67nI7RWsTBBBCt7ZxoangteU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WaCLUCyZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zvlgQ8ZV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 397E0C4CEE0;
-	Thu,  6 Mar 2025 21:38:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WaCLUCyZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F7D6C4CEE8;
+	Thu,  6 Mar 2025 21:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297108;
-	bh=hH7kOdI56OJpwyQaBurYunzcGZJif+Z5StsgORb4mRU=;
+	s=korg; t=1741297109;
+	bh=vsTA88KNRPJ8/HEGlThvovR8FoFZ5ubRlmzhh0MtulU=;
 	h=Date:To:From:Subject:From;
-	b=zvlgQ8ZVe2QgN201tmzBP12fXm5YZvSQs3CLIbddy+UtuVojQwIyIFIRpyQnVSNnV
-	 HJL2BPSp13CvpMwdpNmz/BrvFvQbqZX5O25B7xS1H0ughoRb72BMakwPyZRPar3xrC
-	 y15AqrsN3p+orn0YaYOa02CySh7oHCMBmaiEJkGM=
-Date: Thu, 06 Mar 2025 13:38:27 -0800
+	b=WaCLUCyZfxCG1lXrPG9034FyhikQ5sLpNlByE8h2Y8GRrzkrMn7C+1wqubrjZpp1Q
+	 1qkrX1tsIFwvUGwDijmyf5mvcwGuvl3hl4EknQIPudAzUWThM5kFtubSR6/zBCH2On
+	 vnpO+Kb2CShiRK+l+t7poiYGxLQHRkzYqV7dw5cY=
+Date: Thu, 06 Mar 2025 13:38:28 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch added to mm-unstable branch
-Message-Id: <20250306213828.397E0C4CEE0@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch added to mm-unstable branch
+Message-Id: <20250306213829.6F7D6C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: remove damon_sysfs_cmd_request and its readers
+     Subject: mm/damon/sysfs-schemes: remove obsolete comment for damon_sysfs_schemes_clear_regions()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
+     mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove damon_sysfs_cmd_request and its readers
-Date: Thu, 6 Mar 2025 09:59:02 -0800
+Subject: mm/damon/sysfs-schemes: remove obsolete comment for damon_sysfs_schemes_clear_regions()
+Date: Thu, 6 Mar 2025 09:59:03 -0800
 
-damon_sysfs_cmd_request is DAMON sysfs interface's own synchronization
-mechanism for accessing DAMON internal data via damon_callback hooks.  All
-the users are now migrated to damon_call() and damos_walk(), so nobody
-really uses it.  No one writes to the data structure but reading code is
-still remained.  Remove the reading code and the entire data structure.
+The comment on damon_sysfs_schemes_clear_regions() function is obsolete,
+since it has updated to directly called from DAMON sysfs interface code. 
+Remove the outdated comment.
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   24 +-----------------------
- 1 file changed, 1 insertion(+), 23 deletions(-)
+ mm/damon/sysfs-schemes.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers
-+++ a/mm/damon/sysfs.c
-@@ -1238,25 +1238,6 @@ static const char * const damon_sysfs_cm
- 	"update_tuned_intervals",
- };
- 
--/*
-- * struct damon_sysfs_cmd_request - A request to the DAMON callback.
-- * @cmd:	The command that needs to be handled by the callback.
-- * @kdamond:	The kobject wrapper that associated to the kdamond thread.
-- *
-- * This structure represents a sysfs command request that need to access some
-- * DAMON context-internal data.  Because DAMON context-internal data can be
-- * safely accessed from DAMON callbacks without additional synchronization, the
-- * request will be handled by the DAMON callback.  None-``NULL`` @kdamond means
-- * the request is valid.
-- */
--struct damon_sysfs_cmd_request {
--	enum damon_sysfs_cmd cmd;
--	struct damon_sysfs_kdamond *kdamond;
--};
--
--/* Current DAMON callback request.  Protected by damon_sysfs_lock. */
--static struct damon_sysfs_cmd_request damon_sysfs_cmd_request;
--
- static ssize_t state_show(struct kobject *kobj, struct kobj_attribute *attr,
- 		char *buf)
- {
-@@ -1555,8 +1536,6 @@ static int damon_sysfs_turn_damon_on(str
- 
- 	if (damon_sysfs_kdamond_running(kdamond))
- 		return -EBUSY;
--	if (damon_sysfs_cmd_request.kdamond == kdamond)
--		return -EBUSY;
- 	/* TODO: support multiple contexts per kdamond */
- 	if (kdamond->contexts->nr != 1)
- 		return -EINVAL;
-@@ -1796,8 +1775,7 @@ static bool damon_sysfs_kdamonds_busy(st
- 	int i;
- 
- 	for (i = 0; i < nr_kdamonds; i++) {
--		if (damon_sysfs_kdamond_running(kdamonds[i]) ||
--		    damon_sysfs_cmd_request.kdamond == kdamonds[i])
-+		if (damon_sysfs_kdamond_running(kdamonds[i]))
- 			return true;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions
++++ a/mm/damon/sysfs-schemes.c
+@@ -2341,7 +2341,6 @@ void damos_sysfs_populate_region_dir(str
  	}
+ }
  
+-/* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+ int damon_sysfs_schemes_clear_regions(
+ 		struct damon_sysfs_schemes *sysfs_schemes)
+ {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
