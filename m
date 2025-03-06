@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82F491E5B86
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:03:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C369A155342
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:10:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741298633; cv=none; b=NM6PzFYoYotTmbgqgEnjRM3ykp7i2UqFD0hFioaIhJ3eNfbilxCfNk2P7RL3tmR5skbbQldTpW2bJBDnQnEBiAV9uGpKmG/n/l5E3xAvmJUNy1oKfJ/rVU5lqhNhxljTH2utMcCbUAbz5+OSluZdJ3ZoEZSzpZfPJEmF2VX2hIQ=
+	t=1741299026; cv=none; b=pIJnoplgdPwQK1Ezoec9jEMhQ6JN7zFBZn2EqAgyUz+ayMGv+i8EE970hLUlN8fAKiXxZBy79Men8uB0ltlfyIptyvRwBeRMo/pMmLz8NoSzbgTxdJs+qTB9me8VvhDvOKRHzlLFeubbgt9ttPMjDayy+69UxAMdxgU8wlyTfGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741298633; c=relaxed/simple;
-	bh=xXlAc51f9oc+8PSc6+0BPgtqs5QEMNyAzd7cKsn/fBU=;
-	h=Date:To:From:Subject:Message-Id; b=QaDTP1t5TgJ0uN1XXjcf892WsCR7WFlBic8xdNKpTsH6oJau9hiHDezjuBybEfWyKVa9ASfBReHdtttNHYyWGiXgAuIOWOq8d1EV+4dNV/4U1LeEREDqoUlfpvlbRricGAYzwcWajTnYtLdTqDSymwFGq0ADBbJBIMQ0nJZLNRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w439JqQL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741299026; c=relaxed/simple;
+	bh=l4j3Yo+rruS2eCRVl+HFyPHS0ZrmiZQAFiQjPdNz7/g=;
+	h=Date:To:From:Subject:Message-Id; b=YwKXuQcLrgoeyFzpzf9wirxF4swu/16SllnVL0eTXJ2nlSRrW8DyF90D7jERMNTcOIOTxGQ1PG9COd3ezU0ms16uAger34+D4W3FTWR80aV3rX1kc0PZkReByOp0QawUXn+o7sLX9jGEM8FZBCPQAmDuki95PfPTILvaZETuU7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LGy08OFa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w439JqQL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E566EC4CEE5;
-	Thu,  6 Mar 2025 22:03:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LGy08OFa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CAB3C4CEE0;
+	Thu,  6 Mar 2025 22:10:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741298633;
-	bh=xXlAc51f9oc+8PSc6+0BPgtqs5QEMNyAzd7cKsn/fBU=;
+	s=korg; t=1741299026;
+	bh=l4j3Yo+rruS2eCRVl+HFyPHS0ZrmiZQAFiQjPdNz7/g=;
 	h=Date:To:From:Subject:From;
-	b=w439JqQL2rjsoKx2oObCzNNcZfXzKIOiagz6RlZdpw6YHE4w/5u79d0TVa0IWnF7V
-	 qZj2QYaGy+p+aNTENqk+mImBllWh/3eMxC1AH49V+hs2srLG3ayoxA9TJN8o0UInNj
-	 0DntVrYjdG3FlPw06IPohz4sk540tqxOg6Wcs4+s=
-Date: Thu, 06 Mar 2025 14:03:52 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,david@redhat.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=LGy08OFafVHuZL5UGkLXJST7gUexvXh0STlZiuvDtcCtsGrAISNd26sXG68DaISUX
+	 YvcCoG57A/ZNwo7KAAadVC13KRTWAEupwsuJEyfA5zD36G0AudKByvmBGf7VH72Eoj
+	 pW33aMmJUeidoEzMuPPSTjW+0G/+WDfbhyKNkByU=
+Date: Thu, 06 Mar 2025 14:10:25 -0800
+To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,zhiyuzhang999@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-redundant-return-in-set_huge_zero_folio.patch added to mm-unstable branch
-Message-Id: <20250306220352.E566EC4CEE5@smtp.kernel.org>
+Subject: + squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250306221026.2CAB3C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove redundant return in set_huge_zero_folio()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-redundant-return-in-set_huge_zero_folio.patch
+     Subject: squashfs: fix invalid pointer dereference in squashfs_cache_delete
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-return-in-set_huge_zero_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,39 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm: remove redundant return in set_huge_zero_folio()
-Date: Thu, 6 Mar 2025 20:13:15 +0530
+From: Zhiyu Zhang <zhiyuzhang999@gmail.com>
+Subject: squashfs: fix invalid pointer dereference in squashfs_cache_delete
+Date: Thu, 6 Mar 2025 21:28:55 +0800
 
-It is the responsibility of the caller to check pmd_none(); in any case,
-we are not achieving anything by returning since there is no return value
-to tell the caller that we succeeded or not.  So remove this check.
+When mounting a squashfs fails, squashfs_cache_init() may return an error
+pointer (e.g., -ENOMEM) instead of NULL.  However, squashfs_cache_delete()
+only checks for a NULL cache, and attempts to dereference the invalid
+pointer.  This leads to a kernel crash (BUG: unable to handle kernel
+paging request in squashfs_cache_delete).
 
-Link: https://lkml.kernel.org/r/20250306144315.21907-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+This patch fixes the issue by checking IS_ERR(cache) before accessing it.
+
+Link: https://lkml.kernel.org/r/20250306132855.2030-1-zhiyuzhang999@gmail.com
+Fixes: 49ff29240ebb ("squashfs: make squashfs_cache_init() return ERR_PTR(-ENOMEM)")
+Signed-off-by: Zhiyu Zhang <zhiyuzhang999@gmail.com>
+Reported-by: Zhiyu Zhang <zhiyuzhang999@gmail.com>
+Closes: https://lore.kernel.org/linux-fsdevel/CALf2hKvaq8B4u5yfrE+BYt7aNguao99mfWxHngA+=o5hwzjdOg@mail.gmail.com/
+Tested-by: Zhiyu Zhang <zhiyuzhang999@gmail.com>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/squashfs/cache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-remove-redundant-return-in-set_huge_zero_folio
-+++ a/mm/huge_memory.c
-@@ -1309,8 +1309,6 @@ static void set_huge_zero_folio(pgtable_
- 		struct folio *zero_folio)
+--- a/fs/squashfs/cache.c~squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete
++++ a/fs/squashfs/cache.c
+@@ -198,7 +198,7 @@ void squashfs_cache_delete(struct squash
  {
- 	pmd_t entry;
--	if (!pmd_none(*pmd))
--		return;
- 	entry = mk_pmd(&zero_folio->page, vma->vm_page_prot);
- 	entry = pmd_mkhuge(entry);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	int i, j;
+ 
+-	if (cache == NULL)
++	if (IS_ERR(cache) || cache == NULL)
+ 		return;
+ 
+ 	for (i = 0; i < cache->entries; i++) {
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from zhiyuzhang999@gmail.com are
 
-mm-remove-redundant-return-in-set_huge_zero_folio.patch
+squashfs-fix-invalid-pointer-dereference-in-squashfs_cache_delete.patch
 
