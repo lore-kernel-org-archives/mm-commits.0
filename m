@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A032727C17A
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:18:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60DAA2D
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:54:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741299492; cv=none; b=g7qUyMlFDalDRHJNErOEL5BVAK8aJM8LgVeXufSsTu8SZrtpB+1e/S/LQ057OsaMeK16y4oTk8rb/4xA2RJoELcaHbR5SIwTqQpVI56GUZmpUWGF9jYQ63RiDt9TGUIi5bzM6gn9zdjLSdGfswhChudYjj9wva98wy5HAgcGpso=
+	t=1741301671; cv=none; b=kuOlrbTPA7BcpZ0+bKwMpJ05G7rL5Z0b3HseoqnGo3NmVnwamkmkpo7D1XJNcR5NQ46Ixm+ADccJdmJeornAK0/AoX+/oJm+IpyyYSX9Y3bw1++agl3DoYFmJvGsxgVJgCVybLijrY4dPzOiffL8CUO1q5YW2Ni60sqKppX5AjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741299492; c=relaxed/simple;
-	bh=NiMsDVaOWlVW74cJE5y7H3mAt29A8+C+2G2HygEqUVQ=;
-	h=Date:To:From:Subject:Message-Id; b=LGPk6NyPlcSrQaeWuSRDg5xySyH4/Nx0rJ16RuTm272xWycEOs4O93XP42cCh8OUy1o/oRG5bP4p0IFKQhwDResOhpw7xDrwaEKdUdHbW2gt1f6dlPHPQWs+Pc2q+/+WOiceZrrmo2vDey5w5hSW1i1fTOCenxGVfDjDA8pHyx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bBfBt//G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741301671; c=relaxed/simple;
+	bh=Lgeuqx8JzJiIXhAzQblbCdzCC5EcHaV/oeAVNCZQ+uc=;
+	h=Date:To:From:Subject:Message-Id; b=H1ZKM4RfiQCIXi9BL1K/7/RKkqQvDI195md49XCyW9gFZJIOYF3bKGR9C5JVedKhfgUJ7ztYaRj/swIggl1hefGgT4xdM7mWstM/37L7SrV2OS3sR80gHRw6ffkrkiSULxYZswfA3DtXxaMu4rf8Y0sfpbs3+8/TVcbsoOUo4Lw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZPFlII4x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBfBt//G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F72CC4CEE0;
-	Thu,  6 Mar 2025 22:18:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZPFlII4x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DA53C4CEE0;
+	Thu,  6 Mar 2025 22:54:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741299492;
-	bh=NiMsDVaOWlVW74cJE5y7H3mAt29A8+C+2G2HygEqUVQ=;
+	s=korg; t=1741301671;
+	bh=Lgeuqx8JzJiIXhAzQblbCdzCC5EcHaV/oeAVNCZQ+uc=;
 	h=Date:To:From:Subject:From;
-	b=bBfBt//GaLhHa3wtTgL47E20X5AAejQw4FufPxQISodb+TdaxoTSIMw07o0Wp+ow4
-	 rcPTMjV5OVepFBQw8Ob4jIREeUvm8zwQ0aLkXDBlaJvFwnTx2ZHZSAH/uH1+TxQkFk
-	 qymMS22BQl45abqaBaozGv0C2o0PUj630HXGafmI=
-Date: Thu, 06 Mar 2025 14:18:11 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=ZPFlII4xTjRan6OJJy5fwXXCcZfq+tcMBx5FIlwvf279S9FXenW715w1HajGSLMZJ
+	 UF22VsFzna0r7HMyC6EwR73tlaHzIz+0oHjdf/lO5gJ7VZNcKmuXlhiEJ8OLbyr6go
+	 4mbJigHnESxzHqAqYbGAQ7Xw420n7dqswOtccII0=
+Date: Thu, 06 Mar 2025 14:54:30 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,pasha.tatashin@soleen.com,muchun.song@linux.dev,hannes@cmpxchg.org,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-thread-state-through-move-page-table-operation.patch added to mm-unstable branch
-Message-Id: <20250306221812.6F72CC4CEE0@smtp.kernel.org>
+Subject: + mm-page_ext-add-an-iteration-api-for-page-extensions.patch added to mm-unstable branch
+Message-Id: <20250306225431.3DA53C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: thread state through move page table operation
+     Subject: mm: page_ext: add an iteration API for page extensions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-thread-state-through-move-page-table-operation.patch
+     mm-page_ext-add-an-iteration-api-for-page-extensions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-thread-state-through-move-page-table-operation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-add-an-iteration-api-for-page-extensions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,529 +58,308 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: thread state through move page table operation
-Date: Thu, 6 Mar 2025 10:34:03 +0000
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: mm: page_ext: add an iteration API for page extensions
+Date: Thu, 6 Mar 2025 17:44:50 -0500
 
-Finish refactoring the page table logic by threading the PMC state
-throughout the operation, allowing us to control the operation as we go.
+Patch series "mm: page_ext: Introduce new iteration API", v3.
 
-Additionally, update the old_addr, new_addr fields in move_page_tables()
-as we progress through the process making use of the fact we have this
-state object now to track this.
+Introduction
+============
 
-With these changes made, not only is the code far more readable, but we
-can finally transmit state throughout the entire operation, which lays the
-groundwork for sensibly making changes in future to how the mremap()
-operation is performed.
+  [ Thanks to David Hildenbrand for identifying the root cause of this
+    issue and proving guidance on how to fix it. The new API idea, bugs
+    and misconceptions are all mine though ]
 
-Additionally take the opportunity to refactor the means of determining the
-progress of the operation, abstracting this to pmc_progress() and
-simplifying the logic to make it clearer what's going on.
+Currently, trying to reserve 1G pages with page_owner=on and sparsemem
+causes a crash. The reproducer is very simple:
 
-Link: https://lkml.kernel.org/r/1d85814f3a73eaa241c554b3e0f751f3e267a467.1741256580.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+ 1. Build the kernel with CONFIG_SPARSEMEM=y and the table extensions
+ 2. Pass 'default_hugepagesz=1 page_owner=on' in the kernel command-line
+ 3. Reserve one 1G page at run-time, this should crash (see patch 1 for
+    backtrace) 
+
+ [ A crash with page_table_check is also possible, but harder to trigger ]
+
+Apparently, starting with commit cf54f310d0d3 ("mm/hugetlb: use __GFP_COMP
+for gigantic folios") we now pass the full allocation order to page
+extension clients and the page extension implementation assumes that all
+PFNs of an allocation range will be stored in the same memory section (which
+is not true for 1G pages).
+
+To fix this, this series introduces a new iteration API for page extension
+objects. The API checks if the next page extension object can be retrieved
+from the current section or if it needs to look up for it in another
+section.
+
+Please, find all details in patch 1.
+
+I tested this series on arm64 and x86 by reserving 1G pages at run-time
+and doing kernel builds (always with page_owner=on and page_table_check=on).
+
+
+This patch (of 3):
+
+The page extension implementation assumes that all page extensions of a
+given page order are stored in the same memory section.  The function
+page_ext_next() relies on this assumption by adding an offset to the
+current object to return the next adjacent page extension.
+
+This behavior works as expected for flatmem but fails for sparsemem when
+using 1G pages.  The commit cf54f310d0d3 ("mm/hugetlb: use __GFP_COMP for
+gigantic folios") exposes this issue, making it possible for a crash when
+using page_owner or page_table_check page extensions.
+
+The problem is that for 1G pages, the page extensions may span memory
+section boundaries and be stored in different memory sections.  This issue
+was not visible before commit cf54f310d0d3 ("mm/hugetlb: use __GFP_COMP
+for gigantic folios") because alloc_contig_pages() never passed more than
+MAX_PAGE_ORDER to post_alloc_hook().  However, the series introducing
+mentioned commit changed this behavior allowing the full 1G page order to
+be passed.
+
+Reproducer:
+
+ 1. Build the kernel with CONFIG_SPARSEMEM=y and table extensions
+    support
+ 2. Pass 'default_hugepagesz=1 page_owner=on' in the kernel command-line
+ 3. Reserve one 1G page at run-time, this should crash (backtrace below)
+
+To address this issue, this commit introduces a new API for iterating
+through page extensions.  The main iteration macro is for_each_page_ext()
+and it must be called with the RCU read lock taken.  Here's an usage
+example:
+
+"""
+struct page_ext_iter iter;
+struct page_ext *page_ext;
+
+...
+
+rcu_read_lock();
+for_each_page_ext(page, 1 << order, page_ext, iter) {
+	struct my_page_ext *obj = get_my_page_ext_obj(page_ext);
+	...
+}
+rcu_read_unlock();
+"""
+
+The loop construct uses page_ext_iter_next() which checks to see if we
+have crossed sections in the iteration.  In this case,
+page_ext_iter_next() retrieves the next page_ext object from another
+section.
+
+Thanks to David Hildenbrand for helping identify the root cause and
+providing suggestions on how to fix and optmize the solution (final
+implementation and bugs are all mine through).
+
+Lastly, here's the backtrace, without kasan you can get random crashes:
+
+[   76.052526] BUG: KASAN: slab-out-of-bounds in __update_page_owner_handle+0x238/0x298
+[   76.060283] Write of size 4 at addr ffff07ff96240038 by task tee/3598
+[   76.066714]
+[   76.068203] CPU: 88 UID: 0 PID: 3598 Comm: tee Kdump: loaded Not tainted 6.13.0-rep1 #3
+[   76.076202] Hardware name: WIWYNN Mt.Jade Server System B81.030Z1.0007/Mt.Jade Motherboard, BIOS 2.10.20220810 (SCP: 2.10.20220810) 2022/08/10
+[   76.088972] Call trace:
+[   76.091411]  show_stack+0x20/0x38 (C)
+[   76.095073]  dump_stack_lvl+0x80/0xf8
+[   76.098733]  print_address_description.constprop.0+0x88/0x398
+[   76.104476]  print_report+0xa8/0x278
+[   76.108041]  kasan_report+0xa8/0xf8
+[   76.111520]  __asan_report_store4_noabort+0x20/0x30
+[   76.116391]  __update_page_owner_handle+0x238/0x298
+[   76.121259]  __set_page_owner+0xdc/0x140
+[   76.125173]  post_alloc_hook+0x190/0x1d8
+[   76.129090]  alloc_contig_range_noprof+0x54c/0x890
+[   76.133874]  alloc_contig_pages_noprof+0x35c/0x4a8
+[   76.138656]  alloc_gigantic_folio.isra.0+0x2c0/0x368
+[   76.143616]  only_alloc_fresh_hugetlb_folio.isra.0+0x24/0x150
+[   76.149353]  alloc_pool_huge_folio+0x11c/0x1f8
+[   76.153787]  set_max_huge_pages+0x364/0xca8
+[   76.157961]  __nr_hugepages_store_common+0xb0/0x1a0
+[   76.162829]  nr_hugepages_store+0x108/0x118
+[   76.167003]  kobj_attr_store+0x3c/0x70
+[   76.170745]  sysfs_kf_write+0xfc/0x188
+[   76.174492]  kernfs_fop_write_iter+0x274/0x3e0
+[   76.178927]  vfs_write+0x64c/0x8e0
+[   76.182323]  ksys_write+0xf8/0x1f0
+[   76.185716]  __arm64_sys_write+0x74/0xb0
+[   76.189630]  invoke_syscall.constprop.0+0xd8/0x1e0
+[   76.194412]  do_el0_svc+0x164/0x1e0
+[   76.197891]  el0_svc+0x40/0xe0
+[   76.200939]  el0t_64_sync_handler+0x144/0x168
+[   76.205287]  el0t_64_sync+0x1ac/0x1b0
+
+Link: https://lkml.kernel.org/r/cover.1741301089.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/a45893880b7e1601082d39d2c5c8b50bcc096305.1741301089.git.luizcap@redhat.com
+Fixes: cf54f310d0d3 ("mm/hugetlb: use __GFP_COMP for gigantic folios")
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 
- mm/mremap.c   |  201 +++++++++++++++++++++++++++---------------------
- 2 files changed, 120 insertions(+), 84 deletions(-)
+ include/linux/page_ext.h |   93 +++++++++++++++++++++++++++++++++++++
+ mm/page_ext.c            |   13 +++++
+ 2 files changed, 106 insertions(+)
 
---- a/mm/internal.h~mm-mremap-thread-state-through-move-page-table-operation
-+++ a/mm/internal.h
-@@ -39,6 +39,9 @@ struct folio_batch;
-  *
-  * Use the PAGETABLE_MOVE() macro to initialise this struct.
-  *
-+ * The old_addr and new_addr fields are updated as the page table move is
-+ * executed.
-+ *
-  * NOTE: The page table move is affected by reading from [old_addr, old_end),
-  * and old_addr may be updated for better page table alignment, so len_in
-  * represents the length of the range being copied as specified by the user.
---- a/mm/mremap.c~mm-mremap-thread-state-through-move-page-table-operation
-+++ a/mm/mremap.c
-@@ -108,8 +108,7 @@ static pmd_t *get_old_pmd(struct mm_stru
- 	return pmd;
- }
+--- a/include/linux/page_ext.h~mm-page_ext-add-an-iteration-api-for-page-extensions
++++ a/include/linux/page_ext.h
+@@ -3,6 +3,7 @@
+ #define __LINUX_PAGE_EXT_H
  
--static pud_t *alloc_new_pud(struct mm_struct *mm, struct vm_area_struct *vma,
--			    unsigned long addr)
-+static pud_t *alloc_new_pud(struct mm_struct *mm, unsigned long addr)
+ #include <linux/types.h>
++#include <linux/mmzone.h>
+ #include <linux/stacktrace.h>
+ 
+ struct pglist_data;
+@@ -69,16 +70,31 @@ extern void page_ext_init(void);
+ static inline void page_ext_init_flatmem_late(void)
  {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -122,13 +121,12 @@ static pud_t *alloc_new_pud(struct mm_st
- 	return pud_alloc(mm, p4d, addr);
  }
- 
--static pmd_t *alloc_new_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
--			    unsigned long addr)
-+static pmd_t *alloc_new_pmd(struct mm_struct *mm, unsigned long addr)
- {
- 	pud_t *pud;
- 	pmd_t *pmd;
- 
--	pud = alloc_new_pud(mm, vma, addr);
-+	pud = alloc_new_pud(mm, addr);
- 	if (!pud)
- 		return NULL;
- 
-@@ -172,17 +170,19 @@ static pte_t move_soft_dirty_pte(pte_t p
- 	return pte;
- }
- 
--static int move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
--		unsigned long old_addr, unsigned long old_end,
--		struct vm_area_struct *new_vma, pmd_t *new_pmd,
--		unsigned long new_addr, bool need_rmap_locks)
-+static int move_ptes(struct pagetable_move_control *pmc,
-+		unsigned long extent, pmd_t *old_pmd, pmd_t *new_pmd)
- {
-+	struct vm_area_struct *vma = pmc->old;
- 	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_pte, *new_pte, pte;
- 	pmd_t dummy_pmdval;
- 	spinlock_t *old_ptl, *new_ptl;
- 	bool force_flush = false;
-+	unsigned long old_addr = pmc->old_addr;
-+	unsigned long new_addr = pmc->new_addr;
-+	unsigned long old_end = old_addr + extent;
- 	unsigned long len = old_end - old_addr;
- 	int err = 0;
- 
-@@ -204,7 +204,7 @@ static int move_ptes(struct vm_area_stru
- 	 *   serialize access to individual ptes, but only rmap traversal
- 	 *   order guarantees that we won't miss both the old and new ptes).
- 	 */
--	if (need_rmap_locks)
-+	if (pmc->need_rmap_locks)
- 		take_rmap_locks(vma);
- 
- 	/*
-@@ -278,7 +278,7 @@ static int move_ptes(struct vm_area_stru
- 	pte_unmap(new_pte - 1);
- 	pte_unmap_unlock(old_pte - 1, old_ptl);
- out:
--	if (need_rmap_locks)
-+	if (pmc->need_rmap_locks)
- 		drop_rmap_locks(vma);
- 	return err;
- }
-@@ -293,10 +293,11 @@ static inline bool arch_supports_page_ta
- #endif
- 
- #ifdef CONFIG_HAVE_MOVE_PMD
--static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
--		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
-+static bool move_normal_pmd(struct pagetable_move_control *pmc,
-+			pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	spinlock_t *old_ptl, *new_ptl;
-+	struct vm_area_struct *vma = pmc->old;
- 	struct mm_struct *mm = vma->vm_mm;
- 	bool res = false;
- 	pmd_t pmd;
-@@ -342,7 +343,7 @@ static bool move_normal_pmd(struct vm_ar
- 	 * We don't have to worry about the ordering of src and dst
- 	 * ptlocks because exclusive mmap_lock prevents deadlock.
- 	 */
--	old_ptl = pmd_lock(vma->vm_mm, old_pmd);
-+	old_ptl = pmd_lock(mm, old_pmd);
- 	new_ptl = pmd_lockptr(mm, new_pmd);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -359,7 +360,7 @@ static bool move_normal_pmd(struct vm_ar
- 	VM_BUG_ON(!pmd_none(*new_pmd));
- 
- 	pmd_populate(mm, new_pmd, pmd_pgtable(pmd));
--	flush_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
-+	flush_tlb_range(vma, pmc->old_addr, pmc->old_addr + PMD_SIZE);
- out_unlock:
- 	if (new_ptl != old_ptl)
- 		spin_unlock(new_ptl);
-@@ -368,19 +369,19 @@ out_unlock:
- 	return res;
- }
- #else
--static inline bool move_normal_pmd(struct vm_area_struct *vma,
--		unsigned long old_addr, unsigned long new_addr, pmd_t *old_pmd,
--		pmd_t *new_pmd)
-+static inline bool move_normal_pmd(struct pagetable_move_control *pmc,
-+		pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	return false;
- }
- #endif
- 
- #if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_HAVE_MOVE_PUD)
--static bool move_normal_pud(struct vm_area_struct *vma, unsigned long old_addr,
--		  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
-+static bool move_normal_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
- {
- 	spinlock_t *old_ptl, *new_ptl;
-+	struct vm_area_struct *vma = pmc->old;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t pud;
- 
-@@ -406,7 +407,7 @@ static bool move_normal_pud(struct vm_ar
- 	 * We don't have to worry about the ordering of src and dst
- 	 * ptlocks because exclusive mmap_lock prevents deadlock.
- 	 */
--	old_ptl = pud_lock(vma->vm_mm, old_pud);
-+	old_ptl = pud_lock(mm, old_pud);
- 	new_ptl = pud_lockptr(mm, new_pud);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -418,7 +419,7 @@ static bool move_normal_pud(struct vm_ar
- 	VM_BUG_ON(!pud_none(*new_pud));
- 
- 	pud_populate(mm, new_pud, pud_pgtable(pud));
--	flush_tlb_range(vma, old_addr, old_addr + PUD_SIZE);
-+	flush_tlb_range(vma, pmc->old_addr, pmc->old_addr + PUD_SIZE);
- 	if (new_ptl != old_ptl)
- 		spin_unlock(new_ptl);
- 	spin_unlock(old_ptl);
-@@ -426,19 +427,19 @@ static bool move_normal_pud(struct vm_ar
- 	return true;
- }
- #else
--static inline bool move_normal_pud(struct vm_area_struct *vma,
--		unsigned long old_addr, unsigned long new_addr, pud_t *old_pud,
--		pud_t *new_pud)
-+static inline bool move_normal_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
- {
- 	return false;
- }
- #endif
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
--			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
-+static bool move_huge_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
- {
- 	spinlock_t *old_ptl, *new_ptl;
-+	struct vm_area_struct *vma = pmc->old;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t pud;
- 
-@@ -453,7 +454,7 @@ static bool move_huge_pud(struct vm_area
- 	 * We don't have to worry about the ordering of src and dst
- 	 * ptlocks because exclusive mmap_lock prevents deadlock.
- 	 */
--	old_ptl = pud_lock(vma->vm_mm, old_pud);
-+	old_ptl = pud_lock(mm, old_pud);
- 	new_ptl = pud_lockptr(mm, new_pud);
- 	if (new_ptl != old_ptl)
- 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-@@ -466,8 +467,8 @@ static bool move_huge_pud(struct vm_area
- 
- 	/* Set the new pud */
- 	/* mark soft_ditry when we add pud level soft dirty support */
--	set_pud_at(mm, new_addr, new_pud, pud);
--	flush_pud_tlb_range(vma, old_addr, old_addr + HPAGE_PUD_SIZE);
-+	set_pud_at(mm, pmc->new_addr, new_pud, pud);
-+	flush_pud_tlb_range(vma, pmc->old_addr, pmc->old_addr + HPAGE_PUD_SIZE);
- 	if (new_ptl != old_ptl)
- 		spin_unlock(new_ptl);
- 	spin_unlock(old_ptl);
-@@ -475,8 +476,9 @@ static bool move_huge_pud(struct vm_area
- 	return true;
- }
- #else
--static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
--			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
-+static bool move_huge_pud(struct pagetable_move_control *pmc,
-+		pud_t *old_pud, pud_t *new_pud)
 +
- {
- 	WARN_ON_ONCE(1);
- 	return false;
-@@ -497,10 +499,12 @@ enum pgt_entry {
-  * destination pgt_entry.
-  */
- static __always_inline unsigned long get_extent(enum pgt_entry entry,
--			unsigned long old_addr, unsigned long old_end,
--			unsigned long new_addr)
-+						struct pagetable_move_control *pmc)
- {
- 	unsigned long next, extent, mask, size;
-+	unsigned long old_addr = pmc->old_addr;
-+	unsigned long old_end = pmc->old_end;
-+	unsigned long new_addr = pmc->new_addr;
- 
- 	switch (entry) {
- 	case HPAGE_PMD:
-@@ -530,37 +534,53 @@ static __always_inline unsigned long get
- }
- 
- /*
-+ * Should move_pgt_entry() acquire the rmap locks? This is either expressed in
-+ * the PMC, or overridden in the case of normal, larger page tables.
-+ */
-+static bool should_take_rmap_locks(struct pagetable_move_control *pmc,
-+				   enum pgt_entry entry)
++static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
 +{
-+	if (pmc->need_rmap_locks)
-+		return true;
-+
-+	switch (entry) {
-+	case NORMAL_PMD:
-+	case NORMAL_PUD:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/*
-  * Attempts to speedup the move by moving entry at the level corresponding to
-  * pgt_entry. Returns true if the move was successful, else false.
-  */
--static bool move_pgt_entry(enum pgt_entry entry, struct vm_area_struct *vma,
--			unsigned long old_addr, unsigned long new_addr,
--			void *old_entry, void *new_entry, bool need_rmap_locks)
-+static bool move_pgt_entry(struct pagetable_move_control *pmc,
-+			   enum pgt_entry entry, void *old_entry, void *new_entry)
- {
- 	bool moved = false;
-+	bool need_rmap_locks = should_take_rmap_locks(pmc, entry);
- 
- 	/* See comment in move_ptes() */
- 	if (need_rmap_locks)
--		take_rmap_locks(vma);
-+		take_rmap_locks(pmc->old);
- 
- 	switch (entry) {
- 	case NORMAL_PMD:
--		moved = move_normal_pmd(vma, old_addr, new_addr, old_entry,
--					new_entry);
-+		moved = move_normal_pmd(pmc, old_entry, new_entry);
- 		break;
- 	case NORMAL_PUD:
--		moved = move_normal_pud(vma, old_addr, new_addr, old_entry,
--					new_entry);
-+		moved = move_normal_pud(pmc, old_entry, new_entry);
- 		break;
- 	case HPAGE_PMD:
- 		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--			move_huge_pmd(vma, old_addr, new_addr, old_entry,
-+			move_huge_pmd(pmc->old, pmc->old_addr, pmc->new_addr, old_entry,
- 				      new_entry);
- 		break;
- 	case HPAGE_PUD:
- 		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--			move_huge_pud(vma, old_addr, new_addr, old_entry,
--				      new_entry);
-+			move_huge_pud(pmc, old_entry, new_entry);
- 		break;
- 
- 	default:
-@@ -569,7 +589,7 @@ static bool move_pgt_entry(enum pgt_entr
- 	}
- 
- 	if (need_rmap_locks)
--		drop_rmap_locks(vma);
-+		drop_rmap_locks(pmc->old);
- 
- 	return moved;
- }
-@@ -705,19 +725,48 @@ static void try_realign_addr(struct page
- 	pmc->new_addr &= pagetable_mask;
- }
- 
-+/* Is the page table move operation done? */
-+static bool pmc_done(struct pagetable_move_control *pmc)
-+{
-+	return pmc->old_addr >= pmc->old_end;
-+}
-+
-+/* Advance to the next page table, offset by extent bytes. */
-+static void pmc_next(struct pagetable_move_control *pmc, unsigned long extent)
-+{
-+	pmc->old_addr += extent;
-+	pmc->new_addr += extent;
-+}
-+
-+/*
-+ * Determine how many bytes in the specified input range have had their page
-+ * tables moved so far.
-+ */
-+static unsigned long pmc_progress(struct pagetable_move_control *pmc)
-+{
-+	unsigned long orig_old_addr = pmc->old_end - pmc->len_in;
-+	unsigned long old_addr = pmc->old_addr;
-+
 +	/*
-+	 * Prevent negative return values when {old,new}_addr was realigned but
-+	 * we broke out of the loop in move_page_tables() for the first PMD
-+	 * itself.
++	 * page_ext is allocated per memory section. Once we cross a
++	 * memory section, we have to fetch the new pointer.
 +	 */
-+	return old_addr < orig_old_addr ? 0 : old_addr - orig_old_addr;
++	return next_pfn % PAGES_PER_SECTION;
 +}
-+
- unsigned long move_page_tables(struct pagetable_move_control *pmc)
+ #else
+ extern void page_ext_init_flatmem(void);
+ extern void page_ext_init_flatmem_late(void);
+ static inline void page_ext_init(void)
  {
--	unsigned long extent, old_end;
-+	unsigned long extent;
- 	struct mmu_notifier_range range;
- 	pmd_t *old_pmd, *new_pmd;
- 	pud_t *old_pud, *new_pud;
--	unsigned long old_addr, new_addr;
--	struct vm_area_struct *vma = pmc->old;
-+	struct mm_struct *mm = pmc->old->vm_mm;
- 
- 	if (!pmc->len_in)
- 		return 0;
- 
--	if (is_vm_hugetlb_page(vma))
-+	if (is_vm_hugetlb_page(pmc->old))
- 		return move_hugetlb_page_tables(pmc->old, pmc->new, pmc->old_addr,
- 						pmc->new_addr, pmc->len_in);
- 
-@@ -726,87 +775,71 @@ unsigned long move_page_tables(struct pa
- 	 * Only realign if the mremap copying hits a PMD boundary.
- 	 */
- 	try_realign_addr(pmc, PMD_MASK);
--	/* These may have been changed. */
--	old_addr = pmc->old_addr;
--	new_addr = pmc->new_addr;
--	old_end = pmc->old_end;
--
--	flush_cache_range(vma, old_addr, old_end);
--	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
--				old_addr, old_end);
+ }
 +
-+	flush_cache_range(pmc->old, pmc->old_addr, pmc->old_end);
-+	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, mm,
-+				pmc->old_addr, pmc->old_end);
- 	mmu_notifier_invalidate_range_start(&range);
++static inline bool page_ext_iter_next_fast_possible(unsigned long next_pfn)
++{
++	return true;
++}
+ #endif
  
--	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
-+	for (; !pmc_done(pmc); pmc_next(pmc, extent)) {
- 		cond_resched();
- 		/*
- 		 * If extent is PUD-sized try to speed up the move by moving at the
- 		 * PUD level if possible.
- 		 */
--		extent = get_extent(NORMAL_PUD, old_addr, old_end, new_addr);
-+		extent = get_extent(NORMAL_PUD, pmc);
+ extern struct page_ext *page_ext_get(const struct page *page);
+ extern void page_ext_put(struct page_ext *page_ext);
++extern struct page_ext *page_ext_lookup(unsigned long pfn);
  
--		old_pud = get_old_pud(vma->vm_mm, old_addr);
-+		old_pud = get_old_pud(mm, pmc->old_addr);
- 		if (!old_pud)
- 			continue;
--		new_pud = alloc_new_pud(vma->vm_mm, vma, new_addr);
-+		new_pud = alloc_new_pud(mm, pmc->new_addr);
- 		if (!new_pud)
- 			break;
- 		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
- 			if (extent == HPAGE_PUD_SIZE) {
--				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
--					       old_pud, new_pud, pmc->need_rmap_locks);
-+				move_pgt_entry(pmc, HPAGE_PUD, old_pud, new_pud);
- 				/* We ignore and continue on error? */
- 				continue;
- 			}
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
--			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
--					   old_pud, new_pud, true))
-+			if (move_pgt_entry(pmc, NORMAL_PUD, old_pud, new_pud))
- 				continue;
- 		}
- 
--		extent = get_extent(NORMAL_PMD, old_addr, old_end, new_addr);
--		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
-+		extent = get_extent(NORMAL_PMD, pmc);
-+		old_pmd = get_old_pmd(mm, pmc->old_addr);
- 		if (!old_pmd)
- 			continue;
--		new_pmd = alloc_new_pmd(vma->vm_mm, vma, new_addr);
-+		new_pmd = alloc_new_pmd(mm, pmc->new_addr);
- 		if (!new_pmd)
- 			break;
- again:
- 		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd) ||
- 		    pmd_devmap(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE &&
--			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, pmc->need_rmap_locks))
-+			    move_pgt_entry(pmc, HPAGE_PMD, old_pmd, new_pmd))
- 				continue;
--			split_huge_pmd(vma, old_pmd, old_addr);
-+			split_huge_pmd(pmc->old, old_pmd, pmc->old_addr);
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PMD) &&
- 			   extent == PMD_SIZE) {
- 			/*
- 			 * If the extent is PMD-sized, try to speed the move by
- 			 * moving at the PMD level if possible.
- 			 */
--			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, true))
-+			if (move_pgt_entry(pmc, NORMAL_PMD, old_pmd, new_pmd))
- 				continue;
- 		}
- 		if (pmd_none(*old_pmd))
- 			continue;
- 		if (pte_alloc(pmc->new->vm_mm, new_pmd))
- 			break;
--		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
--			      pmc->new, new_pmd, new_addr, pmc->need_rmap_locks) < 0)
-+		if (move_ptes(pmc, extent, old_pmd, new_pmd) < 0)
- 			goto again;
- 	}
- 
- 	mmu_notifier_invalidate_range_end(&range);
- 
--	/*
--	 * Prevent negative return values when {old,new}_addr was realigned
--	 * but we broke out of the above loop for the first PMD itself.
--	 */
--	if (old_addr < old_end - pmc->len_in)
--		return 0;
--
--	return pmc->len_in + old_addr - old_end;	/* how much done */
-+	return pmc_progress(pmc);
+ static inline void *page_ext_data(struct page_ext *page_ext,
+ 				  struct page_ext_operations *ops)
+@@ -93,6 +109,83 @@ static inline struct page_ext *page_ext_
+ 	return next;
  }
  
- /* Set vrm->delta to the difference in VMA size specified by user. */
++struct page_ext_iter {
++	unsigned long index;
++	unsigned long start_pfn;
++	struct page_ext *page_ext;
++};
++
++/**
++ * page_ext_iter_begin() - Prepare for iterating through page extensions.
++ * @iter: page extension iterator.
++ * @pfn: PFN of the page we're interested in.
++ *
++ * Must be called with RCU read lock taken.
++ *
++ * Return: NULL if no page_ext exists for this page.
++ */
++static inline struct page_ext *page_ext_iter_begin(struct page_ext_iter *iter,
++						unsigned long pfn)
++{
++	iter->index = 0;
++	iter->start_pfn = pfn;
++	iter->page_ext = page_ext_lookup(pfn);
++
++	return iter->page_ext;
++}
++
++/**
++ * page_ext_iter_next() - Get next page extension
++ * @iter: page extension iterator.
++ *
++ * Must be called with RCU read lock taken.
++ *
++ * Return: NULL if no next page_ext exists.
++ */
++static inline struct page_ext *page_ext_iter_next(struct page_ext_iter *iter)
++{
++	unsigned long pfn;
++
++	if (WARN_ON_ONCE(!iter->page_ext))
++		return NULL;
++
++	iter->index++;
++	pfn = iter->start_pfn + iter->index;
++
++	if (page_ext_iter_next_fast_possible(pfn))
++		iter->page_ext = page_ext_next(iter->page_ext);
++	else
++		iter->page_ext = page_ext_lookup(pfn);
++
++	return iter->page_ext;
++}
++
++/**
++ * page_ext_iter_get() - Get current page extension
++ * @iter: page extension iterator.
++ *
++ * Return: NULL if no page_ext exists for this iterator.
++ */
++static inline struct page_ext *page_ext_iter_get(const struct page_ext_iter *iter)
++{
++	return iter->page_ext;
++}
++
++/**
++ * for_each_page_ext(): iterate through page_ext objects.
++ * @__page: the page we're interested in
++ * @__pgcount: how many pages to iterate through
++ * @__page_ext: struct page_ext pointer where the current page_ext
++ *              object is returned
++ * @__iter: struct page_ext_iter object (defined in the stack)
++ *
++ * IMPORTANT: must be called with RCU read lock taken.
++ */
++#define for_each_page_ext(__page, __pgcount, __page_ext, __iter) \
++	for (__page_ext = page_ext_iter_begin(&__iter, page_to_pfn(__page));\
++		__page_ext && __iter.index < __pgcount;          \
++		__page_ext = page_ext_iter_next(&__iter))
++
+ #else /* !CONFIG_PAGE_EXTENSION */
+ struct page_ext;
+ 
+--- a/mm/page_ext.c~mm-page_ext-add-an-iteration-api-for-page-extensions
++++ a/mm/page_ext.c
+@@ -508,6 +508,19 @@ void __meminit pgdat_page_ext_init(struc
+ #endif
+ 
+ /**
++ * page_ext_lookup() - Lookup a page extension for a PFN.
++ * @pfn: PFN of the page we're interested in.
++ *
++ * Must be called with RCU read lock taken and @pfn must be valid.
++ *
++ * Return: NULL if no page_ext exists for this page.
++ */
++struct page_ext *page_ext_lookup(unsigned long pfn)
++{
++	return lookup_page_ext(pfn_to_page(pfn));
++}
++
++/**
+  * page_ext_get() - Get the extended information for a page.
+  * @page: The page we're interested in.
+  *
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
-mm-simplify-vma-merge-structure-and-expand-comments.patch
-mm-further-refactor-commit_merge.patch
-mm-eliminate-adj_start-parameter-from-commit_merge.patch
-mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
-mm-completely-abstract-unnecessary-adj_start-calculation.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
-mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
-mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
-mm-provide-mapping_wrprotect_range-function.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
-mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
-selftests-mm-rename-guard-pages-to-guard-regions.patch
-selftests-mm-rename-guard-pages-to-guard-regions-fix.patch
-tools-selftests-expand-all-guard-region-tests-to-file-backed.patch
-tools-selftests-add-file-shmem-backed-mapping-guard-region-tests.patch
-fs-proc-task_mmu-add-guard-region-bit-to-pagemap.patch
-tools-selftests-add-guard-region-test-for-proc-pid-pagemap.patch
-tools-selftests-add-guard-region-test-for-proc-pid-pagemap-fix.patch
-mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
-mm-mremap-refactor-mremap-system-call-implementation.patch
-mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
-mm-mremap-initial-refactor-of-move_vma.patch
-mm-mremap-complete-refactor-of-move_vma.patch
-mm-mremap-refactor-move_page_tables-abstracting-state.patch
-mm-mremap-thread-state-through-move-page-table-operation.patch
+mm-page_ext-add-an-iteration-api-for-page-extensions.patch
+mm-page_table_check-use-new-iteration-api.patch
+mm-page_owner-use-new-iteration-api.patch
 
