@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3001B1A08A3;
-	Thu,  6 Mar 2025 05:38:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AB91207A0E
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:10:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239482; cv=none; b=g0B0zISeV4T7QldRRirXnUftRz5+xGDQ50fAflw0bHfobUabh0r8W9IDcDrYmBGIjHCef9g1ia9twMSfbQxAU4RgeAUO9mO5kShSooypn7XVQlgTAkkQTgQXqYhjN2EuCmx3Az9DB20tVwqiofWgCeZRqg3XWVrc2fqP+ZCgHbs=
+	t=1741295457; cv=none; b=OFAng8esjrYtKBRVj0W+KjdUSkVsdNW/Mnw3x+VS74bphBcdzcn9fgU52oqrJC8PVvkzQEAN9quAiPYDNcq6kzaCaWcctgNn3eMrX+tYXjfjZ15s+quZmspZULxFM1PdU9Isl0Ev6EZXKknzeRDZvnOm0o+8U7ivD6K8z/am/0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239482; c=relaxed/simple;
-	bh=GCEsY06AuTHeeM+25sCAsKjabVMhYgI2AeaUar7ArrE=;
-	h=Date:To:From:Subject:Message-Id; b=iWJoYwJzykOXdErTt5oZJie/g6KPg1FTgX3aJZuoA7G0/W/ahHQNu1A6XZ/OS4jIY6g0N+IB2oRdcgnVhOOufNR6qtIhs/l4jF8BrxQAW+0FRh/mQWNnYZ5gtoObgVGND4/jzmkiar2TOSFLDWWf0faB1UYQPsvBiHxGTmKpoKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBRY8g7V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741295457; c=relaxed/simple;
+	bh=zzJFR9e/sQo804InZOOYKtd52ENu6CvjI5KMyayBqY4=;
+	h=Date:To:From:Subject:Message-Id; b=rgRvLIFvtgBd2mLzuuoZt58M0B/vqMs7nALhSsuE2Q7vND2xnaWts68/13r2VaFF2Hvfd5EI+oRzpqDcbFSFeQXcYAJLVVjb6daKqse9vNWN3EL2OCKT80wdkNf7K31tVacYxsV8rNjKBUl9FCMEjbbn4C049vWTVVcx3pcc/T8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cGOv6gnG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBRY8g7V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E41C4CEE4;
-	Thu,  6 Mar 2025 05:38:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cGOv6gnG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75228C4CEE0;
+	Thu,  6 Mar 2025 21:10:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239482;
-	bh=GCEsY06AuTHeeM+25sCAsKjabVMhYgI2AeaUar7ArrE=;
+	s=korg; t=1741295456;
+	bh=zzJFR9e/sQo804InZOOYKtd52ENu6CvjI5KMyayBqY4=;
 	h=Date:To:From:Subject:From;
-	b=sBRY8g7VB/J5StIzzkvst8X2qFykKrkirhKzgI+pfkXBCaFl+fwO2AkQvmRYDTXEa
-	 fGDiGoVD7eQsEqoOGV1XdbhW+nJPe04CMR207/eDbkH5fVAVKmeJl9HTB8jCBjE4Gp
-	 ySohluEIJsLEYk/jTpDqVzd0gEJqLFMrycn2UMqw=
-Date: Wed, 05 Mar 2025 21:38:01 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,mhocko@kernel.org,mgorman@techsingularity.net,zhanghao1@kylinos.cn,akpm@linux-foundation.org
+	b=cGOv6gnGU34ktof2zWGkV0GURMVbOkjzHXLZlfr8oScnDyHUjXNlzmjzAf4vB3h+/
+	 UwiInmQZcdWz0XQ5/r4YfdWHXKmPgn82v3VTHbsYPjMzWp1iSpbYepXO5O80lz9GtL
+	 mQwfBW46zG5dIF7fvNHFaDwN/DQAEZkz4O1mXFWs=
+Date: Thu, 06 Mar 2025 13:10:55 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,willy@infradead.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-fix-uninitialized-variable.patch removed from -mm tree
-Message-Id: <20250306053801.F3E41C4CEE4@smtp.kernel.org>
+Subject: + page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch added to mm-unstable branch
+Message-Id: <20250306211056.75228C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,91 +34,347 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/page_alloc: fix uninitialized variable
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-uninitialized-variable.patch
+The patch titled
+     Subject: page_io: zswap: do not crash the kernel on decompression failure
+has been added to the -mm mm-unstable branch.  Its filename is
+     page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Zhang <zhanghao1@kylinos.cn>
-Subject: mm/page_alloc: fix uninitialized variable
-Date: Thu, 27 Feb 2025 11:41:29 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: page_io: zswap: do not crash the kernel on decompression failure
+Date: Thu, 6 Mar 2025 12:50:10 -0800
 
-The variable "compact_result" is not initialized in function
-__alloc_pages_slowpath().  It causes should_compact_retry() to use an
-uninitialized value.
+Currently, we crash the kernel when a decompression failure occurs in
+zswap (either because of memory corruption, or a bug in the compression
+algorithm).  This is overkill.  We should only SIGBUS the unfortunate
+process asking for the zswap entry on zswap load, and skip the corrupted
+entry in zswap writeback.
 
-Initialize variable "compact_result" with the value COMPACT_SKIPPED.
+See [1] for a recent upstream discussion about this.
 
-BUG: KMSAN: uninit-value in __alloc_pages_slowpath+0xee8/0x16c0 mm/page_alloc.c:4416
- __alloc_pages_slowpath+0xee8/0x16c0 mm/page_alloc.c:4416
- __alloc_frozen_pages_noprof+0xa4c/0xe00 mm/page_alloc.c:4752
- alloc_pages_mpol+0x4cd/0x890 mm/mempolicy.c:2270
- alloc_frozen_pages_noprof mm/mempolicy.c:2341 [inline]
- alloc_pages_noprof mm/mempolicy.c:2361 [inline]
- folio_alloc_noprof+0x1dc/0x350 mm/mempolicy.c:2371
- filemap_alloc_folio_noprof+0xa6/0x440 mm/filemap.c:1019
- __filemap_get_folio+0xb9a/0x1840 mm/filemap.c:1970
- grow_dev_folio fs/buffer.c:1039 [inline]
- grow_buffers fs/buffer.c:1105 [inline]
- __getblk_slow fs/buffer.c:1131 [inline]
- bdev_getblk+0x2c9/0xab0 fs/buffer.c:1431
- getblk_unmovable include/linux/buffer_head.h:369 [inline]
- ext4_getblk+0x3b7/0xe50 fs/ext4/inode.c:864
- ext4_bread_batch+0x9f/0x7d0 fs/ext4/inode.c:933
- __ext4_find_entry+0x1ebb/0x36c0 fs/ext4/namei.c:1627
- ext4_lookup_entry fs/ext4/namei.c:1729 [inline]
- ext4_lookup+0x189/0xb40 fs/ext4/namei.c:1797
- __lookup_slow+0x538/0x710 fs/namei.c:1793
- lookup_slow+0x6a/0xd0 fs/namei.c:1810
- walk_component fs/namei.c:2114 [inline]
- link_path_walk+0xf29/0x1420 fs/namei.c:2479
- path_openat+0x30f/0x6250 fs/namei.c:3985
- do_filp_open+0x268/0x600 fs/namei.c:4016
- do_sys_openat2+0x1bf/0x2f0 fs/open.c:1428
- do_sys_open fs/open.c:1443 [inline]
- __do_sys_openat fs/open.c:1459 [inline]
- __se_sys_openat fs/open.c:1454 [inline]
- __x64_sys_openat+0x2a1/0x310 fs/open.c:1454
- x64_sys_call+0x36f5/0x3c30 arch/x86/include/generated/asm/syscalls_64.h:258
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xcd/0x1e0 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
+The zswap writeback case is relatively straightforward to fix.  For the
+zswap_load() case, we change the return behavior:
 
-Local variable compact_result created at:
- __alloc_pages_slowpath+0x66/0x16c0 mm/page_alloc.c:4218
- __alloc_frozen_pages_noprof+0xa4c/0xe00 mm/page_alloc.c:4752
+* Return 0 on success.
+* Return -ENOENT (with the folio locked) if zswap does not own the
+  swapped out content.
+* Return -EIO if zswap owns the swapped out content, but encounters a
+  decompression failure for some reasons. The folio will be unlocked,
+  but not be marked up-to-date, which will eventually cause the process
+  requesting the page to SIGBUS (see the handling of not-up-to-date
+  folio in do_swap_page() in mm/memory.c), without crashing the kernel.
+* Return -EINVAL if we encounter a large folio, as large folio should
+  not be swapped in while zswap is being used. Similar to the -EIO case,
+  we also unlock the folio but do not mark it as up-to-date to SIGBUS
+  the faulting process.
 
-Link: https://lkml.kernel.org/r/tencent_ED1032321D6510B145CDBA8CBA0093178E09@qq.com
-Reported-by: syzbot+0cfd5e38e96a5596f2b6@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=0cfd5e38e96a5596f2b6
-Signed-off-by: Hao Zhang <zhanghao1@kylinos.cn>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>
+As a side effect, we require one extra zswap tree traversal in the load
+and writeback paths.  Quick benchmarking on a kernel build test shows no
+performance difference:
+
+With the new scheme:
+real: mean: 125.1s, stdev: 0.12s
+user: mean: 3265.23s, stdev: 9.62s
+sys: mean: 2156.41s, stdev: 13.98s
+
+The old scheme:
+real: mean: 125.78s, stdev: 0.45s
+user: mean: 3287.18s, stdev: 5.95s
+sys: mean: 2177.08s, stdev: 26.52s
+
+Link: https://lore.kernel.org/all/ZsiLElTykamcYZ6J@casper.infradead.org/ [1]
+Link: https://lkml.kernel.org/r/20250306205011.784787-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/zswap.h |    6 +-
+ mm/page_io.c          |    6 +-
+ mm/zswap.c            |  118 +++++++++++++++++++++++++++-------------
+ 3 files changed, 87 insertions(+), 43 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-uninitialized-variable
-+++ a/mm/page_alloc.c
-@@ -4243,6 +4243,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- restart:
- 	compaction_retries = 0;
- 	no_progress_loops = 0;
-+	compact_result = COMPACT_SKIPPED;
- 	compact_priority = DEF_COMPACT_PRIORITY;
- 	cpuset_mems_cookie = read_mems_allowed_begin();
- 	zonelist_iter_cookie = zonelist_iter_begin();
+--- a/include/linux/zswap.h~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
++++ a/include/linux/zswap.h
+@@ -26,7 +26,7 @@ struct zswap_lruvec_state {
+ 
+ unsigned long zswap_total_pages(void);
+ bool zswap_store(struct folio *folio);
+-bool zswap_load(struct folio *folio);
++int zswap_load(struct folio *folio);
+ void zswap_invalidate(swp_entry_t swp);
+ int zswap_swapon(int type, unsigned long nr_pages);
+ void zswap_swapoff(int type);
+@@ -44,9 +44,9 @@ static inline bool zswap_store(struct fo
+ 	return false;
+ }
+ 
+-static inline bool zswap_load(struct folio *folio)
++static inline int zswap_load(struct folio *folio)
+ {
+-	return false;
++	return -ENOENT;
+ }
+ 
+ static inline void zswap_invalidate(swp_entry_t swp) {}
+--- a/mm/page_io.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
++++ a/mm/page_io.c
+@@ -638,11 +638,11 @@ void swap_read_folio(struct folio *folio
+ 	if (swap_read_folio_zeromap(folio)) {
+ 		folio_unlock(folio);
+ 		goto finish;
+-	} else if (zswap_load(folio)) {
+-		folio_unlock(folio);
+-		goto finish;
+ 	}
+ 
++	if (zswap_load(folio) != -ENOENT)
++		goto finish;
++
+ 	/* We have to read from slower devices. Increase zswap protection. */
+ 	zswap_folio_swapin(folio);
+ 
+--- a/mm/zswap.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
++++ a/mm/zswap.c
+@@ -62,6 +62,8 @@ static u64 zswap_reject_reclaim_fail;
+ static u64 zswap_reject_compress_fail;
+ /* Compressed page was too big for the allocator to (optimally) store */
+ static u64 zswap_reject_compress_poor;
++/* Load or writeback failed due to decompression failure */
++static u64 zswap_decompress_fail;
+ /* Store failed because underlying allocator could not get memory */
+ static u64 zswap_reject_alloc_fail;
+ /* Store failed because the entry metadata could not be allocated (rare) */
+@@ -985,11 +987,12 @@ unlock:
+ 	return comp_ret == 0 && alloc_ret == 0;
+ }
+ 
+-static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
++static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
+ {
+ 	struct zpool *zpool = entry->pool->zpool;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
++	int decomp_ret, dlen;
+ 	u8 *src, *obj;
+ 
+ 	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+@@ -1012,11 +1015,21 @@ static void zswap_decompress(struct zswa
+ 	sg_init_table(&output, 1);
+ 	sg_set_folio(&output, folio, PAGE_SIZE, 0);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
+-	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
+-	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
++	decomp_ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
++	dlen = acomp_ctx->req->dlen;
+ 
+ 	zpool_obj_read_end(zpool, entry->handle, obj);
+ 	acomp_ctx_put_unlock(acomp_ctx);
++
++	if (!decomp_ret && dlen == PAGE_SIZE)
++		return true;
++
++	zswap_decompress_fail++;
++	pr_alert_ratelimited("Decompression error from zswap (%d:%lu %s %u->%d)\n",
++						swp_type(entry->swpentry),
++						swp_offset(entry->swpentry),
++						entry->pool->tfm_name, entry->length, dlen);
++	return false;
+ }
+ 
+ /*********************************
+@@ -1046,6 +1059,7 @@ static int zswap_writeback_entry(struct
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
++	int ret = 0;
+ 
+ 	/* try to allocate swap cache folio */
+ 	si = get_swap_device(swpentry);
+@@ -1067,8 +1081,8 @@ static int zswap_writeback_entry(struct
+ 	 * and freed when invalidated by the concurrent shrinker anyway.
+ 	 */
+ 	if (!folio_was_allocated) {
+-		folio_put(folio);
+-		return -EEXIST;
++		ret = -EEXIST;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -1081,14 +1095,17 @@ static int zswap_writeback_entry(struct
+ 	 * be dereferenced.
+ 	 */
+ 	tree = swap_zswap_tree(swpentry);
+-	if (entry != xa_cmpxchg(tree, offset, entry, NULL, GFP_KERNEL)) {
+-		delete_from_swap_cache(folio);
+-		folio_unlock(folio);
+-		folio_put(folio);
+-		return -ENOMEM;
++	if (entry != xa_load(tree, offset)) {
++		ret = -ENOMEM;
++		goto out;
+ 	}
+ 
+-	zswap_decompress(entry, folio);
++	if (!zswap_decompress(entry, folio)) {
++		ret = -EIO;
++		goto out;
++	}
++
++	xa_erase(tree, offset);
+ 
+ 	count_vm_event(ZSWPWB);
+ 	if (entry->objcg)
+@@ -1104,9 +1121,14 @@ static int zswap_writeback_entry(struct
+ 
+ 	/* start writeback */
+ 	__swap_writepage(folio, &wbc);
+-	folio_put(folio);
+ 
+-	return 0;
++out:
++	if (ret && ret != -EEXIST) {
++		delete_from_swap_cache(folio);
++		folio_unlock(folio);
++	}
++	folio_put(folio);
++	return ret;
+ }
+ 
+ /*********************************
+@@ -1606,7 +1628,26 @@ check_old:
+ 	return ret;
+ }
+ 
+-bool zswap_load(struct folio *folio)
++/**
++ * zswap_load() - load a page from zswap
++ * @folio: folio to load
++ *
++ * Return: 0 on success, or one of the following error codes:
++ *
++ *  -EIO: if the swapped out content was in zswap, but could not be loaded
++ *  into the page due to a decompression failure. The folio is unlocked, but
++ *  NOT marked up-to-date, so that an IO error is emitted (e.g. do_swap_page()
++ *  will SIGBUS).
++ *
++ *  -EINVAL: if the swapped out content was in zswap, but the page belongs
++ *  to a large folio, which is not supported by zswap. The folio is unlocked,
++ *  but NOT marked up-to-date, so that an IO error is emitted (e.g.
++ *  do_swap_page() will SIGBUS).
++ *
++ *  -ENOENT: if the swapped out content was not in zswap. The folio remains
++ *  locked on return.
++ */
++int zswap_load(struct folio *folio)
+ {
+ 	swp_entry_t swp = folio->swap;
+ 	pgoff_t offset = swp_offset(swp);
+@@ -1617,18 +1658,32 @@ bool zswap_load(struct folio *folio)
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 
+ 	if (zswap_never_enabled())
+-		return false;
++		return -ENOENT;
+ 
+ 	/*
+ 	 * Large folios should not be swapped in while zswap is being used, as
+ 	 * they are not properly handled. Zswap does not properly load large
+ 	 * folios, and a large folio may only be partially in zswap.
+-	 *
+-	 * Return true without marking the folio uptodate so that an IO error is
+-	 * emitted (e.g. do_swap_page() will sigbus).
+ 	 */
+-	if (WARN_ON_ONCE(folio_test_large(folio)))
+-		return true;
++	if (WARN_ON_ONCE(folio_test_large(folio))) {
++		folio_unlock(folio);
++		return -EINVAL;
++	}
++
++	entry = xa_load(tree, offset);
++	if (!entry)
++		return -ENOENT;
++
++	if (!zswap_decompress(entry, folio)) {
++		folio_unlock(folio);
++		return -EIO;
++	}
++
++	folio_mark_uptodate(folio);
++
++	count_vm_event(ZSWPIN);
++	if (entry->objcg)
++		count_objcg_events(entry->objcg, ZSWPIN, 1);
+ 
+ 	/*
+ 	 * When reading into the swapcache, invalidate our entry. The
+@@ -1642,27 +1697,14 @@ bool zswap_load(struct folio *folio)
+ 	 * files, which reads into a private page and may free it if
+ 	 * the fault fails. We remain the primary owner of the entry.)
+ 	 */
+-	if (swapcache)
+-		entry = xa_erase(tree, offset);
+-	else
+-		entry = xa_load(tree, offset);
+-
+-	if (!entry)
+-		return false;
+-
+-	zswap_decompress(entry, folio);
+-
+-	count_vm_event(ZSWPIN);
+-	if (entry->objcg)
+-		count_objcg_events(entry->objcg, ZSWPIN, 1);
+-
+ 	if (swapcache) {
+-		zswap_entry_free(entry);
+ 		folio_mark_dirty(folio);
++		xa_erase(tree, offset);
++		zswap_entry_free(entry);
+ 	}
+ 
+-	folio_mark_uptodate(folio);
+-	return true;
++	folio_unlock(folio);
++	return 0;
+ }
+ 
+ void zswap_invalidate(swp_entry_t swp)
+@@ -1757,6 +1799,8 @@ static int zswap_debugfs_init(void)
+ 			   zswap_debugfs_root, &zswap_reject_compress_fail);
+ 	debugfs_create_u64("reject_compress_poor", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_compress_poor);
++	debugfs_create_u64("decompress_fail", 0444,
++			   zswap_debugfs_root, &zswap_decompress_fail);
+ 	debugfs_create_u64("written_back_pages", 0444,
+ 			   zswap_debugfs_root, &zswap_written_back_pages);
+ 	debugfs_create_file("pool_total_size", 0444,
 _
 
-Patches currently in -mm which might be from zhanghao1@kylinos.cn are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-vmscan-extract-calculated-pressure-balance-as-a-function.patch
+page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
 
