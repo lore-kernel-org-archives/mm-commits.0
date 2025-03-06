@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6019E26D5B6
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 572DF26D5B6
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297111; cv=none; b=pyKxwDoee82YWeOCURfXixwE16Jh8Kb3j405agq1xp08ypua9gl4rxsiXpEnUa48d15Tvv80yeVR0a5XGV6IE+AQTh5ss/pZZcvzJYPRandmNFUEOtLzqIlMSapQaW3zEmb2ZGZiLvo3T50TqZ7dVl948i9THj7b0IXCWhJUuW4=
+	t=1741297112; cv=none; b=CT/NCpIEMOpj0Q7z07H88dTDNRH4yrPJOOeo7BOV+lF3v7gs3mq70ARk+iBJcghWToOqow4vSI54QS2r8NfsKLfQfBGae1VLO8EFole2TC/ZiIvAXIRKTWsdI9rRQcUUF5uoINGcAPXYJXhJMuPZ6suUDmMTm7Az+pJo9eYD0i4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297111; c=relaxed/simple;
-	bh=0H7CnhjmS3eahfvmCC3HiIro7fJDZwA7FDKRR+KGbl8=;
-	h=Date:To:From:Subject:Message-Id; b=iRpUmbdUR0LR9fLM+UPKjxS+BKECSwaMeYJzM5dZNkKVBL4FlWUYm69ajJwcnI2txnZxKETp0hgQxWybwjZ3CYYd2agSPK3ysv2BpikVatf4ZvYhvbkKvYujidSYjrR4/C65MZrgrt5om3R8MafL6sUa2A3jNSnPTzOjCsBeXVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hGx78UVm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297112; c=relaxed/simple;
+	bh=XtcCrBTBytbUsOaf+PwM/YU8fsI2wXGjl7X9+LOj6VY=;
+	h=Date:To:From:Subject:Message-Id; b=S55d7/yLtK3hD0suNAzUyedFzxhcX49uaRA6mUFNA2SCWwwDYIQAerz5iHw2TlOR/Cesl7y/dGRl7uDEJKCCKzECdH6jVyJl0VBWvgDfFt/1cY1AP+RgZM6ekHY3vgWS+tDExlbXB+vD8ia4gONxMpVEPRS5ZItqj+xi18q9AEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mSuQX0du; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hGx78UVm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C79CAC4CEE0;
-	Thu,  6 Mar 2025 21:38:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mSuQX0du"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18F7EC4CEE0;
+	Thu,  6 Mar 2025 21:38:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297110;
-	bh=0H7CnhjmS3eahfvmCC3HiIro7fJDZwA7FDKRR+KGbl8=;
+	s=korg; t=1741297112;
+	bh=XtcCrBTBytbUsOaf+PwM/YU8fsI2wXGjl7X9+LOj6VY=;
 	h=Date:To:From:Subject:From;
-	b=hGx78UVmZ7bBBcnVjDTO+62BkNaaUTEApGLG9bgg7t0eSxxiiPsigiQE9gfXXgkNJ
-	 JPesccbzskkrL0wTryt6/vt5W/JsiDXSpfCEoPTyRTfjoLeRYXK08iA5avAu7nNWdJ
-	 GGlCk4yzC1snIKafX1P2bS2WjxwuIvQaE86/1Ew8=
-Date: Thu, 06 Mar 2025 13:38:30 -0800
+	b=mSuQX0duEJ0ZqIZYAyO+wg3JYNaiK4KxUGxjD0v2JrKGcNFfivTbQGE5P7VurAQcp
+	 aBtHTFFmooav/AZBG94RVMnwgd+bzkwzXGZwG/SlEGsEAqWCcx7TSoHzQUi66qc/CX
+	 xNeYN7IyCl4KgG5xinwPUjWxH0Ayh3lzKX2JybvU=
+Date: Thu, 06 Mar 2025 13:38:31 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-remove-damon_callback-private.patch added to mm-unstable branch
-Message-Id: <20250306213830.C79CAC4CEE0@smtp.kernel.org>
+Subject: + mm-damon-remove-before_start-of-damon_callback.patch added to mm-unstable branch
+Message-Id: <20250306213832.18F7EC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: remove damon_callback->private
+     Subject: mm/damon: remove ->before_start of damon_callback
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-remove-damon_callback-private.patch
+     mm-damon-remove-before_start-of-damon_callback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon_callback-private.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-before_start-of-damon_callback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,62 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove damon_callback->private
-Date: Thu, 6 Mar 2025 09:59:04 -0800
+Subject: mm/damon: remove ->before_start of damon_callback
+Date: Thu, 6 Mar 2025 09:59:05 -0800
 
-The field was added to let users keep their personal data to use inside of
-the callbacks.  However, no one is actively using that now.  Remove it.
+The function pointer field was added to be used as a place to do some
+initialization works just before DAMON starts working.  However, nobody is
+using it now.  Remove it.
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ include/linux/damon.h |    7 ++-----
+ mm/damon/core.c       |    2 --
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-damon_callback-private
+--- a/include/linux/damon.h~mm-damon-remove-before_start-of-damon_callback
 +++ a/include/linux/damon.h
-@@ -609,12 +609,10 @@ struct damon_operations {
+@@ -603,16 +603,14 @@ struct damon_operations {
+ /**
+  * struct damon_callback - Monitoring events notification callbacks.
+  *
+- * @before_start:	Called before starting the monitoring.
+  * @after_wmarks_check:	Called after each schemes' watermarks check.
+  * @after_sampling:	Called after each sampling.
   * @after_aggregation:	Called after each aggregation.
   * @before_damos_apply:	Called before applying DAMOS action.
   * @before_terminate:	Called before terminating the monitoring.
-- * @private:		User private data.
   *
-  * The monitoring thread (&damon_ctx.kdamond) calls @before_start and
-  * @before_terminate just before starting and finishing the monitoring,
-- * respectively.  Therefore, those are good places for installing and cleaning
-- * @private.
-+ * respectively.
+- * The monitoring thread (&damon_ctx.kdamond) calls @before_start and
+- * @before_terminate just before starting and finishing the monitoring,
+- * respectively.
++ * The monitoring thread (&damon_ctx.kdamond) calls @before_terminate just
++ * before finishing the monitoring.
   *
   * The monitoring thread calls @after_wmarks_check after each DAMON-based
   * operation schemes' watermarks check.  If users need to make changes to the
-@@ -630,8 +628,6 @@ struct damon_operations {
+@@ -628,7 +626,6 @@ struct damon_operations {
   * If any callback returns non-zero, monitoring stops.
   */
  struct damon_callback {
--	void *private;
--
- 	int (*before_start)(struct damon_ctx *context);
+-	int (*before_start)(struct damon_ctx *context);
  	int (*after_wmarks_check)(struct damon_ctx *context);
  	int (*after_sampling)(struct damon_ctx *context);
+ 	int (*after_aggregation)(struct damon_ctx *context);
+--- a/mm/damon/core.c~mm-damon-remove-before_start-of-damon_callback
++++ a/mm/damon/core.c
+@@ -2407,8 +2407,6 @@ static int kdamond_fn(void *data)
+ 
+ 	if (ctx->ops.init)
+ 		ctx->ops.init(ctx);
+-	if (ctx->callback.before_start && ctx->callback.before_start(ctx))
+-		goto done;
+ 	ctx->regions_score_histogram = kmalloc_array(DAMOS_MAX_SCORE + 1,
+ 			sizeof(*ctx->regions_score_histogram), GFP_KERNEL);
+ 	if (!ctx->regions_score_histogram)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
