@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7375127CB08
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:18:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A032727C17A
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 22:18:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741299491; cv=none; b=Xl0sr/Nnx44GyEmBHCzg4tWQVW/6LWVwfRoaNUnO+CPPHL6e/8rfZ4hBYsqTA622Gt0aPeevA3tSzhob6H4UesKacHg+WtaD50lvG561VyyQxVaH0WXsByuh98v5KEKbNvvEGP0Kq81pDasyuwE1Z2Z8hJPqQHPjYLHYb1EQWRk=
+	t=1741299492; cv=none; b=g7qUyMlFDalDRHJNErOEL5BVAK8aJM8LgVeXufSsTu8SZrtpB+1e/S/LQ057OsaMeK16y4oTk8rb/4xA2RJoELcaHbR5SIwTqQpVI56GUZmpUWGF9jYQ63RiDt9TGUIi5bzM6gn9zdjLSdGfswhChudYjj9wva98wy5HAgcGpso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741299491; c=relaxed/simple;
-	bh=QSVnYtyLwICKL4btvmrS7vflMWfqCjg0GWQ2x47mFmA=;
-	h=Date:To:From:Subject:Message-Id; b=O321CbTQLeHrIjFHRmh6hSqFWY5UaIkgDz48Rnh4W3DA5ZjVBLMv3CCWt1WD1yX0hYxPSSU+YnX2COlgkL25n6kUzTHDBqBZ47k/0Hnz2Uv827NSt81x+rS1O8PLA5hpwanYimsMcwKTyHSpLVnqBgQahuA4B0yv+4RmEDZjWN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZdoRirmI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741299492; c=relaxed/simple;
+	bh=NiMsDVaOWlVW74cJE5y7H3mAt29A8+C+2G2HygEqUVQ=;
+	h=Date:To:From:Subject:Message-Id; b=LGPk6NyPlcSrQaeWuSRDg5xySyH4/Nx0rJ16RuTm272xWycEOs4O93XP42cCh8OUy1o/oRG5bP4p0IFKQhwDResOhpw7xDrwaEKdUdHbW2gt1f6dlPHPQWs+Pc2q+/+WOiceZrrmo2vDey5w5hSW1i1fTOCenxGVfDjDA8pHyx4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bBfBt//G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZdoRirmI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2E5BC4CEE0;
-	Thu,  6 Mar 2025 22:18:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBfBt//G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F72CC4CEE0;
+	Thu,  6 Mar 2025 22:18:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741299490;
-	bh=QSVnYtyLwICKL4btvmrS7vflMWfqCjg0GWQ2x47mFmA=;
+	s=korg; t=1741299492;
+	bh=NiMsDVaOWlVW74cJE5y7H3mAt29A8+C+2G2HygEqUVQ=;
 	h=Date:To:From:Subject:From;
-	b=ZdoRirmIUqQRJyzYlkl7pvSpMpBC7Qh7/RRwvDIUWBLyLKqzNUrrq7+utF+ojo5tO
-	 qmHDHdc5FTnVcLzi/EdHsTGnM555RuXO/QoUuLSi2vVlHOsMd6Ss8ikeKZxRAGt/tY
-	 Uvo7AjvnoKIU3UfqpBNYes8ljnQBBKFZvuM8wcBg=
-Date: Thu, 06 Mar 2025 14:18:10 -0800
+	b=bBfBt//GaLhHa3wtTgL47E20X5AAejQw4FufPxQISodb+TdaxoTSIMw07o0Wp+ow4
+	 rcPTMjV5OVepFBQw8Ob4jIREeUvm8zwQ0aLkXDBlaJvFwnTx2ZHZSAH/uH1+TxQkFk
+	 qymMS22BQl45abqaBaozGv0C2o0PUj630HXGafmI=
+Date: Thu, 06 Mar 2025 14:18:11 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-refactor-move_page_tables-abstracting-state.patch added to mm-unstable branch
-Message-Id: <20250306221810.C2E5BC4CEE0@smtp.kernel.org>
+Subject: + mm-mremap-thread-state-through-move-page-table-operation.patch added to mm-unstable branch
+Message-Id: <20250306221812.6F72CC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: refactor move_page_tables(), abstracting state
+     Subject: mm/mremap: thread state through move page table operation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-refactor-move_page_tables-abstracting-state.patch
+     mm-mremap-thread-state-through-move-page-table-operation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-refactor-move_page_tables-abstracting-state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-thread-state-through-move-page-table-operation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,35 +59,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mremap: refactor move_page_tables(), abstracting state
-Date: Thu, 6 Mar 2025 10:34:02 +0000
+Subject: mm/mremap: thread state through move page table operation
+Date: Thu, 6 Mar 2025 10:34:03 +0000
 
-A lot of state is threaded throughout the page table moving logic within
-the mremap code, including boolean values which control behaviour
-specifically in regard to whether rmap locks need be held over the
-operation and whether the VMA belongs to a temporary stack being moved by
-move_arg_pages() (and consequently, relocate_vma_down()).
+Finish refactoring the page table logic by threading the PMC state
+throughout the operation, allowing us to control the operation as we go.
 
-As we already transmit state throughout this operation, it is neater and
-more readable to maintain a small state object.  We do so in the form of
-pagetable_move_control.
+Additionally, update the old_addr, new_addr fields in move_page_tables()
+as we progress through the process making use of the fact we have this
+state object now to track this.
 
-In addition, this allows us to update parameters within the state as we
-manipulate things, for instance with regard to the page table realignment
-logic.
+With these changes made, not only is the code far more readable, but we
+can finally transmit state throughout the entire operation, which lays the
+groundwork for sensibly making changes in future to how the mremap()
+operation is performed.
 
-In future I want to add additional functionality to the page table logic,
-so this is an additional motivation for making it easier to do so.
+Additionally take the opportunity to refactor the means of determining the
+progress of the operation, abstracting this to pmc_progress() and
+simplifying the logic to make it clearer what's going on.
 
-This patch changes move_page_tables() to accept a pointer to a
-pagetable_move_control struct, and performs changes at this level only.
-Further page table logic will be updated in a subsequent patch.
-
-We additionally also take the opportunity to add significant comments
-describing the address realignment logic to make it abundantly clear what
-is going on in this code.
-
-Link: https://lkml.kernel.org/r/89f2446f70acd41172dadbb3404db9d95415c78c.1741256580.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1d85814f3a73eaa241c554b3e0f751f3e267a467.1741256580.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Jann Horn <jannh@google.com>
@@ -96,379 +87,472 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   46 +++++++++++-
- mm/mmap.c     |    5 -
- mm/mremap.c   |  172 +++++++++++++++++++++++++++++++++++-------------
- 3 files changed, 171 insertions(+), 52 deletions(-)
+ mm/internal.h |    3 
+ mm/mremap.c   |  201 +++++++++++++++++++++++++++---------------------
+ 2 files changed, 120 insertions(+), 84 deletions(-)
 
---- a/mm/internal.h~mm-mremap-refactor-move_page_tables-abstracting-state
+--- a/mm/internal.h~mm-mremap-thread-state-through-move-page-table-operation
 +++ a/mm/internal.h
-@@ -25,6 +25,47 @@
- struct folio_batch;
- 
- /*
-+ * Maintains state across a page table move. The operation assumes both source
-+ * and destination VMAs already exist and are specified by the user.
+@@ -39,6 +39,9 @@ struct folio_batch;
+  *
+  * Use the PAGETABLE_MOVE() macro to initialise this struct.
+  *
++ * The old_addr and new_addr fields are updated as the page table move is
++ * executed.
 + *
-+ * Partial moves are permitted, but:
-+ *      from_vma->vm_start <= from_addr < from_vma->vm_end - len
-+ *      to_vma->vm_start <= to_addr < to_vma->vm_end - len
-+ *
-+ * Must be maintained.
-+ *
-+ * mmap lock must be held in write and VMA write locks must be held on any VMA
-+ * that is visible.
-+ *
-+ * Use the PAGETABLE_MOVE() macro to initialise this struct.
-+ *
-+ * NOTE: The page table move is affected by reading from [old_addr, old_end),
-+ * and old_addr may be updated for better page table alignment, so len_in
-+ * represents the length of the range being copied as specified by the user.
-+ */
-+struct pagetable_move_control {
-+	struct vm_area_struct *old; /* Source VMA. */
-+	struct vm_area_struct *new; /* Destination VMA. */
-+	unsigned long old_addr; /* Address from which the move begins. */
-+	unsigned long old_end; /* Exclusive address at which old range ends. */
-+	unsigned long new_addr; /* Address to move page tables to. */
-+	unsigned long len_in; /* Bytes to remap specified by user. */
-+
-+	bool need_rmap_locks; /* Do rmap locks need to be taken? */
-+	bool for_stack; /* Is this an early temp stack being moved? */
-+};
-+
-+#define PAGETABLE_MOVE(name, old_, new_, old_addr_, new_addr_, len_)	\
-+	struct pagetable_move_control name = {				\
-+		.old = old_,						\
-+		.new = new_,						\
-+		.old_addr = old_addr_,					\
-+		.old_end = (old_addr_) + (len_),			\
-+		.new_addr = new_addr_,					\
-+		.len_in = len_,						\
-+	}
-+
-+/*
-  * The set of flags that only affect watermark checking and reclaim
-  * behaviour. This is used by the MM to obey the caller constraints
-  * about IO, FS and watermark checking while ignoring placement
-@@ -1537,10 +1578,7 @@ extern struct list_lru shadow_nodes;
- } while (0)
- 
- /* mremap.c */
--unsigned long move_page_tables(struct vm_area_struct *vma,
--	unsigned long old_addr, struct vm_area_struct *new_vma,
--	unsigned long new_addr, unsigned long len,
--	bool need_rmap_locks, bool for_stack);
-+unsigned long move_page_tables(struct pagetable_move_control *pmc);
- 
- #ifdef CONFIG_UNACCEPTED_MEMORY
- void accept_page(struct page *page);
---- a/mm/mmap.c~mm-mremap-refactor-move_page_tables-abstracting-state
-+++ a/mm/mmap.c
-@@ -1694,6 +1694,7 @@ int relocate_vma_down(struct vm_area_str
- 	VMG_STATE(vmg, mm, &vmi, new_start, old_end, 0, vma->vm_pgoff);
- 	struct vm_area_struct *next;
- 	struct mmu_gather tlb;
-+	PAGETABLE_MOVE(pmc, vma, vma, old_start, new_start, length);
- 
- 	BUG_ON(new_start > new_end);
- 
-@@ -1716,8 +1717,8 @@ int relocate_vma_down(struct vm_area_str
- 	 * move the page tables downwards, on failure we rely on
- 	 * process cleanup to remove whatever mess we made.
- 	 */
--	if (length != move_page_tables(vma, old_start,
--				       vma, new_start, length, false, true))
-+	pmc.for_stack = true;
-+	if (length != move_page_tables(&pmc))
- 		return -ENOMEM;
- 
- 	tlb_gather_mmu(&tlb, mm);
---- a/mm/mremap.c~mm-mremap-refactor-move_page_tables-abstracting-state
+  * NOTE: The page table move is affected by reading from [old_addr, old_end),
+  * and old_addr may be updated for better page table alignment, so len_in
+  * represents the length of the range being copied as specified by the user.
+--- a/mm/mremap.c~mm-mremap-thread-state-through-move-page-table-operation
 +++ a/mm/mremap.c
-@@ -580,8 +580,9 @@ static bool move_pgt_entry(enum pgt_entr
-  * the VMA that is created to span the source and destination of the move,
-  * so we make an exception for it.
-  */
--static bool can_align_down(struct vm_area_struct *vma, unsigned long addr_to_align,
--			    unsigned long mask, bool for_stack)
-+static bool can_align_down(struct pagetable_move_control *pmc,
-+			   struct vm_area_struct *vma, unsigned long addr_to_align,
-+			   unsigned long mask)
- {
- 	unsigned long addr_masked = addr_to_align & mask;
- 
-@@ -590,11 +591,11 @@ static bool can_align_down(struct vm_are
- 	 * of the corresponding VMA, we can't align down or we will destroy part
- 	 * of the current mapping.
- 	 */
--	if (!for_stack && vma->vm_start != addr_to_align)
-+	if (!pmc->for_stack && vma->vm_start != addr_to_align)
- 		return false;
- 
- 	/* In the stack case we explicitly permit in-VMA alignment. */
--	if (for_stack && addr_masked >= vma->vm_start)
-+	if (pmc->for_stack && addr_masked >= vma->vm_start)
- 		return true;
- 
- 	/*
-@@ -604,54 +605,131 @@ static bool can_align_down(struct vm_are
- 	return find_vma_intersection(vma->vm_mm, addr_masked, vma->vm_start) == NULL;
+@@ -108,8 +108,7 @@ static pmd_t *get_old_pmd(struct mm_stru
+ 	return pmd;
  }
  
--/* Opportunistically realign to specified boundary for faster copy. */
--static void try_realign_addr(unsigned long *old_addr, struct vm_area_struct *old_vma,
--			     unsigned long *new_addr, struct vm_area_struct *new_vma,
--			     unsigned long mask, bool for_stack)
-+/*
-+ * Determine if are in fact able to realign for efficiency to a higher page
-+ * table boundary.
-+ */
-+static bool can_realign_addr(struct pagetable_move_control *pmc,
-+			     unsigned long pagetable_mask)
+-static pud_t *alloc_new_pud(struct mm_struct *mm, struct vm_area_struct *vma,
+-			    unsigned long addr)
++static pud_t *alloc_new_pud(struct mm_struct *mm, unsigned long addr)
  {
-+	unsigned long align_mask = ~pagetable_mask;
-+	unsigned long old_align = pmc->old_addr & align_mask;
-+	unsigned long new_align = pmc->new_addr & align_mask;
-+	unsigned long pagetable_size = align_mask + 1;
-+	unsigned long old_align_next = pagetable_size - old_align;
-+
-+	/*
-+	 * We don't want to have to go hunting for VMAs from the end of the old
-+	 * VMA to the next page table boundary, also we want to make sure the
-+	 * operation is wortwhile.
-+	 *
-+	 * So ensure that we only perform this realignment if the end of the
-+	 * range being copied from is at least page table aligned:
-+	 *
-+	 * boundary                        boundary
-+	 *    .<- old_align ->                .
-+	 *    .              |----------------.-----------|
-+	 *    .              |          vma   .           |
-+	 *    .              |----------------.-----------|
-+	 *    .              <----------------.----------->
-+	 *    .                          len_in
-+	 *    <------------------------------->
-+	 *    .         pagetable_size        .
-+	 *    .              <---------------->
-+	 *    .                old_align_next .
-+	 */
-+	if (pmc->len_in < old_align_next)
-+		return false;
-+
- 	/* Skip if the addresses are already aligned. */
--	if ((*old_addr & ~mask) == 0)
--		return;
-+	if (old_align == 0)
-+		return false;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -122,13 +121,12 @@ static pud_t *alloc_new_pud(struct mm_st
+ 	return pud_alloc(mm, p4d, addr);
+ }
  
- 	/* Only realign if the new and old addresses are mutually aligned. */
--	if ((*old_addr & ~mask) != (*new_addr & ~mask))
--		return;
-+	if (old_align != new_align)
-+		return false;
+-static pmd_t *alloc_new_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
+-			    unsigned long addr)
++static pmd_t *alloc_new_pmd(struct mm_struct *mm, unsigned long addr)
+ {
+ 	pud_t *pud;
+ 	pmd_t *pmd;
  
- 	/* Ensure realignment doesn't cause overlap with existing mappings. */
--	if (!can_align_down(old_vma, *old_addr, mask, for_stack) ||
--	    !can_align_down(new_vma, *new_addr, mask, for_stack))
-+	if (!can_align_down(pmc, pmc->old, pmc->old_addr, pagetable_mask) ||
-+	    !can_align_down(pmc, pmc->new, pmc->new_addr, pagetable_mask))
-+		return false;
+-	pud = alloc_new_pud(mm, vma, addr);
++	pud = alloc_new_pud(mm, addr);
+ 	if (!pud)
+ 		return NULL;
+ 
+@@ -172,17 +170,19 @@ static pte_t move_soft_dirty_pte(pte_t p
+ 	return pte;
+ }
+ 
+-static int move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
+-		unsigned long old_addr, unsigned long old_end,
+-		struct vm_area_struct *new_vma, pmd_t *new_pmd,
+-		unsigned long new_addr, bool need_rmap_locks)
++static int move_ptes(struct pagetable_move_control *pmc,
++		unsigned long extent, pmd_t *old_pmd, pmd_t *new_pmd)
+ {
++	struct vm_area_struct *vma = pmc->old;
+ 	bool need_clear_uffd_wp = vma_has_uffd_without_event_remap(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_pte, *new_pte, pte;
+ 	pmd_t dummy_pmdval;
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	bool force_flush = false;
++	unsigned long old_addr = pmc->old_addr;
++	unsigned long new_addr = pmc->new_addr;
++	unsigned long old_end = old_addr + extent;
+ 	unsigned long len = old_end - old_addr;
+ 	int err = 0;
+ 
+@@ -204,7 +204,7 @@ static int move_ptes(struct vm_area_stru
+ 	 *   serialize access to individual ptes, but only rmap traversal
+ 	 *   order guarantees that we won't miss both the old and new ptes).
+ 	 */
+-	if (need_rmap_locks)
++	if (pmc->need_rmap_locks)
+ 		take_rmap_locks(vma);
+ 
+ 	/*
+@@ -278,7 +278,7 @@ static int move_ptes(struct vm_area_stru
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+ out:
+-	if (need_rmap_locks)
++	if (pmc->need_rmap_locks)
+ 		drop_rmap_locks(vma);
+ 	return err;
+ }
+@@ -293,10 +293,11 @@ static inline bool arch_supports_page_ta
+ #endif
+ 
+ #ifdef CONFIG_HAVE_MOVE_PMD
+-static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+-		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
++static bool move_normal_pmd(struct pagetable_move_control *pmc,
++			pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
++	struct vm_area_struct *vma = pmc->old;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	bool res = false;
+ 	pmd_t pmd;
+@@ -342,7 +343,7 @@ static bool move_normal_pmd(struct vm_ar
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * ptlocks because exclusive mmap_lock prevents deadlock.
+ 	 */
+-	old_ptl = pmd_lock(vma->vm_mm, old_pmd);
++	old_ptl = pmd_lock(mm, old_pmd);
+ 	new_ptl = pmd_lockptr(mm, new_pmd);
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+@@ -359,7 +360,7 @@ static bool move_normal_pmd(struct vm_ar
+ 	VM_BUG_ON(!pmd_none(*new_pmd));
+ 
+ 	pmd_populate(mm, new_pmd, pmd_pgtable(pmd));
+-	flush_tlb_range(vma, old_addr, old_addr + PMD_SIZE);
++	flush_tlb_range(vma, pmc->old_addr, pmc->old_addr + PMD_SIZE);
+ out_unlock:
+ 	if (new_ptl != old_ptl)
+ 		spin_unlock(new_ptl);
+@@ -368,19 +369,19 @@ out_unlock:
+ 	return res;
+ }
+ #else
+-static inline bool move_normal_pmd(struct vm_area_struct *vma,
+-		unsigned long old_addr, unsigned long new_addr, pmd_t *old_pmd,
+-		pmd_t *new_pmd)
++static inline bool move_normal_pmd(struct pagetable_move_control *pmc,
++		pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+ 	return false;
+ }
+ #endif
+ 
+ #if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_HAVE_MOVE_PUD)
+-static bool move_normal_pud(struct vm_area_struct *vma, unsigned long old_addr,
+-		  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
++static bool move_normal_pud(struct pagetable_move_control *pmc,
++		pud_t *old_pud, pud_t *new_pud)
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
++	struct vm_area_struct *vma = pmc->old;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pud_t pud;
+ 
+@@ -406,7 +407,7 @@ static bool move_normal_pud(struct vm_ar
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * ptlocks because exclusive mmap_lock prevents deadlock.
+ 	 */
+-	old_ptl = pud_lock(vma->vm_mm, old_pud);
++	old_ptl = pud_lock(mm, old_pud);
+ 	new_ptl = pud_lockptr(mm, new_pud);
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+@@ -418,7 +419,7 @@ static bool move_normal_pud(struct vm_ar
+ 	VM_BUG_ON(!pud_none(*new_pud));
+ 
+ 	pud_populate(mm, new_pud, pud_pgtable(pud));
+-	flush_tlb_range(vma, old_addr, old_addr + PUD_SIZE);
++	flush_tlb_range(vma, pmc->old_addr, pmc->old_addr + PUD_SIZE);
+ 	if (new_ptl != old_ptl)
+ 		spin_unlock(new_ptl);
+ 	spin_unlock(old_ptl);
+@@ -426,19 +427,19 @@ static bool move_normal_pud(struct vm_ar
+ 	return true;
+ }
+ #else
+-static inline bool move_normal_pud(struct vm_area_struct *vma,
+-		unsigned long old_addr, unsigned long new_addr, pud_t *old_pud,
+-		pud_t *new_pud)
++static inline bool move_normal_pud(struct pagetable_move_control *pmc,
++		pud_t *old_pud, pud_t *new_pud)
+ {
+ 	return false;
+ }
+ #endif
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+-static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
+-			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
++static bool move_huge_pud(struct pagetable_move_control *pmc,
++		pud_t *old_pud, pud_t *new_pud)
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
++	struct vm_area_struct *vma = pmc->old;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pud_t pud;
+ 
+@@ -453,7 +454,7 @@ static bool move_huge_pud(struct vm_area
+ 	 * We don't have to worry about the ordering of src and dst
+ 	 * ptlocks because exclusive mmap_lock prevents deadlock.
+ 	 */
+-	old_ptl = pud_lock(vma->vm_mm, old_pud);
++	old_ptl = pud_lock(mm, old_pud);
+ 	new_ptl = pud_lockptr(mm, new_pud);
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+@@ -466,8 +467,8 @@ static bool move_huge_pud(struct vm_area
+ 
+ 	/* Set the new pud */
+ 	/* mark soft_ditry when we add pud level soft dirty support */
+-	set_pud_at(mm, new_addr, new_pud, pud);
+-	flush_pud_tlb_range(vma, old_addr, old_addr + HPAGE_PUD_SIZE);
++	set_pud_at(mm, pmc->new_addr, new_pud, pud);
++	flush_pud_tlb_range(vma, pmc->old_addr, pmc->old_addr + HPAGE_PUD_SIZE);
+ 	if (new_ptl != old_ptl)
+ 		spin_unlock(new_ptl);
+ 	spin_unlock(old_ptl);
+@@ -475,8 +476,9 @@ static bool move_huge_pud(struct vm_area
+ 	return true;
+ }
+ #else
+-static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
+-			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
++static bool move_huge_pud(struct pagetable_move_control *pmc,
++		pud_t *old_pud, pud_t *new_pud)
 +
-+	return true;
+ {
+ 	WARN_ON_ONCE(1);
+ 	return false;
+@@ -497,10 +499,12 @@ enum pgt_entry {
+  * destination pgt_entry.
+  */
+ static __always_inline unsigned long get_extent(enum pgt_entry entry,
+-			unsigned long old_addr, unsigned long old_end,
+-			unsigned long new_addr)
++						struct pagetable_move_control *pmc)
+ {
+ 	unsigned long next, extent, mask, size;
++	unsigned long old_addr = pmc->old_addr;
++	unsigned long old_end = pmc->old_end;
++	unsigned long new_addr = pmc->new_addr;
+ 
+ 	switch (entry) {
+ 	case HPAGE_PMD:
+@@ -530,37 +534,53 @@ static __always_inline unsigned long get
+ }
+ 
+ /*
++ * Should move_pgt_entry() acquire the rmap locks? This is either expressed in
++ * the PMC, or overridden in the case of normal, larger page tables.
++ */
++static bool should_take_rmap_locks(struct pagetable_move_control *pmc,
++				   enum pgt_entry entry)
++{
++	if (pmc->need_rmap_locks)
++		return true;
++
++	switch (entry) {
++	case NORMAL_PMD:
++	case NORMAL_PUD:
++		return true;
++	default:
++		return false;
++	}
 +}
 +
 +/*
-+ * Opportunistically realign to specified boundary for faster copy.
-+ *
-+ * Consider an mremap() of a VMA with page table boundaries as below, and no
-+ * preceding VMAs from the lower page table boundary to the start of the VMA,
-+ * with the end of the range being at least page table aligned:
-+ *
-+ *   boundary                        boundary
-+ *      .              |----------------.-----------|
-+ *      .              |          vma   .           |
-+ *      .              |----------------.-----------|
-+ *      .         pmc->old_addr         .      pmc->old_end
-+ *      .              <---------------------------->
-+ *      .                  move these page tables
-+ *
-+ * If we proceed with moving page tables in this scenario, we will have a lot of
-+ * work to do traversing old page tables and establishing new ones in the
-+ * destination across multiple lower level page tables.
-+ *
-+ * The idea here is simply to align pmc->old_addr, pmc->new_addr down to the
-+ * page table boundary, so we can simply copy a single page table entry for the
-+ * aligned portion of the VMA instead:
-+ *
-+ *   boundary                        boundary
-+ *      .              |----------------.-----------|
-+ *      .              |          vma   .           |
-+ *      .              |----------------.-----------|
-+ * pmc->old_addr                        .      pmc->old_end
-+ *      <------------------------------------------->
-+ *      .           move these page tables
-+ */
-+static void try_realign_addr(struct pagetable_move_control *pmc,
-+			     unsigned long pagetable_mask)
-+{
-+
-+	if (!can_realign_addr(pmc, pagetable_mask))
- 		return;
+  * Attempts to speedup the move by moving entry at the level corresponding to
+  * pgt_entry. Returns true if the move was successful, else false.
+  */
+-static bool move_pgt_entry(enum pgt_entry entry, struct vm_area_struct *vma,
+-			unsigned long old_addr, unsigned long new_addr,
+-			void *old_entry, void *new_entry, bool need_rmap_locks)
++static bool move_pgt_entry(struct pagetable_move_control *pmc,
++			   enum pgt_entry entry, void *old_entry, void *new_entry)
+ {
+ 	bool moved = false;
++	bool need_rmap_locks = should_take_rmap_locks(pmc, entry);
  
--	*old_addr = *old_addr & mask;
--	*new_addr = *new_addr & mask;
-+	/*
-+	 * Simply align to page table boundaries. Note that we do NOT update the
-+	 * pmc->old_end value, and since the move_page_tables() operation spans
-+	 * from [old_addr, old_end) (offsetting new_addr as it is performed),
-+	 * this simply changes the start of the copy, not the end.
-+	 */
-+	pmc->old_addr &= pagetable_mask;
-+	pmc->new_addr &= pagetable_mask;
+ 	/* See comment in move_ptes() */
+ 	if (need_rmap_locks)
+-		take_rmap_locks(vma);
++		take_rmap_locks(pmc->old);
+ 
+ 	switch (entry) {
+ 	case NORMAL_PMD:
+-		moved = move_normal_pmd(vma, old_addr, new_addr, old_entry,
+-					new_entry);
++		moved = move_normal_pmd(pmc, old_entry, new_entry);
+ 		break;
+ 	case NORMAL_PUD:
+-		moved = move_normal_pud(vma, old_addr, new_addr, old_entry,
+-					new_entry);
++		moved = move_normal_pud(pmc, old_entry, new_entry);
+ 		break;
+ 	case HPAGE_PMD:
+ 		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
+-			move_huge_pmd(vma, old_addr, new_addr, old_entry,
++			move_huge_pmd(pmc->old, pmc->old_addr, pmc->new_addr, old_entry,
+ 				      new_entry);
+ 		break;
+ 	case HPAGE_PUD:
+ 		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
+-			move_huge_pud(vma, old_addr, new_addr, old_entry,
+-				      new_entry);
++			move_huge_pud(pmc, old_entry, new_entry);
+ 		break;
+ 
+ 	default:
+@@ -569,7 +589,7 @@ static bool move_pgt_entry(enum pgt_entr
+ 	}
+ 
+ 	if (need_rmap_locks)
+-		drop_rmap_locks(vma);
++		drop_rmap_locks(pmc->old);
+ 
+ 	return moved;
+ }
+@@ -705,19 +725,48 @@ static void try_realign_addr(struct page
+ 	pmc->new_addr &= pagetable_mask;
  }
  
--unsigned long move_page_tables(struct vm_area_struct *vma,
--		unsigned long old_addr, struct vm_area_struct *new_vma,
--		unsigned long new_addr, unsigned long len,
--		bool need_rmap_locks, bool for_stack)
-+unsigned long move_page_tables(struct pagetable_move_control *pmc)
++/* Is the page table move operation done? */
++static bool pmc_done(struct pagetable_move_control *pmc)
++{
++	return pmc->old_addr >= pmc->old_end;
++}
++
++/* Advance to the next page table, offset by extent bytes. */
++static void pmc_next(struct pagetable_move_control *pmc, unsigned long extent)
++{
++	pmc->old_addr += extent;
++	pmc->new_addr += extent;
++}
++
++/*
++ * Determine how many bytes in the specified input range have had their page
++ * tables moved so far.
++ */
++static unsigned long pmc_progress(struct pagetable_move_control *pmc)
++{
++	unsigned long orig_old_addr = pmc->old_end - pmc->len_in;
++	unsigned long old_addr = pmc->old_addr;
++
++	/*
++	 * Prevent negative return values when {old,new}_addr was realigned but
++	 * we broke out of the loop in move_page_tables() for the first PMD
++	 * itself.
++	 */
++	return old_addr < orig_old_addr ? 0 : old_addr - orig_old_addr;
++}
++
+ unsigned long move_page_tables(struct pagetable_move_control *pmc)
  {
- 	unsigned long extent, old_end;
+-	unsigned long extent, old_end;
++	unsigned long extent;
  	struct mmu_notifier_range range;
  	pmd_t *old_pmd, *new_pmd;
  	pud_t *old_pud, *new_pud;
-+	unsigned long old_addr, new_addr;
-+	struct vm_area_struct *vma = pmc->old;
+-	unsigned long old_addr, new_addr;
+-	struct vm_area_struct *vma = pmc->old;
++	struct mm_struct *mm = pmc->old->vm_mm;
  
--	if (!len)
-+	if (!pmc->len_in)
+ 	if (!pmc->len_in)
  		return 0;
  
--	old_end = old_addr + len;
--
- 	if (is_vm_hugetlb_page(vma))
--		return move_hugetlb_page_tables(vma, new_vma, old_addr,
--						new_addr, len);
-+		return move_hugetlb_page_tables(pmc->old, pmc->new, pmc->old_addr,
-+						pmc->new_addr, pmc->len_in);
+-	if (is_vm_hugetlb_page(vma))
++	if (is_vm_hugetlb_page(pmc->old))
+ 		return move_hugetlb_page_tables(pmc->old, pmc->new, pmc->old_addr,
+ 						pmc->new_addr, pmc->len_in);
  
- 	/*
- 	 * If possible, realign addresses to PMD boundary for faster copy.
+@@ -726,87 +775,71 @@ unsigned long move_page_tables(struct pa
  	 * Only realign if the mremap copying hits a PMD boundary.
  	 */
--	if (len >= PMD_SIZE - (old_addr & ~PMD_MASK))
--		try_realign_addr(&old_addr, vma, &new_addr, new_vma, PMD_MASK,
--				 for_stack);
-+	try_realign_addr(pmc, PMD_MASK);
-+	/* These may have been changed. */
-+	old_addr = pmc->old_addr;
-+	new_addr = pmc->new_addr;
-+	old_end = pmc->old_end;
+ 	try_realign_addr(pmc, PMD_MASK);
+-	/* These may have been changed. */
+-	old_addr = pmc->old_addr;
+-	new_addr = pmc->new_addr;
+-	old_end = pmc->old_end;
+-
+-	flush_cache_range(vma, old_addr, old_end);
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
+-				old_addr, old_end);
++
++	flush_cache_range(pmc->old, pmc->old_addr, pmc->old_end);
++	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, mm,
++				pmc->old_addr, pmc->old_end);
+ 	mmu_notifier_invalidate_range_start(&range);
  
- 	flush_cache_range(vma, old_addr, old_end);
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
-@@ -675,12 +753,11 @@ unsigned long move_page_tables(struct vm
+-	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
++	for (; !pmc_done(pmc); pmc_next(pmc, extent)) {
+ 		cond_resched();
+ 		/*
+ 		 * If extent is PUD-sized try to speed up the move by moving at the
+ 		 * PUD level if possible.
+ 		 */
+-		extent = get_extent(NORMAL_PUD, old_addr, old_end, new_addr);
++		extent = get_extent(NORMAL_PUD, pmc);
+ 
+-		old_pud = get_old_pud(vma->vm_mm, old_addr);
++		old_pud = get_old_pud(mm, pmc->old_addr);
+ 		if (!old_pud)
+ 			continue;
+-		new_pud = alloc_new_pud(vma->vm_mm, vma, new_addr);
++		new_pud = alloc_new_pud(mm, pmc->new_addr);
+ 		if (!new_pud)
+ 			break;
  		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
  			if (extent == HPAGE_PUD_SIZE) {
- 				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
--					       old_pud, new_pud, need_rmap_locks);
-+					       old_pud, new_pud, pmc->need_rmap_locks);
+-				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
+-					       old_pud, new_pud, pmc->need_rmap_locks);
++				move_pgt_entry(pmc, HPAGE_PUD, old_pud, new_pud);
  				/* We ignore and continue on error? */
  				continue;
  			}
  		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
--
- 			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
- 					   old_pud, new_pud, true))
+-			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
+-					   old_pud, new_pud, true))
++			if (move_pgt_entry(pmc, NORMAL_PUD, old_pud, new_pud))
  				continue;
-@@ -698,7 +775,7 @@ again:
+ 		}
+ 
+-		extent = get_extent(NORMAL_PMD, old_addr, old_end, new_addr);
+-		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
++		extent = get_extent(NORMAL_PMD, pmc);
++		old_pmd = get_old_pmd(mm, pmc->old_addr);
+ 		if (!old_pmd)
+ 			continue;
+-		new_pmd = alloc_new_pmd(vma->vm_mm, vma, new_addr);
++		new_pmd = alloc_new_pmd(mm, pmc->new_addr);
+ 		if (!new_pmd)
+ 			break;
+ again:
+ 		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd) ||
  		    pmd_devmap(*old_pmd)) {
  			if (extent == HPAGE_PMD_SIZE &&
- 			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, need_rmap_locks))
-+					   old_pmd, new_pmd, pmc->need_rmap_locks))
+-			    move_pgt_entry(HPAGE_PMD, vma, old_addr, new_addr,
+-					   old_pmd, new_pmd, pmc->need_rmap_locks))
++			    move_pgt_entry(pmc, HPAGE_PMD, old_pmd, new_pmd))
  				continue;
- 			split_huge_pmd(vma, old_pmd, old_addr);
+-			split_huge_pmd(vma, old_pmd, old_addr);
++			split_huge_pmd(pmc->old, old_pmd, pmc->old_addr);
  		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PMD) &&
-@@ -713,10 +790,10 @@ again:
+ 			   extent == PMD_SIZE) {
+ 			/*
+ 			 * If the extent is PMD-sized, try to speed the move by
+ 			 * moving at the PMD level if possible.
+ 			 */
+-			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
+-					   old_pmd, new_pmd, true))
++			if (move_pgt_entry(pmc, NORMAL_PMD, old_pmd, new_pmd))
+ 				continue;
  		}
  		if (pmd_none(*old_pmd))
  			continue;
--		if (pte_alloc(new_vma->vm_mm, new_pmd))
-+		if (pte_alloc(pmc->new->vm_mm, new_pmd))
+ 		if (pte_alloc(pmc->new->vm_mm, new_pmd))
  			break;
- 		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
--			      new_vma, new_pmd, new_addr, need_rmap_locks) < 0)
-+			      pmc->new, new_pmd, new_addr, pmc->need_rmap_locks) < 0)
+-		if (move_ptes(vma, old_pmd, old_addr, old_addr + extent,
+-			      pmc->new, new_pmd, new_addr, pmc->need_rmap_locks) < 0)
++		if (move_ptes(pmc, extent, old_pmd, new_pmd) < 0)
  			goto again;
  	}
  
-@@ -726,10 +803,10 @@ again:
- 	 * Prevent negative return values when {old,new}_addr was realigned
- 	 * but we broke out of the above loop for the first PMD itself.
- 	 */
--	if (old_addr < old_end - len)
-+	if (old_addr < old_end - pmc->len_in)
- 		return 0;
+ 	mmu_notifier_invalidate_range_end(&range);
  
--	return len + old_addr - old_end;	/* how much done */
-+	return pmc->len_in + old_addr - old_end;	/* how much done */
+-	/*
+-	 * Prevent negative return values when {old,new}_addr was realigned
+-	 * but we broke out of the above loop for the first PMD itself.
+-	 */
+-	if (old_addr < old_end - pmc->len_in)
+-		return 0;
+-
+-	return pmc->len_in + old_addr - old_end;	/* how much done */
++	return pmc_progress(pmc);
  }
  
  /* Set vrm->delta to the difference in VMA size specified by user. */
-@@ -1039,37 +1116,40 @@ static int copy_vma_and_data(struct vma_
- 	unsigned long internal_pgoff = internal_offset >> PAGE_SHIFT;
- 	unsigned long new_pgoff = vrm->vma->vm_pgoff + internal_pgoff;
- 	unsigned long moved_len;
--	bool need_rmap_locks;
--	struct vm_area_struct *vma;
-+	struct vm_area_struct *vma = vrm->vma;
- 	struct vm_area_struct *new_vma;
- 	int err = 0;
-+	PAGETABLE_MOVE(pmc, NULL, NULL, vrm->addr, vrm->new_addr, vrm->old_len);
- 
--	new_vma = copy_vma(&vrm->vma, vrm->new_addr, vrm->new_len, new_pgoff,
--			   &need_rmap_locks);
-+	new_vma = copy_vma(&vma, vrm->new_addr, vrm->new_len, new_pgoff,
-+			   &pmc.need_rmap_locks);
- 	if (!new_vma) {
- 		vrm_uncharge(vrm);
- 		*new_vma_ptr = NULL;
- 		return -ENOMEM;
- 	}
--	vma = vrm->vma;
-+	vrm->vma = vma;
-+	pmc.old = vma;
-+	pmc.new = new_vma;
- 
--	moved_len = move_page_tables(vma, vrm->addr, new_vma,
--				     vrm->new_addr, vrm->old_len,
--				     need_rmap_locks, /* for_stack= */false);
-+	moved_len = move_page_tables(&pmc);
- 	if (moved_len < vrm->old_len)
- 		err = -ENOMEM;
- 	else if (vma->vm_ops && vma->vm_ops->mremap)
- 		err = vma->vm_ops->mremap(new_vma);
- 
- 	if (unlikely(err)) {
-+		PAGETABLE_MOVE(pmc_revert, new_vma, vma, vrm->new_addr,
-+			       vrm->addr, moved_len);
-+
- 		/*
- 		 * On error, move entries back from new area to old,
- 		 * which will succeed since page tables still there,
- 		 * and then proceed to unmap new area instead of old.
- 		 */
--		move_page_tables(new_vma, vrm->new_addr, vma, vrm->addr,
--				 moved_len, /* need_rmap_locks = */true,
--				 /* for_stack= */false);
-+		pmc_revert.need_rmap_locks = true;
-+		move_page_tables(&pmc_revert);
-+
- 		vrm->vma = new_vma;
- 		vrm->old_len = vrm->new_len;
- 		vrm->addr = vrm->new_addr;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
