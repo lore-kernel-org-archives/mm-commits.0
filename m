@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8067E27CCE9
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 23:00:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 905CA2E3373
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 23:01:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741302002; cv=none; b=em2UGKoporyW5y0Cu35ALZTgYv3DN9YLLDPoLehJAjx8edDj13b8xu/CXCWJdGqzu5ibeyqCeIjdK5nqhLddYjtbaf/D33aSsUM7d0t8lhyz9j8t7T7rNJFo5Vxl71v3lLzwaOHCkbl0nDZF/aR8MZCtpQwFBw1yjrDURMkEdH8=
+	t=1741302109; cv=none; b=MQn7Y64v01QX8Yk3FmrXA95rxI2u+p752SXDBTZs8lx2VbCvEhvRU8gK5DDMS0rVGFBPos81JixakPKFlsPnJWxu0MISex/wDgjL5Spi4w57Tb3GSHn61LWQ/h6ZeGVRZegZNDO3m5NXnKmWNWoeoz9iyn/AzaEyJ2KyUVS1Tus=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741302002; c=relaxed/simple;
-	bh=HJQrNsaHtxvPst2rcu1AfeJPexogwSN8egUPmaX9gS0=;
-	h=Date:To:From:Subject:Message-Id; b=W/3JdqELpnviDucYzEUTU8AXRwvA63cXuJwMQwCrQXaFH35ACAjFK9NW8NAtLdaGaLVGs9Tg0Hgrp3Jw+U74koxU/W4GU/VWOyvhkxH0MdiH0KtwAa4CUwc3enSugKks6b6fUIYadicnkRaXYSaTCqkYdrrif0mpcIt3VB953CI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hQ3dwEUX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741302109; c=relaxed/simple;
+	bh=oqvoACZNgwhrWaQq+opHiVCRt7+gHmst9v6Te4C6NxY=;
+	h=Date:To:From:Subject:Message-Id; b=dOdommnYkpvPS9mw4P3mB+7SFNVBpHW6sae3nNOsh4DUcC+CUuBgvhbSb/q+eqj7dX0dJ38moQMO2fVIKq0nAQUcdk5oVi7IZGFyaQ5ZaD7PeZTzl6g/2oLiSlTlaM8uFTKSrA4cGSeYiQrqgKeElaEP6ldyYU0q8Zd8m1sSYpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IHxLhs5E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hQ3dwEUX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C20F6C4CEE0;
-	Thu,  6 Mar 2025 23:00:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IHxLhs5E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA9B8C4CEE0;
+	Thu,  6 Mar 2025 23:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741302001;
-	bh=HJQrNsaHtxvPst2rcu1AfeJPexogwSN8egUPmaX9gS0=;
+	s=korg; t=1741302109;
+	bh=oqvoACZNgwhrWaQq+opHiVCRt7+gHmst9v6Te4C6NxY=;
 	h=Date:To:From:Subject:From;
-	b=hQ3dwEUXu9tsBecxHpv/sjDDX4/QSQ2YDq3qeO3IWfUWecApqL59c5oczM/eNgnIE
-	 9ZZm2bOfQIz8bgyDj9r7DTZIjxJJOWCQy/YYlnvZWWvv8/UJroZQUl1ZdE/Qsevp/S
-	 NIhIZs0WuzulmgauYkBCSpeCJNlF9d/eXXBx1cnk=
-Date: Thu, 06 Mar 2025 15:00:01 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,oliver.sang@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=IHxLhs5Ed+nhiVvXYwdA+SjC7N+zHDlzRAffi1CGf7QAC8TI/W646j8J2aYf9lo4A
+	 kkCHPGzWuggXCkhpNS/Rh7fQZfLw5qSaOeBSsXUlbwt7SxAXSQfxUrONlv0vDYJQTq
+	 nkvHdDLipa5tStLFTphmmLMP296EQ9NXy/1zd/KM=
+Date: Thu, 06 Mar 2025 15:01:48 -0800
+To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@infradead.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree.patch added to mm-unstable branch
-Message-Id: <20250306230001.C20F6C4CEE0@smtp.kernel.org>
+Subject: + mm-vmalloc-refactoring-function-__vmalloc_node_range_noprof.patch added to mm-unstable branch
+Message-Id: <20250306230148.EA9B8C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vma: skip anonymous vma when inserting vma to file rmap tree
+     Subject: mm/vmalloc: refactor __vmalloc_node_range_noprof()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree.patch
+     mm-vmalloc-refactoring-function-__vmalloc_node_range_noprof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-refactoring-function-__vmalloc_node_range_noprof.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,109 +58,113 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang@os.amperecomputing.com>
-Subject: mm: vma: skip anonymous vma when inserting vma to file rmap tree
-Date: Thu, 6 Mar 2025 13:49:48 -0800
+From: Liu Ye <liuye@kylinos.cn>
+Subject: mm/vmalloc: refactor __vmalloc_node_range_noprof()
+Date: Thu, 6 Mar 2025 15:21:31 +0800
 
-LKP reported 800% performance improvement for small-allocs benchmark from
-vm-scalability [1] with patch ("/dev/zero: make private mapping full
-anonymous mapping") [2], but the patch was nack'ed since it changes the
-output of smaps somewhat.
+According to the code logic, the first parameter of the sub-function
+__get_vm_area_node() should be size instead of real_size.
 
-The profiling shows one of the major sources of the performance
-improvement is the less contention to i_mmap_rwsem.
+Then in __get_vm_area_node(), the size will be aligned, so the redundant
+alignment operation is deleted.
 
-The small-allocs benchmark creates a lot of 40K size memory maps by
-mmap'ing private /dev/zero then triggers page fault on the mappings.  When
-creating private mapping for /dev/zero, the anonymous VMA is created, but
-it has valid vm_file.  Kernel basically assumes anonymous VMAs should have
-NULL vm_file, for example, mmap inserts VMA to the file rmap tree if
-vm_file is not NULL.  So the private /dev/zero mapping will be inserted to
-the file rmap tree, this resulted in the contention to i_mmap_rwsem.  But
-it is actually anonymous VMA, so it is pointless to insert it to file rmap
-tree.
+The use of the real_size variable causes code redundancy, so it is removed
+to simplify the code.
 
-Skip anonymous VMA for this case.  Over 400% performance improvement was
-reported [3].
+The real prefix is generally used to indicate the adjusted value of a
+parameter, but according to the code logic, it should indicate the
+original value, so it is recommended to rename it to original_align.
 
-It is not on par with the 800% improvement from the original patch.  It is
-because page fault handler needs to access some members of struct file if
-vm_file is not NULL, for example, f_mode and f_mapping.  They are in the
-same cacheline with file refcount.  When mmap'ing a file the file refcount
-is inc'ed and dec'ed, this caused bad cache false sharing problem.  The
-further debug showed checking whether the VMA is anonymous or not can
-alleviate the problem.  But I'm not sure whether it is the best way to
-handle it, maybe we should consider shuffle the layout of struct file.
-
-However it sounds rare that real life applications would create that many
-maps with mmap'ing private /dev/zero and share the same struct file, so
-the cache false sharing problem may be not that bad.  But i_mmap_rwsem
-contention problem seems more real since all /dev/zero private mappings
-even from different applications share the same struct address_space so
-the same i_mmap_rwsem.
-
-[1] https://lore.kernel.org/linux-mm/202501281038.617c6b60-lkp@intel.com/
-[2] https://lore.kernel.org/linux-mm/20250113223033.4054534-1-yang@os.amperecomputing.com/
-[3] https://lore.kernel.org/linux-mm/Z6RshwXCWhAGoMOK@xsang-OptiPlex-9020/#t
-
-Link: https://lkml.kernel.org/r/20250306214948.2939043-1-yang@os.amperecomputing.com
-Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: kernel test robot <oliver.sang@intel.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250306072131.800499-1-liuye@kylinos.cn
+Signed-off-by: Liu Ye <liuye@kylinos.cn>
+Reviewed-by: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Christop Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
---- a/mm/vma.c~mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree
-+++ a/mm/vma.c
-@@ -1652,6 +1652,9 @@ static void unlink_file_vma_batch_proces
- void unlink_file_vma_batch_add(struct unlink_vma_file_batch *vb,
- 			       struct vm_area_struct *vma)
- {
-+	if (vma_is_anonymous(vma))
-+		return;
-+
- 	if (vma->vm_file == NULL)
- 		return;
+--- a/mm/vmalloc.c~mm-vmalloc-refactoring-function-__vmalloc_node_range_noprof
++++ a/mm/vmalloc.c
+@@ -3770,8 +3770,7 @@ void *__vmalloc_node_range_noprof(unsign
+ 	struct vm_struct *area;
+ 	void *ret;
+ 	kasan_vmalloc_flags_t kasan_flags = KASAN_VMALLOC_NONE;
+-	unsigned long real_size = size;
+-	unsigned long real_align = align;
++	unsigned long original_align = align;
+ 	unsigned int shift = PAGE_SHIFT;
  
-@@ -1675,8 +1678,12 @@ void unlink_file_vma_batch_final(struct
-  */
- void unlink_file_vma(struct vm_area_struct *vma)
- {
--	struct file *file = vma->vm_file;
-+	struct file *file;
-+
-+	if (vma_is_anonymous(vma))
-+		return;
+ 	if (WARN_ON_ONCE(!size))
+@@ -3780,7 +3779,7 @@ void *__vmalloc_node_range_noprof(unsign
+ 	if ((size >> PAGE_SHIFT) > totalram_pages()) {
+ 		warn_alloc(gfp_mask, NULL,
+ 			"vmalloc error: size %lu, exceeds total pages",
+-			real_size);
++			size);
+ 		return NULL;
+ 	}
  
-+	file = vma->vm_file;
- 	if (file) {
- 		struct address_space *mapping = file->f_mapping;
+@@ -3797,19 +3796,18 @@ void *__vmalloc_node_range_noprof(unsign
+ 		else
+ 			shift = arch_vmap_pte_supported_shift(size);
  
-@@ -1688,9 +1695,13 @@ void unlink_file_vma(struct vm_area_stru
+-		align = max(real_align, 1UL << shift);
+-		size = ALIGN(real_size, 1UL << shift);
++		align = max(original_align, 1UL << shift);
+ 	}
  
- void vma_link_file(struct vm_area_struct *vma)
- {
--	struct file *file = vma->vm_file;
-+	struct file *file;
- 	struct address_space *mapping;
+ again:
+-	area = __get_vm_area_node(real_size, align, shift, VM_ALLOC |
++	area = __get_vm_area_node(size, align, shift, VM_ALLOC |
+ 				  VM_UNINITIALIZED | vm_flags, start, end, node,
+ 				  gfp_mask, caller);
+ 	if (!area) {
+ 		bool nofail = gfp_mask & __GFP_NOFAIL;
+ 		warn_alloc(gfp_mask, NULL,
+ 			"vmalloc error: size %lu, vm_struct allocation failed%s",
+-			real_size, (nofail) ? ". Retrying." : "");
++			size, (nofail) ? ". Retrying." : "");
+ 		if (nofail) {
+ 			schedule_timeout_uninterruptible(1);
+ 			goto again;
+@@ -3861,7 +3859,7 @@ again:
+ 	    (gfp_mask & __GFP_SKIP_ZERO))
+ 		kasan_flags |= KASAN_VMALLOC_INIT;
+ 	/* KASAN_VMALLOC_PROT_NORMAL already set if required. */
+-	area->addr = kasan_unpoison_vmalloc(area->addr, real_size, kasan_flags);
++	area->addr = kasan_unpoison_vmalloc(area->addr, size, kasan_flags);
  
-+	if (vma_is_anonymous(vma))
-+		return;
-+
-+	file = vma->vm_file;
- 	if (file) {
- 		mapping = file->f_mapping;
- 		i_mmap_lock_write(mapping);
+ 	/*
+ 	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
+@@ -3870,17 +3868,15 @@ again:
+ 	 */
+ 	clear_vm_uninitialized_flag(area);
+ 
+-	size = PAGE_ALIGN(size);
+ 	if (!(vm_flags & VM_DEFER_KMEMLEAK))
+-		kmemleak_vmalloc(area, size, gfp_mask);
++		kmemleak_vmalloc(area, PAGE_ALIGN(size), gfp_mask);
+ 
+ 	return area->addr;
+ 
+ fail:
+ 	if (shift > PAGE_SHIFT) {
+ 		shift = PAGE_SHIFT;
+-		align = real_align;
+-		size = real_size;
++		align = original_align;
+ 		goto again;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from yang@os.amperecomputing.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree.patch
+mm-memfd-fix-spelling-and-grammatical-issues.patch
+mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
+mm-vmalloc-move-free_vm_areaarea-from-the-__vmalloc_area_node-function-to-the-__vmalloc_node_range_noprof-function.patch
+mm-shrinker-fix-name-consistency-issue-in-shrinker_debugfs_rename.patch
+mm-vmalloc-refactoring-function-__vmalloc_node_range_noprof.patch
 
