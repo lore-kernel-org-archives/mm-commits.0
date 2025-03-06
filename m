@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A541A207A34
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6019E26D5B6
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297109; cv=none; b=da4GUTNyMcqO9kB/aDlWaJ9H30GlnOdv2zmbHZm+4LOTYhU5bX/wpBbogVS48pz70zhsUJfLRDqk94YCFTYiWbDWZXLqlpEUKmQjpxq3qs9kpT4yTGwd6V2ZBQ2wYURMbPWyQh9MvA6DAnRyIFqzvn88yAWQIsR9b/yOaHiyZEc=
+	t=1741297111; cv=none; b=pyKxwDoee82YWeOCURfXixwE16Jh8Kb3j405agq1xp08ypua9gl4rxsiXpEnUa48d15Tvv80yeVR0a5XGV6IE+AQTh5ss/pZZcvzJYPRandmNFUEOtLzqIlMSapQaW3zEmb2ZGZiLvo3T50TqZ7dVl948i9THj7b0IXCWhJUuW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297109; c=relaxed/simple;
-	bh=vsTA88KNRPJ8/HEGlThvovR8FoFZ5ubRlmzhh0MtulU=;
-	h=Date:To:From:Subject:Message-Id; b=t0yy+lG1Y1v8ahfc0B7xvxdhkz55/unE9pQLy02CwqYFYjBP+IM7Co5HVPHGbeebeGMLaMyaOkcYmQLpaIeKvYCr1Zo3K3yX9ZWoPqHnZ8hu77CdQ1sdQJ1/TVxxMQpa0sFAJqTEXb9xy/rapZD67nI7RWsTBBBCt7ZxoangteU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WaCLUCyZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297111; c=relaxed/simple;
+	bh=0H7CnhjmS3eahfvmCC3HiIro7fJDZwA7FDKRR+KGbl8=;
+	h=Date:To:From:Subject:Message-Id; b=iRpUmbdUR0LR9fLM+UPKjxS+BKECSwaMeYJzM5dZNkKVBL4FlWUYm69ajJwcnI2txnZxKETp0hgQxWybwjZ3CYYd2agSPK3ysv2BpikVatf4ZvYhvbkKvYujidSYjrR4/C65MZrgrt5om3R8MafL6sUa2A3jNSnPTzOjCsBeXVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hGx78UVm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WaCLUCyZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F7D6C4CEE8;
-	Thu,  6 Mar 2025 21:38:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hGx78UVm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C79CAC4CEE0;
+	Thu,  6 Mar 2025 21:38:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297109;
-	bh=vsTA88KNRPJ8/HEGlThvovR8FoFZ5ubRlmzhh0MtulU=;
+	s=korg; t=1741297110;
+	bh=0H7CnhjmS3eahfvmCC3HiIro7fJDZwA7FDKRR+KGbl8=;
 	h=Date:To:From:Subject:From;
-	b=WaCLUCyZfxCG1lXrPG9034FyhikQ5sLpNlByE8h2Y8GRrzkrMn7C+1wqubrjZpp1Q
-	 1qkrX1tsIFwvUGwDijmyf5mvcwGuvl3hl4EknQIPudAzUWThM5kFtubSR6/zBCH2On
-	 vnpO+Kb2CShiRK+l+t7poiYGxLQHRkzYqV7dw5cY=
-Date: Thu, 06 Mar 2025 13:38:28 -0800
+	b=hGx78UVmZ7bBBcnVjDTO+62BkNaaUTEApGLG9bgg7t0eSxxiiPsigiQE9gfXXgkNJ
+	 JPesccbzskkrL0wTryt6/vt5W/JsiDXSpfCEoPTyRTfjoLeRYXK08iA5avAu7nNWdJ
+	 GGlCk4yzC1snIKafX1P2bS2WjxwuIvQaE86/1Ew8=
+Date: Thu, 06 Mar 2025 13:38:30 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch added to mm-unstable branch
-Message-Id: <20250306213829.6F7D6C4CEE8@smtp.kernel.org>
+Subject: + mm-damon-remove-damon_callback-private.patch added to mm-unstable branch
+Message-Id: <20250306213830.C79CAC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: remove obsolete comment for damon_sysfs_schemes_clear_regions()
+     Subject: mm/damon: remove damon_callback->private
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
+     mm-damon-remove-damon_callback-private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon_callback-private.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: remove obsolete comment for damon_sysfs_schemes_clear_regions()
-Date: Thu, 6 Mar 2025 09:59:03 -0800
+Subject: mm/damon: remove damon_callback->private
+Date: Thu, 6 Mar 2025 09:59:04 -0800
 
-The comment on damon_sysfs_schemes_clear_regions() function is obsolete,
-since it has updated to directly called from DAMON sysfs interface code. 
-Remove the outdated comment.
+The field was added to let users keep their personal data to use inside of
+the callbacks.  However, no one is actively using that now.  Remove it.
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/damon.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2341,7 +2341,6 @@ void damos_sysfs_populate_region_dir(str
- 	}
- }
- 
--/* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
- int damon_sysfs_schemes_clear_regions(
- 		struct damon_sysfs_schemes *sysfs_schemes)
- {
+--- a/include/linux/damon.h~mm-damon-remove-damon_callback-private
++++ a/include/linux/damon.h
+@@ -609,12 +609,10 @@ struct damon_operations {
+  * @after_aggregation:	Called after each aggregation.
+  * @before_damos_apply:	Called before applying DAMOS action.
+  * @before_terminate:	Called before terminating the monitoring.
+- * @private:		User private data.
+  *
+  * The monitoring thread (&damon_ctx.kdamond) calls @before_start and
+  * @before_terminate just before starting and finishing the monitoring,
+- * respectively.  Therefore, those are good places for installing and cleaning
+- * @private.
++ * respectively.
+  *
+  * The monitoring thread calls @after_wmarks_check after each DAMON-based
+  * operation schemes' watermarks check.  If users need to make changes to the
+@@ -630,8 +628,6 @@ struct damon_operations {
+  * If any callback returns non-zero, monitoring stops.
+  */
+ struct damon_callback {
+-	void *private;
+-
+ 	int (*before_start)(struct damon_ctx *context);
+ 	int (*after_wmarks_check)(struct damon_ctx *context);
+ 	int (*after_sampling)(struct damon_ctx *context);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
