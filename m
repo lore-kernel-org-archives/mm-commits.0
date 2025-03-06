@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2075C27183F
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B13207A31
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297106; cv=none; b=DUkBYqNJ1s4Vu0F3RzknnT7hBzC9guczhPBydxjXwUYhncVbnActMP9DO52bvJ/p90Q6agtshnzc5l8UXGSGqD+iwZPcLGGERqhxzrhQoisnQVZ5dhO0PZwbgPuHRfC773/AstIqSLJzmeXt8LBh0K7Ne/RzuDCcf1k5XK7bkyk=
+	t=1741297107; cv=none; b=QST/VPxQqH+YvLc6oPDATuGpOWXHTmMt2oPHeEFrglQOTcl4IC9fSFHaj4ydHJkGOewBaIhF8DarXlMD8eVwG1W0v9oLyyeh8K1tWCxzjehROY/YGKS3wDU4ZcJGTxTRO3QEEGVtvTEE1Bf9dXF+3lCSGPaVHrGUnHlwdIVMNa4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297106; c=relaxed/simple;
-	bh=g9AOSB8f/po95O+QKqmXUtV3mueiNTweZENtCuG/ZXk=;
-	h=Date:To:From:Subject:Message-Id; b=UuArjZcTRXAPjzVu/34duFDojCJC7le2VPN3UGvdu1g4QHX3EcJRJalsYy2PCNW1V6yRiigmC3nnhQDmASKShu+gD3HGZH0Dr9MBkDnGA0mjPcH2+pNN/0mY3g34AReBrHk+I+slHGFTvf17xLBVRiV7OwtjgkOLkNHsiGufEEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J6M6OFyk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297107; c=relaxed/simple;
+	bh=7Hb3/Tywx6zkb9KbC2o9k0NTGbcchDUl9ArR/gd1RNY=;
+	h=Date:To:From:Subject:Message-Id; b=QsinqqDUEAG6zzyJMHzfeu3ZFF6YN6nfHUiGJ9h7nNSR53bTK0A0F11XRvVWcp5sUBXFImAftIsIDPQBvAE7Ehm5nuW64qHmlgDB3emIF8BjguXT57v2W8yXiMJBUtEMKisg1zUfgvFmVmfFwwVLzfinLyqAbt4jB9U35VEGGMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q90WFNHz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J6M6OFyk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E22B7C4CEE0;
-	Thu,  6 Mar 2025 21:38:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q90WFNHz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D20BC4CEE0;
+	Thu,  6 Mar 2025 21:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297106;
-	bh=g9AOSB8f/po95O+QKqmXUtV3mueiNTweZENtCuG/ZXk=;
+	s=korg; t=1741297107;
+	bh=7Hb3/Tywx6zkb9KbC2o9k0NTGbcchDUl9ArR/gd1RNY=;
 	h=Date:To:From:Subject:From;
-	b=J6M6OFykbpYdNCBborxXYge/GXkWK88OOscsQkWTU+grjqVTzsL7GyI2YWyUKarT4
-	 UvYWTnmUPWA3g+AC9MEjL8rWpYMchkUbgW3JYII2zptM+ni+49VwQBY6bmpcCcsCNp
-	 vg/KWWLcXDw0JaOX+4rBUuVdEWitIO+TOhCBEwEQ=
-Date: Thu, 06 Mar 2025 13:38:25 -0800
+	b=Q90WFNHzC7Lo1N85XfTww65sPt6GZp3rISQP3ZsoOsrb0MPBrQYOniyMgMLM168HU
+	 uuoHYUso72Y/YC8ftMYLZd6rwMWAgUV+0xwfk+zRksn5G75/boA4yz1C9RdKwOjzok
+	 LCBmbhLklZcVFVpgdZZhNaTSIlzYyy+Y7WBWX2rU=
+Date: Thu, 06 Mar 2025 13:38:26 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch added to mm-unstable branch
-Message-Id: <20250306213825.E22B7C4CEE0@smtp.kernel.org>
+Subject: + mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch added to mm-unstable branch
+Message-Id: <20250306213827.0D20BC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: remove damon_sysfs_cmd_request code from damon_sysfs_handle_cmd()
+     Subject: mm/damon/sysfs: remove damon_sysfs_cmd_request_callback() and its callers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
+     mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,75 +59,100 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: remove damon_sysfs_cmd_request code from damon_sysfs_handle_cmd()
-Date: Thu, 6 Mar 2025 09:59:00 -0800
+Subject: mm/damon/sysfs: remove damon_sysfs_cmd_request_callback() and its callers
+Date: Thu, 6 Mar 2025 09:59:01 -0800
 
-damon_sysfs_handle_cmd() handles user requests that it can directly handle
-on its own.  For requests that need to be handled from damon_callback
-hooks, it uses DAMON sysfs interface's own synchronous damon_callback
-hooks management mechanism, namely damon_sysfs_cmd_request.  Now all user
-requests are handled without damon_callback hooks, so
-damon_sysfs_cmd_request client code in damon_sysfs_andle_cmd() does
-nothing in real.  Remove the unnecessary code.
+damon_sysfs_cmd_request_callback() is the damon_callback hook functions
+that were used to handle user requests that need to read and/or write
+DAMON internal data.  All the usages are now updated to use damon_call()
+or damos_walk(), though.  Remove it and its callers.
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   32 --------------------------------
- 1 file changed, 32 deletions(-)
+ mm/damon/sysfs.c |   62 ---------------------------------------------
+ 1 file changed, 62 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers
 +++ a/mm/damon/sysfs.c
-@@ -1715,8 +1715,6 @@ static int damon_sysfs_update_schemes_tr
- static int damon_sysfs_handle_cmd(enum damon_sysfs_cmd cmd,
- 		struct damon_sysfs_kdamond *kdamond)
- {
--	bool need_wait = true;
--
- 	switch (cmd) {
- 	case DAMON_SYSFS_CMD_ON:
- 		return damon_sysfs_turn_damon_on(kdamond);
-@@ -1747,38 +1745,8 @@ static int damon_sysfs_handle_cmd(enum d
- 		return damon_sysfs_damon_call(
- 				damon_sysfs_upd_tuned_intervals, kdamond);
- 	default:
--		break;
--	}
--
--	/* Pass the command to DAMON callback for safe DAMON context access */
--	if (damon_sysfs_cmd_request.kdamond)
--		return -EBUSY;
--	if (!damon_sysfs_kdamond_running(kdamond))
- 		return -EINVAL;
--	damon_sysfs_cmd_request.cmd = cmd;
--	damon_sysfs_cmd_request.kdamond = kdamond;
--
--	/*
--	 * wait until damon_sysfs_cmd_request_callback() handles the request
--	 * from kdamond context
--	 */
--	mutex_unlock(&damon_sysfs_lock);
--	while (need_wait) {
--		schedule_timeout_idle(msecs_to_jiffies(100));
--		if (!mutex_trylock(&damon_sysfs_lock))
--			continue;
--		if (!damon_sysfs_cmd_request.kdamond) {
--			/* damon_sysfs_cmd_request_callback() handled */
--			need_wait = false;
--		} else if (!damon_sysfs_kdamond_running(kdamond)) {
--			/* kdamond has already finished */
--			need_wait = false;
--			damon_sysfs_cmd_request.kdamond = NULL;
--		}
--		mutex_unlock(&damon_sysfs_lock);
- 	}
--	mutex_lock(&damon_sysfs_lock);
--	return 0;
+@@ -1529,65 +1529,6 @@ static int damon_sysfs_upd_tuned_interva
+ 	return 0;
  }
  
- static ssize_t state_store(struct kobject *kobj, struct kobj_attribute *attr,
+-/*
+- * damon_sysfs_cmd_request_callback() - DAMON callback for handling requests.
+- * @c:		The DAMON context of the callback.
+- * @active:	Whether @c is not deactivated due to watermarks.
+- * @after_aggr:	Whether this is called from after_aggregation() callback.
+- *
+- * This function is periodically called back from the kdamond thread for @c.
+- * Then, it checks if there is a waiting DAMON sysfs request and handles it.
+- */
+-static int damon_sysfs_cmd_request_callback(struct damon_ctx *c, bool active,
+-		bool after_aggregation)
+-{
+-	struct damon_sysfs_kdamond *kdamond;
+-	int err = 0;
+-
+-	/* avoid deadlock due to concurrent state_store('off') */
+-	if (!mutex_trylock(&damon_sysfs_lock))
+-		return 0;
+-	kdamond = damon_sysfs_cmd_request.kdamond;
+-	if (!kdamond || kdamond->damon_ctx != c)
+-		goto out;
+-	switch (damon_sysfs_cmd_request.cmd) {
+-	default:
+-		break;
+-	}
+-	/* Mark the request as invalid now. */
+-	damon_sysfs_cmd_request.kdamond = NULL;
+-out:
+-	mutex_unlock(&damon_sysfs_lock);
+-	return err;
+-}
+-
+-static int damon_sysfs_after_wmarks_check(struct damon_ctx *c)
+-{
+-	/*
+-	 * after_wmarks_check() is called back while the context is deactivated
+-	 * by watermarks.
+-	 */
+-	return damon_sysfs_cmd_request_callback(c, false, false);
+-}
+-
+-static int damon_sysfs_after_sampling(struct damon_ctx *c)
+-{
+-	/*
+-	 * after_sampling() is called back only while the context is not
+-	 * deactivated by watermarks.
+-	 */
+-	return damon_sysfs_cmd_request_callback(c, true, false);
+-}
+-
+-static int damon_sysfs_after_aggregation(struct damon_ctx *c)
+-{
+-	/*
+-	 * after_aggregation() is called back only while the context is not
+-	 * deactivated by watermarks.
+-	 */
+-	return damon_sysfs_cmd_request_callback(c, true, true);
+-}
+-
+ static struct damon_ctx *damon_sysfs_build_ctx(
+ 		struct damon_sysfs_context *sys_ctx)
+ {
+@@ -1603,9 +1544,6 @@ static struct damon_ctx *damon_sysfs_bui
+ 		return ERR_PTR(err);
+ 	}
+ 
+-	ctx->callback.after_wmarks_check = damon_sysfs_after_wmarks_check;
+-	ctx->callback.after_sampling = damon_sysfs_after_sampling;
+-	ctx->callback.after_aggregation = damon_sysfs_after_aggregation;
+ 	ctx->callback.before_terminate = damon_sysfs_before_terminate;
+ 	return ctx;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
