@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED36A367;
-	Thu,  6 Mar 2025 05:37:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE73319F40B;
+	Thu,  6 Mar 2025 05:37:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239449; cv=none; b=Qf5pOYGnx0CYvBd/r+raWfUi/C/ON55J7BV5JRpm1aORHQSnnEGhU87aqXHdOZkghNhPm8id4LStOdUPwoYSMKkCc2ACgIZ7rdO+ndXQrN8sxIlycBes80JPO44gmh+Pi6/1Gjw6eWTFSK2ndVd/lHM5MUadlteKdVFoAN9pz10=
+	t=1741239450; cv=none; b=LnEPDP6emCYdAs+faPh7Ul1Z9HigRpeUpLzliwbLNfccm4lzRx1xuKaG59KxKMsOBZatDZAt5/SCdgmeOVR9hrlV08snVOBNkoF4N8BnuWwFa7wDwTrPPgqq7+MZenQXCx/x0FO4gr962fGxIGJG/2sJoJA9qrPI3Av0Zv3gQt4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239449; c=relaxed/simple;
-	bh=obpiEw14KF47SJUHEowbo6xpFnJa8gGe64tSBOi2S/g=;
-	h=Date:To:From:Subject:Message-Id; b=QSPEAiDaVvBwAReJUtzHcmoDxuoImCqI7ExZBO3r6eJtx3/RFWH5OWvtyXtjg2JfJtgiM2pFk1votthh1Ts3KDIF0OWZEq1WTkm3rQYLrFr4jdkGTLfw0wndNfTLBREPw8OOs8BM3SLjvdpPO5yFcn0ht2+0glOkWrHy++WfPgc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YNggxEt3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741239450; c=relaxed/simple;
+	bh=KeOA4/iqjv1upUrSfFqUjOjSId9p5shImCjPDR5/pj4=;
+	h=Date:To:From:Subject:Message-Id; b=H5BDlvvyu5vEHoaGGJDe2fCY3ao4W5pZhUrzthDyjRMO62umpTuwHOmh7hHNjUOhKz3sGUVLa+rvghDO8ftGYtjCDANSB3+iYKA4MZ+4gp07q2JkAbFUeQQmm2sWYdhTajWTVwoS+UqKU5Sx/A/Glw0WrRVkagrUU8lh2MzZ8xY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RCBzIBzn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YNggxEt3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C94C4CEE4;
-	Thu,  6 Mar 2025 05:37:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RCBzIBzn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EC0CC4CEE4;
+	Thu,  6 Mar 2025 05:37:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239448;
-	bh=obpiEw14KF47SJUHEowbo6xpFnJa8gGe64tSBOi2S/g=;
+	s=korg; t=1741239450;
+	bh=KeOA4/iqjv1upUrSfFqUjOjSId9p5shImCjPDR5/pj4=;
 	h=Date:To:From:Subject:From;
-	b=YNggxEt3qRJYluV8+RA/B9jrgHhwVPhTd7Y4yFOLVLrftIASWPQ8abS8pF6vcXTsd
-	 RSkgf3ybRGOdeTpo2z98RZBKtpncoRRxiOhLc05dF9AsJ9bGVtwPA4Z2NElL2kahZZ
-	 cYAq/3EoUx7l4OJFfXRsHJ/93gKI3qFOjV2ZA0DI=
-Date: Wed, 05 Mar 2025 21:37:27 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,baolin.wang@linux.alibaba.com,21cnbao@gmail.com,yangge1116@126.com,akpm@linux-foundation.org
+	b=RCBzIBzn2Gc/yvy2gbblfiCYsI7IMKuOpza+bg35iGW/ANQ+g4J27unk/udiseFiM
+	 XOVPuLxMMHZcmQolik/P1YHMHl8pSkcBIFThV2pW/bLDpmwbUc/1kvuI4FJqoRuMhG
+	 j73AHhXQgQpkujY1S8obkrPDnG9Bu2fqOez8XCYY=
+Date: Wed, 05 Mar 2025 21:37:29 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,liam.howlett@oracle.com,jannh@google.com,brad.spengler@opensrcsec.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch removed from -mm tree
-Message-Id: <20250306053728.65C94C4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-abort-vma_modify-on-merge-out-of-memory-failure.patch removed from -mm tree
+Message-Id: <20250306053730.2EC0CC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,321 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: wait for hugetlb folios to be freed
+     Subject: mm: abort vma_modify() on merge out of memory failure
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-wait-for-hugetlb-folios-to-be-freed.patch
+     mm-abort-vma_modify-on-merge-out-of-memory-failure.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ge Yang <yangge1116@126.com>
-Subject: mm/hugetlb: wait for hugetlb folios to be freed
-Date: Wed, 19 Feb 2025 11:46:44 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: abort vma_modify() on merge out of memory failure
+Date: Sat, 22 Feb 2025 16:19:52 +0000
 
-Since the introduction of commit c77c0a8ac4c52 ("mm/hugetlb: defer freeing
-of huge pages if in non-task context"), which supports deferring the
-freeing of hugetlb pages, the allocation of contiguous memory through
-cma_alloc() may fail probabilistically.
+The remainder of vma_modify() relies upon the vmg state remaining pristine
+after a merge attempt.
 
-In the CMA allocation process, if it is found that the CMA area is
-occupied by in-use hugetlb folios, these in-use hugetlb folios need to be
-migrated to another location.  When there are no available hugetlb folios
-in the free hugetlb pool during the migration of in-use hugetlb folios,
-new folios are allocated from the buddy system.  A temporary state is set
-on the newly allocated folio.  Upon completion of the hugetlb folio
-migration, the temporary state is transferred from the new folios to the
-old folios.  Normally, when the old folios with the temporary state are
-freed, it is directly released back to the buddy system.  However, due to
-the deferred freeing of hugetlb pages, the PageBuddy() check fails,
-ultimately leading to the failure of cma_alloc().
+Usually this is the case, however in the one edge case scenario of a merge
+attempt failing not due to the specified range being unmergeable, but
+rather due to an out of memory error arising when attempting to commit the
+merge, this assumption becomes untrue.
 
-Here is a simplified call trace illustrating the process:
-cma_alloc()
-    ->__alloc_contig_migrate_range() // Migrate in-use hugetlb folios
-        ->unmap_and_move_huge_page()
-            ->folio_putback_hugetlb() // Free old folios
-    ->test_pages_isolated()
-        ->__test_page_isolated_in_pageblock()
-             ->PageBuddy(page) // Check if the page is in buddy
+This results in vmg->start, end being modified, and thus the proceeding
+attempts to split the VMA will be done with invalid start/end values.
 
-To resolve this issue, we have implemented a function named
-wait_for_freed_hugetlb_folios().  This function ensures that the hugetlb
-folios are properly released back to the buddy system after their
-migration is completed.  By invoking wait_for_freed_hugetlb_folios()
-before calling PageBuddy(), we ensure that PageBuddy() will succeed.
+Thankfully, it is likely practically impossible for us to hit this in
+reality, as it would require a maple tree node pre-allocation failure that
+would likely never happen due to it being 'too small to fail', i.e.  the
+kernel would simply keep retrying reclaim until it succeeded.
 
-Link: https://lkml.kernel.org/r/1739936804-18199-1-git-send-email-yangge1116@126.com
-Fixes: c77c0a8ac4c5 ("mm/hugetlb: defer freeing of huge pages if in non-task context")
-Signed-off-by: Ge Yang <yangge1116@126.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+However, this scenario remains theoretically possible, and what we are
+doing here is wrong so we must correct it.
+
+The safest option is, when this scenario occurs, to simply give up the
+operation.  If we cannot allocate memory to merge, then we cannot allocate
+memory to split either (perhaps moreso!).
+
+Any scenario where this would be happening would be under very extreme
+(likely fatal) memory pressure, so it's best we give up early.
+
+So there is no doubt it is appropriate to simply bail out in this
+scenario.
+
+However, in general we must if at all possible never assume VMG state is
+stable after a merge attempt, since merge operations update VMG fields. 
+As a result, additionally also make this clear by storing start, end in
+local variables.
+
+The issue was reported originally by syzkaller, and by Brad Spengler (via
+an off-list discussion), and in both instances it manifested as a
+triggering of the assert:
+
+	VM_WARN_ON_VMG(start >= end, vmg);
+
+In vma_merge_existing_range().
+
+It seems at least one scenario in which this is occurring is one in which
+the merge being attempted is due to an madvise() across multiple VMAs
+which looks like this:
+
+        start     end
+          |<------>|
+     |----------|------|
+     |   vma    | next |
+     |----------|------|
+
+When madvise_walk_vmas() is invoked, we first find vma in the above
+(determining prev to be equal to vma as we are offset into vma), and then
+enter the loop.
+
+We determine the end of vma that forms part of the range we are
+madvise()'ing by setting 'tmp' to this value:
+
+		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+		tmp = vma->vm_end;
+
+We then invoke the madvise() operation via visit(), letting prev get
+updated to point to vma as part of the operation:
+
+		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+		error = visit(vma, &prev, start, tmp, arg);
+
+Where the visit() function pointer in this instance is
+madvise_vma_behavior().
+
+As observed in syzkaller reports, it is ultimately madvise_update_vma()
+that is invoked, calling vma_modify_flags_name() and vma_modify() in turn.
+
+Then, in vma_modify(), we attempt the merge:
+
+	merged = vma_merge_existing_range(vmg);
+	if (merged)
+		return merged;
+
+We invoke this with vmg->start, end set to start, tmp as such:
+
+        start  tmp
+          |<--->|
+     |----------|------|
+     |   vma    | next |
+     |----------|------|
+
+We find ourselves in the merge right scenario, but the one in which we
+cannot remove the middle (we are offset into vma).
+
+Here we have a special case where vmg->start, end get set to perhaps
+unintuitive values - we intended to shrink the middle VMA and expand the
+next.
+
+This means vmg->start, end are set to...  vma->vm_start, start.
+
+Now the commit_merge() fails, and vmg->start, end are left like this. 
+This means we return to the rest of vma_modify() with vmg->start, end
+(here denoted as start', end') set as:
+
+  start' end'
+     |<-->|
+     |----------|------|
+     |   vma    | next |
+     |----------|------|
+
+So we now erroneously try to split accordingly.  This is where the
+unfortunate stuff begins.
+
+We start with:
+
+	/* Split any preceding portion of the VMA. */
+	if (vma->vm_start < vmg->start) {
+		...
+	}
+
+This doesn't trigger as we are no longer offset into vma at the start.
+
+But then we invoke:
+
+	/* Split any trailing portion of the VMA. */
+	if (vma->vm_end > vmg->end) {
+		...
+	}
+
+Which does get invoked. This leaves us with:
+
+  start' end'
+     |<-->|
+     |----|-----|------|
+     | vma| new | next |
+     |----|-----|------|
+
+We then return ultimately to madvise_walk_vmas().  Here 'new' is unknown,
+and putting back the values known in this function we are faced with:
+
+        start tmp end
+          |     |  |
+     |----|-----|------|
+     | vma| new | next |
+     |----|-----|------|
+      prev
+
+Then:
+
+		start = tmp;
+
+So:
+
+             start end
+                |  |
+     |----|-----|------|
+     | vma| new | next |
+     |----|-----|------|
+      prev
+
+The following code does not cause anything to happen:
+
+		if (prev && start < prev->vm_end)
+			start = prev->vm_end;
+		if (start >= end)
+			break;
+
+And then we invoke:
+
+		if (prev)
+			vma = find_vma(mm, prev->vm_end);
+
+Which is where a problem occurs - we don't know about 'new' so we
+essentially look for the vma after prev, which is new, whereas we actually
+intended to discover next!
+
+So we end up with:
+
+             start end
+                |  |
+     |----|-----|------|
+     |prev| vma | next |
+     |----|-----|------|
+
+And we have successfully bypassed all of the checks madvise_walk_vmas()
+has to ensure early exit should we end up moving out of range.
+
+We loop around, and hit:
+
+		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+		tmp = vma->vm_end;
+
+Oh dear. Now we have:
+
+              tmp
+             start end
+                |  |
+     |----|-----|------|
+     |prev| vma | next |
+     |----|-----|------|
+
+We then invoke:
+
+		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+		error = visit(vma, &prev, start, tmp, arg);
+
+Where start == tmp. That is, a zero range. This is not good.
+
+We invoke visit() which is madvise_vma_behavior() which does not check the
+range (for good reason, it assumes all checks have been done before it was
+called), which in turn finally calls madvise_update_vma().
+
+The madvise_update_vma() function calls vma_modify_flags_name() in turn,
+which ultimately invokes vma_modify() with...  start == end.
+
+vma_modify() calls vma_merge_existing_range() and finally we hit:
+
+	VM_WARN_ON_VMG(start >= end, vmg);
+
+Which triggers, as start == end.
+
+While it might be useful to add some CONFIG_DEBUG_VM asserts in these
+instances to catch this kind of error, since we have just eliminated any
+possibility of that happening, we will add such asserts separately as to
+reduce churn and aid backporting.
+
+Link: https://lkml.kernel.org/r/20250222161952.41957-1-lorenzo.stoakes@oracle.com
+Fixes: 2f1c6611b0a8 ("mm: introduce vma_merge_struct and abstract vma_merge(),vma_modify()")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Tested-by: Brad Spengler <brad.spengler@opensrcsec.com>
+Reported-by: Brad Spengler <brad.spengler@opensrcsec.com>
+Reported-by: syzbot+46423ed8fa1f1148c6e4@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/6774c98f.050a0220.25abdd.0991.GAE@google.com/
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- mm/hugetlb.c            |    8 ++++++++
- mm/page_isolation.c     |   10 ++++++++++
- 3 files changed, 23 insertions(+)
+ mm/vma.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
-+++ a/include/linux/hugetlb.h
-@@ -682,6 +682,7 @@ struct huge_bootmem_page {
+--- a/mm/vma.c~mm-abort-vma_modify-on-merge-out-of-memory-failure
++++ a/mm/vma.c
+@@ -1509,24 +1509,28 @@ int do_vmi_munmap(struct vma_iterator *v
+ static struct vm_area_struct *vma_modify(struct vma_merge_struct *vmg)
+ {
+ 	struct vm_area_struct *vma = vmg->vma;
++	unsigned long start = vmg->start;
++	unsigned long end = vmg->end;
+ 	struct vm_area_struct *merged;
  
- int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
- int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
-+void wait_for_freed_hugetlb_folios(void);
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 				unsigned long addr, bool cow_from_owner);
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
-@@ -1066,6 +1067,10 @@ static inline int replace_free_hugepage_
- 	return 0;
- }
+ 	/* First, try to merge. */
+ 	merged = vma_merge_existing_range(vmg);
+ 	if (merged)
+ 		return merged;
++	if (vmg_nomem(vmg))
++		return ERR_PTR(-ENOMEM);
  
-+static inline void wait_for_freed_hugetlb_folios(void)
-+{
-+}
-+
- static inline struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
- 					   unsigned long addr,
- 					   bool cow_from_owner)
---- a/mm/hugetlb.c~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
-+++ a/mm/hugetlb.c
-@@ -2943,6 +2943,14 @@ int replace_free_hugepage_folios(unsigne
- 	return ret;
- }
+ 	/* Split any preceding portion of the VMA. */
+-	if (vma->vm_start < vmg->start) {
+-		int err = split_vma(vmg->vmi, vma, vmg->start, 1);
++	if (vma->vm_start < start) {
++		int err = split_vma(vmg->vmi, vma, start, 1);
  
-+void wait_for_freed_hugetlb_folios(void)
-+{
-+	if (llist_empty(&hpage_freelist))
-+		return;
-+
-+	flush_work(&free_hpage_work);
-+}
-+
- typedef enum {
- 	/*
- 	 * For either 0/1: we checked the per-vma resv map, and one resv
---- a/mm/page_isolation.c~mm-hugetlb-wait-for-hugetlb-folios-to-be-freed
-+++ a/mm/page_isolation.c
-@@ -608,6 +608,16 @@ int test_pages_isolated(unsigned long st
- 	int ret;
+ 		if (err)
+ 			return ERR_PTR(err);
+ 	}
  
- 	/*
-+	 * Due to the deferred freeing of hugetlb folios, the hugepage folios may
-+	 * not immediately release to the buddy system. This can cause PageBuddy()
-+	 * to fail in __test_page_isolated_in_pageblock(). To ensure that the
-+	 * hugetlb folios are properly released back to the buddy system, we
-+	 * invoke the wait_for_freed_hugetlb_folios() function to wait for the
-+	 * release to complete.
-+	 */
-+	wait_for_freed_hugetlb_folios();
-+
-+	/*
- 	 * Note: pageblock_nr_pages != MAX_PAGE_ORDER. Then, chunks of free
- 	 * pages are not aligned to pageblock_nr_pages.
- 	 * Then we just check migratetype first.
+ 	/* Split any trailing portion of the VMA. */
+-	if (vma->vm_end > vmg->end) {
+-		int err = split_vma(vmg->vmi, vma, vmg->end, 0);
++	if (vma->vm_end > end) {
++		int err = split_vma(vmg->vmi, vma, end, 0);
+ 
+ 		if (err)
+ 			return ERR_PTR(err);
 _
 
-Patches currently in -mm which might be from yangge1116@126.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mm-simplify-vma-merge-structure-and-expand-comments.patch
+mm-further-refactor-commit_merge.patch
+mm-eliminate-adj_start-parameter-from-commit_merge.patch
+mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+mm-completely-abstract-unnecessary-adj_start-calculation.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix.patch
+mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
+mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
+mm-provide-mapping_wrprotect_range-function.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
+mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
+selftests-mm-rename-guard-pages-to-guard-regions.patch
+selftests-mm-rename-guard-pages-to-guard-regions-fix.patch
+tools-selftests-expand-all-guard-region-tests-to-file-backed.patch
+tools-selftests-add-file-shmem-backed-mapping-guard-region-tests.patch
+fs-proc-task_mmu-add-guard-region-bit-to-pagemap.patch
+tools-selftests-add-guard-region-test-for-proc-pid-pagemap.patch
+tools-selftests-add-guard-region-test-for-proc-pid-pagemap-fix.patch
+mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
+mm-mremap-refactor-mremap-system-call-implementation.patch
+mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
+mm-mremap-initial-refactor-of-move_vma.patch
+mm-mremap-complete-refactor-of-move_vma.patch
+mm-mremap-refactor-move_page_tables-abstracting-state.patch
+mm-mremap-thread-state-through-move-page-table-operation.patch
 
