@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964F320012D
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 921B620012D
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297115; cv=none; b=IbPXND/FHc6VcKWk+1/8qHU0SH2Wv0sQgcvhA22GQEsnpxJriTJGYWTJGGWtCHNOTLlI/1KgDaJSsLsc7s7rDZbfrlXBVBJbbtb8ry2Y5tdBBAM04JDrjezGgRbzT3SE4KJv4nZRnBrgOhfAoBYVqUgtLWzVhS7pCFnBO7x5NnI=
+	t=1741297116; cv=none; b=V+kL71zBTfYHLu/+5aDdk320lUojcWNaHee1Fjtnb+gCP26Qydt64ZpBzahwtK+iq+zO7Bmfcl/H08Qtt2b8kRES0w4C/nEsZFSWb6AkmwDYJyD99Sz58nAW7/Om3QPshFBINHmcLayupQdDw2lc/E1CCvfFlio13dK3DiPigF8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297115; c=relaxed/simple;
-	bh=l/JMdr4Vbkd9PvIpwphPjzd1ylFGNXtslcw0gwgjph0=;
-	h=Date:To:From:Subject:Message-Id; b=oZwFyjyjCQ2TxH7WhZzuRlLLr5wAFE+4zzmeBKAa5juY0gPKfmhNt2B4Ql9LH01efOfEKIU/f1L3Zhbv4pf5UF4Ajcyk99TNO87NLDxlDOj4cx10l3TA9ebbcLg+5xhRvSQT6dKGVX16aFgxSKh1ZSvYqhbBYpIpeWMkHPKbANg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Edb2zMlo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297116; c=relaxed/simple;
+	bh=EDoK1eZ6cjFD8Nmwmfh7GMg+pSnlF8W2sPqjCeOeW4I=;
+	h=Date:To:From:Subject:Message-Id; b=Dv9nQ4O0ugOGqkOp8VwyTTHAtx0a93LkunxSZJ9K1GAsjOa6f1YzIqjYobcCF39k1cOQFyHkMoX1MLeWb9R28joJ+KnuPvxRj2HINvv/Vlcz36ZO+wbVMZFfTEzNVoNLRqvjTMYy2dqmbtLUyEQJ0QyQj4pklEFi30voOcv8oKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I/7TIvPw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Edb2zMlo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0686C4CEE0;
-	Thu,  6 Mar 2025 21:38:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I/7TIvPw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6804FC4CEE0;
+	Thu,  6 Mar 2025 21:38:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297115;
-	bh=l/JMdr4Vbkd9PvIpwphPjzd1ylFGNXtslcw0gwgjph0=;
+	s=korg; t=1741297116;
+	bh=EDoK1eZ6cjFD8Nmwmfh7GMg+pSnlF8W2sPqjCeOeW4I=;
 	h=Date:To:From:Subject:From;
-	b=Edb2zMlofHnzaUqfywSp0rSinUu5hc80iSKH4w9qinLFRflpnCzdfEq9UR8HAY2TO
-	 Xt38UBvnzlpTym/CuUIba8Fmz7F7RWEAvEDTZ66sTjgAzeg+JPjZOv9MkDdpKCouVF
-	 MuozqSJtK8rTz3PudyNjikR5QtQx+8to+9Omvea4=
-Date: Thu, 06 Mar 2025 13:38:34 -0800
+	b=I/7TIvPwt50pmYcNr/kZYFHEAoQTzGsnAz6keDw/WWCsaIYsGqJwI10DWhm8K+p6A
+	 919YzUvbcxy99PoXK9TquM/N/pyyaaVUqjRNZgl14LKsE84/TVPQXz10ctDAbNgtnp
+	 rK0jD8b59gYKzYXJ657t5vh39MTd60/c7EpYSnrk=
+Date: Thu, 06 Mar 2025 13:38:35 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-remove-damon_callback-before_damos_apply.patch added to mm-unstable branch
-Message-Id: <20250306213834.F0686C4CEE0@smtp.kernel.org>
+Subject: + mm-damon-remove-damon_operations-reset_aggregated.patch added to mm-unstable branch
+Message-Id: <20250306213836.6804FC4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: remove damon_callback->before_damos_apply
+     Subject: mm/damon: remove damon_operations->reset_aggregated
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-remove-damon_callback-before_damos_apply.patch
+     mm-damon-remove-damon_operations-reset_aggregated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon_callback-before_damos_apply.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-damon_operations-reset_aggregated.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,73 +59,92 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove damon_callback->before_damos_apply
-Date: Thu, 6 Mar 2025 09:59:07 -0800
+Subject: mm/damon: remove damon_operations->reset_aggregated
+Date: Thu, 6 Mar 2025 09:59:08 -0800
 
-The hook was introduced to let DAMON kernel API users access DAMOS
-schemes-eligible regions in a safe way.  Now it is no more used by anyone,
-and the functionality is provided in a better way by damos_walk().  Remove
-it.
+The operations layer hook was introduced to let operations set do any
+aggregation data reset if needed.  But it is not really be used now. 
+Remove it.
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-13-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250306175908.66300-14-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 -----
- mm/damon/core.c       |   13 ++++---------
- 2 files changed, 4 insertions(+), 14 deletions(-)
+ include/linux/damon.h |    7 +------
+ mm/damon/core.c       |    2 --
+ mm/damon/paddr.c      |    1 -
+ mm/damon/vaddr.c      |    1 -
+ 4 files changed, 1 insertion(+), 10 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-damon_callback-before_damos_apply
+--- a/include/linux/damon.h~mm-damon-remove-damon_operations-reset_aggregated
 +++ a/include/linux/damon.h
-@@ -605,7 +605,6 @@ struct damon_operations {
+@@ -542,7 +542,6 @@ enum damon_ops_id {
+  * @update:			Update operations-related data structures.
+  * @prepare_access_checks:	Prepare next access check of target regions.
+  * @check_accesses:		Check the accesses to target regions.
+- * @reset_aggregated:		Reset aggregated accesses monitoring results.
+  * @get_scheme_score:		Get the score of a region for a scheme.
+  * @apply_scheme:		Apply a DAMON-based operation scheme.
+  * @target_valid:		Determine if the target is valid.
+@@ -554,8 +553,7 @@ enum damon_ops_id {
+  * (&damon_ctx.kdamond) calls @init and @prepare_access_checks before starting
+  * the monitoring, @update after each &damon_attrs.ops_update_interval, and
+  * @check_accesses, @target_valid and @prepare_access_checks after each
+- * &damon_attrs.sample_interval.  Finally, @reset_aggregated is called after
+- * each &damon_attrs.aggr_interval.
++ * &damon_attrs.sample_interval.
   *
-  * @after_wmarks_check:	Called after each schemes' watermarks check.
-  * @after_aggregation:	Called after each aggregation.
-- * @before_damos_apply:	Called before applying DAMOS action.
-  * @before_terminate:	Called before terminating the monitoring.
-  *
-  * The monitoring thread (&damon_ctx.kdamond) calls @before_terminate just
-@@ -626,10 +625,6 @@ struct damon_operations {
- struct damon_callback {
- 	int (*after_wmarks_check)(struct damon_ctx *context);
- 	int (*after_aggregation)(struct damon_ctx *context);
--	int (*before_damos_apply)(struct damon_ctx *context,
--			struct damon_target *target,
--			struct damon_region *region,
--			struct damos *scheme);
- 	void (*before_terminate)(struct damon_ctx *context);
- };
- 
---- a/mm/damon/core.c~mm-damon-remove-damon_callback-before_damos_apply
+  * Each &struct damon_operations instance having valid @id can be registered
+  * via damon_register_ops() and selected by damon_select_ops() later.
+@@ -570,8 +568,6 @@ enum damon_ops_id {
+  * last preparation and update the number of observed accesses of each region.
+  * It should also return max number of observed accesses that made as a result
+  * of its update.  The value will be used for regions adjustment threshold.
+- * @reset_aggregated should reset the access monitoring results that aggregated
+- * by @check_accesses.
+  * @get_scheme_score should return the priority score of a region for a scheme
+  * as an integer in [0, &DAMOS_MAX_SCORE].
+  * @apply_scheme is called from @kdamond when a region for user provided
+@@ -589,7 +585,6 @@ struct damon_operations {
+ 	void (*update)(struct damon_ctx *context);
+ 	void (*prepare_access_checks)(struct damon_ctx *context);
+ 	unsigned int (*check_accesses)(struct damon_ctx *context);
+-	void (*reset_aggregated)(struct damon_ctx *context);
+ 	int (*get_scheme_score)(struct damon_ctx *context,
+ 			struct damon_target *t, struct damon_region *r,
+ 			struct damos *scheme);
+--- a/mm/damon/core.c~mm-damon-remove-damon_operations-reset_aggregated
 +++ a/mm/damon/core.c
-@@ -1731,7 +1731,6 @@ static void damos_apply_scheme(struct da
- 	struct timespec64 begin, end;
- 	unsigned long sz_applied = 0;
- 	unsigned long sz_ops_filter_passed = 0;
--	int err = 0;
- 	/*
- 	 * We plan to support multiple context per kdamond, as DAMON sysfs
- 	 * implies with 'nr_contexts' file.  Nevertheless, only single context
-@@ -1771,14 +1770,10 @@ static void damos_apply_scheme(struct da
- 		if (damos_filter_out(c, t, r, s))
- 			return;
- 		ktime_get_coarse_ts64(&begin);
--		if (c->callback.before_damos_apply)
--			err = c->callback.before_damos_apply(c, t, r, s);
--		if (!err) {
--			trace_damos_before_apply(cidx, sidx, tidx, r,
--					damon_nr_regions(t), do_trace);
--			sz_applied = c->ops.apply_scheme(c, t, r, s,
--					&sz_ops_filter_passed);
--		}
-+		trace_damos_before_apply(cidx, sidx, tidx, r,
-+				damon_nr_regions(t), do_trace);
-+		sz_applied = c->ops.apply_scheme(c, t, r, s,
-+				&sz_ops_filter_passed);
- 		damos_walk_call_walk(c, t, r, s, sz_ops_filter_passed);
- 		ktime_get_coarse_ts64(&end);
- 		quota->total_charged_ns += timespec64_to_ns(&end) -
+@@ -2489,8 +2489,6 @@ static int kdamond_fn(void *data)
+ 
+ 			kdamond_reset_aggregated(ctx);
+ 			kdamond_split_regions(ctx);
+-			if (ctx->ops.reset_aggregated)
+-				ctx->ops.reset_aggregated(ctx);
+ 		}
+ 
+ 		if (ctx->passed_sample_intervals >= next_ops_update_sis) {
+--- a/mm/damon/paddr.c~mm-damon-remove-damon_operations-reset_aggregated
++++ a/mm/damon/paddr.c
+@@ -621,7 +621,6 @@ static int __init damon_pa_initcall(void
+ 		.update = NULL,
+ 		.prepare_access_checks = damon_pa_prepare_access_checks,
+ 		.check_accesses = damon_pa_check_accesses,
+-		.reset_aggregated = NULL,
+ 		.target_valid = NULL,
+ 		.cleanup = NULL,
+ 		.apply_scheme = damon_pa_apply_scheme,
+--- a/mm/damon/vaddr.c~mm-damon-remove-damon_operations-reset_aggregated
++++ a/mm/damon/vaddr.c
+@@ -710,7 +710,6 @@ static int __init damon_va_initcall(void
+ 		.update = damon_va_update,
+ 		.prepare_access_checks = damon_va_prepare_access_checks,
+ 		.check_accesses = damon_va_check_accesses,
+-		.reset_aggregated = NULL,
+ 		.target_valid = damon_va_target_valid,
+ 		.cleanup = NULL,
+ 		.apply_scheme = damon_va_apply_scheme,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
