@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CF6C29CF0;
-	Thu,  6 Mar 2025 05:37:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AFD229CF0;
+	Thu,  6 Mar 2025 05:37:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741239436; cv=none; b=X9mnz45CgTboWRPA21YeHdhsUMyTzgFysGh7302xJVJYw0S1FYcq/u4hLX29yogB3gjh9XAr/AmchwEF4micD+tp4n52l4hjrtIga0orVQ1vFG95ubDyksGHyqpNjCTu0QHCN0OoqGFLghzJFSOBzr4yttEpUUCnkwANZXbaeK4=
+	t=1741239437; cv=none; b=cIZU18ecQxgDn/8wZxRBEUfRu9yMteKIoZ4j35EKmMkgWBY9orWGVI9k8VOnP1GDd8QYK0tGdD5FZMVNdEW5e7xkyvZfhdKV9n33UhPcGox+gJVYoTyWq+LVB3f+lAM36XUVPG5e1vrAQsIxVFmJzFcV8ibx5H/JGEgYdaHGf9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741239436; c=relaxed/simple;
-	bh=1d9bTkc2TiVZAwFfQ5yYcAd24/v6/9sWLx3bRm2LaNY=;
-	h=Date:To:From:Subject:Message-Id; b=mqEmNneXx9apyuhqr6JHVG9GxRObF4qKxQ+ZwJ77M1VahyQYa/48cMMUfaBwv9zB3RyomDi2fxe/cYntQ+l3siIQntCTbqZxhPQ7hV8BJLDvGIX5hKoaK2zVYGU2RRyYzNp9FlEX1omaTPY6G+yN4gY1//qDSXJHnAlmO/eY0bk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=waWkRyGC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741239437; c=relaxed/simple;
+	bh=mwPNxOOYUjh+wZYK6yXesPnnOPm9bFS8sPJdVXdDc/g=;
+	h=Date:To:From:Subject:Message-Id; b=fbFGAbP1+PrSKi1BoPPjniIL6ERPEPNtr69yMhLHA9UNp6tZhOoiHiRke1+S4aC4nOhyPQGtxGq/PjHNzRa6igj6LPSi3lEp5iVvQooCwgd2UCscFG/1RMtkyRRmYWAgkvRnIpOlRBWxKPigG6EpcEQ5QNSTe27X+LSoI7U/v3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a5n7E7/t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="waWkRyGC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3298C4CEE5;
-	Thu,  6 Mar 2025 05:37:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a5n7E7/t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38412C4CEE4;
+	Thu,  6 Mar 2025 05:37:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741239436;
-	bh=1d9bTkc2TiVZAwFfQ5yYcAd24/v6/9sWLx3bRm2LaNY=;
+	s=korg; t=1741239437;
+	bh=mwPNxOOYUjh+wZYK6yXesPnnOPm9bFS8sPJdVXdDc/g=;
 	h=Date:To:From:Subject:From;
-	b=waWkRyGCHaiOZvDAfO4TWIdZhdTpE0gx0e1Blm9DB1Y9rzqbeGjMLDYW4Akn1zXW0
-	 R2gtbfgJbUw8mo/qjQ5okJTF5V6Q++cGPKfxW5zg0wVNKHps6PuvBLcNum8G2dgzTa
-	 t3tz+VgVkmfsX/NZ0TPA9jgrsw48sATD67PJ5u0A=
-Date: Wed, 05 Mar 2025 21:37:15 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,stable@vger.kernel.org,sammy@sammy.net,kevin.brodsky@arm.com,geert@linux-m68k.org,dave.hansen@linux.intel.com,haoxiang_li2024@163.com,akpm@linux-foundation.org
+	b=a5n7E7/teclQ0etf014WweYM9DBq7yr4z7ZN02JlFCLbRkRwGVkrWeXJVL790ammu
+	 GO55nKOUhaEjq9XDTxEFs9FrA7PW9SSAMsZxtEzk2AbG2tkDiXWtDDkBezAqwoOJFE
+	 p+xrqAMGxDIS53PjU40BdG7VVL6s17jDAcZHA+1M=
+Date: Wed, 05 Mar 2025 21:37:16 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,muchun.song@linux.dev,linux@armlinux.org.uk,hughd@google.com,ezra.buehler@husqvarnagroup.com,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] m68k-sun3-add-check-for-__pgd_alloc.patch removed from -mm tree
-Message-Id: <20250306053715.E3298C4CEE5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] arm-pgtable-fix-null-pointer-dereference-issue.patch removed from -mm tree
+Message-Id: <20250306053717.38412C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,162 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: m68k: sun3: add check for __pgd_alloc()
+     Subject: arm: pgtable: fix NULL pointer dereference issue
 has been removed from the -mm tree.  Its filename was
-     m68k-sun3-add-check-for-__pgd_alloc.patch
+     arm-pgtable-fix-null-pointer-dereference-issue.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Haoxiang Li <haoxiang_li2024@163.com>
-Subject: m68k: sun3: add check for __pgd_alloc()
-Date: Tue, 18 Feb 2025 00:00:17 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: arm: pgtable: fix NULL pointer dereference issue
+Date: Mon, 17 Feb 2025 10:49:24 +0800
 
-Add check for the return value of __pgd_alloc() in pgd_alloc() to prevent
-null pointer dereference.
+When update_mmu_cache_range() is called by update_mmu_cache(), the vmf
+parameter is NULL, which will cause a NULL pointer dereference issue in
+adjust_pte():
 
-Link: https://lkml.kernel.org/r/20250217160017.2375536-1-haoxiang_li2024@163.com
-Fixes: a9b3c355c2e6 ("asm-generic: pgalloc: provide generic __pgd_{alloc,free}")
-Signed-off-by: Haoxiang Li <haoxiang_li2024@163.com>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Unable to handle kernel NULL pointer dereference at virtual address 00000030 when read
+Hardware name: Atmel AT91SAM9
+PC is at update_mmu_cache_range+0x1e0/0x278
+LR is at pte_offset_map_rw_nolock+0x18/0x2c
+Call trace:
+ update_mmu_cache_range from remove_migration_pte+0x29c/0x2ec
+ remove_migration_pte from rmap_walk_file+0xcc/0x130
+ rmap_walk_file from remove_migration_ptes+0x90/0xa4
+ remove_migration_ptes from migrate_pages_batch+0x6d4/0x858
+ migrate_pages_batch from migrate_pages+0x188/0x488
+ migrate_pages from compact_zone+0x56c/0x954
+ compact_zone from compact_node+0x90/0xf0
+ compact_node from kcompactd+0x1d4/0x204
+ kcompactd from kthread+0x120/0x12c
+ kthread from ret_from_fork+0x14/0x38
+Exception stack(0xc0d8bfb0 to 0xc0d8bff8)
+
+To fix it, do not rely on whether 'ptl' is equal to decide whether to hold
+the pte lock, but decide it by whether CONFIG_SPLIT_PTE_PTLOCKS is
+enabled.  In addition, if two vmas map to the same PTE page, there is no
+need to hold the pte lock again, otherwise a deadlock will occur.  Just
+add the need_lock parameter to let adjust_pte() know this information.
+
+Link: https://lkml.kernel.org/r/20250217024924.57996-1-zhengqi.arch@bytedance.com
+Fixes: fc9c45b71f43 ("arm: adjust_pte() use pte_offset_map_rw_nolock()")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reported-by: Ezra Buehler <ezra.buehler@husqvarnagroup.com>
+Closes: https://lore.kernel.org/lkml/CAM1KZSmZ2T_riHvay+7cKEFxoPgeVpHkVFTzVVEQ1BO0cLkHEQ@mail.gmail.com/
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Ezra Buehler <ezra.buehler@husqvarnagroup.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Sam Creasey <sammy@sammy.net>
+Cc: Russel King <linux@armlinux.org.uk>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/sun3_pgalloc.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/mm/fault-armv.c |   37 +++++++++++++++++++++++++------------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
---- a/arch/m68k/include/asm/sun3_pgalloc.h~m68k-sun3-add-check-for-__pgd_alloc
-+++ a/arch/m68k/include/asm/sun3_pgalloc.h
-@@ -44,8 +44,10 @@ static inline pgd_t * pgd_alloc(struct m
- 	pgd_t *new_pgd;
- 
- 	new_pgd = __pgd_alloc(mm, 0);
--	memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
--	memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
-+	if (likely(new_pgd != NULL)) {
-+		memcpy(new_pgd, swapper_pg_dir, PAGE_SIZE);
-+		memset(new_pgd, 0, (PAGE_OFFSET >> PGDIR_SHIFT));
-+	}
- 	return new_pgd;
+--- a/arch/arm/mm/fault-armv.c~arm-pgtable-fix-null-pointer-dereference-issue
++++ a/arch/arm/mm/fault-armv.c
+@@ -62,7 +62,7 @@ static int do_adjust_pte(struct vm_area_
  }
  
+ static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
+-		      unsigned long pfn, struct vm_fault *vmf)
++		      unsigned long pfn, bool need_lock)
+ {
+ 	spinlock_t *ptl;
+ 	pgd_t *pgd;
+@@ -99,12 +99,11 @@ again:
+ 	if (!pte)
+ 		return 0;
+ 
+-	/*
+-	 * If we are using split PTE locks, then we need to take the page
+-	 * lock here.  Otherwise we are using shared mm->page_table_lock
+-	 * which is already locked, thus cannot take it.
+-	 */
+-	if (ptl != vmf->ptl) {
++	if (need_lock) {
++		/*
++		 * Use nested version here to indicate that we are already
++		 * holding one similar spinlock.
++		 */
+ 		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+ 		if (unlikely(!pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
+ 			pte_unmap_unlock(pte, ptl);
+@@ -114,7 +113,7 @@ again:
+ 
+ 	ret = do_adjust_pte(vma, address, pfn, pte);
+ 
+-	if (ptl != vmf->ptl)
++	if (need_lock)
+ 		spin_unlock(ptl);
+ 	pte_unmap(pte);
+ 
+@@ -123,9 +122,10 @@ again:
+ 
+ static void
+ make_coherent(struct address_space *mapping, struct vm_area_struct *vma,
+-	      unsigned long addr, pte_t *ptep, unsigned long pfn,
+-	      struct vm_fault *vmf)
++	      unsigned long addr, pte_t *ptep, unsigned long pfn)
+ {
++	const unsigned long pmd_start_addr = ALIGN_DOWN(addr, PMD_SIZE);
++	const unsigned long pmd_end_addr = pmd_start_addr + PMD_SIZE;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *mpnt;
+ 	unsigned long offset;
+@@ -142,6 +142,14 @@ make_coherent(struct address_space *mapp
+ 	flush_dcache_mmap_lock(mapping);
+ 	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff) {
+ 		/*
++		 * If we are using split PTE locks, then we need to take the pte
++		 * lock. Otherwise we are using shared mm->page_table_lock which
++		 * is already locked, thus cannot take it.
++		 */
++		bool need_lock = IS_ENABLED(CONFIG_SPLIT_PTE_PTLOCKS);
++		unsigned long mpnt_addr;
++
++		/*
+ 		 * If this VMA is not in our MM, we can ignore it.
+ 		 * Note that we intentionally mask out the VMA
+ 		 * that we are fixing up.
+@@ -151,7 +159,12 @@ make_coherent(struct address_space *mapp
+ 		if (!(mpnt->vm_flags & VM_MAYSHARE))
+ 			continue;
+ 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
+-		aliases += adjust_pte(mpnt, mpnt->vm_start + offset, pfn, vmf);
++		mpnt_addr = mpnt->vm_start + offset;
++
++		/* Avoid deadlocks by not grabbing the same PTE lock again. */
++		if (mpnt_addr >= pmd_start_addr && mpnt_addr < pmd_end_addr)
++			need_lock = false;
++		aliases += adjust_pte(mpnt, mpnt_addr, pfn, need_lock);
+ 	}
+ 	flush_dcache_mmap_unlock(mapping);
+ 	if (aliases)
+@@ -194,7 +207,7 @@ void update_mmu_cache_range(struct vm_fa
+ 		__flush_dcache_folio(mapping, folio);
+ 	if (mapping) {
+ 		if (cache_is_vivt())
+-			make_coherent(mapping, vma, addr, ptep, pfn, vmf);
++			make_coherent(mapping, vma, addr, ptep, pfn);
+ 		else if (vma->vm_flags & VM_EXEC)
+ 			__flush_icache_all();
+ 	}
 _
 
-Patches currently in -mm which might be from haoxiang_li2024@163.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
+mm-pgtable-make-generic-tlb_remove_table-use-struct-ptdesc.patch
+mm-pgtable-change-pt-parameter-of-tlb_remove_ptdesc-to-struct-ptdesc.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2.patch
+riscv-pgtable-unconditionally-use-tlb_remove_ptdesc.patch
+x86-pgtable-convert-to-use-tlb_remove_ptdesc.patch
+mm-pgtable-remove-tlb_remove_page_ptdesc.patch
 
