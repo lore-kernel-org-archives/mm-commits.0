@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BED6A20764B
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00422208981
+	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 21:38:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741297102; cv=none; b=o/6cBcy3njZDDti2nJqPb9EiLtehDaAtRUorFDYRaa1Odf38u1WYgMwfq2S3uD48PWduGJIzJHHs9SZAwpPuhXmBvvpgNJhGvDr+QPJNRfq22moHiP1g1UfPl/dM6IaZX0rYZ/xe49TVdMUQ+Znn6kTxDWEEimAB0Pq3MNIIOhQ=
+	t=1741297104; cv=none; b=BO3P7g3HpKVbzk5U/F/zYM0/sfx/1l/czJwHDno7W3mKJ9ubIjjXGWTQesmf74Sx89R1ruKX0cXLCbuOP0BIpRxz1WlRjabVw/VP/hENnpxOmJMAgik6U0+mHbwFaDcfGG6gBNB9y8BmO2bRqv4R7rW0uDyF3RBy5+EO+90V4ZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741297102; c=relaxed/simple;
-	bh=zwutTK+/k7fYRvWcyOtMSutzBu+TNT+ZjDuRzrp5dh8=;
-	h=Date:To:From:Subject:Message-Id; b=WnKChl9kBVBoBQUceP25Ofa9sJ5+hz3c95PmJhluBzY3pyDVtNgcevcMthmDKhPsu6Cb0Kj6oS66z+WMH52pBjCBVicNxGaLm4sa0HQW0LF7PzbP4XQRUfnJH9C2WhQZqCBhVstJmM86LDHCdbjoeZSW8bu4dMt42zsen8gUK5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xwev5Zjv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741297104; c=relaxed/simple;
+	bh=mYv0kAHjwwMh6+n/CWJVpD05YOcLJeNmHGGax2CedRo=;
+	h=Date:To:From:Subject:Message-Id; b=ZtamBvo51wg8NUWuvoiZC0O+xt5io7BVkW9CrL8IrTUSpMFETMwwy3S1T1JaqDJq4kKAUI7SgxsDkU6Y9mEPC9STxM5Ctf+7qBHpJOOqwjmwSoA/x6uT6Imnx5MFohVhWJxneDqXQ2SsXWssCtpVeOxSPW4Lnm0plfqtWxKUgdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lSguPRRi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xwev5Zjv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22B5CC4CEE0;
-	Thu,  6 Mar 2025 21:38:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lSguPRRi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 594D2C4CEE8;
+	Thu,  6 Mar 2025 21:38:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741297102;
-	bh=zwutTK+/k7fYRvWcyOtMSutzBu+TNT+ZjDuRzrp5dh8=;
+	s=korg; t=1741297103;
+	bh=mYv0kAHjwwMh6+n/CWJVpD05YOcLJeNmHGGax2CedRo=;
 	h=Date:To:From:Subject:From;
-	b=xwev5ZjvpGgMxHirQCzjdYMQf+Uh54YmIBm2B1FfwXHbqKHrrHLsHl68VNNA7d6/X
-	 z11T5II3Hc9g8ESIuDN8536hcUj4n0+xoXeJXZ3VZF3XoGZNhdEzdwgjNkzOQkRKIk
-	 iwJo8Vb9vxlPOgYYFKwPj2FxiLBV6s7rqEZ1fw8c=
-Date: Thu, 06 Mar 2025 13:38:21 -0800
+	b=lSguPRRieUw5qufGawezznqOs2y0LCDBwdHuDM0M8H2hQTbvnp7HA7qWb/GMRog7L
+	 u9W+5sgfOeEhf5gC2zrgv9gtiB1sBga2breJWqgh0PNqyR/j3ERlgTO4RCxpAiw8Ca
+	 6AFF79LqQm/wnyLhruHz3qvgNRGCDIzfifpNQ0RQ=
+Date: Thu, 06 Mar 2025 13:38:22 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch added to mm-unstable branch
-Message-Id: <20250306213822.22B5CC4CEE0@smtp.kernel.org>
+Subject: + mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch added to mm-unstable branch
+Message-Id: <20250306213823.594D2C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: invoke kdamond_call() after merging is done if possible
+     Subject: mm/damon/core: make damon_set_attrs() be safe to be called from damon_call()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
+     mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,51 +59,199 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: invoke kdamond_call() after merging is done if possible
-Date: Thu, 6 Mar 2025 09:58:57 -0800
+Subject: mm/damon/core: make damon_set_attrs() be safe to be called from damon_call()
+Date: Thu, 6 Mar 2025 09:58:58 -0800
 
-kdamond_call() callers may iterate the regions, so better to call it when
-the number of regions is as small as possible.  It is when
-kdamond_merge_regions() is finished.  Invoke it on the point.
+Currently all DAMON kernel API callers do online DAMON parameters commit
+from damon_callback->after_aggregation because only those are safe place
+to call the DAMON monitoring attributes update function, namely
+damon_set_attrs().
 
-This change is also aimed to make future changes for carrying online
-parameters commit with damon_call() easier.  The commit operation should
-be able to make sequence between other aggregation interval based
-operations including regioins merging and aggregation reset.  Placing
-damon_call() invocation after the regions merging makes the sequence
-handling simpler.
+Because damon_callback hooks provide no synchronization, the callers work
+in asynchronous ways or implement their own inefficient and complicated
+synchronization mechanisms.  It also means online DAMON parameters commit
+can take up to one aggregation interval.  On large systems having long
+aggregation intervals, that can be too slow.  The synchronization can be
+done in more efficient and simple way while removing the latency
+constraint if it can be done using damon_call().
 
-Link: https://lkml.kernel.org/r/20250306175908.66300-3-sj@kernel.org
+The fact that damon_call() can be executed in the middle of the
+aggregation makes damon_set_attrs() unsafe to be called from it, though. 
+Two real problems can occur in the case.  First, converting the not yet
+completely aggregated nr_accesses for new user-set intervals can arguably
+degrade the accuracy or at least make the logic complicated.  Second,
+kdamond_reset_aggregated() will not be called after the monitoring results
+update, so next aggregation starts from unclean state.  This can result in
+inconsistent and unexpected nr_accesses_bp.
+
+Make it safe as follows.  Catch the middle-of-the-aggregation case from
+damon_set_attrs() by checking the passed_sample_intervals and
+next_aggregationsis of the context.  And pass the information to
+nr_accesses conversion logic.  The logic works as before if it is not the
+case (called after the current aggregation is completed).  If it is the
+case (committing parameters in the middle of the aggregation), it drops
+the nr_accesses information that so far aggregated, and make the status
+same to the beginning of this aggregation, but as if the last aggregation
+was started with the updated sampling/aggregation intervals.
+
+The middle-of-aggregastion check introduce yet another edge case, though. 
+This happens because kdamond_tune_intervals() can also call
+damon_set_attrs() with the middle-of-aggregation check.  Consider
+damon_call() for parameters commit and kdamond_tune_intervals() are called
+in same iteration of kdamond main loop.  Because kdamond_tune_interval()
+is called for aggregation intervals, it should be the end of the
+aggregation.  The first damon_set_attrs() call from kdamond_call()
+understands it is the end of the aggregation and correctly handle it. 
+But, because the damon_set_attrs() updated next_aggregation_sis of the
+context.  Hence, the second damon_set_attrs() invocation from
+kdamond_tune_interval() believes it is called in the middle of the
+aggregation.  It therefore resets aggregated information so far.  After
+that, kdamond_reset_interval() is called and double-reset the aggregated
+information.  Avoid this case, too, by setting the next_aggregation_sis
+before kdamond_tune_intervals() is invoked.
+
+Link: https://lkml.kernel.org/r/20250306175908.66300-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/core.c             |   56 +++++++++++++++++++++++++++-------
+ mm/damon/tests/core-kunit.h |    6 +--
+ 2 files changed, 48 insertions(+), 14 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible
+--- a/mm/damon/core.c~mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call
 +++ a/mm/damon/core.c
-@@ -2420,7 +2420,6 @@ static int kdamond_fn(void *data)
- 		if (ctx->callback.after_sampling &&
- 				ctx->callback.after_sampling(ctx))
- 			break;
--		kdamond_call(ctx, false);
+@@ -603,11 +603,25 @@ static unsigned int damon_nr_accesses_fo
+ }
  
- 		kdamond_usleep(sample_interval);
- 		ctx->passed_sample_intervals++;
-@@ -2438,9 +2437,10 @@ static int kdamond_fn(void *data)
- 		}
+ static void damon_update_monitoring_result(struct damon_region *r,
+-		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs)
++		struct damon_attrs *old_attrs, struct damon_attrs *new_attrs,
++		bool aggregating)
+ {
+-	r->nr_accesses = damon_nr_accesses_for_new_attrs(r->nr_accesses,
+-			old_attrs, new_attrs);
+-	r->nr_accesses_bp = r->nr_accesses * 10000;
++	if (!aggregating) {
++		r->nr_accesses = damon_nr_accesses_for_new_attrs(
++				r->nr_accesses, old_attrs, new_attrs);
++		r->nr_accesses_bp = r->nr_accesses * 10000;
++	} else {
++		/*
++		 * if this is called in the middle of the aggregation, reset
++		 * the aggregations we made so far for this aggregation
++		 * interval.  In other words, make the status like
++		 * kdamond_reset_aggregated() is called.
++		 */
++		r->last_nr_accesses = damon_nr_accesses_for_new_attrs(
++				r->last_nr_accesses, old_attrs, new_attrs);
++		r->nr_accesses_bp = r->last_nr_accesses * 10000;
++		r->nr_accesses = 0;
++	}
+ 	r->age = damon_age_for_new_attrs(r->age, old_attrs, new_attrs);
+ }
  
- 		/*
--		 * do kdamond_apply_schemes() after kdamond_merge_regions() if
--		 * possible, to reduce overhead
-+		 * do kdamond_call() and kdamond_apply_schemes() after
-+		 * kdamond_merge_regions() if possible, to reduce overhead
- 		 */
-+		kdamond_call(ctx, false);
- 		if (!list_empty(&ctx->schemes))
- 			kdamond_apply_schemes(ctx);
- 		else
+@@ -620,7 +634,7 @@ static void damon_update_monitoring_resu
+  * ->nr_accesses and ->age of given damon_ctx's regions for new damon_attrs.
+  */
+ static void damon_update_monitoring_results(struct damon_ctx *ctx,
+-		struct damon_attrs *new_attrs)
++		struct damon_attrs *new_attrs, bool aggregating)
+ {
+ 	struct damon_attrs *old_attrs = &ctx->attrs;
+ 	struct damon_target *t;
+@@ -635,7 +649,7 @@ static void damon_update_monitoring_resu
+ 	damon_for_each_target(t, ctx)
+ 		damon_for_each_region(r, t)
+ 			damon_update_monitoring_result(
+-					r, old_attrs, new_attrs);
++					r, old_attrs, new_attrs, aggregating);
+ }
+ 
+ /*
+@@ -662,10 +676,10 @@ static bool damon_valid_intervals_goal(s
+  * @ctx:		monitoring context
+  * @attrs:		monitoring attributes
+  *
+- * This function should be called while the kdamond is not running, or an
+- * access check results aggregation is not ongoing (e.g., from
+- * &struct damon_callback->after_aggregation or
+- * &struct damon_callback->after_wmarks_check callbacks).
++ * This function should be called while the kdamond is not running, an access
++ * check results aggregation is not ongoing (e.g., from &struct
++ * damon_callback->after_aggregation or &struct
++ * damon_callback->after_wmarks_check callbacks), or from damon_call().
+  *
+  * Every time interval is in micro-seconds.
+  *
+@@ -676,6 +690,8 @@ int damon_set_attrs(struct damon_ctx *ct
+ 	unsigned long sample_interval = attrs->sample_interval ?
+ 		attrs->sample_interval : 1;
+ 	struct damos *s;
++	bool aggregating = ctx->passed_sample_intervals <
++		ctx->next_aggregation_sis;
+ 
+ 	if (!damon_valid_intervals_goal(attrs))
+ 		return -EINVAL;
+@@ -696,7 +712,7 @@ int damon_set_attrs(struct damon_ctx *ct
+ 	ctx->next_ops_update_sis = ctx->passed_sample_intervals +
+ 		attrs->ops_update_interval / sample_interval;
+ 
+-	damon_update_monitoring_results(ctx, attrs);
++	damon_update_monitoring_results(ctx, attrs, aggregating);
+ 	ctx->attrs = *attrs;
+ 
+ 	damon_for_each_scheme(s, ctx)
+@@ -2452,6 +2468,24 @@ static int kdamond_fn(void *data)
+ 			if (ctx->attrs.intervals_goal.aggrs &&
+ 					ctx->passed_sample_intervals >=
+ 					ctx->next_intervals_tune_sis) {
++				/*
++				 * ctx->next_aggregation_sis might be updated
++				 * from kdamond_call().  In the case,
++				 * damon_set_attrs() which will be called from
++				 * kdamond_tune_interval() may wrongly think
++				 * this is in the middle of the current
++				 * aggregation, and make aggregation
++				 * information reset for all regions.  Then,
++				 * following kdamond_reset_aggregated() call
++				 * will make the region information invalid,
++				 * particularly for ->nr_accesses_bp.
++				 *
++				 * Reset ->next_aggregation_sis to avoid that.
++				 * It will anyway correctly updated after this
++				 * if caluse.
++				 */
++				ctx->next_aggregation_sis =
++					next_aggregation_sis;
+ 				ctx->next_intervals_tune_sis +=
+ 					ctx->attrs.aggr_samples *
+ 					ctx->attrs.intervals_goal.aggrs;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call
++++ a/mm/damon/tests/core-kunit.h
+@@ -348,19 +348,19 @@ static void damon_test_update_monitoring
+ 
+ 	new_attrs = (struct damon_attrs){
+ 		.sample_interval = 100, .aggr_interval = 10000,};
+-	damon_update_monitoring_result(r, &old_attrs, &new_attrs);
++	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 15);
+ 	KUNIT_EXPECT_EQ(test, r->age, 2);
+ 
+ 	new_attrs = (struct damon_attrs){
+ 		.sample_interval = 1, .aggr_interval = 1000};
+-	damon_update_monitoring_result(r, &old_attrs, &new_attrs);
++	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
+ 	KUNIT_EXPECT_EQ(test, r->age, 2);
+ 
+ 	new_attrs = (struct damon_attrs){
+ 		.sample_interval = 1, .aggr_interval = 100};
+-	damon_update_monitoring_result(r, &old_attrs, &new_attrs);
++	damon_update_monitoring_result(r, &old_attrs, &new_attrs, false);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 150);
+ 	KUNIT_EXPECT_EQ(test, r->age, 20);
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
