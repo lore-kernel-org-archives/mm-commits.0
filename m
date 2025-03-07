@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 671CC13D897
-	for <mm-commits@vger.kernel.org>; Thu,  6 Mar 2025 23:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D86A7383
+	for <mm-commits@vger.kernel.org>; Fri,  7 Mar 2025 00:01:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741303841; cv=none; b=tmzaD8RqzfnafxcLZga4cR3aBatRtIHu0kXtQOYFW3DIDc7KmnKlNzmOsdRzbtBlFua7mCnyc6wONwOFR4HqxJggDyXO4hF0qUqIi7EA8UCuiDfD8pNPyVDotl1uLfJF+dVUXNuhBBZimIKJ8uQeyp1lVNRWLA1Atjrid0uSB6k=
+	t=1741305698; cv=none; b=nSQWY34+Cl4qQ023qy2SvdsZEFNNW1gBp5b2TREIbrjOK4lzf5DQFv5etmotOjqsGfXOmlzz/A6n2aYjslPyAXZVaUVSCCZ93WEy640GebwFsmxU+Bk1mvNqkthsFTBo1NHgKPa9jBHZkOdcwlL3Hfa3Ddz1G7/51PMMeGVv66A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741303841; c=relaxed/simple;
-	bh=UWJ+40M6k5rgECMay+GN9QbV2NG26d52cnsC7TT1o1Q=;
-	h=Date:To:From:Subject:Message-Id; b=m08fNfllC2SpC94agzVQ8lgJAqDk5nZC7Q1N7fSRCET4xmBdCgTP4zPkABAmYGqpaOHo8jJVtA4MdUClJF04cr/gXlCeO2LQ7Vpb91lGvAhW6HjuzCWlvXe/NX3kwKRMye8swxTGH8/Z8mnudcaxf69hvkSxncPfqE/X0UVqAyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aXdYkORV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741305698; c=relaxed/simple;
+	bh=OKNJw2QYjKFCC90mAeVSw3zoyHm5XZvjONXgKstbR9k=;
+	h=Date:To:From:Subject:Message-Id; b=J7GBevVMAHHJVFusaXf783MzuPdXkpdVswP7K/VoS+p0s7RdcbJaz0ZOTaH12v9j1FlHRajFeu2jycaVwkpLKeXtJbXoAvr9Z/Qq5JHdTG+5PyLJqa+kYlrXaBRU3b/CKdT4FvtjHjtF+yMvh7WPuAWZnOKy6fZGav7N1eINf0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CwM01LdI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aXdYkORV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABEFCC4CEE0;
-	Thu,  6 Mar 2025 23:30:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CwM01LdI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 811B9C4CEE0;
+	Fri,  7 Mar 2025 00:01:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741303840;
-	bh=UWJ+40M6k5rgECMay+GN9QbV2NG26d52cnsC7TT1o1Q=;
+	s=korg; t=1741305697;
+	bh=OKNJw2QYjKFCC90mAeVSw3zoyHm5XZvjONXgKstbR9k=;
 	h=Date:To:From:Subject:From;
-	b=aXdYkORVZ40xv18GLPbBg+UJqYTPLG6Tkp+qTdUSWbgP6k+7cbVmTW64VHD3+/hMp
-	 nyGHqXD61Xz7P6xxM/UL/QrA2aqp9h7dTDamGSzXnbRI5FLCunh6ZRsvv3ORHvlKyT
-	 ++nkcm/5xpgvTIMfcck9vAxHhvcncD+JRA4KCe7M=
-Date: Thu, 06 Mar 2025 15:30:39 -0800
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,kasong@tencent.com,chrisl@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=CwM01LdIcrdnFlYnv2p3UZllBd4xa2t9rpLFDpzFQ3OzJCIhzeg47yGs9G9z00Qt5
+	 7Vc0AzUmvTF7EMfLuYTvW4+5d1rVTN2mhhazHPA30Y+OjaGNsqtR1uUugPi2m+rV0y
+	 tge7NTuNn9NzPC3btPCfp2DGOK/TOxiTOdt7IGb0=
+Date: Thu, 06 Mar 2025 16:01:36 -0800
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap_cgroup-remove-double-initialization-of-locals.patch added to mm-unstable branch
-Message-Id: <20250306233040.ABEFCC4CEE0@smtp.kernel.org>
+Subject: + hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch added to mm-unstable branch
+Message-Id: <20250307000137.811B9C4CEE0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap_cgroup: remove double initialization of locals
+     Subject: hugetlb: convert hugetlb_vma_maps_page() to hugetlb_vma_maps_pfn()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap_cgroup-remove-double-initialization-of-locals.patch
+     hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_cgroup-remove-double-initialization-of-locals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: swap_cgroup: remove double initialization of locals
-Date: Thu, 6 Mar 2025 09:31:42 -0500
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: hugetlb: convert hugetlb_vma_maps_page() to hugetlb_vma_maps_pfn()
+Date: Wed, 26 Feb 2025 16:31:29 +0000
 
-Fixes: 6769183166b3 ("mm/swap_cgroup: decouple swap cgroup recording and clearing")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+pte_page() is more expensive than pte_pfn() (often it's defined as
+pfn_to_page(pte_pfn())), so it makes sense to do the conversion to pfn
+once (by calling folio_pfn()) rather than convert the pfn to a page each
+time.
+
+While this is a very small advantage, the main motivation is removing a
+reference to folio->page.
+
+Link: https://lkml.kernel.org/r/20250226163131.3795869-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_cgroup.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/swap_cgroup.c~mm-swap_cgroup-remove-double-initialization-of-locals
-+++ a/mm/swap_cgroup.c
-@@ -92,8 +92,7 @@ void swap_cgroup_record(struct folio *fo
+--- a/fs/hugetlbfs/inode.c~hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn
++++ a/fs/hugetlbfs/inode.c
+@@ -338,8 +338,8 @@ static void hugetlb_delete_from_page_cac
+  * mutex for the page in the mapping.  So, we can not race with page being
+  * faulted into the vma.
   */
- unsigned short swap_cgroup_clear(swp_entry_t ent, unsigned int nr_ents)
+-static bool hugetlb_vma_maps_page(struct vm_area_struct *vma,
+-				unsigned long addr, struct page *page)
++static bool hugetlb_vma_maps_pfn(struct vm_area_struct *vma,
++				unsigned long addr, unsigned long pfn)
  {
--	pgoff_t offset = swp_offset(ent);
--	pgoff_t end = offset + nr_ents;
-+	pgoff_t offset, end;
- 	struct swap_cgroup *map;
- 	unsigned short old, iter = 0;
+ 	pte_t *ptep, pte;
+ 
+@@ -351,7 +351,7 @@ static bool hugetlb_vma_maps_page(struct
+ 	if (huge_pte_none(pte) || !pte_present(pte))
+ 		return false;
+ 
+-	if (pte_page(pte) == page)
++	if (pte_pfn(pte) == pfn)
+ 		return true;
+ 
+ 	return false;
+@@ -396,7 +396,7 @@ static void hugetlb_unmap_file_folio(str
+ {
+ 	struct rb_root_cached *root = &mapping->i_mmap;
+ 	struct hugetlb_vma_lock *vma_lock;
+-	struct page *page = &folio->page;
++	unsigned long pfn = folio_pfn(folio);
+ 	struct vm_area_struct *vma;
+ 	unsigned long v_start;
+ 	unsigned long v_end;
+@@ -412,7 +412,7 @@ retry:
+ 		v_start = vma_offset_start(vma, start);
+ 		v_end = vma_offset_end(vma, end);
+ 
+-		if (!hugetlb_vma_maps_page(vma, v_start, page))
++		if (!hugetlb_vma_maps_pfn(vma, v_start, pfn))
+ 			continue;
+ 
+ 		if (!hugetlb_vma_trylock_write(vma)) {
+@@ -462,7 +462,7 @@ retry:
+ 		 */
+ 		v_start = vma_offset_start(vma, start);
+ 		v_end = vma_offset_end(vma, end);
+-		if (hugetlb_vma_maps_page(vma, v_start, page))
++		if (hugetlb_vma_maps_pfn(vma, v_start, pfn))
+ 			unmap_hugepage_range(vma, v_start, v_end, NULL,
+ 					     ZAP_FLAG_DROP_MARKER);
  
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch
-mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
-mm-memcontrol-move-memsw-charge-callbacks-to-v1.patch
-mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch
-mm-page_alloc-remove-remnants-of-unlocked-migratetype-updates.patch
-mm-page_alloc-group-fallback-functions-together.patch
-mm-swap_cgroup-remove-double-initialization-of-locals.patch
+dax-remove-access-to-page-index.patch
+dax-use-folios-more-widely-within-dax.patch
+fs-convert-block_commit_write-to-take-a-folio.patch
+fs-remove-page_file_mapping.patch
+fs-remove-folio_file_mapping.patch
+mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
+hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
+hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
+ocfs2-remove-reference-to-bh-b_page.patch
 
