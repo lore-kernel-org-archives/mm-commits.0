@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5660B2F5B
-	for <mm-commits@vger.kernel.org>; Fri,  7 Mar 2025 00:01:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44646290F;
+	Fri,  7 Mar 2025 00:03:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741305699; cv=none; b=YzMTmf+RlDDO1eJaLn3NdUMk4QeIfghyyth+u9ORv77CzGovl36nz2MEfaCBXMCvyoktWSKmVQ3wTDvYWzY5m92wqZ7Z3dHhyDeeAKF+FsJ3U4dhYo/K/S9fJ7j8nqwxdRnvKQUm4gdJk1AOhVjQFbYyJd/WUl8MzshP5gVlSaM=
+	t=1741305840; cv=none; b=W8Rm71w0SdE6c9QyuNYmVGwcS+IZEJkU/OemPysDV7CQiVZ42uSGdMkfwUAoIyNzIP0Rt2kSN4iLu3I7bbNZs7KqwRvGn2ZtWRm8259rFikMzhuKwFDuJb3JGIdLORuR8jcENkvPoyLJuLN9rzkNPTTYnoPrKyUFD+4VuPP6emM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741305699; c=relaxed/simple;
-	bh=KEzHL+v7wlh9JiWJqVJZ84KqTjJbC3XIBlGiThm7jBE=;
-	h=Date:To:From:Subject:Message-Id; b=fk9VGsf9Fk6YAQbxMTPmjq0CVjox04makoxujaLkK+8FIkoXKBkKlH4Gk4Z9QcJgRPcv5eiRqzIkIjd33c8dODaoqdO6jRCnnLxLfzFa92NzIAUNcDjy/CCu+KIUpkyJNfBBom+xukQfPDihF86KlVn41Id7ZtFnJWHAf2Pv+XM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XsEBF4pq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741305840; c=relaxed/simple;
+	bh=GrklwXuY8x6WQDw6dK8wYUcXuPneEBpW741PLCpvIZk=;
+	h=Date:To:From:Subject:Message-Id; b=GrY7rZgcUy0K3fO/FBeey1uQF2ZnIt3vdvAl5HSQB9bERnoXIVi64oGH9UKEBoaQR2awDJe1uiGVyxXDbP5/RB5CB98DBSa7pQT9mWWlvxulkxzYTdc9cjUyECkIX2YD0r2hKnwgtxCm0VXptZVJuiRRpnyhUCi7cOnRcxl4OHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xzfc4TSb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XsEBF4pq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEE51C4CEE5;
-	Fri,  7 Mar 2025 00:01:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xzfc4TSb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EDADC4CEE5;
+	Fri,  7 Mar 2025 00:03:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741305698;
-	bh=KEzHL+v7wlh9JiWJqVJZ84KqTjJbC3XIBlGiThm7jBE=;
+	s=korg; t=1741305839;
+	bh=GrklwXuY8x6WQDw6dK8wYUcXuPneEBpW741PLCpvIZk=;
 	h=Date:To:From:Subject:From;
-	b=XsEBF4pqsPFaHfv6ixppi5yffXAMPkyJwY2VBIhGNX5No3S72ZdmnFmITZ46WtJoF
-	 lGDUitUYhOkWAVJS2UW9tdO2N1Gb161J7Gb2rrhTCaHj4hO9Q+orR9QKeJsL+VqFx9
-	 0INCncrwQHt4t+mw4C2yn6KVWtg9zBG8zpOoXd5w=
-Date: Thu, 06 Mar 2025 16:01:38 -0800
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,willy@infradead.org,akpm@linux-foundation.org
+	b=Xzfc4TSbZq7dx2/FQeilbkUOCRUbZNTUzRkX0ixpRPWkbJwMgihKLz+FzfMmFTT7S
+	 /Mf0BrMEVIATIseZOfKef5/gnsYFbYeYIpd6/lSJVp44Yf+5+9UlXWArHxVGcabEuc
+	 5EIeaus0QYhGbwPvtdaeh3+VRKWV4iyjM0cj4rTU=
+Date: Thu, 06 Mar 2025 16:03:58 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,hch@lst.de,djwong@kernel.org,dchinner@redhat.com,raphaelsc@scylladb.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20250307000138.AEE51C4CEE5@smtp.kernel.org>
+Subject: + mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250307000359.9EDADC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: convert adjust_range_hwpoison() to take a folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+     Subject: mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,92 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: convert adjust_range_hwpoison() to take a folio
-Date: Wed, 26 Feb 2025 16:31:30 +0000
+From: "Raphael S. Carvalho" <raphaelsc@scylladb.com>
+Subject: mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
+Date: Mon, 24 Feb 2025 11:37:00 -0300
 
-Remove a use of folio->page by passing the folio into
-adjust_range_hwpoison().  We need to convert to a page eventually, but
-that can happen inside adjust_range_hwpoison().
+original report:
+https://lore.kernel.org/all/CAKhLTr1UL3ePTpYjXOx2AJfNk8Ku2EdcEfu+CH1sf3Asr=B-Dw@mail.gmail.com/T/
 
-Link: https://lkml.kernel.org/r/20250226163131.3795869-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+When doing buffered writes with FGP_NOWAIT, under memory pressure, the
+system returned ENOMEM despite there being plenty of available memory, to
+be reclaimed from page cache.  The user space used io_uring interface,
+which in turn submits I/O with FGP_NOWAIT (the fast path).
+
+retsnoop pointed to iomap_get_folio:
+
+00:34:16.180612 -> 00:34:16.180651 TID/PID 253786/253721
+(reactor-1/combined_tests):
+
+                    entry_SYSCALL_64_after_hwframe+0x76
+                    do_syscall_64+0x82
+                    __do_sys_io_uring_enter+0x265
+                    io_submit_sqes+0x209
+                    io_issue_sqe+0x5b
+                    io_write+0xdd
+                    xfs_file_buffered_write+0x84
+                    iomap_file_buffered_write+0x1a6
+    32us [-ENOMEM]  iomap_write_begin+0x408
+iter=&{.inode=0xffff8c67aa031138,.len=4096,.flags=33,.iomap={.addr=0xffffffffffffffff,.length=4096,.type=1,.flags=3,.bdev=0x…
+pos=0 len=4096 foliop=0xffffb32c296b7b80
+!    4us [-ENOMEM]  iomap_get_folio
+iter=&{.inode=0xffff8c67aa031138,.len=4096,.flags=33,.iomap={.addr=0xffffffffffffffff,.length=4096,.type=1,.flags=3,.bdev=0x…
+pos=0 len=4096
+
+This is likely a regression caused by 66dabbb65d67 ("mm: return an ERR_PTR
+from __filemap_get_folio"), which moved error handling from
+io_map_get_folio() to __filemap_get_folio(), but broke FGP_NOWAIT
+handling, so ENOMEM is being escaped to user space.  Had it correctly
+returned -EAGAIN with NOWAIT, either io_uring or user space itself would
+be able to retry the request.
+
+It's not enough to patch io_uring since the iomap interface is the one
+responsible for it, and pwritev2(RWF_NOWAIT) and AIO interfaces must
+return the proper error too.
+
+The patch was tested with scylladb test suite (its original reproducer),
+and the tests all pass now when memory is pressured.
+
+Link: https://lkml.kernel.org/r/20250224143700.23035-1-raphaelsc@scylladb.com
+Fixes: 66dabbb65d67 ("mm: return an ERR_PTR from __filemap_get_folio")
+Signed-off-by: Raphael S. Carvalho <raphaelsc@scylladb.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/filemap.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-convert-adjust_range_hwpoison-to-take-a-folio
-+++ a/fs/hugetlbfs/inode.c
-@@ -193,19 +193,21 @@ hugetlb_get_unmapped_area(struct file *f
- }
+--- a/mm/filemap.c~mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait
++++ a/mm/filemap.c
+@@ -1986,8 +1986,19 @@ no_page:
  
- /*
-- * Someone wants to read @bytes from a HWPOISON hugetlb @page from @offset.
-+ * Someone wants to read @bytes from a HWPOISON hugetlb @folio from @offset.
-  * Returns the maximum number of bytes one can read without touching the 1st raw
-- * HWPOISON subpage.
-+ * HWPOISON page.
-  *
-  * The implementation borrows the iteration logic from copy_page_to_iter*.
-  */
--static size_t adjust_range_hwpoison(struct page *page, size_t offset, size_t bytes)
-+static size_t adjust_range_hwpoison(struct folio *folio, size_t offset,
-+		size_t bytes)
- {
-+	struct page *page;
- 	size_t n = 0;
- 	size_t res = 0;
- 
--	/* First subpage to start the loop. */
--	page = nth_page(page, offset / PAGE_SIZE);
-+	/* First page to start the loop. */
-+	page = folio_page(folio, offset / PAGE_SIZE);
- 	offset %= PAGE_SIZE;
- 	while (1) {
- 		if (is_raw_hwpoison_page_in_hugepage(page))
-@@ -278,10 +280,10 @@ static ssize_t hugetlbfs_read_iter(struc
- 			else {
- 				/*
- 				 * Adjust how many bytes safe to read without
--				 * touching the 1st raw HWPOISON subpage after
-+				 * touching the 1st raw HWPOISON page after
- 				 * offset.
- 				 */
--				want = adjust_range_hwpoison(&folio->page, offset, nr);
-+				want = adjust_range_hwpoison(folio, offset, nr);
- 				if (want == 0) {
- 					folio_put(folio);
- 					retval = -EIO;
+ 		if (err == -EEXIST)
+ 			goto repeat;
+-		if (err)
++		if (err) {
++			/*
++			 * When NOWAIT I/O fails to allocate folios this could
++			 * be due to a nonblocking memory allocation and not
++			 * because the system actually is out of memory.
++			 * Return -EAGAIN so that there caller retries in a
++			 * blocking fashion instead of propagating -ENOMEM
++			 * to the application.
++			 */
++			if ((fgp_flags & FGP_NOWAIT) && err == -ENOMEM)
++				err = -EAGAIN;
+ 			return ERR_PTR(err);
++		}
+ 		/*
+ 		 * filemap_add_folio locks the page, and for mmap
+ 		 * we expect an unlocked page.
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from raphaelsc@scylladb.com are
 
-dax-remove-access-to-page-index.patch
-dax-use-folios-more-widely-within-dax.patch
-fs-convert-block_commit_write-to-take-a-folio.patch
-fs-remove-page_file_mapping.patch
-fs-remove-folio_file_mapping.patch
-mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
-hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
-hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
-ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
-ocfs2-remove-reference-to-bh-b_page.patch
+mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch
 
