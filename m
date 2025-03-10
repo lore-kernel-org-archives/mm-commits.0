@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52B8C1C4A13
-	for <mm-commits@vger.kernel.org>; Mon, 10 Mar 2025 22:41:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5CA01B6CF1
+	for <mm-commits@vger.kernel.org>; Mon, 10 Mar 2025 23:29:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741646480; cv=none; b=Fb99RAOEG2MJRpwu65+X6uHpTIBweS0vRUfKljlPdIrNnzg8TYOH/WKr+BCUaBZvuDydgVwqfuY1sGPNPTSqI6P9iMDtkvKEQ8tbeM3XBUH6AF9d0dWI2+evjft4M6zprl1ZYHq2tI/nrueGzm2/kFSVpIQ+lEtoHWxC+8Xl5h4=
+	t=1741649365; cv=none; b=JsPhRuoTFXyvGB6YAP/k+bta3mH+x7IAEbsKcGY4mAzGy6pnZGRxrxloa7oFpm6wKQgQj1wIUaZ6xRFkFmvMWA9zUzXDCtytcK4+AmJgkJTVVybRv8JakigUBT0AdxIS40vfZ9L7JC/kHm+/ekjR7pZloqmg4nEXQ+3gP8yL7Yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741646480; c=relaxed/simple;
-	bh=h7TddyeYXVkUSCG+DsP8DRCcvGAYIEDWd3Yf1TrnGGE=;
-	h=Date:To:From:Subject:Message-Id; b=HrfrwP4Mjtth7gUGRcMV1SPPIbTI1CGaQnBR03RJHeqIMqmX58UNKdC1DOF8lYyBmnpvsHCVdNMbA5x8eklU8cv6MawDDYZOnyT91IFXuvs9L8+8ppuJK99+FhwfyE94qXvH4NKifTsfQyaoTt9HMw05MwfdL7NFb6FetVCzld0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=deb/a/og; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741649365; c=relaxed/simple;
+	bh=nfqHEkOsETd5fcFwuGvg0AnWo4htIfM3ORn2tOp1JLw=;
+	h=Date:To:From:Subject:Message-Id; b=MH2CDjfYdKrFw1A0JyvJHRv5ZowCkGcMjsXFc773wCTNqma244vFNX+LlyRsqKrmrL0MbIrbvkj/4grvhgudlnRWN/sB05vTwRAspw65Ivg7ehVIS5Wje2jE/ZC7oTPTDZFERhuPTLyC9d/R4DAvwFcmDZWF60yc4cBpMCzkHCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BE5u+1fg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="deb/a/og"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E569C4CEE5;
-	Mon, 10 Mar 2025 22:41:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BE5u+1fg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A3FC4CEE5;
+	Mon, 10 Mar 2025 23:29:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741646479;
-	bh=h7TddyeYXVkUSCG+DsP8DRCcvGAYIEDWd3Yf1TrnGGE=;
+	s=korg; t=1741649364;
+	bh=nfqHEkOsETd5fcFwuGvg0AnWo4htIfM3ORn2tOp1JLw=;
 	h=Date:To:From:Subject:From;
-	b=deb/a/ogrSd3/RxI/wxg9btXdeOC6QUlnMd4oVj4IUvPe4sZOsePt0UPcSz0p7p2N
-	 E4Rtv5RbfbhFZvr6Y/luHrocxdeW48STApSaTUYCTwwxl4WpUhUNzYeEuySFQKbEW2
-	 D+cq3X1A+KEQcHmyvuOb0yxtD36tyOURmJRz1Syg=
-Date: Mon, 10 Mar 2025 15:41:19 -0700
-To: mm-commits@vger.kernel.org,arnd@arndb.de,sj@kernel.org,akpm@linux-foundation.org
+	b=BE5u+1fgp2HZZLuSPzUQa0u2X8atcY4btLCYKkoHXHoK1XSYGK7h/VqcpnKKkdWYM
+	 pbewewpNxsLlZxENsU5SHNsuhtQCyA4ctEUnHUSJejYil0Q116DGS02nzd5X08j61D
+	 VjmRfsUatNcngNNEx1lJMZNtM/sj4ZMju1/4CidU=
+Date: Mon, 10 Mar 2025 16:29:23 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch added to mm-unstable branch
-Message-Id: <20250310224119.9E569C4CEE5@smtp.kernel.org>
+Subject: + mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch added to mm-unstable branch
+Message-Id: <20250310232924.43A3FC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: avoid Wformat-security warning on damon_sysfs_access_pattern_add_range_dir()
+     Subject: mm/huge_memory: unfreeze head folio after page cache entries are updated
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+     mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,101 +58,179 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: avoid Wformat-security warning on damon_sysfs_access_pattern_add_range_dir()
-Date: Mon, 10 Mar 2025 09:50:09 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: unfreeze head folio after page cache entries are updated
+Date: Mon, 10 Mar 2025 11:59:42 -0400
 
-When -Wformat-security is given, compiler warns as a potential security
-issue on damon_sysfs_access_pattern_add_range_dir() as below:
+Otherwise others can grab the head folio and see stale page cache entries.
+Data corruption can happen because of that.
 
-    mm/damon/sysfs-schemes.c: In function `damon_sysfs_access_pattern_add_range_dir':
-    mm/damon/sysfs-schemes.c:1503:25: warning: format not a string literal and no format arguments [-Wformat-security]
-     1503 |                         &access_pattern->kobj, name);
-          |                         ^
+Drop large EOF tail folios with the right number of refs to prevent memory
+leak.
 
-Fix it by using "%s" as the format and the name as the argument.
+Also include Matthew's suggestion on __split_folio_to_order()[1]
 
-Link: https://lkml.kernel.org/r/20250310165009.652491-1-sj@kernel.org
-Fixes: 7e84b1f8212a ("mm/damon/sysfs: support DAMON-based Operation Schemes")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+[1] https://lore.kernel.org/all/Z88ar5YS99HsIRYo@casper.infradead.org/
+
+Link: https://lkml.kernel.org/r/0F15DA7F-1977-412F-9A3E-F06B515D4BD2@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Closes: https://lore.kernel.org/all/fcbadb7f-dd3e-21df-f9a7-2853b53183c4@google.com/
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   52 +++++++++++++++++++++++++--------------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1471,7 +1471,7 @@ static int damon_sysfs_access_pattern_ad
- 	if (!range)
- 		return -ENOMEM;
- 	err = kobject_init_and_add(&range->kobj, &damon_sysfs_ul_range_ktype,
--			&access_pattern->kobj, name);
-+			&access_pattern->kobj, "%s", name);
- 	if (err)
- 		kobject_put(&range->kobj);
- 	else
+--- a/mm/huge_memory.c~mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix
++++ a/mm/huge_memory.c
+@@ -3525,15 +3525,14 @@ static void __split_folio_to_order(struc
+ {
+ 	long new_nr_pages = 1 << new_order;
+ 	long nr_pages = 1 << old_order;
+-	long index;
++	long i;
+ 
+ 	/*
+ 	 * Skip the first new_nr_pages, since the new folio from them have all
+ 	 * the flags from the original folio.
+ 	 */
+-	for (index = new_nr_pages; index < nr_pages; index += new_nr_pages) {
+-		struct page *head = &folio->page;
+-		struct page *new_head = head + index;
++	for (i = new_nr_pages; i < nr_pages; i += new_nr_pages) {
++		struct page *new_head = &folio->page + i;
+ 
+ 		/*
+ 		 * Careful: new_folio is not a "real" folio before we cleared PageTail.
+@@ -3541,7 +3540,7 @@ static void __split_folio_to_order(struc
+ 		 */
+ 		struct folio *new_folio = (struct folio *)new_head;
+ 
+-		VM_BUG_ON_PAGE(atomic_read(&new_head->_mapcount) != -1, new_head);
++		VM_BUG_ON_PAGE(atomic_read(&new_folio->_mapcount) != -1, new_head);
+ 
+ 		/*
+ 		 * Clone page flags before unfreezing refcount.
+@@ -3556,8 +3555,8 @@ static void __split_folio_to_order(struc
+ 		 * unreferenced sub-pages of an anonymous THP: we can simply drop
+ 		 * PG_anon_exclusive (-> PG_mappedtodisk) for these here.
+ 		 */
+-		new_head->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+-		new_head->flags |= (head->flags &
++		new_folio->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
++		new_folio->flags |= (folio->flags &
+ 				((1L << PG_referenced) |
+ 				 (1L << PG_swapbacked) |
+ 				 (1L << PG_swapcache) |
+@@ -3576,23 +3575,20 @@ static void __split_folio_to_order(struc
+ 				 (1L << PG_dirty) |
+ 				 LRU_GEN_MASK | LRU_REFS_MASK));
+ 
+-		/* ->mapping in first and second tail page is replaced by other uses */
+-		VM_BUG_ON_PAGE(new_nr_pages > 2 && new_head->mapping != TAIL_MAPPING,
+-			       new_head);
+-		new_head->mapping = head->mapping;
+-		new_head->index = head->index + index;
++		new_folio->mapping = folio->mapping;
++		new_folio->index = folio->index + i;
+ 
+ 		/*
+ 		 * page->private should not be set in tail pages. Fix up and warn once
+ 		 * if private is unexpectedly set.
+ 		 */
+-		if (unlikely(new_head->private)) {
++		if (unlikely(new_folio->private)) {
+ 			VM_WARN_ON_ONCE_PAGE(true, new_head);
+-			new_head->private = 0;
++			new_folio->private = 0;
+ 		}
+ 
+ 		if (folio_test_swapcache(folio))
+-			new_folio->swap.val = folio->swap.val + index;
++			new_folio->swap.val = folio->swap.val + i;
+ 
+ 		/* Page flags must be visible before we make the page non-compound. */
+ 		smp_wmb();
+@@ -3788,17 +3784,18 @@ after_split:
+ 			}
+ 
+ 			/*
+-			 * Unfreeze refcount first. Additional reference from
+-			 * page cache.
++			 * origin_folio should be kept frozon until page cache
++			 * entries are updated with all the other after-split
++			 * folios to prevent others seeing stale page cache
++			 * entries.
+ 			 */
+-			folio_ref_unfreeze(release,
+-				1 + ((!folio_test_anon(origin_folio) ||
+-				     folio_test_swapcache(origin_folio)) ?
+-					     folio_nr_pages(release) : 0));
+-
+ 			if (release == origin_folio)
+ 				continue;
+ 
++			folio_ref_unfreeze(release, 1 +
++					((mapping || swap_cache) ?
++						folio_nr_pages(release) : 0));
++
+ 			lru_add_page_tail(origin_folio, &release->page,
+ 						lruvec, list);
+ 
+@@ -3810,7 +3807,7 @@ after_split:
+ 					folio_account_cleaned(release,
+ 						inode_to_wb(mapping->host));
+ 				__filemap_remove_folio(release, NULL);
+-				folio_put(release);
++				folio_put_refs(release, folio_nr_pages(release));
+ 			} else if (mapping) {
+ 				__xa_store(&mapping->i_pages,
+ 						release->index, release, 0);
+@@ -3822,6 +3819,15 @@ after_split:
+ 		}
+ 	}
+ 
++	/*
++	 * Unfreeze origin_folio only after all page cache entries, which used
++	 * to point to it, have been updated with new folios. Otherwise,
++	 * a parallel folio_try_get() can grab origin_folio and its caller can
++	 * see stale page cache entries.
++	 */
++	folio_ref_unfreeze(origin_folio, 1 +
++		((mapping || swap_cache) ? folio_nr_pages(origin_folio) : 0));
++
+ 	unlock_page_lruvec(lruvec);
+ 
+ 	if (swap_cache)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
-mm-damon-core-initialize-damos-walk_completed-in-damon_new_scheme.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
-mm-madvise-split-out-madvise-input-validity-check.patch
-mm-madvise-split-out-madvise-behavior-execution.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
-mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
-mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
-mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
-mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
-mm-damon-introduce-damos-filter-type-hugepage_size-fix.patch
-docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
-docs-mm-damon-design-document-hugepage_size-filter.patch
-docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch
-docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch
-docs-mm-damon-design-categorize-damos-filter-types-based-on-handling-layer.patch
-mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch
-docs-mm-damon-design-document-unmapped-damos-filter-type.patch
-mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning.patch
-mm-damon-core-implement-intervals-auto-tuning.patch
-mm-damon-sysfs-implement-intervals-tuning-goal-directory.patch
-mm-damon-sysfs-commit-intervals-tuning-goal.patch
-mm-damon-sysfs-implement-a-command-to-update-auto-tuned-monitoring-intervals.patch
-docs-mm-damon-design-document-for-intervals-auto-tuning.patch
-docs-mm-damon-design-document-for-intervals-auto-tuning-fix.patch
-docs-abi-damon-document-intervals-auto-tuning-abi.patch
-docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch
-mm-damon-core-introduce-damos-ops_filters.patch
-mm-damon-paddr-support-ops_filters.patch
-mm-damon-core-support-committing-ops_filters.patch
-mm-damon-core-put-ops-handled-filters-to-damos-ops_filters.patch
-mm-damon-paddr-support-only-damos-ops_filters.patch
-mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos.patch
-mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch
-mm-damon-paddr-respect-ops_filters_default_reject.patch
-docs-mm-damon-design-update-for-changed-filter-default-behavior.patch
-mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
-mm-damon-sysfs-schemes-implement-core_filters-and-ops_filters-directories.patch
-mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
-mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
-mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
-mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
-docs-abi-damon-document-coreops_filters-directories.patch
-docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
-mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
-mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
-mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
-mm-damon-sysfs-handle-commit-command-using-damon_call.patch
-mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
-mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
-mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
-mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
-mm-damon-remove-damon_callback-private.patch
-mm-damon-remove-before_start-of-damon_callback.patch
-mm-damon-remove-damon_callback-after_sampling.patch
-mm-damon-remove-damon_callback-before_damos_apply.patch
-mm-damon-remove-damon_operations-reset_aggregated.patch
-mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+mm-migrate-fix-shmem-xarray-update-during-migration.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-folio_split-in-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
