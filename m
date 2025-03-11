@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7562026389D
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:11:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CE7926281D
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:17:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741716701; cv=none; b=A+WeXNXkl/fsK3h4mmr29CHztFlKTQH/KBVj0Ser0pdiV6vjigx+DaJ35nXVnIY+BM5mvtDifvFc3H9yhg0x5LpoPuBZiv4YpkpZLmAtHqTLYAa3XwkVjzRkV1Nid7im1P1s2v6UuuYJ7xVT/p6iDD1mU0ffDwGqhQtiDPmBIWk=
+	t=1741717068; cv=none; b=D1R9bykd/8Znz9nAeO1fSlpikQooA3Ra+D7EMz07fXZaci18HtelvphsvNk7MRfv99f9C5zVL/BNcYAMJZ/f4Cfhr6ZHugVlNENVYklbqOJ+YVw9wqeHYvNDgLweg1ZzbBJ8uNcdwShGtdtpl1PN0wZrqFFWcxgucnr1x899R50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741716701; c=relaxed/simple;
-	bh=jpGmdSkgU9Gk+73/oyxKUpNx0XF/kJdrzC/TA4QjryA=;
-	h=Date:To:From:Subject:Message-Id; b=pCZsipxu7PrZB8kiFnXzk6Pedggt6ZyRlQ7iZk8xr8ibxV2hViLDvpy1zqE7A0B7uEwmGrC3RhDLZ1ptMv27ZnXCnuR6gEj+6tLi6RjinbYouQKNhb2RSEBF4XFFlnioknTV89bT2G0ZKniSdHJCMTJjS8F0SIPvcPdGad/XK70=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GL2TseQ0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741717068; c=relaxed/simple;
+	bh=pc1CRB2osvDyOLV4POGToT/xsLC+B+vmp4aRgK3w+ZM=;
+	h=Date:To:From:Subject:Message-Id; b=RAesMWEgHSprHXjsU1juRMJ0mVTF3YX86ZHazTcmilRxSA4rTnc+7ag/aqkIGvPX6skj0H0wiZtgRNuzQ5zQnehEXeFrbd5M9B6Wejzpm+Xh7ayR3iEbtybV+Gwq3L6b0oXZt9tyNLUlTUmje+YOXjTScZb6I2b10kGVnQk9oXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=diGi3f5I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GL2TseQ0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03C9C4CEEC;
-	Tue, 11 Mar 2025 18:11:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="diGi3f5I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9846CC4CEEA;
+	Tue, 11 Mar 2025 18:17:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741716700;
-	bh=jpGmdSkgU9Gk+73/oyxKUpNx0XF/kJdrzC/TA4QjryA=;
+	s=korg; t=1741717067;
+	bh=pc1CRB2osvDyOLV4POGToT/xsLC+B+vmp4aRgK3w+ZM=;
 	h=Date:To:From:Subject:From;
-	b=GL2TseQ0gPXJFdq9gR7zNsnP7clTSsKHfRFA7mpSMYue8LcQkScqR5GqEroe3cFPA
-	 TFkFBtAeC3J/o5aSYr/beIZKmjPGNXR4fubZ2SDQ1onSgkvLBwqSzzJ9pJVkIdqjWn
-	 Vv/TgpASY3WxnHlIexgGRSIlcq8tPDgbdH9/B+vU=
-Date: Tue, 11 Mar 2025 11:11:40 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sfr@canb.auug.org.au,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=diGi3f5IQXsq83bXwHPR6Cu9p5PrbzoHFMib9fs5qKs98aceU8HppU4zXo2N/pADY
+	 vOtk9es1PqpMLFIBj77SBLCVe7pGx5F8LqtN2/ZK2W8cKdSsWz/8F9AuWDNnYa5k05
+	 H/neWK8AH1TITs8Bv630jC5V2fY8uIcYfqxzV6mM=
+Date: Tue, 11 Mar 2025 11:17:46 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@infradead.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch added to mm-unstable branch
-Message-Id: <20250311181140.D03C9C4CEEC@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-move-free_vm_areaarea-from-the-__vmalloc_area_node-function-to-the-__vmalloc_node_range_noprof-function.patch removed from -mm tree
+Message-Id: <20250311181747.9846CC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,74 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
+The quilt patch titled
+     Subject: mm/vmalloc: move free_vm_area(area) from the __vmalloc_area_node function to the __vmalloc_node_range_noprof function
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-move-free_vm_areaarea-from-the-__vmalloc_area_node-function-to-the-__vmalloc_node_range_noprof-function.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix
-Date: Tue Mar 11 11:05:31 AM PDT 2025
+From: Liu Ye <liuye@kylinos.cn>
+Subject: mm/vmalloc: move free_vm_area(area) from the __vmalloc_area_node function to the __vmalloc_node_range_noprof function
+Date: Mon, 3 Mar 2025 09:57:02 +0800
 
-fix CONFIG_XARRAY_MULTI=n build
+Moved free_vm_area from the __vmalloc_area_node function to the
+__vmalloc_node_range_noprof function so that allocation and freeing of the
+area can be paired in one function for better readability.
 
-Link: https://lkml.kernel.org/r/20250311212606.0523be36@canb.auug.org.au
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250303015702.319416-1-liuye@kylinos.cn
+Signed-off-by: Liu Ye <liuye@kylinos.cn>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Christop Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/xarray.c~mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix
-+++ a/lib/xarray.c
-@@ -1233,7 +1233,6 @@ void xas_try_split(struct xa_state *xas,
- 	xas_update(xas, node);
- }
- EXPORT_SYMBOL_GPL(xas_try_split);
--#endif
+--- a/mm/vmalloc.c~mm-vmalloc-move-free_vm_areaarea-from-the-__vmalloc_area_node-function-to-the-__vmalloc_node_range_noprof-function
++++ a/mm/vmalloc.c
+@@ -3651,7 +3651,6 @@ static void *__vmalloc_area_node(struct
+ 		warn_alloc(gfp_mask, NULL,
+ 			"vmalloc error: size %lu, failed to allocated page array size %lu",
+ 			nr_small_pages * PAGE_SIZE, array_size);
+-		free_vm_area(area);
+ 		return NULL;
+ 	}
  
- /**
-  * xas_try_split_min_order() - Minimal split order xas_try_split() can accept
-@@ -1256,6 +1255,7 @@ unsigned int xas_try_split_min_order(uns
- 	return order - (order % XA_CHUNK_SHIFT);
- }
- EXPORT_SYMBOL_GPL(xas_try_split_min_order);
-+#endif
+@@ -3844,8 +3843,10 @@ again:
  
- /**
-  * xas_pause() - Pause a walk to drop a lock.
+ 	/* Allocate physical pages and map them into vmalloc space. */
+ 	ret = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
+-	if (!ret)
++	if (!ret) {
++		free_vm_area(area);
+ 		goto fail;
++	}
+ 
+ 	/*
+ 	 * Mark the pages as accessible, now that they are mapped.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option-fix.patch
-mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
-lib-plistc-add-shortcut-for-plist_requeue-fix.patch
-scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
-signal-avoid-clearing-tif_sigpending-in-recalc_sigpending-if-unset-fix.patch
+mm-memfd-fix-spelling-and-grammatical-issues.patch
+mm-folio_queue-delete-__folio_order-and-use-folio_order-directly.patch
+mm-shrinker-fix-name-consistency-issue-in-shrinker_debugfs_rename.patch
+mm-vmalloc-refactoring-function-__vmalloc_node_range_noprof.patch
 
