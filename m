@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4677255E20
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:36:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4E02627F5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:36:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741714605; cv=none; b=aTGLjoNi5Rt2QHRSs2PzDMlTcZC9t5y2fd0KJp4E7haevwAI1H7jByshBd8QWTViSNHEZ8OdZmPKAPI2oMYBHe/8si0fqsf9XEbZSPlt4COdwqAU8fNhX9TUuswVPG87xoOXRNRCH9Jo125OEY9Zhw3nmLXIgHxYgq6kAW6VJrE=
+	t=1741714607; cv=none; b=sIborR1q1K5DwyXvXTSi79j89dQDNuUsoPb2blf0bP/6UywMehQy3MC4W3vykiQE3y0afYFi5qV3InkOnhGYFDsNofPnDMFvCS/ntWolOFg6GJdvN6/h+YZp2a5QiWK6qcNewRw/0eKXO7y4fVilKKVYbUem4O2myZ6DUPkRYkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741714605; c=relaxed/simple;
-	bh=D62SdZpgAS0peyeWXgmT/hk8RxMF7S2QVO4+n+v9zJA=;
-	h=Date:To:From:Subject:Message-Id; b=NS9UQai2suAKrJJnjyZVuZbTeg5irF121YcDHdQKiSh808Or+6g6LTNoy0Qxl8cZjfW8/TrUhAYYqW9FOk7kLAIEffjnDnGM8AmmHD8BWjtwP8ZpaLP0Nm9FTNsykacwmLsPeQTtwzrDwn88UHTg1hKS0VfM4G7cAO8T9VJ77Ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ke+DO8TQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741714607; c=relaxed/simple;
+	bh=mguiipZT74mrezrbNZSp7/LbbE/6JaophGc8uPIIUCU=;
+	h=Date:To:From:Subject:Message-Id; b=IZ8oVbbOlnkbGDp5SYtD/o8LVio0Vc3HMLNtTCEkDc7hhDf0m2v+ZyxXdtgJv+o8oD5MMzViz3CjtYFTXJ+P7jw/U8x6P0c/gTZb3XXV0/IItrcCSldFFtmBpoAgkRwrru+go/vm2gPjD7olKmIeXthHpIhF2snqWk076n48Jwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dDcfYun6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ke+DO8TQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B529C4CEE9;
-	Tue, 11 Mar 2025 17:36:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dDcfYun6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F998C4CEE9;
+	Tue, 11 Mar 2025 17:36:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741714605;
-	bh=D62SdZpgAS0peyeWXgmT/hk8RxMF7S2QVO4+n+v9zJA=;
+	s=korg; t=1741714607;
+	bh=mguiipZT74mrezrbNZSp7/LbbE/6JaophGc8uPIIUCU=;
 	h=Date:To:From:Subject:From;
-	b=ke+DO8TQ8NKr4ru+MM5pZ5CnOIBXMxnAFRGDywCVoAyWi3GZ17wa5dHqGkgAUrkE3
-	 nnEz4Smj8wkbGp3YJg9rUEYXcHPTnkSrUC1yETcyt1WPoN83MfEc4KjF7oJ/uBZqbh
-	 2ZqGc9k6LfNzZQ3PFpl7TnIY+bRgjITXWJ9W6QcA=
-Date: Tue, 11 Mar 2025 10:36:44 -0700
+	b=dDcfYun600/1B7wCLcNVfQ79wraavYINHXGb/cogsiSe1zDpc/NMfC86L5Z0Oo37v
+	 JSEm0cH8Edvy/3Wg+2wmolONPzVgq0aa8qUaWp2vDJQDY5Z/3zuhIdAB5C+tbSnkuE
+	 zjGK5ejeLuuPulINj16Tu41T38kokWWDfIYdf230=
+Date: Tue, 11 Mar 2025 10:36:46 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,mjguzik@gmail.com,lorenzo.stoakes@oracle.com,dev.jain@arm.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch added to mm-unstable branch
-Message-Id: <20250311173645.4B529C4CEE9@smtp.kernel.org>
+Subject: + selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch added to mm-unstable branch
+Message-Id: <20250311173647.4F998C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip uffd-stress if userfaultfd not available
+     Subject: selftests/mm: skip uffd-wp-mremap if userfaultfd not available
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch
+     selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: selftests/mm: skip uffd-stress if userfaultfd not available
-Date: Tue, 11 Mar 2025 13:18:13 +0000
+Subject: selftests/mm: skip uffd-wp-mremap if userfaultfd not available
+Date: Tue, 11 Mar 2025 13:18:14 +0000
 
-It's pretty obvious that the test wouldn't work if you don't have the
-feature enabled.  But, it's still useful to SKIP instead of failing so the
-reader can immediately tell that this is the reason why.
+It's obvious that this should fail in that case, but still, save the
+reader the effort of figuring out that they've run into this by just
+SKIPping
 
-Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-2-dec210a658f5@google.com
+Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-3-dec210a658f5@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -75,22 +75,23 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/uffd-wp-mremap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-skip-uffd-stress-if-userfaultfd-not-available
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -412,8 +412,8 @@ static void parse_test_type_arg(const ch
- 	 * feature.
- 	 */
+--- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -182,7 +182,10 @@ static void test_one_folio(size_t size,
  
--	if (uffd_get_features(&features))
--		err("failed to get available features");
-+	if (uffd_get_features(&features) && errno == ENOENT)
-+		ksft_exit_skip("failed to get available features (%d)\n", errno);
- 
- 	test_uffdio_wp = test_uffdio_wp &&
- 		(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP);
+ 	/* Register range for uffd-wp. */
+ 	if (userfaultfd_open(&features)) {
+-		ksft_test_result_fail("userfaultfd_open() failed\n");
++		if (errno == ENOENT)
++			ksft_test_result_skip("userfaultfd not available\n");
++		else
++			ksft_test_result_fail("userfaultfd_open() failed\n");
+ 		goto out;
+ 	}
+ 	if (uffd_register(uffd, mem, size, false, true, false)) {
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
