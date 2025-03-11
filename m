@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 190051D514A
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:37:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77E012620F5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:42:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741714627; cv=none; b=onc/g7YbMQn9so+Cx5LnqD7csylxryz7criXVHk8zZTmi9XzPa5fKPAEV36jD30aR89wPIv3A6Z0uOyWcaLbgDq0aF7O2Eeh3hNrrAaGecEFIjcrzNDH9zBsVZrh37eFhr4t1Ma/UUzGN5HDQCDxlcBhF927gkPJB0CntAFuFew=
+	t=1741714930; cv=none; b=QGmAYHEzGBgqPH+OpGQXJLAEOmm06omXL+xJZhCGFEEKseV0pDMSdjeLTBu47em31pywAlvk7bGQqqMgcwQHFzwplR2cB0C3GqYd1Wy7FjSbLyh66ntRhdOIN0ydedUcZcWv5v4SWjgl8fRAZdNAZOe3e9/hdSEFzzVfJ4eSjBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741714627; c=relaxed/simple;
-	bh=TBHDqPHOWkrwrWxT50Z8/qgJ7pIfpk5xfJ/4adt/qf0=;
-	h=Date:To:From:Subject:Message-Id; b=qeGu6pDxRWaFzNA0dDadPDZdGMmzPGYeUDRj97UgemRBxy2uBFhQkqQE60iyiQaR5zEdv4MsZZcN3F8YTV24V7ToHyOB2j/L/3ayZKcpUaYHAsmDeBoaKloiUyAONEU7kHtU/YdS6wiQ/hjPhpRogsAgNSKZUue8zZRzelCUC/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rIWwRVPp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741714930; c=relaxed/simple;
+	bh=4LZgvpuOjKruLU45ufhWJOthqaC336Ljng3Mx+ZjhD4=;
+	h=Date:To:From:Subject:Message-Id; b=sSy1LWE/4yMgD/FlrLtDlzppK5uBh9unw5I7BxPy4q0FdBY7b70kVDbfRVLKMm+PBEzzRSzLPKpLsocjUkmD++v09AwW+qSgLyLtlojAtZXCiTS+H80H7G/EfRFl238BB0eTjpVKiXH50c3i1t4FlhBc63F1pvhvYOhjZCRWE+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oiGY1qVy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rIWwRVPp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ADD9C4CEE9;
-	Tue, 11 Mar 2025 17:37:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oiGY1qVy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1BC2C4CEF0;
+	Tue, 11 Mar 2025 17:42:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741714626;
-	bh=TBHDqPHOWkrwrWxT50Z8/qgJ7pIfpk5xfJ/4adt/qf0=;
+	s=korg; t=1741714929;
+	bh=4LZgvpuOjKruLU45ufhWJOthqaC336Ljng3Mx+ZjhD4=;
 	h=Date:To:From:Subject:From;
-	b=rIWwRVPpN6bj/Mondb2HBh46N+7yHIYeEiUDCvYjVafdM5TWuGgbLYcYO4YPiZxpG
-	 7QvSe+aG+lsoplSk+IgDNlrACT/kIsbfMwe/C/CPP4UWHKixkqVUa67z1z68CIYpKi
-	 +noHR2atjr67ziXjWJWvZ/7yGByEBatLcHmU74/0=
-Date: Tue, 11 Mar 2025 10:37:06 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,mjguzik@gmail.com,lorenzo.stoakes@oracle.com,dev.jain@arm.com,jackmanb@google.com,akpm@linux-foundation.org
+	b=oiGY1qVyd0H/EcziLNO/qOI4E30YXMo3DxNRCuSeB1sJ3BGxNqXXtJ6cwz3AFY0Kr
+	 0NMfwW8I71ehCphcT9+gZToyz9LpKx/Ut8JQ8AJrIS5q23q3hNS7b9qpA/34RG2Cc7
+	 i2efUFVO0DBGU4/cermfpOuEYYEgbNMg26Zc4i0M=
+Date: Tue, 11 Mar 2025 10:42:09 -0700
+To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,svens@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jeffxu@chromium.org,gor@linux.ibm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,hca@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mlock-print-error-on-failure.patch added to mm-unstable branch
-Message-Id: <20250311173706.8ADD9C4CEE9@smtp.kernel.org>
+Subject: + mseal-sysmap-generic-vdso-vvar-mapping.patch added to mm-unstable branch
+Message-Id: <20250311174209.D1BC2C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/mlock: print error on failure
+     Subject: mseal sysmap: generic vdso vvar mapping
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mlock-print-error-on-failure.patch
+     mseal-sysmap-generic-vdso-vvar-mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mlock-print-error-on-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-sysmap-generic-vdso-vvar-mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,79 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: selftests/mm/mlock: print error on failure
-Date: Tue, 11 Mar 2025 13:18:23 +0000
+From: Heiko Carstens <hca@linux.ibm.com>
+Subject: mseal sysmap: generic vdso vvar mapping
+Date: Tue, 11 Mar 2025 13:33:25 +0100
 
-It's not really possible to start diagnosing this without knowing the
-actual error.
+With the introduction of the generic vdso data storage the VM_SEALED_SYSMAP
+vm flag must be moved from the architecture specific
+_install_special_mapping() call [1] [2] which maps the vvar mapping to
+generic code.
 
-Also update the mlock2 helper to behave like libc would by setting errno
-and returning -1.
+[1] https://lkml.kernel.org/r/20250305021711.3867874-4-jeffxu@google.com
+[2] https://lkml.kernel.org/r/20250305021711.3867874-5-jeffxu@google.com
 
-Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-12-dec210a658f5@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
+Link: https://lkml.kernel.org/r/20250311123326.2686682-2-hca@linux.ibm.com
+Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mlock-random-test.c |    4 ++--
- tools/testing/selftests/mm/mlock2.h            |    8 +++++++-
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ lib/vdso/datastore.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/mlock2.h~selftests-mm-mlock-print-error-on-failure
-+++ a/tools/testing/selftests/mm/mlock2.h
-@@ -6,7 +6,13 @@
- 
- static int mlock2_(void *start, size_t len, int flags)
+--- a/lib/vdso/datastore.c~mseal-sysmap-generic-vdso-vvar-mapping
++++ a/lib/vdso/datastore.c
+@@ -99,7 +99,8 @@ const struct vm_special_mapping vdso_vva
+ struct vm_area_struct *vdso_install_vvar_mapping(struct mm_struct *mm, unsigned long addr)
  {
--	return syscall(__NR_mlock2, start, len, flags);
-+	int ret = syscall(__NR_mlock2, start, len, flags);
-+
-+	if (ret) {
-+		errno = ret;
-+		return -1;
-+	}
-+	return 0;
+ 	return _install_special_mapping(mm, addr, VDSO_NR_PAGES * PAGE_SIZE,
+-					VM_READ | VM_MAYREAD | VM_IO | VM_DONTDUMP | VM_PFNMAP,
++					VM_READ | VM_MAYREAD | VM_IO | VM_DONTDUMP |
++					VM_PFNMAP | VM_SEALED_SYSMAP,
+ 					&vdso_vvar_mapping);
  }
- 
- static FILE *seek_to_smaps_entry(unsigned long addr)
---- a/tools/testing/selftests/mm/mlock-random-test.c~selftests-mm-mlock-print-error-on-failure
-+++ a/tools/testing/selftests/mm/mlock-random-test.c
-@@ -161,9 +161,9 @@ static void test_mlock_within_limit(char
- 				       MLOCK_ONFAULT);
- 
- 		if (ret)
--			ksft_exit_fail_msg("%s() failure at |%p(%d)| mlock:|%p(%d)|\n",
-+			ksft_exit_fail_msg("%s() failure (%s) at |%p(%d)| mlock:|%p(%d)|\n",
- 					   is_mlock ? "mlock" : "mlock2",
--					   p, alloc_size,
-+					   strerror(errno), p, alloc_size,
- 					   p + start_offset, lock_size);
- 	}
  
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from hca@linux.ibm.com are
 
-mm-mmu_gather-update-comment-on-rcu-freeing.patch
-selftests-mm-report-errno-when-things-fail-in-gup_longterm.patch
-selftests-mm-skip-uffd-stress-if-userfaultfd-not-available.patch
-selftests-mm-skip-uffd-wp-mremap-if-userfaultfd-not-available.patch
-selftests-mm-uffd-rename-nr_cpus-nr_parallel.patch
-selftests-mm-print-some-details-when-uffd-stress-gets-bad-params.patch
-selftests-mm-dont-fail-uffd-stress-if-too-many-cpus.patch
-selftests-mm-skip-map_populate-on-weird-filesystems.patch
-selftests-mm-skip-gup_longterm-tests-on-weird-filesystems.patch
-selftests-mm-drop-unnecessary-sudo-usage.patch
-selftests-mm-ensure-uffd-wp-mremap-gets-pages-of-each-size.patch
-selftests-mm-skip-mlock-tests-if-nobody-user-cant-read-it.patch
-selftests-mm-mlock-print-error-on-failure.patch
-mm-page_alloc-warn-on-nr_reserved_highatomic-underflow.patch
-mm-page_alloc-clarify-terminology-in-migratetype-fallback-code.patch
-mm-page_alloc-clarify-should_claim_block-commentary.patch
-scripts-gdb-add-lx_per_cpu_ptr.patch
+mseal-sysmap-generic-vdso-vvar-mapping.patch
 
