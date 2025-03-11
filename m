@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C835819007D
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 03:24:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F55119007D
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 03:24:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741663478; cv=none; b=u/mCrTr66SFiV7zhXNRnw9O/tcClu5KCWrn7aozbu4Hl1X9IMV5ECJrMeIolNE3blmXpXgJgZDHYT1BfxP2U9vfG959ensj5WPmjrlvIZnPr9CBTlggxuLKP2ee5khwq2q6DPa7vuVXWSOdOSRY0q1MFJdYT+8VloDo8jcbzirc=
+	t=1741663481; cv=none; b=iH36Z8IG5qUi5vIUD5UbGoD7nHDJCNr/l9lXj6UZI71JJBKMnc4+jpIR2md6QoPEn+5dr7gbqi+KdkTvNiAaOzb3/EQGR6pm/G7IZDKxQUOOf6Q8g4Ga2sqDA9h3IH5VqLaAGx8L2JtU7zOZCuxeQH+LZQmN2nJNqKyFfb22b9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741663478; c=relaxed/simple;
-	bh=KJo5QWT+UzIB2LVAna4jwgTBsodpSSg4urXA1QU5wVY=;
-	h=Date:To:From:Subject:Message-Id; b=LsoIkFnyOl7odbcwYxTYTuzbIOtmHdOGBSIziKD93Kh22lxAJRiCh1cnQGOZ+GNBLVnQJYOpsaZobJM//98f8oho6QkIHeP3TLhnoZYSy30+s123zavV19Lpcq+rgcmwE2NttLlIKaO6b8nJsoQymiqcvU33ME4tWpfi6H8CcqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GOkZObuW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741663481; c=relaxed/simple;
+	bh=Kl6ZmH3zTUUOGk8i0x8dHW8WkX0xeNiHvP6uNc8mHsM=;
+	h=Date:To:From:Subject:Message-Id; b=D+gCu+BFIyAuKrNT15+H207XkvkFkMPv8bqI/h0bvZCNiBW7mY9bBImoE1eRkZNBDQuvaVFdbCbglxfIvgIWe9V5i045cDF+Mj/yp3mdoKxpGx9ZJv1HbGCcxEhFSjX5yRnfEFnE8Y9+PElyeYrok0VNlg9ftu4yco3sp2KZ0p4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wp5WdUcL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GOkZObuW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C722C4CEE9;
-	Tue, 11 Mar 2025 03:24:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wp5WdUcL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C73AC4CEE9;
+	Tue, 11 Mar 2025 03:24:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741663478;
-	bh=KJo5QWT+UzIB2LVAna4jwgTBsodpSSg4urXA1QU5wVY=;
+	s=korg; t=1741663480;
+	bh=Kl6ZmH3zTUUOGk8i0x8dHW8WkX0xeNiHvP6uNc8mHsM=;
 	h=Date:To:From:Subject:From;
-	b=GOkZObuWNvlLEkBE5LvSwR+wgQxedE0R4GXzAuaf9j2JNk26jdUFox6k2O+b/CMSD
-	 Gq6QYkDd/AC+9+UghyL9HSmHbC6eTgQqCHWz1NokPJWoVo7Zln2wywnT9eqpds4vzU
-	 f9GHeInQSfxjbMcOKapFz3aw3hmlyIUSiqjq4ptc=
-Date: Mon, 10 Mar 2025 20:24:38 -0700
+	b=Wp5WdUcLGllgToEeAV3o8IZ22n2ekV8EL2CjjmfyrnVadOy7IORceFy8P6QpGUPte
+	 9vOongFUWD0ZOFbCzZB13TyTTFAHHECI9Jb/2FuBStkGWrYjGpTwknXeV2HDUac2Na
+	 iUJrXmvW/kDiLo/O1+yMv3TFOdr7EelowPWOj6pg=
+Date: Mon, 10 Mar 2025 20:24:39 -0700
 To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,gregkh@linuxfoundation.org,david@redhat.com,dakr@kernel.org,gshan@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-memory-improve-add_boot_memory_block.patch added to mm-unstable branch
-Message-Id: <20250311032438.8C722C4CEE9@smtp.kernel.org>
+Subject: + drivers-base-memory-correct-the-field-name-in-the-header.patch added to mm-unstable branch
+Message-Id: <20250311032440.7C73AC4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base/memory: improve add_boot_memory_block()
+     Subject: drivers/base/memory: correct the field name in the header
 has been added to the -mm mm-unstable branch.  Its filename is
-     drivers-base-memory-improve-add_boot_memory_block.patch
+     drivers-base-memory-correct-the-field-name-in-the-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-improve-add_boot_memory_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-correct-the-field-name-in-the-header.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,61 +59,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: drivers/base/memory: improve add_boot_memory_block()
-Date: Tue, 11 Mar 2025 10:46:56 +1000
+Subject: drivers/base/memory: correct the field name in the header
+Date: Tue, 11 Mar 2025 10:46:57 +1000
 
-It's unnecessary to count the present sections for the specified block
-since the block will be added if any section in the block is present. 
-Besides, for_each_present_section_nr() can be reused as Andrew Morton
-suggested.
+Replace @blocks with @memory_blocks to match with the definition of struct
+memory_group.
 
-Improve by using for_each_present_section_nr() and dropping the
-unnecessary @section_count.
-
-No functional changes intended.
-
-Link: https://lkml.kernel.org/r/20250311004657.82985-3-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20250311004657.82985-4-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ include/linux/memory.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-improve-add_boot_memory_block
-+++ a/drivers/base/memory.c
-@@ -818,18 +818,17 @@ static int add_memory_block(unsigned lon
- 
- static int __init add_boot_memory_block(unsigned long base_section_nr)
- {
--	int section_count = 0;
- 	unsigned long nr;
- 
--	for (nr = base_section_nr; nr < base_section_nr + sections_per_block;
--	     nr++)
--		if (present_section_nr(nr))
--			section_count++;
-+	for_each_present_section_nr(base_section_nr, nr) {
-+		if (nr >= (base_section_nr + sections_per_block))
-+			break;
- 
--	if (section_count == 0)
--		return 0;
--	return add_memory_block(memory_block_id(base_section_nr),
--				MEM_ONLINE, NULL,  NULL);
-+		return add_memory_block(memory_block_id(base_section_nr),
-+					MEM_ONLINE, NULL, NULL);
-+	}
-+
-+	return 0;
- }
- 
- static int add_hotplug_memory_block(unsigned long block_id,
+--- a/include/linux/memory.h~drivers-base-memory-correct-the-field-name-in-the-header
++++ a/include/linux/memory.h
+@@ -25,7 +25,7 @@
+ /**
+  * struct memory_group - a logical group of memory blocks
+  * @nid: The node id for all memory blocks inside the memory group.
+- * @blocks: List of all memory blocks belonging to this memory group.
++ * @memory_blocks: List of all memory blocks belonging to this memory group.
+  * @present_kernel_pages: Present (online) memory outside ZONE_MOVABLE of this
+  *			  memory group.
+  * @present_movable_pages: Present (online) memory in ZONE_MOVABLE of this
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
