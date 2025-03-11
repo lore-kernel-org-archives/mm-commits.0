@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A5826159F
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:45:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7562026389D
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:11:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741715118; cv=none; b=SK7SIW6gVQ50XehB8vVZN6LZStcrVE9SGK3o2HG22OwukBuTfCWErJm1IBekc2dLMN7KNS2i5fj7ByPTKTB1dyP/TznP/SduP6NKoNO2+N+efwdn4vb54xfaCN4Qq11qJziiLZqe6MPKVIfyEDPYdzungVr2IWUurEexNliVElI=
+	t=1741716701; cv=none; b=A+WeXNXkl/fsK3h4mmr29CHztFlKTQH/KBVj0Ser0pdiV6vjigx+DaJ35nXVnIY+BM5mvtDifvFc3H9yhg0x5LpoPuBZiv4YpkpZLmAtHqTLYAa3XwkVjzRkV1Nid7im1P1s2v6UuuYJ7xVT/p6iDD1mU0ffDwGqhQtiDPmBIWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741715118; c=relaxed/simple;
-	bh=mtbannsYKTBjO7unHu9xmm4A7xUjW4WFFBcSw20QhGs=;
-	h=Date:To:From:Subject:Message-Id; b=BhLQfh/4UF+4ZwKut7fMz6vmJgV5X8fapYuhaAP/oY614tpv4Ie5U0y3TV39I16wbe/CVfsXuPypg/cVT3M2ka5WP0EElWFH5kt5V1Uv4PsXRua68qvRPDMMCS6sXVrTEvATs2YMfGmgmRQCP0y6yPhYgMACUxuR/46sslX0foU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bH3cMo+l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741716701; c=relaxed/simple;
+	bh=jpGmdSkgU9Gk+73/oyxKUpNx0XF/kJdrzC/TA4QjryA=;
+	h=Date:To:From:Subject:Message-Id; b=pCZsipxu7PrZB8kiFnXzk6Pedggt6ZyRlQ7iZk8xr8ibxV2hViLDvpy1zqE7A0B7uEwmGrC3RhDLZ1ptMv27ZnXCnuR6gEj+6tLi6RjinbYouQKNhb2RSEBF4XFFlnioknTV89bT2G0ZKniSdHJCMTJjS8F0SIPvcPdGad/XK70=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GL2TseQ0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bH3cMo+l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 646F2C4CEE9;
-	Tue, 11 Mar 2025 17:45:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GL2TseQ0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03C9C4CEEC;
+	Tue, 11 Mar 2025 18:11:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741715117;
-	bh=mtbannsYKTBjO7unHu9xmm4A7xUjW4WFFBcSw20QhGs=;
+	s=korg; t=1741716700;
+	bh=jpGmdSkgU9Gk+73/oyxKUpNx0XF/kJdrzC/TA4QjryA=;
 	h=Date:To:From:Subject:From;
-	b=bH3cMo+l3VBHBlfb2r7ti8bat85v9oe9281CWM/3wOBIcpLm5/k2hLrLIH3q0EnKQ
-	 bMGQWCbxSrs8VAM9rrLrUu4r13njWTGZreyxG7UsgjkoHjw5cl/Cw3bxw9nAvb/Jo0
-	 IE7yRa5TpcDZscQ6SuI/WIe15CtLk8pM5Cb7Pcpw=
-Date: Tue, 11 Mar 2025 10:45:16 -0700
-To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,svens@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jeffxu@chromium.org,gor@linux.ibm.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,hca@linux.ibm.com,akpm@linux-foundation.org
+	b=GL2TseQ0gPXJFdq9gR7zNsnP7clTSsKHfRFA7mpSMYue8LcQkScqR5GqEroe3cFPA
+	 TFkFBtAeC3J/o5aSYr/beIZKmjPGNXR4fubZ2SDQ1onSgkvLBwqSzzJ9pJVkIdqjWn
+	 Vv/TgpASY3WxnHlIexgGRSIlcq8tPDgbdH9/B+vU=
+Date: Tue, 11 Mar 2025 11:11:40 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sfr@canb.auug.org.au,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mseal-sysmap-enable-s390.patch added to mm-unstable branch
-Message-Id: <20250311174517.646F2C4CEE9@smtp.kernel.org>
+Subject: + mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch added to mm-unstable branch
+Message-Id: <20250311181140.D03C9C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mseal sysmap: enable s390
+     Subject: mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mseal-sysmap-enable-s390.patch
+     mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-sysmap-enable-s390.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <hca@linux.ibm.com>
-Subject: mseal sysmap: enable s390
-Date: Tue, 11 Mar 2025 13:33:26 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix
+Date: Tue Mar 11 11:05:31 AM PDT 2025
 
-Provide support for CONFIG_MSEAL_SYSTEM_MAPPINGS on s390, covering the
-vdso.
+fix CONFIG_XARRAY_MULTI=n build
 
-Link: https://lkml.kernel.org/r/20250311123326.2686682-3-hca@linux.ibm.com
-Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20250311212606.0523be36@canb.auug.org.au
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig       |    1 +
- arch/s390/kernel/vdso.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ lib/xarray.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/Kconfig~mseal-sysmap-enable-s390
-+++ a/arch/s390/Kconfig
-@@ -141,6 +141,7 @@ config S390
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128 && CC_IS_CLANG
-+	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_SUPPORTS_PER_VMA_LOCK
- 	select ARCH_USE_BUILTIN_BSWAP
---- a/arch/s390/kernel/vdso.c~mseal-sysmap-enable-s390
-+++ a/arch/s390/kernel/vdso.c
-@@ -80,7 +80,7 @@ static int map_vdso(unsigned long addr,
- 	vdso_text_start = vvar_start + VDSO_NR_PAGES * PAGE_SIZE;
- 	/* VM_MAYWRITE for COW so gdb can set breakpoints */
- 	vma = _install_special_mapping(mm, vdso_text_start, vdso_text_len,
--				       VM_READ|VM_EXEC|
-+				       VM_READ|VM_EXEC|VM_SEALED_SYSMAP|
- 				       VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 				       vdso_mapping);
- 	if (IS_ERR(vma)) {
+--- a/lib/xarray.c~mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix
++++ a/lib/xarray.c
+@@ -1233,7 +1233,6 @@ void xas_try_split(struct xa_state *xas,
+ 	xas_update(xas, node);
+ }
+ EXPORT_SYMBOL_GPL(xas_try_split);
+-#endif
+ 
+ /**
+  * xas_try_split_min_order() - Minimal split order xas_try_split() can accept
+@@ -1256,6 +1255,7 @@ unsigned int xas_try_split_min_order(uns
+ 	return order - (order % XA_CHUNK_SHIFT);
+ }
+ EXPORT_SYMBOL_GPL(xas_try_split_min_order);
++#endif
+ 
+ /**
+  * xas_pause() - Pause a walk to drop a lock.
 _
 
-Patches currently in -mm which might be from hca@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mseal-sysmap-generic-vdso-vvar-mapping.patch
-mseal-sysmap-enable-s390.patch
+mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
+mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option-fix.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
+lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
+signal-avoid-clearing-tif_sigpending-in-recalc_sigpending-if-unset-fix.patch
 
