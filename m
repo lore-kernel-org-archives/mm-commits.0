@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8FA02627E1
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:50:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFE512627E1
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:50:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741719042; cv=none; b=fBqowba4jB0swl/SglpDGwLEDKpqMtwnSDVx0SufDV/Aohdj7qFJvb0rnyEXp7eZzohcQGxYmnqDFhTF49ydu4tgkrn824hjEHHPQ7puGWIpnrvT+rTBBwZRkjAelYJA9brlrOjehcSfJYJ5v/MrS5DnagFgr8GbpBJZfkKJNTQ=
+	t=1741719046; cv=none; b=XpLFjG9LHWlOYKwitd1c5aK0JF4A8mehd52skL1zvs1IY7iimlbsjo0ut0BPGIzLN9lHqZYD98GPdjkcnoZ/LmjlIbnp3KvVdNFEQ+zWAgknDYimB9G8PWCAakey10UE0RgmkFLujGX4QdMnMaqLl3ApV6CpXuT1ETmsuRuNiTw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741719042; c=relaxed/simple;
-	bh=sbhH1eDAMcjFYMUdEHGQy94cEyWRH6asz+mQEVNlbW8=;
-	h=Date:To:From:Subject:Message-Id; b=n67bhiujP5bf8w67ZRKS3oiXn8REgF5piGNba/ler9qi7+n0TZJzeWm9QTzCN0+e0vD1n7Xb040wJErXsuA1nT+B+SOOfMBk+oDT3eqE2KdPFmbjmFd7kYVjSsJtAkY4GMG6BW6Ge1MZt5t7idwVZuSeZULP0b/LaX3HkHfFMX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=riSP64YA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741719046; c=relaxed/simple;
+	bh=YPJA9VPZtCVxsB4/VsiaXATwaP96L8KLCnclwjlovqc=;
+	h=Date:To:From:Subject:Message-Id; b=c1ydYX7zCSLGPl4NaU5YRYrWsY27FsRGQRpltdf7v2Bb6kSI6Kq9M6jwgW99c7dQ+966zB1s/+PC0X4t+JfMvPA8mNKPugnww2sWYI1X/+PleBl5x8CjaHpReGXo+sS+i4y5L71/vta2QXiQE+utl/Tydl5Jul38st0H0WxPUTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y6hgvAwg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="riSP64YA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 527DDC4CEEA;
-	Tue, 11 Mar 2025 18:50:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y6hgvAwg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D20CC4CEE9;
+	Tue, 11 Mar 2025 18:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741719042;
-	bh=sbhH1eDAMcjFYMUdEHGQy94cEyWRH6asz+mQEVNlbW8=;
+	s=korg; t=1741719046;
+	bh=YPJA9VPZtCVxsB4/VsiaXATwaP96L8KLCnclwjlovqc=;
 	h=Date:To:From:Subject:From;
-	b=riSP64YA1BSintAaPKW5z7zqq1xa5/oshCmGOqvA1pwRAR+wFbyLU3ot/FlwgvftQ
-	 17OdVvXWX4bVk3NGqqz60w7QGvdWAZfDocwaophtiy5bzyXG27D29M91PfEGakgBuO
-	 Mho5LBVOqp6HvnrSwCD2lfvwatHl9fv4RE87lBXk=
-Date: Tue, 11 Mar 2025 11:50:41 -0700
+	b=Y6hgvAwgt7KPaRkpkxdDe/yzKcTSKEcrXmZ1mMh2TA2Zehh7B0nP3xxJQpbadRpkt
+	 qzK7oUToV0eJiOIqfDe8UKGOv+mdd5CQTpMphupdqTJlW0zph1CAk/tqAbuSQGWbg8
+	 V0wDVqHppO7lMqFk6U3Hx8oMAJHxkJ8tw8Gw49rs=
+Date: Tue, 11 Mar 2025 11:50:45 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,michel@lespinasse.org,jgg@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-rbtree-add-random-seed.patch added to mm-nonmm-unstable branch
-Message-Id: <20250311185042.527DDC4CEEA@smtp.kernel.org>
+Subject: + lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch added to mm-nonmm-unstable branch
+Message-Id: <20250311185046.3D20CC4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/rbtree: add random seed
+     Subject: lib/interval_tree: add test case for interval_tree_iter_xxx() helpers
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-rbtree-add-random-seed.patch
+     lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-rbtree-add-random-seed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: lib/rbtree: add random seed
-Date: Mon, 10 Mar 2025 07:49:34 +0000
+Subject: lib/interval_tree: add test case for interval_tree_iter_xxx() helpers
+Date: Mon, 10 Mar 2025 07:49:35 +0000
 
-Current test use pseudo rand function with fixed seed, which means the
-test data is the same pattern each time.
+Verify interval_tree_iter_xxx() helpers could find intersection ranges
+as expected.
 
-Add random seed parameter to randomize the test.
-
-Link: https://lkml.kernel.org/r/20250310074938.26756-4-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250310074938.26756-5-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michel Lespinasse <michel@lespinasse.org>
@@ -75,128 +73,176 @@ Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h                     |    1 +
- lib/interval_tree_test.c                  |    3 ++-
- lib/rbtree_test.c                         |    3 ++-
- tools/include/linux/types.h               |    2 ++
- tools/testing/rbtree/interval_tree_test.c |    5 ++++-
- tools/testing/rbtree/rbtree_test.c        |    5 ++++-
- 6 files changed, 15 insertions(+), 4 deletions(-)
+ lib/interval_tree_test.c     |   69 +++++++++++++++++++++++++++++++++
+ tools/include/linux/bitmap.h |   21 ++++++++++
+ tools/lib/bitmap.c           |   20 +++++++++
+ 3 files changed, 110 insertions(+)
 
---- a/include/linux/types.h~lib-rbtree-add-random-seed
-+++ a/include/linux/types.h
-@@ -92,6 +92,7 @@ typedef unsigned char		unchar;
- typedef unsigned short		ushort;
- typedef unsigned int		uint;
- typedef unsigned long		ulong;
-+typedef unsigned long long	ullong;
- 
- #ifndef __BIT_TYPES_DEFINED__
- #define __BIT_TYPES_DEFINED__
---- a/lib/interval_tree_test.c~lib-rbtree-add-random-seed
+--- a/lib/interval_tree_test.c~lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers
 +++ a/lib/interval_tree_test.c
-@@ -19,6 +19,7 @@ __param(int, search_loops, 1000, "Number
- __param(bool, search_all, false, "Searches will iterate all nodes in the tree");
+@@ -5,6 +5,7 @@
+ #include <linux/prandom.h>
+ #include <linux/slab.h>
+ #include <asm/timex.h>
++#include <linux/bitmap.h>
  
- __param(uint, max_endpoint, ~0, "Largest value for the interval's endpoint");
-+__param(ullong, seed, 3141592653589793238ULL, "Random seed");
+ #define __param(type, name, init, msg)		\
+ 	static type name = init;		\
+@@ -125,6 +126,73 @@ static int search_check(void)
+ 	return 0;
+ }
  
- static struct rb_root_cached root = RB_ROOT_CACHED;
- static struct interval_tree_node *nodes = NULL;
-@@ -137,7 +138,7 @@ static int interval_tree_test_init(void)
- 		return -ENOMEM;
- 	}
- 
--	prandom_seed_state(&rnd, 3141592653589793238ULL);
-+	prandom_seed_state(&rnd, seed);
++static int intersection_range_check(void)
++{
++	int i, j, k;
++	unsigned long start, last;
++	struct interval_tree_node *node;
++	unsigned long *intxn1;
++	unsigned long *intxn2;
++
++	printk(KERN_ALERT "interval tree iteration\n");
++
++	intxn1 = bitmap_alloc(nnodes, GFP_KERNEL);
++	if (!intxn1) {
++		WARN_ON_ONCE("Failed to allocate intxn1\n");
++		return -ENOMEM;
++	}
++
++	intxn2 = bitmap_alloc(nnodes, GFP_KERNEL);
++	if (!intxn2) {
++		WARN_ON_ONCE("Failed to allocate intxn2\n");
++		bitmap_free(intxn1);
++		return -ENOMEM;
++	}
++
++	for (i = 0; i < search_loops; i++) {
++		/* Initialize interval tree for each round */
++		init();
++		for (j = 0; j < nnodes; j++)
++			interval_tree_insert(nodes + j, &root);
++
++		/* Let's try nsearches different ranges */
++		for (k = 0; k < nsearches; k++) {
++			/* Try whole range once */
++			if (!k) {
++				start = 0UL;
++				last = ULONG_MAX;
++			} else {
++				last = (prandom_u32_state(&rnd) >> 4) % max_endpoint;
++				start = (prandom_u32_state(&rnd) >> 4) % last;
++			}
++
++			/* Walk nodes to mark intersection nodes */
++			bitmap_zero(intxn1, nnodes);
++			for (j = 0; j < nnodes; j++) {
++				node = nodes + j;
++
++				if (start <= node->last && last >= node->start)
++					bitmap_set(intxn1, j, 1);
++			}
++
++			/* Iterate tree to clear intersection nodes */
++			bitmap_zero(intxn2, nnodes);
++			for (node = interval_tree_iter_first(&root, start, last); node;
++			     node = interval_tree_iter_next(node, start, last))
++				bitmap_set(intxn2, node - nodes, 1);
++
++			WARN_ON_ONCE(!bitmap_equal(intxn1, intxn2, nnodes));
++		}
++
++		for (j = 0; j < nnodes; j++)
++			interval_tree_remove(nodes + j, &root);
++	}
++
++	bitmap_free(intxn1);
++	bitmap_free(intxn2);
++	return 0;
++}
++
+ static int interval_tree_test_init(void)
+ {
+ 	nodes = kmalloc_array(nnodes, sizeof(struct interval_tree_node),
+@@ -142,6 +210,7 @@ static int interval_tree_test_init(void)
  
  	basic_check();
  	search_check();
---- a/lib/rbtree_test.c~lib-rbtree-add-random-seed
-+++ a/lib/rbtree_test.c
-@@ -14,6 +14,7 @@
- __param(int, nnodes, 100, "Number of nodes in the rb-tree");
- __param(int, perf_loops, 1000, "Number of iterations modifying the rb-tree");
- __param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
-+__param(ullong, seed, 3141592653589793238ULL, "Random seed");
++	intersection_range_check();
  
- struct test_node {
- 	u32 key;
-@@ -402,7 +403,7 @@ static int __init rbtree_test_init(void)
- 	if (!nodes)
- 		return -ENOMEM;
+ 	kfree(queries);
+ 	kfree(nodes);
+--- a/tools/include/linux/bitmap.h~lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers
++++ a/tools/include/linux/bitmap.h
+@@ -19,6 +19,7 @@ bool __bitmap_and(unsigned long *dst, co
+ 		 const unsigned long *bitmap2, unsigned int bits);
+ bool __bitmap_equal(const unsigned long *bitmap1,
+ 		    const unsigned long *bitmap2, unsigned int bits);
++void __bitmap_set(unsigned long *map, unsigned int start, int len);
+ void __bitmap_clear(unsigned long *map, unsigned int start, int len);
+ bool __bitmap_intersects(const unsigned long *bitmap1,
+ 			 const unsigned long *bitmap2, unsigned int bits);
+@@ -79,6 +80,11 @@ static inline void bitmap_or(unsigned lo
+ 		__bitmap_or(dst, src1, src2, nbits);
+ }
  
--	prandom_seed_state(&rnd, 3141592653589793238ULL);
-+	prandom_seed_state(&rnd, seed);
- 
- 	basic_check();
- 	augmented_check();
---- a/tools/include/linux/types.h~lib-rbtree-add-random-seed
-+++ a/tools/include/linux/types.h
-@@ -42,6 +42,8 @@ typedef __s16 s16;
- typedef __u8  u8;
- typedef __s8  s8;
- 
-+typedef unsigned long long	ullong;
++static inline unsigned long *bitmap_alloc(unsigned int nbits, gfp_t flags)
++{
++	return malloc(bitmap_size(nbits));
++}
 +
- #ifdef __CHECKER__
- #define __bitwise	__attribute__((bitwise))
- #else
---- a/tools/testing/rbtree/interval_tree_test.c~lib-rbtree-add-random-seed
-+++ a/tools/testing/rbtree/interval_tree_test.c
-@@ -18,6 +18,7 @@ int usage(void)
- 	fprintf(stderr, "  -s: Number of iterations searching the tree\n");
- 	fprintf(stderr, "  -a: Searches will iterate all nodes in the tree\n");
- 	fprintf(stderr, "  -m: Largest value for the interval's endpoint\n");
-+	fprintf(stderr, "  -r: Random seed\n");
- 	exit(-1);
+ /**
+  * bitmap_zalloc - Allocate bitmap
+  * @nbits: Number of bits
+@@ -150,6 +156,21 @@ static inline bool bitmap_intersects(con
+ 		return __bitmap_intersects(src1, src2, nbits);
  }
  
-@@ -31,7 +32,7 @@ int main(int argc, char **argv)
++static inline void bitmap_set(unsigned long *map, unsigned int start, unsigned int nbits)
++{
++	if (__builtin_constant_p(nbits) && nbits == 1)
++		__set_bit(start, map);
++	else if (small_const_nbits(start + nbits))
++		*map |= GENMASK(start + nbits - 1, start);
++	else if (__builtin_constant_p(start & BITMAP_MEM_MASK) &&
++		 IS_ALIGNED(start, BITMAP_MEM_ALIGNMENT) &&
++		 __builtin_constant_p(nbits & BITMAP_MEM_MASK) &&
++		 IS_ALIGNED(nbits, BITMAP_MEM_ALIGNMENT))
++		memset((char *)map + start / 8, 0xff, nbits / 8);
++	else
++		__bitmap_set(map, start, nbits);
++}
++
+ static inline void bitmap_clear(unsigned long *map, unsigned int start,
+ 			       unsigned int nbits)
  {
- 	int opt;
- 
--	while ((opt = getopt(argc, argv, "n:p:q:s:am:")) != -1) {
-+	while ((opt = getopt(argc, argv, "n:p:q:s:am:r:")) != -1) {
- 		if (opt == 'n')
- 			nnodes = strtoul(optarg, NULL, 0);
- 		else if (opt == 'p')
-@@ -44,6 +45,8 @@ int main(int argc, char **argv)
- 			search_all = true;
- 		else if (opt == 'm')
- 			max_endpoint = strtoul(optarg, NULL, 0);
-+		else if (opt == 'r')
-+			seed = strtoul(optarg, NULL, 0);
- 		else
- 			usage();
- 	}
---- a/tools/testing/rbtree/rbtree_test.c~lib-rbtree-add-random-seed
-+++ a/tools/testing/rbtree/rbtree_test.c
-@@ -16,6 +16,7 @@ int usage(void)
- 	fprintf(stderr, "  -n: Number of nodes in the rb-tree\n");
- 	fprintf(stderr, "  -p: Number of iterations modifying the rb-tree\n");
- 	fprintf(stderr, "  -c: Number of iterations modifying and verifying the rb-tree\n");
-+	fprintf(stderr, "  -r: Random seed\n");
- 	exit(-1);
+--- a/tools/lib/bitmap.c~lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers
++++ a/tools/lib/bitmap.c
+@@ -101,6 +101,26 @@ bool __bitmap_intersects(const unsigned
+ 	return false;
  }
  
-@@ -29,13 +30,15 @@ int main(int argc, char **argv)
++void __bitmap_set(unsigned long *map, unsigned int start, int len)
++{
++	unsigned long *p = map + BIT_WORD(start);
++	const unsigned int size = start + len;
++	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
++	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
++
++	while (len - bits_to_set >= 0) {
++		*p |= mask_to_set;
++		len -= bits_to_set;
++		bits_to_set = BITS_PER_LONG;
++		mask_to_set = ~0UL;
++		p++;
++	}
++	if (len) {
++		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
++		*p |= mask_to_set;
++	}
++}
++
+ void __bitmap_clear(unsigned long *map, unsigned int start, int len)
  {
- 	int opt;
- 
--	while ((opt = getopt(argc, argv, "n:p:c:")) != -1) {
-+	while ((opt = getopt(argc, argv, "n:p:c:r:")) != -1) {
- 		if (opt == 'n')
- 			nnodes = strtoul(optarg, NULL, 0);
- 		else if (opt == 'p')
- 			perf_loops = strtoul(optarg, NULL, 0);
- 		else if (opt == 'c')
- 			check_loops = strtoul(optarg, NULL, 0);
-+		else if (opt == 'r')
-+			seed = strtoul(optarg, NULL, 0);
- 		else
- 			usage();
- 	}
+ 	unsigned long *p = map + BIT_WORD(start);
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
