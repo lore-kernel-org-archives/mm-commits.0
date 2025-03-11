@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE13A19007D;
-	Tue, 11 Mar 2025 03:26:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A571DEFF3
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 05:26:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741663618; cv=none; b=IVfYPCyHCHMYvMnjjDoNCaUirFGhxbt9GKIsmW9KYXIiExe6NowbhbRKjUjpTw9AhhaEpWf0olYWXTq3DE8N3IkG/pTEsupi4W108S6xlqyOk0QAr0TPxpcAgzEbGZ8AZYB97pXo63E2JyxgnoavShqIAjUpHAs6RdoctnVlW3w=
+	t=1741670790; cv=none; b=oPgnB52LbThrQUpkkhGpz74tJ4h8bx82V44tciF6WHwc9MHIwuhmcklXiiTF1oaQx1zjZFaWGWmZ+klmwH79EeAG1LcSt0V3Uu5SUHEFt2Km4ABkorvKmGZujoVGPzwuy0K+RRlW9jvgPuRWRArLWn1QY92q1NCJZgmUIsDXDOc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741663618; c=relaxed/simple;
-	bh=4Mvj4ALeZCvtL9k4MmaTxHXLk2a8ZTMsnSvKtWNuvkY=;
-	h=Date:To:From:Subject:Message-Id; b=XheIQxfBsDOxLoJ3gJgfzL35NJ/FQ3WmiyLQat91aFJW4MONG4kVuC9AFgml3kJqdQ4dCLZigrqjBDYOq83ODTo8RtS527snChzTk3k3kigEFtEfG2Y10a23D2RlDNNEvWbB0BEMWLsEEPy8S5IKWU9uR9ZMqXk2UdrHia2jItg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KyNP2GCn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741670790; c=relaxed/simple;
+	bh=s4y2Rt6JBzTcGErczjBRfqnALTcsLTiKJ6EUxvZkN8Y=;
+	h=Date:To:From:Subject:Message-Id; b=UrUtZ6VAnwyoJ2VBO6TWLkWwUZIEN0dhADhtrz8lzRicO8L+3TdABwfjaEt05Sb9+Oc7ULjBx+rbhpH9q7EG2d/ICIrsRVX/XOePzMfVs5SuzOFNHGh/xaakGGgEgPEidyR2rwkcheulYmcqDwoddqRnd5p9dsdivHjTpiHvfrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t2BVox0B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KyNP2GCn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32815C4CEE9;
-	Tue, 11 Mar 2025 03:26:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t2BVox0B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD08C4CEE9;
+	Tue, 11 Mar 2025 05:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741663618;
-	bh=4Mvj4ALeZCvtL9k4MmaTxHXLk2a8ZTMsnSvKtWNuvkY=;
+	s=korg; t=1741670789;
+	bh=s4y2Rt6JBzTcGErczjBRfqnALTcsLTiKJ6EUxvZkN8Y=;
 	h=Date:To:From:Subject:From;
-	b=KyNP2GCnMGswG684F0xT39qqyUGS5rolMTBIeMgz3eimOGE28qpAvI5cBWqXMvDm/
-	 ZXnppvnZVxHkUpat/o48qxoDR9eK6frOuBttndUUyyJEd/y9o1nwtUp1FnKTf4YNgY
-	 DksI1L4x5/fvd8Il4n0+Bn5jTi21i/rhwKvlu0VM=
-Date: Mon, 10 Mar 2025 20:26:57 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=t2BVox0BzT8h8W9KsgWkF/L25JFo6rVcX94bRL7X/7OOkYwNdl5fLfujqRGm7YfVy
+	 caAIQnrdF7/lhLtqHY5wZNU8U7QFhHLD770jjHMJGHox8F3jBRoo96X7UlYgMOMJGK
+	 NDxRvWmeXtqbtayqsLM9sSNwvQImBb6yIeN0aGlA=
+Date: Mon, 10 Mar 2025 22:26:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,hare@suse.de,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-drain-obj-stock-on-cpu-hotplug-teardown.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250311032658.32815C4CEE9@smtp.kernel.org>
+Subject: + mm-decline-to-manipulate-the-refcount-on-a-slab-page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250311052629.8DD08C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: drain obj stock on cpu hotplug teardown
+     Subject: mm: decline to manipulate the refcount on a slab page
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcg-drain-obj-stock-on-cpu-hotplug-teardown.patch
+     mm-decline-to-manipulate-the-refcount-on-a-slab-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-drain-obj-stock-on-cpu-hotplug-teardown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-decline-to-manipulate-the-refcount-on-a-slab-page.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: drain obj stock on cpu hotplug teardown
-Date: Mon, 10 Mar 2025 16:09:34 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: decline to manipulate the refcount on a slab page
+Date: Mon, 10 Mar 2025 14:35:24 +0000
 
-Currently on cpu hotplug teardown, only memcg stock is drained but we
-need to drain the obj stock as well otherwise we will miss the stats
-accumulated on the target cpu as well as the nr_bytes cached. The stats
-include MEMCG_KMEM, NR_SLAB_RECLAIMABLE_B & NR_SLAB_UNRECLAIMABLE_B. In
-addition we are leaking reference to struct obj_cgroup object.
+Slab pages now have a refcount of 0, so nobody should be trying to
+manipulate the refcount on them.  Doing so has little effect; the object
+could be freed and reallocated to a different purpose, although the slab
+itself would not be until the refcount was put making it behave rather
+like TYPESAFE_BY_RCU.
 
-Link: https://lkml.kernel.org/r/20250310230934.2913113-1-shakeel.butt@linux.dev
-Fixes: bf4f059954dc ("mm: memcg/slab: obj_cgroup API")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc:
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+Unfortunately, __iov_iter_get_pages_alloc() does take a refcount.  Fix
+that to not change the refcount, and make put_page() silently not change
+the refcount.  get_page() warns so that we can fix any other callers that
+need to be changed.
+
+Long-term, networking needs to stop taking a refcount on the pages that it
+uses and rely on the caller to hold whatever references are necessary to
+make the memory stable.  In the medium term, more page types are going to
+hav a zero refcount, so we'll want to move get_page() and put_page() out
+of line.
+
+Link: https://lkml.kernel.org/r/20250310143544.1216127-1-willy@infradead.org
+Fixes: 9aec2fb0fd5e (slab: allocate frozen pages)
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Hannes Reinecke <hare@suse.de>
+Closes: https://lore.kernel.org/all/08c29e4b-2f71-4b6d-8046-27e407214d8c@suse.com/
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/mm.h |    8 +++++++-
+ lib/iov_iter.c     |    8 ++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~memcg-drain-obj-stock-on-cpu-hotplug-teardown
-+++ a/mm/memcontrol.c
-@@ -1921,9 +1921,18 @@ void drain_all_stock(struct mem_cgroup *
- static int memcg_hotplug_cpu_dead(unsigned int cpu)
+--- a/include/linux/mm.h~mm-decline-to-manipulate-the-refcount-on-a-slab-page
++++ a/include/linux/mm.h
+@@ -1458,7 +1458,10 @@ static inline void folio_get(struct foli
+ 
+ static inline void get_page(struct page *page)
  {
- 	struct memcg_stock_pcp *stock;
-+	struct obj_cgroup *old;
-+	unsigned long flags;
- 
- 	stock = &per_cpu(memcg_stock, cpu);
-+
-+	/* drain_obj_stock requires stock_lock */
-+	local_lock_irqsave(&memcg_stock.stock_lock, flags);
-+	old = drain_obj_stock(stock);
-+	local_unlock_irqrestore(&memcg_stock.stock_lock, flags);
-+
- 	drain_stock(stock);
-+	obj_cgroup_put(old);
- 
- 	return 0;
+-	folio_get(page_folio(page));
++	struct folio *folio = page_folio(page);
++	if (WARN_ON_ONCE(folio_test_slab(folio)))
++		return;
++	folio_get(folio);
  }
+ 
+ static inline __must_check bool try_get_page(struct page *page)
+@@ -1552,6 +1555,9 @@ static inline void put_page(struct page
+ {
+ 	struct folio *folio = page_folio(page);
+ 
++	if (folio_test_slab(folio))
++		return;
++
+ 	/*
+ 	 * For some devmap managed pages we need to catch refcount transition
+ 	 * from 2 to 1:
+--- a/lib/iov_iter.c~mm-decline-to-manipulate-the-refcount-on-a-slab-page
++++ a/lib/iov_iter.c
+@@ -1190,8 +1190,12 @@ static ssize_t __iov_iter_get_pages_allo
+ 		if (!n)
+ 			return -ENOMEM;
+ 		p = *pages;
+-		for (int k = 0; k < n; k++)
+-			get_page(p[k] = page + k);
++		for (int k = 0; k < n; k++) {
++			struct folio *folio = page_folio(page);
++			p[k] = page + k;
++			if (!folio_test_slab(folio))
++				folio_get(folio);
++		}
+ 		maxsize = min_t(size_t, maxsize, n * PAGE_SIZE - *start);
+ 		i->count -= maxsize;
+ 		i->iov_offset += maxsize;
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from willy@infradead.org are
 
-memcg-drain-obj-stock-on-cpu-hotplug-teardown.patch
-memcg-add-hierarchical-effective-limits-for-v2.patch
-memcg-dont-call-propagate_protected_usage-for-v1.patch
-page_counter-track-failcnt-only-for-legacy-cgroups.patch
-page_counter-reduce-struct-page_counter-size.patch
-memcg-bypass-root-memcg-check-for-skmem-charging.patch
+mm-decline-to-manipulate-the-refcount-on-a-slab-page.patch
+dax-remove-access-to-page-index.patch
+dax-use-folios-more-widely-within-dax.patch
+fs-convert-block_commit_write-to-take-a-folio.patch
+fs-remove-page_file_mapping.patch
+fs-remove-folio_file_mapping.patch
+mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
+hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
+hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
+ocfs2-remove-reference-to-bh-b_page.patch
 
