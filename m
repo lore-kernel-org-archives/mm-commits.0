@@ -1,101 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59A7C320F
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 05:34:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADC6726039A
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 16:58:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741671294; cv=none; b=C0ek+feluGq98I+3s7VGEOydfTpyj11gGPFxg+7cIWjopVDiwgaODYpe94CiluE5HQpEdW9cX633nnBw4tqriTpddPAmi+ZfBFIJk7ltSeOtqhrKrOW+SLV+Olu4E1tuHGpk2hlAB2EbpXdQWZbcF+sCIuj79eCyxXKXatsFdu0=
+	t=1741712338; cv=none; b=eaUT+Al+mrWEbShtVLkhx3hmmHXoiNmsIVfGc7U0IPOdSDwT6mn0L7caqqh1DQZH9x/8QSfxaSgxBD6wuSSvbclGYjbH9dT5yruOYeEbQtK9Fu6vkSpoNFxyVhOnka2HD489Mbyxbcu6osXfkNttcRDNblp9fu1kNlUtHCWprOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741671294; c=relaxed/simple;
-	bh=app1R9HjOHvqjoOrlc3hQVIUVv1CiZkSLUl8qA7DDGI=;
-	h=Date:To:From:Subject:Message-Id; b=Scqk/QsOLPQuMVg5zJSYgd5Krl46EWJAtnvj6yvVbSSKTkPFn3zknUwYPMYHKz4wYeHUMcCTCvmLJnzKljpMD0p8qI4x+ea7dvtLBx95RMjg2uJcb7N+xovSpow2TjgfFaWxoomJJ/ztQOIi6uLnjsrC0ZAWvw7ddAwIk083dWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HFAjOPqq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741712338; c=relaxed/simple;
+	bh=bqa4Zo5G3EvpwSCUBlVCZ/hQ7UKYLe4xSoHICsRADqY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Ye+jsQpBvGAGsUUShsQ1J/7C3r0dVFyJ37zCHCuQTC1iH71nZgw4c4hfgqWbc+t6l+B0wv+GsHRjIdYhFwEkmhK99YDYQw1xi5DQ+SY6hJPa8F5M8WbzXsjJ7CPZ/DaMLXgFEJ3GxLT//AlI7ftxJq/A4IRrNNbb5knQHKvDkOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=c80JGyfj; arc=none smtp.client-ip=209.85.222.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HFAjOPqq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A270DC4CEE9;
-	Tue, 11 Mar 2025 05:34:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741671293;
-	bh=app1R9HjOHvqjoOrlc3hQVIUVv1CiZkSLUl8qA7DDGI=;
-	h=Date:To:From:Subject:From;
-	b=HFAjOPqqDwpfhDZ+XGD9MyVI/Mi1hyOAzmuZlPqQmFAB3qLoOimjsV1/Z8Emx4aCU
-	 545FRYEDg2e6xU3uNC78VK0FP5Ka3KH8Cq9D7JqSwf44zc6KsKjufqbJ3GSOGQQ/l+
-	 NPe061hgBHpQrSC0+ixwKvUz/wJHjJNYrpPKnmAA=
-Date: Mon, 10 Mar 2025 22:34:52 -0700
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,sj@kernel.org,hyeongtak.ji@sk.com,honggyu.kim@sk.com,arnd@arndb.de,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories-fix.patch added to mm-unstable branch
-Message-Id: <20250311053453.A270DC4CEE9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="c80JGyfj"
+Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-7c04df48a5bso511379985a.2
+        for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 09:58:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1741712335; x=1742317135; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=iA4x+zsdoa1/Ttu5kIO7FqzRTujqnaAXXb7vBTWVWBw=;
+        b=c80JGyfj5X+61ZpH4baWjodKLunRd4jl6Ki5DHfBdpfkqAX3zVGHofWpx+Lb905tQq
+         8AHnsvQa3vFWfTV2yzcvuMJ4IbMA3woYh222xNjcXJrJgem+hI8mSj9/SObYlUMTEc+C
+         fPC8ul4xqEIgJIJAAWCH7cjOdkskfwKTIg78btMIM5piH0VoxKphXDVirY4e+LRp1dZs
+         zuEkRCIHKR2Fuv09IirbdL4Aj8Hkv5mIZpf9GopV2OQOS+/7C6DxN/jyqwky8FuDKti0
+         kz7C+N4AdNe7yUwFOUbYJPEpGZdLkeIBN6a5aKusETd4uPfUqIMqz//4aIo6MQHin1zT
+         eueA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741712335; x=1742317135;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=iA4x+zsdoa1/Ttu5kIO7FqzRTujqnaAXXb7vBTWVWBw=;
+        b=fFR49Zh12zEBJ7HQEJTCoao6Ll9yxepxxkVfC6IBX0TQj10bIHgiv9+OHJbHaotOX/
+         YushDBT8hBkJO/pt3Y2vyqJG7wR/ScVkyWDcxGdZ5smOvEsyZ6RKGCRgK18SkYuZQgDM
+         PPq+Q3r1IaaW9evR2f1DPInzqXCF2hYAZLlAtfKAhUqFBTP4stgYcC3v6xd9Ae72hDdJ
+         paREQpDbrg/2T/poX2olj2UiwLBfLRsyxCaMqIgKbRyubv8GWjs/8zR2aeEF7uRqdOYx
+         9FKrpOJYQjX91jXH/YM7tmtsaU8FJDC4MLOzS9RLE2irInEey5tuytXVNG/L6DW2JZ3Z
+         XlGQ==
+X-Gm-Message-State: AOJu0YxNFVBKiQluLqB2VoY4+3i1RSk2tsxHNStILsonQX7WEtAbEwxb
+	QCRr9bqluNI4DziG8zGqtlQu2KKiQmU5ZAiJ+qNK1BNWjGnHqMNcp3XigUBfbr80Yx1COy+78Gg
+	Z/dJrgC0tRF3ilTN4gH3GF7hfRl8bDaf413L/
+X-Gm-Gg: ASbGncuXf0V65y0DwGWajsXF+VuM8T004qzqMGTbRAoVcNI+qZ5DqXojbWrzpOmKwb5
+	xdX+MvUdOU7rK/3/T9hWMiV2ksl2MG/xOb9yLFxAK4pJlQidqBrxRQdGAWcevdJu12wgRlrJM3x
+	UwcByRjQ1x3klD69Ta+65uYA+6yUtJfFId5O3QyWtm5x92oNuGuygQ6gk=
+X-Google-Smtp-Source: AGHT+IGXTV6jt8zy0b/a5jQLG+eKvtaOTrGi6iFpSH7vWvwWk2XXzc4vkIrgDbePZzBUnokoYaBHhAtlF7Osr8wlR60=
+X-Received: by 2002:a05:620a:838c:b0:7c0:a0ba:2029 with SMTP id
+ af79cd13be357-7c4e6178ce4mr2882337785a.40.1741712335418; Tue, 11 Mar 2025
+ 09:58:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20250306053724.9DF85C4CEE4@smtp.kernel.org>
+In-Reply-To: <20250306053724.9DF85C4CEE4@smtp.kernel.org>
+From: Alexander Potapenko <glider@google.com>
+Date: Tue, 11 Mar 2025 12:58:17 -0400
+X-Gm-Features: AQ5f1Jo0wKRvS-Sw6eU2fJMQMU5J89-Jhq8EBJNyzSQhqhPzSEtZkom-oS0Ybcw
+Message-ID: <CAG_fn=W0KFnHq0=M1FovTHPTnve=W2Hqvq1Hny4TQuU+rL2fiQ@mail.gmail.com>
+Subject: Re: [merged mm-hotfixes-stable] dma-kmsan-export-kmsan_handle_dma-for-modules.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, 
+	peterz@infradead.org, lkp@intel.com, elver@google.com, dvyukov@google.com, 
+	bigeasy@linutronix.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Thu, Mar 6, 2025 at 12:37=E2=80=AFAM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+>
+> The quilt patch titled
+>      Subject: dma: kmsan: export kmsan_handle_dma() for modules
+> has been removed from the -mm tree.  Its filename was
+>      dma-kmsan-export-kmsan_handle_dma-for-modules.patch
+>
+> This patch was dropped because it was merged into the mm-hotfixes-stable =
+branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> ------------------------------------------------------
+> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Subject: dma: kmsan: export kmsan_handle_dma() for modules
+> Date: Tue, 18 Feb 2025 10:14:11 +0100
+>
+> kmsan_handle_dma() is used by virtio_ring() which can be built as a
+> module.  kmsan_handle_dma() needs to be exported otherwise building the
+> virtio_ring fails.
+>
+> Export kmsan_handle_dma for modules.
+>
+> Link: https://lkml.kernel.org/r/20250218091411.MMS3wBN9@linutronix.de
+> Reported-by: kernel test robot <lkp@intel.com>
+> Closes: https://lore.kernel.org/oe-kbuild-all/202502150634.qjxwSeJR-lkp@i=
+ntel.com/
+> Fixes: 7ade4f10779c ("dma: kmsan: unpoison DMA mappings")
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Cc: Alexander Potapenko <glider@google.com>
+> Cc: Dmitriy Vyukov <dvyukov@google.com>
+> Cc: Macro Elver <elver@google.com>
+> Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: mm/damon/sysfs-schemes: avoid Wformat-security warning
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories-fix.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/damon/sysfs-schemes: avoid Wformat-security warning
-Date: Mon, 10 Mar 2025 14:51:37 +0100
-
-This warning is for potentially user-defined format strings:
-
-mm/damon/sysfs-schemes.c:1664:4: error: format string is not a string literal (potentially insecure) [-Werror,-Wformat-security]
- 1664 |                         name);
-
-Change this to use "%s" as the format and the name as the argument.
-
-Link: https://lkml.kernel.org/r/20250310135142.4176976-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/sysfs-schemes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories-fix
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1616,7 +1616,7 @@ static int damon_sysfs_scheme_set_filter
- 		return -ENOMEM;
- 	err = kobject_init_and_add(&filters->kobj,
- 			&damon_sysfs_scheme_filters_ktype, &scheme->kobj,
--			name);
-+			"%s", name);
- 	if (err)
- 		kobject_put(&filters->kobj);
- 	else
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories-fix.patch
-reboot-add-support-for-configuring-emergency-hardware-protection-action-fix.patch
-
+Note: I think the Reviewed-by: I left on the patch is missing here,
+but I don't mind (no need to respin)
