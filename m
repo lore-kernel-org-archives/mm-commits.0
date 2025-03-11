@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79AA4179BC
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:50:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8FA02627E1
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 18:50:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741719042; cv=none; b=Mh4XC0f50sIqCJ/Dd04P6FBp5bAfxF0Jo1+q4CSU3Hi1ai0+Y6MtjowT+hn8oZI/MYBGvp1uGeF1PX4/p4cc4M9h40gKF4xkKUHiuSi/v6LX69kJcj8DfyErKBZypyfGepU9g3fXSCskQ5R/NUlqbn2vovyIEenIvlZgi0626lY=
+	t=1741719042; cv=none; b=fBqowba4jB0swl/SglpDGwLEDKpqMtwnSDVx0SufDV/Aohdj7qFJvb0rnyEXp7eZzohcQGxYmnqDFhTF49ydu4tgkrn824hjEHHPQ7puGWIpnrvT+rTBBwZRkjAelYJA9brlrOjehcSfJYJ5v/MrS5DnagFgr8GbpBJZfkKJNTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741719042; c=relaxed/simple;
-	bh=Aa47ScPCwrQgCWNSfxSTpz51pzlahh13fj2FO11t0iA=;
-	h=Date:To:From:Subject:Message-Id; b=dxkmzlTTMnTXj1xl3gm53hTEXqamtmx7DXqHw3h3UwTsw5CuNckoPJfpUL+1WnMHAhUvfaK3GhWapp10Fy0sN3GL1xeYEHUe2DUVm0mulkEWs1JrOP6XP2JkMQDsiTVfEmoNdSby5vpCbo6Yp3ziglXILja1pZK8ScK/Tbcoq/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NdcOPIrp; arc=none smtp.client-ip=10.30.226.201
+	bh=sbhH1eDAMcjFYMUdEHGQy94cEyWRH6asz+mQEVNlbW8=;
+	h=Date:To:From:Subject:Message-Id; b=n67bhiujP5bf8w67ZRKS3oiXn8REgF5piGNba/ler9qi7+n0TZJzeWm9QTzCN0+e0vD1n7Xb040wJErXsuA1nT+B+SOOfMBk+oDT3eqE2KdPFmbjmFd7kYVjSsJtAkY4GMG6BW6Ge1MZt5t7idwVZuSeZULP0b/LaX3HkHfFMX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=riSP64YA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NdcOPIrp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF51DC4CEE9;
-	Tue, 11 Mar 2025 18:50:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="riSP64YA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 527DDC4CEEA;
+	Tue, 11 Mar 2025 18:50:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741719039;
-	bh=Aa47ScPCwrQgCWNSfxSTpz51pzlahh13fj2FO11t0iA=;
+	s=korg; t=1741719042;
+	bh=sbhH1eDAMcjFYMUdEHGQy94cEyWRH6asz+mQEVNlbW8=;
 	h=Date:To:From:Subject:From;
-	b=NdcOPIrpnV/vOj7uD0fr0QvJ+xsUZU0nbNGBmDDTacEpPQpcMNREKan/IG+sDEequ
-	 +jelvqb4q+H5qbEnV8F8TmNdtSJ3hrY4ITawN1dvkYBoDXz/b0mOjh80nKWNjuT3MG
-	 b0l7XIvLICg0CP720bJa8XxaFBPWO94m59ahgHEQ=
-Date: Tue, 11 Mar 2025 11:50:39 -0700
+	b=riSP64YA1BSintAaPKW5z7zqq1xa5/oshCmGOqvA1pwRAR+wFbyLU3ot/FlwgvftQ
+	 17OdVvXWX4bVk3NGqqz60w7QGvdWAZfDocwaophtiy5bzyXG27D29M91PfEGakgBuO
+	 Mho5LBVOqp6HvnrSwCD2lfvwatHl9fv4RE87lBXk=
+Date: Tue, 11 Mar 2025 11:50:41 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,michel@lespinasse.org,jgg@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-rbtree-split-tests.patch added to mm-nonmm-unstable branch
-Message-Id: <20250311185039.CF51DC4CEE9@smtp.kernel.org>
+Subject: + lib-rbtree-add-random-seed.patch added to mm-nonmm-unstable branch
+Message-Id: <20250311185042.527DDC4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/rbtree: split tests
+     Subject: lib/rbtree: add random seed
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-rbtree-split-tests.patch
+     lib-rbtree-add-random-seed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-rbtree-split-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-rbtree-add-random-seed.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: lib/rbtree: split tests
-Date: Mon, 10 Mar 2025 07:49:33 +0000
+Subject: lib/rbtree: add random seed
+Date: Mon, 10 Mar 2025 07:49:34 +0000
 
-Current tests are gathered in one big function.
+Current test use pseudo rand function with fixed seed, which means the
+test data is the same pattern each time.
 
-Split tests into its own function for better understanding and also it
-is a preparation for introducing new test cases.
+Add random seed parameter to randomize the test.
 
-Link: https://lkml.kernel.org/r/20250310074938.26756-3-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250310074938.26756-4-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michel Lespinasse <michel@lespinasse.org>
@@ -75,150 +75,128 @@ Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/interval_tree_test.c |   50 ++++++++++++++++++++++++++-----------
- lib/rbtree_test.c        |   29 +++++++++++++++++----
- 2 files changed, 59 insertions(+), 20 deletions(-)
+ include/linux/types.h                     |    1 +
+ lib/interval_tree_test.c                  |    3 ++-
+ lib/rbtree_test.c                         |    3 ++-
+ tools/include/linux/types.h               |    2 ++
+ tools/testing/rbtree/interval_tree_test.c |    5 ++++-
+ tools/testing/rbtree/rbtree_test.c        |    5 ++++-
+ 6 files changed, 15 insertions(+), 4 deletions(-)
 
---- a/lib/interval_tree_test.c~lib-rbtree-split-tests
+--- a/include/linux/types.h~lib-rbtree-add-random-seed
++++ a/include/linux/types.h
+@@ -92,6 +92,7 @@ typedef unsigned char		unchar;
+ typedef unsigned short		ushort;
+ typedef unsigned int		uint;
+ typedef unsigned long		ulong;
++typedef unsigned long long	ullong;
+ 
+ #ifndef __BIT_TYPES_DEFINED__
+ #define __BIT_TYPES_DEFINED__
+--- a/lib/interval_tree_test.c~lib-rbtree-add-random-seed
 +++ a/lib/interval_tree_test.c
-@@ -59,26 +59,13 @@ static void init(void)
- 		queries[i] = (prandom_u32_state(&rnd) >> 4) % max_endpoint;
- }
+@@ -19,6 +19,7 @@ __param(int, search_loops, 1000, "Number
+ __param(bool, search_all, false, "Searches will iterate all nodes in the tree");
  
--static int interval_tree_test_init(void)
-+static int basic_check(void)
- {
- 	int i, j;
--	unsigned long results;
- 	cycles_t time1, time2, time;
+ __param(uint, max_endpoint, ~0, "Largest value for the interval's endpoint");
++__param(ullong, seed, 3141592653589793238ULL, "Random seed");
  
--	nodes = kmalloc_array(nnodes, sizeof(struct interval_tree_node),
--			      GFP_KERNEL);
--	if (!nodes)
--		return -ENOMEM;
--
--	queries = kmalloc_array(nsearches, sizeof(int), GFP_KERNEL);
--	if (!queries) {
--		kfree(nodes);
--		return -ENOMEM;
--	}
--
- 	printk(KERN_ALERT "interval tree insert/remove");
+ static struct rb_root_cached root = RB_ROOT_CACHED;
+ static struct interval_tree_node *nodes = NULL;
+@@ -137,7 +138,7 @@ static int interval_tree_test_init(void)
+ 		return -ENOMEM;
+ 	}
  
 -	prandom_seed_state(&rnd, 3141592653589793238ULL);
- 	init();
++	prandom_seed_state(&rnd, seed);
  
- 	time1 = get_cycles();
-@@ -96,8 +83,19 @@ static int interval_tree_test_init(void)
- 	time = div_u64(time, perf_loops);
- 	printk(" -> %llu cycles\n", (unsigned long long)time);
- 
-+	return 0;
-+}
-+
-+static int search_check(void)
-+{
-+	int i, j;
-+	unsigned long results;
-+	cycles_t time1, time2, time;
-+
- 	printk(KERN_ALERT "interval tree search");
- 
-+	init();
-+
- 	for (j = 0; j < nnodes; j++)
- 		interval_tree_insert(nodes + j, &root);
- 
-@@ -120,6 +118,30 @@ static int interval_tree_test_init(void)
- 	printk(" -> %llu cycles (%lu results)\n",
- 	       (unsigned long long)time, results);
- 
-+	for (j = 0; j < nnodes; j++)
-+		interval_tree_remove(nodes + j, &root);
-+
-+	return 0;
-+}
-+
-+static int interval_tree_test_init(void)
-+{
-+	nodes = kmalloc_array(nnodes, sizeof(struct interval_tree_node),
-+			      GFP_KERNEL);
-+	if (!nodes)
-+		return -ENOMEM;
-+
-+	queries = kmalloc_array(nsearches, sizeof(int), GFP_KERNEL);
-+	if (!queries) {
-+		kfree(nodes);
-+		return -ENOMEM;
-+	}
-+
-+	prandom_seed_state(&rnd, 3141592653589793238ULL);
-+
-+	basic_check();
-+	search_check();
-+
- 	kfree(queries);
- 	kfree(nodes);
- 
---- a/lib/rbtree_test.c~lib-rbtree-split-tests
+ 	basic_check();
+ 	search_check();
+--- a/lib/rbtree_test.c~lib-rbtree-add-random-seed
 +++ a/lib/rbtree_test.c
-@@ -239,19 +239,14 @@ static void check_augmented(int nr_nodes
- 	}
- }
+@@ -14,6 +14,7 @@
+ __param(int, nnodes, 100, "Number of nodes in the rb-tree");
+ __param(int, perf_loops, 1000, "Number of iterations modifying the rb-tree");
+ __param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
++__param(ullong, seed, 3141592653589793238ULL, "Random seed");
  
--static int __init rbtree_test_init(void)
-+static int basic_check(void)
- {
- 	int i, j;
- 	cycles_t time1, time2, time;
- 	struct rb_node *node;
- 
--	nodes = kmalloc_array(nnodes, sizeof(*nodes), GFP_KERNEL);
--	if (!nodes)
--		return -ENOMEM;
--
- 	printk(KERN_ALERT "rbtree testing");
+ struct test_node {
+ 	u32 key;
+@@ -402,7 +403,7 @@ static int __init rbtree_test_init(void)
+ 	if (!nodes)
+ 		return -ENOMEM;
  
 -	prandom_seed_state(&rnd, 3141592653589793238ULL);
- 	init();
++	prandom_seed_state(&rnd, seed);
  
- 	time1 = get_cycles();
-@@ -343,6 +338,14 @@ static int __init rbtree_test_init(void)
- 		check(0);
+ 	basic_check();
+ 	augmented_check();
+--- a/tools/include/linux/types.h~lib-rbtree-add-random-seed
++++ a/tools/include/linux/types.h
+@@ -42,6 +42,8 @@ typedef __s16 s16;
+ typedef __u8  u8;
+ typedef __s8  s8;
+ 
++typedef unsigned long long	ullong;
++
+ #ifdef __CHECKER__
+ #define __bitwise	__attribute__((bitwise))
+ #else
+--- a/tools/testing/rbtree/interval_tree_test.c~lib-rbtree-add-random-seed
++++ a/tools/testing/rbtree/interval_tree_test.c
+@@ -18,6 +18,7 @@ int usage(void)
+ 	fprintf(stderr, "  -s: Number of iterations searching the tree\n");
+ 	fprintf(stderr, "  -a: Searches will iterate all nodes in the tree\n");
+ 	fprintf(stderr, "  -m: Largest value for the interval's endpoint\n");
++	fprintf(stderr, "  -r: Random seed\n");
+ 	exit(-1);
+ }
+ 
+@@ -31,7 +32,7 @@ int main(int argc, char **argv)
+ {
+ 	int opt;
+ 
+-	while ((opt = getopt(argc, argv, "n:p:q:s:am:")) != -1) {
++	while ((opt = getopt(argc, argv, "n:p:q:s:am:r:")) != -1) {
+ 		if (opt == 'n')
+ 			nnodes = strtoul(optarg, NULL, 0);
+ 		else if (opt == 'p')
+@@ -44,6 +45,8 @@ int main(int argc, char **argv)
+ 			search_all = true;
+ 		else if (opt == 'm')
+ 			max_endpoint = strtoul(optarg, NULL, 0);
++		else if (opt == 'r')
++			seed = strtoul(optarg, NULL, 0);
+ 		else
+ 			usage();
  	}
+--- a/tools/testing/rbtree/rbtree_test.c~lib-rbtree-add-random-seed
++++ a/tools/testing/rbtree/rbtree_test.c
+@@ -16,6 +16,7 @@ int usage(void)
+ 	fprintf(stderr, "  -n: Number of nodes in the rb-tree\n");
+ 	fprintf(stderr, "  -p: Number of iterations modifying the rb-tree\n");
+ 	fprintf(stderr, "  -c: Number of iterations modifying and verifying the rb-tree\n");
++	fprintf(stderr, "  -r: Random seed\n");
+ 	exit(-1);
+ }
  
-+	return 0;
-+}
-+
-+static int augmented_check(void)
-+{
-+	int i, j;
-+	cycles_t time1, time2, time;
-+
- 	printk(KERN_ALERT "augmented rbtree testing");
+@@ -29,13 +30,15 @@ int main(int argc, char **argv)
+ {
+ 	int opt;
  
- 	init();
-@@ -390,6 +393,20 @@ static int __init rbtree_test_init(void)
- 		check_augmented(0);
+-	while ((opt = getopt(argc, argv, "n:p:c:")) != -1) {
++	while ((opt = getopt(argc, argv, "n:p:c:r:")) != -1) {
+ 		if (opt == 'n')
+ 			nnodes = strtoul(optarg, NULL, 0);
+ 		else if (opt == 'p')
+ 			perf_loops = strtoul(optarg, NULL, 0);
+ 		else if (opt == 'c')
+ 			check_loops = strtoul(optarg, NULL, 0);
++		else if (opt == 'r')
++			seed = strtoul(optarg, NULL, 0);
+ 		else
+ 			usage();
  	}
- 
-+	return 0;
-+}
-+
-+static int __init rbtree_test_init(void)
-+{
-+	nodes = kmalloc_array(nnodes, sizeof(*nodes), GFP_KERNEL);
-+	if (!nodes)
-+		return -ENOMEM;
-+
-+	prandom_seed_state(&rnd, 3141592653589793238ULL);
-+
-+	basic_check();
-+	augmented_check();
-+
- 	kfree(nodes);
- 
- 	return -EAGAIN; /* Fail will directly unload the module */
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
