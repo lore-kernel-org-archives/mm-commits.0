@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0DF71D514A
-	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:37:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 190051D514A
+	for <mm-commits@vger.kernel.org>; Tue, 11 Mar 2025 17:37:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741714625; cv=none; b=Thi6DVuK46s7aM8WoNPENvaq1NQFszh8+yPnokYoAXBYnyb8I4lwfy1A44xN1O4ctAHjLgugDjkUI+4qgnSYB0NrQiOdNjh1I0Dns6Mo9BGqIOWpocRlpx0At4VUsrzoW4ND/rAF8YejNZWeWJJ5DhkFYgRARoOQEa+s97irS5E=
+	t=1741714627; cv=none; b=onc/g7YbMQn9so+Cx5LnqD7csylxryz7criXVHk8zZTmi9XzPa5fKPAEV36jD30aR89wPIv3A6Z0uOyWcaLbgDq0aF7O2Eeh3hNrrAaGecEFIjcrzNDH9zBsVZrh37eFhr4t1Ma/UUzGN5HDQCDxlcBhF927gkPJB0CntAFuFew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741714625; c=relaxed/simple;
-	bh=4mo4hXszwimTYPdFL53VBhmA1X62dFD7OnUiZGBRuUM=;
-	h=Date:To:From:Subject:Message-Id; b=hG4kdvRmxzA5epQCw+A+Q1JDkF/vhYBis41jSxnzffK3xbGozG/macJOj88PmuceHAV4YlKndVRUUA1oIIkRNXGcXfe9Bma/fuRuSuDPRPKrdte3/NayZxBBYKcX8sos1zLy2AS6+DDLaJgzYBUGmIb77vFs+PHudehPao9s5z0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XKcMLlJJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741714627; c=relaxed/simple;
+	bh=TBHDqPHOWkrwrWxT50Z8/qgJ7pIfpk5xfJ/4adt/qf0=;
+	h=Date:To:From:Subject:Message-Id; b=qeGu6pDxRWaFzNA0dDadPDZdGMmzPGYeUDRj97UgemRBxy2uBFhQkqQE60iyiQaR5zEdv4MsZZcN3F8YTV24V7ToHyOB2j/L/3ayZKcpUaYHAsmDeBoaKloiUyAONEU7kHtU/YdS6wiQ/hjPhpRogsAgNSKZUue8zZRzelCUC/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rIWwRVPp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XKcMLlJJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0CC7C4CEE9;
-	Tue, 11 Mar 2025 17:37:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rIWwRVPp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ADD9C4CEE9;
+	Tue, 11 Mar 2025 17:37:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741714624;
-	bh=4mo4hXszwimTYPdFL53VBhmA1X62dFD7OnUiZGBRuUM=;
+	s=korg; t=1741714626;
+	bh=TBHDqPHOWkrwrWxT50Z8/qgJ7pIfpk5xfJ/4adt/qf0=;
 	h=Date:To:From:Subject:From;
-	b=XKcMLlJJWKCbOE2F6MySyrHjAzIVQOcVogU6KI93vgLx6Jt4BoMBsgOugkZFN1V3d
-	 C+Tq31PNdqsxv/udA22q7RM7yWQ7tx6X12euYuyf4e0pZIl2VAyckhWDWXg3i3a/Ox
-	 DpAlRGR/TRWnBiIXUgZzHk96GpK4AokUNx9pWwXI=
-Date: Tue, 11 Mar 2025 10:37:03 -0700
+	b=rIWwRVPpN6bj/Mondb2HBh46N+7yHIYeEiUDCvYjVafdM5TWuGgbLYcYO4YPiZxpG
+	 7QvSe+aG+lsoplSk+IgDNlrACT/kIsbfMwe/C/CPP4UWHKixkqVUa67z1z68CIYpKi
+	 +noHR2atjr67ziXjWJWvZ/7yGByEBatLcHmU74/0=
+Date: Tue, 11 Mar 2025 10:37:06 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,mjguzik@gmail.com,lorenzo.stoakes@oracle.com,dev.jain@arm.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-mlock-tests-if-nobody-user-cant-read-it.patch added to mm-unstable branch
-Message-Id: <20250311173704.A0CC7C4CEE9@smtp.kernel.org>
+Subject: + selftests-mm-mlock-print-error-on-failure.patch added to mm-unstable branch
+Message-Id: <20250311173706.8ADD9C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip mlock tests if nobody user can't read it
+     Subject: selftests/mm/mlock: print error on failure
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-skip-mlock-tests-if-nobody-user-cant-read-it.patch
+     selftests-mm-mlock-print-error-on-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-mlock-tests-if-nobody-user-cant-read-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mlock-print-error-on-failure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: selftests/mm: skip mlock tests if nobody user can't read it
-Date: Tue, 11 Mar 2025 13:18:22 +0000
+Subject: selftests/mm/mlock: print error on failure
+Date: Tue, 11 Mar 2025 13:18:23 +0000
 
-If running from a directory that can't be read by unprivileged users,
-executing on-fault-test via the nobody user will fail.
+It's not really possible to start diagnosing this without knowing the
+actual error.
 
-The kselftest build does give the file the correct permissions, but after
-being installed it might be in a directory without global execute
-permissions.
+Also update the mlock2 helper to behave like libc would by setting errno
+and returning -1.
 
-Since the script can't safely fix that, just skip if it happens.  Note
-that the stderr of the `ls` command is unfiltered meaning the user sees a
-"permission denied" error that can help inform them why the test was
-skipped.
-
-Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-11-dec210a658f5@google.com
+Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-12-dec210a658f5@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -83,20 +77,41 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/mlock-random-test.c |    4 ++--
+ tools/testing/selftests/mm/mlock2.h            |    8 +++++++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-skip-mlock-tests-if-nobody-user-cant-read-it
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -353,7 +353,7 @@ echo "$nr_hugepgs" > /proc/sys/vm/nr_hug
+--- a/tools/testing/selftests/mm/mlock2.h~selftests-mm-mlock-print-error-on-failure
++++ a/tools/testing/selftests/mm/mlock2.h
+@@ -6,7 +6,13 @@
  
- CATEGORY="compaction" run_test ./compaction_test
+ static int mlock2_(void *start, size_t len, int flags)
+ {
+-	return syscall(__NR_mlock2, start, len, flags);
++	int ret = syscall(__NR_mlock2, start, len, flags);
++
++	if (ret) {
++		errno = ret;
++		return -1;
++	}
++	return 0;
+ }
  
--if command -v sudo &> /dev/null;
-+if command -v sudo &> /dev/null && sudo -u nobody ls ./on-fault-limit >/dev/null;
- then
- 	CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
- else
+ static FILE *seek_to_smaps_entry(unsigned long addr)
+--- a/tools/testing/selftests/mm/mlock-random-test.c~selftests-mm-mlock-print-error-on-failure
++++ a/tools/testing/selftests/mm/mlock-random-test.c
+@@ -161,9 +161,9 @@ static void test_mlock_within_limit(char
+ 				       MLOCK_ONFAULT);
+ 
+ 		if (ret)
+-			ksft_exit_fail_msg("%s() failure at |%p(%d)| mlock:|%p(%d)|\n",
++			ksft_exit_fail_msg("%s() failure (%s) at |%p(%d)| mlock:|%p(%d)|\n",
+ 					   is_mlock ? "mlock" : "mlock2",
+-					   p, alloc_size,
++					   strerror(errno), p, alloc_size,
+ 					   p + start_offset, lock_size);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
