@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C48A1F03EF
-	for <mm-commits@vger.kernel.org>; Wed, 12 Mar 2025 22:19:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06831EDA35;
+	Wed, 12 Mar 2025 22:26:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741817957; cv=none; b=krUrxyR2m8/H2fg/NL9r1b9fOsFvPVlIL1gyELnpN1qhrkKNyfJ8wJW+TrHYJZabV3NQxsF+D1iOeKlxUVN5jTfLEQtfbuN22Qrv4BWW8h5x6EmMpVjjYht4+9o0pOI5QfPPHrtsn2sd3gUIyZl5qLvMXpdQLOrMM7HAmQ5k6lk=
+	t=1741818375; cv=none; b=MI5zGTjAoRkIr4AW6JbK6gkdcn7UHfgqvMtbGLAbWpCdXg39iN3ei4IuPTm58QHhf9DFLZteZEDyKQJ1NK/h7lz+IjP728HTNaoDcguPZsKN46vQO2DN9k3wxbuSVIir7fyECt9FZt+Hd9NmD4a+B1CJn3biegESF2+y9xp94zA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741817957; c=relaxed/simple;
-	bh=LLDLKHrahscq4JeQTRVX3qr6Ok2M6JMPEKMUvMwO9fo=;
-	h=Date:To:From:Subject:Message-Id; b=K85K+Y1uCaMDXRzIjhVd2enXtklYG3Zj91hsydczTL5D+QD9VZHryC/+4mMh+pHaoDTHvT31zopWIXGpcHfgAuD3DbfIVEFyy038jXrwrryqfLljwOIM6LFKWC/SyUQEk7gnKNgwkGpczyG9ZfE3rPL56cQY99tvyBG7e3UEX8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nMzNprce; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741818375; c=relaxed/simple;
+	bh=HuX/Rj4sFbmA7KQot7MAho9D9tXAy4PDUehxEjbdNR0=;
+	h=Date:To:From:Subject:Message-Id; b=GN/xcyroV51RuASPOTT4NbNwfm9UFvYhYjN50kv08GWxKDS0FBXvECcucLkM89+sQcydyTJRS5sDAA8DU6dl4v5RVhxe6z/6/7tsaQaNWu5ZpJQHN5Ul0ecyhuoJ2sMSWmhG5inSqJJV4ivUd+USuI/7hdeunfCig7N8enYabLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BUBXHGx7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nMzNprce"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CA7CC4CEE3;
-	Wed, 12 Mar 2025 22:19:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BUBXHGx7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A140C4CEDD;
+	Wed, 12 Mar 2025 22:26:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741817956;
-	bh=LLDLKHrahscq4JeQTRVX3qr6Ok2M6JMPEKMUvMwO9fo=;
+	s=korg; t=1741818374;
+	bh=HuX/Rj4sFbmA7KQot7MAho9D9tXAy4PDUehxEjbdNR0=;
 	h=Date:To:From:Subject:From;
-	b=nMzNprcerm9M/mzZiG2D2om8iHUNMdq4X4LiFO9VHOauOKKopWzcWbr2BJXQIk5xO
-	 SiUy1cY17GJc3Mj9ys7C9czWe6AyrbM5Tmj1Y99E5DdKIAITx9MaiQ3NXCMAKRw5+O
-	 G85wAGA/vP9R3VtiH3CPOvC59DllcK1v3p23w350=
-Date: Wed, 12 Mar 2025 15:19:15 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,stern@rowland.harvard.edu,peterz@infradead.org,paulmck@kernel.org,parri.andrea@gmail.com,npiggin@gmail.com,luc.maranget@inria.fr,lorenzo.stoakes@oracle.com,j.alglave@ucl.ac.uk,dhowells@redhat.com,boqun.feng@gmail.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=BUBXHGx7VoPrR3w4hbhkSU5iaSiumC86S3IvVEJIWldwjgEKeGrwOFZvq4LTWEn+f
+	 mF/cHN17kx+1goM1E+Kqg5GFcVpNTfVAUV7GccLlEKRmOh1WhJMiSaN7ajM2oyhnbc
+	 E1hEnqId4uPc+gk+o9zEZbZXzyNAHB/FdTXG5J2k=
+Date: Wed, 12 Mar 2025 15:26:13 -0700
+To: mm-commits@vger.kernel.org,yazen.ghannam@amd.com,tony.luck@intel.com,tianruidong@linux.alibaba.com,tglx@linutronix.de,stable@vger.kernel.org,peterz@infradead.org,nao.horiguchi@gmail.com,mingo@redhat.com,linmiaohe@huawei.com,jpoimboe@kernel.org,Jonathan.Cameron@huawei.com,jarkko@kernel.org,jane.chu@oracle.com,hpa@zytor.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,baolin.wang@linux.alibaba.com,xueshuai@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-lock-pgdat_reclaim_locked-with-acquire-memory-ordering.patch added to mm-unstable branch
-Message-Id: <20250312221916.7CA7CC4CEE3@smtp.kernel.org>
+Subject: + x86-mce-use-is_copy_from_user-to-determine-copy-from-user-context.patch added to mm-unstable branch
+Message-Id: <20250312222614.4A140C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: lock PGDAT_RECLAIM_LOCKED with acquire memory ordering
+     Subject: x86/mce: use is_copy_from_user() to determine copy-from-user context
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-lock-pgdat_reclaim_locked-with-acquire-memory-ordering.patch
+     x86-mce-use-is_copy_from_user-to-determine-copy-from-user-context.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lock-pgdat_reclaim_locked-with-acquire-memory-ordering.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mce-use-is_copy_from_user-to-determine-copy-from-user-context.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,219 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: mm: lock PGDAT_RECLAIM_LOCKED with acquire memory ordering
-Date: Wed, 12 Mar 2025 10:10:14 -0400
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+Subject: x86/mce: use is_copy_from_user() to determine copy-from-user context
+Date: Wed, 12 Mar 2025 19:28:50 +0800
 
-The PGDAT_RECLAIM_LOCKED bit is used to provide mutual exclusion of node
-reclaim for struct pglist_data using a single bit.
+Patch series "mm/hwpoison: Fix regressions in memory failure handling",
+v4.
 
-Use test_and_set_bit_lock rather than test_and_set_bit to test-and-set
-PGDAT_RECLAIM_LOCKED with an acquire memory ordering semantic.
+## 1. What am I trying to do:
 
-This changes the "lock" acquisition from a full barrier to an acquire
-memory ordering, which is weaker.  The acquire semi-permeable barrier
-paired with the release on unlock is sufficient for this mutual exclusion
-use-case.
+This patchset resolves two critical regressions related to memory failure
+handling that have appeared in the upstream kernel since version 5.17, as
+compared to 5.10 LTS.
 
-No behavior change intended other than to reduce overhead by using the
-appropriate barrier.
+    - copyin case: poison found in user page while kernel copying from user space
+    - instr case: poison found while instruction fetching in user space
 
-Link: https://lkml.kernel.org/r/20250312141014.129725-2-mathieu.desnoyers@efficios.com
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Andrea Parri <parri.andrea@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jade Alglave <j.alglave@ucl.ac.uk>
-Cc: Luc Maranget <luc.maranget@inria.fr>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
+## 2. What is the expected outcome and why
+
+- For copyin case:
+
+Kernel can recover from poison found where kernel is doing get_user() or
+copy_from_user() if those places get an error return and the kernel return
+-EFAULT to the process instead of crashing.  More specifily, MCE handler
+checks the fixup handler type to decide whether an in kernel #MC can be
+recovered.  When EX_TYPE_UACCESS is found, the PC jumps to recovery code
+specified in _ASM_EXTABLE_FAULT() and return a -EFAULT to user space.
+
+- For instr case:
+
+If a poison found while instruction fetching in user space, full recovery
+is possible.  User process takes #PF, Linux allocates a new page and fills
+by reading from storage.
+
+
+## 3. What actually happens and why
+
+- For copyin case: kernel panic since v5.17
+
+Commit 4c132d1d844a ("x86/futex: Remove .fixup usage") introduced a new
+extable fixup type, EX_TYPE_EFAULT_REG, and later patches updated the
+extable fixup type for copy-from-user operations, changing it from
+EX_TYPE_UACCESS to EX_TYPE_EFAULT_REG.  It breaks previous EX_TYPE_UACCESS
+handling when posion found in get_user() or copy_from_user().
+
+- For instr case: user process is killed by a SIGBUS signal due to #CMCI
+  and #MCE race
+
+When an uncorrected memory error is consumed there is a race between the
+CMCI from the memory controller reporting an uncorrected error with a UCNA
+signature, and the core reporting and SRAR signature machine check when
+the data is about to be consumed.
+
+### Background: why *UN*corrected errors tied to *C*MCI in Intel platform [1]
+
+Prior to Icelake memory controllers reported patrol scrub events that
+detected a previously unseen uncorrected error in memory by signaling a
+broadcast machine check with an SRAO (Software Recoverable Action
+Optional) signature in the machine check bank.  This was overkill because
+it's not an urgent problem that no core is on the verge of consuming that
+bad data.  It's also found that multi SRAO UCE may cause nested MCE
+interrupts and finally become an IERR.
+
+Hence, Intel downgrades the machine check bank signature of patrol scrub
+from SRAO to UCNA (Uncorrected, No Action required), and signal changed to
+#CMCI.  Just to add to the confusion, Linux does take an action (in
+uc_decode_notifier()) to try to offline the page despite the UC*NA*
+signature name.
+
+### Background: why #CMCI and #MCE race when poison is consuming in
+    Intel platform [1]
+
+Having decided that CMCI/UCNA is the best action for patrol scrub errors,
+the memory controller uses it for reads too.  But the memory controller is
+executing asynchronously from the core, and can't tell the difference
+between a "real" read and a speculative read.  So it will do CMCI/UCNA if
+an error is found in any read.
+
+Thus:
+
+1) Core is clever and thinks address A is needed soon, issues a
+   speculative read.
+
+2) Core finds it is going to use address A soon after sending the read
+   request
+
+3) The CMCI from the memory controller is in a race with MCE from the
+   core that will soon try to retire the load from address A.
+
+Quite often (because speculation has got better) the CMCI from the memory
+controller is delivered before the core is committed to the instruction
+reading address A, so the interrupt is taken, and Linux offlines the page
+(marking it as poison).
+
+
+## Why user process is killed for instr case
+
+Commit 046545a661af ("mm/hwpoison: fix error page recovered but reported
+"not recovered"") tries to fix noise message "Memory error not recovered"
+and skips duplicate SIGBUSs due to the race.  But it also introduced a bug
+that kill_accessing_process() return -EHWPOISON for instr case, as result,
+kill_me_maybe() send a SIGBUS to user process.
+
+# 4. The fix, in my opinion, should be:
+
+- For copyin case:
+
+The key point is whether the error context is in a read from user memory. 
+We do not care about the ex-type if we know its a MOV reading from
+userspace.
+
+is_copy_from_user() return true when both of the following two checks are
+true:
+
+    - the current instruction is copy
+    - source address is user memory
+
+If copy_user is true, we set
+
+m->kflags |= MCE_IN_KERNEL_COPYIN | MCE_IN_KERNEL_RECOV;
+
+Then do_machine_check() will try fixup_exception() first.
+
+- For instr case: let kill_accessing_process() return 0 to prevent a SIGBUS.
+
+- For patch 3:
+
+The return value of memory_failure() is quite important while discussed
+instr case regression with Tony and Miaohe for patch 2, so add comment
+about the return value.
+
+
+This patch (of 3):
+
+Commit 4c132d1d844a ("x86/futex: Remove .fixup usage") introduced a new
+extable fixup type, EX_TYPE_EFAULT_REG, and commit 4c132d1d844a
+("x86/futex: Remove .fixup usage") updated the extable fixup type for
+copy-from-user operations, changing it from EX_TYPE_UACCESS to
+EX_TYPE_EFAULT_REG.  The error context for copy-from-user operations no
+longer functions as an in-kernel recovery context.  Consequently, the
+error context for copy-from-user operations no longer functions as an
+in-kernel recovery context, resulting in kernel panics with the message:
+"Machine check: Data load in unrecoverable area of kernel."
+
+To address this, it is crucial to identify if an error context involves a
+read operation from user memory.  The function is_copy_from_user() can be
+utilized to determine:
+
+    - the current operation is copy
+    - when reading user memory
+
+When these conditions are met, is_copy_from_user() will return true,
+confirming that it is indeed a direct copy from user memory.  This check
+is essential for correctly handling the context of errors in these
+operations without relying on the extable fixup types that previously
+allowed for in-kernel recovery.
+
+So, use is_copy_from_user() to determine if a context is copy user directly.
+
+Link: https://lkml.kernel.org/r/20250312112852.82415-1-xueshuai@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20250312112852.82415-2-xueshuai@linux.alibaba.com
+Fixes: 4c132d1d844a ("x86/futex: Remove .fixup usage")
+Signed-off-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Borislav Petkov (AMD) <bp@alien8.de>
+Tested-by: Tony Luck <tony.luck@intel.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Ruidong Tian <tianruidong@linux.alibaba.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Yazen Ghannam <yazen.ghannam@amd.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/mce/severity.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/vmscan.c~mm-lock-pgdat_reclaim_locked-with-acquire-memory-ordering
-+++ a/mm/vmscan.c
-@@ -7577,7 +7577,7 @@ int node_reclaim(struct pglist_data *pgd
- 	if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id != numa_node_id())
- 		return NODE_RECLAIM_NOSCAN;
+--- a/arch/x86/kernel/cpu/mce/severity.c~x86-mce-use-is_copy_from_user-to-determine-copy-from-user-context
++++ a/arch/x86/kernel/cpu/mce/severity.c
+@@ -300,13 +300,12 @@ static noinstr int error_context(struct
+ 	copy_user  = is_copy_from_user(regs);
+ 	instrumentation_end();
  
--	if (test_and_set_bit(PGDAT_RECLAIM_LOCKED, &pgdat->flags))
-+	if (test_and_set_bit_lock(PGDAT_RECLAIM_LOCKED, &pgdat->flags))
- 		return NODE_RECLAIM_NOSCAN;
+-	switch (fixup_type) {
+-	case EX_TYPE_UACCESS:
+-		if (!copy_user)
+-			return IN_KERNEL;
+-		m->kflags |= MCE_IN_KERNEL_COPYIN;
+-		fallthrough;
++	if (copy_user) {
++		m->kflags |= MCE_IN_KERNEL_COPYIN | MCE_IN_KERNEL_RECOV;
++		return IN_KERNEL_RECOV;
++	}
  
- 	ret = __node_reclaim(pgdat, gfp_mask, order);
++	switch (fixup_type) {
+ 	case EX_TYPE_FAULT_MCE_SAFE:
+ 	case EX_TYPE_DEFAULT_MCE_SAFE:
+ 		m->kflags |= MCE_IN_KERNEL_RECOV;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
+Patches currently in -mm which might be from xueshuai@linux.alibaba.com are
 
-mm-add-missing-release-barrier-on-pgdat_reclaim_locked-unlock.patch
-mm-lock-pgdat_reclaim_locked-with-acquire-memory-ordering.patch
+x86-mce-use-is_copy_from_user-to-determine-copy-from-user-context.patch
+mm-hwpoison-do-not-send-sigbus-to-processes-with-recovered-clean-pages.patch
+mm-memory-failure-enhance-comments-for-return-value-of-memory_failure.patch
 
