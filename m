@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77FE145355
-	for <mm-commits@vger.kernel.org>; Wed, 12 Mar 2025 21:49:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9DFB145355
+	for <mm-commits@vger.kernel.org>; Wed, 12 Mar 2025 21:49:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741816164; cv=none; b=kQFrJ9kJ/Xzsmo2FvAjw6VEbb540+/kA5K/86q/t0BcaYjtwQLrprwbAOqOSSS0NF2bkhWjjbmrPlTmkQsSxECWzDvFbc9BV8UHwGB+RpbKwwRVbb+tVYFxvBim3auZaffNgEoKOKAnmrUHieAgQD3vUA5PqvJdhaNvuSOSJSQc=
+	t=1741816165; cv=none; b=Xn+0TvrL1VkejmVpuuNxkGtDQSMMsmEZJN4LGNPD0aw67JHEz8IXYcB4Ksi8s2Y47ww0YWKrs3/dIk2fWwoyed17CHc6dH8+S6a8Y1vD4IVcneCMeRoIdZuqgMltw5b3ZgKQ19GA/e+pS8q5JnrIptDrXhWchl+siMVEDcRwJz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741816164; c=relaxed/simple;
-	bh=qdpXWaLrE0VaDx1IDrZfH13PxEHhNx5mVxvzV4Am3Zw=;
-	h=Date:To:From:Subject:Message-Id; b=YQATWj2eZSkYj70J0ZmnelLiz41+tbSstZPrZZyBEbKnAXwBOkxyDNaijLmNCrXwk88NceJ5B/nFi4PmdO2mSgOLooMTUVuA7TTqMxGSANhXs0Tco63KT9vyzKYZ+J1iTuNP6Y0+KfETl0RulB26za+vCKocpkmhHA4xebUMdHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nDbIDc/U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741816165; c=relaxed/simple;
+	bh=0lF0uVAVf7rjqXLhx2B6lupYr7ljsLLbN9hO9Hvo7lY=;
+	h=Date:To:From:Subject:Message-Id; b=oD2xR/teXTj8mMZ2vFVJsO8st7RD58Y5eQ7AfFUr8akQ7i7tRlQTCaD+vlIqqrp8QfKIjZtp+LRG+vNOAxIrZbo/F5A8hbQNySZMEHY0sdOgd3rXV8EENRq1fKdCKkvwyXNR6pTQb1Ctorc1oqDVEcYp3eC8rd4IYo6W0Mr2h+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rtUXq5Iy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nDbIDc/U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EC4DC4CEDD;
-	Wed, 12 Mar 2025 21:49:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtUXq5Iy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B4A9C4CEEA;
+	Wed, 12 Mar 2025 21:49:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741816163;
-	bh=qdpXWaLrE0VaDx1IDrZfH13PxEHhNx5mVxvzV4Am3Zw=;
+	s=korg; t=1741816164;
+	bh=0lF0uVAVf7rjqXLhx2B6lupYr7ljsLLbN9hO9Hvo7lY=;
 	h=Date:To:From:Subject:From;
-	b=nDbIDc/UpwqkCJ/mE1mb6PCxg7ZnsC6x2h/61xxQxMJGQ6t82ve9OMaaVNGBd7vvK
-	 IU38Ak3xpaH/Z4L6BzfoIj++q5NbbO4ZOXpHv1VG6WTJIyBgb0O8tSd8iOE3cfgpTd
-	 /VzSoVRGp/3PpogfxQE3mDnowFyY+56aCF/dv4/Q=
-Date: Wed, 12 Mar 2025 14:49:22 -0700
-To: mm-commits@vger.kernel.org,hca@linux.ibm.com,ardb@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=rtUXq5IyvtTsr2v9NhKm66wfSMCX2N42DblDh4Tz1OEd1DxVCJUIO5OvvZdW/4P4M
+	 uVPmsu814pE2GNTBHGHzYBYMhq5XggZG6L5EC/Yr1HltToD+i6IusXiCeNJw10xXlJ
+	 0lajdfIZ9jYDgeHI+YQGgx09UdzY534ot5YKkIho=
+Date: Wed, 12 Mar 2025 14:49:23 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,hca@linux.ibm.com,ardb@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-make-setup_zero_pages-use-memblock-fix.patch added to mm-unstable branch
-Message-Id: <20250312214923.2EC4DC4CEDD@smtp.kernel.org>
+Subject: + s390-make-setup_zero_pages-use-memblock-fix-fix.patch added to mm-unstable branch
+Message-Id: <20250312214924.5B4A9C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390: use memblock_alloc_or_panic() in setup_zero_page()
+     Subject: s390-make-setup_zero_pages-use-memblock-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-make-setup_zero_pages-use-memblock-fix.patch
+     s390-make-setup_zero_pages-use-memblock-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-make-setup_zero_pages-use-memblock-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-make-setup_zero_pages-use-memblock-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: s390: use memblock_alloc_or_panic() in setup_zero_page()
-Date: Tue, 11 Mar 2025 07:51:27 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: s390-make-setup_zero_pages-use-memblock-fix-fix
+Date: Wed Mar 12 02:47:42 PM PDT 2025
 
-Link: https://lkml.kernel.org/r/Z8_Qawg0dGtZdys7@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+fix memblock_alloc_or_panic() alignment, per Ard
+
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/init.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/s390/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/mm/init.c~s390-make-setup_zero_pages-use-memblock-fix
+--- a/arch/s390/mm/init.c~s390-make-setup_zero_pages-use-memblock-fix-fix
 +++ a/arch/s390/mm/init.c
-@@ -81,9 +81,7 @@ static void __init setup_zero_pages(void
+@@ -81,7 +81,7 @@ static void __init setup_zero_pages(void
  	while (order > 2 && (total_pages >> 10) < (1UL << order))
  		order--;
  
--	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE << order, order);
--	if (!empty_zero_page)
--		panic("Out of memory in setup_zero_pages");
-+	empty_zero_page = (unsigned long)memblock_alloc_or_panic(PAGE_SIZE << order, order);
+-	empty_zero_page = (unsigned long)memblock_alloc_or_panic(PAGE_SIZE << order, order);
++	empty_zero_page = (unsigned long)memblock_alloc_or_panic(PAGE_SIZE << order, PAGE_SIZE);
  
  	zero_page_mask = ((PAGE_SIZE << order) - 1) & PAGE_MASK;
  }
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arm-mem_init-use-memblock_phys_free-to-free-dma-memory-on-sa1111.patch
-csky-move-setup_initrd-to-setupc.patch
-hexagon-move-initialization-of-init_mmcontext-init-to-paging_init.patch
-mips-consolidate-mem_init-for-numa-machines.patch
-mips-make-setup_zero_pages-use-memblock.patch
-nios2-move-pr_debug-about-memory-start-and-end-to-setup_arch.patch
-s390-make-setup_zero_pages-use-memblock.patch
-s390-make-setup_zero_pages-use-memblock-fix.patch
-xtensa-split-out-printing-of-virtual-memory-layout-to-a-function.patch
-arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem.patch
-arch-mm-set-high_memory-in-free_area_init.patch
-arch-mm-streamline-highmem-freeing.patch
-arch-mm-introduce-arch_mm_preinit.patch
-arch-mm-make-releasing-of-memory-to-page-allocator-more-explicit.patch
+mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
+mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
+mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
+mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
+mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option-fix.patch
+s390-make-setup_zero_pages-use-memblock-fix-fix.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
+lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
+signal-avoid-clearing-tif_sigpending-in-recalc_sigpending-if-unset-fix.patch
 
