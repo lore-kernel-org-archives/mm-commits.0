@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 661EA1EBA0C
-	for <mm-commits@vger.kernel.org>; Wed, 12 Mar 2025 21:13:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E7521EBA0C
+	for <mm-commits@vger.kernel.org>; Wed, 12 Mar 2025 21:13:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741813992; cv=none; b=KaC4mQB291ug/jJ+EVW8hFGd+yTCSfnVkHxad+hYGlT80ZbS5wO5fqCQanMkHO42O1d752AnJcDEEW0cSX8eu+j3BAZrwCk+pDHYHsJqVEj7IlzkJh/TqdTSLfpWTb0ptuuLpaLazs60TfG/yt0AhnbmBuIRJyLWKAY0dzOF+Ug=
+	t=1741813993; cv=none; b=NSMO+T9jDZFdgYAPGUnrloLCOL7jnhxyYQi2SwaXh8GHQo+jaYXObrsal9oj77aXIOSx0K7pUP2LJunHOam4NWOWCHCYaD7ppfd7n/c8rQ7zbqt8fsr1E+rBopAdC1dDWLslaCuD5TGZYr4PwT7AU6YyRET/PQ3ZM8hnauk4ctM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741813992; c=relaxed/simple;
-	bh=o8UOBWNDPEjGBm422AeoAPOKtdyxGG53XdoWs1KcNwc=;
-	h=Date:To:From:Subject:Message-Id; b=QOLdhWp2SVn1jXelS7ngTyiWiuqg7byfDLFE0xjv+mxlGnZs2m2KeFT8M5IjqAABOW7ZmIlAqLiPH4w9i1MZWL4y2n/RbWJBvi7dgfnSLOwNEYOjEjwB2AmXQE7pfOU6kKC+RrbxX/aCsGryx2MTHmNyN/SfhMVgclB7cWrR7po=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qrh9pDmH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741813993; c=relaxed/simple;
+	bh=XYlyvwOAMFTCZ1fhHbDTdAlD7VARtepwYedNIYr3gsc=;
+	h=Date:To:From:Subject:Message-Id; b=G7Ab64GQ/8/JS0wpWha2xkv1hjNLDI7ykeyD9bWkcaVTgrcCbhw0b1Hc1hpxCqa2N1B49275hiA/xanxJtfiuANKmQ9upPbCM6AUa4qFpMjwv5oRt4/gr+CCSS3WtoqvMe/n2fs0y1qjgd9OGOdx6Bzsd6Xy5r9Wkrx6HnY4/OY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o0RUKh8d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qrh9pDmH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6E62C4CEDD;
-	Wed, 12 Mar 2025 21:13:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o0RUKh8d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6D7EC4CEE3;
+	Wed, 12 Mar 2025 21:13:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741813991;
-	bh=o8UOBWNDPEjGBm422AeoAPOKtdyxGG53XdoWs1KcNwc=;
+	s=korg; t=1741813993;
+	bh=XYlyvwOAMFTCZ1fhHbDTdAlD7VARtepwYedNIYr3gsc=;
 	h=Date:To:From:Subject:From;
-	b=Qrh9pDmHG0nEHmxIx94yOX7v21SRGC/xmo66khZmtJmySaCl1Wml+DH6JO2HfukqJ
-	 TexO4t0x8kfLr/13+7qXPqqQnHjkqWKqq/VtMDpy5/+ccgnoBv20POWzT84HG3iZ5t
-	 ZW3m4voxBWAM45HA+RPukuq+jIK/gXfuYyRRFgsU=
-Date: Wed, 12 Mar 2025 14:13:11 -0700
+	b=o0RUKh8db7yP4EKUtflmLfm/cg4TYYoZ3C0lck0RAuIwtMmm5GmmOULzDkPCilYhm
+	 KLrht1eozfzPTjr376b0Y7o6/lY6+w5Grl7kxbZRABrkOESB0St11q+ZPyXwgw/5zq
+	 OF6sZGMTEfWEfExBer5HLqAj4FH+sgNQCNuaUA7U=
+Date: Wed, 12 Mar 2025 14:13:12 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,howlett@gmail.com,david@redhat.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch added to mm-unstable branch
-Message-Id: <20250312211311.B6E62C4CEDD@smtp.kernel.org>
+Subject: + mm-madvise-split-out-populate-behavior-check-logic.patch added to mm-unstable branch
+Message-Id: <20250312211312.E6D7EC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: use is_memory_failure() from madvise_do_behavior()
+     Subject: mm/madvise: split out populate behavior check logic
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch
+     mm-madvise-split-out-populate-behavior-check-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-split-out-populate-behavior-check-logic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: use is_memory_failure() from madvise_do_behavior()
-Date: Wed, 12 Mar 2025 09:47:47 -0700
+Subject: mm/madvise: split out populate behavior check logic
+Date: Wed, 12 Mar 2025 09:47:48 -0700
 
-Patch series "mm/madvise: cleanup requests validations and classifications".
+madvise_do_behavior() has a long open-coded 'behavior' check for
+MADV_POPULATE_{READ,WRITE}.  It adds multiple layers[1] and make the code
+arguably take longer time to read.  Like is_memory_failure(), split out
+the check to a separate function.  This is not technically removing the
+additional layer but discourage further extending the switch-case.  Also
+it makes madvise_do_behavior() code shorter and therefore easier to read.
 
-Cleanup madvise entry level code for cleaner request validations and
-classifications.
+[1] https://lore.kernel.org/bd6d0bf1-c79e-46bd-a810-9791efb9ad73@lucifer.local
 
-
-This patch (of 4):
-
-To reduce redundant open-coded checks of CONFIG_MEMORY_FAILURE and
-MADV_{HWPOISON,SOFT_OFFLINE} in madvise_[un]lock(), is_memory_failure() is
-introduced.  madvise_do_behavior() is still doing the same open-coded
-check, though.  Use is_memory_failure() instead.
-
-To avoid build failure on !CONFIG_MEMORY_FAILURE case, implement an empty
-madvise_inject_error() under the config.  Also move the definition of
-is_memory_failure() inside #ifdef CONFIG_MEMORY_FAILURE clause for
-madvise_inject_error() definition, to reduce duplicated ifdef clauses.
-
-Link: https://lkml.kernel.org/r/20250312164750.59215-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250312164750.59215-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250312164750.59215-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -91,82 +81,48 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   49 +++++++++++++++++++++++++++----------------------
- 1 file changed, 27 insertions(+), 22 deletions(-)
+ mm/madvise.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-use-is_memory_failure-from-madvise_do_behavior
+--- a/mm/madvise.c~mm-madvise-split-out-populate-behavior-check-logic
 +++ a/mm/madvise.c
-@@ -1392,7 +1392,32 @@ static int madvise_inject_error(int beha
- 
- 	return 0;
+@@ -1640,6 +1640,17 @@ static bool is_valid_madvise(unsigned lo
+ 	return true;
  }
--#endif
-+
-+static bool is_memory_failure(int behavior)
+ 
++static bool is_madvise_populate(int behavior)
 +{
 +	switch (behavior) {
-+	case MADV_HWPOISON:
-+	case MADV_SOFT_OFFLINE:
++	case MADV_POPULATE_READ:
++	case MADV_POPULATE_WRITE:
 +		return true;
 +	default:
 +		return false;
 +	}
 +}
 +
-+#else
-+
-+static int madvise_inject_error(int behavior,
-+		unsigned long start, unsigned long end)
-+{
-+	return 0;
-+}
-+
-+static bool is_memory_failure(int behavior)
-+{
-+	return false;
-+}
-+
-+#endif	/* CONFIG_MEMORY_FAILURE */
- 
- static bool
- madvise_behavior_valid(int behavior)
-@@ -1569,24 +1594,6 @@ int madvise_set_anon_name(struct mm_stru
- }
- #endif /* CONFIG_ANON_VMA_NAME */
- 
--#ifdef CONFIG_MEMORY_FAILURE
--static bool is_memory_failure(int behavior)
--{
--	switch (behavior) {
--	case MADV_HWPOISON:
--	case MADV_SOFT_OFFLINE:
--		return true;
--	default:
--		return false;
--	}
--}
--#else
--static bool is_memory_failure(int behavior)
--{
--	return false;
--}
--#endif
--
- static int madvise_lock(struct mm_struct *mm, int behavior)
+ static int madvise_do_behavior(struct mm_struct *mm,
+ 		unsigned long start, size_t len_in, size_t len, int behavior)
  {
- 	if (is_memory_failure(behavior))
-@@ -1640,10 +1647,8 @@ static int madvise_do_behavior(struct mm
- 	unsigned long end;
- 	int error;
- 
--#ifdef CONFIG_MEMORY_FAILURE
--	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE)
-+	if (is_memory_failure(behavior))
- 		return madvise_inject_error(behavior, start, start + len_in);
--#endif
- 	start = untagged_addr_remote(mm, start);
+@@ -1653,16 +1664,11 @@ static int madvise_do_behavior(struct mm
  	end = start + len;
  
+ 	blk_start_plug(&plug);
+-	switch (behavior) {
+-	case MADV_POPULATE_READ:
+-	case MADV_POPULATE_WRITE:
++	if (is_madvise_populate(behavior))
+ 		error = madvise_populate(mm, start, end, behavior);
+-		break;
+-	default:
++	else
+ 		error = madvise_walk_vmas(mm, start, end, behavior,
+ 					  madvise_vma_behavior);
+-		break;
+-	}
+ 	blk_finish_plug(&plug);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
