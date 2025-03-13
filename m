@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 966FA1F8BAF
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:48:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCFD91F872D
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:51:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741906114; cv=none; b=ICb+WutEGQjdOIvOTO2Ha1LS8eM0IyaLq3QXs6cUuqYzu79SdsMdoCVYkScOBPE8os4f6QvVUF20D2QGACvS7YI4EIES7yVnCVLdxlcUF7HW9Q2k7CxvTkpK+Q47Fb9OwbpdW/l32IH0ogUsIpqj8DeqdxG36u8R6JbCP/itVAo=
+	t=1741906260; cv=none; b=uZ+9OxZPqFjJisElCaf9TWiQadGpUJC0uMijehR563CajKDVo0QW1HFmdnaPyoH5gUtsYJOLKILw+qalgrFTkTKvTOYqIUq8IEJg8TsUeEh1VfuppaGIpsyyrbI8+22m3Qm1UxVxZCHqWxOh9NtD6IEXcFo2WYjgsNZIrv3zcaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741906114; c=relaxed/simple;
-	bh=qO6yC1uvGtViUIQFJJ7pv3/mhtlrLmOzqkC+Sp4V9vI=;
-	h=Date:To:From:Subject:Message-Id; b=Q5XKqaVved/38tlCuxRND4zYv8c2CfXwnSBz4oShW03RVdw5XJ7oWvbziJhCA52n9MNjL1HKTmbHxd2wFiF+NdawlN8OjaYOkL43ZCnNBBg4g7B28s7bC3rNyTk1VdgzdDl1tfRdK3iFopA+dNCSy9cq1FDHI+w5eCCtgRvaEIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CgDED9al; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741906260; c=relaxed/simple;
+	bh=934+Foq6dUdVaw6H4jUNpNXv0VGuv2WphrfLOGjgmuM=;
+	h=Date:To:From:Subject:Message-Id; b=btcKqgF1pRISoALwyol05hRpp1CLPjcLZnOj+a3bryQKjEQgq+Ykm1Jk1j78hIufDU7wifcXcnL/P7Vj2jZ1rMBRogMvdktW2nx2owBXOVKGnOMjU8CFtm58WXF5UiJ5UZNSOuMjWUk4ExVCjKeq0g20po5vtHgy3+E0NJy6NXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Us7O6wsC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CgDED9al"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04EF2C4CEDD;
-	Thu, 13 Mar 2025 22:48:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Us7O6wsC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB77C4CEDD;
+	Thu, 13 Mar 2025 22:51:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741906114;
-	bh=qO6yC1uvGtViUIQFJJ7pv3/mhtlrLmOzqkC+Sp4V9vI=;
+	s=korg; t=1741906260;
+	bh=934+Foq6dUdVaw6H4jUNpNXv0VGuv2WphrfLOGjgmuM=;
 	h=Date:To:From:Subject:From;
-	b=CgDED9alb9TNY8pxaE2MN8swiz3j749vM1szttcS6Alj1hNeE0t4LqmQIizjXFgAc
-	 fwCV/ovae/0a9MZoVKN3belHAZNGIU+rWymI+DLOFp/0ErReCksaphNTsfp+CcRYAk
-	 Pz7jt9OFK9S2bP36p7SLM890SVVLi9Siaa4yvarE=
-Date: Thu, 13 Mar 2025 15:48:33 -0700
-To: mm-commits@vger.kernel.org,x86@kernel.org,sweettea-kernel@dorminy.me,pasha.tatashin@soleen.com,christophe.leroy@csgroup.eu,ajd@linux.ibm.com,rmclure@linux.ibm.com,akpm@linux-foundation.org
+	b=Us7O6wsChy/NfzKk+UiH7+VC9WBiQ69khld2mXnuC3fjU3cJ9MTHUebL7NwRdHjY5
+	 MLQsQ7zdEJoUP1iFNPeGnR8RGowjYwhLZ13qOUqK5C1jnC1mBycmwvSq7csnBM8QYG
+	 sYeFxYBdcs7p6LWAARHEJFQ8OxzKP5eC/yK0o80Q=
+Date: Thu, 13 Mar 2025 15:50:59 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-mm-support-page-table-check.patch added to mm-unstable branch
-Message-Id: <20250313224834.04EF2C4CEDD@smtp.kernel.org>
+Subject: + memcg-move-do_memsw_account-to-config_memcg_v1.patch added to mm-unstable branch
+Message-Id: <20250313225100.8DB77C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc: mm: support page table check
+     Subject: memcg: move do_memsw_account() to CONFIG_MEMCG_V1
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-mm-support-page-table-check.patch
+     memcg-move-do_memsw_account-to-config_memcg_v1.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-support-page-table-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-do_memsw_account-to-config_memcg_v1.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,305 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rohan McLure <rmclure@linux.ibm.com>
-Subject: powerpc: mm: support page table check
-Date: Wed, 12 Feb 2025 03:14:04 +1100
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: move do_memsw_account() to CONFIG_MEMCG_V1
+Date: Wed, 12 Mar 2025 15:25:52 -0700
 
-On creation and clearing of a page table mapping, instrument such calls by
-invoking page_table_check_pte_set and page_table_check_pte_clear
-respectively.  These calls serve as a sanity check against illegal
-mappings.
+The do_memsw_account() is used to enable or disable legacy memory+swap
+accounting in memory cgroup.  However with disabled CONFIG_MEMCG_V1, we
+don't need to keep checking it.  So, let's always return false for
+!CONFIG_MEMCG_V1 configs.
 
-Enable ARCH_SUPPORTS_PAGE_TABLE_CHECK for all platforms.
+Before the patch:
 
-See also:
+$ size mm/memcontrol.o
+   text    data     bss     dec     hex filename
+  49928   10736    4172   64836    fd44 mm/memcontrol.o
 
-riscv support in commit 3fee229a8eb9 ("riscv/mm: enable
-ARCH_SUPPORTS_PAGE_TABLE_CHECK")
-arm64 in commit 42b2547137f5 ("arm64/mm: enable
-ARCH_SUPPORTS_PAGE_TABLE_CHECK")
-x86_64 in commit d283d422c6c4 ("x86: mm: add x86_64 support for page table
-check")
+After the patch:
 
-[ajd@linux.ibm.com: rebase]
-Link: https://lkml.kernel.org/r/20250211161404.850215-12-ajd@linux.ibm.com
-Signed-off-by: Rohan McLure <rmclure@linux.ibm.com>
-Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
-Cc: <x86@kernel.org>
+$ size mm/memcontrol.o
+   text    data     bss     dec     hex filename
+  49430   10480    4172   64082    fa52 mm/memcontrol.o
+
+Link: https://lkml.kernel.org/r/20250312222552.3284173-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                         |    1 
- arch/powerpc/include/asm/book3s/32/pgtable.h |    7 ++
- arch/powerpc/include/asm/book3s/64/pgtable.h |   45 +++++++++++++----
- arch/powerpc/include/asm/nohash/pgtable.h    |    8 ++-
- arch/powerpc/mm/book3s64/hash_pgtable.c      |    4 +
- arch/powerpc/mm/book3s64/pgtable.c           |   11 +++-
- arch/powerpc/mm/book3s64/radix_pgtable.c     |    3 +
- arch/powerpc/mm/pgtable.c                    |    4 +
- 8 files changed, 68 insertions(+), 15 deletions(-)
+ mm/memcontrol-v1.h |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/32/pgtable.h~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/include/asm/book3s/32/pgtable.h
-@@ -202,6 +202,7 @@ void unmap_kernel_page(unsigned long va)
- #ifndef __ASSEMBLY__
- #include <linux/sched.h>
- #include <linux/threads.h>
-+#include <linux/page_table_check.h>
+--- a/mm/memcontrol-v1.h~memcg-move-do_memsw_account-to-config_memcg_v1
++++ a/mm/memcontrol-v1.h
+@@ -22,12 +22,6 @@
+ 	     iter != NULL;				\
+ 	     iter = mem_cgroup_iter(NULL, iter, NULL))
  
- /* Bits to mask out from a PGD to get to the PUD page */
- #define PGD_MASKED_BITS		0
-@@ -315,7 +316,11 @@ static inline int __ptep_test_and_clear_
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 				       pte_t *ptep)
- {
--	return __pte(pte_update(mm, addr, ptep, ~_PAGE_HASHPTE, 0, 0));
-+	pte_t old_pte = __pte(pte_update(mm, addr, ptep, ~_PAGE_HASHPTE, 0, 0));
-+
-+	page_table_check_pte_clear(mm, addr, old_pte);
-+
-+	return old_pte;
- }
+-/* Whether legacy memory+swap accounting is active */
+-static inline bool do_memsw_account(void)
+-{
+-	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
+-}
+-
+ unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
  
- #define __HAVE_ARCH_PTEP_SET_WRPROTECT
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -145,6 +145,8 @@
- #define PAGE_KERNEL_ROX	__pgprot(_PAGE_BASE | _PAGE_KERNEL_ROX)
+ void drain_all_stock(struct mem_cgroup *root_memcg);
+@@ -42,6 +36,12 @@ struct mem_cgroup *mem_cgroup_id_get_onl
+ /* Cgroup v1-specific declarations */
+ #ifdef CONFIG_MEMCG_V1
  
- #ifndef __ASSEMBLY__
-+#include <linux/page_table_check.h>
++/* Whether legacy memory+swap accounting is active */
++static inline bool do_memsw_account(void)
++{
++	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
++}
 +
- /*
-  * page table defines
-  */
-@@ -417,8 +419,11 @@ static inline void huge_ptep_set_wrprote
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long addr, pte_t *ptep)
- {
--	unsigned long old = pte_update(mm, addr, ptep, ~0UL, 0, 0);
--	return __pte(old);
-+	pte_t old_pte = __pte(pte_update(mm, addr, ptep, ~0UL, 0, 0));
-+
-+	page_table_check_pte_clear(mm, addr, old_pte);
-+
-+	return old_pte;
- }
+ unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
+ unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
+ unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
+@@ -94,6 +94,7 @@ extern struct cftype mem_cgroup_legacy_f
  
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR_FULL
-@@ -427,11 +432,16 @@ static inline pte_t ptep_get_and_clear_f
- 					    pte_t *ptep, int full)
- {
- 	if (full && radix_enabled()) {
-+		pte_t old_pte;
-+
- 		/*
- 		 * We know that this is a full mm pte clear and
- 		 * hence can be sure there is no parallel set_pte.
- 		 */
--		return radix__ptep_get_and_clear_full(mm, addr, ptep, full);
-+		old_pte = radix__ptep_get_and_clear_full(mm, addr, ptep, full);
-+		page_table_check_pte_clear(mm, addr, old_pte);
-+
-+		return old_pte;
- 	}
- 	return ptep_get_and_clear(mm, addr, ptep);
- }
-@@ -1309,19 +1319,34 @@ extern int pudp_test_and_clear_young(str
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pmd_t *pmdp)
- {
--	if (radix_enabled())
--		return radix__pmdp_huge_get_and_clear(mm, addr, pmdp);
--	return hash__pmdp_huge_get_and_clear(mm, addr, pmdp);
-+	pmd_t old_pmd;
-+
-+	if (radix_enabled()) {
-+		old_pmd = radix__pmdp_huge_get_and_clear(mm, addr, pmdp);
-+	} else {
-+		old_pmd = hash__pmdp_huge_get_and_clear(mm, addr, pmdp);
-+	}
-+
-+	page_table_check_pmd_clear(mm, addr, old_pmd);
-+
-+	return old_pmd;
- }
+ #else	/* CONFIG_MEMCG_V1 */
  
- #define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
- static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pud_t *pudp)
- {
--	if (radix_enabled())
--		return radix__pudp_huge_get_and_clear(mm, addr, pudp);
--	BUG();
--	return *pudp;
-+	pud_t old_pud;
-+
-+	if (radix_enabled()) {
-+		old_pud = radix__pudp_huge_get_and_clear(mm, addr, pudp);
-+	} else {
-+		BUG();
-+	}
-+
-+	page_table_check_pud_clear(mm, addr, old_pud);
-+
-+	return old_pud;
- }
++static inline bool do_memsw_account(void) { return false; }
+ static inline bool memcg1_alloc_events(struct mem_cgroup *memcg) { return true; }
+ static inline void memcg1_free_events(struct mem_cgroup *memcg) {}
  
- static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
---- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -29,6 +29,8 @@ static inline pte_basic_t pte_update(str
- 
- #ifndef __ASSEMBLY__
- 
-+#include <linux/page_table_check.h>
-+
- extern int icache_44x_need_flush;
- 
- #ifndef pte_huge_size
-@@ -122,7 +124,11 @@ static inline void ptep_set_wrprotect(st
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 				       pte_t *ptep)
- {
--	return __pte(pte_update(mm, addr, ptep, ~0UL, 0, 0));
-+	pte_t old_pte = __pte(pte_update(mm, addr, ptep, ~0UL, 0, 0));
-+
-+	page_table_check_pte_clear(mm, addr, old_pte);
-+
-+	return old_pte;
- }
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
- 
---- a/arch/powerpc/Kconfig~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/Kconfig
-@@ -172,6 +172,7 @@ config PPC
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC_BOOK3S || PPC_8xx
-+	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
- 	select ARCH_USE_MEMTEST
---- a/arch/powerpc/mm/book3s64/hash_pgtable.c~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/mm/book3s64/hash_pgtable.c
-@@ -8,6 +8,7 @@
- #include <linux/sched.h>
- #include <linux/mm_types.h>
- #include <linux/mm.h>
-+#include <linux/page_table_check.h>
- #include <linux/stop_machine.h>
- 
- #include <asm/sections.h>
-@@ -231,6 +232,9 @@ pmd_t hash__pmdp_collapse_flush(struct v
- 
- 	pmd = *pmdp;
- 	pmd_clear(pmdp);
-+
-+	page_table_check_pmd_clear(vma->vm_mm, address, pmd);
-+
- 	/*
- 	 * Wait for all pending hash_page to finish. This is needed
- 	 * in case of subpage collapse. When we collapse normal pages
---- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -10,6 +10,7 @@
- #include <linux/pkeys.h>
- #include <linux/debugfs.h>
- #include <linux/proc_fs.h>
-+#include <linux/page_table_check.h>
- #include <misc/cxl-base.h>
- 
- #include <asm/pgalloc.h>
-@@ -129,6 +130,7 @@ void set_pmd_at(struct mm_struct *mm, un
- 	WARN_ON(!(pmd_leaf(pmd)));
- #endif
- 	trace_hugepage_set_pmd(addr, pmd_val(pmd));
-+	page_table_check_pmd_set(mm, addr, pmdp, pmd);
- 	return set_pte_at_unchecked(mm, addr, pmdp_ptep(pmdp), pmd_pte(pmd));
- }
- 
-@@ -146,6 +148,7 @@ void set_pud_at(struct mm_struct *mm, un
- 	WARN_ON(!(pud_leaf(pud)));
- #endif
- 	trace_hugepage_set_pud(addr, pud_val(pud));
-+	page_table_check_pud_set(mm, addr, pudp, pud);
- 	return set_pte_at_unchecked(mm, addr, pudp_ptep(pudp), pud_pte(pud));
- }
- 
-@@ -181,12 +184,14 @@ void serialize_against_pte_lookup(struct
- pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
--	unsigned long old_pmd;
-+	pmd_t old_pmd;
- 
- 	VM_WARN_ON_ONCE(!pmd_present(*pmdp));
--	old_pmd = pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT, _PAGE_INVALID);
-+	old_pmd = __pmd(pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT, _PAGE_INVALID));
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
--	return __pmd(old_pmd);
-+	page_table_check_pmd_clear(vma->vm_mm, address, old_pmd);
-+
-+	return old_pmd;
- }
- 
- pud_t pudp_invalidate(struct vm_area_struct *vma, unsigned long address,
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -14,6 +14,7 @@
- #include <linux/of.h>
- #include <linux/of_fdt.h>
- #include <linux/mm.h>
-+#include <linux/page_table_check.h>
- #include <linux/hugetlb.h>
- #include <linux/string_helpers.h>
- #include <linux/memory.h>
-@@ -1454,6 +1455,8 @@ pmd_t radix__pmdp_collapse_flush(struct
- 	pmd = *pmdp;
- 	pmd_clear(pmdp);
- 
-+	page_table_check_pmd_clear(vma->vm_mm, address, pmd);
-+
- 	radix__flush_tlb_collapsed_pmd(vma->vm_mm, address);
- 
- 	return pmd;
---- a/arch/powerpc/mm/pgtable.c~powerpc-mm-support-page-table-check
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -22,6 +22,7 @@
- #include <linux/mm.h>
- #include <linux/percpu.h>
- #include <linux/hardirq.h>
-+#include <linux/page_table_check.h>
- #include <linux/hugetlb.h>
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
-@@ -206,6 +207,9 @@ void set_ptes(struct mm_struct *mm, unsi
- 	 * and not hw_valid ptes. Hence there is no translation cache flush
- 	 * involved that need to be batched.
- 	 */
-+
-+	page_table_check_ptes_set(mm, addr, ptep, pte, nr);
-+
- 	for (;;) {
- 
- 		/*
 _
 
-Patches currently in -mm which might be from rmclure@linux.ibm.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
-mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set.patch
-mm-page_table_check-provide-addr-parameter-to-page_table_check_pte_set.patch
-mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_clear.patch
-mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_clear.patch
-mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear.patch
-mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch
-powerpc-mm-add-pud_pfn-stub.patch
-powerpc-mm-implement-_user_accessible_page-for-ptes.patch
-powerpc-mm-use-set_pte_at_unchecked-for-internal-usages.patch
-powerpc-mm-support-page-table-check.patch
+memcg-drain-obj-stock-on-cpu-hotplug-teardown.patch
+memcg-add-hierarchical-effective-limits-for-v2.patch
+memcg-dont-call-propagate_protected_usage-for-v1.patch
+page_counter-track-failcnt-only-for-legacy-cgroups.patch
+page_counter-reduce-struct-page_counter-size.patch
+memcg-bypass-root-memcg-check-for-skmem-charging.patch
+memcg-avoid-refill_stock-for-root-memcg.patch
+memcg-move-do_memsw_account-to-config_memcg_v1.patch
 
