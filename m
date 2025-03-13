@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503EE78F37
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:01:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A0D81F2B94
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:01:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741899714; cv=none; b=H8p4LO3qG+qrHrPSU8C/YCXwkbImi76yL+ng1NPcwC1acHVjs9O61X/pPeH+UlXk2NANM1MaG5InnqRkQ+Gl+AYaMKKvD9vhNR453FkrldrjNT+SDFK1mTPOODN+uFY66IwJMIxhyZ1GJCv57rUPYe+4ab8XiQb22GOtoi6Rfi8=
+	t=1741899714; cv=none; b=hhsRZw1SmJK6USZbUQUpQK9eYKexu/yUojJ56in10IqTT1isUgWFPrxHIG90pNxzbf/wPCeBczGRN9ypPnuHlt+BQylXCu6RaFGLOhD0iDspYXE/SqfVuM3+nd3toVMDYPyDeKngfg0c97a7cKCWqErn6M92rltrlWXE14UUvMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741899714; c=relaxed/simple;
-	bh=iZMkCbE9e+PgGuqc6nBDAKNkgS9hNuhvuy2JWeUMe68=;
-	h=Date:To:From:Subject:Message-Id; b=azPOO4OtjBynpebIA7HsWyLfe2JF2piQAtaNkdPKXxrK9brlMlFzfBo0K8yRlekOfWWiVpIigMJ9eQiqI/7jdGR/m9ect1stimLJ0DzizeeRMHyIVzcB+RHujmSd95el41TTY5EegauWeqs5pSBY4n/+44gtSq5xaKFdmobPvTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ED+FGPJv; arc=none smtp.client-ip=10.30.226.201
+	bh=RaqR7KHlr4De7w/zFdzcu4cAzaI/wFa6hlJUAJxV2dk=;
+	h=Date:To:From:Subject:Message-Id; b=PqblnVRUOwQSvuNYrbvZQHm9BXbXfLmaYku29t+CrW4RL7nkHypaRvUuj4A6tK/hN9xeJAbJ8YRAJNKDH3LNmhSJxevwZI66zG4n/gWCNK7nPX1cq5ol2KLrWRnfe5VUT6SiKXfOZxqJy2L+v6L0oo4VWvo+7hSfGC5fvtoghKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NDj54c5w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ED+FGPJv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEE82C4CEDD;
-	Thu, 13 Mar 2025 21:01:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NDj54c5w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28CF3C4CEE3;
+	Thu, 13 Mar 2025 21:01:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741899712;
-	bh=iZMkCbE9e+PgGuqc6nBDAKNkgS9hNuhvuy2JWeUMe68=;
+	s=korg; t=1741899714;
+	bh=RaqR7KHlr4De7w/zFdzcu4cAzaI/wFa6hlJUAJxV2dk=;
 	h=Date:To:From:Subject:From;
-	b=ED+FGPJvrkHt5Eoxfb2N7w2wAJtfQS7w+HBJ559rl/dEWb8QDgLiliV1/rdTXT0Bu
-	 xoCH+0SMaJTF+So2e49qWtJKa4tgW8xlurLTpVAguBA1wMBQIkwf0hm6jGyjJvwj2L
-	 DBi49KGhO9J1DnFaN7NbA7QxNQwECFYP0gXin94o=
-Date: Thu, 13 Mar 2025 14:01:52 -0700
+	b=NDj54c5w96ljj7ARBleNQ7g82MJc9hnReg9oBj+TPzWIAz7e0ir7cJXsfNpmtay6u
+	 DZNTmbXxa4iEKnHeKNQl4hL51mVDWEh8AuKAcnAkduxU8KIRNmsHNpBw26itfI3cb9
+	 H2L/4xBma/n2TAuBRqVd7O0nvhLjACtFkbu2S+TM=
+Date: Thu, 13 Mar 2025 14:01:53 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,shorne@gmail.com,richard@nod.at,palmer@dabbelt.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,luto@kernel.org,linux@armlinux.org.uk,johannes@sipsolutions.net,jiaxun.yang@flygoat.com,jcmvbkbc@gmail.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,broonie@kernel.org,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-make-setup_zero_pages-use-memblock.patch added to mm-unstable branch
-Message-Id: <20250313210152.AEE82C4CEDD@smtp.kernel.org>
+Subject: + nios2-move-pr_debug-about-memory-start-and-end-to-setup_arch.patch added to mm-unstable branch
+Message-Id: <20250313210154.28CF3C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MIPS: make setup_zero_pages() use memblock
+     Subject: nios2: move pr_debug() about memory start and end to setup_arch()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mips-make-setup_zero_pages-use-memblock.patch
+     nios2-move-pr_debug-about-memory-start-and-end-to-setup_arch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-make-setup_zero_pages-use-memblock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-move-pr_debug-about-memory-start-and-end-to-setup_arch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: MIPS: make setup_zero_pages() use memblock
-Date: Thu, 13 Mar 2025 15:49:55 +0200
+Subject: nios2: move pr_debug() about memory start and end to setup_arch()
+Date: Thu, 13 Mar 2025 15:49:56 +0200
 
-Allocating the zero pages from memblock is simpler because the memory is
-already reserved.
-
-This will also help with pulling out memblock_free_all() to the generic
+This will help with pulling out memblock_free_all() to the generic
 code and reducing code duplication in arch::mem_init().
 
-Link: https://lkml.kernel.org/r/20250313135003.836600-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20250313135003.836600-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -108,69 +105,31 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/mmzone.h |    2 --
- arch/mips/mm/init.c            |   18 +++++-------------
- 2 files changed, 5 insertions(+), 15 deletions(-)
+ arch/nios2/kernel/setup.c |    2 ++
+ arch/nios2/mm/init.c      |    2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/mips/include/asm/mmzone.h~mips-make-setup_zero_pages-use-memblock
-+++ a/arch/mips/include/asm/mmzone.h
-@@ -20,6 +20,4 @@
- #define nid_to_addrbase(nid) 0
- #endif
+--- a/arch/nios2/kernel/setup.c~nios2-move-pr_debug-about-memory-start-and-end-to-setup_arch
++++ a/arch/nios2/kernel/setup.c
+@@ -149,6 +149,8 @@ void __init setup_arch(char **cmdline_p)
+ 	memory_start = memblock_start_of_DRAM();
+ 	memory_end = memblock_end_of_DRAM();
  
--extern void setup_zero_pages(void);
++	pr_debug("%s: start=%lx, end=%lx\n", __func__, memory_start, memory_end);
++
+ 	setup_initial_init_mm(_stext, _etext, _edata, _end);
+ 	init_task.thread.kregs = &fake_regs;
+ 
+--- a/arch/nios2/mm/init.c~nios2-move-pr_debug-about-memory-start-and-end-to-setup_arch
++++ a/arch/nios2/mm/init.c
+@@ -65,8 +65,6 @@ void __init mem_init(void)
+ 	unsigned long end_mem   = memory_end; /* this must not include
+ 						kernel stack at top */
+ 
+-	pr_debug("mem_init: start=%lx, end=%lx\n", memory_start, memory_end);
 -
- #endif /* _ASM_MMZONE_H_ */
---- a/arch/mips/mm/init.c~mips-make-setup_zero_pages-use-memblock
-+++ a/arch/mips/mm/init.c
-@@ -59,24 +59,16 @@ EXPORT_SYMBOL(zero_page_mask);
- /*
-  * Not static inline because used by IP27 special magic initialization code
-  */
--void setup_zero_pages(void)
-+static void __init setup_zero_pages(void)
- {
--	unsigned int order, i;
--	struct page *page;
-+	unsigned int order;
- 
- 	if (cpu_has_vce)
- 		order = 3;
- 	else
- 		order = 0;
- 
--	empty_zero_page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
--	if (!empty_zero_page)
--		panic("Oh boy, that early out of memory?");
--
--	page = virt_to_page((void *)empty_zero_page);
--	split_page(page, order);
--	for (i = 0; i < (1 << order); i++, page++)
--		mark_page_reserved(page);
-+	empty_zero_page = (unsigned long)memblock_alloc_or_panic(PAGE_SIZE << order, PAGE_SIZE);
- 
- 	zero_page_mask = ((PAGE_SIZE << order) - 1) & PAGE_MASK;
- }
-@@ -470,9 +462,9 @@ void __init mem_init(void)
- 	BUILD_BUG_ON(IS_ENABLED(CONFIG_32BIT) && (PFN_PTE_SHIFT > PAGE_SHIFT));
- 
- 	maar_init();
--	memblock_free_all();
- 	setup_zero_pages();	/* Setup zeroed pages.  */
- 	mem_init_free_highmem();
-+	memblock_free_all();
- 
- #ifdef CONFIG_64BIT
- 	if ((unsigned long) &_text > (unsigned long) CKSEG0)
-@@ -486,8 +478,8 @@ void __init mem_init(void)
- void __init mem_init(void)
- {
- 	high_memory = (void *) __va(get_num_physpages() << PAGE_SHIFT);
--	memblock_free_all();
- 	setup_zero_pages();	/* This comes from node 0 */
-+	memblock_free_all();
- }
- #endif /* !CONFIG_NUMA */
+ 	end_mem &= PAGE_MASK;
+ 	high_memory = __va(end_mem);
  
 _
 
