@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DC361F2B94
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:01:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2638D78F37
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:01:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741899717; cv=none; b=MnxhHMOhmqEWSxKNbTHHuqaikVSspjrEJwF/pg06EFt+6ec25hRam790m2ulDqSKaCjmmGOToA43smHICPBvL7ZD+zoPnOYpFPfX4MDQAiYZEAA9p78+H542jfqFkFYTY+WOcHDl3A43ruv9xshCk7oiZKlOX7wghHz7Yu7PgEI=
+	t=1741899719; cv=none; b=WiiYHF4DB5EuatTWcgS1vCEqJZgOlMvwA7ni9hoYg1l65rqGIsLBhXSFMC16G6jSOHLXiXeeZi9O/0qGmJIutQg0WO7YUHYf1I2+/gyw+p26ACrSymVl1+tdSQhxlYwH9lPQbQ7bUHdt9zBU2eKwKJiDvDDbhdDQ4x0N/+XJt0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741899717; c=relaxed/simple;
-	bh=6MOo6JfVg2bbTD1Avp/Rho427qvgd6s7LYFN6RdfQGQ=;
-	h=Date:To:From:Subject:Message-Id; b=bWL8RR145mhtPI24TAZMrNbp04DyqlLOfTjRqzFQAXzpS85FJqqPXM5glNokL5uKSeEA4YuuFPVFYRBJd+WPcdaH/hl4+sdT1h0/ZQY+mj3oy4D3DD7kORgbQRxZaI5vZEjq31T2JEOqAXlKBD/JYigpiEIS8PdcI6UUZt6xnbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2a4rBPTJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741899719; c=relaxed/simple;
+	bh=7EnfLfYro6U520csCbXNlG9yuDNMhLKwfFNmKU+vr18=;
+	h=Date:To:From:Subject:Message-Id; b=E+Z95r1MmcQywSSaWP9XHF/JhBlLzH+a/mwwvcDDvhtM5QJpPlsMd9k4d4yVmGzwDKTPD3qliranpuVMLdYLaDalldrJkCfX9VjEQtzqLF1E48nQUVUN0f8hILcGRKdUxl/PRy+hWLM8aPoKb42UqsL9V5UtCAcO8tL2lPxgJf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gi5WYNv/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2a4rBPTJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14654C4CEDD;
-	Thu, 13 Mar 2025 21:01:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gi5WYNv/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B07CAC4CEDD;
+	Thu, 13 Mar 2025 21:01:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741899717;
-	bh=6MOo6JfVg2bbTD1Avp/Rho427qvgd6s7LYFN6RdfQGQ=;
+	s=korg; t=1741899719;
+	bh=7EnfLfYro6U520csCbXNlG9yuDNMhLKwfFNmKU+vr18=;
 	h=Date:To:From:Subject:From;
-	b=2a4rBPTJQ7ugTYPWyAyMgGMlbcX6pZS+RVlmWfdAQMnuyZKKNuNfsEx0lTCOtoNUX
-	 LZ4Tl1Qj+fWlJ8vqgeBY7LAkQzMB9cCfiRMISEDhgeFagCDG7IYRvYJrdOeRFRN7Os
-	 SNBSK7x3AkA+wY0Hrt4cejlmMRv0jGY9GSIQZbMM=
-Date: Thu, 13 Mar 2025 14:01:56 -0700
+	b=Gi5WYNv/9Kvo+8hXEvpCzdds6vsZeaVu/yU3EyWNqsSK6gwqnkj9DunXBDHi9Oo/K
+	 x74rqR2sY7lVOCx7DI6ZDwYzWJdyPNQAzVYrnRVZD5w6zzIGhwT3MBpiZNmKtSivZf
+	 XDYxhiatCz/aJGJC0RpbBw6Bk2g1WGYJM7hO/vcg=
+Date: Thu, 13 Mar 2025 14:01:58 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,shorne@gmail.com,richard@nod.at,palmer@dabbelt.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,luto@kernel.org,linux@armlinux.org.uk,johannes@sipsolutions.net,jiaxun.yang@flygoat.com,jcmvbkbc@gmail.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,broonie@kernel.org,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xtensa-split-out-printing-of-virtual-memory-layout-to-a-function.patch added to mm-unstable branch
-Message-Id: <20250313210157.14654C4CEDD@smtp.kernel.org>
+Subject: + arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem.patch added to mm-unstable branch
+Message-Id: <20250313210158.B07CAC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xtensa: split out printing of virtual memory layout to a function
+     Subject: arch, mm: set max_mapnr when allocating memory map for FLATMEM
 has been added to the -mm mm-unstable branch.  Its filename is
-     xtensa-split-out-printing-of-virtual-memory-layout-to-a-function.patch
+     arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xtensa-split-out-printing-of-virtual-memory-layout-to-a-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: xtensa: split out printing of virtual memory layout to a function
-Date: Thu, 13 Mar 2025 15:49:58 +0200
+Subject: arch, mm: set max_mapnr when allocating memory map for FLATMEM
+Date: Thu, 13 Mar 2025 15:49:59 +0200
 
-This will help with pulling out memblock_free_all() to the generic
-code and reducing code duplication in arch::mem_init().
+max_mapnr is essentially the size of the memory map for systems that use
+FLATMEM. There is no reason to calculate it in each and every architecture
+when it's anyway calculated in alloc_node_mem_map().
 
-Link: https://lkml.kernel.org/r/20250313135003.836600-9-rppt@kernel.org
+Drop setting of max_mapnr from architecture code and set it once in
+alloc_node_mem_map().
+
+While on it, move definition of mem_map and max_mapnr to mm/mm_init.c so
+there won't be two copies for MMU and !MMU variants.
+
+Link: https://lkml.kernel.org/r/20250313135003.836600-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>	[x86]
+Tested-by: Mark Brown <broonie@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -75,7 +83,6 @@ Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
@@ -89,8 +96,8 @@ Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mark Brown <broonie@kernel.org>
 Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Simek <monstr@monstr.eu>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
@@ -105,129 +112,407 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/init.c |   97 ++++++++++++++++++++--------------------
- 1 file changed, 50 insertions(+), 47 deletions(-)
+ arch/alpha/mm/init.c               |    1 -
+ arch/arc/mm/init.c                 |    5 -----
+ arch/arm/mm/init.c                 |    2 --
+ arch/csky/mm/init.c                |    4 ----
+ arch/loongarch/mm/init.c           |    1 -
+ arch/microblaze/mm/init.c          |    4 ----
+ arch/mips/mm/init.c                |    8 --------
+ arch/nios2/kernel/setup.c          |    1 -
+ arch/nios2/mm/init.c               |    2 +-
+ arch/openrisc/mm/init.c            |    1 -
+ arch/parisc/mm/init.c              |    1 -
+ arch/powerpc/kernel/setup-common.c |    2 --
+ arch/riscv/mm/init.c               |    1 -
+ arch/s390/mm/init.c                |    1 -
+ arch/sh/mm/init.c                  |    1 -
+ arch/sparc/mm/init_32.c            |    1 -
+ arch/um/include/shared/mem_user.h  |    1 -
+ arch/um/kernel/physmem.c           |   12 ------------
+ arch/um/kernel/um_arch.c           |    1 -
+ arch/x86/mm/init_32.c              |    3 ---
+ arch/xtensa/mm/init.c              |    1 -
+ include/asm-generic/memory_model.h |    5 +++--
+ include/linux/mm.h                 |   11 -----------
+ mm/memory.c                        |    8 --------
+ mm/mm_init.c                       |   25 +++++++++++++++++--------
+ mm/nommu.c                         |    4 ----
+ 26 files changed, 21 insertions(+), 86 deletions(-)
 
---- a/arch/xtensa/mm/init.c~xtensa-split-out-printing-of-virtual-memory-layout-to-a-function
-+++ a/arch/xtensa/mm/init.c
-@@ -66,6 +66,55 @@ void __init bootmem_init(void)
- 	memblock_dump_all();
- }
- 
-+static void __init print_vm_layout(void)
-+{
-+	pr_info("virtual kernel memory layout:\n"
-+#ifdef CONFIG_KASAN
-+		"    kasan   : 0x%08lx - 0x%08lx  (%5lu MB)\n"
-+#endif
-+#ifdef CONFIG_MMU
-+		"    vmalloc : 0x%08lx - 0x%08lx  (%5lu MB)\n"
-+#endif
-+#ifdef CONFIG_HIGHMEM
-+		"    pkmap   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-+		"    fixmap  : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-+#endif
-+		"    lowmem  : 0x%08lx - 0x%08lx  (%5lu MB)\n"
-+		"    .text   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-+		"    .rodata : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-+		"    .data   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-+		"    .init   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
-+		"    .bss    : 0x%08lx - 0x%08lx  (%5lu kB)\n",
-+#ifdef CONFIG_KASAN
-+		KASAN_SHADOW_START, KASAN_SHADOW_START + KASAN_SHADOW_SIZE,
-+		KASAN_SHADOW_SIZE >> 20,
-+#endif
-+#ifdef CONFIG_MMU
-+		VMALLOC_START, VMALLOC_END,
-+		(VMALLOC_END - VMALLOC_START) >> 20,
-+#ifdef CONFIG_HIGHMEM
-+		PKMAP_BASE, PKMAP_BASE + LAST_PKMAP * PAGE_SIZE,
-+		(LAST_PKMAP*PAGE_SIZE) >> 10,
-+		FIXADDR_START, FIXADDR_END,
-+		(FIXADDR_END - FIXADDR_START) >> 10,
-+#endif
-+		PAGE_OFFSET, PAGE_OFFSET +
-+		(max_low_pfn - min_low_pfn) * PAGE_SIZE,
-+#else
-+		min_low_pfn * PAGE_SIZE, max_low_pfn * PAGE_SIZE,
-+#endif
-+		((max_low_pfn - min_low_pfn) * PAGE_SIZE) >> 20,
-+		(unsigned long)_text, (unsigned long)_etext,
-+		(unsigned long)(_etext - _text) >> 10,
-+		(unsigned long)__start_rodata, (unsigned long)__end_rodata,
-+		(unsigned long)(__end_rodata - __start_rodata) >> 10,
-+		(unsigned long)_sdata, (unsigned long)_edata,
-+		(unsigned long)(_edata - _sdata) >> 10,
-+		(unsigned long)__init_begin, (unsigned long)__init_end,
-+		(unsigned long)(__init_end - __init_begin) >> 10,
-+		(unsigned long)__bss_start, (unsigned long)__bss_stop,
-+		(unsigned long)(__bss_stop - __bss_start) >> 10);
-+}
- 
- void __init zones_init(void)
+--- a/arch/alpha/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/alpha/mm/init.c
+@@ -276,7 +276,6 @@ srm_paging_stop (void)
+ void __init
+ mem_init(void)
  {
-@@ -77,6 +126,7 @@ void __init zones_init(void)
- #endif
- 	};
- 	free_area_init(max_zone_pfn);
-+	print_vm_layout();
+-	set_max_mapnr(max_low_pfn);
+ 	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+ 	memblock_free_all();
  }
+--- a/arch/arc/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/arc/mm/init.c
+@@ -154,11 +154,6 @@ void __init setup_arch_memory(void)
  
- static void __init free_highpages(void)
-@@ -118,53 +168,6 @@ void __init mem_init(void)
+ 	arch_pfn_offset = min(min_low_pfn, min_high_pfn);
+ 	kmap_init();
+-
+-#else /* CONFIG_HIGHMEM */
+-	/* pfn_valid() uses this when FLATMEM=y and HIGHMEM=n */
+-	max_mapnr = max_low_pfn - min_low_pfn;
+-
+ #endif /* CONFIG_HIGHMEM */
+ 
+ 	free_area_init(max_zone_pfn);
+--- a/arch/arm/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/arm/mm/init.c
+@@ -275,8 +275,6 @@ void __init mem_init(void)
+ 	swiotlb_init(max_pfn > arm_dma_pfn_limit, SWIOTLB_VERBOSE);
+ #endif
+ 
+-	set_max_mapnr(pfn_to_page(max_pfn) - mem_map);
+-
+ #ifdef CONFIG_SA1111
+ 	/* now that our DMA memory is actually so designated, we can free it */
+ 	memblock_phys_free(PHYS_OFFSET, __pa(swapper_pg_dir) - PHYS_OFFSET);
+--- a/arch/csky/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/csky/mm/init.c
+@@ -46,10 +46,6 @@ void __init mem_init(void)
+ {
+ #ifdef CONFIG_HIGHMEM
+ 	unsigned long tmp;
+-
+-	set_max_mapnr(highend_pfn - ARCH_PFN_OFFSET);
+-#else
+-	set_max_mapnr(max_low_pfn - ARCH_PFN_OFFSET);
+ #endif
+ 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+ 
+--- a/arch/loongarch/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/loongarch/mm/init.c
+@@ -78,7 +78,6 @@ void __init paging_init(void)
+ 
+ void __init mem_init(void)
+ {
+-	max_mapnr = max_low_pfn;
+ 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+ 
+ 	memblock_free_all();
+--- a/arch/microblaze/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/microblaze/mm/init.c
+@@ -104,17 +104,13 @@ void __init setup_memory(void)
+ 	 *
+ 	 * min_low_pfn - the first page (mm/bootmem.c - node_boot_start)
+ 	 * max_low_pfn
+-	 * max_mapnr - the first unused page (mm/bootmem.c - node_low_pfn)
+ 	 */
+ 
+ 	/* memory start is from the kernel end (aligned) to higher addr */
+ 	min_low_pfn = memory_start >> PAGE_SHIFT; /* minimum for allocation */
+-	/* RAM is assumed contiguous */
+-	max_mapnr = memory_size >> PAGE_SHIFT;
+ 	max_low_pfn = ((u64)memory_start + (u64)lowmem_size) >> PAGE_SHIFT;
+ 	max_pfn = ((u64)memory_start + (u64)memory_size) >> PAGE_SHIFT;
+ 
+-	pr_info("%s: max_mapnr: %#lx\n", __func__, max_mapnr);
+ 	pr_info("%s: min_low_pfn: %#lx\n", __func__, min_low_pfn);
+ 	pr_info("%s: max_low_pfn: %#lx\n", __func__, max_low_pfn);
+ 	pr_info("%s: max_pfn: %#lx\n", __func__, max_pfn);
+--- a/arch/mips/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/mips/mm/init.c
+@@ -415,15 +415,7 @@ void __init paging_init(void)
+ 		       " %ldk highmem ignored\n",
+ 		       (highend_pfn - max_low_pfn) << (PAGE_SHIFT - 10));
+ 		max_zone_pfns[ZONE_HIGHMEM] = max_low_pfn;
+-
+-		max_mapnr = max_low_pfn;
+-	} else if (highend_pfn) {
+-		max_mapnr = highend_pfn;
+-	} else {
+-		max_mapnr = max_low_pfn;
+ 	}
+-#else
+-	max_mapnr = max_low_pfn;
+ #endif
+ 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+ 
+--- a/arch/nios2/kernel/setup.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/nios2/kernel/setup.c
+@@ -158,7 +158,6 @@ void __init setup_arch(char **cmdline_p)
+ 	*cmdline_p = boot_command_line;
+ 
+ 	find_limits(&min_low_pfn, &max_low_pfn, &max_pfn);
+-	max_mapnr = max_low_pfn;
+ 
+ 	memblock_reserve(__pa_symbol(_stext), _end - _stext);
+ #ifdef CONFIG_BLK_DEV_INITRD
+--- a/arch/nios2/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/nios2/mm/init.c
+@@ -51,7 +51,7 @@ void __init paging_init(void)
+ 	pagetable_init();
+ 	pgd_current = swapper_pg_dir;
+ 
+-	max_zone_pfn[ZONE_NORMAL] = max_mapnr;
++	max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
+ 
+ 	/* pass the memory from the bootmem allocator to the main allocator */
+ 	free_area_init(max_zone_pfn);
+--- a/arch/openrisc/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/openrisc/mm/init.c
+@@ -193,7 +193,6 @@ void __init mem_init(void)
+ {
+ 	BUG_ON(!mem_map);
+ 
+-	max_mapnr = max_low_pfn;
+ 	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
+ 
+ 	/* clear the zero-page */
+--- a/arch/parisc/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/parisc/mm/init.c
+@@ -563,7 +563,6 @@ void __init mem_init(void)
+ #endif
+ 
+ 	high_memory = __va((max_pfn << PAGE_SHIFT));
+-	set_max_mapnr(max_low_pfn);
+ 	memblock_free_all();
+ 
+ #ifdef CONFIG_PA11
+--- a/arch/powerpc/kernel/setup-common.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -957,8 +957,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	/* Parse memory topology */
+ 	mem_topology_setup();
+-	/* Set max_mapnr before paging_init() */
+-	set_max_mapnr(max_pfn);
+ 	high_memory = (void *)__va(max_low_pfn * PAGE_SIZE);
+ 
+ 	/*
+--- a/arch/riscv/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/riscv/mm/init.c
+@@ -298,7 +298,6 @@ static void __init setup_bootmem(void)
+ 	high_memory = (void *)(__va(PFN_PHYS(max_low_pfn)));
+ 
+ 	dma32_phys_limit = min(4UL * SZ_1G, (unsigned long)PFN_PHYS(max_low_pfn));
+-	set_max_mapnr(max_low_pfn - ARCH_PFN_OFFSET);
+ 
+ 	reserve_initrd_mem();
+ 
+--- a/arch/s390/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/s390/mm/init.c
+@@ -159,7 +159,6 @@ void __init mem_init(void)
+ 	cpumask_set_cpu(0, &init_mm.context.cpu_attach_mask);
+ 	cpumask_set_cpu(0, mm_cpumask(&init_mm));
+ 
+-	set_max_mapnr(max_low_pfn);
+         high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+ 
+ 	pv_init();
+--- a/arch/sh/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/sh/mm/init.c
+@@ -290,7 +290,6 @@ void __init paging_init(void)
+ 	 */
+ 	max_low_pfn = max_pfn = memblock_end_of_DRAM() >> PAGE_SHIFT;
+ 	min_low_pfn = __MEMORY_START >> PAGE_SHIFT;
+-	set_max_mapnr(max_low_pfn - min_low_pfn);
+ 
+ 	nodes_clear(node_online_map);
+ 
+--- a/arch/sparc/mm/init_32.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/sparc/mm/init_32.c
+@@ -275,7 +275,6 @@ void __init mem_init(void)
+ 
+ 	taint_real_pages();
+ 
+-	max_mapnr = last_valid_pfn - pfn_base;
+ 	high_memory = __va(max_low_pfn << PAGE_SHIFT);
+ 	memblock_free_all();
+ 
+--- a/arch/um/include/shared/mem_user.h~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/um/include/shared/mem_user.h
+@@ -47,7 +47,6 @@ extern int iomem_size;
+ #define ROUND_4M(n) ((((unsigned long) (n)) + (1 << 22)) & ~((1 << 22) - 1))
+ 
+ extern unsigned long find_iomem(char *driver, unsigned long *len_out);
+-extern void mem_total_pages(unsigned long physmem, unsigned long iomem);
+ extern void setup_physmem(unsigned long start, unsigned long usable,
+ 			  unsigned long len);
+ extern void map_memory(unsigned long virt, unsigned long phys,
+--- a/arch/um/kernel/physmem.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/um/kernel/physmem.c
+@@ -22,18 +22,6 @@ static int physmem_fd = -1;
+ unsigned long high_physmem;
+ EXPORT_SYMBOL(high_physmem);
+ 
+-void __init mem_total_pages(unsigned long physmem, unsigned long iomem)
+-{
+-	unsigned long phys_pages, iomem_pages, total_pages;
+-
+-	phys_pages  = physmem >> PAGE_SHIFT;
+-	iomem_pages = iomem   >> PAGE_SHIFT;
+-
+-	total_pages = phys_pages + iomem_pages;
+-
+-	max_mapnr = total_pages;
+-}
+-
+ void map_memory(unsigned long virt, unsigned long phys, unsigned long len,
+ 		int r, int w, int x)
+ {
+--- a/arch/um/kernel/um_arch.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/um/kernel/um_arch.c
+@@ -419,7 +419,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	stack_protections((unsigned long) init_task.stack);
+ 	setup_physmem(uml_physmem, uml_reserved, physmem_size);
+-	mem_total_pages(physmem_size, iomem_size);
+ 	uml_dtb_init();
+ 	read_initrd();
+ 
+--- a/arch/x86/mm/init_32.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/x86/mm/init_32.c
+@@ -650,9 +650,6 @@ void __init initmem_init(void)
+ 
+ 	memblock_set_node(0, PHYS_ADDR_MAX, &memblock.memory, 0);
+ 
+-#ifdef CONFIG_FLATMEM
+-	max_mapnr = IS_ENABLED(CONFIG_HIGHMEM) ? highend_pfn : max_low_pfn;
+-#endif
+ 	__vmalloc_start_set = true;
+ 
+ 	printk(KERN_NOTICE "%ldMB LOWMEM available.\n",
+--- a/arch/xtensa/mm/init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/arch/xtensa/mm/init.c
+@@ -164,7 +164,6 @@ void __init mem_init(void)
+ {
+ 	free_highpages();
+ 
+-	max_mapnr = max_pfn - ARCH_PFN_OFFSET;
  	high_memory = (void *)__va(max_low_pfn << PAGE_SHIFT);
  
  	memblock_free_all();
--
--	pr_info("virtual kernel memory layout:\n"
--#ifdef CONFIG_KASAN
--		"    kasan   : 0x%08lx - 0x%08lx  (%5lu MB)\n"
--#endif
--#ifdef CONFIG_MMU
--		"    vmalloc : 0x%08lx - 0x%08lx  (%5lu MB)\n"
--#endif
--#ifdef CONFIG_HIGHMEM
--		"    pkmap   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
--		"    fixmap  : 0x%08lx - 0x%08lx  (%5lu kB)\n"
--#endif
--		"    lowmem  : 0x%08lx - 0x%08lx  (%5lu MB)\n"
--		"    .text   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
--		"    .rodata : 0x%08lx - 0x%08lx  (%5lu kB)\n"
--		"    .data   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
--		"    .init   : 0x%08lx - 0x%08lx  (%5lu kB)\n"
--		"    .bss    : 0x%08lx - 0x%08lx  (%5lu kB)\n",
--#ifdef CONFIG_KASAN
--		KASAN_SHADOW_START, KASAN_SHADOW_START + KASAN_SHADOW_SIZE,
--		KASAN_SHADOW_SIZE >> 20,
--#endif
--#ifdef CONFIG_MMU
--		VMALLOC_START, VMALLOC_END,
--		(VMALLOC_END - VMALLOC_START) >> 20,
--#ifdef CONFIG_HIGHMEM
--		PKMAP_BASE, PKMAP_BASE + LAST_PKMAP * PAGE_SIZE,
--		(LAST_PKMAP*PAGE_SIZE) >> 10,
--		FIXADDR_START, FIXADDR_END,
--		(FIXADDR_END - FIXADDR_START) >> 10,
--#endif
--		PAGE_OFFSET, PAGE_OFFSET +
--		(max_low_pfn - min_low_pfn) * PAGE_SIZE,
--#else
--		min_low_pfn * PAGE_SIZE, max_low_pfn * PAGE_SIZE,
--#endif
--		((max_low_pfn - min_low_pfn) * PAGE_SIZE) >> 20,
--		(unsigned long)_text, (unsigned long)_etext,
--		(unsigned long)(_etext - _text) >> 10,
--		(unsigned long)__start_rodata, (unsigned long)__end_rodata,
--		(unsigned long)(__end_rodata - __start_rodata) >> 10,
--		(unsigned long)_sdata, (unsigned long)_edata,
--		(unsigned long)(_edata - _sdata) >> 10,
--		(unsigned long)__init_begin, (unsigned long)__init_end,
--		(unsigned long)(__init_end - __init_begin) >> 10,
--		(unsigned long)__bss_start, (unsigned long)__bss_stop,
--		(unsigned long)(__bss_stop - __bss_start) >> 10);
- }
+--- a/include/asm-generic/memory_model.h~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/include/asm-generic/memory_model.h
+@@ -19,11 +19,12 @@
+ #define __page_to_pfn(page)	((unsigned long)((page) - mem_map) + \
+ 				 ARCH_PFN_OFFSET)
  
- static void __init parse_memmap_one(char *p)
++/* avoid <linux/mm.h> include hell */
++extern unsigned long max_mapnr;
++
+ #ifndef pfn_valid
+ static inline int pfn_valid(unsigned long pfn)
+ {
+-	/* avoid <linux/mm.h> include hell */
+-	extern unsigned long max_mapnr;
+ 	unsigned long pfn_offset = ARCH_PFN_OFFSET;
+ 
+ 	return pfn >= pfn_offset && (pfn - pfn_offset) < max_mapnr;
+--- a/include/linux/mm.h~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/include/linux/mm.h
+@@ -46,17 +46,6 @@ extern int sysctl_page_lock_unfairness;
+ void mm_core_init(void);
+ void init_mm_internals(void);
+ 
+-#ifndef CONFIG_NUMA		/* Don't use mapnrs, do it properly */
+-extern unsigned long max_mapnr;
+-
+-static inline void set_max_mapnr(unsigned long limit)
+-{
+-	max_mapnr = limit;
+-}
+-#else
+-static inline void set_max_mapnr(unsigned long limit) { }
+-#endif
+-
+ extern atomic_long_t _totalram_pages;
+ static inline unsigned long totalram_pages(void)
+ {
+--- a/mm/memory.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/mm/memory.c
+@@ -95,14 +95,6 @@
+ #warning Unfortunate NUMA and NUMA Balancing config, growing page-frame for last_cpupid.
+ #endif
+ 
+-#ifndef CONFIG_NUMA
+-unsigned long max_mapnr;
+-EXPORT_SYMBOL(max_mapnr);
+-
+-struct page *mem_map;
+-EXPORT_SYMBOL(mem_map);
+-#endif
+-
+ static vm_fault_t do_fault(struct vm_fault *vmf);
+ static vm_fault_t do_anonymous_page(struct vm_fault *vmf);
+ static bool vmf_pte_changed(struct vm_fault *vmf);
+--- a/mm/mm_init.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/mm/mm_init.c
+@@ -37,6 +37,14 @@
+ 
+ #include <asm/setup.h>
+ 
++#ifndef CONFIG_NUMA
++unsigned long max_mapnr;
++EXPORT_SYMBOL(max_mapnr);
++
++struct page *mem_map;
++EXPORT_SYMBOL(mem_map);
++#endif
++
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+ int __meminitdata mminit_loglevel;
+ 
+@@ -1639,7 +1647,7 @@ static void __init alloc_node_mem_map(st
+ 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+ 	offset = pgdat->node_start_pfn - start;
+ 	/*
+-		 * The zone's endpoints aren't required to be MAX_PAGE_ORDER
++	 * The zone's endpoints aren't required to be MAX_PAGE_ORDER
+ 	 * aligned but the node_mem_map endpoints must be in order
+ 	 * for the buddy allocator to function correctly.
+ 	 */
+@@ -1655,14 +1663,15 @@ static void __init alloc_node_mem_map(st
+ 	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
+ 		 __func__, pgdat->node_id, (unsigned long)pgdat,
+ 		 (unsigned long)pgdat->node_mem_map);
+-#ifndef CONFIG_NUMA
++
+ 	/* the global mem_map is just set as node 0's */
+-	if (pgdat == NODE_DATA(0)) {
+-		mem_map = NODE_DATA(0)->node_mem_map;
+-		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= offset;
+-	}
+-#endif
++	WARN_ON(pgdat != NODE_DATA(0));
++
++	mem_map = pgdat->node_mem_map;
++	if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
++		mem_map -= offset;
++
++	max_mapnr = end - start;
+ }
+ #else
+ static inline void alloc_node_mem_map(struct pglist_data *pgdat) { }
+--- a/mm/nommu.c~arch-mm-set-max_mapnr-when-allocating-memory-map-for-flatmem
++++ a/mm/nommu.c
+@@ -44,16 +44,12 @@
+ 
+ void *high_memory;
+ EXPORT_SYMBOL(high_memory);
+-struct page *mem_map;
+-unsigned long max_mapnr;
+-EXPORT_SYMBOL(max_mapnr);
+ unsigned long highest_memmap_pfn;
+ int sysctl_nr_trim_pages = CONFIG_NOMMU_INITIAL_TRIM_EXCESS;
+ int heap_stack_gap = 0;
+ 
+ atomic_long_t mmap_pages_allocated;
+ 
+-EXPORT_SYMBOL(mem_map);
+ 
+ /* list of mapped, potentially shareable regions */
+ static struct kmem_cache *vm_region_jar;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
