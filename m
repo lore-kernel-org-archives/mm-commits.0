@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C25F81F6667
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754EB1F7569
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741903535; cv=none; b=N2QlwvfWeeXocEaDrLhVZb+HE6Yh20NYmb0SeTiuYsHSjXV9Jdn7ok+hqYmQ+9KeJezUyZ95JBk5B8h2IZLfjOLlwXDU6w5Yf/Nz2+KDhxJnCh75TQwnbRMW/ybJWsRNtL+Igv3xPbl9o4CFljq4ssPldcociAOjPnQ9tJXykLU=
+	t=1741903537; cv=none; b=ppYZ2Wmbwih4ZGvmZhNl1EjwESqeeEYjE+jIwitLu5QHvCE6X2WCDhWJi1AsaIPkXHfM8Lmlmd56D4KxGmZE8jubHzbC/q0OwLMvkSw7Wvj27Esuig3VfFzoZ7ao8o9FPw/Qee/ptSU0OFxmaP26ObSV3XQtH/loOeYMpmaMHKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741903535; c=relaxed/simple;
-	bh=PCNFHM7YyTb260oir3nYz9aRJWEoqFysgIFmAS/K908=;
-	h=Date:To:From:Subject:Message-Id; b=VfU3ujRx9M2mmAd4FpzNrDTm9m6B8f1QXSP8KdiflqCDrG2xL5RTxq1cPzAwYYjkxRKHx4IMPtnGmMTTEYIlMHV76k9dIiZpIfM1AG/xPoStvLu9pYr2w5JaAaFnW56qbICDeJaZsC/jIDylfTvlQj3DipkJ+Qr2k+BDH0OV7RM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CIuELtmw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741903537; c=relaxed/simple;
+	bh=DCY/Oiwx3OHV/98luJlme4z4yEKYfpZPSl/xEFkJ0S0=;
+	h=Date:To:From:Subject:Message-Id; b=SMvEt/7Euoe+YfRoPR17G3HWM07q5mKQ1w3KouMcMroaCgX9dTJ9dOel8FXEbSHxoDI8KxTejcG+bjPmRQCHRcAoQWO5+Vt4+xCseF14hT3+AD953pTLKOKb0ulHPSdsm0OjpRX7Aanly3atc2eqXjqOIxwuNfqgAF4AEfmpsPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TMyJKWnt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CIuELtmw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84AE9C4CEDD;
-	Thu, 13 Mar 2025 22:05:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TMyJKWnt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E388FC4CEDD;
+	Thu, 13 Mar 2025 22:05:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741903535;
-	bh=PCNFHM7YyTb260oir3nYz9aRJWEoqFysgIFmAS/K908=;
+	s=korg; t=1741903537;
+	bh=DCY/Oiwx3OHV/98luJlme4z4yEKYfpZPSl/xEFkJ0S0=;
 	h=Date:To:From:Subject:From;
-	b=CIuELtmw3AB5tCmpiuib7G5AahA5+obyC85Dy+0ylWg1eKVgOcAF7odT5I+C/rZHQ
-	 WIIYi/+Q881GHt4k8XbBIeCCRUF7mZEzcjoh8nk4WLcnpkoo/E/qyoHD4vkIpPvM/A
-	 v0g8sCljy9Hw5TvT+nQ3iPXQZBdQYLQbqzeVk9UY=
-Date: Thu, 13 Mar 2025 15:05:35 -0700
+	b=TMyJKWntiV65ntOG0iX8+gyg35jrRoHqz4MSdwX4vC/Ujkr6ObkskTBORFqZfIu7T
+	 +mXjI6rHiYnneX7yRFhXnN4AM/bNCBwEuaBs8/tNoyv+Ff8cAndqoL2TpoayJWKjzG
+	 Ay8rTUaAtNVx9MDCsUj1HMzFncUW53J5KYT7V4IE=
+Date: Thu, 13 Mar 2025 15:05:36 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,ville.syrjala@linux.intel.com,tzimmermann@suse.de,tglx@linutronix.de,rmoar@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,naresh.kamboju@linaro.org,mripard@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mcanal@igalia.com,maarten.lankhorst@linux.intel.com,lkft@linaro.org,keescook@chromium.org,jani.nikula@intel.com,horms@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,deller@gmx.de,davidgow@google.com,dave.hansen@linux.intel.com,daniel@ffwll.ch,daniel.diaz@linaro.org,dan.carpenter@linaro.org,dalias@libc.org,chenhuacai@kernel.org,charlie@rivosinc.com,catalin.marinas@arm.com,brendan.higgins@linux.dev,bp@alien8.de,arthurgrillo@riseup.net,arnd@arndb.de,aou@eecs.berkeley.edu,airlied@gmail.com,agordeev@linux.ibm.com,acarmina@redhat.com,linux@roeck-us.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-add-support-for-suppressing-warning-backtraces.patch added to mm-nonmm-unstable branch
-Message-Id: <20250313220535.84AE9C4CEDD@smtp.kernel.org>
+Subject: + sh-move-defines-needed-for-suppressing-warning-backtraces.patch added to mm-nonmm-unstable branch
+Message-Id: <20250313220536.E388FC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh: Add support for suppressing warning backtraces
+     Subject: sh: move defines needed for suppressing warning backtraces
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     sh-add-support-for-suppressing-warning-backtraces.patch
+     sh-move-defines-needed-for-suppressing-warning-backtraces.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-add-support-for-suppressing-warning-backtraces.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-move-defines-needed-for-suppressing-warning-backtraces.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: sh: Add support for suppressing warning backtraces
-Date: Thu, 13 Mar 2025 11:43:26 +0000
+Subject: sh: move defines needed for suppressing warning backtraces
+Date: Thu, 13 Mar 2025 11:43:27 +0000
 
-Add name of functions triggering warning backtraces to the __bug_table
-object section to enable support for suppressing WARNING backtraces.
+Declaring the defines needed for suppressing warning inside
+'#ifdef CONFIG_DEBUG_BUGVERBOSE' results in a kerneldoc warning.
 
-To limit image size impact, the pointer to the function name is only added
-to the __bug_table section if both CONFIG_KUNIT_SUPPRESS_BACKTRACE and
-CONFIG_DEBUG_BUGVERBOSE are enabled.  Otherwise, the __func__ assembly
-parameter is replaced with a (dummy) NULL parameter to avoid an image size
-increase due to unused __func__ entries (this is necessary because
-__func__ is not a define but a virtual variable).
+.../bug.h:29: warning: expecting prototype for _EMIT_BUG_ENTRY().
+	Prototype was for HAVE_BUG_FUNCTION() instead
 
-Link: https://lkml.kernel.org/r/20250313114329.284104-12-acarmina@redhat.com
+Move the defines above the kerneldoc entry for _EMIT_BUG_ENTRY
+to make kerneldoc happy.
+
+Link: https://lkml.kernel.org/r/20250313114329.284104-13-acarmina@redhat.com
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Alessandro Carminati <acarmina@redhat.com>
-Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Acked-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reported-by: Simon Horman <horms@kernel.org>
+Cc: Simon Horman <horms@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Rich Felker <dalias@libc.org>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
@@ -88,6 +87,7 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Charlie Jenkins <charlie@rivosinc.com>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Cc: Daniel Diaz <daniel.diaz@linaro.org>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Dave Airlie <airlied@gmail.com>
@@ -99,6 +99,7 @@ Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Linux Kernel Functional Testing <lkft@linaro.org>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maíra Canal <mcanal@igalia.com>
 Cc: Maxime Ripard <mripard@kernel.org>
@@ -107,7 +108,6 @@ Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Rae Moar <rmoar@google.com>
-Cc: Simon Horman <horms@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -116,76 +116,41 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/bug.h |   26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ arch/sh/include/asm/bug.h |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/arch/sh/include/asm/bug.h~sh-add-support-for-suppressing-warning-backtraces
+--- a/arch/sh/include/asm/bug.h~sh-move-defines-needed-for-suppressing-warning-backtraces
 +++ a/arch/sh/include/asm/bug.h
-@@ -24,21 +24,36 @@
-  * The offending file and line are encoded in the __bug_table section.
-  */
- #ifdef CONFIG_DEBUG_BUGVERBOSE
-+
+@@ -11,6 +11,15 @@
+ #define HAVE_ARCH_BUG
+ #define HAVE_ARCH_WARN_ON
+ 
++#ifdef CONFIG_DEBUG_BUGVERBOSE
 +#ifdef CONFIG_KUNIT_SUPPRESS_BACKTRACE
 +# define HAVE_BUG_FUNCTION
 +# define __BUG_FUNC_PTR	"\t.long %O2\n"
 +#else
 +# define __BUG_FUNC_PTR
 +#endif /* CONFIG_KUNIT_SUPPRESS_BACKTRACE */
++#endif /* CONFIG_DEBUG_BUGVERBOSE */
 +
+ /**
+  * _EMIT_BUG_ENTRY
+  * %1 - __FILE__
+@@ -25,13 +34,6 @@
+  */
+ #ifdef CONFIG_DEBUG_BUGVERBOSE
+ 
+-#ifdef CONFIG_KUNIT_SUPPRESS_BACKTRACE
+-# define HAVE_BUG_FUNCTION
+-# define __BUG_FUNC_PTR	"\t.long %O2\n"
+-#else
+-# define __BUG_FUNC_PTR
+-#endif /* CONFIG_KUNIT_SUPPRESS_BACKTRACE */
+-
  #define _EMIT_BUG_ENTRY				\
  	"\t.pushsection __bug_table,\"aw\"\n"	\
  	"2:\t.long 1b, %O1\n"			\
--	"\t.short %O2, %O3\n"			\
--	"\t.org 2b+%O4\n"			\
-+	__BUG_FUNC_PTR				\
-+	"\t.short %O3, %O4\n"			\
-+	"\t.org 2b+%O5\n"			\
- 	"\t.popsection\n"
- #else
- #define _EMIT_BUG_ENTRY				\
- 	"\t.pushsection __bug_table,\"aw\"\n"	\
- 	"2:\t.long 1b\n"			\
--	"\t.short %O3\n"			\
--	"\t.org 2b+%O4\n"			\
-+	"\t.short %O4\n"			\
-+	"\t.org 2b+%O5\n"			\
- 	"\t.popsection\n"
- #endif
- 
-+#ifdef HAVE_BUG_FUNCTION
-+# define __BUG_FUNC	__func__
-+#else
-+# define __BUG_FUNC	NULL
-+#endif
-+
- #define BUG()						\
- do {							\
- 	__asm__ __volatile__ (				\
-@@ -47,6 +62,7 @@ do {							\
- 		 :					\
- 		 : "n" (TRAPA_BUG_OPCODE),		\
- 		   "i" (__FILE__),			\
-+		   "i" (__BUG_FUNC),			\
- 		   "i" (__LINE__), "i" (0),		\
- 		   "i" (sizeof(struct bug_entry)));	\
- 	unreachable();					\
-@@ -60,6 +76,7 @@ do {							\
- 		 :					\
- 		 : "n" (TRAPA_BUG_OPCODE),		\
- 		   "i" (__FILE__),			\
-+		   "i" (__BUG_FUNC),			\
- 		   "i" (__LINE__),			\
- 		   "i" (BUGFLAG_WARNING|(flags)),	\
- 		   "i" (sizeof(struct bug_entry)));	\
-@@ -85,6 +102,7 @@ do {							\
- 		 :					\
- 		 : "n" (TRAPA_BUG_OPCODE),		\
- 		   "i" (__FILE__),			\
-+		   "i" (__BUG_FUNC),			\
- 		   "i" (__LINE__),			\
- 		   "i" (BUGFLAG_UNWINDER),		\
- 		   "i" (sizeof(struct bug_entry)));	\
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
