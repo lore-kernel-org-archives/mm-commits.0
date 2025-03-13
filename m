@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E224E1F55ED
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:35:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36DCB1F461C
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741901748; cv=none; b=qBv6EoCPzaQnFFMvgsw6Iaz+PEQBvTbaa0uzbSnEwJC3i9MZdrUzEOMqBGmXtK7URnUOCbX/1qlhEg7fYk0L2BrlDq/1zcYyVGGlC83y5Dk6LG9DRvd/Q6DqL6F/JCJLljmGNJ/6uAqT5OH+3tMpZ1cxIWg9dR5CorYsu4uR3Bo=
+	t=1741903518; cv=none; b=kYsjaEcxdY6VHIn2Gad3xf/7XFCKju1xFeLvrsktSTQf/51HULwhQ6GnfLB9NcElKe6qsKqcASv4mNM1OL0zylAF2hP+b9dEVD9FcnRYv4rJlXfAHYmW+5g8oqFpXYp3xsKLfrMxoBU2W8i5TyUaEGtA4TrOveg0rmLhoEF7yes=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741901748; c=relaxed/simple;
-	bh=JJfGWa2E3YvjwaGmo9DM/yFgEv0xaRjZpx45XXvMtlw=;
-	h=Date:To:From:Subject:Message-Id; b=DQJ5vkmFW60MYXBn6Do9G1YdCZyWdNDsA1Acm9kDH8Jq4iWEfAr07Zc3fTXmjoNq2rqg4Vj6BbFYWRFuTzfuiuAH9/FZjcMcUoM4O2hmZfJre39pDNiYDDnh08fEV5UgiygpChzTKdgWZ0fUf+00qLMRpY2jnUV/pbXG5VpWuC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y2Zk59q1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741903518; c=relaxed/simple;
+	bh=c7pkWReyXGQwwS8bNEwVUmGVHB7ao9GZX4zyEnwZAO0=;
+	h=Date:To:From:Subject:Message-Id; b=kDjuFiOv5WarzJmzHC/QIjsaNuyPxIW7PkF/uk8CikyPxk62QUqFCSG4zDNq2HV0Cs1WtkVm5cOM6AsJZeGVgFm+C7Gs/o4UYNGGpCQZHnT3XJEqhAT5yTjpMl/j6X5ZlSkgGsH45nafoYHMIuOr2FKzDNIR3VhvFV2ptzJkB6s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K6EzW9h8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y2Zk59q1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1901C116C6;
-	Thu, 13 Mar 2025 21:35:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K6EzW9h8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8931FC4CEDD;
+	Thu, 13 Mar 2025 22:05:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741901747;
-	bh=JJfGWa2E3YvjwaGmo9DM/yFgEv0xaRjZpx45XXvMtlw=;
+	s=korg; t=1741903517;
+	bh=c7pkWReyXGQwwS8bNEwVUmGVHB7ao9GZX4zyEnwZAO0=;
 	h=Date:To:From:Subject:From;
-	b=Y2Zk59q1DxpOua4IYPD6wqDygtfqr3sw3MUuxR/uszrSyXTENiykBs6iQt8hb6WuU
-	 PZUSdd/9U+bD0jIocBiMGbrEuYZcJbxWDqScEmitaF1JnF3PVkASb73adzWh6KhB3i
-	 YvnvJnlQPekNDTBqAgnkkZscbfL3c6AK5CGqa7As=
-Date: Thu, 13 Mar 2025 14:35:47 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=K6EzW9h8WuXgFCDI4Y+FfjdbfHNjzqVNtGUjRLDIfjuhAW+Jzrja9KtEXA2qhXR4r
+	 6VUMmZep96Re5+fJG9uDZEOreQlpLzzNZmPA2Z/ARh3Y1oq1oHeXRnWjdv8g5rPNil
+	 QkDAoIZpWVJnc20w9niMcjoz5S4hcdAn5wjdDYsc=
+Date: Thu, 13 Mar 2025 15:05:17 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,ville.syrjala@linux.intel.com,tzimmermann@suse.de,tglx@linutronix.de,rmoar@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,naresh.kamboju@linaro.org,mripard@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mcanal@igalia.com,maarten.lankhorst@linux.intel.com,lkft@linaro.org,keescook@chromium.org,jani.nikula@intel.com,horms@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,deller@gmx.de,davidgow@google.com,dave.hansen@linux.intel.com,daniel@ffwll.ch,daniel.diaz@linaro.org,dan.carpenter@linaro.org,dalias@libc.org,chenhuacai@kernel.org,charlie@rivosinc.com,catalin.marinas@arm.com,brendan.higgins@linux.dev,bp@alien8.de,arthurgrillo@riseup.net,arnd@arndb.de,aou@eecs.berkeley.edu,airlied@gmail.com,agordeev@linux.ibm.com,acarmina@redhat.com,linux@roeck-us.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch added to mm-unstable branch
-Message-Id: <20250313213547.A1901C116C6@smtp.kernel.org>
+Subject: + bug-kunit-core-support-for-suppressing-warning-backtraces.patch added to mm-nonmm-unstable branch
+Message-Id: <20250313220517.8931FC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: defrag_mode kswapd/kcompactd watermarks
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch
+     Subject: bug/kunit: core support for suppressing warning backtraces
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     bug-kunit-core-support-for-suppressing-warning-backtraces.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bug-kunit-core-support-for-suppressing-warning-backtraces.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,364 +58,476 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: defrag_mode kswapd/kcompactd watermarks
-Date: Thu, 13 Mar 2025 17:05:36 -0400
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: bug/kunit: core support for suppressing warning backtraces
+Date: Thu, 13 Mar 2025 11:43:16 +0000
 
-The previous patch added pageblock_order reclaim to kswapd/kcompactd,
-which helps, but produces only one block at a time.  Allocation stalls and
-THP failure rates are still higher than they could be.
+Patch series "Add support for suppressing warning backtraces", v4.
 
-To adequately reflect ALLOC_NOFRAGMENT demand for pageblocks, change the
-watermarking for kswapd & kcompactd: instead of targeting the high
-watermark in order-0 pages and checking for one suitable block, simply
-require that the high watermark is entirely met in pageblocks.
+Some unit tests intentionally trigger warning backtraces by passing bad
+parameters to kernel API functions.  Such unit tests typically check the
+return value from such calls, not the existence of the warning backtrace.
 
-To this end, track the number of free pages within contiguous pageblocks,
-then change pgdat_balanced() and compact_finished() to check watermarks
-against this new value.
+Such intentionally generated warning backtraces are neither desirable
+nor useful for a number of reasons.
+- They can result in overlooked real problems.
+- A warning that suddenly starts to show up in unit tests needs to be
+  investigated and has to be marked to be ignored, for example by
+  adjusting filter scripts. Such filters are ad-hoc because there is
+  no real standard format for warnings. On top of that, such filter
+  scripts would require constant maintenance.
 
-This further reduces THP latencies and allocation stalls, and improves THP
-success rates against the previous patch:
+One option to address problem would be to add messages such as "expected
+warning backtraces start / end here" to the kernel log.  However, that
+would again require filter scripts, it might result in missing real
+problematic warning backtraces triggered while the test is running, and
+the irrelevant backtrace(s) would still clog the kernel log.
 
-                                       DEFRAGMODE-ASYNC DEFRAGMODE-ASYNC-WMARKS
-Hugealloc Time mean               34300.36 (    +0.00%)   28904.00 (   -15.73%)
-Hugealloc Time stddev             36390.42 (    +0.00%)   33464.37 (    -8.04%)
-Kbuild Real time                    196.13 (    +0.00%)     196.59 (    +0.23%)
-Kbuild User time                   1234.74 (    +0.00%)    1231.67 (    -0.25%)
-Kbuild System time                   62.62 (    +0.00%)      59.10 (    -5.54%)
-THP fault alloc                   57054.53 (    +0.00%)   63223.67 (   +10.81%)
-THP fault fallback                11581.40 (    +0.00%)    5412.47 (   -53.26%)
-Direct compact fail                 107.80 (    +0.00%)      59.07 (   -44.79%)
-Direct compact success                4.53 (    +0.00%)       2.80 (   -31.33%)
-Direct compact success rate %         3.20 (    +0.00%)       3.99 (   +18.66%)
-Compact daemon scanned migrate  5461033.93 (    +0.00%) 2267500.33 (   -58.48%)
-Compact daemon scanned free     5824897.93 (    +0.00%) 2339773.00 (   -59.83%)
-Compact direct scanned migrate    58336.93 (    +0.00%)   47659.93 (   -18.30%)
-Compact direct scanned free       32791.87 (    +0.00%)   40729.67 (   +24.21%)
-Compact total migrate scanned   5519370.87 (    +0.00%) 2315160.27 (   -58.05%)
-Compact total free scanned      5857689.80 (    +0.00%) 2380502.67 (   -59.36%)
-Alloc stall                        2424.60 (    +0.00%)     638.87 (   -73.62%)
-Pages kswapd scanned            2657018.33 (    +0.00%) 4002186.33 (   +50.63%)
-Pages kswapd reclaimed           559583.07 (    +0.00%)  718577.80 (   +28.41%)
-Pages direct scanned             722094.07 (    +0.00%)  355172.73 (   -50.81%)
-Pages direct reclaimed           107257.80 (    +0.00%)   31162.80 (   -70.95%)
-Pages total scanned             3379112.40 (    +0.00%) 4357359.07 (   +28.95%)
-Pages total reclaimed            666840.87 (    +0.00%)  749740.60 (   +12.43%)
-Swap out                          77238.20 (    +0.00%)  110084.33 (   +42.53%)
-Swap in                           11712.80 (    +0.00%)   24457.00 (  +108.80%)
-File refaults                    143438.80 (    +0.00%)  188226.93 (   +31.22%)
+Solve the problem by providing a means to identify and suppress specific
+warning backtraces while executing test code.  Support suppressing
+multiple backtraces while at the same time limiting changes to generic
+code to the absolute minimum.  Architecture specific changes are kept at
+minimum by retaining function names only if both CONFIG_DEBUG_BUGVERBOSE
+and CONFIG_KUNIT are enabled.
 
-Also of note is that compaction work overall is reduced.  The reason for
-this is that when free pageblocks are more readily available, allocations
-are also much more likely to get physically placed in LRU order, instead
-of being forced to scavenge free space here and there.  This means that
-reclaim by itself has better chances of freeing up whole blocks, and the
-system relies less on compaction.
+The first patch of the series introduces the necessary infrastructure. 
+The second patch introduces support for counting suppressed backtraces. 
+This capability is used in patch three to implement unit tests.  Patch
+four documents the new API.
 
-Comparing all changes to the vanilla kernel:
+The next two patches add support for suppressing backtraces in drm_rect
+and dev_addr_lists unit tests.  These patches are intended to serve as
+examples for the use of the functionality introduced with this series.
 
-                                                VANILLA DEFRAGMODE-ASYNC-WMARKS
-Hugealloc Time mean               52739.45 (    +0.00%)   28904.00 (   -45.19%)
-Hugealloc Time stddev             56541.26 (    +0.00%)   33464.37 (   -40.81%)
-Kbuild Real time                    197.47 (    +0.00%)     196.59 (    -0.44%)
-Kbuild User time                   1240.49 (    +0.00%)    1231.67 (    -0.71%)
-Kbuild System time                   70.08 (    +0.00%)      59.10 (   -15.45%)
-THP fault alloc                   46727.07 (    +0.00%)   63223.67 (   +35.30%)
-THP fault fallback                21910.60 (    +0.00%)    5412.47 (   -75.29%)
-Direct compact fail                 195.80 (    +0.00%)      59.07 (   -69.48%)
-Direct compact success                7.93 (    +0.00%)       2.80 (   -57.46%)
-Direct compact success rate %         3.51 (    +0.00%)       3.99 (   +10.49%)
-Compact daemon scanned migrate  3369601.27 (    +0.00%) 2267500.33 (   -32.71%)
-Compact daemon scanned free     5075474.47 (    +0.00%) 2339773.00 (   -53.90%)
-Compact direct scanned migrate   161787.27 (    +0.00%)   47659.93 (   -70.54%)
-Compact direct scanned free      163467.53 (    +0.00%)   40729.67 (   -75.08%)
-Compact total migrate scanned   3531388.53 (    +0.00%) 2315160.27 (   -34.44%)
-Compact total free scanned      5238942.00 (    +0.00%) 2380502.67 (   -54.56%)
-Alloc stall                        2371.07 (    +0.00%)     638.87 (   -73.02%)
-Pages kswapd scanned            2160926.73 (    +0.00%) 4002186.33 (   +85.21%)
-Pages kswapd reclaimed           533191.07 (    +0.00%)  718577.80 (   +34.77%)
-Pages direct scanned             400450.33 (    +0.00%)  355172.73 (   -11.31%)
-Pages direct reclaimed            94441.73 (    +0.00%)   31162.80 (   -67.00%)
-Pages total scanned             2561377.07 (    +0.00%) 4357359.07 (   +70.12%)
-Pages total reclaimed            627632.80 (    +0.00%)  749740.60 (   +19.46%)
-Swap out                          47959.53 (    +0.00%)  110084.33 (  +129.53%)
-Swap in                            7276.00 (    +0.00%)   24457.00 (  +236.10%)
-File refaults                    138043.00 (    +0.00%)  188226.93 (   +36.35%)
+The remaining patches implement the necessary changes for all
+architectures with GENERIC_BUG support.
 
-THP allocation latencies and %sys time are down dramatically.
+With CONFIG_KUNIT enabled, image size increase with this series applied is
+approximately 1%.  The image size increase (and with it the functionality
+introduced by this series) can be avoided by disabling
+CONFIG_KUNIT_SUPPRESS_BACKTRACE.
 
-THP allocation failures are down from nearly 50% to 8.5%.  And to recall
-previous data points, the success rates are steady and reliable without
-the cumulative deterioration of fragmentation events.
 
-Compaction work is down overall.  Direct compaction work especially is
-drastically reduced.  As an aside, its success rate of 4% indicates there
-is room for improvement.  For now it's good to rely on it less.
+This patch (of 14):
 
-Reclaim work is up overall, however direct reclaim work is down.  Part of
-the increase can be attributed to a higher use of THPs, which due to
-internal fragmentation increase the memory footprint.  This is not
-necessarily an unexpected side-effect for users of THP.
+Some unit tests intentionally trigger warning backtraces by passing bad
+parameters to API functions.  Such unit tests typically check the return
+value from those calls, not the existence of the warning backtrace.
 
-However, taken both points together, there may well be some opportunities
-for fine tuning in the reclaim/compaction coordination.
+Such intentionally generated warning backtraces are neither desirable
+nor useful for a number of reasons.
+- They can result in overlooked real problems.
+- A warning that suddenly starts to show up in unit tests needs to be
+  investigated and has to be marked to be ignored, for example by
+  adjusting filter scripts. Such filters are ad-hoc because there is
+  no real standard format for warnings. On top of that, such filter
+  scripts would require constant maintenance.
 
-Link: https://lkml.kernel.org/r/20250313210647.1314586-6-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+One option to address problem would be to add messages such as "expected
+warning backtraces start / end here" to the kernel log.  However, that
+would again require filter scripts, it might result in missing real
+problematic warning backtraces triggered while the test is running, and
+the irrelevant backtrace(s) would still clog the kernel log.
+
+Solve the problem by providing a means to identify and suppress specific
+warning backtraces while executing test code.  Since the new functionality
+results in an image size increase of about 1% if CONFIG_KUNIT is enabled,
+provide configuration option KUNIT_SUPPRESS_BACKTRACE to be able to
+disable the new functionality.  This option is by default enabled since
+almost all systems with CONFIG_KUNIT enabled will want to benefit from it.
+
+Link: https://lkml.kernel.org/r/20250313114329.284104-1-acarmina@redhat.com
+Link: https://lkml.kernel.org/r/20250313114329.284104-2-acarmina@redhat.com
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Alessandro Carminati <acarmina@redhat.com>
+Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
+Acked-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Daniel Diaz <daniel.diaz@linaro.org>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Arthur Grillo <arthurgrillo@riseup.net>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Guenetr Roeck <linux@roeck-us.net>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maíra Canal <mcanal@igalia.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
+Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Charlie Jenkins <charlie@rivosinc.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rae Moar <rmoar@google.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/compaction.c        |   37 ++++++++++++++++++++++++++++++-------
- mm/internal.h          |    1 +
- mm/page_alloc.c        |   29 +++++++++++++++++++++++------
- mm/vmscan.c            |   15 ++++++++++++++-
- mm/vmstat.c            |    1 +
- 6 files changed, 70 insertions(+), 14 deletions(-)
+ include/asm-generic/bug.h |   16 +++++++++--
+ include/kunit/bug.h       |   51 ++++++++++++++++++++++++++++++++++++
+ include/kunit/test.h      |    1 
+ include/linux/bug.h       |   13 +++++++++
+ lib/bug.c                 |   51 +++++++++++++++++++++++++++++++++---
+ lib/kunit/Kconfig         |    9 ++++++
+ lib/kunit/Makefile        |    6 ++--
+ lib/kunit/bug.c           |   40 ++++++++++++++++++++++++++++
+ 8 files changed, 178 insertions(+), 9 deletions(-)
 
---- a/include/linux/mmzone.h~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/include/linux/mmzone.h
-@@ -138,6 +138,7 @@ enum numa_stat_item {
- enum zone_stat_item {
- 	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
-+	NR_FREE_PAGES_BLOCKS,
- 	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
- 	NR_ZONE_INACTIVE_ANON = NR_ZONE_LRU_BASE,
- 	NR_ZONE_ACTIVE_ANON,
---- a/mm/compaction.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/compaction.c
-@@ -2329,6 +2329,22 @@ static enum compact_result __compact_fin
- 	if (!pageblock_aligned(cc->migrate_pfn))
- 		return COMPACT_CONTINUE;
+--- a/include/asm-generic/bug.h~bug-kunit-core-support-for-suppressing-warning-backtraces
++++ a/include/asm-generic/bug.h
+@@ -18,6 +18,7 @@
+ #endif
  
-+	/*
-+	 * When defrag_mode is enabled, make kcompactd target
-+	 * watermarks in whole pageblocks. Because they can be stolen
-+	 * without polluting, no further fallback checks are needed.
-+	 */
-+	if (defrag_mode && !cc->direct_compaction) {
-+		if (__zone_watermark_ok(cc->zone, cc->order,
-+					high_wmark_pages(cc->zone),
-+					cc->highest_zoneidx, cc->alloc_flags,
-+					zone_page_state(cc->zone,
-+							NR_FREE_PAGES_BLOCKS)))
-+			return COMPACT_SUCCESS;
+ #ifndef __ASSEMBLY__
++#include <kunit/bug.h>
+ #include <linux/panic.h>
+ #include <linux/printk.h>
+ 
+@@ -39,8 +40,14 @@ struct bug_entry {
+ #ifdef CONFIG_DEBUG_BUGVERBOSE
+ #ifndef CONFIG_GENERIC_BUG_RELATIVE_POINTERS
+ 	const char	*file;
++#ifdef HAVE_BUG_FUNCTION
++	const char      *function;
++#endif
+ #else
+ 	signed int	file_disp;
++#ifdef HAVE_BUG_FUNCTION
++	signed int	function_disp;
++#endif
+ #endif
+ 	unsigned short	line;
+ #endif
+@@ -96,15 +103,18 @@ extern __printf(1, 2) void __warn_printk
+ #define __WARN()		__WARN_printf(TAINT_WARN, NULL)
+ #define __WARN_printf(taint, arg...) do {				\
+ 		instrumentation_begin();				\
+-		warn_slowpath_fmt(__FILE__, __LINE__, taint, arg);	\
++		if (!KUNIT_IS_SUPPRESSED_WARNING(__func__))			\
++			warn_slowpath_fmt(__FILE__, __LINE__, taint, arg);\
+ 		instrumentation_end();					\
+ 	} while (0)
+ #else
+ #define __WARN()		__WARN_FLAGS(BUGFLAG_TAINT(TAINT_WARN))
+ #define __WARN_printf(taint, arg...) do {				\
+ 		instrumentation_begin();				\
+-		__warn_printk(arg);					\
+-		__WARN_FLAGS(BUGFLAG_NO_CUT_HERE | BUGFLAG_TAINT(taint));\
++		if (!KUNIT_IS_SUPPRESSED_WARNING(__func__)) {			\
++			__warn_printk(arg);				\
++			__WARN_FLAGS(BUGFLAG_NO_CUT_HERE | BUGFLAG_TAINT(taint));\
++		}							\
+ 		instrumentation_end();					\
+ 	} while (0)
+ #define WARN_ON_ONCE(condition) ({				\
+diff --git a/include/kunit/bug.h a/include/kunit/bug.h
+new file mode 100644
+--- /dev/null
++++ a/include/kunit/bug.h
+@@ -0,0 +1,51 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * KUnit helpers for backtrace suppression
++ *
++ * Copyright (c) 2024 Guenter Roeck <linux@roeck-us.net>
++ */
 +
-+		return COMPACT_CONTINUE;
-+	}
++#ifndef _KUNIT_BUG_H
++#define _KUNIT_BUG_H
 +
- 	/* Direct compactor: Is a suitable page free? */
- 	ret = COMPACT_NO_SUITABLE_PAGE;
- 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
-@@ -2496,13 +2512,19 @@ bool compaction_zonelist_suitable(struct
- static enum compact_result
- compaction_suit_allocation_order(struct zone *zone, unsigned int order,
- 				 int highest_zoneidx, unsigned int alloc_flags,
--				 bool async)
-+				 bool async, bool kcompactd)
- {
-+	unsigned long free_pages;
- 	unsigned long watermark;
- 
-+	if (kcompactd && defrag_mode)
-+		free_pages = zone_page_state(zone, NR_FREE_PAGES_BLOCKS);
-+	else
-+		free_pages = zone_page_state(zone, NR_FREE_PAGES);
++#ifndef __ASSEMBLY__
 +
- 	watermark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
--	if (zone_watermark_ok(zone, order, watermark, highest_zoneidx,
--			      alloc_flags))
-+	if (__zone_watermark_ok(zone, order, watermark, highest_zoneidx,
-+				alloc_flags, free_pages))
- 		return COMPACT_SUCCESS;
- 
- 	/*
-@@ -2558,7 +2580,8 @@ compact_zone(struct compact_control *cc,
- 		ret = compaction_suit_allocation_order(cc->zone, cc->order,
- 						       cc->highest_zoneidx,
- 						       cc->alloc_flags,
--						       cc->mode == MIGRATE_ASYNC);
-+						       cc->mode == MIGRATE_ASYNC,
-+						       !cc->direct_compaction);
- 		if (ret != COMPACT_CONTINUE)
- 			return ret;
- 	}
-@@ -3062,7 +3085,7 @@ static bool kcompactd_node_suitable(pg_d
- 		ret = compaction_suit_allocation_order(zone,
- 				pgdat->kcompactd_max_order,
- 				highest_zoneidx, ALLOC_WMARK_MIN,
--				false);
-+				false, true);
- 		if (ret == COMPACT_CONTINUE)
- 			return true;
- 	}
-@@ -3085,7 +3108,7 @@ static void kcompactd_do_work(pg_data_t
- 		.mode = MIGRATE_SYNC_LIGHT,
- 		.ignore_skip_hint = false,
- 		.gfp_mask = GFP_KERNEL,
--		.alloc_flags = ALLOC_WMARK_MIN,
-+		.alloc_flags = ALLOC_WMARK_HIGH,
- 	};
- 	enum compact_result ret;
- 
-@@ -3105,7 +3128,7 @@ static void kcompactd_do_work(pg_data_t
- 
- 		ret = compaction_suit_allocation_order(zone,
- 				cc.order, zoneid, cc.alloc_flags,
--				false);
-+				false, true);
- 		if (ret != COMPACT_CONTINUE)
- 			continue;
- 
---- a/mm/internal.h~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/internal.h
-@@ -536,6 +536,7 @@ extern char * const zone_names[MAX_NR_ZO
- DECLARE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
- 
- extern int min_free_kbytes;
-+extern int defrag_mode;
- 
- void setup_per_zone_wmarks(void);
- void calculate_min_free_kbytes(void);
---- a/mm/page_alloc.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/page_alloc.c
-@@ -273,7 +273,7 @@ int min_free_kbytes = 1024;
- int user_min_free_kbytes = -1;
- static int watermark_boost_factor __read_mostly = 15000;
- static int watermark_scale_factor = 10;
--static int defrag_mode;
-+int defrag_mode;
- 
- /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
- int movable_zone;
-@@ -660,16 +660,20 @@ static inline void __add_to_free_list(st
- 				      bool tail)
- {
- 	struct free_area *area = &zone->free_area[order];
-+	int nr_pages = 1 << order;
- 
- 	VM_WARN_ONCE(get_pageblock_migratetype(page) != migratetype,
- 		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
--		     get_pageblock_migratetype(page), migratetype, 1 << order);
-+		     get_pageblock_migratetype(page), migratetype, nr_pages);
- 
- 	if (tail)
- 		list_add_tail(&page->buddy_list, &area->free_list[migratetype]);
- 	else
- 		list_add(&page->buddy_list, &area->free_list[migratetype]);
- 	area->nr_free++;
++#include <linux/kconfig.h>
 +
-+	if (order >= pageblock_order && !is_migrate_isolate(migratetype))
-+		__mod_zone_page_state(zone, NR_FREE_PAGES_BLOCKS, nr_pages);
++#ifdef CONFIG_KUNIT_SUPPRESS_BACKTRACE
++
++#include <linux/stringify.h>
++#include <linux/types.h>
++
++struct __suppressed_warning {
++	struct list_head node;
++	const char *function;
++};
++
++void __kunit_start_suppress_warning(struct __suppressed_warning *warning);
++void __kunit_end_suppress_warning(struct __suppressed_warning *warning);
++bool __kunit_is_suppressed_warning(const char *function);
++
++#define DEFINE_SUPPRESSED_WARNING(func)	\
++	struct __suppressed_warning __kunit_suppress_##func = \
++		{ .function = __stringify(func) }
++
++#define KUNIT_START_SUPPRESSED_WARNING(func) \
++	__kunit_start_suppress_warning(&__kunit_suppress_##func)
++
++#define KUNIT_END_SUPPRESSED_WARNING(func) \
++	__kunit_end_suppress_warning(&__kunit_suppress_##func)
++
++#define KUNIT_IS_SUPPRESSED_WARNING(func) \
++	__kunit_is_suppressed_warning(func)
++
++#else /* CONFIG_KUNIT_SUPPRESS_BACKTRACE */
++
++#define DEFINE_SUPPRESSED_WARNING(func)
++#define KUNIT_START_SUPPRESSED_WARNING(func)
++#define KUNIT_END_SUPPRESSED_WARNING(func)
++#define KUNIT_IS_SUPPRESSED_WARNING(func) (false)
++
++#endif /* CONFIG_KUNIT_SUPPRESS_BACKTRACE */
++#endif /* __ASSEMBLY__ */
++#endif /* _KUNIT_BUG_H */
+--- a/include/kunit/test.h~bug-kunit-core-support-for-suppressing-warning-backtraces
++++ a/include/kunit/test.h
+@@ -10,6 +10,7 @@
+ #define _KUNIT_TEST_H
+ 
+ #include <kunit/assert.h>
++#include <kunit/bug.h>
+ #include <kunit/try-catch.h>
+ 
+ #include <linux/args.h>
+--- a/include/linux/bug.h~bug-kunit-core-support-for-suppressing-warning-backtraces
++++ a/include/linux/bug.h
+@@ -36,6 +36,9 @@ static inline int is_warning_bug(const s
+ 	return bug->flags & BUGFLAG_WARNING;
  }
  
- /*
-@@ -681,24 +685,34 @@ static inline void move_to_free_list(str
- 				     unsigned int order, int old_mt, int new_mt)
- {
- 	struct free_area *area = &zone->free_area[order];
-+	int nr_pages = 1 << order;
- 
- 	/* Free page moving can fail, so it happens before the type update */
- 	VM_WARN_ONCE(get_pageblock_migratetype(page) != old_mt,
- 		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
--		     get_pageblock_migratetype(page), old_mt, 1 << order);
-+		     get_pageblock_migratetype(page), old_mt, nr_pages);
- 
- 	list_move_tail(&page->buddy_list, &area->free_list[new_mt]);
- 
--	account_freepages(zone, -(1 << order), old_mt);
--	account_freepages(zone, 1 << order, new_mt);
-+	account_freepages(zone, -nr_pages, old_mt);
-+	account_freepages(zone, nr_pages, new_mt);
++void bug_get_file_function_line(struct bug_entry *bug, const char **file,
++				const char **function, unsigned int *line);
 +
-+	if (order >= pageblock_order &&
-+	    is_migrate_isolate(old_mt) != is_migrate_isolate(new_mt)) {
-+		if (!is_migrate_isolate(old_mt))
-+			nr_pages = -nr_pages;
-+		__mod_zone_page_state(zone, NR_FREE_PAGES_BLOCKS, nr_pages);
-+	}
+ void bug_get_file_line(struct bug_entry *bug, const char **file,
+ 		       unsigned int *line);
+ 
+@@ -62,6 +65,16 @@ static inline enum bug_trap_type report_
  }
  
- static inline void __del_page_from_free_list(struct page *page, struct zone *zone,
- 					     unsigned int order, int migratetype)
+ struct bug_entry;
++static inline void bug_get_file_function_line(struct bug_entry *bug,
++					      const char **file,
++					      const char **function,
++					      unsigned int *line)
++{
++	*file = NULL;
++	*function = NULL;
++	*line = 0;
++}
++
+ static inline void bug_get_file_line(struct bug_entry *bug, const char **file,
+ 				     unsigned int *line)
  {
-+	int nr_pages = 1 << order;
-+
-         VM_WARN_ONCE(get_pageblock_migratetype(page) != migratetype,
- 		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
--		     get_pageblock_migratetype(page), migratetype, 1 << order);
-+		     get_pageblock_migratetype(page), migratetype, nr_pages);
+--- a/lib/bug.c~bug-kunit-core-support-for-suppressing-warning-backtraces
++++ a/lib/bug.c
+@@ -26,6 +26,14 @@
+        when CONFIG_DEBUG_BUGVERBOSE is not enabled, so you must generate
+        the values accordingly.
  
- 	/* clear reported state and update reported page count */
- 	if (page_reported(page))
-@@ -708,6 +722,9 @@ static inline void __del_page_from_free_
- 	__ClearPageBuddy(page);
- 	set_page_private(page, 0);
- 	zone->free_area[order].nr_free--;
++  2a.Optionally implement support for the "function" entry in struct
++     bug_entry. This entry must point to the name of the function triggering
++     the warning or bug trap (normally __func__). This is only needed if
++     both CONFIG_DEBUG_BUGVERBOSE and CONFIG_KUNIT_SUPPRESS_BACKTRACE are
++     enabled and if the architecture wants to implement support for suppressing
++     warning backtraces. The architecture must define HAVE_BUG_FUNCTION if it
++     adds pointers to function names to struct bug_entry.
 +
-+	if (order >= pageblock_order && !is_migrate_isolate(migratetype))
-+		__mod_zone_page_state(zone, NR_FREE_PAGES_BLOCKS, -nr_pages);
+   3. Implement the trap
+      - In the illegal instruction trap handler (typically), verify
+        that the fault was in kernel mode, and call report_bug()
+@@ -127,14 +135,21 @@ static inline struct bug_entry *module_f
+ }
+ #endif
+ 
+-void bug_get_file_line(struct bug_entry *bug, const char **file,
+-		       unsigned int *line)
++void bug_get_file_function_line(struct bug_entry *bug, const char **file,
++				const char **function, unsigned int *line)
+ {
++	*function = NULL;
+ #ifdef CONFIG_DEBUG_BUGVERBOSE
+ #ifdef CONFIG_GENERIC_BUG_RELATIVE_POINTERS
+ 	*file = (const char *)&bug->file_disp + bug->file_disp;
++#ifdef HAVE_BUG_FUNCTION
++	*function = (const char *)&bug->function_disp + bug->function_disp;
++#endif
+ #else
+ 	*file = bug->file;
++#ifdef HAVE_BUG_FUNCTION
++	*function = bug->function;
++#endif
+ #endif
+ 	*line = bug->line;
+ #else
+@@ -143,6 +158,13 @@ void bug_get_file_line(struct bug_entry
+ #endif
  }
  
- static inline void del_page_from_free_list(struct page *page, struct zone *zone,
---- a/mm/vmscan.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/vmscan.c
-@@ -6724,11 +6724,24 @@ static bool pgdat_balanced(pg_data_t *pg
- 	 * meet watermarks.
- 	 */
- 	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
-+		unsigned long free_pages;
++void bug_get_file_line(struct bug_entry *bug, const char **file, unsigned int *line)
++{
++	const char *function;
 +
- 		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
- 			mark = promo_wmark_pages(zone);
- 		else
- 			mark = high_wmark_pages(zone);
--		if (zone_watermark_ok_safe(zone, order, mark, highest_zoneidx))
++	bug_get_file_function_line(bug, file, &function, line);
++}
 +
+ struct bug_entry *find_bug(unsigned long bugaddr)
+ {
+ 	struct bug_entry *bug;
+@@ -157,8 +179,9 @@ struct bug_entry *find_bug(unsigned long
+ static enum bug_trap_type __report_bug(unsigned long bugaddr, struct pt_regs *regs)
+ {
+ 	struct bug_entry *bug;
+-	const char *file;
++	const char *file, *function;
+ 	unsigned line, warning, once, done;
++	char __maybe_unused sym[KSYM_SYMBOL_LEN];
+ 
+ 	if (!is_valid_bugaddr(bugaddr))
+ 		return BUG_TRAP_TYPE_NONE;
+@@ -169,12 +192,32 @@ static enum bug_trap_type __report_bug(u
+ 
+ 	disable_trace_on_warning();
+ 
+-	bug_get_file_line(bug, &file, &line);
++	bug_get_file_function_line(bug, &file, &function, &line);
++#if defined(CONFIG_KUNIT_SUPPRESS_BACKTRACE) && defined(CONFIG_KALLSYMS)
++	if (!function) {
 +		/*
-+		 * In defrag_mode, watermarks must be met in whole
-+		 * blocks to avoid polluting allocator fallbacks.
++		 * This will be seen if report_bug is called on an architecture
++		 * with no architecture-specific support for suppressing warning
++		 * backtraces, if CONFIG_DEBUG_BUGVERBOSE is not enabled, or if
++		 * the calling code is from assembler which does not record a
++		 * function name. Extracting the function name from the bug
++		 * address is less than perfect since compiler optimization may
++		 * result in 'bugaddr' pointing to a function which does not
++		 * actually trigger the warning, but it is better than no
++		 * suppression at all.
 +		 */
-+		if (defrag_mode)
-+			free_pages = zone_page_state(zone, NR_FREE_PAGES_BLOCKS);
-+		else
-+			free_pages = zone_page_state(zone, NR_FREE_PAGES);
-+
-+		if (__zone_watermark_ok(zone, order, mark, highest_zoneidx,
-+					0, free_pages))
- 			return true;
- 	}
++		sprint_symbol_no_offset(sym, bugaddr);
++		function = sym;
++	}
++#endif /* defined(CONFIG_KUNIT_SUPPRESS_BACKTRACE) && defined(CONFIG_KALLSYMS) */
  
---- a/mm/vmstat.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/vmstat.c
-@@ -1190,6 +1190,7 @@ int fragmentation_index(struct zone *zon
- const char * const vmstat_text[] = {
- 	/* enum zone_stat_item counters */
- 	"nr_free_pages",
-+	"nr_free_pages_blocks",
- 	"nr_zone_inactive_anon",
- 	"nr_zone_active_anon",
- 	"nr_zone_inactive_file",
+ 	warning = (bug->flags & BUGFLAG_WARNING) != 0;
+ 	once = (bug->flags & BUGFLAG_ONCE) != 0;
+ 	done = (bug->flags & BUGFLAG_DONE) != 0;
+ 
++	if (warning && KUNIT_IS_SUPPRESSED_WARNING(function))
++		return BUG_TRAP_TYPE_WARN;
++
+ 	if (warning && once) {
+ 		if (done)
+ 			return BUG_TRAP_TYPE_WARN;
+diff --git a/lib/kunit/bug.c a/lib/kunit/bug.c
+new file mode 100644
+--- /dev/null
++++ a/lib/kunit/bug.c
+@@ -0,0 +1,40 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * KUnit helpers for backtrace suppression
++ *
++ * Copyright (c) 2024 Guenter Roeck <linux@roeck-us.net>
++ */
++
++#include <kunit/bug.h>
++#include <linux/export.h>
++#include <linux/list.h>
++#include <linux/string.h>
++
++static LIST_HEAD(suppressed_warnings);
++
++void __kunit_start_suppress_warning(struct __suppressed_warning *warning)
++{
++	list_add(&warning->node, &suppressed_warnings);
++}
++EXPORT_SYMBOL_GPL(__kunit_start_suppress_warning);
++
++void __kunit_end_suppress_warning(struct __suppressed_warning *warning)
++{
++	list_del(&warning->node);
++}
++EXPORT_SYMBOL_GPL(__kunit_end_suppress_warning);
++
++bool __kunit_is_suppressed_warning(const char *function)
++{
++	struct __suppressed_warning *warning;
++
++	if (!function)
++		return false;
++
++	list_for_each_entry(warning, &suppressed_warnings, node) {
++		if (!strcmp(function, warning->function))
++			return true;
++	}
++	return false;
++}
++EXPORT_SYMBOL_GPL(__kunit_is_suppressed_warning);
+--- a/lib/kunit/Kconfig~bug-kunit-core-support-for-suppressing-warning-backtraces
++++ a/lib/kunit/Kconfig
+@@ -15,6 +15,15 @@ menuconfig KUNIT
+ 
+ if KUNIT
+ 
++config KUNIT_SUPPRESS_BACKTRACE
++	bool "KUnit - Enable backtrace suppression"
++	default y
++	help
++	  Enable backtrace suppression for KUnit. If enabled, backtraces
++	  generated intentionally by KUnit tests are suppressed. Disable
++	  to reduce kernel image size if image size is more important than
++	  suppression of backtraces generated by KUnit tests.
++
+ config KUNIT_DEBUGFS
+ 	bool "KUnit - Enable /sys/kernel/debug/kunit debugfs representation" if !KUNIT_ALL_TESTS
+ 	default KUNIT_ALL_TESTS
+--- a/lib/kunit/Makefile~bug-kunit-core-support-for-suppressing-warning-backtraces
++++ a/lib/kunit/Makefile
+@@ -16,8 +16,10 @@ ifeq ($(CONFIG_KUNIT_DEBUGFS),y)
+ kunit-objs +=				debugfs.o
+ endif
+ 
+-# KUnit 'hooks' are built-in even when KUnit is built as a module.
+-obj-y +=				hooks.o
++# KUnit 'hooks' and bug handling are built-in even when KUnit is built
++# as a module.
++obj-y +=				hooks.o \
++					bug.o
+ 
+ obj-$(CONFIG_KUNIT_TEST) +=		kunit-test.o
+ obj-$(CONFIG_KUNIT_TEST) +=		platform-test.o
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
-mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch
-mm-memcontrol-move-stray-ratelimit-bits-to-v1.patch
-mm-memcontrol-move-memsw-charge-callbacks-to-v1.patch
-mm-page_alloc-dont-steal-single-pages-from-biggest-buddy.patch
-mm-page_alloc-remove-remnants-of-unlocked-migratetype-updates.patch
-mm-page_alloc-group-fallback-functions-together.patch
-mm-swap_cgroup-remove-double-initialization-of-locals.patch
-mm-compaction-push-watermark-into-compaction_suitable-callers.patch
-mm-page_alloc-trace-type-pollution-from-compaction-capturing.patch
-mm-page_alloc-defrag_mode.patch
-mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance.patch
-mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch
+bug-kunit-core-support-for-suppressing-warning-backtraces.patch
+kunit-bug-count-suppressed-warning-backtraces.patch
+kunit-add-test-cases-for-backtrace-warning-suppression.patch
+kunit-add-documentation-for-warning-backtrace-suppression-api.patch
+drm-suppress-intentional-warning-backtraces-in-scaling-unit-tests.patch
+x86-add-support-for-suppressing-warning-backtraces.patch
+arm64-add-support-for-suppressing-warning-backtraces.patch
+loongarch-add-support-for-suppressing-warning-backtraces.patch
+parisc-add-support-for-suppressing-warning-backtraces.patch
+s390-add-support-for-suppressing-warning-backtraces.patch
+sh-add-support-for-suppressing-warning-backtraces.patch
+sh-move-defines-needed-for-suppressing-warning-backtraces.patch
+riscv-add-support-for-suppressing-warning-backtraces.patch
+powerpc-add-support-for-suppressing-warning-backtraces.patch
 
