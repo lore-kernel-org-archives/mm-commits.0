@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCF511E8326
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:35:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ACD22AD22
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:35:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741901742; cv=none; b=Wv71H+D9w0lvwmXxVkXMKZpSJFlUmo5pE9RsUwLQZ6fiO+GyBaaOBeUjbb0anahII5UjOTXNYjvII8g07GPXOU93HymbpeZZknAoJVl6ux/uCkuqA7unWwHm4Tq69HCskt/LlgLGEFACciQSno1upyiQRZwuyF8w4Jtr//MbahQ=
+	t=1741901744; cv=none; b=eKiQhYHeXlgVgKbvrv5gbHC7hWAsvFIx17dWdHLse9MxH3RPGfE+2Me6wec8Ph2Ct4/JdDR+Ld3DIzkm8O/+veGJQIjMq/gB433QNsYV5ULoai/DcSEH+mArTObnf7wfO7ZyFzIkVN9XS2Ad70X2vPumy4ZCGygpHch55sHXsfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741901742; c=relaxed/simple;
-	bh=Hvbs4kGL7yeYxxJ0ipZ3r2E+8FVGd+uatt+kJE6MpwM=;
-	h=Date:To:From:Subject:Message-Id; b=iG6nucgq79GgEoZzMFT7Zs3r62nCKOKzMiLPz1Rt+wqpmR+TCJbgo6uYsivPjeIFja24h66sJOXRac6U5aexwjgyllKqiHRIi4t4HK8Xnmz6fpaM4ZxzdVFVwSyBuBQBN0mvd8xdULf+6er2huQiO+2HOCvI2FFMM06wjjefXZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QSwwXpSe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741901744; c=relaxed/simple;
+	bh=5v+UcjeCCtMEqwTkWmbGx1enpyo54LXPBz6jyysstTI=;
+	h=Date:To:From:Subject:Message-Id; b=rRh6N1SaTvyMey9hxSUIJggB6u1mOQrzNHpBJi2SfjloFQeKPbjrSYtoUwHRyKdPLuYqLvHvi8O0U/K1UW7iL+B9Lkace5u03GkhQw8vGzIqxUxkGMydViuPr0yiSMrAIh9cfDDdL4Ra5lfJncqY0VMpYOnSJDJOmBRWVCfSN1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X4gc3lnZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QSwwXpSe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F47C4CEDD;
-	Thu, 13 Mar 2025 21:35:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X4gc3lnZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4881C4CEE5;
+	Thu, 13 Mar 2025 21:35:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741901742;
-	bh=Hvbs4kGL7yeYxxJ0ipZ3r2E+8FVGd+uatt+kJE6MpwM=;
+	s=korg; t=1741901743;
+	bh=5v+UcjeCCtMEqwTkWmbGx1enpyo54LXPBz6jyysstTI=;
 	h=Date:To:From:Subject:From;
-	b=QSwwXpSeYsmZSQIbHpbhwlNXbHM4p8GO3XEKgXYh0YqTZaEWQ9m/I2iHrVpjr0jyz
-	 cMfu3ZsHcJqcJnLka2E88ED+7V06EkWBvQSbcQZzVsfeVZIMWvMd/rmho3y0stY6b7
-	 r7GE4R8mpVq424pQvxXojDbIc7iYFOUBvVefgU5Q=
-Date: Thu, 13 Mar 2025 14:35:41 -0700
+	b=X4gc3lnZzpkbLUmwl+q7skjVtc8VWFoCn7ZVTXoFYOI8tTwCE/2fKL97m/iGYHSF/
+	 ZQQZceijhBkUbtjpuLkqGUREFiSOWdQ6Yp8gk58JYLPZTTIJGOIt1yYKW2So2Vm4AV
+	 P7fRSg8r2flVP8rVqDiFdYdLyVpizgUX6eCD70VI=
+Date: Thu, 13 Mar 2025 14:35:43 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-push-watermark-into-compaction_suitable-callers.patch added to mm-unstable branch
-Message-Id: <20250313213542.31F47C4CEDD@smtp.kernel.org>
+Subject: + mm-page_alloc-trace-type-pollution-from-compaction-capturing.patch added to mm-unstable branch
+Message-Id: <20250313213543.A4881C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: compaction: push watermark into compaction_suitable() callers
+     Subject: mm: page_alloc: trace type pollution from compaction capturing
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-push-watermark-into-compaction_suitable-callers.patch
+     mm-page_alloc-trace-type-pollution-from-compaction-capturing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-push-watermark-into-compaction_suitable-callers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-trace-type-pollution-from-compaction-capturing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,110 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: compaction: push watermark into compaction_suitable() callers
-Date: Thu, 13 Mar 2025 17:05:32 -0400
+Subject: mm: page_alloc: trace type pollution from compaction capturing
+Date: Thu, 13 Mar 2025 17:05:33 -0400
 
-Patch series "mm: reliable huge page allocator".
+When the page allocator places pages of a certain migratetype into blocks
+of another type, it has lasting effects on the ability to compact and
+defragment down the line.  For improving placement and compaction,
+visibility into such events is crucial.
 
-This series makes changes to the allocator and reclaim/compaction code to
-try harder to avoid fragmentation.  As a result, this makes huge page
-allocations cheaper, more reliable and more sustainable.
+The most common case, allocator fallbacks, is already annotated, but
+compaction capturing is also allowed to grab pages of a different type. 
+Extend the tracepoint to cover this case.
 
-It's a subset of the huge page allocator RFC initially proposed here:
-
-  https://lore.kernel.org/lkml/20230418191313.268131-1-hannes@cmpxchg.org/
-
-The following results are from a kernel build test, with additional
-concurrent bursts of THP allocations on a memory-constrained system. 
-Comparing before and after the changes over 15 runs:
-
-                                                     before                   after
-    Hugealloc Time mean               52739.45 (    +0.00%)   28904.00 (   -45.19%)
-    Hugealloc Time stddev             56541.26 (    +0.00%)   33464.37 (   -40.81%)
-    Kbuild Real time                    197.47 (    +0.00%)     196.59 (    -0.44%)
-    Kbuild User time                   1240.49 (    +0.00%)    1231.67 (    -0.71%)
-    Kbuild System time                   70.08 (    +0.00%)      59.10 (   -15.45%)
-    THP fault alloc                   46727.07 (    +0.00%)   63223.67 (   +35.30%)
-    THP fault fallback                21910.60 (    +0.00%)    5412.47 (   -75.29%)
-    Direct compact fail                 195.80 (    +0.00%)      59.07 (   -69.48%)
-    Direct compact success                7.93 (    +0.00%)       2.80 (   -57.46%)
-    Direct compact success rate %         3.51 (    +0.00%)       3.99 (   +10.49%)
-    Compact daemon scanned migrate  3369601.27 (    +0.00%) 2267500.33 (   -32.71%)
-    Compact daemon scanned free     5075474.47 (    +0.00%) 2339773.00 (   -53.90%)
-    Compact direct scanned migrate   161787.27 (    +0.00%)   47659.93 (   -70.54%)
-    Compact direct scanned free      163467.53 (    +0.00%)   40729.67 (   -75.08%)
-    Compact total migrate scanned   3531388.53 (    +0.00%) 2315160.27 (   -34.44%)
-    Compact total free scanned      5238942.00 (    +0.00%) 2380502.67 (   -54.56%)
-    Alloc stall                        2371.07 (    +0.00%)     638.87 (   -73.02%)
-    Pages kswapd scanned            2160926.73 (    +0.00%) 4002186.33 (   +85.21%)
-    Pages kswapd reclaimed           533191.07 (    +0.00%)  718577.80 (   +34.77%)
-    Pages direct scanned             400450.33 (    +0.00%)  355172.73 (   -11.31%)
-    Pages direct reclaimed            94441.73 (    +0.00%)   31162.80 (   -67.00%)
-    Pages total scanned             2561377.07 (    +0.00%) 4357359.07 (   +70.12%)
-    Pages total reclaimed            627632.80 (    +0.00%)  749740.60 (   +19.46%)
-    Swap out                          47959.53 (    +0.00%)  110084.33 (  +129.53%)
-    Swap in                            7276.00 (    +0.00%)   24457.00 (  +236.10%)
-    File refaults                    138043.00 (    +0.00%)  188226.93 (   +36.35%)
-
-THP latencies are cut in half, and failure rates are cut by 75%.  These
-metrics also hold up over time, while the vanilla kernel sees a steady
-downward trend in success rates with each subsequent run, owed to the
-cumulative effects of fragmentation.
-
-A more detailed discussion of results is in the patch changelogs.
-
-The patches first introduce a vm.defrag_mode sysctl, which enforces the
-existing ALLOC_NOFRAGMENT alloc flag until after reclaim and compaction
-have run.  They then change kswapd and kcompactd to target pageblocks,
-which boosts success in the ALLOC_NOFRAGMENT hotpaths.
-
-Patches #1 and #2 are somewhat unrelated cleanups, but touch the same code
-and so are included here to avoid conflicts from re-ordering.
-
-
-This patch (of 5):
-
-compaction_suitable() hardcodes the min watermark, with a boost to the low
-watermark for costly orders.  However, compaction_ready() requires order-0
-at the high watermark.  It currently checks the marks twice.
-
-Make the watermark a parameter to compaction_suitable() and have the
-callers pass in what they require:
-
-- compaction_zonelist_suitable() is used by the direct reclaim path,
-  so use the min watermark.
-
-- compact_suit_allocation_order() has a watermark in context derived
-  from cc->alloc_flags.
-
-  The only quirk is that kcompactd doesn't initialize cc->alloc_flags
-  explicitly. There is a direct check in kcompactd_do_work() that
-  passes ALLOC_WMARK_MIN, but there is another check downstack in
-  compact_zone() that ends up passing the unset alloc_flags. Since
-  they default to 0, and that coincides with ALLOC_WMARK_MIN, it is
-  correct. But it's subtle. Set cc->alloc_flags explicitly.
-
-- should_continue_reclaim() is direct reclaim, use the min watermark.
-
-- Finally, consolidate the two checks in compaction_ready() to a
-  single compaction_suitable() call passing the high watermark.
-
-  There is a tiny change in behavior: before, compaction_suitable()
-  would check order-0 against min or low, depending on costly
-  order. Then there'd be another high watermark check.
-
-  Now, the high watermark is passed to compaction_suitable(), and the
-  costly order-boost (low - min) is added on top. This means
-  compaction_ready() sets a marginally higher target for free pages.
-
-  In a kernelbuild + THP pressure test, though, this didn't show any
-  measurable negative effects on memory pressure or reclaim rates. As
-  the comment above the check says, reclaim is usually stopped short
-  on should_continue_reclaim(), and this just defines the worst-case
-  reclaim cutoff in case compaction is not making any headway.
-
-Link: https://lkml.kernel.org/r/20250313210647.1314586-1-hannes@cmpxchg.org
-Link: https://lkml.kernel.org/r/20250313210647.1314586-2-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20250313210647.1314586-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -170,200 +79,22 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    5 ++-
- mm/compaction.c            |   52 ++++++++++++++++++-----------------
- mm/vmscan.c                |   26 +++++++++--------
- 3 files changed, 45 insertions(+), 38 deletions(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/compaction.h~mm-compaction-push-watermark-into-compaction_suitable-callers
-+++ a/include/linux/compaction.h
-@@ -95,7 +95,7 @@ extern enum compact_result try_to_compac
- 		struct page **page);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
- extern bool compaction_suitable(struct zone *zone, int order,
--					       int highest_zoneidx);
-+				unsigned long watermark, int highest_zoneidx);
+--- a/mm/page_alloc.c~mm-page_alloc-trace-type-pollution-from-compaction-capturing
++++ a/mm/page_alloc.c
+@@ -614,6 +614,10 @@ compaction_capture(struct capture_contro
+ 	    capc->cc->migratetype != MIGRATE_MOVABLE)
+ 		return false;
  
- extern void compaction_defer_reset(struct zone *zone, int order,
- 				bool alloc_success);
-@@ -113,7 +113,8 @@ static inline void reset_isolation_suita
- }
- 
- static inline bool compaction_suitable(struct zone *zone, int order,
--						      int highest_zoneidx)
-+				       unsigned long watermark,
-+				       int highest_zoneidx)
- {
- 	return false;
- }
---- a/mm/compaction.c~mm-compaction-push-watermark-into-compaction_suitable-callers
-+++ a/mm/compaction.c
-@@ -2382,40 +2382,42 @@ static enum compact_result compact_finis
- }
- 
- static bool __compaction_suitable(struct zone *zone, int order,
--				  int highest_zoneidx,
--				  unsigned long wmark_target)
-+				  unsigned long watermark, int highest_zoneidx,
-+				  unsigned long free_pages)
- {
--	unsigned long watermark;
- 	/*
- 	 * Watermarks for order-0 must be met for compaction to be able to
- 	 * isolate free pages for migration targets. This means that the
--	 * watermark and alloc_flags have to match, or be more pessimistic than
--	 * the check in __isolate_free_page(). We don't use the direct
--	 * compactor's alloc_flags, as they are not relevant for freepage
--	 * isolation. We however do use the direct compactor's highest_zoneidx
--	 * to skip over zones where lowmem reserves would prevent allocation
--	 * even if compaction succeeds.
--	 * For costly orders, we require low watermark instead of min for
--	 * compaction to proceed to increase its chances.
-+	 * watermark have to match, or be more pessimistic than the check in
-+	 * __isolate_free_page().
-+	 *
-+	 * For costly orders, we require a higher watermark for compaction to
-+	 * proceed to increase its chances.
-+	 *
-+	 * We use the direct compactor's highest_zoneidx to skip over zones
-+	 * where lowmem reserves would prevent allocation even if compaction
-+	 * succeeds.
-+	 *
- 	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
--	 * suitable migration targets
-+	 * suitable migration targets.
- 	 */
--	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
--				low_wmark_pages(zone) : min_wmark_pages(zone);
- 	watermark += compact_gap(order);
-+	if (order > PAGE_ALLOC_COSTLY_ORDER)
-+		watermark += low_wmark_pages(zone) - min_wmark_pages(zone);
- 	return __zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
--				   ALLOC_CMA, wmark_target);
-+				   ALLOC_CMA, free_pages);
- }
- 
- /*
-  * compaction_suitable: Is this suitable to run compaction on this zone now?
-  */
--bool compaction_suitable(struct zone *zone, int order, int highest_zoneidx)
-+bool compaction_suitable(struct zone *zone, int order, unsigned long watermark,
-+			 int highest_zoneidx)
- {
- 	enum compact_result compact_result;
- 	bool suitable;
- 
--	suitable = __compaction_suitable(zone, order, highest_zoneidx,
-+	suitable = __compaction_suitable(zone, order, highest_zoneidx, watermark,
- 					 zone_page_state(zone, NR_FREE_PAGES));
- 	/*
- 	 * fragmentation index determines if allocation failures are due to
-@@ -2453,6 +2455,7 @@ bool compaction_suitable(struct zone *zo
- 	return suitable;
- }
- 
-+/* Used by direct reclaimers */
- bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
- 		int alloc_flags)
- {
-@@ -2475,8 +2478,8 @@ bool compaction_zonelist_suitable(struct
- 		 */
- 		available = zone_reclaimable_pages(zone) / order;
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
--		if (__compaction_suitable(zone, order, ac->highest_zoneidx,
--					  available))
-+		if (__compaction_suitable(zone, order, min_wmark_pages(zone),
-+					  ac->highest_zoneidx, available))
- 			return true;
- 	}
- 
-@@ -2513,13 +2516,13 @@ compaction_suit_allocation_order(struct
- 	 */
- 	if (order > PAGE_ALLOC_COSTLY_ORDER && async &&
- 	    !(alloc_flags & ALLOC_CMA)) {
--		watermark = low_wmark_pages(zone) + compact_gap(order);
--		if (!__zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
--					   0, zone_page_state(zone, NR_FREE_PAGES)))
-+		if (!__zone_watermark_ok(zone, 0, watermark + compact_gap(order),
-+					 highest_zoneidx, 0,
-+					 zone_page_state(zone, NR_FREE_PAGES)))
- 			return COMPACT_SKIPPED;
- 	}
- 
--	if (!compaction_suitable(zone, order, highest_zoneidx))
-+	if (!compaction_suitable(zone, order, watermark, highest_zoneidx))
- 		return COMPACT_SKIPPED;
- 
- 	return COMPACT_CONTINUE;
-@@ -3082,6 +3085,7 @@ static void kcompactd_do_work(pg_data_t
- 		.mode = MIGRATE_SYNC_LIGHT,
- 		.ignore_skip_hint = false,
- 		.gfp_mask = GFP_KERNEL,
-+		.alloc_flags = ALLOC_WMARK_MIN,
- 	};
- 	enum compact_result ret;
- 
-@@ -3100,7 +3104,7 @@ static void kcompactd_do_work(pg_data_t
- 			continue;
- 
- 		ret = compaction_suit_allocation_order(zone,
--				cc.order, zoneid, ALLOC_WMARK_MIN,
-+				cc.order, zoneid, cc.alloc_flags,
- 				false);
- 		if (ret != COMPACT_CONTINUE)
- 			continue;
---- a/mm/vmscan.c~mm-compaction-push-watermark-into-compaction_suitable-callers
-+++ a/mm/vmscan.c
-@@ -5890,12 +5890,15 @@ static inline bool should_continue_recla
- 
- 	/* If compaction would go ahead or the allocation would succeed, stop */
- 	for_each_managed_zone_pgdat(zone, pgdat, z, sc->reclaim_idx) {
-+		unsigned long watermark = min_wmark_pages(zone);
++	if (migratetype != capc->cc->migratetype)
++		trace_mm_page_alloc_extfrag(page, capc->cc->order, order,
++					    capc->cc->migratetype, migratetype);
 +
- 		/* Allocation can already succeed, nothing to do */
--		if (zone_watermark_ok(zone, sc->order, min_wmark_pages(zone),
-+		if (zone_watermark_ok(zone, sc->order, watermark,
- 				      sc->reclaim_idx, 0))
- 			return false;
- 
--		if (compaction_suitable(zone, sc->order, sc->reclaim_idx))
-+		if (compaction_suitable(zone, sc->order, watermark,
-+					sc->reclaim_idx))
- 			return false;
- 	}
- 
-@@ -6122,22 +6125,21 @@ static inline bool compaction_ready(stru
- 			      sc->reclaim_idx, 0))
- 		return true;
- 
--	/* Compaction cannot yet proceed. Do reclaim. */
--	if (!compaction_suitable(zone, sc->order, sc->reclaim_idx))
--		return false;
--
- 	/*
--	 * Compaction is already possible, but it takes time to run and there
--	 * are potentially other callers using the pages just freed. So proceed
--	 * with reclaim to make a buffer of free pages available to give
--	 * compaction a reasonable chance of completing and allocating the page.
-+	 * Direct reclaim usually targets the min watermark, but compaction
-+	 * takes time to run and there are potentially other callers using the
-+	 * pages just freed. So target a higher buffer to give compaction a
-+	 * reasonable chance of completing and allocating the pages.
-+	 *
- 	 * Note that we won't actually reclaim the whole buffer in one attempt
- 	 * as the target watermark in should_continue_reclaim() is lower. But if
- 	 * we are already above the high+gap watermark, don't reclaim at all.
- 	 */
--	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
-+	watermark = high_wmark_pages(zone);
-+	if (compaction_suitable(zone, sc->order, watermark, sc->reclaim_idx))
-+		return true;
- 
--	return zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
-+	return false;
+ 	capc->page = page;
+ 	return true;
  }
- 
- static void consider_reclaim_throttle(pg_data_t *pgdat, struct scan_control *sc)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
