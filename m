@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E87C78F37
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:01:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A401A78F37
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:01:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741899710; cv=none; b=ThNFP1+v6qmSLMEeJqgI3rQNJeFdWDfK2yQ+7jvLI2hL5yJ5/IN/TX8Nq7CMk4/Ezc4a5W7V0O659RYLyCkYpXc7rtk4ZhEWcfJgpjup+efyoyJDjUc6db3Ubvfzi4UhSJFihnH2ujTGEVBLxMTQ3lQEuLOT4AEPdKqqiJc65o0=
+	t=1741899711; cv=none; b=AHD9ec0emdqEQ29yKyWzFBGOqCeWjl/Bak1xL916fM5dAcnkG6bjZDUA/TJbhCch5m+xXZ7cnWuzfAB5srhPXn6gz4blB417EnPKPT2XoJ8PbM/nLbwVuY7caGlG5rZo2va+boMRb9CcLW+hU64NPExBi8lP7E7QGMefjoLeMd4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741899710; c=relaxed/simple;
-	bh=t5yAVvTYA2wCEqW0ZoWEPu0/lWncEcQOhspkiWRwCw4=;
-	h=Date:To:From:Subject:Message-Id; b=VZqQ8lxF2f+KiJYbqU3CBx0icDtpwy3I8X4e6/GEHeIEaPkaXN7LFDqRw4JaWIcjZJCCS5mbMlRITiiHF4GbdBFuQ8jBYy/QR/MtgXij4EYejrWdvcawlalu8yir+awfIXPgivdxnERH6CD0YAVsxZowUK/g20YKbD3zrbEAuyA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWYvY/M1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741899711; c=relaxed/simple;
+	bh=IBy1dhz3qLhOE+vDZw8tFJ0nsLpBNdGNG4BBDd6fv9E=;
+	h=Date:To:From:Subject:Message-Id; b=i27Hu1SucM6bfmcazCLLRFG8dYZ+Di6xL7idnbgeEghhBZaGEbc/RO6789Lo/exiem2l2kR1cM04ZTnb0D1MrOEIHQ9sM7hsgYLcnEchurxiLG2Rj3RFMo3UzilT4tf34lrSEgUIRS4iLPubTof2VmCwnC6enfCanJeBOYu7yWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vEL+Rh6D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWYvY/M1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89B8BC4CEDD;
-	Thu, 13 Mar 2025 21:01:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vEL+Rh6D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D306C4CEDD;
+	Thu, 13 Mar 2025 21:01:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741899709;
-	bh=t5yAVvTYA2wCEqW0ZoWEPu0/lWncEcQOhspkiWRwCw4=;
+	s=korg; t=1741899711;
+	bh=IBy1dhz3qLhOE+vDZw8tFJ0nsLpBNdGNG4BBDd6fv9E=;
 	h=Date:To:From:Subject:From;
-	b=uWYvY/M1dJsH7NGWebvepGx/X24eGVrdNX2VCLPdlevj+DKMg9Zy5bgIyoJiLbGWS
-	 Ux9hTT42R6SWmvpVuSjloV2O6CssMZnCMvXePYwaUfsr3pw6PmE9qjJqgn8e6ozyLL
-	 Be7DDMKodbBZxlOBrN/TgIVgJkZzOmID2LqZfU24=
-Date: Thu, 13 Mar 2025 14:01:49 -0700
+	b=vEL+Rh6Dg/oe703W0SNavrbdSCrV3X9EeVqqYclvrseMiKL1tC7tWtGuuHKo0RzN6
+	 eAZi3dyWW9JdrbbmcmLTvdRKpPv3/ItGZOR84rvavu8fM3JJybMLyYLzye5xw7GV+M
+	 mwdEa5gJDAQuaUtsdmkPhtjMaXQLex07dI0hrYEw=
+Date: Thu, 13 Mar 2025 14:01:50 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,shorne@gmail.com,richard@nod.at,palmer@dabbelt.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,luto@kernel.org,linux@armlinux.org.uk,johannes@sipsolutions.net,jiaxun.yang@flygoat.com,jcmvbkbc@gmail.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,broonie@kernel.org,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-move-initialization-of-init_mmcontext-init-to-paging_init.patch added to mm-unstable branch
-Message-Id: <20250313210149.89B8BC4CEDD@smtp.kernel.org>
+Subject: + mips-consolidate-mem_init-for-numa-machines.patch added to mm-unstable branch
+Message-Id: <20250313210151.0D306C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hexagon: move initialization of init_mm.context init to paging_init()
+     Subject: MIPS: consolidate mem_init() for NUMA machines
 has been added to the -mm mm-unstable branch.  Its filename is
-     hexagon-move-initialization-of-init_mmcontext-init-to-paging_init.patch
+     mips-consolidate-mem_init-for-numa-machines.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-move-initialization-of-init_mmcontext-init-to-paging_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-consolidate-mem_init-for-numa-machines.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: hexagon: move initialization of init_mm.context init to paging_init()
-Date: Thu, 13 Mar 2025 15:49:53 +0200
+Subject: MIPS: consolidate mem_init() for NUMA machines
+Date: Thu, 13 Mar 2025 15:49:54 +0200
 
-This will help with pulling out memblock_free_all() to the generic
-code and reducing code duplication in arch::mem_init().
+Both MIPS systems that support numa (loongsoon3 and sgi-ip27) have
+identical mem_init() for NUMA case.
 
-Link: https://lkml.kernel.org/r/20250313135003.836600-4-rppt@kernel.org
+Move that into arch/mips/mm/init.c and drop duplicate per-machine
+definitions.
+
+Link: https://lkml.kernel.org/r/20250313135003.836600-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -105,39 +108,65 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/mm/init.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/mips/loongson64/numa.c      |    7 -------
+ arch/mips/mm/init.c              |    7 +++++++
+ arch/mips/sgi-ip27/ip27-memory.c |    9 ---------
+ 3 files changed, 7 insertions(+), 16 deletions(-)
 
---- a/arch/hexagon/mm/init.c~hexagon-move-initialization-of-init_mmcontext-init-to-paging_init
-+++ a/arch/hexagon/mm/init.c
-@@ -59,14 +59,6 @@ void __init mem_init(void)
- 	 *  To-Do:  someone somewhere should wipe out the bootmem map
- 	 *  after we're done?
- 	 */
--
--	/*
--	 * This can be moved to some more virtual-memory-specific
--	 * initialization hook at some point.  Set the init_mm
--	 * descriptors "context" value to point to the initial
--	 * kernel segment table's physical address.
--	 */
--	init_mm.context.ptbase = __pa(init_mm.pgd);
+--- a/arch/mips/loongson64/numa.c~mips-consolidate-mem_init-for-numa-machines
++++ a/arch/mips/loongson64/numa.c
+@@ -164,13 +164,6 @@ void __init paging_init(void)
+ 	free_area_init(zones_size);
  }
  
- void sync_icache_dcache(pte_t pte)
-@@ -104,6 +96,12 @@ static void __init paging_init(void)
- 	free_area_init(max_zone_pfn);  /*  sets up the zonelists and mem_map  */
+-void __init mem_init(void)
+-{
+-	high_memory = (void *) __va(get_num_physpages() << PAGE_SHIFT);
+-	memblock_free_all();
+-	setup_zero_pages();	/* This comes from node 0 */
+-}
+-
+ /* All PCI device belongs to logical Node-0 */
+ int pcibus_to_node(struct pci_bus *bus)
+ {
+--- a/arch/mips/mm/init.c~mips-consolidate-mem_init-for-numa-machines
++++ a/arch/mips/mm/init.c
+@@ -482,6 +482,13 @@ void __init mem_init(void)
+ 				0x80000000 - 4, KCORE_TEXT);
+ #endif
+ }
++#else  /* CONFIG_NUMA */
++void __init mem_init(void)
++{
++	high_memory = (void *) __va(get_num_physpages() << PAGE_SHIFT);
++	memblock_free_all();
++	setup_zero_pages();	/* This comes from node 0 */
++}
+ #endif /* !CONFIG_NUMA */
  
- 	/*
-+	 * Set the init_mm descriptors "context" value to point to the
-+	 * initial kernel segment table's physical address.
-+	 */
-+	init_mm.context.ptbase = __pa(init_mm.pgd);
-+
-+	/*
- 	 * Start of high memory area.  Will probably need something more
- 	 * fancy if we...  get more fancy.
- 	 */
+ void free_init_pages(const char *what, unsigned long begin, unsigned long end)
+--- a/arch/mips/sgi-ip27/ip27-memory.c~mips-consolidate-mem_init-for-numa-machines
++++ a/arch/mips/sgi-ip27/ip27-memory.c
+@@ -406,8 +406,6 @@ void __init prom_meminit(void)
+ 	}
+ }
+ 
+-extern void setup_zero_pages(void);
+-
+ void __init paging_init(void)
+ {
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
+@@ -416,10 +414,3 @@ void __init paging_init(void)
+ 	zones_size[ZONE_NORMAL] = max_low_pfn;
+ 	free_area_init(zones_size);
+ }
+-
+-void __init mem_init(void)
+-{
+-	high_memory = (void *) __va(get_num_physpages() << PAGE_SHIFT);
+-	memblock_free_all();
+-	setup_zero_pages();	/* This comes from node 0 */
+-}
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
