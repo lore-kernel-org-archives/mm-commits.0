@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D091547F5
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:29:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82991F76B6
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:29:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741904994; cv=none; b=KA3Rvs/6N5xXz6HLSfwTkLwXhrqaAGgguNsrOEJIBKMW41ZUMfFmKH9+oLM5RSVm55UqSbRKB28jDombTbB3DzGh+G7hbr3qxnsdGzIvJWWgQgkl+0EnCAT3qELw5euIBObBlvYI+hvZIpeF4AwR3ClctFQMqMGc1Hw8g7jWvGM=
+	t=1741904995; cv=none; b=ZU6Kgw4F+PgSTlTflYiiwsIKLtSMxBVTA2EzublyGVFHWif1bwyeibGKlj3VAHwK7h3ifV++VVathSOUoxc3Nzp3lTyioCMOH8kxjcvZjFzHYWT4p1+5comPfHh5wN/W6mb/BrcKfpEeyKZtFNEQW9Q7SjV2D7W2T4MNsESSZaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741904994; c=relaxed/simple;
-	bh=f0rGmsx9+2VlUmiV/XB3T5rmdhLY+I+LHdpL50DRATo=;
-	h=Date:To:From:Subject:Message-Id; b=VvirkuKWIbnR3r2ycNo6VBdQ025J/YL4thEUeoZU8Th95A9xMfAnvSMOOLfvm/HHBM/zHB0tZZiPFKgqdixM3QpU+mamkB/qFAHR4ySN4z5f6lGLS+N3WuTfsi3S+9GFcvImoEkp8rYry+ShRgUIjUZ5NJTslgyjAzI1V2uUBtw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D/BmXqDB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741904995; c=relaxed/simple;
+	bh=r5HlNhWjHCKaJ1PLGw/JuQyEXvr29jUDRW2niBXyrB0=;
+	h=Date:To:From:Subject:Message-Id; b=lduRM446Q5Kaxw1DRrWiW0lrDjfF0t/DBTdfquNa4QzBoAZI4JJ1Gcus8HywMHp+FRUZcT11sZJrLQAdLyKeurtev/Wgo14Iby2uvv3DJZAeAFpkpFRz++OIGS0r3Kwu38fW77b1cZejtMXBPs0PBMbMNRYBvpygucnBF1ozRKs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cYsW/HMZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D/BmXqDB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E360BC4CEDD;
-	Thu, 13 Mar 2025 22:29:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cYsW/HMZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30874C4CEEA;
+	Thu, 13 Mar 2025 22:29:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741904994;
-	bh=f0rGmsx9+2VlUmiV/XB3T5rmdhLY+I+LHdpL50DRATo=;
+	s=korg; t=1741904995;
+	bh=r5HlNhWjHCKaJ1PLGw/JuQyEXvr29jUDRW2niBXyrB0=;
 	h=Date:To:From:Subject:From;
-	b=D/BmXqDBbGHZL288GCNW/YlCnYVx51NrXWUHbtnUwMPaMdvVvSAdv+Wf2kvQLZ1oV
-	 Upl5KMC/yLfEV4zV16SUSXPv7bV34phLDkYKe+akC/q2u1C7fdDTBA3Whvvc0StOHC
-	 WY8x7Jd4/pDefzWBIZGERg33dDcQtGfp6/J/LTgk=
-Date: Thu, 13 Mar 2025 15:29:53 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,joel.granados@kernel.org,ioworker0@gmail.com,boqun.feng@gmail.com,anna.schumaker@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=cYsW/HMZ7p8+jcoDXvnpz48AcsuKl48WGgW5Dikmw9Lb8/kXGJEgGNnBX0qC4H2gD
+	 PWAIOBrc2ShbX+LE6gZ+fMiYJLGvJwv1eciihqn4p/3w9/FZMMPwjiR+AFPU+VYKTn
+	 1NWrYNySEpEE97gCxVkblE/ecIH1sPGGE/2punWU=
+Date: Thu, 13 Mar 2025 15:29:54 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,mingo@redhat.com,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,joel.granados@kernel.org,ioworker0@gmail.com,boqun.feng@gmail.com,anna.schumaker@oracle.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20250313222953.E360BC4CEDD@smtp.kernel.org>
+Subject: + samples-add-hung_task-detector-mutex-blocking-sample.patch added to mm-nonmm-unstable branch
+Message-Id: <20250313222955.30874C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix
+     Subject: samples: add hung_task detector mutex blocking sample
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
+     samples-add-hung_task-detector-mutex-blocking-sample.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-add-hung_task-detector-mutex-blocking-sample.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,19 +58,32 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix
-Date: Thu Mar 13 03:28:05 PM PDT 2025
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: samples: add hung_task detector mutex blocking sample
+Date: Tue, 25 Feb 2025 16:02:43 +0900
 
-implement debug_show_blocker() in C rather than in CPP
+Add a hung_task detector mutex blocking test sample code.
 
+This module will create a dummy file on the debugfs.  That file will cause
+the read process to sleep for enough long time (256 seconds) while holding
+a mutex.  As a result, the second process will wait on the mutex for a
+prolonged duration and be detected by the hung_task detector.
+
+Usage is;
+
+ > cd /sys/kernel/debug/hung_task
+ > cat mutex & cat mutex
+
+and wait for hung_task message.
+
+Link: https://lkml.kernel.org/r/174046696281.2194069.4567490148001547311.stgit@mhiramat.tok.corp.google.com
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joel Granados <joel.granados@kernel.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Tomasz Figa <tfiga@chromium.org>
@@ -80,34 +93,120 @@ Cc: Yongliang Gao <leonylgao@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ samples/Kconfig                     |    9 +++
+ samples/Makefile                    |    1 
+ samples/hung_task/Makefile          |    2 
+ samples/hung_task/hung_task_mutex.c |   66 ++++++++++++++++++++++++++
+ 4 files changed, 78 insertions(+)
 
---- a/kernel/hung_task.c~hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix
-+++ a/kernel/hung_task.c
-@@ -125,7 +125,9 @@ static void debug_show_blocker(struct ta
- 	}
- }
- #else
--#define debug_show_blocker(t)	do {} while (0)
-+static inline void debug_show_blocker(struct task_struct *task)
+diff --git a/samples/hung_task/hung_task_mutex.c a/samples/hung_task/hung_task_mutex.c
+new file mode 100644
+--- /dev/null
++++ a/samples/hung_task/hung_task_mutex.c
+@@ -0,0 +1,66 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * hung_task_mutex.c - Sample code which causes hung task by mutex
++ *
++ * Usage: load this module and read `<debugfs>/hung_task/mutex`
++ *        by 2 or more processes.
++ *
++ * This is for testing kernel hung_task error message.
++ * Note that this will make your system freeze and maybe
++ * cause panic. So do not use this except for the test.
++ */
++
++#include <linux/debugfs.h>
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++
++#define HUNG_TASK_DIR   "hung_task"
++#define HUNG_TASK_FILE  "mutex"
++#define SLEEP_SECOND 256
++
++static const char dummy_string[] = "This is a dummy string.";
++static DEFINE_MUTEX(dummy_mutex);
++struct dentry *hung_task_dir;
++
++static ssize_t read_dummy(struct file *file, char __user *user_buf,
++			  size_t count, loff_t *ppos)
 +{
++	/* If the second task waits on the lock, it is uninterruptible sleep. */
++	guard(mutex)(&dummy_mutex);
++
++	/* When the first task sleep here, it is interruptible. */
++	msleep_interruptible(SLEEP_SECOND * 1000);
++
++	return simple_read_from_buffer(user_buf, count, ppos,
++				dummy_string, sizeof(dummy_string));
 +}
- #endif
++
++static const struct file_operations hung_task_fops = {
++	.read = read_dummy,
++};
++
++static int __init hung_task_sample_init(void)
++{
++	hung_task_dir = debugfs_create_dir(HUNG_TASK_DIR, NULL);
++	if (IS_ERR(hung_task_dir))
++		return PTR_ERR(hung_task_dir);
++
++	debugfs_create_file(HUNG_TASK_FILE, 0400, hung_task_dir,
++			    NULL, &hung_task_fops);
++
++	return 0;
++}
++
++static void __exit hung_task_sample_exit(void)
++{
++	debugfs_remove_recursive(hung_task_dir);
++}
++
++module_init(hung_task_sample_init);
++module_exit(hung_task_sample_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Masami Hiramatsu");
++MODULE_DESCRIPTION("Simple sleep under mutex file for testing hung task");
+diff --git a/samples/hung_task/Makefile a/samples/hung_task/Makefile
+new file mode 100644
+--- /dev/null
++++ a/samples/hung_task/Makefile
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++obj-$(CONFIG_SAMPLE_HUNG_TASK) += hung_task_mutex.o
+\ No newline at end of file
+--- a/samples/Kconfig~samples-add-hung_task-detector-mutex-blocking-sample
++++ a/samples/Kconfig
+@@ -300,6 +300,15 @@ config SAMPLE_CHECK_EXEC
+ 	  demonstrate how they should be used with execveat(2) +
+ 	  AT_EXECVE_CHECK.
  
- static void check_hung_task(struct task_struct *t, unsigned long timeout)
++config SAMPLE_HUNG_TASK
++	tristate "Hung task detector test code"
++	depends on DETECT_HUNG_TASK && DEBUG_FS
++	help
++	  Build a module which provide a simple debugfs file. If user reads
++	  the file, it will sleep long time (256 seconds) with holding a
++	  mutex. Thus if there are 2 or more processes read this file, it
++	  will be detected by the hung_task watchdog.
++
+ source "samples/rust/Kconfig"
+ 
+ source "samples/damon/Kconfig"
+--- a/samples/Makefile~samples-add-hung_task-detector-mutex-blocking-sample
++++ a/samples/Makefile
+@@ -42,3 +42,4 @@ obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
+ obj-$(CONFIG_SAMPLES_RUST)		+= rust/
+ obj-$(CONFIG_SAMPLE_DAMON_WSSE)		+= damon/
+ obj-$(CONFIG_SAMPLE_DAMON_PRCL)		+= damon/
++obj-$(CONFIG_SAMPLE_HUNG_TASK)		+= hung_task/
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
-mm-vmscan-extract-calculated-pressure-balance-as-a-function-fix.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise-fix-checkpatch-fixes.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise-fix.patch
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-mm-hugetlb-add-hugetlb_alloc_threads-cmdline-option-fix.patch
-mm-filemap-use-xas_try_split-in-__filemap_add_folio-fix.patch
-lib-plistc-add-shortcut-for-plist_requeue-fix.patch
-scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
-signal-avoid-clearing-tif_sigpending-in-recalc_sigpending-if-unset-fix.patch
-hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
+hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex.patch
+samples-add-hung_task-detector-mutex-blocking-sample.patch
 
