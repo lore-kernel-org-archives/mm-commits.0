@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E858B1F63D6
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 449681F63D6
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741903524; cv=none; b=obFxhL64dCmIOFmY1EVrm9EKpWYfgiuGAppJ8OzjoP+XLeDK4w+SBLg2seuU5feQTUYiris6gUC02L9A8kgdDUR9FriqMhjkW1Z+vvs2k+2jq0CaDdC04nAokh3gi8/XcAr9oUxvU6OeQ7NvheZS7UO6n88Znu0ceYhwY6ZojdE=
+	t=1741903525; cv=none; b=dXWODu6RY6f9eyq3sdmePj+NJSDckIEsIE3ho0wxS0Wzua2eGkrpdm3JtBoH4SfqhtL4wtbbxvaLCzpDO7E5NbHynIxvZ3lkNpH2rpg8KQOmWbWHa7+ty/WQx1eysIhyRpMpGOzOc18bJQUoG57SuE2qEl6t8SAL4/ACMk5RtjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741903524; c=relaxed/simple;
-	bh=kgNYcCtxsyyb7TzGli5WJvpnn7/8V+L80P23x4qbZNE=;
-	h=Date:To:From:Subject:Message-Id; b=EcGEzflJPqpWT5tEdlnAYfy57PTaNpxjNkxXw9KFcIGCO5jKLzusigS8IH9tgMgYYVNVjJMW2MMCtZdw/mLdr5XHapIjccxTleo6gGyUTOe/vW4Ce4Sz9+x+JJ43zdOXQeeXZTmb94hh0iufEnqNHvD71TsRp8L3lhV+F60cZio=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SZSXu854; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741903525; c=relaxed/simple;
+	bh=YlXyMQnYYD4e/jygOflpJMbW9fR/YgWwdhuC9z90WFM=;
+	h=Date:To:From:Subject:Message-Id; b=epcjHsdJdO6t+82DRZply8IpsnCzB941bdQ5agfBLap+x2FgUPAXPtPorHYY14WLmO2ISgWr7UK1Wrl3PYzF1Tb1bkxuHjQnD0KGx1lSORC8oB+DZBDApaoTpTSw+tJfSl9oYGn7PVk3OHZ3Lv0X1bei3L2DhpCYwAbuuZz3M1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kfg+mtxT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SZSXu854"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 561EBC4CEDD;
-	Thu, 13 Mar 2025 22:05:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kfg+mtxT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A44AAC4CEDD;
+	Thu, 13 Mar 2025 22:05:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741903523;
-	bh=kgNYcCtxsyyb7TzGli5WJvpnn7/8V+L80P23x4qbZNE=;
+	s=korg; t=1741903524;
+	bh=YlXyMQnYYD4e/jygOflpJMbW9fR/YgWwdhuC9z90WFM=;
 	h=Date:To:From:Subject:From;
-	b=SZSXu854gX+rKZjsvBVKIREaGz7Fb3ergNCFSDuEmS2sWMU0ACDmrtu2ZE4QkTSXM
-	 AgSmKo1QMdwQ6glE2iCuCp79Z3ccwixCL/EYt8OblkQGrHJbUe915JYRPLzwkcxZ5W
-	 t7vzU1Np1zqIHYaOb13plIH5Gr5oFAMnDbuCMr9g=
-Date: Thu, 13 Mar 2025 15:05:22 -0700
+	b=kfg+mtxTuHnZByGAdxh3ww/SaOEWE1F818nYBmYXAVrkB+nmuVcBFD/pKC8B+/A2T
+	 trUdApvZ/wMuBBldpE/b5Z2aMcrfv4jrPN0pbSOS14j1jUTjQ4SsLqHmL+eR7XLJ3W
+	 UGpPCgU1XxD7Uw1vF/HLN5yMBsc8YbnuMku5S9Y0=
+Date: Thu, 13 Mar 2025 15:05:24 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,ville.syrjala@linux.intel.com,tzimmermann@suse.de,tglx@linutronix.de,rmoar@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,naresh.kamboju@linaro.org,mripard@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mcanal@igalia.com,maarten.lankhorst@linux.intel.com,lkft@linaro.org,keescook@chromium.org,jani.nikula@intel.com,horms@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,deller@gmx.de,davidgow@google.com,dave.hansen@linux.intel.com,daniel@ffwll.ch,daniel.diaz@linaro.org,dan.carpenter@linaro.org,dalias@libc.org,chenhuacai@kernel.org,charlie@rivosinc.com,catalin.marinas@arm.com,brendan.higgins@linux.dev,bp@alien8.de,arthurgrillo@riseup.net,arnd@arndb.de,aou@eecs.berkeley.edu,airlied@gmail.com,agordeev@linux.ibm.com,acarmina@redhat.com,linux@roeck-us.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kunit-add-documentation-for-warning-backtrace-suppression-api.patch added to mm-nonmm-unstable branch
-Message-Id: <20250313220523.561EBC4CEDD@smtp.kernel.org>
+Subject: + drm-suppress-intentional-warning-backtraces-in-scaling-unit-tests.patch added to mm-nonmm-unstable branch
+Message-Id: <20250313220524.A44AAC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kunit: add documentation for warning backtrace suppression API
+     Subject: drm: suppress intentional warning backtraces in scaling unit tests
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kunit-add-documentation-for-warning-backtrace-suppression-api.patch
+     drm-suppress-intentional-warning-backtraces-in-scaling-unit-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-add-documentation-for-warning-backtrace-suppression-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-suppress-intentional-warning-backtraces-in-scaling-unit-tests.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: kunit: add documentation for warning backtrace suppression API
-Date: Thu, 13 Mar 2025 11:43:19 +0000
+Subject: drm: suppress intentional warning backtraces in scaling unit tests
+Date: Thu, 13 Mar 2025 11:43:20 +0000
 
-Document API functions for suppressing warning backtraces.
+The drm_test_rect_calc_hscale and drm_test_rect_calc_vscale unit tests
+intentionally trigger warning backtraces by providing bad parameters to
+the tested functions.  What is tested is the return value, not the
+existence of a warning backtrace.  Suppress the backtraces to avoid
+clogging the kernel log and distraction from real problems.
 
-Link: https://lkml.kernel.org/r/20250313114329.284104-5-acarmina@redhat.com
+Link: https://lkml.kernel.org/r/20250313114329.284104-6-acarmina@redhat.com
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Alessandro Carminati <acarmina@redhat.com>
 Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
 Acked-by: Dan Carpenter <dan.carpenter@linaro.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Reviewed-by: David Gow <davidgow@google.com>
+Acked-by: Maíra Canal <mcanal@igalia.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -80,17 +86,15 @@ Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Charlie Jenkins <charlie@rivosinc.com>
 Cc: Daniel Diaz <daniel.diaz@linaro.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Airlie <airlied@gmail.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Gow <davidgow@google.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maíra Canal <mcanal@igalia.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
@@ -108,53 +112,50 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kunit/usage.rst |   30 +++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/tests/drm_rect_test.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/Documentation/dev-tools/kunit/usage.rst~kunit-add-documentation-for-warning-backtrace-suppression-api
-+++ a/Documentation/dev-tools/kunit/usage.rst
-@@ -157,6 +157,34 @@ Alternatively, one can take full control
- 	if (some_setup_function())
- 		KUNIT_FAIL(test, "Failed to setup thing for testing");
+--- a/drivers/gpu/drm/tests/drm_rect_test.c~drm-suppress-intentional-warning-backtraces-in-scaling-unit-tests
++++ a/drivers/gpu/drm/tests/drm_rect_test.c
+@@ -406,22 +406,38 @@ KUNIT_ARRAY_PARAM(drm_rect_scale, drm_re
  
-+Suppressing warning backtraces
-+------------------------------
-+
-+Some unit tests trigger warning backtraces either intentionally or as side
-+effect. Such backtraces are normally undesirable since they distract from
-+the actual test and may result in the impression that there is a problem.
-+
-+Such backtraces can be suppressed. To suppress a backtrace in some_function(),
-+use the following code.
-+
-+.. code-block:: c
-+
-+	static void some_test(struct kunit *test)
-+	{
-+		DEFINE_SUPPRESSED_WARNING(some_function);
-+
-+		KUNIT_START_SUPPRESSED_WARNING(some_function);
-+		trigger_backtrace();
-+		KUNIT_END_SUPPRESSED_WARNING(some_function);
-+	}
-+
-+SUPPRESSED_WARNING_COUNT() returns the number of suppressed backtraces. If the
-+suppressed backtrace was triggered on purpose, this can be used to check if
-+the backtrace was actually triggered.
-+
-+.. code-block:: c
-+
-+	KUNIT_EXPECT_EQ(test, SUPPRESSED_WARNING_COUNT(some_function), 1);
+ static void drm_test_rect_calc_hscale(struct kunit *test)
+ {
++	DEFINE_SUPPRESSED_WARNING(drm_calc_scale);
+ 	const struct drm_rect_scale_case *params = test->param_value;
+ 	int scaling_factor;
  
- Test Suites
- ~~~~~~~~~~~
-@@ -857,4 +885,4 @@ For example:
- 		dev_managed_string = devm_kstrdup(fake_device, "Hello, World!");
++	/*
++	 * drm_rect_calc_hscale() generates a warning backtrace whenever bad
++	 * parameters are passed to it. This affects all unit tests with an
++	 * error code in expected_scaling_factor.
++	 */
++	KUNIT_START_SUPPRESSED_WARNING(drm_calc_scale);
+ 	scaling_factor = drm_rect_calc_hscale(&params->src, &params->dst,
+ 					      params->min_range, params->max_range);
++	KUNIT_END_SUPPRESSED_WARNING(drm_calc_scale);
  
- 		// Everything is cleaned up automatically when the test ends.
--	}
-\ No newline at end of file
-+	}
+ 	KUNIT_EXPECT_EQ(test, scaling_factor, params->expected_scaling_factor);
+ }
+ 
+ static void drm_test_rect_calc_vscale(struct kunit *test)
+ {
++	DEFINE_SUPPRESSED_WARNING(drm_calc_scale);
+ 	const struct drm_rect_scale_case *params = test->param_value;
+ 	int scaling_factor;
+ 
++	/*
++	 * drm_rect_calc_vscale() generates a warning backtrace whenever bad
++	 * parameters are passed to it. This affects all unit tests with an
++	 * error code in expected_scaling_factor.
++	 */
++	KUNIT_START_SUPPRESSED_WARNING(drm_calc_scale);
+ 	scaling_factor = drm_rect_calc_vscale(&params->src, &params->dst,
+ 					      params->min_range, params->max_range);
++	KUNIT_END_SUPPRESSED_WARNING(drm_calc_scale);
+ 
+ 	KUNIT_EXPECT_EQ(test, scaling_factor, params->expected_scaling_factor);
+ }
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
