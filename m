@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C949F1F63D6
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2D81F7075
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741903526; cv=none; b=RakVgaY6dok+Bl8MiG4qbvQXuPkzsITTg6cvqMD/kotBUYcpCNxPULLmNGtBRqIv8w0q/Rn5IzO767k5mxBPi625ULQwfVQ+MYLyf2y+SpprSFXx6Yr/1xWvpqMMPKxcyqWTV0V9xjxuHyUXFbnBe8/N92FzqFI9P0Z7q8WuD2s=
+	t=1741903528; cv=none; b=Cjw53RCwpfF4DloGeMIk/F3G8xU8CXwHVK7oPlrIEBZ3TXHpOXWtZghN9ibzP7XHs0VWhwLFq605eFACqenPGQkV/1x4+oCRAMf+IV31qh4yUy9JYOVjYn6/uvW4gEggcn8C1nWf2riZtgz9QXV1g6ty89+YIbriK6RnpaJXnFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741903526; c=relaxed/simple;
-	bh=CL3LPkKBLadK4e8ljJE7ZWzqk29FGjXOBQ0SY1pxTOY=;
-	h=Date:To:From:Subject:Message-Id; b=cpdG+NHGWN/MY1NimaB86EYZSiPSe5cbDvMPMGS5iNev73P338MHQKR/0txhTOPu2igV+hMzcX8rModQIY5N7+Zr9dowsI+RCVibNi5RcqC9XUyAGI8UTejaDDxDEyVirTps3NX9mufmj0g01BJIJyscIyEFbVPsx+ykIM3EK8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DmgSl5bC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741903528; c=relaxed/simple;
+	bh=Wj9TkQhUWWvAaOL/DXS6afgzvYuaNDqTqlHNCS3qs1E=;
+	h=Date:To:From:Subject:Message-Id; b=ju8LmY8t8bqsgSNNTG/hmLzNcGNkoa9p7Rg2x7ENKwzMwueUXnkieLnI3x62R/PhvyUf3yCp/0bWP8wTt2f3GqScfTlaTTOVxikvWGoDvdvywLK43vgcDoRnWUgVN2Lwu1aZXA+7mCuY447vx3m9LQkFtgNxV6blEEUawwNsFCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RUsaZOAU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DmgSl5bC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 362DAC4CEDD;
-	Thu, 13 Mar 2025 22:05:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RUsaZOAU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4351C4CEDD;
+	Thu, 13 Mar 2025 22:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741903526;
-	bh=CL3LPkKBLadK4e8ljJE7ZWzqk29FGjXOBQ0SY1pxTOY=;
+	s=korg; t=1741903527;
+	bh=Wj9TkQhUWWvAaOL/DXS6afgzvYuaNDqTqlHNCS3qs1E=;
 	h=Date:To:From:Subject:From;
-	b=DmgSl5bCTucQHdvwnC5y64Jbp1TR3jnMryQrHBzhT2cPxKnbi9DTBKpNpvg1iwFGY
-	 gFt7zqZZER4ic1VEqN/Cd2ugVqZbua7zDPL+FnGu6sFDCVB/oLRvVUY5M4u1uK+z0b
-	 7jhOEhxBw74lems8H/4dBS4sBEwZ4x3lijaoLXiw=
-Date: Thu, 13 Mar 2025 15:05:25 -0700
+	b=RUsaZOAUX2sxkFyw7MAPETa+1H+vuFTNQ87VrevHxxAtm2yE9IGlEDx8ff7OjdeTZ
+	 gryqTEnc5D8ZblVgW6aXSKVBn34BIKI+NvhS1+zoGZXnJpTEOfCnhoPnN5gcZn9rFY
+	 RC7ff3dYMUGqtatRpJS3PjdZWYNrMOU2PW//ukLg=
+Date: Thu, 13 Mar 2025 15:05:27 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,ville.syrjala@linux.intel.com,tzimmermann@suse.de,tglx@linutronix.de,rmoar@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,naresh.kamboju@linaro.org,mripard@kernel.org,mpe@ellerman.id.au,mingo@redhat.com,mcanal@igalia.com,maarten.lankhorst@linux.intel.com,lkft@linaro.org,keescook@chromium.org,jani.nikula@intel.com,horms@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,deller@gmx.de,davidgow@google.com,dave.hansen@linux.intel.com,daniel@ffwll.ch,daniel.diaz@linaro.org,dan.carpenter@linaro.org,dalias@libc.org,chenhuacai@kernel.org,charlie@rivosinc.com,catalin.marinas@arm.com,brendan.higgins@linux.dev,bp@alien8.de,arthurgrillo@riseup.net,arnd@arndb.de,aou@eecs.berkeley.edu,airlied@gmail.com,agordeev@linux.ibm.com,acarmina@redhat.com,linux@roeck-us.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-add-support-for-suppressing-warning-backtraces.patch added to mm-nonmm-unstable branch
-Message-Id: <20250313220526.362DAC4CEDD@smtp.kernel.org>
+Subject: + arm64-add-support-for-suppressing-warning-backtraces.patch added to mm-nonmm-unstable branch
+Message-Id: <20250313220527.A4351C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: add support for suppressing warning backtraces
+     Subject: arm64: add support for suppressing warning backtraces
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-add-support-for-suppressing-warning-backtraces.patch
+     arm64-add-support-for-suppressing-warning-backtraces.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-add-support-for-suppressing-warning-backtraces.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-add-support-for-suppressing-warning-backtraces.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,8 +59,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: x86: add support for suppressing warning backtraces
-Date: Thu, 13 Mar 2025 11:43:21 +0000
+Subject: arm64: add support for suppressing warning backtraces
+Date: Thu, 13 Mar 2025 11:43:22 +0000
 
 Add name of functions triggering warning backtraces to the __bug_table
 object section to enable support for suppressing WARNING backtraces.
@@ -72,29 +72,29 @@ parameter is replaced with a (dummy) NULL parameter to avoid an image size
 increase due to unused __func__ entries (this is necessary because
 __func__ is not a define but a virtual variable).
 
-Link: https://lkml.kernel.org/r/20250313114329.284104-7-acarmina@redhat.com
+Link: https://lkml.kernel.org/r/20250313114329.284104-8-acarmina@redhat.com
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Alessandro Carminati <acarmina@redhat.com>
 Tested-by: Linux Kernel Functional Testing <lkft@linaro.org>
 Acked-by: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Arthur Grillo <arthurgrillo@riseup.net>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Charlie Jenkins <charlie@rivosinc.com>
 Cc: Daniel Diaz <daniel.diaz@linaro.org>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Dave Airlie <airlied@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Gow <davidgow@google.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Kees Cook <keescook@chromium.org>
@@ -108,62 +108,94 @@ Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Rae Moar <rmoar@google.com>
 Cc: Rich Felker <dalias@libc.org>
 Cc: Simon Horman <horms@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/bug.h |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ arch/arm64/include/asm/asm-bug.h |   27 ++++++++++++++++++---------
+ arch/arm64/include/asm/bug.h     |    8 +++++++-
+ 2 files changed, 25 insertions(+), 10 deletions(-)
 
---- a/arch/x86/include/asm/bug.h~x86-add-support-for-suppressing-warning-backtraces
-+++ a/arch/x86/include/asm/bug.h
-@@ -35,18 +35,28 @@
+--- a/arch/arm64/include/asm/asm-bug.h~arm64-add-support-for-suppressing-warning-backtraces
++++ a/arch/arm64/include/asm/asm-bug.h
+@@ -8,37 +8,46 @@
+ #include <asm/brk-imm.h>
  
  #ifdef CONFIG_DEBUG_BUGVERBOSE
- 
+-#define _BUGVERBOSE_LOCATION(file, line) __BUGVERBOSE_LOCATION(file, line)
+-#define __BUGVERBOSE_LOCATION(file, line)			\
++
 +#ifdef CONFIG_KUNIT_SUPPRESS_BACKTRACE
 +# define HAVE_BUG_FUNCTION
-+# define __BUG_FUNC_PTR	__BUG_REL(%c1)
++# define __BUG_FUNC_PTR(func)	.long func - .;
++#else
++# define __BUG_FUNC_PTR(func)
++#endif
++
++#define _BUGVERBOSE_LOCATION(file, func, line) __BUGVERBOSE_LOCATION(file, func, line)
++#define __BUGVERBOSE_LOCATION(file, func, line)		\
+ 		.pushsection .rodata.str,"aMS",@progbits,1;	\
+ 	14472:	.string file;					\
+ 		.popsection;					\
+ 								\
+ 		.long 14472b - .;				\
++		__BUG_FUNC_PTR(func)				\
+ 		.short line;
+ #else
+-#define _BUGVERBOSE_LOCATION(file, line)
++#define _BUGVERBOSE_LOCATION(file, func, line)
+ #endif
+ 
+ #ifdef CONFIG_GENERIC_BUG
+ 
+-#define __BUG_ENTRY(flags) 				\
++#define __BUG_ENTRY(flags, func)			\
+ 		.pushsection __bug_table,"aw";		\
+ 		.align 2;				\
+ 	14470:	.long 14471f - .;			\
+-_BUGVERBOSE_LOCATION(__FILE__, __LINE__)		\
++_BUGVERBOSE_LOCATION(__FILE__, func, __LINE__)		\
+ 		.short flags; 				\
+ 		.align 2;				\
+ 		.popsection;				\
+ 	14471:
+ #else
+-#define __BUG_ENTRY(flags)
++#define __BUG_ENTRY(flags, func)
+ #endif
+ 
+-#define ASM_BUG_FLAGS(flags)				\
+-	__BUG_ENTRY(flags)				\
++#define ASM_BUG_FLAGS(flags, func)			\
++	__BUG_ENTRY(flags, func)			\
+ 	brk	BUG_BRK_IMM
+ 
+-#define ASM_BUG()	ASM_BUG_FLAGS(0)
++#define ASM_BUG()	ASM_BUG_FLAGS(0, .)
+ 
+ #endif /* __ASM_ASM_BUG_H */
+--- a/arch/arm64/include/asm/bug.h~arm64-add-support-for-suppressing-warning-backtraces
++++ a/arch/arm64/include/asm/bug.h
+@@ -11,8 +11,14 @@
+ 
+ #include <asm/asm-bug.h>
+ 
++#ifdef HAVE_BUG_FUNCTION
 +# define __BUG_FUNC	__func__
 +#else
-+# define __BUG_FUNC_PTR
 +# define __BUG_FUNC	NULL
-+#endif /* CONFIG_KUNIT_SUPPRESS_BACKTRACE */
++#endif
 +
- #define _BUG_FLAGS(ins, flags, extra)					\
- do {									\
- 	asm_inline volatile("1:\t" ins "\n"				\
- 		     ".pushsection __bug_table,\"aw\"\n"		\
- 		     "2:\t" __BUG_REL(1b) "\t# bug_entry::bug_addr\n"	\
- 		     "\t"  __BUG_REL(%c0) "\t# bug_entry::file\n"	\
--		     "\t.word %c1"        "\t# bug_entry::line\n"	\
--		     "\t.word %c2"        "\t# bug_entry::flags\n"	\
--		     "\t.org 2b+%c3\n"					\
-+		     "\t"  __BUG_FUNC_PTR "\t# bug_entry::function\n"	\
-+		     "\t.word %c2"        "\t# bug_entry::line\n"	\
-+		     "\t.word %c3"        "\t# bug_entry::flags\n"	\
-+		     "\t.org 2b+%c4\n"					\
- 		     ".popsection\n"					\
- 		     extra						\
--		     : : "i" (__FILE__), "i" (__LINE__),		\
-+		     : : "i" (__FILE__), "i" (__BUG_FUNC), "i" (__LINE__),\
- 			 "i" (flags),					\
- 			 "i" (sizeof(struct bug_entry)));		\
- } while (0)
-@@ -92,7 +102,8 @@ do {								\
- do {								\
- 	__auto_type __flags = BUGFLAG_WARNING|(flags);		\
- 	instrumentation_begin();				\
--	_BUG_FLAGS(ASM_UD2, __flags, ANNOTATE_REACHABLE(1b));	\
-+	if (!KUNIT_IS_SUPPRESSED_WARNING(__func__))			\
-+		_BUG_FLAGS(ASM_UD2, __flags, ANNOTATE_REACHABLE(1b));	\
- 	instrumentation_end();					\
- } while (0)
+ #define __BUG_FLAGS(flags)				\
+-	asm volatile (__stringify(ASM_BUG_FLAGS(flags)));
++	asm volatile (__stringify(ASM_BUG_FLAGS(flags, %c0)) : : "i" (__BUG_FUNC));
  
+ #define BUG() do {					\
+ 	__BUG_FLAGS(0);					\
 _
 
 Patches currently in -mm which might be from linux@roeck-us.net are
