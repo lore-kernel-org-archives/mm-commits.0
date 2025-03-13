@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82991F76B6
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:29:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AC7E1B4247
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:48:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741904995; cv=none; b=ZU6Kgw4F+PgSTlTflYiiwsIKLtSMxBVTA2EzublyGVFHWif1bwyeibGKlj3VAHwK7h3ifV++VVathSOUoxc3Nzp3lTyioCMOH8kxjcvZjFzHYWT4p1+5comPfHh5wN/W6mb/BrcKfpEeyKZtFNEQW9Q7SjV2D7W2T4MNsESSZaI=
+	t=1741906097; cv=none; b=WQcnLgB4StbUx5ao5Nb4khcbs4rwM/5CNHQa/uA6oQFNYuHjUVmohxw2yEE20pWwFGPck8aYbR7sQyrj14rhFYKeoRG5ZMzwWjc5EqHleP999f/ovGfj8r5OPK7dMhH4m8rqqKJGa4dieYVu7FusBFJSSTB20IIzbMwIKM14AUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741904995; c=relaxed/simple;
-	bh=r5HlNhWjHCKaJ1PLGw/JuQyEXvr29jUDRW2niBXyrB0=;
-	h=Date:To:From:Subject:Message-Id; b=lduRM446Q5Kaxw1DRrWiW0lrDjfF0t/DBTdfquNa4QzBoAZI4JJ1Gcus8HywMHp+FRUZcT11sZJrLQAdLyKeurtev/Wgo14Iby2uvv3DJZAeAFpkpFRz++OIGS0r3Kwu38fW77b1cZejtMXBPs0PBMbMNRYBvpygucnBF1ozRKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cYsW/HMZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741906097; c=relaxed/simple;
+	bh=CUDgSxxJibABfGatPQjBUd4WvgfLKP2YpwJUU43CVVM=;
+	h=Date:To:From:Subject:Message-Id; b=fEeIC1dLXKOjCB4vZ38EEmILyCNdjarMeKHVj4qJdfmUXlJAaqeryFNP6JQZrfh39wjo5niFsw6j0RPrqIM6CY4Zli1Mq9WIz7TYkkN7dLemWPY++nRFRtNW42bCz+h4eYVTj2MJj7kAl20qt2ZEscFBqd8WIE+KyC6mUXQLkZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R+ekimSF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cYsW/HMZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30874C4CEEA;
-	Thu, 13 Mar 2025 22:29:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R+ekimSF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D2CC4CEDD;
+	Thu, 13 Mar 2025 22:48:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741904995;
-	bh=r5HlNhWjHCKaJ1PLGw/JuQyEXvr29jUDRW2niBXyrB0=;
+	s=korg; t=1741906097;
+	bh=CUDgSxxJibABfGatPQjBUd4WvgfLKP2YpwJUU43CVVM=;
 	h=Date:To:From:Subject:From;
-	b=cYsW/HMZ7p8+jcoDXvnpz48AcsuKl48WGgW5Dikmw9Lb8/kXGJEgGNnBX0qC4H2gD
-	 PWAIOBrc2ShbX+LE6gZ+fMiYJLGvJwv1eciihqn4p/3w9/FZMMPwjiR+AFPU+VYKTn
-	 1NWrYNySEpEE97gCxVkblE/ecIH1sPGGE/2punWU=
-Date: Thu, 13 Mar 2025 15:29:54 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,mingo@redhat.com,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,joel.granados@kernel.org,ioworker0@gmail.com,boqun.feng@gmail.com,anna.schumaker@oracle.com,mhiramat@kernel.org,akpm@linux-foundation.org
+	b=R+ekimSFo6u84zmQVHv5ca/N/Vgr3sQnF3AIrnLoHVmr5Hs/t8WlusOLeQQQdnNuW
+	 LfTQF6bXAzSEX9iF1hAD2R5QfL6NeSKo4ac+BU0h7M9TsaBx9z85i8MPda1AQfgp06
+	 0xkk+Lb2jePiKfSy7ud53EJ/hOw76/bDd9T7OcXs=
+Date: Thu, 13 Mar 2025 15:48:16 -0700
+To: mm-commits@vger.kernel.org,x86@kernel.org,sweettea-kernel@dorminy.me,pasha.tatashin@soleen.com,christophe.leroy@csgroup.eu,ajd@linux.ibm.com,rmclure@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-add-hung_task-detector-mutex-blocking-sample.patch added to mm-nonmm-unstable branch
-Message-Id: <20250313222955.30874C4CEEA@smtp.kernel.org>
+Subject: + mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch added to mm-unstable branch
+Message-Id: <20250313224816.F1D2CC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples: add hung_task detector mutex blocking sample
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     samples-add-hung_task-detector-mutex-blocking-sample.patch
+     Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pud_set()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-add-hung_task-detector-mutex-blocking-sample.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,155 +58,152 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Subject: samples: add hung_task detector mutex blocking sample
-Date: Tue, 25 Feb 2025 16:02:43 +0900
+From: Rohan McLure <rmclure@linux.ibm.com>
+Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pud_set()
+Date: Wed, 12 Feb 2025 03:13:54 +1100
 
-Add a hung_task detector mutex blocking test sample code.
+Patch series "Support page table check on PowerPC", v13.
 
-This module will create a dummy file on the debugfs.  That file will cause
-the read process to sleep for enough long time (256 seconds) while holding
-a mutex.  As a result, the second process will wait on the mutex for a
-prolonged duration and be detected by the hung_task detector.
+Support page table check on all PowerPC platforms.  This works by
+serialising assignments, reassignments and clears of page table entries at
+each level in order to ensure that anonymous mappings have at most one
+writable consumer, and likewise that file-backed mappings are not
+simultaneously also anonymous mappings.
 
-Usage is;
+In order to support this infrastructure, a number of stubs must be defined
+for all powerpc platforms.  Additionally, seperate set_pte_at() and
+set_pte_at_unchecked(), to allow for internal, uninstrumented mappings.
 
- > cd /sys/kernel/debug/hung_task
- > cat mutex & cat mutex
+(This series was written by Rohan McLure, who has left IBM and is no
+longer working on powerpc - I've taken far too long to pick this up and
+finally send it.)
 
-and wait for hung_task message.
 
-Link: https://lkml.kernel.org/r/174046696281.2194069.4567490148001547311.stgit@mhiramat.tok.corp.google.com
-Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tomasz Figa <tfiga@chromium.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yongliang Gao <leonylgao@tencent.com>
+This patch (of 11):
+
+This reverts commit 6d144436d954 ("mm/page_table_check: remove unused
+parameter in [__]page_table_check_pud_set").
+
+Reinstate previously unused parameters for the purpose of supporting
+powerpc platforms, as many do not encode user/kernel ownership of the page
+in the pte, but instead in the address of the access.
+
+[ajd@linux.ibm.com: rebase on riscv changes, remove riscv commit message comment]
+Link: https://lkml.kernel.org/r/20250211161404.850215-1-ajd@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250211161404.850215-2-ajd@linux.ibm.com
+Signed-off-by: Rohan McLure <rmclure@linux.ibm.com>
+Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/Kconfig                     |    9 +++
- samples/Makefile                    |    1 
- samples/hung_task/Makefile          |    2 
- samples/hung_task/hung_task_mutex.c |   66 ++++++++++++++++++++++++++
- 4 files changed, 78 insertions(+)
+ arch/arm64/include/asm/pgtable.h |    2 +-
+ arch/riscv/include/asm/pgtable.h |    2 +-
+ arch/x86/include/asm/pgtable.h   |    2 +-
+ include/linux/page_table_check.h |   11 +++++++----
+ mm/page_table_check.c            |    3 ++-
+ 5 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/samples/hung_task/hung_task_mutex.c a/samples/hung_task/hung_task_mutex.c
-new file mode 100644
---- /dev/null
-+++ a/samples/hung_task/hung_task_mutex.c
-@@ -0,0 +1,66 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * hung_task_mutex.c - Sample code which causes hung task by mutex
-+ *
-+ * Usage: load this module and read `<debugfs>/hung_task/mutex`
-+ *        by 2 or more processes.
-+ *
-+ * This is for testing kernel hung_task error message.
-+ * Note that this will make your system freeze and maybe
-+ * cause panic. So do not use this except for the test.
-+ */
-+
-+#include <linux/debugfs.h>
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+
-+#define HUNG_TASK_DIR   "hung_task"
-+#define HUNG_TASK_FILE  "mutex"
-+#define SLEEP_SECOND 256
-+
-+static const char dummy_string[] = "This is a dummy string.";
-+static DEFINE_MUTEX(dummy_mutex);
-+struct dentry *hung_task_dir;
-+
-+static ssize_t read_dummy(struct file *file, char __user *user_buf,
-+			  size_t count, loff_t *ppos)
-+{
-+	/* If the second task waits on the lock, it is uninterruptible sleep. */
-+	guard(mutex)(&dummy_mutex);
-+
-+	/* When the first task sleep here, it is interruptible. */
-+	msleep_interruptible(SLEEP_SECOND * 1000);
-+
-+	return simple_read_from_buffer(user_buf, count, ppos,
-+				dummy_string, sizeof(dummy_string));
-+}
-+
-+static const struct file_operations hung_task_fops = {
-+	.read = read_dummy,
-+};
-+
-+static int __init hung_task_sample_init(void)
-+{
-+	hung_task_dir = debugfs_create_dir(HUNG_TASK_DIR, NULL);
-+	if (IS_ERR(hung_task_dir))
-+		return PTR_ERR(hung_task_dir);
-+
-+	debugfs_create_file(HUNG_TASK_FILE, 0400, hung_task_dir,
-+			    NULL, &hung_task_fops);
-+
-+	return 0;
-+}
-+
-+static void __exit hung_task_sample_exit(void)
-+{
-+	debugfs_remove_recursive(hung_task_dir);
-+}
-+
-+module_init(hung_task_sample_init);
-+module_exit(hung_task_sample_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Masami Hiramatsu");
-+MODULE_DESCRIPTION("Simple sleep under mutex file for testing hung task");
-diff --git a/samples/hung_task/Makefile a/samples/hung_task/Makefile
-new file mode 100644
---- /dev/null
-+++ a/samples/hung_task/Makefile
-@@ -0,0 +1,2 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+obj-$(CONFIG_SAMPLE_HUNG_TASK) += hung_task_mutex.o
-\ No newline at end of file
---- a/samples/Kconfig~samples-add-hung_task-detector-mutex-blocking-sample
-+++ a/samples/Kconfig
-@@ -300,6 +300,15 @@ config SAMPLE_CHECK_EXEC
- 	  demonstrate how they should be used with execveat(2) +
- 	  AT_EXECVE_CHECK.
+--- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -661,7 +661,7 @@ static inline void set_pmd_at(struct mm_
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 			      pud_t *pudp, pud_t pud)
+ {
+-	page_table_check_pud_set(mm, pudp, pud);
++	page_table_check_pud_set(mm, addr, pudp, pud);
+ 	return __set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud),
+ 						PUD_SIZE >> PAGE_SHIFT);
+ }
+--- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -778,7 +778,7 @@ static inline void set_pmd_at(struct mm_
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 				pud_t *pudp, pud_t pud)
+ {
+-	page_table_check_pud_set(mm, pudp, pud);
++	page_table_check_pud_set(mm, addr, pudp, pud);
+ 	return __set_pte_at(mm, (pte_t *)pudp, pud_pte(pud));
+ }
  
-+config SAMPLE_HUNG_TASK
-+	tristate "Hung task detector test code"
-+	depends on DETECT_HUNG_TASK && DEBUG_FS
-+	help
-+	  Build a module which provide a simple debugfs file. If user reads
-+	  the file, it will sleep long time (256 seconds) with holding a
-+	  mutex. Thus if there are 2 or more processes read this file, it
-+	  will be detected by the hung_task watchdog.
-+
- source "samples/rust/Kconfig"
+--- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1287,7 +1287,7 @@ static inline void set_pmd_at(struct mm_
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 			      pud_t *pudp, pud_t pud)
+ {
+-	page_table_check_pud_set(mm, pudp, pud);
++	page_table_check_pud_set(mm, addr, pudp, pud);
+ 	native_set_pud(pudp, pud);
+ }
  
- source "samples/damon/Kconfig"
---- a/samples/Makefile~samples-add-hung_task-detector-mutex-blocking-sample
-+++ a/samples/Makefile
-@@ -42,3 +42,4 @@ obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
- obj-$(CONFIG_SAMPLES_RUST)		+= rust/
- obj-$(CONFIG_SAMPLE_DAMON_WSSE)		+= damon/
- obj-$(CONFIG_SAMPLE_DAMON_PRCL)		+= damon/
-+obj-$(CONFIG_SAMPLE_HUNG_TASK)		+= hung_task/
+--- a/include/linux/page_table_check.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/include/linux/page_table_check.h
+@@ -20,7 +20,8 @@ void __page_table_check_pud_clear(struct
+ void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
+ 		unsigned int nr);
+ void __page_table_check_pmd_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd);
+-void __page_table_check_pud_set(struct mm_struct *mm, pud_t *pudp, pud_t pud);
++void __page_table_check_pud_set(struct mm_struct *mm, unsigned long addr,
++				pud_t *pudp, pud_t pud);
+ void __page_table_check_pte_clear_range(struct mm_struct *mm,
+ 					unsigned long addr,
+ 					pmd_t pmd);
+@@ -83,13 +84,14 @@ static inline void page_table_check_pmd_
+ 	__page_table_check_pmd_set(mm, pmdp, pmd);
+ }
+ 
+-static inline void page_table_check_pud_set(struct mm_struct *mm, pud_t *pudp,
++static inline void page_table_check_pud_set(struct mm_struct *mm,
++					    unsigned long addr, pud_t *pudp,
+ 					    pud_t pud)
+ {
+ 	if (static_branch_likely(&page_table_check_disabled))
+ 		return;
+ 
+-	__page_table_check_pud_set(mm, pudp, pud);
++	__page_table_check_pud_set(mm, addr, pudp, pud);
+ }
+ 
+ static inline void page_table_check_pte_clear_range(struct mm_struct *mm,
+@@ -134,7 +136,8 @@ static inline void page_table_check_pmd_
+ {
+ }
+ 
+-static inline void page_table_check_pud_set(struct mm_struct *mm, pud_t *pudp,
++static inline void page_table_check_pud_set(struct mm_struct *mm,
++					    unsigned long addr, pud_t *pudp,
+ 					    pud_t pud)
+ {
+ }
+--- a/mm/page_table_check.c~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/mm/page_table_check.c
+@@ -233,7 +233,8 @@ void __page_table_check_pmd_set(struct m
+ }
+ EXPORT_SYMBOL(__page_table_check_pmd_set);
+ 
+-void __page_table_check_pud_set(struct mm_struct *mm, pud_t *pudp, pud_t pud)
++void __page_table_check_pud_set(struct mm_struct *mm, unsigned long addr,
++				pud_t *pudp, pud_t pud)
+ {
+ 	if (&init_mm == mm)
+ 		return;
 _
 
-Patches currently in -mm which might be from mhiramat@kernel.org are
+Patches currently in -mm which might be from rmclure@linux.ibm.com are
 
-hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex.patch
-samples-add-hung_task-detector-mutex-blocking-sample.patch
+mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
+mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_set.patch
+mm-page_table_check-provide-addr-parameter-to-page_table_check_pte_set.patch
+mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_clear.patch
+mm-page_table_check-reinstate-address-parameter-in-page_table_check_pmd_clear.patch
+mm-page_table_check-reinstate-address-parameter-in-page_table_check_pte_clear.patch
+mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch
+powerpc-mm-add-pud_pfn-stub.patch
+powerpc-mm-implement-_user_accessible_page-for-ptes.patch
+powerpc-mm-use-set_pte_at_unchecked-for-internal-usages.patch
+powerpc-mm-support-page-table-check.patch
 
