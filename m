@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F2B1F8ADF
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:48:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 238B71F8BAF
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:48:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741906108; cv=none; b=Nh6mEoKddbjYDqXebuOFqUuzZ0gIjFbL8wRR60eCKTRsTwEXzLJG8LgjYOdlwKhPekaLHRkQqz3p9eVTZ3d3X87WIBqyIw7yS9vWpWfX08mJ/5FYIKX0grxSoLR3HHxAxVsH6o8sa9KG5IGmD/6jfZm8Xp3UBTzGD0tYrM6LVLg=
+	t=1741906110; cv=none; b=uUbNh7zCEv0YEzPms4jJTI5n/BXzpDGWEaKvOtKcA2hl3xujB2WZFzjYYZ0TdELB3FPU3gVivLBJjKYEv/FKVcVBjCR7x7SKN9F4v8FhZ9Sp7ue1LFCNYy2q1Ozp9bom8zXaI1SAUHouFIxW9Q5Tz1ZDC6JIHLO6qtZKFM/cnsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741906108; c=relaxed/simple;
-	bh=PCOtJr4/P/oMheUS6f0zVdYY/YHeqlFd4uxe3IOLrtg=;
-	h=Date:To:From:Subject:Message-Id; b=R7+LCm+68Cs9IVN32lSt70wNfsuGyQQenLNN0VLF4dPrg0gd67Ne8Hf9hnoXgfV8nGQxDyIxNqX/Q7ZojoJq/OPwkBo0wIN5GjyY2BGKL5svT4h5V+ssEFKlB7rOJHGWWA6tt2kkqhaLhsd0DbwhDs2bR+AXEuYmJZfhFdYbEPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CEptKMRH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741906110; c=relaxed/simple;
+	bh=cp0so5gXGNaTY29Slwynzlky2DEdJE8yqDNRH3p/oXo=;
+	h=Date:To:From:Subject:Message-Id; b=ipGfoGT0gJJVIHS4vIrG38qDwNX48jUytB4EPDcUntdaNPk3tpjzyvxw1JSSVjQbNpWtYq0BpKfcuyfgVb6/z2GQLibdJdGxzL+JOYM4L2Ekp0OuPzjhuSkzliW2l4Bgi/5dZ3BnSp9AAAKEwWv8/kEwxHf6q5jVsJnxPLSsjhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gIcmitGZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CEptKMRH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF96EC4CEDD;
-	Thu, 13 Mar 2025 22:48:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gIcmitGZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E183C4CEDD;
+	Thu, 13 Mar 2025 22:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741906108;
-	bh=PCOtJr4/P/oMheUS6f0zVdYY/YHeqlFd4uxe3IOLrtg=;
+	s=korg; t=1741906109;
+	bh=cp0so5gXGNaTY29Slwynzlky2DEdJE8yqDNRH3p/oXo=;
 	h=Date:To:From:Subject:From;
-	b=CEptKMRHFqg+S8jTI3VeYlHDD56tZyG+fgUHMLt83h7TMYTcozmGW/7sT4ekRtm8v
-	 zpqVN7nPUtZ+QXZlpSt/oTYjEsbX3STDk0LOEiom3tYMGNZcuVBy7yhSzOQW5C246A
-	 WCa9cKFq9ANc1cjaxUN1BJuOKPhK41lq9/vlY9W4=
-Date: Thu, 13 Mar 2025 15:48:27 -0700
+	b=gIcmitGZtqvh49cn+3bNbXvEj38SDQAYK5Glj92xwAgJ09VVQmm3WpyByKOOBS+58
+	 wrzpcSlPZnCuTIfhmgolxO/XDAfurtPrEpP+qvdowESyAzcwsNCw9YFtzAtyuKL3sd
+	 R3+N2bdUkDs7IC7kYnlczah0jSxdcp/2CbWTtOTQ=
+Date: Thu, 13 Mar 2025 15:48:28 -0700
 To: mm-commits@vger.kernel.org,x86@kernel.org,sweettea-kernel@dorminy.me,pasha.tatashin@soleen.com,christophe.leroy@csgroup.eu,ajd@linux.ibm.com,rmclure@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch added to mm-unstable branch
-Message-Id: <20250313224827.DF96EC4CEDD@smtp.kernel.org>
+Subject: + powerpc-mm-add-pud_pfn-stub.patch added to mm-unstable branch
+Message-Id: <20250313224829.7E183C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: provide address parameter to p{te,md,ud}_user_accessible_page()
+     Subject: powerpc: mm: add pud_pfn() stub
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch
+     powerpc-mm-add-pud_pfn-stub.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-provide-address-parameter-to-ptemdud_user_accessible_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-add-pud_pfn-stub.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rohan McLure <rmclure@linux.ibm.com>
-Subject: mm: provide address parameter to p{te,md,ud}_user_accessible_page()
-Date: Wed, 12 Feb 2025 03:14:00 +1100
+Subject: powerpc: mm: add pud_pfn() stub
+Date: Wed, 12 Feb 2025 03:14:01 +1100
 
-On several powerpc platforms, a page table entry may not imply whether the
-relevant mapping is for userspace or kernelspace.  Instead, such platforms
-infer this by the address which is being accessed.
+The page table check feature requires that pud_pfn() be defined on each
+consuming architecture.  Since only 64-bit, Book3S platforms allow for
+hugepages at this upper level, and since the calling code is gated by a
+call to pud_user_accessible_page(), which will return zero, include this
+stub as a BUILD_BUG().
 
-Add an additional address argument to each of these routines in order to
-provide support for page table check on powerpc.
-
-[ajd@linux.ibm.com: rebase on arm64 changes]
-Link: https://lkml.kernel.org/r/20250211161404.850215-8-ajd@linux.ibm.com
+Link: https://lkml.kernel.org/r/20250211161404.850215-9-ajd@linux.ibm.com
 Signed-off-by: Rohan McLure <rmclure@linux.ibm.com>
 Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
@@ -80,137 +78,27 @@ Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    6 +++---
- arch/riscv/include/asm/pgtable.h |    6 +++---
- arch/x86/include/asm/pgtable.h   |    6 +++---
- mm/page_table_check.c            |   12 ++++++------
- 4 files changed, 15 insertions(+), 15 deletions(-)
+ arch/powerpc/include/asm/pgtable.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-provide-address-parameter-to-ptemdud_user_accessible_page
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1208,17 +1208,17 @@ static inline int pgd_devmap(pgd_t pgd)
- #endif
+--- a/arch/powerpc/include/asm/pgtable.h~powerpc-mm-add-pud_pfn-stub
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -215,6 +215,15 @@ static inline bool arch_supports_memmap_
  
- #ifdef CONFIG_PAGE_TABLE_CHECK
--static inline bool pte_user_accessible_page(pte_t pte)
-+static inline bool pte_user_accessible_page(pte_t pte, unsigned long addr)
- {
- 	return pte_valid(pte) && (pte_user(pte) || pte_user_exec(pte));
- }
+ #endif /* CONFIG_PPC64 */
  
--static inline bool pmd_user_accessible_page(pmd_t pmd)
-+static inline bool pmd_user_accessible_page(pmd_t pmd, unsigned long addr)
- {
- 	return pmd_valid(pmd) && !pmd_table(pmd) && (pmd_user(pmd) || pmd_user_exec(pmd));
- }
++#ifndef pud_pfn
++#define pud_pfn pud_pfn
++static inline int pud_pfn(pud_t pud)
++{
++	BUILD_BUG();
++	return 0;
++}
++#endif
++
+ #endif /* __ASSEMBLY__ */
  
--static inline bool pud_user_accessible_page(pud_t pud)
-+static inline bool pud_user_accessible_page(pud_t pud, unsigned long addr)
- {
- 	return pud_valid(pud) && !pud_table(pud) && (pud_user(pud) || pud_user_exec(pud));
- }
---- a/arch/riscv/include/asm/pgtable.h~mm-provide-address-parameter-to-ptemdud_user_accessible_page
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -783,17 +783,17 @@ static inline void set_pud_at(struct mm_
- }
- 
- #ifdef CONFIG_PAGE_TABLE_CHECK
--static inline bool pte_user_accessible_page(pte_t pte)
-+static inline bool pte_user_accessible_page(pte_t pte, unsigned long addr)
- {
- 	return pte_present(pte) && pte_user(pte);
- }
- 
--static inline bool pmd_user_accessible_page(pmd_t pmd)
-+static inline bool pmd_user_accessible_page(pmd_t pmd, unsigned long addr)
- {
- 	return pmd_leaf(pmd) && pmd_user(pmd);
- }
- 
--static inline bool pud_user_accessible_page(pud_t pud)
-+static inline bool pud_user_accessible_page(pud_t pud, unsigned long addr)
- {
- 	return pud_leaf(pud) && pud_user(pud);
- }
---- a/arch/x86/include/asm/pgtable.h~mm-provide-address-parameter-to-ptemdud_user_accessible_page
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1751,17 +1751,17 @@ static inline bool arch_has_hw_nonleaf_p
- #endif
- 
- #ifdef CONFIG_PAGE_TABLE_CHECK
--static inline bool pte_user_accessible_page(pte_t pte)
-+static inline bool pte_user_accessible_page(pte_t pte, unsigned long addr)
- {
- 	return (pte_val(pte) & _PAGE_PRESENT) && (pte_val(pte) & _PAGE_USER);
- }
- 
--static inline bool pmd_user_accessible_page(pmd_t pmd)
-+static inline bool pmd_user_accessible_page(pmd_t pmd, unsigned long addr)
- {
- 	return pmd_leaf(pmd) && (pmd_val(pmd) & _PAGE_PRESENT) && (pmd_val(pmd) & _PAGE_USER);
- }
- 
--static inline bool pud_user_accessible_page(pud_t pud)
-+static inline bool pud_user_accessible_page(pud_t pud, unsigned long addr)
- {
- 	return pud_leaf(pud) && (pud_val(pud) & _PAGE_PRESENT) && (pud_val(pud) & _PAGE_USER);
- }
---- a/mm/page_table_check.c~mm-provide-address-parameter-to-ptemdud_user_accessible_page
-+++ a/mm/page_table_check.c
-@@ -151,7 +151,7 @@ void __page_table_check_pte_clear(struct
- 	if (&init_mm == mm)
- 		return;
- 
--	if (pte_user_accessible_page(pte)) {
-+	if (pte_user_accessible_page(pte, addr)) {
- 		page_table_check_clear(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT);
- 	}
- }
-@@ -163,7 +163,7 @@ void __page_table_check_pmd_clear(struct
- 	if (&init_mm == mm)
- 		return;
- 
--	if (pmd_user_accessible_page(pmd)) {
-+	if (pmd_user_accessible_page(pmd, addr)) {
- 		page_table_check_clear(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT);
- 	}
- }
-@@ -175,7 +175,7 @@ void __page_table_check_pud_clear(struct
- 	if (&init_mm == mm)
- 		return;
- 
--	if (pud_user_accessible_page(pud)) {
-+	if (pud_user_accessible_page(pud, addr)) {
- 		page_table_check_clear(pud_pfn(pud), PUD_SIZE >> PAGE_SHIFT);
- 	}
- }
-@@ -208,7 +208,7 @@ void __page_table_check_ptes_set(struct
- 
- 	for (i = 0; i < nr; i++)
- 		__page_table_check_pte_clear(mm, addr, ptep_get(ptep + i));
--	if (pte_user_accessible_page(pte))
-+	if (pte_user_accessible_page(pte, addr))
- 		page_table_check_set(pte_pfn(pte), nr, pte_write(pte));
- }
- EXPORT_SYMBOL(__page_table_check_ptes_set);
-@@ -230,7 +230,7 @@ void __page_table_check_pmd_set(struct m
- 	page_table_check_pmd_flags(pmd);
- 
- 	__page_table_check_pmd_clear(mm, addr, *pmdp);
--	if (pmd_user_accessible_page(pmd)) {
-+	if (pmd_user_accessible_page(pmd, addr)) {
- 		page_table_check_set(pmd_pfn(pmd), PMD_SIZE >> PAGE_SHIFT,
- 				     pmd_write(pmd));
- 	}
-@@ -244,7 +244,7 @@ void __page_table_check_pud_set(struct m
- 		return;
- 
- 	__page_table_check_pud_clear(mm, addr, *pudp);
--	if (pud_user_accessible_page(pud)) {
-+	if (pud_user_accessible_page(pud, addr)) {
- 		page_table_check_set(pud_pfn(pud), PUD_SIZE >> PAGE_SHIFT,
- 				     pud_write(pud));
- 	}
+ #endif /* _ASM_POWERPC_PGTABLE_H */
 _
 
 Patches currently in -mm which might be from rmclure@linux.ibm.com are
