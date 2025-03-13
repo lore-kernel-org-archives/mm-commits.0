@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52E9C1F4615
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 20:44:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D54141F37C5
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 20:46:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741898642; cv=none; b=E5aDxLwc4B9A+vfgYqphKvzlecWnCLaBvlN4yhEniTS2nKsKc2Hv/Y703IwUNAA+WTbmhp3fRN+lRokOyAApoG3aVhI/mSfMO/AE67aUkIqkA1ZABln/3x1bISKnhQaDRycKJFuXO9qdsr3JmeltwxhbinbdmNU1Qli7ri8Wrh8=
+	t=1741898801; cv=none; b=T5FFcFnIps1EXCITnw91myz0kpZ6p0eq44CDhFHOGkl7fO1tEvVQeGUFm3S4lBtXD97ugjWq7U+mAa6tY8xkR9ib/zl1PvRiAdC7TzctHxKsE/A8jcuPpQ4m+qE+lHAEKpvGXfbXrnZ6pZiAwKl6uQt5+AuSd1BKBcuBkXIadOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741898642; c=relaxed/simple;
-	bh=00hjBZamOOFGKdnU9OLg/zGhzmzf/ymwCCvgc4q+raQ=;
-	h=Date:To:From:Subject:Message-Id; b=Eli0DRTmhuN3JApyBxmKJqEz3tixfEYcMRtw05ku/j0F8OFoCBSGt2/BNrb+T3G0ZZjRxsmQbaoCdxm7CR8rrFdXibGwlmpRyr0boosresAPkeXmlZeOUwBr8i1z01EZbm/S4XVyJMlVLi27AjnhoYEdmdbSEb3sGyDHV1fSAFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQRWWHao; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741898801; c=relaxed/simple;
+	bh=sc36hblwNwe8KIzM5T6w70AaLwdtS3biMqSmvbgkTGw=;
+	h=Date:To:From:Subject:Message-Id; b=cNRzJaCHsxSgCbHRfyNOPMUM4ZdClwoG0WlF744wMh0cIPMexPj91Q7InVWdV44jmS8aWOZZ1d2O3XmJr57r5v+PhY+HRLHrnQpTiC8PRXxVaEWwECrqoCGD1acGQnvEA1vdv5W04PBSDlGyMSgQf91B56hWk4Rqw1Khy4j2JvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rf8alX0S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQRWWHao"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C45C4CEDD;
-	Thu, 13 Mar 2025 20:44:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rf8alX0S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 258F1C4CEDD;
+	Thu, 13 Mar 2025 20:46:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741898641;
-	bh=00hjBZamOOFGKdnU9OLg/zGhzmzf/ymwCCvgc4q+raQ=;
+	s=korg; t=1741898801;
+	bh=sc36hblwNwe8KIzM5T6w70AaLwdtS3biMqSmvbgkTGw=;
 	h=Date:To:From:Subject:From;
-	b=tQRWWHaoW2Ih4bba1AMYgAFFAo8PiFQE0OBjmnaK43mge2sNgmCal5ReT/dWBCwHr
-	 DTaC5mZy4R+F1zlFbERZUy9pK1cdH8o7BEY5CIBm3oSamRFDwVMGVV8JAv+T8rvmTK
-	 7L0rBAtoZ32lrmCz7aknjstTYQTHyGNKRu5c+97I=
-Date: Thu, 13 Mar 2025 13:44:01 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=rf8alX0SRZko+w2+E/oOlmthbHMuqNTgPJgKxlgJmOY8Q3KpfvjRPTbGbJCfz+Mgn
+	 AnzW1TF+CReJfgqrTWiMYH222PI0rvxIy08LSxS8SECkmJwjCc+Vxs6ayIidmAok3m
+	 pvNqv1ElO3bFc2s2byC9eeqgO1UMh8QZdNEZFNV4=
+Date: Thu, 13 Mar 2025 13:46:40 -0700
+To: mm-commits@vger.kernel.org,lkp@intel.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-lru_add_page_tail-to-lru_add_split_folio.patch added to mm-unstable branch
-Message-Id: <20250313204401.98C45C4CEDD@smtp.kernel.org>
+Subject: + mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch added to mm-unstable branch
+Message-Id: <20250313204641.258F1C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert lru_add_page_tail() to lru_add_split_folio()
+     Subject: mm/huge_memory: use NULL instead of 0 for folio->private assignment.
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-lru_add_page_tail-to-lru_add_split_folio.patch
+     mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-lru_add_page_tail-to-lru_add_split_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,81 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert lru_add_page_tail() to lru_add_split_folio()
-Date: Thu, 13 Mar 2025 15:14:56 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: use NULL instead of 0 for folio->private assignment.
+Date: Thu, 13 Mar 2025 10:04:20 -0400
 
-Remove three hidden calls to compound_head() and accesses to page->lru.
+It makes sparse happy.
 
-Link: https://lkml.kernel.org/r/20250313151458.4145978-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/1E11B9DD-3A87-4C9C-8FB4-E1324FB6A21A@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202503131109.s7iuWfGq-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-convert-lru_add_page_tail-to-lru_add_split_folio
+--- a/mm/huge_memory.c~mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2
 +++ a/mm/huge_memory.c
-@@ -3262,25 +3262,25 @@ static void remap_page(struct folio *fol
- 	}
- }
+@@ -3584,7 +3584,7 @@ static void __split_folio_to_order(struc
+ 		 */
+ 		if (unlikely(new_folio->private)) {
+ 			VM_WARN_ON_ONCE_PAGE(true, new_head);
+-			new_folio->private = 0;
++			new_folio->private = NULL;
+ 		}
  
--static void lru_add_page_tail(struct folio *folio, struct page *tail,
-+static void lru_add_split_folio(struct folio *folio, struct folio *new_folio,
- 		struct lruvec *lruvec, struct list_head *list)
- {
--	VM_BUG_ON_FOLIO(PageLRU(tail), folio);
-+	VM_BUG_ON_FOLIO(folio_test_lru(new_folio), folio);
- 	lockdep_assert_held(&lruvec->lru_lock);
- 
- 	if (list) {
- 		/* page reclaim is reclaiming a huge page */
- 		VM_WARN_ON(folio_test_lru(folio));
--		get_page(tail);
--		list_add_tail(&tail->lru, list);
-+		folio_get(new_folio);
-+		list_add_tail(&new_folio->lru, list);
- 	} else {
- 		/* head is still on lru (and we have it frozen) */
- 		VM_WARN_ON(!folio_test_lru(folio));
- 		if (folio_test_unevictable(folio))
--			tail->mlock_count = 0;
-+			new_folio->mlock_count = 0;
- 		else
--			list_add_tail(&tail->lru, &folio->lru);
--		SetPageLRU(tail);
-+			list_add_tail(&new_folio->lru, &folio->lru);
-+		folio_set_lru(new_folio);
- 	}
- }
- 
-@@ -3581,8 +3581,8 @@ after_split:
- 					((mapping || swap_cache) ?
- 						folio_nr_pages(release) : 0));
- 
--			lru_add_page_tail(origin_folio, &release->page,
--						lruvec, list);
-+			lru_add_split_folio(origin_folio, release, lruvec,
-+					list);
- 
- 			/* Some pages can be beyond EOF: drop them from cache */
- 			if (release->index >= end) {
+ 		if (folio_test_swapcache(folio))
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-decline-to-manipulate-the-refcount-on-a-slab-page.patch
-dax-remove-access-to-page-index.patch
-dax-use-folios-more-widely-within-dax.patch
-fs-convert-block_commit_write-to-take-a-folio.patch
-fs-remove-page_file_mapping.patch
-fs-remove-folio_file_mapping.patch
-mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
-hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
-hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
-mm-convert-lru_add_page_tail-to-lru_add_split_folio.patch
-ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
-ocfs2-remove-reference-to-bh-b_page.patch
+mm-migrate-fix-shmem-xarray-update-during-migration.patch
+mm-huge_memory-drop-beyond-eof-folios-with-the-right-number-of-refs.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-folio_split-in-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
