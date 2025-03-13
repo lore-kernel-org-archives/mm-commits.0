@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81FD42AD22
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:35:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEF042AD22
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 21:35:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741901745; cv=none; b=JmApx1tOQOawKJCARE5lGLvPDs1Pnu9RvxJWr7DRzSPFmrzBKTeO0NJD1+lFq/AZliotF7mhRxp5EXWsN79EBgIopCo26DNbqHGUyYZb3qMSEw+2/XslDmbvmQQ8/JKKcsTTVnht3ZQsi88mqo64GrkUTdNhfE05yz12V3w8TzY=
+	t=1741901747; cv=none; b=ei4xU32MwIbaRELjAILj8Ca7GIV4V2WMT03Guak2V/UAS6p2gIccm9BesrMMOYuVRUpnJX0KRVOk2Ghx+Vv/aGSCm12d5gpKtJTNADk1A+u9JK/VURf5OHwa3hYdWB9FI87qnW/Y3If4T6mhAHzQ0tqaiddfapc87eVrlqXfewA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741901745; c=relaxed/simple;
-	bh=BTN4WvS8H4LGVpLM2LOFRyw6W34aqrPkR3MUJPtLxIQ=;
-	h=Date:To:From:Subject:Message-Id; b=hf15dsByzoLXJwxn555zcXR46ssTSsISDNl/HvoYn7168UooSGuM2gvBKntXdFUToWZbVMPC7bFCr7iMVhPD2MI1ptRNFFPtiq3jX0ie5hSt0QAK6QXdLAinu0dhD/HA8fY1b5DsgRsCyEpXlahFnGxIOtoFDTZLoOpECR/IpTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CnFlAnhy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741901747; c=relaxed/simple;
+	bh=cVuDKHNi4AsoHuluyHRYAG4oefFEBSxOYDbTxXngVyc=;
+	h=Date:To:From:Subject:Message-Id; b=KBBs5gkuSVY3X0kFrdg+4EBaa0+oT+LnnVsB6ooLbwtJp2oB0uNpCc2JwSXVOBHuq+JcE8ThSbwdtga6M3RDo7JXog4sizE+ooRHDZwFejql99bJ4xCcYa+sIcKo0342Ul1vNLE8Ge1QFJY/vc9CAFf+ozN7twj5OducxFOPteM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k2Sr5JcS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CnFlAnhy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7728C4CEDD;
-	Thu, 13 Mar 2025 21:35:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k2Sr5JcS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5870DC4CEDD;
+	Thu, 13 Mar 2025 21:35:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741901745;
-	bh=BTN4WvS8H4LGVpLM2LOFRyw6W34aqrPkR3MUJPtLxIQ=;
+	s=korg; t=1741901746;
+	bh=cVuDKHNi4AsoHuluyHRYAG4oefFEBSxOYDbTxXngVyc=;
 	h=Date:To:From:Subject:From;
-	b=CnFlAnhyq72uqpd2haT335dENHA21GsYECjnfT1n5knRDtvtEZqeYWBgydDK+lhxh
-	 TsA6h7VRbU4KVwU8VF//MPvzNW0FPyYDFSKGsk424uRmtONuzoFH5osGhNoH4ZWp2c
-	 F5EiHLm79qHUxMx1E86lBzHcVFlxoELjFpDC0c60=
-Date: Thu, 13 Mar 2025 14:35:44 -0700
+	b=k2Sr5JcSTjvDlgTIT49ZwD1roKtPBOmrMFGEgtDqrbi1VZAkkj7XnSpy9EHxRCatc
+	 MMsA3P+ur0hAePmXz/dbHXhpCcSLybVxfoJShSoUHsEBtDO/WDe7AcSRsCWNC6u1o9
+	 4JQfiQno7Q86gQdQ9oUXNjPhb2Ki1pzAXHfKpiW8=
+Date: Thu, 13 Mar 2025 14:35:45 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-defrag_mode.patch added to mm-unstable branch
-Message-Id: <20250313213544.E7728C4CEDD@smtp.kernel.org>
+Subject: + mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance.patch added to mm-unstable branch
+Message-Id: <20250313213546.5870DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: defrag_mode
+     Subject: mm: page_alloc: defrag_mode kswapd/kcompactd assistance
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-defrag_mode.patch
+     mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-defrag_mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,122 +59,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: defrag_mode
-Date: Thu, 13 Mar 2025 17:05:34 -0400
+Subject: mm: page_alloc: defrag_mode kswapd/kcompactd assistance
+Date: Thu, 13 Mar 2025 17:05:35 -0400
 
-The page allocator groups requests by migratetype to stave off
-fragmentation.  However, in practice this is routinely defeated by the
-fact that it gives up *before* invoking reclaim and compaction - which may
-well produce suitable pages.  As a result, fragmentation of physical
-memory is a common ongoing process in many load scenarios.
+When defrag_mode is enabled, allocation fallbacks strongly prefer whole
+block conversions instead of polluting or stealing partially used blocks. 
+This means there is a demand for pageblocks even from sub-block requests. 
+Let kswapd/kcompactd help produce them.
 
-Fragmentation deteriorates compaction's ability to produce huge pages. 
-Depending on the lifetime of the fragmenting allocations, those effects
-can be long-lasting or even permanent, requiring drastic measures like
-forcible idle states or even reboots as the only reliable ways to recover
-the address space for THP production.
+By the time kswapd gets woken up, normal rmqueue and block conversion
+fallbacks have been attempted and failed.  So always wake kswapd with the
+block order; it will take care of producing a suitable compaction gap and
+then chain-wake kcompactd with the block order when its done.
 
-In a kernel build test with supplemental THP pressure, the THP allocation
-rate steadily declines over 15 runs:
+                                                VANILLA        DEFRAGMODE-ASYNC
+Hugealloc Time mean               52739.45 (    +0.00%)   34300.36 (   -34.96%)
+Hugealloc Time stddev             56541.26 (    +0.00%)   36390.42 (   -35.64%)
+Kbuild Real time                    197.47 (    +0.00%)     196.13 (    -0.67%)
+Kbuild User time                   1240.49 (    +0.00%)    1234.74 (    -0.46%)
+Kbuild System time                   70.08 (    +0.00%)      62.62 (   -10.50%)
+THP fault alloc                   46727.07 (    +0.00%)   57054.53 (   +22.10%)
+THP fault fallback                21910.60 (    +0.00%)   11581.40 (   -47.14%)
+Direct compact fail                 195.80 (    +0.00%)     107.80 (   -44.72%)
+Direct compact success                7.93 (    +0.00%)       4.53 (   -38.06%)
+Direct compact success rate %         3.51 (    +0.00%)       3.20 (    -6.89%)
+Compact daemon scanned migrate  3369601.27 (    +0.00%) 5461033.93 (   +62.07%)
+Compact daemon scanned free     5075474.47 (    +0.00%) 5824897.93 (   +14.77%)
+Compact direct scanned migrate   161787.27 (    +0.00%)   58336.93 (   -63.94%)
+Compact direct scanned free      163467.53 (    +0.00%)   32791.87 (   -79.94%)
+Compact total migrate scanned   3531388.53 (    +0.00%) 5519370.87 (   +56.29%)
+Compact total free scanned      5238942.00 (    +0.00%) 5857689.80 (   +11.81%)
+Alloc stall                        2371.07 (    +0.00%)    2424.60 (    +2.26%)
+Pages kswapd scanned            2160926.73 (    +0.00%) 2657018.33 (   +22.96%)
+Pages kswapd reclaimed           533191.07 (    +0.00%)  559583.07 (    +4.95%)
+Pages direct scanned             400450.33 (    +0.00%)  722094.07 (   +80.32%)
+Pages direct reclaimed            94441.73 (    +0.00%)  107257.80 (   +13.57%)
+Pages total scanned             2561377.07 (    +0.00%) 3379112.40 (   +31.93%)
+Pages total reclaimed            627632.80 (    +0.00%)  666840.87 (    +6.25%)
+Swap out                          47959.53 (    +0.00%)   77238.20 (   +61.05%)
+Swap in                            7276.00 (    +0.00%)   11712.80 (   +60.97%)
+File refaults                    138043.00 (    +0.00%)  143438.80 (    +3.91%)
 
-    thp_fault_alloc
-    61988
-    56474
-    57258
-    50187
-    52388
-    55409
-    52925
-    47648
-    43669
-    40621
-    36077
-    41721
-    36685
-    34641
-    33215
+With this patch, defrag_mode=1 beats the vanilla kernel in THP success
+rates and allocation latencies.  The trend holds over time:
 
-This is a hurdle in adopting THP in any environment where hosts are shared
-between multiple overlapping workloads (cloud environments), and rarely
-experience true idle periods.  To make THP a reliable and predictable
-optimization, there needs to be a stronger guarantee to avoid such
-fragmentation.
+  thp_fault_alloc
 
-Introduce defrag_mode.  When enabled, reclaim/compaction is invoked to its
-full extent *before* falling back.  Specifically, ALLOC_NOFRAGMENT is
-enforced on the allocator fastpath and the reclaiming slowpath.
+      VANILLA        DEFRAGMODE-ASYNC
+        61988                   52066
+        56474                   58844
+        57258                   58233
+        50187                   58476
+        52388                   54516
+        55409                   59938
+        52925                   57204
+        47648                   60238
+        43669                   55733
+        40621                   56211
+        36077                   59861
+        41721                   57771
+        36685                   58579
+        34641                   51868
+        33215                   56280
 
-For now, fallbacks are permitted to avert OOMs.  There is a plan to add
-defrag_mode=2 to prefer OOMs over fragmentation, but this requires
-additional prep work in compaction and the reserve management to make it
-ready for all possible allocation contexts.
+DEFRAGMODE-ASYNC also wins on %sys as ~3/4 of the direct compaction work
+is shifted to kcompactd.
 
-The following test results are from a kernel build with periodic bursts of
-THP allocations, over 15 runs:
+Reclaim activity is higher.  Part of that is simply due to the increased
+memory footprint from higher THP use.  The other aspect is that *direct*
+reclaim/compaction are still going for requested orders rather than
+targeting the page blocks required for fallbacks, which is less efficient
+than it could be.  However, this is already a useful tradeoff to make, as
+in many environments peak periods are short and retaining the ability to
+produce THP through them is more important.
 
-                                        vanilla    defrag_mode=1
-@claimer[unmovable]:                        189              103
-@claimer[movable]:                           92              103
-@claimer[reclaimable]:                      207               61
-@pollute[unmovable from movable]:            25                0
-@pollute[unmovable from reclaimable]:        28                0
-@pollute[movable from unmovable]:         38835                0
-@pollute[movable from reclaimable]:      147136                0
-@pollute[reclaimable from unmovable]:       178                0
-@pollute[reclaimable from movable]:          33                0
-@steal[unmovable from movable]:              11                0
-@steal[unmovable from reclaimable]:           5                0
-@steal[reclaimable from unmovable]:         107                0
-@steal[reclaimable from movable]:            90                0
-@steal[movable from reclaimable]:           354                0
-@steal[movable from unmovable]:             130                0
-
-Both types of polluting fallbacks are eliminated in this workload.
-
-Interestingly, whole block conversions are reduced as well.  This is
-because once a block is claimed for a type, its empty space remains
-available for future allocations, instead of being padded with fallbacks;
-this allows the native type to group up instead of spreading out to new
-blocks.  The assumption in the allocator has been that pollution from
-movable allocations is less harmful than from other types, since they can
-be reclaimed or migrated out should the space be needed.  However, since
-fallbacks occur *before* reclaim/compaction is invoked, movable pollution
-will still cause non-movable allocations to spread out and claim more
-blocks.
-
-Without fragmentation, THP rates hold steady with defrag_mode=1:
-
-    thp_fault_alloc
-    32478
-    20725
-    45045
-    32130
-    14018
-    21711
-    40791
-    29134
-    34458
-    45381
-    28305
-    17265
-    22584
-    28454
-    30850
-
-While the downward trend is eliminated, the keen reader will of course
-notice that the baseline rate is much smaller than the vanilla kernel's to
-begin with.  This is due to deficiencies in how reclaim and compaction are
-currently driven: ALLOC_NOFRAGMENT increases the extent to which smaller
-allocations are competing with THPs for pageblocks, while making no effort
-themselves to reclaim or compact beyond their own request size.  This
-effect already exists with the current usage of ALLOC_NOFRAGMENT, but is
-amplified by defrag_mode insisting on whole block stealing much more
-strongly.
-
-Subsequent patches will address defrag_mode reclaim strategy to raise the
-THP success baseline above the vanilla kernel.
-
-Link: https://lkml.kernel.org/r/20250313210647.1314586-4-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20250313210647.1314586-5-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -182,113 +141,37 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    9 +++++++
- mm/page_alloc.c                         |   27 ++++++++++++++++++++--
- 2 files changed, 34 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-page_alloc-defrag_mode
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -29,6 +29,7 @@ Currently, these files are in /proc/sys/
- - compaction_proactiveness
- - compaction_proactiveness_leeway
- - compact_unevictable_allowed
-+- defrag_mode
- - dirty_background_bytes
- - dirty_background_ratio
- - dirty_bytes
-@@ -162,6 +163,14 @@ On CONFIG_PREEMPT_RT the default value i
- to compaction, which would block the task from becoming active until the fault
- is resolved.
- 
-+defrag_mode
-+===========
-+
-+When set to 1, the page allocator tries harder to avoid fragmentation
-+and maintain the ability to produce huge pages / higher-order pages.
-+
-+It is recommended to enable this right after boot, as fragmentation,
-+once it occurred, can be long-lasting or even permanent.
- 
- dirty_background_bytes
- ======================
---- a/mm/page_alloc.c~mm-page_alloc-defrag_mode
+--- a/mm/page_alloc.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance
 +++ a/mm/page_alloc.c
-@@ -273,6 +273,7 @@ int min_free_kbytes = 1024;
- int user_min_free_kbytes = -1;
- static int watermark_boost_factor __read_mostly = 15000;
- static int watermark_scale_factor = 10;
-+static int defrag_mode;
- 
- /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
- int movable_zone;
-@@ -3389,6 +3390,11 @@ alloc_flags_nofragment(struct zone *zone
- 	 */
- 	alloc_flags = (__force int) (gfp_mask & __GFP_KSWAPD_RECLAIM);
- 
-+	if (defrag_mode) {
-+		alloc_flags |= ALLOC_NOFRAGMENT;
-+		return alloc_flags;
-+	}
+@@ -4076,15 +4076,21 @@ static void wake_all_kswapds(unsigned in
+ 	struct zone *zone;
+ 	pg_data_t *last_pgdat = NULL;
+ 	enum zone_type highest_zoneidx = ac->highest_zoneidx;
++	unsigned int reclaim_order;
 +
- #ifdef CONFIG_ZONE_DMA32
- 	if (!zone)
- 		return alloc_flags;
-@@ -3480,7 +3486,7 @@ retry:
- 				continue;
- 		}
- 
--		if (no_fallback && nr_online_nodes > 1 &&
-+		if (no_fallback && !defrag_mode && nr_online_nodes > 1 &&
- 		    zone != zonelist_zone(ac->preferred_zoneref)) {
- 			int local_nid;
- 
-@@ -3591,7 +3597,7 @@ try_this_zone:
- 	 * It's possible on a UMA machine to get through all zones that are
- 	 * fragmented. If avoiding fragmentation, reset and try again.
- 	 */
--	if (no_fallback) {
-+	if (no_fallback && !defrag_mode) {
- 		alloc_flags &= ~ALLOC_NOFRAGMENT;
- 		goto retry;
- 	}
-@@ -4128,6 +4134,9 @@ gfp_to_alloc_flags(gfp_t gfp_mask, unsig
- 
- 	alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, alloc_flags);
- 
 +	if (defrag_mode)
-+		alloc_flags |= ALLOC_NOFRAGMENT;
-+
- 	return alloc_flags;
++		reclaim_order = max(order, pageblock_order);
++	else
++		reclaim_order = order;
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, highest_zoneidx,
+ 					ac->nodemask) {
+ 		if (!managed_zone(zone))
+ 			continue;
+-		if (last_pgdat != zone->zone_pgdat) {
+-			wakeup_kswapd(zone, gfp_mask, order, highest_zoneidx);
+-			last_pgdat = zone->zone_pgdat;
+-		}
++		if (last_pgdat == zone->zone_pgdat)
++			continue;
++		wakeup_kswapd(zone, gfp_mask, reclaim_order, highest_zoneidx);
++		last_pgdat = zone->zone_pgdat;
+ 	}
  }
  
-@@ -4510,6 +4519,11 @@ retry:
- 				&compaction_retries))
- 		goto retry;
- 
-+	/* Reclaim/compaction failed to prevent the fallback */
-+	if (defrag_mode) {
-+		alloc_flags &= ALLOC_NOFRAGMENT;
-+		goto retry;
-+	}
- 
- 	/*
- 	 * Deal with possible cpuset update races or zonelist updates to avoid
-@@ -6287,6 +6301,15 @@ static const struct ctl_table page_alloc
- 		.extra2		= SYSCTL_THREE_THOUSAND,
- 	},
- 	{
-+		.procname	= "defrag_mode",
-+		.data		= &defrag_mode,
-+		.maxlen		= sizeof(defrag_mode),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
- 		.procname	= "percpu_pagelist_high_fraction",
- 		.data		= &percpu_pagelist_high_fraction,
- 		.maxlen		= sizeof(percpu_pagelist_high_fraction),
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
