@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDAE015886C
-	for <mm-commits@vger.kernel.org>; Fri, 14 Mar 2025 19:45:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBD4415886C
+	for <mm-commits@vger.kernel.org>; Fri, 14 Mar 2025 19:45:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741981528; cv=none; b=p0w9ZZ6JsmJ+fVi/wMAOokrAVrhbEoRmFNHE+yjVtiIgIdeUeeykv0JdsSdXtbCautKzEDbbP8X+dWoKSdOjZjL/7xLTcMRJriOJRcDNG3g7XDhSL1ZZIaJg3uGT5rpi5dschhTQofBPA0snhYFIKCmdFH2IZDzhVbwvKtW6cAQ=
+	t=1741981529; cv=none; b=bP387SgzRDManl0gLcD2Qw+6bTsYn7U2nYVBBCo0y0Zozat1iMjZMvptCIX5eg4yC0VOYFjSNfdN5WkyVCKuDmRTkpQ0k2LOE4BnUMgs4illsHoaygHBL3B281ELDkmdg/geGcmmwFdTSSwtJjncormuKO/svBUld2u6lbGBZkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741981528; c=relaxed/simple;
-	bh=8AUmQbF7xiBfjzqR+T8rWzHmCTIxPnUTz8T39f7jY1A=;
-	h=Date:To:From:Subject:Message-Id; b=Q+zWmAAZgoLVxa7glApbTPSXysqZEEvo0dMIrxMBURSQpgqgdUuZ235Tet0GNsPOvbbvNkbTgR2C3P+zQLasLbwUw6EZvnCkrtxu5rKBCuyJRTjcAdlHSS8KN3DF0GiJKY1FRV7UFj1ibsrQZBGhHKQbcSBY4ARKpoz5KcxXEHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pDdVyA7F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741981529; c=relaxed/simple;
+	bh=Y6J3PU2KUKTno6y+yUjk9SSfsT7/Mc8oC7qjHMLVfXo=;
+	h=Date:To:From:Subject:Message-Id; b=CGy7W0yMe78E5+K4XqEe9ifOAkmnj3gGEaMxMl4MXyo3mf6nKpOGFlFsU6i5jmRo2gc9DfZgKwwiddgOc+8Vf0mxpoiguWcG/HICJdYYzsAo7bGgyntNK/iXXsipqPnijd5shwt7qwH8BVShIHS8ztW04WzqqoavRSqeqE9tOlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PsWP27Ol; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pDdVyA7F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A96F4C4CEE3;
-	Fri, 14 Mar 2025 19:45:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PsWP27Ol"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E445C4CEE3;
+	Fri, 14 Mar 2025 19:45:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741981527;
-	bh=8AUmQbF7xiBfjzqR+T8rWzHmCTIxPnUTz8T39f7jY1A=;
+	s=korg; t=1741981529;
+	bh=Y6J3PU2KUKTno6y+yUjk9SSfsT7/Mc8oC7qjHMLVfXo=;
 	h=Date:To:From:Subject:From;
-	b=pDdVyA7FYo+wRTRbLsiAvY5gDALvQ+EIoNhJ4x8mTuDSCC/DHYVsIoxF4thL++8cM
-	 CyfcCAT+FqKzLn2GNw+/OYAu0/O2dqe04DQ4/pqetjH6jhhl/gJstJK1kx1SWoHIME
-	 zsMYOF81BK7dG8OWnNkJ+55clmffqOWWHdgJ5meU=
-Date: Fri, 14 Mar 2025 12:45:27 -0700
+	b=PsWP27OlV/vTzb2L6GhkB6GOf+DxDfE5U/F2yOS2BK2ymPDQoA5XSRaeRnHlpddIE
+	 Aoz1Hp0RkgTMFRocP85YVdobX7nvoehLMBowx2QeI5GU2t/7N/bj6hD8IwmbOPUO5e
+	 ioI52ewwlv3CTEzwxBb8cKrboVnWjReFKsFx5sPs=
+Date: Fri, 14 Mar 2025 12:45:29 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-simplify-folio_memcg_charged.patch added to mm-unstable branch
-Message-Id: <20250314194527.A96F4C4CEE3@smtp.kernel.org>
+Subject: + mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch added to mm-unstable branch
+Message-Id: <20250314194529.9E445C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: simplify folio_memcg_charged()
+     Subject: mm: Remove references to folio in __memcg_kmem_uncharge_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-simplify-folio_memcg_charged.patch
+     mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-simplify-folio_memcg_charged.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: simplify folio_memcg_charged()
-Date: Fri, 14 Mar 2025 13:36:14 +0000
+Subject: mm: Remove references to folio in __memcg_kmem_uncharge_page()
+Date: Fri, 14 Mar 2025 13:36:15 +0000
 
-There's no need to check which kind of pointer is in the memcg_data field,
-all we actually care about is whether it's zero or not.  Saves 70 bytes in
-workingset_activation() with the Debian config.
+This use of folios is misleading because these pages are not part of
+a folio.  Remove an unnecessary call to page_folio(), saving 58 bytes
+of text in a Debian kernel build.
 
-Link: https://lkml.kernel.org/r/20250314133617.138071-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250314133617.138071-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -78,22 +78,31 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/memcontrol.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-simplify-folio_memcg_charged
-+++ a/include/linux/memcontrol.h
-@@ -438,9 +438,7 @@ static inline struct mem_cgroup *folio_m
+--- a/mm/memcontrol.c~mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page
++++ a/mm/memcontrol.c
+@@ -2726,16 +2726,14 @@ int __memcg_kmem_charge_page(struct page
   */
- static inline bool folio_memcg_charged(struct folio *folio)
+ void __memcg_kmem_uncharge_page(struct page *page, int order)
  {
--	if (folio_memcg_kmem(folio))
--		return __folio_objcg(folio) != NULL;
--	return __folio_memcg(folio) != NULL;
-+	return folio->memcg_data != 0;
+-	struct folio *folio = page_folio(page);
+-	struct obj_cgroup *objcg;
++	struct obj_cgroup *objcg = page_objcg(page);
+ 	unsigned int nr_pages = 1 << order;
+ 
+-	if (!folio_memcg_kmem(folio))
++	if (!objcg)
+ 		return;
+ 
+-	objcg = __folio_objcg(folio);
+ 	obj_cgroup_uncharge_pages(objcg, nr_pages);
+-	folio->memcg_data = 0;
++	page->memcg_data = 0;
+ 	obj_cgroup_put(objcg);
  }
  
- /*
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
