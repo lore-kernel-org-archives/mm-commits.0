@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A5F41F03C7
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2025 22:55:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FE31FDA9C
+	for <mm-commits@vger.kernel.org>; Fri, 14 Mar 2025 19:45:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741906529; cv=none; b=XJXwHn3SMg8K0HknPl20zZ03w8v8rBQ9qPAU0UH5tBpxuJ67hvrWoN0LhI3BQhvMYDtGkDege7jlg8FspvpcvC1OKPXrsVvnp4n3mw/87L6/g/5b4qVypV/Wf+mU5R0Kji5f2Xg8Ta5/Q0760sUXohnz3xrfMT4wkMLafwzEk7s=
+	t=1741981521; cv=none; b=Q+m5YVOyys4dD4jnlYbin7kh7N33D4XViJ1UIfMeDPyeB5DNgletMYQR7vv40mi5SF/Zwq2+IzV95J7DnovY2Uo/DBlXdh+XAGZCNzIWQzIEhthZcwLWn0sLqLPBY/TCCpy5FrjFZo9cvooEH88xS/aKUKXG1kiLXGanRg1bFNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741906529; c=relaxed/simple;
-	bh=2MnqOPd/g9CRtxO1HWcgJE6eLmiBfxThV96/31tIdkw=;
-	h=Date:To:From:Subject:Message-Id; b=n/0yvbLXliMr3RKgInrp41WQ0/ypLWt7IihV100PxumnqjzOX2uc0ItD5G3EMnLEfnv9VF+gVuv3vaeX8Oh2GWB94sfzyJzopZbHxFyWnVmGy/p8FLwNJrUnKYwo83rN+B+8eIGKslB6/gQQonLRRgE9xs+H4yQ9guuhfHe/4A4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uRUI1f78; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741981521; c=relaxed/simple;
+	bh=VYOzy/nipOVDNYyglyZe1GYj0aYOIqhja/cp8b6OSW4=;
+	h=Date:To:From:Subject:Message-Id; b=ByeeouNj6xj8mEywGKCLj4PoIlYG3fRwdu2XGXdImAflSxkXfRMyUiCKQNd0dmrhjllYuoVqR1B26S6FkXPSMJiZJJXvLfFLPugtMoEneQ1bGJ1xYHnbqVMMTJRV9S8USf2+1iEeNVwDpwiy9EuOn1CD+nxoAsRaQ/pZzFNatHc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VIpHwgmK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uRUI1f78"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76160C4CEDD;
-	Thu, 13 Mar 2025 22:55:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VIpHwgmK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1725C4CEE3;
+	Fri, 14 Mar 2025 19:45:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741906528;
-	bh=2MnqOPd/g9CRtxO1HWcgJE6eLmiBfxThV96/31tIdkw=;
+	s=korg; t=1741981519;
+	bh=VYOzy/nipOVDNYyglyZe1GYj0aYOIqhja/cp8b6OSW4=;
 	h=Date:To:From:Subject:From;
-	b=uRUI1f78tTE3VEcz4cPqvvNNmZSelS/HOfVCtz5vz+uYbkv634qcm6gye/KQR4kfl
-	 PYn+s+5Rgq2BNCsdVio8dQmOdkn4MeMrJA9FHmwvNj5yj7P4hm0ujcAfkEIqy8BtER
-	 2yFsy69QxiwHsrx//zvQbhb5X3JrcBt6/XjVBYnE=
-Date: Thu, 13 Mar 2025 15:55:27 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pedro.falcato@gmail.com,oliver.sang@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=VIpHwgmKE3hnKqTiio8kvzSrD+4grbqlWkjgGfT04jigu+sg7T8GtwL2MIdlpz7sq
+	 9Z+6uBXG7ipdlnkdfEiXowvCYUju/N0bZ3DiU0xN7sdE5QOibrBOKc9D/pqexJEAl9
+	 N0fZGqBpXFJNaxBbmKbiL5gCdA4+ka5UL2IF259A=
+Date: Fri, 14 Mar 2025 12:45:18 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree.patch removed from -mm tree
-Message-Id: <20250313225528.76160C4CEDD@smtp.kernel.org>
+Subject: + mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch added to mm-unstable branch
+Message-Id: <20250314194519.B1725C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,116 +34,171 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: vma: skip anonymous vma when inserting vma to file rmap tree
-has been removed from the -mm tree.  Its filename was
-     mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree.patch
+The patch titled
+     Subject: mm: separate folio_split_memcg_refs() from split_page_memcg()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang@os.amperecomputing.com>
-Subject: mm: vma: skip anonymous vma when inserting vma to file rmap tree
-Date: Thu, 6 Mar 2025 13:49:48 -0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: separate folio_split_memcg_refs() from split_page_memcg()
+Date: Fri, 14 Mar 2025 13:36:11 +0000
 
-LKP reported 800% performance improvement for small-allocs benchmark from
-vm-scalability [1] with patch ("/dev/zero: make private mapping full
-anonymous mapping") [2], but the patch was nack'ed since it changes the
-output of smaps somewhat.
+Patch series "Minor memcg cleanups & prep for memdescs", v2.
 
-The profiling shows one of the major sources of the performance
-improvement is the less contention to i_mmap_rwsem.
+Separate the handling of accounted folios and GFP_ACCOUNT pages for easier
+to understand code.  For more detail, see
+https://lore.kernel.org/linux-mm/Z9LwTOudOlCGny3f@casper.infradead.org/
 
-The small-allocs benchmark creates a lot of 40K size memory maps by
-mmap'ing private /dev/zero then triggers page fault on the mappings.  When
-creating private mapping for /dev/zero, the anonymous VMA is created, but
-it has valid vm_file.  Kernel basically assumes anonymous VMAs should have
-NULL vm_file, for example, mmap inserts VMA to the file rmap tree if
-vm_file is not NULL.  So the private /dev/zero mapping will be inserted to
-the file rmap tree, this resulted in the contention to i_mmap_rwsem.  But
-it is actually anonymous VMA, so it is pointless to insert it to file rmap
-tree.
 
-Skip anonymous VMA for this case.  Over 400% performance improvement was
-reported [3].
+This patch (of 5):
 
-It is not on par with the 800% improvement from the original patch.  It is
-because page fault handler needs to access some members of struct file if
-vm_file is not NULL, for example, f_mode and f_mapping.  They are in the
-same cacheline with file refcount.  When mmap'ing a file the file refcount
-is inc'ed and dec'ed, this caused bad cache false sharing problem.  The
-further debug showed checking whether the VMA is anonymous or not can
-alleviate the problem.  But I'm not sure whether it is the best way to
-handle it, maybe we should consider shuffle the layout of struct file.
+Folios always use memcg_data to refer to the mem_cgroup while pages
+allocated with GFP_ACCOUNT have a pointer to the obj_cgroup.  Since the
+caller already knows what it has, split the function into two and then we
+don't need to check.
 
-However it sounds rare that real life applications would create that many
-maps with mmap'ing private /dev/zero and share the same struct file, so
-the cache false sharing problem may be not that bad.  But i_mmap_rwsem
-contention problem seems more real since all /dev/zero private mappings
-even from different applications share the same struct address_space so
-the same i_mmap_rwsem.
+Move the assignment of split folio memcg_data to the point where we set up
+the other parts of the new folio.  That leaves folio_split_memcg_refs()
+just handling the memcg accounting.
 
-[1] https://lore.kernel.org/linux-mm/202501281038.617c6b60-lkp@intel.com/
-[2] https://lore.kernel.org/linux-mm/20250113223033.4054534-1-yang@os.amperecomputing.com/
-[3] https://lore.kernel.org/linux-mm/Z6RshwXCWhAGoMOK@xsang-OptiPlex-9020/#t
-
-Link: https://lkml.kernel.org/r/20250306214948.2939043-1-yang@os.amperecomputing.com
-Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Link: https://lkml.kernel.org/r/20250314133617.138071-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250314133617.138071-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    7 +++++++
+ mm/huge_memory.c           |   16 ++++------------
+ mm/memcontrol.c            |   17 +++++++++++++----
+ 3 files changed, 24 insertions(+), 16 deletions(-)
 
---- a/mm/vma.c~mm-vma-skip-anonymous-vma-when-inserting-vma-to-file-rmap-tree
-+++ a/mm/vma.c
-@@ -1652,6 +1652,9 @@ static void unlink_file_vma_batch_proces
- void unlink_file_vma_batch_add(struct unlink_vma_file_batch *vb,
- 			       struct vm_area_struct *vma)
+--- a/include/linux/memcontrol.h~mm-separate-folio_split_memcg_refs-from-split_page_memcg
++++ a/include/linux/memcontrol.h
+@@ -1039,6 +1039,8 @@ static inline void memcg_memory_event_mm
+ }
+ 
+ void split_page_memcg(struct page *head, int old_order, int new_order);
++void folio_split_memcg_refs(struct folio *folio, unsigned old_order,
++		unsigned new_order);
+ 
+ static inline u64 cgroup_id_from_mm(struct mm_struct *mm)
  {
-+	if (vma_is_anonymous(vma))
+@@ -1463,6 +1465,11 @@ static inline void split_page_memcg(stru
+ {
+ }
+ 
++static inline void folio_split_memcg_refs(struct folio *folio,
++		unsigned old_order, unsigned new_order)
++{
++}
++
+ static inline u64 cgroup_id_from_mm(struct mm_struct *mm)
+ {
+ 	return 0;
+--- a/mm/huge_memory.c~mm-separate-folio_split_memcg_refs-from-split_page_memcg
++++ a/mm/huge_memory.c
+@@ -3394,6 +3394,9 @@ static void __split_folio_to_order(struc
+ 			folio_set_young(new_folio);
+ 		if (folio_test_idle(folio))
+ 			folio_set_idle(new_folio);
++#ifdef CONFIG_MEMCG
++		new_folio->memcg_data = folio->memcg_data;
++#endif
+ 
+ 		folio_xchg_last_cpupid(new_folio, folio_last_cpupid(folio));
+ 	}
+@@ -3525,18 +3528,7 @@ static int __split_unmapped_folio(struct
+ 			}
+ 		}
+ 
+-		/*
+-		 * Reset any memcg data overlay in the tail pages.
+-		 * folio_nr_pages() is unreliable until prep_compound_page()
+-		 * was called again.
+-		 */
+-#ifdef NR_PAGES_IN_LARGE_FOLIO
+-		folio->_nr_pages = 0;
+-#endif
+-
+-
+-		/* complete memcg works before add pages to LRU */
+-		split_page_memcg(&folio->page, old_order, split_order);
++		folio_split_memcg_refs(folio, old_order, split_order);
+ 		split_page_owner(&folio->page, old_order, split_order);
+ 		pgalloc_tag_split(folio, old_order, split_order);
+ 
+--- a/mm/memcontrol.c~mm-separate-folio_split_memcg_refs-from-split_page_memcg
++++ a/mm/memcontrol.c
+@@ -3081,10 +3081,19 @@ void split_page_memcg(struct page *head,
+ 	for (i = new_nr; i < old_nr; i += new_nr)
+ 		folio_page(folio, i)->memcg_data = folio->memcg_data;
+ 
+-	if (folio_memcg_kmem(folio))
+-		obj_cgroup_get_many(__folio_objcg(folio), old_nr / new_nr - 1);
+-	else
+-		css_get_many(&folio_memcg(folio)->css, old_nr / new_nr - 1);
++	obj_cgroup_get_many(__folio_objcg(folio), old_nr / new_nr - 1);
++}
++
++void folio_split_memcg_refs(struct folio *folio, unsigned old_order,
++		unsigned new_order)
++{
++	unsigned new_refs;
++
++	if (mem_cgroup_disabled() || !folio_memcg_charged(folio))
 +		return;
 +
- 	if (vma->vm_file == NULL)
- 		return;
++	new_refs = (1 << (old_order - new_order)) - 1;
++	css_get_many(&__folio_memcg(folio)->css, new_refs);
+ }
  
-@@ -1675,8 +1678,12 @@ void unlink_file_vma_batch_final(struct
-  */
- void unlink_file_vma(struct vm_area_struct *vma)
- {
--	struct file *file = vma->vm_file;
-+	struct file *file;
-+
-+	if (vma_is_anonymous(vma))
-+		return;
- 
-+	file = vma->vm_file;
- 	if (file) {
- 		struct address_space *mapping = file->f_mapping;
- 
-@@ -1688,9 +1695,13 @@ void unlink_file_vma(struct vm_area_stru
- 
- void vma_link_file(struct vm_area_struct *vma)
- {
--	struct file *file = vma->vm_file;
-+	struct file *file;
- 	struct address_space *mapping;
- 
-+	if (vma_is_anonymous(vma))
-+		return;
-+
-+	file = vma->vm_file;
- 	if (file) {
- 		mapping = file->f_mapping;
- 		i_mmap_lock_write(mapping);
+ unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
 _
 
-Patches currently in -mm which might be from yang@os.amperecomputing.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-decline-to-manipulate-the-refcount-on-a-slab-page.patch
+dax-remove-access-to-page-index.patch
+dax-use-folios-more-widely-within-dax.patch
+fs-convert-block_commit_write-to-take-a-folio.patch
+fs-remove-page_file_mapping.patch
+fs-remove-folio_file_mapping.patch
+mm-assert-the-folio-is-locked-in-folio_start_writeback.patch
+hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
+hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+mm-convert-lru_add_page_tail-to-lru_add_split_folio.patch
+mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
+mm-simplify-split_page_memcg.patch
+mm-remove-references-to-folio-in-split_page_memcg.patch
+mm-simplify-folio_memcg_charged.patch
+mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch
+ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
+ocfs2-remove-reference-to-bh-b_page.patch
 
