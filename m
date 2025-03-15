@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B0E363CB
-	for <mm-commits@vger.kernel.org>; Sat, 15 Mar 2025 00:50:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B751B667
+	for <mm-commits@vger.kernel.org>; Sat, 15 Mar 2025 01:03:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741999849; cv=none; b=ASXg6G8bXCEE/rRSrIJljj5NAN8zM12qDsv6/qTJXQKN3cCSlAX7csONnWBC6TQVUKsmImYa1Wt66px/koezjk0ZH3hpdH1sdjiNGyC/1SDVCExWJdXMCw/uZ9oCqevDFtZ/TkKDv/rge3FhMpZvWPRwaFEFuFvD1gJtznU6Aag=
+	t=1742000602; cv=none; b=ZgQHw+492hjWtr4+fgSbv+LTHZTNIE6766uJ+LY6KSAj8RGJxoELBFGRXxZ8ubTtOuTPMkzW97Ba5ful6bZj4qDW/o4/crWUvHQMgYRjeBjG5fowkIZrOg5OqxZjfGebl3sgtbWE9PmvAIDR9fflsAS7kdsO0EudlFMEDcyHHtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741999849; c=relaxed/simple;
-	bh=h+ckvkuRmTqszB0k9bn0UW7Evu5n8c3FLQu0g4WDPew=;
-	h=Date:To:From:Subject:Message-Id; b=mzmRpTH8qkAqut5W3mUSobw7+5tnLMb5EPKE/u6As3+ZPs0N5Y8AfwAXDWAygjbCCCEhQQW8bXHnupY98ldaSVopf1lfDfYaLlTUpvJEmZbDewhI2JoyZBtlO73zfvmj/PiJ0eAelCv3kqsHwy9OPdCd5alyLpODLqMRGJJ8Wy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=14MjzJzd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742000602; c=relaxed/simple;
+	bh=VLspXZZa7e2uSErG9P4EDxoe5/LLtdFUOqUvfCWsXTE=;
+	h=Date:To:From:Subject:Message-Id; b=ehVmbGbg4d4jTql2AMF8nTvreqRDlU2us3t3JqnE6meTx5ZmTkPCTRcr1Pn6UgKC+Gxt0GobE1C9TwOfxI5p5RD7L0/5Abp6RrMZnhHw4Iq92eOtn93zY2B98gTfluR9EfMZW6upMvdIg5FE+/wSLDPgC9O9o2JmkHbZsyoQpig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vsjs2WVZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="14MjzJzd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F5A6C4CEE3;
-	Sat, 15 Mar 2025 00:50:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vsjs2WVZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 657C0C4CEE3;
+	Sat, 15 Mar 2025 01:03:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1741999849;
-	bh=h+ckvkuRmTqszB0k9bn0UW7Evu5n8c3FLQu0g4WDPew=;
+	s=korg; t=1742000601;
+	bh=VLspXZZa7e2uSErG9P4EDxoe5/LLtdFUOqUvfCWsXTE=;
 	h=Date:To:From:Subject:From;
-	b=14MjzJzdCZmdMwzeyQN1Pu9QmS1cQ7eQAVCRt3FqFSWEe0+C8ybOZHdpZ6zX+VlyA
-	 FjTe+7sFodcCy5UB5gr3nFRaXVmdFfTJ7Z1O49xy6DwUQvKMjDOLFDPwR/+CyvKGTM
-	 7XB420WBL7cwU5W0x3g0uCiQnkjvRIgjCe5Zb/KM=
-Date: Fri, 14 Mar 2025 17:50:48 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=Vsjs2WVZ3SvIppcEXV8MBO4Ilt2CLDuU02DqRWJSP0MP19IHhNs3BePwj7HfcntNd
+	 YItRPncpLm85TGZKvBHjkQIqLMr/o5E508WEUEkazomgywY0QCzMM7wJIi1CLP9D0V
+	 DkYqUy6jIcgGi7ef24aZFmSc4UiU1BLZB6hUOcDo=
+Date: Fri, 14 Mar 2025 18:03:20 -0700
+To: mm-commits@vger.kernel.org,wei.liu@kernel.org,sstabellini@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,oleksandr_tyshchenko@epam.com,nphamcs@gmail.com,muchun.song@linux.dev,mst@redhat.com,mhocko@kernel.org,kys@microsoft.com,kanchana.p.sridhar@intel.com,jgross@suse.com,hannes@cmpxchg.org,haiyangz@microsoft.com,decui@microsoft.com,david@redhat.com,chengming.zhou@linux.dev,alexander.atanasov@virtuozzo.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch added to mm-unstable branch
-Message-Id: <20250315005049.0F5A6C4CEE3@smtp.kernel.org>
+Subject: + meminfo-add-a-per-node-counter-for-balloon-drivers.patch added to mm-unstable branch
+Message-Id: <20250315010321.657C0C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shmem: use xas_try_split() in shmem_split_large_entry()
+     Subject: meminfo: add a per node counter for balloon drivers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
+     meminfo-add-a-per-node-counter-for-balloon-drivers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/meminfo-add-a-per-node-counter-for-balloon-drivers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,174 +58,122 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/shmem: use xas_try_split() in shmem_split_large_entry()
-Date: Fri, 14 Mar 2025 18:21:13 -0400
+From: Nico Pache <npache@redhat.com>
+Subject: meminfo: add a per node counter for balloon drivers
+Date: Fri, 14 Mar 2025 15:37:54 -0600
 
-During shmem_split_large_entry(), large swap entries are covering n slots
-and an order-0 folio needs to be inserted.
+Patch series "track memory used by balloon drivers", v2.
 
-Instead of splitting all n slots, only the 1 slot covered by the folio
-need to be split and the remaining n-1 shadow entries can be retained with
-orders ranging from 0 to n-1.  This method only requires
-(n/XA_CHUNK_SHIFT) new xa_nodes instead of (n % XA_CHUNK_SHIFT) *
-(n/XA_CHUNK_SHIFT) new xa_nodes, compared to the original
-xas_split_alloc() + xas_split() one.
+This series introduces a way to track memory used by balloon drivers.
 
-For example, to split an order-9 large swap entry (assuming XA_CHUNK_SHIFT
-is 6), 1 xa_node is needed instead of 8.
+Add a NR_BALLOON_PAGES counter to track how many pages are reclaimed by
+the balloon drivers.  First add the accounting, then updates the balloon
+drivers (virtio, Hyper-V, VMware, Pseries-cmm, and Xen) to maintain this
+counter.  The virtio, Vmware, and pseries-cmm balloon drivers utilize the
+balloon_compaction interface to allocate and free balloon pages.  Other
+balloon drivers will have to maintain this counter manually.
 
-xas_try_split_min_order() is used to reduce the number of calls to
-xas_try_split() during split.
+This makes the information visible in memory reporting interfaces like
+/proc/meminfo, show_mem, and OOM reporting.
 
-Link: https://lkml.kernel.org/r/20250314222113.711703-3-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Mattew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+This provides admins visibility into their VM balloon sizes without
+requiring different virtualization tooling.  Furthermore, this information
+is helpful when debugging an OOM inside a VM.
+
+
+This patch (of 4):
+
+Add NR_BALLOON_PAGES counter to track memory used by balloon drivers and
+expose it through /proc/meminfo and other memory reporting interfaces.
+
+Link: https://lkml.kernel.org/r/20250314213757.244258-1-npache@redhat.com
+Link: https://lkml.kernel.org/r/20250314213757.244258-2-npache@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Alexander Atanasov <alexander.atanasov@virtuozzo.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Dexuan Cui <decui@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Cc: K. Y. Srinivasan <kys@microsoft.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Wei Liu <wei.liu@kernel.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   59 ++++++++++++++++++++++++---------------------------
- 1 file changed, 28 insertions(+), 31 deletions(-)
+ fs/proc/meminfo.c      |    2 ++
+ include/linux/mmzone.h |    1 +
+ mm/show_mem.c          |    4 +++-
+ mm/vmstat.c            |    1 +
+ 4 files changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-use-xas_try_split-in-shmem_split_large_entry
-+++ a/mm/shmem.c
-@@ -2153,15 +2153,16 @@ static int shmem_split_large_entry(struc
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	XA_STATE_ORDER(xas, &mapping->i_pages, index, 0);
--	void *alloced_shadow = NULL;
--	int alloced_order = 0, i;
-+	int split_order = 0, entry_order;
-+	int i;
+--- a/fs/proc/meminfo.c~meminfo-add-a-per-node-counter-for-balloon-drivers
++++ a/fs/proc/meminfo.c
+@@ -162,6 +162,8 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "Unaccepted:     ",
+ 		    global_zone_page_state(NR_UNACCEPTED));
+ #endif
++	show_val_kb(m, "Balloon:        ",
++		    global_node_page_state(NR_BALLOON_PAGES));
  
- 	/* Convert user data gfp flags to xarray node gfp flags */
- 	gfp &= GFP_RECLAIM_MASK;
+ 	hugetlb_report_meminfo(m);
  
- 	for (;;) {
--		int order = -1, split_order = 0;
- 		void *old = NULL;
-+		int cur_order;
-+		pgoff_t swap_index;
+--- a/include/linux/mmzone.h~meminfo-add-a-per-node-counter-for-balloon-drivers
++++ a/include/linux/mmzone.h
+@@ -224,6 +224,7 @@ enum node_stat_item {
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	NR_HUGETLB,
+ #endif
++	NR_BALLOON_PAGES,
+ 	NR_VM_NODE_STAT_ITEMS
+ };
  
- 		xas_lock_irq(&xas);
- 		old = xas_load(&xas);
-@@ -2170,60 +2171,56 @@ static int shmem_split_large_entry(struc
- 			goto unlock;
- 		}
- 
--		order = xas_get_order(&xas);
-+		entry_order = xas_get_order(&xas);
- 
--		/* Swap entry may have changed before we re-acquire the lock */
--		if (alloced_order &&
--		    (old != alloced_shadow || order != alloced_order)) {
--			xas_destroy(&xas);
--			alloced_order = 0;
--		}
-+		if (!entry_order)
-+			goto unlock;
- 
- 		/* Try to split large swap entry in pagecache */
--		if (order > 0) {
--			if (!alloced_order) {
--				split_order = order;
-+		cur_order = entry_order;
-+		swap_index = round_down(index, 1 << entry_order);
-+
-+		split_order = xas_try_split_min_order(cur_order);
-+
-+		while (cur_order > 0) {
-+			pgoff_t aligned_index =
-+				round_down(index, 1 << cur_order);
-+			pgoff_t swap_offset = aligned_index - swap_index;
-+
-+			xas_set_order(&xas, index, split_order);
-+			xas_try_split(&xas, old, cur_order);
-+			if (xas_error(&xas))
- 				goto unlock;
--			}
--			xas_split(&xas, old, order);
- 
- 			/*
- 			 * Re-set the swap entry after splitting, and the swap
- 			 * offset of the original large entry must be continuous.
- 			 */
--			for (i = 0; i < 1 << order; i++) {
--				pgoff_t aligned_index = round_down(index, 1 << order);
-+			for (i = 0; i < 1 << cur_order;
-+			     i += (1 << split_order)) {
- 				swp_entry_t tmp;
- 
--				tmp = swp_entry(swp_type(swap), swp_offset(swap) + i);
-+				tmp = swp_entry(swp_type(swap),
-+						swp_offset(swap) + swap_offset +
-+							i);
- 				__xa_store(&mapping->i_pages, aligned_index + i,
- 					   swp_to_radix_entry(tmp), 0);
- 			}
-+			cur_order = split_order;
-+			split_order = xas_try_split_min_order(split_order);
- 		}
- 
- unlock:
- 		xas_unlock_irq(&xas);
- 
--		/* split needed, alloc here and retry. */
--		if (split_order) {
--			xas_split_alloc(&xas, old, split_order, gfp);
--			if (xas_error(&xas))
--				goto error;
--			alloced_shadow = old;
--			alloced_order = split_order;
--			xas_reset(&xas);
--			continue;
--		}
--
- 		if (!xas_nomem(&xas, gfp))
- 			break;
+--- a/mm/show_mem.c~meminfo-add-a-per-node-counter-for-balloon-drivers
++++ a/mm/show_mem.c
+@@ -260,6 +260,7 @@ static void show_free_areas(unsigned int
+ 			" pagetables:%lukB"
+ 			" sec_pagetables:%lukB"
+ 			" all_unreclaimable? %s"
++			" Balloon:%lukB"
+ 			"\n",
+ 			pgdat->node_id,
+ 			K(node_page_state(pgdat, NR_ACTIVE_ANON)),
+@@ -285,7 +286,8 @@ static void show_free_areas(unsigned int
+ #endif
+ 			K(node_page_state(pgdat, NR_PAGETABLE)),
+ 			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
+-			str_yes_no(pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES));
++			str_yes_no(pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES),
++			K(node_page_state(pgdat, NR_BALLOON_PAGES)));
  	}
  
--error:
- 	if (xas_error(&xas))
- 		return xas_error(&xas);
- 
--	return alloced_order;
-+	return entry_order;
- }
- 
- /*
+ 	for_each_populated_zone(zone) {
+--- a/mm/vmstat.c~meminfo-add-a-per-node-counter-for-balloon-drivers
++++ a/mm/vmstat.c
+@@ -1277,6 +1277,7 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	"nr_hugetlb",
+ #endif
++	"nr_balloon_pages",
+ 	/* system-wide enum vm_stat_item counters */
+ 	"nr_dirty_threshold",
+ 	"nr_dirty_background_threshold",
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-migrate-fix-shmem-xarray-update-during-migration.patch
-mm-huge_memory-drop-beyond-eof-folios-with-the-right-number-of-refs.patch
-selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
-mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
-selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
-xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
-mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
-mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
-mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
-mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
-mm-truncate-use-folio_split-in-truncate-operation.patch
-selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
-mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
-mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
+meminfo-add-a-per-node-counter-for-balloon-drivers.patch
+balloon_compaction-update-the-nr_balloon_pages-state.patch
+hv_balloon-update-the-nr_balloon_pages-state.patch
+xen-balloon-update-the-nr_balloon_pages-state.patch
 
