@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7268F2E3362
-	for <mm-commits@vger.kernel.org>; Sun, 16 Mar 2025 03:10:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5897B4A32
+	for <mm-commits@vger.kernel.org>; Sun, 16 Mar 2025 03:41:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742094634; cv=none; b=nRk0CLAeMwQq5q8NDJ1ilHbWp/kO/jVVlOtLTqm9IT0BDjxQlKDd7jO89C/jM1O/FfoTI8qoYx/VANaFBed/fqmMJWABCIiFU0LI5eLLKwkWGiX2nGBa+Cigkrt4w9D2cwakIQu2QRVQwRm4fqk0/HZ2hpYdeXvJWE/uqgDenQQ=
+	t=1742096491; cv=none; b=Y9+loNNN8hvCfoBNCii+RMqKlZ1N/aYz+wJEsykOrX1FKX4LVI0g8iODiY6vlA+QNywFW/tRdsOg8Do0aR8s2gaoZpgWMZ1m1vacbjY8RRvvdBFJzrzPC2jtyngj7YbnL/22kCBqxZlvnAYGeyeiKe2vyNomKFwJfztiLXXCB3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742094634; c=relaxed/simple;
-	bh=+gEd2nkJRpbmlaDxiKlGeW+I/11H1FfN29o4li6UH1o=;
-	h=Date:To:From:Subject:Message-Id; b=bFlvyvbEeKjr6RiVrN6gpACuWuX0uLgIul5kmyY/9fhdf72SMwroY4ZcQHfbHhQi50VR+3BX8vYQgbW/lPeFql/6FDxU0VgW0niReYMYMaIWiI1UpSoIpgOtUDbRFZMS7rzPHd8SqscEx3Fj2c+51hetn3FMeusreR2c+Pgyfe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E5dRwFda; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742096491; c=relaxed/simple;
+	bh=wKsoqiOdLVy7GX9nS88e1qM9jmzc21cIfumQTYqsDdg=;
+	h=Date:To:From:Subject:Message-Id; b=awaLzY2r918VzMiRfFmIp0UxB3z7h8zokgh/eFHxu+sO8RWC+SRs+ULBDHKvzhN0r0V9cKQvqo5g/6kypxMeD6aj0QMwkjYi3QeK09cxx/r50Jy2/6j9/6A9vPovnkmH8AjhDAz8edbtoEmfeFCTaWq7f5l+m/kosIlskhVhTAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wxfWECPh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E5dRwFda"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1AF3C4CEEC;
-	Sun, 16 Mar 2025 03:10:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wxfWECPh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7F2DC4CEDD;
+	Sun, 16 Mar 2025 03:41:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742094633;
-	bh=+gEd2nkJRpbmlaDxiKlGeW+I/11H1FfN29o4li6UH1o=;
+	s=korg; t=1742096491;
+	bh=wKsoqiOdLVy7GX9nS88e1qM9jmzc21cIfumQTYqsDdg=;
 	h=Date:To:From:Subject:From;
-	b=E5dRwFda6qm/9+SIKP+Jk5BsVoUKtLBmVzdN29v4VogLxDeQw2bU0HVEU66L5S1ZM
-	 0oLMGXp5CCTyEil/EmEyKyOtKjbeYarZJZi+xY5sDUy5Tbr1YKljSGCaqVSX16xe+C
-	 58jqE7ygY75mIjtYZ3OO1H0iz4AchS0EloW2YSCs=
-Date: Sat, 15 Mar 2025 20:10:33 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=wxfWECPhqKq9mrL6dKzFiP2rkuMUo6itaI9uG7ItYNfAf5KHeu/SNBA+ncOLevSS8
+	 ZYo3SqbnNlKKGVRg8cAVDo+3ScwcB51l6/BZXDbb6uHp4PQsUFw8gynRJh8nSfEN/5
+	 AFahGyQ1WrD7T3Hq+aTyFYzNOc7jVK3Q9GkepQy8=
+Date: Sat, 15 Mar 2025 20:41:30 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,rdunlap@infradead.org,corbet@lwn.net,bagasdotme@gmail.com,jiwen7.qi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters-fix.patch added to mm-unstable branch
-Message-Id: <20250316031033.D1AF3C4CEEC@smtp.kernel.org>
+Subject: + docs-mm-physical-memory-populate-the-zones-section.patch added to mm-unstable branch
+Message-Id: <20250316034130.E7F2DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: setup damos->{core,ops}_filters_default_reject for initial start
+     Subject: docs/mm: Physical Memory: Populate the "Zones" section
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters-fix.patch
+     docs-mm-physical-memory-populate-the-zones-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-physical-memory-populate-the-zones-section.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,130 +58,304 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: setup damos->{core,ops}_filters_default_reject for initial start
-Date: Sat, 15 Mar 2025 15:26:10 -0700
+From: Jiwen Qi <jiwen7.qi@gmail.com>
+Subject: docs/mm: Physical Memory: Populate the "Zones" section
+Date: Sat, 15 Mar 2025 21:13:17 +0000
 
-Commit 6a0f07289bc7 ("mm/damon/core: set damos_filter default allowance
-behavior based on installed filters") on mm-unstable sets
-damos->{core,ops}_filters_default_reject fields on only damon_commit_ctx()
-code path, which is called for only online parameters update.  Hence,
-users who set filters from the beginning could set it not properly
-initialized.  As a result, unnnecessarily DAMOS target regions can be
-rejected.  Set the fields at the beginning of DAMON worker thread
-execution, too.
+Briefly describe what zones are and the fields of struct zone.
 
-Link: https://lkml.kernel.org/r/20250315222610.35245-1-sj@kernel.org
-Fixes: ("mm/damon/core: set damos_filter default allowance behavior based on installed filters")
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250315211317.27612-1-jiwen7.qi@gmail.com
+Signed-off-by: Jiwen Qi <jiwen7.qi@gmail.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/mm/physical_memory.rst |  266 ++++++++++++++++++++++++-
+ 1 file changed, 264 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters-fix
-+++ a/mm/damon/core.c
-@@ -518,7 +518,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	ctx->attrs.ops_update_interval = 60 * 1000 * 1000;
+--- a/Documentation/mm/physical_memory.rst~docs-mm-physical-memory-populate-the-zones-section
++++ a/Documentation/mm/physical_memory.rst
+@@ -338,10 +338,272 @@ Statistics
  
- 	ctx->passed_sample_intervals = 0;
--	/* These will be set from kdamond_init_intervals_sis() */
-+	/* These will be set from kdamond_init_ctx() */
- 	ctx->next_aggregation_sis = 0;
- 	ctx->next_ops_update_sis = 0;
+ Zones
+ =====
++As we have mentioned, each zone in memory is described by a ``struct zone``
++which is an element of the ``node_zones`` array of the node it belongs to.
++``struct zone`` is the core data structure of the page allocator. A zone
++represents a range of physical memory and may have holes.
  
-@@ -2345,7 +2345,7 @@ static int kdamond_wait_activation(struc
- 	return -EBUSY;
- }
+-.. admonition:: Stub
++The page allocator uses the GFP flags, see :ref:`mm-api-gfp-flags`, specified by
++a memory allocation to determine the highest zone in a node from which the
++memory allocation can allocate memory. The page allocator first allocates memory
++from that zone, if the page allocator can't allocate the requested amount of
++memory from the zone, it will allocate memory from the next lower zone in the
++node, the process continues up to and including the lowest zone. For example, if
++a node contains ``ZONE_DMA32``, ``ZONE_NORMAL`` and ``ZONE_MOVABLE`` and the
++highest zone of a memory allocation is ``ZONE_MOVABLE``, the order of the zones
++from which the page allocator allocates memory is ``ZONE_MOVABLE`` >
++``ZONE_NORMAL`` > ``ZONE_DMA32``.
  
--static void kdamond_init_intervals_sis(struct damon_ctx *ctx)
-+static void kdamond_init_ctx(struct damon_ctx *ctx)
- {
- 	unsigned long sample_interval = ctx->attrs.sample_interval ?
- 		ctx->attrs.sample_interval : 1;
-@@ -2363,6 +2363,7 @@ static void kdamond_init_intervals_sis(s
- 		apply_interval = scheme->apply_interval_us ?
- 			scheme->apply_interval_us : ctx->attrs.aggr_interval;
- 		scheme->next_apply_sis = apply_interval / sample_interval;
-+		damos_set_filters_default_reject(scheme);
- 	}
- }
+-   This section is incomplete. Please list and describe the appropriate fields.
++At runtime, free pages in a zone are in the Per-CPU Pagesets (PCP) or free areas
++of the zone. The Per-CPU Pagesets are a vital mechanism in the kernel's memory
++management system. By handling most frequent allocations and frees locally on
++each CPU, the Per-CPU Pagesets improve performance and scalability, especially
++on systems with many cores. The page allocator in the kernel employs a two-step
++strategy for memory allocation, starting with the Per-CPU Pagesets before
++falling back to the buddy allocator. Pages are transferred between the Per-CPU
++Pagesets and the global free areas (managed by the buddy allocator) in batches.
++This minimizes the overhead of frequent interactions with the global buddy
++allocator.
++
++Architecture specific code calls free_area_init() to initializes zones.
++
++Zone structure
++--------------
++The zones structure ``struct zone`` is defined in ``include/linux/mmzone.h``.
++Here we briefly describe fields of this structure:
++
++General
++~~~~~~~
++
++``_watermark``
++  The watermarks for this zone. When the amount of free pages in a zone is below
++  the min watermark, boosting is ignored, an allocation may trigger direct
++  reclaim and direct compaction, it is also used to throttle direct reclaim.
++  When the amount of free pages in a zone is below the low watermark, kswapd is
++  woken up. When the amount of free pages in a zone is above the high watermark,
++  kswapd stops reclaiming (a zone is balanced) when the
++  ``NUMA_BALANCING_MEMORY_TIERING`` bit of ``sysctl_numa_balancing_mode`` is not
++  set. The promo watermark is used for memory tiering and NUMA balancing. When
++  the amount of free pages in a zone is above the promo watermark, kswapd stops
++  reclaiming when the ``NUMA_BALANCING_MEMORY_TIERING`` bit of
++  ``sysctl_numa_balancing_mode`` is set. The watermarks are set by
++  ``__setup_per_zone_wmarks()``. The min watermark is calculated according to
++  ``vm.min_free_kbytes`` sysctl. The other three watermarks are set according
++  to the distance between two watermarks. The distance itself is calculated
++  taking ``vm.watermark_scale_factor`` sysctl into account.
++
++``watermark_boost``
++  The number of pages which are used to boost watermarks to increase reclaim
++  pressure to reduce the likelihood of future fallbacks and wake kswapd now
++  as the node may be balanced overall and kswapd will not wake naturally.
++
++``nr_reserved_highatomic``
++  The number of pages which are reserved for high-order atomic allocations.
++
++``nr_free_highatomic``
++  The number of free pages in reserved highatomic pageblocks
++
++``lowmem_reserve``
++  The array of the amounts of the memory reserved in this zone for memory
++  allocations. For example, if the highest zone a memory allocation can
++  allocate memory from is ``ZONE_MOVABLE``, the amount of memory reserved in
++  this zone for this allocation is ``lowmem_reserve[ZONE_MOVABLE]`` when
++  attempting to allocate memory from this zone. This is a mechanism the page
++  allocator uses to prevent allocations which could use ``highmem`` from using
++  too much ``lowmem``. For some specialised workloads on ``highmem`` machines,
++  it is dangerous for the kernel to allow process memory to be allocated from
++  the ``lowmem`` zone. This is because that memory could then be pinned via the
++  ``mlock()`` system call, or by unavailability of swapspace.
++  ``vm.lowmem_reserve_ratio`` sysctl determines how aggressive the kernel is in
++  defending these lower zones. This array is recalculated by
++  ``setup_per_zone_lowmem_reserve()`` at runtime if ``vm.lowmem_reserve_ratio``
++  sysctl changes.
++
++``node``
++  The index of the node this zone belongs to. Available only when
++  ``CONFIG_NUMA`` is enabled because there is only one zone in a UMA system.
++
++``zone_pgdat``
++  Pointer to the ``struct pglist_data`` of the node this zone belongs to.
++
++``per_cpu_pageset``
++  Pointer to the Per-CPU Pagesets (PCP) allocated and initialized by
++  ``setup_zone_pageset()``. By handling most frequent allocations and frees
++  locally on each CPU, PCP improves performance and scalability on systems with
++  many cores.
++
++``pageset_high_min``
++  Copied to the ``high_min`` of the Per-CPU Pagesets for faster access.
++
++``pageset_high_max``
++  Copied to the ``high_max`` of the Per-CPU Pagesets for faster access.
++
++``pageset_batch``
++  Copied to the ``batch`` of the Per-CPU Pagesets for faster access. The
++  ``batch``, ``high_min`` and ``high_max`` of the Per-CPU Pagesets are used to
++  calculate the number of elements the Per-CPU Pagesets obtain from the buddy
++  allocator under a single hold of the lock for efficiency. They are also used
++  to decide if the Per-CPU Pagesets return pages to the buddy allocator in page
++  free process.
++
++``pageblock_flags``
++  The pointer to the flags for the pageblocks in the zone (see
++  ``include/linux/pageblock-flags.h`` for flags list). The memory is allocated
++  in ``setup_usemap()``. Each pageblock occupies ``NR_PAGEBLOCK_BITS`` bits.
++  Defined only when ``CONFIG_FLATMEM`` is enabled. The flags is stored in
++  ``mem_section`` when ``CONFIG_SPARSEMEM`` is enabled.
++
++``zone_start_pfn``
++  The start pfn of the zone. It is initialized by
++  ``calculate_node_totalpages()``.
++
++``managed_pages``
++  The present pages managed by the buddy system, which is calculated as:
++  ``managed_pages`` = ``present_pages`` - ``reserved_pages``, ``reserved_pages``
++  includes pages allocated by the memblock allocator. It should be used by page
++  allocator and vm scanner to calculate all kinds of watermarks and thresholds.
++  It is accessed using ``atomic_long_xxx()`` functions. It is initialized in
++  ``free_area_init_core()`` and then is reinitialized when memblock allocator
++  frees pages into buddy system.
++
++``spanned_pages``
++  The total pages spanned by the zone, including holes, which is calculated as:
++  ``spanned_pages`` = ``zone_end_pfn`` - ``zone_start_pfn``. It is initialized
++  by ``calculate_node_totalpages()``.
++
++``present_pages``
++  The physical pages existing within the zone, which is calculated as:
++  ``present_pages`` = ``spanned_pages`` - ``absent_pages`` (pages in holes). It
++  may be used by memory hotplug or memory power management logic to figure out
++  unmanaged pages by checking (``present_pages`` - ``managed_pages``). Write
++  access to ``present_pages`` at runtime should be protected by
++  ``mem_hotplug_begin/done()``. Any reader who can't tolerant drift of
++  ``present_pages`` should use ``get_online_mems()`` to get a stable value. It
++  is initialized by ``calculate_node_totalpages()``.
++
++``present_early_pages``
++  The present pages existing within the zone located on memory available since
++  early boot, excluding hotplugged memory. Defined only when
++  ``CONFIG_MEMORY_HOTPLUG`` is enabled and initialized by
++  ``calculate_node_totalpages()``.
++
++``cma_pages``
++  The pages reserved for CMA use. These pages behave like ``ZONE_MOVABLE`` when
++  they are not used for CMA. Defined only when ``CONFIG_CMA`` is enabled.
++
++``name``
++  The name of the zone. It is a pointer to the corresponding element of
++  the ``zone_names`` array.
++
++``nr_isolate_pageblock``
++  Number of isolated pageblocks. It is used to solve incorrect freepage counting
++  problem due to racy retrieving migratetype of pageblock. Protected by
++  ``zone->lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
++
++``span_seqlock``
++  The seqlock to protect ``zone_start_pfn`` and ``spanned_pages``. It is a
++  seqlock because it has to be read outside of ``zone->lock``, and it is done in
++  the main allocator path. However, the seqlock is written quite infrequently.
++  Defined only when ``CONFIG_MEMORY_HOTPLUG`` is enabled.
++
++``initialized``
++  The flag indicating if the zone is initialized. Set by
++  ``init_currently_empty_zone()`` during boot.
++
++``free_area``
++  The array of free areas, where each element corresponds to a specific order
++  which is a power of two. The buddy allocator uses this structure to manage
++  free memory efficiently. When allocating, it tries to find the smallest
++  sufficient block, if the smallest sufficient block is larger than the
++  requested size, it will be recursively split into the next smaller blocks
++  until the required size is reached. When a page is freed, it may be merged
++  with its buddy to form a larger block. It is initialized by
++  ``zone_init_free_lists()``.
++
++``unaccepted_pages``
++  The list of pages to be accepted. All pages on the list are ``MAX_PAGE_ORDER``.
++  Defined only when ``CONFIG_UNACCEPTED_MEMORY`` is enabled.
++
++``flags``
++  The zone flags. The least three bits are used and defined by
++  ``enum zone_flags``. ``ZONE_BOOSTED_WATERMARK`` (bit 0): zone recently boosted
++  watermarks. Cleared when kswapd is woken. ``ZONE_RECLAIM_ACTIVE`` (bit 1):
++  kswapd may be scanning the zone. ``ZONE_BELOW_HIGH`` (bit 2): zone is below
++  high watermark.
++
++``lock``
++  The main lock that protects the internal data structures of the page allocator
++  specific to the zone, especially protects ``free_area``.
++
++``percpu_drift_mark``
++  When free pages are below this point, additional steps are taken when reading
++  the number of free pages to avoid per-cpu counter drift allowing watermarks
++  to be breached. It is updated in ``refresh_zone_stat_thresholds()``.
++
++Compaction control
++~~~~~~~~~~~~~~~~~~
++
++``compact_cached_free_pfn``
++  The PFN where compaction free scanner should start in the next scan.
++
++``compact_cached_migrate_pfn``
++  The PFNs where compaction migration scanner should start in the next scan.
++  This array has two elements: the first one is used in ``MIGRATE_ASYNC`` mode,
++  and the other one is used in ``MIGRATE_SYNC`` mode.
++
++``compact_init_migrate_pfn``
++  The initial migration PFN which is initialized to 0 at boot time, and to the
++  first pageblock with migratable pages in the zone after a full compaction
++  finishes. It is used to check if a scan is a whole zone scan or not.
++
++``compact_init_free_pfn``
++  The initial free PFN which is initialized to 0 at boot time and to the last
++  pageblock with free ``MIGRATE_MOVABLE`` pages in the zone. It is used to check
++  if it is the start of a scan.
++
++``compact_considered``
++  The number of compactions attempted since last failure. It is reset in
++  ``defer_compaction()`` when a compaction fails to result in a page allocation
++  success. It is increased by 1 in ``compaction_deferred()`` when a compaction
++  should be skipped. ``compaction_deferred()`` is called before
++  ``compact_zone()`` is called, ``compaction_defer_reset()`` is called when
++  ``compact_zone()`` returns ``COMPACT_SUCCESS``, ``defer_compaction()`` is
++  called when ``compact_zone()`` returns ``COMPACT_PARTIAL_SKIPPED`` or
++  ``COMPACT_COMPLETE``.
++
++``compact_defer_shift``
++  The number of compactions skipped before trying again is
++  ``1<<compact_defer_shift``. It is increased by 1 in ``defer_compaction()``.
++  It is reset in ``compaction_defer_reset()`` when a direct compaction results
++  in a page allocation success. Its maximum value is ``COMPACT_MAX_DEFER_SHIFT``.
++
++``compact_order_failed``
++  The minimum compaction failed order. It is set in ``compaction_defer_reset()``
++  when a compaction succeeds and in ``defer_compaction()`` when a compaction
++  fails to result in a page allocation success.
++
++``compact_blockskip_flush``
++  Set to true when compaction migration scanner and free scanner meet, which
++  means the ``PB_migrate_skip`` bits should be cleared.
++
++``contiguous``
++  Set to true when the zone is contiguous (in other words, no hole).
++
++Statistics
++~~~~~~~~~~
++
++``vm_stat``
++  VM statistics for the zone. The items tracked are defined by
++  ``enum zone_stat_item``.
++
++``vm_numa_event``
++  VM NUMA event statistics for the zone. The items tracked are defined by
++  ``enum numa_stat_item``.
++
++``per_cpu_zonestats``
++  Per-CPU VM statistics for the zone. It records VM statistics and VM NUMA event
++  statistics on a per-CPU basis. It reduces updates to the global ``vm_stat``
++  and ``vm_numa_event`` fields of the zone to improve performance.
  
-@@ -2380,7 +2381,7 @@ static int kdamond_fn(void *data)
- 	pr_debug("kdamond (%d) starts\n", current->pid);
+ .. _pages:
  
- 	complete(&ctx->kdamond_started);
--	kdamond_init_intervals_sis(ctx);
-+	kdamond_init_ctx(ctx);
- 
- 	if (ctx->ops.init)
- 		ctx->ops.init(ctx);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from jiwen7.qi@gmail.com are
 
-mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
-mm-damon-core-initialize-damos-walk_completed-in-damon_new_scheme.patch
-mm-madvise-split-out-mmap-locking-operations-for-madvise.patch
-mm-madvise-split-out-madvise-input-validity-check.patch
-mm-madvise-split-out-madvise-behavior-execution.patch
-mm-madvise-remove-redundant-mmap_lock-operations-from-process_madvise.patch
-mm-damon-avoid-applying-damos-action-to-same-entity-multiple-times.patch
-mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
-mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
-mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
-mm-damon-introduce-damos-filter-type-hugepage_size-fix.patch
-docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
-docs-mm-damon-design-document-hugepage_size-filter.patch
-docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch
-docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch
-docs-mm-damon-design-categorize-damos-filter-types-based-on-handling-layer.patch
-mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch
-docs-mm-damon-design-document-unmapped-damos-filter-type.patch
-mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning.patch
-mm-damon-core-implement-intervals-auto-tuning.patch
-mm-damon-sysfs-implement-intervals-tuning-goal-directory.patch
-mm-damon-sysfs-commit-intervals-tuning-goal.patch
-mm-damon-sysfs-implement-a-command-to-update-auto-tuned-monitoring-intervals.patch
-docs-mm-damon-design-document-for-intervals-auto-tuning.patch
-docs-mm-damon-design-document-for-intervals-auto-tuning-fix.patch
-docs-abi-damon-document-intervals-auto-tuning-abi.patch
-docs-admin-guide-mm-damon-usage-add-intervals_goal-directory-on-the-hierarchy.patch
-mm-damon-core-introduce-damos-ops_filters.patch
-mm-damon-paddr-support-ops_filters.patch
-mm-damon-core-support-committing-ops_filters.patch
-mm-damon-core-put-ops-handled-filters-to-damos-ops_filters.patch
-mm-damon-paddr-support-only-damos-ops_filters.patch
-mm-damon-add-default-allow-reject-behavior-fields-to-struct-damos.patch
-mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch
-mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters-fix.patch
-mm-damon-paddr-respect-ops_filters_default_reject.patch
-docs-mm-damon-design-update-for-changed-filter-default-behavior.patch
-mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
-mm-damon-sysfs-schemes-implement-core_filters-and-ops_filters-directories.patch
-mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
-mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
-mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
-mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
-docs-abi-damon-document-coreops_filters-directories.patch
-docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
-mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
-mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
-mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
-mm-damon-sysfs-handle-commit-command-using-damon_call.patch
-mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
-mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
-mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
-mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
-mm-damon-remove-damon_callback-private.patch
-mm-damon-remove-before_start-of-damon_callback.patch
-mm-damon-remove-damon_callback-after_sampling.patch
-mm-damon-remove-damon_callback-before_damos_apply.patch
-mm-damon-remove-damon_operations-reset_aggregated.patch
-mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
-mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch
-mm-madvise-split-out-populate-behavior-check-logic.patch
-mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings.patch
-mm-madvise-remove-len-parameter-of-madvise_do_behavior.patch
+docs-mm-physical-memory-populate-the-zones-section.patch
 
