@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6C90215F43
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A5C3215F43
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188331; cv=none; b=NIiYbDxYCg30gQfhUIpLCuaspvFiV7sCXjT/mF3ECpfP0cvtmb1Uw3Y220Xs9bluYssb38hjMVjaosWTvfUlU0HpbwWYnvRRvWSZq32K7QyVMOhKYAhE3WUqd2LFoAcuDhIZGCV2poYtdeHbVlkkQyHuANxjQAF8yWqmuEhmyno=
+	t=1742188333; cv=none; b=hXTmCTakdEKq1rTvAaGipWw2dZxomWEOorCi60h8ZKtKvGj7Z4Yles0UBfLFw2R3SEPrgM23ZGPg9yG9+qPxgv42XjJOUuGhHtlyDMAngkTaergfZhP/5OFt832/4FCJrgfbApSIq41Csgih2oWz0+WO8/B+836FlvU3Ytwo23E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188331; c=relaxed/simple;
-	bh=a1URQI2mG3o3FmBfMnBdA02lKNPt+QV0RSRlliyhJ/E=;
-	h=Date:To:From:Subject:Message-Id; b=JGa6AsOt+PX5XHQ5AhDaPKO0XzAbqeV/Zy9/twirz9kQty7Kq46DXOqAuL0WpbbdMz/OxYCGnf41xPGuFiz0PyTkgInAY66q3Pm27hfy5sofSpoM8g8hg4T6WVtw7dLGxeWtc9Urq5GPtcbeL3h4qkDi+6Gca7bx8fbtSOlLNPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1SdKB1z2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188333; c=relaxed/simple;
+	bh=McoFNAFAyMCkCObQm3j0HGi00NSwMVlF3gtO9Dx+L8c=;
+	h=Date:To:From:Subject:Message-Id; b=to1vQTYUq9+deYk7/7HULQAMjg1kn/MFO205xAsfOU2fFj/97cFN/ebGh50VDr58FaVxs86ZVuOc63PM5R2IKad+vI8xOXb1U0zi+vkvU6PASS1O60RNAPSLviaN/y0zqOulaBy/WnQ/6lJ1UzlP/pJTHKF69XuNUWAPJdaehAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w3zfJ1ej; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1SdKB1z2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85527C4CEEC;
-	Mon, 17 Mar 2025 05:12:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w3zfJ1ej"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37FCBC4CEEC;
+	Mon, 17 Mar 2025 05:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188331;
-	bh=a1URQI2mG3o3FmBfMnBdA02lKNPt+QV0RSRlliyhJ/E=;
+	s=korg; t=1742188333;
+	bh=McoFNAFAyMCkCObQm3j0HGi00NSwMVlF3gtO9Dx+L8c=;
 	h=Date:To:From:Subject:From;
-	b=1SdKB1z2RSNWFMTj6+aOqHF6dbjtbBhaVzN3KNZqHA2ANw/iIP/fM7FPMxsFdgIMP
-	 mrc0VFOxdsEWJdEQgZdNXlvano7Q1UT6BkgZd2h+lXnJJ2VQxQ/EQ4zm9SAdaKFURQ
-	 oVnF9FPfvkMXVgUxuJaQyiLVaFoAs7DZGvoGY+Ec=
-Date: Sun, 16 Mar 2025 22:12:10 -0700
+	b=w3zfJ1ejmxrTseXknoHzdUnSTZs7h8LuaWmOOqTJbrWb8++h+McPWXwSNN82+5mX3
+	 Tv85ClqJ+Vp77uofwJ8b2URN93rz/NtL6afx2fOOo/rBXPwlPOHY/KmUEXmfURPRrN
+	 eQHGOPqcZq65PmzTU3wckdzHDO7dmM5wTLjPCdTs=
+Date: Sun, 16 Mar 2025 22:12:12 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,sfr@canb.auug.org.au,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hca@linux.ibm.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch removed from -mm tree
-Message-Id: <20250317051211.85527C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-extra-vma_numab_state_init-call.patch removed from -mm tree
+Message-Id: <20250317051213.37FCBC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/debug: print vm_refcnt state when dumping the vma
+     Subject: mm: remove extra vma_numab_state_init() call
 has been removed from the -mm tree.  Its filename was
-     mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
+     mm-remove-extra-vma_numab_state_init-call.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/debug: print vm_refcnt state when dumping the vma
-Date: Thu, 13 Feb 2025 14:46:51 -0800
+Subject: mm: remove extra vma_numab_state_init() call
+Date: Thu, 13 Feb 2025 14:46:52 -0800
 
-vm_refcnt encodes a number of useful states:
-- whether vma is attached or detached
-- the number of current vma readers
-- presence of a vma writer
-Let's include it in the vma dump.
+vma_init() already memset's the whole vm_area_struct to 0, so there is no
+need to an additional vma_numab_state_init().
 
-Link: https://lkml.kernel.org/r/20250213224655.1680278-15-surenb@google.com
+Link: https://lkml.kernel.org/r/20250213224655.1680278-16-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Tested-by: Shivank Garg <shivankg@amd.com>
   Link: https://lkml.kernel.org/r/5e19ec93-8307-47c2-bb13-3ddf7150624e@amd.com
 Cc: Christian Brauner <brauner@kernel.org>
@@ -69,7 +67,6 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Klara Modin <klarasmodin@gmail.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -89,29 +86,19 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/mm.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/debug.c~mm-debug-print-vm_refcnt-state-when-dumping-the-vma
-+++ a/mm/debug.c
-@@ -181,11 +181,17 @@ void dump_vma(const struct vm_area_struc
- 	pr_emerg("vma %px start %px end %px mm %px\n"
- 		"prot %lx anon_vma %px vm_ops %px\n"
- 		"pgoff %lx file %px private_data %px\n"
-+#ifdef CONFIG_PER_VMA_LOCK
-+		"refcnt %x\n"
-+#endif
- 		"flags: %#lx(%pGv)\n",
- 		vma, (void *)vma->vm_start, (void *)vma->vm_end, vma->vm_mm,
- 		(unsigned long)pgprot_val(vma->vm_page_prot),
- 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
- 		vma->vm_file, vma->vm_private_data,
-+#ifdef CONFIG_PER_VMA_LOCK
-+		refcount_read(&vma->vm_refcnt),
-+#endif
- 		vma->vm_flags, &vma->vm_flags);
+--- a/include/linux/mm.h~mm-remove-extra-vma_numab_state_init-call
++++ a/include/linux/mm.h
+@@ -956,7 +956,6 @@ static inline void vma_init(struct vm_ar
+ 	vma->vm_mm = mm;
+ 	vma->vm_ops = &vma_dummy_vm_ops;
+ 	INIT_LIST_HEAD(&vma->anon_vma_chain);
+-	vma_numab_state_init(vma);
+ 	vma_lock_init(vma, false);
  }
- EXPORT_SYMBOL(dump_vma);
+ 
 _
 
 Patches currently in -mm which might be from surenb@google.com are
