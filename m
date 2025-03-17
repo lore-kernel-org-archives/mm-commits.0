@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488352153E0
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2E502153E0;
+	Mon, 17 Mar 2025 05:10:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188252; cv=none; b=Kv+BnHM2meIemZpcYfr1SkU+rI67AOfaDnnqk6tRYXa8UNs6APqAYhLqnS3zwYNtVOWS0gsqt1qkQ12CFbuB0SmikP1uSJJNAwe54VvtCXT6lWcutjTWfo5Yh/Zyg/xxE1NOzry6ix5wN4pr8fwAUeasYOCC8Q8q8iTgs2NyG2c=
+	t=1742188253; cv=none; b=m7hbO1FlSb/jj2VewzOC5L8LdUx5q6ZmSjJ0ymi5zkfIDjL4kahKbnQSSM978/MsGqc1L54dIu813op9rHfaj+FknVc1vgjoALFXoUtSt5u74IeZL6V0aAswytgQ255RA03f46PdRzKTUg5WplS2/SUQzzzy/RgtFa60D5JitBk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188252; c=relaxed/simple;
-	bh=mGH2ELLY2oYmH/NC0bXqDGN3tkH76/qb29/vW7zPY98=;
-	h=Date:To:From:Subject:Message-Id; b=L0pq42HYvWEM+6GQSP0wpxQeqdJxznlH0qSkgke7rJBI0X3mN+4LJIkPHJCk58AJ/7ocuVs9aMO+OyuKR8tPH/skvyq4SJJQ37zoRLO3yxT2CQmMsdcpp1xWXeYBtlFAKcfJtg91750aX9GBh9+QMjse9ujEiWPolTx54kPZ5z0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d49O7xKt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188253; c=relaxed/simple;
+	bh=7sKPFPzhCga8+NVmOp1XCjN3BlcVNT0iIpYH468R12g=;
+	h=Date:To:From:Subject:Message-Id; b=GOo5AdD+cCEtT3q9hx/5p2h9cI7hhbsKPWnj7SZ1XqnAGiSL55eOf6FZOuGzpWBqDcLs/qfRh6m8+aMstEHZmBwmIy7Qs9kh/7B6Ma4Q1/Sc0qHHEcBKmCqvqZBeFjAF4dfYOI2gOLVxOOr27KANCYD/my51BluItoBmw1fhzns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IO9yIDSr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d49O7xKt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F781C4CEEC;
-	Mon, 17 Mar 2025 05:10:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IO9yIDSr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F39AC4CEEC;
+	Mon, 17 Mar 2025 05:10:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188252;
-	bh=mGH2ELLY2oYmH/NC0bXqDGN3tkH76/qb29/vW7zPY98=;
+	s=korg; t=1742188253;
+	bh=7sKPFPzhCga8+NVmOp1XCjN3BlcVNT0iIpYH468R12g=;
 	h=Date:To:From:Subject:From;
-	b=d49O7xKteI8HqUdfd+ATDQzBj0nItbisxntWg1gFgebxPA6TE3UvfXABP1hN/XkS7
-	 74H61p30R04o1wYtLFT0xAL9DCp59mPCSD1DVeuues0g0fe93YuvfhJH7mzw+RYrPY
-	 femIoQcVBH9TIoLyKbiDx8Gev1k1AHh3OZ/e/2Qg=
-Date: Sun, 16 Mar 2025 22:10:51 -0700
-To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,akpm@linux-foundation.org
+	b=IO9yIDSru2JvFYOEx0VNn11tBEefJNIfDZkMgtXASGRc/v+Cfvqrxsq/J7L6c/Lqh
+	 0oUNkeGTHLV5R15gjRhz2lb+L67NTOL2p5jXUIoBwOP/rJ80hGxQuRu41XXS5lXqqG
+	 BKe9qyHpRnsEekdNrQuHe7ffHtTNlufXGXsi/VBg=
+Date: Sun, 16 Mar 2025 22:10:52 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-kmemleak-print-the-raw-pointers-for-debugging-purposes.patch removed from -mm tree
-Message-Id: <20250317051052.1F781C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-ops-have-damon_get_folio-return-folio-even-for-tail-pages.patch removed from -mm tree
+Message-Id: <20250317051053.3F39AC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,151 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples: kmemleak: print the raw pointers for debugging purposes
+     Subject: mm/damon/ops: have damon_get_folio return folio even for tail pages
 has been removed from the -mm tree.  Its filename was
-     samples-kmemleak-print-the-raw-pointers-for-debugging-purposes.patch
+     mm-damon-ops-have-damon_get_folio-return-folio-even-for-tail-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: samples: kmemleak: print the raw pointers for debugging purposes
-Date: Thu, 6 Feb 2025 11:45:37 +0000
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm/damon/ops: have damon_get_folio return folio even for tail pages
+Date: Fri, 7 Feb 2025 13:20:32 -0800
 
-The kmemleak-test.c module is meant to leak some pointers for debugging
-the kmemleak detection, pointer information dumping.  It's no use if it
-prints the hashed values of such pointers.
+Patch series "mm/damon/paddr: fix large folios access and schemes handling".
 
-Change the printk() format from %p to %px.  While at it, also display the
-raw __percpu pointer rather than this_cpu_ptr() since kmemleak now tracks
-such pointers independently of the standard allocations.
+DAMON operations set for physical address space, namely 'paddr', treats
+tail pages as unaccessed always.  It can also apply DAMOS action to a
+large folio multiple times within single DAMOS' regions walking.  As a
+result, the monitoring output has poor quality and DAMOS works in
+unexpected ways when large folios are being used.  Fix those.
 
-Link: https://lkml.kernel.org/r/20250206114537.2597764-3-catalin.marinas@arm.com
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+The patches were parts of Usama's hugepage_size DAMOS filter patch
+series[1].  The first fix has collected from there with a slight commit
+message change for the subject prefix.  The second fix is re-written by SJ
+and posted as an RFC before this series.  The second one also got a slight
+commit message change for the subject prefix.
+
+[1] https://lore.kernel.org/20250203225604.44742-1-usamaarif642@gmail.com
+[2] https://lore.kernel.org/20250206231103.38298-1-sj@kernel.org
+
+
+This patch (of 2):
+
+This effectively adds support for large folios in damon for paddr, as
+damon_pa_mkold/young won't get a null folio from this function and won't
+ignore it, hence access will be checked and reported.  This also means
+that larger folios will be considered for different DAMOS actions like
+pageout, prioritization and migration.  As these DAMOS actions will
+consider larger folios, iterate through the region at folio_size and not
+PAGE_SIZE intervals.  This should not have an affect on vaddr, as
+damon_young_pmd_entry considers pmd entries.
+
+Link: https://lkml.kernel.org/r/20250207212033.45269-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250207212033.45269-2-sj@kernel.org
+Fixes: a28397beb55b ("mm/damon: implement primitives for physical address space monitoring")
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kmemleak/kmemleak-test.c |   36 ++++++++++++++---------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ mm/damon/ops-common.c |    2 +-
+ mm/damon/paddr.c      |   24 ++++++++++++++++++------
+ 2 files changed, 19 insertions(+), 7 deletions(-)
 
---- a/samples/kmemleak/kmemleak-test.c~samples-kmemleak-print-the-raw-pointers-for-debugging-purposes
-+++ a/samples/kmemleak/kmemleak-test.c
-@@ -40,25 +40,25 @@ static int kmemleak_test_init(void)
- 	pr_info("Kmemleak testing\n");
+--- a/mm/damon/ops-common.c~mm-damon-ops-have-damon_get_folio-return-folio-even-for-tail-pages
++++ a/mm/damon/ops-common.c
+@@ -26,7 +26,7 @@ struct folio *damon_get_folio(unsigned l
+ 	struct page *page = pfn_to_online_page(pfn);
+ 	struct folio *folio;
  
- 	/* make some orphan objects */
--	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
--	pr_info("kmalloc(32) = %p\n", kmalloc(32, GFP_KERNEL));
--	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
--	pr_info("kmalloc(1024) = %p\n", kmalloc(1024, GFP_KERNEL));
--	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
--	pr_info("kmalloc(2048) = %p\n", kmalloc(2048, GFP_KERNEL));
--	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
--	pr_info("kmalloc(4096) = %p\n", kmalloc(4096, GFP_KERNEL));
-+	pr_info("kmalloc(32) = 0x%px\n", kmalloc(32, GFP_KERNEL));
-+	pr_info("kmalloc(32) = 0x%px\n", kmalloc(32, GFP_KERNEL));
-+	pr_info("kmalloc(1024) = 0x%px\n", kmalloc(1024, GFP_KERNEL));
-+	pr_info("kmalloc(1024) = 0x%px\n", kmalloc(1024, GFP_KERNEL));
-+	pr_info("kmalloc(2048) = 0x%px\n", kmalloc(2048, GFP_KERNEL));
-+	pr_info("kmalloc(2048) = 0x%px\n", kmalloc(2048, GFP_KERNEL));
-+	pr_info("kmalloc(4096) = 0x%px\n", kmalloc(4096, GFP_KERNEL));
-+	pr_info("kmalloc(4096) = 0x%px\n", kmalloc(4096, GFP_KERNEL));
- #ifndef CONFIG_MODULES
--	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
-+	pr_info("kmem_cache_alloc(files_cachep) = 0x%px\n",
- 		kmem_cache_alloc(files_cachep, GFP_KERNEL));
--	pr_info("kmem_cache_alloc(files_cachep) = %p\n",
-+	pr_info("kmem_cache_alloc(files_cachep) = 0x%px\n",
- 		kmem_cache_alloc(files_cachep, GFP_KERNEL));
- #endif
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
--	pr_info("vmalloc(64) = %p\n", vmalloc(64));
-+	pr_info("vmalloc(64) = 0x%px\n", vmalloc(64));
-+	pr_info("vmalloc(64) = 0x%px\n", vmalloc(64));
-+	pr_info("vmalloc(64) = 0x%px\n", vmalloc(64));
-+	pr_info("vmalloc(64) = 0x%px\n", vmalloc(64));
-+	pr_info("vmalloc(64) = 0x%px\n", vmalloc(64));
+-	if (!page || PageTail(page))
++	if (!page)
+ 		return NULL;
  
- 	/*
- 	 * Add elements to a list. They should only appear as orphan
-@@ -66,7 +66,7 @@ static int kmemleak_test_init(void)
- 	 */
- 	for (i = 0; i < 10; i++) {
- 		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
--		pr_info("kzalloc(sizeof(*elem)) = %p\n", elem);
-+		pr_info("kzalloc(sizeof(*elem)) = 0x%px\n", elem);
- 		if (!elem)
- 			return -ENOMEM;
- 		INIT_LIST_HEAD(&elem->list);
-@@ -75,11 +75,11 @@ static int kmemleak_test_init(void)
- 
- 	for_each_possible_cpu(i) {
- 		per_cpu(kmemleak_test_pointer, i) = kmalloc(129, GFP_KERNEL);
--		pr_info("kmalloc(129) = %p\n",
-+		pr_info("kmalloc(129) = 0x%px\n",
- 			per_cpu(kmemleak_test_pointer, i));
+ 	folio = page_folio(page);
+--- a/mm/damon/paddr.c~mm-damon-ops-have-damon_get_folio-return-folio-even-for-tail-pages
++++ a/mm/damon/paddr.c
+@@ -277,11 +277,14 @@ static unsigned long damon_pa_pageout(st
+ 		damos_add_filter(s, filter);
  	}
  
--	pr_info("__alloc_percpu(64, 4) = %p\n", __alloc_percpu(64, 4));
-+	pr_info("__alloc_percpu(64, 4) = 0x%px\n", __alloc_percpu(64, 4));
+-	for (addr = r->ar.start; addr < r->ar.end; addr += PAGE_SIZE) {
++	addr = r->ar.start;
++	while (addr < r->ar.end) {
+ 		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
  
- 	return 0;
- }
+-		if (!folio)
++		if (!folio) {
++			addr += PAGE_SIZE;
+ 			continue;
++		}
+ 
+ 		if (damos_pa_filter_out(s, folio))
+ 			goto put_folio;
+@@ -297,6 +300,7 @@ static unsigned long damon_pa_pageout(st
+ 		else
+ 			list_add(&folio->lru, &folio_list);
+ put_folio:
++		addr += folio_size(folio);
+ 		folio_put(folio);
+ 	}
+ 	if (install_young_filter)
+@@ -312,11 +316,14 @@ static inline unsigned long damon_pa_mar
+ {
+ 	unsigned long addr, applied = 0;
+ 
+-	for (addr = r->ar.start; addr < r->ar.end; addr += PAGE_SIZE) {
++	addr = r->ar.start;
++	while (addr < r->ar.end) {
+ 		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
+ 
+-		if (!folio)
++		if (!folio) {
++			addr += PAGE_SIZE;
+ 			continue;
++		}
+ 
+ 		if (damos_pa_filter_out(s, folio))
+ 			goto put_folio;
+@@ -329,6 +336,7 @@ static inline unsigned long damon_pa_mar
+ 			folio_deactivate(folio);
+ 		applied += folio_nr_pages(folio);
+ put_folio:
++		addr += folio_size(folio);
+ 		folio_put(folio);
+ 	}
+ 	return applied * PAGE_SIZE;
+@@ -475,11 +483,14 @@ static unsigned long damon_pa_migrate(st
+ 	unsigned long addr, applied;
+ 	LIST_HEAD(folio_list);
+ 
+-	for (addr = r->ar.start; addr < r->ar.end; addr += PAGE_SIZE) {
++	addr = r->ar.start;
++	while (addr < r->ar.end) {
+ 		struct folio *folio = damon_get_folio(PHYS_PFN(addr));
+ 
+-		if (!folio)
++		if (!folio) {
++			addr += PAGE_SIZE;
+ 			continue;
++		}
+ 
+ 		if (damos_pa_filter_out(s, folio))
+ 			goto put_folio;
+@@ -490,6 +501,7 @@ static unsigned long damon_pa_migrate(st
+ 			goto put_folio;
+ 		list_add(&folio->lru, &folio_list);
+ put_folio:
++		addr += folio_size(folio);
+ 		folio_put(folio);
+ 	}
+ 	applied = damon_pa_migrate_pages(&folio_list, s->target_nid);
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
 
