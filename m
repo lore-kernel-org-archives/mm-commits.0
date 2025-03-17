@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAE2417583
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 00:41:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36EE949620;
+	Mon, 17 Mar 2025 00:41:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742172070; cv=none; b=c8Q3AOic+H+qyt5R0NFCefMuluQ/spMH4sRlhk3hy7b4OD3Oi9J91/tr3em8yPyB0NdyTI/w6AzrzrfJ9tMrvV3T+lL+PuRpV+iC1WIcD4Vl9ae2tvNxShjxqjCzqeV+hDwrAzLBwCf/ZNRS9ZBP771KrS6dYZcMJRraUusmx4g=
+	t=1742172072; cv=none; b=IWAKLN9lltO3XtYuga63ZP7InmuCO+fbkyFcWGUV9AAtznhwWDiiWKwOctNHSQZHqPsaxzQgwwcsvPGBtsC1M5WtpfmcJvfHQ/wl7l++bO8VqRu0BiB3wlIBvJ1xhaK+VdBQY4iBv0GMUq6hjZ7LuX030kpLN/hUoUFwsRk3NHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742172070; c=relaxed/simple;
-	bh=C3WKaEnCMBC/DUDcmXh6jcB6y0PKznj4OztKlpD6bzU=;
-	h=Date:To:From:Subject:Message-Id; b=Nw1UW005WHwW3HUxi59ly4ee9UEzlnlgHeiRfFAzxnkAO5/5qg3rQgCj3nOv7iXVTDWqIP+jbrnRnKk3aMaWWF/gkCCc1ZInx/8NR5uRrKpubt0rT1dr3kKArxc0wsg84Urmkh4m9Sl8YMWKRSVXa4rVn40Wpbd6kZd/4fptLDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N0Id8Yqd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742172072; c=relaxed/simple;
+	bh=qyN9wuDrjIMxWs3klzzZDrkcTasmeQThEFCHfHFe8gE=;
+	h=Date:To:From:Subject:Message-Id; b=gh9e91d9S9owrmI2wZjddJJ4tC4tFmLMLKW/MrFFwV7sDU/3Ws8cc+6/UshTyqh1gx7CRUnMSpQl+gNg5CfciQzDJA9uFY0F4YqHuiPc/Fj+DZ9dQOyMmOVx+W1dmAN3r/osODQbnobsOEIe/Oo4pqOEQyQFqNKi+NS0YpoHxSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a84x+8yM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N0Id8Yqd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D101C4CEDD;
-	Mon, 17 Mar 2025 00:41:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a84x+8yM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CE92C4CEDD;
+	Mon, 17 Mar 2025 00:41:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742172070;
-	bh=C3WKaEnCMBC/DUDcmXh6jcB6y0PKznj4OztKlpD6bzU=;
+	s=korg; t=1742172071;
+	bh=qyN9wuDrjIMxWs3klzzZDrkcTasmeQThEFCHfHFe8gE=;
 	h=Date:To:From:Subject:From;
-	b=N0Id8Yqdhc3TOlqxjrkarZXv6hsSyZJDKlKbhwp9QHkwG6IAsIhJsk2ps1AlJqA2X
-	 3io4MEa0f7y40jOmVgGMz4oJraIapGo8j1+p9FwSsXxBHl76vxk2bNJGpeJEHnVMiQ
-	 BiX8wyQdVnPI97z2qVc3Lt7cRRKdf6PlmX0NvrqQ=
-Date: Sun, 16 Mar 2025 17:41:09 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=a84x+8yMX4wAknkPbYbHjkPFFIVg1uzSCEPygS/fYMsBAKr0TYaU8Z1mIO9BJ3b7T
+	 hmTzugLRMSArC9tqwTo0cP5zomo3cQw3cVZb8hHbx7KMYl6U9vv5iiAwI3JNx2ld5G
+	 XF6PIFKzxPaa515K6+RCb+aCtctbC8DI5yQ9yPBI=
+Date: Sun, 16 Mar 2025 17:41:11 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,ryan.roberts@arm.com,quic_charante@quicinc.com,liushixin2@huawei.com,ioworker0@gmail.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch removed from -mm tree
-Message-Id: <20250317004110.4D101C4CEDD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-migrate-fix-shmem-xarray-update-during-migration.patch removed from -mm tree
+Message-Id: <20250317004111.9CE92C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
+     Subject: mm/migrate: fix shmem xarray update during migration
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page.patch
+     mm-migrate-fix-shmem-xarray-update-during-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
-Date: Tue, 4 Mar 2025 21:21:06 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: fix shmem xarray update during migration
+Date: Wed, 5 Mar 2025 15:04:03 -0500
 
-In dissolve_free_huge_page(), free huge pages are dissolved without
-adjusting surplus count. However, free huge pages may be accounted as
-surplus pages, and will lead to wrong surplus count.
+A shmem folio can be either in page cache or in swap cache, but not at the
+same time.  Namely, once it is in swap cache, folio->mapping should be
+NULL, and the folio is no longer in a shmem mapping.
 
-I reproduce this issue on qemu. The steps are:
-1) Node1 is memory-less at first. Hot-add memory to node1 by executing
-the two commands in qemu monitor:
-  object_add memory-backend-ram,id=mem1,size=1G
-  device_add pc-dimm,id=dimm1,memdev=mem1,node=1
-2) online one memory block of Node1 with：
-  echo online_movable > /sys/devices/system/node/node1/memoryX/state
-3) create 64 huge pages for node1
-4) run a program to reserve (don't consume) all the huge pages
-5) echo 0 > nr_huge_pages for node1. After this step, free huge pages in
-Node1 are surplus.
-6) create 80 huge pages for node0
-7) offline memory of node1, The memory range to offline contains the free
-surplus huge pages created in step3) ~ step5)
-  echo offline > /sys/devices/system/node/node1/memoryX/state
-8) kill the program in step 4)
+In __folio_migrate_mapping(), to determine the number of xarray entries to
+update, folio_test_swapbacked() is used, but that conflates shmem in page
+cache case and shmem in swap cache case.  It leads to xarray multi-index
+entry corruption, since it turns a sibling entry to a normal entry during
+xas_store() (see [1] for a userspace reproduction).  Fix it by only using
+folio_test_swapcache() to determine whether xarray is storing swap cache
+entries or not to choose the right number of xarray entries to update.
 
-The result:
-           Node0     Node1
-total       80        0
-free        80        0
-surplus     0         61
+[1] https://lore.kernel.org/linux-mm/Z8idPCkaJW1IChjT@casper.infradead.org/
 
-To fix it, adjust surplus when destroying huge pages if the node has
-surplus pages in dissolve_free_hugetlb_folio().
+Note:
+In __split_huge_page(), folio_test_anon() && folio_test_swapcache() is
+used to get swap_cache address space, but that ignores the shmem folio in
+swap cache case.  It could lead to NULL pointer dereferencing when a
+in-swap-cache shmem folio is split at __xa_store(), since
+!folio_test_anon() is true and folio->mapping is NULL.  But fortunately,
+its caller split_huge_page_to_list_to_order() bails out early with EBUSY
+when folio->mapping is NULL.  So no need to take care of it here.
 
-The result with this patch:
-           Node0     Node1
-total       80        0
-free        80        0
-surplus     0         0
-
-Link: https://lkml.kernel.org/r/20250304132106.2872754-1-tujinjiang@huawei.com
-Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Link: https://lkml.kernel.org/r/20250305200403.2822855-1-ziy@nvidia.com
+Fixes: fc346d0a70a1 ("mm: migrate high-order folios in swap cache correctly")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Liu Shixin <liushixin2@huawei.com>
+Closes: https://lore.kernel.org/all/28546fb4-5210-bf75-16d6-43e1f8646080@huawei.com/
+Suggested-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/migrate.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-surplus-pages-in-dissolve_free_huge_page
-+++ a/mm/hugetlb.c
-@@ -2135,6 +2135,8 @@ retry:
+--- a/mm/migrate.c~mm-migrate-fix-shmem-xarray-update-during-migration
++++ a/mm/migrate.c
+@@ -518,15 +518,13 @@ static int __folio_migrate_mapping(struc
+ 	if (folio_test_anon(folio) && folio_test_large(folio))
+ 		mod_mthp_stat(folio_order(folio), MTHP_STAT_NR_ANON, 1);
+ 	folio_ref_add(newfolio, nr); /* add cache reference */
+-	if (folio_test_swapbacked(folio)) {
++	if (folio_test_swapbacked(folio))
+ 		__folio_set_swapbacked(newfolio);
+-		if (folio_test_swapcache(folio)) {
+-			folio_set_swapcache(newfolio);
+-			newfolio->private = folio_get_private(folio);
+-		}
++	if (folio_test_swapcache(folio)) {
++		folio_set_swapcache(newfolio);
++		newfolio->private = folio_get_private(folio);
+ 		entries = nr;
+ 	} else {
+-		VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
+ 		entries = 1;
+ 	}
  
- 	if (!folio_ref_count(folio)) {
- 		struct hstate *h = folio_hstate(folio);
-+		bool adjust_surplus = false;
-+
- 		if (!available_huge_pages(h))
- 			goto out;
- 
-@@ -2157,7 +2159,9 @@ retry:
- 			goto retry;
- 		}
- 
--		remove_hugetlb_folio(h, folio, false);
-+		if (h->surplus_huge_pages_node[folio_nid(folio)])
-+			adjust_surplus = true;
-+		remove_hugetlb_folio(h, folio, adjust_surplus);
- 		h->max_huge_pages--;
- 		spin_unlock_irq(&hugetlb_lock);
- 
-@@ -2177,7 +2181,7 @@ retry:
- 			rc = hugetlb_vmemmap_restore_folio(h, folio);
- 			if (rc) {
- 				spin_lock_irq(&hugetlb_lock);
--				add_hugetlb_folio(h, folio, false);
-+				add_hugetlb_folio(h, folio, adjust_surplus);
- 				h->max_huge_pages++;
- 				goto out;
- 			}
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
-mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
+selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-folio_split-in-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
