@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AA7C218AAF
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BD6E8634E
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:24:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189069; cv=none; b=eonvxIRVpFC3Hj5qDsUC7ZfQmYXdrj5KQhiF5s4uvZcGJQphPSFvYAU3kzWqlq+2gX5zmCO23tJurgCKfG/S7hAk9vvQ6xmaBR8rcGHTkdn1rdw5WS2T+TwgimPQsM6m/pnSNGjtlTiLPJ0iZYVX3JySjcYMB8KW4gB2DoeN34s=
+	t=1742189094; cv=none; b=hvGD5uSR/vN8+2hpdcWAUDFY3k08qDByQkEReR7S2iHTHnci/vG/bckdbLAfmhrTsHpeXHq0nSPB5XmOtCo6PmCHvg/M5g82k8hzzalBRAK25pg9/sV4gecL3qlJuDDPfXIxkl2/+6aLn6CwA1OmI23mF8HQx9LJsyQe7yAoqvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189069; c=relaxed/simple;
-	bh=vfp07BlAK8MFieLA5iBf5u+jxpXhTQPx9bJOTHgvpe4=;
-	h=Date:To:From:Subject:Message-Id; b=JHAPHzvdLxMxMD797OrqcetZxP78in3ttlA+bDcNdUEpnMf4L4oW8fOlErlMGtf549b7tYcMeLB/dSHy0WACpmecuyHvt6OjMzP38V5FjnlaZwwshNfdTJo/2BYu/aw1RF0VqKt1RyW7+q71BVURbULHTBWsAmt61ImedaxXJZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tLL5FYgB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189094; c=relaxed/simple;
+	bh=wCFQFGyv7sO01NKAQ0rLGbFxjL9B2wPA0EkAKxVOXG8=;
+	h=Date:To:From:Subject:Message-Id; b=Q0SA8PveAX9AGH+cLuelcAjYwEu4y3XXHicY+G4ncgVpYP5IlPSrI+HUlzVr/ff9PdsXpJb/K5ZbC65TOWjP44CPnGTEq8/WpcJyE2o73kC8QbrqE7LusYoQIgTwqL6HqEX/FroRZqt/oHHxomeet9eWHDRTnzraMceDyc2gwVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OCZ25g6C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tLL5FYgB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AE1C4CEEC;
-	Mon, 17 Mar 2025 05:24:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OCZ25g6C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31D0DC4CEEC;
+	Mon, 17 Mar 2025 05:24:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189069;
-	bh=vfp07BlAK8MFieLA5iBf5u+jxpXhTQPx9bJOTHgvpe4=;
+	s=korg; t=1742189094;
+	bh=wCFQFGyv7sO01NKAQ0rLGbFxjL9B2wPA0EkAKxVOXG8=;
 	h=Date:To:From:Subject:From;
-	b=tLL5FYgBv9hr7RTVcLDz+xXUj8bJ6slenc9btLTh0GJEa99UdKYNdLInH+KJ78Hka
-	 gXlBKdDZjQLOqIaqXbB2jDDB2NWPtjEvpX1R2Id2ZhpcIWAq/BMWx8hukmCQc2jfbD
-	 zZhJGdhcxDwvPgi3imFPpm+ZE1kDA5nEDFowiTDg=
-Date: Sun, 16 Mar 2025 22:24:28 -0700
-To: mm-commits@vger.kernel.org,richard120310@gmail.com,jserv@ccns.ncku.edu.tw,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=OCZ25g6CzKNEJqLi5pvb2so/ewxuxIyd7VfHEjWkHoR4jv/Ri9+PbFrcmmB3WhRUX
+	 EsyNiYDO85p59TVaj0qszuZ9K/nOgFDGUQRZIgY+w1WA+AnjBUJC32NJvi8zh7Kmuh
+	 B33Zcfdo/oO2Fq9ZsYPB61yF41BZlraU80DZwM8w=
+Date: Sun, 16 Mar 2025 22:24:53 -0700
+To: mm-commits@vger.kernel.org,tytso@mit.edu,lorenzo.stoakes@oracle.com,linux@leemhuis.info,kees@kernel.org,joe@perches.com,bryan.odonoghue@linaro.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-plistc-add-shortcut-for-plist_requeue-fix.patch removed from -mm tree
-Message-Id: <20250317052429.37AE1C4CEEC@smtp.kernel.org>
+Subject: [folded-merged] get_maintainer-add-substatus-for-reporting-subsystem-status-fix.patch removed from -mm tree
+Message-Id: <20250317052454.31D0DC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib-plistc-add-shortcut-for-plist_requeue-fix
+     Subject: get_maintainer: add --substatus for reporting subsystem status - fix
 has been removed from the -mm tree.  Its filename was
-     lib-plistc-add-shortcut-for-plist_requeue-fix.patch
+     get_maintainer-add-substatus-for-reporting-subsystem-status-fix.patch
 
-This patch was dropped because it was folded into lib-plistc-add-shortcut-for-plist_requeue.patch
+This patch was dropped because it was folded into get_maintainer-add-substatus-for-reporting-subsystem-status.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-plistc-add-shortcut-for-plist_requeue-fix
-Date: Tue Jan 28 07:27:41 PM PST 2025
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: get_maintainer: add --substatus for reporting subsystem status - fix
+Date: Tue, 11 Feb 2025 16:16:11 +0100
 
-tweak comment and code layout
+The automatically enabled --substatus can break existing scripts that do
+not disable --rolestats.  Require that script output goes to a terminal to
+enable it automatically.
 
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: I Hsin Cheng <richard120310@gmail.com>
+Link: https://lkml.kernel.org/r/66c2bf7a-9119-4850-b6b8-ac8f426966e1@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Bryan O'Donoghue <bryan.odonoghue@linaro.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Thorsten Leemhuis <linux@leemhuis.info>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/plist.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ scripts/get_maintainer.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/plist.c~lib-plistc-add-shortcut-for-plist_requeue-fix
-+++ a/lib/plist.c
-@@ -171,12 +171,13 @@ void plist_requeue(struct plist_node *no
+--- a/scripts/get_maintainer.pl~get_maintainer-add-substatus-for-reporting-subsystem-status-fix
++++ a/scripts/get_maintainer.pl
+@@ -317,7 +317,7 @@ $output_rolestats = 1 if ($interactive);
+ $output_roles = 1 if ($output_rolestats);
  
- 	plist_del(node, head);
+ if (!defined $output_substatus) {
+-    $output_substatus = $email && $output_roles;
++    $output_substatus = $email && $output_roles && -t STDOUT;
+ }
  
--	/* After plist_del(), iter is the replacement of node
--	 * , if node was on prio_list, then take shortcut to
--	 * find node_next instead of looping.
-+	/*
-+	 * After plist_del(), iter is the replacement of the node.  If the node
-+	 * was on prio_list, take shortcut to find node_next instead of looping.
- 	 */
- 	if (!list_empty(&iter->prio_list)) {
--		iter = list_entry(iter->prio_list.next, struct plist_node, prio_list);
-+		iter = list_entry(iter->prio_list.next, struct plist_node,
-+				  prio_list);
- 		node_next = &iter->node_list;
- 		goto queue;
- 	}
+ if ($sections || $letters ne "") {
+@@ -1086,7 +1086,7 @@ MAINTAINER field selection options:
+     --remove-duplicates => minimize duplicate email names/addresses
+     --roles => show roles (status:subsystem, git-signer, list, etc...)
+     --rolestats => show roles and statistics (commits/total_commits, %)
+-    --substatus => show subsystem status if not Maintained (default: match --roles)"
++    --substatus => show subsystem status if not Maintained (default: match --roles when output is tty)"
+     --file-emails => add email addresses found in -f file (default: 0 (off))
+     --fixes => for patches, add signatures of commits with 'Fixes: <commit>' (default: 1 (on))
+   --scm => print SCM tree(s) if any
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-lib-plistc-add-shortcut-for-plist_requeue.patch
-scsi-lpfc-convert-timeouts-to-secs_to_jiffies-fix.patch
-signal-avoid-clearing-tif_sigpending-in-recalc_sigpending-if-unset-fix.patch
-hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
+get_maintainer-add-substatus-for-reporting-subsystem-status.patch
+get_maintainer-stop-reporting-subsystem-status-as-maintainer-role.patch
 
