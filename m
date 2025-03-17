@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB39218AA5
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:33:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5013F218AA5
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:33:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189584; cv=none; b=U9Ey8BDl5TuxiWJO8u+DOvSxpYfYft9Q40k4vvIor9+9UhLXVegniSp+IYxYkIh+o766rDDaLhMX04dIiEhcpNuik5dXhx98MNLadEuGa4uGnIgVRsmVSudIRxrsvlE9L7OjzJvilhnipL1vTRralDBC7k8IZl+udww8ybXg24Q=
+	t=1742189585; cv=none; b=Ciq983LwWvBb2BCtTCTq5JuynJE5SXKXTBADSwufKkmECfIi9WpXP5rP8DAoG83AdQcu3Iu5D2Oet4hZaIkwDx8fchAwktWwNk3fa/U9IML1O1cBqgH2isOzsvnsQ6hlP9iEUGbGb0f2SmMV+9mqcVzWYYF0G8gTZC+aDmT13Y4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189584; c=relaxed/simple;
-	bh=gVFF02A1P0m2L9iPvfKY3PQh9tDY5i3TyAN/xj2ZwoU=;
-	h=Date:To:From:Subject:Message-Id; b=RF33ZnFqB45g8sdum4sqL/qYca4mcPjw3SxTWnoEjv1MYVaMuHFTlchlbzV/qBNXaDxjhByH8mmeCAsZU2gLcUED0H68EKczizJY4KClp4Mid7hSrAozIkF1+MfREmfdV4+dtX9w3GxIWGkMfRdqxAjq+H8t3v02GbDtuqOartM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WVAyAMxB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189585; c=relaxed/simple;
+	bh=I5hqoqatu7SG8ltAaPFymHr8NZ70svZIdOL1X5XerL4=;
+	h=Date:To:From:Subject:Message-Id; b=YnlvwHnZOU/BJ6PS3HTIqm9Qnlt84/KiqgcmKyvok+JpcCjB+mlH/gBF1XLQRNkiuSPN8aXKFYZ/WcUIf62yFrGDrq1HDW7OzuSKmhZ7/jPQqauj6tca1qBohRZr7bjSbA4xG9AlzOSJ7L12KL0AOq7nf7DFCo1IV+VQFYpF5QQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o3MUUG5L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WVAyAMxB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FF27C4CEEC;
-	Mon, 17 Mar 2025 05:33:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o3MUUG5L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26F8DC4CEEC;
+	Mon, 17 Mar 2025 05:33:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189584;
-	bh=gVFF02A1P0m2L9iPvfKY3PQh9tDY5i3TyAN/xj2ZwoU=;
+	s=korg; t=1742189585;
+	bh=I5hqoqatu7SG8ltAaPFymHr8NZ70svZIdOL1X5XerL4=;
 	h=Date:To:From:Subject:From;
-	b=WVAyAMxBDesSqJx/fxG7DQq2ymxea+79PC6FT2SWmC7zujdRpvJS8/MNRtlKYDDHY
-	 pno2Wnpy26WwX8IEEFh0AwLp3cY6wJAhX8WgGp5f+j7RyDlFl/6M0KgFc63k5V9ZHu
-	 jxqVdrvLloAysGRrHc7Nllu7mn+JcgQefNyXt5O4=
-Date: Sun, 16 Mar 2025 22:33:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,michel@lespinasse.org,jgg@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=o3MUUG5LDUrmFbXVZfhTT1IXfqYPYHrYP6UnbQvtslN+81Ko1YpKAtEliyDluSbGW
+	 Lsawk1kCg/c1YMkeFCwRXkohM/pZQp9aP/Lp6ZnQQVxY0weBe3kR+HzwrmRnGPkTCi
+	 XaLf5YwuLiDvfPYMVqjvUfbzm60+5SqP9jjw1Z/Y=
+Date: Sun, 16 Mar 2025 22:33:04 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,song@kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap.patch removed from -mm tree
-Message-Id: <20250317053304.0FF27C4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-perf-optimize-bytes-copied-and-remove-manual-nul-termination.patch removed from -mm tree
+Message-Id: <20250317053305.26F8DC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/interval_tree: fix the comment of interval_tree_span_iter_next_gap()
+     Subject: watchdog/perf: optimize bytes copied and remove manual NUL-termination
 has been removed from the -mm tree.  Its filename was
-     lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap.patch
+     watchdog-perf-optimize-bytes-copied-and-remove-manual-nul-termination.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: lib/interval_tree: fix the comment of interval_tree_span_iter_next_gap()
-Date: Mon, 10 Mar 2025 07:49:38 +0000
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: watchdog/perf: optimize bytes copied and remove manual NUL-termination
+Date: Thu, 13 Mar 2025 14:30:02 +0100
 
-The comment of interval_tree_span_iter_next_gap() is not exact, nodes[1]
-is not always !NULL.
+Currently, up to 23 bytes of the source string are copied to the
+destination buffer (including the comma and anything after it), only to
+then manually NUL-terminate the destination buffer again at index 'len'
+(where the comma was found).
 
-There are threes cases here. If there is an interior hole, the statement
-is correct. If there is a tailing hole or the contiguous used range span
-to the end, nodes[1] is NULL.
+Fix this by calling strscpy() with 'len' instead of the destination buffer
+size to copy only as many bytes from the source string as needed.
 
-Link: https://lkml.kernel.org/r/20250310074938.26756-8-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michel Lespinasse <michel@lespinasse.org>
+Change the length check to allow 'len' to be less than or equal to the
+destination buffer size to fill the whole buffer if needed.
+
+Remove the if-check for the return value of strscpy(), because calling
+strscpy() with 'len' always truncates the source string at the comma as
+expected and NUL-terminates the destination buffer at the corresponding
+index instead.  Remove the manual NUL-termination.
+
+No functional changes intended.
+
+Link: https://lkml.kernel.org/r/20250313133004.36406-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Song Liu <song@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/interval_tree.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ kernel/watchdog_perf.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/lib/interval_tree.c~lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap
-+++ a/lib/interval_tree.c
-@@ -20,9 +20,15 @@ EXPORT_SYMBOL_GPL(interval_tree_iter_nex
- /*
-  * Roll nodes[1] into nodes[0] by advancing nodes[1] to the end of a contiguous
-  * span of nodes. This makes nodes[0]->last the end of that contiguous used span
-- * indexes that started at the original nodes[1]->start. nodes[1] is now the
-- * first node starting the next used span. A hole span is between nodes[0]->last
-- * and nodes[1]->start. nodes[1] must be !NULL.
-+ * of indexes that started at the original nodes[1]->start.
-+ *
-+ * If there is an interior hole, nodes[1] is now the first node starting the
-+ * next used span. A hole span is between nodes[0]->last and nodes[1]->start.
-+ *
-+ * If there is a tailing hole, nodes[1] is now NULL. A hole span is between
-+ * nodes[0]->last and last_index.
-+ *
-+ * If the contiguous used range span to last_index, nodes[1] is set to NULL.
-  */
- static void
- interval_tree_span_iter_next_gap(struct interval_tree_span_iter *state)
+--- a/kernel/watchdog_perf.c~watchdog-perf-optimize-bytes-copied-and-remove-manual-nul-termination
++++ a/kernel/watchdog_perf.c
+@@ -294,12 +294,10 @@ void __init hardlockup_config_perf_event
+ 	} else {
+ 		unsigned int len = comma - str;
+ 
+-		if (len >= sizeof(buf))
++		if (len > sizeof(buf))
+ 			return;
+ 
+-		if (strscpy(buf, str, sizeof(buf)) < 0)
+-			return;
+-		buf[len] = 0;
++		strscpy(buf, str, len);
+ 		if (kstrtoull(buf, 16, &config))
+ 			return;
+ 	}
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
 
