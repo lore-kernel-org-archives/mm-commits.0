@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9664215197
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BE8F2153EA
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188220; cv=none; b=TCY8jEl6qYK/mM2h/DMNccZl/EDNQW7cYD6qqAdmV6U4m+lsgRjYjS2JoVDl+WJiMxBKm5+y52L/xnFcSnke2Je3iIXG883A0QyvXjx0O250RhQaRGfGdHORaItr2BE7WcX2EA9jX2LY+OpmCk9FOruUq8qn2xiu6Q1dZL5h5Mo=
+	t=1742188222; cv=none; b=BRiIjgaf6irmbI7xNAVqv6VXugQgbWI0Thndx49nIiCeXbdHL3J2VbWqDDzKgffxI5HbNGCzuOnR6ENz9liL0MdTdKYh0TGLb9b9jnupnxXsS67dmndVw16MGdRRB+3V0/fPqirymU/jzh6Z7WmuWzRCMUzmAxiKptv3+CkOifQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188220; c=relaxed/simple;
-	bh=kL+qaPaWqNXr6/oCtUPwqyqruN97M0nWY5RzdenqNkk=;
-	h=Date:To:From:Subject:Message-Id; b=aiQzGZXAmMfgJsgh4bWoG5w5h4AaIJI8fVciK0g8V0p/tSyQJ9fcOLhKCgN4nAJps9XOLfF0Vo5m34Mo62mRgjrd6BkbD8KWJej8blUcsyQ3hDVMw+dNHX9sX4U+g448nMCPOWUmFAt2n+1zDtT79UBy/gO2sPIgIiu7zf0RWPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WBWrapb4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188222; c=relaxed/simple;
+	bh=VrGPQQJUJl9fv07lerz6VULRA+k+ol9L9gt694rfaBo=;
+	h=Date:To:From:Subject:Message-Id; b=YCX+vwEaw+HB7HO2u16BRNSE5HZwYY+gwTiYzPiGOKw93+y3SkMBDFEPFZAeqtcEM21KvsthGl3Ng+Hdd/hTpItFaWH9aZyObydNxf9YHcM0FR9ZmVImsyNUq+x/fRJFzxZHcejJ2StpIchRob719oAjCEwqKOIMon8/zO5MfZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XALxfHeq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WBWrapb4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E59AC4CEEC;
-	Mon, 17 Mar 2025 05:10:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XALxfHeq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF66C4CEEC;
+	Mon, 17 Mar 2025 05:10:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188220;
-	bh=kL+qaPaWqNXr6/oCtUPwqyqruN97M0nWY5RzdenqNkk=;
+	s=korg; t=1742188222;
+	bh=VrGPQQJUJl9fv07lerz6VULRA+k+ol9L9gt694rfaBo=;
 	h=Date:To:From:Subject:From;
-	b=WBWrapb4M95OgVBdn5ckdZp1cLw/hDFhR4swQyIJRSUmI2kG8VGXPHvJXBY8NhTq8
-	 qULjWXSFfaJmvaYbYHd2ixo7BKS4JIGr5fUbMlHEuumKjKMpRB8vva+AZg3TJ8Os15
-	 QWSXHhyFGaYp9EHbOGBKZ/n4XCrpBFwzymjdUdyA=
-Date: Sun, 16 Mar 2025 22:10:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=XALxfHeqVRSRNu4/x+Q9wiVHvUItN1/NrzLcKfvFHzOa3/a+RzejmxmRmgPCQ3Rnt
+	 bZi1nbfyOwscWO9nbLBrY/Eh/VcNjZacO2jG7jkGrloRvWHan3whP3kNLOhey3Qv8n
+	 RmeyMnWiXE4PpH1q3OaQvIt0SbNWjOuu7O+NKdc8=
+Date: Sun, 16 Mar 2025 22:10:21 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,vbabka@suse.cz,souravpanda@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,quic_zhenhuah@quicinc.com,peterz@infradead.org,pasha.tatashin@soleen.com,minchan@google.com,kent.overstreet@linux.dev,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-completely-abstract-unnecessary-adj_start-calculation.patch removed from -mm tree
-Message-Id: <20250317051020.7E59AC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch removed from -mm tree
+Message-Id: <20250317051021.EDF66C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,384 +35,143 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: completely abstract unnecessary adj_start calculation
+     Subject: mm: avoid extra mem_alloc_profiling_enabled() checks
 has been removed from the -mm tree.  Its filename was
-     mm-completely-abstract-unnecessary-adj_start-calculation.patch
+     mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: completely abstract unnecessary adj_start calculation
-Date: Fri, 31 Jan 2025 12:31:53 +0000
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: avoid extra mem_alloc_profiling_enabled() checks
+Date: Sat, 1 Feb 2025 15:18:00 -0800
 
-The adj_start calculation has been a constant source of confusion in the
-VMA merge code.
+Refactor code to avoid extra mem_alloc_profiling_enabled() checks inside
+pgalloc_tag_get() function which is often called after that check was
+already done.
 
-There are two cases to consider, one where we adjust the start of the
-vmg->middle VMA (i.e.  the vmg->__adjust_middle_start merge flag is set),
-in which case adj_start is calculated as:
-
-(1) adj_start = vmg->end - vmg->middle->vm_start
-
-And the case where we adjust the start of the vmg->next VMA (i.e.  the
-vmg->__adjust_next_start merge flag is set), in which case adj_start is
-calculated as:
-
-(2) adj_start = -(vmg->middle->vm_end - vmg->end)
-
-We apply (1) thusly:
-
-vmg->middle->vm_start =
-	vmg->middle->vm_start + vmg->end - vmg->middle->vm_start
-
-Which simplifies to:
-
-vmg->middle->vm_start = vmg->end
-
-Similarly, we apply (2) as:
-
-vmg->next->vm_start =
-	vmg->next->vm_start + -(vmg->middle->vm_end - vmg->end)
-
-Noting that for these VMAs to be mergeable vmg->middle->vm_end ==
-vmg->next->vm_start and so this simplifies to:
-
-vmg->next->vm_start =
-	vmg->next->vm_start + -(vmg->next->vm_start - vmg->end)
-
-Which simplifies to:
-
-vmg->next->vm_start = vmg->end
-
-Therefore in each case, we simply need to adjust the start of the VMA to
-vmg->end (!) and can do away with this adj_start calculation.  The only
-caveat is that we must ensure we update the vm_pgoff field correctly.
-
-We therefore abstract this entire calculation to a new function
-vmg_adjust_set_range() which performs this calculation and sets the
-adjusted VMA's new range using the general vma_set_range() function.
-
-We also must update vma_adjust_trans_huge() which expects the
-now-abstracted adj_start parameter.  It turns out this is wholly
-unnecessary.
-
-In vma_adjust_trans_huge() the relevant code is:
-
-	if (adjust_next > 0) {
-		struct vm_area_struct *next = find_vma(vma->vm_mm, vma->vm_end);
-		unsigned long nstart = next->vm_start;
-		nstart += adjust_next;
-		split_huge_pmd_if_needed(next, nstart);
-	}
-
-The only case where this is relevant is when vmg->__adjust_middle_start is
-specified (in which case adj_next would have been positive), i.e.  the one
-in which the vma specified is vmg->prev and this the sought 'next' VMA
-would be vmg->middle.
-
-We can therefore eliminate the find_vma() invocation altogether and simply
-provide the vmg->middle VMA in this instance, or NULL otherwise.
-
-Again we have an adj_next offset calculation:
-
-next->vm_start + vmg->end - vmg->middle->vm_start
-
-Where next == vmg->middle this simplifies to vmg->end as previously
-demonstrated.
-
-Therefore nstart is equal to vmg->end, which is already passed to
-vma_adjust_trans_huge() via the 'end' parameter and so this code (rather
-delightfully) simplifies to:
-
-	if (next)
-		split_huge_pmd_if_needed(next, end);
-
-With these changes in place, it becomes silly for commit_merge() to return
-vmg->target, as it is always the same and threaded through vmg, so we
-finally change commit_merge() to return an error value once again.
-
-This patch has no change in functional behaviour.
-
-Link: https://lkml.kernel.org/r/7bce2cd4b5afb56211822835d145471280c3dccc.1738326519.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20250201231803.2661189-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: David Wang <00107082@163.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zhenhua Huang <quic_zhenhuah@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h          |    4 -
- mm/huge_memory.c                 |   19 +----
- mm/vma.c                         |   99 +++++++++++++----------------
- tools/testing/vma/vma_internal.h |    4 -
- 4 files changed, 57 insertions(+), 69 deletions(-)
+ include/linux/pgalloc_tag.h |   33 ++++++++++++++++++---------------
+ lib/alloc_tag.c             |    6 +++---
+ mm/page_alloc.c             |    3 +--
+ 3 files changed, 22 insertions(+), 20 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-completely-abstract-unnecessary-adj_start-calculation
-+++ a/include/linux/huge_mm.h
-@@ -404,7 +404,7 @@ int madvise_collapse(struct vm_area_stru
- 		     struct vm_area_struct **prev,
- 		     unsigned long start, unsigned long end);
- void vma_adjust_trans_huge(struct vm_area_struct *vma, unsigned long start,
--			   unsigned long end, long adjust_next);
-+			   unsigned long end, struct vm_area_struct *next);
- spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma);
- spinlock_t *__pud_trans_huge_lock(pud_t *pud, struct vm_area_struct *vma);
- 
-@@ -571,7 +571,7 @@ static inline int madvise_collapse(struc
- static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 					 unsigned long start,
- 					 unsigned long end,
--					 long adjust_next)
-+					 struct vm_area_struct *next)
- {
- }
- static inline int is_swap_pmd(pmd_t pmd)
---- a/mm/huge_memory.c~mm-completely-abstract-unnecessary-adj_start-calculation
-+++ a/mm/huge_memory.c
-@@ -3017,9 +3017,9 @@ static inline void split_huge_pmd_if_nee
+--- a/include/linux/pgalloc_tag.h~mm-avoid-extra-mem_alloc_profiling_enabled-checks
++++ a/include/linux/pgalloc_tag.h
+@@ -205,28 +205,32 @@ static inline void pgalloc_tag_sub(struc
+ 	}
  }
  
- void vma_adjust_trans_huge(struct vm_area_struct *vma,
--			     unsigned long start,
--			     unsigned long end,
--			     long adjust_next)
-+			   unsigned long start,
-+			   unsigned long end,
-+			   struct vm_area_struct *next)
+-static inline struct alloc_tag *pgalloc_tag_get(struct page *page)
++/* Should be called only if mem_alloc_profiling_enabled() */
++static inline struct alloc_tag *__pgalloc_tag_get(struct page *page)
  {
- 	/* Check if we need to split start first. */
- 	split_huge_pmd_if_needed(vma, start);
-@@ -3027,16 +3027,9 @@ void vma_adjust_trans_huge(struct vm_are
- 	/* Check if we need to split end next. */
- 	split_huge_pmd_if_needed(vma, end);
+ 	struct alloc_tag *tag = NULL;
++	union pgtag_ref_handle handle;
++	union codetag_ref ref;
  
--	/*
--	 * If we're also updating the next vma vm_start,
--	 * check if we need to split it.
--	 */
--	if (adjust_next > 0) {
--		struct vm_area_struct *next = find_vma(vma->vm_mm, vma->vm_end);
--		unsigned long nstart = next->vm_start;
--		nstart += adjust_next;
--		split_huge_pmd_if_needed(next, nstart);
--	}
-+	/* If we're incrementing next->vm_start, we might need to split it. */
-+	if (next)
-+		split_huge_pmd_if_needed(next, end);
- }
- 
- static void unmap_folio(struct folio *folio)
---- a/mm/vma.c~mm-completely-abstract-unnecessary-adj_start-calculation
-+++ a/mm/vma.c
-@@ -513,7 +513,7 @@ __split_vma(struct vma_iterator *vmi, st
- 	init_vma_prep(&vp, vma);
- 	vp.insert = new;
- 	vma_prepare(&vp);
--	vma_adjust_trans_huge(vma, vma->vm_start, addr, 0);
-+	vma_adjust_trans_huge(vma, vma->vm_start, addr, NULL);
- 
- 	if (new_below) {
- 		vma->vm_start = addr;
-@@ -644,46 +644,44 @@ void validate_mm(struct mm_struct *mm)
- #endif /* CONFIG_DEBUG_VM_MAPLE_TREE */
- 
- /*
-- * Actually perform the VMA merge operation.
-- *
-- * On success, returns the merged VMA. Otherwise returns NULL.
-+ * Based on the vmg flag indicating whether we need to adjust the vm_start field
-+ * for the middle or next VMA, we calculate what the range of the newly adjusted
-+ * VMA ought to be, and set the VMA's range accordingly.
-  */
--static struct vm_area_struct *commit_merge(struct vma_merge_struct *vmg)
-+static void vmg_adjust_set_range(struct vma_merge_struct *vmg)
- {
--	struct vm_area_struct *vma;
--	struct vma_prepare vp;
- 	struct vm_area_struct *adjust;
--	long adj_start;
-+	pgoff_t pgoff;
- 
--	/*
--	 * If modifying an existing VMA and we don't remove vmg->middle, then we
--	 * shrink the adjacent VMA.
--	 */
- 	if (vmg->__adjust_middle_start) {
--		vma = vmg->target;
- 		adjust = vmg->middle;
--		/* The POSITIVE value by which we offset vmg->middle->vm_start. */
--		adj_start = vmg->end - vmg->middle->vm_start;
+-	if (mem_alloc_profiling_enabled()) {
+-		union pgtag_ref_handle handle;
+-		union codetag_ref ref;
 -
--		 /* Note: vma iterator must be pointing to 'start'. */
--		vma_iter_config(vmg->vmi, vmg->start, vmg->end);
-+		pgoff = adjust->vm_pgoff + PHYS_PFN(vmg->end - adjust->vm_start);
- 	} else if (vmg->__adjust_next_start) {
--		/*
--		 * In this case alone, the VMA we manipulate is vmg->middle, but
--		 * we ultimately return vmg->next.
--		 */
--		vma = vmg->middle;
- 		adjust = vmg->next;
--		/* The NEGATIVE value by which we offset vmg->next->vm_start. */
--		adj_start = -(vmg->middle->vm_end - vmg->end);
-+		pgoff = adjust->vm_pgoff - PHYS_PFN(adjust->vm_start - vmg->end);
-+	} else {
+-		if (get_page_tag_ref(page, &ref, &handle)) {
+-			alloc_tag_sub_check(&ref);
+-			if (ref.ct)
+-				tag = ct_to_alloc_tag(ref.ct);
+-			put_page_tag_ref(handle);
+-		}
++	if (get_page_tag_ref(page, &ref, &handle)) {
++		alloc_tag_sub_check(&ref);
++		if (ref.ct)
++			tag = ct_to_alloc_tag(ref.ct);
++		put_page_tag_ref(handle);
+ 	}
+ 
+ 	return tag;
+ }
+ 
+-static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr)
++static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr)
+ {
+-	if (mem_alloc_profiling_enabled() && tag)
++	struct alloc_tag *tag;
++
++	if (!mem_alloc_profiling_enabled())
 +		return;
-+	}
 +
-+	vma_set_range(adjust, vmg->end, adjust->vm_end, pgoff);
-+}
-+
-+/*
-+ * Actually perform the VMA merge operation.
-+ *
-+ * Returns 0 on success, or an error value on failure.
-+ */
-+static int commit_merge(struct vma_merge_struct *vmg)
-+{
-+	struct vm_area_struct *vma;
-+	struct vma_prepare vp;
- 
--		vma_iter_config(vmg->vmi, vmg->next->vm_start + adj_start,
--				vmg->next->vm_end);
-+	if (vmg->__adjust_next_start) {
-+		/* We manipulate middle and adjust next, which is the target. */
-+		vma = vmg->middle;
-+		vma_iter_config(vmg->vmi, vmg->end, vmg->next->vm_end);
- 	} else {
- 		vma = vmg->target;
--		adjust = NULL;
--		adj_start = 0;
--
- 		 /* Note: vma iterator must be pointing to 'start'. */
- 		vma_iter_config(vmg->vmi, vmg->start, vmg->end);
- 	}
-@@ -691,22 +689,22 @@ static struct vm_area_struct *commit_mer
- 	init_multi_vma_prep(&vp, vma, vmg);
- 
- 	if (vma_iter_prealloc(vmg->vmi, vma))
--		return NULL;
-+		return -ENOMEM;
- 
- 	vma_prepare(&vp);
--	vma_adjust_trans_huge(vma, vmg->start, vmg->end, adj_start);
-+	/*
-+	 * THP pages may need to do additional splits if we increase
-+	 * middle->vm_start.
-+	 */
-+	vma_adjust_trans_huge(vma, vmg->start, vmg->end,
-+			      vmg->__adjust_middle_start ? vmg->middle : NULL);
- 	vma_set_range(vma, vmg->start, vmg->end, vmg->pgoff);
--
--	if (adj_start) {
--		adjust->vm_start += adj_start;
--		adjust->vm_pgoff += PHYS_PFN(adj_start);
--	}
--
-+	vmg_adjust_set_range(vmg);
- 	vma_iter_store(vmg->vmi, vmg->target);
- 
- 	vma_complete(&vp, vmg->vmi, vma->vm_mm);
- 
--	return vmg->target;
-+	return 0;
++	tag = __pgalloc_tag_get(page);
++	if (tag)
+ 		this_cpu_sub(tag->counters->bytes, PAGE_SIZE * nr);
  }
  
- /* We can only remove VMAs when merging if they do not have a close hook. */
-@@ -749,7 +747,7 @@ static __must_check struct vm_area_struc
+@@ -241,8 +245,7 @@ static inline void clear_page_tag_ref(st
+ static inline void pgalloc_tag_add(struct page *page, struct task_struct *task,
+ 				   unsigned int nr) {}
+ static inline void pgalloc_tag_sub(struct page *page, unsigned int nr) {}
+-static inline struct alloc_tag *pgalloc_tag_get(struct page *page) { return NULL; }
+-static inline void pgalloc_tag_sub_pages(struct alloc_tag *tag, unsigned int nr) {}
++static inline void pgalloc_tag_sub_pages(struct page *page, unsigned int nr) {}
+ static inline void alloc_tag_sec_init(void) {}
+ static inline void pgalloc_tag_split(struct folio *folio, int old_order, int new_order) {}
+ static inline void pgalloc_tag_swap(struct folio *new, struct folio *old) {}
+--- a/lib/alloc_tag.c~mm-avoid-extra-mem_alloc_profiling_enabled-checks
++++ a/lib/alloc_tag.c
+@@ -174,7 +174,7 @@ void pgalloc_tag_split(struct folio *fol
+ 	if (!mem_alloc_profiling_enabled())
+ 		return;
+ 
+-	tag = pgalloc_tag_get(&folio->page);
++	tag = __pgalloc_tag_get(&folio->page);
+ 	if (!tag)
+ 		return;
+ 
+@@ -200,10 +200,10 @@ void pgalloc_tag_swap(struct folio *new,
+ 	if (!mem_alloc_profiling_enabled())
+ 		return;
+ 
+-	tag_old = pgalloc_tag_get(&old->page);
++	tag_old = __pgalloc_tag_get(&old->page);
+ 	if (!tag_old)
+ 		return;
+-	tag_new = pgalloc_tag_get(&new->page);
++	tag_new = __pgalloc_tag_get(&new->page);
+ 	if (!tag_new)
+ 		return;
+ 
+--- a/mm/page_alloc.c~mm-avoid-extra-mem_alloc_profiling_enabled-checks
++++ a/mm/page_alloc.c
+@@ -4833,12 +4833,11 @@ void __free_pages(struct page *page, uns
  {
- 	struct vm_area_struct *middle = vmg->middle;
- 	struct vm_area_struct *prev = vmg->prev;
--	struct vm_area_struct *next, *res;
-+	struct vm_area_struct *next;
- 	struct vm_area_struct *anon_dup = NULL;
- 	unsigned long start = vmg->start;
- 	unsigned long end = vmg->end;
-@@ -900,12 +898,7 @@ static __must_check struct vm_area_struc
- 			vmg->end = next->vm_end;
- 			vmg->pgoff = next->vm_pgoff - pglen;
- 		} else {
--			/*
--			 * We shrink middle and expand next.
--			 *
--			 * IMPORTANT: This is the ONLY case where the final
--			 * merged VMA is NOT vmg->target, but rather vmg->next.
--			 */
-+			/* We shrink middle and expand next. */
- 			vmg->__adjust_next_start = true;
- 			vmg->start = middle->vm_start;
- 			vmg->end = start;
-@@ -918,8 +911,10 @@ static __must_check struct vm_area_struc
- 	if (err)
- 		goto abort;
+ 	/* get PageHead before we drop reference */
+ 	int head = PageHead(page);
+-	struct alloc_tag *tag = pgalloc_tag_get(page);
  
--	res = commit_merge(vmg);
--	if (!res) {
-+	err = commit_merge(vmg);
-+	if (err) {
-+		VM_WARN_ON(err != -ENOMEM);
-+
- 		if (anon_dup)
- 			unlink_anon_vmas(anon_dup);
- 
-@@ -927,9 +922,9 @@ static __must_check struct vm_area_struc
- 		return NULL;
+ 	if (put_page_testzero(page))
+ 		free_frozen_pages(page, order);
+ 	else if (!head) {
+-		pgalloc_tag_sub_pages(tag, (1 << order) - 1);
++		pgalloc_tag_sub_pages(page, (1 << order) - 1);
+ 		while (order-- > 0)
+ 			free_frozen_pages(page + (1 << order), order);
  	}
- 
--	khugepaged_enter_vma(res, vmg->flags);
-+	khugepaged_enter_vma(vmg->target, vmg->flags);
- 	vmg->state = VMA_MERGE_SUCCESS;
--	return res;
-+	return vmg->target;
- 
- abort:
- 	vma_iter_set(vmg->vmi, start);
-@@ -1092,7 +1087,7 @@ int vma_expand(struct vma_merge_struct *
- 	if (remove_next)
- 		vmg->__remove_next = true;
- 
--	if (!commit_merge(vmg))
-+	if (commit_merge(vmg))
- 		goto nomem;
- 
- 	return 0;
-@@ -1132,7 +1127,7 @@ int vma_shrink(struct vma_iterator *vmi,
- 
- 	init_vma_prep(&vp, vma);
- 	vma_prepare(&vp);
--	vma_adjust_trans_huge(vma, start, end, 0);
-+	vma_adjust_trans_huge(vma, start, end, NULL);
- 
- 	vma_iter_clear(vmi);
- 	vma_set_range(vma, start, end, pgoff);
---- a/tools/testing/vma/vma_internal.h~mm-completely-abstract-unnecessary-adj_start-calculation
-+++ a/tools/testing/vma/vma_internal.h
-@@ -796,12 +796,12 @@ static inline void vma_start_write(struc
- static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 					 unsigned long start,
- 					 unsigned long end,
--					 long adjust_next)
-+					 struct vm_area_struct *next)
- {
- 	(void)vma;
- 	(void)start;
- 	(void)end;
--	(void)adjust_next;
-+	(void)next;
- }
- 
- static inline void vma_iter_free(struct vma_iterator *vmi)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
-mm-mremap-refactor-mremap-system-call-implementation.patch
-mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
-mm-mremap-initial-refactor-of-move_vma.patch
-mm-mremap-complete-refactor-of-move_vma.patch
-mm-mremap-refactor-move_page_tables-abstracting-state.patch
-mm-mremap-thread-state-through-move-page-table-operation.patch
 
