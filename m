@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 578E821660D
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D0772165ED
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188353; cv=none; b=a1t9ajCdNoZg6MEJBk98JWjYQ/jwlqBnkeG8OBEijOzV8W8TWJVzUEG2CYBuS9i0Opm+ZSjzI8hnxOOCmetfWAFP+qeVO6MFhKdkgiAqVpd3kTmALrSVSeDvNVAJ4Qes0qPeN0zR21ZQFmH2m5XuUogXnPjQSEvCPcUTBxvzr98=
+	t=1742188354; cv=none; b=qykMtkW+keJDucG3DmOTWU49IDxQbKi5LWlFN5vzhzUSUREfmRh+T2KNaoM9/mtnSO+qlIVbyNDLJDsZwe2UJ+OqexVDifbWG1sEZxOZ2VGOUfnqC93zCFfsNMqmoucHwm6fxpiTN9KwglQ80Z63Jokq4QSQoMvaWwVSp5gtyDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188353; c=relaxed/simple;
-	bh=wbb1ofKlk/+5JtgauG9csHIvb+nINQCqNDjNpiYFPuU=;
-	h=Date:To:From:Subject:Message-Id; b=WK2jGfXnRMwavTJfjrkxGRd1FpB75nvhJaUP1CxvT0f7JiWErj8BKwSV90/ws/GG98BOBrFDJDwDxgVxjv4PLBtCDwKxc+7TBzAVY170N/4kg4iQ8UqLT9thQ5IfhZKyXVOIACINZqboSrXCx4faQsscNDqeVH+XCW74p7gIOMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jkVZ09wC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188354; c=relaxed/simple;
+	bh=ZoRPysuAGrUacEB6BH8I77rBpdSMxPnk5mZ6KK4dsNI=;
+	h=Date:To:From:Subject:Message-Id; b=L2eYVPcMqHYMBgM63bM3BCJBrgzu2pOqyDWmc2YIvtQLWraRxo6RUKHpRN/H18bf42VpQ+fI19WVRlfs+NRY7x8LcU+UYzZDyf+RgFzcMrqwUh8fVLYk1CErSl8gVqXDkoI5HDfgjq5kc2i6ouQQsIX0WYSGZ5M0TdyLvmoJPOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eIecj2gZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jkVZ09wC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B1E7C4CEEC;
-	Mon, 17 Mar 2025 05:12:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eIecj2gZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41AFAC4CEEC;
+	Mon, 17 Mar 2025 05:12:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188353;
-	bh=wbb1ofKlk/+5JtgauG9csHIvb+nINQCqNDjNpiYFPuU=;
+	s=korg; t=1742188354;
+	bh=ZoRPysuAGrUacEB6BH8I77rBpdSMxPnk5mZ6KK4dsNI=;
 	h=Date:To:From:Subject:From;
-	b=jkVZ09wCwEU9v7CPegDGaQtcLMRYLWgrZIWt8+IFhVIkiV2Rfv9HLWPn+0fGd0yYm
-	 jwBFrmdutnHdGRCHvk1Amn1IvWjaFjORi2w+OI4LGz9HEoM1olsngEKjkDEnF1UDAx
-	 Ll4IkMTj2bc/J1dzld2v8fZ4GBuFHtULTxVWL1T4=
-Date: Sun, 16 Mar 2025 22:12:32 -0700
+	b=eIecj2gZHCuaSSZ6qQAYljHEQAX6FSI7JQnmlC0X58COqUK8yIg/n4XvYliQmyV0n
+	 uOYRLoA3yOV5ZlTBq+NqCx2WEY0PHF2e2h5SjLJGW5XSETnq0KLNhGjbV67h8azGP+
+	 rqLoFgUazgIs4cWq8qGK+LFzwUi2sEG9tEtKVas8=
+Date: Sun, 16 Mar 2025 22:12:33 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch removed from -mm tree
-Message-Id: <20250317051233.2B1E7C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch removed from -mm tree
+Message-Id: <20250317051234.41AFAC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/damon: move DAMOS filter type names and meaning to design doc
+     Subject: Docs/mm/damon/design: clarify handling layer based filters evaluation sequence
 has been removed from the -mm tree.  Its filename was
-     docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc.patch
+     docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/damon: move DAMOS filter type names and meaning to design doc
-Date: Tue, 18 Feb 2025 14:37:06 -0800
+Subject: Docs/mm/damon/design: clarify handling layer based filters evaluation sequence
+Date: Tue, 18 Feb 2025 14:37:07 -0800
 
-DAMON sysfs usage doc is describing DAMOS filter type names and their
-meanings in short.  The design doc is providing the short meaning and
-detailed descriptions, too.  This is unnecessary duplicates and confuses
-where to document new DAMOS filter types and features.  Move the details
-from usage to design doc.
+If an element of memory matches a DAMOS filter, filters that installed
+after that get no chance to make any effect to the element.  Hence in what
+order DAMOS filters are handled is important, if both allow filters and
+reject filters are used together.
 
-Link: https://lkml.kernel.org/r/20250218223708.53437-4-sj@kernel.org
+The ordering is affected by both the installation order and which layter
+the filters are handled.  The design document is not clearly documenting
+the latter part.  Clarify it on the design doc.
+
+Link: https://lkml.kernel.org/r/20250218223708.53437-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   26 +++++++----------
- Documentation/mm/damon/design.rst            |   12 +++----
- 2 files changed, 18 insertions(+), 20 deletions(-)
+ Documentation/mm/damon/design.rst |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -408,21 +408,19 @@ in the numeric order.
- 
- Each filter directory contains nine files, namely ``type``, ``matching``,
- ``allow``, ``memcg_path``, ``addr_start``, ``addr_end``, ``min``, ``max``
--and ``target_idx``.  To ``type`` file, you can write one of six special
--keywords: ``anon`` for anonymous pages, ``memcg`` for specific memory cgroup,
--``young`` for young pages, ``addr`` for specific address range (an open-ended
--interval), ``hugepage_size`` for large folios of a specific size range [``min``,
--``max``] or ``target`` for specific DAMON monitoring target filtering.  Meaning
--of the types are same to the description on the :ref:`design doc
--<damon_design_damos_filters>`.
-+and ``target_idx``.  To ``type`` file, you can write the type of the filter.
-+Refer to :ref:`the design doc <damon_design_damos_filters>` for available type
-+names and their meanings.
- 
--In case of the memory cgroup filtering, you can specify the memory cgroup of
--the interest by writing the path of the memory cgroup from the cgroups mount
--point to ``memcg_path`` file.  In case of the address range filtering, you can
--specify the start and end address of the range to ``addr_start`` and
--``addr_end`` files, respectively.  For the DAMON monitoring target filtering,
--you can specify the index of the target between the list of the DAMON context's
--monitoring targets list to ``target_idx`` file.
-+For ``memcg`` type, you can specify the memory cgroup of the interest by
-+writing the path of the memory cgroup from the cgroups mount point to
-+``memcg_path`` file.  For ``addr`` type, you can specify the start and end
-+address of the range (open-ended interval) to ``addr_start`` and ``addr_end``
-+files, respectively.  For ``hugepage_size`` type, you can specify the minimum
-+and maximum size of the range (closed interval) to ``min`` and ``max`` files,
-+respectively.  For ``target`` type, you can specify the index of the target
-+between the list of the DAMON context's monitoring targets list to
-+``target_idx`` file.
- 
- You can write ``Y`` or ``N`` to ``matching`` file to specify whether the filter
- is for memory that matches the ``type``.  You can write ``Y`` or ``N`` to
---- a/Documentation/mm/damon/design.rst~docs-damon-move-damos-filter-type-names-and-meaning-to-design-doc
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-clarify-handling-layer-based-filters-evaluation-sequence
 +++ a/Documentation/mm/damon/design.rst
-@@ -600,23 +600,23 @@ counted as the scheme has tried.  This d
+@@ -569,11 +569,21 @@ number of filters for each scheme.  Each
+ - whether it is to allow (include) or reject (exclude) applying
+   the scheme's action to the memory (``allow``).
  
+-When multiple filters are installed, each filter is evaluated in the installed
+-order.  If a part of memory is matched to one of the filter, next filters are
+-ignored.  If the memory passes through the filters evaluation stage because it
+-is not matched to any of the filters, applying the scheme's action to it is
+-allowed, same to the behavior when no filter exists.
++For efficient handling of filters, some types of filters are handled by the
++core layer, while others are handled by operations set.  In the latter case,
++hence, support of the filter types depends on the DAMON operations set.  In
++case of the core layer-handled filters, the memory regions that excluded by the
++filter are not counted as the scheme has tried to the region.  In contrast, if
++a memory regions is filtered by an operations set layer-handled filter, it is
++counted as the scheme has tried.  This difference affects the statistics.
++
++When multiple filters are installed, the group of filters that handled by the
++core layer are evaluated first.  After that, the group of filters that handled
++by the operations layer are evaluated.  Filters in each of the groups are
++evaluated in the installed order.  If a part of memory is matched to one of the
++filter, next filters are ignored.  If the memory passes through the filters
++evaluation stage because it is not matched to any of the filters, applying the
++scheme's action to it is allowed, same to the behavior when no filter exists.
+ 
+ For example, let's assume 1) a filter for allowing anonymous pages and 2)
+ another filter for rejecting young pages are installed in the order.  If a page
+@@ -590,14 +600,6 @@ filter-allowed or filters evaluation sta
+ allow-filters at the end of the list makes no practical change but only
+ filters-checking overhead.
+ 
+-For efficient handling of filters, some types of filters are handled by the
+-core layer, while others are handled by operations set.  In the latter case,
+-hence, support of the filter types depends on the DAMON operations set.  In
+-case of the core layer-handled filters, the memory regions that excluded by the
+-filter are not counted as the scheme has tried to the region.  In contrast, if
+-a memory regions is filtered by an operations set layer-handled filter, it is
+-counted as the scheme has tried.  This difference affects the statistics.
+-
  Below ``type`` of filters are currently supported.
  
--- anonymous page
-+- anon
-     - Applied to pages that containing data that not stored in files.
-     - Handled by operations set layer.  Supported by only ``paddr`` set.
--- memory cgroup
-+- memcg
-     - Applied to pages that belonging to a given cgroup.
-     - Handled by operations set layer.  Supported by only ``paddr`` set.
--- young page
-+- young
-     - Applied to pages that are accessed after the last access check from the
-       scheme.
-     - Handled by operations set layer.  Supported by only ``paddr`` set.
--- pages that managed in a given size range
-+- hugepage_size
-     - Applied to pages that managed in a given size range.
-     - Handled by operations set layer.  Supported by only ``paddr`` set.
--- address range
-+- addr
-     - Applied to pages that belonging to a given address range.
-     - Handled by the core logic.
--- DAMON monitoring target
-+- target
-     - Applied to pages that belonging to a given DAMON monitoring target.
-     - Handled by the core logic.
- 
+ - anon
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
