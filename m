@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 177D3218EAB
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F083F218EA7
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189522; cv=none; b=S+Eoj3oNuzZ9f2o2YOfsAkCyMqzDL2lD4Gc0qhTnKXsRjs8G+ksHzmisZ7wVSJC2pJrLHmD1rl42UlvwMThPjxmY6Dt24feiZLaTByJjZ7dswFjSxu37vFddSkNOSpjYxkoM/MJ35h+7jOKgsWz+COcip6hb7ruTlS7HKlZ42No=
+	t=1742189523; cv=none; b=jHAPjboi7Gw+nBxwAAShif4Xb54h0eDilVL2MRefSIsXssF5hGsSJXut+1FKH1lGm2jIRxe22+BK3VHFYUyfoyXTir4unvevUu3SDWLOdmTIobRF21E8qrreKDmVr9I+GENQirdgTXCgUPUIjg0ONscCCxqtDf/1k6sPxqqybmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189522; c=relaxed/simple;
-	bh=9xQlaRHDj9R2im0Dc4efMQomJ0AjrfWTFIFd4fzfSWY=;
-	h=Date:To:From:Subject:Message-Id; b=nWjZQadnouvMTYszWtMPoobHpq2icfSrCiG+VGCaFumB1pUVi8q2VmzNIs8m0oL+U+AeTlnpyGAvsxoarmaRxx1nPbtGkrhwJDgJQsd13fFkh2UVMOoQ1zdOFyRD4OaGYRADdvlN21nZx5fVilobY/3eBDoyrXv6mEbcC0z1Rhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rxFYwK7O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189523; c=relaxed/simple;
+	bh=XquP+BYkuonK7PxTkhIl7pLBwCafoqp+6pltNbAk8Lo=;
+	h=Date:To:From:Subject:Message-Id; b=R05fJoW/Pr5y3AaOgUVM6of4+qYWzgqdoroay397397A2mNLFeHjtSdKqcoR3KBnrfa7MVkNy4sg5cUOaTXAvVqBvdMFbpmC5Uh6iLItijAuuR+hEl8EjAcnTvQEcBJIpzuKGdWwJsjrppg0A1D8zwf6ML8jLXKUOGgErB7he0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HhPcuezv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rxFYwK7O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79906C4CEEC;
-	Mon, 17 Mar 2025 05:32:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HhPcuezv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C396BC4CEEC;
+	Mon, 17 Mar 2025 05:32:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189521;
-	bh=9xQlaRHDj9R2im0Dc4efMQomJ0AjrfWTFIFd4fzfSWY=;
+	s=korg; t=1742189522;
+	bh=XquP+BYkuonK7PxTkhIl7pLBwCafoqp+6pltNbAk8Lo=;
 	h=Date:To:From:Subject:From;
-	b=rxFYwK7OHN/N2Sh64X0Tb7xVFgkhFlhz7UtQwFz7nMBa+0RXJRxyk93jx/j9LE7sU
-	 MkVP0d1jDkBg7g0XofPo6PppFuoGaOtwPlI3V9tPdMKbp0DHEWynXjariOt9N0i+RQ
-	 RccoOQ8zrR5KHzLjNgrKkHZuRtyWEBhwfM6wYOhQ=
-Date: Sun, 16 Mar 2025 22:32:00 -0700
+	b=HhPcuezvOnStX343aHebkR+KswK/RddYOab4oj+ar6i4qvhUzG7sFlvI9msnR5Ggt
+	 +LRDUucR7z2+fB5CnZggFTwT2+05zqfSrpfnV7cKKs3fBcWkQVqUEbXt30vml4pMY/
+	 SwKRzm8g9AvzyUjVE49lRJyU3/1kIsEuCbEvHYz8=
+Date: Sun, 16 Mar 2025 22:32:02 -0700
 To: mm-commits@vger.kernel.org,tzungbi@kernel.org,teknoraver@meta.com,serge@hallyn.com,rui.zhang@intel.com,robh@kernel.org,rafael@kernel.org,mazziesaccount@gmail.com,lukasz.luba@arm.com,lgirdwood@gmail.com,kernel@pengutronix.de,groeck@chromium.org,festevam@denx.de,daniel.lezcano@linaro.org,corbet@lwn.net,broonie@kernel.org,bleung@chromium.org,a.fatoum@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] reboot-indicate-whether-it-is-a-hardware-protection-reboot-or-shutdown.patch removed from -mm tree
-Message-Id: <20250317053201.79906C4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] reboot-add-support-for-configuring-emergency-hardware-protection-action.patch removed from -mm tree
+Message-Id: <20250317053202.C396BC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: reboot: indicate whether it is a HARDWARE PROTECTION reboot or shutdown
+     Subject: reboot: add support for configuring emergency hardware protection action
 has been removed from the -mm tree.  Its filename was
-     reboot-indicate-whether-it-is-a-hardware-protection-reboot-or-shutdown.patch
+     reboot-add-support-for-configuring-emergency-hardware-protection-action.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Subject: reboot: indicate whether it is a HARDWARE PROTECTION reboot or shutdown
-Date: Mon, 17 Feb 2025 21:39:46 +0100
+Subject: reboot: add support for configuring emergency hardware protection action
+Date: Mon, 17 Feb 2025 21:39:47 +0100
 
-It currently depends on the caller, whether we attempt a hardware
-protection shutdown (poweroff) or a reboot.  A follow-up commit will make
-this partially user-configurable, so it's a good idea to have the
-emergency message clearly state whether the kernel is going for a reboot
-or a shutdown.
+We currently leave the decision of whether to shutdown or reboot to
+protect hardware in an emergency situation to the individual drivers.
 
-Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-6-e1c09b090c0c@pengutronix.de
+This works out in some cases, where the driver detecting the critical
+failure has inside knowledge: It binds to the system management controller
+for example or is guided by hardware description that defines what to do.
+
+In the general case, however, the driver detecting the issue can't know
+what the appropriate course of action is and shouldn't be dictating the
+policy of dealing with it.
+
+Therefore, add a global hw_protection toggle that allows the user to
+specify whether shutdown or reboot should be the default action when the
+driver doesn't set policy.
+
+This introduces no functional change yet as hw_protection_trigger() has no
+callers, but these will be added in subsequent commits.
+
+[arnd@arndb.de: hide unused hw_protection_attr]
+  Link: https://lkml.kernel.org/r/20250224141849.1546019-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-7-e1c09b090c0c@pengutronix.de
 Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
 Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
 Cc: Benson Leung <bleung@chromium.org>
@@ -74,21 +88,170 @@ Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-kernel-reboot   |    8 ++
+ Documentation/admin-guide/kernel-parameters.txt |    6 +
+ include/linux/reboot.h                          |   22 ++++++
+ include/uapi/linux/capability.h                 |    1 
+ kernel/reboot.c                                 |   48 ++++++++++++++
+ 5 files changed, 84 insertions(+), 1 deletion(-)
 
---- a/kernel/reboot.c~reboot-indicate-whether-it-is-a-hardware-protection-reboot-or-shutdown
+--- a/Documentation/ABI/testing/sysfs-kernel-reboot~reboot-add-support-for-configuring-emergency-hardware-protection-action
++++ a/Documentation/ABI/testing/sysfs-kernel-reboot
+@@ -30,3 +30,11 @@ KernelVersion:	5.11
+ Contact:	Matteo Croce <mcroce@microsoft.com>
+ Description:	Don't wait for any other CPUs on reboot and
+ 		avoid anything that could hang.
++
++What:		/sys/kernel/reboot/hw_protection
++Date:		April 2025
++KernelVersion:	6.15
++Contact:	Ahmad Fatoum <a.fatoum@pengutronix.de>
++Description:	Hardware protection action taken on critical events like
++		overtemperature or imminent voltage loss.
++		Valid values are: reboot shutdown
+--- a/Documentation/admin-guide/kernel-parameters.txt~reboot-add-support-for-configuring-emergency-hardware-protection-action
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1933,6 +1933,12 @@
+ 			which allow the hypervisor to 'idle' the guest
+ 			on lock contention.
+ 
++	hw_protection=	[HW]
++			Format: reboot | shutdown
++
++			Hardware protection action taken on critical events like
++			overtemperature or imminent voltage loss.
++
+ 	i2c_bus=	[HW]	Override the default board specific I2C bus speed
+ 				or register an additional I2C bus that is not
+ 				registered from board initialization code.
+--- a/include/linux/reboot.h~reboot-add-support-for-configuring-emergency-hardware-protection-action
++++ a/include/linux/reboot.h
+@@ -181,16 +181,36 @@ extern void orderly_reboot(void);
+ /**
+  * enum hw_protection_action - Hardware protection action
+  *
++ * @HWPROT_ACT_DEFAULT:
++ *      The default action should be taken. This is HWPROT_ACT_SHUTDOWN
++ *      by default, but can be overridden.
+  * @HWPROT_ACT_SHUTDOWN:
+  *	The system should be shut down (powered off) for HW protection.
+  * @HWPROT_ACT_REBOOT:
+  *	The system should be rebooted for HW protection.
+  */
+-enum hw_protection_action { HWPROT_ACT_SHUTDOWN, HWPROT_ACT_REBOOT };
++enum hw_protection_action { HWPROT_ACT_DEFAULT, HWPROT_ACT_SHUTDOWN, HWPROT_ACT_REBOOT };
+ 
+ void __hw_protection_trigger(const char *reason, int ms_until_forced,
+ 			     enum hw_protection_action action);
+ 
++/**
++ * hw_protection_trigger - Trigger default emergency system hardware protection action
++ *
++ * @reason:		Reason of emergency shutdown or reboot to be printed.
++ * @ms_until_forced:	Time to wait for orderly shutdown or reboot before
++ *			triggering it. Negative value disables the forced
++ *			shutdown or reboot.
++ *
++ * Initiate an emergency system shutdown or reboot in order to protect
++ * hardware from further damage. The exact action taken is controllable at
++ * runtime and defaults to shutdown.
++ */
++static inline void hw_protection_trigger(const char *reason, int ms_until_forced)
++{
++	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_DEFAULT);
++}
++
+ static inline void hw_protection_reboot(const char *reason, int ms_until_forced)
+ {
+ 	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_REBOOT);
+--- a/include/uapi/linux/capability.h~reboot-add-support-for-configuring-emergency-hardware-protection-action
++++ a/include/uapi/linux/capability.h
+@@ -275,6 +275,7 @@ struct vfs_ns_cap_data {
+ /* Allow setting encryption key on loopback filesystem */
+ /* Allow setting zone reclaim policy */
+ /* Allow everything under CAP_BPF and CAP_PERFMON for backward compatibility */
++/* Allow setting hardware protection emergency action */
+ 
+ #define CAP_SYS_ADMIN        21
+ 
+--- a/kernel/reboot.c~reboot-add-support-for-configuring-emergency-hardware-protection-action
 +++ a/kernel/reboot.c
-@@ -1027,7 +1027,8 @@ void __hw_protection_trigger(const char
+@@ -36,6 +36,8 @@ enum reboot_mode reboot_mode DEFAULT_REB
+ EXPORT_SYMBOL_GPL(reboot_mode);
+ enum reboot_mode panic_reboot_mode = REBOOT_UNDEFINED;
+ 
++static enum hw_protection_action hw_protection_action = HWPROT_ACT_SHUTDOWN;
++
+ /*
+  * This variable is used privately to keep track of whether or not
+  * reboot_type is still set to its default value (i.e., reboot= hasn't
+@@ -1027,6 +1029,9 @@ void __hw_protection_trigger(const char
  {
  	static atomic_t allow_proceed = ATOMIC_INIT(1);
  
--	pr_emerg("HARDWARE PROTECTION shutdown (%s)\n", reason);
-+	pr_emerg("HARDWARE PROTECTION %s (%s)\n",
-+		 hw_protection_action_str(action), reason);
++	if (action == HWPROT_ACT_DEFAULT)
++		action = hw_protection_action;
++
+ 	pr_emerg("HARDWARE PROTECTION %s (%s)\n",
+ 		 hw_protection_action_str(action), reason);
  
- 	/* Shutdown should be initiated only once. */
- 	if (!atomic_dec_and_test(&allow_proceed))
+@@ -1046,6 +1051,48 @@ void __hw_protection_trigger(const char
+ }
+ EXPORT_SYMBOL_GPL(__hw_protection_trigger);
+ 
++static bool hw_protection_action_parse(const char *str,
++				       enum hw_protection_action *action)
++{
++	if (sysfs_streq(str, "shutdown"))
++		*action = HWPROT_ACT_SHUTDOWN;
++	else if (sysfs_streq(str, "reboot"))
++		*action = HWPROT_ACT_REBOOT;
++	else
++		return false;
++
++	return true;
++}
++
++static int __init hw_protection_setup(char *str)
++{
++	hw_protection_action_parse(str, &hw_protection_action);
++	return 1;
++}
++__setup("hw_protection=", hw_protection_setup);
++
++#ifdef CONFIG_SYSFS
++static ssize_t hw_protection_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%s\n",
++			  hw_protection_action_str(hw_protection_action));
++}
++static ssize_t hw_protection_store(struct kobject *kobj,
++				   struct kobj_attribute *attr, const char *buf,
++				   size_t count)
++{
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	if (!hw_protection_action_parse(buf, &hw_protection_action))
++		return -EINVAL;
++
++	return count;
++}
++static struct kobj_attribute hw_protection_attr = __ATTR_RW(hw_protection);
++#endif
++
+ static int __init reboot_setup(char *str)
+ {
+ 	for (;;) {
+@@ -1305,6 +1352,7 @@ static struct kobj_attribute reboot_cpu_
+ #endif
+ 
+ static struct attribute *reboot_attrs[] = {
++	&hw_protection_attr.attr,
+ 	&reboot_mode_attr.attr,
+ #ifdef CONFIG_X86
+ 	&reboot_force_attr.attr,
 _
 
 Patches currently in -mm which might be from a.fatoum@pengutronix.de are
