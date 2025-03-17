@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6B52153E0
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFFAF21576A
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188258; cv=none; b=tVnwsPtRXILNJLCVlfAN9xUVgq2TqIacyIQlAPEacx7qDhCsuDxNTRhOvASsgqVc2SqUhQwB9CvdWUKnakSJ7CQBcqgCNi6ZbzZ/ChjmkO7QM/7502YcrL2UPa8h4d8eCOIuoanSsDsOEJ9bqPWP09Rk6rGxBXG8zzNM+prYyN0=
+	t=1742188260; cv=none; b=t8GcKbXYdKA0sYZkXau4VsxjRxdy8smz5PlFlnecYwsbrBDccTEhYxO4qArir0IMT4cqs7sI7bcKoULfu+wUu2WqKv2J73czqsGU4vXS7TDP3LLf4W8ovd8JLfTIdMLoc1c9WnFtpL3KBvU/dSfOnlYFKyjx4RL46XzCWmDiHPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188258; c=relaxed/simple;
-	bh=3GVay6dAnxDjLdvPLlK6foZ2cSzjO0XHu6094cX9J/M=;
-	h=Date:To:From:Subject:Message-Id; b=PlyArbXWMQEKS/mPFrq50JEJp/neMMAeF7rgX2zf/XlahH91aupjj/ODLBIKyUOnRm1X9p1ysI2Wp79Yr3XfkE5QXxh90CRH4vlUE0v7pQ3fHkfteoSS1G9fI/UZTHnD4qLpuNgRS+WWOIGYBOf1CRaBXb36HTkvB2vJJFd80Xo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QuNwgmPx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188260; c=relaxed/simple;
+	bh=x/PGGlLc02XOwTh4ue+HFLgLJrulOP7Jb521PnWjqm4=;
+	h=Date:To:From:Subject:Message-Id; b=Com8Ztdnq4MbIHKoxu8ucQbrnD4b68Y71P2t4UaILLrCFPmsRmgPxLsEmaAw3ST0SPtseoLym7NMqAY3jhF3AGXAFYv8XnSkL94ARm1XLxHD/OFPw7+blgXhGmgBPewrndjxYzYVRHkRC+eGWLbR/ayZJP+wboxB2Ybcjof5/KU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P1q2qDJI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QuNwgmPx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2579C4CEEC;
-	Mon, 17 Mar 2025 05:10:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P1q2qDJI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C206DC4CEEC;
+	Mon, 17 Mar 2025 05:10:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188258;
-	bh=3GVay6dAnxDjLdvPLlK6foZ2cSzjO0XHu6094cX9J/M=;
+	s=korg; t=1742188259;
+	bh=x/PGGlLc02XOwTh4ue+HFLgLJrulOP7Jb521PnWjqm4=;
 	h=Date:To:From:Subject:From;
-	b=QuNwgmPxEVvVsXyBb/vx7DH8d+3rWesCgx25HlrCM6njQj5rG8pTcPkJViCL/6Aqs
-	 pEg/y35GyHqTY9MjOdweTTbeax2s2WaP8xiuxM8ByfVgzPsJbWkL7wcaZuqOMjRQKE
-	 o81KMh+Q80DnVFuSMuTW7p+vOyoDZiCJZux3Ztt0=
-Date: Sun, 16 Mar 2025 22:10:58 -0700
+	b=P1q2qDJIGLSgTjoEIf+Mk1REGQyUiEdE1dkiXl+H191UnHhy3KlgW+kwjjgagZNYV
+	 nvr22GQ9Tx9YLcUcsIdXMDvA4DFxGNgDzQRlkw2e8PaQWO1g2dgIAaA6dvUoNi+9YK
+	 d9vaPUK7e2ykxuYotas9g1b90Bq8W4s9e7HooEcY=
+Date: Sun, 16 Mar 2025 22:10:59 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch removed from -mm tree
-Message-Id: <20250317051058.B2579C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch removed from -mm tree
+Message-Id: <20250317051059.C206DC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: do not call damos_walk_control->walk() if walk is completed
+     Subject: mm/damon/core: do damos walking in entire regions granularity
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
+     mm-damon-core-do-damos-walking-in-entire-regions-granularity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: do not call damos_walk_control->walk() if walk is completed
-Date: Mon, 10 Feb 2025 10:27:35 -0800
+Subject: mm/damon/core: do damos walking in entire regions granularity
+Date: Mon, 10 Feb 2025 10:27:36 -0800
 
-damos_walk() invokes callback functions of schemes until all schemes
-finishes at least one round of walks.  If there are multiple DAMOS schemes
-having different apply_interval, the callback functions for longer apply
-interval scheme will be called for more than a round of the walk.
+damos_walk_control can be installed while DAMOS is walking the regions. 
+This means the walk callback function invocations can be started from a
+region at the middle of the regions list.  This makes it hard to be used
+reliably.  Particularly, DAMOS tried regions update for collecting
+monitoring results gets problematic results.  Increase the
+walk_control_lock critical section to do walking in entire regions
+granularity.
 
-The behavior is different from the document (see damos_walk() kernel-doc
-comment), and not useful.  Make the behavior be same to the documented
-one, by stopping invoking the callback if the walk for the given scheme is
-completed.
-
-Link: https://lkml.kernel.org/r/20250210182737.134994-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250210182737.134994-4-sj@kernel.org
 Fixes: bf0eaba0ff9c ("mm/damon/core: implement damos_walk()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/core.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed
+--- a/mm/damon/core.c~mm-damon-core-do-damos-walking-in-entire-regions-granularity
 +++ a/mm/damon/core.c
-@@ -1458,6 +1458,9 @@ static void damos_walk_call_walk(struct
- {
+@@ -1461,11 +1461,10 @@ static void damos_walk_call_walk(struct
+ 	if (s->walk_completed)
+ 		return;
+ 
+-	mutex_lock(&ctx->walk_control_lock);
+ 	control = ctx->walk_control;
+-	mutex_unlock(&ctx->walk_control_lock);
+ 	if (!control)
+ 		return;
++
+ 	control->walk_fn(control->data, ctx, t, r, s, sz_filter_passed);
+ }
+ 
+@@ -1485,9 +1484,7 @@ static void damos_walk_complete(struct d
+ 	struct damos *siter;
  	struct damos_walk_control *control;
  
-+	if (s->walk_completed)
-+		return;
-+
- 	mutex_lock(&ctx->walk_control_lock);
+-	mutex_lock(&ctx->walk_control_lock);
  	control = ctx->walk_control;
- 	mutex_unlock(&ctx->walk_control_lock);
+-	mutex_unlock(&ctx->walk_control_lock);
+ 	if (!control)
+ 		return;
+ 
+@@ -1501,9 +1498,7 @@ static void damos_walk_complete(struct d
+ 		siter->walk_completed = false;
+ 
+ 	complete(&control->completion);
+-	mutex_lock(&ctx->walk_control_lock);
+ 	ctx->walk_control = NULL;
+-	mutex_unlock(&ctx->walk_control_lock);
+ }
+ 
+ /*
+@@ -1850,6 +1845,7 @@ static void kdamond_apply_schemes(struct
+ 	if (!has_schemes_to_apply)
+ 		return;
+ 
++	mutex_lock(&c->walk_control_lock);
+ 	damon_for_each_target(t, c) {
+ 		damon_for_each_region_safe(r, next_r, t)
+ 			damon_do_apply_schemes(c, t, r);
+@@ -1864,6 +1860,7 @@ static void kdamond_apply_schemes(struct
+ 			 c->attrs.aggr_interval) / sample_interval;
+ 		s->last_applied = NULL;
+ 	}
++	mutex_unlock(&c->walk_control_lock);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
