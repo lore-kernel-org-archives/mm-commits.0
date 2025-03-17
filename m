@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A541D218E8B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:31:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2188140E30
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:31:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189511; cv=none; b=TBXTc7JGsc9c9jBqLkRK7vXVgwMd0MBbFaBH5RNMX4L05SHdyXc21p7TQcXGs/9FGv4MBrZQFeURfiepRaoW/By9qOdUTEwNk2eFI03gZ/1MXqfeA6JTclAgsOfedSbZgRtnB/Rs9m0Q26QY2LiMJizVhmKkxhNjolDJSVM6Wqs=
+	t=1742189512; cv=none; b=de5xLIPeef63KUJTs/1I1m7Nl7f+8jOJHYpyji71dIiGYCRUTA+grH0A63D4LZQvRx4OTOyGKmmO6bTXbD9DFAumiIrIhPrgwkUpjZxAy2TuOk5E+3wM1O40frLWx6Vd0RHzDrjtqFx6JYFFlmn3L8yAPuIRkkqPTTxukdRT4IY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189511; c=relaxed/simple;
-	bh=jT6yIPEEL6E31JlyqsWuvoXdr/hL4+9JbCY7O25SbVQ=;
-	h=Date:To:From:Subject:Message-Id; b=o6LEVAfsi4dF6vuRX0BnWQDlQlqA+d1YlEZJKAxo3QPK+UwofyUFZJSHVlwNQ+f/0A9tP+OttxHj1GIJcLo717nYB/KB6x3SEmRA0J+/ZeV0A3RAuZvnn7nvpm6pejA6mEjxK3cwNlE3AtCY7rZRUFm8fwo1vLBeGNpeJaHiHx0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EiYchlne; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189512; c=relaxed/simple;
+	bh=u7VJsMsoz37+8K1g0ktyBmh3gz4sZ3fvMOIuEBWLznI=;
+	h=Date:To:From:Subject:Message-Id; b=ZQuWZnd8zQFHR3d92hcy2T7wi9ED5hiUree+EKOWnvPx9s8RoYXeSFKYNy61Yk9V+6h9NWuqLjjZtL4eOnCVWP+e0UtvNO/wnTHTxFq/7imyRNS8i1v+G4WbE59mRfojsy0tx73gYGycpXiAU5Rc/5eD9VjfZGT4FQXnpjacYIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MwbVY4Ql; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EiYchlne"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78F50C4CEEC;
-	Mon, 17 Mar 2025 05:31:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MwbVY4Ql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E95C4CEEC;
+	Mon, 17 Mar 2025 05:31:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189511;
-	bh=jT6yIPEEL6E31JlyqsWuvoXdr/hL4+9JbCY7O25SbVQ=;
+	s=korg; t=1742189512;
+	bh=u7VJsMsoz37+8K1g0ktyBmh3gz4sZ3fvMOIuEBWLznI=;
 	h=Date:To:From:Subject:From;
-	b=EiYchlneHZEODYM2Rr6nmB6SkciZy+eXeeKKUxqAIGEvTxlqMa6A+ncASIZk8AUh2
-	 3DIRG/U5FYvrbWCPDznlgC8mPhlTel3Bgewt21Di7YYOsSKfY6Nzv2oCBnNJ7wtl5R
-	 6/qtrbtMYIAwrdt++AG2qMU/FJJDfCQ7QXFommAk=
-Date: Sun, 16 Mar 2025 22:31:51 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,kurt.hackel@oracle.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,kovalev@altlinux.org,akpm@linux-foundation.org
+	b=MwbVY4Ql2r9jXtPod+julXR52SM04m07DAkZZJPDAH/w3kvmftk6x0ryHBT7yMNnh
+	 1Epx9nIRpdVAeqIx9bOEjLtaWvhTb9iYK8FegpqEYfeubMr/IkpJu1WpP7zKhO/0Du
+	 BwZJrA0Sx7aBPyyz2aA8E6MWsDxwLu1k0idodtkc=
+Date: Sun, 16 Mar 2025 22:31:52 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access.patch removed from -mm tree
-Message-Id: <20250317053151.78F50C4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch removed from -mm tree
+Message-Id: <20250317053152.96E95C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: validate l_tree_depth to avoid out-of-bounds access
+     Subject: ocfs2: use memcpy_to_folio() in ocfs2_symlink_get_block()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access.patch
+     ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vasiliy Kovalev <kovalev@altlinux.org>
-Subject: ocfs2: validate l_tree_depth to avoid out-of-bounds access
-Date: Fri, 14 Feb 2025 11:49:08 +0300
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ocfs2: use memcpy_to_folio() in ocfs2_symlink_get_block()
+Date: Thu, 13 Feb 2025 21:45:30 +0000
 
-The l_tree_depth field is 16-bit (__le16), but the actual maximum depth is
-limited to OCFS2_MAX_PATH_DEPTH.
+Replace use of kmap_atomic() with the higher-level construct
+memcpy_to_folio().  This removes a use of b_page and supports large folios
+as well as being easier to understand.  It also removes the check for
+kmap_atomic() failing (because it can't).
 
-Add a check to prevent out-of-bounds access if l_tree_depth has an invalid
-value, which may occur when reading from a corrupted mounted disk [1].
-
-Link: https://lkml.kernel.org/r/20250214084908.736528-1-kovalev@altlinux.org
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
-Reported-by: syzbot+66c146268dc88f4341fd@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=66c146268dc88f4341fd [1]
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20250213214533.2242224-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Tinguely <mark.tinguely@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
-Cc: Kurt Hackel <kurt.hackel@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Vasiliy Kovalev <kovalev@altlinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/ocfs2/aops.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-validate-l_tree_depth-to-avoid-out-of-bounds-access
-+++ a/fs/ocfs2/alloc.c
-@@ -1803,6 +1803,14 @@ static int __ocfs2_find_path(struct ocfs
+--- a/fs/ocfs2/aops.c~ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block
++++ a/fs/ocfs2/aops.c
+@@ -46,7 +46,6 @@ static int ocfs2_symlink_get_block(struc
+ 	struct buffer_head *bh = NULL;
+ 	struct buffer_head *buffer_cache_bh = NULL;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+-	void *kaddr;
  
- 	el = root_el;
- 	while (el->l_tree_depth) {
-+		if (unlikely(le16_to_cpu(el->l_tree_depth) >= OCFS2_MAX_PATH_DEPTH)) {
-+			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
-+				    "Owner %llu has invalid tree depth %u in extent list\n",
-+				    (unsigned long long)ocfs2_metadata_cache_owner(ci),
-+				    le16_to_cpu(el->l_tree_depth));
-+			ret = -EROFS;
-+			goto out;
-+		}
- 		if (le16_to_cpu(el->l_next_free_rec) == 0) {
- 			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
- 				    "Owner %llu has empty extent list at depth %u\n",
+ 	trace_ocfs2_symlink_get_block(
+ 			(unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -91,17 +90,11 @@ static int ocfs2_symlink_get_block(struc
+ 		 * could've happened. Since we've got a reference on
+ 		 * the bh, even if it commits while we're doing the
+ 		 * copy, the data is still good. */
+-		if (buffer_jbd(buffer_cache_bh)
+-		    && ocfs2_inode_is_new(inode)) {
+-			kaddr = kmap_atomic(bh_result->b_page);
+-			if (!kaddr) {
+-				mlog(ML_ERROR, "couldn't kmap!\n");
+-				goto bail;
+-			}
+-			memcpy(kaddr + (bh_result->b_size * iblock),
+-			       buffer_cache_bh->b_data,
+-			       bh_result->b_size);
+-			kunmap_atomic(kaddr);
++		if (buffer_jbd(buffer_cache_bh) && ocfs2_inode_is_new(inode)) {
++			memcpy_to_folio(bh_result->b_folio,
++					bh_result->b_size * iblock,
++					buffer_cache_bh->b_data,
++					bh_result->b_size);
+ 			set_buffer_uptodate(bh_result);
+ 		}
+ 		brelse(buffer_cache_bh);
 _
 
-Patches currently in -mm which might be from kovalev@altlinux.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
+dax-remove-access-to-page-index.patch
+dax-use-folios-more-widely-within-dax.patch
+hugetlb-convert-hugetlb_vma_maps_page-to-hugetlb_vma_maps_pfn.patch
+hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+mm-convert-lru_add_page_tail-to-lru_add_split_folio.patch
+mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
+mm-simplify-split_page_memcg.patch
+mm-remove-references-to-folio-in-split_page_memcg.patch
+mm-simplify-folio_memcg_charged.patch
+mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch
 
