@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF8F1217F33
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48436217F33
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188464; cv=none; b=NKK/GHDVarENWNcHbSA0Z5HmZYjV+1oZjteILDELCVkzgiQ/tSccUaS36SYlta4k/dXY5FQe7nDRVrplIMJxck5SmKI5w7H/UobedM41JseqRWWzzv/r3AJvVcUKtY1MxPERtle7OD1vO/LsxFolhFc8Nu8pzbSnh6Ve4WQ2j6M=
+	t=1742188466; cv=none; b=evEa+avx0zPQk6mzpHg77fgNhXpOWISm0ULJq3/JyvcfEokeXajchGAA0dfvjxKVtxuGEyPk6vIdTk+R31V8WfVexHoZAsUycsAmaWw1/HDimjelY46b5XOvBZxL5NYnhfCU3CpAVNeXvdSL2R/D9IMTRmhQ/FudCF0rHoKPFyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188464; c=relaxed/simple;
-	bh=xAEOo6s8kNo4wYKaoL6uV8+PyVoKei/OC6uxwLyMcyQ=;
-	h=Date:To:From:Subject:Message-Id; b=nSQdtNo6kQu53xpzCP4rfpMyRJQgEQxiNhyk0ao30hmMoYNs1Lm08flahPwsLupXx511rz1qIDdoCA02z/PsFTs7x07H3TI/QXru6bCreAxKmNHlDG37REN40oV5KZU4AEu9ayzlWpD5MK8WTl9SNX7UqPFbnbKEoCRloWuYytU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N5WUqZuF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188466; c=relaxed/simple;
+	bh=78c5t4Jyqbn71MQ0JIHNpkRQQXHgHMdM3/O38mLv4yg=;
+	h=Date:To:From:Subject:Message-Id; b=CJiTXro6jwuZuXDnlIaNssRXOOEMtcz6DLvHs9Bxki7frVYgTzRESzW2rgKjluZ1F9RfUAGJw9cl9tq5kCUQ+krbzu0ErS9c49bi6JvFYVsOxexLlYqiGy357ecN68/wC4RwPeICfticoGUjEPbJruLQSYdNqtnBiFYn2ApaivE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=merwtk6H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N5WUqZuF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A439DC4CEEC;
-	Mon, 17 Mar 2025 05:14:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="merwtk6H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D353C4CEEC;
+	Mon, 17 Mar 2025 05:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188464;
-	bh=xAEOo6s8kNo4wYKaoL6uV8+PyVoKei/OC6uxwLyMcyQ=;
+	s=korg; t=1742188466;
+	bh=78c5t4Jyqbn71MQ0JIHNpkRQQXHgHMdM3/O38mLv4yg=;
 	h=Date:To:From:Subject:From;
-	b=N5WUqZuFoLH503HYY139/vhyv3HatHoKfxMp6JdGF0kx57mqIFl0bUof7iySzYd9+
-	 Q7VWXnvYNgzmL0WZBMKd+3AhX0g4flucCQYSjKoEjHYqd+AcgHDKW5rL0ZqZ9IUpzo
-	 J1Om0p5UldW7HBkLhhAgRkVt9puJrdFSohZAd8xM=
-Date: Sun, 16 Mar 2025 22:14:24 -0700
+	b=merwtk6HAGXBplNyzpjPzwrXqqH7mE57vxdDfYAhMooVUHwqeq0nwUcLDAA5t40Lz
+	 z6SicMREKhH1VvMHb3VSJjwEpQBei14npbhjsA2lv+HKNSaSB3UtugxqtC27hfm7xE
+	 YGBWcFQfTW9U+TdDNp7IzOxpV5vL+ugZHDvXXczc=
+Date: Sun, 16 Mar 2025 22:14:25 -0700
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,v-songbaohua@oppo.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-drop-the-flag-ttrs_direct.patch removed from -mm tree
-Message-Id: <20250317051424.A439DC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-avoid-redundant-swap-device-pinning.patch removed from -mm tree
+Message-Id: <20250317051426.1D353C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: drop the flag TTRS_DIRECT
+     Subject: mm, swap: avoid redundant swap device pinning
 has been removed from the -mm tree.  Its filename was
-     mm-swap-drop-the-flag-ttrs_direct.patch
+     mm-swap-avoid-redundant-swap-device-pinning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: drop the flag TTRS_DIRECT
-Date: Fri, 14 Mar 2025 00:59:30 +0800
+Subject: mm, swap: avoid redundant swap device pinning
+Date: Fri, 14 Mar 2025 00:59:31 +0800
 
-This flag exists temporarily to allow the allocator to bypass the slot
-cache during freeing, so reclaiming one slot will free the slot
-immediately.
+Currently __read_swap_cache_async() has get/put_swap_device() calls to
+increase/decrease a swap device reference to prevent swapoff.  While some
+of its callers have already held the swap device reference, e.g in
+do_swap_page() and shmem_swapin_folio() where __read_swap_cache_async()
+will finally called.  Now there are only two callers not holding a swap
+device reference, so make them hold a reference instead.  And drop the
+get/put_swap_device calls in __read_swap_cache_async.  This should reduce
+the overhead for swap in during page fault slightly.
 
-But now we have already removed slot cache usage on freeing, so this flag
-has no effect now.
-
-Link: https://lkml.kernel.org/r/20250313165935.63303-3-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250313165935.63303-4-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -70,63 +72,89 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
+ mm/swap_state.c |   14 ++++++++------
+ mm/zswap.c      |    8 +++++++-
+ 2 files changed, 15 insertions(+), 7 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-drop-the-flag-ttrs_direct
-+++ a/mm/swapfile.c
-@@ -158,8 +158,6 @@ static long swap_usage_in_pages(struct s
- #define TTRS_UNMAPPED		0x2
- /* Reclaim the swap entry if swap is getting full */
- #define TTRS_FULL		0x4
--/* Reclaim directly, bypass the slot cache and don't touch device lock */
--#define TTRS_DIRECT		0x8
+--- a/mm/swap_state.c~mm-swap-avoid-redundant-swap-device-pinning
++++ a/mm/swap_state.c
+@@ -426,17 +426,13 @@ struct folio *__read_swap_cache_async(sw
+ 		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
+ 		bool skip_if_exists)
+ {
+-	struct swap_info_struct *si;
++	struct swap_info_struct *si = swp_swap_info(entry);
+ 	struct folio *folio;
+ 	struct folio *new_folio = NULL;
+ 	struct folio *result = NULL;
+ 	void *shadow = NULL;
  
- static bool swap_only_has_cache(struct swap_info_struct *si,
- 			      unsigned long offset, int nr_pages)
-@@ -257,23 +255,8 @@ again:
- 	if (!need_reclaim)
- 		goto out_unlock;
+ 	*new_page_allocated = false;
+-	si = get_swap_device(entry);
+-	if (!si)
+-		return NULL;
+-
+ 	for (;;) {
+ 		int err;
+ 		/*
+@@ -532,7 +528,6 @@ fail_unlock:
+ 	put_swap_folio(new_folio, entry);
+ 	folio_unlock(new_folio);
+ put_and_return:
+-	put_swap_device(si);
+ 	if (!(*new_page_allocated) && new_folio)
+ 		folio_put(new_folio);
+ 	return result;
+@@ -552,11 +547,16 @@ struct folio *read_swap_cache_async(swp_
+ 		struct vm_area_struct *vma, unsigned long addr,
+ 		struct swap_iocb **plug)
+ {
++	struct swap_info_struct *si;
+ 	bool page_allocated;
+ 	struct mempolicy *mpol;
+ 	pgoff_t ilx;
+ 	struct folio *folio;
  
--	if (!(flags & TTRS_DIRECT)) {
--		/* Free through slot cache */
--		delete_from_swap_cache(folio);
--		folio_set_dirty(folio);
--		ret = nr_pages;
--		goto out_unlock;
--	}
--
--	xa_lock_irq(&address_space->i_pages);
--	__delete_from_swap_cache(folio, entry, NULL);
--	xa_unlock_irq(&address_space->i_pages);
--	folio_ref_sub(folio, nr_pages);
-+	delete_from_swap_cache(folio);
- 	folio_set_dirty(folio);
--
--	ci = lock_cluster(si, offset);
--	swap_entry_range_free(si, ci, entry, nr_pages);
--	unlock_cluster(ci);
- 	ret = nr_pages;
- out_unlock:
- 	folio_unlock(folio);
-@@ -697,7 +680,7 @@ static bool cluster_reclaim_range(struct
- 			offset++;
- 			break;
- 		case SWAP_HAS_CACHE:
--			nr_reclaim = __try_to_reclaim_swap(si, offset, TTRS_ANYWAY | TTRS_DIRECT);
-+			nr_reclaim = __try_to_reclaim_swap(si, offset, TTRS_ANYWAY);
- 			if (nr_reclaim > 0)
- 				offset += nr_reclaim;
- 			else
-@@ -849,7 +832,7 @@ static void swap_reclaim_full_clusters(s
- 			if (READ_ONCE(map[offset]) == SWAP_HAS_CACHE) {
- 				spin_unlock(&ci->lock);
- 				nr_reclaim = __try_to_reclaim_swap(si, offset,
--								   TTRS_ANYWAY | TTRS_DIRECT);
-+								   TTRS_ANYWAY);
- 				spin_lock(&ci->lock);
- 				if (nr_reclaim) {
- 					offset += abs(nr_reclaim);
++	si = get_swap_device(entry);
++	if (!si)
++		return NULL;
++
+ 	mpol = get_vma_policy(vma, addr, 0, &ilx);
+ 	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+@@ -564,6 +564,8 @@ struct folio *read_swap_cache_async(swp_
+ 
+ 	if (page_allocated)
+ 		swap_read_folio(folio, plug);
++
++	put_swap_device(si);
+ 	return folio;
+ }
+ 
+--- a/mm/zswap.c~mm-swap-avoid-redundant-swap-device-pinning
++++ a/mm/zswap.c
+@@ -1051,14 +1051,20 @@ static int zswap_writeback_entry(struct
+ 	struct folio *folio;
+ 	struct mempolicy *mpol;
+ 	bool folio_was_allocated;
++	struct swap_info_struct *si;
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
+ 
+ 	/* try to allocate swap cache folio */
++	si = get_swap_device(swpentry);
++	if (!si)
++		return -EEXIST;
++
+ 	mpol = get_task_policy(current);
+ 	folio = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
+-				NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
++			NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
++	put_swap_device(si);
+ 	if (!folio)
+ 		return -ENOMEM;
+ 
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
