@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3B5F218591
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72DBD218591
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188497; cv=none; b=NaCot9FDP+CLFiIbVzjvZtSyGeJ+IiQ01FRtaLeKkBbmmm4waGIqpS+UbqARMGQ4VM2xatI2FkXxxQZMG0FINDUbVsPrODcjZwdk/PUnUNuUpe/eMHqWlZr+wiyUC5BEd7impdp6ubzJjGCk4JXyFuuZSno+h0gOrBLRI8APMV0=
+	t=1742188499; cv=none; b=Vpa9UOGZ2gAoROOWOZgO8LzXRCkw1EXWLgKasG0Gw7VWAXnvhODpsnbGOSipuQwBgl+TTAaqHKXJUkITys5lR69FuY3mS6rxWH3N11cpigchrTnOCEdLxBUSE+toDnadgJ3dR47w+t0pUviK2kcrq6FKA8UpBrCaY/tCzD/0JSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188497; c=relaxed/simple;
-	bh=yY3iwNX+ei5uB95rXHHoWUMhCEgQ+O1O5sjLlDLniiM=;
-	h=Date:To:From:Subject:Message-Id; b=rvynGzoJT6NEWa4vwn6RR/IYSj7tI3t93xApkKtBv9Y3bcmBXTUiF1HnmdEUAUmm71GMs51LDZfnKU29vVez/EZ7sWuMpNxPIUndPGck/JGxgoyLCt3ySdeycTh8boM2DM8t2FtoT+Nbms2+fPre98ASxnFTxH/dW9Co1BET3ZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vuGxrua4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188499; c=relaxed/simple;
+	bh=HTuYqcnBaaJoqNsmfPZGqe8xcZymzjlaGEyfVpvSYH0=;
+	h=Date:To:From:Subject:Message-Id; b=s52EH5bux06ICzk39koxs4uftp3JaQhtlcnH0HFSIhWe4BFXmQiZe4AVj4d0zMK5dwpVQE0egu5g8fVyaDfvUvEXeWxytLOcGfBLI0BtcDupgWtxd/xNugNWo/HKAkc4Cu0eiMWoCtKQdfdL48Qb5dm2OxYgq53IzpSyvWLkuRY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hezEj4NX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vuGxrua4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A94E4C4CEEC;
-	Mon, 17 Mar 2025 05:14:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hezEj4NX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 468DCC4CEEC;
+	Mon, 17 Mar 2025 05:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188497;
-	bh=yY3iwNX+ei5uB95rXHHoWUMhCEgQ+O1O5sjLlDLniiM=;
+	s=korg; t=1742188499;
+	bh=HTuYqcnBaaJoqNsmfPZGqe8xcZymzjlaGEyfVpvSYH0=;
 	h=Date:To:From:Subject:From;
-	b=vuGxrua4v7KgMmi4D/B4chp9GtnCNTDt2r1qX1DfJfFH9ugwmjRP9Th7TdKVJYsYH
-	 3rINsRk7Cr5nOFytx5faAqNPporuEoMKk35gnTmMFRQfjY6AfOSDKl0U9/JwxuScAS
-	 ly4dNTrrBm9IM6mJU1FYS2K0uu+nbMtrmFPHKtwE=
-Date: Sun, 16 Mar 2025 22:14:57 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lkp@intel.com,kasong@tencent.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,linuszeng@tencent.com,akpm@linux-foundation.org
+	b=hezEj4NXFOZTVxASErS2aS3HH4pNOR1efWIEADXZ8b6xN/kx9UwWlHuD8Bm89nLTX
+	 WZQf0ZHwmmrM0M88rQx3A0WTbL3LtT1mQTingYRNJFSEvMgkCe5zSqIhdchOCGZbzu
+	 VmDSUrKhCPu+R9HkgtLF8pJc0uMNeH1tS3VxI0WI=
+Date: Sun, 16 Mar 2025 22:14:58 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-list_lru-make-the-case-where-mlru-is-null-as-unlikely.patch removed from -mm tree
-Message-Id: <20250317051457.A94E4C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning.patch removed from -mm tree
+Message-Id: <20250317051459.468DCC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,439 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/list_lru: make the case where mlru is NULL as unlikely
+     Subject: mm/damon: add data structure for monitoring intervals auto-tuning
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-make-the-case-where-mlru-is-null-as-unlikely.patch
+     mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zeng Jingxiang <linuszeng@tencent.com>
-Subject: mm/list_lru: make the case where mlru is NULL as unlikely
-Date: Thu, 27 Feb 2025 16:22:23 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: add data structure for monitoring intervals auto-tuning
+Date: Mon, 3 Mar 2025 14:17:19 -0800
 
-In the following memcg_list_lru_alloc() function, mlru here is almost
-always NULL, so in most cases this should save a function call, mark mlru
-as unlikely to optimize the code, and reusing the mlru for the next
-attempt when the tree insertion fails.
+Patch series "mm/damon: auto-tune aggregation interval".
 
-        do {
-                xas_lock_irqsave(&xas, flags);
-                if (!xas_load(&xas) && !css_is_dying(&pos->css)) {
-                        xas_store(&xas, mlru);
-                        if (!xas_error(&xas))
-                                mlru = NULL;
-                }
-                xas_unlock_irqrestore(&xas, flags);
-        } while (xas_nomem(&xas, GFP_KERNEL));
->       if (mlru)
-                kfree(mlru);
+DAMON requires time-consuming and repetitive aggregation interval tuning. 
+Introduce a feature for automating it using a feedback loop that aims an
+amount of observed access events, like auto-exposing cameras.
 
-Link: https://lkml.kernel.org/r/20250227082223.1173847-1-jingxiangzeng.cas@gmail.com
-Signed-off-by: Zeng Jingxiang <linuszeng@tencent.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202412290924.UTP7GH2Z-lkp@intel.com/
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Jingxiang Zeng <linuszeng@tencent.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Background: Access Frequency Monitoring and Aggregation Interval
+================================================================
+
+DAMON checks if each memory element (damon_region) is accessed or not for
+every user-specified time interval called 'sampling interval'.  It
+aggregates the check intervals on per-element counter called
+'nr_accesses'.  DAMON users can read the counters to get the access
+temperature of a given element.  The counters are reset for every another
+user-specified time interval called 'aggregation interval'.
+
+This can be illustrated as DAMON continuously capturing a snapshot of
+access events that happen and captured within the last aggregation
+interval.  This implies the aggregation interval plays a key role for the
+quality of the snapshots, like the camera exposure time.  If it is too
+short, the amount of access events that happened and captured for each
+snapshot is small, so each snapshot will show no many interesting things
+but just a cold and dark world with hopefuly one pale blue dot or two.  If
+it is too long, too many events are aggregated in a single shot, so each
+snapshot will look like world of flames, or Muspellheim.  It will be
+difficult to find practical insights in both cases.
+
+Problem: Time Consuming and Repetitive Tuning
+=============================================
+
+The appropriate length of the aggregation interval depends on how
+frequently the system and workloads are making access events that DAMON
+can observe.  Hence, users have to tune the interval with excessive amount
+of tests with the target system and workloads.  If the system and
+workloads are changed, the tuning should be done again.  If the
+characteristic of the workloads is dynamic, it becomes more challenging. 
+It is therefore time-consuming and repetitive.
+
+The tuning challenge mainly stems from the wrong question.  It is not
+asking users what quality of monitoring results they want, but how DAMON
+should operate for their hidden goal.  To make the right answer, users
+need to fully understand DAMON's mechanisms and the characteristics of
+their workloads.  Users shouldn't be asked to understand the underlying
+mechanism.  Understanding the characteristics of the workloads shouldn't
+be the role of users but DAMON.
+
+Aim-oriented Feedback-driven Auto-Tuning
+=========================================
+
+Fortunately, the appropriate length of the aggregation interval can be
+inferred using a feedback loop.  If the current snapshots are showing no
+much intresting information, in other words, if it shows only rare access
+events, increasing the aggregation interval helps, and vice versa.  We
+tested this theory on a few real-world workloads, and documented one of
+the experience with an official DAMON monitoring intervals tuning
+guideline.  Since it is a simple theory that requires repeatable tries, it
+can be a good job for machines.
+
+Based on the guideline's theory, we design an automation of aggregation
+interval tuning, in a way similar to that of camera auto-exposure feature.
+It defines the amount of interesting information as the ratio of
+DAMON-observed access events that DAMON actually observed to theoretical
+maximum amount of it within each snapshot.  Events are accounted in byte
+and sampling attempts granularity.  For example, let's say there is a
+region of 'X' bytes size.  DAMON tried access check smapling for the
+region 'Y' times in total for a given aggregation.  Among the 'Y'
+attempts, 'Z' times it shown positive results.  Then, the theoritical
+maximum number of access events for the region is 'X * Y'.  And the number
+of access events that DAMON has observed for the region is 'X * Z'.  The
+abount of the interesting information is '(X * Z / X * Y)'.  Note that
+each snapshot would have multiple regions.
+
+Users can set an arbitrary value of the ratio as their target.  Once the
+target is set, the automation periodically measures the current value of
+the ratio and increase or decrease the aggregation interval if the ratio
+value is lower or higher than the target.  The amount of the change is
+proportion to the distance between the current adn the target values.
+
+To avoid auto-tuning goes too long way, let users set the minimum and the
+maximum aggregation interval times.  Changing only aggregation interval
+while sampling interval is kept makes the maximum level of access
+frequency in each snapshot, or discernment of regions inconsistent.  Also,
+unnecessarily short sampling interval causes meaningless monitoring
+overhed.  The automation therefore adjusts the sampling interval together
+with aggregation interval, while keeping the ratio between the two
+intervals.  Users can set the ratio, or the discernment.
+
+Discussion
+==========
+
+The modified question (aimed amount of access events, or lights, in each
+snapshot) is easy to answer by both the users and the kernel.  If users
+are interested in finding more cold regions, the value should be lower,
+and vice versa.  If users have no idea, kernel can suggest a fair default
+value based on some theories and experiments.  For example, based on the
+Pareto principle (80/20 rule), we could expect 20% target ratio will
+capture 80% of real access events.  Since 80% might be too high, applying
+the rule once again, 4% (20% * 20%) may capture about 56% (80% * 80%) of
+real access events.
+
+Sampling to aggregation intervals ratio and min/max aggregation intervals
+are also arguably easy to answer.  What users want is discernment of
+regions for efficient system operation, for examples, X amount of colder
+regions or Y amount of warmer regions, not exactly how many times each
+cache line is accessed in nanoseconds degree.  The appropriate min/max
+aggregation interval can relatively naively set, and may better to set for
+aimed monitoring overhead.  Since sampling interval is directly deciding
+the overhead, setting it based on the sampling interval can be easy.  With
+my experiences, I'd argue the intervals ratio 0.05, and 5 milliseconds to
+20 seconds sampling interval range (100 milliseconds to 400 seconds
+aggregation interval) can be a good default suggestion.
+
+Evaluation
+==========
+
+On a machine running a real world server workload, I ran DAMON to monitor
+its physical address space for about 23 hours, with this feature turned
+on.  We set it to tune sampling interval in a range from 5 milliseconds to
+10 seconds, aiming 4 % DAMON-observed access ratio per three aggregation
+intervals.  The exact command I used is as below.
+
+    damo start --monitoring_intervals_goal 4% 3 5ms 10s --damos_action stat
+
+During the test run, DAMON continuously updated sampling and aggregation
+intervals as designed, within the given range.  For all the time, DAMON
+was able to find the intervals that meets the target access events ratio
+in the given intervals range (sampling interval between 5 milliseconds and
+10 seconds).
+
+For most of the time, tuned sampling interval was converged in 300-400
+milliseconds.  It made only small amount of changes within the range.  The
+average of the tuned sampling interval during the test was about 380
+milliseconds.
+
+The workload periodically gets less load and decreases its CPU usage. 
+Presumably this also caused it making less memory access events. 
+Reactively to such event,s DAMON also increased the intervals as expected.
+It was still able to find the optimum interval that satisfying the target
+access ratio within the given intervals range.  Usually it was converged
+to about 5 seconds.  Once the workload gets normal amount of load again,
+DAMON reactively reduced the intervals to the normal range.
+
+I collected and visualized DAMON's monitoring results on the server a few
+times.  Every time the visualized access pattern looked not biased to only
+cold or hot pages but diverse and balanced.  Let me show some of the
+snapshots that I collected at the nearly end of the test (after about 23
+hours have passed since starting DAMON on the server).
+
+The recency histogram looks as below.  Please note that this visualization
+shows only a very coarse grained information.  For more details about the
+visualization format, please refer to DAMON user-space tool
+documentation[1].
+
+    # ./damo report access --style recency-sz-hist --tried_regions_of 0 0 0 --access_rate 0 0
+    <last accessed time (us)> <total size>
+    [-19 h 7 m 45.514 s, -17 h 12 m 58.963 s)  6.198 GiB  |****                |
+    [-17 h 12 m 58.963 s, -15 h 18 m 12.412 s) 0 B        |                    |
+    [-15 h 18 m 12.412 s, -13 h 23 m 25.860 s) 0 B        |                    |
+    [-13 h 23 m 25.860 s, -11 h 28 m 39.309 s) 0 B        |                    |
+    [-11 h 28 m 39.309 s, -9 h 33 m 52.757 s)  0 B        |                    |
+    [-9 h 33 m 52.757 s, -7 h 39 m 6.206 s)    0 B        |                    |
+    [-7 h 39 m 6.206 s, -5 h 44 m 19.654 s)    0 B        |                    |
+    [-5 h 44 m 19.654 s, -3 h 49 m 33.103 s)   0 B        |                    |
+    [-3 h 49 m 33.103 s, -1 h 54 m 46.551 s)   0 B        |                    |
+    [-1 h 54 m 46.551 s, -0 ns)                16.967 GiB |*********           |
+    [-0 ns, --6886551440000 ns)                38.835 GiB |********************|
+    memory bw estimate: 9.425 GiB per second
+    total size: 62.000 GiB
+
+It shows about 38 GiB of memory was accessed at least once within last
+aggregation interval (given ~300 milliseconds tuned sampling interval,
+this is about six seconds).  This is about 61 % of the total memory.  In
+other words, DAMON found warmest 61 % memory of the system.  The number is
+particularly interesting given our Pareto principle based theory for the
+tuning goal value.  We set it as 20 % of 20 % (4 %), thinking it would
+capture 80 % of 80 % (64 %) real access events.  And it foudn 61 % hot
+memory, or working set.  Nevertheless, to make the theory clearer, much
+more discussion and tests would be needed.  At the moment, nonetheless, we
+can say making the target value higher helps finding more hot memory
+regions.
+
+The histogram also shows an amount of cold memory.  About 17 GiB memory of
+the system has not accessed at least for last aggregation interval (about
+six seconds), and at most for about last two hours.  The real longest
+unaccessed time of the 17 GiB memory was about 19 minutes, though.  This
+is a limitation of this visualization format.
+
+It further found very cold 6 GiB memory.  It has not accessed at least for
+last 17 hours and at most 19 hours.
+
+What about hot memory distribution?  To see this, I capture and visualize
+the snapshot in access temperature histogram.  Again, please refer to the
+DAMON user-space tool documentation[1] for the format and what access
+temperature mean.  Both the visualization and metric shows only very
+coarse grained and limited information.  The resulting histogram look like
+below.
+
+    # ./damo report access --style temperature-sz-hist --tried_regions_of 0 0 0
+    <temperature> <total size>
+    [-6,840,763,776,000, -5,501,580,939,800) 6.198 GiB  |***                 |
+    [-5,501,580,939,800, -4,162,398,103,600) 0 B        |                    |
+    [-4,162,398,103,600, -2,823,215,267,400) 0 B        |                    |
+    [-2,823,215,267,400, -1,484,032,431,200) 0 B        |                    |
+    [-1,484,032,431,200, -144,849,595,000)   0 B        |                    |
+    [-144,849,595,000, 1,194,333,241,200)    55.802 GiB |********************|
+    [1,194,333,241,200, 2,533,516,077,400)   4.000 KiB  |*                   |
+    [2,533,516,077,400, 3,872,698,913,600)   4.000 KiB  |*                   |
+    [3,872,698,913,600, 5,211,881,749,800)   8.000 KiB  |*                   |
+    [5,211,881,749,800, 6,551,064,586,000)   12.000 KiB |*                   |
+    [6,551,064,586,000, 7,890,247,422,200)   4.000 KiB  |*                   |
+    memory bw estimate: 5.178 GiB per second
+    total size: 62.000 GiB
+
+We can see most of the memory is in similar access temperature range, and
+definitely some pages are extremely hot.
+
+To see the picture in more detail, let's capture and visualize the
+snapshot per DAMON-region, sorted by their access temperature.  The total
+number of the regions was about 300.  Due to the limited space, I'm
+showing only a few parts of the output here.
+
+    # ./damo report access --style hot --tried_regions_of 0 0 0
+    heatmap: 00000000888888889999999888888888888888888888888888888888888888888888888888888888
+    # min/max temperatures: -6,827,258,184,000, 17,589,052,500, column size: 793.600 MiB
+     |999999999999999999999999999999999999999| 4.000 KiB   access 100 % 18 h 9 m 43.918 s
+     |999999999999999999999999999999999999999| 8.000 KiB   access 100 % 17 h 56 m 5.351 s
+     |999999999999999999999999999999999999999| 4.000 KiB   access 100 % 15 h 24 m 19.634 s
+     |999999999999999999999999999999999999999| 4.000 KiB   access 100 % 14 h 10 m 55.606 s
+     |999999999999999999999999999999999999999| 4.000 KiB   access 100 % 11 h 34 m 18.993 s
+    [...]
+               |99999999999999999999999999999| 8.000 KiB   access 100 % 1 m 27.945 s
+               |11111111111111111111111111111| 80.000 KiB  access 15 %  1 m 21.180 s
+               |00000000000000000000000000000| 24.000 KiB  access 5 %   1 m 21.180 s
+               |00000000000000000000000000000| 5.919 GiB   access 10 %  1 m 14.415 s
+               |99999999999999999999999999999| 12.000 KiB  access 100 % 1 m 7.650 s
+    [...]
+                                           |0| 4.000 KiB   access 5 %   0 ns
+                                           |0| 12.000 KiB  access 5 %   0 ns
+                                           |0| 188.000 KiB access 0 %   0 ns
+                                           |0| 24.000 KiB  access 0 %   0 ns
+                                           |0| 48.000 KiB  access 0 %   0 ns
+    [...]
+             |0000000000000000000000000000000| 8.000 KiB   access 0 %   6 m 45.901 s
+            |00000000000000000000000000000000| 36.000 KiB  access 0 %   7 m 26.491 s
+            |00000000000000000000000000000000| 4.000 KiB   access 0 %   12 m 37.682 s
+           |000000000000000000000000000000000| 8.000 KiB   access 0 %   18 m 9.168 s
+           |000000000000000000000000000000000| 16.000 KiB  access 0 %   19 m 3.288 s
+    |0000000000000000000000000000000000000000| 6.198 GiB   access 0 %   18 h 57 m 52.582 s
+    memory bw estimate: 8.798 GiB per second
+    total size: 62.000 GiB
+
+We can see DAMON found small and extremely hot regions that accessed for
+all access check sampling (once per about 300 milliseconds) for more than
+10 hours.  The access temperature rapidly decreases.  DAMON was also able
+to find small and big regions that not accessed for up to about 19
+minutes.  It even found an outlier cold region of 6 GiB that not accessed
+for about 19 hours.  It is unclear what the outlier region is, as of this
+writing.
+
+For the testing, DAMON was consuming about 0.1% of single CPU time.  This
+is again expected results, since DAMON was using about 370 milliseconds
+sampling interval in most case.
+
+    # ps -p $kdamond_pid -o %cpu
+    %CPU
+     0.1
+
+I also ran similar tests against kernel build workload and an in-memory
+cache workload benchmark[2].  Detialed results including tuned intervals
+and captured access pattern were of course different sicne those depend on
+the workloads.  But the auto-tuning feature was always working as expected
+like the above results for the real world workload.
+
+To wrap up, with intervals auto-tuning feature, DAMON was able to capture
+access pattern snapshots of a quality on a real world server workload. 
+The auto-tuning feature was able to adaptively react to the dynamic access
+patterns of the workload and reliably provide consistent monitoring
+results without manual human interventions.  Also, the auto-tuning made
+DAMON consumes only necessary amount of resource for the required quality.
+
+References
+==========
+
+[1] https://github.com/damonitor/damo/blob/next/USAGE.md#access-report-styles
+[2] https://github.com/facebookresearch/DCPerf/blob/main/packages/tao_bench/README.md
+
+
+This patch (of 8):
+
+Add data structures for DAMON sampling and aggregation intervals automatic
+tuning that aims specific amount of DAMON-observed access events per
+snapshot.  In more detail, define the data structure for the tuning goal,
+link it to the monitoring attributes data structure so that DAMON kernel
+API callers can make the request, and update parameters setup DAMON
+function to respect the new parameter.
+
+Link: https://lkml.kernel.org/r/20250303221726.484227-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250303221726.484227-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/damon.h |   27 +++++++++++++++++++++++++++
+ mm/damon/core.c       |   22 ++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
---- a/mm/list_lru.c~mm-list_lru-make-the-case-where-mlru-is-null-as-unlikely
-+++ a/mm/list_lru.c
-@@ -510,7 +510,7 @@ int memcg_list_lru_alloc(struct mem_cgro
- 			 gfp_t gfp)
- {
- 	unsigned long flags;
--	struct list_lru_memcg *mlru;
-+	struct list_lru_memcg *mlru = NULL;
- 	struct mem_cgroup *pos, *parent;
- 	XA_STATE(xas, &lru->xa, 0);
+--- a/include/linux/damon.h~mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning
++++ a/include/linux/damon.h
+@@ -660,11 +660,37 @@ struct damon_call_control {
+ };
  
-@@ -535,9 +535,11 @@ int memcg_list_lru_alloc(struct mem_cgro
- 			parent = parent_mem_cgroup(pos);
- 		}
- 
--		mlru = memcg_init_list_lru_one(lru, gfp);
--		if (!mlru)
--			return -ENOMEM;
-+		if (!mlru) {
-+			mlru = memcg_init_list_lru_one(lru, gfp);
-+			if (!mlru)
-+				return -ENOMEM;
-+		}
- 		xas_set(&xas, pos->kmemcg_id);
- 		do {
- 			xas_lock_irqsave(&xas, flags);
-@@ -548,10 +550,11 @@ int memcg_list_lru_alloc(struct mem_cgro
- 			}
- 			xas_unlock_irqrestore(&xas, flags);
- 		} while (xas_nomem(&xas, gfp));
--		if (mlru)
--			kfree(mlru);
- 	} while (pos != memcg && !css_is_dying(&pos->css));
- 
-+	if (unlikely(mlru))
-+		kfree(mlru);
+ /**
++ * struct damon_intervals_goal - Monitoring intervals auto-tuning goal.
++ *
++ * @access_bp:		Access events observation ratio to achieve in bp.
++ * @aggrs:		Number of aggregations to acheive @access_bp within.
++ * @min_sample_us:	Minimum resulting sampling interval in microseconds.
++ * @max_sample_us:	Maximum resulting sampling interval in microseconds.
++ *
++ * DAMON automatically tunes &damon_attrs->sample_interval and
++ * &damon_attrs->aggr_interval aiming the ratio in bp (1/10,000) of
++ * DAMON-observed access events to theoretical maximum amount within @aggrs
++ * aggregations be same to @access_bp.  The logic increases
++ * &damon_attrs->aggr_interval and &damon_attrs->sampling_interval in same
++ * ratio if the current access events observation ratio is lower than the
++ * target for each @aggrs aggregations, and vice versa.
++ *
++ * If @aggrs is zero, the tuning is disabled and hence this struct is ignored.
++ */
++struct damon_intervals_goal {
++	unsigned long access_bp;
++	unsigned long aggrs;
++	unsigned long min_sample_us;
++	unsigned long max_sample_us;
++};
 +
- 	return xas_error(&xas);
++/**
+  * struct damon_attrs - Monitoring attributes for accuracy/overhead control.
+  *
+  * @sample_interval:		The time between access samplings.
+  * @aggr_interval:		The time between monitor results aggregations.
+  * @ops_update_interval:	The time between monitoring operations updates.
++ * @intervals_goal:		Intervals auto-tuning goal.
+  * @min_nr_regions:		The minimum number of adaptive monitoring
+  *				regions.
+  * @max_nr_regions:		The maximum number of adaptive monitoring
+@@ -684,6 +710,7 @@ struct damon_attrs {
+ 	unsigned long sample_interval;
+ 	unsigned long aggr_interval;
+ 	unsigned long ops_update_interval;
++	struct damon_intervals_goal intervals_goal;
+ 	unsigned long min_nr_regions;
+ 	unsigned long max_nr_regions;
+ };
+--- a/mm/damon/core.c~mm-damon-add-data-structure-for-monitoring-intervals-auto-tuning
++++ a/mm/damon/core.c
+@@ -615,6 +615,25 @@ static void damon_update_monitoring_resu
+ 					r, old_attrs, new_attrs);
  }
- #else
+ 
++/*
++ * damon_valid_intervals_goal() - return if the intervals goal of @attrs is
++ * valid.
++ */
++static bool damon_valid_intervals_goal(struct damon_attrs *attrs)
++{
++	struct damon_intervals_goal *goal = &attrs->intervals_goal;
++
++	/* tuning is disabled */
++	if (!goal->aggrs)
++		return true;
++	if (goal->min_sample_us > goal->max_sample_us)
++		return false;
++	if (attrs->sample_interval < goal->min_sample_us ||
++			goal->max_sample_us < attrs->sample_interval)
++		return false;
++	return true;
++}
++
+ /**
+  * damon_set_attrs() - Set attributes for the monitoring.
+  * @ctx:		monitoring context
+@@ -635,6 +654,9 @@ int damon_set_attrs(struct damon_ctx *ct
+ 		attrs->sample_interval : 1;
+ 	struct damos *s;
+ 
++	if (!damon_valid_intervals_goal(attrs))
++		return -EINVAL;
++
+ 	if (attrs->min_nr_regions < 3)
+ 		return -EINVAL;
+ 	if (attrs->min_nr_regions > attrs->max_nr_regions)
 _
 
-Patches currently in -mm which might be from linuszeng@tencent.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
+mm-damon-sysfs-schemes-implement-core_filters-and-ops_filters-directories.patch
+mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
+mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
+mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
+mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
+docs-abi-damon-document-coreops_filters-directories.patch
+docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
+mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
+mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
+mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
+mm-damon-sysfs-handle-commit-command-using-damon_call.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
+mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
+mm-damon-remove-damon_callback-private.patch
+mm-damon-remove-before_start-of-damon_callback.patch
+mm-damon-remove-damon_callback-after_sampling.patch
+mm-damon-remove-damon_callback-before_damos_apply.patch
+mm-damon-remove-damon_operations-reset_aggregated.patch
+mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch
+mm-madvise-split-out-populate-behavior-check-logic.patch
+mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings.patch
+mm-madvise-remove-len-parameter-of-madvise_do_behavior.patch
 
