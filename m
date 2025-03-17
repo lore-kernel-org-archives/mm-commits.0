@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A70A59
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DA69A59
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188182; cv=none; b=gctVKYsYp0/LxzNtAT6VAPn+04+n2lLZ4HzBNJ2JIfqC/j8rMHTVlMA0M3NPKKu+YVZiH9zsyj8x597Jhs97T+Pt88FErDLVpNOAO9vYHpzntjQ3LQLrPk2AIqWprkw+U5CauiSp1XKQCo0IvbJKOi+B6dFK1jAPlMEsUfWUMG4=
+	t=1742188183; cv=none; b=ZPaa4pgh8xV4NrRKyGdtMFSWeUdSrbIu3YLpZjdVV7yar6YyyOZ3w5uAIRp+jzLfEwDonDhRyh4t9lJfLW1JUgtimT0mMeRswf+3UMwZa18VlhJF13YoCsiLf1T3b296HOrU6+ObyHn0yK5gg63lo41ERpfocujV0IRqxb4nYmw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188182; c=relaxed/simple;
-	bh=sm8Wde7ffA5iqGjJ5b4mJuuZRuAgP1Fur6bwe8LOvFk=;
-	h=Date:To:From:Subject:Message-Id; b=GD4uw13gnWzyL4XsZyLLcy44P4xAKicz7uz/1Y06RKG27D+b9v3aE/xbOUCeQeVRtUQl1BuZKQ+UIRYhHGh5luWwgR4L/A3JRjLqbZIO3L6MOXDTZ2z3lYKfpTB9jUIHsaoWduqv8Gx9Qjmzne7n5c3OygARXeKUusw16McJ+84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K78Wlgi4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188183; c=relaxed/simple;
+	bh=t+JbxvGsrTKW0L//Nc4ppPuaVAY8vKqQT52t19V8SQY=;
+	h=Date:To:From:Subject:Message-Id; b=Xv1O/wU1/EzmByk0UG5i2x0NypKCGq8TslQJGe6ZI8njmOyFE49JTjyhJFgTJGiDmHS3eAC/R2CJ4XR1odccq2GiFECtYUwUt70LE3V1SpEZnW2BQO06FTigQn6iubbKL47LhDhk+e5lfmKr4FYVcM4G7YrD18KekFwKv+2HUA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E4otyacv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K78Wlgi4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E19C4C4CEEC;
-	Mon, 17 Mar 2025 05:09:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E4otyacv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02341C4CEEC;
+	Mon, 17 Mar 2025 05:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188182;
-	bh=sm8Wde7ffA5iqGjJ5b4mJuuZRuAgP1Fur6bwe8LOvFk=;
+	s=korg; t=1742188183;
+	bh=t+JbxvGsrTKW0L//Nc4ppPuaVAY8vKqQT52t19V8SQY=;
 	h=Date:To:From:Subject:From;
-	b=K78Wlgi4MvQ8MWbil2Xl6dd8gHIpO2+35V8hvhAMBRjCpoxtdIaY8ykZ3bU1E9Y3H
-	 SukQlV2E22yH1nIpANM9Qz101KmYdIar4BGhKqZ82yMCNrLHW0HkF+2/OnV1XnhI5x
-	 Q4pzAmBPcDeuMdPtdT4eYQ5LXdNyKKZYGf/o+F6Q=
-Date: Sun, 16 Mar 2025 22:09:41 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=E4otyacvlbsnjB3yJSKu7YB0iNd01fZnSwd0ssAK3GBhXGKSjpt/I+bY7svlRTnAu
+	 GwNEqHALqlB7qpan0TICgTpk7BmifdyGpsyqIYeWGqc56NdBlp7x76BUYPX+PChOTA
+	 yTNeubJ26rG1lu9wHnMlIuF1dNRQYLiZu5Klwn2Q=
+Date: Sun, 16 Mar 2025 22:09:42 -0700
+To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,david@redhat.com,ruansy.fnst@fujitsu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch removed from -mm tree
-Message-Id: <20250317050941.E19C4C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] drivers-base-memory-simplify-outputting-of-valid_zones_show.patch removed from -mm tree
+Message-Id: <20250317050943.02341C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,106 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: test splitting file-backed THP to any lower order
+     Subject: drivers/base/memory: simplify outputting of valid_zones_show()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-test-splitting-file-backed-thp-to-any-lower-order.patch
+     drivers-base-memory-simplify-outputting-of-valid_zones_show.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: test splitting file-backed THP to any lower order
-Date: Wed, 22 Jan 2025 11:19:28 -0500
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: drivers/base/memory: simplify outputting of valid_zones_show()
+Date: Wed, 8 Jan 2025 09:52:23 +0800
 
-Now split_huge_page*() supports shmem THP split to any lower order.  Test
-it.
+No need to specify position at the first writing to the buf because the
+@len is always 0 at this time.  Use sysfs_emit() instead to simplify it. 
+Also avoid setting/checking default_zone with a conditional operator.
 
-The test now reads file content out after split to check if the split
-corrupts the file data.
-
-Link: https://lkml.kernel.org/r/20250122161928.1240637-3-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20250108015223.1522887-1-ruansy.fnst@fujitsu.com
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/base/memory.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-test-splitting-file-backed-thp-to-any-lower-order
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -261,7 +261,7 @@ void split_pte_mapped_thp(void)
- 	close(kpageflags_fd);
- }
+--- a/drivers/base/memory.c~drivers-base-memory-simplify-outputting-of-valid_zones_show
++++ a/drivers/base/memory.c
+@@ -455,7 +455,7 @@ static ssize_t valid_zones_show(struct d
+ 	struct memory_group *group = mem->group;
+ 	struct zone *default_zone;
+ 	int nid = mem->nid;
+-	int len = 0;
++	int len;
  
--void split_file_backed_thp(void)
-+void split_file_backed_thp(int order)
- {
- 	int status;
- 	int fd;
-@@ -313,7 +313,7 @@ void split_file_backed_thp(void)
+ 	/*
+ 	 * Check the existing zone. Make sure that we do that only on the
+@@ -466,22 +466,18 @@ static ssize_t valid_zones_show(struct d
+ 		 * If !mem->zone, the memory block spans multiple zones and
+ 		 * cannot get offlined.
+ 		 */
+-		default_zone = mem->zone;
+-		if (!default_zone)
+-			return sysfs_emit(buf, "%s\n", "none");
+-		len += sysfs_emit_at(buf, len, "%s", default_zone->name);
+-		goto out;
++		return sysfs_emit(buf, "%s\n",
++				  mem->zone ? mem->zone->name : "none");
  	}
  
- 	/* split the file-backed THP */
--	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end, 0);
-+	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end, order);
+ 	default_zone = zone_for_pfn_range(MMOP_ONLINE, nid, group,
+ 					  start_pfn, nr_pages);
  
- 	/* check file content after split */
- 	status = lseek(fd, 0, SEEK_SET);
-@@ -351,7 +351,7 @@ void split_file_backed_thp(void)
- 		ksft_exit_fail_msg("cannot remove tmp dir: %s\n", strerror(errno));
- 
- 	ksft_print_msg("Please check dmesg for more information\n");
--	ksft_test_result_pass("File-backed THP split test done\n");
-+	ksft_test_result_pass("File-backed THP split to order %d test done\n", order);
- 	return;
- 
- close_file:
-@@ -517,7 +517,7 @@ int main(int argc, char **argv)
- 	if (argc > 1)
- 		optional_xfs_path = argv[1];
- 
--	ksft_set_plan(1+8+2+9);
-+	ksft_set_plan(1+8+1+9+9);
- 
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
-@@ -534,7 +534,8 @@ int main(int argc, char **argv)
- 			split_pmd_thp_to_order(i);
- 
- 	split_pte_mapped_thp();
--	split_file_backed_thp();
-+	for (i = 0; i < 9; i++)
-+		split_file_backed_thp(i);
- 
- 	created_tmp = prepare_thp_fs(optional_xfs_path, fs_loc_template,
- 			&fs_loc);
+-	len += sysfs_emit_at(buf, len, "%s", default_zone->name);
++	len = sysfs_emit(buf, "%s", default_zone->name);
+ 	len += print_allowed_zone(buf, len, nid, group, start_pfn, nr_pages,
+ 				  MMOP_ONLINE_KERNEL, default_zone);
+ 	len += print_allowed_zone(buf, len, nid, group, start_pfn, nr_pages,
+ 				  MMOP_ONLINE_MOVABLE, default_zone);
+-out:
+ 	len += sysfs_emit_at(buf, len, "\n");
+ 	return len;
+ }
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
 
-xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix.patch
-mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
-mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
-mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
-mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
-mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
-mm-truncate-use-folio_split-in-truncate-operation.patch
-selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
-mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
-mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
