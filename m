@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8BE9215771
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94DC8215771
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188285; cv=none; b=uTyVz8Y/Z8WJNZSZqJuyDf5tptwAU+heb27r7Qsmvf4eD9gBC2IaCzqGQDFZUvT9ksWHHVr6Ye0vykNhnZnj5C+ySP3LmZKO2a1b06i0RzlsvRaJ+LGxkfQxMcy6vrq81rmBr5g/+Mg+UjJDZdt/i0EEgssbABfV0ivWdb0kw6s=
+	t=1742188286; cv=none; b=k27b7JfRnhIp2RxMaDFzE0mnKWrCNd+W31IabDwWHs30ShYmPHwD7lHMkFRZaDeaatoB/XuJY1Us/d7JBL4d/XjTjeo4deg59MbFdUsdCR5F1eHdxZ3V3BfJHPOh60MXJr7r+HFhTRD5VEGGmvl7j9nC7k3N2Ds4N56PQSPK3rk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188285; c=relaxed/simple;
-	bh=NXHi8Q6nIp/bT1C/12kn4lht44Nhm1KWDyD/D36SY4s=;
-	h=Date:To:From:Subject:Message-Id; b=eB8L6ODe8NVG05rtCRJ8HUyJ9zhypa+whlFsmhQaZVbWTeAvr3bQzNDlHtDpzn8u8nLyUoiAXR4lPXJ990ETPE+ZUinW+qFhjhAv1OTueuaozyBq15Z4ai2Twl19zwQ//ncesuLOTQFV11wIh3ejXnbToN48/qUs0BkaDwmwY0w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S6FSA4Oa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188286; c=relaxed/simple;
+	bh=7hy3NUWNdg++WNRl32AWgHFPO5MQ1mKuWV2Gd0U8y/U=;
+	h=Date:To:From:Subject:Message-Id; b=jGTf8lJR5CJp6y48YPfR8FofgvwX3aJ1TjWON0Gg49CpmUNphxPEaSsDSTgF7+gjw/1FvbE7Tr4DP1RiXyabMvwg8zXDwPpAvwyBlYVACHoUs8Oemst6WU0Upy9epcckCuPx+WQVL6iZLMVeSrFpFYx9T6cf/4omFbCXIctlHPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xUk1UZgt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S6FSA4Oa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51487C4CEEC;
-	Mon, 17 Mar 2025 05:11:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xUk1UZgt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AC82C4CEEC;
+	Mon, 17 Mar 2025 05:11:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188285;
-	bh=NXHi8Q6nIp/bT1C/12kn4lht44Nhm1KWDyD/D36SY4s=;
+	s=korg; t=1742188286;
+	bh=7hy3NUWNdg++WNRl32AWgHFPO5MQ1mKuWV2Gd0U8y/U=;
 	h=Date:To:From:Subject:From;
-	b=S6FSA4OaujOy4+zzja8Zt2n8S7fKMrbTa5vVWq4KXwT2/IdlGIRkEQ+3FQPBduDM3
-	 hRxsokG7jFI5qeL7eBINsN0A2dbn/4gLvNKTu8DUPdGRxFkqfoB+a6jiiFz3IS/pJi
-	 08gnBxBsh71iSd0cpJdpN5kK/61dKKitZ9x0pSKY=
-Date: Sun, 16 Mar 2025 22:11:24 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,npache@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=xUk1UZgtcJECV6D2bvIbUZOgT8wtWL2tN0M7m38wIitCqU0NmAcwKxh2swYNE06Vq
+	 s0CJGJwIoZ55zHBEnOEyXHZ5nquhLUZtrHrujqrZNhsod/G6Ah58CmgPPSAuHN7BVG
+	 crfOilb0TM/diJCl45rQNvjjd92nuW9v9raqq0Zw=
+Date: Sun, 16 Mar 2025 22:11:25 -0700
+To: mm-commits@vger.kernel.org,shivankg@amd.com,rppt@kernel.org,david@redhat.com,anshuman.khandual@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-allow-tests-to-run-with-no-huge-pages-support.patch removed from -mm tree
-Message-Id: <20250317051125.51487C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-use-round_up-to-calculate-usermap-size.patch removed from -mm tree
+Message-Id: <20250317051126.6AC82C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,155 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: allow tests to run with no huge pages support
+     Subject: mm/mm_init.c: use round_up() to calculate usermap size
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-allow-tests-to-run-with-no-huge-pages-support.patch
+     mm-mm_initc-use-round_up-to-calculate-usermap-size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: allow tests to run with no huge pages support
-Date: Wed, 12 Feb 2025 17:44:26 +0000
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/mm_init.c: use round_up() to calculate usermap size
+Date: Wed, 12 Feb 2025 01:38:18 +0000
 
-Currently the mm selftests refuse to run if huge pages are not available
-in the current system but this is an optional feature and not all the
-tests actually require them.  Change the test during startup to be
-non-fatal and skip or omit tests which actually rely on having huge pages,
-allowing the other tests to be run.
+Since pageblock_nr_pages and BITS_PER_LONG are power of 2, we could use
+round_up() to calculate it.
 
-The gup_test does support using madvise() to configure huge pages but it
-ignores the error code so we just let it run.
+Also we have renamed blockflags to pageblock_flags, adjust the comment
+accordingly.
 
-Link: https://lkml.kernel.org/r/20250212-kselftest-mm-no-hugepages-v1-2-44702f538522@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Reviewed-by: Nico Pache <npache@redhat.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250212013818.873-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Suggested-by: Shivank Garg <shivankg@amd.com>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |   66 ++++++++++++--------
- 1 file changed, 42 insertions(+), 24 deletions(-)
+ mm/mm_init.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-allow-tests-to-run-with-no-huge-pages-support
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -187,9 +187,10 @@ if [ -n "$freepgs" ] && [ -n "$hpgsize_K
- 		printf "Not enough huge pages available (%d < %d)\n" \
- 		       "$freepgs" "$needpgs"
- 	fi
-+	HAVE_HUGEPAGES=1
- else
- 	echo "no hugetlbfs support in kernel?"
--	exit 1
-+	HAVE_HUGEPAGES=0
- fi
+--- a/mm/mm_init.c~mm-mm_initc-use-round_up-to-calculate-usermap-size
++++ a/mm/mm_init.c
+@@ -1431,7 +1431,7 @@ void __meminit init_currently_empty_zone
  
- # filter 64bit architectures
-@@ -218,13 +219,20 @@ pretty_name() {
- # Usage: run_test [test binary] [arbitrary test arguments...]
- run_test() {
- 	if test_selected ${CATEGORY}; then
-+		local skip=0
-+
- 		# On memory constrainted systems some tests can fail to allocate hugepages.
- 		# perform some cleanup before the test for a higher success rate.
- 		if [ ${CATEGORY} == "thp" -o ${CATEGORY} == "hugetlb" ]; then
--			echo 3 > /proc/sys/vm/drop_caches
--			sleep 2
--			echo 1 > /proc/sys/vm/compact_memory
--			sleep 2
-+			if [ "${HAVE_HUGEPAGES}" = "1" ]; then
-+				echo 3 > /proc/sys/vm/drop_caches
-+				sleep 2
-+				echo 1 > /proc/sys/vm/compact_memory
-+				sleep 2
-+			else
-+				echo "hugepages not supported" | tap_prefix
-+				skip=1
-+			fi
- 		fi
+ #ifndef CONFIG_SPARSEMEM
+ /*
+- * Calculate the size of the zone->blockflags rounded to an unsigned long
++ * Calculate the size of the zone->pageblock_flags rounded to an unsigned long
+  * Start by making sure zonesize is a multiple of pageblock_order by rounding
+  * up. Then use 1 NR_PAGEBLOCK_BITS worth of bits per pageblock, finally
+  * round what is now in bits to nearest long in bits, then return it in
+@@ -1442,10 +1442,10 @@ static unsigned long __init usemap_size(
+ 	unsigned long usemapsize;
  
- 		local test=$(pretty_name "$*")
-@@ -232,8 +240,12 @@ run_test() {
- 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
- 		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep" | tap_prefix
+ 	zonesize += zone_start_pfn & (pageblock_nr_pages-1);
+-	usemapsize = roundup(zonesize, pageblock_nr_pages);
++	usemapsize = round_up(zonesize, pageblock_nr_pages);
+ 	usemapsize = usemapsize >> pageblock_order;
+ 	usemapsize *= NR_PAGEBLOCK_BITS;
+-	usemapsize = roundup(usemapsize, BITS_PER_LONG);
++	usemapsize = round_up(usemapsize, BITS_PER_LONG);
  
--		("$@" 2>&1) | tap_prefix
--		local ret=${PIPESTATUS[0]}
-+		if [ "${skip}" != "1" ]; then
-+			("$@" 2>&1) | tap_prefix
-+			local ret=${PIPESTATUS[0]}
-+		else
-+			local ret=$ksft_skip
-+		fi
- 		count_total=$(( count_total + 1 ))
- 		if [ $ret -eq 0 ]; then
- 			count_pass=$(( count_pass + 1 ))
-@@ -271,13 +283,15 @@ CATEGORY="hugetlb" run_test ./hugepage-v
- CATEGORY="hugetlb" run_test ./hugetlb-madvise
- CATEGORY="hugetlb" run_test ./hugetlb_dio
- 
--nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
--# For this test, we need one and just one huge page
--echo 1 > /proc/sys/vm/nr_hugepages
--CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
--CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
--# Restore the previous number of huge pages, since further tests rely on it
--echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
-+if [ "${HAVE_HUGEPAGES}" = "1" ]; then
-+	nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
-+	# For this test, we need one and just one huge page
-+	echo 1 > /proc/sys/vm/nr_hugepages
-+	CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
-+	CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
-+	# Restore the previous number of huge pages, since further tests rely on it
-+	echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
-+fi
- 
- if test_selected "hugetlb"; then
- 	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"	  | tap_prefix
-@@ -393,7 +407,9 @@ CATEGORY="memfd_secret" run_test ./memfd
- fi
- 
- # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
--CATEGORY="ksm" run_test ./ksm_tests -H -s 100
-+if [ "${HAVE_HUGEPAGES}" = "1" ]; then
-+	CATEGORY="ksm" run_test ./ksm_tests -H -s 100
-+fi
- # KSM KSM_MERGE_TIME test with size of 100
- CATEGORY="ksm" run_test ./ksm_tests -P -s 100
- # KSM MADV_MERGEABLE test with 10 identical pages
-@@ -442,15 +458,17 @@ CATEGORY="thp" run_test ./transhuge-stre
- 
- # Try to create XFS if not provided
- if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
--    if test_selected "thp"; then
--        if grep xfs /proc/filesystems &>/dev/null; then
--            XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
--            SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
--            truncate -s 314572800 ${XFS_IMG}
--            mkfs.xfs -q ${XFS_IMG}
--            mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
--            MOUNTED_XFS=1
--        fi
-+    if [ "${HAVE_HUGEPAGES}" = "1" ]; then
-+	if test_selected "thp"; then
-+	    if grep xfs /proc/filesystems &>/dev/null; then
-+		XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
-+		SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
-+		truncate -s 314572800 ${XFS_IMG}
-+		mkfs.xfs -q ${XFS_IMG}
-+		mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
-+		MOUNTED_XFS=1
-+	    fi
-+	fi
-     fi
- fi
- 
+ 	return usemapsize / BITS_PER_BYTE;
+ }
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
+lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure.patch
+lib-rbtree-split-tests.patch
+lib-rbtree-add-random-seed.patch
+lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
+lib-interval_tree-add-test-case-for-span-iteration.patch
+lib-interval_tree-skip-the-check-before-go-to-the-right-subtree.patch
+lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap.patch
 
