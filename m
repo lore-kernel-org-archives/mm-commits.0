@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2842E215782
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4F8215782
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188295; cv=none; b=FvKkAbrgpUoGsbpbGVw1X+nRS1DCFUnZplbZm7Jy/2bc2MsY2fptuTaPPcHbVCLILCSBML+v4fXc3QU3+Xt+NOx1+ZrPLoXWqUA9fRub190ZpQEa9cIKZX6kTHKMd8gIrDviSCdmnl+CsVslwAX7TfzUoHmrHJ2kvI6QgWzXYE4=
+	t=1742188296; cv=none; b=QQgf9P33eNC4e4WWZmgC84V/nZo7qxGJ2C5IQ4c1c6+kcdfJky+E8j6fyx8DEsbF+DcJcUSTdvpB4JyDgeWCqYrTyxRyjwXu4THLF2SABA4PAsk/MSVBgy9TL8FZkWYwNxWIGMcN3stjEuZ5Ff8SHscKbNia0Sd1L39InLYg4UY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188295; c=relaxed/simple;
-	bh=ZgD1yLBZHR7gA4qeHXTiwXzr6BA4ZXN0aw/0mugAdII=;
-	h=Date:To:From:Subject:Message-Id; b=pzQjD43p9GRm4akOLI0Oz7m4BDc38+50PMYaFsrjTJ4zj99HqP79/Lze4blBj6rlva9Lskyyq7Mgj8XFpIUhAreHMHAxgNPaeT7rAIZz9TGbPj3AQ+KCqoYe2sFa5+YHcEPyz5HdfkOLEbmd8IHPc7dxrM8MLKBxxxJ65ord9gI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MRyCCjvF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188296; c=relaxed/simple;
+	bh=dkzQS4GNJ7BfccrY3Wl7tbnDfAXV5+RuHk8nUeQOGks=;
+	h=Date:To:From:Subject:Message-Id; b=JHGwNFXZesftLgW6RyFfP38s7VBcLEv1MJNxEUw70FcTBLhp6qHKPDhjkarHZ6cdgwLkNpSgmnZ2vCqtFiAlZTSZGr77wTBCo5DXpxUh10jkMM1SHu+SlWgaOE29pvwsHzf3teNJRfxyGOnIzbrXEtv7vAAP1EqYkX0QeMKpQys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iz3oEIQu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRyCCjvF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E89BCC4CEEC;
-	Mon, 17 Mar 2025 05:11:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iz3oEIQu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C457C4CEEC;
+	Mon, 17 Mar 2025 05:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188295;
-	bh=ZgD1yLBZHR7gA4qeHXTiwXzr6BA4ZXN0aw/0mugAdII=;
+	s=korg; t=1742188296;
+	bh=dkzQS4GNJ7BfccrY3Wl7tbnDfAXV5+RuHk8nUeQOGks=;
 	h=Date:To:From:Subject:From;
-	b=MRyCCjvFH2Jyz/1M2XBJzD90N5sdODlZzfuCoN+Qe1Lu60SwK1CTBSlC3qxQ1GmQ+
-	 +N0VhxeKw+xp+Fg5zv19PFqX10TtRSz3GzoKn6BmlkSruNx4UYfNpSlo3Vcg4Sw2pK
-	 Dz4EvQ5JqDhFrm/3r7Mq9vXrPY0v+SOXrrHY/9RY=
-Date: Sun, 16 Mar 2025 22:11:34 -0700
-To: mm-commits@vger.kernel.org,Liam.Howlett@Oracle.com,ptesarik@suse.com,akpm@linux-foundation.org
+	b=iz3oEIQuyWcEQko8btG0Y5Ym+JPON47KYJj/sX7dyCSK1tVh0715SDN+LMR+OTumm
+	 jvAmFQX58VBu00hAWELchC2oOZ8eplyT43//fiZzb+Z7yI01ZmqVbdd9UAIRAam59A
+	 8QQf5JURUgmT4JdWbEteAwCH0BmBF+DbXkClLiwc=
+Date: Sun, 16 Mar 2025 22:11:35 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,david@redhat.com,guanjun@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-remove-a-bug_on-in-mas_alloc_nodes.patch removed from -mm tree
-Message-Id: <20250317051134.E89BCC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio.patch removed from -mm tree
+Message-Id: <20250317051136.0C457C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: remove a BUG_ON() in mas_alloc_nodes()
+     Subject: filemap: remove redundant folio_test_large check in filemap_free_folio
 has been removed from the -mm tree.  Its filename was
-     maple_tree-remove-a-bug_on-in-mas_alloc_nodes.patch
+     filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.com>
-Subject: maple_tree: remove a BUG_ON() in mas_alloc_nodes()
-Date: Thu, 13 Feb 2025 12:44:53 +0100
+From: Guanjun <guanjun@linux.alibaba.com>
+Subject: filemap: remove redundant folio_test_large check in filemap_free_folio
+Date: Thu, 13 Feb 2025 13:56:12 +0800
 
-Remove a BUG_ON() right before a WARN_ON() with the same condition.
+The folio_test_large() check in filemap_free_folio() is unnecessary
+because folio_nr_pages(), which is called internally already performs this
+check.  Removing the redundant condition simplifies the code and avoids
+double validation.
 
-Calling WARN_ON() and BUG_ON() here is definitely wrong.  Since the goal is
-generally to remove BUG_ON() invocations from the kernel, keep only the
-WARN_ON().
+This change improves code readability and reduces unnecessary operations
+in the folio freeing path.
 
-Link: https://lkml.kernel.org/r/20250213114453.1078318-1-ptesarik@suse.com
-Fixes: 067311d33e65 ("maple_tree: separate ma_state node from status")
-Signed-off-by: Petr Tesarik <ptesarik@suse.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Link: https://lkml.kernel.org/r/20250213055612.490993-1-guanjun@linux.alibaba.com
+Signed-off-by: Guanjun <guanjun@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/filemap.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-a-bug_on-in-mas_alloc_nodes
-+++ a/lib/maple_tree.c
-@@ -1242,7 +1242,6 @@ static inline void mas_alloc_nodes(struc
- 	if (mas->mas_flags & MA_STATE_PREALLOC) {
- 		if (allocated)
- 			return;
--		BUG_ON(!allocated);
- 		WARN_ON(!allocated);
- 	}
+--- a/mm/filemap.c~filemap-remove-redundant-folio_test_large-check-in-filemap_free_folio
++++ a/mm/filemap.c
+@@ -227,15 +227,12 @@ void __filemap_remove_folio(struct folio
+ void filemap_free_folio(struct address_space *mapping, struct folio *folio)
+ {
+ 	void (*free_folio)(struct folio *);
+-	int refs = 1;
  
+ 	free_folio = mapping->a_ops->free_folio;
+ 	if (free_folio)
+ 		free_folio(folio);
+ 
+-	if (folio_test_large(folio))
+-		refs = folio_nr_pages(folio);
+-	folio_put_refs(folio, refs);
++	folio_put_refs(folio, folio_nr_pages(folio));
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from ptesarik@suse.com are
+Patches currently in -mm which might be from guanjun@linux.alibaba.com are
 
 
