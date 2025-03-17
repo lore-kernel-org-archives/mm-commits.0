@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7656EDDC1
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 04:34:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B38D6DDC1
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 04:35:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742186074; cv=none; b=TQoxUsD83mjxqFJSz7fT/M2aKO1QFg6ULjly1COuNwBetfaVjbfSpuXqdCMdm/EjHz9vRkIZKMuwaxrRvlFkHRdrRsC73ISEMNjJTrnALNj3e1AsjuxOY1bgFuEZhlWb5lZ5voT3A5AdFvwmAj+0Lo4Oo6IVaBNj2AR5hMlWMzA=
+	t=1742186111; cv=none; b=EoHgDFu97Kb/VyqJ+voc3G3N11sMR5Z8+Ln3YHWEWE1cMMJ84E3ClCio7yPK+lwa/WBPKI0nrgND+06hZ4JnMzeGG4JRLKk//q9EXdLjwkJ4rErLQiCrmXbt/02j8GAQIlgH40MBghS1FsImDZQkWnNM+0vfsc9hAyaDLznvVvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742186074; c=relaxed/simple;
-	bh=oxyW/5Ir+3nTU6lvB8HTqbbK5z0XWqTnVRUWrJpsNTU=;
-	h=Date:To:From:Subject:Message-Id; b=QeYW0mPLeCnNtdQTcCZlepVIN5zgIny1FvfNgj7tsuGS1YQipa6bywe1mxO/LkLQNFBHV54asn7aPwuU3w58mTTLu9g0W8gnxEhAI6WoaNkcbLxamKj6FC3CA8UtkMuyIgEBqyj9ZkU7Jop4+2w77lniYVA+Oh8fjfjsNGq1L28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cPHslLJ3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742186111; c=relaxed/simple;
+	bh=tFIpOQvuN0plfI0h5/R1bH2Tofpvzri7804QGl1ZSW8=;
+	h=Date:To:From:Subject:Message-Id; b=tHDBRFm71duvztAEamTdbTN2inDHZaLjUOGyDLCCUTCiaDG9ghdsvTyTSHBuTiTxfTu8FX+ssgxMDs6bGVCQjQWUoKZWMASDWpZ2rvplDQIMJ429ih8DDsdpoNNbWT8q1llA274i/uapmQ0GZ2PQFJIFw+W49x5baBbYG11JYOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0mdgmbiX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cPHslLJ3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D636FC4CEEC;
-	Mon, 17 Mar 2025 04:34:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0mdgmbiX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A6E9C4CEEC;
+	Mon, 17 Mar 2025 04:35:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742186073;
-	bh=oxyW/5Ir+3nTU6lvB8HTqbbK5z0XWqTnVRUWrJpsNTU=;
+	s=korg; t=1742186110;
+	bh=tFIpOQvuN0plfI0h5/R1bH2Tofpvzri7804QGl1ZSW8=;
 	h=Date:To:From:Subject:From;
-	b=cPHslLJ3rI7RQypRu8TtIpjT1lWsyQyajUZWKV7mGg1YQSauJJ6RZ95IsZPlhLc1m
-	 u6MbcKl0+7cumW22Id50uUJfP/lcusZxBXdGiv4pgHTvwydna3ZJf3HP7sCB5BNME0
-	 VDZYmPoExWmlgCmCL2RlQLmWoEp+PYnCfoM5eyUc=
-Date: Sun, 16 Mar 2025 21:34:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,paulmck@kernel.org,liam.howlett@oracle.com,kaleshsingh@google.com,jhubbard@nvidia.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=0mdgmbiXq3MPz1QbA27mBTiUL//UmrACJ5gPkmXDV/AeD1MvX91t3jP54ZXuxkXDY
+	 ze6akFB4wCigxDq0Ta4NIbnpD0bCqI3J1ib49xKa2m4rqSQJYKUqAhMujjvS4JgkhA
+	 opWYWYM8CyulOqHmU1Ne+v1ilsiEluISGBzZgYXY=
+Date: Sun, 16 Mar 2025 21:35:09 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,sfr@canb.auug.org.au,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hca@linux.ibm.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-mm-rename-guard-pages-to-guard-regions-fix.patch removed from -mm tree
-Message-Id: <20250317043433.D636FC4CEEC@smtp.kernel.org>
+Subject: [folded-merged] refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch removed from -mm tree
+Message-Id: <20250317043510.1A6E9C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/selftests: fix guard regions invocation
+     Subject: docs: fix title underlines in refcount-vs-atomic.rst
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-rename-guard-pages-to-guard-regions-fix.patch
+     refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix.patch
 
-This patch was dropped because it was folded into selftests-mm-rename-guard-pages-to-guard-regions.patch
+This patch was dropped because it was folded into refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/selftests: fix guard regions invocation
-Date: Sun, 2 Mar 2025 08:31:57 +0000
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: docs: fix title underlines in refcount-vs-atomic.rst
+Date: Mon, 17 Feb 2025 08:16:45 -0800
 
-Link: https://lkml.kernel.org/r/13426c71-d069-4407-9340-b227ff8b8736@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Fix title underlines for newly updated refcount-vs-atomic.rst
+
+Link: https://lkml.kernel.org/r/20250217161645.3137927-1-surenb@google.com
+Fixes: 03b412c8b184 ("refcount: provide ops for cases when object's memory can be reused")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Sourav Panda <souravpanda@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/core-api/refcount-vs-atomic.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-rename-guard-pages-to-guard-regions-fix
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -395,7 +395,7 @@ CATEGORY="mremap" run_test ./mremap_dont
- CATEGORY="hmm" run_test bash ./test_hmm.sh smoke
+--- a/Documentation/core-api/refcount-vs-atomic.rst~refcount-provide-ops-for-cases-when-objects-memory-can-be-reused-fix
++++ a/Documentation/core-api/refcount-vs-atomic.rst
+@@ -87,7 +87,7 @@ Memory ordering guarantee changes:
  
- # MADV_GUARD_INSTALL and MADV_GUARD_REMOVE tests
--CATEGORY="madv_guard" run_test ./guard-pages
-+CATEGORY="madv_guard" run_test ./guard-regions
  
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
+ case 2) - non-"Read/Modify/Write" (RMW) ops with release ordering
+--------------------------------------------
++-----------------------------------------------------------------
+ 
+ Function changes:
+ 
+@@ -139,7 +139,7 @@ Memory ordering guarantees changes:
+ 
+ 
+ case 6) - increment-based RMW ops with acquire ordering that return a value
+------------------------------------------------------
++---------------------------------------------------------------------------
+ 
+ Function changes:
+ 
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-simplify-vma-merge-structure-and-expand-comments.patch
-mm-further-refactor-commit_merge.patch
-mm-eliminate-adj_start-parameter-from-commit_merge.patch
-mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
-mm-completely-abstract-unnecessary-adj_start-calculation.patch
-mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
-mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
-mm-provide-mapping_wrprotect_range-function.patch
-fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
-mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
-selftests-mm-rename-guard-pages-to-guard-regions.patch
-tools-selftests-expand-all-guard-region-tests-to-file-backed.patch
-tools-selftests-add-file-shmem-backed-mapping-guard-region-tests.patch
-fs-proc-task_mmu-add-guard-region-bit-to-pagemap.patch
-tools-selftests-add-guard-region-test-for-proc-pid-pagemap.patch
-tools-selftests-add-guard-region-test-for-proc-pid-pagemap-fix.patch
-mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
-mm-mremap-refactor-mremap-system-call-implementation.patch
-mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
-mm-mremap-initial-refactor-of-move_vma.patch
-mm-mremap-complete-refactor-of-move_vma.patch
-mm-mremap-refactor-move_page_tables-abstracting-state.patch
-mm-mremap-thread-state-through-move-page-table-operation.patch
+mm-avoid-extra-mem_alloc_profiling_enabled-checks.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-slab-allocator.patch
+alloc_tag-uninline-code-gated-by-mem_alloc_profiling_key-in-page-allocator.patch
+mm-introduce-vma_start_read_locked_nested-helpers.patch
+mm-move-per-vma-lock-into-vm_area_struct.patch
+mm-mark-vma-as-detached-until-its-added-into-vma-tree.patch
+mm-introduce-vma_iter_store_attached-to-use-with-attached-vmas.patch
+mm-mark-vmas-detached-upon-exit.patch
+types-move-struct-rcuwait-into-typesh.patch
+mm-allow-vma_start_read_locked-vma_start_read_locked_nested-to-fail.patch
+mm-move-mmap_init_lock-out-of-the-header-file.patch
+mm-uninline-the-main-body-of-vma_start_write.patch
+refcount-provide-ops-for-cases-when-objects-memory-can-be-reused.patch
+refcount-introduce-__refcount_addinc_not_zero_limited_acquire.patch
+mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+mm-replace-vm_lock-and-detached-flag-with-a-reference-count-fix.patch
+mm-move-lesser-used-vma_area_struct-members-into-the-last-cacheline.patch
+mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
+mm-remove-extra-vma_numab_state_init-call.patch
+mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
+mm-make-vma-cache-slab_typesafe_by_rcu.patch
+mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch
+docs-mm-document-latest-changes-to-vm_lock.patch
 
