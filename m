@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CE65214A89
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677EB214A89
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188443; cv=none; b=HVdUlIKzVFmd6HFUsBVgOi5a505oCGrXI3v08eNeKkFHmkHZPmuBiAOnfDc5WHC3S3ZHORWh9ML39hydk7O1NQryf9khOqICmAHnKwPYtv8vrN7qJT01kso3hfWCxEmYYGRPy3uUAA6kwtCirivwmxHSGPmEr79s0Lnal/8F7g0=
+	t=1742188444; cv=none; b=m+XwMcWMnCpbCJ+zfxKKLlUEYDkns+94MRBtescL5BAG+VILWBIs4Mtdtm1GKfJbSf6IAP3l/LPJlOzxJPjPNmBRP3cK9JQTzy1GSn5oWn7lh53LvUYmDUL8eutmFnP0JzDnznLiB1cfd0A04I1qyFiEo4xpG8w5NPCQZSW4S6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188443; c=relaxed/simple;
-	bh=dEFOvtmeN8aANDjZsypCPN3AzzGcu8iNFuyZScCG/FE=;
-	h=Date:To:From:Subject:Message-Id; b=c0bqb8iCcsIbreZkIHxNqFz9loLQ3cP2eMH719NI6n/PQnnOxoyaBnERb/+yW14rf1odwUtMN8Vrd8PfvVY7ORTysrvIwn3N+Gslikkk4sDnHNAXHkBTQ5qh7U5H/gQ/V2oXSIcSHpfJcFtUS9Dy0rrdF/4mnAPLgyB5D2D7xFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d0PW95g4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188444; c=relaxed/simple;
+	bh=7ZaP4gp7PSsjTpYiVqAXjefYbs5aikHfb74tW8St7Mg=;
+	h=Date:To:From:Subject:Message-Id; b=NF6/6uFb6nh0qjD2HWo+rwB2pg1P6Sz4uZbDFeJfCtrp7a9Uin2D6vB1lqW+0r19iB1If65gUAmIMa7yY0cnsmNbXAhXw+TE/+ycNNjDW9Co1ppedp9HdNM1+zSBuTdpMJBzjIloaI/Ft4co6NQBCQPip6LDuRxFqr+E8KCdt2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=towwpwo1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d0PW95g4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6AD1C4CEEC;
-	Mon, 17 Mar 2025 05:14:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="towwpwo1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CA18C4CEEC;
+	Mon, 17 Mar 2025 05:14:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188442;
-	bh=dEFOvtmeN8aANDjZsypCPN3AzzGcu8iNFuyZScCG/FE=;
+	s=korg; t=1742188444;
+	bh=7ZaP4gp7PSsjTpYiVqAXjefYbs5aikHfb74tW8St7Mg=;
 	h=Date:To:From:Subject:From;
-	b=d0PW95g49OTS9A91b2Dwq246c2x5RNq1gD+38s/v0aTk17a6LYDS8HtC2dtHJL2EQ
-	 6cd9JtOgkH8np+va+AsC/h+7FXHlCA1ZpoaCZl/YNkexvrYV0GRatLcVTgrZMDpeEA
-	 kgBAiwJYUqmDLoIQ8xAI73vsT572cc6ODp7XAyb8=
-Date: Sun, 16 Mar 2025 22:14:02 -0700
+	b=towwpwo1SdFMEVO79QBJDNSe90NjWA4ytdIIAG2HBUqk3h5beOdoxCiaro1XdX1U+
+	 TWDNT+USeAOZ6wvdQDYQn/SvqMsdJOC1toW+wE11/uqCjgw5CVUAQEtgWig/HbCYPh
+	 oK2ZLi7jM8x/fz2gIpfUZiQ95bbAXzcddF6Eyh7w=
+Date: Sun, 16 Mar 2025 22:14:03 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,mjguzik@gmail.com,lorenzo.stoakes@oracle.com,dev.jain@arm.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-dont-fail-uffd-stress-if-too-many-cpus.patch removed from -mm tree
-Message-Id: <20250317051402.D6AD1C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-skip-map_populate-on-weird-filesystems.patch removed from -mm tree
+Message-Id: <20250317051404.3CA18C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: don't fail uffd-stress if too many CPUs
+     Subject: selftests/mm: skip map_populate on weird filesystems
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-dont-fail-uffd-stress-if-too-many-cpus.patch
+     selftests-mm-skip-map_populate-on-weird-filesystems.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: selftests/mm: don't fail uffd-stress if too many CPUs
-Date: Tue, 11 Mar 2025 13:18:17 +0000
+Subject: selftests/mm: skip map_populate on weird filesystems
+Date: Tue, 11 Mar 2025 13:18:18 +0000
 
-This calculation divides a fixed parameter by an environment-dependent
-parameter i.e.  the number of CPUs.
+It seems that 9pfs does not allow truncating unlinked files, Mark Brown
+has noted that NFS may also behave this way.
 
-The simple way to avoid machine-specific failures here is to just put a
-cap on the max value of the latter.
+It doesn't seem quite right to call this a "bug" but it's probably a
+special enough case that it makes sense for the test to just SKIP if it
+happens.
 
-Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-6-dec210a658f5@google.com
+Link: https://lkml.kernel.org/r/20250311-mm-selftests-v4-7-dec210a658f5@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Suggested-by: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/map_populate.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-dont-fail-uffd-stress-if-too-many-cpus
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -435,6 +435,7 @@ static void sigalrm(int sig)
+--- a/tools/testing/selftests/mm/map_populate.c~selftests-mm-skip-map_populate-on-weird-filesystems
++++ a/tools/testing/selftests/mm/map_populate.c
+@@ -87,6 +87,13 @@ int main(int argc, char **argv)
+ 	BUG_ON(!ftmp, "tmpfile()");
  
- int main(int argc, char **argv)
- {
-+	unsigned long nr_cpus;
- 	size_t bytes;
- 
- 	if (argc < 4)
-@@ -453,7 +454,15 @@ int main(int argc, char **argv)
- 		return KSFT_SKIP;
- 	}
- 
--	nr_parallel = sysconf(_SC_NPROCESSORS_ONLN);
-+	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
-+	if (nr_cpus > 32) {
-+		/* Don't let calculation below go to zero. */
-+		ksft_print_msg("_SC_NPROCESSORS_ONLN (%lu) too large, capping nr_threads to 32\n",
-+			       nr_cpus);
-+		nr_parallel = 32;
-+	} else {
-+		nr_parallel = nr_cpus;
+ 	ret = ftruncate(fileno(ftmp), MMAP_SZ);
++	if (ret < 0 && errno == ENOENT) {
++		/*
++		 * This probably means tmpfile() made a file on a filesystem
++		 * that doesn't handle temporary files the way we want.
++		 */
++		ksft_exit_skip("ftruncate(fileno(tmpfile())) gave ENOENT, weird filesystem?\n");
 +	}
+ 	BUG_ON(ret, "ftruncate()");
  
- 	nr_pages_per_cpu = bytes / page_size / nr_parallel;
- 	if (!nr_pages_per_cpu) {
+ 	smap = mmap(0, MMAP_SZ, PROT_READ | PROT_WRITE,
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
