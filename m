@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0140A21518B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C42F21518D
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188205; cv=none; b=Nav+2K+wbOj+h05bc1DhOxDScS9MeR98UPGXOFs+bba8YYeOB3lw801udHDeuH/cWpdtcrmpASerQSB6LJ9SHIWZ5P2dcg9oXUiZ9HaU0UN7kaoYHTopVSvqz/ou1O7NdwOsLDTV2zHDDLrOwh74AZ/ptI8WfiGDKLWN8vNN2Vw=
+	t=1742188206; cv=none; b=cZM92m2/tzSn85sgV9PIDTCU+INIQOmWunW/T1BmTZTiyK3BZ9SzX8MZUBfhp0w3Em9WlANvLMH5VhJ3QsjJabcQonaahz8fXbxPHTXHngVfiuwp44dFJaYN8ixUIg8cx2FeH4/QYwQ5QfPPZqJhrXcy5xNWmaMcKT+Q/tTXPCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188205; c=relaxed/simple;
-	bh=/2GOS29hAeyybHUQCF53mYKT/SReI/XXrl9omNtKgBM=;
-	h=Date:To:From:Subject:Message-Id; b=ufDXgYReMPJjILgEoLggZk6il36LPjJNJt64sgo2FW45Evxns6B6h+OL1zvAoW53xevEeXrS84KxAKKXqzKlZT8eraXGu3+3nN4a1YcQwYPV7HPQgnPAJ7uirncNg/eguMVNgoasdp+VmqevN9mNRFpa8ELBRS8YRcdh3yHAzJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZHcdtlBI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188206; c=relaxed/simple;
+	bh=yxZK+hfAU+1YUYB5YdOZr0xYfPHpy2RjI0MlfaJnwac=;
+	h=Date:To:From:Subject:Message-Id; b=hte2Zl7dnTPfz1HdnDUXDqAJ47YeeXYA/EU0PX2qAIgC1UtlFHJ9fXr9RI77H6cbq7jFJiCYkiIqSGByyHAA4Zr2xScfqBMwj05X/svm6mowIVBEg/RJv1fGfIIBoHt84jjrEjeyZl7se843oBSm57YW42iz3pB0oFc+T7E5VS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VFLMfv4F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZHcdtlBI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE722C4CEEC;
-	Mon, 17 Mar 2025 05:10:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VFLMfv4F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 276C6C4CEEC;
+	Mon, 17 Mar 2025 05:10:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188204;
-	bh=/2GOS29hAeyybHUQCF53mYKT/SReI/XXrl9omNtKgBM=;
+	s=korg; t=1742188206;
+	bh=yxZK+hfAU+1YUYB5YdOZr0xYfPHpy2RjI0MlfaJnwac=;
 	h=Date:To:From:Subject:From;
-	b=ZHcdtlBIYzBZUmwkSZ9EeyN1x92AuQ+C8jpLRGrdM0Iv7VcCoGouTgvXtF66p33Ne
-	 0eTh31g6CEFz29ZqkAmD7GbjtME2T4DEUjL9tlA3QU3Qt5GqNitr4hue6PFM7bmYcq
-	 XFSyGC2Y4jDp+iftuzQveIlovhotDuWIPwMlLjVs=
-Date: Sun, 16 Mar 2025 22:10:04 -0700
+	b=VFLMfv4FfJ/h1lgQyzEg11IW2UtlXY1We6cY47TYh2IQ1A2GFhJHaFFNcGZyh7DlL
+	 S0yeA4KdJlLqmHh11IGtCco52ey4f+7W7cH56fAB9yx+liTRmF3Sm0HM+ekfskzUku
+	 wb9rLnCN7mPLiej+HqK05YuaIv69XCKFjwMhZZvU=
+Date: Sun, 16 Mar 2025 22:10:05 -0700
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,sj@kernel.org,si.yanteng@linux.dev,simona.vetter@ffwll.ch,peterz@infradead.org,peterx@redhat.com,pasha.tatashin@soleen.com,oleg@redhat.com,mhiramat@kernel.org,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kherbst@redhat.com,jhubbard@nvidia.com,jglisse@redhat.com,jgg@nvidia.com,jannh@google.com,dakr@kernel.org,corbet@lwn.net,apopple@nvidia.com,alexs@kernel.org,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-handle-device-exclusive-entries-correctly-in-damon_folio_mkold_one.patch removed from -mm tree
-Message-Id: <20250317051004.BE722C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries.patch removed from -mm tree
+Message-Id: <20250317051006.276C6C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: handle device-exclusive entries correctly in damon_folio_mkold_one()
+     Subject: mm/rmap: keep mapcount untouched for device-exclusive entries
 has been removed from the -mm tree.  Its filename was
-     mm-damon-handle-device-exclusive-entries-correctly-in-damon_folio_mkold_one.patch
+     mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/damon: handle device-exclusive entries correctly in damon_folio_mkold_one()
-Date: Mon, 10 Feb 2025 20:37:57 +0100
+Subject: mm/rmap: keep mapcount untouched for device-exclusive entries
+Date: Mon, 10 Feb 2025 20:37:58 +0100
 
-Ever since commit b756a3b5e7ea ("mm: device exclusive memory access") we
-can return with a device-exclusive entry from page_vma_mapped_walk().
+Now that conversion to device-exclusive does no longer perform an rmap
+walk and all page_vma_mapped_walk() users were taught to properly handle
+device-exclusive entries, let's treat device-exclusive entries just as if
+they would be present, similar to how we handle device-private entries
+already.
 
-damon_folio_mkold_one() is not prepared for that and calls
-damon_ptep_mkold() with PFN swap PTEs.  Teach damon_ptep_mkold() to deal
-with these PFN swap PTEs.  Note that device-private entries are so far not
-applicable on that path, as damon_get_folio() filters out non-lru folios.
+This fixes swapout/migration/split/hwpoison of folios with
+device-exclusive entries.
 
-Should we just skip PFN swap PTEs completely?  Possible, but it seems
-straight forward to just handle it correctly.
+We only had to take care of page_vma_mapped_walk() users, because these
+traditionally assume pte_present().  Other page table walkers already have
+to handle !pte_present(), and some of them might simply skip them (e.g.,
+MADV_PAGEOUT) if they are not specialized on them.  This change doesn't
+modify the latter.
 
-Note that we could currently only run into this case with device-exclusive
-entries on THPs.  We still adjust the mapcount on conversion to
-device-exclusive; this makes the rmap walk abort early for small folios,
-because we'll always have !folio_mapped() with a single device-exclusive
-entry.  We'll adjust the mapcount logic once all page_vma_mapped_walk()
-users can properly handle device-exclusive entries.
+Note that while folios with device-exclusive PTEs can now get migrated,
+khugepaged will not collapse a THP if there is device-exclusive PTE. 
+Doing so might also not be desired if the device frequently performs
+atomics to the same page.  Similarly, KSM will never merge order-0 folios
+that are device-exclusive.
 
-Link: https://lkml.kernel.org/r/20250210193801.781278-16-david@redhat.com
+Link: https://lkml.kernel.org/r/20250210193801.781278-17-david@redhat.com
+Fixes: b756a3b5e7ea ("mm: device exclusive memory access")
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
 Tested-by: Alistair Popple <apopple@nvidia.com>
 Cc: Alex Shi <alexs@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
@@ -86,6 +89,7 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Simona Vetter <simona.vetter@ffwll.ch>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yanteng Si <si.yanteng@linux.dev>
@@ -93,52 +97,59 @@ Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ mm/memory.c |   17 +----------------
+ mm/rmap.c   |    7 -------
+ 2 files changed, 1 insertion(+), 23 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-handle-device-exclusive-entries-correctly-in-damon_folio_mkold_one
-+++ a/mm/damon/ops-common.c
-@@ -9,6 +9,8 @@
- #include <linux/page_idle.h>
- #include <linux/pagemap.h>
- #include <linux/rmap.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
+--- a/mm/memory.c~mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries
++++ a/mm/memory.c
+@@ -741,20 +741,6 @@ static void restore_exclusive_pte(struct
  
- #include "ops-common.h"
+ 	VM_BUG_ON_FOLIO(pte_write(pte) && (!folio_test_anon(folio) &&
+ 					   PageAnonExclusive(page)), folio);
+-
+-	/*
+-	 * No need to take a page reference as one was already
+-	 * created when the swap entry was made.
+-	 */
+-	if (folio_test_anon(folio))
+-		folio_add_anon_rmap_pte(folio, page, vma, address, RMAP_NONE);
+-	else
+-		/*
+-		 * Currently device exclusive access only supports anonymous
+-		 * memory so the entry shouldn't point to a filebacked page.
+-		 */
+-		WARN_ON_ONCE(1);
+-
+ 	set_pte_at(vma->vm_mm, address, ptep, pte);
  
-@@ -39,12 +41,29 @@ struct folio *damon_get_folio(unsigned l
+ 	/*
+@@ -1626,8 +1612,7 @@ static inline int zap_nonpresent_ptes(st
+ 		 */
+ 		WARN_ON_ONCE(!vma_is_anonymous(vma));
+ 		rss[mm_counter(folio)]--;
+-		if (is_device_private_entry(entry))
+-			folio_remove_rmap_pte(folio, page, vma);
++		folio_remove_rmap_pte(folio, page, vma);
+ 		folio_put(folio);
+ 	} else if (!non_swap_entry(entry)) {
+ 		/* Genuine swap entries, hence a private anon pages */
+--- a/mm/rmap.c~mm-rmap-keep-mapcount-untouched-for-device-exclusive-entries
++++ a/mm/rmap.c
+@@ -2511,13 +2511,6 @@ struct page *make_device_exclusive(struc
+ 	/* The pte is writable, uffd-wp does not apply. */
+ 	set_pte_at(mm, addr, fw.ptep, swp_pte);
  
- void damon_ptep_mkold(pte_t *pte, struct vm_area_struct *vma, unsigned long addr)
- {
--	struct folio *folio = damon_get_folio(pte_pfn(ptep_get(pte)));
-+	pte_t pteval = ptep_get(pte);
-+	struct folio *folio;
-+	bool young = false;
-+	unsigned long pfn;
-+
-+	if (likely(pte_present(pteval)))
-+		pfn = pte_pfn(pteval);
-+	else
-+		pfn = swp_offset_pfn(pte_to_swp_entry(pteval));
- 
-+	folio = damon_get_folio(pfn);
- 	if (!folio)
- 		return;
- 
--	if (ptep_clear_young_notify(vma, addr, pte))
-+	/*
-+	 * PFN swap PTEs, such as device-exclusive ones, that actually map pages
-+	 * are "old" from a CPU perspective. The MMU notifier takes care of any
-+	 * device aspects.
-+	 */
-+	if (likely(pte_present(pteval)))
-+		young |= ptep_test_and_clear_young(vma, addr, pte);
-+	young |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PAGE_SIZE);
-+	if (young)
- 		folio_set_young(folio);
- 
- 	folio_set_idle(folio);
+-	/*
+-	 * TODO: The device-exclusive PFN swap PTE holds a folio reference but
+-	 * does not count as a mapping (mapcount), which is wrong and must be
+-	 * fixed, otherwise RMAP walks don't behave as expected.
+-	 */
+-	folio_remove_rmap_pte(folio, page, vma);
+-
+ 	folio_walk_end(&fw, vma);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	*foliop = folio;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
