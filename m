@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B01B217709
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65D87217709
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188424; cv=none; b=Npmlth23CHaT+03zECUgeHOV3JZzQSdegegSN96rHxuAkMyBJFHpNT5D8nIYbwGP3hqA1EgUn/Hq2yIq062cLXGb6ykQUXIsl3owfLrKW+MrCHdblELKcEg0Hg1QexzYMpzSJ4vKGGOOilTUPolqO/JgKPLfvGm9XMRjaL31KQc=
+	t=1742188425; cv=none; b=dbY+1V7eO3mauGahFQbJkASqwus55sc1Y5fN7swoUbSRv6QZmlBVQfubTTei/N5C7m6SQiucafGJq+JTkBb92eQ6D99dOqz1FodyUDj26SyD29DJFM/Kx3Le3QtUdNHjIxqukW7BEOydgdDEE+4InCibSTOOqDlb50jVB9msRQM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188424; c=relaxed/simple;
-	bh=Ej/Yox2xUm9QFxSPH+RqA5Cdt+6hFp3a+zYRXr165Mc=;
-	h=Date:To:From:Subject:Message-Id; b=Dk5qsuG+rrd8xjKzV9KigP4qA27iG1CYqOz43oWL8AU8dcoenFfqOQ2YegGv51Lqd1/703PrBkcUyacchI6K7FTo5zsO9hUZ3ICE/3mjDTYZRE5hbZ2qRF9eumVwB2wnBk9rQxQJ2pz6iaPYgGB2akLWw+5Pny+1mL7jN4X1FqU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xJzg3SMn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188425; c=relaxed/simple;
+	bh=5+rjaCw2GvRDKW1sAxDr3cyMjgLpNqd7SfUAWAhlzvA=;
+	h=Date:To:From:Subject:Message-Id; b=GJFsK5P0m6AKk6otJVng1bjyshMLU4Dwfe8OYSHE8JX7pU61JwYqZ3EBOe3xYQes478qNDMbbTM08CbDHmzBgvDhoSpcVelb87UQSpK/OyotVToDSdCqYwvabvC9yOf4X9pc72NuO57geSpYtMCK5+ZsPCa1jAvMGlYtvfxenEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q4HPvfS/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xJzg3SMn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21523C4CEEC;
-	Mon, 17 Mar 2025 05:13:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q4HPvfS/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DCA1C4CEEC;
+	Mon, 17 Mar 2025 05:13:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188424;
-	bh=Ej/Yox2xUm9QFxSPH+RqA5Cdt+6hFp3a+zYRXr165Mc=;
+	s=korg; t=1742188425;
+	bh=5+rjaCw2GvRDKW1sAxDr3cyMjgLpNqd7SfUAWAhlzvA=;
 	h=Date:To:From:Subject:From;
-	b=xJzg3SMnFVe1DErgN4jmLCgR7Iim2TsY2xx7/yvzBBxJy8RP0o8rKB5qmcALPJbUQ
-	 nkfZNR49KV3/9LA56lss9iIVN7eYM55J/omptIbaVM0mXX7FmJ6ecQQj6O3fg/YLPS
-	 w1HNA3qQc5k+4HZh1rgSuJZ30HIMijg1cfdSfIbM=
-Date: Sun, 16 Mar 2025 22:13:43 -0700
+	b=Q4HPvfS/44VvjkC3xViTZwF4iGB8YDten502ssC/ifngBS5zDiegJb8mt0VceLH12
+	 wHw6GyRHj/9PyKLC3sb7SJHEY7GRAdpDRWH0TCklQ5wNi/9A2MsDIdIDV68YFtyQ8L
+	 TsWY3Gt/O8DNyeerkLwqvkiD5IViNjxSi/oFiSRM=
+Date: Sun, 16 Mar 2025 22:13:44 -0700
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,minchan@kernel.org,hdanton@sina.com,bigeasy@linutronix.de,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-move-post-processing-target-allocation.patch removed from -mm tree
-Message-Id: <20250317051344.21523C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-rename-pool-lock.patch removed from -mm tree
+Message-Id: <20250317051345.3DCA1C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,147 +35,172 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: move post-processing target allocation
+     Subject: zsmalloc: rename pool lock
 has been removed from the -mm tree.  Its filename was
-     zram-move-post-processing-target-allocation.patch
+     zsmalloc-rename-pool-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: move post-processing target allocation
-Date: Mon, 3 Mar 2025 11:03:20 +0900
+Subject: zsmalloc: rename pool lock
+Date: Mon, 3 Mar 2025 11:03:21 +0900
 
-Allocate post-processing target in place_pp_slot().  This simplifies
-scan_slots_for_writeback() and scan_slots_for_recompress() loops because
-we don't need to track pps pointer state anymore.  Previously we have to
-explicitly NULL the point if it has been added to a post-processing bucket
-or re-use previously allocated pointer otherwise and make sure we don't
-leak the memory in the end.
+The old name comes from the times when the pool did not have compaction
+(defragmentation).  Rename it to ->lock because these days it synchronizes
+not only migration.
 
-We are also fine doing GFP_NOIO allocation, as post-processing can be
-called under memory pressure so we better pick as many slots as we can as
-soon as we can and start post-processing them, possibly saving the memory.
-Allocation failure there is not fatal, we will post-process whatever we
-put into the buckets on previous iterations.
-
-Link: https://lkml.kernel.org/r/20250303022425.285971-12-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20250303022425.285971-13-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Yosry Ahmed <yosry.ahmed@linux.dev>
 Cc: Hillf Danton <hdanton@sina.com>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   50 ++++++++++++++------------------
- 1 file changed, 22 insertions(+), 28 deletions(-)
+ mm/zsmalloc.c |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-move-post-processing-target-allocation
-+++ a/drivers/block/zram/zram_drv.c
-@@ -295,15 +295,24 @@ static void release_pp_ctl(struct zram *
- 	kfree(ctl);
- }
+--- a/mm/zsmalloc.c~zsmalloc-rename-pool-lock
++++ a/mm/zsmalloc.c
+@@ -18,7 +18,7 @@
+ /*
+  * lock ordering:
+  *	page_lock
+- *	pool->migrate_lock
++ *	pool->lock
+  *	class->lock
+  *	zspage->lock
+  */
+@@ -223,8 +223,8 @@ struct zs_pool {
+ #ifdef CONFIG_COMPACTION
+ 	struct work_struct free_work;
+ #endif
+-	/* protect page/zspage migration */
+-	rwlock_t migrate_lock;
++	/* protect zspage migration/compaction */
++	rwlock_t lock;
+ 	atomic_t compaction_in_progress;
+ };
  
--static void place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
--			  struct zram_pp_slot *pps)
-+static bool place_pp_slot(struct zram *zram, struct zram_pp_ctl *ctl,
-+			  u32 index)
- {
--	u32 idx;
-+	struct zram_pp_slot *pps;
-+	u32 bid;
-+
-+	pps = kmalloc(sizeof(*pps), GFP_NOIO | __GFP_NOWARN);
-+	if (!pps)
-+		return false;
+@@ -1206,7 +1206,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	BUG_ON(in_interrupt());
  
--	idx = zram_get_obj_size(zram, pps->index) / PP_BUCKET_SIZE_RANGE;
--	list_add(&pps->entry, &ctl->pp_buckets[idx]);
-+	INIT_LIST_HEAD(&pps->entry);
-+	pps->index = index;
-+
-+	bid = zram_get_obj_size(zram, pps->index) / PP_BUCKET_SIZE_RANGE;
-+	list_add(&pps->entry, &ctl->pp_buckets[bid]);
+ 	/* It guarantees it can get zspage from handle safely */
+-	read_lock(&pool->migrate_lock);
++	read_lock(&pool->lock);
+ 	obj = handle_to_obj(handle);
+ 	obj_to_location(obj, &zpdesc, &obj_idx);
+ 	zspage = get_zspage(zpdesc);
+@@ -1218,7 +1218,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	 * which is smaller granularity.
+ 	 */
+ 	migrate_read_lock(zspage);
+-	read_unlock(&pool->migrate_lock);
++	read_unlock(&pool->lock);
  
- 	zram_set_flag(zram, pps->index, ZRAM_PP_SLOT);
-+	return true;
- }
+ 	class = zspage_class(pool, zspage);
+ 	off = offset_in_page(class->size * obj_idx);
+@@ -1450,16 +1450,16 @@ void zs_free(struct zs_pool *pool, unsig
+ 		return;
  
- static struct zram_pp_slot *select_pp_slot(struct zram_pp_ctl *ctl)
-@@ -737,15 +746,8 @@ static int scan_slots_for_writeback(stru
- 				    unsigned long index,
- 				    struct zram_pp_ctl *ctl)
- {
--	struct zram_pp_slot *pps = NULL;
--
- 	for (; nr_pages != 0; index++, nr_pages--) {
--		if (!pps)
--			pps = kmalloc(sizeof(*pps), GFP_KERNEL);
--		if (!pps)
--			return -ENOMEM;
--
--		INIT_LIST_HEAD(&pps->entry);
-+		bool ok = true;
+ 	/*
+-	 * The pool->migrate_lock protects the race with zpage's migration
++	 * The pool->lock protects the race with zpage's migration
+ 	 * so it's safe to get the page from handle.
+ 	 */
+-	read_lock(&pool->migrate_lock);
++	read_lock(&pool->lock);
+ 	obj = handle_to_obj(handle);
+ 	obj_to_zpdesc(obj, &f_zpdesc);
+ 	zspage = get_zspage(f_zpdesc);
+ 	class = zspage_class(pool, zspage);
+ 	spin_lock(&class->lock);
+-	read_unlock(&pool->migrate_lock);
++	read_unlock(&pool->lock);
  
- 		zram_slot_lock(zram, index);
- 		if (!zram_allocated(zram, index))
-@@ -765,14 +767,13 @@ static int scan_slots_for_writeback(stru
- 		    !zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
- 			goto next;
+ 	class_stat_sub(class, ZS_OBJS_INUSE, 1);
+ 	obj_free(class->size, obj);
+@@ -1796,7 +1796,7 @@ static int zs_page_migrate(struct page *
+ 	 * The pool migrate_lock protects the race between zpage migration
+ 	 * and zs_free.
+ 	 */
+-	write_lock(&pool->migrate_lock);
++	write_lock(&pool->lock);
+ 	class = zspage_class(pool, zspage);
  
--		pps->index = index;
--		place_pp_slot(zram, ctl, pps);
--		pps = NULL;
-+		ok = place_pp_slot(zram, ctl, index);
- next:
- 		zram_slot_unlock(zram, index);
-+		if (!ok)
-+			break;
+ 	/*
+@@ -1833,7 +1833,7 @@ static int zs_page_migrate(struct page *
+ 	 * Since we complete the data copy and set up new zspage structure,
+ 	 * it's okay to release migration_lock.
+ 	 */
+-	write_unlock(&pool->migrate_lock);
++	write_unlock(&pool->lock);
+ 	spin_unlock(&class->lock);
+ 	migrate_write_unlock(zspage);
+ 
+@@ -1956,7 +1956,7 @@ static unsigned long __zs_compact(struct
+ 	 * protect the race between zpage migration and zs_free
+ 	 * as well as zpage allocation/free
+ 	 */
+-	write_lock(&pool->migrate_lock);
++	write_lock(&pool->lock);
+ 	spin_lock(&class->lock);
+ 	while (zs_can_compact(class)) {
+ 		int fg;
+@@ -1983,14 +1983,14 @@ static unsigned long __zs_compact(struct
+ 		src_zspage = NULL;
+ 
+ 		if (get_fullness_group(class, dst_zspage) == ZS_INUSE_RATIO_100
+-		    || rwlock_is_contended(&pool->migrate_lock)) {
++		    || rwlock_is_contended(&pool->lock)) {
+ 			putback_zspage(class, dst_zspage);
+ 			dst_zspage = NULL;
+ 
+ 			spin_unlock(&class->lock);
+-			write_unlock(&pool->migrate_lock);
++			write_unlock(&pool->lock);
+ 			cond_resched();
+-			write_lock(&pool->migrate_lock);
++			write_lock(&pool->lock);
+ 			spin_lock(&class->lock);
+ 		}
  	}
+@@ -2002,7 +2002,7 @@ static unsigned long __zs_compact(struct
+ 		putback_zspage(class, dst_zspage);
  
--	kfree(pps);
- 	return 0;
+ 	spin_unlock(&class->lock);
+-	write_unlock(&pool->migrate_lock);
++	write_unlock(&pool->lock);
+ 
+ 	return pages_freed;
  }
+@@ -2014,10 +2014,10 @@ unsigned long zs_compact(struct zs_pool
+ 	unsigned long pages_freed = 0;
  
-@@ -1827,16 +1828,10 @@ static int scan_slots_for_recompress(str
- 				     struct zram_pp_ctl *ctl)
- {
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
--	struct zram_pp_slot *pps = NULL;
- 	unsigned long index;
+ 	/*
+-	 * Pool compaction is performed under pool->migrate_lock so it is basically
++	 * Pool compaction is performed under pool->lock so it is basically
+ 	 * single-threaded. Having more than one thread in __zs_compact()
+-	 * will increase pool->migrate_lock contention, which will impact other
+-	 * zsmalloc operations that need pool->migrate_lock.
++	 * will increase pool->lock contention, which will impact other
++	 * zsmalloc operations that need pool->lock.
+ 	 */
+ 	if (atomic_xchg(&pool->compaction_in_progress, 1))
+ 		return 0;
+@@ -2139,7 +2139,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		return NULL;
  
- 	for (index = 0; index < nr_pages; index++) {
--		if (!pps)
--			pps = kmalloc(sizeof(*pps), GFP_KERNEL);
--		if (!pps)
--			return -ENOMEM;
--
--		INIT_LIST_HEAD(&pps->entry);
-+		bool ok = true;
+ 	init_deferred_free(pool);
+-	rwlock_init(&pool->migrate_lock);
++	rwlock_init(&pool->lock);
+ 	atomic_set(&pool->compaction_in_progress, 0);
  
- 		zram_slot_lock(zram, index);
- 		if (!zram_allocated(zram, index))
-@@ -1859,14 +1854,13 @@ static int scan_slots_for_recompress(str
- 		if (zram_get_priority(zram, index) + 1 >= prio_max)
- 			goto next;
- 
--		pps->index = index;
--		place_pp_slot(zram, ctl, pps);
--		pps = NULL;
-+		ok = place_pp_slot(zram, ctl, index);
- next:
- 		zram_slot_unlock(zram, index);
-+		if (!ok)
-+			break;
- 	}
- 
--	kfree(pps);
- 	return 0;
- }
- 
+ 	pool->name = kstrdup(name, GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
