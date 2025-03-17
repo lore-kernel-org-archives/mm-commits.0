@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98C89140E30
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 451D6140E30
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189528; cv=none; b=NaaKoH2Hs/pCCutzhm+l3PELvm6D41vMly8uNVYSOMgrEEnkyvNWkgpx+5kK9HFPFUeQUckFX/Kl8wfxlxDEruN+LqAdPBPv7aDr7SVQBKNx75ZQTtdYM7ikjjoXAFRt0FqJRRermDZALVC3ogJU0mn/ss82hnE+kw2DCJd3cG4=
+	t=1742189530; cv=none; b=NjPE9T+ud6eaqqsmQYoLo7QNnJezjSu8EtUXXO5OKNAkvfA6BHMZAE5zFyZ3d+OfSqHqJP2PODkqRcJldLNGbzK9KUx62OgIARcBXWLAKh15dwh5m2+hSBqAhNjqBDGn7fMe9IbK1fkPPyBQ4bkBlMabg9L/M2UWZssf479c8cI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189528; c=relaxed/simple;
-	bh=Dxw8XVjFsROxxGynea0aqYplmLOlTMJNu+6XklkSIzo=;
-	h=Date:To:From:Subject:Message-Id; b=FhDw140t9142msubr6JPgAXcF89pAtr8BB6Pp8qXBy3OjAJOY+FS61jgDJOgMcznz5Z72KsgBHZiysY/F5pm78Fdyh3Dcrj3iX9qsPfAfKccx61q9aKZxLjyHCw8cYMi6HlecqkiOFErSn2T+Xo19uo/1xFCZqEXulsfCae9VV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ogf3hyjD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189530; c=relaxed/simple;
+	bh=yUBrDRbuAZFhmnVsC6MVVSQg72Z4yIOp0LBBsn85shA=;
+	h=Date:To:From:Subject:Message-Id; b=dic19R9HkvjnAAz84fky5ruuEI7l7zXIZTRLqQohFckgRCt694Wc/6M/cg8jRt6folx7/YP/V/kbR3k5Jly20z+nfI1gwSxJ95hNtrr3pfYa6vN27Wdd4bpuccA3eZWOqd6PHJ5aFXbSY1RyUXbfZ8INnJtbDXf8DrcR2qAlYeo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BEpiGiBK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ogf3hyjD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C3BC4CEEC;
-	Mon, 17 Mar 2025 05:32:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BEpiGiBK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89C1C4CEEC;
+	Mon, 17 Mar 2025 05:32:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189528;
-	bh=Dxw8XVjFsROxxGynea0aqYplmLOlTMJNu+6XklkSIzo=;
+	s=korg; t=1742189529;
+	bh=yUBrDRbuAZFhmnVsC6MVVSQg72Z4yIOp0LBBsn85shA=;
 	h=Date:To:From:Subject:From;
-	b=Ogf3hyjDIwueYDa1nksaLfWdrHpch7pcfH87oBBP4+6gPXqnPgeuKFhHk+dMdcdNi
-	 kxTCMxZhQldfRwATDFO1GjEHb6sIE3ii9VskEn4CNL9gn6meVdAnK2tJteRKn5UwwT
-	 PW92nMAl8bg8pECZyAFg7LVk5FEZmUMKIn1cn2b8=
-Date: Sun, 16 Mar 2025 22:32:07 -0700
+	b=BEpiGiBKrmPzxI7fv68aTcABFenLRHrggufUe36t/QIZe5aHZT1KBwZ70+aZM0Wox
+	 N1LwY0fzybUaW0gzopCp5toNZL7lkVDPHyb0HAg//nr7wkEV+qum0e6xdttf7sg/xm
+	 DgPZUQ0RfV485UeFs/WAcS7Z1Pnxmex+cXEpLYrU=
+Date: Sun, 16 Mar 2025 22:32:09 -0700
 To: mm-commits@vger.kernel.org,tzungbi@kernel.org,teknoraver@meta.com,serge@hallyn.com,rui.zhang@intel.com,robh@kernel.org,rafael@kernel.org,mazziesaccount@gmail.com,lukasz.luba@arm.com,lgirdwood@gmail.com,kernel@pengutronix.de,groeck@chromium.org,festevam@denx.de,daniel.lezcano@linaro.org,corbet@lwn.net,broonie@kernel.org,bleung@chromium.org,a.fatoum@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] dt-bindings-thermal-give-os-some-leeway-in-absence-of-critical-action.patch removed from -mm tree
-Message-Id: <20250317053208.63C3BC4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] thermal-core-allow-user-configuration-of-hardware-protection-action.patch removed from -mm tree
+Message-Id: <20250317053209.A89C1C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: dt-bindings: thermal: give OS some leeway in absence of critical-action
+     Subject: thermal: core: allow user configuration of hardware protection action
 has been removed from the -mm tree.  Its filename was
-     dt-bindings-thermal-give-os-some-leeway-in-absence-of-critical-action.patch
+     thermal-core-allow-user-configuration-of-hardware-protection-action.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Subject: dt-bindings: thermal: give OS some leeway in absence of critical-action
-Date: Mon, 17 Feb 2025 21:39:50 +0100
+Subject: thermal: core: allow user configuration of hardware protection action
+Date: Mon, 17 Feb 2025 21:39:51 +0100
 
-An operating system may allow its user to configure the action to be
-undertaken on critical overtemperature events.
+In the general case, we don't know which of system shutdown or reboot is
+the better action to take to protect hardware in an emergency situation. 
+We thus allow the policy to come from the device-tree in the form of an
+optional critical-action OF property, but so far there was no way for the
+end user to configure this.
 
-However, the bindings currently mandate an absence of the critical-action
-property to be equal to critical-action = "shutdown", which would mean any
-differing user configuration would violate the bindings.
+With recent addition of the hw_protection parameter, the user can now
+choose a default action for the case, where the driver isn't fully sure
+what's the better course of action.
 
-Resolve this by documenting the absence of the property to mean that the
-OS gets to decide.
+Let's make use of this by passing HWPROT_ACT_DEFAULT in absence of the
+critical-action OF property.
 
-Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-10-e1c09b090c0c@pengutronix.de
+As HWPROT_ACT_DEFAULT is shutdown by default, this introduces no
+functional change for users, unless they start using the new parameter.
+
+Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-11-e1c09b090c0c@pengutronix.de
 Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Acked-by: Rob Herring (Arm) <robh@kernel.org>
+Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
 Cc: Benson Leung <bleung@chromium.org>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: Fabio Estevam <festevam@denx.de>
@@ -71,30 +77,87 @@ Cc: Mark Brown <broonie@kernel.org>
 Cc: Matteo Croce <teknoraver@meta.com>
 Cc: Matti Vaittinen <mazziesaccount@gmail.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rob Herring (Arm) <robh@kernel.org>
 Cc: Rui Zhang <rui.zhang@intel.com>
 Cc: Sascha Hauer <kernel@pengutronix.de>
 Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Tzung-Bi Shih <tzungbi@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/thermal/thermal-zones.yaml |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/thermal/thermal_core.c |   17 ++++++++++-------
+ drivers/thermal/thermal_core.h |    1 +
+ drivers/thermal/thermal_of.c   |    7 +++++--
+ 3 files changed, 16 insertions(+), 9 deletions(-)
 
---- a/Documentation/devicetree/bindings/thermal/thermal-zones.yaml~dt-bindings-thermal-give-os-some-leeway-in-absence-of-critical-action
-+++ a/Documentation/devicetree/bindings/thermal/thermal-zones.yaml
-@@ -82,9 +82,8 @@ patternProperties:
-         $ref: /schemas/types.yaml#/definitions/string
-         description: |
-           The action the OS should perform after the critical temperature is reached.
--          By default the system will shutdown as a safe action to prevent damage
--          to the hardware, if the property is not set.
--          The shutdown action should be always the default and preferred one.
-+          If the property is not set, it is up to the system to select the correct
-+          action. The recommended and preferred default is shutdown.
-           Choose 'reboot' with care, as the hardware may be in thermal stress,
-           thus leading to infinite reboots that may cause damage to the hardware.
-           Make sure the firmware/bootloader will act as the last resort and take
+--- a/drivers/thermal/thermal_core.c~thermal-core-allow-user-configuration-of-hardware-protection-action
++++ a/drivers/thermal/thermal_core.c
+@@ -369,7 +369,8 @@ void thermal_governor_update_tz(struct t
+ 	tz->governor->update_tz(tz, reason);
+ }
+ 
+-static void thermal_zone_device_halt(struct thermal_zone_device *tz, bool shutdown)
++static void thermal_zone_device_halt(struct thermal_zone_device *tz,
++				     enum hw_protection_action action)
+ {
+ 	/*
+ 	 * poweroff_delay_ms must be a carefully profiled positive value.
+@@ -380,21 +381,23 @@ static void thermal_zone_device_halt(str
+ 
+ 	dev_emerg(&tz->device, "%s: critical temperature reached\n", tz->type);
+ 
+-	if (shutdown)
+-		hw_protection_shutdown(msg, poweroff_delay_ms);
+-	else
+-		hw_protection_reboot(msg, poweroff_delay_ms);
++	__hw_protection_trigger(msg, poweroff_delay_ms, action);
+ }
+ 
+ void thermal_zone_device_critical(struct thermal_zone_device *tz)
+ {
+-	thermal_zone_device_halt(tz, true);
++	thermal_zone_device_halt(tz, HWPROT_ACT_DEFAULT);
+ }
+ EXPORT_SYMBOL(thermal_zone_device_critical);
+ 
++void thermal_zone_device_critical_shutdown(struct thermal_zone_device *tz)
++{
++	thermal_zone_device_halt(tz, HWPROT_ACT_SHUTDOWN);
++}
++
+ void thermal_zone_device_critical_reboot(struct thermal_zone_device *tz)
+ {
+-	thermal_zone_device_halt(tz, false);
++	thermal_zone_device_halt(tz, HWPROT_ACT_REBOOT);
+ }
+ 
+ static void handle_critical_trips(struct thermal_zone_device *tz,
+--- a/drivers/thermal/thermal_core.h~thermal-core-allow-user-configuration-of-hardware-protection-action
++++ a/drivers/thermal/thermal_core.h
+@@ -262,6 +262,7 @@ int thermal_build_list_of_policies(char
+ void __thermal_zone_device_update(struct thermal_zone_device *tz,
+ 				  enum thermal_notify_event event);
+ void thermal_zone_device_critical_reboot(struct thermal_zone_device *tz);
++void thermal_zone_device_critical_shutdown(struct thermal_zone_device *tz);
+ void thermal_governor_update_tz(struct thermal_zone_device *tz,
+ 				enum thermal_notify_event reason);
+ 
+--- a/drivers/thermal/thermal_of.c~thermal-core-allow-user-configuration-of-hardware-protection-action
++++ a/drivers/thermal/thermal_of.c
+@@ -405,9 +405,12 @@ static struct thermal_zone_device *therm
+ 	of_ops.should_bind = thermal_of_should_bind;
+ 
+ 	ret = of_property_read_string(np, "critical-action", &action);
+-	if (!ret)
+-		if (!of_ops.critical && !strcasecmp(action, "reboot"))
++	if (!ret && !of_ops.critical) {
++		if (!strcasecmp(action, "reboot"))
+ 			of_ops.critical = thermal_zone_device_critical_reboot;
++		else if (!strcasecmp(action, "shutdown"))
++			of_ops.critical = thermal_zone_device_critical_shutdown;
++	}
+ 
+ 	tz = thermal_zone_device_register_with_trips(np->name, trips, ntrips,
+ 						     data, &of_ops, &tzp,
 _
 
 Patches currently in -mm which might be from a.fatoum@pengutronix.de are
