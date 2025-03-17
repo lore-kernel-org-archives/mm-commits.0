@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FECDA59
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C3CA59
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188180; cv=none; b=B4LBou/4KNaZXG1hNyLfobdTKibQSsFmsF1Eg0wZp58O4owxLvFfC+0BMvHyG/g5Om4E21Cl+VVP6A7h/vWnk/rXRRaMe0Rfd97O4UzyRED2DNfV7xGsmbMzU8kI3qfl8qkojznqJtHO9NG00vWckdAjNFD0v7yGLIJ2sWUE8IM=
+	t=1742188180; cv=none; b=m3E8wBK2PgiFlQgc7FNFGF/IcDhpwJ9WlZP2d9f88YT3XUhfqdaNG22N+NO5e2PwkbbcJx1vR5dQ+RRyp4cAJvpInfNstpqXBGEhRZX3ki1EXPJ4+mV2goadOtsEgDaGVbETnefrYmalSDzucqJ51Lid7H2tn4QTh39i9p8WNl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1742188180; c=relaxed/simple;
-	bh=iuWQTAg2GMMDU3QKI4Fs1OVKrUaXOQnO5+cAAAb+x6s=;
-	h=Date:To:From:Subject:Message-Id; b=oF1ocUDOONgA73R+L/2IfyyspsQWg0vVvmsULdG35GuYOznbeWRQod/+8EiL4sLTQ35zmKUBBlx+gIjQihfKmBPleMwsHUy6LgCd5vyMslTi9siyJNfV0u+isEu4fDmVQxXlQwpy6qzAZJQWvCbkXHkjmk5cMzEbU/cqdQ7x688=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BWDG0rYq; arc=none smtp.client-ip=10.30.226.201
+	bh=rMOa4j9yiHqlpMMsouRmoCjwR23p5xtmD1GVD8EHq3s=;
+	h=Date:To:From:Subject:Message-Id; b=OgpCxpe6nql7SmMTMeEmlrJXzIpfnX1U7qXmVmfaUf4jb80klpzZmyJ4lIEkXD4jRplK18vUXbXOsG/3WdCs87oDz91GblBayH6/kNXdo3fDXVraQ0+BMvV8eK2W7v7qhI0Fwn/ygazD9ZoFFI3ZHMT6e6L1XrdTSL/7u2a9meU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YhRQDg6M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BWDG0rYq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CDD4C4CEEC;
-	Mon, 17 Mar 2025 05:09:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YhRQDg6M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACE87C4CEEC;
+	Mon, 17 Mar 2025 05:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188179;
-	bh=iuWQTAg2GMMDU3QKI4Fs1OVKrUaXOQnO5+cAAAb+x6s=;
+	s=korg; t=1742188180;
+	bh=rMOa4j9yiHqlpMMsouRmoCjwR23p5xtmD1GVD8EHq3s=;
 	h=Date:To:From:Subject:From;
-	b=BWDG0rYqz0yVpW7pyWcSxRzY1+JH2CL2ItKCWhBUpmbBiGhE0lDQAQ6Ntz60FBYM6
-	 K0SzZ/dRoDmdLNGkWFjZQvuhcwd3rSPEMyxuUz5irupWnrKhnoXThO9t/vja0lTfZz
-	 UubK7K9LUr+IOOiJ2PSkl+Zs2ZzxV3ZN87YeXz48=
-Date: Sun, 16 Mar 2025 22:09:38 -0700
+	b=YhRQDg6MCcrzIbpeKB/d5im2gCghl3CdeGagZ4X+ttK28zaNUvh04rmjyBaLHy+MW
+	 nMK+S5eO3H7NenANZv31dMVvVXAvouCElWr1q/pPehsbZD2YOe0ZAp4hmGaYv2/2wo
+	 1Wr0og8X0FAmRuxMZgRToOiB9UdR8ctxD47dnO5U=
+Date: Sun, 16 Mar 2025 22:09:40 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch removed from -mm tree
-Message-Id: <20250317050939.7CDD4C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch removed from -mm tree
+Message-Id: <20250317050940.ACE87C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: make file-backed THP split work by writing PMD size data
+     Subject: mm/huge_memory: allow split shmem large folio to any lower order
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data.patch
+     mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: make file-backed THP split work by writing PMD size data
-Date: Wed, 22 Jan 2025 11:19:26 -0500
+Subject: mm/huge_memory: allow split shmem large folio to any lower order
+Date: Wed, 22 Jan 2025 11:19:27 -0500
 
-Commit acd7ccb284b8 ("mm: shmem: add large folio support for tmpfs")
-changes huge=always to allocate THP/mTHP based on write size and
-split_huge_page_test does not write PMD size data, so file-back THP is not
-created during the test.  Fix it by writing PMD size data.
+Commit 4d684b5f92ba ("mm: shmem: add large folio support for tmpfs") has
+added large folio support to shmem.  Remove the restriction in
+split_huge_page*().
 
-Link: https://lkml.kernel.org/r/20250122161928.1240637-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250122161928.1240637-2-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Yang Shi <yang@os.amperecomputing.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -63,112 +63,37 @@ Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <yang@os.amperecomputing.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   52 ++++++++++--
- 1 file changed, 44 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-make-file-backed-thp-split-work-by-writing-pmd-size-data
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -265,14 +265,28 @@ void split_file_backed_thp(void)
- {
- 	int status;
- 	int fd;
--	ssize_t num_written;
- 	char tmpfs_template[] = "/tmp/thp_split_XXXXXX";
- 	const char *tmpfs_loc = mkdtemp(tmpfs_template);
- 	char testfile[INPUT_MAX];
-+	ssize_t num_written, num_read;
-+	char *file_buf1, *file_buf2;
- 	uint64_t pgoff_start = 0, pgoff_end = 1024;
-+	int i;
- 
- 	ksft_print_msg("Please enable pr_debug in split_huge_pages_in_file() for more info.\n");
- 
-+	file_buf1 = (char *)malloc(pmd_pagesize);
-+	file_buf2 = (char *)malloc(pmd_pagesize);
-+
-+	if (!file_buf1 || !file_buf2) {
-+		ksft_print_msg("cannot allocate file buffers\n");
-+		goto out;
-+	}
-+
-+	for (i = 0; i < pmd_pagesize; i++)
-+		file_buf1[i] = (char)i;
-+	memset(file_buf2, 0, pmd_pagesize);
-+
- 	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, "huge=always,size=4m");
- 
- 	if (status)
-@@ -281,26 +295,45 @@ void split_file_backed_thp(void)
- 	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
- 	if (status >= INPUT_MAX) {
- 		ksft_exit_fail_msg("Fail to create file-backed THP split testing file\n");
-+		goto cleanup;
- 	}
- 
--	fd = open(testfile, O_CREAT|O_WRONLY, 0664);
-+	fd = open(testfile, O_CREAT|O_RDWR, 0664);
- 	if (fd == -1) {
- 		ksft_perror("Cannot open testing file");
- 		goto cleanup;
- 	}
- 
--	/* write something to the file, so a file-backed THP can be allocated */
--	num_written = write(fd, tmpfs_loc, strlen(tmpfs_loc) + 1);
--	close(fd);
-+	/* write pmd size data to the file, so a file-backed THP can be allocated */
-+	num_written = write(fd, file_buf1, pmd_pagesize);
- 
--	if (num_written < 1) {
--		ksft_perror("Fail to write data to testing file");
--		goto cleanup;
-+	if (num_written == -1 || num_written != pmd_pagesize) {
-+		ksft_perror("Failed to write data to testing file");
-+		goto close_file;
- 	}
- 
- 	/* split the file-backed THP */
- 	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end, 0);
- 
-+	/* check file content after split */
-+	status = lseek(fd, 0, SEEK_SET);
-+	if (status == -1) {
-+		ksft_perror("Cannot lseek file");
-+		goto close_file;
-+	}
-+
-+	num_read = read(fd, file_buf2, num_written);
-+	if (num_read == -1 || num_read != num_written) {
-+		ksft_perror("Cannot read file content back");
-+		goto close_file;
-+	}
-+
-+	if (strncmp(file_buf1, file_buf2, pmd_pagesize) != 0) {
-+		ksft_print_msg("File content changed\n");
-+		goto close_file;
-+	}
-+
-+	close(fd);
- 	status = unlink(testfile);
- 	if (status) {
- 		ksft_perror("Cannot remove testing file");
-@@ -321,9 +354,12 @@ void split_file_backed_thp(void)
- 	ksft_test_result_pass("File-backed THP split test done\n");
- 	return;
- 
-+close_file:
-+	close(fd);
- cleanup:
- 	umount(tmpfs_loc);
- 	rmdir(tmpfs_loc);
-+out:
- 	ksft_exit_fail_msg("Error occurred\n");
- }
- 
+--- a/mm/huge_memory.c~mm-huge_memory-allow-split-shmem-large-folio-to-any-lower-order
++++ a/mm/huge_memory.c
+@@ -3299,7 +3299,7 @@ static void __split_huge_page(struct pag
+ 		/* Some pages can be beyond EOF: drop them from page cache */
+ 		if (tail->index >= end) {
+ 			if (shmem_mapping(folio->mapping))
+-				nr_dropped++;
++				nr_dropped += new_nr;
+ 			else if (folio_test_clear_dirty(tail))
+ 				folio_account_cleaned(tail,
+ 					inode_to_wb(folio->mapping->host));
+@@ -3465,12 +3465,6 @@ int split_huge_page_to_list_to_order(str
+ 			return -EINVAL;
+ 		}
+ 	} else if (new_order) {
+-		/* Split shmem folio to non-zero order not supported */
+-		if (shmem_mapping(folio->mapping)) {
+-			VM_WARN_ONCE(1,
+-				"Cannot split shmem folio to non-0 order");
+-			return -EINVAL;
+-		}
+ 		/*
+ 		 * No split if the file system does not support large folio.
+ 		 * Note that we might still have THPs in such mappings due to
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
