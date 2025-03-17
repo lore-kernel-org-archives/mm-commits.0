@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 218D58634E
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B840D155757
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188519; cv=none; b=eBpe7K5yRDauAQ2tAq4uLyOx4F8s12O9pIkGPYlpGuf2P6f2D8c5djLdy1hRhv7UxzypkiBOR7JQgL6R6Hf5mb5Qlz8yGCxlFSTre8woktzszEZ/GGQqLkZuh8CXbL+gfl8F53538g4r1qruZW76SKxC5x2riSTP1/ghp6whBjE=
+	t=1742188521; cv=none; b=IRiHLWMzcC0Xd3QLLX60xUqkJekyTVthERzv8tJr94tOFbxTiC44J6xcsEW1VxrrQLwqebflC0pZZ2Rn/7ChROB2NaEGGx7oPivr4hmGmQz+wghT5MSh0wmg5G5RJtKARff43dMymKx0DaC9QQQGpLbLhkSuzlda/WquK/9NIRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188519; c=relaxed/simple;
-	bh=G11wD/pGyFcL2AoaQAMw2kRyOb8TYbCuEpN1aFPKzIg=;
-	h=Date:To:From:Subject:Message-Id; b=rlfYkiHz+6WvSHX+Oo8fQIpG/gWMOJbGr1eWoBgwdyqpY4423tP6qcs01DEKpJWYdCelCXIEEBWgdqK4Vatl+VCGQwqpb62zFWwsmo8bnlax44dzb4jg2uCmlTjzPNLKF7DkiixJJi0LJgy7/GmDzaZuxwdLS/nEM0iFVD/Erw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oKc0xEBG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188521; c=relaxed/simple;
+	bh=oY0UoUNS9YmI/ujP7C7gYvYn3/NfGshUIlT81tAH4zo=;
+	h=Date:To:From:Subject:Message-Id; b=lBeSNXCzGAOJ0wojiZbYCERxMc0D8mwU6FiFDFJ+6j/CqiTrMcrjeQkyIP4/8ajhcVKOUQenH14UcpOn1teZjzw0TIjC9KwQxLW9N7AgIlOFf5gVqekBfntTpnJ1vJx3m9QDpb2rXMMOZClIHIbjkVHzIM3/i//C8PKqjS7TBYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fiRcn04Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oKc0xEBG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAFDEC4CEEC;
-	Mon, 17 Mar 2025 05:15:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fiRcn04Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26193C4CEEC;
+	Mon, 17 Mar 2025 05:15:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188519;
-	bh=G11wD/pGyFcL2AoaQAMw2kRyOb8TYbCuEpN1aFPKzIg=;
+	s=korg; t=1742188521;
+	bh=oY0UoUNS9YmI/ujP7C7gYvYn3/NfGshUIlT81tAH4zo=;
 	h=Date:To:From:Subject:From;
-	b=oKc0xEBGLG9kGufdL4fJW45678ZjUGsy9gGuz6SmUliXRp8eh4BQfltVyUcuiCwaT
-	 N2eX5TQaClWLBRDWU7nzzFqkdEdYREKJrQ4pZ4qL1Icw3fAWEWAUrA14lv+3pYdrEa
-	 O1foGrQgAPJ/gjD8CfFK3vglgNbuRyovkSP0yVh0=
-Date: Sun, 16 Mar 2025 22:15:18 -0700
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vbabka@suse.cz,mhocko@kernel.org,mgorman@techsingularity.net,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=fiRcn04Z+mq5mF2a7F5do38uwqyL6bBEw+qlgBrE3ATMAz6mPD1R/5iCtc6MuBnO0
+	 HVBwQ/6Nj4p5jQDnD2rMWTt7FQyBNM+DF94l+sZW+cnJl8xSstU2TYMNNs1PJAjkOl
+	 REVmYoNM057m7FshVwiHa9VigFFIOZY+7xMomsNw=
+Date: Sun, 16 Mar 2025 22:15:20 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-clarify-should_claim_block-commentary.patch removed from -mm tree
-Message-Id: <20250317051518.EAFDEC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-dont-call-propagate_protected_usage-for-v1.patch removed from -mm tree
+Message-Id: <20250317051521.26193C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: clarify should_claim_block() commentary
+     Subject: memcg: don't call propagate_protected_usage() for v1
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-clarify-should_claim_block-commentary.patch
+     memcg-dont-call-propagate_protected_usage-for-v1.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: clarify should_claim_block() commentary
-Date: Fri, 28 Feb 2025 09:52:18 +0000
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: don't call propagate_protected_usage() for v1
+Date: Thu, 27 Feb 2025 23:58:06 -0800
 
-There's lots of text here but it's a little hard to follow, this is an
-attempt to break it up and align its structure more closely with the code.
+Patch series "page_counter cleanup and size reduction".
 
-Reword the top-level function comment to just explain what question the
-function answers from the point of view of the caller.
+Commit c6f53ed8f213a ("mm, memcg: cg2 memory{.swap,}.peak write handlers")
+accidently increased the size of struct page_counter.  This series
+rearrange the fields to reduce its size and also has some cleanups.
 
-Break up the internal logic into different sections that can have their
-own commentary describing why that part of the rationale is present.
 
-Note the page_group_by_mobility_disabled logic is not explained in the
-commentary, that is outside the scope of this patch...
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20250228-clarify-steal-v4-2-cb2ef1a4e610@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Memcg-v1 does not support memory protection (min/low) and thus there is no
+need to track protected memory usage for it.
+
+Link: https://lkml.kernel.org/r/20250228075808.207484-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250228075808.207484-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   46 ++++++++++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clarify-should_claim_block-commentary
-+++ a/mm/page_alloc.c
-@@ -1941,16 +1941,9 @@ static inline bool boost_watermark(struc
- }
- 
- /*
-- * When we are falling back to another migratetype during allocation, try to
-- * claim entire blocks to satisfy further allocations, instead of polluting
-- * multiple pageblocks.
-- *
-- * If we are stealing a relatively large buddy page, it is likely there will be
-- * more free pages in the pageblock, so try to claim the whole block. For
-- * reclaimable and unmovable allocations, we try to claim the whole block
-- * regardless of page size, as fragmentation caused by those allocations
-- * polluting movable pageblocks is worse than movable allocations stealing from
-- * unmovable and reclaimable pageblocks.
-+ * When we are falling back to another migratetype during allocation, should we
-+ * try to claim an entire block to satisfy further allocations, instead of
-+ * polluting multiple pageblocks?
-  */
- static bool should_try_claim_block(unsigned int order, int start_mt)
+--- a/mm/memcontrol.c~memcg-dont-call-propagate_protected_usage-for-v1
++++ a/mm/memcontrol.c
+@@ -3610,6 +3610,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
  {
-@@ -1965,19 +1958,32 @@ static bool should_try_claim_block(unsig
- 		return true;
+ 	struct mem_cgroup *parent = mem_cgroup_from_css(parent_css);
+ 	struct mem_cgroup *memcg, *old_memcg;
++	bool memcg_on_dfl = cgroup_subsys_on_dfl(memory_cgrp_subsys);
  
- 	/*
--	 * Movable pages won't cause permanent fragmentation, so when you alloc
--	 * small pages, you just need to temporarily steal unmovable or
--	 * reclaimable pages that are closest to the request size.  After a
--	 * while, memory compaction may occur to form large contiguous pages,
--	 * and the next movable allocation may not need to steal.  Unmovable and
--	 * reclaimable allocations need to actually claim the whole block.
-+	 * Above a certain threshold, always try to claim, as it's likely there
-+	 * will be more free pages in the pageblock.
-+	 */
-+	if (order >= pageblock_order / 2)
-+		return true;
-+
-+	/*
-+	 * Unmovable/reclaimable allocations would cause permanent
-+	 * fragmentations if they fell back to allocating from a movable block
-+	 * (polluting it), so we try to claim the whole block regardless of the
-+	 * allocation size. Later movable allocations can always steal from this
-+	 * block, which is less problematic.
- 	 */
--	if (order >= pageblock_order / 2 ||
--		start_mt == MIGRATE_RECLAIMABLE ||
--		start_mt == MIGRATE_UNMOVABLE ||
--		page_group_by_mobility_disabled)
-+	if (start_mt == MIGRATE_RECLAIMABLE || start_mt == MIGRATE_UNMOVABLE)
- 		return true;
+ 	old_memcg = set_active_memcg(parent);
+ 	memcg = mem_cgroup_alloc(parent);
+@@ -3627,7 +3628,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	if (parent) {
+ 		WRITE_ONCE(memcg->swappiness, mem_cgroup_swappiness(parent));
  
-+	if (page_group_by_mobility_disabled)
-+		return true;
-+
-+	/*
-+	 * Movable pages won't cause permanent fragmentation, so when you alloc
-+	 * small pages, we just need to temporarily steal unmovable or
-+	 * reclaimable pages that are closest to the request size. After a
-+	 * while, memory compaction may occur to form large contiguous pages,
-+	 * and the next movable allocation may not need to steal.
-+	 */
- 	return false;
- }
+-		page_counter_init(&memcg->memory, &parent->memory, true);
++		page_counter_init(&memcg->memory, &parent->memory, memcg_on_dfl);
+ 		page_counter_init(&memcg->swap, &parent->swap, false);
+ #ifdef CONFIG_MEMCG_V1
+ 		WRITE_ONCE(memcg->oom_kill_disable, READ_ONCE(parent->oom_kill_disable));
+@@ -3647,7 +3648,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		return &memcg->css;
+ 	}
  
+-	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
++	if (memcg_on_dfl && !cgroup_memory_nosocket)
+ 		static_branch_inc(&memcg_sockets_enabled_key);
+ 
+ 	if (!cgroup_memory_nobpf)
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-scripts-gdb-add-lx_per_cpu_ptr.patch
+memcg-add-hierarchical-effective-limits-for-v2.patch
+memcg-avoid-refill_stock-for-root-memcg.patch
+memcg-move-do_memsw_account-to-config_memcg_v1.patch
 
