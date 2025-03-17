@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24912217F40;
-	Mon, 17 Mar 2025 05:14:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62E162A1D8
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188462; cv=none; b=Lid9A+f0qbO9e7jEE44JzytMGpjeqVph4OZl5cvKnf6LBC+dp0IwQSgQamJXRRFhVvX/m8FoQge4LBeF9edxF+ErsIfB09v/4zduycdUEKMFsDMqNOPkapLYWneNh1INKWrpFi013TW9dND6gg3yTg6OEbDgyvMtKM97tMpKOQs=
+	t=1742188463; cv=none; b=kj2wnPGcrAkkDvK6p3bhTWfaQpxpF8vfNnsaxaj0NwdaRgPM81d9cgVbLY+f423nsTBxb+/97wy2sZPwoWRQ6njlxqtTxR78fZWQg99qrQxVygMEo8oockGC3hJ1Cckiht2M03xgTTCsBpJXhhXu4XktAYId40wTa8LcKe72zEo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188462; c=relaxed/simple;
-	bh=rICoZloCFImHg6uvk628PDWpnJQOCE5v29QUuUuXLnM=;
-	h=Date:To:From:Subject:Message-Id; b=swXFeCmk/Vfb/cx73es2Pd5O20vntah68VP8aQC3UMVqZ+YA+sN0BBFsAYmX7mn0d5tGIL2W/sVZRXtkdMpfwffQ1aLsoT/DDQTaVx8z6ODQeyYwTCozvKXTaY4zO31z1A3eHXnFPzk03MqEZcAbpSR+3UULo1gbZoUHL9e50EQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xWGme/Rk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188463; c=relaxed/simple;
+	bh=C01XfCEQ6hcAD6vEJ2da+5W6haYyOWUI8UlCWVg7P+E=;
+	h=Date:To:From:Subject:Message-Id; b=WSRNTYLVKgsBVIDLEnZslOp7X2r/zCWlxFJcmX0M3gRaLYn/VbDdx8eWxmg9Tu9yuXP+qXWveqv+QSqzk2ojBVgXHyyXYUI+qPsR52EeSUk4YkPjGchzJAHOOyokrKJ5R22WIfeY7VDUgtCzIfttmYVWTdGwIMTyw+JvH/gTYN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k7zgXnT4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xWGme/Rk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E47F5C4CEEC;
-	Mon, 17 Mar 2025 05:14:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k7zgXnT4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38982C4CEEC;
+	Mon, 17 Mar 2025 05:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188462;
-	bh=rICoZloCFImHg6uvk628PDWpnJQOCE5v29QUuUuXLnM=;
+	s=korg; t=1742188463;
+	bh=C01XfCEQ6hcAD6vEJ2da+5W6haYyOWUI8UlCWVg7P+E=;
 	h=Date:To:From:Subject:From;
-	b=xWGme/RkrLfNg50UOP7qViWvh7wr4FF8YWarTLIsEpPVeJF6DbPmBFQS2kLR0BwmC
-	 dyE/neMhtW+fzFv44wG/sUryITnsC8Y87OY+FrR/wB7frxde563lw2abSsm3LVVR6M
-	 ADPMX3pkZ5tv0motHhwClhodLGkJRPEAuzOX82hU=
-Date: Sun, 16 Mar 2025 22:14:21 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,peterx@redhat.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,hughd@google.com,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=k7zgXnT4x6KqKqeVxMiGxwGoy0k+6fn5qibzsEwQmmpSqP6T/EsXQpKYx/jmtHav/
+	 mNMDgWO/KfOoW40zfh1PDAVVCzVAlZcP9O3ZF9ExT6z5CQQt0gsJq2QWBZPn8HJoj2
+	 0fhS81hlrUx5RoSbru4Qaxs0Ddt2n62v2S+JCUko=
+Date: Sun, 16 Mar 2025 22:14:22 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,v-songbaohua@oppo.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch removed from -mm tree
-Message-Id: <20250317051421.E47F5C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-avoid-reclaiming-irrelevant-swap-cache.patch removed from -mm tree
+Message-Id: <20250317051423.38982C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,114 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make page_mapped_in_vma() hugetlb walk aware
+     Subject: mm, swap: avoid reclaiming irrelevant swap cache
 has been removed from the -mm tree.  Its filename was
-     mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch
+     mm-swap-avoid-reclaiming-irrelevant-swap-cache.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm: make page_mapped_in_vma() hugetlb walk aware
-Date: Mon, 24 Feb 2025 14:14:45 -0700
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: avoid reclaiming irrelevant swap cache
+Date: Fri, 14 Mar 2025 00:59:29 +0800
 
-When a process consumes a UE in a page, the memory failure handler
-attempts to collect information for a potential SIGBUS.  If the page is an
-anonymous page, page_mapped_in_vma(page, vma) is invoked in order to
+Patch series "mm, swap: remove swap slot cache", v3.
 
-  1. retrieve the vaddr from the process' address space,
+Slot cache was initially introduced by commit 67afa38e012e ("mm/swap: add
+cache for swap slots allocation") to reduce the lock contention of
+si->lock.
 
-  2. verify that the vaddr is indeed mapped to the poisoned page,
-     where 'page' is the precise small page with UE.
+Previous series "mm, swap: rework of swap allocator locks" [1] removed
+swap slot cache for freeing path as freeing path no longer touches
+si->lock in most cased.  Allocation path also have slight to none
+contention on si->lock since that series, but slot cache still helps to
+reduce other overheads, like counters and the plist.
 
-It's been observed that when injecting poison to a non-head subpage of an
-anonymous hugetlb page, no SIGBUS shows up, while injecting to the head
-page produces a SIGBUS.  The cause is that, though hugetlb_walk() returns
-a valid pmd entry (on x86), but check_pte() detects mismatch between the
-head page per the pmd and the input subpage.  Thus the vaddr is considered
-not mapped to the subpage and the process is not collected for SIGBUS
-purpose.  This is the calling stack:
+This series removes the slot cache from allocation path too, by using the
+cluster as allocation fast path and also reduce other overheads.
 
-      collect_procs_anon
-        page_mapped_in_vma
-          page_vma_mapped_walk
-            hugetlb_walk
-              huge_pte_lock
-                check_pte
+Now slot cache is completely gone, the code is much simplified without
+obvious feature or performance change, also clean up related workaround. 
+Also this should avoid other potential issues, e.g.  the long pinning of
+swap slots: swap slot cache pins swap slots with HAS_CACHE, causing
+reclaim or allocation fail to use these slots on scanning.
 
-check_pte() header says that it
-"check if [pvmw->pfn, @pvmw->pfn + @pvmw->nr_pages) is mapped at the @pvmw->pte"
-but practically works only if pvmw->pfn is the head page pfn at pvmw->pte.
-Hindsight acknowledging that some pvmw->pte could point to a hugepage of
-some sort such that it makes sense to make check_pte() work for hugepage.
+The only behavior change is the swap device allocation rotation mechanism,
+as explained in the patch "mm, swap: use percpu cluster as allocation fast
+path".
 
-Link: https://lkml.kernel.org/r/20250224211445.2663312-1-jane.chu@oracle.com
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Test results are looking good after deleting the swap slot cache:
+
+- vm-scalability with: `usemem --init-time -O -y -x -R -31 1G`,
+12G memory cgroup using simulated pmem as SWAP (32G pmem, 32 CPUs),
+16 test runs for each case, measuring the total throughput:
+
+                      Before (KB/s) (stdev)  After (KB/s) (stdev)
+Random (4K):          424907.60 (24410.78)   414745.92  (34554.78)
+Random (64K):         163308.82 (11635.72)   167314.50  (18434.99)
+Sequential (4K, !-R): 6150056.79 (103205.90) 6321469.06 (115878.16)
+
+- Build linux kernel with make -j96, using 4K folio with 1.5G memory
+cgroup limit and 64K folio with 2G memory cgroup limit, on top of tmpfs,
+12 test runs, measuring the system time:
+
+                  Before (s) (stdev)  After (s) (stdev)
+make -j96 (4K):   6445.69 (61.95)     6408.80 (69.46)
+make -j96 (64K):  6841.71 (409.04)    6437.99 (435.55)
+
+The performance is unchanged, slightly better in some cases.
+
+[1] https://lore.kernel.org/linux-mm/20250113175732.48099-1-ryncsn@gmail.com/
+
+
+This patch (of 7):
+
+Swap allocator will do swap cache reclaim to recycle HAS_CACHE slots for
+allocation.  It initiates the reclaim from the offset to be reclaimed and
+looks up the corresponding folio.  The lookup process is lockless, so it's
+possible the folio will be removed from the swap cache and given a
+different swap entry before the reclaim locks the folio.  If it happens,
+the reclaim will end up reclaiming an irrelevant folio, and return wrong
+return value.
+
+This shouldn't cause any problem with correctness or stability, but it is
+indeed confusing and unexpected, and will increase fragmentation, decrease
+performance.
+
+Fix this by checking whether the folio is still pointing to the offset the
+allocator want to reclaim before reclaiming it.
+
+Link: https://lkml.kernel.org/r/20250313165935.63303-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250313165935.63303-2-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: linmiaohe <linmiaohe@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/swapfile.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-make-page_mapped_in_vma-hugetlb-walk-aware
-+++ a/mm/page_vma_mapped.c
-@@ -84,6 +84,7 @@ again:
-  * mapped at the @pvmw->pte
-  * @pvmw: page_vma_mapped_walk struct, includes a pair pte and pfn range
-  * for checking
-+ * @pte_nr: the number of small pages described by @pvmw->pte.
-  *
-  * page_vma_mapped_walk() found a place where pfn range is *potentially*
-  * mapped. check_pte() has to validate this.
-@@ -100,7 +101,7 @@ again:
-  * Otherwise, return false.
-  *
-  */
--static bool check_pte(struct page_vma_mapped_walk *pvmw)
-+static bool check_pte(struct page_vma_mapped_walk *pvmw, unsigned long pte_nr)
- {
- 	unsigned long pfn;
- 	pte_t ptent = ptep_get(pvmw->pte);
-@@ -132,7 +133,11 @@ static bool check_pte(struct page_vma_ma
- 		pfn = pte_pfn(ptent);
- 	}
+--- a/mm/swapfile.c~mm-swap-avoid-reclaiming-irrelevant-swap-cache
++++ a/mm/swapfile.c
+@@ -210,6 +210,7 @@ static int __try_to_reclaim_swap(struct
+ 	int ret, nr_pages;
+ 	bool need_reclaim;
  
--	return (pfn - pvmw->pfn) < pvmw->nr_pages;
-+	if ((pfn + pte_nr - 1) < pvmw->pfn)
-+		return false;
-+	if (pfn > (pvmw->pfn + pvmw->nr_pages - 1))
-+		return false;
-+	return true;
- }
++again:
+ 	folio = filemap_get_folio(address_space, swap_cache_index(entry));
+ 	if (IS_ERR(folio))
+ 		return 0;
+@@ -227,8 +228,16 @@ static int __try_to_reclaim_swap(struct
+ 	if (!folio_trylock(folio))
+ 		goto out;
  
- /* Returns true if the two ranges overlap.  Careful to not overflow. */
-@@ -207,7 +212,7 @@ bool page_vma_mapped_walk(struct page_vm
- 			return false;
+-	/* offset could point to the middle of a large folio */
++	/*
++	 * Offset could point to the middle of a large folio, or folio
++	 * may no longer point to the expected offset before it's locked.
++	 */
+ 	entry = folio->swap;
++	if (offset < swp_offset(entry) || offset >= swp_offset(entry) + nr_pages) {
++		folio_unlock(folio);
++		folio_put(folio);
++		goto again;
++	}
+ 	offset = swp_offset(entry);
  
- 		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
--		if (!check_pte(pvmw))
-+		if (!check_pte(pvmw, pages_per_huge_page(hstate)))
- 			return not_found(pvmw);
- 		return true;
- 	}
-@@ -290,7 +295,7 @@ restart:
- 			goto next_pte;
- 		}
- this_pte:
--		if (check_pte(pvmw))
-+		if (check_pte(pvmw, 1))
- 			return true;
- next_pte:
- 		do {
+ 	need_reclaim = ((flags & TTRS_ANYWAY) ||
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
 
