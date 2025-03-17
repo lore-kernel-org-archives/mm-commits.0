@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A258254279;
-	Mon, 17 Mar 2025 00:41:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DEF512DD95;
+	Mon, 17 Mar 2025 00:41:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742172077; cv=none; b=Ft3PSoKu78Bpv77g8NWaZ4gLc1Z0eewpmbztUakZUygMDhIbKbKwTKhODTB3U09+QV2uJJ6XVMC76Csb4IEwgDQ1bx20CUDt5s1s0RIF+gA5hEUQF1qSyK46aE4Ss8MW60xnfOtp3dkf0keK2IDA8HTHOKmdsXxRUQm6TkC6uBY=
+	t=1742172078; cv=none; b=VhpQdSzumURcWWYfisFqVTsFFw3Wppmq7iVSJUeShisynfLpr/bPGaq4fPS/3IGsQpk6eTDVIrAsIk6Po4a8B3uvjscd8X9ujzEyanQsRb32SmWWnauu5LAiyVSddKZPx0AwutsmThagvjmx6Iq5RnVg/QklbCkGZvGhjht/YRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742172077; c=relaxed/simple;
-	bh=qtdQ8TG+11FeeYL/F3S0SzWuG+vC7Xmo2SLAICprxao=;
-	h=Date:To:From:Subject:Message-Id; b=USjzyG4g3jRs26JqJuE4ea6Mu15w7hwfy7N8QPJ2m11GD/GztqFyFSPK0fyLgCTavAeps9+L15Up7+tppKHDGZ9mp7aOwDVzvxmZ5fAG1LiYzZcntCi+AhQqJz56b8Zkx2XDXRXjqdF7J1YLyVd5Y6nwXtsVngwDL2GBeebjocs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IxzuPUYU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742172078; c=relaxed/simple;
+	bh=RNPSi08xreO7dEN//XWC/MpGF7TkXfArpxnlYosbqng=;
+	h=Date:To:From:Subject:Message-Id; b=pK8MYMtrr4YWbfEQKoKNRxg7d+IgaiujhwD5XPzUuy+uZtjUQwkTDu4bYxC844cjOJnNCalFYg0YzkPHOVtoLmpNbaqo4/XPkVXfbV+/rnsM+hEKFz56+DqirUiQbERKz4C20Hh7+fBy6BZuPY7PeHhNmOyeO7pVovwQ3F5pnsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZx+XbtN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IxzuPUYU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2211CC4CEDD;
-	Mon, 17 Mar 2025 00:41:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZx+XbtN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 537A0C4CEDD;
+	Mon, 17 Mar 2025 00:41:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742172077;
-	bh=qtdQ8TG+11FeeYL/F3S0SzWuG+vC7Xmo2SLAICprxao=;
+	s=korg; t=1742172078;
+	bh=RNPSi08xreO7dEN//XWC/MpGF7TkXfArpxnlYosbqng=;
 	h=Date:To:From:Subject:From;
-	b=IxzuPUYUgwoNJK42sYjn/Ad/i8Rf1jWWO0TGWHLxj2ZrIiDd6Va96ubTZJXJY4gQn
-	 kXi6tSOe2MwgB0e3jTIXSRS0g+6OGhf+ZMys6jS7CnMPh8Me3wbJq0S+aDOyKkFWXJ
-	 1fedNawc70GtgRJsKL7LwliozK0EfCpYQL68nKZg=
-Date: Sun, 16 Mar 2025 17:41:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,hch@lst.de,djwong@kernel.org,dchinner@redhat.com,raphaelsc@scylladb.com,akpm@linux-foundation.org
+	b=oZx+XbtNewt1ZUmjzrSbtp9BL4yzETAIaUBVOzRoj6sMv1b7gkItVC4SR42AGnt5A
+	 vyU+I6rrSaLD3UaMHhAgZbG6rqBrF7oe2Pfdkberv5KHgW4WLvVfBJsCRLNxgrkkJI
+	 V9zdtluL0PwCZMofr68mDjb/B9SNalUYEkEWwnJ4=
+Date: Sun, 16 Mar 2025 17:41:17 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,david@redhat.com,raquini@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch removed from -mm tree
-Message-Id: <20250317004117.2211CC4CEDD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-run_vmtestssh-fix-half_ufd_size_mb-calculation.patch removed from -mm tree
+Message-Id: <20250317004118.537A0C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
+     Subject: selftests/mm: run_vmtests.sh: fix half_ufd_size_MB calculation
 has been removed from the -mm tree.  Its filename was
-     mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch
+     selftests-mm-run_vmtestssh-fix-half_ufd_size_mb-calculation.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Raphael S. Carvalho" <raphaelsc@scylladb.com>
-Subject: mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
-Date: Mon, 24 Feb 2025 11:37:00 -0300
+From: Rafael Aquini <raquini@redhat.com>
+Subject: selftests/mm: run_vmtests.sh: fix half_ufd_size_MB calculation
+Date: Tue, 18 Feb 2025 14:22:51 -0500
 
-original report:
-https://lore.kernel.org/all/CAKhLTr1UL3ePTpYjXOx2AJfNk8Ku2EdcEfu+CH1sf3Asr=B-Dw@mail.gmail.com/T/
+We noticed that uffd-stress test was always failing to run when invoked
+for the hugetlb profiles on x86_64 systems with a processor count of 64 or
+bigger:
 
-When doing buffered writes with FGP_NOWAIT, under memory pressure, the
-system returned ENOMEM despite there being plenty of available memory, to
-be reclaimed from page cache.  The user space used io_uring interface,
-which in turn submits I/O with FGP_NOWAIT (the fast path).
+  ...
+  # ------------------------------------
+  # running ./uffd-stress hugetlb 128 32
+  # ------------------------------------
+  # ERROR: invalid MiB (errno=9, @uffd-stress.c:459)
+  ...
+  # [FAIL]
+  not ok 3 uffd-stress hugetlb 128 32 # exit=1
+  ...
 
-retsnoop pointed to iomap_get_folio:
+The problem boils down to how run_vmtests.sh (mis)calculates the size of
+the region it feeds to uffd-stress.  The latter expects to see an amount
+of MiB while the former is just giving out the number of free hugepages
+halved down.  This measurement discrepancy ends up violating uffd-stress'
+assertion on number of hugetlb pages allocated per CPU, causing it to bail
+out with the error above.
 
-00:34:16.180612 -> 00:34:16.180651 TID/PID 253786/253721
-(reactor-1/combined_tests):
+This commit fixes that issue by adjusting run_vmtests.sh's
+half_ufd_size_MB calculation so it properly renders the region size in
+MiB, as expected, while maintaining all of its original constraints in
+place.
 
-                    entry_SYSCALL_64_after_hwframe+0x76
-                    do_syscall_64+0x82
-                    __do_sys_io_uring_enter+0x265
-                    io_submit_sqes+0x209
-                    io_issue_sqe+0x5b
-                    io_write+0xdd
-                    xfs_file_buffered_write+0x84
-                    iomap_file_buffered_write+0x1a6
-    32us [-ENOMEM]  iomap_write_begin+0x408
-iter=&{.inode=0xffff8c67aa031138,.len=4096,.flags=33,.iomap={.addr=0xffffffffffffffff,.length=4096,.type=1,.flags=3,.bdev=0x…
-pos=0 len=4096 foliop=0xffffb32c296b7b80
-!    4us [-ENOMEM]  iomap_get_folio
-iter=&{.inode=0xffff8c67aa031138,.len=4096,.flags=33,.iomap={.addr=0xffffffffffffffff,.length=4096,.type=1,.flags=3,.bdev=0x…
-pos=0 len=4096
-
-This is likely a regression caused by 66dabbb65d67 ("mm: return an ERR_PTR
-from __filemap_get_folio"), which moved error handling from
-io_map_get_folio() to __filemap_get_folio(), but broke FGP_NOWAIT
-handling, so ENOMEM is being escaped to user space.  Had it correctly
-returned -EAGAIN with NOWAIT, either io_uring or user space itself would
-be able to retry the request.
-
-It's not enough to patch io_uring since the iomap interface is the one
-responsible for it, and pwritev2(RWF_NOWAIT) and AIO interfaces must
-return the proper error too.
-
-The patch was tested with scylladb test suite (its original reproducer),
-and the tests all pass now when memory is pressured.
-
-Link: https://lkml.kernel.org/r/20250224143700.23035-1-raphaelsc@scylladb.com
-Fixes: 66dabbb65d67 ("mm: return an ERR_PTR from __filemap_get_folio")
-Signed-off-by: Raphael S. Carvalho <raphaelsc@scylladb.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20250218192251.53243-1-aquini@redhat.com
+Fixes: 2e47a445d7b3 ("selftests/mm: run_vmtests.sh: fix hugetlb mem size calculation")
+Signed-off-by: Rafael Aquini <raquini@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait
-+++ a/mm/filemap.c
-@@ -1986,8 +1986,19 @@ no_page:
- 
- 		if (err == -EEXIST)
- 			goto repeat;
--		if (err)
-+		if (err) {
-+			/*
-+			 * When NOWAIT I/O fails to allocate folios this could
-+			 * be due to a nonblocking memory allocation and not
-+			 * because the system actually is out of memory.
-+			 * Return -EAGAIN so that there caller retries in a
-+			 * blocking fashion instead of propagating -ENOMEM
-+			 * to the application.
-+			 */
-+			if ((fgp_flags & FGP_NOWAIT) && err == -ENOMEM)
-+				err = -EAGAIN;
- 			return ERR_PTR(err);
-+		}
- 		/*
- 		 * filemap_add_folio locks the page, and for mmap
- 		 * we expect an unlocked page.
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-fix-half_ufd_size_mb-calculation
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -304,7 +304,9 @@ uffd_stress_bin=./uffd-stress
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
+ # Hugetlb tests require source and destination huge pages. Pass in half
+ # the size of the free pages we have, which is used for *each*.
+-half_ufd_size_MB=$((freepgs / 2))
++# uffd-stress expects a region expressed in MiB, so we adjust
++# half_ufd_size_MB accordingly.
++half_ufd_size_MB=$(((freepgs * hpgsize_KB) / 1024 / 2))
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
 _
 
-Patches currently in -mm which might be from raphaelsc@scylladb.com are
+Patches currently in -mm which might be from raquini@redhat.com are
 
 
