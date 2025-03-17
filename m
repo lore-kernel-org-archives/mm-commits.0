@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E5C82A1D8
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 614F8218580
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188472; cv=none; b=Myd41zF3yzjl/daYtoN9bdfUtQv/85VSC+gvTSCFceUj6c6w0BJjwY3qhyUgwzjkRlGoejUpR40pPS1hIcrTPrbED9SlV3d9CAdT7hYQhDJKNm++VcqGdjC+vsSDsUCKNwIUMVxVJgE5acyLvGBqtdgMDlMkIbWu325+1tVb9Y0=
+	t=1742188474; cv=none; b=lTkSfVWkEtFWkYnIFX7CXYB8IF5pLOtnvg0mR9kh4N9hE2IVf9XVSq+XyArGHM9UtLRNT/pTXYGWjFfRRHB3iE8o2uD17Sp5F2ePb0Odg6kCS0XQ8vRpkOECVDGo6ser9bl86jTjfXdBJr3xC2pY+4UF1ArqzpuyYjAQMyrVkYU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188472; c=relaxed/simple;
-	bh=gQ3qzy5z3ZEJan5GmkK2ThO3dgzD4Ikw2Sio3wAnImw=;
-	h=Date:To:From:Subject:Message-Id; b=hIG6ZsiwBp1UoE7ScH8aKWfHipijhEkgXzNatH9OGybjnIWcZ+jwTbcTcoKIxRfGckcXCKXRzHSyfkH4eInHv/tgtJPJP+/XGV6MxrjFNRYAtJuZp6orR82G+c6Z2w3baQygx7EsNel3bqlfx1YIQPCc6tvIwnp8sZntr7hWp4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y5bVsiT3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188474; c=relaxed/simple;
+	bh=HIYo0/XlkixUirDGAIqUcxg3I4D+5npY/5cMryuKS+I=;
+	h=Date:To:From:Subject:Message-Id; b=mePCSIfdIoCj0lMnFAfM6d+ThKJsPGRdvb93SNeLdrWdRicWBYOqavRDGXf8ePfgWXolG8sbDBvY2pe37kmAwdSMt+Yy0rNx6T2yx3UK+75HCn4Imiiw136N+S23QchrjCDZoetizSiCcE1l6QgVNa0mk0MM4vxMhTuS9P+lfnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I+vXuCzz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y5bVsiT3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 107E1C4CEEC;
-	Mon, 17 Mar 2025 05:14:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I+vXuCzz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35E73C4CEEC;
+	Mon, 17 Mar 2025 05:14:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188472;
-	bh=gQ3qzy5z3ZEJan5GmkK2ThO3dgzD4Ikw2Sio3wAnImw=;
+	s=korg; t=1742188474;
+	bh=HIYo0/XlkixUirDGAIqUcxg3I4D+5npY/5cMryuKS+I=;
 	h=Date:To:From:Subject:From;
-	b=y5bVsiT3cZtesXo34wlfPGo/xcIPajUxDC2fQKDMRfzRlaNbvqBt4208nbLy4q0zW
-	 vznp/oCkLVhWn6p9XEyvp07KE1wTQGYZTkSH34Gwn2QUcom+/pWsd+L4ndwAIwjtQg
-	 LD8u41E5JlJQ/xnU7w8mTuKYfHd5tghPTAxBwf6U=
-Date: Sun, 16 Mar 2025 22:14:31 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,v-songbaohua@oppo.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=I+vXuCzzQqgiNZyX+EEJzBM9sihpQRATe0wdYSzXszGDM59w2a6OCDo8igoaHJQYq
+	 EZCoCySGRFoF6urPDWfJnzYReK3Pf/PwdPBlcr8R69cwPRGIavnYwzxnm6HsfdKe0Z
+	 tzRY4vZYliH2spXzcDAwIme5QcZubDivfXb7vao0=
+Date: Sun, 16 Mar 2025 22:14:33 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-simplify-folio-swap-allocation.patch removed from -mm tree
-Message-Id: <20250317051432.107E1C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] vmalloc-drop-myself-from-reviewers.patch removed from -mm tree
+Message-Id: <20250317051434.35E73C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,405 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: simplify folio swap allocation
+     Subject: vmalloc: drop Christoph from Reviewers
 has been removed from the -mm tree.  Its filename was
-     mm-swap-simplify-folio-swap-allocation.patch
+     vmalloc-drop-myself-from-reviewers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: simplify folio swap allocation
-Date: Fri, 14 Mar 2025 00:59:35 +0800
+From: Christoph Hellwig <hch@lst.de>
+Subject: vmalloc: drop Christoph from Reviewers
+Date: Mon, 24 Feb 2025 08:30:33 -0800
 
-With slot cache gone, clean up the allocation helpers even more. 
-folio_alloc_swap will be the only entry for allocation and adding the
-folio to swap cache (except suspend), making it opposite of
-folio_free_swap.
+I haven't been doing as much review as I should.  As part of reducing my
+inbox flow drop me from the official Reviewers.  I might still chime in on
+patches occasionally.
 
-Link: https://lkml.kernel.org/r/20250313165935.63303-8-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20250224163033.350072-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    8 +-
- mm/shmem.c           |   21 ++-----
- mm/swap.h            |    6 --
- mm/swap_state.c      |   57 ---------------------
- mm/swapfile.c        |  111 ++++++++++++++++++++++++++---------------
- mm/vmscan.c          |   16 +++++
- 6 files changed, 95 insertions(+), 124 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/swap.h~mm-swap-simplify-folio-swap-allocation
-+++ a/include/linux/swap.h
-@@ -478,7 +478,7 @@ static inline long get_nr_swap_pages(voi
- }
- 
- extern void si_swapinfo(struct sysinfo *);
--swp_entry_t folio_alloc_swap(struct folio *folio);
-+int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask);
- bool folio_free_swap(struct folio *folio);
- void put_swap_folio(struct folio *folio, swp_entry_t entry);
- extern swp_entry_t get_swap_page_of_type(int);
-@@ -586,11 +586,9 @@ static inline int swp_swapcount(swp_entr
- 	return 0;
- }
- 
--static inline swp_entry_t folio_alloc_swap(struct folio *folio)
-+static inline int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask)
- {
--	swp_entry_t entry;
--	entry.val = 0;
--	return entry;
-+	return -EINVAL;
- }
- 
- static inline bool folio_free_swap(struct folio *folio)
---- a/mm/shmem.c~mm-swap-simplify-folio-swap-allocation
-+++ a/mm/shmem.c
-@@ -1533,7 +1533,6 @@ static int shmem_writepage(struct page *
- 	struct inode *inode = mapping->host;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
--	swp_entry_t swap;
- 	pgoff_t index;
- 	int nr_pages;
- 	bool split = false;
-@@ -1615,14 +1614,6 @@ try_split:
- 		folio_mark_uptodate(folio);
- 	}
- 
--	swap = folio_alloc_swap(folio);
--	if (!swap.val) {
--		if (nr_pages > 1)
--			goto try_split;
--
--		goto redirty;
--	}
--
- 	/*
- 	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
- 	 * if it's not already there.  Do it now before the folio is
-@@ -1635,20 +1626,20 @@ try_split:
- 	if (list_empty(&info->swaplist))
- 		list_add(&info->swaplist, &shmem_swaplist);
- 
--	if (add_to_swap_cache(folio, swap,
--			__GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN,
--			NULL) == 0) {
-+	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
- 		shmem_recalc_inode(inode, 0, nr_pages);
--		swap_shmem_alloc(swap, nr_pages);
--		shmem_delete_from_page_cache(folio, swp_to_radix_entry(swap));
-+		swap_shmem_alloc(folio->swap, nr_pages);
-+		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
- 
- 		mutex_unlock(&shmem_swaplist_mutex);
- 		BUG_ON(folio_mapped(folio));
- 		return swap_writepage(&folio->page, wbc);
- 	}
- 
-+	list_del_init(&info->swaplist);
- 	mutex_unlock(&shmem_swaplist_mutex);
--	put_swap_folio(folio, swap);
-+	if (nr_pages > 1)
-+		goto try_split;
- redirty:
- 	folio_mark_dirty(folio);
- 	if (wbc->for_reclaim)
---- a/mm/swapfile.c~mm-swap-simplify-folio-swap-allocation
-+++ a/mm/swapfile.c
-@@ -1176,9 +1176,8 @@ static bool get_swap_device_info(struct
-  * Fast path try to get swap entries with specified order from current
-  * CPU's swap entry pool (a cluster).
-  */
--static int swap_alloc_fast(swp_entry_t *entry,
--			   unsigned char usage,
--			   int order)
-+static bool swap_alloc_fast(swp_entry_t *entry,
-+			    int order)
- {
- 	struct swap_cluster_info *ci;
- 	struct swap_info_struct *si;
-@@ -1197,7 +1196,7 @@ static int swap_alloc_fast(swp_entry_t *
- 	if (cluster_is_usable(ci, order)) {
- 		if (cluster_is_empty(ci))
- 			offset = cluster_offset(si, ci);
--		found = alloc_swap_scan_cluster(si, ci, offset, order, usage);
-+		found = alloc_swap_scan_cluster(si, ci, offset, order, SWAP_HAS_CACHE);
- 		if (found)
- 			*entry = swp_entry(si->type, found);
- 	} else {
-@@ -1208,47 +1207,30 @@ static int swap_alloc_fast(swp_entry_t *
- 	return !!found;
- }
- 
--swp_entry_t folio_alloc_swap(struct folio *folio)
-+/* Rotate the device and switch to a new cluster */
-+static bool swap_alloc_slow(swp_entry_t *entry,
-+			    int order)
- {
--	unsigned int order = folio_order(folio);
--	unsigned int size = 1 << order;
--	struct swap_info_struct *si, *next;
--	swp_entry_t entry = {};
--	unsigned long offset;
- 	int node;
-+	unsigned long offset;
-+	struct swap_info_struct *si, *next;
- 
--	if (order) {
--		/*
--		 * Should not even be attempting large allocations when huge
--		 * page swap is disabled. Warn and fail the allocation.
--		 */
--		if (!IS_ENABLED(CONFIG_THP_SWAP) || size > SWAPFILE_CLUSTER) {
--			VM_WARN_ON_ONCE(1);
--			return entry;
--		}
--	}
--
--	/* Fast path using percpu cluster */
--	local_lock(&percpu_swap_cluster.lock);
--	if (swap_alloc_fast(&entry, SWAP_HAS_CACHE, order))
--		goto out;
--
--	/* Rotate the device and switch to a new cluster */
-+	node = numa_node_id();
- 	spin_lock(&swap_avail_lock);
- start_over:
--	node = numa_node_id();
- 	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
-+		/* Rotate the device and switch to a new cluster */
- 		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
- 		spin_unlock(&swap_avail_lock);
- 		if (get_swap_device_info(si)) {
- 			offset = cluster_alloc_swap_entry(si, order, SWAP_HAS_CACHE);
- 			put_swap_device(si);
- 			if (offset) {
--				entry = swp_entry(si->type, offset);
--				goto out;
-+				*entry = swp_entry(si->type, offset);
-+				return true;
- 			}
- 			if (order)
--				goto out;
-+				return false;
- 		}
- 
- 		spin_lock(&swap_avail_lock);
-@@ -1267,16 +1249,67 @@ start_over:
- 			goto start_over;
- 	}
- 	spin_unlock(&swap_avail_lock);
--out:
-+	return false;
-+}
-+
-+/**
-+ * folio_alloc_swap - allocate swap space for a folio
-+ * @folio: folio we want to move to swap
-+ * @gfp: gfp mask for shadow nodes
-+ *
-+ * Allocate swap space for the folio and add the folio to the
-+ * swap cache.
-+ *
-+ * Context: Caller needs to hold the folio lock.
-+ * Return: Whether the folio was added to the swap cache.
-+ */
-+int folio_alloc_swap(struct folio *folio, gfp_t gfp)
-+{
-+	unsigned int order = folio_order(folio);
-+	unsigned int size = 1 << order;
-+	swp_entry_t entry = {};
-+
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-+	VM_BUG_ON_FOLIO(!folio_test_uptodate(folio), folio);
-+
-+	/*
-+	 * Should not even be attempting large allocations when huge
-+	 * page swap is disabled. Warn and fail the allocation.
-+	 */
-+	if (order && (!IS_ENABLED(CONFIG_THP_SWAP) || size > SWAPFILE_CLUSTER)) {
-+		VM_WARN_ON_ONCE(1);
-+		return -EINVAL;
-+	}
-+
-+	local_lock(&percpu_swap_cluster.lock);
-+	if (!swap_alloc_fast(&entry, order))
-+		swap_alloc_slow(&entry, order);
- 	local_unlock(&percpu_swap_cluster.lock);
-+
- 	/* Need to call this even if allocation failed, for MEMCG_SWAP_FAIL. */
--	if (mem_cgroup_try_charge_swap(folio, entry)) {
--		put_swap_folio(folio, entry);
--		entry.val = 0;
--	}
--	if (entry.val)
--		atomic_long_sub(size, &nr_swap_pages);
--	return entry;
-+	if (mem_cgroup_try_charge_swap(folio, entry))
-+		goto out_free;
-+
-+	if (!entry.val)
-+		return -ENOMEM;
-+
-+	/*
-+	 * XArray node allocations from PF_MEMALLOC contexts could
-+	 * completely exhaust the page allocator. __GFP_NOMEMALLOC
-+	 * stops emergency reserves from being allocated.
-+	 *
-+	 * TODO: this could cause a theoretical memory reclaim
-+	 * deadlock in the swap out path.
-+	 */
-+	if (add_to_swap_cache(folio, entry, gfp | __GFP_NOMEMALLOC, NULL))
-+		goto out_free;
-+
-+	atomic_long_sub(size, &nr_swap_pages);
-+	return 0;
-+
-+out_free:
-+	put_swap_folio(folio, entry);
-+	return -ENOMEM;
- }
- 
- static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
---- a/mm/swap.h~mm-swap-simplify-folio-swap-allocation
-+++ a/mm/swap.h
-@@ -50,7 +50,6 @@ static inline pgoff_t swap_cache_index(s
- }
- 
- void show_swap_cache_info(void);
--bool add_to_swap(struct folio *folio);
- void *get_shadow_from_swap_cache(swp_entry_t entry);
- int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
- 		      gfp_t gfp, void **shadowp);
-@@ -163,11 +162,6 @@ struct folio *filemap_get_incore_folio(s
- 	return filemap_get_folio(mapping, index);
- }
- 
--static inline bool add_to_swap(struct folio *folio)
--{
--	return false;
--}
--
- static inline void *get_shadow_from_swap_cache(swp_entry_t entry)
- {
- 	return NULL;
---- a/mm/swap_state.c~mm-swap-simplify-folio-swap-allocation
-+++ a/mm/swap_state.c
-@@ -166,63 +166,6 @@ void __delete_from_swap_cache(struct fol
- 	__lruvec_stat_mod_folio(folio, NR_SWAPCACHE, -nr);
- }
- 
--/**
-- * add_to_swap - allocate swap space for a folio
-- * @folio: folio we want to move to swap
-- *
-- * Allocate swap space for the folio and add the folio to the
-- * swap cache.
-- *
-- * Context: Caller needs to hold the folio lock.
-- * Return: Whether the folio was added to the swap cache.
-- */
--bool add_to_swap(struct folio *folio)
--{
--	swp_entry_t entry;
--	int err;
--
--	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
--	VM_BUG_ON_FOLIO(!folio_test_uptodate(folio), folio);
--
--	entry = folio_alloc_swap(folio);
--	if (!entry.val)
--		return false;
--
--	/*
--	 * XArray node allocations from PF_MEMALLOC contexts could
--	 * completely exhaust the page allocator. __GFP_NOMEMALLOC
--	 * stops emergency reserves from being allocated.
--	 *
--	 * TODO: this could cause a theoretical memory reclaim
--	 * deadlock in the swap out path.
--	 */
--	/*
--	 * Add it to the swap cache.
--	 */
--	err = add_to_swap_cache(folio, entry,
--			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN, NULL);
--	if (err)
--		goto fail;
--	/*
--	 * Normally the folio will be dirtied in unmap because its
--	 * pte should be dirty. A special case is MADV_FREE page. The
--	 * page's pte could have dirty bit cleared but the folio's
--	 * SwapBacked flag is still set because clearing the dirty bit
--	 * and SwapBacked flag has no lock protected. For such folio,
--	 * unmap will not set dirty bit for it, so folio reclaim will
--	 * not write the folio out. This can cause data corruption when
--	 * the folio is swapped in later. Always setting the dirty flag
--	 * for the folio solves the problem.
--	 */
--	folio_mark_dirty(folio);
--
--	return true;
--
--fail:
--	put_swap_folio(folio, entry);
--	return false;
--}
--
- /*
-  * This must be called only on folios that have
-  * been verified to be in the swap cache and locked.
---- a/mm/vmscan.c~mm-swap-simplify-folio-swap-allocation
-+++ a/mm/vmscan.c
-@@ -1289,7 +1289,7 @@ retry:
- 					    split_folio_to_list(folio, folio_list))
- 						goto activate_locked;
- 				}
--				if (!add_to_swap(folio)) {
-+				if (folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOWARN)) {
- 					int __maybe_unused order = folio_order(folio);
- 
- 					if (!folio_test_large(folio))
-@@ -1305,9 +1305,21 @@ retry:
- 					}
- #endif
- 					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
--					if (!add_to_swap(folio))
-+					if (folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOWARN))
- 						goto activate_locked_split;
- 				}
-+				/*
-+				 * Normally the folio will be dirtied in unmap because its
-+				 * pte should be dirty. A special case is MADV_FREE page. The
-+				 * page's pte could have dirty bit cleared but the folio's
-+				 * SwapBacked flag is still set because clearing the dirty bit
-+				 * and SwapBacked flag has no lock protected. For such folio,
-+				 * unmap will not set dirty bit for it, so folio reclaim will
-+				 * not write the folio out. This can cause data corruption when
-+				 * the folio is swapped in later. Always setting the dirty flag
-+				 * for the folio solves the problem.
-+				 */
-+				folio_mark_dirty(folio);
- 			}
- 		}
- 
+--- a/MAINTAINERS~vmalloc-drop-myself-from-reviewers
++++ a/MAINTAINERS
+@@ -25301,7 +25301,6 @@ F:	tools/testing/vsock/
+ VMALLOC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Uladzislau Rezki <urezki@gmail.com>
+-R:	Christoph Hellwig <hch@infradead.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 
