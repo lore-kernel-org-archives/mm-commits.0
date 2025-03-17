@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1F0C215F7B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63403215F43
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188341; cv=none; b=QUWAwckma5IYMBPLQVV3Wmfa42Oitl70nHyavgfA07joYE8kfZ6yYP0EXnOSl3URuUEnhEs/HkcayRrj/I8Q+SxlDs48gip32YutGr6i1EhvwbSM7Dd9oqfZAQ6grRF8MGBUkDDI/ASYn8pIwY4UaHjxg/hUw995nZz0dw2pltE=
+	t=1742188343; cv=none; b=XBQbshMJgh69odkTPEwhcphQyE1Ag04b3JBwUyrY42SWNozgE4Ox89BhfJvAV7DffrQt9UG8evAlzD4FrUcGYANdmJ1triuKHEMGGIRNRbLIa3lYgKDArPPuvzB0UN3RNkpYutvhbzn/fKKWIMUsK7/atZRl+oSglLd8KxojHzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188341; c=relaxed/simple;
-	bh=uw1L0e7Y8yYdIMyJ0jcI4YXOCzTNvVW6zDyWWGiXFsE=;
-	h=Date:To:From:Subject:Message-Id; b=qMpBhSSqWiH9O+L+Yb8IhGIA2bbTvf8nUoDWrVc/qU+pDuG9NxphILBNRxE1nX49qEP5AY9B97yVFCh7LcBV8tMIvAkX/Ro4SlI+ABZNM0lBV35aLMieDtt35O2PSNLTS6O004/IJl6ml1Bpflg/PTs0nO7jUxFPXjSMvXgjRzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0XsZNVJH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188343; c=relaxed/simple;
+	bh=Umc7pMSXsPaRPTfnua25hYcKlYnWy0CBDuLC7jNnMlc=;
+	h=Date:To:From:Subject:Message-Id; b=n4fW7/F47ARxK430HStEcuKWU78wwSIjKbdE/kEmfOpcOI07ejKbNu/WY1SvMXUc3AghA5Dli4gmNZuiSjtOQRue2wVF4DqJ2VxXeQk0JgAJpr6odSidLDfq0RH/Ck+fhoAO2/6YjdgVRWvI/nfryc1qeaMqWGJK3gBIAZVM73I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t9U+6aZs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0XsZNVJH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 720ADC4CEEC;
-	Mon, 17 Mar 2025 05:12:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t9U+6aZs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC67AC4CEEC;
+	Mon, 17 Mar 2025 05:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188341;
-	bh=uw1L0e7Y8yYdIMyJ0jcI4YXOCzTNvVW6zDyWWGiXFsE=;
+	s=korg; t=1742188342;
+	bh=Umc7pMSXsPaRPTfnua25hYcKlYnWy0CBDuLC7jNnMlc=;
 	h=Date:To:From:Subject:From;
-	b=0XsZNVJHnvil7A3CZBhDbM2ToHmOTWHoE7Z3MyVCyKV5tks1XP15Ov1KbVRr4zfwr
-	 Q5UopsM/s0Rwml3RHEDuWN8yP2IqXiK+zzly95XG36uIdMVeqwaESGURPoFJMhOMTp
-	 cT4a8nRRpgji27FFkxXN6ZYg0OnneR5HNn8l9rCs=
-Date: Sun, 16 Mar 2025 22:12:20 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,sfr@canb.auug.org.au,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hca@linux.ibm.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=t9U+6aZsXVmM1NSQuwdjE9FcKvmHCPNHhRvDUtEW6yxd2PQl5z7lKH+oz3fbS5o75
+	 hl20VzZN+nwkeyLpmf43BWSWYmxeRdSEx8H3V51QOy4z6vbJDruyMH98/eweIcSZqX
+	 2EmE26rqh64d4eRcA00cGYSmozKaDhBOn0nn3EcM=
+Date: Sun, 16 Mar 2025 22:12:22 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,marcelomoreira1905@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-document-latest-changes-to-vm_lock.patch removed from -mm tree
-Message-Id: <20250317051221.720ADC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-fix-spelling-and-grammar-in-monitoring_intervals_tuning_examplerst.patch removed from -mm tree
+Message-Id: <20250317051222.CC67AC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,150 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs/mm: document latest changes to vm_lock
+     Subject: Docs/mm/damon: fix spelling and grammar in monitoring_intervals_tuning_example.rst
 has been removed from the -mm tree.  Its filename was
-     docs-mm-document-latest-changes-to-vm_lock.patch
+     docs-mm-damon-fix-spelling-and-grammar-in-monitoring_intervals_tuning_examplerst.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: docs/mm: document latest changes to vm_lock
-Date: Thu, 13 Feb 2025 14:46:55 -0800
+From: Marcelo Moreira <marcelomoreira1905@gmail.com>
+Subject: Docs/mm/damon: fix spelling and grammar in monitoring_intervals_tuning_example.rst
+Date: Mon, 17 Feb 2025 18:54:31 -0300
 
-Change the documentation to reflect that vm_lock is integrated into vma
-and replaced with vm_refcnt.  Document newly introduced
-vma_start_read_locked{_nested} functions.
+This patch fixes some spelling and grammar mistakes in the documentation,
+improving the readability.
 
-Link: https://lkml.kernel.org/r/20250213224655.1680278-19-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Tested-by: Shivank Garg <shivankg@amd.com>
-  Link: https://lkml.kernel.org/r/5e19ec93-8307-47c2-bb13-3ddf7150624e@amd.com
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Klara Modin <klarasmodin@gmail.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+- multipled  -> multiplied
+- idential   -> identical
+- minuts     -> minutes
+- efficieny  -> efficiency
+
+Link: https://lkml.kernel.org/r/20250217215512.12833-1-marcelomoreira1905@gmail.com
+Signed-off-by: Marcelo Moreira <marcelomoreira1905@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/process_addrs.rst |   46 +++++++++++++++------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ Documentation/mm/damon/monitoring_intervals_tuning_example.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/process_addrs.rst~docs-mm-document-latest-changes-to-vm_lock
-+++ a/Documentation/mm/process_addrs.rst
-@@ -716,9 +716,14 @@ calls :c:func:`!rcu_read_lock` to ensure
- critical section, then attempts to VMA lock it via :c:func:`!vma_start_read`,
- before releasing the RCU lock via :c:func:`!rcu_read_unlock`.
+--- a/Documentation/mm/damon/monitoring_intervals_tuning_example.rst~docs-mm-damon-fix-spelling-and-grammar-in-monitoring_intervals_tuning_examplerst
++++ a/Documentation/mm/damon/monitoring_intervals_tuning_example.rst
+@@ -36,7 +36,7 @@ Then, list the DAMON-found regions of di
+ "access temperature".  "Access temperature" is a metric representing the
+ access-hotness of a region.  It is calculated as a weighted sum of the access
+ frequency and the age of the region.  If the access frequency is 0 %, the
+-temperature is multipled by minus one.  That is, if a region is not accessed,
++temperature is multiplied by minus one.  That is, if a region is not accessed,
+ it gets minus temperature and it gets lower as not accessed for longer time.
+ The sorting is in temperature-ascendint order, so the region at the top of the
+ list is the coldest, and the one at the bottom is the hottest one. ::
+@@ -58,11 +58,11 @@ list is the coldest, and the one at the
+ The list shows not seemingly hot regions, and only minimum access pattern
+ diversity.  Every region has zero access frequency.  The number of region is
+ 10, which is the default ``min_nr_regions value``.  Size of each region is also
+-nearly idential.  We can suspect this is because “adaptive regions adjustment”
++nearly identical.  We can suspect this is because “adaptive regions adjustment”
+ mechanism was not well working.  As the guide suggested, we can get relative
+ hotness of regions using ``age`` as the recency information.  That would be
+ better than nothing, but given the fact that the longest age is only about 6
+-seconds while we waited about ten minuts, it is unclear how useful this will
++seconds while we waited about ten minutes, it is unclear how useful this will
+ be.
  
--VMA read locks hold the read lock on the :c:member:`!vma->vm_lock` semaphore for
--their duration and the caller of :c:func:`!lock_vma_under_rcu` must release it
--via :c:func:`!vma_end_read`.
-+In cases when the user already holds mmap read lock, :c:func:`!vma_start_read_locked`
-+and :c:func:`!vma_start_read_locked_nested` can be used. These functions do not
-+fail due to lock contention but the caller should still check their return values
-+in case they fail for other reasons.
-+
-+VMA read locks increment :c:member:`!vma.vm_refcnt` reference counter for their
-+duration and the caller of :c:func:`!lock_vma_under_rcu` must drop it via
-+:c:func:`!vma_end_read`.
+ The temperature ranges to total size of regions of each range histogram
+@@ -190,7 +190,7 @@ for sampling and aggregation intervals,
+ The number of regions having different access patterns has significantly
+ increased.  Size of each region is also more varied. Total size of non-zero
+ access frequency regions is also significantly increased. Maybe this is already
+-good enough to make some meaningful memory management efficieny changes.
++good enough to make some meaningful memory management efficiency changes.
  
- VMA **write** locks are acquired via :c:func:`!vma_start_write` in instances where a
- VMA is about to be modified, unlike :c:func:`!vma_start_read` the lock is always
-@@ -726,9 +731,9 @@ acquired. An mmap write lock **must** be
- lock, releasing or downgrading the mmap write lock also releases the VMA write
- lock so there is no :c:func:`!vma_end_write` function.
- 
--Note that a semaphore write lock is not held across a VMA lock. Rather, a
--sequence number is used for serialisation, and the write semaphore is only
--acquired at the point of write lock to update this.
-+Note that when write-locking a VMA lock, the :c:member:`!vma.vm_refcnt` is temporarily
-+modified so that readers can detect the presense of a writer. The reference counter is
-+restored once the vma sequence number used for serialisation is updated.
- 
- This ensures the semantics we require - VMA write locks provide exclusive write
- access to the VMA.
-@@ -738,7 +743,7 @@ Implementation details
- 
- The VMA lock mechanism is designed to be a lightweight means of avoiding the use
- of the heavily contended mmap lock. It is implemented using a combination of a
--read/write semaphore and sequence numbers belonging to the containing
-+reference counter and sequence numbers belonging to the containing
- :c:struct:`!struct mm_struct` and the VMA.
- 
- Read locks are acquired via :c:func:`!vma_start_read`, which is an optimistic
-@@ -779,28 +784,31 @@ release of any VMA locks on its release
- keep VMAs locked across entirely separate write operations. It also maintains
- correct lock ordering.
- 
--Each time a VMA read lock is acquired, we acquire a read lock on the
--:c:member:`!vma->vm_lock` read/write semaphore and hold it, while checking that
--the sequence count of the VMA does not match that of the mm.
--
--If it does, the read lock fails. If it does not, we hold the lock, excluding
--writers, but permitting other readers, who will also obtain this lock under RCU.
-+Each time a VMA read lock is acquired, we increment :c:member:`!vma.vm_refcnt`
-+reference counter and check that the sequence count of the VMA does not match
-+that of the mm.
-+
-+If it does, the read lock fails and :c:member:`!vma.vm_refcnt` is dropped.
-+If it does not, we keep the reference counter raised, excluding writers, but
-+permitting other readers, who can also obtain this lock under RCU.
- 
- Importantly, maple tree operations performed in :c:func:`!lock_vma_under_rcu`
- are also RCU safe, so the whole read lock operation is guaranteed to function
- correctly.
- 
--On the write side, we acquire a write lock on the :c:member:`!vma->vm_lock`
--read/write semaphore, before setting the VMA's sequence number under this lock,
--also simultaneously holding the mmap write lock.
-+On the write side, we set a bit in :c:member:`!vma.vm_refcnt` which can't be
-+modified by readers and wait for all readers to drop their reference count.
-+Once there are no readers, the VMA's sequence number is set to match that of
-+the mm. During this entire operation mmap write lock is held.
- 
- This way, if any read locks are in effect, :c:func:`!vma_start_write` will sleep
- until these are finished and mutual exclusion is achieved.
- 
--After setting the VMA's sequence number, the lock is released, avoiding
--complexity with a long-term held write lock.
-+After setting the VMA's sequence number, the bit in :c:member:`!vma.vm_refcnt`
-+indicating a writer is cleared. From this point on, VMA's sequence number will
-+indicate VMA's write-locked state until mmap write lock is dropped or downgraded.
- 
--This clever combination of a read/write semaphore and sequence count allows for
-+This clever combination of a reference counter and sequence count allows for
- fast RCU-based per-VMA lock acquisition (especially on page fault, though
- utilised elsewhere) with minimal complexity around lock ordering.
- 
+ 800ms/16s intervals: Another bias
+ =================================
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from marcelomoreira1905@gmail.com are
 
 
