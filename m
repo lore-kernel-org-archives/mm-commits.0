@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2188140E30
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:31:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7E6140E30
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:31:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189512; cv=none; b=de5xLIPeef63KUJTs/1I1m7Nl7f+8jOJHYpyji71dIiGYCRUTA+grH0A63D4LZQvRx4OTOyGKmmO6bTXbD9DFAumiIrIhPrgwkUpjZxAy2TuOk5E+3wM1O40frLWx6Vd0RHzDrjtqFx6JYFFlmn3L8yAPuIRkkqPTTxukdRT4IY=
+	t=1742189514; cv=none; b=YuuXIZWRg4Jd2+2+vjK08/vkoZQlMOcVgMrjFFQGQeytrYBExmPMS3MrtR0xtyHu7qnu1ziJHt+qRH6gElJ6D3cuwNmxR7QKtYsiBq8pE34PLIYGUKccrG6MHhrBEXZ0nsd1jR56QbMDkO0Yt/PBEuMw7PolGpbOHGC8ID37Wjw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189512; c=relaxed/simple;
-	bh=u7VJsMsoz37+8K1g0ktyBmh3gz4sZ3fvMOIuEBWLznI=;
-	h=Date:To:From:Subject:Message-Id; b=ZQuWZnd8zQFHR3d92hcy2T7wi9ED5hiUree+EKOWnvPx9s8RoYXeSFKYNy61Yk9V+6h9NWuqLjjZtL4eOnCVWP+e0UtvNO/wnTHTxFq/7imyRNS8i1v+G4WbE59mRfojsy0tx73gYGycpXiAU5Rc/5eD9VjfZGT4FQXnpjacYIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MwbVY4Ql; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189514; c=relaxed/simple;
+	bh=gvNnAlxz6Nz5DCd5xdr6VXafkTUeI7kCmOH7lB7O+P8=;
+	h=Date:To:From:Subject:Message-Id; b=gEAqH099q/Bxvtbg3ImNMAfFIidqXkyNNcYkkTU01cGhaNqDD/l3hoADUR26YL6bfjiv+5+t+RQvnRXgYoi1CVKEPHl9PiMp3/6Gum2X9v1GPLa4zZHWWeTEiseuy9gg+qai4KZMgY5/IXD7YY1tb5XurzlfP1bdjTVJt039IQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xmN2fsUB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MwbVY4Ql"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E95C4CEEC;
-	Mon, 17 Mar 2025 05:31:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xmN2fsUB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDC43C4CEEC;
+	Mon, 17 Mar 2025 05:31:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189512;
-	bh=u7VJsMsoz37+8K1g0ktyBmh3gz4sZ3fvMOIuEBWLznI=;
+	s=korg; t=1742189513;
+	bh=gvNnAlxz6Nz5DCd5xdr6VXafkTUeI7kCmOH7lB7O+P8=;
 	h=Date:To:From:Subject:From;
-	b=MwbVY4Ql2r9jXtPod+julXR52SM04m07DAkZZJPDAH/w3kvmftk6x0ryHBT7yMNnh
-	 1Epx9nIRpdVAeqIx9bOEjLtaWvhTb9iYK8FegpqEYfeubMr/IkpJu1WpP7zKhO/0Du
-	 BwZJrA0Sx7aBPyyz2aA8E6MWsDxwLu1k0idodtkc=
-Date: Sun, 16 Mar 2025 22:31:52 -0700
+	b=xmN2fsUBrlBkaDyuamMFPN6/+X8KirQu4l24jAmMOMSbzPCv9R3n8pfNaCoLntZbn
+	 9M2NpG+IJyZFw6u2J5JK6CAhBi+zkf//+QijVuXoLqeCla4SLvnJNEqJKInxvUlm1F
+	 u/vRefqQAANShOrzdIuHWPsxlrrcJ7Jo3iJEHU98=
+Date: Sun, 16 Mar 2025 22:31:53 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark.tinguely@oracle.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch removed from -mm tree
-Message-Id: <20250317053152.96E95C4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-remove-reference-to-bh-b_page.patch removed from -mm tree
+Message-Id: <20250317053153.BDC43C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: use memcpy_to_folio() in ocfs2_symlink_get_block()
+     Subject: ocfs2: remove reference to bh->b_page
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block.patch
+     ocfs2-remove-reference-to-bh-b_page.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ocfs2: use memcpy_to_folio() in ocfs2_symlink_get_block()
-Date: Thu, 13 Feb 2025 21:45:30 +0000
+Subject: ocfs2: remove reference to bh->b_page
+Date: Thu, 13 Feb 2025 21:45:31 +0000
 
-Replace use of kmap_atomic() with the higher-level construct
-memcpy_to_folio().  This removes a use of b_page and supports large folios
-as well as being easier to understand.  It also removes the check for
-kmap_atomic() failing (because it can't).
+Buffer heads are attached to folios, not to pages.  Also
+flush_dcache_page() is now deprecated in favour of flush_dcache_folio().
 
-Link: https://lkml.kernel.org/r/20250213214533.2242224-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250213214533.2242224-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Tinguely <mark.tinguely@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Mark Tinguely <mark.tinguely@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ fs/ocfs2/quota_global.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/aops.c~ocfs2-use-memcpy_to_folio-in-ocfs2_symlink_get_block
-+++ a/fs/ocfs2/aops.c
-@@ -46,7 +46,6 @@ static int ocfs2_symlink_get_block(struc
- 	struct buffer_head *bh = NULL;
- 	struct buffer_head *buffer_cache_bh = NULL;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
--	void *kaddr;
- 
- 	trace_ocfs2_symlink_get_block(
- 			(unsigned long long)OCFS2_I(inode)->ip_blkno,
-@@ -91,17 +90,11 @@ static int ocfs2_symlink_get_block(struc
- 		 * could've happened. Since we've got a reference on
- 		 * the bh, even if it commits while we're doing the
- 		 * copy, the data is still good. */
--		if (buffer_jbd(buffer_cache_bh)
--		    && ocfs2_inode_is_new(inode)) {
--			kaddr = kmap_atomic(bh_result->b_page);
--			if (!kaddr) {
--				mlog(ML_ERROR, "couldn't kmap!\n");
--				goto bail;
--			}
--			memcpy(kaddr + (bh_result->b_size * iblock),
--			       buffer_cache_bh->b_data,
--			       bh_result->b_size);
--			kunmap_atomic(kaddr);
-+		if (buffer_jbd(buffer_cache_bh) && ocfs2_inode_is_new(inode)) {
-+			memcpy_to_folio(bh_result->b_folio,
-+					bh_result->b_size * iblock,
-+					buffer_cache_bh->b_data,
-+					bh_result->b_size);
- 			set_buffer_uptodate(bh_result);
- 		}
- 		brelse(buffer_cache_bh);
+--- a/fs/ocfs2/quota_global.c~ocfs2-remove-reference-to-bh-b_page
++++ a/fs/ocfs2/quota_global.c
+@@ -273,7 +273,7 @@ ssize_t ocfs2_quota_write(struct super_b
+ 	if (new)
+ 		memset(bh->b_data, 0, sb->s_blocksize);
+ 	memcpy(bh->b_data + offset, data, len);
+-	flush_dcache_page(bh->b_page);
++	flush_dcache_folio(bh->b_folio);
+ 	set_buffer_uptodate(bh);
+ 	unlock_buffer(bh);
+ 	ocfs2_set_buffer_uptodate(INODE_CACHE(gqinode), bh);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
