@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24F8C140E30
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36ABE140E30
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189531; cv=none; b=aoilACLPiZYlzwHZ0Mp2MnvhVc4N2T1EFxMn0LKAsI3mxzyEu5sTFgSDg0MLqA/KLemJGxb0eGaDmIDX4zpcNiT+bCPONr4x/GkyqDwCeBZolUr5avKppg9OZm0Gtl71nru8QHLSRCtu1SE+PaxZ2OIbWk4XjEbmpxjW+wY36yg=
+	t=1742189532; cv=none; b=lrLZK41el+2PmoatU62CMJ/fkmWG7gogI5zySfsgfPTIN8bZ+jaMP3y1tIxH8mEcb+fDkStIJlCTrEPmSQLrMpgdnEdN7MsoUANqS81mugAxPCzzZron7z/GzwvxY7jELyg7gMwXwOYDZxLxQu06BtV4E7nsTMTmhAMeA70cuwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189531; c=relaxed/simple;
-	bh=ZSIDaeJK7DvwhhgG9wn23lFm9GG7Qz7gSS0yYCMQd3g=;
-	h=Date:To:From:Subject:Message-Id; b=LpSQP15kVnoBrYTPppH4RK30NRnzC4rlQTNyTl73As3zKKvRpNhc0BhHYQ7TrrwH7hgTwE45jE+BLbFRe0q/cyLy9jDAMzc+1MuIU1E1a4OQNFOOV1aQUOB2tLKlax1XN8qlKWir5k/SZ75DfDQnywiI6U3cG5HX5QBhtdkiV8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=afH9FQA3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189532; c=relaxed/simple;
+	bh=FHB1JlTeiSVwOCOVbmFCEV5sVRErITf7PIm5rTwZrP8=;
+	h=Date:To:From:Subject:Message-Id; b=p1ooVyNDtFzo7/70zVlp3ZZZjmzN2WehwKdmkp1Vc9YBjPeX1eUzgfYaE0T85pEGTD6NPMZtUXXqrNivkXag0PmxjHSnFJlI07kEAD2JFzc/ByuujEqGBpRFu9uyI86zESMWbFloFcKgcdQqZ5/MCHTwgpKtOsg83ubFsyA6+Dk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hicChaUV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="afH9FQA3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC8FAC4CEEC;
-	Mon, 17 Mar 2025 05:32:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hicChaUV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 097FEC4CEEC;
+	Mon, 17 Mar 2025 05:32:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189531;
-	bh=ZSIDaeJK7DvwhhgG9wn23lFm9GG7Qz7gSS0yYCMQd3g=;
+	s=korg; t=1742189532;
+	bh=FHB1JlTeiSVwOCOVbmFCEV5sVRErITf7PIm5rTwZrP8=;
 	h=Date:To:From:Subject:From;
-	b=afH9FQA3/4jjYp4EEYpr25eI7btMeKbZMFQR2UU/ajSa+teBOeWaAj/1tkPdLEHWo
-	 k4cxmp+Dk3j48sWeYx58W971gzfzbp1srAw1OB1RWiboqAXWN0KvHqsNPVXmO2jqTy
-	 bfN51/01WMne3dL4L4HYTrEXvSuVAVp909HREiJw=
-Date: Sun, 16 Mar 2025 22:32:10 -0700
-To: mm-commits@vger.kernel.org,tzungbi@kernel.org,teknoraver@meta.com,serge@hallyn.com,rui.zhang@intel.com,robh@kernel.org,rafael@kernel.org,mazziesaccount@gmail.com,lukasz.luba@arm.com,lgirdwood@gmail.com,kernel@pengutronix.de,groeck@chromium.org,festevam@denx.de,daniel.lezcano@linaro.org,corbet@lwn.net,broonie@kernel.org,bleung@chromium.org,a.fatoum@pengutronix.de,akpm@linux-foundation.org
+	b=hicChaUVKh2+8YGMcggNyQP9hb+iwfC/GD48gnrxBRnfYQo5rM7nBbdX6BwWoqYVa
+	 5mgxCbUO/BiUfcx97h5WykkIObQlp7Hhw14AcU7INa8QnfzYBD816y6ylgmnUEB/qO
+	 Pw0GVVkB3EsEWneIpwQfL0uD1/XIs9zZ9sX7NjDM=
+Date: Sun, 16 Mar 2025 22:32:11 -0700
+To: mm-commits@vger.kernel.org,jserv@ccns.ncku.edu.tw,eleanor15x@gmail.com,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] reboot-retire-hw_protection_reboot-and-hw_protection_shutdown-helpers.patch removed from -mm tree
-Message-Id: <20250317053210.EC8FAC4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-min_heap-use-size_t-for-array-size-and-index-variables.patch removed from -mm tree
+Message-Id: <20250317053212.097FEC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,108 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: reboot: retire hw_protection_reboot and hw_protection_shutdown helpers
+     Subject: lib min_heap: use size_t for array size and index variables
 has been removed from the -mm tree.  Its filename was
-     reboot-retire-hw_protection_reboot-and-hw_protection_shutdown-helpers.patch
+     lib-min_heap-use-size_t-for-array-size-and-index-variables.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Subject: reboot: retire hw_protection_reboot and hw_protection_shutdown helpers
-Date: Mon, 17 Feb 2025 21:39:52 +0100
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib min_heap: use size_t for array size and index variables
+Date: Sun, 16 Feb 2025 00:56:18 +0800
 
-The hw_protection_reboot and hw_protection_shutdown functions mix
-mechanism with policy: They let the driver requesting an emergency action
-for hardware protection also decide how to deal with it.
+Replace the int type with size_t for variables representing array sizes
+and indices in the min-heap implementation.  Using size_t aligns with
+standard practices for size-related variables and avoids potential issues
+on platforms where int may be insufficient to represent all valid sizes or
+indices.
 
-This is inadequate in the general case as a driver reporting e.g.  an
-imminent power failure can't know whether a shutdown or a reboot would be
-more appropriate for a given hardware platform.
-
-With the addition of the hw_protection parameter, it's now possible to
-configure at runtime the default emergency action and drivers are expected
-to use hw_protection_trigger to have this parameter dictate policy.
-
-As no current users of either hw_protection_shutdown or
-hw_protection_shutdown helpers remain, remove them, as not to tempt driver
-authors to call them.
-
-Existing users now either defer to hw_protection_trigger or call
-__hw_protection_trigger with a suitable argument directly when they have
-inside knowledge on whether a reboot or shutdown would be more
-appropriate.
-
-Link: https://lkml.kernel.org/r/20250217-hw_protection-reboot-v3-12-e1c09b090c0c@pengutronix.de
-Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Reviewed-by: Tzung-Bi Shih <tzungbi@kernel.org>
-Cc: Benson Leung <bleung@chromium.org>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Fabio Estevam <festevam@denx.de>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Lukasz Luba <lukasz.luba@arm.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Matteo Croce <teknoraver@meta.com>
-Cc: Matti Vaittinen <mazziesaccount@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rob Herring (Arm) <robh@kernel.org>
-Cc: Rui Zhang <rui.zhang@intel.com>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Link: https://lkml.kernel.org/r/20250215165618.1757219-1-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Yu-Chun Lin <eleanor15x@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |   10 ----------
- 1 file changed, 10 deletions(-)
+ include/linux/min_heap.h |   12 ++++++------
+ lib/min_heap.c           |    4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/reboot.h~reboot-retire-hw_protection_reboot-and-hw_protection_shutdown-helpers
-+++ a/include/linux/reboot.h
-@@ -211,16 +211,6 @@ static inline void hw_protection_trigger
- 	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_DEFAULT);
- }
+--- a/include/linux/min_heap.h~lib-min_heap-use-size_t-for-array-size-and-index-variables
++++ a/include/linux/min_heap.h
+@@ -218,7 +218,7 @@ static size_t parent(size_t i, unsigned
  
--static inline void hw_protection_reboot(const char *reason, int ms_until_forced)
--{
--	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_REBOOT);
--}
--
--static inline void hw_protection_shutdown(const char *reason, int ms_until_forced)
--{
--	__hw_protection_trigger(reason, ms_until_forced, HWPROT_ACT_SHUTDOWN);
--}
--
- /*
-  * Emergency restart, callable from an interrupt handler.
-  */
+ /* Initialize a min-heap. */
+ static __always_inline
+-void __min_heap_init_inline(min_heap_char *heap, void *data, int size)
++void __min_heap_init_inline(min_heap_char *heap, void *data, size_t size)
+ {
+ 	heap->nr = 0;
+ 	heap->size = size;
+@@ -254,7 +254,7 @@ bool __min_heap_full_inline(min_heap_cha
+ 
+ /* Sift the element at pos down the heap. */
+ static __always_inline
+-void __min_heap_sift_down_inline(min_heap_char *heap, int pos, size_t elem_size,
++void __min_heap_sift_down_inline(min_heap_char *heap, size_t pos, size_t elem_size,
+ 				 const struct min_heap_callbacks *func, void *args)
+ {
+ 	const unsigned long lsbit = elem_size & -elem_size;
+@@ -324,7 +324,7 @@ static __always_inline
+ void __min_heapify_all_inline(min_heap_char *heap, size_t elem_size,
+ 			      const struct min_heap_callbacks *func, void *args)
+ {
+-	int i;
++	ssize_t i;
+ 
+ 	for (i = heap->nr / 2 - 1; i >= 0; i--)
+ 		__min_heap_sift_down_inline(heap, i, elem_size, func, args);
+@@ -379,7 +379,7 @@ bool __min_heap_push_inline(min_heap_cha
+ 			    const struct min_heap_callbacks *func, void *args)
+ {
+ 	void *data = heap->data;
+-	int pos;
++	size_t pos;
+ 
+ 	if (WARN_ONCE(heap->nr >= heap->size, "Pushing on a full heap"))
+ 		return false;
+@@ -428,10 +428,10 @@ bool __min_heap_del_inline(min_heap_char
+ 	__min_heap_del_inline(container_of(&(_heap)->nr, min_heap_char, nr),	\
+ 			      __minheap_obj_size(_heap), _idx, _func, _args)
+ 
+-void __min_heap_init(min_heap_char *heap, void *data, int size);
++void __min_heap_init(min_heap_char *heap, void *data, size_t size);
+ void *__min_heap_peek(struct min_heap_char *heap);
+ bool __min_heap_full(min_heap_char *heap);
+-void __min_heap_sift_down(min_heap_char *heap, int pos, size_t elem_size,
++void __min_heap_sift_down(min_heap_char *heap, size_t pos, size_t elem_size,
+ 			  const struct min_heap_callbacks *func, void *args);
+ void __min_heap_sift_up(min_heap_char *heap, size_t elem_size, size_t idx,
+ 			const struct min_heap_callbacks *func, void *args);
+--- a/lib/min_heap.c~lib-min_heap-use-size_t-for-array-size-and-index-variables
++++ a/lib/min_heap.c
+@@ -2,7 +2,7 @@
+ #include <linux/export.h>
+ #include <linux/min_heap.h>
+ 
+-void __min_heap_init(min_heap_char *heap, void *data, int size)
++void __min_heap_init(min_heap_char *heap, void *data, size_t size)
+ {
+ 	__min_heap_init_inline(heap, data, size);
+ }
+@@ -20,7 +20,7 @@ bool __min_heap_full(min_heap_char *heap
+ }
+ EXPORT_SYMBOL(__min_heap_full);
+ 
+-void __min_heap_sift_down(min_heap_char *heap, int pos, size_t elem_size,
++void __min_heap_sift_down(min_heap_char *heap, size_t pos, size_t elem_size,
+ 			  const struct min_heap_callbacks *func, void *args)
+ {
+ 	__min_heap_sift_down_inline(heap, pos, elem_size, func, args);
 _
 
-Patches currently in -mm which might be from a.fatoum@pengutronix.de are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
 
