@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE2F1E52D
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 18:58:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 760D61E52D
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 18:58:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742237902; cv=none; b=g3sIJEl4k/jxvAiL3Tn1JfOBsSupNMe/XbHnVOxa5ahwfmSpSQYtfWO6/qZhg1JRdf8gYIRJS4wVjtxw/ZS9MPyh9wwOycBmdQxD3KRnoqxdsWzF3+4+hBI8NvOGNqFRCLtstk3CEC4JTC2kugDu5m5tbPCGO7jvZKhbtI6ryDE=
+	t=1742237918; cv=none; b=Ui2UGutY9rjitvDnJL6CZ551Y8lEXXLa/7xnIJCAOKoyQKUdlOgQxhdakVUj6UtJIxUprSduL9x0KfxcXLYw70MBGdBPUneH5n6vkuLsu2A4/Ka2ZBywdST3gRIQO0pyKNjb3oeyNyS4+EUPSQI9wW4I/+M8sr0hCIfecTN8Y8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742237902; c=relaxed/simple;
-	bh=1zDMJ5sXSTzlQtnDsbbLxGVS1Ls/ly5O5RU3JUrNiQQ=;
-	h=Date:To:From:Subject:Message-Id; b=HGoJStrXilLZvtMNslkHUf0r+A3QMmhcXpQthWsKhRleXoNvVGZt8IxX1aQkE17w8TOCAwATyY2YLIP3Ai3GsWzO5TgvvwVuqiXuRT5J5ZRPvqX7V8BIMOojW90o8596M43hNP9mO0NwGz+Mn5jGEymz/jb3c+IxUnm9teL5Bb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bxRC9KQA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742237918; c=relaxed/simple;
+	bh=aBUD3FENOb4tW+IspPBMCsm/PewPZrDv/fXRKhXf9Gw=;
+	h=Date:To:From:Subject:Message-Id; b=kBDvZl5y73VsyS5FSDY2tDcN41nV6o8d+BV0OfkTVjSKDOiiVfB/ikZVbNGWtSm6ZZylzOFxzs29anAbOUmZRfYN2WdedIAY5JTLoHwbYQUqPiUYLYFvSt4VjX7Hyaiz1Jid4j82Ywo5z7qF4JAw1oqG1DLszfSYDrqo5TOCqm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lviHIwtN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bxRC9KQA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6521C4CEE3;
-	Mon, 17 Mar 2025 18:58:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lviHIwtN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD6CC4CEE3;
+	Mon, 17 Mar 2025 18:58:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742237901;
-	bh=1zDMJ5sXSTzlQtnDsbbLxGVS1Ls/ly5O5RU3JUrNiQQ=;
+	s=korg; t=1742237917;
+	bh=aBUD3FENOb4tW+IspPBMCsm/PewPZrDv/fXRKhXf9Gw=;
 	h=Date:To:From:Subject:From;
-	b=bxRC9KQAbf2piqmvsaXKw9mMEr+Jt/SsACD3juaTgMParrFGzhHbailJ8dbndgzva
-	 A3NVmCgXFIlQjr5uJLTPpixMI7Vlgfo9vSXwABWisl5bqral4r7FC7ukYDgrkx4roC
-	 tuPnIJsv4sW3C0ITyAfUncEl6id9HRxZm248pov0=
-Date: Mon, 17 Mar 2025 11:58:20 -0700
-To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=lviHIwtNf8Hx21NFi+i0gSw8OBO31fra5qXCjgkjMT5ZSObobtS2z0FdPpYc8peop
+	 xkCaE0iP2NP8HVxm6/ZWiwTqmzpBYn3Pj2/vRYkAN3uUvuuqUjW4f3e87BET4hIxav
+	 QPpN8yQeC2dLjzFBt0Y1wjEiD0idmBLQXOcx1E7g=
+Date: Mon, 17 Mar 2025 11:58:37 -0700
+To: mm-commits@vger.kernel.org,ilpo.jarvinen@linux.intel.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-replace-open-coded-variant-of-define_res.patch added to mm-nonmm-unstable branch
-Message-Id: <20250317185821.B6521C4CEE3@smtp.kernel.org>
+Subject: + resource-split-define_res_named_desc-out-of-define_res_named.patch added to mm-nonmm-unstable branch
+Message-Id: <20250317185837.CDD6CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: replace open coded variant of DEFINE_RES()
+     Subject: resource: split DEFINE_RES_NAMED_DESC() out of DEFINE_RES_NAMED()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-replace-open-coded-variant-of-define_res.patch
+     resource-split-define_res_named_desc-out-of-define_res_named.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-replace-open-coded-variant-of-define_res.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-split-define_res_named_desc-out-of-define_res_named.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: resource: replace open coded variant of DEFINE_RES()
-Date: Mon, 17 Mar 2025 20:11:13 +0200
+Subject: resource: split DEFINE_RES_NAMED_DESC() out of DEFINE_RES_NAMED()
+Date: Mon, 17 Mar 2025 20:11:10 +0200
 
-Replace open coded variant of DEFINE_RES(). No functional changes intended.
+Patch series "resource: Split and use DEFINE_RES*() macros", v2.
 
-Link: https://lkml.kernel.org/r/20250317181412.1560630-5-andriy.shevchenko@linux.intel.com
+Replace open coded variants of DEFINE_RES*() macros.
+
+Note, there are many more possibilities over the kernel and even in
+reources.c, however the latter contains not so trivial leftovers.  That's
+why the examples cover only straightforward conversions.
+
+
+This patch (of 4):
+
+In some cases it would be useful to supply predefined descriptor of the
+resource.  For this, introduce DEFINE_RES_NAMED_DESC() macro.
+
+While at it, provide DEFINE_RES() that takes only start, size,
+and flags.
+
+Link: https://lkml.kernel.org/r/20250317181412.1560630-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20250317181412.1560630-2-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/ioport.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/kernel/resource.c~resource-replace-open-coded-variant-of-define_res
-+++ a/kernel/resource.c
-@@ -561,8 +561,7 @@ static int __region_intersects(struct re
- 	struct resource res, o;
- 	bool covered;
+--- a/include/linux/ioport.h~resource-split-define_res_named_desc-out-of-define_res_named
++++ a/include/linux/ioport.h
+@@ -154,15 +154,20 @@ enum {
+ };
  
--	res.start = start;
--	res.end = start + size - 1;
-+	res = DEFINE_RES(start, size, 0);
+ /* helpers to define resources */
+-#define DEFINE_RES_NAMED(_start, _size, _name, _flags)			\
++#define DEFINE_RES_NAMED_DESC(_start, _size, _name, _flags, _desc)	\
+ (struct resource) {							\
+ 		.start = (_start),					\
+ 		.end = (_start) + (_size) - 1,				\
+ 		.name = (_name),					\
+ 		.flags = (_flags),					\
+-		.desc = IORES_DESC_NONE,				\
++		.desc = (_desc),					\
+ 	}
  
- 	for (p = parent->child; p ; p = p->sibling) {
- 		if (!resource_intersection(p, &res, &o))
++#define DEFINE_RES_NAMED(_start, _size, _name, _flags)			\
++	DEFINE_RES_NAMED_DESC(_start, _size, _name, _flags, IORES_DESC_NONE)
++#define DEFINE_RES(_start, _size, _flags)				\
++	DEFINE_RES_NAMED(_start, _size, NULL, _flags)
++
+ #define DEFINE_RES_IO_NAMED(_start, _size, _name)			\
+ 	DEFINE_RES_NAMED((_start), (_size), (_name), IORESOURCE_IO)
+ #define DEFINE_RES_IO(_start, _size)					\
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
