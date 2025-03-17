@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19928A59
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A3A1A59
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188168; cv=none; b=bvkQQaCd/V1qT1FmzcJ3LCq2vhat1Uju7+bLQTXrtR4VSuQkgwYz6iqk/5P0Jk2V/TKLGnsLTZbvADxbjWoAcC3qQbl8GqSTjlwNkBUO2Ev2AKZTxyZfA6FJp2Azo3lniA3wzjUpnUh+V7qWetBP8dEzgEfUzy45V+OTFfIMBHA=
+	t=1742188169; cv=none; b=s5GD05lL0OdPVstzuZH2C6SXhKa5HpASJ3Flfq519E9rUGWNcYQPDgFhz4s1Vt/VFQk9af0t8ycrjzbD5IY0gjTdVv0LuC8ttz8AVBBJSPAHFDYCAMcLNFZp4gqbHHpDUkaXsDl7qnC8Xcu7HIaIofAevnh2dNiQwaHRDLMedg4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188168; c=relaxed/simple;
-	bh=xafF7aXVxVfhfOzM/sbca6oiq18sUyyLCdrctmnB83E=;
-	h=Date:To:From:Subject:Message-Id; b=Fa/CQN+AUsWUBPzlPmYR+MozE1jqOmAPxVDTwLurmOP8JpCYWbxBDZOit8WqtPf/UQ86kc4Px+TnExxYVbR8+cNbcff/hRk7PYcnE3ami5SY9nt36apF3iA8ATq9p3CZsllDEji/vb2elYZjGCWvSO3WR8GsvLZCSgpu+nSMJXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zoagb4GH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188169; c=relaxed/simple;
+	bh=IbZ/LqR1/D2TByJPszOgaxuUVe2OtU+57sNSg/qqoiU=;
+	h=Date:To:From:Subject:Message-Id; b=CrcVSKCtLMFxzjG01SEKSJuXF+aqUysgx6Gl8vh/s06VXBSMgf/Az4XXe2uriOdxYYmhFcq5dVaHdcuIQPJ0tpAS7WrLS4hxlUy+u5iaj8TS7MYZsWompMh8DOLHvq71K7nOjoPW07MScvHt9QEoiiKSj/C11TwfBF/bSaPtokg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZGRCP4pI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zoagb4GH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A5BBC4CEEC;
-	Mon, 17 Mar 2025 05:09:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZGRCP4pI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CE6CC4CEEC;
+	Mon, 17 Mar 2025 05:09:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188167;
-	bh=xafF7aXVxVfhfOzM/sbca6oiq18sUyyLCdrctmnB83E=;
+	s=korg; t=1742188169;
+	bh=IbZ/LqR1/D2TByJPszOgaxuUVe2OtU+57sNSg/qqoiU=;
 	h=Date:To:From:Subject:From;
-	b=zoagb4GHa8OpKwwV80azlz7eILmgC3owEP4PCOTz1y4+AiCa4ovn8xW1FwZDlGm9R
-	 jA4IGmnO2BLrE/X3m/Cvdw3Wd0+Uyf6Fc3RgQX9hjUEQ9UztkTQ9bwH1qpuj7bd3uV
-	 HULfwZ/upNOHOuao3+vzmcvP9U3+PNRhoajc38l8=
-Date: Sun, 16 Mar 2025 22:09:26 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=ZGRCP4pII92svgvf2qUMv1V7S819J4pbUe4C5/owDCSAgPu2JKJp5oly90s1lUbnJ
+	 5CL1HFSBLrIufCcBTWjlJuuS2cVihP6y1JyGdyKMXKzXH96sIDR+SMYtQMOGsfSj+2
+	 GKZPlgCaZaEXMAKDmNitcl1gZ+tl6w6KaCAMr8BA=
+Date: Sun, 16 Mar 2025 22:09:28 -0700
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,wangweiyang2@huawei.com,vbabka@suse.cz,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,davidf@vimeo.com,chenridong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch removed from -mm tree
-Message-Id: <20250317050927.7A5BBC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-use-ofp_peak_unset-instead-of-1.patch removed from -mm tree
+Message-Id: <20250317050929.0CE6CC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: percpu/x86: enable strict percpu checks via named AS qualifiers
+     Subject: memcg: use OFP_PEAK_UNSET instead of -1
 has been removed from the -mm tree.  Its filename was
-     percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch
+     memcg-use-ofp_peak_unset-instead-of-1.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: percpu/x86: enable strict percpu checks via named AS qualifiers
-Date: Mon, 27 Jan 2025 17:05:10 +0100
+From: Chen Ridong <chenridong@huawei.com>
+Subject: memcg: use OFP_PEAK_UNSET instead of -1
+Date: Fri, 24 Jan 2025 07:35:11 +0000
 
-This patch declares percpu variables in __seg_gs/__seg_fs named AS and
-keeps them named AS qualified until they are dereferenced with percpu
-accessor.  This approach enables various compiler check for
-cross-namespace variable assignments.
+Patch series "Some cleanup for memcg", v4.
 
-Link: https://lkml.kernel.org/r/20250127160709.80604-7-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Acked-by: Nadav Amit <nadav.amit@gmail.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
+
+This patch (of 4):
+
+The 'OFP_PEAK_UNSET' has been defined, use it instead of '-1'.
+
+Link: https://lkml.kernel.org/r/20250124073514.2375622-1-chenridong@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250124073514.2375622-2-chenridong@huaweicloud.com
+Signed-off-by: Chen Ridong <chenridong@huawei.com>
+Reviewed-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: David Finkel <davidf@vimeo.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wang Weiyang <wangweiyang2@huawei.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/percpu.h |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/include/asm/percpu.h~percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers
-+++ a/arch/x86/include/asm/percpu.h
-@@ -95,9 +95,18 @@
+--- a/mm/memcontrol.c~memcg-use-ofp_peak_unset-instead-of-1
++++ a/mm/memcontrol.c
+@@ -4013,7 +4013,7 @@ static ssize_t peak_write(struct kernfs_
+ 			WRITE_ONCE(peer_ctx->value, usage);
  
- #endif /* CONFIG_SMP */
+ 	/* initial write, register watcher */
+-	if (ofp->value == -1)
++	if (ofp->value == OFP_PEAK_UNSET)
+ 		list_add(&ofp->list, watchers);
  
--#define __my_cpu_type(var)	typeof(var) __percpu_seg_override
--#define __my_cpu_ptr(ptr)	(__my_cpu_type(*(ptr))*)(__force uintptr_t)(ptr)
--#define __my_cpu_var(var)	(*__my_cpu_ptr(&(var)))
-+#if defined(CONFIG_USE_X86_SEG_SUPPORT) && defined(USE_TYPEOF_UNQUAL)
-+# define __my_cpu_type(var)	typeof(var)
-+# define __my_cpu_ptr(ptr)	(ptr)
-+# define __my_cpu_var(var)	(var)
-+
-+# define __percpu_qual		__percpu_seg_override
-+#else
-+# define __my_cpu_type(var)	typeof(var) __percpu_seg_override
-+# define __my_cpu_ptr(ptr)	(__my_cpu_type(*(ptr))*)(__force uintptr_t)(ptr)
-+# define __my_cpu_var(var)	(*__my_cpu_ptr(&(var)))
-+#endif
-+
- #define __percpu_arg(x)		__percpu_prefix "%" #x
- #define __force_percpu_arg(x)	__force_percpu_prefix "%" #x
- 
+ 	WRITE_ONCE(ofp->value, usage);
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from chenridong@huawei.com are
 
 
