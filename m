@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF15812F5A5
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 218D58634E
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188517; cv=none; b=jioA1N9pubheiP+/FhR6Wy60mpaKUPJ3pLQ5NERNQCXuDx8hDOXs5UrqHurU+JX+wVD7FbtOepkJ0ZPBpcR+qCN7eL7D8Uu0l31UWVtYnQNklcwDHEboKI3+VopVj37nB5xyLJRYP/wls8hoNiyKmjj8HMsTwGyIdr0RP4MRYEM=
+	t=1742188519; cv=none; b=eBpe7K5yRDauAQ2tAq4uLyOx4F8s12O9pIkGPYlpGuf2P6f2D8c5djLdy1hRhv7UxzypkiBOR7JQgL6R6Hf5mb5Qlz8yGCxlFSTre8woktzszEZ/GGQqLkZuh8CXbL+gfl8F53538g4r1qruZW76SKxC5x2riSTP1/ghp6whBjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188517; c=relaxed/simple;
-	bh=uht8Om0tDT0bcv6LUj8iYDu25eMSZxnrr3wpmPMG4Fs=;
-	h=Date:To:From:Subject:Message-Id; b=l7ztwhtV40hCzDCCWUjWHGfW2GjODEFR7oRai4ScGXVNL1CDb4NlXCX0m8AdXHhT3c8MswUumY2AF/YjijJL9qPZgXXyU8/uWAlvSFRGrnZVs2cwNv0ZsTGrE55nT324aYqmLxT7jShKJRZO7WkNQJ5YAxEhXihRWkGZM64gMjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=huOVGw4I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188519; c=relaxed/simple;
+	bh=G11wD/pGyFcL2AoaQAMw2kRyOb8TYbCuEpN1aFPKzIg=;
+	h=Date:To:From:Subject:Message-Id; b=rlfYkiHz+6WvSHX+Oo8fQIpG/gWMOJbGr1eWoBgwdyqpY4423tP6qcs01DEKpJWYdCelCXIEEBWgdqK4Vatl+VCGQwqpb62zFWwsmo8bnlax44dzb4jg2uCmlTjzPNLKF7DkiixJJi0LJgy7/GmDzaZuxwdLS/nEM0iFVD/Erw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oKc0xEBG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="huOVGw4I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2781C4CEEC;
-	Mon, 17 Mar 2025 05:15:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oKc0xEBG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAFDEC4CEEC;
+	Mon, 17 Mar 2025 05:15:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188516;
-	bh=uht8Om0tDT0bcv6LUj8iYDu25eMSZxnrr3wpmPMG4Fs=;
+	s=korg; t=1742188519;
+	bh=G11wD/pGyFcL2AoaQAMw2kRyOb8TYbCuEpN1aFPKzIg=;
 	h=Date:To:From:Subject:From;
-	b=huOVGw4IZ4deMQXGDplxIO06FSeilzO8znWArdaaoRg+yQ6GLeVfyQ8pTovk/nSJl
-	 JZ8fZbAiSBOvfihskmtgUO41iBEGkB0XGbvUtvrgx1HDZTSYqNxQjNlLPYeGYYqTWi
-	 KgVtCJr29iIlhMQtkBAcUPaHu/Cn2etydOUBhO2Q=
-Date: Sun, 16 Mar 2025 22:15:16 -0700
+	b=oKc0xEBGLG9kGufdL4fJW45678ZjUGsy9gGuz6SmUliXRp8eh4BQfltVyUcuiCwaT
+	 N2eX5TQaClWLBRDWU7nzzFqkdEdYREKJrQ4pZ4qL1Icw3fAWEWAUrA14lv+3pYdrEa
+	 O1foGrQgAPJ/gjD8CfFK3vglgNbuRyovkSP0yVh0=
+Date: Sun, 16 Mar 2025 22:15:18 -0700
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vbabka@suse.cz,mhocko@kernel.org,mgorman@techsingularity.net,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-clarify-terminology-in-migratetype-fallback-code.patch removed from -mm tree
-Message-Id: <20250317051516.C2781C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-clarify-should_claim_block-commentary.patch removed from -mm tree
+Message-Id: <20250317051518.EAFDEC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: clarify terminology in migratetype fallback code
+     Subject: mm/page_alloc: clarify should_claim_block() commentary
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-clarify-terminology-in-migratetype-fallback-code.patch
+     mm-page_alloc-clarify-should_claim_block-commentary.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: clarify terminology in migratetype fallback code
-Date: Fri, 28 Feb 2025 09:52:17 +0000
+Subject: mm/page_alloc: clarify should_claim_block() commentary
+Date: Fri, 28 Feb 2025 09:52:18 +0000
 
-Patch series "mm/page_alloc: Some clarifications for migratetype
-fallback", v4.
+There's lots of text here but it's a little hard to follow, this is an
+attempt to break it up and align its structure more closely with the code.
 
-A couple of patches to try and make the code easier to follow.
+Reword the top-level function comment to just explain what question the
+function answers from the point of view of the caller.
 
+Break up the internal logic into different sections that can have their
+own commentary describing why that part of the rationale is present.
 
-This patch (of 2):
+Note the page_group_by_mobility_disabled logic is not explained in the
+commentary, that is outside the scope of this patch...
 
-This code is rather confusing because:
-
- 1. "Steal" is sometimes used to refer to the general concept of
-    allocating from a from a block of a fallback migratetype
-    (steal_suitable_fallback()) but sometimes it refers specifically to
-    converting a whole block's migratetype (can_steal_fallback()).
-
- 2. can_steal_fallback() sounds as though it's answering the question "am
-    I functionally permitted to allocate from that other type" but in
-    fact it is encoding a heuristic preference.
-
- 3. The same piece of data has different names in different places:
-    can_steal vs whole_block. This reinforces point 2 because it looks
-    like the different names reflect a shift in intent from "am I
-    allowed to steal" to "do I want to steal", but no such shift exists.
-
-Fix 1. by avoiding the term "steal" in ambiguous contexts. Start using
-the term "claim" to refer to the special case of stealing the entire
-block.
-
-Fix 2. by using "should" instead of "can", and also rename its
-parameters and add some commentary to make it more explicit what they
-mean.
-
-Fix 3. by adopting the new "claim" terminology universally for this
-set of variables.
-
-Link: https://lkml.kernel.org/r/20250228-clarify-steal-v4-0-cb2ef1a4e610@google.com
-Link: https://lkml.kernel.org/r/20250228-clarify-steal-v4-1-cb2ef1a4e610@google.com
+Link: https://lkml.kernel.org/r/20250228-clarify-steal-v4-2-cb2ef1a4e610@google.com
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -93,206 +69,73 @@ Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +-
- mm/internal.h   |    2 -
- mm/page_alloc.c |   72 +++++++++++++++++++++++-----------------------
- 3 files changed, 39 insertions(+), 39 deletions(-)
+ mm/page_alloc.c |   46 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 26 insertions(+), 20 deletions(-)
 
---- a/mm/compaction.c~mm-page_alloc-clarify-terminology-in-migratetype-fallback-code
-+++ a/mm/compaction.c
-@@ -2332,7 +2332,7 @@ static enum compact_result __compact_fin
- 	ret = COMPACT_NO_SUITABLE_PAGE;
- 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
- 		struct free_area *area = &cc->zone->free_area[order];
--		bool can_steal;
-+		bool claim_block;
- 
- 		/* Job done if page is free of the right migratetype */
- 		if (!free_area_empty(area, migratetype))
-@@ -2349,7 +2349,7 @@ static enum compact_result __compact_fin
- 		 * other migratetype buddy lists.
- 		 */
- 		if (find_suitable_fallback(area, order, migratetype,
--						true, &can_steal) != -1)
-+						true, &claim_block) != -1)
- 			/*
- 			 * Movable pages are OK in any pageblock. If we are
- 			 * stealing for a non-movable allocation, make sure
---- a/mm/internal.h~mm-page_alloc-clarify-terminology-in-migratetype-fallback-code
-+++ a/mm/internal.h
-@@ -865,7 +865,7 @@ static inline void init_cma_pageblock(st
- 
- 
- int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool only_stealable, bool *can_steal);
-+			int migratetype, bool claim_only, bool *claim_block);
- 
- static inline bool free_area_empty(struct free_area *area, int migratetype)
- {
---- a/mm/page_alloc.c~mm-page_alloc-clarify-terminology-in-migratetype-fallback-code
+--- a/mm/page_alloc.c~mm-page_alloc-clarify-should_claim_block-commentary
 +++ a/mm/page_alloc.c
-@@ -1942,22 +1942,22 @@ static inline bool boost_watermark(struc
- 
- /*
-  * When we are falling back to another migratetype during allocation, try to
-- * steal extra free pages from the same pageblocks to satisfy further
-- * allocations, instead of polluting multiple pageblocks.
-+ * claim entire blocks to satisfy further allocations, instead of polluting
-+ * multiple pageblocks.
-  *
-- * If we are stealing a relatively large buddy page, it is likely there will
-- * be more free pages in the pageblock, so try to steal them all. For
-- * reclaimable and unmovable allocations, we steal regardless of page size,
-- * as fragmentation caused by those allocations polluting movable pageblocks
-- * is worse than movable allocations stealing from unmovable and reclaimable
-- * pageblocks.
-+ * If we are stealing a relatively large buddy page, it is likely there will be
-+ * more free pages in the pageblock, so try to claim the whole block. For
-+ * reclaimable and unmovable allocations, we try to claim the whole block
-+ * regardless of page size, as fragmentation caused by those allocations
-+ * polluting movable pageblocks is worse than movable allocations stealing from
-+ * unmovable and reclaimable pageblocks.
-  */
--static bool can_steal_fallback(unsigned int order, int start_mt)
-+static bool should_try_claim_block(unsigned int order, int start_mt)
- {
- 	/*
- 	 * Leaving this order check is intended, although there is
- 	 * relaxed order check in next check. The reason is that
--	 * we can actually steal whole pageblock if this condition met,
-+	 * we can actually claim the whole pageblock if this condition met,
- 	 * but, below check doesn't guarantee it and that is just heuristic
- 	 * so could be changed anytime.
- 	 */
-@@ -1970,7 +1970,7 @@ static bool can_steal_fallback(unsigned
- 	 * reclaimable pages that are closest to the request size.  After a
- 	 * while, memory compaction may occur to form large contiguous pages,
- 	 * and the next movable allocation may not need to steal.  Unmovable and
--	 * reclaimable allocations need to actually steal pages.
-+	 * reclaimable allocations need to actually claim the whole block.
- 	 */
- 	if (order >= pageblock_order / 2 ||
- 		start_mt == MIGRATE_RECLAIMABLE ||
-@@ -1983,12 +1983,14 @@ static bool can_steal_fallback(unsigned
- 
- /*
-  * Check whether there is a suitable fallback freepage with requested order.
-- * If only_stealable is true, this function returns fallback_mt only if
-- * we can steal other freepages all together. This would help to reduce
-+ * Sets *claim_block to instruct the caller whether it should convert a whole
-+ * pageblock to the returned migratetype.
-+ * If only_claim is true, this function returns fallback_mt only if
-+ * we would do this whole-block claiming. This would help to reduce
-  * fragmentation due to mixed migratetype pages in one pageblock.
-  */
- int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool only_stealable, bool *can_steal)
-+			int migratetype, bool only_claim, bool *claim_block)
- {
- 	int i;
- 	int fallback_mt;
-@@ -1996,19 +1998,16 @@ int find_suitable_fallback(struct free_a
- 	if (area->nr_free == 0)
- 		return -1;
- 
--	*can_steal = false;
-+	*claim_block = false;
- 	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
- 		fallback_mt = fallbacks[migratetype][i];
- 		if (free_area_empty(area, fallback_mt))
- 			continue;
- 
--		if (can_steal_fallback(order, migratetype))
--			*can_steal = true;
-+		if (should_try_claim_block(order, migratetype))
-+			*claim_block = true;
- 
--		if (!only_stealable)
--			return fallback_mt;
--
--		if (*can_steal)
-+		if (*claim_block || !only_claim)
- 			return fallback_mt;
- 	}
- 
-@@ -2016,14 +2015,14 @@ int find_suitable_fallback(struct free_a
+@@ -1941,16 +1941,9 @@ static inline bool boost_watermark(struc
  }
  
  /*
-- * This function implements actual steal behaviour. If order is large enough, we
-- * can claim the whole pageblock for the requested migratetype. If not, we check
-- * the pageblock for constituent pages; if at least half of the pages are free
-- * or compatible, we can still claim the whole block, so pages freed in the
-- * future will be put on the correct free list.
-+ * This function implements actual block claiming behaviour. If order is large
-+ * enough, we can claim the whole pageblock for the requested migratetype. If
-+ * not, we check the pageblock for constituent pages; if at least half of the
-+ * pages are free or compatible, we can still claim the whole block, so pages
-+ * freed in the future will be put on the correct free list.
+- * When we are falling back to another migratetype during allocation, try to
+- * claim entire blocks to satisfy further allocations, instead of polluting
+- * multiple pageblocks.
+- *
+- * If we are stealing a relatively large buddy page, it is likely there will be
+- * more free pages in the pageblock, so try to claim the whole block. For
+- * reclaimable and unmovable allocations, we try to claim the whole block
+- * regardless of page size, as fragmentation caused by those allocations
+- * polluting movable pageblocks is worse than movable allocations stealing from
+- * unmovable and reclaimable pageblocks.
++ * When we are falling back to another migratetype during allocation, should we
++ * try to claim an entire block to satisfy further allocations, instead of
++ * polluting multiple pageblocks?
   */
- static struct page *
--try_to_steal_block(struct zone *zone, struct page *page,
-+try_to_claim_block(struct zone *zone, struct page *page,
- 		   int current_order, int order, int start_type,
- 		   int block_type, unsigned int alloc_flags)
+ static bool should_try_claim_block(unsigned int order, int start_mt)
  {
-@@ -2091,11 +2090,12 @@ try_to_steal_block(struct zone *zone, st
- /*
-  * Try finding a free buddy page on the fallback list.
-  *
-- * This will attempt to steal a whole pageblock for the requested type
-+ * This will attempt to claim a whole pageblock for the requested type
-  * to ensure grouping of such requests in the future.
-  *
-- * If a whole block cannot be stolen, regress to __rmqueue_smallest()
-- * logic to at least break up as little contiguity as possible.
-+ * If a whole block cannot be claimed, steal an individual page, regressing to
-+ * __rmqueue_smallest() logic to at least break up as little contiguity as
-+ * possible.
-  *
-  * The use of signed ints for order and current_order is a deliberate
-  * deviation from the rest of this file, to make the for loop
-@@ -2112,7 +2112,7 @@ __rmqueue_fallback(struct zone *zone, in
- 	int min_order = order;
- 	struct page *page;
- 	int fallback_mt;
--	bool can_steal;
-+	bool claim_block;
+@@ -1965,19 +1958,32 @@ static bool should_try_claim_block(unsig
+ 		return true;
  
  	/*
- 	 * Do not steal pages from freelists belonging to other pageblocks
-@@ -2131,15 +2131,15 @@ __rmqueue_fallback(struct zone *zone, in
- 				--current_order) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, false, &can_steal);
-+				start_migratetype, false, &claim_block);
- 		if (fallback_mt == -1)
- 			continue;
+-	 * Movable pages won't cause permanent fragmentation, so when you alloc
+-	 * small pages, you just need to temporarily steal unmovable or
+-	 * reclaimable pages that are closest to the request size.  After a
+-	 * while, memory compaction may occur to form large contiguous pages,
+-	 * and the next movable allocation may not need to steal.  Unmovable and
+-	 * reclaimable allocations need to actually claim the whole block.
++	 * Above a certain threshold, always try to claim, as it's likely there
++	 * will be more free pages in the pageblock.
++	 */
++	if (order >= pageblock_order / 2)
++		return true;
++
++	/*
++	 * Unmovable/reclaimable allocations would cause permanent
++	 * fragmentations if they fell back to allocating from a movable block
++	 * (polluting it), so we try to claim the whole block regardless of the
++	 * allocation size. Later movable allocations can always steal from this
++	 * block, which is less problematic.
+ 	 */
+-	if (order >= pageblock_order / 2 ||
+-		start_mt == MIGRATE_RECLAIMABLE ||
+-		start_mt == MIGRATE_UNMOVABLE ||
+-		page_group_by_mobility_disabled)
++	if (start_mt == MIGRATE_RECLAIMABLE || start_mt == MIGRATE_UNMOVABLE)
+ 		return true;
  
--		if (!can_steal)
-+		if (!claim_block)
- 			break;
- 
- 		page = get_page_from_free_area(area, fallback_mt);
--		page = try_to_steal_block(zone, page, current_order, order,
-+		page = try_to_claim_block(zone, page, current_order, order,
- 					  start_migratetype, fallback_mt,
- 					  alloc_flags);
- 		if (page)
-@@ -2149,11 +2149,11 @@ __rmqueue_fallback(struct zone *zone, in
- 	if (alloc_flags & ALLOC_NOFRAGMENT)
- 		return NULL;
- 
--	/* No luck stealing blocks. Find the smallest fallback page */
-+	/* No luck claiming pageblock. Find the smallest fallback page */
- 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, false, &can_steal);
-+				start_migratetype, false, &claim_block);
- 		if (fallback_mt == -1)
- 			continue;
++	if (page_group_by_mobility_disabled)
++		return true;
++
++	/*
++	 * Movable pages won't cause permanent fragmentation, so when you alloc
++	 * small pages, we just need to temporarily steal unmovable or
++	 * reclaimable pages that are closest to the request size. After a
++	 * while, memory compaction may occur to form large contiguous pages,
++	 * and the next movable allocation may not need to steal.
++	 */
+ 	return false;
+ }
  
 _
 
