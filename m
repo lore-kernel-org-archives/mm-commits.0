@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B186721516B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22606215198
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188200; cv=none; b=VUk7ilAnNmsk4qHLjSJfVDc5ygnsuj8+yWH1oEsBQi6iDt0B64uO8u1RubOCoDzsKwR68lErOTHGmuykvH3wi6cVnG0V+kswtMEsP+7aPtG1MjyOF3kofWxxo9MyHcVO5RKKG67Q93M0yrcO707w9iD/gYYB8nhsg+vIo0l5kVQ=
+	t=1742188202; cv=none; b=NtjlP66yrS4QD5Zvmi8YurMBTa9jNoLsK0HEWvRdm/KU88GbUH2DHuX/EnPTFn4Z/aJc6Ro1ZtO0FGjwYIO2+cjZP/vVza5pJm4Olkrl/FIWtbBe/Gobvoausc5t2TR612oHObhVQ9KtKWAYjHfjJP13s1v/oB3xxW+2e23fsB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188200; c=relaxed/simple;
-	bh=53diubm+6QKzfuhcaN2rIUCcmRvubxWfIPAruZsWgFo=;
-	h=Date:To:From:Subject:Message-Id; b=eqGZs+FEzY3TpHCGYWfVd+T0Pcdbe4/216jlHhqFooYOxvN0M1ncxf70tPu0NTUDeOW7q/4K2KGNnqBXxiCkXHh7/hGPPm1ap/hEdLrvU1M4f6goZs3FAMfKPuWjerpuy/QXAGlFyVnCMoRQdpYjecjgLZF2zO2uFxAQwfAY0yk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QHjjGl/S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188202; c=relaxed/simple;
+	bh=GI7tWJg9pRigQ7XazRl7LiaZspD9w4FBSLkgwn9qcZY=;
+	h=Date:To:From:Subject:Message-Id; b=KVywIZH1EeIrWB+RKOeUGEuhZe+GLSZhPAbbcW2WBs4G8eVHEGivAj5nrwpKl8kEHxxzyQsFfKq6YC8T4dI5O+qoG062YjVV2uGXhOB7T/2Xkw5OsyA+VgXabp1yxlY4fgtMEKfo6ZN6yMCgmzjHnRVDMX5ykBn/PU7/vQz/d6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jgkom9lE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QHjjGl/S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 849EAC4CEEC;
-	Mon, 17 Mar 2025 05:10:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jgkom9lE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF2A6C4CEEC;
+	Mon, 17 Mar 2025 05:10:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188200;
-	bh=53diubm+6QKzfuhcaN2rIUCcmRvubxWfIPAruZsWgFo=;
+	s=korg; t=1742188202;
+	bh=GI7tWJg9pRigQ7XazRl7LiaZspD9w4FBSLkgwn9qcZY=;
 	h=Date:To:From:Subject:From;
-	b=QHjjGl/Sxs6UkRfDq38k5zCNnoPEho4VLBwAhECfE4JQb/juY0Iqurn8tBGmijgoU
-	 CtCyWasI5GBBKDbVDI+f9TzHs5G48Ti9jt2ZhZUMmzYEJ6BaUPXWpxmVOnl/YBvSjv
-	 zMYAOy4sYciTRqHgtSOAQ/YiJDSKSV01Ni6sCvRE=
-Date: Sun, 16 Mar 2025 22:10:00 -0700
+	b=Jgkom9lE5A+l5abXFzBWQ/DfE4mSNC5WZyTrdEDMjoV4gP61l4IaUQl6Ki0S10p6h
+	 qrvzLsIxm24jnV9NAK+nGYRXSDPx8FXNysNz1gikEPhmN2KwjNZW1AXrNbKmtsXWki
+	 xJNOVRyGtTcg4Sq0iyYtwNonZdxSbeyaVkQgkAzY=
+Date: Sun, 16 Mar 2025 22:10:01 -0700
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,sj@kernel.org,si.yanteng@linux.dev,simona.vetter@ffwll.ch,peterz@infradead.org,peterx@redhat.com,pasha.tatashin@soleen.com,oleg@redhat.com,mhiramat@kernel.org,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kherbst@redhat.com,jhubbard@nvidia.com,jglisse@redhat.com,jgg@nvidia.com,jannh@google.com,dakr@kernel.org,corbet@lwn.net,apopple@nvidia.com,alexs@kernel.org,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-handle-device-exclusive-entries-correctly-in-page_vma_mkclean_one.patch removed from -mm tree
-Message-Id: <20250317051000.849EAC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_idle-handle-device-exclusive-entries-correctly-in-page_idle_clear_pte_refs_one.patch removed from -mm tree
+Message-Id: <20250317051001.DF2A6C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: handle device-exclusive entries correctly in page_vma_mkclean_one()
+     Subject: mm/page_idle: handle device-exclusive entries correctly in page_idle_clear_pte_refs_one()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-handle-device-exclusive-entries-correctly-in-page_vma_mkclean_one.patch
+     mm-page_idle-handle-device-exclusive-entries-correctly-in-page_idle_clear_pte_refs_one.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: handle device-exclusive entries correctly in page_vma_mkclean_one()
-Date: Mon, 10 Feb 2025 20:37:54 +0100
+Subject: mm/page_idle: handle device-exclusive entries correctly in page_idle_clear_pte_refs_one()
+Date: Mon, 10 Feb 2025 20:37:55 +0100
 
 Ever since commit b756a3b5e7ea ("mm: device exclusive memory access") we
 can return with a device-exclusive entry from page_vma_mapped_walk().
 
-page_vma_mkclean_one() is not prepared for that, so teach it about these
-PFN swap PTEs.  Note that device-private entries are so far not applicable
-on that path, as we expect ZONE_DEVICE pages so far only in migration code
-when it comes to the RMAP.
+page_idle_clear_pte_refs_one() is not prepared for that, so let's teach it
+what to do with these PFN swap PTEs.  Note that device-private entries are
+so far not applicable on that path, as page_idle_get_folio() filters out
+non-lru folios.
+
+Should we just skip PFN swap PTEs completely?  Possible, but it seems
+straight forward to just handle them correctly.
 
 Note that we could currently only run into this case with device-exclusive
 entries on THPs.  We still adjust the mapcount on conversion to
@@ -62,7 +65,7 @@ because we'll always have !folio_mapped() with a single device-exclusive
 entry.  We'll adjust the mapcount logic once all page_vma_mapped_walk()
 users can properly handle device-exclusive entries.
 
-Link: https://lkml.kernel.org/r/20250210193801.781278-13-david@redhat.com
+Link: https://lkml.kernel.org/r/20250210193801.781278-14-david@redhat.com
 Fixes: b756a3b5e7ea ("mm: device exclusive memory access")
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Tested-by: Alistair Popple <apopple@nvidia.com>
@@ -91,26 +94,28 @@ Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/page_idle.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-handle-device-exclusive-entries-correctly-in-page_vma_mkclean_one
-+++ a/mm/rmap.c
-@@ -1044,6 +1044,14 @@ static int page_vma_mkclean_one(struct p
- 			pte_t *pte = pvmw->pte;
- 			pte_t entry = ptep_get(pte);
- 
-+			/*
+--- a/mm/page_idle.c~mm-page_idle-handle-device-exclusive-entries-correctly-in-page_idle_clear_pte_refs_one
++++ a/mm/page_idle.c
+@@ -62,9 +62,14 @@ static bool page_idle_clear_pte_refs_one
+ 			/*
+ 			 * For PTE-mapped THP, one sub page is referenced,
+ 			 * the whole THP is referenced.
++			 *
 +			 * PFN swap PTEs, such as device-exclusive ones, that
-+			 * actually map pages are clean and not writable from a
-+			 * CPU perspective. The MMU notifier takes care of any
-+			 * device aspects.
-+			 */
-+			if (!pte_present(entry))
-+				continue;
- 			if (!pte_dirty(entry) && !pte_write(entry))
- 				continue;
- 
++			 * actually map pages are "old" from a CPU perspective.
++			 * The MMU notifier takes care of any device aspects.
+ 			 */
+-			if (ptep_clear_young_notify(vma, addr, pvmw.pte))
+-				referenced = true;
++			if (likely(pte_present(ptep_get(pvmw.pte))))
++				referenced |= ptep_test_and_clear_young(vma, addr, pvmw.pte);
++			referenced |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PAGE_SIZE);
+ 		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+ 			if (pmdp_clear_young_notify(vma, addr, pvmw.pmd))
+ 				referenced = true;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
