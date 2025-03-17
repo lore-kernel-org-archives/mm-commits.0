@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95E76217F55
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C31217F55
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188482; cv=none; b=Em+w79sYDFDp15+T5fStlX/BDFnfOtYZ186itf8F2CDf7ZWxJ1rNGJjTpAHndawimpnZCndQDSoxjg3YTzB15CKgTA7vSUGUHRw1lLu/evvXYFsom0FokSF2bKcWu/0rYePtZABfaSRR0O4nPOVLhUsEERh1WFU//x8zdCvWjLw=
+	t=1742188484; cv=none; b=CRpxWTfVGI4i3Sv5JVozoj2+QMNMP91UWQXsIG+wzSBpbf4LBeGa5t1txpPyUSuNWsbcBC5Cfv6uaHBmYgVAnQM0ZFgI4uggRtp9B1BjSbjhdtcyunGIStsbu2hCqpqq/cvr2VPXUPPRF3OATfReCAgaKcLaAny1eak2tOq8lsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188482; c=relaxed/simple;
-	bh=1aAilbQk/yIaEbPsEGO5oXj0X5R3pWVldEwBVEXIbUA=;
-	h=Date:To:From:Subject:Message-Id; b=cVx9k/BEbiW5P/PKZzVm+cdgsYqpSHpxfdHhrhI5f7vHUZKbITxNLVxI9mwY+elJafObvtwm/dokyBVojYTH5Nj2zYwFTnFZlMz28wpFMbqDFAXoE3nSASP1XsJKn9lKdJMAd07NPtQXwVuCLWoqFLEnlA/qP3p8jGEpptBQXQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OGN5n4yt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188484; c=relaxed/simple;
+	bh=NAWPdS5FEJ65538SeGVJQjWp6lAhZQzySKpyZpEMwoY=;
+	h=Date:To:From:Subject:Message-Id; b=IPeKVwNrgeQCzZM6GhDoQmasMtQP5nNV90uVWF5seOmb8xwizRBpVquJvDS8aE9rVm8TW9PRKC9b0XKS0BI4SBEYw02AHOrrMaxkK3hiwfOwBXYpJf3A+QMwk//wUpbKVoU2xnsOpz9s9bBl5xsmROZ8fFBZT1OSIVowWgbEEsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t+V/Xia7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OGN5n4yt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C52AC4CEEC;
-	Mon, 17 Mar 2025 05:14:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t+V/Xia7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E2B5C4CEEC;
+	Mon, 17 Mar 2025 05:14:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188482;
-	bh=1aAilbQk/yIaEbPsEGO5oXj0X5R3pWVldEwBVEXIbUA=;
+	s=korg; t=1742188484;
+	bh=NAWPdS5FEJ65538SeGVJQjWp6lAhZQzySKpyZpEMwoY=;
 	h=Date:To:From:Subject:From;
-	b=OGN5n4ytjAvJrkuSPq3KD/P/eFRZSuer3lv7GehSoMIh4k9WBKQXgw9r4+jaFegFs
-	 8N6GCYJZURSbxpBycb1k3hO3gZ3XeJdLaoYHWvkrpvXzBSsBjrDMsmDdbTfEYbCcrm
-	 XnlH0x4JBOF6A5Hx9s7gdayytqdOcw9myzwnAp5U=
-Date: Sun, 16 Mar 2025 22:14:41 -0700
+	b=t+V/Xia7VeN+cO8bY/S0IecqYNHqWP9B+NVjNnJqOYISf0fDF2MyE+ByHGpzSEkPN
+	 10/fqE7ySy8GAgq3SsGPb6/uTbCrzQ8xgwvWXj71d9yajdyR/G/mi9+7oKipYSLekb
+	 rtdKwnKTnq3rlrQ7vMkZHk2uidH7H39zsANS81zo=
+Date: Sun, 16 Mar 2025 22:14:43 -0700
 To: mm-commits@vger.kernel.org,jglisse@redhat.com,jgg@nvidia.com,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte.patch removed from -mm tree
-Message-Id: <20250317051442.6C52AC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-pass-folio-and-pte-to-restore_exclusive_pte.patch removed from -mm tree
+Message-Id: <20250317051444.4E2B5C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: remove PageAnonExclusive sanity-check in restore_exclusive_pte()
+     Subject: mm/memory: pass folio and pte to restore_exclusive_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte.patch
+     mm-memory-pass-folio-and-pte-to-restore_exclusive_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: remove PageAnonExclusive sanity-check in restore_exclusive_pte()
-Date: Wed, 26 Feb 2025 14:22:54 +0100
+Subject: mm/memory: pass folio and pte to restore_exclusive_pte()
+Date: Wed, 26 Feb 2025 14:22:55 +0100
 
-In commit b832a354d787 ("mm/memory: page_add_anon_rmap() ->
-folio_add_anon_rmap_pte()") we accidentally changed the sanity check to
-essentially ignore anonymous folio by mis-placing the "!" ...  but we
-really always only get anonymous folios in restore_exclusive_pte().
+Let's pass the folio and the pte to restore_exclusive_pte(), so we can
+avoid repeated page_folio() and ptep_get().  To do that, pass the pte to
+try_restore_exclusive_pte() and use a folio in there already.
 
-However, in the meantime we removed the separate "writable
-device-exclusive entries" and always detect if the PTE can be writable
-using can_change_pte_writable() -- which also consults PageAnonExclusive.
+While at it, just avoid the "swp_entry_t entry" variable in
+try_restore_exclusive_pte() and add a folio-locked check to
+restore_exclusive_pte().
 
-So let's just get rid of this sanity check completely.
-
-Link: https://lkml.kernel.org/r/20250226132257.2826043-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20250226132257.2826043-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/memory.c |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/mm/memory.c~mm-memory-remove-pageanonexclusive-sanity-check-in-restore_exclusive_pte
+--- a/mm/memory.c~mm-memory-pass-folio-and-pte-to-restore_exclusive_pte
 +++ a/mm/memory.c
-@@ -738,9 +738,6 @@ static void restore_exclusive_pte(struct
- 			pte = pte_mkdirty(pte);
- 		pte = pte_mkwrite(pte, vma);
- 	}
--
--	VM_BUG_ON_FOLIO(pte_write(pte) && (!folio_test_anon(folio) &&
--					   PageAnonExclusive(page)), folio);
- 	set_pte_at(vma->vm_mm, address, ptep, pte);
+@@ -717,14 +717,13 @@ struct folio *vm_normal_folio_pmd(struct
+ #endif
  
- 	/*
+ static void restore_exclusive_pte(struct vm_area_struct *vma,
+-				  struct page *page, unsigned long address,
+-				  pte_t *ptep)
++		struct folio *folio, struct page *page, unsigned long address,
++		pte_t *ptep, pte_t orig_pte)
+ {
+-	struct folio *folio = page_folio(page);
+-	pte_t orig_pte;
+ 	pte_t pte;
+ 
+-	orig_pte = ptep_get(ptep);
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++
+ 	pte = pte_mkold(mk_pte(page, READ_ONCE(vma->vm_page_prot)));
+ 	if (pte_swp_soft_dirty(orig_pte))
+ 		pte = pte_mksoft_dirty(pte);
+@@ -751,16 +750,15 @@ static void restore_exclusive_pte(struct
+  * Tries to restore an exclusive pte if the page lock can be acquired without
+  * sleeping.
+  */
+-static int
+-try_restore_exclusive_pte(pte_t *src_pte, struct vm_area_struct *vma,
+-			unsigned long addr)
++static int try_restore_exclusive_pte(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep, pte_t orig_pte)
+ {
+-	swp_entry_t entry = pte_to_swp_entry(ptep_get(src_pte));
+-	struct page *page = pfn_swap_entry_to_page(entry);
++	struct page *page = pfn_swap_entry_to_page(pte_to_swp_entry(orig_pte));
++	struct folio *folio = page_folio(page);
+ 
+-	if (trylock_page(page)) {
+-		restore_exclusive_pte(vma, page, addr, src_pte);
+-		unlock_page(page);
++	if (folio_trylock(folio)) {
++		restore_exclusive_pte(vma, folio, page, addr, ptep, orig_pte);
++		folio_unlock(folio);
+ 		return 0;
+ 	}
+ 
+@@ -866,7 +864,7 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 		 * (ie. COW) mappings.
+ 		 */
+ 		VM_BUG_ON(!is_cow_mapping(src_vma->vm_flags));
+-		if (try_restore_exclusive_pte(src_pte, src_vma, addr))
++		if (try_restore_exclusive_pte(src_vma, addr, src_pte, orig_pte))
+ 			return -EBUSY;
+ 		return -ENOENT;
+ 	} else if (is_pte_marker_entry(entry)) {
+@@ -3987,7 +3985,8 @@ static vm_fault_t remove_device_exclusiv
+ 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
+ 				&vmf->ptl);
+ 	if (likely(vmf->pte && pte_same(ptep_get(vmf->pte), vmf->orig_pte)))
+-		restore_exclusive_pte(vma, vmf->page, vmf->address, vmf->pte);
++		restore_exclusive_pte(vma, folio, vmf->page, vmf->address,
++				      vmf->pte, vmf->orig_pte);
+ 
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
