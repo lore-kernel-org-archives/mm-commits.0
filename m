@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA732153E0
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6B52153E0
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188257; cv=none; b=LPPQgIsZ4twPfe5ZD0Qy9os5fKYX5CJtjMn4nTabzDTuh9A3dbCRnWsWGdeYhkvUawH7IJKVPTpfGQ/G+GK2Z0Yj+Nwa0SxhuY6f2FoUc/S9I+pu11pIzDlONMZ5uQsxWmlTxz6RC+K+k7XEKw0PWC1qzHW76PYNns9friXnI2w=
+	t=1742188258; cv=none; b=tVnwsPtRXILNJLCVlfAN9xUVgq2TqIacyIQlAPEacx7qDhCsuDxNTRhOvASsgqVc2SqUhQwB9CvdWUKnakSJ7CQBcqgCNi6ZbzZ/ChjmkO7QM/7502YcrL2UPa8h4d8eCOIuoanSsDsOEJ9bqPWP09Rk6rGxBXG8zzNM+prYyN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188257; c=relaxed/simple;
-	bh=t7iq/5uan5Ubgj0WHgilsg5t2RIubivVeROubI1MxFY=;
-	h=Date:To:From:Subject:Message-Id; b=HE5lZ1Tb3PhhVsRBqxRrS01XMC0ZjjaHJ0MlfqrBk/97Xcdy02HhN+VbkqiA1g/77Q3jMlLciZlxOdqOdl9QkeWlT4KCrnmxEFpfpHINM1lI9+6xNN9k+ETgOPfpY8eABz8MenR0Us3v0GlNKAzNoNXV13V1tRNRMGCnDTwAqSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ua3L6SNz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188258; c=relaxed/simple;
+	bh=3GVay6dAnxDjLdvPLlK6foZ2cSzjO0XHu6094cX9J/M=;
+	h=Date:To:From:Subject:Message-Id; b=PlyArbXWMQEKS/mPFrq50JEJp/neMMAeF7rgX2zf/XlahH91aupjj/ODLBIKyUOnRm1X9p1ysI2Wp79Yr3XfkE5QXxh90CRH4vlUE0v7pQ3fHkfteoSS1G9fI/UZTHnD4qLpuNgRS+WWOIGYBOf1CRaBXb36HTkvB2vJJFd80Xo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QuNwgmPx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ua3L6SNz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F646C4CEEC;
-	Mon, 17 Mar 2025 05:10:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QuNwgmPx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2579C4CEEC;
+	Mon, 17 Mar 2025 05:10:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188257;
-	bh=t7iq/5uan5Ubgj0WHgilsg5t2RIubivVeROubI1MxFY=;
+	s=korg; t=1742188258;
+	bh=3GVay6dAnxDjLdvPLlK6foZ2cSzjO0XHu6094cX9J/M=;
 	h=Date:To:From:Subject:From;
-	b=ua3L6SNzxgiXnPPGmUVDSOy4rn8EVFaMYjJBKeMAb5CLzJu/COtfkfTG6MWkiazAE
-	 NZHJyejRr3NfhGMjk09Z+H+yeKM92a08MKFxsJWzNnP4sSF2zOR9Uz9YrQQotjINX2
-	 XPWouwCwGU3E/FwRGnvpLlohqGIW45nsEirhY6hk=
-Date: Sun, 16 Mar 2025 22:10:57 -0700
+	b=QuNwgmPxEVvVsXyBb/vx7DH8d+3rWesCgx25HlrCM6njQj5rG8pTcPkJViCL/6Aqs
+	 pEg/y35GyHqTY9MjOdweTTbeax2s2WaP8xiuxM8ByfVgzPsJbWkL7wcaZuqOMjRQKE
+	 o81KMh+Q80DnVFuSMuTW7p+vOyoDZiCJZux3Ztt0=
+Date: Sun, 16 Mar 2025 22:10:58 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch removed from -mm tree
-Message-Id: <20250317051057.9F646C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch removed from -mm tree
+Message-Id: <20250317051058.B2579C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: unset damos->walk_completed after confimed set
+     Subject: mm/damon/core: do not call damos_walk_control->walk() if walk is completed
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-unset-damos-walk_completed-after-confimed-set.patch
+     mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: unset damos->walk_completed after confimed set
-Date: Mon, 10 Feb 2025 10:27:34 -0800
+Subject: mm/damon/core: do not call damos_walk_control->walk() if walk is completed
+Date: Mon, 10 Feb 2025 10:27:35 -0800
 
-Patch series "mm/damon/core: fix wrong and/or useless damos_walk()
-behaviors".
+damos_walk() invokes callback functions of schemes until all schemes
+finishes at least one round of walks.  If there are multiple DAMOS schemes
+having different apply_interval, the callback functions for longer apply
+interval scheme will be called for more than a round of the walk.
 
-damos_walk() can finish working earlier or later than expected, and start
-earlier than practical.  First two behaviors are clearly wrong behavior
-(doesn't follow the documentation) and all three behaviors are only making
-the feature useless.  Fix those.
+The behavior is different from the document (see damos_walk() kernel-doc
+comment), and not useful.  Make the behavior be same to the documented
+one, by stopping invoking the callback if the walk for the given scheme is
+completed.
 
-
-This patch (of 3):
-
-damos->walk_completed is only set, not unset.  This can cause next
-damos_walk() finish earlier than expected.  Unset it after all
-walk_completed is confirmed.
-
-Link: https://lkml.kernel.org/r/20250210182737.134994-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250210182737.134994-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250210182737.134994-3-sj@kernel.org
 Fixes: bf0eaba0ff9c ("mm/damon/core: implement damos_walk()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -72,18 +66,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/damon/core.c |    3 +++
  1 file changed, 3 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-unset-damos-walk_completed-after-confimed-set
+--- a/mm/damon/core.c~mm-damon-core-do-not-call-damos_walk_control-walk-if-walk-is-completed
 +++ a/mm/damon/core.c
-@@ -1494,6 +1494,9 @@ static void damos_walk_complete(struct d
- 		if (!siter->walk_completed)
- 			return;
- 	}
-+	damon_for_each_scheme(siter, ctx)
-+		siter->walk_completed = false;
+@@ -1458,6 +1458,9 @@ static void damos_walk_call_walk(struct
+ {
+ 	struct damos_walk_control *control;
+ 
++	if (s->walk_completed)
++		return;
 +
- 	complete(&control->completion);
  	mutex_lock(&ctx->walk_control_lock);
- 	ctx->walk_control = NULL;
+ 	control = ctx->walk_control;
+ 	mutex_unlock(&ctx->walk_control_lock);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
