@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 340F11DA61D
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B8AD12F5A5;
+	Mon, 17 Mar 2025 05:15:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188511; cv=none; b=FuovjskLyLacpXHpRf1oKPBVFpwB832jUnYa+ihgqM9vynZeYVdmJboyNVnRu4oOLyoWDzxyKSh7v7XOfqRZ49WQBgiRzgBz0rRYTw5JkzlogAkiCDZueHyyEs6WOsygcVDiTcFKwtJPJAl91vT+vLplcCRX5EuzYP72bWjYilo=
+	t=1742188513; cv=none; b=e5uwox68Tz7cHEhX6fduaB2oWDHsbJuAs5npPt9SOZK9/LNrEp6nPd5GlTWq9DSPrTwRXNZDh/Yh7UmXbxUecGnCMn548td0H4JcZpkB+Yenx9HCWtahatT5dNJgxtw4nlwYmBhOL5bqKWgkTBAku/3X8w8YDxAq7zZz3Ne7ifM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188511; c=relaxed/simple;
-	bh=UYHAkFFTEnpJ1fFEMEVY1vuwzCe6zYzi/nhmrKFeSOk=;
-	h=Date:To:From:Subject:Message-Id; b=YLOpZSbxLTP2Y+SS9WSUqpnXobdS1sxZDsWmjdNW9ztfXvOq2aSwE60VXmX1HnCVOAWj3qFozNaeff4DQcbNUt6CQM++YAq2NCLbJioiEPHqziZ7iMwIkxXMpAEp7c9AXbJoxziDQDqI1RqRZ45wiKKVxbnFcrKo+ellae4s2RI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i/JQVrBQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188513; c=relaxed/simple;
+	bh=bVJdfSc4EYlaxt6Of18JMCn4JS/tZb/VGtL6IbIiAn8=;
+	h=Date:To:From:Subject:Message-Id; b=KjB1lUzyje4/qk/UMupMtksxyrKt+Xud+7CY3AV+tO54n0wIrSfb03idZCa9Iaa5D+xTwdAJP6Ed+lqI9+u5zzHaP/Eb9ZIFYJey+TQSGsC+zg9/g4bIMAKRioVAibkE+w/O0SrnVDg6SIrozS+WmVFLxLn77SSPTtRc3zkx2hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r5WvaCdp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i/JQVrBQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0650CC4CEEC;
-	Mon, 17 Mar 2025 05:15:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r5WvaCdp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 207ECC4CEEC;
+	Mon, 17 Mar 2025 05:15:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188511;
-	bh=UYHAkFFTEnpJ1fFEMEVY1vuwzCe6zYzi/nhmrKFeSOk=;
+	s=korg; t=1742188513;
+	bh=bVJdfSc4EYlaxt6Of18JMCn4JS/tZb/VGtL6IbIiAn8=;
 	h=Date:To:From:Subject:From;
-	b=i/JQVrBQp6sD5T979U6qReKDq7sP9D4yLF6xoXKlXWvdM9xUPHpECGwfyS1s6xBfJ
-	 SIMF0BdNYdoPjo4LDKYgkFi4EWGaIxybbur4yQuOe/wP2dpy7znuvMiJQTWV4qiEq9
-	 +8xZDseloDG4xyCcOrHMfTtf2sp1ZjZHc1yoSyG0=
-Date: Sun, 16 Mar 2025 22:15:10 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,mingo@redhat.com,jgross@suse.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=r5WvaCdpOW4VhrRrc6XmY0g5Np7s9l2xDk3pc33iMjd4NvU4tMP1FVAtojVlDg5Gu
+	 +1fBmfnqefeqoa9lZlicIJS4dClS5Ex4ttHiEZ4EgOPyZywkPvHepvojr33s3eqRDU
+	 YtDmfuAD/Em81tfXVrFrOpyoXMUvqiYaF+LxcIqg=
+Date: Sun, 16 Mar 2025 22:15:12 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,jgross@suse.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-proc-task_mmu-reduce-scope-of-lazy-mmu-region.patch removed from -mm tree
-Message-Id: <20250317051511.0650CC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] sparc-mm-disable-preemption-in-lazy-mmu-mode.patch removed from -mm tree
+Message-Id: <20250317051513.207ECC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/proc/task_mmu: reduce scope of lazy mmu region
+     Subject: sparc/mm: disable preemption in lazy mmu mode
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-reduce-scope-of-lazy-mmu-region.patch
+     sparc-mm-disable-preemption-in-lazy-mmu-mode.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: fs/proc/task_mmu: reduce scope of lazy mmu region
-Date: Mon, 3 Mar 2025 14:15:36 +0000
+Subject: sparc/mm: disable preemption in lazy mmu mode
+Date: Mon, 3 Mar 2025 14:15:37 +0000
 
-Update the way arch_[enter|leave]_lazy_mmu_mode() is called in
-pagemap_scan_pmd_entry() to follow the normal pattern of holding the ptl
-for user space mappings.  As a result the scope is reduced to only the pte
-table, but that's where most of the performance win is.
+Since commit 38e0edb15bd0 ("mm/apply_to_range: call pte function with lazy
+updates") it's been possible for arch_[enter|leave]_lazy_mmu_mode() to be
+called without holding a page table lock (for the kernel mappings case),
+and therefore it is possible that preemption may occur while in the lazy
+mmu mode.  The Sparc lazy mmu implementation is not robust to preemption
+since it stores the lazy mode state in a per-cpu structure and does not
+attempt to manage that state on task switch.
 
-While I believe there wasn't technically a bug here, the original scope
-made it easier to accidentally nest or, worse, accidentally call something
-like kmap() which would expect an immediate mode pte modification but it
-would end up deferred.
+Powerpc had the same issue and fixed it by explicitly disabling preemption
+in arch_enter_lazy_mmu_mode() and re-enabling in
+arch_leave_lazy_mmu_mode().  See commit b9ef323ea168 ("powerpc/64s:
+Disable preemption in hash lazy mmu mode").
 
-Link: https://lkml.kernel.org/r/20250303141542.3371656-3-ryan.roberts@arm.com
+Given Sparc's lazy mmu mode is based on powerpc's, let's fix it in the
+same way here.
+
+Link: https://lkml.kernel.org/r/20250303141542.3371656-4-ryan.roberts@arm.com
+Fixes: 38e0edb15bd0 ("mm/apply_to_range: call pte function with lazy updates")
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Andreas Larsson <andreas@gaisler.com>
 Acked-by: Juergen Gross <jgross@suse.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -72,50 +79,35 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Juegren Gross <jgross@suse.com>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ arch/sparc/mm/tlb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-reduce-scope-of-lazy-mmu-region
-+++ a/fs/proc/task_mmu.c
-@@ -2459,22 +2459,19 @@ static int pagemap_scan_pmd_entry(pmd_t
- 	spinlock_t *ptl;
- 	int ret;
+--- a/arch/sparc/mm/tlb.c~sparc-mm-disable-preemption-in-lazy-mmu-mode
++++ a/arch/sparc/mm/tlb.c
+@@ -52,8 +52,10 @@ out:
  
--	arch_enter_lazy_mmu_mode();
--
- 	ret = pagemap_scan_thp_entry(pmd, start, end, walk);
--	if (ret != -ENOENT) {
--		arch_leave_lazy_mmu_mode();
-+	if (ret != -ENOENT)
- 		return ret;
--	}
+ void arch_enter_lazy_mmu_mode(void)
+ {
+-	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
++	struct tlb_batch *tb;
  
- 	ret = 0;
- 	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, start, &ptl);
- 	if (!pte) {
--		arch_leave_lazy_mmu_mode();
- 		walk->action = ACTION_AGAIN;
- 		return 0;
- 	}
++	preempt_disable();
++	tb = this_cpu_ptr(&tlb_batch);
+ 	tb->active = 1;
+ }
  
-+	arch_enter_lazy_mmu_mode();
-+
- 	if ((p->arg.flags & PM_SCAN_WP_MATCHING) && !p->vec_out) {
- 		/* Fast path for performing exclusive WP */
- 		for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
-@@ -2543,8 +2540,8 @@ flush_and_return:
- 	if (flush_end)
- 		flush_tlb_range(vma, start, addr);
+@@ -64,6 +66,7 @@ void arch_leave_lazy_mmu_mode(void)
+ 	if (tb->tlb_nr)
+ 		flush_tlb_pending();
+ 	tb->active = 0;
++	preempt_enable();
+ }
  
--	pte_unmap_unlock(start_pte, ptl);
- 	arch_leave_lazy_mmu_mode();
-+	pte_unmap_unlock(start_pte, ptl);
- 
- 	cond_resched();
- 	return ret;
+ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
