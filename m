@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59D83218AA5
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C11BC218AA5
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:33:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189579; cv=none; b=nAp5SgoeLp0eh4Pva2GoDi1XDzvwsPkqeEBic8+V8FGhCMZfb1bTFRaWx8vJxoFUi9TXDE4CU9k+j7c8NlKDYv4dH960Q+MicXqoDkkg2+Vi8eIJeaJjxVJkUDf8TgQ91h0jCe26vvOiXJGW2Blxpxe/9AsvMdDNPrxBOVD1Vrw=
+	t=1742189581; cv=none; b=U9CymsaOXttPpL4v4Kz+WaPnM7jdcEUUiaufPHL/NfDmdXOHODq+3Rk/14ZU26TcyxnbNT6MUFQ1+4ah0Mj2+0pcfWGlJ+F7Dk+GiM0LSbxkrK0lDWKLXi3HV5tBZ0TBZo1iKeUjwtm20UAJC0SuQIjOp9MA0eIBy5jtRAmREk4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189579; c=relaxed/simple;
-	bh=BAPfkqQfumRoq2G0Ml6mMA4FMy6VWVyH7X+7TaOzgmg=;
-	h=Date:To:From:Subject:Message-Id; b=byald62Ed5c/oIl3xHwWxFnAr4+NMk6EHgGHr57afOdNFLvxubrAiUixWgm1m49Ix//r5yPe/z8i7pT0oG2EHVqp9CpIHW0tzDNxoRUv4+PzF18/SxYZKt7024pjjX5VVB4sHieKPDT8QSLl+uYs9U9rVi8XNyOkNFxj9f625Rs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fBIXKaE5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189581; c=relaxed/simple;
+	bh=3+kFnU0gwWQhGg2loRuCJkIMamOpd5MUiIy8z0Eu0EM=;
+	h=Date:To:From:Subject:Message-Id; b=nvYWLrHIbgB+1VaTVnr4K5XmLVsJHZgOYEj6OjdfE48uyXJhmUllDltWrWSM0vPak7m3pGnh5FthBz4a18v4KmFH6y0nutC4har5+Ogf5FZ5cO5NAd9Eh+lZ52Tbh4T1YvjrCcjosnYlqr7/ars7psMHneVw2gbg/S7b4Zi5oDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vVCwBgiG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fBIXKaE5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2516C4CEEC;
-	Mon, 17 Mar 2025 05:32:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vVCwBgiG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 952E5C4CEEC;
+	Mon, 17 Mar 2025 05:33:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189578;
-	bh=BAPfkqQfumRoq2G0Ml6mMA4FMy6VWVyH7X+7TaOzgmg=;
+	s=korg; t=1742189581;
+	bh=3+kFnU0gwWQhGg2loRuCJkIMamOpd5MUiIy8z0Eu0EM=;
 	h=Date:To:From:Subject:From;
-	b=fBIXKaE5eEzvzkogYs4uOAZluyIN502X3iOruF/qznIcXS3g29vTTNdMxQU1dqPgQ
-	 35YFu0kuefNmGxMZqkRWVotd5wmiWt8S7X0BbdwBxEBXWwv8Vm802HR3d9vvpKzR6D
-	 sI6Cd00cC7tbw4flKd7j1FnsHiW6hq0TsNFInaHU=
-Date: Sun, 16 Mar 2025 22:32:58 -0700
+	b=vVCwBgiGemZkeNi2GNG/od575Mzgl7Lsvytz9VP58DZHHF6SzbhlS1gEyuXEsW8/K
+	 Qb27z3msLkeyoeq78Mt1rK7XcLZN52mXRRk/3qSHJL2e+SYUDJihZWiWXwXHhbq1KY
+	 hdPeU7+HnXySKnFEwAdEewQTclIq10wiRnspyyCE=
+Date: Sun, 16 Mar 2025 22:33:01 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,michel@lespinasse.org,jgg@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch removed from -mm tree
-Message-Id: <20250317053258.C2516C4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-interval_tree-add-test-case-for-span-iteration.patch removed from -mm tree
+Message-Id: <20250317053301.952E5C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/interval_tree: add test case for interval_tree_iter_xxx() helpers
+     Subject: lib/interval_tree: add test case for span iteration
 has been removed from the -mm tree.  Its filename was
-     lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
+     lib-interval_tree-add-test-case-for-span-iteration.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: lib/interval_tree: add test case for interval_tree_iter_xxx() helpers
-Date: Mon, 10 Mar 2025 07:49:35 +0000
+Subject: lib/interval_tree: add test case for span iteration
+Date: Mon, 10 Mar 2025 07:49:36 +0000
 
-Verify interval_tree_iter_xxx() helpers could find intersection ranges
-as expected.
+Verify interval_tree_span_iter_xxx() helpers works as expected.
 
-[sfr@canb.auug.org.au: some of tools/ uses -Wno-unused-parameter]
-  Link: https://lkml.kernel.org/r/20250312113612.31ac808e@canb.auug.org.au
-Link: https://lkml.kernel.org/r/20250310074938.26756-5-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250310074938.26756-6-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michel Lespinasse <michel@lespinasse.org>
@@ -60,53 +57,93 @@ Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/interval_tree_test.c     |   69 +++++++++++++++++++++++++++++++++
- tools/include/linux/bitmap.h |   21 ++++++++++
- tools/lib/bitmap.c           |   20 +++++++++
- 3 files changed, 110 insertions(+)
+ lib/interval_tree_test.c                  |  117 ++++++++++++++++++++
+ tools/testing/rbtree/Makefile             |    6 -
+ tools/testing/rbtree/interval_tree_test.c |    2 
+ 3 files changed, 123 insertions(+), 2 deletions(-)
 
---- a/lib/interval_tree_test.c~lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers
+--- a/lib/interval_tree_test.c~lib-interval_tree-add-test-case-for-span-iteration
 +++ a/lib/interval_tree_test.c
-@@ -5,6 +5,7 @@
- #include <linux/prandom.h>
+@@ -6,6 +6,7 @@
  #include <linux/slab.h>
  #include <asm/timex.h>
-+#include <linux/bitmap.h>
+ #include <linux/bitmap.h>
++#include <linux/maple_tree.h>
  
  #define __param(type, name, init, msg)		\
  	static type name = init;		\
-@@ -125,6 +126,73 @@ static int search_check(void)
+@@ -193,6 +194,121 @@ static int intersection_range_check(void
  	return 0;
  }
  
-+static int intersection_range_check(void)
++#ifdef CONFIG_INTERVAL_TREE_SPAN_ITER
++/*
++ * Helper function to get span of current position from maple tree point of
++ * view.
++ */
++static void mas_cur_span(struct ma_state *mas, struct interval_tree_span_iter *state)
++{
++	unsigned long cur_start;
++	unsigned long cur_last;
++	int is_hole;
++
++	if (mas->status == ma_overflow)
++		return;
++
++	/* walk to current position */
++	state->is_hole = mas_walk(mas) ? 0 : 1;
++
++	cur_start = mas->index < state->first_index ?
++			state->first_index : mas->index;
++
++	/* whether we have followers */
++	do {
++
++		cur_last = mas->last > state->last_index ?
++				state->last_index : mas->last;
++
++		is_hole = mas_next_range(mas, state->last_index) ? 0 : 1;
++
++	} while (mas->status != ma_overflow && is_hole == state->is_hole);
++
++	if (state->is_hole) {
++		state->start_hole = cur_start;
++		state->last_hole = cur_last;
++	} else {
++		state->start_used = cur_start;
++		state->last_used = cur_last;
++	}
++
++	/* advance position for next round */
++	if (mas->status != ma_overflow)
++		mas_set(mas, cur_last + 1);
++}
++
++static int span_iteration_check(void)
 +{
 +	int i, j, k;
 +	unsigned long start, last;
-+	struct interval_tree_node *node;
-+	unsigned long *intxn1;
-+	unsigned long *intxn2;
++	struct interval_tree_span_iter span, mas_span;
 +
-+	printk(KERN_ALERT "interval tree iteration\n");
++	DEFINE_MTREE(tree);
 +
-+	intxn1 = bitmap_alloc(nnodes, GFP_KERNEL);
-+	if (!intxn1) {
-+		WARN_ON_ONCE("Failed to allocate intxn1\n");
-+		return -ENOMEM;
-+	}
++	MA_STATE(mas, &tree, 0, 0);
 +
-+	intxn2 = bitmap_alloc(nnodes, GFP_KERNEL);
-+	if (!intxn2) {
-+		WARN_ON_ONCE("Failed to allocate intxn2\n");
-+		bitmap_free(intxn1);
-+		return -ENOMEM;
-+	}
++	printk(KERN_ALERT "interval tree span iteration\n");
 +
 +	for (i = 0; i < search_loops; i++) {
 +		/* Initialize interval tree for each round */
 +		init();
 +		for (j = 0; j < nnodes; j++)
 +			interval_tree_insert(nodes + j, &root);
++
++		/* Put all the range into maple tree */
++		mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
++		mt_set_in_rcu(&tree);
++
++		for (j = 0; j < nnodes; j++)
++			WARN_ON_ONCE(mtree_store_range(&tree, nodes[j].start,
++					nodes[j].last, nodes + j, GFP_KERNEL));
 +
 +		/* Let's try nsearches different ranges */
 +		for (k = 0; k < nsearches; k++) {
@@ -119,117 +156,92 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +				start = (prandom_u32_state(&rnd) >> 4) % last;
 +			}
 +
-+			/* Walk nodes to mark intersection nodes */
-+			bitmap_zero(intxn1, nnodes);
-+			for (j = 0; j < nnodes; j++) {
-+				node = nodes + j;
++			mas_span.first_index = start;
++			mas_span.last_index = last;
++			mas_span.is_hole = -1;
++			mas_set(&mas, start);
 +
-+				if (start <= node->last && last >= node->start)
-+					bitmap_set(intxn1, j, 1);
++			interval_tree_for_each_span(&span, &root, start, last) {
++				mas_cur_span(&mas, &mas_span);
++
++				WARN_ON_ONCE(span.is_hole != mas_span.is_hole);
++
++				if (span.is_hole) {
++					WARN_ON_ONCE(span.start_hole != mas_span.start_hole);
++					WARN_ON_ONCE(span.last_hole != mas_span.last_hole);
++				} else {
++					WARN_ON_ONCE(span.start_used != mas_span.start_used);
++					WARN_ON_ONCE(span.last_used != mas_span.last_used);
++				}
 +			}
 +
-+			/* Iterate tree to clear intersection nodes */
-+			bitmap_zero(intxn2, nnodes);
-+			for (node = interval_tree_iter_first(&root, start, last); node;
-+			     node = interval_tree_iter_next(node, start, last))
-+				bitmap_set(intxn2, node - nodes, 1);
-+
-+			WARN_ON_ONCE(!bitmap_equal(intxn1, intxn2, nnodes));
 +		}
 +
++		WARN_ON_ONCE(mas.status != ma_overflow);
++
++		/* Cleanup maple tree for each round */
++		mtree_destroy(&tree);
++		/* Cleanup interval tree for each round */
 +		for (j = 0; j < nnodes; j++)
 +			interval_tree_remove(nodes + j, &root);
 +	}
-+
-+	bitmap_free(intxn1);
-+	bitmap_free(intxn2);
 +	return 0;
 +}
++#else
++static inline int span_iteration_check(void) {return 0; }
++#endif
 +
  static int interval_tree_test_init(void)
  {
  	nodes = kmalloc_array(nnodes, sizeof(struct interval_tree_node),
-@@ -142,6 +210,7 @@ static int interval_tree_test_init(void)
- 
+@@ -211,6 +327,7 @@ static int interval_tree_test_init(void)
  	basic_check();
  	search_check();
-+	intersection_range_check();
+ 	intersection_range_check();
++	span_iteration_check();
  
  	kfree(queries);
  	kfree(nodes);
---- a/tools/include/linux/bitmap.h~lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers
-+++ a/tools/include/linux/bitmap.h
-@@ -19,6 +19,7 @@ bool __bitmap_and(unsigned long *dst, co
- 		 const unsigned long *bitmap2, unsigned int bits);
- bool __bitmap_equal(const unsigned long *bitmap1,
- 		    const unsigned long *bitmap2, unsigned int bits);
-+void __bitmap_set(unsigned long *map, unsigned int start, int len);
- void __bitmap_clear(unsigned long *map, unsigned int start, int len);
- bool __bitmap_intersects(const unsigned long *bitmap1,
- 			 const unsigned long *bitmap2, unsigned int bits);
-@@ -79,6 +80,11 @@ static inline void bitmap_or(unsigned lo
- 		__bitmap_or(dst, src1, src2, nbits);
- }
+--- a/tools/testing/rbtree/interval_tree_test.c~lib-interval_tree-add-test-case-for-span-iteration
++++ a/tools/testing/rbtree/interval_tree_test.c
+@@ -6,6 +6,7 @@
+ #include <linux/math64.h>
+ #include <linux/kern_levels.h>
+ #include "shared.h"
++#include "maple-shared.h"
  
-+static inline unsigned long *bitmap_alloc(unsigned int nbits, gfp_t flags __maybe_unused)
-+{
-+	return malloc(bitmap_size(nbits));
-+}
-+
- /**
-  * bitmap_zalloc - Allocate bitmap
-  * @nbits: Number of bits
-@@ -150,6 +156,21 @@ static inline bool bitmap_intersects(con
- 		return __bitmap_intersects(src1, src2, nbits);
- }
+ #include "../../../lib/interval_tree_test.c"
  
-+static inline void bitmap_set(unsigned long *map, unsigned int start, unsigned int nbits)
-+{
-+	if (__builtin_constant_p(nbits) && nbits == 1)
-+		__set_bit(start, map);
-+	else if (small_const_nbits(start + nbits))
-+		*map |= GENMASK(start + nbits - 1, start);
-+	else if (__builtin_constant_p(start & BITMAP_MEM_MASK) &&
-+		 IS_ALIGNED(start, BITMAP_MEM_ALIGNMENT) &&
-+		 __builtin_constant_p(nbits & BITMAP_MEM_MASK) &&
-+		 IS_ALIGNED(nbits, BITMAP_MEM_ALIGNMENT))
-+		memset((char *)map + start / 8, 0xff, nbits / 8);
-+	else
-+		__bitmap_set(map, start, nbits);
-+}
-+
- static inline void bitmap_clear(unsigned long *map, unsigned int start,
- 			       unsigned int nbits)
- {
---- a/tools/lib/bitmap.c~lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers
-+++ a/tools/lib/bitmap.c
-@@ -101,6 +101,26 @@ bool __bitmap_intersects(const unsigned
- 	return false;
- }
+@@ -51,6 +52,7 @@ int main(int argc, char **argv)
+ 			usage();
+ 	}
  
-+void __bitmap_set(unsigned long *map, unsigned int start, int len)
-+{
-+	unsigned long *p = map + BIT_WORD(start);
-+	const unsigned int size = start + len;
-+	int bits_to_set = BITS_PER_LONG - (start % BITS_PER_LONG);
-+	unsigned long mask_to_set = BITMAP_FIRST_WORD_MASK(start);
-+
-+	while (len - bits_to_set >= 0) {
-+		*p |= mask_to_set;
-+		len -= bits_to_set;
-+		bits_to_set = BITS_PER_LONG;
-+		mask_to_set = ~0UL;
-+		p++;
-+	}
-+	if (len) {
-+		mask_to_set &= BITMAP_LAST_WORD_MASK(size);
-+		*p |= mask_to_set;
-+	}
-+}
-+
- void __bitmap_clear(unsigned long *map, unsigned int start, int len)
- {
- 	unsigned long *p = map + BIT_WORD(start);
++	maple_tree_init();
+ 	interval_tree_tests();
+ 	return 0;
+ }
+--- a/tools/testing/rbtree/Makefile~lib-interval_tree-add-test-case-for-span-iteration
++++ a/tools/testing/rbtree/Makefile
+@@ -3,7 +3,7 @@
+ .PHONY: clean
+ 
+ TARGETS = rbtree_test interval_tree_test
+-OFILES = $(LIBS) rbtree-shim.o interval_tree-shim.o
++OFILES = $(SHARED_OFILES) rbtree-shim.o interval_tree-shim.o maple-shim.o
+ DEPS = ../../../include/linux/rbtree.h \
+ 	../../../include/linux/rbtree_types.h \
+ 	../../../include/linux/rbtree_augmented.h \
+@@ -25,7 +25,9 @@ $(TARGETS):	$(OFILES)
+ rbtree-shim.o: $(DEPS)
+ rbtree_test.o:  ../../../lib/rbtree_test.c
+ interval_tree-shim.o: $(DEPS)
++interval_tree-shim.o: CFLAGS += -DCONFIG_INTERVAL_TREE_SPAN_ITER
+ interval_tree_test.o: 	../../../lib/interval_tree_test.c
++interval_tree_test.o: CFLAGS += -DCONFIG_INTERVAL_TREE_SPAN_ITER
+ 
+ clean:
+-	$(RM) $(TARGETS) *.o generated/*
++	$(RM) $(TARGETS) *.o radix-tree.c idr.c generated/*
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
