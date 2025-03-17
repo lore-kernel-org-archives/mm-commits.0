@@ -1,75 +1,109 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA9BD42C0B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 06:24:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D3C942C0B
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 06:25:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742192678; cv=none; b=FvrmBVfAMzBwxTvQl98r73sovcBVAa5rjq8jczPZAnTy9qATod9LI2eiadK4SP8q32aF6s0OQu17yNClRyG5M/GTWXkoF7UQUvAi6KDnev4op7V/2c8TjhGSHtjDB0VS2HsJsDs+iQeTdzDvVMbdXDbnfFj0xjT9MyYcuwDHzF8=
+	t=1742192740; cv=none; b=S3H9YrqYVJExelMUQz41nZeT0dwoLLHXlNW4jK10ugCZ8ppQu6hynQbRcvqz5lkVCGSndVmyyJmALSylC7kollSQwbJnJInmybzfB6a6IxCbe5/kvGOxH2IPiH59LG6a8PYrdgbXkiDKY03BrdnhHHhmKl1rUVNbGSDB6LIw+x0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742192678; c=relaxed/simple;
-	bh=g/lHrLY0KSNitbZmBfHQ0QpJOlyfwZQmZ64VWuShdcI=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=vAEEbgME6jAKNyarBJIX0QLxfp1ukR7614U/PPLus7QP3V3f/6nHDjFv4BKvvyC+vCWND5CXJlFwy9yxGfskuGSlwX03/kz65w2CaO7DW2E/flik2IVZ4sMRsvTFmyvZgCM0lvTuCYj1XHWbpEKiFX+LTb8XRk6gas/VvedIrmk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TrGf8woX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742192740; c=relaxed/simple;
+	bh=2kuFL3GzNNaQf73+McCa7x7WVRpi0rVa4F4FArQR+rg=;
+	h=Date:To:From:Subject:Message-Id; b=bOPyJaX19+JeJsYY8TIuMRhC2UL9BNTKk7sKX2pLsOFyhKM7M0hQiCSrxE/zonATL0gdOYVmTWTYstBascPA6DdVnHda30USvJ+PPMKliqdXbhvLXF5PuPT4401ZS/kkq4sfCtXy2O1BiyooSr9wlRZrlNsAsKRF92J+Ra7o2Hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DmTiRiAQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TrGf8woX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0FCEC4CEE3;
-	Mon, 17 Mar 2025 06:24:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DmTiRiAQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550E9C4CEEC;
+	Mon, 17 Mar 2025 06:25:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742192678;
-	bh=g/lHrLY0KSNitbZmBfHQ0QpJOlyfwZQmZ64VWuShdcI=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=TrGf8woXV1PkETwrRIEq1bZAhRMaFwUmCWOQIijPuNElGAp5mTk+1x4Uh93SqtGTQ
-	 w4qak6Vj+GeLiuMkTVyRvy/9Iu4B0j/tQpIt3u6Qe+Me74brPQ1RNwE3o3PS7OYDLe
-	 khfTaJ1/paf0mWBPmEBr4Oq+PXLUmBDqmQDnybfc=
-Date: Sun, 16 Mar 2025 23:24:37 -0700
+	s=korg; t=1742192739;
+	bh=2kuFL3GzNNaQf73+McCa7x7WVRpi0rVa4F4FArQR+rg=;
+	h=Date:To:From:Subject:From;
+	b=DmTiRiAQ/csKt9OT8VT/NwyJ+LWWkvsP4uSPgbTJlbYAcFwiJZiiB/vCC5g7AyLS9
+	 CimcivEriFe5M8+BtrpCD+EmC2/agn5jEg9837TohZmSJAIc1N2FOeUWvvyZR4U5/h
+	 /FCTAbNXes3eENiU7oy0O/NT6CRDC7TaE8qicpVE=
+Date: Sun, 16 Mar 2025 23:25:38 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jirislaby@kernel.org,jiangqi903@gmail.com,gechangwei@live.cn,xie.ludan@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Joe Perches <joe@perches.com>
-Cc: mm-commits@vger.kernel.org, tmgross@umich.edu, ojeda@kernel.org,
- lukas.bulwahn@gmail.com, gary@garyguo.net, dwaipayanray1@gmail.com,
- charmitro@posteo.net, boqun.feng@gmail.com, bjorn3_gh@protonmail.com,
- benno.lossin@proton.me, apw@canonical.com, aliceryhl@google.com,
- alex.gaynor@gmail.com, a.hindborg@kernel.org, kurti@invicto.ai
-Subject: Re: [merged mm-nonmm-stable]
- checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
- removed from -mm tree
-Message-Id: <20250316232437.573da548b70c0cb2f3ad618f@linux-foundation.org>
-In-Reply-To: <638fa6836e1959ba42cac78125568b242e601f73.camel@perches.com>
-References: <20250317053150.5115AC4CEEC@smtp.kernel.org>
-	<f150abf3659e151b29a2529b266d519465b7345d.camel@perches.com>
-	<20250316230922.9d2e6c8c36fb1934ca854ced@linux-foundation.org>
-	<638fa6836e1959ba42cac78125568b242e601f73.camel@perches.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [nacked] ocfs2-use-sysfs_emit-instead-of-scnprintf.patch removed from -mm tree
+Message-Id: <20250317062539.550E9C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Sun, 16 Mar 2025 23:12:06 -0700 Joe Perches <joe@perches.com> wrote:
 
-> On Sun, 2025-03-16 at 23:09 -0700, Andrew Morton wrote:
-> > On Sun, 16 Mar 2025 22:51:53 -0700 Joe Perches <joe@perches.com> wrote:
-> > 
-> > > > One false warning that will be generated due to this change is in case we
-> > > > have a patch that modifies a `pr_* call without a newline` which has a
-> > > > pr_cont with a newline following it.  In this case there will be a warning
-> > > > but because the patch does not include the following pr_cont it will warn
-> > > > there is nothing creating a newline.  I have modified the warning to be
-> > > > softer due to this known problem.
-> > > 
-> > > I think this patch is a merely a conversion of one defect for another
-> > > and it's quite compilcated code too.
-> > 
-> > Well darn, it would have been nice to receive this review during the
-> > review!
-> > 
-> > Should I drop the patch?
-> 
-> I don't think it's particularly valuable or useful. 
+The quilt patch titled
+     Subject: ocfs2: use sysfs_emit() instead of scnprintf()
+has been removed from the -mm tree.  Its filename was
+     ocfs2-use-sysfs_emit-instead-of-scnprintf.patch
 
-OK, thanks, I dropped the patch.
+This patch was dropped because it was nacked
+
+------------------------------------------------------
+From: XieLudan <xie.ludan@zte.com.cn>
+Subject: ocfs2: use sysfs_emit() instead of scnprintf()
+Date: Sat, 15 Mar 2025 14:16:40 +0800 (CST)
+
+Follow the advice in Documentation/filesystems/sysfs.rst: show() should
+only use sysfs_emit() or sysfs_emit_at() when formatting the value to be
+returned to user space.
+
+Link: https://lkml.kernel.org/r/20250315141640564lv7R0CwIRPsmittXXjLbB@zte.com.cn
+Signed-off-by: XieLudan <xie.ludan@zte.com.cn>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/ocfs2/cluster/heartbeat.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-sysfs_emit-instead-of-scnprintf
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1308,7 +1308,7 @@ static int o2hb_debug_open(struct inode
+ 
+ 	case O2HB_DB_TYPE_REGION_NUMBER:
+ 		reg = (struct o2hb_region *)db->db_data;
+-		out += scnprintf(buf + out, PAGE_SIZE - out, "%d\n",
++		out += sysfs_emit(buf + out, "%d\n",
+ 				reg->hr_region_num);
+ 		goto done;
+ 
+@@ -1318,12 +1318,12 @@ static int o2hb_debug_open(struct inode
+ 		/* If 0, it has never been set before */
+ 		if (lts)
+ 			lts = jiffies_to_msecs(jiffies - lts);
+-		out += scnprintf(buf + out, PAGE_SIZE - out, "%lu\n", lts);
++		out += sysfs_emit(buf + out, "%lu\n", lts);
+ 		goto done;
+ 
+ 	case O2HB_DB_TYPE_REGION_PINNED:
+ 		reg = (struct o2hb_region *)db->db_data;
+-		out += scnprintf(buf + out, PAGE_SIZE - out, "%u\n",
++		out += sysfs_emit(buf + out, "%u\n",
+ 				!!reg->hr_item_pinned);
+ 		goto done;
+ 
+@@ -1332,8 +1332,8 @@ static int o2hb_debug_open(struct inode
+ 	}
+ 
+ 	while ((i = find_next_bit(map, db->db_len, i + 1)) < db->db_len)
+-		out += scnprintf(buf + out, PAGE_SIZE - out, "%d ", i);
+-	out += scnprintf(buf + out, PAGE_SIZE - out, "\n");
++		out += sysfs_emit(buf + out, "%d ", i);
++	out += sysfs_emit(buf + out, "\n");
+ 
+ done:
+ 	i_size_write(inode, out);
+_
+
+Patches currently in -mm which might be from xie.ludan@zte.com.cn are
+
+
