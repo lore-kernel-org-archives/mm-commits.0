@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 029FC54279
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 00:41:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A258254279;
+	Mon, 17 Mar 2025 00:41:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742172076; cv=none; b=La8yCSJs1kI8unP1SLudh+8kQma80Vi1bF0Yq4o8fdgCJD64YVFExbhEGV+W0CQS8Nognnffh42QLmMaRsu1IFgldfKXSBygjPfr1G9mMC4ZlvNETNwir+02LBHeL4BPlh26S7TaozDuELP1VlZJJxxfBdmbK+83K+3N15Z1BSA=
+	t=1742172077; cv=none; b=Ft3PSoKu78Bpv77g8NWaZ4gLc1Z0eewpmbztUakZUygMDhIbKbKwTKhODTB3U09+QV2uJJ6XVMC76Csb4IEwgDQ1bx20CUDt5s1s0RIF+gA5hEUQF1qSyK46aE4Ss8MW60xnfOtp3dkf0keK2IDA8HTHOKmdsXxRUQm6TkC6uBY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742172076; c=relaxed/simple;
-	bh=8rFmMx17uh1YuOReZ3o31ONgPlHBuKUA54WlmFEJwAk=;
-	h=Date:To:From:Subject:Message-Id; b=L3JSFPMm82oHDXRG9a36UhJjs8nWxnUFs0Zix7zqIeBbOD49x24Ch5uj/gVkpbMXAOFmxxzMTG76Uqyl3KWQOa6iZHIjjehIf0ZvNrHFQ8cjxukaKjV0GWHmdYPFPZ1VYLWbMW1UIzCHl4y5g4fmzG0YJREVHvijcFc3qq+mJdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=do/dMvAl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742172077; c=relaxed/simple;
+	bh=qtdQ8TG+11FeeYL/F3S0SzWuG+vC7Xmo2SLAICprxao=;
+	h=Date:To:From:Subject:Message-Id; b=USjzyG4g3jRs26JqJuE4ea6Mu15w7hwfy7N8QPJ2m11GD/GztqFyFSPK0fyLgCTavAeps9+L15Up7+tppKHDGZ9mp7aOwDVzvxmZ5fAG1LiYzZcntCi+AhQqJz56b8Zkx2XDXRXjqdF7J1YLyVd5Y6nwXtsVngwDL2GBeebjocs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IxzuPUYU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="do/dMvAl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2C99C4CEE9;
-	Mon, 17 Mar 2025 00:41:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IxzuPUYU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2211CC4CEDD;
+	Mon, 17 Mar 2025 00:41:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742172075;
-	bh=8rFmMx17uh1YuOReZ3o31ONgPlHBuKUA54WlmFEJwAk=;
+	s=korg; t=1742172077;
+	bh=qtdQ8TG+11FeeYL/F3S0SzWuG+vC7Xmo2SLAICprxao=;
 	h=Date:To:From:Subject:From;
-	b=do/dMvAlceiEFSm1f9n7cZa9QyPfsNedhl1+cwujQvWYkFuQBjhclJwq1Qv+Y5Ogn
-	 TckNu9zKpdZr6eWyZGjdnJ35Vv2NHAIhvI76h3G4Vgt7pB0fSaF25u2ioTxdrC16mS
-	 P6k0yGxc9E3oxHThZJOQnEhGtbLANSv+M0jVTq5w=
-Date: Sun, 16 Mar 2025 17:41:15 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=IxzuPUYUgwoNJK42sYjn/Ad/i8Rf1jWWO0TGWHLxj2ZrIiDd6Va96ubTZJXJY4gQn
+	 kXi6tSOe2MwgB0e3jTIXSRS0g+6OGhf+ZMys6jS7CnMPh8Me3wbJq0S+aDOyKkFWXJ
+	 1fedNawc70GtgRJsKL7LwliozK0EfCpYQL68nKZg=
+Date: Sun, 16 Mar 2025 17:41:16 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,hch@lst.de,djwong@kernel.org,dchinner@redhat.com,raphaelsc@scylladb.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch removed from -mm tree
-Message-Id: <20250317004115.C2C99C4CEE9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch removed from -mm tree
+Message-Id: <20250317004117.2211CC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: fix swap counter leak from offline cgroup
+     Subject: mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
+     mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix swap counter leak from offline cgroup
-Date: Thu, 6 Mar 2025 10:31:33 +0800
+From: "Raphael S. Carvalho" <raphaelsc@scylladb.com>
+Subject: mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
+Date: Mon, 24 Feb 2025 11:37:00 -0300
 
-Commit 6769183166b3 removed the parameter of id from swap_cgroup_record()
-and get the memcg id from mem_cgroup_id(folio_memcg(folio)).  However, the
-caller of it may update a different memcg's counter instead of
-folio_memcg(folio).
+original report:
+https://lore.kernel.org/all/CAKhLTr1UL3ePTpYjXOx2AJfNk8Ku2EdcEfu+CH1sf3Asr=B-Dw@mail.gmail.com/T/
 
-E.g.  in the caller of mem_cgroup_swapout(), @swap_memcg could be
-different with @memcg and update the counter of @swap_memcg, but
-swap_cgroup_record() records the wrong memcg's ID.  When it is uncharged
-from __mem_cgroup_uncharge_swap(), the swap counter will leak since the
-wrong recorded ID.
+When doing buffered writes with FGP_NOWAIT, under memory pressure, the
+system returned ENOMEM despite there being plenty of available memory, to
+be reclaimed from page cache.  The user space used io_uring interface,
+which in turn submits I/O with FGP_NOWAIT (the fast path).
 
-Fix it by bringing the parameter of id back.
+retsnoop pointed to iomap_get_folio:
 
-Link: https://lkml.kernel.org/r/20250306023133.44838-1-songmuchun@bytedance.com
-Fixes: 6769183166b3 ("mm/swap_cgroup: decouple swap cgroup recording and clearing")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+00:34:16.180612 -> 00:34:16.180651 TID/PID 253786/253721
+(reactor-1/combined_tests):
+
+                    entry_SYSCALL_64_after_hwframe+0x76
+                    do_syscall_64+0x82
+                    __do_sys_io_uring_enter+0x265
+                    io_submit_sqes+0x209
+                    io_issue_sqe+0x5b
+                    io_write+0xdd
+                    xfs_file_buffered_write+0x84
+                    iomap_file_buffered_write+0x1a6
+    32us [-ENOMEM]  iomap_write_begin+0x408
+iter=&{.inode=0xffff8c67aa031138,.len=4096,.flags=33,.iomap={.addr=0xffffffffffffffff,.length=4096,.type=1,.flags=3,.bdev=0x…
+pos=0 len=4096 foliop=0xffffb32c296b7b80
+!    4us [-ENOMEM]  iomap_get_folio
+iter=&{.inode=0xffff8c67aa031138,.len=4096,.flags=33,.iomap={.addr=0xffffffffffffffff,.length=4096,.type=1,.flags=3,.bdev=0x…
+pos=0 len=4096
+
+This is likely a regression caused by 66dabbb65d67 ("mm: return an ERR_PTR
+from __filemap_get_folio"), which moved error handling from
+io_map_get_folio() to __filemap_get_folio(), but broke FGP_NOWAIT
+handling, so ENOMEM is being escaped to user space.  Had it correctly
+returned -EAGAIN with NOWAIT, either io_uring or user space itself would
+be able to retry the request.
+
+It's not enough to patch io_uring since the iomap interface is the one
+responsible for it, and pwritev2(RWF_NOWAIT) and AIO interfaces must
+return the proper error too.
+
+The patch was tested with scylladb test suite (its original reproducer),
+and the tests all pass now when memory is pressured.
+
+Link: https://lkml.kernel.org/r/20250224143700.23035-1-raphaelsc@scylladb.com
+Fixes: 66dabbb65d67 ("mm: return an ERR_PTR from __filemap_get_folio")
+Signed-off-by: Raphael S. Carvalho <raphaelsc@scylladb.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap_cgroup.h |    4 ++--
- mm/memcontrol.c             |    4 ++--
- mm/swap_cgroup.c            |    7 ++++---
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ mm/filemap.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap_cgroup.h~mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup
-+++ a/include/linux/swap_cgroup.h
-@@ -6,7 +6,7 @@
+--- a/mm/filemap.c~mm-fix-error-handling-in-__filemap_get_folio-with-fgp_nowait
++++ a/mm/filemap.c
+@@ -1986,8 +1986,19 @@ no_page:
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_SWAP)
- 
--extern void swap_cgroup_record(struct folio *folio, swp_entry_t ent);
-+extern void swap_cgroup_record(struct folio *folio, unsigned short id, swp_entry_t ent);
- extern unsigned short swap_cgroup_clear(swp_entry_t ent, unsigned int nr_ents);
- extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
- extern int swap_cgroup_swapon(int type, unsigned long max_pages);
-@@ -15,7 +15,7 @@ extern void swap_cgroup_swapoff(int type
- #else
- 
- static inline
--void swap_cgroup_record(struct folio *folio, swp_entry_t ent)
-+void swap_cgroup_record(struct folio *folio, unsigned short id, swp_entry_t ent)
- {
- }
- 
---- a/mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup
-+++ a/mm/memcontrol.c
-@@ -4993,7 +4993,7 @@ void mem_cgroup_swapout(struct folio *fo
- 		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
- 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
- 
--	swap_cgroup_record(folio, entry);
-+	swap_cgroup_record(folio, mem_cgroup_id(swap_memcg), entry);
- 
- 	folio_unqueue_deferred_split(folio);
- 	folio->memcg_data = 0;
-@@ -5055,7 +5055,7 @@ int __mem_cgroup_try_charge_swap(struct
- 		mem_cgroup_id_get_many(memcg, nr_pages - 1);
- 	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
- 
--	swap_cgroup_record(folio, entry);
-+	swap_cgroup_record(folio, mem_cgroup_id(memcg), entry);
- 
- 	return 0;
- }
---- a/mm/swap_cgroup.c~mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup
-+++ a/mm/swap_cgroup.c
-@@ -58,9 +58,11 @@ static unsigned short __swap_cgroup_id_x
-  * entries must not have been charged
-  *
-  * @folio: the folio that the swap entry belongs to
-+ * @id: mem_cgroup ID to be recorded
-  * @ent: the first swap entry to be recorded
-  */
--void swap_cgroup_record(struct folio *folio, swp_entry_t ent)
-+void swap_cgroup_record(struct folio *folio, unsigned short id,
-+			swp_entry_t ent)
- {
- 	unsigned int nr_ents = folio_nr_pages(folio);
- 	struct swap_cgroup *map;
-@@ -72,8 +74,7 @@ void swap_cgroup_record(struct folio *fo
- 	map = swap_cgroup_ctrl[swp_type(ent)].map;
- 
- 	do {
--		old = __swap_cgroup_id_xchg(map, offset,
--					    mem_cgroup_id(folio_memcg(folio)));
-+		old = __swap_cgroup_id_xchg(map, offset, id);
- 		VM_BUG_ON(old);
- 	} while (++offset != end);
- }
+ 		if (err == -EEXIST)
+ 			goto repeat;
+-		if (err)
++		if (err) {
++			/*
++			 * When NOWAIT I/O fails to allocate folios this could
++			 * be due to a nonblocking memory allocation and not
++			 * because the system actually is out of memory.
++			 * Return -EAGAIN so that there caller retries in a
++			 * blocking fashion instead of propagating -ENOMEM
++			 * to the application.
++			 */
++			if ((fgp_flags & FGP_NOWAIT) && err == -ENOMEM)
++				err = -EAGAIN;
+ 			return ERR_PTR(err);
++		}
+ 		/*
+ 		 * filemap_add_folio locks the page, and for mmap
+ 		 * we expect an unlocked page.
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from raphaelsc@scylladb.com are
 
 
