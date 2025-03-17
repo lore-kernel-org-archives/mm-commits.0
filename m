@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54D102163B2
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3110D2163B2
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188349; cv=none; b=FoSTEGlNZD29s0xqYHa6yiPZL1Ha6c5Ek3Mh6GM40wAfzRt3tIqFh6urJ5dzUT9zFTG1yTTfM4ICgBY62XQhWa2rrtpMyArLhoyJdSuQg5lhWchtnCBTmjk8v/cEtiakjuUy4IGugSFGnjtcCAdUpYZqiftfX6SpdIMov5oPzKs=
+	t=1742188351; cv=none; b=OPqHJsd9djKU3mA3KxjAnyTDXw/ED4ucWQAenjOT0zS+cMuFLGlhbMDfDplys//APhDwz1Y4/af3XEmxKtGgyKZJ00Ix5erS7Dm7eqqDy2cKK9v/N+iiwcJgYNRM4aVR6ohmr9MmAVo34BKor1RBhselHQ97tHVyeeuVv8N9iac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188349; c=relaxed/simple;
-	bh=2eNcnMtnt47RfZ//0KhKcQR2CGp1Qm5OGWJaHeaVu8s=;
-	h=Date:To:From:Subject:Message-Id; b=OHhsrks8kdnkrHpmjMCBjZtz9ZOTo214cgpvV78wSVicVsrPQy8aVhWs+O73tFb5U9tgjzPU3t5pyxGuDYX8GnRLCegFWpRVFoaZR7sv2VArWcnjrjHViGqFZ5uvS2w2Q5R4l/PGgG3WvUWmCN3r5so7EzpYliwvsF9KiF5cAVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hd9MQOOu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188351; c=relaxed/simple;
+	bh=IoN8WO8CE9TnGhpTIB0YstlN/r7sOmkPnszWXKvdpzs=;
+	h=Date:To:From:Subject:Message-Id; b=oi1vdYGtJHipJUwA08Tk7mG1XEOvDawzdog3JUm8gydLjOP9uHUXU0+kxk1jh3yLjFpOnA+HPIlVz0kBvM5uGv5Tcl1ipTnnCvtNmriRlANVgpSzaAQcY0zYYOLjWGyfrAx/wwog6qAMwZKP8kcIVwrcHmIBFDULQo2s66GM0Pg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nocPOdA7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hd9MQOOu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27F14C4CEEC;
-	Mon, 17 Mar 2025 05:12:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nocPOdA7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0767AC4CEEC;
+	Mon, 17 Mar 2025 05:12:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188349;
-	bh=2eNcnMtnt47RfZ//0KhKcQR2CGp1Qm5OGWJaHeaVu8s=;
+	s=korg; t=1742188351;
+	bh=IoN8WO8CE9TnGhpTIB0YstlN/r7sOmkPnszWXKvdpzs=;
 	h=Date:To:From:Subject:From;
-	b=hd9MQOOu+NEAF4r9w3aXpDgoF7lCwpKx59jiikA6G2IrO506IcXPwFB6sKgKrUCkk
-	 IbHGSn9O0YNl6B545EeaNRAg9hJS64rjnsfyDCt8wKiZE+kgqX4yFUV5qMBFNFbHaW
-	 r+TQjFNlQJ10PTxoaVQtnFKPtMgs7j3epN+vR+pw=
-Date: Sun, 16 Mar 2025 22:12:28 -0700
-To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=nocPOdA7XpPv7r1oi7D2lK7hat1+CVYnbjebK74RAfoZOe2YAppQHJVmeZAJj8Ie3
+	 3nfwx3WGpOAHGv62dEd/avhFatAMZioraLOldGiSl/QO9KRkiqwNy4beBiloLx3YzC
+	 3owRSMuOGpl5YxW+KewZYI3uKC1iR2JVuXZ7fKNc=
+Date: Sun, 16 Mar 2025 22:12:30 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long.patch removed from -mm tree
-Message-Id: <20250317051229.27F14C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch removed from -mm tree
+Message-Id: <20250317051231.0767AC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,578 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ioremap: pass pgprot_t to ioremap_prot() instead of unsigned long
+     Subject: Docs/mm/damon/design: fix typo on DAMOS filters usage doc link
 has been removed from the -mm tree.  Its filename was
-     mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long.patch
+     docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm/ioremap: pass pgprot_t to ioremap_prot() instead of unsigned long
-Date: Tue, 18 Feb 2025 15:49:54 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/design: fix typo on DAMOS filters usage doc link
+Date: Tue, 18 Feb 2025 14:37:04 -0800
 
-ioremap_prot() currently accepts pgprot_val parameter as an unsigned long,
-thus implicitly assuming that pgprot_val and pgprot_t could never be
-bigger than unsigned long.  But this assumption soon will not be true on
-arm64 when using D128 pgtables.  In 128 bit page table configuration,
-unsigned long is 64 bit, but pgprot_t is 128 bit.
+Patch series "Docs/mm/damon: misc DAMOS filters documentation fixes and
+improves".
 
-Passing platform abstracted pgprot_t argument is better as compared to
-size based data types.  Let's change the parameter to directly pass
-pgprot_t like another similar helper generic_ioremap_prot().
+Fix and improve DAMOS filters documentation by fixing a copy-paste typo,
+adding hugepage_size filter documentation on design doc, moving logic
+details from usage to design, clarify DAMOS filters handling sequence
+based on handling layer, and re-organizing the filters type list for
+easier understanding of the handling sequence.
 
-Without this change in place, D128 configuration does not work on arm64 as
-the top 64 bits gets silently stripped when passing the protection value
-to this function.
 
-Link: https://lkml.kernel.org/r/20250218101954.415331-1-anshuman.khandual@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Co-developed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com> [arm64]
+This patch (of 5):
+
+The link from DAMOS filters design doc to usage doc has a typo calling
+filters as watermarks.  Fix it.
+
+Link: https://lkml.kernel.org/r/20250218223708.53437-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250218223708.53437-2-sj@kernel.org
+Fixes: d31f5626a0e1 ("Docs/mm/damon/design: add links to sections of DAMON sysfs interface usage doc")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/ioremap.c               |    6 ++----
- arch/arm64/include/asm/io.h         |    6 +++---
- arch/arm64/kernel/acpi.c            |    2 +-
- arch/arm64/mm/ioremap.c             |    3 +--
- arch/csky/include/asm/io.h          |    2 +-
- arch/loongarch/include/asm/io.h     |   10 +++++-----
- arch/mips/include/asm/io.h          |    8 ++++----
- arch/mips/mm/ioremap.c              |    4 ++--
- arch/mips/mm/ioremap64.c            |    4 ++--
- arch/parisc/include/asm/io.h        |    2 +-
- arch/parisc/mm/ioremap.c            |    4 ++--
- arch/powerpc/include/asm/io.h       |    2 +-
- arch/powerpc/mm/ioremap.c           |    4 ++--
- arch/powerpc/platforms/ps3/spu.c    |    4 ++--
- arch/riscv/include/asm/io.h         |    2 +-
- arch/riscv/kernel/acpi.c            |    2 +-
- arch/s390/include/asm/io.h          |    4 ++--
- arch/s390/pci/pci.c                 |    4 ++--
- arch/sh/boards/mach-landisk/setup.c |    2 +-
- arch/sh/boards/mach-lboxre2/setup.c |    2 +-
- arch/sh/boards/mach-sh03/setup.c    |    2 +-
- arch/sh/include/asm/io.h            |    2 +-
- arch/sh/mm/ioremap.c                |    3 +--
- arch/x86/include/asm/io.h           |    2 +-
- arch/x86/mm/ioremap.c               |    4 ++--
- arch/xtensa/include/asm/io.h        |    6 +++---
- arch/xtensa/mm/ioremap.c            |    4 ++--
- include/asm-generic/io.h            |    4 ++--
- mm/ioremap.c                        |    4 ++--
- mm/memory.c                         |    6 +++---
- 30 files changed, 55 insertions(+), 59 deletions(-)
+ Documentation/mm/damon/design.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arc/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/arc/mm/ioremap.c
-@@ -32,7 +32,7 @@ void __iomem *ioremap(phys_addr_t paddr,
- 		return (void __iomem *)(u32)paddr;
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-typo-on-damos-filters-usage-doc-link
++++ a/Documentation/mm/damon/design.rst
+@@ -617,7 +617,7 @@ Below ``type`` of filters are currently
+     - Applied to pages that belonging to a given DAMON monitoring target.
+     - Handled by the core logic.
  
- 	return ioremap_prot(paddr, size,
--			    pgprot_val(pgprot_noncached(PAGE_KERNEL)));
-+			    pgprot_noncached(PAGE_KERNEL));
- }
- EXPORT_SYMBOL(ioremap);
+-To know how user-space can set the watermarks via :ref:`DAMON sysfs interface
++To know how user-space can set the filters via :ref:`DAMON sysfs interface
+ <sysfs_interface>`, refer to :ref:`filters <sysfs_filters>` part of the
+ documentation.
  
-@@ -44,10 +44,8 @@ EXPORT_SYMBOL(ioremap);
-  * might need finer access control (R/W/X)
-  */
- void __iomem *ioremap_prot(phys_addr_t paddr, size_t size,
--			   unsigned long flags)
-+			   pgprot_t prot)
- {
--	pgprot_t prot = __pgprot(flags);
--
- 	/* force uncached */
- 	return generic_ioremap_prot(paddr, size, pgprot_noncached(prot));
- }
---- a/arch/arm64/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/arm64/include/asm/io.h
-@@ -270,9 +270,9 @@ int arm64_ioremap_prot_hook_register(con
- #define _PAGE_IOREMAP PROT_DEVICE_nGnRE
- 
- #define ioremap_wc(addr, size)	\
--	ioremap_prot((addr), (size), PROT_NORMAL_NC)
-+	ioremap_prot((addr), (size), __pgprot(PROT_NORMAL_NC))
- #define ioremap_np(addr, size)	\
--	ioremap_prot((addr), (size), PROT_DEVICE_nGnRnE)
-+	ioremap_prot((addr), (size), __pgprot(PROT_DEVICE_nGnRnE))
- 
- /*
-  * io{read,write}{16,32,64}be() macros
-@@ -293,7 +293,7 @@ static inline void __iomem *ioremap_cach
- 	if (pfn_is_map_memory(__phys_to_pfn(addr)))
- 		return (void __iomem *)__phys_to_virt(addr);
- 
--	return ioremap_prot(addr, size, PROT_NORMAL);
-+	return ioremap_prot(addr, size, __pgprot(PROT_NORMAL));
- }
- 
- /*
---- a/arch/arm64/kernel/acpi.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/arm64/kernel/acpi.c
-@@ -379,7 +379,7 @@ void __iomem *acpi_os_ioremap(acpi_physi
- 				prot = __acpi_get_writethrough_mem_attribute();
- 		}
- 	}
--	return ioremap_prot(phys, size, pgprot_val(prot));
-+	return ioremap_prot(phys, size, prot);
- }
- 
- /*
---- a/arch/arm64/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/arm64/mm/ioremap.c
-@@ -15,10 +15,9 @@ int arm64_ioremap_prot_hook_register(ior
- }
- 
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot)
-+			   pgprot_t pgprot)
- {
- 	unsigned long last_addr = phys_addr + size - 1;
--	pgprot_t pgprot = __pgprot(prot);
- 
- 	/* Don't allow outside PHYS_MASK */
- 	if (last_addr & ~PHYS_MASK)
---- a/arch/csky/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/csky/include/asm/io.h
-@@ -36,7 +36,7 @@
-  */
- #define ioremap_wc(addr, size) \
- 	ioremap_prot((addr), (size), \
--		(_PAGE_IOREMAP & ~_CACHE_MASK) | _CACHE_UNCACHED)
-+		__pgprot((_PAGE_IOREMAP & ~_CACHE_MASK) | _CACHE_UNCACHED))
- 
- #include <asm-generic/io.h>
- 
---- a/arch/loongarch/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/loongarch/include/asm/io.h
-@@ -23,9 +23,9 @@ extern void __init early_iounmap(void __
- #ifdef CONFIG_ARCH_IOREMAP
- 
- static inline void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
--					 unsigned long prot_val)
-+					 pgprot_t prot)
- {
--	switch (prot_val & _CACHE_MASK) {
-+	switch (pgprot_val(prot) & _CACHE_MASK) {
- 	case _CACHE_CC:
- 		return (void __iomem *)(unsigned long)(CACHE_BASE + offset);
- 	case _CACHE_SUC:
-@@ -38,7 +38,7 @@ static inline void __iomem *ioremap_prot
- }
- 
- #define ioremap(offset, size)		\
--	ioremap_prot((offset), (size), pgprot_val(PAGE_KERNEL_SUC))
-+	ioremap_prot((offset), (size), PAGE_KERNEL_SUC)
- 
- #define iounmap(addr) 			((void)(addr))
- 
-@@ -55,10 +55,10 @@ static inline void __iomem *ioremap_prot
-  */
- #define ioremap_wc(offset, size)	\
- 	ioremap_prot((offset), (size),	\
--		pgprot_val(wc_enabled ? PAGE_KERNEL_WUC : PAGE_KERNEL_SUC))
-+		     wc_enabled ? PAGE_KERNEL_WUC : PAGE_KERNEL_SUC)
- 
- #define ioremap_cache(offset, size)	\
--	ioremap_prot((offset), (size), pgprot_val(PAGE_KERNEL))
-+	ioremap_prot((offset), (size), PAGE_KERNEL)
- 
- #define mmiowb() wmb()
- 
---- a/arch/mips/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/mips/include/asm/io.h
-@@ -126,7 +126,7 @@ static inline unsigned long isa_virt_to_
- }
- 
- void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
--		unsigned long prot_val);
-+			   pgprot_t prot);
- void iounmap(const volatile void __iomem *addr);
- 
- /*
-@@ -141,7 +141,7 @@ void iounmap(const volatile void __iomem
-  * address.
-  */
- #define ioremap(offset, size)						\
--	ioremap_prot((offset), (size), _CACHE_UNCACHED)
-+	ioremap_prot((offset), (size), __pgprot(_CACHE_UNCACHED))
- 
- /*
-  * ioremap_cache -	map bus memory into CPU space
-@@ -159,7 +159,7 @@ void iounmap(const volatile void __iomem
-  * memory-like regions on I/O busses.
-  */
- #define ioremap_cache(offset, size)					\
--	ioremap_prot((offset), (size), _page_cachable_default)
-+	ioremap_prot((offset), (size), __pgprot(_page_cachable_default))
- 
- /*
-  * ioremap_wc     -   map bus memory into CPU space
-@@ -180,7 +180,7 @@ void iounmap(const volatile void __iomem
-  * _CACHE_UNCACHED option (see cpu_probe() method).
-  */
- #define ioremap_wc(offset, size)					\
--	ioremap_prot((offset), (size), boot_cpu_data.writecombine)
-+	ioremap_prot((offset), (size), __pgprot(boot_cpu_data.writecombine))
- 
- #if defined(CONFIG_CPU_CAVIUM_OCTEON)
- #define war_io_reorder_wmb()		wmb()
---- a/arch/mips/mm/ioremap64.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/mips/mm/ioremap64.c
-@@ -3,9 +3,9 @@
- #include <ioremap.h>
- 
- void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
--		unsigned long prot_val)
-+			   pgprot_t prot)
- {
--	unsigned long flags = prot_val & _CACHE_MASK;
-+	unsigned long flags = pgprot_val(prot) & _CACHE_MASK;
- 	u64 base = (flags == _CACHE_UNCACHED ? IO_BASE : UNCAC_BASE);
- 	void __iomem *addr;
- 
---- a/arch/mips/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/mips/mm/ioremap.c
-@@ -44,9 +44,9 @@ static int __ioremap_check_ram(unsigned
-  * ioremap_prot gives the caller control over cache coherency attributes (CCA)
-  */
- void __iomem *ioremap_prot(phys_addr_t phys_addr, unsigned long size,
--		unsigned long prot_val)
-+			   pgprot_t prot)
- {
--	unsigned long flags = prot_val & _CACHE_MASK;
-+	unsigned long flags = pgprot_val(prot) & _CACHE_MASK;
- 	unsigned long offset, pfn, last_pfn;
- 	struct vm_struct *area;
- 	phys_addr_t last_addr;
---- a/arch/parisc/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/parisc/include/asm/io.h
-@@ -131,7 +131,7 @@ static inline void gsc_writeq(unsigned l
- 		       _PAGE_ACCESSED | _PAGE_NO_CACHE)
- 
- #define ioremap_wc(addr, size)  \
--	ioremap_prot((addr), (size), _PAGE_IOREMAP)
-+	ioremap_prot((addr), (size), __pgprot(_PAGE_IOREMAP))
- 
- #define pci_iounmap			pci_iounmap
- 
---- a/arch/parisc/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/parisc/mm/ioremap.c
-@@ -14,7 +14,7 @@
- #include <linux/mm.h>
- 
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot)
-+			   pgprot_t prot)
- {
- #ifdef CONFIG_EISA
- 	unsigned long end = phys_addr + size - 1;
-@@ -41,6 +41,6 @@ void __iomem *ioremap_prot(phys_addr_t p
- 		}
- 	}
- 
--	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
-+	return generic_ioremap_prot(phys_addr, size, prot);
- }
- EXPORT_SYMBOL(ioremap_prot);
---- a/arch/powerpc/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/powerpc/include/asm/io.h
-@@ -895,7 +895,7 @@ void __iomem *ioremap_wt(phys_addr_t add
- 
- void __iomem *ioremap_coherent(phys_addr_t address, unsigned long size);
- #define ioremap_cache(addr, size) \
--	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
-+	ioremap_prot((addr), (size), PAGE_KERNEL)
- 
- #define iounmap iounmap
- 
---- a/arch/powerpc/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/powerpc/mm/ioremap.c
-@@ -41,9 +41,9 @@ void __iomem *ioremap_coherent(phys_addr
- 	return __ioremap_caller(addr, size, prot, caller);
- }
- 
--void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long flags)
-+void __iomem *ioremap_prot(phys_addr_t addr, size_t size, pgprot_t prot)
- {
--	pte_t pte = __pte(flags);
-+	pte_t pte = __pte(pgprot_val(prot));
- 	void *caller = __builtin_return_address(0);
- 
- 	/* writeable implies dirty for kernel addresses */
---- a/arch/powerpc/platforms/ps3/spu.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/powerpc/platforms/ps3/spu.c
-@@ -190,10 +190,10 @@ static void spu_unmap(struct spu *spu)
- static int __init setup_areas(struct spu *spu)
- {
- 	struct table {char* name; unsigned long addr; unsigned long size;};
--	unsigned long shadow_flags = pgprot_val(pgprot_noncached_wc(PAGE_KERNEL_RO));
- 
- 	spu_pdata(spu)->shadow = ioremap_prot(spu_pdata(spu)->shadow_addr,
--					      sizeof(struct spe_shadow), shadow_flags);
-+					      sizeof(struct spe_shadow),
-+					      pgprot_noncached_wc(PAGE_KERNEL_RO));
- 	if (!spu_pdata(spu)->shadow) {
- 		pr_debug("%s:%d: ioremap shadow failed\n", __func__, __LINE__);
- 		goto fail_ioremap;
---- a/arch/riscv/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/riscv/include/asm/io.h
-@@ -137,7 +137,7 @@ __io_writes_outs(outs, u64, q, __io_pbr(
- 
- #ifdef CONFIG_MMU
- #define arch_memremap_wb(addr, size)	\
--	((__force void *)ioremap_prot((addr), (size), _PAGE_KERNEL))
-+	((__force void *)ioremap_prot((addr), (size), __pgprot(_PAGE_KERNEL)))
- #endif
- 
- #endif /* _ASM_RISCV_IO_H */
---- a/arch/riscv/kernel/acpi.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/riscv/kernel/acpi.c
-@@ -305,7 +305,7 @@ void __iomem *acpi_os_ioremap(acpi_physi
- 		}
- 	}
- 
--	return ioremap_prot(phys, size, pgprot_val(prot));
-+	return ioremap_prot(phys, size, prot);
- }
- 
- #ifdef CONFIG_PCI
---- a/arch/s390/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/s390/include/asm/io.h
-@@ -33,9 +33,9 @@ void unxlate_dev_mem_ptr(phys_addr_t phy
- #define _PAGE_IOREMAP pgprot_val(PAGE_KERNEL)
- 
- #define ioremap_wc(addr, size)  \
--	ioremap_prot((addr), (size), pgprot_val(pgprot_writecombine(PAGE_KERNEL)))
-+	ioremap_prot((addr), (size), pgprot_writecombine(PAGE_KERNEL))
- #define ioremap_wt(addr, size)  \
--	ioremap_prot((addr), (size), pgprot_val(pgprot_writethrough(PAGE_KERNEL)))
-+	ioremap_prot((addr), (size), pgprot_writethrough(PAGE_KERNEL))
- 
- static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
- {
---- a/arch/s390/pci/pci.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/s390/pci/pci.c
-@@ -255,7 +255,7 @@ resource_size_t pcibios_align_resource(v
- }
- 
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot)
-+			   pgprot_t prot)
- {
- 	/*
- 	 * When PCI MIO instructions are unavailable the "physical" address
-@@ -265,7 +265,7 @@ void __iomem *ioremap_prot(phys_addr_t p
- 	if (!static_branch_unlikely(&have_mio))
- 		return (void __iomem *)phys_addr;
- 
--	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
-+	return generic_ioremap_prot(phys_addr, size, prot);
- }
- EXPORT_SYMBOL(ioremap_prot);
- 
---- a/arch/sh/boards/mach-landisk/setup.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/sh/boards/mach-landisk/setup.c
-@@ -58,7 +58,7 @@ static int __init landisk_devices_setup(
- 	/* open I/O area window */
- 	paddrbase = virt_to_phys((void *)PA_AREA5_IO);
- 	prot = PAGE_KERNEL_PCC(1, _PAGE_PCC_IO16);
--	cf_ide_base = ioremap_prot(paddrbase, PAGE_SIZE, pgprot_val(prot));
-+	cf_ide_base = ioremap_prot(paddrbase, PAGE_SIZE, prot);
- 	if (!cf_ide_base) {
- 		printk("allocate_cf_area : can't open CF I/O window!\n");
- 		return -ENOMEM;
---- a/arch/sh/boards/mach-lboxre2/setup.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/sh/boards/mach-lboxre2/setup.c
-@@ -53,7 +53,7 @@ static int __init lboxre2_devices_setup(
- 	paddrbase = virt_to_phys((void*)PA_AREA5_IO);
- 	psize = PAGE_SIZE;
- 	prot = PAGE_KERNEL_PCC(1, _PAGE_PCC_IO16);
--	cf0_io_base = (u32)ioremap_prot(paddrbase, psize, pgprot_val(prot));
-+	cf0_io_base = (u32)ioremap_prot(paddrbase, psize, prot);
- 	if (!cf0_io_base) {
- 		printk(KERN_ERR "%s : can't open CF I/O window!\n" , __func__ );
- 		return -ENOMEM;
---- a/arch/sh/boards/mach-sh03/setup.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/sh/boards/mach-sh03/setup.c
-@@ -75,7 +75,7 @@ static int __init sh03_devices_setup(voi
- 	/* open I/O area window */
- 	paddrbase = virt_to_phys((void *)PA_AREA5_IO);
- 	prot = PAGE_KERNEL_PCC(1, _PAGE_PCC_IO16);
--	cf_ide_base = ioremap_prot(paddrbase, PAGE_SIZE, pgprot_val(prot));
-+	cf_ide_base = ioremap_prot(paddrbase, PAGE_SIZE, prot);
- 	if (!cf_ide_base) {
- 		printk("allocate_cf_area : can't open CF I/O window!\n");
- 		return -ENOMEM;
---- a/arch/sh/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/sh/include/asm/io.h
-@@ -299,7 +299,7 @@ unsigned long long poke_real_address_q(u
- #define _PAGE_IOREMAP pgprot_val(PAGE_KERNEL_NOCACHE)
- 
- #define ioremap_cache(addr, size)  \
--	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
-+	ioremap_prot((addr), (size), PAGE_KERNEL)
- #endif /* CONFIG_MMU */
- 
- #include <asm-generic/io.h>
---- a/arch/sh/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/sh/mm/ioremap.c
-@@ -73,10 +73,9 @@ __ioremap_29bit(phys_addr_t offset, unsi
- #endif /* CONFIG_29BIT */
- 
- void __iomem __ref *ioremap_prot(phys_addr_t phys_addr, size_t size,
--				 unsigned long prot)
-+				 pgprot_t pgprot)
- {
- 	void __iomem *mapped;
--	pgprot_t pgprot = __pgprot(prot);
- 
- 	mapped = __ioremap_trapped(phys_addr, size);
- 	if (mapped)
---- a/arch/x86/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/x86/include/asm/io.h
-@@ -170,7 +170,7 @@ extern void __iomem *ioremap_uc(resource
- #define ioremap_uc ioremap_uc
- extern void __iomem *ioremap_cache(resource_size_t offset, unsigned long size);
- #define ioremap_cache ioremap_cache
--extern void __iomem *ioremap_prot(resource_size_t offset, unsigned long size, unsigned long prot_val);
-+extern void __iomem *ioremap_prot(resource_size_t offset, unsigned long size,  pgprot_t prot);
- #define ioremap_prot ioremap_prot
- extern void __iomem *ioremap_encrypted(resource_size_t phys_addr, unsigned long size);
- #define ioremap_encrypted ioremap_encrypted
---- a/arch/x86/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/x86/mm/ioremap.c
-@@ -440,10 +440,10 @@ void __iomem *ioremap_cache(resource_siz
- EXPORT_SYMBOL(ioremap_cache);
- 
- void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
--				unsigned long prot_val)
-+			   pgprot_t prot)
- {
- 	return __ioremap_caller(phys_addr, size,
--				pgprot2cachemode(__pgprot(prot_val)),
-+				pgprot2cachemode(prot),
- 				__builtin_return_address(0), false);
- }
- EXPORT_SYMBOL(ioremap_prot);
---- a/arch/xtensa/include/asm/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/xtensa/include/asm/io.h
-@@ -29,7 +29,7 @@
-  * I/O memory mapping functions.
-  */
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot);
-+			   pgprot_t prot);
- #define ioremap_prot ioremap_prot
- #define iounmap iounmap
- 
-@@ -40,7 +40,7 @@ static inline void __iomem *ioremap(unsi
- 		return (void*)(offset-XCHAL_KIO_PADDR+XCHAL_KIO_BYPASS_VADDR);
- 	else
- 		return ioremap_prot(offset, size,
--			pgprot_val(pgprot_noncached(PAGE_KERNEL)));
-+				    pgprot_noncached(PAGE_KERNEL));
- }
- #define ioremap ioremap
- 
-@@ -51,7 +51,7 @@ static inline void __iomem *ioremap_cach
- 	    && offset - XCHAL_KIO_PADDR < XCHAL_KIO_SIZE)
- 		return (void*)(offset-XCHAL_KIO_PADDR+XCHAL_KIO_CACHED_VADDR);
- 	else
--		return ioremap_prot(offset, size, pgprot_val(PAGE_KERNEL));
-+		return ioremap_prot(offset, size, PAGE_KERNEL);
- 
- }
- #define ioremap_cache ioremap_cache
---- a/arch/xtensa/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/arch/xtensa/mm/ioremap.c
-@@ -11,12 +11,12 @@
- #include <asm/io.h>
- 
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot)
-+			   pgprot_t prot)
- {
- 	unsigned long pfn = __phys_to_pfn((phys_addr));
- 	WARN_ON(pfn_valid(pfn));
- 
--	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
-+	return generic_ioremap_prot(phys_addr, size, prot);
- }
- EXPORT_SYMBOL(ioremap_prot);
- 
---- a/include/asm-generic/io.h~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/include/asm-generic/io.h
-@@ -1111,7 +1111,7 @@ void __iomem *generic_ioremap_prot(phys_
- 				   pgprot_t prot);
- 
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot);
-+			   pgprot_t prot);
- void iounmap(volatile void __iomem *addr);
- void generic_iounmap(volatile void __iomem *addr);
- 
-@@ -1120,7 +1120,7 @@ void generic_iounmap(volatile void __iom
- static inline void __iomem *ioremap(phys_addr_t addr, size_t size)
- {
- 	/* _PAGE_IOREMAP needs to be supplied by the architecture */
--	return ioremap_prot(addr, size, _PAGE_IOREMAP);
-+	return ioremap_prot(addr, size, __pgprot(_PAGE_IOREMAP));
- }
- #endif
- #endif /* !CONFIG_MMU || CONFIG_GENERIC_IOREMAP */
---- a/mm/ioremap.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/mm/ioremap.c
-@@ -50,9 +50,9 @@ void __iomem *generic_ioremap_prot(phys_
- 
- #ifndef ioremap_prot
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
--			   unsigned long prot)
-+			   pgprot_t prot)
- {
--	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
-+	return generic_ioremap_prot(phys_addr, size, prot);
- }
- EXPORT_SYMBOL(ioremap_prot);
- #endif
---- a/mm/memory.c~mm-ioremap-pass-pgprot_t-to-ioremap_prot-instead-of-unsigned-long
-+++ a/mm/memory.c
-@@ -6727,7 +6727,7 @@ int generic_access_phys(struct vm_area_s
- 			void *buf, int len, int write)
- {
- 	resource_size_t phys_addr;
--	unsigned long prot = 0;
-+	pgprot_t prot = __pgprot(0);
- 	void __iomem *maddr;
- 	int offset = offset_in_page(addr);
- 	int ret = -EINVAL;
-@@ -6737,7 +6737,7 @@ int generic_access_phys(struct vm_area_s
- retry:
- 	if (follow_pfnmap_start(&args))
- 		return -EINVAL;
--	prot = pgprot_val(args.pgprot);
-+	prot = args.pgprot;
- 	phys_addr = (resource_size_t)args.pfn << PAGE_SHIFT;
- 	writable = args.writable;
- 	follow_pfnmap_end(&args);
-@@ -6752,7 +6752,7 @@ retry:
- 	if (follow_pfnmap_start(&args))
- 		goto out_unmap;
- 
--	if ((prot != pgprot_val(args.pgprot)) ||
-+	if ((pgprot_val(prot) != pgprot_val(args.pgprot)) ||
- 	    (phys_addr != (args.pfn << PAGE_SHIFT)) ||
- 	    (writable != args.writable)) {
- 		follow_pfnmap_end(&args);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-use-ptep_get-instead-of-directly-dereferencing-pte_t.patch
+mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
+mm-damon-sysfs-schemes-implement-core_filters-and-ops_filters-directories.patch
+mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
+mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
+mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
+mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
+docs-abi-damon-document-coreops_filters-directories.patch
+docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
+mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
+mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
+mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
+mm-damon-sysfs-handle-commit-command-using-damon_call.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
+mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
+mm-damon-remove-damon_callback-private.patch
+mm-damon-remove-before_start-of-damon_callback.patch
+mm-damon-remove-damon_callback-after_sampling.patch
+mm-damon-remove-damon_callback-before_damos_apply.patch
+mm-damon-remove-damon_operations-reset_aggregated.patch
+mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch
+mm-madvise-split-out-populate-behavior-check-logic.patch
+mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings.patch
+mm-madvise-remove-len-parameter-of-madvise_do_behavior.patch
 
