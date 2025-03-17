@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E546A217F26
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24912217F40;
+	Mon, 17 Mar 2025 05:14:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188461; cv=none; b=Xsxz4tZurhTgljdzqwyCxqEkOU0LdVMmiZ6+MlOME8amJtyKNWkXOi+OwnrjEb+1gTVRL3VE/9MtIAEh4csmroxIHMDj6Spbld5hUqE/ttXRVyAb3f7fHatvdwP/mF8jEz2lvMo2n1hKnqfjHrRrIAqKdeuiJwTMZ8J8BnP2vp4=
+	t=1742188462; cv=none; b=Lid9A+f0qbO9e7jEE44JzytMGpjeqVph4OZl5cvKnf6LBC+dp0IwQSgQamJXRRFhVvX/m8FoQge4LBeF9edxF+ErsIfB09v/4zduycdUEKMFsDMqNOPkapLYWneNh1INKWrpFi013TW9dND6gg3yTg6OEbDgyvMtKM97tMpKOQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188461; c=relaxed/simple;
-	bh=5r7UFMlgWix8xsNSWv90zXk7AOgCcMzEwf2H2vvgxj0=;
-	h=Date:To:From:Subject:Message-Id; b=YL0SQR7Jtn7aXqq4lV7ulhlZEY/0B8k1GglPqxpcPpAreirOMEpakZuscOwzmpBA8dgAXWh/a207NukjLJIATW3AnxkNsCMgqWwl9v/XYTKHPcX3PO+O+55AvnsF9tBRtPYWyLRaX4ukbRVi/5Epx4LDmMx9d4ATu4jFlzYyJTo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SFLSTfjr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188462; c=relaxed/simple;
+	bh=rICoZloCFImHg6uvk628PDWpnJQOCE5v29QUuUuXLnM=;
+	h=Date:To:From:Subject:Message-Id; b=swXFeCmk/Vfb/cx73es2Pd5O20vntah68VP8aQC3UMVqZ+YA+sN0BBFsAYmX7mn0d5tGIL2W/sVZRXtkdMpfwffQ1aLsoT/DDQTaVx8z6ODQeyYwTCozvKXTaY4zO31z1A3eHXnFPzk03MqEZcAbpSR+3UULo1gbZoUHL9e50EQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xWGme/Rk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SFLSTfjr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B89C2C4CEEC;
-	Mon, 17 Mar 2025 05:14:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xWGme/Rk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E47F5C4CEEC;
+	Mon, 17 Mar 2025 05:14:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188460;
-	bh=5r7UFMlgWix8xsNSWv90zXk7AOgCcMzEwf2H2vvgxj0=;
+	s=korg; t=1742188462;
+	bh=rICoZloCFImHg6uvk628PDWpnJQOCE5v29QUuUuXLnM=;
 	h=Date:To:From:Subject:From;
-	b=SFLSTfjruRLgwXgnlwZv6znzHr8HHsLuNUekPNwpmzHM0EjaZy64t96ri1csoF/b+
-	 Zk74ZDksC/lf4v2iKLZPA6B+GGFRowDcg4cvQUdJX2H3pTFr36Q4xkVlrS/LiEc5Dr
-	 Ibnyeg1fFjx3m+Yv+0tKQpWH/sa0uhKmXhdXZ8hw=
-Date: Sun, 16 Mar 2025 22:14:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=xWGme/RkrLfNg50UOP7qViWvh7wr4FF8YWarTLIsEpPVeJF6DbPmBFQS2kLR0BwmC
+	 dyE/neMhtW+fzFv44wG/sUryITnsC8Y87OY+FrR/wB7frxde563lw2abSsm3LVVR6M
+	 ADPMX3pkZ5tv0motHhwClhodLGkJRPEAuzOX82hU=
+Date: Sun, 16 Mar 2025 22:14:21 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,peterx@redhat.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,hughd@google.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-group-fallback-functions-together.patch removed from -mm tree
-Message-Id: <20250317051420.B89C2C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch removed from -mm tree
+Message-Id: <20250317051421.E47F5C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,471 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: group fallback functions together
+     Subject: mm: make page_mapped_in_vma() hugetlb walk aware
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-group-fallback-functions-together.patch
+     mm-make-page_mapped_in_vma-hugetlb-walk-aware.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: group fallback functions together
-Date: Mon, 24 Feb 2025 19:08:26 -0500
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm: make page_mapped_in_vma() hugetlb walk aware
+Date: Mon, 24 Feb 2025 14:14:45 -0700
 
-The way the fallback rules are spread out makes them hard to follow.  Move
-the functions next to each other at least.
+When a process consumes a UE in a page, the memory failure handler
+attempts to collect information for a potential SIGBUS.  If the page is an
+anonymous page, page_mapped_in_vma(page, vma) is invoked in order to
 
-Link: https://lkml.kernel.org/r/20250225001023.1494422-4-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+  1. retrieve the vaddr from the process' address space,
+
+  2. verify that the vaddr is indeed mapped to the poisoned page,
+     where 'page' is the precise small page with UE.
+
+It's been observed that when injecting poison to a non-head subpage of an
+anonymous hugetlb page, no SIGBUS shows up, while injecting to the head
+page produces a SIGBUS.  The cause is that, though hugetlb_walk() returns
+a valid pmd entry (on x86), but check_pte() detects mismatch between the
+head page per the pmd and the input subpage.  Thus the vaddr is considered
+not mapped to the subpage and the process is not collected for SIGBUS
+purpose.  This is the calling stack:
+
+      collect_procs_anon
+        page_mapped_in_vma
+          page_vma_mapped_walk
+            hugetlb_walk
+              huge_pte_lock
+                check_pte
+
+check_pte() header says that it
+"check if [pvmw->pfn, @pvmw->pfn + @pvmw->nr_pages) is mapped at the @pvmw->pte"
+but practically works only if pvmw->pfn is the head page pfn at pvmw->pte.
+Hindsight acknowledging that some pvmw->pte could point to a hugepage of
+some sort such that it makes sense to make check_pte() work for hugepage.
+
+Link: https://lkml.kernel.org/r/20250224211445.2663312-1-jane.chu@oracle.com
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: linmiaohe <linmiaohe@huawei.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  394 +++++++++++++++++++++++-----------------------
- 1 file changed, 197 insertions(+), 197 deletions(-)
+ mm/page_vma_mapped.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-group-fallback-functions-together
-+++ a/mm/page_alloc.c
-@@ -1903,6 +1903,43 @@ static void change_pageblock_range(struc
- 	}
- }
- 
-+static inline bool boost_watermark(struct zone *zone)
-+{
-+	unsigned long max_boost;
-+
-+	if (!watermark_boost_factor)
-+		return false;
-+	/*
-+	 * Don't bother in zones that are unlikely to produce results.
-+	 * On small machines, including kdump capture kernels running
-+	 * in a small area, boosting the watermark can cause an out of
-+	 * memory situation immediately.
-+	 */
-+	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
-+		return false;
-+
-+	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
-+			watermark_boost_factor, 10000);
-+
-+	/*
-+	 * high watermark may be uninitialised if fragmentation occurs
-+	 * very early in boot so do not boost. We do not fall
-+	 * through and boost by pageblock_nr_pages as failing
-+	 * allocations that early means that reclaim is not going
-+	 * to help and it may even be impossible to reclaim the
-+	 * boosted watermark resulting in a hang.
-+	 */
-+	if (!max_boost)
-+		return false;
-+
-+	max_boost = max(pageblock_nr_pages, max_boost);
-+
-+	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
-+		max_boost);
-+
-+	return true;
-+}
-+
- /*
-  * When we are falling back to another migratetype during allocation, try to
-  * steal extra free pages from the same pageblocks to satisfy further
-@@ -1944,41 +1981,38 @@ static bool can_steal_fallback(unsigned
- 	return false;
- }
- 
--static inline bool boost_watermark(struct zone *zone)
-+/*
-+ * Check whether there is a suitable fallback freepage with requested order.
-+ * If only_stealable is true, this function returns fallback_mt only if
-+ * we can steal other freepages all together. This would help to reduce
-+ * fragmentation due to mixed migratetype pages in one pageblock.
-+ */
-+int find_suitable_fallback(struct free_area *area, unsigned int order,
-+			int migratetype, bool only_stealable, bool *can_steal)
- {
--	unsigned long max_boost;
-+	int i;
-+	int fallback_mt;
- 
--	if (!watermark_boost_factor)
--		return false;
--	/*
--	 * Don't bother in zones that are unlikely to produce results.
--	 * On small machines, including kdump capture kernels running
--	 * in a small area, boosting the watermark can cause an out of
--	 * memory situation immediately.
--	 */
--	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
--		return false;
-+	if (area->nr_free == 0)
-+		return -1;
- 
--	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
--			watermark_boost_factor, 10000);
-+	*can_steal = false;
-+	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
-+		fallback_mt = fallbacks[migratetype][i];
-+		if (free_area_empty(area, fallback_mt))
-+			continue;
- 
--	/*
--	 * high watermark may be uninitialised if fragmentation occurs
--	 * very early in boot so do not boost. We do not fall
--	 * through and boost by pageblock_nr_pages as failing
--	 * allocations that early means that reclaim is not going
--	 * to help and it may even be impossible to reclaim the
--	 * boosted watermark resulting in a hang.
--	 */
--	if (!max_boost)
--		return false;
-+		if (can_steal_fallback(order, migratetype))
-+			*can_steal = true;
- 
--	max_boost = max(pageblock_nr_pages, max_boost);
-+		if (!only_stealable)
-+			return fallback_mt;
- 
--	zone->watermark_boost = min(zone->watermark_boost + pageblock_nr_pages,
--		max_boost);
-+		if (*can_steal)
-+			return fallback_mt;
-+	}
- 
--	return true;
-+	return -1;
- }
- 
- /*
-@@ -2055,175 +2089,6 @@ try_to_steal_block(struct zone *zone, st
- }
- 
- /*
-- * Check whether there is a suitable fallback freepage with requested order.
-- * If only_stealable is true, this function returns fallback_mt only if
-- * we can steal other freepages all together. This would help to reduce
-- * fragmentation due to mixed migratetype pages in one pageblock.
-- */
--int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool only_stealable, bool *can_steal)
--{
--	int i;
--	int fallback_mt;
--
--	if (area->nr_free == 0)
--		return -1;
--
--	*can_steal = false;
--	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
--		fallback_mt = fallbacks[migratetype][i];
--		if (free_area_empty(area, fallback_mt))
--			continue;
--
--		if (can_steal_fallback(order, migratetype))
--			*can_steal = true;
--
--		if (!only_stealable)
--			return fallback_mt;
--
--		if (*can_steal)
--			return fallback_mt;
--	}
--
--	return -1;
--}
--
--/*
-- * Reserve the pageblock(s) surrounding an allocation request for
-- * exclusive use of high-order atomic allocations if there are no
-- * empty page blocks that contain a page with a suitable order
-- */
--static void reserve_highatomic_pageblock(struct page *page, int order,
--					 struct zone *zone)
--{
--	int mt;
--	unsigned long max_managed, flags;
--
--	/*
--	 * The number reserved as: minimum is 1 pageblock, maximum is
--	 * roughly 1% of a zone. But if 1% of a zone falls below a
--	 * pageblock size, then don't reserve any pageblocks.
--	 * Check is race-prone but harmless.
--	 */
--	if ((zone_managed_pages(zone) / 100) < pageblock_nr_pages)
--		return;
--	max_managed = ALIGN((zone_managed_pages(zone) / 100), pageblock_nr_pages);
--	if (zone->nr_reserved_highatomic >= max_managed)
--		return;
--
--	spin_lock_irqsave(&zone->lock, flags);
--
--	/* Recheck the nr_reserved_highatomic limit under the lock */
--	if (zone->nr_reserved_highatomic >= max_managed)
--		goto out_unlock;
--
--	/* Yoink! */
--	mt = get_pageblock_migratetype(page);
--	/* Only reserve normal pageblocks (i.e., they can merge with others) */
--	if (!migratetype_is_mergeable(mt))
--		goto out_unlock;
--
--	if (order < pageblock_order) {
--		if (move_freepages_block(zone, page, mt, MIGRATE_HIGHATOMIC) == -1)
--			goto out_unlock;
--		zone->nr_reserved_highatomic += pageblock_nr_pages;
--	} else {
--		change_pageblock_range(page, order, MIGRATE_HIGHATOMIC);
--		zone->nr_reserved_highatomic += 1 << order;
--	}
--
--out_unlock:
--	spin_unlock_irqrestore(&zone->lock, flags);
--}
--
--/*
-- * Used when an allocation is about to fail under memory pressure. This
-- * potentially hurts the reliability of high-order allocations when under
-- * intense memory pressure but failed atomic allocations should be easier
-- * to recover from than an OOM.
-- *
-- * If @force is true, try to unreserve pageblocks even though highatomic
-- * pageblock is exhausted.
-- */
--static bool unreserve_highatomic_pageblock(const struct alloc_context *ac,
--						bool force)
--{
--	struct zonelist *zonelist = ac->zonelist;
--	unsigned long flags;
--	struct zoneref *z;
--	struct zone *zone;
--	struct page *page;
--	int order;
--	int ret;
--
--	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->highest_zoneidx,
--								ac->nodemask) {
--		/*
--		 * Preserve at least one pageblock unless memory pressure
--		 * is really high.
--		 */
--		if (!force && zone->nr_reserved_highatomic <=
--					pageblock_nr_pages)
--			continue;
--
--		spin_lock_irqsave(&zone->lock, flags);
--		for (order = 0; order < NR_PAGE_ORDERS; order++) {
--			struct free_area *area = &(zone->free_area[order]);
--			unsigned long size;
--
--			page = get_page_from_free_area(area, MIGRATE_HIGHATOMIC);
--			if (!page)
--				continue;
--
--			/*
--			 * It should never happen but changes to
--			 * locking could inadvertently allow a per-cpu
--			 * drain to add pages to MIGRATE_HIGHATOMIC
--			 * while unreserving so be safe and watch for
--			 * underflows.
--			 */
--			size = max(pageblock_nr_pages, 1UL << order);
--			size = min(size, zone->nr_reserved_highatomic);
--			zone->nr_reserved_highatomic -= size;
--
--			/*
--			 * Convert to ac->migratetype and avoid the normal
--			 * pageblock stealing heuristics. Minimally, the caller
--			 * is doing the work and needs the pages. More
--			 * importantly, if the block was always converted to
--			 * MIGRATE_UNMOVABLE or another type then the number
--			 * of pageblocks that cannot be completely freed
--			 * may increase.
--			 */
--			if (order < pageblock_order)
--				ret = move_freepages_block(zone, page,
--							   MIGRATE_HIGHATOMIC,
--							   ac->migratetype);
--			else {
--				move_to_free_list(page, zone, order,
--						  MIGRATE_HIGHATOMIC,
--						  ac->migratetype);
--				change_pageblock_range(page, order,
--						       ac->migratetype);
--				ret = 1;
--			}
--			/*
--			 * Reserving the block(s) already succeeded,
--			 * so this should not fail on zone boundaries.
--			 */
--			WARN_ON_ONCE(ret == -1);
--			if (ret > 0) {
--				spin_unlock_irqrestore(&zone->lock, flags);
--				return ret;
--			}
--		}
--		spin_unlock_irqrestore(&zone->lock, flags);
--	}
--
--	return false;
--}
--
--/*
-  * Try finding a free buddy page on the fallback list.
+--- a/mm/page_vma_mapped.c~mm-make-page_mapped_in_vma-hugetlb-walk-aware
++++ a/mm/page_vma_mapped.c
+@@ -84,6 +84,7 @@ again:
+  * mapped at the @pvmw->pte
+  * @pvmw: page_vma_mapped_walk struct, includes a pair pte and pfn range
+  * for checking
++ * @pte_nr: the number of small pages described by @pvmw->pte.
   *
-  * This will attempt to steal a whole pageblock for the requested type
-@@ -3143,6 +3008,141 @@ out:
- 	return page;
+  * page_vma_mapped_walk() found a place where pfn range is *potentially*
+  * mapped. check_pte() has to validate this.
+@@ -100,7 +101,7 @@ again:
+  * Otherwise, return false.
+  *
+  */
+-static bool check_pte(struct page_vma_mapped_walk *pvmw)
++static bool check_pte(struct page_vma_mapped_walk *pvmw, unsigned long pte_nr)
+ {
+ 	unsigned long pfn;
+ 	pte_t ptent = ptep_get(pvmw->pte);
+@@ -132,7 +133,11 @@ static bool check_pte(struct page_vma_ma
+ 		pfn = pte_pfn(ptent);
+ 	}
+ 
+-	return (pfn - pvmw->pfn) < pvmw->nr_pages;
++	if ((pfn + pte_nr - 1) < pvmw->pfn)
++		return false;
++	if (pfn > (pvmw->pfn + pvmw->nr_pages - 1))
++		return false;
++	return true;
  }
  
-+/*
-+ * Reserve the pageblock(s) surrounding an allocation request for
-+ * exclusive use of high-order atomic allocations if there are no
-+ * empty page blocks that contain a page with a suitable order
-+ */
-+static void reserve_highatomic_pageblock(struct page *page, int order,
-+					 struct zone *zone)
-+{
-+	int mt;
-+	unsigned long max_managed, flags;
-+
-+	/*
-+	 * The number reserved as: minimum is 1 pageblock, maximum is
-+	 * roughly 1% of a zone. But if 1% of a zone falls below a
-+	 * pageblock size, then don't reserve any pageblocks.
-+	 * Check is race-prone but harmless.
-+	 */
-+	if ((zone_managed_pages(zone) / 100) < pageblock_nr_pages)
-+		return;
-+	max_managed = ALIGN((zone_managed_pages(zone) / 100), pageblock_nr_pages);
-+	if (zone->nr_reserved_highatomic >= max_managed)
-+		return;
-+
-+	spin_lock_irqsave(&zone->lock, flags);
-+
-+	/* Recheck the nr_reserved_highatomic limit under the lock */
-+	if (zone->nr_reserved_highatomic >= max_managed)
-+		goto out_unlock;
-+
-+	/* Yoink! */
-+	mt = get_pageblock_migratetype(page);
-+	/* Only reserve normal pageblocks (i.e., they can merge with others) */
-+	if (!migratetype_is_mergeable(mt))
-+		goto out_unlock;
-+
-+	if (order < pageblock_order) {
-+		if (move_freepages_block(zone, page, mt, MIGRATE_HIGHATOMIC) == -1)
-+			goto out_unlock;
-+		zone->nr_reserved_highatomic += pageblock_nr_pages;
-+	} else {
-+		change_pageblock_range(page, order, MIGRATE_HIGHATOMIC);
-+		zone->nr_reserved_highatomic += 1 << order;
-+	}
-+
-+out_unlock:
-+	spin_unlock_irqrestore(&zone->lock, flags);
-+}
-+
-+/*
-+ * Used when an allocation is about to fail under memory pressure. This
-+ * potentially hurts the reliability of high-order allocations when under
-+ * intense memory pressure but failed atomic allocations should be easier
-+ * to recover from than an OOM.
-+ *
-+ * If @force is true, try to unreserve pageblocks even though highatomic
-+ * pageblock is exhausted.
-+ */
-+static bool unreserve_highatomic_pageblock(const struct alloc_context *ac,
-+						bool force)
-+{
-+	struct zonelist *zonelist = ac->zonelist;
-+	unsigned long flags;
-+	struct zoneref *z;
-+	struct zone *zone;
-+	struct page *page;
-+	int order;
-+	int ret;
-+
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->highest_zoneidx,
-+								ac->nodemask) {
-+		/*
-+		 * Preserve at least one pageblock unless memory pressure
-+		 * is really high.
-+		 */
-+		if (!force && zone->nr_reserved_highatomic <=
-+					pageblock_nr_pages)
-+			continue;
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		for (order = 0; order < NR_PAGE_ORDERS; order++) {
-+			struct free_area *area = &(zone->free_area[order]);
-+			unsigned long size;
-+
-+			page = get_page_from_free_area(area, MIGRATE_HIGHATOMIC);
-+			if (!page)
-+				continue;
-+
-+			/*
-+			 * It should never happen but changes to
-+			 * locking could inadvertently allow a per-cpu
-+			 * drain to add pages to MIGRATE_HIGHATOMIC
-+			 * while unreserving so be safe and watch for
-+			 * underflows.
-+			 */
-+			size = max(pageblock_nr_pages, 1UL << order);
-+			size = min(size, zone->nr_reserved_highatomic);
-+			zone->nr_reserved_highatomic -= size;
-+
-+			/*
-+			 * Convert to ac->migratetype and avoid the normal
-+			 * pageblock stealing heuristics. Minimally, the caller
-+			 * is doing the work and needs the pages. More
-+			 * importantly, if the block was always converted to
-+			 * MIGRATE_UNMOVABLE or another type then the number
-+			 * of pageblocks that cannot be completely freed
-+			 * may increase.
-+			 */
-+			if (order < pageblock_order)
-+				ret = move_freepages_block(zone, page,
-+							   MIGRATE_HIGHATOMIC,
-+							   ac->migratetype);
-+			else {
-+				move_to_free_list(page, zone, order,
-+						  MIGRATE_HIGHATOMIC,
-+						  ac->migratetype);
-+				change_pageblock_range(page, order,
-+						       ac->migratetype);
-+				ret = 1;
-+			}
-+			/*
-+			 * Reserving the block(s) already succeeded,
-+			 * so this should not fail on zone boundaries.
-+			 */
-+			WARN_ON_ONCE(ret == -1);
-+			if (ret > 0) {
-+				spin_unlock_irqrestore(&zone->lock, flags);
-+				return ret;
-+			}
-+		}
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+	}
-+
-+	return false;
-+}
-+
- static inline long __zone_watermark_unusable_free(struct zone *z,
- 				unsigned int order, unsigned int alloc_flags)
- {
+ /* Returns true if the two ranges overlap.  Careful to not overflow. */
+@@ -207,7 +212,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 			return false;
+ 
+ 		pvmw->ptl = huge_pte_lock(hstate, mm, pvmw->pte);
+-		if (!check_pte(pvmw))
++		if (!check_pte(pvmw, pages_per_huge_page(hstate)))
+ 			return not_found(pvmw);
+ 		return true;
+ 	}
+@@ -290,7 +295,7 @@ restart:
+ 			goto next_pte;
+ 		}
+ this_pte:
+-		if (check_pte(pvmw))
++		if (check_pte(pvmw, 1))
+ 			return true;
+ next_pte:
+ 		do {
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-mm-swap_cgroup-remove-double-initialization-of-locals.patch
-mm-compaction-push-watermark-into-compaction_suitable-callers.patch
-mm-page_alloc-trace-type-pollution-from-compaction-capturing.patch
-mm-page_alloc-defrag_mode.patch
-mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance.patch
-mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch
-mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks-fix.patch
 
