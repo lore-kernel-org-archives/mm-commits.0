@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6664155757
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF15812F5A5
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188515; cv=none; b=Q8Rtzho6ascF5XFmVWnrs0FXNcra/g1bRWEQ8S1gVpKoJ0PY8vNrS5WQkM5CX2b73moqejhlRMurNe1BFyJpr6tKCQWMlEALtx0IY7tv9o/ll8+QHEEZoVLDqMsb5+YvGUaB5qoQUN1/srDJ/kXdBPeLZ3lBb1uNVekfuvYn1Tc=
+	t=1742188517; cv=none; b=jioA1N9pubheiP+/FhR6Wy60mpaKUPJ3pLQ5NERNQCXuDx8hDOXs5UrqHurU+JX+wVD7FbtOepkJ0ZPBpcR+qCN7eL7D8Uu0l31UWVtYnQNklcwDHEboKI3+VopVj37nB5xyLJRYP/wls8hoNiyKmjj8HMsTwGyIdr0RP4MRYEM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188515; c=relaxed/simple;
-	bh=OYBgINqSB/B6Mmcf77mkTj+MmCiUB5cP1jJ9INbWpzE=;
-	h=Date:To:From:Subject:Message-Id; b=i1p7P8+rRlFHSAiQvCVnHE9HbQ0+I7Ytm1oPIGKV1qQe+RIs4MZdEjscP8xuVlI176q4iobedIgFXcKYlROtmN6QGjG05UAgaqVgT4aYVr7hdbv0wOcIIojWx26viRm65SXHniw6dOBh537yxzADYFI5ugo0TP4PCWU1IzhKrBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sx1PeiBw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188517; c=relaxed/simple;
+	bh=uht8Om0tDT0bcv6LUj8iYDu25eMSZxnrr3wpmPMG4Fs=;
+	h=Date:To:From:Subject:Message-Id; b=l7ztwhtV40hCzDCCWUjWHGfW2GjODEFR7oRai4ScGXVNL1CDb4NlXCX0m8AdXHhT3c8MswUumY2AF/YjijJL9qPZgXXyU8/uWAlvSFRGrnZVs2cwNv0ZsTGrE55nT324aYqmLxT7jShKJRZO7WkNQJ5YAxEhXihRWkGZM64gMjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=huOVGw4I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sx1PeiBw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CC82C4CEEC;
-	Mon, 17 Mar 2025 05:15:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="huOVGw4I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2781C4CEEC;
+	Mon, 17 Mar 2025 05:15:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188515;
-	bh=OYBgINqSB/B6Mmcf77mkTj+MmCiUB5cP1jJ9INbWpzE=;
+	s=korg; t=1742188516;
+	bh=uht8Om0tDT0bcv6LUj8iYDu25eMSZxnrr3wpmPMG4Fs=;
 	h=Date:To:From:Subject:From;
-	b=Sx1PeiBwDdRM2u3HuqWTqqOEg/y9HwULkdJvLh0epP/9YlhQgXUmDjhd1hxzSFJo4
-	 nRPorXNbsle2nN6wGnT3AMMI8ZGoD/6bEH/6WObNGsAZFqILh1K1CtueS9yMk3bYVK
-	 kN3oPLVj60+/ezDy96YVdbUyjyv4G8Tr9eYvNekI=
-Date: Sun, 16 Mar 2025 22:15:15 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,mingo@redhat.com,jgross@suse.com,hpa@zytor.com,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,andreas@gaisler.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=huOVGw4IZ4deMQXGDplxIO06FSeilzO8znWArdaaoRg+yQ6GLeVfyQ8pTovk/nSJl
+	 JZ8fZbAiSBOvfihskmtgUO41iBEGkB0XGbvUtvrgx1HDZTSYqNxQjNlLPYeGYYqTWi
+	 KgVtCJr29iIlhMQtkBAcUPaHu/Cn2etydOUBhO2Q=
+Date: Sun, 16 Mar 2025 22:15:16 -0700
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vbabka@suse.cz,mhocko@kernel.org,mgorman@techsingularity.net,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] revert-x86-xen-allow-nesting-of-same-lazy-mode.patch removed from -mm tree
-Message-Id: <20250317051515.9CC82C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-clarify-terminology-in-migratetype-fallback-code.patch removed from -mm tree
+Message-Id: <20250317051516.C2781C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,268 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Revert "x86/xen: allow nesting of same lazy mode"
+     Subject: mm/page_alloc: clarify terminology in migratetype fallback code
 has been removed from the -mm tree.  Its filename was
-     revert-x86-xen-allow-nesting-of-same-lazy-mode.patch
+     mm-page_alloc-clarify-terminology-in-migratetype-fallback-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: Revert "x86/xen: allow nesting of same lazy mode"
-Date: Mon, 3 Mar 2025 14:15:39 +0000
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: clarify terminology in migratetype fallback code
+Date: Fri, 28 Feb 2025 09:52:17 +0000
 
-Commit 49147beb0ccb ("x86/xen: allow nesting of same lazy mode") was added
-as a solution for a core-mm code change where
-arch_[enter|leave]_lazy_mmu_mode() started to be called in a nested
-manner; see commit bcc6cc832573 ("mm: add default definition of
-set_ptes()").
+Patch series "mm/page_alloc: Some clarifications for migratetype
+fallback", v4.
 
-However, now that we have fixed the API to avoid nesting, we no longer
-need this capability in the x86 implementation.
+A couple of patches to try and make the code easier to follow.
 
-Additionally, from code review, I don't believe the fix was ever robust in
-the case of preemption occurring while in the nested lazy mode.  The
-implementation usually deals with preemption by calling
-arch_leave_lazy_mmu_mode() from xen_start_context_switch() for the
-outgoing task if we are in the lazy mmu mode.  Then in
-xen_end_context_switch(), it restarts the lazy mode by calling
-arch_enter_lazy_mmu_mode() for an incoming task that was in the lazy mode
-when it was switched out.  But arch_leave_lazy_mmu_mode() will only unwind
-a single level of nesting.  If we are in the double nest, then it's not
-fully unwound and per-cpu variables are left in a bad state.
 
-So the correct solution is to remove the possibility of nesting from the
-higher level (which has now been done) and remove this x86-specific
-solution.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20250303141542.3371656-6-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Juergen Gross <jgross@suse.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+This code is rather confusing because:
+
+ 1. "Steal" is sometimes used to refer to the general concept of
+    allocating from a from a block of a fallback migratetype
+    (steal_suitable_fallback()) but sometimes it refers specifically to
+    converting a whole block's migratetype (can_steal_fallback()).
+
+ 2. can_steal_fallback() sounds as though it's answering the question "am
+    I functionally permitted to allocate from that other type" but in
+    fact it is encoding a heuristic preference.
+
+ 3. The same piece of data has different names in different places:
+    can_steal vs whole_block. This reinforces point 2 because it looks
+    like the different names reflect a shift in intent from "am I
+    allowed to steal" to "do I want to steal", but no such shift exists.
+
+Fix 1. by avoiding the term "steal" in ambiguous contexts. Start using
+the term "claim" to refer to the special case of stealing the entire
+block.
+
+Fix 2. by using "should" instead of "can", and also rename its
+parameters and add some commentary to make it more explicit what they
+mean.
+
+Fix 3. by adopting the new "claim" terminology universally for this
+set of variables.
+
+Link: https://lkml.kernel.org/r/20250228-clarify-steal-v4-0-cb2ef1a4e610@google.com
+Link: https://lkml.kernel.org/r/20250228-clarify-steal-v4-1-cb2ef1a4e610@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/xen/hypervisor.h |   15 ++-------------
- arch/x86/xen/enlighten_pv.c           |    1 -
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ mm/compaction.c |    4 +-
+ mm/internal.h   |    2 -
+ mm/page_alloc.c |   72 +++++++++++++++++++++++-----------------------
+ 3 files changed, 39 insertions(+), 39 deletions(-)
 
---- a/arch/x86/include/asm/xen/hypervisor.h~revert-x86-xen-allow-nesting-of-same-lazy-mode
-+++ a/arch/x86/include/asm/xen/hypervisor.h
-@@ -72,18 +72,10 @@ enum xen_lazy_mode {
- };
+--- a/mm/compaction.c~mm-page_alloc-clarify-terminology-in-migratetype-fallback-code
++++ a/mm/compaction.c
+@@ -2332,7 +2332,7 @@ static enum compact_result __compact_fin
+ 	ret = COMPACT_NO_SUITABLE_PAGE;
+ 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
+ 		struct free_area *area = &cc->zone->free_area[order];
+-		bool can_steal;
++		bool claim_block;
  
- DECLARE_PER_CPU(enum xen_lazy_mode, xen_lazy_mode);
--DECLARE_PER_CPU(unsigned int, xen_lazy_nesting);
+ 		/* Job done if page is free of the right migratetype */
+ 		if (!free_area_empty(area, migratetype))
+@@ -2349,7 +2349,7 @@ static enum compact_result __compact_fin
+ 		 * other migratetype buddy lists.
+ 		 */
+ 		if (find_suitable_fallback(area, order, migratetype,
+-						true, &can_steal) != -1)
++						true, &claim_block) != -1)
+ 			/*
+ 			 * Movable pages are OK in any pageblock. If we are
+ 			 * stealing for a non-movable allocation, make sure
+--- a/mm/internal.h~mm-page_alloc-clarify-terminology-in-migratetype-fallback-code
++++ a/mm/internal.h
+@@ -865,7 +865,7 @@ static inline void init_cma_pageblock(st
  
- static inline void enter_lazy(enum xen_lazy_mode mode)
+ 
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+-			int migratetype, bool only_stealable, bool *can_steal);
++			int migratetype, bool claim_only, bool *claim_block);
+ 
+ static inline bool free_area_empty(struct free_area *area, int migratetype)
  {
--	enum xen_lazy_mode old_mode = this_cpu_read(xen_lazy_mode);
+--- a/mm/page_alloc.c~mm-page_alloc-clarify-terminology-in-migratetype-fallback-code
++++ a/mm/page_alloc.c
+@@ -1942,22 +1942,22 @@ static inline bool boost_watermark(struc
+ 
+ /*
+  * When we are falling back to another migratetype during allocation, try to
+- * steal extra free pages from the same pageblocks to satisfy further
+- * allocations, instead of polluting multiple pageblocks.
++ * claim entire blocks to satisfy further allocations, instead of polluting
++ * multiple pageblocks.
+  *
+- * If we are stealing a relatively large buddy page, it is likely there will
+- * be more free pages in the pageblock, so try to steal them all. For
+- * reclaimable and unmovable allocations, we steal regardless of page size,
+- * as fragmentation caused by those allocations polluting movable pageblocks
+- * is worse than movable allocations stealing from unmovable and reclaimable
+- * pageblocks.
++ * If we are stealing a relatively large buddy page, it is likely there will be
++ * more free pages in the pageblock, so try to claim the whole block. For
++ * reclaimable and unmovable allocations, we try to claim the whole block
++ * regardless of page size, as fragmentation caused by those allocations
++ * polluting movable pageblocks is worse than movable allocations stealing from
++ * unmovable and reclaimable pageblocks.
+  */
+-static bool can_steal_fallback(unsigned int order, int start_mt)
++static bool should_try_claim_block(unsigned int order, int start_mt)
+ {
+ 	/*
+ 	 * Leaving this order check is intended, although there is
+ 	 * relaxed order check in next check. The reason is that
+-	 * we can actually steal whole pageblock if this condition met,
++	 * we can actually claim the whole pageblock if this condition met,
+ 	 * but, below check doesn't guarantee it and that is just heuristic
+ 	 * so could be changed anytime.
+ 	 */
+@@ -1970,7 +1970,7 @@ static bool can_steal_fallback(unsigned
+ 	 * reclaimable pages that are closest to the request size.  After a
+ 	 * while, memory compaction may occur to form large contiguous pages,
+ 	 * and the next movable allocation may not need to steal.  Unmovable and
+-	 * reclaimable allocations need to actually steal pages.
++	 * reclaimable allocations need to actually claim the whole block.
+ 	 */
+ 	if (order >= pageblock_order / 2 ||
+ 		start_mt == MIGRATE_RECLAIMABLE ||
+@@ -1983,12 +1983,14 @@ static bool can_steal_fallback(unsigned
+ 
+ /*
+  * Check whether there is a suitable fallback freepage with requested order.
+- * If only_stealable is true, this function returns fallback_mt only if
+- * we can steal other freepages all together. This would help to reduce
++ * Sets *claim_block to instruct the caller whether it should convert a whole
++ * pageblock to the returned migratetype.
++ * If only_claim is true, this function returns fallback_mt only if
++ * we would do this whole-block claiming. This would help to reduce
+  * fragmentation due to mixed migratetype pages in one pageblock.
+  */
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+-			int migratetype, bool only_stealable, bool *can_steal)
++			int migratetype, bool only_claim, bool *claim_block)
+ {
+ 	int i;
+ 	int fallback_mt;
+@@ -1996,19 +1998,16 @@ int find_suitable_fallback(struct free_a
+ 	if (area->nr_free == 0)
+ 		return -1;
+ 
+-	*can_steal = false;
++	*claim_block = false;
+ 	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
+ 		fallback_mt = fallbacks[migratetype][i];
+ 		if (free_area_empty(area, fallback_mt))
+ 			continue;
+ 
+-		if (can_steal_fallback(order, migratetype))
+-			*can_steal = true;
++		if (should_try_claim_block(order, migratetype))
++			*claim_block = true;
+ 
+-		if (!only_stealable)
+-			return fallback_mt;
 -
--	if (mode == old_mode) {
--		this_cpu_inc(xen_lazy_nesting);
--		return;
--	}
--
--	BUG_ON(old_mode != XEN_LAZY_NONE);
-+	BUG_ON(this_cpu_read(xen_lazy_mode) != XEN_LAZY_NONE);
+-		if (*can_steal)
++		if (*claim_block || !only_claim)
+ 			return fallback_mt;
+ 	}
  
- 	this_cpu_write(xen_lazy_mode, mode);
- }
-@@ -92,10 +84,7 @@ static inline void leave_lazy(enum xen_l
- {
- 	BUG_ON(this_cpu_read(xen_lazy_mode) != mode);
- 
--	if (this_cpu_read(xen_lazy_nesting) == 0)
--		this_cpu_write(xen_lazy_mode, XEN_LAZY_NONE);
--	else
--		this_cpu_dec(xen_lazy_nesting);
-+	this_cpu_write(xen_lazy_mode, XEN_LAZY_NONE);
+@@ -2016,14 +2015,14 @@ int find_suitable_fallback(struct free_a
  }
  
- enum xen_lazy_mode xen_get_lazy_mode(void);
---- a/arch/x86/xen/enlighten_pv.c~revert-x86-xen-allow-nesting-of-same-lazy-mode
-+++ a/arch/x86/xen/enlighten_pv.c
-@@ -99,7 +99,6 @@ struct tls_descs {
- };
- 
- DEFINE_PER_CPU(enum xen_lazy_mode, xen_lazy_mode) = XEN_LAZY_NONE;
--DEFINE_PER_CPU(unsigned int, xen_lazy_nesting);
- 
- enum xen_lazy_mode xen_get_lazy_mode(void)
+ /*
+- * This function implements actual steal behaviour. If order is large enough, we
+- * can claim the whole pageblock for the requested migratetype. If not, we check
+- * the pageblock for constituent pages; if at least half of the pages are free
+- * or compatible, we can still claim the whole block, so pages freed in the
+- * future will be put on the correct free list.
++ * This function implements actual block claiming behaviour. If order is large
++ * enough, we can claim the whole pageblock for the requested migratetype. If
++ * not, we check the pageblock for constituent pages; if at least half of the
++ * pages are free or compatible, we can still claim the whole block, so pages
++ * freed in the future will be put on the correct free list.
+  */
+ static struct page *
+-try_to_steal_block(struct zone *zone, struct page *page,
++try_to_claim_block(struct zone *zone, struct page *page,
+ 		   int current_order, int order, int start_type,
+ 		   int block_type, unsigned int alloc_flags)
  {
+@@ -2091,11 +2090,12 @@ try_to_steal_block(struct zone *zone, st
+ /*
+  * Try finding a free buddy page on the fallback list.
+  *
+- * This will attempt to steal a whole pageblock for the requested type
++ * This will attempt to claim a whole pageblock for the requested type
+  * to ensure grouping of such requests in the future.
+  *
+- * If a whole block cannot be stolen, regress to __rmqueue_smallest()
+- * logic to at least break up as little contiguity as possible.
++ * If a whole block cannot be claimed, steal an individual page, regressing to
++ * __rmqueue_smallest() logic to at least break up as little contiguity as
++ * possible.
+  *
+  * The use of signed ints for order and current_order is a deliberate
+  * deviation from the rest of this file, to make the for loop
+@@ -2112,7 +2112,7 @@ __rmqueue_fallback(struct zone *zone, in
+ 	int min_order = order;
+ 	struct page *page;
+ 	int fallback_mt;
+-	bool can_steal;
++	bool claim_block;
+ 
+ 	/*
+ 	 * Do not steal pages from freelists belonging to other pageblocks
+@@ -2131,15 +2131,15 @@ __rmqueue_fallback(struct zone *zone, in
+ 				--current_order) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+-				start_migratetype, false, &can_steal);
++				start_migratetype, false, &claim_block);
+ 		if (fallback_mt == -1)
+ 			continue;
+ 
+-		if (!can_steal)
++		if (!claim_block)
+ 			break;
+ 
+ 		page = get_page_from_free_area(area, fallback_mt);
+-		page = try_to_steal_block(zone, page, current_order, order,
++		page = try_to_claim_block(zone, page, current_order, order,
+ 					  start_migratetype, fallback_mt,
+ 					  alloc_flags);
+ 		if (page)
+@@ -2149,11 +2149,11 @@ __rmqueue_fallback(struct zone *zone, in
+ 	if (alloc_flags & ALLOC_NOFRAGMENT)
+ 		return NULL;
+ 
+-	/* No luck stealing blocks. Find the smallest fallback page */
++	/* No luck claiming pageblock. Find the smallest fallback page */
+ 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+-				start_migratetype, false, &can_steal);
++				start_migratetype, false, &claim_block);
+ 		if (fallback_mt == -1)
+ 			continue;
+ 
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-use-ptep_get-instead-of-directly-dereferencing-pte_t.patch
+scripts-gdb-add-lx_per_cpu_ptr.patch
 
