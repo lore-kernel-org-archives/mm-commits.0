@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F31E5215788
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8BE9215771
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188284; cv=none; b=NXfIaTIWaArTa+Cb501AHujauPxaQziYgISnZF8LNdgybLLU97eLj21tUEgGyGzD1gosWd3dEVAiQ8Rg3z7hmexHDjyuWUxyva+Qc0cy9sx/cJxfD7FczsVnz6JVJHy69+mJbsfDbu0gRJRGbIoAYyvu3x6pPAmkdX6LbYWmEc0=
+	t=1742188285; cv=none; b=uTyVz8Y/Z8WJNZSZqJuyDf5tptwAU+heb27r7Qsmvf4eD9gBC2IaCzqGQDFZUvT9ksWHHVr6Ye0vykNhnZnj5C+ySP3LmZKO2a1b06i0RzlsvRaJ+LGxkfQxMcy6vrq81rmBr5g/+Mg+UjJDZdt/i0EEgssbABfV0ivWdb0kw6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188284; c=relaxed/simple;
-	bh=nJr6XXSrBW+UdZScuWHKnBxIkAHQIe2SJWemm3xAd/Y=;
-	h=Date:To:From:Subject:Message-Id; b=D2NdhlXIzUeblX+fR11HuSw9FUPBSFJuZytlCY6B8Zs6bvEsj1euyua7Qab7NkBkOFtGssNWOUDzRwUAD/8PD7tJnU44xj1NSPgPsBeIHixOsj1AvZK7kxU+znPUvZLzmt45d75pF7IoJgM1X9C+V6/JjsnU9j/o3W8a936yrnY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tbP0raAA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188285; c=relaxed/simple;
+	bh=NXHi8Q6nIp/bT1C/12kn4lht44Nhm1KWDyD/D36SY4s=;
+	h=Date:To:From:Subject:Message-Id; b=eB8L6ODe8NVG05rtCRJ8HUyJ9zhypa+whlFsmhQaZVbWTeAvr3bQzNDlHtDpzn8u8nLyUoiAXR4lPXJ990ETPE+ZUinW+qFhjhAv1OTueuaozyBq15Z4ai2Twl19zwQ//ncesuLOTQFV11wIh3ejXnbToN48/qUs0BkaDwmwY0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S6FSA4Oa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tbP0raAA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DBA6C4CEEC;
-	Mon, 17 Mar 2025 05:11:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S6FSA4Oa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51487C4CEEC;
+	Mon, 17 Mar 2025 05:11:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188283;
-	bh=nJr6XXSrBW+UdZScuWHKnBxIkAHQIe2SJWemm3xAd/Y=;
+	s=korg; t=1742188285;
+	bh=NXHi8Q6nIp/bT1C/12kn4lht44Nhm1KWDyD/D36SY4s=;
 	h=Date:To:From:Subject:From;
-	b=tbP0raAAd66zDNEMQC4Mg8wSPaYBi7grDi4mprNS5iWiguNafF6LUcGh/CR+/eKpA
-	 1uED5EzVC+2J/kuJVuUECoEKLrtVe/2LTuiTxlqLdpbcNQLCXYfSsHR869GKRPfesv
-	 yYKPBcxQGGrcAtHXoLRoR9msKMu5/uNItMBJlKPs=
-Date: Sun, 16 Mar 2025 22:11:22 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,will@kernel.org,peterz@infradead.org,npiggin@gmail.com,aneesh.kumar@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=S6FSA4OaujOy4+zzja8Zt2n8S7fKMrbTa5vVWq4KXwT2/IdlGIRkEQ+3FQPBduDM3
+	 hRxsokG7jFI5qeL7eBINsN0A2dbn/4gLvNKTu8DUPdGRxFkqfoB+a6jiiFz3IS/pJi
+	 08gnBxBsh71iSd0cpJdpN5kK/61dKKitZ9x0pSKY=
+Date: Sun, 16 Mar 2025 22:11:24 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,npache@redhat.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmu_gather-clean-up-the-stale-code-comment.patch removed from -mm tree
-Message-Id: <20250317051123.6DBA6C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-allow-tests-to-run-with-no-huge-pages-support.patch removed from -mm tree
+Message-Id: <20250317051125.51487C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmu_gather: clean up the stale code comment
+     Subject: selftests/mm: allow tests to run with no huge pages support
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_gather-clean-up-the-stale-code-comment.patch
+     selftests-mm-allow-tests-to-run-with-no-huge-pages-support.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/mmu_gather: clean up the stale code comment
-Date: Tue, 11 Feb 2025 11:43:48 +0800
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests/mm: allow tests to run with no huge pages support
+Date: Wed, 12 Feb 2025 17:44:26 +0000
 
-In commit d7f861b9c43a ("mm/mmu_gather: add __tlb_remove_folio_pages()"),
-helper function __tlb_remove_folio_pages_size() was added.  And based on
-the helper, wrapper functions __tlb_remove_folio_pages() and
-__tlb_remove_page_size() are created and used by upper level functions.
+Currently the mm selftests refuse to run if huge pages are not available
+in the current system but this is an optional feature and not all the
+tests actually require them.  Change the test during startup to be
+non-fatal and skip or omit tests which actually rely on having huge pages,
+allowing the other tests to be run.
 
-So let's update the code comment to reflect the current code about
-tlb_remove_page()/tlb_remove_page_size(), etc.
+The gup_test does support using madvise() to configure huge pages but it
+ignores the error code so we just let it run.
 
-Link: https://lkml.kernel.org/r/20250211034348.39531-2-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20250212-kselftest-mm-no-hugepages-v1-2-44702f538522@kernel.org
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Reviewed-by: Nico Pache <npache@redhat.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |   66 ++++++++++++--------
+ 1 file changed, 42 insertions(+), 24 deletions(-)
 
---- a/include/asm-generic/tlb.h~mm-mmu_gather-clean-up-the-stale-code-comment
-+++ a/include/asm-generic/tlb.h
-@@ -67,22 +67,21 @@
-  *
-  *    See also MMU_GATHER_TABLE_FREE and MMU_GATHER_RCU_TABLE_FREE.
-  *
-- *  - tlb_remove_page() / __tlb_remove_page()
-- *  - tlb_remove_page_size() / __tlb_remove_page_size()
-- *  - __tlb_remove_folio_pages()
-- *
-- *    __tlb_remove_page_size() is the basic primitive that queues a page for
-- *    freeing. __tlb_remove_page() assumes PAGE_SIZE. Both will return a
-- *    boolean indicating if the queue is (now) full and a call to
-- *    tlb_flush_mmu() is required.
-+ *  - tlb_remove_page() / tlb_remove_page_size()
-+ *  - __tlb_remove_folio_pages() / __tlb_remove_page_size()
-+ *  - __tlb_remove_folio_pages_size()
-+ *
-+ *    __tlb_remove_folio_pages_size() is the basic primitive that queues pages
-+ *    for freeing. It will return a boolean indicating if the queue is (now)
-+ *    full and a call to tlb_flush_mmu() is required.
-  *
-  *    tlb_remove_page() and tlb_remove_page_size() imply the call to
-  *    tlb_flush_mmu() when required and has no return value.
-  *
-- *    __tlb_remove_folio_pages() is similar to __tlb_remove_page(), however,
-- *    instead of removing a single page, remove the given number of consecutive
-- *    pages that are all part of the same (large) folio: just like calling
-- *    __tlb_remove_page() on each page individually.
-+ *    __tlb_remove_folio_pages() is similar to __tlb_remove_page_size(),
-+ *    however, instead of removing a single page, assume PAGE_SIZE and remove
-+ *    the given number of consecutive pages that are all part of the
-+ *    same (large) folio.
-  *
-  *  - tlb_change_page_size()
-  *
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-allow-tests-to-run-with-no-huge-pages-support
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -187,9 +187,10 @@ if [ -n "$freepgs" ] && [ -n "$hpgsize_K
+ 		printf "Not enough huge pages available (%d < %d)\n" \
+ 		       "$freepgs" "$needpgs"
+ 	fi
++	HAVE_HUGEPAGES=1
+ else
+ 	echo "no hugetlbfs support in kernel?"
+-	exit 1
++	HAVE_HUGEPAGES=0
+ fi
+ 
+ # filter 64bit architectures
+@@ -218,13 +219,20 @@ pretty_name() {
+ # Usage: run_test [test binary] [arbitrary test arguments...]
+ run_test() {
+ 	if test_selected ${CATEGORY}; then
++		local skip=0
++
+ 		# On memory constrainted systems some tests can fail to allocate hugepages.
+ 		# perform some cleanup before the test for a higher success rate.
+ 		if [ ${CATEGORY} == "thp" -o ${CATEGORY} == "hugetlb" ]; then
+-			echo 3 > /proc/sys/vm/drop_caches
+-			sleep 2
+-			echo 1 > /proc/sys/vm/compact_memory
+-			sleep 2
++			if [ "${HAVE_HUGEPAGES}" = "1" ]; then
++				echo 3 > /proc/sys/vm/drop_caches
++				sleep 2
++				echo 1 > /proc/sys/vm/compact_memory
++				sleep 2
++			else
++				echo "hugepages not supported" | tap_prefix
++				skip=1
++			fi
+ 		fi
+ 
+ 		local test=$(pretty_name "$*")
+@@ -232,8 +240,12 @@ run_test() {
+ 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
+ 		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep" | tap_prefix
+ 
+-		("$@" 2>&1) | tap_prefix
+-		local ret=${PIPESTATUS[0]}
++		if [ "${skip}" != "1" ]; then
++			("$@" 2>&1) | tap_prefix
++			local ret=${PIPESTATUS[0]}
++		else
++			local ret=$ksft_skip
++		fi
+ 		count_total=$(( count_total + 1 ))
+ 		if [ $ret -eq 0 ]; then
+ 			count_pass=$(( count_pass + 1 ))
+@@ -271,13 +283,15 @@ CATEGORY="hugetlb" run_test ./hugepage-v
+ CATEGORY="hugetlb" run_test ./hugetlb-madvise
+ CATEGORY="hugetlb" run_test ./hugetlb_dio
+ 
+-nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
+-# For this test, we need one and just one huge page
+-echo 1 > /proc/sys/vm/nr_hugepages
+-CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
+-CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
+-# Restore the previous number of huge pages, since further tests rely on it
+-echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
++if [ "${HAVE_HUGEPAGES}" = "1" ]; then
++	nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
++	# For this test, we need one and just one huge page
++	echo 1 > /proc/sys/vm/nr_hugepages
++	CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
++	CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
++	# Restore the previous number of huge pages, since further tests rely on it
++	echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
++fi
+ 
+ if test_selected "hugetlb"; then
+ 	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"	  | tap_prefix
+@@ -393,7 +407,9 @@ CATEGORY="memfd_secret" run_test ./memfd
+ fi
+ 
+ # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
+-CATEGORY="ksm" run_test ./ksm_tests -H -s 100
++if [ "${HAVE_HUGEPAGES}" = "1" ]; then
++	CATEGORY="ksm" run_test ./ksm_tests -H -s 100
++fi
+ # KSM KSM_MERGE_TIME test with size of 100
+ CATEGORY="ksm" run_test ./ksm_tests -P -s 100
+ # KSM MADV_MERGEABLE test with 10 identical pages
+@@ -442,15 +458,17 @@ CATEGORY="thp" run_test ./transhuge-stre
+ 
+ # Try to create XFS if not provided
+ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
+-    if test_selected "thp"; then
+-        if grep xfs /proc/filesystems &>/dev/null; then
+-            XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
+-            SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
+-            truncate -s 314572800 ${XFS_IMG}
+-            mkfs.xfs -q ${XFS_IMG}
+-            mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
+-            MOUNTED_XFS=1
+-        fi
++    if [ "${HAVE_HUGEPAGES}" = "1" ]; then
++	if test_selected "thp"; then
++	    if grep xfs /proc/filesystems &>/dev/null; then
++		XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
++		SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
++		truncate -s 314572800 ${XFS_IMG}
++		mkfs.xfs -q ${XFS_IMG}
++		mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
++		MOUNTED_XFS=1
++	    fi
++	fi
+     fi
+ fi
+ 
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from broonie@kernel.org are
 
 
