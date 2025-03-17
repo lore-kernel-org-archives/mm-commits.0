@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F1E218AC3
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE42218AC3
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189548; cv=none; b=ipNbcIoBP8ts4VLwawp2TR33RGdVqNs5T1nHXOlm3eLtLiuB8rwF6WALcunvwlMrmaJ40SsMkPmrcfbe/YELtudk5mKuIBvNAxEyZIPTEfXEUcoDXagyzvHWFfbE6Ho1ipfVQyAOYli46w4osG5uzifcWeJUsvNEGH1BHi9wsGg=
+	t=1742189549; cv=none; b=DWd80+dIJdkR8eaaRzRMyyDGfrbprhch92Tj3e30wGWDq83rs3ctYKc0lJC17f3JOtNyYd8INPrFQMYKgMIMmh/iBvtDncu278uG7LZ2yqdOfwZlcMBcv8cxQyyGz2XO1wQ5nXaYv/jAsbjGmugqSIkP4c3VGA6rHNObA9+d9vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189548; c=relaxed/simple;
-	bh=/WrvAs8fFk0dHBplPWeh58lFTbHQps2hQbZF0ZnLQ1o=;
-	h=Date:To:From:Subject:Message-Id; b=FfPUvyvXmlWw3NIGiwz8qwaW4zvLdMwWJog84xO02Wf0BK4DNiPvM828YI1emwoc1pkzRP3zeJ10DZWtYOcxIWItThYMnGw5kEZQC3VlPN/CtxuIJPs9iCFOVhbJKD+BYN91tYy03IJxELp7/m+d+2wR1pzFPAztaDc4lU2bPKM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K7HPK78n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189549; c=relaxed/simple;
+	bh=YQlOkODlh/K4JKfNNn8Id2lRZBc7c66V2yyg0Mph0kc=;
+	h=Date:To:From:Subject:Message-Id; b=guqzm0NvuzrRpgJ64Xc3QSCCrXqoPmZkXZ6ps2yABFkZnB4+EjBUqhFDzPCMKUnnRVaFmc7nDjjOXLpryo4lu+YY5//ym4ki1a2wNR3IMAD+PvRBtY5a/bQcEGANNli7tlw2lz9kszdNCfArqPGRRWJU8eIUmFN3WH+/XRkj+1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdyGve5T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K7HPK78n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C827BC4CEEC;
-	Mon, 17 Mar 2025 05:32:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdyGve5T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6F63C4CEEC;
+	Mon, 17 Mar 2025 05:32:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189547;
-	bh=/WrvAs8fFk0dHBplPWeh58lFTbHQps2hQbZF0ZnLQ1o=;
+	s=korg; t=1742189549;
+	bh=YQlOkODlh/K4JKfNNn8Id2lRZBc7c66V2yyg0Mph0kc=;
 	h=Date:To:From:Subject:From;
-	b=K7HPK78nzqhAtz2omW3gLXc4MbS1cjZ9uksV+mkdjQ1w/jKGXQLfe9TpgMG9khbWD
-	 GpjXcSs6qU0gV996xhVcdD42OVV/qsKKFExnVPamvEH/hyX5roqnHpDRDEDs59gf+c
-	 /VX62a2YVagsNfPur1beW/1PZCmLygXnW+34yjbU=
-Date: Sun, 16 Mar 2025 22:32:27 -0700
+	b=gdyGve5TcD5snyb5e9+uDsAPZc8caHI6Ir5ju8FCO5yLSf9qCECixA5FN+Kr+HDSb
+	 D7v3WtzOoFD8zCBhUjOGsFZkC4HY0CfvSCrhxjabVnaOXvrIZuy+LUSvlcA8svu9KI
+	 srKjrVzxDzB182lmVLy+ItsuEjQYP61igkx4OtN0=
+Date: Sun, 16 Mar 2025 22:32:29 -0700
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tiwai@suse.de,tiwai@suse.com,sre@kernel.org,Shyam-sundar.S-k@amd.com,shawnguo@kernel.org,s.hauer@pengutronix.de,selvin.xavier@broadcom.com,sagi@grimberg.me,perex@perex.cz,ogabbay@kernel.org,nicolas.palix@imag.fr,mkl@pengutronix.de,martin.petersen@oracle.com,leon@kernel.org,kbusch@kernel.org,kalesh-anakkur.purayil@broadcom.com,julia.lawall@inria.fr,josef@toxicpanda.com,jgg@ziepe.ca,james.smart@broadcom.com,james.bottomley@HansenPartnership.com,ilpo.jarvinen@linux.intel.com,idryomov@gmail.com,hmh@hmh.eng.br,hdegoede@redhat.com,hch@lst.de,frank.li@nxp.com,festevam@gmail.com,dsterba@suse.com,dongsheng.yang@easystack.cn,dlemoal@kernel.org,djwong@kernel.org,dick.kennedy@broadcom.com,cmaiolino@redhat.com,clm@fb.com,cem@kernel.org,cassel@kernel.org,broonie@kernel.org,axboe@kernel.dk,eahariha@linux.microsoft.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] alsa-ac97-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250317053227.C827BC4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] btrfs-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
+Message-Id: <20250317053229.A6F63C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,17 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ALSA: ac97: convert timeouts to secs_to_jiffies()
+     Subject: btrfs: convert timeouts to secs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     alsa-ac97-convert-timeouts-to-secs_to_jiffies.patch
+     btrfs-convert-timeouts-to-secs_to_jiffies.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Subject: ALSA: ac97: convert timeouts to secs_to_jiffies()
-Date: Tue, 25 Feb 2025 20:17:18 +0000
+Subject: btrfs: convert timeouts to secs_to_jiffies()
+Date: Tue, 25 Feb 2025 20:17:19 +0000
 
 Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
 secs_to_jiffies().  As the value here is a multiple of 1000, use
@@ -65,16 +65,15 @@ expression E;
 - * \( 1000 \| MSEC_PER_SEC \)
 )
 
-Link: https://lkml.kernel.org/r/20250225-converge-secs-to-jiffies-part-two-v3-4-a43967e36c88@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20250225-converge-secs-to-jiffies-part-two-v3-5-a43967e36c88@linux.microsoft.com
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-Acked-by: Takashi Iwai <tiwai@suse.de>
+Acked-by: David Sterba <dsterba@suse.com>
 Cc: Carlos Maiolino <cem@kernel.org>
 Cc: Carlos Maiolino <cmaiolino@redhat.com>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Damien Le Maol <dlemoal@kernel.org>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
 Cc: Dick Kennedy <dick.kennedy@broadcom.com>
 Cc: Dongsheng Yang <dongsheng.yang@easystack.cn>
 Cc: Fabio Estevam <festevam@gmail.com>
@@ -106,25 +105,37 @@ Cc: Selvin Thyparampil Xavier <selvin.xavier@broadcom.com>
 Cc: Shawn Guo <shawnguo@kernel.org>
 Cc: Shyam-sundar S-k <Shyam-sundar.S-k@amd.com>
 Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ac97/ac97_codec.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/btrfs/disk-io.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/sound/pci/ac97/ac97_codec.c~alsa-ac97-convert-timeouts-to-secs_to_jiffies
-+++ a/sound/pci/ac97/ac97_codec.c
-@@ -2461,8 +2461,7 @@ int snd_ac97_update_power(struct snd_ac9
- 		 * (for avoiding loud click noises for many (OSS) apps
- 		 *  that open/close frequently)
- 		 */
--		schedule_delayed_work(&ac97->power_work,
--				      msecs_to_jiffies(power_save * 1000));
-+		schedule_delayed_work(&ac97->power_work, secs_to_jiffies(power_save));
- 	else {
- 		cancel_delayed_work(&ac97->power_work);
- 		update_power_regs(ac97);
+--- a/fs/btrfs/disk-io.c~btrfs-convert-timeouts-to-secs_to_jiffies
++++ a/fs/btrfs/disk-io.c
+@@ -1568,7 +1568,7 @@ static int transaction_kthread(void *arg
+ 
+ 	do {
+ 		cannot_commit = false;
+-		delay = msecs_to_jiffies(fs_info->commit_interval * 1000);
++		delay = secs_to_jiffies(fs_info->commit_interval);
+ 		mutex_lock(&fs_info->transaction_kthread_mutex);
+ 
+ 		spin_lock(&fs_info->trans_lock);
+@@ -1583,9 +1583,9 @@ static int transaction_kthread(void *arg
+ 		    cur->state < TRANS_STATE_COMMIT_PREP &&
+ 		    delta < fs_info->commit_interval) {
+ 			spin_unlock(&fs_info->trans_lock);
+-			delay -= msecs_to_jiffies((delta - 1) * 1000);
++			delay -= secs_to_jiffies(delta - 1);
+ 			delay = min(delay,
+-				    msecs_to_jiffies(fs_info->commit_interval * 1000));
++				    secs_to_jiffies(fs_info->commit_interval));
+ 			goto sleep;
+ 		}
+ 		transid = cur->transid;
 _
 
 Patches currently in -mm which might be from eahariha@linux.microsoft.com are
