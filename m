@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058E8155757
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2AD9207E0A
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188543; cv=none; b=gi/ifKUT4jlIN/gYLNUeBiKDxj5gmrCV6XZkLCXAbW2uFFQK+3F1SK6nQ+fztlaQDpsNYZjjp2oNm2aHFm9Gegl2m3oS5Jvnega5zBrxB//YHeaUs0Ou4f4cE/h+uTkOvJ9ACAUo3VTakpTCo2QDKaDHHh4ZF45HrlQnQ8Uyv10=
+	t=1742188545; cv=none; b=Zl/Bk1NKmThTIj7H79qBoAHagp0sWT0m5VLpy75WPUikC7K16kQ2NaGip8byg8e5abxxrHuIdsHbf0v6tJSdwOAIj17WxVtAvrXN+quJJ5zCEcwHdJeruk8pr2RWcWRQq6ZnLZKnlaCa4waheTYrK7PHlpO+x0Z6XEc2wdpvQU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188543; c=relaxed/simple;
-	bh=PskBCWaFqVyVmuo4/qXmP8W+mBQ2ci5k11CCo9pVwQ4=;
-	h=Date:To:From:Subject:Message-Id; b=EpbcSo3G3FSz+I0wAGA9avxGe6Y4YvWMkNGUQ6oUrSt24ecMRcMi61yi92MW7DOaej76a/734Rkp00do57GUCxdb+8Legu8AwvLfzDoEKV9j9AB9YOR8Q5VgwJeDOKYA4UX399ewmyY/0KOisQkhIzASfSmrCuEkbkhh7Bw1Jwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nqfQKf+o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188545; c=relaxed/simple;
+	bh=ld/qAgV9+dAqNpv6BJ2itRqATaYJMilBEZUGRQGwt4I=;
+	h=Date:To:From:Subject:Message-Id; b=gL3P7Yx24r8sWcxTW6HcLrH/dEKKmPeTobaW8v9HiBpKFgMq9Gk1ECMNqjXCvfv6TBkToG/E6kXhjkZX+292SPdi8eHb/shl2ZXNj8Thcny9HGRyewDeMtG8Ox7cXPPX8gVULRD1hBM8DLOXQvKVrspNd8rimTMYPBakh/sys1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FJe0gS2E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nqfQKf+o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF1B5C4CEEC;
-	Mon, 17 Mar 2025 05:15:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FJe0gS2E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D37C4CEEC;
+	Mon, 17 Mar 2025 05:15:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188542;
-	bh=PskBCWaFqVyVmuo4/qXmP8W+mBQ2ci5k11CCo9pVwQ4=;
+	s=korg; t=1742188545;
+	bh=ld/qAgV9+dAqNpv6BJ2itRqATaYJMilBEZUGRQGwt4I=;
 	h=Date:To:From:Subject:From;
-	b=nqfQKf+obn6ZHtU/gcVq7OU9W3SYetRZpo4pf3g7edPOv+XAYzQ/nb4dLfK4R7wwH
-	 6TwDuBOVKmABtY5GnehQdHsbJUmHo8PcmJ3QXw2KPagqAoIdR55dgeDk2QbgCWGemd
-	 CDWnOFwoM0rcIRwo6PEtTtRJ9retn8JeRMmlO1/A=
-Date: Sun, 16 Mar 2025 22:15:42 -0700
+	b=FJe0gS2EUOYOoLeKt2qJLU3ckLaPFEmgaMVajJDYOaXHSzBYhoRxqTYfsMT8pNq25
+	 g+pzLIN8mGiKj5vFFubpD3TmTPao0gOvtlKJja1Xn+34/5b0Sc+lM9djCUpjJzaofA
+	 agSYv7E3VfZiHxxXR5x07PKZm3fhEUwftcd1k+u8=
+Date: Sun, 16 Mar 2025 22:15:44 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch removed from -mm tree
-Message-Id: <20250317051542.CF1B5C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-respect-ops_filters_default_reject.patch removed from -mm tree
+Message-Id: <20250317051545.84D37C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,133 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: set damos_filter default allowance behavior based on installed filters
+     Subject: mm/damon/paddr: respect ops_filters_default_reject
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters.patch
+     mm-damon-paddr-respect-ops_filters_default_reject.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: set damos_filter default allowance behavior based on installed filters
-Date: Tue, 4 Mar 2025 13:19:11 -0800
+Subject: mm/damon/paddr: respect ops_filters_default_reject
+Date: Tue, 4 Mar 2025 13:19:12 -0800
 
-Decide whether to allow or reject by default on core and opertions layer
-handled filters evaluation stages.  It is decided as the opposite of the
-last installed filter's behavior.  If there is no filter at all, allow by
-default.  If there is any operations layer handled filters, core layer's
-filtering stage sets allowing as the default behavior regardless of the
-last filter of core layer-handling ones, since the last filter of core
-layer handled filters in the case is not really the last filter of the
-entire filtering stage.
+Use damos->ops_filters_default_reject, which is set based on the installed
+filters' behaviors, from physical address space DAMON operations set.
 
-Also, make the core layer's DAMOS filters handling stage uses the newly
-set behavior field.
-
-[sj@kernel.org: setup damos->{core,ops}_filters_default_reject for initial start]
-  Link: https://lkml.kernel.org/r/20250315222610.35245-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250304211913.53574-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250304211913.53574-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   41 ++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 36 insertions(+), 5 deletions(-)
+ mm/damon/paddr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-damos_filter-default-allowance-behavior-based-on-installed-filters
-+++ a/mm/damon/core.c
-@@ -518,7 +518,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	ctx->attrs.ops_update_interval = 60 * 1000 * 1000;
- 
- 	ctx->passed_sample_intervals = 0;
--	/* These will be set from kdamond_init_intervals_sis() */
-+	/* These will be set from kdamond_init_ctx() */
- 	ctx->next_aggregation_sis = 0;
- 	ctx->next_ops_update_sis = 0;
- 
-@@ -891,6 +891,32 @@ static int damos_commit_ops_filters(stru
- 	return 0;
- }
- 
-+/**
-+ * damos_filters_default_reject() - decide whether to reject memory that didn't
-+ *				    match with any given filter.
-+ * @filters:	Given DAMOS filters of a group.
-+ */
-+static bool damos_filters_default_reject(struct list_head *filters)
-+{
-+	struct damos_filter *last_filter;
-+
-+	if (list_empty(filters))
-+		return false;
-+	last_filter = list_last_entry(filters, struct damos_filter, list);
-+	return last_filter->allow;
-+}
-+
-+static void damos_set_filters_default_reject(struct damos *s)
-+{
-+	if (!list_empty(&s->ops_filters))
-+		s->core_filters_default_reject = false;
-+	else
-+		s->core_filters_default_reject =
-+			damos_filters_default_reject(&s->filters);
-+	s->ops_filters_default_reject =
-+		damos_filters_default_reject(&s->ops_filters);
-+}
-+
- static int damos_commit_filters(struct damos *dst, struct damos *src)
- {
- 	int err;
-@@ -898,7 +924,11 @@ static int damos_commit_filters(struct d
- 	err = damos_commit_core_filters(dst, src);
- 	if (err)
- 		return err;
--	return damos_commit_ops_filters(dst, src);
-+	err = damos_commit_ops_filters(dst, src);
-+	if (err)
-+		return err;
-+	damos_set_filters_default_reject(dst);
-+	return 0;
- }
- 
- static struct damos *damon_nth_scheme(int n, struct damon_ctx *ctx)
-@@ -1580,7 +1610,7 @@ static bool damos_filter_out(struct damo
+--- a/mm/damon/paddr.c~mm-damon-paddr-respect-ops_filters_default_reject
++++ a/mm/damon/paddr.c
+@@ -260,7 +260,7 @@ static bool damos_pa_filter_out(struct d
+ 		if (damos_pa_filter_match(filter, folio))
  			return !filter->allow;
- 		}
  	}
 -	return false;
-+	return s->core_filters_default_reject;
++	return scheme->ops_filters_default_reject;
  }
  
- /*
-@@ -2315,7 +2345,7 @@ static int kdamond_wait_activation(struc
- 	return -EBUSY;
- }
- 
--static void kdamond_init_intervals_sis(struct damon_ctx *ctx)
-+static void kdamond_init_ctx(struct damon_ctx *ctx)
- {
- 	unsigned long sample_interval = ctx->attrs.sample_interval ?
- 		ctx->attrs.sample_interval : 1;
-@@ -2333,6 +2363,7 @@ static void kdamond_init_intervals_sis(s
- 		apply_interval = scheme->apply_interval_us ?
- 			scheme->apply_interval_us : ctx->attrs.aggr_interval;
- 		scheme->next_apply_sis = apply_interval / sample_interval;
-+		damos_set_filters_default_reject(scheme);
- 	}
- }
- 
-@@ -2350,7 +2381,7 @@ static int kdamond_fn(void *data)
- 	pr_debug("kdamond (%d) starts\n", current->pid);
- 
- 	complete(&ctx->kdamond_started);
--	kdamond_init_intervals_sis(ctx);
-+	kdamond_init_ctx(ctx);
- 
- 	if (ctx->ops.init)
- 		ctx->ops.init(ctx);
+ static bool damon_pa_invalid_damos_folio(struct folio *folio, struct damos *s)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
