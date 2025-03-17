@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91DB1DDC1
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 04:35:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7796DDC1
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 04:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742186146; cv=none; b=lKc/teyd4XvTVAbyomt6FZVNwsYiIi6xq5ImMO4h5/x/aJO+MQnmgeTU4mSlC1pFtIDzeAVKbfMyIuT6ZvMCoDCaKbuaOWWLF9V6NvHbe4FTnq52DbBwjyaUZcd38C3IRW784mG+V48KxEX/P43dQKGdakkQrlh4e2WHAIWJKQk=
+	t=1742186185; cv=none; b=IbdCOqVxArmk7tuWJMcgRBFitgJ/q/irHqsLDlVSOJ/2Ipkm+K0IMqOuN57VOm7VCXiZveDZwwNJGcX2o10mE8K45BFqNgT0KU1lK9x9JbdWQoei+/tu8Pq8n2QbSrVsWf/UHDbSKJPpfikiUYQ+gTPurPeIp4pMy83s5+H8cag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742186146; c=relaxed/simple;
-	bh=ghMXrTc3MSg315+GYhf+A+O1ZxV4M8Y9I2bMQRAdkMw=;
-	h=Date:To:From:Subject:Message-Id; b=HbB35am9oaBD+V3h9Wa/tW9E6ArLEzOuzJ+H8NAktomYa+BSYVeb5XaPvmBPj7VjhzQ4EyBrGNsWoS5UXk5GIpN8DySCbiPoCEMjoRDSGVU0alh2g1slsdEmIKOk4JAaXzQn7XbR7C2QWLHHaahggyKSC7jgM1hBoBUYWoslmOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iSk0GRWH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742186185; c=relaxed/simple;
+	bh=U/EiAfczVC/l9CXrS7f6QeTv4KCCX2bq4OH1PLivceY=;
+	h=Date:To:From:Subject:Message-Id; b=gJNpquq09nR8b0CKgiBz/wcPS5JQOKPIA9lVHF9vr+J+OvorzjOgHkeOza3OYNOdXk2HnNePJHN7AEXlLUnBlV2Cd+9E0rXLnrS98MerXSO8WYyzZTIzU79pBsW2uKRWBZK/GgMOIW+uw9niAbQfgQisSXH83jT/XnTUmJNoJ20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hwh/KcQD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iSk0GRWH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00083C4CEEC;
-	Mon, 17 Mar 2025 04:35:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hwh/KcQD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3722DC4CEEC;
+	Mon, 17 Mar 2025 04:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742186146;
-	bh=ghMXrTc3MSg315+GYhf+A+O1ZxV4M8Y9I2bMQRAdkMw=;
+	s=korg; t=1742186185;
+	bh=U/EiAfczVC/l9CXrS7f6QeTv4KCCX2bq4OH1PLivceY=;
 	h=Date:To:From:Subject:From;
-	b=iSk0GRWHMPKRreuy3Xt0/NFteYteTAtfBqkfezoT9A6555mrYfMG/n4VNzMW/WYnk
-	 VHsO8AKkSxh/DnXqu3xQK6x4phCtDYMpFcD9SOvqVSwZBaUm6e3VI3Ka32KD1Bq+vy
-	 8nuCYnWX5gjvHSBDjjr/UTdkebreJE/mefAJtBzI=
-Date: Sun, 16 Mar 2025 21:35:45 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,sfr@canb.auug.org.au,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hca@linux.ibm.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=Hwh/KcQD/aFhiclb+ID3/1irIDVdfYzOnzd9HKPZcti0mdwsiaQnrl+A14d+yyZjD
+	 8jmJkOOvvUE3BMkNM/OISGKKRQWJx/wp+YoO+A4PXnWb+hy+nK3flq8VYFAEI9kkLA
+	 ZDyqxFoR1t2Sx/Q5lcSjJm7ljJwAdbl6IB0h6uqA=
+Date: Sun, 16 Mar 2025 21:36:24 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,souravpanda@google.com,shivankg@amd.com,shakeel.butt@linux.dev,sfr@canb.auug.org.au,richard.weiyang@gmail.com,peterz@infradead.org,peterx@redhat.com,paulmck@kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,mjguzik@gmail.com,minchan@google.com,mhocko@suse.com,mgorman@techsingularity.net,lorenzo.stoakes@oracle.com,lokeshgidra@google.com,lkp@intel.com,Liam.Howlett@Oracle.com,klarasmodin@gmail.com,jannh@google.com,hughd@google.com,hca@linux.ibm.com,hannes@cmpxchg.org,dhowells@redhat.com,david@redhat.com,dave@stgolabs.net,corbet@lwn.net,brauner@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-replace-vm_lock-and-detached-flag-with-a-reference-count-fix.patch removed from -mm tree
-Message-Id: <20250317043546.00083C4CEEC@smtp.kernel.org>
+Subject: [folded-merged] mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch removed from -mm tree
+Message-Id: <20250317043625.3722DC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix a crash due to vma_end_read() that should have been removed
+     Subject: tools: remove atomic_set_release() usage in tools/
 has been removed from the -mm tree.  Its filename was
-     mm-replace-vm_lock-and-detached-flag-with-a-reference-count-fix.patch
+     mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch
 
-This patch was dropped because it was folded into mm-replace-vm_lock-and-detached-flag-with-a-reference-count.patch
+This patch was dropped because it was folded into mm-make-vma-cache-slab_typesafe_by_rcu.patch
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: fix a crash due to vma_end_read() that should have been removed
-Date: Thu, 20 Feb 2025 12:02:08 -0800
+Subject: tools: remove atomic_set_release() usage in tools/
+Date: Sun, 16 Feb 2025 21:43:51 -0800
 
-Handling a vma lock failure due to vma being detached from under us got
-changed but vma_end_read() in that path was left untouched while it should
-have been removed.  Remove it.
+Userspace versions of both atomic_set_release() and atomic_set() get
+translated into uatomic_set().  To avoid extra definitions of
+atomic_set_release(), replace its usage inside refcount_set_release() with
+atomic_set().  This results in no functional changes.
 
-Link: https://lkml.kernel.org/r/20250220200208.323769-1-surenb@google.com
-Fixes: 758f7664c3d1 ("mm: replace vm_lock and detached flag with a reference count")
+Link: https://lkml.kernel.org/r/20250217054351.2973666-1-surenb@google.com
+Fixes: 1465347e498f ("mm: make vma cache SLAB_TYPESAFE_BY_RCU")
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Heiko Carstens <hca@linux.ibm.com>
-Closes: https://lore.kernel.org/all/20250220185304.8313A7d-hca@linux.ibm.com/
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202502170049.sHfzQwpv-lkp@intel.com/
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -87,19 +89,31 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/include/linux/refcount.h   |    2 +-
+ tools/testing/vma/linux/atomic.h |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory.c~mm-replace-vm_lock-and-detached-flag-with-a-reference-count-fix
-+++ a/mm/memory.c
-@@ -6458,7 +6458,6 @@ retry:
- 	if (IS_ERR_OR_NULL(vma)) {
- 		/* Check if the VMA got isolated after we found it */
- 		if (PTR_ERR(vma) == -EAGAIN) {
--			vma_end_read(vma);
- 			count_vm_vma_lock_event(VMA_LOCK_MISS);
- 			/* The area was replaced with another one */
- 			goto retry;
+--- a/tools/include/linux/refcount.h~mm-make-vma-cache-slab_typesafe_by_rcu-fix
++++ a/tools/include/linux/refcount.h
+@@ -62,7 +62,7 @@ static inline void refcount_set(refcount
+ 
+ static inline void refcount_set_release(refcount_t *r, unsigned int n)
+ {
+-	atomic_set_release(&r->refs, n);
++	atomic_set(&r->refs, n);
+ }
+ 
+ static inline unsigned int refcount_read(const refcount_t *r)
+--- a/tools/testing/vma/linux/atomic.h~mm-make-vma-cache-slab_typesafe_by_rcu-fix
++++ a/tools/testing/vma/linux/atomic.h
+@@ -7,7 +7,6 @@
+ #define atomic_inc(x) uatomic_inc(x)
+ #define atomic_read(x) uatomic_read(x)
+ #define atomic_set(x, y) uatomic_set(x, y)
+-#define atomic_set_release(x, y) uatomic_set(x, y)
+ #define U8_MAX UCHAR_MAX
+ 
+ #ifndef atomic_cmpxchg_relaxed
 _
 
 Patches currently in -mm which might be from surenb@google.com are
@@ -124,6 +138,5 @@ mm-debug-print-vm_refcnt-state-when-dumping-the-vma.patch
 mm-remove-extra-vma_numab_state_init-call.patch
 mm-prepare-lock_vma_under_rcu-for-vma-reuse-possibility.patch
 mm-make-vma-cache-slab_typesafe_by_rcu.patch
-mm-make-vma-cache-slab_typesafe_by_rcu-fix.patch
 docs-mm-document-latest-changes-to-vm_lock.patch
 
