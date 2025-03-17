@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80C70A59
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0EE621518B
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188195; cv=none; b=msHfmB+qkaWeGafTmTg/OtK5ghY8SMtFspGk4ImcQ0nS2xYx8G9T8xhqbRRqK5iZQhIqJ2gXXS3O/6dibFZKHXVqHX6zHHzUpePgydi5mpNRXLUHcW12C32vDrpXAjsbN0nLNXLeON8k1xmx3lFQNGK7qV/FPbq3AMHztRG8MBQ=
+	t=1742188196; cv=none; b=HeWK2xL9dD7kZmo6AcptazQpDjSJrWw0Fd6J+QWJygxRV34jOFWWjgPjUcynE+xOdkro7KOSFakFM76OQOD3mzd/sa9QL+6FKCJmtfMoeiCA+K6IWniqTXNPNaZs1mYNmnrANF5P0BHRpeS/l1xM1eWbFWqAO9AIHtrj0bln1CU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188195; c=relaxed/simple;
-	bh=lPKTrtWyrCXvKk8DuEMfdxVqNMamzCz3XERzcxoNKpI=;
-	h=Date:To:From:Subject:Message-Id; b=VaBvrh4zB46iva7cuM9aBRFT2opJyUrDLKQjyiCDtq0lBUBpNP2Lsvj6zxzQ9+g2BnedI6EGg3HZd+i0oLoR7N/oD4kKN88nnpoB9bsIAvUm0bVaoDskx++p0mgSxhVJM+w+C29j8k+efwYCwVQd0AoLbrkvevJ0BGAkiCJgZlM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ldyOQA6/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188196; c=relaxed/simple;
+	bh=qDbXS4nbfW13ZnoQ+FZqBDdOFCw3eJAGqcZZVaR+bt4=;
+	h=Date:To:From:Subject:Message-Id; b=DQbf6SdOEZhJvL9Tguqv+gM2RiZeyUZnD312k6ctRdb3a9UVdMCNrtxB4CdaQ16na9kzIEc1V36vIgpt33R6KrvigfokFT3LtqMYXuO96HkDc+WVVsMkR3iDf26qvxLiEC3PYnOz6ca/jWTyvCT9o92lylpbmyshmdhbn+s1N0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QJnpVgwd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ldyOQA6/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCB4FC4CEEC;
-	Mon, 17 Mar 2025 05:09:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QJnpVgwd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45822C4CEEC;
+	Mon, 17 Mar 2025 05:09:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188194;
-	bh=lPKTrtWyrCXvKk8DuEMfdxVqNMamzCz3XERzcxoNKpI=;
+	s=korg; t=1742188196;
+	bh=qDbXS4nbfW13ZnoQ+FZqBDdOFCw3eJAGqcZZVaR+bt4=;
 	h=Date:To:From:Subject:From;
-	b=ldyOQA6/FJb2HvhEgo7SZGVcFoGrsSzGVDaFm+f3Aul0JcOaeZ/OLfApwdyRzCuig
-	 0dTE5tTy8el5OCLQzbA1hor7dltR+n5ygzbNaSGZY0FSvj9LjJuJ0REL6REBF41j0/
-	 PKTDMhwV2dXlFnqs16X9jcq8kTRavUVBqy+NqeL4=
-Date: Sun, 16 Mar 2025 22:09:54 -0700
+	b=QJnpVgwdF//99UuwNGujoSLffLY069WRNxEKZKkBcRVTYHgtVLfVYKRhTXE72p1zF
+	 BalCI2rFtHNXPcl+nS+QitMvij0tcpq5C3ew9iNH0JHSXa6ozAOwutF3RKS5W8fCUv
+	 dSzTXp2uOsOlYhYQgng819Sm39qQp0qjk3iypdWk=
+Date: Sun, 16 Mar 2025 22:09:55 -0700
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,sj@kernel.org,si.yanteng@linux.dev,simona.vetter@ffwll.ch,peterz@infradead.org,peterx@redhat.com,pasha.tatashin@soleen.com,oleg@redhat.com,mhiramat@kernel.org,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kherbst@redhat.com,jhubbard@nvidia.com,jglisse@redhat.com,jgg@nvidia.com,jannh@google.com,dakr@kernel.org,corbet@lwn.net,apopple@nvidia.com,alexs@kernel.org,airlied@gmail.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page.patch removed from -mm tree
-Message-Id: <20250317050954.DCB4FC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-handle-device-exclusive-entries-correctly-in-write_protect_page.patch removed from -mm tree
+Message-Id: <20250317050956.45822C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/events/uprobes: handle device-exclusive entries correctly in __replace_page()
+     Subject: mm/ksm: handle device-exclusive entries correctly in write_protect_page()
 has been removed from the -mm tree.  Its filename was
-     kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page.patch
+     mm-ksm-handle-device-exclusive-entries-correctly-in-write_protect_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: kernel/events/uprobes: handle device-exclusive entries correctly in __replace_page()
-Date: Mon, 10 Feb 2025 20:37:50 +0100
+Subject: mm/ksm: handle device-exclusive entries correctly in write_protect_page()
+Date: Mon, 10 Feb 2025 20:37:51 +0100
 
 Ever since commit b756a3b5e7ea ("mm: device exclusive memory access") we
 can return with a device-exclusive entry from page_vma_mapped_walk().
 
-__replace_page() is not prepared for that, so teach it about these PFN
+write_protect_page() is not prepared for that, so teach it about these PFN
 swap PTEs.  Note that device-private entries are so far not applicable on
 that path, because GUP would never have returned such folios (conversion
 to device-private happens by page migration, not in-place conversion of
 the PTE).
 
-There is a race between GUP and us locking the folio to look it up using
-page_vma_mapped_walk(), so this is likely a fix (unless something else
-could prevent that race, but it doesn't look like).  pte_pfn() on
-something that is not a present pte could give use garbage, and we'd
-wrongly mess up the mapcount because it was already adjusted by calling
-folio_remove_rmap_pte() when making the entry device-exclusive.
+There is a race between performing the folio_walk (which fails on
+non-present PTEs) and locking the folio to look it up using
+page_vma_mapped_walk() again, so this is likely a fix (unless something
+else could prevent that race, but it doesn't look like).  In the future it
+could be handled if ever required, for now just give up and ignore them
+like folio_walk would.
 
-Link: https://lkml.kernel.org/r/20250210193801.781278-9-david@redhat.com
+Link: https://lkml.kernel.org/r/20250210193801.781278-10-david@redhat.com
 Fixes: b756a3b5e7ea ("mm: device exclusive memory access")
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Tested-by: Alistair Popple <apopple@nvidia.com>
@@ -92,45 +92,28 @@ Cc: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/ksm.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/kernel/events/uprobes.c~kernel-events-uprobes-handle-device-exclusive-entries-correctly-in-__replace_page
-+++ a/kernel/events/uprobes.c
-@@ -173,6 +173,7 @@ static int __replace_page(struct vm_area
- 	DEFINE_FOLIO_VMA_WALK(pvmw, old_folio, vma, addr, 0);
- 	int err;
- 	struct mmu_notifier_range range;
-+	pte_t pte;
+--- a/mm/ksm.c~mm-ksm-handle-device-exclusive-entries-correctly-in-write_protect_page
++++ a/mm/ksm.c
+@@ -1270,8 +1270,15 @@ static int write_protect_page(struct vm_
+ 	if (WARN_ONCE(!pvmw.pte, "Unexpected PMD mapping?"))
+ 		goto out_unlock;
  
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, addr,
- 				addr + PAGE_SIZE);
-@@ -192,6 +193,16 @@ static int __replace_page(struct vm_area
- 	if (!page_vma_mapped_walk(&pvmw))
- 		goto unlock;
- 	VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
-+	pte = ptep_get(pvmw.pte);
-+
+-	anon_exclusive = PageAnonExclusive(&folio->page);
+ 	entry = ptep_get(pvmw.pte);
 +	/*
-+	 * Handle PFN swap PTES, such as device-exclusive ones, that actually
-+	 * map pages: simply trigger GUP again to fix it up.
++	 * Handle PFN swap PTEs, such as device-exclusive ones, that actually
++	 * map pages: give up just like the next folio_walk would.
 +	 */
-+	if (unlikely(!pte_present(pte))) {
-+		page_vma_mapped_walk_done(&pvmw);
-+		goto unlock;
-+	}
- 
- 	if (new_page) {
- 		folio_get(new_folio);
-@@ -206,7 +217,7 @@ static int __replace_page(struct vm_area
- 		inc_mm_counter(mm, MM_ANONPAGES);
- 	}
- 
--	flush_cache_page(vma, addr, pte_pfn(ptep_get(pvmw.pte)));
-+	flush_cache_page(vma, addr, pte_pfn(pte));
- 	ptep_clear_flush(vma, addr, pvmw.pte);
- 	if (new_page)
- 		set_pte_at(mm, addr, pvmw.pte,
++	if (unlikely(!pte_present(entry)))
++		goto out_unlock;
++
++	anon_exclusive = PageAnonExclusive(&folio->page);
+ 	if (pte_write(entry) || pte_dirty(entry) ||
+ 	    anon_exclusive || mm_tlb_flush_pending(mm)) {
+ 		swapped = folio_test_swapcache(folio);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
