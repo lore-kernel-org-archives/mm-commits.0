@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3FA5216602
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 549D7216602
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188375; cv=none; b=hlTqXWLDXdp7a9ja57fFcjBe7vLbgJiVh+fSdo47ZW1GgsS0jsB+hQUYx2/Wjzq9iZ7R1UYx+Zx6gowgdvb3NVWCtV3soc8AQ2/+t0iv5qkFhLQBA94mtXlU0J8iLlL9Y2ZPNmXLkfmgmfex6KSRghccg1jDhPbG/rbdzxvMBp0=
+	t=1742188377; cv=none; b=jGuBlW95gplcny6waSa1a6kNkyJ5fVp/lDPZAKizugZQSnyX4AEcTLBSyJnwCuzdJ0j8qeXcJbpF3RN3HQg8VfsXLMupi5SPDI5D+HC9dgXiTpoXG65hEw53FQh6LMxx+9n4hHWsEj25nWblhIE/bNhzPFQw0+SLj2r6eg+ModY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188375; c=relaxed/simple;
-	bh=Td3GKpP5ryz9PViyEc4EzcApYkUJXCp03hSkFnpKty0=;
-	h=Date:To:From:Subject:Message-Id; b=vFJh8PPz+b2dGcwwj1zLcxa0QzJdo+jWKOrQDL+maxfx9wUXTcQnetKT/+i1pL4ea9mXdhnlMLib2WTTsmJoABNc/34dgNPncFkBva6StgmukTTms5T1VNHOnjsPZdqvxEC7bkw0PqlENaxjE0gBIHVLY4VVJkzQI/55jgWeTaE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PMfD1tx6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188377; c=relaxed/simple;
+	bh=de45zPBngOzKV7reJENfqk4W5Dc/wg6XvWAdx57YQ24=;
+	h=Date:To:From:Subject:Message-Id; b=f7WuLHkhU2+C5thB+05KhW+IuChR7AhI0TVaR6vNyfQaVQwPEGUIA5LXrvxTO8a7pihHvQIDol2yklXHTE7xHu2UUS/7Kart1YJc9rC1u5tfh6V47cnBQg7hPNa4n3kygVYvfBsBLuMjCmHnGQCfaxq1XO50T2Y5NVhE2JFKMPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MY7Nvrt9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PMfD1tx6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96D57C4CEEC;
-	Mon, 17 Mar 2025 05:12:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MY7Nvrt9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27CE0C4CEEC;
+	Mon, 17 Mar 2025 05:12:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188375;
-	bh=Td3GKpP5ryz9PViyEc4EzcApYkUJXCp03hSkFnpKty0=;
+	s=korg; t=1742188377;
+	bh=de45zPBngOzKV7reJENfqk4W5Dc/wg6XvWAdx57YQ24=;
 	h=Date:To:From:Subject:From;
-	b=PMfD1tx6lwXllrIIhqsJZc7mmIWtFU2Vkkv6gZw+Lqzzhh2w7P6dTnvMduZ5YijPT
-	 bkA9eppg23LS/EopW7IcAxi5vnytgzjP6AEphOewXQ356cwE4lQuNU6UUunTHR0Cs1
-	 s9xZtXGFMiErQlRujEgiFvsxb40as3xeAw4Rd3U8=
-Date: Sun, 16 Mar 2025 22:12:55 -0700
+	b=MY7Nvrt9fB3iZM93qYROzX42S1FZ/TSxwZuZh8kNIyHYJ+AlB+M+hKjtYbqcTTRr6
+	 2RJZLBVYMsSlCArUbwUeWOrWJUsWZiWKqLrLdBiOMUqpsCXMkEcUOnimylWJNC8/lW
+	 x5oyN13I+vPpBbVGBZGTmjY8G7toUWJvS8/YqdTI=
+Date: Sun, 16 Mar 2025 22:12:56 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,arnd@arndb.de,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-set-migratetype-for-bootmem-folios.patch removed from -mm tree
-Message-Id: <20250317051255.96D57C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-define-__init_reserved_page_zone-function.patch removed from -mm tree
+Message-Id: <20250317051257.27CE0C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: set migratetype for bootmem folios
+     Subject: mm: define __init_reserved_page_zone function
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-set-migratetype-for-bootmem-folios.patch
+     mm-define-__init_reserved_page_zone-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: set migratetype for bootmem folios
-Date: Fri, 28 Feb 2025 18:29:12 +0000
+Subject: mm: define __init_reserved_page_zone function
+Date: Fri, 28 Feb 2025 18:29:13 +0000
 
-The pageblocks that back memblock allocated hugetlb folios might not have
-the migrate type set, in the CONFIG_DEFERRED_STRUCT_PAGE_INIT case.
+Sometimes page structs must be unconditionally initialized as reserved,
+regardless of DEFERRED_STRUCT_PAGE_INIT.
 
-memblock allocated hugetlb folios might be given to the buddy allocator
-eventually (if nr_hugepages is lowered), so make sure that the migrate
-type for the pageblocks contained in them is set when initializing them. 
-Set it to the default that memmap init also uses (MIGRATE_MOVABLE).
+Define a function, __init_reserved_page_zone, containing code that already
+did all of the work in init_reserved_page, and make it available for use.
 
-Link: https://lkml.kernel.org/r/20250228182928.2645936-12-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250228182928.2645936-13-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -79,46 +77,77 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ mm/internal.h |    1 +
+ mm/mm_init.c  |   38 +++++++++++++++++++++++---------------
+ 2 files changed, 24 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-set-migratetype-for-bootmem-folios
-+++ a/mm/hugetlb.c
-@@ -3266,6 +3266,26 @@ static void __init hugetlb_folio_init_vm
- 	prep_compound_head((struct page *)folio, huge_page_order(h));
- }
+--- a/mm/internal.h~mm-define-__init_reserved_page_zone-function
++++ a/mm/internal.h
+@@ -1449,6 +1449,7 @@ static inline bool pte_needs_soft_dirty_
+ 
+ void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid);
++void __meminit __init_reserved_page_zone(unsigned long pfn, int nid);
+ 
+ /* shrinker related functions */
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+--- a/mm/mm_init.c~mm-define-__init_reserved_page_zone-function
++++ a/mm/mm_init.c
+@@ -650,6 +650,28 @@ static inline void fixup_hashdist(void)
+ static inline void fixup_hashdist(void) {}
+ #endif /* CONFIG_NUMA */
  
 +/*
-+ * memblock-allocated pageblocks might not have the migrate type set
-+ * if marked with the 'noinit' flag. Set it to the default (MIGRATE_MOVABLE)
-+ * here.
-+ *
-+ * Note that this will not write the page struct, it is ok (and necessary)
-+ * to do this on vmemmap optimized folios.
++ * Initialize a reserved page unconditionally, finding its zone first.
 + */
-+static void __init hugetlb_bootmem_init_migratetype(struct folio *folio,
-+							  struct hstate *h)
++void __meminit __init_reserved_page_zone(unsigned long pfn, int nid)
 +{
-+	unsigned long nr_pages = pages_per_huge_page(h), i;
++	pg_data_t *pgdat;
++	int zid;
 +
-+	WARN_ON_ONCE(!pageblock_aligned(folio_pfn(folio)));
++	pgdat = NODE_DATA(nid);
 +
-+	for (i = 0; i < nr_pages; i += pageblock_nr_pages)
-+		set_pageblock_migratetype(folio_page(folio, i),
-+					  MIGRATE_MOVABLE);
++	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++
++		if (zone_spans_pfn(zone, pfn))
++			break;
++	}
++	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
++
++	if (pageblock_aligned(pfn))
++		set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_MOVABLE);
 +}
 +
- static void __init prep_and_add_bootmem_folios(struct hstate *h,
- 					struct list_head *folio_list)
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
  {
-@@ -3287,6 +3307,7 @@ static void __init prep_and_add_bootmem_
- 					HUGETLB_VMEMMAP_RESERVE_PAGES,
- 					pages_per_huge_page(h));
- 		}
-+		hugetlb_bootmem_init_migratetype(folio, h);
- 		/* Subdivide locks to achieve better parallel performance */
- 		spin_lock_irqsave(&hugetlb_lock, flags);
- 		__prep_account_new_huge_page(h, folio_nid(folio));
+@@ -708,24 +730,10 @@ defer_init(int nid, unsigned long pfn, u
+ 
+ static void __meminit init_reserved_page(unsigned long pfn, int nid)
+ {
+-	pg_data_t *pgdat;
+-	int zid;
+-
+ 	if (early_page_initialised(pfn, nid))
+ 		return;
+ 
+-	pgdat = NODE_DATA(nid);
+-
+-	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+-		struct zone *zone = &pgdat->node_zones[zid];
+-
+-		if (zone_spans_pfn(zone, pfn))
+-			break;
+-	}
+-	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
+-
+-	if (pageblock_aligned(pfn))
+-		set_pageblock_migratetype(pfn_to_page(pfn), MIGRATE_MOVABLE);
++	__init_reserved_page_zone(pfn, nid);
+ }
+ #else
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat) {}
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
