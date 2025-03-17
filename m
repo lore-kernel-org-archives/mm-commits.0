@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A8221578B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4FB921578B
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188280; cv=none; b=GaFlYuOrTk9G9htUwDFr75Jo9hDqWFy6CuUb25xqjXr01JbrYcloUJYKUdTDjPA5qy17OwUHEn9qm7ZkrHW/fKE2g150W1XmPsNSUtqRi1EkyoEVyO/qGPFgySpdZmm5Z7CIUxpDgRYlua/M+gInQt5DMpKO4mvRF26JvPnjZXs=
+	t=1742188280; cv=none; b=NMBmvf9NVptxsCTBvIY8RwN8yV3bzDCgB4rcvpw3mJ4cidjKbdBLdgVUDY5DeOWOAZApjhcCe439xdTLbrbgDuM7KdHXDJ9+CAf3H9VHwU0bNTqlluBDexXOvchlzkECnQiTiD6HMdxl9lg4EVVDARBEN4Ti4/7BXRFUSb/3u3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1742188280; c=relaxed/simple;
-	bh=G1IoPsxZg0AguplyoFLK+Qnz93LWT4HqVLmehLS8emg=;
-	h=Date:To:From:Subject:Message-Id; b=rBIAq8sXnUjXDHQy4Sm4kV2i+361jAvy24j9BOQzx4HeW6XbJF3ZW31QyC252gJo++NfKW5gizq72YZhyYoWSOF6nQngDYeJSppBNk6c4tIrnqFjolAQhYZ+cRC0eDwvcbNGLDSO8IyDoItG8ytZ8w0StUt9rdQyyajkodS7wJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=joIRyZ6b; arc=none smtp.client-ip=10.30.226.201
+	bh=/QLS2LM42yEV0K4HMrI/QI4HFM/nD5hz798o1wA+GNc=;
+	h=Date:To:From:Subject:Message-Id; b=kO81CgdN1by6mPq6zvwDxEWInnWrngUSs/DvpdwpnEs2ATvyJ71lasGVcj4DzA2WN2nFxOppJCelRoqCWKtbOYQ1Yq+ceNq5e/U1F6aDuD2apJ8gg/h5rJyHjRqLso5Quy23DOXYM71xfZMDanXgZ7lV/CA6f2oktBKAVlyG0wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fgjpGT/j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="joIRyZ6b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD38C4CEED;
-	Mon, 17 Mar 2025 05:11:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fgjpGT/j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72B14C4CEEC;
+	Mon, 17 Mar 2025 05:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188279;
-	bh=G1IoPsxZg0AguplyoFLK+Qnz93LWT4HqVLmehLS8emg=;
+	s=korg; t=1742188280;
+	bh=/QLS2LM42yEV0K4HMrI/QI4HFM/nD5hz798o1wA+GNc=;
 	h=Date:To:From:Subject:From;
-	b=joIRyZ6b3FkIrQTrKttg2XIykt49Z90dTqBGFIdutuMoPpJnl6XCdErLNc7N0EEdT
-	 gTFIvKnHPPmHnY/N0F1Y1f0JLpSCPIJrTAvGCd+WTyWDLl3WeO+OqgdMAbaHhjaDSl
-	 JLNkr1oECB92i+XmNfN6fg0PYX0yzwoQknSYiE3c=
-Date: Sun, 16 Mar 2025 22:11:18 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=fgjpGT/jxta2JdAv63E7dGRl7NqurlvDlE7tVzlPEnXDGGJFD9UCNn2Z3hYVmpBih
+	 vZvemr0aKHRGLzD17vjAyKgma0t4WWh1obTTNm9JAAbVOShUYejPq/jq9ZCT5UZUsY
+	 YRglsP5L77FjVtxTZncgc4KlVSmpwDns6y9NhofQ=
+Date: Sun, 16 Mar 2025 22:11:20 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,Liam.Howlett@Oracle.com,jserv@ccns.ncku.edu.tw,richard120310@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory.patch removed from -mm tree
-Message-Id: <20250317051119.6AD38C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-use-ma_dead_node-in-mte_dead_node.patch removed from -mm tree
+Message-Id: <20250317051120.72B14C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init.c: only align start of ZONE_MOVABLE on nodes with memory
+     Subject: maple_tree: use ma_dead_node() in mte_dead_node()
 has been removed from the -mm tree.  Its filename was
-     mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory.patch
+     maple_tree-use-ma_dead_node-in-mte_dead_node.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/mm_init.c: only align start of ZONE_MOVABLE on nodes with memory
-Date: Tue, 11 Feb 2025 08:29:00 +0000
+From: I Hsin Cheng <richard120310@gmail.com>
+Subject: maple_tree: use ma_dead_node() in mte_dead_node()
+Date: Tue, 11 Feb 2025 15:18:50 +0800
 
-At the beginning of find_zone_movable_pfns_for_nodes(), it has properly
-set node_states[N_MEMORY] in early_calculate_totalpages().
+Utilize ma_dead_node() in mte_dead_node().  It can prevent decoding the
+maple enode for a second time.  Use the "node" to find parent for
+comparison.
 
-Instead of iterating over all possible nodes, we can just do the alignment
-on nodes with memory.
-
-Link: https://lkml.kernel.org/r/20250211082900.10877-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/20250211071850.330632-1-richard120310@gmail.com
+Signed-off-by: I Hsin Cheng <richard120310@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Shuah khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory
-+++ a/mm/mm_init.c
-@@ -545,7 +545,7 @@ restart:
+--- a/lib/maple_tree.c~maple_tree-use-ma_dead_node-in-mte_dead_node
++++ a/lib/maple_tree.c
+@@ -584,13 +584,10 @@ static __always_inline bool ma_dead_node
+  */
+ static __always_inline bool mte_dead_node(const struct maple_enode *enode)
+ {
+-	struct maple_node *parent, *node;
++	struct maple_node *node;
  
- out2:
- 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
--	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+	for_each_node_state(nid, N_MEMORY) {
- 		unsigned long start_pfn, end_pfn;
+ 	node = mte_to_node(enode);
+-	/* Do not reorder reads from the node prior to the parent check */
+-	smp_rmb();
+-	parent = mte_parent(enode);
+-	return (parent == node);
++	return ma_dead_node(node);
+ }
  
- 		zone_movable_pfn[nid] =
+ /*
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from richard120310@gmail.com are
 
-lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure.patch
-lib-rbtree-split-tests.patch
-lib-rbtree-add-random-seed.patch
-lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
-lib-interval_tree-add-test-case-for-span-iteration.patch
-lib-interval_tree-skip-the-check-before-go-to-the-right-subtree.patch
-lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap.patch
+lib-plistc-add-shortcut-for-plist_requeue.patch
 
