@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE9CB217F55
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 651F7218591
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188495; cv=none; b=OUylNbvqMVpzNF1OFRutVNg4PmhZA/hzSjmr6VrVntuOBU+fVcnKLqS9WEfGb32FjgEhSrZx95UCMnTAPjRWYpB0x/kzW/aWw3jovtq68OUyg6oPiO+sP9Z92anY2r2Flvt10W/TCNWR8t2PY9f2VtIvX8OQFXVgB0EDYWZepRs=
+	t=1742188496; cv=none; b=d97vIEe+2pq17/4DhtzbTMz3qrRDWpPzj5NJBzr6CcSgUufGxYJdfRruELSyUIwgBvkmnLIyGcOKzxdtPOxnIia328u65m52jTZsvuS+O5LuB6732PxjpYnFFc4wDDqco3ehiBIHinPf8XJnLnGPBUecFeA8o+b7Ed4eJ7mcSRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188495; c=relaxed/simple;
-	bh=MoidloJ0/FYh++CsBhXA+RimwUcuWlAh/J0EvktW6fM=;
-	h=Date:To:From:Subject:Message-Id; b=jVyg0ELjNTE6hUgH1y3kK60Ue1UGT1D/sZj2nyb4dfuiYlmLe3V5V0UpZDV/1vMFars6arXsSbIkLknbrJGr/Gz4e+DKI2ohn6oJLIQWAaBk3AD7AtjLg0UY4LX/gLwqj7nIFWH6BIGog+cDa67fmooaq9Iy7ZJ0LjNIrizp4DM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G3+lIw8o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188496; c=relaxed/simple;
+	bh=rbpqZmUcgzlr7yMN1gssgMxffGskmFi/82uO1f5mlf8=;
+	h=Date:To:From:Subject:Message-Id; b=lLHcddp4mIFKM6bTCPbgzesS1CU4NLKUZtv1kHcpqJR+T2gl3jisTf19Nor/M4sKwN4Lo6XbB4HPkQUcqVnpg5LUifULdFXE4dQGQLXJI0e9TJJnCQj4LJF4/LHs6LSXNtmWeSB9GXIy4hBTSH+HpSKR6TGWsdr2/PSY5KfoO6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bh2VXcmb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G3+lIw8o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0D9BC4CEEC;
-	Mon, 17 Mar 2025 05:14:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bh2VXcmb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38BBFC4CEEC;
+	Mon, 17 Mar 2025 05:14:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188494;
-	bh=MoidloJ0/FYh++CsBhXA+RimwUcuWlAh/J0EvktW6fM=;
+	s=korg; t=1742188496;
+	bh=rbpqZmUcgzlr7yMN1gssgMxffGskmFi/82uO1f5mlf8=;
 	h=Date:To:From:Subject:From;
-	b=G3+lIw8oNBw92oDB5HdCP7axS2zicgnvK9Ukdh0vm9c+pZOKXu3cLXiUvmrfz6oI8
-	 0lW0V+dZrA+8lM/TppxqC8LI8EDzzqe2TmCgNlVYe0XfkO9oYVj+CZhD+kyKVeCjQH
-	 XbQxQMU5Ccl2bOJRthZYwY1OMOZ6z6j8a5arZ0lk=
-Date: Sun, 16 Mar 2025 22:14:54 -0700
+	b=bh2VXcmbl2zn5R7spm6rNKr7pNBxDWJFH/9kDQbWHI07M/Q6qsRqHkVInmZ/ruvkH
+	 KehrnR18evwvguq3FoPh76OpfZor+jmsJ898v9pApPWh4ZrWMfTP5BLwydq1Gwh3ho
+	 jcBTPMwhIcUoWfO+3mXo/unLqSdSMXzrspc2KLxs=
+Date: Sun, 16 Mar 2025 22:14:55 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,steven.price@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,maddy@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,corbet@lwn.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-debug_wx-depdendent-on-generic_ptdump.patch removed from -mm tree
-Message-Id: <20250317051454.B0D9BC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-generic_ptdump-and-ptdump_core.patch removed from -mm tree
+Message-Id: <20250317051456.38BBFC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,297 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make DEBUG_WX depdendent on GENERIC_PTDUMP
+     Subject: mm: rename GENERIC_PTDUMP and PTDUMP_CORE
 has been removed from the -mm tree.  Its filename was
-     mm-make-debug_wx-depdendent-on-generic_ptdump.patch
+     mm-rename-generic_ptdump-and-ptdump_core.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: make DEBUG_WX depdendent on GENERIC_PTDUMP
-Date: Wed, 26 Feb 2025 17:54:03 +0530
+Subject: mm: rename GENERIC_PTDUMP and PTDUMP_CORE
+Date: Wed, 26 Feb 2025 17:54:04 +0530
 
-DEBUG_WX selects PTDUMP_CORE without even ensuring that the given platform
-implements GENERIC_PTDUMP.  This problem has been latent until now, as all
-the platforms subscribing ARCH_HAS_DEBUG_WX also subscribe GENERIC_PTDUMP.
+Platforms subscribe into generic ptdump implementation via GENERIC_PTDUMP.
+But generic ptdump gets enabled via PTDUMP_CORE.  These configs
+combination is confusing as they sound very similar and does not
+differentiate between platform's feature subscription and feature
+enablement for ptdump.  Rename the configs as ARCH_HAS_PTDUMP and PTDUMP
+making it more clear and improve readability.
 
-Link: https://lkml.kernel.org/r/20250226122404.1927473-5-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20250226122404.1927473-6-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Steven Price <steven.price@arm.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu> (powerpc)
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
+Cc: Will Deacon <will@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Marc Zyngier <maz@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Steven Price <steven.price@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm64/Kconfig              |    2 +-
+ arch/arm64/include/asm/ptdump.h |    4 ++--
+ arch/arm64/kvm/Kconfig          |    4 ++--
+ arch/arm64/mm/Makefile          |    2 +-
+ arch/powerpc/Kconfig            |    2 +-
+ arch/powerpc/mm/Makefile        |    2 +-
+ arch/riscv/Kconfig              |    2 +-
+ arch/riscv/mm/Makefile          |    2 +-
+ arch/s390/Kconfig               |    2 +-
+ arch/s390/mm/Makefile           |    2 +-
+ arch/x86/Kconfig                |    2 +-
+ arch/x86/Kconfig.debug          |    2 +-
+ arch/x86/mm/Makefile            |    2 +-
+ mm/Kconfig.debug                |   12 ++++++------
+ mm/Makefile                     |    2 +-
+ 15 files changed, 22 insertions(+), 22 deletions(-)
 
---- a/mm/Kconfig.debug~mm-make-debug_wx-depdendent-on-generic_ptdump
+--- a/arch/arm64/include/asm/ptdump.h~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/arm64/include/asm/ptdump.h
+@@ -7,7 +7,7 @@
+ 
+ #include <linux/ptdump.h>
+ 
+-#ifdef CONFIG_PTDUMP_CORE
++#ifdef CONFIG_PTDUMP
+ 
+ #include <linux/mm_types.h>
+ #include <linux/seq_file.h>
+@@ -70,6 +70,6 @@ static inline void ptdump_debugfs_regist
+ #else
+ static inline void note_page(struct ptdump_state *pt_st, unsigned long addr,
+ 			     int level, u64 val) { }
+-#endif /* CONFIG_PTDUMP_CORE */
++#endif /* CONFIG_PTDUMP */
+ 
+ #endif /* __ASM_PTDUMP_H */
+--- a/arch/arm64/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/arm64/Kconfig
+@@ -41,6 +41,7 @@ config ARM64
+ 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
+ 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+ 	select ARCH_HAS_NONLEAF_PMD_YOUNG if ARM64_HAFT
++	select ARCH_HAS_PTDUMP
+ 	select ARCH_HAS_PTE_DEVMAP
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_HW_PTE_YOUNG
+@@ -157,7 +158,6 @@ config ARM64
+ 	select GENERIC_IRQ_SHOW_LEVEL
+ 	select GENERIC_LIB_DEVMEM_IS_ALLOWED
+ 	select GENERIC_PCI_IOMAP
+-	select GENERIC_PTDUMP
+ 	select GENERIC_SCHED_CLOCK
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_TIME_VSYSCALL
+--- a/arch/arm64/kvm/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/arm64/kvm/Kconfig
+@@ -71,8 +71,8 @@ config PTDUMP_STAGE2_DEBUGFS
+ 	depends on KVM
+ 	depends on DEBUG_KERNEL
+ 	depends on DEBUG_FS
+-	depends on GENERIC_PTDUMP
+-	select PTDUMP_CORE
++	depends on ARCH_HAS_PTDUMP
++	select PTDUMP
+ 	default n
+ 	help
+ 	  Say Y here if you want to show the stage-2 kernel pagetables
+--- a/arch/arm64/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/arm64/mm/Makefile
+@@ -5,7 +5,7 @@ obj-y				:= dma-mapping.o extable.o faul
+ 				   context.o proc.o pageattr.o fixmap.o
+ obj-$(CONFIG_ARM64_CONTPTE)	+= contpte.o
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+-obj-$(CONFIG_PTDUMP_CORE)	+= ptdump.o
++obj-$(CONFIG_PTDUMP)		+= ptdump.o
+ obj-$(CONFIG_PTDUMP_DEBUGFS)	+= ptdump_debugfs.o
+ obj-$(CONFIG_TRANS_TABLE)	+= trans_pgd.o
+ obj-$(CONFIG_TRANS_TABLE)	+= trans_pgd-asm.o
+--- a/arch/powerpc/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/powerpc/Kconfig
+@@ -148,6 +148,7 @@ config PPC
+ 	select ARCH_HAS_PHYS_TO_DMA
+ 	select ARCH_HAS_PMEM_API
+ 	select ARCH_HAS_PREEMPT_LAZY
++	select ARCH_HAS_PTDUMP
+ 	select ARCH_HAS_PTE_DEVMAP		if PPC_BOOK3S_64
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_SCALED_CPUTIME		if VIRT_CPU_ACCOUNTING_NATIVE && PPC_BOOK3S_64
+@@ -206,7 +207,6 @@ config PPC
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_IRQ_SHOW_LEVEL
+ 	select GENERIC_PCI_IOMAP		if PCI
+-	select GENERIC_PTDUMP
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_TIME_VSYSCALL
+ 	select GENERIC_VDSO_TIME_NS
+--- a/arch/powerpc/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/powerpc/mm/Makefile
+@@ -15,5 +15,5 @@ obj-$(CONFIG_NUMA) += numa.o
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+ obj-$(CONFIG_NOT_COHERENT_CACHE) += dma-noncoherent.o
+ obj-$(CONFIG_PPC_COPRO_BASE)	+= copro_fault.o
+-obj-$(CONFIG_PTDUMP_CORE)	+= ptdump/
++obj-$(CONFIG_PTDUMP)		+= ptdump/
+ obj-$(CONFIG_KASAN)		+= kasan/
+--- a/arch/riscv/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/riscv/Kconfig
+@@ -43,6 +43,7 @@ config RISCV
+ 	select ARCH_HAS_PMEM_API
+ 	select ARCH_HAS_PREEMPT_LAZY
+ 	select ARCH_HAS_PREPARE_SYNC_CORE_CMD
++	select ARCH_HAS_PTDUMP if MMU
+ 	select ARCH_HAS_PTE_DEVMAP if 64BIT && MMU
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_SET_DIRECT_MAP if MMU
+@@ -112,7 +113,6 @@ config RISCV
+ 	select GENERIC_IRQ_SHOW_LEVEL
+ 	select GENERIC_LIB_DEVMEM_IS_ALLOWED
+ 	select GENERIC_PCI_IOMAP
+-	select GENERIC_PTDUMP if MMU
+ 	select GENERIC_SCHED_CLOCK
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_TIME_VSYSCALL if MMU && 64BIT
+--- a/arch/riscv/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/riscv/mm/Makefile
+@@ -19,7 +19,7 @@ obj-y += context.o
+ obj-y += pmem.o
+ 
+ obj-$(CONFIG_HUGETLB_PAGE) += hugetlbpage.o
+-obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
++obj-$(CONFIG_PTDUMP) += ptdump.o
+ obj-$(CONFIG_KASAN)   += kasan_init.o
+ 
+ ifdef CONFIG_KASAN
+--- a/arch/s390/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/s390/Kconfig
+@@ -96,6 +96,7 @@ config S390
+ 	select ARCH_HAS_MEM_ENCRYPT
+ 	select ARCH_HAS_NMI_SAFE_THIS_CPU_OPS
+ 	select ARCH_HAS_PREEMPT_LAZY
++	select ARCH_HAS_PTDUMP
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_SCALED_CPUTIME
+ 	select ARCH_HAS_SET_DIRECT_MAP
+@@ -163,7 +164,6 @@ config S390
+ 	select GENERIC_CPU_VULNERABILITIES
+ 	select GENERIC_ENTRY
+ 	select GENERIC_GETTIMEOFDAY
+-	select GENERIC_PTDUMP
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_TIME_VSYSCALL
+ 	select GENERIC_VDSO_TIME_NS
+--- a/arch/s390/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/s390/mm/Makefile
+@@ -9,6 +9,6 @@ obj-y		+= page-states.o pageattr.o pgtab
+ obj-$(CONFIG_CMM)		+= cmm.o
+ obj-$(CONFIG_DEBUG_VIRTUAL)	+= physaddr.o
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+-obj-$(CONFIG_PTDUMP_CORE)	+= dump_pagetables.o
++obj-$(CONFIG_PTDUMP)		+= dump_pagetables.o
+ obj-$(CONFIG_PGSTE)		+= gmap.o
+ obj-$(CONFIG_PFAULT)		+= pfault.o
+--- a/arch/x86/Kconfig~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/x86/Kconfig
+@@ -26,6 +26,7 @@ config X86_64
+ 	depends on 64BIT
+ 	# Options that are inherently 64-bit kernel only:
+ 	select ARCH_HAS_GIGANTIC_PAGE
++	select ARCH_HAS_PTDUMP
+ 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
+ 	select ARCH_SUPPORTS_PER_VMA_LOCK
+ 	select ARCH_SUPPORTS_HUGE_PFNMAP if TRANSPARENT_HUGEPAGE
+@@ -175,7 +176,6 @@ config X86
+ 	select GENERIC_IRQ_RESERVATION_MODE
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_PENDING_IRQ		if SMP
+-	select GENERIC_PTDUMP
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_TIME_VSYSCALL
+ 	select GENERIC_GETTIMEOFDAY
+--- a/arch/x86/Kconfig.debug~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/x86/Kconfig.debug
+@@ -59,7 +59,7 @@ config EARLY_PRINTK_USB_XDBC
+ config EFI_PGT_DUMP
+ 	bool "Dump the EFI pagetable"
+ 	depends on EFI
+-	select PTDUMP_CORE
++	select PTDUMP
+ 	help
+ 	  Enable this if you want to dump the EFI page table before
+ 	  enabling virtual mode. This can be used to debug miscellaneous
+--- a/arch/x86/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
++++ a/arch/x86/mm/Makefile
+@@ -39,7 +39,7 @@ CFLAGS_fault.o := -I $(src)/../include/a
+ obj-$(CONFIG_X86_32)		+= pgtable_32.o iomap_32.o
+ 
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+-obj-$(CONFIG_PTDUMP_CORE)	+= dump_pagetables.o
++obj-$(CONFIG_PTDUMP)		+= dump_pagetables.o
+ obj-$(CONFIG_PTDUMP_DEBUGFS)	+= debug_pagetables.o
+ 
+ obj-$(CONFIG_HIGHMEM)		+= highmem_32.o
+--- a/mm/Kconfig.debug~mm-rename-generic_ptdump-and-ptdump_core
 +++ a/mm/Kconfig.debug
-@@ -186,6 +186,7 @@ config ARCH_HAS_DEBUG_WX
+@@ -186,9 +186,9 @@ config ARCH_HAS_DEBUG_WX
  config DEBUG_WX
  	bool "Warn on W+X mappings at boot"
  	depends on ARCH_HAS_DEBUG_WX
-+	depends on GENERIC_PTDUMP
+-	depends on GENERIC_PTDUMP
++	depends on ARCH_HAS_PTDUMP
  	depends on MMU
- 	select PTDUMP_CORE
+-	select PTDUMP_CORE
++	select PTDUMP
  	help
+ 	  Generate a warning if any W+X mappings are found at boot.
+ 
+@@ -213,18 +213,18 @@ config DEBUG_WX
+ 
+ 	  If in doubt, say "Y".
+ 
+-config GENERIC_PTDUMP
++config ARCH_HAS_PTDUMP
+ 	bool
+ 
+-config PTDUMP_CORE
++config PTDUMP
+ 	bool
+ 
+ config PTDUMP_DEBUGFS
+ 	bool "Export kernel pagetable layout to userspace via debugfs"
+ 	depends on DEBUG_KERNEL
+ 	depends on DEBUG_FS
+-	depends on GENERIC_PTDUMP
+-	select PTDUMP_CORE
++	depends on ARCH_HAS_PTDUMP
++	select PTDUMP
+ 	help
+ 	  Say Y here if you want to show the kernel pagetable layout in a
+ 	  debugfs file. This information is only useful for kernel developers
+--- a/mm/Makefile~mm-rename-generic_ptdump-and-ptdump_core
++++ a/mm/Makefile
+@@ -139,7 +139,7 @@ obj-$(CONFIG_ZONE_DEVICE) += memremap.o
+ obj-$(CONFIG_HMM_MIRROR) += hmm.o
+ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
+ obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
+-obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
++obj-$(CONFIG_PTDUMP) += ptdump.o
+ obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
+ obj-$(CONFIG_IO_MAPPING) += io-mapping.o
+ obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
