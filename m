@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2825A2BB13
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 450D4217673
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188406; cv=none; b=hUfLP+HOC49VZyaG05RBFmDDGWui8uAcPyVs0IScTk14pXaw+8TDjNPG7sFyvEYy1Gz+OU26QnNvQ8wVyKb9vbC0rg8w+WK+P5nskDCoTzf6W6zYZzgiwyHsrcbrJEQDrdRI8bx4cM34ZshZbnfNTA/PJLFOgLu0ylYmz/66Pbs=
+	t=1742188407; cv=none; b=U/iJkcZrgVYXZ3uVgJkrrxLaqXjjuxTnnSQ2srxS4ekjkS/ZG6wSaPaIn/rLXxSvHxRPCZ8CRpCeA4ZF5YgipVf6vNC11Zjs/ei1be2UVPJxAxMyeTd309UTMsyZBDxMVIYQ0w0YpV6mDrm97E04XC0YzEzd5Jb7iqZ6sA+S+/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188406; c=relaxed/simple;
-	bh=8uFo8cgJLoJMuzrF4r/VCOhVOoHyXXa2oArKKXTCduk=;
-	h=Date:To:From:Subject:Message-Id; b=suh5KfGlrhAD+luuoAvLIXt48MR6Lu8wUngIF0zklA5ygCUu96wdGIC7j2+Fi6R/8HSZUesX6ZPwNxDPjFSDrOh/6zBJldFnosRZV0DD0Fo0uMNrXIHTGNriXqNk1CeWwzcSZuILHORCUWUzWbQkQWw2GV2GRcV5ytz1tnY4NXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U3DpOkTU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188407; c=relaxed/simple;
+	bh=dSbwugz1RABRYxIbNA+bRYR4QPIPNgPRqOKQ5nXXcWA=;
+	h=Date:To:From:Subject:Message-Id; b=pz5/chycyI9gScLZey07lDZFW26ZKsUIH7CyYzlGMlN4xLEwL5jYyT3a7bwNJ+2b3IPq9m3tD7uUXsSL4cG7Ukk+h/wOr6h2QNfTv8q1nOYt4MQLUKuKpyWXoJjAkesOymFeThry4bohNAzRP7NIRRN/fvNHZTNevLEAyq6hixo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c0vVamvw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U3DpOkTU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2E70C4CEEC;
-	Mon, 17 Mar 2025 05:13:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c0vVamvw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9E5C4CEEC;
+	Mon, 17 Mar 2025 05:13:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188406;
-	bh=8uFo8cgJLoJMuzrF4r/VCOhVOoHyXXa2oArKKXTCduk=;
+	s=korg; t=1742188407;
+	bh=dSbwugz1RABRYxIbNA+bRYR4QPIPNgPRqOKQ5nXXcWA=;
 	h=Date:To:From:Subject:From;
-	b=U3DpOkTUUCcqUdoO3kGiaX1y0+wNJ5yrZBu56+PEf77JNE1XvDktz4TuQ7hBHIrD+
-	 f5QVtXOhl5IBlirhNnU7ATXDAcZgCuthdawuX/6fvpVmM93TolPqqVMTocsBh0LP39
-	 oalGbAPNPr4thHpygpHNB3Ov93SxYp+D/7OaIi/M=
-Date: Sun, 16 Mar 2025 22:13:25 -0700
+	b=c0vVamvwdlReaXf5/WTrUAYEjhSIxcv6Li8Mi35wjlFRtAQkrcSGZZF21H/ZevBGj
+	 XX0CUARw/vuNUlG71/uiRUsWDa74t0iKRYOYdC51sjYJ0qDC7f3fZ3XWFRI45RuybS
+	 HNFUTZ6p8pz+52HH9wt0VS7Q63uTcGA5kKD6Xguw=
+Date: Sun, 16 Mar 2025 22:13:26 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch removed from -mm tree
-Message-Id: <20250317051325.F2E70C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-document-unmapped-damos-filter-type.patch removed from -mm tree
+Message-Id: <20250317051327.1A9E5C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: implement a new DAMOS filter type for unmapped pages
+     Subject: Docs/mm/damon/design: document unmapped DAMOS filter type
 has been removed from the -mm tree.  Its filename was
-     mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages.patch
+     docs-mm-damon-design-document-unmapped-damos-filter-type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: implement a new DAMOS filter type for unmapped pages
-Date: Wed, 19 Feb 2025 14:01:45 -0800
+Subject: Docs/mm/damon/design: document unmapped DAMOS filter type
+Date: Wed, 19 Feb 2025 14:01:46 -0800
 
-Patch series "mm/damon: introduce DAMOS filter type for unmapped pages".
+Document availability and meaning of unmapped DAMOS filter type on design
+document.  Since introduction of the type requires no additional user ABI,
+usage and ABI document need no update.
 
-User decides whether their memory will be mapped or unmapped.  It implies
-that the two types of memory can have different characteristics and
-management requirements.  Provide the DAMON-observaibility DAMOS-operation
-capability for the different types by introducing a new DAMOS filter type
-for unmapped pages.
-
-
-This patch (of 2):
-
-Implement yet another DAMOS filter type for unmapped pages on DAMON kernel
-API, and add support of it from the physical address space DAMON
-operations set (paddr).  Since it is for only unmapped pages, support from
-the virtual address spaces DAMON operations set (vaddr) is not required.
-
-Link: https://lkml.kernel.org/r/20250219220146.133650-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250219220146.133650-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250219220146.133650-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h    |    2 ++
- mm/damon/paddr.c         |    3 +++
- mm/damon/sysfs-schemes.c |    1 +
- 3 files changed, 6 insertions(+)
+ Documentation/mm/damon/design.rst |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages
-+++ a/include/linux/damon.h
-@@ -337,6 +337,7 @@ struct damos_stat {
-  * @DAMOS_FILTER_TYPE_MEMCG:	Specific memcg's pages.
-  * @DAMOS_FILTER_TYPE_YOUNG:	Recently accessed pages.
-  * @DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:	Page is part of a hugepage.
-+ * @DAMOS_FILTER_TYPE_UNMAPPED:	Unmapped pages.
-  * @DAMOS_FILTER_TYPE_ADDR:	Address range.
-  * @DAMOS_FILTER_TYPE_TARGET:	Data Access Monitoring target.
-  * @NR_DAMOS_FILTER_TYPES:	Number of filter types.
-@@ -357,6 +358,7 @@ enum damos_filter_type {
- 	DAMOS_FILTER_TYPE_MEMCG,
- 	DAMOS_FILTER_TYPE_YOUNG,
- 	DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
-+	DAMOS_FILTER_TYPE_UNMAPPED,
- 	DAMOS_FILTER_TYPE_ADDR,
- 	DAMOS_FILTER_TYPE_TARGET,
- 	NR_DAMOS_FILTER_TYPES,
---- a/mm/damon/paddr.c~mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages
-+++ a/mm/damon/paddr.c
-@@ -236,6 +236,9 @@ static bool damos_pa_filter_match(struct
- 		matched = filter->sz_range.min <= folio_sz &&
- 			  folio_sz <= filter->sz_range.max;
- 		break;
-+	case DAMOS_FILTER_TYPE_UNMAPPED:
-+		matched = !folio_mapped(folio) || !folio_raw_mapping(folio);
-+		break;
- 	default:
- 		break;
- 	}
---- a/mm/damon/sysfs-schemes.c~mm-damon-implement-a-new-damos-filter-type-for-unmapped-pages
-+++ a/mm/damon/sysfs-schemes.c
-@@ -331,6 +331,7 @@ static const char * const damon_sysfs_sc
- 	"memcg",
- 	"young",
- 	"hugepage_size",
-+	"unmapped",
- 	"addr",
- 	"target",
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-unmapped-damos-filter-type
++++ a/Documentation/mm/damon/design.rst
+@@ -617,6 +617,8 @@ Below ``type`` of filters are currently
+           scheme.
+     - hugepage_size
+         - Applied to pages that managed in a given size range.
++    - unmapped
++        - Applied to pages that unmapped.
+ 
+ To know how user-space can set the filters via :ref:`DAMON sysfs interface
+ <sysfs_interface>`, refer to :ref:`filters <sysfs_filters>` part of the
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
