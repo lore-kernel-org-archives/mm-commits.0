@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6328F217F55
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A01421858D
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188486; cv=none; b=sv/N7l6KaBOuoS/MnGVQYqx6Ir42tpukZFETFPSU2jT+HvaCDp29G9nFEHVre4+B0VMmVJ0nPoZT7ry6nqh6FYfG59w4gZjlXQNqCRL+L/R2e9M55ynwePaUn6NQwl78e7euMFY0XORSIgzg+LWupszkRZ6HquigzHz1dfLQT0s=
+	t=1742188488; cv=none; b=DX/+I79C+rwmuO9oBpFX1ZU8B9CrpK7pnJ9XhzEo1TOLJWqZEb1xa2+hOy6DwEnXH9d1NwYhh6ibxB/n0eSnmwtrjL2ZTJpyDvjXYcav3L8Y4Yw00uPsV6oaAMLeHFZw7TCpZuNdkmpZDsoR9szoPeHY8BWhK4YhZ6pixL8n7qA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188486; c=relaxed/simple;
-	bh=JeADjEuSmYdv65SQsOYafHIZxQTe5i7g6LvHtDv3Hr0=;
-	h=Date:To:From:Subject:Message-Id; b=nFF9rSRHCy++BNfmGp6EXrR4cRRLjS/+DXU0uR7aV8+ybaF7JiXf3ZEy0cgipM+YR+WD3TOK7z7Xui2rVuJsTk4XaQP2sFC7E9umWZoTt+4Xk/olzMOc6RbPA8d28SfRIyVaM7/cMflYfqyGJQ/+Nl7KKX28dwpEAog0GNIY+3U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XCysXMdQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188488; c=relaxed/simple;
+	bh=W2WNNA6lUvOe3myQgx1dnSay4XBhAJw+pn+d0Tcs0fY=;
+	h=Date:To:From:Subject:Message-Id; b=qMY7ZR6PpjmOOu3NjUce3t3AX0ZrE0COgncovmlggXQUoYC3s1rpJHX73ApU4K2j1iojvwv1o2LtsoEeoPd0YUJyWJe4lWqnVwwbbCXp0pYkElZ8m4eEM59q38WTffakzmjnt+yQNavaC18Tjwuw74D+WeNmB0TOCjk9U9DKyHc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r1+GMJMm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XCysXMdQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 379ABC4CEEC;
-	Mon, 17 Mar 2025 05:14:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r1+GMJMm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D778C4CEEC;
+	Mon, 17 Mar 2025 05:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188486;
-	bh=JeADjEuSmYdv65SQsOYafHIZxQTe5i7g6LvHtDv3Hr0=;
+	s=korg; t=1742188488;
+	bh=W2WNNA6lUvOe3myQgx1dnSay4XBhAJw+pn+d0Tcs0fY=;
 	h=Date:To:From:Subject:From;
-	b=XCysXMdQpwvhkc65FMw5FkC9x1E7mXd47WNTEGkKj0vSdo7h0XSUwxAOeRPUQtJLz
-	 dW3FiN4P5LpiDNXc6cnFTYUb3T9U4WaMAVXjY+BQgZ5H91OJhdxJmgpYBXtfdNTGCx
-	 xsBnuxqh/0tjEbsfAtFBgj+pz8bsbChICabnAKWA=
-Date: Sun, 16 Mar 2025 22:14:45 -0700
+	b=r1+GMJMmp/zsakJXfizeQsJOKVoJwSj+dx2V+OEMYDdKuBci9dZZfhIOEullmZVcl
+	 k6sBXqfwzaVYs7e9ZDiyWtvpKDxlL8zoyD23y12KsrLpNwJ1NqYpG3LHdePg5WA+4f
+	 6Hfit0EhYEN/q/Qj0Z93eJvHoVYi5aaebmr4OC8E=
+Date: Sun, 16 Mar 2025 22:14:47 -0700
 To: mm-commits@vger.kernel.org,jglisse@redhat.com,jgg@nvidia.com,apopple@nvidia.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-document-restore_exclusive_pte.patch removed from -mm tree
-Message-Id: <20250317051446.379ABC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmu_notifier-use-mmu_notify_clear-in-remove_device_exclusive_entry.patch removed from -mm tree
+Message-Id: <20250317051448.1D778C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: document restore_exclusive_pte()
+     Subject: mm/mmu_notifier: use MMU_NOTIFY_CLEAR in remove_device_exclusive_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-document-restore_exclusive_pte.patch
+     mm-mmu_notifier-use-mmu_notify_clear-in-remove_device_exclusive_entry.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: document restore_exclusive_pte()
-Date: Wed, 26 Feb 2025 14:22:56 +0100
+Subject: mm/mmu_notifier: use MMU_NOTIFY_CLEAR in remove_device_exclusive_entry()
+Date: Wed, 26 Feb 2025 14:22:57 +0100
 
-Let's document how this function is to be used, and why the folio lock is
-involved.
+Let's limit the use of MMU_NOTIFY_EXCLUSIVE to the case where we convert a
+present PTE to device-exclusive.  For the other case, we can simply use
+MMU_NOTIFY_CLEAR, because it really is clearing the device-exclusive entry
+first, to then install the present entry.
 
-Link: https://lkml.kernel.org/r/20250226132257.2826043-5-david@redhat.com
+Update the documentation of MMU_NOTIFY_EXCLUSIVE, to document the single
+use case more thoroughly.
+
+If ever required, we could add a separate MMU_NOTIFY_CLEAR_EXCLUSIVE; for
+now using MMU_NOTIFY_CLEAR seems to be sufficient.
+
+Link: https://lkml.kernel.org/r/20250226132257.2826043-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
@@ -58,44 +66,38 @@ Cc: Jérôme Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ include/linux/mmu_notifier.h |    8 ++++----
+ mm/memory.c                  |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/memory.c~mm-memory-document-restore_exclusive_pte
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifier-use-mmu_notify_clear-in-remove_device_exclusive_entry
++++ a/include/linux/mmu_notifier.h
+@@ -43,10 +43,10 @@ struct mmu_interval_notifier;
+  * a device driver to possibly ignore the invalidation if the
+  * owner field matches the driver's device private pgmap owner.
+  *
+- * @MMU_NOTIFY_EXCLUSIVE: to signal a device driver that the device will no
+- * longer have exclusive access to the page. When sent during creation of an
+- * exclusive range the owner will be initialised to the value provided by the
+- * caller of make_device_exclusive(), otherwise the owner will be NULL.
++ * @MMU_NOTIFY_EXCLUSIVE: conversion of a page table entry to device-exclusive.
++ * The owner is initialized to the value provided by the caller of
++ * make_device_exclusive(), such that this caller can filter out these
++ * events.
+  */
+ enum mmu_notifier_event {
+ 	MMU_NOTIFY_UNMAP = 0,
+--- a/mm/memory.c~mm-mmu_notifier-use-mmu_notify_clear-in-remove_device_exclusive_entry
 +++ a/mm/memory.c
-@@ -716,6 +716,32 @@ struct folio *vm_normal_folio_pmd(struct
- }
- #endif
- 
-+/**
-+ * restore_exclusive_pte - Restore a device-exclusive entry
-+ * @vma: VMA covering @address
-+ * @folio: the mapped folio
-+ * @page: the mapped folio page
-+ * @address: the virtual address
-+ * @ptep: pte pointer into the locked page table mapping the folio page
-+ * @orig_pte: pte value at @ptep
-+ *
-+ * Restore a device-exclusive non-swap entry to an ordinary present pte.
-+ *
-+ * The folio and the page table must be locked, and MMU notifiers must have
-+ * been called to invalidate any (exclusive) device mappings.
-+ *
-+ * Locking the folio makes sure that anybody who just converted the pte to
-+ * a device-exclusive entry can map it into the device to make forward
-+ * progress without others converting it back until the folio was unlocked.
-+ *
-+ * If the folio lock ever becomes an issue, we can stop relying on the folio
-+ * lock; it might make some scenarios with heavy thrashing less likely to
-+ * make forward progress, but these scenarios might not be valid use cases.
-+ *
-+ * Note that the folio lock does not protect against all cases of concurrent
-+ * page table modifications (e.g., MADV_DONTNEED, mprotect), so device drivers
-+ * must use MMU notifiers to sync against any concurrent changes.
-+ */
- static void restore_exclusive_pte(struct vm_area_struct *vma,
- 		struct folio *folio, struct page *page, unsigned long address,
- 		pte_t *ptep, pte_t orig_pte)
+@@ -4003,7 +4003,7 @@ static vm_fault_t remove_device_exclusiv
+ 		folio_put(folio);
+ 		return ret;
+ 	}
+-	mmu_notifier_range_init_owner(&range, MMU_NOTIFY_EXCLUSIVE, 0,
++	mmu_notifier_range_init_owner(&range, MMU_NOTIFY_CLEAR, 0,
+ 				vma->vm_mm, vmf->address & PAGE_MASK,
+ 				(vmf->address & PAGE_MASK) + PAGE_SIZE, NULL);
+ 	mmu_notifier_invalidate_range_start(&range);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
