@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1344216602
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:12:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11B36216602
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188379; cv=none; b=QlZXdzAhCQ/QKsqed/v+iZWn6cprKzhimR4+pipKDvNW+maTip2M/1e8s433MLURlLzgMojIINHs9X3Son//9y8mUBJ+8uQTWIEl17WI9ZPZaIn6IfSr7k+aLsdYe3zoWR0sfElImUvd+sNUlnjWlVrf+a2GaYuo0LqrUjZ9CN8=
+	t=1742188382; cv=none; b=t/x9YB4/gktOLH+vSDIJXpVMIgWN+rxGwKVZeBfDEoNSJmehIqwyB9MmjG8xtHOhBBvO0ErRd81TRZBLWMcE/chaMLo27qPb/RiYGqRnnOFDTuJQ1E32vUGo3doMNNqmoOExz64uzYHqQvni+atIIE55za0XYwYfwjRhXKBca0c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188379; c=relaxed/simple;
-	bh=fGXNExOWRMHuOaB4B8fezggA20kAhsbi5HCgixF95xc=;
-	h=Date:To:From:Subject:Message-Id; b=lhPy5qYikukipF/4Pn5j+mKaz2gQvuw5rFQIJyIAMituqockNNQSmFDyrvlEN++TOFcA+LdVKkfIjiZHI5HLo3+pNHEBomPAKfqWy0ZCHvKRMphxyIgRvPOZcD+/9gvSl+5I5jSCae5EuALO64Az/7/1JQ2mWR/dH/jCzd8kuac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q+ZqT39X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188382; c=relaxed/simple;
+	bh=vKofIYB6Eb9eqb+Q/XV0IXXX785YoPOR/RydZetoZQk=;
+	h=Date:To:From:Subject:Message-Id; b=J8Xjs2sf697wEfh9syNXqWqui6f9+redvjmBKjcrrDNQJSc8CYlceqfO2MH+N6sWnEmkAnOCJWsWumgBQ60qcoWvxnWV/SMjo9eugNi9UcqrIsc15JBe6nhKhmqzmXqIki1YZkodpXAmg4XLom0Jr6zqeInMAz+mE8rWZfNSFQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ulWH86Hx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q+ZqT39X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 815D5C4CEEC;
-	Mon, 17 Mar 2025 05:12:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ulWH86Hx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC3B6C4CEEC;
+	Mon, 17 Mar 2025 05:13:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188379;
-	bh=fGXNExOWRMHuOaB4B8fezggA20kAhsbi5HCgixF95xc=;
+	s=korg; t=1742188381;
+	bh=vKofIYB6Eb9eqb+Q/XV0IXXX785YoPOR/RydZetoZQk=;
 	h=Date:To:From:Subject:From;
-	b=q+ZqT39XHn2CcnlDmWiS1ByQf3Mm46QE3RYgQJP2CDzzeDsZr0krL/kXtmE8ShAfI
-	 /Y1/hsnrWZ4TdtIWZL3MekplG76pqqi46siwnvAYCvF/jVzUJ5h5s7l8Z9qdIylP1R
-	 QWZ7YRROq35/7qA8f1j2MFQB5UbPlotjuBFN+U0s=
-Date: Sun, 16 Mar 2025 22:12:59 -0700
+	b=ulWH86HxpJAO66pLlOhJtvhzHGMRgIm/ThRIGfNHFzqE7XAjH1jGmGDalbBHnrG1o
+	 tZy4AFlO8devmf5RwuM6taketl/4yi7TDwWLFxPEW9hVnXNj7IUkZFmfHHdkrO9q0e
+	 PiuaFaNrZ3nOuurfTgTPqnzYMabPnsaMLE7eEl44=
+Date: Sun, 16 Mar 2025 22:13:01 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,arnd@arndb.de,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-check-bootmem-pages-for-zone-intersections.patch removed from -mm tree
-Message-Id: <20250317051259.815D5C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparse-add-vmemmap__hvo-functions.patch removed from -mm tree
+Message-Id: <20250317051301.DC3B6C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,37 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: check bootmem pages for zone intersections
+     Subject: mm/sparse: add vmemmap_*_hvo functions
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-check-bootmem-pages-for-zone-intersections.patch
+     mm-sparse-add-vmemmap__hvo-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: check bootmem pages for zone intersections
-Date: Fri, 28 Feb 2025 18:29:14 +0000
+Subject: mm/sparse: add vmemmap_*_hvo functions
+Date: Fri, 28 Feb 2025 18:29:15 +0000
 
-Bootmem hugetlb pages are allocated using memblock, which isn't (and
-mostly can't be) aware of zones.
+Add a few functions to enable early HVO:
 
-So, they may end up crossing zone boundaries.  This would create
-confusion, a hugetlb page that is part of multiple zones is bad.  Worse,
-HVO might then end up stealthily re-assigning pages to a different zone
-when a hugetlb page is freed, since the tail page structures beyond the
-first vmemmap page would inherit the zone of the first page structures.
+vmemmap_populate_hvo
+vmemmap_undo_hvo
+vmemmap_wrprotect_hvo
 
-While the chance of this happening is low, you can definitely create a
-configuration where this happens (especially using ZONE_MOVABLE).
+The populate and undo functions are expected to be used in early init,
+from the sparse_init_nid_early() function.  The wrprotect function is to
+be used, potentially, later.
 
-To avoid this issue, check if bootmem hugetlb pages intersect with
-multiple zones during the gather phase, and discard them, handing them to
-the page allocator, if they do.  Record the number of invalid bootmem
-pages per node and subtract them from the number of available pages at the
-end, making it easier to do these checks in multiple places later on.
+To implement these functions, mostly re-use the existing compound pages
+vmemmap logic used by DAX.  vmemmap_populate_address has its argument
+changed a bit in this commit: the page structure passed in to be reused in
+the mapping is replaced by a PFN and a flag.  The flag indicates whether
+an extra ref should be taken on the vmemmap page containing the head page
+structure.  Taking the ref is appropriate to for DAX / ZONE_DEVICE, but
+not for HugeTLB HVO.
 
-Link: https://lkml.kernel.org/r/20250228182928.2645936-14-fvdl@google.com
+The HugeTLB vmemmap optimization maps tail page structure pages read-only.
+The vmemmap_wrprotect_hvo function that does this is implemented
+separately, because it cannot be guaranteed that reserved page structures
+will not be write accessed during memory initialization.  Even with
+CONFIG_DEFERRED_STRUCT_PAGE_INIT, they might still be written to (if they
+are at the bottom of a zone).  So, vmemmap_populate_hvo leaves the tail
+page structure pages RW initially, and then later during initialization,
+after memmap init is fully done, vmemmap_wrprotect_hvo must be called to
+finish the job.
+
+Subsequent commits will use these functions for early HugeTLB HVO.
+
+Link: https://lkml.kernel.org/r/20250228182928.2645936-15-fvdl@google.com
 Signed-off-by: Frank van der Linden <fvdl@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -89,160 +101,268 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c  |   61 ++++++++++++++++++++++++++++++++++++++++++++++--
- mm/internal.h |    2 +
- mm/mm_init.c  |   25 +++++++++++++++++++
- 3 files changed, 86 insertions(+), 2 deletions(-)
+ include/linux/mm.h  |    9 ++
+ mm/sparse-vmemmap.c |  141 +++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 135 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-check-bootmem-pages-for-zone-intersections
-+++ a/mm/hugetlb.c
-@@ -62,6 +62,7 @@ static unsigned long hugetlb_cma_size_in
- static unsigned long hugetlb_cma_size __initdata;
+--- a/include/linux/mm.h~mm-sparse-add-vmemmap__hvo-functions
++++ a/include/linux/mm.h
+@@ -3937,7 +3937,8 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd,
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+ pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+ pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-			    struct vmem_altmap *altmap, struct page *reuse);
++			    struct vmem_altmap *altmap, unsigned long ptpfn,
++			    unsigned long flags);
+ void *vmemmap_alloc_block(unsigned long size, int node);
+ struct vmem_altmap;
+ void *vmemmap_alloc_block_buf(unsigned long size, int node,
+@@ -3953,6 +3954,12 @@ int vmemmap_populate_hugepages(unsigned
+ 			       int node, struct vmem_altmap *altmap);
+ int vmemmap_populate(unsigned long start, unsigned long end, int node,
+ 		struct vmem_altmap *altmap);
++int vmemmap_populate_hvo(unsigned long start, unsigned long end, int node,
++			 unsigned long headsize);
++int vmemmap_undo_hvo(unsigned long start, unsigned long end, int node,
++		     unsigned long headsize);
++void vmemmap_wrprotect_hvo(unsigned long start, unsigned long end, int node,
++			  unsigned long headsize);
+ void vmemmap_populate_print_last(void);
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ void vmemmap_free(unsigned long start, unsigned long end,
+--- a/mm/sparse-vmemmap.c~mm-sparse-add-vmemmap__hvo-functions
++++ a/mm/sparse-vmemmap.c
+@@ -30,6 +30,13 @@
  
- __initdata struct list_head huge_boot_pages[MAX_NUMNODES];
-+static unsigned long hstate_boot_nrinvalid[HUGE_MAX_HSTATE] __initdata;
+ #include <asm/dma.h>
+ #include <asm/pgalloc.h>
++#include <asm/tlbflush.h>
++
++/*
++ * Flags for vmemmap_populate_range and friends.
++ */
++/* Get a ref on the head page struct page, for ZONE_DEVICE compound pages */
++#define VMEMMAP_POPULATE_PAGEREF	0x0001
  
- /*
-  * Due to ordering constraints across the init code for various
-@@ -3316,6 +3317,44 @@ static void __init prep_and_add_bootmem_
+ #include "internal.h"
+ 
+@@ -144,17 +151,18 @@ void __meminit vmemmap_verify(pte_t *pte
+ 
+ pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+ 				       struct vmem_altmap *altmap,
+-				       struct page *reuse)
++				       unsigned long ptpfn, unsigned long flags)
+ {
+ 	pte_t *pte = pte_offset_kernel(pmd, addr);
+ 	if (pte_none(ptep_get(pte))) {
+ 		pte_t entry;
+ 		void *p;
+ 
+-		if (!reuse) {
++		if (ptpfn == (unsigned long)-1) {
+ 			p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
+ 			if (!p)
+ 				return NULL;
++			ptpfn = PHYS_PFN(__pa(p));
+ 		} else {
+ 			/*
+ 			 * When a PTE/PMD entry is freed from the init_mm
+@@ -165,10 +173,10 @@ pte_t * __meminit vmemmap_pte_populate(p
+ 			 * and through vmemmap_populate_compound_pages() when
+ 			 * slab is available.
+ 			 */
+-			get_page(reuse);
+-			p = page_to_virt(reuse);
++			if (flags & VMEMMAP_POPULATE_PAGEREF)
++				get_page(pfn_to_page(ptpfn));
+ 		}
+-		entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
++		entry = pfn_pte(ptpfn, PAGE_KERNEL);
+ 		set_pte_at(&init_mm, addr, pte, entry);
  	}
- }
+ 	return pte;
+@@ -238,7 +246,8 @@ pgd_t * __meminit vmemmap_pgd_populate(u
  
-+static bool __init hugetlb_bootmem_page_zones_valid(int nid,
-+						    struct huge_bootmem_page *m)
-+{
-+	unsigned long start_pfn;
-+	bool valid;
-+
-+	start_pfn = virt_to_phys(m) >> PAGE_SHIFT;
-+
-+	valid = !pfn_range_intersects_zones(nid, start_pfn,
-+			pages_per_huge_page(m->hstate));
-+	if (!valid)
-+		hstate_boot_nrinvalid[hstate_index(m->hstate)]++;
-+
-+	return valid;
+ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+ 					      struct vmem_altmap *altmap,
+-					      struct page *reuse)
++					      unsigned long ptpfn,
++					      unsigned long flags)
+ {
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -258,7 +267,7 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd = vmemmap_pmd_populate(pud, addr, node);
+ 	if (!pmd)
+ 		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap, reuse);
++	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn, flags);
+ 	if (!pte)
+ 		return NULL;
+ 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+@@ -269,13 +278,15 @@ static pte_t * __meminit vmemmap_populat
+ static int __meminit vmemmap_populate_range(unsigned long start,
+ 					    unsigned long end, int node,
+ 					    struct vmem_altmap *altmap,
+-					    struct page *reuse)
++					    unsigned long ptpfn,
++					    unsigned long flags)
+ {
+ 	unsigned long addr = start;
+ 	pte_t *pte;
+ 
+ 	for (; addr < end; addr += PAGE_SIZE) {
+-		pte = vmemmap_populate_address(addr, node, altmap, reuse);
++		pte = vmemmap_populate_address(addr, node, altmap,
++					       ptpfn, flags);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 	}
+@@ -286,7 +297,107 @@ static int __meminit vmemmap_populate_ra
+ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 					 int node, struct vmem_altmap *altmap)
+ {
+-	return vmemmap_populate_range(start, end, node, altmap, NULL);
++	return vmemmap_populate_range(start, end, node, altmap, -1, 0);
 +}
 +
 +/*
-+ * Free a bootmem page that was found to be invalid (intersecting with
-+ * multiple zones).
++ * Undo populate_hvo, and replace it with a normal base page mapping.
++ * Used in memory init in case a HVO mapping needs to be undone.
 + *
-+ * Since it intersects with multiple zones, we can't just do a free
-+ * operation on all pages at once, but instead have to walk all
-+ * pages, freeing them one by one.
++ * This can happen when it is discovered that a memblock allocated
++ * hugetlb page spans multiple zones, which can only be verified
++ * after zones have been initialized.
++ *
++ * We know that:
++ * 1) The first @headsize / PAGE_SIZE vmemmap pages were individually
++ *    allocated through memblock, and mapped.
++ *
++ * 2) The rest of the vmemmap pages are mirrors of the last head page.
 + */
-+static void __init hugetlb_bootmem_free_invalid_page(int nid, struct page *page,
-+					     struct hstate *h)
++int __meminit vmemmap_undo_hvo(unsigned long addr, unsigned long end,
++				      int node, unsigned long headsize)
 +{
-+	unsigned long npages = pages_per_huge_page(h);
-+	unsigned long pfn;
++	unsigned long maddr, pfn;
++	pte_t *pte;
++	int headpages;
 +
-+	while (npages--) {
-+		pfn = page_to_pfn(page);
-+		__init_reserved_page_zone(pfn, nid);
-+		free_reserved_page(page);
-+		page++;
++	/*
++	 * Should only be called early in boot, so nothing will
++	 * be accessing these page structures.
++	 */
++	WARN_ON(!early_boot_irqs_disabled);
++
++	headpages = headsize >> PAGE_SHIFT;
++
++	/*
++	 * Clear mirrored mappings for tail page structs.
++	 */
++	for (maddr = addr + headsize; maddr < end; maddr += PAGE_SIZE) {
++		pte = virt_to_kpte(maddr);
++		pte_clear(&init_mm, maddr, pte);
 +	}
++
++	/*
++	 * Clear and free mappings for head page and first tail page
++	 * structs.
++	 */
++	for (maddr = addr; headpages-- > 0; maddr += PAGE_SIZE) {
++		pte = virt_to_kpte(maddr);
++		pfn = pte_pfn(ptep_get(pte));
++		pte_clear(&init_mm, maddr, pte);
++		memblock_phys_free(PFN_PHYS(pfn), PAGE_SIZE);
++	}
++
++	flush_tlb_kernel_range(addr, end);
++
++	return vmemmap_populate(addr, end, node, NULL);
 +}
 +
- /*
-  * Put bootmem huge pages into the standard lists after mem_map is up.
-  * Note: This only applies to gigantic (order > MAX_PAGE_ORDER) pages.
-@@ -3323,14 +3362,25 @@ static void __init prep_and_add_bootmem_
- static void __init gather_bootmem_prealloc_node(unsigned long nid)
- {
- 	LIST_HEAD(folio_list);
--	struct huge_bootmem_page *m;
-+	struct huge_bootmem_page *m, *tm;
- 	struct hstate *h = NULL, *prev_h = NULL;
- 
--	list_for_each_entry(m, &huge_boot_pages[nid], list) {
-+	list_for_each_entry_safe(m, tm, &huge_boot_pages[nid], list) {
- 		struct page *page = virt_to_page(m);
- 		struct folio *folio = (void *)page;
- 
- 		h = m->hstate;
-+		if (!hugetlb_bootmem_page_zones_valid(nid, m)) {
-+			/*
-+			 * Can't use this page. Initialize the
-+			 * page structures if that hasn't already
-+			 * been done, and give them to the page
-+			 * allocator.
-+			 */
-+			hugetlb_bootmem_free_invalid_page(nid, page, h);
-+			continue;
-+		}
-+
- 		/*
- 		 * It is possible to have multiple huge page sizes (hstates)
- 		 * in this list.  If so, process each size separately.
-@@ -3602,13 +3652,20 @@ static void __init hugetlb_init_hstates(
- static void __init report_hugepages(void)
- {
- 	struct hstate *h;
-+	unsigned long nrinvalid;
- 
- 	for_each_hstate(h) {
- 		char buf[32];
- 
-+		nrinvalid = hstate_boot_nrinvalid[hstate_index(h)];
-+		h->max_huge_pages -= nrinvalid;
-+
- 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
- 		pr_info("HugeTLB: registered %s page size, pre-allocated %ld pages\n",
- 			buf, h->free_huge_pages);
-+		if (nrinvalid)
-+			pr_info("HugeTLB: %s page size: %lu invalid page%s discarded\n",
-+					buf, nrinvalid, nrinvalid > 1 ? "s" : "");
- 		pr_info("HugeTLB: %d KiB vmemmap can be freed for a %s page\n",
- 			hugetlb_vmemmap_optimizable_size(h) / SZ_1K, buf);
- 	}
---- a/mm/internal.h~mm-hugetlb-check-bootmem-pages-for-zone-intersections
-+++ a/mm/internal.h
-@@ -658,6 +658,8 @@ static inline struct page *pageblock_pfn
- }
- 
- void set_zone_contiguous(struct zone *zone);
-+bool pfn_range_intersects_zones(int nid, unsigned long start_pfn,
-+			   unsigned long nr_pages);
- 
- static inline void clear_zone_contiguous(struct zone *zone)
- {
---- a/mm/mm_init.c~mm-hugetlb-check-bootmem-pages-for-zone-intersections
-+++ a/mm/mm_init.c
-@@ -2287,6 +2287,31 @@ void set_zone_contiguous(struct zone *zo
- 	zone->contiguous = true;
- }
- 
 +/*
-+ * Check if a PFN range intersects multiple zones on one or more
-+ * NUMA nodes. Specify the @nid argument if it is known that this
-+ * PFN range is on one node, NUMA_NO_NODE otherwise.
++ * Write protect the mirrored tail page structs for HVO. This will be
++ * called from the hugetlb code when gathering and initializing the
++ * memblock allocated gigantic pages. The write protect can't be
++ * done earlier, since it can't be guaranteed that the reserved
++ * page structures will not be written to during initialization,
++ * even if CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled.
++ *
++ * The PTEs are known to exist, and nothing else should be touching
++ * these pages. The caller is responsible for any TLB flushing.
 + */
-+bool pfn_range_intersects_zones(int nid, unsigned long start_pfn,
-+			   unsigned long nr_pages)
++void vmemmap_wrprotect_hvo(unsigned long addr, unsigned long end,
++				    int node, unsigned long headsize)
 +{
-+	struct zone *zone, *izone = NULL;
++	unsigned long maddr;
++	pte_t *pte;
 +
-+	for_each_zone(zone) {
-+		if (nid != NUMA_NO_NODE && zone_to_nid(zone) != nid)
-+			continue;
-+
-+		if (zone_intersects(zone, start_pfn, nr_pages)) {
-+			if (izone != NULL)
-+				return true;
-+			izone = zone;
-+		}
-+
++	for (maddr = addr + headsize; maddr < end; maddr += PAGE_SIZE) {
++		pte = virt_to_kpte(maddr);
++		ptep_set_wrprotect(&init_mm, maddr, pte);
 +	}
-+
-+	return false;
 +}
 +
- static void __init mem_init_print_info(void);
- void __init page_alloc_init_late(void)
- {
++/*
++ * Populate vmemmap pages HVO-style. The first page contains the head
++ * page and needed tail pages, the other ones are mirrors of the first
++ * page.
++ */
++int __meminit vmemmap_populate_hvo(unsigned long addr, unsigned long end,
++				       int node, unsigned long headsize)
++{
++	pte_t *pte;
++	unsigned long maddr;
++
++	for (maddr = addr; maddr < addr + headsize; maddr += PAGE_SIZE) {
++		pte = vmemmap_populate_address(maddr, node, NULL, -1, 0);
++		if (!pte)
++			return -ENOMEM;
++	}
++
++	/*
++	 * Reuse the last page struct page mapped above for the rest.
++	 */
++	return vmemmap_populate_range(maddr, end, node, NULL,
++					pte_pfn(ptep_get(pte)), 0);
+ }
+ 
+ void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
+@@ -409,7 +520,8 @@ static int __meminit vmemmap_populate_co
+ 		 * with just tail struct pages.
+ 		 */
+ 		return vmemmap_populate_range(start, end, node, NULL,
+-					      pte_page(ptep_get(pte)));
++					      pte_pfn(ptep_get(pte)),
++					      VMEMMAP_POPULATE_PAGEREF);
+ 	}
+ 
+ 	size = min(end - start, pgmap_vmemmap_nr(pgmap) * sizeof(struct page));
+@@ -417,13 +529,13 @@ static int __meminit vmemmap_populate_co
+ 		unsigned long next, last = addr + size;
+ 
+ 		/* Populate the head page vmemmap page */
+-		pte = vmemmap_populate_address(addr, node, NULL, NULL);
++		pte = vmemmap_populate_address(addr, node, NULL, -1, 0);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 
+ 		/* Populate the tail pages vmemmap page */
+ 		next = addr + PAGE_SIZE;
+-		pte = vmemmap_populate_address(next, node, NULL, NULL);
++		pte = vmemmap_populate_address(next, node, NULL, -1, 0);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 
+@@ -433,7 +545,8 @@ static int __meminit vmemmap_populate_co
+ 		 */
+ 		next += PAGE_SIZE;
+ 		rc = vmemmap_populate_range(next, last, node, NULL,
+-					    pte_page(ptep_get(pte)));
++					    pte_pfn(ptep_get(pte)),
++					    VMEMMAP_POPULATE_PAGEREF);
+ 		if (rc)
+ 			return -ENOMEM;
+ 	}
 _
 
 Patches currently in -mm which might be from fvdl@google.com are
