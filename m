@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79BEFA59
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19928A59
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188166; cv=none; b=gNCSx/0sDG8emmIrVz8GhqAF591Rj1a5FfDKyWEL/KiWRJfV6HPhGsliJgqet8yBj8YOeN+41DUGUkauFLxF8bQaC7iEVvwwXVrQNPxabm+Kw1+QiwpdvlQefxQCLmO0JS7kutndsLgcEPMKtOtT+krsAmkPs+33Zb6aLcwrkRc=
+	t=1742188168; cv=none; b=bvkQQaCd/V1qT1FmzcJ3LCq2vhat1Uju7+bLQTXrtR4VSuQkgwYz6iqk/5P0Jk2V/TKLGnsLTZbvADxbjWoAcC3qQbl8GqSTjlwNkBUO2Ev2AKZTxyZfA6FJp2Azo3lniA3wzjUpnUh+V7qWetBP8dEzgEfUzy45V+OTFfIMBHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188166; c=relaxed/simple;
-	bh=9DxvqqgYdbHn90/zLXRRcmOIRvZTrDy6KGpim6eMCqw=;
-	h=Date:To:From:Subject:Message-Id; b=dUOc/xanbTYqdVREQ1I6Lw2jXE5u28DFBqYLUZ2mSSgK+2rKnzSRvQbUpIhWR9R5ocksGJddKlV7aGKKLLCUaqU5ZSgiGFY32obJh2KCt0ey9kp9c53pYJytr4/xg0X1EhF6H8yK70D8MWbufE+XHuTLl0qxXLn5MPiiYh+4D5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jqux9yMV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188168; c=relaxed/simple;
+	bh=xafF7aXVxVfhfOzM/sbca6oiq18sUyyLCdrctmnB83E=;
+	h=Date:To:From:Subject:Message-Id; b=Fa/CQN+AUsWUBPzlPmYR+MozE1jqOmAPxVDTwLurmOP8JpCYWbxBDZOit8WqtPf/UQ86kc4Px+TnExxYVbR8+cNbcff/hRk7PYcnE3ami5SY9nt36apF3iA8ATq9p3CZsllDEji/vb2elYZjGCWvSO3WR8GsvLZCSgpu+nSMJXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zoagb4GH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jqux9yMV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA911C4CEEC;
-	Mon, 17 Mar 2025 05:09:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zoagb4GH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A5BBC4CEEC;
+	Mon, 17 Mar 2025 05:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188165;
-	bh=9DxvqqgYdbHn90/zLXRRcmOIRvZTrDy6KGpim6eMCqw=;
+	s=korg; t=1742188167;
+	bh=xafF7aXVxVfhfOzM/sbca6oiq18sUyyLCdrctmnB83E=;
 	h=Date:To:From:Subject:From;
-	b=jqux9yMVuOIBAu9XEDwZYYkRy9J0W7llj48rcDph5M7zBuVhLBjst3tffHXPeniyG
-	 RrrNZdPQIdWyY5QN2kqzYc8QZx4GD1gho04Q/ZT/gJBm6NknZJHUZlYaNCydwYcDQX
-	 P8xg1tMRE6kLEaKcO1Jxo5RFCrrpZbNEyN+j19go=
-Date: Sun, 16 Mar 2025 22:09:25 -0700
+	b=zoagb4GHa8OpKwwV80azlz7eILmgC3owEP4PCOTz1y4+AiCa4ovn8xW1FwZDlGm9R
+	 jA4IGmnO2BLrE/X3m/Cvdw3Wd0+Uyf6Fc3RgQX9hjUEQ9UztkTQ9bwH1qpuj7bd3uV
+	 HULfwZ/upNOHOuao3+vzmcvP9U3+PNRhoajc38l8=
+Date: Sun, 16 Mar 2025 22:09:26 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,torvalds@linux-foundation.org,tj@kernel.org,tglx@linutronix.de,peterz@infradead.org,pabeni@redhat.com,nadav.amit@gmail.com,mingo@kernel.org,luto@kernel.org,longman@redhat.com,kuba@kernel.org,kent.overstreet@linux.dev,hpa@zytor.com,edumazet@google.com,dvlasenk@redhat.com,dennis@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,cl@linux.com,brgerst@gmail.com,bp@alien8.de,boqun.feng@gmail.com,arnd@arndb.de,ubizjak@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] percpu-repurpose-__percpu-tag-as-a-named-address-space-qualifier.patch removed from -mm tree
-Message-Id: <20250317050925.CA911C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch removed from -mm tree
+Message-Id: <20250317050927.7A5BBC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: percpu: repurpose __percpu tag as a named address space qualifier
+     Subject: percpu/x86: enable strict percpu checks via named AS qualifiers
 has been removed from the -mm tree.  Its filename was
-     percpu-repurpose-__percpu-tag-as-a-named-address-space-qualifier.patch
+     percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Uros Bizjak <ubizjak@gmail.com>
-Subject: percpu: repurpose __percpu tag as a named address space qualifier
-Date: Mon, 27 Jan 2025 17:05:09 +0100
+Subject: percpu/x86: enable strict percpu checks via named AS qualifiers
+Date: Mon, 27 Jan 2025 17:05:10 +0100
 
-The patch introduces __percpu_qual define and repurposes __percpu tag as a
-named address space qualifier using the new define.
+This patch declares percpu variables in __seg_gs/__seg_fs named AS and
+keeps them named AS qualified until they are dereferenced with percpu
+accessor.  This approach enables various compiler check for
+cross-namespace variable assignments.
 
-Arches can now conditionally define __percpu_qual as their named address
-space qualifier for percpu variables.
-
-Link: https://lkml.kernel.org/r/20250127160709.80604-6-ubizjak@gmail.com
+Link: https://lkml.kernel.org/r/20250127160709.80604-7-ubizjak@gmail.com
 Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
 Acked-by: Nadav Amit <nadav.amit@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Denys Vlasenko <dvlasenk@redhat.com>
 Cc: Eric Dumazet <edumazet@google.com>
@@ -81,43 +80,33 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/percpu.h   |   13 +++++++++++++
- include/linux/compiler_types.h |    2 +-
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/percpu.h |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/include/asm-generic/percpu.h~percpu-repurpose-__percpu-tag-as-a-named-address-space-qualifier
-+++ a/include/asm-generic/percpu.h
-@@ -6,6 +6,19 @@
- #include <linux/threads.h>
- #include <linux/percpu-defs.h>
+--- a/arch/x86/include/asm/percpu.h~percpu-x86-enable-strict-percpu-checks-via-named-as-qualifiers
++++ a/arch/x86/include/asm/percpu.h
+@@ -95,9 +95,18 @@
  
-+/*
-+ * __percpu_qual is the qualifier for the percpu named address space.
-+ *
-+ * Most arches use generic named address space for percpu variables but
-+ * some arches define percpu variables in different named address space
-+ * (on the x86 arch, percpu variable may be declared as being relative
-+ * to the %fs or %gs segments using __seg_fs or __seg_gs named address
-+ * space qualifier).
-+ */
-+#ifndef __percpu_qual
-+# define __percpu_qual
+ #endif /* CONFIG_SMP */
+ 
+-#define __my_cpu_type(var)	typeof(var) __percpu_seg_override
+-#define __my_cpu_ptr(ptr)	(__my_cpu_type(*(ptr))*)(__force uintptr_t)(ptr)
+-#define __my_cpu_var(var)	(*__my_cpu_ptr(&(var)))
++#if defined(CONFIG_USE_X86_SEG_SUPPORT) && defined(USE_TYPEOF_UNQUAL)
++# define __my_cpu_type(var)	typeof(var)
++# define __my_cpu_ptr(ptr)	(ptr)
++# define __my_cpu_var(var)	(var)
++
++# define __percpu_qual		__percpu_seg_override
++#else
++# define __my_cpu_type(var)	typeof(var) __percpu_seg_override
++# define __my_cpu_ptr(ptr)	(__my_cpu_type(*(ptr))*)(__force uintptr_t)(ptr)
++# define __my_cpu_var(var)	(*__my_cpu_ptr(&(var)))
 +#endif
 +
- #ifdef CONFIG_SMP
+ #define __percpu_arg(x)		__percpu_prefix "%" #x
+ #define __force_percpu_arg(x)	__force_percpu_prefix "%" #x
  
- /*
---- a/include/linux/compiler_types.h~percpu-repurpose-__percpu-tag-as-a-named-address-space-qualifier
-+++ a/include/linux/compiler_types.h
-@@ -57,7 +57,7 @@ static inline void __chk_io_ptr(const vo
- #  define __user	BTF_TYPE_TAG(user)
- # endif
- # define __iomem
--# define __percpu	BTF_TYPE_TAG(percpu)
-+# define __percpu	__percpu_qual BTF_TYPE_TAG(percpu)
- # define __rcu		BTF_TYPE_TAG(rcu)
- 
- # define __chk_user_ptr(x)	(void)0
 _
 
 Patches currently in -mm which might be from ubizjak@gmail.com are
