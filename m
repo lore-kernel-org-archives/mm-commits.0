@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55637215043
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CE8C215043
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:09:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188173; cv=none; b=kwm/TMBdpN2PDJK0w/1jwDkDsbdDLhRSYUe/6mvn7VwlZ3BCGOriFQ5FWNmNK/l0hJXxEX9CyijHWIFFX6oMhjSaTsVPJ/YUcY5d5tkyi/7Pkg+a8RHB+DZ9+iYjIOsKX4l0ROchWgDpf+Z/2kN4jOqYXzfw7UoiqYwaC+Bh6Go=
+	t=1742188174; cv=none; b=IkGI5NUaeeyYiUagwOEqOioSUsDLnYNEvCi7P0FCjfn0zxAzXEEyNHgs7f/n48gCk4LhTgmMEX/FypB9L42uhIXtLdOt8XEx3ZSCJEDoa0LzubRArIq8iTORP79H9O6K/6wLFcCQgwglWXrICAWs3EXy0Wrr7c8RYD1RNavWj+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188173; c=relaxed/simple;
-	bh=uBp67tmDNzR1287dWotMJqztaZWQwS/rIeW0DfUCJ44=;
-	h=Date:To:From:Subject:Message-Id; b=krBWoRGWHGZKmJbyb7D20VOikniba+H3t7NbHzB6Vhobe82mtipkXcBvVwiyFEXAz5VX1vkLNSjeUW2qCpbPeqkF2GITzn8eTjbTXW/i9wUlph62Ytx1LtwHJZB35Zl8bIoe+e1rC3PyuQus3/XYhF8SB2n1oERVFV/FvvM31Y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h1DJTKhZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188174; c=relaxed/simple;
+	bh=rq7IISNRgUYqOjgOmU0pbSJVdGMYX5ow8Kfjs6iGm4U=;
+	h=Date:To:From:Subject:Message-Id; b=nAUlBdlJSdCtqk08ERMNk6DB6Pb+tAAi+xvhcvsNnnHVdyfJbeeGVF9nb/WHCz8f+MPII1dlqWVbrhwY8Bt3dxKQdr4A5QP3mpfga5P70ThUBd4F9o2c97i+SuxKPtR4kWLXPmrVoU12P8N2rQMgAR1UORGYqPLRdSK7jNmcaGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aRfvKuBT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h1DJTKhZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDFAEC4CEEC;
-	Mon, 17 Mar 2025 05:09:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aRfvKuBT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01459C4CEEC;
+	Mon, 17 Mar 2025 05:09:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188172;
-	bh=uBp67tmDNzR1287dWotMJqztaZWQwS/rIeW0DfUCJ44=;
+	s=korg; t=1742188174;
+	bh=rq7IISNRgUYqOjgOmU0pbSJVdGMYX5ow8Kfjs6iGm4U=;
 	h=Date:To:From:Subject:From;
-	b=h1DJTKhZLOLGt8MWTiGhNqnK84m4vOh+o7p7dlCgG+62KSTwCw3aPQrLG2rsUatpF
-	 8Uy05R/rCHfVM7mqBXOZ1H6LExlVpg7BrUqz3mgXVkKmeI2nnEfetAOgkPMN8Wjcu8
-	 ByVspV8YG+mJYAQKGyUKuo354IscXcZpgt6x2P1M=
-Date: Sun, 16 Mar 2025 22:09:32 -0700
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,wangweiyang2@huawei.com,vbabka@suse.cz,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,davidf@vimeo.com,chenridong@huawei.com,akpm@linux-foundation.org
+	b=aRfvKuBTNw3IahIkBxQx1zrLVs6s+LlfQIaa1lWZTFs0pcoqYR85AkPvSCplVaE2g
+	 pT9IbYCvo9LDNWf8S9u3LTBxnnIgryU2Ffa3Hl+qidLN12sU0JqFZGEJMOFDffXg6x
+	 LoRY5eDcjpVDF+4xZqJ/4nt1zRykxECOE0mYZEPg=
+Date: Sun, 16 Mar 2025 22:09:33 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-add-config_memcg_v1-for-local-functions.patch removed from -mm tree
-Message-Id: <20250317050932.CDFAEC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch removed from -mm tree
+Message-Id: <20250317050934.01459C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: add CONFIG_MEMCG_V1 for 'local' functions
+     Subject: mm: memcontrol: unshare v2-only charge API bits again
 has been removed from the -mm tree.  Its filename was
-     memcg-add-config_memcg_v1-for-local-functions.patch
+     mm-memcontrol-unshare-v2-only-charge-api-bits-again.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chen Ridong <chenridong@huawei.com>
-Subject: memcg: add CONFIG_MEMCG_V1 for 'local' functions
-Date: Fri, 24 Jan 2025 07:35:14 +0000
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: unshare v2-only charge API bits again
+Date: Thu, 23 Jan 2025 23:38:58 -0500
 
-Add CONFIG_MEMCG_V1 for the 'local' functions, which are only used in
-memcg v1, so that they won't be built for v2.
+6b611388b626 ("memcg-v1: remove charge move code") removed the remaining
+v1 callers.
 
-Link: https://lkml.kernel.org/r/20250124073514.2375622-5-chenridong@huaweicloud.com
-Signed-off-by: Chen Ridong <chenridong@huawei.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20250124043859.18808-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: David Finkel <davidf@vimeo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wang Weiyang <wangweiyang2@huawei.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.h |    6 +++---
- mm/memcontrol.c    |    6 ++++++
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ mm/memcontrol-v1.h |   15 ---------------
+ mm/memcontrol.c    |   17 +++++++++++++----
+ 2 files changed, 13 insertions(+), 19 deletions(-)
 
---- a/mm/memcontrol.c~memcg-add-config_memcg_v1-for-local-functions
+--- a/mm/memcontrol.c~mm-memcontrol-unshare-v2-only-charge-api-bits-again
 +++ a/mm/memcontrol.c
-@@ -706,6 +706,7 @@ void __mod_memcg_state(struct mem_cgroup
- 	trace_mod_memcg_state(memcg, idx, val);
+@@ -2213,8 +2213,8 @@ out:
+ 	css_put(&memcg->css);
  }
  
-+#ifdef CONFIG_MEMCG_V1
- /* idx can be of type enum memcg_stat_item or node_stat_item. */
- unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
+-int try_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-		     unsigned int nr_pages)
++static int try_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp_mask,
++			    unsigned int nr_pages)
  {
-@@ -722,6 +723,7 @@ unsigned long memcg_page_state_local(str
- #endif
- 	return x;
- }
-+#endif
- 
- static void __mod_memcg_lruvec_state(struct lruvec *lruvec,
- 				     enum node_stat_item idx,
-@@ -869,6 +871,7 @@ unsigned long memcg_events(struct mem_cg
- 	return READ_ONCE(memcg->vmstats->events[i]);
+ 	unsigned int batch = max(MEMCG_CHARGE_BATCH, nr_pages);
+ 	int nr_retries = MAX_RECLAIM_RETRIES;
+@@ -2403,6 +2403,15 @@ done_restock:
+ 	return 0;
  }
  
-+#ifdef CONFIG_MEMCG_V1
- unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
++static inline int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
++			     unsigned int nr_pages)
++{
++	if (mem_cgroup_is_root(memcg))
++		return 0;
++
++	return try_charge_memcg(memcg, gfp_mask, nr_pages);
++}
++
+ static void commit_charge(struct folio *folio, struct mem_cgroup *memcg)
  {
- 	int i = memcg_events_index(event);
-@@ -878,6 +881,7 @@ unsigned long memcg_events_local(struct
- 
- 	return READ_ONCE(memcg->vmstats->events_local[i]);
+ 	VM_BUG_ON_FOLIO(folio_memcg_charged(folio), folio);
+@@ -3389,13 +3398,13 @@ static void mem_cgroup_id_remove(struct
+ 	}
  }
-+#endif
  
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
+-void __maybe_unused mem_cgroup_id_get_many(struct mem_cgroup *memcg,
++static void __maybe_unused mem_cgroup_id_get_many(struct mem_cgroup *memcg,
+ 					   unsigned int n)
  {
-@@ -1447,11 +1451,13 @@ unsigned long memcg_page_state_output(st
- 		memcg_page_state_output_unit(item);
+ 	refcount_add(n, &memcg->id.ref);
  }
  
-+#ifdef CONFIG_MEMCG_V1
- unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item)
+-void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
++static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
  {
- 	return memcg_page_state_local(memcg, item) *
- 		memcg_page_state_output_unit(item);
- }
-+#endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
- static bool memcg_accounts_hugetlb(void)
---- a/mm/memcontrol-v1.h~memcg-add-config_memcg_v1-for-local-functions
+ 	if (refcount_sub_and_test(n, &memcg->id.ref)) {
+ 		mem_cgroup_id_remove(memcg);
+--- a/mm/memcontrol-v1.h~mm-memcontrol-unshare-v2-only-charge-api-bits-again
 +++ a/mm/memcontrol-v1.h
-@@ -60,15 +60,15 @@ unsigned long mem_cgroup_usage(struct me
- void drain_all_stock(struct mem_cgroup *root_memcg);
+@@ -7,21 +7,6 @@
  
- unsigned long memcg_events(struct mem_cgroup *memcg, int event);
--unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
--unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
- unsigned long memcg_page_state_output(struct mem_cgroup *memcg, int item);
--unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
- int memory_stat_show(struct seq_file *m, void *v);
+ /* Cgroup v1 and v2 common declarations */
  
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
- 
-+unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
-+unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
-+unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
- bool memcg1_alloc_events(struct mem_cgroup *memcg);
- void memcg1_free_events(struct mem_cgroup *memcg);
- 
+-int try_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-		     unsigned int nr_pages);
+-
+-static inline int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-			     unsigned int nr_pages)
+-{
+-	if (mem_cgroup_is_root(memcg))
+-		return 0;
+-
+-	return try_charge_memcg(memcg, gfp_mask, nr_pages);
+-}
+-
+-void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n);
+-void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n);
+-
+ /*
+  * Iteration constructs for visiting all cgroups (under a tree).  If
+  * loops are exited prematurely (break), mem_cgroup_iter_break() must
 _
 
-Patches currently in -mm which might be from chenridong@huawei.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-swap_cgroup-remove-double-initialization-of-locals.patch
+mm-compaction-push-watermark-into-compaction_suitable-callers.patch
+mm-page_alloc-trace-type-pollution-from-compaction-capturing.patch
+mm-page_alloc-defrag_mode.patch
+mm-page_alloc-defrag_mode-kswapd-kcompactd-assistance.patch
+mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch
+mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks-fix.patch
 
