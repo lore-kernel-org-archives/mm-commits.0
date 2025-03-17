@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F287B2153E0
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26DA42153E0
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188249; cv=none; b=faSpNEV9fmqn24ylU8wNyFG0lAfoV+6pgjMv6Gog+lttDSkIGeXCTH9czA6sEd7EHLaYuI1D2J6xNg8CcEK1DuMmJMEVdQ4tMwPQTwIW3gT03Vi9C+yiSbZuAVYyBFJb+nj091pXbkgRPvS/BxAUeO7i8534gULjWl+3CZSCtfI=
+	t=1742188250; cv=none; b=LW18/BPR/Mun9xqvYfClVHG2kmcsBdLDX5s1jpdjEyxkGpW45XgpyQSk0zfXa7lLZG5CjvcRA/RrbNA4i1teD3KMyuQiScwLB6Zr8RTTQCggGMpve/hJDZI0lIT1blqcLUDLlgZy/T2u3AARAIpAE+HwoI0VZhjAU4Rln/cDDjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188249; c=relaxed/simple;
-	bh=+69UPK8xeEhAtM1snQc+iJvFHqfA0QZWIi3/wY4RmAM=;
-	h=Date:To:From:Subject:Message-Id; b=C4DGXmZbJ8JTqrmfKVp2Zs6b63h2kj36wgYfFQO10V8hQA5jYVx7bA6D5lqHHzBBfjpc6KILionsbdCBXRthacdhYRbsIW9v+9I2WS4WZKay34YLpMNoJFdBXvATVS35TuR+JzYiVTFmlIBT+/KZjkUalZBUoE56UnZOdVtY0vU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ktV1/maM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188250; c=relaxed/simple;
+	bh=VH00JGwIV472crIaelu409Kruhwf8O8dTlOMn5yEeLg=;
+	h=Date:To:From:Subject:Message-Id; b=kPH97V1s8sy/v/0LPFvAKpP0cou89jl91UpjKKw0J2llh0J4kvE00S5ZNkUVFip+2Hv4nNuhdI2Kfyi1pwZIJ6XIUDM8FbUf46dlqgMUkUMHJlRYlJQrrisWDGq9MWB3EwSLgB2BaZlRvCXcI5y+44CjV0U2xGKHtVF5Sc9kWGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1tWXFPKw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ktV1/maM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C646EC4CEEC;
-	Mon, 17 Mar 2025 05:10:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1tWXFPKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F03C8C4CEEC;
+	Mon, 17 Mar 2025 05:10:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188248;
-	bh=+69UPK8xeEhAtM1snQc+iJvFHqfA0QZWIi3/wY4RmAM=;
+	s=korg; t=1742188250;
+	bh=VH00JGwIV472crIaelu409Kruhwf8O8dTlOMn5yEeLg=;
 	h=Date:To:From:Subject:From;
-	b=ktV1/maMcfXGZkwUU8z4HOqd2kgDd8xOQrxrMN5dA6mVnmkz0nOTCA6qNMqK61i01
-	 Eap9PArc1mX5IRzJOzaJhMzM3sqGw4jwGtlz29L+z8utzLG5sO6YBMoa8064lPo5HN
-	 YtU9wJeMDEn2qxurcmcEqZeyOU2pmp+DiztAijTw=
-Date: Sun, 16 Mar 2025 22:10:48 -0700
-To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=1tWXFPKwkXCTGgbddxRrhvZs+JkKOYBjgoaavEGBRpLxCqe6M+NraxkJISE8o9oA1
+	 oIN4zHunxwdsUgNUuXoCs5bvb9cZ1Ej/WVWu212P5QnyMM1+Bbe0SIAAYjkJbTWCCL
+	 JzBaJprcKI4BcK6b/EnZrE98HrhkKDzX/ZVTKS4A=
+Date: Sun, 16 Mar 2025 22:10:49 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,fdmanana@suse.com,dennis@kernel.org,mhocko@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swapfilec-open-code-cluster_alloc_swap.patch removed from -mm tree
-Message-Id: <20250317051048.C646EC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-percpu-do-not-consider-sleepable-allocations-atomic.patch removed from -mm tree
+Message-Id: <20250317051049.F03C8C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swapfile.c: open code cluster_alloc_swap()
+     Subject: mm, percpu: do not consider sleepable allocations atomic
 has been removed from the -mm tree.  Its filename was
-     mm-swapfilec-open-code-cluster_alloc_swap.patch
+     mm-percpu-do-not-consider-sleepable-allocations-atomic.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/swapfile.c: open code cluster_alloc_swap()
-Date: Wed, 5 Feb 2025 17:27:21 +0800
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, percpu: do not consider sleepable allocations atomic
+Date: Thu, 6 Feb 2025 13:26:33 +0100
 
-It's only called in scan_swap_map_slots().
+28307d938fb2 ("percpu: make pcpu_alloc() aware of current gfp context")
+has fixed a reclaim recursion for scoped GFP_NOFS context.  It has done
+that by avoiding taking pcpu_alloc_mutex.  This is a correct solution as
+the worker context with full GFP_KERNEL allocation/reclaim power and which
+is using the same lock cannot block the NOFS pcpu_alloc caller.
 
-And also remove the stale code comment in scan_swap_map_slots() because
-it's not fit for the current cluster allocation mechanism.
+On the other hand this is a very conservative approach that could lead to
+failures because pcpu_alloc lockless implementation is quite limited.
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-13-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <ryncsn@gmail.com>
+We have a bug report about premature failures when scsi array of 193
+devices is scanned.  Sometimes (not consistently) the scanning aborts
+because the iscsid daemon fails to create the queue for a random scsi
+device during the scan.  iscsid itslef is running with PR_SET_IO_FLUSHER
+set so all allocations from this process context are GFP_NOIO.  This in
+turn makes any pcpu_alloc lockless (without pcpu_alloc_mutex) which leads
+to pre-mature failures.
+
+It has turned out that iscsid has worked around this by dropping
+PR_SET_IO_FLUSHER (https://github.com/open-iscsi/open-iscsi/pull/382) when
+scanning host.  But we can do better in this case on the kernel side and
+use pcpu_alloc_mutex for NOIO resp.  NOFS constrained allocation scopes
+too.  We just need the WQ worker to never trigger IO/FS reclaim.  Achieve
+that by enforcing scoped GFP_NOIO for the whole execution of
+pcpu_balance_workfn (this will imply NOFS constrain as well).  This will
+remove the dependency chain and preserve the full allocation power of the
+pcpu_alloc call.
+
+While at it make is_atomic really test for blockable allocations.
+
+Link: https://lkml.kernel.org/r/20250206122633.167896-1-mhocko@kernel.org
+Fixes: 28307d938fb2 ("percpu: make pcpu_alloc() aware of current gfp context")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Filipe David Manana <fdmanana@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   38 ++++++++++----------------------------
- 1 file changed, 10 insertions(+), 28 deletions(-)
+ mm/percpu.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfilec-open-code-cluster_alloc_swap
-+++ a/mm/swapfile.c
-@@ -1163,39 +1163,13 @@ static void swap_range_free(struct swap_
- 	swap_usage_sub(si, nr_entries);
+--- a/mm/percpu.c~mm-percpu-do-not-consider-sleepable-allocations-atomic
++++ a/mm/percpu.c
+@@ -1745,7 +1745,7 @@ void __percpu *pcpu_alloc_noprof(size_t
+ 	gfp = current_gfp_context(gfp);
+ 	/* whitelisted flags that can be passed to the backing allocators */
+ 	pcpu_gfp = gfp & (GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
+-	is_atomic = (gfp & GFP_KERNEL) != GFP_KERNEL;
++	is_atomic = !gfpflags_allow_blocking(gfp);
+ 	do_warn = !(gfp & __GFP_NOWARN);
+ 
+ 	/*
+@@ -2191,7 +2191,12 @@ static void pcpu_balance_workfn(struct w
+ 	 * to grow other chunks.  This then gives pcpu_reclaim_populated() time
+ 	 * to move fully free chunks to the active list to be freed if
+ 	 * appropriate.
++	 *
++	 * Enforce GFP_NOIO allocations because we have pcpu_alloc users
++	 * constrained to GFP_NOIO/NOFS contexts and they could form lock
++	 * dependency through pcpu_alloc_mutex
+ 	 */
++	unsigned int flags = memalloc_noio_save();
+ 	mutex_lock(&pcpu_alloc_mutex);
+ 	spin_lock_irq(&pcpu_lock);
+ 
+@@ -2202,6 +2207,7 @@ static void pcpu_balance_workfn(struct w
+ 
+ 	spin_unlock_irq(&pcpu_lock);
+ 	mutex_unlock(&pcpu_alloc_mutex);
++	memalloc_noio_restore(flags);
  }
  
--static int cluster_alloc_swap(struct swap_info_struct *si,
--			     unsigned char usage, int nr,
--			     swp_entry_t slots[], int order)
--{
--	int n_ret = 0;
--
--	while (n_ret < nr) {
--		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
--
--		if (!offset)
--			break;
--		slots[n_ret++] = swp_entry(si->type, offset);
--	}
--
--	return n_ret;
--}
--
- static int scan_swap_map_slots(struct swap_info_struct *si,
- 			       unsigned char usage, int nr,
- 			       swp_entry_t slots[], int order)
- {
- 	unsigned int nr_pages = 1 << order;
-+	int n_ret = 0;
- 
--	/*
--	 * We try to cluster swap pages by allocating them sequentially
--	 * in swap.  Once we've allocated SWAPFILE_CLUSTER pages this
--	 * way, however, we resort to first-free allocation, starting
--	 * a new cluster.  This prevents us from scattering swap pages
--	 * all over the entire swap partition, so that we reduce
--	 * overall disk seek times between swap pages.  -- sct
--	 * But we do now try to find an empty cluster.  -Andrea
--	 * And we let swap pages go all over an SSD partition.  Hugh
--	 */
- 	if (order > 0) {
- 		/*
- 		 * Should not even be attempting large allocations when huge
-@@ -1215,7 +1189,15 @@ static int scan_swap_map_slots(struct sw
- 			return 0;
- 	}
- 
--	return cluster_alloc_swap(si, usage, nr, slots, order);
-+	while (n_ret < nr) {
-+		unsigned long offset = cluster_alloc_swap_entry(si, order, usage);
-+
-+		if (!offset)
-+			break;
-+		slots[n_ret++] = swp_entry(si->type, offset);
-+	}
-+
-+	return n_ret;
- }
- 
- static bool get_swap_device_info(struct swap_info_struct *si)
+ /**
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
 
