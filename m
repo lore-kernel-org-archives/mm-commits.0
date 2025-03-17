@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94DC8215771
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8050021578D
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188286; cv=none; b=k27b7JfRnhIp2RxMaDFzE0mnKWrCNd+W31IabDwWHs30ShYmPHwD7lHMkFRZaDeaatoB/XuJY1Us/d7JBL4d/XjTjeo4deg59MbFdUsdCR5F1eHdxZ3V3BfJHPOh60MXJr7r+HFhTRD5VEGGmvl7j9nC7k3N2Ds4N56PQSPK3rk=
+	t=1742188288; cv=none; b=KoUetWenQF1iihPAg0lgqjfi/2U4wu7lBsf3ikwW8q0SqSGfbI6szo3ReX4LTSwgmiCnIp1qH5Rmll54+O6MvLO0tGzhh7F9CUi/AcYuq7c4fROsJlz80DsdnQOK6ZiY6M+fMfmDUOH5f1zX6jBr9cT1hM2O9XS69CIPuk4inNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188286; c=relaxed/simple;
-	bh=7hy3NUWNdg++WNRl32AWgHFPO5MQ1mKuWV2Gd0U8y/U=;
-	h=Date:To:From:Subject:Message-Id; b=jGTf8lJR5CJp6y48YPfR8FofgvwX3aJ1TjWON0Gg49CpmUNphxPEaSsDSTgF7+gjw/1FvbE7Tr4DP1RiXyabMvwg8zXDwPpAvwyBlYVACHoUs8Oemst6WU0Upy9epcckCuPx+WQVL6iZLMVeSrFpFYx9T6cf/4omFbCXIctlHPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xUk1UZgt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188288; c=relaxed/simple;
+	bh=e+iCt9JkD4Nq55T4rs09hHQBSkhIpSL1ngnTJT/UdNQ=;
+	h=Date:To:From:Subject:Message-Id; b=cSyPoXrP3eA9cCA7uCiWJw9ApmYiufGfTf8ITtZM4S+2cuw5BDZRQEe78r21+h/DlXYKJd8MFCWDsSnMHVAZWJavzZer2Y3OliN0JBi17mUdFL8q6q5rCN/bd7AkkGYNu5pqGr1e7Vcy3Xr1LPyguroIYpS91JQH5Kd/Lo+/Gmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ew7BrMRM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xUk1UZgt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AC82C4CEEC;
-	Mon, 17 Mar 2025 05:11:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ew7BrMRM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECF47C4CEEC;
+	Mon, 17 Mar 2025 05:11:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188286;
-	bh=7hy3NUWNdg++WNRl32AWgHFPO5MQ1mKuWV2Gd0U8y/U=;
+	s=korg; t=1742188288;
+	bh=e+iCt9JkD4Nq55T4rs09hHQBSkhIpSL1ngnTJT/UdNQ=;
 	h=Date:To:From:Subject:From;
-	b=xUk1UZgtcJECV6D2bvIbUZOgT8wtWL2tN0M7m38wIitCqU0NmAcwKxh2swYNE06Vq
-	 s0CJGJwIoZ55zHBEnOEyXHZ5nquhLUZtrHrujqrZNhsod/G6Ah58CmgPPSAuHN7BVG
-	 crfOilb0TM/diJCl45rQNvjjd92nuW9v9raqq0Zw=
-Date: Sun, 16 Mar 2025 22:11:25 -0700
-To: mm-commits@vger.kernel.org,shivankg@amd.com,rppt@kernel.org,david@redhat.com,anshuman.khandual@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=Ew7BrMRMuKzd7FnDyMecG7ffmK6lML+YJaYFMxHW/7CD78uUR134ctnnOJc2ySa7k
+	 3lWWxMdSooYT5IVGBbKD+iJBr4E67Dx2tyXWYYJrAlLWYxjHqOsa0WGLTjcqnipmfC
+	 5CEPw4ZOOOZXc14jD7soES+SggF8JEKeAzSSC73o=
+Date: Sun, 16 Mar 2025 22:11:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,paulmck@kernel.org,liam.howlett@oracle.com,kaleshsingh@google.com,jhubbard@nvidia.com,jannh@google.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_initc-use-round_up-to-calculate-usermap-size.patch removed from -mm tree
-Message-Id: <20250317051126.6AC82C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch removed from -mm tree
+Message-Id: <20250317051127.ECF47C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,281 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init.c: use round_up() to calculate usermap size
+     Subject: mm: allow guard regions in file-backed and read-only mappings
 has been removed from the -mm tree.  Its filename was
-     mm-mm_initc-use-round_up-to-calculate-usermap-size.patch
+     mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/mm_init.c: use round_up() to calculate usermap size
-Date: Wed, 12 Feb 2025 01:38:18 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: allow guard regions in file-backed and read-only mappings
+Date: Thu, 13 Feb 2025 18:17:00 +0000
 
-Since pageblock_nr_pages and BITS_PER_LONG are power of 2, we could use
-round_up() to calculate it.
+Patch series "mm: permit guard regions for file-backed/shmem mappings".
 
-Also we have renamed blockflags to pageblock_flags, adjust the comment
-accordingly.
+The guard regions feature was initially implemented to support anonymous
+mappings only, excluding shmem.
 
-Link: https://lkml.kernel.org/r/20250212013818.873-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: Shivank Garg <shivankg@amd.com>
-Reviewed-by: Shivank Garg <shivankg@amd.com>
+This was done so as to introduce the feature carefully and incrementally
+and to be conservative when considering the various caveats and corner
+cases that are applicable to file-backed mappings but not to anonymous
+ones.
+
+Now this feature has landed in 6.13, it is time to revisit this and to
+extend this functionality to file-backed and shmem mappings.
+
+In order to make this maximally useful, and since one may map file-backed
+mappings read-only (for instance ELF images), we also remove the
+restriction on read-only mappings and permit the establishment of guard
+regions in any non-hugetlb, non-mlock()'d mapping.
+
+It is permissible to permit the establishment of guard regions in
+read-only mappings because the guard regions only reduce access to the
+mapping, and when removed simply reinstate the existing attributes of the
+underlying VMA, meaning no access violations can occur.
+
+While the change in kernel code introduced in this series is small, the
+majority of the effort here is spent in extending the testing to assert
+that the feature works correctly across numerous file-backed mapping
+scenarios.
+
+Every single guard region self-test performed against anonymous memory
+(which is relevant and not anon-only) has now been updated to also be
+performed against shmem and a mapping of a file in the working directory.
+
+This confirms that all cases also function correctly for file-backed guard
+regions.
+
+In addition a number of other tests are added for specific file-backed
+mapping scenarios.
+
+There are a number of other concerns that one might have with regard to
+guard regions, addressed below:
+
+Readahead
+~~~~~~~~~
+
+Readahead is a process through which the page cache is populated on the
+assumption that sequential reads will occur, thus amortising I/O and,
+through a clever use of the PG_readahead folio flag establishing during
+major fault and checked upon minor fault, provides for asynchronous I/O to
+occur as dat is processed, reducing I/O stalls as data is faulted in.
+
+Guard regions do not alter this mechanism which operates at the folio and
+fault level, but does of course prevent the faulting of folios that would
+otherwise be mapped.
+
+In the instance of a major fault prior to a guard region, synchronous
+readahead will occur including populating folios in the page cache which
+the guard regions will, in the case of the mapping in question, prevent
+access to.
+
+In addition, if PG_readahead is placed in a folio that is now
+inaccessible, this will prevent asynchronous readahead from occurring as
+it would otherwise do.
+
+However, there are mechanisms for heuristically resetting this within
+readahead regardless, which will 'recover' correct readahead behaviour.
+
+Readahead presumes sequential data access, the presence of a guard region
+clearly indicates that, at least in the guard region, no such sequential
+access will occur, as it cannot occur there.
+
+So this should have very little impact on any real workload.  The far more
+important point is as to whether readahead causes incorrect or
+inappropriate mapping of ranges disallowed by the presence of guard
+regions - this is not the case, as readahead does not 'pre-fault' memory
+in this fashion.
+
+At any rate, any mechanism which would attempt to do so would hit the
+usual page fault paths, which correctly handle PTE markers as with
+anonymous mappings.
+
+Fault-Around
+~~~~~~~~~~~~
+
+The fault-around logic, in a similar vein to readahead, attempts to
+improve efficiency with regard to file-backed memory mappings, however it
+differs in that it does not try to fetch folios into the page cache that
+are about to be accessed, but rather pre-maps a range of folios around the
+faulting address.
+
+Guard regions making use of PTE markers makes this relatively trivial, as
+this case is already handled - see filemap_map_folio_range() and
+filemap_map_order0_folio() - in both instances, the solution is to simply
+keep the established page table mappings and let the fault handler take
+care of PTE markers, as per the comment:
+
+	/*
+	 * NOTE: If there're PTE markers, we'll leave them to be
+	 * handled in the specific fault path, and it'll prohibit
+	 * the fault-around logic.
+	 */
+
+This works, as establishing guard regions results in page table mappings
+with PTE markers, and clearing them removes them.
+
+Truncation
+~~~~~~~~~~
+
+File truncation will not eliminate existing guard regions, as the
+truncation operation will ultimately zap the range via
+unmap_mapping_range(), which specifically excludes PTE markers.
+
+Zapping
+~~~~~~~
+
+Zapping is, as with anonymous mappings, handled by zap_nonpresent_ptes(),
+which specifically deals with guard entries, leaving them intact except in
+instances such as process teardown or munmap() where they need to be
+removed.
+
+Reclaim
+~~~~~~~
+
+When reclaim is performed on file-backed folios, it ultimately invokes
+try_to_unmap_one() via the rmap.  If the folio is non-large, then
+map_pte() will ultimately abort the operation for the guard region
+mapping.  If large, then check_pte() will determine that this is a
+non-device private entry/device-exclusive entry 'swap' PTE and thus abort
+the operation in that instance.
+
+Therefore, no odd things happen in the instance of reclaim being attempted
+upon a file-backed guard region.
+
+Hole Punching
+~~~~~~~~~~~~~
+
+This updates the page cache and ultimately invokes unmap_mapping_range(),
+which explicitly leaves PTE markers in place.
+
+Because the establishment of guard regions zapped any existing mappings to
+file-backed folios, once the guard regions are removed then the
+hole-punched region will be faulted in as usual and everything will behave
+as expected.
+
+
+One thing to note with this series is that it now implies file-backed
+VMAs which install guard regions will now have an anon_vma installed if
+not already present (i.e.  if not post-CoW MAP_PRIVATE).
+
+I have audited kernel source for instances of vma->anon_vma checks and
+found nowhere where this would be problematic for pure file-backed
+mappings.
+
+I also discussed (off-list) with Matthew who confirmed he can't see any
+issue with this.
+
+In effect, we treat these VMAs as if they are MAP_PRIVATE, only with 0
+CoW'd pages.  As a result, the rmap never has a reason to reference the
+anon_vma from folios at any point and thus no unexpected or weird
+behaviour results.
+
+The anon_vma logic tries to avoid unnecessary anon_vma propagation on
+fork so we ought to at least minimise overhead.
+
+However, this is still overhead, and unwelcome overhead.
+
+The whole reason we do this (in madvise_guard_install()) is to ensure
+that fork _copies page tables_.  Otherwise, in vma_needs_copy(),
+nothing will indicate that we should do so.
+
+This was already an unpleasant thing to have to do, but without a new
+VMA flag we really have no reasonable means of ensuring this happens.
+
+Going forward, I intend to add a new VMA flag, VM_MAYBE_GUARDED or
+something like this.
+
+This would have specific behaviour - for the purposes of merging, it
+would be ignored.  However on both split and merge, it will be
+propagated.  It is therefore 'sticky'.
+
+This is to avoid having to traverse page tables to determine which
+parts of a VMA contain guard regions and of course to maintain the
+desirable qualities of guard regions - the lack of VMA propagation (+
+thus slab allocations of VMAs).
+
+Adding this flag and adjusting vma_needs_copy() to reference it would
+resolve the issue.
+
+However :) we have a VMA flag space issue, so it'd render this a 64-bit
+feature only.
+
+Having discussed with Matthew a plan by which to perhaps extend
+available flags for 32-bit we may going forward be able to avoid this. 
+But this may be a longer term project.
+
+In the meantime, we'd have to resort to the anon_vma hack for 32-bit,
+using the flag for 64-bit.  The issue with this however is if we do
+then intend to allow the flag to enable /proc/$pid/maps visibility
+(something this could allow), it would also end up being 64-bit only
+which would be a pity.
+
+Regardless - I wanted to highlight this behaviour as it is perhaps
+somewhat surprising.
+
+
+This patch (of 4):
+
+There is no reason to disallow guard regions in file-backed mappings -
+readahead and fault-around both function correctly in the presence of PTE
+markers, equally other operations relating to memory-mapped files function
+correctly.
+
+Additionally, read-only mappings if introducing guard-regions, only
+restrict the mapping further, which means there is no violation of any
+access rights by permitting this to be so.
+
+Removing this restriction allows for read-only mapped files (such as
+executable files) correctly which would otherwise not be permitted.
+
+Link: https://lkml.kernel.org/r/cover.1739469950.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/d885cb259174736c2830a5dfe07f81b214ef3faa.1739469950.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/madvise.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_initc-use-round_up-to-calculate-usermap-size
-+++ a/mm/mm_init.c
-@@ -1431,7 +1431,7 @@ void __meminit init_currently_empty_zone
+--- a/mm/madvise.c~mm-allow-guard-regions-in-file-backed-and-read-only-mappings
++++ a/mm/madvise.c
+@@ -1051,13 +1051,7 @@ static bool is_valid_guard_vma(struct vm
+ 	if (!allow_locked)
+ 		disallowed |= VM_LOCKED;
  
- #ifndef CONFIG_SPARSEMEM
- /*
-- * Calculate the size of the zone->blockflags rounded to an unsigned long
-+ * Calculate the size of the zone->pageblock_flags rounded to an unsigned long
-  * Start by making sure zonesize is a multiple of pageblock_order by rounding
-  * up. Then use 1 NR_PAGEBLOCK_BITS worth of bits per pageblock, finally
-  * round what is now in bits to nearest long in bits, then return it in
-@@ -1442,10 +1442,10 @@ static unsigned long __init usemap_size(
- 	unsigned long usemapsize;
- 
- 	zonesize += zone_start_pfn & (pageblock_nr_pages-1);
--	usemapsize = roundup(zonesize, pageblock_nr_pages);
-+	usemapsize = round_up(zonesize, pageblock_nr_pages);
- 	usemapsize = usemapsize >> pageblock_order;
- 	usemapsize *= NR_PAGEBLOCK_BITS;
--	usemapsize = roundup(usemapsize, BITS_PER_LONG);
-+	usemapsize = round_up(usemapsize, BITS_PER_LONG);
- 
- 	return usemapsize / BITS_PER_BYTE;
+-	if (!vma_is_anonymous(vma))
+-		return false;
+-
+-	if ((vma->vm_flags & (VM_MAYWRITE | disallowed)) != VM_MAYWRITE)
+-		return false;
+-
+-	return true;
++	return !(vma->vm_flags & disallowed);
  }
+ 
+ static bool is_guard_pte_marker(pte_t ptent)
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure.patch
-lib-rbtree-split-tests.patch
-lib-rbtree-add-random-seed.patch
-lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
-lib-interval_tree-add-test-case-for-span-iteration.patch
-lib-interval_tree-skip-the-check-before-go-to-the-right-subtree.patch
-lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap.patch
+mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
+mm-mremap-refactor-mremap-system-call-implementation.patch
+mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
+mm-mremap-initial-refactor-of-move_vma.patch
+mm-mremap-complete-refactor-of-move_vma.patch
+mm-mremap-refactor-move_page_tables-abstracting-state.patch
+mm-mremap-thread-state-through-move-page-table-operation.patch
 
