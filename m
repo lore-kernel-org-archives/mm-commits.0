@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 586BE8634E
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7885B8634E
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188551; cv=none; b=H04WIBTf0DToG5tJWeIRpKSsyZUaJ4fUT3fpULTn82n1H/BAZJFRu4UmPHUuR2IdOs3PamsrCloVIsZtGSAc2tuNu11TLlcDVJoqTVStWdgYwUeAsuOT8EXsiTHZeTQpzTlCLPy6Pg8OETKJSlZenWKBbOhhqYMBFs8agTdDTF0=
+	t=1742188552; cv=none; b=IZsdDun3pVhAAiDvjZJAEV0XCzjzNCDvJ9eTc1BpIH0KowatCf9P5fe0zsAYwn0VL9EKMllhvkN3qADjBtytMnId6z202WR/apwwADTaqTKmiAgZpu4Fm6hGkpX6O6yI7nupwDOPANbECkWHEaDnKKjasx8RF/tTUJh1lNRaeL0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188551; c=relaxed/simple;
-	bh=WJdeNf8IeWFVEsxwf2IEf7AuavOFLSioWODEvHwNoLY=;
-	h=Date:To:From:Subject:Message-Id; b=JkFFELs5vg5iOXQb8YXOfpK9ULc1wjbRCZGThmcXgjFs2Zv7bmK8KamY6CXBGNL3KyP0KRLP7ByhC4TkBBFT8GoVnZAEIShY0JsaARd3w2SlopeWmO+0Y1Vw/FdZpDIAqZYFD96DOTcIDKrzUqHVcQENI7J64aOiSseLIQYeobo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DsMfR0Ln; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188552; c=relaxed/simple;
+	bh=grSrX2iYUUcGSRSkb9JCz/QUdASrRduKl3fB1wg2rCw=;
+	h=Date:To:From:Subject:Message-Id; b=mRUPX4nKIHVNIQIXaD3m2QWz+3PYxxr9mGZSgFAcuhvu5LNmjyEIaLboEJ82raCUS0D9d7T+TT98TSl3AwgJ6IceaLFnPrfQj+I5UJzylqn+sNDezyYiA5sUxgxifb4m637nKiBmvgJDSSYt+nE6gl5wzlTO3MaXBpFuj4JcCvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zlVmIU9y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DsMfR0Ln"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D09FC4CEEC;
-	Mon, 17 Mar 2025 05:15:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zlVmIU9y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C5E7C4CEEC;
+	Mon, 17 Mar 2025 05:15:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188551;
-	bh=WJdeNf8IeWFVEsxwf2IEf7AuavOFLSioWODEvHwNoLY=;
+	s=korg; t=1742188552;
+	bh=grSrX2iYUUcGSRSkb9JCz/QUdASrRduKl3fB1wg2rCw=;
 	h=Date:To:From:Subject:From;
-	b=DsMfR0LnIuXAF0xRIJTMHJB4hZSZR+Zl+Fq1wi0LDGajn/tFbZgk6eGEbt0v2kGLn
-	 Y4C2DxHtY2FNFam+xpqFThsuw8SGEGT4Eq38yC3p2KOQRUXlcJ2m20sF/25kWMvKoA
-	 5NoCFwWBCto06yHGs6g2rD6zbxMFuh/KjdNiXrJs=
-Date: Sun, 16 Mar 2025 22:15:50 -0700
+	b=zlVmIU9yjvy3LHSdDF020hAF+FkH3PmYv4x31NlPbT42up87gwphmnqvzIWly7Jeg
+	 8umXr1DZWbAg7SlO/AiOn0Zk8+ZAe3ksxmU7xBGhoArg/a8bpFTTFBbEd+m9gg97LJ
+	 IGAqvN4X240LXlKP7dIDHZ1LnIe2gnz/jdGf+oR8=
+Date: Sun, 16 Mar 2025 22:15:51 -0700
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,senozhatsky@chromium.org,peterz@infradead.org,nphamcs@gmail.com,minchan@kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,chengming.zhou@linux.dev,yosry.ahmed@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zpool-remove-object-mapping-apis.patch removed from -mm tree
-Message-Id: <20250317051551.2D09FC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zsmalloc-remove-object-mapping-apis-and-per-cpu-map-areas.patch removed from -mm tree
+Message-Id: <20250317051552.4C5E7C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zpool: remove object mapping APIs
+     Subject: mm: zsmalloc: remove object mapping APIs and per-CPU map areas
 has been removed from the -mm tree.  Its filename was
-     mm-zpool-remove-object-mapping-apis.patch
+     mm-zsmalloc-remove-object-mapping-apis-and-per-cpu-map-areas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosry.ahmed@linux.dev>
-Subject: mm: zpool: remove object mapping APIs
-Date: Wed, 5 Mar 2025 06:11:31 +0000
+Subject: mm: zsmalloc: remove object mapping APIs and per-CPU map areas
+Date: Wed, 5 Mar 2025 06:11:32 +0000
 
-zpool_map_handle(), zpool_unmap_handle(), and zpool_can_sleep_mapped() are
-no longer used.  Remove them with the underlying driver callbacks.
+zs_map_object() and zs_unmap_object() are no longer used, remove them. 
+Since these are the only users of per-CPU mapping_areas, remove them and
+the associated CPU hotplug callbacks too.
 
-Link: https://lkml.kernel.org/r/20250305061134.4105762-4-yosry.ahmed@linux.dev
+[yosry.ahmed@linux.dev: update the docs]
+  Link: https://lkml.kernel.org/r/Z8ier-ZZp8T6MOTH@google.com
+Link: https://lkml.kernel.org/r/20250305061134.4105762-5-yosry.ahmed@linux.dev
 Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
@@ -63,183 +66,355 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zpool.h |   30 -------------------
- mm/zpool.c            |   61 ----------------------------------------
- mm/zsmalloc.c         |   27 -----------------
- 3 files changed, 118 deletions(-)
+ Documentation/mm/zsmalloc.rst |    5 
+ include/linux/cpuhotplug.h    |    1 
+ include/linux/zsmalloc.h      |   21 --
+ mm/zsmalloc.c                 |  226 --------------------------------
+ 4 files changed, 3 insertions(+), 250 deletions(-)
 
---- a/include/linux/zpool.h~mm-zpool-remove-object-mapping-apis
-+++ a/include/linux/zpool.h
-@@ -13,25 +13,6 @@
+--- a/Documentation/mm/zsmalloc.rst~mm-zsmalloc-remove-object-mapping-apis-and-per-cpu-map-areas
++++ a/Documentation/mm/zsmalloc.rst
+@@ -27,9 +27,8 @@ Instead, it returns an opaque handle (un
+ location of the allocated object. The reason for this indirection is that
+ zsmalloc does not keep zspages permanently mapped since that would cause
+ issues on 32-bit systems where the VA region for kernel space mappings
+-is very small. So, before using the allocating memory, the object has to
+-be mapped using zs_map_object() to get a usable pointer and subsequently
+-unmapped using zs_unmap_object().
++is very small. So, using the allocated memory should be done through the
++proper handle-based APIs.
  
- struct zpool;
+ stat
+ ====
+--- a/include/linux/cpuhotplug.h~mm-zsmalloc-remove-object-mapping-apis-and-per-cpu-map-areas
++++ a/include/linux/cpuhotplug.h
+@@ -116,7 +116,6 @@ enum cpuhp_state {
+ 	CPUHP_NET_IUCV_PREPARE,
+ 	CPUHP_ARM_BL_PREPARE,
+ 	CPUHP_TRACE_RB_PREPARE,
+-	CPUHP_MM_ZS_PREPARE,
+ 	CPUHP_MM_ZSWP_POOL_PREPARE,
+ 	CPUHP_KVM_PPC_BOOK3S_PREPARE,
+ 	CPUHP_ZCOMP_PREPARE,
+--- a/include/linux/zsmalloc.h~mm-zsmalloc-remove-object-mapping-apis-and-per-cpu-map-areas
++++ a/include/linux/zsmalloc.h
+@@ -16,23 +16,6 @@
+ 
+ #include <linux/types.h>
  
 -/*
-- * Control how a handle is mapped.  It will be ignored if the
-- * implementation does not support it.  Its use is optional.
-- * Note that this does not refer to memory protection, it
-- * refers to how the memory will be copied in/out if copying
-- * is necessary during mapping; read-write is the safest as
-- * it copies the existing memory in on map, and copies the
-- * changed memory back out on unmap.  Write-only does not copy
-- * in the memory and should only be used for initialization.
-- * If in doubt, use ZPOOL_MM_DEFAULT which is read-write.
+- * zsmalloc mapping modes
+- *
+- * NOTE: These only make a difference when a mapped object spans pages.
 - */
--enum zpool_mapmode {
--	ZPOOL_MM_RW, /* normal read-write mapping */
--	ZPOOL_MM_RO, /* read-only (no copy-out at unmap time) */
--	ZPOOL_MM_WO, /* write-only (no copy-in at map time) */
--
--	ZPOOL_MM_DEFAULT = ZPOOL_MM_RW
+-enum zs_mapmode {
+-	ZS_MM_RW, /* normal read-write mapping */
+-	ZS_MM_RO, /* read-only (no copy-out at unmap time) */
+-	ZS_MM_WO /* write-only (no copy-in at map time) */
+-	/*
+-	 * NOTE: ZS_MM_WO should only be used for initializing new
+-	 * (uninitialized) allocations.  Partial writes to already
+-	 * initialized allocations should use ZS_MM_RW to preserve the
+-	 * existing data.
+-	 */
 -};
 -
- bool zpool_has_pool(char *type);
+ struct zs_pool_stats {
+ 	/* How many pages were migrated (freed) */
+ 	atomic_long_t pages_compacted;
+@@ -48,10 +31,6 @@ void zs_free(struct zs_pool *pool, unsig
  
- struct zpool *zpool_create_pool(const char *type, const char *name, gfp_t gfp);
-@@ -47,12 +28,6 @@ int zpool_malloc(struct zpool *pool, siz
+ size_t zs_huge_class_size(struct zs_pool *pool);
  
- void zpool_free(struct zpool *pool, unsigned long handle);
+-void *zs_map_object(struct zs_pool *pool, unsigned long handle,
+-			enum zs_mapmode mm);
+-void zs_unmap_object(struct zs_pool *pool, unsigned long handle);
+-
+ unsigned long zs_get_total_pages(struct zs_pool *pool);
+ unsigned long zs_compact(struct zs_pool *pool);
  
--void *zpool_map_handle(struct zpool *pool, unsigned long handle,
--			enum zpool_mapmode mm);
--
--void zpool_unmap_handle(struct zpool *pool, unsigned long handle);
--
--
- void *zpool_obj_read_begin(struct zpool *zpool, unsigned long handle,
- 			   void *local_copy);
- 
-@@ -95,11 +70,6 @@ struct zpool_driver {
- 				unsigned long *handle);
- 	void (*free)(void *pool, unsigned long handle);
- 
--	bool sleep_mapped;
--	void *(*map)(void *pool, unsigned long handle,
--				enum zpool_mapmode mm);
--	void (*unmap)(void *pool, unsigned long handle);
--
- 	void *(*obj_read_begin)(void *pool, unsigned long handle,
- 				void *local_copy);
- 	void (*obj_read_end)(void *pool, unsigned long handle,
---- a/mm/zpool.c~mm-zpool-remove-object-mapping-apis
-+++ a/mm/zpool.c
-@@ -278,49 +278,6 @@ void zpool_free(struct zpool *zpool, uns
- }
- 
- /**
-- * zpool_map_handle() - Map a previously allocated handle into memory
-- * @zpool:	The zpool that the handle was allocated from
-- * @handle:	The handle to map
-- * @mapmode:	How the memory should be mapped
-- *
-- * This maps a previously allocated handle into memory.  The @mapmode
-- * param indicates to the implementation how the memory will be
-- * used, i.e. read-only, write-only, read-write.  If the
-- * implementation does not support it, the memory will be treated
-- * as read-write.
-- *
-- * This may hold locks, disable interrupts, and/or preemption,
-- * and the zpool_unmap_handle() must be called to undo those
-- * actions.  The code that uses the mapped handle should complete
-- * its operations on the mapped handle memory quickly and unmap
-- * as soon as possible.  As the implementation may use per-cpu
-- * data, multiple handles should not be mapped concurrently on
-- * any cpu.
-- *
-- * Returns: A pointer to the handle's mapped memory area.
-- */
--void *zpool_map_handle(struct zpool *zpool, unsigned long handle,
--			enum zpool_mapmode mapmode)
--{
--	return zpool->driver->map(zpool->pool, handle, mapmode);
--}
--
--/**
-- * zpool_unmap_handle() - Unmap a previously mapped handle
-- * @zpool:	The zpool that the handle was allocated from
-- * @handle:	The handle to unmap
-- *
-- * This unmaps a previously mapped handle.  Any locks or other
-- * actions that the implementation took in zpool_map_handle()
-- * will be undone here.  The memory area returned from
-- * zpool_map_handle() should no longer be used after this.
-- */
--void zpool_unmap_handle(struct zpool *zpool, unsigned long handle)
--{
--	zpool->driver->unmap(zpool->pool, handle);
--}
--
--/**
-  * zpool_obj_read_begin() - Start reading from a previously allocated handle.
-  * @zpool:	The zpool that the handle was allocated from
-  * @handle:	The handle to read from
-@@ -381,23 +338,5 @@ u64 zpool_get_total_pages(struct zpool *
- 	return zpool->driver->total_pages(zpool->pool);
- }
- 
--/**
-- * zpool_can_sleep_mapped - Test if zpool can sleep when do mapped.
-- * @zpool:	The zpool to test
-- *
-- * Some allocators enter non-preemptible context in ->map() callback (e.g.
-- * disable pagefaults) and exit that context in ->unmap(), which limits what
-- * we can do with the mapped object. For instance, we cannot wait for
-- * asynchronous crypto API to decompress such an object or take mutexes
-- * since those will call into the scheduler. This function tells us whether
-- * we use such an allocator.
-- *
-- * Returns: true if zpool can sleep; false otherwise.
-- */
--bool zpool_can_sleep_mapped(struct zpool *zpool)
--{
--	return zpool->driver->sleep_mapped;
--}
--
- MODULE_AUTHOR("Dan Streetman <ddstreet@ieee.org>");
- MODULE_DESCRIPTION("Common API for compressed memory storage");
---- a/mm/zsmalloc.c~mm-zpool-remove-object-mapping-apis
+--- a/mm/zsmalloc.c~mm-zsmalloc-remove-object-mapping-apis-and-per-cpu-map-areas
 +++ a/mm/zsmalloc.c
-@@ -482,31 +482,6 @@ static void zs_zpool_free(void *pool, un
- 	zs_free(pool, handle);
+@@ -281,13 +281,6 @@ struct zspage {
+ 	struct zspage_lock zsl;
+ };
+ 
+-struct mapping_area {
+-	local_lock_t lock;
+-	char *vm_buf; /* copy buffer for objects that span pages */
+-	char *vm_addr; /* address of kmap_local_page()'ed pages */
+-	enum zs_mapmode vm_mm; /* mapping mode */
+-};
+-
+ static void zspage_lock_init(struct zspage *zspage)
+ {
+ 	static struct lock_class_key __key;
+@@ -522,11 +515,6 @@ static struct zpool_driver zs_zpool_driv
+ MODULE_ALIAS("zpool-zsmalloc");
+ #endif /* CONFIG_ZPOOL */
+ 
+-/* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
+-static DEFINE_PER_CPU(struct mapping_area, zs_map_area) = {
+-	.lock	= INIT_LOCAL_LOCK(lock),
+-};
+-
+ static inline bool __maybe_unused is_first_zpdesc(struct zpdesc *zpdesc)
+ {
+ 	return PagePrivate(zpdesc_page(zpdesc));
+@@ -1111,93 +1099,6 @@ static struct zspage *find_get_zspage(st
+ 	return zspage;
  }
  
--static void *zs_zpool_map(void *pool, unsigned long handle,
--			enum zpool_mapmode mm)
+-static inline int __zs_cpu_up(struct mapping_area *area)
 -{
--	enum zs_mapmode zs_mm;
+-	/*
+-	 * Make sure we don't leak memory if a cpu UP notification
+-	 * and zs_init() race and both call zs_cpu_up() on the same cpu
+-	 */
+-	if (area->vm_buf)
+-		return 0;
+-	area->vm_buf = kmalloc(ZS_MAX_ALLOC_SIZE, GFP_KERNEL);
+-	if (!area->vm_buf)
+-		return -ENOMEM;
+-	return 0;
+-}
 -
--	switch (mm) {
--	case ZPOOL_MM_RO:
--		zs_mm = ZS_MM_RO;
--		break;
--	case ZPOOL_MM_WO:
--		zs_mm = ZS_MM_WO;
--		break;
--	case ZPOOL_MM_RW:
--	default:
--		zs_mm = ZS_MM_RW;
--		break;
+-static inline void __zs_cpu_down(struct mapping_area *area)
+-{
+-	kfree(area->vm_buf);
+-	area->vm_buf = NULL;
+-}
+-
+-static void *__zs_map_object(struct mapping_area *area,
+-			struct zpdesc *zpdescs[2], int off, int size)
+-{
+-	size_t sizes[2];
+-	char *buf = area->vm_buf;
+-
+-	/* disable page faults to match kmap_local_page() return conditions */
+-	pagefault_disable();
+-
+-	/* no read fastpath */
+-	if (area->vm_mm == ZS_MM_WO)
+-		goto out;
+-
+-	sizes[0] = PAGE_SIZE - off;
+-	sizes[1] = size - sizes[0];
+-
+-	/* copy object to per-cpu buffer */
+-	memcpy_from_page(buf, zpdesc_page(zpdescs[0]), off, sizes[0]);
+-	memcpy_from_page(buf + sizes[0], zpdesc_page(zpdescs[1]), 0, sizes[1]);
+-out:
+-	return area->vm_buf;
+-}
+-
+-static void __zs_unmap_object(struct mapping_area *area,
+-			struct zpdesc *zpdescs[2], int off, int size)
+-{
+-	size_t sizes[2];
+-	char *buf;
+-
+-	/* no write fastpath */
+-	if (area->vm_mm == ZS_MM_RO)
+-		goto out;
+-
+-	buf = area->vm_buf;
+-	buf = buf + ZS_HANDLE_SIZE;
+-	size -= ZS_HANDLE_SIZE;
+-	off += ZS_HANDLE_SIZE;
+-
+-	sizes[0] = PAGE_SIZE - off;
+-	sizes[1] = size - sizes[0];
+-
+-	/* copy per-cpu buffer to object */
+-	memcpy_to_page(zpdesc_page(zpdescs[0]), off, buf, sizes[0]);
+-	memcpy_to_page(zpdesc_page(zpdescs[1]), 0, buf + sizes[0], sizes[1]);
+-
+-out:
+-	/* enable page faults to match kunmap_local() return conditions */
+-	pagefault_enable();
+-}
+-
+-static int zs_cpu_prepare(unsigned int cpu)
+-{
+-	struct mapping_area *area;
+-
+-	area = &per_cpu(zs_map_area, cpu);
+-	return __zs_cpu_up(area);
+-}
+-
+-static int zs_cpu_dead(unsigned int cpu)
+-{
+-	struct mapping_area *area;
+-
+-	area = &per_cpu(zs_map_area, cpu);
+-	__zs_cpu_down(area);
+-	return 0;
+-}
+-
+ static bool can_merge(struct size_class *prev, int pages_per_zspage,
+ 					int objs_per_zspage)
+ {
+@@ -1245,117 +1146,6 @@ unsigned long zs_get_total_pages(struct
+ }
+ EXPORT_SYMBOL_GPL(zs_get_total_pages);
+ 
+-/**
+- * zs_map_object - get address of allocated object from handle.
+- * @pool: pool from which the object was allocated
+- * @handle: handle returned from zs_malloc
+- * @mm: mapping mode to use
+- *
+- * Before using an object allocated from zs_malloc, it must be mapped using
+- * this function. When done with the object, it must be unmapped using
+- * zs_unmap_object.
+- *
+- * Only one object can be mapped per cpu at a time. There is no protection
+- * against nested mappings.
+- *
+- * This function returns with preemption and page faults disabled.
+- */
+-void *zs_map_object(struct zs_pool *pool, unsigned long handle,
+-			enum zs_mapmode mm)
+-{
+-	struct zspage *zspage;
+-	struct zpdesc *zpdesc;
+-	unsigned long obj, off;
+-	unsigned int obj_idx;
+-
+-	struct size_class *class;
+-	struct mapping_area *area;
+-	struct zpdesc *zpdescs[2];
+-	void *ret;
+-
+-	/*
+-	 * Because we use per-cpu mapping areas shared among the
+-	 * pools/users, we can't allow mapping in interrupt context
+-	 * because it can corrupt another users mappings.
+-	 */
+-	BUG_ON(in_interrupt());
+-
+-	/* It guarantees it can get zspage from handle safely */
+-	read_lock(&pool->lock);
+-	obj = handle_to_obj(handle);
+-	obj_to_location(obj, &zpdesc, &obj_idx);
+-	zspage = get_zspage(zpdesc);
+-
+-	/*
+-	 * migration cannot move any zpages in this zspage. Here, class->lock
+-	 * is too heavy since callers would take some time until they calls
+-	 * zs_unmap_object API so delegate the locking from class to zspage
+-	 * which is smaller granularity.
+-	 */
+-	zspage_read_lock(zspage);
+-	read_unlock(&pool->lock);
+-
+-	class = zspage_class(pool, zspage);
+-	off = offset_in_page(class->size * obj_idx);
+-
+-	local_lock(&zs_map_area.lock);
+-	area = this_cpu_ptr(&zs_map_area);
+-	area->vm_mm = mm;
+-	if (off + class->size <= PAGE_SIZE) {
+-		/* this object is contained entirely within a page */
+-		area->vm_addr = kmap_local_zpdesc(zpdesc);
+-		ret = area->vm_addr + off;
+-		goto out;
 -	}
 -
--	return zs_map_object(pool, handle, zs_mm);
--}
--static void zs_zpool_unmap(void *pool, unsigned long handle)
--{
--	zs_unmap_object(pool, handle);
--}
+-	/* this object spans two pages */
+-	zpdescs[0] = zpdesc;
+-	zpdescs[1] = get_next_zpdesc(zpdesc);
+-	BUG_ON(!zpdescs[1]);
 -
- static void *zs_zpool_obj_read_begin(void *pool, unsigned long handle,
- 				     void *local_copy)
+-	ret = __zs_map_object(area, zpdescs, off, class->size);
+-out:
+-	if (likely(!ZsHugePage(zspage)))
+-		ret += ZS_HANDLE_SIZE;
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(zs_map_object);
+-
+-void zs_unmap_object(struct zs_pool *pool, unsigned long handle)
+-{
+-	struct zspage *zspage;
+-	struct zpdesc *zpdesc;
+-	unsigned long obj, off;
+-	unsigned int obj_idx;
+-
+-	struct size_class *class;
+-	struct mapping_area *area;
+-
+-	obj = handle_to_obj(handle);
+-	obj_to_location(obj, &zpdesc, &obj_idx);
+-	zspage = get_zspage(zpdesc);
+-	class = zspage_class(pool, zspage);
+-	off = offset_in_page(class->size * obj_idx);
+-
+-	area = this_cpu_ptr(&zs_map_area);
+-	if (off + class->size <= PAGE_SIZE)
+-		kunmap_local(area->vm_addr);
+-	else {
+-		struct zpdesc *zpdescs[2];
+-
+-		zpdescs[0] = zpdesc;
+-		zpdescs[1] = get_next_zpdesc(zpdesc);
+-		BUG_ON(!zpdescs[1]);
+-
+-		__zs_unmap_object(area, zpdescs, off, class->size);
+-	}
+-	local_unlock(&zs_map_area.lock);
+-
+-	zspage_read_unlock(zspage);
+-}
+-EXPORT_SYMBOL_GPL(zs_unmap_object);
+-
+ void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
+ 			void *local_copy)
  {
-@@ -538,8 +513,6 @@ static struct zpool_driver zs_zpool_driv
- 	.malloc_support_movable = true,
- 	.malloc =		  zs_zpool_malloc,
- 	.free =			  zs_zpool_free,
--	.map =			  zs_zpool_map,
--	.unmap =		  zs_zpool_unmap,
- 	.obj_read_begin =	  zs_zpool_obj_read_begin,
- 	.obj_read_end  =	  zs_zpool_obj_read_end,
- 	.obj_write =		  zs_zpool_obj_write,
+@@ -1975,7 +1765,7 @@ static int zs_page_migrate(struct page *
+ 	 * the class lock protects zpage alloc/free in the zspage.
+ 	 */
+ 	spin_lock(&class->lock);
+-	/* the zspage write_lock protects zpage access via zs_map_object */
++	/* the zspage write_lock protects zpage access via zs_obj_read/write() */
+ 	if (!zspage_write_trylock(zspage)) {
+ 		spin_unlock(&class->lock);
+ 		write_unlock(&pool->lock);
+@@ -2459,23 +2249,11 @@ EXPORT_SYMBOL_GPL(zs_destroy_pool);
+ 
+ static int __init zs_init(void)
+ {
+-	int ret;
+-
+-	ret = cpuhp_setup_state(CPUHP_MM_ZS_PREPARE, "mm/zsmalloc:prepare",
+-				zs_cpu_prepare, zs_cpu_dead);
+-	if (ret)
+-		goto out;
+-
+ #ifdef CONFIG_ZPOOL
+ 	zpool_register_driver(&zs_zpool_driver);
+ #endif
+-
+ 	zs_stat_init();
+-
+ 	return 0;
+-
+-out:
+-	return ret;
+ }
+ 
+ static void __exit zs_exit(void)
+@@ -2483,8 +2261,6 @@ static void __exit zs_exit(void)
+ #ifdef CONFIG_ZPOOL
+ 	zpool_unregister_driver(&zs_zpool_driver);
+ #endif
+-	cpuhp_remove_state(CPUHP_MM_ZS_PREPARE);
+-
+ 	zs_stat_exit();
+ }
+ 
 _
 
 Patches currently in -mm which might be from yosry.ahmed@linux.dev are
