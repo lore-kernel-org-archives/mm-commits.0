@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45139217F5D
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BA7E217F46
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:14:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188476; cv=none; b=Rh0lZP2k9j8/tnTw/0fi+RpU2K9bXK04iZ3NwslfOVY2qDCDr+0Zxa2nwuVSvqgRaHWuCD+aLEmlk7kfFohNCt4PpHH6TuSpSiBjTSJnQ9R5xqrKM5xSJub1miUAzqLiTYpggonxpJg1ryuIiw12HaRjp+8okxC/CJE6TvBDet8=
+	t=1742188477; cv=none; b=abrPOvM98KHkGvyJbp/SpLneeCt2B6W83iou/7aAB425W/AN+hdNURdv8kdwJGaaLv4uAmtLJZ6dQVMVoml5+/FNHwEN8UQWK6uA+MwknvHqOZOuGYKz04EVl1Q8zh9p0BG9UiU6eqDJO0JpNNPRUwvs4tycy6PInvbFx2FNB7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188476; c=relaxed/simple;
-	bh=NfkB5LWuCJPVrk4KVZBKQ5f6UeLxlecEAhcaGXSo5Ag=;
-	h=Date:To:From:Subject:Message-Id; b=Zz+NJ/1r0GVSDfW/oIxR0Tyt4Xydp6Uc9Uc+NTeUu/OcSwnmcqjtYvTMQxuo8doHACc33P9cW9LcaR595C8Vl0QJub0eiiYrT/jrXWQI6EbhN0EAi2KKw3mVRlqizO92UZW7EOrRhOHZoPcYjqHkx6uJ+qjwmXHz16ITBATw8xM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lfx6n1if; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188477; c=relaxed/simple;
+	bh=pxA7YbzAlQtLSjFbC3mNRHxA46TlZk3uh5wkiM0iNiU=;
+	h=Date:To:From:Subject:Message-Id; b=X92MUuFM4idGogcmZyiOpUDVY5GAR2pG2kI3X8x6wB+b3maJWOy3TYOsWZDRh7y2rV73O9RmzTOdfZKsFljWPJGqQCyMWzkyVkCvwR2+suMLvPMYlY1i5v162jn93I2+tSZyDNHBuB+T3VxyU+qdQOyDEQqzAD8A7YIIQ6FAJbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oS4qXzIY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lfx6n1if"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14223C4CEEC;
-	Mon, 17 Mar 2025 05:14:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oS4qXzIY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4085FC4CEEC;
+	Mon, 17 Mar 2025 05:14:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188476;
-	bh=NfkB5LWuCJPVrk4KVZBKQ5f6UeLxlecEAhcaGXSo5Ag=;
+	s=korg; t=1742188477;
+	bh=pxA7YbzAlQtLSjFbC3mNRHxA46TlZk3uh5wkiM0iNiU=;
 	h=Date:To:From:Subject:From;
-	b=Lfx6n1ifzFjK3xKqHLcZrdGkI56dEocDCMrj5h+Npc4A/ZpPHqFZyZumcjSVFk89H
-	 JpqvmfR4UsX5RDwLxEkD5zxu8elx+G4LKEGY9piu+DSjmZ1Z/n2CwRlQLIw6JuGkH3
-	 92XUICNNAvn0CDE7kLUgw+YIZNZhKlreUT+Ya25Y=
-Date: Sun, 16 Mar 2025 22:14:35 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
+	b=oS4qXzIYhKhHxtZa+IIL9wsKXKr1OSxybG1uT7O+K+TnI6mc1a92MFbj63x+29+TX
+	 fGSzNgGFXQaz51awjB+WA0XMty+lAXk2KYlPQabJmesdb9f/ROdgSRJU7bJKlNdQVz
+	 Jf+mZAetwZQAd13yy3mVL9OLYZUg0yDMS8XX7ulo=
+Date: Sun, 16 Mar 2025 22:14:36 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,mel@csn.ul.ie,lee.schermerhorn@hp.com,david@redhat.com,andi@firstfloor.org,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-warn-on-nr_reserved_highatomic-underflow.patch removed from -mm tree
-Message-Id: <20250317051436.14223C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch removed from -mm tree
+Message-Id: <20250317051437.4085FC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: warn on nr_reserved_highatomic underflow
+     Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-warn-on-nr_reserved_highatomic-underflow.patch
+     mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: warn on nr_reserved_highatomic underflow
-Date: Tue, 25 Feb 2025 18:45:09 +0000
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
+Date: Tue, 25 Feb 2025 22:19:33 +0800
 
-As documented in the comment this underflow should not happen.  The
-locking has indeed changed here since the comment was written, see the
-migratetype hygiene patches[0].  However, those changes made the locking
-_safer_, so the underflow _really_ shouldn't happen now.  So upgrade the
-comment to a warning.
+In set_max_huge_pages(), min_count should mean the acquired persistent
+huge pages, but it contains surplus huge pages.  It will lead to failing
+to free free huge pages for a node.
 
-[0] https://lore.kernel.org/all/20240320180429.678181-7-hannes@cmpxchg.org/T/#m3da87e6cc3348a4640aa298137bc9f8f61b76c84
+Steps to reproduce:
+1) create 5 huge pages in Node 0
+2) run a program to use all the huge pages
+3) create 5 huge pages in Node 1
+4) echo 0 > nr_hugepages for Node 1 to free the huge pages
 
-Link: https://lkml.kernel.org/r/20250225-warn-underflow-v1-1-3dc542941d3a@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+The result:
+        Node 0    Node 1
+Total     5         5
+Free      0         5
+Surp      5         5
+
+With this patch, step 4) destroys the 5 huge pages in Node 1
+
+The result with this patch:
+        Node 0    Node 1
+Total     5         0
+Free      0         0
+Surp      5         0
+
+Link: https://lkml.kernel.org/r/20250225141933.3852667-1-tujinjiang@huawei.com
+Fixes: 9a30523066cd ("hugetlb: add per node hstate attributes")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-warn-on-nr_reserved_highatomic-underflow
-+++ a/mm/page_alloc.c
-@@ -3095,6 +3095,7 @@ static bool unreserve_highatomic_pageblo
- 			if (!page)
- 				continue;
+--- a/mm/hugetlb.c~mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages
++++ a/mm/hugetlb.c
+@@ -3937,7 +3937,7 @@ static int set_max_huge_pages(struct hst
+ 	 * and won't grow the pool anywhere else. Not until one of the
+ 	 * sysctls are changed, or the surplus pages go out of use.
+ 	 */
+-	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
++	min_count = h->resv_huge_pages + persistent_huge_pages(h) - h->free_huge_pages;
+ 	min_count = max(count, min_count);
+ 	try_to_free_low(h, min_count, nodes_allowed);
  
-+			size = max(pageblock_nr_pages, 1UL << order);
- 			/*
- 			 * It should never happen but changes to
- 			 * locking could inadvertently allow a per-cpu
-@@ -3102,8 +3103,8 @@ static bool unreserve_highatomic_pageblo
- 			 * while unreserving so be safe and watch for
- 			 * underflows.
- 			 */
--			size = max(pageblock_nr_pages, 1UL << order);
--			size = min(size, zone->nr_reserved_highatomic);
-+			if (WARN_ON_ONCE(size > zone->nr_reserved_highatomic))
-+				size = zone->nr_reserved_highatomic;
- 			zone->nr_reserved_highatomic -= size;
- 
- 			/*
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-scripts-gdb-add-lx_per_cpu_ptr.patch
+mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
 
