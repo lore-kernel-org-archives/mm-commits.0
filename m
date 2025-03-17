@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BFA71BC41
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 00:41:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 953121BC41
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 00:41:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742172068; cv=none; b=pxwyzRH93w+z9WF20sgbFLU6L3/MF11q6YRfIEBj4ihDn61Det36Atf68emXXgWu11VMhVPevzN2OgP4XWvc6guGLlZI6z3ZidAZ0G6dOwtAIh2igBQOlveqDCGs3TCmQy9KmXKnCzZCXr0N4p3okNogen0EcBF+HM4Y/AmpU4I=
+	t=1742172069; cv=none; b=rJ4a26Q+76LZ43T4JhBhraYwRrDwO3pEkntDnpxxj0ea+wsuiB0c1lSmEnbLEY9w8y7DfFDqaRymQdZCGPHYXHc1SvHtu457ksn1fYHc/z/fCrZeHfrj0MMnaB3tg+lKjF4o2ovcJRUd8bXDciKHDURao7BXHCR1p5Hk3Gow/go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742172068; c=relaxed/simple;
-	bh=itoMA749K64RwLOZTYNLKYIqEKhnTev/2A79f5ycW9I=;
-	h=Date:To:From:Subject:Message-Id; b=XYqvsLTxspyTnR2VTyIzA3+3jYGZqdynK5lRdQNFdSC4uwS7ZG+WEUNjRDM7Yip2ovXJ38N9v0MsXhti5Nm3LcaXUj8YWplNcXl4QVBpzmvA9ukCdy+QPe2oiXaLjl9aqOcbYmLNOeZ+nQOkJ0Xl9lLPjciaTmxJxkizIOEZLko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F3FeOcm8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742172069; c=relaxed/simple;
+	bh=GPp8niMOG5TtwcD+yPfX3l8LJZ90sfUs340JbIQVYJg=;
+	h=Date:To:From:Subject:Message-Id; b=Ea5loimuxhkx4/CF1NK3LNOPjxP7DnND1fHUP/apwgqvVlP9zzE35WVWC3eXO0OUceLuJWtb9rZzMX7YvSZ8haGh3mhiWjRT4Y/M5GkVcW5i6zqKSpG48BkEKCxp/flwemUP1HYV/+aKY7CYjJBG1QzWyGHyMpokMTSYCHoGQRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G6161M8G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F3FeOcm8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DACB8C4CEDD;
-	Mon, 17 Mar 2025 00:41:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G6161M8G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06268C4CEDD;
+	Mon, 17 Mar 2025 00:41:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742172067;
-	bh=itoMA749K64RwLOZTYNLKYIqEKhnTev/2A79f5ycW9I=;
+	s=korg; t=1742172069;
+	bh=GPp8niMOG5TtwcD+yPfX3l8LJZ90sfUs340JbIQVYJg=;
 	h=Date:To:From:Subject:From;
-	b=F3FeOcm8e0gaJYS2Usjzlq1f/Y4VEjwFtRJ4BSZSy2Nwgh6Jr9SryhxtMv5o+eUVG
-	 OfuVOTEeUUE9LVXttzUEb4RYgSqhGRiuGo6l2J4ADUfYTQXhhRZ3DP9bwW5qLgsnSt
-	 gra1/y8fYjaukPZI1zi2rMAehSACBr1SiJyqUdtY=
-Date: Sun, 16 Mar 2025 17:41:07 -0700
+	b=G6161M8GuIjmhiEZiJ8kWGLunB31td7sb9HRmhl560tyBT8aAfBqgPEt602ESdcT1
+	 XxEprwVwTAYc80DVrrmbZtE1/9ZZN1HVP2Il9Jjsscb2Kg72ViXtiSPwPYfIURgNXj
+	 2eH5LBc6ZSiwIfhnjayvMEamgSeDpH8lS2iCPb58=
+Date: Sun, 16 Mar 2025 17:41:08 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch removed from -mm tree
-Message-Id: <20250317004107.DACB8C4CEDD@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-initialize-damos-walk_completed-in-damon_new_scheme.patch removed from -mm tree
+Message-Id: <20250317004109.06268C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: respect core layer filters' allowance decision on ops layer
+     Subject: mm/damon/core: initialize damos->walk_completed in damon_new_scheme()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer.patch
+     mm-damon-core-initialize-damos-walk_completed-in-damon_new_scheme.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: respect core layer filters' allowance decision on ops layer
-Date: Fri, 28 Feb 2025 09:53:36 -0800
+Subject: mm/damon/core: initialize damos->walk_completed in damon_new_scheme()
+Date: Fri, 28 Feb 2025 09:44:50 -0800
 
-Filtering decisions are made in filters evaluation order.  Once a decision
-is made by a filter, filters that scheduled to be evaluated after the
-decision-made filter should just respect it.  This is the intended and
-documented behavior.  Since core layer-handled filters are evaluated
-before operations layer-handled filters, decisions made on core layer
-should respected by ops layer.
+The function for allocating and initialize a 'struct damos' object,
+damon_new_scheme(), is not initializing damos->walk_completed field.  Only
+damos_walk_complete() is setting the field.  Hence the field will be
+eventually set and used correctly from second damos_walk() call for the
+scheme.  But the first damos_walk() could mistakenly not walk on the
+regions.  Actually, a common usage of DAMOS for taking an access pattern
+snapshot is installing a monitoring-purpose DAMOS scheme, doing
+damos_walk() to retrieve the snapshot, and then removing the scheme. 
+DAMON user-space tool (damo) also gets runtime snapshot in the way.  Hence
+the problem can continuously happen in such use cases.  Initialize it
+properly in the allocation function.
 
-In case of reject filters, the decision is respected, since core
-layer-rejected regions are not passed to ops layer.  But in case of allow
-filters, ops layer filters don't know if the region has passed to them
-because it was allowed by core filters or just because it didn't match to
-any core layer.  The current wrong implementation assumes it was due to
-not matched by any core filters.  As a reuslt, the decision is not
-respected.  Pass the missing information to ops layer using a new filed in
-'struct damos', and make the ops layer filters respect it.
-
-Link: https://lkml.kernel.org/r/20250228175336.42781-1-sj@kernel.org
-Fixes: 491fee286e56 ("mm/damon/core: support damos_filter->allow")
+Link: https://lkml.kernel.org/r/20250228174450.41472-1-sj@kernel.org
+Fixes: bf0eaba0ff9c ("mm/damon/core: implement damos_walk()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    5 +++++
- mm/damon/core.c       |    6 +++++-
- mm/damon/paddr.c      |    3 +++
- 3 files changed, 13 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/damon.h~mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer
-+++ a/include/linux/damon.h
-@@ -470,6 +470,11 @@ struct damos {
- 	unsigned long next_apply_sis;
- 	/* informs if ongoing DAMOS walk for this scheme is finished */
- 	bool walk_completed;
-+	/*
-+	 * If the current region in the filtering stage is allowed by core
-+	 * layer-handled filters.  If true, operations layer allows it, too.
-+	 */
-+	bool core_filters_allowed;
- /* public: */
- 	struct damos_quota quota;
- 	struct damos_watermarks wmarks;
---- a/mm/damon/core.c~mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer
+--- a/mm/damon/core.c~mm-damon-core-initialize-damos-walk_completed-in-damon_new_scheme
 +++ a/mm/damon/core.c
-@@ -1429,9 +1429,13 @@ static bool damos_filter_out(struct damo
- {
- 	struct damos_filter *filter;
- 
-+	s->core_filters_allowed = false;
- 	damos_for_each_filter(filter, s) {
--		if (damos_filter_match(ctx, t, r, filter))
-+		if (damos_filter_match(ctx, t, r, filter)) {
-+			if (filter->allow)
-+				s->core_filters_allowed = true;
- 			return !filter->allow;
-+		}
- 	}
- 	return false;
- }
---- a/mm/damon/paddr.c~mm-damon-respect-core-layer-filters-allowance-decision-on-ops-layer
-+++ a/mm/damon/paddr.c
-@@ -236,6 +236,9 @@ static bool damos_pa_filter_out(struct d
- {
- 	struct damos_filter *filter;
- 
-+	if (scheme->core_filters_allowed)
-+		return false;
-+
- 	damos_for_each_filter(filter, scheme) {
- 		if (damos_pa_filter_match(filter, folio))
- 			return !filter->allow;
+@@ -373,6 +373,7 @@ struct damos *damon_new_scheme(struct da
+ 	 * or damon_attrs are updated.
+ 	 */
+ 	scheme->next_apply_sis = 0;
++	scheme->walk_completed = false;
+ 	INIT_LIST_HEAD(&scheme->filters);
+ 	scheme->stat = (struct damos_stat){};
+ 	INIT_LIST_HEAD(&scheme->list);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
