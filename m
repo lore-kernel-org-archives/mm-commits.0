@@ -1,96 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5782E450EE
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 19:17:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9524F13C8F3
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 19:50:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742239074; cv=none; b=HXXl1TA0J5umGCOEKcmjPc6IbvjF82+IpB8aEo0xeQg96cFeQ2mTQwBjbG3a+fD4RGA48+IKEp7B+b7uVY8MC1/Me52H9XL/8ioPc1fX+jz769k2gh2pz6r/dsLGImCW3BIH+UcuCc3A0MEmCMu8dE1Elrfmm1MjbqL5SZFhY1M=
+	t=1742241021; cv=none; b=XDY5JO8PpdG+ZN7IgnQTo1tjEiidpMjJsoUeYuEcz6Cm+w97mXV2/NST8j5paSBRZNQWH44uF7Cfw/13P2ZyhdGFYLlJQLh4qaNaUFgmENOG6iELihm4u6fLb20Tc3r+AjYJgfyMf2vJxw2UpaswqNteh0EblHvftm7OsNtjP/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742239074; c=relaxed/simple;
-	bh=+zJRy0jiXRhodLI+cRVSOc5p+zn9mt0NbmbeqEnwjT0=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=g3TKmYCcNOz8z9eFoIYvehq5G/++AugwAxHKyagR2oF94zYN0PR8xhdBTz9T4T02Y/We4JjB9sCgHW9J/0sRNwOrmWodL2VN8JRskHVu/tvnkH25H5G5mzjcgT1XW7Zme98gAKNl6DgzWtBk+UJL9X36im/RBJLC9T2npQ/etdI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rPB+WI88; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742241021; c=relaxed/simple;
+	bh=ekpurIL5nyh6mZs+6721pOWcAisyFoTV4/3sQ+0xLeg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VFY2FXLzMPrmadorJpb5smYDk8ysYkQbgV7i7H6L/dFXNod+wb0aA87OxZ4AeYS7tNeq9beJtUWvze5mt3jUyxBiJTDNeX7lHXOFEy2WOGgnZunYns3ziMigNuPkQyJ5bMa9WLcGkFtTlPEJUVe6daGUWw+C6Ivrx7ftp/RbcHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WJjCBTny; arc=none smtp.client-ip=209.85.216.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rPB+WI88"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B96C4CEE3;
-	Mon, 17 Mar 2025 19:17:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742239073;
-	bh=+zJRy0jiXRhodLI+cRVSOc5p+zn9mt0NbmbeqEnwjT0=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=rPB+WI88U3AbgcEIHUByxnwdpGE0M8mAIwN1MKKFjXXyEkQ/Ux0XK1H/zzi4eia0c
-	 hnkAmgB5mDNXMlywTixa+JnTlizdFx3eH+GrS3wLTfABwZC0CEFDMSs1BxKJwaH01/
-	 n3cmdWw05ftXEaFglrqIWk8Y1aw0SguR5tAkpqrA=
-Date: Mon, 17 Mar 2025 12:17:52 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Easwar Hariharan <eahariha@linux.microsoft.com>
-Cc: mm-commits@vger.kernel.org, idryomov@gmail.com, axboe@kernel.dk,
- "Martin K. Petersen" <martin.petersen@oracle.com>
-Subject: Re: [merged mm-nonmm-stable]
- libceph-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-Message-Id: <20250317121752.f2121f5df15edaac812c3f7e@linux-foundation.org>
-In-Reply-To: <843db43a-9a7d-4f90-9532-47c31e231016@linux.microsoft.com>
-References: <20250317053231.84315C4CEEC@smtp.kernel.org>
-	<843db43a-9a7d-4f90-9532-47c31e231016@linux.microsoft.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WJjCBTny"
+Received: by mail-pj1-f42.google.com with SMTP id 98e67ed59e1d1-2ff611f2ed1so667197a91.0
+        for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 12:50:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1742241020; x=1742845820; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ekpurIL5nyh6mZs+6721pOWcAisyFoTV4/3sQ+0xLeg=;
+        b=WJjCBTnyeetGVAvRNxi3zGXZ1HOSDx4iU+EmWquV9/2E4rPyVzrcbWAjmKF1vQy1dE
+         XIybT4x+AkqQjTNLIsnCgSdtKYza6V6zlJqyPV65F+TMSm9HrLZ9xGdq9ksn+o1gbAv1
+         YyTbMOe27fV7KkZzGOrrq/6ExrUS5mZLcUyowe+DjePqq7LBQyapXby+LnV6xOvq0Mx6
+         1IkaB88b7xNTG1XMa1ArmHzQf8LP3FtbuMc8nET2VXJhosPYEVK2dOOSBR1yOSb3zusm
+         w8+711BOfxHKvRyJBFeum3vaPRnePb6v7n0T5RQaloOuPxt2rAMFvJsJnSC5Aoj0XQ+N
+         IHBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1742241020; x=1742845820;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ekpurIL5nyh6mZs+6721pOWcAisyFoTV4/3sQ+0xLeg=;
+        b=CFykXJ1DgkqAFpZXtBVGI2GhjkEUofgVrGiKaOVeKi3m3V61MN5T5m8czl9w+Zho7x
+         x6NojqjQSbbs/1CapvUUeIXKSW6WLlP1+sd6r157S1kfesIOcHFjSWJw8VZpIwlaVwQm
+         FBNywcVrvTTsmDWRKIWxOaC7op/ckeW3gdQivE1cfJ7+aPFVpGegHnYJiZtzBOO34g1z
+         ImISj5CgkTAL4bLQtffIZuIKFZP6Zo862Gh2g0W5rpzXoZAnteH/nvLfeEgvuNWtKuFm
+         JcHUlpElfUQgJNcpnTTrcylccOQ5Rp71ZjbEN0sZtVo+Rh0TvG2Dx0BJLbmAFIkfQ6Gw
+         cA1A==
+X-Forwarded-Encrypted: i=1; AJvYcCU4yu+/3+mGGUng0rIFxAZq+Uw7sp/YvgTPT9GNsQiVdlSRzbQd+vYnEfl6R7qUsZ9EmqHCIooHeCME@vger.kernel.org
+X-Gm-Message-State: AOJu0YwVFOXAYNcH7YWUIOQSUEi+sJmmeYP5WYpe8UrVvgQSleUvt5A8
+	aSKJ+khLtf7i5JAL3lUbHHo1IUqrAhZ3jco7EtqvOT7gkkYoVAmf+vaNT9s1AoOFtbe7Lh+IMf8
+	yEuPHfJWxqjiWqTe9D/VVbLeIO2M=
+X-Gm-Gg: ASbGncvX31Vdna3miOpD2BYmw+KCEeYk5FX9k0nSD71ku+4QfdBBgSKPdFtku2e0ZI0
+	6q+SPCKOqYM8lqBLyVG5l4PE7grFvQOVtGSpd4N1X5Ni/Gv1k1cz/cf9LwfmPKYiJ6V1Y+BW0eX
+	bfw/GFp4WqLjLEuabz3vBMm5nkTQ==
+X-Google-Smtp-Source: AGHT+IH7bE6yesHdKuyFq9hW1mDBYmrEzb1rURGcWN6uFc1gQ2FtjvEAGhBcKOd0e7S3Wrf0Bqaf2gh5bjZcFnDm6zc=
+X-Received: by 2002:a17:90b:3850:b0:2ff:6941:9b6a with SMTP id
+ 98e67ed59e1d1-30151d40343mr6406239a91.3.1742241019825; Mon, 17 Mar 2025
+ 12:50:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+References: <20250317053150.5115AC4CEEC@smtp.kernel.org> <f150abf3659e151b29a2529b266d519465b7345d.camel@perches.com>
+In-Reply-To: <f150abf3659e151b29a2529b266d519465b7345d.camel@perches.com>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Mon, 17 Mar 2025 20:50:07 +0100
+X-Gm-Features: AQ5f1JqWr_MqtYf6CqssLedhIOOoX62gzT5LM9F5dH6fUTpiPGh6z-osOI47ed8
+Message-ID: <CANiq72nntazBBa-MKvZcGx8udCidjurp1GVpakyDsx1caYcJ6A@mail.gmail.com>
+Subject: Re: [merged mm-nonmm-stable] checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
+ removed from -mm tree
+To: Joe Perches <joe@perches.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
+	tmgross@umich.edu, ojeda@kernel.org, lukas.bulwahn@gmail.com, 
+	gary@garyguo.net, dwaipayanray1@gmail.com, charmitro@posteo.net, 
+	boqun.feng@gmail.com, bjorn3_gh@protonmail.com, benno.lossin@proton.me, 
+	apw@canonical.com, aliceryhl@google.com, alex.gaynor@gmail.com, 
+	a.hindborg@kernel.org, kurti@invicto.ai
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 17 Mar 2025 10:35:28 -0700 Easwar Hariharan <eahariha@linux.microsoft.com> wrote:
+On Mon, Mar 17, 2025 at 6:52=E2=80=AFAM Joe Perches <joe@perches.com> wrote=
+:
+>
+> Not sure it's a 'real' need/issue as any new KERN_<LEVEL> that's
+> not KERN_CONT will already add a new line.
 
-> On 3/16/2025 10:32 PM, Andrew Morton wrote:
-> > The quilt patch titled
-> >      Subject: libceph: convert timeouts to secs_to_jiffies()
-> > has been removed from the -mm tree.  Its filename was
-> >      libceph-convert-timeouts-to-secs_to_jiffies.patch
-> > 
-> > This patch was dropped because it was merged into the mm-nonmm-stable branch
-> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > 
-> > ------------------------------------------------------
-> > From: Easwar Hariharan <eahariha@linux.microsoft.com>
-> > Subject: libceph: convert timeouts to secs_to_jiffies()
-> > Date: Tue, 25 Feb 2025 20:17:21 +0000
-> > 
-> > Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-> > secs_to_jiffies().  As the value here is a multiple of 1000, use
-> > secs_to_jiffies() instead of msecs_to_jiffies() to avoid the
-> > multiplication
-> > 
-> > This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-> > the following Coccinelle rules:
-> > 
-> > @depends on patch@ expression E; @@
-> > 
-> > -msecs_to_jiffies(E * 1000)
-> > +secs_to_jiffies(E)
-> > 
-> > @depends on patch@ expression E; @@
-> > 
-> > -msecs_to_jiffies(E * MSEC_PER_SEC)
-> > +secs_to_jiffies(E)
-> > 
-> > While here, remove the no-longer necessary checks for range since there's
-> > no multiplication involved.
-> > 
-> > Link: https://lkml.kernel.org/r/20250225-converge-secs-to-jiffies-part-two-v3-7-a43967e36c88@linux.microsoft.com
-> > Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-> > Acked-by: Ilya Dryomov <idryomov@gmail.com>
-> 
-> Hi Andrew,
-> 
-> Please drop this patch as requested here: https://lore.kernel.org/all/d5035d88-f714-47c2-ace6-8bd609d84633@linux.microsoft.com/
+But it is still intended that one uses an explicit newline, no? I am
+not sure I follow your other comment, so I may be missing something
+though.
 
-OK.
+Regarding complexity, agreed, it is fairly involved -- I think the
+continuation case could be ignored, since it is rare and it is just a
+warning anyway.
 
-> Also, the scsi: lpfc patch was also queued by Martin: https://web.git.kernel.org/pub/scm/linux/kernel/git/mkp/scsi.git/commit/?id=a131f20804d6
-
-OK, git will figure that out.
+Cheers,
+Miguel
