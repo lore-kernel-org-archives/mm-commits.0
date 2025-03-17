@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9BE2215795
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A8221578B
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:11:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188278; cv=none; b=WvnZTYjfDa21fIIcfMxoL3bA1LWzlLOGf+vEOjWSYvMlE/7bmw7hFvApvZ7DhBd3WHNfk0YAEqkIGmdHBgO54G44Oyy0PFfmqUZv8yES9yQMM4LnUPYk4vPrhPwz+2NfpbEjlaAP2Qdo+Qf2Uom2884HN393PVk8/htm6ucK1NI=
+	t=1742188280; cv=none; b=GaFlYuOrTk9G9htUwDFr75Jo9hDqWFy6CuUb25xqjXr01JbrYcloUJYKUdTDjPA5qy17OwUHEn9qm7ZkrHW/fKE2g150W1XmPsNSUtqRi1EkyoEVyO/qGPFgySpdZmm5Z7CIUxpDgRYlua/M+gInQt5DMpKO4mvRF26JvPnjZXs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188278; c=relaxed/simple;
-	bh=6iazGq7S1/KyvdC3+Cew3BltLO18XfMzHrTe02TW61c=;
-	h=Date:To:From:Subject:Message-Id; b=Lmiiv86B1eCayHWdhiIhEqR5LS7Ygb0dD0DYt0gpuOA3oycZDwMRN2ScToGl3pmXRSnAQAmCkyQIE6SqxusBMHAB9lItFHiwIo3z5ZIPkfqDRVeVfcN+8Fkj62cWPNLBC5Pjpygr9BcevRmDP+adroiU3PaH3JkgvP1GT3GyLOc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OoSrnHGo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188280; c=relaxed/simple;
+	bh=G1IoPsxZg0AguplyoFLK+Qnz93LWT4HqVLmehLS8emg=;
+	h=Date:To:From:Subject:Message-Id; b=rBIAq8sXnUjXDHQy4Sm4kV2i+361jAvy24j9BOQzx4HeW6XbJF3ZW31QyC252gJo++NfKW5gizq72YZhyYoWSOF6nQngDYeJSppBNk6c4tIrnqFjolAQhYZ+cRC0eDwvcbNGLDSO8IyDoItG8ytZ8w0StUt9rdQyyajkodS7wJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=joIRyZ6b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OoSrnHGo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9E9C4CEEC;
-	Mon, 17 Mar 2025 05:11:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="joIRyZ6b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD38C4CEED;
+	Mon, 17 Mar 2025 05:11:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188276;
-	bh=6iazGq7S1/KyvdC3+Cew3BltLO18XfMzHrTe02TW61c=;
+	s=korg; t=1742188279;
+	bh=G1IoPsxZg0AguplyoFLK+Qnz93LWT4HqVLmehLS8emg=;
 	h=Date:To:From:Subject:From;
-	b=OoSrnHGod2+wH5NM0WgUODQpLTUPn875OKRhLNV1WK7aQ0IFvWkv7vTXTpbOVIBLW
-	 +7DazZcY2X8bKwS2T7sWZYz6zfWtaKXAbJc+nap1gt5nU0QG44Jc1VoDdoBJ+E1GeN
-	 Wmhlaq7KUNC16W2+4BfpnBUaxPu16NJNg29RyRuE=
-Date: Sun, 16 Mar 2025 22:11:15 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,hannes@cmpxchg.org,david@redhat.com,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=joIRyZ6b3FkIrQTrKttg2XIykt49Z90dTqBGFIdutuMoPpJnl6XCdErLNc7N0EEdT
+	 gTFIvKnHPPmHnY/N0F1Y1f0JLpSCPIJrTAvGCd+WTyWDLl3WeO+OqgdMAbaHhjaDSl
+	 JLNkr1oECB92i+XmNfN6fg0PYX0yzwoQknSYiE3c=
+Date: Sun, 16 Mar 2025 22:11:18 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-add-files-for-setting-damos_filter-sz_range.patch removed from -mm tree
-Message-Id: <20250317051116.1A9E9C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory.patch removed from -mm tree
+Message-Id: <20250317051119.6AD38C4CEED@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: add files for setting damos_filter->sz_range
+     Subject: mm/mm_init.c: only align start of ZONE_MOVABLE on nodes with memory
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-add-files-for-setting-damos_filter-sz_range.patch
+     mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: mm/damon/sysfs-schemes: add files for setting damos_filter->sz_range
-Date: Tue, 11 Feb 2025 12:43:41 +0000
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/mm_init.c: only align start of ZONE_MOVABLE on nodes with memory
+Date: Tue, 11 Feb 2025 08:29:00 +0000
 
-Add min and max files for damon filters to let the userspace decide the
-min/max folio size to operate on.  This will be needed to decide what
-folio sizes to give pa_stat for.
+At the beginning of find_zone_movable_pfns_for_nodes(), it has properly
+set node_states[N_MEMORY] in early_calculate_totalpages().
 
-Link: https://lkml.kernel.org/r/20250211124437.278873-3-usamaarif642@gmail.com
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Instead of iterating over all possible nodes, we can just do the alignment
+on nodes with memory.
+
+Link: https://lkml.kernel.org/r/20250211082900.10877-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   54 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ mm/mm_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-add-files-for-setting-damos_filter-sz_range
-+++ a/mm/damon/sysfs-schemes.c
-@@ -316,6 +316,7 @@ struct damon_sysfs_scheme_filter {
- 	bool allow;
- 	char *memcg_path;
- 	struct damon_addr_range addr_range;
-+	struct damon_size_range sz_range;
- 	int target_idx;
- };
+--- a/mm/mm_init.c~mm-mm_initc-only-align-start-of-zone_movalbe-on-nodes-with-memory
++++ a/mm/mm_init.c
+@@ -545,7 +545,7 @@ restart:
  
-@@ -474,6 +475,44 @@ static ssize_t addr_end_store(struct kob
- 	return err ? err : count;
- }
+ out2:
+ 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
+-	for (nid = 0; nid < MAX_NUMNODES; nid++) {
++	for_each_node_state(nid, N_MEMORY) {
+ 		unsigned long start_pfn, end_pfn;
  
-+static ssize_t min_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", filter->sz_range.min);
-+}
-+
-+static ssize_t min_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+	int err = kstrtoul(buf, 0, &filter->sz_range.min);
-+
-+	return err ? err : count;
-+}
-+
-+static ssize_t max_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+
-+	return sysfs_emit(buf, "%lu\n", filter->sz_range.max);
-+}
-+
-+static ssize_t max_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
-+			struct damon_sysfs_scheme_filter, kobj);
-+	int err = kstrtoul(buf, 0, &filter->sz_range.max);
-+
-+	return err ? err : count;
-+}
-+
- static ssize_t damon_target_idx_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
-@@ -520,6 +559,12 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_scheme_filter_addr_end_attr =
- 		__ATTR_RW_MODE(addr_end, 0600);
- 
-+static struct kobj_attribute damon_sysfs_scheme_filter_min_attr =
-+		__ATTR_RW_MODE(min, 0600);
-+
-+static struct kobj_attribute damon_sysfs_scheme_filter_max_attr =
-+		__ATTR_RW_MODE(max, 0600);
-+
- static struct kobj_attribute damon_sysfs_scheme_filter_damon_target_idx_attr =
- 		__ATTR_RW_MODE(damon_target_idx, 0600);
- 
-@@ -530,6 +575,8 @@ static struct attribute *damon_sysfs_sch
- 	&damon_sysfs_scheme_filter_memcg_path_attr.attr,
- 	&damon_sysfs_scheme_filter_addr_start_attr.attr,
- 	&damon_sysfs_scheme_filter_addr_end_attr.attr,
-+	&damon_sysfs_scheme_filter_min_attr.attr,
-+	&damon_sysfs_scheme_filter_max_attr.attr,
- 	&damon_sysfs_scheme_filter_damon_target_idx_attr.attr,
- 	NULL,
- };
-@@ -1954,6 +2001,13 @@ static int damon_sysfs_add_scheme_filter
- 			filter->addr_range = sysfs_filter->addr_range;
- 		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
- 			filter->target_idx = sysfs_filter->target_idx;
-+		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
-+			if (sysfs_filter->sz_range.min >
-+					sysfs_filter->sz_range.max) {
-+				damos_destroy_filter(filter);
-+				return -EINVAL;
-+			}
-+			filter->sz_range = sysfs_filter->sz_range;
- 		}
- 
- 		damos_add_filter(scheme, filter);
+ 		zone_movable_pfn[nid] =
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
+lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure.patch
+lib-rbtree-split-tests.patch
+lib-rbtree-add-random-seed.patch
+lib-interval_tree-add-test-case-for-interval_tree_iter_xxx-helpers.patch
+lib-interval_tree-add-test-case-for-span-iteration.patch
+lib-interval_tree-skip-the-check-before-go-to-the-right-subtree.patch
+lib-interval_tree-fix-the-comment-of-interval_tree_span_iter_next_gap.patch
 
