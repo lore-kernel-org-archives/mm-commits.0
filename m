@@ -1,98 +1,95 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 938DC17995E
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 17:35:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BE2F1E52D
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 18:58:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742232923; cv=none; b=jqFkAxFv9+ExaeJ0rBJ5Yzm/qtM+Vxdtuefujwlnt5kQK8NMdlyzVIp31XrF0hvyvlmij7cHpqFR1ZyhlD0RRiLcY/XEfUHRzYqDeqVjACER3w+Yb0Z1ntC5mXZf5DY5nhKLrJKR20IUHEzKIGrqraDKx5H2/Lc2TLJ2Jp+ffQA=
+	t=1742237902; cv=none; b=g3sIJEl4k/jxvAiL3Tn1JfOBsSupNMe/XbHnVOxa5ahwfmSpSQYtfWO6/qZhg1JRdf8gYIRJS4wVjtxw/ZS9MPyh9wwOycBmdQxD3KRnoqxdsWzF3+4+hBI8NvOGNqFRCLtstk3CEC4JTC2kugDu5m5tbPCGO7jvZKhbtI6ryDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742232923; c=relaxed/simple;
-	bh=vln4a5xdTCHQIbH/AZTQVx96hAWrVnr/SGV4MT5lHUs=;
-	h=Message-ID:Date:MIME-Version:Cc:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=HSRRX177XnzzEkFlja5Zx5yFxAAc1CcK78Q/XLFuXj3ATmUhF2Uukh+eIQbvvwo8PQ7ETxtKL3VccSEPvWSu0ELW/0f31B30fP4/B67C1A5pREKmWZ7rRxnwrV8nIXpZKCu/EhLKKXBiCSQcql8JV36j+5s5TGDtPGbZmJQIRFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=IdQI76A+; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1742237902; c=relaxed/simple;
+	bh=1zDMJ5sXSTzlQtnDsbbLxGVS1Ls/ly5O5RU3JUrNiQQ=;
+	h=Date:To:From:Subject:Message-Id; b=HGoJStrXilLZvtMNslkHUf0r+A3QMmhcXpQthWsKhRleXoNvVGZt8IxX1aQkE17w8TOCAwATyY2YLIP3Ai3GsWzO5TgvvwVuqiXuRT5J5ZRPvqX7V8BIMOojW90o8596M43hNP9mO0NwGz+Mn5jGEymz/jb3c+IxUnm9teL5Bb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bxRC9KQA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="IdQI76A+"
-Received: from [100.65.233.190] (unknown [20.236.11.185])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 097702033441;
-	Mon, 17 Mar 2025 10:35:21 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 097702033441
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1742232922;
-	bh=hCYT89b7jv62v6lju8lusXnXQbegYwkKtVtnz1RYUiw=;
-	h=Date:Cc:Subject:To:References:From:In-Reply-To:From;
-	b=IdQI76A+sMKj74FNLFuI7uheCS0fAWERWu043gYw7zpKT7kUlzt/apawpkf+qsn+K
-	 nS708kH7ssX3e+jJm3ZXrZZjeQz3BFxhqplCtPzvGtYrKV1uwU9cIgnX0oLj3FhvEz
-	 VWxkl8O6Z29kiatMU37XqAAL5/RwdaCS+0mjvKlo=
-Message-ID: <843db43a-9a7d-4f90-9532-47c31e231016@linux.microsoft.com>
-Date: Mon, 17 Mar 2025 10:35:28 -0700
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bxRC9KQA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6521C4CEE3;
+	Mon, 17 Mar 2025 18:58:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1742237901;
+	bh=1zDMJ5sXSTzlQtnDsbbLxGVS1Ls/ly5O5RU3JUrNiQQ=;
+	h=Date:To:From:Subject:From;
+	b=bxRC9KQAbf2piqmvsaXKw9mMEr+Jt/SsACD3juaTgMParrFGzhHbailJ8dbndgzva
+	 A3NVmCgXFIlQjr5uJLTPpixMI7Vlgfo9vSXwABWisl5bqral4r7FC7ukYDgrkx4roC
+	 tuPnIJsv4sW3C0ITyAfUncEl6id9HRxZm248pov0=
+Date: Mon, 17 Mar 2025 11:58:20 -0700
+To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + resource-replace-open-coded-variant-of-define_res.patch added to mm-nonmm-unstable branch
+Message-Id: <20250317185821.B6521C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Cc: mm-commits@vger.kernel.org, idryomov@gmail.com, axboe@kernel.dk,
- eahariha@linux.microsoft.com, "Martin K. Petersen"
- <martin.petersen@oracle.com>
-Subject: Re: [merged mm-nonmm-stable]
- libceph-convert-timeouts-to-secs_to_jiffies.patch removed from -mm tree
-To: Andrew Morton <akpm@linux-foundation.org>
-References: <20250317053231.84315C4CEEC@smtp.kernel.org>
-From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Content-Language: en-US
-In-Reply-To: <20250317053231.84315C4CEEC@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 3/16/2025 10:32 PM, Andrew Morton wrote:
-> The quilt patch titled
->      Subject: libceph: convert timeouts to secs_to_jiffies()
-> has been removed from the -mm tree.  Its filename was
->      libceph-convert-timeouts-to-secs_to_jiffies.patch
-> 
-> This patch was dropped because it was merged into the mm-nonmm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> ------------------------------------------------------
-> From: Easwar Hariharan <eahariha@linux.microsoft.com>
-> Subject: libceph: convert timeouts to secs_to_jiffies()
-> Date: Tue, 25 Feb 2025 20:17:21 +0000
-> 
-> Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-> secs_to_jiffies().  As the value here is a multiple of 1000, use
-> secs_to_jiffies() instead of msecs_to_jiffies() to avoid the
-> multiplication
-> 
-> This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-> the following Coccinelle rules:
-> 
-> @depends on patch@ expression E; @@
-> 
-> -msecs_to_jiffies(E * 1000)
-> +secs_to_jiffies(E)
-> 
-> @depends on patch@ expression E; @@
-> 
-> -msecs_to_jiffies(E * MSEC_PER_SEC)
-> +secs_to_jiffies(E)
-> 
-> While here, remove the no-longer necessary checks for range since there's
-> no multiplication involved.
-> 
-> Link: https://lkml.kernel.org/r/20250225-converge-secs-to-jiffies-part-two-v3-7-a43967e36c88@linux.microsoft.com
-> Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
-> Acked-by: Ilya Dryomov <idryomov@gmail.com>
 
-Hi Andrew,
+The patch titled
+     Subject: resource: replace open coded variant of DEFINE_RES()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     resource-replace-open-coded-variant-of-define_res.patch
 
-Please drop this patch as requested here: https://lore.kernel.org/all/d5035d88-f714-47c2-ace6-8bd609d84633@linux.microsoft.com/
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-replace-open-coded-variant-of-define_res.patch
 
-Also, the scsi: lpfc patch was also queued by Martin: https://web.git.kernel.org/pub/scm/linux/kernel/git/mkp/scsi.git/commit/?id=a131f20804d6
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-<snip>
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Thanks,
-Easwar
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: resource: replace open coded variant of DEFINE_RES()
+Date: Mon, 17 Mar 2025 20:11:13 +0200
+
+Replace open coded variant of DEFINE_RES(). No functional changes intended.
+
+Link: https://lkml.kernel.org/r/20250317181412.1560630-5-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/resource.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/kernel/resource.c~resource-replace-open-coded-variant-of-define_res
++++ a/kernel/resource.c
+@@ -561,8 +561,7 @@ static int __region_intersects(struct re
+ 	struct resource res, o;
+ 	bool covered;
+ 
+-	res.start = start;
+-	res.end = start + size - 1;
++	res = DEFINE_RES(start, size, 0);
+ 
+ 	for (p = parent->child; p ; p = p->sibling) {
+ 		if (!resource_intersection(p, &res, &o))
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+resource-split-define_res_named_desc-out-of-define_res_named.patch
+resource-replace-open-coded-variant-of-define_res_named_desc.patch
+resource-replace-open-coded-variants-of-define_res__named.patch
+resource-replace-open-coded-variant-of-define_res.patch
+
