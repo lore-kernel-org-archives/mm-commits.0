@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F21621518B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C882D2153E1
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:10:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188240; cv=none; b=smLyfYvTC6vVxMpuaj7Drxg6/Z73f59HPsJfCV+Bb/wl5ank1EAWE1rys41JMI/4ARBQHtTIebT/TQe8M+W4jQy+Vp31pccevje8aCvvsztUhdINTcHVkJzYJBDbq+jqQNeZoA+NL2PFjHDG2/Cr5GrBtFKjOtAT46598/clNac=
+	t=1742188241; cv=none; b=L5LEwNuIbHj0s5VKDU7GsZ2yuCncAN3Iw2FPI1JHGJslJLU0evNUYzGzeOrLsx+olXVGOKnEowM51L2SD3djgWAWtor4YSOmlq9j9v778tevfYDpOoVsc3nn+aIFhxalIsBuuj4PCpA0LngsePjJu5RSZdVefOI3hl7Oha1sbq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188240; c=relaxed/simple;
-	bh=UXDt4I8Mis9r/00R1Kd945nO5pAf6kqBJoswJvVraJI=;
-	h=Date:To:From:Subject:Message-Id; b=aNWIrm5azgy/mKat7NsvX51kdcA+lRk8StTjmofKNVzUSOvdcqpUWLE2oUVl9zAaB63zPTBATuutR2RdGV8+u+dY89Ovb2LaV0JeJ4Mu5DvD4Yb4f1Z57vg6ca+z+p4qn4EuXTTUfgt0lEYRTKZr/xAqlUJXJOzA4Rcn6SdjjPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wp4FF3TB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188241; c=relaxed/simple;
+	bh=7ZgZiBiGIMpPNPSbk4Isp3LJYof9f//1uuygChtTt3I=;
+	h=Date:To:From:Subject:Message-Id; b=kHA12eL8rlMtwLBTt4UJt55Q4Fl21d3RRDMhc7APCEs7WScOoEWF4nPksFpVg+CQU1RbKaQpLBsZiR8fvmEIkxzf3ttVSiBmHWC7vxsVioqAp3lCg+8ada1pDSW2a3vb31XMITUwwUy/Cof6uVW/ZA9EtcXeumjS3a2o3H+pxgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M6SiN7+L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wp4FF3TB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC0B3C4CEEC;
-	Mon, 17 Mar 2025 05:10:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M6SiN7+L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC2C9C4CEEC;
+	Mon, 17 Mar 2025 05:10:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188239;
-	bh=UXDt4I8Mis9r/00R1Kd945nO5pAf6kqBJoswJvVraJI=;
+	s=korg; t=1742188240;
+	bh=7ZgZiBiGIMpPNPSbk4Isp3LJYof9f//1uuygChtTt3I=;
 	h=Date:To:From:Subject:From;
-	b=Wp4FF3TBY7uj20KESQ6YDbh1qwI8i14Ao4YvThhgvxcE/+2gwtkthpVMXbWiRYUCz
-	 1dMkUdPnHDc9WJnwNqCg3UPiXV+uK4gEz7FsiD6f4NpoKWalrQVMsYLwctA+He9uG5
-	 r6oLNaMbQ4N2XiF6U6XxlcV1BnaEBdPx1Td8gVBg=
-Date: Sun, 16 Mar 2025 22:10:39 -0700
+	b=M6SiN7+LQOwXv1nrrA+LTN//F9j5QiiZ7DMUMJotho5uXUdOuiTSgYj0w+p/E7ChP
+	 2MUQQxHgdUNArqy2X+r8ZOCFBimi1yuU5mq8Mps5SBe6PW6IqKuRDQusSO0BSe5/Jy
+	 uRAhQ2ni6fxTz//7OMz2M0S7Sv/DVfm22WYHfF38=
+Date: Sun, 16 Mar 2025 22:10:40 -0700
 To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch removed from -mm tree
-Message-Id: <20250317051039.CC0B3C4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swapfilec-update-the-code-comment-above-swap_count_continued.patch removed from -mm tree
+Message-Id: <20250317051040.DC2C9C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: rename swap_is_has_cache() to swap_only_has_cache()
+     Subject: mm/swapfile.c: update the code comment above swap_count_continued()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch
+     mm-swapfilec-update-the-code-comment-above-swap_count_continued.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/swap: rename swap_is_has_cache() to swap_only_has_cache()
-Date: Wed, 5 Feb 2025 17:27:14 +0800
+Subject: mm/swapfile.c: update the code comment above swap_count_continued()
+Date: Wed, 5 Feb 2025 17:27:15 +0800
 
-There are two predicates in the name of swap_is_has_cache() which is
-confusing.  Renaming it to remove the confusion and can better reflect its
-functionality.
+Now, swap_count_continued() has two callers, __swap_duplicate() and
+__swap_entry_free_locked(), the relevant code comment is stale.  Update it
+to reflect the current situation.
 
-Link: https://lkml.kernel.org/r/20250205092721.9395-6-bhe@redhat.com
+[bhe@redhat.com: v2]
+  Link: https://lkml.kernel.org/r/Z6V0/UvG1fvkQ4t/@fedora
+Link: https://lkml.kernel.org/r/20250205092721.9395-7-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/swapfile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache
+--- a/mm/swapfile.c~mm-swapfilec-update-the-code-comment-above-swap_count_continued
 +++ a/mm/swapfile.c
-@@ -161,7 +161,7 @@ static long swap_usage_in_pages(struct s
- /* Reclaim directly, bypass the slot cache and don't touch device lock */
- #define TTRS_DIRECT		0x8
- 
--static bool swap_is_has_cache(struct swap_info_struct *si,
-+static bool swap_only_has_cache(struct swap_info_struct *si,
- 			      unsigned long offset, int nr_pages)
- {
- 	unsigned char *map = si->swap_map + offset;
-@@ -243,7 +243,7 @@ static int __try_to_reclaim_swap(struct
- 	 * reference or pending writeback, and can't be allocated to others.
- 	 */
- 	ci = lock_cluster(si, offset);
--	need_reclaim = swap_is_has_cache(si, offset, nr_pages);
-+	need_reclaim = swap_only_has_cache(si, offset, nr_pages);
- 	unlock_cluster(ci);
- 	if (!need_reclaim)
- 		goto out_unlock;
-@@ -1577,7 +1577,7 @@ void put_swap_folio(struct folio *folio,
- 		return;
- 
- 	ci = lock_cluster(si, offset);
--	if (swap_is_has_cache(si, offset, size))
-+	if (swap_only_has_cache(si, offset, size))
- 		swap_entry_range_free(si, ci, entry, size);
- 	else {
- 		for (int i = 0; i < size; i++, entry.val++) {
+@@ -3797,8 +3797,8 @@ outer:
+  * into, carry if so, or else fail until a new continuation page is allocated;
+  * when the original swap_map count is decremented from 0 with continuation,
+  * borrow from the continuation and report whether it still holds more.
+- * Called while __swap_duplicate() or swap_entry_free() holds swap or cluster
+- * lock.
++ * Called while __swap_duplicate() or caller of __swap_entry_free_locked()
++ * holds cluster lock.
+  */
+ static bool swap_count_continued(struct swap_info_struct *si,
+ 				 pgoff_t offset, unsigned char count)
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
