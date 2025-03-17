@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D768079D2
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 04:32:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C669213C8EA
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 04:33:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742185961; cv=none; b=Jn+XzGjr4oii8BAWL558M/kI1v4LFQuRJpdsaDVkM4F4rtdOvAz5I/AvCjFRqZg+0XowjzioteIwh0TwiAHYLHUIc2sJOIx8rTuA934hPn1100tnZEAd259hHYL+VIlZlrJR1tHAVEz+KEyQYFFe2B89HqjHC419lCmOS9UpsE4=
+	t=1742186008; cv=none; b=Y1jplFyHECCSzgsT84SLX+VF/cx3xa9KsA+HeRl5jWEwpNGZUkqE6StRBzgHBK+GGK5HpNd5SB7lojzjKkST75NZ/0l0ml9jzsczaj9ioTTpBobmqjo2bce7UHk0FfnZf7BtMAa/OK/d1zy8Mz3b3kkTP3TkoYBvb5GBR0tF/+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742185961; c=relaxed/simple;
-	bh=Y9o6x3pgHWq5iN8vcvsdN01c3zUnFHYqhhM2LzTlKpU=;
-	h=Date:To:From:Subject:Message-Id; b=cx+CPLWgS1phE2RY9v/S7o1utVH6ARuoyuXfCCoEe5PgTpBzljwyKkXr0kTgYT308OHG0N7hinRAtXOT4RdInJVWX39lOTerpuWeF1Baw73BKCXZBh9YUmNYp2tZ+MT24vxtkkdPucZhMG9BJASCt+0cC68W7iTL6rh7Yn5AOkk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TmkyBe3i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742186008; c=relaxed/simple;
+	bh=U2CqJ4XdrDTrUwWijCYb9pNZk7ypv7tJOenVmjtvb4A=;
+	h=Date:To:From:Subject:Message-Id; b=rSGkrfV7MDLhQRMLwW8Y6Q8Rf9FF9IpKSiO63IFf3etlFa8GlSepiCZF9klMMpK291Gy1ft8qEVyo5G1U4TBt+yfGcvWdlDPQg9qEich1nUHQVzTPOrAuLhCAaw74dyPkg2IdS77Zrbprr4godIeCMF8061Yr8DzZSj+qan4nNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vile0UpX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TmkyBe3i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 840C4C4CEEC;
-	Mon, 17 Mar 2025 04:32:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vile0UpX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 393DAC4CEEC;
+	Mon, 17 Mar 2025 04:33:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742185961;
-	bh=Y9o6x3pgHWq5iN8vcvsdN01c3zUnFHYqhhM2LzTlKpU=;
+	s=korg; t=1742186008;
+	bh=U2CqJ4XdrDTrUwWijCYb9pNZk7ypv7tJOenVmjtvb4A=;
 	h=Date:To:From:Subject:From;
-	b=TmkyBe3i3wWffg5ynBTZAEmntfpyM/ZHTgqRX/3b/hRE3HOHCQVD8rv026TnUG9oL
-	 sGFyCrM0diO56kAcT+/WU53qj0qZht9wMPc5Bwe4T+w5ZqRQ90+eMw7DQmGzjz8NoZ
-	 DjhU6NnmRZafwAWXpgCxJzlVBPAFolKOcKn+egRQ=
-Date: Sun, 16 Mar 2025 21:32:40 -0700
-To: mm-commits@vger.kernel.org,ryncsn@gmail.com,chrisl@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=Vile0UpXD9M6bPWoL+7N6Us8P1ytFjbEXNx5zQT0AUaPnPKH4kjUC7kNiOUipwfYi
+	 zmka25ArTPSphjn4SZtMnzl19yCJe3kfUZS9qHnCJdBenuBAGoVxEmklUdh0wvdj/Z
+	 sinho6Z6NFUngpDzWS9OXoWrPOy3T4/gTnRHS1QY=
+Date: Sun, 16 Mar 2025 21:33:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,soci@c64.rulez.org,simona.vetter@ffwll.ch,mcanal@igalia.com,jayakumar.lkml@gmail.com,deller@gmx.de,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swapfilec-update-the-code-comment-above-swap_count_continued-v2.patch removed from -mm tree
-Message-Id: <20250317043241.840C4C4CEEC@smtp.kernel.org>
+Subject: [folded-merged] fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch removed from -mm tree
+Message-Id: <20250317043328.393DAC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swapfile.c: update the code comment above swap_count_continued()
+     Subject: mm: fixup unused variable warnings
 has been removed from the -mm tree.  Its filename was
-     mm-swapfilec-update-the-code-comment-above-swap_count_continued-v2.patch
+     fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix.patch
 
-This patch was dropped because it was folded into mm-swapfilec-update-the-code-comment-above-swap_count_continued.patch
+This patch was dropped because it was folded into fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/swapfile.c: update the code comment above swap_count_continued()
-Date: Fri, 7 Feb 2025 10:50:37 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: fixup unused variable warnings
+Date: Sun, 9 Feb 2025 06:29:25 +0000
 
-Now, swap_count_continued() has two callers, __swap_duplicate() and
-__swap_entry_free_locked(), the relevant code comment is stale.  Update it
-to reflect the current situation.
+Unfortunately fb_defio being enabled by nommu devices seems enormously
+ingrained in the kernel to the point that it's not feasible to address
+that in this series, so we use an ifdef to workaround.
 
-Link: https://lkml.kernel.org/r/Z6V0/UvG1fvkQ4t/@fedora
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <ryncsn@gmail.com>
+However this workaround unfortunately missed some unused variables -
+correct this.
+
+This has been tested locally with W=1 and confirmed to resolve the issue.
+
+Link: https://lkml.kernel.org/r/d4018405-2762-4385-a816-e54cc23839ac@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Kajtar Zsolt <soci@c64.rulez.org>
+Cc: Maíra Canal <mcanal@igalia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Simona Vetter <simona.vetter@ffwll.ch>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/fbdev/core/fb_defio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-update-the-code-comment-above-swap_count_continued-v2
-+++ a/mm/swapfile.c
-@@ -3798,7 +3798,7 @@ outer:
-  * when the original swap_map count is decremented from 0 with continuation,
-  * borrow from the continuation and report whether it still holds more.
-  * Called while __swap_duplicate() or caller of __swap_entry_free_locked()
-- * holds swap or cluster lock.
-+ * holds cluster lock.
-  */
- static bool swap_count_continued(struct swap_info_struct *si,
- 				 pgoff_t offset, unsigned char count)
+--- a/drivers/video/fbdev/core/fb_defio.c~fb_defio-do-not-use-deprecated-page-mapping-index-fields-fix
++++ a/drivers/video/fbdev/core/fb_defio.c
+@@ -265,15 +265,15 @@ static void fb_deferred_io_work(struct w
+ 
+ 	/* here we wrprotect the page's mappings, then do all deferred IO. */
+ 	mutex_lock(&fbdefio->lock);
++#ifdef CONFIG_MMU
+ 	list_for_each_entry(pageref, &fbdefio->pagereflist, list) {
+ 		struct page *page = pageref->page;
+ 		pgoff_t pgoff = pageref->offset >> PAGE_SHIFT;
+ 
+-#ifdef CONFIG_MMU
+ 		mapping_wrprotect_range(fbdefio->mapping, pgoff,
+ 					page_to_pfn(page), 1);
+-#endif
+ 	}
++#endif
+ 
+ 	/* driver's callback with pagereflist */
+ 	fbdefio->deferred_io(info, &fbdefio->pagereflist);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-swap_statec-fix-the-obsolete-code-comment.patch
-mm-swap_statec-optimize-the-code-in-clear_shadow_from_swap_cache.patch
-mm-swap-remove-swap_flag_prio_shift.patch
-mm-swap-skip-scanning-cluster-range-if-its-empty-cluster.patch
-mm-swap-rename-swap_is_has_cache-to-swap_only_has_cache.patch
-mm-swapfilec-update-the-code-comment-above-swap_count_continued.patch
-mm-swapfilec-optimize-code-in-setup_clusters.patch
-mm-swap_statec-remove-the-meaningless-code-comment.patch
-mm-swapfilec-remove-the-unneeded-checking.patch
-mm-swap-rename-swap_swapcount-to-swap_entry_swapped.patch
-mm-swapfilec-remove-the-incorrect-code-comment.patch
-mm-swapfilec-open-code-cluster_alloc_swap.patch
-mm-mmu_gather-remove-unused-__tlb_remove_page.patch
-mm-mmu_gather-clean-up-the-stale-code-comment.patch
+mm-simplify-vma-merge-structure-and-expand-comments.patch
+mm-further-refactor-commit_merge.patch
+mm-eliminate-adj_start-parameter-from-commit_merge.patch
+mm-make-vmg-target-consistent-and-further-simplify-commit_merge.patch
+mm-completely-abstract-unnecessary-adj_start-calculation.patch
+mm-use-read-write_once-for-vma-vm_flags-on-migrate-mprotect.patch
+mm-refactor-rmap_walk_file-to-separate-out-traversal-logic.patch
+mm-provide-mapping_wrprotect_range-function.patch
+fb_defio-do-not-use-deprecated-page-mapping-index-fields.patch
+mm-allow-guard-regions-in-file-backed-and-read-only-mappings.patch
+selftests-mm-rename-guard-pages-to-guard-regions.patch
+selftests-mm-rename-guard-pages-to-guard-regions-fix.patch
+tools-selftests-expand-all-guard-region-tests-to-file-backed.patch
+tools-selftests-add-file-shmem-backed-mapping-guard-region-tests.patch
+fs-proc-task_mmu-add-guard-region-bit-to-pagemap.patch
+tools-selftests-add-guard-region-test-for-proc-pid-pagemap.patch
+tools-selftests-add-guard-region-test-for-proc-pid-pagemap-fix.patch
+mm-mremap-correctly-handle-partial-mremap-of-vma-starting-at-0.patch
+mm-mremap-refactor-mremap-system-call-implementation.patch
+mm-mremap-introduce-and-use-vma_remap_struct-threaded-state.patch
+mm-mremap-initial-refactor-of-move_vma.patch
+mm-mremap-complete-refactor-of-move_vma.patch
+mm-mremap-refactor-move_page_tables-abstracting-state.patch
+mm-mremap-thread-state-through-move-page-table-operation.patch
 
