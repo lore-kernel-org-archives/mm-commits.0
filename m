@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87386218AA5
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A45352192F1
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:32:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742189574; cv=none; b=otIr51Szt9xeZOt5l1HrlVdokAnN/SyesIc+8LOFiZk+6+gCpBPropc95AkTJlZGoyvqueGHqmCiC+Nnxwr2d6SX6tAAon8MK0D++DiEZnNrnmUQNsmI+5AHcT0FkEjfdk9mBiewk7lOrxUIJRQqMn4xW0zl266xqlQkgV6CIXk=
+	t=1742189575; cv=none; b=KjpbXU/CLDW/Ai5oXgH8Iu/4gKB37PqM2lpNJ7XlkQRnePWmdFB1SAhkK89ZV9bdzThP2qLBnv2jlVn0ZnQJ4VRKr31GLJHcq0FcR5EZqamOdqxhWBy/bZhBE5e3FS6sBc16PNZJ99u5nuJ9jV9oa30e2vY9+198SJDlhKt2ETI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742189574; c=relaxed/simple;
-	bh=Rre8trNa1OOS/8C9zpazJxLkiv8WmcemxuwnxSQ1S10=;
-	h=Date:To:From:Subject:Message-Id; b=lzYbpJQ2FHU/4WHgRhpIMHOun1EHgHe8ZJmNAcvXGU/abHRvnzmjyqSsfgELJbIYyGVbEB2uuWM34gj46mnD4PHWA4sBXIqZuD4dsKPYtExhQK8zrmH0tmY861FtnV7HYGTa40UGZmuC0Ndo9JOKgNSEyGpS1DTMuG/tJndd9kI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HueCQ6eZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742189575; c=relaxed/simple;
+	bh=+sqQnip82gvoCnAZQtUIKchAY93gwc4H2PtyDZrpA1Q=;
+	h=Date:To:From:Subject:Message-Id; b=dQOlQRj1b7nb8iwLC5L/E0bAoipMid0Ir9bufG1xHs4/LYEKY15NlQhH83hu75MrgXZAW/FS57E7UYiy9rbRHEQSi91mjb8RA0b8DhG8mEFtOIsDcimmvLGttSa/1URM1o0YepJCsVKi2lJRZrCCBfYPgcRIeZOna7FxuzzBPMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GtVSHXV9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HueCQ6eZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DAE4C4CEEC;
-	Mon, 17 Mar 2025 05:32:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GtVSHXV9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76EC8C4CEEC;
+	Mon, 17 Mar 2025 05:32:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742189574;
-	bh=Rre8trNa1OOS/8C9zpazJxLkiv8WmcemxuwnxSQ1S10=;
+	s=korg; t=1742189575;
+	bh=+sqQnip82gvoCnAZQtUIKchAY93gwc4H2PtyDZrpA1Q=;
 	h=Date:To:From:Subject:From;
-	b=HueCQ6eZjYC6FLMv2Kw6PdpZVmUcs1Pa0Yv1V2q83+hX0rcI0GMzKU3bswivjV1zK
-	 6aXO2BX/X6O0eyN0g4pq2QVhrDqdHAWm6rKqfz6L+EJloI5dR0B/i8AcBRO1HEKTgg
-	 ucdzlD936EyomsTQT/qRlwQoyfTfkmImqdk9ruy0=
-Date: Sun, 16 Mar 2025 22:32:53 -0700
-To: mm-commits@vger.kernel.org,p.hahn@avm.de,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,phahn-oss@avm.de,akpm@linux-foundation.org
+	b=GtVSHXV9VdOOlABeEuhB9NTjqFrO/aNdiBplUbnhbIJmZ8QwLSSW6dMz6y/JYa9I+
+	 h+aPKZ5AR8sld+Fxj5FWWZztuUHO5lt4SPxGUKDXwR+0y9RGo7+3tjs/BahSCqLpHL
+	 n7E1cuyqfcxeL9szQ/5u+jInP4mN0V8KpTOma85o=
+Date: Sun, 16 Mar 2025 22:32:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,michel@lespinasse.org,jgg@nvidia.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-describe-min-conf-desc-length.patch removed from -mm tree
-Message-Id: <20250317053254.5DAE4C4CEEC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure.patch removed from -mm tree
+Message-Id: <20250317053255.76EC8C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,479 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: describe --min-conf-desc-length
+     Subject: lib/rbtree: enable userland test suite for rbtree related data structure
 has been removed from the -mm tree.  Its filename was
-     checkpatch-describe-min-conf-desc-length.patch
+     lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Philipp Hahn <phahn-oss@avm.de>
-Subject: checkpatch: describe --min-conf-desc-length
-Date: Mon, 10 Mar 2025 12:22:27 +0100
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: lib/rbtree: enable userland test suite for rbtree related data structure
+Date: Mon, 10 Mar 2025 07:49:32 +0000
 
-Neither the warning nor the help message gives any hint on the unit for
-length: Could be meters, inches, bytes, characters or ...  lines.
+Patch series "lib/interval_tree: add some test cases and cleanup", v2.
 
-Extend the output of `--help` to name the unit "lines" and the default:
--  --min-conf-desc-length=n   set the min description length, if shorter, warn
-+  --min-conf-desc-length=n   set the minimum description length for config symbols
-+                             in lines, if shorter, warn (default 4)
+Since rbtree/augmented tree/interval tree share similar data structure,
+besides new cases for interval tree, this patch set also does cleanup for
+others.
 
-Include the minimum number of lines as other error messages already do:
-- WARNING: please write a help paragraph that fully describes the config symbol
-+ WARNING: please write a help paragraph that fully describes the config symbol with at least 4 lines
 
-Link: https://lkml.kernel.org/r/c71c170c90eba26265951e248adfedd3245fe575.1741605695.git.p.hahn@avm.de
-Signed-off-by: Philipp Hahn <p.hahn@avm.de>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+This patch (of 7):
+
+Currently we have some tests for rbtree related data structure, e.g. 
+rbtree, augmented rbtree, interval tree, in lib/ as kernel module.
+
+To facilitate the test and debug for those fundamental data structure,
+this patch enable those tests in userland.
+
+Link: https://lkml.kernel.org/r/20250310074938.26756-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250310074938.26756-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ tools/include/asm/timex.h                          |   13 ++
+ tools/include/linux/container_of.h                 |   18 +++
+ tools/include/linux/kernel.h                       |   14 --
+ tools/include/linux/math64.h                       |    5 +
+ tools/include/linux/moduleparam.h                  |    7 +
+ tools/include/linux/prandom.h                      |   51 ++++++++++
+ tools/include/linux/slab.h                         |    1 
+ tools/lib/slab.c                                   |   16 +++
+ tools/testing/rbtree/Makefile                      |   31 ++++++
+ tools/testing/rbtree/interval_tree_test.c          |   53 +++++++++++
+ tools/testing/rbtree/rbtree_test.c                 |   45 +++++++++
+ tools/testing/rbtree/test.h                        |    4 
+ tools/testing/shared/interval_tree-shim.c          |    5 +
+ tools/testing/shared/linux/interval_tree.h         |    7 +
+ tools/testing/shared/linux/interval_tree_generic.h |    2 
+ tools/testing/shared/linux/rbtree.h                |    8 +
+ tools/testing/shared/linux/rbtree_augmented.h      |    7 +
+ tools/testing/shared/linux/rbtree_types.h          |    8 +
+ tools/testing/shared/rbtree-shim.c                 |    6 +
+ 19 files changed, 288 insertions(+), 13 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-describe-min-conf-desc-length
-+++ a/scripts/checkpatch.pl
-@@ -115,7 +115,8 @@ Options:
-   --max-line-length=n        set the maximum line length, (default $max_line_length)
-                              if exceeded, warn on patches
-                              requires --strict for use with --file
--  --min-conf-desc-length=n   set the min description length, if shorter, warn
-+  --min-conf-desc-length=n   set the minimum description length for config symbols
-+                             in lines, if shorter, warn (default $min_conf_desc_length)
-   --tab-size=n               set the number of spaces for tab (default $tabsize)
-   --root=PATH                PATH to the kernel tree root
-   --no-summary               suppress the per-file summary
-@@ -3647,7 +3648,7 @@ sub process {
- 			    $help_length < $min_conf_desc_length) {
- 				my $stat_real = get_stat_real($linenr, $ln - 1);
- 				WARN("CONFIG_DESCRIPTION",
--				     "please write a help paragraph that fully describes the config symbol\n" . "$here\n$stat_real\n");
-+				     "please write a help paragraph that fully describes the config symbol with at least $min_conf_desc_length lines\n" . "$here\n$stat_real\n");
- 			}
- 		}
+diff --git a/tools/include/asm/timex.h a/tools/include/asm/timex.h
+new file mode 100644
+--- /dev/null
++++ a/tools/include/asm/timex.h
+@@ -0,0 +1,13 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __TOOLS_LINUX_ASM_TIMEX_H
++#define __TOOLS_LINUX_ASM_TIMEX_H
++
++#include <time.h>
++
++#define cycles_t clock_t
++
++static inline cycles_t get_cycles(void)
++{
++	return clock();
++}
++#endif // __TOOLS_LINUX_ASM_TIMEX_H
+diff --git a/tools/include/linux/container_of.h a/tools/include/linux/container_of.h
+new file mode 100644
+--- /dev/null
++++ a/tools/include/linux/container_of.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TOOLS_LINUX_CONTAINER_OF_H
++#define _TOOLS_LINUX_CONTAINER_OF_H
++
++#ifndef container_of
++/**
++ * container_of - cast a member of a structure out to the containing structure
++ * @ptr:	the pointer to the member.
++ * @type:	the type of the container struct this is embedded in.
++ * @member:	the name of the member within the struct.
++ *
++ */
++#define container_of(ptr, type, member) ({			\
++	const typeof(((type *)0)->member) * __mptr = (ptr);	\
++	(type *)((char *)__mptr - offsetof(type, member)); })
++#endif
++
++#endif	/* _TOOLS_LINUX_CONTAINER_OF_H */
+--- a/tools/include/linux/kernel.h~lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure
++++ a/tools/include/linux/kernel.h
+@@ -11,6 +11,7 @@
+ #include <linux/panic.h>
+ #include <endian.h>
+ #include <byteswap.h>
++#include <linux/container_of.h>
  
+ #ifndef UINT_MAX
+ #define UINT_MAX	(~0U)
+@@ -25,19 +26,6 @@
+ #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+ #endif
+ 
+-#ifndef container_of
+-/**
+- * container_of - cast a member of a structure out to the containing structure
+- * @ptr:	the pointer to the member.
+- * @type:	the type of the container struct this is embedded in.
+- * @member:	the name of the member within the struct.
+- *
+- */
+-#define container_of(ptr, type, member) ({			\
+-	const typeof(((type *)0)->member) * __mptr = (ptr);	\
+-	(type *)((char *)__mptr - offsetof(type, member)); })
+-#endif
+-
+ #ifndef max
+ #define max(x, y) ({				\
+ 	typeof(x) _max1 = (x);			\
+--- a/tools/include/linux/math64.h~lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure
++++ a/tools/include/linux/math64.h
+@@ -72,4 +72,9 @@ static inline u64 mul_u64_u64_div64(u64
+ }
+ #endif
+ 
++static inline u64 div_u64(u64 dividend, u32 divisor)
++{
++	return dividend / divisor;
++}
++
+ #endif /* _LINUX_MATH64_H */
+diff --git a/tools/include/linux/moduleparam.h a/tools/include/linux/moduleparam.h
+new file mode 100644
+--- /dev/null
++++ a/tools/include/linux/moduleparam.h
+@@ -0,0 +1,7 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TOOLS_LINUX_MODULE_PARAMS_H
++#define _TOOLS_LINUX_MODULE_PARAMS_H
++
++#define MODULE_PARM_DESC(parm, desc)
++
++#endif // _TOOLS_LINUX_MODULE_PARAMS_H
+diff --git a/tools/include/linux/prandom.h a/tools/include/linux/prandom.h
+new file mode 100644
+--- /dev/null
++++ a/tools/include/linux/prandom.h
+@@ -0,0 +1,51 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __TOOLS_LINUX_PRANDOM_H
++#define __TOOLS_LINUX_PRANDOM_H
++
++#include <linux/types.h>
++
++struct rnd_state {
++	__u32 s1, s2, s3, s4;
++};
++
++/*
++ * Handle minimum values for seeds
++ */
++static inline u32 __seed(u32 x, u32 m)
++{
++	return (x < m) ? x + m : x;
++}
++
++/**
++ * prandom_seed_state - set seed for prandom_u32_state().
++ * @state: pointer to state structure to receive the seed.
++ * @seed: arbitrary 64-bit value to use as a seed.
++ */
++static inline void prandom_seed_state(struct rnd_state *state, u64 seed)
++{
++	u32 i = ((seed >> 32) ^ (seed << 10) ^ seed) & 0xffffffffUL;
++
++	state->s1 = __seed(i,   2U);
++	state->s2 = __seed(i,   8U);
++	state->s3 = __seed(i,  16U);
++	state->s4 = __seed(i, 128U);
++}
++
++/**
++ *	prandom_u32_state - seeded pseudo-random number generator.
++ *	@state: pointer to state structure holding seeded state.
++ *
++ *	This is used for pseudo-randomness with no outside seeding.
++ *	For more random results, use get_random_u32().
++ */
++static inline u32 prandom_u32_state(struct rnd_state *state)
++{
++#define TAUSWORTHE(s, a, b, c, d) (((s & c) << d) ^ (((s << a) ^ s) >> b))
++	state->s1 = TAUSWORTHE(state->s1,  6U, 13U, 4294967294U, 18U);
++	state->s2 = TAUSWORTHE(state->s2,  2U, 27U, 4294967288U,  2U);
++	state->s3 = TAUSWORTHE(state->s3, 13U, 21U, 4294967280U,  7U);
++	state->s4 = TAUSWORTHE(state->s4,  3U, 12U, 4294967168U, 13U);
++
++	return (state->s1 ^ state->s2 ^ state->s3 ^ state->s4);
++}
++#endif // __TOOLS_LINUX_PRANDOM_H
+--- a/tools/include/linux/slab.h~lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure
++++ a/tools/include/linux/slab.h
+@@ -12,6 +12,7 @@
+ 
+ void *kmalloc(size_t size, gfp_t gfp);
+ void kfree(void *p);
++void *kmalloc_array(size_t n, size_t size, gfp_t gfp);
+ 
+ bool slab_is_available(void);
+ 
+--- a/tools/lib/slab.c~lib-rbtree-enable-userland-test-suite-for-rbtree-related-data-structure
++++ a/tools/lib/slab.c
+@@ -36,3 +36,19 @@ void kfree(void *p)
+ 		printf("Freeing %p to malloc\n", p);
+ 	free(p);
+ }
++
++void *kmalloc_array(size_t n, size_t size, gfp_t gfp)
++{
++	void *ret;
++
++	if (!(gfp & __GFP_DIRECT_RECLAIM))
++		return NULL;
++
++	ret = calloc(n, size);
++	uatomic_inc(&kmalloc_nr_allocated);
++	if (kmalloc_verbose)
++		printf("Allocating %p from calloc\n", ret);
++	if (gfp & __GFP_ZERO)
++		memset(ret, 0, n * size);
++	return ret;
++}
+diff --git a/tools/testing/rbtree/interval_tree_test.c a/tools/testing/rbtree/interval_tree_test.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/rbtree/interval_tree_test.c
+@@ -0,0 +1,53 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * interval_tree.c: Userspace Interval Tree test-suite
++ * Copyright (c) 2025 Wei Yang <richard.weiyang@gmail.com>
++ */
++#include <linux/math64.h>
++#include <linux/kern_levels.h>
++#include "shared.h"
++
++#include "../../../lib/interval_tree_test.c"
++
++int usage(void)
++{
++	fprintf(stderr, "Userland interval tree test cases\n");
++	fprintf(stderr, "  -n: Number of nodes in the interval tree\n");
++	fprintf(stderr, "  -p: Number of iterations modifying the tree\n");
++	fprintf(stderr, "  -q: Number of searches to the interval tree\n");
++	fprintf(stderr, "  -s: Number of iterations searching the tree\n");
++	fprintf(stderr, "  -a: Searches will iterate all nodes in the tree\n");
++	fprintf(stderr, "  -m: Largest value for the interval's endpoint\n");
++	exit(-1);
++}
++
++void interval_tree_tests(void)
++{
++	interval_tree_test_init();
++	interval_tree_test_exit();
++}
++
++int main(int argc, char **argv)
++{
++	int opt;
++
++	while ((opt = getopt(argc, argv, "n:p:q:s:am:")) != -1) {
++		if (opt == 'n')
++			nnodes = strtoul(optarg, NULL, 0);
++		else if (opt == 'p')
++			perf_loops = strtoul(optarg, NULL, 0);
++		else if (opt == 'q')
++			nsearches = strtoul(optarg, NULL, 0);
++		else if (opt == 's')
++			search_loops = strtoul(optarg, NULL, 0);
++		else if (opt == 'a')
++			search_all = true;
++		else if (opt == 'm')
++			max_endpoint = strtoul(optarg, NULL, 0);
++		else
++			usage();
++	}
++
++	interval_tree_tests();
++	return 0;
++}
+diff --git a/tools/testing/rbtree/Makefile a/tools/testing/rbtree/Makefile
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/rbtree/Makefile
+@@ -0,0 +1,31 @@
++# SPDX-License-Identifier: GPL-2.0
++
++.PHONY: clean
++
++TARGETS = rbtree_test interval_tree_test
++OFILES = $(LIBS) rbtree-shim.o interval_tree-shim.o
++DEPS = ../../../include/linux/rbtree.h \
++	../../../include/linux/rbtree_types.h \
++	../../../include/linux/rbtree_augmented.h \
++	../../../include/linux/interval_tree.h \
++	../../../include/linux/interval_tree_generic.h \
++	../../../lib/rbtree.c \
++	../../../lib/interval_tree.c
++
++targets: $(TARGETS)
++
++include ../shared/shared.mk
++
++ifeq ($(DEBUG), 1)
++	CFLAGS += -g
++endif
++
++$(TARGETS):	$(OFILES)
++
++rbtree-shim.o: $(DEPS)
++rbtree_test.o:  ../../../lib/rbtree_test.c
++interval_tree-shim.o: $(DEPS)
++interval_tree_test.o: 	../../../lib/interval_tree_test.c
++
++clean:
++	$(RM) $(TARGETS) *.o generated/*
+diff --git a/tools/testing/rbtree/rbtree_test.c a/tools/testing/rbtree/rbtree_test.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/rbtree/rbtree_test.c
+@@ -0,0 +1,45 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * rbtree_test.c: Userspace Red Black Tree test-suite
++ * Copyright (c) 2025 Wei Yang <richard.weiyang@gmail.com>
++ */
++#include <linux/init.h>
++#include <linux/math64.h>
++#include <linux/kern_levels.h>
++#include "shared.h"
++
++#include "../../../lib/rbtree_test.c"
++
++int usage(void)
++{
++	fprintf(stderr, "Userland rbtree test cases\n");
++	fprintf(stderr, "  -n: Number of nodes in the rb-tree\n");
++	fprintf(stderr, "  -p: Number of iterations modifying the rb-tree\n");
++	fprintf(stderr, "  -c: Number of iterations modifying and verifying the rb-tree\n");
++	exit(-1);
++}
++
++void rbtree_tests(void)
++{
++	rbtree_test_init();
++	rbtree_test_exit();
++}
++
++int main(int argc, char **argv)
++{
++	int opt;
++
++	while ((opt = getopt(argc, argv, "n:p:c:")) != -1) {
++		if (opt == 'n')
++			nnodes = strtoul(optarg, NULL, 0);
++		else if (opt == 'p')
++			perf_loops = strtoul(optarg, NULL, 0);
++		else if (opt == 'c')
++			check_loops = strtoul(optarg, NULL, 0);
++		else
++			usage();
++	}
++
++	rbtree_tests();
++	return 0;
++}
+diff --git a/tools/testing/rbtree/test.h a/tools/testing/rbtree/test.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/rbtree/test.h
+@@ -0,0 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++void rbtree_tests(void);
++void interval_tree_tests(void);
+diff --git a/tools/testing/shared/interval_tree-shim.c a/tools/testing/shared/interval_tree-shim.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/interval_tree-shim.c
+@@ -0,0 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
++/* Very simple shim around the interval tree. */
++
++#include "../../../lib/interval_tree.c"
+diff --git a/tools/testing/shared/linux/interval_tree_generic.h a/tools/testing/shared/linux/interval_tree_generic.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/linux/interval_tree_generic.h
+@@ -0,0 +1,2 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#include "../../../../include/linux/interval_tree_generic.h"
+diff --git a/tools/testing/shared/linux/interval_tree.h a/tools/testing/shared/linux/interval_tree.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/linux/interval_tree.h
+@@ -0,0 +1,7 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TEST_INTERVAL_TREE_H
++#define _TEST_INTERVAL_TREE_H
++
++#include "../../../../include/linux/interval_tree.h"
++
++#endif /* _TEST_INTERVAL_TREE_H */
+diff --git a/tools/testing/shared/linux/rbtree_augmented.h a/tools/testing/shared/linux/rbtree_augmented.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/linux/rbtree_augmented.h
+@@ -0,0 +1,7 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TEST_RBTREE_AUGMENTED_H
++#define _TEST_RBTREE_AUGMENTED_H
++
++#include "../../../../include/linux/rbtree_augmented.h"
++
++#endif /* _TEST_RBTREE_AUGMENTED_H */
+diff --git a/tools/testing/shared/linux/rbtree.h a/tools/testing/shared/linux/rbtree.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/linux/rbtree.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TEST_RBTREE_H
++#define _TEST_RBTREE_H
++
++#include <linux/kernel.h>
++#include "../../../../include/linux/rbtree.h"
++
++#endif /* _TEST_RBTREE_H */
+diff --git a/tools/testing/shared/linux/rbtree_types.h a/tools/testing/shared/linux/rbtree_types.h
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/linux/rbtree_types.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _TEST_RBTREE_TYPES_H
++#define _TEST_RBTREE_TYPES_H
++
++#include "../../../../include/linux/rbtree_types.h"
++
++#endif /* _TEST_RBTREE_TYPES_H */
++
+diff --git a/tools/testing/shared/rbtree-shim.c a/tools/testing/shared/rbtree-shim.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/shared/rbtree-shim.c
+@@ -0,0 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0
++
++/* Very simple shim around the rbtree. */
++
++#include "../../../lib/rbtree.c"
++
 _
 
-Patches currently in -mm which might be from phahn-oss@avm.de are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
 
