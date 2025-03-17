@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BDB98634E
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F7C48634E
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:15:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188535; cv=none; b=HyceVSIiUk4a1DJN21KRtoATdXsQgQ3p1LAQbkZv7e30A/Xf8G4fum9giGnRRcZEnSpNAcjvwwO3yau0njioCA2B9gACtXOAD/Msz3QvEI/s7CCxVQamZ/MSKuJWAWZ2rbAVjBiZYq5bFaa6EIz2SwpYtHT0BI8c/kAy1q0CERk=
+	t=1742188536; cv=none; b=Ptb98Bwanz7vIYLgTQBNx6txoH47sYPOVlUjJ8X/WS5ytE7WHpqUFxCmYr4h5PoPybss5v5mFILLY64WNGiDxhoclYtfpfiw8Q/SgMvq9gzZ0z0JwG7L2yUIBf60REd9xSubBByw6vceikhlslnsAOE1hUOCoft4clHt2CyyIwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188535; c=relaxed/simple;
-	bh=3t/xAND1P4PDr7cxmFOiTJa/BuP0sDzI9EHGTmt4T9Q=;
-	h=Date:To:From:Subject:Message-Id; b=cMydHf1UfWFPd/t6aLKTt5MLZIAlOA0SewYPi2fN2HMys0XZLNw3WK2StR5dHtv6NcqSbcnuhQ7Q08bj2fz+AdYIUK7xeGCgJxloRRbl6EgKlZh1tFhSMYZ5hQctdHBTStYAMJMBWepE5wIr3LV6yoxStoV6EpHymZKER+IZYBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJu3YhOB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188536; c=relaxed/simple;
+	bh=he8BsGBgxVr0zK8iIo77K3xbdoZ3FpftpPMuUcW1ylQ=;
+	h=Date:To:From:Subject:Message-Id; b=DXfuKTb+dKUZSDHPQhfG49LFMCijCC2n8p2eS09MBthyrdPeu0+J87UQCR91vXp6JHuSP4/YZTj5EM6OXnMRijQPekMJN2M8Cyy0T60ptMMu+WfTHZbtCaBkQ3bLYsTcQLks7dbl9MUiBBINlPkl+PxEZmzOb8xbp6HSCExSTR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytnjsfoR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJu3YhOB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5018AC4CEEC;
-	Mon, 17 Mar 2025 05:15:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytnjsfoR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71CBCC4CEEC;
+	Mon, 17 Mar 2025 05:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188535;
-	bh=3t/xAND1P4PDr7cxmFOiTJa/BuP0sDzI9EHGTmt4T9Q=;
+	s=korg; t=1742188536;
+	bh=he8BsGBgxVr0zK8iIo77K3xbdoZ3FpftpPMuUcW1ylQ=;
 	h=Date:To:From:Subject:From;
-	b=VJu3YhOBXyA+vFgi2h233MioHqk3wsBadzt3stBjzl6MKsXSS75+X5bDbiWYhNC5V
-	 V8QjyalSinWRomnPqVmAlsCe0cQZQTbxs1Wq4A2qZMJw1vV0xRLXXVIfyudCo+Ul9d
-	 DjCJ3f391gfCzjfnZxvvCS6zk48eRTmwa3nKkdMk=
-Date: Sun, 16 Mar 2025 22:15:34 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tj@kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,jack@suse.cz,brauner@kernel.org,ast@kernel.org,yizhou.tang@shopee.com,akpm@linux-foundation.org
+	b=ytnjsfoR/2bKdgUAKjkEhasaKTFPT7x6PymYA2laYY83UGVtxkLQWgvIITWjFCmPt
+	 x81GkiH20kewtoIkSzKQt6evJtHaVxe4wOeGnDKAEp+a5N+Oloq/Tq/y9T0BohHUJO
+	 wY5/9XZXubscCPD0LgF2JdNkI8kB1A+vCloKzoRU=
+Date: Sun, 16 Mar 2025 22:15:35 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch removed from -mm tree
-Message-Id: <20250317051535.5018AC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-introduce-damos-ops_filters.patch removed from -mm tree
+Message-Id: <20250317051536.71CBCC4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,142 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: writeback: fix calculations in trace_balance_dirty_pages() for cgwb
+     Subject: mm/damon/core: introduce damos->ops_filters
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb.patch
+     mm-damon-core-introduce-damos-ops_filters.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tang Yizhou <yizhou.tang@shopee.com>
-Subject: writeback: fix calculations in trace_balance_dirty_pages() for cgwb
-Date: Tue, 4 Mar 2025 19:03:18 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: introduce damos->ops_filters
+Date: Tue, 4 Mar 2025 13:19:05 -0800
 
-In the commit dcc25ae76eb7 ("writeback: move global_dirty_limit into
-wb_domain") of the cgroup writeback backpressure propagation patchset,
-Tejun made some adaptations to trace_balance_dirty_pages() for cgroup
-writeback.  However, this adaptation was incomplete and Tejun missed
-further adaptation in the subsequent patches.
+Patch series "mm/damon: make allow filters after reject filters useful and
+intuitive".
 
-In the cgroup writeback scenario, if sdtc in balance_dirty_pages() is
-assigned to mdtc, then upon entering trace_balance_dirty_pages(),
-__entry->limit should be assigned based on the dirty_limit of the
-corresponding memcg's wb_domain, rather than global_wb_domain.
+DAMOS filters do allow or reject elements of memory for given DAMOS scheme
+only if those match the filter criterias.  For elements that don't match
+any DAMOS filter, 'allowing' is the default behavior.  This makes
+allow-filters that don't have any reject-filter after them meaningless
+sources of overhead.  The decision was made to keep the behavior
+consistent with that before the introduction of allow-filters.  This,
+however, makes usage of DAMOS filters confusing and inefficient.  It is
+more intuitive and still consistent behavior to reject by default unless
+there is no filter at all or the last filter is a reject filter.  Update
+the filtering logic in the way and update documents to clarify the
+behavior.
 
-To address this issue and simplify the implementation, introduce a 'limit'
-field in struct dirty_throttle_control to store the hard_limit value
-computed in wb_position_ratio() by calling hard_dirty_limit().  This field
-will then be used in trace_balance_dirty_pages() to assign the value to
-__entry->limit.
+Note that this is changing the old behavior.  But the old behavior for the
+problematic filter combination was definitely confusing, inefficient and
+anyway useless.  Also, the behavior has relatively recently introduced. 
+It is difficult to anticipate any user that depends on the behavior. 
+Hence this is not a user-breaking behavior change but an obvious
+improvement.
 
-Link: https://lkml.kernel.org/r/20250304110318.159567-4-yizhou.tang@shopee.com
-Fixes: dcc25ae76eb7 ("writeback: move global_dirty_limit into wb_domain")
-Signed-off-by: Tang Yizhou <yizhou.tang@shopee.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+
+This patch (of 9):
+
+DAMOS filters can be categorized into two groups depending on which layer
+they are handled, namely core layer and ops layer.  The groups are
+important because the filtering behavior depends on evaluation sequence of
+filters, and core layer-handled filters are evaluated before operations
+layer-handled ones.
+
+The behavior is clearly documented, but the implementation is bit
+inefficient and complicated.  All filters are maintained in a single list
+(damos->filters) in mix.  Filters evaluation logics in core layer and
+operations layer iterates all the filters on the list, while skipping
+filters that should be not handled by the layer of the logic.  It is
+inefficient.  Making future extensions having differentiations for filters
+of different handling layers will also be complicated.
+
+Add a new list that will be used for having all operations layer-handled
+DAMOS filters to DAMOS scheme data structure.  Also add the support of its
+initialization and basic traversal functions.
+
+Link: https://lkml.kernel.org/r/20250304211913.53574-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250304211913.53574-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h        |    1 +
- include/trace/events/writeback.h |    5 ++---
- mm/page-writeback.c              |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/damon.h |    8 ++++++++
+ mm/damon/core.c       |    1 +
+ 2 files changed, 9 insertions(+)
 
---- a/include/linux/writeback.h~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
-+++ a/include/linux/writeback.h
-@@ -326,6 +326,7 @@ struct dirty_throttle_control {
- 	unsigned long		dirty;		/* file_dirty + write + nfs */
- 	unsigned long		thresh;		/* dirty threshold */
- 	unsigned long		bg_thresh;	/* dirty background threshold */
-+	unsigned long		limit;		/* hard dirty limit */
+--- a/include/linux/damon.h~mm-damon-core-introduce-damos-ops_filters
++++ a/include/linux/damon.h
+@@ -448,6 +448,7 @@ struct damos_access_pattern {
+  * @wmarks:		Watermarks for automated (in)activation of this scheme.
+  * @target_nid:		Destination node if @action is "migrate_{hot,cold}".
+  * @filters:		Additional set of &struct damos_filter for &action.
++ * @ops_filters:	ops layer handling &struct damos_filter objects list.
+  * @last_applied:	Last @action applied ops-managing entity.
+  * @stat:		Statistics of this scheme.
+  * @list:		List head for siblings.
+@@ -508,6 +509,7 @@ struct damos {
+ 		int target_nid;
+ 	};
+ 	struct list_head filters;
++	struct list_head ops_filters;
+ 	void *last_applied;
+ 	struct damos_stat stat;
+ 	struct list_head list;
+@@ -858,6 +860,12 @@ static inline unsigned long damon_sz_reg
+ #define damos_for_each_filter_safe(f, next, scheme) \
+ 	list_for_each_entry_safe(f, next, &(scheme)->filters, list)
  
- 	unsigned long		wb_dirty;	/* per-wb counterparts */
- 	unsigned long		wb_thresh;
---- a/include/trace/events/writeback.h~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
-+++ a/include/trace/events/writeback.h
-@@ -663,9 +663,8 @@ TRACE_EVENT(balance_dirty_pages,
- 		unsigned long freerun = (dtc->thresh + dtc->bg_thresh) / 2;
- 		strscpy_pad(__entry->bdi, bdi_dev_name(wb->bdi), 32);
++#define damos_for_each_ops_filter(f, scheme) \
++	list_for_each_entry(f, &(scheme)->ops_filters, list)
++
++#define damos_for_each_ops_filter_safe(f, next, scheme) \
++	list_for_each_entry_safe(f, next, &(scheme)->ops_filters, list)
++
+ #ifdef CONFIG_DAMON
  
--		__entry->limit		= global_wb_domain.dirty_limit;
--		__entry->setpoint	= (global_wb_domain.dirty_limit +
--						freerun) / 2;
-+		__entry->limit		= dtc->limit;
-+		__entry->setpoint	= (dtc->limit + freerun) / 2;
- 		__entry->dirty		= dtc->dirty;
- 		__entry->wb_setpoint	= __entry->setpoint *
- 						dtc->wb_thresh / (dtc->thresh + 1);
---- a/mm/page-writeback.c~writeback-fix-calculations-in-trace_balance_dirty_pages-for-cgwb
-+++ a/mm/page-writeback.c
-@@ -1072,7 +1072,7 @@ static void wb_position_ratio(struct dir
- 	struct bdi_writeback *wb = dtc->wb;
- 	unsigned long write_bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long freerun = dirty_freerun_ceiling(dtc->thresh, dtc->bg_thresh);
--	unsigned long limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
-+	unsigned long limit = dtc->limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
- 	unsigned long wb_thresh = dtc->wb_thresh;
- 	unsigned long x_intercept;
- 	unsigned long setpoint;		/* dirty pages' target balance point */
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end);
+--- a/mm/damon/core.c~mm-damon-core-introduce-damos-ops_filters
++++ a/mm/damon/core.c
+@@ -375,6 +375,7 @@ struct damos *damon_new_scheme(struct da
+ 	scheme->next_apply_sis = 0;
+ 	scheme->walk_completed = false;
+ 	INIT_LIST_HEAD(&scheme->filters);
++	INIT_LIST_HEAD(&scheme->ops_filters);
+ 	scheme->stat = (struct damos_stat){};
+ 	INIT_LIST_HEAD(&scheme->list);
+ 
 _
 
-Patches currently in -mm which might be from yizhou.tang@shopee.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
+mm-damon-sysfs-schemes-implement-core_filters-and-ops_filters-directories.patch
+mm-damon-sysfs-schemes-commit-filters-in-coreops_filters-directories.patch
+mm-damon-core-expose-damos_filter_for_ops-to-damon-kernel-api-callers.patch
+mm-damon-sysfs-schemes-record-filters-of-which-layer-should-be-added-to-the-given-filters-directory.patch
+mm-damon-sysfs-schemes-return-error-when-for-attempts-to-install-filters-on-wrong-sysfs-directory.patch
+docs-abi-damon-document-coreops_filters-directories.patch
+docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
+mm-damon-sysfs-validate-user-inputs-from-damon_sysfs_commit_input.patch
+mm-damon-core-invoke-kdamond_call-after-merging-is-done-if-possible.patch
+mm-damon-core-make-damon_set_attrs-be-safe-to-be-called-from-damon_call.patch
+mm-damon-sysfs-handle-commit-command-using-damon_call.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-code-from-damon_sysfs_handle_cmd.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request_callback-and-its-callers.patch
+mm-damon-sysfs-remove-damon_sysfs_cmd_request-and-its-readers.patch
+mm-damon-sysfs-schemes-remove-obsolete-comment-for-damon_sysfs_schemes_clear_regions.patch
+mm-damon-remove-damon_callback-private.patch
+mm-damon-remove-before_start-of-damon_callback.patch
+mm-damon-remove-damon_callback-after_sampling.patch
+mm-damon-remove-damon_callback-before_damos_apply.patch
+mm-damon-remove-damon_operations-reset_aggregated.patch
+mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+mm-madvise-use-is_memory_failure-from-madvise_do_behavior.patch
+mm-madvise-split-out-populate-behavior-check-logic.patch
+mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings.patch
+mm-madvise-remove-len-parameter-of-madvise_do_behavior.patch
 
