@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA85D2BB13
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15C742BB13
+	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2025 05:13:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742188403; cv=none; b=TUxMKxm4uXyy8sjMTqDNl6AmWOn9d4ITLRPDx48xDaR3v2YvoTmgQoZOuwUXc9tzH1YIbLF+iOlY45soCWdxmDyNL6HlGbHtRRA1deqOqaoZWWXPh1gRGkl2YaaDZFIbKLLEzJ7rWcsrQMylUsJZhK1v0TJrqTybLLzaCOUUen0=
+	t=1742188405; cv=none; b=Q9ef2G9/wQ/EMZU08SWoHrEFv1LFlLr2vic3xB4nmWSYWQGy1/5aqucxeIa2Hl2x4cls/MNR/lsSOd3qtqCImTGShVG3YFuLdtO87gIdsHGWpoqfd6B5vkEc3UCjBxaD2aZPkNHsYRi1zF69qHH0Ci4OQ3uopOKyJ9FHjbkNABU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742188403; c=relaxed/simple;
-	bh=ZBuXMZyjOcpdiak5cLuOp3E4c09gplE9u3xyiSxgSaM=;
-	h=Date:To:From:Subject:Message-Id; b=Oicnfy7An8qdbk8WZwaSkrfc6fKtisrVN6pBnXZrCM0i2k2IVlAV6yABz9hFWs8ig/x0mkr4/AYA96LJaTXhvF6OQluYuPg3UNDFPS3YHp9KuV9O/WiqjPHoECP3AsC70VZPPNxc34k2qmnrirF3ELfl+riLDlmpUq2hbiVcjpw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vbAafFlm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742188405; c=relaxed/simple;
+	bh=ev1RNojrzKphGQYlfUJnSQHMmk3olBNi42NneKSm6Ms=;
+	h=Date:To:From:Subject:Message-Id; b=DJYQaIkz2lS8e215oux49d1pPGlBhsvYw1WUfDE7CDP3YP42xlm7s8TtAp4i6ce0rrQYEpNZ74+p0pYCrY/O90sckkJJ6XyjG0sKLjtc+VWANBUg5dX99EBxDSIn0Mprv6xg4HQMGta5U9mnjgYMoPbovUjKw9Wm0GRPW1bgm9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOahLL6Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vbAafFlm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EDACC4CEEC;
-	Mon, 17 Mar 2025 05:13:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOahLL6Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEEB5C4CEEC;
+	Mon, 17 Mar 2025 05:13:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742188403;
-	bh=ZBuXMZyjOcpdiak5cLuOp3E4c09gplE9u3xyiSxgSaM=;
+	s=korg; t=1742188405;
+	bh=ev1RNojrzKphGQYlfUJnSQHMmk3olBNi42NneKSm6Ms=;
 	h=Date:To:From:Subject:From;
-	b=vbAafFlmQaJop51dBS96LEl0HAzg9bTr6klimmsFYzyswmn/CkbuOwl0d/9XRDlTX
-	 L6gfMbGPwFgTw/X/aOoprL7HVqiTEZztZd8+r6SVTDWIOwwgaLEQAXwRqF26qrv2bw
-	 +dzeyquFPEjAeK2zqgxgATbZhcD2yHW8oPLpmPyk=
-Date: Sun, 16 Mar 2025 22:13:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,usamaarif642@gmail.com,roman.gushchin@linux.dev,peterz@infradead.org,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,maddy@linux.ibm.com,luto@kernel.org,joao.m.martins@oracle.com,hca@linux.ibm.com,hannes@cmpxchg.org,gor@linux.ibm.com,david@redhat.com,dave.hansen@linux.intel.com,dan.carpenter@linaro.org,arnd@arndb.de,agordeev@linux.ibm.com,fvdl@google.com,akpm@linux-foundation.org
+	b=UOahLL6ZTgMLAovQ1HSlCWYtbxJnywD7T7RB2Jl2w0XKlxeUypPcqw8dM1ecenkSH
+	 jDMJ2ThwY0ZoRjUewbgjnmlUR0Zv0biBZqWI/Ej68Knxt6kFm62iZG39U3uguDfjwG
+	 AqRfFZeHUXcsIeM76CIdP3jG+pj56CKd0kI1ifW8=
+Date: Sun, 16 Mar 2025 22:13:24 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-move-hugetlb-cma-code-in-to-its-own-file.patch removed from -mm tree
-Message-Id: <20250317051323.8EDACC4CEEC@smtp.kernel.org>
+Subject: [merged mm-stable] arm-pgtable-remove-duplicate-included-header-file.patch removed from -mm tree
+Message-Id: <20250317051324.DEEB5C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,784 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: move hugetlb CMA code in to its own file
+     Subject: arm/pgtable: remove duplicate included header file
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-move-hugetlb-cma-code-in-to-its-own-file.patch
+     arm-pgtable-remove-duplicate-included-header-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: move hugetlb CMA code in to its own file
-Date: Fri, 28 Feb 2025 18:29:28 +0000
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: arm/pgtable: remove duplicate included header file
+Date: Wed, 19 Feb 2025 12:24:02 +0100
 
-hugetlb.c contained a number of CONFIG_CMA ifdefs, and the code inside
-them was large enough to merit being in its own file, so move it, cleaning
-up things a bit.
+The header file asm-generic/pgtable-nopud.h is included whether CONFIG_MMU
+is defined or not.
 
-Hide some direct variable access behind functions to accommodate the move.
+Include it only once before the #ifndef/#else/#endif preprocessor
+directives and remove the following make includecheck warning:
 
-No functional change intended.
+  asm-generic/pgtable-nopud.h is included more than once
 
-Link: https://lkml.kernel.org/r/20250228182928.2645936-28-fvdl@google.com
-Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250219112403.3959-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS      |    2 
- mm/Makefile      |    3 
- mm/hugetlb.c     |  269 ++------------------------------------------
- mm/hugetlb_cma.c |  275 +++++++++++++++++++++++++++++++++++++++++++++
- mm/hugetlb_cma.h |   57 +++++++++
- 5 files changed, 354 insertions(+), 252 deletions(-)
+ arch/arm/include/asm/pgtable.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~mm-hugetlb-move-hugetlb-cma-code-in-to-its-own-file
-+++ a/MAINTAINERS
-@@ -10708,6 +10708,8 @@ F:	fs/hugetlbfs/
- F:	include/linux/hugetlb.h
- F:	include/trace/events/hugetlbfs.h
- F:	mm/hugetlb.c
-+F:	mm/hugetlb_cma.c
-+F:	mm/hugetlb_cma.h
- F:	mm/hugetlb_vmemmap.c
- F:	mm/hugetlb_vmemmap.h
- F:	tools/testing/selftests/cgroup/test_hugetlb_memcg.c
---- a/mm/hugetlb.c~mm-hugetlb-move-hugetlb-cma-code-in-to-its-own-file
-+++ a/mm/hugetlb.c
-@@ -49,19 +49,13 @@
- #include <linux/page_owner.h>
- #include "internal.h"
- #include "hugetlb_vmemmap.h"
-+#include "hugetlb_cma.h"
- #include <linux/page-isolation.h>
- 
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
- 
--#ifdef CONFIG_CMA
--static struct cma *hugetlb_cma[MAX_NUMNODES];
--static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
--#endif
--static bool hugetlb_cma_only;
--static unsigned long hugetlb_cma_size __initdata;
--
- __initdata struct list_head huge_boot_pages[MAX_NUMNODES];
- static unsigned long hstate_boot_nrinvalid[HUGE_MAX_HSTATE] __initdata;
- 
-@@ -128,14 +122,11 @@ static struct resv_map *vma_resv_map(str
- 
- static void hugetlb_free_folio(struct folio *folio)
- {
--#ifdef CONFIG_CMA
--	int nid = folio_nid(folio);
--
- 	if (folio_test_hugetlb_cma(folio)) {
--		WARN_ON_ONCE(!cma_free_folio(hugetlb_cma[nid], folio));
-+		hugetlb_cma_free_folio(folio);
- 		return;
- 	}
--#endif
-+
- 	folio_put(folio);
- }
- 
-@@ -1492,31 +1483,9 @@ static struct folio *alloc_gigantic_foli
- 	if (nid == NUMA_NO_NODE)
- 		nid = numa_mem_id();
- retry:
--	folio = NULL;
--#ifdef CONFIG_CMA
--	{
--		int node;
--
--		if (hugetlb_cma[nid])
--			folio = cma_alloc_folio(hugetlb_cma[nid], order, gfp_mask);
--
--		if (!folio && !(gfp_mask & __GFP_THISNODE)) {
--			for_each_node_mask(node, *nodemask) {
--				if (node == nid || !hugetlb_cma[node])
--					continue;
--
--				folio = cma_alloc_folio(hugetlb_cma[node], order, gfp_mask);
--				if (folio)
--					break;
--			}
--		}
--
--		if (folio)
--			folio_set_hugetlb_cma(folio);
--	}
--#endif
-+	folio = hugetlb_cma_alloc_folio(h, gfp_mask, nid, nodemask);
- 	if (!folio) {
--		if (hugetlb_cma_only)
-+		if (hugetlb_cma_exclusive_alloc())
- 			return NULL;
- 
- 		folio = folio_alloc_gigantic(order, gfp_mask, nid, nodemask);
-@@ -3191,47 +3160,14 @@ out_end_reservation:
- 	return ERR_PTR(-ENOSPC);
- }
- 
--static bool __init hugetlb_early_cma(struct hstate *h)
--{
--	if (arch_has_huge_bootmem_alloc())
--		return false;
--
--	return (hstate_is_gigantic(h) && hugetlb_cma_only);
--}
--
- static __init void *alloc_bootmem(struct hstate *h, int nid, bool node_exact)
- {
- 	struct huge_bootmem_page *m;
--	unsigned long flags;
--	struct cma *cma;
- 	int listnode = nid;
- 
--#ifdef CONFIG_CMA
--	if (hugetlb_early_cma(h)) {
--		flags = HUGE_BOOTMEM_CMA;
--		cma = hugetlb_cma[nid];
--		m = cma_reserve_early(cma, huge_page_size(h));
--		if (!m) {
--			int node;
--
--			if (node_exact)
--				return NULL;
--			for_each_online_node(node) {
--				cma = hugetlb_cma[node];
--				if (!cma || node == nid)
--					continue;
--				m = cma_reserve_early(cma, huge_page_size(h));
--				if (m) {
--					listnode = node;
--					break;
--				}
--			}
--		}
--	} else
--#endif
--	{
--		flags = 0;
--		cma = NULL;
-+	if (hugetlb_early_cma(h))
-+		m = hugetlb_cma_alloc_bootmem(h, &listnode, node_exact);
-+	else {
- 		if (node_exact)
- 			m = memblock_alloc_exact_nid_raw(huge_page_size(h),
- 				huge_page_size(h), 0,
-@@ -3250,6 +3186,11 @@ static __init void *alloc_bootmem(struct
- 			if (m)
- 				listnode = early_pfn_to_nid(PHYS_PFN(virt_to_phys(m)));
- 		}
-+
-+		if (m) {
-+			m->flags = 0;
-+			m->cma = NULL;
-+		}
- 	}
- 
- 	if (m) {
-@@ -3264,8 +3205,6 @@ static __init void *alloc_bootmem(struct
- 		INIT_LIST_HEAD(&m->list);
- 		list_add(&m->list, &huge_boot_pages[listnode]);
- 		m->hstate = h;
--		m->flags = flags;
--		m->cma = cma;
- 	}
- 
- 	return m;
-@@ -3715,7 +3654,8 @@ static void __init hugetlb_hstate_alloc_
- 	 * Skip gigantic hugepages allocation if early CMA
- 	 * reservations are not available.
- 	 */
--	if (hstate_is_gigantic(h) && hugetlb_cma_size && !hugetlb_early_cma(h)) {
-+	if (hstate_is_gigantic(h) && hugetlb_cma_total_size() &&
-+	    !hugetlb_early_cma(h)) {
- 		pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
- 		return;
- 	}
-@@ -3752,7 +3692,7 @@ static void __init hugetlb_init_hstates(
- 		 */
- 		if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
- 			continue;
--		if (hugetlb_cma_size && h->order <= HUGETLB_PAGE_ORDER)
-+		if (hugetlb_cma_total_size() && h->order <= HUGETLB_PAGE_ORDER)
- 			continue;
- 		for_each_hstate(h2) {
- 			if (h2 == h)
-@@ -4654,14 +4594,6 @@ static void hugetlb_register_all_nodes(v
- 
+--- a/arch/arm/include/asm/pgtable.h~arm-pgtable-remove-duplicate-included-header-file
++++ a/arch/arm/include/asm/pgtable.h
+@@ -19,14 +19,13 @@ extern struct page *empty_zero_page;
+ #define ZERO_PAGE(vaddr)	(empty_zero_page)
  #endif
  
--#ifdef CONFIG_CMA
--static void __init hugetlb_cma_check(void);
--#else
--static inline __init void hugetlb_cma_check(void)
--{
--}
--#endif
+-#ifndef CONFIG_MMU
 -
- static void __init hugetlb_sysfs_init(void)
- {
- 	struct hstate *h;
-@@ -4845,8 +4777,7 @@ static __init void hugetlb_parse_params(
- 		hcp->setup(hcp->val);
- 	}
+ #include <asm-generic/pgtable-nopud.h>
++
++#ifndef CONFIG_MMU
+ #include <asm/pgtable-nommu.h>
  
--	if (!hugetlb_cma_size)
--		hugetlb_cma_only = false;
-+	hugetlb_cma_validate_params();
- }
+ #else
  
- /*
-@@ -7916,169 +7847,3 @@ void hugetlb_unshare_all_pmds(struct vm_
- 	hugetlb_unshare_pmds(vma, ALIGN(vma->vm_start, PUD_SIZE),
- 			ALIGN_DOWN(vma->vm_end, PUD_SIZE));
- }
--
--#ifdef CONFIG_CMA
--static bool cma_reserve_called __initdata;
--
--static int __init cmdline_parse_hugetlb_cma(char *p)
--{
--	int nid, count = 0;
--	unsigned long tmp;
--	char *s = p;
--
--	while (*s) {
--		if (sscanf(s, "%lu%n", &tmp, &count) != 1)
--			break;
--
--		if (s[count] == ':') {
--			if (tmp >= MAX_NUMNODES)
--				break;
--			nid = array_index_nospec(tmp, MAX_NUMNODES);
--
--			s += count + 1;
--			tmp = memparse(s, &s);
--			hugetlb_cma_size_in_node[nid] = tmp;
--			hugetlb_cma_size += tmp;
--
--			/*
--			 * Skip the separator if have one, otherwise
--			 * break the parsing.
--			 */
--			if (*s == ',')
--				s++;
--			else
--				break;
--		} else {
--			hugetlb_cma_size = memparse(p, &p);
--			break;
--		}
--	}
--
--	return 0;
--}
--
--early_param("hugetlb_cma", cmdline_parse_hugetlb_cma);
--
--static int __init cmdline_parse_hugetlb_cma_only(char *p)
--{
--	return kstrtobool(p, &hugetlb_cma_only);
--}
--
--early_param("hugetlb_cma_only", cmdline_parse_hugetlb_cma_only);
--
--void __init hugetlb_cma_reserve(int order)
--{
--	unsigned long size, reserved, per_node;
--	bool node_specific_cma_alloc = false;
--	int nid;
--
--	/*
--	 * HugeTLB CMA reservation is required for gigantic
--	 * huge pages which could not be allocated via the
--	 * page allocator. Just warn if there is any change
--	 * breaking this assumption.
--	 */
--	VM_WARN_ON(order <= MAX_PAGE_ORDER);
--	cma_reserve_called = true;
--
--	if (!hugetlb_cma_size)
--		return;
--
--	for (nid = 0; nid < MAX_NUMNODES; nid++) {
--		if (hugetlb_cma_size_in_node[nid] == 0)
--			continue;
--
--		if (!node_online(nid)) {
--			pr_warn("hugetlb_cma: invalid node %d specified\n", nid);
--			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
--			hugetlb_cma_size_in_node[nid] = 0;
--			continue;
--		}
--
--		if (hugetlb_cma_size_in_node[nid] < (PAGE_SIZE << order)) {
--			pr_warn("hugetlb_cma: cma area of node %d should be at least %lu MiB\n",
--				nid, (PAGE_SIZE << order) / SZ_1M);
--			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
--			hugetlb_cma_size_in_node[nid] = 0;
--		} else {
--			node_specific_cma_alloc = true;
--		}
--	}
--
--	/* Validate the CMA size again in case some invalid nodes specified. */
--	if (!hugetlb_cma_size)
--		return;
--
--	if (hugetlb_cma_size < (PAGE_SIZE << order)) {
--		pr_warn("hugetlb_cma: cma area should be at least %lu MiB\n",
--			(PAGE_SIZE << order) / SZ_1M);
--		hugetlb_cma_size = 0;
--		return;
--	}
--
--	if (!node_specific_cma_alloc) {
--		/*
--		 * If 3 GB area is requested on a machine with 4 numa nodes,
--		 * let's allocate 1 GB on first three nodes and ignore the last one.
--		 */
--		per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
--		pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
--			hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
--	}
--
--	reserved = 0;
--	for_each_online_node(nid) {
--		int res;
--		char name[CMA_MAX_NAME];
--
--		if (node_specific_cma_alloc) {
--			if (hugetlb_cma_size_in_node[nid] == 0)
--				continue;
--
--			size = hugetlb_cma_size_in_node[nid];
--		} else {
--			size = min(per_node, hugetlb_cma_size - reserved);
--		}
--
--		size = round_up(size, PAGE_SIZE << order);
--
--		snprintf(name, sizeof(name), "hugetlb%d", nid);
--		/*
--		 * Note that 'order per bit' is based on smallest size that
--		 * may be returned to CMA allocator in the case of
--		 * huge page demotion.
--		 */
--		res = cma_declare_contiguous_multi(size, PAGE_SIZE << order,
--					HUGETLB_PAGE_ORDER, name,
--					&hugetlb_cma[nid], nid);
--		if (res) {
--			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
--				res, nid);
--			continue;
--		}
--
--		reserved += size;
--		pr_info("hugetlb_cma: reserved %lu MiB on node %d\n",
--			size / SZ_1M, nid);
--
--		if (reserved >= hugetlb_cma_size)
--			break;
--	}
--
--	if (!reserved)
--		/*
--		 * hugetlb_cma_size is used to determine if allocations from
--		 * cma are possible.  Set to zero if no cma regions are set up.
--		 */
--		hugetlb_cma_size = 0;
--}
--
--static void __init hugetlb_cma_check(void)
--{
--	if (!hugetlb_cma_size || cma_reserve_called)
--		return;
--
--	pr_warn("hugetlb_cma: the option isn't supported by current arch\n");
--}
--
--#endif /* CONFIG_CMA */
-diff --git a/mm/hugetlb_cma.c a/mm/hugetlb_cma.c
-new file mode 100644
---- /dev/null
-+++ a/mm/hugetlb_cma.c
-@@ -0,0 +1,275 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#include <linux/mm.h>
-+#include <linux/cma.h>
-+#include <linux/compiler.h>
-+#include <linux/mm_inline.h>
-+
-+#include <asm/page.h>
-+#include <asm/setup.h>
-+
-+#include <linux/hugetlb.h>
-+#include "internal.h"
-+#include "hugetlb_cma.h"
-+
-+
-+static struct cma *hugetlb_cma[MAX_NUMNODES];
-+static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
-+static bool hugetlb_cma_only;
-+static unsigned long hugetlb_cma_size __initdata;
-+
-+void hugetlb_cma_free_folio(struct folio *folio)
-+{
-+	int nid = folio_nid(folio);
-+
-+	WARN_ON_ONCE(!cma_free_folio(hugetlb_cma[nid], folio));
-+}
-+
-+
-+struct folio *hugetlb_cma_alloc_folio(struct hstate *h, gfp_t gfp_mask,
-+				      int nid, nodemask_t *nodemask)
-+{
-+	int node;
-+	int order = huge_page_order(h);
-+	struct folio *folio = NULL;
-+
-+	if (hugetlb_cma[nid])
-+		folio = cma_alloc_folio(hugetlb_cma[nid], order, gfp_mask);
-+
-+	if (!folio && !(gfp_mask & __GFP_THISNODE)) {
-+		for_each_node_mask(node, *nodemask) {
-+			if (node == nid || !hugetlb_cma[node])
-+				continue;
-+
-+			folio = cma_alloc_folio(hugetlb_cma[node], order, gfp_mask);
-+			if (folio)
-+				break;
-+		}
-+	}
-+
-+	if (folio)
-+		folio_set_hugetlb_cma(folio);
-+
-+	return folio;
-+}
-+
-+struct huge_bootmem_page * __init
-+hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid, bool node_exact)
-+{
-+	struct cma *cma;
-+	struct huge_bootmem_page *m;
-+	int node = *nid;
-+
-+	cma = hugetlb_cma[*nid];
-+	m = cma_reserve_early(cma, huge_page_size(h));
-+	if (!m) {
-+		if (node_exact)
-+			return NULL;
-+
-+		for_each_online_node(node) {
-+			cma = hugetlb_cma[node];
-+			if (!cma || node == *nid)
-+				continue;
-+			m = cma_reserve_early(cma, huge_page_size(h));
-+			if (m) {
-+				*nid = node;
-+				break;
-+			}
-+		}
-+	}
-+
-+	if (m) {
-+		m->flags = HUGE_BOOTMEM_CMA;
-+		m->cma = cma;
-+	}
-+
-+	return m;
-+}
-+
-+
-+static bool cma_reserve_called __initdata;
-+
-+static int __init cmdline_parse_hugetlb_cma(char *p)
-+{
-+	int nid, count = 0;
-+	unsigned long tmp;
-+	char *s = p;
-+
-+	while (*s) {
-+		if (sscanf(s, "%lu%n", &tmp, &count) != 1)
-+			break;
-+
-+		if (s[count] == ':') {
-+			if (tmp >= MAX_NUMNODES)
-+				break;
-+			nid = array_index_nospec(tmp, MAX_NUMNODES);
-+
-+			s += count + 1;
-+			tmp = memparse(s, &s);
-+			hugetlb_cma_size_in_node[nid] = tmp;
-+			hugetlb_cma_size += tmp;
-+
-+			/*
-+			 * Skip the separator if have one, otherwise
-+			 * break the parsing.
-+			 */
-+			if (*s == ',')
-+				s++;
-+			else
-+				break;
-+		} else {
-+			hugetlb_cma_size = memparse(p, &p);
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+early_param("hugetlb_cma", cmdline_parse_hugetlb_cma);
-+
-+static int __init cmdline_parse_hugetlb_cma_only(char *p)
-+{
-+	return kstrtobool(p, &hugetlb_cma_only);
-+}
-+
-+early_param("hugetlb_cma_only", cmdline_parse_hugetlb_cma_only);
-+
-+void __init hugetlb_cma_reserve(int order)
-+{
-+	unsigned long size, reserved, per_node;
-+	bool node_specific_cma_alloc = false;
-+	int nid;
-+
-+	/*
-+	 * HugeTLB CMA reservation is required for gigantic
-+	 * huge pages which could not be allocated via the
-+	 * page allocator. Just warn if there is any change
-+	 * breaking this assumption.
-+	 */
-+	VM_WARN_ON(order <= MAX_PAGE_ORDER);
-+	cma_reserve_called = true;
-+
-+	if (!hugetlb_cma_size)
-+		return;
-+
-+	for (nid = 0; nid < MAX_NUMNODES; nid++) {
-+		if (hugetlb_cma_size_in_node[nid] == 0)
-+			continue;
-+
-+		if (!node_online(nid)) {
-+			pr_warn("hugetlb_cma: invalid node %d specified\n", nid);
-+			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
-+			hugetlb_cma_size_in_node[nid] = 0;
-+			continue;
-+		}
-+
-+		if (hugetlb_cma_size_in_node[nid] < (PAGE_SIZE << order)) {
-+			pr_warn("hugetlb_cma: cma area of node %d should be at least %lu MiB\n",
-+				nid, (PAGE_SIZE << order) / SZ_1M);
-+			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
-+			hugetlb_cma_size_in_node[nid] = 0;
-+		} else {
-+			node_specific_cma_alloc = true;
-+		}
-+	}
-+
-+	/* Validate the CMA size again in case some invalid nodes specified. */
-+	if (!hugetlb_cma_size)
-+		return;
-+
-+	if (hugetlb_cma_size < (PAGE_SIZE << order)) {
-+		pr_warn("hugetlb_cma: cma area should be at least %lu MiB\n",
-+			(PAGE_SIZE << order) / SZ_1M);
-+		hugetlb_cma_size = 0;
-+		return;
-+	}
-+
-+	if (!node_specific_cma_alloc) {
-+		/*
-+		 * If 3 GB area is requested on a machine with 4 numa nodes,
-+		 * let's allocate 1 GB on first three nodes and ignore the last one.
-+		 */
-+		per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
-+		pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
-+			hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
-+	}
-+
-+	reserved = 0;
-+	for_each_online_node(nid) {
-+		int res;
-+		char name[CMA_MAX_NAME];
-+
-+		if (node_specific_cma_alloc) {
-+			if (hugetlb_cma_size_in_node[nid] == 0)
-+				continue;
-+
-+			size = hugetlb_cma_size_in_node[nid];
-+		} else {
-+			size = min(per_node, hugetlb_cma_size - reserved);
-+		}
-+
-+		size = round_up(size, PAGE_SIZE << order);
-+
-+		snprintf(name, sizeof(name), "hugetlb%d", nid);
-+		/*
-+		 * Note that 'order per bit' is based on smallest size that
-+		 * may be returned to CMA allocator in the case of
-+		 * huge page demotion.
-+		 */
-+		res = cma_declare_contiguous_multi(size, PAGE_SIZE << order,
-+					HUGETLB_PAGE_ORDER, name,
-+					&hugetlb_cma[nid], nid);
-+		if (res) {
-+			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
-+				res, nid);
-+			continue;
-+		}
-+
-+		reserved += size;
-+		pr_info("hugetlb_cma: reserved %lu MiB on node %d\n",
-+			size / SZ_1M, nid);
-+
-+		if (reserved >= hugetlb_cma_size)
-+			break;
-+	}
-+
-+	if (!reserved)
-+		/*
-+		 * hugetlb_cma_size is used to determine if allocations from
-+		 * cma are possible.  Set to zero if no cma regions are set up.
-+		 */
-+		hugetlb_cma_size = 0;
-+}
-+
-+void __init hugetlb_cma_check(void)
-+{
-+	if (!hugetlb_cma_size || cma_reserve_called)
-+		return;
-+
-+	pr_warn("hugetlb_cma: the option isn't supported by current arch\n");
-+}
-+
-+bool hugetlb_cma_exclusive_alloc(void)
-+{
-+	return hugetlb_cma_only;
-+}
-+
-+unsigned long __init hugetlb_cma_total_size(void)
-+{
-+	return hugetlb_cma_size;
-+}
-+
-+void __init hugetlb_cma_validate_params(void)
-+{
-+	if (!hugetlb_cma_size)
-+		hugetlb_cma_only = false;
-+}
-+
-+bool __init hugetlb_early_cma(struct hstate *h)
-+{
-+	if (arch_has_huge_bootmem_alloc())
-+		return false;
-+
-+	return hstate_is_gigantic(h) && hugetlb_cma_only;
-+}
-diff --git a/mm/hugetlb_cma.h a/mm/hugetlb_cma.h
-new file mode 100644
---- /dev/null
-+++ a/mm/hugetlb_cma.h
-@@ -0,0 +1,57 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_HUGETLB_CMA_H
-+#define _LINUX_HUGETLB_CMA_H
-+
-+#ifdef CONFIG_CMA
-+void hugetlb_cma_free_folio(struct folio *folio);
-+struct folio *hugetlb_cma_alloc_folio(struct hstate *h, gfp_t gfp_mask,
-+				      int nid, nodemask_t *nodemask);
-+struct huge_bootmem_page *hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid,
-+						    bool node_exact);
-+void hugetlb_cma_check(void);
-+bool hugetlb_cma_exclusive_alloc(void);
-+unsigned long hugetlb_cma_total_size(void);
-+void hugetlb_cma_validate_params(void);
-+bool hugetlb_early_cma(struct hstate *h);
-+#else
-+static inline void hugetlb_cma_free_folio(struct folio *folio)
-+{
-+}
-+
-+static inline struct folio *hugetlb_cma_alloc_folio(struct hstate *h,
-+	    gfp_t gfp_mask, int nid, nodemask_t *nodemask)
-+{
-+	return NULL;
-+}
-+
-+static inline
-+struct huge_bootmem_page *hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid,
-+						    bool node_exact)
-+{
-+	return NULL;
-+}
-+
-+static inline void hugetlb_cma_check(void)
-+{
-+}
-+
-+static inline bool hugetlb_cma_exclusive_alloc(void)
-+{
-+	return false;
-+}
-+
-+static inline unsigned long hugetlb_cma_total_size(void)
-+{
-+	return 0;
-+}
-+
-+static inline void hugetlb_cma_validate_params(void)
-+{
-+}
-+
-+static inline bool hugetlb_early_cma(struct hstate *h)
-+{
-+	return false;
-+}
-+#endif
-+#endif
---- a/mm/Makefile~mm-hugetlb-move-hugetlb-cma-code-in-to-its-own-file
-+++ a/mm/Makefile
-@@ -79,6 +79,9 @@ obj-$(CONFIG_SWAP)	+= page_io.o swap_sta
- obj-$(CONFIG_ZSWAP)	+= zswap.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
- obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
-+ifdef CONFIG_CMA
-+obj-$(CONFIG_HUGETLBFS)	+= hugetlb_cma.o
-+endif
- obj-$(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP)	+= hugetlb_vmemmap.o
- obj-$(CONFIG_NUMA) 	+= mempolicy.o
- obj-$(CONFIG_SPARSEMEM)	+= sparse.o
+-#include <asm-generic/pgtable-nopud.h>
+ #include <asm/page.h>
+ #include <asm/pgtable-hwdef.h>
+ 
 _
 
-Patches currently in -mm which might be from fvdl@google.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
+watchdog-perf-optimize-bytes-copied-and-remove-manual-nul-termination.patch
 
