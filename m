@@ -1,102 +1,128 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D09414D2BB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 02:54:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B19EB19C56C;
+	Tue, 18 Mar 2025 03:12:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742266494; cv=none; b=d2Ky6vfzXFk/sP6wU/r1fOjZnZnOo8l288dPby1B2Va/8gcNzVoh+UXz7ttmM+mNDKSTXNXH2IUcyHTdNHA/lCaLt+LoUI89VQCC4RwxRrqJmyyKn/Tk9cuB/XSak+b067Us4Plg55/tJN/zMU7bmTg2I0IiVZ9Z9fNQMV0vgTg=
+	t=1742267527; cv=none; b=rIY5C1a4UlGLpz+0VisRr98MDkd58MEoE6OoDDMkpig7J6c21eQ5zzThUXv8BND+taBm9eKeRpZNsrdxQ8f6BPEIaKhNtp9SoXlDHL/ZzqJOMm/n08f075GkOZ3hczQaSthkN08HQ5onM2hQKVU7PMtiE6wTniZC0MXaGhzzIBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742266494; c=relaxed/simple;
-	bh=9oRigDb5RmCRh33cYpbZbYJtrRhtVsFuNJx02N4MrVQ=;
-	h=Date:To:From:Subject:Message-Id; b=HWV9/4y64MnAFjaN09gyzg4RjG4OeOPv7UZVVnrpCcdySs9RGF6YF3zZaNwcBky7WnOj/7sCXwaycw7/I/t5I867v4fVqisq5G0bkkTzrw5Zweuq21xGmEybhF63xpLB6d32o9S0OV2ivh32oGsTkZWEDASBl7/CMkA93CjvzKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T0ISgMeD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742267527; c=relaxed/simple;
+	bh=FOzdTj+RgVpefQ/QXmvMORIw8lgZ29rTBpBKUfuC72E=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=ZDAdut2tB+af8wImG/qFxoCICy17cvcqGRmkgem4YMIf1vWLyQQNsB2r3VhaxMIQX3vOsW7sfDAzIAslV5uwyLU6qvCpI1ruEF86GrkS0GaPhEH3YDIHuG4siC/weNvuBNwTlA7kiiHqMZX9An4Pt185IudfDvzCavPXlxD9b/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=spDGdY+V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T0ISgMeD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85C43C4CEE3;
-	Tue, 18 Mar 2025 02:54:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="spDGdY+V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2615C4CEEF;
+	Tue, 18 Mar 2025 03:12:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742266492;
-	bh=9oRigDb5RmCRh33cYpbZbYJtrRhtVsFuNJx02N4MrVQ=;
-	h=Date:To:From:Subject:From;
-	b=T0ISgMeDZ7o30cIL7uq5nnSfsIsLZUqBSivj4k646pVGXdMC/eUvW6SBVXWIBNK4i
-	 4Z7Pr0hds774UIx4g8nRLZjmcVN8w4a2HvlnUyzOd6T8owsh5rmhDmmKRU3Fftn90Q
-	 c2cqEd8Ga5MGXzHnHSGsGiATco6xoqKoduyfX7Ns=
-Date: Mon, 17 Mar 2025 19:54:51 -0700
-To: mm-commits@vger.kernel.org,mhiramat@kernel.org,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	s=korg; t=1742267527;
+	bh=FOzdTj+RgVpefQ/QXmvMORIw8lgZ29rTBpBKUfuC72E=;
+	h=Date:From:To:Cc:Subject:From;
+	b=spDGdY+VA9KOBxO0Twx5afFB5rusaXHnv8mXmwgmmMZaGpgXkMiuqReEZbSq5DO2s
+	 k6SltBxPpTWcHrgvhpKJxyRi6ajP4SuVZJcjQM8ahdMS/jxd9kKlxBKMIQd6db48pR
+	 1RT5s1AtEOiQfYlVU2JeTU3ERk+Xcg9puzSmwXsQ=
+Date: Mon, 17 Mar 2025 20:12:06 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-add-hung_task-detector-mutex-blocking-sample-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20250318025452.85C43C4CEE3@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes against 6.14-rc7
+Message-Id: <20250317201206.7800aeeb5dad94c230fe1456@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: samples-add-hung_task-detector-mutex-blocking-sample-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     samples-add-hung_task-detector-mutex-blocking-sample-fix.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-add-hung_task-detector-mutex-blocking-sample-fix.patch
+The following changes since commit 80e54e84911a923c40d7bee33a34c1b4be148d7a:
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  Linux 6.14-rc6 (2025-03-09 13:45:25 -1000)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-03-17-20-09
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to 800f1059c99e2b39899bdc67a7593a7bea6375d8:
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: samples-add-hung_task-detector-mutex-blocking-sample-fix
-Date: Mon Mar 17 07:53:34 PM PDT 2025
+  mm/page_alloc: fix memory accept before watermarks gets initialized (2025-03-16 17:40:26 -0700)
 
-make `hung_task_dir' static
+----------------------------------------------------------------
+15 hotfixes.  7 are cc:stable and the remainder address post-6.13 issues
+or aren't considered necessary for -stable kernels.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202503180827.4StpuFrD-lkp@intel.com/
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+13 are for MM and the other two are for squashfs and procfs.
 
- samples/hung_task/Makefile          |    2 +-
- samples/hung_task/hung_task_mutex.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+All are singletons.  Please see the individual changelogs for details.
 
---- a/samples/hung_task/hung_task_mutex.c~samples-add-hung_task-detector-mutex-blocking-sample-fix
-+++ a/samples/hung_task/hung_task_mutex.c
-@@ -22,7 +22,7 @@
- 
- static const char dummy_string[] = "This is a dummy string.";
- static DEFINE_MUTEX(dummy_mutex);
--struct dentry *hung_task_dir;
-+static struct dentry *hung_task_dir;
- 
- static ssize_t read_dummy(struct file *file, char __user *user_buf,
- 			  size_t count, loff_t *ppos)
---- a/samples/hung_task/Makefile~samples-add-hung_task-detector-mutex-blocking-sample-fix
-+++ a/samples/hung_task/Makefile
-@@ -1,2 +1,2 @@
- # SPDX-License-Identifier: GPL-2.0-only
--obj-$(CONFIG_SAMPLE_HUNG_TASK) += hung_task_mutex.o
-\ No newline at end of file
-+obj-$(CONFIG_SAMPLE_HUNG_TASK) += hung_task_mutex.o
-_
+----------------------------------------------------------------
+Dave Hansen (1):
+      filemap: move prefaulting out of hot write path
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Dev Jain (1):
+      mm/vma: do not register private-anon mappings with khugepaged during mmap
 
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
-samples-add-hung_task-detector-mutex-blocking-sample-fix.patch
+Jinjiang Tu (1):
+      mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
+
+Kirill A. Shutemov (1):
+      mm/page_alloc: fix memory accept before watermarks gets initialized
+
+Matthew Wilcox (Oracle) (1):
+      mm: decline to manipulate the refcount on a slab page
+
+Muchun Song (1):
+      mm: memcontrol: fix swap counter leak from offline cgroup
+
+Rafael Aquini (1):
+      selftests/mm: run_vmtests.sh: fix half_ufd_size_MB calculation
+
+Raphael S. Carvalho (1):
+      mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
+
+SeongJae Park (2):
+      mm/damon: respect core layer filters' allowance decision on ops layer
+      mm/damon/core: initialize damos->walk_completed in damon_new_scheme()
+
+Shakeel Butt (1):
+      memcg: drain obj stock on cpu hotplug teardown
+
+Ye Bin (1):
+      proc: fix UAF in proc_get_inode()
+
+Zhiyu Zhang (1):
+      squashfs: fix invalid pointer dereference in squashfs_cache_delete
+
+Zi Yan (2):
+      mm/migrate: fix shmem xarray update during migration
+      mm/huge_memory: drop beyond-EOF folios with the right number of refs
+
+ fs/proc/generic.c                         | 10 +++++++-
+ fs/proc/inode.c                           |  6 ++---
+ fs/proc/internal.h                        | 14 +++++++++++
+ fs/squashfs/cache.c                       |  2 +-
+ include/linux/damon.h                     |  5 ++++
+ include/linux/mm.h                        |  8 ++++++-
+ include/linux/proc_fs.h                   |  7 ++++--
+ include/linux/swap_cgroup.h               |  4 ++--
+ lib/iov_iter.c                            |  8 +++++--
+ mm/damon/core.c                           |  7 +++++-
+ mm/damon/paddr.c                          |  3 +++
+ mm/filemap.c                              | 40 +++++++++++++++++++++----------
+ mm/huge_memory.c                          |  2 +-
+ mm/hugetlb.c                              |  8 +++++--
+ mm/memcontrol.c                           | 13 ++++++++--
+ mm/migrate.c                              | 10 ++++----
+ mm/page_alloc.c                           | 14 +++++++++--
+ mm/swap_cgroup.c                          |  7 +++---
+ mm/vma.c                                  |  3 ++-
+ tools/testing/selftests/mm/run_vmtests.sh |  4 +++-
+ 20 files changed, 132 insertions(+), 43 deletions(-)
 
