@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8461D9A41
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453841C7001
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274527; cv=none; b=mCZXaBSCDpaa5HKcKQnooWeSAuTdpcKvHHVa2FHdLU50eunnyget/lpyr4NgmD/faYRMwswsDViB83ArJxS26V6+a34HdBZhO5uCd7bBtLmBFf7ji3yk/YqA6HBBHdC0Eq0KyPQ6ry1dtNcpBsFDzDiz29sTd6AinTFXQUMQfTA=
+	t=1742274528; cv=none; b=JTdcb0TJhy5Mc+yz/MePekATZQaF+DkiQP1HIwQyBbBX0ZsLbJ0fPPsJVbeY2Cny9NOzPpMVajEcns4g9yH0tgmjH8R1UnClSGSCZ8MQzc1FBRueMCMcT+0FgQmsTC2czAb+qUoQaM/2bMOvIlk21N3oq6bJq2ZexwCk9x+MkXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274527; c=relaxed/simple;
-	bh=NitNnThmmRX3prM9iaUA7NF15vZsaNa+TKwX9lCZxl0=;
-	h=Date:To:From:Subject:Message-Id; b=QlTAiJxD0QJiK+nYFym2sLT3mpqaoXbkuyO50Gyll8ccgRqJyJMvIjFW9hws0oCIjyNn83QLZLd6foDEJ9Kf3OGQ6U+rfnsxv7xnkj0jaFMDOA9hIG+ZwkWG4jJe4cNGhySr8QdlXTFKSFEXx6+ORqkKqZcPkMsod50y+CjSzfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SxYPr7WT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274528; c=relaxed/simple;
+	bh=9SXFg/15ENPGWlyhlnHX3WAVtitGWGi6Uf5VZARA6yA=;
+	h=Date:To:From:Subject:Message-Id; b=N0uvh+el7WsA+Q2MpFBEHzLtEUgtgQZKMneE+rebi/y3R5Y9rGf6durlhVoZAS+/4njBbJ/tGpu6C71bQ3cW4806cbu8VlytTvujXT6vYBKCEKyBeT5RgYbsucjbVWmw3K9fxZHv2SWz/CkFpAap3ameu0h5pDkBqLnHD/naHQo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOiLWaYe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SxYPr7WT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C012BC4CEDD;
-	Tue, 18 Mar 2025 05:08:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOiLWaYe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D96C4CEDD;
+	Tue, 18 Mar 2025 05:08:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274526;
-	bh=NitNnThmmRX3prM9iaUA7NF15vZsaNa+TKwX9lCZxl0=;
+	s=korg; t=1742274528;
+	bh=9SXFg/15ENPGWlyhlnHX3WAVtitGWGi6Uf5VZARA6yA=;
 	h=Date:To:From:Subject:From;
-	b=SxYPr7WTWyzUUyUxctfoCfFqITne88qddZR8brFq6y87Zem44Nywqo7ax1r0AX2dz
-	 7lBYjmVls7ruRgKYluTac/cA0coC8deqLWReKTtGr25ojLLFmfKxr6BE+x45d7wpD3
-	 17fnqjmSmHfTo8AFCJxOMb73pWMLuVrGf894iO0U=
-Date: Mon, 17 Mar 2025 22:08:46 -0700
+	b=KOiLWaYeLbH3OAMDXTyOoXNCs4nOmqooeiNN2+I4fOgfo0yeegl1VyQwRz7NxF4DF
+	 W7P1nce+dZUlqrK871MZmwys27joNk5MrnUckD0FUjY0x7gfrUvewnbLzFpCtHFcHe
+	 bQ49hj+/FE7brxacLZ2ltcn7w7M942hld5SpFiJQ=
+Date: Mon, 17 Mar 2025 22:08:47 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-factor-out-large-folio-handling-from-folio_nr_pages-into-folio_large_nr_pages.patch removed from -mm tree
-Message-Id: <20250318050846.C012BC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page.patch removed from -mm tree
+Message-Id: <20250318050848.18D96C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: factor out large folio handling from folio_nr_pages() into folio_large_nr_pages()
+     Subject: mm: let _folio_nr_pages overlay memcg_data in first tail page
 has been removed from the -mm tree.  Its filename was
-     mm-factor-out-large-folio-handling-from-folio_nr_pages-into-folio_large_nr_pages.patch
+     mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: factor out large folio handling from folio_nr_pages() into folio_large_nr_pages()
-Date: Mon, 3 Mar 2025 17:29:55 +0100
+Subject: mm: let _folio_nr_pages overlay memcg_data in first tail page
+Date: Mon, 3 Mar 2025 17:29:56 +0100
 
-Let's factor it out into a simple helper function.  This helper will also
-come in handy when working with code where we know that our folio is
-large.
+Let's free up some more of the "unconditionally available on 64BIT" space
+in order-1 folios by letting _folio_nr_pages overlay memcg_data in the
+first tail page (second folio page).  Consequently, we have the
+optimization now whenever we have CONFIG_MEMCG, independent of 64BIT.
 
-While at it, let's consistently return a "long" value from all these
-similar functions.  Note that we cannot use "unsigned int" (even though
-_folio_nr_pages is of that type), because it would break some callers that
-do stuff like "-folio_nr_pages()".  Both "int" or "unsigned long" would
-work as well.
+We have to make sure that page->memcg on tail pages does not return
+"surprises".  page_memcg_check() already properly refuses PageTail(). 
+Let's do that earlier in print_page_owner_memcg() to avoid printing wrong
+"Slab cache page" information.  No other code should touch that field on
+tail pages of compound pages.
 
-Maybe in the future we'll have the nr_pages readily available for all
-large folios, maybe even for small folios, or maybe for none.
+Reset the "_nr_pages" to 0 when splitting folios, or when freeing them
+back to the buddy (to avoid false page->memcg_data "bad page" reports).
 
-Link: https://lkml.kernel.org/r/20250303163014.1128035-3-david@redhat.com
+Note that in __split_huge_page(), folio_nr_pages() would stop working
+already as soon as we start messing with the subpages.
+
+Most kernel configs should have at least CONFIG_MEMCG enabled, even if
+disabled at runtime.  64byte "struct memmap" is what we usually have on
+64BIT.
+
+While at it, rename "_folio_nr_pages" to "_nr_pages".
+
+Hopefully memdescs / dynamically allocating "strut folio" in the future
+will further clean this up, e.g., making _nr_pages available in all
+configs and maybe even in small folios.  Doing that should be fairly easy
+on top of this change.
+
+[david@redhat.com: make "make htmldoc" happy]
+  Link: https://lkml.kernel.org/r/a97f8a91-ec41-4796-81e3-7c9e0e491ba4@redhat.com
+Link: https://lkml.kernel.org/r/20250303163014.1128035-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
@@ -83,71 +100,149 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ include/linux/mm.h       |    4 ++--
+ include/linux/mm_types.h |   32 ++++++++++++++++++++++++--------
+ mm/huge_memory.c         |    8 ++++++++
+ mm/internal.h            |    4 ++--
+ mm/page_alloc.c          |    6 +++++-
+ mm/page_owner.c          |    2 +-
+ 6 files changed, 42 insertions(+), 14 deletions(-)
 
---- a/include/linux/mm.h~mm-factor-out-large-folio-handling-from-folio_nr_pages-into-folio_large_nr_pages
+--- a/include/linux/mm.h~mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page
 +++ a/include/linux/mm.h
-@@ -1199,6 +1199,18 @@ static inline unsigned int folio_large_o
+@@ -1199,10 +1199,10 @@ static inline unsigned int folio_large_o
  	return folio->_flags_1 & 0xff;
  }
  
-+#ifdef CONFIG_64BIT
-+static inline long folio_large_nr_pages(const struct folio *folio)
-+{
-+	return folio->_folio_nr_pages;
-+}
-+#else
-+static inline long folio_large_nr_pages(const struct folio *folio)
-+{
-+	return 1L << folio_large_order(folio);
-+}
+-#ifdef CONFIG_64BIT
++#ifdef NR_PAGES_IN_LARGE_FOLIO
+ static inline long folio_large_nr_pages(const struct folio *folio)
+ {
+-	return folio->_folio_nr_pages;
++	return folio->_nr_pages;
+ }
+ #else
+ static inline long folio_large_nr_pages(const struct folio *folio)
+--- a/include/linux/mm_types.h~mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page
++++ a/include/linux/mm_types.h
+@@ -287,6 +287,11 @@ typedef struct {
+ 	unsigned long val;
+ } swp_entry_t;
+ 
++#if defined(CONFIG_MEMCG) || defined(CONFIG_SLAB_OBJ_EXT)
++/* We have some extra room after the refcount in tail pages. */
++#define NR_PAGES_IN_LARGE_FOLIO
 +#endif
 +
- /*
-  * compound_order() can be called without holding a reference, which means
-  * that niceties like page_folio() don't work.  These callers should be
-@@ -2147,11 +2159,7 @@ static inline long folio_nr_pages(const
- {
- 	if (!folio_test_large(folio))
- 		return 1;
--#ifdef CONFIG_64BIT
--	return folio->_folio_nr_pages;
--#else
--	return 1L << folio_large_order(folio);
--#endif
-+	return folio_large_nr_pages(folio);
- }
- 
- /* Only hugetlbfs can allocate folios larger than MAX_ORDER */
-@@ -2166,24 +2174,20 @@ static inline long folio_nr_pages(const
-  * page.  compound_nr() can be called on a tail page, and is defined to
-  * return 1 in that case.
-  */
--static inline unsigned long compound_nr(struct page *page)
-+static inline long compound_nr(struct page *page)
- {
- 	struct folio *folio = (struct folio *)page;
- 
- 	if (!test_bit(PG_head, &folio->flags))
- 		return 1;
--#ifdef CONFIG_64BIT
--	return folio->_folio_nr_pages;
--#else
--	return 1L << folio_large_order(folio);
--#endif
-+	return folio_large_nr_pages(folio);
- }
- 
  /**
-  * thp_nr_pages - The number of regular pages in this huge page.
-  * @page: The head page of a huge page.
-  */
--static inline int thp_nr_pages(struct page *page)
-+static inline long thp_nr_pages(struct page *page)
- {
- 	return folio_nr_pages((struct folio *)page);
+  * struct folio - Represents a contiguous set of bytes.
+  * @flags: Identical to the page flags.
+@@ -312,7 +317,7 @@ typedef struct {
+  * @_large_mapcount: Do not use directly, call folio_mapcount().
+  * @_nr_pages_mapped: Do not use outside of rmap and debug code.
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+- * @_folio_nr_pages: Do not use directly, call folio_nr_pages().
++ * @_nr_pages: Do not use directly, call folio_nr_pages().
+  * @_hugetlb_subpool: Do not use directly, use accessor in hugetlb.h.
+  * @_hugetlb_cgroup: Do not use directly, use accessor in hugetlb_cgroup.h.
+  * @_hugetlb_cgroup_rsvd: Do not use directly, use accessor in hugetlb_cgroup.h.
+@@ -376,14 +381,23 @@ struct folio {
+ 		struct {
+ 			unsigned long _flags_1;
+ 			unsigned long _head_1;
++			union {
++				struct {
+ 	/* public: */
+-			atomic_t _large_mapcount;
+-			atomic_t _entire_mapcount;
+-			atomic_t _nr_pages_mapped;
+-			atomic_t _pincount;
+-#ifdef CONFIG_64BIT
+-			unsigned int _folio_nr_pages;
+-#endif
++					atomic_t _large_mapcount;
++					atomic_t _entire_mapcount;
++					atomic_t _nr_pages_mapped;
++					atomic_t _pincount;
++	/* private: the union with struct page is transitional */
++				};
++				unsigned long _usable_1[4];
++			};
++			atomic_t _mapcount_1;
++			atomic_t _refcount_1;
++	/* public: */
++#ifdef NR_PAGES_IN_LARGE_FOLIO
++			unsigned int _nr_pages;
++#endif /* NR_PAGES_IN_LARGE_FOLIO */
+ 	/* private: the union with struct page is transitional */
+ 		};
+ 		struct page __page_1;
+@@ -435,6 +449,8 @@ FOLIO_MATCH(_last_cpupid, _last_cpupid);
+ 			offsetof(struct page, pg) + sizeof(struct page))
+ FOLIO_MATCH(flags, _flags_1);
+ FOLIO_MATCH(compound_head, _head_1);
++FOLIO_MATCH(_mapcount, _mapcount_1);
++FOLIO_MATCH(_refcount, _refcount_1);
+ #undef FOLIO_MATCH
+ #define FOLIO_MATCH(pg, fl)						\
+ 	static_assert(offsetof(struct folio, fl) ==			\
+--- a/mm/huge_memory.c~mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page
++++ a/mm/huge_memory.c
+@@ -3399,6 +3399,14 @@ static void __split_huge_page(struct pag
+ 	int order = folio_order(folio);
+ 	unsigned int nr = 1 << order;
+ 
++	/*
++	 * Reset any memcg data overlay in the tail pages. folio_nr_pages()
++	 * is unreliable after this point.
++	 */
++#ifdef NR_PAGES_IN_LARGE_FOLIO
++	folio->_nr_pages = 0;
++#endif
++
+ 	/* complete memcg works before add pages to LRU */
+ 	split_page_memcg(head, order, new_order);
+ 
+--- a/mm/internal.h~mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page
++++ a/mm/internal.h
+@@ -725,8 +725,8 @@ static inline void folio_set_order(struc
+ 		return;
+ 
+ 	folio->_flags_1 = (folio->_flags_1 & ~0xffUL) | order;
+-#ifdef CONFIG_64BIT
+-	folio->_folio_nr_pages = 1U << order;
++#ifdef NR_PAGES_IN_LARGE_FOLIO
++	folio->_nr_pages = 1U << order;
+ #endif
  }
+ 
+--- a/mm/page_alloc.c~mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page
++++ a/mm/page_alloc.c
+@@ -1174,8 +1174,12 @@ __always_inline bool free_pages_prepare(
+ 	if (unlikely(order)) {
+ 		int i;
+ 
+-		if (compound)
++		if (compound) {
+ 			page[1].flags &= ~PAGE_FLAGS_SECOND;
++#ifdef NR_PAGES_IN_LARGE_FOLIO
++			folio->_nr_pages = 0;
++#endif
++		}
+ 		for (i = 1; i < (1 << order); i++) {
+ 			if (compound)
+ 				bad += free_tail_page_prepare(page, page + i);
+--- a/mm/page_owner.c~mm-let-_folio_nr_pages-overlay-memcg_data-in-first-tail-page
++++ a/mm/page_owner.c
+@@ -507,7 +507,7 @@ static inline int print_page_owner_memcg
+ 
+ 	rcu_read_lock();
+ 	memcg_data = READ_ONCE(page->memcg_data);
+-	if (!memcg_data)
++	if (!memcg_data || PageTail(page))
+ 		goto out_unlock;
+ 
+ 	if (memcg_data & MEMCG_DATA_OBJEXTS)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
