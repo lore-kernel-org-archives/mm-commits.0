@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC9651BD9D0
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E6EE1C5D6C
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274485; cv=none; b=YJUQuyp5O1jWecPOccDb6b6pn3EE2wtZ3bZbpZlde6uBFrPKBRFQe9PBrMsZ7hsel8KOcCLQsK52EHhpboGJNP/3PedJ5ofWRhlP8XeIHDHWPTkcqSQ5Gso8wcJirqjpFwpfWFL0lCulX+14tJE5mUNr0Elw1PRsyoPWCcod/2w=
+	t=1742274487; cv=none; b=pbY3JVopwIJFn7/YEFddrvw3+g1A/a6VgvFM5ehQxY/l7WTL8CAzcMFjtFAYDkPSaoNKMntIBOwwOQAL1gcxi8whwKiTrimd9dNcO/AJ0zU5pl98PA5BAD8ASVhpjkP0OOxyYnMWUoDE5W8ymjOEjS3SNuuFkbT1cWcoCbeqV/w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274485; c=relaxed/simple;
-	bh=7od58LqqvyH/2gL+Gq01cAovjBhhWgNQSyH2qs1sWQI=;
-	h=Date:To:From:Subject:Message-Id; b=dow4oW6dcimYhZ7UfxB/5Sjnua2/eFMjsSWeqCgeyupbyxHYZDItGgs5ZPkQ/x5XSGj/2Nt04EJiYQOJHjB5V8s0eQYiZIPlcASXLvE5HWHOVylNpFEcfUzJY80VQDoiwRIAGI5pohrQjK7QapD5akxZA1m5AAgwuMURhnjSAMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yxV2gAuu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274487; c=relaxed/simple;
+	bh=e8BnlzY+FbMHylzW9lA0S74c0YAbO60M64XqJyB3xBk=;
+	h=Date:To:From:Subject:Message-Id; b=RB4HD8VJP8jChaZdM3vRJkW0nFKnBKtZ4GBPPtsZ5sEsLzcfLvhS+zW/64mPcgIRWBZH3SPhvgS/+QYjDJWJSzODn4gGQdLETRwZ3IjK+i8T2jDdqRYgOCjAcDU2fV6tVKKTtqgo0T2ARQYVYTHFM1ah8SsmxmBQTqFroV054Gc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sQzV8E5B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yxV2gAuu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A09EC4CEDD;
-	Tue, 18 Mar 2025 05:08:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sQzV8E5B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DB7FC4CEDD;
+	Tue, 18 Mar 2025 05:08:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274485;
-	bh=7od58LqqvyH/2gL+Gq01cAovjBhhWgNQSyH2qs1sWQI=;
+	s=korg; t=1742274487;
+	bh=e8BnlzY+FbMHylzW9lA0S74c0YAbO60M64XqJyB3xBk=;
 	h=Date:To:From:Subject:From;
-	b=yxV2gAuuW6b1Qzr3hDyj/LjvV15G3NMbqu7LHxDWu9wFtfXUfy324xvb77bP4U9Jz
-	 RgVODojw0D3oBNndWvdFVnIS56f0C1hsGoV/9WcdXWM9HQ7V+19HnU8N49yVrYb6lJ
-	 VqsjBm8Es7e1Tryaz/Bzydwi2CYMMRmdkQE1TRbg=
-Date: Mon, 17 Mar 2025 22:08:04 -0700
+	b=sQzV8E5B5kmudPH6Ik7OBIUvnf9Bndx0U4KBzuPVykGIAW/nXaba5qxCdZNbCRJLd
+	 GwvvCQYSqTNpyRGUM05ChLdH3bCOFIfJmfLhCvrCPMPk0Zk4Zj+I5aJ6CN3rIyMEca
+	 5kfooFQ0XGRr5ZkHBYidHzOCBL7K80uYL4/0UDaY=
+Date: Mon, 17 Mar 2025 22:08:06 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-dax-create-a-common-implementation-to-break-dax-layouts.patch removed from -mm tree
-Message-Id: <20250318050805.2A09EC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch removed from -mm tree
+Message-Id: <20250318050807.0DB7FC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs/dax: create a common implementation to break DAX layouts
+     Subject: fs/dax: always remove DAX page-cache entries when breaking layouts
 has been removed from the -mm tree.  Its filename was
-     fs-dax-create-a-common-implementation-to-break-dax-layouts.patch
+     fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: fs/dax: create a common implementation to break DAX layouts
-Date: Fri, 28 Feb 2025 14:31:00 +1100
+Subject: fs/dax: always remove DAX page-cache entries when breaking layouts
+Date: Fri, 28 Feb 2025 14:31:01 +1100
 
-Prior to freeing a block file systems supporting FS DAX must check that
-the associated pages are both unmapped from user-space and not undergoing
-DMA or other access from eg.  get_user_pages().  This is achieved by
-unmapping the file range and scanning the FS DAX page-cache to see if any
-pages within the mapping have an elevated refcount.
+Prior to any truncation operations file systems call dax_break_mapping()
+to ensure pages in the range are not under going DMA.  Later DAX
+page-cache entries will be removed by truncate_folio_batch_exceptionals()
+in the generic page-cache code.
 
-This is done using two functions - dax_layout_busy_page_range() which
-returns a page to wait for the refcount to become idle on.  Rather than
-open-code this introduce a common implementation to both unmap and wait
-for the page to become idle.
+However this makes it possible for folios to be removed from the
+page-cache even though they are still DMA busy if the file-system hasn't
+called dax_break_mapping().  It also means they can never be waited on in
+future because FS DAX will lose track of them once the page-cache entry
+has been deleted.
 
-Link: https://lkml.kernel.org/r/c4d381e41fc618296cee2820403c166d80599d5c.1740713401.git-series.apopple@nvidia.com
+Instead it is better to delete the FS DAX entry when the file-system calls
+dax_break_mapping() as part of it's truncate operation.  This ensures only
+idle pages can be removed from the FS DAX page-cache and makes it easy to
+detect if a file-system hasn't called dax_break_mapping() prior to a
+truncate operation.
+
+Link: https://lkml.kernel.org/r/3be6115eaaa8d28fee37fcba3287be4f226a7d24.1740713401.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
@@ -99,246 +105,137 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   33 +++++++++++++++++++++++++++++++++
- fs/ext4/inode.c     |   13 +------------
- fs/fuse/dax.c       |   27 +++------------------------
- fs/xfs/xfs_inode.c  |   26 +++++++-------------------
- fs/xfs/xfs_inode.h  |    2 +-
- include/linux/dax.h |   23 ++++++++++++++++++-----
- 6 files changed, 63 insertions(+), 61 deletions(-)
+ fs/dax.c            |   40 ++++++++++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_inode.c  |    5 ++---
+ include/linux/dax.h |    2 ++
+ mm/truncate.c       |   16 +++++++++++++++-
+ 4 files changed, 59 insertions(+), 4 deletions(-)
 
---- a/fs/dax.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
+--- a/fs/dax.c~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
 +++ a/fs/dax.c
-@@ -846,6 +846,39 @@ int dax_delete_mapping_entry(struct addr
+@@ -846,6 +846,36 @@ int dax_delete_mapping_entry(struct addr
  	return ret;
  }
  
-+static int wait_page_idle(struct page *page,
-+			void (cb)(struct inode *),
-+			struct inode *inode)
++void dax_delete_mapping_range(struct address_space *mapping,
++				loff_t start, loff_t end)
 +{
-+	return ___wait_var_event(page, dax_page_is_idle(page),
-+				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
++	void *entry;
++	pgoff_t start_idx = start >> PAGE_SHIFT;
++	pgoff_t end_idx;
++	XA_STATE(xas, &mapping->i_pages, start_idx);
++
++	/* If end == LLONG_MAX, all pages from start to till end of file */
++	if (end == LLONG_MAX)
++		end_idx = ULONG_MAX;
++	else
++		end_idx = end >> PAGE_SHIFT;
++
++	xas_lock_irq(&xas);
++	xas_for_each(&xas, entry, end_idx) {
++		if (!xa_is_value(entry))
++			continue;
++		entry = wait_entry_unlocked_exclusive(&xas, entry);
++		if (!entry)
++			continue;
++		dax_disassociate_entry(entry, mapping, true);
++		xas_store(&xas, NULL);
++		mapping->nrpages -= 1UL << dax_entry_order(entry);
++		put_unlocked_entry(&xas, entry, WAKE_ALL);
++	}
++	xas_unlock_irq(&xas);
 +}
++EXPORT_SYMBOL_GPL(dax_delete_mapping_range);
 +
-+/*
-+ * Unmaps the inode and waits for any DMA to complete prior to deleting the
-+ * DAX mapping entries for the range.
-+ */
-+int dax_break_layout(struct inode *inode, loff_t start, loff_t end,
-+		void (cb)(struct inode *))
-+{
-+	struct page *page;
-+	int error = 0;
-+
-+	if (!dax_mapping(inode->i_mapping))
-+		return 0;
-+
-+	do {
-+		page = dax_layout_busy_page_range(inode->i_mapping, start, end);
-+		if (!page)
-+			break;
-+
-+		error = wait_page_idle(page, cb, inode);
-+	} while (error == 0);
-+
-+	return error;
-+}
-+EXPORT_SYMBOL_GPL(dax_break_layout);
-+
+ static int wait_page_idle(struct page *page,
+ 			void (cb)(struct inode *),
+ 			struct inode *inode)
+@@ -857,6 +887,9 @@ static int wait_page_idle(struct page *p
  /*
-  * Invalidate DAX entry if it is clean.
+  * Unmaps the inode and waits for any DMA to complete prior to deleting the
+  * DAX mapping entries for the range.
++ *
++ * For NOWAIT behavior, pass @cb as NULL to early-exit on first found
++ * busy page
   */
---- a/fs/ext4/inode.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
-+++ a/fs/ext4/inode.c
-@@ -3911,21 +3911,10 @@ static void ext4_wait_dax_page(struct in
+ int dax_break_layout(struct inode *inode, loff_t start, loff_t end,
+ 		void (cb)(struct inode *))
+@@ -871,10 +904,17 @@ int dax_break_layout(struct inode *inode
+ 		page = dax_layout_busy_page_range(inode->i_mapping, start, end);
+ 		if (!page)
+ 			break;
++		if (!cb) {
++			error = -ERESTARTSYS;
++			break;
++		}
  
- int ext4_break_layouts(struct inode *inode)
- {
--	struct page *page;
--	int error;
--
- 	if (WARN_ON_ONCE(!rwsem_is_locked(&inode->i_mapping->invalidate_lock)))
- 		return -EINVAL;
+ 		error = wait_page_idle(page, cb, inode);
+ 	} while (error == 0);
  
--	do {
--		page = dax_layout_busy_page(inode->i_mapping);
--		if (!page)
--			return 0;
--
--		error = dax_wait_page_idle(page, ext4_wait_dax_page, inode);
--	} while (error == 0);
--
--	return error;
-+	return dax_break_layout_inode(inode, ext4_wait_dax_page);
++	if (!page)
++		dax_delete_mapping_range(inode->i_mapping, start, end);
++
+ 	return error;
  }
- 
- /*
---- a/fs/fuse/dax.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
-+++ a/fs/fuse/dax.c
-@@ -666,33 +666,12 @@ static void fuse_wait_dax_page(struct in
- 	filemap_invalidate_lock(inode->i_mapping);
- }
- 
--/* Should be called with mapping->invalidate_lock held exclusively */
--static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
--				    loff_t start, loff_t end)
--{
--	struct page *page;
--
--	page = dax_layout_busy_page_range(inode->i_mapping, start, end);
--	if (!page)
--		return 0;
--
--	*retry = true;
--	return dax_wait_page_idle(page, fuse_wait_dax_page, inode);
--}
--
-+/* Should be called with mapping->invalidate_lock held exclusively. */
- int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
- 				  u64 dmap_end)
- {
--	bool	retry;
--	int	ret;
--
--	do {
--		retry = false;
--		ret = __fuse_dax_break_layouts(inode, &retry, dmap_start,
--					       dmap_end);
--	} while (ret == 0 && retry);
--
--	return ret;
-+	return dax_break_layout(inode, dmap_start, dmap_end,
-+				fuse_wait_dax_page);
- }
- 
- ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
---- a/fs/xfs/xfs_inode.c~fs-dax-create-a-common-implementation-to-break-dax-layouts
+ EXPORT_SYMBOL_GPL(dax_break_layout);
+--- a/fs/xfs/xfs_inode.c~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
 +++ a/fs/xfs/xfs_inode.c
-@@ -2735,21 +2735,17 @@ xfs_mmaplock_two_inodes_and_break_dax_la
+@@ -2735,7 +2735,6 @@ xfs_mmaplock_two_inodes_and_break_dax_la
  	struct xfs_inode	*ip2)
  {
  	int			error;
--	bool			retry;
- 	struct page		*page;
+-	struct page		*page;
  
  	if (ip1->i_ino > ip2->i_ino)
  		swap(ip1, ip2);
- 
- again:
--	retry = false;
- 	/* Lock the first inode */
- 	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
--	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
--	if (error || retry) {
-+	error = xfs_break_dax_layouts(VFS_I(ip1));
-+	if (error) {
- 		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
--		if (error == 0 && retry)
--			goto again;
- 		return error;
- 	}
- 
-@@ -2764,7 +2760,7 @@ again:
+@@ -2759,8 +2758,8 @@ again:
+ 	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
  	 * for this nested lock case.
  	 */
- 	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
--	if (page && page_ref_count(page) != 1) {
-+	if (!dax_page_is_idle(page)) {
+-	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
+-	if (!dax_page_is_idle(page)) {
++	error = dax_break_layout(VFS_I(ip2), 0, -1, NULL);
++	if (error) {
  		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
  		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
  		goto again;
-@@ -3008,19 +3004,11 @@ xfs_wait_dax_page(
- 
- int
- xfs_break_dax_layouts(
--	struct inode		*inode,
--	bool			*retry)
-+	struct inode		*inode)
- {
--	struct page		*page;
--
- 	xfs_assert_ilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL);
- 
--	page = dax_layout_busy_page(inode->i_mapping);
--	if (!page)
--		return 0;
--
--	*retry = true;
--	return dax_wait_page_idle(page, xfs_wait_dax_page, inode);
-+	return dax_break_layout_inode(inode, xfs_wait_dax_page);
- }
- 
- int
-@@ -3038,8 +3026,8 @@ xfs_break_layouts(
- 		retry = false;
- 		switch (reason) {
- 		case BREAK_UNMAP:
--			error = xfs_break_dax_layouts(inode, &retry);
--			if (error || retry)
-+			error = xfs_break_dax_layouts(inode);
-+			if (error)
- 				break;
- 			fallthrough;
- 		case BREAK_WRITE:
---- a/fs/xfs/xfs_inode.h~fs-dax-create-a-common-implementation-to-break-dax-layouts
-+++ a/fs/xfs/xfs_inode.h
-@@ -603,7 +603,7 @@ xfs_itruncate_extents(
- 	return xfs_itruncate_extents_flags(tpp, ip, whichfork, new_size, 0);
- }
- 
--int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
-+int	xfs_break_dax_layouts(struct inode *inode);
- int	xfs_break_layouts(struct inode *inode, uint *iolock,
- 		enum layout_break_reason reason);
- 
---- a/include/linux/dax.h~fs-dax-create-a-common-implementation-to-break-dax-layouts
+--- a/include/linux/dax.h~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
 +++ a/include/linux/dax.h
-@@ -207,12 +207,9 @@ int dax_zero_range(struct inode *inode,
- int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
- 		const struct iomap_ops *ops);
- 
--static inline int dax_wait_page_idle(struct page *page,
--				void (cb)(struct inode *),
--				struct inode *inode)
-+static inline bool dax_page_is_idle(struct page *page)
- {
--	return ___wait_var_event(page, page_ref_count(page) == 1,
--				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
-+	return page && page_ref_count(page) == 1;
- }
- 
- #if IS_ENABLED(CONFIG_DAX)
-@@ -228,6 +225,15 @@ static inline void dax_read_unlock(int i
- {
- }
- #endif /* CONFIG_DAX */
-+
-+#if !IS_ENABLED(CONFIG_FS_DAX)
-+static inline int __must_check dax_break_layout(struct inode *inode,
-+			    loff_t start, loff_t end, void (cb)(struct inode *))
-+{
-+	return 0;
-+}
-+#endif
-+
- bool dax_alive(struct dax_device *dax_dev);
- void *dax_get_private(struct dax_device *dax_dev);
- long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
-@@ -251,6 +257,13 @@ vm_fault_t dax_finish_sync_fault(struct
+@@ -255,6 +255,8 @@ vm_fault_t dax_iomap_fault(struct vm_fau
+ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+ 		unsigned int order, pfn_t pfn);
  int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
++void dax_delete_mapping_range(struct address_space *mapping,
++				loff_t start, loff_t end);
  int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
  				      pgoff_t index);
-+int __must_check dax_break_layout(struct inode *inode, loff_t start,
-+				loff_t end, void (cb)(struct inode *));
-+static inline int __must_check dax_break_layout_inode(struct inode *inode,
-+						void (cb)(struct inode *))
-+{
-+	return dax_break_layout(inode, 0, LLONG_MAX, cb);
-+}
- int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- 				  struct inode *dest, loff_t destoff,
- 				  loff_t len, bool *is_same,
+ int __must_check dax_break_layout(struct inode *inode, loff_t start,
+--- a/mm/truncate.c~fs-dax-always-remove-dax-page-cache-entries-when-breaking-layouts
++++ a/mm/truncate.c
+@@ -78,8 +78,22 @@ static void truncate_folio_batch_excepti
+ 
+ 	if (dax_mapping(mapping)) {
+ 		for (i = j; i < nr; i++) {
+-			if (xa_is_value(fbatch->folios[i]))
++			if (xa_is_value(fbatch->folios[i])) {
++				/*
++				 * File systems should already have called
++				 * dax_break_layout_entry() to remove all DAX
++				 * entries while holding a lock to prevent
++				 * establishing new entries. Therefore we
++				 * shouldn't find any here.
++				 */
++				WARN_ON_ONCE(1);
++
++				/*
++				 * Delete the mapping so truncate_pagecache()
++				 * doesn't loop forever.
++				 */
+ 				dax_delete_mapping_entry(mapping, indices[i]);
++			}
+ 		}
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
