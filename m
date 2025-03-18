@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A9F71D7E4F
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7060C1D7E4F
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274639; cv=none; b=szk3K0VrkziJvJ8z1lfUSvHxPjOMPho1/OfROAxhVWj7gjb3ERHpzFrYwOKbORw8A4dvCyr3TJAMJQ4SRgo/VBW2ommxeKlPz8pD7yHLORu8W3xn4bt2NDBCMX+W0vOvJ2EZNsAe9uubSbtb9mqDKFHPbeoXMGIrHm03VaaI8gE=
+	t=1742274640; cv=none; b=E8dNyMOdhmsyzFXonwmzKvUNVvqustm1f1RDbngSi+ypPz8NNSfkBhpD2MCPvHT+AWdDv7n3sHR2WjvfEDUV7j/v0SsnfkqDp3ZemRDVPWG/8EWTVGeA8NRAeDbqIvzSsSrrukE5GhNQPhKM1WK9RPp0YiW0L2cXk79pY6lpiq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274639; c=relaxed/simple;
-	bh=iH2DHuKyCj+uPA+s9H6HFPHeKlnOK93WQF2z26Oo6AE=;
-	h=Date:To:From:Subject:Message-Id; b=r4vw//mkl+Z1s/iHRIgxKrNJ9l97pHF+nnmCQYAPbu38OFBsKcSK4szpgXzQX7eoHrWy5sGLbWtBNIDO0aN5iuT1MCp6ZdY1MpAHqgNfAlA9n44w3Cz3VCiT9akxnfy+vaxGQkx4ZLhQJFLFhnwVOqow64U0PvvdpJQP/OPjljU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TgeJ7nW4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274640; c=relaxed/simple;
+	bh=cZqpTyzGcx+sNAhVJD1Lh+I9949FVTqvOcoPEVXwwcc=;
+	h=Date:To:From:Subject:Message-Id; b=aM2nKdDFg2DKx2vPNzSYC5B1Hnw2opeW7yhVWBpcrnrQcpo2q0R1k6ay7ZdzNYP1ED6SnB9OWzXVmLTwPpVnhe8Zt0tRSI3SuIsOklqSDFxDFwxzZ2mJdYAXeZ00wnAGTKoXWSb++13uJJU1ASxHahKUJq54hsFxW42HuQmyUlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZhY4SLg6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TgeJ7nW4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1134FC4CEDD;
-	Tue, 18 Mar 2025 05:10:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZhY4SLg6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 436BBC4CEDD;
+	Tue, 18 Mar 2025 05:10:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274639;
-	bh=iH2DHuKyCj+uPA+s9H6HFPHeKlnOK93WQF2z26Oo6AE=;
+	s=korg; t=1742274640;
+	bh=cZqpTyzGcx+sNAhVJD1Lh+I9949FVTqvOcoPEVXwwcc=;
 	h=Date:To:From:Subject:From;
-	b=TgeJ7nW4oFnMKohJIjjvHIZp+899XB+HfSu6Nt+Uv+Pyd27/KuYDn4cI/l3s2FYmX
-	 tR9dJnUNXmpmtxXR1RQsQYboj/KkziZa2+N/INCfK2xL0bXmVtbe0nEs5Y8a75kJW+
-	 owsoJ1Mz9fawiWZ8+CRGULmRdERLflp/97/Femiw=
-Date: Mon, 17 Mar 2025 22:10:38 -0700
-To: mm-commits@vger.kernel.org,hughd@google.com,enrico.bravi@polito.it,akpm@linux-foundation.org
+	b=ZhY4SLg6x3AFxGmwwZjVvjhrDlSV0l/l9SRhLvBgpXCGsppmDAEQyS+icg73mVebZ
+	 rWhX/mzcFw1jjRiFCIlwmLsAzLFEsUktJvEZTVxxMCpA6IbN7feGnCVHSoJlm7KNhf
+	 A047RYfVutJEtO26f97q1ctXYraxmoQUJUX81X+Y=
+Date: Mon, 17 Mar 2025 22:10:39 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,rientjes@google.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liumartin@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-fix-functions-documentation.patch removed from -mm tree
-Message-Id: <20250318051039.1134FC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-add-trace-event-for-per-zone-watermark-setup.patch removed from -mm tree
+Message-Id: <20250318051040.436BBC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: fix functions documentation
+     Subject: mm/page_alloc: add trace event for per-zone watermark setup
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-functions-documentation.patch
+     mm-page_alloc-add-trace-event-for-per-zone-watermark-setup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enrico Bravi <enrico.bravi@polito.it>
-Subject: mm/shmem: fix functions documentation
-Date: Mon, 10 Mar 2025 12:25:37 +0100
+From: Martin Liu <liumartin@google.com>
+Subject: mm/page_alloc: add trace event for per-zone watermark setup
+Date: Sat, 8 Mar 2025 03:46:00 +0000
 
-Add missing parenthesis in @name parameter description.
+Patch series "Add tracepoints for lowmem reserves, watermarks and
+totalreserve_pages", v2.
 
-Link: https://lkml.kernel.org/r/20250310112535.84754-1-enrico.bravi@polito.it
-Signed-off-by: Enrico Bravi <enrico.bravi@polito.it>
-Cc: Hugh Dickins <hughd@google.com>
+This patchset introduces tracepoints to track changes in the lowmem
+reserves, watermarks and totalreserve_pages. This helps to track
+the exact timing of such changes and understand their relation to
+reclaim activities.
+
+The tracepoints added are:
+
+mm_setup_per_zone_lowmem_reserve
+mm_setup_per_zone_wmarks
+mm_calculate_totalreserve_pagesi
+
+
+This patch (of 3):
+
+This commit introduces the `mm_setup_per_zone_wmarks` trace event,
+which provides detailed insights into the kernel's per-zone watermark
+configuration, offering precise timing and the ability to correlate
+watermark changes with specific kernel events.
+
+While `/proc/zoneinfo` provides some information about zone watermarks,
+this trace event offers:
+
+1. The ability to link watermark changes to specific kernel events and
+   logic.
+
+2. The ability to capture rapid or short-lived changes in watermarks
+   that may be missed by user-space polling
+
+3. Diagnosing unexpected kswapd activity or excessive direct reclaim
+   triggered by rapidly changing watermarks.
+
+Link: https://lkml.kernel.org/r/20250308034606.2036033-1-liumartin@google.com
+Link: https://lkml.kernel.org/r/20250308034606.2036033-2-liumartin@google.com
+Signed-off-by: Martin Liu <liumartin@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Martin Liu <liumartin@google.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/trace/events/kmem.h |   33 +++++++++++++++++++++++++++++++++
+ mm/page_alloc.c             |    1 +
+ 2 files changed, 34 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-fix-functions-documentation
-+++ a/mm/shmem.c
-@@ -5841,7 +5841,7 @@ static struct file *__shmem_file_setup(s
-  * 	underlying inode.  So users of this interface must do LSM checks at a
-  *	higher layer.  The users are the big_key and shm implementations.  LSM
-  *	checks are provided at the key or shm level rather than the inode.
-- * @name: name for dentry (to be seen in /proc/<pid>/maps
-+ * @name: name for dentry (to be seen in /proc/<pid>/maps)
-  * @size: size to be set for the file
-  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
-  */
-@@ -5853,7 +5853,7 @@ EXPORT_SYMBOL_GPL(shmem_kernel_file_setu
+--- a/include/trace/events/kmem.h~mm-page_alloc-add-trace-event-for-per-zone-watermark-setup
++++ a/include/trace/events/kmem.h
+@@ -342,6 +342,39 @@ TRACE_EVENT(mm_alloc_contig_migrate_rang
+ 		  __entry->nr_mapped)
+ );
  
- /**
-  * shmem_file_setup - get an unlinked file living in tmpfs
-- * @name: name for dentry (to be seen in /proc/<pid>/maps
-+ * @name: name for dentry (to be seen in /proc/<pid>/maps)
-  * @size: size to be set for the file
-  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
++TRACE_EVENT(mm_setup_per_zone_wmarks,
++
++	TP_PROTO(struct zone *zone),
++
++	TP_ARGS(zone),
++
++	TP_STRUCT__entry(
++		__field(int, node_id)
++		__string(name, zone->name)
++		__field(unsigned long, watermark_min)
++		__field(unsigned long, watermark_low)
++		__field(unsigned long, watermark_high)
++		__field(unsigned long, watermark_promo)
++	),
++
++	TP_fast_assign(
++		__entry->node_id = zone->zone_pgdat->node_id;
++		__assign_str(name);
++		__entry->watermark_min = zone->_watermark[WMARK_MIN];
++		__entry->watermark_low = zone->_watermark[WMARK_LOW];
++		__entry->watermark_high = zone->_watermark[WMARK_HIGH];
++		__entry->watermark_promo = zone->_watermark[WMARK_PROMO];
++	),
++
++	TP_printk("node_id=%d zone name=%s watermark min=%lu low=%lu high=%lu promo=%lu",
++		  __entry->node_id,
++		  __get_str(name),
++		  __entry->watermark_min,
++		  __entry->watermark_low,
++		  __entry->watermark_high,
++		  __entry->watermark_promo)
++);
++
+ /*
+  * Required for uniquely and securely identifying mm in rss_stat tracepoint.
   */
-@@ -5866,7 +5866,7 @@ EXPORT_SYMBOL_GPL(shmem_file_setup);
- /**
-  * shmem_file_setup_with_mnt - get an unlinked file living in tmpfs
-  * @mnt: the tmpfs mount where the file will be created
-- * @name: name for dentry (to be seen in /proc/<pid>/maps
-+ * @name: name for dentry (to be seen in /proc/<pid>/maps)
-  * @size: size to be set for the file
-  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
-  */
+--- a/mm/page_alloc.c~mm-page_alloc-add-trace-event-for-per-zone-watermark-setup
++++ a/mm/page_alloc.c
+@@ -6006,6 +6006,7 @@ static void __setup_per_zone_wmarks(void
+ 		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
+ 		zone->_watermark[WMARK_HIGH] = low_wmark_pages(zone) + tmp;
+ 		zone->_watermark[WMARK_PROMO] = high_wmark_pages(zone) + tmp;
++		trace_mm_setup_per_zone_wmarks(zone);
+ 
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
 _
 
-Patches currently in -mm which might be from enrico.bravi@polito.it are
+Patches currently in -mm which might be from liumartin@google.com are
 
 
