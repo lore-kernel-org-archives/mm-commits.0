@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D450282D91
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41D7082D91
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274610; cv=none; b=ae89cvMCPHn6CZUrEttgEO6M1puiLPzAGh4OUd+RQYlBCi21ykcZzrg6sJhmKEDFnr+/idUvwzSsZAxUl7IFWA30yBQ+YJZ7SlAztngjJ/5H4HLhn4Thx4FD1wYY631Pe3akXlTBDLDiCbt/8EsFtfus7r2KiuZAAxzUB2JPfyA=
+	t=1742274612; cv=none; b=g42uzvK+U+q5ZDvZMbKZlSehpE6IwdbritVTI/1H11Xa+JtPyW80VJcmpjeg4uLa+72cpfaXCp/xMwob4Q/fuQsTQ0DNJR1UZxsBa2UEBHPIqgJSiklvoVwMsu+a8s4tsV5eMqCZBSX9Cv/i31ShlsVeW3ORDzbFoV3R0hM3dPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274610; c=relaxed/simple;
-	bh=qlpPl+LWqpHJnW8VGyrecNjjzlene2QGeTHQV139Odo=;
-	h=Date:To:From:Subject:Message-Id; b=bLK8FvDIN5dof5kzpQubSsb9yt/0fzC9IAI7aDvVMbJX+XecjhxoUPcvnNi9rzb5ceff+XXcIQT9jI9rN52kv66qR+MLv1+OWM1DpjicCh5dUikM2rGbdthCbRIPGAY3s9n8gBn1oIqP2dzlRf58Q++NOnZPVq1UTM+8UqgCw6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tGv2nuq4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274612; c=relaxed/simple;
+	bh=UEuuTnW7X4/CLxZwq7HUNIBJtmZZjb0E+nROVvVRDV0=;
+	h=Date:To:From:Subject:Message-Id; b=LAzjo4PvIBZuTkcmK9GNHFPJf6jzsGRdU6VTg2SJU+ubrkBkbmQA1w8+CvN8AdZJxqhkoMgDcDk0ovIzGLZOeqoYzJVxcGheet7E9ZGyHXwoz6p0/CqqjLE4AbU0fm0FRMRqb0sJIiibbSqZMI2TjAhzIeHHywS3ETLKZSbfujw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=STs+SfWK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tGv2nuq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB98FC4CEDD;
-	Tue, 18 Mar 2025 05:10:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="STs+SfWK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19996C4CEDD;
+	Tue, 18 Mar 2025 05:10:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274610;
-	bh=qlpPl+LWqpHJnW8VGyrecNjjzlene2QGeTHQV139Odo=;
+	s=korg; t=1742274612;
+	bh=UEuuTnW7X4/CLxZwq7HUNIBJtmZZjb0E+nROVvVRDV0=;
 	h=Date:To:From:Subject:From;
-	b=tGv2nuq4gXTz/iQnhXextEz+yDcw55Co4QWXslBYcgi5Uuiky8F5gqAgIK3rYlcfQ
-	 dSkdxYItZ64K7jhGhDXZGeqBuvb9r0KG1vm8NNWMYTE0DWC8RQINpm8QPd+RIxRPuj
-	 rvQPlEQmZTeKHsFCv0RVr7ujeLLU4FXJENqelENY=
-Date: Mon, 17 Mar 2025 22:10:10 -0700
+	b=STs+SfWKlJ+byFBsworkFNBxJaUXBjqiD3xs7JfANiizzumq1Kqwdvk5f4jWKwbWs
+	 z81SXWS7rU+qSjUzDFFSiXeizKijdRsRw9XcdBa4D0uQnWyoRNDqwTK8+DVHxWZ9Cy
+	 GVN/ADOZgEPS7aPYMOQLy+Ftvbk0ye7ezCuNGGyA=
+Date: Mon, 17 Mar 2025 22:10:11 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,pasha.tatashin@soleen.com,muchun.song@linux.dev,hannes@cmpxchg.org,david@redhat.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_table_check-use-new-iteration-api.patch removed from -mm tree
-Message-Id: <20250318051010.AB98FC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-use-new-iteration-api.patch removed from -mm tree
+Message-Id: <20250318051012.19996C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_table_check: use new iteration API
+     Subject: mm: page_owner: use new iteration API
 has been removed from the -mm tree.  Its filename was
-     mm-page_table_check-use-new-iteration-api.patch
+     mm-page_owner-use-new-iteration-api.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Luiz Capitulino <luizcap@redhat.com>
-Subject: mm: page_table_check: use new iteration API
-Date: Thu, 6 Mar 2025 17:44:51 -0500
+Subject: mm: page_owner: use new iteration API
+Date: Thu, 6 Mar 2025 17:44:52 -0500
 
 The page_ext_next() function assumes that page extension objects for a
 page order allocation always reside in the same memory section, which may
 not be true and could lead to crashes.  Use the new page_ext iteration API
 instead.
 
-Link: https://lkml.kernel.org/r/ca2d53a020fe1cd65c442627ff6c0c40d591cbd8.1741301089.git.luizcap@redhat.com
+Link: https://lkml.kernel.org/r/93c80b040960fa2ebab4a9729073f77a30649862.1741301089.git.luizcap@redhat.com
 Fixes: cf54f310d0d3 ("mm/hugetlb: use __GFP_COMP for gigantic folios")
 Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -63,118 +63,206 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_table_check.c |   39 ++++++++++++---------------------------
- 1 file changed, 12 insertions(+), 27 deletions(-)
+ mm/page_owner.c |   84 +++++++++++++++++++++-------------------------
+ 1 file changed, 39 insertions(+), 45 deletions(-)
 
---- a/mm/page_table_check.c~mm-page_table_check-use-new-iteration-api
-+++ a/mm/page_table_check.c
-@@ -62,24 +62,20 @@ static struct page_table_check *get_page
-  */
- static void page_table_check_clear(unsigned long pfn, unsigned long pgcnt)
- {
-+	struct page_ext_iter iter;
- 	struct page_ext *page_ext;
- 	struct page *page;
--	unsigned long i;
- 	bool anon;
- 
- 	if (!pfn_valid(pfn))
- 		return;
- 
- 	page = pfn_to_page(pfn);
--	page_ext = page_ext_get(page);
--
--	if (!page_ext)
--		return;
--
- 	BUG_ON(PageSlab(page));
- 	anon = PageAnon(page);
- 
--	for (i = 0; i < pgcnt; i++) {
-+	rcu_read_lock();
-+	for_each_page_ext(page, pgcnt, page_ext, iter) {
- 		struct page_table_check *ptc = get_page_table_check(page_ext);
- 
- 		if (anon) {
-@@ -89,9 +85,8 @@ static void page_table_check_clear(unsig
- 			BUG_ON(atomic_read(&ptc->anon_map_count));
- 			BUG_ON(atomic_dec_return(&ptc->file_map_count) < 0);
- 		}
--		page_ext = page_ext_next(page_ext);
- 	}
--	page_ext_put(page_ext);
-+	rcu_read_unlock();
+--- a/mm/page_owner.c~mm-page_owner-use-new-iteration-api
++++ a/mm/page_owner.c
+@@ -229,17 +229,19 @@ static void dec_stack_record_count(depot
+ 			handle);
  }
  
- /*
-@@ -102,24 +97,20 @@ static void page_table_check_clear(unsig
- static void page_table_check_set(unsigned long pfn, unsigned long pgcnt,
- 				 bool rw)
+-static inline void __update_page_owner_handle(struct page_ext *page_ext,
++static inline void __update_page_owner_handle(struct page *page,
+ 					      depot_stack_handle_t handle,
+ 					      unsigned short order,
+ 					      gfp_t gfp_mask,
+ 					      short last_migrate_reason, u64 ts_nsec,
+ 					      pid_t pid, pid_t tgid, char *comm)
  {
+-	int i;
 +	struct page_ext_iter iter;
- 	struct page_ext *page_ext;
- 	struct page *page;
--	unsigned long i;
- 	bool anon;
++	struct page_ext *page_ext;
+ 	struct page_owner *page_owner;
  
- 	if (!pfn_valid(pfn))
- 		return;
- 
- 	page = pfn_to_page(pfn);
--	page_ext = page_ext_get(page);
--
--	if (!page_ext)
--		return;
--
- 	BUG_ON(PageSlab(page));
- 	anon = PageAnon(page);
- 
--	for (i = 0; i < pgcnt; i++) {
-+	rcu_read_lock();
-+	for_each_page_ext(page, pgcnt, page_ext, iter) {
- 		struct page_table_check *ptc = get_page_table_check(page_ext);
- 
- 		if (anon) {
-@@ -129,9 +120,8 @@ static void page_table_check_set(unsigne
- 			BUG_ON(atomic_read(&ptc->anon_map_count));
- 			BUG_ON(atomic_inc_return(&ptc->file_map_count) < 0);
- 		}
--		page_ext = page_ext_next(page_ext);
- 	}
--	page_ext_put(page_ext);
-+	rcu_read_unlock();
- }
- 
- /*
-@@ -140,24 +130,19 @@ static void page_table_check_set(unsigne
-  */
- void __page_table_check_zero(struct page *page, unsigned int order)
- {
-+	struct page_ext_iter iter;
- 	struct page_ext *page_ext;
--	unsigned long i;
- 
- 	BUG_ON(PageSlab(page));
- 
--	page_ext = page_ext_get(page);
--
--	if (!page_ext)
--		return;
--
--	for (i = 0; i < (1ul << order); i++) {
+-	for (i = 0; i < (1 << order); i++) {
 +	rcu_read_lock();
 +	for_each_page_ext(page, 1 << order, page_ext, iter) {
- 		struct page_table_check *ptc = get_page_table_check(page_ext);
+ 		page_owner = get_page_owner(page_ext);
+ 		page_owner->handle = handle;
+ 		page_owner->order = order;
+@@ -252,20 +254,22 @@ static inline void __update_page_owner_h
+ 			sizeof(page_owner->comm));
+ 		__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
+ 		__set_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+-		page_ext = page_ext_next(page_ext);
+ 	}
++	rcu_read_unlock();
+ }
  
- 		BUG_ON(atomic_read(&ptc->anon_map_count));
- 		BUG_ON(atomic_read(&ptc->file_map_count));
+-static inline void __update_page_owner_free_handle(struct page_ext *page_ext,
++static inline void __update_page_owner_free_handle(struct page *page,
+ 						   depot_stack_handle_t handle,
+ 						   unsigned short order,
+ 						   pid_t pid, pid_t tgid,
+ 						   u64 free_ts_nsec)
+ {
+-	int i;
++	struct page_ext_iter iter;
++	struct page_ext *page_ext;
+ 	struct page_owner *page_owner;
+ 
+-	for (i = 0; i < (1 << order); i++) {
++	rcu_read_lock();
++	for_each_page_ext(page, 1 << order, page_ext, iter) {
+ 		page_owner = get_page_owner(page_ext);
+ 		/* Only __reset_page_owner() wants to clear the bit */
+ 		if (handle) {
+@@ -275,8 +279,8 @@ static inline void __update_page_owner_f
+ 		page_owner->free_ts_nsec = free_ts_nsec;
+ 		page_owner->free_pid = current->pid;
+ 		page_owner->free_tgid = current->tgid;
+-		page_ext = page_ext_next(page_ext);
+ 	}
++	rcu_read_unlock();
+ }
+ 
+ void __reset_page_owner(struct page *page, unsigned short order)
+@@ -293,11 +297,11 @@ void __reset_page_owner(struct page *pag
+ 
+ 	page_owner = get_page_owner(page_ext);
+ 	alloc_handle = page_owner->handle;
++	page_ext_put(page_ext);
+ 
+ 	handle = save_stack(GFP_NOWAIT | __GFP_NOWARN);
+-	__update_page_owner_free_handle(page_ext, handle, order, current->pid,
++	__update_page_owner_free_handle(page, handle, order, current->pid,
+ 					current->tgid, free_ts_nsec);
+-	page_ext_put(page_ext);
+ 
+ 	if (alloc_handle != early_handle)
+ 		/*
+@@ -313,19 +317,13 @@ void __reset_page_owner(struct page *pag
+ noinline void __set_page_owner(struct page *page, unsigned short order,
+ 					gfp_t gfp_mask)
+ {
+-	struct page_ext *page_ext;
+ 	u64 ts_nsec = local_clock();
+ 	depot_stack_handle_t handle;
+ 
+ 	handle = save_stack(gfp_mask);
+-
+-	page_ext = page_ext_get(page);
+-	if (unlikely(!page_ext))
+-		return;
+-	__update_page_owner_handle(page_ext, handle, order, gfp_mask, -1,
++	__update_page_owner_handle(page, handle, order, gfp_mask, -1,
+ 				   ts_nsec, current->pid, current->tgid,
+ 				   current->comm);
+-	page_ext_put(page_ext);
+ 	inc_stack_record_count(handle, gfp_mask, 1 << order);
+ }
+ 
+@@ -344,44 +342,42 @@ void __set_page_owner_migrate_reason(str
+ 
+ void __split_page_owner(struct page *page, int old_order, int new_order)
+ {
+-	int i;
+-	struct page_ext *page_ext = page_ext_get(page);
++	struct page_ext_iter iter;
++	struct page_ext *page_ext;
+ 	struct page_owner *page_owner;
+ 
+-	if (unlikely(!page_ext))
+-		return;
+-
+-	for (i = 0; i < (1 << old_order); i++) {
++	rcu_read_lock();
++	for_each_page_ext(page, 1 << old_order, page_ext, iter) {
+ 		page_owner = get_page_owner(page_ext);
+ 		page_owner->order = new_order;
 -		page_ext = page_ext_next(page_ext);
  	}
 -	page_ext_put(page_ext);
 +	rcu_read_unlock();
  }
  
- void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
+ void __folio_copy_owner(struct folio *newfolio, struct folio *old)
+ {
+-	int i;
+-	struct page_ext *old_ext;
+-	struct page_ext *new_ext;
++	struct page_ext *page_ext;
++	struct page_ext_iter iter;
+ 	struct page_owner *old_page_owner;
+ 	struct page_owner *new_page_owner;
+ 	depot_stack_handle_t migrate_handle;
+ 
+-	old_ext = page_ext_get(&old->page);
+-	if (unlikely(!old_ext))
++	page_ext = page_ext_get(&old->page);
++	if (unlikely(!page_ext))
+ 		return;
+ 
+-	new_ext = page_ext_get(&newfolio->page);
+-	if (unlikely(!new_ext)) {
+-		page_ext_put(old_ext);
++	old_page_owner = get_page_owner(page_ext);
++	page_ext_put(page_ext);
++
++	page_ext = page_ext_get(&newfolio->page);
++	if (unlikely(!page_ext))
+ 		return;
+-	}
+ 
+-	old_page_owner = get_page_owner(old_ext);
+-	new_page_owner = get_page_owner(new_ext);
++	new_page_owner = get_page_owner(page_ext);
++	page_ext_put(page_ext);
++
+ 	migrate_handle = new_page_owner->handle;
+-	__update_page_owner_handle(new_ext, old_page_owner->handle,
++	__update_page_owner_handle(&newfolio->page, old_page_owner->handle,
+ 				   old_page_owner->order, old_page_owner->gfp_mask,
+ 				   old_page_owner->last_migrate_reason,
+ 				   old_page_owner->ts_nsec, old_page_owner->pid,
+@@ -391,7 +387,7 @@ void __folio_copy_owner(struct folio *ne
+ 	 * will be freed after migration. Keep them until then as they may be
+ 	 * useful.
+ 	 */
+-	__update_page_owner_free_handle(new_ext, 0, old_page_owner->order,
++	__update_page_owner_free_handle(&newfolio->page, 0, old_page_owner->order,
+ 					old_page_owner->free_pid,
+ 					old_page_owner->free_tgid,
+ 					old_page_owner->free_ts_nsec);
+@@ -400,14 +396,12 @@ void __folio_copy_owner(struct folio *ne
+ 	 * for the new one and the old folio otherwise there will be an imbalance
+ 	 * when subtracting those pages from the stack.
+ 	 */
+-	for (i = 0; i < (1 << new_page_owner->order); i++) {
++	rcu_read_lock();
++	for_each_page_ext(&old->page, 1 << new_page_owner->order, page_ext, iter) {
++		old_page_owner = get_page_owner(page_ext);
+ 		old_page_owner->handle = migrate_handle;
+-		old_ext = page_ext_next(old_ext);
+-		old_page_owner = get_page_owner(old_ext);
+ 	}
+-
+-	page_ext_put(new_ext);
+-	page_ext_put(old_ext);
++	rcu_read_unlock();
+ }
+ 
+ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+@@ -813,7 +807,7 @@ static void init_pages_in_zone(pg_data_t
+ 				goto ext_put_continue;
+ 
+ 			/* Found early allocated page */
+-			__update_page_owner_handle(page_ext, early_handle, 0, 0,
++			__update_page_owner_handle(page, early_handle, 0, 0,
+ 						   -1, local_clock(), current->pid,
+ 						   current->tgid, current->comm);
+ 			count++;
 _
 
 Patches currently in -mm which might be from luizcap@redhat.com are
