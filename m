@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 265BF1D618A
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 062481C6889
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274554; cv=none; b=V2b5Amq76pvHq2+ObHMZHPDxOzGz9XHz2oUBOG+UKZteKDVb+p7QwZwPpczl+I3S1jPVYTB8uSVUG+7K0LcijSTJ91kD3ilU7tXBQE6+9jt1XWpHmC4lu5+rP843vfUd50lQ//m+Lgq3vLWTQ8w+QFxMaRsR4ikXMi5c4sXsIME=
+	t=1742274556; cv=none; b=TfiKVUFFRlBIvAoAX5Durg5xG0irD5xLt0pua14ugfGpJkhBNcjbBpIOkKSpTR8yYaUJwtsyafcBjZzqfe10VFexz1v9Xn2HWmEHVhIMdFYXw71qfQ23wdvudT9vt+D4XLYkIFft298R0ymcXAPNgvzvGdLUB5Z/MpM6XKJlpuU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274554; c=relaxed/simple;
-	bh=L9TX1rqQDJeMkMuDoF5c0MSlGuibqYT4MBQIhH4b+/c=;
-	h=Date:To:From:Subject:Message-Id; b=aTQAgQLrq/uAkMPV4OWMqQICL2SWV40m6KLJOqU7hTbv0q+CxTpVBi0lwup/wi064Uy47+a3XSnyRKMgxECPEDnHp2VqE+yPlATptr+LnI1ozrBDJGiz0MuaS3Q1CLpBeozPQzhbOCjWMdLS/hlnbZrasVhh5XK1S9XUnqevSNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1aob04cd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274556; c=relaxed/simple;
+	bh=WlNbkIkD8EC9XmFii3z4WXPb58gR+KU1WG0MIK+8rSA=;
+	h=Date:To:From:Subject:Message-Id; b=hSb9bbZicT8U9MkAZxlGSFTUTueLCpgqGuxl7kwANU4iZ2EjmMXtk7/hI9t05NIbl0EZH+hTudrXOAdt/iG0M9H/znf3X4LS9TLl4hjoEGzQciK/79A5AkkyBFTuCEX3elWuojYxAa4/IFeea8r6wMNmRKviaqdCODNtmgZwFmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yhfb6s36; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1aob04cd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0459C4CEDD;
-	Tue, 18 Mar 2025 05:09:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yhfb6s36"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC55AC4CEDD;
+	Tue, 18 Mar 2025 05:09:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274554;
-	bh=L9TX1rqQDJeMkMuDoF5c0MSlGuibqYT4MBQIhH4b+/c=;
+	s=korg; t=1742274555;
+	bh=WlNbkIkD8EC9XmFii3z4WXPb58gR+KU1WG0MIK+8rSA=;
 	h=Date:To:From:Subject:From;
-	b=1aob04cdO1oy9T05fqR0KAXu264CGy+l9KYgok0ZVnVk4KoZhgrJRgNXRdI+qinbb
-	 qKyksMNgtM7ON2dFfKDMrxo8IDD2B0R74Vh3AEa7rIFTIdKAtGaHYOWoDcUZERpgWu
-	 Drwu1ODDlrqJkULfkpf3xubG8sHFK3rvfe3ElYRI=
-Date: Mon, 17 Mar 2025 22:09:13 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
+	b=Yhfb6s36GeDkKkOTVtu2VGuPGsdtZYYfaai6eJy548FptMFVdYqaL3I0Ev/mNBO7T
+	 Y18BXFNSQbq8A44LQ3R7HO+jD+N1r3nsPJ9+g36uN13a5dCqUaeRINOhX4sKWOwtPf
+	 KMmE8Xfm2pN6WZ3ZMtcq6gEZSQ+1X8PZy9e1/M2U=
+Date: Mon, 17 Mar 2025 22:09:15 -0700
+To: mm-commits@vger.kernel.org,corbet@lwn.net,arnd@arndb.de,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount.patch removed from -mm tree
-Message-Id: <20250318050913.F0459C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch removed from -mm tree
+Message-Id: <20250318050915.CC55AC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,501 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: stop maintaining the per-page mapcount of large folios (CONFIG_NO_PAGE_MAPCOUNT)
+     Subject: mm/damon/sysfs-schemes: let damon_sysfs_scheme_set_filters() be used for different named directories
 has been removed from the -mm tree.  Its filename was
-     mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount.patch
+     mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: stop maintaining the per-page mapcount of large folios (CONFIG_NO_PAGE_MAPCOUNT)
-Date: Mon, 3 Mar 2025 17:30:13 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: let damon_sysfs_scheme_set_filters() be used for different named directories
+Date: Wed, 5 Mar 2025 14:27:26 -0800
 
-Everything is in place to stop using the per-page mapcounts in large
-folios: the mapcount of tail pages will always be logically 0 (-1 value),
-just like it currently is for hugetlb folios already, and the page
-mapcount of the head page is either 0 (-1 value) or contains a page type
-(e.g., hugetlb).
+Patch series "mm/damon: add sysfs dirs for managing DAMOS filters based on
+handling layers".
 
-Maintaining _nr_pages_mapped without per-page mapcounts is impossible, so
-that one also has to go with CONFIG_NO_PAGE_MAPCOUNT.
+DAMOS filters are categorized into two groups based on their handling
+layers, namely core and operations layers.  The categorization affects
+when each filter is evaluated.  Core layer handled filters are evaluated
+first.  The order meant nothing before, but introduction of allow filters
+changed that.
 
-There are two remaining implications:
+DAMOS sysfs interface provides single directory for filters, namely
+'filters'.  Users can install any filters in any order there.  DAMON will
+internally categorize those into core and operations layer handled ones,
+and apply the evaluation order rule.  The ordering rule is clearly
+documented.  But the interface could still confuse users since it is
+allowed to install filters on the directory in mixed ways.
 
-(1) Per-node, per-cgroup and per-lruvec stats of "NR_ANON_MAPPED"
-    ("mapped anonymous memory") and "NR_FILE_MAPPED"
-    ("mapped file memory"):
+Add two sysfs directories for managing filters by handling layers, namely
+'core_filters' and 'ops_filters' for filters that handled by core and
+operations layer, respectively.  Those are avoided to be used for
+installing filters that not handled by the assumed layers.
 
-    As soon as any page of the folio is mapped -- folio_mapped() -- we
-    now account the complete folio as mapped. Once the last page is
-    unmapped -- !folio_mapped() -- we account the complete folio as
-    unmapped.
+For backward compatibility, keep 'filters' directory with its curernt
+behavior.  Filters installed in the directory will be added to DAMON after
+those of 'core_filters' and 'ops_filters' directories, with the automatic
+categorizations.  Also recommend users to use the new directories while
+noticing 'filters' directory could be deprecated in future on the usage
+documents.
 
-    This implies that ...
+Note that new directories provide all features that were provided with
+'filters', but just in a more clear way.  Deprecating 'filters' in future
+will hence not make an irreversal feature loss.
 
-    * "AnonPages" and "Mapped" in /proc/meminfo and
-      /sys/devices/system/node/*/meminfo
-    * cgroup v2: "anon" and "file_mapped" in "memory.stat" and
-      "memory.numa_stat"
-    * cgroup v1: "rss" and "mapped_file" in "memory.stat" and
-      "memory.numa_stat
 
-    ... can now appear higher than before. But note that these folios do
-    consume that memory, simply not all pages are actually currently
-    mapped.
+This patch (of 8):
 
-    It's worth nothing that other accounting in the kernel (esp. cgroup
-    charging on allocation) is not affected by this change.
+damon_sysfs_scheme_set_filters() is using a hard-coded directory name,
+"filters".  Refactor for general named directories of same files
+hierarchy, to use from upcoming changes for adding sibling directories
+having files same to those of "filters", and named as "core_filters" and
+"ops_filters".
 
-    [why oh why is "anon" called "rss" in cgroup v1]
-
- (2) Detecting partial mappings
-
-     Detecting whether anon THPs are partially mapped gets a bit more
-     unreliable. As long as a single MM maps such a large folio
-     ("exclusively mapped"), we can reliably detect it. Especially before
-     fork() / after a short-lived child process quit, we will detect
-     partial mappings reliably, which is the common case.
-
-     In essence, if the average per-page mapcount in an anon THP is < 1,
-     we know for sure that we have a partial mapping.
-
-     However, as soon as multiple MMs are involved, we might miss detecting
-     partial mappings: this might be relevant with long-lived child
-     processes. If we have a fully-mapped anon folio before fork(), once
-     our child processes and our parent all unmap (zap/COW) the same pages
-     (but not the complete folio), we might not detect the partial mapping.
-     However, once the child processes quit we would detect the partial
-     mapping.
-
-     How relevant this case is in practice remains to be seen.
-     Swapout/migration will likely mitigate this.
-
-     In the future, RMAP walkers could check for that for that case
-     (e.g., when collecting access bits during reclaim) and simply flag
-     them for deferred-splitting.
-
-Link: https://lkml.kernel.org/r/20250303163014.1128035-21-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+[arnd@arndb.deL avoid Wformat-security warning]
+  Link: https://lkml.kernel.org/r/20250310135142.4176976-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20250305222733.59089-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250305222733.59089-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Michal Koutn <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: tejun heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |    4 
- Documentation/admin-guide/cgroup-v2.rst        |   10 +
- Documentation/filesystems/proc.rst             |   10 +
- Documentation/mm/transhuge.rst                 |   31 ++++-
- include/linux/rmap.h                           |   35 +++++-
- mm/internal.h                                  |    5 
- mm/page_alloc.c                                |    3 
- mm/rmap.c                                      |   80 +++++++++++++--
- 8 files changed, 150 insertions(+), 28 deletions(-)
+ mm/damon/sysfs-schemes.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -609,6 +609,10 @@ memory.stat file includes following stat
- 
- 	'rss + mapped_file" will give you resident set size of cgroup.
- 
-+	Note that some kernel configurations might account complete larger
-+	allocations (e.g., THP) towards 'rss' and 'mapped_file', even if
-+	only some, but not all that memory is mapped.
-+
- 	(Note: file and shmem may be shared among other cgroups. In that case,
- 	mapped_file is accounted only when the memory cgroup is owner of page
- 	cache.)
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1440,7 +1440,10 @@ The following nested keys are defined.
- 
- 	  anon
- 		Amount of memory used in anonymous mappings such as
--		brk(), sbrk(), and mmap(MAP_ANONYMOUS)
-+		brk(), sbrk(), and mmap(MAP_ANONYMOUS). Note that
-+		some kernel configurations might account complete larger
-+		allocations (e.g., THP) if only some, but not all the
-+		memory of such an allocation is mapped anymore.
- 
- 	  file
- 		Amount of memory used to cache filesystem data,
-@@ -1483,7 +1486,10 @@ The following nested keys are defined.
- 		Amount of application memory swapped out to zswap.
- 
- 	  file_mapped
--		Amount of cached filesystem data mapped with mmap()
-+		Amount of cached filesystem data mapped with mmap(). Note
-+		that some kernel configurations might account complete
-+		larger allocations (e.g., THP) if only some, but not
-+		not all the memory of such an allocation is mapped.
- 
- 	  file_dirty
- 		Amount of cached filesystem data that was modified but
---- a/Documentation/filesystems/proc.rst~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/Documentation/filesystems/proc.rst
-@@ -1153,9 +1153,15 @@ Dirty
- Writeback
-               Memory which is actively being written back to the disk
- AnonPages
--              Non-file backed pages mapped into userspace page tables
-+              Non-file backed pages mapped into userspace page tables. Note that
-+              some kernel configurations might consider all pages part of a
-+              larger allocation (e.g., THP) as "mapped", as soon as a single
-+              page is mapped.
- Mapped
--              files which have been mmapped, such as libraries
-+              files which have been mmapped, such as libraries. Note that some
-+              kernel configurations might consider all pages part of a larger
-+              allocation (e.g., THP) as "mapped", as soon as a single page is
-+              mapped.
- Shmem
-               Total memory used by shared memory (shmem) and tmpfs
- KReclaimable
---- a/Documentation/mm/transhuge.rst~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/Documentation/mm/transhuge.rst
-@@ -116,23 +116,28 @@ pages:
-     succeeds on tail pages.
- 
-   - map/unmap of a PMD entry for the whole THP increment/decrement
--    folio->_entire_mapcount, increment/decrement folio->_large_mapcount
--    and also increment/decrement folio->_nr_pages_mapped by ENTIRELY_MAPPED
--    when _entire_mapcount goes from -1 to 0 or 0 to -1.
-+    folio->_entire_mapcount and folio->_large_mapcount.
- 
-     We also maintain the two slots for tracking MM owners (MM ID and
-     corresponding mapcount), and the current status ("maybe mapped shared" vs.
-     "mapped exclusively").
- 
-+    With CONFIG_PAGE_MAPCOUNT, we also increment/decrement
-+    folio->_nr_pages_mapped by ENTIRELY_MAPPED when _entire_mapcount goes
-+    from -1 to 0 or 0 to -1.
-+
-   - map/unmap of individual pages with PTE entry increment/decrement
--    page->_mapcount, increment/decrement folio->_large_mapcount and also
--    increment/decrement folio->_nr_pages_mapped when page->_mapcount goes
--    from -1 to 0 or 0 to -1 as this counts the number of pages mapped by PTE.
-+    folio->_large_mapcount.
- 
-     We also maintain the two slots for tracking MM owners (MM ID and
-     corresponding mapcount), and the current status ("maybe mapped shared" vs.
-     "mapped exclusively").
- 
-+    With CONFIG_PAGE_MAPCOUNT, we also increment/decrement
-+    page->_mapcount and increment/decrement folio->_nr_pages_mapped when
-+    page->_mapcount goes from -1 to 0 or 0 to -1 as this counts the number
-+    of pages mapped by PTE.
-+
- split_huge_page internally has to distribute the refcounts in the head
- page to the tail pages before clearing all PG_head/tail bits from the page
- structures. It can be done easily for refcounts taken by page table
-@@ -159,8 +164,8 @@ clear where references should go after s
- Note that split_huge_pmd() doesn't have any limitations on refcounting:
- pmd can be split at any point and never fails.
- 
--Partial unmap and deferred_split_folio()
--========================================
-+Partial unmap and deferred_split_folio() (anon THP only)
-+========================================================
- 
- Unmapping part of THP (with munmap() or other way) is not going to free
- memory immediately. Instead, we detect that a subpage of THP is not in use
-@@ -175,3 +180,13 @@ a THP crosses a VMA boundary.
- The function deferred_split_folio() is used to queue a folio for splitting.
- The splitting itself will happen when we get memory pressure via shrinker
- interface.
-+
-+With CONFIG_PAGE_MAPCOUNT, we reliably detect partial mappings based on
-+folio->_nr_pages_mapped.
-+
-+With CONFIG_NO_PAGE_MAPCOUNT, we detect partial mappings based on the
-+average per-page mapcount in a THP: if the average is < 1, an anon THP is
-+certainly partially mapped. As long as only a single process maps a THP,
-+this detection is reliable. With long-running child processes, there can
-+be scenarios where partial mappings can currently not be detected, and
-+might need asynchronous detection during memory reclaim in the future.
---- a/include/linux/rmap.h~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/include/linux/rmap.h
-@@ -240,7 +240,7 @@ static __always_inline void folio_set_la
- 	folio_set_mm_id(folio, 0, vma->vm_mm->mm_id);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-let-damon_sysfs_scheme_set_filters-be-used-for-different-named-directories
++++ a/mm/damon/sysfs-schemes.c
+@@ -1604,7 +1604,9 @@ static int damon_sysfs_scheme_set_waterm
+ 	return err;
  }
  
--static __always_inline void folio_add_large_mapcount(struct folio *folio,
-+static __always_inline int folio_add_return_large_mapcount(struct folio *folio,
- 		int diff, struct vm_area_struct *vma)
+-static int damon_sysfs_scheme_set_filters(struct damon_sysfs_scheme *scheme)
++static int damon_sysfs_scheme_set_filters(struct damon_sysfs_scheme *scheme,
++		const char *name,
++		struct damon_sysfs_scheme_filters **filters_ptr)
  {
- 	const mm_id_t mm_id = vma->vm_mm->mm_id;
-@@ -286,9 +286,11 @@ static __always_inline void folio_add_la
- 		folio->_mm_ids |= FOLIO_MM_IDS_SHARED_BIT;
- 	}
- 	folio_unlock_large_mapcount(folio);
-+	return new_mapcount_val + 1;
- }
-+#define folio_add_large_mapcount folio_add_return_large_mapcount
- 
--static __always_inline void folio_sub_large_mapcount(struct folio *folio,
-+static __always_inline int folio_sub_return_large_mapcount(struct folio *folio,
- 		int diff, struct vm_area_struct *vma)
- {
- 	const mm_id_t mm_id = vma->vm_mm->mm_id;
-@@ -331,7 +333,9 @@ static __always_inline void folio_sub_la
- 		folio->_mm_ids &= ~FOLIO_MM_IDS_SHARED_BIT;
- out:
- 	folio_unlock_large_mapcount(folio);
-+	return new_mapcount_val + 1;
- }
-+#define folio_sub_large_mapcount folio_sub_return_large_mapcount
- #else /* !CONFIG_MM_ID */
- /*
-  * See __folio_rmap_sanity_checks(), we might map large folios even without
-@@ -350,17 +354,33 @@ static inline void folio_add_large_mapco
- 	atomic_add(diff, &folio->_large_mapcount);
+ 	struct damon_sysfs_scheme_filters *filters =
+ 		damon_sysfs_scheme_filters_alloc();
+@@ -1614,11 +1616,11 @@ static int damon_sysfs_scheme_set_filter
+ 		return -ENOMEM;
+ 	err = kobject_init_and_add(&filters->kobj,
+ 			&damon_sysfs_scheme_filters_ktype, &scheme->kobj,
+-			"filters");
++			"%s", name);
+ 	if (err)
+ 		kobject_put(&filters->kobj);
+ 	else
+-		scheme->filters = filters;
++		*filters_ptr = filters;
+ 	return err;
  }
  
-+static inline int folio_add_return_large_mapcount(struct folio *folio,
-+		int diff, struct vm_area_struct *vma)
-+{
-+	BUILD_BUG();
-+}
-+
- static inline void folio_sub_large_mapcount(struct folio *folio,
- 		int diff, struct vm_area_struct *vma)
- {
- 	atomic_sub(diff, &folio->_large_mapcount);
- }
-+
-+static inline int folio_sub_return_large_mapcount(struct folio *folio,
-+		int diff, struct vm_area_struct *vma)
-+{
-+	BUILD_BUG();
-+}
- #endif /* CONFIG_MM_ID */
- 
- #define folio_inc_large_mapcount(folio, vma) \
- 	folio_add_large_mapcount(folio, 1, vma)
-+#define folio_inc_return_large_mapcount(folio, vma) \
-+	folio_add_return_large_mapcount(folio, 1, vma)
- #define folio_dec_large_mapcount(folio, vma) \
- 	folio_sub_large_mapcount(folio, 1, vma)
-+#define folio_dec_return_large_mapcount(folio, vma) \
-+	folio_sub_return_large_mapcount(folio, 1, vma)
- 
- /* RMAP flags, currently only relevant for some anon rmap operations. */
- typedef int __bitwise rmap_t;
-@@ -538,9 +558,11 @@ static __always_inline void __folio_dup_
- 			break;
- 		}
- 
--		do {
--			atomic_inc(&page->_mapcount);
--		} while (page++, --nr_pages > 0);
-+		if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT)) {
-+			do {
-+				atomic_inc(&page->_mapcount);
-+			} while (page++, --nr_pages > 0);
-+		}
- 		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
- 		break;
- 	case RMAP_LEVEL_PMD:
-@@ -638,7 +660,8 @@ static __always_inline int __folio_try_d
- 		do {
- 			if (PageAnonExclusive(page))
- 				ClearPageAnonExclusive(page);
--			atomic_inc(&page->_mapcount);
-+			if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
-+				atomic_inc(&page->_mapcount);
- 		} while (page++, --nr_pages > 0);
- 		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
- 		break;
---- a/mm/internal.h~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/mm/internal.h
-@@ -125,6 +125,8 @@ void page_writeback_init(void);
-  */
- static inline int folio_nr_pages_mapped(const struct folio *folio)
- {
-+	if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT))
-+		return -1;
- 	return atomic_read(&folio->_nr_pages_mapped) & FOLIO_PAGES_MAPPED;
- }
- 
-@@ -762,7 +764,8 @@ static inline void prep_compound_head(st
- 
- 	folio_set_order(folio, order);
- 	atomic_set(&folio->_large_mapcount, -1);
--	atomic_set(&folio->_nr_pages_mapped, 0);
-+	if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
-+		atomic_set(&folio->_nr_pages_mapped, 0);
- 	if (IS_ENABLED(CONFIG_MM_ID)) {
- 		folio->_mm_ids = 0;
- 		folio->_mm_id_mapcount[0] = -1;
---- a/mm/page_alloc.c~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/mm/page_alloc.c
-@@ -951,7 +951,8 @@ static int free_tail_page_prepare(struct
- 			bad_page(page, "nonzero large_mapcount");
- 			goto out;
- 		}
--		if (unlikely(atomic_read(&folio->_nr_pages_mapped))) {
-+		if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT) &&
-+		    unlikely(atomic_read(&folio->_nr_pages_mapped))) {
- 			bad_page(page, "nonzero nr_pages_mapped");
- 			goto out;
- 		}
---- a/mm/rmap.c~mm-stop-maintaining-the-per-page-mapcount-of-large-folios-config_no_page_mapcount
-+++ a/mm/rmap.c
-@@ -1258,6 +1258,16 @@ static __always_inline unsigned int __fo
- 			break;
- 		}
- 
-+		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT)) {
-+			nr = folio_add_return_large_mapcount(folio, orig_nr_pages, vma);
-+			if (nr == orig_nr_pages)
-+				/* Was completely unmapped. */
-+				nr = folio_large_nr_pages(folio);
-+			else
-+				nr = 0;
-+			break;
-+		}
-+
- 		do {
- 			first += atomic_inc_and_test(&page->_mapcount);
- 		} while (page++, --nr_pages > 0);
-@@ -1271,6 +1281,18 @@ static __always_inline unsigned int __fo
- 	case RMAP_LEVEL_PMD:
- 	case RMAP_LEVEL_PUD:
- 		first = atomic_inc_and_test(&folio->_entire_mapcount);
-+		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT)) {
-+			if (level == RMAP_LEVEL_PMD && first)
-+				*nr_pmdmapped = folio_large_nr_pages(folio);
-+			nr = folio_inc_return_large_mapcount(folio, vma);
-+			if (nr == 1)
-+				/* Was completely unmapped. */
-+				nr = folio_large_nr_pages(folio);
-+			else
-+				nr = 0;
-+			break;
-+		}
-+
- 		if (first) {
- 			nr = atomic_add_return_relaxed(ENTIRELY_MAPPED, mapped);
- 			if (likely(nr < ENTIRELY_MAPPED + ENTIRELY_MAPPED)) {
-@@ -1436,13 +1458,23 @@ static __always_inline void __folio_add_
- 			break;
- 		}
- 	}
-+
-+	VM_WARN_ON_FOLIO(!folio_test_large(folio) && PageAnonExclusive(page) &&
-+			 atomic_read(&folio->_mapcount) > 0, folio);
- 	for (i = 0; i < nr_pages; i++) {
- 		struct page *cur_page = page + i;
- 
--		/* While PTE-mapping a THP we have a PMD and a PTE mapping. */
--		VM_WARN_ON_FOLIO((atomic_read(&cur_page->_mapcount) > 0 ||
--				  (folio_test_large(folio) &&
--				   folio_entire_mapcount(folio) > 1)) &&
-+		VM_WARN_ON_FOLIO(folio_test_large(folio) &&
-+				 folio_entire_mapcount(folio) > 1 &&
-+				 PageAnonExclusive(cur_page), folio);
-+		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT))
-+			continue;
-+
-+		/*
-+		 * While PTE-mapping a THP we have a PMD and a PTE
-+		 * mapping.
-+		 */
-+		VM_WARN_ON_FOLIO(atomic_read(&cur_page->_mapcount) > 0 &&
- 				 PageAnonExclusive(cur_page), folio);
- 	}
- 
-@@ -1548,20 +1580,23 @@ void folio_add_new_anon_rmap(struct foli
- 		for (i = 0; i < nr; i++) {
- 			struct page *page = folio_page(folio, i);
- 
--			/* increment count (starts at -1) */
--			atomic_set(&page->_mapcount, 0);
-+			if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
-+				/* increment count (starts at -1) */
-+				atomic_set(&page->_mapcount, 0);
- 			if (exclusive)
- 				SetPageAnonExclusive(page);
- 		}
- 
- 		folio_set_large_mapcount(folio, nr, vma);
--		atomic_set(&folio->_nr_pages_mapped, nr);
-+		if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
-+			atomic_set(&folio->_nr_pages_mapped, nr);
- 	} else {
- 		nr = folio_large_nr_pages(folio);
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_entire_mapcount, 0);
- 		folio_set_large_mapcount(folio, 1, vma);
--		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
-+		if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
-+			atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
- 		if (exclusive)
- 			SetPageAnonExclusive(&folio->page);
- 		nr_pmdmapped = nr;
-@@ -1665,6 +1700,19 @@ static __always_inline void __folio_remo
- 			break;
- 		}
- 
-+		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT)) {
-+			nr = folio_sub_return_large_mapcount(folio, nr_pages, vma);
-+			if (!nr) {
-+				/* Now completely unmapped. */
-+				nr = folio_nr_pages(folio);
-+			} else {
-+				partially_mapped = nr < folio_large_nr_pages(folio) &&
-+						   !folio_entire_mapcount(folio);
-+				nr = 0;
-+			}
-+			break;
-+		}
-+
- 		folio_sub_large_mapcount(folio, nr_pages, vma);
- 		do {
- 			last += atomic_add_negative(-1, &page->_mapcount);
-@@ -1678,6 +1726,22 @@ static __always_inline void __folio_remo
- 		break;
- 	case RMAP_LEVEL_PMD:
- 	case RMAP_LEVEL_PUD:
-+		if (IS_ENABLED(CONFIG_NO_PAGE_MAPCOUNT)) {
-+			last = atomic_add_negative(-1, &folio->_entire_mapcount);
-+			if (level == RMAP_LEVEL_PMD && last)
-+				nr_pmdmapped = folio_large_nr_pages(folio);
-+			nr = folio_dec_return_large_mapcount(folio, vma);
-+			if (!nr) {
-+				/* Now completely unmapped. */
-+				nr = folio_large_nr_pages(folio);
-+			} else {
-+				partially_mapped = last &&
-+						   nr < folio_large_nr_pages(folio);
-+				nr = 0;
-+			}
-+			break;
-+		}
-+
- 		folio_dec_large_mapcount(folio, vma);
- 		last = atomic_add_negative(-1, &folio->_entire_mapcount);
- 		if (last) {
+@@ -1670,7 +1672,8 @@ static int damon_sysfs_scheme_add_dirs(s
+ 	err = damon_sysfs_scheme_set_watermarks(scheme);
+ 	if (err)
+ 		goto put_quotas_access_pattern_out;
+-	err = damon_sysfs_scheme_set_filters(scheme);
++	err = damon_sysfs_scheme_set_filters(scheme, "filters",
++			&scheme->filters);
+ 	if (err)
+ 		goto put_watermarks_quotas_access_pattern_out;
+ 	err = damon_sysfs_scheme_set_stats(scheme);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
