@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51CCF1C701D
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 119361A8413
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274570; cv=none; b=BqDnceloc1aW7YOZqSOx2siG/Wm5jBXmSb2nQ+6xDKnFHZHHorl9zRNqS+nI71kwGKgQ9Y30uineOVL606rXC6Ft+rQ4MjzbyyABMCQtATzLL4qxtiTcT6SHf1YyMYTilEg/4P/j/Dh00g8JGyw97o7A6FxnctNq+apKn6DfRzs=
+	t=1742274572; cv=none; b=eHsu2ycrJqgmwYf58N3grFLCI4sB3f8HM1P0iM4L0gGOFckTEqW16lqYzvgTgbY2bfWAQXOyomlS2AfBJyYjzG31yBG3KUM1hDmXIbCBFxIRVZIdV8tcojp69cb9C7u7Gz7xZzgRIVwTuEU/eT+qHbwmWxlqH/vVAvmv9jsdTzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274570; c=relaxed/simple;
-	bh=cOpsAwGK1hTi9A4LJmEibUaYEI7i+fd+l2FhXUbKT/8=;
-	h=Date:To:From:Subject:Message-Id; b=TKVUZIP4znsegQwvRZTVgBf0oirjHLfkfadqROAaUXfR8XmtUD/Kg5+D8B2QV/mQDntJeOK4rEYZr5FxBlxkov6UonWQbq8J0pKJ0Tjc0bAkMMOqcuZoqX3ghglx6RtqB+iauDfL35b3EXtZCDKyWcRhrBC1XtHQQES6ExniTJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W3reyFxp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274572; c=relaxed/simple;
+	bh=ssBiSWn/PzUMDkq5KkPPviaq3rNa1UkW/BeOmrdNmEs=;
+	h=Date:To:From:Subject:Message-Id; b=P5pHkNO7vMbxDCeklHXlkpNXA++GLepb/a7W093+ZFYzLWskjgF1PFon9X0x7Y8xgxWJo2yI5ajj+l+8mwKeeS4PYHjp8sDpWQq/AAr5oWhf6cbTILlRl577jpqGY+JjuBLcSSw7cNMPa8Tr0ItUKbg86/Dj8T2tq828uTbJxlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z9lHfkVK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W3reyFxp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E245C4CEDD;
-	Tue, 18 Mar 2025 05:09:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z9lHfkVK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D447EC4CEDD;
+	Tue, 18 Mar 2025 05:09:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274570;
-	bh=cOpsAwGK1hTi9A4LJmEibUaYEI7i+fd+l2FhXUbKT/8=;
+	s=korg; t=1742274571;
+	bh=ssBiSWn/PzUMDkq5KkPPviaq3rNa1UkW/BeOmrdNmEs=;
 	h=Date:To:From:Subject:From;
-	b=W3reyFxplkt3HjuAlbAQ8XuecaouyFixfrFwafoN7p6Hpo+MC32fgcVt+cYJjVXWI
-	 Rr90LlDj3WDtV+hH602d0Wu6X9t0SJvoTTPCPDluJzwSnYsdnkZLg6XDYZkQd2uKKm
-	 fN2Gf1gkxdJpPeCA+Gh5P/68bxlKgD9jWHhVfT4I=
-Date: Mon, 17 Mar 2025 22:09:29 -0700
+	b=Z9lHfkVKt2r81k/I1vo7VXYMRuZoMi+C9ovNkJKoGGs/tDMa73j8mg0nYE4Uh7+0t
+	 w9CyCCjVzNpGqYghdzdQSnQchn1ofuFBy2/Na+uX1aAIWEYPyLJ9MOBVrkmW6dk/kj
+	 Pdye+H27HBev1wWse4qUgcOO85YtQ/f/h4lYHi6Q=
+Date: Mon, 17 Mar 2025 22:09:31 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,shorne@gmail.com,richard@nod.at,palmer@dabbelt.com,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,luto@kernel.org,linux@armlinux.org.uk,johannes@sipsolutions.net,jiaxun.yang@flygoat.com,jcmvbkbc@gmail.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,broonie@kernel.org,bp@alien8.de,arnd@arndb.de,ardb@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm-mem_init-use-memblock_phys_free-to-free-dma-memory-on-sa1111.patch removed from -mm tree
-Message-Id: <20250318050930.1E245C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] csky-move-setup_initrd-to-setupc.patch removed from -mm tree
+Message-Id: <20250318050931.D447EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm: mem_init: use memblock_phys_free() to free DMA memory on SA1111
+     Subject: csky: move setup_initrd() to setup.c
 has been removed from the -mm tree.  Its filename was
-     arm-mem_init-use-memblock_phys_free-to-free-dma-memory-on-sa1111.patch
+     csky-move-setup_initrd-to-setupc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: arm: mem_init: use memblock_phys_free() to free DMA memory on SA1111
-Date: Thu, 13 Mar 2025 15:49:51 +0200
+Subject: csky: move setup_initrd() to setup.c
+Date: Thu, 13 Mar 2025 15:49:52 +0200
 
-Patch series "arch, mm: reduce code duplication in mem_init()", v2.
+Memory used by initrd should be reserved as soon as possible before
+there any memblock allocations that might overwrite that memory.
 
-Every architecture has implementation of mem_init() function and some even
-more than one.  All these release free memory to the buddy allocator, most
-of them set high_memory to the end of directly addressable memory and many
-of them set max_mapnr for FLATMEM case.
+This will also help with pulling out memblock_free_all() to the generic
+code and reducing code duplication in arch::mem_init().
 
-These patches pull the commonalities into the generic code and refactor
-some of the mem_init() implementations so that many of them can be just
-dropped.
-
-
-This patch (of 13):
-
-This will help to pull out memblock_free_all() to generic code.
-
-Link: https://lkml.kernel.org/r/20250313135003.836600-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20250313135003.836600-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20250313135003.836600-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Mark Brown <broonie@kernel.org>
+Acked-by: Guo Ren (csky) <guoren@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -79,7 +68,6 @@ Cc: David S. Miller <davem@davemloft.net>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Guo Ren <guoren@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
@@ -88,11 +76,11 @@ Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Matt Turner <mattst88@gmail.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Simek <monstr@monstr.eu>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Russel King <linux@armlinux.org.uk>
@@ -105,30 +93,128 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/csky/kernel/setup.c |   43 +++++++++++++++++++++++++++++++++++++
+ arch/csky/mm/init.c      |   43 -------------------------------------
+ 2 files changed, 43 insertions(+), 43 deletions(-)
 
---- a/arch/arm/mm/init.c~arm-mem_init-use-memblock_phys_free-to-free-dma-memory-on-sa1111
-+++ a/arch/arm/mm/init.c
-@@ -277,14 +277,14 @@ void __init mem_init(void)
+--- a/arch/csky/kernel/setup.c~csky-move-setup_initrd-to-setupc
++++ a/arch/csky/kernel/setup.c
+@@ -12,6 +12,45 @@
+ #include <asm/mmu_context.h>
+ #include <asm/pgalloc.h>
  
- 	set_max_mapnr(pfn_to_page(max_pfn) - mem_map);
- 
--	/* this will put all unused low memory onto the freelists */
--	memblock_free_all();
--
- #ifdef CONFIG_SA1111
- 	/* now that our DMA memory is actually so designated, we can free it */
--	free_reserved_area(__va(PHYS_OFFSET), swapper_pg_dir, -1, NULL);
-+	memblock_phys_free(PHYS_OFFSET, __pa(swapper_pg_dir) - PHYS_OFFSET);
- #endif
- 
-+	/* this will put all unused low memory onto the freelists */
-+	memblock_free_all();
++#ifdef CONFIG_BLK_DEV_INITRD
++static void __init setup_initrd(void)
++{
++	unsigned long size;
 +
- 	free_highpages();
++	if (initrd_start >= initrd_end) {
++		pr_err("initrd not found or empty");
++		goto disable;
++	}
++
++	if (__pa(initrd_end) > PFN_PHYS(max_low_pfn)) {
++		pr_err("initrd extends beyond end of memory");
++		goto disable;
++	}
++
++	size = initrd_end - initrd_start;
++
++	if (memblock_is_region_reserved(__pa(initrd_start), size)) {
++		pr_err("INITRD: 0x%08lx+0x%08lx overlaps in-use memory region",
++		       __pa(initrd_start), size);
++		goto disable;
++	}
++
++	memblock_reserve(__pa(initrd_start), size);
++
++	pr_info("Initial ramdisk at: 0x%p (%lu bytes)\n",
++		(void *)(initrd_start), size);
++
++	initrd_below_start_ok = 1;
++
++	return;
++
++disable:
++	initrd_start = initrd_end = 0;
++
++	pr_err(" - disabling initrd\n");
++}
++#endif
++
+ static void __init csky_memblock_init(void)
+ {
+ 	unsigned long lowmem_size = PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET);
+@@ -40,6 +79,10 @@ static void __init csky_memblock_init(vo
+ 		max_low_pfn = min_low_pfn + sseg_size;
+ 	}
  
- 	/*
++#ifdef CONFIG_BLK_DEV_INITRD
++	setup_initrd();
++#endif
++
+ 	max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
+ 
+ 	mmu_init(min_low_pfn, max_low_pfn);
+--- a/arch/csky/mm/init.c~csky-move-setup_initrd-to-setupc
++++ a/arch/csky/mm/init.c
+@@ -42,45 +42,6 @@ unsigned long empty_zero_page[PAGE_SIZE
+ 						__page_aligned_bss;
+ EXPORT_SYMBOL(empty_zero_page);
+ 
+-#ifdef CONFIG_BLK_DEV_INITRD
+-static void __init setup_initrd(void)
+-{
+-	unsigned long size;
+-
+-	if (initrd_start >= initrd_end) {
+-		pr_err("initrd not found or empty");
+-		goto disable;
+-	}
+-
+-	if (__pa(initrd_end) > PFN_PHYS(max_low_pfn)) {
+-		pr_err("initrd extends beyond end of memory");
+-		goto disable;
+-	}
+-
+-	size = initrd_end - initrd_start;
+-
+-	if (memblock_is_region_reserved(__pa(initrd_start), size)) {
+-		pr_err("INITRD: 0x%08lx+0x%08lx overlaps in-use memory region",
+-		       __pa(initrd_start), size);
+-		goto disable;
+-	}
+-
+-	memblock_reserve(__pa(initrd_start), size);
+-
+-	pr_info("Initial ramdisk at: 0x%p (%lu bytes)\n",
+-		(void *)(initrd_start), size);
+-
+-	initrd_below_start_ok = 1;
+-
+-	return;
+-
+-disable:
+-	initrd_start = initrd_end = 0;
+-
+-	pr_err(" - disabling initrd\n");
+-}
+-#endif
+-
+ void __init mem_init(void)
+ {
+ #ifdef CONFIG_HIGHMEM
+@@ -92,10 +53,6 @@ void __init mem_init(void)
+ #endif
+ 	high_memory = (void *) __va(max_low_pfn << PAGE_SHIFT);
+ 
+-#ifdef CONFIG_BLK_DEV_INITRD
+-	setup_initrd();
+-#endif
+-
+ 	memblock_free_all();
+ 
+ #ifdef CONFIG_HIGHMEM
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
