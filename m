@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 116A51C701D
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BA841C84B7
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274566; cv=none; b=G8uzIFypLYZKJn8RUD57QMJHRftkHtSRnTchszGLD6FSD2WRc0XzWKRHoti5hcO2kQS9V3i0OXEwFkAdBA7FVbTdmfpHEd+F/wtCkA258saS1vBzTeFc1gN1ODPq5bTFRi9gFbCxrvoFGUZsTht36kIdHoJAbL82n6N/vGLfD+s=
+	t=1742274567; cv=none; b=BwqBUGYSGC47iLzLodjLd/u2V7galxmIvCIK7jtEpcJiR7uaXKIZ6uC8B/gEiJotuCPp+/7aRBmY0ke0ttQevni2bXwJRQuyBO2agkicxgBYe344Z58z7kJIicU1cPniCM8ET99RiAalJ0YgrdyfN2yeaO91kLRdtMZOE94l8c4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274566; c=relaxed/simple;
-	bh=KzhpRLua7bwkoZN88c3icSHwrM0nEShnE4+sdzSQTVc=;
-	h=Date:To:From:Subject:Message-Id; b=P4a3RTBqZ9cyVwtZrwdzNs354ZUSaw66lhJKGJmBp7YkyvnHKrLx2J7z4abldAkOeASBlyjTrns8n2+99zZhXTvzesxZ5Xr9C3WJIjdCnLRIFHgoZkhHXgk80E05teiFdou1pJXg/xzJnzr+Fs56nqMEa8SDi+s1Ad8opGYTH5M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hhdey6lA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274567; c=relaxed/simple;
+	bh=4dAz/oYfwCqMR3flqS+swj/cxBsG6k1BIpkSbTfkDGw=;
+	h=Date:To:From:Subject:Message-Id; b=mTeC/jpREf+FrMGvEHzv18R+fsg4xJK1+7sFEZ+QOOGtxkIFkCvzxXv+ZHYJA2yAxDzxMgUo/b4WugQm/ZsS9AOW6CUM3USjD7gj+3ogNArthFV1v6kd86P6CPXgx53+sC/i6aCR9d5MFn8HhB6MopLFuzqa8aLMJVzgDn/RW5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B2Umbnq7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hhdey6lA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA55EC4CEDD;
-	Tue, 18 Mar 2025 05:09:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B2Umbnq7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F7BC4CEDD;
+	Tue, 18 Mar 2025 05:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274565;
-	bh=KzhpRLua7bwkoZN88c3icSHwrM0nEShnE4+sdzSQTVc=;
+	s=korg; t=1742274567;
+	bh=4dAz/oYfwCqMR3flqS+swj/cxBsG6k1BIpkSbTfkDGw=;
 	h=Date:To:From:Subject:From;
-	b=hhdey6lAfs2O20JGGX2yNuEC81CPuFyz1k/bCogXDbcHiavqD+aZS7/CuvNEJvBK2
-	 aSngWccryr/+gwxXNO8wWCzy9Ri87sSn6z/ouW8XPy2NZUStU4DdhyS3vso1oYrdcq
-	 9IgqIdE9EpkLVYflnBzITvOuJSbZH+JPF5LWe8io=
-Date: Mon, 17 Mar 2025 22:09:25 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=B2Umbnq7ce7JJB9qZeUejMtaF7JFOeblV0PDOefDpn+6JUMFqcl0ms4DWBv5uatWA
+	 rWWzvGrIeWJngUnFyF8cYU+HUBTm6socRjmLoyGXLtRwktRGmdCP9u1Dj36PujKyHu
+	 ZDwlqVM5mGt0Vyqi1lmV27/GkC13SFrtsLtr7tdw=
+Date: Mon, 17 Mar 2025 22:09:26 -0700
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,willy@infradead.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-update-nr_huge_pages-and-surplus_huge_pages-together.patch removed from -mm tree
-Message-Id: <20250318050925.DA55EC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch removed from -mm tree
+Message-Id: <20250318050927.30F7BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,334 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: update nr_huge_pages and surplus_huge_pages together
+     Subject: page_io: zswap: do not crash the kernel on decompression failure
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-update-nr_huge_pages-and-surplus_huge_pages-together.patch
+     page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/hugetlb: update nr_huge_pages and surplus_huge_pages together
-Date: Wed, 5 Mar 2025 11:54:09 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: page_io: zswap: do not crash the kernel on decompression failure
+Date: Thu, 6 Mar 2025 12:50:10 -0800
 
-In alloc_surplus_hugetlb_folio(), we increase nr_huge_pages and
-surplus_huge_pages separately.  In the middle window, if we set
-nr_hugepages to smaller and satisfy count < persistent_huge_pages(h), the
-surplus_huge_pages will be increased by adjust_pool_surplus().
+Currently, we crash the kernel when a decompression failure occurs in
+zswap (either because of memory corruption, or a bug in the compression
+algorithm).  This is overkill.  We should only SIGBUS the unfortunate
+process asking for the zswap entry on zswap load, and skip the corrupted
+entry in zswap writeback.
 
-After adding delay in the middle window, we can reproduce the problem
-easily by following step:
+See [1] for a recent upstream discussion about this.
 
- 1. echo 3 > /proc/sys/vm/nr_overcommit_hugepages
- 2. mmap two hugepages. When nr_huge_pages=2 and surplus_huge_pages=1,
-    goto step 3.
- 3. echo 0 > /proc/sys/vm/nr_huge_pages
+The zswap writeback case is relatively straightforward to fix.  For the
+zswap_load() case, we change the return behavior:
 
-Finally, nr_huge_pages is less than surplus_huge_pages.
+* Return 0 on success.
+* Return -ENOENT (with the folio locked) if zswap does not own the
+  swapped out content.
+* Return -EIO if zswap owns the swapped out content, but encounters a
+  decompression failure for some reasons. The folio will be unlocked,
+  but not be marked up-to-date, which will eventually cause the process
+  requesting the page to SIGBUS (see the handling of not-up-to-date
+  folio in do_swap_page() in mm/memory.c), without crashing the kernel.
+* Return -EINVAL if we encounter a large folio, as large folio should
+  not be swapped in while zswap is being used. Similar to the -EIO case,
+  we also unlock the folio but do not mark it as up-to-date to SIGBUS
+  the faulting process.
 
-To fix the problem, call only_alloc_fresh_hugetlb_folio() instead and
-move down __prep_account_new_huge_page() into the hugetlb_lock.
+As a side effect, we require one extra zswap tree traversal in the load
+and writeback paths.  Quick benchmarking on a kernel build test shows no
+performance difference:
 
-Link: https://lkml.kernel.org/r/20250305035409.2391344-1-liushixin2@huawei.com
-Fixes: 0c397daea1d4 ("mm, hugetlb: further simplify hugetlb allocation API")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+With the new scheme:
+real: mean: 125.1s, stdev: 0.12s
+user: mean: 3265.23s, stdev: 9.62s
+sys: mean: 2156.41s, stdev: 13.98s
+
+The old scheme:
+real: mean: 125.78s, stdev: 0.45s
+user: mean: 3287.18s, stdev: 5.95s
+sys: mean: 2177.08s, stdev: 26.52s
+
+[nphamcs@gmail.com: fix documentation of zswap_load()]
+  Link: https://lkml.kernel.org/r/20250306222453.1269456-1-nphamcs@gmail.com
+Link: https://lore.kernel.org/all/ZsiLElTykamcYZ6J@casper.infradead.org/ [1]
+Link: https://lkml.kernel.org/r/20250306205011.784787-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/zswap.h |    6 +-
+ mm/page_io.c          |    6 +-
+ mm/zswap.c            |  119 +++++++++++++++++++++++++++-------------
+ 3 files changed, 88 insertions(+), 43 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-update-nr_huge_pages-and-surplus_huge_pages-together
-+++ a/mm/hugetlb.c
-@@ -2259,12 +2259,21 @@ static struct folio *alloc_surplus_huget
- 		goto out_unlock;
- 	spin_unlock_irq(&hugetlb_lock);
+--- a/include/linux/zswap.h~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
++++ a/include/linux/zswap.h
+@@ -26,7 +26,7 @@ struct zswap_lruvec_state {
  
--	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask);
-+	folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
- 	if (!folio)
- 		return NULL;
+ unsigned long zswap_total_pages(void);
+ bool zswap_store(struct folio *folio);
+-bool zswap_load(struct folio *folio);
++int zswap_load(struct folio *folio);
+ void zswap_invalidate(swp_entry_t swp);
+ int zswap_swapon(int type, unsigned long nr_pages);
+ void zswap_swapoff(int type);
+@@ -44,9 +44,9 @@ static inline bool zswap_store(struct fo
+ 	return false;
+ }
  
-+	hugetlb_vmemmap_optimize_folio(h, folio);
+-static inline bool zswap_load(struct folio *folio)
++static inline int zswap_load(struct folio *folio)
+ {
+-	return false;
++	return -ENOENT;
+ }
+ 
+ static inline void zswap_invalidate(swp_entry_t swp) {}
+--- a/mm/page_io.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
++++ a/mm/page_io.c
+@@ -638,11 +638,11 @@ void swap_read_folio(struct folio *folio
+ 	if (swap_read_folio_zeromap(folio)) {
+ 		folio_unlock(folio);
+ 		goto finish;
+-	} else if (zswap_load(folio)) {
+-		folio_unlock(folio);
+-		goto finish;
+ 	}
+ 
++	if (zswap_load(folio) != -ENOENT)
++		goto finish;
 +
- 	spin_lock_irq(&hugetlb_lock);
+ 	/* We have to read from slower devices. Increase zswap protection. */
+ 	zswap_folio_swapin(folio);
+ 
+--- a/mm/zswap.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure
++++ a/mm/zswap.c
+@@ -62,6 +62,8 @@ static u64 zswap_reject_reclaim_fail;
+ static u64 zswap_reject_compress_fail;
+ /* Compressed page was too big for the allocator to (optimally) store */
+ static u64 zswap_reject_compress_poor;
++/* Load or writeback failed due to decompression failure */
++static u64 zswap_decompress_fail;
+ /* Store failed because underlying allocator could not get memory */
+ static u64 zswap_reject_alloc_fail;
+ /* Store failed because the entry metadata could not be allocated (rare) */
+@@ -985,11 +987,12 @@ unlock:
+ 	return comp_ret == 0 && alloc_ret == 0;
+ }
+ 
+-static void zswap_decompress(struct zswap_entry *entry, struct folio *folio)
++static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
+ {
+ 	struct zpool *zpool = entry->pool->zpool;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
++	int decomp_ret, dlen;
+ 	u8 *src, *obj;
+ 
+ 	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+@@ -1012,11 +1015,21 @@ static void zswap_decompress(struct zswa
+ 	sg_init_table(&output, 1);
+ 	sg_set_folio(&output, folio, PAGE_SIZE, 0);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
+-	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
+-	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
++	decomp_ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
++	dlen = acomp_ctx->req->dlen;
+ 
+ 	zpool_obj_read_end(zpool, entry->handle, obj);
+ 	acomp_ctx_put_unlock(acomp_ctx);
++
++	if (!decomp_ret && dlen == PAGE_SIZE)
++		return true;
++
++	zswap_decompress_fail++;
++	pr_alert_ratelimited("Decompression error from zswap (%d:%lu %s %u->%d)\n",
++						swp_type(entry->swpentry),
++						swp_offset(entry->swpentry),
++						entry->pool->tfm_name, entry->length, dlen);
++	return false;
+ }
+ 
+ /*********************************
+@@ -1046,6 +1059,7 @@ static int zswap_writeback_entry(struct
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
++	int ret = 0;
+ 
+ 	/* try to allocate swap cache folio */
+ 	si = get_swap_device(swpentry);
+@@ -1067,8 +1081,8 @@ static int zswap_writeback_entry(struct
+ 	 * and freed when invalidated by the concurrent shrinker anyway.
+ 	 */
+ 	if (!folio_was_allocated) {
+-		folio_put(folio);
+-		return -EEXIST;
++		ret = -EEXIST;
++		goto out;
+ 	}
+ 
  	/*
-+	 * nr_huge_pages needs to be adjusted within the same lock cycle
-+	 * as surplus_pages, otherwise it might confuse
-+	 * persistent_huge_pages() momentarily.
-+	 */
-+	__prep_account_new_huge_page(h, nid);
+@@ -1081,14 +1095,17 @@ static int zswap_writeback_entry(struct
+ 	 * be dereferenced.
+ 	 */
+ 	tree = swap_zswap_tree(swpentry);
+-	if (entry != xa_cmpxchg(tree, offset, entry, NULL, GFP_KERNEL)) {
+-		delete_from_swap_cache(folio);
+-		folio_unlock(folio);
+-		folio_put(folio);
+-		return -ENOMEM;
++	if (entry != xa_load(tree, offset)) {
++		ret = -ENOMEM;
++		goto out;
+ 	}
+ 
+-	zswap_decompress(entry, folio);
++	if (!zswap_decompress(entry, folio)) {
++		ret = -EIO;
++		goto out;
++	}
 +
-+	/*
- 	 * We could have raced with the pool size change.
- 	 * Double check that and simply deallocate the new page
- 	 * if we would end up overcommiting the surpluses. Abuse
++	xa_erase(tree, offset);
+ 
+ 	count_vm_event(ZSWPWB);
+ 	if (entry->objcg)
+@@ -1104,9 +1121,14 @@ static int zswap_writeback_entry(struct
+ 
+ 	/* start writeback */
+ 	__swap_writepage(folio, &wbc);
+-	folio_put(folio);
+ 
+-	return 0;
++out:
++	if (ret && ret != -EEXIST) {
++		delete_from_swap_cache(folio);
++		folio_unlock(folio);
++	}
++	folio_put(folio);
++	return ret;
+ }
+ 
+ /*********************************
+@@ -1606,7 +1628,27 @@ check_old:
+ 	return ret;
+ }
+ 
+-bool zswap_load(struct folio *folio)
++/**
++ * zswap_load() - load a folio from zswap
++ * @folio: folio to load
++ *
++ * Return: 0 on success, with the folio unlocked and marked up-to-date, or one
++ * of the following error codes:
++ *
++ *  -EIO: if the swapped out content was in zswap, but could not be loaded
++ *  into the page due to a decompression failure. The folio is unlocked, but
++ *  NOT marked up-to-date, so that an IO error is emitted (e.g. do_swap_page()
++ *  will SIGBUS).
++ *
++ *  -EINVAL: if the swapped out content was in zswap, but the page belongs
++ *  to a large folio, which is not supported by zswap. The folio is unlocked,
++ *  but NOT marked up-to-date, so that an IO error is emitted (e.g.
++ *  do_swap_page() will SIGBUS).
++ *
++ *  -ENOENT: if the swapped out content was not in zswap. The folio remains
++ *  locked on return.
++ */
++int zswap_load(struct folio *folio)
+ {
+ 	swp_entry_t swp = folio->swap;
+ 	pgoff_t offset = swp_offset(swp);
+@@ -1617,18 +1659,32 @@ bool zswap_load(struct folio *folio)
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 
+ 	if (zswap_never_enabled())
+-		return false;
++		return -ENOENT;
+ 
+ 	/*
+ 	 * Large folios should not be swapped in while zswap is being used, as
+ 	 * they are not properly handled. Zswap does not properly load large
+ 	 * folios, and a large folio may only be partially in zswap.
+-	 *
+-	 * Return true without marking the folio uptodate so that an IO error is
+-	 * emitted (e.g. do_swap_page() will sigbus).
+ 	 */
+-	if (WARN_ON_ONCE(folio_test_large(folio)))
+-		return true;
++	if (WARN_ON_ONCE(folio_test_large(folio))) {
++		folio_unlock(folio);
++		return -EINVAL;
++	}
++
++	entry = xa_load(tree, offset);
++	if (!entry)
++		return -ENOENT;
++
++	if (!zswap_decompress(entry, folio)) {
++		folio_unlock(folio);
++		return -EIO;
++	}
++
++	folio_mark_uptodate(folio);
++
++	count_vm_event(ZSWPIN);
++	if (entry->objcg)
++		count_objcg_events(entry->objcg, ZSWPIN, 1);
+ 
+ 	/*
+ 	 * When reading into the swapcache, invalidate our entry. The
+@@ -1642,27 +1698,14 @@ bool zswap_load(struct folio *folio)
+ 	 * files, which reads into a private page and may free it if
+ 	 * the fault fails. We remain the primary owner of the entry.)
+ 	 */
+-	if (swapcache)
+-		entry = xa_erase(tree, offset);
+-	else
+-		entry = xa_load(tree, offset);
+-
+-	if (!entry)
+-		return false;
+-
+-	zswap_decompress(entry, folio);
+-
+-	count_vm_event(ZSWPIN);
+-	if (entry->objcg)
+-		count_objcg_events(entry->objcg, ZSWPIN, 1);
+-
+ 	if (swapcache) {
+-		zswap_entry_free(entry);
+ 		folio_mark_dirty(folio);
++		xa_erase(tree, offset);
++		zswap_entry_free(entry);
+ 	}
+ 
+-	folio_mark_uptodate(folio);
+-	return true;
++	folio_unlock(folio);
++	return 0;
+ }
+ 
+ void zswap_invalidate(swp_entry_t swp)
+@@ -1757,6 +1800,8 @@ static int zswap_debugfs_init(void)
+ 			   zswap_debugfs_root, &zswap_reject_compress_fail);
+ 	debugfs_create_u64("reject_compress_poor", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_compress_poor);
++	debugfs_create_u64("decompress_fail", 0444,
++			   zswap_debugfs_root, &zswap_decompress_fail);
+ 	debugfs_create_u64("written_back_pages", 0444,
+ 			   zswap_debugfs_root, &zswap_written_back_pages);
+ 	debugfs_create_file("pool_total_size", 0444,
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-page_isolation-avoid-call-folio_hstate-without-hugetlb_lock.patch
 
