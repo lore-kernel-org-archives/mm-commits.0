@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6A6A1C1F05
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36D1C1C5F06
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274544; cv=none; b=FKaXuktNXIprhCvDz1XLyIel2i5NBVnFXrkbEBrwtld/e83AzZ0xeBUXRPNmdtBXqlF1Z/+2w8WVJl9Z53pmzNRi6GqQhB8x7jajyxpuEjqntHPMLmD/UuaQmiV/semTAgmKtkerdL6QS1MbGV2Uqhct/jNOvN1civahnCORxlM=
+	t=1742274546; cv=none; b=JefjUTyjcSvtT0A4JN6FX9/Zio7Nkb30SuTp7QP7KA+9YsH3C1srPl/SlSef0sTlDxFbopjJvn5JmVQ5h7Ly7AXz/0JS1t7QKQFI1aeFkrVGraaLpILWM1a3e6Ec5JA0V2IKuKc566kPR52SeOl+3yLNZ2+ZvvazOQXcKRH2d08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274544; c=relaxed/simple;
-	bh=XGyPXaUiIdN3m673DufQlZjigjLPXVcQGdFA4OZSnYA=;
-	h=Date:To:From:Subject:Message-Id; b=YevOewKOttMXE+pF3RdXopej8BZu8QST4/GwE/tQg/fg3A5aXXZVT8w2JvAhKqk7R+Sbx9p438SQsozP61UqqkBd/04wHJog+q9gHNs3Bgc5xnXBKik6Wg6UDiqU3rrydtMW0+oFChGL1kTe/bhM2VtGfNZq3j9ZSFZlKOZrKUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n8hWQLCD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274546; c=relaxed/simple;
+	bh=JWtdOnHAqrs6syPw4Kg0brE7S6gBp+VAvp6/4S34/CM=;
+	h=Date:To:From:Subject:Message-Id; b=S6M+Pr6J1q0TmfwAiBoTcTK+fLngf6+2pDR8jE8i9gCvoPo7YSQItuV3grUesNTaq8GXuLaHobqqm358DcXEkKbvcpiS788ZpB1MIt4rQe1Q24MRTxGTHvlOWUmx4tRLpikA4v1UZaYNqUGPEiYEdceBeEKUKosS8GvgeWc585U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ceG9nlPu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n8hWQLCD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A4E8C4CEDD;
-	Tue, 18 Mar 2025 05:09:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ceG9nlPu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09BD2C4CEDD;
+	Tue, 18 Mar 2025 05:09:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274544;
-	bh=XGyPXaUiIdN3m673DufQlZjigjLPXVcQGdFA4OZSnYA=;
+	s=korg; t=1742274546;
+	bh=JWtdOnHAqrs6syPw4Kg0brE7S6gBp+VAvp6/4S34/CM=;
 	h=Date:To:From:Subject:From;
-	b=n8hWQLCDrU2fhl48A4Yd3K/ih2DqE5/iPgrIoujiYh+QI5JKqiDKV1Xv1cVrsDpoj
-	 o8woR6FOPdi+EDRgQQeFEv4JsY+69IzQ9QhbNobDumx2Wky7v48TBCEuyfycFGOJFM
-	 pA6ILRv6vieTRCoTL3kasBTSQMaU145skRNE8Ai0=
-Date: Mon, 17 Mar 2025 22:09:04 -0700
+	b=ceG9nlPuohTsGdUqRhIVB6nH0WYxobC7wYPZNsIIoQnKCu6RrYC9yJbxCEem0YIHs
+	 sdV8tH33xrNMzKUP1Azp9Wx5BhU1H1pB9TCimyE0jUcX3qJ1jYGdWUf8r8P71GPUrn
+	 dpHmSJGNmHL0Rm4UQtje++KAnKx/ihpqvxVNPWDk=
+Date: Mon, 17 Mar 2025 22:09:05 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-copy-on-write-cow-reuse-support-for-pte-mapped-thp.patch removed from -mm tree
-Message-Id: <20250318050904.9A4E8C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared.patch removed from -mm tree
+Message-Id: <20250318050906.09BD2C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: Copy-on-Write (COW) reuse support for PTE-mapped THP
+     Subject: mm: convert folio_likely_mapped_shared() to folio_maybe_mapped_shared()
 has been removed from the -mm tree.  Its filename was
-     mm-copy-on-write-cow-reuse-support-for-pte-mapped-thp.patch
+     mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: Copy-on-Write (COW) reuse support for PTE-mapped THP
-Date: Mon, 3 Mar 2025 17:30:06 +0100
+Subject: mm: convert folio_likely_mapped_shared() to folio_maybe_mapped_shared()
+Date: Mon, 3 Mar 2025 17:30:07 +0100
 
-Currently, we never end up reusing PTE-mapped THPs after fork.  This
-wasn't really a problem with PMD-sized THPs, because they would have to be
-PTE-mapped first, but it's getting a problem with smaller THP sizes that
-are effectively always PTE-mapped.
+Let's reuse our new MM ownership tracking infrastructure for large folios
+to make folio_likely_mapped_shared() never return false negatives -- never
+indicating "not mapped shared" although the folio *is* mapped shared. 
+With that, we can rename it to folio_maybe_mapped_shared() and get rid of
+the dependency on the mapcount of the first folio page.
 
-With our new "mapped exclusively" vs "maybe mapped shared" logic for large
-folios, implementing CoW reuse for PTE-mapped THPs is straight forward: if
-exclusively mapped, make sure that all references are from these (our)
-mappings.  Add some helpful comments to explain the details.
+The semantics are now arguably clearer: no mixture of "false negatives"
+and "false positives", only the remaining possibility for "false
+positives".
 
-CONFIG_TRANSPARENT_HUGEPAGE selects CONFIG_MM_ID.  If we spot an anon
-large folio without CONFIG_TRANSPARENT_HUGEPAGE in that code, something is
-seriously messed up.
+Thoroughly document the new semantics.  We might now detect that a large
+folio is "maybe mapped shared" although it *no longer* is -- but once was.
+Now, if more than two MMs mapped a folio at the same time, and the MM
+mapping the folio exclusively at the end is not one tracked in the two
+folio MM slots, we will detect the folio as "maybe mapped shared".
 
-There are plenty of things we can optimize in the future: For example, we
-could remember that the folio is fully exclusive so we could speedup the
-next fault further.  Also, we could try "faulting around", turning
-surrounding PTEs that map the same folio writable.  But especially the
-latter might increase COW latency, so it would need further investigation.
+For anonymous folios, usually (except weird corner cases) all PTEs that
+target a "maybe mapped shared" folio are R/O.  As soon as a child process
+would write to them (iow, actively use them), we would CoW and effectively
+replace these PTEs.  Most cases (below) are not expected to really matter
+with large anonymous folios for this reason.
 
-Link: https://lkml.kernel.org/r/20250303163014.1128035-14-david@redhat.com
+Most importantly, there will be no change at all for:
+* small folios
+* hugetlb folios
+* PMD-mapped PMD-sized THPs (single mapping)
+
+This change has the potential to affect existing callers of
+folio_likely_mapped_shared() -> folio_maybe_mapped_shared():
+
+(1) fs/proc/task_mmu.c: no change (hugetlb)
+
+(2) khugepaged counts PTEs that target shared folios towards
+    max_ptes_shared (default: HPAGE_PMD_NR / 2), meaning we could skip a
+    collapse where we would have previously collapsed.  This only applies
+    to anonymous folios and is not expected to matter in practice.
+
+    Worth noting that this change sorts out case (A) documented in
+    commit 1bafe96e89f0 ("mm/khugepaged: replace page_mapcount() check by
+    folio_likely_mapped_shared()") by removing the possibility for "false
+    negatives".
+
+(3) MADV_COLD / MADV_PAGEOUT / MADV_FREE will not try splitting
+    PTE-mapped THPs that are considered shared but not fully covered by
+    the requested range, consequently not processing them.
+
+    PMD-mapped PMD-sized THP are not affected, or when all PTEs are
+    covered.  These functions are usually only called on anon/file folios
+    that are exclusively mapped most of the time (no other file mappings
+    or no fork()), so the "false negatives" are not expected to matter in
+    practice.
+
+(4) mbind() / migrate_pages() / move_pages() will refuse to migrate
+    shared folios unless MPOL_MF_MOVE_ALL is effective (requires
+    CAP_SYS_NICE).  We will now reject some folios that could be migrated.
+
+    Similar to (3), especially with MPOL_MF_MOVE_ALL, so this is not
+    expected to matter in practice.
+
+    Note that cpuset_migrate_mm_workfn() calls do_migrate_pages() with
+    MPOL_MF_MOVE_ALL.
+
+(5) NUMA hinting
+
+    mm/migrate.c:migrate_misplaced_folio_prepare() will skip file
+    folios that are probably shared libraries (-> "mapped shared" and
+    executable).  This check would have detected it as a shared library at
+    some point (at least 3 MMs mapping it), so detecting it afterwards
+    does not sound wrong (still a shared library).  Not expected to
+    matter.
+
+    mm/memory.c:numa_migrate_check() will indicate TNF_SHARED in
+    MAP_SHARED file mappings when encountering a shared folio.  Similar
+    reasoning, not expected to matter.
+
+    mm/mprotect.c:change_pte_range() will skip folios detected as
+    shared in CoW mappings.  Similarly, this is not expected to matter in
+    practice, but if it would ever be a problem we could relax that check
+    a bit (e.g., basing it on the average page-mapcount in a folio),
+    because it was only an optimization when many (e.g., 288) processes
+    were mapping the same folios -- see commit 859d4adc3415 ("mm: numa: do
+    not trap faults on shared data section pages.")
+
+(6) mm/rmap.c:folio_referenced_one() will skip exclusive swapbacked
+    folios in dying processes.  Applies to anonymous folios only.  Without
+    "false negatives", we'll now skip all actually shared ones.  Skipping
+    ones that are actually exclusive won't really matter, it's a pure
+    optimization, and is not expected to matter in practice.
+
+In theory, one can detect the problematic scenario: folio_mapcount() > 0
+and no folio MM slot is occupied ("state unknown").  One could reset the
+MM slots while doing an rmap walk, which migration / folio split already
+do when setting everything up.  Further, when batching PTEs we might
+naturally learn about a owner (e.g., folio_mapcount() == nr_ptes) and
+could update the owner.  However, we'll defer that until the scenarios
+where it would really matter are clear.
+
+Link: https://lkml.kernel.org/r/20250303163014.1128035-15-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -90,106 +167,272 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   83 +++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 75 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |    4 ++--
+ include/linux/mm.h |   43 ++++++++++++++++++++++---------------------
+ mm/huge_memory.c   |    2 +-
+ mm/khugepaged.c    |    8 +++-----
+ mm/madvise.c       |    6 +++---
+ mm/memory.c        |    2 +-
+ mm/mempolicy.c     |    8 ++++----
+ mm/migrate.c       |    7 +++----
+ mm/mprotect.c      |    2 +-
+ mm/rmap.c          |    2 +-
+ 10 files changed, 41 insertions(+), 43 deletions(-)
 
---- a/mm/memory.c~mm-copy-on-write-cow-reuse-support-for-pte-mapped-thp
-+++ a/mm/memory.c
-@@ -3727,19 +3727,86 @@ static vm_fault_t wp_page_shared(struct
- 	return ret;
+--- a/fs/proc/task_mmu.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/fs/proc/task_mmu.c
+@@ -1023,7 +1023,7 @@ static int smaps_hugetlb_range(pte_t *pt
+ 
+ 	if (folio) {
+ 		/* We treat non-present entries as "maybe shared". */
+-		if (!present || folio_likely_mapped_shared(folio) ||
++		if (!present || folio_maybe_mapped_shared(folio) ||
+ 		    hugetlb_pmd_shared(pte))
+ 			mss->shared_hugetlb += huge_page_size(hstate_vma(vma));
+ 		else
+@@ -1882,7 +1882,7 @@ static int pagemap_hugetlb_range(pte_t *
+ 		if (!folio_test_anon(folio))
+ 			flags |= PM_FILE;
+ 
+-		if (!folio_likely_mapped_shared(folio) &&
++		if (!folio_maybe_mapped_shared(folio) &&
+ 		    !hugetlb_pmd_shared(ptep))
+ 			flags |= PM_MMAP_EXCLUSIVE;
+ 
+--- a/include/linux/mm.h~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/include/linux/mm.h
+@@ -2251,23 +2251,18 @@ static inline size_t folio_size(const st
  }
  
--static bool wp_can_reuse_anon_folio(struct folio *folio,
--				    struct vm_area_struct *vma)
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static bool __wp_can_reuse_large_anon_folio(struct folio *folio,
-+		struct vm_area_struct *vma)
+ /**
+- * folio_likely_mapped_shared - Estimate if the folio is mapped into the page
+- *				tables of more than one MM
++ * folio_maybe_mapped_shared - Whether the folio is mapped into the page
++ *			       tables of more than one MM
+  * @folio: The folio.
+  *
+- * This function checks if the folio is currently mapped into more than one
+- * MM ("mapped shared"), or if the folio is only mapped into a single MM
+- * ("mapped exclusively").
++ * This function checks if the folio maybe currently mapped into more than one
++ * MM ("maybe mapped shared"), or if the folio is certainly mapped into a single
++ * MM ("mapped exclusively").
+  *
+  * For KSM folios, this function also returns "mapped shared" when a folio is
+  * mapped multiple times into the same MM, because the individual page mappings
+  * are independent.
+  *
+- * As precise information is not easily available for all folios, this function
+- * estimates the number of MMs ("sharers") that are currently mapping a folio
+- * using the number of times the first page of the folio is currently mapped
+- * into page tables.
+- *
+  * For small anonymous folios and anonymous hugetlb folios, the return
+  * value will be exactly correct: non-KSM folios can only be mapped at most once
+  * into an MM, and they cannot be partially mapped. KSM folios are
+@@ -2275,8 +2270,8 @@ static inline size_t folio_size(const st
+  *
+  * For other folios, the result can be fuzzy:
+  *    #. For partially-mappable large folios (THP), the return value can wrongly
+- *       indicate "mapped exclusively" (false negative) when the folio is
+- *       only partially mapped into at least one MM.
++ *       indicate "mapped shared" (false positive) if a folio was mapped by
++ *       more than two MMs at one point in time.
+  *    #. For pagecache folios (including hugetlb), the return value can wrongly
+  *       indicate "mapped shared" (false positive) when two VMAs in the same MM
+  *       cover the same file range.
+@@ -2293,7 +2288,7 @@ static inline size_t folio_size(const st
+  *
+  * Return: Whether the folio is estimated to be mapped into more than one MM.
+  */
+-static inline bool folio_likely_mapped_shared(struct folio *folio)
++static inline bool folio_maybe_mapped_shared(struct folio *folio)
  {
-+	bool exclusive = false;
-+
-+	/* Let's just free up a large folio if only a single page is mapped. */
-+	if (folio_large_mapcount(folio) <= 1)
-+		return false;
-+
- 	/*
--	 * We could currently only reuse a subpage of a large folio if no
--	 * other subpages of the large folios are still mapped. However,
--	 * let's just consistently not reuse subpages even if we could
--	 * reuse in that scenario, and give back a large folio a bit
--	 * sooner.
-+	 * The assumption for anonymous folios is that each page can only get
-+	 * mapped once into each MM. The only exception are KSM folios, which
-+	 * are always small.
-+	 *
-+	 * Each taken mapcount must be paired with exactly one taken reference,
-+	 * whereby the refcount must be incremented before the mapcount when
-+	 * mapping a page, and the refcount must be decremented after the
-+	 * mapcount when unmapping a page.
-+	 *
-+	 * If all folio references are from mappings, and all mappings are in
-+	 * the page tables of this MM, then this folio is exclusive to this MM.
- 	 */
--	if (folio_test_large(folio))
-+	if (folio_test_large_maybe_mapped_shared(folio))
- 		return false;
+ 	int mapcount = folio_mapcount(folio);
  
-+	VM_WARN_ON_ONCE(folio_test_ksm(folio));
-+	VM_WARN_ON_ONCE(folio_mapcount(folio) > folio_nr_pages(folio));
-+	VM_WARN_ON_ONCE(folio_entire_mapcount(folio));
-+
-+	if (unlikely(folio_test_swapcache(folio))) {
-+		/*
-+		 * Note: freeing up the swapcache will fail if some PTEs are
-+		 * still swap entries.
-+		 */
-+		if (!folio_trylock(folio))
-+			return false;
-+		folio_free_swap(folio);
-+		folio_unlock(folio);
-+	}
-+
-+	if (folio_large_mapcount(folio) != folio_ref_count(folio))
-+		return false;
-+
-+	/* Stabilize the mapcount vs. refcount and recheck. */
-+	folio_lock_large_mapcount(folio);
-+	VM_WARN_ON_ONCE(folio_large_mapcount(folio) < folio_ref_count(folio));
-+
-+	if (folio_test_large_maybe_mapped_shared(folio))
-+		goto unlock;
-+	if (folio_large_mapcount(folio) != folio_ref_count(folio))
-+		goto unlock;
-+
-+	VM_WARN_ON_ONCE(folio_mm_id(folio, 0) != vma->vm_mm->mm_id &&
-+			folio_mm_id(folio, 1) != vma->vm_mm->mm_id);
-+
+@@ -2301,16 +2296,22 @@ static inline bool folio_likely_mapped_s
+ 	if (!folio_test_large(folio) || unlikely(folio_test_hugetlb(folio)))
+ 		return mapcount > 1;
+ 
+-	/* A single mapping implies "mapped exclusively". */
+-	if (mapcount <= 1)
+-		return false;
+-
+-	/* If any page is mapped more than once we treat it "mapped shared". */
+-	if (folio_entire_mapcount(folio) || mapcount > folio_nr_pages(folio))
 +	/*
-+	 * Do we need the folio lock? Likely not. If there would have been
-+	 * references from page migration/swapout, we would have detected
-+	 * an additional folio reference and never ended up here.
++	 * vm_insert_page() without CONFIG_TRANSPARENT_HUGEPAGE ...
++	 * simply assume "mapped shared", nobody should really care
++	 * about this for arbitrary kernel allocations.
 +	 */
-+	exclusive = true;
-+unlock:
-+	folio_unlock_large_mapcount(folio);
-+	return exclusive;
-+}
-+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
-+static bool __wp_can_reuse_large_anon_folio(struct folio *folio,
-+		struct vm_area_struct *vma)
-+{
-+	BUILD_BUG();
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+static bool wp_can_reuse_anon_folio(struct folio *folio,
-+				    struct vm_area_struct *vma)
-+{
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && folio_test_large(folio))
-+		return __wp_can_reuse_large_anon_folio(folio, vma);
-+
++	if (!IS_ENABLED(CONFIG_MM_ID))
+ 		return true;
+ 
+-	/* Let's guess based on the first subpage. */
+-	return atomic_read(&folio->_mapcount) > 0;
++	/*
++	 * A single mapping implies "mapped exclusively", even if the
++	 * folio flag says something different: it's easier to handle this
++	 * case here instead of on the RMAP hot path.
++	 */
++	if (mapcount <= 1)
++		return false;
++	return folio_test_large_maybe_mapped_shared(folio);
+ }
+ 
+ #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
+--- a/mm/huge_memory.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/huge_memory.c
+@@ -2155,7 +2155,7 @@ bool madvise_free_huge_pmd(struct mmu_ga
+ 	 * If other processes are mapping this folio, we couldn't discard
+ 	 * the folio unless they all do MADV_FREE so let's skip the folio.
+ 	 */
+-	if (folio_likely_mapped_shared(folio))
++	if (folio_maybe_mapped_shared(folio))
+ 		goto out;
+ 
+ 	if (!folio_trylock(folio))
+--- a/mm/khugepaged.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/khugepaged.c
+@@ -607,7 +607,7 @@ static int __collapse_huge_page_isolate(
+ 		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
+ 
+ 		/* See hpage_collapse_scan_pmd(). */
+-		if (folio_likely_mapped_shared(folio)) {
++		if (folio_maybe_mapped_shared(folio)) {
+ 			++shared;
+ 			if (cc->is_khugepaged &&
+ 			    shared > khugepaged_max_ptes_shared) {
+@@ -1359,11 +1359,9 @@ static int hpage_collapse_scan_pmd(struc
+ 
+ 		/*
+ 		 * We treat a single page as shared if any part of the THP
+-		 * is shared. "False negatives" from
+-		 * folio_likely_mapped_shared() are not expected to matter
+-		 * much in practice.
++		 * is shared.
+ 		 */
+-		if (folio_likely_mapped_shared(folio)) {
++		if (folio_maybe_mapped_shared(folio)) {
+ 			++shared;
+ 			if (cc->is_khugepaged &&
+ 			    shared > khugepaged_max_ptes_shared) {
+--- a/mm/madvise.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/madvise.c
+@@ -387,7 +387,7 @@ static int madvise_cold_or_pageout_pte_r
+ 		folio = pmd_folio(orig_pmd);
+ 
+ 		/* Do not interfere with other mappings of this folio */
+-		if (folio_likely_mapped_shared(folio))
++		if (folio_maybe_mapped_shared(folio))
+ 			goto huge_unlock;
+ 
+ 		if (pageout_anon_only_filter && !folio_test_anon(folio))
+@@ -486,7 +486,7 @@ restart:
+ 			if (nr < folio_nr_pages(folio)) {
+ 				int err;
+ 
+-				if (folio_likely_mapped_shared(folio))
++				if (folio_maybe_mapped_shared(folio))
+ 					continue;
+ 				if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 					continue;
+@@ -721,7 +721,7 @@ static int madvise_free_pte_range(pmd_t
+ 			if (nr < folio_nr_pages(folio)) {
+ 				int err;
+ 
+-				if (folio_likely_mapped_shared(folio))
++				if (folio_maybe_mapped_shared(folio))
+ 					continue;
+ 				if (!folio_trylock(folio))
+ 					continue;
+--- a/mm/memory.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/memory.c
+@@ -5698,7 +5698,7 @@ int numa_migrate_check(struct folio *fol
+ 	 * Flag if the folio is shared between multiple address spaces. This
+ 	 * is later used when determining whether to group tasks together
+ 	 */
+-	if (folio_likely_mapped_shared(folio) && (vma->vm_flags & VM_SHARED))
++	if (folio_maybe_mapped_shared(folio) && (vma->vm_flags & VM_SHARED))
+ 		*flags |= TNF_SHARED;
  	/*
- 	 * We have to verify under folio lock: these early checks are
- 	 * just an optimization to avoid locking the folio and freeing
+ 	 * For memory tiering mode, cpupid of slow memory page is used
+--- a/mm/mempolicy.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/mempolicy.c
+@@ -642,11 +642,11 @@ static int queue_folios_hugetlb(pte_t *p
+ 	 * Unless MPOL_MF_MOVE_ALL, we try to avoid migrating a shared folio.
+ 	 * Choosing not to migrate a shared folio is not counted as a failure.
+ 	 *
+-	 * See folio_likely_mapped_shared() on possible imprecision when we
++	 * See folio_maybe_mapped_shared() on possible imprecision when we
+ 	 * cannot easily detect if a folio is shared.
+ 	 */
+ 	if ((flags & MPOL_MF_MOVE_ALL) ||
+-	    (!folio_likely_mapped_shared(folio) && !hugetlb_pmd_shared(pte)))
++	    (!folio_maybe_mapped_shared(folio) && !hugetlb_pmd_shared(pte)))
+ 		if (!folio_isolate_hugetlb(folio, qp->pagelist))
+ 			qp->nr_failed++;
+ unlock:
+@@ -1033,10 +1033,10 @@ static bool migrate_folio_add(struct fol
+ 	 * Unless MPOL_MF_MOVE_ALL, we try to avoid migrating a shared folio.
+ 	 * Choosing not to migrate a shared folio is not counted as a failure.
+ 	 *
+-	 * See folio_likely_mapped_shared() on possible imprecision when we
++	 * See folio_maybe_mapped_shared() on possible imprecision when we
+ 	 * cannot easily detect if a folio is shared.
+ 	 */
+-	if ((flags & MPOL_MF_MOVE_ALL) || !folio_likely_mapped_shared(folio)) {
++	if ((flags & MPOL_MF_MOVE_ALL) || !folio_maybe_mapped_shared(folio)) {
+ 		if (folio_isolate_lru(folio)) {
+ 			list_add_tail(&folio->lru, foliolist);
+ 			node_stat_mod_folio(folio,
+--- a/mm/migrate.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/migrate.c
+@@ -2226,7 +2226,7 @@ static int __add_folio_for_migration(str
+ 	if (folio_nid(folio) == node)
+ 		return 0;
+ 
+-	if (folio_likely_mapped_shared(folio) && !migrate_all)
++	if (folio_maybe_mapped_shared(folio) && !migrate_all)
+ 		return -EACCES;
+ 
+ 	if (folio_test_hugetlb(folio)) {
+@@ -2651,11 +2651,10 @@ int migrate_misplaced_folio_prepare(stru
+ 		 * processes with execute permissions as they are probably
+ 		 * shared libraries.
+ 		 *
+-		 * See folio_likely_mapped_shared() on possible imprecision
++		 * See folio_maybe_mapped_shared() on possible imprecision
+ 		 * when we cannot easily detect if a folio is shared.
+ 		 */
+-		if ((vma->vm_flags & VM_EXEC) &&
+-		    folio_likely_mapped_shared(folio))
++		if ((vma->vm_flags & VM_EXEC) && folio_maybe_mapped_shared(folio))
+ 			return -EACCES;
+ 
+ 		/*
+--- a/mm/mprotect.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/mprotect.c
+@@ -133,7 +133,7 @@ static long change_pte_range(struct mmu_
+ 				/* Also skip shared copy-on-write pages */
+ 				if (is_cow_mapping(vma->vm_flags) &&
+ 				    (folio_maybe_dma_pinned(folio) ||
+-				     folio_likely_mapped_shared(folio)))
++				     folio_maybe_mapped_shared(folio)))
+ 					continue;
+ 
+ 				/*
+--- a/mm/rmap.c~mm-convert-folio_likely_mapped_shared-to-folio_maybe_mapped_shared
++++ a/mm/rmap.c
+@@ -889,7 +889,7 @@ static bool folio_referenced_one(struct
+ 		if ((!atomic_read(&vma->vm_mm->mm_users) ||
+ 		    check_stable_address_space(vma->vm_mm)) &&
+ 		    folio_test_anon(folio) && folio_test_swapbacked(folio) &&
+-		    !folio_likely_mapped_shared(folio)) {
++		    !folio_maybe_mapped_shared(folio)) {
+ 			pra->referenced = -1;
+ 			page_vma_mapped_walk_done(&pvmw);
+ 			return false;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
