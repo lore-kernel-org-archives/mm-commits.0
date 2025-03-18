@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E83B1CF5C0
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 722121C700A
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274634; cv=none; b=kJGtQ1ZRYTuwgjgEI8MOpetN9uue5ODgPJjUfz8YuC1M8RBfXtDqo74KZOEn/fH9I7N/X0oqgLG4/JS3oK5nZV0juLm3x5ek08xzQ21hrpKkFR4o5LfSf5gB/GFyzoBOmgic/7v+dUT/fFkXzrcyf1hP0Ar22+qnD7liQm4YmKU=
+	t=1742274635; cv=none; b=iaeVjQOLIMSF3t5CCEP2YQhum7tPGQXVNEjBJ1vyAE17CDMkE73Inzr0rQEfIm50Jka7qNKgdA8vhSDz4lbOJ0247gTj73He9LwW1Yrc15IbTKfRz9veknVvwbtYXT9U3+KwavrBJ0osCofrgJnQVElX/riHbEBp2hibha5l5+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274634; c=relaxed/simple;
-	bh=2xGLQjBAnWZIfgkwzdNUDxCFOcF/bzC4d4g4+SF9ErY=;
-	h=Date:To:From:Subject:Message-Id; b=gxf992fkSticipkoM2+D1Y8Z1ROP8nr35g7pID0OA7x8R8S2TceS7hvoBNijNF0iy73jm4mIpC54o/tk8zFXOqUBuOqqTPWSoJOwD2VuhvZS1fV6CIcFH2GB2uRTebGBh+3HXOMhVIWDU/jHz90p9qCmY0jHLqMWBBt/E1ybr6w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O4oQo69/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274635; c=relaxed/simple;
+	bh=dW5BiOrScAaASi/qLIFFy4/q5zYcEiLhHxDO6m7dRJE=;
+	h=Date:To:From:Subject:Message-Id; b=cVeUrQii5VvlRNjZwZfDibklUfUN4OSo5/TCOY8+zPsaWjHDDydnU6uXEsWZr3opRA1CN2I+FC4UkyiNZpYtFASf3l50fZix2t5+jizkK3MDIpCYdZMka5jJqtNRIRbqxcqmuDmZmQdrmFl9u/JVeDeEdfByYqX6BSs+YTxV/xs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k0Ygp/77; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O4oQo69/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23649C4CEDD;
-	Tue, 18 Mar 2025 05:10:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k0Ygp/77"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 497B7C4CEDD;
+	Tue, 18 Mar 2025 05:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274634;
-	bh=2xGLQjBAnWZIfgkwzdNUDxCFOcF/bzC4d4g4+SF9ErY=;
+	s=korg; t=1742274635;
+	bh=dW5BiOrScAaASi/qLIFFy4/q5zYcEiLhHxDO6m7dRJE=;
 	h=Date:To:From:Subject:From;
-	b=O4oQo69/+G7U7ZR5OD1dm5pMJiSXYTd0ntbwXcIVAT1XzTNVXwhCv7d3niMJr7EzJ
-	 rUmh3BkMCNfi1mrwOYScKng0AoNjpqEJrJhVR2xGkdtl3zAgr0/RSflqfE4oOMNtTq
-	 /0hpFHKKLsajbwdAjlMf81FOmSNLfaQRiH1S5BvE=
-Date: Mon, 17 Mar 2025 22:10:33 -0700
-To: mm-commits@vger.kernel.org,arnd@arndb.de,sj@kernel.org,akpm@linux-foundation.org
+	b=k0Ygp/773QBdvXQajKreZuFk/bXdq1iuLQuW6aUeP54F/qagEX1hYsk1VXEpsq90u
+	 CkHqq8MlgVpX/vmvrwxlpC3UV4a5qPh/LTAPWq5/a2JvNgzySo8MnIXCwbEuPDt0eb
+	 xSunH++4fZ8VLuwWBTSMipdTHa/iCFQFAsFumnks=
+Date: Mon, 17 Mar 2025 22:10:34 -0700
+To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,gregkh@linuxfoundation.org,david@redhat.com,dakr@kernel.org,gshan@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch removed from -mm tree
-Message-Id: <20250318051034.23649C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] drivers-base-memory-improve-add_boot_memory_block.patch removed from -mm tree
+Message-Id: <20250318051035.497B7C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: avoid Wformat-security warning on damon_sysfs_access_pattern_add_range_dir()
+     Subject: drivers/base/memory: improve add_boot_memory_block()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir.patch
+     drivers-base-memory-improve-add_boot_memory_block.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: avoid Wformat-security warning on damon_sysfs_access_pattern_add_range_dir()
-Date: Mon, 10 Mar 2025 09:50:09 -0700
+From: Gavin Shan <gshan@redhat.com>
+Subject: drivers/base/memory: improve add_boot_memory_block()
+Date: Wed, 12 Mar 2025 09:30:43 +1000
 
-When -Wformat-security is given, compiler warns as a potential security
-issue on damon_sysfs_access_pattern_add_range_dir() as below:
+Patch series "drivers/base/memory: Two cleanups", v3.
 
-    mm/damon/sysfs-schemes.c: In function `damon_sysfs_access_pattern_add_range_dir':
-    mm/damon/sysfs-schemes.c:1503:25: warning: format not a string literal and no format arguments [-Wformat-security]
-     1503 |                         &access_pattern->kobj, name);
-          |                         ^
+Two cleanups to drivers/base/memory.
 
-Fix it by using "%s" as the format and the name as the argument.
 
-Link: https://lkml.kernel.org/r/20250310165009.652491-1-sj@kernel.org
-Fixes: 7e84b1f8212a ("mm/damon/sysfs: support DAMON-based Operation Schemes")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+This patch (of 2)L
+
+It's unnecessary to count the present sections for the specified block
+since the block will be added if any section in the block is present. 
+Besides, for_each_present_section_nr() can be reused as Andrew Morton
+suggested.
+
+Improve by using for_each_present_section_nr() and dropping the
+unnecessary @section_count.
+
+No functional changes intended.
+
+Link: https://lkml.kernel.org/r/20250311233045.148943-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20250311233045.148943-2-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/memory.c  |   17 ++++++++---------
+ include/linux/mmzone.h |    5 +++++
+ mm/sparse.c            |    5 -----
+ 3 files changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-avoid-wformat-security-warning-on-damon_sysfs_access_pattern_add_range_dir
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1471,7 +1471,7 @@ static int damon_sysfs_access_pattern_ad
- 	if (!range)
- 		return -ENOMEM;
- 	err = kobject_init_and_add(&range->kobj, &damon_sysfs_ul_range_ktype,
--			&access_pattern->kobj, name);
-+			&access_pattern->kobj, "%s", name);
- 	if (err)
- 		kobject_put(&range->kobj);
- 	else
+--- a/drivers/base/memory.c~drivers-base-memory-improve-add_boot_memory_block
++++ a/drivers/base/memory.c
+@@ -818,18 +818,17 @@ static int add_memory_block(unsigned lon
+ 
+ static int __init add_boot_memory_block(unsigned long base_section_nr)
+ {
+-	int section_count = 0;
+ 	unsigned long nr;
+ 
+-	for (nr = base_section_nr; nr < base_section_nr + sections_per_block;
+-	     nr++)
+-		if (present_section_nr(nr))
+-			section_count++;
++	for_each_present_section_nr(base_section_nr, nr) {
++		if (nr >= (base_section_nr + sections_per_block))
++			break;
+ 
+-	if (section_count == 0)
+-		return 0;
+-	return add_memory_block(memory_block_id(base_section_nr),
+-				MEM_ONLINE, NULL,  NULL);
++		return add_memory_block(memory_block_id(base_section_nr),
++					MEM_ONLINE, NULL, NULL);
++	}
++
++	return 0;
+ }
+ 
+ static int add_hotplug_memory_block(unsigned long block_id,
+--- a/include/linux/mmzone.h~drivers-base-memory-improve-add_boot_memory_block
++++ a/include/linux/mmzone.h
+@@ -2140,6 +2140,11 @@ static inline unsigned long next_present
+ 	return -1;
+ }
+ 
++#define for_each_present_section_nr(start, section_nr)		\
++	for (section_nr = next_present_section_nr(start - 1);	\
++	     section_nr != -1;					\
++	     section_nr = next_present_section_nr(section_nr))
++
+ /*
+  * These are _only_ used during initialisation, therefore they
+  * can use __initdata ...  They could have names to indicate
+--- a/mm/sparse.c~drivers-base-memory-improve-add_boot_memory_block
++++ a/mm/sparse.c
+@@ -170,11 +170,6 @@ static void __section_mark_present(struc
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ }
+ 
+-#define for_each_present_section_nr(start, section_nr)		\
+-	for (section_nr = next_present_section_nr(start-1);	\
+-	     section_nr != -1;								\
+-	     section_nr = next_present_section_nr(section_nr))
+-
+ static inline unsigned long first_present_section_nr(void)
+ {
+ 	return next_present_section_nr(-1);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from gshan@redhat.com are
 
 
