@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFF471C5F1F
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44CD51C8615
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274617; cv=none; b=T4slOYW9DROeUxWxDGEgSeCQ50766hN+pHhqxtuXLnQecnJRTv6g2ugMhMeucLo1rQGyBNSNmttSI8t+AcaouuUmQZrtirxghod9edNSTNHdxW08bkzLMrCtBdEqnivEbXwk3LSuWHiNgO+3WsvnvjPtoSBm13igmObIkHVdMIE=
+	t=1742274618; cv=none; b=O47ftlfMteR8zksW/qtOuyJwn4oGOjQ1ooYj/J9Hr+KqqVN26bhRi8syqgjRXGH6WFsN0yL16lARUwE9fx5hGyKtv7kY4PKtXr/s/W6IylKQqerFNH4BVRm5gyZN4kowy71O6WVVS/Bk/PRZnM+cgvM13xycqOTQVF68AHX+F8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274617; c=relaxed/simple;
-	bh=ZtcWt98zPjf5an8VHUuKPS06RrTob3cKbGsukqGFQRA=;
-	h=Date:To:From:Subject:Message-Id; b=cpdNnoBs67J8OOkYzU1N3TpB8ueV5bpaX4WqZyxQUrfjr08Uo+3Tp7HGiVNGYmygn+Xgi6inheOgvzMnOSWStzWz8JkEjZLs++DIfdl2711bng3t+SPuYSfWBDdLvJj9EuKTHx8rG4iRU7aTzCtUiOrM0y02Tr/w+/4FPLwdpFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Qm1J32B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274618; c=relaxed/simple;
+	bh=i+sOLxnAkP2gdb/xnDjhJ4GVaboOlLwwLcxYtK8uk8A=;
+	h=Date:To:From:Subject:Message-Id; b=kCsY3L8FFJ+zP7/q7H5hO9y6tahuxiwEYs8QF1q1dqG3wRgrQejLcqS1M72qOr9nMEiGR5YXZKiRsNfWnomkU0aKH4u8wiG/7nl8+qjhbmT0N8Ev7OeRUNs8/rsUGRZuWUEcuAOV+tgKzCP5xzklJcvmuq5GdvrKYq5BdeVE1XQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QnUJbo72; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Qm1J32B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6637C4CEDD;
-	Tue, 18 Mar 2025 05:10:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QnUJbo72"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AF05C4CEDD;
+	Tue, 18 Mar 2025 05:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274616;
-	bh=ZtcWt98zPjf5an8VHUuKPS06RrTob3cKbGsukqGFQRA=;
+	s=korg; t=1742274618;
+	bh=i+sOLxnAkP2gdb/xnDjhJ4GVaboOlLwwLcxYtK8uk8A=;
 	h=Date:To:From:Subject:From;
-	b=1Qm1J32Bn9e4iiI/56fW2nYJEMRP/VnLzraSuVWATqNtJZx7tsMts0232DQELHEAk
-	 F4Lcop3Ym3IfVGChvgRLTdzaoj8s03mtai1EOfpPTcWkhdVcvmbalkYEKFJChgpByC
-	 9lugZf9+sHZC5GwIKiKYhQ1/3hIEEFkpGPXFKaCM=
-Date: Mon, 17 Mar 2025 22:10:16 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,willy@infradead.org,akpm@linux-foundation.org
+	b=QnUJbo72ToQWCqmC5UZdrTDWHPLygt7gl4mw5wbhFpEVippU30JUb73Cuh2JBZ32f
+	 ETBZelKpI8fTsL4l20BO3hndZ0X1ygaldr7EUmwIKNLxnHnfUwkcZKA5CzYoCWWHlp
+	 EMa+QVgqjkctjD2elZ8s3vQAdqgtihU++S94/zA4=
+Date: Mon, 17 Mar 2025 22:10:17 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch removed from -mm tree
-Message-Id: <20250318051016.B6637C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] xarray-add-xas_try_split-to-split-a-multi-index-entry.patch removed from -mm tree
+Message-Id: <20250318051018.1AF05C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,426 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: convert adjust_range_hwpoison() to take a folio
+     Subject: xarray: add xas_try_split() to split a multi-index entry
 has been removed from the -mm tree.  Its filename was
-     hugetlb-convert-adjust_range_hwpoison-to-take-a-folio.patch
+     xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: convert adjust_range_hwpoison() to take a folio
-Date: Wed, 26 Feb 2025 16:31:30 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: xarray: add xas_try_split() to split a multi-index entry
+Date: Fri, 7 Mar 2025 12:39:54 -0500
 
-Remove a use of folio->page by passing the folio into
-adjust_range_hwpoison().  We need to convert to a page eventually, but
-that can happen inside adjust_range_hwpoison().
+Patch series "Buddy allocator like (or non-uniform) folio split", v10.
 
-Link: https://lkml.kernel.org/r/20250226163131.3795869-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+This patchset adds a new buddy allocator like (or non-uniform) large folio
+split from a order-n folio to order-m with m < n.  It reduces
+
+1. the total number of after-split folios from 2^(n-m) to n-m+1;
+
+2. the amount of memory needed for multi-index xarray split from 2^(n/6-m/6) to
+   n/6-m/6, assuming XA_CHUNK_SHIFT=6;
+
+3. keep more large folios after a split from all order-m folios to
+   order-(n-1) to order-m folios.
+
+For example, to split an order-9 to order-0, folio split generates 10 (or
+11 for anonymous memory) folios instead of 512, allocates 1 xa_node
+instead of 8, and leaves 1 order-8, 1 order-7, ..., 1 order-1 and 2
+order-0 folios (or 4 order-0 for anonymous memory) instead of 512 order-0
+folios.
+
+Instead of duplicating existing split_huge_page*() code, __folio_split()
+is introduced as the shared backend code for both
+split_huge_page_to_list_to_order() and folio_split().  __folio_split() can
+support both uniform split and buddy allocator like (or non-uniform)
+split.  All existing split_huge_page*() users can be gradually converted
+to use folio_split() if possible.  In this patchset, I converted
+truncate_inode_partial_folio() to use folio_split().
+
+xfstests quick group passed for both tmpfs and xfs.  I also
+semi-replicated Hugh's test[12] and ran it without any issue for almost 24
+hours.
+
+
+This patch (of 8):
+
+A preparation patch for non-uniform folio split, which always split a
+folio into half iteratively, and minimal xarray entry split.
+
+Currently, xas_split_alloc() and xas_split() always split all slots from a
+multi-index entry.  They cost the same number of xa_node as the
+to-be-split slots.  For example, to split an order-9 entry, which takes
+2^(9-6)=8 slots, assuming XA_CHUNK_SHIFT is 6 (!CONFIG_BASE_SMALL), 8
+xa_node are needed.  Instead xas_try_split() is intended to be used
+iteratively to split the order-9 entry into 2 order-8 entries, then split
+one order-8 entry, based on the given index, to 2 order-7 entries, ...,
+and split one order-1 entry to 2 order-0 entries.  When splitting the
+order-6 entry and a new xa_node is needed, xas_try_split() will try to
+allocate one if possible.  As a result, xas_try_split() would only need 1
+xa_node instead of 8.
+
+When a new xa_node is needed during the split, xas_try_split() can try to
+allocate one but no more.  -ENOMEM will be return if a node cannot be
+allocated.  -EINVAL will be return if a sibling node is split or cascade
+split happens, where two or more new nodes are needed, and these are not
+supported by xas_try_split().
+
+xas_split_alloc() and xas_split() split an order-9 to order-0:
+
+         ---------------------------------
+         |   |   |   |   |   |   |   |   |
+         | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+         |   |   |   |   |   |   |   |   |
+         ---------------------------------
+           |   |                   |   |
+     -------   ---               ---   -------
+     |           |     ...       |           |
+     V           V               V           V
+----------- -----------     ----------- -----------
+| xa_node | | xa_node | ... | xa_node | | xa_node |
+----------- -----------     ----------- -----------
+
+xas_try_split() splits an order-9 to order-0:
+   ---------------------------------
+   |   |   |   |   |   |   |   |   |
+   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+   |   |   |   |   |   |   |   |   |
+   ---------------------------------
+     |
+     |
+     V
+-----------
+| xa_node |
+-----------
+
+Link: https://lkml.kernel.org/r/20250307174001.242794-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250307174001.242794-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ Documentation/core-api/xarray.rst |   14 ++
+ include/linux/xarray.h            |    6 +
+ lib/test_xarray.c                 |   52 +++++++++++
+ lib/xarray.c                      |  132 +++++++++++++++++++++++++---
+ tools/testing/radix-tree/Makefile |    1 
+ 5 files changed, 192 insertions(+), 13 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-convert-adjust_range_hwpoison-to-take-a-folio
-+++ a/fs/hugetlbfs/inode.c
-@@ -193,19 +193,21 @@ hugetlb_get_unmapped_area(struct file *f
+--- a/Documentation/core-api/xarray.rst~xarray-add-xas_try_split-to-split-a-multi-index-entry
++++ a/Documentation/core-api/xarray.rst
+@@ -489,7 +489,19 @@ Storing ``NULL`` into any index of a mul
+ entry at every index to ``NULL`` and dissolve the tie.  A multi-index
+ entry can be split into entries occupying smaller ranges by calling
+ xas_split_alloc() without the xa_lock held, followed by taking the lock
+-and calling xas_split().
++and calling xas_split() or calling xas_try_split() with xa_lock. The
++difference between xas_split_alloc()+xas_split() and xas_try_alloc() is
++that xas_split_alloc() + xas_split() split the entry from the original
++order to the new order in one shot uniformly, whereas xas_try_split()
++iteratively splits the entry containing the index non-uniformly.
++For example, to split an order-9 entry, which takes 2^(9-6)=8 slots,
++assuming ``XA_CHUNK_SHIFT`` is 6, xas_split_alloc() + xas_split() need
++8 xa_node. xas_try_split() splits the order-9 entry into
++2 order-8 entries, then split one order-8 entry, based on the given index,
++to 2 order-7 entries, ..., and split one order-1 entry to 2 order-0 entries.
++When splitting the order-6 entry and a new xa_node is needed, xas_try_split()
++will try to allocate one if possible. As a result, xas_try_split() would only
++need 1 xa_node instead of 8.
+ 
+ Functions and structures
+ ========================
+--- a/include/linux/xarray.h~xarray-add-xas_try_split-to-split-a-multi-index-entry
++++ a/include/linux/xarray.h
+@@ -1555,6 +1555,7 @@ int xa_get_order(struct xarray *, unsign
+ int xas_get_order(struct xa_state *xas);
+ void xas_split(struct xa_state *, void *entry, unsigned int order);
+ void xas_split_alloc(struct xa_state *, void *entry, unsigned int order, gfp_t);
++void xas_try_split(struct xa_state *xas, void *entry, unsigned int order);
+ #else
+ static inline int xa_get_order(struct xarray *xa, unsigned long index)
+ {
+@@ -1576,6 +1577,11 @@ static inline void xas_split_alloc(struc
+ 		unsigned int order, gfp_t gfp)
+ {
+ }
++
++static inline void xas_try_split(struct xa_state *xas, void *entry,
++		unsigned int order)
++{
++}
+ #endif
+ 
+ /**
+--- a/lib/test_xarray.c~xarray-add-xas_try_split-to-split-a-multi-index-entry
++++ a/lib/test_xarray.c
+@@ -1858,6 +1858,54 @@ static void check_split_1(struct xarray
+ 	xa_destroy(xa);
  }
  
- /*
-- * Someone wants to read @bytes from a HWPOISON hugetlb @page from @offset.
-+ * Someone wants to read @bytes from a HWPOISON hugetlb @folio from @offset.
-  * Returns the maximum number of bytes one can read without touching the 1st raw
-- * HWPOISON subpage.
-+ * HWPOISON page.
-  *
-  * The implementation borrows the iteration logic from copy_page_to_iter*.
-  */
--static size_t adjust_range_hwpoison(struct page *page, size_t offset, size_t bytes)
-+static size_t adjust_range_hwpoison(struct folio *folio, size_t offset,
-+		size_t bytes)
++static void check_split_2(struct xarray *xa, unsigned long index,
++				unsigned int order, unsigned int new_order)
++{
++	XA_STATE_ORDER(xas, xa, index, new_order);
++	unsigned int i, found;
++	void *entry;
++
++	xa_store_order(xa, index, order, xa, GFP_KERNEL);
++	xa_set_mark(xa, index, XA_MARK_1);
++
++	/* allocate a node for xas_try_split() */
++	xas_set_err(&xas, -ENOMEM);
++	XA_BUG_ON(xa, !xas_nomem(&xas, GFP_KERNEL));
++
++	xas_lock(&xas);
++	xas_try_split(&xas, xa, order);
++	if (((new_order / XA_CHUNK_SHIFT) < (order / XA_CHUNK_SHIFT)) &&
++	    new_order < order - 1) {
++		XA_BUG_ON(xa, !xas_error(&xas) || xas_error(&xas) != -EINVAL);
++		xas_unlock(&xas);
++		goto out;
++	}
++	for (i = 0; i < (1 << order); i += (1 << new_order))
++		__xa_store(xa, index + i, xa_mk_index(index + i), 0);
++	xas_unlock(&xas);
++
++	for (i = 0; i < (1 << order); i++) {
++		unsigned int val = index + (i & ~((1 << new_order) - 1));
++		XA_BUG_ON(xa, xa_load(xa, index + i) != xa_mk_index(val));
++	}
++
++	xa_set_mark(xa, index, XA_MARK_0);
++	XA_BUG_ON(xa, !xa_get_mark(xa, index, XA_MARK_0));
++
++	xas_set_order(&xas, index, 0);
++	found = 0;
++	rcu_read_lock();
++	xas_for_each_marked(&xas, entry, ULONG_MAX, XA_MARK_1) {
++		found++;
++		XA_BUG_ON(xa, xa_is_internal(entry));
++	}
++	rcu_read_unlock();
++	XA_BUG_ON(xa, found != 1 << (order - new_order));
++out:
++	xas_destroy(&xas);
++	xa_destroy(xa);
++}
++
+ static noinline void check_split(struct xarray *xa)
  {
-+	struct page *page;
- 	size_t n = 0;
- 	size_t res = 0;
+ 	unsigned int order, new_order;
+@@ -1869,6 +1917,10 @@ static noinline void check_split(struct
+ 			check_split_1(xa, 0, order, new_order);
+ 			check_split_1(xa, 1UL << order, order, new_order);
+ 			check_split_1(xa, 3UL << order, order, new_order);
++
++			check_split_2(xa, 0, order, new_order);
++			check_split_2(xa, 1UL << order, order, new_order);
++			check_split_2(xa, 3UL << order, order, new_order);
+ 		}
+ 	}
+ }
+--- a/lib/xarray.c~xarray-add-xas_try_split-to-split-a-multi-index-entry
++++ a/lib/xarray.c
+@@ -278,6 +278,7 @@ void xas_destroy(struct xa_state *xas)
+ 		xas->xa_alloc = node = next;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(xas_destroy);
  
--	/* First subpage to start the loop. */
--	page = nth_page(page, offset / PAGE_SIZE);
-+	/* First page to start the loop. */
-+	page = folio_page(folio, offset / PAGE_SIZE);
- 	offset %= PAGE_SIZE;
- 	while (1) {
- 		if (is_raw_hwpoison_page_in_hugepage(page))
-@@ -278,10 +280,10 @@ static ssize_t hugetlbfs_read_iter(struc
- 			else {
- 				/*
- 				 * Adjust how many bytes safe to read without
--				 * touching the 1st raw HWPOISON subpage after
-+				 * touching the 1st raw HWPOISON page after
- 				 * offset.
- 				 */
--				want = adjust_range_hwpoison(&folio->page, offset, nr);
-+				want = adjust_range_hwpoison(folio, offset, nr);
- 				if (want == 0) {
- 					folio_put(folio);
- 					retval = -EIO;
+ /**
+  * xas_nomem() - Allocate memory if needed.
+@@ -1007,6 +1008,26 @@ static void node_set_marks(struct xa_nod
+ 	}
+ }
+ 
++static void __xas_init_node_for_split(struct xa_state *xas,
++		struct xa_node *node, void *entry)
++{
++	unsigned int i;
++	void *sibling = NULL;
++	unsigned int mask = xas->xa_sibs;
++
++	if (!node)
++		return;
++	node->array = xas->xa;
++	for (i = 0; i < XA_CHUNK_SIZE; i++) {
++		if ((i & mask) == 0) {
++			RCU_INIT_POINTER(node->slots[i], entry);
++			sibling = xa_mk_sibling(i);
++		} else {
++			RCU_INIT_POINTER(node->slots[i], sibling);
++		}
++	}
++}
++
+ /**
+  * xas_split_alloc() - Allocate memory for splitting an entry.
+  * @xas: XArray operation state.
+@@ -1025,7 +1046,6 @@ void xas_split_alloc(struct xa_state *xa
+ 		gfp_t gfp)
+ {
+ 	unsigned int sibs = (1 << (order % XA_CHUNK_SHIFT)) - 1;
+-	unsigned int mask = xas->xa_sibs;
+ 
+ 	/* XXX: no support for splitting really large entries yet */
+ 	if (WARN_ON(xas->xa_shift + 2 * XA_CHUNK_SHIFT <= order))
+@@ -1034,22 +1054,13 @@ void xas_split_alloc(struct xa_state *xa
+ 		return;
+ 
+ 	do {
+-		unsigned int i;
+-		void *sibling = NULL;
+ 		struct xa_node *node;
+ 
+ 		node = kmem_cache_alloc_lru(radix_tree_node_cachep, xas->xa_lru, gfp);
+ 		if (!node)
+ 			goto nomem;
+-		node->array = xas->xa;
+-		for (i = 0; i < XA_CHUNK_SIZE; i++) {
+-			if ((i & mask) == 0) {
+-				RCU_INIT_POINTER(node->slots[i], entry);
+-				sibling = xa_mk_sibling(i);
+-			} else {
+-				RCU_INIT_POINTER(node->slots[i], sibling);
+-			}
+-		}
++
++		__xas_init_node_for_split(xas, node, entry);
+ 		RCU_INIT_POINTER(node->parent, xas->xa_alloc);
+ 		xas->xa_alloc = node;
+ 	} while (sibs-- > 0);
+@@ -1122,6 +1133,103 @@ void xas_split(struct xa_state *xas, voi
+ 	xas_update(xas, node);
+ }
+ EXPORT_SYMBOL_GPL(xas_split);
++
++/**
++ * xas_try_split() - Try to split a multi-index entry.
++ * @xas: XArray operation state.
++ * @entry: New entry to store in the array.
++ * @order: Current entry order.
++ *
++ * The size of the new entries is set in @xas.  The value in @entry is
++ * copied to all the replacement entries. If and only if one new xa_node is
++ * needed, the function will use GFP_NOWAIT to get one if xas->xa_alloc is
++ * NULL. If more new xa_node are needed, the function gives EINVAL error.
++ *
++ * Context: Any context.  The caller should hold the xa_lock.
++ */
++void xas_try_split(struct xa_state *xas, void *entry, unsigned int order)
++{
++	unsigned int sibs = (1 << (order % XA_CHUNK_SHIFT)) - 1;
++	unsigned int offset, marks;
++	struct xa_node *node;
++	void *curr = xas_load(xas);
++	int values = 0;
++	gfp_t gfp = GFP_NOWAIT;
++
++	node = xas->xa_node;
++	if (xas_top(node))
++		return;
++
++	if (xas->xa->xa_flags & XA_FLAGS_ACCOUNT)
++		gfp |= __GFP_ACCOUNT;
++
++	marks = node_get_marks(node, xas->xa_offset);
++
++	offset = xas->xa_offset + sibs;
++
++	if (xas->xa_shift < node->shift) {
++		struct xa_node *child = xas->xa_alloc;
++		unsigned int expected_sibs =
++			(1 << ((order - 1) % XA_CHUNK_SHIFT)) - 1;
++
++		/*
++		 * No support for splitting sibling entries
++		 * (horizontally) or cascade split (vertically), which
++		 * requires two or more new xa_nodes.
++		 * Since if one xa_node allocation fails,
++		 * it is hard to free the prior allocations.
++		 */
++		if (sibs || xas->xa_sibs != expected_sibs) {
++			xas_destroy(xas);
++			xas_set_err(xas, -EINVAL);
++			return;
++		}
++
++		if (!child) {
++			child = kmem_cache_alloc_lru(radix_tree_node_cachep,
++						     xas->xa_lru, gfp);
++			if (!child) {
++				xas_destroy(xas);
++				xas_set_err(xas, -ENOMEM);
++				return;
++			}
++			RCU_INIT_POINTER(child->parent, xas->xa_alloc);
++		}
++		__xas_init_node_for_split(xas, child, entry);
++
++		xas->xa_alloc = rcu_dereference_raw(child->parent);
++		child->shift = node->shift - XA_CHUNK_SHIFT;
++		child->offset = offset;
++		child->count = XA_CHUNK_SIZE;
++		child->nr_values = xa_is_value(entry) ?
++				XA_CHUNK_SIZE : 0;
++		RCU_INIT_POINTER(child->parent, node);
++		node_set_marks(node, offset, child, xas->xa_sibs,
++				marks);
++		rcu_assign_pointer(node->slots[offset],
++				xa_mk_node(child));
++		if (xa_is_value(curr))
++			values--;
++		xas_update(xas, child);
++
++	} else {
++		do {
++			unsigned int canon = offset - xas->xa_sibs;
++
++			node_set_marks(node, canon, NULL, 0, marks);
++			rcu_assign_pointer(node->slots[canon], entry);
++			while (offset > canon)
++				rcu_assign_pointer(node->slots[offset--],
++						xa_mk_sibling(canon));
++			values += (xa_is_value(entry) - xa_is_value(curr)) *
++					(xas->xa_sibs + 1);
++		} while (offset-- > xas->xa_offset);
++	}
++
++	node->nr_values += values;
++	xas_update(xas, node);
++}
++EXPORT_SYMBOL_GPL(xas_try_split);
+ #endif
+ 
+ /**
+--- a/tools/testing/radix-tree/Makefile~xarray-add-xas_try_split-to-split-a-multi-index-entry
++++ a/tools/testing/radix-tree/Makefile
+@@ -14,6 +14,7 @@ include ../shared/shared.mk
+ 
+ main:	$(OFILES)
+ 
++xarray.o: ../../../lib/test_xarray.c
+ idr-test.o: ../../../lib/test_ida.c
+ idr-test: idr-test.o $(CORE_OFILES)
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
-mm-simplify-split_page_memcg.patch
-mm-remove-references-to-folio-in-split_page_memcg.patch
-mm-simplify-folio_memcg_charged.patch
-mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch
 
