@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72A601CAA8E
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAA571C1F05
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274537; cv=none; b=r8tncg5aQMh6yIfU0Rznx6S+NXWVToQqjVnwxZNBBamMvWoawf7Ftrc+OPUyVEwRhDwuwJLMFIRnQQCPT5QxrcfscINXApQfNl2Hzp1XcbFZ+KpsP3LBTrmxymqd/nJV/ItKeFArKpkksalSu97u9E0/rC7dZO9AaDPZoxm9I9g=
+	t=1742274538; cv=none; b=k5GNPmDFJEmndbaXDiM8rwCjJlTrTnhBgZcVFAUeRmhehVMoHN6OJyL1XFhdpZySdtTyygtgeHbtZAHwC4IyAxbHX9c6mxNboGWwUnh03e+jDOXBQobawFfv/u8A0GSwXmhfabCqjPtTe5uzOmaSRlX0I7aOH7bj+fn4/fYmJQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274537; c=relaxed/simple;
-	bh=Fl5aHag/qNW8Z7lIaQILmBuMuRJ+5dyOewc+NSgnXwU=;
-	h=Date:To:From:Subject:Message-Id; b=S82maZ/oih8yJfzbacXNGQCFs+2BhF813UXl/bEf8QyAztjaRiNqS5GZnn0yLtYTlA2/nlxdjRglDB1B9gUhqLcdsIpEAprTWlJuQKxOxfYf3vwgrl7EO19+hwq1ZyOxTMuFyxAPJKwtX9mjKK7PFSCUXWjOjScilFZvIyLqqow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+CNjnv2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274538; c=relaxed/simple;
+	bh=Ewuk2sjeRDwBIia1lJSJ52QpHT8cB0PYtHJN/v0UXGA=;
+	h=Date:To:From:Subject:Message-Id; b=eBoBEbWuRZmKZJWpx/7ac5BCLoYsHPBCLdz25/VMRvNEJWYWSf4gzuMLyjB/oPAXNnVhHCvThm/e3f5pwHB5Yg7DvFVTdTSIlTpv5GhVS5+Crf8kUKoTPJy25dokfw/4Tj7aGt7JG52Tz2QbYwLUd/tLX99uKjDWmf1nJLF/MGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zPaAk0Wf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+CNjnv2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47962C4CEDD;
-	Tue, 18 Mar 2025 05:08:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zPaAk0Wf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90135C4CEDD;
+	Tue, 18 Mar 2025 05:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274537;
-	bh=Fl5aHag/qNW8Z7lIaQILmBuMuRJ+5dyOewc+NSgnXwU=;
+	s=korg; t=1742274538;
+	bh=Ewuk2sjeRDwBIia1lJSJ52QpHT8cB0PYtHJN/v0UXGA=;
 	h=Date:To:From:Subject:From;
-	b=z+CNjnv2dJVGInSHfaiEfwTYqBJ//wS4A7sOyDDvrzbaMJz01pECIv2Y782rNc8y2
-	 g0kJ+XhE8p0kwT9WqPPb9nsWGyGIOKX7CZr8EEfjY/ajaAIGP6Ks60z/3r9MLMUiOr
-	 Avu56cN5QmcWo+VwOIaonr9x4XCQytJzLbAX2qbw=
-Date: Mon, 17 Mar 2025 22:08:56 -0700
+	b=zPaAk0Wfsbp3iNyJp/2nqFZWh6gAKwlOail83NdlEh2RG92vVGgwCXqvP7xX0CiB+
+	 VwXiuijYhsL9mOIVSSDt2qvFwMFKP/Ymx6B+ULMcc96oWyFyBdPXEwJq8HvUVrdTCj
+	 3/menfQYxBDeOU7NnUcIynGfPuLHy7QmxhgiHRfA=
+Date: Mon, 17 Mar 2025 22:08:58 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,muchun.song@linux.dev,mkoutny@suse.com,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizefan.x@bytedance.com,liam.howlett@oracle.com,kirill.shutemov@linux.intel.com,jannh@google.com,ioworker0@gmail.com,hannes@cmpxchg.org,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-pass-vma-to-__folio_add_rmap.patch removed from -mm tree
-Message-Id: <20250318050857.47962C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb.patch removed from -mm tree
+Message-Id: <20250318050858.90135C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: pass vma to __folio_add_rmap()
+     Subject: mm/rmap: abstract large mapcount operations for large folios (!hugetlb)
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-pass-vma-to-__folio_add_rmap.patch
+     mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: pass vma to __folio_add_rmap()
-Date: Mon, 3 Mar 2025 17:30:01 +0100
+Subject: mm/rmap: abstract large mapcount operations for large folios (!hugetlb)
+Date: Mon, 3 Mar 2025 17:30:02 +0100
 
-We'll need access to the destination MM when modifying the mapcount large
-folios next.  So pass in the VMA.
+Let's abstract the operations so we can extend these operations easily.
 
-Link: https://lkml.kernel.org/r/20250303163014.1128035-9-david@redhat.com
+Link: https://lkml.kernel.org/r/20250303163014.1128035-10-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andy Lutomirks^H^Hski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -73,40 +72,131 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/rmap.h |   32 ++++++++++++++++++++++++++++----
+ mm/rmap.c            |   14 ++++++--------
+ 2 files changed, 34 insertions(+), 12 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-pass-vma-to-__folio_add_rmap
-+++ a/mm/rmap.c
-@@ -1242,8 +1242,8 @@ int pfn_mkclean_range(unsigned long pfn,
+--- a/include/linux/rmap.h~mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb
++++ a/include/linux/rmap.h
+@@ -173,6 +173,30 @@ static inline void anon_vma_merge(struct
+ 
+ struct anon_vma *folio_get_anon_vma(const struct folio *folio);
+ 
++static inline void folio_set_large_mapcount(struct folio *folio, int mapcount,
++		struct vm_area_struct *vma)
++{
++	/* Note: mapcounts start at -1. */
++	atomic_set(&folio->_large_mapcount, mapcount - 1);
++}
++
++static inline void folio_add_large_mapcount(struct folio *folio,
++		int diff, struct vm_area_struct *vma)
++{
++	atomic_add(diff, &folio->_large_mapcount);
++}
++
++static inline void folio_sub_large_mapcount(struct folio *folio,
++		int diff, struct vm_area_struct *vma)
++{
++	atomic_sub(diff, &folio->_large_mapcount);
++}
++
++#define folio_inc_large_mapcount(folio, vma) \
++	folio_add_large_mapcount(folio, 1, vma)
++#define folio_dec_large_mapcount(folio, vma) \
++	folio_sub_large_mapcount(folio, 1, vma)
++
+ /* RMAP flags, currently only relevant for some anon rmap operations. */
+ typedef int __bitwise rmap_t;
+ 
+@@ -352,12 +376,12 @@ static __always_inline void __folio_dup_
+ 		do {
+ 			atomic_inc(&page->_mapcount);
+ 		} while (page++, --nr_pages > 0);
+-		atomic_add(orig_nr_pages, &folio->_large_mapcount);
++		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+ 	case RMAP_LEVEL_PUD:
+ 		atomic_inc(&folio->_entire_mapcount);
+-		atomic_inc(&folio->_large_mapcount);
++		folio_inc_large_mapcount(folio, dst_vma);
+ 		break;
+ 	}
  }
+@@ -451,7 +475,7 @@ static __always_inline int __folio_try_d
+ 				ClearPageAnonExclusive(page);
+ 			atomic_inc(&page->_mapcount);
+ 		} while (page++, --nr_pages > 0);
+-		atomic_add(orig_nr_pages, &folio->_large_mapcount);
++		folio_add_large_mapcount(folio, orig_nr_pages, dst_vma);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+ 	case RMAP_LEVEL_PUD:
+@@ -461,7 +485,7 @@ static __always_inline int __folio_try_d
+ 			ClearPageAnonExclusive(page);
+ 		}
+ 		atomic_inc(&folio->_entire_mapcount);
+-		atomic_inc(&folio->_large_mapcount);
++		folio_inc_large_mapcount(folio, dst_vma);
+ 		break;
+ 	}
+ 	return 0;
+--- a/mm/rmap.c~mm-rmap-abstract-large-mapcount-operations-for-large-folios-hugetlb
++++ a/mm/rmap.c
+@@ -1266,7 +1266,7 @@ static __always_inline unsigned int __fo
+ 		    atomic_add_return_relaxed(first, mapped) < ENTIRELY_MAPPED)
+ 			nr = first;
  
- static __always_inline unsigned int __folio_add_rmap(struct folio *folio,
--		struct page *page, int nr_pages, enum rmap_level level,
--		int *nr_pmdmapped)
-+		struct page *page, int nr_pages, struct vm_area_struct *vma,
-+		enum rmap_level level, int *nr_pmdmapped)
- {
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
- 	const int orig_nr_pages = nr_pages;
-@@ -1411,7 +1411,7 @@ static __always_inline void __folio_add_
+-		atomic_add(orig_nr_pages, &folio->_large_mapcount);
++		folio_add_large_mapcount(folio, orig_nr_pages, vma);
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+ 	case RMAP_LEVEL_PUD:
+@@ -1290,7 +1290,7 @@ static __always_inline unsigned int __fo
+ 				nr = 0;
+ 			}
+ 		}
+-		atomic_inc(&folio->_large_mapcount);
++		folio_inc_large_mapcount(folio, vma);
+ 		break;
+ 	}
+ 	return nr;
+@@ -1556,14 +1556,12 @@ void folio_add_new_anon_rmap(struct foli
+ 				SetPageAnonExclusive(page);
+ 		}
  
- 	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
+-		/* increment count (starts at -1) */
+-		atomic_set(&folio->_large_mapcount, nr - 1);
++		folio_set_large_mapcount(folio, nr, vma);
+ 		atomic_set(&folio->_nr_pages_mapped, nr);
+ 	} else {
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_entire_mapcount, 0);
+-		/* increment count (starts at -1) */
+-		atomic_set(&folio->_large_mapcount, 0);
++		folio_set_large_mapcount(folio, 1, vma);
+ 		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
+ 		if (exclusive)
+ 			SetPageAnonExclusive(&folio->page);
+@@ -1665,7 +1663,7 @@ static __always_inline void __folio_remo
+ 			break;
+ 		}
  
--	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
-+	nr = __folio_add_rmap(folio, page, nr_pages, vma, level, &nr_pmdmapped);
- 
- 	if (likely(!folio_test_ksm(folio)))
- 		__page_check_anon_rmap(folio, page, vma, address);
-@@ -1582,7 +1582,7 @@ static __always_inline void __folio_add_
- 
- 	VM_WARN_ON_FOLIO(folio_test_anon(folio), folio);
- 
--	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
-+	nr = __folio_add_rmap(folio, page, nr_pages, vma, level, &nr_pmdmapped);
- 	__folio_mod_stat(folio, nr, nr_pmdmapped);
- 
- 	/* See comments in folio_add_anon_rmap_*() */
+-		atomic_sub(nr_pages, &folio->_large_mapcount);
++		folio_sub_large_mapcount(folio, nr_pages, vma);
+ 		do {
+ 			last += atomic_add_negative(-1, &page->_mapcount);
+ 		} while (page++, --nr_pages > 0);
+@@ -1678,7 +1676,7 @@ static __always_inline void __folio_remo
+ 		break;
+ 	case RMAP_LEVEL_PMD:
+ 	case RMAP_LEVEL_PUD:
+-		atomic_dec(&folio->_large_mapcount);
++		folio_dec_large_mapcount(folio, vma);
+ 		last = atomic_add_negative(-1, &folio->_entire_mapcount);
+ 		if (last) {
+ 			nr = atomic_sub_return_relaxed(ENTIRELY_MAPPED, mapped);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
