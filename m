@@ -1,97 +1,118 @@
-Received: from relay.hostedemail.com (smtprelay0017.hostedemail.com [216.40.44.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A47D528
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 00:41:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A9201E4B2
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 02:52:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742258510; cv=none; b=LEoWkZQ4FZPWVq8ncYUiZDuwdlQjiwNMUnYq+1f08pY5ugdrb5OEm2+yPy8ri4f1KSf/GJ//aJbUrrJeL1xuGYtHj1evqjnhLwR9TZ4BgvA3/qBYLtOVfKOUdkD5hl3r6A+dJZYbo3yDceC7+m9nbOfbpntPCtVh6sezGT7q17U=
+	t=1742266340; cv=none; b=jNLRRSkopeLYCDVDbRyAZyjvOWztFprEJZxPHddyzlajP3HEOx2PZHVhP3Lha1cywd7YcoejjZkMi19z1b0xHGeIARTj/5tjYtDzVsdyrvfFtSAHkj6mcsQGc6wJm1XgOdra9AkwaurjwM/6P63C6QvTcb+0D7oaHmpS89Z3kfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742258510; c=relaxed/simple;
-	bh=rcjYatnI9MPYUaedQpPJM5mpJD4oXFFrEmp7Eh1bVNA=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=NWKir6WdNHaekzmp4maIiTGq5oAC93oozYZ+PR8PQFKnxoNQFNXj9hP2dIn4wior2de+9j9swdpj+oSs2cvI2yINNbRp2PV3bFAd5cOg9CyS93KK9xSTMcTpDYt8pNumu8kumdhK62xVANGI+Nz4Tg4az7XtTE9IrsIKK7CMqJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com; spf=pass smtp.mailfrom=perches.com; arc=none smtp.client-ip=216.40.44.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=perches.com
-Received: from omf14.hostedemail.com (a10.router.float.18 [10.200.18.1])
-	by unirelay07.hostedemail.com (Postfix) with ESMTP id 84FB21605F0;
-	Tue, 18 Mar 2025 00:41:46 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf14.hostedemail.com (Postfix) with ESMTPA id E91693B;
-	Tue, 18 Mar 2025 00:41:41 +0000 (UTC)
-Message-ID: <518368d091641257ec9c27136c6d81d181d13110.camel@perches.com>
-Subject: Re: [merged mm-nonmm-stable]
- checkpatch-add-warning-for-pr_-and-dev_-macros-without-a-trailing-newline.patch
- removed from -mm tree
-From: Joe Perches <joe@perches.com>
-To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
-	tmgross@umich.edu, ojeda@kernel.org, lukas.bulwahn@gmail.com,
- gary@garyguo.net, 	dwaipayanray1@gmail.com, charmitro@posteo.net,
- boqun.feng@gmail.com, 	bjorn3_gh@protonmail.com, benno.lossin@proton.me,
- apw@canonical.com, 	aliceryhl@google.com, alex.gaynor@gmail.com,
- a.hindborg@kernel.org, 	kurti@invicto.ai
-Date: Mon, 17 Mar 2025 17:41:40 -0700
-In-Reply-To: <CANiq72nntazBBa-MKvZcGx8udCidjurp1GVpakyDsx1caYcJ6A@mail.gmail.com>
-References: <20250317053150.5115AC4CEEC@smtp.kernel.org>
-		 <f150abf3659e151b29a2529b266d519465b7345d.camel@perches.com>
-	 <CANiq72nntazBBa-MKvZcGx8udCidjurp1GVpakyDsx1caYcJ6A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.54.3 (3.54.3-1.fc41) 
+	s=arc-20240116; t=1742266340; c=relaxed/simple;
+	bh=6LBcN4hqE158t69ewJI60J2iyitg0h13/sp1kgqE05U=;
+	h=Date:To:From:Subject:Message-Id; b=IVPRrfA3J6jmy6veaZZuGJ9n4ydVdMUoX/ZyQT/Vi77NJV+aaLsRa/WIeWFgkkgvgcf25HYNblVx44m+0YwDusder1Ni0YLGx+kVIxCFlVtu0tG3J11Lv3pR8s1MUeTWEotK1Vm1JQOsGE8mf7ocbhxWu5W8K+DB9bK0JXnSK+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EoSFG3+t; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EoSFG3+t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FEC2C4CEE3;
+	Tue, 18 Mar 2025 02:52:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1742266339;
+	bh=6LBcN4hqE158t69ewJI60J2iyitg0h13/sp1kgqE05U=;
+	h=Date:To:From:Subject:From;
+	b=EoSFG3+tkYB0DwnRy2keULvfZZPaxbWNaD8plTA0QmYOOLtTUgls862rl+SV+TZJO
+	 AkOeFiXSk2lNVrgDsNVXnBGgiR+kt2rouZm2WFSCjxUBDNcpU/fNm2imFT9+/Ui93R
+	 B/dRDqRimLILxAHE0sf5WZUUZVnU5zsqFCs1B5zY=
+Date: Mon, 17 Mar 2025 19:52:18 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,surenb@google.com,pasha.tatashin@soleen.com,kirill.shutemov@linux.intel.com,jeffxu@chromium.org,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,andrii@kernel.org,npache@redhat.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + documentation-add-unaccepted-meminfo-entry.patch added to mm-unstable branch
+Message-Id: <20250318025219.5FEC2C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-Rspamd-Queue-Id: E91693B
-X-Stat-Signature: q61wgjtpf9e6ghkyk1wz7rtqrbtq64f6
-X-Rspamd-Server: rspamout03
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX19X5Zq/jgUkVvHW7cyZzmqb6wmeZOyXhb4=
-X-HE-Tag: 1742258501-196790
-X-HE-Meta: U2FsdGVkX1+NPOgvKTzO5Tpwd+pKxfGL0+zGkfmrR5wxx3sABBZzIFq8g22IG9+BSUzyvr9Kacgj0mi3CtiEJMUbgfzPGkNZZWO4DU0Pmprr9nGL+r7tLHVi9x7/jieRxlM1igAwORclKfFQCyoyz2vOq42PUYBcLAxxsMgkVsKjPiZ84OumcfAP+S41+9BIWLEad5QwYE6Ocubaj85z98hgmTD6RvdR8CLUhgAgpXkjoMj+ZGsb3jH00+3BR4+D8W0Y7bsgQYcWj4VyoT/VVyRFUjft93aiB9BnAs8fwEsryrTVY4POmABayebiw2ixOsokCMhfKBelmGkymogqUBD9D2mKXAlTTw56QJOYcHsKBYEJu7g4NITMxL3Dnddw
 
-On Mon, 2025-03-17 at 20:50 +0100, Miguel Ojeda wrote:
-> On Mon, Mar 17, 2025 at 6:52=E2=80=AFAM Joe Perches <joe@perches.com> wro=
-te:
-> >=20
-> > Not sure it's a 'real' need/issue as any new KERN_<LEVEL> that's
-> > not KERN_CONT will already add a new line.
->=20
-> But it is still intended that one uses an explicit newline, no?
 
-That's my preference, yes.
+The patch titled
+     Subject: MM documentation: add "Unaccepted" meminfo entry
+has been added to the -mm mm-unstable branch.  Its filename is
+     documentation-add-unaccepted-meminfo-entry.patch
 
-> I am
-> not sure I follow your other comment, so I may be missing something
-> though.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-add-unaccepted-meminfo-entry.patch
 
-My understanding is that
-	printk(KERN_INFO "foo");	// or pr_info("foo");
-//with some long time before
-	printk(KERN_INFO "bar");	// or pr_info("bar");
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-will defer emitting "foo" and will append a newline to "foo"
-when emitted only after the printk for "bar" is performed.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-So it's generally useful to always use a newline for
-complete messages as those are never deferred until
-another printk is done.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-> Regarding complexity, agreed, it is fairly involved -- I think the
-> continuation case could be ignored, since it is rare and it is just a
-> warning anyway.
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-My belief as well.
+------------------------------------------------------
+From: Nico Pache <npache@redhat.com>
+Subject: MM documentation: add "Unaccepted" meminfo entry
+Date: Mon, 17 Mar 2025 17:04:03 -0600
 
-There are a number of macros and functions that are printk equivalents
-that append newlines automatically and as well some pr_fmt uses
-that include newlines too so it's almost impossible to get checkpatch
-to work correctly anyway.
+Commit dcdfdd40fa82 ("mm: Add support for unaccepted memory") added a
+entry to meminfo but did not document it in the proc.rst file.
 
-Things like:
+This counter tracks the amount of "Unaccepted" guest memory for some
+Virtual Machine platforms, such as Intel TDX or AMD SEV-SNP.
 
-fs/bcachefs/bcachefs.h:#define pr_fmt(fmt) "bcachefs: %s() " fmt "\n", __fu=
-nc__
+Add the missing entry in the documentation.
+
+Link: https://lkml.kernel.org/r/20250317230403.79632-1-npache@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/filesystems/proc.rst |    3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/Documentation/filesystems/proc.rst~documentation-add-unaccepted-meminfo-entry
++++ a/Documentation/filesystems/proc.rst
+@@ -1081,6 +1081,7 @@ Example output. You may not have all of
+     FilePmdMapped:         0 kB
+     CmaTotal:              0 kB
+     CmaFree:               0 kB
++    Unaccepted:            0 kB
+     HugePages_Total:       0
+     HugePages_Free:        0
+     HugePages_Rsvd:        0
+@@ -1255,6 +1256,8 @@ CmaTotal
+               Memory reserved for the Contiguous Memory Allocator (CMA)
+ CmaFree
+               Free remaining memory in the CMA reserves
++Unaccepted
++              Memory that has not been accepted by the guest
+ HugePages_Total, HugePages_Free, HugePages_Rsvd, HugePages_Surp, Hugepagesize, Hugetlb
+               See Documentation/admin-guide/mm/hugetlbpage.rst.
+ DirectMap4k, DirectMap2M, DirectMap1G
+_
+
+Patches currently in -mm which might be from npache@redhat.com are
+
+meminfo-add-a-per-node-counter-for-balloon-drivers.patch
+balloon_compaction-update-the-nr_balloon_pages-state.patch
+hv_balloon-update-the-nr_balloon_pages-state.patch
+xen-balloon-update-the-nr_balloon_pages-state.patch
+documentation-add-unaccepted-meminfo-entry.patch
+
