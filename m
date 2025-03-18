@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B8321D7E4F
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941551C701E
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274645; cv=none; b=Ht41VGkuKBWpFsJplP+shVfc0nH9qkDykCDrZEs7/Hbio8YABTGZDVe3fZul+5ihyQGyNAlpWHvb3CuRaLWUVZD8nBsm0uLJUhNVGlap49IYMgx3GZbe8Qxz8th99DxMwcIGC8Y3WbGwQgvixOLISXc2JUwzEf63iyUGbat4YA8=
+	t=1742274646; cv=none; b=Mu7rj8ui9/7WmYhEczbPx1JXX3LHv3Q3+JgQ/kZJ1t+jU/X/bI7hyEU6ANd71sb0NX6mjwFl2bduHHdj8Yf464pfskBQvsPbQkOA6shgMj5ANAC8TnrGmTUC0b8QVuKwQkFIwCtMVVoBsAXC9YjOnTgA/FFzg0iBNwl9yl3JsWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274645; c=relaxed/simple;
-	bh=3+Z6H5bFFG5NA6NJxwztCmW4ajwPmTqw09ZoUeQ0kxw=;
-	h=Date:To:From:Subject:Message-Id; b=j15OZqAdNxSr2XtixKYvEux2hNvwLTwXN94WYgnbhugQtbtr7y7bcXCTsWNpc0syhUMtxyCjyO/RBaaYspl36zlyXSzxTd6+5lcXBtadXl5vpJlGl9GH85MhXGHgtZu1KYnau/HJfIzj4C8aaEzQAW2bNDcbFUB+KfYPewLN5Ww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Uz4t5zXj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274646; c=relaxed/simple;
+	bh=nCHHu0oNMnOtJZvbtdAt4y8KRjr+uSiToePcQfrjupc=;
+	h=Date:To:From:Subject:Message-Id; b=g8IkS8L7Hk2OhJlotAcgUiKCpVC55o+0J26at9nHguYlNPy6SIl5/BPZ/8xAH+PugDzbY7L4cDGBTYgmH7wAUMk3ePNTHC5omTobJQ4V+XyWQi7lxHcXgZbJQTAbeSm5vYpxE2bFPUVIh3LwEtH2nexhb2qqDDYxi/z5btB+Hks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bkk5FlB/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uz4t5zXj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F85EC4CEDD;
-	Tue, 18 Mar 2025 05:10:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bkk5FlB/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A897C4CEDD;
+	Tue, 18 Mar 2025 05:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274645;
-	bh=3+Z6H5bFFG5NA6NJxwztCmW4ajwPmTqw09ZoUeQ0kxw=;
+	s=korg; t=1742274646;
+	bh=nCHHu0oNMnOtJZvbtdAt4y8KRjr+uSiToePcQfrjupc=;
 	h=Date:To:From:Subject:From;
-	b=Uz4t5zXjzZ7u6Osj5apxsL3nbSgkg8ENtbINuo1rrxfszhceCk34X2Nh9WLEhH0wd
-	 WQmL5ryDNjkh4MGOnq2khL2lMB5+lQAmpSjSPcx6Y/LVHNlnzs00O2S2JvN1unvxa+
-	 Gizk67IadGQxUiSEaEl4sFO4mOa6BMC7RnOmZlL4=
-Date: Mon, 17 Mar 2025 22:10:44 -0700
+	b=Bkk5FlB/ZoVGOR7xmHIZAjV0Tk5mqOw8j8iPjJqEnFLKd7oMHSJc7Szcpfi2xl8ro
+	 vcdx7A4EQqdJkRILq9aAVEIkar8GJpGZoEFapoiKrH4GIkthFPiUZOkTL3FJLzqr+5
+	 wrcnPDitQ4qkJ1FS56e9XUeDzfjftWr7HwYYwKk0=
+Date: Mon, 17 Mar 2025 22:10:45 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,howlett@gmail.com,david@redhat.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-split-out-populate-behavior-check-logic.patch removed from -mm tree
-Message-Id: <20250318051045.3F85EC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings.patch removed from -mm tree
+Message-Id: <20250318051046.6A897C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: split out populate behavior check logic
+     Subject: mm/madvise: deduplicate madvise_do_behavior() skip case handlings
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-split-out-populate-behavior-check-logic.patch
+     mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: split out populate behavior check logic
-Date: Wed, 12 Mar 2025 09:47:48 -0700
+Subject: mm/madvise: deduplicate madvise_do_behavior() skip case handlings
+Date: Wed, 12 Mar 2025 09:47:49 -0700
 
-madvise_do_behavior() has a long open-coded 'behavior' check for
-MADV_POPULATE_{READ,WRITE}.  It adds multiple layers[1] and make the code
-arguably take longer time to read.  Like is_memory_failure(), split out
-the check to a separate function.  This is not technically removing the
-additional layer but discourage further extending the switch-case.  Also
-it makes madvise_do_behavior() code shorter and therefore easier to read.
+The logic for checking if a given madvise() request for a single memory
+range can skip real work, namely madvise_do_behavior(), is duplicated in
+do_madvise() and vector_madvise().  Split out the logic to a function and
+reuse it.
 
-[1] https://lore.kernel.org/bd6d0bf1-c79e-46bd-a810-9791efb9ad73@lucifer.local
-
-Link: https://lkml.kernel.org/r/20250312164750.59215-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250312164750.59215-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -66,48 +62,96 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/madvise.c |   57 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 23 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-split-out-populate-behavior-check-logic
+--- a/mm/madvise.c~mm-madvise-deduplicate-madvise_do_behavior-skip-case-handlings
 +++ a/mm/madvise.c
-@@ -1640,6 +1640,17 @@ static bool is_valid_madvise(unsigned lo
+@@ -1640,6 +1640,31 @@ static bool is_valid_madvise(unsigned lo
  	return true;
  }
  
-+static bool is_madvise_populate(int behavior)
++/*
++ * madvise_should_skip() - Return if the request is invalid or nothing.
++ * @start:	Start address of madvise-requested address range.
++ * @len_in:	Length of madvise-requested address range.
++ * @behavior:	Requested madvise behavor.
++ * @err:	Pointer to store an error code from the check.
++ *
++ * If the specified behaviour is invalid or nothing would occur, we skip the
++ * operation.  This function returns true in the cases, otherwise false.  In
++ * the former case we store an error on @err.
++ */
++static bool madvise_should_skip(unsigned long start, size_t len_in,
++		int behavior, int *err)
 +{
-+	switch (behavior) {
-+	case MADV_POPULATE_READ:
-+	case MADV_POPULATE_WRITE:
++	if (!is_valid_madvise(start, len_in, behavior)) {
++		*err = -EINVAL;
 +		return true;
-+	default:
-+		return false;
 +	}
++	if (start + PAGE_ALIGN(len_in) == start) {
++		*err = 0;
++		return true;
++	}
++	return false;
 +}
 +
- static int madvise_do_behavior(struct mm_struct *mm,
- 		unsigned long start, size_t len_in, size_t len, int behavior)
+ static bool is_madvise_populate(int behavior)
  {
-@@ -1653,16 +1664,11 @@ static int madvise_do_behavior(struct mm
- 	end = start + len;
+ 	switch (behavior) {
+@@ -1747,23 +1772,15 @@ static int madvise_do_behavior(struct mm
+  */
+ int do_madvise(struct mm_struct *mm, unsigned long start, size_t len_in, int behavior)
+ {
+-	unsigned long end;
+ 	int error;
+-	size_t len;
+-
+-	if (!is_valid_madvise(start, len_in, behavior))
+-		return -EINVAL;
+-
+-	len = PAGE_ALIGN(len_in);
+-	end = start + len;
+-
+-	if (end == start)
+-		return 0;
  
- 	blk_start_plug(&plug);
--	switch (behavior) {
--	case MADV_POPULATE_READ:
--	case MADV_POPULATE_WRITE:
-+	if (is_madvise_populate(behavior))
- 		error = madvise_populate(mm, start, end, behavior);
--		break;
--	default:
-+	else
- 		error = madvise_walk_vmas(mm, start, end, behavior,
- 					  madvise_vma_behavior);
--		break;
--	}
- 	blk_finish_plug(&plug);
++	if (madvise_should_skip(start, len_in, behavior, &error))
++		return error;
+ 	error = madvise_lock(mm, behavior);
+ 	if (error)
+ 		return error;
+-	error = madvise_do_behavior(mm, start, len_in, len, behavior);
++	error = madvise_do_behavior(mm, start, len_in, PAGE_ALIGN(len_in),
++			behavior);
+ 	madvise_unlock(mm, behavior);
+ 
  	return error;
- }
+@@ -1790,19 +1807,13 @@ static ssize_t vector_madvise(struct mm_
+ 	while (iov_iter_count(iter)) {
+ 		unsigned long start = (unsigned long)iter_iov_addr(iter);
+ 		size_t len_in = iter_iov_len(iter);
+-		size_t len;
++		int error;
+ 
+-		if (!is_valid_madvise(start, len_in, behavior)) {
+-			ret = -EINVAL;
+-			break;
+-		}
+-
+-		len = PAGE_ALIGN(len_in);
+-		if (start + len == start)
+-			ret = 0;
++		if (madvise_should_skip(start, len_in, behavior, &error))
++			ret = error;
+ 		else
+-			ret = madvise_do_behavior(mm, start, len_in, len,
+-					behavior);
++			ret = madvise_do_behavior(mm, start, len_in,
++					PAGE_ALIGN(len_in), behavior);
+ 		/*
+ 		 * An madvise operation is attempting to restart the syscall,
+ 		 * but we cannot proceed as it would not be correct to repeat
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
