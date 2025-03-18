@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B171A9B4D
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A8A51A9B4D
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:08:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274499; cv=none; b=p2leNCxyOtBhVyvQ+MtXbl6Ub59chP8a2Tq6i/zFYELdYoehWRRLxxLUBNp8dmOa2SXNOZkWjVqSJkcDTdIrdlTUoQo+hyVZ+pScOAHMaOxw6mPlI8AHwBbjfU+ki04yjE8EJt0GBxZSR5sddgHR0jl22p2uQSfPdsfNDHTK6Xk=
+	t=1742274500; cv=none; b=BQaovmVm750czA4BAOPZTJi1jaRZ3tQHIcPvT4zbTsR48/PMqG5WZRWXUQc99hiu+Mq8oV0zcU3+dLwgIqhLsoAVyEkg9/0oZmBHlTV0OvxV1w/4MLrp9uuSpmzMO6FA95zQ4bScVyjlvH1knUssNSCJYvxMrqiJ8/Jiw7f6iQg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274499; c=relaxed/simple;
-	bh=1ghwhzWWPZynHyUipmOX0ocrfbY2rRVW723CU1Xnn5k=;
-	h=Date:To:From:Subject:Message-Id; b=RH098PQ7iTf3C02mwdHEv4463EK0rHdJW4zPFVuvWD0q48uxjcxtcQctB0RFkT3aUAFF1ERa/yn3A4JuCfLjVsXqW5IEWjnyshF0KxveuqI/c28iNl1bzVohQgFZUXfkBhfyOXBKTDs6lqiozqKqwHhP7W9qdrY3VCjUac3L9SM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aiExcAmO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274500; c=relaxed/simple;
+	bh=no6bocLirb3CMBTRQAJweGTE5WkCIqvQ+mJntwG1V6c=;
+	h=Date:To:From:Subject:Message-Id; b=hBZXjYPEXDijxNoK4GSkPqx4vcEPclvIjZqOqS0CoN6iPZAbARHmreEJepUIGCb9wBWRAfxJHX39KpkLb+7BIp+Wb+siFAlz/ap2xvUoB/p2C0l/elmnI+hz0tWBCVCEgXc6qdhdX68UMgpVd9RI80H6psRFVvYbnmf/zHvOrsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1oKK88tr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aiExcAmO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A42F4C4CEDD;
-	Tue, 18 Mar 2025 05:08:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1oKK88tr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6767DC4CEDD;
+	Tue, 18 Mar 2025 05:08:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274498;
-	bh=1ghwhzWWPZynHyUipmOX0ocrfbY2rRVW723CU1Xnn5k=;
+	s=korg; t=1742274500;
+	bh=no6bocLirb3CMBTRQAJweGTE5WkCIqvQ+mJntwG1V6c=;
 	h=Date:To:From:Subject:From;
-	b=aiExcAmO/V8EJKZsU0Wa66QNuODsKfTGp0GvUPa/ydAbqzYiG820D64tlu3K6kMrs
-	 FopugGaB0PtHjkHKjeXOXMVrdVMjaxUPyF4QI1eMw4jo5jsbJ3QPZbSIVPctcj8QgK
-	 rvqZVFrJQSYsabzIiDUTSihRVS5cKVbMdja7bVWE=
-Date: Mon, 17 Mar 2025 22:08:18 -0700
+	b=1oKK88trlU/VTt4bhaI2iIBSiKM5rYrpfecyFxHOFdU96vo4iMI0OQ8RrohPcT11/
+	 8Bc2tjhHubdQqCm46lyi+b1WrIVjomAox8ExxbYIlJ1j0GXi+xCpZ7qnEL1+Gol5uv
+	 t/FwdQd3Se4jqIHnxMub+HAXHmkclmpBJMRhqWls=
+Date: Mon, 17 Mar 2025 22:08:19 -0700
 To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch removed from -mm tree
-Message-Id: <20250318050818.A42F4C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-add-vmf_insert_page_mkwrite.patch removed from -mm tree
+Message-Id: <20250318050820.6767DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: enhance insert_page_into_pte_locked() to create writable mappings
+     Subject: mm/memory: add vmf_insert_page_mkwrite()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings.patch
+     mm-memory-add-vmf_insert_page_mkwrite.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memory: enhance insert_page_into_pte_locked() to create writable mappings
-Date: Fri, 28 Feb 2025 14:31:07 +1100
+Subject: mm/memory: add vmf_insert_page_mkwrite()
+Date: Fri, 28 Feb 2025 14:31:08 +1100
 
-In preparation for using insert_page() for DAX, enhance
-insert_page_into_pte_locked() to handle establishing writable mappings. 
-Recall that DAX returns VM_FAULT_NOPAGE after installing a PTE which
-bypasses the typical set_pte_range() in finish_fault.
+Currently to map a DAX page the DAX driver calls vmf_insert_pfn.  This
+creates a special devmap PTE entry for the pfn but does not take a
+reference on the underlying struct page for the mapping.  This is because
+DAX page refcounts are treated specially, as indicated by the presence of
+a devmap entry.
 
-Link: https://lkml.kernel.org/r/f7354fd9c2f5d0c2fa321733039f9f87e791023e.1740713401.git-series.apopple@nvidia.com
+To allow DAX page refcounts to be managed the same as normal page
+refcounts introduce vmf_insert_page_mkwrite().  This will take a reference
+on the underlying page much the same as vmf_insert_page, except it also
+permits upgrading an existing mapping to be writable if
+requested/possible.
+
+Link: https://lkml.kernel.org/r/4ce3aa984c060f370105e0bfef1035869578be47.1740713401.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Tested-by: Alison Schofield <alison.schofield@intel.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -66,6 +71,7 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Dan Wiliams <dan.j.williams@intel.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -94,101 +100,50 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ include/linux/mm.h |    2 ++
+ mm/memory.c        |   20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
---- a/mm/memory.c~mm-memory-enhance-insert_page_into_pte_locked-to-create-writable-mappings
+--- a/include/linux/mm.h~mm-memory-add-vmf_insert_page_mkwrite
++++ a/include/linux/mm.h
+@@ -3644,6 +3644,8 @@ int vm_map_pages(struct vm_area_struct *
+ 				unsigned long num);
+ int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
+ 				unsigned long num);
++vm_fault_t vmf_insert_page_mkwrite(struct vm_fault *vmf, struct page *page,
++			bool write);
+ vm_fault_t vmf_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
+ vm_fault_t vmf_insert_pfn_prot(struct vm_area_struct *vma, unsigned long addr,
+--- a/mm/memory.c~mm-memory-add-vmf_insert_page_mkwrite
 +++ a/mm/memory.c
-@@ -2145,19 +2145,39 @@ static int validate_page_before_insert(s
+@@ -2643,6 +2643,26 @@ static vm_fault_t __vm_insert_mixed(stru
+ 	return VM_FAULT_NOPAGE;
  }
  
- static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
--			unsigned long addr, struct page *page, pgprot_t prot)
-+				unsigned long addr, struct page *page,
-+				pgprot_t prot, bool mkwrite)
- {
- 	struct folio *folio = page_folio(page);
--	pte_t pteval;
-+	pte_t pteval = ptep_get(pte);
++vm_fault_t vmf_insert_page_mkwrite(struct vm_fault *vmf, struct page *page,
++			bool write)
++{
++	pgprot_t pgprot = vmf->vma->vm_page_prot;
++	unsigned long addr = vmf->address;
++	int err;
 +
-+	if (!pte_none(pteval)) {
-+		if (!mkwrite)
-+			return -EBUSY;
++	if (addr < vmf->vma->vm_start || addr >= vmf->vma->vm_end)
++		return VM_FAULT_SIGBUS;
 +
-+		/* see insert_pfn(). */
-+		if (pte_pfn(pteval) != page_to_pfn(page)) {
-+			WARN_ON_ONCE(!is_zero_pfn(pte_pfn(pteval)));
-+			return -EFAULT;
-+		}
-+		pteval = maybe_mkwrite(pteval, vma);
-+		pteval = pte_mkyoung(pteval);
-+		if (ptep_set_access_flags(vma, addr, pte, pteval, 1))
-+			update_mmu_cache(vma, addr, pte);
-+		return 0;
-+	}
- 
--	if (!pte_none(ptep_get(pte)))
--		return -EBUSY;
- 	/* Ok, finally just insert the thing.. */
- 	pteval = mk_pte(page, prot);
- 	if (unlikely(is_zero_folio(folio))) {
- 		pteval = pte_mkspecial(pteval);
- 	} else {
- 		folio_get(folio);
-+		pteval = mk_pte(page, prot);
-+		if (mkwrite) {
-+			pteval = pte_mkyoung(pteval);
-+			pteval = maybe_mkwrite(pte_mkdirty(pteval), vma);
-+		}
- 		inc_mm_counter(vma->vm_mm, mm_counter_file(folio));
- 		folio_add_file_rmap_pte(folio, page, vma);
- 	}
-@@ -2166,7 +2186,7 @@ static int insert_page_into_pte_locked(s
- }
- 
- static int insert_page(struct vm_area_struct *vma, unsigned long addr,
--			struct page *page, pgprot_t prot)
-+			struct page *page, pgprot_t prot, bool mkwrite)
++	err = insert_page(vmf->vma, addr, page, pgprot, write);
++	if (err == -ENOMEM)
++		return VM_FAULT_OOM;
++	if (err < 0 && err != -EBUSY)
++		return VM_FAULT_SIGBUS;
++
++	return VM_FAULT_NOPAGE;
++}
++EXPORT_SYMBOL_GPL(vmf_insert_page_mkwrite);
++
+ vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 		pfn_t pfn)
  {
- 	int retval;
- 	pte_t *pte;
-@@ -2179,7 +2199,8 @@ static int insert_page(struct vm_area_st
- 	pte = get_locked_pte(vma->vm_mm, addr, &ptl);
- 	if (!pte)
- 		goto out;
--	retval = insert_page_into_pte_locked(vma, pte, addr, page, prot);
-+	retval = insert_page_into_pte_locked(vma, pte, addr, page, prot,
-+					mkwrite);
- 	pte_unmap_unlock(pte, ptl);
- out:
- 	return retval;
-@@ -2193,7 +2214,7 @@ static int insert_page_in_batch_locked(s
- 	err = validate_page_before_insert(vma, page);
- 	if (err)
- 		return err;
--	return insert_page_into_pte_locked(vma, pte, addr, page, prot);
-+	return insert_page_into_pte_locked(vma, pte, addr, page, prot, false);
- }
- 
- /* insert_pages() amortizes the cost of spinlock operations
-@@ -2329,7 +2350,7 @@ int vm_insert_page(struct vm_area_struct
- 		BUG_ON(vma->vm_flags & VM_PFNMAP);
- 		vm_flags_set(vma, VM_MIXEDMAP);
- 	}
--	return insert_page(vma, addr, page, vma->vm_page_prot);
-+	return insert_page(vma, addr, page, vma->vm_page_prot, false);
- }
- EXPORT_SYMBOL(vm_insert_page);
- 
-@@ -2609,7 +2630,7 @@ static vm_fault_t __vm_insert_mixed(stru
- 		 * result in pfn_t_has_page() == false.
- 		 */
- 		page = pfn_to_page(pfn_t_to_pfn(pfn));
--		err = insert_page(vma, addr, page, pgprot);
-+		err = insert_page(vma, addr, page, pgprot, mkwrite);
- 	} else {
- 		return insert_pfn(vma, addr, pfn, pgprot, mkwrite);
- 	}
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
