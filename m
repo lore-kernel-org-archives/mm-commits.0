@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9DEE1922D4
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:07:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4764D1922D4
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:07:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274476; cv=none; b=JLQ80gUpMh5Q435idk/Ph2V1k9AE/t9kgDKka2i0e70oRKvCQmdu/sEzxFLA1VClfUFOf28oxhIms8Dr8SVS1ljNZtdbj2e/F2aozegRViChtMsXMryZeZF3nGFwKgiscFYfEGcOgzWeEk/ISiTYV8fkYS32XP2TAwMqUTTkg5g=
+	t=1742274478; cv=none; b=ZrpZy8Tsc6SAqWYci6sLmMTzcs6dMKCu+r4oENenlx/pQvCvxgeQ3x3/VQ9/cAbuVrKVnghF5aWXiV+iMuK6IuWYVXgKcTTk9D9sY9n5T757ffjh35kq0IUOcvlLd+NbX79YvUxOcllTO91osrugDTDw52fuBPJPIu08ceVW+ko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274476; c=relaxed/simple;
-	bh=pP4KC2cZDP7deeVCm3i3JkZwlZmsYfKEJef+NYLFpx4=;
-	h=Date:To:From:Subject:Message-Id; b=SLQpOJbIW7lgtBfj8PMUF9iqw/uzwXZ8XKM1D6zkVdKWSN4vhlelH8+DWdsvbfZoad7hGwoplBYcOK5bjiuIVc7Xf4Nts393d8cjgh3l7vffoUlRh4qD35bzzBLx/4V+DOpspzPFZJRs2+oRNQff0/CP7hGsErUy1stlu253RNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GJLt+iTU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274478; c=relaxed/simple;
+	bh=9B4n0j1KcGM527AC7g9eK5maDyAwuFhGlmJsyBtTb9Q=;
+	h=Date:To:From:Subject:Message-Id; b=CN/Ip7Yv+wXMc8oo5jKHDr5Zro2oFfJRBznCcC/X8vMQnCedcM2LIidC8/7yw6MV+oxIrpVONy7QujS8mu5r/3RDoOQJ00Qyoy8fGxmUoGXX7k683x4pe2ZqUro9xGwN+w8fXhKlkTXgBYX1mHm1fvn3QFkK7Mz8qshMhO14maA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p/nfPsiU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GJLt+iTU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08806C4CEDD;
-	Tue, 18 Mar 2025 05:07:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p/nfPsiU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F2DFC4CEDD;
+	Tue, 18 Mar 2025 05:07:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274476;
-	bh=pP4KC2cZDP7deeVCm3i3JkZwlZmsYfKEJef+NYLFpx4=;
+	s=korg; t=1742274477;
+	bh=9B4n0j1KcGM527AC7g9eK5maDyAwuFhGlmJsyBtTb9Q=;
 	h=Date:To:From:Subject:From;
-	b=GJLt+iTUGsTVlXuAYzxheqgqh3pmlT89SeTlVw9gvQ4KB/ftbj/idd0OMTV9JgYUN
-	 PBBzc2i6enOnhaaTiaX4hAERxqwLCF0wGB+Zf+VjkODMUoh6a6xLP3VPpXJWuOthHK
-	 jurrKSZEZBMcyIQJBe/QoZ6O8PxkXiIKW0uEidA0=
-Date: Mon, 17 Mar 2025 22:07:55 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jane.chu@oracle.com,dave.jiang@intel.com,dan.j.williams@intel.com,apopple@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=p/nfPsiUTi/J3O92Rm4z++FYHLWB7qFDx3O9RHmq9uLQ58hj20EYIRpvhETOuZavC
+	 V+ta1wJPCJ+4AZWH/lAPu2qk2uiqo3/O3nIg8x8nb27GOD6oMpr0xMKfXmt/Crnl57
+	 s00iWPKxyrdE6y4JDUYLEoHRZhZaiPf4pDQ45N+I=
+Date: Mon, 17 Mar 2025 22:07:57 -0700
+To: mm-commits@vger.kernel.org,zhang.lyra@gmail.com,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,vgoyal@redhat.com,tytso@mit.edu,svens@linux.ibm.com,peterx@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,logang@deltatee.com,linmiaohe@huawei.com,lina@asahilina.net,kernel@xen0n.name,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@nvidia.com,jack@suse.cz,ira.weiny@intel.com,hch@lst.de,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,djwong@kernel.org,david@redhat.com,david@fromorbit.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,borntraeger@linux.ibm.com,bhelgaas@google.com,balbirs@nvidia.com,alison.schofield@intel.com,agordeev@linux.ibm.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] dax-use-folios-more-widely-within-dax.patch removed from -mm tree
-Message-Id: <20250318050756.08806C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] fuse-fix-dax-truncate-punch_hole-fault-path.patch removed from -mm tree
+Message-Id: <20250318050757.9F2DFC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,142 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: dax: use folios more widely within DAX
+     Subject: fuse: fix dax truncate/punch_hole fault path
 has been removed from the -mm tree.  Its filename was
-     dax-use-folios-more-widely-within-dax.patch
+     fuse-fix-dax-truncate-punch_hole-fault-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: dax: use folios more widely within DAX
-Date: Mon, 16 Dec 2024 15:53:56 +0000
+From: Alistair Popple <apopple@nvidia.com>
+Subject: fuse: fix dax truncate/punch_hole fault path
+Date: Fri, 28 Feb 2025 14:30:56 +1100
 
-Convert from pfn to folio instead of page and use those folios throughout
-to avoid accesses to page->index and page->mapping.
+Patch series "fs/dax: Fix ZONE_DEVICE page reference counts", v9.
 
-Link: https://lkml.kernel.org/r/20241216155408.8102-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Cc: Dan Willaims <dan.j.williams@intel.com>
+Device and FS DAX pages have always maintained their own page reference
+counts without following the normal rules for page reference counting.  In
+particular pages are considered free when the refcount hits one rather
+than zero and refcounts are not added when mapping the page.
+
+Tracking this requires special PTE bits (PTE_DEVMAP) and a secondary
+mechanism for allowing GUP to hold references on the page (see
+get_dev_pagemap).  However there doesn't seem to be any reason why FS DAX
+pages need their own reference counting scheme.
+
+By treating the refcounts on these pages the same way as normal pages we
+can remove a lot of special checks.  In particular pXd_trans_huge()
+becomes the same as pXd_leaf(), although I haven't made that change here. 
+It also frees up a valuable SW define PTE bit on architectures that have
+devmap PTE bits defined.
+
+It also almost certainly allows further clean-up of the devmap managed
+functions, but I have left that as a future improvment.  It also enables
+support for compound ZONE_DEVICE pages which is one of my primary
+motivators for doing this work.
+
+
+This patch (of 20):
+
+FS DAX requires file systems to call into the DAX layout prior to
+unlinking inodes to ensure there is no ongoing DMA or other remote access
+to the direct mapped page.  The fuse file system implements
+fuse_dax_break_layouts() to do this which includes a comment indicating
+that passing dmap_end == 0 leads to unmapping of the whole file.
+
+However this is not true - passing dmap_end == 0 will not unmap anything
+before dmap_start, and further more dax_layout_busy_page_range() will not
+scan any of the range to see if there maybe ongoing DMA access to the
+range.  Fix this by passing -1 for dmap_end to fuse_dax_break_layouts()
+which will invalidate the entire file range to
+dax_layout_busy_page_range().
+
+Link: https://lkml.kernel.org/r/cover.8068ad144a7eea4a813670301f4d2a86a8e68ec4.1740713401.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/f09a34b6c40032022e4ddee6fadb7cc676f08867.1740713401.git-series.apopple@nvidia.com
+Fixes: 6ae330cad6ef ("virtiofs: serialize truncate/punch_hole and dax fault path")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Tested-by: Alison Schofield <alison.schofield@intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Asahi Lina <lina@asahilina.net>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: linmiaohe <linmiaohe@huawei.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Michael "Camp Drill Sergeant" Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   53 +++++++++++++++++++++++++++--------------------------
- 1 file changed, 27 insertions(+), 26 deletions(-)
+ fs/fuse/dax.c  |    1 -
+ fs/fuse/dir.c  |    2 +-
+ fs/fuse/file.c |    4 ++--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
---- a/fs/dax.c~dax-use-folios-more-widely-within-dax
-+++ a/fs/dax.c
-@@ -320,38 +320,39 @@ static unsigned long dax_end_pfn(void *e
- 	for (pfn = dax_to_pfn(entry); \
- 			pfn < dax_end_pfn(entry); pfn++)
+--- a/fs/fuse/dax.c~fuse-fix-dax-truncate-punch_hole-fault-path
++++ a/fs/fuse/dax.c
+@@ -682,7 +682,6 @@ static int __fuse_dax_break_layouts(stru
+ 			0, 0, fuse_wait_dax_page(inode));
+ }
  
--static inline bool dax_page_is_shared(struct page *page)
-+static inline bool dax_folio_is_shared(struct folio *folio)
+-/* dmap_end == 0 leads to unmapping of whole file */
+ int fuse_dax_break_layouts(struct inode *inode, u64 dmap_start,
+ 				  u64 dmap_end)
  {
--	return page->mapping == PAGE_MAPPING_DAX_SHARED;
-+	return folio->mapping == PAGE_MAPPING_DAX_SHARED;
- }
+--- a/fs/fuse/dir.c~fuse-fix-dax-truncate-punch_hole-fault-path
++++ a/fs/fuse/dir.c
+@@ -1940,7 +1940,7 @@ int fuse_do_setattr(struct mnt_idmap *id
+ 	if (FUSE_IS_DAX(inode) && is_truncate) {
+ 		filemap_invalidate_lock(mapping);
+ 		fault_blocked = true;
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err) {
+ 			filemap_invalidate_unlock(mapping);
+ 			return err;
+--- a/fs/fuse/file.c~fuse-fix-dax-truncate-punch_hole-fault-path
++++ a/fs/fuse/file.c
+@@ -253,7 +253,7 @@ static int fuse_open(struct inode *inode
  
- /*
-- * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
-+ * Set the folio->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
-  * refcount.
-  */
--static inline void dax_page_share_get(struct page *page)
-+static inline void dax_folio_share_get(struct folio *folio)
- {
--	if (page->mapping != PAGE_MAPPING_DAX_SHARED) {
-+	if (folio->mapping != PAGE_MAPPING_DAX_SHARED) {
- 		/*
- 		 * Reset the index if the page was already mapped
- 		 * regularly before.
- 		 */
--		if (page->mapping)
--			page->share = 1;
--		page->mapping = PAGE_MAPPING_DAX_SHARED;
-+		if (folio->mapping)
-+			folio->page.share = 1;
-+		folio->mapping = PAGE_MAPPING_DAX_SHARED;
+ 	if (dax_truncate) {
+ 		filemap_invalidate_lock(inode->i_mapping);
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err)
+ 			goto out_inode_unlock;
  	}
--	page->share++;
-+	folio->page.share++;
- }
- 
--static inline unsigned long dax_page_share_put(struct page *page)
-+static inline unsigned long dax_folio_share_put(struct folio *folio)
- {
--	return --page->share;
-+	return --folio->page.share;
- }
- 
- /*
-- * When it is called in dax_insert_entry(), the shared flag will indicate that
-- * whether this entry is shared by multiple files.  If so, set the page->mapping
-- * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
-+ * When it is called in dax_insert_entry(), the shared flag will indicate
-+ * that whether this entry is shared by multiple files.  If so, set
-+ * the folio->mapping PAGE_MAPPING_DAX_SHARED, and use page->share
-+ * as refcount.
-  */
- static void dax_associate_entry(void *entry, struct address_space *mapping,
- 		struct vm_area_struct *vma, unsigned long address, bool shared)
-@@ -364,14 +365,14 @@ static void dax_associate_entry(void *en
- 
- 	index = linear_page_index(vma, address & ~(size - 1));
- 	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
-+		struct folio *folio = pfn_folio(pfn);
- 
- 		if (shared) {
--			dax_page_share_get(page);
-+			dax_folio_share_get(folio);
- 		} else {
--			WARN_ON_ONCE(page->mapping);
--			page->mapping = mapping;
--			page->index = index + i++;
-+			WARN_ON_ONCE(folio->mapping);
-+			folio->mapping = mapping;
-+			folio->index = index + i++;
- 		}
+@@ -3205,7 +3205,7 @@ static long fuse_file_fallocate(struct f
+ 	inode_lock(inode);
+ 	if (block_faults) {
+ 		filemap_invalidate_lock(inode->i_mapping);
+-		err = fuse_dax_break_layouts(inode, 0, 0);
++		err = fuse_dax_break_layouts(inode, 0, -1);
+ 		if (err)
+ 			goto out;
  	}
- }
-@@ -385,17 +386,17 @@ static void dax_disassociate_entry(void
- 		return;
- 
- 	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
-+		struct folio *folio = pfn_folio(pfn);
- 
--		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		if (dax_page_is_shared(page)) {
-+		WARN_ON_ONCE(trunc && folio_ref_count(folio) > 1);
-+		if (dax_folio_is_shared(folio)) {
- 			/* keep the shared flag if this page is still shared */
--			if (dax_page_share_put(page) > 0)
-+			if (dax_folio_share_put(folio) > 0)
- 				continue;
- 		} else
--			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
--		page->mapping = NULL;
--		page->index = 0;
-+			WARN_ON_ONCE(folio->mapping && folio->mapping != mapping);
-+		folio->mapping = NULL;
-+		folio->index = 0;
- 	}
- }
- 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
-mm-simplify-split_page_memcg.patch
-mm-remove-references-to-folio-in-split_page_memcg.patch
-mm-simplify-folio_memcg_charged.patch
-mm-remove-references-to-folio-in-__memcg_kmem_uncharge_page.patch
 
