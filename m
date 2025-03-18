@@ -1,407 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32C131C6FF8
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:11:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E87D61922D3;
+	Tue, 18 Mar 2025 05:56:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274667; cv=none; b=MgMjCVXkRhGufZNzJgWKla+mPiY5Dsfx3muIVxs4HV4lmOR2vyEZUMm/6iXArUp3/Bxmx8AqW/5/cLqOPZl5eNQUooseMo33UQ01du6G8IdRIE1LTKjRFhTO1CX5KMxE5pWQNeHD9WWcakeIw1Pb59kw/qiaWjBsJGlmx4auFhM=
+	t=1742277366; cv=none; b=KKKLyRnBEdU5rvm96zNSwr48UfH1TUcjQ8+KLaknrEi9yGaEW6X97VmmdP7SV+W8mO8N0RzMFL3asN9ekknnVi1UqmV2jlo6kkrgr5ZG5Rb8icZ20dOBtJ9zO8R2WZ0bh4IxcJmh9tNMzc/elN7K+SWX7BTJgJ/s4Xz1ZXVy01M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274667; c=relaxed/simple;
-	bh=1AhPoCP1Y+mk5iV1QEvlkXvo7DhiDyD1gC61raCuV9Y=;
-	h=Date:To:From:Subject:Message-Id; b=OU47x2rAP7/J8v6iJdT8ZDAIjVQ8tBD/1yAlpwbuqm7uw4G3+eBZ8hx2I0ZKeTW9H7p91IvyixPBS6VFZxiAJxl9/48DSPtgHHQtbVLBkgoD9FW03SwLUWHPapLAEyZQg9NTUZdjMS6iCJEbASjPVrz1b0HcehaxJtaKdcdXnoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xh1Spest; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742277366; c=relaxed/simple;
+	bh=IR1ja90WyBQY91p3/Y38eTFMQmiA9m2LBD9E7185Fvs=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=CG2i5GNwt/vlfoz81VLB8QG5+CvXuI5D16yNTpa/i0sHhFaeyzibTXHsE94WVLoGrCsf2CadwALvvTUSCrCatiiSTpYwq06pk5yYEZBGiw3bBy1rPL4mPmAWf8/VSQt8ftPIqjCmy4JIlGMGYxLI2kYL5eXCZYrS/aKwr5a6cqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K4a8J9TY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xh1Spest"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AB5EC4CEDD;
-	Tue, 18 Mar 2025 05:11:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274666;
-	bh=1AhPoCP1Y+mk5iV1QEvlkXvo7DhiDyD1gC61raCuV9Y=;
-	h=Date:To:From:Subject:From;
-	b=xh1SpestjNsnwggy+XV6ktqvrcTD5RLNM3AOB/M/8KhMvpFn7KolUZwVU/mwYz56O
-	 XJaxCXg3UCM3v7VrMnMXCHW7xHlmdfBIR2kPGjXZ/OEkN8aNaYo5nro84Ct66E+PS/
-	 UpTaSTZ6qEM+hXGwxBz1kGQQ+JWTUsvC2m7PoxSo=
-Date: Mon, 17 Mar 2025 22:11:06 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,mgorman@techsingularity.net,hannes@cmpxchg.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch removed from -mm tree
-Message-Id: <20250318051106.9AB5EC4CEDD@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K4a8J9TY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6A55C4CEDD;
+	Tue, 18 Mar 2025 05:56:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1742277365;
+	bh=IR1ja90WyBQY91p3/Y38eTFMQmiA9m2LBD9E7185Fvs=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=K4a8J9TYLWvcdEZk7oA0ofhEz9nIjnfRH9dehHVCGQZze9eeWNlDUieoW1Uu0+ZiK
+	 oFUuyAJ+xKb09KwAT2ns0BQoOhxyhMrdk1us+bjuukKBhx8Fd7hiEMz855ta7yCrOD
+	 0Dk8dTWZJPkyj36KudQAoIs2Fwt6HDklDUeAUbOBPFuzEwZr3rzmZKb9lhsBxljP3D
+	 8ip4xWxySIAB/glvKVnLjBcyemUIX1tCPVFDfM2bgFwz5AZ83iwNG7Lsv3q9jJtjTM
+	 Z3Q2wAht46x0nOyU4GAtVIqnhFV2fpnuUv6SRt53r8cv0Gp4XsDxdw7tHMUjzWx3uE
+	 jQsyLDKklAF9Q==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 71744380DBF0;
+	Tue, 18 Mar 2025 05:56:42 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes against 6.14-rc7
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250317201206.7800aeeb5dad94c230fe1456@linux-foundation.org>
+References: <20250317201206.7800aeeb5dad94c230fe1456@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20250317201206.7800aeeb5dad94c230fe1456@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-03-17-20-09
+X-PR-Tracked-Commit-Id: 800f1059c99e2b39899bdc67a7593a7bea6375d8
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 76b6905c11fd3c6dc4562aefc3e8c4429fefae1e
+Message-Id: <174227740101.4034597.18151964474355690519.pr-tracker-bot@kernel.org>
+Date: Tue, 18 Mar 2025 05:56:41 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Mon, 17 Mar 2025 20:12:06 -0700:
 
-The quilt patch titled
-     Subject: mm: page_alloc: defrag_mode kswapd/kcompactd watermarks
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-03-17-20-09
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/76b6905c11fd3c6dc4562aefc3e8c4429fefae1e
 
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: defrag_mode kswapd/kcompactd watermarks
-Date: Thu, 13 Mar 2025 17:05:36 -0400
+Thank you!
 
-The previous patch added pageblock_order reclaim to kswapd/kcompactd,
-which helps, but produces only one block at a time.  Allocation stalls and
-THP failure rates are still higher than they could be.
-
-To adequately reflect ALLOC_NOFRAGMENT demand for pageblocks, change the
-watermarking for kswapd & kcompactd: instead of targeting the high
-watermark in order-0 pages and checking for one suitable block, simply
-require that the high watermark is entirely met in pageblocks.
-
-To this end, track the number of free pages within contiguous pageblocks,
-then change pgdat_balanced() and compact_finished() to check watermarks
-against this new value.
-
-This further reduces THP latencies and allocation stalls, and improves THP
-success rates against the previous patch:
-
-                                       DEFRAGMODE-ASYNC DEFRAGMODE-ASYNC-WMARKS
-Hugealloc Time mean               34300.36 (    +0.00%)   28904.00 (   -15.73%)
-Hugealloc Time stddev             36390.42 (    +0.00%)   33464.37 (    -8.04%)
-Kbuild Real time                    196.13 (    +0.00%)     196.59 (    +0.23%)
-Kbuild User time                   1234.74 (    +0.00%)    1231.67 (    -0.25%)
-Kbuild System time                   62.62 (    +0.00%)      59.10 (    -5.54%)
-THP fault alloc                   57054.53 (    +0.00%)   63223.67 (   +10.81%)
-THP fault fallback                11581.40 (    +0.00%)    5412.47 (   -53.26%)
-Direct compact fail                 107.80 (    +0.00%)      59.07 (   -44.79%)
-Direct compact success                4.53 (    +0.00%)       2.80 (   -31.33%)
-Direct compact success rate %         3.20 (    +0.00%)       3.99 (   +18.66%)
-Compact daemon scanned migrate  5461033.93 (    +0.00%) 2267500.33 (   -58.48%)
-Compact daemon scanned free     5824897.93 (    +0.00%) 2339773.00 (   -59.83%)
-Compact direct scanned migrate    58336.93 (    +0.00%)   47659.93 (   -18.30%)
-Compact direct scanned free       32791.87 (    +0.00%)   40729.67 (   +24.21%)
-Compact total migrate scanned   5519370.87 (    +0.00%) 2315160.27 (   -58.05%)
-Compact total free scanned      5857689.80 (    +0.00%) 2380502.67 (   -59.36%)
-Alloc stall                        2424.60 (    +0.00%)     638.87 (   -73.62%)
-Pages kswapd scanned            2657018.33 (    +0.00%) 4002186.33 (   +50.63%)
-Pages kswapd reclaimed           559583.07 (    +0.00%)  718577.80 (   +28.41%)
-Pages direct scanned             722094.07 (    +0.00%)  355172.73 (   -50.81%)
-Pages direct reclaimed           107257.80 (    +0.00%)   31162.80 (   -70.95%)
-Pages total scanned             3379112.40 (    +0.00%) 4357359.07 (   +28.95%)
-Pages total reclaimed            666840.87 (    +0.00%)  749740.60 (   +12.43%)
-Swap out                          77238.20 (    +0.00%)  110084.33 (   +42.53%)
-Swap in                           11712.80 (    +0.00%)   24457.00 (  +108.80%)
-File refaults                    143438.80 (    +0.00%)  188226.93 (   +31.22%)
-
-Also of note is that compaction work overall is reduced.  The reason for
-this is that when free pageblocks are more readily available, allocations
-are also much more likely to get physically placed in LRU order, instead
-of being forced to scavenge free space here and there.  This means that
-reclaim by itself has better chances of freeing up whole blocks, and the
-system relies less on compaction.
-
-Comparing all changes to the vanilla kernel:
-
-                                                VANILLA DEFRAGMODE-ASYNC-WMARKS
-Hugealloc Time mean               52739.45 (    +0.00%)   28904.00 (   -45.19%)
-Hugealloc Time stddev             56541.26 (    +0.00%)   33464.37 (   -40.81%)
-Kbuild Real time                    197.47 (    +0.00%)     196.59 (    -0.44%)
-Kbuild User time                   1240.49 (    +0.00%)    1231.67 (    -0.71%)
-Kbuild System time                   70.08 (    +0.00%)      59.10 (   -15.45%)
-THP fault alloc                   46727.07 (    +0.00%)   63223.67 (   +35.30%)
-THP fault fallback                21910.60 (    +0.00%)    5412.47 (   -75.29%)
-Direct compact fail                 195.80 (    +0.00%)      59.07 (   -69.48%)
-Direct compact success                7.93 (    +0.00%)       2.80 (   -57.46%)
-Direct compact success rate %         3.51 (    +0.00%)       3.99 (   +10.49%)
-Compact daemon scanned migrate  3369601.27 (    +0.00%) 2267500.33 (   -32.71%)
-Compact daemon scanned free     5075474.47 (    +0.00%) 2339773.00 (   -53.90%)
-Compact direct scanned migrate   161787.27 (    +0.00%)   47659.93 (   -70.54%)
-Compact direct scanned free      163467.53 (    +0.00%)   40729.67 (   -75.08%)
-Compact total migrate scanned   3531388.53 (    +0.00%) 2315160.27 (   -34.44%)
-Compact total free scanned      5238942.00 (    +0.00%) 2380502.67 (   -54.56%)
-Alloc stall                        2371.07 (    +0.00%)     638.87 (   -73.02%)
-Pages kswapd scanned            2160926.73 (    +0.00%) 4002186.33 (   +85.21%)
-Pages kswapd reclaimed           533191.07 (    +0.00%)  718577.80 (   +34.77%)
-Pages direct scanned             400450.33 (    +0.00%)  355172.73 (   -11.31%)
-Pages direct reclaimed            94441.73 (    +0.00%)   31162.80 (   -67.00%)
-Pages total scanned             2561377.07 (    +0.00%) 4357359.07 (   +70.12%)
-Pages total reclaimed            627632.80 (    +0.00%)  749740.60 (   +19.46%)
-Swap out                          47959.53 (    +0.00%)  110084.33 (  +129.53%)
-Swap in                            7276.00 (    +0.00%)   24457.00 (  +236.10%)
-File refaults                    138043.00 (    +0.00%)  188226.93 (   +36.35%)
-
-THP allocation latencies and %sys time are down dramatically.
-
-THP allocation failures are down from nearly 50% to 8.5%.  And to recall
-previous data points, the success rates are steady and reliable without
-the cumulative deterioration of fragmentation events.
-
-Compaction work is down overall.  Direct compaction work especially is
-drastically reduced.  As an aside, its success rate of 4% indicates there
-is room for improvement.  For now it's good to rely on it less.
-
-Reclaim work is up overall, however direct reclaim work is down.  Part of
-the increase can be attributed to a higher use of THPs, which due to
-internal fragmentation increase the memory footprint.  This is not
-necessarily an unexpected side-effect for users of THP.
-
-However, taken both points together, there may well be some opportunities
-for fine tuning in the reclaim/compaction coordination.
-
-[hannes@cmpxchg.org: fix squawks from rebasing]
-  Link: https://lkml.kernel.org/r/20250314210558.GD1316033@cmpxchg.org
-Link: https://lkml.kernel.org/r/20250313210647.1314586-6-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mmzone.h |    1 
- mm/compaction.c        |   41 +++++++++++++++++++++++++++++++--------
- mm/internal.h          |    1 
- mm/page_alloc.c        |   29 +++++++++++++++++++++------
- mm/vmscan.c            |   15 +++++++++++++-
- mm/vmstat.c            |    1 
- 6 files changed, 73 insertions(+), 15 deletions(-)
-
---- a/include/linux/mmzone.h~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/include/linux/mmzone.h
-@@ -138,6 +138,7 @@ enum numa_stat_item {
- enum zone_stat_item {
- 	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
-+	NR_FREE_PAGES_BLOCKS,
- 	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
- 	NR_ZONE_INACTIVE_ANON = NR_ZONE_LRU_BASE,
- 	NR_ZONE_ACTIVE_ANON,
---- a/mm/compaction.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/compaction.c
-@@ -2328,6 +2328,22 @@ static enum compact_result __compact_fin
- 	if (!pageblock_aligned(cc->migrate_pfn))
- 		return COMPACT_CONTINUE;
- 
-+	/*
-+	 * When defrag_mode is enabled, make kcompactd target
-+	 * watermarks in whole pageblocks. Because they can be stolen
-+	 * without polluting, no further fallback checks are needed.
-+	 */
-+	if (defrag_mode && !cc->direct_compaction) {
-+		if (__zone_watermark_ok(cc->zone, cc->order,
-+					high_wmark_pages(cc->zone),
-+					cc->highest_zoneidx, cc->alloc_flags,
-+					zone_page_state(cc->zone,
-+							NR_FREE_PAGES_BLOCKS)))
-+			return COMPACT_SUCCESS;
-+
-+		return COMPACT_CONTINUE;
-+	}
-+
- 	/* Direct compactor: Is a suitable page free? */
- 	ret = COMPACT_NO_SUITABLE_PAGE;
- 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
-@@ -2495,13 +2511,19 @@ bool compaction_zonelist_suitable(struct
- static enum compact_result
- compaction_suit_allocation_order(struct zone *zone, unsigned int order,
- 				 int highest_zoneidx, unsigned int alloc_flags,
--				 bool async)
-+				 bool async, bool kcompactd)
- {
-+	unsigned long free_pages;
- 	unsigned long watermark;
- 
-+	if (kcompactd && defrag_mode)
-+		free_pages = zone_page_state(zone, NR_FREE_PAGES_BLOCKS);
-+	else
-+		free_pages = zone_page_state(zone, NR_FREE_PAGES);
-+
- 	watermark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
--	if (zone_watermark_ok(zone, order, watermark, highest_zoneidx,
--			      alloc_flags))
-+	if (__zone_watermark_ok(zone, order, watermark, highest_zoneidx,
-+				alloc_flags, free_pages))
- 		return COMPACT_SUCCESS;
- 
- 	/*
-@@ -2557,7 +2579,8 @@ compact_zone(struct compact_control *cc,
- 		ret = compaction_suit_allocation_order(cc->zone, cc->order,
- 						       cc->highest_zoneidx,
- 						       cc->alloc_flags,
--						       cc->mode == MIGRATE_ASYNC);
-+						       cc->mode == MIGRATE_ASYNC,
-+						       !cc->direct_compaction);
- 		if (ret != COMPACT_CONTINUE)
- 			return ret;
- 	}
-@@ -3051,6 +3074,8 @@ static bool kcompactd_node_suitable(pg_d
- 	struct zone *zone;
- 	enum zone_type highest_zoneidx = pgdat->kcompactd_highest_zoneidx;
- 	enum compact_result ret;
-+	unsigned int alloc_flags = defrag_mode ?
-+		ALLOC_WMARK_HIGH : ALLOC_WMARK_MIN;
- 
- 	for (zoneid = 0; zoneid <= highest_zoneidx; zoneid++) {
- 		zone = &pgdat->node_zones[zoneid];
-@@ -3060,8 +3085,8 @@ static bool kcompactd_node_suitable(pg_d
- 
- 		ret = compaction_suit_allocation_order(zone,
- 				pgdat->kcompactd_max_order,
--				highest_zoneidx, ALLOC_WMARK_MIN,
--				false);
-+				highest_zoneidx, alloc_flags,
-+				false, true);
- 		if (ret == COMPACT_CONTINUE)
- 			return true;
- 	}
-@@ -3084,7 +3109,7 @@ static void kcompactd_do_work(pg_data_t
- 		.mode = MIGRATE_SYNC_LIGHT,
- 		.ignore_skip_hint = false,
- 		.gfp_mask = GFP_KERNEL,
--		.alloc_flags = ALLOC_WMARK_MIN,
-+		.alloc_flags = defrag_mode ? ALLOC_WMARK_HIGH : ALLOC_WMARK_MIN,
- 	};
- 	enum compact_result ret;
- 
-@@ -3104,7 +3129,7 @@ static void kcompactd_do_work(pg_data_t
- 
- 		ret = compaction_suit_allocation_order(zone,
- 				cc.order, zoneid, cc.alloc_flags,
--				false);
-+				false, true);
- 		if (ret != COMPACT_CONTINUE)
- 			continue;
- 
---- a/mm/internal.h~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/internal.h
-@@ -536,6 +536,7 @@ extern char * const zone_names[MAX_NR_ZO
- DECLARE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
- 
- extern int min_free_kbytes;
-+extern int defrag_mode;
- 
- void setup_per_zone_wmarks(void);
- void calculate_min_free_kbytes(void);
---- a/mm/page_alloc.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/page_alloc.c
-@@ -273,7 +273,7 @@ int min_free_kbytes = 1024;
- int user_min_free_kbytes = -1;
- static int watermark_boost_factor __read_mostly = 15000;
- static int watermark_scale_factor = 10;
--static int defrag_mode;
-+int defrag_mode;
- 
- /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
- int movable_zone;
-@@ -660,16 +660,20 @@ static inline void __add_to_free_list(st
- 				      bool tail)
- {
- 	struct free_area *area = &zone->free_area[order];
-+	int nr_pages = 1 << order;
- 
- 	VM_WARN_ONCE(get_pageblock_migratetype(page) != migratetype,
- 		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
--		     get_pageblock_migratetype(page), migratetype, 1 << order);
-+		     get_pageblock_migratetype(page), migratetype, nr_pages);
- 
- 	if (tail)
- 		list_add_tail(&page->buddy_list, &area->free_list[migratetype]);
- 	else
- 		list_add(&page->buddy_list, &area->free_list[migratetype]);
- 	area->nr_free++;
-+
-+	if (order >= pageblock_order && !is_migrate_isolate(migratetype))
-+		__mod_zone_page_state(zone, NR_FREE_PAGES_BLOCKS, nr_pages);
- }
- 
- /*
-@@ -681,24 +685,34 @@ static inline void move_to_free_list(str
- 				     unsigned int order, int old_mt, int new_mt)
- {
- 	struct free_area *area = &zone->free_area[order];
-+	int nr_pages = 1 << order;
- 
- 	/* Free page moving can fail, so it happens before the type update */
- 	VM_WARN_ONCE(get_pageblock_migratetype(page) != old_mt,
- 		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
--		     get_pageblock_migratetype(page), old_mt, 1 << order);
-+		     get_pageblock_migratetype(page), old_mt, nr_pages);
- 
- 	list_move_tail(&page->buddy_list, &area->free_list[new_mt]);
- 
--	account_freepages(zone, -(1 << order), old_mt);
--	account_freepages(zone, 1 << order, new_mt);
-+	account_freepages(zone, -nr_pages, old_mt);
-+	account_freepages(zone, nr_pages, new_mt);
-+
-+	if (order >= pageblock_order &&
-+	    is_migrate_isolate(old_mt) != is_migrate_isolate(new_mt)) {
-+		if (!is_migrate_isolate(old_mt))
-+			nr_pages = -nr_pages;
-+		__mod_zone_page_state(zone, NR_FREE_PAGES_BLOCKS, nr_pages);
-+	}
- }
- 
- static inline void __del_page_from_free_list(struct page *page, struct zone *zone,
- 					     unsigned int order, int migratetype)
- {
-+	int nr_pages = 1 << order;
-+
-         VM_WARN_ONCE(get_pageblock_migratetype(page) != migratetype,
- 		     "page type is %lu, passed migratetype is %d (nr=%d)\n",
--		     get_pageblock_migratetype(page), migratetype, 1 << order);
-+		     get_pageblock_migratetype(page), migratetype, nr_pages);
- 
- 	/* clear reported state and update reported page count */
- 	if (page_reported(page))
-@@ -708,6 +722,9 @@ static inline void __del_page_from_free_
- 	__ClearPageBuddy(page);
- 	set_page_private(page, 0);
- 	zone->free_area[order].nr_free--;
-+
-+	if (order >= pageblock_order && !is_migrate_isolate(migratetype))
-+		__mod_zone_page_state(zone, NR_FREE_PAGES_BLOCKS, -nr_pages);
- }
- 
- static inline void del_page_from_free_list(struct page *page, struct zone *zone,
---- a/mm/vmscan.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/vmscan.c
-@@ -6724,11 +6724,24 @@ static bool pgdat_balanced(pg_data_t *pg
- 	 * meet watermarks.
- 	 */
- 	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
-+		unsigned long free_pages;
-+
- 		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
- 			mark = promo_wmark_pages(zone);
- 		else
- 			mark = high_wmark_pages(zone);
--		if (zone_watermark_ok_safe(zone, order, mark, highest_zoneidx))
-+
-+		/*
-+		 * In defrag_mode, watermarks must be met in whole
-+		 * blocks to avoid polluting allocator fallbacks.
-+		 */
-+		if (defrag_mode)
-+			free_pages = zone_page_state(zone, NR_FREE_PAGES_BLOCKS);
-+		else
-+			free_pages = zone_page_state(zone, NR_FREE_PAGES);
-+
-+		if (__zone_watermark_ok(zone, order, mark, highest_zoneidx,
-+					0, free_pages))
- 			return true;
- 	}
- 
---- a/mm/vmstat.c~mm-page_alloc-defrag_mode-kswapd-kcompactd-watermarks
-+++ a/mm/vmstat.c
-@@ -1190,6 +1190,7 @@ int fragmentation_index(struct zone *zon
- const char * const vmstat_text[] = {
- 	/* enum zone_stat_item counters */
- 	"nr_free_pages",
-+	"nr_free_pages_blocks",
- 	"nr_zone_inactive_anon",
- 	"nr_zone_active_anon",
- 	"nr_zone_inactive_file",
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
