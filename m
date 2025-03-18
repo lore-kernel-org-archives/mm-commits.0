@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB8CE1C701D
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 116A51C701D
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:09:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274564; cv=none; b=lZJ+AtrNezk1Zo56MCTvFlBG0gbmZkIomDoG7JtTIu4mo4DSs+3NOMaMNl2Z97trBlIGyYtuyIucq9661T/OIs8RmtSTDxLGhMoPIjl4NyT/jAL4BE4kB5mj7gzz+fNQa9bZHe2qNqomVw9iyE/BdxfC5kRz9an0WTaX25X22hA=
+	t=1742274566; cv=none; b=G8uzIFypLYZKJn8RUD57QMJHRftkHtSRnTchszGLD6FSD2WRc0XzWKRHoti5hcO2kQS9V3i0OXEwFkAdBA7FVbTdmfpHEd+F/wtCkA258saS1vBzTeFc1gN1ODPq5bTFRi9gFbCxrvoFGUZsTht36kIdHoJAbL82n6N/vGLfD+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274564; c=relaxed/simple;
-	bh=43kJAz1OCttc0lqgT5cWFzB5rHTrdnc6pF+2DncJRfo=;
-	h=Date:To:From:Subject:Message-Id; b=ZBoQtE8/LnP9w2CNie1aanVDqk24hxCF2b0yWlnBhATJRxhsM8/IpZ0YdeJSLAck8ph6rU1Yo67ALoXxFv2D5lZwV7lPNbQvjsz2cmbG/FzzjpJ3i4YegC+hb09r3j/hCQwqg9v5fW4RsHlE1L20MQxXrxtiu8oaNDz/th35Scs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U+jRItK8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274566; c=relaxed/simple;
+	bh=KzhpRLua7bwkoZN88c3icSHwrM0nEShnE4+sdzSQTVc=;
+	h=Date:To:From:Subject:Message-Id; b=P4a3RTBqZ9cyVwtZrwdzNs354ZUSaw66lhJKGJmBp7YkyvnHKrLx2J7z4abldAkOeASBlyjTrns8n2+99zZhXTvzesxZ5Xr9C3WJIjdCnLRIFHgoZkhHXgk80E05teiFdou1pJXg/xzJnzr+Fs56nqMEa8SDi+s1Ad8opGYTH5M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hhdey6lA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U+jRItK8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0934C4CEDD;
-	Tue, 18 Mar 2025 05:09:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hhdey6lA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA55EC4CEDD;
+	Tue, 18 Mar 2025 05:09:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274564;
-	bh=43kJAz1OCttc0lqgT5cWFzB5rHTrdnc6pF+2DncJRfo=;
+	s=korg; t=1742274565;
+	bh=KzhpRLua7bwkoZN88c3icSHwrM0nEShnE4+sdzSQTVc=;
 	h=Date:To:From:Subject:From;
-	b=U+jRItK8a/ZbAa74NX7qt+GH0JV8xBHWEQZlljeE5ks3F7gdnA12xegbnNR1PHkm/
-	 d+Kd3wJ06V19jb4wv31k+VzYwUaKDR5/rXBx2wi/bOCa5pI8oKvmm1lCdNDJ9dpF5A
-	 hoem7hL8nxOJ8/tX5mun1Thy8Dsm7bI2EOoMgghA=
-Date: Mon, 17 Mar 2025 22:09:24 -0700
-To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=hhdey6lAfs2O20JGGX2yNuEC81CPuFyz1k/bCogXDbcHiavqD+aZS7/CuvNEJvBK2
+	 aSngWccryr/+gwxXNO8wWCzy9Ri87sSn6z/ouW8XPy2NZUStU4DdhyS3vso1oYrdcq
+	 9IgqIdE9EpkLVYflnBzITvOuJSbZH+JPF5LWe8io=
+Date: Mon, 17 Mar 2025 22:09:25 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch removed from -mm tree
-Message-Id: <20250318050924.B0934C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-update-nr_huge_pages-and-surplus_huge_pages-together.patch removed from -mm tree
+Message-Id: <20250318050925.DA55EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for {core,ops}_filters directories
+     Subject: mm/hugetlb: update nr_huge_pages and surplus_huge_pages together
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories.patch
+     mm-hugetlb-update-nr_huge_pages-and-surplus_huge_pages-together.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for {core,ops}_filters directories
-Date: Wed, 5 Mar 2025 14:27:33 -0800
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/hugetlb: update nr_huge_pages and surplus_huge_pages together
+Date: Wed, 5 Mar 2025 11:54:09 +0800
 
-Document {core,ops}_filters directories on usage document.
+In alloc_surplus_hugetlb_folio(), we increase nr_huge_pages and
+surplus_huge_pages separately.  In the middle window, if we set
+nr_hugepages to smaller and satisfy count < persistent_huge_pages(h), the
+surplus_huge_pages will be increased by adjust_pool_surplus().
 
-Link: https://lkml.kernel.org/r/20250305222733.59089-9-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+After adding delay in the middle window, we can reproduce the problem
+easily by following step:
+
+ 1. echo 3 > /proc/sys/vm/nr_overcommit_hugepages
+ 2. mmap two hugepages. When nr_huge_pages=2 and surplus_huge_pages=1,
+    goto step 3.
+ 3. echo 0 > /proc/sys/vm/nr_huge_pages
+
+Finally, nr_huge_pages is less than surplus_huge_pages.
+
+To fix the problem, call only_alloc_fresh_hugetlb_folio() instead and
+move down __prep_account_new_huge_page() into the hugetlb_lock.
+
+Link: https://lkml.kernel.org/r/20250305035409.2391344-1-liushixin2@huawei.com
+Fixes: 0c397daea1d4 ("mm, hugetlb: further simplify hugetlb allocation API")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   31 ++++++++++++-----
- 1 file changed, 22 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-coreops_filters-directories
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -83,7 +83,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
-     │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value
-     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
--    │ │ │ │ │ │ │ :ref:`filters <sysfs_filters>`/nr_filters
-+    │ │ │ │ │ │ │ :ref:`{core_,ops_,}filters <sysfs_filters>`/nr_filters
-     │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx,min,max
-     │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds
-     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
-@@ -307,9 +307,10 @@ to ``N-1``.  Each directory represents e
- schemes/<N>/
- ------------
+--- a/mm/hugetlb.c~mm-hugetlb-update-nr_huge_pages-and-surplus_huge_pages-together
++++ a/mm/hugetlb.c
+@@ -2259,12 +2259,21 @@ static struct folio *alloc_surplus_huget
+ 		goto out_unlock;
+ 	spin_unlock_irq(&hugetlb_lock);
  
--In each scheme directory, five directories (``access_pattern``, ``quotas``,
--``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and three files
--(``action``, ``target_nid`` and ``apply_interval``) exist.
-+In each scheme directory, seven directories (``access_pattern``, ``quotas``,
-+``watermarks``, ``core_filters``, ``ops_filters``, ``filters``, ``stats``, and
-+``tried_regions``) and three files (``action``, ``target_nid`` and
-+``apply_interval``) exist.
+-	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask);
++	folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
+ 	if (!folio)
+ 		return NULL;
  
- The ``action`` file is for setting and getting the scheme's :ref:`action
- <damon_design_damos_action>`.  The keywords that can be written to and read
-@@ -420,13 +421,24 @@ The ``interval`` should written in micro
- 
- .. _sysfs_filters:
- 
--schemes/<N>/filters/
----------------------
-+schemes/<N>/{core\_,ops\_,}filters/
-+-----------------------------------
- 
--The directory for the :ref:`filters <damon_design_damos_filters>` of the given
-+Directories for :ref:`filters <damon_design_damos_filters>` of the given
- DAMON-based operation scheme.
- 
--In the beginning, this directory has only one file, ``nr_filters``.  Writing a
-+``core_filters`` and ``ops_filters`` directories are for the filters handled by
-+the DAMON core layer and operations set layer, respectively.  ``filters``
-+directory can be used for installing filters regardless of their handled
-+layers.  Filters that requested by ``core_filters`` and ``ops_filters`` will be
-+installed before those of ``filters``.  All three directories have same files.
++	hugetlb_vmemmap_optimize_folio(h, folio);
 +
-+Use of ``filters`` directory can make expecting evaluation orders of given
-+filters with the files under directory bit confusing.  Users are hence
-+recommended to use ``core_filters`` and ``ops_filters`` directories.  The
-+``filters`` directory could be deprecated in future.
+ 	spin_lock_irq(&hugetlb_lock);
+ 	/*
++	 * nr_huge_pages needs to be adjusted within the same lock cycle
++	 * as surplus_pages, otherwise it might confuse
++	 * persistent_huge_pages() momentarily.
++	 */
++	__prep_account_new_huge_page(h, nid);
 +
-+In the beginning, the directory has only one file, ``nr_filters``.  Writing a
- number (``N``) to the file creates the number of child directories named ``0``
- to ``N-1``.  Each directory represents each filter.  The filters are evaluated
- in the numeric order.
-@@ -435,7 +447,7 @@ Each filter directory contains nine file
- ``allow``, ``memcg_path``, ``addr_start``, ``addr_end``, ``min``, ``max``
- and ``target_idx``.  To ``type`` file, you can write the type of the filter.
- Refer to :ref:`the design doc <damon_design_damos_filters>` for available type
--names and their meanings.
-+names, their meaning and on what layer those are handled.
- 
- For ``memcg`` type, you can specify the memory cgroup of the interest by
- writing the path of the memory cgroup from the cgroups mount point to
-@@ -455,6 +467,7 @@ the ``type`` and ``matching`` should be
- For example, below restricts a DAMOS action to be applied to only non-anonymous
- pages of all memory cgroups except ``/having_care_already``.::
- 
-+    # cd ops_filters/0/
-     # echo 2 > nr_filters
-     # # disallow anonymous pages
-     echo anon > 0/type
++	/*
+ 	 * We could have raced with the pool size change.
+ 	 * Double check that and simply deallocate the new page
+ 	 * if we would end up overcommiting the surpluses. Abuse
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
+mm-page_isolation-avoid-call-folio_hstate-without-hugetlb_lock.patch
 
