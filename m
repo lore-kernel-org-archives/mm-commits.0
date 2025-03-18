@@ -1,128 +1,218 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B19EB19C56C;
-	Tue, 18 Mar 2025 03:12:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65ECA38FA6
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 03:36:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742267527; cv=none; b=rIY5C1a4UlGLpz+0VisRr98MDkd58MEoE6OoDDMkpig7J6c21eQ5zzThUXv8BND+taBm9eKeRpZNsrdxQ8f6BPEIaKhNtp9SoXlDHL/ZzqJOMm/n08f075GkOZ3hczQaSthkN08HQ5onM2hQKVU7PMtiE6wTniZC0MXaGhzzIBU=
+	t=1742268997; cv=none; b=l+guNdZndTiYFLPzA1yM7Bz9oLyetYzRkCI5NnRJQCsyzpk9+ov6KAyA3zkqyKXOzCy1XhZZ40aJAQZeF6ZVum0Ca4hg3/ziW36U21KD28W80uW506s2DZ/I93Kcu7r26VfKaBgd7ZJ6/7q7Tu72CPE5YoiFYolsnTm3Xw1TAoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742267527; c=relaxed/simple;
-	bh=FOzdTj+RgVpefQ/QXmvMORIw8lgZ29rTBpBKUfuC72E=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=ZDAdut2tB+af8wImG/qFxoCICy17cvcqGRmkgem4YMIf1vWLyQQNsB2r3VhaxMIQX3vOsW7sfDAzIAslV5uwyLU6qvCpI1ruEF86GrkS0GaPhEH3YDIHuG4siC/weNvuBNwTlA7kiiHqMZX9An4Pt185IudfDvzCavPXlxD9b/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=spDGdY+V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742268997; c=relaxed/simple;
+	bh=HeKGppihLny4vseX35zn3jOI7P0Sa7hLaS1D8+UOC+A=;
+	h=Date:To:From:Subject:Message-Id; b=Ify0T7louGmDlSq2DkhYSaOBGBTUbZT7MXwQWo5U3K8MyRnxRAkNrgdkzSETF9T4zI16SG0R6SPSwY9cT71CDB05nHvxpjWTyQksSvWl/ylFTaoyP/bhb1ghWPox9Ta9WEglDFwqhVRDMeRYJ9yX759vx8Y5a1JqYBsnicrFwME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G5i1wtB6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="spDGdY+V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2615C4CEEF;
-	Tue, 18 Mar 2025 03:12:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G5i1wtB6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1DEAC4CEE3;
+	Tue, 18 Mar 2025 03:36:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742267527;
-	bh=FOzdTj+RgVpefQ/QXmvMORIw8lgZ29rTBpBKUfuC72E=;
-	h=Date:From:To:Cc:Subject:From;
-	b=spDGdY+VA9KOBxO0Twx5afFB5rusaXHnv8mXmwgmmMZaGpgXkMiuqReEZbSq5DO2s
-	 k6SltBxPpTWcHrgvhpKJxyRi6ajP4SuVZJcjQM8ahdMS/jxd9kKlxBKMIQd6db48pR
-	 1RT5s1AtEOiQfYlVU2JeTU3ERk+Xcg9puzSmwXsQ=
-Date: Mon, 17 Mar 2025 20:12:06 -0700
+	s=korg; t=1742268996;
+	bh=HeKGppihLny4vseX35zn3jOI7P0Sa7hLaS1D8+UOC+A=;
+	h=Date:To:From:Subject:From;
+	b=G5i1wtB61Sv75lFrf3Sf2GqEi66lBaq7/3uWdeQiQrP/pF34TLKWIXFPDp0qcyfrT
+	 J60gQKV77+ZjnTy05IHFA4tk1ZdujZ+CgBqhtn6m2tjbDJndzuBAaYT/8MGYo3dJWj
+	 Mmmen96qA6RvXFuh3c4hsI4AkJjq4W+rssshEbRg=
+Date: Mon, 17 Mar 2025 20:36:36 -0700
+To: mm-commits@vger.kernel.org,tjmercier@google.com,tj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,balbirs@nvidia.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes against 6.14-rc7
-Message-Id: <20250317201206.7800aeeb5dad94c230fe1456@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [to-be-updated] memcg-add-hierarchical-effective-limits-for-v2.patch removed from -mm tree
+Message-Id: <20250318033636.C1DEAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: memcg: add hierarchical effective limits for v2
+has been removed from the -mm tree.  Its filename was
+     memcg-add-hierarchical-effective-limits-for-v2.patch
 
-The following changes since commit 80e54e84911a923c40d7bee33a34c1b4be148d7a:
+This patch was dropped because an updated version will be issued
 
-  Linux 6.14-rc6 (2025-03-09 13:45:25 -1000)
+------------------------------------------------------
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: add hierarchical effective limits for v2
+Date: Wed, 5 Feb 2025 14:20:29 -0800
 
-are available in the Git repository at:
+Memcg-v1 exposes hierarchical_[memory|memsw]_limit counters in its
+memory.stat file which applications can use to get their effective limit
+which is the minimum of limits of itself and all of its ancestors.  This
+is pretty useful in environments where cgroup namespace is used and the
+application does not have access to the full view of the cgroup hierarchy.
+Let's expose effective limits for memcg v2 as well.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-03-17-20-09
+Link: https://lkml.kernel.org/r/20250205222029.2979048-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "T.J. Mercier" <tjmercier@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-for you to fetch changes up to 800f1059c99e2b39899bdc67a7593a7bea6375d8:
+ Documentation/admin-guide/cgroup-v2.rst |   24 +++++++++++
+ mm/memcontrol.c                         |   48 ++++++++++++++++++++++
+ 2 files changed, 72 insertions(+)
 
-  mm/page_alloc: fix memory accept before watermarks gets initialized (2025-03-16 17:40:26 -0700)
+--- a/Documentation/admin-guide/cgroup-v2.rst~memcg-add-hierarchical-effective-limits-for-v2
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1311,6 +1311,14 @@ PAGE_SIZE multiple when read back.
+ 	Caller could retry them differently, return into userspace
+ 	as -ENOMEM or silently ignore in cases like disk readahead.
+ 
++  memory.max.effective
++	A read-only single value file which exists on non-root cgroups.
++
++        The effective limit of the cgroup i.e. the minimum memory.max
++        of all ancestors including itself. This is useful for environments
++        where cgroup namespace is being used and the application does not
++        have full view of the hierarchy.
++
+   memory.reclaim
+ 	A write-only nested-keyed file which exists for all cgroups.
+ 
+@@ -1726,6 +1734,14 @@ The following nested keys are defined.
+ 	Swap usage hard limit.  If a cgroup's swap usage reaches this
+ 	limit, anonymous memory of the cgroup will not be swapped out.
+ 
++  memory.swap.max.effective
++	A read-only single value file which exists on non-root cgroups.
++
++        The effective limit of the cgroup i.e. the minimum memory.swap.max
++        of all ancestors including itself. This is useful for environments
++        where cgroup namespace is being used and the application does not
++        have full view of the hierarchy.
++
+   memory.swap.events
+ 	A read-only flat-keyed file which exists on non-root cgroups.
+ 	The following entries are defined.  Unless specified
+@@ -1766,6 +1782,14 @@ The following nested keys are defined.
+ 	limit, it will refuse to take any more stores before existing
+ 	entries fault back in or are written out to disk.
+ 
++  memory.zswap.max.effective
++	A read-only single value file which exists on non-root cgroups.
++
++        The effective limit of the cgroup i.e. the minimum memory.zswap.max
++        of all ancestors including itself. This is useful for environments
++        where cgroup namespace is being used and the application does not
++        have full view of the hierarchy.
++
+   memory.zswap.writeback
+ 	A read-write single value file. The default value is "1".
+ 	Note that this setting is hierarchical, i.e. the writeback would be
+--- a/mm/memcontrol.c~memcg-add-hierarchical-effective-limits-for-v2
++++ a/mm/memcontrol.c
+@@ -4179,6 +4179,17 @@ static int memory_max_show(struct seq_fi
+ 		READ_ONCE(mem_cgroup_from_seq(m)->memory.max));
+ }
+ 
++static int memory_max_effective_show(struct seq_file *m, void *v)
++{
++	unsigned long max = PAGE_COUNTER_MAX;
++	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
++
++	for (; memcg; memcg = parent_mem_cgroup(memcg))
++		max = min(max, READ_ONCE(memcg->memory.max));
++
++	return seq_puts_memcg_tunable(m, max);
++}
++
+ static ssize_t memory_max_write(struct kernfs_open_file *of,
+ 				char *buf, size_t nbytes, loff_t off)
+ {
+@@ -4458,6 +4469,11 @@ static struct cftype memory_files[] = {
+ 		.write = memory_max_write,
+ 	},
+ 	{
++		.name = "max.effective",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = memory_max_effective_show,
++	},
++	{
+ 		.name = "events",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+ 		.file_offset = offsetof(struct mem_cgroup, events_file),
+@@ -5136,6 +5152,17 @@ static int swap_max_show(struct seq_file
+ 		READ_ONCE(mem_cgroup_from_seq(m)->swap.max));
+ }
+ 
++static int swap_max_effective_show(struct seq_file *m, void *v)
++{
++	unsigned long max = PAGE_COUNTER_MAX;
++	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
++
++	for (; memcg; memcg = parent_mem_cgroup(memcg))
++		max = min(max, READ_ONCE(memcg->swap.max));
++
++	return seq_puts_memcg_tunable(m, max);
++}
++
+ static ssize_t swap_max_write(struct kernfs_open_file *of,
+ 			      char *buf, size_t nbytes, loff_t off)
+ {
+@@ -5186,6 +5213,11 @@ static struct cftype swap_files[] = {
+ 		.write = swap_max_write,
+ 	},
+ 	{
++		.name = "swap.max.effective",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = swap_max_effective_show,
++	},
++	{
+ 		.name = "swap.peak",
+ 		.flags = CFTYPE_NOT_ON_ROOT,
+ 		.open = peak_open,
+@@ -5327,6 +5359,17 @@ static int zswap_max_show(struct seq_fil
+ 		READ_ONCE(mem_cgroup_from_seq(m)->zswap_max));
+ }
+ 
++static int zswap_max_effective_show(struct seq_file *m, void *v)
++{
++	unsigned long max = PAGE_COUNTER_MAX;
++	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
++
++	for (; memcg; memcg = parent_mem_cgroup(memcg))
++		max = min(max, READ_ONCE(memcg->zswap_max));
++
++	return seq_puts_memcg_tunable(m, max);
++}
++
+ static ssize_t zswap_max_write(struct kernfs_open_file *of,
+ 			       char *buf, size_t nbytes, loff_t off)
+ {
+@@ -5382,6 +5425,11 @@ static struct cftype zswap_files[] = {
+ 		.write = zswap_max_write,
+ 	},
+ 	{
++		.name = "zswap.max.effective",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = zswap_max_effective_show,
++	},
++	{
+ 		.name = "zswap.writeback",
+ 		.seq_show = zswap_writeback_show,
+ 		.write = zswap_writeback_write,
+_
 
-----------------------------------------------------------------
-15 hotfixes.  7 are cc:stable and the remainder address post-6.13 issues
-or aren't considered necessary for -stable kernels.
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-13 are for MM and the other two are for squashfs and procfs.
-
-All are singletons.  Please see the individual changelogs for details.
-
-----------------------------------------------------------------
-Dave Hansen (1):
-      filemap: move prefaulting out of hot write path
-
-Dev Jain (1):
-      mm/vma: do not register private-anon mappings with khugepaged during mmap
-
-Jinjiang Tu (1):
-      mm/hugetlb: fix surplus pages in dissolve_free_huge_page()
-
-Kirill A. Shutemov (1):
-      mm/page_alloc: fix memory accept before watermarks gets initialized
-
-Matthew Wilcox (Oracle) (1):
-      mm: decline to manipulate the refcount on a slab page
-
-Muchun Song (1):
-      mm: memcontrol: fix swap counter leak from offline cgroup
-
-Rafael Aquini (1):
-      selftests/mm: run_vmtests.sh: fix half_ufd_size_MB calculation
-
-Raphael S. Carvalho (1):
-      mm: fix error handling in __filemap_get_folio() with FGP_NOWAIT
-
-SeongJae Park (2):
-      mm/damon: respect core layer filters' allowance decision on ops layer
-      mm/damon/core: initialize damos->walk_completed in damon_new_scheme()
-
-Shakeel Butt (1):
-      memcg: drain obj stock on cpu hotplug teardown
-
-Ye Bin (1):
-      proc: fix UAF in proc_get_inode()
-
-Zhiyu Zhang (1):
-      squashfs: fix invalid pointer dereference in squashfs_cache_delete
-
-Zi Yan (2):
-      mm/migrate: fix shmem xarray update during migration
-      mm/huge_memory: drop beyond-EOF folios with the right number of refs
-
- fs/proc/generic.c                         | 10 +++++++-
- fs/proc/inode.c                           |  6 ++---
- fs/proc/internal.h                        | 14 +++++++++++
- fs/squashfs/cache.c                       |  2 +-
- include/linux/damon.h                     |  5 ++++
- include/linux/mm.h                        |  8 ++++++-
- include/linux/proc_fs.h                   |  7 ++++--
- include/linux/swap_cgroup.h               |  4 ++--
- lib/iov_iter.c                            |  8 +++++--
- mm/damon/core.c                           |  7 +++++-
- mm/damon/paddr.c                          |  3 +++
- mm/filemap.c                              | 40 +++++++++++++++++++++----------
- mm/huge_memory.c                          |  2 +-
- mm/hugetlb.c                              |  8 +++++--
- mm/memcontrol.c                           | 13 ++++++++--
- mm/migrate.c                              | 10 ++++----
- mm/page_alloc.c                           | 14 +++++++++--
- mm/swap_cgroup.c                          |  7 +++---
- mm/vma.c                                  |  3 ++-
- tools/testing/selftests/mm/run_vmtests.sh |  4 +++-
- 20 files changed, 132 insertions(+), 43 deletions(-)
+memcg-avoid-refill_stock-for-root-memcg.patch
+memcg-move-do_memsw_account-to-config_memcg_v1.patch
 
