@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C89FB1D6DA3
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B6341C700A
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274636; cv=none; b=j5kOARe4wJHfITUQRjkGVzt7lCdozDLvoYajlI1xEnJOGgRxlUxnRKUcdH2jbCu60s90uFwzzTGRdNrJLeGQHUDCu6a+KJoY6OSYem8zQCTQdb71SVTWBtJy5QUvzX8+SZLRcnD27eWo8dolpSn5gPFNPEd5u/rm3+BX/htShK4=
+	t=1742274638; cv=none; b=Pbtf5mKwbz07ZOmu+JckwPU74BWLhk7QFvk8GLDK1uYSoGgfYeOocxQsVokBvWedDX0/Dn+yB7RwFpw3boYwTDMVLy0sFcnHoQQrjXwoaf23xGt5sDpsHzTfsPUx6pEKUdPGXqZmfvOQi1gAOhXHlNNJMN6acDUa07oJx0aUn3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274636; c=relaxed/simple;
-	bh=xpRtOGCHKp4euK25rZWyxRBzlGDV1H1+/6Sym7BhQtk=;
-	h=Date:To:From:Subject:Message-Id; b=QyHoD8ZBIrRH6ZeQG38GZOzy8nAdSrAS8rWaG4twJnWdMaOGO0BiLgvVHKWOdaY7+yeGioeC2zhtxhgiBQnDLkYFn31H7CXzFMOvn879u+B2Vx4+OeiGn8F4tR5DYwklQzCkihz5nobO/HBkSSTGdLAjvcle6ltWfRdJYz7bXEs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kOINMWc0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274638; c=relaxed/simple;
+	bh=TnzquSwoKGPS2YJl3ImF7p4ItfRlJzhmrNQfFwBqn2I=;
+	h=Date:To:From:Subject:Message-Id; b=H4YcrY3yEoYhMy1VZYv8i+gOJHAuRUaDZKrtIIjl37VUpTpzWJ6eMDVmLxMGeIZjOXpktYgtv5dGuhAdr4P88gkSy8A/g4LrtxSxoDYcWAH8SdNEA/b80kta5TfeBAfF43PwuJyZMsbdOlvQn/smCVWQIwYfSXNXrWq0HuB339w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZtLmFhUb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kOINMWc0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0E8CC4CEDD;
-	Tue, 18 Mar 2025 05:10:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZtLmFhUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0131DC4CEDD;
+	Tue, 18 Mar 2025 05:10:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274636;
-	bh=xpRtOGCHKp4euK25rZWyxRBzlGDV1H1+/6Sym7BhQtk=;
+	s=korg; t=1742274638;
+	bh=TnzquSwoKGPS2YJl3ImF7p4ItfRlJzhmrNQfFwBqn2I=;
 	h=Date:To:From:Subject:From;
-	b=kOINMWc0ncmeNJJCU6GFYCyCFdYj6r1lrD31QLYTF9lcBIz7Xx6yRU4HjBiGnOcnE
-	 Ezj7fNhBr1yOvxqwKKWPD6eysbfl6vq9+1n8EwNDy467htRrigOgt6+2TH2ROegKx/
-	 Ya1ydnT0nbm7WCsVqzaMNoqSf6HgGmEQWZn9Mfjs=
-Date: Mon, 17 Mar 2025 22:10:36 -0700
-To: mm-commits@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,gregkh@linuxfoundation.org,david@redhat.com,dakr@kernel.org,gshan@redhat.com,akpm@linux-foundation.org
+	b=ZtLmFhUb8g/fqHrf1oVpHOpiGBFcmgP+uLRntCy4RILaB8gKp2czs7vD21wc8ZZcj
+	 SvBk2x4pakHjrc0mvil91F0Br9UZF1zEWNmDHQJB+3sqvCfyE0oOHuUDNMw91G/MzN
+	 TSqcXJJY5kSpI6GJE62E7Qbf+E5kg7ubZwzSyJEg=
+Date: Mon, 17 Mar 2025 22:10:37 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,lorenzo.stoakes@oracle.com,dev.jain@arm.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drivers-base-memory-correct-the-field-name-in-the-header.patch removed from -mm tree
-Message-Id: <20250318051036.A0E8CC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-use-ptep_get-instead-of-directly-dereferencing-pte_t.patch removed from -mm tree
+Message-Id: <20250318051038.0131DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drivers/base/memory: correct the field name in the header
+     Subject: mm: use ptep_get() instead of directly dereferencing pte_t*
 has been removed from the -mm tree.  Its filename was
-     drivers-base-memory-correct-the-field-name-in-the-header.patch
+     mm-use-ptep_get-instead-of-directly-dereferencing-pte_t.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: drivers/base/memory: correct the field name in the header
-Date: Wed, 12 Mar 2025 09:30:44 +1000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: use ptep_get() instead of directly dereferencing pte_t*
+Date: Mon, 10 Mar 2025 14:04:17 +0000
 
-Replace @blocks with @memory_blocks to match with the definition of struct
-memory_group.
+It is best practice for all pte accesses to go via the arch helpers, to
+ensure non-torn values and to allow the arch to intervene where needed
+(contpte for arm64 for example).  While in this case it was probably safe
+to directly dereference, let's tidy it up for consistency.
 
-Link: https://lkml.kernel.org/r/20250311233045.148943-3-gshan@redhat.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Link: https://lkml.kernel.org/r/20250310140418.1737409-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    2 +-
+ mm/migrate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memory.h~drivers-base-memory-correct-the-field-name-in-the-header
-+++ a/include/linux/memory.h
-@@ -25,7 +25,7 @@
- /**
-  * struct memory_group - a logical group of memory blocks
-  * @nid: The node id for all memory blocks inside the memory group.
-- * @blocks: List of all memory blocks belonging to this memory group.
-+ * @memory_blocks: List of all memory blocks belonging to this memory group.
-  * @present_kernel_pages: Present (online) memory outside ZONE_MOVABLE of this
-  *			  memory group.
-  * @present_movable_pages: Present (online) memory in ZONE_MOVABLE of this
+--- a/mm/migrate.c~mm-use-ptep_get-instead-of-directly-dereferencing-pte_t
++++ a/mm/migrate.c
+@@ -202,7 +202,7 @@ static bool try_to_map_unused_to_zeropag
+ 		return false;
+ 	VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+-	VM_BUG_ON_PAGE(pte_present(*pvmw->pte), page);
++	VM_BUG_ON_PAGE(pte_present(ptep_get(pvmw->pte)), page);
+ 
+ 	if (folio_test_mlocked(folio) || (pvmw->vma->vm_flags & VM_LOCKED) ||
+ 	    mm_forbids_zeropage(pvmw->vma->vm_mm))
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
 
