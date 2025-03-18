@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC92A7A13A
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 04:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02B0A187FE4
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 04:49:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742273288; cv=none; b=PKIZOrRoRoGecTDS+aDHBl1qW/vmyI5URHiWXCrGqeVYZgxPCc+hgvKATRmD0DNwC173ok3AvfBzlb/hMIsbgXw2BFTVBJeYEBJ+3ophqQusL/8SGoWn0Y3yVTRa1/YpGPRRlzJWCqiCVWovrxrKLk1VbI5IpEVhfKNe4+qutMY=
+	t=1742273356; cv=none; b=bceiMbadLdEIVEoDnqsVsPvlFmIIT6gb/Xhd9aP740jLm2TLR0ETewXyhV1QP6vhXcntZ3mWXMZtMTPwUL/qny/b11kvTFvOyVum6GmPxIwEtUotbU48pGis8eZFO0dwKVCOdbAqIom73HGYlO5lDGzKFRsASMILKIynbJWrkuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742273288; c=relaxed/simple;
-	bh=8JtkON4yYNexZvykvIQpxYDbYjMGxZXfOtQnTKjHNgI=;
-	h=Date:To:From:Subject:Message-Id; b=FQEQgPOQJqQ7hIcsAV9jCfAUAv8uCZYoQF9B9MJF+1xqMCkOOrH28pFCMWxkpxT/qafg9DK/QnSvhxfE0SAI+/EsDBFDAjR5pTsvujvtzA956RjGg1DguqrIkcUsQFvPYizKzJMbnQ3n5b5E04lkhXcx4ST4WZM7qWS9gj+Ey0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WxJZrhfO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742273356; c=relaxed/simple;
+	bh=HTIV1l/gOPPQvdAxrvXYeyQIJaDq56jmxns01fE+IKg=;
+	h=Date:To:From:Subject:Message-Id; b=OBOvGwpRQPGuEMYOHvxeop0vtJHAxSF/YaICcKH90DstmCAHCTuNBYtGpt05to7W35v8XnDUNn8KknEVblYzKcsLc3nzK3baIw1h1ciArw+BoN0MyRy/8QCUi7LB3L3q9poRHeWG/fnadiwD8vFExkga0oV07o4TjKWOFdtmsPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svE1vHZr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WxJZrhfO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93844C4CEDD;
-	Tue, 18 Mar 2025 04:48:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svE1vHZr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6377BC4CEDD;
+	Tue, 18 Mar 2025 04:49:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742273288;
-	bh=8JtkON4yYNexZvykvIQpxYDbYjMGxZXfOtQnTKjHNgI=;
+	s=korg; t=1742273355;
+	bh=HTIV1l/gOPPQvdAxrvXYeyQIJaDq56jmxns01fE+IKg=;
 	h=Date:To:From:Subject:From;
-	b=WxJZrhfOOPwPTq595AFoFI3xLyHSorThQukkM4qt4JS9P7Ls4LTW70sjhZs1GioWf
-	 vh/zu7Tvgw5hBA3QLxQAh+RzZlSk36ZKZRz3lgxawWa0ngg0NyH4gnw8FmW6SRj4xE
-	 NRzhmr1utEgHDeX2Zj7EtK8SZQt0vVRaU/LMGv94=
-Date: Mon, 17 Mar 2025 21:48:08 -0700
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,willy@infradead.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=svE1vHZr9Lf9rOnsBJ9okkyKc1kLwFRn5eU3K7X5LGJKK5ODG5pMu/F45ir2P1sRe
+	 DP86MPg6ZyGBwqYhnf19Q1JDNHAjPzJKFU2cjziODREGZLte86Ex3ca+IufA9Kptkb
+	 /dWkT+nYB0GlmscZTlsw52nQM7e+aN1TzGm9cObs=
+Date: Mon, 17 Mar 2025 21:49:14 -0700
+To: mm-commits@vger.kernel.org,lkp@intel.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] page_io-zswap-do-not-crash-the-kernel-on-decompression-failure-fix.patch removed from -mm tree
-Message-Id: <20250318044808.93844C4CEDD@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch removed from -mm tree
+Message-Id: <20250318044915.6377BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: page_io: zswap: do not crash the kernel on decompression failure (fix)
+     Subject: mm/huge_memory: use NULL instead of 0 for folio->private assignment
 has been removed from the -mm tree.  Its filename was
-     page_io-zswap-do-not-crash-the-kernel-on-decompression-failure-fix.patch
+     mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2.patch
 
-This patch was dropped because it was folded into page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
+This patch was dropped because it was folded into mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: page_io: zswap: do not crash the kernel on decompression failure (fix)
-Date: Thu, 6 Mar 2025 14:24:53 -0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: use NULL instead of 0 for folio->private assignment
+Date: Thu, 13 Mar 2025 10:04:20 -0400
 
-Fix the documentation of zswap_load() - should say load a folio (rather
-than a page), and should be explicit that the folio is unlocked and marked
-up-to-date in the success case.
+It makes sparse happy.
 
-Link: https://lkml.kernel.org/r/20250306222453.1269456-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/1E11B9DD-3A87-4C9C-8FB4-E1324FB6A21A@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202503131109.s7iuWfGq-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~page_io-zswap-do-not-crash-the-kernel-on-decompression-failure-fix
-+++ a/mm/zswap.c
-@@ -1629,10 +1629,11 @@ check_old:
- }
+--- a/mm/huge_memory.c~mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split-fix-2
++++ a/mm/huge_memory.c
+@@ -3584,7 +3584,7 @@ static void __split_folio_to_order(struc
+ 		 */
+ 		if (unlikely(new_folio->private)) {
+ 			VM_WARN_ON_ONCE_PAGE(true, new_head);
+-			new_folio->private = 0;
++			new_folio->private = NULL;
+ 		}
  
- /**
-- * zswap_load() - load a page from zswap
-+ * zswap_load() - load a folio from zswap
-  * @folio: folio to load
-  *
-- * Return: 0 on success, or one of the following error codes:
-+ * Return: 0 on success, with the folio unlocked and marked up-to-date, or one
-+ * of the following error codes:
-  *
-  *  -EIO: if the swapped out content was in zswap, but could not be loaded
-  *  into the page due to a decompression failure. The folio is unlocked, but
+ 		if (folio_test_swapcache(folio))
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-page_io-zswap-do-not-crash-the-kernel-on-decompression-failure.patch
+xarray-add-xas_try_split-to-split-a-multi-index-entry.patch
+mm-huge_memory-add-two-new-not-yet-used-functions-for-folio_split.patch
+mm-huge_memory-move-folio-split-common-code-to-__folio_split.patch
+mm-huge_memory-add-buddy-allocator-like-non-uniform-folio_split.patch
+mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
+mm-truncate-use-folio_split-in-truncate-operation.patch
+selftests-mm-add-tests-for-folio_split-buddy-allocator-like-split.patch
+mm-filemap-use-xas_try_split-in-__filemap_add_folio.patch
+mm-shmem-use-xas_try_split-in-shmem_split_large_entry.patch
 
