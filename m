@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2E211C75E2
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EAAD1DA2E5
+	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2025 05:10:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742274625; cv=none; b=u9Tk+b2mIulJpUdL1XkSmBO0PTBgj0ei93kNlw9AXjF05/wg88z+kNOpyz33jwP+ek0Qdw+croaG/BX4SutfHAQQqzQB8RwNTupDOMooM20OdRqoGf4vt2JRx2pUlyhfX64NzcjZDtohBVJVKeAQmgMreQWQwfwRzcvxUVxp9h4=
+	t=1742274627; cv=none; b=uQmltomlTWi5lLguxkEpeQU4IKxRqXXIm8g5E2ERC6hDpSVT0RAlIK1fG/VdCtWTFk8csp1BIq4FqQgMI2enDNoJclDqB0nWc7KeqJZUzgjKLnaGZ224jAEBQUOlO+Jw15kDFYUu66oU4D6bd4V4BeAfZez7OORmQi6tySyg/tI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742274625; c=relaxed/simple;
-	bh=u/I9+7vRXvlRiF2gfzZsu5YhbgMUv1fCf6SiE/4hkWo=;
-	h=Date:To:From:Subject:Message-Id; b=SNM1ow6PLWisHGyU9SPgWPLtEskHS9gzGtx9UPdCRYsvWxu9AILJ25R3bnsQb8EDoaNHFQF5dAye7D7aZT1d/YNQ8be+qwopy7mUlUqdaaMw72gCd25hm+9jogke74Q2iHbH2HPN24TWPTdjc9SDw9Y8Zq4puTD1R2/lNGNr7To=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GnOnGwAu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742274627; c=relaxed/simple;
+	bh=PxoW6JuU0lV1Zoi0/5dhV3uNdS77tFLFlF7+VcjUM6w=;
+	h=Date:To:From:Subject:Message-Id; b=OwJSOo9nkr7ohfK/6oZXyZmAp/25ecAkqJMO0HrTvtY7MOKudY/zdQmR3O4694eUUv6GAYfmBoLHUEHcTY3iZFbyV10+ZhqTYR8O+V1SrgL6xvwUiqzlu14kZcZDNONd+q/SKJBtBreX0tY52Ur7kefAglTAenOUy0HH/I5hw6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uGHtv/SU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GnOnGwAu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90426C4CEDD;
-	Tue, 18 Mar 2025 05:10:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uGHtv/SU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A060C4CEDD;
+	Tue, 18 Mar 2025 05:10:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742274625;
-	bh=u/I9+7vRXvlRiF2gfzZsu5YhbgMUv1fCf6SiE/4hkWo=;
+	s=korg; t=1742274627;
+	bh=PxoW6JuU0lV1Zoi0/5dhV3uNdS77tFLFlF7+VcjUM6w=;
 	h=Date:To:From:Subject:From;
-	b=GnOnGwAulo8kc4Ibmo1/6Uyb5fPlRKgkCJm56Y8r8D6yf44ynMxnxPnZvLdfG3CdX
-	 xTcVxwaAbZdN71RJPaTge3SLT6hozQPyUg8cel5X/wJvm8jDmWA56ralsH0FM4fYAX
-	 Om4WrN6ae5oLZOp5l8I22yR7vYx6+emi+gcJlpIA=
-Date: Mon, 17 Mar 2025 22:10:25 -0700
+	b=uGHtv/SUpqy/Fl1lZvcI7nCQw7hLfyoP4mVzlvvn0DJ++IQoQ0WyrdXOKalCJUriU
+	 JWJeOf+D5WD6PKgTjSBcCKbmy7NuqRrlbZ2+zudkc7nEQUhVeQU5Re0QbjUyrvxD3H
+	 nqO96buX9fXf/7AM8NO/0sCfXlH+wB08FlBAp7hk=
+Date: Mon, 17 Mar 2025 22:10:26 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yang@os.amperecomputing.com,willy@infradead.org,wangkefeng.wang@huawei.com,ryan.roberts@arm.com,linmiaohe@huawei.com,kirill.shutemov@linux.intel.com,kasong@tencent.com,jhubbard@nvidia.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-remove-the-old-unused-__split_huge_page.patch removed from -mm tree
-Message-Id: <20250318051025.90426C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch removed from -mm tree
+Message-Id: <20250318051027.0A060C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: remove the old, unused __split_huge_page()
+     Subject: mm/huge_memory: add folio_split() to debugfs testing interface
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-remove-the-old-unused-__split_huge_page.patch
+     mm-huge_memory-add-folio_split-to-debugfs-testing-interface.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: remove the old, unused __split_huge_page()
-Date: Fri, 7 Mar 2025 12:39:58 -0500
+Subject: mm/huge_memory: add folio_split() to debugfs testing interface
+Date: Fri, 7 Mar 2025 12:39:59 -0500
 
-Now split_huge_page_to_list_to_order() uses the new backend split code in
-__split_unmapped_folio(), the old __split_huge_page() and
-__split_huge_page_tail() can be removed.
+This allows to test folio_split() by specifying an additional in folio
+page offset parameter to split_huge_page debugfs interface.
 
-Link: https://lkml.kernel.org/r/20250307174001.242794-6-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20250307174001.242794-7-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -68,233 +67,117 @@ Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |  215 ---------------------------------------------
- 1 file changed, 215 deletions(-)
+ mm/huge_memory.c |   47 ++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 34 insertions(+), 13 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-remove-the-old-unused-__split_huge_page
+--- a/mm/huge_memory.c~mm-huge_memory-add-folio_split-to-debugfs-testing-interface
 +++ a/mm/huge_memory.c
-@@ -3284,221 +3284,6 @@ static void lru_add_page_tail(struct fol
- 	}
+@@ -4331,7 +4331,8 @@ static inline bool vma_not_suitable_for_
  }
  
--static void __split_huge_page_tail(struct folio *folio, int tail,
--		struct lruvec *lruvec, struct list_head *list,
--		unsigned int new_order)
--{
--	struct page *head = &folio->page;
--	struct page *page_tail = head + tail;
--	/*
--	 * Careful: new_folio is not a "real" folio before we cleared PageTail.
--	 * Don't pass it around before clear_compound_head().
--	 */
--	struct folio *new_folio = (struct folio *)page_tail;
--
--	VM_BUG_ON_PAGE(atomic_read(&page_tail->_mapcount) != -1, page_tail);
--
--	/*
--	 * Clone page flags before unfreezing refcount.
--	 *
--	 * After successful get_page_unless_zero() might follow flags change,
--	 * for example lock_page() which set PG_waiters.
--	 *
--	 * Note that for mapped sub-pages of an anonymous THP,
--	 * PG_anon_exclusive has been cleared in unmap_folio() and is stored in
--	 * the migration entry instead from where remap_page() will restore it.
--	 * We can still have PG_anon_exclusive set on effectively unmapped and
--	 * unreferenced sub-pages of an anonymous THP: we can simply drop
--	 * PG_anon_exclusive (-> PG_mappedtodisk) for these here.
--	 */
--	page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
--	page_tail->flags |= (head->flags &
--			((1L << PG_referenced) |
--			 (1L << PG_swapbacked) |
--			 (1L << PG_swapcache) |
--			 (1L << PG_mlocked) |
--			 (1L << PG_uptodate) |
--			 (1L << PG_active) |
--			 (1L << PG_workingset) |
--			 (1L << PG_locked) |
--			 (1L << PG_unevictable) |
--#ifdef CONFIG_ARCH_USES_PG_ARCH_2
--			 (1L << PG_arch_2) |
--#endif
--#ifdef CONFIG_ARCH_USES_PG_ARCH_3
--			 (1L << PG_arch_3) |
--#endif
--			 (1L << PG_dirty) |
--			 LRU_GEN_MASK | LRU_REFS_MASK));
--
--	/* ->mapping in first and second tail page is replaced by other uses */
--	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
--			page_tail);
--	new_folio->mapping = folio->mapping;
--	new_folio->index = folio->index + tail;
--
--	/*
--	 * page->private should not be set in tail pages. Fix up and warn once
--	 * if private is unexpectedly set.
--	 */
--	if (unlikely(page_tail->private)) {
--		VM_WARN_ON_ONCE_PAGE(true, page_tail);
--		page_tail->private = 0;
--	}
--	if (folio_test_swapcache(folio))
--		new_folio->swap.val = folio->swap.val + tail;
--
--	/* Page flags must be visible before we make the page non-compound. */
--	smp_wmb();
--
--	/*
--	 * Clear PageTail before unfreezing page refcount.
--	 *
--	 * After successful get_page_unless_zero() might follow put_page()
--	 * which needs correct compound_head().
--	 */
--	clear_compound_head(page_tail);
--	if (new_order) {
--		prep_compound_page(page_tail, new_order);
--		folio_set_large_rmappable(new_folio);
--	}
--
--	/* Finally unfreeze refcount. Additional reference from page cache. */
--	page_ref_unfreeze(page_tail,
--		1 + ((!folio_test_anon(folio) || folio_test_swapcache(folio)) ?
--			     folio_nr_pages(new_folio) : 0));
--
--	if (folio_test_young(folio))
--		folio_set_young(new_folio);
--	if (folio_test_idle(folio))
--		folio_set_idle(new_folio);
--
--	folio_xchg_last_cpupid(new_folio, folio_last_cpupid(folio));
--
--	/*
--	 * always add to the tail because some iterators expect new
--	 * pages to show after the currently processed elements - e.g.
--	 * migrate_pages
--	 */
--	lru_add_page_tail(folio, page_tail, lruvec, list);
--}
--
--static void __split_huge_page(struct page *page, struct list_head *list,
--		pgoff_t end, unsigned int new_order)
--{
--	struct folio *folio = page_folio(page);
--	struct page *head = &folio->page;
--	struct lruvec *lruvec;
--	struct address_space *swap_cache = NULL;
--	unsigned long offset = 0;
--	int i, nr_dropped = 0;
--	unsigned int new_nr = 1 << new_order;
--	int order = folio_order(folio);
--	unsigned int nr = 1 << order;
--
--	/*
--	 * Reset any memcg data overlay in the tail pages. folio_nr_pages()
--	 * is unreliable after this point.
--	 */
--#ifdef NR_PAGES_IN_LARGE_FOLIO
--	folio->_nr_pages = 0;
--#endif
--
--	/* complete memcg works before add pages to LRU */
--	split_page_memcg(head, order, new_order);
--
--	if (folio_test_anon(folio) && folio_test_swapcache(folio)) {
--		offset = swap_cache_index(folio->swap);
--		swap_cache = swap_address_space(folio->swap);
--		xa_lock(&swap_cache->i_pages);
--	}
--
--	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
--	lruvec = folio_lruvec_lock(folio);
--
--	folio_clear_has_hwpoisoned(folio);
--
--	for (i = nr - new_nr; i >= new_nr; i -= new_nr) {
--		struct folio *tail;
--		__split_huge_page_tail(folio, i, lruvec, list, new_order);
--		tail = page_folio(head + i);
--		/* Some pages can be beyond EOF: drop them from page cache */
--		if (tail->index >= end) {
--			if (shmem_mapping(folio->mapping))
--				nr_dropped += new_nr;
--			else if (folio_test_clear_dirty(tail))
--				folio_account_cleaned(tail,
--					inode_to_wb(folio->mapping->host));
--			__filemap_remove_folio(tail, NULL);
--			folio_put_refs(tail, folio_nr_pages(tail));
--		} else if (!folio_test_anon(folio)) {
--			__xa_store(&folio->mapping->i_pages, tail->index,
--					tail, 0);
--		} else if (swap_cache) {
--			__xa_store(&swap_cache->i_pages, offset + i,
--					tail, 0);
--		}
--	}
--
--	if (!new_order)
--		ClearPageCompound(head);
--	else {
--		struct folio *new_folio = (struct folio *)head;
--
--		folio_set_order(new_folio, new_order);
--	}
--	unlock_page_lruvec(lruvec);
--	/* Caller disabled irqs, so they are still disabled here */
--
--	split_page_owner(head, order, new_order);
--	pgalloc_tag_split(folio, order, new_order);
--
--	/* See comment in __split_huge_page_tail() */
--	if (folio_test_anon(folio)) {
--		/* Additional pin to swap cache */
--		if (folio_test_swapcache(folio)) {
--			folio_ref_add(folio, 1 + new_nr);
--			xa_unlock(&swap_cache->i_pages);
--		} else {
--			folio_ref_inc(folio);
--		}
--	} else {
--		/* Additional pin to page cache */
--		folio_ref_add(folio, 1 + new_nr);
--		xa_unlock(&folio->mapping->i_pages);
--	}
--	local_irq_enable();
--
--	if (nr_dropped)
--		shmem_uncharge(folio->mapping->host, nr_dropped);
--	remap_page(folio, nr, PageAnon(head) ? RMP_USE_SHARED_ZEROPAGE : 0);
--
--	/*
--	 * set page to its compound_head when split to non order-0 pages, so
--	 * we can skip unlocking it below, since PG_locked is transferred to
--	 * the compound_head of the page and the caller will unlock it.
--	 */
--	if (new_order)
--		page = compound_head(page);
--
--	for (i = 0; i < nr; i += new_nr) {
--		struct page *subpage = head + i;
--		struct folio *new_folio = page_folio(subpage);
--		if (subpage == page)
--			continue;
--		folio_unlock(new_folio);
--
--		/*
--		 * Subpages may be freed if there wasn't any mapping
--		 * like if add_to_swap() is running on a lru page that
--		 * had its mapping zapped. And freeing these pages
--		 * requires taking the lru_lock so we do the put_page
--		 * of the tail pages after the split is complete.
--		 */
--		free_page_and_swap_cache(subpage);
--	}
--}
--
- /* Racy check whether the huge page can be split */
- bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins)
+ static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
+-				unsigned long vaddr_end, unsigned int new_order)
++				unsigned long vaddr_end, unsigned int new_order,
++				long in_folio_offset)
  {
+ 	int ret = 0;
+ 	struct task_struct *task;
+@@ -4415,8 +4416,16 @@ static int split_huge_pages_pid(int pid,
+ 		if (!folio_test_anon(folio) && folio->mapping != mapping)
+ 			goto unlock;
+ 
+-		if (!split_folio_to_order(folio, target_order))
+-			split++;
++		if (in_folio_offset < 0 ||
++		    in_folio_offset >= folio_nr_pages(folio)) {
++			if (!split_folio_to_order(folio, target_order))
++				split++;
++		} else {
++			struct page *split_at = folio_page(folio,
++							   in_folio_offset);
++			if (!folio_split(folio, target_order, split_at, NULL))
++				split++;
++		}
+ 
+ unlock:
+ 
+@@ -4439,7 +4448,8 @@ out:
+ }
+ 
+ static int split_huge_pages_in_file(const char *file_path, pgoff_t off_start,
+-				pgoff_t off_end, unsigned int new_order)
++				pgoff_t off_end, unsigned int new_order,
++				long in_folio_offset)
+ {
+ 	struct filename *file;
+ 	struct file *candidate;
+@@ -4488,8 +4498,15 @@ static int split_huge_pages_in_file(cons
+ 		if (folio->mapping != mapping)
+ 			goto unlock;
+ 
+-		if (!split_folio_to_order(folio, target_order))
+-			split++;
++		if (in_folio_offset < 0 || in_folio_offset >= nr_pages) {
++			if (!split_folio_to_order(folio, target_order))
++				split++;
++		} else {
++			struct page *split_at = folio_page(folio,
++							   in_folio_offset);
++			if (!folio_split(folio, target_order, split_at, NULL))
++				split++;
++		}
+ 
+ unlock:
+ 		folio_unlock(folio);
+@@ -4522,6 +4539,7 @@ static ssize_t split_huge_pages_write(st
+ 	int pid;
+ 	unsigned long vaddr_start, vaddr_end;
+ 	unsigned int new_order = 0;
++	long in_folio_offset = -1;
+ 
+ 	ret = mutex_lock_interruptible(&split_debug_mutex);
+ 	if (ret)
+@@ -4550,30 +4568,33 @@ static ssize_t split_huge_pages_write(st
+ 			goto out;
+ 		}
+ 
+-		ret = sscanf(tok_buf, "0x%lx,0x%lx,%d", &off_start,
+-			    &off_end, &new_order);
+-		if (ret != 2 && ret != 3) {
++		ret = sscanf(tok_buf, "0x%lx,0x%lx,%d,%ld", &off_start, &off_end,
++				&new_order, &in_folio_offset);
++		if (ret != 2 && ret != 3 && ret != 4) {
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+-		ret = split_huge_pages_in_file(file_path, off_start, off_end, new_order);
++		ret = split_huge_pages_in_file(file_path, off_start, off_end,
++				new_order, in_folio_offset);
+ 		if (!ret)
+ 			ret = input_len;
+ 
+ 		goto out;
+ 	}
+ 
+-	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d", &pid, &vaddr_start, &vaddr_end, &new_order);
++	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d,%ld", &pid, &vaddr_start,
++			&vaddr_end, &new_order, &in_folio_offset);
+ 	if (ret == 1 && pid == 1) {
+ 		split_huge_pages_all();
+ 		ret = strlen(input_buf);
+ 		goto out;
+-	} else if (ret != 3 && ret != 4) {
++	} else if (ret != 3 && ret != 4 && ret != 5) {
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order);
++	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order,
++			in_folio_offset);
+ 	if (!ret)
+ 		ret = strlen(input_buf);
+ out:
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
