@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB0CA24E4AF
-	for <mm-commits@vger.kernel.org>; Wed, 19 Mar 2025 02:14:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E569E552
+	for <mm-commits@vger.kernel.org>; Wed, 19 Mar 2025 02:14:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742350471; cv=none; b=rIQfuWNRda1/kvpZ9RGXZbWU5PLBE/Czm7yMUgSDLlYQ4rObHe8pj+DEAh9XpbelQYT0mmNuI18BUNlRW6a2u82EdH7ZFQSdknNhG8s9HFSEOFfs09VL6A8Q5IFdevAaxNSB4zB9VGaeGbkum1tsqQLCgrzG2KvVAJh9H8a6T4A=
+	t=1742350474; cv=none; b=I1vmpRizsD0E8oL0yG7z81n90QrT2Iz4luC4ejGF5OutNOlcKXKKZFRuRIUsjVxosk3Rf67n6uwHhUZFCWzUl4jkwbO8aDxS3k8dbShKvUun6LmHB0zpXIM4O8mTMfg650vybcA2iLyQFKtnQ7sT75+pyl5TMaFCbcOUn4xzaXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742350471; c=relaxed/simple;
-	bh=iRAcANse2xqhFrJf5EhOCMI14hKJHt+swP0UG1K3mHQ=;
-	h=Date:To:From:Subject:Message-Id; b=I/tH6HlZbMTXzLED78F3jvurgvnLvT1u/ay9XBCV1MRfI+8wuzOACUJgFgEk//AcizMVDLjfSrszotQCseIi/gqgsV5p3GY8fcDQDf9gTpXdrV6wqz8dUeaPgxTsTZZNOOR4rx1w4HBgMSRdWVVtLWH5grTyFwKgotJbSrvknmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n74Cc3yq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742350474; c=relaxed/simple;
+	bh=CTxCxpI0L7ZDeixYHUPddq5OgaYeTkX2apUq4Zvw8qc=;
+	h=Date:To:From:Subject:Message-Id; b=C0sP055XLGI1RW4dlsMMmYQh6UcHD5veCSj8Z9neuDNHaisLf5Q1+q2WmJpnNp1S3JxReH6tK9R8Cr6/QzIW9WCUIlHPrYUDuZiZdJc05v+2oLWSCt1hmN6KvLoOG4cijovU3NjKEiG8LxVkMCYNdhAycrtb7yEO5cUcFBBCahI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BAWZrzwZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n74Cc3yq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33432C4CEDD;
-	Wed, 19 Mar 2025 02:14:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BAWZrzwZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFCA8C4CEDD;
+	Wed, 19 Mar 2025 02:14:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742350471;
-	bh=iRAcANse2xqhFrJf5EhOCMI14hKJHt+swP0UG1K3mHQ=;
+	s=korg; t=1742350474;
+	bh=CTxCxpI0L7ZDeixYHUPddq5OgaYeTkX2apUq4Zvw8qc=;
 	h=Date:To:From:Subject:From;
-	b=n74Cc3yqaC2qhJOD7a4t2thWsTkwTF2OcqmIVl90FGD9pD6alhiel7m42Vx52gtjL
-	 QmAwsAs/0jEQW0u/+58qDBp7HQAxVfoXrV0eMIl+kgfHP3o9xr9U991gewBH/tfcyY
-	 cgNKSSXoUg71TTRf2RI1jZu7qvej78HUB0RAcdEM=
-Date: Tue, 18 Mar 2025 19:14:30 -0700
+	b=BAWZrzwZaZZPeqGW2MxCWMZrO3q9okhUiZkbdxgMiojakCKkriszNsBCsj5HyrR8K
+	 gLw6tAUPHjwtsRip5rWbiJhRc9CjXGkBj13vJjQtcDFt9VZR2L9UbtGA1bLGNDmcxg
+	 cDE4kGmZKNCjOD78H2X/ID996KN9xFJhasKZvsw4=
+Date: Tue, 18 Mar 2025 19:14:33 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-implement-a-new-damos-filter-type-for-active-pages.patch added to mm-unstable branch
-Message-Id: <20250319021431.33432C4CEDD@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-active-damos-filter-type.patch added to mm-unstable branch
+Message-Id: <20250319021433.DFCA8C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: implement a new DAMOS filter type for active pages
+     Subject: docs/mm/damon/design: document active DAMOS filter type
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-implement-a-new-damos-filter-type-for-active-pages.patch
+     docs-mm-damon-design-document-active-damos-filter-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-implement-a-new-damos-filter-type-for-active-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-active-damos-filter-type.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,86 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nhat Pham <nphamcs@gmail.com>
-Subject: mm/damon: implement a new DAMOS filter type for active pages
-Date: Tue, 18 Mar 2025 11:30:28 -0700
+Subject: docs/mm/damon/design: document active DAMOS filter type
+Date: Tue, 18 Mar 2025 11:30:29 -0700
 
-Patch series "mm/damon: introduce DAMOS filter type for active pages".
+Document availability and meaning of "active" DAMOS filter type on design
+document.  Since introduction of the type requires no additional user ABI,
+usage and ABI document need no update.
 
-The memory reclaim algorithm categorizes pages into active and inactive
-lists, separately for file and anon pages.  The system's performance
-relies heavily on the (relative and absolute) accuracy of this
-categorization.
-
-This patch series add a new DAMOS filter for pages' activeness, giving us
-visibility into the access frequency of the pages on each list.  This
-insight can help us diagnose issues with the active-inactive balancing
-dynamics, and make decisions to optimize reclaim efficiency and memory
-utilization.
-
-For instance, we might decide to enable DAMON_LRU_SORT, if we find that
-there are pages on the active list that are infrequently accessed, or less
-frequently accessed than pages on the inactive list.
-
-
-This patch (of 2):
-
-Implement a DAMOS filter type for active pages on DAMON kernel API, and
-add support of it from the physical address space DAMON operations set
-(paddr).
-
-Link: https://lkml.kernel.org/r/20250318183029.2062917-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20250318183029.2062917-2-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20250318183029.2062917-3-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Suggested-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h    |    2 ++
- mm/damon/paddr.c         |    3 +++
- mm/damon/sysfs-schemes.c |    1 +
- 3 files changed, 6 insertions(+)
+ Documentation/mm/damon/design.rst |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-implement-a-new-damos-filter-type-for-active-pages
-+++ a/include/linux/damon.h
-@@ -334,6 +334,7 @@ struct damos_stat {
- /**
-  * enum damos_filter_type - Type of memory for &struct damos_filter
-  * @DAMOS_FILTER_TYPE_ANON:	Anonymous pages.
-+ * @DAMOS_FILTER_TYPE_ACTIVE:	Active pages.
-  * @DAMOS_FILTER_TYPE_MEMCG:	Specific memcg's pages.
-  * @DAMOS_FILTER_TYPE_YOUNG:	Recently accessed pages.
-  * @DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:	Page is part of a hugepage.
-@@ -355,6 +356,7 @@ struct damos_stat {
-  */
- enum damos_filter_type {
- 	DAMOS_FILTER_TYPE_ANON,
-+	DAMOS_FILTER_TYPE_ACTIVE,
- 	DAMOS_FILTER_TYPE_MEMCG,
- 	DAMOS_FILTER_TYPE_YOUNG,
- 	DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
---- a/mm/damon/paddr.c~mm-damon-implement-a-new-damos-filter-type-for-active-pages
-+++ a/mm/damon/paddr.c
-@@ -217,6 +217,9 @@ static bool damos_pa_filter_match(struct
- 	case DAMOS_FILTER_TYPE_ANON:
- 		matched = folio_test_anon(folio);
- 		break;
-+	case DAMOS_FILTER_TYPE_ACTIVE:
-+		matched = folio_test_active(folio);
-+		break;
- 	case DAMOS_FILTER_TYPE_MEMCG:
- 		rcu_read_lock();
- 		memcg = folio_memcg_check(folio);
---- a/mm/damon/sysfs-schemes.c~mm-damon-implement-a-new-damos-filter-type-for-active-pages
-+++ a/mm/damon/sysfs-schemes.c
-@@ -344,6 +344,7 @@ static struct damon_sysfs_scheme_filter
- /* Should match with enum damos_filter_type */
- static const char * const damon_sysfs_scheme_filter_type_strs[] = {
- 	"anon",
-+	"active",
- 	"memcg",
- 	"young",
- 	"hugepage_size",
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-active-damos-filter-type
++++ a/Documentation/mm/damon/design.rst
+@@ -656,6 +656,8 @@ Below ``type`` of filters are currently
+ - Operations layer handled, supported by only ``paddr`` operations set.
+     - anon
+         - Applied to pages that containing data that not stored in files.
++    - active
++        - Applied to active pages.
+     - memcg
+         - Applied to pages that belonging to a given cgroup.
+     - young
 _
 
 Patches currently in -mm which might be from nphamcs@gmail.com are
