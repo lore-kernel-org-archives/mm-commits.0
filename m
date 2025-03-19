@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714BE2AEE2
-	for <mm-commits@vger.kernel.org>; Wed, 19 Mar 2025 04:07:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB6FE552;
+	Wed, 19 Mar 2025 07:21:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742357227; cv=none; b=OdJhDo9/zzXeWJdaOjMdaotssMshyeuZ7BZKXE48L88ofLtKr5/kz9uIN76q/GKzuhD7iTc9O84bnA+8ew7DPXJybBlSdM3ju/yKzkAqWDpPLsGERs2GdJ/MoBArNCPdGwra96mEsSJTQdHZpYLR+vAwlShqr6AoapvpM1c7pFA=
+	t=1742368918; cv=none; b=MRHMk0rGTPIuegVGf5V222xnDqpFkQY7hp/mu9QOsM0q7m7fkR5l1ZRu0tUIr750Tx+nv72q8Yo9wOEbtwDU4I5+xGZAGUKHavU04PeThuvraarMbKb+/nnD3E6qWXoTWVZdUCtvBF+7RQt04AVc5N9U8D/NuMgt+PDAvxD0lJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742357227; c=relaxed/simple;
-	bh=SYDNeYum5vx95z41BfMwgTprFtqdzEorZpxuhgTXKfY=;
-	h=Date:To:From:Subject:Message-Id; b=lVxABBt9AqnS4YIRpHw52WVTA0jq0wuN+3ccFP95SFQqg/+mC67RUs8UGVyHP7dLX7edBX5fHu4Ywkcc+lDNF7M158/59xlxul2PaegBajU1wlesRpFopJB4ebKm2/d8+PiN0cEPtPQa4E6wliZlMQQanCavB/620/agXFnS3Aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0nxTU4Gd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742368918; c=relaxed/simple;
+	bh=oPPCjbVwlCBSzHMDYmBre+f2rjt00v1FQMFj074Xsdg=;
+	h=Date:To:From:Subject:Message-Id; b=Agvo7zYHEsrfa+NtoVJDp35Va86G0kpFfSaHwsbcQoxmQzIhlWrThryABaryHp68y24NfJ0BwJXWqJBAe2mmOdePx5jOKinDk+asfRfKxESdipPYk9QK9mOw1jDXo0AthLdJbTm6yRGpO6WnTMh8dKt+DdOUQLkWc5JnDMPjX4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQMoc20U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0nxTU4Gd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCA1BC4CEEC;
-	Wed, 19 Mar 2025 04:07:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQMoc20U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE3E5C4CEE9;
+	Wed, 19 Mar 2025 07:21:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742357226;
-	bh=SYDNeYum5vx95z41BfMwgTprFtqdzEorZpxuhgTXKfY=;
+	s=korg; t=1742368916;
+	bh=oPPCjbVwlCBSzHMDYmBre+f2rjt00v1FQMFj074Xsdg=;
 	h=Date:To:From:Subject:From;
-	b=0nxTU4GdhJynKkMX5BjdKW3XaLXm94Qy3n/XbJgBgkAfGzTBTU0+OrOEQLLGtyXKz
-	 e16o/P6xfwvgDXblOChMIuy/Gj9ZocNj1n5UZvkVVBIFKUaS3thnq+L0kGCK20Kl8+
-	 dgwdmMY/fwwpotwjQKvELx5+QBJIB8ssdRd2aQ/o=
-Date: Tue, 18 Mar 2025 21:07:06 -0700
-To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=JQMoc20UT1uqIL7dYwvA1kHL3LHt3tWVhcbye7c37MXCigkJ2eGSy7V1ISsopzj8S
+	 tBZyOgJyiwD8bU+0FQJ8A/1UhbnxqRoRLxIty9OvEXH2phTwLmz3R6+DEpBRteyPD2
+	 Ib7NwCeRZ9emmpY+E8WivklaWd05mdPLnQ/UigKk=
+Date: Wed, 19 Mar 2025 00:21:56 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,anshuman.khandual@arm.com,Marc.Herbert@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + relay-use-kasprintf-instead-of-fixed-buffer-formatting.patch added to mm-nonmm-unstable branch
-Message-Id: <20250319040706.CCA1BC4CEEC@smtp.kernel.org>
+Subject: + mm-hugetlb-move-hugetlb_sysctl_init-to-the-__init-section.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250319072156.AE3E5C4CEE9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: relay: use kasprintf() instead of fixed buffer formatting
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     relay-use-kasprintf-instead-of-fixed-buffer-formatting.patch
+     Subject: mm/hugetlb: move hugetlb_sysctl_init() to the __init section
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-move-hugetlb_sysctl_init-to-the-__init-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relay-use-kasprintf-instead-of-fixed-buffer-formatting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-move-hugetlb_sysctl_init-to-the-__init-section.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: relay: use kasprintf() instead of fixed buffer formatting
-Date: Mon, 17 Mar 2025 23:29:47 +0200
+From: Marc Herbert <Marc.Herbert@linux.intel.com>
+Subject: mm/hugetlb: move hugetlb_sysctl_init() to the __init section
+Date: Wed, 19 Mar 2025 06:00:30 +0000
 
-Improve readability and maintainability by replacing a hard coded string
-allocation and formatting by using the kasprintf() helper.
+hugetlb_sysctl_init() is only invoked once by an __init function and is
+merely a wrapper around another __init function so there is not reason to
+keep it.
 
-It also eliminates the GCC compiler warning (with CONFIG_WERROR=y, which
-is default, it becomes an error:
+Fixes the following warning when toning down some GCC inline options:
 
-kernel/relay.c:357:42: error: `snprintf' output may be truncated before the last format character [-Werror=format-truncation=]
+ WARNING: modpost: vmlinux: section mismatch in reference:
+   hugetlb_sysctl_init+0x1b (section: .text) ->
+     __register_sysctl_init (section: .init.text)
 
-Link: https://lkml.kernel.org/r/20250317212948.1811176-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lkml.kernel.org/r/20250319060041.2737320-1-marc.herbert@linux.intel.com
+Signed-off-by: Marc Herbert <Marc.Herbert@linux.intel.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/relay.c~relay-use-kasprintf-instead-of-fixed-buffer-formatting
-+++ a/kernel/relay.c
-@@ -351,10 +351,9 @@ static struct dentry *relay_create_buf_f
- 	struct dentry *dentry;
- 	char *tmpname;
+--- a/mm/hugetlb.c~mm-hugetlb-move-hugetlb_sysctl_init-to-the-__init-section
++++ a/mm/hugetlb.c
+@@ -4912,7 +4912,7 @@ static const struct ctl_table hugetlb_ta
+ 	},
+ };
  
--	tmpname = kzalloc(NAME_MAX + 1, GFP_KERNEL);
-+	tmpname = kasprintf(GFP_KERNEL, "%s%d", chan->base_filename, cpu);
- 	if (!tmpname)
- 		return NULL;
--	snprintf(tmpname, NAME_MAX, "%s%d", chan->base_filename, cpu);
- 
- 	/* Create file in fs */
- 	dentry = chan->cb->create_buf_file(tmpname, chan->parent,
+-static void hugetlb_sysctl_init(void)
++static void __init hugetlb_sysctl_init(void)
+ {
+ 	register_sysctl_init("vm", hugetlb_table);
+ }
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from Marc.Herbert@linux.intel.com are
 
-resource-split-define_res_named_desc-out-of-define_res_named.patch
-resource-replace-open-coded-variant-of-define_res_named_desc.patch
-resource-replace-open-coded-variants-of-define_res__named.patch
-resource-replace-open-coded-variant-of-define_res.patch
-relay-use-kasprintf-instead-of-fixed-buffer-formatting.patch
+mm-hugetlb-move-hugetlb_sysctl_init-to-the-__init-section.patch
 
