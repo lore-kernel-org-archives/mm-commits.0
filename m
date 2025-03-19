@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 929FB13DDB9
-	for <mm-commits@vger.kernel.org>; Wed, 19 Mar 2025 02:18:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F4513DDB9
+	for <mm-commits@vger.kernel.org>; Wed, 19 Mar 2025 02:18:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742350688; cv=none; b=bQGAEKAJCgc8j7eIua8gYL4hnkXQ94JKTCRAxNhqWVVS9FCKDnr+4No8WUH56ceionyk4zzUYL1pAW4jLatAgbmbOwmqJtqbsz7vLJzjx86d2GmDiSX/dddaPyHwmsVK9oQdm3mlYeTX3TYtnVM6Hto3Zhx1Zh7Xvr8XpVEnZhs=
+	t=1742350690; cv=none; b=DkUfjiQQ3LDWdoXybWmFezdeX0+A9CbH/SSJefejBFCHs39KA2aZd+iagnc2abY80R92kjC8X1x48Quro0+tlJlMtDg0CL+h3yZrSpDbPWgSHXSH0tfVodvFQKeVQWvKPmeYkaBeK3+hzt+G7dGWQYMDRnPiPPCTIFEs+5PKROQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742350688; c=relaxed/simple;
-	bh=Jsc6HIkyHaE+r+shw/4Gg3S0uSmNLA0ub1/f8D5Hm/Y=;
-	h=Date:To:From:Subject:Message-Id; b=NBYAIs+JuyGfcF61siH5m3ruzqePszTXGrQSO2ftZUc9QrLUrjaz1KnEOsb+WlErqSAITSGTtkHo8RfE6N2W8aCxo77Fyq/AjM6GuluFcsrY2wcubzK58lg//wRS14j3c5ZM3kdeZmuxi28msPjpKP9BcNULQPvGOLHhPfVUINU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A4RHtPzE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742350690; c=relaxed/simple;
+	bh=V9w6iXIHhDYE/98FMmLETOPXi66YUD5hvfDkmy+JFas=;
+	h=Date:To:From:Subject:Message-Id; b=L72qBmA1uZfcA9PoZskwSGLgtPNkhdsAPL8k/cPH6ELcxEy/jrQ8ha/UqPGpxyvHRbzeKPUSn6xOB5xGLu/x3CKSX8ybsibFe4mt0wXN18cW0SK3o++awVVfcN8AUykX0RWC9h3QV1+ucWc6M03+Y361wMP0fZEmUqEhTVjpTSE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u9DtXv+2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A4RHtPzE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8685C4CEDD;
-	Wed, 19 Mar 2025 02:18:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u9DtXv+2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB2DEC4CEDD;
+	Wed, 19 Mar 2025 02:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742350688;
-	bh=Jsc6HIkyHaE+r+shw/4Gg3S0uSmNLA0ub1/f8D5Hm/Y=;
+	s=korg; t=1742350689;
+	bh=V9w6iXIHhDYE/98FMmLETOPXi66YUD5hvfDkmy+JFas=;
 	h=Date:To:From:Subject:From;
-	b=A4RHtPzEOmF6vB82YMe3q7+nVpfP33kanIc7HKTCCGEbSza6zxUCfiVaysBPR+oWh
-	 bfoji5187yaAzdgHz6dKsUEWhyI/3mqByoGsqNppkOdLROek/dDgh7qK3g8Y8iQFoo
-	 /CwRNqMCEu1KmTEYsPh7E8enmubI13kLu/B0npgw=
-Date: Tue, 18 Mar 2025 19:18:07 -0700
+	b=u9DtXv+219m4wZGL8eYVgrkEeitxGafW5Z4ZQzqkYCIIfjz9hLRfvRflm3428WrBZ
+	 7XUaIaRpLHK5OsVCgvUwRu6BoqX3sxIREMZKLQ2lajfC1DjmHAmMbF9kKFTLYFZRVj
+	 GbE/TcMQLpPi8rRoJEnej7kEuehobHKUUI7rBnkE=
+Date: Tue, 18 Mar 2025 19:18:09 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,raquini@redhat.com,peterx@redhat.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-unit-tests-support-for-hugepages-2m.patch added to mm-unstable branch
-Message-Id: <20250319021807.E8685C4CEDD@smtp.kernel.org>
+Subject: + selftests-mm-speed-up-split_huge_page_test.patch added to mm-unstable branch
+Message-Id: <20250319021809.DB2DEC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: uffd-unit-tests support for hugepages > 2M
+     Subject: selftests/mm: speed up split_huge_page_test
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-uffd-unit-tests-support-for-hugepages-2m.patch
+     selftests-mm-speed-up-split_huge_page_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-unit-tests-support-for-hugepages-2m.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-speed-up-split_huge_page_test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm: uffd-unit-tests support for hugepages > 2M
-Date: Tue, 18 Mar 2025 17:43:40 +0000
+Subject: selftests/mm: speed up split_huge_page_test
+Date: Tue, 18 Mar 2025 17:43:41 +0000
 
-uffd-unit-tests uses a memory area with a fixed 32M size.  Then it
-calculates the number of pages by dividing by page_size, which itself is
-either the base page size or the PMD huge page size depending on the test
-config.  For the latter, we end up with nr_pages=1 for arm64 16K base
-pages, and nr_pages=0 for 64K base pages.  This doesn't end well.
+create_pagecache_thp_and_fd() was previously writing a file sized at twice
+the PMD size by making a per-byte write syscall.  This was quite slow when
+the PMD size is 4M, but completely intolerable for 32M (PMD size for
+arm64's 16K page size), and 512M (PMD size for arm64's 64K page size).
 
-So let's make the 32M size a floor and also ensure that we have at least 2
-pages given the PMD size.  With this change, the tests pass on arm64 64K
-base page size configuration.
+The byte pattern has a 256 byte period, so let's create a 1K buffer and
+fill it with exactly 4 periods.  Then we can write the buffer as many
+times as is required to fill the file.  This makes things much more
+tolerable.
 
-Link: https://lkml.kernel.org/r/20250318174343.243631-2-ryan.roberts@arm.com
+The test now passes for 16K page size.  It still fails for 64K page size
+because MAX_PAGECACHE_ORDER is too small for 512M folio size (I think).
+
+Link: https://lkml.kernel.org/r/20250318174343.243631-3-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: Peter Xu <peterx@redhat.com>
 Acked-by: Rafael Aquini <raquini@redhat.com>
@@ -80,30 +83,44 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-unit-tests-support-for-hugepages-2m
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -26,6 +26,8 @@
- #define ALIGN_UP(x, align_to) \
- 	((__typeof__(x))((((unsigned long)(x)) + ((align_to)-1)) & ~((align_to)-1)))
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-speed-up-split_huge_page_test
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -5,6 +5,7 @@
+  */
  
-+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-+
- struct mem_type {
- 	const char *name;
- 	unsigned int mem_flag;
-@@ -196,7 +198,8 @@ uffd_setup_environment(uffd_test_args_t
- 	else
- 		page_size = psize();
+ #define _GNU_SOURCE
++#include <assert.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <stdarg.h>
+@@ -398,6 +399,7 @@ int create_pagecache_thp_and_fd(const ch
+ {
+ 	size_t i;
+ 	int dummy = 0;
++	unsigned char buf[1024];
  
--	nr_pages = UFFD_TEST_MEM_SIZE / page_size;
-+	/* Ensure we have at least 2 pages */
-+	nr_pages = MAX(UFFD_TEST_MEM_SIZE, page_size * 2) / page_size;
- 	/* TODO: remove this global var.. it's so ugly */
- 	nr_parallel = 1;
+ 	srand(time(NULL));
  
+@@ -405,11 +407,12 @@ int create_pagecache_thp_and_fd(const ch
+ 	if (*fd == -1)
+ 		ksft_exit_fail_msg("Failed to create a file at %s\n", testfile);
+ 
+-	for (i = 0; i < fd_size; i++) {
+-		unsigned char byte = (unsigned char)i;
++	assert(fd_size % sizeof(buf) == 0);
++	for (i = 0; i < sizeof(buf); i++)
++		buf[i] = (unsigned char)i;
++	for (i = 0; i < fd_size; i += sizeof(buf))
++		write(*fd, buf, sizeof(buf));
+ 
+-		write(*fd, &byte, sizeof(byte));
+-	}
+ 	close(*fd);
+ 	sync();
+ 	*fd = open("/proc/sys/vm/drop_caches", O_WRONLY);
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
