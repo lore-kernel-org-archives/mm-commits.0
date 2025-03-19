@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 511918F5B
-	for <mm-commits@vger.kernel.org>; Wed, 19 Mar 2025 02:25:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2BCB26AC3;
+	Wed, 19 Mar 2025 02:36:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742351138; cv=none; b=NwXu9boxAhzQQTL8yTm2ekBd1X6lgOWXHbVneg59o3t/PLD3pEYD9LDjehEm0AyvKzKlND0nSh8lCXc5dY4hKlQNCNJH3GUqB4CRP/VpbhMIj3xSU27ca3KYJVEA4qkEExd3DGvUOxCyt+nkaDRpiEooYhDAk3QckH8ll7hn2nA=
+	t=1742351761; cv=none; b=ioL4KdZ7cZKnQHRhXTkuyYd41ujlYUEsgf9N9nwE+KQV+YLzsG8QzMzhqU412moNxK9Vs+uyBX9vGMGKDNmdjJQISBda1Jaqa0cWE8ddNMMCrQnqZpgWtboYpENwt83eq2quBBDG0YpCOFdDeDhA+2XDDIQvkusgWKjqgRnfCxg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742351138; c=relaxed/simple;
-	bh=zKjW/sEXwOxSMbOvaFOb8OR79V02LjW5ee7krj9vJN8=;
-	h=Date:To:From:Subject:Message-Id; b=ORu4dqQqd070GQ3uLWeFf58RlDSs0angsn4xYu2l0ORYYxlKqigr0vAj8Q5Al4UbxLefhxnN02+mCQcIIIPMVVvrumzHEh/FsIp8J8dNkl1JaKh2rS0+7k4HfO3HqmxCvEAVN37N+YUpBpjmBpNj1ua3MnrOEq0Sfi/Z/NuaOi4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tL2e8oa1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742351761; c=relaxed/simple;
+	bh=xb5SFRMygfgsERA62SRyrX7p8qZzwJiov/07IUUWFEA=;
+	h=Date:To:From:Subject:Message-Id; b=X05iEdnQwCIwfkdyAYVISmOrOFA60VH3xjmlagfSNhm5756yJTCqYsrMCFJmmfbrtI4AGXI3ZfPd4fRVUcCFqV12DGVUyRVu3oLY+OT6Mtud3F1ytiOgRmd/s6GUoZ2mKUbkSYOH+krJk+aial/nMDSkDP3sjpeyjF9y0o6SZmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtdXXQM8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tL2e8oa1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF163C4CEDD;
-	Wed, 19 Mar 2025 02:25:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtdXXQM8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DD54C4CEE3;
+	Wed, 19 Mar 2025 02:36:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742351137;
-	bh=zKjW/sEXwOxSMbOvaFOb8OR79V02LjW5ee7krj9vJN8=;
+	s=korg; t=1742351761;
+	bh=xb5SFRMygfgsERA62SRyrX7p8qZzwJiov/07IUUWFEA=;
 	h=Date:To:From:Subject:From;
-	b=tL2e8oa1wsbli+ueyE0v7L0HHHDq73gJbOmuJUwWasNkH4RXR85+ja0azpdaKVR4C
-	 YdQjGn8heiWD4xZao6gppyO7iSjDr2XgQYQ38LPdm3fP81XlKYv1H103b9K2CO9QND
-	 JQhkLtjJ8aiqHlHTmQ9U+keuIi40JcfOKLtyu5Ug=
-Date: Tue, 18 Mar 2025 19:25:37 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,corbet@lwn.net,jiahao1@lixiang.com,akpm@linux-foundation.org
+	b=AtdXXQM8J2zmSpViAsHInyfGXXYZeN35vXiyr/ddcPEJ2wdGyiqRiMc6LUxjax+yd
+	 hFUdKXohUIKSTPRceDPXQ4V/G6IUNEIdGyX41CD0sb+Cn4qNqjfEBmRNgif0xSBMiu
+	 xGrRQpj8WwsKlDQO9c8WuH3/X8wLDhoqcTcyV670=
+Date: Tue, 18 Mar 2025 19:36:00 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,kernel.org,stable@vger,nao.horiguchi@gmail.com,linmiaohe@huawei.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc.patch added to mm-unstable branch
-Message-Id: <20250319022537.AF163C4CEDD@smtp.kernel.org>
+Subject: + mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper.patch added to mm-unstable branch
+Message-Id: <20250319023601.0DD54C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cgroup: docs: add pswpin and pswpout items in cgroup v2 doc
+     Subject: mm/hwpoison: introduce folio_contain_hwpoisoned_page() helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc.patch
+     mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Jia <jiahao1@lixiang.com>
-Subject: cgroup: docs: add pswpin and pswpout items in cgroup v2 doc
-Date: Tue, 18 Mar 2025 15:58:33 +0800
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/hwpoison: introduce folio_contain_hwpoisoned_page() helper
+Date: Tue, 18 Mar 2025 16:39:38 +0800
 
-The commit 15ff4d409e1a ("mm/memcontrol: add per-memcg pgpgin/pswpin
-counter") introduced the pswpin and pswpout items in the memory.stat of
-cgroup v2.  Therefore, update them accordingly in the cgroup-v2
-documentation.
+Patch series "mm/vmscan: don't try to reclaim hwpoison folio".
 
-Link: https://lkml.kernel.org/r/20250318075833.90615-3-jiahao.kernel@gmail.com
-Fixes: 15ff4d409e1a ("mm/memcontrol: add per-memcg pgpgin/pswpin counter") 
-Signed-off-by: Hao Jia <jiahao1@lixiang.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Fix a bug during memory reclaim if folio is hwpoisoned.
+
+
+This patch (of 2):
+
+Introduce helper folio_contain_hwpoisoned_page() to check if the entire
+folio is hwpoisoned or it contains hwpoisoned pages.
+
+Link: https://lkml.kernel.org/r/20250318083939.987651-1-tujinjiang@huawei.com
+Link: https://lkml.kernel.org/r/20250318083939.987651-2-tujinjiang@huawei.com
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: <stable@vger,kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/page-flags.h |    6 ++++++
+ mm/memory_hotplug.c        |    3 +--
+ mm/shmem.c                 |    3 +--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1561,6 +1561,12 @@ The following nested keys are defined.
- 	  workingset_nodereclaim
- 		Number of times a shadow node has been reclaimed
+--- a/include/linux/page-flags.h~mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper
++++ a/include/linux/page-flags.h
+@@ -1135,6 +1135,12 @@ static inline bool is_page_hwpoison(cons
+ 	return folio_test_hugetlb(folio) && PageHWPoison(&folio->page);
+ }
  
-+	  pswpin (npn)
-+		Number of pages swapped into memory
++static inline bool folio_contain_hwpoisoned_page(struct folio *folio)
++{
++	return folio_test_hwpoison(folio) ||
++	    (folio_test_large(folio) && folio_test_has_hwpoisoned(folio));
++}
 +
-+	  pswpout (npn)
-+		Number of pages swapped out of memory
-+
- 	  pgscan (npn)
- 		Amount of scanned pages (in an inactive LRU list)
+ bool is_free_buddy_page(const struct page *page);
  
+ PAGEFLAG(Isolated, isolated, PF_ANY);
+--- a/mm/memory_hotplug.c~mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper
++++ a/mm/memory_hotplug.c
+@@ -1828,8 +1828,7 @@ static void do_migrate_range(unsigned lo
+ 		if (unlikely(page_folio(page) != folio))
+ 			goto put_folio;
+ 
+-		if (folio_test_hwpoison(folio) ||
+-		    (folio_test_large(folio) && folio_test_has_hwpoisoned(folio))) {
++		if (folio_contain_hwpoisoned_page(folio)) {
+ 			if (WARN_ON(folio_test_lru(folio)))
+ 				folio_isolate_lru(folio);
+ 			if (folio_mapped(folio)) {
+--- a/mm/shmem.c~mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper
++++ a/mm/shmem.c
+@@ -3290,8 +3290,7 @@ shmem_write_begin(struct file *file, str
+ 	if (ret)
+ 		return ret;
+ 
+-	if (folio_test_hwpoison(folio) ||
+-	    (folio_test_large(folio) && folio_test_has_hwpoisoned(folio))) {
++	if (folio_contain_hwpoisoned_page(folio)) {
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 		return -EIO;
 _
 
-Patches currently in -mm which might be from jiahao1@lixiang.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics.patch
-cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc.patch
+mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
+mm-hwpoison-introduce-folio_contain_hwpoisoned_page-helper.patch
+mm-vmscan-dont-try-to-reclaim-hwpoison-folio.patch
 
