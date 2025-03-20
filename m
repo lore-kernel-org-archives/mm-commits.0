@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16421E5B7E
-	for <mm-commits@vger.kernel.org>; Thu, 20 Mar 2025 21:12:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D19A71EA7DE
+	for <mm-commits@vger.kernel.org>; Thu, 20 Mar 2025 21:20:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742505145; cv=none; b=Y6O01AhJ2RsMc3C5snr07q8rIwdbPi/UvxgSsOjeGpkjSGfogXAKlnfcfFtyVgYzrHNrUuj+vtKSzxHTEj4PapOr/usk52z6yadjfv6kuugff47tiX5QyJv5rYpbicta+BmLNZPQGgo77sODv5X4WEY93dl26KzG0ZS7qBTRKjI=
+	t=1742505618; cv=none; b=jGpo7Pw/4Ee00LmiE3fUs01ip1ZP7gvVOcj9RQF9HriqMKTKjSuopLTC2+F+h/q4W2T70VcJ5KaxoJg5AigIBRx5Y+U6d917oamp5fqraGPO5xmNcmidqk/+HhkI0oDTReErm3Lzy5T5h7y/KdVStH4rcbF1iXsNQqo4EA75W6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742505145; c=relaxed/simple;
-	bh=+zUSwHIleq3hOFRe9wrfvfBaKgCOObG+NScMgbQRSbo=;
-	h=Date:To:From:Subject:Message-Id; b=sHGfqJpHavQNJyeleAGJHNq9Vg0FobGZg1nL3HWlTpCcRSFP+31Ulkj5OwvX5itOILgjqv2b/0RZUFuxnJRc4VUo+DEE22LndapFIfHTvaX4l5k6LrNcmBWMI1cjspH1uXic+JnSB6OPkvINg30zeBJwYq1bgViI79qGEjW2voo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ycb6pq6m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742505618; c=relaxed/simple;
+	bh=v9Ej8uP4O8izZPTHZAVHd5rjrEFkUsD+nZqhPFxaw/o=;
+	h=Date:To:From:Subject:Message-Id; b=Z/YMoIh4+JTsajxQACC9yWWhMJE8wvGJ7fWXFWSFyXszHdGp1R7W7VkRpNPX63R6KanmbPP/7Obb70B3EgVUi0CHsMPZscYquH1oF7d51e6aAnzmuj1LXUA1rt/zWBeBfHi9oUQvd4InVNMEmbVyWStrFL6fmsDDqKa+sbKrfmc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rn37m9Y1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ycb6pq6m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A74BC4CEDD;
-	Thu, 20 Mar 2025 21:12:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rn37m9Y1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D8D5C4CEDD;
+	Thu, 20 Mar 2025 21:20:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742505145;
-	bh=+zUSwHIleq3hOFRe9wrfvfBaKgCOObG+NScMgbQRSbo=;
+	s=korg; t=1742505618;
+	bh=v9Ej8uP4O8izZPTHZAVHd5rjrEFkUsD+nZqhPFxaw/o=;
 	h=Date:To:From:Subject:From;
-	b=Ycb6pq6mIdATq3ux6trNaMgEv18frp1kPShyKbN0vEGdLYbcaL0n0W8R8rq8UBYoU
-	 lyIQxV11BYLr+SZnCx3hjLt1mmf/6SqMd9ok0xIsDz8qGyGIsloKaOZ+gllXMu8rJr
-	 LMSyUH8gEQmFYHYCHU+SvmqHJW8l3Q5TZhh9PFZc=
-Date: Thu, 20 Mar 2025 14:12:24 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,harry.yoo@oracle.com,akpm@linux-foundation.org
+	b=rn37m9Y1Nacv1NoAVYloxMGrynVGfvN71wY3zyXffB8gKMGBdbnDsgHfSa/2KGm4f
+	 xI7FTDgk00j23J9jrqrX59Jj/UUZzx/VuAVsuRm8TXDhVijvEBOR5bPaXjffAGSfye
+	 QeLrVrM5ZWU9xBVkY8tRxIvWKKA8h2b892fno1jQ=
+Date: Thu, 20 Mar 2025 14:20:17 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,chentaotao@didiglobal.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch added to mm-unstable branch
-Message-Id: <20250320211225.2A74BC4CEDD@smtp.kernel.org>
+Subject: + mm-damon-core-simplify-control-flow-in-damon_register_ops.patch added to mm-unstable branch
+Message-Id: <20250320212018.3D8D5C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kasan: use SLAB_NO_MERGE flag instead of an empty constructor
+     Subject: mm/damon/core: simplify control flow in damon_register_ops()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
+     mm-damon-core-simplify-control-flow-in-damon_register_ops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-simplify-control-flow-in-damon_register_ops.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,53 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Harry Yoo <harry.yoo@oracle.com>
-Subject: mm/kasan: use SLAB_NO_MERGE flag instead of an empty constructor
-Date: Tue, 18 Mar 2025 10:59:26 +0900
+From: Taotao Chen <chentaotao@didiglobal.com>
+Subject: mm/damon/core: simplify control flow in damon_register_ops()
+Date: Thu, 20 Mar 2025 18:44:00 +0800
 
-Use SLAB_NO_MERGE flag to prevent merging instead of providing an empty
-constructor.  Using an empty constructor in this manner is an abuse of
-slab interface.
+The function logic is not complex, so using goto is unnecessary.  Replace
+it with a straightforward if-else to simplify control flow and improve
+readability.
 
-The SLAB_NO_MERGE flag should be used with caution, but in this case, it
-is acceptable as the cache is intended solely for debugging purposes.
-
-No functional changes intended.
-
-Link: https://lkml.kernel.org/r/20250318015926.1629748-1-harry.yoo@oracle.com
-Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Acked-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/Z9vxcPCw8tDsjKw1@OneApple
+Signed-off-by: Taotao Chen <chentaotao@didiglobal.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test_c.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/damon/core.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor
-+++ a/mm/kasan/kasan_test_c.c
-@@ -1073,14 +1073,11 @@ static void kmem_cache_rcu_uaf(struct ku
- 	kmem_cache_destroy(cache);
+--- a/mm/damon/core.c~mm-damon-core-simplify-control-flow-in-damon_register_ops
++++ a/mm/damon/core.c
+@@ -76,14 +76,13 @@ int damon_register_ops(struct damon_oper
+ 
+ 	if (ops->id >= NR_DAMON_OPS)
+ 		return -EINVAL;
++
+ 	mutex_lock(&damon_ops_lock);
+ 	/* Fail for already registered ops */
+-	if (__damon_is_registered_ops(ops->id)) {
++	if (__damon_is_registered_ops(ops->id))
+ 		err = -EINVAL;
+-		goto out;
+-	}
+-	damon_registered_ops[ops->id] = *ops;
+-out:
++	else
++		damon_registered_ops[ops->id] = *ops;
+ 	mutex_unlock(&damon_ops_lock);
+ 	return err;
  }
- 
--static void empty_cache_ctor(void *object) { }
--
- static void kmem_cache_double_destroy(struct kunit *test)
- {
- 	struct kmem_cache *cache;
- 
--	/* Provide a constructor to prevent cache merging. */
--	cache = kmem_cache_create("test_cache", 200, 0, 0, empty_cache_ctor);
-+	cache = kmem_cache_create("test_cache", 200, 0, SLAB_NO_MERGE, NULL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
- 	kmem_cache_destroy(cache);
- 	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
 _
 
-Patches currently in -mm which might be from harry.yoo@oracle.com are
+Patches currently in -mm which might be from chentaotao@didiglobal.com are
 
-mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
+mm-damon-core-simplify-control-flow-in-damon_register_ops.patch
 
