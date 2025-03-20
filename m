@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0AAA20FA85
-	for <mm-commits@vger.kernel.org>; Thu, 20 Mar 2025 21:01:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16421E5B7E
+	for <mm-commits@vger.kernel.org>; Thu, 20 Mar 2025 21:12:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742504488; cv=none; b=YzhyyawrvW3R46sQCxep9Sl2UIFvAdh0xbBpN22Nbp+rOBWuuiSIk+Upkp9UdgW5By5BJmhAAumdGNzGCumA0uoZdDTqkA9BwPzhjM/dagyejlEo592oHQPIiRB2u12aFO7kiEk8fkLNE7wgjcOE717WQgwbzNdb5PFewy9tKm4=
+	t=1742505145; cv=none; b=Y6O01AhJ2RsMc3C5snr07q8rIwdbPi/UvxgSsOjeGpkjSGfogXAKlnfcfFtyVgYzrHNrUuj+vtKSzxHTEj4PapOr/usk52z6yadjfv6kuugff47tiX5QyJv5rYpbicta+BmLNZPQGgo77sODv5X4WEY93dl26KzG0ZS7qBTRKjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742504488; c=relaxed/simple;
-	bh=X+CAedc6LhD+1t5Xpb0me89d+V0qQ5abVquass1DS24=;
-	h=Date:To:From:Subject:Message-Id; b=XLS29S3k/RO6QefTlaHStsK/TUWVi6Gc4lx1zeMf049v2X54VOw1XaSAcGZTkIcs9Cwv1pF5kGO33Y5N3uP0hULPpKV/Oja2PBcFqxv+w78HZJgPg1+8li27FkcSi14qni9JewAimG09O5bUGKWFE6KatVZf2erkaO8Cq9lLPEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qCkzdsV3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742505145; c=relaxed/simple;
+	bh=+zUSwHIleq3hOFRe9wrfvfBaKgCOObG+NScMgbQRSbo=;
+	h=Date:To:From:Subject:Message-Id; b=sHGfqJpHavQNJyeleAGJHNq9Vg0FobGZg1nL3HWlTpCcRSFP+31Ulkj5OwvX5itOILgjqv2b/0RZUFuxnJRc4VUo+DEE22LndapFIfHTvaX4l5k6LrNcmBWMI1cjspH1uXic+JnSB6OPkvINg30zeBJwYq1bgViI79qGEjW2voo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ycb6pq6m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qCkzdsV3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC7AC4CEDD;
-	Thu, 20 Mar 2025 21:01:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ycb6pq6m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A74BC4CEDD;
+	Thu, 20 Mar 2025 21:12:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742504487;
-	bh=X+CAedc6LhD+1t5Xpb0me89d+V0qQ5abVquass1DS24=;
+	s=korg; t=1742505145;
+	bh=+zUSwHIleq3hOFRe9wrfvfBaKgCOObG+NScMgbQRSbo=;
 	h=Date:To:From:Subject:From;
-	b=qCkzdsV3sXoorAYjYk6UIPFcmZYoXEarZajrCDnM6ADw54sHy4C6Ozo31ukV8bgGj
-	 CyIFRcZzxUuTFRMCjvYL8XaXYYWBohwD+4DiuHPwQ2Nyj04W4KuxVf5Ddmfv2j5lXV
-	 uQShcxK3SXbRH+KxRRUoC+ILVYYyoBw7LtHxR4Ow=
-Date: Thu, 20 Mar 2025 14:01:25 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,kbusch@kernel.org,ddutile@redhat.com,catalin.marinas@arm.com,alex.williamson@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=Ycb6pq6mIdATq3ux6trNaMgEv18frp1kPShyKbN0vEGdLYbcaL0n0W8R8rq8UBYoU
+	 lyIQxV11BYLr+SZnCx3hjLt1mmf/6SqMd9ok0xIsDz8qGyGIsloKaOZ+gllXMu8rJr
+	 LMSyUH8gEQmFYHYCHU+SvmqHJW8l3Q5TZhh9PFZc=
+Date: Thu, 20 Mar 2025 14:12:24 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-arm64-drop-dead-code-for-pud-special-bit-handling.patch added to mm-unstable branch
-Message-Id: <20250320210127.1BC7AC4CEDD@smtp.kernel.org>
+Subject: + mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch added to mm-unstable branch
+Message-Id: <20250320211225.2A74BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/arm64: drop dead code for pud special bit handling
+     Subject: mm/kasan: use SLAB_NO_MERGE flag instead of an empty constructor
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-arm64-drop-dead-code-for-pud-special-bit-handling.patch
+     mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-arm64-drop-dead-code-for-pud-special-bit-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,58 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/arm64: drop dead code for pud special bit handling
-Date: Thu, 20 Mar 2025 14:34:05 -0400
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: mm/kasan: use SLAB_NO_MERGE flag instead of an empty constructor
+Date: Tue, 18 Mar 2025 10:59:26 +0900
 
-Keith Busch observed some incorrect macros defined in arm64 code [1].
+Use SLAB_NO_MERGE flag to prevent merging instead of providing an empty
+constructor.  Using an empty constructor in this manner is an abuse of
+slab interface.
 
-It turns out the two lines should never be needed and won't be exposed to
-anyone, because aarch64 doesn't select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD,
-hence ARCH_SUPPORTS_PUD_PFNMAP is always N.  The only archs that support
-THP PUDs so far are x86 and powerpc.
+The SLAB_NO_MERGE flag should be used with caution, but in this case, it
+is acceptable as the cache is intended solely for debugging purposes.
 
-Instead of fixing the lines (with no way to test it..), remove the two
-lines that are in reality dead code, to avoid confusing readers.
+No functional changes intended.
 
-Fixes tag is attached to reflect where the wrong macros were introduced,
-but explicitly not copying stable, because there's no real issue to be
-fixed.  So it's only about removing the dead code so far.
-
-[1] https://lore.kernel.org/all/Z9tDjOk-JdV_fCY4@kbusch-mbp.dhcp.thefacebook.com/#t
-
-Link: https://lkml.kernel.org/r/20250320183405.12659-1-peterx@redhat.com
-Fixes: 3e509c9b03f9 ("mm/arm64: support large pfn mappings")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Keith Busch <kbusch@kernel.org>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Donald Dutile <ddutile@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20250318015926.1629748-1-harry.yoo@oracle.com
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/kasan/kasan_test_c.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-arm64-drop-dead-code-for-pud-special-bit-handling
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -620,11 +620,6 @@ static inline pmd_t pmd_mkspecial(pmd_t
- #define pud_pfn(pud)		((__pud_to_phys(pud) & PUD_MASK) >> PAGE_SHIFT)
- #define pfn_pud(pfn,prot)	__pud(__phys_to_pud_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor
++++ a/mm/kasan/kasan_test_c.c
+@@ -1073,14 +1073,11 @@ static void kmem_cache_rcu_uaf(struct ku
+ 	kmem_cache_destroy(cache);
+ }
  
--#ifdef CONFIG_ARCH_SUPPORTS_PUD_PFNMAP
--#define pud_special(pte)	pte_special(pud_pte(pud))
--#define pud_mkspecial(pte)	pte_pud(pte_mkspecial(pud_pte(pud)))
--#endif
+-static void empty_cache_ctor(void *object) { }
 -
- #define pmd_pgprot pmd_pgprot
- static inline pgprot_t pmd_pgprot(pmd_t pmd)
+ static void kmem_cache_double_destroy(struct kunit *test)
  {
+ 	struct kmem_cache *cache;
+ 
+-	/* Provide a constructor to prevent cache merging. */
+-	cache = kmem_cache_create("test_cache", 200, 0, 0, empty_cache_ctor);
++	cache = kmem_cache_create("test_cache", 200, 0, SLAB_NO_MERGE, NULL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
+ 	kmem_cache_destroy(cache);
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-mm-userfaultfd-fix-release-hang-over-concurrent-gup.patch
-mm-arm64-drop-dead-code-for-pud-special-bit-handling.patch
+mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
 
