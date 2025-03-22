@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 853F61547F5
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:04:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42F151547F5
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:04:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742619853; cv=none; b=rSlsthC3u16s8+eFNjHSr8mT4+aOqjydRMIGVGkPYpVvvx6rh1QGfdtvinNqpQ6SGSU//mfAvBpxVnavFlepDu8VpL3F+5DQL1Qz236lK5ePoi6IMo3olbpqWmfHZe2FDEr4thQx5/pZk8dggqnTTCZFMi2DW23sM314sLDQGy4=
+	t=1742619854; cv=none; b=G5h+CgKmDbgrZfwklEmhKUlQ2D49nF1Ocyy8bWjyhgNgXXpjw+a+Py0F8g5s2YS92PpZgyW/P6zC69YcLQh2THSs+tk7vEcSGPJd6ssvC6pLCrrXxxDCnC76dkkUCgLHZ34IEc+E0JxnUKcHpB8AXERNiICr3Odqp8w8k/WKHyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742619853; c=relaxed/simple;
-	bh=+rePUDe5FxaJDD4RK6EGTFidPAohgOGQW+j0RiU2Icc=;
-	h=Date:To:From:Subject:Message-Id; b=dQtjKZH6UpwLwb+4YgoU20Mb44pPVj91hqwjn1xIqUKsDtl2fUdJzH5QJTb5KY1MIHQnj6yPsuS3hBKre4c9gyRSLZzfWSAc0RGkxVgp2kzpybyv1qJAjj7TvZ5L+7emHGpU6fVyCMVYpxx4BzOJqKuH/+hhnM2NBSrGwJJPLlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LOG/1Fr8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619854; c=relaxed/simple;
+	bh=2qhMRQIBvJlSRg71vO8FUPwOMDEoRu48Nt6GzMcicw8=;
+	h=Date:To:From:Subject:Message-Id; b=An1Ouq37RQSrWtbqCKoKyTCLidmmd9vFkNpWr2nU6bXaiy/hVn17LgYoK2iX28Utc/fqCRqpDzQ/Nl5llgfTii/gAKOl+j8npdTkpvvxisveDK/vZ2iV78OlKkgfks6lVHQWCGiTbpnTsLg2x1bcNYHyuNSNS1CiCn7wPL5Mv+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KeBrZRUY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LOG/1Fr8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4726C4CEDD;
-	Sat, 22 Mar 2025 05:04:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KeBrZRUY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18516C4CEDD;
+	Sat, 22 Mar 2025 05:04:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742619853;
-	bh=+rePUDe5FxaJDD4RK6EGTFidPAohgOGQW+j0RiU2Icc=;
+	s=korg; t=1742619854;
+	bh=2qhMRQIBvJlSRg71vO8FUPwOMDEoRu48Nt6GzMcicw8=;
 	h=Date:To:From:Subject:From;
-	b=LOG/1Fr8jU15xJxntbLj9waZvDpfhBnldG9oe2+o0uhv7/zX+wZmjT8dx0aXVVnKx
-	 Cz8U8CMQAtIkjNhdEPOk1Xfurj2Kbl/aXXyTHGmcEIXNDEApUq8ud81ihqy+wAB6Pu
-	 C0bcmQvk/Z5SHWQskvhYZ0uFms3TxFQC8StRDZbw=
-Date: Fri, 21 Mar 2025 22:04:12 -0700
+	b=KeBrZRUY3fB1vk3hRQ18AoxKeRLgGaKWoxQC+I12hUApK1nUiERHlTzlHPSs6xo18
+	 2EN3r22/KvEqaKbjj7SFnFgQPYaQY7sd1lON9htakiW+lCBd5oXBLD1yJRlXhmJgYC
+	 pDDkc7fN+iff04t1YNXQG35ZTu5N5ME4INQq5N4M=
+Date: Fri, 21 Mar 2025 22:04:13 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,corbet@lwn.net,jiahao1@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics.patch removed from -mm tree
-Message-Id: <20250322050412.E4726C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc.patch removed from -mm tree
+Message-Id: <20250322050414.18516C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: split proactive reclaim statistics from direct reclaim statistics
+     Subject: cgroup: docs: add pswpin and pswpout items in cgroup v2 doc
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics.patch
+     cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hao Jia <jiahao1@lixiang.com>
-Subject: mm: vmscan: split proactive reclaim statistics from direct reclaim statistics
-Date: Tue, 18 Mar 2025 15:58:32 +0800
+Subject: cgroup: docs: add pswpin and pswpout items in cgroup v2 doc
+Date: Tue, 18 Mar 2025 15:58:33 +0800
 
-Patch series "Adding Proactive Memory Reclaim Statistics".
+The commit 15ff4d409e1a ("mm/memcontrol: add per-memcg pgpgin/pswpin
+counter") introduced the pswpin and pswpout items in the memory.stat of
+cgroup v2.  Therefore, update them accordingly in the cgroup-v2
+documentation.
 
-These two patches are related to proactive memory reclaim.
-
-Patch 1 Split proactive reclaim statistics from direct reclaim counters
-and introduces new counters: pgsteal_proactive, pgdemote_proactive,
-and pgscan_proactive.
-
-Patch 2 Adds pswpin and pswpout items to the cgroup-v2 documentation.
-
-
-This patch (of 2):
-
-In proactive memory reclaim scenarios, it is necessary to accurately track
-proactive reclaim statistics to dynamically adjust the frequency and
-amount of memory being reclaimed proactively.  Currently, proactive
-reclaim is included in direct reclaim statistics, which can make these
-direct reclaim statistics misleading.
-
-Therefore, separate proactive reclaim memory from the direct reclaim
-counters by introducing new counters: pgsteal_proactive,
-pgdemote_proactive, and pgscan_proactive, to avoid confusion with direct
-reclaim.
-
-Link: https://lkml.kernel.org/r/20250318075833.90615-1-jiahao.kernel@gmail.com
-Link: https://lkml.kernel.org/r/20250318075833.90615-2-jiahao.kernel@gmail.com
+Link: https://lkml.kernel.org/r/20250318075833.90615-3-jiahao.kernel@gmail.com
+Fixes: 15ff4d409e1a ("mm/memcontrol: add per-memcg pgpgin/pswpin counter") 
 Signed-off-by: Hao Jia <jiahao1@lixiang.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -81,230 +63,27 @@ Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    9 +++++
- include/linux/mmzone.h                  |    1 
- include/linux/vm_event_item.h           |    2 +
- mm/memcontrol.c                         |    7 ++++
- mm/vmscan.c                             |   37 ++++++++++++----------
- mm/vmstat.c                             |    3 +
- 6 files changed, 43 insertions(+), 16 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics
+--- a/Documentation/admin-guide/cgroup-v2.rst~cgroup-docs-add-pswpin-and-pswpout-items-in-cgroup-v2-doc
 +++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1576,6 +1576,9 @@ The following nested keys are defined.
- 	  pgscan_khugepaged (npn)
- 		Amount of scanned pages by khugepaged  (in an inactive LRU list)
+@@ -1561,6 +1561,12 @@ The following nested keys are defined.
+ 	  workingset_nodereclaim
+ 		Number of times a shadow node has been reclaimed
  
-+	  pgscan_proactive (npn)
-+		Amount of scanned pages proactively (in an inactive LRU list)
++	  pswpin (npn)
++		Number of pages swapped into memory
 +
- 	  pgsteal_kswapd (npn)
- 		Amount of reclaimed pages by kswapd
- 
-@@ -1585,6 +1588,9 @@ The following nested keys are defined.
- 	  pgsteal_khugepaged (npn)
- 		Amount of reclaimed pages by khugepaged
- 
-+	  pgsteal_proactive (npn)
-+		Amount of reclaimed pages proactively
++	  pswpout (npn)
++		Number of pages swapped out of memory
 +
- 	  pgfault (npn)
- 		Total number of page faults incurred
+ 	  pgscan (npn)
+ 		Amount of scanned pages (in an inactive LRU list)
  
-@@ -1662,6 +1668,9 @@ The following nested keys are defined.
- 	  pgdemote_khugepaged
- 		Number of pages demoted by khugepaged.
- 
-+	  pgdemote_proactive
-+		Number of pages demoted by proactively.
-+
- 	  hugetlb
- 		Amount of memory used by hugetlb pages. This metric only shows
- 		up if hugetlb usage is accounted for in memory.current (i.e.
---- a/include/linux/mmzone.h~mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics
-+++ a/include/linux/mmzone.h
-@@ -221,6 +221,7 @@ enum node_stat_item {
- 	PGDEMOTE_KSWAPD,
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
-+	PGDEMOTE_PROACTIVE,
- #ifdef CONFIG_HUGETLB_PAGE
- 	NR_HUGETLB,
- #endif
---- a/include/linux/vm_event_item.h~mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics
-+++ a/include/linux/vm_event_item.h
-@@ -41,9 +41,11 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSTEAL_KSWAPD,
- 		PGSTEAL_DIRECT,
- 		PGSTEAL_KHUGEPAGED,
-+		PGSTEAL_PROACTIVE,
- 		PGSCAN_KSWAPD,
- 		PGSCAN_DIRECT,
- 		PGSCAN_KHUGEPAGED,
-+		PGSCAN_PROACTIVE,
- 		PGSCAN_DIRECT_THROTTLE,
- 		PGSCAN_ANON,
- 		PGSCAN_FILE,
---- a/mm/memcontrol.c~mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics
-+++ a/mm/memcontrol.c
-@@ -315,6 +315,7 @@ static const unsigned int memcg_node_sta
- 	PGDEMOTE_KSWAPD,
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
-+	PGDEMOTE_PROACTIVE,
- #ifdef CONFIG_HUGETLB_PAGE
- 	NR_HUGETLB,
- #endif
-@@ -431,9 +432,11 @@ static const unsigned int memcg_vm_event
- 	PGSCAN_KSWAPD,
- 	PGSCAN_DIRECT,
- 	PGSCAN_KHUGEPAGED,
-+	PGSCAN_PROACTIVE,
- 	PGSTEAL_KSWAPD,
- 	PGSTEAL_DIRECT,
- 	PGSTEAL_KHUGEPAGED,
-+	PGSTEAL_PROACTIVE,
- 	PGFAULT,
- 	PGMAJFAULT,
- 	PGREFILL,
-@@ -1394,6 +1397,7 @@ static const struct memory_stat memory_s
- 	{ "pgdemote_kswapd",		PGDEMOTE_KSWAPD		},
- 	{ "pgdemote_direct",		PGDEMOTE_DIRECT		},
- 	{ "pgdemote_khugepaged",	PGDEMOTE_KHUGEPAGED	},
-+	{ "pgdemote_proactive",		PGDEMOTE_PROACTIVE	},
- #ifdef CONFIG_NUMA_BALANCING
- 	{ "pgpromote_success",		PGPROMOTE_SUCCESS	},
- #endif
-@@ -1436,6 +1440,7 @@ static int memcg_page_state_output_unit(
- 	case PGDEMOTE_KSWAPD:
- 	case PGDEMOTE_DIRECT:
- 	case PGDEMOTE_KHUGEPAGED:
-+	case PGDEMOTE_PROACTIVE:
- #ifdef CONFIG_NUMA_BALANCING
- 	case PGPROMOTE_SUCCESS:
- #endif
-@@ -1509,10 +1514,12 @@ static void memcg_stat_format(struct mem
- 	seq_buf_printf(s, "pgscan %lu\n",
- 		       memcg_events(memcg, PGSCAN_KSWAPD) +
- 		       memcg_events(memcg, PGSCAN_DIRECT) +
-+		       memcg_events(memcg, PGSCAN_PROACTIVE) +
- 		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
- 	seq_buf_printf(s, "pgsteal %lu\n",
- 		       memcg_events(memcg, PGSTEAL_KSWAPD) +
- 		       memcg_events(memcg, PGSTEAL_DIRECT) +
-+		       memcg_events(memcg, PGSTEAL_PROACTIVE) +
- 		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
---- a/mm/vmscan.c~mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics
-+++ a/mm/vmscan.c
-@@ -456,21 +456,26 @@ void drop_slab(void)
- 	} while ((freed >> shift++) > 1);
- }
- 
--static int reclaimer_offset(void)
--{
--	BUILD_BUG_ON(PGSTEAL_DIRECT - PGSTEAL_KSWAPD !=
--			PGDEMOTE_DIRECT - PGDEMOTE_KSWAPD);
--	BUILD_BUG_ON(PGSTEAL_KHUGEPAGED - PGSTEAL_KSWAPD !=
--			PGDEMOTE_KHUGEPAGED - PGDEMOTE_KSWAPD);
--	BUILD_BUG_ON(PGSTEAL_DIRECT - PGSTEAL_KSWAPD !=
--			PGSCAN_DIRECT - PGSCAN_KSWAPD);
--	BUILD_BUG_ON(PGSTEAL_KHUGEPAGED - PGSTEAL_KSWAPD !=
--			PGSCAN_KHUGEPAGED - PGSCAN_KSWAPD);
-+#define CHECK_RECLAIMER_OFFSET(type)					\
-+	do {								\
-+		BUILD_BUG_ON(PGSTEAL_##type - PGSTEAL_KSWAPD !=		\
-+			     PGDEMOTE_##type - PGDEMOTE_KSWAPD);	\
-+		BUILD_BUG_ON(PGSTEAL_##type - PGSTEAL_KSWAPD !=		\
-+			     PGSCAN_##type - PGSCAN_KSWAPD);		\
-+	} while (0)
-+
-+static int reclaimer_offset(struct scan_control *sc)
-+{
-+	CHECK_RECLAIMER_OFFSET(DIRECT);
-+	CHECK_RECLAIMER_OFFSET(KHUGEPAGED);
-+	CHECK_RECLAIMER_OFFSET(PROACTIVE);
- 
- 	if (current_is_kswapd())
- 		return 0;
- 	if (current_is_khugepaged())
- 		return PGSTEAL_KHUGEPAGED - PGSTEAL_KSWAPD;
-+	if (sc->proactive)
-+		return PGSTEAL_PROACTIVE - PGSTEAL_KSWAPD;
- 	return PGSTEAL_DIRECT - PGSTEAL_KSWAPD;
- }
- 
-@@ -2008,7 +2013,7 @@ static unsigned long shrink_inactive_lis
- 				     &nr_scanned, sc, lru);
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
--	item = PGSCAN_KSWAPD + reclaimer_offset();
-+	item = PGSCAN_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
-@@ -2024,10 +2029,10 @@ static unsigned long shrink_inactive_lis
- 	spin_lock_irq(&lruvec->lru_lock);
- 	move_folios_to_lru(lruvec, &folio_list);
- 
--	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
-+	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
- 					stat.nr_demoted);
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
--	item = PGSTEAL_KSWAPD + reclaimer_offset();
-+	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_reclaimed);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
-@@ -4571,7 +4576,7 @@ static int scan_folios(struct lruvec *lr
- 			break;
- 	}
- 
--	item = PGSCAN_KSWAPD + reclaimer_offset();
-+	item = PGSCAN_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc)) {
- 		__count_vm_events(item, isolated);
- 		__count_vm_events(PGREFILL, sorted);
-@@ -4721,10 +4726,10 @@ retry:
- 		reset_batch_size(walk);
- 	}
- 
--	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(),
-+	__mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
- 					stat.nr_demoted);
- 
--	item = PGSTEAL_KSWAPD + reclaimer_offset();
-+	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, reclaimed);
- 	__count_memcg_events(memcg, item, reclaimed);
---- a/mm/vmstat.c~mm-vmscan-split-proactive-reclaim-statistics-from-direct-reclaim-statistics
-+++ a/mm/vmstat.c
-@@ -1274,6 +1274,7 @@ const char * const vmstat_text[] = {
- 	"pgdemote_kswapd",
- 	"pgdemote_direct",
- 	"pgdemote_khugepaged",
-+	"pgdemote_proactive",
- #ifdef CONFIG_HUGETLB_PAGE
- 	"nr_hugetlb",
- #endif
-@@ -1309,9 +1310,11 @@ const char * const vmstat_text[] = {
- 	"pgsteal_kswapd",
- 	"pgsteal_direct",
- 	"pgsteal_khugepaged",
-+	"pgsteal_proactive",
- 	"pgscan_kswapd",
- 	"pgscan_direct",
- 	"pgscan_khugepaged",
-+	"pgscan_proactive",
- 	"pgscan_direct_throttle",
- 	"pgscan_anon",
- 	"pgscan_file",
 _
 
 Patches currently in -mm which might be from jiahao1@lixiang.com are
