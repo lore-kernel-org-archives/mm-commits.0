@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 227F115689A
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:08:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 774E67081C
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:08:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742620092; cv=none; b=kmTjdwky0Y4GOgNETlrDRi6JoEYbChm9bx0g4NVTEjUPf8jk5z17pdePNkxxQXzqxHVLrj/S3olhYnPxQbRPtGtmh8vTDbQ24dvPfWd6mhwcRNMMJGLNl90bHz8byCXOEl5do3Es/My/VxUvIcGRnS6hPDf28zK/N9nivY9AHQA=
+	t=1742620120; cv=none; b=MLM1K05ous/dew6lZFa9qbkQJPxKkyfrgLjHIsX5u+ITaVEA1pAiXOjX0Svl3kENBMAz7jqKHMhKZXAbwq/Zn/lljXWOlMSfqXEzxEG/S7oxbdgipx0rP/Z49bvODIlf05DupK2NuBgajUovPUB2xhKZ4JpgaYojsHx9Qj+o0m8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742620092; c=relaxed/simple;
-	bh=0XFZa57MiKffz9uwG87TG7k3n+vc3JlIChdXtfZ/fcQ=;
-	h=Date:To:From:Subject:Message-Id; b=a8+A1FjPG4oOe2/Chm4OsWTCNDVqVWVPx6HryGJkUpA+dqmnUngZeEWUFz9VSZbK9xu3AomN0zHvRCYz3zrvv9Sxxyls7dQjt6F7+HLSOx7Y1LtfgIUe/m8kgbhd0i+bljRj7LXabwo6iQrWfQrKr0iNxzA1pxjyO2xIgiXLPfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X9sE4SvL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742620120; c=relaxed/simple;
+	bh=KAce/0zxpFlAi3KBND1ubiclKZplwPtzmM6j6C6Y6ho=;
+	h=Date:To:From:Subject:Message-Id; b=b4APTySznuhqE7JO8WlLbv29i6HRd5RlJLvvqrWx3hHykgueTLGlLb00zXLjFnqjTOnshn4kYF9xJG5kjIvLU1bN8XNInpY2MTCUDyLczZlSia3/vcajaOSxpNLpEOUGlaRR/NF9AHFqdxGcwSwFAzRkVaPnAQwpDIZSoeZhBlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YW3tSciO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X9sE4SvL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7666C4CEDD;
-	Sat, 22 Mar 2025 05:08:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YW3tSciO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43086C4CEDD;
+	Sat, 22 Mar 2025 05:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742620091;
-	bh=0XFZa57MiKffz9uwG87TG7k3n+vc3JlIChdXtfZ/fcQ=;
+	s=korg; t=1742620120;
+	bh=KAce/0zxpFlAi3KBND1ubiclKZplwPtzmM6j6C6Y6ho=;
 	h=Date:To:From:Subject:From;
-	b=X9sE4SvLuXxJN9542IOtnsNNDPdun9dVf1L+UpQX+dcGQZWodnfgzOOp5SDJV1QMF
-	 JaQN2jepDwfDmKGLOWpAe11YKJajZ0n7hnPMvs+NjxakYlgeSHjTvDdlnr0LR7DBu6
-	 /Dc4iHXKlv99LPnzkR4BD81UbiGVBlxc+VyuYaEc=
-Date: Fri, 21 Mar 2025 22:08:11 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,joel.granados@kernel.org,ioworker0@gmail.com,boqun.feng@gmail.com,anna.schumaker@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=YW3tSciOhWRQ2MwFM+3niaMTmeRRdtPo+fhtwxPSDfmHB6jXFBT6JFbg32PNSCkWg
+	 U/t9F8XK3IgFGw0Q7IRmIHQ3Yd3N5CEDwBmKLPLyBUy0vhm0U/xLb0vLV2Flmu7xFO
+	 sxZJLrEWHDtuaXOlnfL87MdXfPBJiV81Z3T2wkac=
+Date: Fri, 21 Mar 2025 22:08:39 -0700
+To: mm-commits@vger.kernel.org,mhiramat@kernel.org,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch removed from -mm tree
-Message-Id: <20250322050811.D7666C4CEDD@smtp.kernel.org>
+Subject: [folded-merged] samples-add-hung_task-detector-mutex-blocking-sample-fix.patch removed from -mm tree
+Message-Id: <20250322050840.43086C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix
+     Subject: samples-add-hung_task-detector-mutex-blocking-sample-fix
 has been removed from the -mm tree.  Its filename was
-     hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
+     samples-add-hung_task-detector-mutex-blocking-sample-fix.patch
 
-This patch was dropped because it was folded into hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex.patch
+This patch was dropped because it was folded into samples-add-hung_task-detector-mutex-blocking-sample.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix
-Date: Thu Mar 13 03:28:05 PM PDT 2025
+Subject: samples-add-hung_task-detector-mutex-blocking-sample-fix
+Date: Mon Mar 17 07:53:34 PM PDT 2025
 
-implement debug_show_blocker() in C rather than in CPP
+make `hung_task_dir' static
 
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tomasz Figa <tfiga@chromium.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yongliang Gao <leonylgao@tencent.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202503180827.4StpuFrD-lkp@intel.com/
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ samples/hung_task/Makefile          |    2 +-
+ samples/hung_task/hung_task_mutex.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/hung_task.c~hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix
-+++ a/kernel/hung_task.c
-@@ -125,7 +125,9 @@ static void debug_show_blocker(struct ta
- 	}
- }
- #else
--#define debug_show_blocker(t)	do {} while (0)
-+static inline void debug_show_blocker(struct task_struct *task)
-+{
-+}
- #endif
+--- a/samples/hung_task/hung_task_mutex.c~samples-add-hung_task-detector-mutex-blocking-sample-fix
++++ a/samples/hung_task/hung_task_mutex.c
+@@ -22,7 +22,7 @@
  
- static void check_hung_task(struct task_struct *t, unsigned long timeout)
+ static const char dummy_string[] = "This is a dummy string.";
+ static DEFINE_MUTEX(dummy_mutex);
+-struct dentry *hung_task_dir;
++static struct dentry *hung_task_dir;
+ 
+ static ssize_t read_dummy(struct file *file, char __user *user_buf,
+ 			  size_t count, loff_t *ppos)
+--- a/samples/hung_task/Makefile~samples-add-hung_task-detector-mutex-blocking-sample-fix
++++ a/samples/hung_task/Makefile
+@@ -1,2 +1,2 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-obj-$(CONFIG_SAMPLE_HUNG_TASK) += hung_task_mutex.o
+\ No newline at end of file
++obj-$(CONFIG_SAMPLE_HUNG_TASK) += hung_task_mutex.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes.patch
 mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex.patch
-samples-add-hung_task-detector-mutex-blocking-sample-fix.patch
+samples-add-hung_task-detector-mutex-blocking-sample.patch
 
