@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76AE1944F
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 00:57:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B94E912F399
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:01:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742605063; cv=none; b=mG3LV9p93IrMaSAg3fLF7f0/HrCrACk0vgPRKMu5ceD9kmnH9PZ6RIQyoL2eHOmRf5I9gXKtWW0QVxGGVH/Vskq8L2GMI/O9/9OJquT11LLj+MND7tK4m71sh31vMsYEC5lVljhOroShzbLlKy7tCuMyiS8Ja9EiynjHcGDcKDs=
+	t=1742619673; cv=none; b=ubF9ZxfRc1OUyElKmRFTxDWJJG90KwpF5NHdvNKNPvMdlQbzUasZzfb6kC+QZHaVP+V7KNY7NvS9qmKP7bE2LBaxkSkiu1KDOg5ecSDpW1A5FdaZrqDQzcxerOkjujyCHLSDVqK/UJ/K/yNwJ28kE7JmMpQJ/rrtsr7Mgy4cvdo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742605063; c=relaxed/simple;
-	bh=Yh6gmgPCkno4ia/N8kWVHKdTEMLAwh5KNO4kAzHu4m8=;
-	h=Date:To:From:Subject:Message-Id; b=t9/1nri+QKZNn29yjMzJf0j56dVpZDyM0DCEKubtz68S+lEtjPaMiJs01IX9iZNS917HZWb/0xSt9EGumDB9yHha9zJb6mTniEXPOOrH7d8Ji0sTib3BRqWoQ/HreHXBn0qfZ2E5lgySQJquhBymWeXzFTrP0K/tbNyxe3S0Dhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YtC3leDu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619673; c=relaxed/simple;
+	bh=o+LSGMbhSATFyviMbNp60cByI6+iSE9/18PfpxiERdg=;
+	h=Date:To:From:Subject:Message-Id; b=prVQ9zoI8Xjkti9frrhMU47t/49/vOotDB/apHZtu/D2UVuLLMPUbufwBpCIcG+Rt/+vX6wioJyuEy1TXURJL+7jkg2+kJgTGeNi+s3nxpBZq2e+l5eBq/4atHgHUJtm7lPoyWTZFBlBFKS/Fafzvs0Hg+SeGIF/JnRoPMpIeEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZHrIknej; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YtC3leDu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31337C4CEE3;
-	Sat, 22 Mar 2025 00:57:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZHrIknej"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA530C4CEDD;
+	Sat, 22 Mar 2025 05:01:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742605063;
-	bh=Yh6gmgPCkno4ia/N8kWVHKdTEMLAwh5KNO4kAzHu4m8=;
+	s=korg; t=1742619672;
+	bh=o+LSGMbhSATFyviMbNp60cByI6+iSE9/18PfpxiERdg=;
 	h=Date:To:From:Subject:From;
-	b=YtC3leDu4GxG1QBeAv4HXDp9Bi4PskWQi3fyZRea4pVDxjfSm8NrS4HaenMFjdAMQ
-	 UfgDRHXAhQqJTwEdGAP0/YZ1R/efPhzRwIegLgFnw3VtZdtj/4/SQ4KIOjo0Ym+jF8
-	 HUtY1oalN+SaSfn63BRfFJ+6+6tDzkPleWHcigKg=
-Date: Fri, 21 Mar 2025 17:57:42 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,aarcange@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ZHrIknej9J8PyFwrdyZWFcHJO8I+ifiudVEmHPQTZpW+wsl/AMTI1/J8JcVIEzmjj
+	 +zq1Z/zws8+GtH4JmmSOHNe4dk/R7x4KGKfo3N5fQJ3jAHZFS2E0urmGbBataErpTy
+	 JHeq0fmbMHuuybVbg9Nl+r5oqgTZZUGkekq1tmco=
+Date: Fri, 21 Mar 2025 22:01:11 -0700
+To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20250322005743.31337C4CEE3@smtp.kernel.org>
+Subject: [folded-merged] meminfo-add-a-per-node-counter-for-balloon-drivers-fix.patch removed from -mm tree
+Message-Id: <20250322050112.CA530C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,92 +34,54 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes
-has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes.patch
+The quilt patch titled
+     Subject: Documentation: document Balloon Meminfo entry
+has been removed from the -mm tree.  Its filename was
+     meminfo-add-a-per-node-counter-for-balloon-drivers-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into meminfo-add-a-per-node-counter-for-balloon-drivers.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes
-Date: Fri Mar 21 05:54:54 PM PDT 2025
+From: Nico Pache <npache@redhat.com>
+Subject: Documentation: document Balloon Meminfo entry
+Date: Mon, 17 Mar 2025 16:07:18 -0600
 
-WARNING: Misordered MAINTAINERS entry - list file patterns in alphabetic order
-#37: FILE: MAINTAINERS:15228:
-+F:	mm/userfaultfd.c
-+F:	fs/userfaultfd.c
+Add a Balloon entry to the Meminfo documention.
 
-WARNING: Misordered MAINTAINERS entry - list file patterns in alphabetic order
-#39: FILE: MAINTAINERS:15230:
-+F:	include/uapi/linux/userfaultfd.h
-+F:	include/asm-generic/pgtable_uffd.h
-
-WARNING: Misordered MAINTAINERS entry - list file patterns in alphabetic order
-#40: FILE: MAINTAINERS:15231:
-+F:	include/asm-generic/pgtable_uffd.h
-+F:	Documentation/admin-guide/mm/userfaultfd.rst
-
-total: 0 errors, 3 warnings, 17 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/maintainers-add-myself-as-userfaultfd-reviewer.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/a0315ccf-f244-460e-8643-fd7388724fe5@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/proc.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes
-+++ a/MAINTAINERS
-@@ -15224,11 +15224,11 @@ MEMORY USERFAULTFD
- M:	Andrew Morton <akpm@linux-foundation.org>
- R:	Peter Xu <peterx@redhat.com>
- S:	Maintained
--F:	mm/userfaultfd.c
-+F:	Documentation/admin-guide/mm/userfaultfd.rst
- F:	fs/userfaultfd.c
--F:	include/uapi/linux/userfaultfd.h
- F:	include/asm-generic/pgtable_uffd.h
--F:	Documentation/admin-guide/mm/userfaultfd.rst
-+F:	include/uapi/linux/userfaultfd.h
-+F:	mm/userfaultfd.c
- F:	tools/testing/selftests/mm/uffd-*.[ch]
- 
- MEMORY TECHNOLOGY DEVICES (MTD)
+--- a/Documentation/filesystems/proc.rst~meminfo-add-a-per-node-counter-for-balloon-drivers-fix
++++ a/Documentation/filesystems/proc.rst
+@@ -1081,6 +1081,7 @@ Example output. You may not have all of
+     FilePmdMapped:         0 kB
+     CmaTotal:              0 kB
+     CmaFree:               0 kB
++    Balloon:               0 kB
+     HugePages_Total:       0
+     HugePages_Free:        0
+     HugePages_Rsvd:        0
+@@ -1255,6 +1256,8 @@ CmaTotal
+               Memory reserved for the Contiguous Memory Allocator (CMA)
+ CmaFree
+               Free remaining memory in the CMA reserves
++Balloon
++              Memory returned to Host by VM Balloon Drivers
+ HugePages_Total, HugePages_Free, HugePages_Rsvd, HugePages_Surp, Hugepagesize, Hugetlb
+               See Documentation/admin-guide/mm/hugetlbpage.rst.
+ DirectMap4k, DirectMap2M, DirectMap1G
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npache@redhat.com are
 
-maintainers-add-myself-as-userfaultfd-reviewer-checkpatch-fixes.patch
-mm-pgtable-convert-some-architectures-to-use-tlb_remove_ptdesc-v2-fix.patch
-hung_task-show-the-blocker-task-if-the-task-is-hung-on-mutex-fix.patch
-samples-add-hung_task-detector-mutex-blocking-sample-fix.patch
+meminfo-add-a-per-node-counter-for-balloon-drivers.patch
+balloon_compaction-update-the-nr_balloon_pages-state.patch
+hv_balloon-update-the-nr_balloon_pages-state.patch
+xen-balloon-update-the-nr_balloon_pages-state.patch
+documentation-add-unaccepted-meminfo-entry.patch
 
