@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 629772E3399;
-	Sat, 22 Mar 2025 05:04:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1F542E3399
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:04:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742619857; cv=none; b=NrbHXyRFzNuZhLC/HELifVu5QAcYJzmconxp04DLuHuO4ruiZW9mj2r0SN8CvoFFI+r55JDY5uwGpTA8GqhaDmwvR0gBJWjIlokpM6sj50i3o1b/ZkCOzKfIokz0TR4Y2rI434Y1RJtODcuWlywoa+gMNUzHfbcI0eDo4aqHAog=
+	t=1742619859; cv=none; b=PwYQX+P7jAROMP7ZyhdK2sCWQKxyWHPosyAXDJ7C0FnsXYNiqLdVPeBrRBihs2G90yBkkwBunKeXWmDVYhIGrQAOO/2ECIq6M+Dkx+LSdoodLlFiC+OwL+pjmU4DtJPcqxnFHrMXxESq9S5anqQxbiYux+7QTVCPLjPog0m8xzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742619857; c=relaxed/simple;
-	bh=G1kR16i0WPBXDl4XrxJLRIBi/M4vnioh6QnO8XlAHus=;
-	h=Date:To:From:Subject:Message-Id; b=Tk4DSLyusTFa9rqDu0daJXjPfYqtcBupVGTBGfB1+A0wXwtKVZ8hPnPlQVbX3HjwD8nLubJ/YMTcSALq4isYzivq6q+jDgrvEIJLsekY9ZUqkKy04BouMRs8l15g0QGwL22COdhDPiuTEwDyDLjqYcll7+x4wCucdXAcsYGZGn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v/WOnUPq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619859; c=relaxed/simple;
+	bh=UYCHLIr8RHnFLJgYyY2txbEd+yvwupBWIAFF7obxQ4s=;
+	h=Date:To:From:Subject:Message-Id; b=fIKfLtO4UvefhFLEghOf5U3mjf49BJ8r44Uh6jwE32x2eAm7l3gkz2Igl/3DCWCh8SV+FZSjdN20gAO7pHRlqgy+qSqQdU+Q7phJmbAAvW12AIba3c3lCN21Fc2oW67IXi87W6A9AtMkHuPoy9JngPhlp15sfWEXvJPeRSNVDP0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KpbyffTj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v/WOnUPq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37309C4CEDD;
-	Sat, 22 Mar 2025 05:04:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KpbyffTj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FE02C4CEDD;
+	Sat, 22 Mar 2025 05:04:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742619857;
-	bh=G1kR16i0WPBXDl4XrxJLRIBi/M4vnioh6QnO8XlAHus=;
+	s=korg; t=1742619858;
+	bh=UYCHLIr8RHnFLJgYyY2txbEd+yvwupBWIAFF7obxQ4s=;
 	h=Date:To:From:Subject:From;
-	b=v/WOnUPqTU+/aYTsbouY4szc3zCxlX3XWUARIg+9P+cy6FbWrdLOqfmoMnzmBXCLs
-	 f+NF1tEGCFgcZ6/iZT+1GWqdfoiDY5EgyRcCAqswCsE099UTxNZ/MLS9EYUOtPOxRv
-	 1YJgh7sDZYHOxAqJoU/aifD3+HPftp+SfcWhcV3o=
-Date: Fri, 21 Mar 2025 22:04:16 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,kernel.org,stable@vger,nao.horiguchi@gmail.com,linmiaohe@huawei.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=KpbyffTjjA3ICZZ20C9jVHUN6bhhVGpYlZttdKQVF/E2BB8F9DH3xbfHitBhrcLK/
+	 9ZKakvcqBfRN/nIRFGnBvNMSO0rqmcfQRjmdkVEUJRhJczl0kGyEqebKHLn+nEih/A
+	 Bxg/rc2DELnNbdsxGE1i4ghfn7iJ5xnpNZC8qaV0=
+Date: Fri, 21 Mar 2025 22:04:17 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,oliver.sang@intel.com,mingo@redhat.com,luto@kernel.org,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-dont-try-to-reclaim-hwpoison-folio.patch removed from -mm tree
-Message-Id: <20250322050417.37309C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] x86-mm-restore-early-initialization-of-high_memory-for-32-bits.patch removed from -mm tree
+Message-Id: <20250322050418.6FE02C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: don't try to reclaim hwpoison folio
+     Subject: x86/mm: restore early initialization of high_memory for 32-bits
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-dont-try-to-reclaim-hwpoison-folio.patch
+     x86-mm-restore-early-initialization-of-high_memory-for-32-bits.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/vmscan: don't try to reclaim hwpoison folio
-Date: Tue, 18 Mar 2025 16:39:39 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: x86/mm: restore early initialization of high_memory for 32-bits
+Date: Wed, 19 Mar 2025 14:23:37 +0200
 
-Syzkaller reports a bug as follows:
+Kernel test robot reports the following crash on 32-bit system with
+HIGHMEM and DEBUG_VIRTUAL:
 
-Injecting memory failure for pfn 0x18b00e at process virtual address 0x20ffd000
-Memory failure: 0x18b00e: dirty swapcache page still referenced by 2 users
-Memory failure: 0x18b00e: recovery action for dirty swapcache page: Failed
-page: refcount:2 mapcount:0 mapping:0000000000000000 index:0x20ffd pfn:0x18b00e
-memcg:ffff0000dd6d9000
-anon flags: 0x5ffffe00482011(locked|dirty|arch_1|swapbacked|hwpoison|node=0|zone=2|lastcpupid=0xfffff)
-raw: 005ffffe00482011 dead000000000100 dead000000000122 ffff0000e232a7c9
-raw: 0000000000020ffd 0000000000000000 00000002ffffffff ffff0000dd6d9000
-page dumped because: VM_BUG_ON_FOLIO(!folio_test_uptodate(folio))
-------------[ cut here ]------------
-kernel BUG at mm/swap_state.c:184!
-Internal error: Oops - BUG: 00000000f2000800 [#1] SMP
-Modules linked in:
-CPU: 0 PID: 60 Comm: kswapd0 Not tainted 6.6.0-gcb097e7de84e #3
-Hardware name: linux,dummy-virt (DT)
-pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-pc : add_to_swap+0xbc/0x158
-lr : add_to_swap+0xbc/0x158
-sp : ffff800087f37340
-x29: ffff800087f37340 x28: fffffc00052c0380 x27: ffff800087f37780
-x26: ffff800087f37490 x25: ffff800087f37c78 x24: ffff800087f377a0
-x23: ffff800087f37c50 x22: 0000000000000000 x21: fffffc00052c03b4
-x20: 0000000000000000 x19: fffffc00052c0380 x18: 0000000000000000
-x17: 296f696c6f662865 x16: 7461646f7470755f x15: 747365745f6f696c
-x14: 6f6621284f494c4f x13: 0000000000000001 x12: ffff600036d8b97b
-x11: 1fffe00036d8b97a x10: ffff600036d8b97a x9 : dfff800000000000
-x8 : 00009fffc9274686 x7 : ffff0001b6c5cbd3 x6 : 0000000000000001
-x5 : ffff0000c25896c0 x4 : 0000000000000000 x3 : 0000000000000000
-x2 : 0000000000000000 x1 : ffff0000c25896c0 x0 : 0000000000000000
-Call trace:
- add_to_swap+0xbc/0x158
- shrink_folio_list+0x12ac/0x2648
- shrink_inactive_list+0x318/0x948
- shrink_lruvec+0x450/0x720
- shrink_node_memcgs+0x280/0x4a8
- shrink_node+0x128/0x978
- balance_pgdat+0x4f0/0xb20
- kswapd+0x228/0x438
- kthread+0x214/0x230
- ret_from_fork+0x10/0x20
+[    0.056128][    T0] kernel BUG at arch/x86/mm/physaddr.c:77!
+PANIC: early exception 0x06 IP 60:c116539d error 0 cr2 0x0
+[    0.056916][    T0] CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.14.0-rc4-00010-ga4dbe5c71817 #1
+[    0.057570][    T0] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+[ 0.058299][ T0] EIP: __phys_addr (arch/x86/mm/physaddr.c:77)
+[ 0.058633][ T0] Code: 00 74 33 89 f0 e8 d3 8b 2e 00 89 c3 0f b6 d0 b8 58 bb 4b c5 31 c9 6a 00 e8 70 f5 15 00 83 c4 04 84 db 74 25 ff 05 78 de 5d c5 <0f> 0b b8 c8 91 ea c4 e8 e7 6e ea ff b8 58 bb 4b c5 31 d2 31 c9 6a
+All code
+[    0.060017][    T0] EAX: 00000000 EBX: c61f7001 ECX: 00000000 EDX: 00000000
+[    0.060519][    T0] ESI: c61f7000 EDI: 061f7000 EBP: c4e31f04 ESP: c61f7000
+[    0.061016][    T0] DS: 007b ES: 007b FS: 0000 GS: 0000 SS: cff4 EFLAGS: 00210002
+[    0.061560][    T0] CR0: 80050033 CR2: 00000000 CR3: 059fc000 CR4: 00000090
+[    0.062060][    T0] Call Trace:
+[ 0.062288][ T0] ? show_regs (arch/x86/kernel/dumpstack.c:478)
+[ 0.062588][ T0] ? early_fixup_exception (arch/x86/include/asm/nospec-branch.h:595)
+[ 0.062968][ T0] ? early_idt_handler_common (arch/x86/kernel/head_32.S:352)
+[ 0.063360][ T0] ? __phys_addr (arch/x86/mm/physaddr.c:77)
+[ 0.063677][ T0] ? one_page_table_init (arch/x86/mm/init_32.c:100)
+[ 0.064037][ T0] ? page_table_range_init (arch/x86/mm/init_32.c:227)
+[ 0.064411][ T0] ? permanent_kmaps_init (include/linux/pgtable.h:191 include/linux/pgtable.h:196 arch/x86/mm/init_32.c:395)
+[ 0.064814][ T0] ? paging_init (arch/x86/mm/init_32.c:677)
+[ 0.065118][ T0] ? native_pagetable_init (arch/x86/mm/init_32.c:481)
+[ 0.065503][ T0] ? setup_arch (arch/x86/kernel/setup.c:1131)
+[ 0.065819][ T0] ? start_kernel (include/linux/jump_label.h:267 init/main.c:920)
+[ 0.066143][ T0] ? i386_start_kernel (arch/x86/kernel/head32.c:79)
+[ 0.066501][ T0] ? startup_32_smp (arch/x86/kernel/head_32.S:292)
 
-I can reproduce this issue with the following steps:
+The crash happens because commit e120d1bc12da ("arch, mm: set high_memory
+in free_area_init()") moved initialization of high_memory after
+__vmalloc_start_set and with high_memory still set to 0 any address passes
+is_vmalloc_addr() check.
 
-1) When a dirty swapcache page is isolated by reclaim process and the
-   page isn't locked, inject memory failure for the page. 
-   me_swapcache_dirty() clears uptodate flag and tries to delete from lru,
-   but fails.  Reclaim process will put the hwpoisoned page back to lru.
+Restore early initialization of high_memory on 32-bit systems in
+initmem_init().
 
-2) The process that maps the hwpoisoned page exits, the page is deleted
-   the page will never be freed and will be in the lru forever.
-
-3) If we trigger a reclaim again and tries to reclaim the page,
-   add_to_swap() will trigger VM_BUG_ON_FOLIO due to the uptodate flag is
-   cleared.
-
-To fix it, skip the hwpoisoned page in shrink_folio_list().  Besides, the
-hwpoison folio may not be unmapped by hwpoison_user_mappings() yet, unmap
-it in shrink_folio_list(), otherwise the folio will fail to be unmaped by
-hwpoison_user_mappings() since the folio isn't in lru list.
-
-Link: https://lkml.kernel.org/r/20250318083939.987651-3-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: <stable@vger,kernel.org>
+Link: https://lkml.kernel.org/r/20250319122337.1538924-1-rppt@kernel.org
+Fixes: e120d1bc12da ("arch, mm: set high_memory in free_area_init()")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202503191442.112e954f-lkp@intel.com
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/x86/mm/init_32.c |    3 +++
+ arch/x86/mm/numa_32.c |    3 +++
+ 2 files changed, 6 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-dont-try-to-reclaim-hwpoison-folio
-+++ a/mm/vmscan.c
-@@ -1127,6 +1127,13 @@ retry:
- 		if (!folio_trylock(folio))
- 			goto keep;
+--- a/arch/x86/mm/init_32.c~x86-mm-restore-early-initialization-of-high_memory-for-32-bits
++++ a/arch/x86/mm/init_32.c
+@@ -626,6 +626,9 @@ void __init initmem_init(void)
+ 		highstart_pfn = max_low_pfn;
+ 	printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
+ 		pages_to_mb(highend_pfn - highstart_pfn));
++	high_memory = (void *) __va(highstart_pfn * PAGE_SIZE - 1) + 1;
++#else
++	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE - 1) + 1;
+ #endif
  
-+		if (folio_contain_hwpoisoned_page(folio)) {
-+			unmap_poisoned_folio(folio, folio_pfn(folio), false);
-+			folio_unlock(folio);
-+			folio_put(folio);
-+			continue;
-+		}
-+
- 		VM_BUG_ON_FOLIO(folio_test_active(folio), folio);
- 
- 		nr_pages = folio_nr_pages(folio);
+ 	memblock_set_node(0, PHYS_ADDR_MAX, &memblock.memory, 0);
+--- a/arch/x86/mm/numa_32.c~x86-mm-restore-early-initialization-of-high_memory-for-32-bits
++++ a/arch/x86/mm/numa_32.c
+@@ -41,6 +41,9 @@ void __init initmem_init(void)
+ 		highstart_pfn = max_low_pfn;
+ 	printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
+ 	       pages_to_mb(highend_pfn - highstart_pfn));
++	high_memory = (void *) __va(highstart_pfn * PAGE_SIZE - 1) + 1;
++#else
++	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE - 1) + 1;
+ #endif
+ 	printk(KERN_NOTICE "%ldMB LOWMEM available.\n",
+ 			pages_to_mb(max_low_pfn));
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
 
