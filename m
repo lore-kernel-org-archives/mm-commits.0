@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE36E12F399
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:03:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6181312F399
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:03:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742619827; cv=none; b=EfdX27os8Y6ji1HVwLE3CKKAADMu4OQXAFhQdHTr51Xl0OlmULbB4fRfYefOIuQyqQJZ2L1nklLJ/+KJEZoKT3Yjdhbnv0ELBaVUsG5VZOcVsGUhUEwJMBZvuR25aCbKnyxo+8cwHeVoLrvaMAr2CfbpV/E4AMNnJl8evCYg9Io=
+	t=1742619830; cv=none; b=Ad3GyAuZGrfIf0czvYNBe216qPSkC9IZ19BiXbhQoEyInABVQTmNnKu745Bbi4uq+ggy5ky5DJ/lCFUglO22evtV+lxkfjnEIeOI6ML7VENcXhUO+ElOvmKjwbv++/IdqHltXj92MRYN6MSMF1fNP+ZjInhjGp2yeAa8Jljq3cE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742619827; c=relaxed/simple;
-	bh=q3sEZllzr1kxemMRruslnY4o0Zr1aGB3XuOHNSwaL1I=;
-	h=Date:To:From:Subject:Message-Id; b=nS88eDsqxGPevntMeDf1c12sLLVWimGzpfNMG//WWx9qm9JFUgu0TigwwUbHJJX1MaZa1fRlYDudpITI/rPhq9sEIxUroTGBzGEK96k0GJ7NWSK/1IevCE97sWpK/ZGtDYndQVow4CltW8pUn1HHlkUl0YedTqzKvK4iWCwGXSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l+Almame; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619830; c=relaxed/simple;
+	bh=mkHV1B9ZOWewxYULoxMPrp7tR5PaYCFLrwxj3GHZ1oI=;
+	h=Date:To:From:Subject:Message-Id; b=uF/qg0XvrtbAdGw3Cz0JhXA+gEJc+jxXI1tnQz5KELC8wxkUvMVYSbGri4X6g8ugETNaRHLhUvelK6AbvUtxXugZJWhew2YGyVmkPUojECcQFsyjnSrQcDN9K03mgZDDlMVXwwtgva2QzjGUkcdwf+v+a20GzTI3ukDRcpu728M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q2ff1Lyl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l+Almame"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2314C4CEDD;
-	Sat, 22 Mar 2025 05:03:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q2ff1Lyl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C136C4CEDD;
+	Sat, 22 Mar 2025 05:03:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742619827;
-	bh=q3sEZllzr1kxemMRruslnY4o0Zr1aGB3XuOHNSwaL1I=;
+	s=korg; t=1742619830;
+	bh=mkHV1B9ZOWewxYULoxMPrp7tR5PaYCFLrwxj3GHZ1oI=;
 	h=Date:To:From:Subject:From;
-	b=l+Almame9r9On7NPyM5JpleeXwJlIK4bJEOtYbVU+K3Jq8mUAs1eITJyw0UcZKHvu
-	 fZoXYfOVxC2RzZGPfCgI7JqEKvtxOxmqg3JRL86/4zwIwfhfXy5rhSLyaQCZf8hnwK
-	 4IUFzWTdqaBCXoF3qXpNwW7X1PLDcDZX+gvNMZrk=
-Date: Fri, 21 Mar 2025 22:03:47 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=Q2ff1LylVSuN5HP9wxvXkr9ZAEd5ogHSSBT4KGQOFAtAcn3iGKF3ciRRVS9kCAACo
+	 UZXvkoPwrXipuP+qfr0rhtkQPgRPBKt9/4LbGzgyBiva5sAbJ5LYDCL1c+2H2lyLkK
+	 fKZ5BHVtUM63Bwql+di090bZwvCBV7wz+Mc+9Tqs=
+Date: Fri, 21 Mar 2025 22:03:48 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-move-do_memsw_account-to-config_memcg_v1.patch removed from -mm tree
-Message-Id: <20250322050347.A2314C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch removed from -mm tree
+Message-Id: <20250322050350.2C136C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: move do_memsw_account() to CONFIG_MEMCG_V1
+     Subject: mm: separate folio_split_memcg_refs() from split_page_memcg()
 has been removed from the -mm tree.  Its filename was
-     memcg-move-do_memsw_account-to-config_memcg_v1.patch
+     mm-separate-folio_split_memcg_refs-from-split_page_memcg.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: move do_memsw_account() to CONFIG_MEMCG_V1
-Date: Wed, 12 Mar 2025 15:25:52 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: separate folio_split_memcg_refs() from split_page_memcg()
+Date: Fri, 14 Mar 2025 13:36:11 +0000
 
-The do_memsw_account() is used to enable or disable legacy memory+swap
-accounting in memory cgroup.  However with disabled CONFIG_MEMCG_V1, we
-don't need to keep checking it.  So, let's always return false for
-!CONFIG_MEMCG_V1 configs.
+Patch series "Minor memcg cleanups & prep for memdescs", v2.
 
-Before the patch:
+Separate the handling of accounted folios and GFP_ACCOUNT pages for easier
+to understand code.  For more detail, see
+https://lore.kernel.org/linux-mm/Z9LwTOudOlCGny3f@casper.infradead.org/
 
-$ size mm/memcontrol.o
-   text    data     bss     dec     hex filename
-  49928   10736    4172   64836    fd44 mm/memcontrol.o
 
-After the patch:
+This patch (of 5):
 
-$ size mm/memcontrol.o
-   text    data     bss     dec     hex filename
-  49430   10480    4172   64082    fa52 mm/memcontrol.o
+Folios always use memcg_data to refer to the mem_cgroup while pages
+allocated with GFP_ACCOUNT have a pointer to the obj_cgroup.  Since the
+caller already knows what it has, split the function into two and then we
+don't need to check.
 
-Link: https://lkml.kernel.org/r/20250312222552.3284173-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Move the assignment of split folio memcg_data to the point where we set up
+the other parts of the new folio.  That leaves folio_split_memcg_refs()
+just handling the memcg accounting.
+
+Link: https://lkml.kernel.org/r/20250314133617.138071-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250314133617.138071-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.h |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |    7 +++++++
+ mm/huge_memory.c           |   16 ++++------------
+ mm/memcontrol.c            |   17 +++++++++++++----
+ 3 files changed, 24 insertions(+), 16 deletions(-)
 
---- a/mm/memcontrol-v1.h~memcg-move-do_memsw_account-to-config_memcg_v1
-+++ a/mm/memcontrol-v1.h
-@@ -22,12 +22,6 @@
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
+--- a/include/linux/memcontrol.h~mm-separate-folio_split_memcg_refs-from-split_page_memcg
++++ a/include/linux/memcontrol.h
+@@ -1039,6 +1039,8 @@ static inline void memcg_memory_event_mm
+ }
  
--/* Whether legacy memory+swap accounting is active */
--static inline bool do_memsw_account(void)
--{
--	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
--}
--
- unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
+ void split_page_memcg(struct page *head, int old_order, int new_order);
++void folio_split_memcg_refs(struct folio *folio, unsigned old_order,
++		unsigned new_order);
  
- void drain_all_stock(struct mem_cgroup *root_memcg);
-@@ -42,6 +36,12 @@ struct mem_cgroup *mem_cgroup_id_get_onl
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
+ static inline u64 cgroup_id_from_mm(struct mm_struct *mm)
+ {
+@@ -1463,6 +1465,11 @@ static inline void split_page_memcg(stru
+ {
+ }
  
-+/* Whether legacy memory+swap accounting is active */
-+static inline bool do_memsw_account(void)
++static inline void folio_split_memcg_refs(struct folio *folio,
++		unsigned old_order, unsigned new_order)
 +{
-+	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
 +}
 +
- unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
- unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
- unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
-@@ -94,6 +94,7 @@ extern struct cftype mem_cgroup_legacy_f
+ static inline u64 cgroup_id_from_mm(struct mm_struct *mm)
+ {
+ 	return 0;
+--- a/mm/huge_memory.c~mm-separate-folio_split_memcg_refs-from-split_page_memcg
++++ a/mm/huge_memory.c
+@@ -3394,6 +3394,9 @@ static void __split_folio_to_order(struc
+ 			folio_set_young(new_folio);
+ 		if (folio_test_idle(folio))
+ 			folio_set_idle(new_folio);
++#ifdef CONFIG_MEMCG
++		new_folio->memcg_data = folio->memcg_data;
++#endif
  
- #else	/* CONFIG_MEMCG_V1 */
+ 		folio_xchg_last_cpupid(new_folio, folio_last_cpupid(folio));
+ 	}
+@@ -3525,18 +3528,7 @@ static int __split_unmapped_folio(struct
+ 			}
+ 		}
  
-+static inline bool do_memsw_account(void) { return false; }
- static inline bool memcg1_alloc_events(struct mem_cgroup *memcg) { return true; }
- static inline void memcg1_free_events(struct mem_cgroup *memcg) {}
+-		/*
+-		 * Reset any memcg data overlay in the tail pages.
+-		 * folio_nr_pages() is unreliable until prep_compound_page()
+-		 * was called again.
+-		 */
+-#ifdef NR_PAGES_IN_LARGE_FOLIO
+-		folio->_nr_pages = 0;
+-#endif
+-
+-
+-		/* complete memcg works before add pages to LRU */
+-		split_page_memcg(&folio->page, old_order, split_order);
++		folio_split_memcg_refs(folio, old_order, split_order);
+ 		split_page_owner(&folio->page, old_order, split_order);
+ 		pgalloc_tag_split(folio, old_order, split_order);
  
+--- a/mm/memcontrol.c~mm-separate-folio_split_memcg_refs-from-split_page_memcg
++++ a/mm/memcontrol.c
+@@ -3081,10 +3081,19 @@ void split_page_memcg(struct page *head,
+ 	for (i = new_nr; i < old_nr; i += new_nr)
+ 		folio_page(folio, i)->memcg_data = folio->memcg_data;
+ 
+-	if (folio_memcg_kmem(folio))
+-		obj_cgroup_get_many(__folio_objcg(folio), old_nr / new_nr - 1);
+-	else
+-		css_get_many(&folio_memcg(folio)->css, old_nr / new_nr - 1);
++	obj_cgroup_get_many(__folio_objcg(folio), old_nr / new_nr - 1);
++}
++
++void folio_split_memcg_refs(struct folio *folio, unsigned old_order,
++		unsigned new_order)
++{
++	unsigned new_refs;
++
++	if (mem_cgroup_disabled() || !folio_memcg_charged(folio))
++		return;
++
++	new_refs = (1 << (old_order - new_order)) - 1;
++	css_get_many(&__folio_memcg(folio)->css, new_refs);
+ }
+ 
+ unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
