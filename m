@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CFC312F399
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:03:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9696E12F399
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:03:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742619825; cv=none; b=LzNe+lzTOxf5hlklFPdNzANjD6ocVFB+6hc61OtzKsTl+Wj1ZjuBZVK9UOEOmGsmNJoKVqejTQXopgWVeBykMa+wWPX1p6ppSRaDTc+RtFUXXypT9L1SP1mcg92p1EUT5Nw6x5BVvHU0ppVSeEzxS1saF9gDFlxcii7OhtOaYNI=
+	t=1742619826; cv=none; b=YtBVCIP9cy9xLstYFDdq1Xga3Ot8D0CBwNkJ6vBTdTOtQm2Xw/nQp8r2lwEio9Q8PNDpKH6nyOGJIe9OnUTGGxWYkvtRzK8cjUfkWN8r1DjEM1ZMhRn3QCUoqZf1JDDK15RmDvYzCdofhLlJKiWeL7q7AsztAeUUymHLUaF7soE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742619825; c=relaxed/simple;
-	bh=A8l8pkSqZIrigd6HCgQ7rbPdmtjyi8UMtyrow/m42Mw=;
-	h=Date:To:From:Subject:Message-Id; b=C1AgTVbtuuPbRktms7jaJIl8aOj9NpM/jSor5aYrBaJzqPSa15dSgKFWfcfBp72mSiSrA0ma7+ugxfAASigj69atykXf9zKoUttZx3QHwNP0csrG7GLkSdEOZ24BxAAcYDqoqUyZmJStKZm6b9aDI4b9+Ol5miJWgmOiM4J1tpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p6hxGPnm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619826; c=relaxed/simple;
+	bh=72U5/8m1S39/yZlxTx1mEJKeKT3ic8l6f1L32oB8v2U=;
+	h=Date:To:From:Subject:Message-Id; b=ZGwvv1pRVeiKDLki9rDlDAEcnI4KfwqhF+SgMojpBrAdVM7DXI3l1feLvlGGRPAzzrimFlQ6RwiUheSDUaVexQA86KWTFT/SPUuWEzcoZblckpCSDnIVGn0ZJ+gSUuCXbuUrTCQLJSZd5YICUtovFHJXDDtnkhmS74mhM3MxZ5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lwHn93BU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p6hxGPnm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56BAC4CEDD;
-	Sat, 22 Mar 2025 05:03:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lwHn93BU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62548C4CEDD;
+	Sat, 22 Mar 2025 05:03:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742619825;
-	bh=A8l8pkSqZIrigd6HCgQ7rbPdmtjyi8UMtyrow/m42Mw=;
+	s=korg; t=1742619826;
+	bh=72U5/8m1S39/yZlxTx1mEJKeKT3ic8l6f1L32oB8v2U=;
 	h=Date:To:From:Subject:From;
-	b=p6hxGPnm/YcEet3NHRNbqc1OBEiC2OkUHavqaqtMTUrUIRZzGm2CVTnUTkGuDCwR5
-	 xiCuqRNyIs0Gth0WIhSYJBl2Sw/ni5wgigAGpEvJYaydyp0TfzFb+SLZBxgFs6VGDn
-	 Y1tjdYI6dOP7LGYDzmCYkpj/E1Skjr0iD0CEzl/Y=
-Date: Fri, 21 Mar 2025 22:03:44 -0700
-To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,muchun.song@linux.dev,fvdl@google.com,changyuanl@google.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=lwHn93BU80aBVBDSTJxFrETd1WOwEh7IC6reCC+uGx7/R2GBZKOXsnqnQT88DV9NA
+	 HhPMLh9XG5BZ7nXgbL7348GI23Oy/lzWp/ry8HQi4A5YuN41evYA6IzkVxOJEgwLiN
+	 jz6n4qzl7bK0eYPyGA7qfDn11VJMgYPxh4JtbDcE=
+Date: Fri, 21 Mar 2025 22:03:45 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhockoc@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_init-rename-init_reserved_page-to-init_deferred_page.patch removed from -mm tree
-Message-Id: <20250322050344.E56BAC4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-avoid-refill_stock-for-root-memcg.patch removed from -mm tree
+Message-Id: <20250322050346.62548C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init: rename init_reserved_page to init_deferred_page
+     Subject: memcg: avoid refill_stock for root memcg
 has been removed from the -mm tree.  Its filename was
-     mm-mm_init-rename-init_reserved_page-to-init_deferred_page.patch
+     memcg-avoid-refill_stock-for-root-memcg.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/mm_init: rename init_reserved_page to init_deferred_page
-Date: Tue, 25 Feb 2025 10:30:17 +0200
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: avoid refill_stock for root memcg
+Date: Wed, 12 Mar 2025 22:48:12 -0700
 
-When CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled, init_reserved_page()
-function performs initialization of a struct page that would have been
-deferred normally.
+We never charge the page counters of root memcg, so there is no need to
+put root memcg in the memcg stock.  At the moment, refill_stock() can be
+called from try_charge_memcg(), obj_cgroup_uncharge_pages() and
+mem_cgroup_uncharge_skmem().
 
-Rename it to init_deferred_page() to better reflect what the function does.
+The try_charge_memcg() and mem_cgroup_uncharge_skmem() are never called
+with root memcg, so those are fine.  However obj_cgroup_uncharge_pages()
+can potentially call refill_stock() with root memcg if the objcg object
+has been reparented over to the root memcg.  Let's just avoid
+refill_stock() from obj_cgroup_uncharge_pages() for root memcg.
 
-Link: https://lkml.kernel.org/r/20250225083017.567649-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Frank van der Linden <fvdl@google.com>
+Link: https://lkml.kernel.org/r/20250313054812.2185900-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhockoc@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-mm_init-rename-init_reserved_page-to-init_deferred_page
-+++ a/mm/mm_init.c
-@@ -743,7 +743,7 @@ defer_init(int nid, unsigned long pfn, u
- 	return false;
+--- a/mm/memcontrol.c~memcg-avoid-refill_stock-for-root-memcg
++++ a/mm/memcontrol.c
+@@ -2643,7 +2643,8 @@ static void obj_cgroup_uncharge_pages(st
+ 
+ 	mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
+ 	memcg1_account_kmem(memcg, -nr_pages);
+-	refill_stock(memcg, nr_pages);
++	if (!mem_cgroup_is_root(memcg))
++		refill_stock(memcg, nr_pages);
+ 
+ 	css_put(&memcg->css);
  }
- 
--static void __meminit init_reserved_page(unsigned long pfn, int nid)
-+static void __meminit init_deferred_page(unsigned long pfn, int nid)
- {
- 	if (early_page_initialised(pfn, nid))
- 		return;
-@@ -763,7 +763,7 @@ static inline bool defer_init(int nid, u
- 	return false;
- }
- 
--static inline void init_reserved_page(unsigned long pfn, int nid)
-+static inline void init_deferred_page(unsigned long pfn, int nid)
- {
- }
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
-@@ -784,7 +784,7 @@ void __meminit reserve_bootmem_region(ph
- 		if (pfn_valid(start_pfn)) {
- 			struct page *page = pfn_to_page(start_pfn);
- 
--			init_reserved_page(start_pfn, nid);
-+			init_deferred_page(start_pfn, nid);
- 
- 			/*
- 			 * no need for atomic set_bit because the struct
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
 
