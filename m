@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908D112F399
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:04:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D08761547F5
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:04:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742619840; cv=none; b=PnuWyaiTEZM4EkMfQQjjMWgUmtgkCSvO9aLFYuPmR1qAierXaOJm6cQbzGaXCkRy/H+WsCY4AHBks9lrQfW9GGKg72mQ+rVt6kGdJobe2ZD8+f94eETszUriydWHodYnI9kQkJUOvzz0SjjRurJ0/z8jiL3gNBeYTixOMimiFyQ=
+	t=1742619841; cv=none; b=nWJvV4TzfVBPCC7RnVLHOIronBCANLuEciiLuPxArVCF4QOF7cjHg9wTrXRGTimA2N22ZkIv/gSATsTrtOh0RD1s3N4iFxda5ECGzMoEhez+2wjR15euZeybPwMuy9/PHxR1WoWvqzgZkNgVDVzpRW7nFTGkUoRQ9I4BvGQqqHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742619840; c=relaxed/simple;
-	bh=LuyNoGXh+wrsSrXxSm3sBF3qPFOuDfF8uJPlVfoKmPo=;
-	h=Date:To:From:Subject:Message-Id; b=YVe3quSFv4zVzEKJkofXG0B+9946iwqqzHW87K/4Pdjrsbw/vjSucqlevn52izYnnnNWzLJZ1HaOl/1ERuPl7q694GsXbC7/rzRddfhRMGWZ04Hlfe8ZldltAJ1BDx8u6dKzWzAUfLhgR/ADyYEJloCJuEaHonEjewFJCD1UQPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xmliaJPu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619841; c=relaxed/simple;
+	bh=GprA5L9dWLMPs6hRa2fT5r1ueay/T7eYUx81TscnyMI=;
+	h=Date:To:From:Subject:Message-Id; b=jSwOwmrMP/0u1Ex+LT6nezqD6IkQJ89pJD/uqgj+MjxO2sArOPgk77RAfvq/5NYAG/xP0wLgegr1IaoWXz1YEjm/YK9KQPJnOnP6du4QSX8YUQ3ifiIb3K8WkpYwHobdoKub6x3MN8ejY5KaTYaZFOiQheIDw7mG0HIQgwS1Z9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=drhyguVU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xmliaJPu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B721C4CEDD;
-	Sat, 22 Mar 2025 05:04:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="drhyguVU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A40E9C4CEDD;
+	Sat, 22 Mar 2025 05:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742619840;
-	bh=LuyNoGXh+wrsSrXxSm3sBF3qPFOuDfF8uJPlVfoKmPo=;
+	s=korg; t=1742619841;
+	bh=GprA5L9dWLMPs6hRa2fT5r1ueay/T7eYUx81TscnyMI=;
 	h=Date:To:From:Subject:From;
-	b=xmliaJPuuynNw3+/rvckwpFUNz4RPUp+2ABA9NzjsChZ8uK3uwK72Nxd+vCQOBv8y
-	 J78ewIPFRbOvqiWHbf6MXdFuWR8xVROAa1zIuEXflthSfx+vLVWC7M5/0ZUcf8FPDL
-	 noCFP2/qP0OF/B7CSp0OHs53nlmyFQL1nBl1MpxQ=
-Date: Fri, 21 Mar 2025 22:03:59 -0700
+	b=drhyguVUxCzSOncm6/N/N9wJ5UHpez9qwNxn/NE1ZU+TSz2LCDUZ921CXFs+6ySnY
+	 ApJcI+5TS4JhJpVMZ64sxf20H3OgjyF12dxG3LtGQRLVBIoMbms03HNzsE5NODY76y
+	 5fp51xldnoy+dSLGOlBqit1Sg4CQDceOEo1U/HSU=
+Date: Fri, 21 Mar 2025 22:04:01 -0700
 To: mm-commits@vger.kernel.org,wei.liu@kernel.org,sstabellini@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,oleksandr_tyshchenko@epam.com,nphamcs@gmail.com,muchun.song@linux.dev,mst@redhat.com,mhocko@kernel.org,mhklinux@outlook.com,kys@microsoft.com,kanchana.p.sridhar@intel.com,jgross@suse.com,hannes@cmpxchg.org,haiyangz@microsoft.com,decui@microsoft.com,david@redhat.com,chengming.zhou@linux.dev,alexander.atanasov@virtuozzo.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hv_balloon-update-the-nr_balloon_pages-state.patch removed from -mm tree
-Message-Id: <20250322050400.5B721C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] xen-balloon-update-the-nr_balloon_pages-state.patch removed from -mm tree
+Message-Id: <20250322050401.A40E9C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hv_balloon: update the NR_BALLOON_PAGES state
+     Subject: xen: balloon: update the NR_BALLOON_PAGES state
 has been removed from the -mm tree.  Its filename was
-     hv_balloon-update-the-nr_balloon_pages-state.patch
+     xen-balloon-update-the-nr_balloon_pages-state.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: hv_balloon: update the NR_BALLOON_PAGES state
-Date: Fri, 14 Mar 2025 15:37:56 -0600
+Subject: xen: balloon: update the NR_BALLOON_PAGES state
+Date: Fri, 14 Mar 2025 15:37:57 -0600
 
 Update the NR_BALLOON_PAGES counter when pages are added to or removed
-from the Hyper-V balloon.
+from the Xen balloon.
 
-Link: https://lkml.kernel.org/r/20250314213757.244258-4-npache@redhat.com
+Link: https://lkml.kernel.org/r/20250314213757.244258-5-npache@redhat.com
 Signed-off-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Michael Kelley <mhklinux@outlook.com>
+Reviewed-by: Juergen Gross <jgross@suse.com>
 Cc: Alexander Atanasov <alexander.atanasov@virtuozzo.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: David Hildenbrand <david@redhat.com>
@@ -71,30 +71,33 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Michael Kelley <mhklinux@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hv/hv_balloon.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/xen/balloon.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/drivers/hv/hv_balloon.c~hv_balloon-update-the-nr_balloon_pages-state
-+++ a/drivers/hv/hv_balloon.c
-@@ -1192,6 +1192,7 @@ static void free_balloon_pages(struct hv
- 		__ClearPageOffline(pg);
- 		__free_page(pg);
- 		dm->num_pages_ballooned--;
-+		mod_node_page_state(page_pgdat(pg), NR_BALLOON_PAGES, -1);
- 		adjust_managed_page_count(pg, 1);
+--- a/drivers/xen/balloon.c~xen-balloon-update-the-nr_balloon_pages-state
++++ a/drivers/xen/balloon.c
+@@ -157,6 +157,8 @@ static void balloon_append(struct page *
+ 		list_add(&page->lru, &ballooned_pages);
+ 		balloon_stats.balloon_low++;
  	}
++	inc_node_page_state(page, NR_BALLOON_PAGES);
++
+ 	wake_up(&balloon_wq);
  }
-@@ -1221,6 +1222,7 @@ static unsigned int alloc_balloon_pages(
- 			return i * alloc_unit;
  
- 		dm->num_pages_ballooned += alloc_unit;
-+		mod_node_page_state(page_pgdat(pg), NR_BALLOON_PAGES, alloc_unit);
+@@ -179,6 +181,8 @@ static struct page *balloon_retrieve(boo
+ 		balloon_stats.balloon_low--;
  
- 		/*
- 		 * If we allocatted 2M pages; split them so we
+ 	__ClearPageOffline(page);
++	dec_node_page_state(page, NR_BALLOON_PAGES);
++
+ 	return page;
+ }
+ 
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
