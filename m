@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9696E12F399
-	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:03:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE36E12F399
+	for <mm-commits@vger.kernel.org>; Sat, 22 Mar 2025 05:03:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742619826; cv=none; b=YtBVCIP9cy9xLstYFDdq1Xga3Ot8D0CBwNkJ6vBTdTOtQm2Xw/nQp8r2lwEio9Q8PNDpKH6nyOGJIe9OnUTGGxWYkvtRzK8cjUfkWN8r1DjEM1ZMhRn3QCUoqZf1JDDK15RmDvYzCdofhLlJKiWeL7q7AsztAeUUymHLUaF7soE=
+	t=1742619827; cv=none; b=EfdX27os8Y6ji1HVwLE3CKKAADMu4OQXAFhQdHTr51Xl0OlmULbB4fRfYefOIuQyqQJZ2L1nklLJ/+KJEZoKT3Yjdhbnv0ELBaVUsG5VZOcVsGUhUEwJMBZvuR25aCbKnyxo+8cwHeVoLrvaMAr2CfbpV/E4AMNnJl8evCYg9Io=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742619826; c=relaxed/simple;
-	bh=72U5/8m1S39/yZlxTx1mEJKeKT3ic8l6f1L32oB8v2U=;
-	h=Date:To:From:Subject:Message-Id; b=ZGwvv1pRVeiKDLki9rDlDAEcnI4KfwqhF+SgMojpBrAdVM7DXI3l1feLvlGGRPAzzrimFlQ6RwiUheSDUaVexQA86KWTFT/SPUuWEzcoZblckpCSDnIVGn0ZJ+gSUuCXbuUrTCQLJSZd5YICUtovFHJXDDtnkhmS74mhM3MxZ5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lwHn93BU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742619827; c=relaxed/simple;
+	bh=q3sEZllzr1kxemMRruslnY4o0Zr1aGB3XuOHNSwaL1I=;
+	h=Date:To:From:Subject:Message-Id; b=nS88eDsqxGPevntMeDf1c12sLLVWimGzpfNMG//WWx9qm9JFUgu0TigwwUbHJJX1MaZa1fRlYDudpITI/rPhq9sEIxUroTGBzGEK96k0GJ7NWSK/1IevCE97sWpK/ZGtDYndQVow4CltW8pUn1HHlkUl0YedTqzKvK4iWCwGXSM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l+Almame; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lwHn93BU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62548C4CEDD;
-	Sat, 22 Mar 2025 05:03:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l+Almame"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2314C4CEDD;
+	Sat, 22 Mar 2025 05:03:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742619826;
-	bh=72U5/8m1S39/yZlxTx1mEJKeKT3ic8l6f1L32oB8v2U=;
+	s=korg; t=1742619827;
+	bh=q3sEZllzr1kxemMRruslnY4o0Zr1aGB3XuOHNSwaL1I=;
 	h=Date:To:From:Subject:From;
-	b=lwHn93BU80aBVBDSTJxFrETd1WOwEh7IC6reCC+uGx7/R2GBZKOXsnqnQT88DV9NA
-	 HhPMLh9XG5BZ7nXgbL7348GI23Oy/lzWp/ry8HQi4A5YuN41evYA6IzkVxOJEgwLiN
-	 jz6n4qzl7bK0eYPyGA7qfDn11VJMgYPxh4JtbDcE=
-Date: Fri, 21 Mar 2025 22:03:45 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhockoc@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=l+Almame9r9On7NPyM5JpleeXwJlIK4bJEOtYbVU+K3Jq8mUAs1eITJyw0UcZKHvu
+	 fZoXYfOVxC2RzZGPfCgI7JqEKvtxOxmqg3JRL86/4zwIwfhfXy5rhSLyaQCZf8hnwK
+	 4IUFzWTdqaBCXoF3qXpNwW7X1PLDcDZX+gvNMZrk=
+Date: Fri, 21 Mar 2025 22:03:47 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-avoid-refill_stock-for-root-memcg.patch removed from -mm tree
-Message-Id: <20250322050346.62548C4CEDD@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-move-do_memsw_account-to-config_memcg_v1.patch removed from -mm tree
+Message-Id: <20250322050347.A2314C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: avoid refill_stock for root memcg
+     Subject: memcg: move do_memsw_account() to CONFIG_MEMCG_V1
 has been removed from the -mm tree.  Its filename was
-     memcg-avoid-refill_stock-for-root-memcg.patch
+     memcg-move-do_memsw_account-to-config_memcg_v1.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: avoid refill_stock for root memcg
-Date: Wed, 12 Mar 2025 22:48:12 -0700
+Subject: memcg: move do_memsw_account() to CONFIG_MEMCG_V1
+Date: Wed, 12 Mar 2025 15:25:52 -0700
 
-We never charge the page counters of root memcg, so there is no need to
-put root memcg in the memcg stock.  At the moment, refill_stock() can be
-called from try_charge_memcg(), obj_cgroup_uncharge_pages() and
-mem_cgroup_uncharge_skmem().
+The do_memsw_account() is used to enable or disable legacy memory+swap
+accounting in memory cgroup.  However with disabled CONFIG_MEMCG_V1, we
+don't need to keep checking it.  So, let's always return false for
+!CONFIG_MEMCG_V1 configs.
 
-The try_charge_memcg() and mem_cgroup_uncharge_skmem() are never called
-with root memcg, so those are fine.  However obj_cgroup_uncharge_pages()
-can potentially call refill_stock() with root memcg if the objcg object
-has been reparented over to the root memcg.  Let's just avoid
-refill_stock() from obj_cgroup_uncharge_pages() for root memcg.
+Before the patch:
 
-Link: https://lkml.kernel.org/r/20250313054812.2185900-1-shakeel.butt@linux.dev
+$ size mm/memcontrol.o
+   text    data     bss     dec     hex filename
+  49928   10736    4172   64836    fd44 mm/memcontrol.o
+
+After the patch:
+
+$ size mm/memcontrol.o
+   text    data     bss     dec     hex filename
+  49430   10480    4172   64082    fa52 mm/memcontrol.o
+
+Link: https://lkml.kernel.org/r/20250312222552.3284173-1-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhockoc@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol-v1.h |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~memcg-avoid-refill_stock-for-root-memcg
-+++ a/mm/memcontrol.c
-@@ -2643,7 +2643,8 @@ static void obj_cgroup_uncharge_pages(st
+--- a/mm/memcontrol-v1.h~memcg-move-do_memsw_account-to-config_memcg_v1
++++ a/mm/memcontrol-v1.h
+@@ -22,12 +22,6 @@
+ 	     iter != NULL;				\
+ 	     iter = mem_cgroup_iter(NULL, iter, NULL))
  
- 	mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
- 	memcg1_account_kmem(memcg, -nr_pages);
--	refill_stock(memcg, nr_pages);
-+	if (!mem_cgroup_is_root(memcg))
-+		refill_stock(memcg, nr_pages);
+-/* Whether legacy memory+swap accounting is active */
+-static inline bool do_memsw_account(void)
+-{
+-	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
+-}
+-
+ unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
  
- 	css_put(&memcg->css);
- }
+ void drain_all_stock(struct mem_cgroup *root_memcg);
+@@ -42,6 +36,12 @@ struct mem_cgroup *mem_cgroup_id_get_onl
+ /* Cgroup v1-specific declarations */
+ #ifdef CONFIG_MEMCG_V1
+ 
++/* Whether legacy memory+swap accounting is active */
++static inline bool do_memsw_account(void)
++{
++	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
++}
++
+ unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
+ unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
+ unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
+@@ -94,6 +94,7 @@ extern struct cftype mem_cgroup_legacy_f
+ 
+ #else	/* CONFIG_MEMCG_V1 */
+ 
++static inline bool do_memsw_account(void) { return false; }
+ static inline bool memcg1_alloc_events(struct mem_cgroup *memcg) { return true; }
+ static inline void memcg1_free_events(struct mem_cgroup *memcg) {}
+ 
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
