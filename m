@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA5EB25FA1B
-	for <mm-commits@vger.kernel.org>; Tue, 25 Mar 2025 18:00:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFF9A2641FB
+	for <mm-commits@vger.kernel.org>; Tue, 25 Mar 2025 18:00:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742925628; cv=none; b=TgMXmF3/aWhPVpLedyeAb+7/nooHPTDCqYq4lCcGHiY2zYjzbfTrlKt4LxxN4ZiBeGqTUsNi2bZQDwdm8T3wE2S8u9kYol4XgWsGL8lckBfUai6kb+p993m0Vbw79qlUc0GAjY6/uwWYNP8z5PKVSogCFPbrbhP0HNnsarIULqI=
+	t=1742925635; cv=none; b=JrXrgEDKC4AKvndLDjk662K2QR4tMxcZGhLPiBdXycZGjhrpgmjeN76WcBkoIVgQmMi4chQU0wCrTwn8YB1dQddk8eWyw87tWmS1wyYMUg4UgTaRShAZ91nsWMAgZkwzDUTalf4CNSyn9UMwBRaYEwVXrmKxEtIgPKpXd13ZvGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742925628; c=relaxed/simple;
-	bh=ZxWy2NKz/jxvISRA4Jtr5ChC0IjyPBOzTE/4O4r8cSk=;
-	h=Date:To:From:Subject:Message-Id; b=lqkueoBM/A3jM0Y/qXW7xugEWq54pK1PTnrIWtVqjqBgCcu6CVsY82NF32PRT4hBR9aquYc3p7/ferWTFUziY4Kq0mvlE4QJc6ND5VWGO60f4PN2FPF3TIRxxzn5GzljT3N6pVyaXyUYQ6J+lyVu4Ww+HgVyjd9ZaQBffA7rWdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q7T+CTZR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1742925635; c=relaxed/simple;
+	bh=6eQWXA8O82HCQaWbZJG/JeqaHu5VuWRAlPGUzqcabFg=;
+	h=Date:To:From:Subject:Message-Id; b=Sz6P1qAkracH+VkfGH+L4m+ZDYH/U8ehxYKLYi0xUROlWO9GkFfoJKIqej+7VM9NZc2Iu4fD8deKynM6wHcDDSC1w2nTYQjfVQULF58xJCN3cXXSX+p78XILnfLLJ9xGfS3v7rpkaaIvF0geCiFBqx5vQ+F2Uawg0t+2sd3FJXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gG+fWA7e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q7T+CTZR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66273C4CEEA;
-	Tue, 25 Mar 2025 18:00:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gG+fWA7e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A224AC4CEEE;
+	Tue, 25 Mar 2025 18:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742925628;
-	bh=ZxWy2NKz/jxvISRA4Jtr5ChC0IjyPBOzTE/4O4r8cSk=;
+	s=korg; t=1742925634;
+	bh=6eQWXA8O82HCQaWbZJG/JeqaHu5VuWRAlPGUzqcabFg=;
 	h=Date:To:From:Subject:From;
-	b=Q7T+CTZR9aJPeSTXbD7VP84Kij0FQ+skh95oG7j/xrjy7//vT7mOXEmpL9ouk9lZe
-	 tvfaxYDS/vgY1phwjrmuC7x2ADKk0QAW+GD4A4b5yRCREqwsnssI0gOqyLnFCBhPXO
-	 7gXBhruqq9SynfrgGmWuhkcaGGwFh65ehc6ohH2w=
-Date: Tue, 25 Mar 2025 11:00:23 -0700
+	b=gG+fWA7eqldgEkV/4li0Za7ZMr/l3MfrlFePqrQxDoAGDQu0PVSCpk6a6puEjWU5U
+	 m/pHs5B2g5oNgp7wrQCkuBKISHgVWLGfpSFfpHFMt4d91d/6XvpLSyZSuQPeR/R1yR
+	 y0YZM8Xf4leHRy/5qxFk8E6+UlWmnWmF+PzEzaI4=
+Date: Tue, 25 Mar 2025 11:00:29 -0700
 To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,oliver.sang@intel.com,nathan@kernel.org,mingo@redhat.com,luto@kernel.org,jiaxun.yang@flygoat.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-init-holes-in-the-end-of-the-memory-map-for-flatmem.patch added to mm-unstable branch
-Message-Id: <20250325180027.66273C4CEEA@smtp.kernel.org>
+Subject: + memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch added to mm-unstable branch
+Message-Id: <20250325180033.A224AC4CEEE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: init holes in the end of the memory map for FLATMEM
+     Subject: memblock: don't release high memory to page allocator when HIGHMEM is off
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_init-init-holes-in-the-end-of-the-memory-map-for-flatmem.patch
+     memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-init-holes-in-the-end-of-the-memory-map-for-flatmem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,112 +59,116 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/mm_init: init holes in the end of the memory map for FLATMEM
-Date: Tue, 25 Mar 2025 13:49:27 +0200
+Subject: memblock: don't release high memory to page allocator when HIGHMEM is off
+Date: Tue, 25 Mar 2025 13:49:28 +0200
 
-Patch series "mm: fixes for fallouts from mem_init() cleanup".
+Nathan Chancellor reports the following crash on a MIPS system with
+CONFIG_HIGHMEM=n:
 
-These are the fixes for fallouts from mem_init() cleanup reported by
-Nathan Chancellor and kbuild.  The details are in the commit messages.
+  Linux version 6.14.0-rc6-00359-g6faea3422e3b (nathan@ax162) (mips-linux-gcc (GCC) 14.2.0, GNU ld (GNU Binutils) 2.42) #1 SMP Fri Mar 21 08:12:02 MST 2025
+  earlycon: uart8250 at I/O port 0x3f8 (options '38400n8')
+  printk: legacy bootconsole [uart8250] enabled
+  Config serial console: console=ttyS0,38400n8r
+  CPU0 revision is: 00019300 (MIPS 24Kc)
+  FPU revision is: 00739300
+  MIPS: machine is mti,malta
+  Software DMA cache coherency enabled
+  Initial ramdisk at: 0x8fad0000 (5360128 bytes)
+  OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+  Primary instruction cache 2kB, VIPT, 2-way, linesize 16 bytes.
+  Primary data cache 2kB, 2-way, VIPT, no aliases, linesize 16 bytes
+  Zone ranges:
+    DMA      [mem 0x0000000000000000-0x0000000000ffffff]
+    Normal   [mem 0x0000000001000000-0x000000001fffffff]
+  Movable zone start for each node
+  Early memory node ranges
+    node   0: [mem 0x0000000000000000-0x000000000fffffff]
+    node   0: [mem 0x0000000090000000-0x000000009fffffff]
+  Initmem setup node 0 [mem 0x0000000000000000-0x000000009fffffff]
+  On node 0, zone Normal: 16384 pages in unavailable ranges
+  random: crng init done
+  percpu: Embedded 3 pages/cpu s18832 r8192 d22128 u49152
+  Kernel command line: rd_start=0xffffffff8fad0000 rd_size=5360128  console=ttyS0,38400n8r
+  printk: log buffer data + meta data: 32768 + 102400 = 135168 bytes
+  Dentry cache hash table entries: 65536 (order: 4, 262144 bytes, linear)
+  Inode-cache hash table entries: 32768 (order: 3, 131072 bytes, linear)
+  Writing ErrCtl register=00000000
+  Readback ErrCtl register=00000000
+  Built 1 zonelists, mobility grouping on.  Total pages: 16384
+  mem auto-init: stack:all(zero), heap alloc:off, heap free:off
+  Unhandled kernel unaligned access[#1]:
+  CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.14.0-rc6-00359-g6faea3422e3b #1
+  Hardware name: mti,malta
+  $ 0   : 00000000 00000001 81cb0880 00129027
+  $ 4   : 00000001 0000000a 00000002 00129026
+  $ 8   : ffffdfff 80101e00 00000002 00000000
+  $12   : 81c9c224 81c63e68 00000002 00000000
+  $16   : 805b1e00 00025800 81cb0880 00000002
+  $20   : 00000000 81c63e64 0000000a 81f10000
+  $24   : 81c63e64 81c63e60
+  $28   : 81c60000 81c63de0 00000001 81cc9d20
+  Hi    : 00000000
+  Lo    : 00000000
+  epc   : 814a227c __free_pages_ok+0x144/0x3c0
+  ra    : 81cc9d20 memblock_free_all+0x1d4/0x27c
+  Status: 10000002        KERNEL EXL
+  Cause : 00800410 (ExcCode 04)
+  BadVA : 00129026
+  PrId  : 00019300 (MIPS 24Kc)
+  Modules linked in:
+  Process swapper (pid: 0, threadinfo=(ptrval), task=(ptrval), tls=00000000)
+  Stack : 81f10000 805a9e00 81c80000 00000000 00000002 814aa240 000003ff 00000400
+          00000000 81f10000 81c9c224 00003b1f 81c80000 81c63e60 81ca0000 81c63e64
+          81f10000 0000000a 0000001f 81cc9d20 81f10000 81cc96d8 00000000 81c80000
+          81c9c224 81c63e60 81c63e64 00000000 81f10000 00024000 00028000 00025c00
+          90000000 a0000000 00000002 00000017 00000000 00000000 81f10000 81f10000
+          ...
+  Call Trace:
+  [<814a227c>] __free_pages_ok+0x144/0x3c0
+  [<81cc9d20>] memblock_free_all+0x1d4/0x27c
+  [<81cc6764>] mm_core_init+0x100/0x138
+  [<81cb4ba4>] start_kernel+0x4a0/0x6e4
 
+  Code: 1080ffd5  02003825  2467ffff <8ce30000> 7c630500  1060ffd4  00000000  8ce30000  7c630180
 
-This patch (of 2):
+The crash happens because commit 6faea3422e3b ("arch, mm: streamline
+HIGHMEM freeing") too eagerly frees high memory to the page allocator even
+when HIGHMEM is disabled.
 
-Kernel test robot reports the following crash on 32-bit system with
-FLATMEM and DEBUG_VM_PGFLAGS enabled:
+Make sure that when CONFIG_HIGHMEM=n the high memory is not released to the
+page allocator.
 
-[    0.478822][    T0] kernel BUG at include/linux/page-flags.h:536!
-[    0.479312][    T0] Oops: invalid opcode: 0000 [#1] PREEMPT SMP
-[    0.479768][    T0] CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.14.0-rc6-00357-g8268af309d07 #1
-[    0.480470][    T0] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
-[ 0.481260][ T0] EIP: reserve_bootmem_region (include/linux/page-flags.h:536)
-[ 0.481683][ T0] Code: 5d c3 01 f1 89 c8 ba e1 38 f4 c3 e8 1e 37 8e fc 0f 0b b8 90 e2 62 c4 e8 e2 05 5e fc 01 f1 89 c8 ba be 85 f7 c3 e8 04 37 8e fc <0f> 0b b8 80 e2 62 c4 e8 c8 05 5e fc 55 89 e5 53 57 56 83 ec 10 89
-[    0.483177][    T0] EAX: 00000000 EBX: c425df50 ECX: 00000000 EDX: 00000000
-[    0.483712][    T0] ESI: 017ffc00 EDI: ffffffff EBP: c425df34 ESP: c425df2c
-[    0.484248][    T0] DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068 EFLAGS: 00210046
-[    0.484846][    T0] CR0: 80050033 CR2: 00000000 CR3: 04b48000 CR4: 00000090
-[    0.485376][    T0] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[    0.485907][    T0] DR6: fffe0ff0 DR7: 00000400
-[    0.486253][    T0] Call Trace:
-[ 0.486494][ T0] ? __die_body (arch/x86/kernel/dumpstack.c:478)
-[ 0.486822][ T0] ? die (arch/x86/kernel/dumpstack.c:?)
-[ 0.487099][ T0] ? do_trap (arch/x86/kernel/traps.c:? arch/x86/kernel/traps.c:197)
-[ 0.487409][ T0] ? do_error_trap (arch/x86/kernel/traps.c:217)
-[ 0.487752][ T0] ? reserve_bootmem_region (include/linux/page-flags.h:536)
-[ 0.488153][ T0] ? exc_overflow (arch/x86/kernel/traps.c:301)
-[ 0.488490][ T0] ? handle_invalid_op (arch/x86/kernel/traps.c:254)
-[ 0.488869][ T0] ? reserve_bootmem_region (include/linux/page-flags.h:536)
-[ 0.489271][ T0] ? exc_invalid_op (arch/x86/kernel/traps.c:316)
-[ 0.489619][ T0] ? handle_exception (arch/x86/entry/entry_32.S:1055)
-[ 0.489996][ T0] ? exc_overflow (arch/x86/kernel/traps.c:301)
-[ 0.490332][ T0] ? reserve_bootmem_region (include/linux/page-flags.h:536)
-[ 0.490733][ T0] ? exc_overflow (arch/x86/kernel/traps.c:301)
-[ 0.491068][ T0] ? reserve_bootmem_region (include/linux/page-flags.h:536)
-[ 0.491470][ T0] memmap_init_reserved_pages (mm/memblock.c:2203)
-[ 0.491887][ T0] free_low_memory_core_early (mm/memblock.c:?)
-[ 0.492302][ T0] memblock_free_all (mm/memblock.c:2272 include/linux/atomic/atomic-arch-fallback.h:546 include/linux/atomic/atomic-long.h:123 include/linux/atomic/atomic-instrumented.h:3261 include/linux/mm.h:67 mm/memblock.c:2273)
-[ 0.492659][ T0] mem_init (arch/x86/mm/init_32.c:735)
-[ 0.492952][ T0] mm_core_init (mm/mm_init.c:2730)
-[ 0.493271][ T0] start_kernel (init/main.c:958)
-[ 0.493604][ T0] i386_start_kernel (arch/x86/kernel/head32.c:79)
-[ 0.493969][ T0] startup_32_smp (arch/x86/kernel/head_32.S:292)
-
-The crash happens because after commit 8268af309d07 ("arch, mm: set
-max_mapnr when allocating memory map for FLATMEM") max_mapnr is rounded up
-to MAX_ORDER_NR_PAGES and the pages in the end of the memory map are
-passing pfn_valid() check in reserve_bootmem_region().
-
-Make sure that that pages in the end of the memory map are initialized,
-just like the pages in the end of the last section for SPARSEMEM.
-
-Link: https://lkml.kernel.org/r/20250325114928.1791109-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20250325114928.1791109-2-rppt@kernel.org
-Fixes: 8268af309d07 ("arch, mm: set max_mapnr when allocating memory map for FLATMEM")
+Link: https://lore.kernel.org/all/20250323190647.GA1009914@ax162
+Link: https://lkml.kernel.org/r/20250325114928.1791109-3-rppt@kernel.org
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Fixes: 6faea3422e3b ("arch, mm: streamline HIGHMEM freeing")
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202503241424.d16223ec-lkp@intel.com
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memblock.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/mm_init.c~mm-mm_init-init-holes-in-the-end-of-the-memory-map-for-flatmem
-+++ a/mm/mm_init.c
-@@ -984,19 +984,19 @@ static void __init memmap_init(void)
- 		}
- 	}
+--- a/mm/memblock.c~memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off
++++ a/mm/memblock.c
+@@ -2166,6 +2166,9 @@ static unsigned long __init __free_memor
+ 	unsigned long start_pfn = PFN_UP(start);
+ 	unsigned long end_pfn = PFN_DOWN(end);
  
--#ifdef CONFIG_SPARSEMEM
- 	/*
- 	 * Initialize the memory map for hole in the range [memory_end,
--	 * section_end].
-+	 * section_end] for SPARSEMEM and in the range [memory_end, memmap_end]
-+	 * for FLATMEM.
- 	 * Append the pages in this hole to the highest zone in the last
- 	 * node.
--	 * The call to init_unavailable_range() is outside the ifdef to
--	 * silence the compiler warining about zone_id set but not used;
--	 * for FLATMEM it is a nop anyway
- 	 */
-+#ifdef CONFIG_SPARSEMEM
- 	end_pfn = round_up(end_pfn, PAGES_PER_SECTION);
--	if (hole_pfn < end_pfn)
-+#else
-+	end_pfn = round_up(end_pfn, MAX_ORDER_NR_PAGES);
- #endif
-+	if (hole_pfn < end_pfn)
- 		init_unavailable_range(hole_pfn, end_pfn, zone_id, nid);
- }
++	if (!IS_ENABLED(CONFIG_HIGHMEM) && end_pfn > max_low_pfn)
++		end_pfn = max_low_pfn;
++
+ 	if (start_pfn >= end_pfn)
+ 		return 0;
  
 _
 
