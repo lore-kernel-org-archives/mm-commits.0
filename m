@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154AA1A3150
-	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2025 17:52:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2A1B219A86
+	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2025 18:09:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743097921; cv=none; b=kiPGX2Uc9+VON3DmHthP7A8QmDztalbWnQwTD07/aKL7iHuRcUaQfhjXGmMGN8Gqj9rB9tUiIOEbeYz4vOiBUVCREneZMsH6KfB4DsjMo8+n93Rzr55FNEg32yZ1z4Y+o7wEweUIPKj971Rav8NaLrFucBgJILSBdhGFzVPMI4E=
+	t=1743098994; cv=none; b=sGVVwdE6KMb0FCftSN+n8rTSeseso4AG7JteIKdSsy5cNUqxR2P9dIspQhDvTE8XGY8tJJuK4zJzVkNn7b7h0WPn0E4WzvLTQiODs5bJT0n9+Lv+YqPVdPw5Mf6kBVZ2n9fLNpkEqfrImtZITrEsmzYxHJ/3/zx7k5FWJavD2oY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743097921; c=relaxed/simple;
-	bh=lHhGkF/DNKFPeP1Ubj8kkzsBETzKYwUGQyHDE5eHp1U=;
-	h=Date:To:From:Subject:Message-Id; b=evRsHJEGSvCB6RmEZPfY55AUiemYaP0IRxfqS98EnzHyeyz6L/OunHsNxypfAky0iz+0+11WqwdiqR7+MRQdS7gHGKXLdaztETuKo8OxrsLKumoo51L6DXF3RpfJQ0qWDX7qqzuj6Uakc5aLCXRHarMNUY8zOQXc0zYOdBOAwks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gPLGi4iY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743098994; c=relaxed/simple;
+	bh=QuMG/DYbyZ4IwrEt4yeAZUU+Ndb7vJ6qztPl0RyNzVg=;
+	h=Date:To:From:Subject:Message-Id; b=CNLlLr1CDPt7UL3knLcn8gq6xEghMiZCgnDXuNfFvSS+GXzfEICFYe6d2AMIkSqrvHv9ed8+Sb5NlsIWEQyNSocv+DCwNYPqQ5P1izWUgrOCTvu2TVTw+V0FawUjoRaPXGQjHcZAruzcgvQCEPqwayWY952WJA/zz8DvaXjlMj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hNFOL2Fl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gPLGi4iY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B907C4CEDD;
-	Thu, 27 Mar 2025 17:52:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hNFOL2Fl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B60EC4CEE5;
+	Thu, 27 Mar 2025 18:09:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743097920;
-	bh=lHhGkF/DNKFPeP1Ubj8kkzsBETzKYwUGQyHDE5eHp1U=;
+	s=korg; t=1743098994;
+	bh=QuMG/DYbyZ4IwrEt4yeAZUU+Ndb7vJ6qztPl0RyNzVg=;
 	h=Date:To:From:Subject:From;
-	b=gPLGi4iY8j8Y/zM50dqqx9A9rQNTkTiNOuaY17j6jvbQwlE7+HLxGUIln+W0hRx5q
-	 DbQUK1aQBo6sRi+uexI5R3foOp0lTymKRO91tjEpHAAYoKw49W8rIzbwamrISV/7Xd
-	 cE0qDjyfAQpgMloDn8BnNpZE3lcpbidz6PZjCSCw=
-Date: Thu, 27 Mar 2025 10:51:59 -0700
-To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,akpm@linux-foundation.org
+	b=hNFOL2FlUDpmhgwGxV/CFax3Z6anfuuMS/k1gL2m6xN2n2hn0cf+nhO3P1ZX/AFc4
+	 PZ7R4yKQLbnnbGrf+ME68sferAFrZQP/ptDElG7G+BHuglxCJS1Gav88Hqr0Usnkm2
+	 Wg+n63+S8VHJgaHBum3OUXMnVQl2+gzmWg0YJxQ8=
+Date: Thu, 27 Mar 2025 11:09:53 -0700
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,kent.overstreet@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-an-entry-for-nicolas-schier.patch added to mm-nonmm-unstable branch
-Message-Id: <20250327175200.7B907C4CEDD@smtp.kernel.org>
+Subject: + lib-sortc-add-_nonatomic-variants-with-cond_resched.patch added to mm-nonmm-unstable branch
+Message-Id: <20250327180954.2B60EC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: Add an entry for Nicolas Schier
+     Subject: lib/sort.c: add _nonatomic() variants with cond_resched()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-add-an-entry-for-nicolas-schier.patch
+     lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-an-entry-for-nicolas-schier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,36 +58,131 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nicolas Schier <nicolas@fjasle.eu>
-Subject: mailmap: Add an entry for Nicolas Schier
-Date: Wed, 26 Mar 2025 21:13:55 +0100
+From: Kent Overstreet <kent.overstreet@linux.dev>
+Subject: lib/sort.c: add _nonatomic() variants with cond_resched()
+Date: Wed, 26 Mar 2025 11:26:06 -0400
 
-Add mapping to linux.dev address as mail usage at work is limited and my
-mail provider for private mails is suffering from its own domain name
-block lists.
+bcachefs calls sort() during recovery to sort all keys it found in the
+journal, and this may be very large - gigabytes on large machines.
 
-Link: https://lkml.kernel.org/r/20250326-mailmap-add-entry-for-nicolas-v1-1-3c26579a7fdf@fjasle.eu
-Signed-off-by: Nicolas Schier <nicolas@fjasle.eu>
+This has been causing "task blocked" warnings, so needs a
+cond_resched().
+
+Link: https://lkml.kernel.org/r/20250326152606.2594920-1-kent.overstreet@linux.dev
+Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/sort.h |   11 +++++++++
+ lib/sort.c           |   46 ++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 52 insertions(+), 5 deletions(-)
 
---- a/.mailmap~mailmap-add-an-entry-for-nicolas-schier
-+++ a/.mailmap
-@@ -546,6 +546,8 @@ Nicolas Pitre <nico@fluxnic.net> <nicola
- Nicolas Pitre <nico@fluxnic.net> <nico@linaro.org>
- Nicolas Saenz Julienne <nsaenz@kernel.org> <nsaenzjulienne@suse.de>
- Nicolas Saenz Julienne <nsaenz@kernel.org> <nsaenzjulienne@suse.com>
-+Nicolas Schier <nicolas.schier@linux.dev> <n.schier@avm.de>
-+Nicolas Schier <nicolas.schier@linux.dev> <nicolas@fjasle.eu>
- Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
- Nikolay Aleksandrov <razor@blackwall.org> <naleksan@redhat.com>
- Nikolay Aleksandrov <razor@blackwall.org> <nikolay@redhat.com>
+--- a/include/linux/sort.h~lib-sortc-add-_nonatomic-variants-with-cond_resched
++++ a/include/linux/sort.h
+@@ -13,4 +13,15 @@ void sort(void *base, size_t num, size_t
+ 	  cmp_func_t cmp_func,
+ 	  swap_func_t swap_func);
+ 
++/* Versions that periodically call cond_resched(): */
++
++void sort_r_nonatomic(void *base, size_t num, size_t size,
++		      cmp_r_func_t cmp_func,
++		      swap_r_func_t swap_func,
++		      const void *priv);
++
++void sort_nonatomic(void *base, size_t num, size_t size,
++		    cmp_func_t cmp_func,
++		    swap_func_t swap_func);
++
+ #endif
+--- a/lib/sort.c~lib-sortc-add-_nonatomic-variants-with-cond_resched
++++ a/lib/sort.c
+@@ -186,6 +186,8 @@ static size_t parent(size_t i, unsigned
+ 	return i / 2;
+ }
+ 
++#include <linux/sched.h>
++
+ /**
+  * sort_r - sort an array of elements
+  * @base: pointer to data to sort
+@@ -212,10 +214,11 @@ static size_t parent(size_t i, unsigned
+  * O(n*n) worst-case behavior and extra memory requirements that make
+  * it less suitable for kernel use.
+  */
+-void sort_r(void *base, size_t num, size_t size,
+-	    cmp_r_func_t cmp_func,
+-	    swap_r_func_t swap_func,
+-	    const void *priv)
++static void __sort_r(void *base, size_t num, size_t size,
++		     cmp_r_func_t cmp_func,
++		     swap_r_func_t swap_func,
++		     const void *priv,
++		     bool may_schedule)
+ {
+ 	/* pre-scale counters for performance */
+ 	size_t n = num * size, a = (num/2) * size;
+@@ -286,6 +289,9 @@ void sort_r(void *base, size_t num, size
+ 			b = parent(b, lsbit, size);
+ 			do_swap(base + b, base + c, size, swap_func, priv);
+ 		}
++
++		if (may_schedule)
++			cond_resched();
+ 	}
+ 
+ 	n -= size;
+@@ -293,8 +299,25 @@ void sort_r(void *base, size_t num, size
+ 	if (n == size * 2 && do_cmp(base, base + size, cmp_func, priv) > 0)
+ 		do_swap(base, base + size, size, swap_func, priv);
+ }
++
++void sort_r(void *base, size_t num, size_t size,
++	    cmp_r_func_t cmp_func,
++	    swap_r_func_t swap_func,
++	    const void *priv)
++{
++	__sort_r(base, num, size, cmp_func, swap_func, priv, false);
++}
+ EXPORT_SYMBOL(sort_r);
+ 
++void sort_r_nonatomic(void *base, size_t num, size_t size,
++		      cmp_r_func_t cmp_func,
++		      swap_r_func_t swap_func,
++		      const void *priv)
++{
++	__sort_r(base, num, size, cmp_func, swap_func, priv, true);
++}
++EXPORT_SYMBOL(sort_r_nonatomic);
++
+ void sort(void *base, size_t num, size_t size,
+ 	  cmp_func_t cmp_func,
+ 	  swap_func_t swap_func)
+@@ -304,6 +327,19 @@ void sort(void *base, size_t num, size_t
+ 		.swap = swap_func,
+ 	};
+ 
+-	return sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w);
++	return __sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w, false);
+ }
+ EXPORT_SYMBOL(sort);
++
++void sort_nonatomic(void *base, size_t num, size_t size,
++		    cmp_func_t cmp_func,
++		    swap_func_t swap_func)
++{
++	struct wrapper w = {
++		.cmp  = cmp_func,
++		.swap = swap_func,
++	};
++
++	return __sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w, true);
++}
++EXPORT_SYMBOL(sort_nonatomic);
 _
 
-Patches currently in -mm which might be from nicolas@fjasle.eu are
+Patches currently in -mm which might be from kent.overstreet@linux.dev are
 
-mailmap-add-an-entry-for-nicolas-schier.patch
+lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
 
