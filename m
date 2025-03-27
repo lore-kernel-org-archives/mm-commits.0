@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFF9A2641FB
-	for <mm-commits@vger.kernel.org>; Tue, 25 Mar 2025 18:00:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D1A6433B1
+	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2025 17:45:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742925635; cv=none; b=JrXrgEDKC4AKvndLDjk662K2QR4tMxcZGhLPiBdXycZGjhrpgmjeN76WcBkoIVgQmMi4chQU0wCrTwn8YB1dQddk8eWyw87tWmS1wyYMUg4UgTaRShAZ91nsWMAgZkwzDUTalf4CNSyn9UMwBRaYEwVXrmKxEtIgPKpXd13ZvGo=
+	t=1743097515; cv=none; b=oQJHmM8ussjFIUyg0zrn7Q6ieU8D/Wv02CD2pwY7jIcRXZen13x/4DlttN3lts7Z4wLAe6XZXaojEzDOFPyYXCTZWYtCpNDydr9RsdMcuIiVmsKagMhusCdFouTJWrcmsvw3kgdGOOmvgj8R0N8YR6QHDP9leHuLDTN5iTg0x5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742925635; c=relaxed/simple;
-	bh=6eQWXA8O82HCQaWbZJG/JeqaHu5VuWRAlPGUzqcabFg=;
-	h=Date:To:From:Subject:Message-Id; b=Sz6P1qAkracH+VkfGH+L4m+ZDYH/U8ehxYKLYi0xUROlWO9GkFfoJKIqej+7VM9NZc2Iu4fD8deKynM6wHcDDSC1w2nTYQjfVQULF58xJCN3cXXSX+p78XILnfLLJ9xGfS3v7rpkaaIvF0geCiFBqx5vQ+F2Uawg0t+2sd3FJXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gG+fWA7e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743097515; c=relaxed/simple;
+	bh=uLbhYRkiHpLzvHUujdbvCwNZGgUAxJItINjS+Br62PU=;
+	h=Date:To:From:Subject:Message-Id; b=Xnyjkvje5m28i4BMucFTOgseg8YcKsvyUBwy3WEKgFIBhsIXLk8w0rep4CrhApKiAG800iFDZQ/uMrU+R681SXGKGMkWitArU7J2A3y5dl4BUS1/E63kBtcBQ2FG/TT0/4BouvdIlrFABQ55QrtGX4KlKRK9MflfAkc81PuQKLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=16Rca592; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gG+fWA7e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A224AC4CEEE;
-	Tue, 25 Mar 2025 18:00:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="16Rca592"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64871C4CEDD;
+	Thu, 27 Mar 2025 17:45:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1742925634;
-	bh=6eQWXA8O82HCQaWbZJG/JeqaHu5VuWRAlPGUzqcabFg=;
+	s=korg; t=1743097514;
+	bh=uLbhYRkiHpLzvHUujdbvCwNZGgUAxJItINjS+Br62PU=;
 	h=Date:To:From:Subject:From;
-	b=gG+fWA7eqldgEkV/4li0Za7ZMr/l3MfrlFePqrQxDoAGDQu0PVSCpk6a6puEjWU5U
-	 m/pHs5B2g5oNgp7wrQCkuBKISHgVWLGfpSFfpHFMt4d91d/6XvpLSyZSuQPeR/R1yR
-	 y0YZM8Xf4leHRy/5qxFk8E6+UlWmnWmF+PzEzaI4=
-Date: Tue, 25 Mar 2025 11:00:29 -0700
-To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,oliver.sang@intel.com,nathan@kernel.org,mingo@redhat.com,luto@kernel.org,jiaxun.yang@flygoat.com,hpa@zytor.com,dave.hansen@linux.intel.com,bp@alien8.de,rppt@kernel.org,akpm@linux-foundation.org
+	b=16Rca592dR86D251qG1ZJ3iqzZFodpFiS/XESZvIpcv0fHBU/mo83LjPISTT1tFTN
+	 mCWJuk5P2z3caDKY10udB5y+JFVvXMaggmUuZrELz+Rpfx74kcnxLgV3AnA1YW3fJs
+	 7/JQ41GHb9XYzp1jKRg6xWarLURdlELpETwur+84=
+Date: Thu, 27 Mar 2025 10:45:13 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,kirill.shutemov@linux.intel.com,dev.jain@arm.com,anshuman.khandual@arm.com,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch added to mm-unstable branch
-Message-Id: <20250325180033.A224AC4CEEE@smtp.kernel.org>
+Subject: + selftest-mm-va_high_addr_switch-add-ppc64-support-check.patch added to mm-unstable branch
+Message-Id: <20250327174514.64871C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memblock: don't release high memory to page allocator when HIGHMEM is off
+     Subject: selftest/mm: va_high_addr_switch: add ppc64 support check
 has been added to the -mm mm-unstable branch.  Its filename is
-     memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch
+     selftest-mm-va_high_addr_switch-add-ppc64-support-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-va_high_addr_switch-add-ppc64-support-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,122 +58,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: memblock: don't release high memory to page allocator when HIGHMEM is off
-Date: Tue, 25 Mar 2025 13:49:28 +0200
+From: Li Wang <liwang@redhat.com>
+Subject: selftest/mm: va_high_addr_switch: add ppc64 support check
+Date: Thu, 27 Mar 2025 19:48:13 +0800
 
-Nathan Chancellor reports the following crash on a MIPS system with
-CONFIG_HIGHMEM=n:
+Add PPC64 Radix MMU support to the va_high_addr_switch.sh by introducing
+check_supported_ppc64().  The function verifies:
 
-  Linux version 6.14.0-rc6-00359-g6faea3422e3b (nathan@ax162) (mips-linux-gcc (GCC) 14.2.0, GNU ld (GNU Binutils) 2.42) #1 SMP Fri Mar 21 08:12:02 MST 2025
-  earlycon: uart8250 at I/O port 0x3f8 (options '38400n8')
-  printk: legacy bootconsole [uart8250] enabled
-  Config serial console: console=ttyS0,38400n8r
-  CPU0 revision is: 00019300 (MIPS 24Kc)
-  FPU revision is: 00739300
-  MIPS: machine is mti,malta
-  Software DMA cache coherency enabled
-  Initial ramdisk at: 0x8fad0000 (5360128 bytes)
-  OF: reserved mem: Reserved memory: No reserved-memory node in the DT
-  Primary instruction cache 2kB, VIPT, 2-way, linesize 16 bytes.
-  Primary data cache 2kB, 2-way, VIPT, no aliases, linesize 16 bytes
-  Zone ranges:
-    DMA      [mem 0x0000000000000000-0x0000000000ffffff]
-    Normal   [mem 0x0000000001000000-0x000000001fffffff]
-  Movable zone start for each node
-  Early memory node ranges
-    node   0: [mem 0x0000000000000000-0x000000000fffffff]
-    node   0: [mem 0x0000000090000000-0x000000009fffffff]
-  Initmem setup node 0 [mem 0x0000000000000000-0x000000009fffffff]
-  On node 0, zone Normal: 16384 pages in unavailable ranges
-  random: crng init done
-  percpu: Embedded 3 pages/cpu s18832 r8192 d22128 u49152
-  Kernel command line: rd_start=0xffffffff8fad0000 rd_size=5360128  console=ttyS0,38400n8r
-  printk: log buffer data + meta data: 32768 + 102400 = 135168 bytes
-  Dentry cache hash table entries: 65536 (order: 4, 262144 bytes, linear)
-  Inode-cache hash table entries: 32768 (order: 3, 131072 bytes, linear)
-  Writing ErrCtl register=00000000
-  Readback ErrCtl register=00000000
-  Built 1 zonelists, mobility grouping on.  Total pages: 16384
-  mem auto-init: stack:all(zero), heap alloc:off, heap free:off
-  Unhandled kernel unaligned access[#1]:
-  CPU: 0 UID: 0 PID: 0 Comm: swapper Not tainted 6.14.0-rc6-00359-g6faea3422e3b #1
-  Hardware name: mti,malta
-  $ 0   : 00000000 00000001 81cb0880 00129027
-  $ 4   : 00000001 0000000a 00000002 00129026
-  $ 8   : ffffdfff 80101e00 00000002 00000000
-  $12   : 81c9c224 81c63e68 00000002 00000000
-  $16   : 805b1e00 00025800 81cb0880 00000002
-  $20   : 00000000 81c63e64 0000000a 81f10000
-  $24   : 81c63e64 81c63e60
-  $28   : 81c60000 81c63de0 00000001 81cc9d20
-  Hi    : 00000000
-  Lo    : 00000000
-  epc   : 814a227c __free_pages_ok+0x144/0x3c0
-  ra    : 81cc9d20 memblock_free_all+0x1d4/0x27c
-  Status: 10000002        KERNEL EXL
-  Cause : 00800410 (ExcCode 04)
-  BadVA : 00129026
-  PrId  : 00019300 (MIPS 24Kc)
-  Modules linked in:
-  Process swapper (pid: 0, threadinfo=(ptrval), task=(ptrval), tls=00000000)
-  Stack : 81f10000 805a9e00 81c80000 00000000 00000002 814aa240 000003ff 00000400
-          00000000 81f10000 81c9c224 00003b1f 81c80000 81c63e60 81ca0000 81c63e64
-          81f10000 0000000a 0000001f 81cc9d20 81f10000 81cc96d8 00000000 81c80000
-          81c9c224 81c63e60 81c63e64 00000000 81f10000 00024000 00028000 00025c00
-          90000000 a0000000 00000002 00000017 00000000 00000000 81f10000 81f10000
-          ...
-  Call Trace:
-  [<814a227c>] __free_pages_ok+0x144/0x3c0
-  [<81cc9d20>] memblock_free_all+0x1d4/0x27c
-  [<81cc6764>] mm_core_init+0x100/0x138
-  [<81cb4ba4>] start_kernel+0x4a0/0x6e4
+  - 5-level paging (PGTABLE_LEVELS >= 5) enable in kernel config
+  - Radix MMU (required for PPC64 5-level translation)
+  - HugePages availability (needed for some tests)
 
-  Code: 1080ffd5  02003825  2467ffff <8ce30000> 7c630500  1060ffd4  00000000  8ce30000  7c630180
+If any check fails, the test is skipped (ksft_skip).  This ensures
+compatibility with Power9/Power10 systems running in Radix MMU mode.
 
-The crash happens because commit 6faea3422e3b ("arch, mm: streamline
-HIGHMEM freeing") too eagerly frees high memory to the page allocator even
-when HIGHMEM is disabled.
+Avoid failures on 4-level paging system:
 
-Make sure that when CONFIG_HIGHMEM=n the high memory is not released to the
-page allocator.
+  # mmap(NULL, MAP_HUGETLB): 0xffffffffffffffff - FAILED
+  # mmap(LOW_ADDR, MAP_HUGETLB): 0xffffffffffffffff - FAILED
+  # mmap(HIGH_ADDR, MAP_HUGETLB): 0xffffffffffffffff - FAILED
+  # mmap(HIGH_ADDR, MAP_HUGETLB) again: 0xffffffffffffffff - FAILED
+  # mmap(HIGH_ADDR, MAP_FIXED | MAP_HUGETLB): 0xffffffffffffffff - FAILED
+  # mmap(-1, MAP_HUGETLB): 0xffffffffffffffff - FAILED
+  # mmap(-1, MAP_HUGETLB) again: 0xffffffffffffffff - FAILED
+  # mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2*HUGETLB_SIZE, MAP_HUGETLB): 0xffffffffffffffff - FAILED
+  # mmap(ADDR_SWITCH_HINT , 2*HUGETLB_SIZE, MAP_FIXED | MAP_HUGETLB): 0xffffffffffffffff - FAILED
 
-Link: https://lore.kernel.org/all/20250323190647.GA1009914@ax162
-Link: https://lkml.kernel.org/r/20250325114928.1791109-3-rppt@kernel.org
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Fixes: 6faea3422e3b ("arch, mm: streamline HIGHMEM freeing")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: kernel test robot <oliver.sang@intel.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20250327114813.25980-1-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |   28 ++++++++++++
+ 1 file changed, 28 insertions(+)
 
---- a/mm/memblock.c~memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off
-+++ a/mm/memblock.c
-@@ -2166,6 +2166,9 @@ static unsigned long __init __free_memor
- 	unsigned long start_pfn = PFN_UP(start);
- 	unsigned long end_pfn = PFN_DOWN(end);
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftest-mm-va_high_addr_switch-add-ppc64-support-check
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -41,6 +41,31 @@ check_supported_x86_64()
+ 	fi
+ }
  
-+	if (!IS_ENABLED(CONFIG_HIGHMEM) && end_pfn > max_low_pfn)
-+		end_pfn = max_low_pfn;
++check_supported_ppc64()
++{
++	local config="/proc/config.gz"
++	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
++	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
 +
- 	if (start_pfn >= end_pfn)
- 		return 0;
- 
++	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
++	if [[ "${pg_table_levels}" -lt 5 ]]; then
++		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
++		exit $ksft_skip
++	fi
++
++	local mmu_support=$(grep -m1 "mmu" /proc/cpuinfo | awk '{print $3}')
++	if [[ "$mmu_support" != "radix" ]]; then
++		echo "$0: System does not use Radix MMU, required for 5-level paging"
++		exit $ksft_skip
++	fi
++
++	local hugepages_total=$(awk '/HugePages_Total/ {print $2}' /proc/meminfo)
++	if [[ "${hugepages_total}" -eq 0 ]]; then
++		echo "$0: HugePages are not enabled, required for some tests"
++		exit $ksft_skip
++	fi
++}
++
+ check_test_requirements()
+ {
+ 	# The test supports x86_64 and powerpc64. We currently have no useful
+@@ -50,6 +75,9 @@ check_test_requirements()
+ 		"x86_64")
+ 			check_supported_x86_64
+ 		;;
++		"ppc64le"|"ppc64")
++			check_supported_ppc64
++		;;
+ 		*)
+ 			return 0
+ 		;;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from liwang@redhat.com are
 
-mm-mm_init-init-holes-in-the-end-of-the-memory-map-for-flatmem.patch
-memblock-dont-release-high-memory-to-page-allocator-when-highmem-is-off.patch
+selftest-mm-va_high_addr_switch-add-ppc64-support-check.patch
 
