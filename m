@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB293595B
-	for <mm-commits@vger.kernel.org>; Sat, 29 Mar 2025 01:19:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B241BDCF
+	for <mm-commits@vger.kernel.org>; Sun, 30 Mar 2025 21:23:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743211148; cv=none; b=BPdPt0JW4OD8Ytav4XA0j2TDbXzsEaRoIeiElKiKwxoLQiJv2av8JCIAKzPieonZijLYibM2g8VmKRcnwSYf71Ef+O60Vfzn4FW3w1j40wFdb1LCog8YoQyiM7vHmOBbPz4MkgN2MhcvYWp9zXaJqetkuuO1hgFuLXwlMrClLdA=
+	t=1743369822; cv=none; b=CeCqVyQZG0Y6apTRsYNRU+taiH739wDmKOU9dVrcg9VvGDLmhx6QuFYbs0gLp8e414rVdrOn/3UnShUluvFzUWCuDx1hGAjYG15DVoTehJMGLKBuWwkpa4gUBo2zqqKdWYqvYfRqc+as8B8wcs1THe7XMxDGz2uafz3yNRyTwYI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743211148; c=relaxed/simple;
-	bh=U7P3vY01Gekh2ZJLkAwTcVTjL3RHMOJUhPSwpuhJ4OY=;
-	h=Date:To:From:Subject:Message-Id; b=gvS1m8Vg6YpKtiwIU74Un3Ms9wgzwVHDHad7QcXfXVfL6N6sXxllRIMdQMAFLLnkw9oPDEqOCjrYsxddh004CY4fmhSJTtW/v8BP6oEGD5f+YPiBAWi4gWN4mt9UKF5iBY2im6SU63Pb9l0XdUfBBCxZkIWJjRi9PD3kC/meu9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1kdrbxB6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743369822; c=relaxed/simple;
+	bh=ooTphQvzogXgIxsZiS8CEn/+dMlyEMqp3yKmDtSfzmo=;
+	h=Date:To:From:Subject:Message-Id; b=H6BAyZCMJS/D+UOYcSpc/0CrCuplmNg7qZpVxGoKYeNKojWWQwetZTsavy4/pvgQQTMLguUDxfrqaCtkApomwzD4/TFKXdPM3ZnZN2MAv3O7B7Nu9RpF/x3YcvoplH9gryV6+/1fRG0M2qrz48ItK0Ws/3Wc61qQt3qAdjiV9lM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uQX+8t/f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1kdrbxB6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95016C4CEE4;
-	Sat, 29 Mar 2025 01:19:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uQX+8t/f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CF71C4CEDD;
+	Sun, 30 Mar 2025 21:23:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743211147;
-	bh=U7P3vY01Gekh2ZJLkAwTcVTjL3RHMOJUhPSwpuhJ4OY=;
+	s=korg; t=1743369821;
+	bh=ooTphQvzogXgIxsZiS8CEn/+dMlyEMqp3yKmDtSfzmo=;
 	h=Date:To:From:Subject:From;
-	b=1kdrbxB6YeVjixiXWIzuiwpaPafP8wkgN2LamZVLdp3YqjfiffMGGf7Mxd6S8Ejot
-	 3Z2w4CRI8hu2KNoo5wRV0+TOEltQpDXdBj/7VS7+zLoalply8kWdRO0j4u4YuhHgqD
-	 XljVlO3i2H4+ps3CIQblSnvYJGDnJ52v9MC4E2es=
-Date: Fri, 28 Mar 2025 18:19:06 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,monstr@monstr.eu,masahiroy@kernel.org,lkp@intel.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=uQX+8t/fUitizVVH4frUJ7N4zHHdaJxwTfSOnZzpoGrUdP44CgvX/A5ZYoVRpVNjT
+	 6GwyVUQ0LqQjmhpAPfILoZbYhs9ef4JOh9ac51Z32uxyV9wK+qaFEFHpXueknc/05Y
+	 nH2z2gpPXHm2HCoqHzzOAue9vHT5EiZkUdbcjiGQ=
+Date: Sun, 30 Mar 2025 14:23:40 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@Oracle.com,harry.yoo@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + microblaze-mm-put-mm_cmdline_setup-in-inittext-section.patch added to mm-unstable branch
-Message-Id: <20250329011907.95016C4CEE4@smtp.kernel.org>
+Subject: + mm-mremap-do-not-set-vrm-vma-null-immediately-prior-to-checking-it.patch added to mm-unstable branch
+Message-Id: <20250330212341.5CF71C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: microblaze/mm: put mm_cmdline_setup() in .init.text section
+     Subject: mm/mremap: do not set vrm->vma NULL immediately prior to checking it
 has been added to the -mm mm-unstable branch.  Its filename is
-     microblaze-mm-put-mm_cmdline_setup-in-inittext-section.patch
+     mm-mremap-do-not-set-vrm-vma-null-immediately-prior-to-checking-it.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/microblaze-mm-put-mm_cmdline_setup-in-inittext-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-do-not-set-vrm-vma-null-immediately-prior-to-checking-it.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,45 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: microblaze/mm: put mm_cmdline_setup() in .init.text section
-Date: Fri, 28 Mar 2025 01:01:36 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: do not set vrm->vma NULL immediately prior to checking it
+Date: Sun, 30 Mar 2025 17:20:48 +0100
 
-As reported by lkp, there is a section mismatch of mm_cmdline_setup() and
-memblock.  The reason is we don't specify the section of
-mm_cmdline_setup() and gcc put it into .text.unlikely.
+This seems rather unwise.  If we cannot merge, extend, then we need to
+recall the original VMA to see if we need to uncharge.
 
-As mm_cmdline_setup() is only used in mmu_init(), which is in .init.text
-section, put mm_cmdline_setup() into it too.
+If we do need to, do so.
 
-Link: https://lkml.kernel.org/r/20250328010136.13139-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202503241259.kJV3U7Xj-lkp@intel.com/
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Link: https://lkml.kernel.org/r/b2fb6b9c-376d-4e9b-905e-26d847fd3865@lucifer.local
+Fixes: d5c8aec0542e ("mm/mremap: initial refactor of move_vma()")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-=by: "Lai, Yi" <yi1.lai@linux.intel.com>
+Closes: https://lore.kernel.org/linux-mm/Z+lcvEIHMLiKVR1i@ly-workstation/
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/microblaze/mm/init.c~microblaze-mm-put-mm_cmdline_setup-in-inittext-section
-+++ a/arch/microblaze/mm/init.c
-@@ -118,7 +118,7 @@ int page_is_ram(unsigned long pfn)
- /*
-  * Check for command-line options that affect what MMU_init will do.
-  */
--static void mm_cmdline_setup(void)
-+static void __init mm_cmdline_setup(void)
- {
- 	unsigned long maxmem = 0;
- 	char *p = cmd_line;
+--- a/mm/mremap.c~mm-mremap-do-not-set-vrm-vma-null-immediately-prior-to-checking-it
++++ a/mm/mremap.c
+@@ -1561,11 +1561,12 @@ static unsigned long expand_vma_in_place
+ 	 * adjacent to the expanded vma and otherwise
+ 	 * compatible.
+ 	 */
+-	vma = vrm->vma = vma_merge_extend(&vmi, vma, vrm->delta);
++	vma = vma_merge_extend(&vmi, vma, vrm->delta);
+ 	if (!vma) {
+ 		vrm_uncharge(vrm);
+ 		return -ENOMEM;
+ 	}
++	vrm->vma = vma;
+ 
+ 	vrm_stat_account(vrm, vrm->delta);
+ 
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-microblaze-mm-put-mm_cmdline_setup-in-inittext-section.patch
+mm-mremap-do-not-set-vrm-vma-null-immediately-prior-to-checking-it.patch
 
