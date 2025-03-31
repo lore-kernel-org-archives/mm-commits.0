@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C983DDBC
-	for <mm-commits@vger.kernel.org>; Mon, 31 Mar 2025 21:37:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A85FDDBC
+	for <mm-commits@vger.kernel.org>; Mon, 31 Mar 2025 21:38:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743457030; cv=none; b=GBO/3lBcrwaNuqFQ5+0NWRyZ691fqx4n8Wa5XTr/q5Nt9+j+xuOkgdBwqHRY+YokbjeeW1i1CBDk3Pd7zUDZB7K7qaL4vBiEnCmw41/Um3UtPFdGPmXnrOFps18XzEoAkNB5MQc+VM9M6TY7YvPL/eBWmLNwnKDeGHs267BNgio=
+	t=1743457089; cv=none; b=XeNIOp0L0ZKfh6S52L8ua+w1lPgj2EYfBSQBXlQ/PugL7KATfQqswgKDqXQiTJcCE0dbMobXNGeE3Ge2SV0B0bNGaIj+ZFppAKnpsTMclXprFxLpqdUk0QNlb+3J66FHKlS3CKURK2mKNYohlXpNqy+C0VJbualD+y5V6d0/yjY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743457030; c=relaxed/simple;
-	bh=0lRUUAb7RRxAt+DATOH0ZNqhSg4Q/BJdI+FWzEZ7BAs=;
-	h=Date:To:From:Subject:Message-Id; b=N+xPCRvgw6dTilftmXYqkcT3QmLaYNl9+WLoVHt6Bn4MyQaxSoHBguEhYkwRuqvw+D3FCCUlVHFEI+DDCp+UCd3FFW3gDDwygGn41/sxIi9k2EHrIj5GfQguD1phDDJuMnoEyK1awz9GSV9CD5ACibu71K0Rv/rVWx2t4bFnpHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vBktFsnv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743457089; c=relaxed/simple;
+	bh=uUh20SzIu7gZ5s5b8X9safFjhmhkiPjUgIn1rfcDU4k=;
+	h=Date:To:From:Subject:Message-Id; b=Su7UMr9w5gj7cEcF7IpultuNNd+JMZo7AO2MK3KVShlw81+ZpyxUvhmXxcvp8L1gt1fROT4e3Wc9IcpD3Ya+PermVZiWjU91mnWzlakB3UEaOy2oaQF69rcLgNFDQFXFR4Ho+0DajL8rld7dpXAK5FdfR4/xk9cCU0tP5a3fUoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZM7yO3or; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vBktFsnv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1A67C4CEE5;
-	Mon, 31 Mar 2025 21:37:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZM7yO3or"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DACE6C4CEE3;
+	Mon, 31 Mar 2025 21:38:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743457030;
-	bh=0lRUUAb7RRxAt+DATOH0ZNqhSg4Q/BJdI+FWzEZ7BAs=;
+	s=korg; t=1743457088;
+	bh=uUh20SzIu7gZ5s5b8X9safFjhmhkiPjUgIn1rfcDU4k=;
 	h=Date:To:From:Subject:From;
-	b=vBktFsnvLaGejffCv9la26E/Uvi8ccVhKzX7s5X9pGTeUrP99oTon91V8tk0iozn1
-	 cb+tXaHh0fESI6+C7PFx8m7BcaJ9CEkHbNiUBy1ndXhdu1tifRXjIgpch2yT545+TS
-	 3FRZZXTm+UDKvGtkcR83PsaytVmMUKMFConkaySw=
-Date: Mon, 31 Mar 2025 14:37:09 -0700
+	b=ZM7yO3orUZCUXPeccVBO8481F57/NA7aEuJINFAgYaGTbjgwy5EtO7rDFz484wDku
+	 xg8O6utBGSNX7agjWe3KYUewxeiLzE17ATkJfK3RSsLCIb7jV1Duv7sgqVfBuFQ10m
+	 /UdKQ0tlB4H0BEq6SZ25ur1fzb2iDVuvXyj58+qY=
+Date: Mon, 31 Mar 2025 14:38:08 -0700
 To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,x86@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch added to mm-new branch
-Message-Id: <20250331213709.E1A67C4CEE5@smtp.kernel.org>
+Subject: + mm-gup-check-if-both-gup_get-and-gup_pin-are-set-in-__get_user_pages-earlier.patch added to mm-new branch
+Message-Id: <20250331213808.DACE6C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
+     Subject: mm/gup: check if both GUP_GET and GUP_PIN are set in __get_user_pages() earlier
 has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+     mm-gup-check-if-both-gup_get-and-gup_pin-are-set-in-__get_user_pages-earlier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-check-if-both-gup_get-and-gup_pin-are-set-in-__get_user_pages-earlier.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,46 +59,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
-Date: Mon, 31 Mar 2025 16:13:21 +0800
+Subject: mm/gup: check if both GUP_GET and GUP_PIN are set in __get_user_pages() earlier
+Date: Mon, 31 Mar 2025 16:13:22 +0800
 
-Patch series "mm/gup: Minor fix, cleanup and improvements", v2.
+In __get_user_pages(), it will traverse page table and take a reference to
+the page the given user address corresponds to if GUP_GET or GUP_PIN is
+et.  However, it's not supported both GUP_GET and GUP_PIN are set.  This
+check should be done earlier, but not doing it till entering into
+follow_page_pte() and failed.
 
-These were made when I explored code in mm/gup.c.
+Here move the checking to the beginning of __get_user_pages().
 
-
-This patch (of 7):
-
-Not like fault_in_readable() or fault_in_writeable(), in
-fault_in_safe_writeable() local variable 'start' is increased page by page
-to loop till the whole address range is handled.  However, it mistakenly
-calcalates the size of handled range with 'uaddr - start'.
-
-Fix it here.
-
-Link: https://lkml.kernel.org/r/20250331081327.256412-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250331081327.256412-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Cc: <x86@kernel.org>
+Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/gup.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable
+--- a/mm/gup.c~mm-gup-check-if-both-gup_get-and-gup_pin-are-set-in-__get_user_pages-earlier
 +++ a/mm/gup.c
-@@ -2207,8 +2207,8 @@ size_t fault_in_safe_writeable(const cha
- 	} while (start != end);
- 	mmap_read_unlock(mm);
+@@ -844,11 +844,6 @@ static struct page *follow_page_pte(stru
+ 	pte_t *ptep, pte;
+ 	int ret;
  
--	if (size > (unsigned long)uaddr - start)
--		return size - ((unsigned long)uaddr - start);
-+	if (size > start - (unsigned long)uaddr)
-+		return size - (start - (unsigned long)uaddr);
- 	return 0;
- }
- EXPORT_SYMBOL(fault_in_safe_writeable);
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
+-			 (FOLL_PIN | FOLL_GET)))
+-		return ERR_PTR(-EINVAL);
+-
+ 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	if (!ptep)
+ 		return no_page_table(vma, flags, address);
+@@ -1434,6 +1429,11 @@ static long __get_user_pages(struct mm_s
+ 
+ 	VM_BUG_ON(!!pages != !!(gup_flags & (FOLL_GET | FOLL_PIN)));
+ 
++	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
++	if (WARN_ON_ONCE((gup_flags & (FOLL_PIN | FOLL_GET)) ==
++			 (FOLL_PIN | FOLL_GET)))
++		return -EINVAL;
++
+ 	do {
+ 		struct page *page;
+ 		unsigned int page_increm;
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
