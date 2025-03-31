@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C08CDDBC
-	for <mm-commits@vger.kernel.org>; Mon, 31 Mar 2025 21:38:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A443CDDBC
+	for <mm-commits@vger.kernel.org>; Mon, 31 Mar 2025 21:38:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743457095; cv=none; b=KzZRa21A3kFG3HXKDM6UdLKfE3kQxVnEQl5pdDtbbLt6vgrUHoLJMsz4hmG+hSZGXfGXAVWTHYQ1NRKIZ2tE1OyNRyiBp1poZxztFhukEurplXpdYU0M/UdaRdLXpsU/m0ykxZ79lGAZn5J9eG9Bn4wRm6ao3ImCxSUGYOTgK6g=
+	t=1743457097; cv=none; b=iu7FtxA5ZHp4sg4SVcArA5yEEuE4mrAvJ4/c0HhuxqC0Hpls6lRulFBGWM1Mr0+vEp4eCd5zlT548Q0Q3zfkensVdbtxFCEw5TkawUUn9gE87sqMETBCS8xYK41oeVvtbzRO87Q59HZvBeNHzEgfZRMH3xhuRw7AJpUOgYDT2zQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743457095; c=relaxed/simple;
-	bh=yyeR16bTxoG8qW2gQzctPiJONoXgbRwHhbDDgSNlTQc=;
-	h=Date:To:From:Subject:Message-Id; b=ii8RHDvazMXv5E3l6+PSdllpyjtM9tgYhCtaa3xqY5fwJTqLdkYBgKLEudOegP5U0bURYRzF7HrGqATgjPRx0WMAE4GUZmc5Uzu2w1re9FaLnQKGUT+IO9inrH0Ptd/vqTQdhJ7YVhk9Ev93OK4/4ZtQ/Lzb944MNBYIhNc6YEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mfITTogN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743457097; c=relaxed/simple;
+	bh=BTfP++c1FYIdgMhyfIhnkHj0ncyUXEz2jwhbovWuiwg=;
+	h=Date:To:From:Subject:Message-Id; b=LH0rYF0yADDMwrV6y4ItqNGSbDQqM2YTXOT/qlnUx/tvk5zRnCYJM1IUNIQpVn3DT99lz9YXMEVDNw4eNiK1w8LICRoA99NkHV1NrucIchA0QnBLTrq0Uf/ZGoad/5Q5voMpONolHvmjC4zqPOkIi0ygchzxk6uT4HQ9XQo3/Ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=epLeUvDg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mfITTogN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A25B1C4CEE3;
-	Mon, 31 Mar 2025 21:38:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="epLeUvDg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBB81C4CEE3;
+	Mon, 31 Mar 2025 21:38:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743457094;
-	bh=yyeR16bTxoG8qW2gQzctPiJONoXgbRwHhbDDgSNlTQc=;
+	s=korg; t=1743457097;
+	bh=BTfP++c1FYIdgMhyfIhnkHj0ncyUXEz2jwhbovWuiwg=;
 	h=Date:To:From:Subject:From;
-	b=mfITTogNFXf0JsShGg08HyH56nNJ2KgLAXagSLEO14C7LvxMV1svhRa3lKTrK43q9
-	 /Fhr+KV8VgX9FTQovJQp7QCWYvUN1/MROJTqVir0KZdsnAMFh7w4yQAMCF9jbOV/Fi
-	 rcMj1dg0AXaIVKU3fzJlBdOYz7duvRfEfCUKEpfE=
-Date: Mon, 31 Mar 2025 14:38:14 -0700
+	b=epLeUvDg5IVNa4zWYQWXDGHSWffGMsJa8Yjyhzt2xr9V4c9rmaWf7yjlzPypE4ECl
+	 03OIqLz09YSBmI5DCFxOL5hlH6WbTiuM84AkCfkx+0P/IjR57T1dUOIw5UDjJHKd27
+	 wIKLr7qwXYdoDZlgxIrpaEr/JcnuaLb8DxAvMQh4=
+Date: Mon, 31 Mar 2025 14:38:16 -0700
 To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,x86@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-remove-pgd_leaf-definition-in-arch.patch added to mm-new branch
-Message-Id: <20250331213814.A25B1C4CEE3@smtp.kernel.org>
+Subject: + x86-mm-remove-p4d_leaf-definition.patch added to mm-new branch
+Message-Id: <20250331213816.EBB81C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: remove pgd_leaf definition in arch
+     Subject: x86/mm: remove p4d_leaf definition
 has been added to the -mm mm-new branch.  Its filename is
-     x86-mm-remove-pgd_leaf-definition-in-arch.patch
+     x86-mm-remove-p4d_leaf-definition.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-remove-pgd_leaf-definition-in-arch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-remove-p4d_leaf-definition.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,49 +59,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: x86/mm: remove pgd_leaf definition in arch
-Date: Mon, 31 Mar 2025 16:13:25 +0800
+Subject: x86/mm: remove p4d_leaf definition
+Date: Mon, 31 Mar 2025 16:13:26 +0800
 
-pgd huge page is not supported yet, let's use the generic definition in
-linux/pgtable.h.
+There's no p4d huge page support yet, let's use the generic definition.
 
-And also update the BUILD_BUG_ON() checking for pgd_leaf() in
-pti_user_pagetable_walk_p4d() because pgd_leaf() returns boolean value.
+And also update the BUILD_BUG_ON() in pti_user_pagetable_walk_pmd()
+because p4d_leaf() returns boolean value.
 
-Link: https://lkml.kernel.org/r/20250331081327.256412-6-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250331081327.256412-7-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: <x86@kernel.org>
 Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    3 ---
+ arch/x86/include/asm/pgtable.h |    7 -------
  arch/x86/mm/pti.c              |    2 +-
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~x86-mm-remove-pgd_leaf-definition-in-arch
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-remove-p4d_leaf-definition
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -1472,9 +1472,6 @@ static inline bool pgdp_maps_userspace(v
- 	return (((ptr & ~PAGE_MASK) / sizeof(pgd_t)) < PGD_KERNEL_START);
+@@ -292,13 +292,6 @@ static inline unsigned long pgd_pfn(pgd_
+ 	return (pgd_val(pgd) & PTE_PFN_MASK) >> PAGE_SHIFT;
  }
  
--#define pgd_leaf	pgd_leaf
--static inline bool pgd_leaf(pgd_t pgd) { return false; }
+-#define p4d_leaf p4d_leaf
+-static inline bool p4d_leaf(p4d_t p4d)
+-{
+-	/* No 512 GiB pages yet */
+-	return 0;
+-}
 -
- #ifdef CONFIG_MITIGATION_PAGE_TABLE_ISOLATION
- /*
-  * All top-level MITIGATION_PAGE_TABLE_ISOLATION page tables are order-1 pages
---- a/arch/x86/mm/pti.c~x86-mm-remove-pgd_leaf-definition-in-arch
+ #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
+ 
+ #define pmd_leaf pmd_leaf
+--- a/arch/x86/mm/pti.c~x86-mm-remove-p4d_leaf-definition
 +++ a/arch/x86/mm/pti.c
-@@ -185,7 +185,7 @@ static p4d_t *pti_user_pagetable_walk_p4
+@@ -206,7 +206,7 @@ static pmd_t *pti_user_pagetable_walk_pm
+ 	if (!p4d)
+ 		return NULL;
  
- 		set_pgd(pgd, __pgd(_KERNPG_TABLE | __pa(new_p4d_page)));
- 	}
--	BUILD_BUG_ON(pgd_leaf(*pgd) != 0);
-+	BUILD_BUG_ON(pgd_leaf(*pgd));
- 
- 	return p4d_offset(pgd, address);
- }
+-	BUILD_BUG_ON(p4d_leaf(*p4d) != 0);
++	BUILD_BUG_ON(p4d_leaf(*p4d));
+ 	if (p4d_none(*p4d)) {
+ 		unsigned long new_pud_page = __get_free_page(gfp);
+ 		if (WARN_ON_ONCE(!new_pud_page))
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
