@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2B0F21C9E9
-	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:17:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E19E321481B
+	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:17:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743545875; cv=none; b=I/7H2xWgi7CKZzb7t/FsgqcklZ/00ng9mTSAY2MKYgip1x0o1pLJQWVWOkgndTXyNyidAjkD2nMtImUO8RSmO1iDtbFLhGwhESZ+VDLRIy5GxZIuzGCqHGsiAhv7o4Y396UYtdJPb6Qu+I/I3zFpLjPq2F1KnWS92H8RCkwL7Ww=
+	t=1743545878; cv=none; b=f9+ZtOwzPYSbUKOCtEzRBlzn8iGlW5yfB/8YUIKU5OFG2cTdsW4WW4ulfEm5BJbKoYOYifqXxXm4gTxt+BqxGvQZfkgZswwmLRHpll8QAFJ+KYHGnhBv3Bg45MIxuGEdbfahMv+aSjpGFAEYPe5Myxv4+SxQmI51XHvK7NPhKK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743545875; c=relaxed/simple;
-	bh=etgc4E4TDDnd0jdjjx5bTlq1gPGed4M1gRiBASQqnng=;
-	h=Date:To:From:Subject:Message-Id; b=EdUv7BB2PlRZmvPnCGa9V11JLm2dKVD3Qn2xycxTLi3r8DXQEIMLYjjlSGpt8qGyCtc8DttIzW2VFF3L3EbZ8OcoacqIewmpyNx2m4JRN+rEJ16MBIZXKvOVGBfCAS68A5w/owgLQB8ndbPcl09XfP0rL4UCulFMr5bc1JhwCcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2YtjWtCm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743545878; c=relaxed/simple;
+	bh=Wb9A5z56udBXZFvPtORnRx5pVeXThKCnZDxOPX2rh3A=;
+	h=Date:To:From:Subject:Message-Id; b=bpwOK3gA/8DNZhWdMQ53o6alWmHuePd1NeeQ0TiF1DoSJwZPu2IV+wN/7tcV0Fdy+SuOfq/pLRrJafntrWAfGc74riGGwQf8pBkA7Ti/zkeeotGX7sh5qvL7J4cxFaSIzi9Hi+nMYKBiesLx1bqTUOWtQapjV5yXySSbNoZ8yd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wH7jGFF4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2YtjWtCm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 772C8C4CEE4;
-	Tue,  1 Apr 2025 22:17:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wH7jGFF4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F27C4CEE4;
+	Tue,  1 Apr 2025 22:17:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743545875;
-	bh=etgc4E4TDDnd0jdjjx5bTlq1gPGed4M1gRiBASQqnng=;
+	s=korg; t=1743545877;
+	bh=Wb9A5z56udBXZFvPtORnRx5pVeXThKCnZDxOPX2rh3A=;
 	h=Date:To:From:Subject:From;
-	b=2YtjWtCmD5RMeEXFzZvJf5JhsXlDTdX6mHv80dzJWAXHTUpsw6f3oMOSMoBp5m/lu
-	 JtrfDLWQcGlmf/mIBrrQG5I9y6o19QAzR4/Mtda9yjdkIgWuq3hCmtYDbhvxI61rAF
-	 eGvDk3FwzBCX5Ae1CkB3tRojoi585XeXUg318JUI=
-Date: Tue, 01 Apr 2025 15:17:54 -0700
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,anshuman.khandual@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=wH7jGFF4quHxc82tCVbJMtbP5utfheuJGxSQ+bnE4Equvb368+FeVES5aHZk88avf
+	 x2SqhxENTCqZNuzjqbKZT3EdrUNGcu+W7HQJimxMRbqp+hEekpKq52FprGqsOtNf5r
+	 k2uQtwPVVcsoqaF8bZ9RFvwu8ntl1qxU6UBlKLFA=
+Date: Tue, 01 Apr 2025 15:17:56 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-replace-flag-check-with-pagehwpoison-in-check_new_page_bad.patch removed from -mm tree
-Message-Id: <20250401221755.772C8C4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-myself-as-userfaultfd-reviewer.patch removed from -mm tree
+Message-Id: <20250401221757.61F27C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: replace flag check with PageHWPoison() in check_new_page_bad()
+     Subject: MAINTAINERS: add peterx as userfaultfd reviewer
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-replace-flag-check-with-pagehwpoison-in-check_new_page_bad.patch
+     maintainers-add-myself-as-userfaultfd-reviewer.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/page_alloc: replace flag check with PageHWPoison() in check_new_page_bad()
-Date: Thu, 20 Mar 2025 14:33:46 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: MAINTAINERS: add peterx as userfaultfd reviewer
+Date: Fri, 21 Mar 2025 20:21:24 -0400
 
-This patch replaces the direct check for the __PG_HWPOISON flag with the
-PageHWPoison() macro, improving code readability and maintaining
-consistency with other parts of the memory management code.
+Add an entry for userfaultfd and make myself a reviewer of it, just in
+case it helps people manage the cc list.
 
-Link: https://lkml.kernel.org/r/20250320063346.489030-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+I named it MEMORY USERFAULTFD, could be a bad name, but then it can be
+together with the MEMORY* entries when everything is in alphabetic order,
+which is definitely a benefit.
+
+The line may not change much on how I'd work with userfaultfd; I think
+I'll do the same as before..  But maybe it still, more or less, adds some
+responsibility on top, indeed.
+
+[akpm@linux-foundation.org: add include/linux/userfaultfd_k.h, per Mike]
+[akpm@linux-foundation.org: fix misordering]
+Link: https://lkml.kernel.org/r/20250322002124.131736-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-replace-flag-check-with-pagehwpoison-in-check_new_page_bad
-+++ a/mm/page_alloc.c
-@@ -1593,7 +1593,7 @@ static __always_inline void page_del_and
+--- a/MAINTAINERS~maintainers-add-myself-as-userfaultfd-reviewer
++++ a/MAINTAINERS
+@@ -15517,6 +15517,18 @@ F:	mm/vma.h
+ F:	mm/vma_internal.h
+ F:	tools/testing/vma/
  
- static void check_new_page_bad(struct page *page)
- {
--	if (unlikely(page->flags & __PG_HWPOISON)) {
-+	if (unlikely(PageHWPoison(page))) {
- 		/* Don't complain about hwpoisoned pages */
- 		if (PageBuddy(page))
- 			__ClearPageBuddy(page);
++MEMORY USERFAULTFD
++M:	Andrew Morton <akpm@linux-foundation.org>
++R:	Peter Xu <peterx@redhat.com>
++S:	Maintained
++F:	Documentation/admin-guide/mm/userfaultfd.rst
++F:	fs/userfaultfd.c
++F:	include/asm-generic/pgtable_uffd.h
++F:	include/linux/userfaultfd_k.h
++F:	include/uapi/linux/userfaultfd.h
++F:	mm/userfaultfd.c
++F:	tools/testing/selftests/mm/uffd-*.[ch]
++
+ MEMORY TECHNOLOGY DEVICES (MTD)
+ M:	Miquel Raynal <miquel.raynal@bootlin.com>
+ M:	Richard Weinberger <richard@nod.at>
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
