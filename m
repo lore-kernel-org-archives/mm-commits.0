@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBF791D79B8
-	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:21:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82BED1D79B8;
+	Tue,  1 Apr 2025 22:21:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743546076; cv=none; b=dSJrYS4886IQd7AuErxZTOdSlWg1Gk5ESFUwjdemXB3IO2QOb3vTFrAWPsPYjYZQB+LpcLCLD8H1LJ0C/mPStAvRqEGoX1UIEUfenoMz7RNUldPU4jqkwICM3OKhhjhPbUbmINi3wbuHNO58fG8zNnLiUj9ZVWHENoeFIh53KN0=
+	t=1743546078; cv=none; b=RdLZreWqg+WbnCOZeeMyMJIEjUHitIP+QIzyjCh4KdnH9SDLRxJrbhJcQEa+Tf9aL2AiIiOiFNV9qWv56uSS6y9J5HMe/o+8ZT93Dcm0A8dtukEI2xbC4YhEzgb81ev7XvqOOWvzliuMPq7Ks+5wehcASsuNR0LY56TNa2hSI1w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743546076; c=relaxed/simple;
-	bh=+MVYGGCf5EAjamV8int/apew6T6YaHVm13BVdOnv1qk=;
-	h=Date:To:From:Subject:Message-Id; b=Pr+jCDMDhoIdn1fgmi3LzBGHTPieEI8pMa4ziP/+B2RaKmSFGzApw+M8IjExjURXORPYnO9aDgd3ADNTkMHCf32q7ZchrHyV/ZTsXMW4eOaOWKmAp0Lux21OpvSlXouU+EfnBWFNzC0GQq/J1nFuaNKthX7F51Jq30qOMQpcFKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=scK2yYut; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743546078; c=relaxed/simple;
+	bh=78ddjpxOz+Akg7Ngn0H50V79Nh4PJysWjECs4tKZfng=;
+	h=Date:To:From:Subject:Message-Id; b=jyP4TJmmIpc3ULbmHPha7S007ive81+FT7rCQnfUaTdz9z+hixxYl8hI+btb2iDJP83Vqw1XlVxqWZ2AlJT3ulDBS4hV1TFhxCHix6h6lzoHssak1GdT6GmXMf0TLj8FUcitBGI7dCOtwPoYxDNK8UVgKP7hpc6AwMthwyDPko8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fmffdPhk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="scK2yYut"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4864C4CEE4;
-	Tue,  1 Apr 2025 22:21:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fmffdPhk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A624C4CEE4;
+	Tue,  1 Apr 2025 22:21:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743546075;
-	bh=+MVYGGCf5EAjamV8int/apew6T6YaHVm13BVdOnv1qk=;
+	s=korg; t=1743546078;
+	bh=78ddjpxOz+Akg7Ngn0H50V79Nh4PJysWjECs4tKZfng=;
 	h=Date:To:From:Subject:From;
-	b=scK2yYutHyo27P3cUi4mlnsV9IEK2i1o4rB9aAHxOGyI5GDURuZ3NMqkcn/bKyvLw
-	 A/EJKIPCC3UNmpv5FOboTE0TuB0sTPUdxplAjim/oCT9XflQbGgdLqoJopaEW6Kexc
-	 lwF0D5qUP53EZWKQZuV2aneIci3jfPABH2JWWL/U=
-Date: Tue, 01 Apr 2025 15:21:15 -0700
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,sfr@canb.auug.org.au,kent.overstreet@linux.dev,akpm@linux-foundation.org
+	b=fmffdPhka7JqNhsIEyyDnd8nBv+jhq8D/2ciOyixdS7IC/N94A8m3ycR7MYnD7jWr
+	 bfS+j5aSgSbzIbTPZRN0f6xX1VWArHQrUUS5aCGEy6CCZRuCxo/DyuaWVFmHaofiPV
+	 Xb+3LacbbyxTamR/Zi7/OKHFq/hiRP0KxkHgudAo=
+Date: Tue, 01 Apr 2025 15:21:17 -0700
+To: mm-commits@vger.kernel.org,vigneshr@ti.com,stable@vger.kernel.org,robert.jarzmik@free.fr,praneeth@ti.com,kamlesh@ti.com,axboe@kernel.dk,t-pratham@ti.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-sortc-add-_nonatomic-variants-with-cond_resched.patch removed from -mm tree
-Message-Id: <20250401222115.B4864C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-scatterlist-fix-sg_split_phys-to-preserve-original-scatterlist-offsets.patch removed from -mm tree
+Message-Id: <20250401222118.5A624C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,198 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/sort.c: add _nonatomic() variants with cond_resched()
+     Subject: lib: scatterlist: fix sg_split_phys to preserve original scatterlist offsets
 has been removed from the -mm tree.  Its filename was
-     lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
+     lib-scatterlist-fix-sg_split_phys-to-preserve-original-scatterlist-offsets.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@linux.dev>
-Subject: lib/sort.c: add _nonatomic() variants with cond_resched()
-Date: Wed, 26 Mar 2025 11:26:06 -0400
+From: T Pratham <t-pratham@ti.com>
+Subject: lib: scatterlist: fix sg_split_phys to preserve original scatterlist offsets
+Date: Wed, 19 Mar 2025 16:44:38 +0530
 
-bcachefs calls sort() during recovery to sort all keys it found in the
-journal, and this may be very large - gigabytes on large machines.
+The split_sg_phys function was incorrectly setting the offsets of all
+scatterlist entries (except the first) to 0.  Only the first scatterlist
+entry's offset and length needs to be modified to account for the skip. 
+Setting the rest entries' offsets to 0 could lead to incorrect data
+access.
 
-This has been causing "task blocked" warnings, so needs a
-cond_resched().
+I am using this function in a crypto driver that I'm currently developing
+(not yet sent to mailing list).  During testing, it was observed that the
+output scatterlists (except the first one) contained incorrect garbage
+data.
 
-[kent.overstreet@linux.dev: fix kerneldoc]
-  Link: https://lkml.kernel.org/r/cgsr5a447pxqomc4gvznsp5yroqmif4omd7o5lsr2swifjhoic@yzjjrx2bvrq7
-Link: https://lkml.kernel.org/r/20250326152606.2594920-1-kent.overstreet@linux.dev
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+I narrowed this issue down to the call of sg_split().  Upon debugging
+inside this function, I found that this resetting of offset is the cause
+of the problem, causing the subsequent scatterlists to point to incorrect
+memory locations in a page.  By removing this code, I am obtaining
+expected data in all the split output scatterlists.  Thus, this was indeed
+causing observable runtime effects!
+
+This patch removes the offending code, ensuring that the page offsets in
+the input scatterlist are preserved in the output scatterlist.
+
+Link: https://lkml.kernel.org/r/20250319111437.1969903-1-t-pratham@ti.com
+Fixes: f8bcbe62acd0 ("lib: scatterlist: add sg splitting function")
+Signed-off-by: T Pratham <t-pratham@ti.com>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kamlesh Gurudasani <kamlesh@ti.com>
+Cc: Praneeth Bajjuri <praneeth@ti.com>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sort.h |   11 ++++
- lib/sort.c           |  110 +++++++++++++++++++++++++++++------------
- 2 files changed, 90 insertions(+), 31 deletions(-)
+ lib/sg_split.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/sort.h~lib-sortc-add-_nonatomic-variants-with-cond_resched
-+++ a/include/linux/sort.h
-@@ -13,4 +13,15 @@ void sort(void *base, size_t num, size_t
- 	  cmp_func_t cmp_func,
- 	  swap_func_t swap_func);
- 
-+/* Versions that periodically call cond_resched(): */
-+
-+void sort_r_nonatomic(void *base, size_t num, size_t size,
-+		      cmp_r_func_t cmp_func,
-+		      swap_r_func_t swap_func,
-+		      const void *priv);
-+
-+void sort_nonatomic(void *base, size_t num, size_t size,
-+		    cmp_func_t cmp_func,
-+		    swap_func_t swap_func);
-+
- #endif
---- a/lib/sort.c~lib-sortc-add-_nonatomic-variants-with-cond_resched
-+++ a/lib/sort.c
-@@ -186,36 +186,13 @@ static size_t parent(size_t i, unsigned
- 	return i / 2;
- }
- 
--/**
-- * sort_r - sort an array of elements
-- * @base: pointer to data to sort
-- * @num: number of elements
-- * @size: size of each element
-- * @cmp_func: pointer to comparison function
-- * @swap_func: pointer to swap function or NULL
-- * @priv: third argument passed to comparison function
-- *
-- * This function does a heapsort on the given array.  You may provide
-- * a swap_func function if you need to do something more than a memory
-- * copy (e.g. fix up pointers or auxiliary data), but the built-in swap
-- * avoids a slow retpoline and so is significantly faster.
-- *
-- * The comparison function must adhere to specific mathematical
-- * properties to ensure correct and stable sorting:
-- * - Antisymmetry: cmp_func(a, b) must return the opposite sign of
-- * cmp_func(b, a).
-- * - Transitivity: if cmp_func(a, b) <= 0 and cmp_func(b, c) <= 0, then
-- * cmp_func(a, c) <= 0.
-- *
-- * Sorting time is O(n log n) both on average and worst-case. While
-- * quicksort is slightly faster on average, it suffers from exploitable
-- * O(n*n) worst-case behavior and extra memory requirements that make
-- * it less suitable for kernel use.
-- */
--void sort_r(void *base, size_t num, size_t size,
--	    cmp_r_func_t cmp_func,
--	    swap_r_func_t swap_func,
--	    const void *priv)
-+#include <linux/sched.h>
-+
-+static void __sort_r(void *base, size_t num, size_t size,
-+		     cmp_r_func_t cmp_func,
-+		     swap_r_func_t swap_func,
-+		     const void *priv,
-+		     bool may_schedule)
- {
- 	/* pre-scale counters for performance */
- 	size_t n = num * size, a = (num/2) * size;
-@@ -286,6 +263,9 @@ void sort_r(void *base, size_t num, size
- 			b = parent(b, lsbit, size);
- 			do_swap(base + b, base + c, size, swap_func, priv);
- 		}
-+
-+		if (may_schedule)
-+			cond_resched();
- 	}
- 
- 	n -= size;
-@@ -293,8 +273,63 @@ void sort_r(void *base, size_t num, size
- 	if (n == size * 2 && do_cmp(base, base + size, cmp_func, priv) > 0)
- 		do_swap(base, base + size, size, swap_func, priv);
- }
-+
-+/**
-+ * sort_r - sort an array of elements
-+ * @base: pointer to data to sort
-+ * @num: number of elements
-+ * @size: size of each element
-+ * @cmp_func: pointer to comparison function
-+ * @swap_func: pointer to swap function or NULL
-+ * @priv: third argument passed to comparison function
-+ *
-+ * This function does a heapsort on the given array.  You may provide
-+ * a swap_func function if you need to do something more than a memory
-+ * copy (e.g. fix up pointers or auxiliary data), but the built-in swap
-+ * avoids a slow retpoline and so is significantly faster.
-+ *
-+ * The comparison function must adhere to specific mathematical
-+ * properties to ensure correct and stable sorting:
-+ * - Antisymmetry: cmp_func(a, b) must return the opposite sign of
-+ * cmp_func(b, a).
-+ * - Transitivity: if cmp_func(a, b) <= 0 and cmp_func(b, c) <= 0, then
-+ * cmp_func(a, c) <= 0.
-+ *
-+ * Sorting time is O(n log n) both on average and worst-case. While
-+ * quicksort is slightly faster on average, it suffers from exploitable
-+ * O(n*n) worst-case behavior and extra memory requirements that make
-+ * it less suitable for kernel use.
-+ */
-+void sort_r(void *base, size_t num, size_t size,
-+	    cmp_r_func_t cmp_func,
-+	    swap_r_func_t swap_func,
-+	    const void *priv)
-+{
-+	__sort_r(base, num, size, cmp_func, swap_func, priv, false);
-+}
- EXPORT_SYMBOL(sort_r);
- 
-+/**
-+ * sort_r_nonatomic - sort an array of elements, with cond_resched
-+ * @base: pointer to data to sort
-+ * @num: number of elements
-+ * @size: size of each element
-+ * @cmp_func: pointer to comparison function
-+ * @swap_func: pointer to swap function or NULL
-+ * @priv: third argument passed to comparison function
-+ *
-+ * Same as sort_r, but preferred for larger arrays as it does a periodic
-+ * cond_resched().
-+ */
-+void sort_r_nonatomic(void *base, size_t num, size_t size,
-+		      cmp_r_func_t cmp_func,
-+		      swap_r_func_t swap_func,
-+		      const void *priv)
-+{
-+	__sort_r(base, num, size, cmp_func, swap_func, priv, true);
-+}
-+EXPORT_SYMBOL(sort_r_nonatomic);
-+
- void sort(void *base, size_t num, size_t size,
- 	  cmp_func_t cmp_func,
- 	  swap_func_t swap_func)
-@@ -304,6 +339,19 @@ void sort(void *base, size_t num, size_t
- 		.swap = swap_func,
- 	};
- 
--	return sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w);
-+	return __sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w, false);
- }
- EXPORT_SYMBOL(sort);
-+
-+void sort_nonatomic(void *base, size_t num, size_t size,
-+		    cmp_func_t cmp_func,
-+		    swap_func_t swap_func)
-+{
-+	struct wrapper w = {
-+		.cmp  = cmp_func,
-+		.swap = swap_func,
-+	};
-+
-+	return __sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w, true);
-+}
-+EXPORT_SYMBOL(sort_nonatomic);
+--- a/lib/sg_split.c~lib-scatterlist-fix-sg_split_phys-to-preserve-original-scatterlist-offsets
++++ a/lib/sg_split.c
+@@ -88,8 +88,6 @@ static void sg_split_phys(struct sg_spli
+ 			if (!j) {
+ 				out_sg->offset += split->skip_sg0;
+ 				out_sg->length -= split->skip_sg0;
+-			} else {
+-				out_sg->offset = 0;
+ 			}
+ 			sg_dma_address(out_sg) = 0;
+ 			sg_dma_len(out_sg) = 0;
 _
 
-Patches currently in -mm which might be from kent.overstreet@linux.dev are
+Patches currently in -mm which might be from t-pratham@ti.com are
 
 
