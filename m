@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70DD4DDBC
-	for <mm-commits@vger.kernel.org>; Mon, 31 Mar 2025 21:38:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8854980B
+	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 05:45:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743457099; cv=none; b=uov64RgnI31vDK0+uYDhFRpWFJFKFstpph5yQMRnqETemz3eJnFRs3MVPdDdR5EzcpEAVjykiUZ02H92v1Dtz1jXMANmi2wIYMPogZtk5XzDB+ZE37Pa4AtcmwHyfoIgoT6zof6jvL1qQmDlmwNwceMi9FRWh5gnofdps3WH29Q=
+	t=1743486346; cv=none; b=oBfqHqpZJxc4hlfv4JnTu5bAkWMT8OW5CeD0Bwyf8vILezay5L2Rv2V3Q3xjJfXEnyP8Bkch/vntymfhtx03OYELOEniZxVMFUlTW36E6KrNnN2L6n+gEv8+4Z2Ju3J/Mtt2qED0zABla4y4LV8sModNT31l4ilg2yUKmhM6gDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743457099; c=relaxed/simple;
-	bh=C2QMAU8vdDuI8z90Cjl7b+M2VmygNivnV9glczIkJ/8=;
-	h=Date:To:From:Subject:Message-Id; b=BHwAOIjAIfn0NmKizM2+Gx5qlBEIPbmwAHj9CY8+JszpMA7IvWsvEZ/xMRoP5WOEtaxNpNtg8vNAnGu48NxYvHepPuTOWpve78f9mw92OaDwxEgD6k0aijdj3iOUh+X4p8cGIuCHjJC8Hs5j3J4vmUU9sYZcxrTUGf6I7mbnW0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DIqEWxGB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743486346; c=relaxed/simple;
+	bh=JVjv5L1E+92QnneyWpkf/Wf4nfpPhGL2URO0k9yztM0=;
+	h=Date:To:From:Subject:Message-Id; b=AGiWbKxsEJVu0T9gT2sxRgA+JJrQUqv6CqYpUYk+mIYbGeJeb/UMFKxOLmNMEahz3eImWNuHlFhdycrrgSWLdqjtm5wEwVRz0cDnwe0E2OyFwqhZWa7aIQCev0IFyzOY8qACOA+gZzOFxanWhbL4SnBpLBGhru5Sr2DjbdT5rKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=scjoPXN7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DIqEWxGB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFA1C4CEE3;
-	Mon, 31 Mar 2025 21:38:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="scjoPXN7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4BA5C4CEE8;
+	Tue,  1 Apr 2025 05:45:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743457099;
-	bh=C2QMAU8vdDuI8z90Cjl7b+M2VmygNivnV9glczIkJ/8=;
+	s=korg; t=1743486345;
+	bh=JVjv5L1E+92QnneyWpkf/Wf4nfpPhGL2URO0k9yztM0=;
 	h=Date:To:From:Subject:From;
-	b=DIqEWxGBsz0CC0HFwy/H3ZKUBv6r571BxkPxcEv/lXN6ZS9t5cREPLJptYl0gqjni
-	 Q7uj0y69GAI7Uk6UAOPe1xKXuHG0WX1ETqVq52YCisQ83mHJB29YrBh3nJdhppiyBu
-	 CuUmPVx3NifBMtLXQcO6HFoKjbeZgvk2SApHGV+I=
-Date: Mon, 31 Mar 2025 14:38:18 -0700
-To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,x86@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=scjoPXN7VjOdrprzy2GtAHRD7q5SQiyPWWsmUm2oXtvaMoARGD+6Lt1ibuF1V/zEJ
+	 J5f4OsDOfVH0VwLU0fsMKhqUY4COiGH8162YgLO6+Y7ZkZHzwJCw/5KUf9o4JTYtgE
+	 b/hgr68GjHhHfZWBIkhylEq3WVThph3OJCqUstH4=
+Date: Mon, 31 Mar 2025 22:45:45 -0700
+To: mm-commits@vger.kernel.org,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-remove-unneeded-pgd_devmap.patch added to mm-new branch
-Message-Id: <20250331213819.3CFA1C4CEE3@smtp.kernel.org>
+Subject: + mm-page_alloc-fix-defrag_modes-retry-oom-path.patch added to mm-unstable branch
+Message-Id: <20250401054545.D4BA5C4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pgtable: remove unneeded pgd_devmap()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-pgtable-remove-unneeded-pgd_devmap.patch
+     Subject: mm: page_alloc: fix defrag_mode's retry & OOM path
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-fix-defrag_modes-retry-oom-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-remove-unneeded-pgd_devmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-defrag_modes-retry-oom-path.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,116 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/pgtable: remove unneeded pgd_devmap()
-Date: Mon, 31 Mar 2025 16:13:27 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: fix defrag_mode's retry & OOM path
+Date: Sat, 22 Mar 2025 19:21:45 -0400
 
-There's no user of pgd_devmap() now, remove it from all ARCH-es
-and linux/pgtable.h.
+Brendan points out that defrag_mode doesn't properly clear
+ALLOC_NOFRAGMENT on its last-ditch attempt to allocate.  But looking
+closer, the problem is actually more severe: it doesn't actually *check*
+whether it's already retried, and keeps looping.  This means the OOM path
+is never taken, and the thread can loop indefinitely.
 
-Link: https://lkml.kernel.org/r/20250331081327.256412-8-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: <x86@kernel.org>
-Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
+This is verified with an intentional OOM test on defrag_mode=1, which
+results in the machine hanging.  After this patch, it triggers the OOM
+kill reliably and recovers.
+
+Clear ALLOC_NOFRAGMENT properly, and only retry once.
+
+Link: https://lkml.kernel.org/r/20250401041231.GA2117727@cmpxchg.org
+Fixes: e3aa7df331bc ("mm: page_alloc: defrag_mode")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Brendan Jackman <jackmanb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h             |    5 -----
- arch/loongarch/include/asm/pgtable.h         |    1 -
- arch/powerpc/include/asm/book3s/64/pgtable.h |    5 -----
- arch/riscv/include/asm/pgtable-64.h          |    5 -----
- arch/x86/include/asm/pgtable.h               |    5 -----
- include/linux/pgtable.h                      |    4 ----
- 6 files changed, 25 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-pgtable-remove-unneeded-pgd_devmap
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1200,11 +1200,6 @@ static inline int pud_devmap(pud_t pud)
- {
- 	return 0;
- }
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
- #endif
+--- a/mm/page_alloc.c~mm-page_alloc-fix-defrag_modes-retry-oom-path
++++ a/mm/page_alloc.c
+@@ -4543,8 +4543,8 @@ retry:
+ 		goto retry;
  
- #ifdef CONFIG_PAGE_TABLE_CHECK
---- a/arch/loongarch/include/asm/pgtable.h~mm-pgtable-remove-unneeded-pgd_devmap
-+++ a/arch/loongarch/include/asm/pgtable.h
-@@ -615,7 +615,6 @@ static inline long pmd_protnone(pmd_t pm
+ 	/* Reclaim/compaction failed to prevent the fallback */
+-	if (defrag_mode) {
+-		alloc_flags &= ALLOC_NOFRAGMENT;
++	if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT)) {
++		alloc_flags &= ~ALLOC_NOFRAGMENT;
+ 		goto retry;
+ 	}
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define pud_devmap(pud)		(0)
--#define pgd_devmap(pgd)		(0)
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- /*
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-pgtable-remove-unneeded-pgd_devmap
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1405,11 +1405,6 @@ static inline int pud_devmap(pud_t pud)
- {
- 	return pte_devmap(pud_pte(pud));
- }
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #define __HAVE_ARCH_PTEP_MODIFY_PROT_TRANSACTION
---- a/arch/riscv/include/asm/pgtable-64.h~mm-pgtable-remove-unneeded-pgd_devmap
-+++ a/arch/riscv/include/asm/pgtable-64.h
-@@ -411,11 +411,6 @@ static inline int pud_devmap(pud_t pud)
- {
- 	return 0;
- }
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
- #endif
- 
- #endif /* _ASM_RISCV_PGTABLE_64_H */
---- a/arch/x86/include/asm/pgtable.h~mm-pgtable-remove-unneeded-pgd_devmap
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -361,11 +361,6 @@ static inline pud_t pud_mkspecial(pud_t
- 	return pud_set_flags(pud, _PAGE_SPECIAL);
- }
- #endif	/* CONFIG_ARCH_SUPPORTS_PUD_PFNMAP */
--
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
- #endif
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
---- a/include/linux/pgtable.h~mm-pgtable-remove-unneeded-pgd_devmap
-+++ a/include/linux/pgtable.h
-@@ -1617,10 +1617,6 @@ static inline int pud_devmap(pud_t pud)
- {
- 	return 0;
- }
--static inline int pgd_devmap(pgd_t pgd)
--{
--	return 0;
--}
- #endif
- 
- #if !defined(CONFIG_TRANSPARENT_HUGEPAGE) || \
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
-mm-gup-check-if-both-gup_get-and-gup_pin-are-set-in-__get_user_pages-earlier.patch
-mm-gup-fix-the-outdated-code-comments-above-get_user_pages_unlocked.patch
-mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
-x86-mm-remove-pgd_leaf-definition-in-arch.patch
-x86-mm-remove-p4d_leaf-definition.patch
-mm-pgtable-remove-unneeded-pgd_devmap.patch
+mm-page_alloc-fix-defrag_modes-retry-oom-path.patch
 
