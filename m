@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A3D321D585
-	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38E66211466
+	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:18:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743545904; cv=none; b=dfq/j/O7pxREvoQTm6Awkpjr8GHvNh/Uz+ippDNX0SJkfhJrQlgwE39YQVoHgu09T92gc34S+1QHYV3nauDWtoVXhXAlk2ZvZsXDJpx5yRf8IKCV+RmhGNFpBqxOisYDRQ9ZgDjq+t6n+8rSFtrlV3jYD2q8xliB9Oy7s9m28nM=
+	t=1743545906; cv=none; b=EJkidTqzqmlOBL63EDYW88Zne3jlgWRWwgEYDVPOttNATT9PxnRIvfymODQTe8X5Zt5Ldxg3nUsqxUkwFSwcpF8937b1vID2CO7F0Xw1Iq8LQWcmgAD6StmzMgGALPJK8xZGHS5xHHH3QcSRtCJVIxlphsF2bPG8VI+52qEE8H4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743545904; c=relaxed/simple;
-	bh=ijriksgm0gE82IY3tjOyW9TUwVPb67qNDdmfj08AeZI=;
-	h=Date:To:From:Subject:Message-Id; b=QzKy5ZXPSiTTwjHZrfNzp+pT/WcRMbvu0BX+AbGrROsrD4Rg7BVhNIabmm4h4JxTAZHTfZoEjHWFBq5kUx5+49T7OVvOEEpnikHx11tqbuLUy/6WkOtuFmJrdmJUDp0Ugod2E65VqDPgS5i1LoxaJ0thiw7sOxRqHhh62dtg1Kc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b6zp0+hs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743545906; c=relaxed/simple;
+	bh=lTY+os6KYvTfzAVwMWMkl3/z+enANwJ3T8xXhVM/LyM=;
+	h=Date:To:From:Subject:Message-Id; b=h58s+fFpbtCu/2q++DoauDoiH4kib9NTmlaWjj+0RD6G4T4L5RZFQdh5GT58AZFf1G7fc9TZSbsgtRXIv4zeRypo7nC3wBpfWl9iZwvy7hZ1ZWxKTIdKoCjcQ0u163IaWb073+vf/3pu+FS6+9SIRslkC7A3cvSwQJECKiEA/1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YpP9JILI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b6zp0+hs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ABCDC4CEE4;
-	Tue,  1 Apr 2025 22:18:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YpP9JILI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0608C4CEE4;
+	Tue,  1 Apr 2025 22:18:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743545903;
-	bh=ijriksgm0gE82IY3tjOyW9TUwVPb67qNDdmfj08AeZI=;
+	s=korg; t=1743545905;
+	bh=lTY+os6KYvTfzAVwMWMkl3/z+enANwJ3T8xXhVM/LyM=;
 	h=Date:To:From:Subject:From;
-	b=b6zp0+hsbq98MiHm2ymPmAkJFMAY75IcXj/N5RbWmmu7woVoKy3RKn3k6VuJK2+Xl
-	 Kn+oqeGjXH5lqfUEZW7oNmKXcd2Nh9/7t82L1GBIPMG5YBMNwIIwHna+cTPcYkHkWf
-	 B3HdJg/xdzeC2+TSIFQ5D9Rx8lN9yP7OZHZ0SKck=
-Date: Tue, 01 Apr 2025 15:18:23 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,will@kernel.org,vishal.moola@gmail.com,rppt@kernel.org,riel@surriel.com,peterz@infradead.org,npiggin@gmail.com,muchun.song@linux.dev,kevin.brodsky@arm.com,jannh@google.com,hughd@google.com,david@redhat.com,dave.hansen@linux.intel.com,arnd@arndb.de,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=YpP9JILIf0+KNzzojN/0pCpv+QiqNKMTV/qZG0K6Xsg0tQ7UaVVdE73Gx6quLHl61
+	 e5O+f2U/GAIJyD17lQwbmm5KXr568g8f913SDNg5JHs0Qb/gMVmn/tH748ensvFDXT
+	 +Vr+TUET/XxOVdkhdpbYFIxftJSFKhUo7eW0vkQ0=
+Date: Tue, 01 Apr 2025 15:18:25 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,thomas.weissschuh@linutronix.de,sroettger@google.com,rientjes@google.com,rdunlap@infradead.org,peterx@redhat.com,pedro.falcato@gmail.com,oleg@redhat.com,ojeda@kernel.org,mpe@ellerman.id.au,mingo@kernel.org,mike.rapoport@gmail.com,mhocko@suse.com,mark.rutland@arm.com,lorenzo.stoakes@oracle.com,linus.walleij@linaro.org,Liam.Howlett@oracle.com,kees@kernel.org,jorgelo@chromium.org,johannes@sipsolutions.net,jason@zx2c4.com,jannh@google.com,hch@lst.de,hca@linux.ibm.com,groeck@chromium.org,gerg@kernel.org,f.fainelli@gmail.com,enh@google.com,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,benjamin@sipsolutions.net,avagin@gmail.com,ardb@kernel.org,anna-maria@linutronix.de,aleksandr.mikhalitsyn@canonical.com,adobriyan@gmail.com,adhemerval.zanella@linaro.org,42.hyeyoo@gmail.com,jeffxu@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pgtable-remove-tlb_remove_page_ptdesc.patch removed from -mm tree
-Message-Id: <20250401221823.9ABCDC4CEE4@smtp.kernel.org>
+Subject: [merged mm-stable] mseal-sysmap-kernel-config-and-header-change.patch removed from -mm tree
+Message-Id: <20250401221825.A0608C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,267 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: pgtable: remove tlb_remove_page_ptdesc()
+     Subject: mseal sysmap: kernel config and header change
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-remove-tlb_remove_page_ptdesc.patch
+     mseal-sysmap-kernel-config-and-header-change.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: remove tlb_remove_page_ptdesc()
-Date: Tue, 25 Feb 2025 11:45:56 +0800
+From: Jeff Xu <jeffxu@chromium.org>
+Subject: mseal sysmap: kernel config and header change
+Date: Wed, 5 Mar 2025 02:17:05 +0000
 
-The tlb_remove_ptdesc()/tlb_remove_table() is specially designed for page
-table pages, and now all architectures have been converted to use it to
-remove page table pages.  So let's remove tlb_remove_page_ptdesc(), it
-currently has no users and should not be used for page table pages.
+Patch series "mseal system mappings", v9.
 
-Link: https://lkml.kernel.org/r/3df04c8494339073b71be4acb2d92e108ecd1b60.1740454179.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+As discussed during mseal() upstream process [1], mseal() protects the
+VMAs of a given virtual memory range against modifications, such as the
+read/write (RW) and no-execute (NX) bits.  For complete descriptions of
+memory sealing, please see mseal.rst [2].
+
+The mseal() is useful to mitigate memory corruption issues where a
+corrupted pointer is passed to a memory management system.  For example,
+such an attacker primitive can break control-flow integrity guarantees
+since read-only memory that is supposed to be trusted can become writable
+or .text pages can get remapped.
+
+The system mappings are readonly only, memory sealing can protect them
+from ever changing to writable or unmmap/remapped as different attributes.
+
+System mappings such as vdso, vvar, vvar_vclock, vectors (arm
+compat-mode), sigpage (arm compat-mode), are created by the kernel during
+program initialization, and could be sealed after creation.
+
+Unlike the aforementioned mappings, the uprobe mapping is not established
+during program startup.  However, its lifetime is the same as the
+process's lifetime [3].  It could be sealed from creation.
+
+The vsyscall on x86-64 uses a special address (0xffffffffff600000), which
+is outside the mm managed range.  This means mprotect, munmap, and mremap
+won't work on the vsyscall.  Since sealing doesn't enhance the vsyscall's
+security, it is skipped in this patch.  If we ever seal the vsyscall, it
+is probably only for decorative purpose, i.e.  showing the 'sl' flag in
+the /proc/pid/smaps.  For this patch, it is ignored.
+
+It is important to note that the CHECKPOINT_RESTORE feature (CRIU) may
+alter the system mappings during restore operations.  UML(User Mode Linux)
+and gVisor, rr are also known to change the vdso/vvar mappings. 
+Consequently, this feature cannot be universally enabled across all
+systems.  As such, CONFIG_MSEAL_SYSTEM_MAPPINGS is disabled by default.
+
+To support mseal of system mappings, architectures must define
+CONFIG_ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS and update their special
+mappings calls to pass mseal flag.  Additionally, architectures must
+confirm they do not unmap/remap system mappings during the process
+lifetime.  The existence of this flag for an architecture implies that it
+does not require the remapping of thest system mappings during process
+lifetime, so sealing these mappings is safe from a kernel perspective.
+
+This version covers x86-64 and arm64 archiecture as minimum viable feature.
+
+While no specific CPU hardware features are required for enable this
+feature on an archiecture, memory sealing requires a 64-bit kernel.  Other
+architectures can choose whether or not to adopt this feature.  Currently,
+I'm not aware of any instances in the kernel code that actively
+munmap/mremap a system mapping without a request from userspace.  The PPC
+does call munmap when _install_special_mapping fails for vdso; however,
+it's uncertain if this will ever fail for PPC - this needs to be
+investigated by PPC in the future [4].  The UML kernel can add this
+support when KUnit tests require it [5].
+
+In this version, we've improved the handling of system mapping sealing
+from previous versions, instead of modifying the _install_special_mapping
+function itself, which would affect all architectures, we now call
+_install_special_mapping with a sealing flag only within the specific
+architecture that requires it.  This targeted approach offers two key
+advantages: 1) It limits the code change's impact to the necessary
+architectures, and 2) It aligns with the software architecture by keeping
+the core memory management within the mm layer, while delegating the
+decision of sealing system mappings to the individual architecture, which
+is particularly relevant since 32-bit architectures never require sealing.
+
+Prior to this patch series, we explored sealing special mappings from
+userspace using glibc's dynamic linker.  This approach revealed several
+issues:
+
+- The PT_LOAD header may report an incorrect length for vdso, (smaller
+  than its actual size).  The dynamic linker, which relies on PT_LOAD
+  information to determine mapping size, would then split and partially
+  seal the vdso mapping.  Since each architecture has its own vdso/vvar
+  code, fixing this in the kernel would require going through each
+  archiecture.  Our initial goal was to enable sealing readonly mappings,
+  e.g.  .text, across all architectures, sealing vdso from kernel since
+  creation appears to be simpler than sealing vdso at glibc.
+
+- The [vvar] mapping header only contains address information, not
+  length information.  Similar issues might exist for other special
+  mappings.
+
+- Mappings like uprobe are not covered by the dynamic linker, and there
+  is no effective solution for them.
+
+This feature's security enhancements will benefit ChromeOS, Android, and
+other high security systems.
+
+Testing:
+This feature was tested on ChromeOS and Android for both x86-64 and ARM64.
+- Enable sealing and verify vdso/vvar, sigpage, vector are sealed properly,
+  i.e. "sl" shown in the smaps for those mappings, and mremap is blocked.
+- Passing various automation tests (e.g. pre-checkin) on ChromeOS and
+  Android to ensure the sealing doesn't affect the functionality of
+  Chromebook and Android phone.
+
+I also tested the feature on Ubuntu on x86-64:
+- With config disabled, vdso/vvar is not sealed,
+- with config enabled, vdso/vvar is sealed, and booting up Ubuntu is OK,
+  normal operations such as browsing the web, open/edit doc are OK.
+
+Link: https://lore.kernel.org/all/20240415163527.626541-1-jeffxu@chromium.org/ [1]
+Link: Documentation/userspace-api/mseal.rst [2]
+Link: https://lore.kernel.org/all/CABi2SkU9BRUnqf70-nksuMCQ+yyiWjo3fM4XkRkL-NrCZxYAyg@mail.gmail.com/ [3]
+Link: https://lore.kernel.org/all/CABi2SkV6JJwJeviDLsq9N4ONvQ=EFANsiWkgiEOjyT9TQSt+HA@mail.gmail.com/ [4]
+Link: https://lore.kernel.org/all/202502251035.239B85A93@keescook/ [5]
+
+
+This patch (of 7):
+
+Provide infrastructure to mseal system mappings.  Establish two kernel
+configs (CONFIG_MSEAL_SYSTEM_MAPPINGS,
+ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS) and VM_SEALED_SYSMAP macro for future
+patches.
+
+Link: https://lkml.kernel.org/r/20250305021711.3867874-1-jeffxu@google.com
+Link: https://lkml.kernel.org/r/20250305021711.3867874-2-jeffxu@google.com
+Signed-off-by: Jeff Xu <jeffxu@chromium.org>
+Reviewed-by: Kees Cook <kees@kernel.org>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Cc: Alexander Mikhalitsyn <aleksandr.mikhalitsyn@canonical.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Benjamin Berg <benjamin@sipsolutions.net>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickens <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Elliot Hughes <enh@google.com>
+Cc: Florian Faineli <f.fainelli@gmail.com>
+Cc: Greg Ungerer <gerg@kernel.org>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jann Horn <jannh@google.com>
+Cc: Jason A. Donenfeld <jason@zx2c4.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Linus Waleij <linus.walleij@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <mike.rapoport@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Röttger <sroettger@google.com>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/mm.h |   10 ++++++++++
+ init/Kconfig       |   22 ++++++++++++++++++++++
+ security/Kconfig   |   21 +++++++++++++++++++++
+ 3 files changed, 53 insertions(+)
 
---- a/include/asm-generic/tlb.h~mm-pgtable-remove-tlb_remove_page_ptdesc
-+++ a/include/asm-generic/tlb.h
-@@ -498,12 +498,6 @@ static inline void tlb_remove_ptdesc(str
- 	tlb_remove_table(tlb, pt);
- }
+--- a/include/linux/mm.h~mseal-sysmap-kernel-config-and-header-change
++++ a/include/linux/mm.h
+@@ -4236,4 +4236,14 @@ int arch_get_shadow_stack_status(struct
+ int arch_set_shadow_stack_status(struct task_struct *t, unsigned long status);
+ int arch_lock_shadow_stack_status(struct task_struct *t, unsigned long status);
  
--/* Like tlb_remove_ptdesc, but for page-like page directories. */
--static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
--{
--	tlb_remove_page(tlb, ptdesc_page(pt));
--}
--
- static inline void tlb_change_page_size(struct mmu_gather *tlb,
- 						     unsigned int page_size)
- {
++
++/*
++ * mseal of userspace process's system mappings.
++ */
++#ifdef CONFIG_MSEAL_SYSTEM_MAPPINGS
++#define VM_SEALED_SYSMAP	VM_SEALED
++#else
++#define VM_SEALED_SYSMAP	VM_NONE
++#endif
++
+ #endif /* _LINUX_MM_H */
+--- a/init/Kconfig~mseal-sysmap-kernel-config-and-header-change
++++ a/init/Kconfig
+@@ -1888,6 +1888,28 @@ config ARCH_HAS_MEMBARRIER_CALLBACKS
+ config ARCH_HAS_MEMBARRIER_SYNC_CORE
+ 	bool
+ 
++config ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
++	bool
++	help
++	  Control MSEAL_SYSTEM_MAPPINGS access based on architecture.
++
++	  A 64-bit kernel is required for the memory sealing feature.
++	  No specific hardware features from the CPU are needed.
++
++	  To enable this feature, the architecture needs to update their
++	  special mappings calls to include the sealing flag and confirm
++	  that it doesn't unmap/remap system mappings during the life
++	  time of the process. The existence of this flag for an architecture
++	  implies that it does not require the remapping of the system
++	  mappings during process lifetime, so sealing these mappings is safe
++	  from a kernel perspective.
++
++	  After the architecture enables this, a distribution can set
++	  CONFIG_MSEAL_SYSTEM_MAPPING to manage access to the feature.
++
++	  For complete descriptions of memory sealing, please see
++	  Documentation/userspace-api/mseal.rst
++
+ config HAVE_PERF_EVENTS
+ 	bool
+ 	help
+--- a/security/Kconfig~mseal-sysmap-kernel-config-and-header-change
++++ a/security/Kconfig
+@@ -51,6 +51,27 @@ config PROC_MEM_NO_FORCE
+ 
+ endchoice
+ 
++config MSEAL_SYSTEM_MAPPINGS
++	bool "mseal system mappings"
++	depends on 64BIT
++	depends on ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
++	depends on !CHECKPOINT_RESTORE
++	help
++	  Apply mseal on system mappings.
++	  The system mappings includes vdso, vvar, vvar_vclock,
++	  vectors (arm compat-mode), sigpage (arm compat-mode), uprobes.
++
++	  A 64-bit kernel is required for the memory sealing feature.
++	  No specific hardware features from the CPU are needed.
++
++	  WARNING: This feature breaks programs which rely on relocating
++	  or unmapping system mappings. Known broken software at the time
++	  of writing includes CHECKPOINT_RESTORE, UML, gVisor, rr. Therefore
++	  this config can't be enabled universally.
++
++	  For complete descriptions of memory sealing, please see
++	  Documentation/userspace-api/mseal.rst
++
+ config SECURITY
+ 	bool "Enable different security models"
+ 	depends on SYSFS
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from jeffxu@chromium.org are
 
 
