@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0084215045
-	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:18:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A981B1D79B8
+	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743545924; cv=none; b=NNz7frKFQMhXOWLg8P3T7SmGNN1LcYyLWj4/SNb0Re/MXsHbWB6VEcNaiVamMQOBdSITpSg00TmoaIaIfxrtcjF4f1eWbZo9Z4Gj2H+QZcGszkVFsSP2EZ4N+nUubyri8WtUIu1j1b87Mq78Fqxi2y5n3K/cEevYiPF4Yc77C14=
+	t=1743546074; cv=none; b=WmFM4zLhQxPlkuF9EsV1kZa1mjwb49l7t+c9SKQShdS5qAURZivgC82wz+xlnSldd16lwVqLkvLPewqSMqcvrM78gmaijr5B2aRJ2jdsXYsHLT55zTFf5M1CDYuUOEYeL6fyMNvUMQk4K+srjQXuwM0KSj7Dbu2cXXlZZ4seyjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743545924; c=relaxed/simple;
-	bh=7c2LHtbOPM8HYTfMAppuw/zZ7845H1IoTE9Y5Nw/L6Q=;
-	h=Date:To:From:Subject:Message-Id; b=WE8kKY3yL4tHoi9DY3zCJ41GyRlrZWz7yAFyo++wnYVlzAGGhbsUbcXUBMZFsosebW3kG97VEPOPUfSp1Ot/eYbxcnl81/1myVGY22xy8DTxc2+PM1LhAlIctxMYZ75SSOPHm4GR/E/k5GC13/uGQ4gvp3KplNGrssM8Os7o/54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fVl0FCed; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743546074; c=relaxed/simple;
+	bh=0L3B9CIVEH4N8YSQ/x+6Me0cQkNYA+5FEWe1TO9f468=;
+	h=Date:To:From:Subject:Message-Id; b=pmq4zOItuYYq7T20/ILQUVnv//5S/uH+1GCkiBG3VHtcMzuhb6SgID+4wmHm91j1LAJXnAA2RgsHZcUnemqMHj5vO/+3XX/xpqIQMrDUdO+4G3/ZSvpKoMFigaPLPt5RwfWN8SlhI63FNqXmap2OiKP81HGp6LXTJUj0ZF8rhTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WglHT4c0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fVl0FCed"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BAA5C4CEE4;
-	Tue,  1 Apr 2025 22:18:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WglHT4c0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E317AC4CEE4;
+	Tue,  1 Apr 2025 22:21:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743545923;
-	bh=7c2LHtbOPM8HYTfMAppuw/zZ7845H1IoTE9Y5Nw/L6Q=;
+	s=korg; t=1743546074;
+	bh=0L3B9CIVEH4N8YSQ/x+6Me0cQkNYA+5FEWe1TO9f468=;
 	h=Date:To:From:Subject:From;
-	b=fVl0FCedT7cQsCTT7TGEjlbaoauOgZCAOuFr9NFUjNLifQVvnvKY2pWMKkt1GmK5T
-	 iL2iHPUpgWySBoGKjd6Tet7avEWrtIi13yJw8GjN+N71Qjo81NKKg2Cac2N2vOWxAl
-	 iQdGLDonEYfyn2hwbThutoOGFIQF5ZNnIDBCFExw=
-Date: Tue, 01 Apr 2025 15:18:42 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,thomas.weissschuh@linutronix.de,svens@linux.ibm.com,m-malladi@ti.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,hca@linux.ibm.com,guoweikang.kernel@gmail.com,gor@linux.ibm.com,geert@linux-m68k.org,edumazet@google.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,jeffxu@chromium.org,akpm@linux-foundation.org
+	b=WglHT4c08fJVjeaGka09+0YcWfVGb7KZ+5USuH9xnFTUTH1+o/BhPMbXAfz1wryyx
+	 5BHiDYW2qnCYlHi8YSBD3T/nNVKmRZdhjGfVoY+M/RoZhURA/bn4zFSMoASgjmmT3C
+	 wI9su6MQAFi8/dRHqPVRXNfLOz2FdoBZKKWKleds=
+Date: Tue, 01 Apr 2025 15:21:13 -0700
+To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mseal-sysmap-add-arch-support-txt.patch removed from -mm tree
-Message-Id: <20250401221843.4BAA5C4CEE4@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mailmap-add-an-entry-for-nicolas-schier.patch removed from -mm tree
+Message-Id: <20250401222113.E317AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mseal sysmap: add arch-support txt
+     Subject: mailmap: add an entry for Nicolas Schier
 has been removed from the -mm tree.  Its filename was
-     mseal-sysmap-add-arch-support-txt.patch
+     mailmap-add-an-entry-for-nicolas-schier.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jeff Xu <jeffxu@chromium.org>
-Subject: mseal sysmap: add arch-support txt
-Date: Fri, 21 Mar 2025 03:26:27 +0000
+From: Nicolas Schier <nicolas@fjasle.eu>
+Subject: mailmap: add an entry for Nicolas Schier
+Date: Wed, 26 Mar 2025 21:13:55 +0100
 
-Add Documentation/features/core/mseal_sys_mappings/arch-support.txt
+Add mapping to linux.dev address as mail usage at work is limited and my
+mail provider for private mails is suffering from its own domain name
+block lists.
 
-N/A: the arch is 32bits only and mseal is not supported in 32 bits,
-     therefore N/A (until mseal is available in 32 bits kernel).
-
-[jeffxu@chromium.org: update to v3]
-  Link: https://lkml.kernel.org/r/20250324151537.1106542-2-jeffxu@google.com
-Link: https://lkml.kernel.org/r/20250321032627.4147562-2-jeffxu@google.com
-Signed-off-by: Jeff Xu <jeffxu@chromium.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Eric Dumaze <edumazet@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: guoweikang <guoweikang.kernel@gmail.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Meghana Malladi <m-malladi@ti.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20250326-mailmap-add-entry-for-nicolas-v1-1-3c26579a7fdf@fjasle.eu
+Signed-off-by: Nicolas Schier <nicolas@fjasle.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/core/mseal_sys_mappings/arch-support.txt |   30 ++++++++++
- 1 file changed, 30 insertions(+)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/features/core/mseal_sys_mappings/arch-support.txt a/Documentation/features/core/mseal_sys_mappings/arch-support.txt
-new file mode 100644
---- /dev/null
-+++ a/Documentation/features/core/mseal_sys_mappings/arch-support.txt
-@@ -0,0 +1,30 @@
-+#
-+# Feature name:          mseal-system-mappings
-+#         Kconfig:       ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
-+#         description:   arch supports mseal system mappings
-+#
-+    -----------------------
-+    |         arch |status|
-+    -----------------------
-+    |       alpha: | TODO |
-+    |         arc: |  N/A |
-+    |         arm: |  N/A |
-+    |       arm64: |  ok  |
-+    |        csky: |  N/A |
-+    |     hexagon: |  N/A |
-+    |   loongarch: | TODO |
-+    |        m68k: |  N/A |
-+    |  microblaze: |  N/A |
-+    |        mips: | TODO |
-+    |       nios2: |  N/A |
-+    |    openrisc: |  N/A |
-+    |      parisc: | TODO |
-+    |     powerpc: | TODO |
-+    |       riscv: | TODO |
-+    |        s390: |  ok  |
-+    |          sh: |  N/A |
-+    |       sparc: | TODO |
-+    |          um: | TODO |
-+    |         x86: |  ok  |
-+    |      xtensa: |  N/A |
-+    -----------------------
+--- a/.mailmap~mailmap-add-an-entry-for-nicolas-schier
++++ a/.mailmap
+@@ -549,6 +549,8 @@ Nicolas Pitre <nico@fluxnic.net> <nicola
+ Nicolas Pitre <nico@fluxnic.net> <nico@linaro.org>
+ Nicolas Saenz Julienne <nsaenz@kernel.org> <nsaenzjulienne@suse.de>
+ Nicolas Saenz Julienne <nsaenz@kernel.org> <nsaenzjulienne@suse.com>
++Nicolas Schier <nicolas.schier@linux.dev> <n.schier@avm.de>
++Nicolas Schier <nicolas.schier@linux.dev> <nicolas@fjasle.eu>
+ Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+ Nikolay Aleksandrov <razor@blackwall.org> <naleksan@redhat.com>
+ Nikolay Aleksandrov <razor@blackwall.org> <nikolay@redhat.com>
 _
 
-Patches currently in -mm which might be from jeffxu@chromium.org are
+Patches currently in -mm which might be from nicolas@fjasle.eu are
 
 
