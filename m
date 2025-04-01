@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F15EAF4ED
-	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:17:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA84921C9F9
+	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:17:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743545872; cv=none; b=c7GtoVsM6/64pHbuYTSnuqrFagUphPDQpwWmjW4GVddD8LTpJtE1L0N4RzjBG/Cjsf3l0pz8Z5y9BPaUUwRDEtY6IIbvd/3E1e/KVYq4DEjgOVp+FmngUsKb/1uVmU+Fjrs1FdbUNJ1hyAE9bVFtGk4i511MMXTo1oE8sHgDiT0=
+	t=1743545873; cv=none; b=U6f93UhebQim+2H6QjIyDF7Z/coufIjW7fOuiPtGMbQM6ywOUaaSc6S36f72xelLQJNtZBDPdjjBK+PWmv1e+oABgizamHxBRBu+M2+paycEXNpWzDdUH1+hZT1LvqX3GKz22iLHKiM23agSSgySe+oeojK21P7VH6IcRq/xQSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743545872; c=relaxed/simple;
-	bh=TNfIluLpOgXOAJyT9tcPO2nuTXzJWpGE1FIUeSSzUbI=;
-	h=Date:To:From:Subject:Message-Id; b=ronwQtiGGFkqLm0QSzc8+n7+s3yeXvBPPrXmJJO6gZXBrO2X9m+cXZd5lKI4GEonDPnFIWHm+5eRZ+votUZZmudeNFNzFgHPZn2avRTdivzajtT8VqlpmO4/CPbi6B5McJ3fr1ru/iesNlEjFS3j4z6lKDeaMSLyzFwaBlmkt48=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V1iOCTn2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743545873; c=relaxed/simple;
+	bh=QBCoqG0Q61Hzj3mRF7JICO4qm83ITkcHSfKIpzRbHOk=;
+	h=Date:To:From:Subject:Message-Id; b=Cp+3+IPBD5jiMKy167VO8Zn8DPdNNRc6goFi5elEfS0Kjc3ltPfvjXPp7hVQZJAquEYGcnHrymM9oiFz3E0umYiIrdmwfS3Dx7GbKsmYDabwcDpZzESsrWGJYjiyISEcrmez2zm/0cIMbgq6sCaWrdgZXoYeBDNsL6MSQPr5Tns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XQwEpIaW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V1iOCTn2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AAF9C4CEED;
-	Tue,  1 Apr 2025 22:17:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XQwEpIaW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52659C4CEE4;
+	Tue,  1 Apr 2025 22:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743545871;
-	bh=TNfIluLpOgXOAJyT9tcPO2nuTXzJWpGE1FIUeSSzUbI=;
+	s=korg; t=1743545873;
+	bh=QBCoqG0Q61Hzj3mRF7JICO4qm83ITkcHSfKIpzRbHOk=;
 	h=Date:To:From:Subject:From;
-	b=V1iOCTn21SKOxnjQqg3vgNTcxtYyVsoOA3Rz2fsphCBvdzjgi+FCZ0RjEACIiB5XR
-	 10mbWVaYpFyn+UFJJgBpRQRv+prxov0CdwiWom9UIAu5Kypsc4m4qV144he3BG5HiI
-	 W5Oq8QyCPVaNoXmU6eKAKHQl9s8lcn1tFgc2jNWk=
-Date: Tue, 01 Apr 2025 15:17:50 -0700
-To: mm-commits@vger.kernel.org,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=XQwEpIaWNPXu9/7wibhdoh3oZjTkL5kUP9F0cLAN6Bd6LH/t/JytSZJIJbk9JXu7+
+	 ISmgxqXRYmjiGfvk+si2ECQjrRV4gxlsO/Kzhrj+ECzoSl4Sx1SR/7oLAcpJ8I2jAq
+	 Qs+ZRZOtJ7tDzveGxUVuX2zvo4VCvhjRbebIfEko=
+Date: Tue, 01 Apr 2025 15:17:52 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-fix-defrag_modes-retry-oom-path.patch removed from -mm tree
-Message-Id: <20250401221751.6AAF9C4CEED@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch removed from -mm tree
+Message-Id: <20250401221753.52659C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: fix defrag_mode's retry & OOM path
+     Subject: mm/kasan: use SLAB_NO_MERGE flag instead of an empty constructor
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-defrag_modes-retry-oom-path.patch
+     mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: fix defrag_mode's retry & OOM path
-Date: Sat, 22 Mar 2025 19:21:45 -0400
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: mm/kasan: use SLAB_NO_MERGE flag instead of an empty constructor
+Date: Tue, 18 Mar 2025 10:59:26 +0900
 
-Brendan points out that defrag_mode doesn't properly clear
-ALLOC_NOFRAGMENT on its last-ditch attempt to allocate.  But looking
-closer, the problem is actually more severe: it doesn't actually *check*
-whether it's already retried, and keeps looping.  This means the OOM path
-is never taken, and the thread can loop indefinitely.
+Use SLAB_NO_MERGE flag to prevent merging instead of providing an empty
+constructor.  Using an empty constructor in this manner is an abuse of
+slab interface.
 
-This is verified with an intentional OOM test on defrag_mode=1, which
-results in the machine hanging.  After this patch, it triggers the OOM
-kill reliably and recovers.
+The SLAB_NO_MERGE flag should be used with caution, but in this case, it
+is acceptable as the cache is intended solely for debugging purposes.
 
-Clear ALLOC_NOFRAGMENT properly, and only retry once.
+No functional changes intended.
 
-Link: https://lkml.kernel.org/r/20250401041231.GA2117727@cmpxchg.org
-Fixes: e3aa7df331bc ("mm: page_alloc: defrag_mode")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Brendan Jackman <jackmanb@google.com>
+Link: https://lkml.kernel.org/r/20250318015926.1629748-1-harry.yoo@oracle.com
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kasan/kasan_test_c.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-defrag_modes-retry-oom-path
-+++ a/mm/page_alloc.c
-@@ -4604,8 +4604,8 @@ retry:
- 		goto retry;
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-use-slab_no_merge-flag-instead-of-an-empty-constructor
++++ a/mm/kasan/kasan_test_c.c
+@@ -1073,14 +1073,11 @@ static void kmem_cache_rcu_uaf(struct ku
+ 	kmem_cache_destroy(cache);
+ }
  
- 	/* Reclaim/compaction failed to prevent the fallback */
--	if (defrag_mode) {
--		alloc_flags &= ALLOC_NOFRAGMENT;
-+	if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT)) {
-+		alloc_flags &= ~ALLOC_NOFRAGMENT;
- 		goto retry;
- 	}
+-static void empty_cache_ctor(void *object) { }
+-
+ static void kmem_cache_double_destroy(struct kunit *test)
+ {
+ 	struct kmem_cache *cache;
  
+-	/* Provide a constructor to prevent cache merging. */
+-	cache = kmem_cache_create("test_cache", 200, 0, 0, empty_cache_ctor);
++	cache = kmem_cache_create("test_cache", 200, 0, SLAB_NO_MERGE, NULL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
+ 	kmem_cache_destroy(cache);
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
 
