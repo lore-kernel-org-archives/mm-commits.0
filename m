@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79FF8215793;
-	Tue,  1 Apr 2025 22:15:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A59ED1E0DB0
+	for <mm-commits@vger.kernel.org>; Tue,  1 Apr 2025 22:15:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743545709; cv=none; b=Rgqw6m2cxFl0JvNPBKMitgL5VoQ55ECHTr5rjAMquCW1ANWgdMiD620IIo7h+/GrSw2YTzqCnep3sfNkNlA9xDqOeP32xOwS4LpNsbm+01HUGjcPDczGDdw1qbsYjLqL5fTUJy64+wmvb08hQKL7elmE7L/1YdZbX2RMZEtQzRo=
+	t=1743545710; cv=none; b=ZT+CJKqhTS6aOTlbSWpU01gsJHHrJPa3De3T2ltMzXm5DrTWGwo1QDugnrRFKaE4O6PwBNXs+EH7Kx3cpmTQA9KewKQSWdAWVYdDleqs47R5xYlTtkIUCrQ/edJc0CXCkjzoyegTsyVLwj0v+lcK5TVa0m3V3AWPCudwP32VotI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743545709; c=relaxed/simple;
-	bh=m431BLn7V/1O3sXewkXpezywitLj90LLU+uTDVBJ1jw=;
-	h=Date:To:From:Subject:Message-Id; b=OI2rFsgJaxtQremdwwO56+kXuUpxZ0BaAn0cOFSVP7j6ldMSMbUw3RFJ2QyzucRd0kh3tmkKsGVlucIPUhqo/LZG8MYRD8vuVfTueKO+7n4olo7qSf5n+p0z5DrdaXg3bcs7BgPHgROF24158rHHiL8y6d+LjK6JC6kW/0Nxjf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C+bTX9Xo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743545710; c=relaxed/simple;
+	bh=+lxeq+iC4Gpd9LZFMDTO6KHJBkgFnysP4ePl1KM7ZFY=;
+	h=Date:To:From:Subject:Message-Id; b=Rwt6QEXSXsH6Vm06e279mIqFcQWFwsLrtpIJwV4g7s/IarS6q9rbHf3joE9YltzCT3bxtIsM4S/g8TfKGeBRSyhqWOi6tTTrp6GWb8eYhDj4EMclbt+tkye2PiY1whmwh4lkxh01Uc2+dSk+JN+m4EOmWz38dvk/qWN9/nxab8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l7Mrx9FU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C+bTX9Xo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEB6EC4CEE4;
-	Tue,  1 Apr 2025 22:15:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l7Mrx9FU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14AF5C4CEE4;
+	Tue,  1 Apr 2025 22:15:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743545708;
-	bh=m431BLn7V/1O3sXewkXpezywitLj90LLU+uTDVBJ1jw=;
+	s=korg; t=1743545710;
+	bh=+lxeq+iC4Gpd9LZFMDTO6KHJBkgFnysP4ePl1KM7ZFY=;
 	h=Date:To:From:Subject:From;
-	b=C+bTX9XokaUl4DCl/1XogaTZiL0S0ddJcNFq0E2JihAZIRk4CmjtQbgtSpcNqWLbH
-	 g8pDAN+1PtH5GWSkSkkjqlp1zDGtsn8CDylTiURhU4Rf3Gc6UZlRkjlrbhh90thk80
-	 NtmXYfBMcpPJUfP/1hZJhpkhhn8skjJmHDK+LyHg=
-Date: Tue, 01 Apr 2025 15:15:08 -0700
-To: mm-commits@vger.kernel.org,tujinjiang@huawei.com,stable@vger.kernel.org,rppt@kernel.org,jimsiak@cslab.ece.ntua.gr,axelrasmussen@google.com,aarcange@redhat.com,peterx@redhat.com,akpm@linux-foundation.org
+	b=l7Mrx9FUE4/iiK8sbA6rmusZtD5tYTI3ljSNn5Ueimu8eJ8DEJIBOukiSjZaZExeq
+	 mDY2W/OQCVV6LctSIFWLeBxnnOFMF4RZEjbij37vVqPPVAJiXOkMto1Bqjzqk1asP1
+	 px1taMAP3QFy2dz+ZSVzO2jISyPNiLbQGRJpOPfw=
+Date: Tue, 01 Apr 2025 15:15:09 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,muchun.song@linux.dev,mjguzik@gmail.com,david@redhat.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-userfaultfd-fix-release-hang-over-concurrent-gup.patch removed from -mm tree
-Message-Id: <20250401221508.BEB6EC4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch removed from -mm tree
+Message-Id: <20250401221510.14AF5C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,132 +35,133 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/userfaultfd: fix release hang over concurrent GUP
+     Subject: mm/hugetlb_vmemmap: fix memory loads ordering
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-fix-release-hang-over-concurrent-gup.patch
+     mm-hugetlb_vmemmap-fix-memory-loads-ordering.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/userfaultfd: fix release hang over concurrent GUP
-Date: Wed, 12 Mar 2025 10:51:31 -0400
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/hugetlb_vmemmap: fix memory loads ordering
+Date: Wed, 8 Jan 2025 00:48:21 -0700
 
-This patch should fix a possible userfaultfd release() hang during
-concurrent GUP.
+Using x86_64 as an example, for a 32KB struct page[] area describing a 2MB
+hugeTLB, HVO reduces the area to 4KB by the following steps:
 
-This problem was initially reported by Dimitris Siakavaras in July 2023
-[1] in a firecracker use case.  Firecracker has a separate process
-handling page faults remotely, and when the process releases the
-userfaultfd it can race with a concurrent GUP from KVM trying to fault in
-a guest page during the secondary MMU page fault process.
+1. Split the (r/w vmemmap) PMD mapping the area into 512 (r/w) PTEs;
+2. For the 8 PTEs mapping the area, remap PTE 1-7 to the page mapped
+   by PTE 0, and at the same time change the permission from r/w to
+   r/o;
+3. Free the pages PTE 1-7 used to map, hence the reduction from 32KB
+   to 4KB.
 
-A similar problem was reported recently again by Jinjiang Tu in March 2025
-[2], even though the race happened this time with a mlockall() operation,
-which does GUP in a similar fashion.
+However, the following race can happen due to improperly memory loads
+ordering:
+  CPU 1 (HVO)                     CPU 2 (speculative PFN walker)
 
-In 2017, commit 656710a60e36 ("userfaultfd: non-cooperative: closing the
-uffd without triggering SIGBUS") was trying to fix this issue.  AFAIU,
-that fixes well the fault paths but may not work yet for GUP.  In GUP, the
-issue is NOPAGE will be almost treated the same as "page fault resolved"
-in faultin_page(), then the GUP will follow page again, seeing page
-missing, and it'll keep going into a live lock situation as reported.
+  page_ref_freeze()
+  synchronize_rcu()
+                                  rcu_read_lock()
+                                  page_is_fake_head() is false
+  vmemmap_remap_pte()
+  XXX: struct page[] becomes r/o
 
-This change makes core mm return RETRY instead of NOPAGE for both the GUP
-and fault paths, proactively releasing the mmap read lock.  This should
-guarantee the other release thread make progress on taking the write lock
-and avoid the live lock even for GUP.
+  page_ref_unfreeze()
+                                  page_ref_count() is not zero
 
-When at it, rearrange the comments to make sure it's uptodate.
+                                  atomic_add_unless(&page->_refcount)
+                                  XXX: try to modify r/o struct page[]
 
-[1] https://lore.kernel.org/r/79375b71-db2e-3e66-346b-254c90d915e2@cslab.ece.ntua.gr
-[2] https://lore.kernel.org/r/20250307072133.3522652-1-tujinjiang@huawei.com
+Specifically, page_is_fake_head() must be ordered after page_ref_count()
+on CPU 2 so that it can only return true for this case, to avoid the later
+attempt to modify r/o struct page[].
 
-Link: https://lkml.kernel.org/r/20250312145131.1143062-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Dimitris Siakavaras <jimsiak@cslab.ece.ntua.gr>
-Cc: <stable@vger.kernel.org>
+This patch adds the missing memory barrier and makes the tests on
+page_is_fake_head() and page_ref_count() done in the proper order.
+
+Link: https://lkml.kernel.org/r/20250108074822.722696-1-yuzhao@google.com
+Fixes: bd225530a4c7 ("mm/hugetlb_vmemmap: fix race with speculative PFN walkers")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reported-by: Will Deacon <will@kernel.org>
+Closes: https://lore.kernel.org/20241128142028.GA3506@willie-the-truck/
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Will Deacon <will@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   51 ++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 26 deletions(-)
+ include/linux/page-flags.h |   37 +++++++++++++++++++++++++++++++++++
+ include/linux/page_ref.h   |    2 -
+ 2 files changed, 38 insertions(+), 1 deletion(-)
 
---- a/fs/userfaultfd.c~mm-userfaultfd-fix-release-hang-over-concurrent-gup
-+++ a/fs/userfaultfd.c
-@@ -396,32 +396,6 @@ vm_fault_t handle_userfault(struct vm_fa
- 		goto out;
- 
- 	/*
--	 * If it's already released don't get it. This avoids to loop
--	 * in __get_user_pages if userfaultfd_release waits on the
--	 * caller of handle_userfault to release the mmap_lock.
--	 */
--	if (unlikely(READ_ONCE(ctx->released))) {
--		/*
--		 * Don't return VM_FAULT_SIGBUS in this case, so a non
--		 * cooperative manager can close the uffd after the
--		 * last UFFDIO_COPY, without risking to trigger an
--		 * involuntary SIGBUS if the process was starting the
--		 * userfaultfd while the userfaultfd was still armed
--		 * (but after the last UFFDIO_COPY). If the uffd
--		 * wasn't already closed when the userfault reached
--		 * this point, that would normally be solved by
--		 * userfaultfd_must_wait returning 'false'.
--		 *
--		 * If we were to return VM_FAULT_SIGBUS here, the non
--		 * cooperative manager would be instead forced to
--		 * always call UFFDIO_UNREGISTER before it can safely
--		 * close the uffd.
--		 */
--		ret = VM_FAULT_NOPAGE;
--		goto out;
--	}
--
--	/*
- 	 * Check that we can return VM_FAULT_RETRY.
- 	 *
- 	 * NOTE: it should become possible to return VM_FAULT_RETRY
-@@ -457,6 +431,31 @@ vm_fault_t handle_userfault(struct vm_fa
- 	if (vmf->flags & FAULT_FLAG_RETRY_NOWAIT)
- 		goto out;
- 
-+	if (unlikely(READ_ONCE(ctx->released))) {
-+		/*
-+		 * If a concurrent release is detected, do not return
-+		 * VM_FAULT_SIGBUS or VM_FAULT_NOPAGE, but instead always
-+		 * return VM_FAULT_RETRY with lock released proactively.
-+		 *
-+		 * If we were to return VM_FAULT_SIGBUS here, the non
-+		 * cooperative manager would be instead forced to
-+		 * always call UFFDIO_UNREGISTER before it can safely
-+		 * close the uffd, to avoid involuntary SIGBUS triggered.
-+		 *
-+		 * If we were to return VM_FAULT_NOPAGE, it would work for
-+		 * the fault path, in which the lock will be released
-+		 * later.  However for GUP, faultin_page() does nothing
-+		 * special on NOPAGE, so GUP would spin retrying without
-+		 * releasing the mmap read lock, causing possible livelock.
-+		 *
-+		 * Here only VM_FAULT_RETRY would make sure the mmap lock
-+		 * be released immediately, so that the thread concurrently
-+		 * releasing the userfault would always make progress.
-+		 */
-+		release_fault_lock(vmf);
-+		goto out;
-+	}
+--- a/include/linux/page-flags.h~mm-hugetlb_vmemmap-fix-memory-loads-ordering
++++ a/include/linux/page-flags.h
+@@ -226,11 +226,48 @@ static __always_inline const struct page
+ 	}
+ 	return page;
+ }
 +
- 	/* take the reference before dropping the mmap_lock */
- 	userfaultfd_ctx_get(ctx);
++static __always_inline bool page_count_writable(const struct page *page, int u)
++{
++	if (!static_branch_unlikely(&hugetlb_optimize_vmemmap_key))
++		return true;
++
++	/*
++	 * The refcount check is ordered before the fake-head check to prevent
++	 * the following race:
++	 *   CPU 1 (HVO)                     CPU 2 (speculative PFN walker)
++	 *
++	 *   page_ref_freeze()
++	 *   synchronize_rcu()
++	 *                                   rcu_read_lock()
++	 *                                   page_is_fake_head() is false
++	 *   vmemmap_remap_pte()
++	 *   XXX: struct page[] becomes r/o
++	 *
++	 *   page_ref_unfreeze()
++	 *                                   page_ref_count() is not zero
++	 *
++	 *                                   atomic_add_unless(&page->_refcount)
++	 *                                   XXX: try to modify r/o struct page[]
++	 *
++	 * The refcount check also prevents modification attempts to other (r/o)
++	 * tail pages that are not fake heads.
++	 */
++	if (atomic_read_acquire(&page->_refcount) == u)
++		return false;
++
++	return page_fixed_fake_head(page) == page;
++}
+ #else
+ static inline const struct page *page_fixed_fake_head(const struct page *page)
+ {
+ 	return page;
+ }
++
++static inline bool page_count_writable(const struct page *page, int u)
++{
++	return true;
++}
+ #endif
+ 
+ static __always_inline int page_is_fake_head(const struct page *page)
+--- a/include/linux/page_ref.h~mm-hugetlb_vmemmap-fix-memory-loads-ordering
++++ a/include/linux/page_ref.h
+@@ -234,7 +234,7 @@ static inline bool page_ref_add_unless(s
+ 
+ 	rcu_read_lock();
+ 	/* avoid writing to the vmemmap area being remapped */
+-	if (!page_is_fake_head(page) && page_ref_count(page) != u)
++	if (page_count_writable(page, u))
+ 		ret = atomic_add_unless(&page->_refcount, nr, u);
+ 	rcu_read_unlock();
  
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-maintainers-add-myself-as-userfaultfd-reviewer.patch
 
