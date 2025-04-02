@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9833F1EBFF0
-	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 21:50:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BD181EBFF0
+	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 21:50:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743630653; cv=none; b=I5yUNtVtS5UXjQi0qbB2xUW14rauSt7X+T86Xv020gVaCDMyzh+BpRdX+5MjZo+h/i1B8xg5xoCxF11kIlpkePyG7bDk4yRaqgcX7aTkdsFlmFK89cw2WHgb5jbVxvmNE2RICcBknaBgT7tHSOWczUjUKwYQVI0YOy5ZNWXemw0=
+	t=1743630654; cv=none; b=DEIaC360qP2KWNLBjC+Qo7TbTXdGkOXVzIEL3KTRrtF/1ORl/7c1lnEcd379dYWUsL0xBuE5YpavQt+2SdcgwcYnA+51XMzyXkUQRs/EoW+SjHR1ZwF/7ISVouGgEg+hRcmw3Sf6rRzoOGkSpflAFUNvca7/DaN7AzgVCeL9rTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743630653; c=relaxed/simple;
-	bh=7T5FsmKDS6wWMvA8Cu6K70GDufGr3qk+xts+qJ0QDgE=;
-	h=Date:To:From:Subject:Message-Id; b=bfYQ19nArwTkI5e0sXJ+olGpHc8G6MwYFO2yQGtkTFN+BGY3gQFetmZAmH3rXBRsf0usz3pUla6Yi/sw1sPJjoTPi8YZlW8D7CapuOH/8u3onlDJp5GckAbdgcnLu15scUTHIZ8ndERr2x0vDcyX9qEMOjRyN9giK/p/PyuE648=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMoz/4fP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743630654; c=relaxed/simple;
+	bh=lCPsM0b+etcXDqqj//pGJG6IXjf8oEi322WXHl9FnsY=;
+	h=Date:To:From:Subject:Message-Id; b=iA6i7vT1GY8CoHINtTvMCr670ZSJ9uTOf2RC6FEp2irsKJsIluwJg0bsdWbhQtvzRTPG3F+UWjKb8Cr8E01QxBtZp+dIUW70s4/wAhpl8Uk5lE5XRyzPqsm7Stqe/vvsK+tVUoOjS3s0GzVZXP2/kjf8i0y5YweOCu0yQGO9M1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gRmm0Y/w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMoz/4fP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F38BDC4CEDD;
-	Wed,  2 Apr 2025 21:50:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gRmm0Y/w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 221CCC4CEDD;
+	Wed,  2 Apr 2025 21:50:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743630653;
-	bh=7T5FsmKDS6wWMvA8Cu6K70GDufGr3qk+xts+qJ0QDgE=;
+	s=korg; t=1743630654;
+	bh=lCPsM0b+etcXDqqj//pGJG6IXjf8oEi322WXHl9FnsY=;
 	h=Date:To:From:Subject:From;
-	b=RMoz/4fPAAqPSgYyemST2auN0lfK+jNENU+cZ16/aedDxX/oQI9TNRoSOVlswfo8d
-	 UM3xXzRfWu17kDIs53YcTQbi0265ySdqfb7uZRslvPf72nT/SpXe4h96Faj9Crq1G7
-	 5gvstAp9gHjzH8atXE0gLzVbh1FJN/IUlZr2Yiug=
-Date: Wed, 02 Apr 2025 14:50:52 -0700
+	b=gRmm0Y/wnFlr+t7r+R4id7WT9guHJ+7+jRCRPMswrtjgWTdwFC77C3x0Qye112c+k
+	 qbA/MEQWtH46If3i+KxXqTktEfSj4qyEZ9UrFEZ9fjjN+dxGgXuMq6fqQ5dTurmIUs
+	 aLT55wwdSlY7bvI7kWU4Zby92s9PxZ6kUxC4IIUc=
+Date: Wed, 02 Apr 2025 14:50:53 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-offset_in_thp.patch added to mm-new branch
-Message-Id: <20250402215052.F38BDC4CEDD@smtp.kernel.org>
+Subject: + iov_iter-convert-iter_xarray_populate_pages-to-use-folios.patch added to mm-new branch
+Message-Id: <20250402215054.221CCC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove offset_in_thp()
+     Subject: iov_iter: convert iter_xarray_populate_pages() to use folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-offset_in_thp.patch
+     iov_iter-convert-iter_xarray_populate_pages-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-offset_in_thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iov_iter-convert-iter_xarray_populate_pages-to-use-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove offset_in_thp()
-Date: Wed, 2 Apr 2025 22:06:04 +0100
+Subject: iov_iter: convert iter_xarray_populate_pages() to use folios
+Date: Wed, 2 Apr 2025 22:06:05 +0100
 
-All callers have been converted to call offset_in_folio().
+ITER_XARRAY is exclusively used with xarrays that contain folios, not
+pages, so extract folio pointers from it, not page pointers.  Removes a
+hidden call to compound_head() and a use of find_subpage().
 
-Link: https://lkml.kernel.org/r/20250402210612.2444135-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250402210612.2444135-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- 1 file changed, 1 deletion(-)
+ lib/iov_iter.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-offset_in_thp
-+++ a/include/linux/mm.h
-@@ -2389,7 +2389,6 @@ static inline void clear_page_pfmemalloc
- extern void pagefault_out_of_memory(void);
+--- a/lib/iov_iter.c~iov_iter-convert-iter_xarray_populate_pages-to-use-folios
++++ a/lib/iov_iter.c
+@@ -1059,22 +1059,22 @@ static ssize_t iter_xarray_populate_page
+ 					  pgoff_t index, unsigned int nr_pages)
+ {
+ 	XA_STATE(xas, xa, index);
+-	struct page *page;
++	struct folio *folio;
+ 	unsigned int ret = 0;
  
- #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
--#define offset_in_thp(page, p)	((unsigned long)(p) & (thp_size(page) - 1))
- #define offset_in_folio(folio, p) ((unsigned long)(p) & (folio_size(folio) - 1))
+ 	rcu_read_lock();
+-	for (page = xas_load(&xas); page; page = xas_next(&xas)) {
+-		if (xas_retry(&xas, page))
++	for (folio = xas_load(&xas); folio; folio = xas_next(&xas)) {
++		if (xas_retry(&xas, folio))
+ 			continue;
  
- /*
+-		/* Has the page moved or been split? */
+-		if (unlikely(page != xas_reload(&xas))) {
++		/* Has the folio moved or been split? */
++		if (unlikely(folio != xas_reload(&xas))) {
+ 			xas_reset(&xas);
+ 			continue;
+ 		}
+ 
+-		pages[ret] = find_subpage(page, xas.xa_index);
+-		get_page(pages[ret]);
++		pages[ret] = folio_file_page(folio, xas.xa_index);
++		folio_get(folio);
+ 		if (++ret == nr_pages)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
