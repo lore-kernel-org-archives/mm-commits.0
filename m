@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C3C61E8326
-	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 22:03:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E49741E8326
+	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 22:03:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743631393; cv=none; b=nK3udj6Z9iXStQmsOFMlHYrPfXhDW4yFA8nRauMKr6EuOdAoN2PeRyRDvRdJEk7BuVTDyIn5cu3jAvQ9q9nT4kmfQsBim7Xts8qTuH8UiBX1grXwuD34XbAfx1fL+LcwlwkfBDNfsMURq4VLUNQwF9p+HQiNB1TJ9YUkI1p1v8U=
+	t=1743631395; cv=none; b=VZhRr3dudWdfEd2SR9arAVQoDtAxPZtudVJF/Gl+RFMCvST/ZxRY/172KngpuKhNeqZqdtVT7EruJwvVR0RdSYVKuQRr6aqqM2bvNVn2ZIka4awk46GhrK2cLF/s0hzi7B/vun2lSdhpl3y4a00r5/kFStCJXjTdzf/OTTXTinw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743631393; c=relaxed/simple;
-	bh=pXLb5T4ozTEReMzChrSMVIhU9k9obvA7gPIHYB1HLgQ=;
-	h=Date:To:From:Subject:Message-Id; b=Kcd0mpJrdrApTuYgu2oqAVQQVWQtuMCC2w+cxBvo1gpcAU2GrhbhAAk7u+E/nboRHfJN+Et//cjJkKhS1VRD/y7SxetBYAvbUfniuMZA4tfTGBU804zwdoPvn6xInHF78GBTLHw9izZbuT8J0ckJvKZNPQJovcYi8woRdIAOY2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XweifwWO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743631395; c=relaxed/simple;
+	bh=wSSeTEjWIMkphspRAd2tUlO/7/jhsfy0aeOW0e8EjZA=;
+	h=Date:To:From:Subject:Message-Id; b=YmRD4xtk8ybiE0tQrLZWR6Myt+LH2cuDUANFn9FACpOdeOVd+BJA3NoGoxFsWnFFPCFi+l6uqX+YO7YYa1VxRvHL37ymX1ijXnKxi60XOQYOHj2suPOdipIMkD8GgQQa+Bzfkyz7gu5KzOOPntC0DYRYYW8q9N4ffy9ObMA75ws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=np2FRjqI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XweifwWO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A9AAC4CEDD;
-	Wed,  2 Apr 2025 22:03:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="np2FRjqI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58972C4CEDD;
+	Wed,  2 Apr 2025 22:03:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743631392;
-	bh=pXLb5T4ozTEReMzChrSMVIhU9k9obvA7gPIHYB1HLgQ=;
+	s=korg; t=1743631394;
+	bh=wSSeTEjWIMkphspRAd2tUlO/7/jhsfy0aeOW0e8EjZA=;
 	h=Date:To:From:Subject:From;
-	b=XweifwWOWDJDbQyQQv2gDIdOynft8B+1cFOXbAvbl0WNwf5k+5/wpei8JRuYxbsvv
-	 d6OPFuBS2Si6xMS7WLtJrFYdK2ZOwtyEmJ0V9SMPKR82jrVicpXW4ro8D6kR2Qx5Vj
-	 KEuD0vJiW/7A+2+F2bMmrYwlcpNIEv8IcY7OVakI=
-Date: Wed, 02 Apr 2025 15:03:11 -0700
+	b=np2FRjqIr5RdRjWktFRK2hEzmVzx97qazLwKph95fxBpYDdoNhSVP6uS/s2eD/jZM
+	 4OGx/f5NUBI7bW4JCDNtk6ArumBZLx2jQ0NTIByavBESaDQ3B8EeHRayyj18hgtx9F
+	 V29UH0TmIFWM9S03JvrhggFqEL7DmGeq+iGrUTTs=
+Date: Wed, 02 Apr 2025 15:03:13 -0700
 To: mm-commits@vger.kernel.org,x86@kernel.org,richard@nod.at,muchun.song@linux.dev,johannes@sipsolutions.net,geert@linux-m68k.org,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,agordeev@linux.ibm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_mk_pmd.patch added to mm-new branch
-Message-Id: <20250402220312.7A9AAC4CEDD@smtp.kernel.org>
+Subject: + arch-remove-mk_pmd.patch added to mm-new branch
+Message-Id: <20250402220314.58972C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add folio_mk_pmd()
+     Subject: arch: remove mk_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-folio_mk_pmd.patch
+     arch-remove-mk_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_mk_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-remove-mk_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add folio_mk_pmd()
-Date: Wed, 2 Apr 2025 19:17:04 +0100
+Subject: arch: remove mk_pmd()
+Date: Wed, 2 Apr 2025 19:17:05 +0100
 
-Removes five conversions from folio to page.  Also removes both callers of
-mk_pmd() that aren't part of mk_huge_pmd(), getting us a step closer to
-removing the confusion between mk_pmd(), mk_huge_pmd() and pmd_mkhuge().
+There are now no callers of mk_huge_pmd() and mk_pmd().  Remove them.
 
-Link: https://lkml.kernel.org/r/20250402181709.2386022-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250402181709.2386022-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -82,119 +80,219 @@ Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c           |    3 +--
- include/linux/mm.h |   17 +++++++++++++++++
- mm/huge_memory.c   |   11 +++++------
- mm/khugepaged.c    |    2 +-
- mm/memory.c        |    2 +-
- 5 files changed, 25 insertions(+), 10 deletions(-)
+ arch/arc/include/asm/hugepage.h              |    2 --
+ arch/arc/include/asm/pgtable-levels.h        |    1 -
+ arch/arm/include/asm/pgtable-3level.h        |    1 -
+ arch/arm64/include/asm/pgtable.h             |    1 -
+ arch/loongarch/include/asm/pgtable.h         |    1 -
+ arch/loongarch/mm/pgtable.c                  |    9 ---------
+ arch/mips/include/asm/pgtable.h              |    3 ---
+ arch/mips/mm/pgtable-32.c                    |   10 ----------
+ arch/mips/mm/pgtable-64.c                    |    9 ---------
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    1 -
+ arch/powerpc/mm/book3s64/pgtable.c           |    5 -----
+ arch/riscv/include/asm/pgtable-64.h          |    2 --
+ arch/s390/include/asm/pgtable.h              |    1 -
+ arch/sparc/include/asm/pgtable_64.h          |    1 -
+ arch/x86/include/asm/pgtable.h               |    2 --
+ include/linux/huge_mm.h                      |    2 --
+ 16 files changed, 51 deletions(-)
 
---- a/fs/dax.c~mm-add-folio_mk_pmd
-+++ a/fs/dax.c
-@@ -1421,8 +1421,7 @@ static vm_fault_t dax_pmd_load_hole(stru
- 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
- 		mm_inc_nr_ptes(vma->vm_mm);
- 	}
--	pmd_entry = mk_pmd(&zero_folio->page, vmf->vma->vm_page_prot);
--	pmd_entry = pmd_mkhuge(pmd_entry);
-+	pmd_entry = folio_mk_pmd(zero_folio, vmf->vma->vm_page_prot);
- 	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
- 	spin_unlock(ptl);
- 	trace_dax_pmd_load_hole(inode, vmf, zero_folio, *entry);
---- a/include/linux/mm.h~mm-add-folio_mk_pmd
-+++ a/include/linux/mm.h
-@@ -2007,7 +2007,24 @@ static inline pte_t folio_mk_pte(struct
- {
- 	return pfn_pte(folio_pfn(folio), pgprot);
- }
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+/**
-+ * folio_mk_pmd - Create a PMD for this folio
-+ * @folio: The folio to create a PMD for
-+ * @pgprot: The page protection bits to use
-+ *
-+ * Create a page table entry for the first page of this folio.
-+ * This is suitable for passing to set_pmd_at().
-+ *
-+ * Return: A page table entry suitable for mapping this folio.
-+ */
-+static inline pmd_t folio_mk_pmd(struct folio *folio, pgprot_t pgprot)
-+{
-+	return pmd_mkhuge(pfn_pmd(folio_pfn(folio), pgprot));
-+}
+--- a/arch/arc/include/asm/hugepage.h~arch-remove-mk_pmd
++++ a/arch/arc/include/asm/hugepage.h
+@@ -40,8 +40,6 @@ static inline pmd_t pte_pmd(pte_t pte)
+ #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
+ #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+ 
+-#define mk_pmd(page, prot)	pte_pmd(mk_pte(page, prot))
+-
+ #define pmd_trans_huge(pmd)	(pmd_val(pmd) & _PAGE_HW_SZ)
+ 
+ #define pfn_pmd(pfn, prot)	(__pmd(((pfn) << PAGE_SHIFT) | pgprot_val(prot)))
+--- a/arch/arc/include/asm/pgtable-levels.h~arch-remove-mk_pmd
++++ a/arch/arc/include/asm/pgtable-levels.h
+@@ -142,7 +142,6 @@
+ 
+ #define pmd_pfn(pmd)		((pmd_val(pmd) & PMD_MASK) >> PAGE_SHIFT)
+ #define pfn_pmd(pfn,prot)	__pmd(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+-#define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
+ 
  #endif
-+#endif /* CONFIG_MMU */
  
- static inline bool folio_has_pincount(const struct folio *folio)
+--- a/arch/arm64/include/asm/pgtable.h~arch-remove-mk_pmd
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -609,7 +609,6 @@ static inline pmd_t pmd_mkspecial(pmd_t
+ #define __phys_to_pmd_val(phys)	__phys_to_pte_val(phys)
+ #define pmd_pfn(pmd)		((__pmd_to_phys(pmd) & PMD_MASK) >> PAGE_SHIFT)
+ #define pfn_pmd(pfn,prot)	__pmd(__phys_to_pmd_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+-#define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
+ 
+ #define pud_young(pud)		pte_young(pud_pte(pud))
+ #define pud_mkyoung(pud)	pte_pud(pte_mkyoung(pud_pte(pud)))
+--- a/arch/arm/include/asm/pgtable-3level.h~arch-remove-mk_pmd
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -209,7 +209,6 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
+ 
+ #define pmd_pfn(pmd)		(((pmd_val(pmd) & PMD_MASK) & PHYS_MASK) >> PAGE_SHIFT)
+ #define pfn_pmd(pfn,prot)	(__pmd(((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot)))
+-#define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
+ 
+ /* No hardware dirty/accessed bits -- generic_pmdp_establish() fits */
+ #define pmdp_establish generic_pmdp_establish
+--- a/arch/loongarch/include/asm/pgtable.h~arch-remove-mk_pmd
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -255,7 +255,6 @@ static inline void pmd_clear(pmd_t *pmdp
+ 
+ #define pmd_page_vaddr(pmd)	pmd_val(pmd)
+ 
+-extern pmd_t mk_pmd(struct page *page, pgprot_t prot);
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp, pmd_t pmd);
+ 
+ #define pte_page(x)		pfn_to_page(pte_pfn(x))
+--- a/arch/loongarch/mm/pgtable.c~arch-remove-mk_pmd
++++ a/arch/loongarch/mm/pgtable.c
+@@ -135,15 +135,6 @@ void kernel_pte_init(void *addr)
+ 	} while (p != end);
+ }
+ 
+-pmd_t mk_pmd(struct page *page, pgprot_t prot)
+-{
+-	pmd_t pmd;
+-
+-	pmd_val(pmd) = (page_to_pfn(page) << PFN_PTE_SHIFT) | pgprot_val(prot);
+-
+-	return pmd;
+-}
+-
+ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		pmd_t *pmdp, pmd_t pmd)
  {
---- a/mm/huge_memory.c~mm-add-folio_mk_pmd
-+++ a/mm/huge_memory.c
-@@ -1203,7 +1203,7 @@ static void map_anon_folio_pmd(struct fo
+--- a/arch/mips/include/asm/pgtable.h~arch-remove-mk_pmd
++++ a/arch/mips/include/asm/pgtable.h
+@@ -713,9 +713,6 @@ static inline pmd_t pmd_clear_soft_dirty
+ 
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+-/* Extern to avoid header file madness */
+-extern pmd_t mk_pmd(struct page *page, pgprot_t prot);
+-
+ static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
  {
- 	pmd_t entry;
+ 	pmd_val(pmd) = (pmd_val(pmd) & (_PAGE_CHG_MASK | _PAGE_HUGE)) |
+--- a/arch/mips/mm/pgtable-32.c~arch-remove-mk_pmd
++++ a/arch/mips/mm/pgtable-32.c
+@@ -31,16 +31,6 @@ void pgd_init(void *addr)
+ }
  
--	entry = mk_huge_pmd(&folio->page, vma->vm_page_prot);
-+	entry = folio_mk_pmd(folio, vma->vm_page_prot);
- 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 	folio_add_new_anon_rmap(folio, vma, haddr, RMAP_EXCLUSIVE);
- 	folio_add_lru_vma(folio, vma);
-@@ -1309,8 +1309,7 @@ static void set_huge_zero_folio(pgtable_
- 		struct folio *zero_folio)
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-pmd_t mk_pmd(struct page *page, pgprot_t prot)
+-{
+-	pmd_t pmd;
+-
+-	pmd_val(pmd) = (page_to_pfn(page) << PFN_PTE_SHIFT) | pgprot_val(prot);
+-
+-	return pmd;
+-}
+-
+-
+ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		pmd_t *pmdp, pmd_t pmd)
  {
- 	pmd_t entry;
--	entry = mk_pmd(&zero_folio->page, vma->vm_page_prot);
--	entry = pmd_mkhuge(entry);
-+	entry = folio_mk_pmd(zero_folio, vma->vm_page_prot);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, haddr, pmd, entry);
- 	mm_inc_nr_ptes(mm);
-@@ -2653,12 +2652,12 @@ int move_pages_huge_pmd(struct mm_struct
- 		folio_move_anon_rmap(src_folio, dst_vma);
- 		src_folio->index = linear_page_index(dst_vma, dst_addr);
+--- a/arch/mips/mm/pgtable-64.c~arch-remove-mk_pmd
++++ a/arch/mips/mm/pgtable-64.c
+@@ -90,15 +90,6 @@ void pud_init(void *addr)
+ #endif
  
--		_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
-+		_dst_pmd = folio_mk_pmd(src_folio, dst_vma->vm_page_prot);
- 		/* Follow mremap() behavior and treat the entry dirty after the move */
- 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
- 	} else {
- 		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
--		_dst_pmd = mk_huge_pmd(src_page, dst_vma->vm_page_prot);
-+		_dst_pmd = folio_mk_pmd(src_folio, dst_vma->vm_page_prot);
- 	}
- 	set_pmd_at(mm, dst_addr, dst_pmd, _dst_pmd);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-pmd_t mk_pmd(struct page *page, pgprot_t prot)
+-{
+-	pmd_t pmd;
+-
+-	pmd_val(pmd) = (page_to_pfn(page) << PFN_PTE_SHIFT) | pgprot_val(prot);
+-
+-	return pmd;
+-}
+-
+ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		pmd_t *pmdp, pmd_t pmd)
+ {
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~arch-remove-mk_pmd
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1096,7 +1096,6 @@ static inline bool pmd_access_permitted(
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ extern pmd_t pfn_pmd(unsigned long pfn, pgprot_t pgprot);
+ extern pud_t pfn_pud(unsigned long pfn, pgprot_t pgprot);
+-extern pmd_t mk_pmd(struct page *page, pgprot_t pgprot);
+ extern pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot);
+ extern pud_t pud_modify(pud_t pud, pgprot_t newprot);
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+--- a/arch/powerpc/mm/book3s64/pgtable.c~arch-remove-mk_pmd
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -270,11 +270,6 @@ pud_t pfn_pud(unsigned long pfn, pgprot_
+ 	return __pud_mkhuge(pud_set_protbits(__pud(pudv), pgprot));
+ }
  
-@@ -4675,7 +4674,7 @@ void remove_migration_pmd(struct page_vm
+-pmd_t mk_pmd(struct page *page, pgprot_t pgprot)
+-{
+-	return pfn_pmd(page_to_pfn(page), pgprot);
+-}
+-
+ pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
+ {
+ 	unsigned long pmdv;
+--- a/arch/riscv/include/asm/pgtable-64.h~arch-remove-mk_pmd
++++ a/arch/riscv/include/asm/pgtable-64.h
+@@ -262,8 +262,6 @@ static inline unsigned long _pmd_pfn(pmd
+ 	return __page_val_to_pfn(pmd_val(pmd));
+ }
  
- 	entry = pmd_to_swp_entry(*pvmw->pmd);
- 	folio_get(folio);
--	pmde = mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot));
-+	pmde = folio_mk_pmd(folio, READ_ONCE(vma->vm_page_prot));
- 	if (pmd_swp_soft_dirty(*pvmw->pmd))
- 		pmde = pmd_mksoft_dirty(pmde);
- 	if (is_writable_migration_entry(entry))
---- a/mm/khugepaged.c~mm-add-folio_mk_pmd
-+++ a/mm/khugepaged.c
-@@ -1239,7 +1239,7 @@ static int collapse_huge_page(struct mm_
- 	__folio_mark_uptodate(folio);
- 	pgtable = pmd_pgtable(_pmd);
+-#define mk_pmd(page, prot)    pfn_pmd(page_to_pfn(page), prot)
+-
+ #define pmd_ERROR(e) \
+ 	pr_err("%s:%d: bad pmd %016lx.\n", __FILE__, __LINE__, pmd_val(e))
  
--	_pmd = mk_huge_pmd(&folio->page, vma->vm_page_prot);
-+	_pmd = folio_mk_pmd(folio, vma->vm_page_prot);
- 	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
+--- a/arch/s390/include/asm/pgtable.h~arch-remove-mk_pmd
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1869,7 +1869,6 @@ static inline pmd_t pmdp_collapse_flush(
+ #define pmdp_collapse_flush pmdp_collapse_flush
  
- 	spin_lock(pmd_ptl);
---- a/mm/memory.c~mm-add-folio_mk_pmd
-+++ a/mm/memory.c
-@@ -5188,7 +5188,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ #define pfn_pmd(pfn, pgprot)	mk_pmd_phys(((pfn) << PAGE_SHIFT), (pgprot))
+-#define mk_pmd(page, pgprot)	pfn_pmd(page_to_pfn(page), (pgprot))
  
- 	flush_icache_pages(vma, page, HPAGE_PMD_NR);
+ static inline int pmd_trans_huge(pmd_t pmd)
+ {
+--- a/arch/sparc/include/asm/pgtable_64.h~arch-remove-mk_pmd
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -233,7 +233,6 @@ static inline pmd_t pfn_pmd(unsigned lon
  
--	entry = mk_huge_pmd(page, vma->vm_page_prot);
-+	entry = folio_mk_pmd(folio, vma->vm_page_prot);
- 	if (write)
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 	return __pmd(pte_val(pte));
+ }
+-#define mk_pmd(page, pgprot)	pfn_pmd(page_to_pfn(page), (pgprot))
+ #endif
  
+ /* This one can be done with two shifts.  */
+--- a/arch/x86/include/asm/pgtable.h~arch-remove-mk_pmd
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1335,8 +1335,6 @@ static inline void ptep_set_wrprotect(st
+ 
+ #define flush_tlb_fix_spurious_fault(vma, address, ptep) do { } while (0)
+ 
+-#define mk_pmd(page, pgprot)   pfn_pmd(page_to_pfn(page), (pgprot))
+-
+ #define  __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
+ extern int pmdp_set_access_flags(struct vm_area_struct *vma,
+ 				 unsigned long address, pmd_t *pmdp,
+--- a/include/linux/huge_mm.h~arch-remove-mk_pmd
++++ a/include/linux/huge_mm.h
+@@ -495,8 +495,6 @@ static inline bool is_huge_zero_pmd(pmd_
+ struct folio *mm_get_huge_zero_folio(struct mm_struct *mm);
+ void mm_put_huge_zero_folio(struct mm_struct *mm);
+ 
+-#define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
+-
+ static inline bool thp_migration_supported(void)
+ {
+ 	return IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
