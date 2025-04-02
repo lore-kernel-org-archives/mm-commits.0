@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C7CB155382
-	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 21:57:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD06EFC0A
+	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 22:02:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743631021; cv=none; b=rxYnNpvyMiBPFmsXslLLEg9Fx0N5oXag094Hb+OBAnKh9VsdCPZWSS5k8b7ewWw7qyQfD73mS+ptDs07k9lfE7fFTjJ23L8ECzKNsyJtvKQd/YQnJ7mKHqRPAvC2Mv6MCU3jN5NxeF0u7bsWd+j4OqbrTpQn8EaxVUbJWhzDjUc=
+	t=1743631379; cv=none; b=emGGAvN0zHOUESCSVrlhR8MZR3HW8C6TT2ymuiJmrvQMQWaYuMbEnPbsQR7h+cbFn5x30hr5D6YAa1d3NBdh6Gf/65V1zcWoan4gf2PG/IRGKdHrkrdz0X6odzJsP0cj+/Lgd8fhOML0YTtqST4awXUSE4mJP71uzryKOFbXR+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743631021; c=relaxed/simple;
-	bh=phP4hgyh+5vwcAp8ygUGoRYHGPLrcy9VGS+0Ndb+iF0=;
-	h=Date:To:From:Subject:Message-Id; b=bI6XGOF53iqUt501urUapRUwhjESnfel+IBtqtCsAatGJJAy2izQT3IraTmbtMfKm9wBw4Wyhs1wmuWCacX2gw77/cfqHqYVcqvAki2UN0BwCrPfsZGlMbVs/XED3tZEIuKtQJDU1qwtcpWpWr0kV/jbHPQO8/j7VVZOtrKE6So=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTamRQbB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743631379; c=relaxed/simple;
+	bh=Rzgsq53dN+TZNsFwoY0OY8cM+L2H2GnJZuNp6gcMtcY=;
+	h=Date:To:From:Subject:Message-Id; b=BgSqPZcIznJ0+vr66Jo7SjENyKNSxPL16AiRQMpmb5ozivH/Bdc7ApNOfDZq7lun4i7vZeb5kxskgJR9EYHc2LMoikzU1Thd74utedoH+Ftcr4BRQ7uvMaDMkBzHttVpeqELZrkcz7IpU+zzJ6yladxfc5kbHifzddS1oMkkTLs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l829XKlg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTamRQbB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6796C4CEDD;
-	Wed,  2 Apr 2025 21:57:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l829XKlg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D8C2C4CEE7;
+	Wed,  2 Apr 2025 22:02:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743631021;
-	bh=phP4hgyh+5vwcAp8ygUGoRYHGPLrcy9VGS+0Ndb+iF0=;
+	s=korg; t=1743631377;
+	bh=Rzgsq53dN+TZNsFwoY0OY8cM+L2H2GnJZuNp6gcMtcY=;
 	h=Date:To:From:Subject:From;
-	b=JTamRQbBxiTWO/nEHak0zGFihXHtoM2iRfqTkQin4nYKPucBDkkyG4zdwKOFZJ9IQ
-	 4CztEOMo3XKVCEsMl5o+w44wGHC5qON2qs9LWeBX+jeNrE5nI26mkY5P+Ai7HYkt9y
-	 JtnqMk+o7hoXenrCp++zw4ieFEZeAutn7+GypmHs=
-Date: Wed, 02 Apr 2025 14:57:00 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,sj@kernel.org,senozhatsky@chromium.org,minchan@kernel.org,Jonathan.Cameron@huawei.com,hannes@cmpxchg.org,gourry@gourry.net,dan.j.williams@intel.com,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=l829XKlg9h4gz3S/V34vBz1NOCy1PMcD46ebCGnhXmVRRwr7KuPHGv4pkVSfr04Y7
+	 cSzXmwnINSlHInHNanH8ba8SNjp/af7+WqOualBmeMMTk2u6TQYZIHDKYbW3H1QT26
+	 1UPYusmjxwPbzJqE6sDzaY6bKzitm+GL8Q6fsHpU=
+Date: Wed, 02 Apr 2025 15:02:56 -0700
+To: mm-commits@vger.kernel.org,x86@kernel.org,richard@nod.at,muchun.song@linux.dev,johannes@sipsolutions.net,geert@linux-m68k.org,david@redhat.com,davem@davemloft.net,dave.hansen@linux.intel.com,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,agordeev@linux.ibm.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch added to mm-new branch
-Message-Id: <20250402215700.E6796C4CEDD@smtp.kernel.org>
+Subject: + mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch added to mm-new branch
+Message-Id: <20250402220257.9D8C2C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: prefer the the original page's node for compressed data
+     Subject: mm: set the pte dirty if the folio is already dirty
 has been added to the -mm mm-new branch.  Its filename is
-     zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
+     mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,277 +58,104 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zsmalloc: prefer the the original page's node for compressed data
-Date: Wed, 2 Apr 2025 13:44:16 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: set the pte dirty if the folio is already dirty
+Date: Wed, 2 Apr 2025 19:16:55 +0100
 
-Currently, zsmalloc, zswap's and zram's backend memory allocator, does not
-enforce any policy for the allocation of memory for the compressed data,
-instead just adopting the memory policy of the task entering reclaim, or
-the default policy (prefer local node) if no such policy is specified. 
-This can lead to several pathological behaviors in multi-node NUMA
-systems:
+Patch series "Add folio_mk_pte()", v2.
 
-1. Systems with CXL-based memory tiering can encounter the following
-   inversion with zswap/zram: the coldest pages demoted to the CXL tier
-   can return to the high tier when they are reclaimed to compressed swap,
-   creating memory pressure on the high tier.
+Today if you have a folio and want to create a PTE that points to the
+first page in it, you have to convert from a folio to a page.  That's
+zero-cost today but will be more expensive in the future.
 
-2. Consider a direct reclaimer scanning nodes in order of allocation
-   preference.  If it ventures into remote nodes, the memory it compresses
-   there should stay there.  Trying to shift those contents over to the
-   reclaiming thread's preferred node further *increases* its local
-   pressure, and provoking more spills.  The remote node is also the most
-   likely to refault this data again.  This undesirable behavior was
-   pointed out by Johannes Weiner in [1].
+I didn't want to add folio_mk_pte() to each architecture, and I didn't
+want to lose any optimisations that architectures have from their own
+implementation of mk_pte().  Fortunately, most architectures have by now
+turned their mk_pte() into a fairly bland variant of pfn_pte(), but s390
+has a special optimisation that needs to be moved into generic code in the
+first patch.
 
-3. For zswap writeback, the zswap entries are organized in
-   node-specific LRUs, based on the node placement of the original pages,
-   allowing for targeted zswap writeback for specific nodes.
+At the end of this patch set, we have mk_pte() and folio_mk_pte() in mm.h
+and each architecture only has to implement pfn_pte().  We've also
+eliminated mk_huge_pte(), mk_huge_pmd() and mk_pmd().
 
-   However, the compressed data of a zswap entry can be placed on a
-   different node from the LRU it is placed on.  This means that reclaim
-   targeted at one node might not free up memory used for zswap entries in
-   that node, but instead reclaiming memory in a different node.
 
-All of these issues will be resolved if the compressed data go to the same
-node as the original page.  This patch encourages this behavior by having
-zswap and zram pass the node of the original page to zsmalloc, and have
-zsmalloc prefer the specified node if we need to allocate new (zs)pages
-for the compressed data.
+This patch (of 11):
 
-Note that we are not strictly binding the allocation to the preferred
-node.  We still allow the allocation to fall back to other nodes when the
-preferred node is full, or if we have zspages with slots available on a
-different node.  This is OK, and still a strict improvement over the
-status quo:
+If the first access to a folio is a read that is then followed by a write,
+we can save a page fault.  s390 implemented this in their mk_pte() in
+commit abf09bed3cce ("s390/mm: implement software dirty bits"), but other
+architectures can also benefit from this.
 
-1. On a system with demotion enabled, we will generally prefer
-   demotions over compressed swapping, and only swap when pages have
-   already gone to the lowest tier.  This patch should achieve the desired
-   effect for the most part.
-
-2. If the preferred node is out of memory, letting the compressed data
-   going to other nodes can be better than the alternative (OOMs, keeping
-   cold memory unreclaimed, disk swapping, etc.).
-
-3. If the allocation go to a separate node because we have a zspage
-   with slots available, at least we're not creating extra immediate
-   memory pressure (since the space is already allocated).
-
-3. While there can be mixings, we generally reclaim pages in same-node
-   batches, which encourage zspage grouping that is more likely to go to
-   the right node.
-
-4. A strict binding would require partitioning zsmalloc by node, which
-   is more complicated, and more prone to regression, since it reduces the
-   storage density of zsmalloc.  We need to evaluate the tradeoff and
-   benchmark carefully before adopting such an involved solution.
-
-[1]: https://lore.kernel.org/linux-mm/20250331165306.GC2110528@cmpxchg.org/
-
-Link: https://lkml.kernel.org/r/20250402204416.3435994-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Gregory Price <gourry@gourry.net>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Dan Willaims <dan.j.williams@intel.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20250402181709.2386022-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250402181709.2386022-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com> # for s390
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: <x86@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 ++++++++---
- include/linux/zpool.h         |    4 ++--
- include/linux/zsmalloc.h      |    3 ++-
- mm/zpool.c                    |    8 +++++---
- mm/zsmalloc.c                 |   18 ++++++++++--------
- mm/zswap.c                    |    2 +-
- 6 files changed, 28 insertions(+), 18 deletions(-)
+ arch/s390/include/asm/pgtable.h |    7 +------
+ mm/memory.c                     |    2 ++
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1694,7 +1694,7 @@ static int write_incompressible_page(str
- 	 */
- 	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
- 			   GFP_NOIO | __GFP_NOWARN |
--			   __GFP_HIGHMEM | __GFP_MOVABLE);
-+			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR_VALUE(handle))
- 		return PTR_ERR((void *)handle);
+--- a/arch/s390/include/asm/pgtable.h~mm-set-the-pte-dirty-if-the-folio-is-already-dirty
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1450,12 +1450,7 @@ static inline pte_t mk_pte_phys(unsigned
  
-@@ -1761,7 +1761,7 @@ static int zram_write_page(struct zram *
- 
- 	handle = zs_malloc(zram->mem_pool, comp_len,
- 			   GFP_NOIO | __GFP_NOWARN |
--			   __GFP_HIGHMEM | __GFP_MOVABLE);
-+			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR_VALUE(handle)) {
- 		zcomp_stream_put(zstrm);
- 		return PTR_ERR((void *)handle);
-@@ -1981,10 +1981,15 @@ static int recompress_slot(struct zram *
- 	 * We are holding per-CPU stream mutex and entry lock so better
- 	 * avoid direct reclaim.  Allocation error is not fatal since
- 	 * we still have the old object in the mem_pool.
-+	 *
-+	 * XXX: technically, the node we really want here is the node that holds
-+	 * the original compressed data. But that would require us to modify
-+	 * zsmalloc API to return this information. For now, we will make do with
-+	 * the node of the page allocated for recompression.
- 	 */
- 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
- 			       GFP_NOIO | __GFP_NOWARN |
--			       __GFP_HIGHMEM | __GFP_MOVABLE);
-+			       __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
- 	if (IS_ERR_VALUE(handle_new)) {
- 		zcomp_stream_put(zstrm);
- 		return PTR_ERR((void *)handle_new);
---- a/include/linux/zpool.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/include/linux/zpool.h
-@@ -22,7 +22,7 @@ const char *zpool_get_type(struct zpool
- void zpool_destroy_pool(struct zpool *pool);
- 
- int zpool_malloc(struct zpool *pool, size_t size, gfp_t gfp,
--			unsigned long *handle);
-+			unsigned long *handle, const int nid);
- 
- void zpool_free(struct zpool *pool, unsigned long handle);
- 
-@@ -64,7 +64,7 @@ struct zpool_driver {
- 	void (*destroy)(void *pool);
- 
- 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
--				unsigned long *handle);
-+				unsigned long *handle, const int nid);
- 	void (*free)(void *pool, unsigned long handle);
- 
- 	void *(*obj_read_begin)(void *pool, unsigned long handle,
---- a/include/linux/zsmalloc.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/include/linux/zsmalloc.h
-@@ -26,7 +26,8 @@ struct zs_pool;
- struct zs_pool *zs_create_pool(const char *name);
- void zs_destroy_pool(struct zs_pool *pool);
- 
--unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags);
-+unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags,
-+			const int nid);
- void zs_free(struct zs_pool *pool, unsigned long obj);
- 
- size_t zs_huge_class_size(struct zs_pool *pool);
---- a/mm/zpool.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/mm/zpool.c
-@@ -226,20 +226,22 @@ const char *zpool_get_type(struct zpool
-  * @size:	The amount of memory to allocate.
-  * @gfp:	The GFP flags to use when allocating memory.
-  * @handle:	Pointer to the handle to set
-+ * @nid:	The preferred node id.
-  *
-  * This allocates the requested amount of memory from the pool.
-  * The gfp flags will be used when allocating memory, if the
-  * implementation supports it.  The provided @handle will be
-- * set to the allocated object handle.
-+ * set to the allocated object handle. The allocation will
-+ * prefer the NUMA node specified by @nid.
-  *
-  * Implementations must guarantee this to be thread-safe.
-  *
-  * Returns: 0 on success, negative value on error.
-  */
- int zpool_malloc(struct zpool *zpool, size_t size, gfp_t gfp,
--			unsigned long *handle)
-+			unsigned long *handle, const int nid)
+ static inline pte_t mk_pte(struct page *page, pgprot_t pgprot)
  {
--	return zpool->driver->malloc(zpool->pool, size, gfp, handle);
-+	return zpool->driver->malloc(zpool->pool, size, gfp, handle, nid);
+-	unsigned long physpage = page_to_phys(page);
+-	pte_t __pte = mk_pte_phys(physpage, pgprot);
+-
+-	if (pte_write(__pte) && PageDirty(page))
+-		__pte = pte_mkdirty(__pte);
+-	return __pte;
++	return mk_pte_phys(page_to_phys(page), pgprot);
  }
  
- /**
---- a/mm/zsmalloc.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/mm/zsmalloc.c
-@@ -243,9 +243,9 @@ static inline void zpdesc_dec_zone_page_
- 	dec_zone_page_state(zpdesc_page(zpdesc), NR_ZSPAGES);
- }
+ #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+--- a/mm/memory.c~mm-set-the-pte-dirty-if-the-folio-is-already-dirty
++++ a/mm/memory.c
+@@ -5245,6 +5245,8 @@ void set_pte_range(struct vm_fault *vmf,
  
--static inline struct zpdesc *alloc_zpdesc(gfp_t gfp)
-+static inline struct zpdesc *alloc_zpdesc(gfp_t gfp, const int nid)
- {
--	struct page *page = alloc_page(gfp);
-+	struct page *page = alloc_pages_node(nid, gfp, 0);
- 
- 	return page_zpdesc(page);
- }
-@@ -462,9 +462,9 @@ static void zs_zpool_destroy(void *pool)
- }
- 
- static int zs_zpool_malloc(void *pool, size_t size, gfp_t gfp,
--			unsigned long *handle)
-+			unsigned long *handle, const int nid)
- {
--	*handle = zs_malloc(pool, size, gfp);
-+	*handle = zs_malloc(pool, size, gfp, nid);
- 
- 	if (IS_ERR_VALUE(*handle))
- 		return PTR_ERR((void *)*handle);
-@@ -1044,7 +1044,7 @@ static void create_page_chain(struct siz
-  */
- static struct zspage *alloc_zspage(struct zs_pool *pool,
- 					struct size_class *class,
--					gfp_t gfp)
-+					gfp_t gfp, const int nid)
- {
- 	int i;
- 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
-@@ -1061,7 +1061,7 @@ static struct zspage *alloc_zspage(struc
- 	for (i = 0; i < class->pages_per_zspage; i++) {
- 		struct zpdesc *zpdesc;
- 
--		zpdesc = alloc_zpdesc(gfp);
-+		zpdesc = alloc_zpdesc(gfp, nid);
- 		if (!zpdesc) {
- 			while (--i >= 0) {
- 				zpdesc_dec_zone_page_state(zpdescs[i]);
-@@ -1336,12 +1336,14 @@ static unsigned long obj_malloc(struct z
-  * @pool: pool to allocate from
-  * @size: size of block to allocate
-  * @gfp: gfp flags when allocating object
-+ * @nid: The preferred node id to allocate new zspage (if needed)
-  *
-  * On success, handle to the allocated object is returned,
-  * otherwise an ERR_PTR().
-  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
-  */
--unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
-+unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp,
-+				const int nid)
- {
- 	unsigned long handle;
- 	struct size_class *class;
-@@ -1376,7 +1378,7 @@ unsigned long zs_malloc(struct zs_pool *
- 
- 	spin_unlock(&class->lock);
- 
--	zspage = alloc_zspage(pool, class, gfp);
-+	zspage = alloc_zspage(pool, class, gfp, nid);
- 	if (!zspage) {
- 		cache_free_handle(pool, handle);
- 		return (unsigned long)ERR_PTR(-ENOMEM);
---- a/mm/zswap.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
-+++ a/mm/zswap.c
-@@ -981,7 +981,7 @@ static bool zswap_compress(struct page *
- 
- 	zpool = pool->zpool;
- 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
--	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle);
-+	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle, page_to_nid(page));
- 	if (alloc_ret)
- 		goto unlock;
- 
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	else if (pte_write(entry) && folio_test_dirty(folio))
++		entry = pte_mkdirty(entry);
+ 	if (unlikely(vmf_orig_pte_uffd_wp(vmf)))
+ 		entry = pte_mkuffd_wp(entry);
+ 	/* copy-on-write page */
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
+mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch
+mm-introduce-a-common-definition-of-mk_pte.patch
+sparc32-remove-custom-definition-of-mk_pte.patch
+x86-remove-custom-definition-of-mk_pte.patch
+um-remove-custom-definition-of-mk_pte.patch
+mm-make-mk_pte-definition-unconditional.patch
+mm-add-folio_mk_pte.patch
+hugetlb-simplify-make_huge_pte.patch
+mm-remove-mk_huge_pte.patch
+mm-add-folio_mk_pmd.patch
+arch-remove-mk_pmd.patch
+filemap-remove-readahead_page.patch
+mm-remove-offset_in_thp.patch
+iov_iter-convert-iter_xarray_populate_pages-to-use-folios.patch
+iov_iter-convert-iov_iter_extract_xarray_pages-to-use-folios.patch
+filemap-remove-find_subpage.patch
+filemap-convert-__readahead_batch-to-use-a-folio.patch
+filemap-remove-readahead_page_batch.patch
+mm-delete-thp_nr_pages.patch
 
