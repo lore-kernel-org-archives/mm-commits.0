@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AA0C1EBFF0
-	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 21:54:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C7CB155382
+	for <mm-commits@vger.kernel.org>; Wed,  2 Apr 2025 21:57:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743630841; cv=none; b=pKlxhWiKQKwsh4NOYUZ4BaVcm5qqqofgS8tC08DPy4nnLiJNstdWN7IpgtWOjqRHXycxJTBRFT+EeZDrrljNfP6Lj0waPvcBC/vBbzUqVQrlSWjhy6yfFL4PS2So+3cNm/jtYud+bOg5rEK5v/h9/6MhLMg9d7m+HamqQk5foGA=
+	t=1743631021; cv=none; b=rxYnNpvyMiBPFmsXslLLEg9Fx0N5oXag094Hb+OBAnKh9VsdCPZWSS5k8b7ewWw7qyQfD73mS+ptDs07k9lfE7fFTjJ23L8ECzKNsyJtvKQd/YQnJ7mKHqRPAvC2Mv6MCU3jN5NxeF0u7bsWd+j4OqbrTpQn8EaxVUbJWhzDjUc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743630841; c=relaxed/simple;
-	bh=KI1f3h2aNAXFwXb2n6N8vF0bx3vDdW3Qnzdhzio4l0Q=;
-	h=Date:To:From:Subject:Message-Id; b=jCPidcJWCGN8br+OlKEq9VmLa3mEXipW1ayfzmy+ZszTeYa32WZYn+EGa91ez+LLdaR+LlPEQarvvF3JMoTPm52xDXrVRs7p/h7MHfp7ylTP3UvU7XOcGYkuwzLm7ad5TrlkDMiWgEo5NXAVNlA6BbnzoDIdtP8BuCT/Se76Tjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wqmdbKg8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743631021; c=relaxed/simple;
+	bh=phP4hgyh+5vwcAp8ygUGoRYHGPLrcy9VGS+0Ndb+iF0=;
+	h=Date:To:From:Subject:Message-Id; b=bI6XGOF53iqUt501urUapRUwhjESnfel+IBtqtCsAatGJJAy2izQT3IraTmbtMfKm9wBw4Wyhs1wmuWCacX2gw77/cfqHqYVcqvAki2UN0BwCrPfsZGlMbVs/XED3tZEIuKtQJDU1qwtcpWpWr0kV/jbHPQO8/j7VVZOtrKE6So=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTamRQbB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wqmdbKg8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C493C4CEDD;
-	Wed,  2 Apr 2025 21:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTamRQbB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6796C4CEDD;
+	Wed,  2 Apr 2025 21:57:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743630841;
-	bh=KI1f3h2aNAXFwXb2n6N8vF0bx3vDdW3Qnzdhzio4l0Q=;
+	s=korg; t=1743631021;
+	bh=phP4hgyh+5vwcAp8ygUGoRYHGPLrcy9VGS+0Ndb+iF0=;
 	h=Date:To:From:Subject:From;
-	b=wqmdbKg8U301VvB6PUA4HcbFO1yuTlkvxGHC+KSS4+WjtxM68t7xsivP8yVRR0QQV
-	 5D0C66tYDOiAp+mGcQAZVVEd2cqK3q5C77Z6aQEH6NbwUOs6Jfn2ID1khU295aZR0e
-	 xiTV7Tijx73vPY4fLcF3kmY4b4kQ7AKyhC/0w7t8=
-Date: Wed, 02 Apr 2025 14:54:00 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,luizcap@redhat.com,david@redhat.com,fvdl@google.com,akpm@linux-foundation.org
+	b=JTamRQbBxiTWO/nEHak0zGFihXHtoM2iRfqTkQin4nYKPucBDkkyG4zdwKOFZJ9IQ
+	 4CztEOMo3XKVCEsMl5o+w44wGHC5qON2qs9LWeBX+jeNrE5nI26mkY5P+Ai7HYkt9y
+	 JtnqMk+o7hoXenrCp++zw4ieFEZeAutn7+GypmHs=
+Date: Wed, 02 Apr 2025 14:57:00 -0700
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,sj@kernel.org,senozhatsky@chromium.org,minchan@kernel.org,Jonathan.Cameron@huawei.com,hannes@cmpxchg.org,gourry@gourry.net,dan.j.williams@intel.com,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch added to mm-new branch
-Message-Id: <20250402215401.5C493C4CEDD@smtp.kernel.org>
+Subject: + zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch added to mm-new branch
+Message-Id: <20250402215700.E6796C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: use separate nodemask for bootmem allocations
+     Subject: zsmalloc: prefer the the original page's node for compressed data
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch
+     zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,193 +58,277 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Frank van der Linden <fvdl@google.com>
-Subject: mm/hugetlb: use separate nodemask for bootmem allocations
-Date: Wed, 2 Apr 2025 20:56:13 +0000
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zsmalloc: prefer the the original page's node for compressed data
+Date: Wed, 2 Apr 2025 13:44:16 -0700
 
-Hugetlb boot allocation has used online nodes for allocation since commit
-de55996d7188 ("mm/hugetlb: use online nodes for bootmem allocation"). 
-This was needed to be able to do the allocations earlier in boot, before
-N_MEMORY was set.
+Currently, zsmalloc, zswap's and zram's backend memory allocator, does not
+enforce any policy for the allocation of memory for the compressed data,
+instead just adopting the memory policy of the task entering reclaim, or
+the default policy (prefer local node) if no such policy is specified. 
+This can lead to several pathological behaviors in multi-node NUMA
+systems:
 
-This might lead to a different distribution of gigantic hugepages across
-NUMA nodes if there are memoryless nodes in the system.
+1. Systems with CXL-based memory tiering can encounter the following
+   inversion with zswap/zram: the coldest pages demoted to the CXL tier
+   can return to the high tier when they are reclaimed to compressed swap,
+   creating memory pressure on the high tier.
 
-What happens is that the memoryless nodes are tried, but then the memblock
-allocation fails and falls back, which usually means that the node that
-has the highest physical address available will be used (top-down
-allocation).  While this will end up getting the same number of hugetlb
-pages, they might not be be distributed the same way.  The fallback for
-each memoryless node might not end up coming from the same node as the
-successful round-robin allocation from N_MEMORY nodes.
+2. Consider a direct reclaimer scanning nodes in order of allocation
+   preference.  If it ventures into remote nodes, the memory it compresses
+   there should stay there.  Trying to shift those contents over to the
+   reclaiming thread's preferred node further *increases* its local
+   pressure, and provoking more spills.  The remote node is also the most
+   likely to refault this data again.  This undesirable behavior was
+   pointed out by Johannes Weiner in [1].
 
-While administrators that rely on having a specific number of hugepages
-per node should use the hugepages=N:X syntax, it's better not to change
-the old behavior for the plain hugepages=N case.
+3. For zswap writeback, the zswap entries are organized in
+   node-specific LRUs, based on the node placement of the original pages,
+   allowing for targeted zswap writeback for specific nodes.
 
-To do this, construct a nodemask for hugetlb bootmem purposes only,
-containing nodes that have memory.  Then use that for round-robin bootmem
-allocations.
+   However, the compressed data of a zswap entry can be placed on a
+   different node from the LRU it is placed on.  This means that reclaim
+   targeted at one node might not free up memory used for zswap entries in
+   that node, but instead reclaiming memory in a different node.
 
-This saves some cycles, and the added advantage here is that hugetlb_cma
-can use it too, avoiding the older issue of pointless attempts to create a
-CMA area for memoryless nodes (which will also cause the per-node CMA area
-size to be too small).
+All of these issues will be resolved if the compressed data go to the same
+node as the original page.  This patch encourages this behavior by having
+zswap and zram pass the node of the original page to zsmalloc, and have
+zsmalloc prefer the specified node if we need to allocate new (zs)pages
+for the compressed data.
 
-Link: https://lkml.kernel.org/r/20250402205613.3086864-1-fvdl@google.com
-Fixes: de55996d7188 ("mm/hugetlb: use online nodes for bootmem allocation")
-Signed-off-by: Frank van der Linden <fvdl@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Note that we are not strictly binding the allocation to the preferred
+node.  We still allow the allocation to fall back to other nodes when the
+preferred node is full, or if we have zspages with slots available on a
+different node.  This is OK, and still a strict improvement over the
+status quo:
+
+1. On a system with demotion enabled, we will generally prefer
+   demotions over compressed swapping, and only swap when pages have
+   already gone to the lowest tier.  This patch should achieve the desired
+   effect for the most part.
+
+2. If the preferred node is out of memory, letting the compressed data
+   going to other nodes can be better than the alternative (OOMs, keeping
+   cold memory unreclaimed, disk swapping, etc.).
+
+3. If the allocation go to a separate node because we have a zspage
+   with slots available, at least we're not creating extra immediate
+   memory pressure (since the space is already allocated).
+
+3. While there can be mixings, we generally reclaim pages in same-node
+   batches, which encourage zspage grouping that is more likely to go to
+   the right node.
+
+4. A strict binding would require partitioning zsmalloc by node, which
+   is more complicated, and more prone to regression, since it reduces the
+   storage density of zsmalloc.  We need to evaluate the tradeoff and
+   benchmark carefully before adopting such an involved solution.
+
+[1]: https://lore.kernel.org/linux-mm/20250331165306.GC2110528@cmpxchg.org/
+
+Link: https://lkml.kernel.org/r/20250402204416.3435994-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Gregory Price <gourry@gourry.net>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Dan Willaims <dan.j.williams@intel.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 +++
- mm/hugetlb.c            |   30 ++++++++++++++++++++++++++++--
- mm/hugetlb_cma.c        |   11 +++++++----
- 3 files changed, 38 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   11 ++++++++---
+ include/linux/zpool.h         |    4 ++--
+ include/linux/zsmalloc.h      |    3 ++-
+ mm/zpool.c                    |    8 +++++---
+ mm/zsmalloc.c                 |   18 ++++++++++--------
+ mm/zswap.c                    |    2 +-
+ 6 files changed, 28 insertions(+), 18 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-use-separate-nodemask-for-bootmem-allocations
-+++ a/include/linux/hugetlb.h
-@@ -14,6 +14,7 @@
- #include <linux/pgtable.h>
- #include <linux/gfp.h>
- #include <linux/userfaultfd_k.h>
-+#include <linux/nodemask.h>
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
++++ a/drivers/block/zram/zram_drv.c
+@@ -1694,7 +1694,7 @@ static int write_incompressible_page(str
+ 	 */
+ 	handle = zs_malloc(zram->mem_pool, PAGE_SIZE,
+ 			   GFP_NOIO | __GFP_NOWARN |
+-			   __GFP_HIGHMEM | __GFP_MOVABLE);
++			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
+ 	if (IS_ERR_VALUE(handle))
+ 		return PTR_ERR((void *)handle);
  
- struct ctl_table;
- struct user_struct;
-@@ -176,6 +177,8 @@ extern struct list_head huge_boot_pages[
+@@ -1761,7 +1761,7 @@ static int zram_write_page(struct zram *
  
- void hugetlb_bootmem_alloc(void);
- bool hugetlb_bootmem_allocated(void);
-+extern nodemask_t hugetlb_bootmem_nodes;
-+void hugetlb_bootmem_set_nodes(void);
+ 	handle = zs_malloc(zram->mem_pool, comp_len,
+ 			   GFP_NOIO | __GFP_NOWARN |
+-			   __GFP_HIGHMEM | __GFP_MOVABLE);
++			   __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
+ 	if (IS_ERR_VALUE(handle)) {
+ 		zcomp_stream_put(zstrm);
+ 		return PTR_ERR((void *)handle);
+@@ -1981,10 +1981,15 @@ static int recompress_slot(struct zram *
+ 	 * We are holding per-CPU stream mutex and entry lock so better
+ 	 * avoid direct reclaim.  Allocation error is not fatal since
+ 	 * we still have the old object in the mem_pool.
++	 *
++	 * XXX: technically, the node we really want here is the node that holds
++	 * the original compressed data. But that would require us to modify
++	 * zsmalloc API to return this information. For now, we will make do with
++	 * the node of the page allocated for recompression.
+ 	 */
+ 	handle_new = zs_malloc(zram->mem_pool, comp_len_new,
+ 			       GFP_NOIO | __GFP_NOWARN |
+-			       __GFP_HIGHMEM | __GFP_MOVABLE);
++			       __GFP_HIGHMEM | __GFP_MOVABLE, page_to_nid(page));
+ 	if (IS_ERR_VALUE(handle_new)) {
+ 		zcomp_stream_put(zstrm);
+ 		return PTR_ERR((void *)handle_new);
+--- a/include/linux/zpool.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
++++ a/include/linux/zpool.h
+@@ -22,7 +22,7 @@ const char *zpool_get_type(struct zpool
+ void zpool_destroy_pool(struct zpool *pool);
  
- /* arch callbacks */
+ int zpool_malloc(struct zpool *pool, size_t size, gfp_t gfp,
+-			unsigned long *handle);
++			unsigned long *handle, const int nid);
  
---- a/mm/hugetlb.c~mm-hugetlb-use-separate-nodemask-for-bootmem-allocations
-+++ a/mm/hugetlb.c
-@@ -58,6 +58,7 @@ int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
+ void zpool_free(struct zpool *pool, unsigned long handle);
  
-+__initdata nodemask_t hugetlb_bootmem_nodes;
- __initdata struct list_head huge_boot_pages[MAX_NUMNODES];
- static unsigned long hstate_boot_nrinvalid[HUGE_MAX_HSTATE] __initdata;
+@@ -64,7 +64,7 @@ struct zpool_driver {
+ 	void (*destroy)(void *pool);
  
-@@ -3237,7 +3238,8 @@ int __alloc_bootmem_huge_page(struct hst
- 	}
+ 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
+-				unsigned long *handle);
++				unsigned long *handle, const int nid);
+ 	void (*free)(void *pool, unsigned long handle);
  
- 	/* allocate from next node when distributing huge pages */
--	for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node, &node_states[N_ONLINE]) {
-+	for_each_node_mask_to_alloc(&h->next_nid_to_alloc, nr_nodes, node,
-+				    &hugetlb_bootmem_nodes) {
- 		m = alloc_bootmem(h, node, false);
- 		if (!m)
- 			return 0;
-@@ -3701,6 +3703,15 @@ static void __init hugetlb_init_hstates(
- 	struct hstate *h, *h2;
+ 	void *(*obj_read_begin)(void *pool, unsigned long handle,
+--- a/include/linux/zsmalloc.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
++++ a/include/linux/zsmalloc.h
+@@ -26,7 +26,8 @@ struct zs_pool;
+ struct zs_pool *zs_create_pool(const char *name);
+ void zs_destroy_pool(struct zs_pool *pool);
  
- 	for_each_hstate(h) {
-+		/*
-+		 * Always reset to first_memory_node here, even if
-+		 * next_nid_to_alloc was set before - we can't
-+		 * reference hugetlb_bootmem_nodes after init, and
-+		 * first_memory_node is right for all further allocations.
-+		 */
-+		h->next_nid_to_alloc = first_memory_node;
-+		h->next_nid_to_free = first_memory_node;
-+
- 		/* oversize hugepages were init'ed in early boot */
- 		if (!hstate_is_gigantic(h))
- 			hugetlb_hstate_alloc_pages(h);
-@@ -4990,6 +5001,20 @@ static int __init default_hugepagesz_set
+-unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags);
++unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t flags,
++			const int nid);
+ void zs_free(struct zs_pool *pool, unsigned long obj);
+ 
+ size_t zs_huge_class_size(struct zs_pool *pool);
+--- a/mm/zpool.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
++++ a/mm/zpool.c
+@@ -226,20 +226,22 @@ const char *zpool_get_type(struct zpool
+  * @size:	The amount of memory to allocate.
+  * @gfp:	The GFP flags to use when allocating memory.
+  * @handle:	Pointer to the handle to set
++ * @nid:	The preferred node id.
+  *
+  * This allocates the requested amount of memory from the pool.
+  * The gfp flags will be used when allocating memory, if the
+  * implementation supports it.  The provided @handle will be
+- * set to the allocated object handle.
++ * set to the allocated object handle. The allocation will
++ * prefer the NUMA node specified by @nid.
+  *
+  * Implementations must guarantee this to be thread-safe.
+  *
+  * Returns: 0 on success, negative value on error.
+  */
+ int zpool_malloc(struct zpool *zpool, size_t size, gfp_t gfp,
+-			unsigned long *handle)
++			unsigned long *handle, const int nid)
+ {
+-	return zpool->driver->malloc(zpool->pool, size, gfp, handle);
++	return zpool->driver->malloc(zpool->pool, size, gfp, handle, nid);
  }
- hugetlb_early_param("default_hugepagesz", default_hugepagesz_setup);
  
-+void __init hugetlb_bootmem_set_nodes(void)
-+{
-+	int i, nid;
-+	unsigned long start_pfn, end_pfn;
-+
-+	if (!nodes_empty(hugetlb_bootmem_nodes))
-+		return;
-+
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
-+		if (end_pfn > start_pfn)
-+			node_set(nid, hugetlb_bootmem_nodes);
-+	}
-+}
-+
- static bool __hugetlb_bootmem_allocated __initdata;
+ /**
+--- a/mm/zsmalloc.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
++++ a/mm/zsmalloc.c
+@@ -243,9 +243,9 @@ static inline void zpdesc_dec_zone_page_
+ 	dec_zone_page_state(zpdesc_page(zpdesc), NR_ZSPAGES);
+ }
  
- bool __init hugetlb_bootmem_allocated(void)
-@@ -5005,6 +5030,8 @@ void __init hugetlb_bootmem_alloc(void)
- 	if (__hugetlb_bootmem_allocated)
- 		return;
+-static inline struct zpdesc *alloc_zpdesc(gfp_t gfp)
++static inline struct zpdesc *alloc_zpdesc(gfp_t gfp, const int nid)
+ {
+-	struct page *page = alloc_page(gfp);
++	struct page *page = alloc_pages_node(nid, gfp, 0);
  
-+	hugetlb_bootmem_set_nodes();
-+
- 	for (i = 0; i < MAX_NUMNODES; i++)
- 		INIT_LIST_HEAD(&huge_boot_pages[i]);
+ 	return page_zpdesc(page);
+ }
+@@ -462,9 +462,9 @@ static void zs_zpool_destroy(void *pool)
+ }
  
-@@ -5012,7 +5039,6 @@ void __init hugetlb_bootmem_alloc(void)
+ static int zs_zpool_malloc(void *pool, size_t size, gfp_t gfp,
+-			unsigned long *handle)
++			unsigned long *handle, const int nid)
+ {
+-	*handle = zs_malloc(pool, size, gfp);
++	*handle = zs_malloc(pool, size, gfp, nid);
  
- 	for_each_hstate(h) {
- 		h->next_nid_to_alloc = first_online_node;
--		h->next_nid_to_free = first_online_node;
+ 	if (IS_ERR_VALUE(*handle))
+ 		return PTR_ERR((void *)*handle);
+@@ -1044,7 +1044,7 @@ static void create_page_chain(struct siz
+  */
+ static struct zspage *alloc_zspage(struct zs_pool *pool,
+ 					struct size_class *class,
+-					gfp_t gfp)
++					gfp_t gfp, const int nid)
+ {
+ 	int i;
+ 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
+@@ -1061,7 +1061,7 @@ static struct zspage *alloc_zspage(struc
+ 	for (i = 0; i < class->pages_per_zspage; i++) {
+ 		struct zpdesc *zpdesc;
  
- 		if (hstate_is_gigantic(h))
- 			hugetlb_hstate_alloc_pages(h);
---- a/mm/hugetlb_cma.c~mm-hugetlb-use-separate-nodemask-for-bootmem-allocations
-+++ a/mm/hugetlb_cma.c
-@@ -66,7 +66,7 @@ hugetlb_cma_alloc_bootmem(struct hstate
- 		if (node_exact)
- 			return NULL;
+-		zpdesc = alloc_zpdesc(gfp);
++		zpdesc = alloc_zpdesc(gfp, nid);
+ 		if (!zpdesc) {
+ 			while (--i >= 0) {
+ 				zpdesc_dec_zone_page_state(zpdescs[i]);
+@@ -1336,12 +1336,14 @@ static unsigned long obj_malloc(struct z
+  * @pool: pool to allocate from
+  * @size: size of block to allocate
+  * @gfp: gfp flags when allocating object
++ * @nid: The preferred node id to allocate new zspage (if needed)
+  *
+  * On success, handle to the allocated object is returned,
+  * otherwise an ERR_PTR().
+  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
+  */
+-unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp)
++unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp,
++				const int nid)
+ {
+ 	unsigned long handle;
+ 	struct size_class *class;
+@@ -1376,7 +1378,7 @@ unsigned long zs_malloc(struct zs_pool *
  
--		for_each_online_node(node) {
-+		for_each_node_mask(node, hugetlb_bootmem_nodes) {
- 			cma = hugetlb_cma[node];
- 			if (!cma || node == *nid)
- 				continue;
-@@ -153,11 +153,13 @@ void __init hugetlb_cma_reserve(int orde
- 	if (!hugetlb_cma_size)
- 		return;
+ 	spin_unlock(&class->lock);
  
-+	hugetlb_bootmem_set_nodes();
-+
- 	for (nid = 0; nid < MAX_NUMNODES; nid++) {
- 		if (hugetlb_cma_size_in_node[nid] == 0)
- 			continue;
+-	zspage = alloc_zspage(pool, class, gfp);
++	zspage = alloc_zspage(pool, class, gfp, nid);
+ 	if (!zspage) {
+ 		cache_free_handle(pool, handle);
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+--- a/mm/zswap.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data
++++ a/mm/zswap.c
+@@ -981,7 +981,7 @@ static bool zswap_compress(struct page *
  
--		if (!node_online(nid)) {
-+		if (!node_isset(nid, hugetlb_bootmem_nodes)) {
- 			pr_warn("hugetlb_cma: invalid node %d specified\n", nid);
- 			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
- 			hugetlb_cma_size_in_node[nid] = 0;
-@@ -190,13 +192,14 @@ void __init hugetlb_cma_reserve(int orde
- 		 * If 3 GB area is requested on a machine with 4 numa nodes,
- 		 * let's allocate 1 GB on first three nodes and ignore the last one.
- 		 */
--		per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
-+		per_node = DIV_ROUND_UP(hugetlb_cma_size,
-+					nodes_weight(hugetlb_bootmem_nodes));
- 		pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
- 			hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
- 	}
- 
- 	reserved = 0;
--	for_each_online_node(nid) {
-+	for_each_node_mask(nid, hugetlb_bootmem_nodes) {
- 		int res;
- 		char name[CMA_MAX_NAME];
+ 	zpool = pool->zpool;
+ 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
+-	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle);
++	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle, page_to_nid(page));
+ 	if (alloc_ret)
+ 		goto unlock;
  
 _
 
-Patches currently in -mm which might be from fvdl@google.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch
+zsmalloc-prefer-the-the-original-pages-node-for-compressed-data.patch
 
