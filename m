@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4660190676
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 03:51:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 663AF2581;
+	Thu,  3 Apr 2025 03:59:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743652262; cv=none; b=SNqvgPrMVKqlhCggaPce0QRq0tXdrNJMoWSsUXfvh6fDZvXCwyYwFCNGXA6pHM2wBdOcS2MAzSeoqHg6c4V6KhOLajtB3etwluwphIBYu24vEeJQi727L+UwOSkP25EozW4vaYTvt91n2j5psNCdwUtBCwXUANLl79uuJq0mfM0=
+	t=1743652795; cv=none; b=mXg0m2Y80Z2jb3dWcGc8mB4PgPi88HWGaXPyexIfSJC9CCjcEv77+y8FTYSYb/8E/bBs+o6kmm8zu98k57q2Tg4v37wLDswb5pWhJjLtnuBMouVVpgidtW483WJxhp0zFYpMrkh+U5y+osfkzCC5vBqe5HvJN3ENnQ/8uwbk3yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743652262; c=relaxed/simple;
-	bh=ENdn/b12okj2TpSNURVPWjet0mHEX42CdIymeQiQipI=;
-	h=Date:To:From:Subject:Message-Id; b=Mgl/vE2tOdkEDTrY4hR3T3+TUv5R0fMx7Nu7jy/22AdV61QhIr2HcPOebW9czq4yl7t/uZ4FsW0PvxqPphlq44W9rGM7bol4DIjJPcGzGeLNQa2ExgxPf7SUUMwo0IDEEMyq/aKXQ/jFSo+biRMW70S2EJeRVRiytT7sMoJixn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wCs4lsXq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743652795; c=relaxed/simple;
+	bh=a1W8uK/mtFZRgxv1ycxIHxj31XYVSUtlLTwzZB8HCBQ=;
+	h=Date:To:From:Subject:Message-Id; b=MF1f7OKrpfmHWhR38su/maSZtfcfcgyGdelOZ71cNL7twU+QN+jr5xvfUWS0oj7nJv0gpZQrRkYca0nPWI5QejxR0pAIUlH5Ovgo8wYnCD1Av51EOq6K35UWI9aCPbUQ45hlignyna+e8p3pzVxp5kYaDagSVDlmFKAXUkrtANo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IWbYgMh5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wCs4lsXq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B0AC4CEE3;
-	Thu,  3 Apr 2025 03:51:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IWbYgMh5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07F0BC4CEE3;
+	Thu,  3 Apr 2025 03:59:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743652262;
-	bh=ENdn/b12okj2TpSNURVPWjet0mHEX42CdIymeQiQipI=;
+	s=korg; t=1743652795;
+	bh=a1W8uK/mtFZRgxv1ycxIHxj31XYVSUtlLTwzZB8HCBQ=;
 	h=Date:To:From:Subject:From;
-	b=wCs4lsXqZo7SugtSUPttpi1QpDv0TbBe+271eFBEFYnHD3OctmxdsUIp1cSg3afA8
-	 E9yiF34aV9PbZfopGNHvjnJgA8q0kejj6Cg4c4VmEQ1R7eND/euQ+Xue7K5q6iEHYS
-	 kB8WdTNbE37dhWpkZxyadWoP0oFnmdVB702UV3kA=
-Date: Wed, 02 Apr 2025 20:51:01 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=IWbYgMh5WVUS8UlkU4CribUjZbLpCnenRBx8PpXl/kFqhD0ReBBjaKk3l4yInFmdg
+	 JcItI257rcFK5o8E+fE4Ps0cHw6jEdYcReT1XEWuSKJdVMYY20sAlg+kKihRNUu8mB
+	 gMCcd77d7kctOM8kt0rnlaX/q+12U5hN0jEuYnLQ=
+Date: Wed, 02 Apr 2025 20:59:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch added to mm-new branch
-Message-Id: <20250403035102.33B0AC4CEE3@smtp.kernel.org>
+Subject: + mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250403035955.07F0BC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+     Subject: mm/compaction: fix bug in hugetlb handling pathway
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,143 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
-Date: Tue, 1 Apr 2025 16:23:39 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/compaction: fix bug in hugetlb handling pathway
+Date: Mon, 31 Mar 2025 19:10:24 -0700
 
-In set_max_huge_pages(), min_count should mean the acquired persistent
-huge pages, but it contains surplus huge pages.  It will leads to failing
-to freeing free huge pages for a Node.
+The compaction code doesn't take references on pages until we're certain
+we should attempt to handle it.
 
-Steps to reproduce:
-1) create 5 hugetlb folios in Node0
-2) run a program to use all the hugetlb folios
-3) echo 0 > nr_hugepages for Node0 to free the hugetlb folios. Thus the 5
-hugetlb folios in Node0 are accounted as surplus.
-4) create 5 hugetlb folios in Node1
-5) echo 0 > nr_hugepages for Node1 to free the hugetlb folios
+In the hugetlb case, isolate_or_dissolve_huge_page() may return -EBUSY
+without taking a reference to the folio associated with our pfn.  If our
+folio's refcount drops to 0, compound_nr() becomes unpredictable, making
+low_pfn and nr_scanned unreliable.  The user-visible effect is minimal -
+this should rarely happen (if ever).
 
-The result:
-        Node0    Node1
-Total     5         5
-Free      0         5
-Surp      5         5
+Fix this by storing the folio statistics earlier on the stack (just like
+the THP and Buddy cases).
 
-We couldn't subtract surplus_huge_pages from min_mount, since free hugetlb
-folios may be surplus due to HVO.  In __update_and_free_hugetlb_folio(),
-hugetlb_vmemmap_restore_folio() may fail, add the folio back to pool and
-treat it as surplus.  If we directly subtract surplus_huge_pages from
-min_mount, some free folios will be subtracted twice.
+Also revert commit 66fe1cf7f581 ("mm: compaction: use helper compound_nr
+in isolate_migratepages_block") to make backporting easier.
 
-To fix it, check if count is less than the num of free huge pages that
-could be destroyed (i.e., available_huge_pages(h)), and remove hugetlb
-folios if so.
-
-Since there may exist free surplus hugetlb folios, we should remove
-surplus folios first to make surplus count correct.
-
-The result with this patch:
-        Node0    Node1
-Total     5         0
-Free      0         0
-Surp      5         0
-
-Link: https://lkml.kernel.org/r/20250401082339.676723-1-tujinjiang@huawei.com
-Fixes: 9a30523066cd ("hugetlb: add per node hstate attributes")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20250401021025.637333-1-vishal.moola@gmail.com
+Fixes: 369fa227c219 ("mm: make alloc_contig_range handle free hugetlb pages")
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   49 +++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 41 insertions(+), 8 deletions(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -3778,7 +3778,7 @@ static void try_to_free_low(struct hstat
- 		struct folio *folio, *next;
- 		struct list_head *freel = &h->hugepage_freelists[i];
- 		list_for_each_entry_safe(folio, next, freel, lru) {
--			if (count >= h->nr_huge_pages)
-+			if (count >= available_huge_pages(h))
- 				goto out;
- 			if (folio_test_highmem(folio))
- 				continue;
-@@ -3832,11 +3832,30 @@ found:
- 	return 1;
- }
+--- a/mm/compaction.c~mm-compaction-fix-bug-in-hugetlb-handling-pathway
++++ a/mm/compaction.c
+@@ -981,13 +981,13 @@ isolate_migratepages_block(struct compac
+ 		}
  
-+static struct folio *remove_surplus_pool_hugetlb_folio(struct hstate *h,
-+		nodemask_t *nodes_allowed)
-+{
-+	int nr_nodes, node;
-+	struct folio *folio = NULL;
-+
-+	lockdep_assert_held(&hugetlb_lock);
-+	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
-+		if (h->surplus_huge_pages_node[node] &&
-+		    !list_empty(&h->hugepage_freelists[node])) {
-+			folio = list_entry(h->hugepage_freelists[node].next,
-+					  struct folio, lru);
-+			remove_hugetlb_folio(h, folio, true);
-+			break;
-+		}
-+	}
-+
-+	return folio;
-+}
-+
- #define persistent_huge_pages(h) (h->nr_huge_pages - h->surplus_huge_pages)
- static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
- 			      nodemask_t *nodes_allowed)
- {
--	unsigned long min_count;
- 	unsigned long allocated;
- 	struct folio *folio;
- 	LIST_HEAD(page_list);
-@@ -3971,15 +3990,29 @@ static int set_max_huge_pages(struct hst
- 	 * and won't grow the pool anywhere else. Not until one of the
- 	 * sysctls are changed, or the surplus pages go out of use.
- 	 */
--	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
--	min_count = max(count, min_count);
--	try_to_free_low(h, min_count, nodes_allowed);
-+	try_to_free_low(h, count, nodes_allowed);
+ 		if (PageHuge(page)) {
++			const unsigned int order = compound_order(page);
+ 			/*
+ 			 * skip hugetlbfs if we are not compacting for pages
+ 			 * bigger than its order. THPs and other compound pages
+ 			 * are handled below.
+ 			 */
+ 			if (!cc->alloc_contig) {
+-				const unsigned int order = compound_order(page);
  
- 	/*
- 	 * Collect pages to be removed on list without dropping lock
--	 */
--	while (min_count < persistent_huge_pages(h)) {
--		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
-+	 *
-+	 * There may be free surplus huge pages due to HVO, see comments
-+	 * in __update_and_free_hugetlb_folio() when calling
-+	 * hugetlb_vmemmap_restore_folio(). Collect surplus pages first.
-+	 */
-+	while (count < available_huge_pages(h)) {
-+		if (h->surplus_huge_pages && h->free_huge_pages) {
-+			folio = remove_surplus_pool_hugetlb_folio(h, nodes_allowed);
-+			if (!folio)
-+				break;
-+
-+			list_add(&folio->lru, &page_list);
-+		} else {
-+			break;
-+		}
-+	}
-+
-+	while (count < available_huge_pages(h)) {
-+		folio = remove_pool_hugetlb_folio(h, nodes_allowed, false);
- 		if (!folio)
- 			break;
+ 				if (order <= MAX_PAGE_ORDER) {
+ 					low_pfn += (1UL << order) - 1;
+@@ -1011,8 +1011,8 @@ isolate_migratepages_block(struct compac
+ 				 /* Do not report -EBUSY down the chain */
+ 				if (ret == -EBUSY)
+ 					ret = 0;
+-				low_pfn += compound_nr(page) - 1;
+-				nr_scanned += compound_nr(page) - 1;
++				low_pfn += (1UL << order) - 1;
++				nr_scanned += (1UL << order) - 1;
+ 				goto isolate_fail;
+ 			}
  
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
-mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
 
