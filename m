@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90512CA6
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:05:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7FCB195FEF
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:09:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743653103; cv=none; b=gPSue07jAPFcK3lTwMCMdZW6tutPUS2KEsT5u9RhwM3Js7q8gZKBz2YvqC0kVlyvWOHBsD0azelofP1ocwCQfBe+K84Lrs3SIb/iULcFgYBKSadJRu4RIawg9qQJuzjZgknUvMJyuw8es+ZwAkCXKiRjRHuhnW2xFKdDDRZckA4=
+	t=1743653393; cv=none; b=njMrJ3aA87tlmHmuL2Af4AqPiJc+L/IU0P9yeyLhO+oaUa4LAZk0GvLDtHgnBVONcx13tBliIL08grnFMehQkOqmjx5+3sTWT53ZDcvORI/ZaomysLX0toNZTWZII8gNMVfhtU0tL4onhc5RTimNYLNDdQ0SIGNVwmvAz4TbTaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743653103; c=relaxed/simple;
-	bh=hl9mMaQmfC+4A1gh2o3OGL36SKz/51WGpZrGcUSUyis=;
-	h=Date:To:From:Subject:Message-Id; b=ZOP3UcUkndudnW5aHLU85YaE+HY7nau5C7czVoXBtZwYJYaTEeawabnpjEfU3safwMAB2KqiffV52IFkZWDrsnjraWDRsF+uw6eAYTwGsACQF71PQhp5ffaohxJJd85AsOHX4iZi+wVAG3vXezqnYa18rCLQHnLQ+ldyCqhoo5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QLwbzJx3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743653393; c=relaxed/simple;
+	bh=iFH7TXSWI+4Z4L3rZcRBPRl4EJX+aOX+OGZKCxMLC40=;
+	h=Date:To:From:Subject:Message-Id; b=ZhWx4M3TES6QDPpJrgMX93F5rxmWGdrX3yRUzjFsq+CRu3JndV7Ra1qudPXL1VPon/5ZFGfhwUgtBAAOI/KJNqjFk6XUZqh/acXzbUdGJc09YS7tEgZvrvpRP+hV7+3xWoKpE5rBENqJDzmRB8W48UwS3J7UmgZ1+fRuqETRhDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Auhb0Uax; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QLwbzJx3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5CAC4CEE3;
-	Thu,  3 Apr 2025 04:05:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Auhb0Uax"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24E4CC4CEE3;
+	Thu,  3 Apr 2025 04:09:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743653103;
-	bh=hl9mMaQmfC+4A1gh2o3OGL36SKz/51WGpZrGcUSUyis=;
+	s=korg; t=1743653393;
+	bh=iFH7TXSWI+4Z4L3rZcRBPRl4EJX+aOX+OGZKCxMLC40=;
 	h=Date:To:From:Subject:From;
-	b=QLwbzJx3LEvX/rX00HEImRJRJcbWMzlVyqIW0GmYN4E3uDAUGpGBVQ0ktNoIei0BI
-	 tm5LolJSCbFO3lgIQXmD/UXSgUDoachBBUmA5BX/DPKo2PZXrFYuTchIe5bwCY/cAo
-	 s/PSndqfGXP3Iy+Y7JCZLnp9Q7vhepYsUQ+JV0Lk=
-Date: Wed, 02 Apr 2025 21:05:02 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shakeel.butt@linux.dev,rostedt@goodmis.org,peterz@infradead.org,mhocko@suse.com,martin.lau@kernel.org,harry.yoo@oracle.com,daniel@iogearbox.net,bigeasy@linutronix.de,andrii@kernel.org,ast@kernel.org,akpm@linux-foundation.org
+	b=Auhb0UaxdbjJD9BP4JJStGto70ehvnXuymV6GflCRzb/8NcV6K08vlNnbQKBQXAFc
+	 EYqzNDOIlrlnyhJ27+SQwRYJALLi+UMvt1nVhZE2pS3oq6lCz/JrwZlSI6w4bmtlpO
+	 9c47XajYbWSmDlDEMnXU9dt9jVd49M7nVexb9+No=
+Date: Wed, 02 Apr 2025 21:09:52 -0700
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,sj@kernel.org,nphamcs@gmail.com,minchan@kernel.org,Jonathan.Cameron@huawei.com,hannes@cmpxchg.org,gourry@gourry.net,dan.j.williams@intel.com,chengming.zhou@linux.dev,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-avoid-second-trylock-of-zone-lock.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250403040502.EE5CAC4CEE3@smtp.kernel.org>
+Subject: + zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch added to mm-new branch
+Message-Id: <20250403040953.24E4CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: avoid second trylock of zone->lock
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-avoid-second-trylock-of-zone-lock.patch
+     Subject: zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
+has been added to the -mm mm-new branch.  Its filename is
+     zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-second-trylock-of-zone-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,83 +58,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexei Starovoitov <ast@kernel.org>
-Subject: mm/page_alloc: avoid second trylock of zone->lock
-Date: Sun, 30 Mar 2025 17:28:09 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
+Date: Thu, 3 Apr 2025 12:55:46 +0900
 
-spin_trylock followed by spin_lock will cause extra write cache access. 
-If the lock is contended it may cause unnecessary cache line bouncing and
-will execute redundant irq restore/save pair.  Therefore, check
-alloc/fpi_flags first and use spin_trylock or spin_lock.
+coding-style fixes
 
-Link: https://lkml.kernel.org/r/20250331002809.94758-1-alexei.starovoitov@gmail.com
-Fixes: 97769a53f117 ("mm, bpf: Introduce try_alloc_pages() for opportunistic page allocation")
-Signed-off-by: Alexei Starovoitov <ast@kernel.org>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Martin KaFai Lau <martin.lau@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/mnvexa7kseswglcqbhlot4zg3b3la2ypv2rimdl5mh5glbmhvz@wi6bgqn47hge
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/zpool.h |    4 ++--
+ mm/zpool.c            |    2 +-
+ mm/zsmalloc.c         |    8 ++++----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-avoid-second-trylock-of-zone-lock
-+++ a/mm/page_alloc.c
-@@ -1400,11 +1400,12 @@ static void free_one_page(struct zone *z
- 	struct llist_head *llhead;
- 	unsigned long flags;
+--- a/include/linux/zpool.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
++++ a/include/linux/zpool.h
+@@ -22,7 +22,7 @@ const char *zpool_get_type(struct zpool
+ void zpool_destroy_pool(struct zpool *pool);
  
--	if (!spin_trylock_irqsave(&zone->lock, flags)) {
--		if (unlikely(fpi_flags & FPI_TRYLOCK)) {
-+	if (unlikely(fpi_flags & FPI_TRYLOCK)) {
-+		if (!spin_trylock_irqsave(&zone->lock, flags)) {
- 			add_page_to_zone_llist(zone, page, order);
- 			return;
- 		}
-+	} else {
- 		spin_lock_irqsave(&zone->lock, flags);
- 	}
+ int zpool_malloc(struct zpool *pool, size_t size, gfp_t gfp,
+-			unsigned long *handle, const int nid);
++		 unsigned long *handle, const int nid);
  
-@@ -2314,9 +2315,10 @@ static int rmqueue_bulk(struct zone *zon
- 	unsigned long flags;
+ void zpool_free(struct zpool *pool, unsigned long handle);
+ 
+@@ -64,7 +64,7 @@ struct zpool_driver {
+ 	void (*destroy)(void *pool);
+ 
+ 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
+-				unsigned long *handle, const int nid);
++		      unsigned long *handle, const int nid);
+ 	void (*free)(void *pool, unsigned long handle);
+ 
+ 	void *(*obj_read_begin)(void *pool, unsigned long handle,
+--- a/mm/zpool.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
++++ a/mm/zpool.c
+@@ -239,7 +239,7 @@ const char *zpool_get_type(struct zpool
+  * Returns: 0 on success, negative value on error.
+  */
+ int zpool_malloc(struct zpool *zpool, size_t size, gfp_t gfp,
+-			unsigned long *handle, const int nid)
++		 unsigned long *handle, const int nid)
+ {
+ 	return zpool->driver->malloc(zpool->pool, size, gfp, handle, nid);
+ }
+--- a/mm/zsmalloc.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
++++ a/mm/zsmalloc.c
+@@ -462,7 +462,7 @@ static void zs_zpool_destroy(void *pool)
+ }
+ 
+ static int zs_zpool_malloc(void *pool, size_t size, gfp_t gfp,
+-			unsigned long *handle, const int nid)
++			   unsigned long *handle, const int nid)
+ {
+ 	*handle = zs_malloc(pool, size, gfp, nid);
+ 
+@@ -1043,8 +1043,8 @@ static void create_page_chain(struct siz
+  * Allocate a zspage for the given size class
+  */
+ static struct zspage *alloc_zspage(struct zs_pool *pool,
+-					struct size_class *class,
+-					gfp_t gfp, const int nid)
++				   struct size_class *class,
++				   gfp_t gfp, const int nid)
+ {
  	int i;
- 
--	if (!spin_trylock_irqsave(&zone->lock, flags)) {
--		if (unlikely(alloc_flags & ALLOC_TRYLOCK))
-+	if (unlikely(alloc_flags & ALLOC_TRYLOCK)) {
-+		if (!spin_trylock_irqsave(&zone->lock, flags))
- 			return 0;
-+	} else {
- 		spin_lock_irqsave(&zone->lock, flags);
- 	}
- 	for (i = 0; i < count; ++i) {
-@@ -2937,9 +2939,10 @@ struct page *rmqueue_buddy(struct zone *
- 
- 	do {
- 		page = NULL;
--		if (!spin_trylock_irqsave(&zone->lock, flags)) {
--			if (unlikely(alloc_flags & ALLOC_TRYLOCK))
-+		if (unlikely(alloc_flags & ALLOC_TRYLOCK)) {
-+			if (!spin_trylock_irqsave(&zone->lock, flags))
- 				return NULL;
-+		} else {
- 			spin_lock_irqsave(&zone->lock, flags);
- 		}
- 		if (alloc_flags & ALLOC_HIGHATOMIC)
+ 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
+@@ -1343,7 +1343,7 @@ static unsigned long obj_malloc(struct z
+  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
+  */
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp,
+-				const int nid)
++			const int nid)
+ {
+ 	unsigned long handle;
+ 	struct size_class *class;
 _
 
-Patches currently in -mm which might be from ast@kernel.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-locking-local_lock-mm-replace-localtry_-helpers-with-local_trylock_t-type.patch
-mm-page_alloc-avoid-second-trylock-of-zone-lock.patch
+zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
 
