@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3020A2CA6
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:01:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90512CA6
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:05:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743652862; cv=none; b=QyYp/R9AwtJ97y0kbpgxmvuecEWY5r+EQ0zH+7yBZ/nR1/EIsHaKfRvdcipSm8KTjK675VvwE9owbBswXDZbPKR2bGmHANUFpKtnHkwwHfcMq4OnzYaI0Mpz9liY9RA2q4F1bpKq+RPhOQZgQkTjYSSz05vkbVCUlLkXaeS0Y7s=
+	t=1743653103; cv=none; b=gPSue07jAPFcK3lTwMCMdZW6tutPUS2KEsT5u9RhwM3Js7q8gZKBz2YvqC0kVlyvWOHBsD0azelofP1ocwCQfBe+K84Lrs3SIb/iULcFgYBKSadJRu4RIawg9qQJuzjZgknUvMJyuw8es+ZwAkCXKiRjRHuhnW2xFKdDDRZckA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743652862; c=relaxed/simple;
-	bh=RaqFsJnTaUk8sBKdlr2VIj9ZxdvwjJG4Y2LbcP7jnQY=;
-	h=Date:To:From:Subject:Message-Id; b=EagLiTJ+UsG8dGUK/YOEloT5EqU2w5gr+9Is3CAh0Tqaow6pC5albEhHHX5Df/FL/b/2SRWQ0G5xHf8eSrLXoWpqfOQ4Sz3vvrfDd48WljtEHceces6GPzQf4IlJeBrItz92zZ0wZ7TRFh5zibpjMpCrqrYIq9EW3xVYjZP0AGA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ooVsxJMy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743653103; c=relaxed/simple;
+	bh=hl9mMaQmfC+4A1gh2o3OGL36SKz/51WGpZrGcUSUyis=;
+	h=Date:To:From:Subject:Message-Id; b=ZOP3UcUkndudnW5aHLU85YaE+HY7nau5C7czVoXBtZwYJYaTEeawabnpjEfU3safwMAB2KqiffV52IFkZWDrsnjraWDRsF+uw6eAYTwGsACQF71PQhp5ffaohxJJd85AsOHX4iZi+wVAG3vXezqnYa18rCLQHnLQ+ldyCqhoo5Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QLwbzJx3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ooVsxJMy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8387DC4CEE3;
-	Thu,  3 Apr 2025 04:01:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QLwbzJx3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5CAC4CEE3;
+	Thu,  3 Apr 2025 04:05:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743652861;
-	bh=RaqFsJnTaUk8sBKdlr2VIj9ZxdvwjJG4Y2LbcP7jnQY=;
+	s=korg; t=1743653103;
+	bh=hl9mMaQmfC+4A1gh2o3OGL36SKz/51WGpZrGcUSUyis=;
 	h=Date:To:From:Subject:From;
-	b=ooVsxJMysDnkg3ElyES8VVs9TGIrUiPteCHcFc/T0bTlIED3epU81I+2UpsBLDKO8
-	 mwObMqVZ/Z1qrFeR9wfiYLf/tPjWGBk426LB4ey77ATnJNq87KIA6eeVAKz9TfWBLv
-	 NMsqo6RTIj833qP/guFn7tsGAHPYnyoNlmAik4NE=
-Date: Wed, 02 Apr 2025 21:01:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,osalvador@suse.de,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=QLwbzJx3LEvX/rX00HEImRJRJcbWMzlVyqIW0GmYN4E3uDAUGpGBVQ0ktNoIei0BI
+	 tm5LolJSCbFO3lgIQXmD/UXSgUDoachBBUmA5BX/DPKo2PZXrFYuTchIe5bwCY/cAo
+	 s/PSndqfGXP3Iy+Y7JCZLnp9Q7vhepYsUQ+JV0Lk=
+Date: Wed, 02 Apr 2025 21:05:02 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linux-foundation.org,shakeel.butt@linux.dev,rostedt@goodmis.org,peterz@infradead.org,mhocko@suse.com,martin.lau@kernel.org,harry.yoo@oracle.com,daniel@iogearbox.net,bigeasy@linutronix.de,andrii@kernel.org,ast@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-use-folio-in-hugetlb-pathway.patch added to mm-new branch
-Message-Id: <20250403040101.8387DC4CEE3@smtp.kernel.org>
+Subject: + mm-page_alloc-avoid-second-trylock-of-zone-lock.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250403040502.EE5CAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/compaction: use folio in hugetlb pathway
-has been added to the -mm mm-new branch.  Its filename is
-     mm-compaction-use-folio-in-hugetlb-pathway.patch
+     Subject: mm/page_alloc: avoid second trylock of zone->lock
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-avoid-second-trylock-of-zone-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-use-folio-in-hugetlb-pathway.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-second-trylock-of-zone-lock.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,96 +58,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/compaction: use folio in hugetlb pathway
-Date: Mon, 31 Mar 2025 19:10:25 -0700
+From: Alexei Starovoitov <ast@kernel.org>
+Subject: mm/page_alloc: avoid second trylock of zone->lock
+Date: Sun, 30 Mar 2025 17:28:09 -0700
 
-Use a folio in the hugetlb pathway during the compaction migrate-able
-pageblock scan.
+spin_trylock followed by spin_lock will cause extra write cache access. 
+If the lock is contended it may cause unnecessary cache line bouncing and
+will execute redundant irq restore/save pair.  Therefore, check
+alloc/fpi_flags first and use spin_trylock or spin_lock.
 
-This removes a call to compound_head().
-
-Link: https://lkml.kernel.org/r/20250401021025.637333-2-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20250331002809.94758-1-alexei.starovoitov@gmail.com
+Fixes: 97769a53f117 ("mm, bpf: Introduce try_alloc_pages() for opportunistic page allocation")
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Martin KaFai Lau <martin.lau@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++--
- mm/compaction.c         |    8 ++++----
- mm/hugetlb.c            |    3 +--
- 3 files changed, 7 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-compaction-use-folio-in-hugetlb-pathway
-+++ a/include/linux/hugetlb.h
-@@ -698,7 +698,7 @@ struct huge_bootmem_page {
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-second-trylock-of-zone-lock
++++ a/mm/page_alloc.c
+@@ -1400,11 +1400,12 @@ static void free_one_page(struct zone *z
+ 	struct llist_head *llhead;
+ 	unsigned long flags;
  
- bool hugetlb_bootmem_page_zones_valid(int nid, struct huge_bootmem_page *m);
+-	if (!spin_trylock_irqsave(&zone->lock, flags)) {
+-		if (unlikely(fpi_flags & FPI_TRYLOCK)) {
++	if (unlikely(fpi_flags & FPI_TRYLOCK)) {
++		if (!spin_trylock_irqsave(&zone->lock, flags)) {
+ 			add_page_to_zone_llist(zone, page, order);
+ 			return;
+ 		}
++	} else {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 	}
  
--int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
-+int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list);
- int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
- void wait_for_freed_hugetlb_folios(void);
- struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
-@@ -1086,7 +1086,7 @@ static inline struct folio *filemap_lock
- 	return NULL;
- }
+@@ -2314,9 +2315,10 @@ static int rmqueue_bulk(struct zone *zon
+ 	unsigned long flags;
+ 	int i;
  
--static inline int isolate_or_dissolve_huge_page(struct page *page,
-+static inline int isolate_or_dissolve_huge_folio(struct folio *folio,
- 						struct list_head *list)
- {
- 	return -ENOMEM;
---- a/mm/compaction.c~mm-compaction-use-folio-in-hugetlb-pathway
-+++ a/mm/compaction.c
-@@ -1001,10 +1001,11 @@ isolate_migratepages_block(struct compac
- 				locked = NULL;
- 			}
+-	if (!spin_trylock_irqsave(&zone->lock, flags)) {
+-		if (unlikely(alloc_flags & ALLOC_TRYLOCK))
++	if (unlikely(alloc_flags & ALLOC_TRYLOCK)) {
++		if (!spin_trylock_irqsave(&zone->lock, flags))
+ 			return 0;
++	} else {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 	}
+ 	for (i = 0; i < count; ++i) {
+@@ -2937,9 +2939,10 @@ struct page *rmqueue_buddy(struct zone *
  
--			ret = isolate_or_dissolve_huge_page(page, &cc->migratepages);
-+			folio = page_folio(page);
-+			ret = isolate_or_dissolve_huge_folio(folio, &cc->migratepages);
- 
- 			/*
--			 * Fail isolation in case isolate_or_dissolve_huge_page()
-+			 * Fail isolation in case isolate_or_dissolve_huge_folio()
- 			 * reports an error. In case of -ENOMEM, abort right away.
- 			 */
- 			if (ret < 0) {
-@@ -1016,12 +1017,11 @@ isolate_migratepages_block(struct compac
- 				goto isolate_fail;
- 			}
- 
--			if (PageHuge(page)) {
-+			if (folio_test_hugetlb(folio)) {
- 				/*
- 				 * Hugepage was successfully isolated and placed
- 				 * on the cc->migratepages list.
- 				 */
--				folio = page_folio(page);
- 				low_pfn += folio_nr_pages(folio) - 1;
- 				goto isolate_success_no_list;
- 			}
---- a/mm/hugetlb.c~mm-compaction-use-folio-in-hugetlb-pathway
-+++ a/mm/hugetlb.c
-@@ -2897,10 +2897,9 @@ free_new:
- 	return ret;
- }
- 
--int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list)
-+int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list)
- {
- 	struct hstate *h;
--	struct folio *folio = page_folio(page);
- 	int ret = -EBUSY;
- 
- 	/*
+ 	do {
+ 		page = NULL;
+-		if (!spin_trylock_irqsave(&zone->lock, flags)) {
+-			if (unlikely(alloc_flags & ALLOC_TRYLOCK))
++		if (unlikely(alloc_flags & ALLOC_TRYLOCK)) {
++			if (!spin_trylock_irqsave(&zone->lock, flags))
+ 				return NULL;
++		} else {
+ 			spin_lock_irqsave(&zone->lock, flags);
+ 		}
+ 		if (alloc_flags & ALLOC_HIGHATOMIC)
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from ast@kernel.org are
 
-mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
-mm-compaction-use-folio-in-hugetlb-pathway.patch
+locking-local_lock-mm-replace-localtry_-helpers-with-local_trylock_t-type.patch
+mm-page_alloc-avoid-second-trylock-of-zone-lock.patch
 
