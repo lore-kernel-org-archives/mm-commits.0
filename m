@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3018C2E62AE
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 22:17:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF652E62AE
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 22:19:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743718656; cv=none; b=uh28eHhiNkHNSlJpq3S/26H1mQ9oyIRPRVQlFCQp1rJpXs4jPGWQedbkh+jz9O+OjO51U8wq1g2lshWU15cGTzlNzDOIntVRVynZuRcf7pPuxqd3jABJtM+pBeIShEgRagwV6l1F3D3oTx8acQpaKGgRsKruo3l9Exm+omoIY6o=
+	t=1743718789; cv=none; b=e1bSpgA55TR33yyA7cXbpIU9JASkQGkq92wFexaivr9gr67j5pCaeNBYbodxfZVE7lYLrfaGygAhI+KhcSt7r7cfCvrbefH3tX/JoMoivmJaGqlS1V8qaGhDHhw5IvtfqMZP/JXxulee1VOIz/8HmqUGI39TJDnVYRf2TwaNRG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743718656; c=relaxed/simple;
-	bh=c3tTpQJCE11QfsvXAaV2qzBEvDRzr3hTrJNCQk+CxQQ=;
-	h=Date:To:From:Subject:Message-Id; b=Jm2ZoUk6D9rDmMJp6zu1QQWBLJMAvdNMznIsQ4ExDSOkfCQi7/tFcRBN0cEI/qzSK5qvhA+r1auK7V2zI5vEx4Mk/cIPK6hhNnn0HfIavLFjNMHmeIHr0/Ma5DvHFwb4aLZLYMl0A+lylXTl0T5g6LpGGJi23X7EWdkLV9NosSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iTdP8zs9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743718789; c=relaxed/simple;
+	bh=zQRQhsWQMI8fpQmdy2GoAqzSx1UrsSVaFNbUzVeh+m4=;
+	h=Date:To:From:Subject:Message-Id; b=WEhcvxDfbz0dIN8Ep/sgETeWAeDibIHiF5eZthUngAf3vT2Z3D862jSTRXnaZcWPTWEJghAhisiiJv09Xg7shFiVBQlLETy2CPhbVK+cVlYxVj9vy35Jp39s3qMVuvDJJ5Nb2lfghKEqEelmeiYdh+4RhhCRYfZDgU3GC12jmzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x3pLexzJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iTdP8zs9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76A79C4CEE3;
-	Thu,  3 Apr 2025 22:17:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x3pLexzJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D3CFC4CEE3;
+	Thu,  3 Apr 2025 22:19:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743718655;
-	bh=c3tTpQJCE11QfsvXAaV2qzBEvDRzr3hTrJNCQk+CxQQ=;
+	s=korg; t=1743718788;
+	bh=zQRQhsWQMI8fpQmdy2GoAqzSx1UrsSVaFNbUzVeh+m4=;
 	h=Date:To:From:Subject:From;
-	b=iTdP8zs90/Ld3PQNSOu4Vfsf8o3xKmtwp7on/mMsQjHHegJ3x3qJejwz/EX6DtuVj
-	 EUUcWpR+43zdm2Stm6tQYfkmLz5yaGeYRbsTfaoq+zkfkoxCoAJ/GSZaHl491VmYzY
-	 NsG9qzG+w4e53EFeP+n1df5vX9byRYSBSgbhom2M=
-Date: Thu, 03 Apr 2025 15:17:34 -0700
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=x3pLexzJJx+PiqZsXEpmdAAJzsEhrPqFiy0Kb8Hf5UbhUU8z6K0n4cyScsUANeBx1
+	 CirDK0EQ/F6vqQaqVr9YM7+MmWWJDn+mPgwZ0b5YIXlq4///gGNnP32G7LGE7HDVqi
+	 cTNChw7RmyWjpymZV9m1cby+BA237HZjIHljl/hE=
+Date: Thu, 03 Apr 2025 15:19:47 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,anshuman.khandual@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-modernize-writeback-interface.patch added to mm-new branch
-Message-Id: <20250403221735.76A79C4CEE3@smtp.kernel.org>
+Subject: + mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch added to mm-new branch
+Message-Id: <20250403221948.8D3CFC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: modernize writeback interface
+     Subject: mm/page_alloc: simplify free_page_is_bad by removing free_page_is_bad_report
 has been added to the -mm mm-new branch.  Its filename is
-     zram-modernize-writeback-interface.patch
+     mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-modernize-writeback-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,437 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: modernize writeback interface
-Date: Thu, 27 Mar 2025 10:58:09 +0900
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/page_alloc: simplify free_page_is_bad by removing free_page_is_bad_report
+Date: Fri, 28 Mar 2025 09:20:31 +0800
 
-The writeback interface supports a page_index=N parameter which performs
-writeback of the given page.  Since we rarely need to writeback just one
-single page, the typical use case involves a number of writeback calls,
-each performing writeback of one page:
+Refactor free_page_is_bad() to call bad_page() directly, removing the
+intermediate free_page_is_bad_report(). This reduces unnecessary
+indirection, improving code clarity and maintainability without changing
+functionality.
 
-  echo page_index=100 > zram0/writeback
-  ...
-  echo page_index=200 > zram0/writeback
-  echo page_index=500 > zram0/writeback
-  ...
-  echo page_index=700 > zram0/writeback
-
-One obvious downside of this is that it increases the number of syscalls. 
-Less obvious, but a significantly more important downside, is that when
-given only one page to post-process zram cannot perform an optimal target
-selection.  This becomes a critical limitation when writeback_limit is
-enabled, because under writeback_limit we want to guarantee the highest
-memory savings hence we first need to writeback pages that release the
-highest amount of zsmalloc pool memory.
-
-This patch adds page_indexes=LOW-HIGH parameter to the writeback
-interface:
-
-  echo page_indexes=100-200 page_indexes=500-700 > zram0/writeback
-
-This gives zram a chance to apply an optimal target selection strategy on
-each iteration of the writeback loop.
-
-We also now permit multiple page_index parameters per call (previously
-zram would recognize only one page_index) and a mix or single pages and
-page ranges:
-
-  echo page_index=42 page_index=99 page_indexes=100-200 \
-       page_indexes=500-700 > zram0/writeback
-
-Apart from that the patch also unifies parameters passing and resembles
-other "modern" zram device attributes (e.g.  recompression), while the old
-interface used a mixed scheme: values-less parameters for mode and a
-key=value format for page_index.  We still support the "old" value-less
-format for compatibility reasons.
-
-Link: https://lkml.kernel.org/r/20250327015818.4148660-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reviewed-by: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20250328012031.1204993-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   17 
- drivers/block/zram/zram_drv.c               |  320 ++++++++++++------
- 2 files changed, 232 insertions(+), 105 deletions(-)
+ mm/page_alloc.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-modernize-writeback-interface
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -369,6 +369,23 @@ they could write a page index into the i
- 
- 	echo "page_index=1251" > /sys/block/zramX/writeback
- 
-+In Linux 6.16 this interface underwent some rework.  First, the interface
-+now supports `key=value` format for all of its parameters (`type=huge_idle`,
-+etc.)  Second, the support for `page_indexes` was introduced, which specify
-+`LOW-HIGH` range (or ranges) of pages to be written-back.  This reduces the
-+number of syscalls, but more importantly this enables optimal post-processing
-+target selection strategy. Usage example::
-+
-+	echo "type=idle" > /sys/block/zramX/writeback
-+	echo "page_indexes=1-100 page_indexes=200-300" > \
-+		/sys/block/zramX/writeback
-+
-+We also now permit multiple page_index params per call and a mix of
-+single pages and page ranges::
-+
-+	echo page_index=42 page_index=99 page_indexes=100-200 \
-+		page_indexes=500-700 > /sys/block/zramX/writeback
-+
- If there are lots of write IO with flash device, potentially, it has
- flash wearout problem so that admin needs to design write limitation
- to guarantee storage health for entire product life.
---- a/drivers/block/zram/zram_drv.c~zram-modernize-writeback-interface
-+++ a/drivers/block/zram/zram_drv.c
-@@ -734,114 +734,19 @@ static void read_from_bdev_async(struct
- 	submit_bio(bio);
+--- a/mm/page_alloc.c~mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report
++++ a/mm/page_alloc.c
+@@ -933,19 +933,13 @@ static const char *page_bad_reason(struc
+ 	return bad_reason;
  }
  
--#define PAGE_WB_SIG "page_index="
--
--#define PAGE_WRITEBACK			0
--#define HUGE_WRITEBACK			(1<<0)
--#define IDLE_WRITEBACK			(1<<1)
--#define INCOMPRESSIBLE_WRITEBACK	(1<<2)
--
--static int scan_slots_for_writeback(struct zram *zram, u32 mode,
--				    unsigned long nr_pages,
--				    unsigned long index,
--				    struct zram_pp_ctl *ctl)
-+static int zram_writeback_slots(struct zram *zram, struct zram_pp_ctl *ctl)
- {
--	for (; nr_pages != 0; index++, nr_pages--) {
--		bool ok = true;
--
--		zram_slot_lock(zram, index);
--		if (!zram_allocated(zram, index))
--			goto next;
--
--		if (zram_test_flag(zram, index, ZRAM_WB) ||
--		    zram_test_flag(zram, index, ZRAM_SAME))
--			goto next;
--
--		if (mode & IDLE_WRITEBACK &&
--		    !zram_test_flag(zram, index, ZRAM_IDLE))
--			goto next;
--		if (mode & HUGE_WRITEBACK &&
--		    !zram_test_flag(zram, index, ZRAM_HUGE))
--			goto next;
--		if (mode & INCOMPRESSIBLE_WRITEBACK &&
--		    !zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
--			goto next;
--
--		ok = place_pp_slot(zram, ctl, index);
--next:
--		zram_slot_unlock(zram, index);
--		if (!ok)
--			break;
--	}
--
--	return 0;
+-static void free_page_is_bad_report(struct page *page)
+-{
+-	bad_page(page,
+-		 page_bad_reason(page, PAGE_FLAGS_CHECK_AT_FREE));
 -}
 -
--static ssize_t writeback_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
--{
--	struct zram *zram = dev_to_zram(dev);
--	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
--	struct zram_pp_ctl *ctl = NULL;
-+	unsigned long blk_idx = 0;
-+	struct page *page = NULL;
- 	struct zram_pp_slot *pps;
--	unsigned long index = 0;
--	struct bio bio;
- 	struct bio_vec bio_vec;
--	struct page *page = NULL;
--	ssize_t ret = len;
--	int mode, err;
--	unsigned long blk_idx = 0;
--
--	if (sysfs_streq(buf, "idle"))
--		mode = IDLE_WRITEBACK;
--	else if (sysfs_streq(buf, "huge"))
--		mode = HUGE_WRITEBACK;
--	else if (sysfs_streq(buf, "huge_idle"))
--		mode = IDLE_WRITEBACK | HUGE_WRITEBACK;
--	else if (sysfs_streq(buf, "incompressible"))
--		mode = INCOMPRESSIBLE_WRITEBACK;
--	else {
--		if (strncmp(buf, PAGE_WB_SIG, sizeof(PAGE_WB_SIG) - 1))
--			return -EINVAL;
--
--		if (kstrtol(buf + sizeof(PAGE_WB_SIG) - 1, 10, &index) ||
--				index >= nr_pages)
--			return -EINVAL;
--
--		nr_pages = 1;
--		mode = PAGE_WRITEBACK;
--	}
--
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		ret = -EINVAL;
--		goto release_init_lock;
--	}
--
--	/* Do not permit concurrent post-processing actions. */
--	if (atomic_xchg(&zram->pp_in_progress, 1)) {
--		up_read(&zram->init_lock);
--		return -EAGAIN;
--	}
--
--	if (!zram->backing_dev) {
--		ret = -ENODEV;
--		goto release_init_lock;
--	}
-+	struct bio bio;
-+	int ret, err;
-+	u32 index;
+ static inline bool free_page_is_bad(struct page *page)
+ {
+ 	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)))
+ 		return false;
  
- 	page = alloc_page(GFP_KERNEL);
--	if (!page) {
--		ret = -ENOMEM;
--		goto release_init_lock;
--	}
--
--	ctl = init_pp_ctl();
--	if (!ctl) {
--		ret = -ENOMEM;
--		goto release_init_lock;
--	}
--
--	scan_slots_for_writeback(zram, mode, nr_pages, index, ctl);
-+	if (!page)
-+		return -ENOMEM;
+ 	/* Something has gone sideways, find it */
+-	free_page_is_bad_report(page);
++	bad_page(page, page_bad_reason(page, PAGE_FLAGS_CHECK_AT_FREE));
+ 	return true;
+ }
  
- 	while ((pps = select_pp_slot(ctl))) {
- 		spin_lock(&zram->wb_limit_lock);
-@@ -929,10 +834,215 @@ next:
- 
- 	if (blk_idx)
- 		free_block_bdev(zram, blk_idx);
--
--release_init_lock:
- 	if (page)
- 		__free_page(page);
-+
-+	return ret;
-+}
-+
-+#define PAGE_WRITEBACK			0
-+#define HUGE_WRITEBACK			(1 << 0)
-+#define IDLE_WRITEBACK			(1 << 1)
-+#define INCOMPRESSIBLE_WRITEBACK	(1 << 2)
-+
-+static int parse_page_index(char *val, unsigned long nr_pages,
-+			    unsigned long *lo, unsigned long *hi)
-+{
-+	int ret;
-+
-+	ret = kstrtoul(val, 10, lo);
-+	if (ret)
-+		return ret;
-+	*hi = *lo + 1;
-+	if (*lo >= nr_pages || *hi > nr_pages)
-+		return -ERANGE;
-+	return 0;
-+}
-+
-+static int parse_page_indexes(char *val, unsigned long nr_pages,
-+			      unsigned long *lo, unsigned long *hi)
-+{
-+	char *delim;
-+	int ret;
-+
-+	delim = strchr(val, '-');
-+	if (!delim)
-+		return -EINVAL;
-+
-+	*delim = 0x00;
-+	ret = kstrtoul(val, 10, lo);
-+	if (ret)
-+		return ret;
-+	if (*lo >= nr_pages)
-+		return -ERANGE;
-+
-+	ret = kstrtoul(delim + 1, 10, hi);
-+	if (ret)
-+		return ret;
-+	if (*hi >= nr_pages || *lo > *hi)
-+		return -ERANGE;
-+	*hi += 1;
-+	return 0;
-+}
-+
-+static int parse_mode(char *val, u32 *mode)
-+{
-+	*mode = 0;
-+
-+	if (!strcmp(val, "idle"))
-+		*mode = IDLE_WRITEBACK;
-+	if (!strcmp(val, "huge"))
-+		*mode = HUGE_WRITEBACK;
-+	if (!strcmp(val, "huge_idle"))
-+		*mode = IDLE_WRITEBACK | HUGE_WRITEBACK;
-+	if (!strcmp(val, "incompressible"))
-+		*mode = INCOMPRESSIBLE_WRITEBACK;
-+
-+	if (*mode == 0)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static int scan_slots_for_writeback(struct zram *zram, u32 mode,
-+				    unsigned long lo, unsigned long hi,
-+				    struct zram_pp_ctl *ctl)
-+{
-+	u32 index = lo;
-+
-+	while (index < hi) {
-+		bool ok = true;
-+
-+		zram_slot_lock(zram, index);
-+		if (!zram_allocated(zram, index))
-+			goto next;
-+
-+		if (zram_test_flag(zram, index, ZRAM_WB) ||
-+		    zram_test_flag(zram, index, ZRAM_SAME))
-+			goto next;
-+
-+		if (mode & IDLE_WRITEBACK &&
-+		    !zram_test_flag(zram, index, ZRAM_IDLE))
-+			goto next;
-+		if (mode & HUGE_WRITEBACK &&
-+		    !zram_test_flag(zram, index, ZRAM_HUGE))
-+			goto next;
-+		if (mode & INCOMPRESSIBLE_WRITEBACK &&
-+		    !zram_test_flag(zram, index, ZRAM_INCOMPRESSIBLE))
-+			goto next;
-+
-+		ok = place_pp_slot(zram, ctl, index);
-+next:
-+		zram_slot_unlock(zram, index);
-+		if (!ok)
-+			break;
-+		index++;
-+	}
-+
-+	return 0;
-+}
-+
-+static ssize_t writeback_store(struct device *dev,
-+			       struct device_attribute *attr,
-+			       const char *buf, size_t len)
-+{
-+	struct zram *zram = dev_to_zram(dev);
-+	u64 nr_pages = zram->disksize >> PAGE_SHIFT;
-+	unsigned long lo = 0, hi = nr_pages;
-+	struct zram_pp_ctl *ctl = NULL;
-+	char *args, *param, *val;
-+	ssize_t ret = len;
-+	int err, mode = 0;
-+
-+	down_read(&zram->init_lock);
-+	if (!init_done(zram)) {
-+		up_read(&zram->init_lock);
-+		return -EINVAL;
-+	}
-+
-+	/* Do not permit concurrent post-processing actions. */
-+	if (atomic_xchg(&zram->pp_in_progress, 1)) {
-+		up_read(&zram->init_lock);
-+		return -EAGAIN;
-+	}
-+
-+	if (!zram->backing_dev) {
-+		ret = -ENODEV;
-+		goto release_init_lock;
-+	}
-+
-+	ctl = init_pp_ctl();
-+	if (!ctl) {
-+		ret = -ENOMEM;
-+		goto release_init_lock;
-+	}
-+
-+	args = skip_spaces(buf);
-+	while (*args) {
-+		args = next_arg(args, &param, &val);
-+
-+		/*
-+		 * Workaround to support the old writeback interface.
-+		 *
-+		 * The old writeback interface has a minor inconsistency and
-+		 * requires key=value only for page_index parameter, while the
-+		 * writeback mode is a valueless parameter.
-+		 *
-+		 * This is not the case anymore and now all parameters are
-+		 * required to have values, however, we need to support the
-+		 * legacy writeback interface format so we check if we can
-+		 * recognize a valueless parameter as the (legacy) writeback
-+		 * mode.
-+		 */
-+		if (!val || !*val) {
-+			err = parse_mode(param, &mode);
-+			if (err) {
-+				ret = err;
-+				goto release_init_lock;
-+			}
-+
-+			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
-+			break;
-+		}
-+
-+		if (!strcmp(param, "type")) {
-+			err = parse_mode(val, &mode);
-+			if (err) {
-+				ret = err;
-+				goto release_init_lock;
-+			}
-+
-+			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
-+			break;
-+		}
-+
-+		if (!strcmp(param, "page_index")) {
-+			err = parse_page_index(val, nr_pages, &lo, &hi);
-+			if (err) {
-+				ret = err;
-+				goto release_init_lock;
-+			}
-+
-+			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
-+			continue;
-+		}
-+
-+		if (!strcmp(param, "page_indexes")) {
-+			err = parse_page_indexes(val, nr_pages, &lo, &hi);
-+			if (err) {
-+				ret = err;
-+				goto release_init_lock;
-+			}
-+
-+			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
-+			continue;
-+		}
-+	}
-+
-+	err = zram_writeback_slots(zram, ctl);
-+	if (err)
-+		ret = err;
-+
-+release_init_lock:
- 	release_pp_ctl(zram, ctl);
- 	atomic_set(&zram->pp_in_progress, 0);
- 	up_read(&zram->init_lock);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
-zram-modernize-writeback-interface.patch
+mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
+mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch
 
