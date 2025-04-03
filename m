@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E2832E3387
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:21:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B98B9134CF
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:38:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743654095; cv=none; b=LxpCSEQb9y/T+ksR7x/aXI81OtUF8NOgXpwSwK1n0ou2yK8Ojr7Cf143tSdMPeMKmohNxLME3ihxQH1yOhykYfGHwwsrts1hXmIdEIiOyuz7r8bmfb6YcsNwxlhyn5nfSkW5ReGzuPYKQKr18TixGDwGMyDlJlZQQJERGG+EIrw=
+	t=1743655096; cv=none; b=bytbOY6UbbjmwQmsc73xyQ5nXei9OJH+mFTpYRj9YzHIoDQgwiY3IyMODEB8bN7RRV2wVvuCnkJE9fWhoECCN7LpdAadxMATOfqafdkirQ+7F4pFvnnHwp3P0PIZ+RF4TaTi8z1/43a954yuO2WlEXNpnBFNGAUNfSQrb/a/OBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743654095; c=relaxed/simple;
-	bh=fyWMdLYfVvXf7ItTLjaPJh8CRoGH2fsa2WcPtN2OLKk=;
-	h=Date:To:From:Subject:Message-Id; b=LZOtMKYytQid7DjU6d0gFxZYiPso3PFTn/s+aliv3hmE6pn3cIBs63EKfl+PnCrdDxqXS/hzMk0RC7sJLKo8+5SrZIEfuLf8amdGMGKlJdeoS8bN8sUqUGMMXZk4xhRdw4/qS+HSPmH86ElORAN6CQ4M1S9zn6idIIUKd+2Hq4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zcrlEbkH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743655096; c=relaxed/simple;
+	bh=L/lwH+CEsqKNaqBjhRV2HeTTX95P5PrpOFv6BhXwTwE=;
+	h=Date:To:From:Subject:Message-Id; b=fhvu+v/LzFdFdmBCX5splvougKy6EFtAiTBftrPDWSeL+UvOOEY4X75t988mszef9PrYzTDsZcPYNa9YGcYtuJRdObYXIdX4ZzO0k66a8310V7Cv7rE/Ixb6tcL/n2TcrhwomsHCT5vI6q0hXJE4bTL9ImlBjBruDjldjoBTbrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQp7ocGX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zcrlEbkH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A966C4CEE3;
-	Thu,  3 Apr 2025 04:21:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQp7ocGX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBFACC4CEE3;
+	Thu,  3 Apr 2025 04:38:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743654094;
-	bh=fyWMdLYfVvXf7ItTLjaPJh8CRoGH2fsa2WcPtN2OLKk=;
+	s=korg; t=1743655096;
+	bh=L/lwH+CEsqKNaqBjhRV2HeTTX95P5PrpOFv6BhXwTwE=;
 	h=Date:To:From:Subject:From;
-	b=zcrlEbkHRmrAHZcTIw2nC7GqWYvN2oyk/8T9LhNNW5flw7MVveP/oyxMQeuPIFtX1
-	 EbqG+m3LBPE63GumKeEtj10ABnaRDaYfBJNNgVD1ZGIWsbBTdX5qqk5XEw1UcC9koI
-	 iKkm6xCW2z/TurwvkUx1CpHwKYdec/Wq8uGc2NUU=
-Date: Wed, 02 Apr 2025 21:21:33 -0700
-To: mm-commits@vger.kernel.org,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ignacio@iencinas.com,akpm@linux-foundation.org
+	b=JQp7ocGXSdsT9yqdgTIB72ftguSb21MRWvTKS8dFMnpS9MG7PTBgRcSI4At5e6Zy2
+	 faLLxFPW0jAtIL2NhqtEv8ojRFvcGF7uERhSDkCcOZPixmuUdZaAZcOqOf1k2W+8Sm
+	 qtTn804cA6hZyim6fTZ+IMyi2qqbYUv+jMgoiFgM=
+Date: Wed, 02 Apr 2025 21:38:15 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,harry.yoo@oracle.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-annotate-data-race-in-update_hiwater_rss.patch added to mm-new branch
-Message-Id: <20250403042134.6A966C4CEE3@smtp.kernel.org>
+Subject: + mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch added to mm-new branch
+Message-Id: <20250403043815.EBFACC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: annotate data race in update_hiwater_rss
+     Subject: mm/show_mem: optimize si_meminfo_node by reducing redundant code
 has been added to the -mm mm-new branch.  Its filename is
-     mm-annotate-data-race-in-update_hiwater_rss.patch
+     mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-annotate-data-race-in-update_hiwater_rss.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ignacio Encinas <ignacio@iencinas.com>
-Subject: mm: annotate data race in update_hiwater_rss
-Date: Mon, 31 Mar 2025 21:57:05 +0200
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/show_mem: optimize si_meminfo_node by reducing redundant code
+Date: Tue, 25 Mar 2025 15:38:03 +0800
 
-mm_struct.hiwater_rss can be accessed concurrently without proper
-synchronization as reported by KCSAN.
+Refactors the si_meminfo_node() function by reducing redundant code and
+improving readability.
 
-This data race is benign as it only affects accounting information.
-Annotate it with data_race() to make KCSAN happy.
+Moved the calculation of managed_pages inside the existing loop that
+processes pgdat->node_zones, eliminating the need for a separate loop.
 
-Link: https://lkml.kernel.org/r/20250331-mm-maxrss-data-race-v2-1-cf958e6205bf@iencinas.com
-Signed-off-by: Ignacio Encinas <ignacio@iencinas.com>
-Reported-by: syzbot+419c4b42acc36c420ad3@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67e3390c.050a0220.1ec46.0001.GAE@google.com/
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Simplified the logic by removing unnecessary preprocessor conditionals.
+
+Ensured that both totalram, totalhigh, and other memory statistics are
+consistently set without duplication.
+
+This change results in cleaner and more efficient code without altering
+functionality.
+
+Link: https://lkml.kernel.org/r/20250325073803.852594-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/show_mem.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
---- a/include/linux/mm.h~mm-annotate-data-race-in-update_hiwater_rss
-+++ a/include/linux/mm.h
-@@ -12,6 +12,7 @@
- #include <linux/rbtree.h>
- #include <linux/atomic.h>
- #include <linux/debug_locks.h>
-+#include <linux/compiler.h>
- #include <linux/mm_types.h>
- #include <linux/mmap_lock.h>
- #include <linux/range.h>
-@@ -2777,7 +2778,7 @@ static inline void update_hiwater_rss(st
- {
- 	unsigned long _rss = get_mm_rss(mm);
+--- a/mm/show_mem.c~mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code
++++ a/mm/show_mem.c
+@@ -94,26 +94,20 @@ void si_meminfo_node(struct sysinfo *val
+ 	unsigned long free_highpages = 0;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
  
--	if ((mm)->hiwater_rss < _rss)
-+	if (data_race(mm->hiwater_rss) < _rss)
- 		(mm)->hiwater_rss = _rss;
+-	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
+-		managed_pages += zone_managed_pages(&pgdat->node_zones[zone_type]);
+-	val->totalram = managed_pages;
+-	val->sharedram = node_page_state(pgdat, NR_SHMEM);
+-	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
+-#ifdef CONFIG_HIGHMEM
+ 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
+ 		struct zone *zone = &pgdat->node_zones[zone_type];
+-
++		managed_pages += zone_managed_pages(zone);
+ 		if (is_highmem(zone)) {
+ 			managed_highpages += zone_managed_pages(zone);
+ 			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
+ 		}
+ 	}
++
++	val->totalram = managed_pages;
++	val->sharedram = node_page_state(pgdat, NR_SHMEM);
++	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
+ 	val->totalhigh = managed_highpages;
+ 	val->freehigh = free_highpages;
+-#else
+-	val->totalhigh = managed_highpages;
+-	val->freehigh = free_highpages;
+-#endif
+ 	val->mem_unit = PAGE_SIZE;
  }
- 
+ #endif
 _
 
-Patches currently in -mm which might be from ignacio@iencinas.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-annotate-data-race-in-update_hiwater_rss.patch
+mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
 
