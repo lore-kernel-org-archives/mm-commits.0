@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EDAF200120
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 21:25:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD462E62BB
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 21:28:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743715558; cv=none; b=ps4PQ5HH7IDmYl3XwXjIz8rxO0hkH/GCFxDm3TJUEnair+hh5dIN1G0/n7d/vSPV0/AhyK82kK7eiL4wqjhRizJjX4zchFgy1oFpcqe7W89CvuHNHx5QsgbRN2qkl2+kFC4ucJJ7wB/PAObqdWP5iQJT857KbB1NFxrudZvmIBA=
+	t=1743715691; cv=none; b=isFeI4YQSzauMP3fxFGQP3VlMS/fNOcG6+IlSzXzl3nbObvkANRjVKwcFvtM7MeWOCTWuhXwOUUmyTaryxAVan+/kKg7HWABx81X7tcgD75eincEzjin+Zqixq3FjK6YO/EZhi9Ye8qhaCc8Pn7TUcqk1x/sqlTG6TBwlKIcPtA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743715558; c=relaxed/simple;
-	bh=V/RkJllgbDtP7Wu1GHqj36u06BpdzGK1t9HCEXW76HU=;
-	h=Date:To:From:Subject:Message-Id; b=KRs/nvqszE7yOCuAXPqmT42ZZYyQjjAmmMVtXs4NYbUh514oOPQuVU6X3hKJ04NiyrK18l96onoaxg6LYdiiTN3YF+josgwgOcAJtwPrAoXXY4C4buzIm1pUqiA3cIXsE9tOkw068aQoI2p61Xrk/Y7h6wkOlWd36KvmZZvb2g0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eJ7KXVZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743715691; c=relaxed/simple;
+	bh=rlKvxUBdPPxyXhEcBYB9KczMR4TBvd4kcd04/klcNp0=;
+	h=Date:To:From:Subject:Message-Id; b=P9B1jNPSCykD374wcQxDfmU4yWri+b2ImbJJ8fK9jqZH+E37ZAIzk+05b1q93wlZwUq7F3LCAX8EkPBetpBPSHRArRZGuXtvYvHkKP8FBqp88QOdGpRuS58ZewLVcwaQ7iBGTUVze3uQw7X6FHabtCaFhKjBJOSamzVP9fJMd+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CMsQEuOU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eJ7KXVZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DAB6C4CEE8;
-	Thu,  3 Apr 2025 21:25:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CMsQEuOU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7511C4CEE3;
+	Thu,  3 Apr 2025 21:28:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743715558;
-	bh=V/RkJllgbDtP7Wu1GHqj36u06BpdzGK1t9HCEXW76HU=;
+	s=korg; t=1743715689;
+	bh=rlKvxUBdPPxyXhEcBYB9KczMR4TBvd4kcd04/klcNp0=;
 	h=Date:To:From:Subject:From;
-	b=0eJ7KXVZgZ6bzSBMCQFumHx2Nnyo34ZMpFJtOLpPeNJ3o/8dOU/8R/FJmKutq4++l
-	 RNbwHTf295N7h/Qrwdyhu8CzZagNuTn+lXz8esgyRug3tpGEnole/IpKkWBpmgMlC8
-	 eOJCsQLUnT4Qf33M1yW5l+wBBa5rbfdmmt19F9Ug=
-Date: Thu, 03 Apr 2025 14:25:57 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=CMsQEuOUBBKYm6CfiUVFjP5clPbUfdNYGc88TJpkDlL6+X66OZDVt290Q+TBTXyWd
+	 B8//dHLnnrQ690oOj/wB6x1zSQZJcFIGxfDKWoC3ICQFGlerFr5jAB5yYaWetP61WZ
+	 LNpDNBUPsfshMaADYalyLpsKXktF/FCk3sGZe4i8=
+Date: Thu, 03 Apr 2025 14:28:09 -0700
+To: mm-commits@vger.kernel.org,linus.walleij@linaro.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch removed from -mm tree
-Message-Id: <20250403212558.0DAB6C4CEE8@smtp.kernel.org>
+Subject: + task_stackh-remove-obsolete-__have_arch_kstack_end-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20250403212809.C7511C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,150 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+The patch titled
+     Subject: task_stack.h: remove obsolete __HAVE_ARCH_KSTACK_END check
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     task_stackh-remove-obsolete-__have_arch_kstack_end-check.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/task_stackh-remove-obsolete-__have_arch_kstack_end-check.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
-Date: Tue, 1 Apr 2025 16:23:39 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: task_stack.h: remove obsolete __HAVE_ARCH_KSTACK_END check
+Date: Thu, 03 Apr 2025 14:33:03 +0200
 
-In set_max_huge_pages(), min_count should mean the acquired persistent
-huge pages, but it contains surplus huge pages.  It will leads to failing
-to freeing free huge pages for a Node.
+Remove __HAVE_ARCH_KSTACK_END as it has been obsolete since removal of
+metag architecture in v4.17.
 
-Steps to reproduce:
-1) create 5 hugetlb folios in Node0
-2) run a program to use all the hugetlb folios
-3) echo 0 > nr_hugepages for Node0 to free the hugetlb folios. Thus the 5
-hugetlb folios in Node0 are accounted as surplus.
-4) create 5 hugetlb folios in Node1
-5) echo 0 > nr_hugepages for Node1 to free the hugetlb folios
-
-The result:
-        Node0    Node1
-Total     5         5
-Free      0         5
-Surp      5         5
-
-We couldn't subtract surplus_huge_pages from min_mount, since free hugetlb
-folios may be surplus due to HVO.  In __update_and_free_hugetlb_folio(),
-hugetlb_vmemmap_restore_folio() may fail, add the folio back to pool and
-treat it as surplus.  If we directly subtract surplus_huge_pages from
-min_mount, some free folios will be subtracted twice.
-
-To fix it, check if count is less than the num of free huge pages that
-could be destroyed (i.e., available_huge_pages(h)), and remove hugetlb
-folios if so.
-
-Since there may exist free surplus hugetlb folios, we should remove
-surplus folios first to make surplus count correct.
-
-The result with this patch:
-        Node0    Node1
-Total     5         0
-Free      0         0
-Surp      5         0
-
-Link: https://lkml.kernel.org/r/20250401082339.676723-1-tujinjiang@huawei.com
-Fixes: 9a30523066cd ("hugetlb: add per node hstate attributes")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20250403-kstack-end-v1-1-7798e71f34d1@linaro.org
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lore.kernel.org/20240311164638.2015063-2-pasha.tatashin@soleen.com
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   49 +++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 41 insertions(+), 8 deletions(-)
+ include/linux/sched/task_stack.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -3778,7 +3778,7 @@ static void try_to_free_low(struct hstat
- 		struct folio *folio, *next;
- 		struct list_head *freel = &h->hugepage_freelists[i];
- 		list_for_each_entry_safe(folio, next, freel, lru) {
--			if (count >= h->nr_huge_pages)
-+			if (count >= available_huge_pages(h))
- 				goto out;
- 			if (folio_test_highmem(folio))
- 				continue;
-@@ -3832,11 +3832,30 @@ found:
- 	return 1;
- }
+--- a/include/linux/sched/task_stack.h~task_stackh-remove-obsolete-__have_arch_kstack_end-check
++++ a/include/linux/sched/task_stack.h
+@@ -106,7 +106,6 @@ static inline unsigned long stack_not_us
+ #endif
+ extern void set_task_stack_end_magic(struct task_struct *tsk);
  
-+static struct folio *remove_surplus_pool_hugetlb_folio(struct hstate *h,
-+		nodemask_t *nodes_allowed)
-+{
-+	int nr_nodes, node;
-+	struct folio *folio = NULL;
-+
-+	lockdep_assert_held(&hugetlb_lock);
-+	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
-+		if (h->surplus_huge_pages_node[node] &&
-+		    !list_empty(&h->hugepage_freelists[node])) {
-+			folio = list_entry(h->hugepage_freelists[node].next,
-+					  struct folio, lru);
-+			remove_hugetlb_folio(h, folio, true);
-+			break;
-+		}
-+	}
-+
-+	return folio;
-+}
-+
- #define persistent_huge_pages(h) (h->nr_huge_pages - h->surplus_huge_pages)
- static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
- 			      nodemask_t *nodes_allowed)
+-#ifndef __HAVE_ARCH_KSTACK_END
+ static inline int kstack_end(void *addr)
  {
--	unsigned long min_count;
- 	unsigned long allocated;
- 	struct folio *folio;
- 	LIST_HEAD(page_list);
-@@ -3971,15 +3990,29 @@ static int set_max_huge_pages(struct hst
- 	 * and won't grow the pool anywhere else. Not until one of the
- 	 * sysctls are changed, or the surplus pages go out of use.
+ 	/* Reliable end of stack detection:
+@@ -114,6 +113,5 @@ static inline int kstack_end(void *addr)
  	 */
--	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
--	min_count = max(count, min_count);
--	try_to_free_low(h, min_count, nodes_allowed);
-+	try_to_free_low(h, count, nodes_allowed);
+ 	return !(((unsigned long)addr+sizeof(void*)-1) & (THREAD_SIZE-sizeof(void*)));
+ }
+-#endif
  
- 	/*
- 	 * Collect pages to be removed on list without dropping lock
--	 */
--	while (min_count < persistent_huge_pages(h)) {
--		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
-+	 *
-+	 * There may be free surplus huge pages due to HVO, see comments
-+	 * in __update_and_free_hugetlb_folio() when calling
-+	 * hugetlb_vmemmap_restore_folio(). Collect surplus pages first.
-+	 */
-+	while (count < available_huge_pages(h)) {
-+		if (h->surplus_huge_pages && h->free_huge_pages) {
-+			folio = remove_surplus_pool_hugetlb_folio(h, nodes_allowed);
-+			if (!folio)
-+				break;
-+
-+			list_add(&folio->lru, &page_list);
-+		} else {
-+			break;
-+		}
-+	}
-+
-+	while (count < available_huge_pages(h)) {
-+		folio = remove_pool_hugetlb_folio(h, nodes_allowed, false);
- 		if (!folio)
- 			break;
- 
+ #endif /* _LINUX_SCHED_TASK_STACK_H */
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
+task_stackh-remove-obsolete-__have_arch_kstack_end-check.patch
 
