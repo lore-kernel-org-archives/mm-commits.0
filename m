@@ -1,76 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63C3F8460;
-	Thu,  3 Apr 2025 05:15:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E927C18732B
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 07:05:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743657352; cv=none; b=Nxaei+mP7sDZR4/xibnbvwwioQaBPKGsMj6sfF91PnaE6KYLa+z5Lq9hCADX+QF9To5tvOBg91/SCxKgnLRo6da+Y/zo0wrT/b3n+5gn6+cV8SLgIR5IzV+brkera1rAMl1pgePvQRSHovX3dFpEo5norP5PIUV/iJU+X5PfqiM=
+	t=1743663937; cv=none; b=smw4edak4dnqSI5E8bXBQAXKfCfGsMhCDwowTQJVkKGlAkDeCAVoRc7Z9PJBKAhuE4VDW4A+mb3QKH+unGhAfMh1YFpiFFjemMSSXvwKPZw0kRMK1KLGSx3wmt+kaJNZDFsXZ3Exvx9iD5oafyES7e8NnXa7RxbaHYkq33v5m/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743657352; c=relaxed/simple;
-	bh=9Uo8OyaMiPKcyfNuYPU/mQOe58fUo5WXbR7MlZclq24=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=t516Xjurqu/oX45aWMTcRlx4O9/wQo/ORZiJjl1l3tJTvnIW0Fje/LE85IzvQQgNG2cvtIUiVKb4aIBtMwvk1SOnv2wRmtYIOuovWRCLsqLIghmjvGkupa+UbbW9lpBocrExonbI3A3GFig1I24IjGATNNZkMTBq8k2i8CEIsU4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SD21SrxR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743663937; c=relaxed/simple;
+	bh=zO6M1Ke+5u/SrDoxyEzXFoGpfvL/M6igy2Fob1aJvyU=;
+	h=Date:To:From:Subject:Message-Id; b=S/aXcOsaZ/2AmIP+d3R1xYbFVeYFhusAQmKCAhEc1ScUcKSgJWc+5qW6KDYksPkj4UGsVlOUEK6P6Iqjf2hbqa064e3QxrbFS6ZaED1eA5pxEONNWquXkcrsXbnkRA9yZs/aes877On5q2X430sOUDn+H7gezbjXQiwqQhw6PzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ag0gQa+K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SD21SrxR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFFB3C4CEE3;
-	Thu,  3 Apr 2025 05:15:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ag0gQa+K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60642C4CEE3;
+	Thu,  3 Apr 2025 07:05:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743657351;
-	bh=9Uo8OyaMiPKcyfNuYPU/mQOe58fUo5WXbR7MlZclq24=;
-	h=Date:From:To:Cc:Subject:From;
-	b=SD21SrxR0V6V9kWYxhDK1fg/cBoCWX7zfLKUAOpdQZ6TiIQwQKnYVia9HJP4twAv1
-	 fMCtP1ymjzEVZsF5KGigQY7lBPf7HP/fKNRs17PsKoy5B0FsJA2D8dIVjzT9hK803N
-	 WJBvwiMTtrpulclhDiE45TkZBS6GS74PRO1JDI7A=
-Date: Wed, 2 Apr 2025 22:15:51 -0700
+	s=korg; t=1743663936;
+	bh=zO6M1Ke+5u/SrDoxyEzXFoGpfvL/M6igy2Fob1aJvyU=;
+	h=Date:To:From:Subject:From;
+	b=Ag0gQa+K5v43prJVhzkwt5ma9ZGstKARnEMpQo1KD2pw560vtuI/9udMpismb3AQG
+	 jdygS9rs4DGalCTjFwNmfOapY0SqwGwUZe6NnAGuygGpE/E772melQTb+K+AaJkq/J
+	 9YYiLFx03U/HFIK6Fq0rU4hwAQ0RyWMlYfJfrPxk=
+Date: Thu, 03 Apr 2025 00:05:35 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,muchun.song@linux.dev,david@redhat.com,liushixin2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL] Additional non-MM updates for 6.15-rc1
-Message-Id: <20250402221551.4d682cf5ee222b9e5b6a1a8b@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-hugetlb-fix-nid-mismatch-in-alloc_surplus_hugetlb_folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250403070536.60642C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this second set of non-MM updates, thanks.
+The patch titled
+     Subject: mm/hugetlb: fix nid mismatch in alloc_surplus_hugetlb_folio()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-nid-mismatch-in-alloc_surplus_hugetlb_folio.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-nid-mismatch-in-alloc_surplus_hugetlb_folio.patch
 
-The following changes since commit 25601e85441dd91cf7973b002f27af4c5b8691ea:
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Merge tag 'char-misc-6.15-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/char-misc (2025-04-01 11:26:08 -0700)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2025-04-02-22-12
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to 8b46fdaea819a679da176b879e7b0674a1161a5e:
+------------------------------------------------------
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm/hugetlb: fix nid mismatch in alloc_surplus_hugetlb_folio()
+Date: Thu, 3 Apr 2025 14:41:38 +0800
 
-  lib: scatterlist: fix sg_split_phys to preserve original scatterlist offsets (2025-04-01 15:20:46 -0700)
+It's wrong to use nid directly since the nid may be changed in allocation.
+Use folio_nid() to obtain the nid of folio instead.
 
-----------------------------------------------------------------
-One bugfix and a couple of small late-arriving updates.
+Fix: 2273dea6b1e1 ("mm/hugetlb: update nr_huge_pages and surplus_huge_pages together")
+Link: https://lkml.kernel.org/r/20250403064138.2867929-1-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-----------------------------------------------------------------
-Kent Overstreet (1):
-      lib/sort.c: add _nonatomic() variants with cond_resched()
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Nicolas Schier (1):
-      mailmap: add an entry for Nicolas Schier
+--- a/mm/hugetlb.c~mm-hugetlb-fix-nid-mismatch-in-alloc_surplus_hugetlb_folio
++++ a/mm/hugetlb.c
+@@ -2271,7 +2271,7 @@ static struct folio *alloc_surplus_huget
+ 	 * as surplus_pages, otherwise it might confuse
+ 	 * persistent_huge_pages() momentarily.
+ 	 */
+-	__prep_account_new_huge_page(h, nid);
++	__prep_account_new_huge_page(h, folio_nid(folio));
+ 
+ 	/*
+ 	 * We could have raced with the pool size change.
+_
 
-T Pratham (1):
-      lib: scatterlist: fix sg_split_phys to preserve original scatterlist offsets
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
- .mailmap             |   2 +
- include/linux/sort.h |  11 ++++++
- lib/sg_split.c       |   2 -
- lib/sort.c           | 110 ++++++++++++++++++++++++++++++++++++---------------
- 4 files changed, 92 insertions(+), 33 deletions(-)
+mm-hugetlb-fix-nid-mismatch-in-alloc_surplus_hugetlb_folio.patch
 
