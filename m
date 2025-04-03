@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7FCB195FEF
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:09:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CB592E3387
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:17:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743653393; cv=none; b=njMrJ3aA87tlmHmuL2Af4AqPiJc+L/IU0P9yeyLhO+oaUa4LAZk0GvLDtHgnBVONcx13tBliIL08grnFMehQkOqmjx5+3sTWT53ZDcvORI/ZaomysLX0toNZTWZII8gNMVfhtU0tL4onhc5RTimNYLNDdQ0SIGNVwmvAz4TbTaE=
+	t=1743653846; cv=none; b=P+YXqw6K8H6PSouv8pK9qnXB4sxdiOYxXY1L3Pbx9VQg8gxL7bMPlFYw758n0ayRW7QvWfdJOigB24gMmTgkI5+P0dVE7vz9+Zqsg685+hLsDFGddMLvXZtfVSdZ7VToB6ss8CEHurbhBSJYRi/k65L/Br8YcNFGS6kf/HY+nDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743653393; c=relaxed/simple;
-	bh=iFH7TXSWI+4Z4L3rZcRBPRl4EJX+aOX+OGZKCxMLC40=;
-	h=Date:To:From:Subject:Message-Id; b=ZhWx4M3TES6QDPpJrgMX93F5rxmWGdrX3yRUzjFsq+CRu3JndV7Ra1qudPXL1VPon/5ZFGfhwUgtBAAOI/KJNqjFk6XUZqh/acXzbUdGJc09YS7tEgZvrvpRP+hV7+3xWoKpE5rBENqJDzmRB8W48UwS3J7UmgZ1+fRuqETRhDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Auhb0Uax; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743653846; c=relaxed/simple;
+	bh=GK4WBPlB3A2ZASFICtzQZyrQpAcvZ9suD8s6hGF5A/4=;
+	h=Date:To:From:Subject:Message-Id; b=beXTRaYQiBOZUQvStcb6nDxkgKMwtcoYvpF4kXE/YBiFu1jqZ5FKjL0QXDuiSuUMpfKb5ALVALkV8nIZuvsGQ9QUgxPfS7wdnwFNjM38IcHkTFNlzDtyh+DCGsirfUckceWST+Hv4HdbjTNteuTjfwPpOykvHRuGkTijKptMlhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wO04iS6I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Auhb0Uax"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24E4CC4CEE3;
-	Thu,  3 Apr 2025 04:09:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wO04iS6I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD6D4C4CEE3;
+	Thu,  3 Apr 2025 04:17:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743653393;
-	bh=iFH7TXSWI+4Z4L3rZcRBPRl4EJX+aOX+OGZKCxMLC40=;
+	s=korg; t=1743653845;
+	bh=GK4WBPlB3A2ZASFICtzQZyrQpAcvZ9suD8s6hGF5A/4=;
 	h=Date:To:From:Subject:From;
-	b=Auhb0UaxdbjJD9BP4JJStGto70ehvnXuymV6GflCRzb/8NcV6K08vlNnbQKBQXAFc
-	 EYqzNDOIlrlnyhJ27+SQwRYJALLi+UMvt1nVhZE2pS3oq6lCz/JrwZlSI6w4bmtlpO
-	 9c47XajYbWSmDlDEMnXU9dt9jVd49M7nVexb9+No=
-Date: Wed, 02 Apr 2025 21:09:52 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,sj@kernel.org,nphamcs@gmail.com,minchan@kernel.org,Jonathan.Cameron@huawei.com,hannes@cmpxchg.org,gourry@gourry.net,dan.j.williams@intel.com,chengming.zhou@linux.dev,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=wO04iS6InH2uM5M2UbbhzX73PojYZ+fGqzUhvfpTDMa8vt9PfMZZWYJ82jc2jjrIl
+	 xDz47b98RnFeEdILUhezMuafuQRA3ICk06Tj789qw9cfm8EinLjs5wc4bMJ/DfcRRe
+	 UMxbwGkr5HKwtJVwCbcpeB+1/fr6orOtfLwnVZMY=
+Date: Wed, 02 Apr 2025 21:17:25 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch added to mm-new branch
-Message-Id: <20250403040953.24E4CC4CEE3@smtp.kernel.org>
+Subject: + memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch added to mm-new branch
+Message-Id: <20250403041725.CD6D4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
+     Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
 has been added to the -mm mm-new branch.  Its filename is
-     zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
+     memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,96 +58,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
-Date: Thu, 3 Apr 2025 12:55:46 +0900
+From: Waiman Long <longman@redhat.com>
+Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
+Date: Wed, 2 Apr 2025 23:12:12 -0400
 
-coding-style fixes
+The test_memcontrol selftest consistently fails its test_memcg_low
+sub-test because of the fact that two of its test child cgroups which have
+a memmory.low of 0 or an effective memory.low of 0 still have low events
+generated for them since mem_cgroup_below_low() use the ">=" operator when
+comparing to elow.
 
-Link: https://lkml.kernel.org/r/mnvexa7kseswglcqbhlot4zg3b3la2ypv2rimdl5mh5glbmhvz@wi6bgqn47hge
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+The simple fix of changing the operator to ">", however, changes the way
+memory reclaim works quite drastically leading to other failures.  So we
+can't do that without some relatively riskier changes in memory reclaim.
+
+Another simpler alternative is to avoid reporting below_low failure if
+either memory.low or its effective equivalent is 0 which is done by this
+patch.
+
+With this patch applied, the test_memcg_low sub-test finishes successfully
+without failure in most cases.  Though both test_memcg_low and
+test_memcg_min sub-tests may fail occasionally if the memory.current
+values fall outside of the expected ranges.
+
+To be consistent, similar change is appled to mem_cgroup_below_min()
+as well.
+
+Link: https://lkml.kernel.org/r/20250403031212.317837-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zpool.h |    4 ++--
- mm/zpool.c            |    2 +-
- mm/zsmalloc.c         |    8 ++++----
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
---- a/include/linux/zpool.h~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
-+++ a/include/linux/zpool.h
-@@ -22,7 +22,7 @@ const char *zpool_get_type(struct zpool
- void zpool_destroy_pool(struct zpool *pool);
- 
- int zpool_malloc(struct zpool *pool, size_t size, gfp_t gfp,
--			unsigned long *handle, const int nid);
-+		 unsigned long *handle, const int nid);
- 
- void zpool_free(struct zpool *pool, unsigned long handle);
- 
-@@ -64,7 +64,7 @@ struct zpool_driver {
- 	void (*destroy)(void *pool);
- 
- 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
--				unsigned long *handle, const int nid);
-+		      unsigned long *handle, const int nid);
- 	void (*free)(void *pool, unsigned long handle);
- 
- 	void *(*obj_read_begin)(void *pool, unsigned long handle,
---- a/mm/zpool.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
-+++ a/mm/zpool.c
-@@ -239,7 +239,7 @@ const char *zpool_get_type(struct zpool
-  * Returns: 0 on success, negative value on error.
-  */
- int zpool_malloc(struct zpool *zpool, size_t size, gfp_t gfp,
--			unsigned long *handle, const int nid)
-+		 unsigned long *handle, const int nid)
+--- a/include/linux/memcontrol.h~memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0
++++ a/include/linux/memcontrol.h
+@@ -601,21 +601,31 @@ static inline bool mem_cgroup_unprotecte
+ static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
+ 					struct mem_cgroup *memcg)
  {
- 	return zpool->driver->malloc(zpool->pool, size, gfp, handle, nid);
- }
---- a/mm/zsmalloc.c~zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix
-+++ a/mm/zsmalloc.c
-@@ -462,7 +462,7 @@ static void zs_zpool_destroy(void *pool)
++	unsigned long elow;
++
+ 	if (mem_cgroup_unprotected(target, memcg))
+ 		return false;
+ 
+-	return READ_ONCE(memcg->memory.elow) >=
+-		page_counter_read(&memcg->memory);
++	elow = READ_ONCE(memcg->memory.elow);
++	if (!elow || !READ_ONCE(memcg->memory.low))
++		return false;
++
++	return page_counter_read(&memcg->memory) <= elow;
  }
  
- static int zs_zpool_malloc(void *pool, size_t size, gfp_t gfp,
--			unsigned long *handle, const int nid)
-+			   unsigned long *handle, const int nid)
+ static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
+ 					struct mem_cgroup *memcg)
  {
- 	*handle = zs_malloc(pool, size, gfp, nid);
++	unsigned long emin;
++
+ 	if (mem_cgroup_unprotected(target, memcg))
+ 		return false;
  
-@@ -1043,8 +1043,8 @@ static void create_page_chain(struct siz
-  * Allocate a zspage for the given size class
-  */
- static struct zspage *alloc_zspage(struct zs_pool *pool,
--					struct size_class *class,
--					gfp_t gfp, const int nid)
-+				   struct size_class *class,
-+				   gfp_t gfp, const int nid)
- {
- 	int i;
- 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
-@@ -1343,7 +1343,7 @@ static unsigned long obj_malloc(struct z
-  * Allocation requests with size > ZS_MAX_ALLOC_SIZE will fail.
-  */
- unsigned long zs_malloc(struct zs_pool *pool, size_t size, gfp_t gfp,
--				const int nid)
-+			const int nid)
- {
- 	unsigned long handle;
- 	struct size_class *class;
+-	return READ_ONCE(memcg->memory.emin) >=
+-		page_counter_read(&memcg->memory);
++	emin = READ_ONCE(memcg->memory.emin);
++	if (!emin || !READ_ONCE(memcg->memory.min))
++		return false;
++
++	return page_counter_read(&memcg->memory) <= emin;
+ }
+ 
+ int __mem_cgroup_charge(struct folio *folio, struct mm_struct *mm, gfp_t gfp);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
+memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
 
