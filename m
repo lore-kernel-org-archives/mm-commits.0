@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 663AF2581;
-	Thu,  3 Apr 2025 03:59:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3020A2CA6
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:01:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743652795; cv=none; b=mXg0m2Y80Z2jb3dWcGc8mB4PgPi88HWGaXPyexIfSJC9CCjcEv77+y8FTYSYb/8E/bBs+o6kmm8zu98k57q2Tg4v37wLDswb5pWhJjLtnuBMouVVpgidtW483WJxhp0zFYpMrkh+U5y+osfkzCC5vBqe5HvJN3ENnQ/8uwbk3yw=
+	t=1743652862; cv=none; b=QyYp/R9AwtJ97y0kbpgxmvuecEWY5r+EQ0zH+7yBZ/nR1/EIsHaKfRvdcipSm8KTjK675VvwE9owbBswXDZbPKR2bGmHANUFpKtnHkwwHfcMq4OnzYaI0Mpz9liY9RA2q4F1bpKq+RPhOQZgQkTjYSSz05vkbVCUlLkXaeS0Y7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743652795; c=relaxed/simple;
-	bh=a1W8uK/mtFZRgxv1ycxIHxj31XYVSUtlLTwzZB8HCBQ=;
-	h=Date:To:From:Subject:Message-Id; b=MF1f7OKrpfmHWhR38su/maSZtfcfcgyGdelOZ71cNL7twU+QN+jr5xvfUWS0oj7nJv0gpZQrRkYca0nPWI5QejxR0pAIUlH5Ovgo8wYnCD1Av51EOq6K35UWI9aCPbUQ45hlignyna+e8p3pzVxp5kYaDagSVDlmFKAXUkrtANo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IWbYgMh5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743652862; c=relaxed/simple;
+	bh=RaqFsJnTaUk8sBKdlr2VIj9ZxdvwjJG4Y2LbcP7jnQY=;
+	h=Date:To:From:Subject:Message-Id; b=EagLiTJ+UsG8dGUK/YOEloT5EqU2w5gr+9Is3CAh0Tqaow6pC5albEhHHX5Df/FL/b/2SRWQ0G5xHf8eSrLXoWpqfOQ4Sz3vvrfDd48WljtEHceces6GPzQf4IlJeBrItz92zZ0wZ7TRFh5zibpjMpCrqrYIq9EW3xVYjZP0AGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ooVsxJMy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IWbYgMh5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07F0BC4CEE3;
-	Thu,  3 Apr 2025 03:59:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ooVsxJMy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8387DC4CEE3;
+	Thu,  3 Apr 2025 04:01:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743652795;
-	bh=a1W8uK/mtFZRgxv1ycxIHxj31XYVSUtlLTwzZB8HCBQ=;
+	s=korg; t=1743652861;
+	bh=RaqFsJnTaUk8sBKdlr2VIj9ZxdvwjJG4Y2LbcP7jnQY=;
 	h=Date:To:From:Subject:From;
-	b=IWbYgMh5WVUS8UlkU4CribUjZbLpCnenRBx8PpXl/kFqhD0ReBBjaKk3l4yInFmdg
-	 JcItI257rcFK5o8E+fE4Ps0cHw6jEdYcReT1XEWuSKJdVMYY20sAlg+kKihRNUu8mB
-	 gMCcd77d7kctOM8kt0rnlaX/q+12U5hN0jEuYnLQ=
-Date: Wed, 02 Apr 2025 20:59:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,osalvador@suse.de,linmiaohe@huawei.com,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=ooVsxJMysDnkg3ElyES8VVs9TGIrUiPteCHcFc/T0bTlIED3epU81I+2UpsBLDKO8
+	 mwObMqVZ/Z1qrFeR9wfiYLf/tPjWGBk426LB4ey77ATnJNq87KIA6eeVAKz9TfWBLv
+	 NMsqo6RTIj833qP/guFn7tsGAHPYnyoNlmAik4NE=
+Date: Wed, 02 Apr 2025 21:01:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,osalvador@suse.de,muchun.song@linux.dev,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250403035955.07F0BC4CEE3@smtp.kernel.org>
+Subject: + mm-compaction-use-folio-in-hugetlb-pathway.patch added to mm-new branch
+Message-Id: <20250403040101.8387DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/compaction: fix bug in hugetlb handling pathway
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
+     Subject: mm/compaction: use folio in hugetlb pathway
+has been added to the -mm mm-new branch.  Its filename is
+     mm-compaction-use-folio-in-hugetlb-pathway.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-use-folio-in-hugetlb-pathway.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,69 +59,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/compaction: fix bug in hugetlb handling pathway
-Date: Mon, 31 Mar 2025 19:10:24 -0700
+Subject: mm/compaction: use folio in hugetlb pathway
+Date: Mon, 31 Mar 2025 19:10:25 -0700
 
-The compaction code doesn't take references on pages until we're certain
-we should attempt to handle it.
+Use a folio in the hugetlb pathway during the compaction migrate-able
+pageblock scan.
 
-In the hugetlb case, isolate_or_dissolve_huge_page() may return -EBUSY
-without taking a reference to the folio associated with our pfn.  If our
-folio's refcount drops to 0, compound_nr() becomes unpredictable, making
-low_pfn and nr_scanned unreliable.  The user-visible effect is minimal -
-this should rarely happen (if ever).
+This removes a call to compound_head().
 
-Fix this by storing the folio statistics earlier on the stack (just like
-the THP and Buddy cases).
-
-Also revert commit 66fe1cf7f581 ("mm: compaction: use helper compound_nr
-in isolate_migratepages_block") to make backporting easier.
-
-Link: https://lkml.kernel.org/r/20250401021025.637333-1-vishal.moola@gmail.com
-Fixes: 369fa227c219 ("mm: make alloc_contig_range handle free hugetlb pages")
+Link: https://lkml.kernel.org/r/20250401021025.637333-2-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    4 ++--
+ mm/compaction.c         |    8 ++++----
+ mm/hugetlb.c            |    3 +--
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-fix-bug-in-hugetlb-handling-pathway
+--- a/include/linux/hugetlb.h~mm-compaction-use-folio-in-hugetlb-pathway
++++ a/include/linux/hugetlb.h
+@@ -698,7 +698,7 @@ struct huge_bootmem_page {
+ 
+ bool hugetlb_bootmem_page_zones_valid(int nid, struct huge_bootmem_page *m);
+ 
+-int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list);
++int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list);
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
+ void wait_for_freed_hugetlb_folios(void);
+ struct folio *alloc_hugetlb_folio(struct vm_area_struct *vma,
+@@ -1086,7 +1086,7 @@ static inline struct folio *filemap_lock
+ 	return NULL;
+ }
+ 
+-static inline int isolate_or_dissolve_huge_page(struct page *page,
++static inline int isolate_or_dissolve_huge_folio(struct folio *folio,
+ 						struct list_head *list)
+ {
+ 	return -ENOMEM;
+--- a/mm/compaction.c~mm-compaction-use-folio-in-hugetlb-pathway
 +++ a/mm/compaction.c
-@@ -981,13 +981,13 @@ isolate_migratepages_block(struct compac
- 		}
+@@ -1001,10 +1001,11 @@ isolate_migratepages_block(struct compac
+ 				locked = NULL;
+ 			}
  
- 		if (PageHuge(page)) {
-+			const unsigned int order = compound_order(page);
+-			ret = isolate_or_dissolve_huge_page(page, &cc->migratepages);
++			folio = page_folio(page);
++			ret = isolate_or_dissolve_huge_folio(folio, &cc->migratepages);
+ 
  			/*
- 			 * skip hugetlbfs if we are not compacting for pages
- 			 * bigger than its order. THPs and other compound pages
- 			 * are handled below.
+-			 * Fail isolation in case isolate_or_dissolve_huge_page()
++			 * Fail isolation in case isolate_or_dissolve_huge_folio()
+ 			 * reports an error. In case of -ENOMEM, abort right away.
  			 */
- 			if (!cc->alloc_contig) {
--				const unsigned int order = compound_order(page);
- 
- 				if (order <= MAX_PAGE_ORDER) {
- 					low_pfn += (1UL << order) - 1;
-@@ -1011,8 +1011,8 @@ isolate_migratepages_block(struct compac
- 				 /* Do not report -EBUSY down the chain */
- 				if (ret == -EBUSY)
- 					ret = 0;
--				low_pfn += compound_nr(page) - 1;
--				nr_scanned += compound_nr(page) - 1;
-+				low_pfn += (1UL << order) - 1;
-+				nr_scanned += (1UL << order) - 1;
+ 			if (ret < 0) {
+@@ -1016,12 +1017,11 @@ isolate_migratepages_block(struct compac
  				goto isolate_fail;
  			}
  
+-			if (PageHuge(page)) {
++			if (folio_test_hugetlb(folio)) {
+ 				/*
+ 				 * Hugepage was successfully isolated and placed
+ 				 * on the cc->migratepages list.
+ 				 */
+-				folio = page_folio(page);
+ 				low_pfn += folio_nr_pages(folio) - 1;
+ 				goto isolate_success_no_list;
+ 			}
+--- a/mm/hugetlb.c~mm-compaction-use-folio-in-hugetlb-pathway
++++ a/mm/hugetlb.c
+@@ -2897,10 +2897,9 @@ free_new:
+ 	return ret;
+ }
+ 
+-int isolate_or_dissolve_huge_page(struct page *page, struct list_head *list)
++int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list)
+ {
+ 	struct hstate *h;
+-	struct folio *folio = page_folio(page);
+ 	int ret = -EBUSY;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
+mm-compaction-use-folio-in-hugetlb-pathway.patch
 
