@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2779533997
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 21:18:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E557219E4
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 21:19:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743715090; cv=none; b=WVqfJQKwtlPzTXjnD0YG2lAET73LkDcRJ4lvjBPcRXvi7HgwrV660ULUIBtOi9mvgRRIRIUFQhiCemBzs+6PvUenm1rBWTTXFhg52RxDnemoB0LJObSZPkglKNEhhiuyU3zo2n2w+ReiTjeLtb8mK306k2iz7J7rGfCih+Yzt5o=
+	t=1743715171; cv=none; b=do9F5aYkc1kEBmYPch+XkSlob+b7YiLDiH+tiLwMX0RFi4TG8OLNIpJnW1dX51A6n0DXZUdK7urOXOPf62GtywPDD6G4k56tjrByNsC992Fpf7OHht0ESYrwedT+50RODg/TWv1avxSRiuQJuvwm9d1IIRiBbepIVm9kcD7xXN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743715090; c=relaxed/simple;
-	bh=b3dbQpRdN36kYKpajUI53mPdTdD7X6IMZXHqv3XJ02w=;
-	h=Date:To:From:Subject:Message-Id; b=k9QVK2BdSayRTWp61Ce+XF8LzozpcXB0Ppl9/gox7KZD5c8djWF2pVeu3iWJs4hOgtjna+nqumja8t1djESrkdR1SYjjSf0BdySVEDk6z20XLGKba0zvX4vPQsaaG6cS9tz/y4f6AaqTJliM2VAfbAGkPMi4LnE10gStwawiL00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fK7Z4msH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743715171; c=relaxed/simple;
+	bh=535mi0JFWPcqXLDrkY908RHzVc56HMFCpMhpo86giVI=;
+	h=Date:To:From:Subject:Message-Id; b=lWglz2Ak6x6O/ulLQXCcHXyF3EHY9tSGCCBEwMXgA3Od82TAaNL0tkatG7Lu2KopApMbatmUZ5R5fcSyxsYabK10owSvpjvyY54e/LxCoJPTkLMEbdVz+FDBYLompcQ+6Mp6blXgUhzKvgV/z9gUHMTgNtkAjeOpeXHD+V/i6AY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w8OXQiIv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fK7Z4msH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBF61C4CEE3;
-	Thu,  3 Apr 2025 21:18:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w8OXQiIv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C32CAC4CEE3;
+	Thu,  3 Apr 2025 21:19:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743715089;
-	bh=b3dbQpRdN36kYKpajUI53mPdTdD7X6IMZXHqv3XJ02w=;
+	s=korg; t=1743715170;
+	bh=535mi0JFWPcqXLDrkY908RHzVc56HMFCpMhpo86giVI=;
 	h=Date:To:From:Subject:From;
-	b=fK7Z4msH8I+rElqyh+Gt9ZtyW4qkDQh5uoJ+iBQVTQehcww2GB9+t/cnLwUvgmu0T
-	 vjkBfsCifWyUjFbSYCiNUpBcGjQOvTWArV8U0XwoE1H/YBaJL4fTGe6dZ3ak3RyvZo
-	 fQ6vSx2HbyY0xF9YLWFm+N3Gs6s/1F2f1EJ3hfF0=
-Date: Thu, 03 Apr 2025 14:18:09 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,joel.granados@kernel.org,brauner@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=w8OXQiIv+raNWXHPQS87pUbdRIEyDjCkati9KeHrETAr2jzaQ/LaGpLE+uEEwxXdm
+	 Xq/+BRGv7F4K/aiMUTiqSksEiAWSUbS7wueBsdxAokJKEYoYGfIM43ESjm2mLguWNC
+	 lCCI/oOZ1NVqchsqD2xIOwOpim+pco30ZE944Buw=
+Date: Thu, 03 Apr 2025 14:19:29 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,oleg@redhat.com,mingo@kernel.org,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,glider@google.com,brauner@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + exit-skip-irq-disabled-warning-during-power-off.patch added to mm-nonmm-unstable branch
-Message-Id: <20250403211809.CBF61C4CEE3@smtp.kernel.org>
+Subject: + exit-move-and-extend-sched_process_exit-tracepoint-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20250403211930.C32CAC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: exit: skip IRQ disabled warning during power off
+     Subject: exit: document sched_process_exit and sched_process_template relation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     exit-skip-irq-disabled-warning-during-power-off.patch
+     exit-move-and-extend-sched_process_exit-tracepoint-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exit-skip-irq-disabled-warning-during-power-off.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exit-move-and-extend-sched_process_exit-tracepoint-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: exit: skip IRQ disabled warning during power off
-Date: Thu, 03 Apr 2025 11:01:29 -0700
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: exit: document sched_process_exit and sched_process_template relation
+Date: Thu, 3 Apr 2025 10:41:20 -0700
 
-When the system is shutting down due to pid 1 exiting, which is common on
-virtual machines, a warning message is printed.
+Add an explicit note pointing out that sched_process_exit tracepoint is,
+conceptually, related to sched_process_template and should be kept in sync
+(though, on the best effort basis).
 
-	WARNING: CPU: 0 PID: 1 at kernel/exit.c:897 do_exit+0x7e3/0xab0
-
-This occurs because do_exit() is called after kernel_power_off(), which
-disables interrupts.  native_machine_shutdown() expliclty disable
-interrupt to avoid receiving the timer interrupt, forcing scheduler load
-balance during the power off phase.
-
-This is the simplified code path:
-
-	kernel_power_off()
-	  - native_machine_shutdown()
-	  	- local_irq_disable()
-	do_exit()
-
-Modify the warning condition in do_exit() to only trigger the warning if
-the system is not powering off, since it is expected to have the irq
-disabled in that case.
-
-Link: https://lkml.kernel.org/r/20250403-exit-v1-1-8e9266bfc4b7@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Link: https://lkml.kernel.org/r/20250403174120.4087794-1-andrii@kernel.org
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Suggested-by: Ingo Molnar <mingo@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/sched.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/kernel/exit.c~exit-skip-irq-disabled-warning-during-power-off
-+++ a/kernel/exit.c
-@@ -894,7 +894,7 @@ void __noreturn do_exit(long code)
- 	struct task_struct *tsk = current;
- 	int group_dead;
+--- a/include/trace/events/sched.h~exit-move-and-extend-sched_process_exit-tracepoint-fix
++++ a/include/trace/events/sched.h
+@@ -326,7 +326,11 @@ DEFINE_EVENT(sched_process_template, sch
+ 	     TP_ARGS(p));
  
--	WARN_ON(irqs_disabled());
-+	WARN_ON(irqs_disabled() && system_state != SYSTEM_POWER_OFF);
- 
- 	synchronize_group_exit(tsk, code);
+ /*
+- * Tracepoint for a task exiting:
++ * Tracepoint for a task exiting.
++ * Note, it's a superset of sched_process_template and should be kept
++ * compatible as much as possible. sched_process_exits has an extra
++ * `group_dead` argument, so sched_process_template can't be used,
++ * unfortunately, just like sched_migrate_task above.
+  */
+ TRACE_EVENT(sched_process_exit,
  
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-exit-skip-irq-disabled-warning-during-power-off.patch
+exit-move-and-extend-sched_process_exit-tracepoint.patch
+exit-move-and-extend-sched_process_exit-tracepoint-fix.patch
 
