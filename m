@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CB592E3387
-	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:17:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E2832E3387
+	for <mm-commits@vger.kernel.org>; Thu,  3 Apr 2025 04:21:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743653846; cv=none; b=P+YXqw6K8H6PSouv8pK9qnXB4sxdiOYxXY1L3Pbx9VQg8gxL7bMPlFYw758n0ayRW7QvWfdJOigB24gMmTgkI5+P0dVE7vz9+Zqsg685+hLsDFGddMLvXZtfVSdZ7VToB6ss8CEHurbhBSJYRi/k65L/Br8YcNFGS6kf/HY+nDo=
+	t=1743654095; cv=none; b=LxpCSEQb9y/T+ksR7x/aXI81OtUF8NOgXpwSwK1n0ou2yK8Ojr7Cf143tSdMPeMKmohNxLME3ihxQH1yOhykYfGHwwsrts1hXmIdEIiOyuz7r8bmfb6YcsNwxlhyn5nfSkW5ReGzuPYKQKr18TixGDwGMyDlJlZQQJERGG+EIrw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743653846; c=relaxed/simple;
-	bh=GK4WBPlB3A2ZASFICtzQZyrQpAcvZ9suD8s6hGF5A/4=;
-	h=Date:To:From:Subject:Message-Id; b=beXTRaYQiBOZUQvStcb6nDxkgKMwtcoYvpF4kXE/YBiFu1jqZ5FKjL0QXDuiSuUMpfKb5ALVALkV8nIZuvsGQ9QUgxPfS7wdnwFNjM38IcHkTFNlzDtyh+DCGsirfUckceWST+Hv4HdbjTNteuTjfwPpOykvHRuGkTijKptMlhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wO04iS6I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743654095; c=relaxed/simple;
+	bh=fyWMdLYfVvXf7ItTLjaPJh8CRoGH2fsa2WcPtN2OLKk=;
+	h=Date:To:From:Subject:Message-Id; b=LZOtMKYytQid7DjU6d0gFxZYiPso3PFTn/s+aliv3hmE6pn3cIBs63EKfl+PnCrdDxqXS/hzMk0RC7sJLKo8+5SrZIEfuLf8amdGMGKlJdeoS8bN8sUqUGMMXZk4xhRdw4/qS+HSPmH86ElORAN6CQ4M1S9zn6idIIUKd+2Hq4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zcrlEbkH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wO04iS6I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD6D4C4CEE3;
-	Thu,  3 Apr 2025 04:17:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zcrlEbkH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A966C4CEE3;
+	Thu,  3 Apr 2025 04:21:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743653845;
-	bh=GK4WBPlB3A2ZASFICtzQZyrQpAcvZ9suD8s6hGF5A/4=;
+	s=korg; t=1743654094;
+	bh=fyWMdLYfVvXf7ItTLjaPJh8CRoGH2fsa2WcPtN2OLKk=;
 	h=Date:To:From:Subject:From;
-	b=wO04iS6InH2uM5M2UbbhzX73PojYZ+fGqzUhvfpTDMa8vt9PfMZZWYJ82jc2jjrIl
-	 xDz47b98RnFeEdILUhezMuafuQRA3ICk06Tj789qw9cfm8EinLjs5wc4bMJ/DfcRRe
-	 UMxbwGkr5HKwtJVwCbcpeB+1/fr6orOtfLwnVZMY=
-Date: Wed, 02 Apr 2025 21:17:25 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=zcrlEbkHRmrAHZcTIw2nC7GqWYvN2oyk/8T9LhNNW5flw7MVveP/oyxMQeuPIFtX1
+	 EbqG+m3LBPE63GumKeEtj10ABnaRDaYfBJNNgVD1ZGIWsbBTdX5qqk5XEw1UcC9koI
+	 iKkm6xCW2z/TurwvkUx1CpHwKYdec/Wq8uGc2NUU=
+Date: Wed, 02 Apr 2025 21:21:33 -0700
+To: mm-commits@vger.kernel.org,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ignacio@iencinas.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch added to mm-new branch
-Message-Id: <20250403041725.CD6D4C4CEE3@smtp.kernel.org>
+Subject: + mm-annotate-data-race-in-update_hiwater_rss.patch added to mm-new branch
+Message-Id: <20250403042134.6A966C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
+     Subject: mm: annotate data race in update_hiwater_rss
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
+     mm-annotate-data-race-in-update_hiwater_rss.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-annotate-data-race-in-update_hiwater_rss.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,86 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
-Date: Wed, 2 Apr 2025 23:12:12 -0400
+From: Ignacio Encinas <ignacio@iencinas.com>
+Subject: mm: annotate data race in update_hiwater_rss
+Date: Mon, 31 Mar 2025 21:57:05 +0200
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test because of the fact that two of its test child cgroups which have
-a memmory.low of 0 or an effective memory.low of 0 still have low events
-generated for them since mem_cgroup_below_low() use the ">=" operator when
-comparing to elow.
+mm_struct.hiwater_rss can be accessed concurrently without proper
+synchronization as reported by KCSAN.
 
-The simple fix of changing the operator to ">", however, changes the way
-memory reclaim works quite drastically leading to other failures.  So we
-can't do that without some relatively riskier changes in memory reclaim.
+This data race is benign as it only affects accounting information.
+Annotate it with data_race() to make KCSAN happy.
 
-Another simpler alternative is to avoid reporting below_low failure if
-either memory.low or its effective equivalent is 0 which is done by this
-patch.
-
-With this patch applied, the test_memcg_low sub-test finishes successfully
-without failure in most cases.  Though both test_memcg_low and
-test_memcg_min sub-tests may fail occasionally if the memory.current
-values fall outside of the expected ranges.
-
-To be consistent, similar change is appled to mem_cgroup_below_min()
-as well.
-
-Link: https://lkml.kernel.org/r/20250403031212.317837-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20250331-mm-maxrss-data-race-v2-1-cf958e6205bf@iencinas.com
+Signed-off-by: Ignacio Encinas <ignacio@iencinas.com>
+Reported-by: syzbot+419c4b42acc36c420ad3@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67e3390c.050a0220.1ec46.0001.GAE@google.com/
+Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0
-+++ a/include/linux/memcontrol.h
-@@ -601,21 +601,31 @@ static inline bool mem_cgroup_unprotecte
- static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
- 					struct mem_cgroup *memcg)
+--- a/include/linux/mm.h~mm-annotate-data-race-in-update_hiwater_rss
++++ a/include/linux/mm.h
+@@ -12,6 +12,7 @@
+ #include <linux/rbtree.h>
+ #include <linux/atomic.h>
+ #include <linux/debug_locks.h>
++#include <linux/compiler.h>
+ #include <linux/mm_types.h>
+ #include <linux/mmap_lock.h>
+ #include <linux/range.h>
+@@ -2777,7 +2778,7 @@ static inline void update_hiwater_rss(st
  {
-+	unsigned long elow;
-+
- 	if (mem_cgroup_unprotected(target, memcg))
- 		return false;
+ 	unsigned long _rss = get_mm_rss(mm);
  
--	return READ_ONCE(memcg->memory.elow) >=
--		page_counter_read(&memcg->memory);
-+	elow = READ_ONCE(memcg->memory.elow);
-+	if (!elow || !READ_ONCE(memcg->memory.low))
-+		return false;
-+
-+	return page_counter_read(&memcg->memory) <= elow;
+-	if ((mm)->hiwater_rss < _rss)
++	if (data_race(mm->hiwater_rss) < _rss)
+ 		(mm)->hiwater_rss = _rss;
  }
  
- static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
- 					struct mem_cgroup *memcg)
- {
-+	unsigned long emin;
-+
- 	if (mem_cgroup_unprotected(target, memcg))
- 		return false;
- 
--	return READ_ONCE(memcg->memory.emin) >=
--		page_counter_read(&memcg->memory);
-+	emin = READ_ONCE(memcg->memory.emin);
-+	if (!emin || !READ_ONCE(memcg->memory.min))
-+		return false;
-+
-+	return page_counter_read(&memcg->memory) <= emin;
- }
- 
- int __mem_cgroup_charge(struct folio *folio, struct mm_struct *mm, gfp_t gfp);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from ignacio@iencinas.com are
 
-memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
+mm-annotate-data-race-in-update_hiwater_rss.patch
 
