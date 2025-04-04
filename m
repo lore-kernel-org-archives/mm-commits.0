@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3F015990C
-	for <mm-commits@vger.kernel.org>; Fri,  4 Apr 2025 23:04:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C057715990C
+	for <mm-commits@vger.kernel.org>; Fri,  4 Apr 2025 23:04:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743807892; cv=none; b=MuyOeyG+r2Ac418uFSaPrWhBCP7ejU7xz/GwCtkMPxLZpqIjd3k8FUoBnmFXNTlhiNR0odMtd1phhv6/r3jF5bZ2JeGsCu+m2hUVqAw1Dk8azSL0pDeOWF+h2eCiFzDaZBq/pq2Mxhq//ppLQih6HJo5GjWxuTMuLO6uAUxEluM=
+	t=1743807893; cv=none; b=dKQD4h0vdr6ZzUoxhMz7Zpk5K2LsKoJEfoDsHQ1l59J78fzBkrp8EptZXfFBkZ7iNpPgm0bGBs7ei5+0W4cO9COrNLVVhSoku64x1GM5lPmBoUfYOLCjV59TYE2oZ0KgLLg1YwZqUDWztLWa5JxDPDUQtBKNH2lh4DPSMthbCSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743807892; c=relaxed/simple;
-	bh=tlZ1v21fANQ78Z+JteSvUmpr/Pbw404xbNLZxwyIMUk=;
-	h=Date:To:From:Subject:Message-Id; b=HzGtezM9blNggwDifTAlDGIBEMdxK1rYwFa3cL0NBDIXJey1ry711V9uXVZUOZWAwVWYPIboRi1g5Wrk1SbzujkqpTkC0j89eiD/F+xUcWAebbBd1qkv7UAx2/1xH9nsAnoc8zK4gTxXKNvWdAJSxGUqxOI6EcWCi2BtMdHFC24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k6Jux+d2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743807893; c=relaxed/simple;
+	bh=iuENWZj/gkL1/RoML+Z23JSbDwNQEY9hG6a2eh8Emdw=;
+	h=Date:To:From:Subject:Message-Id; b=k2neJnZLzkpA26ZrRIr+W+4VBxSnc4sdlpsfuVLvP8aNqNXs3t92ei9Y1rdaiZt1A6YlpJayekl4+NfVXDrzmRvlSI2ojJtKiBsZS7EB3yEjVV4E014mxLgBjYwx/RC/xARSLFFN/bj+97M92h0pfaFXXUNtIWUpKzNeaJvUxkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qZJHNete; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k6Jux+d2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F91C4CEDD;
-	Fri,  4 Apr 2025 23:04:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qZJHNete"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74FD1C4CEDD;
+	Fri,  4 Apr 2025 23:04:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743807891;
-	bh=tlZ1v21fANQ78Z+JteSvUmpr/Pbw404xbNLZxwyIMUk=;
+	s=korg; t=1743807893;
+	bh=iuENWZj/gkL1/RoML+Z23JSbDwNQEY9hG6a2eh8Emdw=;
 	h=Date:To:From:Subject:From;
-	b=k6Jux+d2NfwK1BdFwoChI5ypZgKouk8GNQSZW9YYQmYRk+XTLfBMRgS3JcIz18Kxw
-	 /rO4x/vLeKhp7tCtBA8IMYVvls1VLRByrru7fjkxqV8BzZf4U4tIZOZxRNsdocUrwi
-	 OEpDDBZ1USqp5Fn8Zr+vYXsh73r6UCaLDZFkUiBU=
-Date: Fri, 04 Apr 2025 16:04:50 -0700
+	b=qZJHNete7BJpJcCQivUt96/l62FV3M3guuoiRBlRX3UqXciRZ8yfwfZTXue4lREx7
+	 IBibeX9R+qaZEGcFxBHiCVGk/E3o5NKUbE6v8dZDtu4j6nkANqwrPusK9hm2YYqEt9
+	 srjJ0KFjTO6ta+4/wIaRME47GdRiHeMEnGCrsW9Q=
+Date: Fri, 04 Apr 2025 16:04:52 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,riel@surriel.com,lorenzo.stoakes@oracle.com,howlett@gmail.com,david@redhat.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior.patch added to mm-new branch
-Message-Id: <20250404230451.37F91C4CEDD@smtp.kernel.org>
+Subject: + mm-madvise-batch-tlb-flushes-for-madv_free.patch added to mm-new branch
+Message-Id: <20250404230453.74FD1C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: define and use madvise_behavior struct for madvise_do_behavior()
+     Subject: mm/madvise: batch tlb flushes for MADV_FREE
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior.patch
+     mm-madvise-batch-tlb-flushes-for-madv_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-batch-tlb-flushes-for-madv_free.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,295 +59,173 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: define and use madvise_behavior struct for madvise_do_behavior()
-Date: Fri, 4 Apr 2025 14:06:57 -0700
+Subject: mm/madvise: batch tlb flushes for MADV_FREE
+Date: Fri, 4 Apr 2025 14:06:58 -0700
 
-Patch series "mm/madvise: batch tlb flushes for MADV_DONTNEED and
-MADV_FREE", v2.
+MADV_FREE handling for [process_]madvise() flushes tlb for each vma of
+each address range.  Update the logic to do tlb flushes in a batched
+way.  Initialize an mmu_gather object from do_madvise() and
+vector_madvise(), which are the entry level functions for
+[process_]madvise(), respectively.  And pass those objects to the
+function for per-vma work, via madvise_behavior struct.  Make the
+per-vma logic not flushes tlb on their own but just saves the tlb
+entries to the received mmu_gather object.  Finally, the entry level
+functions flush the tlb entries that gathered for the entire user
+request, at once.
 
-When process_madvise() is called to do MADV_DONTNEED[_LOCKED] or MADV_FREE
-with multiple address ranges, tlb flushes happen for each of the given
-address ranges.  Because such tlb flushes are for same process, doing
-those in a batch is more efficient while still being safe.  Modify
-process_madvise() entry level code path to do such batched tlb flushes,
-while the internal unmap logics do only gathering of the tlb entries to
-flush.
-
-In more detail, modify the entry functions to initialize an mmu_gather
-ojbect and pass it to the internal logics.  And make the internal logics
-do only gathering of the tlb entries to flush into the received mmu_gather
-object.  After all internal function calls are done, the entry functions
-flush the gathered tlb entries at once.
-
-Because process_madvise() and madvise() share the internal unmap logic,
-make same change to madvise() entry code together, to make code consistent
-and cleaner.  It is only for keeping the code clean, and shouldn't degrade
-madvise().  It could rather provide a potential tlb flushes reduction
-benefit for a case that there are multiple vmas for the given address
-range.  It is only a side effect from an effort to keep code clean, so we
-don't measure it separately.
-
-Similar optimizations might be applicable to other madvise behaviros such
-as MADV_COLD and MADV_PAGEOUT.  Those are simply out of the scope of this
-patch series, though.
-
-Patches Sequence
-================
-
-First patch defines new data structure for managing information that
-required for batched tlb flushes (mmu_gather and behavior), and update
-code paths for MADV_DONTNEED[_LOCKED] and MADV_FREE handling internal
-logics to receive it.
-
-Second patch batches tlb flushes for MADV_FREE handling for both madvise()
-and process_madvise().
-
-Remaining two patches are for MADV_DONTNEED[_LOCKED] tlb flushes batching.
-Third patch splits zap_page_range_single() for batching of
-MADV_DONTNEED[_LOCKED] handling.  The final and fourth patch batches tlb
-flushes for the hint using the sub-logic that the third patch split out,
-and the helpers for batched tlb flushes that intorduced for MADV_FREE
-case, by the second patch.
-
-Test Results
-============
-
-I measured the latency to apply MADV_DONTNEED advice to 256 MiB memory
-using multiple process_madvise() calls.  I apply the advice in 4 KiB sized
-regions granularity, but with varying batch size per process_madvise()
-call (vlen) from 1 to 1024.  The source code for the measurement is
-available at GitHub[1].  To reduce measurement errors, I did the
-measurement five times.
-
-The measurement results are as below.  'sz_batch' column shows the batch
-size of process_madvise() calls.  'Before' and 'After' columns show the
-average of latencies in nanoseconds that measured five times on kernels
-that built without and with the tlb flushes batching of this series
-(patches 3 and 4), respectively.  For the baseline, mm-new tree of
-2025-04-04[2] has been used.  'B-stdev' and 'A-stdev' columns show ratios
-of latency measurements standard deviation to average in percent for
-'Before' and 'After', respectively.  'Latency_reduction' shows the
-reduction of the latency that the 'After' has achieved compared to
-'Before', in percent.  Higher 'Latency_reduction' values mean more
-efficiency improvements.
-
-    sz_batch   Before        B-stdev   After         A-stdev   Latency_reduction
-    1          110948138.2   5.55      109476402.8   4.28      1.33
-    2          75678535.6    1.67      70470722.2    3.55      6.88
-    4          59530647.6    4.77      51735606.6    3.44      13.09
-    8          50013051.6    4.39      44377029.8    5.20      11.27
-    16         48657878.2    9.32      37291600.4    3.39      23.36
-    32         43614180.2    6.06      34127428      3.75      21.75
-    64         42466694.2    5.70      26737935.2    2.54      37.04
-    128        42977970      6.99      25050444.2    4.06      41.71
-    256        41549546      1.88      24644375.8    3.77      40.69
-    512        42162698.6    6.17      24068224.8    2.87      42.92
-    1024       40978574      5.44      23872024.2    3.65      41.75
-
-As expected, tlb flushes batching provides latency reduction that
-proportional to the batch size.  The efficiency gain ranges from about
-6.88 percent with batch size 2, to about 40 percent with batch size 128.
-
-Please note that this is a very simple microbenchmark, so real efficiency
-gain on real workload could be very different.
-
-
-This patch (of 4):
-
-To implement batched tlb flushes for MADV_DONTNEED[_LOCKED] and MADV_FREE,
-an mmu_gather object in addition to the behavior integer need to be passed
-to the internal logics.  Using a struct can make it easy without
-increasing the number of parameters of all code paths towards the internal
-logic.  Define a struct for the purpose and use it on the code path that
-starts from madvise_do_behavior() and ends on madvise_dontneed_free(). 
-Note that this changes madvise_walk_vmas() visitor type signature, too. 
-Specifically, it changes its 'arg' type from 'unsigned long' to the new
-struct pointer.
-
-Link: https://lkml.kernel.org/r/20250404210700.2156-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250404210700.2156-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250404210700.2156-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Liam R. Howlett <howlett@gmail.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   46 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 17 deletions(-)
+ mm/madvise.c |   59 +++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 47 insertions(+), 12 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior
+--- a/mm/madvise.c~mm-madvise-batch-tlb-flushes-for-madv_free
 +++ a/mm/madvise.c
-@@ -48,6 +48,11 @@ struct madvise_walk_private {
- 	bool pageout;
+@@ -799,12 +799,13 @@ static const struct mm_walk_ops madvise_
+ 	.walk_lock		= PGWALK_RDLOCK,
  };
  
-+struct madvise_behavior {
-+	int behavior;
-+	struct mmu_gather *tlb;
-+};
-+
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-  * take mmap_lock for writing. Others, which simply traverse vmas, need
-@@ -893,12 +898,13 @@ static bool madvise_dontneed_free_valid_
- static long madvise_dontneed_free(struct vm_area_struct *vma,
- 				  struct vm_area_struct **prev,
- 				  unsigned long start, unsigned long end,
--				  int behavior)
-+				  struct madvise_behavior *behavior)
+-static int madvise_free_single_vma(struct vm_area_struct *vma,
+-			unsigned long start_addr, unsigned long end_addr)
++static int madvise_free_single_vma(
++		struct madvise_behavior *behavior, struct vm_area_struct *vma,
++		unsigned long start_addr, unsigned long end_addr)
  {
-+	int action = behavior->behavior;
  	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_notifier_range range;
+-	struct mmu_gather tlb;
++	struct mmu_gather *tlb = behavior->tlb;
  
- 	*prev = vma;
--	if (!madvise_dontneed_free_valid_vma(vma, start, &end, behavior))
-+	if (!madvise_dontneed_free_valid_vma(vma, start, &end, action))
- 		return -EINVAL;
+ 	/* MADV_FREE works for only anon vma at the moment */
+ 	if (!vma_is_anonymous(vma))
+@@ -820,17 +821,14 @@ static int madvise_free_single_vma(struc
+ 				range.start, range.end);
  
- 	if (start == end)
-@@ -915,8 +921,7 @@ static long madvise_dontneed_free(struct
- 		 * Potential end adjustment for hugetlb vma is OK as
- 		 * the check below keeps end within vma.
- 		 */
--		if (!madvise_dontneed_free_valid_vma(vma, start, &end,
--						     behavior))
-+		if (!madvise_dontneed_free_valid_vma(vma, start, &end, action))
- 			return -EINVAL;
- 		if (end > vma->vm_end) {
- 			/*
-@@ -945,9 +950,9 @@ static long madvise_dontneed_free(struct
- 		VM_WARN_ON(start > end);
- 	}
+ 	lru_add_drain();
+-	tlb_gather_mmu(&tlb, mm);
+ 	update_hiwater_rss(mm);
  
--	if (behavior == MADV_DONTNEED || behavior == MADV_DONTNEED_LOCKED)
-+	if (action == MADV_DONTNEED || action == MADV_DONTNEED_LOCKED)
+ 	mmu_notifier_invalidate_range_start(&range);
+-	tlb_start_vma(&tlb, vma);
++	tlb_start_vma(tlb, vma);
+ 	walk_page_range(vma->vm_mm, range.start, range.end,
+-			&madvise_free_walk_ops, &tlb);
+-	tlb_end_vma(&tlb, vma);
++			&madvise_free_walk_ops, tlb);
++	tlb_end_vma(tlb, vma);
+ 	mmu_notifier_invalidate_range_end(&range);
+-	tlb_finish_mmu(&tlb);
+-
+ 	return 0;
+ }
+ 
+@@ -953,7 +951,7 @@ static long madvise_dontneed_free(struct
+ 	if (action == MADV_DONTNEED || action == MADV_DONTNEED_LOCKED)
  		return madvise_dontneed_single_vma(vma, start, end);
--	else if (behavior == MADV_FREE)
-+	else if (action == MADV_FREE)
- 		return madvise_free_single_vma(vma, start, end);
+ 	else if (action == MADV_FREE)
+-		return madvise_free_single_vma(vma, start, end);
++		return madvise_free_single_vma(behavior, vma, start, end);
  	else
  		return -EINVAL;
-@@ -1249,8 +1254,10 @@ static long madvise_guard_remove(struct
- static int madvise_vma_behavior(struct vm_area_struct *vma,
- 				struct vm_area_struct **prev,
- 				unsigned long start, unsigned long end,
--				unsigned long behavior)
-+				void *behavior_arg)
- {
-+	struct madvise_behavior *arg = behavior_arg;
-+	int behavior = arg->behavior;
- 	int error;
- 	struct anon_vma_name *anon_name;
- 	unsigned long new_flags = vma->vm_flags;
-@@ -1270,7 +1277,7 @@ static int madvise_vma_behavior(struct v
- 	case MADV_FREE:
- 	case MADV_DONTNEED:
- 	case MADV_DONTNEED_LOCKED:
--		return madvise_dontneed_free(vma, prev, start, end, behavior);
-+		return madvise_dontneed_free(vma, prev, start, end, arg);
- 	case MADV_NORMAL:
- 		new_flags = new_flags & ~VM_RAND_READ & ~VM_SEQ_READ;
- 		break;
-@@ -1487,10 +1494,10 @@ static bool process_madvise_remote_valid
-  */
- static
- int madvise_walk_vmas(struct mm_struct *mm, unsigned long start,
--		      unsigned long end, unsigned long arg,
-+		      unsigned long end, void *arg,
- 		      int (*visit)(struct vm_area_struct *vma,
- 				   struct vm_area_struct **prev, unsigned long start,
--				   unsigned long end, unsigned long arg))
-+				   unsigned long end, void *arg))
- {
- 	struct vm_area_struct *vma;
- 	struct vm_area_struct *prev;
-@@ -1548,7 +1555,7 @@ int madvise_walk_vmas(struct mm_struct *
- static int madvise_vma_anon_name(struct vm_area_struct *vma,
- 				 struct vm_area_struct **prev,
- 				 unsigned long start, unsigned long end,
--				 unsigned long anon_name)
-+				 void *anon_name)
- {
- 	int error;
- 
-@@ -1557,7 +1564,7 @@ static int madvise_vma_anon_name(struct
- 		return -EBADF;
- 
- 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
--				   (struct anon_vma_name *)anon_name);
-+				   anon_name);
- 
- 	/*
- 	 * madvise() returns EAGAIN if kernel resources, such as
-@@ -1589,7 +1596,7 @@ int madvise_set_anon_name(struct mm_stru
- 	if (end == start)
- 		return 0;
- 
--	return madvise_walk_vmas(mm, start, end, (unsigned long)anon_name,
-+	return madvise_walk_vmas(mm, start, end, anon_name,
- 				 madvise_vma_anon_name);
  }
- #endif /* CONFIG_ANON_VMA_NAME */
-@@ -1677,8 +1684,10 @@ static bool is_madvise_populate(int beha
+@@ -1626,6 +1624,29 @@ static void madvise_unlock(struct mm_str
+ 		mmap_read_unlock(mm);
  }
  
- static int madvise_do_behavior(struct mm_struct *mm,
--		unsigned long start, size_t len_in, int behavior)
-+		unsigned long start, size_t len_in,
-+		struct madvise_behavior *madv_behavior)
++static bool madvise_batch_tlb_flush(int behavior)
++{
++	switch (behavior) {
++	case MADV_FREE:
++		return true;
++	default:
++		return false;
++	}
++}
++
++static void madvise_init_tlb(struct madvise_behavior *madv_behavior,
++		struct mm_struct *mm)
++{
++	if (madvise_batch_tlb_flush(madv_behavior->behavior))
++		tlb_gather_mmu(madv_behavior->tlb, mm);
++}
++
++static void madvise_finish_tlb(struct madvise_behavior *madv_behavior)
++{
++	if (madvise_batch_tlb_flush(madv_behavior->behavior))
++		tlb_finish_mmu(madv_behavior->tlb);
++}
++
+ static bool is_valid_madvise(unsigned long start, size_t len_in, int behavior)
  {
-+	int behavior = madv_behavior->behavior;
- 	struct blk_plug plug;
- 	unsigned long end;
- 	int error;
-@@ -1692,7 +1701,7 @@ static int madvise_do_behavior(struct mm
- 	if (is_madvise_populate(behavior))
- 		error = madvise_populate(mm, start, end, behavior);
- 	else
--		error = madvise_walk_vmas(mm, start, end, behavior,
-+		error = madvise_walk_vmas(mm, start, end, madv_behavior,
- 					  madvise_vma_behavior);
- 	blk_finish_plug(&plug);
- 	return error;
-@@ -1773,13 +1782,14 @@ static int madvise_do_behavior(struct mm
+ 	size_t len;
+@@ -1782,14 +1803,20 @@ static int madvise_do_behavior(struct mm
  int do_madvise(struct mm_struct *mm, unsigned long start, size_t len_in, int behavior)
  {
  	int error;
-+	struct madvise_behavior madv_behavior = {.behavior = behavior};
+-	struct madvise_behavior madv_behavior = {.behavior = behavior};
++	struct mmu_gather tlb;
++	struct madvise_behavior madv_behavior = {
++		.behavior = behavior,
++		.tlb = &tlb,
++	};
  
  	if (madvise_should_skip(start, len_in, behavior, &error))
  		return error;
  	error = madvise_lock(mm, behavior);
  	if (error)
  		return error;
--	error = madvise_do_behavior(mm, start, len_in, behavior);
-+	error = madvise_do_behavior(mm, start, len_in, &madv_behavior);
++	madvise_init_tlb(&madv_behavior, mm);
+ 	error = madvise_do_behavior(mm, start, len_in, &madv_behavior);
++	madvise_finish_tlb(&madv_behavior);
  	madvise_unlock(mm, behavior);
  
  	return error;
-@@ -1796,6 +1806,7 @@ static ssize_t vector_madvise(struct mm_
+@@ -1806,13 +1833,18 @@ static ssize_t vector_madvise(struct mm_
  {
  	ssize_t ret = 0;
  	size_t total_len;
-+	struct madvise_behavior madv_behavior = {.behavior = behavior};
+-	struct madvise_behavior madv_behavior = {.behavior = behavior};
++	struct mmu_gather tlb;
++	struct madvise_behavior madv_behavior = {
++		.behavior = behavior,
++		.tlb = &tlb,
++	};
  
  	total_len = iov_iter_count(iter);
  
-@@ -1811,7 +1822,8 @@ static ssize_t vector_madvise(struct mm_
- 		if (madvise_should_skip(start, len_in, behavior, &error))
- 			ret = error;
- 		else
--			ret = madvise_do_behavior(mm, start, len_in, behavior);
-+			ret = madvise_do_behavior(mm, start, len_in,
-+					&madv_behavior);
- 		/*
- 		 * An madvise operation is attempting to restart the syscall,
- 		 * but we cannot proceed as it would not be correct to repeat
+ 	ret = madvise_lock(mm, behavior);
+ 	if (ret)
+ 		return ret;
++	madvise_init_tlb(&madv_behavior, mm);
+ 
+ 	while (iov_iter_count(iter)) {
+ 		unsigned long start = (unsigned long)iter_iov_addr(iter);
+@@ -1841,14 +1873,17 @@ static ssize_t vector_madvise(struct mm_
+ 			}
+ 
+ 			/* Drop and reacquire lock to unwind race. */
++			madvise_finish_tlb(&madv_behavior);
+ 			madvise_unlock(mm, behavior);
+ 			madvise_lock(mm, behavior);
++			madvise_init_tlb(&madv_behavior, mm);
+ 			continue;
+ 		}
+ 		if (ret < 0)
+ 			break;
+ 		iov_iter_advance(iter, iter_iov_len(iter));
+ 	}
++	madvise_finish_tlb(&madv_behavior);
+ 	madvise_unlock(mm, behavior);
+ 
+ 	ret = (total_len - iov_iter_count(iter)) ? : ret;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
