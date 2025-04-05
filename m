@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D92115990C
-	for <mm-commits@vger.kernel.org>; Fri,  4 Apr 2025 23:04:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCE6D1A3172
+	for <mm-commits@vger.kernel.org>; Sat,  5 Apr 2025 22:37:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743807898; cv=none; b=iD9RkZ6u0zmIz0gIhQcQuTz1rZgdDk8xZmbdhf/UJFLBOP2n6Qxh5PDzVz352VTb0BRKpSur/JRxFOUlPlfTDIE7HRJwdblfcW/tycmPkA2MIDiQ3DB06/FBfJS4z5tsiNgLnKJBZE8jZ0PaViECRbhnow3s+/5qEPuHmeINNvk=
+	t=1743892670; cv=none; b=i0SRN0PoPFz6Ux+WobTTEhnjUy9hAbsPdVtnW9MvIFT2m+xHWqZkQj+G5ktRXB3dKrIshCp8+atIgm6qbt0FInS1H1MGoEDV9sYVAdwA+EgxiySAEnmxQ8uBLM8sJ+CSWCaIwwc2jRfWJJp/uppkbbzUlksNlTXJ8bakJd6oTcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743807898; c=relaxed/simple;
-	bh=2cmiTpDMXQkIZs+9+1aPwACWZAFRMK1xNm189Tynnoc=;
-	h=Date:To:From:Subject:Message-Id; b=Ng4HSQFsMbuUk0ZPoykcMY86WWPMYg/Z+kA6ToSk4kgDL/3zTUp2Xc61CFtTnRJlfuQ0a33NasgkEZpzJEtxDXh3RLFZswNTJVnUvVgeLpjk7SYoIhwoZayqOlmzeXhAukO7ZJaEiOz+E/4C8RipLvoFm2oANkmkqUCSmzlYduI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJA0YvLY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743892670; c=relaxed/simple;
+	bh=zxWem8+val+uMOKrfC0Blbh4YjdZxZqetRoqHmr9IWA=;
+	h=Date:To:From:Subject:Message-Id; b=ojN5inSt911uq3ukg9vymslkHtPX5nGMElfJMfm3l6p6382qph5vxLwQO7/J2INjql39AohaAttftOunIbRTpi2q2tkYAzIdhOm8ses7s0mvuKSdl6wZxi8Zaa1sVw99RzN3Wqzw0VpkZdtBxKY7BeL+ef/04yoM1VVKgjcvD8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wgwy+H2M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJA0YvLY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4274C4CEDD;
-	Fri,  4 Apr 2025 23:04:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wgwy+H2M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3138BC4CEE4;
+	Sat,  5 Apr 2025 22:37:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743807897;
-	bh=2cmiTpDMXQkIZs+9+1aPwACWZAFRMK1xNm189Tynnoc=;
+	s=korg; t=1743892670;
+	bh=zxWem8+val+uMOKrfC0Blbh4YjdZxZqetRoqHmr9IWA=;
 	h=Date:To:From:Subject:From;
-	b=VJA0YvLYS5RyS+HB2uGDiUYY5RrvvqxJPmItnMZevJNNEuwlSvUR6GXvLdqdeX1Zt
-	 xrwdgcaHTe7dljtXPd6d4O9hdxBGCMjlmE2eub7ghHGXJgP8xUMTj2FLR8Nh136GUg
-	 3KxSZ88+pJLzCIsm9nHZY1SYL1QytAYxyJwMTObA=
-Date: Fri, 04 Apr 2025 16:04:57 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,riel@surriel.com,lorenzo.stoakes@oracle.com,howlett@gmail.com,david@redhat.com,sj@kernel.org,akpm@linux-foundation.org
+	b=wgwy+H2MXzFyeobAzSYMw9aWcpZi0rGHUOcoHaTUD4eENwQZuhfmnKdp/bCxZFgkn
+	 07bbYttScY6VPTtU9vbD4L7b3zP00dpPlxN+YVfqY+csV1YWc6pUsYBwfEKkdReWtw
+	 qEVXbMYJoTGbCcj3LHI2AGXZ90a/NEjL+QMLpiPs=
+Date: Sat, 05 Apr 2025 15:37:49 -0700
+To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,bhe@redhat.com,zhiquan1.li@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-batch-tlb-flushes-for-madv_dontneed.patch added to mm-new branch
-Message-Id: <20250404230457.B4274C4CEDD@smtp.kernel.org>
+Subject: + crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch added to mm-nonmm-unstable branch
+Message-Id: <20250405223750.3138BC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: batch tlb flushes for MADV_DONTNEED[_LOCKED]
-has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-batch-tlb-flushes-for-madv_dontneed.patch
+     Subject: crash: Export PAGE_UNACCEPTED_MAPCOUNT_VALUE to vmcoreinfo
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-batch-tlb-flushes-for-madv_dontneed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,106 +58,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: batch tlb flushes for MADV_DONTNEED[_LOCKED]
-Date: Fri, 4 Apr 2025 14:07:00 -0700
+From: Zhiquan Li <zhiquan1.li@intel.com>
+Subject: crash: Export PAGE_UNACCEPTED_MAPCOUNT_VALUE to vmcoreinfo
+Date: Sat, 5 Apr 2025 14:06:10 +0800
 
-Batch tlb flushes for MADV_DONTNEED[_LOCKED] for better efficiency, in a
-way that very similar to the tlb flushes batching for MADV_FREE.
+fix docs: "Title underline too short" warning
 
-Link: https://lkml.kernel.org/r/20250404210700.2156-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liam R. Howlett <howlett@gmail.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lore.kernel.org/all/20240809114854.3745464-5-kirill.shutemov@linux.intel.com/
+Link: https://lkml.kernel.org/r/20250405060610.860465-1-zhiquan1.li@intel.com
+Signed-off-by: Zhiquan Li <zhiquan1.li@intel.com>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 +++
- mm/madvise.c  |    9 ++++++---
- mm/memory.c   |    4 ++--
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/kdump/vmcoreinfo.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-madvise-batch-tlb-flushes-for-madv_dontneed
-+++ a/mm/internal.h
-@@ -435,6 +435,9 @@ void unmap_page_range(struct mmu_gather
- 			     struct vm_area_struct *vma,
- 			     unsigned long addr, unsigned long end,
- 			     struct zap_details *details);
-+void notify_unmap_single_vma(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long size, struct zap_details *details);
- int folio_unmap_invalidate(struct address_space *mapping, struct folio *folio,
- 			   gfp_t gfp);
+--- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3
++++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
+@@ -332,7 +332,7 @@ Page attributes. These flags are used to
+ dumping pages.
  
---- a/mm/madvise.c~mm-madvise-batch-tlb-flushes-for-madv_dontneed
-+++ a/mm/madvise.c
-@@ -851,7 +851,8 @@ static int madvise_free_single_vma(
-  * An interface that causes the system to free clean pages and flush
-  * dirty pages is already available as msync(MS_INVALIDATE).
-  */
--static long madvise_dontneed_single_vma(struct vm_area_struct *vma,
-+static long madvise_dontneed_single_vma(struct madvise_behavior *behavior,
-+					struct vm_area_struct *vma,
- 					unsigned long start, unsigned long end)
- {
- 	struct zap_details details = {
-@@ -859,7 +860,7 @@ static long madvise_dontneed_single_vma(
- 		.even_cows = true,
- 	};
+ PAGE_BUDDY_MAPCOUNT_VALUE(~PG_buddy)|PAGE_OFFLINE_MAPCOUNT_VALUE(~PG_offline)|PAGE_OFFLINE_MAPCOUNT_VALUE(~PG_unaccepted)
+------------------------------------------------------------------------------
++-------------------------------------------------------------------------------------------------------------------------
  
--	zap_page_range_single(vma, start, end - start, &details);
-+	notify_unmap_single_vma(behavior->tlb, vma, start, end - start, &details);
- 	return 0;
- }
- 
-@@ -949,7 +950,7 @@ static long madvise_dontneed_free(struct
- 	}
- 
- 	if (action == MADV_DONTNEED || action == MADV_DONTNEED_LOCKED)
--		return madvise_dontneed_single_vma(vma, start, end);
-+		return madvise_dontneed_single_vma(behavior, vma, start, end);
- 	else if (action == MADV_FREE)
- 		return madvise_free_single_vma(behavior, vma, start, end);
- 	else
-@@ -1627,6 +1628,8 @@ static void madvise_unlock(struct mm_str
- static bool madvise_batch_tlb_flush(int behavior)
- {
- 	switch (behavior) {
-+	case MADV_DONTNEED:
-+	case MADV_DONTNEED_LOCKED:
- 	case MADV_FREE:
- 		return true;
- 	default:
---- a/mm/memory.c~mm-madvise-batch-tlb-flushes-for-madv_dontneed
-+++ a/mm/memory.c
-@@ -1989,7 +1989,7 @@ void unmap_vmas(struct mmu_gather *tlb,
- 	mmu_notifier_invalidate_range_end(&range);
- }
- 
--/*
-+/**
-  * notify_unmap_single_vma - remove user pages in a given range
-  * @tlb: pointer to the caller's struct mmu_gather
-  * @vma: vm_area_struct holding the applicable pages
-@@ -2000,7 +2000,7 @@ void unmap_vmas(struct mmu_gather *tlb,
-  * @tlb shouldn't be NULL.  The range must fit into one VMA.  If @vma is for
-  * hugetlb, @tlb is flushed and re-initialized by this function.
-  */
--static void notify_unmap_single_vma(struct mmu_gather *tlb,
-+void notify_unmap_single_vma(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, unsigned long address,
- 		unsigned long size, struct zap_details *details)
- {
+ More page attributes. These flags are used to filter various unnecessary for
+ dumping pages.
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from zhiquan1.li@intel.com are
 
-mm-madvise-define-and-use-madvise_behavior-struct-for-madvise_do_behavior.patch
-mm-madvise-batch-tlb-flushes-for-madv_free.patch
-mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single.patch
-mm-madvise-batch-tlb-flushes-for-madv_dontneed.patch
+crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo.patch
+crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch
 
