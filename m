@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE2B8462
-	for <mm-commits@vger.kernel.org>; Sun,  6 Apr 2025 23:02:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7CA220DF4
+	for <mm-commits@vger.kernel.org>; Sun,  6 Apr 2025 23:23:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743980522; cv=none; b=ZzPZwxSWfAHUVb1L/Z4n13MntrjK0gQtubT0W3pxcnN9Ar/6nWIbSzrQg7OgUyrgM+ERFqmliYLkxzKlCILFj1FZ1eh8PxKebYs8pkdrVVYJYlY2ThMZHQCDjnHG+wues9u6LL7J+uApOpzWFugKbNYWXPHjUKPq/nuNKguqcl0=
+	t=1743981818; cv=none; b=i/Ni77hEEtG8Kb87OquUJWQ5FhYWZFxdV+UjXT4k4QigWh1rlbdGLeWLHtKiAJbjyOF+yF15TnxeRZtCOERTcVzGhASVk6GxACyBXM/ipUHfivZjHs+GJNr+4ufSR/7fhpxyvZ8AzOrbOP0EcDjv+lB0T+XF5sQUMnapjdF84xU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743980522; c=relaxed/simple;
-	bh=LRX8IdCFYn9dYNh7vicbdXKK/ItUzDQfjD8IT7IqagE=;
-	h=Date:To:From:Subject:Message-Id; b=GehlfVEAnv6zi8HriPHJTOw3JagFkNyy7+sRAxbi0gjyL11iBJC1J4186+6z4oXgRlAFw04DYzD2HBv9t4ofLP0yLv5MUjsbpUvIciFOIQGnbAOqlqf7e+2OiMnJjT2iYhYTsBcA/lM9vLRd4WmmkCjXq1bIKabnfiIhraJDUGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kExtp9Ok; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743981818; c=relaxed/simple;
+	bh=ZlNAcF/JkVEHquL4NviWfFuEtnd8ETFr57+ILk8d18k=;
+	h=Date:To:From:Subject:Message-Id; b=jfigdC9PQgq2/qFgkKh2aj3eGVq0VRprliRvw/PI7kzpFZbS/gp+L3W7mZk3uHl0SPXIFUUd9UEmQYfWLLnYtHZE0XFBotBNNiYwfx4J3vZ0NuIquXp1E/xY3ZvNkAmlkQxFcey95+hdReNvfJC1kg4f7K0zrubHKRb4bNTVG3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2LriXIA0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kExtp9Ok"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB9BFC4CEE3;
-	Sun,  6 Apr 2025 23:02:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2LriXIA0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A466C4CEE3;
+	Sun,  6 Apr 2025 23:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743980522;
-	bh=LRX8IdCFYn9dYNh7vicbdXKK/ItUzDQfjD8IT7IqagE=;
+	s=korg; t=1743981817;
+	bh=ZlNAcF/JkVEHquL4NviWfFuEtnd8ETFr57+ILk8d18k=;
 	h=Date:To:From:Subject:From;
-	b=kExtp9OkIjKUfLFNrJO9lwnHcvuXv0O3r3qP6oI0D89RTVArS/Ky6NCZloREoAQTB
-	 mP2EtysghaAJFZsKqkvScg9hC/AJufYHQYhviyTfupEp0T+3ttcJIIXf3LaLj4Vw/E
-	 en+Ayu+/SRiqlWzWmasrLFh+GyuqWUxKhrU+wUWU=
-Date: Sun, 06 Apr 2025 16:02:01 -0700
-To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lkp@intel.com,hpa@zytor.com,error27@gmail.com,dave.hansen@linux.intel.com,bp@alien8.de,david@redhat.com,akpm@linux-foundation.org
+	b=2LriXIA0rVu6MMCCj8Ulc3t2MwYkIFmsKcMZYv2hMABOtQOsRbOJ4fwpO10ugzQyr
+	 HkS4Lxt8LVTJ4IHltDw43+R8+IeeO0x9k7S05/Z8gjfV4OE+21I7nLLLo1jqCblakG
+	 Ytr7ibVOJpIAv6WAQ2h+V6ABnYJ11QCyZBXnCPPc=
+Date: Sun, 06 Apr 2025 16:23:36 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,mclapinski@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-untrack_pfn_copy-fix-improvements.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250406230201.DB9BFC4CEE3@smtp.kernel.org>
+Subject: + mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch added to mm-new branch
+Message-Id: <20250406232337.7A466C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: (un)track_pfn_copy() fix + improvements
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-mm-pat-untrack_pfn_copy-fix-improvements.patch
+     Subject: mm/compaction: remove low watermark cap for proactive compaction
+has been added to the -mm mm-new branch.  Its filename is
+     mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-untrack_pfn_copy-fix-improvements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,98 +58,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: x86/mm/pat: (un)track_pfn_copy() fix + improvements
-Date: Fri, 4 Apr 2025 14:49:31 +0200
+From: Michal Clapinski <mclapinski@google.com>
+Subject: mm/compaction: remove low watermark cap for proactive compaction
+Date: Fri, 4 Apr 2025 13:11:02 +0200
 
-We got a late smatch warning and some additional review feedback.
+Patch series "mm/compaction: allow more aggressive proactive compaction",
+v4.
 
-	smatch warnings:
-	mm/memory.c:1428 copy_page_range() error: uninitialized symbol 'pfn'.
+Our goal is to keep memory usage of a VM low on the host.  For that
+reason, we use free page reporting which by default reports free pages of
+order 9 and larger to the host to be freed.  The feature works well only
+if the memory in the guest is not fragmented below pages of order 9. 
+Proactive compaction can be reused to achieve defragmentation after some
+parameter tweaking.
 
-We actually use the pfn only when it is properly initialized; however, we
-may pass an uninitialized value to a function -- although it will not use
-it that likely still is UB in C.
+When the fragmentation score (lower is better) gets larger than the high
+watermark, proactive compaction kicks in.  Compaction stops when the score
+goes below the low watermark (or no progress is made and backoff kicks
+in).  Let's define the difference between high and low watermarks as
+leeway.  Before these changes, the minimum possible value for low
+watermark was 5 and the leeway was hardcoded to 10 (so minimum possible
+value for high watermark was 15).
 
-Fix it by always initializing pfn when track_pfn_copy() returns 0 -- just
-as we document ("On success, stores the pfn to be passed to
-untrack_pfn_copy()").  In addition, to avoid further wrong smatch
-warnings, just initialize pfn = 0 in the caller as well.
+To test this, I created a VM with 19GB of memory and free page reporting
+enabled.  The VM was ~idle.  I meassured the memory usage from inside the
+guest (/proc/meminfo) and from the host (provided by the hypervisor).
 
-While at it, clarify the doc of untrack_pfn_copy(), that internal checks
-make sure if we actually have to untrack anything.
+Before:
+https://drive.google.com/file/d/1Xw23lRry_PgEH3f6QRnSGvoHh2u9UHyI/view?usp=sharing
+After:
+https://drive.google.com/file/d/1wMhpIzepx6t44F70yCPA50n1S5V2AT-a/view?usp=sharing
 
-Link: https://lkml.kernel.org/r/20250404124931.2255618-1-david@redhat.com
-Fixes: dc84bc2aba85 ("x86/mm/pat: Fix VM_PAT handling when fork() fails in copy_page_range()")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
-Closes: https://lore.kernel.org/r/202503270941.IFILyNCX-lkp@intel.com/
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+
+This patch (of 2):
+
+Previously a min cap of 5 has been set in the commit introducing proactive
+compaction.  This was to make sure users don't hurt themselves by setting
+the proactiveness to 100 and making their system unresponsive.  But the
+compaction mechanism has a backoff mechanism that will sleep for 30s if no
+progress is made, so I don't see a significant risk here.  My system (19GB
+of memory) has been perfectly fine with both watermarks hardcoded to 0.
+
+Link: https://lkml.kernel.org/r/20250404111103.1994507-1-mclapinski@google.com
+Link: https://lkml.kernel.org/r/20250404111103.1994507-2-mclapinski@google.com
+Signed-off-by: Michal Clapinski <mclapinski@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat/memtype.c |    4 +++-
- include/linux/pgtable.h   |    5 ++++-
- mm/memory.c               |    2 +-
- 3 files changed, 8 insertions(+), 3 deletions(-)
+ mm/compaction.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/arch/x86/mm/pat/memtype.c~x86-mm-pat-untrack_pfn_copy-fix-improvements
-+++ a/arch/x86/mm/pat/memtype.c
-@@ -992,8 +992,10 @@ int track_pfn_copy(struct vm_area_struct
- 	pgprot_t pgprot;
- 	int rc;
- 
--	if (!(src_vma->vm_flags & VM_PAT))
-+	if (!(src_vma->vm_flags & VM_PAT)) {
-+		*pfn = 0;
- 		return 0;
-+	}
- 
- 	/*
- 	 * Duplicate the PAT information for the dst VMA based on the src
---- a/include/linux/pgtable.h~x86-mm-pat-untrack_pfn_copy-fix-improvements
-+++ a/include/linux/pgtable.h
-@@ -1517,12 +1517,15 @@ static inline void track_pfn_insert(stru
- static inline int track_pfn_copy(struct vm_area_struct *dst_vma,
- 		struct vm_area_struct *src_vma, unsigned long *pfn)
+--- a/mm/compaction.c~mm-compaction-remove-low-watermark-cap-for-proactive-compaction
++++ a/mm/compaction.c
+@@ -2251,12 +2251,7 @@ static unsigned int fragmentation_score_
  {
-+	*pfn = 0;
- 	return 0;
- }
+ 	unsigned int wmark_low;
  
- /*
-  * untrack_pfn_copy is called when a VM_PFNMAP VMA failed to copy during
-- * copy_page_range(), but after track_pfn_copy() was already called.
-+ * copy_page_range(), but after track_pfn_copy() was already called. Can
-+ * be called even if track_pfn_copy() did not actually track anything:
-+ * handled internally.
-  */
- static inline void untrack_pfn_copy(struct vm_area_struct *dst_vma,
- 		unsigned long pfn)
---- a/mm/memory.c~x86-mm-pat-untrack_pfn_copy-fix-improvements
-+++ a/mm/memory.c
-@@ -1361,7 +1361,7 @@ copy_page_range(struct vm_area_struct *d
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
- 	struct mm_struct *src_mm = src_vma->vm_mm;
- 	struct mmu_notifier_range range;
--	unsigned long next, pfn;
-+	unsigned long next, pfn = 0;
- 	bool is_cow;
- 	int ret;
+-	/*
+-	 * Cap the low watermark to avoid excessive compaction
+-	 * activity in case a user sets the proactiveness tunable
+-	 * close to 100 (maximum).
+-	 */
+-	wmark_low = max(100U - sysctl_compaction_proactiveness, 5U);
++	wmark_low = 100U - sysctl_compaction_proactiveness;
+ 	return low ? wmark_low : min(wmark_low + 10, 100U);
+ }
  
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from mclapinski@google.com are
 
-x86-mm-pat-untrack_pfn_copy-fix-improvements.patch
+mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch
+mm-compaction-reduce-the-difference-between-low-and-high-watermarks.patch
 
