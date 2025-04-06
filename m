@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AE7521D3E9
-	for <mm-commits@vger.kernel.org>; Sun,  6 Apr 2025 23:23:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12A001A8F68
+	for <mm-commits@vger.kernel.org>; Sun,  6 Apr 2025 23:43:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743981821; cv=none; b=JYjA5zPnIy8ZSpsAfYzyNw+ST0I/eP7NjRmA7Hvin20UZyvzHPYwNRlqpP+lbM/cnUa8qap8OMgk219VAYFcH0bBghOj79MwpwfyjAuMJmQ4lKCb92cbPEs6HkhIXju0ud5v9pJGWvapjSGSo2qiJ8QowA2vtGfQCAPr13te2QY=
+	t=1743983038; cv=none; b=X4ibiU2i7YSYwP8b0Nf3f03smUdX52oF/uyY0lN2AG+N16Vhgq6lzzAhl7oaOBsKn8f0OOEPkO07VRrNU7Cm2Z0xGSUkdPS83sFMl5z8ycRoPhigny/h19DmMbf/M1pCbtAw4BmwdzLDQ4rSGX6j+d3o+wjt2+Nc9jUgqHQC/ZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743981821; c=relaxed/simple;
-	bh=nFhP45PjTEZJkt6ay4FdrpNnfNer5mR8xia7NXSyQi8=;
-	h=Date:To:From:Subject:Message-Id; b=sGqnU0EUtUeSx9A2Qe5t0IFmRg2mHOW6daaUs+qvzFJySztYk7NbOBeYaZ1DPoLM+2W+lsjBjRTxp23sGS7LljClYJTnOxzVyih1FW7KST6kGb91q+s4m0Xvjsyf5QTyiDSya4Je8TjWcTiFP1qYLZiRxVMvsGbFmzWlKCt2yBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJG2xy/U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743983038; c=relaxed/simple;
+	bh=NsuvvxH4FbCqlZwBNs3npH5BXH86a9aSkIDPkipK/ac=;
+	h=Date:To:From:Subject:Message-Id; b=lUTMLoBE1QS94r7cCk0qP7RlI41Usv3T8jid6Ul7mN6Fih4KqWHxjSptu5hTz0g8HNCHxBPtbFt8NjReh3ML2/iYSOsaN2gFpZXuFM+vAVRZ9bKcGRoobNmPItIcMrBxKoDz285+lkpAPWnqcxUee6hOJI2wFA76ZD/lXD5ELEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gj/z75An; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJG2xy/U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78337C4CEE3;
-	Sun,  6 Apr 2025 23:23:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gj/z75An"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 527A4C4CEE3;
+	Sun,  6 Apr 2025 23:43:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743981819;
-	bh=nFhP45PjTEZJkt6ay4FdrpNnfNer5mR8xia7NXSyQi8=;
+	s=korg; t=1743983037;
+	bh=NsuvvxH4FbCqlZwBNs3npH5BXH86a9aSkIDPkipK/ac=;
 	h=Date:To:From:Subject:From;
-	b=lJG2xy/U4A0an4HYcNoh225N9aVw37FhqQ1eafg3E+wdbRQbMM5JHqWYWWcwqdYCK
-	 cCBefSSuPq383Xb5PljvslXeIAuhL9SWQhifjuNvnTsDbkb/q1cZh1AI7AhKuoAeWE
-	 YPR+S9qmiQ/5YgnIelOKv69cptJJlqmuIzSjmtyM=
-Date: Sun, 06 Apr 2025 16:23:38 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,mclapinski@google.com,akpm@linux-foundation.org
+	b=gj/z75AnElVJJRtAu43yc/iB1jYyBeKSqOxkcpJEJqQm1md/wBj34Ukq7YO1gfeeF
+	 gktCRnFfY3kroAmj8u1U0abERqYw0C6ND0mwraCZxLtcNdHVuiWrXmAX6VYcgoxp0D
+	 nXxrDTzeOsCzUAYfVrKDwdfN6k+UW3UOj16qVA5g=
+Date: Sun, 06 Apr 2025 16:43:56 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-reduce-the-difference-between-low-and-high-watermarks.patch added to mm-new branch
-Message-Id: <20250406232339.78337C4CEE3@smtp.kernel.org>
+Subject: + memcg-vmalloc-simplify-memcg_vmalloc-updates.patch added to mm-new branch
+Message-Id: <20250406234357.527A4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/compaction: reduce the difference between low and high watermarks
+     Subject: memcg: vmalloc: simplify MEMCG_VMALLOC updates
 has been added to the -mm mm-new branch.  Its filename is
-     mm-compaction-reduce-the-difference-between-low-and-high-watermarks.patch
+     memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-reduce-the-difference-between-low-and-high-watermarks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Clapinski <mclapinski@google.com>
-Subject: mm/compaction: reduce the difference between low and high watermarks
-Date: Fri, 4 Apr 2025 13:11:03 +0200
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: vmalloc: simplify MEMCG_VMALLOC updates
+Date: Wed, 2 Apr 2025 22:33:26 -0700
 
-Reduce the diff between low and high watermarks when compaction
-proactiveness is set to high.  This allows users who set the proactiveness
-really high to have more stable fragmentation score over time.
+The vmalloc region can either be charged to a single memcg or none.  At
+the moment kernel traverses all the pages backing the vmalloc region to
+update the MEMCG_VMALLOC stat.  However there is no need to look at all
+the pages as all those pages will be charged to a single memcg or none. 
+Simplify the MEMCG_VMALLOC update by just looking at the first page of the
+vmalloc region.
 
-Link: https://lkml.kernel.org/r/20250404111103.1994507-3-mclapinski@google.com
-Signed-off-by: Michal Clapinski <mclapinski@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250403053326.26860-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    6 ++++++
- mm/compaction.c                         |    5 +++--
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-reduce-the-difference-between-low-and-high-watermarks
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -131,6 +131,12 @@ to latency spikes in unsuspecting applic
- various heuristics to avoid wasting CPU cycles if it detects that
- proactive compaction is not being effective.
+--- a/mm/vmalloc.c~memcg-vmalloc-simplify-memcg_vmalloc-updates
++++ a/mm/vmalloc.c
+@@ -3370,12 +3370,12 @@ void vfree(const void *addr)
  
-+Setting the value above 80 will, in addition to lowering the acceptable level
-+of fragmentation, make the compaction code more sensitive to increases in
-+fragmentation, i.e. compaction will trigger more often, but reduce
-+fragmentation by a smaller amount.
-+This makes the fragmentation level more stable over time.
-+
- Be careful when setting it to extreme values like 100, as that may
- cause excessive background compaction activity.
+ 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
+ 		vm_reset_perms(vm);
++	if (vm->nr_pages && !(vm->flags & VM_MAP_PUT_PAGES))
++		mod_memcg_page_state(vm->pages[0], MEMCG_VMALLOC, -vm->nr_pages);
+ 	for (i = 0; i < vm->nr_pages; i++) {
+ 		struct page *page = vm->pages[i];
  
---- a/mm/compaction.c~mm-compaction-reduce-the-difference-between-low-and-high-watermarks
-+++ a/mm/compaction.c
-@@ -2249,10 +2249,11 @@ static unsigned int fragmentation_score_
+ 		BUG_ON(!page);
+-		if (!(vm->flags & VM_MAP_PUT_PAGES))
+-			mod_memcg_page_state(page, MEMCG_VMALLOC, -1);
+ 		/*
+ 		 * High-order allocs for huge vmallocs are split, so
+ 		 * can be freed as an array of order-0 allocations
+@@ -3671,12 +3671,9 @@ static void *__vmalloc_area_node(struct
+ 		node, page_order, nr_small_pages, area->pages);
  
- static unsigned int fragmentation_score_wmark(bool low)
- {
--	unsigned int wmark_low;
-+	unsigned int wmark_low, leeway;
+ 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
+-	if (gfp_mask & __GFP_ACCOUNT) {
+-		int i;
+-
+-		for (i = 0; i < area->nr_pages; i++)
+-			mod_memcg_page_state(area->pages[i], MEMCG_VMALLOC, 1);
+-	}
++	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
++		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
++				     area->nr_pages);
  
- 	wmark_low = 100U - sysctl_compaction_proactiveness;
--	return low ? wmark_low : min(wmark_low + 10, 100U);
-+	leeway = min(10U, wmark_low / 2);
-+	return low ? wmark_low : min(wmark_low + leeway, 100U);
- }
- 
- static bool should_proactive_compact_node(pg_data_t *pgdat)
+ 	/*
+ 	 * If not enough pages were obtained to accomplish an
 _
 
-Patches currently in -mm which might be from mclapinski@google.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-compaction-remove-low-watermark-cap-for-proactive-compaction.patch
-mm-compaction-reduce-the-difference-between-low-and-high-watermarks.patch
+memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
+memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
 
