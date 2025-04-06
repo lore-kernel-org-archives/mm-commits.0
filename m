@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCE6D1A3172
-	for <mm-commits@vger.kernel.org>; Sat,  5 Apr 2025 22:37:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5CB7537F8
+	for <mm-commits@vger.kernel.org>; Sun,  6 Apr 2025 22:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743892670; cv=none; b=i0SRN0PoPFz6Ux+WobTTEhnjUy9hAbsPdVtnW9MvIFT2m+xHWqZkQj+G5ktRXB3dKrIshCp8+atIgm6qbt0FInS1H1MGoEDV9sYVAdwA+EgxiySAEnmxQ8uBLM8sJ+CSWCaIwwc2jRfWJJp/uppkbbzUlksNlTXJ8bakJd6oTcw=
+	t=1743978216; cv=none; b=Nth9VUUkKhKY0h7edyCkzSp+f34MM+oGWZWOJByjdnIGMRROxkvTibFaySJgz4P7PKB2heeM8oIse35VOlM/eWWoCeBolOOdk6KwrfVZPFSqi8I9dAv1MGnS2rTY5Bxuv8J/djUBAmpjSNPMTdX1XNE4OKTf+3e8Uxi92UIC968=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743892670; c=relaxed/simple;
-	bh=zxWem8+val+uMOKrfC0Blbh4YjdZxZqetRoqHmr9IWA=;
-	h=Date:To:From:Subject:Message-Id; b=ojN5inSt911uq3ukg9vymslkHtPX5nGMElfJMfm3l6p6382qph5vxLwQO7/J2INjql39AohaAttftOunIbRTpi2q2tkYAzIdhOm8ses7s0mvuKSdl6wZxi8Zaa1sVw99RzN3Wqzw0VpkZdtBxKY7BeL+ef/04yoM1VVKgjcvD8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wgwy+H2M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743978216; c=relaxed/simple;
+	bh=zWVp2uLaehamwVefv8UveQRuuE0xY2Pcocs9V12Kroo=;
+	h=Date:To:From:Subject:Message-Id; b=Z0NbnGu5SbVw7tjqzP7d7SA3g53SXQ0UUnWM3hWaqHNLqZQXzFWoVrETpgloRNBG+IPAr2UiBCf5YRLXuLsH4GxmY8SnKzInkfaOGITS/I4+eyvvcp9OFb9c9LYDEtiKY7cBE/fE38WPvsbt5+GquA1hDzMrgE84WS2lmjBEKuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=erp+1IVr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wgwy+H2M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3138BC4CEE4;
-	Sat,  5 Apr 2025 22:37:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="erp+1IVr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0AE5C4CEE3;
+	Sun,  6 Apr 2025 22:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743892670;
-	bh=zxWem8+val+uMOKrfC0Blbh4YjdZxZqetRoqHmr9IWA=;
+	s=korg; t=1743978216;
+	bh=zWVp2uLaehamwVefv8UveQRuuE0xY2Pcocs9V12Kroo=;
 	h=Date:To:From:Subject:From;
-	b=wgwy+H2MXzFyeobAzSYMw9aWcpZi0rGHUOcoHaTUD4eENwQZuhfmnKdp/bCxZFgkn
-	 07bbYttScY6VPTtU9vbD4L7b3zP00dpPlxN+YVfqY+csV1YWc6pUsYBwfEKkdReWtw
-	 qEVXbMYJoTGbCcj3LHI2AGXZ90a/NEjL+QMLpiPs=
-Date: Sat, 05 Apr 2025 15:37:49 -0700
-To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,bhe@redhat.com,zhiquan1.li@intel.com,akpm@linux-foundation.org
+	b=erp+1IVrWBMVkio72ZH/26MlIaEvGhCiV0Xp8p33FAah6S4NKr05+GcDSK53Ui8Fw
+	 0htaXvf43QWeBaVMh5FYAyWENvgvsZzwWPcVfR9hI0tom23gyAqLL0xPDPzMtddqaf
+	 loj618PItA3ITIMH3eKtxXLeN8PmEZJ6gZVX2LOc=
+Date: Sun, 06 Apr 2025 15:23:35 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,almasrymina@google.com,aishwarya.tcv@arm.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch added to mm-nonmm-unstable branch
-Message-Id: <20250405223750.3138BC4CEE4@smtp.kernel.org>
+Subject: + selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250406222335.F0AE5C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: Export PAGE_UNACCEPTED_MAPCOUNT_VALUE to vmcoreinfo
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch
+     Subject: selftests/mm: generate a temporary mountpoint for cgroup filesystem
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,38 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhiquan Li <zhiquan1.li@intel.com>
-Subject: crash: Export PAGE_UNACCEPTED_MAPCOUNT_VALUE to vmcoreinfo
-Date: Sat, 5 Apr 2025 14:06:10 +0800
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests/mm: generate a temporary mountpoint for cgroup filesystem
+Date: Fri, 04 Apr 2025 17:42:32 +0100
 
-fix docs: "Title underline too short" warning
+Currently if the filesystem for the cgroups version it wants to use is not
+mounted charge_reserved_hugetlb.sh and hugetlb_reparenting_test.sh tests
+will attempt to mount it on the hard coded path /dev/cgroup/memory,
+deleting that directory when the test finishes.  This will fail if there
+is not a preexisting directory at that path, and since the directory is
+deleted subsequent runs of the test will fail.  Instead of relying on this
+hard coded directory name use mktemp to generate a temporary directory to
+use as a mountpoint, fixing both the assumption and the disruption caused
+by deleting a preexisting directory.
 
-Link: https://lore.kernel.org/all/20240809114854.3745464-5-kirill.shutemov@linux.intel.com/
-Link: https://lkml.kernel.org/r/20250405060610.860465-1-zhiquan1.li@intel.com
-Signed-off-by: Zhiquan Li <zhiquan1.li@intel.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Baoquan He <bhe@redhat.com>
+This means that if the relevant cgroup filesystem is not already mounted
+then we rely on having coreutils (which provides mktemp) installed.  I
+suspect that many current users are relying on having things automounted
+by default, and given that the script relies on bash it's probably not an
+unreasonable requirement.
+
+Link: https://lkml.kernel.org/r/20250404-kselftest-mm-cgroup2-detection-v1-1-3dba6d32ba8c@kernel.org
+Fixes: 209376ed2a84 ("selftests/vm: make charge_reserved_hugetlb.sh work with existing cgroup setting")
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/vmcoreinfo.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    4 ++--
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3
-+++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
-@@ -332,7 +332,7 @@ Page attributes. These flags are used to
- dumping pages.
- 
- PAGE_BUDDY_MAPCOUNT_VALUE(~PG_buddy)|PAGE_OFFLINE_MAPCOUNT_VALUE(~PG_offline)|PAGE_OFFLINE_MAPCOUNT_VALUE(~PG_unaccepted)
-------------------------------------------------------------------------------
-+-------------------------------------------------------------------------------------------------------------------------
- 
- More page attributes. These flags are used to filter various unnecessary for
- dumping pages.
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem
++++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
+@@ -29,7 +29,7 @@ fi
+ if [[ $cgroup2 ]]; then
+   cgroup_path=$(mount -t cgroup2 | head -1 | awk '{print $3}')
+   if [[ -z "$cgroup_path" ]]; then
+-    cgroup_path=/dev/cgroup/memory
++    cgroup_path=$(mktemp -d)
+     mount -t cgroup2 none $cgroup_path
+     do_umount=1
+   fi
+@@ -37,7 +37,7 @@ if [[ $cgroup2 ]]; then
+ else
+   cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
+   if [[ -z "$cgroup_path" ]]; then
+-    cgroup_path=/dev/cgroup/memory
++    cgroup_path=$(mktemp -d)
+     mount -t cgroup memory,hugetlb $cgroup_path
+     do_umount=1
+   fi
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -23,7 +23,7 @@ fi
+ if [[ $cgroup2 ]]; then
+   CGROUP_ROOT=$(mount -t cgroup2 | head -1 | awk '{print $3}')
+   if [[ -z "$CGROUP_ROOT" ]]; then
+-    CGROUP_ROOT=/dev/cgroup/memory
++    CGROUP_ROOT=$(mktemp -d)
+     mount -t cgroup2 none $CGROUP_ROOT
+     do_umount=1
+   fi
 _
 
-Patches currently in -mm which might be from zhiquan1.li@intel.com are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo.patch
-crash-export-page_unaccepted_mapcount_value-to-vmcoreinfo-v3.patch
+selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch
 
