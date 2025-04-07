@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA3AC221D86
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 20:25:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AFA1586C8;
+	Mon,  7 Apr 2025 20:59:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744057518; cv=none; b=JLSayjosRHxc7jng4Pk8A7JZvbc3WyWEXoo/cDU5qMlDO0NEmlSVxUSA+yiZJJwknFyzvGjsim8sEPiPFBVyZt4ZIMr10nUw+2Co6+/zDG4rLJyz+rbhMRITNa4SSty+75t1Drl7VcvgPP/7X8vXIV0GfqJb9wQFT74nNU5AIdE=
+	t=1744059543; cv=none; b=JzC3EyGRHIRBNLCYWM3nJm66f5pxKE66BJqgB3asEmSBE4IpsvffJBeiqQplHc0zMbDdWFWCD8ImbqXw7nQVZftfvAJD9yjXGZSl81eN1isIueayipplIF0dreRJwZGI0J7IRvSYLvR1jSymoTOu1ocu8p9LWHm2o2k4n0munYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744057518; c=relaxed/simple;
-	bh=r8MUnYr5FEzg1vJXJArRomlFe/utVgwDosFrZ6s+NgM=;
-	h=Date:To:From:Subject:Message-Id; b=Q5G9InmMoB+keUywKPJA2ge5hY449S7eRS7a9bW3rpiXF4peZKRvYKc0f56Uhtk75l6EFDV9C/pEwkmmgA5/h6PHGYGexQxWTf902/XDiRj7djuBiWKKATvPjA0JVC1DBPnZo8R0f9BBtl5SQ+r8VpgEXAWcztM1ump6EWNXbG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sON+SFJL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744059543; c=relaxed/simple;
+	bh=e35dlJ5b5L77mPC7SxCd9ogNim8rLddGmPBXQZAFO08=;
+	h=Date:To:From:Subject:Message-Id; b=dAFM/l7H6ejEJ1JVHeVU+96MLktasf31rixRC3S56DC6Z1vTaaBGUcae1SUZ+TksVv/EOA/G+KnqiTNe+tdN/zAFW5Utnd88k5grGGWDJkCxKDv11i8q6wBXgeH4CwoUV6fK2/mah3OG0bD/7xRdgfhvXlh6kgKn7e75lK6ZjVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Orgbi7J2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sON+SFJL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34504C4CEEA;
-	Mon,  7 Apr 2025 20:25:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Orgbi7J2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76A46C4CEDD;
+	Mon,  7 Apr 2025 20:59:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744057518;
-	bh=r8MUnYr5FEzg1vJXJArRomlFe/utVgwDosFrZ6s+NgM=;
+	s=korg; t=1744059542;
+	bh=e35dlJ5b5L77mPC7SxCd9ogNim8rLddGmPBXQZAFO08=;
 	h=Date:To:From:Subject:From;
-	b=sON+SFJLC8CCRUd4b98FHkE/c+KnmnkOoTKGnpFoWsTWNMqd0xvpIy37SKnZvxr6K
-	 eE0tP7Psm98xFn8U0Ijr298Q+ijLTmnxRSxdw7BSgyPx1QGH4Fypv5ALOvmkqwoM2e
-	 WtWhERsfmALW+R4sV6qmTI0da01QFeWp/OAi5Iuo=
-Date: Mon, 07 Apr 2025 13:25:17 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,akpm@linux-foundation.org
+	b=Orgbi7J2WZujHOaPHSTHI3uUSk1dc3kgChDs1hTX0jk+cnpjIvQwVLZSQcqYe1E9z
+	 OR9GsYaEDLhXoJv3x+0L9DfoakB6AwfeDNrgXJzCo2nBKlzgr9y4UhBykf8/B6eFUZ
+	 5bf19uLmISWarPbSNdkXDxsu8nVvDdYxt0v1n1Hg=
+Date: Mon, 07 Apr 2025 13:59:01 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,quwenruo.btrfs@gmx.com,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch added to mm-nonmm-unstable branch
-Message-Id: <20250407202518.34504C4CEEA@smtp.kernel.org>
+Subject: + mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250407205902.76A46C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
+     Subject: mm: fix filemap_get_folios_contig returning batches of identical folios
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,141 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mateusz Guzik <mjguzik@gmail.com>
-Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
-Date: Wed, 19 Mar 2025 20:54:36 +0100
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm: fix filemap_get_folios_contig returning batches of identical folios
+Date: Thu, 3 Apr 2025 16:54:17 -0700
 
-This reduces single-threaded overhead as it avoids one lock+irq trip on
-exit.
+filemap_get_folios_contig() is supposed to return distinct folios found
+within [start, end].  Large folios in the Xarray become multi-index
+entries.  xas_next() can iterate through the sub-indexes before finding a
+sibling entry and breaking out of the loop.
 
-It also improves scalability of spawning and killing threads within one
-process (just shy of 5% when doing it on 24 cores on my test jig).
+This can result in a returned folio_batch containing an indeterminate
+number of duplicate folios, which forces the callers to skeptically handle
+the returned batch.  This is inefficient and incurs a large maintenance
+overhead.
 
-Both routines are moved below kcov and kmsan exit, which should be
-harmless.
+We can fix this by calling xas_advance() after we have successfully adding
+a folio to the batch to ensure our Xarray is positioned such that it will
+correctly find the next folio - similar to filemap_get_read_batch().
 
-Link: https://lkml.kernel.org/r/20250319195436.1864415-1-mjguzik@gmail.com
-Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Link: https://lkml.kernel.org/r/Z-8s1-kiIDkzgRbc@fedora
+Fixes: 35b471467f88 ("filemap: add filemap_get_folios_contig()")
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reported-by: Qu Wenruo <quwenruo.btrfs@gmx.com>
+Closes: https://lkml.kernel.org/r/b714e4de-2583-4035-b829-72cfb5eb6fc6@gmx.com
+Tested-by: Qu Wenruo <quwenruo.btrfs@gmx.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   68 ++++++++++++++++++++++--------------------------
- 1 file changed, 32 insertions(+), 36 deletions(-)
+ mm/filemap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/exit.c~exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit
-+++ a/kernel/exit.c
-@@ -415,44 +415,30 @@ kill_orphaned_pgrp(struct task_struct *t
- 	}
- }
- 
--static void coredump_task_exit(struct task_struct *tsk)
-+static void coredump_task_exit(struct task_struct *tsk,
-+			       struct core_state *core_state)
- {
--	struct core_state *core_state;
-+	struct core_thread self;
- 
-+	self.task = tsk;
-+	if (self.task->flags & PF_SIGNALED)
-+		self.next = xchg(&core_state->dumper.next, &self);
-+	else
-+		self.task = NULL;
- 	/*
--	 * Serialize with any possible pending coredump.
--	 * We must hold siglock around checking core_state
--	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
--	 * will increment ->nr_threads for each thread in the
--	 * group without PF_POSTCOREDUMP set.
-+	 * Implies mb(), the result of xchg() must be visible
-+	 * to core_state->dumper.
- 	 */
--	spin_lock_irq(&tsk->sighand->siglock);
--	tsk->flags |= PF_POSTCOREDUMP;
--	core_state = tsk->signal->core_state;
--	spin_unlock_irq(&tsk->sighand->siglock);
--	if (core_state) {
--		struct core_thread self;
--
--		self.task = current;
--		if (self.task->flags & PF_SIGNALED)
--			self.next = xchg(&core_state->dumper.next, &self);
--		else
--			self.task = NULL;
--		/*
--		 * Implies mb(), the result of xchg() must be visible
--		 * to core_state->dumper.
--		 */
--		if (atomic_dec_and_test(&core_state->nr_threads))
--			complete(&core_state->startup);
-+	if (atomic_dec_and_test(&core_state->nr_threads))
-+		complete(&core_state->startup);
- 
--		for (;;) {
--			set_current_state(TASK_IDLE|TASK_FREEZABLE);
--			if (!self.task) /* see coredump_finish() */
--				break;
--			schedule();
--		}
--		__set_current_state(TASK_RUNNING);
-+	for (;;) {
-+		set_current_state(TASK_IDLE|TASK_FREEZABLE);
-+		if (!self.task) /* see coredump_finish() */
-+			break;
-+		schedule();
- 	}
-+	__set_current_state(TASK_RUNNING);
- }
- 
- #ifdef CONFIG_MEMCG
-@@ -876,6 +862,7 @@ static void synchronize_group_exit(struc
- {
- 	struct sighand_struct *sighand = tsk->sighand;
- 	struct signal_struct *signal = tsk->signal;
-+	struct core_state *core_state;
- 
- 	spin_lock_irq(&sighand->siglock);
- 	signal->quick_threads--;
-@@ -885,7 +872,19 @@ static void synchronize_group_exit(struc
- 		signal->group_exit_code = code;
- 		signal->group_stop_count = 0;
- 	}
-+	/*
-+	 * Serialize with any possible pending coredump.
-+	 * We must hold siglock around checking core_state
-+	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
-+	 * will increment ->nr_threads for each thread in the
-+	 * group without PF_POSTCOREDUMP set.
-+	 */
-+	tsk->flags |= PF_POSTCOREDUMP;
-+	core_state = signal->core_state;
- 	spin_unlock_irq(&sighand->siglock);
-+
-+	if (unlikely(core_state))
-+		coredump_task_exit(tsk, core_state);
- }
- 
- void __noreturn do_exit(long code)
-@@ -894,15 +893,12 @@ void __noreturn do_exit(long code)
- 	int group_dead;
- 
- 	WARN_ON(irqs_disabled() && system_state != SYSTEM_POWER_OFF);
--
--	synchronize_group_exit(tsk, code);
--
- 	WARN_ON(tsk->plug);
- 
- 	kcov_task_exit(tsk);
- 	kmsan_task_exit(tsk);
- 
--	coredump_task_exit(tsk);
-+	synchronize_group_exit(tsk, code);
- 	ptrace_event(PTRACE_EVENT_EXIT, code);
- 	user_events_exit(tsk);
- 
+--- a/mm/filemap.c~mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios
++++ a/mm/filemap.c
+@@ -2244,6 +2244,7 @@ unsigned filemap_get_folios_contig(struc
+ 			*start = folio->index + nr;
+ 			goto out;
+ 		}
++		xas_advance(&xas, folio_next_index(folio) - 1);
+ 		continue;
+ put_folio:
+ 		folio_put(folio);
 _
 
-Patches currently in -mm which might be from mjguzik@gmail.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
+mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
+mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch
+mm-compaction-use-folio-in-hugetlb-pathway.patch
 
