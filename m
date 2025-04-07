@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7611D225D7
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:32:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECF1717BA6
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743989562; cv=none; b=J8ewZdzwSRILqx+oL7L36RJ0BSHuaOLlWfugaBA3MShyUtsrUlxShwEdPm9/86/v9eGLtLNqofgiztkYGLsiW9MrVNxmNXjzo8vqYpPRLjsOagvDD3VoQa5HUXXM+SVorhcKP5tRiw6uE82htVMqd2rZGd8PbSLXclu6jvCHA/g=
+	t=1743990481; cv=none; b=toowjnmexNtP3XMNA83DTqIsB0S2zRkq2dDlgj/XgMI+kP62hjpWwQEe4Gk3ODEfRoOk5GK9SkUnZh1K+xrkxBgordu5un6nNh+jmT75oDOOCzhAAiaKsyZp3cSCzwUxyXUjkMXEzktbfY4aW4nsD7DO2iUxtvjCzV8Gx3YN698=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743989562; c=relaxed/simple;
-	bh=fc1tlArDcF0/gKKHaKR/cq6V8l9B7HqRVfpFyhsIyJ4=;
-	h=Date:To:From:Subject:Message-Id; b=plM3W+4zdZnKDZdzfVUtAZ/geCM6S8FDkLPd6j044/jy1257cgkvv5s8YjNJ3dIqR6bAL2LRPopDyNWwJ5/h1Pp4siF/oI0amvjiqFmATn5Q57DmauaxacvIcQ7zag+s4+WOFR2f45rIoD7A5w4uamixWJi0vjgHbzLk8wMBYbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pzXSyRAn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743990481; c=relaxed/simple;
+	bh=U3LHueLruvlkvflZY2f1mFIgnczvBejYNBL9am8qXKA=;
+	h=Date:To:From:Subject:Message-Id; b=muGpIH5EjYqX+Lz3jGsZf5/gy5FoAS6DPRsehigRlpSFj3qXCSowECAxiI0QSC7+XyU7YvQM6ALLcnogwS1Pq5EkfiY6d9Rx2D49e4XGj64zBQlFuAmJFElpuDIDakEIU0aOdTxW9kdo2mDmguLNGO7ZRp2i4nin9161xvvXTtg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ocZiaUJH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pzXSyRAn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E0DC4CEE3;
-	Mon,  7 Apr 2025 01:32:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ocZiaUJH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 339FBC4CEE3;
+	Mon,  7 Apr 2025 01:48:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743989560;
-	bh=fc1tlArDcF0/gKKHaKR/cq6V8l9B7HqRVfpFyhsIyJ4=;
+	s=korg; t=1743990480;
+	bh=U3LHueLruvlkvflZY2f1mFIgnczvBejYNBL9am8qXKA=;
 	h=Date:To:From:Subject:From;
-	b=pzXSyRAn7XY8cvaA3mTvScFlW6Dv1Q0yZjbQRn4+l34pB/2LSWIT2waO3IoOpyole
-	 gKkVmf94M2v3lOzauzhFGWSaDw4ZgScygY3FPD6KxyhpZld3i5p93QmQTN5+Dw86UY
-	 jK6CyF8L57PKLOVhYfrW646KnaGrX1J+L7w54uTs=
-Date: Sun, 06 Apr 2025 18:32:40 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=ocZiaUJH0tPWrimWlFG7JBY9rYUAXTAESM5iqRav+lYVDeVrdfZ872CPuz3AvXR+M
+	 J61UWHsGIzpRfk9i0rhwdf34kA8zv3k+x9bj4AiS+cZMyb30rRbCJ9b4nPeQWZ8DVs
+	 kbkcUVUFbPYBjDF8NJpsKwRXM5sLun6HaVmOr7zA=
+Date: Sun, 06 Apr 2025 18:47:59 -0700
+To: mm-commits@vger.kernel.org,xiaopei01@kylinos.cn,vbabka@suse.cz,sfr@canb.auug.org.au,rmoar@google.com,masahiroy@kernel.org,linux@roeck-us.net,jeff.johnson@oss.qualcomm.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-cleanup-headers-includes.patch added to mm-new branch
-Message-Id: <20250407013240.D4E0DC4CEE3@smtp.kernel.org>
+Subject: + exportfs-add-module-description.patch added to mm-nonmm-unstable branch
+Message-Id: <20250407014800.339FBC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: cleanup headers includes
-has been added to the -mm mm-new branch.  Its filename is
-     zsmalloc-cleanup-headers-includes.patch
+     Subject: exportfs: add module description
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     exportfs-add-module-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-cleanup-headers-includes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exportfs-add-module-description.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: cleanup headers includes
-Date: Tue, 25 Mar 2025 17:04:16 +0900
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: exportfs: add module description
+Date: Mon, 24 Mar 2025 18:32:26 +0100
 
-Remove unused headers includes from zsmalloc and move pagemap.h and
-migrate.h includes into zpdesc header.
+Every loadable module should have a description, to avoid a warning such as:
 
-Link: https://lkml.kernel.org/r/20250325080427.3449359-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+WARNING: modpost: missing MODULE_DESCRIPTION() in fs/exportfs/exportfs.o
+
+Link: https://lkml.kernel.org/r/20250324173242.1501003-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Guenetr Roeck <linux@roeck-us.net>
+Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Pei Xiao <xiaopei01@kylinos.cn>
+Cc: Rae Moar <rmoar@google.com>
+Cc: Stehen Rothwell <sfr@canb.auug.org.au>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpdesc.h   |    3 +++
- mm/zsmalloc.c |   12 +-----------
- 2 files changed, 4 insertions(+), 11 deletions(-)
+ fs/exportfs/expfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/zpdesc.h~zsmalloc-cleanup-headers-includes
-+++ a/mm/zpdesc.h
-@@ -7,6 +7,9 @@
- #ifndef __MM_ZPDESC_H__
- #define __MM_ZPDESC_H__
+--- a/fs/exportfs/expfs.c~exportfs-add-module-description
++++ a/fs/exportfs/expfs.c
+@@ -608,4 +608,5 @@ struct dentry *exportfs_decode_fh(struct
+ }
+ EXPORT_SYMBOL_GPL(exportfs_decode_fh);
  
-+#include <linux/migrate.h>
-+#include <linux/pagemap.h>
-+
- /*
-  * struct zpdesc -	Memory descriptor for zpool memory.
-  * @flags:		Page flags, mostly unused by zsmalloc.
---- a/mm/zsmalloc.c~zsmalloc-cleanup-headers-includes
-+++ a/mm/zsmalloc.c
-@@ -26,17 +26,10 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
--#include <linux/bitops.h>
- #include <linux/errno.h>
- #include <linux/highmem.h>
- #include <linux/string.h>
- #include <linux/slab.h>
--#include <linux/pgtable.h>
--#include <asm/tlbflush.h>
--#include <linux/cpumask.h>
--#include <linux/cpu.h>
--#include <linux/vmalloc.h>
--#include <linux/preempt.h>
- #include <linux/spinlock.h>
- #include <linux/sprintf.h>
- #include <linux/shrinker.h>
-@@ -44,11 +37,8 @@
- #include <linux/debugfs.h>
- #include <linux/zsmalloc.h>
- #include <linux/zpool.h>
--#include <linux/migrate.h>
--#include <linux/wait.h>
--#include <linux/pagemap.h>
- #include <linux/fs.h>
--#include <linux/local_lock.h>
-+#include <linux/workqueue.h>
- #include "zpdesc.h"
- 
- #define ZSPAGE_MAGIC	0x58
++MODULE_DESCRIPTION("Code mapping from inodes to NFS file handles");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
-zram-modernize-writeback-interface.patch
-zram-modernize-writeback-interface-v3.patch
-zsmalloc-cleanup-headers-includes.patch
+exportfs-add-module-description.patch
+asn1-add-module-description.patch
+samples-livepatch-add-module-descriptions.patch
+fpga-tests-add-module-descriptions.patch
+xenbus-add-module-description.patch
+zlib-add-module-description.patch
+ucs2_string-add-module-description.patch
+mm-kasan-add-module-decription.patch
+kunit-slub-add-module-description.patch
 
