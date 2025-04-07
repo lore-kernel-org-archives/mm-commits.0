@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3C74225D7
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:31:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7611D225D7
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:32:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743989508; cv=none; b=I6Ytd+qVUhqPgZLLWnYg2nfdnby1gmGUDozrBF7B8ekZoYvtPIDoMRrlZCaHqkGvI/rdBwiFnr+tq2spIsH6nHpnd/Th7XkxoHwT2Cda+ctDojTBEsXOMxAtRI9mmv4ubOxdTFkTh3dsBcYVZ8X57GazilGfq0Rmhr45zGUcC24=
+	t=1743989562; cv=none; b=J8ewZdzwSRILqx+oL7L36RJ0BSHuaOLlWfugaBA3MShyUtsrUlxShwEdPm9/86/v9eGLtLNqofgiztkYGLsiW9MrVNxmNXjzo8vqYpPRLjsOagvDD3VoQa5HUXXM+SVorhcKP5tRiw6uE82htVMqd2rZGd8PbSLXclu6jvCHA/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743989508; c=relaxed/simple;
-	bh=NvWIgwhcM6/AsBISj+wyfeuowieIE9NpSHCXZJRaqlk=;
-	h=Date:To:From:Subject:Message-Id; b=L3BPcYPt9uJmoIl22ihI/oCrLHzwljHpeA28m9sAs7J7JNFn6SosRq4YEhyAWVJiw9mnpSFg67/kynowW1jbUeDYTCn0BLsQbQWDhws+IBW07LMAqUrj6DT8YitdcKsgHUhmmjem2xfF3UF8FnPFsxyHhKMsZHDcjCXH+MxO9tY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bq1Eha6R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743989562; c=relaxed/simple;
+	bh=fc1tlArDcF0/gKKHaKR/cq6V8l9B7HqRVfpFyhsIyJ4=;
+	h=Date:To:From:Subject:Message-Id; b=plM3W+4zdZnKDZdzfVUtAZ/geCM6S8FDkLPd6j044/jy1257cgkvv5s8YjNJ3dIqR6bAL2LRPopDyNWwJ5/h1Pp4siF/oI0amvjiqFmATn5Q57DmauaxacvIcQ7zag+s4+WOFR2f45rIoD7A5w4uamixWJi0vjgHbzLk8wMBYbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pzXSyRAn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bq1Eha6R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15AACC4CEE3;
-	Mon,  7 Apr 2025 01:31:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pzXSyRAn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4E0DC4CEE3;
+	Mon,  7 Apr 2025 01:32:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743989508;
-	bh=NvWIgwhcM6/AsBISj+wyfeuowieIE9NpSHCXZJRaqlk=;
+	s=korg; t=1743989560;
+	bh=fc1tlArDcF0/gKKHaKR/cq6V8l9B7HqRVfpFyhsIyJ4=;
 	h=Date:To:From:Subject:From;
-	b=Bq1Eha6RLX71pnkekGQOvx4qB2iY/KeyhBr0+SYG2VWHyB/AKEysZn5AmisZ2/9JQ
-	 BBXMUd8d4WTJt68v6ZXk4W85m6WnRmMYAPq0lY/oZT2gplTnKZv2i6HyCMe7qfJGN0
-	 InJS1Paz/a174fLm4Qw9GhfFc8cXVFRXFhpK/DxA=
-Date: Sun, 06 Apr 2025 18:31:47 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,vgupta@kernel.org,vapier@gentoo.org,tglx@linutronix.de,svens@linux.ibm.com,stefan.kristiansson@saunalahti.fi,shuah@kernel.org,shorne@gmail.com,richard@nod.at,renzo@cs.unibo.it,oleg@redhat.com,npiggin@gmail.com,naveen@kernel.org,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,maddy@linux.ibm.com,macro@orcam.me.uk,linux@armlinux.org.uk,legion@kernel.org,kernel@xen0n.name,jonas@southpole.se,johannes@sipsolutions.net,jcmvbkbc@gmail.com,hpa@zytor.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,evgsyr@gmail.com,esyr@redhat.com,dinguyen@kernel.org,deller@gmx.de,davem@davemloft.net,dave.hansen@linux.intel.com,dalias@libc.org,chris@zankel.net,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,charlie@rivosinc.com,bp@alien8.de,borntraeger@linux.ibm.com,berardi.dav@gmail.com,bcain@quicinc.com,arnd@arndb.de,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,agordeev@linux.ibm.com,ldv@strace.io,akpm@linux-foundation.org
+	b=pzXSyRAn7XY8cvaA3mTvScFlW6Dv1Q0yZjbQRn4+l34pB/2LSWIT2waO3IoOpyole
+	 gKkVmf94M2v3lOzauzhFGWSaDw4ZgScygY3FPD6KxyhpZld3i5p93QmQTN5+Dw86UY
+	 jK6CyF8L57PKLOVhYfrW646KnaGrX1J+L7w54uTs=
+Date: Sun, 06 Apr 2025 18:32:40 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-ptrace-add-a-test-case-for-ptrace_set_syscall_info.patch added to mm-new branch
-Message-Id: <20250407013148.15AACC4CEE3@smtp.kernel.org>
+Subject: + zsmalloc-cleanup-headers-includes.patch added to mm-new branch
+Message-Id: <20250407013240.D4E0DC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/ptrace: add a test case for PTRACE_SET_SYSCALL_INFO
+     Subject: zsmalloc: cleanup headers includes
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-ptrace-add-a-test-case-for-ptrace_set_syscall_info.patch
+     zsmalloc-cleanup-headers-includes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-ptrace-add-a-test-case-for-ptrace_set_syscall_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-cleanup-headers-includes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,614 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Dmitry V. Levin" <ldv@strace.io>
-Subject: selftests/ptrace: add a test case for PTRACE_SET_SYSCALL_INFO
-Date: Mon, 3 Mar 2025 13:20:52 +0200
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: cleanup headers includes
+Date: Tue, 25 Mar 2025 17:04:16 +0900
 
-Check whether PTRACE_SET_SYSCALL_INFO semantics implemented in the kernel
-matches userspace expectations.
+Remove unused headers includes from zsmalloc and move pagemap.h and
+migrate.h includes into zpdesc header.
 
-Link: https://lkml.kernel.org/r/20250303112052.GG24170@strace.io
-Signed-off-by: Dmitry V. Levin <ldv@strace.io>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexey Gladkov (Intel) <legion@kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: anton ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: Charlie Jenkins <charlie@rivosinc.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Zankel <chris@zankel.net>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Davide Berardi <berardi.dav@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Eugene Syromiatnikov <esyr@redhat.com>
-Cc: Eugene Syromyatnikov <evgsyr@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Maciej W. Rozycki <macro@orcam.me.uk>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Naveen N Rao <naveen@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Renzo Davoi <renzo@cs.unibo.it>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russel King <linux@armlinux.org.uk>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20250325080427.3449359-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ptrace/Makefile           |    2 
- tools/testing/selftests/ptrace/set_syscall_info.c |  519 ++++++++++++
- 2 files changed, 520 insertions(+), 1 deletion(-)
+ mm/zpdesc.h   |    3 +++
+ mm/zsmalloc.c |   12 +-----------
+ 2 files changed, 4 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/ptrace/Makefile~selftests-ptrace-add-a-test-case-for-ptrace_set_syscall_info
-+++ a/tools/testing/selftests/ptrace/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
- CFLAGS += -std=c99 -pthread -Wall $(KHDR_INCLUDES)
+--- a/mm/zpdesc.h~zsmalloc-cleanup-headers-includes
++++ a/mm/zpdesc.h
+@@ -7,6 +7,9 @@
+ #ifndef __MM_ZPDESC_H__
+ #define __MM_ZPDESC_H__
  
--TEST_GEN_PROGS := get_syscall_info peeksiginfo vmaccess get_set_sud
-+TEST_GEN_PROGS := get_syscall_info set_syscall_info peeksiginfo vmaccess get_set_sud
++#include <linux/migrate.h>
++#include <linux/pagemap.h>
++
+ /*
+  * struct zpdesc -	Memory descriptor for zpool memory.
+  * @flags:		Page flags, mostly unused by zsmalloc.
+--- a/mm/zsmalloc.c~zsmalloc-cleanup-headers-includes
++++ a/mm/zsmalloc.c
+@@ -26,17 +26,10 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+-#include <linux/bitops.h>
+ #include <linux/errno.h>
+ #include <linux/highmem.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+-#include <linux/pgtable.h>
+-#include <asm/tlbflush.h>
+-#include <linux/cpumask.h>
+-#include <linux/cpu.h>
+-#include <linux/vmalloc.h>
+-#include <linux/preempt.h>
+ #include <linux/spinlock.h>
+ #include <linux/sprintf.h>
+ #include <linux/shrinker.h>
+@@ -44,11 +37,8 @@
+ #include <linux/debugfs.h>
+ #include <linux/zsmalloc.h>
+ #include <linux/zpool.h>
+-#include <linux/migrate.h>
+-#include <linux/wait.h>
+-#include <linux/pagemap.h>
+ #include <linux/fs.h>
+-#include <linux/local_lock.h>
++#include <linux/workqueue.h>
+ #include "zpdesc.h"
  
- include ../lib.mk
-diff --git a/tools/testing/selftests/ptrace/set_syscall_info.c a/tools/testing/selftests/ptrace/set_syscall_info.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/ptrace/set_syscall_info.c
-@@ -0,0 +1,519 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * Copyright (c) 2018-2025 Dmitry V. Levin <ldv@strace.io>
-+ * All rights reserved.
-+ *
-+ * Check whether PTRACE_SET_SYSCALL_INFO semantics implemented in the kernel
-+ * matches userspace expectations.
-+ */
-+
-+#include "../kselftest_harness.h"
-+#include <err.h>
-+#include <fcntl.h>
-+#include <signal.h>
-+#include <asm/unistd.h>
-+#include <linux/types.h>
-+#include <linux/ptrace.h>
-+
-+#if defined(_MIPS_SIM) && _MIPS_SIM == _MIPS_SIM_NABI32
-+/*
-+ * MIPS N32 is the only architecture where __kernel_ulong_t
-+ * does not match the bitness of syscall arguments.
-+ */
-+typedef unsigned long long kernel_ulong_t;
-+#else
-+typedef __kernel_ulong_t kernel_ulong_t;
-+#endif
-+
-+struct si_entry {
-+	int nr;
-+	kernel_ulong_t args[6];
-+};
-+struct si_exit {
-+	unsigned int is_error;
-+	int rval;
-+};
-+
-+static unsigned int ptrace_stop;
-+static pid_t tracee_pid;
-+
-+static int
-+kill_tracee(pid_t pid)
-+{
-+	if (!pid)
-+		return 0;
-+
-+	int saved_errno = errno;
-+
-+	int rc = kill(pid, SIGKILL);
-+
-+	errno = saved_errno;
-+	return rc;
-+}
-+
-+static long
-+sys_ptrace(int request, pid_t pid, unsigned long addr, unsigned long data)
-+{
-+	return syscall(__NR_ptrace, request, pid, addr, data);
-+}
-+
-+#define LOG_KILL_TRACEE(fmt, ...)				\
-+	do {							\
-+		kill_tracee(tracee_pid);			\
-+		TH_LOG("wait #%d: " fmt,			\
-+		       ptrace_stop, ##__VA_ARGS__);		\
-+	} while (0)
-+
-+static void
-+check_psi_entry(struct __test_metadata *_metadata,
-+		const struct ptrace_syscall_info *info,
-+		const struct si_entry *exp_entry,
-+		const char *text)
-+{
-+	unsigned int i;
-+	int exp_nr = exp_entry->nr;
-+#if defined __s390__ || defined __s390x__
-+	/* s390 is the only architecture that has 16-bit syscall numbers */
-+	exp_nr &= 0xffff;
-+#endif
-+
-+	ASSERT_EQ(PTRACE_SYSCALL_INFO_ENTRY, info->op) {
-+		LOG_KILL_TRACEE("%s: entry stop mismatch", text);
-+	}
-+	ASSERT_TRUE(info->arch) {
-+		LOG_KILL_TRACEE("%s: entry stop mismatch", text);
-+	}
-+	ASSERT_TRUE(info->instruction_pointer) {
-+		LOG_KILL_TRACEE("%s: entry stop mismatch", text);
-+	}
-+	ASSERT_TRUE(info->stack_pointer) {
-+		LOG_KILL_TRACEE("%s: entry stop mismatch", text);
-+	}
-+	ASSERT_EQ(exp_nr, info->entry.nr) {
-+		LOG_KILL_TRACEE("%s: syscall nr mismatch", text);
-+	}
-+	for (i = 0; i < ARRAY_SIZE(exp_entry->args); ++i) {
-+		ASSERT_EQ(exp_entry->args[i], info->entry.args[i]) {
-+			LOG_KILL_TRACEE("%s: syscall arg #%u mismatch",
-+					text, i);
-+		}
-+	}
-+}
-+
-+static void
-+check_psi_exit(struct __test_metadata *_metadata,
-+	       const struct ptrace_syscall_info *info,
-+	       const struct si_exit *exp_exit,
-+	       const char *text)
-+{
-+	ASSERT_EQ(PTRACE_SYSCALL_INFO_EXIT, info->op) {
-+		LOG_KILL_TRACEE("%s: exit stop mismatch", text);
-+	}
-+	ASSERT_TRUE(info->arch) {
-+		LOG_KILL_TRACEE("%s: exit stop mismatch", text);
-+	}
-+	ASSERT_TRUE(info->instruction_pointer) {
-+		LOG_KILL_TRACEE("%s: exit stop mismatch", text);
-+	}
-+	ASSERT_TRUE(info->stack_pointer) {
-+		LOG_KILL_TRACEE("%s: exit stop mismatch", text);
-+	}
-+	ASSERT_EQ(exp_exit->is_error, info->exit.is_error) {
-+		LOG_KILL_TRACEE("%s: exit stop mismatch", text);
-+	}
-+	ASSERT_EQ(exp_exit->rval, info->exit.rval) {
-+		LOG_KILL_TRACEE("%s: exit stop mismatch", text);
-+	}
-+}
-+
-+TEST(set_syscall_info)
-+{
-+	const pid_t tracer_pid = getpid();
-+	const kernel_ulong_t dummy[] = {
-+		(kernel_ulong_t) 0xdad0bef0bad0fed0ULL,
-+		(kernel_ulong_t) 0xdad1bef1bad1fed1ULL,
-+		(kernel_ulong_t) 0xdad2bef2bad2fed2ULL,
-+		(kernel_ulong_t) 0xdad3bef3bad3fed3ULL,
-+		(kernel_ulong_t) 0xdad4bef4bad4fed4ULL,
-+		(kernel_ulong_t) 0xdad5bef5bad5fed5ULL,
-+	};
-+	int splice_in[2], splice_out[2];
-+
-+	ASSERT_EQ(0, pipe(splice_in));
-+	ASSERT_EQ(0, pipe(splice_out));
-+	ASSERT_EQ(sizeof(dummy), write(splice_in[1], dummy, sizeof(dummy)));
-+
-+	const struct {
-+		struct si_entry entry[2];
-+		struct si_exit exit[2];
-+	} si[] = {
-+		/* change scno, keep non-error rval */
-+		{
-+			{
-+				{
-+					__NR_gettid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					__NR_getppid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 0, tracer_pid }, { 0, tracer_pid }
-+			}
-+		},
-+
-+		/* set scno to -1, keep error rval */
-+		{
-+			{
-+				{
-+					__NR_chdir,
-+					{
-+						(uintptr_t) ".",
-+						dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					-1,
-+					{
-+						(uintptr_t) ".",
-+						dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 1, -ENOSYS }, { 1, -ENOSYS }
-+			}
-+		},
-+
-+		/* keep scno, change non-error rval */
-+		{
-+			{
-+				{
-+					__NR_getppid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					__NR_getppid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 0, tracer_pid }, { 0, tracer_pid + 1 }
-+			}
-+		},
-+
-+		/* change arg1, keep non-error rval */
-+		{
-+			{
-+				{
-+					__NR_chdir,
-+					{
-+						(uintptr_t) "",
-+						dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					__NR_chdir,
-+					{
-+						(uintptr_t) ".",
-+						dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 0, 0 }, { 0, 0 }
-+			}
-+		},
-+
-+		/* set scno to -1, change error rval to non-error */
-+		{
-+			{
-+				{
-+					__NR_gettid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					-1,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 1, -ENOSYS }, { 0, tracer_pid }
-+			}
-+		},
-+
-+		/* change scno, change non-error rval to error */
-+		{
-+			{
-+				{
-+					__NR_chdir,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					__NR_getppid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 0, tracer_pid }, { 1, -EISDIR }
-+			}
-+		},
-+
-+		/* change scno and all args, change non-error rval */
-+		{
-+			{
-+				{
-+					__NR_gettid,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					__NR_splice,
-+					{
-+						splice_in[0], 0, splice_out[1], 0,
-+						sizeof(dummy), SPLICE_F_NONBLOCK
-+					}
-+				}
-+			}, {
-+				{ 0, sizeof(dummy) }, { 0, sizeof(dummy) + 1 }
-+			}
-+		},
-+
-+		/* change arg1, no exit stop */
-+		{
-+			{
-+				{
-+					__NR_exit_group,
-+					{
-+						dummy[0], dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}, {
-+					__NR_exit_group,
-+					{
-+						0, dummy[1], dummy[2],
-+						dummy[3], dummy[4], dummy[5]
-+					}
-+				}
-+			}, {
-+				{ 0, 0 }, { 0, 0 }
-+			}
-+		},
-+	};
-+
-+	long rc;
-+	unsigned int i;
-+
-+	tracee_pid = fork();
-+
-+	ASSERT_LE(0, tracee_pid) {
-+		TH_LOG("fork: %m");
-+	}
-+
-+	if (tracee_pid == 0) {
-+		/* get the pid before PTRACE_TRACEME */
-+		tracee_pid = getpid();
-+		ASSERT_EQ(0, sys_ptrace(PTRACE_TRACEME, 0, 0, 0)) {
-+			TH_LOG("PTRACE_TRACEME: %m");
-+		}
-+		ASSERT_EQ(0, kill(tracee_pid, SIGSTOP)) {
-+			/* cannot happen */
-+			TH_LOG("kill SIGSTOP: %m");
-+		}
-+		for (i = 0; i < ARRAY_SIZE(si); ++i) {
-+			rc = syscall(si[i].entry[0].nr,
-+				     si[i].entry[0].args[0],
-+				     si[i].entry[0].args[1],
-+				     si[i].entry[0].args[2],
-+				     si[i].entry[0].args[3],
-+				     si[i].entry[0].args[4],
-+				     si[i].entry[0].args[5]);
-+			if (si[i].exit[1].is_error) {
-+				if (rc != -1 || errno != -si[i].exit[1].rval)
-+					break;
-+			} else {
-+				if (rc != si[i].exit[1].rval)
-+					break;
-+			}
-+		}
-+		/*
-+		 * Something went wrong, but in this state tracee
-+		 * cannot reliably issue syscalls, so just crash.
-+		 */
-+		*(volatile unsigned char *) (uintptr_t) i = 42;
-+		/* unreachable */
-+		_exit(i + 1);
-+	}
-+
-+	for (ptrace_stop = 0; ; ++ptrace_stop) {
-+		struct ptrace_syscall_info info = {
-+			.op = 0xff	/* invalid PTRACE_SYSCALL_INFO_* op */
-+		};
-+		const size_t size = sizeof(info);
-+		const int expected_entry_size =
-+			(void *) &info.entry.args[6] - (void *) &info;
-+		const int expected_exit_size =
-+			(void *) (&info.exit.is_error + 1) -
-+			(void *) &info;
-+		int status;
-+
-+		ASSERT_EQ(tracee_pid, wait(&status)) {
-+			/* cannot happen */
-+			LOG_KILL_TRACEE("wait: %m");
-+		}
-+		if (WIFEXITED(status)) {
-+			tracee_pid = 0;	/* the tracee is no more */
-+			ASSERT_EQ(0, WEXITSTATUS(status)) {
-+				LOG_KILL_TRACEE("unexpected exit status %u",
-+						WEXITSTATUS(status));
-+			}
-+			break;
-+		}
-+		ASSERT_FALSE(WIFSIGNALED(status)) {
-+			tracee_pid = 0;	/* the tracee is no more */
-+			LOG_KILL_TRACEE("unexpected signal %u",
-+					WTERMSIG(status));
-+		}
-+		ASSERT_TRUE(WIFSTOPPED(status)) {
-+			/* cannot happen */
-+			LOG_KILL_TRACEE("unexpected wait status %#x", status);
-+		}
-+
-+		ASSERT_LT(ptrace_stop, ARRAY_SIZE(si) * 2) {
-+			LOG_KILL_TRACEE("ptrace stop overflow");
-+		}
-+
-+		switch (WSTOPSIG(status)) {
-+		case SIGSTOP:
-+			ASSERT_EQ(0, ptrace_stop) {
-+				LOG_KILL_TRACEE("unexpected signal stop");
-+			}
-+			ASSERT_EQ(0, sys_ptrace(PTRACE_SETOPTIONS, tracee_pid,
-+						0, PTRACE_O_TRACESYSGOOD)) {
-+				LOG_KILL_TRACEE("PTRACE_SETOPTIONS: %m");
-+			}
-+			break;
-+
-+		case SIGTRAP | 0x80:
-+			ASSERT_LT(0, ptrace_stop) {
-+				LOG_KILL_TRACEE("unexpected syscall stop");
-+			}
-+			ASSERT_LT(0, (rc = sys_ptrace(PTRACE_GET_SYSCALL_INFO,
-+						      tracee_pid, size,
-+						      (uintptr_t) &info))) {
-+				LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO #1: %m");
-+			}
-+			if (ptrace_stop & 1) {
-+				/* entering syscall */
-+				const struct si_entry *exp_entry =
-+					&si[ptrace_stop / 2].entry[0];
-+				const struct si_entry *set_entry =
-+					&si[ptrace_stop / 2].entry[1];
-+
-+				/* check ptrace_syscall_info before the changes */
-+				ASSERT_EQ(expected_entry_size, rc) {
-+					LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO #1"
-+							": entry stop mismatch");
-+				}
-+				check_psi_entry(_metadata, &info, exp_entry,
-+						"PTRACE_GET_SYSCALL_INFO #1");
-+
-+				/* apply the changes */
-+				info.entry.nr = set_entry->nr;
-+				for (i = 0; i < ARRAY_SIZE(set_entry->args); ++i)
-+					info.entry.args[i] = set_entry->args[i];
-+				ASSERT_EQ(0, sys_ptrace(PTRACE_SET_SYSCALL_INFO,
-+							tracee_pid, size,
-+							(uintptr_t) &info)) {
-+					LOG_KILL_TRACEE("PTRACE_SET_SYSCALL_INFO: %m");
-+				}
-+
-+				/* check ptrace_syscall_info after the changes */
-+				memset(&info, 0, sizeof(info));
-+				info.op = 0xff;
-+				ASSERT_LT(0, (rc = sys_ptrace(PTRACE_GET_SYSCALL_INFO,
-+							      tracee_pid, size,
-+							      (uintptr_t) &info))) {
-+					LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO: %m");
-+				}
-+				ASSERT_EQ(expected_entry_size, rc) {
-+					LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO #2"
-+							": entry stop mismatch");
-+				}
-+				check_psi_entry(_metadata, &info, set_entry,
-+						"PTRACE_GET_SYSCALL_INFO #2");
-+			} else {
-+				/* exiting syscall */
-+				const struct si_exit *exp_exit =
-+					&si[ptrace_stop / 2 - 1].exit[0];
-+				const struct si_exit *set_exit =
-+					&si[ptrace_stop / 2 - 1].exit[1];
-+
-+				/* check ptrace_syscall_info before the changes */
-+				ASSERT_EQ(expected_exit_size, rc) {
-+					LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO #1"
-+							": exit stop mismatch");
-+				}
-+				check_psi_exit(_metadata, &info, exp_exit,
-+						"PTRACE_GET_SYSCALL_INFO #1");
-+
-+				/* apply the changes */
-+				info.exit.is_error = set_exit->is_error;
-+				info.exit.rval = set_exit->rval;
-+				ASSERT_EQ(0, sys_ptrace(PTRACE_SET_SYSCALL_INFO,
-+							tracee_pid, size,
-+							(uintptr_t) &info)) {
-+					LOG_KILL_TRACEE("PTRACE_SET_SYSCALL_INFO: %m");
-+				}
-+
-+				/* check ptrace_syscall_info after the changes */
-+				memset(&info, 0, sizeof(info));
-+				info.op = 0xff;
-+				ASSERT_LT(0, (rc = sys_ptrace(PTRACE_GET_SYSCALL_INFO,
-+							      tracee_pid, size,
-+							      (uintptr_t) &info))) {
-+					LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO #2: %m");
-+				}
-+				ASSERT_EQ(expected_exit_size, rc) {
-+					LOG_KILL_TRACEE("PTRACE_GET_SYSCALL_INFO #2"
-+							": exit stop mismatch");
-+				}
-+				check_psi_exit(_metadata, &info, set_exit,
-+						"PTRACE_GET_SYSCALL_INFO #2");
-+			}
-+			break;
-+
-+		default:
-+			LOG_KILL_TRACEE("unexpected stop signal %u",
-+					WSTOPSIG(status));
-+			abort();
-+		}
-+
-+		ASSERT_EQ(0, sys_ptrace(PTRACE_SYSCALL, tracee_pid, 0, 0)) {
-+			LOG_KILL_TRACEE("PTRACE_SYSCALL: %m");
-+		}
-+	}
-+
-+	ASSERT_EQ(ptrace_stop, ARRAY_SIZE(si) * 2);
-+}
-+
-+TEST_HARNESS_MAIN
+ #define ZSPAGE_MAGIC	0x58
 _
 
-Patches currently in -mm which might be from ldv@strace.io are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-hexagon-add-syscall_set_return_value.patch
-syscallh-add-syscall_set_arguments.patch
-syscallh-introduce-syscall_set_nr.patch
-ptrace_get_syscall_info-factor-out-ptrace_get_syscall_info_op.patch
-ptrace-introduce-ptrace_set_syscall_info-request.patch
-selftests-ptrace-add-a-test-case-for-ptrace_set_syscall_info.patch
+zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
+zram-modernize-writeback-interface.patch
+zram-modernize-writeback-interface-v3.patch
+zsmalloc-cleanup-headers-includes.patch
 
