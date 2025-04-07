@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E69C2222DA
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:26:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC3C3156C69
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:42:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744054004; cv=none; b=vAw0kWInyaeFKjjQwLcL0n3UeF2CGBiYBGeqLcz5rKZLvApnMqaZ30oRCzpDd5AqxF5whE2bLcV4fFK6nmH5VFjubM30u0uSor/5/+WyWe5LWmSm2Xjplbb2sTnSN+hW3Dqt3S2o6/UaDb0FuI3JhdWC5LN+ReN1Q+0HYXVutbg=
+	t=1744054976; cv=none; b=oOUq2glDpMDWyTX1BcGrPNAX1bmkMdG7NAZtnrXe+tejq3dZqFxKPwENU89JdtUV5r1iIJ+cdK99PxvUL88mPtkwENy44OwyoTzFc1OJDURE5UBvvryHZwGdBhgeddXWM3YPajMk6q4A1dH2gqqooV1JFACWep++YV9aQ/z9z9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744054004; c=relaxed/simple;
-	bh=ANwEo7qjZkKPIOtqvDIHdm1cYvfbFJwtbaON9E/AS5g=;
-	h=Date:To:From:Subject:Message-Id; b=BtuHcJ3JMRVn+posvgZR47obfWlMbjAKjUuNULwYkfci50k7HJuv22Une7aqG9tR84OYkAK83hqcr7YreiWKNhYj6z8YzOmIEXrEQaxQ3mGHmy0YTzdAIRszQwWndSRnXu3HtpaQTXU0QLgaDoyqZrF8cbXRZ0f5EAAO5w001aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ov1yZKdp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744054976; c=relaxed/simple;
+	bh=aaucJAbPttX+o+e0S5rMjp7PecBfxWg4zKQ4VPvppTo=;
+	h=Date:To:From:Subject:Message-Id; b=Fh7Lr2yzMsbothkVsnmqjlk2IfBBVRaTPYYuNHj34DDra4f6VXOyGpE8WaWVz+CxyWZrbf0OC2Yi7SCzNFFml1F9xkHxZOils98YpgQfqwWWA4N9hCMYr5I7AHOL76AfhlXz8+xqyZ7wa4LfTqSQ93nwAqKXRX4s7yYRKvKuQrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zNPUPpZf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ov1yZKdp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A731BC4CEDD;
-	Mon,  7 Apr 2025 19:26:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zNPUPpZf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47C49C4CEDD;
+	Mon,  7 Apr 2025 19:42:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744054003;
-	bh=ANwEo7qjZkKPIOtqvDIHdm1cYvfbFJwtbaON9E/AS5g=;
+	s=korg; t=1744054975;
+	bh=aaucJAbPttX+o+e0S5rMjp7PecBfxWg4zKQ4VPvppTo=;
 	h=Date:To:From:Subject:From;
-	b=ov1yZKdpdI5ER6U/dKTf+WfpXXhLgxUm0PVdmK67Sndef8a4BDd4HMb4atm1+3H7J
-	 AtQHzzmsdZMpNbViKlBsnvdfR8jzqFqPOktt5oCV8/kLTxI5Kx53dEwE9VsTT2o/4L
-	 BQBpn0osr9YGHTauhHJ0jR9WCQH3TxB6Nf/gA3EA=
-Date: Mon, 07 Apr 2025 12:26:43 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,kirill.shutemov@linux.intel.com,dev.jain@arm.com,anshuman.khandual@arm.com,liwang@redhat.com,akpm@linux-foundation.org
+	b=zNPUPpZfu/TXjGdl0kokVJhhfo6QAw5saofw1uuDr0uxCHOoaSXHPdUAG67biqgoM
+	 xWkr3dEdIcuzPgmxBOxbH1F+TAu1aL1iYsIqX+OpGa9hPDVZ5XrrfzGUImFFIUimN1
+	 29AqDYqYsgLrA/VrtdgWgPgh+aU2rtSFOuMw1VY4=
+Date: Mon, 07 Apr 2025 12:42:54 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,ryan.roberts@arm.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mingo@redhat.com,mark.rutland@arm.com,maddy@linux.ibm.com,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch added to mm-new branch
-Message-Id: <20250407192643.A731BC4CEDD@smtp.kernel.org>
+Subject: + mm-ptdump-split-note_page-into-level-specific-callbacks.patch added to mm-new branch
+Message-Id: <20250407194255.47C49C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest/mm: Make hugetlb_reparenting_test tolerant to async reparenting
+     Subject: mm/ptdump: split note_page() into level specific callbacks
 has been added to the -mm mm-new branch.  Its filename is
-     selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
+     mm-ptdump-split-note_page-into-level-specific-callbacks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-split-note_page-into-level-specific-callbacks.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,195 +58,571 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li Wang <liwang@redhat.com>
-Subject: selftest/mm: Make hugetlb_reparenting_test tolerant to async reparenting
-Date: Mon, 7 Apr 2025 16:42:01 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/ptdump: split note_page() into level specific callbacks
+Date: Mon, 7 Apr 2025 11:01:11 +0530
 
-In cgroup v2, memory and hugetlb usage reparenting is asynchronous.  This
-can cause test flakiness when immediately asserting usage after deleting a
-child cgroup.  To address this, add a helper function
-`assert_with_retry()` that checks usage values with a timeout-based retry.
-This improves test stability without relying on fixed sleep delays.
+Patch series "mm/ptdump: Drop assumption that pxd_val() is u64", v2.
 
-Also bump up the tolerance size to 7MB.
+Last argument passed down in note_page() is u64 assuming pxd_val()
+returned value (all page table levels) is 64 bit - which might not be the
+case going ahead when D128 page tables is enabled on arm64 platform. 
+Besides pxd_val() is very platform specific and its type should not be
+assumed in generic MM.  A similar problem exists for effective_prot(),
+although it is restricted to x86 platform.
 
-To avoid False Positives:
-  ...
-  # Assert memory charged correctly for child only use.
-  # actual a = 11 MB
-  # expected a = 0 MB
-  # fail
-  # cleanup
-  # [FAIL]
-  not ok 11 hugetlb_reparenting_test.sh -cgroup-v2 # exit=1
-  # 0
-  # SUMMARY: PASS=10 SKIP=0 FAIL=1
+This series splits note_page() and effective_prot() into individual page
+table level specific callbacks which accepts corresponding pxd_t page
+table entry as an argument instead and later on all subscribing platforms
+could derive pxd_val() from the table entries as required and proceed as
+before.
 
-Link: https://lkml.kernel.org/r/20250407084201.74492-1-liwang@redhat.com
-Signed-off-by: Li Wang <liwang@redhat.com>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Define ptdesc_t type which describes the basic page table descriptor
+layout on arm64 platform.  Subsequently all level specific pxxval_t
+descriptors are derived from ptdesc_t thus establishing a common original
+format, which can also be appropriate for page table entries, masks and
+protection values etc which are used at all page table levels.
+
+
+This patch (of 3):
+
+Last argument passed down in note_page() is u64 assuming pxd_val()
+returned value (all page table levels) is 64 bit - which might not be the
+case going ahead when D128 page tables is enabled on arm64 platform. 
+Besides pxd_val() is very platform specific and its type should not be
+assumed in generic MM.
+
+Split note_page() into individual page table level specific callbacks
+which accepts corresponding pxd_t argument instead and then subscribing
+platforms just derive pxd_val() from the entries as required and proceed
+as earlier.
+
+Also add a note_page_flush() callback for flushing the last page table
+page that was being handled earlier via level = -1.
+
+Link: https://lkml.kernel.org/r/20250407053113.746295-1-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/20250407053113.746295-2-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   96 ++++------
- 1 file changed, 41 insertions(+), 55 deletions(-)
+ arch/arm64/include/asm/ptdump.h |   16 ++++++++--
+ arch/arm64/mm/ptdump.c          |   48 ++++++++++++++++++++++++++++--
+ arch/powerpc/mm/ptdump/ptdump.c |   46 +++++++++++++++++++++++++++-
+ arch/riscv/mm/ptdump.c          |   46 +++++++++++++++++++++++++++-
+ arch/s390/mm/dump_pagetables.c  |   46 +++++++++++++++++++++++++++-
+ arch/x86/mm/dump_pagetables.c   |   39 +++++++++++++++++++++++-
+ include/linux/ptdump.h          |    9 +++--
+ mm/ptdump.c                     |   42 ++++++++++++++++++++------
+ 8 files changed, 267 insertions(+), 25 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting
-+++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
-@@ -36,7 +36,7 @@ else
-     do_umount=1
-   fi
- fi
--MNT='/mnt/huge/'
-+MNT='/mnt/huge'
+--- a/arch/arm64/include/asm/ptdump.h~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/arch/arm64/include/asm/ptdump.h
+@@ -59,7 +59,13 @@ struct ptdump_pg_state {
  
- function get_machine_hugepage_size() {
-   hpz=$(grep -i hugepagesize /proc/meminfo)
-@@ -60,6 +60,41 @@ function cleanup() {
-   set -e
+ void ptdump_walk(struct seq_file *s, struct ptdump_info *info);
+ void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
+-	       u64 val);
++	       pteval_t val);
++void note_page_pte(struct ptdump_state *st, unsigned long addr, pte_t pte);
++void note_page_pmd(struct ptdump_state *st, unsigned long addr, pmd_t pmd);
++void note_page_pud(struct ptdump_state *st, unsigned long addr, pud_t pud);
++void note_page_p4d(struct ptdump_state *st, unsigned long addr, p4d_t p4d);
++void note_page_pgd(struct ptdump_state *st, unsigned long addr, pgd_t pgd);
++void note_page_flush(struct ptdump_state *st);
+ #ifdef CONFIG_PTDUMP_DEBUGFS
+ #define EFI_RUNTIME_MAP_END	DEFAULT_MAP_WINDOW_64
+ void __init ptdump_debugfs_register(struct ptdump_info *info, const char *name);
+@@ -69,7 +75,13 @@ static inline void ptdump_debugfs_regist
+ #endif /* CONFIG_PTDUMP_DEBUGFS */
+ #else
+ static inline void note_page(struct ptdump_state *pt_st, unsigned long addr,
+-			     int level, u64 val) { }
++			     int level, pteval_t val) { }
++static inline void note_page_pte(struct ptdump_state *st, unsigned long addr, pte_t pte) { }
++static inline void note_page_pmd(struct ptdump_state *st, unsigned long addr, pmd_t pmd) { }
++static inline void note_page_pud(struct ptdump_state *st, unsigned long addr, pud_t pud) { }
++static inline void note_page_p4d(struct ptdump_state *st, unsigned long addr, p4d_t p4d) { }
++static inline void note_page_pgd(struct ptdump_state *st, unsigned long addr, pgd_t pgd) { }
++static inline void note_page_flush(struct ptdump_state *st) { }
+ #endif /* CONFIG_PTDUMP */
+ 
+ #endif /* __ASM_PTDUMP_H */
+--- a/arch/arm64/mm/ptdump.c~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/arch/arm64/mm/ptdump.c
+@@ -189,7 +189,7 @@ static void note_prot_wx(struct ptdump_p
  }
  
-+function assert_with_retry() {
-+  local actual_path="$1"
-+  local expected="$2"
-+  local tolerance=$((7 * 1024 * 1024))
-+  local timeout=20
-+  local interval=1
-+  local start_time
-+  local now
-+  local elapsed
-+  local actual
-+
-+  start_time=$(date +%s)
-+
-+  while true; do
-+    actual="$(cat "$actual_path")"
-+
-+    if [[ $actual -ge $(($expected - $tolerance)) ]] &&
-+        [[ $actual -le $(($expected + $tolerance)) ]]; then
-+      return 0
-+    fi
-+
-+    now=$(date +%s)
-+    elapsed=$((now - start_time))
-+
-+    if [[ $elapsed -ge $timeout ]]; then
-+      echo "actual = $((${actual%% *} / 1024 / 1024)) MB"
-+      echo "expected = $((${expected%% *} / 1024 / 1024)) MB"
-+      cleanup
-+      exit 1
-+    fi
-+
-+    sleep $interval
-+  done
+ void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
+-	       u64 val)
++	       pteval_t val)
+ {
+ 	struct ptdump_pg_state *st = container_of(pt_st, struct ptdump_pg_state, ptdump);
+ 	struct ptdump_pg_level *pg_level = st->pg_level;
+@@ -251,6 +251,38 @@ void note_page(struct ptdump_state *pt_s
+ 
+ }
+ 
++void note_page_pte(struct ptdump_state *pt_st, unsigned long addr, pte_t pte)
++{
++	note_page(pt_st, addr, 4, pte_val(pte));
 +}
 +
- function assert_state() {
-   local expected_a="$1"
-   local expected_a_hugetlb="$2"
-@@ -70,58 +105,13 @@ function assert_state() {
-     expected_b="$3"
-     expected_b_hugetlb="$4"
-   fi
--  local tolerance=$((5 * 1024 * 1024))
- 
--  local actual_a
--  actual_a="$(cat "$CGROUP_ROOT"/a/memory.$usage_file)"
--  if [[ $actual_a -lt $(($expected_a - $tolerance)) ]] ||
--    [[ $actual_a -gt $(($expected_a + $tolerance)) ]]; then
--    echo actual a = $((${actual_a%% *} / 1024 / 1024)) MB
--    echo expected a = $((${expected_a%% *} / 1024 / 1024)) MB
--    echo fail
--
--    cleanup
--    exit 1
--  fi
--
--  local actual_a_hugetlb
--  actual_a_hugetlb="$(cat "$CGROUP_ROOT"/a/hugetlb.${MB}MB.$usage_file)"
--  if [[ $actual_a_hugetlb -lt $(($expected_a_hugetlb - $tolerance)) ]] ||
--    [[ $actual_a_hugetlb -gt $(($expected_a_hugetlb + $tolerance)) ]]; then
--    echo actual a hugetlb = $((${actual_a_hugetlb%% *} / 1024 / 1024)) MB
--    echo expected a hugetlb = $((${expected_a_hugetlb%% *} / 1024 / 1024)) MB
--    echo fail
--
--    cleanup
--    exit 1
--  fi
--
--  if [[ -z "$expected_b" || -z "$expected_b_hugetlb" ]]; then
--    return
--  fi
--
--  local actual_b
--  actual_b="$(cat "$CGROUP_ROOT"/a/b/memory.$usage_file)"
--  if [[ $actual_b -lt $(($expected_b - $tolerance)) ]] ||
--    [[ $actual_b -gt $(($expected_b + $tolerance)) ]]; then
--    echo actual b = $((${actual_b%% *} / 1024 / 1024)) MB
--    echo expected b = $((${expected_b%% *} / 1024 / 1024)) MB
--    echo fail
--
--    cleanup
--    exit 1
--  fi
--
--  local actual_b_hugetlb
--  actual_b_hugetlb="$(cat "$CGROUP_ROOT"/a/b/hugetlb.${MB}MB.$usage_file)"
--  if [[ $actual_b_hugetlb -lt $(($expected_b_hugetlb - $tolerance)) ]] ||
--    [[ $actual_b_hugetlb -gt $(($expected_b_hugetlb + $tolerance)) ]]; then
--    echo actual b hugetlb = $((${actual_b_hugetlb%% *} / 1024 / 1024)) MB
--    echo expected b hugetlb = $((${expected_b_hugetlb%% *} / 1024 / 1024)) MB
--    echo fail
-+  assert_with_retry "$CGROUP_ROOT/a/memory.$usage_file" "$expected_a"
-+  assert_with_retry "$CGROUP_ROOT/a/hugetlb.${MB}MB.$usage_file" "$expected_a_hugetlb"
- 
--    cleanup
--    exit 1
-+  if [[ -n "$expected_b" && -n "$expected_b_hugetlb" ]]; then
-+    assert_with_retry "$CGROUP_ROOT/a/b/memory.$usage_file" "$expected_b"
-+    assert_with_retry "$CGROUP_ROOT/a/b/hugetlb.${MB}MB.$usage_file" "$expected_b_hugetlb"
-   fi
++void note_page_pmd(struct ptdump_state *pt_st, unsigned long addr, pmd_t pmd)
++{
++	note_page(pt_st, addr, 3, pmd_val(pmd));
++}
++
++void note_page_pud(struct ptdump_state *pt_st, unsigned long addr, pud_t pud)
++{
++	note_page(pt_st, addr, 2, pud_val(pud));
++}
++
++void note_page_p4d(struct ptdump_state *pt_st, unsigned long addr, p4d_t p4d)
++{
++	note_page(pt_st, addr, 1, p4d_val(p4d));
++}
++
++void note_page_pgd(struct ptdump_state *pt_st, unsigned long addr, pgd_t pgd)
++{
++	note_page(pt_st, addr, 0, pgd_val(pgd));
++}
++
++void note_page_flush(struct ptdump_state *pt_st)
++{
++	pte_t pte_zero = {0};
++
++	note_page(pt_st, 0, -1, pte_val(pte_zero));
++}
++
+ void ptdump_walk(struct seq_file *s, struct ptdump_info *info)
+ {
+ 	unsigned long end = ~0UL;
+@@ -266,7 +298,12 @@ void ptdump_walk(struct seq_file *s, str
+ 		.pg_level = &kernel_pg_levels[0],
+ 		.level = -1,
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = (struct ptdump_range[]){
+ 				{info->base_addr, end},
+ 				{0, 0}
+@@ -303,7 +340,12 @@ bool ptdump_check_wx(void)
+ 		.level = -1,
+ 		.check_wx = true,
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = (struct ptdump_range[]) {
+ 				{_PAGE_OFFSET(vabits_actual), ~0UL},
+ 				{0, 0}
+--- a/arch/powerpc/mm/ptdump/ptdump.c~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/arch/powerpc/mm/ptdump/ptdump.c
+@@ -298,6 +298,38 @@ static void populate_markers(void)
+ #endif
  }
  
-@@ -175,7 +165,6 @@ size=$((${MB} * 1024 * 1024 * 25)) # 50M
- cleanup
++static void note_page_pte(struct ptdump_state *pt_st, unsigned long addr, pte_t pte)
++{
++	note_page(pt_st, addr, 4, pte_val(pte));
++}
++
++static void note_page_pmd(struct ptdump_state *pt_st, unsigned long addr, pmd_t pmd)
++{
++	note_page(pt_st, addr, 3, pmd_val(pmd));
++}
++
++static void note_page_pud(struct ptdump_state *pt_st, unsigned long addr, pud_t pud)
++{
++	note_page(pt_st, addr, 2, pud_val(pud));
++}
++
++static void note_page_p4d(struct ptdump_state *pt_st, unsigned long addr, p4d_t p4d)
++{
++	note_page(pt_st, addr, 1, p4d_val(p4d));
++}
++
++static void note_page_pgd(struct ptdump_state *pt_st, unsigned long addr, pgd_t pgd)
++{
++	note_page(pt_st, addr, 0, pgd_val(pgd));
++}
++
++static void note_page_flush(struct ptdump_state *pt_st)
++{
++	pte_t pte_zero = {0};
++
++	note_page(pt_st, 0, -1, pte_val(pte_zero));
++}
++
+ static int ptdump_show(struct seq_file *m, void *v)
+ {
+ 	struct pg_state st = {
+@@ -305,7 +337,12 @@ static int ptdump_show(struct seq_file *
+ 		.marker = address_markers,
+ 		.level = -1,
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = ptdump_range,
+ 		}
+ 	};
+@@ -338,7 +375,12 @@ bool ptdump_check_wx(void)
+ 		.level = -1,
+ 		.check_wx = true,
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = ptdump_range,
+ 		}
+ 	};
+--- a/arch/riscv/mm/ptdump.c~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/arch/riscv/mm/ptdump.c
+@@ -318,6 +318,38 @@ static void note_page(struct ptdump_stat
+ 	}
+ }
  
- echo
--echo
- echo Test charge, rmdir, uncharge
- setup
- echo mkdir
-@@ -195,7 +184,6 @@ cleanup
++static void note_page_pte(struct ptdump_state *pt_st, unsigned long addr, pte_t pte)
++{
++	note_page(pt_st, addr, 4, pte_val(pte));
++}
++
++static void note_page_pmd(struct ptdump_state *pt_st, unsigned long addr, pmd_t pmd)
++{
++	note_page(pt_st, addr, 3, pmd_val(pmd));
++}
++
++static void note_page_pud(struct ptdump_state *pt_st, unsigned long addr, pud_t pud)
++{
++	note_page(pt_st, addr, 2, pud_val(pud));
++}
++
++static void note_page_p4d(struct ptdump_state *pt_st, unsigned long addr, p4d_t p4d)
++{
++	note_page(pt_st, addr, 1, p4d_val(p4d));
++}
++
++static void note_page_pgd(struct ptdump_state *pt_st, unsigned long addr, pgd_t pgd)
++{
++	note_page(pt_st, addr, 0, pgd_val(pgd));
++}
++
++static void note_page_flush(struct ptdump_state *pt_st)
++{
++	pte_t pte_zero = {0};
++
++	note_page(pt_st, 0, -1, pte_val(pte_zero));
++}
++
+ static void ptdump_walk(struct seq_file *s, struct ptd_mm_info *pinfo)
+ {
+ 	struct pg_state st = {
+@@ -325,7 +357,12 @@ static void ptdump_walk(struct seq_file
+ 		.marker = pinfo->markers,
+ 		.level = -1,
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = (struct ptdump_range[]) {
+ 				{pinfo->base_addr, pinfo->end},
+ 				{0, 0}
+@@ -347,7 +384,12 @@ bool ptdump_check_wx(void)
+ 		.level = -1,
+ 		.check_wx = true,
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = (struct ptdump_range[]) {
+ 				{KERN_VIRT_START, ULONG_MAX},
+ 				{0, 0}
+--- a/arch/s390/mm/dump_pagetables.c~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/arch/s390/mm/dump_pagetables.c
+@@ -147,11 +147,48 @@ static void note_page(struct ptdump_stat
+ 	}
+ }
  
- echo done
- echo
--echo
- if [[ ! $cgroup2 ]]; then
-   echo "Test parent and child hugetlb usage"
-   setup
-@@ -212,7 +200,6 @@ if [[ ! $cgroup2 ]]; then
-   assert_state 0 $(($size * 2)) 0 $size
++static void note_page_pte(struct ptdump_state *pt_st, unsigned long addr, pte_t pte)
++{
++	note_page(pt_st, addr, 4, pte_val(pte));
++}
++
++static void note_page_pmd(struct ptdump_state *pt_st, unsigned long addr, pmd_t pmd)
++{
++	note_page(pt_st, addr, 3, pmd_val(pmd));
++}
++
++static void note_page_pud(struct ptdump_state *pt_st, unsigned long addr, pud_t pud)
++{
++	note_page(pt_st, addr, 2, pud_val(pud));
++}
++
++static void note_page_p4d(struct ptdump_state *pt_st, unsigned long addr, p4d_t p4d)
++{
++	note_page(pt_st, addr, 1, p4d_val(p4d));
++}
++
++static void note_page_pgd(struct ptdump_state *pt_st, unsigned long addr, pgd_t pgd)
++{
++	note_page(pt_st, addr, 0, pgd_val(pgd));
++}
++
++static void note_page_flush(struct ptdump_state *pt_st)
++{
++	pte_t pte_zero = {0};
++
++	note_page(pt_st, 0, -1, pte_val(pte_zero));
++}
++
+ bool ptdump_check_wx(void)
+ {
+ 	struct pg_state st = {
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = (struct ptdump_range[]) {
+ 				{.start = 0, .end = max_addr},
+ 				{.start = 0, .end = 0},
+@@ -190,7 +227,12 @@ static int ptdump_show(struct seq_file *
+ {
+ 	struct pg_state st = {
+ 		.ptdump = {
+-			.note_page = note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.range = (struct ptdump_range[]) {
+ 				{.start = 0, .end = max_addr},
+ 				{.start = 0, .end = 0},
+--- a/arch/x86/mm/dump_pagetables.c~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -362,6 +362,38 @@ static void note_page(struct ptdump_stat
+ 	}
+ }
  
-   rmdir "$CGROUP_ROOT"/a/b
--  sleep 5
-   echo Assert memory reparent correctly.
-   assert_state 0 $(($size * 2))
++static void note_page_pte(struct ptdump_state *pt_st, unsigned long addr, pte_t pte)
++{
++	note_page(pt_st, addr, 4, pte_val(pte));
++}
++
++static void note_page_pmd(struct ptdump_state *pt_st, unsigned long addr, pmd_t pmd)
++{
++	note_page(pt_st, addr, 3, pmd_val(pmd));
++}
++
++static void note_page_pud(struct ptdump_state *pt_st, unsigned long addr, pud_t pud)
++{
++	note_page(pt_st, addr, 2, pud_val(pud));
++}
++
++static void note_page_p4d(struct ptdump_state *pt_st, unsigned long addr, p4d_t p4d)
++{
++	note_page(pt_st, addr, 1, p4d_val(p4d));
++}
++
++static void note_page_pgd(struct ptdump_state *pt_st, unsigned long addr, pgd_t pgd)
++{
++	note_page(pt_st, addr, 0, pgd_val(pgd));
++}
++
++static void note_page_flush(struct ptdump_state *pt_st)
++{
++	pte_t pte_zero = {0};
++
++	note_page(pt_st, 0, -1, pte_val(pte_zero));
++}
++
+ bool ptdump_walk_pgd_level_core(struct seq_file *m,
+ 				struct mm_struct *mm, pgd_t *pgd,
+ 				bool checkwx, bool dmesg)
+@@ -378,7 +410,12 @@ bool ptdump_walk_pgd_level_core(struct s
  
-@@ -225,7 +212,6 @@ if [[ ! $cgroup2 ]]; then
- fi
+ 	struct pg_state st = {
+ 		.ptdump = {
+-			.note_page	= note_page,
++			.note_page_pte = note_page_pte,
++			.note_page_pmd = note_page_pmd,
++			.note_page_pud = note_page_pud,
++			.note_page_p4d = note_page_p4d,
++			.note_page_pgd = note_page_pgd,
++			.note_page_flush = note_page_flush,
+ 			.effective_prot = effective_prot,
+ 			.range		= ptdump_ranges
+ 		},
+--- a/include/linux/ptdump.h~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/include/linux/ptdump.h
+@@ -11,9 +11,12 @@ struct ptdump_range {
+ };
  
- echo
--echo
- echo "Test child only hugetlb usage"
- echo setup
- setup
+ struct ptdump_state {
+-	/* level is 0:PGD to 4:PTE, or -1 if unknown */
+-	void (*note_page)(struct ptdump_state *st, unsigned long addr,
+-			  int level, u64 val);
++	void (*note_page_pte)(struct ptdump_state *st, unsigned long addr, pte_t pte);
++	void (*note_page_pmd)(struct ptdump_state *st, unsigned long addr, pmd_t pmd);
++	void (*note_page_pud)(struct ptdump_state *st, unsigned long addr, pud_t pud);
++	void (*note_page_p4d)(struct ptdump_state *st, unsigned long addr, p4d_t p4d);
++	void (*note_page_pgd)(struct ptdump_state *st, unsigned long addr, pgd_t pgd);
++	void (*note_page_flush)(struct ptdump_state *st);
+ 	void (*effective_prot)(struct ptdump_state *st, int level, u64 val);
+ 	const struct ptdump_range *range;
+ };
+--- a/mm/ptdump.c~mm-ptdump-split-note_page-into-level-specific-callbacks
++++ a/mm/ptdump.c
+@@ -18,7 +18,7 @@ static inline int note_kasan_page_table(
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, 4, pte_val(kasan_early_shadow_pte[0]));
++	st->note_page_pte(st, addr, kasan_early_shadow_pte[0]);
+ 
+ 	walk->action = ACTION_CONTINUE;
+ 
+@@ -42,7 +42,7 @@ static int ptdump_pgd_entry(pgd_t *pgd,
+ 		st->effective_prot(st, 0, pgd_val(val));
+ 
+ 	if (pgd_leaf(val)) {
+-		st->note_page(st, addr, 0, pgd_val(val));
++		st->note_page_pgd(st, addr, val);
+ 		walk->action = ACTION_CONTINUE;
+ 	}
+ 
+@@ -65,7 +65,7 @@ static int ptdump_p4d_entry(p4d_t *p4d,
+ 		st->effective_prot(st, 1, p4d_val(val));
+ 
+ 	if (p4d_leaf(val)) {
+-		st->note_page(st, addr, 1, p4d_val(val));
++		st->note_page_p4d(st, addr, val);
+ 		walk->action = ACTION_CONTINUE;
+ 	}
+ 
+@@ -88,7 +88,7 @@ static int ptdump_pud_entry(pud_t *pud,
+ 		st->effective_prot(st, 2, pud_val(val));
+ 
+ 	if (pud_leaf(val)) {
+-		st->note_page(st, addr, 2, pud_val(val));
++		st->note_page_pud(st, addr, val);
+ 		walk->action = ACTION_CONTINUE;
+ 	}
+ 
+@@ -109,7 +109,7 @@ static int ptdump_pmd_entry(pmd_t *pmd,
+ 	if (st->effective_prot)
+ 		st->effective_prot(st, 3, pmd_val(val));
+ 	if (pmd_leaf(val)) {
+-		st->note_page(st, addr, 3, pmd_val(val));
++		st->note_page_pmd(st, addr, val);
+ 		walk->action = ACTION_CONTINUE;
+ 	}
+ 
+@@ -125,7 +125,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ 	if (st->effective_prot)
+ 		st->effective_prot(st, 4, pte_val(val));
+ 
+-	st->note_page(st, addr, 4, pte_val(val));
++	st->note_page_pte(st, addr, val);
+ 
+ 	return 0;
+ }
+@@ -134,9 +134,31 @@ static int ptdump_hole(unsigned long add
+ 		       int depth, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-
+-	st->note_page(st, addr, depth, 0);
+-
++	pte_t pte_zero = {0};
++	pmd_t pmd_zero = {0};
++	pud_t pud_zero = {0};
++	p4d_t p4d_zero = {0};
++	pgd_t pgd_zero = {0};
++
++	switch (depth) {
++	case 4:
++		st->note_page_pte(st, addr, pte_zero);
++		break;
++	case 3:
++		st->note_page_pmd(st, addr, pmd_zero);
++		break;
++	case 2:
++		st->note_page_pud(st, addr, pud_zero);
++		break;
++	case 1:
++		st->note_page_p4d(st, addr, p4d_zero);
++		break;
++	case 0:
++		st->note_page_pgd(st, addr, pgd_zero);
++		break;
++	default:
++		break;
++	}
+ 	return 0;
+ }
+ 
+@@ -162,7 +184,7 @@ void ptdump_walk_pgd(struct ptdump_state
+ 	mmap_write_unlock(mm);
+ 
+ 	/* Flush out the last page */
+-	st->note_page(st, 0, -1, 0);
++	st->note_page_flush(st);
+ }
+ 
+ static int check_wx_show(struct seq_file *m, void *v)
 _
 
-Patches currently in -mm which might be from liwang@redhat.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
+mm-ptdump-split-note_page-into-level-specific-callbacks.patch
+mm-ptdump-split-effective_prot-into-level-specific-callbacks.patch
+arm64-mm-define-ptdesc_t.patch
 
