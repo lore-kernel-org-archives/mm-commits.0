@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7081A1FBE9E
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:11:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 800E91FBE9E
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:11:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743988317; cv=none; b=Jt1zXfj6QGyonHYKouSquglDeDWLjpJIradMRSqh1tMs8jdT9SfKsctR4YOuqHVS8pub179V7MVeYNYdb74+CGDbZM02Vhv2/t9oFtmAM7Xoc0eGOAWP5bCz1dC8+W5iFgzKMWRnepQ7wMgjEh4c+UqYEh2PLl7FUpR86Oqbaao=
+	t=1743988319; cv=none; b=cDrfBv4W11YLY9qkgKqYXdxaI6tEPUoqA2NIFkDGB4tJoFRUq/Ur/pnLoLCti7aX8gY8Us9617mtr6AtI+Hd4cfds6GkXH/FaVxcSrEFnrS6S324JeN1uA8P0Ap19GcBTPZTC1R9+sZIqAfj1frfnoEBif2L5JlrH9jmqXSf+7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743988317; c=relaxed/simple;
-	bh=VlOtcXBwX+dO4ZqVsy4yfG/hE2KKX/qUjGGmNCfYEHk=;
-	h=Date:To:From:Subject:Message-Id; b=hlFaTaTIkXFQzvBPK/sNbaGOahUHy9nGvioM9JNonRB/9/dBh+docuwyX1NR0IBUEaJNfS88zhOL8ZQwy43xBVY0k9ErgtLZ+96Wf8dWNZVJaH/yWXApPsuTOFEjt/tpBdhW5AiUpF6iutLfnPL3zV3oGXuxIDR/o6LS3773XJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IRgBoqgy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743988319; c=relaxed/simple;
+	bh=hmmKTXLnPlFfRYfCeBaKF6qPc1swmIfs0Q4bqZv7cTQ=;
+	h=Date:To:From:Subject:Message-Id; b=jqAdrH/R+D6ZIcmOfYp3lBoCrNX5y/rKq/8Eeu5U09WdEvPQG7twSxfARQ5VjFJ6GW56Dvs7P/yPRFz7JPXHeS8cNDtW8F+5Z2YB/pFnjpgc8dmv5nvKNkFLdD6WpJYvsOfZkGZuMPhbacqT0wf3Il0VpF0avT4tJ1VbQWQzKJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XQcag2SU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IRgBoqgy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8A7EC4CEE3;
-	Mon,  7 Apr 2025 01:11:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XQcag2SU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2F33C4CEE3;
+	Mon,  7 Apr 2025 01:11:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743988316;
-	bh=VlOtcXBwX+dO4ZqVsy4yfG/hE2KKX/qUjGGmNCfYEHk=;
+	s=korg; t=1743988319;
+	bh=hmmKTXLnPlFfRYfCeBaKF6qPc1swmIfs0Q4bqZv7cTQ=;
 	h=Date:To:From:Subject:From;
-	b=IRgBoqgyEzqppokgH1pDooaUqTnSPT9Cmyj1rH4vy4vOiTZ0f2KJlZGYwo+4BPMWW
-	 Z3fnicyLOkRfM/ODlC5yQZ+EyWR9rFYWFXM19RDsfMUt4XjaRt7vWyvWNLSa/kJaRm
-	 XpwCmH0nQ/czDNXa0dDJ3n860am6JX0v41z0HFug=
-Date: Sun, 06 Apr 2025 18:11:56 -0700
+	b=XQcag2SUn26T8gVvcYvMRhHUmU7/FN59iSuYkGgddiy59jqL9RzZUhcL29a7kCdCl
+	 pCdrUDJW3j9WsI9O0sndnf0NQZbrH8Y+ZJwIHhp6rVR88bTLHHLKEIqQSzAYpoNzFs
+	 G3RMlYVh5Kw+cZqVcOj3xoIrWl0SEZmrC8+8Pvos=
+Date: Sun, 06 Apr 2025 18:11:58 -0700
 To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,kasong@tencent.com,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-free-each-cluster-individually-in-swap_entries_put_map_nr.patch added to mm-new branch
-Message-Id: <20250407011156.D8A7EC4CEE3@smtp.kernel.org>
+Subject: + mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch added to mm-new branch
+Message-Id: <20250407011158.F2F33C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: free each cluster individually in swap_entries_put_map_nr()
+     Subject: mm: swap: factor out helper to drop cache of entries within a single cluster
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-free-each-cluster-individually-in-swap_entries_put_map_nr.patch
+     mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-free-each-cluster-individually-in-swap_entries_put_map_nr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,28 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm: swap: free each cluster individually in swap_entries_put_map_nr()
-Date: Wed, 26 Mar 2025 00:25:26 +0800
+Subject: mm: swap: factor out helper to drop cache of entries within a single cluster
+Date: Wed, 26 Mar 2025 00:25:27 +0800
 
-1. Factor out general swap_entries_put_map() helper to drop entries
-   belonging to one cluster.  If entries are last map, free entries in
-   batch, otherwise put entries with cluster lock acquired and released
-   only once.
+Factor out helper swap_entries_put_cache() from put_swap_folio() to serve
+as a general-purpose routine for dropping cache flag of entries within a
+single cluster.
 
-2. Iterate and call swap_entries_put_map() for each cluster in
-   swap_entries_put_nr() to leverage batch-remove for last map belonging
-   to one cluster and reduce lock acquire/release in fallback case.
-
-3. As swap_entries_put_nr() won't handle SWAP_HSA_CACHE drop, rename
-   it to swap_entries_put_map_nr().
-
-4. As we won't drop each entry invidually with swap_entry_put() now,
-   do reclaim in free_swap_and_cache_nr() because
-   swap_entries_put_map_nr() is general routine to drop reference and the
-   relcaim work should only be done in free_swap_and_cache_nr().  Remove
-   stale comment accordingly.
-
-Link: https://lkml.kernel.org/r/20250325162528.68385-7-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250325162528.68385-8-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
@@ -88,122 +74,59 @@ Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   70 +++++++++++++++++++++---------------------------
- 1 file changed, 32 insertions(+), 38 deletions(-)
+ mm/swapfile.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-free-each-cluster-individually-in-swap_entries_put_map_nr
+--- a/mm/swapfile.c~mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster
 +++ a/mm/swapfile.c
-@@ -1454,25 +1454,10 @@ put_out:
+@@ -1454,6 +1454,22 @@ put_out:
  	return NULL;
  }
  
--static unsigned char swap_entry_put(struct swap_info_struct *si,
--				    swp_entry_t entry)
--{
--	struct swap_cluster_info *ci;
--	unsigned long offset = swp_offset(entry);
--	unsigned char usage;
--
--	ci = lock_cluster(si, offset);
--	usage = swap_entry_put_locked(si, ci, entry, 1);
--	unlock_cluster(ci);
--
--	return usage;
--}
--
--static bool swap_entries_put_nr(struct swap_info_struct *si,
--				swp_entry_t entry, int nr)
-+static bool swap_entries_put_map(struct swap_info_struct *si,
-+				 swp_entry_t entry, int nr)
- {
- 	unsigned long offset = swp_offset(entry);
--	unsigned int type = swp_type(entry);
- 	struct swap_cluster_info *ci;
- 	bool has_cache = false;
- 	unsigned char count;
-@@ -1483,14 +1468,10 @@ static bool swap_entries_put_nr(struct s
- 	count = swap_count(data_race(si->swap_map[offset]));
- 	if (count != 1 && count != SWAP_MAP_SHMEM)
- 		goto fallback;
--	/* cross into another cluster */
--	if (nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER)
--		goto fallback;
- 
- 	ci = lock_cluster(si, offset);
- 	if (!swap_is_last_map(si, offset, nr, &has_cache)) {
--		unlock_cluster(ci);
--		goto fallback;
-+		goto locked_fallback;
- 	}
- 	if (!has_cache)
- 		swap_entries_free(si, ci, entry, nr);
-@@ -1502,15 +1483,34 @@ static bool swap_entries_put_nr(struct s
- 	return has_cache;
- 
- fallback:
--	for (i = 0; i < nr; i++) {
--		if (data_race(si->swap_map[offset + i])) {
--			count = swap_entry_put(si, swp_entry(type, offset + i));
--			if (count == SWAP_HAS_CACHE)
--				has_cache = true;
--		} else {
--			WARN_ON_ONCE(1);
--		}
++static void swap_entries_put_cache(struct swap_info_struct *si,
++				   swp_entry_t entry, int nr)
++{
++	unsigned long offset = swp_offset(entry);
++	struct swap_cluster_info *ci;
++
 +	ci = lock_cluster(si, offset);
-+locked_fallback:
-+	for (i = 0; i < nr; i++, entry.val++) {
-+		count = swap_entry_put_locked(si, ci, entry, 1);
-+		if (count == SWAP_HAS_CACHE)
-+			has_cache = true;
++	if (swap_only_has_cache(si, offset, nr))
++		swap_entries_free(si, ci, entry, nr);
++	else {
++		for (int i = 0; i < nr; i++, entry.val++)
++			swap_entry_put_locked(si, ci, entry, SWAP_HAS_CACHE);
 +	}
 +	unlock_cluster(ci);
-+	return has_cache;
-+
 +}
 +
-+static bool swap_entries_put_map_nr(struct swap_info_struct *si,
-+				    swp_entry_t entry, int nr)
-+{
-+	int cluster_nr, cluster_rest;
-+	unsigned long offset = swp_offset(entry);
-+	bool has_cache = false;
-+
-+	cluster_rest = SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER;
-+	while (nr) {
-+		cluster_nr = min(nr, cluster_rest);
-+		has_cache |= swap_entries_put_map(si, entry, cluster_nr);
-+		cluster_rest = SWAPFILE_CLUSTER;
-+		nr -= cluster_nr;
-+		entry.val += cluster_nr;
- 	}
-+
- 	return has_cache;
+ static bool swap_entries_put_map(struct swap_info_struct *si,
+ 				 swp_entry_t entry, int nr)
+ {
+@@ -1594,8 +1610,6 @@ void swap_free_nr(swp_entry_t entry, int
+  */
+ void put_swap_folio(struct folio *folio, swp_entry_t entry)
+ {
+-	unsigned long offset = swp_offset(entry);
+-	struct swap_cluster_info *ci;
+ 	struct swap_info_struct *si;
+ 	int size = 1 << swap_entry_order(folio_order(folio));
+ 
+@@ -1603,14 +1617,7 @@ void put_swap_folio(struct folio *folio,
+ 	if (!si)
+ 		return;
+ 
+-	ci = lock_cluster(si, offset);
+-	if (swap_only_has_cache(si, offset, size))
+-		swap_entries_free(si, ci, entry, size);
+-	else {
+-		for (int i = 0; i < size; i++, entry.val++)
+-			swap_entry_put_locked(si, ci, entry, SWAP_HAS_CACHE);
+-	}
+-	unlock_cluster(ci);
++	swap_entries_put_cache(si, entry, size);
  }
  
-@@ -1805,7 +1805,7 @@ void free_swap_and_cache_nr(swp_entry_t
- 	/*
- 	 * First free all entries in the range.
- 	 */
--	any_only_cache = swap_entries_put_nr(si, entry, nr);
-+	any_only_cache = swap_entries_put_map_nr(si, entry, nr);
- 
- 	/*
- 	 * Short-circuit the below loop if none of the entries had their
-@@ -1815,13 +1815,7 @@ void free_swap_and_cache_nr(swp_entry_t
- 		goto out;
- 
- 	/*
--	 * Now go back over the range trying to reclaim the swap cache. This is
--	 * more efficient for large folios because we will only try to reclaim
--	 * the swap once per folio in the common case. If we do
--	 * swap_entry_put() and __try_to_reclaim_swap() in the same loop, the
--	 * latter will get a reference and lock the folio for every individual
--	 * page but will only succeed once the swap slot for every subpage is
--	 * zero.
-+	 * Now go back over the range trying to reclaim the swap cache.
- 	 */
- 	for (offset = start_offset; offset < end_offset; offset += nr) {
- 		nr = 1;
+ int __swap_count(swp_entry_t entry)
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
