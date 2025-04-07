@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDD9013777E;
-	Mon,  7 Apr 2025 04:40:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5855818C03F
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 04:44:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744000809; cv=none; b=IjPSrlkkSE4UY66zxQEeWOmanlpzXXq5f5TYthunr5AarWrQQCFrhgLKnwnfnKwazuB4CEyz0xIvJ93GVwF46rDXCwFt18VQtvXBIFggdVi7ivZMo3c2l8jMyBF3wbQT/x1EagPXXOshmMJXT2oj/nYWwn+gNQvsQYF0R1ktKLM=
+	t=1744001057; cv=none; b=nH/L6IktYUKVNI5CBwqPPez4RPmhkfuCJyi8yNXlPKX8vkBvZEPWRceS0M3Od93G0TbexLzE/qkeZN644kd0GtjR4YhieMDXAP1bMrB+p/qH6rAv5qyIgR3BF11RfmQDXG6oum4mOtFmXlDsNyjEyL7gkr8psJdLFg/N4ypGeg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744000809; c=relaxed/simple;
-	bh=DdI7a0+LWszecRoje8fsEfEW1Lij//y5Gojy5Y7Obds=;
-	h=Date:To:From:Subject:Message-Id; b=elUyfBsOgp0KM0pB0HopUUfkGHV8dZ/02sKzJGYxMoF+0EDiPcGqLilAfHvZWPgBFRr0r5l1rmy1y2+lSOQM8S3H+dLKVfPwUMU2t3k1SMmk7hnMBPfvqFe8M3a95NSd+QKmoJTy3WrJT42I8TpO5D15txm68nK1c6I60Ix2Qvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jyVgKf0H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744001057; c=relaxed/simple;
+	bh=0po5APxzKn1nWhH1wjdmEKjVB7w02hDsgJL7OS+R5zo=;
+	h=Date:To:From:Subject:Message-Id; b=reon7qXUYeN6/GChqWeSU/p4mdJot+d0i61BSLqUkZ6pn/FSICl1X2HuQa8eaPyCExVUIKGDi832JFHtXFXaQ6TsS5PrDHv47e9uiMkYykIrSK1MAVgcl2XRqR+opBnAYdPEbB/yAmeF/PtKhfqL8fS7WrzPNlq9If8Tzg0/N2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u4kAUwYk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jyVgKf0H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217DFC4CEDD;
-	Mon,  7 Apr 2025 04:40:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u4kAUwYk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5247C4CEDD;
+	Mon,  7 Apr 2025 04:44:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744000809;
-	bh=DdI7a0+LWszecRoje8fsEfEW1Lij//y5Gojy5Y7Obds=;
+	s=korg; t=1744001055;
+	bh=0po5APxzKn1nWhH1wjdmEKjVB7w02hDsgJL7OS+R5zo=;
 	h=Date:To:From:Subject:From;
-	b=jyVgKf0H3LBKouimxV3ZOCNRpoEB7mpbXjmLnVnJI2jgEYdvLdHba3Z54RQlCLt1k
-	 7vl/v3hxx3SH2/AqxwNxk/p/UUGRm9crE4pin5HDPUqG6t4acT4NySKuyI6X6Pjav4
-	 iLsOhxUTNRNCrXTtXa4bP99p/+cLfRvSX2pJUmPA=
-Date: Sun, 06 Apr 2025 21:40:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pfalcato@suse.de,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=u4kAUwYk4DHX/PHhyfTmX7xs+6DR2P0S1UGefhW+Km0n5mOZPZv6gC+oI/rIagb/2
+	 Nu0lLE0pWo6MtPTrk6X5t+FpM+f9uC1+WvxSel6WoSAalc1/txwwahDEpp4xZKc/L0
+	 4K/sDtDDmlnpvb3GmkSJvVX8VSzluqMbGNoeLZh8=
+Date: Sun, 06 Apr 2025 21:44:14 -0700
+To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,osalvador@suse.de,mingo@kernel.org,david@redhat.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250407044009.217DFC4CEDD@smtp.kernel.org>
+Subject: + mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch added to mm-new branch
+Message-Id: <20250407044415.A5247C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
+     Subject: mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,237 +58,136 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
-Date: Fri, 21 Mar 2025 10:09:37 +0000
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
+Date: Mon, 7 Apr 2025 11:03:04 +0800
 
-Currently, if a VMA merge fails due to an OOM condition arising on commit
-merge or a failure to duplicate anon_vma's, we report this so the caller
-can handle it.
+Patch series "mm/gup: Minor fix, cleanup and improvements", v3.
 
-However there are cases where the caller is only ostensibly trying a
-merge, and doesn't mind if it fails due to this condition.
+These were made from code inspection in mm/gup.c.
 
-Since we do not want to introduce an implicit assumption that we only
-actually modify VMAs after OOM conditions might arise, add a 'give up on
-oom' option and make an explicit contract that, should this flag be set, we
-absolutely will not modify any VMAs should OOM arise and just bail out.
 
-Since it'd be very unusual for a user to try to vma_modify() with this flag
-set but be specifying a range within a VMA which ends up being split (which
-can fail due to rlimit issues, not only OOM), we add a debug warning for
-this condition.
+This patch (of 3):
 
-The motivating reason for this is uffd release - syzkaller (and Pedro
-Falcato's VERY astute analysis) found a way in which an injected fault on
-allocation, triggering an OOM condition on commit merge, would result in
-uffd code becoming confused and treating an error value as if it were a VMA
-pointer.
+Not like fault_in_readable() or fault_in_writeable(), in
+fault_in_safe_writeable() local variable 'start' is increased page by page
+to loop till the whole address range is handled.  However, it mistakenly
+calcalates the size of handled range with 'uaddr - start'.
 
-To avoid this, we make use of this new VMG flag to ensure that this never
-occurs, utilising the fact that, should we be clearing entire VMAs, we do
-not wish an OOM event to be reported to us.
+Here fix the code bug in fault_in_safe_writeable(), and also adjusting the
+codes in fault_in_readable() and fault_in_writeable() to use local
+variable 'start' to loop so that codes in these three functions are
+consistent.
 
-Many thanks to Pedro Falcato for his excellent analysis and Jann Horn for
-his insightful and intelligent analysis of the situation, both of whom were
-instrumental in this fix.
-
-Link: https://lkml.kernel.org/r/20250321100937.46634-1-lorenzo.stoakes@oracle.com
-Reported-by: syzbot+20ed41006cf9d842c2b5@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67dc67f0.050a0220.25ae54.001e.GAE@google.com/
-Fixes: 47b16d0462a4 ("mm: abort vma_modify() on merge out of memory failure")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: Pedro Falcato <pfalcato@suse.de>
-Suggested-by: Jann Horn <jannh@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250407030306.411977-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250407030306.411977-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   13 +++++++++--
- mm/vma.c         |   51 +++++++++++++++++++++++++++++++++++++++++----
- mm/vma.h         |    9 +++++++
- 3 files changed, 66 insertions(+), 7 deletions(-)
+ mm/gup.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
---- a/mm/userfaultfd.c~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
-+++ a/mm/userfaultfd.c
-@@ -1902,6 +1902,14 @@ struct vm_area_struct *userfaultfd_clear
- 					     unsigned long end)
- {
- 	struct vm_area_struct *ret;
-+	bool give_up_on_oom = false;
-+
-+	/*
-+	 * If we are modifying only and not splitting, just give up on the merge
-+	 * if OOM prevents us from merging successfully.
-+	 */
-+	if (start == vma->vm_start && end == vma->vm_end)
-+		give_up_on_oom = true;
- 
- 	/* Reset ptes for the whole vma range if wr-protected */
- 	if (userfaultfd_wp(vma))
-@@ -1909,7 +1917,7 @@ struct vm_area_struct *userfaultfd_clear
- 
- 	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
- 				    vma->vm_flags & ~__VM_UFFD_FLAGS,
--				    NULL_VM_UFFD_CTX);
-+				    NULL_VM_UFFD_CTX, give_up_on_oom);
- 
- 	/*
- 	 * In the vma_merge() successful mprotect-like case 8:
-@@ -1960,7 +1968,8 @@ int userfaultfd_register_range(struct us
- 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
- 		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
- 					    new_flags,
--					    (struct vm_userfaultfd_ctx){ctx});
-+					    (struct vm_userfaultfd_ctx){ctx},
-+					    /* give_up_on_oom = */false);
- 		if (IS_ERR(vma))
- 			return PTR_ERR(vma);
- 
---- a/mm/vma.c~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
-+++ a/mm/vma.c
-@@ -666,6 +666,9 @@ static void vmg_adjust_set_range(struct
- /*
-  * Actually perform the VMA merge operation.
-  *
-+ * IMPORTANT: We guarantee that, should vmg->give_up_on_oom is set, to not
-+ * modify any VMAs or cause inconsistent state should an OOM condition arise.
-+ *
-  * Returns 0 on success, or an error value on failure.
+--- a/mm/gup.c~mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable
++++ a/mm/gup.c
+@@ -2114,7 +2114,7 @@ static long __get_user_pages_locked(stru
   */
- static int commit_merge(struct vma_merge_struct *vmg)
-@@ -685,6 +688,12 @@ static int commit_merge(struct vma_merge
+ size_t fault_in_writeable(char __user *uaddr, size_t size)
+ {
+-	char __user *start = uaddr, *end;
++	unsigned long start = (unsigned long)uaddr, end;
  
- 	init_multi_vma_prep(&vp, vma, vmg);
- 
-+	/*
-+	 * If vmg->give_up_on_oom is set, we're safe, because we don't actually
-+	 * manipulate any VMAs until we succeed at preallocation.
-+	 *
-+	 * Past this point, we will not return an error.
-+	 */
- 	if (vma_iter_prealloc(vmg->vmi, vma))
- 		return -ENOMEM;
- 
-@@ -915,7 +924,13 @@ static __must_check struct vm_area_struc
- 		if (anon_dup)
- 			unlink_anon_vmas(anon_dup);
- 
--		vmg->state = VMA_MERGE_ERROR_NOMEM;
-+		/*
-+		 * We've cleaned up any cloned anon_vma's, no VMAs have been
-+		 * modified, no harm no foul if the user requests that we not
-+		 * report this and just give up, leaving the VMAs unmerged.
-+		 */
-+		if (!vmg->give_up_on_oom)
-+			vmg->state = VMA_MERGE_ERROR_NOMEM;
- 		return NULL;
+ 	if (unlikely(size == 0))
+ 		return 0;
+@@ -2122,20 +2122,20 @@ size_t fault_in_writeable(char __user *u
+ 		return size;
+ 	if (!PAGE_ALIGNED(uaddr)) {
+ 		unsafe_put_user(0, uaddr, out);
+-		uaddr = (char __user *)PAGE_ALIGN((unsigned long)uaddr);
++		start = PAGE_ALIGN((unsigned long)uaddr);
+ 	}
+-	end = (char __user *)PAGE_ALIGN((unsigned long)start + size);
++	end = PAGE_ALIGN(start + size);
+ 	if (unlikely(end < start))
+-		end = NULL;
+-	while (uaddr != end) {
+-		unsafe_put_user(0, uaddr, out);
+-		uaddr += PAGE_SIZE;
++		end = 0;
++	while (start != end) {
++		unsafe_put_user(0, (char __user *)start, out);
++		start += PAGE_SIZE;
  	}
  
-@@ -926,7 +941,15 @@ static __must_check struct vm_area_struc
- abort:
- 	vma_iter_set(vmg->vmi, start);
- 	vma_iter_load(vmg->vmi);
--	vmg->state = VMA_MERGE_ERROR_NOMEM;
-+
-+	/*
-+	 * This means we have failed to clone anon_vma's correctly, but no
-+	 * actual changes to VMAs have occurred, so no harm no foul - if the
-+	 * user doesn't want this reported and instead just wants to give up on
-+	 * the merge, allow it.
-+	 */
-+	if (!vmg->give_up_on_oom)
-+		vmg->state = VMA_MERGE_ERROR_NOMEM;
- 	return NULL;
- }
- 
-@@ -1068,6 +1091,10 @@ int vma_expand(struct vma_merge_struct *
- 		/* This should already have been checked by this point. */
- 		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
- 		vma_start_write(next);
-+		/*
-+		 * In this case we don't report OOM, so vmg->give_up_on_mm is
-+		 * safe.
-+		 */
- 		ret = dup_anon_vma(middle, next, &anon_dup);
- 		if (ret)
- 			return ret;
-@@ -1090,9 +1117,15 @@ int vma_expand(struct vma_merge_struct *
+ out:
+ 	user_write_access_end();
+-	if (size > uaddr - start)
+-		return size - (uaddr - start);
++	if (size > start - (unsigned long)uaddr)
++		return size - (start - (unsigned long)uaddr);
  	return 0;
- 
- nomem:
--	vmg->state = VMA_MERGE_ERROR_NOMEM;
- 	if (anon_dup)
- 		unlink_anon_vmas(anon_dup);
-+	/*
-+	 * If the user requests that we just give upon OOM, we are safe to do so
-+	 * here, as commit merge provides this contract to us. Nothing has been
-+	 * changed - no harm no foul, just don't report it.
-+	 */
-+	if (!vmg->give_up_on_oom)
-+		vmg->state = VMA_MERGE_ERROR_NOMEM;
- 	return -ENOMEM;
  }
+ EXPORT_SYMBOL(fault_in_writeable);
+@@ -2207,8 +2207,8 @@ size_t fault_in_safe_writeable(const cha
+ 	} while (start != end);
+ 	mmap_read_unlock(mm);
  
-@@ -1534,6 +1567,13 @@ static struct vm_area_struct *vma_modify
- 	if (vmg_nomem(vmg))
- 		return ERR_PTR(-ENOMEM);
- 
-+	/*
-+	 * Split can fail for reasons other than OOM, so if the user requests
-+	 * this it's probably a mistake.
-+	 */
-+	VM_WARN_ON(vmg->give_up_on_oom &&
-+		   (vma->vm_start != start || vma->vm_end != end));
-+
- 	/* Split any preceding portion of the VMA. */
- 	if (vma->vm_start < start) {
- 		int err = split_vma(vmg->vmi, vma, start, 1);
-@@ -1602,12 +1642,15 @@ struct vm_area_struct
- 		       struct vm_area_struct *vma,
- 		       unsigned long start, unsigned long end,
- 		       unsigned long new_flags,
--		       struct vm_userfaultfd_ctx new_ctx)
-+		       struct vm_userfaultfd_ctx new_ctx,
-+		       bool give_up_on_oom)
+-	if (size > (unsigned long)uaddr - start)
+-		return size - ((unsigned long)uaddr - start);
++	if (size > start - (unsigned long)uaddr)
++		return size - (start - (unsigned long)uaddr);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(fault_in_safe_writeable);
+@@ -2223,7 +2223,7 @@ EXPORT_SYMBOL(fault_in_safe_writeable);
+  */
+ size_t fault_in_readable(const char __user *uaddr, size_t size)
  {
- 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
+-	const char __user *start = uaddr, *end;
++	unsigned long start = (unsigned long)uaddr, end;
+ 	volatile char c;
  
- 	vmg.flags = new_flags;
- 	vmg.uffd_ctx = new_ctx;
-+	if (give_up_on_oom)
-+		vmg.give_up_on_oom = true;
+ 	if (unlikely(size == 0))
+@@ -2232,21 +2232,21 @@ size_t fault_in_readable(const char __us
+ 		return size;
+ 	if (!PAGE_ALIGNED(uaddr)) {
+ 		unsafe_get_user(c, uaddr, out);
+-		uaddr = (const char __user *)PAGE_ALIGN((unsigned long)uaddr);
++		start = PAGE_ALIGN((unsigned long)uaddr);
+ 	}
+-	end = (const char __user *)PAGE_ALIGN((unsigned long)start + size);
++	end = PAGE_ALIGN(start + size);
+ 	if (unlikely(end < start))
+-		end = NULL;
+-	while (uaddr != end) {
+-		unsafe_get_user(c, uaddr, out);
+-		uaddr += PAGE_SIZE;
++		end = 0;
++	while (start != end) {
++		unsafe_get_user(c, (const char __user *)start, out);
++		start += PAGE_SIZE;
+ 	}
  
- 	return vma_modify(&vmg);
+ out:
+ 	user_read_access_end();
+ 	(void)c;
+-	if (size > uaddr - start)
+-		return size - (uaddr - start);
++	if (size > start - (unsigned long)uaddr)
++		return size - (start - (unsigned long)uaddr);
+ 	return 0;
  }
---- a/mm/vma.h~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
-+++ a/mm/vma.h
-@@ -114,6 +114,12 @@ struct vma_merge_struct {
- 	 */
- 	bool just_expand :1;
- 
-+	/*
-+	 * If a merge is possible, but an OOM error occurs, give up and don't
-+	 * execute the merge, returning NULL.
-+	 */
-+	bool give_up_on_oom :1;
-+
- 	/* Internal flags set during merge process: */
- 
- 	/*
-@@ -255,7 +261,8 @@ __must_check struct vm_area_struct
- 		       struct vm_area_struct *vma,
- 		       unsigned long start, unsigned long end,
- 		       unsigned long new_flags,
--		       struct vm_userfaultfd_ctx new_ctx);
-+		       struct vm_userfaultfd_ctx new_ctx,
-+		       bool give_up_on_oom);
- 
- __must_check struct vm_area_struct
- *vma_merge_new_range(struct vma_merge_struct *vmg);
+ EXPORT_SYMBOL(fault_in_readable);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
+maintainers-add-andrew-and-myself-as-kexec-maintainer.patch
+mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
+mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
 
