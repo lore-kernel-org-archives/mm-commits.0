@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3AF02AE90
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 05:08:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BAB815199A
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 05:20:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744002495; cv=none; b=Ih0ReQYaKII/5bHnFrFqYkjxsNnV4/MP72wLOfIILq3L1WsUK7qB9ZqT6VlzEDmUdzfNY2N4YS5XmnCUnNw2oipNvUmFAhfV6uknMColctOpnHxMQMsaQ3y8pYZAgQ6A20/tctbidrEBP4AJgitIALKXFs24dIGpqzLkLhjbTZM=
+	t=1744003216; cv=none; b=QBCpv9zaJ/JWcsmofXvyi9w69eqkm6rfHQ7lFRQDvgsWxjZAixoJ+WTa5oIpNBmIz8cxrl2wEUrbiiZUPb/ijMc7UwbdaJ8VrmeegchDzBgPP4as7Z/S6dzNYPtcfmqnumlDEqRietFFhHr2o0tBp4Mql7XurCEdYePdDVGbzn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744002495; c=relaxed/simple;
-	bh=JacFw2BaQ7uKl0PTxjie49hD7lv6/DV4SjhVvg9P6Ck=;
-	h=Date:To:From:Subject:Message-Id; b=ZOBe3yOF8BtH6J9KYqpWZogZAQ0PMu8ReUM0lYijCKFjgzqbYQ39ddrvCdClF9e1z4IGp4N/ryrIMVg0THEZP7n7pB2639ibf8umDN5iJQEcWB//SPae8M/KCu1g3jZT5+qfx/OfOYKXyzKaKgOwMl+Ty9fHhL8scOi8QAmiwuY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nvlDGjO5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744003216; c=relaxed/simple;
+	bh=IEPOb3w3OY9zLrD7IcmUv+3IBSsPvki+r4qC5NFdBKo=;
+	h=Date:To:From:Subject:Message-Id; b=q+og9xswT1tRjg7h2QftcbhvQvIAQltBKAgM4WbOkPHDfODP4gwDZ0JMsWpaxMzqFUiWG9OGziHAz8FBLsYXYBztSX43xoDkxb4kqXBW7jL72+8rG4/RfMGtUnzawx8N5Ii9U7k9Lmlv5beDFBdmm5PG+18uPGh0SYgUtO9KmYI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W7dM4j54; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nvlDGjO5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CADFC4CEDD;
-	Mon,  7 Apr 2025 05:08:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W7dM4j54"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2C3BC4CEE8;
+	Mon,  7 Apr 2025 05:20:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744002495;
-	bh=JacFw2BaQ7uKl0PTxjie49hD7lv6/DV4SjhVvg9P6Ck=;
+	s=korg; t=1744003216;
+	bh=IEPOb3w3OY9zLrD7IcmUv+3IBSsPvki+r4qC5NFdBKo=;
 	h=Date:To:From:Subject:From;
-	b=nvlDGjO5WwpNqPTs7RNESUueHEnb456J7B8hC0o0Ek5WL24zymW6Yo1Z/qXIM11Sg
-	 F2xgiZP7n/xOwAbDnu/Azgn0dx/h2NXPoT1lSeAxZNVZVT4Epcmk4bqFh/R/r/ATQm
-	 ZFquGd/hoE2GXc6u+7qlQDF2KfKQf6eu5LMi63IU=
-Date: Sun, 06 Apr 2025 22:08:14 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,linmiaohe@huawei.com,gshan@redhat.com,gehao@kylinos.cn,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=W7dM4j54lV8j3+MDOazm30LYrwfSC4NglaBlO7GIbrxY2kBQsrIdXlUywkthwG2V/
+	 1K9OU6dvzErGBfmmxqrRZY+U/pJXvGxCa64urtL5Mg/uEQIfYbMOfJONdDin4dWHDV
+	 AY8qeLrxP4/HLctlAQYWzHoVLMqvgqxgcnOqFHcI=
+Date: Sun, 06 Apr 2025 22:20:15 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tongtiangen@huawei.com,peterz@infradead.org,olsajiri@gmail.com,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mhiramat@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,kan.liang@linux.intel.com,irogers@google.com,andrii.nakryiko@gmail.com,alexander.shishkin@linux.intel.com,adrian.hunter@intel.com,acme@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch added to mm-new branch
-Message-Id: <20250407050815.6CADFC4CEDD@smtp.kernel.org>
+Subject: + kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch added to mm-new branch
+Message-Id: <20250407052015.E2C3BC4CEE8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix
+     Subject: kernel/events/uprobes: pass VMA instead of MM to remove_breakpoint()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+     kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,136 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix
-Date: Sun Apr  6 10:06:36 PM PDT 2025
+From: David Hildenbrand <david@redhat.com>
+Subject: kernel/events/uprobes: pass VMA instead of MM to remove_breakpoint()
+Date: Fri, 21 Mar 2025 12:37:11 +0100
 
-simplify __dump_folio(), per David
+Patch series "kernel/events/uprobes: uprobe_write_opcode() rewrite", v3.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: gehao <gehao@kylinos.cn>
+Currently, uprobe_write_opcode() implements COW-breaking manually, which
+is really far from ideal.  Further, there is interest in supporting
+uprobes on hugetlb pages [1], and leaving at least the COW-breaking to the
+core will make this much easier.
+
+Also, I think the current code doesn't really handle some things properly
+(see patch #3) when replacing/zapping pages.
+
+Let's rewrite it, to leave COW-breaking to the fault handler, and handle
+registration/unregistration by temporarily unmapping the anonymous page,
+modifying it, and mapping it again.  We still have to implement zapping of
+anonymous pages ourselves, unfortunately.
+
+We could look into not performing the temporary unmapping if we can
+perform the write atomically, which would likely also make adding hugetlb
+support a lot easier.  But, limited (e.g., only PMD/PUD) hugetlb support
+could be added on top of this with some tweaking.
+
+Note that we now won't have to allocate another anonymous folio when
+unregistering (which will be beneficial for hugetlb as well), we can
+simply modify the already-mapped one from the registration (if any).  When
+registering a uprobe, we'll first trigger a ptrace-like write fault to
+break COW, to then modify the already-mapped page.
+
+Briefly sanity tested with perf probes and with the bpf uprobes selftest.
+
+
+This patch (of 3):
+
+Pass VMA instead of MM to remove_breakpoint() and remove the "MM" argument
+from install_breakpoint(), because it can easily be derived from the VMA.
+
+Link: https://lkml.kernel.org/r/20250321113713.204682-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250321113713.204682-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Jiri Olsa <olsajiri@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kan Liang <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Namhyung kim <namhyung@kernel.org>
+Cc: Russel King <linux@armlinux.org.uk>
+Cc: tongtiangen <tongtiangen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/events/uprobes.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/debug.c~mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix
-+++ a/mm/debug.c
-@@ -74,7 +74,9 @@ static void __dump_folio(struct folio *f
- 	int mapcount = atomic_read(&page->_mapcount) + 1;
- 	char *type = "";
+--- a/kernel/events/uprobes.c~kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint
++++ a/kernel/events/uprobes.c
+@@ -1134,10 +1134,10 @@ static bool filter_chain(struct uprobe *
+ 	return ret;
+ }
  
--	mapcount = page_mapcount_is_type(mapcount) ? 0 : mapcount;
-+	if (page_mapcount_is_type(mapcount))
-+		mapcount = 0;
+-static int
+-install_breakpoint(struct uprobe *uprobe, struct mm_struct *mm,
+-			struct vm_area_struct *vma, unsigned long vaddr)
++static int install_breakpoint(struct uprobe *uprobe, struct vm_area_struct *vma,
++		unsigned long vaddr)
+ {
++	struct mm_struct *mm = vma->vm_mm;
+ 	bool first_uprobe;
+ 	int ret;
+ 
+@@ -1162,9 +1162,11 @@ install_breakpoint(struct uprobe *uprobe
+ 	return ret;
+ }
+ 
+-static int
+-remove_breakpoint(struct uprobe *uprobe, struct mm_struct *mm, unsigned long vaddr)
++static int remove_breakpoint(struct uprobe *uprobe, struct vm_area_struct *vma,
++		unsigned long vaddr)
+ {
++	struct mm_struct *mm = vma->vm_mm;
 +
- 	pr_warn("page: refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
- 			folio_ref_count(folio), mapcount, mapping,
- 			folio->index + idx, pfn);
+ 	set_bit(MMF_RECALC_UPROBES, &mm->flags);
+ 	return set_orig_insn(&uprobe->arch, mm, vaddr);
+ }
+@@ -1296,10 +1298,10 @@ register_for_each_vma(struct uprobe *upr
+ 		if (is_register) {
+ 			/* consult only the "caller", new consumer. */
+ 			if (consumer_filter(new, mm))
+-				err = install_breakpoint(uprobe, mm, vma, info->vaddr);
++				err = install_breakpoint(uprobe, vma, info->vaddr);
+ 		} else if (test_bit(MMF_HAS_UPROBES, &mm->flags)) {
+ 			if (!filter_chain(uprobe, mm))
+-				err |= remove_breakpoint(uprobe, mm, info->vaddr);
++				err |= remove_breakpoint(uprobe, vma, info->vaddr);
+ 		}
+ 
+  unlock:
+@@ -1472,7 +1474,7 @@ static int unapply_uprobe(struct uprobe
+ 			continue;
+ 
+ 		vaddr = offset_to_vaddr(vma, uprobe->offset);
+-		err |= remove_breakpoint(uprobe, mm, vaddr);
++		err |= remove_breakpoint(uprobe, vma, vaddr);
+ 	}
+ 	mmap_read_unlock(mm);
+ 
+@@ -1610,7 +1612,7 @@ int uprobe_mmap(struct vm_area_struct *v
+ 		if (!fatal_signal_pending(current) &&
+ 		    filter_chain(uprobe, vma->vm_mm)) {
+ 			unsigned long vaddr = offset_to_vaddr(vma, uprobe->offset);
+-			install_breakpoint(uprobe, vma->vm_mm, vma, vaddr);
++			install_breakpoint(uprobe, vma, vaddr);
+ 		}
+ 		put_uprobe(uprobe);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-radix-tree-add-missing-cleanuph-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-samples-livepatch-add-module-descriptions-fix.patch
-mm-kasan-add-module-decription-fix.patch
+x86-mm-pat-untrack_pfn_copy-fix-improvements.patch
+kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
+kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
+kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
 
