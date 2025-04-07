@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1692D185B4C
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 05:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B851314F123
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 05:02:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744002150; cv=none; b=uDS5nelzL1qadBECO+GMrAeZ8PFuBaaHFR7KvP+VHoB5eVBtrz6cpk31pSb37rEUOtQ6QJthH0hI3ACBYlcb+V31qbl+lg1eVW6ymrFtgygebj06bjL3VqTyVocKJw9D/tVC4sM8a5Xi8BrRFCzxc8aXrLMdbZ2js89Obhrbz2o=
+	t=1744002152; cv=none; b=jT8Z/kPDY6uShP0GLng71n6rB7vekzfocgB7ANc7TAeMtxsUyfQflp4bLZnWwlil1axDkrxx46edX0KkSU5E2VhvTUFVITX0FJPuxmqKyyTQtgl7acV7zcGt+G7PsJ03wurxE02vzAtDg0pzODxyyEdC9AAg0fbMySf+LalZ+zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744002150; c=relaxed/simple;
-	bh=nZnIFMonDnCCqCJw5wdFqVWsxYJGQfpu49yu+FH9mWE=;
-	h=Date:To:From:Subject:Message-Id; b=J4Vbdb+i9YIcHIdoiAdlXgDUPVl8Fd3s7mzI75uR+Vgq1WGJFqp+RCyQ1bFmIv/s6bS2+IN4YVSbUDUinNU2A4oOua8p/ppxJRhhN0M22A4LRBm98nH0LiYWVS+d/OMVYFyIY0yVwDcJ4TTEP2P2TnOiGVYrhssMuD6q9dvUvzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F30zC1UZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744002152; c=relaxed/simple;
+	bh=1RCWgTrLBCSm0rrvm5dPh+W6Sk1moSHpnk7YLOWdr5Q=;
+	h=Date:To:From:Subject:Message-Id; b=bTdZZs715mNFUzyN3Zv0HkiAR/R6tSiutkWVRbPvOF2oyIJiJbeHoAIUfbl7ogjONNzOKuAD+eh9G16DP5F6YXa6zE5odZWIuNBOCdw+fbI7lmUrNrRhWTc9qiO/eg7zPhacFyfTaDvlUNpmp5bAC7B7Mib3isnispXWmI4A5EU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mMx+4jl4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F30zC1UZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61CC0C4CEDD;
-	Mon,  7 Apr 2025 05:02:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mMx+4jl4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19E1AC4CEDD;
+	Mon,  7 Apr 2025 05:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744002149;
-	bh=nZnIFMonDnCCqCJw5wdFqVWsxYJGQfpu49yu+FH9mWE=;
+	s=korg; t=1744002152;
+	bh=1RCWgTrLBCSm0rrvm5dPh+W6Sk1moSHpnk7YLOWdr5Q=;
 	h=Date:To:From:Subject:From;
-	b=F30zC1UZej2JdfAdko6Cy8SSqj3VG6uTdY4MTC0hIqpHmsIUjkgdXnjISjGl6oG9W
-	 8D4EWQXxZbV+03FYMOhZBZat15uwgEgmv5nSoTzKsmeO4kQvqr9IxzZsGN0e0/MWyV
-	 k95z0fJPUQ2nzSHLDfJETqvcIf0rmUYDA8JQIExc=
-Date: Sun, 06 Apr 2025 22:02:28 -0700
+	b=mMx+4jl41j8j4MmjPAtd/iQYVWYlxFZC5XlM89rhhZ84xs5wCaeGRV/EMrUqSiG6r
+	 RR21R9aujNdjeybWO6IX59R1Oc0Uj0I9bDWR47xhHohsRGhPvQ3m1FoU3O8RGcvPgM
+	 2Kj5/l0dhUScrY/6iWY95htL2IBIXp0dL5yK4NiQ=
+Date: Sun, 06 Apr 2025 22:02:31 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,corbet@lwn.net,avagin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-extend-the-pagemap_scan-ioctl-to-report-guard-regions.patch added to mm-new branch
-Message-Id: <20250407050229.61CC0C4CEDD@smtp.kernel.org>
+Subject: + tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources.patch added to mm-new branch
+Message-Id: <20250407050232.19E1AC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: extend the PAGEMAP_SCAN ioctl to report guard regions
+     Subject: tools headers UAPI: sync linux/fs.h with the kernel sources
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-extend-the-pagemap_scan-ioctl-to-report-guard-regions.patch
+     tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-extend-the-pagemap_scan-ioctl-to-report-guard-regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,92 +59,60 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrei Vagin <avagin@gmail.com>
-Subject: fs/proc: extend the PAGEMAP_SCAN ioctl to report guard regions
-Date: Mon, 24 Mar 2025 06:53:26 +0000
+Subject: tools headers UAPI: sync linux/fs.h with the kernel sources
+Date: Mon, 24 Mar 2025 06:53:27 +0000
 
-Patch series "fs/proc: extend the PAGEMAP_SCAN ioctl to report guard
-regions", v2.
+Required for a new PAGEMAP_SCAN test to verify guard region reporting.
 
-Introduce the PAGE_IS_GUARD flag in the PAGEMAP_SCAN ioctl to expose
-information about guard regions.  This allows userspace tools, such as
-CRIU, to detect and handle guard regions.
-
-Currently, CRIU utilizes PAGEMAP_SCAN as a more efficient alternative to
-parsing /proc/pid/pagemap.  Without this change, guard regions are
-incorrectly reported as swap-anon regions, leading CRIU to attempt dumping
-them and subsequently failing.
-
-The series includes updates to the documentation and selftests to reflect
-the new functionality.
-
-
-This patch (of 3):
-
-Introduce the PAGE_IS_GUARD flag in the PAGEMAP_SCAN ioctl to expose
-information about guard regions.  This allows userspace tools, such as
-CRIU, to detect and handle guard regions.
-
-Link: https://lkml.kernel.org/r/20250324065328.107678-1-avagin@google.com
-Link: https://lkml.kernel.org/r/20250324065328.107678-2-avagin@google.com
+Link: https://lkml.kernel.org/r/20250324065328.107678-3-avagin@google.com
 Signed-off-by: Andrei Vagin <avagin@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/pagemap.rst |    1 +
- fs/proc/task_mmu.c                       |   17 ++++++++++-------
- include/uapi/linux/fs.h                  |    1 +
- 3 files changed, 12 insertions(+), 7 deletions(-)
+ tools/include/uapi/linux/fs.h |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/pagemap.rst~fs-proc-extend-the-pagemap_scan-ioctl-to-report-guard-regions
-+++ a/Documentation/admin-guide/mm/pagemap.rst
-@@ -250,6 +250,7 @@ Following flags about pages are currentl
- - ``PAGE_IS_PFNZERO`` - Page has zero PFN
- - ``PAGE_IS_HUGE`` - Page is PMD-mapped THP or Hugetlb backed
- - ``PAGE_IS_SOFT_DIRTY`` - Page is soft-dirty
-+- ``PAGE_IS_GUARD`` - Page is a part of a guard region
+--- a/tools/include/uapi/linux/fs.h~tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources
++++ a/tools/include/uapi/linux/fs.h
+@@ -40,6 +40,15 @@
+ #define BLOCK_SIZE_BITS 10
+ #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
  
- The ``struct pm_scan_arg`` is used as the argument of the IOCTL.
- 
---- a/fs/proc/task_mmu.c~fs-proc-extend-the-pagemap_scan-ioctl-to-report-guard-regions
-+++ a/fs/proc/task_mmu.c
-@@ -2087,7 +2087,8 @@ static int pagemap_release(struct inode
- #define PM_SCAN_CATEGORIES	(PAGE_IS_WPALLOWED | PAGE_IS_WRITTEN |	\
- 				 PAGE_IS_FILE |	PAGE_IS_PRESENT |	\
- 				 PAGE_IS_SWAPPED | PAGE_IS_PFNZERO |	\
--				 PAGE_IS_HUGE | PAGE_IS_SOFT_DIRTY)
-+				 PAGE_IS_HUGE | PAGE_IS_SOFT_DIRTY |	\
-+				 PAGE_IS_GUARD)
- #define PM_SCAN_FLAGS		(PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC)
- 
- struct pagemap_scan_private {
-@@ -2128,12 +2129,14 @@ static unsigned long pagemap_page_catego
- 		if (!pte_swp_uffd_wp_any(pte))
- 			categories |= PAGE_IS_WRITTEN;
- 
--		if (p->masks_of_interest & PAGE_IS_FILE) {
--			swp = pte_to_swp_entry(pte);
--			if (is_pfn_swap_entry(swp) &&
--			    !folio_test_anon(pfn_swap_entry_folio(swp)))
--				categories |= PAGE_IS_FILE;
--		}
-+		swp = pte_to_swp_entry(pte);
-+		if (is_guard_swp_entry(swp))
-+			categories |= PAGE_IS_GUARD;
-+		else if ((p->masks_of_interest & PAGE_IS_FILE) &&
-+			 is_pfn_swap_entry(swp) &&
-+			 !folio_test_anon(pfn_swap_entry_folio(swp)))
-+			categories |= PAGE_IS_FILE;
++/* flags for integrity meta */
++#define IO_INTEGRITY_CHK_GUARD		(1U << 0) /* enforce guard check */
++#define IO_INTEGRITY_CHK_REFTAG		(1U << 1) /* enforce ref check */
++#define IO_INTEGRITY_CHK_APPTAG		(1U << 2) /* enforce app check */
 +
- 		if (pte_swp_soft_dirty(pte))
- 			categories |= PAGE_IS_SOFT_DIRTY;
- 	}
---- a/include/uapi/linux/fs.h~fs-proc-extend-the-pagemap_scan-ioctl-to-report-guard-regions
-+++ a/include/uapi/linux/fs.h
-@@ -361,6 +361,7 @@ typedef int __bitwise __kernel_rwf_t;
++#define IO_INTEGRITY_VALID_FLAGS (IO_INTEGRITY_CHK_GUARD | \
++				  IO_INTEGRITY_CHK_REFTAG | \
++				  IO_INTEGRITY_CHK_APPTAG)
++
+ #define SEEK_SET	0	/* seek relative to beginning of file */
+ #define SEEK_CUR	1	/* seek relative to current file position */
+ #define SEEK_END	2	/* seek relative to end of file */
+@@ -329,9 +338,16 @@ typedef int __bitwise __kernel_rwf_t;
+ /* per-IO negation of O_APPEND */
+ #define RWF_NOAPPEND	((__force __kernel_rwf_t)0x00000020)
+ 
++/* Atomic Write */
++#define RWF_ATOMIC	((__force __kernel_rwf_t)0x00000040)
++
++/* buffered IO that drops the cache after reading or writing data */
++#define RWF_DONTCACHE	((__force __kernel_rwf_t)0x00000080)
++
+ /* mask of flags supported by the kernel */
+ #define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT |\
+-			 RWF_APPEND | RWF_NOAPPEND)
++			 RWF_APPEND | RWF_NOAPPEND | RWF_ATOMIC |\
++			 RWF_DONTCACHE)
+ 
+ #define PROCFS_IOCTL_MAGIC 'f'
+ 
+@@ -347,6 +363,7 @@ typedef int __bitwise __kernel_rwf_t;
  #define PAGE_IS_PFNZERO		(1 << 5)
  #define PAGE_IS_HUGE		(1 << 6)
  #define PAGE_IS_SOFT_DIRTY	(1 << 7)
