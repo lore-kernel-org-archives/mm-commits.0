@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E685257451
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 18:52:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A0C222589
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:00:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744051936; cv=none; b=tIwdePBI2TnmNFoZyJ4Bgnsq2RY+ni0B2J0CNJEOYbcW3939BJg4Aeg0uJJ/SPqkrSGKb8HY5LfVjp/ZplMImPu2EMzbKg34s0Mj+4AdwjZzf9rdBUXodZXfMGM2nzDt62rscarQE6BZlstelE20PiEeQ4T9o/hzB5NXWdxLmWg=
+	t=1744052429; cv=none; b=df5nVOOAP6J/HoC6F/Y0nHdf53MeDblZ8sclwv/s+vfxxuKPejWoW1vKiR1YcVe76k2k0Sousw2rBzM9ZDZfB66V1JT/EzmR04Qt2IwLOobgOwEuBF6Bu69RNONcsPbC0El7Nsmam0CXxM3qbnLr50Zw0v75FkFQeSH8lvC5qpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744051936; c=relaxed/simple;
-	bh=k/ApKZUtTtGcpYjRJGPyxtgQIpvCj0V2GT+2Ru593+g=;
-	h=Date:To:From:Subject:Message-Id; b=otDE38oTYyRD3nwu5H2oc4RaYoeBwuJTOhQdPDUp8HhG8tvuAwZr/iKNI3lXFDnUYIrJa1rH5AAeh7xqpan8mIHz2AYyHaBi3aoS0Fe1C/xTCWLmezLWnqEiYQKww1O7UR7oA/Q6H64UzrdZZCYTIktlRGyswZlWTwv0NQCkdxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dYP29QVW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744052429; c=relaxed/simple;
+	bh=0KXd155oEmvLUPNTgobaK1dURfwBx3WTx/M/+HeNsl8=;
+	h=Date:To:From:Subject:Message-Id; b=NJ7o6mm6DYlYIWNd+Isheh+BCQajhfH1TwidDtp60lgJ3HF1lYwuMCVyDSDiXKwG9IZJ8PsIudMKEH1JtjokGFcluJp5NaCE4rzP9c5ixE61u7MbepoLkl+juMxrfxEGx05wa4rcD8ZQuzsGc7QA5d5u9e+6uG+nUAKWG26P5BI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mpdVVCNm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dYP29QVW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87978C4CEF0;
-	Mon,  7 Apr 2025 18:52:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mpdVVCNm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E795C4CEDD;
+	Mon,  7 Apr 2025 19:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744051935;
-	bh=k/ApKZUtTtGcpYjRJGPyxtgQIpvCj0V2GT+2Ru593+g=;
+	s=korg; t=1744052429;
+	bh=0KXd155oEmvLUPNTgobaK1dURfwBx3WTx/M/+HeNsl8=;
 	h=Date:To:From:Subject:From;
-	b=dYP29QVWNlpL/i9EPJu/njpZevVdiHbUDuRYEG72LlgbR8uow45Z8frb4gOdVGyE8
-	 slxK4iVNBYIGRvzmFrt/mzS6FTbGL47mVySaUBkMlTwWZRIYW1FORF+34iUqb1Ijlx
-	 2KdGyxLk4HkaPcStOtXjnilP7HXInPYdHZtRyawc=
-Date: Mon, 07 Apr 2025 11:52:14 -0700
-To: mm-commits@vger.kernel.org,jlayton@kernel.org,quic_zijuhu@quicinc.com,akpm@linux-foundation.org
+	b=mpdVVCNmXBEbYAoGYgnlXpEIVPOtL/mtbDk1bkJaXzQniWia5vLVGp1OQriVDoO6i
+	 4SVSFBXJ8QnG7b69JPBVWEukjK/ygI/dm1GIYiqw4k3oHOJnyxecjzK3xHar+JYFUK
+	 JgIBcI3O2z5o4CmVzH6MlpTQuIwDJYUv9+jipSEg=
+Date: Mon, 07 Apr 2025 12:00:28 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + errseq-eliminate-special-limitation-for-macro-max_errno.patch added to mm-nonmm-unstable branch
-Message-Id: <20250407185215.87978C4CEF0@smtp.kernel.org>
+Subject: + selftests-mincore-fix-tmpfs-mincore-test-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250407190029.3E795C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: errseq: eliminate special limitation for macro MAX_ERRNO
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     errseq-eliminate-special-limitation-for-macro-max_errno.patch
+     Subject: selftests: mincore: fix tmpfs mincore test failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mincore-fix-tmpfs-mincore-test-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/errseq-eliminate-special-limitation-for-macro-max_errno.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mincore-fix-tmpfs-mincore-test-failure.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,87 +58,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zijun Hu <quic_zijuhu@quicinc.com>
-Subject: errseq: eliminate special limitation for macro MAX_ERRNO
-Date: Mon, 07 Apr 2025 19:44:16 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: selftests: mincore: fix tmpfs mincore test failure
+Date: Mon, 7 Apr 2025 19:31:35 +0800
 
-Current errseq implementation depends on a very special precondition that
-macro MAX_ERRNO must be (2^n - 1).
+When running mincore test cases, I encountered the following failures:
 
-Eliminate the limitation by
+"
+mincore_selftest.c:359:check_tmpfs_mmap:Expected ra_pages (511) == 0 (0)
+mincore_selftest.c:360:check_tmpfs_mmap:Read-ahead pages found in memory
+check_tmpfs_mmap: Test terminated by assertion
+          FAIL  global.check_tmpfs_mmap
+not ok 5 global.check_tmpfs_mmap
+FAILED: 4 / 5 tests passed
+"
 
-- redefining macro ERRSEQ_SHIFT
-- defining a new macro ERRNO_MASK instead of MAX_ERRNO for errno mask.
+The reason for the test case failure is that my system automatically enabled
+tmpfs large folio allocation by adding the 'transparent_hugepage_tmpfs=always'
+cmdline. However, the test case still expects the tmpfs mounted on /dev/shm to
+allocate small folios, which leads to assertion failures when verifying readahead
+pages.
 
-There is no plan to change the value of MAX_ERRNO, but this makes the
-implementation more generic and eliminates the BUILD_BUG_ON().
+As discussed with David, there's no reason to continue checking the readahead
+logic for tmpfs. Drop it to fix this issue.
 
-Link: https://lkml.kernel.org/r/20250407-improve_errseq-v1-1-7b27cbeb8298@quicinc.com
-Signed-off-by: Zijun Hu <quic_zijuhu@quicinc.com>
-Reviewed-by: Jeff Layton <jlayton@kernel.org>
+Link: https://lkml.kernel.org/r/9a00856cc6a8b4e46f4ab8b1af11ce5fc1a31851.1744025467.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/errseq.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ tools/testing/selftests/mincore/mincore_selftest.c |   16 +----------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
---- a/lib/errseq.c~errseq-eliminate-special-limitation-for-macro-max_errno
-+++ a/lib/errseq.c
-@@ -34,11 +34,14 @@
+--- a/tools/testing/selftests/mincore/mincore_selftest.c~selftests-mincore-fix-tmpfs-mincore-test-failure
++++ a/tools/testing/selftests/mincore/mincore_selftest.c
+@@ -286,8 +286,7 @@ out_free:
+ 
+ /*
+  * Test mincore() behavior on a page backed by a tmpfs file.  This test
+- * performs the same steps as the previous one. However, we don't expect
+- * any readahead in this case.
++ * performs the same steps as the previous one.
   */
- 
- /* The low bits are designated for error code (max of MAX_ERRNO) */
--#define ERRSEQ_SHIFT		ilog2(MAX_ERRNO + 1)
-+#define ERRSEQ_SHIFT		(ilog2(MAX_ERRNO) + 1)
- 
- /* This bit is used as a flag to indicate whether the value has been seen */
- #define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
- 
-+/* Leverage macro ERRSEQ_SEEN to define errno mask macro here */
-+#define ERRNO_MASK		(ERRSEQ_SEEN - 1)
-+
- /* The lowest bit of the counter */
- #define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
- 
-@@ -60,8 +63,6 @@ errseq_t errseq_set(errseq_t *eseq, int
+ TEST(check_tmpfs_mmap)
  {
- 	errseq_t cur, old;
+@@ -298,7 +297,6 @@ TEST(check_tmpfs_mmap)
+ 	int page_size;
+ 	int fd;
+ 	int i;
+-	int ra_pages = 0;
  
--	/* MAX_ERRNO must be able to serve as a mask */
--	BUILD_BUG_ON_NOT_POWER_OF_2(MAX_ERRNO + 1);
+ 	page_size = sysconf(_SC_PAGESIZE);
+ 	vec_size = FILE_SIZE / page_size;
+@@ -341,8 +339,7 @@ TEST(check_tmpfs_mmap)
+ 	}
  
  	/*
- 	 * Ensure the error code actually fits where we want it to go. If it
-@@ -79,7 +80,7 @@ errseq_t errseq_set(errseq_t *eseq, int
- 		errseq_t new;
- 
- 		/* Clear out error bits and set new error */
--		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
-+		new = (old & ~(ERRNO_MASK | ERRSEQ_SEEN)) | -err;
- 
- 		/* Only increment if someone has looked at it */
- 		if (old & ERRSEQ_SEEN)
-@@ -148,7 +149,7 @@ int errseq_check(errseq_t *eseq, errseq_
- 
- 	if (likely(cur == since))
- 		return 0;
--	return -(cur & MAX_ERRNO);
-+	return -(cur & ERRNO_MASK);
- }
- EXPORT_SYMBOL(errseq_check);
- 
-@@ -200,7 +201,7 @@ int errseq_check_and_advance(errseq_t *e
- 		if (new != old)
- 			cmpxchg(eseq, old, new);
- 		*since = new;
--		err = -(new & MAX_ERRNO);
-+		err = -(new & ERRNO_MASK);
+-	 * Touch a page in the middle of the mapping. We expect only
+-	 * that page to be fetched into memory.
++	 * Touch a page in the middle of the mapping.
+ 	 */
+ 	addr[FILE_SIZE / 2] = 1;
+ 	retval = mincore(addr, FILE_SIZE, vec);
+@@ -351,15 +348,6 @@ TEST(check_tmpfs_mmap)
+ 		TH_LOG("Page not found in memory after use");
  	}
- 	return err;
- }
+ 
+-	i = FILE_SIZE / 2 / page_size + 1;
+-	while (i < vec_size && vec[i]) {
+-		ra_pages++;
+-		i++;
+-	}
+-	ASSERT_EQ(ra_pages, 0) {
+-		TH_LOG("Read-ahead pages found in memory");
+-	}
+-
+ 	munmap(addr, FILE_SIZE);
+ 	close(fd);
+ 	free(vec);
 _
 
-Patches currently in -mm which might be from quic_zijuhu@quicinc.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-errseq-eliminate-special-limitation-for-macro-max_errno.patch
+selftests-mincore-fix-tmpfs-mincore-test-failure.patch
 
