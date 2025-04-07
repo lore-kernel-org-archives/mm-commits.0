@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BABD8257441
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 18:17:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC5D2222CF
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 18:27:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744049875; cv=none; b=IKPhX93dWY9A1AsMxVYsIB7VDWXsgPwC5TjNqwnXFPK5o2JA9AvV1jEILIcBFTnpUuqDl1a2GML3uYAk1gZpyAARfdGtEb4GG8vXM2xTV+dlnE4wRHx3dBTDXPmayL4lVbHeTfV+Y+pidPDNfqWMd52c5XGUT0wp/idoHypHlY0=
+	t=1744050472; cv=none; b=RyKU8Al/+5sr20vX898Efc1rit/LWYcBEBtL4mLFCcMQ2fmj67OP7tZP8x89d47pCV9ybvIqe3Hnyre+KJIYOKLR/mLhMm/u0h/yhxaIdnzAW3UmtpPB99MymQLKVd8JwBPhoRwiQH3ie4KbZ8s6lVY2wLFJA6LGFLhLWnJc9b4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744049875; c=relaxed/simple;
-	bh=E2GHNVg4Vy3PZ9Ej2FHX3oYTLywvHfcR7ezPgSX2RsU=;
-	h=Date:To:From:Subject:Message-Id; b=KsPFwFyKY1rInWykSaZq6QiIf2Jl9spVsyQibLc+sSIr5Vg/9CvZaCxabb65rNIXOHWc7I73kvCEVRxTlxJ1HYBc6rsvigzie7DAbvk6xAGSDixZZG/LNGhXvm52k+KOZzZrpAPRKAKdO8RP3H0UAZa5uIYUu+bgAc05XJvfElQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=10LvpkaU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744050472; c=relaxed/simple;
+	bh=BhrBEACKGaOZ+oYb/R8HCVugpKomPl/wLOa4gIhi2L8=;
+	h=Date:To:From:Subject:Message-Id; b=qiBXiWgxUF6oyUOpZ/uxSbxzSlBmClA+G4L252ENyTejfZZc7qv/nMwtM8DRL3AM5N3YEKYhf6WPyUuAdaKrXUw493t5nEhR34NHr4jWcBO4g0KbYGcBB6yIkBkQlx/a/BARbc/wkeHNw+SI+btBdRw2qACbu+b2S5Yh1+qwl1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZHNy5ZOv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="10LvpkaU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2175BC4CEDD;
-	Mon,  7 Apr 2025 18:17:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZHNy5ZOv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B58EC4CEDD;
+	Mon,  7 Apr 2025 18:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744049875;
-	bh=E2GHNVg4Vy3PZ9Ej2FHX3oYTLywvHfcR7ezPgSX2RsU=;
+	s=korg; t=1744050472;
+	bh=BhrBEACKGaOZ+oYb/R8HCVugpKomPl/wLOa4gIhi2L8=;
 	h=Date:To:From:Subject:From;
-	b=10LvpkaUNxwF96BaV0DYmk+6QtA+s9TYbbEd5/DUulVZBDuYiTqU2aGeJ3Zeclx8g
-	 fzpIKTaN+LXQ2gSTySPRSvsr8DYnb8Lbu3yfI82gN3VvqAFpUpWw2EPpPfkzsXf5u9
-	 Q6PmmVwkhZYBgxjqYWr2FsLCzStbsZ0+JjHnYe+s=
-Date: Mon, 07 Apr 2025 11:17:54 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,jackmanb@google.com,carlos.song@nxp.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=ZHNy5ZOvnC0Xi+XG8ZXUwCTcIWx0YwhlRSoU0IEvVory3RoxEBBHtS8jvZy/6qbg+
+	 zPSsEsY/ubzV/XSfb0kwosv8uVl+pEPP0seZF1ZdkqVVFa3Mpp3/h96j61NqRQK259
+	 /jfZc9vE0vZkOytaKKQKiUaP3L7pgr2J+i2hps1o=
+Date: Mon, 07 Apr 2025 11:27:51 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,geert@linux-m68k.org,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-tighten-up-find_suitable_fallback.patch added to mm-new branch
-Message-Id: <20250407181755.2175BC4CEDD@smtp.kernel.org>
+Subject: + mm-cma-report-base-address-of-single-range-correctly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250407182752.2B58EC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: tighten up find_suitable_fallback()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-tighten-up-find_suitable_fallback.patch
+     Subject: mm/cma: report base address of single range correctly
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-cma-report-base-address-of-single-range-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-tighten-up-find_suitable_fallback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-report-base-address-of-single-range-correctly.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,191 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: tighten up find_suitable_fallback()
-Date: Mon, 7 Apr 2025 14:01:54 -0400
+From: Frank van der Linden <fvdl@google.com>
+Subject: mm/cma: report base address of single range correctly
+Date: Mon, 7 Apr 2025 16:54:35 +0000
 
-find_suitable_fallback() is not as efficient as it could be, and somewhat
-difficult to follow.
+The cma_declare_contiguous_nid code was refactored by commit c009da4258f9
+("mm, cma: support multiple contiguous ranges, if requested"), so that it
+could use an internal function to attempt a single range area first, and
+then try a multi-range one.
 
-1. should_try_claim_block() is a loop invariant. There is no point in
-   checking fallback areas if the caller is interested in claimable
-   blocks but the order and the migratetype don't allow for that.
+However, that meant that the actual base address used for the !fixed case
+(base == 0) wasn't available one level up to be printed in the
+informational message, and it would always end up printing a base address
+of 0 in the boot message.
 
-2. __rmqueue_steal() doesn't care about claimability, so it shouldn't
-   have to run those tests.
+Make the internal function take a phys_addr_t pointer to the base address,
+so that the value is available to the caller.
 
-Different callers want different things from this helper:
-
-1. __compact_finished() scans orders up until it finds a claimable block
-2. __rmqueue_claim() scans orders down as long as blocks are claimable
-3. __rmqueue_steal() doesn't care about claimability at all
-
-Move should_try_claim_block() out of the loop. Only test it for the
-two callers who care in the first place. Distinguish "no blocks" from
-"order + mt are not claimable" in the return value; __rmqueue_claim()
-can stop once order becomes unclaimable, __compact_finished() can keep
-advancing until order becomes claimable.
-
-Before:
-
- Performance counter stats for './run case-lru-file-mmap-read' (5 runs):
-
-	 85,294.85 msec task-clock                       #    5.644 CPUs utilized               ( +-  0.32% )
-	    15,968      context-switches                 #  187.209 /sec                        ( +-  3.81% )
-	       153      cpu-migrations                   #    1.794 /sec                        ( +-  3.29% )
-	   801,808      page-faults                      #    9.400 K/sec                       ( +-  0.10% )
-   733,358,331,786      instructions                     #    1.87  insn per cycle              ( +-  0.20% )  (64.94%)
-   392,622,904,199      cycles                           #    4.603 GHz                         ( +-  0.31% )  (64.84%)
-   148,563,488,531      branches                         #    1.742 G/sec                       ( +-  0.18% )  (63.86%)
-       152,143,228      branch-misses                    #    0.10% of all branches             ( +-  1.19% )  (62.82%)
-
-	   15.1128 +- 0.0637 seconds time elapsed  ( +-  0.42% )
-
-After:
-
- Performance counter stats for './run case-lru-file-mmap-read' (5 runs):
-
-         84,380.21 msec task-clock                       #    5.664 CPUs utilized               ( +-  0.21% )
-            16,656      context-switches                 #  197.392 /sec                        ( +-  3.27% )
-               151      cpu-migrations                   #    1.790 /sec                        ( +-  3.28% )
-           801,703      page-faults                      #    9.501 K/sec                       ( +-  0.09% )
-   731,914,183,060      instructions                     #    1.88  insn per cycle              ( +-  0.38% )  (64.90%)
-   388,673,535,116      cycles                           #    4.606 GHz                         ( +-  0.24% )  (65.06%)
-   148,251,482,143      branches                         #    1.757 G/sec                       ( +-  0.37% )  (63.92%)
-       149,766,550      branch-misses                    #    0.10% of all branches             ( +-  1.22% )  (62.88%)
-
-           14.8968 +- 0.0486 seconds time elapsed  ( +-  0.33% )
-
-Link: https://lkml.kernel.org/r/20250407180154.63348-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Carlos Song <carlos.song@nxp.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250407165435.2567898-1-fvdl@google.com
+Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
+Signed-off-by: Frank van der Linden <fvdl@google.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Closes: https://lore.kernel.org/linux-mm/CAMuHMdVWviQ7O9yBFE3f=ev0eVb1CnsQvR6SKtEROBbM6z7g3w@mail.gmail.com/
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +---
- mm/internal.h   |    2 +-
- mm/page_alloc.c |   31 +++++++++++++------------------
- 3 files changed, 15 insertions(+), 22 deletions(-)
+ mm/cma.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/mm/compaction.c~mm-page_alloc-tighten-up-find_suitable_fallback
-+++ a/mm/compaction.c
-@@ -2344,7 +2344,6 @@ static enum compact_result __compact_fin
- 	ret = COMPACT_NO_SUITABLE_PAGE;
- 	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
- 		struct free_area *area = &cc->zone->free_area[order];
--		bool claim_block;
+--- a/mm/cma.c~mm-cma-report-base-address-of-single-range-correctly
++++ a/mm/cma.c
+@@ -35,7 +35,7 @@
+ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned int cma_area_count;
  
- 		/* Job done if page is free of the right migratetype */
- 		if (!free_area_empty(area, migratetype))
-@@ -2360,8 +2359,7 @@ static enum compact_result __compact_fin
- 		 * Job done if allocation would steal freepages from
- 		 * other migratetype buddy lists.
- 		 */
--		if (find_suitable_fallback(area, order, migratetype,
--						true, &claim_block) != -1)
-+		if (find_suitable_fallback(area, order, migratetype, true) >= 0)
- 			/*
- 			 * Movable pages are OK in any pageblock. If we are
- 			 * stealing for a non-movable allocation, make sure
---- a/mm/internal.h~mm-page_alloc-tighten-up-find_suitable_fallback
-+++ a/mm/internal.h
-@@ -918,7 +918,7 @@ static inline void init_cma_pageblock(st
- 
- 
- int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool claim_only, bool *claim_block);
-+			   int migratetype, bool claimable);
- 
- static inline bool free_area_empty(struct free_area *area, int migratetype)
+-static int __init __cma_declare_contiguous_nid(phys_addr_t base,
++static int __init __cma_declare_contiguous_nid(phys_addr_t *basep,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, const char *name, struct cma **res_cma,
+@@ -370,7 +370,7 @@ int __init cma_declare_contiguous_multi(
+ 			phys_addr_t align, unsigned int order_per_bit,
+ 			const char *name, struct cma **res_cma, int nid)
  {
---- a/mm/page_alloc.c~mm-page_alloc-tighten-up-find_suitable_fallback
-+++ a/mm/page_alloc.c
-@@ -2072,31 +2072,25 @@ static bool should_try_claim_block(unsig
- 
- /*
-  * Check whether there is a suitable fallback freepage with requested order.
-- * Sets *claim_block to instruct the caller whether it should convert a whole
-- * pageblock to the returned migratetype.
-- * If only_claim is true, this function returns fallback_mt only if
-+ * If claimable is true, this function returns fallback_mt only if
-  * we would do this whole-block claiming. This would help to reduce
-  * fragmentation due to mixed migratetype pages in one pageblock.
-  */
- int find_suitable_fallback(struct free_area *area, unsigned int order,
--			int migratetype, bool only_claim, bool *claim_block)
-+			   int migratetype, bool claimable)
+-	phys_addr_t start, end;
++	phys_addr_t start = 0, end;
+ 	phys_addr_t size, sizesum, sizeleft;
+ 	struct cma_init_memrange *mrp, *mlp, *failed;
+ 	struct cma_memrange *cmrp;
+@@ -384,7 +384,7 @@ int __init cma_declare_contiguous_multi(
+ 	/*
+ 	 * First, try it the normal way, producing just one range.
+ 	 */
+-	ret = __cma_declare_contiguous_nid(0, total_size, 0, align,
++	ret = __cma_declare_contiguous_nid(&start, total_size, 0, align,
+ 			order_per_bit, false, name, res_cma, nid);
+ 	if (ret != -ENOMEM)
+ 		goto out;
+@@ -580,7 +580,7 @@ int __init cma_declare_contiguous_nid(ph
  {
- 	int i;
--	int fallback_mt;
-+
-+	if (claimable && !should_try_claim_block(order, migratetype))
-+		return -2;
+ 	int ret;
  
- 	if (area->nr_free == 0)
- 		return -1;
+-	ret = __cma_declare_contiguous_nid(base, size, limit, alignment,
++	ret = __cma_declare_contiguous_nid(&base, size, limit, alignment,
+ 			order_per_bit, fixed, name, res_cma, nid);
+ 	if (ret != 0)
+ 		pr_err("Failed to reserve %ld MiB\n",
+@@ -592,14 +592,14 @@ int __init cma_declare_contiguous_nid(ph
+ 	return ret;
+ }
  
--	*claim_block = false;
- 	for (i = 0; i < MIGRATE_PCPTYPES - 1 ; i++) {
--		fallback_mt = fallbacks[migratetype][i];
--		if (free_area_empty(area, fallback_mt))
--			continue;
-+		int fallback_mt = fallbacks[migratetype][i];
- 
--		if (should_try_claim_block(order, migratetype))
--			*claim_block = true;
--
--		if (*claim_block || !only_claim)
-+		if (!free_area_empty(area, fallback_mt))
- 			return fallback_mt;
- 	}
- 
-@@ -2201,7 +2195,6 @@ __rmqueue_claim(struct zone *zone, int o
- 	int min_order = order;
- 	struct page *page;
- 	int fallback_mt;
--	bool claim_block;
+-static int __init __cma_declare_contiguous_nid(phys_addr_t base,
++static int __init __cma_declare_contiguous_nid(phys_addr_t *basep,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, const char *name, struct cma **res_cma,
+ 			int nid)
+ {
+ 	phys_addr_t memblock_end = memblock_end_of_DRAM();
+-	phys_addr_t highmem_start;
++	phys_addr_t highmem_start, base = *basep;
+ 	int ret;
  
  	/*
- 	 * Do not steal pages from freelists belonging to other pageblocks
-@@ -2220,11 +2213,14 @@ __rmqueue_claim(struct zone *zone, int o
- 				--current_order) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, false, &claim_block);
-+						     start_migratetype, true);
-+
-+		/* No block in that order */
- 		if (fallback_mt == -1)
- 			continue;
+@@ -724,8 +724,10 @@ static int __init __cma_declare_contiguo
+ 	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
+ 	if (ret)
+ 		memblock_phys_free(base, size);
+-
+-	(*res_cma)->nid = nid;
++	else {
++		(*res_cma)->nid = nid;
++		*basep = base;
++	}
  
--		if (!claim_block)
-+		/* Advanced into orders too low to claim, abort */
-+		if (fallback_mt == -2)
- 			break;
- 
- 		page = get_page_from_free_area(area, fallback_mt);
-@@ -2249,12 +2245,11 @@ __rmqueue_steal(struct zone *zone, int o
- 	int current_order;
- 	struct page *page;
- 	int fallback_mt;
--	bool claim_block;
- 
- 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, false, &claim_block);
-+						     start_migratetype, false);
- 		if (fallback_mt == -1)
- 			continue;
- 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from fvdl@google.com are
 
-mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk.patch
-mm-page_alloc-tighten-up-find_suitable_fallback.patch
+mm-cma-report-base-address-of-single-range-correctly.patch
+mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch
 
