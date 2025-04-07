@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6456211A3E
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFD28212B09
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743990497; cv=none; b=bZ5zAhOVrCLSjrnCmCYrbr6WhKwQKwcd69uGnSVyPffIEimdzmvLkAUxyavupZvSK68zQFWWJmbZoUtJH2rAlc+XGMMV7oO7AvL/Zil5SnuvFIS1a9tqOfpGVC5lDvtlYAbS+Xbeex1LEBfTx/GLjbG0GgovysFd7thqPxztto8=
+	t=1743990499; cv=none; b=oxs9kTWxsS0UppcPbuIy/CuIDXzkFV4UAUQ9R/gT0ZNg8XbugzqnluC7N1FfHjUOEAWrxmDE2fU88kDoKt6Dme9Gbat84yDMnxtG7B7+126rpb9K0VOSehESh4GEsQfpwuK/uDFYOHHD6NgBPmTIZc/8VywE1EJotQVa21rF1h0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743990497; c=relaxed/simple;
-	bh=dV63nqqnTK1DPJKaNVhJyiCx2HBnR+iOHmXNAiKxCCU=;
-	h=Date:To:From:Subject:Message-Id; b=GBsn/GFSloQVBmWTH0EyY+HTpovEoCCvendWNacqKpE5I+gkWKtxDMqPhGD4atgZFXNSmyvWmRdfqz8iqyCdPGSJpUzQqqIAd+qz8nM1BXYYVDW26WQXd5PJUp1WM3vivzZSDDinR2ouY0TBW8Tag3rDvDVk4qMvTOAPs14rZuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fxC5xwq4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743990499; c=relaxed/simple;
+	bh=ZQsh4Aw1hPJkpyxbPNLKIOCN+BD5tj3Bby5oovsu60c=;
+	h=Date:To:From:Subject:Message-Id; b=ZE0flOqJ+VlYeOQEQ0/ghfoaJg+tuGKn9yvBBEC7+EPiMJGOToSVTCx1tUY8xqHRjg4fFzzcHx0MOQSoL8CFJaip4mWML2lKLIdms3NZWRkhcBTQP4j6iKgPtgphVAkIloUUW0Fu34baD6OpT1ZweH72jMFxub00g+tFYM46lNo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hrmznBwQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fxC5xwq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2509AC4CEE3;
-	Mon,  7 Apr 2025 01:48:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hrmznBwQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DA57C4CEE3;
+	Mon,  7 Apr 2025 01:48:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743990497;
-	bh=dV63nqqnTK1DPJKaNVhJyiCx2HBnR+iOHmXNAiKxCCU=;
+	s=korg; t=1743990499;
+	bh=ZQsh4Aw1hPJkpyxbPNLKIOCN+BD5tj3Bby5oovsu60c=;
 	h=Date:To:From:Subject:From;
-	b=fxC5xwq4QSDfTIoonHSNRbZyer6qv9tf05C28B7vkMkf9apmxzhm8UuJGsinYMXFa
-	 1sfxzvpKQNvTn0pASIxJ3/cJ2JHo+eCVmSr0CtP9TdDhafng9DMIeZTYOyLdjAa9IJ
-	 F75LDI8GSN9mnRbs42o2Uliv4ky4jRqrSj6q4GOM=
-Date: Sun, 06 Apr 2025 18:48:16 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,masahiroy@kernel.org,jeff.johnson@oss.qualcomm.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=hrmznBwQTAokE0NN4jSEaASfxJrL+TRAwzahHL7ThQrmZVL3UO0MFjcaLx+VOx2dn
+	 ZwIuiaDjiquqORUo8eSTzOF4MJ795Sleiqe9ufcTKly2tzgM348pCXyTco/R38AKZT
+	 NuV4wk4HTeec6QUdc480tXrrR62kCdQNcfZrlTuE=
+Date: Sun, 06 Apr 2025 18:48:18 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,snovitoll@gmail.com,sfr@canb.auug.org.au,ryabinin.a.a@gmail.com,peterz@infradead.org,niharchaithanya@gmail.com,masahiroy@kernel.org,jeff.johnson@oss.qualcomm.com,jannh@google.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ucs2_string-add-module-description.patch added to mm-nonmm-unstable branch
-Message-Id: <20250407014817.2509AC4CEE3@smtp.kernel.org>
+Subject: + mm-kasan-add-module-decription.patch added to mm-nonmm-unstable branch
+Message-Id: <20250407014819.3DA57C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ucs2_string: add module description
+     Subject: mm/kasan: add module decription
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ucs2_string-add-module-description.patch
+     mm-kasan-add-module-decription.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucs2_string-add-module-description.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-add-module-decription.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,32 +59,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: ucs2_string: add module description
-Date: Mon, 24 Mar 2025 18:32:32 +0100
+Subject: mm/kasan: add module decription
+Date: Mon, 24 Mar 2025 18:32:34 +0100
 
 Modules without a description now cause a warning:
 
-WARNING: modpost: missing MODULE_DESCRIPTION() in lib/ucs2_string.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in mm/kasan/kasan_test.o
 
-Link: https://lkml.kernel.org/r/20250324173242.1501003-7-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20250324173242.1501003-9-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
+Cc: Macro Elver <elver@google.com>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nihar Chaithanya <niharchaithanya@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Cc: Stehen Rothwell <sfr@canb.auug.org.au>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ucs2_string.c |    1 +
+ mm/kasan/kasan_test_c.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/lib/ucs2_string.c~ucs2_string-add-module-description
-+++ a/lib/ucs2_string.c
-@@ -165,4 +165,5 @@ ucs2_as_utf8(u8 *dest, const ucs2_char_t
- }
- EXPORT_SYMBOL(ucs2_as_utf8);
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-add-module-decription
++++ a/mm/kasan/kasan_test_c.c
+@@ -2127,4 +2127,5 @@ static struct kunit_suite kasan_kunit_te
  
-+MODULE_DESCRIPTION("UCS2 string handling");
- MODULE_LICENSE("GPL v2");
+ kunit_test_suite(kasan_kunit_test_suite);
+ 
++MODULE_DESCRIPTION("kunit test case for kasan");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
