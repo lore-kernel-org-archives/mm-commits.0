@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E11EB253B76
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 18:31:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33557223715
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 18:48:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744050688; cv=none; b=hxmuwO3JcyvkZbKdk0BymAWbUQRuEQ1PJDMep78h8gAbPMYG1tgrt/MnR7NcpCu1Ul0h1aL6/Uesd0TzI9h4NHvTgz/xLTrTX7JvvO3QeTrhigTlkMAYAQ5Aj7sRGWTawdPI1e6xCJL+uYFiNcaXumic3aeicGn1X32T2/HN8ZU=
+	t=1744051704; cv=none; b=cK+M90hOmKbCZEsP/KSNJuWtrNykoztLXyoTwMa1ksXKz2he2FEqsQUpNy2FNhwjMIJ8VZi2YnK11oqu3lfXYE2cXvNBbA/zSWh5iEtzjtg5kHyGqRiQcrFkTZsqqn7UgrkauNGa76aX9E9tQ44YoGzzr6Dn8Yo6ieKLlnCAZMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744050688; c=relaxed/simple;
-	bh=WQ7O67BuTIe6ssIxh2JSx4wTeS8xfMjeioyJZh3Z9dw=;
-	h=Date:To:From:Subject:Message-Id; b=iGqXqRfzOq7FxxqjYVEgmsEBhRxRqec3sbebbSPu3Ny6ZmS4yvNqvGUUNB/+2XXdVmS/E1dEJANzC6yxh78LvhWCXg6dX+rMq4OcfGxB7GoujazD0ZSczqdZor5ZFJi8By1d0WxRyLcMxFKrrkc6oJEZKlzJZZTjdCw+O5t8tNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eYvEleEN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744051704; c=relaxed/simple;
+	bh=0pTydZyRPnowGvDBjWnH94A45svR2r+cE7dFr/EkO84=;
+	h=Date:To:From:Subject:Message-Id; b=I5FghbkurIyNW8m0FuBv5X0TTaaqM+Y8S3uX4zmaHqRF11QNaUFavSbUitWTv8xIWXqq9tHq8YenwIflUo8UN+SGDrC6C0ZptScUyn7wvjrUKYcV09k5yk1LcFLu3bYIIIoPUyzkcNzqDjIXSXR66SytL18+LhcH9f5KqPjemdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vRw8+jY1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eYvEleEN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D4BEC4CEDD;
-	Mon,  7 Apr 2025 18:31:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vRw8+jY1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86654C4CEDD;
+	Mon,  7 Apr 2025 18:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744050687;
-	bh=WQ7O67BuTIe6ssIxh2JSx4wTeS8xfMjeioyJZh3Z9dw=;
+	s=korg; t=1744051703;
+	bh=0pTydZyRPnowGvDBjWnH94A45svR2r+cE7dFr/EkO84=;
 	h=Date:To:From:Subject:From;
-	b=eYvEleEN0VnWBgqOPLjgEdHsqeNncMfYxbr51h8Ebuq/hG6B2WmQrw0mvtfb3Lb+Q
-	 rdXG3PCnFumg8qBaVEqpUqvHbQD59xsiUeNm25fOQ93jc9jMt58Sw+1YCcJtCWIqDS
-	 6wPbHH8oPW7cfJ59gYGUrVEnj9eoYsQz38yBVcJs=
-Date: Mon, 07 Apr 2025 11:31:26 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=vRw8+jY1fEvD9VC84JmkhSiZglqM9Yfv8bEnVrNG/h1zgzYSTugsYTr4PmUHTbRsC
+	 2UTdOMcQvfhu7f9tDLlJ/C8vtYl+uPIkxCeM7WRj8Jlkrg4ZrDbExkrDrQEYs8Nboe
+	 NuUpY7io3otin/cCgFvApxuQLnYKG61e8M8Jopqk=
+Date: Mon, 07 Apr 2025 11:48:22 -0700
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5.patch added to mm-new branch
-Message-Id: <20250407183127.4D4BEC4CEDD@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250407184823.86654C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: Skip memcg with !usage in shrink_node_memcgs()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5.patch
+     Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/vmscan: Skip memcg with !usage in shrink_node_memcgs()
-Date: Mon, 7 Apr 2025 12:23:15 -0400
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
+Date: Mon, 7 Apr 2025 20:47:06 +0800
 
-use mem_cgroup_usage() as originally suggested by Johannes
+In set_max_huge_pages(), min_count should mean the acquired persistent
+huge pages, but it contains surplus huge pages.  This leads to failing to
+free free huge pages for a Node.
 
-Link: https://lkml.kernel.org/r/20250407162316.1434714-2-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
+Steps to reproduce:
+
+1) create 5 hugetlb folios in Node0
+2) run a program to use all the hugetlb folios
+3) echo 0 > nr_hugepages for Node0 to free the hugetlb folios.  Thus
+   the 5 hugetlb folios in Node0 are accounted as surplus.
+4) create 5 hugetlb folios in Node1
+5) echo 0 > nr_hugepages for Node1 to free the hugetlb folios
+
+The result:
+        Node0    Node1
+Total     5         5
+Free      0         5
+Surp      5         5
+
+We couldn't subtract surplus_huge_pages from min_mount, since free hugetlb
+folios may be surplus due to HVO.  In __update_and_free_hugetlb_folio(),
+hugetlb_vmemmap_restore_folio() may fail, add the folio back to pool and
+treat it as surplus.  If we directly subtract surplus_huge_pages from
+min_mount, some free folios will be subtracted twice.
+
+To fix it, check if count is less than the num of free huge pages that
+could be destroyed (i.e., available_huge_pages(h)), and remove hugetlb
+folios if so.
+
+Since there may exist free surplus hugetlb folios, we should remove
+surplus folios first to make surplus count correct.
+
+The result with this patch:
+        Node0    Node1
+Total     5         0
+Free      0         0
+Surp      5         0
+
+Link: https://lkml.kernel.org/r/20250407124706.2688092-1-tujinjiang@huawei.com
+Fixes: 9a30523066cd ("hugetlb: add per node hstate attributes")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h      |    9 +++++++++
- mm/memcontrol-v1.h |    2 --
- mm/vmscan.c        |    8 +-------
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5
-+++ a/mm/internal.h
-@@ -1538,6 +1538,15 @@ void __meminit __init_page_from_nid(unsi
- unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
- 			  int priority);
- 
-+#ifdef CONFIG_MEMCG
-+unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
-+#else
-+static inline unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
-+{
-+	return 1UL;
-+}
-+#endif
-+
- #ifdef CONFIG_SHRINKER_DEBUG
- static inline __printf(2, 0) int shrinker_debugfs_name_alloc(
- 			struct shrinker *shrinker, const char *fmt, va_list ap)
---- a/mm/memcontrol-v1.h~mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5
-+++ a/mm/memcontrol-v1.h
-@@ -22,8 +22,6 @@
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
- 
--unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
--
- void drain_all_stock(struct mem_cgroup *root_memcg);
- 
- unsigned long memcg_events(struct mem_cgroup *memcg, int event);
---- a/mm/vmscan.c~mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5
-+++ a/mm/vmscan.c
-@@ -5934,7 +5934,6 @@ static inline bool should_continue_recla
- 	return inactive_lru_pages > pages_for_compaction;
- }
- 
--#ifdef CONFIG_MEMCG
- static void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
+--- a/mm/hugetlb.c~mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages
++++ a/mm/hugetlb.c
+@@ -3825,6 +3825,7 @@ found:
+ static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
+ 			      nodemask_t *nodes_allowed)
  {
- 	struct mem_cgroup *target_memcg = sc->target_mem_cgroup;
-@@ -5973,7 +5972,7 @@ static void shrink_node_memcgs(pg_data_t
- 		mem_cgroup_calculate_protection(target_memcg, memcg);
++	unsigned long persistent_free_count;
+ 	unsigned long min_count;
+ 	unsigned long allocated;
+ 	struct folio *folio;
+@@ -3959,8 +3960,24 @@ static int set_max_huge_pages(struct hst
+ 	 * though, we'll note that we're not allowed to exceed surplus
+ 	 * and won't grow the pool anywhere else. Not until one of the
+ 	 * sysctls are changed, or the surplus pages go out of use.
+-	 */
+-	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
++	 *
++	 * min_count is the expected number of persistent pages, we
++	 * shouldn't calculate min_count by using
++	 * resv_huge_pages + persistent_huge_pages() - free_huge_pages,
++	 * because there may exist free surplus huge pages, and this will
++	 * lead to subtracting twice. Free surplus huge pages come from HVO
++	 * failing to restore vmemmap, see comments in the callers of
++	 * hugetlb_vmemmap_restore_folio(). Thus, we should calculate
++	 * persistent free count first.
++	 */
++	persistent_free_count = h->free_huge_pages;
++	if (h->free_huge_pages > persistent_huge_pages(h)) {
++		if (h->free_huge_pages > h->surplus_huge_pages)
++			persistent_free_count -= h->surplus_huge_pages;
++		else
++			persistent_free_count = 0;
++	}
++	min_count = h->resv_huge_pages + persistent_huge_pages(h) - persistent_free_count;
+ 	min_count = max(count, min_count);
+ 	try_to_free_low(h, min_count, nodes_allowed);
  
- 		/* Skip memcg with no usage */
--		if (!page_counter_read(&memcg->memory))
-+		if (!mem_cgroup_usage(memcg, false))
- 			continue;
- 
- 		if (mem_cgroup_below_min(target_memcg, memcg)) {
-@@ -6017,11 +6016,6 @@ static void shrink_node_memcgs(pg_data_t
- 		}
- 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, partial)));
- }
--#else
--static inline void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
--{
--}
--#endif /* CONFIG_MEMCG */
- 
- static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
- {
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs.patch
-mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs-v5.patch
-selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
+mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
+mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
 
