@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D063254868
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:47:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA3AC221D86
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 20:25:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744055250; cv=none; b=g2KMaVtAidNlRhUwvjH2EZFzkQ8nfRpF7wKuVNm67/Ysyp3LWYKAR+WBNtf9C35O7VPbMO2f7GY5Xf6TjL+pmvQgxQZf0gFa0Mn2TpjuEm7gjn55Yw+LZFkr86D8QFTnttZW9aXBMoe0LfmKrWAU7pXIMd6m3NYroUSVl5GBn2c=
+	t=1744057518; cv=none; b=JLSayjosRHxc7jng4Pk8A7JZvbc3WyWEXoo/cDU5qMlDO0NEmlSVxUSA+yiZJJwknFyzvGjsim8sEPiPFBVyZt4ZIMr10nUw+2Co6+/zDG4rLJyz+rbhMRITNa4SSty+75t1Drl7VcvgPP/7X8vXIV0GfqJb9wQFT74nNU5AIdE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744055250; c=relaxed/simple;
-	bh=zG91Fo92PL2lXuWapmPBbFoP9C9VK2BQmEEayq5N6o0=;
-	h=Date:To:From:Subject:Message-Id; b=sGtfgYHK82eZozzDqGGL4disJg+l4xcA9BIThnueWci6hYk9PlR9anGMPtNVwH8DfxojSxnaeR+Qr4kUeG0wvjqWNljaE44NNQUqJPclacdW6hycD4bheaFYFoxlEpG4IHPyhmh8DkebZGJEBlUUE2tHfl3+k3zI0vo0FkL6oX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tthIghUp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744057518; c=relaxed/simple;
+	bh=r8MUnYr5FEzg1vJXJArRomlFe/utVgwDosFrZ6s+NgM=;
+	h=Date:To:From:Subject:Message-Id; b=Q5G9InmMoB+keUywKPJA2ge5hY449S7eRS7a9bW3rpiXF4peZKRvYKc0f56Uhtk75l6EFDV9C/pEwkmmgA5/h6PHGYGexQxWTf902/XDiRj7djuBiWKKATvPjA0JVC1DBPnZo8R0f9BBtl5SQ+r8VpgEXAWcztM1ump6EWNXbG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sON+SFJL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tthIghUp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C345C4CEF1;
-	Mon,  7 Apr 2025 19:47:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sON+SFJL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34504C4CEEA;
+	Mon,  7 Apr 2025 20:25:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744055249;
-	bh=zG91Fo92PL2lXuWapmPBbFoP9C9VK2BQmEEayq5N6o0=;
+	s=korg; t=1744057518;
+	bh=r8MUnYr5FEzg1vJXJArRomlFe/utVgwDosFrZ6s+NgM=;
 	h=Date:To:From:Subject:From;
-	b=tthIghUpWyWDxg7vOz/tYHJ3A6/nUeAEs7sZ4jaCXHHy5qPwYCdmBaqiMwf0P97ek
-	 4EMxV+q/D6JKirS1SfxWyF0crvMel1mLc3VhwaJEBeFhkDZiSuTacqPupEmfD25HPV
-	 lIjc4SaJFi/DKJnTXO5sz31mrIhQk+Jxn7PcXFxw=
-Date: Mon, 07 Apr 2025 12:47:28 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,michal.swiatkowski@linux.intel.com,dave.hansen@intel.com,andriy.shevchenko@intel.com,przemyslaw.kitszel@intel.com,akpm@linux-foundation.org
+	b=sON+SFJLC8CCRUd4b98FHkE/c+KnmnkOoTKGnpFoWsTWNMqd0xvpIy37SKnZvxr6K
+	 eE0tP7Psm98xFn8U0Ijr298Q+ijLTmnxRSxdw7BSgyPx1QGH4Fypv5ALOvmkqwoM2e
+	 WtWhERsfmALW+R4sV6qmTI0da01QFeWp/OAi5Iuo=
+Date: Mon, 07 Apr 2025 13:25:17 -0700
+To: mm-commits@vger.kernel.org,oleg@redhat.com,mjguzik@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases.patch added to mm-new branch
-Message-Id: <20250407194729.5C345C4CEF1@smtp.kernel.org>
+Subject: + exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch added to mm-nonmm-unstable branch
+Message-Id: <20250407202518.34504C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xarray: make xa_alloc_cyclic() return 0 on all success cases
-has been added to the -mm mm-new branch.  Its filename is
-     xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases.patch
+     Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,162 +58,141 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Subject: xarray: make xa_alloc_cyclic() return 0 on all success cases
-Date: Thu, 20 Mar 2025 11:22:19 +0100
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: exit: combine work under lock in synchronize_group_exit() and coredump_task_exit()
+Date: Wed, 19 Mar 2025 20:54:36 +0100
 
-Change xa_alloc_cyclic() to return 0 even on wrap-around.  Do the same for
-xa_alloc_cyclic_irq() and xa_alloc_cyclic_bh().
+This reduces single-threaded overhead as it avoids one lock+irq trip on
+exit.
 
-This will prevent any future bug of treating return of 1 as an error:
-	int ret = xa_alloc_cyclic(...)
-	if (ret) // currently mishandles ret==1
-		goto failure;
+It also improves scalability of spawning and killing threads within one
+process (just shy of 5% when doing it on 24 cores on my test jig).
 
-If there will be someone interested in when wrap-around occurs, there is
-still __xa_alloc_cyclic() that behaves as before.  For now there is no
-such user.
+Both routines are moved below kcov and kmsan exit, which should be
+harmless.
 
-Link: https://lkml.kernel.org/r/20250320102219.8101-1-przemyslaw.kitszel@intel.com
-Signed-off-by: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Link: https://lore.kernel.org/netdev/Z9gUd-5t8b5NX2wE@casper.infradead.org
-Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Michal Swiatkowski <michal.swiatkowski@linux.intel.com>
-Cc: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+Link: https://lkml.kernel.org/r/20250319195436.1864415-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xarray.h |   24 +++++++++++++++---------
- lib/test_xarray.c      |   17 +++++++++++++++--
- 2 files changed, 30 insertions(+), 11 deletions(-)
+ kernel/exit.c |   68 ++++++++++++++++++++++--------------------------
+ 1 file changed, 32 insertions(+), 36 deletions(-)
 
---- a/include/linux/xarray.h~xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases
-+++ a/include/linux/xarray.h
-@@ -965,10 +965,12 @@ static inline int __must_check xa_alloc_
-  * Must only be operated on an xarray initialized with flag XA_FLAGS_ALLOC set
-  * in xa_init_flags().
-  *
-+ * Note that callers interested in whether wrapping has occurred should
-+ * use __xa_alloc_cyclic() instead.
-+ *
-  * Context: Any context.  Takes and releases the xa_lock.  May sleep if
-  * the @gfp flags permit.
-- * Return: 0 if the allocation succeeded without wrapping.  1 if the
-- * allocation succeeded after wrapping, -ENOMEM if memory could not be
-+ * Return: 0 if the allocation succeeded, -ENOMEM if memory could not be
-  * allocated or -EBUSY if there are no free entries in @limit.
-  */
- static inline int xa_alloc_cyclic(struct xarray *xa, u32 *id, void *entry,
-@@ -981,7 +983,7 @@ static inline int xa_alloc_cyclic(struct
- 	err = __xa_alloc_cyclic(xa, id, entry, limit, next, gfp);
- 	xa_unlock(xa);
- 
--	return err;
-+	return err < 0 ? err : 0;
- }
- 
- /**
-@@ -1002,10 +1004,12 @@ static inline int xa_alloc_cyclic(struct
-  * Must only be operated on an xarray initialized with flag XA_FLAGS_ALLOC set
-  * in xa_init_flags().
-  *
-+ * Note that callers interested in whether wrapping has occurred should
-+ * use __xa_alloc_cyclic() instead.
-+ *
-  * Context: Any context.  Takes and releases the xa_lock while
-  * disabling softirqs.  May sleep if the @gfp flags permit.
-- * Return: 0 if the allocation succeeded without wrapping.  1 if the
-- * allocation succeeded after wrapping, -ENOMEM if memory could not be
-+ * Return: 0 if the allocation succeeded, -ENOMEM if memory could not be
-  * allocated or -EBUSY if there are no free entries in @limit.
-  */
- static inline int xa_alloc_cyclic_bh(struct xarray *xa, u32 *id, void *entry,
-@@ -1018,7 +1022,7 @@ static inline int xa_alloc_cyclic_bh(str
- 	err = __xa_alloc_cyclic(xa, id, entry, limit, next, gfp);
- 	xa_unlock_bh(xa);
- 
--	return err;
-+	return err < 0 ? err : 0;
- }
- 
- /**
-@@ -1039,10 +1043,12 @@ static inline int xa_alloc_cyclic_bh(str
-  * Must only be operated on an xarray initialized with flag XA_FLAGS_ALLOC set
-  * in xa_init_flags().
-  *
-+ * Note that callers interested in whether wrapping has occurred should
-+ * use __xa_alloc_cyclic() instead.
-+ *
-  * Context: Process context.  Takes and releases the xa_lock while
-  * disabling interrupts.  May sleep if the @gfp flags permit.
-- * Return: 0 if the allocation succeeded without wrapping.  1 if the
-- * allocation succeeded after wrapping, -ENOMEM if memory could not be
-+ * Return: 0 if the allocation succeeded, -ENOMEM if memory could not be
-  * allocated or -EBUSY if there are no free entries in @limit.
-  */
- static inline int xa_alloc_cyclic_irq(struct xarray *xa, u32 *id, void *entry,
-@@ -1055,7 +1061,7 @@ static inline int xa_alloc_cyclic_irq(st
- 	err = __xa_alloc_cyclic(xa, id, entry, limit, next, gfp);
- 	xa_unlock_irq(xa);
- 
--	return err;
-+	return err < 0 ? err : 0;
- }
- 
- /**
---- a/lib/test_xarray.c~xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases
-+++ a/lib/test_xarray.c
-@@ -1040,6 +1040,7 @@ static noinline void check_xa_alloc_3(st
- 	unsigned int i, id;
- 	unsigned long index;
- 	void *entry;
-+	int ret;
- 
- 	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(1), limit,
- 				&next, GFP_KERNEL) != 0);
-@@ -1059,7 +1060,7 @@ static noinline void check_xa_alloc_3(st
- 		else
- 			entry = xa_mk_index(i - 0x3fff);
- 		XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, entry, limit,
--					&next, GFP_KERNEL) != (id == 1));
-+					&next, GFP_KERNEL) != 0);
- 		XA_BUG_ON(xa, xa_mk_index(id) != entry);
+--- a/kernel/exit.c~exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit
++++ a/kernel/exit.c
+@@ -415,44 +415,30 @@ kill_orphaned_pgrp(struct task_struct *t
  	}
- 
-@@ -1072,7 +1073,7 @@ static noinline void check_xa_alloc_3(st
- 				xa_limit_32b, &next, GFP_KERNEL) != 0);
- 	XA_BUG_ON(xa, id != UINT_MAX);
- 	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(base),
--				xa_limit_32b, &next, GFP_KERNEL) != 1);
-+				xa_limit_32b, &next, GFP_KERNEL) != 0);
- 	XA_BUG_ON(xa, id != base);
- 	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(base + 1),
- 				xa_limit_32b, &next, GFP_KERNEL) != 0);
-@@ -1080,7 +1081,19 @@ static noinline void check_xa_alloc_3(st
- 
- 	xa_for_each(xa, index, entry)
- 		xa_erase_index(xa, index);
-+	XA_BUG_ON(xa, !xa_empty(xa));
- 
-+	/* check wrap-around return of __xa_alloc_cyclic() */
-+	next = UINT_MAX;
-+	XA_BUG_ON(xa, xa_alloc_cyclic(xa, &id, xa_mk_index(UINT_MAX),
-+				      xa_limit_32b, &next, GFP_KERNEL) != 0);
-+	xa_lock(xa);
-+	ret = __xa_alloc_cyclic(xa, &id, xa_mk_index(base), xa_limit_32b,
-+				&next, GFP_KERNEL);
-+	xa_unlock(xa);
-+	XA_BUG_ON(xa, ret != 1);
-+	xa_for_each(xa, index, entry)
-+		xa_erase_index(xa, index);
- 	XA_BUG_ON(xa, !xa_empty(xa));
  }
+ 
+-static void coredump_task_exit(struct task_struct *tsk)
++static void coredump_task_exit(struct task_struct *tsk,
++			       struct core_state *core_state)
+ {
+-	struct core_state *core_state;
++	struct core_thread self;
+ 
++	self.task = tsk;
++	if (self.task->flags & PF_SIGNALED)
++		self.next = xchg(&core_state->dumper.next, &self);
++	else
++		self.task = NULL;
+ 	/*
+-	 * Serialize with any possible pending coredump.
+-	 * We must hold siglock around checking core_state
+-	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
+-	 * will increment ->nr_threads for each thread in the
+-	 * group without PF_POSTCOREDUMP set.
++	 * Implies mb(), the result of xchg() must be visible
++	 * to core_state->dumper.
+ 	 */
+-	spin_lock_irq(&tsk->sighand->siglock);
+-	tsk->flags |= PF_POSTCOREDUMP;
+-	core_state = tsk->signal->core_state;
+-	spin_unlock_irq(&tsk->sighand->siglock);
+-	if (core_state) {
+-		struct core_thread self;
+-
+-		self.task = current;
+-		if (self.task->flags & PF_SIGNALED)
+-			self.next = xchg(&core_state->dumper.next, &self);
+-		else
+-			self.task = NULL;
+-		/*
+-		 * Implies mb(), the result of xchg() must be visible
+-		 * to core_state->dumper.
+-		 */
+-		if (atomic_dec_and_test(&core_state->nr_threads))
+-			complete(&core_state->startup);
++	if (atomic_dec_and_test(&core_state->nr_threads))
++		complete(&core_state->startup);
+ 
+-		for (;;) {
+-			set_current_state(TASK_IDLE|TASK_FREEZABLE);
+-			if (!self.task) /* see coredump_finish() */
+-				break;
+-			schedule();
+-		}
+-		__set_current_state(TASK_RUNNING);
++	for (;;) {
++		set_current_state(TASK_IDLE|TASK_FREEZABLE);
++		if (!self.task) /* see coredump_finish() */
++			break;
++		schedule();
+ 	}
++	__set_current_state(TASK_RUNNING);
+ }
+ 
+ #ifdef CONFIG_MEMCG
+@@ -876,6 +862,7 @@ static void synchronize_group_exit(struc
+ {
+ 	struct sighand_struct *sighand = tsk->sighand;
+ 	struct signal_struct *signal = tsk->signal;
++	struct core_state *core_state;
+ 
+ 	spin_lock_irq(&sighand->siglock);
+ 	signal->quick_threads--;
+@@ -885,7 +872,19 @@ static void synchronize_group_exit(struc
+ 		signal->group_exit_code = code;
+ 		signal->group_stop_count = 0;
+ 	}
++	/*
++	 * Serialize with any possible pending coredump.
++	 * We must hold siglock around checking core_state
++	 * and setting PF_POSTCOREDUMP.  The core-inducing thread
++	 * will increment ->nr_threads for each thread in the
++	 * group without PF_POSTCOREDUMP set.
++	 */
++	tsk->flags |= PF_POSTCOREDUMP;
++	core_state = signal->core_state;
+ 	spin_unlock_irq(&sighand->siglock);
++
++	if (unlikely(core_state))
++		coredump_task_exit(tsk, core_state);
+ }
+ 
+ void __noreturn do_exit(long code)
+@@ -894,15 +893,12 @@ void __noreturn do_exit(long code)
+ 	int group_dead;
+ 
+ 	WARN_ON(irqs_disabled() && system_state != SYSTEM_POWER_OFF);
+-
+-	synchronize_group_exit(tsk, code);
+-
+ 	WARN_ON(tsk->plug);
+ 
+ 	kcov_task_exit(tsk);
+ 	kmsan_task_exit(tsk);
+ 
+-	coredump_task_exit(tsk);
++	synchronize_group_exit(tsk, code);
+ 	ptrace_event(PTRACE_EVENT_EXIT, code);
+ 	user_events_exit(tsk);
  
 _
 
-Patches currently in -mm which might be from przemyslaw.kitszel@intel.com are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
-xarray-make-xa_alloc_cyclic-return-0-on-all-success-cases.patch
+exit-combine-work-under-lock-in-synchronize_group_exit-and-coredump_task_exit.patch
 
