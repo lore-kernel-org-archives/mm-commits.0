@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1DA3B665
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 00:59:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15DC1191
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743987588; cv=none; b=XkObsi8wQcLfhSRod90ZoElAm03CuIIE/KXjCDThschGDXpVcnSl0fA80+hjcPplSS43kEJkL0j4J3Q08cBFohF3U+DVzlSbaNPcjNtcLCMA17YsLcQ36iF5q+Jby659bM/2dYnzGgGrvYcfA/HZGwCeLD8S7M6eIgb6zvFI7gg=
+	t=1743987752; cv=none; b=YpVAq/san3Ond+gw0ecSjhyNQu9p8zhot+kdO5cPFYT1uAWz68E/T4rViC3kgD/RiRqSOGvl+VzgaUkGoOG8vsafuRK+4tVsUJx2Qev4AqeZk8waiNpZN8TUTEstB/0u2Yd1W4SCPMSVw8F1dbfngf/VI056g/pxpESXmG866jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743987588; c=relaxed/simple;
-	bh=p+9hQcRAm2wf8YRj4a6jEpT05tKd/CjdI48dlaN2CWU=;
-	h=Date:To:From:Subject:Message-Id; b=StiGKK4iu0myh2I83RwWBBiWqkHUb9cVGURbUAid3tLZXkxoHf3ZFoTJ2M6aoMLIzrfl/yuxyb0v+mzUZhCyFYCiXJpJ0SzRTTTkC6eH72TVbCFZWiFLyPPc3oYCAhk0311v2QoCVj3bYHCxwF/ilkxzFY+B/fmf3qqd4snl3mA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WRr66CUr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743987752; c=relaxed/simple;
+	bh=ajb74bhY7wHfBrCdP2KvdQINaPs2tntTnrzpYHvW9Wk=;
+	h=Date:To:From:Subject:Message-Id; b=GcencdSLpQhnofcKANvAgvCJG4WpsZNWlCEy8zkx7MCmY7oD3JQrgsuD21QmKp9K99VwZNDjIOdrJC/IFnXoKhmQaq/zcIR6raDYsB+o5Z5AJs5i1OmgI57K09jcpv40ZGhkzz+Jdd3O8nBVgh11nwoZeSv1eqqR7BqCrSwPGWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RnEUzWY8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WRr66CUr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05729C4CEEA;
-	Mon,  7 Apr 2025 00:59:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RnEUzWY8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41050C4CEE3;
+	Mon,  7 Apr 2025 01:02:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743987588;
-	bh=p+9hQcRAm2wf8YRj4a6jEpT05tKd/CjdI48dlaN2CWU=;
+	s=korg; t=1743987751;
+	bh=ajb74bhY7wHfBrCdP2KvdQINaPs2tntTnrzpYHvW9Wk=;
 	h=Date:To:From:Subject:From;
-	b=WRr66CUrk8f6FnxiubdAClSvCHsnMdZmi4QDo/Y2JWpET5jbqXP8loghz0nP/9tAB
-	 F6J6t63fhZbXmBp4hBT+B/ztKLuy7a5EH3IAOSsilU7YlK1uSObhEAWykxCezlZMr+
-	 HdkEidLykLG575SSdroe2ILgkG2M4FaxZP2DKjkQ=
-Date: Sun, 06 Apr 2025 17:59:47 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=RnEUzWY8m0d+efEqDspxwMvg0G07sqjB8OGaBIXAIxbWZyad0jNScgF7iUST/vy2S
+	 L7KhNOPQeTUfDBCVc15aEKUF9SF+7+2EZkYYFhcilSJqo+WuE04sPbOaBM5ICkgVsT
+	 hRJvOcgyotBX2P/VheGeurJ6a4SQSojym7boEoZk=
+Date: Sun, 06 Apr 2025 18:02:30 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,shakeel.butt@linux.dev,riel@surriel.com,mgorman@techsingularity.net,liuye@kylinos.cn,hughd@google.com,vny@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch removed from -mm tree
-Message-Id: <20250407005948.05729C4CEEA@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-batch-tlb-flush-during-memory-reclaim.patch removed from -mm tree
+Message-Id: <20250407010231.41050C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,187 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
+     Subject: mm/vmscan: batch TLB flush during memory reclaim
 has been removed from the -mm tree.  Its filename was
-     memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
+     mm-vmscan-batch-tlb-flush-during-memory-reclaim.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
-Date: Wed, 2 Apr 2025 23:12:12 -0400
+From: Vinay Banakar <vny@google.com>
+Subject: mm/vmscan: batch TLB flush during memory reclaim
+Date: Fri, 28 Mar 2025 14:20:55 -0400
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test because of the fact that two of its test child cgroups which have
-a memmory.low of 0 or an effective memory.low of 0 still have low events
-generated for them since mem_cgroup_below_low() use the ">=" operator when
-comparing to elow.
+The current implementation in shrink_folio_list() performs a full TLB
+flush for every individual folio reclaimed.  This causes unnecessary
+overhead during memory reclaim.
 
-The simple fix of changing the operator to ">", however, changes the way
-memory reclaim works quite drastically leading to other failures.  So we
-can't do that without some relatively riskier changes in memory reclaim.
+The current code:
+1. Clears PTEs and unmaps each page individually
+2. Performs a full TLB flush on every CPU the mm is running on
 
-Another simpler alternative is to avoid reporting below_low failure if
-either memory.low or its effective equivalent is 0 which is done by this
-patch.
+The new code:
+1. Clears PTEs and unmaps each page individually
+2. Adds each unmapped page to pageout_folios
+3. Flushes the TLB once before procesing pageout_folios
 
-With this patch applied, the test_memcg_low sub-test finishes successfully
-without failure in most cases.  Though both test_memcg_low and
-test_memcg_min sub-tests may fail occasionally if the memory.current
-values fall outside of the expected ranges.
+This reduces the number of TLB flushes issued by the memory reclaim code
+by 1/N, where N is the number of mapped folios encountered in the batch
+processed by shrink_folio_list.
 
-To be consistent, similar change is appled to mem_cgroup_below_min()
-as well.
-
-Link: https://lkml.kernel.org/r/20250403031212.317837-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+[riel@surriel.com: forward port to 6.14, adjust code and naming to match surrounding code]
+Link: https://lkml.kernel.org/r/20250328142055.313916d1@fangorn
+Signed-off-by: Vinay Banakar <vny@google.com>
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liu Ye <liuye@kylinos.cn>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/vmscan.c |  112 ++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 68 insertions(+), 44 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0
-+++ a/include/linux/memcontrol.h
-@@ -601,21 +601,31 @@ static inline bool mem_cgroup_unprotecte
- static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
- 					struct mem_cgroup *memcg)
- {
-+	unsigned long elow;
-+
- 	if (mem_cgroup_unprotected(target, memcg))
- 		return false;
+--- a/mm/vmscan.c~mm-vmscan-batch-tlb-flush-during-memory-reclaim
++++ a/mm/vmscan.c
+@@ -1101,6 +1101,7 @@ static unsigned int shrink_folio_list(st
+ 	struct folio_batch free_folios;
+ 	LIST_HEAD(ret_folios);
+ 	LIST_HEAD(demote_folios);
++	LIST_HEAD(pageout_folios);
+ 	unsigned int nr_reclaimed = 0, nr_demoted = 0;
+ 	unsigned int pgactivate = 0;
+ 	bool do_demote_pass;
+@@ -1428,51 +1429,10 @@ retry:
+ 				goto keep_locked;
  
--	return READ_ONCE(memcg->memory.elow) >=
--		page_counter_read(&memcg->memory);
-+	elow = READ_ONCE(memcg->memory.elow);
-+	if (!elow || !READ_ONCE(memcg->memory.low))
-+		return false;
-+
-+	return page_counter_read(&memcg->memory) <= elow;
- }
+ 			/*
+-			 * Folio is dirty. Flush the TLB if a writable entry
+-			 * potentially exists to avoid CPU writes after I/O
+-			 * starts and then write it out here.
++			 * Add to pageout list for batched TLB flushing and IO submission.
+ 			 */
+-			try_to_unmap_flush_dirty();
+-			switch (pageout(folio, mapping, &plug, folio_list)) {
+-			case PAGE_KEEP:
+-				goto keep_locked;
+-			case PAGE_ACTIVATE:
+-				/*
+-				 * If shmem folio is split when writeback to swap,
+-				 * the tail pages will make their own pass through
+-				 * this function and be accounted then.
+-				 */
+-				if (nr_pages > 1 && !folio_test_large(folio)) {
+-					sc->nr_scanned -= (nr_pages - 1);
+-					nr_pages = 1;
+-				}
+-				goto activate_locked;
+-			case PAGE_SUCCESS:
+-				if (nr_pages > 1 && !folio_test_large(folio)) {
+-					sc->nr_scanned -= (nr_pages - 1);
+-					nr_pages = 1;
+-				}
+-				stat->nr_pageout += nr_pages;
+-
+-				if (folio_test_writeback(folio))
+-					goto keep;
+-				if (folio_test_dirty(folio))
+-					goto keep;
+-
+-				/*
+-				 * A synchronous write - probably a ramdisk.  Go
+-				 * ahead and try to reclaim the folio.
+-				 */
+-				if (!folio_trylock(folio))
+-					goto keep;
+-				if (folio_test_dirty(folio) ||
+-				    folio_test_writeback(folio))
+-					goto keep_locked;
+-				mapping = folio_mapping(folio);
+-				fallthrough;
+-			case PAGE_CLEAN:
+-				; /* try to free the folio below */
+-			}
++			list_add(&folio->lru, &pageout_folios);
++			continue;
+ 		}
  
- static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
- 					struct mem_cgroup *memcg)
- {
-+	unsigned long emin;
-+
- 	if (mem_cgroup_unprotected(target, memcg))
- 		return false;
+ 		/*
+@@ -1583,6 +1543,70 @@ keep:
+ 	}
+ 	/* 'folio_list' is always empty here */
  
--	return READ_ONCE(memcg->memory.emin) >=
--		page_counter_read(&memcg->memory);
-+	emin = READ_ONCE(memcg->memory.emin);
-+	if (!emin || !READ_ONCE(memcg->memory.min))
-+		return false;
++	if (!list_empty(&pageout_folios)) {
++		/*
++		 * The loop above unmapped the folios from the page tables.
++		 * One TLB flush takes care of the whole batch.
++		 */
++		try_to_unmap_flush_dirty();
 +
-+	return page_counter_read(&memcg->memory) <= emin;
- }
- 
- int __mem_cgroup_charge(struct folio *folio, struct mm_struct *mm, gfp_t gfp);
++		while (!list_empty(&pageout_folios)) {
++			struct folio *folio = lru_to_folio(&pageout_folios);
++			struct address_space *mapping;
++			list_del(&folio->lru);
++
++			/* Recheck if the page got reactivated */
++			if (folio_test_active(folio) || folio_mapped(folio))
++				goto skip_pageout_locked;
++
++			mapping = folio_mapping(folio);
++			switch (pageout(folio, mapping, &plug, &pageout_folios)) {
++			case PAGE_KEEP:
++			case PAGE_ACTIVATE:
++				goto skip_pageout_locked;
++			case PAGE_SUCCESS:
++				/*
++				 * If shmem folio is split when writeback to swap,
++				 * the tail pages will make their own pass through
++				 * this loop and be accounted then.
++				 */
++				stat->nr_pageout += folio_nr_pages(folio);
++
++				if (folio_test_writeback(folio))
++					goto skip_pageout;
++				if (folio_test_dirty(folio))
++					goto skip_pageout;
++
++				/*
++				 * A synchronous write - probably a ramdisk.  Go
++				 * ahead and try to reclaim the folio.
++				 */
++				if (!folio_trylock(folio))
++					goto skip_pageout;
++				if (folio_test_dirty(folio) ||
++				    folio_test_writeback(folio))
++					goto skip_pageout_locked;
++				mapping = folio_mapping(folio);
++				/* try to free the folio below */
++				fallthrough;
++			case PAGE_CLEAN:
++				/* try to free the folio */
++				if (!mapping ||
++				    !remove_mapping(mapping, folio))
++					goto skip_pageout_locked;
++
++				nr_reclaimed += folio_nr_pages(folio);
++				folio_unlock(folio);
++				continue;
++			}
++
++skip_pageout_locked:
++			folio_unlock(folio);
++skip_pageout:
++			list_add(&folio->lru, &ret_folios);
++		}
++	}
++
+ 	/* Migrate folios selected for demotion */
+ 	nr_demoted = demote_folio_list(&demote_folios, pgdat);
+ 	nr_reclaimed += nr_demoted;
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from vny@google.com are
 
 
