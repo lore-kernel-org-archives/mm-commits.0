@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 800E91FBE9E
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:11:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B44156CA
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:12:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743988319; cv=none; b=cDrfBv4W11YLY9qkgKqYXdxaI6tEPUoqA2NIFkDGB4tJoFRUq/Ur/pnLoLCti7aX8gY8Us9617mtr6AtI+Hd4cfds6GkXH/FaVxcSrEFnrS6S324JeN1uA8P0Ap19GcBTPZTC1R9+sZIqAfj1frfnoEBif2L5JlrH9jmqXSf+7s=
+	t=1743988321; cv=none; b=mocn62ILUwOpaNONBcLvRp6Lk7xnS6/oV1jZ0vsxAYdJPx0qrVbuFy99mTaSbjAqfCQLev697877D/Dws/pem0xmOe7vgw0Rr2rk94Lx/gnmGmmDE8fFXUtigjqxeRk+ugNaFfVliAjcAg8zuf9ZsEocbPkTzv7tacsCXppIo8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743988319; c=relaxed/simple;
-	bh=hmmKTXLnPlFfRYfCeBaKF6qPc1swmIfs0Q4bqZv7cTQ=;
-	h=Date:To:From:Subject:Message-Id; b=jqAdrH/R+D6ZIcmOfYp3lBoCrNX5y/rKq/8Eeu5U09WdEvPQG7twSxfARQ5VjFJ6GW56Dvs7P/yPRFz7JPXHeS8cNDtW8F+5Z2YB/pFnjpgc8dmv5nvKNkFLdD6WpJYvsOfZkGZuMPhbacqT0wf3Il0VpF0avT4tJ1VbQWQzKJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XQcag2SU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743988321; c=relaxed/simple;
+	bh=ndy/7QXO7vyCAUgP/tH+SkN6JvhKG23+JalftM3DeKo=;
+	h=Date:To:From:Subject:Message-Id; b=QpHBwuIMxyZwrDS+0n8qS0J+8Qq92TjH1XZinTgdy+OmV6/W2Up6aodNOJNx6PGouwZ+ZyN+lidcJNIXzb2MFGY/D1qULpCyeV+jTs8RF9tSiv8t92hMr9B5BBF05MkMcejuHVyAZ+HcsQCfgqG3H1e28dBt1TDgwftTsLW9Eb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G/Nh6l9r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XQcag2SU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2F33C4CEE3;
-	Mon,  7 Apr 2025 01:11:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G/Nh6l9r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E6CC4CEE3;
+	Mon,  7 Apr 2025 01:12:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743988319;
-	bh=hmmKTXLnPlFfRYfCeBaKF6qPc1swmIfs0Q4bqZv7cTQ=;
+	s=korg; t=1743988321;
+	bh=ndy/7QXO7vyCAUgP/tH+SkN6JvhKG23+JalftM3DeKo=;
 	h=Date:To:From:Subject:From;
-	b=XQcag2SUn26T8gVvcYvMRhHUmU7/FN59iSuYkGgddiy59jqL9RzZUhcL29a7kCdCl
-	 pCdrUDJW3j9WsI9O0sndnf0NQZbrH8Y+ZJwIHhp6rVR88bTLHHLKEIqQSzAYpoNzFs
-	 G3RMlYVh5Kw+cZqVcOj3xoIrWl0SEZmrC8+8Pvos=
-Date: Sun, 06 Apr 2025 18:11:58 -0700
+	b=G/Nh6l9rQjOTcOpYjZ9OPg/UgjBKZJzq//LuxlCgXB9aFAzV5c3KCXgvt2j9/Q8fB
+	 Pk0HXpKiTQ0lqptpTarA+9D9o0n58IfBt0zUoAwe/f/BSZQ90x3glUFLlWdnbTCndE
+	 nwPCT9OZYzash8/CI/S2eyygiSmcoYHxItqN64Rc=
+Date: Sun, 06 Apr 2025 18:12:00 -0700
 To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,kasong@tencent.com,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch added to mm-new branch
-Message-Id: <20250407011158.F2F33C4CEE3@smtp.kernel.org>
+Subject: + mm-swap-replace-cluster_swap_free_nr-with-swap_entries_put_.patch added to mm-new branch
+Message-Id: <20250407011200.E7E6CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: factor out helper to drop cache of entries within a single cluster
+     Subject: mm: swap: replace cluster_swap_free_nr() with swap_entries_put_[map/cache]()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch
+     mm-swap-replace-cluster_swap_free_nr-with-swap_entries_put_.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-replace-cluster_swap_free_nr-with-swap_entries_put_.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm: swap: factor out helper to drop cache of entries within a single cluster
-Date: Wed, 26 Mar 2025 00:25:27 +0800
+Subject: mm: swap: replace cluster_swap_free_nr() with swap_entries_put_[map/cache]()
+Date: Wed, 26 Mar 2025 00:25:28 +0800
 
-Factor out helper swap_entries_put_cache() from put_swap_folio() to serve
-as a general-purpose routine for dropping cache flag of entries within a
-single cluster.
+Replace cluster_swap_free_nr() with swap_entries_put_[map/cache]() to
+remove repeat code and leverage batch-remove for entries with last flag. 
+After removing cluster_swap_free_nr, only functions with "_nr" suffix
+could free entries spanning cross clusters.  Add corresponding description
+in comment of swap_entries_put_map_nr() as is first function with "_nr"
+suffix and have a non-suffix variant function swap_entries_put_map().
 
-Link: https://lkml.kernel.org/r/20250325162528.68385-8-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20250325162528.68385-9-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
@@ -74,59 +77,71 @@ Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ mm/swapfile.c |   30 +++++++++++-------------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster
+--- a/mm/swapfile.c~mm-swap-replace-cluster_swap_free_nr-with-swap_entries_put_
 +++ a/mm/swapfile.c
-@@ -1454,6 +1454,22 @@ put_out:
- 	return NULL;
+@@ -1511,6 +1511,11 @@ locked_fallback:
+ 
  }
  
-+static void swap_entries_put_cache(struct swap_info_struct *si,
-+				   swp_entry_t entry, int nr)
-+{
-+	unsigned long offset = swp_offset(entry);
-+	struct swap_cluster_info *ci;
-+
-+	ci = lock_cluster(si, offset);
-+	if (swap_only_has_cache(si, offset, nr))
-+		swap_entries_free(si, ci, entry, nr);
-+	else {
-+		for (int i = 0; i < nr; i++, entry.val++)
-+			swap_entry_put_locked(si, ci, entry, SWAP_HAS_CACHE);
-+	}
-+	unlock_cluster(ci);
-+}
-+
- static bool swap_entries_put_map(struct swap_info_struct *si,
- 				 swp_entry_t entry, int nr)
++/*
++ * Only functions with "_nr" suffix are able to free entries spanning
++ * cross multi clusters, so ensure the range is within a single cluster
++ * when freeing entries with functions without "_nr" suffix.
++ */
+ static bool swap_entries_put_map_nr(struct swap_info_struct *si,
+ 				    swp_entry_t entry, int nr)
  {
-@@ -1594,8 +1610,6 @@ void swap_free_nr(swp_entry_t entry, int
-  */
- void put_swap_folio(struct folio *folio, swp_entry_t entry)
+@@ -1568,21 +1573,6 @@ static void swap_entries_free(struct swa
+ 		partial_free_cluster(si, ci);
+ }
+ 
+-static void cluster_swap_free_nr(struct swap_info_struct *si,
+-		unsigned long offset, int nr_pages,
+-		unsigned char usage)
+-{
+-	struct swap_cluster_info *ci;
+-	unsigned long end = offset + nr_pages;
+-
+-	ci = lock_cluster(si, offset);
+-	do {
+-		swap_entry_put_locked(si, ci, swp_entry(si->type, offset),
+-				      usage);
+-	} while (++offset < end);
+-	unlock_cluster(ci);
+-}
+-
+ /*
+  * Caller has made sure that the swap device corresponding to entry
+  * is still around or has not been recycled.
+@@ -1599,7 +1589,7 @@ void swap_free_nr(swp_entry_t entry, int
+ 
+ 	while (nr_pages) {
+ 		nr = min_t(int, nr_pages, SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
+-		cluster_swap_free_nr(sis, offset, nr, 1);
++		swap_entries_put_map(sis, swp_entry(sis->type, offset), nr);
+ 		offset += nr;
+ 		nr_pages -= nr;
+ 	}
+@@ -3645,11 +3635,13 @@ int swapcache_prepare(swp_entry_t entry,
+ 	return __swap_duplicate(entry, SWAP_HAS_CACHE, nr);
+ }
+ 
++/*
++ * Caller should ensure entries belong to the same folio so
++ * the entries won't span cross cluster boundary.
++ */
+ void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr)
  {
 -	unsigned long offset = swp_offset(entry);
--	struct swap_cluster_info *ci;
- 	struct swap_info_struct *si;
- 	int size = 1 << swap_entry_order(folio_order(folio));
- 
-@@ -1603,14 +1617,7 @@ void put_swap_folio(struct folio *folio,
- 	if (!si)
- 		return;
- 
--	ci = lock_cluster(si, offset);
--	if (swap_only_has_cache(si, offset, size))
--		swap_entries_free(si, ci, entry, size);
--	else {
--		for (int i = 0; i < size; i++, entry.val++)
--			swap_entry_put_locked(si, ci, entry, SWAP_HAS_CACHE);
--	}
--	unlock_cluster(ci);
-+	swap_entries_put_cache(si, entry, size);
+-
+-	cluster_swap_free_nr(si, offset, nr, SWAP_HAS_CACHE);
++	swap_entries_put_cache(si, entry, nr);
  }
  
- int __swap_count(swp_entry_t entry)
+ struct swap_info_struct *swp_swap_info(swp_entry_t entry)
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
