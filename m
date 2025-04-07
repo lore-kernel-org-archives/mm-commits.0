@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22D81917FB;
-	Mon,  7 Apr 2025 02:01:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDD9013777E;
+	Mon,  7 Apr 2025 04:40:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743991285; cv=none; b=d2tUXZ7fJSR6yb+19GHB/nFh8uaW34q8r9xm/zb3JLBGzAdnSHZSOygZ/6F35Q/17MrkFzdWIUMnVCwB6ICjiSLcIxh4cZf07HIp4YBltqnv6DAmnaeXWKUCjFBrkLTd1DoQVb57edzBpeAEii4SJyaGCuNmtVlGR4q9/rqvWyY=
+	t=1744000809; cv=none; b=IjPSrlkkSE4UY66zxQEeWOmanlpzXXq5f5TYthunr5AarWrQQCFrhgLKnwnfnKwazuB4CEyz0xIvJ93GVwF46rDXCwFt18VQtvXBIFggdVi7ivZMo3c2l8jMyBF3wbQT/x1EagPXXOshmMJXT2oj/nYWwn+gNQvsQYF0R1ktKLM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743991285; c=relaxed/simple;
-	bh=fIUxbyamkEFrpHCz1Gav28IDD7hLkl9qS7115F388qA=;
-	h=Date:To:From:Subject:Message-Id; b=NU/rVdA+oYYvVH5i3bnf44KVeLgZHYKQMItLmZz3M8dhS7+4EA3z/iO6KYu95jQJ0sWKD29Cyj6y6kElxMb0uZxmKA9ohTcgCFmn0KgwDxfEhNLeKxA9U6V0PifZWre28m8y/oYLb1T/YAG2E7100OPyMaDY3QDtHmY8tq2qn1A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sum2x4QJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744000809; c=relaxed/simple;
+	bh=DdI7a0+LWszecRoje8fsEfEW1Lij//y5Gojy5Y7Obds=;
+	h=Date:To:From:Subject:Message-Id; b=elUyfBsOgp0KM0pB0HopUUfkGHV8dZ/02sKzJGYxMoF+0EDiPcGqLilAfHvZWPgBFRr0r5l1rmy1y2+lSOQM8S3H+dLKVfPwUMU2t3k1SMmk7hnMBPfvqFe8M3a95NSd+QKmoJTy3WrJT42I8TpO5D15txm68nK1c6I60Ix2Qvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jyVgKf0H; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sum2x4QJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62A81C4CEE3;
-	Mon,  7 Apr 2025 02:01:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jyVgKf0H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217DFC4CEDD;
+	Mon,  7 Apr 2025 04:40:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743991285;
-	bh=fIUxbyamkEFrpHCz1Gav28IDD7hLkl9qS7115F388qA=;
+	s=korg; t=1744000809;
+	bh=DdI7a0+LWszecRoje8fsEfEW1Lij//y5Gojy5Y7Obds=;
 	h=Date:To:From:Subject:From;
-	b=Sum2x4QJx+R7qKWFCPaRjq4LPtW20N4426hZ6vHrNKVsZvCsMzqa18ID2uisT+ar/
-	 a6Gpk+TiuGERZ8B1Q/NvTYUUvNZsXnP2JZmTmc7xOLFWWj4ChM+6qOcJXdJIHXF5Wk
-	 K6w2N4urB2k/2pjEbB0nSmKbC/rlaVATt3S/1h/4=
-Date: Sun, 06 Apr 2025 19:01:24 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=jyVgKf0H3LBKouimxV3ZOCNRpoEB7mpbXjmLnVnJI2jgEYdvLdHba3Z54RQlCLt1k
+	 7vl/v3hxx3SH2/AqxwNxk/p/UUGRm9crE4pin5HDPUqG6t4acT4NySKuyI6X6Pjav4
+	 iLsOhxUTNRNCrXTtXa4bP99p/+cLfRvSX2pJUmPA=
+Date: Sun, 06 Apr 2025 21:40:08 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pfalcato@suse.de,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-fix-call-folio_test_large-with-tail-page-in-do_migrate_range.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250407020125.62A81C4CEE3@smtp.kernel.org>
+Subject: + mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250407044009.217DFC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: fix call folio_test_large with tail page in do_migrate_range
+     Subject: mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory_hotplug-fix-call-folio_test_large-with-tail-page-in-do_migrate_range.patch
+     mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-fix-call-folio_test_large-with-tail-page-in-do_migrate_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,97 +58,237 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/memory_hotplug: fix call folio_test_large with tail page in do_migrate_range
-Date: Mon, 24 Mar 2025 21:17:50 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
+Date: Fri, 21 Mar 2025 10:09:37 +0000
 
-We triggered the below BUG:
+Currently, if a VMA merge fails due to an OOM condition arising on commit
+merge or a failure to duplicate anon_vma's, we report this so the caller
+can handle it.
 
- page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x2 pfn:0x240402
- head: order:9 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
- flags: 0x1ffffe0000000040(head|node=1|zone=3|lastcpupid=0x1ffff)
- page_type: f4(hugetlb)
- page dumped because: VM_BUG_ON_PAGE(page->compound_head & 1)
- ------------[ cut here ]------------
- kernel BUG at ./include/linux/page-flags.h:310!
- Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
- Modules linked in:
- CPU: 7 UID: 0 PID: 166 Comm: sh Not tainted 6.14.0-rc7-dirty #374
- Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
- pstate: 60000005 (nZCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
- pc : const_folio_flags+0x3c/0x58
- lr : const_folio_flags+0x3c/0x58
- Call trace:
-  const_folio_flags+0x3c/0x58 (P)
-  do_migrate_range+0x164/0x720
-  offline_pages+0x63c/0x6fc
-  memory_subsys_offline+0x190/0x1f4
-  device_offline+0xc0/0x13c
-  state_store+0x90/0xd8
-  dev_attr_store+0x18/0x2c
-  sysfs_kf_write+0x44/0x54
-  kernfs_fop_write_iter+0x120/0x1cc
-  vfs_write+0x240/0x378
-  ksys_write+0x70/0x108
-  __arm64_sys_write+0x1c/0x28
-  invoke_syscall+0x48/0x10c
-  el0_svc_common.constprop.0+0x40/0xe0
+However there are cases where the caller is only ostensibly trying a
+merge, and doesn't mind if it fails due to this condition.
 
-When allocating a hugetlb folio, between the folio is taken from buddy and
-prep_compound_page() is called, start_isolate_page_range() and
-do_migrate_range() is called.  When do_migrate_range() scans the head page
-of the hugetlb folio, the compound_head field isn't set, so scans the tail
-page next.  And at this time, the compound_head field of tail page is set,
-folio_test_large() is called by tail page, thus triggers VM_BUG_ON().
+Since we do not want to introduce an implicit assumption that we only
+actually modify VMAs after OOM conditions might arise, add a 'give up on
+oom' option and make an explicit contract that, should this flag be set, we
+absolutely will not modify any VMAs should OOM arise and just bail out.
 
-To fix it, get folio refcount before calling folio_test_large().
+Since it'd be very unusual for a user to try to vma_modify() with this flag
+set but be specifying a range within a VMA which ends up being split (which
+can fail due to rlimit issues, not only OOM), we add a debug warning for
+this condition.
 
-Link: https://lkml.kernel.org/r/20250324131750.1551884-1-tujinjiang@huawei.com
-Fixes: 8135d8926c08 ("mm: memory_hotplug: memory hotremove supports thp migration")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+The motivating reason for this is uffd release - syzkaller (and Pedro
+Falcato's VERY astute analysis) found a way in which an injected fault on
+allocation, triggering an OOM condition on commit merge, would result in
+uffd code becoming confused and treating an error value as if it were a VMA
+pointer.
+
+To avoid this, we make use of this new VMG flag to ensure that this never
+occurs, utilising the fact that, should we be clearing entire VMAs, we do
+not wish an OOM event to be reported to us.
+
+Many thanks to Pedro Falcato for his excellent analysis and Jann Horn for
+his insightful and intelligent analysis of the situation, both of whom were
+instrumental in this fix.
+
+Link: https://lkml.kernel.org/r/20250321100937.46634-1-lorenzo.stoakes@oracle.com
+Reported-by: syzbot+20ed41006cf9d842c2b5@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67dc67f0.050a0220.25ae54.001e.GAE@google.com/
+Fixes: 47b16d0462a4 ("mm: abort vma_modify() on merge out of memory failure")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Suggested-by: Pedro Falcato <pfalcato@suse.de>
+Suggested-by: Jann Horn <jannh@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/userfaultfd.c |   13 +++++++++--
+ mm/vma.c         |   51 +++++++++++++++++++++++++++++++++++++++++----
+ mm/vma.h         |    9 +++++++
+ 3 files changed, 66 insertions(+), 7 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-call-folio_test_large-with-tail-page-in-do_migrate_range
-+++ a/mm/memory_hotplug.c
-@@ -1813,21 +1813,15 @@ static void do_migrate_range(unsigned lo
- 		page = pfn_to_page(pfn);
- 		folio = page_folio(page);
- 
--		/*
--		 * No reference or lock is held on the folio, so it might
--		 * be modified concurrently (e.g. split).  As such,
--		 * folio_nr_pages() may read garbage.  This is fine as the outer
--		 * loop will revisit the split folio later.
--		 */
--		if (folio_test_large(folio))
--			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
--
- 		if (!folio_try_get(folio))
- 			continue;
- 
- 		if (unlikely(page_folio(page) != folio))
- 			goto put_folio;
- 
-+		if (folio_test_large(folio))
-+			pfn = folio_pfn(folio) + folio_nr_pages(folio) - 1;
+--- a/mm/userfaultfd.c~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
++++ a/mm/userfaultfd.c
+@@ -1902,6 +1902,14 @@ struct vm_area_struct *userfaultfd_clear
+ 					     unsigned long end)
+ {
+ 	struct vm_area_struct *ret;
++	bool give_up_on_oom = false;
 +
- 		if (folio_contain_hwpoisoned_page(folio)) {
- 			if (WARN_ON(folio_test_lru(folio)))
- 				folio_isolate_lru(folio);
++	/*
++	 * If we are modifying only and not splitting, just give up on the merge
++	 * if OOM prevents us from merging successfully.
++	 */
++	if (start == vma->vm_start && end == vma->vm_end)
++		give_up_on_oom = true;
+ 
+ 	/* Reset ptes for the whole vma range if wr-protected */
+ 	if (userfaultfd_wp(vma))
+@@ -1909,7 +1917,7 @@ struct vm_area_struct *userfaultfd_clear
+ 
+ 	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
+ 				    vma->vm_flags & ~__VM_UFFD_FLAGS,
+-				    NULL_VM_UFFD_CTX);
++				    NULL_VM_UFFD_CTX, give_up_on_oom);
+ 
+ 	/*
+ 	 * In the vma_merge() successful mprotect-like case 8:
+@@ -1960,7 +1968,8 @@ int userfaultfd_register_range(struct us
+ 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+ 		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
+ 					    new_flags,
+-					    (struct vm_userfaultfd_ctx){ctx});
++					    (struct vm_userfaultfd_ctx){ctx},
++					    /* give_up_on_oom = */false);
+ 		if (IS_ERR(vma))
+ 			return PTR_ERR(vma);
+ 
+--- a/mm/vma.c~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
++++ a/mm/vma.c
+@@ -666,6 +666,9 @@ static void vmg_adjust_set_range(struct
+ /*
+  * Actually perform the VMA merge operation.
+  *
++ * IMPORTANT: We guarantee that, should vmg->give_up_on_oom is set, to not
++ * modify any VMAs or cause inconsistent state should an OOM condition arise.
++ *
+  * Returns 0 on success, or an error value on failure.
+  */
+ static int commit_merge(struct vma_merge_struct *vmg)
+@@ -685,6 +688,12 @@ static int commit_merge(struct vma_merge
+ 
+ 	init_multi_vma_prep(&vp, vma, vmg);
+ 
++	/*
++	 * If vmg->give_up_on_oom is set, we're safe, because we don't actually
++	 * manipulate any VMAs until we succeed at preallocation.
++	 *
++	 * Past this point, we will not return an error.
++	 */
+ 	if (vma_iter_prealloc(vmg->vmi, vma))
+ 		return -ENOMEM;
+ 
+@@ -915,7 +924,13 @@ static __must_check struct vm_area_struc
+ 		if (anon_dup)
+ 			unlink_anon_vmas(anon_dup);
+ 
+-		vmg->state = VMA_MERGE_ERROR_NOMEM;
++		/*
++		 * We've cleaned up any cloned anon_vma's, no VMAs have been
++		 * modified, no harm no foul if the user requests that we not
++		 * report this and just give up, leaving the VMAs unmerged.
++		 */
++		if (!vmg->give_up_on_oom)
++			vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 		return NULL;
+ 	}
+ 
+@@ -926,7 +941,15 @@ static __must_check struct vm_area_struc
+ abort:
+ 	vma_iter_set(vmg->vmi, start);
+ 	vma_iter_load(vmg->vmi);
+-	vmg->state = VMA_MERGE_ERROR_NOMEM;
++
++	/*
++	 * This means we have failed to clone anon_vma's correctly, but no
++	 * actual changes to VMAs have occurred, so no harm no foul - if the
++	 * user doesn't want this reported and instead just wants to give up on
++	 * the merge, allow it.
++	 */
++	if (!vmg->give_up_on_oom)
++		vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 	return NULL;
+ }
+ 
+@@ -1068,6 +1091,10 @@ int vma_expand(struct vma_merge_struct *
+ 		/* This should already have been checked by this point. */
+ 		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
+ 		vma_start_write(next);
++		/*
++		 * In this case we don't report OOM, so vmg->give_up_on_mm is
++		 * safe.
++		 */
+ 		ret = dup_anon_vma(middle, next, &anon_dup);
+ 		if (ret)
+ 			return ret;
+@@ -1090,9 +1117,15 @@ int vma_expand(struct vma_merge_struct *
+ 	return 0;
+ 
+ nomem:
+-	vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 	if (anon_dup)
+ 		unlink_anon_vmas(anon_dup);
++	/*
++	 * If the user requests that we just give upon OOM, we are safe to do so
++	 * here, as commit merge provides this contract to us. Nothing has been
++	 * changed - no harm no foul, just don't report it.
++	 */
++	if (!vmg->give_up_on_oom)
++		vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 	return -ENOMEM;
+ }
+ 
+@@ -1534,6 +1567,13 @@ static struct vm_area_struct *vma_modify
+ 	if (vmg_nomem(vmg))
+ 		return ERR_PTR(-ENOMEM);
+ 
++	/*
++	 * Split can fail for reasons other than OOM, so if the user requests
++	 * this it's probably a mistake.
++	 */
++	VM_WARN_ON(vmg->give_up_on_oom &&
++		   (vma->vm_start != start || vma->vm_end != end));
++
+ 	/* Split any preceding portion of the VMA. */
+ 	if (vma->vm_start < start) {
+ 		int err = split_vma(vmg->vmi, vma, start, 1);
+@@ -1602,12 +1642,15 @@ struct vm_area_struct
+ 		       struct vm_area_struct *vma,
+ 		       unsigned long start, unsigned long end,
+ 		       unsigned long new_flags,
+-		       struct vm_userfaultfd_ctx new_ctx)
++		       struct vm_userfaultfd_ctx new_ctx,
++		       bool give_up_on_oom)
+ {
+ 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
+ 
+ 	vmg.flags = new_flags;
+ 	vmg.uffd_ctx = new_ctx;
++	if (give_up_on_oom)
++		vmg.give_up_on_oom = true;
+ 
+ 	return vma_modify(&vmg);
+ }
+--- a/mm/vma.h~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
++++ a/mm/vma.h
+@@ -114,6 +114,12 @@ struct vma_merge_struct {
+ 	 */
+ 	bool just_expand :1;
+ 
++	/*
++	 * If a merge is possible, but an OOM error occurs, give up and don't
++	 * execute the merge, returning NULL.
++	 */
++	bool give_up_on_oom :1;
++
+ 	/* Internal flags set during merge process: */
+ 
+ 	/*
+@@ -255,7 +261,8 @@ __must_check struct vm_area_struct
+ 		       struct vm_area_struct *vma,
+ 		       unsigned long start, unsigned long end,
+ 		       unsigned long new_flags,
+-		       struct vm_userfaultfd_ctx new_ctx);
++		       struct vm_userfaultfd_ctx new_ctx,
++		       bool give_up_on_oom);
+ 
+ __must_check struct vm_area_struct
+ *vma_merge_new_range(struct vma_merge_struct *vmg);
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
-mm-memory_hotplug-fix-call-folio_test_large-with-tail-page-in-do_migrate_range.patch
+mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
 
