@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B851314F123
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 05:02:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBEF185B4C
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 05:02:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744002152; cv=none; b=jT8Z/kPDY6uShP0GLng71n6rB7vekzfocgB7ANc7TAeMtxsUyfQflp4bLZnWwlil1axDkrxx46edX0KkSU5E2VhvTUFVITX0FJPuxmqKyyTQtgl7acV7zcGt+G7PsJ03wurxE02vzAtDg0pzODxyyEdC9AAg0fbMySf+LalZ+zc=
+	t=1744002154; cv=none; b=I9jEaj8w+jg0/quD5N6Uz0g5GhR0fOHaJSuBkMJ/vlQz5eFlhZL/iT6eauXJmyMdyzaIDhcHqNJ4lMJyCmU9ZU98A1A+nUKYEEMekKnxdBh8YGta1yICFJnDT1b0z/zJGz4ef5NpXlno8xswjaKK8JSPQ7sz9Bfh9bApODJhnNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744002152; c=relaxed/simple;
-	bh=1RCWgTrLBCSm0rrvm5dPh+W6Sk1moSHpnk7YLOWdr5Q=;
-	h=Date:To:From:Subject:Message-Id; b=bTdZZs715mNFUzyN3Zv0HkiAR/R6tSiutkWVRbPvOF2oyIJiJbeHoAIUfbl7ogjONNzOKuAD+eh9G16DP5F6YXa6zE5odZWIuNBOCdw+fbI7lmUrNrRhWTc9qiO/eg7zPhacFyfTaDvlUNpmp5bAC7B7Mib3isnispXWmI4A5EU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mMx+4jl4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744002154; c=relaxed/simple;
+	bh=IPBzVCyyVA+ZmWBhZ9DS6gG4ZgskapTsxXc8ABVzqgA=;
+	h=Date:To:From:Subject:Message-Id; b=A3NdzNNTsBjOJkqOMyxn6QlfC242C8iFDC3FQFmFnMWVsLV8W1Xn8WPKZw+mf0fFz+MDd7a+OgzjD8ztD0fb57V9XvtBFAbZahosh/ED4bFEaIEaoXxfx8q6z6ghFbsX4+q9ifF0w7qztrbmR6bf6wkMSr6eg5eB84F25rt+0FE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yb8d9idi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mMx+4jl4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19E1AC4CEDD;
-	Mon,  7 Apr 2025 05:02:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yb8d9idi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06505C4CEDD;
+	Mon,  7 Apr 2025 05:02:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744002152;
-	bh=1RCWgTrLBCSm0rrvm5dPh+W6Sk1moSHpnk7YLOWdr5Q=;
+	s=korg; t=1744002154;
+	bh=IPBzVCyyVA+ZmWBhZ9DS6gG4ZgskapTsxXc8ABVzqgA=;
 	h=Date:To:From:Subject:From;
-	b=mMx+4jl41j8j4MmjPAtd/iQYVWYlxFZC5XlM89rhhZ84xs5wCaeGRV/EMrUqSiG6r
-	 RR21R9aujNdjeybWO6IX59R1Oc0Uj0I9bDWR47xhHohsRGhPvQ3m1FoU3O8RGcvPgM
-	 2Kj5/l0dhUScrY/6iWY95htL2IBIXp0dL5yK4NiQ=
-Date: Sun, 06 Apr 2025 22:02:31 -0700
+	b=Yb8d9idiFrFFpblVk71MEoAOxAAPb/VCB1BRBQQUZl1knDsgzRFxlPgFCqlcNlFUk
+	 j0FnxQkBoBmHNj+qqXTds1bfxlSvwx+Gd+NBZ3YaqRj+2Zp9njsvhAWJR6NP9GuYJA
+	 z7SmPqwqAkeSpkI059dY37VfqmLrIK1l4PDcBgG4=
+Date: Sun, 06 Apr 2025 22:02:33 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,corbet@lwn.net,avagin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources.patch added to mm-new branch
-Message-Id: <20250407050232.19E1AC4CEDD@smtp.kernel.org>
+Subject: + selftests-mm-add-pagemap_scan-guard-region-test.patch added to mm-new branch
+Message-Id: <20250407050234.06505C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools headers UAPI: sync linux/fs.h with the kernel sources
+     Subject: selftests/mm: add PAGEMAP_SCAN guard region test
 has been added to the -mm mm-new branch.  Its filename is
-     tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources.patch
+     selftests-mm-add-pagemap_scan-guard-region-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-pagemap_scan-guard-region-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrei Vagin <avagin@gmail.com>
-Subject: tools headers UAPI: sync linux/fs.h with the kernel sources
-Date: Mon, 24 Mar 2025 06:53:27 +0000
+Subject: selftests/mm: add PAGEMAP_SCAN guard region test
+Date: Mon, 24 Mar 2025 06:53:28 +0000
 
-Required for a new PAGEMAP_SCAN test to verify guard region reporting.
+Add a selftest to verify the PAGEMAP_SCAN ioctl correctly reports guard
+regions using the newly introduced PAGE_IS_GUARD flag.
 
-Link: https://lkml.kernel.org/r/20250324065328.107678-3-avagin@google.com
+Link: https://lkml.kernel.org/r/20250324065328.107678-4-avagin@google.com
 Signed-off-by: Andrei Vagin <avagin@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -73,53 +74,82 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/uapi/linux/fs.h |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/guard-regions.c |   57 +++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
---- a/tools/include/uapi/linux/fs.h~tools-headers-uapi-sync-linux-fsh-with-the-kernel-sources
-+++ a/tools/include/uapi/linux/fs.h
-@@ -40,6 +40,15 @@
- #define BLOCK_SIZE_BITS 10
- #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
+--- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-add-pagemap_scan-guard-region-test
++++ a/tools/testing/selftests/mm/guard-regions.c
+@@ -8,6 +8,7 @@
+ #include <fcntl.h>
+ #include <linux/limits.h>
+ #include <linux/userfaultfd.h>
++#include <linux/fs.h>
+ #include <setjmp.h>
+ #include <signal.h>
+ #include <stdbool.h>
+@@ -2068,6 +2069,62 @@ TEST_F(guard_regions, pagemap)
+ 	}
  
-+/* flags for integrity meta */
-+#define IO_INTEGRITY_CHK_GUARD		(1U << 0) /* enforce guard check */
-+#define IO_INTEGRITY_CHK_REFTAG		(1U << 1) /* enforce ref check */
-+#define IO_INTEGRITY_CHK_APPTAG		(1U << 2) /* enforce app check */
+ 	ASSERT_EQ(close(proc_fd), 0);
++	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
++}
 +
-+#define IO_INTEGRITY_VALID_FLAGS (IO_INTEGRITY_CHK_GUARD | \
-+				  IO_INTEGRITY_CHK_REFTAG | \
-+				  IO_INTEGRITY_CHK_APPTAG)
++/*
++ * Assert that PAGEMAP_SCAN correctly reports guard region ranges.
++ */
++TEST_F(guard_regions, pagemap_scan)
++{
++	const unsigned long page_size = self->page_size;
++	struct page_region pm_regs[10];
++	struct pm_scan_arg pm_scan_args = {
++		.size = sizeof(struct pm_scan_arg),
++		.category_anyof_mask = PAGE_IS_GUARD,
++		.return_mask = PAGE_IS_GUARD,
++		.vec = (long)&pm_regs,
++		.vec_len = ARRAY_SIZE(pm_regs),
++	};
++	int proc_fd, i;
++	char *ptr;
 +
- #define SEEK_SET	0	/* seek relative to beginning of file */
- #define SEEK_CUR	1	/* seek relative to current file position */
- #define SEEK_END	2	/* seek relative to end of file */
-@@ -329,9 +338,16 @@ typedef int __bitwise __kernel_rwf_t;
- /* per-IO negation of O_APPEND */
- #define RWF_NOAPPEND	((__force __kernel_rwf_t)0x00000020)
- 
-+/* Atomic Write */
-+#define RWF_ATOMIC	((__force __kernel_rwf_t)0x00000040)
++	proc_fd = open("/proc/self/pagemap", O_RDONLY);
++	ASSERT_NE(proc_fd, -1);
 +
-+/* buffered IO that drops the cache after reading or writing data */
-+#define RWF_DONTCACHE	((__force __kernel_rwf_t)0x00000080)
++	ptr = mmap_(self, variant, NULL, 10 * page_size,
++		    PROT_READ | PROT_WRITE, 0, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
 +
- /* mask of flags supported by the kernel */
- #define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT |\
--			 RWF_APPEND | RWF_NOAPPEND)
-+			 RWF_APPEND | RWF_NOAPPEND | RWF_ATOMIC |\
-+			 RWF_DONTCACHE)
++	pm_scan_args.start = (long)ptr;
++	pm_scan_args.end = (long)ptr + 10 * page_size;
++	ASSERT_EQ(ioctl(proc_fd, PAGEMAP_SCAN, &pm_scan_args), 0);
++	ASSERT_EQ(pm_scan_args.walk_end, (long)ptr + 10 * page_size);
++
++	/* Install a guard region in every other page. */
++	for (i = 0; i < 10; i += 2) {
++		char *ptr_p = &ptr[i * page_size];
++
++		ASSERT_EQ(syscall(__NR_madvise, ptr_p, page_size, MADV_GUARD_INSTALL), 0);
++	}
++
++	/*
++	 * Assert ioctl() returns the count of located regions, where each
++	 * region spans every other page within the range of 10 pages.
++	 */
++	ASSERT_EQ(ioctl(proc_fd, PAGEMAP_SCAN, &pm_scan_args), 5);
++	ASSERT_EQ(pm_scan_args.walk_end, (long)ptr + 10 * page_size);
++
++	/* Re-read from pagemap, and assert guard regions are detected. */
++	for (i = 0; i < 5; i++) {
++		long ptr_p = (long)&ptr[2 * i * page_size];
++
++		ASSERT_EQ(pm_regs[i].start, ptr_p);
++		ASSERT_EQ(pm_regs[i].end, ptr_p + page_size);
++		ASSERT_EQ(pm_regs[i].categories, PAGE_IS_GUARD);
++	}
++
++	ASSERT_EQ(close(proc_fd), 0);
+ 	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+ }
  
- #define PROCFS_IOCTL_MAGIC 'f'
- 
-@@ -347,6 +363,7 @@ typedef int __bitwise __kernel_rwf_t;
- #define PAGE_IS_PFNZERO		(1 << 5)
- #define PAGE_IS_HUGE		(1 << 6)
- #define PAGE_IS_SOFT_DIRTY	(1 << 7)
-+#define PAGE_IS_GUARD		(1 << 8)
- 
- /*
-  * struct page_region - Page region with flags
 _
 
 Patches currently in -mm which might be from avagin@gmail.com are
