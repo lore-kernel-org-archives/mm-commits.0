@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92A0C222589
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:00:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C372185BE
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:04:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744052429; cv=none; b=df5nVOOAP6J/HoC6F/Y0nHdf53MeDblZ8sclwv/s+vfxxuKPejWoW1vKiR1YcVe76k2k0Sousw2rBzM9ZDZfB66V1JT/EzmR04Qt2IwLOobgOwEuBF6Bu69RNONcsPbC0El7Nsmam0CXxM3qbnLr50Zw0v75FkFQeSH8lvC5qpk=
+	t=1744052688; cv=none; b=nxJV9GuebtUYFaFNdA6nN5MEc4IaitINKNbT/phkhtIwDoDyj86bVUguoJODVLbAaee9TiTfRfNgy+FZrdqUEUD026H//QJ5zsmegqbdFdyXDu48w7gUPNzrk7fgv1g4f4MMRnoJYspRyWF6+69PHq3pT9aQBlDlN50zWUNRrSY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744052429; c=relaxed/simple;
-	bh=0KXd155oEmvLUPNTgobaK1dURfwBx3WTx/M/+HeNsl8=;
-	h=Date:To:From:Subject:Message-Id; b=NJ7o6mm6DYlYIWNd+Isheh+BCQajhfH1TwidDtp60lgJ3HF1lYwuMCVyDSDiXKwG9IZJ8PsIudMKEH1JtjokGFcluJp5NaCE4rzP9c5ixE61u7MbepoLkl+juMxrfxEGx05wa4rcD8ZQuzsGc7QA5d5u9e+6uG+nUAKWG26P5BI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mpdVVCNm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744052688; c=relaxed/simple;
+	bh=olgYtSXWJ60ORY12xRharteCZJK943SUK4aDOeYhU6I=;
+	h=Date:To:From:Subject:Message-Id; b=hP4LSLcR0FZ9rK47uAlaWWeczrRKPQuTZHPJApxq78uOseRcEZzJCV3IJXd+joq8AuUUG6vGsG0epfGyjyifWEjuJHa1UVBQuNGtNy1XX+9XfC+AsIatoAbOcyenJgnsN/RF5FFw3Ec1OCCYCECXiBJeDqJE8sTHjlpUDfDAXRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VXX+DFmS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mpdVVCNm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E795C4CEDD;
-	Mon,  7 Apr 2025 19:00:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VXX+DFmS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D322DC4CEDD;
+	Mon,  7 Apr 2025 19:04:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744052429;
-	bh=0KXd155oEmvLUPNTgobaK1dURfwBx3WTx/M/+HeNsl8=;
+	s=korg; t=1744052687;
+	bh=olgYtSXWJ60ORY12xRharteCZJK943SUK4aDOeYhU6I=;
 	h=Date:To:From:Subject:From;
-	b=mpdVVCNmXBEbYAoGYgnlXpEIVPOtL/mtbDk1bkJaXzQniWia5vLVGp1OQriVDoO6i
-	 4SVSFBXJ8QnG7b69JPBVWEukjK/ygI/dm1GIYiqw4k3oHOJnyxecjzK3xHar+JYFUK
-	 JgIBcI3O2z5o4CmVzH6MlpTQuIwDJYUv9+jipSEg=
-Date: Mon, 07 Apr 2025 12:00:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,hughd@google.com,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=VXX+DFmSsVyMBd6b9Qze7iAARHU3xer2rabX5cSlRW3wKThGnt2n8L/u1W5ZU23BJ
+	 tpjQ4Ys1K4Qj+2+b/yFsgXGpo8olASNBiyEduISFGcJcw6mb91h6ZoHz3UtQu4OSWj
+	 75aR66VHrY7RpWQBZgT6cseHQDyV5tEYHG9kAXwE=
+Date: Mon, 07 Apr 2025 12:04:47 -0700
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,mgorman@techsingularity.net,huang.ying.caritas@gmail.com,bharata@amd.com,nikhil.dhama@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mincore-fix-tmpfs-mincore-test-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250407190029.3E795C4CEDD@smtp.kernel.org>
+Subject: + mm-pcp-increase-pcp-free_count-threshold-to-trigger-free_high.patch added to mm-new branch
+Message-Id: <20250407190447.D322DC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mincore: fix tmpfs mincore test failure
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mincore-fix-tmpfs-mincore-test-failure.patch
+     Subject: mm: pcp: increase pcp->free_count threshold to trigger free_high
+has been added to the -mm mm-new branch.  Its filename is
+     mm-pcp-increase-pcp-free_count-threshold-to-trigger-free_high.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mincore-fix-tmpfs-mincore-test-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-increase-pcp-free_count-threshold-to-trigger-free_high.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,93 +58,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: selftests: mincore: fix tmpfs mincore test failure
-Date: Mon, 7 Apr 2025 19:31:35 +0800
+From: Nikhil Dhama <nikhil.dhama@amd.com>
+Subject: mm: pcp: increase pcp->free_count threshold to trigger free_high
+Date: Mon, 7 Apr 2025 16:22:19 +0530
 
-When running mincore test cases, I encountered the following failures:
+In old pcp design, pcp->free_factor gets incremented in nr_pcp_free()
+which is invoked by free_pcppages_bulk().  So, it used to increase
+free_factor by 1 only when we try to reduce the size of pcp list or flush
+for high order, and free_high used to trigger only for order > 0 and order
+< costly_order and pcp->free_factor > 0.
 
-"
-mincore_selftest.c:359:check_tmpfs_mmap:Expected ra_pages (511) == 0 (0)
-mincore_selftest.c:360:check_tmpfs_mmap:Read-ahead pages found in memory
-check_tmpfs_mmap: Test terminated by assertion
-          FAIL  global.check_tmpfs_mmap
-not ok 5 global.check_tmpfs_mmap
-FAILED: 4 / 5 tests passed
-"
+For iperf3 I noticed that with older design in kernel v6.6, pcp list was
+drained mostly when pcp->count > high (more often when count goes above
+530).  and most of the time pcp->free_factor was 0, triggering very few
+high order flushes.
 
-The reason for the test case failure is that my system automatically enabled
-tmpfs large folio allocation by adding the 'transparent_hugepage_tmpfs=always'
-cmdline. However, the test case still expects the tmpfs mounted on /dev/shm to
-allocate small folios, which leads to assertion failures when verifying readahead
-pages.
+But this is changed in the current design, introduced in commit
+6ccdcb6d3a74 ("mm, pcp: reduce detecting time of consecutive high order
+page freeing"), where pcp->free_factor is changed to pcp->free_count to
+keep track of the number of pages freed contiguously.  In this design,
+pcp->free_count is incremented on every deallocation, irrespective of
+whether pcp list was reduced or not.  And logic to trigger free_high is if
+pcp->free_count goes above batch (which is 63) and there are two
+contiguous page free without any allocation.
 
-As discussed with David, there's no reason to continue checking the readahead
-logic for tmpfs. Drop it to fix this issue.
+With this design, for iperf3, pcp list is getting flushed more frequently
+because free_high heuristics is triggered more often now.  I observed that
+high order pcp list is drained as soon as both count and free_count goes
+above 63.
 
-Link: https://lkml.kernel.org/r/9a00856cc6a8b4e46f4ab8b1af11ce5fc1a31851.1744025467.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Due to this more aggressive high order flushing, applications doing
+contiguous high order allocation will require to go to global list more
+frequently.
+
+On a 2-node AMD machine with 384 vCPUs on each node, connected via
+Mellonox connectX-7, I am seeing a ~30% performance reduction if we scale
+number of iperf3 client/server pairs from 32 to 64.
+
+Though this new design reduced the time to detect high order flushes, but
+for application which are allocating high order pages more frequently it
+may be flushing the high order list pre-maturely.  This motivates towards
+tuning on how late or early we should flush high order lists.
+
+So, in this patch, we increased the pcp->free_count threshold to trigger
+free_high from "batch" to "batch + pcp->high_min / 2".  This new threshold
+keeps high order pages in pcp list for a longer duration which can help
+the application doing high order allocations frequently.
+
+With this patch performace to Iperf3 is restored and score for other
+benchmarks on the same machine are as follows:
+
+		      iperf3    lmbench3        netperf         kbuild
+                               (AF_UNIX)   (SCTP_STREAM_MANY)
+                     -------   ---------   -----------------    ------
+v6.6  vanilla (base)    100          100              100          100
+v6.12 vanilla            69          113             98.5         98.8
+v6.12 + this patch      100        110.3            100.2         99.3
+
+netperf-tcp:
+
+                                  6.12                      6.12
+                               vanilla    	      this_patch
+Hmean     64         732.14 (   0.00%)         730.45 (  -0.23%)
+Hmean     128       1417.46 (   0.00%)        1419.44 (   0.14%)
+Hmean     256       2679.67 (   0.00%)        2676.45 (  -0.12%)
+Hmean     1024      8328.52 (   0.00%)        8339.34 (   0.13%)
+Hmean     2048     12716.98 (   0.00%)       12743.68 (   0.21%)
+Hmean     3312     15787.79 (   0.00%)       15887.25 (   0.63%)
+Hmean     4096     17311.91 (   0.00%)       17332.68 (   0.12%)
+Hmean     8192     20310.73 (   0.00%)       20465.09 (   0.76%)
+
+Link: https://lkml.kernel.org/r/20250407105219.55351-1-nikhil.dhama@amd.com
+Fixes: 6ccdcb6d3a74 ("mm, pcp: reduce detecting time of consecutive high order page freeing")
+Signed-off-by: Nikhil Dhama <nikhil.dhama@amd.com>
+Suggested-by: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Huang Ying <huang.ying.caritas@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Bharata B Rao <bharata@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mincore/mincore_selftest.c |   16 +----------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mincore/mincore_selftest.c~selftests-mincore-fix-tmpfs-mincore-test-failure
-+++ a/tools/testing/selftests/mincore/mincore_selftest.c
-@@ -286,8 +286,7 @@ out_free:
- 
- /*
-  * Test mincore() behavior on a page backed by a tmpfs file.  This test
-- * performs the same steps as the previous one. However, we don't expect
-- * any readahead in this case.
-+ * performs the same steps as the previous one.
-  */
- TEST(check_tmpfs_mmap)
- {
-@@ -298,7 +297,6 @@ TEST(check_tmpfs_mmap)
- 	int page_size;
- 	int fd;
- 	int i;
--	int ra_pages = 0;
- 
- 	page_size = sysconf(_SC_PAGESIZE);
- 	vec_size = FILE_SIZE / page_size;
-@@ -341,8 +339,7 @@ TEST(check_tmpfs_mmap)
- 	}
- 
- 	/*
--	 * Touch a page in the middle of the mapping. We expect only
--	 * that page to be fetched into memory.
-+	 * Touch a page in the middle of the mapping.
+--- a/mm/page_alloc.c~mm-pcp-increase-pcp-free_count-threshold-to-trigger-free_high
++++ a/mm/page_alloc.c
+@@ -2669,7 +2669,7 @@ static void free_frozen_page_commit(stru
+ 	 * stops will be drained from vmstat refresh context.
  	 */
- 	addr[FILE_SIZE / 2] = 1;
- 	retval = mincore(addr, FILE_SIZE, vec);
-@@ -351,15 +348,6 @@ TEST(check_tmpfs_mmap)
- 		TH_LOG("Page not found in memory after use");
- 	}
- 
--	i = FILE_SIZE / 2 / page_size + 1;
--	while (i < vec_size && vec[i]) {
--		ra_pages++;
--		i++;
--	}
--	ASSERT_EQ(ra_pages, 0) {
--		TH_LOG("Read-ahead pages found in memory");
--	}
--
- 	munmap(addr, FILE_SIZE);
- 	close(fd);
- 	free(vec);
+ 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
+-		free_high = (pcp->free_count >= batch &&
++		free_high = (pcp->free_count >= (batch + pcp->high_min / 2) &&
+ 			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
+ 			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
+ 			      pcp->count >= batch));
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from nikhil.dhama@amd.com are
 
-selftests-mincore-fix-tmpfs-mincore-test-failure.patch
+mm-pcp-increase-pcp-free_count-threshold-to-trigger-free_high.patch
 
