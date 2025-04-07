@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6581017BD9
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 04:49:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DD65221F11
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 04:49:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744001395; cv=none; b=N8XDWLlmki7bttxuprlOzPmaOg7hgtETBi26vuZQ+SOI2dtNx2+lhDgYCQRZwy4jRaIXl2YIHAdRrd2DmpYYJpmNWA/IJR00X5xq59NRxA9+FMJN/snflvRKLSW2tZKsGTAwZlvEmcWUeLgupqM6qBNiu+CYpWR9tClXMhWsi1s=
+	t=1744001398; cv=none; b=eTvm4TjVSthZVtqcRqStlzudCJvgFEWsSw3X/Euc3IV8Sltnfbot25jYXW5LaS/hJJ9PB25OK7RaAsoyU/sFHyRAoVVl8C/86vI+AavCfk1bL6kJgrGg7XALjv6kkwBYjPHIXszyEhks7uCt/qbcRfaj1yS0e0jRYfFKc8JDkzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744001395; c=relaxed/simple;
-	bh=ACdwCDKvabGU1MGNUXEw2I2yMT84xhEK8YYsIfTI4yU=;
-	h=Date:To:From:Subject:Message-Id; b=cYFxtjRZEKeBG1JWJAOKML7alggJVYix8u6dQNHXsp2CWJVk8jYxuAvz99lbCoCy4jnHF87LwaacHqGM6Js9th9X5Oo1zSt8/V6RfR4Xt1RZ96Wtwn5uYRSVkF6GmtwbrulvRBU6yWZ7LnpHakfLR6KuvyaF74No8oD7gSkvUfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A4ovzxPH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744001398; c=relaxed/simple;
+	bh=qkdrrZSpTzgmY0VzDl4uB6iG22cb4WKVUx1bgTj58jM=;
+	h=Date:To:From:Subject:Message-Id; b=gxckktJcBqvhQPLrCiweFUZ5w10OpkUIX29bDHz8wn2tl5IXXv6c+TmRSdRc/fXjS9DzkyACfXs+Jx0WNS6VhYABM/99PBxil8iRwVOkhRSLPmS2p4aGVgE0QD5L4+laseu1FSDlHThiKYc4e0KgYWWtO+Eb4FEMRtAoIRMRLK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V+YQ/8PA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A4ovzxPH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02C22C4CEDD;
-	Mon,  7 Apr 2025 04:49:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V+YQ/8PA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81877C4CEDD;
+	Mon,  7 Apr 2025 04:49:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744001395;
-	bh=ACdwCDKvabGU1MGNUXEw2I2yMT84xhEK8YYsIfTI4yU=;
+	s=korg; t=1744001397;
+	bh=qkdrrZSpTzgmY0VzDl4uB6iG22cb4WKVUx1bgTj58jM=;
 	h=Date:To:From:Subject:From;
-	b=A4ovzxPH3NGxGJYuoIyMjmrbpR3LGGL8sQ5aFDQGKTiEXM+jfG+FfypLLmjxZMwy2
-	 5vmHkMI0XJNeewesERyaNUWv7PnOJaFnYK2zrfDFcJ54sAc8S+q1E3t+ei47TzVEYC
-	 CirKm43GjlfNCvRz+pgiOQVBfuUSFy7wIVREOXcw=
-Date: Sun, 06 Apr 2025 21:49:54 -0700
+	b=V+YQ/8PAgIF7IC9a9vTFhyZugApD6QlPOEKYQ7/7VXWrJD5H0Ni52ev2LemWmSJX9
+	 dJDF7xpEMNrGghlO4RGz2LtFRv4PqTg1YVrdHRvDWgVSr1mCYKorfz2MaJ3rV9c/j9
+	 ipdovJevlPQyXmSVo8fhirpFc/etPLLUJK3PX27Q=
+Date: Sun, 06 Apr 2025 21:49:56 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs.patch added to mm-new branch
-Message-Id: <20250407044955.02C22C4CEDD@smtp.kernel.org>
+Subject: + selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch added to mm-new branch
+Message-Id: <20250407044957.81877C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: skip memcg with !usage in shrink_node_memcgs()
+     Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs.patch
+     selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,63 +59,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: mm/vmscan: skip memcg with !usage in shrink_node_memcgs()
-Date: Sun, 6 Apr 2025 21:41:58 -0400
+Subject: selftests: memcg: increase error tolerance of child memory.current check in test_memcg_protection()
+Date: Sun, 6 Apr 2025 21:41:59 -0400
 
-Patch series "memcg: Fix test_memcg_min/low test failures", v4.
+test_memcg_protection() is used for the test_memcg_min and test_memcg_low
+sub-tests.  This function generates a set of parent/child cgroups like:
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test and sporadically fails its test_memcg_min sub-test.  This
-patchset fixes the test_memcg_min and test_memcg_low failures by skipping
-the !usage case in shrink_node_memcgs() and adjust the test_memcontrol
-selftest to fix other causes of the test failures.
+  parent:  memory.min/low = 50M
+  child 0: memory.min/low = 75M,  memory.current = 50M
+  child 1: memory.min/low = 25M,  memory.current = 50M
+  child 2: memory.min/low = 0,    memory.current = 50M
 
-Note that I decide not to use the suggested mem_cgroup_usage() call as it
-is a real function call defined in mm/memcontrol.c to be used mainly by
-cgroup v1 code.
+After applying memory pressure, the function expects the following actual
+memory usages.
 
+  parent:  memory.current ~= 50M
+  child 0: memory.current ~= 29M
+  child 1: memory.current ~= 21M
+  child 2: memory.current ~= 0
 
-This patch (of 2):
+In reality, the actual memory usages can differ quite a bit from the
+expected values.  It uses an error tolerance of 10% with the
+values_close() helper.
 
-The test_memcontrol selftest consistently fails its test_memcg_low
-sub-test due to the fact that two of its test child cgroups which have a
-memmory.low of 0 or an effective memory.low of 0 still have low events
-generated for them since mem_cgroup_below_low() use the ">=" operator when
-comparing to elow.
+Both the test_memcg_min and test_memcg_low sub-tests can fail sporadically
+because the actual memory usage exceeds the 10% error tolerance.  Below
+are a sample of the usage data of the tests runs that fail.
 
-The two failed use cases are as follows:
+  Child   Actual usage    Expected usage    %err
+  -----   ------------    --------------    ----
+    1       16990208         22020096      -12.9%
+    1       17252352         22020096      -12.1%
+    0       37699584         30408704      +10.7%
+    1       14368768         22020096      -21.0%
+    1       16871424         22020096      -13.2%
 
-1) memory.low is set to 0, but low events can still be triggered and
-   so the cgroup may have a non-zero low event count. I doubt users are
-   looking for that as they didn't set memory.low at all.
+The current 10% error tolerenace might be right at the time
+test_memcontrol.c was first introduced in v4.18 kernel, but memory reclaim
+have certainly evolved quite a bit since then which may result in a bit
+more run-to-run variation than previously expected.
 
-2) memory.low is set to a non-zero value but the cgroup has no task in
-   it so that it has an effective low value of 0. Again it may have a
-   non-zero low event count if memory reclaim happens. This is probably
-   not a result expected by the users and it is really doubtful that
-   users will check an empty cgroup with no task in it and expecting
-   some non-zero event counts.
+Increase the error tolerance to 15% for child 0 and 20% for child 1 to
+minimize the chance of this type of failure.  The tolerance is bigger for
+child 1 because an upswing in child 0 corresponds to a smaller %err than a
+similar downswing in child 1 due to the way %err is used in
+values_close().
 
-In the first case, even though memory.low isn't set, it may still have
-some low protection if memory.low is set in the parent.  So low event may
-still be recorded.  The test_memcontrol.c test has to be modified to
-account for that.
+Before this patch, a 100 test runs of test_memcontrol produced the
+following results:
 
-For the second case, it really doesn't make sense to have non-zero low
-event if the cgroup has 0 usage.  So we need to skip this corner case in
-shrink_node_memcgs() by skipping the !usage case.  The "#ifdef
-CONFIG_MEMCG" directive is added to avoid problem with the
-non-CONFIG_MEMCG case.
+     17 not ok 1 test_memcg_min
+     22 not ok 2 test_memcg_low
 
-With this patch applied, the test_memcg_low sub-test finishes successfully
-without failure in most cases.  Though both test_memcg_low and
-test_memcg_min sub-tests may still fail occasionally if the memory.current
-values fall outside of the expected ranges.
+After applying this patch, there were no test failure for test_memcg_min
+and test_memcg_low in 100 test runs.
 
-Link: https://lkml.kernel.org/r/20250407014159.1291785-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20250407014159.1291785-2-longman@redhat.com
+Link: https://lkml.kernel.org/r/20250407014159.1291785-3-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -126,60 +127,24 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c                                      |   10 ++++++++++
- tools/testing/selftests/cgroup/test_memcontrol.c |    7 ++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs
-+++ a/mm/vmscan.c
-@@ -5934,6 +5934,7 @@ static inline bool should_continue_recla
- 	return inactive_lru_pages > pages_for_compaction;
- }
- 
-+#ifdef CONFIG_MEMCG
- static void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
- {
- 	struct mem_cgroup *target_memcg = sc->target_mem_cgroup;
-@@ -5971,6 +5972,10 @@ static void shrink_node_memcgs(pg_data_t
- 
- 		mem_cgroup_calculate_protection(target_memcg, memcg);
- 
-+		/* Skip memcg with no usage */
-+		if (!page_counter_read(&memcg->memory))
-+			continue;
-+
- 		if (mem_cgroup_below_min(target_memcg, memcg)) {
- 			/*
- 			 * Hard protection.
-@@ -6012,6 +6017,11 @@ static void shrink_node_memcgs(pg_data_t
- 		}
- 	} while ((memcg = mem_cgroup_iter(target_memcg, memcg, partial)));
- }
-+#else
-+static inline void shrink_node_memcgs(pg_data_t *pgdat, struct scan_control *sc)
-+{
-+}
-+#endif /* CONFIG_MEMCG */
- 
- static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
- {
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~mm-vmscan-skip-memcg-with-usage-in-shrink_node_memcgs
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection
 +++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -525,8 +525,13 @@ static int test_memcg_protection(const c
+@@ -495,10 +495,10 @@ static int test_memcg_protection(const c
+ 	for (i = 0; i < ARRAY_SIZE(children); i++)
+ 		c[i] = cg_read_long(children[i], "memory.current");
+ 
+-	if (!values_close(c[0], MB(29), 10))
++	if (!values_close(c[0], MB(29), 15))
  		goto cleanup;
- 	}
  
-+	/*
-+	 * Child 2 has memory.low=0, but some low protection is still being
-+	 * distributed down from its parent with memory.low=50M. So the low
-+	 * event count will be non-zero.
-+	 */
- 	for (i = 0; i < ARRAY_SIZE(children); i++) {
--		int no_low_events_index = 1;
-+		int no_low_events_index = 2;
- 		long low, oom;
+-	if (!values_close(c[1], MB(21), 10))
++	if (!values_close(c[1], MB(21), 20))
+ 		goto cleanup;
  
- 		oom = cg_read_key_long(children[i], "memory.events", "oom ");
+ 	if (c[3] != 0)
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
