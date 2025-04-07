@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5855818C03F
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 04:44:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 676D818C03F
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 04:44:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744001057; cv=none; b=nH/L6IktYUKVNI5CBwqPPez4RPmhkfuCJyi8yNXlPKX8vkBvZEPWRceS0M3Od93G0TbexLzE/qkeZN644kd0GtjR4YhieMDXAP1bMrB+p/qH6rAv5qyIgR3BF11RfmQDXG6oum4mOtFmXlDsNyjEyL7gkr8psJdLFg/N4ypGeg8=
+	t=1744001058; cv=none; b=UCgOtpJQbM6c9pMSEgDax6YarQu9AxVhsNdTSwzgPau75rViJvCMi3SljTg9A3tm32d5fs73kPgztlvOSThCSJnd6M+S7A2obzxPfcS9OY8oyxlkbxbvC63IYqNlEAHQE0KtaSxU04qHHtRuWKEDlp8+NnKxLgzPb2OzmtXfIMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744001057; c=relaxed/simple;
-	bh=0po5APxzKn1nWhH1wjdmEKjVB7w02hDsgJL7OS+R5zo=;
-	h=Date:To:From:Subject:Message-Id; b=reon7qXUYeN6/GChqWeSU/p4mdJot+d0i61BSLqUkZ6pn/FSICl1X2HuQa8eaPyCExVUIKGDi832JFHtXFXaQ6TsS5PrDHv47e9uiMkYykIrSK1MAVgcl2XRqR+opBnAYdPEbB/yAmeF/PtKhfqL8fS7WrzPNlq9If8Tzg0/N2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u4kAUwYk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744001058; c=relaxed/simple;
+	bh=YU8KErwyh/7XwtF5aqJkEknqK2kgP1m4h2Ermwxy7ww=;
+	h=Date:To:From:Subject:Message-Id; b=JBJgvYJV4vJlIhGp9j4+jDb7S+zzU1Rkh8eY/Y68qThXxS/xLCyllzcRpMe5i83WbIBSMdqTtkL58UAwokYZM487Kj+Rp+W24uLdoCnL2L+iLiRKuXWvC5c4VCOvFSoaYKmJFY/E+CcJ04SoMvTy4Q0F2z9Pv84HdxEMmThila4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nBnWJksU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u4kAUwYk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5247C4CEDD;
-	Mon,  7 Apr 2025 04:44:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nBnWJksU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDDDAC4CEDD;
+	Mon,  7 Apr 2025 04:44:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744001055;
-	bh=0po5APxzKn1nWhH1wjdmEKjVB7w02hDsgJL7OS+R5zo=;
+	s=korg; t=1744001057;
+	bh=YU8KErwyh/7XwtF5aqJkEknqK2kgP1m4h2Ermwxy7ww=;
 	h=Date:To:From:Subject:From;
-	b=u4kAUwYk4DHX/PHhyfTmX7xs+6DR2P0S1UGefhW+Km0n5mOZPZv6gC+oI/rIagb/2
-	 Nu0lLE0pWo6MtPTrk6X5t+FpM+f9uC1+WvxSel6WoSAalc1/txwwahDEpp4xZKc/L0
-	 4K/sDtDDmlnpvb3GmkSJvVX8VSzluqMbGNoeLZh8=
-Date: Sun, 06 Apr 2025 21:44:14 -0700
+	b=nBnWJksU9OURBKUpVIuplUQ07nyRAPpibFJ8BcZ81shiUAE0DIakqbtOnJ0SfVFOb
+	 E1DCFZ43pfbSOBk8tKRQ4ewBe4kanm7WqEgPhkbNr/lqrQTbl/+qCkjPNmu38gGRne
+	 9q17vmeRX8JxXX3eBdMjM427VVkq/vtI72yxCzwc=
+Date: Sun, 06 Apr 2025 21:44:17 -0700
 To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,osalvador@suse.de,mingo@kernel.org,david@redhat.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch added to mm-new branch
-Message-Id: <20250407044415.A5247C4CEDD@smtp.kernel.org>
+Subject: + mm-gup-remove-unneeded-checking-in-follow_page_pte.patch added to mm-new branch
+Message-Id: <20250407044417.BDDDAC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
+     Subject: mm/gup: remove unneeded checking in follow_page_pte()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+     mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,28 +59,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
-Date: Mon, 7 Apr 2025 11:03:04 +0800
+Subject: mm/gup: remove unneeded checking in follow_page_pte()
+Date: Mon, 7 Apr 2025 11:03:05 +0800
 
-Patch series "mm/gup: Minor fix, cleanup and improvements", v3.
+In __get_user_pages(), it will traverse page table and take a reference to
+the page the given user address corresponds to if GUP_GET or GUP_PIN is
+set.  However, it's not supported both GUP_GET and GUP_PIN are set.  Even
+though this check need be done, it should be done earlier, but not doing
+it till entering into follow_page_pte() and failed.
 
-These were made from code inspection in mm/gup.c.
+Furthermore, this checking has been done in is_valid_gup_args() and all
+external users of __get_user_pages() will call is_valid_gup_args() to
+catch the illegal setting.  We don't need to worry about internal users of
+__get_user_pages() because the gup_flags are set by MM code correctly.
 
+Here remove the checking in follow_page_pte(), and add VM_WARN_ON_ONCE()
+to catch the possible exceptional setting just in case.
 
-This patch (of 3):
+And also change the VM_BUG_ON to VM_WARN_ON_ONCE() for checking (!!pages
+!= !!(gup_flags & (FOLL_GET | FOLL_PIN))) because the checking has been
+done in is_valid_gup_args() for external users of __get_user_pages().
 
-Not like fault_in_readable() or fault_in_writeable(), in
-fault_in_safe_writeable() local variable 'start' is increased page by page
-to loop till the whole address range is handled.  However, it mistakenly
-calcalates the size of handled range with 'uaddr - start'.
-
-Here fix the code bug in fault_in_safe_writeable(), and also adjusting the
-codes in fault_in_readable() and fault_in_writeable() to use local
-variable 'start' to loop so that codes in these three functions are
-consistent.
-
-Link: https://lkml.kernel.org/r/20250407030306.411977-1-bhe@redhat.com
-Link: https://lkml.kernel.org/r/20250407030306.411977-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250407030306.411977-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -89,99 +89,36 @@ Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ mm/gup.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable
+--- a/mm/gup.c~mm-gup-remove-unneeded-checking-in-follow_page_pte
 +++ a/mm/gup.c
-@@ -2114,7 +2114,7 @@ static long __get_user_pages_locked(stru
-  */
- size_t fault_in_writeable(char __user *uaddr, size_t size)
- {
--	char __user *start = uaddr, *end;
-+	unsigned long start = (unsigned long)uaddr, end;
+@@ -844,11 +844,6 @@ static struct page *follow_page_pte(stru
+ 	pte_t *ptep, pte;
+ 	int ret;
  
- 	if (unlikely(size == 0))
- 		return 0;
-@@ -2122,20 +2122,20 @@ size_t fault_in_writeable(char __user *u
- 		return size;
- 	if (!PAGE_ALIGNED(uaddr)) {
- 		unsafe_put_user(0, uaddr, out);
--		uaddr = (char __user *)PAGE_ALIGN((unsigned long)uaddr);
-+		start = PAGE_ALIGN((unsigned long)uaddr);
- 	}
--	end = (char __user *)PAGE_ALIGN((unsigned long)start + size);
-+	end = PAGE_ALIGN(start + size);
- 	if (unlikely(end < start))
--		end = NULL;
--	while (uaddr != end) {
--		unsafe_put_user(0, uaddr, out);
--		uaddr += PAGE_SIZE;
-+		end = 0;
-+	while (start != end) {
-+		unsafe_put_user(0, (char __user *)start, out);
-+		start += PAGE_SIZE;
- 	}
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
+-			 (FOLL_PIN | FOLL_GET)))
+-		return ERR_PTR(-EINVAL);
+-
+ 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	if (!ptep)
+ 		return no_page_table(vma, flags, address);
+@@ -1432,7 +1427,11 @@ static long __get_user_pages(struct mm_s
  
- out:
- 	user_write_access_end();
--	if (size > uaddr - start)
--		return size - (uaddr - start);
-+	if (size > start - (unsigned long)uaddr)
-+		return size - (start - (unsigned long)uaddr);
- 	return 0;
- }
- EXPORT_SYMBOL(fault_in_writeable);
-@@ -2207,8 +2207,8 @@ size_t fault_in_safe_writeable(const cha
- 	} while (start != end);
- 	mmap_read_unlock(mm);
+ 	start = untagged_addr_remote(mm, start);
  
--	if (size > (unsigned long)uaddr - start)
--		return size - ((unsigned long)uaddr - start);
-+	if (size > start - (unsigned long)uaddr)
-+		return size - (start - (unsigned long)uaddr);
- 	return 0;
- }
- EXPORT_SYMBOL(fault_in_safe_writeable);
-@@ -2223,7 +2223,7 @@ EXPORT_SYMBOL(fault_in_safe_writeable);
-  */
- size_t fault_in_readable(const char __user *uaddr, size_t size)
- {
--	const char __user *start = uaddr, *end;
-+	unsigned long start = (unsigned long)uaddr, end;
- 	volatile char c;
+-	VM_BUG_ON(!!pages != !!(gup_flags & (FOLL_GET | FOLL_PIN)));
++	VM_WARN_ON_ONCE(!!pages != !!(gup_flags & (FOLL_GET | FOLL_PIN)));
++
++	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
++	VM_WARN_ON_ONCE((gup_flags & (FOLL_PIN | FOLL_GET)) ==
++			(FOLL_PIN | FOLL_GET));
  
- 	if (unlikely(size == 0))
-@@ -2232,21 +2232,21 @@ size_t fault_in_readable(const char __us
- 		return size;
- 	if (!PAGE_ALIGNED(uaddr)) {
- 		unsafe_get_user(c, uaddr, out);
--		uaddr = (const char __user *)PAGE_ALIGN((unsigned long)uaddr);
-+		start = PAGE_ALIGN((unsigned long)uaddr);
- 	}
--	end = (const char __user *)PAGE_ALIGN((unsigned long)start + size);
-+	end = PAGE_ALIGN(start + size);
- 	if (unlikely(end < start))
--		end = NULL;
--	while (uaddr != end) {
--		unsafe_get_user(c, uaddr, out);
--		uaddr += PAGE_SIZE;
-+		end = 0;
-+	while (start != end) {
-+		unsafe_get_user(c, (const char __user *)start, out);
-+		start += PAGE_SIZE;
- 	}
- 
- out:
- 	user_read_access_end();
- 	(void)c;
--	if (size > uaddr - start)
--		return size - (uaddr - start);
-+	if (size > start - (unsigned long)uaddr)
-+		return size - (start - (unsigned long)uaddr);
- 	return 0;
- }
- EXPORT_SYMBOL(fault_in_readable);
+ 	do {
+ 		struct page *page;
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
