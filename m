@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B60817BA6
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6456211A3E
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743990495; cv=none; b=CrGsWGvRhs/XpxyhfXe8Si/NVLOwwFC4oKsC6WFdwS45NoB94hm2hy7N2DiYMRqK51YBvlPUoQm0cF0oqF4Ij3BFocsUUCVxl9khm1uY8b0EeYkPn7lh2wJi2acghi9G4dcYF+9uFRsX9/hMN83HX9hyjCaFTWKa2mGPh8Md4Dc=
+	t=1743990497; cv=none; b=bZ5zAhOVrCLSjrnCmCYrbr6WhKwQKwcd69uGnSVyPffIEimdzmvLkAUxyavupZvSK68zQFWWJmbZoUtJH2rAlc+XGMMV7oO7AvL/Zil5SnuvFIS1a9tqOfpGVC5lDvtlYAbS+Xbeex1LEBfTx/GLjbG0GgovysFd7thqPxztto8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743990495; c=relaxed/simple;
-	bh=vUtDhzI0bUlTlK4do3tQsfvy/3bf5zUGi2hKJkYfCRc=;
-	h=Date:To:From:Subject:Message-Id; b=QGxqxRv+jNHPgO/QqxzVxZoFkoX/lHshobarw9f25nyBDQM8j7B6xQvFfWR0QwbxSPEIxU1XscPdeHGnKJki1abWV4PZ+ozLB1rFLKIL+kw/U8+EA46Unx4UhYhXSa3HUaZlEiJ80u9k6bA5ed7+Uuhpctobl8FaIMznjtGEOh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UHNWOEIX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743990497; c=relaxed/simple;
+	bh=dV63nqqnTK1DPJKaNVhJyiCx2HBnR+iOHmXNAiKxCCU=;
+	h=Date:To:From:Subject:Message-Id; b=GBsn/GFSloQVBmWTH0EyY+HTpovEoCCvendWNacqKpE5I+gkWKtxDMqPhGD4atgZFXNSmyvWmRdfqz8iqyCdPGSJpUzQqqIAd+qz8nM1BXYYVDW26WQXd5PJUp1WM3vivzZSDDinR2ouY0TBW8Tag3rDvDVk4qMvTOAPs14rZuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fxC5xwq4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UHNWOEIX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28512C4CEE3;
-	Mon,  7 Apr 2025 01:48:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fxC5xwq4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2509AC4CEE3;
+	Mon,  7 Apr 2025 01:48:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743990495;
-	bh=vUtDhzI0bUlTlK4do3tQsfvy/3bf5zUGi2hKJkYfCRc=;
+	s=korg; t=1743990497;
+	bh=dV63nqqnTK1DPJKaNVhJyiCx2HBnR+iOHmXNAiKxCCU=;
 	h=Date:To:From:Subject:From;
-	b=UHNWOEIXbB8UjTi75kw3e9GI/3EZZiXQx4UaGBRjJaoIcjMDUTH4ccuN1Y0GidQfH
-	 oaq0684ZEeiD4uckv/dtwAWLX7IOS8V+fBlMOqn6GVtL3+S7bl/kxMEVULDAkMvkbI
-	 9Bq7EjtHotHziOfClB6gvslsEEfkJ1kJFpuQNPDA=
-Date: Sun, 06 Apr 2025 18:48:14 -0700
+	b=fxC5xwq4QSDfTIoonHSNRbZyer6qv9tf05C28B7vkMkf9apmxzhm8UuJGsinYMXFa
+	 1sfxzvpKQNvTn0pASIxJ3/cJ2JHo+eCVmSr0CtP9TdDhafng9DMIeZTYOyLdjAa9IJ
+	 F75LDI8GSN9mnRbs42o2Uliv4ky4jRqrSj6q4GOM=
+Date: Sun, 06 Apr 2025 18:48:16 -0700
 To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,masahiroy@kernel.org,jeff.johnson@oss.qualcomm.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zlib-add-module-description.patch added to mm-nonmm-unstable branch
-Message-Id: <20250407014815.28512C4CEE3@smtp.kernel.org>
+Subject: + ucs2_string-add-module-description.patch added to mm-nonmm-unstable branch
+Message-Id: <20250407014817.2509AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zlib: add module description
+     Subject: ucs2_string: add module description
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zlib-add-module-description.patch
+     ucs2_string-add-module-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zlib-add-module-description.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ucs2_string-add-module-description.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: zlib: add module description
-Date: Mon, 24 Mar 2025 18:32:31 +0100
+Subject: ucs2_string: add module description
+Date: Mon, 24 Mar 2025 18:32:32 +0100
 
 Modules without a description now cause a warning:
 
-WARNING: modpost: missing MODULE_DESCRIPTION() in lib/zlib_inflate/zlib_inflate.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in lib/ucs2_string.o
 
-Link: https://lkml.kernel.org/r/20250324173242.1501003-6-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20250324173242.1501003-7-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
@@ -74,17 +74,17 @@ Cc: Stehen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/zlib_inflate/inflate_syms.c |    1 +
+ lib/ucs2_string.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/lib/zlib_inflate/inflate_syms.c~zlib-add-module-description
-+++ a/lib/zlib_inflate/inflate_syms.c
-@@ -18,4 +18,5 @@ EXPORT_SYMBOL(zlib_inflateEnd);
- EXPORT_SYMBOL(zlib_inflateReset);
- EXPORT_SYMBOL(zlib_inflateIncomp); 
- EXPORT_SYMBOL(zlib_inflate_blob);
-+MODULE_DESCRIPTION("Data decompression using the deflation algorithm");
- MODULE_LICENSE("GPL");
+--- a/lib/ucs2_string.c~ucs2_string-add-module-description
++++ a/lib/ucs2_string.c
+@@ -165,4 +165,5 @@ ucs2_as_utf8(u8 *dest, const ucs2_char_t
+ }
+ EXPORT_SYMBOL(ucs2_as_utf8);
+ 
++MODULE_DESCRIPTION("UCS2 string handling");
+ MODULE_LICENSE("GPL v2");
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
