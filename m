@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35BF8528E
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:05:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E69C2222DA
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 19:26:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744052746; cv=none; b=uoPw1UdJENjwdkarlEmuAw2T3JPElcSZW3JIxKwTbr8Ex+hztNFCQlkFs0s8HwR+6E9HO0J3tR0W6aotsafKzmOR3MVakK7eudTcHg5xtKt9yi9dALPIWNPhxA49U0pbpU66WhLrmV+Tv79iT+jaPTYinqHgf5eMfVO7NOyy+tQ=
+	t=1744054004; cv=none; b=vAw0kWInyaeFKjjQwLcL0n3UeF2CGBiYBGeqLcz5rKZLvApnMqaZ30oRCzpDd5AqxF5whE2bLcV4fFK6nmH5VFjubM30u0uSor/5/+WyWe5LWmSm2Xjplbb2sTnSN+hW3Dqt3S2o6/UaDb0FuI3JhdWC5LN+ReN1Q+0HYXVutbg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744052746; c=relaxed/simple;
-	bh=GoDRcMyKS6MouLlC7VchHeOisgBDtrpitH+lridTD6U=;
-	h=Date:To:From:Subject:Message-Id; b=rnPFQqvNzSWAdhW1S9i5jz7aTgreDlMs8TJ4Yfxqr5yI7wKb98taH+SFruvNKfM+vaTDtIRGOkNj3K1fJhR+k9S1/p0LPUnGiZOIHEX8047znfyhxjUEp754oU5wy6PQe1Bj3d0cDGTajdx3Ge89814N8h4vaA1vmjmzvi/B8mA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=utN42XSw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744054004; c=relaxed/simple;
+	bh=ANwEo7qjZkKPIOtqvDIHdm1cYvfbFJwtbaON9E/AS5g=;
+	h=Date:To:From:Subject:Message-Id; b=BtuHcJ3JMRVn+posvgZR47obfWlMbjAKjUuNULwYkfci50k7HJuv22Une7aqG9tR84OYkAK83hqcr7YreiWKNhYj6z8YzOmIEXrEQaxQ3mGHmy0YTzdAIRszQwWndSRnXu3HtpaQTXU0QLgaDoyqZrF8cbXRZ0f5EAAO5w001aw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ov1yZKdp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="utN42XSw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50506C4CEDD;
-	Mon,  7 Apr 2025 19:05:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ov1yZKdp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A731BC4CEDD;
+	Mon,  7 Apr 2025 19:26:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744052745;
-	bh=GoDRcMyKS6MouLlC7VchHeOisgBDtrpitH+lridTD6U=;
+	s=korg; t=1744054003;
+	bh=ANwEo7qjZkKPIOtqvDIHdm1cYvfbFJwtbaON9E/AS5g=;
 	h=Date:To:From:Subject:From;
-	b=utN42XSwnSv7dPiBLHzEjTNA9SOMPs9xInj/ahGdL5jftnEV17PuUOon/+iwtLU+C
-	 wA2700WOeWZvkXEBczTHq0d2gd+tL9qQlhzQ2HqutgygZ/ZAyz5Szr8rkKqahwwm4r
-	 zDrjUFhHcPuIAp9FD9bD2Eo28mGhTHXTuXBMNtik=
-Date: Mon, 07 Apr 2025 12:05:44 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,wangxuewen@kylinos.cn,akpm@linux-foundation.org
+	b=ov1yZKdpdI5ER6U/dKTf+WfpXXhLgxUm0PVdmK67Sndef8a4BDd4HMb4atm1+3H7J
+	 AtQHzzmsdZMpNbViKlBsnvdfR8jzqFqPOktt5oCV8/kLTxI5Kx53dEwE9VsTT2o/4L
+	 BQBpn0osr9YGHTauhHJ0jR9WCQH3TxB6Nf/gA3EA=
+Date: Mon, 07 Apr 2025 12:26:43 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,kirill.shutemov@linux.intel.com,dev.jain@arm.com,anshuman.khandual@arm.com,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-add-a-line-break-at-the-end-of-the-format-string.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250407190545.50506C4CEDD@smtp.kernel.org>
+Subject: + selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch added to mm-new branch
+Message-Id: <20250407192643.A731BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: add a line break at the end of the format string
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-add-a-line-break-at-the-end-of-the-format-string.patch
+     Subject: selftest/mm: Make hugetlb_reparenting_test tolerant to async reparenting
+has been added to the -mm mm-new branch.  Its filename is
+     selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-add-a-line-break-at-the-end-of-the-format-string.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,35 +58,195 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: wangxuewen <wangxuewen@kylinos.cn>
-Subject: mm/hugetlb: add a line break at the end of the format string
-Date: Mon, 7 Apr 2025 18:30:17 +0800
+From: Li Wang <liwang@redhat.com>
+Subject: selftest/mm: Make hugetlb_reparenting_test tolerant to async reparenting
+Date: Mon, 7 Apr 2025 16:42:01 +0800
 
-Missing line break at the end of the format string.
+In cgroup v2, memory and hugetlb usage reparenting is asynchronous.  This
+can cause test flakiness when immediately asserting usage after deleting a
+child cgroup.  To address this, add a helper function
+`assert_with_retry()` that checks usage values with a timeout-based retry.
+This improves test stability without relying on fixed sleep delays.
 
-Link: https://lkml.kernel.org/r/20250407103017.2979821-1-18810879172@163.com
-Signed-off-by: wangxuewen <wangxuewen@kylinos.cn>
-Cc: Muchun Song <muchun.song@linux.dev>
+Also bump up the tolerance size to 7MB.
+
+To avoid False Positives:
+  ...
+  # Assert memory charged correctly for child only use.
+  # actual a = 11 MB
+  # expected a = 0 MB
+  # fail
+  # cleanup
+  # [FAIL]
+  not ok 11 hugetlb_reparenting_test.sh -cgroup-v2 # exit=1
+  # 0
+  # SUMMARY: PASS=10 SKIP=0 FAIL=1
+
+Link: https://lkml.kernel.org/r/20250407084201.74492-1-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   96 ++++------
+ 1 file changed, 41 insertions(+), 55 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-a-line-break-at-the-end-of-the-format-string
-+++ a/mm/hugetlb.c
-@@ -4647,7 +4647,7 @@ static void __init hugetlb_sysfs_init(vo
- 		err = hugetlb_sysfs_add_hstate(h, hugepages_kobj,
- 					 hstate_kobjs, &hstate_attr_group);
- 		if (err)
--			pr_err("HugeTLB: Unable to add hstate %s", h->name);
-+			pr_err("HugeTLB: Unable to add hstate %s\n", h->name);
- 	}
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -36,7 +36,7 @@ else
+     do_umount=1
+   fi
+ fi
+-MNT='/mnt/huge/'
++MNT='/mnt/huge'
  
- #ifdef CONFIG_NUMA
+ function get_machine_hugepage_size() {
+   hpz=$(grep -i hugepagesize /proc/meminfo)
+@@ -60,6 +60,41 @@ function cleanup() {
+   set -e
+ }
+ 
++function assert_with_retry() {
++  local actual_path="$1"
++  local expected="$2"
++  local tolerance=$((7 * 1024 * 1024))
++  local timeout=20
++  local interval=1
++  local start_time
++  local now
++  local elapsed
++  local actual
++
++  start_time=$(date +%s)
++
++  while true; do
++    actual="$(cat "$actual_path")"
++
++    if [[ $actual -ge $(($expected - $tolerance)) ]] &&
++        [[ $actual -le $(($expected + $tolerance)) ]]; then
++      return 0
++    fi
++
++    now=$(date +%s)
++    elapsed=$((now - start_time))
++
++    if [[ $elapsed -ge $timeout ]]; then
++      echo "actual = $((${actual%% *} / 1024 / 1024)) MB"
++      echo "expected = $((${expected%% *} / 1024 / 1024)) MB"
++      cleanup
++      exit 1
++    fi
++
++    sleep $interval
++  done
++}
++
+ function assert_state() {
+   local expected_a="$1"
+   local expected_a_hugetlb="$2"
+@@ -70,58 +105,13 @@ function assert_state() {
+     expected_b="$3"
+     expected_b_hugetlb="$4"
+   fi
+-  local tolerance=$((5 * 1024 * 1024))
+ 
+-  local actual_a
+-  actual_a="$(cat "$CGROUP_ROOT"/a/memory.$usage_file)"
+-  if [[ $actual_a -lt $(($expected_a - $tolerance)) ]] ||
+-    [[ $actual_a -gt $(($expected_a + $tolerance)) ]]; then
+-    echo actual a = $((${actual_a%% *} / 1024 / 1024)) MB
+-    echo expected a = $((${expected_a%% *} / 1024 / 1024)) MB
+-    echo fail
+-
+-    cleanup
+-    exit 1
+-  fi
+-
+-  local actual_a_hugetlb
+-  actual_a_hugetlb="$(cat "$CGROUP_ROOT"/a/hugetlb.${MB}MB.$usage_file)"
+-  if [[ $actual_a_hugetlb -lt $(($expected_a_hugetlb - $tolerance)) ]] ||
+-    [[ $actual_a_hugetlb -gt $(($expected_a_hugetlb + $tolerance)) ]]; then
+-    echo actual a hugetlb = $((${actual_a_hugetlb%% *} / 1024 / 1024)) MB
+-    echo expected a hugetlb = $((${expected_a_hugetlb%% *} / 1024 / 1024)) MB
+-    echo fail
+-
+-    cleanup
+-    exit 1
+-  fi
+-
+-  if [[ -z "$expected_b" || -z "$expected_b_hugetlb" ]]; then
+-    return
+-  fi
+-
+-  local actual_b
+-  actual_b="$(cat "$CGROUP_ROOT"/a/b/memory.$usage_file)"
+-  if [[ $actual_b -lt $(($expected_b - $tolerance)) ]] ||
+-    [[ $actual_b -gt $(($expected_b + $tolerance)) ]]; then
+-    echo actual b = $((${actual_b%% *} / 1024 / 1024)) MB
+-    echo expected b = $((${expected_b%% *} / 1024 / 1024)) MB
+-    echo fail
+-
+-    cleanup
+-    exit 1
+-  fi
+-
+-  local actual_b_hugetlb
+-  actual_b_hugetlb="$(cat "$CGROUP_ROOT"/a/b/hugetlb.${MB}MB.$usage_file)"
+-  if [[ $actual_b_hugetlb -lt $(($expected_b_hugetlb - $tolerance)) ]] ||
+-    [[ $actual_b_hugetlb -gt $(($expected_b_hugetlb + $tolerance)) ]]; then
+-    echo actual b hugetlb = $((${actual_b_hugetlb%% *} / 1024 / 1024)) MB
+-    echo expected b hugetlb = $((${expected_b_hugetlb%% *} / 1024 / 1024)) MB
+-    echo fail
++  assert_with_retry "$CGROUP_ROOT/a/memory.$usage_file" "$expected_a"
++  assert_with_retry "$CGROUP_ROOT/a/hugetlb.${MB}MB.$usage_file" "$expected_a_hugetlb"
+ 
+-    cleanup
+-    exit 1
++  if [[ -n "$expected_b" && -n "$expected_b_hugetlb" ]]; then
++    assert_with_retry "$CGROUP_ROOT/a/b/memory.$usage_file" "$expected_b"
++    assert_with_retry "$CGROUP_ROOT/a/b/hugetlb.${MB}MB.$usage_file" "$expected_b_hugetlb"
+   fi
+ }
+ 
+@@ -175,7 +165,6 @@ size=$((${MB} * 1024 * 1024 * 25)) # 50M
+ cleanup
+ 
+ echo
+-echo
+ echo Test charge, rmdir, uncharge
+ setup
+ echo mkdir
+@@ -195,7 +184,6 @@ cleanup
+ 
+ echo done
+ echo
+-echo
+ if [[ ! $cgroup2 ]]; then
+   echo "Test parent and child hugetlb usage"
+   setup
+@@ -212,7 +200,6 @@ if [[ ! $cgroup2 ]]; then
+   assert_state 0 $(($size * 2)) 0 $size
+ 
+   rmdir "$CGROUP_ROOT"/a/b
+-  sleep 5
+   echo Assert memory reparent correctly.
+   assert_state 0 $(($size * 2))
+ 
+@@ -225,7 +212,6 @@ if [[ ! $cgroup2 ]]; then
+ fi
+ 
+ echo
+-echo
+ echo "Test child only hugetlb usage"
+ echo setup
+ setup
 _
 
-Patches currently in -mm which might be from wangxuewen@kylinos.cn are
+Patches currently in -mm which might be from liwang@redhat.com are
 
-mm-hugetlb-add-a-line-break-at-the-end-of-the-format-string.patch
+selftest-mm-make-hugetlb_reparenting_test-tolerant-to-async-reparenting.patch
 
