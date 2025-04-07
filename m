@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24DF029A5
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 00:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B1836FBF
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 00:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743986749; cv=none; b=UKOW+ryjQS9H+MYpok5e1XSEaEYzpEuhpfB65XvEn+Rp6xX3GY68mVGa5KuIvNU0XR0bkT6fKSd3SSkHJYaxzAnN6zM6GCWTcd1Ep5n8BaHklniKKePG8cgKhSeYXW5Z4WWJgvAaKJ8hCH9FkasrK4hFXHpxVLzNWj+GJLe5MXs=
+	t=1743987012; cv=none; b=Ir608ygFlcNNSSKOt9hazhhPQUI21t/80OS5hntS3JOcPcH0wh8LqU/IdzsxXsKe7vGdmBYu0rhQ3hQxPUfWWBHzVni7u13/X4Oa3tZ0cIZLt6Ie27aHjv2uEuE2m7vDpf/LXH2JhwosjUSdCvHo807r4LR/+m301JlnSYujX2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743986749; c=relaxed/simple;
-	bh=OTz3gJhRjJx1MdNoMs+m5Ze1sYHIP500VWWWole2KuM=;
-	h=Date:To:From:Subject:Message-Id; b=Nut8qEM6Fc5089dYMvQPjbEqSqx6iGJRuA1ewYVhY7+dqnNHs2iDgQQZbKlvRAnj1fhZ+tWNkqIO5LPOjKbraxsnEW3ZSgmt71haUqKAsMjPV/20d2LR4SmeZdPyWsT9PsSRZ/q7wz8mGaUBCwRRYGkGm+RxA7ea4vutzHhdvg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VP+xjr1M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743987012; c=relaxed/simple;
+	bh=bvcT15gDDvbcgIK7DIC2ANl/IxG424ERL4J/t8VyKck=;
+	h=Date:To:From:Subject:Message-Id; b=upLyrKDcf2T9aPsc/4e7mODqVjsmo8IoqmcL+k5udmGH2yGbZKAmL38SWf7afGv2y6JzVI060bHiGIG8XiJkfT/DYXlck5pUNHGr661QHwL1XNcuqSY6t7RlATBfN77zYTGb8d+JE1MJMM+B4Sv4amcrpffs8HUzsUDizrNjcwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I3bhLeBj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VP+xjr1M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66CE0C4CEE3;
-	Mon,  7 Apr 2025 00:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I3bhLeBj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F662C4CEE3;
+	Mon,  7 Apr 2025 00:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743986748;
-	bh=OTz3gJhRjJx1MdNoMs+m5Ze1sYHIP500VWWWole2KuM=;
+	s=korg; t=1743987011;
+	bh=bvcT15gDDvbcgIK7DIC2ANl/IxG424ERL4J/t8VyKck=;
 	h=Date:To:From:Subject:From;
-	b=VP+xjr1MOyEgIvjLU9GOxcpPnGqy54Xx3sBEZhIqQK7ksJtbIA6OqCxmiICEXuCxs
-	 Qw3XqV1B1sO/cnZwJd7LmZXArclh77RYWdG0O5OT5Dx9P77I/gQf5iLDFyzOzl6z2T
-	 9i8sRNBHpQnuMJ/rFc164nrKd9efnITFbRSp2maE=
-Date: Sun, 06 Apr 2025 17:45:47 -0700
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=I3bhLeBjTuthTur2pOI1qL1POEhOb6Auj2DvLzrATgaRuu9kz54R1Khx4NXXUSRxM
+	 a8T8IEu9FdruTymRnwuFHLWP2ajUCBOA2Zn0QT/Z0831ErqUOdn1w+gzWpDn4cdOgm
+	 A6RTCbnR8BiQIo7JoQ/d7A0NR8iIFhNA1tPjbsvc=
+Date: Sun, 06 Apr 2025 17:50:10 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-modernize-writeback-interface-v3.patch added to mm-new branch
-Message-Id: <20250407004548.66CE0C4CEE3@smtp.kernel.org>
+Subject: + memcg-remove-root-memcg-check-from-refill_stock.patch added to mm-new branch
+Message-Id: <20250407005011.6F662C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: modernize writeback interface
+     Subject: memcg: remove root memcg check from refill_stock
 has been added to the -mm mm-new branch.  Its filename is
-     zram-modernize-writeback-interface-v3.patch
+     memcg-remove-root-memcg-check-from-refill_stock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-modernize-writeback-interface-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-root-memcg-check-from-refill_stock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: modernize writeback interface
-Date: Fri, 4 Apr 2025 10:52:50 +0900
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: remove root memcg check from refill_stock
+Date: Thu, 3 Apr 2025 18:39:05 -0700
 
-simplify parse_page_index() range checks, per Brian
+refill_stock can not be called with root memcg, so there is no need to
+check it.  Instead add a warning if root is ever passed to it.
 
-Link: https://lkml.kernel.org/r/20250404015327.2427684-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reviewed-by: Brian Geffon <bgeffon@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
+Link: https://lkml.kernel.org/r/20250404013913.1663035-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20250404013913.1663035-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ++--
+ mm/memcontrol.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-modernize-writeback-interface-v3
-+++ a/drivers/block/zram/zram_drv.c
-@@ -853,9 +853,9 @@ static int parse_page_index(char *val, u
- 	ret = kstrtoul(val, 10, lo);
- 	if (ret)
- 		return ret;
--	*hi = *lo + 1;
--	if (*lo >= nr_pages || *hi > nr_pages)
-+	if (*lo >= nr_pages)
- 		return -ERANGE;
-+	*hi = *lo + 1;
- 	return 0;
- }
+--- a/mm/memcontrol.c~memcg-remove-root-memcg-check-from-refill_stock
++++ a/mm/memcontrol.c
+@@ -1893,13 +1893,13 @@ static void refill_stock(struct mem_cgro
+ {
+ 	unsigned long flags;
  
++	VM_WARN_ON_ONCE(mem_cgroup_is_root(memcg));
++
+ 	if (!local_trylock_irqsave(&memcg_stock.stock_lock, flags)) {
+ 		/*
+ 		 * In case of unlikely failure to lock percpu stock_lock
+ 		 * uncharge memcg directly.
+ 		 */
+-		if (mem_cgroup_is_root(memcg))
+-			return;
+ 		page_counter_uncharge(&memcg->memory, nr_pages);
+ 		if (do_memsw_account())
+ 			page_counter_uncharge(&memcg->memsw, nr_pages);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
-zram-modernize-writeback-interface.patch
-zram-modernize-writeback-interface-v3.patch
+memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
+memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
+memcg-remove-root-memcg-check-from-refill_stock.patch
+memcg-decouple-drain_obj_stock-from-local-stock.patch
+memcg-introduce-memcg_uncharge.patch
+memcg-manually-inline-__refill_stock.patch
+memcg-no-refilling-stock-from-obj_cgroup_release.patch
+memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
+memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
+memcg-manually-inline-replace_stock_objcg.patch
 
