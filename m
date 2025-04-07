@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 320763C0C
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 00:50:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1DA3B665
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 00:59:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743987028; cv=none; b=ADUUhx53Uf/qjUHprLwrDdMWa22AKhMPUPZ5kIBipf/pR0kPIbBneY0jqCItpxfP7CjYdlLrYphTXMqWNjynKzG5KSLgq9RfzD9F9Mzdqsdts3k7LBI+a0zpZJMkw82LCg9firJOeS2isAt9pW0OU8ciSDdzz6RFUJiN8EYnSy0=
+	t=1743987588; cv=none; b=XkObsi8wQcLfhSRod90ZoElAm03CuIIE/KXjCDThschGDXpVcnSl0fA80+hjcPplSS43kEJkL0j4J3Q08cBFohF3U+DVzlSbaNPcjNtcLCMA17YsLcQ36iF5q+Jby659bM/2dYnzGgGrvYcfA/HZGwCeLD8S7M6eIgb6zvFI7gg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743987028; c=relaxed/simple;
-	bh=oN+h1EXjQBlYYvdi1TwY7vHcmthHG+pvjg4RgJC2R7I=;
-	h=Date:To:From:Subject:Message-Id; b=CbPDUl7qh7skarBrhS/Oy03e8h6aBH7biDdWjl3rGYJ+urwmY3CVrPy2Wiju75iN0BuoW7k5Wz/M9zzqW+oRU1gOHhv0ZJ4JJ7Zy9B9lfkOnhast2zgdSYns95hEPNLoeZRDdItUUVHtSQpA2ZzrBwDgBlLl/GswbNZELhfRSIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OiLhYO5J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743987588; c=relaxed/simple;
+	bh=p+9hQcRAm2wf8YRj4a6jEpT05tKd/CjdI48dlaN2CWU=;
+	h=Date:To:From:Subject:Message-Id; b=StiGKK4iu0myh2I83RwWBBiWqkHUb9cVGURbUAid3tLZXkxoHf3ZFoTJ2M6aoMLIzrfl/yuxyb0v+mzUZhCyFYCiXJpJ0SzRTTTkC6eH72TVbCFZWiFLyPPc3oYCAhk0311v2QoCVj3bYHCxwF/ilkxzFY+B/fmf3qqd4snl3mA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WRr66CUr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OiLhYO5J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AABCC4CEE3;
-	Mon,  7 Apr 2025 00:50:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WRr66CUr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05729C4CEEA;
+	Mon,  7 Apr 2025 00:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743987027;
-	bh=oN+h1EXjQBlYYvdi1TwY7vHcmthHG+pvjg4RgJC2R7I=;
+	s=korg; t=1743987588;
+	bh=p+9hQcRAm2wf8YRj4a6jEpT05tKd/CjdI48dlaN2CWU=;
 	h=Date:To:From:Subject:From;
-	b=OiLhYO5JoWScOI95U4AsjBtgb0bkLgJTAww9muEEV9+ABp2lskD0jZ+hkgmNRKDNc
-	 tZbXTdZybu5qxUd6JOqJat3+kQY1KOhkhWX+zVpEHqMG8jjjUlyYm0a6eD5lVxbTJn
-	 wtUnPH16AzfdS1DHjBk7gq2jCLoSTizflMuoHo8M=
-Date: Sun, 06 Apr 2025 17:50:27 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,bigeasy@linutronix.de,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=WRr66CUrk8f6FnxiubdAClSvCHsnMdZmi4QDo/Y2JWpET5jbqXP8loghz0nP/9tAB
+	 F6J6t63fhZbXmBp4hBT+B/ztKLuy7a5EH3IAOSsilU7YlK1uSObhEAWykxCezlZMr+
+	 HdkEidLykLG575SSdroe2ILgkG2M4FaxZP2DKjkQ=
+Date: Sun, 06 Apr 2025 17:59:47 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-manually-inline-replace_stock_objcg.patch added to mm-new branch
-Message-Id: <20250407005027.9AABCC4CEE3@smtp.kernel.org>
+Subject: [to-be-updated] memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch removed from -mm tree
+Message-Id: <20250407005948.05729C4CEEA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,97 +34,93 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: memcg: manually inline replace_stock_objcg
-has been added to the -mm mm-new branch.  Its filename is
-     memcg-manually-inline-replace_stock_objcg.patch
+The quilt patch titled
+     Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
+has been removed from the -mm tree.  Its filename was
+     memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-manually-inline-replace_stock_objcg.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: manually inline replace_stock_objcg
-Date: Thu, 3 Apr 2025 18:39:13 -0700
+From: Waiman Long <longman@redhat.com>
+Subject: memcg: don't generate low/min events if either low/min or elow/emin is 0
+Date: Wed, 2 Apr 2025 23:12:12 -0400
 
-The replace_stock_objcg() is being called by only refill_obj_stock, so
-manually inline it.
+The test_memcontrol selftest consistently fails its test_memcg_low
+sub-test because of the fact that two of its test child cgroups which have
+a memmory.low of 0 or an effective memory.low of 0 still have low events
+generated for them since mem_cgroup_below_low() use the ">=" operator when
+comparing to elow.
 
-Link: https://lkml.kernel.org/r/20250404013913.1663035-10-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+The simple fix of changing the operator to ">", however, changes the way
+memory reclaim works quite drastically leading to other failures.  So we
+can't do that without some relatively riskier changes in memory reclaim.
+
+Another simpler alternative is to avoid reporting below_low failure if
+either memory.low or its effective equivalent is 0 which is done by this
+patch.
+
+With this patch applied, the test_memcg_low sub-test finishes successfully
+without failure in most cases.  Though both test_memcg_low and
+test_memcg_min sub-tests may fail occasionally if the memory.current
+values fall outside of the expected ranges.
+
+To be consistent, similar change is appled to mem_cgroup_below_min()
+as well.
+
+Link: https://lkml.kernel.org/r/20250403031212.317837-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ include/linux/memcontrol.h |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
---- a/mm/memcontrol.c~memcg-manually-inline-replace_stock_objcg
-+++ a/mm/memcontrol.c
-@@ -2763,17 +2763,6 @@ void __memcg_kmem_uncharge_page(struct p
- 	obj_cgroup_put(objcg);
+--- a/include/linux/memcontrol.h~memcg-dont-generate-low-min-events-if-either-low-min-or-elow-emin-is-0
++++ a/include/linux/memcontrol.h
+@@ -601,21 +601,31 @@ static inline bool mem_cgroup_unprotecte
+ static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
+ 					struct mem_cgroup *memcg)
+ {
++	unsigned long elow;
++
+ 	if (mem_cgroup_unprotected(target, memcg))
+ 		return false;
+ 
+-	return READ_ONCE(memcg->memory.elow) >=
+-		page_counter_read(&memcg->memory);
++	elow = READ_ONCE(memcg->memory.elow);
++	if (!elow || !READ_ONCE(memcg->memory.low))
++		return false;
++
++	return page_counter_read(&memcg->memory) <= elow;
  }
  
--/* Replace the stock objcg with objcg, return the old objcg */
--static void replace_stock_objcg(struct memcg_stock_pcp *stock,
--				struct obj_cgroup *objcg)
--{
--	drain_obj_stock(stock);
--	obj_cgroup_get(objcg);
--	stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
--			? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
--	WRITE_ONCE(stock->cached_objcg, objcg);
--}
--
- static void __account_obj_stock(struct obj_cgroup *objcg,
- 				struct memcg_stock_pcp *stock, int nr,
- 				struct pglist_data *pgdat, enum node_stat_item idx)
-@@ -2934,7 +2923,12 @@ static void refill_obj_stock(struct obj_
- 
- 	stock = this_cpu_ptr(&memcg_stock);
- 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
--		replace_stock_objcg(stock, objcg);
-+		drain_obj_stock(stock);
-+		obj_cgroup_get(objcg);
-+		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
-+				? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
-+		WRITE_ONCE(stock->cached_objcg, objcg);
+ static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
+ 					struct mem_cgroup *memcg)
+ {
++	unsigned long emin;
 +
- 		allow_uncharge = true;	/* Allow uncharge when objcg changes */
- 	}
- 	stock->nr_bytes += nr_bytes;
+ 	if (mem_cgroup_unprotected(target, memcg))
+ 		return false;
+ 
+-	return READ_ONCE(memcg->memory.emin) >=
+-		page_counter_read(&memcg->memory);
++	emin = READ_ONCE(memcg->memory.emin);
++	if (!emin || !READ_ONCE(memcg->memory.min))
++		return false;
++
++	return page_counter_read(&memcg->memory) <= emin;
+ }
+ 
+ int __mem_cgroup_charge(struct folio *folio, struct mm_struct *mm, gfp_t gfp);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from longman@redhat.com are
 
-memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
-memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
-memcg-remove-root-memcg-check-from-refill_stock.patch
-memcg-decouple-drain_obj_stock-from-local-stock.patch
-memcg-introduce-memcg_uncharge.patch
-memcg-manually-inline-__refill_stock.patch
-memcg-no-refilling-stock-from-obj_cgroup_release.patch
-memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
-memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
-memcg-manually-inline-replace_stock_objcg.patch
 
