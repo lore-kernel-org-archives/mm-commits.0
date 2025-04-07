@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AFA1586C8;
-	Mon,  7 Apr 2025 20:59:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68263185B4C
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 21:41:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744059543; cv=none; b=JzC3EyGRHIRBNLCYWM3nJm66f5pxKE66BJqgB3asEmSBE4IpsvffJBeiqQplHc0zMbDdWFWCD8ImbqXw7nQVZftfvAJD9yjXGZSl81eN1isIueayipplIF0dreRJwZGI0J7IRvSYLvR1jSymoTOu1ocu8p9LWHm2o2k4n0munYE=
+	t=1744062077; cv=none; b=nGLSLj2qleF+pYpedDGyyjzklpRUvKvhH/vmj5fX+c6It7KQ1wdpEZZ2T8wsOF+fpPu0Gd1I84sm4ita4ku/4IhMge6SV6qT2WZTGiQBBp/073C0DTXshnWLgHQ1JqsKtdOm2cJLI2MUC3vGkCPLZkCOQhI68e8kZZQ8v1UUBnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744059543; c=relaxed/simple;
-	bh=e35dlJ5b5L77mPC7SxCd9ogNim8rLddGmPBXQZAFO08=;
-	h=Date:To:From:Subject:Message-Id; b=dAFM/l7H6ejEJ1JVHeVU+96MLktasf31rixRC3S56DC6Z1vTaaBGUcae1SUZ+TksVv/EOA/G+KnqiTNe+tdN/zAFW5Utnd88k5grGGWDJkCxKDv11i8q6wBXgeH4CwoUV6fK2/mah3OG0bD/7xRdgfhvXlh6kgKn7e75lK6ZjVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Orgbi7J2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744062077; c=relaxed/simple;
+	bh=X2ZCYAarmdSBHW54WHKWq+OuE0ANLxPg5eqFQBgw53E=;
+	h=Date:To:From:Subject:Message-Id; b=Pb35m56/6/vBOr5MZqtZpr/kR//y8IoV+TCyreGh2OneRUyxCVG9FjjhsS6drpvIxDewdNuwMzr4GqqZNm9VcDtg3R+ecDZte+CETuK9R6u0+gT+6WOlGlyH5mBJA3tgGmxSFHFhL5E4peFRQQDKX5ruWEBjgpLjgRTnaNfEQ+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=08RM+P2M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Orgbi7J2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76A46C4CEDD;
-	Mon,  7 Apr 2025 20:59:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="08RM+P2M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B938BC4CEDD;
+	Mon,  7 Apr 2025 21:41:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744059542;
-	bh=e35dlJ5b5L77mPC7SxCd9ogNim8rLddGmPBXQZAFO08=;
+	s=korg; t=1744062076;
+	bh=X2ZCYAarmdSBHW54WHKWq+OuE0ANLxPg5eqFQBgw53E=;
 	h=Date:To:From:Subject:From;
-	b=Orgbi7J2WZujHOaPHSTHI3uUSk1dc3kgChDs1hTX0jk+cnpjIvQwVLZSQcqYe1E9z
-	 OR9GsYaEDLhXoJv3x+0L9DfoakB6AwfeDNrgXJzCo2nBKlzgr9y4UhBykf8/B6eFUZ
-	 5bf19uLmISWarPbSNdkXDxsu8nVvDdYxt0v1n1Hg=
-Date: Mon, 07 Apr 2025 13:59:01 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,quwenruo.btrfs@gmx.com,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=08RM+P2MWz8l5wVoVmtwT4mOO5Fe/l4J629UvccI+0CIRIqcemzVpwX8sfmyj8tyk
+	 EY29/VY5h9K6tYTd6SCHac/xzFrOxwfIM2i2uyHVkm2+A8y1t6NtZDqwtACIEO4Gp8
+	 NOBhwCH1yCxCt3WWgO+EE16U2xmsqajF0iBjBqDo=
+Date: Mon, 07 Apr 2025 14:41:16 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,svetly.todorov@memverge.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ran.xiaokai@zte.com.cn,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250407205902.76A46C4CEDD@smtp.kernel.org>
+Subject: + fs-proc-page-refactoring-to-reduce-code-duplication.patch added to mm-new branch
+Message-Id: <20250407214116.B938BC4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix filemap_get_folios_contig returning batches of identical folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch
+     Subject: fs/proc/page: refactor to reduce code duplication
+has been added to the -mm mm-new branch.  Its filename is
+     fs-proc-page-refactoring-to-reduce-code-duplication.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-page-refactoring-to-reduce-code-duplication.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,278 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: fix filemap_get_folios_contig returning batches of identical folios
-Date: Thu, 3 Apr 2025 16:54:17 -0700
+From: Liu Ye <liuye@kylinos.cn>
+Subject: fs/proc/page: refactor to reduce code duplication
+Date: Tue, 18 Mar 2025 14:32:26 +0800
 
-filemap_get_folios_contig() is supposed to return distinct folios found
-within [start, end].  Large folios in the Xarray become multi-index
-entries.  xas_next() can iterate through the sub-indexes before finding a
-sibling entry and breaking out of the loop.
+kpageflags_read() and kpagecgroup_read() are quite similar to
+kpagecount_read().  Refactor common code into a helper function to reduce
+code duplication.
 
-This can result in a returned folio_batch containing an indeterminate
-number of duplicate folios, which forces the callers to skeptically handle
-the returned batch.  This is inefficient and incurs a large maintenance
-overhead.
-
-We can fix this by calling xas_advance() after we have successfully adding
-a folio to the batch to ensure our Xarray is positioned such that it will
-correctly find the next folio - similar to filemap_get_read_batch().
-
-Link: https://lkml.kernel.org/r/Z-8s1-kiIDkzgRbc@fedora
-Fixes: 35b471467f88 ("filemap: add filemap_get_folios_contig()")
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reported-by: Qu Wenruo <quwenruo.btrfs@gmx.com>
-Closes: https://lkml.kernel.org/r/b714e4de-2583-4035-b829-72cfb5eb6fc6@gmx.com
-Tested-by: Qu Wenruo <quwenruo.btrfs@gmx.com>
+Link: https://lkml.kernel.org/r/20250318063226.223284-1-liuyerd@163.com
+Signed-off-by: Liu Ye <liuye@kylinos.cn>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Svetly Todorov <svetly.todorov@memverge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/page.c             |  159 +++++++++++------------------------
+ include/linux/memcontrol.h |    4 
+ 2 files changed, 57 insertions(+), 106 deletions(-)
 
---- a/mm/filemap.c~mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios
-+++ a/mm/filemap.c
-@@ -2244,6 +2244,7 @@ unsigned filemap_get_folios_contig(struc
- 			*start = folio->index + nr;
- 			goto out;
+--- a/fs/proc/page.c~fs-proc-page-refactoring-to-reduce-code-duplication
++++ a/fs/proc/page.c
+@@ -22,6 +22,12 @@
+ #define KPMMASK (KPMSIZE - 1)
+ #define KPMBITS (KPMSIZE * BITS_PER_BYTE)
+ 
++enum kpage_operation {
++	KPAGE_FLAGS,
++	KPAGE_COUNT,
++	KPAGE_CGROUP,
++};
++
+ static inline unsigned long get_max_dump_pfn(void)
+ {
+ #ifdef CONFIG_SPARSEMEM
+@@ -37,19 +43,17 @@ static inline unsigned long get_max_dump
+ #endif
+ }
+ 
+-/* /proc/kpagecount - an array exposing page mapcounts
+- *
+- * Each entry is a u64 representing the corresponding
+- * physical page mapcount.
+- */
+-static ssize_t kpagecount_read(struct file *file, char __user *buf,
+-			     size_t count, loff_t *ppos)
++static ssize_t kpage_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos,
++		enum kpage_operation op)
+ {
+ 	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
++	struct page *page;
+ 	unsigned long src = *ppos;
+ 	unsigned long pfn;
+ 	ssize_t ret = 0;
++	u64 info;
+ 
+ 	pfn = src / KPMSIZE;
+ 	if (src & KPMMASK || count & KPMMASK)
+@@ -59,24 +63,34 @@ static ssize_t kpagecount_read(struct fi
+ 	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+ 
+ 	while (count > 0) {
+-		struct page *page;
+-		u64 mapcount = 0;
+-
+ 		/*
+ 		 * TODO: ZONE_DEVICE support requires to identify
+ 		 * memmaps that were actually initialized.
+ 		 */
+ 		page = pfn_to_online_page(pfn);
+-		if (page) {
+-			struct folio *folio = page_folio(page);
+ 
+-			if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
+-				mapcount = folio_precise_page_mapcount(folio, page);
+-			else
+-				mapcount = folio_average_page_mapcount(folio);
+-		}
++		if (page) {
++			switch (op) {
++			case KPAGE_FLAGS:
++				info = stable_page_flags(page);
++				break;
++			case KPAGE_COUNT:
++				if (IS_ENABLED(CONFIG_PAGE_MAPCOUNT))
++					info = folio_precise_page_mapcount(page_folio(page), page);
++				else
++					info = folio_average_page_mapcount(page_folio(page));
++				break;
++			case KPAGE_CGROUP:
++				info = page_cgroup_ino(page);
++				break;
++			default:
++				info = 0;
++				break;
++			}
++		} else
++			info = 0;
+ 
+-		if (put_user(mapcount, out)) {
++		if (put_user(info, out)) {
+ 			ret = -EFAULT;
+ 			break;
  		}
-+		xas_advance(&xas, folio_next_index(folio) - 1);
- 		continue;
- put_folio:
- 		folio_put(folio);
+@@ -94,17 +108,23 @@ static ssize_t kpagecount_read(struct fi
+ 	return ret;
+ }
+ 
++/* /proc/kpagecount - an array exposing page mapcounts
++ *
++ * Each entry is a u64 representing the corresponding
++ * physical page mapcount.
++ */
++static ssize_t kpagecount_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	return kpage_read(file, buf, count, ppos, KPAGE_COUNT);
++}
++
+ static const struct proc_ops kpagecount_proc_ops = {
+ 	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_lseek	= mem_lseek,
+ 	.proc_read	= kpagecount_read,
+ };
+ 
+-/* /proc/kpageflags - an array exposing page flags
+- *
+- * Each entry is a u64 representing the corresponding
+- * physical page flags.
+- */
+ 
+ static inline u64 kpf_copy_bit(u64 kflags, int ubit, int kbit)
+ {
+@@ -225,47 +245,17 @@ u64 stable_page_flags(const struct page
+ #endif
+ 
+ 	return u;
+-};
++}
+ 
++/* /proc/kpageflags - an array exposing page flags
++ *
++ * Each entry is a u64 representing the corresponding
++ * physical page flags.
++ */
+ static ssize_t kpageflags_read(struct file *file, char __user *buf,
+-			     size_t count, loff_t *ppos)
++		size_t count, loff_t *ppos)
+ {
+-	const unsigned long max_dump_pfn = get_max_dump_pfn();
+-	u64 __user *out = (u64 __user *)buf;
+-	unsigned long src = *ppos;
+-	unsigned long pfn;
+-	ssize_t ret = 0;
+-
+-	pfn = src / KPMSIZE;
+-	if (src & KPMMASK || count & KPMMASK)
+-		return -EINVAL;
+-	if (src >= max_dump_pfn * KPMSIZE)
+-		return 0;
+-	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+-
+-	while (count > 0) {
+-		/*
+-		 * TODO: ZONE_DEVICE support requires to identify
+-		 * memmaps that were actually initialized.
+-		 */
+-		struct page *page = pfn_to_online_page(pfn);
+-
+-		if (put_user(stable_page_flags(page), out)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-
+-		pfn++;
+-		out++;
+-		count -= KPMSIZE;
+-
+-		cond_resched();
+-	}
+-
+-	*ppos += (char __user *)out - buf;
+-	if (!ret)
+-		ret = (char __user *)out - buf;
+-	return ret;
++	return kpage_read(file, buf, count, ppos, KPAGE_FLAGS);
+ }
+ 
+ static const struct proc_ops kpageflags_proc_ops = {
+@@ -276,53 +266,10 @@ static const struct proc_ops kpageflags_
+ 
+ #ifdef CONFIG_MEMCG
+ static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
+-				size_t count, loff_t *ppos)
++		size_t count, loff_t *ppos)
+ {
+-	const unsigned long max_dump_pfn = get_max_dump_pfn();
+-	u64 __user *out = (u64 __user *)buf;
+-	struct page *ppage;
+-	unsigned long src = *ppos;
+-	unsigned long pfn;
+-	ssize_t ret = 0;
+-	u64 ino;
+-
+-	pfn = src / KPMSIZE;
+-	if (src & KPMMASK || count & KPMMASK)
+-		return -EINVAL;
+-	if (src >= max_dump_pfn * KPMSIZE)
+-		return 0;
+-	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+-
+-	while (count > 0) {
+-		/*
+-		 * TODO: ZONE_DEVICE support requires to identify
+-		 * memmaps that were actually initialized.
+-		 */
+-		ppage = pfn_to_online_page(pfn);
+-
+-		if (ppage)
+-			ino = page_cgroup_ino(ppage);
+-		else
+-			ino = 0;
+-
+-		if (put_user(ino, out)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-
+-		pfn++;
+-		out++;
+-		count -= KPMSIZE;
+-
+-		cond_resched();
+-	}
+-
+-	*ppos += (char __user *)out - buf;
+-	if (!ret)
+-		ret = (char __user *)out - buf;
+-	return ret;
++	return kpage_read(file, buf, count, ppos, KPAGE_CGROUP);
+ }
+-
+ static const struct proc_ops kpagecgroup_proc_ops = {
+ 	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_lseek	= mem_lseek,
+--- a/include/linux/memcontrol.h~fs-proc-page-refactoring-to-reduce-code-duplication
++++ a/include/linux/memcontrol.h
+@@ -1793,6 +1793,10 @@ static inline void count_objcg_events(st
+ {
+ }
+ 
++static inline ino_t page_cgroup_ino(struct page *page)
++{
++	return 0;
++}
+ #endif /* CONFIG_MEMCG */
+ 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-compaction-fix-bug-in-hugetlb-handling-pathway.patch
-mm-fix-filemap_get_folios_contig-returning-batches-of-identical-folios.patch
-mm-compaction-use-folio-in-hugetlb-pathway.patch
+mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
+mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch
+fs-proc-page-refactoring-to-reduce-code-duplication.patch
 
