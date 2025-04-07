@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4A917BA6
-	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D73817BA6
+	for <mm-commits@vger.kernel.org>; Mon,  7 Apr 2025 01:48:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743990488; cv=none; b=e/pyHGkoKBwIvsgBieEHRDQdBRDYUPUbd13NHBxH3/A+uiszBVuGw5ae0bQyzKzKo095jMUW7HDZav/Ie0RTCihqDCGrxBoJ/H1j/ZP5e0SI99cTLjfNuvvbVPMajWn0z6XBMF+jd7M99n5CF587V+tCX/pyYvZyTrYTVPAzous=
+	t=1743990491; cv=none; b=a/mdri89DTwHQSxYSjdk5uHjL4aBZfHVFqtgkZE3Cb+aJAx/pKLoQRnpQOVrxIere84vu0LidKU8wgSKx7Ds+wxSo0+ROHLv0UHX5/zybNPylHbQhoJf9JCrb9I3s7CzSVzvJzZ/hLz12Il/xUeffECnFq2twHpc3EKuHmNmr6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743990488; c=relaxed/simple;
-	bh=cOs77wdZFU3bZIxMk8bX0UD3QHwm3mwb2AfTC1aLNSA=;
-	h=Date:To:From:Subject:Message-Id; b=rEPJ60H0vgrFcXCCRwkfIHr9+hZE2WEzdzqysbbOA3JvZGMjsAyeOy2x/n4yLmvldmcB55jpsQOtLmNwIW+ZFQ92LjpKa84am7lc17wrmAcdrbOhcMz3/EeC6SYkty0LorfgAl0NHvqJouDW8LA8vllfsX805WtoX7IA0i3koyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QXLfslGR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743990491; c=relaxed/simple;
+	bh=N8uNJdE6lQDDM9/IMHtiglvW9REhiWvkUlFvFKp8k24=;
+	h=Date:To:From:Subject:Message-Id; b=IgBF4/ZcAvrJXdB4BG7sVVjYFXZ/hDPRQjGbveBBZaMko20GU02pRqqdPpV61sMcIeB8r85rTGvWHbIAk4MZOOwl+YfrxtqMpKRqbbgq9RA006pt971C7AJ/mLeS5EWyDUl1/6WwP5oWncyOYPzmOxzBwG5/9/dN+UqEBJ/PUlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YGWQm/Pc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QXLfslGR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 467F8C4CEE3;
-	Mon,  7 Apr 2025 01:48:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YGWQm/Pc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 774C4C4CEE3;
+	Mon,  7 Apr 2025 01:48:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1743990488;
-	bh=cOs77wdZFU3bZIxMk8bX0UD3QHwm3mwb2AfTC1aLNSA=;
+	s=korg; t=1743990490;
+	bh=N8uNJdE6lQDDM9/IMHtiglvW9REhiWvkUlFvFKp8k24=;
 	h=Date:To:From:Subject:From;
-	b=QXLfslGR+eAjY3+oqhkfEJ0vvGlT9pBIdCLiAhM5HPOieBSdJU6bRu9usjAfNRB1a
-	 qm+rm5TYzaVveF5V6zSx4HwH2V4PTzorbpgqlz5pHYdz5zRR5mWB99BpyfPbstFEqh
-	 AsameTqLccVT/dGAg0fwPYhOYSaNnGp4UlvXGDXI=
-Date: Sun, 06 Apr 2025 18:48:07 -0700
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,pmladek@suse.com,mbenes@suse.cz,masahiroy@kernel.org,jpoimboe@kernel.org,joe.lawrence@redhat.com,jikos@kernel.org,jeff.johnson@oss.qualcomm.com,eahariha@linux.microsoft.com,christophe.leroy@csgroup.eu,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=YGWQm/PcAF+4Vvxr8dz5OH9Tet9nR6zmIyCpTtQYiwU6gzMHM1GV+0hGgCa/cybdV
+	 /Za3k5HISQIy4Q1K5X2jSXFYlLioS9aqPF8A1qrJUzpBHmqxNVyWztfmtUYQG+ylIv
+	 QF0eV2VPJH1keF0wgE7m//isdRW6PjI4i3eyGRA0=
+Date: Sun, 06 Apr 2025 18:48:09 -0700
+To: mm-commits@vger.kernel.org,yilun.xu@intel.com,trix@redhat.com,sfr@canb.auug.org.au,russ.weight@linux.dev,mdf@kernel.org,masahiroy@kernel.org,marpagan@redhat.com,jeff.johnson@oss.qualcomm.com,hao.wu@intel.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-livepatch-add-module-descriptions-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20250407014808.467F8C4CEE3@smtp.kernel.org>
+Subject: + fpga-tests-add-module-descriptions.patch added to mm-nonmm-unstable branch
+Message-Id: <20250407014810.774C4C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples-livepatch-add-module-descriptions-fix
+     Subject: fpga: tests: add module descriptions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     samples-livepatch-add-module-descriptions-fix.patch
+     fpga-tests-add-module-descriptions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-livepatch-add-module-descriptions-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fpga-tests-add-module-descriptions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: samples-livepatch-add-module-descriptions-fix
-Date: Sun Apr  6 06:44:58 PM PDT 2025
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fpga: tests: add module descriptions
+Date: Mon, 24 Mar 2025 18:32:29 +0100
 
-match the livepatch-callbacks-mod.c description, per Petr
+Modules without a description now cause a warning:
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Easwar Hariharan <eahariha@linux.microsoft.com>
+WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/fpga/tests/fpga-bridge-test.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/fpga/tests/fpga-mgr-test.o
+WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/fpga/tests/fpga-region-test.o
+
+Link: https://lkml.kernel.org/r/20250324173242.1501003-4-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Hao Wu <hao.wu@intel.com>
 Cc: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
-Cc: Jiri Kosina <jikos@kernel.org>
-Cc: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@kernel.org>
+Cc: Marco Pagani <marpagan@redhat.com>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Petr Mladek <pmladek@suse.com>
+Cc: Moritz Fischer <mdf@kernel.org>
+Cc: Russ Weight <russ.weight@linux.dev>
 Cc: Stehen Rothwell <sfr@canb.auug.org.au>
+Cc: Tom Rix <trix@redhat.com>
+Cc: Xu Yilun <yilun.xu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/livepatch/livepatch-callbacks-busymod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/fpga/tests/fpga-bridge-test.c |    1 +
+ drivers/fpga/tests/fpga-mgr-test.c    |    1 +
+ drivers/fpga/tests/fpga-region-test.c |    1 +
+ 3 files changed, 3 insertions(+)
 
---- a/samples/livepatch/livepatch-callbacks-busymod.c~samples-livepatch-add-module-descriptions-fix
-+++ a/samples/livepatch/livepatch-callbacks-busymod.c
-@@ -56,5 +56,5 @@ static void livepatch_callbacks_mod_exit
+--- a/drivers/fpga/tests/fpga-bridge-test.c~fpga-tests-add-module-descriptions
++++ a/drivers/fpga/tests/fpga-bridge-test.c
+@@ -170,4 +170,5 @@ static struct kunit_suite fpga_bridge_su
  
- module_init(livepatch_callbacks_mod_init);
- module_exit(livepatch_callbacks_mod_exit);
--MODULE_DESCRIPTION("Live patching demo for (un)patching callbacks");
-+MODULE_DESCRIPTION("Live patching demo for (un)patching callbacks, support module");
+ kunit_test_suite(fpga_bridge_suite);
+ 
++MODULE_DESCRIPTION("KUnit test for the FPGA Bridge");
+ MODULE_LICENSE("GPL");
+--- a/drivers/fpga/tests/fpga-mgr-test.c~fpga-tests-add-module-descriptions
++++ a/drivers/fpga/tests/fpga-mgr-test.c
+@@ -330,4 +330,5 @@ static struct kunit_suite fpga_mgr_suite
+ 
+ kunit_test_suite(fpga_mgr_suite);
+ 
++MODULE_DESCRIPTION("KUnit test for the FPGA Manager");
+ MODULE_LICENSE("GPL");
+--- a/drivers/fpga/tests/fpga-region-test.c~fpga-tests-add-module-descriptions
++++ a/drivers/fpga/tests/fpga-region-test.c
+@@ -214,4 +214,5 @@ static struct kunit_suite fpga_region_su
+ 
+ kunit_test_suite(fpga_region_suite);
+ 
++MODULE_DESCRIPTION("KUnit test for the FPGA Region");
  MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-radix-tree-add-missing-cleanuph-fix.patch
-samples-livepatch-add-module-descriptions-fix.patch
-mm-kasan-add-module-decription-fix.patch
+exportfs-add-module-description.patch
+asn1-add-module-description.patch
+samples-livepatch-add-module-descriptions.patch
+fpga-tests-add-module-descriptions.patch
+xenbus-add-module-description.patch
+zlib-add-module-description.patch
+ucs2_string-add-module-description.patch
+mm-kasan-add-module-decription.patch
+kunit-slub-add-module-description.patch
 
