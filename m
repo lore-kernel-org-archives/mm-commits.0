@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85DE414AD2D
-	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:24:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51F1A250EC
+	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:35:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744161886; cv=none; b=IjBxcYj5bYBDKeM/a79+ADet7QLrVxbn4BG0RoX7J1tn9/y0QUwK2XtGEa6/mE0uRqd3pdmCbqJ0pHeumiJ+KVX9M9L9R0zE6sxWnBNG7/1uijfNx9GMxoRial1ILeQztpOJ6AglicLgVaBwuIGys+GuxHx2C56Yqe5Dv+GAAPI=
+	t=1744162551; cv=none; b=kT+RjheaKjxek9QVhp7reu8PxscBhJ7CeZZRBrGvC//wfJGmXSstAi7Dsr4JRZS2qcSKGbwcJQY4LOpmd+/lM3BtssSSy6KQhptC8maSu4Rktd4FJhqhKjJqupycnA/K1Wyovzxu4rKPTH++C1LICVqUprEj4OsLCBa5zPNsCCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744161886; c=relaxed/simple;
-	bh=0A3joq5X9l2V5JE1oCeFNtYJXZrC8YMi4zUHSfhJ6aQ=;
-	h=Date:To:From:Subject:Message-Id; b=PWwn74DXFmk+nbtuA6hyaQOqubBowinMf6sdlVJhW6/B77+w28adDINeRwo+qR4dpQvpK2DKAlmonbneBGZvolgypBjijilHjX2xDsAzpOVrn82x9RauS93Cw+lYTkYu9BWm/D4IYlWGT6htMe3up6JcCv9ZrOIg/+7eF7k5Kec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kSj9nyEI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744162551; c=relaxed/simple;
+	bh=UBshpcWP28D61SRZbh/58He+nG20gob5bxxh3UVhPAw=;
+	h=Date:To:From:Subject:Message-Id; b=tWh1N//yK9a1kEcNVZgxIhLnakXw2Hm1MIRPP4JN7O1LnQ05Kv8kjPkJCTeGwvC38Z3ZUJN0RXheUp10pr0yMKELtOzkA4jWh8Im8bZKQZWvc9UKgjNx6ryzk7nFu6iqDHZECjEML3czcisYOq2laKRcjnCdYISybjuz3ItcNIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jY5lcyGg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kSj9nyEI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDF8AC4CEE5;
-	Wed,  9 Apr 2025 01:24:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jY5lcyGg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B21CBC4CEE5;
+	Wed,  9 Apr 2025 01:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744161884;
-	bh=0A3joq5X9l2V5JE1oCeFNtYJXZrC8YMi4zUHSfhJ6aQ=;
+	s=korg; t=1744162550;
+	bh=UBshpcWP28D61SRZbh/58He+nG20gob5bxxh3UVhPAw=;
 	h=Date:To:From:Subject:From;
-	b=kSj9nyEIXu/KV1vgk+vgW9xtjDcdkHwG6bZue7QPmgx7EAe/ijlPJABcJs4fWfa/S
-	 8Sf3CiXgZtDu+Qr6AV41BtWa5ZkX2mXfT7HiIU2sbU56CJfsuuYHsDQ8rywSjtZAvM
-	 H3XEK7gVhXmERSICXmVv86onFnS5/4aD77pk2sCw=
-Date: Tue, 08 Apr 2025 18:24:43 -0700
-To: mm-commits@vger.kernel.org,torvalds@linux-foundation.org,tglx@linutronix.de,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lkp@intel.com,hpa@zytor.com,error27@gmail.com,dave.hansen@linux.intel.com,bp@alien8.de,akpm@linux-foundation.org,david@redhat.com,akpm@linux-foundation.org
+	b=jY5lcyGgEbN96FljW5FfL9eLLTBtp9xFSXyxTHjr7eCagzRYVU63+bvx93zYModDv
+	 DUOi29Ba9d/jcUTkEHKeLrkYFK4Aku7+DdzhLFZe2ndQfS63ZFN94oiiuGFWks9YQN
+	 uS1AwZFhzKNVRBbw9Uk7dP4h5EmyGc2/jShC5WRo=
+Date: Tue, 08 Apr 2025 18:35:50 -0700
+To: mm-commits@vger.kernel.org,laurent.pinchart@ideasonboard.com,jeanmichel.hautbois@yoseli.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-pat-untrack_pfn_copy-fix-doc-improvements.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250409012443.DDF8AC4CEE5@smtp.kernel.org>
+Subject: + mailmap-add-entry-for-jean-michel-hautbois.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250409013550.B21CBC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm/pat: (un)track_pfn_copy() fix + doc improvements
+     Subject: mailmap: add entry for Jean-Michel Hautbois
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-mm-pat-untrack_pfn_copy-fix-doc-improvements.patch
+     mailmap-add-entry-for-jean-michel-hautbois.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-pat-untrack_pfn_copy-fix-doc-improvements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-jean-michel-hautbois.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,91 +58,35 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: x86/mm/pat: (un)track_pfn_copy() fix + doc improvements
-Date: Tue, 8 Apr 2025 10:59:50 +0200
+From: Jean-Michel Hautbois <jeanmichel.hautbois@yoseli.org>
+Subject: mailmap: add entry for Jean-Michel Hautbois
+Date: Fri, 28 Mar 2025 12:14:24 +0100
 
-We got a late smatch warning and some additional review feedback.
+As recent contributions where made with the @ideasonboard.com email, any
+reply would fail.  Add the proper address to map this old one.
 
-	smatch warnings:
-	mm/memory.c:1428 copy_page_range() error: uninitialized symbol 'pfn'.
-
-We actually use the pfn only when it is properly initialized; however, we
-may pass an uninitialized value to a function -- although it will not use
-it that likely still is UB in C.
-
-So let's just fix it by always initializing pfn in the caller of
-track_pfn_copy(), and improving the documentation of track_pfn_copy().
-
-While at it, clarify the doc of untrack_pfn_copy(), that internal checks
-make sure if we actually have to untrack anything.
-
-Link: https://lkml.kernel.org/r/20250408085950.976103-1-david@redhat.com
-Fixes: dc84bc2aba85 ("x86/mm/pat: Fix VM_PAT handling when fork() fails in copy_page_range()")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
-Closes: https://lore.kernel.org/r/202503270941.IFILyNCX-lkp@intel.com/
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Link: https://lkml.kernel.org/r/20250328-mailmap-v2-v2-1-bdc69d2193ca@yoseli.org
+Signed-off-by: Jean-Michel Hautbois <jeanmichel.hautbois@yoseli.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    9 ++++++---
- mm/memory.c             |    2 +-
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/pgtable.h~x86-mm-pat-untrack_pfn_copy-fix-doc-improvements
-+++ a/include/linux/pgtable.h
-@@ -1511,8 +1511,9 @@ static inline void track_pfn_insert(stru
- 
- /*
-  * track_pfn_copy is called when a VM_PFNMAP VMA is about to get the page
-- * tables copied during copy_page_range(). On success, stores the pfn to be
-- * passed to untrack_pfn_copy().
-+ * tables copied during copy_page_range(). Will store the pfn to be
-+ * passed to untrack_pfn_copy() only if there is something to be untracked.
-+ * Callers should initialize the pfn to 0.
-  */
- static inline int track_pfn_copy(struct vm_area_struct *dst_vma,
- 		struct vm_area_struct *src_vma, unsigned long *pfn)
-@@ -1522,7 +1523,9 @@ static inline int track_pfn_copy(struct
- 
- /*
-  * untrack_pfn_copy is called when a VM_PFNMAP VMA failed to copy during
-- * copy_page_range(), but after track_pfn_copy() was already called.
-+ * copy_page_range(), but after track_pfn_copy() was already called. Can
-+ * be called even if track_pfn_copy() did not actually track anything:
-+ * handled internally.
-  */
- static inline void untrack_pfn_copy(struct vm_area_struct *dst_vma,
- 		unsigned long pfn)
---- a/mm/memory.c~x86-mm-pat-untrack_pfn_copy-fix-doc-improvements
-+++ a/mm/memory.c
-@@ -1361,7 +1361,7 @@ copy_page_range(struct vm_area_struct *d
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
- 	struct mm_struct *src_mm = src_vma->vm_mm;
- 	struct mmu_notifier_range range;
--	unsigned long next, pfn;
-+	unsigned long next, pfn = 0;
- 	bool is_cow;
- 	int ret;
- 
+--- a/.mailmap~mailmap-add-entry-for-jean-michel-hautbois
++++ a/.mailmap
+@@ -322,6 +322,7 @@ Jayachandran C <c.jayachandran@gmail.com
+ Jayachandran C <c.jayachandran@gmail.com> <jchandra@digeo.com>
+ Jayachandran C <c.jayachandran@gmail.com> <jnair@caviumnetworks.com>
+ <jean-philippe@linaro.org> <jean-philippe.brucker@arm.com>
++Jean-Michel Hautbois <jeanmichel.hautbois@yoseli.org> <jeanmichel.hautbois@ideasonboard.com>
+ Jean Tourrilhes <jt@hpl.hp.com>
+ Jeevan Shriram <quic_jshriram@quicinc.com> <jshriram@codeaurora.org>
+ Jeff Garzik <jgarzik@pretzel.yyz.us>
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from jeanmichel.hautbois@yoseli.org are
 
-x86-mm-pat-untrack_pfn_copy-fix-doc-improvements.patch
-kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
-kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
-kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
+mailmap-add-entry-for-jean-michel-hautbois.patch
 
