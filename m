@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B6C13D8B1
-	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:07:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB02714D70E
+	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:07:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744160867; cv=none; b=ueADmJunE98yVEB1BHxJZN7gk8dAogP3Z/0Ky+rZnLRboNll3reNkVuC+6XlGx0YLzhABfCa4TPAjZmr69IQET8vgdSnnrXdBnToMFw3azim3ix5zVuIXkw7WsYKdcaSrFt14iO7lFlXGpHJxSqIF97RQHxIEC2du22zX7vjW5I=
+	t=1744160869; cv=none; b=OpfH3KJ/lbpiKfxiCOI188aAI4edXZLPrmU+7Ox0o9tW6WZgHNKJT0fufDWBpQfVha5+y7LiXZzL1l34VhCPfHlNt43oTDhvvMqIm0n+5xVePBK4Ximk3iQsFiJu3jLcuWOl5JwNKN3gBNLeC4+T/MgXKNx8AQS/aNvIjoOueSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744160867; c=relaxed/simple;
-	bh=u5+KmKNsj7/x/JUn/jxebrUev+xsdAqYCL6it27Rysc=;
-	h=Date:To:From:Subject:Message-Id; b=ov9/MTj+CSZSixIQKh5NZxVof9owaonYeTwn5lLTxrCWMG3kP3UxBIofZg0Amfx/fAAuKVPnbr+uTkE/tzgKrQAAPrQdvUT8n81EE5ry2OSiqC76ihIZ0ydC1wAWiuI35PFiwY3rNqA3wly/bffT+UshsTc8MaOzgkAON6DF3C4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OOMlGFWH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744160869; c=relaxed/simple;
+	bh=Ktv7oQt97Li8gjE+LtWGKpkjIIhYEDLdLwwFPy5qKJA=;
+	h=Date:To:From:Subject:Message-Id; b=hhWMiroWgBJNv95fXsoVszANQcpfuikK4ru/a+vwpR4Ravokl+Pm8/2D88nyXVeV69e2ghXXu2sgj8sGNx/O20tQptwWCm4M6dW1jsHKzKLBo0dFcJxDCoIGUIZ2R99QBKPVCfvs8jGdlW8zrxXjmbLzJncf1V6hc2/FCj2SkiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yCuiapoA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OOMlGFWH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67033C4CEE5;
-	Wed,  9 Apr 2025 01:07:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yCuiapoA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FC05C4CEE5;
+	Wed,  9 Apr 2025 01:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744160867;
-	bh=u5+KmKNsj7/x/JUn/jxebrUev+xsdAqYCL6it27Rysc=;
+	s=korg; t=1744160869;
+	bh=Ktv7oQt97Li8gjE+LtWGKpkjIIhYEDLdLwwFPy5qKJA=;
 	h=Date:To:From:Subject:From;
-	b=OOMlGFWHnViH//Eltr8YLOmhi9FEjbKPzt4nXKSlbGjrbdNsjpBaO4MESESEL5t8w
-	 TNmELHdbkNkAn7WkCem673mj8g0EjeJqF9Vn/ufZZzNs8P1L2VFaKscKhkMPGrY8wZ
-	 Vxmrn5yYLgpjKweKkAGhnw3ab6xrgngeu9rb1DfA=
-Date: Tue, 08 Apr 2025 18:07:46 -0700
+	b=yCuiapoAlxQ85216+RK99rm1DMEiQIfKgJCWMzIpq4P/znk2KJDO/tx4c/693i8/Y
+	 ppyGitoL9v+klo2VK403E9YAyWDGDE8+E8+LZqT0SMZ4hrTMccFLMagbspmOgwYvxc
+	 YFU2Cg4/mXPZfFhmeF2gw5oe3erZytLsq+dNc0wk=
+Date: Tue, 08 Apr 2025 18:07:49 -0700
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yang@os.amperecomputing.com,x86@kernel.org,willy@infradead.org,will@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,mark.rutland@arm.com,maddy@linux.ibm.com,linus.walleij@linaro.org,geert@linux-m68k.org,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aou@eecs.berkeley.edu,andreas@gaisler.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late.patch added to mm-new branch
-Message-Id: <20250409010747.67033C4CEE5@smtp.kernel.org>
+Subject: + arm64-mm-call-pud-p4d-ctor-in-__create_pgd_mapping.patch added to mm-new branch
+Message-Id: <20250409010749.8FC05C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: mm: clarify ctor mm argument in alloc_{pte,pmd}_late
+     Subject: arm64: mm: call PUD/P4D ctor in __create_pgd_mapping()
 has been added to the -mm mm-new branch.  Its filename is
-     riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late.patch
+     arm64-mm-call-pud-p4d-ctor-in-__create_pgd_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-call-pud-p4d-ctor-in-__create_pgd_mapping.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: riscv: mm: clarify ctor mm argument in alloc_{pte,pmd}_late
-Date: Tue, 8 Apr 2025 10:52:20 +0100
+Subject: arm64: mm: call PUD/P4D ctor in __create_pgd_mapping()
+Date: Tue, 8 Apr 2025 10:52:21 +0100
 
-pagetable_{pte,pmd}_ctor(mm, ptdesc) skip the ptlock initialisation if mm
-is &init_mm.  To avoid unnecessary overhead, it is therefore preferable to
-pass the actual mm associated to the PTE/PMD.
+Constructors for PUD/P4D-level pgtables were recently introduced.  They
+should be called for all pgtables; make sure they are called for special
+kernel mappings created by __create_pgd_mapping() too.
 
-Unfortunately, this proves challenging for alloc_{pte,pmd}_late() as the
-associated mm is not available at the point where they are called - in
-fact not even top-level functions like create_pgd_mapping() are passed the
-mm.  As a result they both call the ctor with NULL as mm; this is safe but
-potentially wasteful.
-
-This is not a new situation, but let's add a couple of comments to clarify
-it.
-
-Link: https://lkml.kernel.org/r/20250408095222.860601-11-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250408095222.860601-12-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -100,31 +91,24 @@ Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/init.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm64/mm/mmu.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/arch/riscv/mm/init.c~riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late
-+++ a/arch/riscv/mm/init.c
-@@ -442,6 +442,11 @@ static phys_addr_t __meminit alloc_pte_l
- {
- 	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
+--- a/arch/arm64/mm/mmu.c~arm64-mm-call-pud-p4d-ctor-in-__create_pgd_mapping
++++ a/arch/arm64/mm/mmu.c
+@@ -497,7 +497,11 @@ static phys_addr_t __pgd_pgtable_alloc(s
+ 	case TABLE_PMD:
+ 		BUG_ON(!pagetable_pmd_ctor(mm, ptdesc));
+ 		break;
+-	default:
++	case TABLE_PUD:
++		pagetable_pud_ctor(ptdesc);
++		break;
++	case TABLE_P4D:
++		pagetable_p4d_ctor(ptdesc);
+ 		break;
+ 	}
  
-+	/*
-+	 * We do not know which mm the PTE page is associated to at this point.
-+	 * Passing NULL to the ctor is the safe option, though it may result
-+	 * in unnecessary work (e.g. initialising the ptlock for init_mm).
-+	 */
- 	BUG_ON(!ptdesc || !pagetable_pte_ctor(NULL, ptdesc));
- 	return __pa((pte_t *)ptdesc_address(ptdesc));
- }
-@@ -522,6 +527,7 @@ static phys_addr_t __meminit alloc_pmd_l
- {
- 	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
- 
-+	/* See comment in alloc_pte_late() regarding NULL passed the ctor */
- 	BUG_ON(!ptdesc || !pagetable_pmd_ctor(NULL, ptdesc));
- 	return __pa((pmd_t *)ptdesc_address(ptdesc));
- }
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
