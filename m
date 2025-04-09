@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D3F613D8B1
-	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:07:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AC9F29A2
+	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744160858; cv=none; b=Llox7hx6f3jXds/G+pkDf1TiRFb+SwY89h4ONwjidLRLGLXp0eYHvIYU8pxwXTauilpKL+vPoS4EGtsRp1joh6vqTwkLn/Hyrui5WmzqjN6n0GNMZcWW99RxOd2NqbT4Gg0MrRv90L6bnGDaqEdgfnRj752J9Xy8L/7/nirZZe0=
+	t=1744160862; cv=none; b=kn6JVVPXNipB52VQaZeQ58ajxUgebPb9D3vJrgMduLsdW6JFVJpZMsdqtjMSePKSx8T0wKTsGnESAyVASKzakrTbpgav7MyTl37hszVQptqk9uRBIgX1LvVsuIryw85ZrlvwhEV37VtgHXPKQIRtIAkZRM8RRUr2jAxw5VXYk0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744160858; c=relaxed/simple;
-	bh=U4FBnva1q6yOsmaRvpbflxJwimfILEepShGHHXtqq3A=;
-	h=Date:To:From:Subject:Message-Id; b=kitdw5iK3W3I+aGhhXtofnNJZY9H58vvwarPNxNeEtBlGybhAQxJ9OCzvqlnseBpERYXSG2pM8yEeURrmo2GLCOavkhWLtQiAB0vLQIkFZ1GEPjSLw65zth4dWsngODl2x8zMOlS80JYsVKutNeIvfidIKFA2XHixmoV8ciA14I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hHrO2k1k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744160862; c=relaxed/simple;
+	bh=ww/EbL6yqIZNXGrKtpUNYRrbNRBxDPGv53Vm3Vmj1PY=;
+	h=Date:To:From:Subject:Message-Id; b=u1/Vgt4lB0MKYZSiel2Tq5D7HEoHQrLUg7yHBiT+zj3w0m3opLg3KMwZPs9gQL+gWMI6v6kh2owQ/yBQgZgDJ1dGrRDIpXMCrycydCRG6GTilDWYpbTbHfPMLg78BNZ4LjL7WKLOxlsMNoHT1GM0pX6g/7ESiMLJ53VxV+8qXs4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LLSW8tS8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hHrO2k1k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48EB7C4CEE5;
-	Wed,  9 Apr 2025 01:07:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LLSW8tS8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D3F2C4CEE5;
+	Wed,  9 Apr 2025 01:07:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744160858;
-	bh=U4FBnva1q6yOsmaRvpbflxJwimfILEepShGHHXtqq3A=;
+	s=korg; t=1744160860;
+	bh=ww/EbL6yqIZNXGrKtpUNYRrbNRBxDPGv53Vm3Vmj1PY=;
 	h=Date:To:From:Subject:From;
-	b=hHrO2k1k9rEzzoyCHNpjvhg5oKnEZbHQwhXMeGL7ARxeF5HcTmGTwSCZsjsNyFXLl
-	 lFX+qdbijuz60/8hZn8K+olsPmlKSkm3u0M2V6I3KDvt96HdkrL8lM6nxRq51t7W+p
-	 VbiEef2wmJRIpAsvX9azSv9vF9qdhqWJvg3HtJT0=
-Date: Tue, 08 Apr 2025 18:07:37 -0700
+	b=LLSW8tS826x0bdOorIjk/lo5l1LeIYPPjXnw6aaKGWSYGERiNKwKff4y1ijFpOoJx
+	 N2Nux9jeKps0kR8NljOED71Ct5aclKvJ1qJBkc6e/cx2DWRnhWO5jwuuMqRCXT0afj
+	 ky54diilUEwl641vgS6ogpbhQEhVoTVCuF9Nvf8E=
+Date: Tue, 08 Apr 2025 18:07:39 -0700
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yang@os.amperecomputing.com,x86@kernel.org,willy@infradead.org,will@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,mark.rutland@arm.com,maddy@linux.ibm.com,linus.walleij@linaro.org,geert@linux-m68k.org,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aou@eecs.berkeley.edu,andreas@gaisler.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc64-mm-call-ctor-dtor-for-kernel-ptes.patch added to mm-new branch
-Message-Id: <20250409010738.48EB7C4CEE5@smtp.kernel.org>
+Subject: + mm-skip-ptlock_init-for-kernel-pmds.patch added to mm-new branch
+Message-Id: <20250409010740.9D3F2C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sparc64: mm: call ctor/dtor for kernel PTEs
+     Subject: mm: skip ptlock_init() for kernel PMDs
 has been added to the -mm mm-new branch.  Its filename is
-     sparc64-mm-call-ctor-dtor-for-kernel-ptes.patch
+     mm-skip-ptlock_init-for-kernel-pmds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc64-mm-call-ctor-dtor-for-kernel-ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-skip-ptlock_init-for-kernel-pmds.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: sparc64: mm: call ctor/dtor for kernel PTEs
-Date: Tue, 8 Apr 2025 10:52:16 +0100
+Subject: mm: skip ptlock_init() for kernel PMDs
+Date: Tue, 8 Apr 2025 10:52:17 +0100
 
-The generic implementation of pte_{alloc_one,free}_kernel now calls the
-[cd]tor, without initialising the ptlock needlessly as
-pagetable_pte_ctor() skips it for init_mm.
+Split page table locks are not used for pgtables associated to init_mm, at
+any level.  pte_alloc_kernel() does not call ptlock_init() as a result. 
+There is however no separate alloc/free functions for kernel PMDs, and
+pmd_ptlock_init() is called unconditionally.  When ALLOC_SPLIT_PTLOCKS is
+true (e.g.  32-bit architectures or if CONFIG_PREEMPT_RT is selected),
+this results in unnecessary dynamic memory allocation every time a kernel
+PMD is allocated.
 
-Align sparc64 with the generic implementation by ensuring
-pagetable_pte_[cd]tor() are called for kernel PTEs.  As a result the
-kernel and user alloc/free functions have the same implementation, and
-since pgtable_t is defined as pte_t *, we can have both call a common
-helper.
+Now that pagetable_pmd_ctor() is passed the associated mm, we can easily
+remove this overhead by skipping pmd_ptlock_init() if the pgtable is
+associated to init_mm.  No special-casing is needed on the dtor path, as
+ptlock_free() is already called unconditionally for all levels. 
+(ptlock_free() is a no-op unless a ptlock was allocated for the given
+PTP.)
 
-Link: https://lkml.kernel.org/r/20250408095222.860601-7-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250408095222.860601-8-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -97,60 +102,20 @@ Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/init_64.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/mm/init_64.c~sparc64-mm-call-ctor-dtor-for-kernel-ptes
-+++ a/arch/sparc/mm/init_64.c
-@@ -2878,18 +2878,7 @@ void __flush_tlb_all(void)
- 			     : : "r" (pstate));
- }
- 
--pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
--{
--	struct page *page = alloc_page(GFP_KERNEL | __GFP_ZERO);
--	pte_t *pte = NULL;
--
--	if (page)
--		pte = (pte_t *) page_address(page);
--
--	return pte;
--}
--
--pgtable_t pte_alloc_one(struct mm_struct *mm)
-+static pte_t *__pte_alloc_one(struct mm_struct *mm)
+--- a/include/linux/mm.h~mm-skip-ptlock_init-for-kernel-pmds
++++ a/include/linux/mm.h
+@@ -3240,7 +3240,7 @@ static inline spinlock_t *pmd_lock(struc
+ static inline bool pagetable_pmd_ctor(struct mm_struct *mm,
+ 				      struct ptdesc *ptdesc)
  {
- 	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL | __GFP_ZERO, 0);
- 
-@@ -2902,9 +2891,14 @@ pgtable_t pte_alloc_one(struct mm_struct
- 	return ptdesc_address(ptdesc);
- }
- 
--void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-+pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
- {
--	free_page((unsigned long)pte);
-+	return __pte_alloc_one(mm);
-+}
-+
-+pgtable_t pte_alloc_one(struct mm_struct *mm)
-+{
-+	return __pte_alloc_one(mm);
- }
- 
- static void __pte_free(pgtable_t pte)
-@@ -2915,6 +2909,11 @@ static void __pte_free(pgtable_t pte)
- 	pagetable_free(ptdesc);
- }
- 
-+void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-+{
-+	__pte_free(pte);
-+}
-+
- void pte_free(struct mm_struct *mm, pgtable_t pte)
- {
- 	__pte_free(pte);
+-	if (!pmd_ptlock_init(ptdesc))
++	if (mm != &init_mm && !pmd_ptlock_init(ptdesc))
+ 		return false;
+ 	ptdesc_pmd_pts_init(ptdesc);
+ 	__pagetable_ctor(ptdesc);
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
