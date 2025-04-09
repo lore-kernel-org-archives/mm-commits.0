@@ -1,138 +1,121 @@
-Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 766332676DD
-	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 15:30:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 079C1213E85;
+	Wed,  9 Apr 2025 21:12:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744212656; cv=none; b=FcSdv3BFeF0WGZ6bgvUvCn6g5KZ0mcJNy5Zzg2wVdtSVcIRYNkfF8kxInWbvEF9uLPDl7XJPfCf4cvOrx5uMQv/1hOkk88rhi7aYt0DTx9RoMHTRN5mvqbyOqzYdV0ouetV71ksYjF0LYBgXr1ai6aCxXvgAQ0x14IBPX1rVS8A=
+	t=1744233162; cv=none; b=ZbioEIULzZfr0U5+DCdW16zFrKqZuXwFb1lRQ7bRZvSmhAZLzoaMAJbfoHAJNmTan5q/+g253yAJjdk9t7yNRZj/4O6opIo9yk4OpkK5KYpgUeJHP3VA5N6ECoaYr/nqGqk0VnQb92B/uLusjhiptmo9eINBxar5lX9VLmxs8vY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744212656; c=relaxed/simple;
-	bh=CyTg3znElmpC3zjKfLvS6Kh57LDVXfTIuFc3kLAuYgY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=W0ybfmPgNryMS0DcLuVZc2VZbzgxGAG0t0oMiH8uihQ+coU1vkq7C/5O506Ia4LIOieftDsvVejiHfmZwb7c2g3LNSiM9GFd5xXNpkIoxbw3e85jgHGcsKXPEK7Jw4f4oYyuCJlnvLTE/BXP/rbzK2jHXl44CtL962TRU5b8XzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=KurIPZRw; arc=none smtp.client-ip=90.155.92.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1744233162; c=relaxed/simple;
+	bh=jZ6BkfLRErGcA2P82m6ah5DSbOwq5MDfOE2qUIgt4Jo=;
+	h=Date:To:From:Subject:Message-Id; b=ottJ3w9v9DnoJRVm7xEly53HWGIYkl4FHIXAa31hKsvCWkmx2zkzY4I+zmjHq/V9ySnA5HbBfIYDfbbm+cL8xMg5lqOeP3GVloW3iKLEDQ4dojzrffsP2H2uaNhoBLxRvMz0x0zpdZZ4DB8XALhL7Y8eTwQD/tQI1r1zuSCWkCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w42xt/mf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="KurIPZRw"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Transfer-Encoding:
-	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
-	Sender:Reply-To:Content-ID:Content-Description;
-	bh=GV+AjJjCeH45yYE+XZfxJSuGdUd00C2JgVdVtZLtr9U=; b=KurIPZRw1o+2X2+a5qNZlX8GB5
-	keABdDc2isfIg/AfZrBIkBdO1duVbhnhs580Xq34iwy6eyvGQYkYJhM+kONutiVN5hLAdWjyvt/SG
-	CogxHZW05HcCaExYZc4dTSJt2/YwZxKfn8ma1xPI3wwln9ud2SbBIXYUfIGPyAc4cSGKythK3rvxq
-	rXDVCJKA7QwGvunRsjIrDrdWmCHIHoT6rwlpNFYIu21og8tQxz51nvwbothZNKsxYXBCI/vdeEJ1A
-	lsBXwsQvMFjOhxfrkvWJcPox8tMySGddyVc1RC0QkbzSR5IhTtublpMXPvi22L1d50GyJlucdcXe9
-	wPdOSJ2g==;
-Received: from 77-249-17-252.cable.dynamic.v4.ziggo.nl ([77.249.17.252] helo=noisy.programming.kicks-ass.net)
-	by desiato.infradead.org with esmtpsa (Exim 4.98.1 #2 (Red Hat Linux))
-	id 1u2XNu-00000008dzu-3qtA;
-	Wed, 09 Apr 2025 15:30:39 +0000
-Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
-	id 760BD30057A; Wed,  9 Apr 2025 17:30:38 +0200 (CEST)
-Date: Wed, 9 Apr 2025 17:30:38 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, vineethr@linux.ibm.com, tj@kernel.org,
-	tim.c.chen@intel.com, shakeel.butt@linux.dev,
-	roman.gushchin@linux.dev, muchun.song@linux.dev, mkoutny@suse.com,
-	mingo@redhat.com, mhocko@kernel.org, mgorman@suse.de,
-	kprateek.nayak@amd.com, hannes@cmpxchg.org, corbet@lwn.net,
-	aubrey.li@intel.com, yu.c.chen@intel.com
-Subject: Re: +
- sched-numa-add-statistics-of-numa-balance-task-migration-and-swap.patch
- added to mm-new branch
-Message-ID: <20250409153038.GM9833@noisy.programming.kicks-ass.net>
-References: <20250409002907.39D1CC4CEE5@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w42xt/mf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70C37C4CEE2;
+	Wed,  9 Apr 2025 21:12:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1744233161;
+	bh=jZ6BkfLRErGcA2P82m6ah5DSbOwq5MDfOE2qUIgt4Jo=;
+	h=Date:To:From:Subject:From;
+	b=w42xt/mfaS3HypEsnBwc0YmuJAz6Ur/LLfZCibdqoinGM7BN/7ysmCdu0RSshf+HQ
+	 VuSrQMnKtA4Zkt4Q1Odo679Gncd09KYLw/4NBenZmNfxNjVwc06Sqt9+1T+2OACPW9
+	 MP826HCpCMZEUIHOZP5nFqxDo1lhCBJFZnfUT/vk=
+Date: Wed, 09 Apr 2025 14:12:40 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,kent.overstreet@linux.dev,janghyuck.kim@samsung.com,tjmercier@google.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + alloc_tag-handle-incomplete-bulk-allocations-in-vm_module_tags_populate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250409211241.70C37C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250409002907.39D1CC4CEE5@smtp.kernel.org>
 
-On Tue, Apr 08, 2025 at 05:29:06PM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: sched/numa: add statistics of numa balance task migration and swap
-> has been added to the -mm mm-new branch.  Its filename is
->      sched-numa-add-statistics-of-numa-balance-task-migration-and-swap.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-add-statistics-of-numa-balance-task-migration-and-swap.patch
-> 
-> This patch will later appear in the mm-new branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Chen Yu <yu.c.chen@intel.com>
-> Subject: sched/numa: add statistics of numa balance task migration and swap
-> Date: Tue, 8 Apr 2025 18:14:44 +0800
-> 
-> On systems with NUMA balancing enabled, it is found that tracking the task
-> activities due to NUMA balancing is helpful.  NUMA balancing has two
-> mechanisms for task migration: one is to migrate the task to an idle CPU
-> in its preferred node, the other is to swap tasks on different nodes if
-> they are on each other's preferred node.
-> 
-> The kernel already has NUMA page migration statistics in
-> /sys/fs/cgroup/mytest/memory.stat and /proc/{PID}/sched, but does not have
-> statistics for task migration/swap.  Add the task migration and swap count
-> accordingly.
-> 
-> The following two new fields:
-> 
-> numa_task_migrated
-> numa_task_swapped
-> 
-> will be displayed in both
-> /sys/fs/cgroup/{GROUP}/memory.stat and /proc/{PID}/sched
-> 
-> Introducing both pertask and permemcg NUMA balancing statistics helps to
-> quickly evaluate the performance and resource usage of the target
-> workload.  For example, the user can first identify the container which
-> has high NUMA balance activity and then narrow down to a specific task
-> within that group, and tune the memory policy of that task.  In summary,
-> it is plausible to iterate the /proc/$pid/sched to find the offending
-> task, but the introduction of per memcg tasks' Numa balancing aggregated
-> activity can further help users identify the task in a divide-and-conquer
-> way.
-> 
-> Link: https://lkml.kernel.org/r/20250408101444.192519-1-yu.c.chen@intel.com
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
-> Tested-by: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
-> Cc: Aubrey Li <aubrey.li@intel.com>
-> Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Johannes Weiner <hannes@cmpxchg.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Mel Gorman <mgorman <mgorman@suse.de>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Michal Koutný <mkoutny@suse.com>
-> Cc: Muchun Song <muchun.song@linux.dev>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Roman Gushchin <roman.gushchin@linux.dev>
-> Cc: Shakeel Butt <shakeel.butt@linux.dev>
-> Cc: Tejun Heo <tj@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+The patch titled
+     Subject: alloc_tag: handle incomplete bulk allocations in vm_module_tags_populate
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     alloc_tag-handle-incomplete-bulk-allocations-in-vm_module_tags_populate.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-handle-incomplete-bulk-allocations-in-vm_module_tags_populate.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "T.J. Mercier" <tjmercier@google.com>
+Subject: alloc_tag: handle incomplete bulk allocations in vm_module_tags_populate
+Date: Wed, 9 Apr 2025 19:54:47 +0000
+
+alloc_pages_bulk_node may partially succeed and allocate fewer than the
+requested nr_pages.  There are several conditions under which this can
+occur, but we have encountered the case where CONFIG_PAGE_OWNER is enabled
+causing all bulk allocations to always fallback to single page allocations
+due to commit 187ad460b841 ("mm/page_alloc: avoid page allocator recursion
+with pagesets.lock held").
+
+Currently vm_module_tags_populate immediately fails when
+alloc_pages_bulk_node returns fewer than the requested number of pages. 
+This patch causes vm_module_tags_populate to retry bulk allocations for
+the remaining memory instead.
+
+Link: https://lkml.kernel.org/r/20250409195448.3697351-1-tjmercier@google.com
+Fixes: 187ad460b841 ("mm/page_alloc: avoid page allocator recursion with pagesets.lock held")
+Signed-off-by: T.J. Mercier <tjmercier@google.com>
+Reported-by: Janghyuck Kim <janghyuck.kim@samsung.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/alloc_tag.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+--- a/lib/alloc_tag.c~alloc_tag-handle-incomplete-bulk-allocations-in-vm_module_tags_populate
++++ a/lib/alloc_tag.c
+@@ -422,11 +422,20 @@ static int vm_module_tags_populate(void)
+ 		unsigned long old_shadow_end = ALIGN(phys_end, MODULE_ALIGN);
+ 		unsigned long new_shadow_end = ALIGN(new_end, MODULE_ALIGN);
+ 		unsigned long more_pages;
+-		unsigned long nr;
++		unsigned long nr = 0;
+ 
+ 		more_pages = ALIGN(new_end - phys_end, PAGE_SIZE) >> PAGE_SHIFT;
+-		nr = alloc_pages_bulk_node(GFP_KERNEL | __GFP_NOWARN,
+-					   NUMA_NO_NODE, more_pages, next_page);
++		while (nr < more_pages) {
++			unsigned long allocated;
++
++			allocated = alloc_pages_bulk_node(GFP_KERNEL | __GFP_NOWARN,
++				NUMA_NO_NODE, more_pages - nr, next_page + nr);
++
++			if (!allocated)
++				break;
++			nr += allocated;
++		}
++
+ 		if (nr < more_pages ||
+ 		    vmap_pages_range(phys_end, phys_end + (nr << PAGE_SHIFT), PAGE_KERNEL,
+ 				     next_page, PAGE_SHIFT) < 0) {
+_
+
+Patches currently in -mm which might be from tjmercier@google.com are
+
+alloc_tag-handle-incomplete-bulk-allocations-in-vm_module_tags_populate.patch
+
