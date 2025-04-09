@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C180614A605
-	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:07:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B6C13D8B1
+	for <mm-commits@vger.kernel.org>; Wed,  9 Apr 2025 01:07:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744160865; cv=none; b=AasMLOvA7pQ+RrlVR4hub6cE6i8hWfY3rEKI1m9L7Jm2wK6llAGaNyJxSlWJmYp0i/tR5KjDxiqJiHRbvPShGbLonIh2CdruGCX+jpT5QJnAcQvjrnbb9XiUm0lL7jTjsn5ic54i1AvfJe9tz8CB+5wAcHr92/lI+3YnoMRgduE=
+	t=1744160867; cv=none; b=ueADmJunE98yVEB1BHxJZN7gk8dAogP3Z/0Ky+rZnLRboNll3reNkVuC+6XlGx0YLzhABfCa4TPAjZmr69IQET8vgdSnnrXdBnToMFw3azim3ix5zVuIXkw7WsYKdcaSrFt14iO7lFlXGpHJxSqIF97RQHxIEC2du22zX7vjW5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744160865; c=relaxed/simple;
-	bh=EeCfR9FHRNPBXjUV4aEsYenM1S4v2X6FGyU+mMwCLCo=;
-	h=Date:To:From:Subject:Message-Id; b=RwoDlQrTDCrc6kj/1oH2RJOgRAWeEetQ/ywUXee9OADoRMe4hqZy9hSNguA6poWhYhbsZr7QzI3pAR6DEPsQPJ38W0oBoBNYTvzSjvV6IUO1SAJqANfJmXuMPL9jR4YHMhgUID/FcI++O4KdtgaJxLTyKr3YWQ3GtibEgFdyfjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hrY9LH8X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744160867; c=relaxed/simple;
+	bh=u5+KmKNsj7/x/JUn/jxebrUev+xsdAqYCL6it27Rysc=;
+	h=Date:To:From:Subject:Message-Id; b=ov9/MTj+CSZSixIQKh5NZxVof9owaonYeTwn5lLTxrCWMG3kP3UxBIofZg0Amfx/fAAuKVPnbr+uTkE/tzgKrQAAPrQdvUT8n81EE5ry2OSiqC76ihIZ0ydC1wAWiuI35PFiwY3rNqA3wly/bffT+UshsTc8MaOzgkAON6DF3C4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OOMlGFWH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hrY9LH8X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E6D9C4CEE5;
-	Wed,  9 Apr 2025 01:07:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OOMlGFWH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67033C4CEE5;
+	Wed,  9 Apr 2025 01:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744160865;
-	bh=EeCfR9FHRNPBXjUV4aEsYenM1S4v2X6FGyU+mMwCLCo=;
+	s=korg; t=1744160867;
+	bh=u5+KmKNsj7/x/JUn/jxebrUev+xsdAqYCL6it27Rysc=;
 	h=Date:To:From:Subject:From;
-	b=hrY9LH8XUIKns+PHAdyNBdmyHzUkXQbR6Mr5WODaj+oA4MnJpyR9qY6qJB9AUrtxS
-	 TdJ/zXaVTOt6wsysaOuOeWjm5QotcvXyaxgVwu76APx45jLHyT4TLtUOc0kzInBSNn
-	 4Ww59FhrBqgX7B5feVUBEU7+2lGB5a/CvhlcINWo=
-Date: Tue, 08 Apr 2025 18:07:44 -0700
+	b=OOMlGFWHnViH//Eltr8YLOmhi9FEjbKPzt4nXKSlbGjrbdNsjpBaO4MESESEL5t8w
+	 TNmELHdbkNkAn7WkCem673mj8g0EjeJqF9Vn/ufZZzNs8P1L2VFaKscKhkMPGrY8wZ
+	 Vxmrn5yYLgpjKweKkAGhnw3ab6xrgngeu9rb1DfA=
+Date: Tue, 08 Apr 2025 18:07:46 -0700
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yang@os.amperecomputing.com,x86@kernel.org,willy@infradead.org,will@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mpe@ellerman.id.au,mark.rutland@arm.com,maddy@linux.ibm.com,linus.walleij@linaro.org,geert@linux-m68k.org,davem@davemloft.net,dave.hansen@linux.intel.com,catalin.marinas@arm.com,aou@eecs.berkeley.edu,andreas@gaisler.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-always-call-pte-pmd-ctor-in-__create_pgd_mapping.patch added to mm-new branch
-Message-Id: <20250409010745.2E6D9C4CEE5@smtp.kernel.org>
+Subject: + riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late.patch added to mm-new branch
+Message-Id: <20250409010747.67033C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: mm: always call PTE/PMD ctor in __create_pgd_mapping()
+     Subject: riscv: mm: clarify ctor mm argument in alloc_{pte,pmd}_late
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-mm-always-call-pte-pmd-ctor-in-__create_pgd_mapping.patch
+     riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-always-call-pte-pmd-ctor-in-__create_pgd_mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,58 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: arm64: mm: always call PTE/PMD ctor in __create_pgd_mapping()
-Date: Tue, 8 Apr 2025 10:52:19 +0100
+Subject: riscv: mm: clarify ctor mm argument in alloc_{pte,pmd}_late
+Date: Tue, 8 Apr 2025 10:52:20 +0100
 
-TL;DR: always call the PTE/PMD ctor, passing the appropriate mm to skip
-ptlock_init() if unneeded.
+pagetable_{pte,pmd}_ctor(mm, ptdesc) skip the ptlock initialisation if mm
+is &init_mm.  To avoid unnecessary overhead, it is therefore preferable to
+pass the actual mm associated to the PTE/PMD.
 
-__create_pgd_mapping() is used for creating different kinds of mappings,
-and may allocate page table pages if passed an allocator callback.  There
-are currently three such cases:
+Unfortunately, this proves challenging for alloc_{pte,pmd}_late() as the
+associated mm is not available at the point where they are called - in
+fact not even top-level functions like create_pgd_mapping() are passed the
+mm.  As a result they both call the ctor with NULL as mm; this is safe but
+potentially wasteful.
 
-1. create_pgd_mapping(), which is used to create the EFI mapping
-2. arch_add_memory()
-3. map_entry_trampoline()
+This is not a new situation, but let's add a couple of comments to clarify
+it.
 
-1. uses pgd_pgtable_alloc() as allocator callback, which calls the
-PTE/PMD ctor, while 2.  and 3.  use __pgd_pgtable_alloc(), which does not.
-The rationale is most likely that pgtables associated with init_mm do not
-make use of split page table locks, and it is therefore unnecessary to
-initialise them by calling the ctor.  2.  operates on swapper_pg_dir so
-the allocated pgtables are clearly associated with init_mm, this is
-arguably the case for 3.  too (the trampoline mapping is never modified so
-ptlocks are anyway irrelevant).  1.  corresponds to efi_mm so ptlocks need
-to be initialised in that case.
-
-We are now moving towards calling the ctor for all page tables, even those
-associated with init_mm.  pagetable_{pte,pmd}_ctor() have become aware of
-the associated mm so that the ptlock initialisation can be skipped for
-init_mm.  This patch therefore amends the allocator callbacks so that the
-PTE/PMD ctor are always called, with an appropriate mm pointer to avoid
-unnecessary ptlock overhead.
-
-Modifying the prototype of the allocator callbacks to take the mm and
-propagating that pointer all the way down would be pretty invasive. 
-Instead:
-
-* __pgd_pgtable_alloc() (cases 2.  and 3.  above) is replaced with
-  pgd_pgtable_alloc_init_mm(), resulting in the ctors being called with
-  &init_mm.  This is the main functional change in this patch; the ptlock
-  still isn't initialised, but other ctor actions (e.g. 
-  accounting-related) are now carried out for those allocated pgtables.
-
-* pgd_pgtable_alloc() (case 1.  above) is replaced with
-  pgd_pgtable_alloc_special_mm(), resulting in the ctors being called with
-  NULL as mm.  No functional change here; NULL essentially means "not
-  init_mm", and the ptlock is still initialised.
-
-__pgd_pgtable_alloc() is now the common implementation of those two
-helpers.  While at it we switch it to using pagetable_alloc() like
-standard pgtable allocator functions and remove the comment regarding ctor
-calls (ctors are now always expected to be called).
-
-Link: https://lkml.kernel.org/r/20250408095222.860601-10-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20250408095222.860601-11-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -135,97 +100,31 @@ Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   43 ++++++++++++++++++++++--------------------
- 1 file changed, 23 insertions(+), 20 deletions(-)
+ arch/riscv/mm/init.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-always-call-pte-pmd-ctor-in-__create_pgd_mapping
-+++ a/arch/arm64/mm/mmu.c
-@@ -480,31 +480,22 @@ void create_kpti_ng_temp_pgd(pgd_t *pgdi
- 			     int flags);
- #endif
- 
--static phys_addr_t __pgd_pgtable_alloc(enum pgtable_type pgtable_type)
-+static phys_addr_t __pgd_pgtable_alloc(struct mm_struct *mm,
-+				       enum pgtable_type pgtable_type)
+--- a/arch/riscv/mm/init.c~riscv-mm-clarify-ctor-mm-argument-in-alloc_ptepmd_late
++++ a/arch/riscv/mm/init.c
+@@ -442,6 +442,11 @@ static phys_addr_t __meminit alloc_pte_l
  {
- 	/* Page is zeroed by init_clear_pgtable() so don't duplicate effort. */
--	void *ptr = (void *)__get_free_page(GFP_PGTABLE_KERNEL & ~__GFP_ZERO);
-+	struct ptdesc *ptdesc = pagetable_alloc(GFP_PGTABLE_KERNEL & ~__GFP_ZERO, 0);
-+	phys_addr_t pa;
+ 	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
  
--	BUG_ON(!ptr);
--	return __pa(ptr);
--}
--
--static phys_addr_t pgd_pgtable_alloc(enum pgtable_type pgtable_type)
--{
--	phys_addr_t pa = __pgd_pgtable_alloc(pgtable_type);
--	struct ptdesc *ptdesc = page_ptdesc(phys_to_page(pa));
-+	BUG_ON(!ptdesc);
-+	pa = page_to_phys(ptdesc_page(ptdesc));
- 
--	/*
--	 * Call proper page table ctor in case later we need to
--	 * call core mm functions like apply_to_page_range() on
--	 * this pre-allocated page table.
--	 */
- 	switch (pgtable_type) {
- 	case TABLE_PTE:
--		BUG_ON(!pagetable_pte_ctor(NULL, ptdesc));
-+		BUG_ON(!pagetable_pte_ctor(mm, ptdesc));
- 		break;
- 	case TABLE_PMD:
--		BUG_ON(!pagetable_pmd_ctor(NULL, ptdesc));
-+		BUG_ON(!pagetable_pmd_ctor(mm, ptdesc));
- 		break;
- 	default:
- 		break;
-@@ -513,6 +504,18 @@ static phys_addr_t pgd_pgtable_alloc(enu
- 	return pa;
++	/*
++	 * We do not know which mm the PTE page is associated to at this point.
++	 * Passing NULL to the ctor is the safe option, though it may result
++	 * in unnecessary work (e.g. initialising the ptlock for init_mm).
++	 */
+ 	BUG_ON(!ptdesc || !pagetable_pte_ctor(NULL, ptdesc));
+ 	return __pa((pte_t *)ptdesc_address(ptdesc));
  }
+@@ -522,6 +527,7 @@ static phys_addr_t __meminit alloc_pmd_l
+ {
+ 	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
  
-+static phys_addr_t __maybe_unused
-+pgd_pgtable_alloc_init_mm(enum pgtable_type pgtable_type)
-+{
-+	return __pgd_pgtable_alloc(&init_mm, pgtable_type);
-+}
-+
-+static phys_addr_t
-+pgd_pgtable_alloc_special_mm(enum pgtable_type pgtable_type)
-+{
-+	return __pgd_pgtable_alloc(NULL, pgtable_type);
-+}
-+
- /*
-  * This function can only be used to modify existing table entries,
-  * without allocating new levels of table. Note that this permits the
-@@ -542,7 +545,7 @@ void __init create_pgd_mapping(struct mm
- 		flags = NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
- 
- 	__create_pgd_mapping(mm->pgd, phys, virt, size, prot,
--			     pgd_pgtable_alloc, flags);
-+			     pgd_pgtable_alloc_special_mm, flags);
++	/* See comment in alloc_pte_late() regarding NULL passed the ctor */
+ 	BUG_ON(!ptdesc || !pagetable_pmd_ctor(NULL, ptdesc));
+ 	return __pa((pmd_t *)ptdesc_address(ptdesc));
  }
- 
- static void update_mapping_prot(phys_addr_t phys, unsigned long virt,
-@@ -756,7 +759,7 @@ static int __init map_entry_trampoline(v
- 	memset(tramp_pg_dir, 0, PGD_SIZE);
- 	__create_pgd_mapping(tramp_pg_dir, pa_start, TRAMP_VALIAS,
- 			     entry_tramp_text_size(), prot,
--			     __pgd_pgtable_alloc, NO_BLOCK_MAPPINGS);
-+			     pgd_pgtable_alloc_init_mm, NO_BLOCK_MAPPINGS);
- 
- 	/* Map both the text and data into the kernel page table */
- 	for (i = 0; i < DIV_ROUND_UP(entry_tramp_text_size(), PAGE_SIZE); i++)
-@@ -1362,7 +1365,7 @@ int arch_add_memory(int nid, u64 start,
- 		flags |= NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
- 
- 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
--			     size, params->pgprot, __pgd_pgtable_alloc,
-+			     size, params->pgprot, pgd_pgtable_alloc_init_mm,
- 			     flags);
- 
- 	memblock_clear_nomap(start, size);
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
