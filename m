@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F9AF7080E
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 00:32:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BBE42C190
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 00:38:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744245141; cv=none; b=TJgoJKV+AQdyyvx59W4xoeSj1jwKmnZhv0CNa1HuvE89jJDrtlPl/WO2itYhvDdiIIQ5LMqUqOQVqAyVM8OjbqMLUxlz9AFSpRyd7/TzZlz/lFEYdLsH+9jYQD3J2dgafbTPPHwc0o7I9iFxr1goDtz6GO3sAbOhJiT+PEGNTR0=
+	t=1744245510; cv=none; b=ZscNFzE2OGZL5OaGLRwYpuAIq/EAZLeAWJC4qw1BBJS2Z38YrGtUwK8jcHWr3guPCylqb09Yut/v3aELDUQ8hBcjdVCld7QFWteLYZoVw9SDkCNq3Ee/dcCaKWTAGcrrCOgfvthsMFSJWsd0iiPRV560h4FJL2aSw19DwhrkGBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744245141; c=relaxed/simple;
-	bh=PbEBzTaiE+EzBmU4cvst3684Qm44rFbrnxKRbwlviyc=;
-	h=Date:To:From:Subject:Message-Id; b=ghKaYbDpAruCI2k9cVcnehvbeByuNNIiLTu2zF9/9Q2nqkqqvmry8Xe5CUn4smQwuTkkag/iqf23Pu3tBQX4AeIHBZPsD6MUYcEnp2NzmyWD3PhSJvOtqytZ41yR4fWNP8+95LIwkNpVU/Ts2GOZfZjwagARvDkr3vvHp8msswU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P/cqW2Uh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744245510; c=relaxed/simple;
+	bh=HIlH5K5iymIzv4dcYkqwQDnSKEog1qxg2osUfLsOnjI=;
+	h=Date:To:From:Subject:Message-Id; b=PepwkrkUhCk6yGBKR1FOq+m4mKyh4ejGZaZeprGRr74rI2Somq470g6bX6Q9E+N2AJQ7YCxMyMarSlgTyKxds2oLp+c6IboGqOvn15qpfxSSz0s0V7tu+AFq9Xd/rc6cpVPJAV8FeUsEH4HqhT7NQbEz8sEAcVC3obXeculZcYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AITg/O7o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P/cqW2Uh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D925C4CEEB;
-	Thu, 10 Apr 2025 00:32:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AITg/O7o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5815C4CEE2;
+	Thu, 10 Apr 2025 00:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744245140;
-	bh=PbEBzTaiE+EzBmU4cvst3684Qm44rFbrnxKRbwlviyc=;
+	s=korg; t=1744245509;
+	bh=HIlH5K5iymIzv4dcYkqwQDnSKEog1qxg2osUfLsOnjI=;
 	h=Date:To:From:Subject:From;
-	b=P/cqW2UhW/6esQPKB+eEbJznKp19qISrdMfpNg0/RFrlpoLfql2b7+hOEXAfDrQxz
-	 i7UBIV8EFfC6xk3A3xC+8t6QlP+6ZyJjA+pFC11rx782bMxbOhHqfqDLisQH6GgOGk
-	 Xbd7hbmwNIN/88f8EnudX8d+NhOpWLjZmQWHo5Gw=
-Date: Wed, 09 Apr 2025 17:32:20 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,lkp@intel.com,hch@infradead.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=AITg/O7oqM89LQdaw8FaPiec+7TBiwCTKBqUii6RDqTzO90Z97wyJ3K288UASx52m
+	 4+KLdX34GV11/6gXwaVisiAdLZ1lp9aOpBBey/CpEJHvaA85YGCHie7OnTCcyXSK2C
+	 f8psgp1VeJ2rSEFxBReOqYK0l0f9UuGB9CPu0gtc=
+Date: Wed, 09 Apr 2025 17:38:28 -0700
+To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-switch-to-for_each_vmap_node-helper-fix.patch added to mm-new branch
-Message-Id: <20250410003220.9D925C4CEEB@smtp.kernel.org>
+Subject: + mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250410003829.D5815C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc-switch-to-for_each_vmap_node-helper-fix
-has been added to the -mm mm-new branch.  Its filename is
-     vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+     Subject: page_alloc: speed up fallbacks in rmqueue_bulk() - comment updates
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmalloc-switch-to-for_each_vmap_node-helper-fix
-Date: Wed Apr  9 05:30:24 PM PDT 2025
+From: Brendan Jackman <jackmanb@google.com>
+Subject: page_alloc: speed up fallbacks in rmqueue_bulk() - comment updates
+Date: Wed, 9 Apr 2025 17:22:14 +000
 
-fix build warning
+Tidy up some terminology and redistribute commentary.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202504100130.OjlBJLkQ-lkp@intel.com/
-Cc: Christop Hellwig <hch@infradead.org>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/D92AC0P9594X.3BML64MUKTF8Z@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
---- a/mm/vmalloc.c~vmalloc-switch-to-for_each_vmap_node-helper-fix
-+++ a/mm/vmalloc.c
-@@ -5084,7 +5084,7 @@ static void __init vmap_init_free_space(
- static void vmap_init_nodes(void)
+--- a/mm/page_alloc.c~mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk-fix
++++ a/mm/page_alloc.c
+@@ -2183,21 +2183,13 @@ try_to_claim_block(struct zone *zone, st
+ }
+ 
+ /*
+- * Try finding a free buddy page on the fallback list.
+- *
+- * This will attempt to claim a whole pageblock for the requested type
+- * to ensure grouping of such requests in the future.
+- *
+- * If a whole block cannot be claimed, steal an individual page, regressing to
+- * __rmqueue_smallest() logic to at least break up as little contiguity as
+- * possible.
++ * Try to allocate from some fallback migratetype by claiming the entire block,
++ * i.e. converting it to the allocation's start migratetype.
+  *
+  * The use of signed ints for order and current_order is a deliberate
+  * deviation from the rest of this file, to make the for loop
+  * condition simpler.
+  */
+-
+-/* Try to claim a whole foreign block, take a page, expand the remainder */
+ static __always_inline struct page *
+ __rmqueue_claim(struct zone *zone, int order, int start_migratetype,
+ 						unsigned int alloc_flags)
+@@ -2247,7 +2239,10 @@ __rmqueue_claim(struct zone *zone, int o
+ 	return NULL;
+ }
+ 
+-/* Try to steal a single page from a foreign block */
++/*
++ * Try to steal a single page from some fallback migratetype. Leave the rest of
++ * the block as its current migratetype, potentially causing fragmentation.
++ */
+ static __always_inline struct page *
+ __rmqueue_steal(struct zone *zone, int order, int start_migratetype)
  {
- 	struct vmap_node *vn;
--	int i, n;
-+	int i;
+@@ -2307,7 +2302,8 @@ __rmqueue(struct zone *zone, unsigned in
+ 	}
  
- #if BITS_PER_LONG == 64
  	/*
-@@ -5101,7 +5101,7 @@ static void vmap_init_nodes(void)
- 	 * set of cores. Therefore a per-domain purging is supposed to
- 	 * be added as well as a per-domain balancing.
- 	 */
--	n = clamp_t(unsigned int, num_possible_cpus(), 1, 128);
-+	int n = clamp_t(unsigned int, num_possible_cpus(), 1, 128);
- 
- 	if (n > 1) {
- 		vn = kmalloc_array(n, sizeof(*vn), GFP_NOWAIT | __GFP_NOWARN);
+-	 * Try the different freelists, native then foreign.
++	 * First try the freelists of the requested migratetype, then try
++	 * fallbacks modes with increasing levels of fragmentation risk.
+ 	 *
+ 	 * The fallback logic is expensive and rmqueue_bulk() calls in
+ 	 * a loop with the zone->lock held, meaning the freelists are
+@@ -2332,7 +2328,7 @@ __rmqueue(struct zone *zone, unsigned in
+ 	case RMQUEUE_CLAIM:
+ 		page = __rmqueue_claim(zone, order, migratetype, alloc_flags);
+ 		if (page) {
+-			/* Replenished native freelist, back to normal mode */
++			/* Replenished preferred freelist, back to normal mode. */
+ 			*mode = RMQUEUE_NORMAL;
+ 			return page;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-radix-tree-add-missing-cleanuph-fix.patch
-samples-livepatch-add-module-descriptions-fix.patch
-mm-kasan-add-module-decription-fix.patch
-mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-mempolicy-support-memory-hotplug-in-weighted-interleave-checkpatch-fixes.patch
+mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk-fix.patch
 
