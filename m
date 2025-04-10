@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D807628E0F;
-	Thu, 10 Apr 2025 01:14:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A1D959B71
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 01:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744247687; cv=none; b=nLCKAJg4h+UoTzOIzKd1h0+WhG8m3Um03+5BzgEeeRVavFQjZaci4qddqqHRUUKsKe//3RdvqJw9zGc0lGzwzgxKXjgneTZO02OjaRTKtan7c0H0fPsv2ADKiZd4ZhJsa9oZ/8F7wvddP7DRMj8vonC+Y13VKvbljU+2akr0Z8k=
+	t=1744248171; cv=none; b=goWhsQHeOavoIXYqhb90Ih8EiWUqdrlW8wfLJg83dINyyeOaB9CS9jDl7JuRmqREJgtPSRs5eT9rLCcgZA5GLM7oiEv/JSoMETjXHUdzLfr7e1IAAqraEa5ry5oJDNWFcLtvSdVblufIqWeJg71XTuDvr3bpr1F/4+Lsn36pfAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744247687; c=relaxed/simple;
-	bh=DkvV/5X2DCk8F1pk8fGBWXxLlBnfwTonnk2IELQ9B9w=;
-	h=Date:To:From:Subject:Message-Id; b=OncpEJ2c4/QdwJG/zrU45oewj0hjjjRsezXjj4J9jH197w8KyBx7/Q+SQ9sCbaMoUwiPEuXYGhIDknVx9EHb6u8GpfHJ39QfrMZO/PdgAbnsigyiFKg2GlvBExPqvSvt7LtacGMgFJFXAFc1sBYeKZNE3uA3DRIiVzQMV6Tty+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HyLJ1WhE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744248171; c=relaxed/simple;
+	bh=hj2zn4cfEXVL8Z5tqp6Hqjw9KwhTr7eGnogBKD0aSYk=;
+	h=Date:To:From:Subject:Message-Id; b=N7bg4tNjjTPIkIpuTivqOissjhgUK8z5z3OliF0C26JzxND0svvyNxqYzo8uRAPpdod59w1nIlmjjlmRaWvivjZ5IGqUKRUMGuKd/dK/2pWsszUB1rS1Wo8qzdn9aOjBmjrv92HNPYT2vDqwqmJa2kP/sz2hDhKsJhkPVoRXL+4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzx9tvLG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HyLJ1WhE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43F29C4CEE2;
-	Thu, 10 Apr 2025 01:14:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzx9tvLG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8162C4CEE2;
+	Thu, 10 Apr 2025 01:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744247686;
-	bh=DkvV/5X2DCk8F1pk8fGBWXxLlBnfwTonnk2IELQ9B9w=;
+	s=korg; t=1744248171;
+	bh=hj2zn4cfEXVL8Z5tqp6Hqjw9KwhTr7eGnogBKD0aSYk=;
 	h=Date:To:From:Subject:From;
-	b=HyLJ1WhE2DT0+hmzkjprMc/3m9938PKoK+4ie7Ma2LAI0i9oeOgQRh3J1hTCeh2sQ
-	 KlVMA89BdUJDMbWVt8OyZFL+GbqyjkjBrumSOh57zVfjC54yQT7SUh+BL9TkdjgTfV
-	 txNAWYIhi/6hsLB/PbjZ2kYj8dWQz77BoWudWaqI=
-Date: Wed, 09 Apr 2025 18:14:45 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,dja@axtens.net,david@redhat.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=hzx9tvLG0FKWexcvpTrQlB2uY6zIgTh8kqF8yCt4CfeCdG0vzczFuM12YRlcj9tVN
+	 sapjCR6SqiUnZIgWb//XyG+CINUXFzc3atyE+3h8wWNLCNPnCbIAvt41CkKVpkcEyo
+	 1U+AQwF/ye5O6lYhNLYAOZ6lBsvYAK28a7VVpB4o=
+Date: Wed, 09 Apr 2025 18:22:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,hannes@cmpxchg.org,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-apply_to_existing_page_range.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250410011446.43F29C4CEE2@smtp.kernel.org>
+Subject: + mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch added to mm-new branch
+Message-Id: <20250410012250.E8162C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix apply_to_existing_page_range()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-apply_to_existing_page_range.patch
+     Subject: mm: huge_memory: add folio_mark_accessed() when zapping file THP
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-apply_to_existing_page_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,59 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix apply_to_existing_page_range()
-Date: Wed, 9 Apr 2025 12:40:43 +0300
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: huge_memory: add folio_mark_accessed() when zapping file THP
+Date: Wed, 9 Apr 2025 17:38:58 +0800
 
-In the case of apply_to_existing_page_range(), apply_to_pte_range() is
-reached with 'create' set to false.  When !create, the loop over the PTE
-page table is broken.
+When investigating performance issues during file folio unmap, I noticed
+some behavioral differences in handling non-PMD-sized folios and PMD-sized
+folios.  For non-PMD-sized file folios, it will call folio_mark_accessed()
+to mark the folio as having seen activity, but this is not done for
+PMD-sized folios.
 
-apply_to_pte_range() will only move to the next PTE entry if 'create' is
-true or if the current entry is not pte_none().
+This might not cause obvious issues, but a potential problem could be
+that, it might lead to reclaim of hot file folios under memory pressure,
+as quoted from Johannes:
 
-This means that the user of apply_to_existing_page_range() will not have
-'fn' called for any entries after the first pte_none() in the PTE page
-table.
+: Sometimes file contents are only accessed through relatively short-lived
+: mappings. But they can nevertheless be accessed a lot and be hot. It's
+: important to not lose that information on unmap, and end up kicking out a
+: frequently used cache page.
 
-Fix the loop logic in apply_to_pte_range().
+Therefore, we should also add folio_mark_accessed() for PMD-sized file
+folios when unmapping.
 
-There are no known runtime issues from this, but the fix is trivial enough
-for stable@ even without a known buggy user. 
-
-Link: https://lkml.kernel.org/r/20250409094043.1629234-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Fixes: be1db4753ee6 ("mm/memory.c: add apply_to_existing_page_range() helper")
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/fc117f60d7b686f87067f36a0ef7cdbc3a78109c.1744190345.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Matthew Wilcow (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memory.c~mm-fix-apply_to_existing_page_range
-+++ a/mm/memory.c
-@@ -2943,11 +2943,11 @@ static int apply_to_pte_range(struct mm_
- 	if (fn) {
- 		do {
- 			if (create || !pte_none(ptep_get(pte))) {
--				err = fn(pte++, addr, data);
-+				err = fn(pte, addr, data);
- 				if (err)
- 					break;
- 			}
--		} while (addr += PAGE_SIZE, addr != end);
-+		} while (pte++, addr += PAGE_SIZE, addr != end);
- 	}
+--- a/mm/huge_memory.c~mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp
++++ a/mm/huge_memory.c
+@@ -2259,6 +2259,10 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 				zap_deposited_table(tlb->mm, pmd);
+ 			add_mm_counter(tlb->mm, mm_counter_file(folio),
+ 				       -HPAGE_PMD_NR);
++
++			if (flush_needed && pmd_young(orig_pmd) &&
++			    likely(vma_has_recency(vma)))
++				folio_mark_accessed(folio);
+ 		}
  
- 	arch_leave_lazy_mmu_mode();
+ 		spin_unlock(ptl);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page.patch
-mm-fix-apply_to_existing_page_range.patch
+selftests-mincore-fix-tmpfs-mincore-test-failure.patch
+mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch
 
