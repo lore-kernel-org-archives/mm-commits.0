@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A9CF1C700D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 23:03:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E1C620E037
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 23:42:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744326208; cv=none; b=CaYBkuziyWvJRl6YorwVH463Ah19aFvkkS9PCQ6dcWESc8L9VXIjL5Oxt2+cAfiUD44M1P2KqYd5AG01xA5n190Wy/5miyOZfnuenCpX9G2i+NRvwViAIf2ysT8jsxCVqDEvUMSvz8+jr2bzW/dCIRX29jUA30in8V1XvQuSEJE=
+	t=1744328552; cv=none; b=pz2LZhlC2jctW8wNglnjV+gpUKWD0O5J6bDa6Klk2mZ3wuVl1HLZs3WnEHs7inFaAoQbEAUWGDvHsa8mdeV8rj9IoDFYa1WiZG0VxlppWHvapXsEnQWukmUyNwFPHB4c+zQI9XHurKJIJRB+rx+281tVDxAIHbQwHKf/fCi7pUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744326208; c=relaxed/simple;
-	bh=jLqT7MhlPyvV6ThTpjIp4s6FxgV1wlGP0iUCiJIYjqM=;
-	h=Date:To:From:Subject:Message-Id; b=AXMUEpisMYk/yl/SF98+KDQ4X3QX8k2eYsoxPXjFuRiBbDzMnFHvfbO4lc7mNFYN1VZgo03xOw9YfR1JCQYspim3VntMwsZpvGYiehSdmV0KQaWVuTVSD6DTvas/ThwIido2YP3PTx/bQgD3mAq6j21NcOfJdxCrbNwWQPPkedA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A4w+BG1G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744328552; c=relaxed/simple;
+	bh=mON8suuJCzjJ2Uiu69TDdnHxRFFs1xe2a5j2qS6zvho=;
+	h=Date:To:From:Subject:Message-Id; b=JHNjICOcE7wQA6ESSnxSwoMwCM+jtfUOB5ewL1+vieWawaBOooL5lRqXRlc5yJlKfcVi1T5NEugVY/srYEmajw5SmkJGXU9jRhDoi5mwNqMFjpL9sXSCITqkWt5wRrHcfPl6bnW2Eh4o2T8nFDeIcPKSDdje6tDyuq0P+/YSSsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dlxec0by; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A4w+BG1G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6475C4CEDD;
-	Thu, 10 Apr 2025 23:03:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dlxec0by"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1E79C4CEDD;
+	Thu, 10 Apr 2025 23:42:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744326207;
-	bh=jLqT7MhlPyvV6ThTpjIp4s6FxgV1wlGP0iUCiJIYjqM=;
+	s=korg; t=1744328551;
+	bh=mON8suuJCzjJ2Uiu69TDdnHxRFFs1xe2a5j2qS6zvho=;
 	h=Date:To:From:Subject:From;
-	b=A4w+BG1GJGhONDI1/e0hbuqMf+sZ5b4K+V4Cqd7EET/e1Dh1W7UF7VnMBbOj5jvtF
-	 Ai3N5gIWbkUdE0Tl8Eu16C6JQJY9czSmBLtSb2wWX1/BanIMlSs+Ky6+UXYkSYDz3X
-	 QtRi63dZc0YAd64s+Yp1nw3ylhCccMrR4jbSxzP8=
-Date: Thu, 10 Apr 2025 16:03:26 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,gregkh@linuxfoundation.org,donettom@linux.ibm.com,david@redhat.com,dakr@kernel.org,adityag@linux.ibm.com,gshan@redhat.com,akpm@linux-foundation.org
+	b=dlxec0bysR4pbu9gBHbcZXTqm/h1X65atiimHQwVfyo6TTgOT1RvHi24GBeqqJYA+
+	 SVzMML131bslZQmIWdw0M4z43ius+YSlYqEwAGapFJPe6RKvVWwGraHjbo5vPs7LIt
+	 Tw7a1etNEOgL2KGNkhAlBZFwuRQ8EPiqMIa40ae8=
+Date: Thu, 10 Apr 2025 16:42:31 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,ritesh.list@gmail.com,longman@redhat.com,liwang@redhat.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250410230327.A6475C4CEDD@smtp.kernel.org>
+Subject: + selftests-mm-restore-default-nr_hugepages-value-during-cleanup-in-hugetlb_reparenting_testsh.patch added to mm-new branch
+Message-Id: <20250410234231.B1E79C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base/memory: avoid overhead from for_each_present_section_nr()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
+     Subject: selftests/mm: restore default nr_hugepages value during cleanup in hugetlb_reparenting_test.sh
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-restore-default-nr_hugepages-value-during-cleanup-in-hugetlb_reparenting_testsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-restore-default-nr_hugepages-value-during-cleanup-in-hugetlb_reparenting_testsh.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,134 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: drivers/base/memory: avoid overhead from for_each_present_section_nr()
-Date: Thu, 10 Apr 2025 22:51:10 +1000
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: selftests/mm: restore default nr_hugepages value during cleanup in hugetlb_reparenting_test.sh
+Date: Thu, 10 Apr 2025 05:07:48 -0500
 
-for_each_present_section_nr() was introduced to add_boot_memory_block() by
-commit 61659efdb35c ("drivers/base/memory: improve
-add_boot_memory_block()").  It causes unnecessary overhead when the
-present sections are really sparse.  next_present_section_nr() called by
-the macro to find the next present section, which is far away from the
-spanning sections in the specified block.  Too much time consumed by
-next_present_section_nr() in this case, which can lead to softlockup as
-observed by Aditya Gupta on IBM Power10 machine.
+During cleanup, the value of /proc/sys/vm/nr_hugepages is currently being
+set to 0.  At the end of the test, if all tests pass, the original
+nr_hugepages value is restored.  However, if any test fails, it remains
+set to 0.
 
-  watchdog: BUG: soft lockup - CPU#248 stuck for 22s! [swapper/248:1]
-  Modules linked in:
-  CPU: 248 UID: 0 PID: 1 Comm: swapper/248 Not tainted 6.15.0-rc1-next-20250408 #1 VOLUNTARY
-  Hardware name: 9105-22A POWER10 (raw) 0x800200 opal:v7.1-107-gfda75d121942 PowerNV
-  NIP:  c00000000209218c LR: c000000002092204 CTR: 0000000000000000
-  REGS: c00040000418fa30 TRAP: 0900   Not tainted  (6.15.0-rc1-next-20250408)
-  MSR:  9000000002009033 <SF,HV,VEC,EE,ME,IR,DR,RI,LE>  CR: 28000428  XER: 00000000
-  CFAR: 0000000000000000 IRQMASK: 0
-  GPR00: c000000002092204 c00040000418fcd0 c000000001b08100 0000000000000040
-  GPR04: 0000000000013e00 c000c03ffebabb00 0000000000c03fff c000400fff587f80
-  GPR08: 0000000000000000 00000000001196f7 0000000000000000 0000000028000428
-  GPR12: 0000000000000000 c000000002e80000 c00000000001007c 0000000000000000
-  GPR16: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-  GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-  GPR24: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-  GPR28: c000000002df7f70 0000000000013dc0 c0000000011dd898 0000000008000000
-  NIP [c00000000209218c] memory_dev_init+0x114/0x1e0
-  LR [c000000002092204] memory_dev_init+0x18c/0x1e0
-  Call Trace:
-  [c00040000418fcd0] [c000000002092204] memory_dev_init+0x18c/0x1e0 (unreliable)
-  [c00040000418fd50] [c000000002091348] driver_init+0x78/0xa4
-  [c00040000418fd70] [c0000000020063ac] kernel_init_freeable+0x22c/0x370
-  [c00040000418fde0] [c0000000000100a8] kernel_init+0x34/0x25c
-  [c00040000418fe50] [c00000000000cd94] ret_from_kernel_user_thread+0x14/0x1c
+With this patch, we ensure that the original nr_hugepages value is
+restored during cleanup, regardless of whether the test passes or fails.
 
-Avoid the overhead by folding for_each_present_section_nr() to the outer
-loop.  add_boot_memory_block() is dropped after that.
-
-Link: https://lkml.kernel.org/r/20250410125110.1232329-1-gshan@redhat.com
-Fixes: 61659efdb35c ("drivers/base/memory: improve add_boot_memory_block()")
-Closes: https://lore.kernel.org/linux-mm/20250409180344.477916-1-adityag@linux.ibm.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Reported-by: Aditya Gupta <adityag@linux.ibm.com>
-Tested-by: Aditya Gupta <adityag@linux.ibm.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20250410100748.2310-1-donettom@linux.ibm.com
+Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Cc: Li Wang <liwang@redhat.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   41 ++++++++++++++++------------------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-avoid-overhead-from-for_each_present_section_nr
-+++ a/drivers/base/memory.c
-@@ -816,21 +816,6 @@ static int add_memory_block(unsigned lon
- 	return 0;
- }
- 
--static int __init add_boot_memory_block(unsigned long base_section_nr)
--{
--	unsigned long nr;
--
--	for_each_present_section_nr(base_section_nr, nr) {
--		if (nr >= (base_section_nr + sections_per_block))
--			break;
--
--		return add_memory_block(memory_block_id(base_section_nr),
--					MEM_ONLINE, NULL, NULL);
--	}
--
--	return 0;
--}
--
- static int add_hotplug_memory_block(unsigned long block_id,
- 				    struct vmem_altmap *altmap,
- 				    struct memory_group *group)
-@@ -957,7 +942,7 @@ static const struct attribute_group *mem
- void __init memory_dev_init(void)
- {
- 	int ret;
--	unsigned long block_sz, nr;
-+	unsigned long block_sz, block_id, nr;
- 
- 	/* Validate the configured memory block size */
- 	block_sz = memory_block_size_bytes();
-@@ -970,15 +955,23 @@ void __init memory_dev_init(void)
- 		panic("%s() failed to register subsystem: %d\n", __func__, ret);
- 
- 	/*
--	 * Create entries for memory sections that were found
--	 * during boot and have been initialized
-+	 * Create entries for memory sections that were found during boot
-+	 * and have been initialized. Use @block_id to track the last
-+	 * handled block and initialize it to an invalid value (ULONG_MAX)
-+	 * to bypass the block ID matching check for the first present
-+	 * block so that it can be covered.
- 	 */
--	for (nr = 0; nr <= __highest_present_section_nr;
--	     nr += sections_per_block) {
--		ret = add_boot_memory_block(nr);
--		if (ret)
--			panic("%s() failed to add memory block: %d\n", __func__,
--			      ret);
-+	block_id = ULONG_MAX;
-+	for_each_present_section_nr(0, nr) {
-+		if (block_id != ULONG_MAX && memory_block_id(nr) == block_id)
-+			continue;
-+
-+		block_id = memory_block_id(nr);
-+		ret = add_memory_block(block_id, MEM_ONLINE, NULL, NULL);
-+		if (ret) {
-+			panic("%s() failed to add memory block: %d\n",
-+			      __func__, ret);
-+		}
- 	}
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-restore-default-nr_hugepages-value-during-cleanup-in-hugetlb_reparenting_testsh
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -56,7 +56,7 @@ function cleanup() {
+   rmdir "$CGROUP_ROOT"/a/b 2>/dev/null
+   rmdir "$CGROUP_ROOT"/a 2>/dev/null
+   rmdir "$CGROUP_ROOT"/test1 2>/dev/null
+-  echo 0 >/proc/sys/vm/nr_hugepages
++  echo $nr_hugepgs >/proc/sys/vm/nr_hugepages
+   set -e
  }
  
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
-mm-fix-parameter-passed-to-page_mapcount_is_type.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type.patch
+selftests-mm-restore-default-nr_hugepages-value-during-cleanup-in-hugetlb_reparenting_testsh.patch
 
