@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F00F20E711;
-	Thu, 10 Apr 2025 22:47:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A9CF1C700D
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 23:03:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744325247; cv=none; b=bj5OVjOfo6HtPdtV6TsCtzV9mrrqn/OqpIecscu+XqIxBMU0wj3/s47yE+4eu5V4KyhZJ8ANYUO1+0y1v0Sv8FfzhwGpBlWF5r4oIIsqJKF/18ztLJAOA6kQuOo62RIFdpdDfM2X+6cZtUkSFVZ8bUFCSutO1jnHrdiGa6NjXmM=
+	t=1744326208; cv=none; b=CaYBkuziyWvJRl6YorwVH463Ah19aFvkkS9PCQ6dcWESc8L9VXIjL5Oxt2+cAfiUD44M1P2KqYd5AG01xA5n190Wy/5miyOZfnuenCpX9G2i+NRvwViAIf2ysT8jsxCVqDEvUMSvz8+jr2bzW/dCIRX29jUA30in8V1XvQuSEJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744325247; c=relaxed/simple;
-	bh=DTRkNNiO9oFOFGncd0BEsw9Kdo0L0H8hQ+EkS/cMfZw=;
-	h=Date:To:From:Subject:Message-Id; b=D+mNDe/HzrNKQLH/y8FcpNNpY0u34jR/T3ay4JvAzEbfvET0bh4HCSINkcKQHpSfbkJ4q3AUt/oGfypnMcL7ccOE4LIZYu4GChj3xUiwco1qJ7bZgLt9fOGwl6s2U1oDTeYfnLOYiJHXJ0/dWpJw58MCI4PqwXWs8s3ZseoABM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V6M9fPYI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744326208; c=relaxed/simple;
+	bh=jLqT7MhlPyvV6ThTpjIp4s6FxgV1wlGP0iUCiJIYjqM=;
+	h=Date:To:From:Subject:Message-Id; b=AXMUEpisMYk/yl/SF98+KDQ4X3QX8k2eYsoxPXjFuRiBbDzMnFHvfbO4lc7mNFYN1VZgo03xOw9YfR1JCQYspim3VntMwsZpvGYiehSdmV0KQaWVuTVSD6DTvas/ThwIido2YP3PTx/bQgD3mAq6j21NcOfJdxCrbNwWQPPkedA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A4w+BG1G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V6M9fPYI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB51AC4CEE9;
-	Thu, 10 Apr 2025 22:47:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A4w+BG1G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6475C4CEDD;
+	Thu, 10 Apr 2025 23:03:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744325246;
-	bh=DTRkNNiO9oFOFGncd0BEsw9Kdo0L0H8hQ+EkS/cMfZw=;
+	s=korg; t=1744326207;
+	bh=jLqT7MhlPyvV6ThTpjIp4s6FxgV1wlGP0iUCiJIYjqM=;
 	h=Date:To:From:Subject:From;
-	b=V6M9fPYI5kGFJZnzDHvCLmZd1MdXhoJ0X8PlR+dL8GrnU27X5rqxcaajIwie9d2d3
-	 5DxZ2p9QLz4VjHubh8BZMgZerSW+jQ8jLHBbM7Byr2fkyzvRqPYX5Jvl4zWTTzfANJ
-	 F1gC/qzS/iBoWUKEzgV41yYGeVs4DNiXHDyViyUo=
-Date: Thu, 10 Apr 2025 15:47:26 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryabinin.a.a@gmail.com,npiggin@gmail.com,linux@roeck-us.net,jgross@suse.com,jeremy@goop.org,hughd@google.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=A4w+BG1GJGhONDI1/e0hbuqMf+sZ5b4K+V4Cqd7EET/e1Dh1W7UF7VnMBbOj5jvtF
+	 Ai3N5gIWbkUdE0Tl8Eu16C6JQJY9czSmBLtSb2wWX1/BanIMlSs+Ky6+UXYkSYDz3X
+	 QtRi63dZc0YAd64s+Yp1nw3ylhCccMrR4jbSxzP8=
+Date: Thu, 10 Apr 2025 16:03:26 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,gregkh@linuxfoundation.org,donettom@linux.ibm.com,david@redhat.com,dakr@kernel.org,adityag@linux.ibm.com,gshan@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-protect-kernel-pgtables-in-apply_to_pte_range.patch removed from -mm tree
-Message-Id: <20250410224726.BB51AC4CEE9@smtp.kernel.org>
+Subject: + drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250410230327.A6475C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,98 +34,158 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: protect kernel pgtables in apply_to_pte_range()
-has been removed from the -mm tree.  Its filename was
-     mm-protect-kernel-pgtables-in-apply_to_pte_range.patch
+The patch titled
+     Subject: drivers/base/memory: avoid overhead from for_each_present_section_nr()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm: protect kernel pgtables in apply_to_pte_range()
-Date: Tue, 8 Apr 2025 18:07:32 +0200
+From: Gavin Shan <gshan@redhat.com>
+Subject: drivers/base/memory: avoid overhead from for_each_present_section_nr()
+Date: Thu, 10 Apr 2025 22:51:10 +1000
 
-The lazy MMU mode can only be entered and left under the protection of the
-page table locks for all page tables which may be modified.  Yet, when it
-comes to kernel mappings apply_to_pte_range() does not take any locks. 
-That does not conform arch_enter|leave_lazy_mmu_mode() semantics and could
-potentially lead to re-schedulling a process while in lazy MMU mode or
-racing on a kernel page table updates.
+for_each_present_section_nr() was introduced to add_boot_memory_block() by
+commit 61659efdb35c ("drivers/base/memory: improve
+add_boot_memory_block()").  It causes unnecessary overhead when the
+present sections are really sparse.  next_present_section_nr() called by
+the macro to find the next present section, which is far away from the
+spanning sections in the specified block.  Too much time consumed by
+next_present_section_nr() in this case, which can lead to softlockup as
+observed by Aditya Gupta on IBM Power10 machine.
 
-Link: https://lkml.kernel.org/r/ef8f6538b83b7fc3372602f90375348f9b4f3596.1744128123.git.agordeev@linux.ibm.com
-Fixes: 38e0edb15bd0 ("mm/apply_to_range: call pte function with lazy updates")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Guenetr Roeck <linux@roeck-us.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: <stable@vger.kernel.org>
+  watchdog: BUG: soft lockup - CPU#248 stuck for 22s! [swapper/248:1]
+  Modules linked in:
+  CPU: 248 UID: 0 PID: 1 Comm: swapper/248 Not tainted 6.15.0-rc1-next-20250408 #1 VOLUNTARY
+  Hardware name: 9105-22A POWER10 (raw) 0x800200 opal:v7.1-107-gfda75d121942 PowerNV
+  NIP:  c00000000209218c LR: c000000002092204 CTR: 0000000000000000
+  REGS: c00040000418fa30 TRAP: 0900   Not tainted  (6.15.0-rc1-next-20250408)
+  MSR:  9000000002009033 <SF,HV,VEC,EE,ME,IR,DR,RI,LE>  CR: 28000428  XER: 00000000
+  CFAR: 0000000000000000 IRQMASK: 0
+  GPR00: c000000002092204 c00040000418fcd0 c000000001b08100 0000000000000040
+  GPR04: 0000000000013e00 c000c03ffebabb00 0000000000c03fff c000400fff587f80
+  GPR08: 0000000000000000 00000000001196f7 0000000000000000 0000000028000428
+  GPR12: 0000000000000000 c000000002e80000 c00000000001007c 0000000000000000
+  GPR16: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+  GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+  GPR24: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+  GPR28: c000000002df7f70 0000000000013dc0 c0000000011dd898 0000000008000000
+  NIP [c00000000209218c] memory_dev_init+0x114/0x1e0
+  LR [c000000002092204] memory_dev_init+0x18c/0x1e0
+  Call Trace:
+  [c00040000418fcd0] [c000000002092204] memory_dev_init+0x18c/0x1e0 (unreliable)
+  [c00040000418fd50] [c000000002091348] driver_init+0x78/0xa4
+  [c00040000418fd70] [c0000000020063ac] kernel_init_freeable+0x22c/0x370
+  [c00040000418fde0] [c0000000000100a8] kernel_init+0x34/0x25c
+  [c00040000418fe50] [c00000000000cd94] ret_from_kernel_user_thread+0x14/0x1c
+
+Avoid the overhead by folding for_each_present_section_nr() to the outer
+loop.  add_boot_memory_block() is dropped after that.
+
+Link: https://lkml.kernel.org/r/20250410125110.1232329-1-gshan@redhat.com
+Fixes: 61659efdb35c ("drivers/base/memory: improve add_boot_memory_block()")
+Closes: https://lore.kernel.org/linux-mm/20250409180344.477916-1-adityag@linux.ibm.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Reported-by: Aditya Gupta <adityag@linux.ibm.com>
+Tested-by: Aditya Gupta <adityag@linux.ibm.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |    7 ++-----
- mm/memory.c       |    5 ++++-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/base/memory.c |   41 ++++++++++++++++------------------------
+ 1 file changed, 17 insertions(+), 24 deletions(-)
 
---- a/mm/kasan/shadow.c~mm-protect-kernel-pgtables-in-apply_to_pte_range
-+++ a/mm/kasan/shadow.c
-@@ -308,14 +308,14 @@ static int kasan_populate_vmalloc_pte(pt
- 	__memset((void *)page, KASAN_VMALLOC_INVALID, PAGE_SIZE);
- 	pte = pfn_pte(PFN_DOWN(__pa(page)), PAGE_KERNEL);
- 
--	spin_lock(&init_mm.page_table_lock);
- 	if (likely(pte_none(ptep_get(ptep)))) {
- 		set_pte_at(&init_mm, addr, ptep, pte);
- 		page = 0;
- 	}
--	spin_unlock(&init_mm.page_table_lock);
-+
- 	if (page)
- 		free_page(page);
-+
+--- a/drivers/base/memory.c~drivers-base-memory-avoid-overhead-from-for_each_present_section_nr
++++ a/drivers/base/memory.c
+@@ -816,21 +816,6 @@ static int add_memory_block(unsigned lon
  	return 0;
  }
  
-@@ -401,13 +401,10 @@ static int kasan_depopulate_vmalloc_pte(
- 
- 	page = (unsigned long)__va(pte_pfn(ptep_get(ptep)) << PAGE_SHIFT);
- 
--	spin_lock(&init_mm.page_table_lock);
+-static int __init add_boot_memory_block(unsigned long base_section_nr)
+-{
+-	unsigned long nr;
 -
- 	if (likely(!pte_none(ptep_get(ptep)))) {
- 		pte_clear(&init_mm, addr, ptep);
- 		free_page(page);
+-	for_each_present_section_nr(base_section_nr, nr) {
+-		if (nr >= (base_section_nr + sections_per_block))
+-			break;
+-
+-		return add_memory_block(memory_block_id(base_section_nr),
+-					MEM_ONLINE, NULL, NULL);
+-	}
+-
+-	return 0;
+-}
+-
+ static int add_hotplug_memory_block(unsigned long block_id,
+ 				    struct vmem_altmap *altmap,
+ 				    struct memory_group *group)
+@@ -957,7 +942,7 @@ static const struct attribute_group *mem
+ void __init memory_dev_init(void)
+ {
+ 	int ret;
+-	unsigned long block_sz, nr;
++	unsigned long block_sz, block_id, nr;
+ 
+ 	/* Validate the configured memory block size */
+ 	block_sz = memory_block_size_bytes();
+@@ -970,15 +955,23 @@ void __init memory_dev_init(void)
+ 		panic("%s() failed to register subsystem: %d\n", __func__, ret);
+ 
+ 	/*
+-	 * Create entries for memory sections that were found
+-	 * during boot and have been initialized
++	 * Create entries for memory sections that were found during boot
++	 * and have been initialized. Use @block_id to track the last
++	 * handled block and initialize it to an invalid value (ULONG_MAX)
++	 * to bypass the block ID matching check for the first present
++	 * block so that it can be covered.
+ 	 */
+-	for (nr = 0; nr <= __highest_present_section_nr;
+-	     nr += sections_per_block) {
+-		ret = add_boot_memory_block(nr);
+-		if (ret)
+-			panic("%s() failed to add memory block: %d\n", __func__,
+-			      ret);
++	block_id = ULONG_MAX;
++	for_each_present_section_nr(0, nr) {
++		if (block_id != ULONG_MAX && memory_block_id(nr) == block_id)
++			continue;
++
++		block_id = memory_block_id(nr);
++		ret = add_memory_block(block_id, MEM_ONLINE, NULL, NULL);
++		if (ret) {
++			panic("%s() failed to add memory block: %d\n",
++			      __func__, ret);
++		}
  	}
--	spin_unlock(&init_mm.page_table_lock);
- 
- 	return 0;
  }
---- a/mm/memory.c~mm-protect-kernel-pgtables-in-apply_to_pte_range
-+++ a/mm/memory.c
-@@ -2926,6 +2926,7 @@ static int apply_to_pte_range(struct mm_
- 			pte = pte_offset_kernel(pmd, addr);
- 		if (!pte)
- 			return err;
-+		spin_lock(&init_mm.page_table_lock);
- 	} else {
- 		if (create)
- 			pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
-@@ -2951,7 +2952,9 @@ static int apply_to_pte_range(struct mm_
  
- 	arch_leave_lazy_mmu_mode();
- 
--	if (mm != &init_mm)
-+	if (mm == &init_mm)
-+		spin_unlock(&init_mm.page_table_lock);
-+	else
- 		pte_unmap_unlock(mapped_pte, ptl);
- 
- 	*mask |= PGTBL_PTE_MODIFIED;
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from gshan@redhat.com are
 
+drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
+mm-fix-parameter-passed-to-page_mapcount_is_type.patch
+mm-debug-fix-parameter-passed-to-page_mapcount_is_type.patch
 
