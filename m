@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DC742AA3
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 00:51:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8563E647
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 01:06:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744246272; cv=none; b=qpmlhqpu8vmMWP0A5/76OezZ9xj2jF89UF8PADq4DV3Fqse18EUXs8HGrkYoLGSm0PHn1NTvZhg3g9galvuBjNQOPAz27V5lpNOOOmujs+UK1GQVYGmRLRo3bh2Dxm+9afSMYJZDeoIwkskLgD88CMiXzqZKiI76Svhop2BXvPw=
+	t=1744247208; cv=none; b=ZnAZst+o8VNIHKFxsREbaeSAth5gCu0CyiifBKQeLkfkwGV5VgwOWnD6kUyr/ZRuZ5BbBjpzjv98YYDLtXdJ0dMK4xHqzSUzVRWEs6JDxUl2q7dN/tssHF55Lx0CYGv2Xmo60D+XZR1B1UGziPzk1ma46i/GDn9xhp+vO5DVV90=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744246272; c=relaxed/simple;
-	bh=j4UOV3Kw4FH+1FmfJ6DOlhjNy7mnDeEc+GlIhhRJ7dI=;
-	h=Date:To:From:Subject:Message-Id; b=M1IS6JMOJ/MD2fprWe83bBa+anUJsrPNrrb/c7qFl6VgfRfoPNcO2ZU3JMNgQvmDx/iq/TFGqWaRfQZUyhMp+swfmZnLAtu2gg5e28FTH6p1MocT8XhiKWwkPNitMh4ARSpm2K0im+ZzmNdMt4rBREaB6XBUeZ88L/I/MKouTmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bq7Fr9sS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744247208; c=relaxed/simple;
+	bh=xle4OhDZzGoOoYsTGa1hiDCpKfWzEzsCxzz+LYXghO0=;
+	h=Date:To:From:Subject:Message-Id; b=B0jMeBHF2SLq6aSlaobfZXmYgp/ydXafxU/w0IKLJytmcXrb/ezIa6+o1/bfXAo7vxNaJGERGa1Xi2DR3AQ2dJmXoby3a9Iap8ixDXPcCCP/+ZP4gc8bRmb66Iykm9xgOF5fJJdr4Zf1pEM8NJ0O/Myaw5ifjjffGX0JsMTUmr8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SV7WVYB4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bq7Fr9sS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB429C4CEE7;
-	Thu, 10 Apr 2025 00:51:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SV7WVYB4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F7DC4CEE2;
+	Thu, 10 Apr 2025 01:06:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744246272;
-	bh=j4UOV3Kw4FH+1FmfJ6DOlhjNy7mnDeEc+GlIhhRJ7dI=;
+	s=korg; t=1744247208;
+	bh=xle4OhDZzGoOoYsTGa1hiDCpKfWzEzsCxzz+LYXghO0=;
 	h=Date:To:From:Subject:From;
-	b=bq7Fr9sSGYSL3UisEzbP76NUn1zg4DJ6eEs421wipcQGgbT2XImtjAu6HevdXU2QO
-	 cIyGQuGPxZIWgMU5xm0lnhln7MA5mCu1Q2v1WxAIyRNJvdSKWoOIViR2WbNI3Ce5/q
-	 jJ1RGbmwc/C4XBgYWsG9fJsdRjVNWsFi04EmS2kI=
-Date: Wed, 09 Apr 2025 17:51:11 -0700
-To: mm-commits@vger.kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=SV7WVYB4FgaHQT4YboaNrcwtKeIT0g5fwu72yqk72MAP2jxkXfT0XhFueZOWbdESV
+	 C8PaqeimZ0lhvoIsTW1GZZYBsY6o2a3xtk8mbSzQpVBo+7Imq9S79dmaRdalKhwaHt
+	 9MMi7kzQ65ApKbR/toq7chwXtEhmaSkPhh2nKJ1Y=
+Date: Wed, 09 Apr 2025 18:06:47 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-modernize-writeback-interface-v4.patch added to mm-new branch
-Message-Id: <20250410005111.DB429C4CEE7@smtp.kernel.org>
+Subject: + selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250410010648.31F7DC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: modernize writeback interface
-has been added to the -mm mm-new branch.  Its filename is
-     zram-modernize-writeback-interface-v4.patch
+     Subject: selftests/mm: fix compiler -Wmaybe-uninitialized warning
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-modernize-writeback-interface-v4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,39 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: modernize writeback interface
-Date: Wed, 9 Apr 2025 20:23:48 +0900
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: selftests/mm: fix compiler -Wmaybe-uninitialized warning
+Date: Wed, 9 Apr 2025 15:20:06 +0530
 
-fix uninitialized variable in zram_writeback_slots(), per Dan
+Following build warning comes up for cow test as 'transferred' variable has
+not been initialized. Fix the warning via zero init for the variable.
 
-Link: https://lkml.kernel.org/r/20250409112611.1154282-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reviewed-by: Brian Geffon <bgeffon@google.com>
+  CC       cow
+cow.c: In function `do_test_vmsplice_in_parent':
+cow.c:365:61: warning: `transferred' may be used uninitialized [-Wmaybe-uninitialized]
+  365 |                 cur = read(fds[0], new + total, transferred - total);
+      |                                                 ~~~~~~~~~~~~^~~~~~~
+cow.c:296:29: note: `transferred' was declared here
+  296 |         ssize_t cur, total, transferred;
+      |                             ^~~~~~~~~~~
+  CC       compaction_test
+  CC       gup_longterm
+
+Link: https://lkml.kernel.org/r/20250409095006.1422620-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
+ tools/testing/selftests/mm/cow.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-modernize-writeback-interface-v4
-+++ a/drivers/block/zram/zram_drv.c
-@@ -741,7 +741,7 @@ static int zram_writeback_slots(struct z
- 	struct zram_pp_slot *pps;
- 	struct bio_vec bio_vec;
- 	struct bio bio;
--	int ret, err;
-+	int ret = 0, err;
- 	u32 index;
- 
- 	page = alloc_page(GFP_KERNEL);
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-compiler-wmaybe-uninitialized-warning
++++ a/tools/testing/selftests/mm/cow.c
+@@ -293,7 +293,7 @@ static void do_test_vmsplice_in_parent(c
+ 		.iov_base = mem,
+ 		.iov_len = size,
+ 	};
+-	ssize_t cur, total, transferred;
++	ssize_t cur, total, transferred = 0;
+ 	struct comm_pipes comm_pipes;
+ 	char *old, *new;
+ 	int ret, fds[2];
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
-zram-modernize-writeback-interface.patch
-zram-modernize-writeback-interface-v3.patch
-zram-modernize-writeback-interface-v4.patch
-zsmalloc-cleanup-headers-includes.patch
+selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch
+mm-ptdump-split-note_page-into-level-specific-callbacks.patch
+mm-ptdump-split-effective_prot-into-level-specific-callbacks.patch
+arm64-mm-define-ptdesc_t.patch
 
