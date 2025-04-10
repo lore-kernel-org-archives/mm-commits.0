@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8563E647
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 01:06:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D807628E0F;
+	Thu, 10 Apr 2025 01:14:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744247208; cv=none; b=ZnAZst+o8VNIHKFxsREbaeSAth5gCu0CyiifBKQeLkfkwGV5VgwOWnD6kUyr/ZRuZ5BbBjpzjv98YYDLtXdJ0dMK4xHqzSUzVRWEs6JDxUl2q7dN/tssHF55Lx0CYGv2Xmo60D+XZR1B1UGziPzk1ma46i/GDn9xhp+vO5DVV90=
+	t=1744247687; cv=none; b=nLCKAJg4h+UoTzOIzKd1h0+WhG8m3Um03+5BzgEeeRVavFQjZaci4qddqqHRUUKsKe//3RdvqJw9zGc0lGzwzgxKXjgneTZO02OjaRTKtan7c0H0fPsv2ADKiZd4ZhJsa9oZ/8F7wvddP7DRMj8vonC+Y13VKvbljU+2akr0Z8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744247208; c=relaxed/simple;
-	bh=xle4OhDZzGoOoYsTGa1hiDCpKfWzEzsCxzz+LYXghO0=;
-	h=Date:To:From:Subject:Message-Id; b=B0jMeBHF2SLq6aSlaobfZXmYgp/ydXafxU/w0IKLJytmcXrb/ezIa6+o1/bfXAo7vxNaJGERGa1Xi2DR3AQ2dJmXoby3a9Iap8ixDXPcCCP/+ZP4gc8bRmb66Iykm9xgOF5fJJdr4Zf1pEM8NJ0O/Myaw5ifjjffGX0JsMTUmr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SV7WVYB4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744247687; c=relaxed/simple;
+	bh=DkvV/5X2DCk8F1pk8fGBWXxLlBnfwTonnk2IELQ9B9w=;
+	h=Date:To:From:Subject:Message-Id; b=OncpEJ2c4/QdwJG/zrU45oewj0hjjjRsezXjj4J9jH197w8KyBx7/Q+SQ9sCbaMoUwiPEuXYGhIDknVx9EHb6u8GpfHJ39QfrMZO/PdgAbnsigyiFKg2GlvBExPqvSvt7LtacGMgFJFXAFc1sBYeKZNE3uA3DRIiVzQMV6Tty+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HyLJ1WhE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SV7WVYB4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F7DC4CEE2;
-	Thu, 10 Apr 2025 01:06:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HyLJ1WhE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43F29C4CEE2;
+	Thu, 10 Apr 2025 01:14:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744247208;
-	bh=xle4OhDZzGoOoYsTGa1hiDCpKfWzEzsCxzz+LYXghO0=;
+	s=korg; t=1744247686;
+	bh=DkvV/5X2DCk8F1pk8fGBWXxLlBnfwTonnk2IELQ9B9w=;
 	h=Date:To:From:Subject:From;
-	b=SV7WVYB4FgaHQT4YboaNrcwtKeIT0g5fwu72yqk72MAP2jxkXfT0XhFueZOWbdESV
-	 C8PaqeimZ0lhvoIsTW1GZZYBsY6o2a3xtk8mbSzQpVBo+7Imq9S79dmaRdalKhwaHt
-	 9MMi7kzQ65ApKbR/toq7chwXtEhmaSkPhh2nKJ1Y=
-Date: Wed, 09 Apr 2025 18:06:47 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=HyLJ1WhE2DT0+hmzkjprMc/3m9938PKoK+4ie7Ma2LAI0i9oeOgQRh3J1hTCeh2sQ
+	 KlVMA89BdUJDMbWVt8OyZFL+GbqyjkjBrumSOh57zVfjC54yQT7SUh+BL9TkdjgTfV
+	 txNAWYIhi/6hsLB/PbjZ2kYj8dWQz77BoWudWaqI=
+Date: Wed, 09 Apr 2025 18:14:45 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,dja@axtens.net,david@redhat.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250410010648.31F7DC4CEE2@smtp.kernel.org>
+Subject: + mm-fix-apply_to_existing_page_range.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250410011446.43F29C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix compiler -Wmaybe-uninitialized warning
+     Subject: mm: fix apply_to_existing_page_range()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch
+     mm-fix-apply_to_existing_page_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-apply_to_existing_page_range.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: selftests/mm: fix compiler -Wmaybe-uninitialized warning
-Date: Wed, 9 Apr 2025 15:20:06 +0530
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix apply_to_existing_page_range()
+Date: Wed, 9 Apr 2025 12:40:43 +0300
 
-Following build warning comes up for cow test as 'transferred' variable has
-not been initialized. Fix the warning via zero init for the variable.
+In the case of apply_to_existing_page_range(), apply_to_pte_range() is
+reached with 'create' set to false.  When !create, the loop over the PTE
+page table is broken.
 
-  CC       cow
-cow.c: In function `do_test_vmsplice_in_parent':
-cow.c:365:61: warning: `transferred' may be used uninitialized [-Wmaybe-uninitialized]
-  365 |                 cur = read(fds[0], new + total, transferred - total);
-      |                                                 ~~~~~~~~~~~~^~~~~~~
-cow.c:296:29: note: `transferred' was declared here
-  296 |         ssize_t cur, total, transferred;
-      |                             ^~~~~~~~~~~
-  CC       compaction_test
-  CC       gup_longterm
+apply_to_pte_range() will only move to the next PTE entry if 'create' is
+true or if the current entry is not pte_none().
 
-Link: https://lkml.kernel.org/r/20250409095006.1422620-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+This means that the user of apply_to_existing_page_range() will not have
+'fn' called for any entries after the first pte_none() in the PTE page
+table.
+
+Fix the loop logic in apply_to_pte_range().
+
+There are no known runtime issues from this, but the fix is trivial enough
+for stable@ even without a known buggy user. 
+
+Link: https://lkml.kernel.org/r/20250409094043.1629234-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: be1db4753ee6 ("mm/memory.c: add apply_to_existing_page_range() helper")
+Cc: Daniel Axtens <dja@axtens.net>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-compiler-wmaybe-uninitialized-warning
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -293,7 +293,7 @@ static void do_test_vmsplice_in_parent(c
- 		.iov_base = mem,
- 		.iov_len = size,
- 	};
--	ssize_t cur, total, transferred;
-+	ssize_t cur, total, transferred = 0;
- 	struct comm_pipes comm_pipes;
- 	char *old, *new;
- 	int ret, fds[2];
+--- a/mm/memory.c~mm-fix-apply_to_existing_page_range
++++ a/mm/memory.c
+@@ -2943,11 +2943,11 @@ static int apply_to_pte_range(struct mm_
+ 	if (fn) {
+ 		do {
+ 			if (create || !pte_none(ptep_get(pte))) {
+-				err = fn(pte++, addr, data);
++				err = fn(pte, addr, data);
+ 				if (err)
+ 					break;
+ 			}
+-		} while (addr += PAGE_SIZE, addr != end);
++		} while (pte++, addr += PAGE_SIZE, addr != end);
+ 	}
+ 
+ 	arch_leave_lazy_mmu_mode();
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-selftests-mm-fix-compiler-wmaybe-uninitialized-warning.patch
-mm-ptdump-split-note_page-into-level-specific-callbacks.patch
-mm-ptdump-split-effective_prot-into-level-specific-callbacks.patch
-arm64-mm-define-ptdesc_t.patch
+mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page.patch
+mm-fix-apply_to_existing_page_range.patch
 
