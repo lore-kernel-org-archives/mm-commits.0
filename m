@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B53151DED56
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 02:34:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8954D1DED56
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 02:34:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744252461; cv=none; b=d9+VCLBDjlorpkcQhHfHXugyXt2iPOiPTAxRi8pHpN+ehV0GZDs4463+mqYXI7/bHGH5Tn4kW9H6h1wmqEVfXj834qf27FIZiKQ6e6cB/hAkwB56EHgZ/8a296sUSgj8rm8w6LV6GXWcc/dGTwcS6c4zPE9SfzTq3hJIL1iRwYU=
+	t=1744252463; cv=none; b=bhFh087/3wl3q1cEA9K2ZS4qL+kl+rIhC0eVAyU+h9ID/AzEmeqOW4mLb1dtEdqrcBidZg9SB6v6J15H1R9e1RzZ/tA7TOlv0gC3CKpqmDgMhLwZMlZKJFdICqpfdTU06ZuUDOMFrNmV5VMtdgnSXtFfTaKcBxQR4DbC26N/L08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744252461; c=relaxed/simple;
-	bh=9vyXo6bfL6KxRCL/VOsSgzUgAT6nslpOIrxpCZiM2n8=;
-	h=Date:To:From:Subject:Message-Id; b=sJsbNwq0TL2dyBztsi9Bc8aEICx+cjDJlSpFFpZLRyHcInTum54EOL10nMav5b1xxggkPWH0mfGbdODZeA5w79mrvpUHL2+h2jt51sLaZry/g1rmXaexyRyQdrFFxrcAEWskJrOgouHYWbK9idXi3TBqHffmjQ9T3Jrm/tPgjAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GvwTW3Ax; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744252463; c=relaxed/simple;
+	bh=WG/LTYjNIHpOhVMwS9Dy6uqxTxG9GVgAQH3/mK0fZA8=;
+	h=Date:To:From:Subject:Message-Id; b=a/j/qG/ojlfyhS7xn8rPp2wthNG55GZOzQ5FEjEEmtjOJlpUHw/z365uEZKQ8MIiUPkPA4oL8WiP35Q32eaIC7cYFeHIdnfs2dpxu1kp5n8UNBaq/nCXzFH1564L7yR8JWyDhnpFOP9mr9xOCzlPpa8t+gRzXnn/EaLuZVORkIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QmwH4GD4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvwTW3Ax"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C0AFC4CEE2;
-	Thu, 10 Apr 2025 02:34:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QmwH4GD4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00894C4CEE2;
+	Thu, 10 Apr 2025 02:34:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744252461;
-	bh=9vyXo6bfL6KxRCL/VOsSgzUgAT6nslpOIrxpCZiM2n8=;
+	s=korg; t=1744252463;
+	bh=WG/LTYjNIHpOhVMwS9Dy6uqxTxG9GVgAQH3/mK0fZA8=;
 	h=Date:To:From:Subject:From;
-	b=GvwTW3AxdrN31gtT9L7m+vJUtjD2RTiR+b+j1u6qjOMEVxWrpC55AgVOAXfUgchbv
-	 vFmV3G4625dbpUtN3+RrP4pORUuqW2Izej7wMEvKak/cgHV0wDfWPo3G6msMLsMhEd
-	 3XHVmrCQO5vXqjt6Bf6pr8UdyzB2oroSdL3kD01E=
-Date: Wed, 09 Apr 2025 19:34:20 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,sj@kernel.org,akpm@linux-foundation.org
+	b=QmwH4GD4wygarng0yVKu7qFw7VkQ5KZcdT4g/CzpgDTGgFyxe+tXlhyaE1sa3CQ5U
+	 hrBJ53qKo5ekB3+2BYy9P2IZCIFAsrfGvYaepfftwRRFTtXjgg+LQB+jKc455DU3j/
+	 EuqRboFyFj36VXfD2eAlTiSpK4MOUbUtPVtSesWU=
+Date: Wed, 09 Apr 2025 19:34:22 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-batch-tlb-flushes-for-madv_free.patch added to mm-new branch
-Message-Id: <20250410023421.0C0AFC4CEE2@smtp.kernel.org>
+Subject: + mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single.patch added to mm-new branch
+Message-Id: <20250410023423.00894C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: batch tlb flushes for MADV_FREE
+     Subject: mm/memory: split non-tlb flushing part from zap_page_range_single()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-batch-tlb-flushes-for-madv_free.patch
+     mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-batch-tlb-flushes-for-madv_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,166 +59,108 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/madvise: batch tlb flushes for MADV_FREE
-Date: Wed, 9 Apr 2025 17:00:20 -0700
+Subject: mm/memory: split non-tlb flushing part from zap_page_range_single()
+Date: Wed, 9 Apr 2025 17:00:21 -0700
 
-MADV_FREE handling for [process_]madvise() flushes tlb for each vma of
-each address range.  Update the logic to do tlb flushes in a batched way. 
-Initialize an mmu_gather object from do_madvise() and vector_madvise(),
-which are the entry level functions for [process_]madvise(), respectively.
-And pass those objects to the function for per-vma work, via
-madvise_behavior struct.  Make the per-vma logic not flushes tlb on their
-own but just saves the tlb entries to the received mmu_gather object. 
-Finally, the entry level functions flush the tlb entries that gathered for
-the entire user request, at once.
+Some of zap_page_range_single() callers such as [process_]madvise() with
+MADV_DONTNEED[_LOCKED] cannot batch tlb flushes because
+zap_page_range_single() flushes tlb for each invocation.  Split out the
+body of zap_page_range_single() except mmu_gather object initialization
+and gathered tlb entries flushing for such batched tlb flushing usage.
 
-Link: https://lkml.kernel.org/r/20250410000022.1901-3-sj@kernel.org
+To avoid hugetlb pages allocation failures from concurrent page faults,
+the tlb flush should be done before hugetlb faults unlocking, though.  Do
+the flush and the unlock inside the split out function in the order for
+hugetlb vma case.  Refer to commit 2820b0f09be9 ("hugetlbfs: close race
+between MADV_DONTNEED and page fault") for more details about the
+concurrent faults' page allocation failure problem.
+
+Link: https://lkml.kernel.org/r/20250410000022.1901-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   57 +++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 46 insertions(+), 11 deletions(-)
+ mm/memory.c |   49 +++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 39 insertions(+), 10 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-batch-tlb-flushes-for-madv_free
-+++ a/mm/madvise.c
-@@ -799,12 +799,13 @@ static const struct mm_walk_ops madvise_
- 	.walk_lock		= PGWALK_RDLOCK,
- };
+--- a/mm/memory.c~mm-memory-split-non-tlb-flushing-part-from-zap_page_range_single
++++ a/mm/memory.c
+@@ -1998,36 +1998,65 @@ void unmap_vmas(struct mmu_gather *tlb,
+ 	mmu_notifier_invalidate_range_end(&range);
+ }
  
--static int madvise_free_single_vma(struct vm_area_struct *vma,
-+static int madvise_free_single_vma(struct madvise_behavior *madv_behavior,
-+			struct vm_area_struct *vma,
- 			unsigned long start_addr, unsigned long end_addr)
+-/**
+- * zap_page_range_single - remove user pages in a given range
++/*
++ * zap_page_range_single_batched - remove user pages in a given range
++ * @tlb: pointer to the caller's struct mmu_gather
+  * @vma: vm_area_struct holding the applicable pages
+- * @address: starting address of pages to zap
+- * @size: number of bytes to zap
++ * @address: starting address of pages to remove
++ * @size: number of bytes to remove
+  * @details: details of shared cache invalidation
+  *
+- * The range must fit into one VMA.
++ * @tlb shouldn't be NULL.  The range must fit into one VMA.  If @vma is for
++ * hugetlb, @tlb is flushed and re-initialized by this function.
+  */
+-void zap_page_range_single(struct vm_area_struct *vma, unsigned long address,
++static void zap_page_range_single_batched(struct mmu_gather *tlb,
++		struct vm_area_struct *vma, unsigned long address,
+ 		unsigned long size, struct zap_details *details)
  {
- 	struct mm_struct *mm = vma->vm_mm;
+ 	const unsigned long end = address + size;
  	struct mmu_notifier_range range;
 -	struct mmu_gather tlb;
-+	struct mmu_gather *tlb = madv_behavior->tlb;
++
++	VM_WARN_ON_ONCE(!tlb || tlb->mm != vma->vm_mm);
  
- 	/* MADV_FREE works for only anon vma at the moment */
- 	if (!vma_is_anonymous(vma))
-@@ -820,17 +821,14 @@ static int madvise_free_single_vma(struc
- 				range.start, range.end);
- 
- 	lru_add_drain();
--	tlb_gather_mmu(&tlb, mm);
- 	update_hiwater_rss(mm);
- 
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
+ 				address, end);
+ 	hugetlb_zap_begin(vma, &range.start, &range.end);
+-	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 	update_hiwater_rss(vma->vm_mm);
  	mmu_notifier_invalidate_range_start(&range);
--	tlb_start_vma(&tlb, vma);
-+	tlb_start_vma(tlb, vma);
- 	walk_page_range(vma->vm_mm, range.start, range.end,
--			&madvise_free_walk_ops, &tlb);
--	tlb_end_vma(&tlb, vma);
-+			&madvise_free_walk_ops, tlb);
-+	tlb_end_vma(tlb, vma);
+ 	/*
+ 	 * unmap 'address-end' not 'range.start-range.end' as range
+ 	 * could have been expanded for hugetlb pmd sharing.
+ 	 */
+-	unmap_single_vma(&tlb, vma, address, end, details, false);
++	unmap_single_vma(tlb, vma, address, end, details, false);
  	mmu_notifier_invalidate_range_end(&range);
--	tlb_finish_mmu(&tlb);
--
- 	return 0;
- }
- 
-@@ -954,7 +952,7 @@ static long madvise_dontneed_free(struct
- 	if (behavior == MADV_DONTNEED || behavior == MADV_DONTNEED_LOCKED)
- 		return madvise_dontneed_single_vma(vma, start, end);
- 	else if (behavior == MADV_FREE)
--		return madvise_free_single_vma(vma, start, end);
-+		return madvise_free_single_vma(madv_behavior, vma, start, end);
- 	else
- 		return -EINVAL;
- }
-@@ -1627,6 +1625,29 @@ static void madvise_unlock(struct mm_str
- 		mmap_read_unlock(mm);
- }
- 
-+static bool madvise_batch_tlb_flush(int behavior)
-+{
-+	switch (behavior) {
-+	case MADV_FREE:
-+		return true;
-+	default:
-+		return false;
++	if (is_vm_hugetlb_page(vma)) {
++		/*
++		 * flush tlb and free resources before hugetlb_zap_end(), to
++		 * avoid concurrent page faults' allocation failure.
++		 */
++		tlb_finish_mmu(tlb);
++		hugetlb_zap_end(vma, details);
++		tlb_gather_mmu(tlb, vma->vm_mm);
 +	}
 +}
 +
-+static void madvise_init_tlb(struct madvise_behavior *madv_behavior,
-+		struct mm_struct *mm)
++/**
++ * zap_page_range_single - remove user pages in a given range
++ * @vma: vm_area_struct holding the applicable pages
++ * @address: starting address of pages to zap
++ * @size: number of bytes to zap
++ * @details: details of shared cache invalidation
++ *
++ * The range must fit into one VMA.
++ */
++void zap_page_range_single(struct vm_area_struct *vma, unsigned long address,
++		unsigned long size, struct zap_details *details)
 +{
-+	if (madvise_batch_tlb_flush(madv_behavior->behavior))
-+		tlb_gather_mmu(madv_behavior->tlb, mm);
-+}
-+
-+static void madvise_finish_tlb(struct madvise_behavior *madv_behavior)
-+{
-+	if (madvise_batch_tlb_flush(madv_behavior->behavior))
-+		tlb_finish_mmu(madv_behavior->tlb);
-+}
-+
- static bool is_valid_madvise(unsigned long start, size_t len_in, int behavior)
- {
- 	size_t len;
-@@ -1783,14 +1804,20 @@ static int madvise_do_behavior(struct mm
- int do_madvise(struct mm_struct *mm, unsigned long start, size_t len_in, int behavior)
- {
- 	int error;
--	struct madvise_behavior madv_behavior = {.behavior = behavior};
 +	struct mmu_gather tlb;
-+	struct madvise_behavior madv_behavior = {
-+		.behavior = behavior,
-+		.tlb = &tlb,
-+	};
++
++	tlb_gather_mmu(&tlb, vma->vm_mm);
++	zap_page_range_single_batched(&tlb, vma, address, size, details);
+ 	tlb_finish_mmu(&tlb);
+-	hugetlb_zap_end(vma, details);
+ }
  
- 	if (madvise_should_skip(start, len_in, behavior, &error))
- 		return error;
- 	error = madvise_lock(mm, behavior);
- 	if (error)
- 		return error;
-+	madvise_init_tlb(&madv_behavior, mm);
- 	error = madvise_do_behavior(mm, start, len_in, &madv_behavior);
-+	madvise_finish_tlb(&madv_behavior);
- 	madvise_unlock(mm, behavior);
- 
- 	return error;
-@@ -1807,13 +1834,18 @@ static ssize_t vector_madvise(struct mm_
- {
- 	ssize_t ret = 0;
- 	size_t total_len;
--	struct madvise_behavior madv_behavior = {.behavior = behavior};
-+	struct mmu_gather tlb;
-+	struct madvise_behavior madv_behavior = {
-+		.behavior = behavior,
-+		.tlb = &tlb,
-+	};
- 
- 	total_len = iov_iter_count(iter);
- 
- 	ret = madvise_lock(mm, behavior);
- 	if (ret)
- 		return ret;
-+	madvise_init_tlb(&madv_behavior, mm);
- 
- 	while (iov_iter_count(iter)) {
- 		unsigned long start = (unsigned long)iter_iov_addr(iter);
-@@ -1842,14 +1874,17 @@ static ssize_t vector_madvise(struct mm_
- 			}
- 
- 			/* Drop and reacquire lock to unwind race. */
-+			madvise_finish_tlb(&madv_behavior);
- 			madvise_unlock(mm, behavior);
- 			madvise_lock(mm, behavior);
-+			madvise_init_tlb(&madv_behavior, mm);
- 			continue;
- 		}
- 		if (ret < 0)
- 			break;
- 		iov_iter_advance(iter, iter_iov_len(iter));
- 	}
-+	madvise_finish_tlb(&madv_behavior);
- 	madvise_unlock(mm, behavior);
- 
- 	ret = (total_len - iov_iter_count(iter)) ? : ret;
+ /**
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
