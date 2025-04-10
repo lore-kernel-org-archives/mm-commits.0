@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 595791C5D62
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 02:15:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DBDA1C862B
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 02:23:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744251304; cv=none; b=eYxQjGEtC0ze08Bni8sGMHVVmqMuS0I3osdLTWSSQOOPIGdbU+2o8qJ7MC2XzsFXDUcO7pv0cfnvonFDgAL8uawiylDOplWIszCIBjk+0QMYuT5lSILv6Jzh2ZR3SYVaUUUfRUH3wFEkpgn2wh0ZD9wIkg7d7j58CB47+Q4SP1c=
+	t=1744251804; cv=none; b=GJHg/tQCzGEBTOLjIip23ZErHJrE8hRft0Dw1RZHGgW+p1OyocQV1bLrN1t8FGAtxjhflLpF7mpPevHZKTScgIHJQ5isuLDBw9PlSWOgd9K65C+QIB1+MFjADySLmZn5K+5YP0I0mWD4VrFlQmw9Ly/qcPYCgTdbQ5fO9+Xpx14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744251304; c=relaxed/simple;
-	bh=/uuKI1WFu1KQ0YCDmHy1vlimSqIB4CQQEShHdWcBQrY=;
-	h=Date:To:From:Subject:Message-Id; b=Wg0SIYYUlnBpNW/By4ZfWq4xXxNPksgou+JxOpQIOYIZQfNN646mxCWWc/Xh26KWYucVmrmy1pFj02CWNakWrNtP1mi0mp0MjEt4DUkVzi5ExR/qiEMlqrPUDEDil6vsH0XeNRzZxV5NnKuPDTjvb5bKEXuM+EZCXcrGMB9Ychg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zmlSqI3T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744251804; c=relaxed/simple;
+	bh=eA7r16+uTyWqHTPY9qAI1KgDP481W5OUJriKn16eIu8=;
+	h=Date:To:From:Subject:Message-Id; b=Me+wgVMPsuRRbGmOPbaM4FBE+L/f7r7lUPLNZ1ps9TYrLrXuoOpAzCMB3fvRlqfbb+9wzRLOUDkQSRS7DpPYutyBqgLzOzMa6nhxOwMqXJnrGqWA1Zz+uQSNqRmj6wm3mMrivEK1ZDDet6AZCwQxYmUdmnkWuAAoyLrLmYthzHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rE3aTInA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zmlSqI3T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0512C4CEE2;
-	Thu, 10 Apr 2025 02:15:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rE3aTInA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8180C4CEE2;
+	Thu, 10 Apr 2025 02:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744251303;
-	bh=/uuKI1WFu1KQ0YCDmHy1vlimSqIB4CQQEShHdWcBQrY=;
+	s=korg; t=1744251803;
+	bh=eA7r16+uTyWqHTPY9qAI1KgDP481W5OUJriKn16eIu8=;
 	h=Date:To:From:Subject:From;
-	b=zmlSqI3Tkc2kX92SP42tNLyNQBHNgrMGnmUKSuyR4oXwhq8V4uDssMsGSxzkG0sfT
-	 QDt20cgQMG9ijPDnZ4UFd+lGJavDCoaXHsNF/QXz97zdCET/VX2Q/F3y3srhN4+1S7
-	 HmTXAQh+kibX4FY06iYiCYCjU8gBy/9jtckKETZw=
-Date: Wed, 09 Apr 2025 19:15:03 -0700
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=rE3aTInAHVJEsnxtqrvsOuh9dZ1IDwuWWFK1IzZsdmjvijGs6Xxtdlu3Q6bttqfeW
+	 i07jJN94ioiUw2kC4H1T5cWeg9pCfxjoU7fQ6Qtyiqiq/9BVbrh5WZQ6evCPdgIjzW
+	 QE60hNPZilRGMpNQpN7l2Ixp99XTX2OPw3xmKiZI=
+Date: Wed, 09 Apr 2025 19:23:23 -0700
+To: mm-commits@vger.kernel.org,rrichter@amd.com,rppt@kernel.org,lenb@kernel.org,Jonathan.Cameron@huawei.com,haibo1.xu@intel.com,david@redhat.com,dan.j.williams@intel.com,chenbaozi@phytium.com.cn,bfaccini@nvidia.com,alison.schofield@intel.com,wangyuquan1236@phytium.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250410021503.A0512C4CEE2@smtp.kernel.org>
+Subject: + mm-numa_memblks-introduce-numa_add_reserved_memblk.patch added to mm-new branch
+Message-Id: <20250410022323.C8180C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+     Subject: mm: numa_memblks: introduce numa_add_reserved_memblk()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-numa_memblks-introduce-numa_add_reserved_memblk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_memblks-introduce-numa_add_reserved_memblk.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,98 +58,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix set_max_huge_pages() when there are surplus pages
-Date: Mon, 7 Apr 2025 20:47:06 +0800
+From: Yuquan Wang <wangyuquan1236@phytium.com.cn>
+Subject: mm: numa_memblks: introduce numa_add_reserved_memblk()
+Date: Wed, 9 Apr 2025 12:01:21 +0800
 
-In set_max_huge_pages(), min_count is computed taking into account surplus
-huge pages, which might lead in some cases to not be able to free huge
-pages and end up accounting them as surplus instead.
+acpi_parse_cfmws() currently adds empty CFMWS ranges to numa_meminfo with
+the expectation that numa_cleanup_meminfo moves them to
+numa_reserved_meminfo.  There is no need for that indirection when it is
+known in advance that these unpopulated ranges are meant for
+numa_reserved_meminfo in support of future hotplug / CXL provisioning.
 
-One way to solve it is to subtract surplus_huge_pages directly, but we
-cannot do it blindly because there might be surplus pages that are also
-free pages, which might happen when we fail to restore the vmemmap for
-optimized hvo pages.  So we could be subtracting the same page twice.
+Introduce and use numa_add_reserved_memblk() to add the empty CFMWS
+ranges directly.
 
-In order to work this around, let us first compute the number of free
-persistent pages, and use that along with surplus pages to compute
-min_count.
-
-Steps to reproduce:
-1) create 5 hugetlb folios in Node0
-2) run a program to use all the hugetlb folios
-3) echo 0 > nr_hugepages for Node0 to free the hugetlb folios.  Thus
-   the 5 hugetlb folios in Node0 are accounted as surplus.
-4) create 5 hugetlb folios in Node1
-5) echo 0 > nr_hugepages for Node1 to free the hugetlb folios
-
-The result:
-        Node0    Node1
-Total     5         5
-Free      0         5
-Surp      5         5
-
-The result with this patch:
-        Node0    Node1
-Total     5         0
-Free      0         0
-Surp      5         0
-
-Link: https://lkml.kernel.org/r/20250409055957.3774471-1-tujinjiang@huawei.com
-Link: https://lkml.kernel.org/r/20250407124706.2688092-1-tujinjiang@huawei.com
-Fixes: 9a30523066cd ("hugetlb: add per node hstate attributes")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20250409040121.3212489-1-wangyuquan1236@phytium.com.cn
+Signed-off-by: Yuquan Wang <wangyuquan1236@phytium.com.cn>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Bruno Faccini <bfaccini@nvidia.com>
+Cc: Chen Baozi <chenbaozi@phytium.com.cn>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Haibo Xu <haibo1.xu@intel.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Robert Richter <rrichter@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ drivers/acpi/numa/srat.c     |    2 +-
+ include/linux/numa_memblks.h |    1 +
+ mm/numa_memblks.c            |   22 ++++++++++++++++++++++
+ 3 files changed, 24 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -3825,6 +3825,7 @@ found:
- static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
- 			      nodemask_t *nodes_allowed)
- {
-+	unsigned long persistent_free_count;
- 	unsigned long min_count;
- 	unsigned long allocated;
- 	struct folio *folio;
-@@ -3959,8 +3960,24 @@ static int set_max_huge_pages(struct hst
- 	 * though, we'll note that we're not allowed to exceed surplus
- 	 * and won't grow the pool anywhere else. Not until one of the
- 	 * sysctls are changed, or the surplus pages go out of use.
--	 */
--	min_count = h->resv_huge_pages + h->nr_huge_pages - h->free_huge_pages;
-+	 *
-+	 * min_count is the expected number of persistent pages, we
-+	 * shouldn't calculate min_count by using
-+	 * resv_huge_pages + persistent_huge_pages() - free_huge_pages,
-+	 * because there may exist free surplus huge pages, and this will
-+	 * lead to subtracting twice. Free surplus huge pages come from HVO
-+	 * failing to restore vmemmap, see comments in the callers of
-+	 * hugetlb_vmemmap_restore_folio(). Thus, we should calculate
-+	 * persistent free count first.
-+	 */
-+	persistent_free_count = h->free_huge_pages;
-+	if (h->free_huge_pages > persistent_huge_pages(h)) {
-+		if (h->free_huge_pages > h->surplus_huge_pages)
-+			persistent_free_count -= h->surplus_huge_pages;
-+		else
-+			persistent_free_count = 0;
-+	}
-+	min_count = h->resv_huge_pages + persistent_huge_pages(h) - persistent_free_count;
- 	min_count = max(count, min_count);
- 	try_to_free_low(h, min_count, nodes_allowed);
+--- a/drivers/acpi/numa/srat.c~mm-numa_memblks-introduce-numa_add_reserved_memblk
++++ a/drivers/acpi/numa/srat.c
+@@ -464,7 +464,7 @@ static int __init acpi_parse_cfmws(union
+ 		return -EINVAL;
+ 	}
  
+-	if (numa_add_memblk(node, start, end) < 0) {
++	if (numa_add_reserved_memblk(node, start, end) < 0) {
+ 		/* CXL driver must handle the NUMA_NO_NODE case */
+ 		pr_warn("ACPI NUMA: Failed to add memblk for CFMWS node %d [mem %#llx-%#llx]\n",
+ 			node, start, end);
+--- a/include/linux/numa_memblks.h~mm-numa_memblks-introduce-numa_add_reserved_memblk
++++ a/include/linux/numa_memblks.h
+@@ -22,6 +22,7 @@ struct numa_meminfo {
+ };
+ 
+ int __init numa_add_memblk(int nodeid, u64 start, u64 end);
++int __init numa_add_reserved_memblk(int nid, u64 start, u64 end);
+ void __init numa_remove_memblk_from(int idx, struct numa_meminfo *mi);
+ 
+ int __init numa_cleanup_meminfo(struct numa_meminfo *mi);
+--- a/mm/numa_memblks.c~mm-numa_memblks-introduce-numa_add_reserved_memblk
++++ a/mm/numa_memblks.c
+@@ -201,6 +201,28 @@ int __init numa_add_memblk(int nid, u64
+ }
+ 
+ /**
++ * numa_add_reserved_memblk - Add one numa_memblk to numa_reserved_meminfo
++ * @nid: NUMA node ID of the new memblk
++ * @start: Start address of the new memblk
++ * @end: End address of the new memblk
++ *
++ * Add a new memblk to the numa_reserved_meminfo.
++ *
++ * Usage Case: numa_cleanup_meminfo() reconciles all numa_memblk instances
++ * against memblock_type information and moves any that intersect reserved
++ * ranges to numa_reserved_meminfo. However, when that information is known
++ * ahead of time, we use numa_add_reserved_memblk() to add the numa_memblk
++ * to numa_reserved_meminfo directly.
++ *
++ * RETURNS:
++ * 0 on success, -errno on failure.
++ */
++int __init numa_add_reserved_memblk(int nid, u64 start, u64 end)
++{
++	return numa_add_memblk_to(nid, start, end, &numa_reserved_meminfo);
++}
++
++/**
+  * numa_cleanup_meminfo - Cleanup a numa_meminfo
+  * @mi: numa_meminfo to clean up
+  *
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from wangyuquan1236@phytium.com.cn are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
-mm-hugetlb-fix-set_max_huge_pages-when-there-are-surplus-pages.patch
+mm-numa_memblks-introduce-numa_add_reserved_memblk.patch
 
