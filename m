@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2AB2905
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 22:32:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58CDB1A5B9B
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2025 22:33:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744324376; cv=none; b=HR+BjpCGxcnhLyBvlr5LU25h0ibJhryzw0mfnJsDOD+PbbBRXK6WnAO8WRluFAQsIbI01fhsi+/6QV7Tf6xIeXOdLmvU+VdDvLyHXgoI3sK2MnXcJwPu9GZUMqabrbC/tzT1wrmezrfbuO1s1qnMneZ1tXN6oEieS1hxuHVe2ok=
+	t=1744324428; cv=none; b=NZlX4D2jzme22fhUBXTDKDQ3dCca11bfLFLgDI4Kkkvg+eRDeLcboDmUkHepCTJpvfFEC3gyGLM/hpf7ga732XzlTCUdhqtDD3nabPD75J6S2MWvdgPW23IIpn/PWYB+ns7SWYGGP2NKLg1U3e/6Kmf+6j2krcTxacav1RPHGuE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744324376; c=relaxed/simple;
-	bh=p4hUdEMim+7YXUqV4tXjf1D2InynWWufg8q0BGEgJv4=;
-	h=Date:To:From:Subject:Message-Id; b=UUl2Ty6yZzvGXrWoQagCzX7dutIHrwGcpWsAz1GX6blUxSDzc5t8goABG6c/3+/Hl6rzJ+N6192eyyb1BXTYr66EXLlwh+Rx72iNCFg4Hh4gpkqCUTzVssPCYIJtraMcPj5cLh13ENk4Ux+pCOdn7iKb2ABEBDCRlcy9BcZ9RIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ee7NX7us; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744324428; c=relaxed/simple;
+	bh=6LCJ0fHu5ZyZnohx8AzUkkJ5K26YZfey1XSyOdIqsi8=;
+	h=Date:To:From:Subject:Message-Id; b=tkHbpj7xtDHKfVBCTo/gYHaspuVv4/2kJMwUbSvuqumY0yotHEOl/n/oMVylleAdFR6POphSvG2SbDA1CiyvzEvJs+MsRie6bx7BR4aWzJVJyebrfsOzjhBl/DELnIVhOXkwOBq/Tk50CX+a4YaN/LNsG+n+sIZO03D5fT7NCQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YoZF4W/i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ee7NX7us"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 367A2C4CEDD;
-	Thu, 10 Apr 2025 22:32:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YoZF4W/i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC381C4CEDD;
+	Thu, 10 Apr 2025 22:33:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744324376;
-	bh=p4hUdEMim+7YXUqV4tXjf1D2InynWWufg8q0BGEgJv4=;
+	s=korg; t=1744324427;
+	bh=6LCJ0fHu5ZyZnohx8AzUkkJ5K26YZfey1XSyOdIqsi8=;
 	h=Date:To:From:Subject:From;
-	b=ee7NX7usX9O86U06Nd8DmoB44YYjNjqPrXEZuUKLKLqyWFsc/Oc8ttaQdHOTdHQgk
-	 KxvXG1VYfFfrsnMhvG9Uox+AYVk57kBayA8B0NMvynsO7xh/EnyHkJs5ewlxZG4507
-	 WIQhD4Y2o88F84dshuwVvjIaFDdHPoMDvR6567E0=
-Date: Thu, 10 Apr 2025 15:32:55 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,bhe@redhat.com,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=YoZF4W/iSIX+S3pPTuo/EQcX/QrQQSjAOPv9Ca6+B6EZjWGMtUnG0z/cSIE2ei/sb
+	 FTbQIaoZyJPkUrfxUYxztifI7RBAu368p0rnAKbSq3F2GdfCw7annDgZPz/ZQL8RkL
+	 tGWsYQ6RNcxTst+ovbxHFiBwqKZiT1Iou6ImAxUE=
+Date: Thu, 10 Apr 2025 15:33:46 -0700
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,npiggin@gmail.com,linux@roeck-us.net,jgross@suse.com,jeremy@goop.org,hughd@google.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch added to mm-new branch
-Message-Id: <20250410223256.367A2C4CEDD@smtp.kernel.org>
+Subject: [withdrawn] mm-allow-detection-of-wrong-arch_enter_lazy_mmu_mode-context.patch removed from -mm tree
+Message-Id: <20250410223347.BC381C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,94 +34,73 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: swap: add __maybe_unused attribute for swap_is_last_ref() and update it's comment
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch
+The quilt patch titled
+     Subject: mm: allow detection of wrong arch_enter_lazy_mmu_mode() context
+has been removed from the -mm tree.  Its filename was
+     mm-allow-detection-of-wrong-arch_enter_lazy_mmu_mode-context.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm: swap: add __maybe_unused attribute for swap_is_last_ref() and update it's comment
-Date: Thu, 10 Apr 2025 23:39:08 +0800
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm: allow detection of wrong arch_enter_lazy_mmu_mode() context
+Date: Tue, 8 Apr 2025 18:48:31 +0200
 
-Add __maybe_unused attribute for swap_is_last_ref ()to fix following build
-warning:
+The lazy MMU batching may be only be entered and left under the protection
+of the page table locks for all page tables which may be modified.  Yet,
+there were cases arch_enter_lazy_mmu_mode() was called without the locks
+taken, e.g.  commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash
+lazy mmu mode").
 
-mm/swapfile.c:1517:20: warning: function 'swap_is_last_ref' is not needed and will not be emitted [-Wunneeded-internal-declaration]
-    1517 | static inline bool swap_is_last_ref(unsigned char count)
-         |                    ^~~~~~~~~~~~~~~~
-   1 warning generated.
+Make default arch_enter|leave|flush_lazy_mmu_mode() callbacks complain at
+least in case the preemption is enabled to detect wrong contexts.
 
-Besides, original comment for swap_entries_free() is placed before
-swap_is_last_ref() which may introduce confusion.  Update comment to
-address this.
+Most platforms do not implement the callbacks, so to aovid a performance
+impact allow the complaint when CONFIG_DEBUG_VM option is enabled only.
 
-Link: https://lkml.kernel.org/r/20250410153908.612984-1-shikemeng@huaweicloud.com
-Fixes: 6bb001b6b64ec ("mm: swap: enable swap_entry_range_free() to drop any kind of last ref")
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Suggested-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Tested-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/18bf936f63e0d1e53d8291a3bc2ee2c577876d9c.1744129955.git.agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Guenetr Roeck <linux@roeck-us.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/linux/pgtable.h |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix
-+++ a/mm/swapfile.c
-@@ -1511,15 +1511,19 @@ fallback:
- }
- 
- /*
-- * Drop the last ref(1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM) of swap entries,
-- * caller have to ensure all entries belong to the same cgroup and cluster.
-+ * Check if it's the last ref of swap entry in the freeing path.
-+ * Qualified vlaue includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
+--- a/include/linux/pgtable.h~mm-allow-detection-of-wrong-arch_enter_lazy_mmu_mode-context
++++ a/include/linux/pgtable.h
+@@ -232,9 +232,18 @@ static inline int pmd_dirty(pmd_t pmd)
+  * and the mode cannot be used in interrupt context.
   */
--static inline bool swap_is_last_ref(unsigned char count)
-+static inline bool __maybe_unused swap_is_last_ref(unsigned char count)
- {
- 	return (count == SWAP_HAS_CACHE) || (count == 1) ||
- 	       (count == SWAP_MAP_SHMEM);
- }
+ #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+-#define arch_enter_lazy_mmu_mode()	do {} while (0)
+-#define arch_leave_lazy_mmu_mode()	do {} while (0)
+-#define arch_flush_lazy_mmu_mode()	do {} while (0)
++static inline void arch_enter_lazy_mmu_mode(void)
++{
++	VM_WARN_ON(preemptible());
++}
++static inline void arch_leave_lazy_mmu_mode(void)
++{
++	VM_WARN_ON(preemptible());
++}
++static inline void arch_flush_lazy_mmu_mode(void)
++{
++	VM_WARN_ON(preemptible());
++}
+ #endif
  
-+/*
-+ * Drop the last ref of swap entries, caller have to ensure all entries
-+ * belong to the same cgroup and cluster.
-+ */
- static void swap_entries_free(struct swap_info_struct *si,
- 			      struct swap_cluster_info *ci,
- 			      swp_entry_t entry, unsigned int nr_pages)
+ #ifndef pte_batch_hint
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-mm-swap-rename-__swap__free-to-swap__put.patch
-mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref.patch
-mm-swap-enable-swap_entry_range_free-to-drop-any-kind-of-last-ref-fix.patch
-mm-swap-use-swap_entries_free-to-free-swap-entry-in-swap_entry_put_locked.patch
-mm-swap-use-swap_entries_free-drop-last-ref-count-in-swap_entries_put_nr.patch
-mm-swap-drop-last-swap_map_shmem-flag-in-batch-in-swap_entries_put_nr.patch
-mm-swap-free-each-cluster-individually-in-swap_entries_put_map_nr.patch
-mm-swap-factor-out-helper-to-drop-cache-of-entries-within-a-single-cluster.patch
-mm-swap-replace-cluster_swap_free_nr-with-swap_entries_put_.patch
+kasan-avoid-sleepable-page-allocation-from-atomic-context.patch
+mm-cleanup-apply_to_pte_range-routine.patch
+mm-protect-kernel-pgtables-in-apply_to_pte_range.patch
 
