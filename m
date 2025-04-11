@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB71126FA65
-	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:03:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A681E0DEB
+	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:45:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744340628; cv=none; b=k4YzjY36yUUM61bPDv/zKXzuPecX/GjFvpltK5oOI82mTTOJiN/6eQ5OmYzF+HEEA2Tfyw4S4qWqbfwS4V5GUOJQ23JP8nrQWk4KKSyoqOXKU6yyPVBb+Xpe4zORdWPaMr88Ixspt6RuWe3FhjkK5b12W15bgEnJmhG3UCNeH7Y=
+	t=1744343146; cv=none; b=MqE6ATfCPg9V1i3ppM2mswTVPHN4+FBEkR4a0WvdePbP8Bo4UGDCsLohUlztWsuA564/qp1+Jite1Hl6WlUvLEYhtLk8fcbkN8s/mf1tTonfID6tD6w8QbXCCBcTJ5peXFy0ljv+p+11aIdUKYD+Iv1UZEfc/14I2UPh4/zZiLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744340628; c=relaxed/simple;
-	bh=idkkEleT4hWmkSpQFmiw4IyN5x39Z1p6z0su7erXh/U=;
-	h=Date:To:From:Subject:Message-Id; b=FWIWH7GCWfTeZbYROuuO3E9Ps0FAdnnLtFj0siWqVyf6xNPso7Z2hAOl4KoZot5ZBsw1N6j3pf0lLJykfdGU86VnJm8Fuc7OixJQWpArgKK9ZgALJAbMbwdxUmiNED5Mbx+J4PcyYBBupU/ZPiF+pF757fgHN3kTlrewXRm8Dus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DiJJaur9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744343146; c=relaxed/simple;
+	bh=ar6uwxN7M5fw5nvWcHF7XXoKUgP84ZDSnXMTrWkxcQI=;
+	h=Date:To:From:Subject:Message-Id; b=AxKO3nE/IxYUZgRjxmtJ9mtwWRHlbbgtqX62Hacf4i6yb39I9675urQoMLuft9XRrrFglOAyr4RIhmswCN7poB2XgbQUJEE/n/TFC6Kvh12JUMkBW30M72LTLoyeWMXHGP94z8NB29gi8qiGTEaut+ZRJVrc6+5/49bUzhaqo+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ihuWm3su; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DiJJaur9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38811C4CEDD;
-	Fri, 11 Apr 2025 03:03:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ihuWm3su"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11CD5C4CEE5;
+	Fri, 11 Apr 2025 03:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744340627;
-	bh=idkkEleT4hWmkSpQFmiw4IyN5x39Z1p6z0su7erXh/U=;
+	s=korg; t=1744343146;
+	bh=ar6uwxN7M5fw5nvWcHF7XXoKUgP84ZDSnXMTrWkxcQI=;
 	h=Date:To:From:Subject:From;
-	b=DiJJaur9CH58rjfpRpIC3f5Df55IztSHBUXDQvZ4Prx2NJ5oXaho/BNYR1hC7x9/P
-	 dO8ApvSCNuxosCZzI6uV7kMNkDWpWbFN2hMsatDtAJoVyjuxJNOkcdZN0tDAUZR73x
-	 OCWgC/50Qi/60mT+/I4St+ZD1dXtqJpCSZJjZJaU=
-Date: Thu, 10 Apr 2025 20:03:46 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=ihuWm3sueY4Cs9q1h6pLY7lYfXZZLthbkUYoD6/BdlJnz5efI4AyDoiqkjNbXHjFF
+	 590tJkGtZvqRMgIcnZQp3mCrntglAXapivDTwvXyP3t8irzlsgBlafT79PvRoBQfFX
+	 gTvqvWPhoUpRUFaxqFRhDZ0cda13ctDkU2+qA6qc=
+Date: Thu, 10 Apr 2025 20:45:45 -0700
+To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,osalvador@suse.de,david@redhat.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250411030347.38811C4CEDD@smtp.kernel.org>
+Subject: + mm-gup-remove-unneeded-checking-in-follow_page_pte.patch added to mm-new branch
+Message-Id: <20250411034546.11CD5C4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: fix swap counter leak from offline cgroup
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
+     Subject: mm/gup: remove unneeded checking in follow_page_pte()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: fix swap counter leak from offline cgroup
-Date: Thu, 10 Apr 2025 16:18:12 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/gup: remove unneeded checking in follow_page_pte()
+Date: Thu, 10 Apr 2025 11:57:15 +0800
 
-commit 73f839b6d2ed addressed an issue regarding the swap counter leak
-that occurred from an offline cgroup.  However, commit 89ce924f0bd4
-modified the parameter from @swap_memcg to @memcg (presumably this
-alteration was introduced while resolving conflicts).  Fix this problem by
-reverting this minor change.
+In __get_user_pages(), it will traverse page table and take a reference to
+the page the given user address corresponds to if GUP_GET or GUP_PIN is
+set.  However, it's not supported both GUP_GET and GUP_PIN are set.  Even
+though this check need be done, it should be done earlier, but not doing
+it till entering into follow_page_pte() and failed.
 
-Link: https://lkml.kernel.org/r/20250410081812.10073-1-songmuchun@bytedance.com
-Fixes: 89ce924f0bd4 ("mm: memcontrol: move memsw charge callbacks to v1")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
+Furthermore, this checking has been done in is_valid_gup_args() and all
+external users of __get_user_pages() will call is_valid_gup_args() to
+catch the illegal setting.  We don't need to worry about internal users of
+__get_user_pages() because the gup_flags are set by MM code correctly.
+
+Here remove the checking in follow_page_pte(), and add VM_WARN_ON_ONCE()
+to catch the possible exceptional setting just in case.
+
+And also change the VM_BUG_ON to VM_WARN_ON_ONCE() for checking (!!pages
+!= !!(gup_flags & (FOLL_GET | FOLL_PIN))) because the checking has been
+done in is_valid_gup_args() for external users of __get_user_pages().
+
+Link: https://lkml.kernel.org/r/20250410035717.473207-3-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol-v1.c~mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup
-+++ a/mm/memcontrol-v1.c
-@@ -620,7 +620,7 @@ void memcg1_swapout(struct folio *folio,
- 		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
- 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
+--- a/mm/gup.c~mm-gup-remove-unneeded-checking-in-follow_page_pte
++++ a/mm/gup.c
+@@ -844,11 +844,6 @@ static struct page *follow_page_pte(stru
+ 	pte_t *ptep, pte;
+ 	int ret;
  
--	swap_cgroup_record(folio, mem_cgroup_id(memcg), entry);
-+	swap_cgroup_record(folio, mem_cgroup_id(swap_memcg), entry);
+-	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+-	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
+-			 (FOLL_PIN | FOLL_GET)))
+-		return ERR_PTR(-EINVAL);
+-
+ 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	if (!ptep)
+ 		return no_page_table(vma, flags, address);
+@@ -1432,7 +1427,11 @@ static long __get_user_pages(struct mm_s
  
- 	folio_unqueue_deferred_split(folio);
- 	folio->memcg_data = 0;
+ 	start = untagged_addr_remote(mm, start);
+ 
+-	VM_BUG_ON(!!pages != !!(gup_flags & (FOLL_GET | FOLL_PIN)));
++	VM_WARN_ON_ONCE(!!pages != !!(gup_flags & (FOLL_GET | FOLL_PIN)));
++
++	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
++	VM_WARN_ON_ONCE((gup_flags & (FOLL_PIN | FOLL_GET)) ==
++			(FOLL_PIN | FOLL_GET));
+ 
+ 	do {
+ 		struct page *page;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
+maintainers-add-andrew-and-myself-as-kexec-maintainer.patch
+mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
+mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
+mm-gup-clean-up-codes-in-fault_in_xxx-functions.patch
 
