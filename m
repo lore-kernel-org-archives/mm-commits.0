@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F5ACB674
-	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:46:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B5A627BF7C
+	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:48:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744343211; cv=none; b=AFMF0TIx3PdFZT40ZlOIEYXL17TbHyc0Rhmqzo7Qdg3tr0+m4/7GwgpzkK+2EsY/Wt1hUYCV4dzhMper4+6vkFHdB/IQ7el28Puy2me/F70qaXi0+/GqcwIlxftavHXpw0dIky4zuU1NcZ0PBZEskc0MZ6PoKYsjKzEzpRoJGks=
+	t=1744343304; cv=none; b=l0qddbK0ojlLUUwiBkP2CAocePYtz7JdjSgLu/PTactaJrinnfCkLulW+LwhqT/Qo86aghFW/j/IxTWp0c48FOLNti5N1CHdd9vqwHxmsvBk776eqbBSSc3nb0eg0qBWgdXcLWOyTrNW8wL3D/C0quScHS9T9W857mG/GN3jVlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744343211; c=relaxed/simple;
-	bh=uvZd3EkIsJUIVvWHTSiunZ8QnRDFwnbhgqYM/WRGl5k=;
-	h=Date:To:From:Subject:Message-Id; b=k/C1T7zXBy44HMCVVgnquM34AZsrkR3Kmx7V22VjaFEeR/eFTyYrW3deCoeo/4q7BaFAQdOHzNGCPtfsOcz+6VJjrp99r4pnbLIZufaPx1gGUdFutoZdjmCBNHTKHsXmdQpXZG2C2fWZPMDS3ojq29O2DRSoYyvbkAWK6SCGUis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vjucT3xy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744343304; c=relaxed/simple;
+	bh=1ugWcToKgAycXvSRB4LLdwPnuMpIu2CQPef/mhB0gdo=;
+	h=Date:To:From:Subject:Message-Id; b=VR4d3IwxfgJzDWJK+Mtj6PUnaqP8mMTzjba0b+v4YSFpSa3cCyM+f8DDbY58r2T6hL/Hz1aoddz5AI9CwvcBXFYjRJc7lZfUTL5eBJ9NkEPiTlxU4lkaFd2LJ9hqRbk09rj23u1A6F5th64ZvKumsxDnBORLdyVbXJIZUNymFtE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QdoKgs6x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vjucT3xy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC063C4CEE2;
-	Fri, 11 Apr 2025 03:46:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QdoKgs6x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EAC4C4CEE2;
+	Fri, 11 Apr 2025 03:48:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744343210;
-	bh=uvZd3EkIsJUIVvWHTSiunZ8QnRDFwnbhgqYM/WRGl5k=;
+	s=korg; t=1744343303;
+	bh=1ugWcToKgAycXvSRB4LLdwPnuMpIu2CQPef/mhB0gdo=;
 	h=Date:To:From:Subject:From;
-	b=vjucT3xy1WL3FnaIjcyRsh5fgj4Ncf+L8fP+oZF4qwUMOLXDWOEL0m2a//oPR1gql
-	 xFe2UQQI4914VdqaixzqRBRIu24lF4d6EEuTzKTiyEpLH0GLSh7aNyuluMEgL7ydf1
-	 JvKKK+PpFI7BnItvt08PljVXJkp1tcIR2VM48gI8=
-Date: Thu, 10 Apr 2025 20:46:50 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=QdoKgs6xX+J441ZYQbNsCWZpSEBkvFKskV6SNZdvvWhyFVK+jD5jW3nbccHXB7j6n
+	 kGim5ViyuVsuChwVfduERNGPJwQg6tb8VN5iamaIldcus6+aiJssIPfT+eVtGgT497
+	 q3fQgmOYW9TKckDrl+kzXShvjHEB9FbhGtJpizCk=
+Date: Thu, 10 Apr 2025 20:48:23 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-optimize-memcg_rstat_updated.patch added to mm-new branch
-Message-Id: <20250411034650.DC063C4CEE2@smtp.kernel.org>
+Subject: + selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch added to mm-new branch
+Message-Id: <20250411034823.9EAC4C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: optimize memcg_rstat_updated
+     Subject: selftests/damon: remove the remaining test scripts for DAMON debugfs interface
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-optimize-memcg_rstat_updated.patch
+     selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-optimize-memcg_rstat_updated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,81 +58,165 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: optimize memcg_rstat_updated
-Date: Wed, 9 Apr 2025 19:57:52 -0700
+From: Enze Li <lienze@kylinos.cn>
+Subject: selftests/damon: remove the remaining test scripts for DAMON debugfs interface
+Date: Fri, 11 Apr 2025 10:43:32 +0800
 
-Currently the kernel maintains the stats updates per-memcg which is needed
-to implement stats flushing threshold.  On the update side, the update is
-added to the per-cpu per-memcg update of the given memcg and all of its
-ancestors.  However when the given memcg has passed the flushing
-threshold, all of its ancestors should have passed the threshold as well. 
-There is no need to traverse up the memcg tree to maintain the stats
-updates.
+DAMON has dropped debugfs support; therefore, remove these unused scripts.
 
-Perf profile collected from our fleet shows that memcg_rstat_updated is
-one of the most expensive memcg function i.e.  a lot of cumulative CPU is
-being spent on it.  So, even small micro optimizations matter a lot.  This
-patch is microbenchmarked with multiple instances of netperf on a single
-machine with locally running netserver and we see couple of percentage of
-improvement.
-
-Link: https://lkml.kernel.org/r/20250410025752.92159-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20250411024332.1373861-1-enze.li@linux.dev
+Fixes: 5ec4333b1967 ("mm/damon: remove DAMON debugfs interface")
+Signed-off-by: Enze Li <lienze@kylinos.cn>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ tools/testing/selftests/damon/Makefile           |    2 
+ tools/testing/selftests/damon/_chk_dependency.sh |   52 ----------
+ tools/testing/selftests/damon/_debugfs_common.sh |   64 -------------
+ 3 files changed, 1 insertion(+), 117 deletions(-)
 
---- a/mm/memcontrol.c~memcg-optimize-memcg_rstat_updated
-+++ a/mm/memcontrol.c
-@@ -594,18 +594,20 @@ static inline void memcg_rstat_updated(s
- 	cgroup_rstat_updated(memcg->css.cgroup, cpu);
- 	statc = this_cpu_ptr(memcg->vmstats_percpu);
- 	for (; statc; statc = statc->parent) {
-+		/*
-+		 * If @memcg is already flushable then all its ancestors are
-+		 * flushable as well and also there is no need to increase
-+		 * stats_updates.
-+		 */
-+		if (memcg_vmstats_needs_flush(statc->vmstats))
-+			break;
-+
- 		stats_updates = READ_ONCE(statc->stats_updates) + abs(val);
- 		WRITE_ONCE(statc->stats_updates, stats_updates);
- 		if (stats_updates < MEMCG_CHARGE_BATCH)
- 			continue;
+diff --git a/tools/testing/selftests/damon/_chk_dependency.sh a/tools/testing/selftests/damon/_chk_dependency.sh
+deleted file mode 100644
+--- a/tools/testing/selftests/damon/_chk_dependency.sh
++++ /dev/null
+@@ -1,52 +0,0 @@
+-#!/bin/bash
+-# SPDX-License-Identifier: GPL-2.0
+-
+-# Kselftest framework requirement - SKIP code is 4.
+-ksft_skip=4
+-
+-DBGFS=$(grep debugfs /proc/mounts --max-count 1 | awk '{print $2}')
+-if [ "$DBGFS" = "" ]
+-then
+-	echo "debugfs not mounted"
+-	exit $ksft_skip
+-fi
+-
+-DBGFS+="/damon"
+-
+-if [ $EUID -ne 0 ];
+-then
+-	echo "Run as root"
+-	exit $ksft_skip
+-fi
+-
+-if [ ! -d "$DBGFS" ]
+-then
+-	echo "$DBGFS not found"
+-	exit $ksft_skip
+-fi
+-
+-if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
+-then
+-	monitor_on_file="monitor_on_DEPRECATED"
+-else
+-	monitor_on_file="monitor_on"
+-fi
+-
+-for f in attrs target_ids "$monitor_on_file"
+-do
+-	if [ ! -f "$DBGFS/$f" ]
+-	then
+-		echo "$f not found"
+-		exit 1
+-	fi
+-done
+-
+-permission_error="Operation not permitted"
+-for f in attrs target_ids "$monitor_on_file"
+-do
+-	status=$( cat "$DBGFS/$f" 2>&1 )
+-	if [ "${status#*$permission_error}" != "$status" ]; then
+-		echo "Permission for reading $DBGFS/$f denied; maybe secureboot enabled?"
+-		exit $ksft_skip
+-	fi
+-done
+diff --git a/tools/testing/selftests/damon/_debugfs_common.sh a/tools/testing/selftests/damon/_debugfs_common.sh
+deleted file mode 100644
+--- a/tools/testing/selftests/damon/_debugfs_common.sh
++++ /dev/null
+@@ -1,64 +0,0 @@
+-#!/bin/bash
+-# SPDX-License-Identifier: GPL-2.0
+-
+-test_write_result() {
+-	file=$1
+-	content=$2
+-	orig_content=$3
+-	expect_reason=$4
+-	expected=$5
+-
+-	if [ "$expected" = "0" ]
+-	then
+-		echo "$content" > "$file"
+-	else
+-		echo "$content" > "$file" 2> /dev/null
+-	fi
+-	if [ $? -ne "$expected" ]
+-	then
+-		echo "writing $content to $file doesn't return $expected"
+-		echo "expected because: $expect_reason"
+-		echo "$orig_content" > "$file"
+-		exit 1
+-	fi
+-}
+-
+-test_write_succ() {
+-	test_write_result "$1" "$2" "$3" "$4" 0
+-}
+-
+-test_write_fail() {
+-	test_write_result "$1" "$2" "$3" "$4" 1
+-}
+-
+-test_content() {
+-	file=$1
+-	orig_content=$2
+-	expected=$3
+-	expect_reason=$4
+-
+-	content=$(cat "$file")
+-	if [ "$content" != "$expected" ]
+-	then
+-		echo "reading $file expected $expected but $content"
+-		echo "expected because: $expect_reason"
+-		echo "$orig_content" > "$file"
+-		exit 1
+-	fi
+-}
+-
+-source ./_chk_dependency.sh
+-
+-damon_onoff="$DBGFS/monitor_on"
+-if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
+-then
+-	damon_onoff="$DBGFS/monitor_on_DEPRECATED"
+-else
+-	damon_onoff="$DBGFS/monitor_on"
+-fi
+-
+-if [ $(cat "$damon_onoff") = "on" ]
+-then
+-	echo "monitoring is on"
+-	exit $ksft_skip
+-fi
+--- a/tools/testing/selftests/damon/Makefile~selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface
++++ a/tools/testing/selftests/damon/Makefile
+@@ -3,7 +3,7 @@
  
--		/*
--		 * If @memcg is already flush-able, increasing stats_updates is
--		 * redundant. Avoid the overhead of the atomic update.
--		 */
--		if (!memcg_vmstats_needs_flush(statc->vmstats))
--			atomic64_add(stats_updates,
--				     &statc->vmstats->stats_updates);
-+		atomic64_add(stats_updates, &statc->vmstats->stats_updates);
- 		WRITE_ONCE(statc->stats_updates, 0);
- 	}
- }
+ TEST_GEN_FILES += access_memory access_memory_even
+ 
+-TEST_FILES = _chk_dependency.sh _damon_sysfs.py
++TEST_FILES = _damon_sysfs.py
+ 
+ # functionality tests
+ TEST_PROGS += sysfs.sh
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
-memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
-memcg-remove-root-memcg-check-from-refill_stock.patch
-memcg-decouple-drain_obj_stock-from-local-stock.patch
-memcg-introduce-memcg_uncharge.patch
-memcg-manually-inline-__refill_stock.patch
-memcg-no-refilling-stock-from-obj_cgroup_release.patch
-memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
-memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
-memcg-manually-inline-replace_stock_objcg.patch
-memcg-decouple-memcg_hotplug_cpu_dead-from-stock_lock.patch
-memcg-optimize-memcg_rstat_updated.patch
+selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
 
