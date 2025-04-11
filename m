@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B5A627BF7C
-	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:48:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DDCF27C153
+	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:50:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744343304; cv=none; b=l0qddbK0ojlLUUwiBkP2CAocePYtz7JdjSgLu/PTactaJrinnfCkLulW+LwhqT/Qo86aghFW/j/IxTWp0c48FOLNti5N1CHdd9vqwHxmsvBk776eqbBSSc3nb0eg0qBWgdXcLWOyTrNW8wL3D/C0quScHS9T9W857mG/GN3jVlQ=
+	t=1744343460; cv=none; b=Zv5s63uNKLxcXRUZ3ER9CtwQgi/lZb1AxmhzUeEVzW85KCwtnCIrwJSYDb/87w2YPxVBMwUZUDZxj5yFB+O6yPfUtgBSl+En9HBsTlnWldRCInMAFfzuho4R84RtbyHDn1hNbfgqbDE8TGl2j5r6B9L8NtbE69Mzyoz+hmUiFMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744343304; c=relaxed/simple;
-	bh=1ugWcToKgAycXvSRB4LLdwPnuMpIu2CQPef/mhB0gdo=;
-	h=Date:To:From:Subject:Message-Id; b=VR4d3IwxfgJzDWJK+Mtj6PUnaqP8mMTzjba0b+v4YSFpSa3cCyM+f8DDbY58r2T6hL/Hz1aoddz5AI9CwvcBXFYjRJc7lZfUTL5eBJ9NkEPiTlxU4lkaFd2LJ9hqRbk09rj23u1A6F5th64ZvKumsxDnBORLdyVbXJIZUNymFtE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QdoKgs6x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744343460; c=relaxed/simple;
+	bh=X39xPAA03sg3tU7sbKuQlxWdZt+7ftXNYxoVKC46WHY=;
+	h=Date:To:From:Subject:Message-Id; b=q7myenPAG6L0SwJCAhdvNuppHvNLys5NTUvImbUvJnpeFjDcnqnM0U5S52q3PNWmH05gdszIHQ5yVE+q3CfkCcqx8lRTwBhiX11XcTmglRLajZky+wJK6dun7fW/9rWOUjBgnYLja6htgQ8Zps6wyTiuGD+BpSjH2vTC+vwsYDI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QMpFBc4k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QdoKgs6x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EAC4C4CEE2;
-	Fri, 11 Apr 2025 03:48:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QMpFBc4k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3309C4CEE2;
+	Fri, 11 Apr 2025 03:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744343303;
-	bh=1ugWcToKgAycXvSRB4LLdwPnuMpIu2CQPef/mhB0gdo=;
+	s=korg; t=1744343459;
+	bh=X39xPAA03sg3tU7sbKuQlxWdZt+7ftXNYxoVKC46WHY=;
 	h=Date:To:From:Subject:From;
-	b=QdoKgs6xX+J441ZYQbNsCWZpSEBkvFKskV6SNZdvvWhyFVK+jD5jW3nbccHXB7j6n
-	 kGim5ViyuVsuChwVfduERNGPJwQg6tb8VN5iamaIldcus6+aiJssIPfT+eVtGgT497
-	 q3fQgmOYW9TKckDrl+kzXShvjHEB9FbhGtJpizCk=
-Date: Thu, 10 Apr 2025 20:48:23 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=QMpFBc4kLWu18edOQttR4SZmL48rLrrBEp2jIa2INpDVtZWRgDv8Vmjdx9eElxzkL
+	 0HVwbomq2D6hc6KUa/lsTgG23ekLFP0Vi9iwhGZddCUytnJ2sizTibA/bKSBxCAwfL
+	 aAOmzAV5RcrsdSmsT6+Xdvjr5ukCUu81o2xeVXAo=
+Date: Thu, 10 Apr 2025 20:50:59 -0700
+To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,ldv@strace.io,charlie@rivosinc.com,aou@eecs.berkeley.edu,alex@ghiti.fr,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch added to mm-new branch
-Message-Id: <20250411034823.9EAC4C4CEE2@smtp.kernel.org>
+Subject: + riscv-avoid-fortify-warning-in-syscall_get_arguments.patch added to mm-nonmm-unstable branch
+Message-Id: <20250411035059.C3309C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: remove the remaining test scripts for DAMON debugfs interface
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
+     Subject: riscv: avoid fortify warning in syscall_get_arguments()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     riscv-avoid-fortify-warning-in-syscall_get_arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-avoid-fortify-warning-in-syscall_get_arguments.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,165 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: selftests/damon: remove the remaining test scripts for DAMON debugfs interface
-Date: Fri, 11 Apr 2025 10:43:32 +0800
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: riscv: avoid fortify warning in syscall_get_arguments()
+Date: Wed, 09 Apr 2025 14:24:46 -0700
 
-DAMON has dropped debugfs support; therefore, remove these unused scripts.
+When building with CONFIG_FORTIFY_SOURCE=y and W=1, there is a warning
+because of the memcpy() in syscall_get_arguments():
 
-Link: https://lkml.kernel.org/r/20250411024332.1373861-1-enze.li@linux.dev
-Fixes: 5ec4333b1967 ("mm/damon: remove DAMON debugfs interface")
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+  In file included from include/linux/string.h:392,
+                   from include/linux/bitmap.h:13,
+                   from include/linux/cpumask.h:12,
+                   from arch/riscv/include/asm/processor.h:55,
+                   from include/linux/sched.h:13,
+                   from kernel/ptrace.c:13:
+  In function 'fortify_memcpy_chk',
+      inlined from 'syscall_get_arguments.isra' at arch/riscv/include/asm/syscall.h:66:2:
+  include/linux/fortify-string.h:580:25: error: call to '__read_overflow2_field' declared with attribute warning: detected read beyond size of field (2nd parameter); maybe use struct_group()? [-Werror=attribute-warning]
+    580 |                         __read_overflow2_field(q_size_field, size);
+        |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  cc1: all warnings being treated as errors
+
+The fortified memcpy() routine enforces that the source is not overread
+and the destination is not overwritten if the size of either field and the
+size of the copy are known at compile time.  The memcpy() in
+syscall_get_arguments() intentionally overreads from a1 to a5 in 'struct
+pt_regs' but this is bigger than the size of a1.
+
+Normally, this could be solved by wrapping a1 through a5 with
+struct_group() but there was already a struct_group() applied to these
+members in commit bba547810c66 ("riscv: tracing: Fix
+__write_overflow_field in ftrace_partial_regs()").
+
+Just avoid memcpy() altogether and write the copying of args from regs
+manually, which clears up the warning at the expense of three extra lines
+of code.
+
+Link: https://lkml.kernel.org/r/20250409-riscv-avoid-fortify-warning-syscall_get_arguments-v1-1-7853436d4755@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Dmitry V. Levin <ldv@strace.io>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Charlie Jenkins <charlie@rivosinc.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile           |    2 
- tools/testing/selftests/damon/_chk_dependency.sh |   52 ----------
- tools/testing/selftests/damon/_debugfs_common.sh |   64 -------------
- 3 files changed, 1 insertion(+), 117 deletions(-)
+ arch/riscv/include/asm/syscall.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/selftests/damon/_chk_dependency.sh a/tools/testing/selftests/damon/_chk_dependency.sh
-deleted file mode 100644
---- a/tools/testing/selftests/damon/_chk_dependency.sh
-+++ /dev/null
-@@ -1,52 +0,0 @@
--#!/bin/bash
--# SPDX-License-Identifier: GPL-2.0
--
--# Kselftest framework requirement - SKIP code is 4.
--ksft_skip=4
--
--DBGFS=$(grep debugfs /proc/mounts --max-count 1 | awk '{print $2}')
--if [ "$DBGFS" = "" ]
--then
--	echo "debugfs not mounted"
--	exit $ksft_skip
--fi
--
--DBGFS+="/damon"
--
--if [ $EUID -ne 0 ];
--then
--	echo "Run as root"
--	exit $ksft_skip
--fi
--
--if [ ! -d "$DBGFS" ]
--then
--	echo "$DBGFS not found"
--	exit $ksft_skip
--fi
--
--if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
--then
--	monitor_on_file="monitor_on_DEPRECATED"
--else
--	monitor_on_file="monitor_on"
--fi
--
--for f in attrs target_ids "$monitor_on_file"
--do
--	if [ ! -f "$DBGFS/$f" ]
--	then
--		echo "$f not found"
--		exit 1
--	fi
--done
--
--permission_error="Operation not permitted"
--for f in attrs target_ids "$monitor_on_file"
--do
--	status=$( cat "$DBGFS/$f" 2>&1 )
--	if [ "${status#*$permission_error}" != "$status" ]; then
--		echo "Permission for reading $DBGFS/$f denied; maybe secureboot enabled?"
--		exit $ksft_skip
--	fi
--done
-diff --git a/tools/testing/selftests/damon/_debugfs_common.sh a/tools/testing/selftests/damon/_debugfs_common.sh
-deleted file mode 100644
---- a/tools/testing/selftests/damon/_debugfs_common.sh
-+++ /dev/null
-@@ -1,64 +0,0 @@
--#!/bin/bash
--# SPDX-License-Identifier: GPL-2.0
--
--test_write_result() {
--	file=$1
--	content=$2
--	orig_content=$3
--	expect_reason=$4
--	expected=$5
--
--	if [ "$expected" = "0" ]
--	then
--		echo "$content" > "$file"
--	else
--		echo "$content" > "$file" 2> /dev/null
--	fi
--	if [ $? -ne "$expected" ]
--	then
--		echo "writing $content to $file doesn't return $expected"
--		echo "expected because: $expect_reason"
--		echo "$orig_content" > "$file"
--		exit 1
--	fi
--}
--
--test_write_succ() {
--	test_write_result "$1" "$2" "$3" "$4" 0
--}
--
--test_write_fail() {
--	test_write_result "$1" "$2" "$3" "$4" 1
--}
--
--test_content() {
--	file=$1
--	orig_content=$2
--	expected=$3
--	expect_reason=$4
--
--	content=$(cat "$file")
--	if [ "$content" != "$expected" ]
--	then
--		echo "reading $file expected $expected but $content"
--		echo "expected because: $expect_reason"
--		echo "$orig_content" > "$file"
--		exit 1
--	fi
--}
--
--source ./_chk_dependency.sh
--
--damon_onoff="$DBGFS/monitor_on"
--if [ -f "$DBGFS/monitor_on_DEPRECATED" ]
--then
--	damon_onoff="$DBGFS/monitor_on_DEPRECATED"
--else
--	damon_onoff="$DBGFS/monitor_on"
--fi
--
--if [ $(cat "$damon_onoff") = "on" ]
--then
--	echo "monitoring is on"
--	exit $ksft_skip
--fi
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -3,7 +3,7 @@
+--- a/arch/riscv/include/asm/syscall.h~riscv-avoid-fortify-warning-in-syscall_get_arguments
++++ a/arch/riscv/include/asm/syscall.h
+@@ -69,8 +69,11 @@ static inline void syscall_get_arguments
+ 					 unsigned long *args)
+ {
+ 	args[0] = regs->orig_a0;
+-	args++;
+-	memcpy(args, &regs->a1, 5 * sizeof(args[0]));
++	args[1] = regs->a1;
++	args[2] = regs->a2;
++	args[3] = regs->a3;
++	args[4] = regs->a4;
++	args[5] = regs->a5;
+ }
  
- TEST_GEN_FILES += access_memory access_memory_even
- 
--TEST_FILES = _chk_dependency.sh _damon_sysfs.py
-+TEST_FILES = _damon_sysfs.py
- 
- # functionality tests
- TEST_PROGS += sysfs.sh
+ static inline void syscall_set_arguments(struct task_struct *task,
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
+riscv-avoid-fortify-warning-in-syscall_get_arguments.patch
 
