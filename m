@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 298452F5A
-	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 23:06:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 555792F5A
+	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 23:07:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744412819; cv=none; b=fNrhTyvTTf8ZREl+ldLVzlcbEj7byHDKj5WMZGQDYvyjNXTPNS2W0HwHJcU4QVREmzzGbAH2xn07FXvOKnmCh+tEucsa9jxCy04zI+3udKKE3DAWja4L1mc/CtEBNu95ond5Gt+qh8ZQABZEGx/lyX7l8FTvEIYQnh9jy9s/KzU=
+	t=1744412822; cv=none; b=AUcfxxVf21ZPgBOGdqbGAmnXvSEw5ev31cVoP8OPFdwwqdy28x2vwQS7T+eRXDsSA3gr+b7f0ubGGsk/Ca/9kzXHJZ+uwUNegCVZ5Tne6seYrKyOwmTHEQ1jKqOn8I1UwaNC+dpYATU7MKjXMAquVapeWO00eR7zRBzJ2v0K1DE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744412819; c=relaxed/simple;
-	bh=wF9G7NxikQRUfMwVe5gAM1HTbZjeOrhCY/tgyIKvYvc=;
-	h=Date:To:From:Subject:Message-Id; b=BQLK7qVlVlPzZpwsE2ZO9FSm2j/beVg2fZKrht/+k3wiIDhEhio+P29R8a0VhnhNT9z0zgmpEIb4SRQKOShpxg7etdu6+fkvlRaUBfBZKtbxetqVO5Mc8WJeEPioUauy2nMJQWyzBk7ikuoSJ0RlZISnsZYF52OMsuJotk64jzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V8S5diEd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744412822; c=relaxed/simple;
+	bh=aWrrmAbTQVcBE9eFIm9xH/lInRSMrAVaEHkeVd6SrcQ=;
+	h=Date:To:From:Subject:Message-Id; b=I/liIvBz9g2AQJlU0HYprPxpPeR3GJWMrD26+dRk9IpY2Q+ZhSbL/YRe3Kye1soP2OIl7rdGSWRcoo23hFqCjriM9Sg23MCIbKjC4e9HDBsRNcDY3uydP7q30yXECXWPKsSkE0yuMjwJbZM14xzvOPrjILqA+M6tQHALz3hPiI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fKH/3M4I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V8S5diEd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771A3C4CEE2;
-	Fri, 11 Apr 2025 23:06:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fKH/3M4I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F5E7C4CEE2;
+	Fri, 11 Apr 2025 23:07:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744412818;
-	bh=wF9G7NxikQRUfMwVe5gAM1HTbZjeOrhCY/tgyIKvYvc=;
+	s=korg; t=1744412822;
+	bh=aWrrmAbTQVcBE9eFIm9xH/lInRSMrAVaEHkeVd6SrcQ=;
 	h=Date:To:From:Subject:From;
-	b=V8S5diEdSUDrdPVpP3p9aO33obv/ijfPzxLIkgqET1LRVJPkYJOuOlvWnN9HwAz6R
-	 w/wqL/WJIqaBLu+KqmV+dojCth6yhbIPqHkSEovwHRTRHh8MogJzAWGya3sK3Ifco3
-	 2tYyuCIBSwiM9m8+A8mRFfi23y1xhWIO15TQY+0s=
-Date: Fri, 11 Apr 2025 16:06:57 -0700
+	b=fKH/3M4I5osJQ1yxxt8wdbCJOJG1ujkYt9imXV93/bww4dh5tvdf0O6Wd3nnZYcbH
+	 991xWjZoPKAmoy+39bhtWjtYZVrV6tLMnNzIpjI5+0p3QaWH+lzchOJhQRzfLcddKW
+	 IG9D7SwHerqEnL2YfikbneXHovNuIFg3jce63aqU=
+Date: Fri, 11 Apr 2025 16:07:01 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,thomas.lendacky@amd.com,tglx@linutronix.de,skinsburskii@linux.microsoft.com,saravanak@google.com,rppt@kernel.org,rostedt@goodmis.org,robh@kernel.org,ptyadav@amazon.de,peterz@infradead.org,pbonzini@redhat.com,pasha.tatashin@soleen.com,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,krzk@kernel.org,jgowans@amazon.com,jgg@nvidia.com,hpa@zytor.com,ebiederm@xmission.com,dwmw2@infradead.org,corbet@lwn.net,changyuanl@google.com,catalin.marinas@arm.com,bp@alien8.de,benh@kernel.crashing.org,ashish.kalra@amd.com,arnd@arndb.de,anthony.yznaga@oracle.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-add-kho-support-to-kexec-file-loads.patch added to mm-new branch
-Message-Id: <20250411230658.771A3C4CEE2@smtp.kernel.org>
+Subject: + kexec-add-config-option-for-kho.patch added to mm-new branch
+Message-Id: <20250411230702.1F5E7C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: add KHO support to kexec file loads
+     Subject: kexec: add config option for KHO
 has been added to the -mm mm-new branch.  Its filename is
-     kexec-add-kho-support-to-kexec-file-loads.patch
+     kexec-add-config-option-for-kho.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-add-kho-support-to-kexec-file-loads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-add-config-option-for-kho.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Graf <graf@amazon.com>
-Subject: kexec: add KHO support to kexec file loads
-Date: Thu, 10 Apr 2025 22:37:38 -0700
+Subject: kexec: add config option for KHO
+Date: Thu, 10 Apr 2025 22:37:39 -0700
 
-Kexec has 2 modes: A user space driven mode and a kernel driven mode.  For
-the kernel driven mode, kernel code determines the physical addresses of
-all target buffers that the payload gets copied into.
+We have all generic code in place now to support Kexec with KHO.  This
+patch adds a config option that depends on architecture support to enable
+KHO support.
 
-With KHO, we can only safely copy payloads into the "scratch area".  Teach
-the kexec file loader about it, so it only allocates for that area.  In
-addition, enlighten it with support to ask the KHO subsystem for its
-respective payloads to copy into target memory.  Also teach the KHO
-subsystem how to fill the images for file loads.
-
-Link: https://lkml.kernel.org/r/20250411053745.1817356-8-changyuanl@google.com
+Link: https://lkml.kernel.org/r/20250411053745.1817356-9-changyuanl@google.com
 Signed-off-by: Alexander Graf <graf@amazon.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Co-developed-by: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Changyuan Lyu <changyuanl@google.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
@@ -108,160 +101,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h   |    7 +++
- kernel/kexec_file.c     |   13 +++++++
- kernel/kexec_handover.c |   67 ++++++++++++++++++++++++++++++++++++++
- kernel/kexec_internal.h |   16 +++++++++
- 4 files changed, 103 insertions(+)
+ kernel/Kconfig.kexec |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/include/linux/kexec.h~kexec-add-kho-support-to-kexec-file-loads
-+++ a/include/linux/kexec.h
-@@ -371,6 +371,13 @@ struct kimage {
- 	size_t ima_buffer_size;
- #endif
+--- a/kernel/Kconfig.kexec~kexec-add-config-option-for-kho
++++ a/kernel/Kconfig.kexec
+@@ -95,6 +95,20 @@ config KEXEC_JUMP
+ 	  Jump between original kernel and kexeced kernel and invoke
+ 	  code in physical address mode via KEXEC
  
-+#ifdef CONFIG_KEXEC_HANDOVER
-+	struct {
-+		struct kexec_segment *scratch;
-+		phys_addr_t fdt;
-+	} kho;
-+#endif
++config KEXEC_HANDOVER
++	bool "kexec handover"
++	depends on ARCH_SUPPORTS_KEXEC_HANDOVER && ARCH_SUPPORTS_KEXEC_FILE
++	select MEMBLOCK_KHO_SCRATCH
++	select KEXEC_FILE
++	select DEBUG_FS
++	select LIBFDT
++	select CMA
++	help
++	  Allow kexec to hand over state across kernels by generating and
++	  passing additional metadata to the target kernel. This is useful
++	  to keep data or state alive across the kexec. For this to work,
++	  both source and target kernels need to have this option enabled.
 +
- 	/* Core ELF header buffer */
- 	void *elf_headers;
- 	unsigned long elf_headers_sz;
---- a/kernel/kexec_file.c~kexec-add-kho-support-to-kexec-file-loads
-+++ a/kernel/kexec_file.c
-@@ -253,6 +253,11 @@ kimage_file_prepare_segments(struct kima
- 	/* IMA needs to pass the measurement list to the next kernel. */
- 	ima_add_kexec_buffer(image);
- 
-+	/* If KHO is active, add its images to the list */
-+	ret = kho_fill_kimage(image);
-+	if (ret)
-+		goto out;
-+
- 	/* Call image load handler */
- 	ldata = kexec_image_load_default(image);
- 
-@@ -648,6 +653,14 @@ int kexec_locate_mem_hole(struct kexec_b
- 	if (kbuf->mem != KEXEC_BUF_MEM_UNKNOWN)
- 		return 0;
- 
-+	/*
-+	 * If KHO is active, only use KHO scratch memory. All other memory
-+	 * could potentially be handed over.
-+	 */
-+	ret = kho_locate_mem_hole(kbuf, locate_mem_hole_callback);
-+	if (ret <= 0)
-+		return ret;
-+
- 	if (!IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
- 		ret = kexec_walk_resources(kbuf, locate_mem_hole_callback);
- 	else
---- a/kernel/kexec_handover.c~kexec-add-kho-support-to-kexec-file-loads
-+++ a/kernel/kexec_handover.c
-@@ -23,6 +23,7 @@
-  * internal APIs.
-  */
- #include "../mm/internal.h"
-+#include "kexec_internal.h"
- 
- #define KHO_FDT_COMPATIBLE "kho-v1"
- #define PROP_PRESERVED_MEMORY_MAP "preserved-memory-map"
-@@ -1184,3 +1185,69 @@ out:
- 	if (err)
- 		pr_warn("disabling KHO revival: %d\n", err);
- }
-+
-+/* Helper functions for kexec_file_load */
-+
-+int kho_fill_kimage(struct kimage *image)
-+{
-+	ssize_t scratch_size;
-+	int err = 0;
-+	struct kexec_buf scratch;
-+
-+	if (!kho_enable)
-+		return 0;
-+
-+	image->kho.fdt = page_to_phys(kho_out.ser.fdt);
-+
-+	scratch_size = sizeof(*kho_scratch) * kho_scratch_cnt;
-+	scratch = (struct kexec_buf){
-+		.image = image,
-+		.buffer = kho_scratch,
-+		.bufsz = scratch_size,
-+		.mem = KEXEC_BUF_MEM_UNKNOWN,
-+		.memsz = scratch_size,
-+		.buf_align = SZ_64K, /* Makes it easier to map */
-+		.buf_max = ULONG_MAX,
-+		.top_down = true,
-+	};
-+	err = kexec_add_buffer(&scratch);
-+	if (err)
-+		return err;
-+	image->kho.scratch = &image->segment[image->nr_segments - 1];
-+
-+	return 0;
-+}
-+
-+static int kho_walk_scratch(struct kexec_buf *kbuf,
-+			    int (*func)(struct resource *, void *))
-+{
-+	int ret = 0;
-+	int i;
-+
-+	for (i = 0; i < kho_scratch_cnt; i++) {
-+		struct resource res = {
-+			.start = kho_scratch[i].addr,
-+			.end = kho_scratch[i].addr + kho_scratch[i].size - 1,
-+		};
-+
-+		/* Try to fit the kimage into our KHO scratch region */
-+		ret = func(&res, kbuf);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
-+int kho_locate_mem_hole(struct kexec_buf *kbuf,
-+			int (*func)(struct resource *, void *))
-+{
-+	int ret;
-+
-+	if (!kho_enable || kbuf->image->type == KEXEC_TYPE_CRASH)
-+		return 1;
-+
-+	ret = kho_walk_scratch(kbuf, func);
-+
-+	return ret == 1 ? 0 : -EADDRNOTAVAIL;
-+}
---- a/kernel/kexec_internal.h~kexec-add-kho-support-to-kexec-file-loads
-+++ a/kernel/kexec_internal.h
-@@ -39,4 +39,20 @@ extern size_t kexec_purgatory_size;
- #else /* CONFIG_KEXEC_FILE */
- static inline void kimage_file_post_load_cleanup(struct kimage *image) { }
- #endif /* CONFIG_KEXEC_FILE */
-+
-+struct kexec_buf;
-+
-+#ifdef CONFIG_KEXEC_HANDOVER
-+int kho_locate_mem_hole(struct kexec_buf *kbuf,
-+			int (*func)(struct resource *, void *));
-+int kho_fill_kimage(struct kimage *image);
-+#else
-+static inline int kho_locate_mem_hole(struct kexec_buf *kbuf,
-+				      int (*func)(struct resource *, void *))
-+{
-+	return 1;
-+}
-+
-+static inline int kho_fill_kimage(struct kimage *image) { return 0; }
-+#endif /* CONFIG_KEXEC_HANDOVER */
- #endif /* LINUX_KEXEC_INTERNAL_H */
+ config CRASH_DUMP
+ 	bool "kernel crash dumps"
+ 	default ARCH_DEFAULT_CRASH_DUMP
 _
 
 Patches currently in -mm which might be from graf@amazon.com are
