@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0A3BB674
-	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E252B674
+	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:45:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744343148; cv=none; b=T2QR8bXBUEO0TkmfwGut5Hi779Xf7F27tcgy3F/XT31BBrH7kvP2oL8B82UcLuVTNXt+bNe9NbQxoHrd8gj4rHT3+gjehM+ybIOxKYUxWDbMgdSoR50FNtu5gqKDbcWTK3bDzd0Z9KGtThnIdQtMkMyH6nuirOE4ga7WWJ5oDsY=
+	t=1744343150; cv=none; b=E+DOf7nN8/x+ZxVLHxncotjPoWN9rq/AzpJtV4wTwtONDebu/3D+4ONx0vMWo5dKmIT+W2vTMEcKqfWqP/yU1LpLemPjW98edicVXlXG5eqQndNNWrPEtAXP9fieHEkxqCAVlhehNBIlo9B5/YJig8Y4oOggLtsPOXg7CT5lubE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744343148; c=relaxed/simple;
-	bh=vd6mnWSSaKQ3uvS7EY8NHpqEzCQ5xejRfhkha6eqrd8=;
-	h=Date:To:From:Subject:Message-Id; b=V94hfrayJ+xLpOdXBTZ3nrJgN2w2AhNtERAE8RRUtr4oxYMHUyEoqof4p2lKxKEaoYoj7pm7R2EZgrCWMQeMn/i7QOH1o93D10n0EWBlyK7IijRLJXqoDB96zarMwgqxSa+96TF2bVBrt7quYPtRfBKXXst0dOnWr9wDXpIZv5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ncec/d5d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744343150; c=relaxed/simple;
+	bh=wEIk4J6e+NDLfMpLd4vL/V0KoGUwyVI0KKC60NWpCUo=;
+	h=Date:To:From:Subject:Message-Id; b=kB1n4/4TDVuCBREOCGxQb8zSYNDxb5bu61dHJmYtl6QkvnaCunSLa+TubWdDiAxYXYTViTLJdqZc7Jrvf3R6U3L4KauFTxEEQnW2LgjGWlveCVHjZjKdMAsugYyMVhcQ/iCrhj7djGa2LQ6a0YqbE1mHvtLiqg43M9ylfc03pbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UV9PC2pF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ncec/d5d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E212C4CEE2;
-	Fri, 11 Apr 2025 03:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UV9PC2pF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D5BC4CEE2;
+	Fri, 11 Apr 2025 03:45:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744343148;
-	bh=vd6mnWSSaKQ3uvS7EY8NHpqEzCQ5xejRfhkha6eqrd8=;
+	s=korg; t=1744343150;
+	bh=wEIk4J6e+NDLfMpLd4vL/V0KoGUwyVI0KKC60NWpCUo=;
 	h=Date:To:From:Subject:From;
-	b=Ncec/d5daaV6CyKTxI74+O+QplJZnr+qXxuporD/9A+y7yOJoJz8kMt32MuIGZFdR
-	 xDFIjPGsB8dTh6s84fHqFGGrVndkM4C4D6tgNZ2HQew3Rs1Q+llsQpBsmK5QVHjCro
-	 g7zL9lORbSDNr0aPGfPMe1rlXGL+SSN2UcZpDq3I=
-Date: Thu, 10 Apr 2025 20:45:47 -0700
+	b=UV9PC2pFEt/wH/0+FJ7ygw3hrAFuln8uo7qNqCrgZd1dsawDyHd4knxLLKAfqpNHn
+	 kYscW5/YS0YO8j3LZPwEoN8IZ+GqFuEzYDGAVE63GCELzSm8pQMTDCQpQDzc2Py0Wc
+	 eLsCQa/zTL+KMWQ7HwlMlHcyUXT7riI2yrZHeHG8=
+Date: Thu, 10 Apr 2025 20:45:49 -0700
 To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,osalvador@suse.de,david@redhat.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch added to mm-new branch
-Message-Id: <20250411034548.0E212C4CEE2@smtp.kernel.org>
+Subject: + mm-gup-clean-up-codes-in-fault_in_xxx-functions.patch added to mm-new branch
+Message-Id: <20250411034550.18D5BC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: remove gup_fast_pgd_leaf() and clean up the relevant codes
+     Subject: mm/gup: clean up codes in fault_in_xxx() functions
 has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
+     mm-gup-clean-up-codes-in-fault_in_xxx-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-clean-up-codes-in-fault_in_xxx-functions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,93 +59,145 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/gup: remove gup_fast_pgd_leaf() and clean up the relevant codes
-Date: Thu, 10 Apr 2025 11:57:16 +0800
+Subject: mm/gup: clean up codes in fault_in_xxx() functions
+Date: Thu, 10 Apr 2025 11:57:17 +0800
 
-In the current kernel, only pud huge page is supported in some
-architectures.  P4d and pgd huge pages haven't been supported yet.  And in
-mm/gup.c, there's no pgd huge page handling in the follow_page_mask() code
-path.  Hence it doesn't make sense to only have gup_fast_pgd_leaf() in
-gup_fast code path.
+The code style in fault_in_readable() and fault_in_writable() is a little
+inconsistent with fault_in_safe_writeable().  In fault_in_readable() and
+fault_in_writable(), it uses 'uaddr' passed in as loop cursor.  While in
+fault_in_safe_writeable(), local variable 'start' is used as loop cursor. 
+This may mislead people when reading code or making change in these codes.
 
-Here remove gup_fast_pgd_leaf() and clean up the relevant codes.
+Here define explicit loop cursor and use for loop to simplify codes in
+these three functions.  These cleanup can make them be consistent in code
+style and improve readability.
 
-Link: https://lkml.kernel.org/r/20250410035717.473207-4-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250410035717.473207-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Yanjun.Zhu <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   49 +++----------------------------------------------
- 1 file changed, 3 insertions(+), 46 deletions(-)
+ mm/gup.c |   65 +++++++++++++++++++++--------------------------------
+ 1 file changed, 26 insertions(+), 39 deletions(-)
 
---- a/mm/gup.c~mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes
+--- a/mm/gup.c~mm-gup-clean-up-codes-in-fault_in_xxx-functions
 +++ a/mm/gup.c
-@@ -3172,46 +3172,6 @@ static int gup_fast_pud_leaf(pud_t orig,
- 	return 1;
- }
+@@ -2113,28 +2113,24 @@ static long __get_user_pages_locked(stru
+  */
+ size_t fault_in_writeable(char __user *uaddr, size_t size)
+ {
+-	char __user *start = uaddr, *end;
++	const unsigned long start = (unsigned long)uaddr;
++	const unsigned long end = start + size;
++	unsigned long cur = start;
  
--static int gup_fast_pgd_leaf(pgd_t orig, pgd_t *pgdp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages,
--		int *nr)
--{
--	int refs;
--	struct page *page;
--	struct folio *folio;
--
--	if (!pgd_access_permitted(orig, flags & FOLL_WRITE))
--		return 0;
--
--	BUILD_BUG_ON(pgd_devmap(orig));
--
--	page = pgd_page(orig);
--	refs = record_subpages(page, PGDIR_SIZE, addr, end, pages + *nr);
--
--	folio = try_grab_folio_fast(page, refs, flags);
--	if (!folio)
--		return 0;
--
--	if (unlikely(pgd_val(orig) != pgd_val(*pgdp))) {
--		gup_put_folio(folio, refs, flags);
--		return 0;
+ 	if (unlikely(size == 0))
+ 		return 0;
++
+ 	if (!user_write_access_begin(uaddr, size))
+ 		return size;
+-	if (!PAGE_ALIGNED(uaddr)) {
+-		unsafe_put_user(0, uaddr, out);
+-		uaddr = (char __user *)PAGE_ALIGN((unsigned long)uaddr);
 -	}
--
--	if (!pgd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
--		gup_put_folio(folio, refs, flags);
--		return 0;
+-	end = (char __user *)PAGE_ALIGN((unsigned long)start + size);
+-	if (unlikely(end < start))
+-		end = NULL;
+-	while (uaddr != end) {
+-		unsafe_put_user(0, uaddr, out);
+-		uaddr += PAGE_SIZE;
 -	}
--
--	if (!gup_fast_folio_allowed(folio, flags)) {
--		gup_put_folio(folio, refs, flags);
--		return 0;
--	}
--
--	*nr += refs;
--	folio_set_referenced(folio);
--	return 1;
--}
--
- static int gup_fast_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr,
- 		unsigned long end, unsigned int flags, struct page **pages,
- 		int *nr)
-@@ -3306,12 +3266,9 @@ static void gup_fast_pgd_range(unsigned
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
- 			return;
--		if (unlikely(pgd_leaf(pgd))) {
--			if (!gup_fast_pgd_leaf(pgd, pgdp, addr, next, flags,
--					       pages, nr))
--				return;
--		} else if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
--					       pages, nr))
-+		BUILD_BUG_ON(pgd_leaf(pgd));
-+		if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
-+					pages, nr))
- 			return;
- 	} while (pgdp++, addr = next, addr != end);
++
++	/* Stop once we overflow to 0. */
++	for (; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
++		unsafe_put_user(0, (char __user *)cur, out);
+ 
+ out:
+ 	user_write_access_end();
+-	if (size > uaddr - start)
+-		return size - (uaddr - start);
++	if (size > cur - start)
++		return size - (cur - start);
+ 	return 0;
  }
+ EXPORT_SYMBOL(fault_in_writeable);
+@@ -2188,26 +2184,24 @@ EXPORT_SYMBOL(fault_in_subpage_writeable
+  */
+ size_t fault_in_safe_writeable(const char __user *uaddr, size_t size)
+ {
+-	unsigned long start = (unsigned long)uaddr, end;
++	const unsigned long start = (unsigned long)uaddr;
++	const unsigned long end = start + size;
++	unsigned long cur = start;
+ 	struct mm_struct *mm = current->mm;
+ 	bool unlocked = false;
+ 
+ 	if (unlikely(size == 0))
+ 		return 0;
+-	end = PAGE_ALIGN(start + size);
+-	if (end < start)
+-		end = 0;
+ 
+ 	mmap_read_lock(mm);
+-	do {
+-		if (fixup_user_fault(mm, start, FAULT_FLAG_WRITE, &unlocked))
++	/* Stop once we overflow to 0. */
++	for (; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
++		if (fixup_user_fault(mm, cur, FAULT_FLAG_WRITE, &unlocked))
+ 			break;
+-		start = (start + PAGE_SIZE) & PAGE_MASK;
+-	} while (start != end);
+ 	mmap_read_unlock(mm);
+ 
+-	if (size > start - (unsigned long)uaddr)
+-		return size - (start - (unsigned long)uaddr);
++	if (size > cur - start)
++		return size - (cur - start);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(fault_in_safe_writeable);
+@@ -2222,30 +2216,23 @@ EXPORT_SYMBOL(fault_in_safe_writeable);
+  */
+ size_t fault_in_readable(const char __user *uaddr, size_t size)
+ {
+-	const char __user *start = uaddr, *end;
++	const unsigned long start = (unsigned long)uaddr;
++	const unsigned long end = start + size;
++	unsigned long cur = start;
+ 	volatile char c;
+ 
+ 	if (unlikely(size == 0))
+ 		return 0;
+ 	if (!user_read_access_begin(uaddr, size))
+ 		return size;
+-	if (!PAGE_ALIGNED(uaddr)) {
+-		unsafe_get_user(c, uaddr, out);
+-		uaddr = (const char __user *)PAGE_ALIGN((unsigned long)uaddr);
+-	}
+-	end = (const char __user *)PAGE_ALIGN((unsigned long)start + size);
+-	if (unlikely(end < start))
+-		end = NULL;
+-	while (uaddr != end) {
+-		unsafe_get_user(c, uaddr, out);
+-		uaddr += PAGE_SIZE;
+-	}
+-
++	/* Stop once we overflow to 0. */
++	for (; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
++		unsafe_get_user(c, (const char __user *)cur, out);
+ out:
+ 	user_read_access_end();
+ 	(void)c;
+-	if (size > uaddr - start)
+-		return size - (uaddr - start);
++	if (size > cur - start)
++		return size - (cur - start);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(fault_in_readable);
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
