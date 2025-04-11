@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0837C1D516F
-	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:00:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB71126FA65
+	for <mm-commits@vger.kernel.org>; Fri, 11 Apr 2025 03:03:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744340420; cv=none; b=BX9ZOnvlzqLXzJ3nmopRRcQBEHF/VW1oRzr/00fOxJaAboYUfZjt31Th2nwRS7FsZXiTFQiC8WxUBFsY9IYhILU5OeWyGibu9MT74SpIJvJKwBtTviLKnxE4BBY3XHiQtni8JlvLPKHGh1HtuldB+pA4oVA+ay5cL//Y/sZAbA0=
+	t=1744340628; cv=none; b=k4YzjY36yUUM61bPDv/zKXzuPecX/GjFvpltK5oOI82mTTOJiN/6eQ5OmYzF+HEEA2Tfyw4S4qWqbfwS4V5GUOJQ23JP8nrQWk4KKSyoqOXKU6yyPVBb+Xpe4zORdWPaMr88Ixspt6RuWe3FhjkK5b12W15bgEnJmhG3UCNeH7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744340420; c=relaxed/simple;
-	bh=MawYz+WVD1Z0q9GOKsbpEivYbe/QBlLPznmcEGD1v+c=;
-	h=Date:To:From:Subject:Message-Id; b=UByR1U7SiWkU9V58xd54PMri2vQlTKa23MDYBbC/64C/cdtvykCTO6EfbdXLswyNkyLNcAFRAyqin8ElvlSEL5olsrK/4+1tG1+VL0j9OLH3Dn7k8t6PtRJnU88LGesvnTcGWs2fMmB464p5R7Lb1t83J8RZB7GcjnvFHY3mAo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PWH0KOvd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744340628; c=relaxed/simple;
+	bh=idkkEleT4hWmkSpQFmiw4IyN5x39Z1p6z0su7erXh/U=;
+	h=Date:To:From:Subject:Message-Id; b=FWIWH7GCWfTeZbYROuuO3E9Ps0FAdnnLtFj0siWqVyf6xNPso7Z2hAOl4KoZot5ZBsw1N6j3pf0lLJykfdGU86VnJm8Fuc7OixJQWpArgKK9ZgALJAbMbwdxUmiNED5Mbx+J4PcyYBBupU/ZPiF+pF757fgHN3kTlrewXRm8Dus=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DiJJaur9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PWH0KOvd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C73DC4CEDD;
-	Fri, 11 Apr 2025 03:00:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DiJJaur9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38811C4CEDD;
+	Fri, 11 Apr 2025 03:03:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744340419;
-	bh=MawYz+WVD1Z0q9GOKsbpEivYbe/QBlLPznmcEGD1v+c=;
+	s=korg; t=1744340627;
+	bh=idkkEleT4hWmkSpQFmiw4IyN5x39Z1p6z0su7erXh/U=;
 	h=Date:To:From:Subject:From;
-	b=PWH0KOvdYpq+A0KDguKJnQYiXPLEtjmI3Xg48WBC7t/89ULRKGWCOD290LSuum2ft
-	 LnZ1luNrYoePs2xgE3PcQrHm5smo5zmta2UV33lh7oaQgRw9NbiCoX0it+HBwdZ49g
-	 kuWCFVNWCPvzvlguj6ATM3nf2Zl6AwIzVesFtCpI=
-Date: Thu, 10 Apr 2025 20:00:18 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,osalvador@suse.de,hannes@cmpxchg.org,david@redhat.com,21cnbao@gmail.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=DiJJaur9CH58rjfpRpIC3f5Df55IztSHBUXDQvZ4Prx2NJ5oXaho/BNYR1hC7x9/P
+	 dO8ApvSCNuxosCZzI6uV7kMNkDWpWbFN2hMsatDtAJoVyjuxJNOkcdZN0tDAUZR73x
+	 OCWgC/50Qi/60mT+/I4St+ZD1dXtqJpCSZJjZJaU=
+Date: Thu, 10 Apr 2025 20:03:46 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.patch added to mm-new branch
-Message-Id: <20250411030019.5C73DC4CEDD@smtp.kernel.org>
+Subject: + mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250411030347.38811C4CEDD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.txt
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.patch
+     Subject: mm: memcontrol: fix swap counter leak from offline cgroup
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.txt
-Date: Fri, 11 Apr 2025 09:07:16 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: fix swap counter leak from offline cgroup
+Date: Thu, 10 Apr 2025 16:18:12 +0800
 
-add comment
+commit 73f839b6d2ed addressed an issue regarding the swap counter leak
+that occurred from an offline cgroup.  However, commit 89ce924f0bd4
+modified the parameter from @swap_memcg to @memcg (presumably this
+alteration was introduced while resolving conflicts).  Fix this problem by
+reverting this minor change.
 
-Link: https://lkml.kernel.org/r/23fdc11d-e983-4627-89a8-79e9ecf9a45a@linux.alibaba.com
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250410081812.10073-1-songmuchun@bytedance.com
+Fixes: 89ce924f0bd4 ("mm: memcontrol: move memsw charge callbacks to v1")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memcontrol-v1.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix
-+++ a/mm/huge_memory.c
-@@ -2260,6 +2260,10 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 			add_mm_counter(tlb->mm, mm_counter_file(folio),
- 				       -HPAGE_PMD_NR);
+--- a/mm/memcontrol-v1.c~mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup
++++ a/mm/memcontrol-v1.c
+@@ -620,7 +620,7 @@ void memcg1_swapout(struct folio *folio,
+ 		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
+ 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
  
-+			/*
-+			 * Use flush_needed to indicate whether the PMD entry
-+			 * is present, instead of checking pmd_present() again.
-+			 */
- 			if (flush_needed && pmd_young(orig_pmd) &&
- 			    likely(vma_has_recency(vma)))
- 				folio_mark_accessed(folio);
+-	swap_cgroup_record(folio, mem_cgroup_id(memcg), entry);
++	swap_cgroup_record(folio, mem_cgroup_id(swap_memcg), entry);
+ 
+ 	folio_unqueue_deferred_split(folio);
+ 	folio->memcg_data = 0;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-selftests-mincore-fix-tmpfs-mincore-test-failure.patch
-mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp.patch
-mm-huge_memory-add-folio_mark_accessed-when-zapping-file-thp-fix.patch
+mm-memcontrol-fix-swap-counter-leak-from-offline-cgroup.patch
 
