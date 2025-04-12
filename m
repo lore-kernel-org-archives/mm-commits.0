@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAEE1DDAB;
-	Sat, 12 Apr 2025 00:33:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18DAADDAB
+	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:33:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744418033; cv=none; b=WEuLrM5/w+hN6fOl5py/KeYGPz9cWqhmsX05Tkcbe3S+BGWDzcyBaV4xZQjaJrFg1u5YY0MMQ4du2Rcvwj+WV2NmFAOnKeW3ydiUWQSJZYsqSY6Olgq+zdfV6qqLYzhrrkd+3C4dTud2Jj45nZn9Xkoo8ozCAdV1dKR8djXL+vc=
+	t=1744418034; cv=none; b=teT9jD5AdKFykqYDTxOVva905SxnYvO9afcFTJ8cdznIozgGV3R/M2OjSemINjO/yVjL0uYutU/fNMPJR+3YTBOgEaKJTHx8lfYh/EPYl/hYF39/pIejVEmlsstaLuurRFUiXR05m7oVox4WCECLEgOIn+pTKJJIzNfXDSAu69U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744418033; c=relaxed/simple;
-	bh=4YBUtJxxe7H7a7/0Of+mMvC4zQtMmNlVeJDJOwiSlpY=;
-	h=Date:To:From:Subject:Message-Id; b=diXG6XS/yidKSjh5J3FyaSAFRhjhh3eTrV/q3m9Xcd1fTTt062m7Vl1NH8LLWf6IJ6q7IgRWUhOC+9rn5gw5wkXSBm6hLpy11EZ11geLJ5QBJiLmPTnelpfL6BmdsHb/wEBnnaIWkKeoPWMU2K04jAbf432X/VU1HHUav1qTBCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NDqMLJUg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744418034; c=relaxed/simple;
+	bh=wb3j0fw6tNMeFY/QTDg991KgiAyqr2op54RgGun1fLw=;
+	h=Date:To:From:Subject:Message-Id; b=TG+yfgxw/+HSHrqp+JRH08y4b25Qjo4OAYaitBS3iKXJws5hzMBBZL6aHlqcu2F28Gx8Jf/wX0ky1esvNjOov92aChlRRWhjTKdj/KUwt3WSXy7tsSljtdtGZ7CN1k+lnxqje4Lqql0Dp162metcg7tQ1J/e8ftAE5b6elb4Els=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K0uYoQdb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NDqMLJUg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3289C4CEE2;
-	Sat, 12 Apr 2025 00:33:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K0uYoQdb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6E5EC4CEE2;
+	Sat, 12 Apr 2025 00:33:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744418032;
-	bh=4YBUtJxxe7H7a7/0Of+mMvC4zQtMmNlVeJDJOwiSlpY=;
+	s=korg; t=1744418033;
+	bh=wb3j0fw6tNMeFY/QTDg991KgiAyqr2op54RgGun1fLw=;
 	h=Date:To:From:Subject:From;
-	b=NDqMLJUgbCz9WffT0lKYLTE7DffEemTIu8/LCZ+2cSEuOze9fFUppBuSNGjMEMRoG
-	 941QSAtBTjwV3TQnYx3DYZn4k2DZK5QzCnAa/U7N6n9R67bYA0CEqMNHzW0nXT7L0E
-	 0+HZkBtXDi4Xlg7nb/iYlQR7FDH/Yi4ORr/7s1iM=
-Date: Fri, 11 Apr 2025 17:33:52 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,dja@axtens.net,david@redhat.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=K0uYoQdb326RQ5Q0kScjr/7iH9iYvP+bqSjZ/3Xl+CvX1CkW8Ea0JMbGPaPGJ6ryZ
+	 XGa1pl7lowe/7IdSLBRcOEpMDLYNCYkIslfe56jyOlKJTjjPf44KyTr78ryPM4m+/t
+	 8Cd/v7WcOt2hSyfDCoD1Y4T0Jj2vqeK0P+5OWQRo=
+Date: Fri, 11 Apr 2025 17:33:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,peterx@redhat.com,muchun.song@linux.dev,mhocko@suse.com,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-apply_to_existing_page_range.patch removed from -mm tree
-Message-Id: <20250412003352.B3289C4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-hugetlb-reviewers.patch removed from -mm tree
+Message-Id: <20250412003353.D6E5EC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix apply_to_existing_page_range()
+     Subject: MAINTAINERS: update HUGETLB reviewers
 has been removed from the -mm tree.  Its filename was
-     mm-fix-apply_to_existing_page_range.patch
+     maintainers-update-hugetlb-reviewers.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix apply_to_existing_page_range()
-Date: Wed, 9 Apr 2025 12:40:43 +0300
+From: Oscar Salvador <osalvador@suse.de>
+Subject: MAINTAINERS: update HUGETLB reviewers
+Date: Wed, 9 Apr 2025 10:24:52 +0200
 
-In the case of apply_to_existing_page_range(), apply_to_pte_range() is
-reached with 'create' set to false.  When !create, the loop over the PTE
-page table is broken.
+I have done quite some review on hugetlb code over the years, and some
+work on it as well, the latest being the hugetlb pagewalk unification
+which is a work in progress, and touches hugetlb code to great lengths.
 
-apply_to_pte_range() will only move to the next PTE entry if 'create' is
-true or if the current entry is not pte_none().
+HugeTLB does not have many reviewers, so I would like to help out by
+offering myself as an official Reviewer.
 
-This means that the user of apply_to_existing_page_range() will not have
-'fn' called for any entries after the first pte_none() in the PTE page
-table.
-
-Fix the loop logic in apply_to_pte_range().
-
-There are no known runtime issues from this, but the fix is trivial enough
-for stable@ even without a known buggy user. 
-
-Link: https://lkml.kernel.org/r/20250409094043.1629234-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Fixes: be1db4753ee6 ("mm/memory.c: add apply_to_existing_page_range() helper")
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Signed-of-by: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20250409082452.269180-1-osalvador@suse.de
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory.c~mm-fix-apply_to_existing_page_range
-+++ a/mm/memory.c
-@@ -2938,11 +2938,11 @@ static int apply_to_pte_range(struct mm_
- 	if (fn) {
- 		do {
- 			if (create || !pte_none(ptep_get(pte))) {
--				err = fn(pte++, addr, data);
-+				err = fn(pte, addr, data);
- 				if (err)
- 					break;
- 			}
--		} while (addr += PAGE_SIZE, addr != end);
-+		} while (pte++, addr += PAGE_SIZE, addr != end);
- 	}
- 	*mask |= PGTBL_PTE_MODIFIED;
+--- a/MAINTAINERS~maintainers-update-hugetlb-reviewers
++++ a/MAINTAINERS
+@@ -10954,6 +10954,7 @@ F:	include/linux/platform_data/huawei-ga
  
+ HUGETLB SUBSYSTEM
+ M:	Muchun Song <muchun.song@linux.dev>
++R:	Oscar Salvador <osalvador@suse.de>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-hugepages
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page.patch
+mmhugetlb-allocate-frozen-pages-in-alloc_buddy_hugetlb_folio.patch
 
