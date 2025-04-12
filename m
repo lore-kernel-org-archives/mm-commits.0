@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D459D134D4;
-	Sat, 12 Apr 2025 00:33:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D950134D4;
+	Sat, 12 Apr 2025 00:33:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744418003; cv=none; b=rfraOi5XM+hl73ABrYEg4shGRzz3bFYnC+Sz6oNHzTKkLfJdR3A78eclxuevFhvYmUBfwwg8BFuz+Pqm0Fa+FslCFPgYgfL+LdBP8PdubSZvA+dL98mTFRODF8QeAuf4YK47bl5CeRUg2etKxZc1PFrN5sbpgYtlvJ3oTOEr0qY=
+	t=1744418005; cv=none; b=J9wE86g/laWaHSbXZ/m/FvU+lQB/KsZXD7qMB2keqbq3u7oBh3ov+JoDAjup/qWdGuZBz6ah0U+h/W8fP4O02O3zcq97mPPKG365p5O28UUZSq76zDygDQDk6IcnFoD8M0mx4WBJRI4jLZxtJxLdp7dE6NQ0BkLM1ErjtUJGYoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744418003; c=relaxed/simple;
-	bh=Hkv+HIlOorc54XLRJEchje1Z/P8tCiOxPuv7lV/G/Gs=;
-	h=Date:To:From:Subject:Message-Id; b=Pc/mpqvgm2p9KxAYJXqmT9r+GrALDdz9KCsuNIlEoKlXywq4GY/iCGJ8Nrv/iiA5ziULNaariQCVlzLCE6K8MX43rHd/1LLDL2FxUhwJHT80K67s3T77ZEvXoAKxtKVqEYsSDRzqqCJ7CGOpokYTEW8zpxfT6E8keOjopAmVmjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VOmqxk4A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744418005; c=relaxed/simple;
+	bh=roizcqXHBDWN6JPsDLvszCa19qcD5YMRMD3Ey4TnXwE=;
+	h=Date:To:From:Subject:Message-Id; b=etcB1ac9CA8NixT9+lnjcYODzPpnKpFLFOQCq51ELqb7F7Tb29/RbpL+O4xElzGKBb3qKto7AA2e5Ql71ZbgnWQKZ02ftNkw+TVDX+QtUqTsNxSij3f34ieDrFC8jORAYfHiu1si+6cJU7Rb4OaTw1WWvpQsnfPxmMcSvyRuk9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWaJ0T0m; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VOmqxk4A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FB6AC4CEE2;
-	Sat, 12 Apr 2025 00:33:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWaJ0T0m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00300C4CEE2;
+	Sat, 12 Apr 2025 00:33:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744418003;
-	bh=Hkv+HIlOorc54XLRJEchje1Z/P8tCiOxPuv7lV/G/Gs=;
+	s=korg; t=1744418005;
+	bh=roizcqXHBDWN6JPsDLvszCa19qcD5YMRMD3Ey4TnXwE=;
 	h=Date:To:From:Subject:From;
-	b=VOmqxk4ASySlXJk9EK7gsCETPRLqAZSYADVVE3SLZ27Wcz2LjQNHrsp78Mji3/aWA
-	 3zNHI0s2KVGO5n1/Wf7Mdjyi382Ib/lfIg1yULldewsIEqFVuMALZlBUbTmKiKbNDG
-	 UpciGOcRgT39p51VqeXIkPgRKgyt01F1Lxc6JrlA=
-Date: Fri, 11 Apr 2025 17:33:22 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,longman@redhat.com,almasrymina@google.com,aishwarya.tcv@arm.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=pWaJ0T0mV1Jlo3hBV85FuQ8K8qo9s7ytVpbJQI+tXtM5D/bz2UcGucvyLfqi5MuEN
+	 Gfdzir4cdwXSgMwl0FU6XkpW+Tc3Uv1k8yMk9h7cfLTgQ/XlV9jBy0fo28Mg3To441
+	 zj8YrP7enEP1heRZfDySGGkigONH2R2tLF0gRJ0I=
+Date: Fri, 11 Apr 2025 17:33:24 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pfalcato@suse.de,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch removed from -mm tree
-Message-Id: <20250412003323.9FB6AC4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch removed from -mm tree
+Message-Id: <20250412003325.00300C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,248 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: generate a temporary mountpoint for cgroup filesystem
+     Subject: mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch
+     mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: generate a temporary mountpoint for cgroup filesystem
-Date: Fri, 04 Apr 2025 17:42:32 +0100
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: add give_up_on_oom option on modify/merge, use in uffd release
+Date: Fri, 21 Mar 2025 10:09:37 +0000
 
-Currently if the filesystem for the cgroups version it wants to use is not
-mounted charge_reserved_hugetlb.sh and hugetlb_reparenting_test.sh tests
-will attempt to mount it on the hard coded path /dev/cgroup/memory,
-deleting that directory when the test finishes.  This will fail if there
-is not a preexisting directory at that path, and since the directory is
-deleted subsequent runs of the test will fail.  Instead of relying on this
-hard coded directory name use mktemp to generate a temporary directory to
-use as a mountpoint, fixing both the assumption and the disruption caused
-by deleting a preexisting directory.
+Currently, if a VMA merge fails due to an OOM condition arising on commit
+merge or a failure to duplicate anon_vma's, we report this so the caller
+can handle it.
 
-This means that if the relevant cgroup filesystem is not already mounted
-then we rely on having coreutils (which provides mktemp) installed.  I
-suspect that many current users are relying on having things automounted
-by default, and given that the script relies on bash it's probably not an
-unreasonable requirement.
+However there are cases where the caller is only ostensibly trying a
+merge, and doesn't mind if it fails due to this condition.
 
-Link: https://lkml.kernel.org/r/20250404-kselftest-mm-cgroup2-detection-v1-1-3dba6d32ba8c@kernel.org
-Fixes: 209376ed2a84 ("selftests/vm: make charge_reserved_hugetlb.sh work with existing cgroup setting")
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
+Since we do not want to introduce an implicit assumption that we only
+actually modify VMAs after OOM conditions might arise, add a 'give up on
+oom' option and make an explicit contract that, should this flag be set, we
+absolutely will not modify any VMAs should OOM arise and just bail out.
+
+Since it'd be very unusual for a user to try to vma_modify() with this flag
+set but be specifying a range within a VMA which ends up being split (which
+can fail due to rlimit issues, not only OOM), we add a debug warning for
+this condition.
+
+The motivating reason for this is uffd release - syzkaller (and Pedro
+Falcato's VERY astute analysis) found a way in which an injected fault on
+allocation, triggering an OOM condition on commit merge, would result in
+uffd code becoming confused and treating an error value as if it were a VMA
+pointer.
+
+To avoid this, we make use of this new VMG flag to ensure that this never
+occurs, utilising the fact that, should we be clearing entire VMAs, we do
+not wish an OOM event to be reported to us.
+
+Many thanks to Pedro Falcato for his excellent analysis and Jann Horn for
+his insightful and intelligent analysis of the situation, both of whom were
+instrumental in this fix.
+
+Link: https://lkml.kernel.org/r/20250321100937.46634-1-lorenzo.stoakes@oracle.com
+Reported-by: syzbot+20ed41006cf9d842c2b5@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/67dc67f0.050a0220.25ae54.001e.GAE@google.com/
+Fixes: 47b16d0462a4 ("mm: abort vma_modify() on merge out of memory failure")
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Suggested-by: Pedro Falcato <pfalcato@suse.de>
+Suggested-by: Jann Horn <jannh@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    4 ++--
- tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/userfaultfd.c |   13 +++++++++--
+ mm/vma.c         |   51 +++++++++++++++++++++++++++++++++++++++++----
+ mm/vma.h         |    9 +++++++
+ 3 files changed, 66 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -29,7 +29,7 @@ fi
- if [[ $cgroup2 ]]; then
-   cgroup_path=$(mount -t cgroup2 | head -1 | awk '{print $3}')
-   if [[ -z "$cgroup_path" ]]; then
--    cgroup_path=/dev/cgroup/memory
-+    cgroup_path=$(mktemp -d)
-     mount -t cgroup2 none $cgroup_path
-     do_umount=1
-   fi
-@@ -37,7 +37,7 @@ if [[ $cgroup2 ]]; then
- else
-   cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
-   if [[ -z "$cgroup_path" ]]; then
--    cgroup_path=/dev/cgroup/memory
-+    cgroup_path=$(mktemp -d)
-     mount -t cgroup memory,hugetlb $cgroup_path
-     do_umount=1
-   fi
---- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem
-+++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
-@@ -23,7 +23,7 @@ fi
- if [[ $cgroup2 ]]; then
-   CGROUP_ROOT=$(mount -t cgroup2 | head -1 | awk '{print $3}')
-   if [[ -z "$CGROUP_ROOT" ]]; then
--    CGROUP_ROOT=/dev/cgroup/memory
-+    CGROUP_ROOT=$(mktemp -d)
-     mount -t cgroup2 none $CGROUP_ROOT
-     do_umount=1
-   fi
+--- a/mm/userfaultfd.c~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
++++ a/mm/userfaultfd.c
+@@ -1902,6 +1902,14 @@ struct vm_area_struct *userfaultfd_clear
+ 					     unsigned long end)
+ {
+ 	struct vm_area_struct *ret;
++	bool give_up_on_oom = false;
++
++	/*
++	 * If we are modifying only and not splitting, just give up on the merge
++	 * if OOM prevents us from merging successfully.
++	 */
++	if (start == vma->vm_start && end == vma->vm_end)
++		give_up_on_oom = true;
+ 
+ 	/* Reset ptes for the whole vma range if wr-protected */
+ 	if (userfaultfd_wp(vma))
+@@ -1909,7 +1917,7 @@ struct vm_area_struct *userfaultfd_clear
+ 
+ 	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
+ 				    vma->vm_flags & ~__VM_UFFD_FLAGS,
+-				    NULL_VM_UFFD_CTX);
++				    NULL_VM_UFFD_CTX, give_up_on_oom);
+ 
+ 	/*
+ 	 * In the vma_merge() successful mprotect-like case 8:
+@@ -1960,7 +1968,8 @@ int userfaultfd_register_range(struct us
+ 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+ 		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
+ 					    new_flags,
+-					    (struct vm_userfaultfd_ctx){ctx});
++					    (struct vm_userfaultfd_ctx){ctx},
++					    /* give_up_on_oom = */false);
+ 		if (IS_ERR(vma))
+ 			return PTR_ERR(vma);
+ 
+--- a/mm/vma.c~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
++++ a/mm/vma.c
+@@ -666,6 +666,9 @@ static void vmg_adjust_set_range(struct
+ /*
+  * Actually perform the VMA merge operation.
+  *
++ * IMPORTANT: We guarantee that, should vmg->give_up_on_oom is set, to not
++ * modify any VMAs or cause inconsistent state should an OOM condition arise.
++ *
+  * Returns 0 on success, or an error value on failure.
+  */
+ static int commit_merge(struct vma_merge_struct *vmg)
+@@ -685,6 +688,12 @@ static int commit_merge(struct vma_merge
+ 
+ 	init_multi_vma_prep(&vp, vma, vmg);
+ 
++	/*
++	 * If vmg->give_up_on_oom is set, we're safe, because we don't actually
++	 * manipulate any VMAs until we succeed at preallocation.
++	 *
++	 * Past this point, we will not return an error.
++	 */
+ 	if (vma_iter_prealloc(vmg->vmi, vma))
+ 		return -ENOMEM;
+ 
+@@ -915,7 +924,13 @@ static __must_check struct vm_area_struc
+ 		if (anon_dup)
+ 			unlink_anon_vmas(anon_dup);
+ 
+-		vmg->state = VMA_MERGE_ERROR_NOMEM;
++		/*
++		 * We've cleaned up any cloned anon_vma's, no VMAs have been
++		 * modified, no harm no foul if the user requests that we not
++		 * report this and just give up, leaving the VMAs unmerged.
++		 */
++		if (!vmg->give_up_on_oom)
++			vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 		return NULL;
+ 	}
+ 
+@@ -926,7 +941,15 @@ static __must_check struct vm_area_struc
+ abort:
+ 	vma_iter_set(vmg->vmi, start);
+ 	vma_iter_load(vmg->vmi);
+-	vmg->state = VMA_MERGE_ERROR_NOMEM;
++
++	/*
++	 * This means we have failed to clone anon_vma's correctly, but no
++	 * actual changes to VMAs have occurred, so no harm no foul - if the
++	 * user doesn't want this reported and instead just wants to give up on
++	 * the merge, allow it.
++	 */
++	if (!vmg->give_up_on_oom)
++		vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 	return NULL;
+ }
+ 
+@@ -1068,6 +1091,10 @@ int vma_expand(struct vma_merge_struct *
+ 		/* This should already have been checked by this point. */
+ 		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
+ 		vma_start_write(next);
++		/*
++		 * In this case we don't report OOM, so vmg->give_up_on_mm is
++		 * safe.
++		 */
+ 		ret = dup_anon_vma(middle, next, &anon_dup);
+ 		if (ret)
+ 			return ret;
+@@ -1090,9 +1117,15 @@ int vma_expand(struct vma_merge_struct *
+ 	return 0;
+ 
+ nomem:
+-	vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 	if (anon_dup)
+ 		unlink_anon_vmas(anon_dup);
++	/*
++	 * If the user requests that we just give upon OOM, we are safe to do so
++	 * here, as commit merge provides this contract to us. Nothing has been
++	 * changed - no harm no foul, just don't report it.
++	 */
++	if (!vmg->give_up_on_oom)
++		vmg->state = VMA_MERGE_ERROR_NOMEM;
+ 	return -ENOMEM;
+ }
+ 
+@@ -1534,6 +1567,13 @@ static struct vm_area_struct *vma_modify
+ 	if (vmg_nomem(vmg))
+ 		return ERR_PTR(-ENOMEM);
+ 
++	/*
++	 * Split can fail for reasons other than OOM, so if the user requests
++	 * this it's probably a mistake.
++	 */
++	VM_WARN_ON(vmg->give_up_on_oom &&
++		   (vma->vm_start != start || vma->vm_end != end));
++
+ 	/* Split any preceding portion of the VMA. */
+ 	if (vma->vm_start < start) {
+ 		int err = split_vma(vmg->vmi, vma, start, 1);
+@@ -1602,12 +1642,15 @@ struct vm_area_struct
+ 		       struct vm_area_struct *vma,
+ 		       unsigned long start, unsigned long end,
+ 		       unsigned long new_flags,
+-		       struct vm_userfaultfd_ctx new_ctx)
++		       struct vm_userfaultfd_ctx new_ctx,
++		       bool give_up_on_oom)
+ {
+ 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
+ 
+ 	vmg.flags = new_flags;
+ 	vmg.uffd_ctx = new_ctx;
++	if (give_up_on_oom)
++		vmg.give_up_on_oom = true;
+ 
+ 	return vma_modify(&vmg);
+ }
+--- a/mm/vma.h~mm-vma-add-give_up_on_oom-option-on-modify-merge-use-in-uffd-release
++++ a/mm/vma.h
+@@ -114,6 +114,12 @@ struct vma_merge_struct {
+ 	 */
+ 	bool just_expand :1;
+ 
++	/*
++	 * If a merge is possible, but an OOM error occurs, give up and don't
++	 * execute the merge, returning NULL.
++	 */
++	bool give_up_on_oom :1;
++
+ 	/* Internal flags set during merge process: */
+ 
+ 	/*
+@@ -255,7 +261,8 @@ __must_check struct vm_area_struct
+ 		       struct vm_area_struct *vma,
+ 		       unsigned long start, unsigned long end,
+ 		       unsigned long new_flags,
+-		       struct vm_userfaultfd_ctx new_ctx);
++		       struct vm_userfaultfd_ctx new_ctx,
++		       bool give_up_on_oom);
+ 
+ __must_check struct vm_area_struct
+ *vma_merge_new_range(struct vma_merge_struct *vmg);
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+maintainers-add-memory-advice-section.patch
+mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
+tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
+tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
 
