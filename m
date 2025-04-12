@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74259134D4
-	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:33:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D459D134D4;
+	Sat, 12 Apr 2025 00:33:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744418002; cv=none; b=iobvEGR0OY2FmJGbVwQz6H6qWTGaORb1FZbn5qNdEsyyqVWHAf03kyc+ucyH3LGiFDiVRo9ULI+xOZm6ubjhqkXLXu77TDngOCURVMHKjNMg7YroVi22Z3YJRUT/ArgJ4HwOiee6MHun/24dc9KS+y6z3V0fai9z9l0Hu1fAu4U=
+	t=1744418003; cv=none; b=rfraOi5XM+hl73ABrYEg4shGRzz3bFYnC+Sz6oNHzTKkLfJdR3A78eclxuevFhvYmUBfwwg8BFuz+Pqm0Fa+FslCFPgYgfL+LdBP8PdubSZvA+dL98mTFRODF8QeAuf4YK47bl5CeRUg2etKxZc1PFrN5sbpgYtlvJ3oTOEr0qY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744418002; c=relaxed/simple;
-	bh=Ek1gdQqaefUKdAp2k3E23H77Tm8PLJ5EK0KSiaNs6Jw=;
-	h=Date:To:From:Subject:Message-Id; b=q3P3BlFBC6ZZXMcMpTfSw6bwXqz4SUjL0ZyIl9oyKS2bO6CfY9Q8rWrXnhHNYKJ2v/IQZLld/0MrECEPjiMF4KVMVlQHyB2fXPPummJCHKW9iUs97EBbPWX5YJVesRPcq0NrT7uHP6+RiZNkM3qG4lEV1NKdz8VefzM7iXyS/00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dp0Gxoms; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744418003; c=relaxed/simple;
+	bh=Hkv+HIlOorc54XLRJEchje1Z/P8tCiOxPuv7lV/G/Gs=;
+	h=Date:To:From:Subject:Message-Id; b=Pc/mpqvgm2p9KxAYJXqmT9r+GrALDdz9KCsuNIlEoKlXywq4GY/iCGJ8Nrv/iiA5ziULNaariQCVlzLCE6K8MX43rHd/1LLDL2FxUhwJHT80K67s3T77ZEvXoAKxtKVqEYsSDRzqqCJ7CGOpokYTEW8zpxfT6E8keOjopAmVmjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VOmqxk4A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dp0Gxoms"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 401D2C4CEE2;
-	Sat, 12 Apr 2025 00:33:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VOmqxk4A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FB6AC4CEE2;
+	Sat, 12 Apr 2025 00:33:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744418002;
-	bh=Ek1gdQqaefUKdAp2k3E23H77Tm8PLJ5EK0KSiaNs6Jw=;
+	s=korg; t=1744418003;
+	bh=Hkv+HIlOorc54XLRJEchje1Z/P8tCiOxPuv7lV/G/Gs=;
 	h=Date:To:From:Subject:From;
-	b=dp0GxomsD3Dl+QbzH8Y1InegjZ81yw81/Czlb2uwiJeUTVW+nw+3/ZMewB2L4UI94
-	 TfQFN0dAKbZUubeONVn7e5UKFJAcMmQTZhJgff6EfqERTwhGE8AdMgiPYicrQaw8Q9
-	 dyygIzYzEtJop9+72l5lng6e1et0rt+JnAJ3QXGw=
-Date: Fri, 11 Apr 2025 17:33:21 -0700
-To: mm-commits@vger.kernel.org,horms@kernel.org,ebiederm@xmission.com,dyoung@redhat.com,bhe@redhat.com,akpm@linux-foundation.org
+	b=VOmqxk4ASySlXJk9EK7gsCETPRLqAZSYADVVE3SLZ27Wcz2LjQNHrsp78Mji3/aWA
+	 3zNHI0s2KVGO5n1/Wf7Mdjyi382Ib/lfIg1yULldewsIEqFVuMALZlBUbTmKiKbNDG
+	 UpciGOcRgT39p51VqeXIkPgRKgyt01F1Lxc6JrlA=
+Date: Fri, 11 Apr 2025 17:33:22 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,longman@redhat.com,almasrymina@google.com,aishwarya.tcv@arm.com,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-andrew-and-myself-as-kexec-maintainer.patch removed from -mm tree
-Message-Id: <20250412003322.401D2C4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch removed from -mm tree
+Message-Id: <20250412003323.9FB6AC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add Andrew and Baoquan as kexec maintainers
+     Subject: selftests/mm: generate a temporary mountpoint for cgroup filesystem
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-andrew-and-myself-as-kexec-maintainer.patch
+     selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: MAINTAINERS: add Andrew and Baoquan as kexec maintainers
-Date: Fri, 28 Mar 2025 18:44:02 +0800
+From: Mark Brown <broonie@kernel.org>
+Subject: selftests/mm: generate a temporary mountpoint for cgroup filesystem
+Date: Fri, 04 Apr 2025 17:42:32 +0100
 
-Add Andrew as kexec/kdump maintainer because he has been helping review
-and merge ready kexec/kdump patches.
+Currently if the filesystem for the cgroups version it wants to use is not
+mounted charge_reserved_hugetlb.sh and hugetlb_reparenting_test.sh tests
+will attempt to mount it on the hard coded path /dev/cgroup/memory,
+deleting that directory when the test finishes.  This will fail if there
+is not a preexisting directory at that path, and since the directory is
+deleted subsequent runs of the test will fail.  Instead of relying on this
+hard coded directory name use mktemp to generate a temporary directory to
+use as a mountpoint, fixing both the assumption and the disruption caused
+by deleting a preexisting directory.
 
-And I would like to nominate myself as kexec maintainer because I always
-try to review generic kexec codes.
+This means that if the relevant cgroup filesystem is not already mounted
+then we rely on having coreutils (which provides mktemp) installed.  I
+suspect that many current users are relying on having things automounted
+by default, and given that the script relies on bash it's probably not an
+unreasonable requirement.
 
-Link: https://lkml.kernel.org/r/20250328104402.16826-1-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Acked-by: Simon Horman <horms@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20250404-kselftest-mm-cgroup2-detection-v1-1-3dba6d32ba8c@kernel.org
+Fixes: 209376ed2a84 ("selftests/vm: make charge_reserved_hugetlb.sh work with existing cgroup setting")
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    4 ++--
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-andrew-and-myself-as-kexec-maintainer
-+++ a/MAINTAINERS
-@@ -12810,6 +12810,7 @@ F:	lib/Kconfig.kcsan
- F:	scripts/Makefile.kcsan
- 
- KDUMP
-+M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Baoquan He <bhe@redhat.com>
- R:	Vivek Goyal <vgoyal@redhat.com>
- R:	Dave Young <dyoung@redhat.com>
-@@ -13111,6 +13112,8 @@ F:	fs/kernfs/
- F:	include/linux/kernfs.h
- 
- KEXEC
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	Baoquan He <bhe@redhat.com>
- L:	kexec@lists.infradead.org
- W:	http://kernel.org/pub/linux/utils/kernel/kexec/
- F:	include/linux/kexec.h
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem
++++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
+@@ -29,7 +29,7 @@ fi
+ if [[ $cgroup2 ]]; then
+   cgroup_path=$(mount -t cgroup2 | head -1 | awk '{print $3}')
+   if [[ -z "$cgroup_path" ]]; then
+-    cgroup_path=/dev/cgroup/memory
++    cgroup_path=$(mktemp -d)
+     mount -t cgroup2 none $cgroup_path
+     do_umount=1
+   fi
+@@ -37,7 +37,7 @@ if [[ $cgroup2 ]]; then
+ else
+   cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
+   if [[ -z "$cgroup_path" ]]; then
+-    cgroup_path=/dev/cgroup/memory
++    cgroup_path=$(mktemp -d)
+     mount -t cgroup memory,hugetlb $cgroup_path
+     do_umount=1
+   fi
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-generate-a-temporary-mountpoint-for-cgroup-filesystem
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -23,7 +23,7 @@ fi
+ if [[ $cgroup2 ]]; then
+   CGROUP_ROOT=$(mount -t cgroup2 | head -1 | awk '{print $3}')
+   if [[ -z "$CGROUP_ROOT" ]]; then
+-    CGROUP_ROOT=/dev/cgroup/memory
++    CGROUP_ROOT=$(mktemp -d)
+     mount -t cgroup2 none $CGROUP_ROOT
+     do_umount=1
+   fi
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
-mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
-mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
-mm-gup-clean-up-codes-in-fault_in_xxx-functions.patch
 
