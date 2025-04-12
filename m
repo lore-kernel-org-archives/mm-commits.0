@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A0CDE56A
-	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:29:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92232BA42
+	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:33:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744417776; cv=none; b=AuoSa8hKgko8tgS4Z/w5CO8VuCE8eE910sJOPKy+WzadYsz5KFzxVrkhudXrHSWcndAUKVUm/3im5VCbTCauXMl0A+MuYUL5+KsOboZtBGfnqHrcj6Za9kDvIFskVvgyI8IOivOrp8LNehkKlsVa1pK1CnJEXm5hsYKhj4dLaZg=
+	t=1744417988; cv=none; b=L0GBsJeRIzewpFYNw5f4d3Im7ik39Uk3EV76PiGSHsIlHH6XZ3r66FQIheDJj269KIcVmavZym6eN2D6y1Gqy09jYx4Qaw74uf7TDyaiVDgShYQ7Dzdvi6eG30u7BPKbdVhPtYsLT36ir6hE9b8kP5n4YdcSP8sP48pxPjRzWes=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744417776; c=relaxed/simple;
-	bh=Iwmea6XYCuUdg+PmgnF+n1UORJkr/7U8wO0VP3dFqLw=;
-	h=Date:To:From:Subject:Message-Id; b=WpjAuB0GXXTpDXEPRd9tMyLmSDC4MxVDtd7dQzRp8cvzz98BwyVw1rlgWbicbwBGIc3JPWVZPVizN+0Fw2x1GWnalSLypQA7kB7J0Z1j3a3FH1Z7w3caUI8v19nNuERiDkjn3csuRF/QRvu7qqB4fCXyeGqYsLeUaYLbEOnLR9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j7sj9XvG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744417988; c=relaxed/simple;
+	bh=WoQYQ1xPtXTa4oJRtwuUvs+Lin/4ihAvldvkVr8ZLgw=;
+	h=Date:To:From:Subject:Message-Id; b=I/B5GkhiE92z5mzZpqvXXuU/uwpaAi9iYe75vjRgfuEF717VjvaD28vhy1qdxYJGHrTQVa9zI28QHamZ4bQhIx/zPMbV2ys8mX7xu2fyH06Tc+5CZP8JfPsxr0v3euCqQWgbdZU6JNOPn2jP/Y9OZgDunhEPb0RC/rRycHwMjIE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jNNcJRj7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j7sj9XvG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B150C4CEE2;
-	Sat, 12 Apr 2025 00:29:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jNNcJRj7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAB7CC4CEE2;
+	Sat, 12 Apr 2025 00:33:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744417775;
-	bh=Iwmea6XYCuUdg+PmgnF+n1UORJkr/7U8wO0VP3dFqLw=;
+	s=korg; t=1744417988;
+	bh=WoQYQ1xPtXTa4oJRtwuUvs+Lin/4ihAvldvkVr8ZLgw=;
 	h=Date:To:From:Subject:From;
-	b=j7sj9XvG00cciqLe78vcUBRoIfvCIupXelV8uaRWGxwTeQbkfjkISENm9HL6mrmVa
-	 tliQPB6TEnAFgQtlpx6+R43mMqFCr+JYTkp1/hhOUuZX/5f3O2YgskyNMrWN6SNeA0
-	 ImNsBcW6763HNAXvDHh3Bz2ctPUphzQiaV/Jj7U4=
-Date: Fri, 11 Apr 2025 17:29:34 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,geert@linux-m68k.org,fvdl@google.com,akpm@linux-foundation.org
+	b=jNNcJRj7l/QSJf5QBc0JSakS2q0H1pROasDCE3FBs2mk/4mXFnd2VK9sm9xHM1tRu
+	 zhOuTgahpoXe4YHqk1gCsY1DD/b6ge0B7RcsTS+2AZDmsNLhYH1/oeWbGb1NFcD0k0
+	 DpRjftAXlOP3kzxVZ2ASKcdG9yA71YOskUfypmt0=
+Date: Fri, 11 Apr 2025 17:33:07 -0700
+To: mm-commits@vger.kernel.org,horms@kernel.org,loic.poulain@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-cma-report-base-address-of-single-range-correctly-v2.patch removed from -mm tree
-Message-Id: <20250412002935.7B150C4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-map-loic-poulains-old-email-addresses.patch removed from -mm tree
+Message-Id: <20250412003307.EAB7CC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-cma-report-base-address-of-single-range-correctly-v2
+     Subject: mailmap: map Loic Poulain's old email addresses
 has been removed from the -mm tree.  Its filename was
-     mm-cma-report-base-address-of-single-range-correctly-v2.patch
+     mailmap-map-loic-poulains-old-email-addresses.patch
 
-This patch was dropped because it was folded into mm-cma-report-base-address-of-single-range-correctly.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Frank van der Linden <fvdl@google.com>
-Subject: mm-cma-report-base-address-of-single-range-correctly-v2
-Date: Tue, 8 Apr 2025 16:40:00 +0000
+From: Loic Poulain <loic.poulain@oss.qualcomm.com>
+Subject: mailmap: map Loic Poulain's old email addresses
+Date: Wed, 2 Apr 2025 15:01:37 +0200
 
-Link: https://lkml.kernel.org/r/20250408164000.3215690-1-fvdl@google.com
-Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
-Signed-off-by: Frank van der Linden <fvdl@google.com>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Closes: https://lore.kernel.org/linux-mm/CAMuHMdVWviQ7O9yBFE3f=ev0eVb1CnsQvR6SKtEROBbM6z7g3w@mail.gmail.com/
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Map old email addresses that are no longer in use.
+
+Link: https://lkml.kernel.org/r/20250402130137.12328-1-loic.poulain@oss.qualcomm.com
+Signed-off-by: Loic Poulain <loic.poulain@oss.qualcomm.com>
+Cc: Simon Horman <horms@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/cma.c~mm-cma-report-base-address-of-single-range-correctly-v2
-+++ a/mm/cma.c
-@@ -722,14 +722,15 @@ static int __init __cma_declare_contiguo
- 	}
- 
- 	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
--	if (ret)
-+	if (ret) {
- 		memblock_phys_free(base, size);
--	else {
--		(*res_cma)->nid = nid;
--		*basep = base;
-+		return ret;
- 	}
- 
--	return ret;
-+	(*res_cma)->nid = nid;
-+	*basep = base;
-+
-+	return 0;
- }
- 
- static void cma_debug_show_areas(struct cma *cma)
+--- a/.mailmap~mailmap-map-loic-poulains-old-email-addresses
++++ a/.mailmap
+@@ -438,6 +438,8 @@ Linus Lüssing <linus.luessing@c0d3.blue
+ Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
+ Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
+ Lior David <quic_liord@quicinc.com> <liord@codeaurora.org>
++Loic Poulain <loic.poulain@oss.qualcomm.com> <loic.poulain@linaro.org>
++Loic Poulain <loic.poulain@oss.qualcomm.com> <loic.poulain@intel.com>
+ Lorenzo Pieralisi <lpieralisi@kernel.org> <lorenzo.pieralisi@arm.com>
+ Lorenzo Stoakes <lorenzo.stoakes@oracle.com> <lstoakes@gmail.com>
+ Luca Ceresoli <luca.ceresoli@bootlin.com> <luca@lucaceresoli.net>
 _
 
-Patches currently in -mm which might be from fvdl@google.com are
+Patches currently in -mm which might be from loic.poulain@oss.qualcomm.com are
 
-mm-cma-report-base-address-of-single-range-correctly.patch
-mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch
 
