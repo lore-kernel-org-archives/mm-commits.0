@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F189134D4;
-	Sat, 12 Apr 2025 00:33:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0421134D4
+	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:33:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744418018; cv=none; b=QiMPwxPQZ/Qj5QZPSwkJD0VblfcVdYVVvyiWIgFlK3INuT5O8i8BuaZvyZGMoQV/sPr6iA0DzrcAkl5IZSPqwu33gVTt4McMK5C9AxaL6re6exD3J0TTqs4WRf0GOWvvGGe9eNRRnwP9HKmBZdwQb/x4oKOvW5Rf9ND5Pz6awlY=
+	t=1744418020; cv=none; b=krxGeQ6DEL7oyfJdNjCqUfYnVmCrTs+uGxoeqhHsCSAv4VrNkpgc9drXSzi03YYelukzDINlf5cLvLLaBy6raHyi24ojPqy91fGFItw2FN5+CH2gNT1dsd77I5i/T8SJEcLhIGtrmPilnt8cbwt3lep0PiumJPr2Nnpqqnu6H00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744418018; c=relaxed/simple;
-	bh=Y/BgYprArmobohjfwYyE2fdHt3WHGHMfi8XEPkyzuWI=;
-	h=Date:To:From:Subject:Message-Id; b=QNnu8ZlOVr9tLg4B1FRQPt2EK1j4tLw+Xv/432h2bZ+ODNEhcz2eCVdGo+nU3U5C9Vy3d+epaHFUSud8JKKcnQ8juaa/JByWK5Z1Z7ByDg3WJhcjDVpS9tVIp8h9nMtX42JhXZwCmdBrhl3Ae2KJq7IHoiQrOmCAXAfr7sfZgwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nvcxy0iI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744418020; c=relaxed/simple;
+	bh=m0I8MQLaYsxf8dR6Bov5BwRCEHfRk+sYTyn5EWwbllw=;
+	h=Date:To:From:Subject:Message-Id; b=T8E08sJhb1WISwilftyBCHaSGMJURBaVd3sJyDr9bM2O1/HTAYVLtH3vBUP3DM8dRBQS+L+oB+RMT2jmj2FRkn9QlXeGxXEzT0oPizEELD2lWd8+fnyGIxhH5RzypH6/AUDA2q2CTvEuNHKNprMx326yxanxGw7SvS7iq+rG1yo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mMyoRW2h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nvcxy0iI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D60ABC4CEE2;
-	Sat, 12 Apr 2025 00:33:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mMyoRW2h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 758E9C4CEE2;
+	Sat, 12 Apr 2025 00:33:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744418017;
-	bh=Y/BgYprArmobohjfwYyE2fdHt3WHGHMfi8XEPkyzuWI=;
+	s=korg; t=1744418020;
+	bh=m0I8MQLaYsxf8dR6Bov5BwRCEHfRk+sYTyn5EWwbllw=;
 	h=Date:To:From:Subject:From;
-	b=Nvcxy0iIcAXGsCSf0epyRVONEV9qh7GtEjEdh+d8JD2fRf3OMXFXIfMxc8N9RhXn4
-	 jnjWVY82Ms3ueJp9tjVoRlXa0KgTONXfIefHX5N3gDnr687Qn/L1BZvfyY5ZqJPLhV
-	 W8sfVvSKkReWiDbCY+tv3kMB0BEQp1aGVp6ZIETg=
-Date: Fri, 11 Apr 2025 17:33:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,stable@vger.kernel.org,shivankg@amd.com,oliver.sang@intel.com,jackmanb@google.com,carlos.song@nxp.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=mMyoRW2h8AWJYy1w5ip4dpS8CDYtxkeH7IMyqXIMKCWMhKsyPEg8bDI0DEHivIkuh
+	 xkjLPBnSGBJJ9SGOivLnO/DpS5UMUDWdHB/jeb/YS+1FpUT5bB6yjKHGChOXOURuqD
+	 ZYFJPf7lpW1OGMLdPLdO5GXDgQfZurL9Fet7+Cbc=
+Date: Fri, 11 Apr 2025 17:33:39 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,geert@linux-m68k.org,fvdl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk.patch removed from -mm tree
-Message-Id: <20250412003337.D60ABC4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-cma-report-base-address-of-single-range-correctly.patch removed from -mm tree
+Message-Id: <20250412003340.758E9C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,283 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: speed up fallbacks in rmqueue_bulk()
+     Subject: mm/cma: report base address of single range correctly
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk.patch
+     mm-cma-report-base-address-of-single-range-correctly.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: speed up fallbacks in rmqueue_bulk()
-Date: Mon, 7 Apr 2025 14:01:53 -0400
+From: Frank van der Linden <fvdl@google.com>
+Subject: mm/cma: report base address of single range correctly
+Date: Mon, 7 Apr 2025 16:54:35 +0000
 
-The test robot identified c2f6ea38fc1b ("mm: page_alloc: don't steal
-single pages from biggest buddy") as the root cause of a 56.4% regression
-in vm-scalability::lru-file-mmap-read.
+The cma_declare_contiguous_nid code was refactored by commit c009da4258f9
+("mm, cma: support multiple contiguous ranges, if requested"), so that it
+could use an internal function to attempt a single range area first, and
+then try a multi-range one.
 
-Carlos reports an earlier patch, c0cd6f557b90 ("mm: page_alloc: fix
-freelist movement during block conversion"), as the root cause for a
-regression in worst-case zone->lock+irqoff hold times.
+However, that meant that the actual base address used for the !fixed case
+(base == 0) wasn't available one level up to be printed in the
+informational message, and it would always end up printing a base address
+of 0 in the boot message.
 
-Both of these patches modify the page allocator's fallback path to be less
-greedy in an effort to stave off fragmentation.  The flip side of this is
-that fallbacks are also less productive each time around, which means the
-fallback search can run much more frequently.
+Make the internal function take a phys_addr_t pointer to the base address,
+so that the value is available to the caller.
 
-Carlos' traces point to rmqueue_bulk() specifically, which tries to refill
-the percpu cache by allocating a large batch of pages in a loop.  It
-highlights how once the native freelists are exhausted, the fallback code
-first scans orders top-down for whole blocks to claim, then falls back to
-a bottom-up search for the smallest buddy to steal.  For the next batch
-page, it goes through the same thing again.
-
-This can be made more efficient.  Since rmqueue_bulk() holds the
-zone->lock over the entire batch, the freelists are not subject to outside
-changes; when the search for a block to claim has already failed, there is
-no point in trying again for the next page.
-
-Modify __rmqueue() to remember the last successful fallback mode, and
-restart directly from there on the next rmqueue_bulk() iteration.
-
-Oliver confirms that this improves beyond the regression that the test
-robot reported against c2f6ea38fc1b:
-
-commit:
-  f3b92176f4 ("tools/selftests: add guard region test for /proc/$pid/pagemap")
-  c2f6ea38fc ("mm: page_alloc: don't steal single pages from biggest buddy")
-  acc4d5ff0b ("Merge tag 'net-6.15-rc0' of git://git.kernel.org/pub/scm/linux/kernel/git/netdev/net")
-  2c847f27c3 ("mm: page_alloc: speed up fallbacks in rmqueue_bulk()")   <--- your patch
-
-f3b92176f4f7100f c2f6ea38fc1b640aa7a2e155cc1 acc4d5ff0b61eb1715c498b6536 2c847f27c37da65a93d23c237c5
----------------- --------------------------- --------------------------- ---------------------------
-         %stddev     %change         %stddev     %change         %stddev     %change         %stddev
-             \          |                \          |                \          |                \
-  25525364 ±  3%     -56.4%   11135467           -57.8%   10779336           +31.6%   33581409        vm-scalability.throughput
-
-Carlos confirms that worst-case times are almost fully recovered
-compared to before the earlier culprit patch:
-
-  2dd482ba627d (before freelist hygiene):    1ms
-  c0cd6f557b90  (after freelist hygiene):   90ms
- next-20250319    (steal smallest buddy):  280ms
-    this patch                          :    8ms
-
-[jackmanb@google.com: comment updates]
-  Link: https://lkml.kernel.org/r/D92AC0P9594X.3BML64MUKTF8Z@google.com
-[hannes@cmpxchg.org: reset rmqueue_mode in rmqueue_buddy() error loop, per Yunsheng Lin]
-  Link: https://lkml.kernel.org/r/20250409140023.GA2313@cmpxchg.org
-Link: https://lkml.kernel.org/r/20250407180154.63348-1-hannes@cmpxchg.org
-Fixes: c0cd6f557b90 ("mm: page_alloc: fix freelist movement during block conversion")
-Fixes: c2f6ea38fc1b ("mm: page_alloc: don't steal single pages from biggest buddy")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reported-by: Carlos Song <carlos.song@nxp.com>
-Tested-by: Carlos Song <carlos.song@nxp.com>
-Tested-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202503271547.fc08b188-lkp@intel.com
-Reviewed-by: Brendan Jackman <jackmanb@google.com>
-Tested-by: Shivank Garg <shivankg@amd.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[6.10+]
+[fvdl@google.com: v2]
+  Link: https://lkml.kernel.org/r/20250408164000.3215690-1-fvdl@google.com
+Link: https://lkml.kernel.org/r/20250407165435.2567898-1-fvdl@google.com
+Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
+Signed-off-by: Frank van der Linden <fvdl@google.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Closes: https://lore.kernel.org/linux-mm/CAMuHMdVWviQ7O9yBFE3f=ev0eVb1CnsQvR6SKtEROBbM6z7g3w@mail.gmail.com/
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  113 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 79 insertions(+), 34 deletions(-)
+ mm/cma.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-speed-up-fallbacks-in-rmqueue_bulk
-+++ a/mm/page_alloc.c
-@@ -2183,23 +2183,15 @@ try_to_claim_block(struct zone *zone, st
+--- a/mm/cma.c~mm-cma-report-base-address-of-single-range-correctly
++++ a/mm/cma.c
+@@ -35,7 +35,7 @@
+ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned int cma_area_count;
+ 
+-static int __init __cma_declare_contiguous_nid(phys_addr_t base,
++static int __init __cma_declare_contiguous_nid(phys_addr_t *basep,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, const char *name, struct cma **res_cma,
+@@ -370,7 +370,7 @@ int __init cma_declare_contiguous_multi(
+ 			phys_addr_t align, unsigned int order_per_bit,
+ 			const char *name, struct cma **res_cma, int nid)
+ {
+-	phys_addr_t start, end;
++	phys_addr_t start = 0, end;
+ 	phys_addr_t size, sizesum, sizeleft;
+ 	struct cma_init_memrange *mrp, *mlp, *failed;
+ 	struct cma_memrange *cmrp;
+@@ -384,7 +384,7 @@ int __init cma_declare_contiguous_multi(
+ 	/*
+ 	 * First, try it the normal way, producing just one range.
+ 	 */
+-	ret = __cma_declare_contiguous_nid(0, total_size, 0, align,
++	ret = __cma_declare_contiguous_nid(&start, total_size, 0, align,
+ 			order_per_bit, false, name, res_cma, nid);
+ 	if (ret != -ENOMEM)
+ 		goto out;
+@@ -580,7 +580,7 @@ int __init cma_declare_contiguous_nid(ph
+ {
+ 	int ret;
+ 
+-	ret = __cma_declare_contiguous_nid(base, size, limit, alignment,
++	ret = __cma_declare_contiguous_nid(&base, size, limit, alignment,
+ 			order_per_bit, fixed, name, res_cma, nid);
+ 	if (ret != 0)
+ 		pr_err("Failed to reserve %ld MiB\n",
+@@ -592,14 +592,14 @@ int __init cma_declare_contiguous_nid(ph
+ 	return ret;
  }
  
- /*
-- * Try finding a free buddy page on the fallback list.
-- *
-- * This will attempt to claim a whole pageblock for the requested type
-- * to ensure grouping of such requests in the future.
-- *
-- * If a whole block cannot be claimed, steal an individual page, regressing to
-- * __rmqueue_smallest() logic to at least break up as little contiguity as
-- * possible.
-+ * Try to allocate from some fallback migratetype by claiming the entire block,
-+ * i.e. converting it to the allocation's start migratetype.
-  *
-  * The use of signed ints for order and current_order is a deliberate
-  * deviation from the rest of this file, to make the for loop
-  * condition simpler.
-- *
-- * Return the stolen page, or NULL if none can be found.
-  */
- static __always_inline struct page *
--__rmqueue_fallback(struct zone *zone, int order, int start_migratetype,
-+__rmqueue_claim(struct zone *zone, int order, int start_migratetype,
- 						unsigned int alloc_flags)
+-static int __init __cma_declare_contiguous_nid(phys_addr_t base,
++static int __init __cma_declare_contiguous_nid(phys_addr_t *basep,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, const char *name, struct cma **res_cma,
+ 			int nid)
  {
- 	struct free_area *area;
-@@ -2237,14 +2229,29 @@ __rmqueue_fallback(struct zone *zone, in
- 		page = try_to_claim_block(zone, page, current_order, order,
- 					  start_migratetype, fallback_mt,
- 					  alloc_flags);
--		if (page)
--			goto got_one;
-+		if (page) {
-+			trace_mm_page_alloc_extfrag(page, order, current_order,
-+						    start_migratetype, fallback_mt);
-+			return page;
-+		}
+ 	phys_addr_t memblock_end = memblock_end_of_DRAM();
+-	phys_addr_t highmem_start;
++	phys_addr_t highmem_start, base = *basep;
+ 	int ret;
+ 
+ 	/*
+@@ -722,12 +722,15 @@ static int __init __cma_declare_contiguo
  	}
  
--	if (alloc_flags & ALLOC_NOFRAGMENT)
--		return NULL;
-+	return NULL;
-+}
-+
-+/*
-+ * Try to steal a single page from some fallback migratetype. Leave the rest of
-+ * the block as its current migratetype, potentially causing fragmentation.
-+ */
-+static __always_inline struct page *
-+__rmqueue_steal(struct zone *zone, int order, int start_migratetype)
-+{
-+	struct free_area *area;
-+	int current_order;
-+	struct page *page;
-+	int fallback_mt;
-+	bool claim_block;
+ 	ret = cma_init_reserved_mem(base, size, order_per_bit, name, res_cma);
+-	if (ret)
++	if (ret) {
+ 		memblock_phys_free(base, size);
++		return ret;
++	}
  
--	/* No luck claiming pageblock. Find the smallest fallback page */
- 	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
-@@ -2254,25 +2261,28 @@ __rmqueue_fallback(struct zone *zone, in
+ 	(*res_cma)->nid = nid;
++	*basep = base;
  
- 		page = get_page_from_free_area(area, fallback_mt);
- 		page_del_and_expand(zone, page, order, current_order, fallback_mt);
--		goto got_one;
-+		trace_mm_page_alloc_extfrag(page, order, current_order,
-+					    start_migratetype, fallback_mt);
-+		return page;
- 	}
- 
- 	return NULL;
--
--got_one:
--	trace_mm_page_alloc_extfrag(page, order, current_order,
--		start_migratetype, fallback_mt);
--
--	return page;
+-	return ret;
++	return 0;
  }
  
-+enum rmqueue_mode {
-+	RMQUEUE_NORMAL,
-+	RMQUEUE_CMA,
-+	RMQUEUE_CLAIM,
-+	RMQUEUE_STEAL,
-+};
-+
- /*
-  * Do the hard work of removing an element from the buddy allocator.
-  * Call me with the zone->lock already held.
-  */
- static __always_inline struct page *
- __rmqueue(struct zone *zone, unsigned int order, int migratetype,
--						unsigned int alloc_flags)
-+	  unsigned int alloc_flags, enum rmqueue_mode *mode)
- {
- 	struct page *page;
- 
-@@ -2291,16 +2301,48 @@ __rmqueue(struct zone *zone, unsigned in
- 		}
- 	}
- 
--	page = __rmqueue_smallest(zone, order, migratetype);
--	if (unlikely(!page)) {
--		if (alloc_flags & ALLOC_CMA)
-+	/*
-+	 * First try the freelists of the requested migratetype, then try
-+	 * fallbacks modes with increasing levels of fragmentation risk.
-+	 *
-+	 * The fallback logic is expensive and rmqueue_bulk() calls in
-+	 * a loop with the zone->lock held, meaning the freelists are
-+	 * not subject to any outside changes. Remember in *mode where
-+	 * we found pay dirt, to save us the search on the next call.
-+	 */
-+	switch (*mode) {
-+	case RMQUEUE_NORMAL:
-+		page = __rmqueue_smallest(zone, order, migratetype);
-+		if (page)
-+			return page;
-+		fallthrough;
-+	case RMQUEUE_CMA:
-+		if (alloc_flags & ALLOC_CMA) {
- 			page = __rmqueue_cma_fallback(zone, order);
--
--		if (!page)
--			page = __rmqueue_fallback(zone, order, migratetype,
--						  alloc_flags);
-+			if (page) {
-+				*mode = RMQUEUE_CMA;
-+				return page;
-+			}
-+		}
-+		fallthrough;
-+	case RMQUEUE_CLAIM:
-+		page = __rmqueue_claim(zone, order, migratetype, alloc_flags);
-+		if (page) {
-+			/* Replenished preferred freelist, back to normal mode. */
-+			*mode = RMQUEUE_NORMAL;
-+			return page;
-+		}
-+		fallthrough;
-+	case RMQUEUE_STEAL:
-+		if (!(alloc_flags & ALLOC_NOFRAGMENT)) {
-+			page = __rmqueue_steal(zone, order, migratetype);
-+			if (page) {
-+				*mode = RMQUEUE_STEAL;
-+				return page;
-+			}
-+		}
- 	}
--	return page;
-+	return NULL;
- }
- 
- /*
-@@ -2312,6 +2354,7 @@ static int rmqueue_bulk(struct zone *zon
- 			unsigned long count, struct list_head *list,
- 			int migratetype, unsigned int alloc_flags)
- {
-+	enum rmqueue_mode rmqm = RMQUEUE_NORMAL;
- 	unsigned long flags;
- 	int i;
- 
-@@ -2323,7 +2366,7 @@ static int rmqueue_bulk(struct zone *zon
- 	}
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype,
--								alloc_flags);
-+					      alloc_flags, &rmqm);
- 		if (unlikely(page == NULL))
- 			break;
- 
-@@ -2948,7 +2991,9 @@ struct page *rmqueue_buddy(struct zone *
- 		if (alloc_flags & ALLOC_HIGHATOMIC)
- 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
- 		if (!page) {
--			page = __rmqueue(zone, order, migratetype, alloc_flags);
-+			enum rmqueue_mode rmqm = RMQUEUE_NORMAL;
-+
-+			page = __rmqueue(zone, order, migratetype, alloc_flags, &rmqm);
- 
- 			/*
- 			 * If the allocation fails, allow OOM handling and
+ static void cma_debug_show_areas(struct cma *cma)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from fvdl@google.com are
 
-mm-page_alloc-tighten-up-find_suitable_fallback.patch
+mm-hugetlb-use-separate-nodemask-for-bootmem-allocations.patch
 
