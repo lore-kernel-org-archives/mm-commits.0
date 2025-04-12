@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3240CBA42
-	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:33:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE7CBA42
+	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2025 00:33:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744417990; cv=none; b=JgnohKatXRgfQp5yotq44zpea/1ksCKbk5DyB+exCQiA3gzCY81PanbU5uo8gaDpSUJgZE6Ybkc09C42W8JLWCI93DKyB8LVKl/togPskBd+jJqqUyoC+JXlQ/h0++/7sJ9NmG1oEW4Jan4uxYMPHurAqswdYkm/G/VcyQH2hac=
+	t=1744417991; cv=none; b=guLMsZv8ZE+kmChYjJahf3oKlV7NyB8YYhi53xOA98oJqKTtgaYlaq/C4Fnfv3fPfb5uXBoAvKC0Fh9vJQ9NngDtyPJesVr1ABKzyfBzVbJ6afkHv6fUS0ATWgZ9XjFVGDZ88SInB1e4PNl1xmYDaYRHdwLOYZEbdiaqN3RBr7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744417990; c=relaxed/simple;
-	bh=hBtM8P1q3j9CpoXQsStK/HbT25l28TXJ2vuFSvuKos4=;
-	h=Date:To:From:Subject:Message-Id; b=EKvYD+dlthWNjMOIaOH7kvX1pjF6o+rd0TCbnfIRq2jXYN74B9gyzZfJYWlKVnvpbLmtLycGBTXYl1GqBNmOWFo6PXCp+5tlHNky9HLFfXk3KfV2ERCJop0Yp8FigkZ1L3ewomt7naEd1yP2A/HLr/lJo8p0HzERoyBfERh0oAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xt8puOyr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744417991; c=relaxed/simple;
+	bh=g8f7/YgZ/72Fj2SjqewLCwHjhUklZk25Tjjblkp87qw=;
+	h=Date:To:From:Subject:Message-Id; b=Vlz+PX21QzEAX6wTh4erUY6ZXOdd+eFzZtyAh3bBmf6+HWmBfbAyvvEniq0PKzRLFC3db6cPIv7YdsgZM1J9j+SLA6weBWf+KA9lk03zDVTIECPrfZhdDSooTduavVkXLBwAGiJCTYQbBZq9ehmuhkLXz6y8/HgvOR3Gm21G51w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qt/lSrwY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xt8puOyr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72914C4CEE2;
-	Sat, 12 Apr 2025 00:33:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qt/lSrwY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F342C4CEE2;
+	Sat, 12 Apr 2025 00:33:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744417989;
-	bh=hBtM8P1q3j9CpoXQsStK/HbT25l28TXJ2vuFSvuKos4=;
+	s=korg; t=1744417991;
+	bh=g8f7/YgZ/72Fj2SjqewLCwHjhUklZk25Tjjblkp87qw=;
 	h=Date:To:From:Subject:From;
-	b=Xt8puOyrsEsyFl7d15eNB1Y9T1O3EkGAdZmV7gjq+Xr6ddlgnCVWGuMQ5pPX2Ht+C
-	 4BJ5vTZgvEFZR9+6P1heHIcARIErkHQ52hEH1k6/Op7FP2l7XTkaT/8dmFiTAz2wVC
-	 Tb2rbvPthyH+PYkVcrFbRXLCnA4VUMujWjBtb1KU=
-Date: Fri, 11 Apr 2025 17:33:08 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,ravi.bangoria@amd.com,peterz@infradead.org,mingo@kernel.org,mcgrof@kernel.org,liam.howlett@oracle.com,da.gomez@samsung.com,akpm@linux-foundation.org
+	b=Qt/lSrwY3Ah+llaeP+bx97bzBsHV6TB07961drmEz7EJ94c7XfBjWi7ySYRF2bPTa
+	 JXwAibLCD/I2bPTxXIqNFi2iO+XHtuYtLliENwjiD1GdY8W5vQSCfzbCAZ4pmbt5Et
+	 bIZBNoJrZTYUK2RL3QwgwoqPMEhVPmFWVrOrS8A0=
+Date: Fri, 11 Apr 2025 17:33:11 -0700
+To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] radix-tree-add-missing-cleanuph.patch removed from -mm tree
-Message-Id: <20250412003309.72914C4CEE2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] test-suite-use-%zu-to-print-size_t.patch removed from -mm tree
+Message-Id: <20250412003311.9F342C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: radix-tree: add missing cleanup.h
+     Subject: test suite: use %zu to print size_t
 has been removed from the -mm tree.  Its filename was
-     radix-tree-add-missing-cleanuph.patch
+     test-suite-use-%zu-to-print-size_t.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Daniel Gomez <da.gomez@samsung.com>
-Subject: radix-tree: add missing cleanup.h
-Date: Fri, 21 Mar 2025 20:24:33 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: test suite: use %zu to print size_t
+Date: Wed, 2 Apr 2025 20:33:11 -0400
 
-Add shared cleanup.h header for radix-tree testing tools.
+On 32-bit, we can't use %lu to print a size_t variable and gcc warns us
+about it.  Shame it doesn't warn about it on 64-bit.
 
-Fixes build error found with kdevops [1]:
-
-cc -I../shared -I. -I../../include -I../../../lib -g -Og -Wall
--D_LGPL_SOURCE -fsanitize=address -fsanitize=undefined   -c -o
-radix-tree.o radix-tree.c
-In file included from ../shared/linux/idr.h:1,
-                 from radix-tree.c:18:
-../shared/linux/../../../../include/linux/idr.h:18:10: fatal error:
-linux/cleanup.h: No such file or directory
-   18 | #include <linux/cleanup.h>
-      |          ^~~~~~~~~~~~~~~~~
-compilation terminated.
-make: *** [<builtin>: radix-tree.o] Error 1
-
-[1] https://github.com/linux-kdevops/kdevops
-https://github.com/linux-kdevops/linux-mm-kpd/
-actions/runs/13971648496/job/39114756401
-
-[akpm@linux-foundation.org: remove unneeded header guards, per Sidhartha]
-Link: https://lkml.kernel.org/r/20250321-fix-radix-tree-build-v1-1-838a1e6540e2@samsung.com
-Fixes: 6c8b0b835f00 ("perf/core: Simplify perf_pmu_register()")
-Signed-off-by: Daniel Gomez <da.gomez@samsung.com>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ravi Bangoria <ravi.bangoria@amd.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Link: https://lkml.kernel.org/r/20250403003311.359917-1-Liam.Howlett@oracle.com
+Fixes: cc86e0c2f306 ("radix tree test suite: add support for slab bulk APIs")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/shared/linux/cleanup.h |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/shared/linux.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/shared/linux/cleanup.h a/tools/testing/shared/linux/cleanup.h
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/shared/linux/cleanup.h
-@@ -0,0 +1,2 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#include "../../../../include/linux/cleanup.h"
+--- a/tools/testing/shared/linux.c~test-suite-use-%zu-to-print-size_t
++++ a/tools/testing/shared/linux.c
+@@ -150,7 +150,7 @@ void kmem_cache_free(struct kmem_cache *
+ void kmem_cache_free_bulk(struct kmem_cache *cachep, size_t size, void **list)
+ {
+ 	if (kmalloc_verbose)
+-		pr_debug("Bulk free %p[0-%lu]\n", list, size - 1);
++		pr_debug("Bulk free %p[0-%zu]\n", list, size - 1);
+ 
+ 	pthread_mutex_lock(&cachep->lock);
+ 	for (int i = 0; i < size; i++)
+@@ -168,7 +168,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	size_t i;
+ 
+ 	if (kmalloc_verbose)
+-		pr_debug("Bulk alloc %lu\n", size);
++		pr_debug("Bulk alloc %zu\n", size);
+ 
+ 	pthread_mutex_lock(&cachep->lock);
+ 	if (cachep->nr_objs >= size) {
 _
 
-Patches currently in -mm which might be from da.gomez@samsung.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-set-the-pte-dirty-if-the-folio-is-already-dirty.patch
+mm-introduce-a-common-definition-of-mk_pte.patch
+sparc32-remove-custom-definition-of-mk_pte.patch
+x86-remove-custom-definition-of-mk_pte.patch
+um-remove-custom-definition-of-mk_pte.patch
+mm-make-mk_pte-definition-unconditional.patch
+mm-add-folio_mk_pte.patch
+hugetlb-simplify-make_huge_pte.patch
+mm-remove-mk_huge_pte.patch
+mm-add-folio_mk_pmd.patch
+arch-remove-mk_pmd.patch
+filemap-remove-readahead_page.patch
+mm-remove-offset_in_thp.patch
+iov_iter-convert-iter_xarray_populate_pages-to-use-folios.patch
+iov_iter-convert-iov_iter_extract_xarray_pages-to-use-folios.patch
+filemap-remove-find_subpage.patch
+filemap-convert-__readahead_batch-to-use-a-folio.patch
+filemap-remove-readahead_page_batch.patch
+mm-delete-thp_nr_pages.patch
 
