@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E09461B0F3C
-	for <mm-commits@vger.kernel.org>; Mon, 14 Apr 2025 21:58:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E60D1448E0
+	for <mm-commits@vger.kernel.org>; Mon, 14 Apr 2025 22:02:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744667926; cv=none; b=SIb+FJLZx43sAVgc3sVs8LH+igLugHCbztsGsgMURwdqaiUYkuLfPZwo+k2ltxSPoksU9UGsPHwbJTLY2rNJ0xod1oHC2DNT5Qp6BIFCc87oTVudTdEETQ8Z2mcAVOLhkFk04RkjbvJSB7B5bVPUlm2DeRUtuqsZUasmcunfV7Q=
+	t=1744668145; cv=none; b=bbdveHq2894KUxKbIa3oY5RHpSoARuVGPA8XE+r64gSCYSSull5ckkkbQmw/Dv2ypKRep7ye/dmzbuAT+8b2w07ONNbApkCDBp53chEdUl5prhnflU2VKS6CJPBi4CiOeYvdDyAVSHnRqDSkyJA1w6vVEvjugWV2LUIDjhz4QM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744667926; c=relaxed/simple;
-	bh=shDMQwERSY1383swrSSx8zHfyGRt/UWmfJN3MR7GQxM=;
-	h=Date:To:From:Subject:Message-Id; b=FtFk46OtuUzwGr0/S+LxTpqC614t5w3doo9E4hhpprTyX9j5tQ+scNOjjho1+oQ7vYXWeUo2GxixgHHiQ5HIe30FkNaYy7vM/F2CBohCwGtTTCR3LEpIx64CtTJ+rTS5psW9ZaPJy9Ip+Kzt8m/6cHF0c9pmAgZOaUACtat8ijI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f1+7ycYt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744668145; c=relaxed/simple;
+	bh=s92rsj/HGI8BU+L6H0qQCpWiA8ITn3T/UHkcVRR2DwU=;
+	h=Date:To:From:Subject:Message-Id; b=thx7kJ95fmLARKp3o8fmhDn/JbIb/iisH7AwriiwMNqjH5s62LDolZflmrqrIOiVRJcDH1UnN6Lf8+5gUx5BUKMBafAYNcJn/1J9+Q2gGl4XvqwgEsYrtwm7IoemUm/2Z9ELd4ovKSNwWccNtOvKdWL3IURcBa8Qm4avNBGUKHg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X4qswwBF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f1+7ycYt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F920C4CEE2;
-	Mon, 14 Apr 2025 21:58:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X4qswwBF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5805C4CEE2;
+	Mon, 14 Apr 2025 22:02:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744667925;
-	bh=shDMQwERSY1383swrSSx8zHfyGRt/UWmfJN3MR7GQxM=;
+	s=korg; t=1744668144;
+	bh=s92rsj/HGI8BU+L6H0qQCpWiA8ITn3T/UHkcVRR2DwU=;
 	h=Date:To:From:Subject:From;
-	b=f1+7ycYt+4B0x+hdiUOdOHiDBjww2HCWIT8UXE5R+gmNK0PAgxTqtnD9wtBXXiphf
-	 Ci5Dy8g6HKiY8AsqNOT1+W8zpNv7WCNsppidqERolYdB4BWSwGgserOWTgfxfc4VNV
-	 nF7UDxWE1k1OfFDR+owwiROPSj8mClAFzceH6OOA=
-Date: Mon, 14 Apr 2025 14:58:44 -0700
-To: mm-commits@vger.kernel.org,yangge1116@126.com,wangkefeng.wang@huawei.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=X4qswwBFuL02W8ZeWV0qLRShYpW+kJKo5GPufr457eBPRaKzjoTBxBtOW6F/ld5cs
+	 SJHPGEMkKYfoGpE2RBRS5tYYwYfCivErN/7N3P2U7PMpAhsNBLUoc/z+w3RZtl2LmO
+	 Ray0h5Vym0WWMuISltZXzXXegwVbIjAcwXax822o=
+Date: Mon, 14 Apr 2025 15:02:24 -0700
+To: mm-commits@vger.kernel.org,teknoraver@meta.com,kernel@pengutronix.de,daniel.lezcano@linaro.org,axboe@kernel.dk,a.fatoum@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-swap-set-active-flag-after-adding-the-folio-to-activate-fbatch.patch removed from -mm tree
-Message-Id: <20250414215845.3F920C4CEE2@smtp.kernel.org>
+Subject: + docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250414220224.D5805C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,121 +34,110 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/swap: set active flag after adding the folio to activate fbatch
-has been removed from the -mm tree.  Its filename was
-     mm-swap-set-active-flag-after-adding-the-folio-to-activate-fbatch.patch
+The patch titled
+     Subject: docs: ABI: replace mcroce@microsoft.com with new Meta address
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/swap: set active flag after adding the folio to activate fbatch
-Date: Fri, 11 Apr 2025 16:28:57 +0800
+From: Ahmad Fatoum <a.fatoum@pengutronix.de>
+Subject: docs: ABI: replace mcroce@microsoft.com with new Meta address
+Date: Mon, 14 Apr 2025 09:35:31 +0200
 
-We notiched a 12.3% performance regression for LibMicro pwrite testcase
-due to commit 33dfe9204f29 ("mm/gup: clear the LRU flag of a page before
-adding to LRU batch").
+The Microsoft email address is bouncing:
 
-The testcase is executed as follows, and the file is tmpfs file.
-  pwrite -E -C 200 -L -S -W -N "pwrite_t1k" -s 1k -I 500 -f $TFILE
+    550 5.4.1 Recipient address rejected: Access denied.
 
-this testcase writes 1KB (only one page) to the tmpfs and repeats this
-step for many times.  The Flame graph shows the performance regression
-comes from folio_mark_accessed() and workingset_activation().
+So let's replace it with Matteo's current mail address.
 
-folio_mark_accessed() is called for the same page for many times.  Before
-the commit, each call will add the page to activate fbatch.  When the
-fbatch is full, the fbatch is drained and the page is promoted to active
-list.  And then, folio_mark_accessed() does nothing in later calls.
-
-But after the commit, the folio clear lru flags after it is added to
-activate fbatch.  After then, folio_mark_accessed will never call
-folio_activate() again due to the page is without lru flag, and the fbatch
-will not be full and the folio will not be marked active, later
-folio_mark_accessed() calls will always call workingset_activation(),
-leading to performance regression.
-
-Besides, repeated workingset_age_nonresident() call before the folio is
-drained from activate fbatch leads to unreasonable
-lruvec->nonresident_age.
-
-To fix it, set active flag after the folio is cleared lru flag when adding
-the folio to activate fbatch.
-
-Link: https://lkml.kernel.org/r/20250411082857.2426539-1-tujinjiang@huawei.com
-Fixes: 33dfe9204f29 ("mm/gup: clear the LRU flag of a page before adding to LRU batch")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: yangge <yangge1116@126.com>
+Link: https://lkml.kernel.org/r/20250414-fix-mcroce-mail-bounce-v3-1-0aed2d71f3d7@pengutronix.de
+Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
+Acked-by: Matteo Croce <teknoraver@meta.com>
+Link: https://lore.kernel.org/all/BYAPR15MB2504E4B02DFFB1E55871955DA1062@BYAPR15MB2504.namprd15.prod.outlook.com/
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matteo Croce <teknoraver@meta.com>
+Cc: Sascha Hauer <kernel@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ Documentation/ABI/stable/sysfs-block          |    2 +-
+ Documentation/ABI/testing/sysfs-kernel-reboot |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/swap.c~mm-swap-set-active-flag-after-adding-the-folio-to-activate-fbatch
-+++ a/mm/swap.c
-@@ -175,6 +175,8 @@ static void folio_batch_move_lru(struct
- 	folios_put(fbatch);
- }
+--- a/Documentation/ABI/stable/sysfs-block~docs-abi-replace-mcroce-microsoftcom-with-new-meta-address
++++ a/Documentation/ABI/stable/sysfs-block
+@@ -77,7 +77,7 @@ Description:
  
-+static void lru_activate(struct lruvec *lruvec, struct folio *folio);
-+
- static void __folio_batch_add_and_move(struct folio_batch __percpu *fbatch,
- 		struct folio *folio, move_fn_t move_fn,
- 		bool on_lru, bool disable_irq)
-@@ -184,6 +186,14 @@ static void __folio_batch_add_and_move(s
- 	if (on_lru && !folio_test_clear_lru(folio))
- 		return;
+ What:		/sys/block/<disk>/diskseq
+ Date:		February 2021
+-Contact:	Matteo Croce <mcroce@microsoft.com>
++Contact:	Matteo Croce <teknoraver@meta.com>
+ Description:
+ 		The /sys/block/<disk>/diskseq files reports the disk
+ 		sequence number, which is a monotonically increasing
+--- a/Documentation/ABI/testing/sysfs-kernel-reboot~docs-abi-replace-mcroce-microsoftcom-with-new-meta-address
++++ a/Documentation/ABI/testing/sysfs-kernel-reboot
+@@ -1,7 +1,7 @@
+ What:		/sys/kernel/reboot
+ Date:		November 2020
+ KernelVersion:	5.11
+-Contact:	Matteo Croce <mcroce@microsoft.com>
++Contact:	Matteo Croce <teknoraver@meta.com>
+ Description:	Interface to set the kernel reboot behavior, similarly to
+ 		what can be done via the reboot= cmdline option.
+ 		(see Documentation/admin-guide/kernel-parameters.txt)
+@@ -9,25 +9,25 @@ Description:	Interface to set the kernel
+ What:		/sys/kernel/reboot/mode
+ Date:		November 2020
+ KernelVersion:	5.11
+-Contact:	Matteo Croce <mcroce@microsoft.com>
++Contact:	Matteo Croce <teknoraver@meta.com>
+ Description:	Reboot mode. Valid values are: cold warm hard soft gpio
  
-+	if (move_fn == lru_activate) {
-+		if (folio_test_unevictable(folio)) {
-+			folio_set_lru(folio);
-+			return;
-+		}
-+		folio_set_active(folio);
-+	}
-+
- 	folio_get(folio);
+ What:		/sys/kernel/reboot/type
+ Date:		November 2020
+ KernelVersion:	5.11
+-Contact:	Matteo Croce <mcroce@microsoft.com>
++Contact:	Matteo Croce <teknoraver@meta.com>
+ Description:	Reboot type. Valid values are: bios acpi kbd triple efi pci
  
- 	if (disable_irq)
-@@ -299,12 +309,15 @@ static void lru_activate(struct lruvec *
- {
- 	long nr_pages = folio_nr_pages(folio);
+ What:		/sys/kernel/reboot/cpu
+ Date:		November 2020
+ KernelVersion:	5.11
+-Contact:	Matteo Croce <mcroce@microsoft.com>
++Contact:	Matteo Croce <teknoraver@meta.com>
+ Description:	CPU number to use to reboot.
  
--	if (folio_test_active(folio) || folio_test_unevictable(folio))
--		return;
--
-+	/*
-+	 * We check unevictable flag isn't set and set active flag
-+	 * after we clear lru flag. Unevictable and active flag
-+	 * couldn't be modified before we set lru flag again.
-+	 */
-+	VM_WARN_ON_ONCE(!folio_test_active(folio));
-+	VM_WARN_ON_ONCE(folio_test_unevictable(folio));
+ What:		/sys/kernel/reboot/force
+ Date:		November 2020
+ KernelVersion:	5.11
+-Contact:	Matteo Croce <mcroce@microsoft.com>
++Contact:	Matteo Croce <teknoraver@meta.com>
+ Description:	Don't wait for any other CPUs on reboot and
+ 		avoid anything that could hang.
  
- 	lruvec_del_folio(lruvec, folio);
--	folio_set_active(folio);
- 	lruvec_add_folio(lruvec, folio);
- 	trace_mm_lru_activate(folio);
- 
-@@ -341,6 +354,11 @@ void folio_activate(struct folio *folio)
- 	if (!folio_test_clear_lru(folio))
- 		return;
- 
-+	if (folio_test_unevictable(folio) || folio_test_active(folio)) {
-+		folio_set_lru(folio);
-+		return;
-+	}
-+	folio_set_active(folio);
- 	lruvec = folio_lruvec_lock_irq(folio);
- 	lru_activate(lruvec, folio);
- 	unlock_page_lruvec_irq(lruvec);
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from a.fatoum@pengutronix.de are
 
-mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch
+docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch
 
