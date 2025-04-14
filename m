@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FCEB4C74
-	for <mm-commits@vger.kernel.org>; Mon, 14 Apr 2025 19:41:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 717471DF98F
+	for <mm-commits@vger.kernel.org>; Mon, 14 Apr 2025 21:38:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744659681; cv=none; b=j23v/FkZ2bO+APY2gOUCWMwSAPhlYVPAlrqpTaeqRCal8HnINJrFTuJtl3d4ZBhE/lcr6dN78WoWWyDvGEQ3fnJCU0vjIT/65HHZpEVblOku1JP054MEj9GI8/9vnRRG0ywMPB5yNqwzNJc5vZh4dqCF4oo+3arjYqLgdJSfTo4=
+	t=1744666698; cv=none; b=OXZlvUO74zjlCwLJmZBTs06N9c9EkQkWFkRfcQZt+HdmHFT1mToVRdKo1M6dIwwbb0XC6tyGlVkGyPKrlwqn6YfVeqnk6swLlbNyfsPz/jNcxvW7ShexsikCGa+A5hJorXbAK1alywBRUYP2JxwXRe0rTfTLlidTOVJ8d53i6Xo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744659681; c=relaxed/simple;
-	bh=klmV08gmoJhxYj5iiWPOmtRPFAGtluVO61etFaieIhA=;
-	h=Date:To:From:Subject:Message-Id; b=nPDzEY8bUR68imm2VPfZ4YpOMikf3XzljWMRJhQNs5rGiwBzT6kES9whi6ubGMMsSaXMPrha5cC0W1cKqlmVMReMe5T9x+iQvWmJ7tpPPlS13X+F3EpPfMryxLTv14JIT6y9T2hGlqn6XHF2lXnN4urOBKuv2e4/oafaoug3fYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=loQD6db2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744666698; c=relaxed/simple;
+	bh=0ghsGP6rLoZ9tMK67RikN9L9QB60BaOFD+S2+umi07M=;
+	h=Date:To:From:Subject:Message-Id; b=gnd5Rf46YvsqanirILq8TDcFekXyyzUVrXGLKyQKUiAG3GjcbXoaXMHcOFPUF94XuV6wOEs1/pr0M8l6tS4Ynm0GYG/lEPfcA+Sv2F+PxEftUD6lpi+ckgZ/RUSus6A4lZEDdaOD7iAM0BULvoTy9lcUSiLzeznJ+9bMaRbvsT4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=19rO4JSG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="loQD6db2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A63DCC4CEE2;
-	Mon, 14 Apr 2025 19:41:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="19rO4JSG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B2BFC4CEE5;
+	Mon, 14 Apr 2025 21:38:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744659680;
-	bh=klmV08gmoJhxYj5iiWPOmtRPFAGtluVO61etFaieIhA=;
+	s=korg; t=1744666698;
+	bh=0ghsGP6rLoZ9tMK67RikN9L9QB60BaOFD+S2+umi07M=;
 	h=Date:To:From:Subject:From;
-	b=loQD6db2y9prW9tmwno1GgQxMWpHB0eHadA1DE7XYmgNmOIdOfpf8v5NIgmuDgPUd
-	 xU6j49Y87nqIWN7sx9zkOPAbSnx1rCrBcg7JKTSfB7wCuuZ5CkyjK/yzEqZhtSWhuF
-	 I57Zw7wV4ErLgRsvCakyClt4abHu9+caNf6HR8JE=
-Date: Mon, 14 Apr 2025 12:41:19 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,gautham.ananthakrishna@oracle.com,heming.zhao@suse.com,akpm@linux-foundation.org
+	b=19rO4JSGyX+shie3mSfBHTtgUci8gJgPUc28Khg8bchf3i8o8zEe8GrkoLCBP4noz
+	 HTIuxwmj1sU1fzrfhJl6qlEs27/BNQxUnUPxqUtR7gsHM7YOP9yMSbz04PyvTBeTYD
+	 A6GWMXONsMfZdt7B84EzgvYhsPvT/vYRpDaVhXuY=
+Date: Mon, 14 Apr 2025 14:38:17 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,peterz@infradead.org,mingzhe.yang@ly.com,mingo@redhat.com,mhiramat@kernel.org,longman@redhat.com,leonylgao@tencent.com,kent.overstreet@linux.dev,jstultz@google.com,joel.granados@kernel.org,boqun.feng@gmail.com,anna.schumaker@oracle.com,amaindex@outlook.com,akpm@linux-foundation.org,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] ocfs2-fixing-global-bitmap-allocating-failure-for-discontig-type.patch removed from -mm tree
-Message-Id: <20250414194120.A63DCC4CEE2@smtp.kernel.org>
+Subject: + hung_task-replace-blocker_mutex-with-encoded-blocker.patch added to mm-nonmm-unstable branch
+Message-Id: <20250414213818.2B2BFC4CEE5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,99 +34,340 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: ocfs2: fix global bitmap allocating failure for discontig type
-has been removed from the -mm tree.  Its filename was
-     ocfs2-fixing-global-bitmap-allocating-failure-for-discontig-type.patch
+The patch titled
+     Subject: hung_task: replace blocker_mutex with encoded blocker
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     hung_task-replace-blocker_mutex-with-encoded-blocker.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-replace-blocker_mutex-with-encoded-blocker.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: fix global bitmap allocating failure for discontig type
-Date: Tue, 1 Apr 2025 22:26:21 +0800
+From: Lance Yang <ioworker0@gmail.com>
+Subject: hung_task: replace blocker_mutex with encoded blocker
+Date: Mon, 14 Apr 2025 22:59:43 +0800
 
-commit 4eb7b93e0310 ("ocfs2: improve write IO performance when
-fragmentation is high") introduced a regression.  In the discontiguous
-extent allocation case, ocfs2_cluster_group_search() is comparing with the
-wrong target length, which causes allocation failure.
+Patch series "hung_task: extend blocking task stacktrace dump to
+semaphore", v5.
 
-Call stack:
-ocfs2_mkdir()
- ocfs2_reserve_new_inode()
-  ocfs2_reserve_suballoc_bits()
-   ocfs2_block_group_alloc()
-    ocfs2_block_group_alloc_discontig()
-     __ocfs2_claim_clusters()
-      ocfs2_claim_suballoc_bits()
-       ocfs2_search_chain()
-        ocfs2_cluster_group_search()
+Inspired by mutex blocker tracking[1], this patch series extend the
+feature to not only dump the blocker task holding a mutex but also to
+support semaphores.  Unlike mutexes, semaphores lack explicit ownership
+tracking, making it challenging to identify the root cause of hangs.  To
+address this, we introduce a last_holder field to the semaphore structure,
+which is updated when a task successfully calls down() and cleared during
+up().
 
-Link: https://lkml.kernel.org/r/20250401142623.31223-1-heming.zhao@suse.com
-Fixes: 4eb7b93e0310 ("ocfs2: improve write IO performance when fragmentation is high")
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Reported-by: Gautham Ananthakrishna <gautham.ananthakrishna@oracle.com>
-Tested-by: Gautham Ananthakrishna <gautham.ananthakrishna@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+The assumption is that if a task is blocked on a semaphore, the holders
+must not have released it.  While this does not guarantee that the last
+holder is one of the current blockers, it likely provides a practical hint
+for diagnosing semaphore-related stalls.
+
+With this change, the hung task detector can now show blocker task's info
+like below:
+
+[Tue Apr  8 12:19:07 2025] INFO: task cat:945 blocked for more than 120 seconds.
+[Tue Apr  8 12:19:07 2025]       Tainted: G            E      6.14.0-rc6+ #1
+[Tue Apr  8 12:19:07 2025] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[Tue Apr  8 12:19:07 2025] task:cat             state:D stack:0     pid:945   tgid:945   ppid:828    task_flags:0x400000 flags:0x00000000
+[Tue Apr  8 12:19:07 2025] Call Trace:
+[Tue Apr  8 12:19:07 2025]  <TASK>
+[Tue Apr  8 12:19:07 2025]  __schedule+0x491/0xbd0
+[Tue Apr  8 12:19:07 2025]  schedule+0x27/0xf0
+[Tue Apr  8 12:19:07 2025]  schedule_timeout+0xe3/0xf0
+[Tue Apr  8 12:19:07 2025]  ? __folio_mod_stat+0x2a/0x80
+[Tue Apr  8 12:19:07 2025]  ? set_ptes.constprop.0+0x27/0x90
+[Tue Apr  8 12:19:07 2025]  __down_common+0x155/0x280
+[Tue Apr  8 12:19:07 2025]  down+0x53/0x70
+[Tue Apr  8 12:19:07 2025]  read_dummy_semaphore+0x23/0x60
+[Tue Apr  8 12:19:07 2025]  full_proxy_read+0x5f/0xa0
+[Tue Apr  8 12:19:07 2025]  vfs_read+0xbc/0x350
+[Tue Apr  8 12:19:07 2025]  ? __count_memcg_events+0xa5/0x140
+[Tue Apr  8 12:19:07 2025]  ? count_memcg_events.constprop.0+0x1a/0x30
+[Tue Apr  8 12:19:07 2025]  ? handle_mm_fault+0x180/0x260
+[Tue Apr  8 12:19:07 2025]  ksys_read+0x66/0xe0
+[Tue Apr  8 12:19:07 2025]  do_syscall_64+0x51/0x120
+[Tue Apr  8 12:19:07 2025]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[Tue Apr  8 12:19:07 2025] RIP: 0033:0x7f419478f46e
+[Tue Apr  8 12:19:07 2025] RSP: 002b:00007fff1c4d2668 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+[Tue Apr  8 12:19:07 2025] RAX: ffffffffffffffda RBX: 0000000000020000 RCX: 00007f419478f46e
+[Tue Apr  8 12:19:07 2025] RDX: 0000000000020000 RSI: 00007f4194683000 RDI: 0000000000000003
+[Tue Apr  8 12:19:07 2025] RBP: 00007f4194683000 R08: 00007f4194682010 R09: 0000000000000000
+[Tue Apr  8 12:19:07 2025] R10: fffffffffffffbc5 R11: 0000000000000246 R12: 0000000000000000
+[Tue Apr  8 12:19:07 2025] R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
+[Tue Apr  8 12:19:07 2025]  </TASK>
+[Tue Apr  8 12:19:07 2025] INFO: task cat:945 blocked on a semaphore likely last held by task cat:938
+[Tue Apr  8 12:19:07 2025] task:cat             state:S stack:0     pid:938   tgid:938   ppid:584    task_flags:0x400000 flags:0x00000000
+[Tue Apr  8 12:19:07 2025] Call Trace:
+[Tue Apr  8 12:19:07 2025]  <TASK>
+[Tue Apr  8 12:19:07 2025]  __schedule+0x491/0xbd0
+[Tue Apr  8 12:19:07 2025]  ? _raw_spin_unlock_irqrestore+0xe/0x40
+[Tue Apr  8 12:19:07 2025]  schedule+0x27/0xf0
+[Tue Apr  8 12:19:07 2025]  schedule_timeout+0x77/0xf0
+[Tue Apr  8 12:19:07 2025]  ? __pfx_process_timeout+0x10/0x10
+[Tue Apr  8 12:19:07 2025]  msleep_interruptible+0x49/0x60
+[Tue Apr  8 12:19:07 2025]  read_dummy_semaphore+0x2d/0x60
+[Tue Apr  8 12:19:07 2025]  full_proxy_read+0x5f/0xa0
+[Tue Apr  8 12:19:07 2025]  vfs_read+0xbc/0x350
+[Tue Apr  8 12:19:07 2025]  ? __count_memcg_events+0xa5/0x140
+[Tue Apr  8 12:19:07 2025]  ? count_memcg_events.constprop.0+0x1a/0x30
+[Tue Apr  8 12:19:07 2025]  ? handle_mm_fault+0x180/0x260
+[Tue Apr  8 12:19:07 2025]  ksys_read+0x66/0xe0
+[Tue Apr  8 12:19:07 2025]  do_syscall_64+0x51/0x120
+[Tue Apr  8 12:19:07 2025]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[Tue Apr  8 12:19:07 2025] RIP: 0033:0x7f7c584a646e
+[Tue Apr  8 12:19:07 2025] RSP: 002b:00007ffdba8ce158 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+[Tue Apr  8 12:19:07 2025] RAX: ffffffffffffffda RBX: 0000000000020000 RCX: 00007f7c584a646e
+[Tue Apr  8 12:19:07 2025] RDX: 0000000000020000 RSI: 00007f7c5839a000 RDI: 0000000000000003
+[Tue Apr  8 12:19:07 2025] RBP: 00007f7c5839a000 R08: 00007f7c58399010 R09: 0000000000000000
+[Tue Apr  8 12:19:07 2025] R10: fffffffffffffbc5 R11: 0000000000000246 R12: 0000000000000000
+[Tue Apr  8 12:19:07 2025] R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
+[Tue Apr  8 12:19:07 2025]  </TASK>
+
+
+This patch (of 3):
+
+This patch replaces 'struct mutex *blocker_mutex' with 'unsigned long
+blocker', as only one blocker is active at a time.
+
+The blocker filed can store both the lock addrees and the lock type, with
+LSB used to encode the type as Masami suggested, making it easier to
+extend the feature to cover other types of locks.
+
+Also, once the lock type is determined, we can directly extract the
+address and cast it to a lock pointer ;)
+
+Link: https://lkml.kernel.org/r/20250414145945.84916-1-ioworker0@gmail.com
+Link: https://lore.kernel.org/all/174046694331.2194069.15472952050240807469.stgit@mhiramat.tok.corp.google.com [1]
+Link: https://lkml.kernel.org/r/20250414145945.84916-2-ioworker0@gmail.com
+Signed-off-by: Mingzhe Yang <mingzhe.yang@ly.com>
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Anna Schumaker <anna.schumaker@oracle.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: John Stultz <jstultz@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tomasz Figa <tfiga@chromium.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yongliang Gao <leonylgao@tencent.com>
+Cc: Zi Li <amaindex@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   10 ++++++++--
- fs/ocfs2/suballoc.h |    1 +
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ include/linux/hung_task.h |   99 ++++++++++++++++++++++++++++++++++++
+ include/linux/sched.h     |    6 +-
+ kernel/hung_task.c        |   13 ++--
+ kernel/locking/mutex.c    |    5 +
+ 4 files changed, 115 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-fixing-global-bitmap-allocating-failure-for-discontig-type
-+++ a/fs/ocfs2/suballoc.c
-@@ -698,10 +698,12 @@ static int ocfs2_block_group_alloc(struc
- 
- 	bg_bh = ocfs2_block_group_alloc_contig(osb, handle, alloc_inode,
- 					       ac, cl);
--	if (PTR_ERR(bg_bh) == -ENOSPC)
-+	if (PTR_ERR(bg_bh) == -ENOSPC) {
-+		ac->ac_which = OCFS2_AC_USE_MAIN_DISCONTIG;
- 		bg_bh = ocfs2_block_group_alloc_discontig(handle,
- 							  alloc_inode,
- 							  ac, cl);
-+	}
- 	if (IS_ERR(bg_bh)) {
- 		status = PTR_ERR(bg_bh);
- 		bg_bh = NULL;
-@@ -2365,7 +2367,8 @@ int __ocfs2_claim_clusters(handle_t *han
- 	BUG_ON(ac->ac_bits_given >= ac->ac_bits_wanted);
- 
- 	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL
--	       && ac->ac_which != OCFS2_AC_USE_MAIN);
-+	       && ac->ac_which != OCFS2_AC_USE_MAIN
-+	       && ac->ac_which != OCFS2_AC_USE_MAIN_DISCONTIG);
- 
- 	if (ac->ac_which == OCFS2_AC_USE_LOCAL) {
- 		WARN_ON(min_clusters > 1);
-@@ -2429,6 +2432,9 @@ int ocfs2_claim_clusters(handle_t *handl
- {
- 	unsigned int bits_wanted = ac->ac_bits_wanted - ac->ac_bits_given;
- 
-+	if (ac->ac_which == OCFS2_AC_USE_MAIN_DISCONTIG)
-+		bits_wanted = min_clusters;
+diff --git a/include/linux/hung_task.h a/include/linux/hung_task.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/hung_task.h
+@@ -0,0 +1,99 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Detect Hung Task: detecting tasks stuck in D state
++ *
++ * Copyright (C) 2025 Tongcheng Travel (www.ly.com)
++ * Author: Lance Yang <mingzhe.yang@ly.com>
++ */
++#ifndef __LINUX_HUNG_TASK_H
++#define __LINUX_HUNG_TASK_H
 +
- 	return __ocfs2_claim_clusters(handle, ac, min_clusters,
- 				      bits_wanted, cluster_start, num_clusters);
- }
---- a/fs/ocfs2/suballoc.h~ocfs2-fixing-global-bitmap-allocating-failure-for-discontig-type
-+++ a/fs/ocfs2/suballoc.h
-@@ -29,6 +29,7 @@ struct ocfs2_alloc_context {
- #define OCFS2_AC_USE_MAIN  2
- #define OCFS2_AC_USE_INODE 3
- #define OCFS2_AC_USE_META  4
-+#define OCFS2_AC_USE_MAIN_DISCONTIG  5
- 	u32    ac_which;
++#include <linux/bug.h>
++#include <linux/sched.h>
++#include <linux/compiler.h>
++
++/*
++ * @blocker: Combines lock address and blocking type.
++ *
++ * Since lock pointers are at least 4-byte aligned(32-bit) or 8-byte
++ * aligned(64-bit). This leaves the 2 least bits (LSBs) of the pointer
++ * always zero. So we can use these bits to encode the specific blocking
++ * type.
++ *
++ * Type encoding:
++ * 00 - Blocked on mutex        (BLOCKER_TYPE_MUTEX)
++ * 01 - Blocked on semaphore    (BLOCKER_TYPE_SEM)
++ * 10 - Blocked on rt-mutex     (BLOCKER_TYPE_RTMUTEX)
++ * 11 - Blocked on rw-semaphore (BLOCKER_TYPE_RWSEM)
++ */
++#define BLOCKER_TYPE_MUTEX      0x00UL
++#define BLOCKER_TYPE_SEM        0x01UL
++#define BLOCKER_TYPE_RTMUTEX    0x02UL
++#define BLOCKER_TYPE_RWSEM      0x03UL
++
++#define BLOCKER_TYPE_MASK       0x03UL
++
++#ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
++static inline void hung_task_set_blocker(void *lock, unsigned long type)
++{
++	unsigned long lock_ptr = (unsigned long)lock;
++
++	WARN_ON_ONCE(!lock_ptr);
++	WARN_ON_ONCE(READ_ONCE(current->blocker));
++
++	/*
++	 * If the lock pointer matches the BLOCKER_TYPE_MASK, return
++	 * without writing anything.
++	 */
++	if (WARN_ON_ONCE(lock_ptr & BLOCKER_TYPE_MASK))
++		return;
++
++	WRITE_ONCE(current->blocker, lock_ptr | type);
++}
++
++static inline void hung_task_clear_blocker(void)
++{
++	WARN_ON_ONCE(!READ_ONCE(current->blocker));
++
++	WRITE_ONCE(current->blocker, 0UL);
++}
++
++/*
++ * hung_task_get_blocker_type - Extracts blocker type from encoded blocker
++ * address.
++ *
++ * @blocker: Blocker pointer with encoded type (via LSB bits)
++ *
++ * Returns: BLOCKER_TYPE_MUTEX, BLOCKER_TYPE_SEM, etc.
++ */
++static inline unsigned long hung_task_get_blocker_type(unsigned long blocker)
++{
++	WARN_ON_ONCE(!blocker);
++
++	return blocker & BLOCKER_TYPE_MASK;
++}
++
++static inline void *hung_task_blocker_to_lock(unsigned long blocker)
++{
++	WARN_ON_ONCE(!blocker);
++
++	return (void *)(blocker & ~BLOCKER_TYPE_MASK);
++}
++#else
++static inline void hung_task_set_blocker(void *lock, unsigned long type)
++{
++}
++static inline void hung_task_clear_blocker(void)
++{
++}
++static inline unsigned long hung_task_get_blocker_type(unsigned long blocker)
++{
++	return 0UL;
++}
++static inline void *hung_task_blocker_to_lock(unsigned long blocker)
++{
++	return NULL;
++}
++#endif
++
++#endif /* __LINUX_HUNG_TASK_H */
+--- a/include/linux/sched.h~hung_task-replace-blocker_mutex-with-encoded-blocker
++++ a/include/linux/sched.h
+@@ -1244,7 +1244,11 @@ struct task_struct {
+ #endif
  
- 	/* these are used by the chain search */
+ #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
+-	struct mutex			*blocker_mutex;
++	/*
++	 * Encoded lock address causing task block (lower 2 bits = type from
++	 * <linux/hung_task.h>). Accessed via hung_task_*() helpers.
++	 */
++	unsigned long			blocker;
+ #endif
+ 
+ #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
+--- a/kernel/hung_task.c~hung_task-replace-blocker_mutex-with-encoded-blocker
++++ a/kernel/hung_task.c
+@@ -22,6 +22,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/sched/debug.h>
+ #include <linux/sched/sysctl.h>
++#include <linux/hung_task.h>
+ 
+ #include <trace/events/sched.h>
+ 
+@@ -98,16 +99,18 @@ static struct notifier_block panic_block
+ static void debug_show_blocker(struct task_struct *task)
+ {
+ 	struct task_struct *g, *t;
+-	unsigned long owner;
+-	struct mutex *lock;
++	unsigned long owner, blocker;
+ 
+ 	RCU_LOCKDEP_WARN(!rcu_read_lock_held(), "No rcu lock held");
+ 
+-	lock = READ_ONCE(task->blocker_mutex);
+-	if (!lock)
++	blocker = READ_ONCE(task->blocker);
++	if (!blocker ||
++	    hung_task_get_blocker_type(blocker) != BLOCKER_TYPE_MUTEX)
+ 		return;
+ 
+-	owner = mutex_get_owner(lock);
++	owner = mutex_get_owner(
++		(struct mutex *)hung_task_blocker_to_lock(blocker));
++
+ 	if (unlikely(!owner)) {
+ 		pr_err("INFO: task %s:%d is blocked on a mutex, but the owner is not found.\n",
+ 			task->comm, task->pid);
+--- a/kernel/locking/mutex.c~hung_task-replace-blocker_mutex-with-encoded-blocker
++++ a/kernel/locking/mutex.c
+@@ -29,6 +29,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/debug_locks.h>
+ #include <linux/osq_lock.h>
++#include <linux/hung_task.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/lock.h>
+@@ -191,7 +192,7 @@ __mutex_add_waiter(struct mutex *lock, s
+ 		   struct list_head *list)
+ {
+ #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
+-	WRITE_ONCE(current->blocker_mutex, lock);
++	hung_task_set_blocker(lock, BLOCKER_TYPE_MUTEX);
+ #endif
+ 	debug_mutex_add_waiter(lock, waiter, current);
+ 
+@@ -209,7 +210,7 @@ __mutex_remove_waiter(struct mutex *lock
+ 
+ 	debug_mutex_remove_waiter(lock, waiter, current);
+ #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
+-	WRITE_ONCE(current->blocker_mutex, NULL);
++	hung_task_clear_blocker();
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from heming.zhao@suse.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
+hung_task-replace-blocker_mutex-with-encoded-blocker.patch
+hung_task-show-the-blocker-task-if-the-task-is-hung-on-semaphore.patch
 
