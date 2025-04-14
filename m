@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E60D1448E0
-	for <mm-commits@vger.kernel.org>; Mon, 14 Apr 2025 22:02:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4939F156236
+	for <mm-commits@vger.kernel.org>; Mon, 14 Apr 2025 23:00:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744668145; cv=none; b=bbdveHq2894KUxKbIa3oY5RHpSoARuVGPA8XE+r64gSCYSSull5ckkkbQmw/Dv2ypKRep7ye/dmzbuAT+8b2w07ONNbApkCDBp53chEdUl5prhnflU2VKS6CJPBi4CiOeYvdDyAVSHnRqDSkyJA1w6vVEvjugWV2LUIDjhz4QM4=
+	t=1744671625; cv=none; b=g8ccA3Mt+WNgsFnZokJ08cmPJKIl/YdLvEyjIDGw55ZFeLq0QAyavanawnnnGHXkCKYGMNW5hW4uQewQ91+DUakgu4LVr3+7/oFmw5FAizVdL0Ztfd3n122jJfI6lYbx1WbY7xgTnfw0bWGaGddSqL/6ayxPbha80A6+e0LQSsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744668145; c=relaxed/simple;
-	bh=s92rsj/HGI8BU+L6H0qQCpWiA8ITn3T/UHkcVRR2DwU=;
-	h=Date:To:From:Subject:Message-Id; b=thx7kJ95fmLARKp3o8fmhDn/JbIb/iisH7AwriiwMNqjH5s62LDolZflmrqrIOiVRJcDH1UnN6Lf8+5gUx5BUKMBafAYNcJn/1J9+Q2gGl4XvqwgEsYrtwm7IoemUm/2Z9ELd4ovKSNwWccNtOvKdWL3IURcBa8Qm4avNBGUKHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X4qswwBF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744671625; c=relaxed/simple;
+	bh=gtAlc2Z2F/o6dUa9AOLv9hBzPntHF7/4auXz+dSc3Qs=;
+	h=Date:To:From:Subject:Message-Id; b=H9o0prWyM5lPLQdHpvBcDm1/fDww5+4ClR92zAKL0Vgq+/twm9R2qH4Y8/uHOrjYBZNS/ZcK2PxX1HPNI+4OnsoTlFrJSM4vkcVG0uKpSNXsOJChr3njLlKRf+Wu+YpSuLq5O6SBsfCEN47C2OCuwc3YKhpEswcUK6WYN+3i/zs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u2Or6vUT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X4qswwBF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5805C4CEE2;
-	Mon, 14 Apr 2025 22:02:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u2Or6vUT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1606C4CEE2;
+	Mon, 14 Apr 2025 23:00:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744668144;
-	bh=s92rsj/HGI8BU+L6H0qQCpWiA8ITn3T/UHkcVRR2DwU=;
+	s=korg; t=1744671625;
+	bh=gtAlc2Z2F/o6dUa9AOLv9hBzPntHF7/4auXz+dSc3Qs=;
 	h=Date:To:From:Subject:From;
-	b=X4qswwBFuL02W8ZeWV0qLRShYpW+kJKo5GPufr457eBPRaKzjoTBxBtOW6F/ld5cs
-	 SJHPGEMkKYfoGpE2RBRS5tYYwYfCivErN/7N3P2U7PMpAhsNBLUoc/z+w3RZtl2LmO
-	 Ray0h5Vym0WWMuISltZXzXXegwVbIjAcwXax822o=
-Date: Mon, 14 Apr 2025 15:02:24 -0700
-To: mm-commits@vger.kernel.org,teknoraver@meta.com,kernel@pengutronix.de,daniel.lezcano@linaro.org,axboe@kernel.dk,a.fatoum@pengutronix.de,akpm@linux-foundation.org
+	b=u2Or6vUTIdJ5EIZvE5/GGfrWGtCh7OVmNkCwnNK/CecUruMHdPN1Bj3JwR3/q3tav
+	 6UX+C82bdqhFvMn+1KA5UNimVcFHyx/Ix0WnnB0dOtU6TUahqAjYh126hknTMxquBE
+	 O4u6rnaFslcgRCk1Qpcm5gjlvdYISfGktev+toNg=
+Date: Mon, 14 Apr 2025 16:00:24 -0700
+To: mm-commits@vger.kernel.org,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250414220224.D5805C4CEE2@smtp.kernel.org>
+Subject: + mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5.patch added to mm-new branch
+Message-Id: <20250414230024.E1606C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: ABI: replace mcroce@microsoft.com with new Meta address
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch
+     Subject: mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5
+has been added to the -mm mm-new branch.  Its filename is
+     mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Subject: docs: ABI: replace mcroce@microsoft.com with new Meta address
-Date: Mon, 14 Apr 2025 09:35:31 +0200
+From: Baoquan He <bhe@redhat.com>
+Subject: mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5
+Date: Sun, 13 Apr 2025 10:04:47 +0800
 
-The Microsoft email address is bouncing:
+address minor concerns from David
 
-    550 5.4.1 Recipient address rejected: Access denied.
-
-So let's replace it with Matteo's current mail address.
-
-Link: https://lkml.kernel.org/r/20250414-fix-mcroce-mail-bounce-v3-1-0aed2d71f3d7@pengutronix.de
-Signed-off-by: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Acked-by: Matteo Croce <teknoraver@meta.com>
-Link: https://lore.kernel.org/all/BYAPR15MB2504E4B02DFFB1E55871955DA1062@BYAPR15MB2504.namprd15.prod.outlook.com/
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matteo Croce <teknoraver@meta.com>
-Cc: Sascha Hauer <kernel@pengutronix.de>
+Link: https://lkml.kernel.org/r/Z/sbv3EmLXWgEE7+@MiWiFi-R3L-srv
+Signed-off-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/stable/sysfs-block          |    2 +-
- Documentation/ABI/testing/sysfs-kernel-reboot |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/gup.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/Documentation/ABI/stable/sysfs-block~docs-abi-replace-mcroce-microsoftcom-with-new-meta-address
-+++ a/Documentation/ABI/stable/sysfs-block
-@@ -77,7 +77,7 @@ Description:
+--- a/mm/gup.c~mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5
++++ a/mm/gup.c
+@@ -2115,18 +2115,16 @@ size_t fault_in_writeable(char __user *u
+ {
+ 	const unsigned long start = (unsigned long)uaddr;
+ 	const unsigned long end = start + size;
+-	unsigned long cur = start;
++	unsigned long cur;
  
- What:		/sys/block/<disk>/diskseq
- Date:		February 2021
--Contact:	Matteo Croce <mcroce@microsoft.com>
-+Contact:	Matteo Croce <teknoraver@meta.com>
- Description:
- 		The /sys/block/<disk>/diskseq files reports the disk
- 		sequence number, which is a monotonically increasing
---- a/Documentation/ABI/testing/sysfs-kernel-reboot~docs-abi-replace-mcroce-microsoftcom-with-new-meta-address
-+++ a/Documentation/ABI/testing/sysfs-kernel-reboot
-@@ -1,7 +1,7 @@
- What:		/sys/kernel/reboot
- Date:		November 2020
- KernelVersion:	5.11
--Contact:	Matteo Croce <mcroce@microsoft.com>
-+Contact:	Matteo Croce <teknoraver@meta.com>
- Description:	Interface to set the kernel reboot behavior, similarly to
- 		what can be done via the reboot= cmdline option.
- 		(see Documentation/admin-guide/kernel-parameters.txt)
-@@ -9,25 +9,25 @@ Description:	Interface to set the kernel
- What:		/sys/kernel/reboot/mode
- Date:		November 2020
- KernelVersion:	5.11
--Contact:	Matteo Croce <mcroce@microsoft.com>
-+Contact:	Matteo Croce <teknoraver@meta.com>
- Description:	Reboot mode. Valid values are: cold warm hard soft gpio
+ 	if (unlikely(size == 0))
+ 		return 0;
+-
+ 	if (!user_write_access_begin(uaddr, size))
+ 		return size;
  
- What:		/sys/kernel/reboot/type
- Date:		November 2020
- KernelVersion:	5.11
--Contact:	Matteo Croce <mcroce@microsoft.com>
-+Contact:	Matteo Croce <teknoraver@meta.com>
- Description:	Reboot type. Valid values are: bios acpi kbd triple efi pci
+ 	/* Stop once we overflow to 0. */
+-	for (; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
++	for (cur = start; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
+ 		unsafe_put_user(0, (char __user *)cur, out);
+-
+ out:
+ 	user_write_access_end();
+ 	if (size > cur - start)
+@@ -2186,7 +2184,7 @@ size_t fault_in_safe_writeable(const cha
+ {
+ 	const unsigned long start = (unsigned long)uaddr;
+ 	const unsigned long end = start + size;
+-	unsigned long cur = start;
++	unsigned long cur;
+ 	struct mm_struct *mm = current->mm;
+ 	bool unlocked = false;
  
- What:		/sys/kernel/reboot/cpu
- Date:		November 2020
- KernelVersion:	5.11
--Contact:	Matteo Croce <mcroce@microsoft.com>
-+Contact:	Matteo Croce <teknoraver@meta.com>
- Description:	CPU number to use to reboot.
+@@ -2195,7 +2193,7 @@ size_t fault_in_safe_writeable(const cha
  
- What:		/sys/kernel/reboot/force
- Date:		November 2020
- KernelVersion:	5.11
--Contact:	Matteo Croce <mcroce@microsoft.com>
-+Contact:	Matteo Croce <teknoraver@meta.com>
- Description:	Don't wait for any other CPUs on reboot and
- 		avoid anything that could hang.
+ 	mmap_read_lock(mm);
+ 	/* Stop once we overflow to 0. */
+-	for (; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
++	for (cur = start; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
+ 		if (fixup_user_fault(mm, cur, FAULT_FLAG_WRITE, &unlocked))
+ 			break;
+ 	mmap_read_unlock(mm);
+@@ -2218,15 +2216,16 @@ size_t fault_in_readable(const char __us
+ {
+ 	const unsigned long start = (unsigned long)uaddr;
+ 	const unsigned long end = start + size;
+-	unsigned long cur = start;
++	unsigned long cur;
+ 	volatile char c;
  
+ 	if (unlikely(size == 0))
+ 		return 0;
+ 	if (!user_read_access_begin(uaddr, size))
+ 		return size;
++
+ 	/* Stop once we overflow to 0. */
+-	for (; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
++	for (cur = start; cur && cur < end; cur = PAGE_ALIGN_DOWN(cur + PAGE_SIZE))
+ 		unsafe_get_user(c, (const char __user *)cur, out);
+ out:
+ 	user_read_access_end();
 _
 
-Patches currently in -mm which might be from a.fatoum@pengutronix.de are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-docs-abi-replace-mcroce-microsoftcom-with-new-meta-address.patch
+mm-gup-fix-wrongly-calculated-returned-value-in-fault_in_safe_writeable.patch
+mm-gup-remove-unneeded-checking-in-follow_page_pte.patch
+mm-gup-remove-gup_fast_pgd_leaf-and-clean-up-the-relevant-codes.patch
+mm-gup-clean-up-codes-in-fault_in_xxx-functions.patch
+mm-gup-clean-up-codes-in-fault_in_xxx-functions-v5.patch
 
