@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891C0224AE4
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 22:05:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 606B02DFA42
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 22:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744841154; cv=none; b=kGkmxj92yChIB8iRrU/9Pi8G8veASdhXuZ4RNeP2tSebwRx5YGuvXStngSZ13RGlWylolIAsbVWjXbayz8UXenoWWJBJ2YWW5AAz9/j6tC1ERs91RubAOczuv1BS28oxV5fH3ps+HVoxaluMnazjLGB9GIO0kSW2F5cyHIO++Mo=
+	t=1744841967; cv=none; b=ss+dB1wkBZgHJz4z1TcNpjUqdiczPmtcQmNr/uDe3UCQeIABp4x0s4guZ8bq4kyLbVY06FtCejc0ef+ff3UyKRmhDjAGeiHmZNEwYv4BpE8wozaTTAUOdxrDbsdGPrauzAHr4mbEjCm+TjoFngHZnp/t3+X9ZU+tVUFEpJRl7Ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744841154; c=relaxed/simple;
-	bh=6H5kN+3dIistMZwNxdhbS1CCVCVjEAxTuXam8N++VXg=;
-	h=Date:To:From:Subject:Message-Id; b=YM+kCTsaWPf3S2MviMYCICf/0YVr51/hnGUlGdvI6FkuH79wFpYxHDKwnf0AGTrJkyl7Vj2zKGbTzBRFODdGo6pxsbyvunCT/VmR9d2HLmwbUHLfemY/ONU9CMFZMcORsTYP8WsjZf8ie7Xmx51DgkxqAvJUlP0nyFTrHuRp59k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pAINqaum; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744841967; c=relaxed/simple;
+	bh=TDBBfVR+qAa4zu3u5QMqyArmZzDkTPTfrNKaFY+iu/k=;
+	h=Date:To:From:Subject:Message-Id; b=FKfeMolEFXfEy/pFFzqsoopuCGTcDiOYKb/6xrWYnVDihhDEju7g0TPkkneYkdvs6Z3auDgvsHECxs86+OlRNrYVNXksmJcjXK9/GdnT8CXeXLXgpSttxVFYvBjvQJ6AOYcxIVf4xoltxetPRN1drIBIPB5//SrUGuRd6y7ouUg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o40Kk153; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pAINqaum"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D65C6C4CEE4;
-	Wed, 16 Apr 2025 22:05:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o40Kk153"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C31CC4CEE2;
+	Wed, 16 Apr 2025 22:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744841153;
-	bh=6H5kN+3dIistMZwNxdhbS1CCVCVjEAxTuXam8N++VXg=;
+	s=korg; t=1744841966;
+	bh=TDBBfVR+qAa4zu3u5QMqyArmZzDkTPTfrNKaFY+iu/k=;
 	h=Date:To:From:Subject:From;
-	b=pAINqaum8L+WHSAvCn2Ru8swUfObpR/RjQQlXeMYq5d3xIKL2K/205zqw+0n7EG5P
-	 swZtIVd+D7+LR5Dnv2EBKebwXsCILmGXE67sRk0PSmvzj0npeIHxiXU4+6exNDEJxC
-	 /OPxyOaEVzoWt0/6XEv79raBwjw4dI3S5dTuqJwE=
-Date: Wed, 16 Apr 2025 15:05:53 -0700
-To: mm-commits@vger.kernel.org,ebiggers@kernel.org,csander@purestorage.com,akpm@linux-foundation.org
+	b=o40Kk153OHohhFiqdvo4Xw4xcsU6Bmpfclm8x7lbUeWFAm41N9jRaoeIS542ql5f9
+	 /TO/NLJVEz/qc2AYJm+FDKR4wj/hFqpznCBMP7ncGU7pxOMPqOmyiPawgDLcq67Dnm
+	 ECCnUE8x8Yx2fCBOQ2Int8Aw45Mt2EbTkijjRU2c=
+Date: Wed, 16 Apr 2025 15:19:25 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scatterlist-inline-sg_next.patch added to mm-nonmm-unstable branch
-Message-Id: <20250416220553.D65C6C4CEE4@smtp.kernel.org>
+Subject: + maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250416221926.8C31CC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scatterlist: inline sg_next()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scatterlist-inline-sg_next.patch
+     Subject: MAINTAINERS: add Pedro as reviewer to the MEMORY MAPPING section
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scatterlist-inline-sg_next.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,97 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Caleb Sander Mateos <csander@purestorage.com>
-Subject: scatterlist: inline sg_next()
-Date: Wed, 16 Apr 2025 10:06:13 -0600
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: MAINTAINERS: add Pedro as reviewer to the MEMORY MAPPING section
+Date: Wed, 16 Apr 2025 14:53:01 +0100
 
-sg_next() is a short function called frequently in I/O paths. Define it
-in the header file so it can be inlined into its callers.
+Pedro has offered to review memory mapping code.  He has good experience
+in this area and has provided excellent feedback on memory mapping series
+in the past so I feel he'll be a great addition.
 
-Link: https://lkml.kernel.org/r/20250416160615.3571958-1-csander@purestorage.com
-Signed-off-by: Caleb Sander Mateos <csander@purestorage.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
+Link: https://lkml.kernel.org/r/20250416135301.43513-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |   23 ++++++++++++++++++++++-
- lib/scatterlist.c           |   23 -----------------------
- 2 files changed, 22 insertions(+), 24 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/scatterlist.h~scatterlist-inline-sg_next
-+++ a/include/linux/scatterlist.h
-@@ -95,6 +95,28 @@ static inline bool sg_is_last(struct sca
- }
- 
- /**
-+ * sg_next - return the next scatterlist entry in a list
-+ * @sg:		The current sg entry
-+ *
-+ * Description:
-+ *   Usually the next entry will be @sg@ + 1, but if this sg element is part
-+ *   of a chained scatterlist, it could jump to the start of a new
-+ *   scatterlist array.
-+ *
-+ **/
-+static inline struct scatterlist *sg_next(struct scatterlist *sg)
-+{
-+	if (sg_is_last(sg))
-+		return NULL;
-+
-+	sg++;
-+	if (unlikely(sg_is_chain(sg)))
-+		sg = sg_chain_ptr(sg);
-+
-+	return sg;
-+}
-+
-+/**
-  * sg_assign_page - Assign a given page to an SG entry
-  * @sg:		    SG entry
-  * @page:	    The page
-@@ -418,7 +440,6 @@ static inline void sg_init_marker(struct
- 
- int sg_nents(struct scatterlist *sg);
- int sg_nents_for_len(struct scatterlist *sg, u64 len);
--struct scatterlist *sg_next(struct scatterlist *);
- struct scatterlist *sg_last(struct scatterlist *s, unsigned int);
- void sg_init_table(struct scatterlist *, unsigned int);
- void sg_init_one(struct scatterlist *, const void *, unsigned int);
---- a/lib/scatterlist.c~scatterlist-inline-sg_next
-+++ a/lib/scatterlist.c
-@@ -14,29 +14,6 @@
- #include <linux/folio_queue.h>
- 
- /**
-- * sg_next - return the next scatterlist entry in a list
-- * @sg:		The current sg entry
-- *
-- * Description:
-- *   Usually the next entry will be @sg@ + 1, but if this sg element is part
-- *   of a chained scatterlist, it could jump to the start of a new
-- *   scatterlist array.
-- *
-- **/
--struct scatterlist *sg_next(struct scatterlist *sg)
--{
--	if (sg_is_last(sg))
--		return NULL;
--
--	sg++;
--	if (unlikely(sg_is_chain(sg)))
--		sg = sg_chain_ptr(sg);
--
--	return sg;
--}
--EXPORT_SYMBOL(sg_next);
--
--/**
-  * sg_nents - return total count of entries in scatterlist
-  * @sg:		The scatterlist
-  *
+--- a/MAINTAINERS~maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section
++++ a/MAINTAINERS
+@@ -15554,6 +15554,7 @@ M:	Liam R. Howlett <Liam.Howlett@oracle.
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+ R:	Jann Horn <jannh@google.com>
++R:	Pedro Falcato <pfalcato@suse.de>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from csander@purestorage.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-scatterlist-inline-sg_next.patch
+maintainers-add-memory-advice-section.patch
+maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section.patch
+mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
+tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
+tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
 
