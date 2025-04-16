@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BCBC9478
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 22:35:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACCF5229B38;
+	Wed, 16 Apr 2025 22:46:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744842923; cv=none; b=BffmW78iCdxrMS5MUNBC95+/DpDk5kue2e3XQJ6bNptR3ICUZ/iIf8BG8A+z9FBxJd+KrQGmw9W+WmtSHeaRAVJ7BctcxiRqtJP/trqiJMflFNcgjw9i6Qy/Iqr4jv7PkR4wiYwSLB6+zqDRzkFi3up9mI3zf/DoCZeRIkQySvE=
+	t=1744843602; cv=none; b=nWjRIQIWrUIg+4Us7xrj6U8C8Z3BvfE6aA2cbgAdWUFzpSSoBn/ljwvgSQYF1clofL2pT0TusqxH58U2+cXQ6PE81BnpZb3psdmKCzsmVWfvRgqreEYCgk8DADNX6oPbP3WOeDIfynO+VcNSHoPPXZxiWxVDnKoy3jJmUKpfkuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744842923; c=relaxed/simple;
-	bh=YCD88qMsr3vsyaz6AlRHmEjzDdUNalPyukHiGJcP610=;
-	h=Date:To:From:Subject:Message-Id; b=Im3YyJr4smNdFBHuv3s32NmAh1d8ngq/TzOp516A+EIFuN1VJHnLhNOHA5AU2+jtp0nD0eV2oPJ0Pgg1fVeyrjwB/1j5B26307h/cBzDz9mZFnVMNBp90CxzleZQAumrvrYjWBjD6ft+mWjEy89B+UWtKpEzBqcQaRxrR+ZPrvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H+yvHEZV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744843602; c=relaxed/simple;
+	bh=WB6mcI3jVEFzI/xAzc/tVMORbnipzR4etpqawZpGjis=;
+	h=Date:To:From:Subject:Message-Id; b=TMgowq6q043nHsBRUYCGApIBcmLKxQUxsfSENslIljF4uZdUV7J9F3jQWRqNtd3EoZKPZywVGnVKKllCBQRZCG20R++/r5Y5BkbvoIwto+10+rcH/u5toN40VBGjIqaAOKvveTf+KMVgxi1K6z55oCdNy3Jb3r5WnHfYgESLOMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dzyl40rA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H+yvHEZV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8175CC4CEE2;
-	Wed, 16 Apr 2025 22:35:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dzyl40rA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 218EAC4CEE2;
+	Wed, 16 Apr 2025 22:46:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744842922;
-	bh=YCD88qMsr3vsyaz6AlRHmEjzDdUNalPyukHiGJcP610=;
+	s=korg; t=1744843602;
+	bh=WB6mcI3jVEFzI/xAzc/tVMORbnipzR4etpqawZpGjis=;
 	h=Date:To:From:Subject:From;
-	b=H+yvHEZVYKja1z35wjXoB8aMtB9wgqaiyiXh+dYURrZ0/ep4X+m7fLHQ9e5Y6e5n7
-	 PXXRP4bgHeU4XZuYK8PYZaNt1/D2rEw7HiPcLzYWGhztoNiR+J2G2DmgARl/uK4p97
-	 PjGi0OOmnXxeVQR7Zw2QVNfjTksVNMvo/sNEG+kg=
-Date: Wed, 16 Apr 2025 15:35:21 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,ryan.roberts@arm.com,Markus.Elfring@web.de,ioworker0@gmail.com,gshan@redhat.com,dev.jain@arm.com,david@redhat.com,catalin.marinas@arm.com,21cnbao@gmail.com,xavier_qy@163.com,akpm@linux-foundation.org
+	b=Dzyl40rAXU0f8VrVbew3VM5PQt2ISQOp8tbuaw/d+DXxm8olhpPqdIRS2xMIRGMkM
+	 nMmeSGph+yX66KC47Gogq2V8uC4UBkj+G5w0lFjv4UZ4eJlAxsoxyobGcLIm9+YoQq
+	 C8ZcFOh3e9xf1Ht1ZyQyJRyGI3nAaXeTuqlT2h+U=
+Date: Wed, 16 Apr 2025 15:46:41 -0700
+To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,osalvador@suse.de,joshua.hahnjy@gmail.com,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,gourry@gourry.net,david@redhat.com,dan.j.williams@intel.com,rakie.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-contpte-optimize-loop-to-reduce-redundant-operations.patch removed from -mm tree
-Message-Id: <20250416223522.8175CC4CEE2@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-memory-leaks-in-weighted-interleave-sysfs.patch added to mm-new branch
+Message-Id: <20250416224642.218EAC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,216 +34,259 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/contpte: optimize loop to reduce redundant operations
-has been removed from the -mm tree.  Its filename was
-     mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
+The patch titled
+     Subject: mm/mempolicy: fix memory leaks in weighted interleave sysfs
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mempolicy-fix-memory-leaks-in-weighted-interleave-sysfs.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-memory-leaks-in-weighted-interleave-sysfs.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xavier <xavier_qy@163.com>
-Subject: mm/contpte: optimize loop to reduce redundant operations
-Date: Tue, 15 Apr 2025 16:22:05 +0800
+From: Rakie Kim <rakie.kim@sk.com>
+Subject: mm/mempolicy: fix memory leaks in weighted interleave sysfs
+Date: Wed, 16 Apr 2025 20:31:19 +0900
 
-Optimize contpte_ptep_get() by adding early termination logic.  Check if
-the dirty and young bits of orig_pte are already set and skip redundant
-bit-setting operations during the loop.  This reduces unnecessary
-iterations and improves performance.
+Patch series "Enhance sysfs handling for memory hotplug in weighted
+interleave", v8.
 
-The function's execution time and instruction statistics have been traced
-using perf, and the following are the operation results on a certain
-Qualcomm mobile phone chip:
+The following patch series enhances the weighted interleave policy in the
+memory management subsystem by improving sysfs handling, fixing memory
+leaks, and introducing dynamic sysfs updates for memory hotplug support.
 
-Instruction Statistics - Before Optimization
-#          count  event_name              # count / runtime
-      20,814,352  branch-load-misses      # 662.244 K/sec
-  41,894,986,323  branch-loads            # 1.333 G/sec
-       1,957,415  iTLB-load-misses        # 62.278 K/sec
-  49,872,282,100  iTLB-loads              # 1.587 G/sec
-     302,808,096  L1-icache-load-misses   # 9.634 M/sec
-  49,872,282,100  L1-icache-loads         # 1.587 G/sec
 
-Total test time: 31.485237 seconds.
+This patch (of 3):
 
-Instruction Statistics - After Optimization
-#          count  event_name              # count / runtime
-      19,340,524  branch-load-misses      # 688.753 K/sec
-  38,510,185,183  branch-loads            # 1.371 G/sec
-       1,812,716  iTLB-load-misses        # 64.554 K/sec
-  47,673,923,151  iTLB-loads              # 1.698 G/sec
-     675,853,661  L1-icache-load-misses   # 24.068 M/sec
-  47,673,923,151  L1-icache-loads         # 1.698 G/sec
+Memory leaks occurred when removing sysfs attributes for weighted
+interleave.  Improper kobject deallocation led to unreleased memory when
+initialization failed or when nodes were removed.
 
-Total test time: 28.108048 seconds.
+This patch resolves the issue by replacing unnecessary `kfree()` calls
+with proper `kobject_del()` and `kobject_put()` sequences, ensuring
+correct teardown and preventing memory leaks.
 
-Function Statistics - Before Optimization
-Arch: arm64
-Event: cpu-cycles (type 0, config 0)
-Samples: 1419716
-Event count: 99618088900
+By explicitly calling `kobject_del()` before `kobject_put()`, the release
+function is now invoked safely, and internal sysfs state is correctly
+cleaned up.  This guarantees that the memory associated with the kobject
+is fully released and avoids resource leaks, thereby improving system
+stability.
 
-Overhead   Symbol
-21.42%     lock_release
-21.26%     lock_acquire
-20.88%     arch_counter_get_cntvct
-14.32%     _raw_spin_unlock_irq
-6.79%      contpte_ptep_get
-2.20%      test_contpte_perf
-1.82%      follow_page_pte
-0.97%      lock_acquired
-0.97%      rcu_is_watching
-0.89%      mlock_pte_range
-0.84%      sched_clock_noinstr
-0.70%      handle_softirqs.llvm.8218488130471452153
-0.58%      test_preempt_disable_long
-0.57%      _raw_spin_unlock_irqrestore
-0.54%      arch_stack_walk
-0.51%      vm_normal_folio
-0.48%      check_preemption_disabled
-0.47%      stackinfo_get_task
-0.36%      try_grab_folio
-0.34%      preempt_count
-0.32%      trace_preempt_on
-0.29%      trace_preempt_off
-0.24%      debug_smp_processor_id
+Additionally, sysfs_remove_file() is no longer called from the release
+function to avoid accessing invalid sysfs state after kobject_del().  All
+attribute removals are now done before kobject_del(), preventing WARN_ON()
+in kernfs and ensuring safe and consistent cleanup of sysfs entries.
 
-Function Statistics - After Optimization
-Arch: arm64
-Event: cpu-cycles (type 0, config 0)
-Samples: 1431006
-Event count: 118856425042
-
-Overhead   Symbol
-22.59%     lock_release
-22.13%     arch_counter_get_cntvct
-22.08%     lock_acquire
-15.32%     _raw_spin_unlock_irq
-2.26%      test_contpte_perf
-1.50%      follow_page_pte
-1.49%      arch_stack_walk
-1.30%      rcu_is_watching
-1.09%      lock_acquired
-1.07%      sched_clock_noinstr
-0.88%      handle_softirqs.llvm.12507768597002095717
-0.88%      trace_preempt_off
-0.76%      _raw_spin_unlock_irqrestore
-0.61%      check_preemption_disabled
-0.52%      trace_preempt_on
-0.50%      mlock_pte_range
-0.43%      try_grab_folio
-0.41%      folio_mark_accessed
-0.40%      vm_normal_folio
-0.38%      test_preempt_disable_long
-0.28%      contpte_ptep_get
-0.27%      __traceiter_android_rvh_preempt_disable
-0.26%      debug_smp_processor_id
-0.24%      return_address
-0.20%      __pte_offset_map_lock
-0.19%      unwind_next_frame_record
-
-If there is no problem with my test program, it can be seen that there is a
-significant performance improvement both in the overall number of instructions
-and the execution time of contpte_ptep_get.
-
-If any reviewers have time, you can also test it on your machines for comparison.
-I have enabled THP and hugepages-64kB.
-
-Test function:
-
-#define PAGE_SIZE 4096
-#define CONT_PTES 16
-#define TEST_SIZE (4096* CONT_PTES * PAGE_SIZE)
-
-void rwdata(char *buf)
-{
-	for (size_t i = 0; i < TEST_SIZE; i += PAGE_SIZE) {
-		buf[i] = 'a';
-		volatile char c = buf[i];
-	}
-}
-void test_contpte_perf()
-{
-	char *buf;
-	int ret = posix_memalign((void **)&buf, PAGE_SIZE, TEST_SIZE);
-	if (ret != 0) {
-		perror("posix_memalign failed");
-		exit(EXIT_FAILURE);
-	}
-
-	rwdata(buf);
-
-	for (int j = 0; j < 500; j++) {
-		mlock(buf, TEST_SIZE);
-
-		rwdata(buf);
-
-		munlock(buf, TEST_SIZE);
-	}
-	
-	free(buf);
-}
-
-Link: https://lkml.kernel.org/r/20250415082205.2249918-2-xavier_qy@163.com
-Signed-off-by: Xavier <xavier_qy@163.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/20250416113123.629-1-rakie.kim@sk.com
+Link: https://lkml.kernel.org/r/20250416113123.629-2-rakie.kim@sk.com
+Fixes: dce41f5ae253 ("mm/mempolicy: implement the sysfs-based weighted_interleave interface")
+Signed-off-by: Rakie Kim <rakie.kim@sk.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Markus Elfring <Markus.Elfring@web.de>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yunjeong Mun <yunjeong.mun@sk.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/contpte.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |  111 +++++++++++++++++++++++++----------------------
+ 1 file changed, 61 insertions(+), 50 deletions(-)
 
---- a/arch/arm64/mm/contpte.c~mm-contpte-optimize-loop-to-reduce-redundant-operations
-+++ a/arch/arm64/mm/contpte.c
-@@ -152,6 +152,16 @@ void __contpte_try_unfold(struct mm_stru
- }
- EXPORT_SYMBOL_GPL(__contpte_try_unfold);
+--- a/mm/mempolicy.c~mm-mempolicy-fix-memory-leaks-in-weighted-interleave-sysfs
++++ a/mm/mempolicy.c
+@@ -3463,8 +3463,8 @@ static ssize_t node_store(struct kobject
  
-+/* Note: in order to improve efficiency, using this macro will modify the
-+ * passed-in parameters.*/
-+#define CHECK_CONTPTE_FLAG(start, ptep, orig_pte, flag) \
-+    for (; (start) < CONT_PTES; (start)++, (ptep)++) { \
-+		if (pte_##flag(__ptep_get(ptep))) { \
-+				orig_pte = pte_mk##flag(orig_pte); \
-+				break; \
-+		} \
-+    }
-+
- pte_t contpte_ptep_get(pte_t *ptep, pte_t orig_pte)
+ static struct iw_node_attr **node_attrs;
+ 
+-static void sysfs_wi_node_release(struct iw_node_attr *node_attr,
+-				  struct kobject *parent)
++static void sysfs_wi_node_delete(struct iw_node_attr *node_attr,
++				 struct kobject *parent)
  {
- 	/*
-@@ -169,11 +179,17 @@ pte_t contpte_ptep_get(pte_t *ptep, pte_
- 	for (i = 0; i < CONT_PTES; i++, ptep++) {
- 		pte = __ptep_get(ptep);
+ 	if (!node_attr)
+ 		return;
+@@ -3473,18 +3473,41 @@ static void sysfs_wi_node_release(struct
+ 	kfree(node_attr);
+ }
  
--		if (pte_dirty(pte))
-+		if (pte_dirty(pte)) {
- 			orig_pte = pte_mkdirty(orig_pte);
-+			CHECK_CONTPTE_FLAG(i, ptep, orig_pte, young);
-+			break;
-+		}
+-static void sysfs_wi_release(struct kobject *wi_kobj)
++static void sysfs_wi_node_delete_all(struct kobject *wi_kobj)
+ {
+-	int i;
++	int nid;
  
--		if (pte_young(pte))
-+		if (pte_young(pte)) {
- 			orig_pte = pte_mkyoung(orig_pte);
-+			CHECK_CONTPTE_FLAG(i, ptep, orig_pte, dirty);
-+			break;
-+		}
+-	for (i = 0; i < nr_node_ids; i++)
+-		sysfs_wi_node_release(node_attrs[i], wi_kobj);
+-	kobject_put(wi_kobj);
++	for (nid = 0; nid < nr_node_ids; nid++)
++		sysfs_wi_node_delete(node_attrs[nid], wi_kobj);
++}
++
++static void iw_table_free(void)
++{
++	u8 *old;
++
++	mutex_lock(&iw_table_lock);
++	old = rcu_dereference_protected(iw_table,
++					lockdep_is_held(&iw_table_lock));
++	if (old) {
++		rcu_assign_pointer(iw_table, NULL);
++		mutex_unlock(&iw_table_lock);
++
++		synchronize_rcu();
++		kfree(old);
++	} else
++		mutex_unlock(&iw_table_lock);
++}
++
++static void wi_kobj_release(struct kobject *wi_kobj)
++{
++	iw_table_free();
++	kfree(node_attrs);
++	kfree(wi_kobj);
+ }
+ 
+ static const struct kobj_type wi_ktype = {
+ 	.sysfs_ops = &kobj_sysfs_ops,
+-	.release = sysfs_wi_release,
++	.release = wi_kobj_release,
+ };
+ 
+ static int add_weight_node(int nid, struct kobject *wi_kobj)
+@@ -3525,41 +3548,42 @@ static int add_weighted_interleave_group
+ 	struct kobject *wi_kobj;
+ 	int nid, err;
+ 
++	node_attrs = kcalloc(nr_node_ids, sizeof(struct iw_node_attr *),
++			     GFP_KERNEL);
++	if (!node_attrs)
++		return -ENOMEM;
++
+ 	wi_kobj = kzalloc(sizeof(struct kobject), GFP_KERNEL);
+-	if (!wi_kobj)
++	if (!wi_kobj) {
++		kfree(node_attrs);
+ 		return -ENOMEM;
++	}
+ 
+ 	err = kobject_init_and_add(wi_kobj, &wi_ktype, root_kobj,
+ 				   "weighted_interleave");
+-	if (err) {
+-		kfree(wi_kobj);
+-		return err;
+-	}
++	if (err)
++		goto err_put_kobj;
+ 
+ 	for_each_node_state(nid, N_POSSIBLE) {
+ 		err = add_weight_node(nid, wi_kobj);
+ 		if (err) {
+ 			pr_err("failed to add sysfs [node%d]\n", nid);
+-			break;
++			goto err_cleanup_kobj;
+ 		}
  	}
+-	if (err)
+-		kobject_put(wi_kobj);
++
+ 	return 0;
++
++err_cleanup_kobj:
++	sysfs_wi_node_delete_all(wi_kobj);
++	kobject_del(wi_kobj);
++err_put_kobj:
++	kobject_put(wi_kobj);
++	return err;
+ }
  
- 	return orig_pte;
+ static void mempolicy_kobj_release(struct kobject *kobj)
+ {
+-	u8 *old;
+-
+-	mutex_lock(&iw_table_lock);
+-	old = rcu_dereference_protected(iw_table,
+-					lockdep_is_held(&iw_table_lock));
+-	rcu_assign_pointer(iw_table, NULL);
+-	mutex_unlock(&iw_table_lock);
+-	synchronize_rcu();
+-	kfree(old);
+-	kfree(node_attrs);
+ 	kfree(kobj);
+ }
+ 
+@@ -3573,37 +3597,24 @@ static int __init mempolicy_sysfs_init(v
+ 	static struct kobject *mempolicy_kobj;
+ 
+ 	mempolicy_kobj = kzalloc(sizeof(*mempolicy_kobj), GFP_KERNEL);
+-	if (!mempolicy_kobj) {
+-		err = -ENOMEM;
+-		goto err_out;
+-	}
+-
+-	node_attrs = kcalloc(nr_node_ids, sizeof(struct iw_node_attr *),
+-			     GFP_KERNEL);
+-	if (!node_attrs) {
+-		err = -ENOMEM;
+-		goto mempol_out;
+-	}
++	if (!mempolicy_kobj)
++		return -ENOMEM;
+ 
+ 	err = kobject_init_and_add(mempolicy_kobj, &mempolicy_ktype, mm_kobj,
+ 				   "mempolicy");
+ 	if (err)
+-		goto node_out;
++		goto err_put_kobj;
+ 
+ 	err = add_weighted_interleave_group(mempolicy_kobj);
+-	if (err) {
+-		pr_err("mempolicy sysfs structure failed to initialize\n");
+-		kobject_put(mempolicy_kobj);
+-		return err;
+-	}
++	if (err)
++		goto err_del_kobj;
+ 
+-	return err;
+-node_out:
+-	kfree(node_attrs);
+-mempol_out:
+-	kfree(mempolicy_kobj);
+-err_out:
+-	pr_err("failed to add mempolicy kobject to the system\n");
++	return 0;
++
++err_del_kobj:
++	kobject_del(mempolicy_kobj);
++err_put_kobj:
++	kobject_put(mempolicy_kobj);
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from xavier_qy@163.com are
+Patches currently in -mm which might be from rakie.kim@sk.com are
 
+mm-mempolicy-fix-memory-leaks-in-weighted-interleave-sysfs.patch
+mm-mempolicy-prepare-weighted-interleave-sysfs-for-memory-hotplug.patch
+mm-mempolicy-support-memory-hotplug-in-weighted-interleave.patch
 
