@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A03028E3F;
-	Wed, 16 Apr 2025 23:10:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EE2F28E3F
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 23:14:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744845054; cv=none; b=rT7c+ZnfSN37D785yL+p/8T216OjIz82G01rQTW9hqjvwe2qxr4KW7t5e/sPxCFx4NWjJ8Hm69QhnVrN5LIS8SnFsJFcIuqxkb3BBNvfKJRxSC4OOSUwbmgR9x9OBUueAuxutFqFZH5WXllrO9/uOQS25G9WSgiY9M6SFNYIxlM=
+	t=1744845292; cv=none; b=n1AzcBkWMntFI1xKWEwaU/FcwdajRh2nu0+xdmZcRH6o912I5t0zvbi+/vlsa9sTAje2PxlEOiozQBbD6zGT7E/7B1Ebo3e1CV3k0rh0JBX/KPHnCAFsWagCH8t5FePch92KvEHw4gzOoACATREse8vwh53Tc3iKI6HXKyEX6vY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744845054; c=relaxed/simple;
-	bh=cWDm7bL+onZiFIl6IPHOaW5+F4xdkLXaV2ZQY9KRSeY=;
-	h=Date:To:From:Subject:Message-Id; b=UYdQlf/tLhDje0OUANnRntVeqHdXF+ytWlG55zYJGPhHWQO7KvDBQMtRydNZl3mewvzPiA6DR9vItr+oHnm686dfdiEjaKTWqFLu6z2UO2rPLHh/DQxa0F6BzQPXcX7GTauoKoiJPnZwrFbinJviXjRW+rf4VjEw4ML8w4d58qM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mplO/pAV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744845292; c=relaxed/simple;
+	bh=2zTaLclZ4xU3v0o41j3FIZDTJDJYge8RX/Q+sQQ6K/k=;
+	h=Date:To:From:Subject:Message-Id; b=IyWNOXVVSxg/as8s+9Y9mCjCzh0jJ1twh8X93XE9gGtJj0me0n905gqWlSEc+myzNOgXr+eLiV8Av+qZF1vnoVA3ICXTU5anhbMOXN0kBGJDztsLoEc24bnp8DA4RQxlMPCBSH+4HxZ6b/PSpjboUCTffEQNgir0ic9rodc6uOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gcXGAU5/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mplO/pAV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4F99C4CEE2;
-	Wed, 16 Apr 2025 23:10:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gcXGAU5/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01833C4CEE2;
+	Wed, 16 Apr 2025 23:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744845053;
-	bh=cWDm7bL+onZiFIl6IPHOaW5+F4xdkLXaV2ZQY9KRSeY=;
+	s=korg; t=1744845292;
+	bh=2zTaLclZ4xU3v0o41j3FIZDTJDJYge8RX/Q+sQQ6K/k=;
 	h=Date:To:From:Subject:From;
-	b=mplO/pAVE+sAk9kmCnBMxEj5fm9fY2MApnmEXwWdQYsdQviorpcS2TkfIkM/sc951
-	 434wLdlADb7kS2NTNQ6nsIhMCMG7nRVKfYInqeygU+6poevA0waS0+CsSI9aknYtfA
-	 8a+PYV/quqYS2swqsQti8R95oygzMEYpO7hycjh8=
-Date: Wed, 16 Apr 2025 16:10:53 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhangtianyang@loongson.cn,akpm@linux-foundation.org
+	b=gcXGAU5/AmuSUnmuDDKyKk3QGH0ARPOB2KlE/WVikEdK8SPQlXl9CVpNXn2yl5twM
+	 NltgYw1ng7nXRVX1bKyzVgrW9KK5Ts5GLFRnJqMaQj54rIqHWIa2/M8KTGEhCqCh5N
+	 hNNo+zcOM+C5VcXkaQ41rtR2NZOarjWvrdX6yhso=
+Date: Wed, 16 Apr 2025 16:14:51 -0700
+To: mm-commits@vger.kernel.org,xry111@xry111.site,thomas.weissschuh@linutronix.de,tglx@linutronix.de,niecheng1@uniontech.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kernel@xen0n.name,jeffxu@chromium.org,jason@zx2c4.com,hca@linux.ibm.com,guanwentao@uniontech.com,corbet@lwn.net,chenhuacai@kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race.patch added to mm-new branch
-Message-Id: <20250416231053.B4F99C4CEE2@smtp.kernel.org>
+Subject: [obsolete] mseal-sysmap-enable-loongarch.patch removed from -mm tree
+Message-Id: <20250416231452.01833C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,106 +34,95 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/page_alloc.c: avoid infinite retries caused by cpuset race
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race.patch
+The quilt patch titled
+     Subject: mseal sysmap: enable LoongArch
+has been removed from the -mm tree.  Its filename was
+     mseal-sysmap-enable-loongarch.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Tianyang Zhang <zhangtianyang@loongson.cn>
-Subject: mm/page_alloc.c: avoid infinite retries caused by cpuset race
-Date: Wed, 16 Apr 2025 16:24:05 +0800
+From: WangYuli <wangyuli@uniontech.com>
+Subject: mseal sysmap: enable LoongArch
+Date: Tue, 15 Apr 2025 23:39:03 +0800
 
-__alloc_pages_slowpath has no change detection for ac->nodemask in the
-part of retry path, while cpuset can modify it in parallel.  For some
-processes that set mempolicy as MPOL_BIND, this results ac->nodemask
-changes, and then the should_reclaim_retry will judge based on the latest
-nodemask and jump to retry, while the get_page_from_freelist only
-traverses the zonelist from ac->preferred_zoneref, which selected by a
-expired nodemask and may cause infinite retries in some cases
+Provide support for CONFIG_MSEAL_SYSTEM_MAPPINGS on LoongArch, covering
+the vdso.
 
-cpu 64:
-__alloc_pages_slowpath {
-        /* ..... */
-retry:
-        /* ac->nodemask = 0x1, ac->preferred->zone->nid = 1 */
-        if (alloc_flags & ALLOC_KSWAPD)
-                wake_all_kswapds(order, gfp_mask, ac);
-        /* cpu 1:
-        cpuset_write_resmask
-            update_nodemask
-                update_nodemasks_hier
-                    update_tasks_nodemask
-                        mpol_rebind_task
-                         mpol_rebind_policy
-                          mpol_rebind_nodemask
-		// mempolicy->nodes has been modified,
-		// which ac->nodemask point to
-
-        */
-        /* ac->nodemask = 0x3, ac->preferred->zone->nid = 1 */
-        if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
-                                 did_some_progress > 0, &no_progress_loops))
-                goto retry;
-}
-
-Simultaneously starting multiple cpuset01 from LTP can quickly reproduce
-this issue on a multi node server when the maximum memory pressure is
-reached and the swap is enabled
-
-Link: https://lkml.kernel.org/r/20250416082405.20988-1-zhangtianyang@loongson.cn
-Signed-off-by: Tianyang Zhang <zhangtianyang@loongson.cn>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/all/25bad37f-273e-4626-999c-e1890be96182@lucifer.local/
+Link: https://lkml.kernel.org/r/648AB3031B5618C0+20250415153903.570662-1-wangyuli@uniontech.com
+Signed-off-by: Yuli Wang <wangyuli@uniontech.com>
+Tested-by: Yuli Wang <wangyuli@uniontech.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Jeff Xu <jeffxu@chromium.org>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Cheng Nie <niecheng1@uniontech.com>
+Cc: Guan Wentao <guanwentao@uniontech.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jason A. Donenfeld <jason@zx2c4.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Xi Ruoyao <xry111@xry111.site>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/features/core/mseal_sys_mappings/arch-support.txt |    2 +-
+ Documentation/userspace-api/mseal.rst                           |    2 +-
+ arch/loongarch/Kconfig                                          |    1 +
+ arch/loongarch/kernel/vdso.c                                    |    4 +++-
+ 4 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race
-+++ a/mm/page_alloc.c
-@@ -4555,6 +4555,14 @@ restart:
- 	}
+--- a/arch/loongarch/Kconfig~mseal-sysmap-enable-loongarch
++++ a/arch/loongarch/Kconfig
+@@ -69,6 +69,7 @@ config LOONGARCH
+ 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
+ 	select ARCH_SUPPORTS_LTO_CLANG
+ 	select ARCH_SUPPORTS_LTO_CLANG_THIN
++	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_SUPPORTS_RT
+ 	select ARCH_USE_BUILTIN_BSWAP
+--- a/arch/loongarch/kernel/vdso.c~mseal-sysmap-enable-loongarch
++++ a/arch/loongarch/kernel/vdso.c
+@@ -105,7 +105,9 @@ int arch_setup_additional_pages(struct l
  
- retry:
-+	/*
-+	 * Deal with possible cpuset update races or zonelist updates to avoid
-+	 * infinite retries.
-+	 */
-+	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
-+	    check_retry_zonelist(zonelist_iter_cookie))
-+		goto restart;
-+
- 	/* Ensure kswapd doesn't accidentally go to sleep as long as we loop */
- 	if (alloc_flags & ALLOC_KSWAPD)
- 		wake_all_kswapds(order, gfp_mask, ac);
+ 	vdso_addr = data_addr + VVAR_SIZE;
+ 	vma = _install_special_mapping(mm, vdso_addr, info->size,
+-				       VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
++				       VM_READ | VM_EXEC |
++				       VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
++				       VM_SEALED_SYSMAP,
+ 				       &info->code_mapping);
+ 	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
+--- a/Documentation/features/core/mseal_sys_mappings/arch-support.txt~mseal-sysmap-enable-loongarch
++++ a/Documentation/features/core/mseal_sys_mappings/arch-support.txt
+@@ -12,7 +12,7 @@
+     |       arm64: |  ok  |
+     |        csky: |  N/A |
+     |     hexagon: |  N/A |
+-    |   loongarch: | TODO |
++    |   loongarch: |  ok  |
+     |        m68k: |  N/A |
+     |  microblaze: |  N/A |
+     |        mips: | TODO |
+--- a/Documentation/userspace-api/mseal.rst~mseal-sysmap-enable-loongarch
++++ a/Documentation/userspace-api/mseal.rst
+@@ -144,7 +144,7 @@ Use cases
+   architecture.
+ 
+   The following architectures currently support this feature: x86-64, arm64,
+-  and s390.
++  loongarch and s390.
+ 
+   WARNING: This feature breaks programs which rely on relocating
+   or unmapping system mappings. Known broken software at the time
 _
 
-Patches currently in -mm which might be from zhangtianyang@loongson.cn are
+Patches currently in -mm which might be from wangyuli@uniontech.com are
 
-mm-page_allocc-avoid-infinite-retries-caused-by-cpuset-race.patch
+ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch
 
