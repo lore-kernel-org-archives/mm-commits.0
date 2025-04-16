@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E83A5221D9E
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 01:27:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B40B018D63E
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 01:28:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744766861; cv=none; b=f5mnhB0q412o/c7s0TP38TMhIo4G0VP8RzZYrfcbLwCfiGRnoIws+gzwIG7cPJja9oR4rWVhCzcbjxn20YiR9D0kfM653d274FS7VFd014hv79TqHYZvVkXaqlUwcEz6s9iaCHd97slmRbcIhaUUyNo/iw1XT8wF/K34gE9afB0=
+	t=1744766937; cv=none; b=B2Zdqy4JbI/dgUq2lol9Spa1WVBwbu3Gzg5RONBoUbwjkjNZOzE2Vj+U87u1slFqxrMeHyjp/ImqpohRdZjxl+AoqIGgU1MbvOL7CGAjMtxoE/rcbMJc8wDWV5y2/VFmR/8L7d9zTsT/CyuG5B4SFiKzGftgIdXXo4bvGKZa7pE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744766861; c=relaxed/simple;
-	bh=eax85cIXRU4+0KXaI1n1wRz5B2riykDTT24VQf+WAHQ=;
-	h=Date:To:From:Subject:Message-Id; b=dDqd2p6RP673JN27ecwLuE0TSK66jegVpRtMqI4pStcVLvXE5fZo3cRsu5dZBYoBIQGK+vG7Ro4jaZWGH21e7PlK3Z0lQzbNBPodEFU8+MqGg58CCxBV+Ik2eHQ475lcRcASKW2xyplmtqAmM3MIkorDuEztPmNg4+T/Holj1nk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XO4E70K1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744766937; c=relaxed/simple;
+	bh=87K3qU2X3XRCg27r2wRYBj0dsbGggbW33let/Bo7jzg=;
+	h=Date:To:From:Subject:Message-Id; b=fi7F0We13beA0nOekFAGw/ufb4eHSEZW0/ROF7eJTuOW8M5vXin/3x2jCgataYRMtzpfaFkTVcZFWyz+D4uZ0sxI6J8jGtmP9KtOJ4J77PUn0cY3duuKUB3fQ7SBL+JU/q/wDoLcwfDxHOtHsHgjXNzPlF8TBvtLsYOLx/UYBTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=crCMRZaX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XO4E70K1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 546E3C4CEE7;
-	Wed, 16 Apr 2025 01:27:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="crCMRZaX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D368C4CEE7;
+	Wed, 16 Apr 2025 01:28:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744766859;
-	bh=eax85cIXRU4+0KXaI1n1wRz5B2riykDTT24VQf+WAHQ=;
+	s=korg; t=1744766937;
+	bh=87K3qU2X3XRCg27r2wRYBj0dsbGggbW33let/Bo7jzg=;
 	h=Date:To:From:Subject:From;
-	b=XO4E70K1i/P+Klz5HBbh9Pi1h+ojI+ZLapNGXIXbBZxqPKUddOZGoM0RuCgkRPS0R
-	 ZDiPqnwcoTu+OmTgwsf+vqcIGzfOlBSM3jgwR4QQ5CB5/sDkL9i2RrKCNEYEmc+6gI
-	 bunB48TiYibzdMsC29q0WoTLfPTEEv2IWKnhVOAk=
-Date: Tue, 15 Apr 2025 18:27:38 -0700
-To: mm-commits@vger.kernel.org,mjguzik@gmail.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=crCMRZaX1J9/7zlacp8eCvI0M56nJDzM/ww45tN3wTJD0Ot7XsS3aQHFI2KGFCkcy
+	 XmbZL84rVYl/1MSOQF7NdBuGQDmY4tSEYEWfnN81lqZw0pD0dHhK8IM11cOBTvRthF
+	 3Y4rqeo/m315gQrpNDTOquJf8XUxRbSzRVliAAIE=
+Date: Tue, 15 Apr 2025 18:28:56 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-use-atomic_long_add_return_relaxed.patch added to mm-unstable branch
-Message-Id: <20250416012739.546E3C4CEE7@smtp.kernel.org>
+Subject: + mm-hugetlb-increment-the-number-of-pages-to-be-reset-on-hvo.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250416012857.7D368C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc: use atomic_long_add_return_relaxed()
-has been added to the -mm mm-unstable branch.  Its filename is
-     vmalloc-use-atomic_long_add_return_relaxed.patch
+     Subject: mm, hugetlb: increment the number of pages to be reset on HVO
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-increment-the-number-of-pages-to-be-reset-on-hvo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-use-atomic_long_add_return_relaxed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-increment-the-number-of-pages-to-be-reset-on-hvo.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,66 +58,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: vmalloc: use atomic_long_add_return_relaxed()
-Date: Tue, 15 Apr 2025 13:26:46 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm, hugetlb: increment the number of pages to be reset on HVO
+Date: Tue, 15 Apr 2025 13:18:59 +0200
 
-Switch from the atomic_long_add_return() to its relaxed version.
+commit 4eeec8c89a0c ("mm: move hugetlb specific things in folio to
+page[3]") shifted hugetlb specific stuff, and now mapping overlaps
+_hugetlb_cgroup field.
 
-We do not need a full memory barrier or any memory ordering during
-increasing the "vmap_lazy_nr" variable.  What we only need is to do it
-atomically.  This is what atomic_long_add_return_relaxed() guarantees.
+Upon restoring the vmemmap for HVO, only the first two tail pages are
+reset, and this causes the check in free_tail_page_prepare() to fail as it
+finds an unexpected mapping value in some tails.
 
-AARCH64:
+Increment the number of pages to be reset to 4 (head + 3 tail pages)
 
-<snip>
-Default:
-    40ec:       d34cfe94        lsr     x20, x20, #12
-    40f0:       14000044        b       4200 <free_vmap_area_noflush+0x19c>
-    40f4:       94000000        bl      0 <__sanitizer_cov_trace_pc>
-    40f8:       90000000        adrp    x0, 0 <__traceiter_alloc_vmap_area>
-    40fc:       91000000        add     x0, x0, #0x0
-    4100:       f8f40016        ldaddal x20, x22, [x0]
-    4104:       8b160296        add     x22, x20, x22
-
-Relaxed:
-    40ec:       d34cfe94        lsr     x20, x20, #12
-    40f0:       14000044        b       4200 <free_vmap_area_noflush+0x19c>
-    40f4:       94000000        bl      0 <__sanitizer_cov_trace_pc>
-    40f8:       90000000        adrp    x0, 0 <__traceiter_alloc_vmap_area>
-    40fc:       91000000        add     x0, x0, #0x0
-    4100:       f8340016        ldadd   x20, x22, [x0]
-    4104:       8b160296        add     x22, x20, x22
-<snip>
-
-Link: https://lkml.kernel.org/r/20250415112646.113091-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Christop Hellwig <hch@infradead.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
+Link: https://lkml.kernel.org/r/20250415111859.376302-1-osalvador@suse.de
+Fixes: 4eeec8c89a0c ("mm: move hugetlb specific things in folio to page[3]")
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb_vmemmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~vmalloc-use-atomic_long_add_return_relaxed
-+++ a/mm/vmalloc.c
-@@ -2370,7 +2370,7 @@ static void free_vmap_area_noflush(struc
- 	if (WARN_ON_ONCE(!list_empty(&va->list)))
- 		return;
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-increment-the-number-of-pages-to-be-reset-on-hvo
++++ a/mm/hugetlb_vmemmap.c
+@@ -238,11 +238,11 @@ static void vmemmap_remap_pte(pte_t *pte
+  * struct page, the special metadata (e.g. page->flags or page->mapping)
+  * cannot copy to the tail struct page structs. The invalid value will be
+  * checked in the free_tail_page_prepare(). In order to avoid the message
+- * of "corrupted mapping in tail page". We need to reset at least 3 (one
+- * head struct page struct and two tail struct page structs) struct page
++ * of "corrupted mapping in tail page". We need to reset at least 4 (one
++ * head struct page struct and three tail struct page structs) struct page
+  * structs.
+  */
+-#define NR_RESET_STRUCT_PAGE		3
++#define NR_RESET_STRUCT_PAGE		4
  
--	nr_lazy = atomic_long_add_return(va_size(va) >> PAGE_SHIFT,
-+	nr_lazy = atomic_long_add_return_relaxed(va_size(va) >> PAGE_SHIFT,
- 					 &vmap_lazy_nr);
- 
- 	/*
+ static inline void reset_struct_pages(struct page *start)
+ {
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-vmalloc-add-for_each_vmap_node-helper.patch
-vmalloc-switch-to-for_each_vmap_node-helper.patch
-vmalloc-use-for_each_vmap_node-in-purge-vmap-area.patch
-vmalloc-use-atomic_long_add_return_relaxed.patch
+mm-hugetlb-increment-the-number-of-pages-to-be-reset-on-hvo.patch
+mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch
+mmhugetlb-allocate-frozen-pages-in-alloc_buddy_hugetlb_folio.patch
 
