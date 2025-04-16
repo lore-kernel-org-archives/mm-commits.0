@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2D2A20E007
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 01:15:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DA7019F40A
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 01:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744766139; cv=none; b=IKcIdS4Sg1AcCe5YcxK03LD1pScdMshJcE6ivDLqCsgun5soiQnAgxPAnoUm/Z3Qh9w2joJBphHxYHCix07AmMNpYMQo73I/QLR9Y173yhYje2cGKS93wj1ZWofXTZwVawoba4OTNBWYN770/LphrYBocChq11KQt5oNNJjn6kg=
+	t=1744766730; cv=none; b=pg9swL3A42qSSrj2ORCfv6gXmkBE5ny1JWvOe2XwnmMaN+s2GYImP3ZiAlRF4CI7KC4kG5s2Eh0g95cJl2w97qGGY55LjcGGZh49jAWMrDaZWqRiw3jWZPZ6vRyuzEExII4+TF3ckXA3k50Bvbmy+qt/eZo7Tb8M1aSM7JcKD9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744766139; c=relaxed/simple;
-	bh=snlCVEtwvdVESQ0FShbzoVCPp4rf22GWciUIIxv23mA=;
-	h=Date:To:From:Subject:Message-Id; b=tj848VLLhjEcqTb2zkhr42dBpKaOyK+TToc77mczCsQ9PR22tsqhTjMFUQTeFrbZi7Sy51iPVmGXnMQdu7FuCouyMKCslzUY9Ron98OvaHdLD1oDZ4DVLx5BZJRci0zbA5bfxYjII8HiSscc+QV5XiQCOTNUO3z5AzjiMSxRhMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PkWKWFSW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744766730; c=relaxed/simple;
+	bh=3OnpIxJaoovPrmWbyWgoEyDgkfLU1EyZoBkCzLYUwIk=;
+	h=Date:To:From:Subject:Message-Id; b=jlMLtEHhiulG7mYiteUSGf5j8979VpP5n7h49QG80AKpztgdIyqVMtf5xcKiILBewdfxAu7suIP5TAtI5XR3WJ194yMN3/Q7RYWNKlh5pFi8zeVZqES42QN6mRjMqInw+7Duz5emmb4DfNsYy+kki+hvqlufIDKKyu/wcwBvD/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D7wiS5X+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PkWKWFSW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EE5CC4CEE7;
-	Wed, 16 Apr 2025 01:15:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D7wiS5X+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7747EC4CEE7;
+	Wed, 16 Apr 2025 01:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744766138;
-	bh=snlCVEtwvdVESQ0FShbzoVCPp4rf22GWciUIIxv23mA=;
+	s=korg; t=1744766729;
+	bh=3OnpIxJaoovPrmWbyWgoEyDgkfLU1EyZoBkCzLYUwIk=;
 	h=Date:To:From:Subject:From;
-	b=PkWKWFSW9DYzFqnmmghMHQ5vMf/Dfpg3TIDjBYqbK8wVHbimRdNhCF5zXZ5RQI4tf
-	 uOwHAwp2TTNoPoXnApWJIXWzwoj+QUhiruw9pQ+IIELR3wG3HTE3UVoFtOx6GKHcqK
-	 6f6B3jWy4dCuhT2oexuUEecZTP6RH/GGLjHVVq20=
-Date: Tue, 15 Apr 2025 18:15:37 -0700
-To: mm-commits@vger.kernel.org,xry111@xry111.site,thomas.weissschuh@linutronix.de,tglx@linutronix.de,niecheng1@uniontech.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kernel@xen0n.name,jeffxu@chromium.org,jason@zx2c4.com,hca@linux.ibm.com,guanwentao@uniontech.com,corbet@lwn.net,chenhuacai@kernel.org,wangyuli@uniontech.com,akpm@linux-foundation.org
+	b=D7wiS5X+/cDt83r2gKesE8ZClu4R1ATXwd0NfLUiJIx4dJRzufOOdR3kmcIwm6q7H
+	 Q9cRTZiXjGyzVAdHWm3BZmIq9+W2sBQfqUw+h9CY9f96LxRiZfBP9l0l53YxGbx+Ap
+	 7Edu9eTh+NRx/WdLWv23UXaUOa+HtsP5j9g7w0cI=
+Date: Tue, 15 Apr 2025 18:25:28 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,muchun.song@linux.dev,david@redhat.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mseal-sysmap-enable-loongarch.patch added to mm-unstable branch
-Message-Id: <20250416011538.3EE5CC4CEE7@smtp.kernel.org>
+Subject: + mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch added to mm-unstable branch
+Message-Id: <20250416012529.7747EC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mseal sysmap: enable LoongArch
+     Subject: mm, hugetlb: avoid passing a null nodemask when there is mbind policy
 has been added to the -mm mm-unstable branch.  Its filename is
-     mseal-sysmap-enable-loongarch.patch
+     mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mseal-sysmap-enable-loongarch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,88 +58,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: WangYuli <wangyuli@uniontech.com>
-Subject: mseal sysmap: enable LoongArch
-Date: Tue, 15 Apr 2025 23:39:03 +0800
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm, hugetlb: avoid passing a null nodemask when there is mbind policy
+Date: Tue, 15 Apr 2025 14:15:03 +0200
 
-Provide support for CONFIG_MSEAL_SYSTEM_MAPPINGS on LoongArch, covering
-the vdso.
+Before trying to allocate a page, gather_surplus_pages() sets up a
+nodemask for the nodes we can allocate from, but instead of passing the
+nodemask down the road to the page allocator, it iterates over the nodes
+within that nodemask right there, meaning that the page allocator will
+receive a preferred_nid and a null nodemask.
 
-Link: https://lore.kernel.org/all/25bad37f-273e-4626-999c-e1890be96182@lucifer.local/
-Link: https://lkml.kernel.org/r/648AB3031B5618C0+20250415153903.570662-1-wangyuli@uniontech.com
-Signed-off-by: Yuli Wang <wangyuli@uniontech.com>
-Tested-by: Yuli Wang <wangyuli@uniontech.com>
-Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Jeff Xu <jeffxu@chromium.org>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Cheng Nie <niecheng1@uniontech.com>
-Cc: Guan Wentao <guanwentao@uniontech.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Jason A. Donenfeld <jason@zx2c4.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Xi Ruoyao <xry111@xry111.site>
+This is a problem when using a memory policy, because it might be that the
+page allocator ends up using a node as a fallback which is not represented
+in the policy.
+
+Avoid that by passing the nodemask directly to the page allocator, so it
+can filter out fallback nodes that are not part of the nodemask.
+
+Link: https://lkml.kernel.org/r/20250415121503.376811-1-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/core/mseal_sys_mappings/arch-support.txt |    2 +-
- Documentation/userspace-api/mseal.rst                           |    2 +-
- arch/loongarch/Kconfig                                          |    1 +
- arch/loongarch/kernel/vdso.c                                    |    4 +++-
- 4 files changed, 6 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
---- a/arch/loongarch/Kconfig~mseal-sysmap-enable-loongarch
-+++ a/arch/loongarch/Kconfig
-@@ -69,6 +69,7 @@ config LOONGARCH
- 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128
- 	select ARCH_SUPPORTS_LTO_CLANG
- 	select ARCH_SUPPORTS_LTO_CLANG_THIN
-+	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_SUPPORTS_RT
- 	select ARCH_USE_BUILTIN_BSWAP
---- a/arch/loongarch/kernel/vdso.c~mseal-sysmap-enable-loongarch
-+++ a/arch/loongarch/kernel/vdso.c
-@@ -105,7 +105,9 @@ int arch_setup_additional_pages(struct l
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy
++++ a/mm/hugetlb.c
+@@ -2419,7 +2419,6 @@ static int gather_surplus_pages(struct h
+ 	long i;
+ 	long needed, allocated;
+ 	bool alloc_ok = true;
+-	int node;
+ 	nodemask_t *mbind_nodemask, alloc_nodemask;
  
- 	vdso_addr = data_addr + VVAR_SIZE;
- 	vma = _install_special_mapping(mm, vdso_addr, info->size,
--				       VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
-+				       VM_READ | VM_EXEC |
-+				       VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
-+				       VM_SEALED_SYSMAP,
- 				       &info->code_mapping);
- 	if (IS_ERR(vma)) {
- 		ret = PTR_ERR(vma);
---- a/Documentation/features/core/mseal_sys_mappings/arch-support.txt~mseal-sysmap-enable-loongarch
-+++ a/Documentation/features/core/mseal_sys_mappings/arch-support.txt
-@@ -12,7 +12,7 @@
-     |       arm64: |  ok  |
-     |        csky: |  N/A |
-     |     hexagon: |  N/A |
--    |   loongarch: | TODO |
-+    |   loongarch: |  ok  |
-     |        m68k: |  N/A |
-     |  microblaze: |  N/A |
-     |        mips: | TODO |
---- a/Documentation/userspace-api/mseal.rst~mseal-sysmap-enable-loongarch
-+++ a/Documentation/userspace-api/mseal.rst
-@@ -144,7 +144,7 @@ Use cases
-   architecture.
+ 	mbind_nodemask = policy_mbind_nodemask(htlb_alloc_mask(h));
+@@ -2443,21 +2442,12 @@ retry:
+ 	for (i = 0; i < needed; i++) {
+ 		folio = NULL;
  
-   The following architectures currently support this feature: x86-64, arm64,
--  and s390.
-+  loongarch and s390.
- 
-   WARNING: This feature breaks programs which rely on relocating
-   or unmapping system mappings. Known broken software at the time
+-		/* Prioritize current node */
+-		if (node_isset(numa_mem_id(), alloc_nodemask))
+-			folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
+-					numa_mem_id(), NULL);
+-
+-		if (!folio) {
+-			for_each_node_mask(node, alloc_nodemask) {
+-				if (node == numa_mem_id())
+-					continue;
+-				folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
+-						node, NULL);
+-				if (folio)
+-					break;
+-			}
+-		}
++		/*
++		 * It is okay to use NUMA_NO_NODE because we use numa_mem_id()
++		 * down the road to pick the current node if that is the case.
++		 */
++		folio = alloc_surplus_hugetlb_folio(h, htlb_alloc_mask(h),
++						    NUMA_NO_NODE, &alloc_nodemask);
+ 		if (!folio) {
+ 			alloc_ok = false;
+ 			break;
 _
 
-Patches currently in -mm which might be from wangyuli@uniontech.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mseal-sysmap-enable-loongarch.patch
-ocfs2-o2net_idle_timer-rename-del_timer_sync-in-comment.patch
+mm-hugetlb-avoid-passing-a-null-nodemask-when-there-is-mbind-policy.patch
+mmhugetlb-allocate-frozen-pages-in-alloc_buddy_hugetlb_folio.patch
 
