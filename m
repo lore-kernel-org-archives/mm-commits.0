@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A21B1C3C1C
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 23:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4550D1AA1EC
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 23:52:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744847424; cv=none; b=Y7bObWI9QxFiWvQ6kRb6zJZaiNjkSnzXK572DE/QQpeNssBeCFvweNRmWm0tc7VL0NQq51WFEjbvbq19D0fJb5BvnVnrhA66RuHKvoi2z/v7tcnWZ9YHlrvLeCAxkiIiH9XZWb6SeN9IYuOqXHFFzHIucvphocrS/ZEm9rgq9gs=
+	t=1744847568; cv=none; b=kRe/6LJ08D2CWvl/vH82+ve5DiuhWig1Rf8lgq8TTGxfB+XRAucr+wKM5/Vxri8lq8XXtB50otPzfONsIltgjjDHKCQk0a8FYpS0ADslfXmxvww2FHW7+2/Kh/LNT7Vdsel8z0S2+yym3Z5undBEjk99ZnBzuyypC8K+Q6yx1uQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744847424; c=relaxed/simple;
-	bh=fQkdNVxjhr/sVabhFFMSnQoyEEkcafNUK/DDVza3GbE=;
-	h=Date:To:From:Subject:Message-Id; b=Hsmj7XJDPAHNk3e6xtWJdM56oc5hz7CH2dog0gj1J86QgGZAHsbQdkFweCZmPV2PS1TJuYX4JU1Tang2USJKMxdGk3pGT9CYNovujH1f2/FG/be427RsqklLbugIBBla+cyEdxiD/SK41AzsTao3x+2j6ept+B8pDZkxaWKdSR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cmZs9Ebe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744847568; c=relaxed/simple;
+	bh=01iKLo1/0tGUPfUzJJf+xEfboarmeXAmLyV8Ot7MI38=;
+	h=Date:To:From:Subject:Message-Id; b=ur3x329Xpck/P6vafk3HJLjbZAPjsHQiYW+eo7Vby03KkjOBwwQQivk/91N78NaUOCs47qLzo7l7s3DQGTAT47CpPYtTDcwYEBxvMozoRaW/WrNpTBkGT/lLReMOM25+mIC4wdD635+j2dBJpCZUEnAIXqDbTvbCHwiV2w3oGVI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WERb58JM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cmZs9Ebe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBB4BC4CEE2;
-	Wed, 16 Apr 2025 23:50:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WERb58JM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99ABEC4CEE2;
+	Wed, 16 Apr 2025 23:52:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744847423;
-	bh=fQkdNVxjhr/sVabhFFMSnQoyEEkcafNUK/DDVza3GbE=;
+	s=korg; t=1744847567;
+	bh=01iKLo1/0tGUPfUzJJf+xEfboarmeXAmLyV8Ot7MI38=;
 	h=Date:To:From:Subject:From;
-	b=cmZs9EbekEgC2fFn2SjtzKi/tK1mFiMfgi7ANPjgNhwYgkaxfpK9uInpghOFQrPQf
-	 vkFTOYwk/DLZYgr/tZXYIMqMxNrZjH3pVeAQsqo1fYvCNzipZ0XUUmhZUgChIOMHn0
-	 zy7xU18dVMoD+jBH74zSB9oqHy38b+mDRe6g5Pvs=
-Date: Wed, 16 Apr 2025 16:50:23 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,kawasin@google.com,corbet@lwn.net,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=WERb58JMUjHfdGO6Pl9tQrpZBG3r2JiAW7C6g9D/oC645Z2MweXrdN32qYVz/9G/P
+	 kAu6EzrhVeDs356Ckz3rYhCko6Fiwobu34/57CtSoI+mYqfDMOLffp0kCjNPFCGgUo
+	 iaI2tyhG4tB2KCudpa/mAtxAooxzQe7/zXdl2qUU=
+Date: Wed, 16 Apr 2025 16:52:46 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-zram-update-idle-pages-tracking-documentation.patch added to mm-new branch
-Message-Id: <20250416235023.BBB4BC4CEE2@smtp.kernel.org>
+Subject: + samples-damon-prcl-fix-a-comment-typo.patch added to mm-unstable branch
+Message-Id: <20250416235247.99ABEC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: zram: update IDLE pages tracking documentation
-has been added to the -mm mm-new branch.  Its filename is
-     documentation-zram-update-idle-pages-tracking-documentation.patch
+     Subject: samples/damon/prcl: fix a comment typo
+has been added to the -mm mm-unstable branch.  Its filename is
+     samples-damon-prcl-fix-a-comment-typo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-zram-update-idle-pages-tracking-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-prcl-fix-a-comment-typo.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,100 +58,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Documentation: zram: update IDLE pages tracking documentation
-Date: Wed, 16 Apr 2025 13:27:59 +0900
+From: Enze Li <lienze@kylinos.cn>
+Subject: samples/damon/prcl: fix a comment typo
+Date: Fri, 11 Apr 2025 15:38:00 +0800
 
-Move IDLE pages tracking into a separate chapter because there are
-multiple features that use (or depend on) it either in built-in variant
-("mark all") or in extended variant (ac-time tracking).
+This patch just fixes a typo in the comment.
 
-In addition, recompression doesn't require memory tracking to be enabled
-in order to be able to perform idle recompression.
-
-Link: https://lkml.kernel.org/r/20250416042833.3858827-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Shin Kawamura <kawasin@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20250411073800.1444481-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   41 +++++++++---------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ samples/damon/prcl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~documentation-zram-update-idle-pages-tracking-documentation
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -317,6 +317,26 @@ a single line of text and contains the f
- Optional Feature
- ================
+--- a/samples/damon/prcl.c~samples-damon-prcl-fix-a-comment-typo
++++ a/samples/damon/prcl.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+  * proactive reclamation: monitor access pattern of a given process, find
+- * regiosn that seems not accessed, and proactively page out the regions.
++ * regions that seems not accessed, and proactively page out the regions.
+  */
  
-+IDLE pages tracking
-+-------------------
-+
-+zram has built-in support for idle pages tracking (that is, allocated but
-+not used pages). This feature is useful for e.g. zram writeback and
-+recompression. In order to mark pages as idle, execute the following command::
-+
-+	echo all > /sys/block/zramX/idle
-+
-+This will mark all allocated zram pages as idle. The idle mark will be
-+removed only when the page (block) is accessed (e.g. overwritten or freed).
-+Additionally, when CONFIG_ZRAM_TRACK_ENTRY_ACTIME is enabled, pages can be
-+marked as idle based on how many seconds have passed since the last access to
-+a particular zram page::
-+
-+	echo 86400 > /sys/block/zramX/idle
-+
-+In this example, all pages which haven't been accessed in more than 86400
-+seconds (one day) will be marked idle.
-+
- writeback
- ---------
- 
-@@ -331,24 +351,7 @@ If admin wants to use incompressible pag
- 
- 	echo huge > /sys/block/zramX/writeback
- 
--To use idle page writeback, first, user need to declare zram pages
--as idle::
--
--	echo all > /sys/block/zramX/idle
--
--From now on, any pages on zram are idle pages. The idle mark
--will be removed until someone requests access of the block.
--IOW, unless there is access request, those pages are still idle pages.
--Additionally, when CONFIG_ZRAM_TRACK_ENTRY_ACTIME is enabled pages can be
--marked as idle based on how long (in seconds) it's been since they were
--last accessed::
--
--        echo 86400 > /sys/block/zramX/idle
--
--In this example all pages which haven't been accessed in more than 86400
--seconds (one day) will be marked idle.
--
--Admin can request writeback of those idle pages at right timing via::
-+Admin can request writeback of idle pages at right timing via::
- 
- 	echo idle > /sys/block/zramX/writeback
- 
-@@ -499,8 +502,6 @@ attempt to recompress:::
- 
- 	echo "type=huge_idle max_pages=42" > /sys/block/zramX/recompress
- 
--Recompression of idle pages requires memory tracking.
--
- During re-compression for every page, that matches re-compression criteria,
- ZRAM iterates the list of registered alternative compression algorithms in
- order of their priorities. ZRAM stops either when re-compression was
+ #define pr_fmt(fmt) "damon_sample_prcl: " fmt
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-zsmalloc-prefer-the-the-original-pages-node-for-compressed-data-fix.patch
-zram-modernize-writeback-interface.patch
-zram-modernize-writeback-interface-v3.patch
-zram-modernize-writeback-interface-v4.patch
-zsmalloc-cleanup-headers-includes.patch
-documentation-zram-update-idle-pages-tracking-documentation.patch
+selftests-damon-remove-the-remaining-test-scripts-for-damon-debugfs-interface.patch
+samples-damon-prcl-fix-a-comment-typo.patch
 
