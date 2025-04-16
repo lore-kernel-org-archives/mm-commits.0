@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19581DEFDA
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 00:54:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F61D1C54B2
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 00:59:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744764866; cv=none; b=ZBKh4XHdlHCtacJRy8KoeVWV/m0k5erReaGdqKT7+Qlv3dALL5iz7HminDAHgcxzfnJATWUQ4ASTfA70fx5pn2eBrknfOHLlt8KNm2d+1PDhvlTwOJNZKI1vVySSo78XdaFl/mYTys8SXqsT/WVwIgRtRPufinzQobbMwl+i3ec=
+	t=1744765148; cv=none; b=ilnlPbWZecDh4K+RC4w46BmDLDQdJGLm9LMlxfafze9iAljkzUDAai7+2YPrfm3z2I2/7KBxZZB/JlCTS0VCBgX5d9lLLyOyJziGdP7RNeMioKNHSDSWWOajdKM8rFbHWDhP2KmhpSF7v82f7KsLPE/Gqkmm1GWa4k2sVf5nB6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744764866; c=relaxed/simple;
-	bh=borsO5wszstNS9P2ILhGINq71+KPiivcNndFfugUSfg=;
-	h=Date:To:From:Subject:Message-Id; b=HbIPDdf21P8FCGfxD1hGRXY0zNFf+gCf5LisymS8Zo0hvehUvtzIqBaOVyIkOjg+M3lpqvI13N6PPmFJ2PKGMr4/fJ6O5G1t/YxJSRKYZy5eejnpCCrcuhVC1ndxBAR4qIerRSvC+UR41qrwHGsQg8r7qVqaaNFtuU3KYKSy5Og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l11vJcun; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744765148; c=relaxed/simple;
+	bh=THRPEcqkHOLz8+1q3EF2Z/aw7KBmhwh7LD/hqpM0Azo=;
+	h=Date:To:From:Subject:Message-Id; b=UYoSAN2UT48EUJY6DDotctK0CCHj5CvE+arm+cRrA57gaEeaNQbTwpAfEzPTCcPb02u3JaGWQedGUtpIf1Hb1AHS7PYuk+MfTRXO/D8tIKQ2fI93SYrZtlzRRFUOOxzWRJhl8gAiUPCXNd4F2X6ipo0K0VIFkm3X6Nb9/nN97Ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fS+L51N6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l11vJcun"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEAD3C4CEEC;
-	Wed, 16 Apr 2025 00:54:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fS+L51N6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C64EEC4CEE7;
+	Wed, 16 Apr 2025 00:59:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744764866;
-	bh=borsO5wszstNS9P2ILhGINq71+KPiivcNndFfugUSfg=;
+	s=korg; t=1744765147;
+	bh=THRPEcqkHOLz8+1q3EF2Z/aw7KBmhwh7LD/hqpM0Azo=;
 	h=Date:To:From:Subject:From;
-	b=l11vJcun02CThL1dH/ki1sTPofZyVlKtHvH0s6And+rjy59Oj2tqjzEVSNqZiLC0R
-	 d24YixMamQ1q6b3fm23HHHGvSI75yscygNQtvF8UvY90F/0v4wAHXMp2LQ7cS/jKvP
-	 zLpmW76IVCTs6ews4zxMZsm8P5L1Ia37gRqBNXVo=
-Date: Tue, 15 Apr 2025 17:54:25 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,gregkh@linuxfoundation.org,donettom@linux.ibm.com,david@redhat.com,dakr@kernel.org,adityag@linux.ibm.com,gshan@redhat.com,akpm@linux-foundation.org
+	b=fS+L51N6WmjCg8IB8xrPeSssBPeZNSOH1arlY+Og3dbiReKqb2/CRx5qx076XrjUF
+	 MyBB0S25EXM3VqNZY9YJz48hlAW5KCsZQXnmxuQ1hT4ik63Wvn8fomli7NyPe5neIP
+	 N607sUDLXuIulr0OLwXXGyOxtXXla+PlDiTKvbVY=
+Date: Tue, 15 Apr 2025 17:59:07 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch removed from -mm tree
-Message-Id: <20250416005425.EEAD3C4CEEC@smtp.kernel.org>
+Subject: + selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch added to mm-new branch
+Message-Id: <20250416005907.C64EEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,141 +34,119 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: drivers/base/memory: avoid overhead from for_each_present_section_nr()
-has been removed from the -mm tree.  Its filename was
-     drivers-base-memory-avoid-overhead-from-for_each_present_section_nr.patch
+The patch titled
+     Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: drivers/base/memory: avoid overhead from for_each_present_section_nr()
-Date: Thu, 10 Apr 2025 22:51:10 +1000
+From: Waiman Long <longman@redhat.com>
+Subject: selftests: memcg: allow low event with no memory.low and memory_recursiveprot on
+Date: Tue, 15 Apr 2025 17:04:14 -0400
 
-for_each_present_section_nr() was introduced to add_boot_memory_block() by
-commit 61659efdb35c ("drivers/base/memory: improve
-add_boot_memory_block()").  It causes unnecessary overhead when the
-present sections are really sparse.  next_present_section_nr() called by
-the macro to find the next present section, which is far away from the
-spanning sections in the specified block.  Too much time consumed by
-next_present_section_nr() in this case, which can lead to softlockup as
-observed by Aditya Gupta on IBM Power10 machine.
+Patch series "memcg: Fix test_memcg_min/low test failures", v7.
 
-  watchdog: BUG: soft lockup - CPU#248 stuck for 22s! [swapper/248:1]
-  Modules linked in:
-  CPU: 248 UID: 0 PID: 1 Comm: swapper/248 Not tainted 6.15.0-rc1-next-20250408 #1 VOLUNTARY
-  Hardware name: 9105-22A POWER10 (raw) 0x800200 opal:v7.1-107-gfda75d121942 PowerNV
-  NIP:  c00000000209218c LR: c000000002092204 CTR: 0000000000000000
-  REGS: c00040000418fa30 TRAP: 0900   Not tainted  (6.15.0-rc1-next-20250408)
-  MSR:  9000000002009033 <SF,HV,VEC,EE,ME,IR,DR,RI,LE>  CR: 28000428  XER: 00000000
-  CFAR: 0000000000000000 IRQMASK: 0
-  GPR00: c000000002092204 c00040000418fcd0 c000000001b08100 0000000000000040
-  GPR04: 0000000000013e00 c000c03ffebabb00 0000000000c03fff c000400fff587f80
-  GPR08: 0000000000000000 00000000001196f7 0000000000000000 0000000028000428
-  GPR12: 0000000000000000 c000000002e80000 c00000000001007c 0000000000000000
-  GPR16: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-  GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-  GPR24: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-  GPR28: c000000002df7f70 0000000000013dc0 c0000000011dd898 0000000008000000
-  NIP [c00000000209218c] memory_dev_init+0x114/0x1e0
-  LR [c000000002092204] memory_dev_init+0x18c/0x1e0
-  Call Trace:
-  [c00040000418fcd0] [c000000002092204] memory_dev_init+0x18c/0x1e0 (unreliable)
-  [c00040000418fd50] [c000000002091348] driver_init+0x78/0xa4
-  [c00040000418fd70] [c0000000020063ac] kernel_init_freeable+0x22c/0x370
-  [c00040000418fde0] [c0000000000100a8] kernel_init+0x34/0x25c
-  [c00040000418fe50] [c00000000000cd94] ret_from_kernel_user_thread+0x14/0x1c
+The test_memcontrol selftest consistently fails its test_memcg_low
+sub-test (with memory_recursiveprot enabled) and sporadically fails its
+test_memcg_min sub-test.  This patchset fixes the test_memcg_min and
+test_memcg_low failures by adjusting the test_memcontrol selftest to fix
+these test failures.
 
-Avoid the overhead by folding for_each_present_section_nr() to the outer
-loop.  add_boot_memory_block() is dropped after that.
 
-Link: https://lkml.kernel.org/r/20250410125110.1232329-1-gshan@redhat.com
-Fixes: 61659efdb35c ("drivers/base/memory: improve add_boot_memory_block()")
-Closes: https://lore.kernel.org/linux-mm/20250409180344.477916-1-adityag@linux.ibm.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Reported-by: Aditya Gupta <adityag@linux.ibm.com>
-Tested-by: Aditya Gupta <adityag@linux.ibm.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This patch (of 2):
+
+The test_memcontrol selftest consistently fails its test_memcg_low
+sub-test due to the fact that its 3rd test child cgroup which have a
+memmory.low of 0 have low event count.  This happens when
+memory_recursiveprot mount option is enabled which is the default setting
+used by systemd to mount cgroup2 filesystem.
+
+Modify the test_memcontrol.c to allow non-zero low event count in this
+particular case with memory_recursiveprot on.
+
+With this patch applied, the test_memcg_low sub-test finishes successfully
+without failure in most cases.  Though both test_memcg_low and
+test_memcg_min sub-tests may still fail occasionally if the memory.current
+values fall outside of the expected ranges.
+
+The 4th test child cgroup has no memory usage and so has an effective low
+of 0.  It has no low event count because the mem_cgroup_below_low() check
+in shrink_node_memcgs() is skipped as mem_cgroup_below_min() returns true.
+If we ever change mem_cgroup_below_min() in such a way that it no longer
+skips the no usage case, we will have to add code to explicitly skip it.
+
+Link: https://lkml.kernel.org/r/20250415210415.13414-1-longman@redhat.com
+Link: https://lkml.kernel.org/r/20250415210415.13414-2-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Suggested-by: Michal Koutný <mkoutny@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   41 ++++++++++++++++------------------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   16 ++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-avoid-overhead-from-for_each_present_section_nr
-+++ a/drivers/base/memory.c
-@@ -816,21 +816,6 @@ static int add_memory_block(unsigned lon
- 	return 0;
- }
- 
--static int __init add_boot_memory_block(unsigned long base_section_nr)
--{
--	unsigned long nr;
--
--	for_each_present_section_nr(base_section_nr, nr) {
--		if (nr >= (base_section_nr + sections_per_block))
--			break;
--
--		return add_memory_block(memory_block_id(base_section_nr),
--					MEM_ONLINE, NULL, NULL);
--	}
--
--	return 0;
--}
--
- static int add_hotplug_memory_block(unsigned long block_id,
- 				    struct vmem_altmap *altmap,
- 				    struct memory_group *group)
-@@ -957,7 +942,7 @@ static const struct attribute_group *mem
- void __init memory_dev_init(void)
- {
- 	int ret;
--	unsigned long block_sz, nr;
-+	unsigned long block_sz, block_id, nr;
- 
- 	/* Validate the configured memory block size */
- 	block_sz = memory_block_size_bytes();
-@@ -970,15 +955,23 @@ void __init memory_dev_init(void)
- 		panic("%s() failed to register subsystem: %d\n", __func__, ret);
- 
- 	/*
--	 * Create entries for memory sections that were found
--	 * during boot and have been initialized
-+	 * Create entries for memory sections that were found during boot
-+	 * and have been initialized. Use @block_id to track the last
-+	 * handled block and initialize it to an invalid value (ULONG_MAX)
-+	 * to bypass the block ID matching check for the first present
-+	 * block so that it can be covered.
- 	 */
--	for (nr = 0; nr <= __highest_present_section_nr;
--	     nr += sections_per_block) {
--		ret = add_boot_memory_block(nr);
--		if (ret)
--			panic("%s() failed to add memory block: %d\n", __func__,
--			      ret);
-+	block_id = ULONG_MAX;
-+	for_each_present_section_nr(0, nr) {
-+		if (block_id != ULONG_MAX && memory_block_id(nr) == block_id)
-+			continue;
-+
-+		block_id = memory_block_id(nr);
-+		ret = add_memory_block(block_id, MEM_ONLINE, NULL, NULL);
-+		if (ret) {
-+			panic("%s() failed to add memory block: %d\n",
-+			      __func__, ret);
-+		}
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -380,10 +380,10 @@ static bool reclaim_until(const char *me
+  *
+  * Then it checks actual memory usages and expects that:
+  * A/B    memory.current ~= 50M
+- * A/B/C  memory.current ~= 29M
+- * A/B/D  memory.current ~= 21M
+- * A/B/E  memory.current ~= 0
+- * A/B/F  memory.current  = 0
++ * A/B/C  memory.current ~= 29M [memory.events:low > 0]
++ * A/B/D  memory.current ~= 21M [memory.events:low > 0]
++ * A/B/E  memory.current ~= 0   [memory.events:low == 0 if !memory_recursiveprot, > 0 otherwise]
++ * A/B/F  memory.current  = 0   [memory.events:low == 0]
+  * (for origin of the numbers, see model in memcg_protection.m.)
+  *
+  * After that it tries to allocate more than there is
+@@ -525,8 +525,14 @@ static int test_memcg_protection(const c
+ 		goto cleanup;
  	}
- }
  
++	/*
++	 * Child 2 has memory.low=0, but some low protection is still being
++	 * distributed down from its parent with memory.low=50M if cgroup2
++	 * memory_recursiveprot mount option is enabled. So the low event
++	 * count will be non-zero in this case.
++	 */
+ 	for (i = 0; i < ARRAY_SIZE(children); i++) {
+-		int no_low_events_index = 1;
++		int no_low_events_index = has_recursiveprot ? 2 : 1;
+ 		long low, oom;
+ 
+ 		oom = cg_read_key_long(children[i], "memory.events", "oom ");
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-fix-parameter-passed-to-page_mapcount_is_type.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type.patch
+selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
+selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
 
