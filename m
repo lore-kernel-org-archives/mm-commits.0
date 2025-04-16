@@ -1,336 +1,217 @@
-Received: from mail-ua1-f42.google.com (mail-ua1-f42.google.com [209.85.222.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A676D21CC61
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 08:28:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.42
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 062681C7013
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 14:51:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744792120; cv=none; b=ZGptdTQzBjPCZS0SXtmbxNOX/bpgxVADKoz9nyT7JEzX+36vHyCon7GtLaE7a8+xEKE4JQOS7v1cK/YPY2ojpe5muWZw18DBBnE9Z/o/+xFlMlWOFnePbEEQsCnxh1jlQkt1DoZnOV92bpAzOSUlXW2WggkozuKvE2fxOAeehrs=
+	t=1744815120; cv=none; b=CfYn+GxULkQCiQiF7NPUY0tNIZ5US3U+drtag5YsjOgP5pEXDOqIsXG7YmLUyDoKB8UVUe37e8y4MuOp3rWLL4RWVu6IOs6hTEbloay+sUQWI/5z1sb9g33Dsjjo4U5pAtEbDaI70rQaRRg5I8PIqAhaQn2MdW83wDM1puhUFLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744792120; c=relaxed/simple;
-	bh=P/l/AdS84246bZcdTTfQr8pOtXZ5omfvQ2SeX9M9aOA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gQUzz+z/JALSoL1ZfIdM67r3joj8HyYJF2NIYiZUhH0+ssyLUekS4wuOzOOJqSpkjCnmH/Xz+B3V1qWGO3zfj61dINWlB06OMm+npCjwnNn0B8F9WrHtDU/PX49kkXkBsep+xOF5rOPBtMLBTxUBsJNDnuvTz3esNQq+Hxx+MKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=brHZD2Va; arc=none smtp.client-ip=209.85.222.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1744815120; c=relaxed/simple;
+	bh=t1uoQgevvGE92wwJHyGgwx7xWdGInIU9XG0liTAV9Co=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Content-Type:
+	 MIME-Version:Message-ID; b=biCVBQso0scJVLCyFtdF4ihV6UWl5GSz+G/NzNFPwPk06D9rng5OMtDxECQB590mfivSJNy78Lm/90o6CRs7J2+mp5BSSxQJh8rf2lmWFEm+H5nV8jviOjSulGeoUUQx0VSdFSmKbPS1rn7ZnshirBNsIYuab5RdvMDb5m4o4po=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=fail (1024-bit key) header.d=163.com header.i=@163.com header.b=FfOOJSNR reason="signature verification failed"; arc=none smtp.client-ip=117.135.210.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="brHZD2Va"
-Received: by mail-ua1-f42.google.com with SMTP id a1e0cc1a2514c-86718c2c3b9so2346859241.2
-        for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 01:28:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744792117; x=1745396917; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=JIVppQrP+I4Rbmsp619tbAiG5Z/8Lai+OgK0i7/0LIQ=;
-        b=brHZD2Va0s/SdSmcw4oTQ13BxHpWrthRdTuRmvNZfBHYYZStqJs4yqsC1Gj/akCq3y
-         8ZiBxPxB+23nxoA0rkAK5hTiBgw++pXfW6ZCRHflSyY93WvA7ifhzSYTQo43qIZsbuxA
-         +9ycUcEbozEjni4UAT8GU3mGlz/CipXnVuNE9gBG07a8HCkFvmXrXnzEaydOaVoprbES
-         3pZTvRja/nzjdlHusAusA3vcd86ukXsrF6VvdJGGBXZ24A7Fz1QKgce/BduXWHaH1EhG
-         UXXRo1HA7m7Z+Tsyo35KBLqlx5Fz6tmeHXRuU1gFwbYiCW8Fa8xf4j9eZmvYWt6f25DQ
-         aZPQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744792117; x=1745396917;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=JIVppQrP+I4Rbmsp619tbAiG5Z/8Lai+OgK0i7/0LIQ=;
-        b=bCUbFXZ+nF36dN9kmDSoccoMfLjRFLyo4fm2QZiW0wX3wRLwzHqmMjm9vwnwFmfScb
-         3Spy2Pc6neXdVF5hTMIUqBdnOQhOYPN9kg19PBsyiuHHLmGi/EHdeST9yzCbs7/I1RSs
-         qg8sxfktnU2KTw6O+DgnPKDf84cH7L5HObUaw9JLDr37wficWeAM0M3gdh4uUMmFR4cp
-         IxBp8UcMMwNmFONvFf0Hmqo37gYmXUuexpkhcqkHkBJ1ln/fnMS47bOIzXazfnCVjypw
-         evMnirKXfjaCfLiGMO4NTVLxx5s0rOtux1wU/oTDEoAimos/myRwvdod/UBNIeNCLQUT
-         ZNvw==
-X-Gm-Message-State: AOJu0Yyq3dVJj2aVMBL6qf8UJh0BSA/sjijtqxp1R+8mV+bBt6nGLjH0
-	j1Jv69lkWB2aefrR+G+WPQuth7MrJwEEeY4UALzv98bZzJGP9bLurQ8Mlr1P5Jq1I34YvfY7K7C
-	dN/pz9HYzWo1+ReJV9hwzY/YGNPQ=
-X-Gm-Gg: ASbGnct8GF5O/iqYcGHIbDsVaVAHArQ0+RBI3nHOeBfjB8V6SZhWDMjtplX+7d63ghs
-	HSaj6jJinCn46FN44kwncZ1ZWPUPBqs6ddIzJFKhQ2DPIt+rpN7OXXQYvbre4yOivUKMsCvj5O5
-	qHs9NPVNIqdk4hU3G2hC1mXg==
-X-Google-Smtp-Source: AGHT+IEUn6WTvlloYfwVmDkaMPoKJ40GFMiwX/sFyBmB3YR0KnE6PlGypJGlvJzj+bXef6/QnntPB9lPndroNyW2iP0=
-X-Received: by 2002:a05:6102:3184:b0:4c3:6215:9f86 with SMTP id
- ada2fe7eead31-4cb592f042cmr247217137.19.1744792117159; Wed, 16 Apr 2025
- 01:28:37 -0700 (PDT)
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=163.com header.i=@163.com header.b="FfOOJSNR"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=Z0MiTFSRwueT3BRzmNo5wc00MDwb81Oj+cCj0U8DNys=; b=F
+	fOOJSNRKCICbB7zkkItYlCDO/c/rZ3NLYwLm5iyfYRcsBCx9DBF3aQklAejnl8Th
+	rSmPZAkM0MXqxsN/UnmEITutysD0c0ZroDuqZH3wQqpLTcXG4DXvz0i8QxoIXk/0
+	DCRc54LMxgcpIQzYAjgih2s0Gx+moxhrWqbxxL+3gE=
+Received: from xavier_qy$163.com ( [2408:820c:3408:68f0:2136:e7d4:a861:aae3]
+ ) by ajax-webmail-wmsvr-40-102 (Coremail) ; Wed, 16 Apr 2025 22:51:01 +0800
+ (CST)
+Date: Wed, 16 Apr 2025 22:51:01 +0800 (CST)
+From: Xavier  <xavier_qy@163.com>
+To: "Barry Song" <21cnbao@gmail.com>
+Cc: "Andrew Morton" <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+	ziy@nvidia.com, willy@infradead.org, will@kernel.org,
+	ryan.roberts@arm.com, Markus.Elfring@web.de, ioworker0@gmail.com,
+	gshan@redhat.com, dev.jain@arm.com, david@redhat.com,
+	catalin.marinas@arm.com
+Subject: Re: + mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
+ added to mm-new branch
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version XT5.0.14 build 20240801(9da12a7b)
+ Copyright (c) 2002-2025 www.mailtech.cn 163com
+In-Reply-To: <CAGsJ_4wQMby-i94p5WD1xNLBZpeVjpA9WCYm3gWFf=o-EwjStA@mail.gmail.com>
+References: <20250416021106.18BC6C4CEE7@smtp.kernel.org>
+ <CAGsJ_4wQMby-i94p5WD1xNLBZpeVjpA9WCYm3gWFf=o-EwjStA@mail.gmail.com>
+X-NTES-SC: AL_Qu2fBvSaukgt5yiaZukfmk4QgeY+WMW1vP4m34NSN5FwjCzp0ysiZlJTIXjNyvCDLzqKkAiHVTRiy9ZZf7hifrkoxxSDQc4KiWnj3Xj7iWe/pA==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250416021106.18BC6C4CEE7@smtp.kernel.org>
-In-Reply-To: <20250416021106.18BC6C4CEE7@smtp.kernel.org>
-From: Barry Song <21cnbao@gmail.com>
-Date: Wed, 16 Apr 2025 16:28:26 +0800
-X-Gm-Features: ATxdqUGHOgopwcFp2M4oN8DKJsaMg8_8wN14GFTBVNzBMyYaGLzI0qIJck5cLTk
-Message-ID: <CAGsJ_4wQMby-i94p5WD1xNLBZpeVjpA9WCYm3gWFf=o-EwjStA@mail.gmail.com>
-Subject: Re: + mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
- added to mm-new branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org, 
-	will@kernel.org, ryan.roberts@arm.com, Markus.Elfring@web.de, 
-	ioworker0@gmail.com, gshan@redhat.com, dev.jain@arm.com, david@redhat.com, 
-	catalin.marinas@arm.com, xavier_qy@163.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <160d6f73.b0a5.1963f14fb47.Coremail.xavier_qy@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:ZigvCgAXfIbVw_9nouCXAA--.45614W
+X-CM-SenderInfo: 50dyxvpubt5qqrwthudrp/1tbiwhExEGf-pJJ9EwADsx
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-On Wed, Apr 16, 2025 at 10:11=E2=80=AFAM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
->
-> The patch titled
->      Subject: mm/contpte: optimize loop to reduce redundant operations
-> has been added to the -mm mm-new branch.  Its filename is
->      mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
->
-> This patch will later appear in the mm-new branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Xavier <xavier_qy@163.com>
-> Subject: mm/contpte: optimize loop to reduce redundant operations
-> Date: Tue, 15 Apr 2025 16:22:05 +0800
->
-> Optimize contpte_ptep_get() by adding early termination logic.  Check if
-> the dirty and young bits of orig_pte are already set and skip redundant
-> bit-setting operations during the loop.  This reduces unnecessary
-> iterations and improves performance.
->
-> The function's execution time and instruction statistics have been traced
-> using perf, and the following are the operation results on a certain
-> Qualcomm mobile phone chip:
->
-> Instruction Statistics - Before Optimization
-> #          count  event_name              # count / runtime
->       20,814,352  branch-load-misses      # 662.244 K/sec
->   41,894,986,323  branch-loads            # 1.333 G/sec
->        1,957,415  iTLB-load-misses        # 62.278 K/sec
->   49,872,282,100  iTLB-loads              # 1.587 G/sec
->      302,808,096  L1-icache-load-misses   # 9.634 M/sec
->   49,872,282,100  L1-icache-loads         # 1.587 G/sec
->
-> Total test time: 31.485237 seconds.
->
-> Instruction Statistics - After Optimization
-> #          count  event_name              # count / runtime
->       19,340,524  branch-load-misses      # 688.753 K/sec
->   38,510,185,183  branch-loads            # 1.371 G/sec
->        1,812,716  iTLB-load-misses        # 64.554 K/sec
->   47,673,923,151  iTLB-loads              # 1.698 G/sec
->      675,853,661  L1-icache-load-misses   # 24.068 M/sec
->   47,673,923,151  L1-icache-loads         # 1.698 G/sec
->
-> Total test time: 28.108048 seconds.
->
-> Function Statistics - Before Optimization
-> Arch: arm64
-> Event: cpu-cycles (type 0, config 0)
-> Samples: 1419716
-> Event count: 99618088900
->
-> Overhead   Symbol
-> 21.42%     lock_release
-> 21.26%     lock_acquire
-> 20.88%     arch_counter_get_cntvct
-> 14.32%     _raw_spin_unlock_irq
-> 6.79%      contpte_ptep_get
-> 2.20%      test_contpte_perf
-> 1.82%      follow_page_pte
-> 0.97%      lock_acquired
-> 0.97%      rcu_is_watching
-> 0.89%      mlock_pte_range
-> 0.84%      sched_clock_noinstr
-> 0.70%      handle_softirqs.llvm.8218488130471452153
-> 0.58%      test_preempt_disable_long
-> 0.57%      _raw_spin_unlock_irqrestore
-> 0.54%      arch_stack_walk
-> 0.51%      vm_normal_folio
-> 0.48%      check_preemption_disabled
-> 0.47%      stackinfo_get_task
-> 0.36%      try_grab_folio
-> 0.34%      preempt_count
-> 0.32%      trace_preempt_on
-> 0.29%      trace_preempt_off
-> 0.24%      debug_smp_processor_id
->
-> Function Statistics - After Optimization
-> Arch: arm64
-> Event: cpu-cycles (type 0, config 0)
-> Samples: 1431006
-> Event count: 118856425042
->
-> Overhead   Symbol
-> 22.59%     lock_release
-> 22.13%     arch_counter_get_cntvct
-> 22.08%     lock_acquire
-> 15.32%     _raw_spin_unlock_irq
-> 2.26%      test_contpte_perf
-> 1.50%      follow_page_pte
-> 1.49%      arch_stack_walk
-> 1.30%      rcu_is_watching
-> 1.09%      lock_acquired
-> 1.07%      sched_clock_noinstr
-> 0.88%      handle_softirqs.llvm.12507768597002095717
-> 0.88%      trace_preempt_off
-> 0.76%      _raw_spin_unlock_irqrestore
-> 0.61%      check_preemption_disabled
-> 0.52%      trace_preempt_on
-> 0.50%      mlock_pte_range
-> 0.43%      try_grab_folio
-> 0.41%      folio_mark_accessed
-> 0.40%      vm_normal_folio
-> 0.38%      test_preempt_disable_long
-> 0.28%      contpte_ptep_get
-> 0.27%      __traceiter_android_rvh_preempt_disable
-> 0.26%      debug_smp_processor_id
-> 0.24%      return_address
-> 0.20%      __pte_offset_map_lock
-> 0.19%      unwind_next_frame_record
->
-> If there is no problem with my test program, it can be seen that there is=
- a
-> significant performance improvement both in the overall number of instruc=
-tions
-> and the execution time of contpte_ptep_get.
->
-> If any reviewers have time, you can also test it on your machines for com=
-parison.
-> I have enabled THP and hugepages-64kB.
->
-> Test function:
->
-> #define PAGE_SIZE 4096
-> #define CONT_PTES 16
-> #define TEST_SIZE (4096* CONT_PTES * PAGE_SIZE)
->
-> void rwdata(char *buf)
-> {
->         for (size_t i =3D 0; i < TEST_SIZE; i +=3D PAGE_SIZE) {
->                 buf[i] =3D 'a';
->                 volatile char c =3D buf[i];
->         }
-> }
-> void test_contpte_perf()
-> {
->         char *buf;
->         int ret =3D posix_memalign((void **)&buf, PAGE_SIZE, TEST_SIZE);
->         if (ret !=3D 0) {
->                 perror("posix_memalign failed");
->                 exit(EXIT_FAILURE);
->         }
->
->         rwdata(buf);
->
->         for (int j =3D 0; j < 500; j++) {
->                 mlock(buf, TEST_SIZE);
->
->                 rwdata(buf);
->
->                 munlock(buf, TEST_SIZE);
->         }
->
->         free(buf);
-> }
-
-Hi Xavier,
-
-The data looks good while the test case seems unreal -  all PTEs are young
-and all are dirty. we are getting "break" during accessing the first PTE. b=
-ut
-a real workload could be:
-
-1. none of PTEs are dirty or young; (for example, An android app is moved
-to background and not occupying the screen)
-
-2. only one young PTE somewhere and no dirty.
-
-For those cases, are we increasing instructions instead?
-
->
-> Link: https://lkml.kernel.org/r/20250415082205.2249918-2-xavier_qy@163.co=
-m
-> Signed-off-by: Xavier <xavier_qy@163.com>
-> Cc: Barry Song <21cnbao@gmail.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Dev Jain <dev.jain@arm.com>
-> Cc: Gavin Shan <gshan@redhat.com>
-> Cc: Lance Yang <ioworker0@gmail.com>
-> Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-> Cc: Ryan Roberts <ryan.roberts@arm.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: Zi Yan <ziy@nvidia.com>
-> Cc: Markus Elfring <Markus.Elfring@web.de>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  arch/arm64/mm/contpte.c |   20 ++++++++++++++++++--
->  1 file changed, 18 insertions(+), 2 deletions(-)
->
-> --- a/arch/arm64/mm/contpte.c~mm-contpte-optimize-loop-to-reduce-redundan=
-t-operations
-> +++ a/arch/arm64/mm/contpte.c
-> @@ -152,6 +152,16 @@ void __contpte_try_unfold(struct mm_stru
->  }
->  EXPORT_SYMBOL_GPL(__contpte_try_unfold);
->
-> +/* Note: in order to improve efficiency, using this macro will modify th=
-e
-> + * passed-in parameters.*/
-> +#define CHECK_CONTPTE_FLAG(start, ptep, orig_pte, flag) \
-> +    for (; (start) < CONT_PTES; (start)++, (ptep)++) { \
-> +               if (pte_##flag(__ptep_get(ptep))) { \
-> +                               orig_pte =3D pte_mk##flag(orig_pte); \
-> +                               break; \
-> +               } \
-> +    }
-> +
->  pte_t contpte_ptep_get(pte_t *ptep, pte_t orig_pte)
->  {
->         /*
-> @@ -169,11 +179,17 @@ pte_t contpte_ptep_get(pte_t *ptep, pte_
->         for (i =3D 0; i < CONT_PTES; i++, ptep++) {
->                 pte =3D __ptep_get(ptep);
->
-> -               if (pte_dirty(pte))
-> +               if (pte_dirty(pte)) {
->                         orig_pte =3D pte_mkdirty(orig_pte);
-> +                       CHECK_CONTPTE_FLAG(i, ptep, orig_pte, young);
-> +                       break;
-> +               }
->
-> -               if (pte_young(pte))
-> +               if (pte_young(pte)) {
->                         orig_pte =3D pte_mkyoung(orig_pte);
-> +                       CHECK_CONTPTE_FLAG(i, ptep, orig_pte, dirty);
-> +                       break;
-> +               }
->         }
->
->         return orig_pte;
-> _
->
-> Patches currently in -mm which might be from xavier_qy@163.com are
->
-> mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
->
-
-Thanks
-Barry
+CkhpIEJhcnJ5LAoKCkF0IDIwMjUtMDQtMTYgMTY6Mjg6MjYsICJCYXJyeSBTb25nIiA8MjFjbmJh
+b0BnbWFpbC5jb20+IHdyb3RlOgo+T24gV2VkLCBBcHIgMTYsIDIwMjUgYXQgMTA6MTHigK9BTSBB
+bmRyZXcgTW9ydG9uCj48YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4gd3JvdGU6Cj4+Cj4+Cj4+
+IFRoZSBwYXRjaCB0aXRsZWQKPj4gICAgICBTdWJqZWN0OiBtbS9jb250cHRlOiBvcHRpbWl6ZSBs
+b29wIHRvIHJlZHVjZSByZWR1bmRhbnQgb3BlcmF0aW9ucwo+PiBoYXMgYmVlbiBhZGRlZCB0byB0
+aGUgLW1tIG1tLW5ldyBicmFuY2guICBJdHMgZmlsZW5hbWUgaXMKPj4gICAgICBtbS1jb250cHRl
+LW9wdGltaXplLWxvb3AtdG8tcmVkdWNlLXJlZHVuZGFudC1vcGVyYXRpb25zLnBhdGNoCj4+Cj4+
+IFRoaXMgcGF0Y2ggd2lsbCBzaG9ydGx5IGFwcGVhciBhdAo+PiAgICAgIGh0dHBzOi8vZ2l0Lmtl
+cm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2FrcG0vMjUtbmV3LmdpdC90cmVlL3Bh
+dGNoZXMvbW0tY29udHB0ZS1vcHRpbWl6ZS1sb29wLXRvLXJlZHVjZS1yZWR1bmRhbnQtb3BlcmF0
+aW9ucy5wYXRjaAo+Pgo+PiBUaGlzIHBhdGNoIHdpbGwgbGF0ZXIgYXBwZWFyIGluIHRoZSBtbS1u
+ZXcgYnJhbmNoIGF0Cj4+ICAgICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tl
+cm5lbC9naXQvYWtwbS9tbQo+Pgo+PiBCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHki
+LCBwbGVhc2U6Cj4+ICAgIGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydlZAo+PiAg
+ICBiKSBQcmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAo+PiAgICBj
+KSBJZGVhbGx5OiBmaW5kIHRoZSBvcmlnaW5hbCBwYXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFu
+ZCBkbyBhCj4+ICAgICAgIHJlcGx5LXRvLWFsbCB0byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRk
+aXRpb25hbCBjYydzCj4+Cj4+ICoqKiBSZW1lbWJlciB0byB1c2UgRG9jdW1lbnRhdGlvbi9wcm9j
+ZXNzL3N1Ym1pdC1jaGVja2xpc3QucnN0IHdoZW4gdGVzdGluZyB5b3VyIGNvZGUgKioqCj4+Cj4+
+IFRoZSAtbW0gdHJlZSBpcyBpbmNsdWRlZCBpbnRvIGxpbnV4LW5leHQgdmlhIHRoZSBtbS1ldmVy
+eXRoaW5nCj4+IGJyYW5jaCBhdCBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tl
+cm5lbC9naXQvYWtwbS9tbQo+PiBhbmQgaXMgdXBkYXRlZCB0aGVyZSBldmVyeSAyLTMgd29ya2lu
+ZyBkYXlzCj4+Cj4+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLQo+PiBGcm9tOiBYYXZpZXIgPHhhdmllcl9xeUAxNjMuY29tPgo+PiBTdWJqZWN0
+OiBtbS9jb250cHRlOiBvcHRpbWl6ZSBsb29wIHRvIHJlZHVjZSByZWR1bmRhbnQgb3BlcmF0aW9u
+cwo+PiBEYXRlOiBUdWUsIDE1IEFwciAyMDI1IDE2OjIyOjA1ICswODAwCj4+Cj4+IE9wdGltaXpl
+IGNvbnRwdGVfcHRlcF9nZXQoKSBieSBhZGRpbmcgZWFybHkgdGVybWluYXRpb24gbG9naWMuICBD
+aGVjayBpZgo+PiB0aGUgZGlydHkgYW5kIHlvdW5nIGJpdHMgb2Ygb3JpZ19wdGUgYXJlIGFscmVh
+ZHkgc2V0IGFuZCBza2lwIHJlZHVuZGFudAo+PiBiaXQtc2V0dGluZyBvcGVyYXRpb25zIGR1cmlu
+ZyB0aGUgbG9vcC4gIFRoaXMgcmVkdWNlcyB1bm5lY2Vzc2FyeQo+PiBpdGVyYXRpb25zIGFuZCBp
+bXByb3ZlcyBwZXJmb3JtYW5jZS4KPj4KPj4gVGhlIGZ1bmN0aW9uJ3MgZXhlY3V0aW9uIHRpbWUg
+YW5kIGluc3RydWN0aW9uIHN0YXRpc3RpY3MgaGF2ZSBiZWVuIHRyYWNlZAo+PiB1c2luZyBwZXJm
+LCBhbmQgdGhlIGZvbGxvd2luZyBhcmUgdGhlIG9wZXJhdGlvbiByZXN1bHRzIG9uIGEgY2VydGFp
+bgo+PiBRdWFsY29tbSBtb2JpbGUgcGhvbmUgY2hpcDoKPj4KPj4gSW5zdHJ1Y3Rpb24gU3RhdGlz
+dGljcyAtIEJlZm9yZSBPcHRpbWl6YXRpb24KPj4gIyAgICAgICAgICBjb3VudCAgZXZlbnRfbmFt
+ZSAgICAgICAgICAgICAgIyBjb3VudCAvIHJ1bnRpbWUKPj4gICAgICAgMjAsODE0LDM1MiAgYnJh
+bmNoLWxvYWQtbWlzc2VzICAgICAgIyA2NjIuMjQ0IEsvc2VjCj4+ICAgNDEsODk0LDk4NiwzMjMg
+IGJyYW5jaC1sb2FkcyAgICAgICAgICAgICMgMS4zMzMgRy9zZWMKPj4gICAgICAgIDEsOTU3LDQx
+NSAgaVRMQi1sb2FkLW1pc3NlcyAgICAgICAgIyA2Mi4yNzggSy9zZWMKPj4gICA0OSw4NzIsMjgy
+LDEwMCAgaVRMQi1sb2FkcyAgICAgICAgICAgICAgIyAxLjU4NyBHL3NlYwo+PiAgICAgIDMwMiw4
+MDgsMDk2ICBMMS1pY2FjaGUtbG9hZC1taXNzZXMgICAjIDkuNjM0IE0vc2VjCj4+ICAgNDksODcy
+LDI4MiwxMDAgIEwxLWljYWNoZS1sb2FkcyAgICAgICAgICMgMS41ODcgRy9zZWMKPj4KPj4gVG90
+YWwgdGVzdCB0aW1lOiAzMS40ODUyMzcgc2Vjb25kcy4KPj4KPj4gSW5zdHJ1Y3Rpb24gU3RhdGlz
+dGljcyAtIEFmdGVyIE9wdGltaXphdGlvbgo+PiAjICAgICAgICAgIGNvdW50ICBldmVudF9uYW1l
+ICAgICAgICAgICAgICAjIGNvdW50IC8gcnVudGltZQo+PiAgICAgICAxOSwzNDAsNTI0ICBicmFu
+Y2gtbG9hZC1taXNzZXMgICAgICAjIDY4OC43NTMgSy9zZWMKPj4gICAzOCw1MTAsMTg1LDE4MyAg
+YnJhbmNoLWxvYWRzICAgICAgICAgICAgIyAxLjM3MSBHL3NlYwo+PiAgICAgICAgMSw4MTIsNzE2
+ICBpVExCLWxvYWQtbWlzc2VzICAgICAgICAjIDY0LjU1NCBLL3NlYwo+PiAgIDQ3LDY3Myw5MjMs
+MTUxICBpVExCLWxvYWRzICAgICAgICAgICAgICAjIDEuNjk4IEcvc2VjCj4+ICAgICAgNjc1LDg1
+Myw2NjEgIEwxLWljYWNoZS1sb2FkLW1pc3NlcyAgICMgMjQuMDY4IE0vc2VjCj4+ICAgNDcsNjcz
+LDkyMywxNTEgIEwxLWljYWNoZS1sb2FkcyAgICAgICAgICMgMS42OTggRy9zZWMKPj4KPj4gVG90
+YWwgdGVzdCB0aW1lOiAyOC4xMDgwNDggc2Vjb25kcy4KPj4KPj4gRnVuY3Rpb24gU3RhdGlzdGlj
+cyAtIEJlZm9yZSBPcHRpbWl6YXRpb24KPj4gQXJjaDogYXJtNjQKPj4gRXZlbnQ6IGNwdS1jeWNs
+ZXMgKHR5cGUgMCwgY29uZmlnIDApCj4+IFNhbXBsZXM6IDE0MTk3MTYKPj4gRXZlbnQgY291bnQ6
+IDk5NjE4MDg4OTAwCj4+Cj4+IE92ZXJoZWFkICAgU3ltYm9sCj4+IDIxLjQyJSAgICAgbG9ja19y
+ZWxlYXNlCj4+IDIxLjI2JSAgICAgbG9ja19hY3F1aXJlCj4+IDIwLjg4JSAgICAgYXJjaF9jb3Vu
+dGVyX2dldF9jbnR2Y3QKPj4gMTQuMzIlICAgICBfcmF3X3NwaW5fdW5sb2NrX2lycQo+PiA2Ljc5
+JSAgICAgIGNvbnRwdGVfcHRlcF9nZXQKPj4gMi4yMCUgICAgICB0ZXN0X2NvbnRwdGVfcGVyZgo+
+PiAxLjgyJSAgICAgIGZvbGxvd19wYWdlX3B0ZQo+PiAwLjk3JSAgICAgIGxvY2tfYWNxdWlyZWQK
+Pj4gMC45NyUgICAgICByY3VfaXNfd2F0Y2hpbmcKPj4gMC44OSUgICAgICBtbG9ja19wdGVfcmFu
+Z2UKPj4gMC44NCUgICAgICBzY2hlZF9jbG9ja19ub2luc3RyCj4+IDAuNzAlICAgICAgaGFuZGxl
+X3NvZnRpcnFzLmxsdm0uODIxODQ4ODEzMDQ3MTQ1MjE1Mwo+PiAwLjU4JSAgICAgIHRlc3RfcHJl
+ZW1wdF9kaXNhYmxlX2xvbmcKPj4gMC41NyUgICAgICBfcmF3X3NwaW5fdW5sb2NrX2lycXJlc3Rv
+cmUKPj4gMC41NCUgICAgICBhcmNoX3N0YWNrX3dhbGsKPj4gMC41MSUgICAgICB2bV9ub3JtYWxf
+Zm9saW8KPj4gMC40OCUgICAgICBjaGVja19wcmVlbXB0aW9uX2Rpc2FibGVkCj4+IDAuNDclICAg
+ICAgc3RhY2tpbmZvX2dldF90YXNrCj4+IDAuMzYlICAgICAgdHJ5X2dyYWJfZm9saW8KPj4gMC4z
+NCUgICAgICBwcmVlbXB0X2NvdW50Cj4+IDAuMzIlICAgICAgdHJhY2VfcHJlZW1wdF9vbgo+PiAw
+LjI5JSAgICAgIHRyYWNlX3ByZWVtcHRfb2ZmCj4+IDAuMjQlICAgICAgZGVidWdfc21wX3Byb2Nl
+c3Nvcl9pZAo+Pgo+PiBGdW5jdGlvbiBTdGF0aXN0aWNzIC0gQWZ0ZXIgT3B0aW1pemF0aW9uCj4+
+IEFyY2g6IGFybTY0Cj4+IEV2ZW50OiBjcHUtY3ljbGVzICh0eXBlIDAsIGNvbmZpZyAwKQo+PiBT
+YW1wbGVzOiAxNDMxMDA2Cj4+IEV2ZW50IGNvdW50OiAxMTg4NTY0MjUwNDIKPj4KPj4gT3Zlcmhl
+YWQgICBTeW1ib2wKPj4gMjIuNTklICAgICBsb2NrX3JlbGVhc2UKPj4gMjIuMTMlICAgICBhcmNo
+X2NvdW50ZXJfZ2V0X2NudHZjdAo+PiAyMi4wOCUgICAgIGxvY2tfYWNxdWlyZQo+PiAxNS4zMiUg
+ICAgIF9yYXdfc3Bpbl91bmxvY2tfaXJxCj4+IDIuMjYlICAgICAgdGVzdF9jb250cHRlX3BlcmYK
+Pj4gMS41MCUgICAgICBmb2xsb3dfcGFnZV9wdGUKPj4gMS40OSUgICAgICBhcmNoX3N0YWNrX3dh
+bGsKPj4gMS4zMCUgICAgICByY3VfaXNfd2F0Y2hpbmcKPj4gMS4wOSUgICAgICBsb2NrX2FjcXVp
+cmVkCj4+IDEuMDclICAgICAgc2NoZWRfY2xvY2tfbm9pbnN0cgo+PiAwLjg4JSAgICAgIGhhbmRs
+ZV9zb2Z0aXJxcy5sbHZtLjEyNTA3NzY4NTk3MDAyMDk1NzE3Cj4+IDAuODglICAgICAgdHJhY2Vf
+cHJlZW1wdF9vZmYKPj4gMC43NiUgICAgICBfcmF3X3NwaW5fdW5sb2NrX2lycXJlc3RvcmUKPj4g
+MC42MSUgICAgICBjaGVja19wcmVlbXB0aW9uX2Rpc2FibGVkCj4+IDAuNTIlICAgICAgdHJhY2Vf
+cHJlZW1wdF9vbgo+PiAwLjUwJSAgICAgIG1sb2NrX3B0ZV9yYW5nZQo+PiAwLjQzJSAgICAgIHRy
+eV9ncmFiX2ZvbGlvCj4+IDAuNDElICAgICAgZm9saW9fbWFya19hY2Nlc3NlZAo+PiAwLjQwJSAg
+ICAgIHZtX25vcm1hbF9mb2xpbwo+PiAwLjM4JSAgICAgIHRlc3RfcHJlZW1wdF9kaXNhYmxlX2xv
+bmcKPj4gMC4yOCUgICAgICBjb250cHRlX3B0ZXBfZ2V0Cj4+IDAuMjclICAgICAgX190cmFjZWl0
+ZXJfYW5kcm9pZF9ydmhfcHJlZW1wdF9kaXNhYmxlCj4+IDAuMjYlICAgICAgZGVidWdfc21wX3By
+b2Nlc3Nvcl9pZAo+PiAwLjI0JSAgICAgIHJldHVybl9hZGRyZXNzCj4+IDAuMjAlICAgICAgX19w
+dGVfb2Zmc2V0X21hcF9sb2NrCj4+IDAuMTklICAgICAgdW53aW5kX25leHRfZnJhbWVfcmVjb3Jk
+Cj4+Cj4+IElmIHRoZXJlIGlzIG5vIHByb2JsZW0gd2l0aCBteSB0ZXN0IHByb2dyYW0sIGl0IGNh
+biBiZSBzZWVuIHRoYXQgdGhlcmUgaXMgYQo+PiBzaWduaWZpY2FudCBwZXJmb3JtYW5jZSBpbXBy
+b3ZlbWVudCBib3RoIGluIHRoZSBvdmVyYWxsIG51bWJlciBvZiBpbnN0cnVjdGlvbnMKPj4gYW5k
+IHRoZSBleGVjdXRpb24gdGltZSBvZiBjb250cHRlX3B0ZXBfZ2V0Lgo+Pgo+PiBJZiBhbnkgcmV2
+aWV3ZXJzIGhhdmUgdGltZSwgeW91IGNhbiBhbHNvIHRlc3QgaXQgb24geW91ciBtYWNoaW5lcyBm
+b3IgY29tcGFyaXNvbi4KPj4gSSBoYXZlIGVuYWJsZWQgVEhQIGFuZCBodWdlcGFnZXMtNjRrQi4K
+Pj4KPj4gVGVzdCBmdW5jdGlvbjoKPj4KPj4gI2RlZmluZSBQQUdFX1NJWkUgNDA5Ngo+PiAjZGVm
+aW5lIENPTlRfUFRFUyAxNgo+PiAjZGVmaW5lIFRFU1RfU0laRSAoNDA5NiogQ09OVF9QVEVTICog
+UEFHRV9TSVpFKQo+Pgo+PiB2b2lkIHJ3ZGF0YShjaGFyICpidWYpCj4+IHsKPj4gICAgICAgICBm
+b3IgKHNpemVfdCBpID0gMDsgaSA8IFRFU1RfU0laRTsgaSArPSBQQUdFX1NJWkUpIHsKPj4gICAg
+ICAgICAgICAgICAgIGJ1ZltpXSA9ICdhJzsKPj4gICAgICAgICAgICAgICAgIHZvbGF0aWxlIGNo
+YXIgYyA9IGJ1ZltpXTsKPj4gICAgICAgICB9Cj4+IH0KPj4gdm9pZCB0ZXN0X2NvbnRwdGVfcGVy
+ZigpCj4+IHsKPj4gICAgICAgICBjaGFyICpidWY7Cj4+ICAgICAgICAgaW50IHJldCA9IHBvc2l4
+X21lbWFsaWduKCh2b2lkICoqKSZidWYsIFBBR0VfU0laRSwgVEVTVF9TSVpFKTsKPj4gICAgICAg
+ICBpZiAocmV0ICE9IDApIHsKPj4gICAgICAgICAgICAgICAgIHBlcnJvcigicG9zaXhfbWVtYWxp
+Z24gZmFpbGVkIik7Cj4+ICAgICAgICAgICAgICAgICBleGl0KEVYSVRfRkFJTFVSRSk7Cj4+ICAg
+ICAgICAgfQo+Pgo+PiAgICAgICAgIHJ3ZGF0YShidWYpOwo+Pgo+PiAgICAgICAgIGZvciAoaW50
+IGogPSAwOyBqIDwgNTAwOyBqKyspIHsKPj4gICAgICAgICAgICAgICAgIG1sb2NrKGJ1ZiwgVEVT
+VF9TSVpFKTsKPj4KPj4gICAgICAgICAgICAgICAgIHJ3ZGF0YShidWYpOwo+Pgo+PiAgICAgICAg
+ICAgICAgICAgbXVubG9jayhidWYsIFRFU1RfU0laRSk7Cj4+ICAgICAgICAgfQo+Pgo+PiAgICAg
+ICAgIGZyZWUoYnVmKTsKPj4gfQo+Cj5IaSBYYXZpZXIsCj4KPlRoZSBkYXRhIGxvb2tzIGdvb2Qg
+d2hpbGUgdGhlIHRlc3QgY2FzZSBzZWVtcyB1bnJlYWwgLSAgYWxsIFBURXMgYXJlIHlvdW5nCj5h
+bmQgYWxsIGFyZSBkaXJ0eS4gd2UgYXJlIGdldHRpbmcgImJyZWFrIiBkdXJpbmcgYWNjZXNzaW5n
+IHRoZSBmaXJzdCBQVEUuIGJ1dAo+YSByZWFsIHdvcmtsb2FkIGNvdWxkIGJlOgo+Cj4xLiBub25l
+IG9mIFBURXMgYXJlIGRpcnR5IG9yIHlvdW5nOyAoZm9yIGV4YW1wbGUsIEFuIGFuZHJvaWQgYXBw
+IGlzIG1vdmVkCj50byBiYWNrZ3JvdW5kIGFuZCBub3Qgb2NjdXB5aW5nIHRoZSBzY3JlZW4pCj4K
+PjIuIG9ubHkgb25lIHlvdW5nIFBURSBzb21ld2hlcmUgYW5kIG5vIGRpcnR5Lgo+Cj5Gb3IgdGhv
+c2UgY2FzZXMsIGFyZSB3ZSBpbmNyZWFzaW5nIGluc3RydWN0aW9ucyBpbnN0ZWFkPwo+CgpJIHdp
+bGwgYWRkIHRlc3QgY2FzZXMgZm9yIHRoZXNlIHR3byBzaXR1YXRpb25zIGxhdGVyIHRvIHZlcmlm
+eSB3aGV0aGVyIHRoZXJlIHdpbGwKYmUgYW55IHBlcmZvcm1hbmNlIGltcHJvdmVtZW50IGZvciBn
+ZW5lcmFsIHNjZW5hcmlvcy4KCi0tCgpUaGFua3MsClhhdmllcgoKPj4KPj4gTGluazogaHR0cHM6
+Ly9sa21sLmtlcm5lbC5vcmcvci8yMDI1MDQxNTA4MjIwNS4yMjQ5OTE4LTIteGF2aWVyX3F5QDE2
+My5jb20KPj4gU2lnbmVkLW9mZi1ieTogWGF2aWVyIDx4YXZpZXJfcXlAMTYzLmNvbT4KPj4gQ2M6
+IEJhcnJ5IFNvbmcgPDIxY25iYW9AZ21haWwuY29tPgo+PiBDYzogQ2F0YWxpbiBNYXJpbmFzIDxj
+YXRhbGluLm1hcmluYXNAYXJtLmNvbT4KPj4gQ2M6IERhdmlkIEhpbGRlbmJyYW5kIDxkYXZpZEBy
+ZWRoYXQuY29tPgo+PiBDYzogRGV2IEphaW4gPGRldi5qYWluQGFybS5jb20+Cj4+IENjOiBHYXZp
+biBTaGFuIDxnc2hhbkByZWRoYXQuY29tPgo+PiBDYzogTGFuY2UgWWFuZyA8aW93b3JrZXIwQGdt
+YWlsLmNvbT4KPj4gQ2M6IE1hdHRoZXcgV2lsY294IChPcmFjbGUpIDx3aWxseUBpbmZyYWRlYWQu
+b3JnPgo+PiBDYzogUnlhbiBSb2JlcnRzIDxyeWFuLnJvYmVydHNAYXJtLmNvbT4KPj4gQ2M6IFdp
+bGwgRGVhY29uIDx3aWxsQGtlcm5lbC5vcmc+Cj4+IENjOiBaaSBZYW4gPHppeUBudmlkaWEuY29t
+Pgo+PiBDYzogTWFya3VzIEVsZnJpbmcgPE1hcmt1cy5FbGZyaW5nQHdlYi5kZT4KPj4gU2lnbmVk
+LW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KPj4gLS0t
+Cj4+Cj4+ICBhcmNoL2FybTY0L21tL2NvbnRwdGUuYyB8ICAgMjAgKysrKysrKysrKysrKysrKysr
+LS0KPj4gIDEgZmlsZSBjaGFuZ2VkLCAxOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQo+
+Pgo+PiAtLS0gYS9hcmNoL2FybTY0L21tL2NvbnRwdGUuY35tbS1jb250cHRlLW9wdGltaXplLWxv
+b3AtdG8tcmVkdWNlLXJlZHVuZGFudC1vcGVyYXRpb25zCj4+ICsrKyBhL2FyY2gvYXJtNjQvbW0v
+Y29udHB0ZS5jCj4+IEBAIC0xNTIsNiArMTUyLDE2IEBAIHZvaWQgX19jb250cHRlX3RyeV91bmZv
+bGQoc3RydWN0IG1tX3N0cnUKPj4gIH0KPj4gIEVYUE9SVF9TWU1CT0xfR1BMKF9fY29udHB0ZV90
+cnlfdW5mb2xkKTsKPj4KPj4gKy8qIE5vdGU6IGluIG9yZGVyIHRvIGltcHJvdmUgZWZmaWNpZW5j
+eSwgdXNpbmcgdGhpcyBtYWNybyB3aWxsIG1vZGlmeSB0aGUKPj4gKyAqIHBhc3NlZC1pbiBwYXJh
+bWV0ZXJzLiovCj4+ICsjZGVmaW5lIENIRUNLX0NPTlRQVEVfRkxBRyhzdGFydCwgcHRlcCwgb3Jp
+Z19wdGUsIGZsYWcpIFwKPj4gKyAgICBmb3IgKDsgKHN0YXJ0KSA8IENPTlRfUFRFUzsgKHN0YXJ0
+KSsrLCAocHRlcCkrKykgeyBcCj4+ICsgICAgICAgICAgICAgICBpZiAocHRlXyMjZmxhZyhfX3B0
+ZXBfZ2V0KHB0ZXApKSkgeyBcCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb3Jp
+Z19wdGUgPSBwdGVfbWsjI2ZsYWcob3JpZ19wdGUpOyBcCj4+ICsgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgYnJlYWs7IFwKPj4gKyAgICAgICAgICAgICAgIH0gXAo+PiArICAgIH0KPj4g
+Kwo+PiAgcHRlX3QgY29udHB0ZV9wdGVwX2dldChwdGVfdCAqcHRlcCwgcHRlX3Qgb3JpZ19wdGUp
+Cj4+ICB7Cj4+ICAgICAgICAgLyoKPj4gQEAgLTE2OSwxMSArMTc5LDE3IEBAIHB0ZV90IGNvbnRw
+dGVfcHRlcF9nZXQocHRlX3QgKnB0ZXAsIHB0ZV8KPj4gICAgICAgICBmb3IgKGkgPSAwOyBpIDwg
+Q09OVF9QVEVTOyBpKyssIHB0ZXArKykgewo+PiAgICAgICAgICAgICAgICAgcHRlID0gX19wdGVw
+X2dldChwdGVwKTsKPj4KPj4gLSAgICAgICAgICAgICAgIGlmIChwdGVfZGlydHkocHRlKSkKPj4g
+KyAgICAgICAgICAgICAgIGlmIChwdGVfZGlydHkocHRlKSkgewo+PiAgICAgICAgICAgICAgICAg
+ICAgICAgICBvcmlnX3B0ZSA9IHB0ZV9ta2RpcnR5KG9yaWdfcHRlKTsKPj4gKyAgICAgICAgICAg
+ICAgICAgICAgICAgQ0hFQ0tfQ09OVFBURV9GTEFHKGksIHB0ZXAsIG9yaWdfcHRlLCB5b3VuZyk7
+Cj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOwo+PiArICAgICAgICAgICAgICAgfQo+
+Pgo+PiAtICAgICAgICAgICAgICAgaWYgKHB0ZV95b3VuZyhwdGUpKQo+PiArICAgICAgICAgICAg
+ICAgaWYgKHB0ZV95b3VuZyhwdGUpKSB7Cj4+ICAgICAgICAgICAgICAgICAgICAgICAgIG9yaWdf
+cHRlID0gcHRlX21reW91bmcob3JpZ19wdGUpOwo+PiArICAgICAgICAgICAgICAgICAgICAgICBD
+SEVDS19DT05UUFRFX0ZMQUcoaSwgcHRlcCwgb3JpZ19wdGUsIGRpcnR5KTsKPj4gKyAgICAgICAg
+ICAgICAgICAgICAgICAgYnJlYWs7Cj4+ICsgICAgICAgICAgICAgICB9Cj4+ICAgICAgICAgfQo+
+Pgo+PiAgICAgICAgIHJldHVybiBvcmlnX3B0ZTsKPj4gXwo+Pgo+PiBQYXRjaGVzIGN1cnJlbnRs
+eSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJvbSB4YXZpZXJfcXlAMTYzLmNvbSBhcmUKPj4KPj4g
+bW0tY29udHB0ZS1vcHRpbWl6ZS1sb29wLXRvLXJlZHVjZS1yZWR1bmRhbnQtb3BlcmF0aW9ucy5w
+YXRjaAo+Pgo+Cj5UaGFua3MKPkJhcnJ5Cg==
