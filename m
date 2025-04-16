@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C0F02DFA42
-	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 22:22:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BCBC9478
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2025 22:35:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744842167; cv=none; b=P1GrsrOpEqSpNLZAkHaAUCGPyr1eOL8kyvxOaDRSEgKE/ZEq2fKxthaUon7pHipmNHBkNaZa3nr9z7AGSb/Lm3IyAaAIef1IYVoa3+/VVHft322+BpV0oQWN24gbLXinGhmw0ALE42INwzlB96m2doeXW/K/JUF0RpqWjKpKm0M=
+	t=1744842923; cv=none; b=BffmW78iCdxrMS5MUNBC95+/DpDk5kue2e3XQJ6bNptR3ICUZ/iIf8BG8A+z9FBxJd+KrQGmw9W+WmtSHeaRAVJ7BctcxiRqtJP/trqiJMflFNcgjw9i6Qy/Iqr4jv7PkR4wiYwSLB6+zqDRzkFi3up9mI3zf/DoCZeRIkQySvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744842167; c=relaxed/simple;
-	bh=rkeh3SFlE46Kk07WpX5yZNHH5It5OcIirUM1gLv53kI=;
-	h=Date:To:From:Subject:Message-Id; b=CvDeHWtiOwwwacFQgwc65exn/Eth5AFLwSjYRZlllIzkQ4k3qwPZbEZ02dqYzW3xy8rJhR+j95MOSOz+SgrT/3ddjHRJn4noMW89EOsvWIgw804WGnzJrdAF19BvgEcdKlejbHEg8vk9S0Xvj64gWROD9SmWrDoXQ1R7dJFv7S4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VtCygwJR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744842923; c=relaxed/simple;
+	bh=YCD88qMsr3vsyaz6AlRHmEjzDdUNalPyukHiGJcP610=;
+	h=Date:To:From:Subject:Message-Id; b=Im3YyJr4smNdFBHuv3s32NmAh1d8ngq/TzOp516A+EIFuN1VJHnLhNOHA5AU2+jtp0nD0eV2oPJ0Pgg1fVeyrjwB/1j5B26307h/cBzDz9mZFnVMNBp90CxzleZQAumrvrYjWBjD6ft+mWjEy89B+UWtKpEzBqcQaRxrR+ZPrvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H+yvHEZV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VtCygwJR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68DFBC4CEE2;
-	Wed, 16 Apr 2025 22:22:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H+yvHEZV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8175CC4CEE2;
+	Wed, 16 Apr 2025 22:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744842167;
-	bh=rkeh3SFlE46Kk07WpX5yZNHH5It5OcIirUM1gLv53kI=;
+	s=korg; t=1744842922;
+	bh=YCD88qMsr3vsyaz6AlRHmEjzDdUNalPyukHiGJcP610=;
 	h=Date:To:From:Subject:From;
-	b=VtCygwJRcSqEBAtbIlI4XKvG9kPcawmM/MbF8TCJ3vMo1rHP2kLPD58I1q2Wqf245
-	 Vo34s9YElN1y2yqjAW++W8WLcZSpnfH+oh9FstqOW8pFt/DuzILkpZPs32csywEpzx
-	 OLFMYcOBbucqrpFK/a9NYT/Do1lssZdxcg0aJ2vY=
-Date: Wed, 16 Apr 2025 15:22:46 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=H+yvHEZVYKja1z35wjXoB8aMtB9wgqaiyiXh+dYURrZ0/ep4X+m7fLHQ9e5Y6e5n7
+	 PXXRP4bgHeU4XZuYK8PYZaNt1/D2rEw7HiPcLzYWGhztoNiR+J2G2DmgARl/uK4p97
+	 PjGi0OOmnXxeVQR7Zw2QVNfjTksVNMvo/sNEG+kg=
+Date: Wed, 16 Apr 2025 15:35:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,ryan.roberts@arm.com,Markus.Elfring@web.de,ioworker0@gmail.com,gshan@redhat.com,dev.jain@arm.com,david@redhat.com,catalin.marinas@arm.com,21cnbao@gmail.com,xavier_qy@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250416222247.68DFBC4CEE2@smtp.kernel.org>
+Subject: [to-be-updated] mm-contpte-optimize-loop-to-reduce-redundant-operations.patch removed from -mm tree
+Message-Id: <20250416223522.8175CC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,114 +34,216 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: vmscan: fix kswapd exit condition in defrag_mode
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode.patch
+The quilt patch titled
+     Subject: mm/contpte: optimize loop to reduce redundant operations
+has been removed from the -mm tree.  Its filename was
+     mm-contpte-optimize-loop-to-reduce-redundant-operations.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: fix kswapd exit condition in defrag_mode
-Date: Wed, 16 Apr 2025 09:45:40 -0400
+From: Xavier <xavier_qy@163.com>
+Subject: mm/contpte: optimize loop to reduce redundant operations
+Date: Tue, 15 Apr 2025 16:22:05 +0800
 
-Vlastimil points out an issue with kswapd in defrag_mode not waking up
-kcompactd reliably.
+Optimize contpte_ptep_get() by adding early termination logic.  Check if
+the dirty and young bits of orig_pte are already set and skip redundant
+bit-setting operations during the loop.  This reduces unnecessary
+iterations and improves performance.
 
-Background: When kswapd is woken for any higher-order request, it
-initially checks those high-order watermarks to decide if work is
-necesary.  However, it cannot (efficiently) meet the contiguity goal of
-such a request by itself.  So once it has reclaimed a compaction gap, it
-adjusts the request down to check for free order-0 pages, then wakes
-kcompactd to coalesce them into larger blocks.
+The function's execution time and instruction statistics have been traced
+using perf, and the following are the operation results on a certain
+Qualcomm mobile phone chip:
 
-In defrag_mode, the initial watermark check needs to be analogously
-against free pageblocks.  However, once kswapd drops the high-order to
-hand off contiguity work, it also needs to fall back to base page
-watermarks - otherwise it'll keep reclaiming until blocks are freed.
+Instruction Statistics - Before Optimization
+#          count  event_name              # count / runtime
+      20,814,352  branch-load-misses      # 662.244 K/sec
+  41,894,986,323  branch-loads            # 1.333 G/sec
+       1,957,415  iTLB-load-misses        # 62.278 K/sec
+  49,872,282,100  iTLB-loads              # 1.587 G/sec
+     302,808,096  L1-icache-load-misses   # 9.634 M/sec
+  49,872,282,100  L1-icache-loads         # 1.587 G/sec
 
-While it appears kcompactd is woken up frequently enough to do most of the
-compaction work, kswapd ends up overreclaiming by quite a bit:
+Total test time: 31.485237 seconds.
 
-                                                     DEFRAGMODE     DEFRAGMODE-thispatch
-Hugealloc Time mean                       79381.34 (    +0.00%)    88126.12 (   +11.02%)
-Hugealloc Time stddev                     85852.16 (    +0.00%)   135366.75 (   +57.67%)
-Kbuild Real time                            249.35 (    +0.00%)      226.71 (    -9.04%)
-Kbuild User time                           1249.16 (    +0.00%)     1249.37 (    +0.02%)
-Kbuild System time                          171.76 (    +0.00%)      166.93 (    -2.79%)
-THP fault alloc                           51666.87 (    +0.00%)    52685.60 (    +1.97%)
-THP fault fallback                        16970.00 (    +0.00%)    15951.87 (    -6.00%)
-Direct compact fail                         166.53 (    +0.00%)      178.93 (    +7.40%)
-Direct compact success                       17.13 (    +0.00%)        4.13 (   -71.69%)
-Compact daemon scanned migrate          3095413.33 (    +0.00%)  9231239.53 (  +198.22%)
-Compact daemon scanned free             2155966.53 (    +0.00%)  7053692.87 (  +227.17%)
-Compact direct scanned migrate           265642.47 (    +0.00%)    68388.33 (   -74.26%)
-Compact direct scanned free              130252.60 (    +0.00%)    55634.87 (   -57.29%)
-Compact total migrate scanned           3361055.80 (    +0.00%)  9299627.87 (  +176.69%)
-Compact total free scanned              2286219.13 (    +0.00%)  7109327.73 (  +210.96%)
-Alloc stall                                1890.80 (    +0.00%)     6297.60 (  +232.94%)
-Pages kswapd scanned                    9043558.80 (    +0.00%)  5952576.73 (   -34.18%)
-Pages kswapd reclaimed                  1891708.67 (    +0.00%)  1030645.00 (   -45.52%)
-Pages direct scanned                    1017090.60 (    +0.00%)  2688047.60 (  +164.29%)
-Pages direct reclaimed                    92682.60 (    +0.00%)   309770.53 (  +234.22%)
-Pages total scanned                    10060649.40 (    +0.00%)  8640624.33 (   -14.11%)
-Pages total reclaimed                   1984391.27 (    +0.00%)  1340415.53 (   -32.45%)
-Swap out                                 884585.73 (    +0.00%)   417781.93 (   -52.77%)
-Swap in                                  287106.27 (    +0.00%)    95589.73 (   -66.71%)
-File refaults                            551697.60 (    +0.00%)   426474.80 (   -22.70%)
+Instruction Statistics - After Optimization
+#          count  event_name              # count / runtime
+      19,340,524  branch-load-misses      # 688.753 K/sec
+  38,510,185,183  branch-loads            # 1.371 G/sec
+       1,812,716  iTLB-load-misses        # 64.554 K/sec
+  47,673,923,151  iTLB-loads              # 1.698 G/sec
+     675,853,661  L1-icache-load-misses   # 24.068 M/sec
+  47,673,923,151  L1-icache-loads         # 1.698 G/sec
 
-Link: https://lkml.kernel.org/r/20250416135142.778933-3-hannes@cmpxchg.org
-Fixes: a211c6550efc ("mm: page_alloc: defrag_mode kswapd/kcompactd watermarks")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
+Total test time: 28.108048 seconds.
+
+Function Statistics - Before Optimization
+Arch: arm64
+Event: cpu-cycles (type 0, config 0)
+Samples: 1419716
+Event count: 99618088900
+
+Overhead   Symbol
+21.42%     lock_release
+21.26%     lock_acquire
+20.88%     arch_counter_get_cntvct
+14.32%     _raw_spin_unlock_irq
+6.79%      contpte_ptep_get
+2.20%      test_contpte_perf
+1.82%      follow_page_pte
+0.97%      lock_acquired
+0.97%      rcu_is_watching
+0.89%      mlock_pte_range
+0.84%      sched_clock_noinstr
+0.70%      handle_softirqs.llvm.8218488130471452153
+0.58%      test_preempt_disable_long
+0.57%      _raw_spin_unlock_irqrestore
+0.54%      arch_stack_walk
+0.51%      vm_normal_folio
+0.48%      check_preemption_disabled
+0.47%      stackinfo_get_task
+0.36%      try_grab_folio
+0.34%      preempt_count
+0.32%      trace_preempt_on
+0.29%      trace_preempt_off
+0.24%      debug_smp_processor_id
+
+Function Statistics - After Optimization
+Arch: arm64
+Event: cpu-cycles (type 0, config 0)
+Samples: 1431006
+Event count: 118856425042
+
+Overhead   Symbol
+22.59%     lock_release
+22.13%     arch_counter_get_cntvct
+22.08%     lock_acquire
+15.32%     _raw_spin_unlock_irq
+2.26%      test_contpte_perf
+1.50%      follow_page_pte
+1.49%      arch_stack_walk
+1.30%      rcu_is_watching
+1.09%      lock_acquired
+1.07%      sched_clock_noinstr
+0.88%      handle_softirqs.llvm.12507768597002095717
+0.88%      trace_preempt_off
+0.76%      _raw_spin_unlock_irqrestore
+0.61%      check_preemption_disabled
+0.52%      trace_preempt_on
+0.50%      mlock_pte_range
+0.43%      try_grab_folio
+0.41%      folio_mark_accessed
+0.40%      vm_normal_folio
+0.38%      test_preempt_disable_long
+0.28%      contpte_ptep_get
+0.27%      __traceiter_android_rvh_preempt_disable
+0.26%      debug_smp_processor_id
+0.24%      return_address
+0.20%      __pte_offset_map_lock
+0.19%      unwind_next_frame_record
+
+If there is no problem with my test program, it can be seen that there is a
+significant performance improvement both in the overall number of instructions
+and the execution time of contpte_ptep_get.
+
+If any reviewers have time, you can also test it on your machines for comparison.
+I have enabled THP and hugepages-64kB.
+
+Test function:
+
+#define PAGE_SIZE 4096
+#define CONT_PTES 16
+#define TEST_SIZE (4096* CONT_PTES * PAGE_SIZE)
+
+void rwdata(char *buf)
+{
+	for (size_t i = 0; i < TEST_SIZE; i += PAGE_SIZE) {
+		buf[i] = 'a';
+		volatile char c = buf[i];
+	}
+}
+void test_contpte_perf()
+{
+	char *buf;
+	int ret = posix_memalign((void **)&buf, PAGE_SIZE, TEST_SIZE);
+	if (ret != 0) {
+		perror("posix_memalign failed");
+		exit(EXIT_FAILURE);
+	}
+
+	rwdata(buf);
+
+	for (int j = 0; j < 500; j++) {
+		mlock(buf, TEST_SIZE);
+
+		rwdata(buf);
+
+		munlock(buf, TEST_SIZE);
+	}
+	
+	free(buf);
+}
+
+Link: https://lkml.kernel.org/r/20250415082205.2249918-2-xavier_qy@163.com
+Signed-off-by: Xavier <xavier_qy@163.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gavin Shan <gshan@redhat.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Markus Elfring <Markus.Elfring@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/arm64/mm/contpte.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode
-+++ a/mm/vmscan.c
-@@ -6747,8 +6747,14 @@ static bool pgdat_balanced(pg_data_t *pg
- 		/*
- 		 * In defrag_mode, watermarks must be met in whole
- 		 * blocks to avoid polluting allocator fallbacks.
-+		 *
-+		 * However, kswapd usually cannot accomplish this on
-+		 * its own and needs kcompactd support. Once it's
-+		 * reclaimed a compaction gap, and kswapd_shrink_node
-+		 * has dropped order, simply ensure there are enough
-+		 * base pages for compaction, wake kcompactd & sleep.
- 		 */
--		if (defrag_mode)
-+		if (defrag_mode && order)
- 			item = NR_FREE_PAGES_BLOCKS;
- 		else
- 			item = NR_FREE_PAGES;
+--- a/arch/arm64/mm/contpte.c~mm-contpte-optimize-loop-to-reduce-redundant-operations
++++ a/arch/arm64/mm/contpte.c
+@@ -152,6 +152,16 @@ void __contpte_try_unfold(struct mm_stru
+ }
+ EXPORT_SYMBOL_GPL(__contpte_try_unfold);
+ 
++/* Note: in order to improve efficiency, using this macro will modify the
++ * passed-in parameters.*/
++#define CHECK_CONTPTE_FLAG(start, ptep, orig_pte, flag) \
++    for (; (start) < CONT_PTES; (start)++, (ptep)++) { \
++		if (pte_##flag(__ptep_get(ptep))) { \
++				orig_pte = pte_mk##flag(orig_pte); \
++				break; \
++		} \
++    }
++
+ pte_t contpte_ptep_get(pte_t *ptep, pte_t orig_pte)
+ {
+ 	/*
+@@ -169,11 +179,17 @@ pte_t contpte_ptep_get(pte_t *ptep, pte_
+ 	for (i = 0; i < CONT_PTES; i++, ptep++) {
+ 		pte = __ptep_get(ptep);
+ 
+-		if (pte_dirty(pte))
++		if (pte_dirty(pte)) {
+ 			orig_pte = pte_mkdirty(orig_pte);
++			CHECK_CONTPTE_FLAG(i, ptep, orig_pte, young);
++			break;
++		}
+ 
+-		if (pte_young(pte))
++		if (pte_young(pte)) {
+ 			orig_pte = pte_mkyoung(orig_pte);
++			CHECK_CONTPTE_FLAG(i, ptep, orig_pte, dirty);
++			break;
++		}
+ 	}
+ 
+ 	return orig_pte;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from xavier_qy@163.com are
 
-mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd.patch
-mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode.patch
-mm-page_alloc-tighten-up-find_suitable_fallback.patch
 
