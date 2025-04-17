@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B9671F3FE3
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 08:38:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13B02207E09
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 20:12:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744879098; cv=none; b=ZMCc+2mk8vs3qHSK6/bm8ojsp9cP5zJh4E5i9d1FmJ/rVL10qP6S9hFaeKONMx8MO5D7aIdDzHHYqT90x/JJ7JOXCbu9wn2gnXM+qF7XENbvVBi94vyje87eXZENb+Dtn3pebs6c9JnLsu0VX/LwzuLcvn7av+SgiARs6F9m7rs=
+	t=1744920773; cv=none; b=OVSDDdvaLivIug1c3mDdXy2tmYJTBDJHIJ213xGV91mmBUHDEXjNOkqIoekr8ef7zdHLjeK23omr6x+CTtV+ccUMx044zHvCyWoIQr3frvEOJjM3sZSIxD2FPcNrlbOEJLm4IQyOjRQl6S0/T1SiVuPlNcteCbLuKLEQmlnGLEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744879098; c=relaxed/simple;
-	bh=p6dd4/ImTjXpUBj+QsoYgLESKdL0brZbzHV/+SJr12A=;
-	h=Date:To:From:Subject:Message-Id; b=AOfKQPLf8F2K1Yv0E3ZGQeW4kjHBReb9EyySyHI/p8ue+1bazJmrzSi3zxYGs3nM+/7fkk5rkUHBz0RRrWoezi4Bi5VmfLiiJ8xRuVv9M2OIRCj3q0tExk5SCR5KlxsWFxCJVn5UTDkXhkr9k9Ip2E88Ys3J01gEbR9oGH4H/w8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MxwP1VYJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744920773; c=relaxed/simple;
+	bh=QGzCKtzEBFCh3Hfu2PwQkV66VhNVdroOvd22P7Wb/4U=;
+	h=Date:To:From:Subject:Message-Id; b=C27NfJYcMhpDRrJgwparGIvCmCJgoXG/ydMZKvH97YV26kVyqgbKRlsNjHJ+z6WM+9HA58kJ/q0tnBTA6Sk/iy5a2UChhx0ug8EZ9ue++j9lnDIToUwtXpvCQrHY2BjE112SJ+k5SdtT5r930nG0uQowQzywd7BT4ujtJu1kXqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x+4zFa4W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MxwP1VYJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97D9EC4CEE4;
-	Thu, 17 Apr 2025 08:38:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x+4zFa4W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AAD1C4AF09;
+	Thu, 17 Apr 2025 20:12:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744879096;
-	bh=p6dd4/ImTjXpUBj+QsoYgLESKdL0brZbzHV/+SJr12A=;
+	s=korg; t=1744920772;
+	bh=QGzCKtzEBFCh3Hfu2PwQkV66VhNVdroOvd22P7Wb/4U=;
 	h=Date:To:From:Subject:From;
-	b=MxwP1VYJdheZGNiLsHGi8IPGzZHidue8pN96bfFGY5r60pwrNEoqbxRYFyY3K0Nok
-	 wwYwTB2BakKGkIOoj1JkVhYIuopNpkBr7XxMVxd+irgnYdOxGhjnYzl/keUeDdvru/
-	 pvD9WIXF3Iyh1RrIkblnwf73sRySSHfGHHi41ing=
-Date: Thu, 17 Apr 2025 01:38:15 -0700
-To: mm-commits@vger.kernel.org,luogengkun@huaweicloud.com,akpm@linux-foundation.org
+	b=x+4zFa4WjGqYsK2C5IacBhobGZGh4ZV9gH6dQ+coQDRepYffGyCO0a+//x0jAPNOR
+	 zYkmaHbOjScOy/QfdcZ+N7QZEllYSPHT9Op0uQzoZm7QyhaOvXxusQW+0t7LBZO6La
+	 cDL1hQFThnRe98sUbOQUEvzpobkcPl10GDZRCnUM=
+Date: Thu, 17 Apr 2025 13:12:51 -0700
+To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,vincent.guittot@linaro.org,tj@kernel.org,tim.c.chen@intel.com,rostedt@goodmis.org,raghavendra.kt@amd.com,peterz@infradead.org,mkoutny@suse.com,mingo@redhat.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,kprateek.nayak@amd.com,juri.lelli@redhat.com,daniel.m.jordan@oracle.com,chris.hyser@oracle.com,libo.chen@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch removed from -mm tree
-Message-Id: <20250417083816.97D9EC4CEE4@smtp.kernel.org>
+Subject: + sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch added to mm-new branch
+Message-Id: <20250417201252.5AAD1C4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,95 +34,96 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: watchdog: fix watchdog may detect false positive of softlockup
-has been removed from the -mm tree.  Its filename was
-     watchdog-fix-watchdog-may-detect-false-positive-of-softlockup.patch
+The patch titled
+     Subject: sched/numa: skip VMA scanning on memory pinned to one NUMA node via cpuset.mems
+has been added to the -mm mm-new branch.  Its filename is
+     sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luo Gengkun <luogengkun@huaweicloud.com>
-Subject: watchdog: fix watchdog may detect false positive of softlockup
-Date: Wed, 16 Apr 2025 01:39:22 +0000
+From: Libo Chen <libo.chen@oracle.com>
+Subject: sched/numa: skip VMA scanning on memory pinned to one NUMA node via cpuset.mems
+Date: Thu, 17 Apr 2025 12:15:42 -0700
 
-The watchdog may detect false positive of softlockup because of stop
-softlockup after update watchdog_thresh.  The problem can be described
-as follow:
+Patch series "sched/numa: Skip VMA scanning on memory pinned", v4.
 
- # We asuume previous watchdog_thresh is 60, so the timer is coming every
- # 24s.
-echo 10 > /proc/sys/kernel/watchdog_thresh (User space)
-|
-+------>+ update watchdog_thresh (We are in kernel now)
-	|
-	|
-	+------>+ watchdog hrtimer (irq context: detect softlockup)
-		|
-		|
-	+-------+
-	|
-	|
-	+ softlockup_stop_all
 
-As showed above, there is a window between update watchdog_thresh and
-softlockup_stop_all. During this window, if a timer is coming, a false
-positive of softlockup will happen. To fix this problem, use a shadow
-variable to store the new value and write back to watchdog_thresh after
-softlockup_stop_all.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20250416013922.2905051-1-luogengkun@huaweicloud.com
-Signed-off-by: Luo Gengkun <luogengkun@huaweicloud.com>
+When the memory of the current task is pinned to one NUMA node by cgroup,
+there is no point in continuing the rest of VMA scanning and hinting page
+faults as they will just be overhead.  With this change, there will be no
+more unnecessary PTE updates or page faults in this scenario.
+
+We have seen up to a 6x improvement on a typical java workload running on
+VMs with memory and CPU pinned to one NUMA node via cpuset in a two-socket
+AARCH64 system.  With the same pinning, on a 18-cores-per-socket Intel
+platform, we have seen 20% improvment in a microbench that creates a
+30-vCPU selftest KVM guest with 4GB memory, where each vCPU reads 4KB
+pages in a fixed number of loops.
+
+Link: https://lkml.kernel.org/r/20250417191543.1781862-1-libo.chen@oracle.com
+Link: https://lkml.kernel.org/r/20250417191543.1781862-2-libo.chen@oracle.com
+Signed-off-by: Libo Chen <libo.chen@oracle.com>
+Cc: "Chen, Tim C" <tim.c.chen@intel.com>
+Cc: Chen, Yu C <yu.c.chen@intel.com>
+Cc: Chris Hyser <chris.hyser@oracle.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/sched/fair.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/kernel/watchdog.c~watchdog-fix-watchdog-may-detect-false-positive-of-softlockup
-+++ a/kernel/watchdog.c
-@@ -47,6 +47,7 @@ int __read_mostly watchdog_user_enabled
- static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
- static int __read_mostly watchdog_softlockup_user_enabled = 1;
- int __read_mostly watchdog_thresh = 10;
-+static int __read_mostly watchdog_thresh_shadow;
- static int __read_mostly watchdog_hardlockup_available;
+--- a/kernel/sched/fair.c~sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems
++++ a/kernel/sched/fair.c
+@@ -3329,6 +3329,13 @@ static void task_numa_work(struct callba
+ 	if (p->flags & PF_EXITING)
+ 		return;
  
- struct cpumask watchdog_cpumask __read_mostly;
-@@ -876,6 +877,7 @@ static void __lockup_detector_reconfigur
- 	watchdog_hardlockup_stop();
- 
- 	softlockup_stop_all();
-+	watchdog_thresh = READ_ONCE(watchdog_thresh_shadow);
- 	set_sample_period();
- 	lockup_detector_update_enable();
- 	if (watchdog_enabled && watchdog_thresh)
-@@ -1035,10 +1037,12 @@ static int proc_watchdog_thresh(const st
- 
- 	mutex_lock(&watchdog_mutex);
- 
--	old = READ_ONCE(watchdog_thresh);
-+	watchdog_thresh_shadow = READ_ONCE(watchdog_thresh);
++	/*
++	 * Memory is pinned to only one NUMA node via cpuset.mems, naturally
++	 * no page can be migrated.
++	 */
++	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1)
++		return;
 +
-+	old = watchdog_thresh_shadow;
- 	err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
- 
--	if (!err && write && old != READ_ONCE(watchdog_thresh))
-+	if (!err && write && old != READ_ONCE(watchdog_thresh_shadow))
- 		proc_watchdog_update();
- 
- 	mutex_unlock(&watchdog_mutex);
-@@ -1080,7 +1084,7 @@ static const struct ctl_table watchdog_s
- 	},
- 	{
- 		.procname	= "watchdog_thresh",
--		.data		= &watchdog_thresh,
-+		.data		= &watchdog_thresh_shadow,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_watchdog_thresh,
+ 	if (!mm->numa_next_scan) {
+ 		mm->numa_next_scan = now +
+ 			msecs_to_jiffies(sysctl_numa_balancing_scan_delay);
 _
 
-Patches currently in -mm which might be from luogengkun@huaweicloud.com are
+Patches currently in -mm which might be from libo.chen@oracle.com are
 
+sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
+sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch
 
