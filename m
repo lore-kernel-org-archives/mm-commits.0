@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 400322185BE
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 22:35:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C6821930B
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 22:35:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744929331; cv=none; b=tbRVcLIMYyTSHo0XzT3UzfbGqT02oyRZkqMIBlwFLo22DQuPdkcH2FYY5Y2txNFKUCn/0PCqGs2GCGxtX6jFVPjyFSqf5xZZbAp7NEkb/78b0eE3aeEC7aMQiX+3LL1gPEW2N7DqPY+klYsQheB4VQkEn3biF05JHHeG2z7O2ME=
+	t=1744929332; cv=none; b=E0VHNBPyOhzaF+8QELR4ZkdaGAgFBLlMpsQFlZ64//jWIsJijsZy1xVdUrGU5ZjyC3jnOjuB+DI8c6uzPMUfWClZ7VasyhqGhSDPf42qnL3YZEOttX0gLTmSzv9syNy8SMjvhnWO7wmgCe6yByhXUMDura6FdIjNUSvfiR7bLAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744929331; c=relaxed/simple;
-	bh=oidvNEZhxy07virnZI9MfcVEqLXHifsgfZ13JFistZU=;
-	h=Date:To:From:Subject:Message-Id; b=b+/UMLccOaJGKVK760Z2tnxL79HBHLAapXvwMy4AxpzO+gNYlcBmSZe2z+1Kp/Hnk0LGTvCfoNzI/QGzxo6Bgfot5pFp71dOAMbmZSX4RRdjDjEEzp12RuDTZkxvBYjkHD1w5c9++88pL83vh9PwW58RTy3avEdeBrj5EgH/lsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aalwgaYk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744929332; c=relaxed/simple;
+	bh=JlQXTHhRoXw0fT9S/OdSDzmhOwBRg42iK6784pLEMWw=;
+	h=Date:To:From:Subject:Message-Id; b=X4EJsZkgJNYb2uHpdchuUYcBFcUcP8mPNfk8GDk+ahGZVFe8YI9AqGH64zz6WVOyTiR0nloWNdrIzZjJZ8S/ez+04Ebesxd9xn4lP8EpEjXQuZQz23nRee3nbgaweGslqhe5VNZP6bUUygih0arB4xfMiBmYsWHJIUepgok3Yks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJyUyPaf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aalwgaYk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF631C4CEE4;
-	Thu, 17 Apr 2025 22:35:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJyUyPaf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34906C4CEE4;
+	Thu, 17 Apr 2025 22:35:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744929330;
-	bh=oidvNEZhxy07virnZI9MfcVEqLXHifsgfZ13JFistZU=;
+	s=korg; t=1744929332;
+	bh=JlQXTHhRoXw0fT9S/OdSDzmhOwBRg42iK6784pLEMWw=;
 	h=Date:To:From:Subject:From;
-	b=aalwgaYkPWH8TD/hqETxsRfCz9Lq1uGpwbLS5Cv6IZYEZDSByIKK5jjVyr5kn35Wo
-	 +o/4Scs3xItM6/eldrsaWUIOXiu+Zl3ooiYYzGyKZDBn8xw1dEh12oehPgcAuPALyQ
-	 9eC18l3x9BC/kjcwSaxvpdqlitkCCGK2k3GlHinU=
-Date: Thu, 17 Apr 2025 15:35:29 -0700
+	b=lJyUyPaf973sxIqrXOKMdiuoGIBO0+zXDPBwm9BxXDo1bLg4xdXOhWY2U7R8hLS4c
+	 8LjNKR3OTZwAMjW0jghFldfflQps+rBno+4VXjp1T2hNvqUdrj5Pn4MffC6IwCbwy5
+	 SdjKg0psi9hIC1izvIyY42ybCmsbqOdC6oj6zeSE=
+Date: Thu, 17 Apr 2025 15:35:31 -0700
 To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,ying.huang@linux.alibaba.com,osalvador@suse.de,joshua.hahnjy@gmail.com,Jonathan.Cameron@huawei.com,honggyu.kim@sk.com,gourry@gourry.net,david@redhat.com,dan.j.williams@intel.com,rakie.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-prepare-weighted-interleave-sysfs-for-memory-hotplug.patch added to mm-new branch
-Message-Id: <20250417223530.AF631C4CEE4@smtp.kernel.org>
+Subject: + mm-mempolicy-support-memory-hotplug-in-weighted-interleave.patch added to mm-new branch
+Message-Id: <20250417223532.34906C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: prepare weighted interleave sysfs for memory hotplug
+     Subject: mm/mempolicy: support memory hotplug in weighted interleave
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mempolicy-prepare-weighted-interleave-sysfs-for-memory-hotplug.patch
+     mm-mempolicy-support-memory-hotplug-in-weighted-interleave.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-prepare-weighted-interleave-sysfs-for-memory-hotplug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-support-memory-hotplug-in-weighted-interleave.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,187 +59,227 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Rakie Kim <rakie.kim@sk.com>
-Subject: mm/mempolicy: prepare weighted interleave sysfs for memory hotplug
-Date: Thu, 17 Apr 2025 16:28:36 +0900
+Subject: mm/mempolicy: support memory hotplug in weighted interleave
+Date: Thu, 17 Apr 2025 16:28:37 +0900
 
-Previously, the weighted interleave sysfs structure was statically managed
-during initialization.  This prevented new nodes from being recognized
-when memory hotplug events occurred, limiting the ability to update or
-extend sysfs entries dynamically at runtime.
+The weighted interleave policy distributes page allocations across
+multiple NUMA nodes based on their performance weight, thereby improving
+memory bandwidth utilization.  The weight values for each node are
+configured through sysfs.
 
-To address this, this patch refactors the sysfs infrastructure and
-encapsulates it within a new structure, `sysfs_wi_group`, which holds both
-the kobject and an array of node attribute pointers.
+Previously, sysfs entries for configuring weighted interleave were created
+for all possible nodes (N_POSSIBLE) at initialization, including nodes
+that might not have memory.  However, not all nodes in N_POSSIBLE are
+usable at runtime, as some may remain memoryless or offline.  This led to
+sysfs entries being created for unusable nodes, causing potential
+misconfiguration issues.
 
-By allocating this group structure globally, the per-node sysfs attributes
-can be managed beyond initialization time, enabling external modules to
-insert or remove node entries in response to events such as memory hotplug
-or node online/offline transitions.
+To address this issue, this patch modifies the sysfs creation logic to:
+1) Limit sysfs entries to nodes that are online and have memory, avoiding
+   the creation of sysfs entries for nodes that cannot be used.
+2) Support memory hotplug by dynamically adding and removing sysfs entries
+   based on whether a node transitions into or out of the N_MEMORY state.
 
-Instead of allocating all per-node sysfs attributes at once, the
-initialization path now uses the existing sysfs_wi_node_add() and
-sysfs_wi_node_delete() helpers.  This refactoring makes it possible to
-modularly manage per-node sysfs entries and ensures the infrastructure is
-ready for runtime extension.
+Additionally, the patch ensures that sysfs attributes are properly managed
+when nodes go offline, preventing stale or redundant entries from
+persisting in the system.
 
-Link: https://lkml.kernel.org/r/20250417072839.711-3-rakie.kim@sk.com
+By making these changes, the weighted interleave policy now manages its
+sysfs entries more efficiently, ensuring that only relevant nodes are
+considered for interleaving, and dynamically adapting to memory hotplug
+events.
+
+Link: https://lkml.kernel.org/r/20250417072839.711-4-rakie.kim@sk.com
+Co-developed-by: Honggyu Kim <honggyu.kim@sk.com>
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Co-developed-by: Yunjeong Mun <yunjeong.mun@sk.com>
+Signed-off-by: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Rakie Kim <rakie.kim@sk.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   64 ++++++++++++++++++++++-------------------------
- 1 file changed, 31 insertions(+), 33 deletions(-)
+ mm/mempolicy.c |  109 ++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 85 insertions(+), 24 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-prepare-weighted-interleave-sysfs-for-memory-hotplug
+--- a/mm/mempolicy.c~mm-mempolicy-support-memory-hotplug-in-weighted-interleave
 +++ a/mm/mempolicy.c
-@@ -3427,6 +3427,13 @@ struct iw_node_attr {
- 	int nid;
+@@ -113,6 +113,7 @@
+ #include <asm/tlbflush.h>
+ #include <asm/tlb.h>
+ #include <linux/uaccess.h>
++#include <linux/memory.h>
+ 
+ #include "internal.h"
+ 
+@@ -3429,6 +3430,7 @@ struct iw_node_attr {
+ 
+ struct sysfs_wi_group {
+ 	struct kobject wi_kobj;
++	struct mutex kobj_lock;
+ 	struct iw_node_attr *nattrs[];
  };
  
-+struct sysfs_wi_group {
-+	struct kobject wi_kobj;
-+	struct iw_node_attr *nattrs[];
-+};
-+
-+static struct sysfs_wi_group *wi_group;
-+
- static ssize_t node_show(struct kobject *kobj, struct kobj_attribute *attr,
- 			 char *buf)
- {
-@@ -3469,24 +3476,23 @@ static ssize_t node_store(struct kobject
- 	return count;
- }
+@@ -3478,13 +3480,24 @@ static ssize_t node_store(struct kobject
  
--static struct iw_node_attr **node_attrs;
--
--static void sysfs_wi_node_delete(struct iw_node_attr *node_attr,
--				 struct kobject *parent)
-+static void sysfs_wi_node_delete(int nid)
+ static void sysfs_wi_node_delete(int nid)
  {
--	if (!node_attr)
-+	if (!wi_group->nattrs[nid])
+-	if (!wi_group->nattrs[nid])
++	struct iw_node_attr *attr;
++
++	if (nid < 0 || nid >= nr_node_ids)
++		return;
++
++	mutex_lock(&wi_group->kobj_lock);
++	attr = wi_group->nattrs[nid];
++	if (!attr) {
++		mutex_unlock(&wi_group->kobj_lock);
  		return;
--	sysfs_remove_file(parent, &node_attr->kobj_attr.attr);
--	kfree(node_attr->kobj_attr.attr.name);
--	kfree(node_attr);
++	}
 +
-+	sysfs_remove_file(&wi_group->wi_kobj,
-+			  &wi_group->nattrs[nid]->kobj_attr.attr);
-+	kfree(wi_group->nattrs[nid]->kobj_attr.attr.name);
-+	kfree(wi_group->nattrs[nid]);
++	wi_group->nattrs[nid] = NULL;
++	mutex_unlock(&wi_group->kobj_lock);
+ 
+-	sysfs_remove_file(&wi_group->wi_kobj,
+-			  &wi_group->nattrs[nid]->kobj_attr.attr);
+-	kfree(wi_group->nattrs[nid]->kobj_attr.attr.name);
+-	kfree(wi_group->nattrs[nid]);
++	sysfs_remove_file(&wi_group->wi_kobj, &attr->kobj_attr.attr);
++	kfree(attr->kobj_attr.attr.name);
++	kfree(attr);
  }
  
--static void sysfs_wi_node_delete_all(struct kobject *wi_kobj)
-+static void sysfs_wi_node_delete_all(void)
+ static void sysfs_wi_node_delete_all(void)
+@@ -3526,35 +3539,77 @@ static const struct kobj_type wi_ktype =
+ 
+ static int sysfs_wi_node_add(int nid)
  {
- 	int nid;
- 
- 	for (nid = 0; nid < nr_node_ids; nid++)
--		sysfs_wi_node_delete(node_attrs[nid], wi_kobj);
-+		sysfs_wi_node_delete(nid);
- }
- 
- static void iw_table_free(void)
-@@ -3503,15 +3509,14 @@ static void iw_table_free(void)
- 	kfree(old);
- }
- 
--static void wi_cleanup(struct kobject *wi_kobj) {
--	sysfs_wi_node_delete_all(wi_kobj);
-+static void wi_cleanup(void) {
-+	sysfs_wi_node_delete_all();
- 	iw_table_free();
--	kfree(node_attrs);
- }
- 
- static void wi_kobj_release(struct kobject *wi_kobj)
- {
--	kfree(wi_kobj);
-+	kfree(wi_group);
- }
- 
- static const struct kobj_type wi_ktype = {
-@@ -3519,7 +3524,7 @@ static const struct kobj_type wi_ktype =
- 	.release = wi_kobj_release,
- };
- 
--static int add_weight_node(int nid, struct kobject *wi_kobj)
-+static int sysfs_wi_node_add(int nid)
- {
- 	struct iw_node_attr *node_attr;
+-	struct iw_node_attr *node_attr;
++	int ret = 0;
  	char *name;
-@@ -3541,40 +3546,33 @@ static int add_weight_node(int nid, stru
- 	node_attr->kobj_attr.store = node_store;
- 	node_attr->nid = nid;
++	struct iw_node_attr *new_attr;
  
--	if (sysfs_create_file(wi_kobj, &node_attr->kobj_attr.attr)) {
-+	if (sysfs_create_file(&wi_group->wi_kobj, &node_attr->kobj_attr.attr)) {
- 		kfree(node_attr->kobj_attr.attr.name);
- 		kfree(node_attr);
- 		pr_err("failed to add attribute to weighted_interleave\n");
+-	node_attr = kzalloc(sizeof(*node_attr), GFP_KERNEL);
+-	if (!node_attr)
++	if (nid < 0 || nid >= nr_node_ids) {
++		pr_err("invalid node id: %d\n", nid);
++		return -EINVAL;
++	}
++
++	new_attr = kzalloc(sizeof(*new_attr), GFP_KERNEL);
++	if (!new_attr)
+ 		return -ENOMEM;
+ 
+ 	name = kasprintf(GFP_KERNEL, "node%d", nid);
+ 	if (!name) {
+-		kfree(node_attr);
++		kfree(new_attr);
  		return -ENOMEM;
  	}
  
--	node_attrs[nid] = node_attr;
-+	wi_group->nattrs[nid] = node_attr;
+-	sysfs_attr_init(&node_attr->kobj_attr.attr);
+-	node_attr->kobj_attr.attr.name = name;
+-	node_attr->kobj_attr.attr.mode = 0644;
+-	node_attr->kobj_attr.show = node_show;
+-	node_attr->kobj_attr.store = node_store;
+-	node_attr->nid = nid;
+-
+-	if (sysfs_create_file(&wi_group->wi_kobj, &node_attr->kobj_attr.attr)) {
+-		kfree(node_attr->kobj_attr.attr.name);
+-		kfree(node_attr);
+-		pr_err("failed to add attribute to weighted_interleave\n");
+-		return -ENOMEM;
++	sysfs_attr_init(&new_attr->kobj_attr.attr);
++	new_attr->kobj_attr.attr.name = name;
++	new_attr->kobj_attr.attr.mode = 0644;
++	new_attr->kobj_attr.show = node_show;
++	new_attr->kobj_attr.store = node_store;
++	new_attr->nid = nid;
++
++	mutex_lock(&wi_group->kobj_lock);
++	if (wi_group->nattrs[nid]) {
++		mutex_unlock(&wi_group->kobj_lock);
++		pr_info("node%d already exists\n", nid);
++		goto out;
+ 	}
+ 
+-	wi_group->nattrs[nid] = node_attr;
++	ret = sysfs_create_file(&wi_group->wi_kobj, &new_attr->kobj_attr.attr);
++	if (ret) {
++		mutex_unlock(&wi_group->kobj_lock);
++		goto out;
++	}
++	wi_group->nattrs[nid] = new_attr;
++	mutex_unlock(&wi_group->kobj_lock);
  	return 0;
++
++out:
++	kfree(new_attr->kobj_attr.attr.name);
++	kfree(new_attr);
++	return ret;
++}
++
++static int wi_node_notifier(struct notifier_block *nb,
++			       unsigned long action, void *data)
++{
++	int err;
++	struct memory_notify *arg = data;
++	int nid = arg->status_change_nid;
++
++	if (nid < 0)
++		return NOTIFY_OK;
++
++	switch (action) {
++	case MEM_ONLINE:
++		err = sysfs_wi_node_add(nid);
++		if (err)
++			pr_err("failed to add sysfs for node%d during hotplug: %d\n",
++			       nid, err);
++		break;
++	case MEM_OFFLINE:
++		sysfs_wi_node_delete(nid);
++		break;
++	}
++
++	return NOTIFY_OK;
  }
  
--static int add_weighted_interleave_group(struct kobject *root_kobj)
-+static int __init add_weighted_interleave_group(struct kobject *mempolicy_kobj)
- {
--	struct kobject *wi_kobj;
- 	int nid, err;
- 
--	node_attrs = kcalloc(nr_node_ids, sizeof(struct iw_node_attr *),
--			     GFP_KERNEL);
--	if (!node_attrs)
--		return -ENOMEM;
--
--	wi_kobj = kzalloc(sizeof(struct kobject), GFP_KERNEL);
--	if (!wi_kobj) {
--		kfree(node_attrs);
-+	wi_group = kzalloc(struct_size(wi_group, nattrs, nr_node_ids),
-+			   GFP_KERNEL);
-+	if (!wi_group)
+ static int __init add_weighted_interleave_group(struct kobject *mempolicy_kobj)
+@@ -3565,20 +3620,26 @@ static int __init add_weighted_interleav
+ 			   GFP_KERNEL);
+ 	if (!wi_group)
  		return -ENOMEM;
--	}
++	mutex_init(&wi_group->kobj_lock);
  
--	err = kobject_init_and_add(wi_kobj, &wi_ktype, root_kobj,
-+	err = kobject_init_and_add(&wi_group->wi_kobj, &wi_ktype, mempolicy_kobj,
+ 	err = kobject_init_and_add(&wi_group->wi_kobj, &wi_ktype, mempolicy_kobj,
  				   "weighted_interleave");
  	if (err)
  		goto err_put_kobj;
  
- 	for_each_node_state(nid, N_POSSIBLE) {
--		err = add_weight_node(nid, wi_kobj);
-+		err = sysfs_wi_node_add(nid);
+-	for_each_node_state(nid, N_POSSIBLE) {
++	for_each_online_node(nid) {
++		if (!node_state(nid, N_MEMORY))
++			continue;
++
+ 		err = sysfs_wi_node_add(nid);
  		if (err) {
- 			pr_err("failed to add sysfs [node%d]\n", nid);
+-			pr_err("failed to add sysfs [node%d]\n", nid);
++			pr_err("failed to add sysfs for node%d during init: %d\n",
++			       nid, err);
  			goto err_cleanup_kobj;
-@@ -3584,10 +3582,10 @@ static int add_weighted_interleave_group
+ 		}
+ 	}
+ 
++	hotplug_memory_notifier(wi_node_notifier, DEFAULT_CALLBACK_PRI);
  	return 0;
  
  err_cleanup_kobj:
--	wi_cleanup(wi_kobj);
--	kobject_del(wi_kobj);
-+	wi_cleanup();
-+	kobject_del(&wi_group->wi_kobj);
- err_put_kobj:
--	kobject_put(wi_kobj);
-+	kobject_put(&wi_group->wi_kobj);
- 	return err;
- }
- 
 _
 
 Patches currently in -mm which might be from rakie.kim@sk.com are
