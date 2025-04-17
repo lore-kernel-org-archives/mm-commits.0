@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0F741C63
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:22:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21F51204583
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:26:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744932157; cv=none; b=c+RnyMnYDgnjwzQYgJPPS4fW/z5a66BWyItGIYIMHiOC5H3DlDr0mcbU2aLVJ5YqeDUTpTX1zWRiSY8mIrQPZ0nmrRCrjrjU2QwP21182btTSLtVvlyCSYKipqAi8vvlTj3dxZnLyZap9yTQdHnY6AKq3stq0/Zq9kDtrOB8wnQ=
+	t=1744932377; cv=none; b=PTxdTXA+L4mtXW8BTQaoUUiA+U+Y4BmQzZuAhGNBqDVmlp0SzEU7rmlBKDQ7Wjxpd1xPHbIrl4ADCJkzLaEAh24fKgrtxMOR1HnLZojQmJX9fq/liu8kLH4Q19HPR4rvBKc+q+nx/d8PUvGx5NAYywturLp8MQdAwMJegUrxpC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744932157; c=relaxed/simple;
-	bh=U4OMO4jVLdcqdzO7RTuMW5kYj2eTsBzTaEmLvyiICvQ=;
-	h=Date:To:From:Subject:Message-Id; b=ehEuNNruejjGouvdhFl3YfMxYNEupN4zpVVPcAviDb6kSDD5tVgQun+REN0wk+UorepKHNtnKyNznbVI0tZ1T+/u4Qk9jMIGXLcsXPdD3/jfkosOaUQIEga2szOelaBAn/vsHFTl47616a7ajy+zomcl7KkRfnwOnjNbh0157Aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z28mW1db; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744932377; c=relaxed/simple;
+	bh=9HbEfWEGAj5Gmu+bWaoKvbMH+v6VF3ml6UvmnZQEY7k=;
+	h=Date:To:From:Subject:Message-Id; b=Zav184uwd/fK/1VzjbDmksAu2N3VkfGp4r+7OqUNQNSTwMswz/6aOc+F9LeBntGUx8Z47Bedsq0R1xIEm3G2ao6UurcdG5V7nHrw+7a8j3KgHAizouzfyTCMxnjb44UD9mqYZkDl1GG1w5nwZV+qpi1SaSTe0CfN0OwuHPjf6rc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h47k0sSa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z28mW1db"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CF1FC4CEE4;
-	Thu, 17 Apr 2025 23:22:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h47k0sSa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D30BDC4CEE4;
+	Thu, 17 Apr 2025 23:26:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744932157;
-	bh=U4OMO4jVLdcqdzO7RTuMW5kYj2eTsBzTaEmLvyiICvQ=;
+	s=korg; t=1744932376;
+	bh=9HbEfWEGAj5Gmu+bWaoKvbMH+v6VF3ml6UvmnZQEY7k=;
 	h=Date:To:From:Subject:From;
-	b=Z28mW1dbK1igTTuICrOXLfby9bYNPZuIvt6ssryRIA2E7posKujSkcgUBOmVQthdp
-	 Tm61w9NlEHtDjR2h+Aw0tU4oaCHEAd7baCOkXekFu5wvdNHzOzHGarLXYvZhHZeKSt
-	 OJKG2a4idgoUSSTKVAHYj00bBKHwddpZucC32K1I=
-Date: Thu, 17 Apr 2025 16:22:36 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
+	b=h47k0sSahdqy/Q3vX7nZkq0rawzhEbY1iyt7mlASZMhb83O8sd7u+zmEbxJFLmdJa
+	 lz5gJEirUzdwaDgLBJs+h4HimcAA4dDcUT4B9HyhEa50OH2YjfErVrX5HxpbtGeg3v
+	 ynCLGaZptbKh7VDuNT0CGiILUYe6dLVkccmnzaSU=
+Date: Thu, 17 Apr 2025 16:26:16 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,andrii@kernel.org,yatsenko@meta.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-defer-to-thp-setting-parser.patch added to mm-new branch
-Message-Id: <20250417232237.7CF1FC4CEE4@smtp.kernel.org>
+Subject: [alternative-merged] maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch removed from -mm tree
+Message-Id: <20250417232616.D30BDC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,116 +34,92 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests: mm: add defer to thp setting parser
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-defer-to-thp-setting-parser.patch
+The quilt patch titled
+     Subject: maccess: fix strncpy_from_user_nofault empty string handling
+has been removed from the -mm tree.  Its filename was
+     maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-defer-to-thp-setting-parser.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: selftests: mm: add defer to thp setting parser
-Date: Wed, 16 Apr 2025 18:18:46 -0600
+From: Mykyta Yatsenko <yatsenko@meta.com>
+Subject: maccess: fix strncpy_from_user_nofault empty string handling
+Date: Thu, 17 Apr 2025 16:28:08 +0100
 
-Add the defer setting to the selftests library for reading thp settings.
+strncpy_from_user_nofault() should return the length of the copied string
+including the trailing NUL, but if the argument unsafe_addr points to an
+empty string ({'\0'}), the return value is 0.
 
-Link: https://lkml.kernel.org/r/20250417001846.81480-5-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+This happens as strncpy_from_user() copies terminal symbol into dst and
+returns 0 (as expected), but strncpy_from_user_nofault does not modify ret
+as it is not equal to count and not greater than 0, so 0 is returned,
+which contradicts the contract.
+
+Link: https://lkml.kernel.org/r/20250417152808.722409-1-mykyta.yatsenko5@gmail.com
+Signed-off-by: Mykyta Yatsenko <yatsenko@meta.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Reported-by:Takashi Iwai <tiwai@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/thp_settings.c |    1 +
- tools/testing/selftests/mm/thp_settings.h |    1 +
- 2 files changed, 2 insertions(+)
+ kernel/trace/trace_events_filter.c |   10 ++++++++--
+ mm/maccess.c                       |    2 +-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-add-defer-to-thp-setting-parser
-+++ a/tools/testing/selftests/mm/thp_settings.c
-@@ -20,6 +20,7 @@ static const char * const thp_enabled_st
- 	"always",
- 	"inherit",
- 	"madvise",
-+	"defer",
- 	NULL
- };
+--- a/kernel/trace/trace_events_filter.c~maccess-fix-strncpy_from_user_nofault-empty-string-handling
++++ a/kernel/trace/trace_events_filter.c
+@@ -800,6 +800,7 @@ static __always_inline char *test_string
+ {
+ 	struct ustring_buffer *ubuf;
+ 	char *kstr;
++	int cnt;
  
---- a/tools/testing/selftests/mm/thp_settings.h~selftests-mm-add-defer-to-thp-setting-parser
-+++ a/tools/testing/selftests/mm/thp_settings.h
-@@ -11,6 +11,7 @@ enum thp_enabled {
- 	THP_ALWAYS,
- 	THP_INHERIT,
- 	THP_MADVISE,
-+	THP_DEFER,
- };
+ 	if (!ustring_per_cpu)
+ 		return NULL;
+@@ -808,7 +809,9 @@ static __always_inline char *test_string
+ 	kstr = ubuf->buffer;
  
- enum thp_defrag {
+ 	/* For safety, do not trust the string pointer */
+-	if (!strncpy_from_kernel_nofault(kstr, str, USTRING_BUF_SIZE))
++	cnt = strncpy_from_kernel_nofault(kstr, str, USTRING_BUF_SIZE);
++	/* Return null if empty string or error */
++	if (cnt <= 1)
+ 		return NULL;
+ 	return kstr;
+ }
+@@ -818,6 +821,7 @@ static __always_inline char *test_ustrin
+ 	struct ustring_buffer *ubuf;
+ 	char __user *ustr;
+ 	char *kstr;
++	int cnt;
+ 
+ 	if (!ustring_per_cpu)
+ 		return NULL;
+@@ -827,7 +831,9 @@ static __always_inline char *test_ustrin
+ 
+ 	/* user space address? */
+ 	ustr = (char __user *)str;
+-	if (!strncpy_from_user_nofault(kstr, ustr, USTRING_BUF_SIZE))
++	cnt = strncpy_from_user_nofault(kstr, ustr, USTRING_BUF_SIZE);
++	/* Return null if empty string or error */
++	if (cnt <= 1)
+ 		return NULL;
+ 
+ 	return kstr;
+--- a/mm/maccess.c~maccess-fix-strncpy_from_user_nofault-empty-string-handling
++++ a/mm/maccess.c
+@@ -196,7 +196,7 @@ long strncpy_from_user_nofault(char *dst
+ 	if (ret >= count) {
+ 		ret = count;
+ 		dst[ret - 1] = '\0';
+-	} else if (ret > 0) {
++	} else if (ret >= 0) {
+ 		ret++;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from yatsenko@meta.com are
 
-introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
-khugepaged-rename-hpage_collapse_-to-khugepaged_.patch
-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
-khugepaged-introduce-khugepaged_scan_bitmap-for-mthp-support.patch
-khugepaged-add-mthp-support.patch
-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
-khugepaged-improve-tracepoints-for-mthp-orders.patch
-khugepaged-add-per-order-mthp-khugepaged-stats.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
-mm-defer-thp-insertion-to-khugepaged.patch
-mm-document-mthp-defer-usage.patch
-khugepaged-add-defer-option-to-mthp-options.patch
-selftests-mm-add-defer-to-thp-setting-parser.patch
 
