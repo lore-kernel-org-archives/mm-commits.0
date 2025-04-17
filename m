@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F83321019E
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 22:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6781620767E;
+	Thu, 17 Apr 2025 22:15:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744927767; cv=none; b=fUWMLDTSOA0oSrtOyAtMuP7v35AcNuSpTfgZ+DegWmQaN2glf51QmPnVF53hqqeIrzMmcUxW2nozaoCx1ppWOkW4OcuSR69wl/L7sn+1xLQBpWlQfKRNAzrJGlCL3prnQBEUBiTUi/p19RkluZo6L/fqrgr8Z8BHsLCcx2tcW/g=
+	t=1744928134; cv=none; b=nTMCg9UK6u6OFjPML5I07mWcyJI6AjT0wJsAqkSSExcq2y2uoniPa/jyivhtvq/GAMv2gdw95T5qygeCAYWtbC6/7A1h5sa/VboqmjwQW87rPMoXiGbdsMruWVA8DNQzobr0xcvvGE+pWlZ2NQw2yIe9XINtZfi5JdLkZgXtkLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744927767; c=relaxed/simple;
-	bh=4mvVDAtyRPg4XlAhSraLrwGuOTo5+m3vJf8lAdNMnSI=;
-	h=Date:To:From:Subject:Message-Id; b=jFpR8yFq+XBqVxckCuEBRXPX09HjKyQIvbrNbWiDVeTSoqecC4rdiPE2z9YVANl+TW3a1csitsFCzdqiP/ZiV8f7c8rfmtwOuEGDWQLcyL3FGLypF4LcE9K9uFIyhuj5mDMaiH79Gk8W4aAe9HoT7+39nmT/X+fzHjzZCSQb9SE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QoUdGlLI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744928134; c=relaxed/simple;
+	bh=Kaf2+U88pail4rM0YP+rIBT6GTLHXv2fcY5CYYRuYsI=;
+	h=Date:To:From:Subject:Message-Id; b=e6MXwFj8uO6nGpRNJnuca4Oiv4N9IRN+0pZPUQW4MjoZ+9trKl9qsmJxDaUr7V5Jm2cxQBwV1uoNICjj+ylTyMUmgVMG6/gHyc839UGN73uYo8rSM8IxJuz7XTvlh3rn/MmRE3McI3AU3Gmgagfgt0wJeJILuGTCgFqzjZcLQhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2GrrBnUJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QoUdGlLI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F259C4CEE4;
-	Thu, 17 Apr 2025 22:09:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2GrrBnUJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16AF1C4CEE4;
+	Thu, 17 Apr 2025 22:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744927767;
-	bh=4mvVDAtyRPg4XlAhSraLrwGuOTo5+m3vJf8lAdNMnSI=;
+	s=korg; t=1744928134;
+	bh=Kaf2+U88pail4rM0YP+rIBT6GTLHXv2fcY5CYYRuYsI=;
 	h=Date:To:From:Subject:From;
-	b=QoUdGlLI/EumKqn4ID2Fhh7YXGF8LTRqMrQzSBe6jEYCBmzNqnZZI0OW90y+beAeI
-	 dDESIyIk8JpD09vOwkbJHmCbGjuAeqWUdzLlnsJ+znL6BxsJKGOgLkZ98a32eUrbms
-	 xwom0UjP24vMy1wRGEg2fsGjoz/PWBaBlgcLWOKM=
-Date: Thu, 17 Apr 2025 15:09:25 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,gautham.ananthakrishna@oracle.com,heming.zhao@suse.com,akpm@linux-foundation.org
+	b=2GrrBnUJbLwu7/hv87dCIZxsQVWV91pQ1CasqEaWSGkAVGnksn4Pg55oBFH+RMAzm
+	 qbjxkZ+dtaWzZ2DLcQcDs0sU5tpwPNIwalHQ7NcI/fZ0A7UxyNn/Fa+oga7jacdR+5
+	 vq8sb69H2RqaWqjbX/4vMhfMOD7+TKzlFlvccrkQ=
+Date: Thu, 17 Apr 2025 15:15:33 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,gechangwei@live.cn,mark.tinguely@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250417220927.0F259C4CEE4@smtp.kernel.org>
+Subject: + ocfs2-fix-panic-in-failed-foilio-allocation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250417221534.16AF1C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix the issue with discontiguous allocation in the global_bitmap
+     Subject: ocfs2: fix panic in failed foilio allocation
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch
+     ocfs2-fix-panic-in-failed-foilio-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-panic-in-failed-foilio-allocation.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,169 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: fix the issue with discontiguous allocation in the global_bitmap
-Date: Mon, 14 Apr 2025 14:01:23 +0800
+From: Mark Tinguely <mark.tinguely@oracle.com>
+Subject: ocfs2: fix panic in failed foilio allocation
+Date: Thu, 10 Apr 2025 14:56:11 -0500
 
-commit 4eb7b93e0310 ("ocfs2: improve write IO performance when
-fragmentation is high") introduced another regression.
+In commit 7e119cff9d0a ("ocfs2: convert w_pages to w_folios") the chunk
+page allocations became order 0 folio allocations.  If an allocation
+failed, the folio array entry should be NULL so the error path can skip
+the entry.  In the port it is -ENOMEM and the error path panics trying to
+free this bad value.
 
-The following ocfs2-test case can trigger this issue:
-> discontig_runner.sh => activate_discontig_bg.sh => resv_unwritten:
-> ${RESV_UNWRITTEN_BIN} -f ${WORK_PLACE}/large_testfile -s 0 -l \
-> $((${FILE_MAJOR_SIZE_M}*1024*1024))
-
-In my env, test disk size (by "fdisk -l <dev>"):
-> 53687091200 bytes, 104857600 sectors.
-
-Above command is:
-> /usr/local/ocfs2-test/bin/resv_unwritten -f \
-> /mnt/ocfs2/ocfs2-activate-discontig-bg-dir/large_testfile -s 0 -l \
-> 53187969024
-
-Error log:
-> [*] Reserve 50724M space for a LARGE file, reserve 200M space for future test.
-> ioctl error 28: "No space left on device"
-> resv allocation failed Unknown error -1
-> reserve unwritten region from 0 to 53187969024.
-
-Call flow:
-__ocfs2_change_file_space //by ioctl OCFS2_IOC_RESVSP64
- ocfs2_allocate_unwritten_extents //start:0 len:53187969024
-  while()
-   + ocfs2_get_clusters //cpos:0, alloc_size:1623168 (cluster number)
-   + ocfs2_extend_allocation
-     + ocfs2_lock_allocators
-     |  + choose OCFS2_AC_USE_MAIN & ocfs2_cluster_group_search
-     |
-     + ocfs2_add_inode_data
-        ocfs2_add_clusters_in_btree
-         __ocfs2_claim_clusters
-          ocfs2_claim_suballoc_bits
-          + During the allocation of the final part of the large file
-	    (after ~47GB), no chain had the required contiguous
-            bits_wanted. Consequently, the allocation failed.
-
-How to fix:
-When OCFS2 is encountering fragmented allocation, the file system should
-stop attempting bits_wanted contiguous allocation and instead provide the
-largest available contiguous free bits from the cluster groups.
-
-Link: https://lkml.kernel.org/r/20250414060125.19938-2-heming.zhao@suse.com
-Fixes: 4eb7b93e0310 ("ocfs2: improve write IO performance when fragmentation is high")
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
-Reported-by: Gautham Ananthakrishna <gautham.ananthakrishna@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Link: https://lkml.kernel.org/r/150746ad-32ae-415e-bf1d-6dfd195fbb65@oracle.com
+Fixes: 7e119cff9d0a ("ocfs2: convert w_pages to w_folios")
+Signed-off-by: Mark Tinguely <mark.tinguely@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   38 ++++++++++++++++++++++++++++++++------
- fs/ocfs2/suballoc.h |    1 +
- 2 files changed, 33 insertions(+), 6 deletions(-)
+ fs/ocfs2/aops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap
-+++ a/fs/ocfs2/suballoc.c
-@@ -698,10 +698,12 @@ static int ocfs2_block_group_alloc(struc
- 
- 	bg_bh = ocfs2_block_group_alloc_contig(osb, handle, alloc_inode,
- 					       ac, cl);
--	if (PTR_ERR(bg_bh) == -ENOSPC)
-+	if (PTR_ERR(bg_bh) == -ENOSPC) {
-+		ac->ac_which = OCFS2_AC_USE_MAIN_DISCONTIG;
- 		bg_bh = ocfs2_block_group_alloc_discontig(handle,
- 							  alloc_inode,
- 							  ac, cl);
-+	}
- 	if (IS_ERR(bg_bh)) {
- 		status = PTR_ERR(bg_bh);
- 		bg_bh = NULL;
-@@ -1794,6 +1796,7 @@ static int ocfs2_search_chain(struct ocf
- {
- 	int status;
- 	u16 chain;
-+	u32 contig_bits;
- 	u64 next_group;
- 	struct inode *alloc_inode = ac->ac_inode;
- 	struct buffer_head *group_bh = NULL;
-@@ -1819,10 +1822,21 @@ static int ocfs2_search_chain(struct ocf
- 	status = -ENOSPC;
- 	/* for now, the chain search is a bit simplistic. We just use
- 	 * the 1st group with any empty bits. */
--	while ((status = ac->ac_group_search(alloc_inode, group_bh,
--					     bits_wanted, min_bits,
--					     ac->ac_max_block,
--					     res)) == -ENOSPC) {
-+	while (1) {
-+		if (ac->ac_which == OCFS2_AC_USE_MAIN_DISCONTIG) {
-+			contig_bits = le16_to_cpu(bg->bg_contig_free_bits);
-+			if (!contig_bits)
-+				contig_bits = ocfs2_find_max_contig_free_bits(bg->bg_bitmap,
-+						le16_to_cpu(bg->bg_bits), 0);
-+			if (bits_wanted > contig_bits && contig_bits >= min_bits)
-+				bits_wanted = contig_bits;
-+		}
-+
-+		status = ac->ac_group_search(alloc_inode, group_bh,
-+				bits_wanted, min_bits,
-+				ac->ac_max_block, res);
-+		if (status != -ENOSPC)
-+			break;
- 		if (!bg->bg_next_group)
- 			break;
- 
-@@ -1982,6 +1996,7 @@ static int ocfs2_claim_suballoc_bits(str
- 	victim = ocfs2_find_victim_chain(cl);
- 	ac->ac_chain = victim;
- 
-+search:
- 	status = ocfs2_search_chain(ac, handle, bits_wanted, min_bits,
- 				    res, &bits_left);
- 	if (!status) {
-@@ -2022,6 +2037,16 @@ static int ocfs2_claim_suballoc_bits(str
+--- a/fs/ocfs2/aops.c~ocfs2-fix-panic-in-failed-foilio-allocation
++++ a/fs/ocfs2/aops.c
+@@ -1071,6 +1071,7 @@ static int ocfs2_grab_folios_for_write(s
+ 			if (IS_ERR(wc->w_folios[i])) {
+ 				ret = PTR_ERR(wc->w_folios[i]);
+ 				mlog_errno(ret);
++				wc->w_folios[i] = NULL;
+ 				goto out;
+ 			}
  		}
- 	}
- 
-+	/* Chains can't supply the bits_wanted contiguous space.
-+	 * We should switch to using every single bit when allocating
-+	 * from the global bitmap. */
-+	if (i == le16_to_cpu(cl->cl_next_free_rec) &&
-+	    status == -ENOSPC && ac->ac_which == OCFS2_AC_USE_MAIN) {
-+		ac->ac_which = OCFS2_AC_USE_MAIN_DISCONTIG;
-+		ac->ac_chain = victim;
-+		goto search;
-+	}
-+
- set_hint:
- 	if (status != -ENOSPC) {
- 		/* If the next search of this group is not likely to
-@@ -2365,7 +2390,8 @@ int __ocfs2_claim_clusters(handle_t *han
- 	BUG_ON(ac->ac_bits_given >= ac->ac_bits_wanted);
- 
- 	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL
--	       && ac->ac_which != OCFS2_AC_USE_MAIN);
-+	       && ac->ac_which != OCFS2_AC_USE_MAIN
-+	       && ac->ac_which != OCFS2_AC_USE_MAIN_DISCONTIG);
- 
- 	if (ac->ac_which == OCFS2_AC_USE_LOCAL) {
- 		WARN_ON(min_clusters > 1);
---- a/fs/ocfs2/suballoc.h~ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap
-+++ a/fs/ocfs2/suballoc.h
-@@ -29,6 +29,7 @@ struct ocfs2_alloc_context {
- #define OCFS2_AC_USE_MAIN  2
- #define OCFS2_AC_USE_INODE 3
- #define OCFS2_AC_USE_META  4
-+#define OCFS2_AC_USE_MAIN_DISCONTIG  5
- 	u32    ac_which;
- 
- 	/* these are used by the chain search */
 _
 
-Patches currently in -mm which might be from heming.zhao@suse.com are
+Patches currently in -mm which might be from mark.tinguely@oracle.com are
 
-ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch
+ocfs2-fix-panic-in-failed-foilio-allocation.patch
+v2-ocfs2-fix-panic-in-failed-foilio-allocation.patch
 
