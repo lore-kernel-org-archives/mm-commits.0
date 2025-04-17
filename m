@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D6E221577
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:04:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20C6A41C63
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:22:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744931067; cv=none; b=FIYFmGvAApcQ69NT/QJlW6mE2q5Ij6SjE2b2BP0vo1woxKuHti5DpSpjc6KDZ1uj9uA9d5xO/riZL1ggpzzWzqoyXdFXXRfRNFqySAQeQ03EUZjcIKoMjAa8HltdBumhmEjxbHdaAkQB+H7gKUw1K9Q5Kom4YqdPwBZcFVgp9kw=
+	t=1744932136; cv=none; b=rp8SVpqrc9cdIJJY8N+RRkaiHHqu6BKn8AeqSQMLwqnfYo2ps5KuiZ20SQnaI9B3dQN8amMRAHG9FLNHTjjyqM3G275rGBQAxoaYqbyE5UyN8Y2os7/oixHWijtdwrb/PqEFmzAzKhV6wgrmX0ob6XiseOhgOUdeSU0SV/kv/Fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744931067; c=relaxed/simple;
-	bh=gv6v6mMrYzWFDkDTuk+UceHPyuc21Wzoq1IqXs+/RfA=;
-	h=Date:To:From:Subject:Message-Id; b=k7zKIzqOfL7umscI3eNSJhuvnHhTqE8fp4VFGRQYvrLGOtcoeREzUu+Ky1aSPHjnvOtTJeYg5oRePfC6AHYwo+CdDp28jAqVPo7ZuuZ3dEZ84hGWydJtMcqYJA4gXA+63i+TGKxhiDFA3xSHqMTa65dAsZfVkHmqn7ydI6SH9W0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eZz8AX5m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744932136; c=relaxed/simple;
+	bh=m6H07gxpS1FSn0vUeR4KV++7V6CbxDcKIPC9gccDC0I=;
+	h=Date:To:From:Subject:Message-Id; b=ey3Z8qyV1XEVFWPGszAJOS/gEU3h/a/G/Er5vr3GSEZ3p1QAd/0ukH4T7/S6JVqfQCljmDWoEEaPUV5Eg1hQp9lfT7sD1TZzmuJI3XQEVosiw1G5WelnJlO8ULtP4D4c1Az/cVN5785/w64h9GOnvYA99FxK4pLAXcDnfdfdbZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EYaWCIn1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eZz8AX5m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA502C4CEEA;
-	Thu, 17 Apr 2025 23:04:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EYaWCIn1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42AFEC4CEE4;
+	Thu, 17 Apr 2025 23:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744931066;
-	bh=gv6v6mMrYzWFDkDTuk+UceHPyuc21Wzoq1IqXs+/RfA=;
+	s=korg; t=1744932135;
+	bh=m6H07gxpS1FSn0vUeR4KV++7V6CbxDcKIPC9gccDC0I=;
 	h=Date:To:From:Subject:From;
-	b=eZz8AX5m/uu/t7fPymz4HZEVAj5jwW7RyiDaN/vk8KG3+UCZlNTzFp4PsBgFIvTG2
-	 pgCzhQtkY6vz4FrqCHSKWSGrNDX68IQEzPpAsAb5x2wD6auYZux1JgvbEjVLIdGjti
-	 P9LDp86+7odLQqNKLWbf5mROAbq2FcB4SIFRMcK4=
-Date: Thu, 17 Apr 2025 16:04:26 -0700
-To: mm-commits@vger.kernel.org,x86@kernel.org,vincenzo.frascino@arm.com,torvalds@linux-foundation.org,tglx@linutronix.de,ryabinin.a.a@gmail.com,mingo@redhat.com,linux@roeck-us.net,hpa@zytor.com,glider@google.com,dvyukov@google.com,bp@alien8.de,andreyknvl@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=EYaWCIn1P3nseb+e1E5Jq8hN6p57rtf9Xk1AYQ9xxzWDnbGY20rHWetEEUh/EiL/D
+	 88EPJRvYGAJqjS9pH29whvEChQovq6ru7E/gjZLlvwMXfdRbHZDT6sx2Mp4dD6oJSn
+	 fnY6sgLYijx0/jBTM3iCMhgO6EmmDrDSggFg8uhg=
+Date: Thu, 17 Apr 2025 16:22:13 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shuah@kernel.org,ryan.roberts@arm.com,rostedt@goodmis.org,rientjes@google.com,rdunlap@infradead.org,raquini@redhat.com,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,kirill.shutemov@linux.intel.com,jack@suse.cz,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,cl@gentwo.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-disable-image-size-check-for-test-builds-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250417230426.AA502C4CEEA@smtp.kernel.org>
+Subject: + introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch added to mm-new branch
+Message-Id: <20250417232215.42AFEC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86-disable-image-size-check-for-test-builds-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-disable-image-size-check-for-test-builds-fix.patch
+     Subject: introduce khugepaged_collapse_single_pmd to unify khugepaged and madvise_collapse
+has been added to the -mm mm-new branch.  Its filename is
+     introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-disable-image-size-check-for-test-builds-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,56 +58,238 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-disable-image-size-check-for-test-builds-fix
-Date: Wed Apr 16 06:11:50 PM PDT 2025
+From: Nico Pache <npache@redhat.com>
+Subject: introduce khugepaged_collapse_single_pmd to unify khugepaged and madvise_collapse
+Date: Wed, 16 Apr 2025 18:02:27 -0600
 
-add comment, fix nearby typo (sink->sync)
+Patch series "khugepaged: mTHP support", v4.
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <x86@kernel.org>
+The following series provides khugepaged and madvise collapse with the
+capability to collapse regions to mTHPs.
+
+To achieve this we generalize the khugepaged functions to no longer depend
+on PMD_ORDER.  Then during the PMD scan, we keep track of chunks of pages
+(defined by KHUGEPAGED_MTHP_MIN_ORDER) that are utilized.  This info is
+tracked using a bitmap.  After the PMD scan is done, we do binary
+recursion on the bitmap to find the optimal mTHP sizes for the PMD range. 
+The restriction on max_ptes_none is removed during the scan, to make sure
+we account for the whole PMD range.  When no mTHP size is enabled, the
+legacy behavior of khugepaged is maintained.  max_ptes_none will be scaled
+by the attempted collapse order to determine how full a THP must be to be
+eligible.  If a mTHP collapse is attempted, but contains swapped out, or
+shared pages, we dont perform the collapse.
+
+With the default max_ptes_none=511, the code should keep its most of its
+original behavior.  To exercise mTHP collapse we need to set
+max_ptes_none<=255.  With max_ptes_none > HPAGE_PMD_NR/2 you will
+experience collapse "creep" and constantly promote mTHPs to the next
+available size.
+
+Patch 1:     Some refactoring to combine madvise_collapse and khugepaged
+Patch 2:     Refactor/rename hpage_collapse
+Patch 3-5:   Generalize khugepaged functions for arbitrary orders
+Patch 6-9:   The mTHP patches
+Patch 10-11: Tracing/stats
+Patch 12:    Documentation
+
+
+This patch (of 12):
+
+The khugepaged daemon and madvise_collapse have two different
+implementations that do almost the same thing.
+
+Create khugepaged_collapse_single_pmd to increase code reuse and create an
+entry point for future khugepaged changes.
+
+Refactor madvise_collapse and khugepaged_scan_mm_slot to use the new
+khugepaged_collapse_single_pmd function.
+
+Link: https://lkml.kernel.org/r/20250417000238.74567-1-npache@redhat.com
+Link: https://lkml.kernel.org/r/20250417000238.74567-2-npache@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shuemov <kirill.shutemov@linux.intel.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Reported-by:Takashi Iwai <tiwai@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux.lds.S |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |   92 +++++++++++++++++++++++-----------------------
+ 1 file changed, 46 insertions(+), 46 deletions(-)
 
---- a/arch/x86/kernel/vmlinux.lds.S~x86-disable-image-size-check-for-test-builds-fix
-+++ a/arch/x86/kernel/vmlinux.lds.S
-@@ -466,9 +466,16 @@ SECTIONS
+--- a/mm/khugepaged.c~introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse
++++ a/mm/khugepaged.c
+@@ -2363,6 +2363,48 @@ static int hpage_collapse_scan_file(stru
  }
- 
- /*
-- * The ASSERT() sink to . is intentional, for binutils 2.14 compatibility:
-+ * COMPILE_TEST kernels can be large - CONFIG_KASAN, for example, can cause
-+ * this.  Let's assume that nobody will be running a COMPILE_TEST kernel and
-+ * let's assert that fuller build coverage is more valuable than being able to
-+ * run a COMPILE_TEST kernel.
-  */
- #ifndef CONFIG_COMPILE_TEST
-+/*
-+/*
-+ * The ASSERT() sync to . is intentional, for binutils 2.14 compatibility:
-+ */
- . = ASSERT((_end - LOAD_OFFSET <= KERNEL_IMAGE_SIZE),
- 	   "kernel image bigger than KERNEL_IMAGE_SIZE");
  #endif
+ 
++/*
++ * Try to collapse a single PMD starting at a PMD aligned addr, and return
++ * the results.
++ */
++static int khugepaged_collapse_single_pmd(unsigned long addr,
++				   struct vm_area_struct *vma, bool *mmap_locked,
++				   struct collapse_control *cc)
++{
++	int result = SCAN_FAIL;
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long tva_flags = cc->is_khugepaged ? TVA_ENFORCE_SYSFS : 0;
++
++	if (thp_vma_allowable_order(vma, vma->vm_flags,
++					tva_flags, PMD_ORDER)) {
++		if (IS_ENABLED(CONFIG_SHMEM) && !vma_is_anonymous(vma)) {
++			struct file *file = get_file(vma->vm_file);
++			pgoff_t pgoff = linear_page_index(vma, addr);
++
++			mmap_read_unlock(mm);
++			*mmap_locked = false;
++			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
++							  cc);
++			fput(file);
++			if (result == SCAN_PTE_MAPPED_HUGEPAGE) {
++				mmap_read_lock(mm);
++				if (hpage_collapse_test_exit_or_disable(mm))
++					goto end;
++				result = collapse_pte_mapped_thp(mm, addr,
++								 !cc->is_khugepaged);
++				mmap_read_unlock(mm);
++			}
++		} else {
++			result = hpage_collapse_scan_pmd(mm, vma, addr,
++							 mmap_locked, cc);
++		}
++		if (cc->is_khugepaged && result == SCAN_SUCCEED)
++			++khugepaged_pages_collapsed;
++	}
++end:
++	return result;
++}
++
+ static unsigned int khugepaged_scan_mm_slot(unsigned int pages, int *result,
+ 					    struct collapse_control *cc)
+ 	__releases(&khugepaged_mm_lock)
+@@ -2437,33 +2479,9 @@ skip:
+ 			VM_BUG_ON(khugepaged_scan.address < hstart ||
+ 				  khugepaged_scan.address + HPAGE_PMD_SIZE >
+ 				  hend);
+-			if (IS_ENABLED(CONFIG_SHMEM) && !vma_is_anonymous(vma)) {
+-				struct file *file = get_file(vma->vm_file);
+-				pgoff_t pgoff = linear_page_index(vma,
+-						khugepaged_scan.address);
+ 
+-				mmap_read_unlock(mm);
+-				mmap_locked = false;
+-				*result = hpage_collapse_scan_file(mm,
+-					khugepaged_scan.address, file, pgoff, cc);
+-				fput(file);
+-				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+-					mmap_read_lock(mm);
+-					if (hpage_collapse_test_exit_or_disable(mm))
+-						goto breakouterloop;
+-					*result = collapse_pte_mapped_thp(mm,
+-						khugepaged_scan.address, false);
+-					if (*result == SCAN_PMD_MAPPED)
+-						*result = SCAN_SUCCEED;
+-					mmap_read_unlock(mm);
+-				}
+-			} else {
+-				*result = hpage_collapse_scan_pmd(mm, vma,
+-					khugepaged_scan.address, &mmap_locked, cc);
+-			}
+-
+-			if (*result == SCAN_SUCCEED)
+-				++khugepaged_pages_collapsed;
++			*result = khugepaged_collapse_single_pmd(khugepaged_scan.address,
++						vma, &mmap_locked, cc);
+ 
+ 			/* move to next address */
+ 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+@@ -2783,36 +2801,18 @@ int madvise_collapse(struct vm_area_stru
+ 		mmap_assert_locked(mm);
+ 		memset(cc->node_load, 0, sizeof(cc->node_load));
+ 		nodes_clear(cc->alloc_nmask);
+-		if (IS_ENABLED(CONFIG_SHMEM) && !vma_is_anonymous(vma)) {
+-			struct file *file = get_file(vma->vm_file);
+-			pgoff_t pgoff = linear_page_index(vma, addr);
+ 
+-			mmap_read_unlock(mm);
+-			mmap_locked = false;
+-			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
+-							  cc);
+-			fput(file);
+-		} else {
+-			result = hpage_collapse_scan_pmd(mm, vma, addr,
+-							 &mmap_locked, cc);
+-		}
++		result = khugepaged_collapse_single_pmd(addr, vma, &mmap_locked, cc);
++
+ 		if (!mmap_locked)
+ 			*prev = NULL;  /* Tell caller we dropped mmap_lock */
+ 
+-handle_result:
+ 		switch (result) {
+ 		case SCAN_SUCCEED:
+ 		case SCAN_PMD_MAPPED:
+ 			++thps;
+ 			break;
+ 		case SCAN_PTE_MAPPED_HUGEPAGE:
+-			BUG_ON(mmap_locked);
+-			BUG_ON(*prev);
+-			mmap_read_lock(mm);
+-			result = collapse_pte_mapped_thp(mm, addr, true);
+-			mmap_read_unlock(mm);
+-			goto handle_result;
+-		/* Whitelisted set of results where continuing OK */
+ 		case SCAN_PMD_NULL:
+ 		case SCAN_PTE_NON_PRESENT:
+ 		case SCAN_PTE_UFFD_WP:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npache@redhat.com are
 
-x86-disable-image-size-check-for-test-builds-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-add-zblock-allocator-fix.patch
+introduce-khugepaged_collapse_single_pmd-to-unify-khugepaged-and-madvise_collapse.patch
+khugepaged-rename-hpage_collapse_-to-khugepaged_.patch
+khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
+khugepaged-introduce-khugepaged_scan_bitmap-for-mthp-support.patch
+khugepaged-add-mthp-support.patch
+khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+khugepaged-improve-tracepoints-for-mthp-orders.patch
+khugepaged-add-per-order-mthp-khugepaged-stats.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+mm-defer-thp-insertion-to-khugepaged.patch
+mm-document-mthp-defer-usage.patch
+khugepaged-add-defer-option-to-mthp-options.patch
+selftests-mm-add-defer-to-thp-setting-parser.patch
 
