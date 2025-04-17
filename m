@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADBC121506E
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:52:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E63621506E
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:52:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744933965; cv=none; b=c7AzHPT3XyExNQwVxqP+6tchOwoJGFyqnoYh9JBxmVuAMi6XComv6Fju6RN4bMXAzpWG6asg4KG2qtfeaTix83il7uPzBh2pO4GG73llLWv4unUPXVjj5M6MvJMpwnWpyvMw1uZf5Uh57AVSE687yqydALC+ilHUVIpSIrZF/Ns=
+	t=1744933967; cv=none; b=BIC4fbMajugeten2UKMQU9h/3ihJVZjNv7CvwPbozFc7Su3N58TflnY3l/OI4e9V/vey9jc4kQmU4pzaYiEN7qF9h67oO36abUHr90rDsy1vJ+8vegai5VFJ+QoIs18W7TJXVZYNoKgi12Np0RzXov+903jn1FAubYE0QrgKy8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744933965; c=relaxed/simple;
-	bh=3UJv7lZFD6p0WR4BxJfj73RcvbsYSIWA3jmdAAqCuIc=;
-	h=Date:To:From:Subject:Message-Id; b=A3KE+u3tGV0vGRFfNICaeWdW0tdG4y1HNle6VLn1Y+VAFJJW3DW6LRvxsxTKg9gqts/BHpy3LAZQ7z1Jd2Vr3CqsAiEAfEzyCRX0EjOPRzquWYMaGsIQQU4QQkSuj7F+H74Kr1t12oeM1tdK3RKINTzj3msKgAF48h+uIVu6+gc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0bdmWBxy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744933967; c=relaxed/simple;
+	bh=5r38oupV3Wpa3Kr/fy26wFS/GX44TzfRqi15U2nmtVs=;
+	h=Date:To:From:Subject:Message-Id; b=e/+4zGYKu5129/rnY5kdhMjwaLpC6StznB9Z23Z0rslJF2/0GQLOBRnwZZDy7vN22E18qFAM4iPGMvApSIwY1nMg3GtvRZj33piWnFK3VWVnp+RvbW5RulFyWrVx4zDZSVfQnGdJMkyKPd3kdM6CHN4gJCFiUMW4xZOvc8lv29Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vUj4/aH5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0bdmWBxy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D41FC4CEE4;
-	Thu, 17 Apr 2025 23:52:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vUj4/aH5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2406C4CEE4;
+	Thu, 17 Apr 2025 23:52:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744933965;
-	bh=3UJv7lZFD6p0WR4BxJfj73RcvbsYSIWA3jmdAAqCuIc=;
+	s=korg; t=1744933966;
+	bh=5r38oupV3Wpa3Kr/fy26wFS/GX44TzfRqi15U2nmtVs=;
 	h=Date:To:From:Subject:From;
-	b=0bdmWBxysNrEH16AidwtIzXTITR9saJRf2dYGq9LS1ycc5za128sgtbqh+eQCViQY
-	 MITNGtbohalVToyrmSgEtyBdSSP//puQN2KW3iGf9j+lTtb3BOT2IRdiIXekTMbOvw
-	 aRHbvyx2n/YjjMuJTJYikDRkSNu5e4WTZx/y/MPw=
-Date: Thu, 17 Apr 2025 16:52:44 -0700
+	b=vUj4/aH5VUuAh/DxrgZy9r6xbABVKOA4YhJRxs7pbjZ+og9wdjn4dXnphfgwxPC+Y
+	 znb3+OKXgkv3FPE8XghKGjo616MVeOD/uOuphgn1GbnYgWblrOP705SbDYtJAc4hnM
+	 +MSVmZ/zCWcURe8uhAyynLNUX0SKq/MqKKEEYru8=
+Date: Thu, 17 Apr 2025 16:52:46 -0700
 To: mm-commits@vger.kernel.org,mjguzik@gmail.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_vmallocc-allow-built-in-execution.patch added to mm-new branch
-Message-Id: <20250417235245.6D41FC4CEE4@smtp.kernel.org>
+Subject: + maintainers-add-test_vmallocc-to-vmalloc-section.patch added to mm-new branch
+Message-Id: <20250417235246.B2406C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_vmalloc.c: allow built-in execution
+     Subject: MAINTAINERS: add test_vmalloc.c to VMALLOC section
 has been added to the -mm mm-new branch.  Its filename is
-     lib-test_vmallocc-allow-built-in-execution.patch
+     maintainers-add-test_vmallocc-to-vmalloc-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-allow-built-in-execution.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-test_vmallocc-to-vmalloc-section.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: lib/test_vmalloc.c: allow built-in execution
-Date: Thu, 17 Apr 2025 18:12:14 +0200
+Subject: MAINTAINERS: add test_vmalloc.c to VMALLOC section
+Date: Thu, 17 Apr 2025 18:12:15 +0200
 
-Remove the dependency on module loading ("m") for the vmalloc test suite,
-enabling it to be built directly into the kernel, so both ("=m") and
-("=y") are supported.
+A vmalloc subsystem includes "lib/test_vmalloc.c" test suite.  Add an "F:"
+entry under VMALLOC section to track this file as part of the subsystem.
 
-Motivation:
-- Faster debugging/testing of vmalloc code;
-- It allows to configure the test via kernel-boot parameters.
-
-Configuration example:
-  test_vmalloc.nr_threads=64
-  test_vmalloc.run_test_mask=7
-  test_vmalloc.sequential_test_order=1
-
-Link: https://lkml.kernel.org/r/20250417161216.88318-2-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20250417161216.88318-3-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Christop Hellwig <hch@infradead.org>
@@ -83,38 +73,19 @@ Cc: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug  |    3 +--
- lib/test_vmalloc.c |    5 +++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/Kconfig.debug~lib-test_vmallocc-allow-built-in-execution
-+++ a/lib/Kconfig.debug
-@@ -2574,8 +2574,7 @@ config TEST_BITOPS
- config TEST_VMALLOC
- 	tristate "Test module for stress/performance analysis of vmalloc allocator"
- 	default n
--       depends on MMU
--	depends on m
-+	depends on MMU
- 	help
- 	  This builds the "test_vmalloc" module that should be used for
- 	  stress and performance analysis. So, any new change for vmalloc
---- a/lib/test_vmalloc.c~lib-test_vmallocc-allow-built-in-execution
-+++ a/lib/test_vmalloc.c
-@@ -591,10 +591,11 @@ static void do_concurrent_test(void)
- 	kvfree(tdriver);
- }
+--- a/MAINTAINERS~maintainers-add-test_vmallocc-to-vmalloc-section
++++ a/MAINTAINERS
+@@ -25823,6 +25823,7 @@ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	include/linux/vmalloc.h
+ F:	mm/vmalloc.c
++F:	lib/test_vmalloc.c
  
--static int vmalloc_test_init(void)
-+static int __init vmalloc_test_init(void)
- {
- 	do_concurrent_test();
--	return -EAGAIN; /* Fail will directly unload the module */
-+	/* Fail will directly unload the module */
-+	return IS_BUILTIN(CONFIG_TEST_VMALLOC) ? 0:-EAGAIN;
- }
- 
- module_init(vmalloc_test_init)
+ VME SUBSYSTEM
+ L:	linux-kernel@vger.kernel.org
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
