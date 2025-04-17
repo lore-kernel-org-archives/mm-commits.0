@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E63621506E
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:52:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F75521506E
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 23:52:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744933967; cv=none; b=BIC4fbMajugeten2UKMQU9h/3ihJVZjNv7CvwPbozFc7Su3N58TflnY3l/OI4e9V/vey9jc4kQmU4pzaYiEN7qF9h67oO36abUHr90rDsy1vJ+8vegai5VFJ+QoIs18W7TJXVZYNoKgi12Np0RzXov+903jn1FAubYE0QrgKy8Q=
+	t=1744933968; cv=none; b=J+G4zLdeYthoY++qQ94GSm5tviGs883shDFx9mNse6q41GRAFkv636gdGKZPoyMCDiX6DiYA/x4LoP3Q1Zlg8YVSmqKI3XmC0eGUP/Ga5a7oRBf9F3I0DSxVMNpoUQ+ZSuC02KyvzCaTZFHuF0akXijAjQv9fj0zwHj5BMcapyM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744933967; c=relaxed/simple;
-	bh=5r38oupV3Wpa3Kr/fy26wFS/GX44TzfRqi15U2nmtVs=;
-	h=Date:To:From:Subject:Message-Id; b=e/+4zGYKu5129/rnY5kdhMjwaLpC6StznB9Z23Z0rslJF2/0GQLOBRnwZZDy7vN22E18qFAM4iPGMvApSIwY1nMg3GtvRZj33piWnFK3VWVnp+RvbW5RulFyWrVx4zDZSVfQnGdJMkyKPd3kdM6CHN4gJCFiUMW4xZOvc8lv29Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vUj4/aH5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744933968; c=relaxed/simple;
+	bh=qRxWVfW2gkTU+POr8H5NlabgF+orKqOZJ7NNIkjbIT0=;
+	h=Date:To:From:Subject:Message-Id; b=lUc/qa3gNxpS35LMk+IDIuhodMUAX/bMpcdBC1TGKfeb25A6JR1vaYSL2mnNo4K0l6fgEvmBxKVBlsguWJ0LVRjcVE7IhGyTe343YcC2GJHiurYhDfxL3ZrrMml0XNIy0veTbr0IVmOFdV8Y1+ThSA9UhrgvLmTSNHnwWe3M7wE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AC6qkpgX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vUj4/aH5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2406C4CEE4;
-	Thu, 17 Apr 2025 23:52:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AC6qkpgX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D489CC4CEE7;
+	Thu, 17 Apr 2025 23:52:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744933966;
-	bh=5r38oupV3Wpa3Kr/fy26wFS/GX44TzfRqi15U2nmtVs=;
+	s=korg; t=1744933967;
+	bh=qRxWVfW2gkTU+POr8H5NlabgF+orKqOZJ7NNIkjbIT0=;
 	h=Date:To:From:Subject:From;
-	b=vUj4/aH5VUuAh/DxrgZy9r6xbABVKOA4YhJRxs7pbjZ+og9wdjn4dXnphfgwxPC+Y
-	 znb3+OKXgkv3FPE8XghKGjo616MVeOD/uOuphgn1GbnYgWblrOP705SbDYtJAc4hnM
-	 +MSVmZ/zCWcURe8uhAyynLNUX0SKq/MqKKEEYru8=
-Date: Thu, 17 Apr 2025 16:52:46 -0700
+	b=AC6qkpgXlinaSTaR9a6JeK3A+p2ZIZrNZfq8PY8IOjAKkLVqdKlmOXSBLkIU5psGe
+	 IynB5GvYAFMpkbgdpR0BMTgGYvKsMKK66PocOpeDXJQn3Ss141vSa8q4zdDJo50xZf
+	 0Rc+kfYpenSf5iHo83zISzTuHq0lrZSsszSUxkVQ=
+Date: Thu, 17 Apr 2025 16:52:47 -0700
 To: mm-commits@vger.kernel.org,mjguzik@gmail.com,hch@infradead.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-test_vmallocc-to-vmalloc-section.patch added to mm-new branch
-Message-Id: <20250417235246.B2406C4CEE4@smtp.kernel.org>
+Subject: + vmalloc-align-nr_vmalloc_pages-and-vmap_lazy_nr.patch added to mm-new branch
+Message-Id: <20250417235247.D489CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add test_vmalloc.c to VMALLOC section
+     Subject: vmalloc: align nr_vmalloc_pages and vmap_lazy_nr
 has been added to the -mm mm-new branch.  Its filename is
-     maintainers-add-test_vmallocc-to-vmalloc-section.patch
+     vmalloc-align-nr_vmalloc_pages-and-vmap_lazy_nr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-test_vmallocc-to-vmalloc-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-align-nr_vmalloc_pages-and-vmap_lazy_nr.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: MAINTAINERS: add test_vmalloc.c to VMALLOC section
-Date: Thu, 17 Apr 2025 18:12:15 +0200
+Subject: vmalloc: align nr_vmalloc_pages and vmap_lazy_nr
+Date: Thu, 17 Apr 2025 18:12:16 +0200
 
-A vmalloc subsystem includes "lib/test_vmalloc.c" test suite.  Add an "F:"
-entry under VMALLOC section to track this file as part of the subsystem.
+Currently both atomics share one cache-line:
 
-Link: https://lkml.kernel.org/r/20250417161216.88318-3-urezki@gmail.com
+<snip>
+...
+ffffffff83eab400 b vmap_lazy_nr
+ffffffff83eab408 b nr_vmalloc_pages
+...
+<snip>
+
+those are global variables and they are only 8 bytes apart.  Since they
+are modified by different threads this causes a false sharing.  This can
+lead to a performance drop due to unnecessary cache invalidations.
+
+After this patch it is aligned to a cache line boundary:
+
+<snip>
+...
+ffffffff8260a600 d vmap_lazy_nr
+ffffffff8260a640 d nr_vmalloc_pages
+...
+<snip>
+
+Link: https://lkml.kernel.org/r/20250417161216.88318-4-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Christop Hellwig <hch@infradead.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-test_vmallocc-to-vmalloc-section
-+++ a/MAINTAINERS
-@@ -25823,6 +25823,7 @@ W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	include/linux/vmalloc.h
- F:	mm/vmalloc.c
-+F:	lib/test_vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-align-nr_vmalloc_pages-and-vmap_lazy_nr
++++ a/mm/vmalloc.c
+@@ -1008,7 +1008,8 @@ static BLOCKING_NOTIFIER_HEAD(vmap_notif
+ static void drain_vmap_area_work(struct work_struct *work);
+ static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
  
- VME SUBSYSTEM
- L:	linux-kernel@vger.kernel.org
+-static atomic_long_t nr_vmalloc_pages;
++static __cacheline_aligned_in_smp atomic_long_t nr_vmalloc_pages;
++static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
+ 
+ unsigned long vmalloc_nr_pages(void)
+ {
+@@ -2117,8 +2118,6 @@ static unsigned long lazy_max_pages(void
+ 	return log * (32UL * 1024 * 1024 / PAGE_SIZE);
+ }
+ 
+-static atomic_long_t vmap_lazy_nr = ATOMIC_LONG_INIT(0);
+-
+ /*
+  * Serialize vmap purging.  There is no actual critical section protected
+  * by this lock, but we want to avoid concurrent calls for performance
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
