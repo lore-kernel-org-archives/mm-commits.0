@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBADF41C63
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 20:41:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F83321019E
+	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2025 22:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744922477; cv=none; b=jxH3CT1S2CugjOJUPrQM35LpLlF+OHQbXH4hWbW479mC4iEdhnUNZSFOJvuvUPhM6h7rmv7bxc+wXw2mk4B7d1jJppE+g846YyQHD+kl0cATwgD3HomVTTmibvsFb6auIWAA0ioubZ8CImD0FW9OKGWQPb/6OLsVPYxwccf2lNM=
+	t=1744927767; cv=none; b=fUWMLDTSOA0oSrtOyAtMuP7v35AcNuSpTfgZ+DegWmQaN2glf51QmPnVF53hqqeIrzMmcUxW2nozaoCx1ppWOkW4OcuSR69wl/L7sn+1xLQBpWlQfKRNAzrJGlCL3prnQBEUBiTUi/p19RkluZo6L/fqrgr8Z8BHsLCcx2tcW/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744922477; c=relaxed/simple;
-	bh=2IIU+XXOrQRIN0YdQrPjRDOtX3WlfNCj0bBD73A52w0=;
-	h=Date:To:From:Subject:Message-Id; b=F2c88+P4cs0qO0JNylmblio0GNq2AREQGZDX7XAHqc9KiMDxI3ze3zhkAQ29oyufyy8EoNGoTSJMwwhmwLkUxM7T/Ewq82IbpW95BCP0MH6NigWX8sAmWoIgBzVvYg+lEGRq6kFX2qcIPPgt+xHUzl0ptcjTvDmsUAOBxE7JS9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ur49WgIJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744927767; c=relaxed/simple;
+	bh=4mvVDAtyRPg4XlAhSraLrwGuOTo5+m3vJf8lAdNMnSI=;
+	h=Date:To:From:Subject:Message-Id; b=jFpR8yFq+XBqVxckCuEBRXPX09HjKyQIvbrNbWiDVeTSoqecC4rdiPE2z9YVANl+TW3a1csitsFCzdqiP/ZiV8f7c8rfmtwOuEGDWQLcyL3FGLypF4LcE9K9uFIyhuj5mDMaiH79Gk8W4aAe9HoT7+39nmT/X+fzHjzZCSQb9SE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QoUdGlLI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ur49WgIJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21F28C4CEE4;
-	Thu, 17 Apr 2025 20:41:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QoUdGlLI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F259C4CEE4;
+	Thu, 17 Apr 2025 22:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744922477;
-	bh=2IIU+XXOrQRIN0YdQrPjRDOtX3WlfNCj0bBD73A52w0=;
+	s=korg; t=1744927767;
+	bh=4mvVDAtyRPg4XlAhSraLrwGuOTo5+m3vJf8lAdNMnSI=;
 	h=Date:To:From:Subject:From;
-	b=ur49WgIJDQgUogOQcbse22VU1l39w5Eivyo1E2MeGJf4ecajXvTiTXXYK/KM6a55k
-	 4/xYehWGZQHLvVl6dGW5rgepfXIih//9KuejITnRgePybtsuDTEkzlQMMYxY14y01X
-	 ekHQC237I1SLE2zKdg8dOCfkmGAx4b1NrVYhiO1Q=
-Date: Thu, 17 Apr 2025 13:41:16 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,andrii@kernel.org,yatsenko@meta.com,akpm@linux-foundation.org
+	b=QoUdGlLI/EumKqn4ID2Fhh7YXGF8LTRqMrQzSBe6jEYCBmzNqnZZI0OW90y+beAeI
+	 dDESIyIk8JpD09vOwkbJHmCbGjuAeqWUdzLlnsJ+znL6BxsJKGOgLkZ98a32eUrbms
+	 xwom0UjP24vMy1wRGEg2fsGjoz/PWBaBlgcLWOKM=
+Date: Thu, 17 Apr 2025 15:09:25 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,gautham.ananthakrishna@oracle.com,heming.zhao@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch added to mm-nonmm-unstable branch
-Message-Id: <20250417204117.21F28C4CEE4@smtp.kernel.org>
+Subject: + ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250417220927.0F259C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maccess: fix strncpy_from_user_nofault empty string handling
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch
+     Subject: ocfs2: fix the issue with discontiguous allocation in the global_bitmap
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,85 +58,169 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mykyta Yatsenko <yatsenko@meta.com>
-Subject: maccess: fix strncpy_from_user_nofault empty string handling
-Date: Thu, 17 Apr 2025 16:28:08 +0100
+From: Heming Zhao <heming.zhao@suse.com>
+Subject: ocfs2: fix the issue with discontiguous allocation in the global_bitmap
+Date: Mon, 14 Apr 2025 14:01:23 +0800
 
-strncpy_from_user_nofault() should return the length of the copied string
-including the trailing NUL, but if the argument unsafe_addr points to an
-empty string ({'\0'}), the return value is 0.
+commit 4eb7b93e0310 ("ocfs2: improve write IO performance when
+fragmentation is high") introduced another regression.
 
-This happens as strncpy_from_user() copies terminal symbol into dst and
-returns 0 (as expected), but strncpy_from_user_nofault does not modify ret
-as it is not equal to count and not greater than 0, so 0 is returned,
-which contradicts the contract.
+The following ocfs2-test case can trigger this issue:
+> discontig_runner.sh => activate_discontig_bg.sh => resv_unwritten:
+> ${RESV_UNWRITTEN_BIN} -f ${WORK_PLACE}/large_testfile -s 0 -l \
+> $((${FILE_MAJOR_SIZE_M}*1024*1024))
 
-Link: https://lkml.kernel.org/r/20250417152808.722409-1-mykyta.yatsenko5@gmail.com
-Signed-off-by: Mykyta Yatsenko <yatsenko@meta.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+In my env, test disk size (by "fdisk -l <dev>"):
+> 53687091200 bytes, 104857600 sectors.
+
+Above command is:
+> /usr/local/ocfs2-test/bin/resv_unwritten -f \
+> /mnt/ocfs2/ocfs2-activate-discontig-bg-dir/large_testfile -s 0 -l \
+> 53187969024
+
+Error log:
+> [*] Reserve 50724M space for a LARGE file, reserve 200M space for future test.
+> ioctl error 28: "No space left on device"
+> resv allocation failed Unknown error -1
+> reserve unwritten region from 0 to 53187969024.
+
+Call flow:
+__ocfs2_change_file_space //by ioctl OCFS2_IOC_RESVSP64
+ ocfs2_allocate_unwritten_extents //start:0 len:53187969024
+  while()
+   + ocfs2_get_clusters //cpos:0, alloc_size:1623168 (cluster number)
+   + ocfs2_extend_allocation
+     + ocfs2_lock_allocators
+     |  + choose OCFS2_AC_USE_MAIN & ocfs2_cluster_group_search
+     |
+     + ocfs2_add_inode_data
+        ocfs2_add_clusters_in_btree
+         __ocfs2_claim_clusters
+          ocfs2_claim_suballoc_bits
+          + During the allocation of the final part of the large file
+	    (after ~47GB), no chain had the required contiguous
+            bits_wanted. Consequently, the allocation failed.
+
+How to fix:
+When OCFS2 is encountering fragmented allocation, the file system should
+stop attempting bits_wanted contiguous allocation and instead provide the
+largest available contiguous free bits from the cluster groups.
+
+Link: https://lkml.kernel.org/r/20250414060125.19938-2-heming.zhao@suse.com
+Fixes: 4eb7b93e0310 ("ocfs2: improve write IO performance when fragmentation is high")
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Reported-by: Gautham Ananthakrishna <gautham.ananthakrishna@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_events_filter.c |   10 ++++++++--
- mm/maccess.c                       |    2 +-
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ fs/ocfs2/suballoc.c |   38 ++++++++++++++++++++++++++++++++------
+ fs/ocfs2/suballoc.h |    1 +
+ 2 files changed, 33 insertions(+), 6 deletions(-)
 
---- a/kernel/trace/trace_events_filter.c~maccess-fix-strncpy_from_user_nofault-empty-string-handling
-+++ a/kernel/trace/trace_events_filter.c
-@@ -800,6 +800,7 @@ static __always_inline char *test_string
+--- a/fs/ocfs2/suballoc.c~ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap
++++ a/fs/ocfs2/suballoc.c
+@@ -698,10 +698,12 @@ static int ocfs2_block_group_alloc(struc
+ 
+ 	bg_bh = ocfs2_block_group_alloc_contig(osb, handle, alloc_inode,
+ 					       ac, cl);
+-	if (PTR_ERR(bg_bh) == -ENOSPC)
++	if (PTR_ERR(bg_bh) == -ENOSPC) {
++		ac->ac_which = OCFS2_AC_USE_MAIN_DISCONTIG;
+ 		bg_bh = ocfs2_block_group_alloc_discontig(handle,
+ 							  alloc_inode,
+ 							  ac, cl);
++	}
+ 	if (IS_ERR(bg_bh)) {
+ 		status = PTR_ERR(bg_bh);
+ 		bg_bh = NULL;
+@@ -1794,6 +1796,7 @@ static int ocfs2_search_chain(struct ocf
  {
- 	struct ustring_buffer *ubuf;
- 	char *kstr;
-+	int cnt;
+ 	int status;
+ 	u16 chain;
++	u32 contig_bits;
+ 	u64 next_group;
+ 	struct inode *alloc_inode = ac->ac_inode;
+ 	struct buffer_head *group_bh = NULL;
+@@ -1819,10 +1822,21 @@ static int ocfs2_search_chain(struct ocf
+ 	status = -ENOSPC;
+ 	/* for now, the chain search is a bit simplistic. We just use
+ 	 * the 1st group with any empty bits. */
+-	while ((status = ac->ac_group_search(alloc_inode, group_bh,
+-					     bits_wanted, min_bits,
+-					     ac->ac_max_block,
+-					     res)) == -ENOSPC) {
++	while (1) {
++		if (ac->ac_which == OCFS2_AC_USE_MAIN_DISCONTIG) {
++			contig_bits = le16_to_cpu(bg->bg_contig_free_bits);
++			if (!contig_bits)
++				contig_bits = ocfs2_find_max_contig_free_bits(bg->bg_bitmap,
++						le16_to_cpu(bg->bg_bits), 0);
++			if (bits_wanted > contig_bits && contig_bits >= min_bits)
++				bits_wanted = contig_bits;
++		}
++
++		status = ac->ac_group_search(alloc_inode, group_bh,
++				bits_wanted, min_bits,
++				ac->ac_max_block, res);
++		if (status != -ENOSPC)
++			break;
+ 		if (!bg->bg_next_group)
+ 			break;
  
- 	if (!ustring_per_cpu)
- 		return NULL;
-@@ -808,7 +809,9 @@ static __always_inline char *test_string
- 	kstr = ubuf->buffer;
+@@ -1982,6 +1996,7 @@ static int ocfs2_claim_suballoc_bits(str
+ 	victim = ocfs2_find_victim_chain(cl);
+ 	ac->ac_chain = victim;
  
- 	/* For safety, do not trust the string pointer */
--	if (!strncpy_from_kernel_nofault(kstr, str, USTRING_BUF_SIZE))
-+	cnt = strncpy_from_kernel_nofault(kstr, str, USTRING_BUF_SIZE);
-+	/* Return null if empty string or error */
-+	if (cnt <= 1)
- 		return NULL;
- 	return kstr;
- }
-@@ -818,6 +821,7 @@ static __always_inline char *test_ustrin
- 	struct ustring_buffer *ubuf;
- 	char __user *ustr;
- 	char *kstr;
-+	int cnt;
- 
- 	if (!ustring_per_cpu)
- 		return NULL;
-@@ -827,7 +831,9 @@ static __always_inline char *test_ustrin
- 
- 	/* user space address? */
- 	ustr = (char __user *)str;
--	if (!strncpy_from_user_nofault(kstr, ustr, USTRING_BUF_SIZE))
-+	cnt = strncpy_from_user_nofault(kstr, ustr, USTRING_BUF_SIZE);
-+	/* Return null if empty string or error */
-+	if (cnt <= 1)
- 		return NULL;
- 
- 	return kstr;
---- a/mm/maccess.c~maccess-fix-strncpy_from_user_nofault-empty-string-handling
-+++ a/mm/maccess.c
-@@ -196,7 +196,7 @@ long strncpy_from_user_nofault(char *dst
- 	if (ret >= count) {
- 		ret = count;
- 		dst[ret - 1] = '\0';
--	} else if (ret > 0) {
-+	} else if (ret >= 0) {
- 		ret++;
++search:
+ 	status = ocfs2_search_chain(ac, handle, bits_wanted, min_bits,
+ 				    res, &bits_left);
+ 	if (!status) {
+@@ -2022,6 +2037,16 @@ static int ocfs2_claim_suballoc_bits(str
+ 		}
  	}
  
++	/* Chains can't supply the bits_wanted contiguous space.
++	 * We should switch to using every single bit when allocating
++	 * from the global bitmap. */
++	if (i == le16_to_cpu(cl->cl_next_free_rec) &&
++	    status == -ENOSPC && ac->ac_which == OCFS2_AC_USE_MAIN) {
++		ac->ac_which = OCFS2_AC_USE_MAIN_DISCONTIG;
++		ac->ac_chain = victim;
++		goto search;
++	}
++
+ set_hint:
+ 	if (status != -ENOSPC) {
+ 		/* If the next search of this group is not likely to
+@@ -2365,7 +2390,8 @@ int __ocfs2_claim_clusters(handle_t *han
+ 	BUG_ON(ac->ac_bits_given >= ac->ac_bits_wanted);
+ 
+ 	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL
+-	       && ac->ac_which != OCFS2_AC_USE_MAIN);
++	       && ac->ac_which != OCFS2_AC_USE_MAIN
++	       && ac->ac_which != OCFS2_AC_USE_MAIN_DISCONTIG);
+ 
+ 	if (ac->ac_which == OCFS2_AC_USE_LOCAL) {
+ 		WARN_ON(min_clusters > 1);
+--- a/fs/ocfs2/suballoc.h~ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap
++++ a/fs/ocfs2/suballoc.h
+@@ -29,6 +29,7 @@ struct ocfs2_alloc_context {
+ #define OCFS2_AC_USE_MAIN  2
+ #define OCFS2_AC_USE_INODE 3
+ #define OCFS2_AC_USE_META  4
++#define OCFS2_AC_USE_MAIN_DISCONTIG  5
+ 	u32    ac_which;
+ 
+ 	/* these are used by the chain search */
 _
 
-Patches currently in -mm which might be from yatsenko@meta.com are
+Patches currently in -mm which might be from heming.zhao@suse.com are
 
-maccess-fix-strncpy_from_user_nofault-empty-string-handling.patch
+ocfs2-fix-the-issue-with-discontiguous-allocation-in-the-global_bitmap.patch
 
