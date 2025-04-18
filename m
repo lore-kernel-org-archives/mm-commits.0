@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82016158545
-	for <mm-commits@vger.kernel.org>; Fri, 18 Apr 2025 03:11:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00413158545
+	for <mm-commits@vger.kernel.org>; Fri, 18 Apr 2025 03:11:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744945881; cv=none; b=YA1mftbW4+yjF4MmF0REIiz0UMUOiOHSyRDmQ/8O4GcbfH9Vri5aFXpYHi77k/RI4YWm+rPcLC2IvlYy+H7xZ8tEah9nI+V2MDOe8Mhtmom/pArw47PzWRpLhx002mT+vekBSQIVDbc8iiOt2AeLWCVyDQ93syGjN/4bPCu3APc=
+	t=1744945883; cv=none; b=s2b47Abk+DXhFnUtRGouTtXz92CPz3TeBY6jpH0YPebmBe/fRMHvlrgEd4pbrVfgp9YrvRpqa37IyE+2P5YCV+Vy0Tr5AigxIYXGmoFWGerWt6OLxn4R9CIvrL3FouK+rBtEsmamfRuPxmahbZHPqT1PXYOxm6BUgZBnOxEB1uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744945881; c=relaxed/simple;
-	bh=YNQljJVrLzdO4JXjWy5EgkY0WLH6XQaNf/CdHxMWvKM=;
-	h=Date:To:From:Subject:Message-Id; b=ADpSJ3v7UeqokfU/Xs60n+XmTrtPStcAOu6R4Bbx7gRIOTUz/wCp921pI0JkIPVVGX/5v86dfAfX8R0TYgxl7SwlUx3ySmBt0m14DDqvWobkUxJBtWu11JVLOinNfqnphOyaPAkglHV8ou+ElYU+tycT+mXIpk1WmuEsj86J7UU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tqp5LHxg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744945883; c=relaxed/simple;
+	bh=05QoVnSG/09FUF802ptszAJdiQLE9vkT2GqhHRR8q6E=;
+	h=Date:To:From:Subject:Message-Id; b=sSPKmEkZ/tOlh2Yjs+scCkAc/jl7U14Oi8vFBUbIqfRPBohQ06tYKVG8VD6wRFPupC919C63T/1JIuRE8bu3Vca9MAl5MvXRHXWjcdoKcuTlmsugW+hWBKWrF3YveHmJuB+sRf8V8alZD6u6ote+NIOKf2uwh9GjY7Mcwp6XF7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sz5et5VQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tqp5LHxg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05E69C4CEEA;
-	Fri, 18 Apr 2025 03:11:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sz5et5VQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9DF3C4CEE4;
+	Fri, 18 Apr 2025 03:11:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744945881;
-	bh=YNQljJVrLzdO4JXjWy5EgkY0WLH6XQaNf/CdHxMWvKM=;
+	s=korg; t=1744945882;
+	bh=05QoVnSG/09FUF802ptszAJdiQLE9vkT2GqhHRR8q6E=;
 	h=Date:To:From:Subject:From;
-	b=tqp5LHxgtDDKO75x3BAFZzbi5hvkXbYB5D1XEPn/tD4FAW5cBXN9KYJAMPAamWkfV
-	 BZhanfGdOahq61/FdGVJQIJoyaNN24saAbY+lOwH17JiJtQmfsJBFiazVVL+R4nbpM
-	 t9GR3eC+OpOY8DVj9Fnpm6Wei+bPhLCRTCjqk72U=
-Date: Thu, 17 Apr 2025 20:11:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,Liam.Howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Sz5et5VQuduBB4OISZP98TPZ+D5+7Dj6ErvXRVYxKlus5nExgqszSkRzh80yL09x8
+	 PfFe0znlwSZEV33s3UEIxIiUQt1wqeFY39xpxVzG901LxNFmTVK/9UAZQGXo2vdc3y
+	 y53qviXXQJkBwyGHm2iTUEXjet4JGfdtnGKKBRRA=
+Date: Thu, 17 Apr 2025 20:11:22 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section.patch removed from -mm tree
-Message-Id: <20250418031121.05E69C4CEEA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd.patch removed from -mm tree
+Message-Id: <20250418031122.C9DF3C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add Pedro as reviewer to the MEMORY MAPPING section
+     Subject: mm: vmscan: restore high-cpu watermark safety in kswapd
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section.patch
+     mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add Pedro as reviewer to the MEMORY MAPPING section
-Date: Wed, 16 Apr 2025 14:53:01 +0100
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: restore high-cpu watermark safety in kswapd
+Date: Wed, 16 Apr 2025 09:45:39 -0400
 
-Pedro has offered to review memory mapping code.  He has good experience
-in this area and has provided excellent feedback on memory mapping series
-in the past so I feel he'll be a great addition.
+Vlastimil points out that commit a211c6550efc ("mm: page_alloc:
+defrag_mode kswapd/kcompactd watermarks") switched kswapd from
+zone_watermark_ok_safe() to the standard, percpu-cached version of reading
+free pages, thus dropping the watermark safety precautions for systems
+with high CPU counts (e.g.  >212 cpus on 64G).  Restore them.
 
-Link: https://lkml.kernel.org/r/20250416135301.43513-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Jann Horn <jannh@google.com>
+Since zone_watermark_ok_safe() is no longer the right interface, and this
+was the last caller of the function anyway, open-code the
+zone_page_state_snapshot() conditional and delete the function.
+
+Link: https://lkml.kernel.org/r/20250416135142.778933-2-hannes@cmpxchg.org
+Fixes: a211c6550efc ("mm: page_alloc: defrag_mode kswapd/kcompactd watermarks")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Brendan Jackman <jackmanb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mmzone.h |    2 --
+ mm/page_alloc.c        |   12 ------------
+ mm/vmscan.c            |   21 +++++++++++++++++++--
+ 3 files changed, 19 insertions(+), 16 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-pedro-as-reviewer-to-the-memory-mapping-section
-+++ a/MAINTAINERS
-@@ -15558,6 +15558,7 @@ M:	Liam R. Howlett <Liam.Howlett@oracle.
- M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
- R:	Vlastimil Babka <vbabka@suse.cz>
- R:	Jann Horn <jannh@google.com>
-+R:	Pedro Falcato <pfalcato@suse.de>
- L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
+--- a/include/linux/mmzone.h~mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd
++++ a/include/linux/mmzone.h
+@@ -1502,8 +1502,6 @@ bool __zone_watermark_ok(struct zone *z,
+ bool zone_watermark_ok(struct zone *z, unsigned int order,
+ 		unsigned long mark, int highest_zoneidx,
+ 		unsigned int alloc_flags);
+-bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
+-		unsigned long mark, int highest_zoneidx);
+ /*
+  * Memory initialization context, use to differentiate memory added by
+  * the platform statically or via memory hotplug interface.
+--- a/mm/page_alloc.c~mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd
++++ a/mm/page_alloc.c
+@@ -3470,18 +3470,6 @@ static inline bool zone_watermark_fast(s
+ 	return false;
+ }
+ 
+-bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
+-			unsigned long mark, int highest_zoneidx)
+-{
+-	long free_pages = zone_page_state(z, NR_FREE_PAGES);
+-
+-	if (z->percpu_drift_mark && free_pages < z->percpu_drift_mark)
+-		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
+-
+-	return __zone_watermark_ok(z, order, mark, highest_zoneidx, 0,
+-								free_pages);
+-}
+-
+ #ifdef CONFIG_NUMA
+ int __read_mostly node_reclaim_distance = RECLAIM_DISTANCE;
+ 
+--- a/mm/vmscan.c~mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd
++++ a/mm/vmscan.c
+@@ -6736,6 +6736,7 @@ static bool pgdat_balanced(pg_data_t *pg
+ 	 * meet watermarks.
+ 	 */
+ 	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
++		enum zone_stat_item item;
+ 		unsigned long free_pages;
+ 
+ 		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
+@@ -6748,9 +6749,25 @@ static bool pgdat_balanced(pg_data_t *pg
+ 		 * blocks to avoid polluting allocator fallbacks.
+ 		 */
+ 		if (defrag_mode)
+-			free_pages = zone_page_state(zone, NR_FREE_PAGES_BLOCKS);
++			item = NR_FREE_PAGES_BLOCKS;
+ 		else
+-			free_pages = zone_page_state(zone, NR_FREE_PAGES);
++			item = NR_FREE_PAGES;
++
++		/*
++		 * When there is a high number of CPUs in the system,
++		 * the cumulative error from the vmstat per-cpu cache
++		 * can blur the line between the watermarks. In that
++		 * case, be safe and get an accurate snapshot.
++		 *
++		 * TODO: NR_FREE_PAGES_BLOCKS moves in steps of
++		 * pageblock_nr_pages, while the vmstat pcp threshold
++		 * is limited to 125. On many configurations that
++		 * counter won't actually be per-cpu cached. But keep
++		 * things simple for now; revisit when somebody cares.
++		 */
++		free_pages = zone_page_state(zone, item);
++		if (zone->percpu_drift_mark && free_pages < zone->percpu_drift_mark)
++			free_pages = zone_page_state_snapshot(zone, item);
+ 
+ 		if (__zone_watermark_ok(zone, order, mark, highest_zoneidx,
+ 					0, free_pages))
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
+mm-page_alloc-tighten-up-find_suitable_fallback.patch
 
