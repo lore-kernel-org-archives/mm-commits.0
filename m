@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60776158545
-	for <mm-commits@vger.kernel.org>; Fri, 18 Apr 2025 03:11:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FA70158545
+	for <mm-commits@vger.kernel.org>; Fri, 18 Apr 2025 03:11:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744945863; cv=none; b=NcGbIq8kWK1L1ncpDcggG+uXwhw/j1HzzsergDrh0hUeXa+Ydi6THXCvumv5gTSPoHj9mR9y0g1CuApXL0WZ0u6TBTko4doQ4FECGUZyCXG65pJldzmvifYrVwWBuNNcAXD5s6Hr5lMk2lw33U4kmux2+mO2KtIQT/3AcuSdDmE=
+	t=1744945865; cv=none; b=UVsEN+KzDFuMpMTZH9ENUgTWgi+bWTvNiMpLffaPHQxkcIZkWEfbH7HmK/IxEn2HhP9X5rLXsz9RtEri9hq3/ZOHhT+QK1P6HvJJTQQdsSlILcwsU4P2d+zj9NgvOnL0RWK9Q5fTzXCcFDIT9PxwukvdhPjPl5tPL+UDNnx1dNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744945863; c=relaxed/simple;
-	bh=aE65eCCY97IYoj6obllNdJHrWrLu9TT1oDmiOQ14LPM=;
-	h=Date:To:From:Subject:Message-Id; b=s7mKg2tACJAE9kcJh+YDPXsqaTBb23XgRhTJC3FllNsKpHgAjbDZ8WEgIcy1SWX8NoVBVVzIzKcfdAY3GfkdbK9JOlDqlTy0gDVseAtoyElnWZG6cmN4VwqKSVULaUFpf2kSO7Kwiqe+1iOF1hr5qEyOT+gj/0ZpB5oBaDFQJdI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iJf354dg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744945865; c=relaxed/simple;
+	bh=4k/fAMRO5WFUDKeGDMO06r2d0dZF2h4w54bLGO6bZJs=;
+	h=Date:To:From:Subject:Message-Id; b=UaiRxJWOm0nKg5MFr6D8A36hWObETXugRyJOYg0pgHBeIwfETEfh3wamLcCskAb7m6MIdmuYiK4sknR1Xnj7Z0n2LPC1SmtnTuh/p5mJPmuq3Q0gL6LGJtm+xTi2K8kbzw/L7Z4TAT0p80kB2z/7WJxj0yxHrp338jmn2IVzc/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wAhwAiMA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iJf354dg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD3BDC4CEE4;
-	Fri, 18 Apr 2025 03:11:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wAhwAiMA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A88EC4CEE4;
+	Fri, 18 Apr 2025 03:11:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744945862;
-	bh=aE65eCCY97IYoj6obllNdJHrWrLu9TT1oDmiOQ14LPM=;
+	s=korg; t=1744945864;
+	bh=4k/fAMRO5WFUDKeGDMO06r2d0dZF2h4w54bLGO6bZJs=;
 	h=Date:To:From:Subject:From;
-	b=iJf354dg9jizxGHhKjTQMHbEfW3EsMUN6g6NkVxs5mulLb2dh4Ba4iwJ5YgNAG2lM
-	 RrZjkwf/UTs+imuVTWtlvJjq4cx9EAAW/jo4Zgjkmbr7D+ZVi6zYu7fWQya1sKLr/p
-	 yrW/3DevmKLzbpJzDm4nKZ6NO57TaTL+7uoj+qaE=
-Date: Thu, 17 Apr 2025 20:11:02 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,thomas.lendacky@amd.com,sraithal@amd.com,rppt@kernel.org,rick.p.edgecombe@intel.com,mgorman@techsingularity.net,david@redhat.com,dave.hansen@intel.com,ashish.kalra@amd.com,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=wAhwAiMAPuWshkhgFv8l41Ieu08/JUaUPVV21GUjtshglyMp0atYaahzSzTZz7CR5
+	 Ogc0AJ1wtxarrpDA+86D2rYPqOUWPNvI7/hLhFKnC7UlVvaU1UpIXsoWqMFmI5NLI8
+	 +bnWSSyUxTJsNAJVnCKGjnZ9+0xPltJlKCh4Gl4w=
+Date: Thu, 17 Apr 2025 20:11:03 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,jack@suse.cz,hch@infradead.org,djwong@kernel.org,dan.j.williams@intel.com,brauner@kernel.org,apopple@nvidia.com,alison.schofield@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page.patch removed from -mm tree
-Message-Id: <20250418031102.AD3BDC4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-dax-fix-folio-splitting-issue-by-resetting-old-folio-order-_nr_pages.patch removed from -mm tree
+Message-Id: <20250418031104.8A88EC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,129 +35,160 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: fix deadlock on cpu_hotplug_lock in __accept_page()
+     Subject: fs/dax: fix folio splitting issue by resetting old folio order + _nr_pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page.patch
+     fs-dax-fix-folio-splitting-issue-by-resetting-old-folio-order-_nr_pages.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/page_alloc: fix deadlock on cpu_hotplug_lock in __accept_page()
-Date: Sat, 29 Mar 2025 19:10:29 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: fs/dax: fix folio splitting issue by resetting old folio order + _nr_pages
+Date: Thu, 10 Apr 2025 11:10:20 +0200
 
-When the last page in the zone is accepted, __accept_page() calls
-static_branch_dec().  This function takes cpu_hotplug_lock, which can lead
-to a deadlock if the allocation occurs during CPU bringup path as
-_cpu_up() also takes the lock.
+Alison reports an issue with fsdax when large extends end up using large
+ZONE_DEVICE folios:
 
-To prevent this deadlock, defer static_branch_dec() to a workqueue.
+[  417.796271] BUG: kernel NULL pointer dereference, address: 0000000000000b00
+[  417.796982] #PF: supervisor read access in kernel mode
+[  417.797540] #PF: error_code(0x0000) - not-present page
+[  417.798123] PGD 2a5c5067 P4D 2a5c5067 PUD 2a5c6067 PMD 0
+[  417.798690] Oops: Oops: 0000 [#1] SMP NOPTI
+[  417.799178] CPU: 5 UID: 0 PID: 1515 Comm: mmap Tainted: ...
+[  417.800150] Tainted: [O]=OOT_MODULE
+[  417.800583] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/2015
+[  417.801358] RIP: 0010:__lruvec_stat_mod_folio+0x7e/0x250
+[  417.801948] Code: ...
+[  417.803662] RSP: 0000:ffffc90002be3a08 EFLAGS: 00010206
+[  417.804234] RAX: 0000000000000000 RBX: 0000000000000200 RCX: 0000000000000002
+[  417.804984] RDX: ffffffff815652d7 RSI: 0000000000000000 RDI: ffffffff82a2beae
+[  417.805689] RBP: ffffc90002be3a28 R08: 0000000000000000 R09: 0000000000000000
+[  417.806384] R10: ffffea0007000040 R11: ffff888376ffe000 R12: 0000000000000001
+[  417.807099] R13: 0000000000000012 R14: ffff88807fe4ab40 R15: ffff888029210580
+[  417.807801] FS:  00007f339fa7a740(0000) GS:ffff8881fa9b9000(0000) knlGS:0000000000000000
+[  417.808570] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  417.809193] CR2: 0000000000000b00 CR3: 000000002a4f0004 CR4: 0000000000370ef0
+[  417.809925] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  417.810622] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[  417.811353] Call Trace:
+[  417.811709]  <TASK>
+[  417.812038]  folio_add_file_rmap_ptes+0x143/0x230
+[  417.812566]  insert_page_into_pte_locked+0x1ee/0x3c0
+[  417.813132]  insert_page+0x78/0xf0
+[  417.813558]  vmf_insert_page_mkwrite+0x55/0xa0
+[  417.814088]  dax_fault_iter+0x484/0x7b0
+[  417.814542]  dax_iomap_pte_fault+0x1ca/0x620
+[  417.815055]  dax_iomap_fault+0x39/0x40
+[  417.815499]  __xfs_write_fault+0x139/0x380
+[  417.815995]  ? __handle_mm_fault+0x5e5/0x1a60
+[  417.816483]  xfs_write_fault+0x41/0x50
+[  417.816966]  xfs_filemap_fault+0x3b/0xe0
+[  417.817424]  __do_fault+0x31/0x180
+[  417.817859]  __handle_mm_fault+0xee1/0x1a60
+[  417.818325]  ? debug_smp_processor_id+0x17/0x20
+[  417.818844]  handle_mm_fault+0xe1/0x2b0
+[...]
 
-Call static_branch_dec() only when the workqueue is not yet initialized. 
-Workqueues are initialized before CPU bring up, so this will not conflict
-with the first scenario.
+The issue is that when we split a large ZONE_DEVICE folio to order-0 ones,
+we don't reset the order/_nr_pages.  As folio->_nr_pages overlays
+page[1]->memcg_data, once page[1] is a folio, it suddenly looks like it
+has folio->memcg_data set.  And we never manually initialize
+folio->memcg_data in fsdax code, because we never expect it to be set at
+all.
 
-Link: https://lkml.kernel.org/r/20250329171030.3942298-1-kirill.shutemov@linux.intel.com
-Fixes: 55ad43e8ba0f ("mm: add a helper to accept page")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Srikanth Aithal <sraithal@amd.com>
-Tested-by: Srikanth Aithal <sraithal@amd.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Ashish Kalra <ashish.kalra@amd.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Thomas Lendacky <thomas.lendacky@amd.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+When __lruvec_stat_mod_folio() then stumbles over such a folio, it tries
+to use folio->memcg_data (because it's non-NULL) but it does not actually
+point at a memcg, resulting in the problem.
+
+Alison also observed that these folios sometimes have "locked" set, which
+is rather concerning (folios locked from the beginning ...).  The reason
+is that the order for large folios is stored in page[1]->flags, which
+become the folio->flags of a new small folio.
+
+Let's fix it by adding a folio helper to clear order/_nr_pages for
+splitting purposes.
+
+Maybe we should reinitialize other large folio flags / folio members as
+well when splitting, because they might similarly cause harm once page[1]
+becomes a folio?  At least other flags in PAGE_FLAGS_SECOND should not be
+set for fsdax, so at least page[1]->flags might be as expected with this
+fix.
+
+From a quick glimpse, initializing ->mapping, ->pgmap and ->share should
+re-initialize most things from a previous page[1] used by large folios
+that fsdax cares about.  For example folio->private might not get
+reinitialized, but maybe that's not relevant -- no traces of it's use in
+fsdax code.  Needs a closer look.
+
+Another thing that should be considered in the future is performing
+similar checks as we perform in free_tail_page_prepare()
+-- checking pincount etc.
+-- when freeing a large fsdax folio.
+
+Link: https://lkml.kernel.org/r/20250410091020.119116-1-david@redhat.com
+Fixes: 4996fc547f5b ("mm: let _folio_nr_pages overlay memcg_data in first tail page")
+Fixes: 38607c62b34b ("fs/dax: properly refcount fs dax pages")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Alison Schofield <alison.schofield@intel.com>
+Closes: https://lkml.kernel.org/r/Z_W9Oeg-D9FhImf3@aschofie-mobl2.lan
+Tested-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Tested-by: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +++
- mm/internal.h          |    1 +
- mm/mm_init.c           |    1 +
- mm/page_alloc.c        |   28 ++++++++++++++++++++++++++--
- 4 files changed, 31 insertions(+), 2 deletions(-)
+ fs/dax.c           |    1 +
+ include/linux/mm.h |   17 +++++++++++++++++
+ 2 files changed, 18 insertions(+)
 
---- a/include/linux/mmzone.h~mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page
-+++ a/include/linux/mmzone.h
-@@ -967,6 +967,9 @@ struct zone {
- #ifdef CONFIG_UNACCEPTED_MEMORY
- 	/* Pages to be accepted. All pages on the list are MAX_PAGE_ORDER */
- 	struct list_head	unaccepted_pages;
-+
-+	/* To be called once the last page in the zone is accepted */
-+	struct work_struct	unaccepted_cleanup;
- #endif
+--- a/fs/dax.c~fs-dax-fix-folio-splitting-issue-by-resetting-old-folio-order-_nr_pages
++++ a/fs/dax.c
+@@ -396,6 +396,7 @@ static inline unsigned long dax_folio_pu
+ 	order = folio_order(folio);
+ 	if (!order)
+ 		return 0;
++	folio_reset_order(folio);
  
- 	/* zone flags, see below */
---- a/mm/internal.h~mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page
-+++ a/mm/internal.h
-@@ -1595,6 +1595,7 @@ unsigned long move_page_tables(struct pa
- 
- #ifdef CONFIG_UNACCEPTED_MEMORY
- void accept_page(struct page *page);
-+void unaccepted_cleanup_work(struct work_struct *work);
- #else /* CONFIG_UNACCEPTED_MEMORY */
- static inline void accept_page(struct page *page)
- {
---- a/mm/mm_init.c~mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page
-+++ a/mm/mm_init.c
-@@ -1441,6 +1441,7 @@ static void __meminit zone_init_free_lis
- 
- #ifdef CONFIG_UNACCEPTED_MEMORY
- 	INIT_LIST_HEAD(&zone->unaccepted_pages);
-+	INIT_WORK(&zone->unaccepted_cleanup, unaccepted_cleanup_work);
- #endif
+ 	for (i = 0; i < (1UL << order); i++) {
+ 		struct dev_pagemap *pgmap = page_pgmap(&folio->page);
+--- a/include/linux/mm.h~fs-dax-fix-folio-splitting-issue-by-resetting-old-folio-order-_nr_pages
++++ a/include/linux/mm.h
+@@ -1218,6 +1218,23 @@ static inline unsigned int folio_order(c
+ 	return folio_large_order(folio);
  }
  
---- a/mm/page_alloc.c~mm-page_alloc-fix-deadlock-on-cpu_hotplug_lock-in-__accept_page
-+++ a/mm/page_alloc.c
-@@ -7191,6 +7191,11 @@ static DEFINE_STATIC_KEY_FALSE(zones_wit
- 
- static bool lazy_accept = true;
- 
-+void unaccepted_cleanup_work(struct work_struct *work)
++/**
++ * folio_reset_order - Reset the folio order and derived _nr_pages
++ * @folio: The folio.
++ *
++ * Reset the order and derived _nr_pages to 0. Must only be used in the
++ * process of splitting large folios.
++ */
++static inline void folio_reset_order(struct folio *folio)
 +{
-+	static_branch_dec(&zones_with_unaccepted_pages);
++	if (WARN_ON_ONCE(!folio_test_large(folio)))
++		return;
++	folio->_flags_1 &= ~0xffUL;
++#ifdef NR_PAGES_IN_LARGE_FOLIO
++	folio->_nr_pages = 0;
++#endif
 +}
 +
- static int __init accept_memory_parse(char *p)
- {
- 	if (!strcmp(p, "lazy")) {
-@@ -7229,8 +7234,27 @@ static void __accept_page(struct zone *z
+ #include <linux/huge_mm.h>
  
- 	__free_pages_ok(page, MAX_PAGE_ORDER, FPI_TO_TAIL);
- 
--	if (last)
--		static_branch_dec(&zones_with_unaccepted_pages);
-+	if (last) {
-+		/*
-+		 * There are two corner cases:
-+		 *
-+		 * - If allocation occurs during the CPU bring up,
-+		 *   static_branch_dec() cannot be used directly as
-+		 *   it causes a deadlock on cpu_hotplug_lock.
-+		 *
-+		 *   Instead, use schedule_work() to prevent deadlock.
-+		 *
-+		 * - If allocation occurs before workqueues are initialized,
-+		 *   static_branch_dec() should be called directly.
-+		 *
-+		 *   Workqueues are initialized before CPU bring up, so this
-+		 *   will not conflict with the first scenario.
-+		 */
-+		if (system_wq)
-+			schedule_work(&zone->unaccepted_cleanup);
-+		else
-+			unaccepted_cleanup_work(&zone->unaccepted_cleanup);
-+	}
- }
- 
- void accept_page(struct page *page)
+ /*
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from david@redhat.com are
 
+kernel-events-uprobes-pass-vma-instead-of-mm-to-remove_breakpoint.patch
+kernel-events-uprobes-pass-vma-to-set_swbp-set_orig_insn-and-uprobe_write_opcode.patch
+kernel-events-uprobes-uprobe_write_opcode-rewrite.patch
 
