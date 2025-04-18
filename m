@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00413158545
-	for <mm-commits@vger.kernel.org>; Fri, 18 Apr 2025 03:11:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31B48158545
+	for <mm-commits@vger.kernel.org>; Fri, 18 Apr 2025 03:11:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744945883; cv=none; b=s2b47Abk+DXhFnUtRGouTtXz92CPz3TeBY6jpH0YPebmBe/fRMHvlrgEd4pbrVfgp9YrvRpqa37IyE+2P5YCV+Vy0Tr5AigxIYXGmoFWGerWt6OLxn4R9CIvrL3FouK+rBtEsmamfRuPxmahbZHPqT1PXYOxm6BUgZBnOxEB1uk=
+	t=1744945884; cv=none; b=KbwmD1KmC7LK3kixomFAdBB3kSaqPE8sQfpmC3fgCHiWso2HJcUPWYRTM8Qtozty0qYD14X8FvH5h0tmO/8fOSBj7DldCEchPjmuuPzR6vZGZtNQmHCZYUOQnKMZHnRpxu27flCAznXokGUB1RVPrln7pspSsKtRNMXkEtazUIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744945883; c=relaxed/simple;
-	bh=05QoVnSG/09FUF802ptszAJdiQLE9vkT2GqhHRR8q6E=;
-	h=Date:To:From:Subject:Message-Id; b=sSPKmEkZ/tOlh2Yjs+scCkAc/jl7U14Oi8vFBUbIqfRPBohQ06tYKVG8VD6wRFPupC919C63T/1JIuRE8bu3Vca9MAl5MvXRHXWjcdoKcuTlmsugW+hWBKWrF3YveHmJuB+sRf8V8alZD6u6ote+NIOKf2uwh9GjY7Mcwp6XF7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sz5et5VQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744945884; c=relaxed/simple;
+	bh=8g9AWLPOi+HuJdhGfgFYLKrMVtsDKMfDVVbIFP7rrg4=;
+	h=Date:To:From:Subject:Message-Id; b=iMuOEXZkgeDIeze09vpUM0s/7mtpfsWLrIk1bEQkYyTF0u6LtZp7UUy3DS+0aUn7Sgdm4cUp2w5qbv07DKAzpg1+/orrEbeaHqhoM86M+lSU80J9uNFlx/f8JJkdC/8mYrxhrih2pbH6hn/uca189OB0Fm+dQI+4j6KgBG41NWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cyFVJO7Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sz5et5VQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9DF3C4CEE4;
-	Fri, 18 Apr 2025 03:11:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cyFVJO7Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0727EC4CEE4;
+	Fri, 18 Apr 2025 03:11:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1744945882;
-	bh=05QoVnSG/09FUF802ptszAJdiQLE9vkT2GqhHRR8q6E=;
+	s=korg; t=1744945884;
+	bh=8g9AWLPOi+HuJdhGfgFYLKrMVtsDKMfDVVbIFP7rrg4=;
 	h=Date:To:From:Subject:From;
-	b=Sz5et5VQuduBB4OISZP98TPZ+D5+7Dj6ErvXRVYxKlus5nExgqszSkRzh80yL09x8
-	 PfFe0znlwSZEV33s3UEIxIiUQt1wqeFY39xpxVzG901LxNFmTVK/9UAZQGXo2vdc3y
-	 y53qviXXQJkBwyGHm2iTUEXjet4JGfdtnGKKBRRA=
-Date: Thu, 17 Apr 2025 20:11:22 -0700
+	b=cyFVJO7QuD6gb7L8WoX+5O6LHH7XR/qZ7t/lW1A9Ya72g3jmpKDuhw2wnFCtQzmZU
+	 IofNX4ZI7d9jTBHqTT6I6JX5VJaCj10NN611zRQ9jpYS2O1Kl3Zy45Ox3vcHCskV/V
+	 7sZ7hdGAktq6V87QLDhHiOBGKLcfu+QJkJn6PMoI=
+Date: Thu, 17 Apr 2025 20:11:23 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd.patch removed from -mm tree
-Message-Id: <20250418031122.C9DF3C4CEE4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode.patch removed from -mm tree
+Message-Id: <20250418031124.0727EC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: restore high-cpu watermark safety in kswapd
+     Subject: mm: vmscan: fix kswapd exit condition in defrag_mode
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd.patch
+     mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: restore high-cpu watermark safety in kswapd
-Date: Wed, 16 Apr 2025 09:45:39 -0400
+Subject: mm: vmscan: fix kswapd exit condition in defrag_mode
+Date: Wed, 16 Apr 2025 09:45:40 -0400
 
-Vlastimil points out that commit a211c6550efc ("mm: page_alloc:
-defrag_mode kswapd/kcompactd watermarks") switched kswapd from
-zone_watermark_ok_safe() to the standard, percpu-cached version of reading
-free pages, thus dropping the watermark safety precautions for systems
-with high CPU counts (e.g.  >212 cpus on 64G).  Restore them.
+Vlastimil points out an issue with kswapd in defrag_mode not waking up
+kcompactd reliably.
 
-Since zone_watermark_ok_safe() is no longer the right interface, and this
-was the last caller of the function anyway, open-code the
-zone_page_state_snapshot() conditional and delete the function.
+Background: When kswapd is woken for any higher-order request, it
+initially checks those high-order watermarks to decide if work is
+necesary.  However, it cannot (efficiently) meet the contiguity goal of
+such a request by itself.  So once it has reclaimed a compaction gap, it
+adjusts the request down to check for free order-0 pages, then wakes
+kcompactd to coalesce them into larger blocks.
 
-Link: https://lkml.kernel.org/r/20250416135142.778933-2-hannes@cmpxchg.org
+In defrag_mode, the initial watermark check needs to be analogously
+against free pageblocks.  However, once kswapd drops the high-order to
+hand off contiguity work, it also needs to fall back to base page
+watermarks - otherwise it'll keep reclaiming until blocks are freed.
+
+While it appears kcompactd is woken up frequently enough to do most of the
+compaction work, kswapd ends up overreclaiming by quite a bit:
+
+                                                     DEFRAGMODE     DEFRAGMODE-thispatch
+Hugealloc Time mean                       79381.34 (    +0.00%)    88126.12 (   +11.02%)
+Hugealloc Time stddev                     85852.16 (    +0.00%)   135366.75 (   +57.67%)
+Kbuild Real time                            249.35 (    +0.00%)      226.71 (    -9.04%)
+Kbuild User time                           1249.16 (    +0.00%)     1249.37 (    +0.02%)
+Kbuild System time                          171.76 (    +0.00%)      166.93 (    -2.79%)
+THP fault alloc                           51666.87 (    +0.00%)    52685.60 (    +1.97%)
+THP fault fallback                        16970.00 (    +0.00%)    15951.87 (    -6.00%)
+Direct compact fail                         166.53 (    +0.00%)      178.93 (    +7.40%)
+Direct compact success                       17.13 (    +0.00%)        4.13 (   -71.69%)
+Compact daemon scanned migrate          3095413.33 (    +0.00%)  9231239.53 (  +198.22%)
+Compact daemon scanned free             2155966.53 (    +0.00%)  7053692.87 (  +227.17%)
+Compact direct scanned migrate           265642.47 (    +0.00%)    68388.33 (   -74.26%)
+Compact direct scanned free              130252.60 (    +0.00%)    55634.87 (   -57.29%)
+Compact total migrate scanned           3361055.80 (    +0.00%)  9299627.87 (  +176.69%)
+Compact total free scanned              2286219.13 (    +0.00%)  7109327.73 (  +210.96%)
+Alloc stall                                1890.80 (    +0.00%)     6297.60 (  +232.94%)
+Pages kswapd scanned                    9043558.80 (    +0.00%)  5952576.73 (   -34.18%)
+Pages kswapd reclaimed                  1891708.67 (    +0.00%)  1030645.00 (   -45.52%)
+Pages direct scanned                    1017090.60 (    +0.00%)  2688047.60 (  +164.29%)
+Pages direct reclaimed                    92682.60 (    +0.00%)   309770.53 (  +234.22%)
+Pages total scanned                    10060649.40 (    +0.00%)  8640624.33 (   -14.11%)
+Pages total reclaimed                   1984391.27 (    +0.00%)  1340415.53 (   -32.45%)
+Swap out                                 884585.73 (    +0.00%)   417781.93 (   -52.77%)
+Swap in                                  287106.27 (    +0.00%)    95589.73 (   -66.71%)
+File refaults                            551697.60 (    +0.00%)   426474.80 (   -22.70%)
+
+Link: https://lkml.kernel.org/r/20250416135142.778933-3-hannes@cmpxchg.org
 Fixes: a211c6550efc ("mm: page_alloc: defrag_mode kswapd/kcompactd watermarks")
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reported-by: Vlastimil Babka <vbabka@suse.cz>
@@ -66,81 +101,27 @@ Cc: Brendan Jackman <jackmanb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 --
- mm/page_alloc.c        |   12 ------------
- mm/vmscan.c            |   21 +++++++++++++++++++--
- 3 files changed, 19 insertions(+), 16 deletions(-)
+ mm/vmscan.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd
-+++ a/include/linux/mmzone.h
-@@ -1502,8 +1502,6 @@ bool __zone_watermark_ok(struct zone *z,
- bool zone_watermark_ok(struct zone *z, unsigned int order,
- 		unsigned long mark, int highest_zoneidx,
- 		unsigned int alloc_flags);
--bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
--		unsigned long mark, int highest_zoneidx);
- /*
-  * Memory initialization context, use to differentiate memory added by
-  * the platform statically or via memory hotplug interface.
---- a/mm/page_alloc.c~mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd
-+++ a/mm/page_alloc.c
-@@ -3470,18 +3470,6 @@ static inline bool zone_watermark_fast(s
- 	return false;
- }
- 
--bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
--			unsigned long mark, int highest_zoneidx)
--{
--	long free_pages = zone_page_state(z, NR_FREE_PAGES);
--
--	if (z->percpu_drift_mark && free_pages < z->percpu_drift_mark)
--		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
--
--	return __zone_watermark_ok(z, order, mark, highest_zoneidx, 0,
--								free_pages);
--}
--
- #ifdef CONFIG_NUMA
- int __read_mostly node_reclaim_distance = RECLAIM_DISTANCE;
- 
---- a/mm/vmscan.c~mm-vmscan-restore-high-cpu-watermark-safety-in-kswapd
+--- a/mm/vmscan.c~mm-vmscan-fix-kswapd-exit-condition-in-defrag_mode
 +++ a/mm/vmscan.c
-@@ -6736,6 +6736,7 @@ static bool pgdat_balanced(pg_data_t *pg
- 	 * meet watermarks.
- 	 */
- 	for_each_managed_zone_pgdat(zone, pgdat, i, highest_zoneidx) {
-+		enum zone_stat_item item;
- 		unsigned long free_pages;
- 
- 		if (sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
-@@ -6748,9 +6749,25 @@ static bool pgdat_balanced(pg_data_t *pg
+@@ -6747,8 +6747,14 @@ static bool pgdat_balanced(pg_data_t *pg
+ 		/*
+ 		 * In defrag_mode, watermarks must be met in whole
  		 * blocks to avoid polluting allocator fallbacks.
- 		 */
- 		if (defrag_mode)
--			free_pages = zone_page_state(zone, NR_FREE_PAGES_BLOCKS);
-+			item = NR_FREE_PAGES_BLOCKS;
- 		else
--			free_pages = zone_page_state(zone, NR_FREE_PAGES);
-+			item = NR_FREE_PAGES;
-+
-+		/*
-+		 * When there is a high number of CPUs in the system,
-+		 * the cumulative error from the vmstat per-cpu cache
-+		 * can blur the line between the watermarks. In that
-+		 * case, be safe and get an accurate snapshot.
 +		 *
-+		 * TODO: NR_FREE_PAGES_BLOCKS moves in steps of
-+		 * pageblock_nr_pages, while the vmstat pcp threshold
-+		 * is limited to 125. On many configurations that
-+		 * counter won't actually be per-cpu cached. But keep
-+		 * things simple for now; revisit when somebody cares.
-+		 */
-+		free_pages = zone_page_state(zone, item);
-+		if (zone->percpu_drift_mark && free_pages < zone->percpu_drift_mark)
-+			free_pages = zone_page_state_snapshot(zone, item);
- 
- 		if (__zone_watermark_ok(zone, order, mark, highest_zoneidx,
- 					0, free_pages))
++		 * However, kswapd usually cannot accomplish this on
++		 * its own and needs kcompactd support. Once it's
++		 * reclaimed a compaction gap, and kswapd_shrink_node
++		 * has dropped order, simply ensure there are enough
++		 * base pages for compaction, wake kcompactd & sleep.
+ 		 */
+-		if (defrag_mode)
++		if (defrag_mode && order)
+ 			item = NR_FREE_PAGES_BLOCKS;
+ 		else
+ 			item = NR_FREE_PAGES;
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
