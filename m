@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A53821DDA1B
-	for <mm-commits@vger.kernel.org>; Sat, 19 Apr 2025 21:54:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225AE1E5B93
+	for <mm-commits@vger.kernel.org>; Sat, 19 Apr 2025 21:54:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745099694; cv=none; b=qxUINSNaDifaEOBRHFJxvB9ZZEifH9y0+ABNExbU7xENZkwCHBy52usg5W38eqj3kvpd8NqCKYy1pl0RXse+ZcAUH7KP3GDJ/a6h25ecxwJUO/tUYn3Q6ikndjkmSMpy1IlOOvo78iKcjyQ8v4Ur7JmOnZjANH9QaGrjkl2iXRk=
+	t=1745099697; cv=none; b=sTxRSLGhMXpo8K/q8VnVTei+oQSmf7K3/45bLNabAhLjCMcSi8q+ul2mYJLkiNxe2VS7n1a+7m+bXqJjmTLFDVSzNmbwM6VOH0wokxxVx2AnXiZTlsx7jfL8tn2eOdfRaE1aOSb3pckYIyrKOKT54XLTbwkefFEfmWwj2KHv4cs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745099694; c=relaxed/simple;
-	bh=p3fC4ak8cRBuTBF8+w93e2QRGoae5Sx4Rh+lD21wKzo=;
-	h=Date:To:From:Subject:Message-Id; b=gyIsam+Nly5DKdEmMr12gvfen/mljbgUfWb8UrTDb1p2hl1dVOL9LI5yAufdm5kfEKEeRW/XtnTuHNQJXUa+9r9qxBOjpw7PPxpdX+iK4GYpj/XukwtHuyNE1VWAR/ziY07bWtqyuCv+/XLKECOzvY13lFcg3wpXSymc/kfJx0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yx/kTT1W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745099697; c=relaxed/simple;
+	bh=yGFkgfEz1zOXEd7mZzMb294evDKe0yIsT4fXGfFEJ18=;
+	h=Date:To:From:Subject:Message-Id; b=QASwXScSmnWSpxSa31Ne8e4nGZ+AdKxF8PdESgCN7rInWjv7j84F7tFjNU4+Tb0VUymD4+aWH3nHnx3sTTkWXN3efgBmbICpf4ZFl/BCWm26WpCnTtQBxV/t2wAcpb0eugkU1IyYHLKOgjAnYTIcmJver8Mw54Zh2TOnlEAtmwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s0REhZ2p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yx/kTT1W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DEFDC4CEE7;
-	Sat, 19 Apr 2025 21:54:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s0REhZ2p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D31C4CEE7;
+	Sat, 19 Apr 2025 21:54:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745099694;
-	bh=p3fC4ak8cRBuTBF8+w93e2QRGoae5Sx4Rh+lD21wKzo=;
+	s=korg; t=1745099696;
+	bh=yGFkgfEz1zOXEd7mZzMb294evDKe0yIsT4fXGfFEJ18=;
 	h=Date:To:From:Subject:From;
-	b=Yx/kTT1WcLlHDelmBhO35ZXOzWJ7G8u4C0HzfMgRqe/Fo3AGvh3MY3mZDr9dbIgWf
-	 8WyyYCOKphO0XZCDYJmTMblJ70CzCNVCY09xANwLtNOd55rvOtOU9mjAg/hZm4v3J7
-	 Oe7Susxu13L7MzYE4FNQYkqp2PPK+hIgByigeVPc=
-Date: Sat, 19 Apr 2025 14:54:53 -0700
+	b=s0REhZ2p0Dcz+z8rgBSn6oOg/VBMyN64vfVr4Y1lQiT56N5+KTssMKPmnJbE85VQO
+	 4EY2jv/1PbPhtEobSc4J36yvLauJsPZaQI0F18fBQhDF5zKsDIAlKUOEAAEF6yiroL
+	 TdGSOcaPw3wqE6KYQuV7VZ5H67FjRt2AkrDu8Lw4=
+Date: Sat, 19 Apr 2025 14:54:56 -0700
 To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,alex.bou9@gmail.com,linux@treblig.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rapidio-remove-some-dead-defines.patch added to mm-nonmm-unstable branch
-Message-Id: <20250419215454.4DEFDC4CEE7@smtp.kernel.org>
+Subject: + rapidio-remove-unused-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20250419215456.84D31C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rapidio: remove some dead defines
+     Subject: rapidio: remove unused functions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-remove-some-dead-defines.patch
+     rapidio-remove-unused-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-remove-some-dead-defines.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-remove-unused-functions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,92 +59,190 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: rapidio: remove some dead defines
-Date: Sat, 19 Apr 2025 21:30:11 +0100
+Subject: rapidio: remove unused functions
+Date: Sat, 19 Apr 2025 21:30:12 +0100
 
-Patch series "rapidio deadcoding".
+rio_request_dma() and rio_dma_prep_slave_sg() were added in 2012 by commit
+e42d98ebe7d7 ("rapidio: add DMA engine support for RIO data transfers")
+but never used.
 
-A couple of rapidio deadcoding patches.  The first of these is a repost
-and was originally posted almost a year ago
-https://lore.kernel.org/all/20240528002515.211366-1-linux@treblig.org/ but
-got no answer.  Other than being rebased and a typo fixed, it's not
-changed.
+rio_find_mport() last use was removed in 2013 by commit 9edbc30b434f
+("rapidio: update enumerator registration mechanism")
 
-
-This patch (of 2):
-
-'mport_dma_buf', 'rio_mport_dma_map' and 'MPORT_MAX_DMA_BUFS' were added
-in the original commit e8de370188d0 ("rapidio: add mport char device
-driver") but never used.
-
-'rio_cm_work' was unused since the original commit b6e8d4aa1110 ("rapidio:
-add RapidIO channelized messaging driver") but never used.
+rio_unregister_scan() was added in 2013 by commit a11650e11093 ("rapidio:
+make enumeration/discovery configurable") but never used.
 
 Remove them.
 
-Link: https://lkml.kernel.org/r/20250419203012.429787-1-linux@treblig.org
-Link: https://lkml.kernel.org/r/20250419203012.429787-2-linux@treblig.org
+Link: https://lkml.kernel.org/r/20250419203012.429787-3-linux@treblig.org
 Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
 Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   20 --------------------
- drivers/rapidio/rio_cm.c                 |    6 ------
- 2 files changed, 26 deletions(-)
+ drivers/rapidio/rio.c   |  103 --------------------------------------
+ drivers/rapidio/rio.h   |    2 
+ include/linux/rio_drv.h |    5 -
+ 3 files changed, 110 deletions(-)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-remove-some-dead-defines
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -98,18 +98,6 @@ MODULE_PARM_DESC(dbg_level, "Debugging o
- #endif
+--- a/drivers/rapidio/rio.c~rapidio-remove-unused-functions
++++ a/drivers/rapidio/rio.c
+@@ -1775,19 +1775,6 @@ struct dma_chan *rio_request_mport_dma(s
+ EXPORT_SYMBOL_GPL(rio_request_mport_dma);
  
- /*
-- * An internal DMA coherent buffer
+ /**
+- * rio_request_dma - request RapidIO capable DMA channel that supports
+- *   specified target RapidIO device.
+- * @rdev: RIO device associated with DMA transfer
+- *
+- * Returns pointer to allocated DMA channel or NULL if failed.
 - */
--struct mport_dma_buf {
--	void		*ib_base;
--	dma_addr_t	ib_phys;
--	u32		ib_size;
--	u64		ib_rio_base;
--	bool		ib_map;
--	struct file	*filp;
--};
+-struct dma_chan *rio_request_dma(struct rio_dev *rdev)
+-{
+-	return rio_request_mport_dma(rdev->net->hport);
+-}
+-EXPORT_SYMBOL_GPL(rio_request_dma);
 -
--/*
-  * Internal memory mapping structure
+-/**
+  * rio_release_dma - release specified DMA channel
+  * @dchan: DMA channel to release
   */
- enum rio_mport_map_dir {
-@@ -131,14 +119,6 @@ struct rio_mport_mapping {
- 	struct file *filp;
- };
+@@ -1834,57 +1821,9 @@ struct dma_async_tx_descriptor *rio_dma_
+ }
+ EXPORT_SYMBOL_GPL(rio_dma_prep_xfer);
  
--struct rio_mport_dma_map {
--	int valid;
--	u64 length;
--	void *vaddr;
--	dma_addr_t paddr;
--};
+-/**
+- * rio_dma_prep_slave_sg - RapidIO specific wrapper
+- *   for device_prep_slave_sg callback defined by DMAENGINE.
+- * @rdev: RIO device control structure
+- * @dchan: DMA channel to configure
+- * @data: RIO specific data descriptor
+- * @direction: DMA data transfer direction (TO or FROM the device)
+- * @flags: dmaengine defined flags
+- *
+- * Initializes RapidIO capable DMA channel for the specified data transfer.
+- * Uses DMA channel private extension to pass information related to remote
+- * target RIO device.
+- *
+- * Returns: pointer to DMA transaction descriptor if successful,
+- *          error-valued pointer or NULL if failed.
+- */
+-struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(struct rio_dev *rdev,
+-	struct dma_chan *dchan, struct rio_dma_data *data,
+-	enum dma_transfer_direction direction, unsigned long flags)
+-{
+-	return rio_dma_prep_xfer(dchan,	rdev->destid, data, direction, flags);
+-}
+-EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg);
 -
--#define MPORT_MAX_DMA_BUFS	16
- #define MPORT_EVENT_DEPTH	10
+ #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
  
- /*
---- a/drivers/rapidio/rio_cm.c~rapidio-remove-some-dead-defines
-+++ a/drivers/rapidio/rio_cm.c
-@@ -198,12 +198,6 @@ struct cm_peer {
- 	struct rio_dev *rdev;
- };
- 
--struct rio_cm_work {
--	struct work_struct work;
--	struct cm_dev *cm;
--	void *data;
--};
+ /**
+- * rio_find_mport - find RIO mport by its ID
+- * @mport_id: number (ID) of mport device
+- *
+- * Given a RIO mport number, the desired mport is located
+- * in the global list of mports. If the mport is found, a pointer to its
+- * data structure is returned.  If no mport is found, %NULL is returned.
+- */
+-struct rio_mport *rio_find_mport(int mport_id)
+-{
+-	struct rio_mport *port;
 -
- struct conn_req {
- 	struct list_head node;
- 	u32 destid;	/* requester destID */
+-	mutex_lock(&rio_mport_list_lock);
+-	list_for_each_entry(port, &rio_mports, node) {
+-		if (port->id == mport_id)
+-			goto found;
+-	}
+-	port = NULL;
+-found:
+-	mutex_unlock(&rio_mport_list_lock);
+-
+-	return port;
+-}
+-
+-/**
+  * rio_register_scan - enumeration/discovery method registration interface
+  * @mport_id: mport device ID for which fabric scan routine has to be set
+  *            (RIO_MPORT_ANY = set for all available mports)
+@@ -1962,48 +1901,6 @@ err_out:
+ EXPORT_SYMBOL_GPL(rio_register_scan);
+ 
+ /**
+- * rio_unregister_scan - removes enumeration/discovery method from mport
+- * @mport_id: mport device ID for which fabric scan routine has to be
+- *            unregistered (RIO_MPORT_ANY = apply to all mports that use
+- *            the specified scan_ops)
+- * @scan_ops: enumeration/discovery operations structure
+- *
+- * Removes enumeration or discovery method assigned to the specified mport
+- * device. If RIO_MPORT_ANY is specified, removes the specified operations from
+- * all mports that have them attached.
+- */
+-int rio_unregister_scan(int mport_id, struct rio_scan *scan_ops)
+-{
+-	struct rio_mport *port;
+-	struct rio_scan_node *scan;
+-
+-	pr_debug("RIO: %s for mport_id=%d\n", __func__, mport_id);
+-
+-	if (mport_id != RIO_MPORT_ANY && mport_id >= RIO_MAX_MPORTS)
+-		return -EINVAL;
+-
+-	mutex_lock(&rio_mport_list_lock);
+-
+-	list_for_each_entry(port, &rio_mports, node)
+-		if (port->id == mport_id ||
+-		    (mport_id == RIO_MPORT_ANY && port->nscan == scan_ops))
+-			port->nscan = NULL;
+-
+-	list_for_each_entry(scan, &rio_scans, node) {
+-		if (scan->mport_id == mport_id) {
+-			list_del(&scan->node);
+-			kfree(scan);
+-			break;
+-		}
+-	}
+-
+-	mutex_unlock(&rio_mport_list_lock);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(rio_unregister_scan);
+-
+-/**
+  * rio_mport_scan - execute enumeration/discovery on the specified mport
+  * @mport_id: number (ID) of mport device
+  */
+--- a/drivers/rapidio/rio.h~rapidio-remove-unused-functions
++++ a/drivers/rapidio/rio.h
+@@ -41,9 +41,7 @@ extern void rio_del_device(struct rio_de
+ extern int rio_enable_rx_tx_port(struct rio_mport *port, int local, u16 destid,
+ 				 u8 hopcount, u8 port_num);
+ extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
+-extern int rio_unregister_scan(int mport_id, struct rio_scan *scan_ops);
+ extern void rio_attach_device(struct rio_dev *rdev);
+-extern struct rio_mport *rio_find_mport(int mport_id);
+ extern int rio_mport_scan(int mport_id);
+ 
+ /* Structures internal to the RIO core code */
+--- a/include/linux/rio_drv.h~rapidio-remove-unused-functions
++++ a/include/linux/rio_drv.h
+@@ -391,13 +391,8 @@ struct rio_dev *rio_dev_get(struct rio_d
+ void rio_dev_put(struct rio_dev *);
+ 
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
+-extern struct dma_chan *rio_request_dma(struct rio_dev *rdev);
+ extern struct dma_chan *rio_request_mport_dma(struct rio_mport *mport);
+ extern void rio_release_dma(struct dma_chan *dchan);
+-extern struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(
+-		struct rio_dev *rdev, struct dma_chan *dchan,
+-		struct rio_dma_data *data,
+-		enum dma_transfer_direction direction, unsigned long flags);
+ extern struct dma_async_tx_descriptor *rio_dma_prep_xfer(
+ 		struct dma_chan *dchan,	u16 destid,
+ 		struct rio_dma_data *data,
 _
 
 Patches currently in -mm which might be from linux@treblig.org are
