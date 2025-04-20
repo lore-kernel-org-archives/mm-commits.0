@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4570F158218
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 21:24:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E23F5158218
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 21:25:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745184300; cv=none; b=gauD9TGE/vlw/PgU3Li8aAz5M1t3yvOb3SxM5mtAAT35hODRQ3Eo0P24ZRW3UlIpXbZHxPvZJV0+7t5jjTuqb/FNtrIA9Pc//muMUFtuWn5SWvhHpYJ0SqdYGxh4ln2uYQNvU/n9NFCqvPbbgY5y9ul7MtFXOyrYknIkRopdXUM=
+	t=1745184302; cv=none; b=b7CoSafNqMbof9m6IzGMaCTHsVulfhcJnW7swjFEQ29feTrKXaP7yP0ATWwb/Wi6HB8ZtMxK5YvaHtd96GJ7p8jpZKmvkYAhQ3RjQx1Z5m0AHSt+818WP84M52SSr8TYKOMD/GJVKzXhM1t+Y1PJhv0gSGiGQdmVwkZ1yLTPg4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745184300; c=relaxed/simple;
-	bh=U9NtzYJKRx2NwlnUQ49GJlenczrY3URDWQvXUm1gwD8=;
-	h=Date:To:From:Subject:Message-Id; b=HbzWfSEt9SzifFhcP0y4LDjclS83YhI1Bo4jiGUqAqp9I55zVxrFTgHKoW4/03jIxJLGmXhMspwVlNw5FbU7ICJSiQvJ7UivZ1d2jykZbyiyDydNGwkVQY68nwVIvfhY5rs9Ge9VqfFawMknEd1ntcUFoJJ7VYVuGk0Jia+AZLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W1/hrNLR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745184302; c=relaxed/simple;
+	bh=/g3A7QzBXGHkuXxKNE8hKsQoGkVVEnxVljCAyTXBXok=;
+	h=Date:To:From:Subject:Message-Id; b=Su5cH0Z4dCPiQMFxCYClN5/WX9XbjYv/U8Ulqokh7sxa4rWpAYlxVTuObDKBreFFEy7zGz2+zdNnkFlqIyeq/irFA4yk6ysV4mMkCgcsak+a7jkiJ9sNuKkhyTuEryLKktehlAcEY2cbxDzs63LcO0NfkvLPF9W8CEkklYCIVKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cn8mnr99; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W1/hrNLR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8B2DC4CEE2;
-	Sun, 20 Apr 2025 21:24:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cn8mnr99"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A165FC4CEE2;
+	Sun, 20 Apr 2025 21:25:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745184299;
-	bh=U9NtzYJKRx2NwlnUQ49GJlenczrY3URDWQvXUm1gwD8=;
+	s=korg; t=1745184301;
+	bh=/g3A7QzBXGHkuXxKNE8hKsQoGkVVEnxVljCAyTXBXok=;
 	h=Date:To:From:Subject:From;
-	b=W1/hrNLRxGQ9KUDuv/nZJWn9PrfkpekmddwOmeZLkyB98yEu6302kSTPP8otj9Imw
-	 P2fu+BSzoAY9GbYGlvbUB03EN1s5qKYrBBc3QuISntRbj5iqorDiXg9RB1Nduvkjnd
-	 qYLj2is1RTSbg/JS1e7Rt9lZqEkpiLZb6gC2rMqQ=
-Date: Sun, 20 Apr 2025 14:24:59 -0700
+	b=cn8mnr99vqc3ZrIlxb8U6FBDJdOaVzpIZgFxmLXlDNwJZEweZogrjmhS4AaV8vW5q
+	 83vOCWuJsufiAdjSKa7E+QEBp+38qbOiWHAPnnDAWFRnDPiacdO1jbVXbC4c7C8x1P
+	 V0C7Y3+3bpJWz8rgBa0jIkW9I8pTgoVXl9cqOp4s=
+Date: Sun, 20 Apr 2025 14:25:01 -0700
 To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,shivankg@amd.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit.patch added to mm-new branch
-Message-Id: <20250420212459.A8B2DC4CEE2@smtp.kernel.org>
+Subject: + mm-vmalloc-optimize-function-vm_unmap_aliases.patch added to mm-new branch
+Message-Id: <20250420212501.A165FC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc.c: optimize code in decay_va_pool_node() a little bit
+     Subject: mm/vmalloc: optimize function vm_unmap_aliases()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit.patch
+     mm-vmalloc-optimize-function-vm_unmap_aliases.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-optimize-function-vm_unmap_aliases.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,83 +59,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/vmalloc.c: optimize code in decay_va_pool_node() a little bit
-Date: Sat, 19 Apr 2025 06:36:51 +0800
+Subject: mm/vmalloc: optimize function vm_unmap_aliases()
+Date: Sat, 19 Apr 2025 06:36:52 +0800
 
-When purge lazily freed vmap areas, VA stored in vn->pool[] will also be
-taken away into free vmap tree partially or completely accordingly, that
-is done in decay_va_pool_node().  When doing that, for each pool of node,
-the whole list is detached from the pool for handling.  At this time, that
-pool is empty.  It's not necessary to update the pool size each time when
-one VA is removed and addded into free vmap tree.
+Remove unneeded local variables and replace them with values.
 
-Here change code to update the pool size when attaching the pool back.
-
-Link: https://lkml.kernel.org/r/20250418223653.243436-4-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250418223653.243436-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ mm/vmalloc.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit
+--- a/mm/vmalloc.c~mm-vmalloc-optimize-function-vm_unmap_aliases
 +++ a/mm/vmalloc.c
-@@ -2149,7 +2149,7 @@ decay_va_pool_node(struct vmap_node *vn,
- 	LIST_HEAD(decay_list);
- 	struct rb_root decay_root = RB_ROOT;
- 	struct vmap_area *va, *nva;
--	unsigned long n_decay;
-+	unsigned long n_decay, pool_len;
- 	int i;
- 
- 	for (i = 0; i < MAX_VA_SIZE_PAGES; i++) {
-@@ -2163,22 +2163,20 @@ decay_va_pool_node(struct vmap_node *vn,
- 		list_replace_init(&vn->pool[i].head, &tmp_list);
- 		spin_unlock(&vn->pool_lock);
- 
--		if (full_decay)
--			WRITE_ONCE(vn->pool[i].len, 0);
-+		pool_len = n_decay = vn->pool[i].len;
-+		WRITE_ONCE(vn->pool[i].len, 0);
- 
- 		/* Decay a pool by ~25% out of left objects. */
--		n_decay = vn->pool[i].len >> 2;
-+		if (!full_decay)
-+			n_decay >>= 2;
-+		pool_len -= n_decay;
- 
- 		list_for_each_entry_safe(va, nva, &tmp_list, list) {
-+			if (!n_decay--)
-+				break;
-+
- 			list_del_init(&va->list);
- 			merge_or_add_vmap_area(va, &decay_root, &decay_list);
+@@ -2929,10 +2929,7 @@ static void _vm_unmap_aliases(unsigned l
+  */
+ void vm_unmap_aliases(void)
+ {
+-	unsigned long start = ULONG_MAX, end = 0;
+-	int flush = 0;
 -
--			if (!full_decay) {
--				WRITE_ONCE(vn->pool[i].len, vn->pool[i].len - 1);
--
--				if (!--n_decay)
--					break;
--			}
- 		}
+-	_vm_unmap_aliases(start, end, flush);
++	_vm_unmap_aliases(ULONG_MAX, 0, 0);
+ }
+ EXPORT_SYMBOL_GPL(vm_unmap_aliases);
  
- 		/*
-@@ -2187,9 +2185,10 @@ decay_va_pool_node(struct vmap_node *vn,
- 		 * can populate the pool therefore a simple list replace
- 		 * operation takes place here.
- 		 */
--		if (!full_decay && !list_empty(&tmp_list)) {
-+		if (!list_empty(&tmp_list)) {
- 			spin_lock(&vn->pool_lock);
- 			list_replace_init(&tmp_list, &vn->pool[i].head);
-+			WRITE_ONCE(vn->pool[i].len, pool_len);
- 			spin_unlock(&vn->pool_lock);
- 		}
- 	}
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
