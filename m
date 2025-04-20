@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6536A101E6
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 20:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E321C7014
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 20:25:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745180735; cv=none; b=sZN9eHs0LQme2t0pUyh+QOYITWXb/YEt7v6WEJ/4RwcJgjXC79dvzT6EzMsCinkrnTSx47jvLXrG+D+gj1nCDzZIjppU4Og4fsZYrrXN12ymq6AcKixSJTMRTSvCOI6PV0ro8+pE2KDTXojB7Ag1wPnW4GRI1GxuKxUOZdlZ4p8=
+	t=1745180737; cv=none; b=FEQ5y27oHbw9suAxVuiHXHjE1u8pP/0pYSMSb0aNAl4ONre/vem6u1Eh1/cQPnDcir3zdKGJ3RjjaG2xg4IcqCfdARUHuaiQoXGsSYhNg4C1pf7uoRFZ4wpxCymlmDOWLEgp1PG3TAy2Zq6vbsUKOzqzdlj9ieXUSjS0/30XVQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745180735; c=relaxed/simple;
-	bh=gJjd4RChVIdD7RRYHa5SlqhHjkd62TV4uGzWQu+wvM0=;
-	h=Date:To:From:Subject:Message-Id; b=GB3aLmoormbfr/DaFrZJCEi6pWIIUVQ4hw1frpyXODKApd5+CtzX97ARp20CA+koO9PcrxHbRB4vfBmdcRFB6U3WXF38ly69YRDE0ic2QNAZIyJ9oo7IRjgxAxlxj8kaOwQg0z+QeC9Qcd5Yyf3zOv5zO1JyeMrnGkdYGKiiI4I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M2jbC71z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745180737; c=relaxed/simple;
+	bh=pDBK3rG4iYQ5A53+dxNKSq/NOyLzhoMJJH13HbHmHOQ=;
+	h=Date:To:From:Subject:Message-Id; b=bJ1oebS35apXFnuQr0KHAHOyUDDqZvbjW8MRCxddryAHZm822HTT/BgKkNqzAP8OtqomSjpeJ0mY8+YdRbQ0BDVZUAOhJf2nyXhP8KxgdexlZCb5eLcRardJ5Rhq3Fh00pR3txUZ9euN2SGC/ZlAE1uhdwyKkKIZtmIuAV3UCJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cS8Azpwk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M2jbC71z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B962DC4CEE2;
-	Sun, 20 Apr 2025 20:25:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cS8Azpwk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5210C4CEE2;
+	Sun, 20 Apr 2025 20:25:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745180734;
-	bh=gJjd4RChVIdD7RRYHa5SlqhHjkd62TV4uGzWQu+wvM0=;
+	s=korg; t=1745180736;
+	bh=pDBK3rG4iYQ5A53+dxNKSq/NOyLzhoMJJH13HbHmHOQ=;
 	h=Date:To:From:Subject:From;
-	b=M2jbC71zNnyJbItAvoBA775Oem6zAP4g42EQleRcOZHKMDLRw8EPc9nwj4lZBZrez
-	 ziSXIzWUoJqvl/LuBRprJKW+vSZdoIfc6L/HSPkfaQ0CL+TOxzIGhKjwuXt0eFt6KU
-	 xBgOJ2nnlTB3np43DwmcV/EaRJ+kjl8ng88UUP94=
-Date: Sun, 20 Apr 2025 13:25:34 -0700
+	b=cS8Azpwkx5ECT4ujOSvmWkYdG3zUyA2QfGaRyihZfH272DxfKOjpezp7VrgAkWfph
+	 7h0hJzDITkrkWn1cpJxXS7RkCDG6Itaf5Pi5R2r/tTY0nuqdddYDxpQSKKi1BWlCe2
+	 GxYi4dmgMrYtbtZRkIjFupueQ9T0RYm55WnjQZQc=
+Date: Sun, 20 Apr 2025 13:25:36 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer.patch added to mm-unstable branch
-Message-Id: <20250420202534.B962DC4CEE2@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-node_mem_usedfree_bp.patch added to mm-unstable branch
+Message-Id: <20250420202536.B5210C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: connect damos_quota_goal nid with core layer
+     Subject: Docs/mm/damon/design: document node_mem_{used,free}_bp
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer.patch
+     docs-mm-damon-design-document-node_mem_usedfree_bp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-node_mem_usedfree_bp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,42 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: connect damos_quota_goal nid with core layer
-Date: Sun, 20 Apr 2025 12:40:26 -0700
+Subject: Docs/mm/damon/design: document node_mem_{used,free}_bp
+Date: Sun, 20 Apr 2025 12:40:27 -0700
 
-DAMON sysfs interface file for DAMOS quota goal's node id argument is not
-passed to core layer.  Implement the link.
+Add description of DAMOS quota goal metrics for NUMA node utilization on
+the DAMON deesign document.
 
-Link: https://lkml.kernel.org/r/20250420194030.75838-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250420194030.75838-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-connect-damos_quota_goal-nid-with-core-layer
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2149,8 +2149,17 @@ static int damos_sysfs_add_quota_score(
- 				sysfs_goal->target_value);
- 		if (!goal)
- 			return -ENOMEM;
--		if (sysfs_goal->metric == DAMOS_QUOTA_USER_INPUT)
-+		switch (sysfs_goal->metric) {
-+		case DAMOS_QUOTA_USER_INPUT:
- 			goal->current_value = sysfs_goal->current_value;
-+			break;
-+		case DAMOS_QUOTA_NODE_MEM_USED_BP:
-+		case DAMOS_QUOTA_NODE_MEM_FREE_BP:
-+			goal->nid = sysfs_goal->nid;
-+			break;
-+		default:
-+			break;
-+		}
- 		damos_add_quota_goal(quota, goal);
- 	}
- 	return 0;
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-node_mem_usedfree_bp
++++ a/Documentation/mm/damon/design.rst
+@@ -550,10 +550,10 @@ aggressiveness (the quota) of the corres
+ is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
+ is over achieving the goal, it decreases the quota.
+ 
+-The goal can be specified with three parameters, namely ``target_metric``,
+-``target_value``, and ``current_value``.  The auto-tuning mechanism tries to
+-make ``current_value`` of ``target_metric`` be same to ``target_value``.
+-Currently, two ``target_metric`` are provided.
++The goal can be specified with four parameters, namely ``target_metric``,
++``target_value``, ``current_value`` and ``nid``.  The auto-tuning mechanism
++tries to make ``current_value`` of ``target_metric`` be same to
++``target_value``.
+ 
+ - ``user_input``: User-provided value.  Users could use any metric that they
+   has interest in for the value.  Use space main workload's latency or
+@@ -565,6 +565,11 @@ Currently, two ``target_metric`` are pro
+   in microseconds that measured from last quota reset to next quota reset.
+   DAMOS does the measurement on its own, so only ``target_value`` need to be
+   set by users at the initial time.  In other words, DAMOS does self-feedback.
++- ``node_mem_used_bp``: Specific NUMA node's used memory ratio in bp (1/10,000).
++- ``node_mem_free_bp``: Specific NUMA node's free memory ratio in bp (1/10,000).
++
++``nid`` is optionally required for only ``node_mem_used_bp`` and
++``node_mem_free_bp`` to point the specific NUMA node.
+ 
+ To know how user-space can set the tuning goal metric, the target value, and/or
+ the current value via :ref:`DAMON sysfs interface <sysfs_interface>`, refer to
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
