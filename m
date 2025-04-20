@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E321C7014
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 20:25:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8C91C7014
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 20:25:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745180737; cv=none; b=FEQ5y27oHbw9suAxVuiHXHjE1u8pP/0pYSMSb0aNAl4ONre/vem6u1Eh1/cQPnDcir3zdKGJ3RjjaG2xg4IcqCfdARUHuaiQoXGsSYhNg4C1pf7uoRFZ4wpxCymlmDOWLEgp1PG3TAy2Zq6vbsUKOzqzdlj9ieXUSjS0/30XVQs=
+	t=1745180739; cv=none; b=IQ+l/W1dO/dFRrvemmCB13jRp7E8GG/3r2oipI/C3PPwhUB7T9pdzWw54XV3RbhCvuBZJBbc089ZRToyAIv++RSn7WCPO8XU5BCaVC58tWyhkA7PQG1bXaJsTvk3g2OUlujVD46/RCRoEaAF8MWGUIxxDpGZ7gtCyCH8Skzbdnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745180737; c=relaxed/simple;
-	bh=pDBK3rG4iYQ5A53+dxNKSq/NOyLzhoMJJH13HbHmHOQ=;
-	h=Date:To:From:Subject:Message-Id; b=bJ1oebS35apXFnuQr0KHAHOyUDDqZvbjW8MRCxddryAHZm822HTT/BgKkNqzAP8OtqomSjpeJ0mY8+YdRbQ0BDVZUAOhJf2nyXhP8KxgdexlZCb5eLcRardJ5Rhq3Fh00pR3txUZ9euN2SGC/ZlAE1uhdwyKkKIZtmIuAV3UCJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cS8Azpwk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745180739; c=relaxed/simple;
+	bh=cWMCkBGU3vdtklBHiNw/p4+oE+RkWP/0l8fnM+O3/oU=;
+	h=Date:To:From:Subject:Message-Id; b=Cu3BzH+ROQo73q9BJVmt/94/OL6OaCUocobjcypYYaz/k1RfrIh5mEdehrFr7nCe1Sn6TmuAa/jgR4rMHlp+DDYj91Ysf4jMR6eQy09EvXxqi5WiP8jLC5kZUKnpZdFTUO1tpIE0xDjgEstgur/ZftkEtvPARziBF92XQSFu7J4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iT4eCbJg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cS8Azpwk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5210C4CEE2;
-	Sun, 20 Apr 2025 20:25:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iT4eCbJg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 928F5C4CEE2;
+	Sun, 20 Apr 2025 20:25:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745180736;
-	bh=pDBK3rG4iYQ5A53+dxNKSq/NOyLzhoMJJH13HbHmHOQ=;
+	s=korg; t=1745180738;
+	bh=cWMCkBGU3vdtklBHiNw/p4+oE+RkWP/0l8fnM+O3/oU=;
 	h=Date:To:From:Subject:From;
-	b=cS8Azpwkx5ECT4ujOSvmWkYdG3zUyA2QfGaRyihZfH272DxfKOjpezp7VrgAkWfph
-	 7h0hJzDITkrkWn1cpJxXS7RkCDG6Itaf5Pi5R2r/tTY0nuqdddYDxpQSKKi1BWlCe2
-	 GxYi4dmgMrYtbtZRkIjFupueQ9T0RYm55WnjQZQc=
-Date: Sun, 20 Apr 2025 13:25:36 -0700
+	b=iT4eCbJgIDyYdszdcOEe1WoVxA0L9J9Y2m1yaDxAcOx4ayyB2B3tkufYy+jt35AzK
+	 96fz1RZpO98lztcas3WB2gooZ6G0cZ9CXAIOKO+2Z75Ik0P6PIqkIuzp+k4pUK2EDx
+	 LWbEZKFxZ1tR4l0qZC/8p+vv6nhmA+Ii8kFGEatI=
+Date: Sun, 20 Apr 2025 13:25:38 -0700
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-node_mem_usedfree_bp.patch added to mm-unstable branch
-Message-Id: <20250420202536.B5210C4CEE2@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-nid-file.patch added to mm-unstable branch
+Message-Id: <20250420202538.928F5C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document node_mem_{used,free}_bp
+     Subject: Docs/admin-guide/mm/damon/usage: document 'nid' file
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-document-node_mem_usedfree_bp.patch
+     docs-admin-guide-mm-damon-usage-document-nid-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-node_mem_usedfree_bp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-nid-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,50 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document node_mem_{used,free}_bp
-Date: Sun, 20 Apr 2025 12:40:27 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document 'nid' file
+Date: Sun, 20 Apr 2025 12:40:28 -0700
 
-Add description of DAMOS quota goal metrics for NUMA node utilization on
-the DAMON deesign document.
+Add description of 'nid' file, which is optionally used for specific DAMOS
+quota goal metrics such as node_mem_{used,free}_bp on DAMON usage
+document.
 
-Link: https://lkml.kernel.org/r/20250420194030.75838-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250420194030.75838-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-node_mem_usedfree_bp
-+++ a/Documentation/mm/damon/design.rst
-@@ -550,10 +550,10 @@ aggressiveness (the quota) of the corres
- is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
- is over achieving the goal, it decreases the quota.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-nid-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -81,7 +81,7 @@ comma (",").
+     │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes
+     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
+     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
+-    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value
++    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value,nid
+     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
+     │ │ │ │ │ │ │ :ref:`{core_,ops_,}filters <sysfs_filters>`/nr_filters
+     │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx,min,max
+@@ -390,11 +390,11 @@ number (``N``) to the file creates the n
+ to ``N-1``.  Each directory represents each goal and current achievement.
+ Among the multiple feedback, the best one is used.
  
--The goal can be specified with three parameters, namely ``target_metric``,
--``target_value``, and ``current_value``.  The auto-tuning mechanism tries to
--make ``current_value`` of ``target_metric`` be same to ``target_value``.
--Currently, two ``target_metric`` are provided.
-+The goal can be specified with four parameters, namely ``target_metric``,
-+``target_value``, ``current_value`` and ``nid``.  The auto-tuning mechanism
-+tries to make ``current_value`` of ``target_metric`` be same to
-+``target_value``.
+-Each goal directory contains three files, namely ``target_metric``,
+-``target_value`` and ``current_value``.  Users can set and get the three
+-parameters for the quota auto-tuning goals that specified on the :ref:`design
+-doc <damon_design_damos_quotas_auto_tuning>` by writing to and reading from each
+-of the files.  Note that users should further write
++Each goal directory contains four files, namely ``target_metric``,
++``target_value``, ``current_value`` and ``nid``.  Users can set and get the
++four parameters for the quota auto-tuning goals that specified on the
++:ref:`design doc <damon_design_damos_quotas_auto_tuning>` by writing to and
++reading from each of the files.  Note that users should further write
+ ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
+ directory <sysfs_kdamond>` to pass the feedback to DAMON.
  
- - ``user_input``: User-provided value.  Users could use any metric that they
-   has interest in for the value.  Use space main workload's latency or
-@@ -565,6 +565,11 @@ Currently, two ``target_metric`` are pro
-   in microseconds that measured from last quota reset to next quota reset.
-   DAMOS does the measurement on its own, so only ``target_value`` need to be
-   set by users at the initial time.  In other words, DAMOS does self-feedback.
-+- ``node_mem_used_bp``: Specific NUMA node's used memory ratio in bp (1/10,000).
-+- ``node_mem_free_bp``: Specific NUMA node's free memory ratio in bp (1/10,000).
-+
-+``nid`` is optionally required for only ``node_mem_used_bp`` and
-+``node_mem_free_bp`` to point the specific NUMA node.
- 
- To know how user-space can set the tuning goal metric, the target value, and/or
- the current value via :ref:`DAMON sysfs interface <sysfs_interface>`, refer to
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
