@@ -1,252 +1,121 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225AE1E5B93
-	for <mm-commits@vger.kernel.org>; Sat, 19 Apr 2025 21:54:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5A69258A;
+	Sun, 20 Apr 2025 04:26:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745099697; cv=none; b=sTxRSLGhMXpo8K/q8VnVTei+oQSmf7K3/45bLNabAhLjCMcSi8q+ul2mYJLkiNxe2VS7n1a+7m+bXqJjmTLFDVSzNmbwM6VOH0wokxxVx2AnXiZTlsx7jfL8tn2eOdfRaE1aOSb3pckYIyrKOKT54XLTbwkefFEfmWwj2KHv4cs=
+	t=1745123194; cv=none; b=l/oW1og80olNQN1KPF2+9OPWi0nMNFve/1BL2SSf7dx5yq839i0oLrfHq0AOM88tqdBSq1OLAjmJKovJS0Q3MmGUivU7uzApOmIxv433hkPxJwghA3vYW3hR+3/yUS7xP8C8/P1R3KT9vk3Rt8tzTkz/UNUpzDOpEkwjA+TNTzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745099697; c=relaxed/simple;
-	bh=yGFkgfEz1zOXEd7mZzMb294evDKe0yIsT4fXGfFEJ18=;
-	h=Date:To:From:Subject:Message-Id; b=QASwXScSmnWSpxSa31Ne8e4nGZ+AdKxF8PdESgCN7rInWjv7j84F7tFjNU4+Tb0VUymD4+aWH3nHnx3sTTkWXN3efgBmbICpf4ZFl/BCWm26WpCnTtQBxV/t2wAcpb0eugkU1IyYHLKOgjAnYTIcmJver8Mw54Zh2TOnlEAtmwA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s0REhZ2p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745123194; c=relaxed/simple;
+	bh=OexycGlnF3hxhAIHaIY2JYwk7C6llKn6YRf+F2al/f8=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=uwo6GTf3xxnewicYc3QzDCBLcmE2A3fsCMI+nxtqzS/bd1Bl5Q2FvvSoWj7pwZEj4kdWj1vPhSHDbtuBqqzvLTk1splqs/+Q6HICxSs/izqOJmLjpGM/D/mQhxzDCepyL3Fmc4f6HlOvRNCjcF/QxtvPFy9d1mv+uEAUPVCsz6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CXHkWV7M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s0REhZ2p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D31C4CEE7;
-	Sat, 19 Apr 2025 21:54:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CXHkWV7M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14F98C4CEE2;
+	Sun, 20 Apr 2025 04:26:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745099696;
-	bh=yGFkgfEz1zOXEd7mZzMb294evDKe0yIsT4fXGfFEJ18=;
-	h=Date:To:From:Subject:From;
-	b=s0REhZ2p0Dcz+z8rgBSn6oOg/VBMyN64vfVr4Y1lQiT56N5+KTssMKPmnJbE85VQO
-	 4EY2jv/1PbPhtEobSc4J36yvLauJsPZaQI0F18fBQhDF5zKsDIAlKUOEAAEF6yiroL
-	 TdGSOcaPw3wqE6KYQuV7VZ5H67FjRt2AkrDu8Lw4=
-Date: Sat, 19 Apr 2025 14:54:56 -0700
-To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,alex.bou9@gmail.com,linux@treblig.org,akpm@linux-foundation.org
+	s=korg; t=1745123193;
+	bh=OexycGlnF3hxhAIHaIY2JYwk7C6llKn6YRf+F2al/f8=;
+	h=Date:From:To:Cc:Subject:From;
+	b=CXHkWV7M7CkKvii+m/oF/Osms6L8FmhTlSdLIDJZpNCYcxlGfYQOZtcU1qanW7bMw
+	 MjRKQJ9R9SbaWk/BwcjS3Imy6HHIU0hde/1rrPrKrtVaMQxxkC33cTHK2TReL6x8fq
+	 bWI+kX0/zjwo3sj08Oxy5SQ73p76Llx2XW/O3v9w=
+Date: Sat, 19 Apr 2025 21:26:32 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rapidio-remove-unused-functions.patch added to mm-nonmm-unstable branch
-Message-Id: <20250419215456.84D31C4CEE7@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+ linux-mm@kvack.org
+Subject: [GIT PULL] hotfixes for 6.15-rc3
+Message-Id: <20250419212632.41bd67c6fa1459f817f0ea58@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: rapidio: remove unused functions
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-remove-unused-functions.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-remove-unused-functions.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit fc96b232f8e7c0a6c282f47726b2ff6a5fb341d2:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Merge tag 'pci-v6.15-fixes-2' of git://git.kernel.org/pub/scm/linux/kernel/git/pci/pci (2025-04-17 16:00:31 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-04-19-21-24
 
-------------------------------------------------------
-From: "Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: rapidio: remove unused functions
-Date: Sat, 19 Apr 2025 21:30:12 +0100
+for you to fetch changes up to ea21641b6a79f9cdd64f8339983c71c89949dcb5:
 
-rio_request_dma() and rio_dma_prep_slave_sg() were added in 2012 by commit
-e42d98ebe7d7 ("rapidio: add DMA engine support for RIO data transfers")
-but never used.
+  MAINTAINERS: add section for locking of mm's and VMAs (2025-04-17 20:10:09 -0700)
 
-rio_find_mport() last use was removed in 2013 by commit 9edbc30b434f
-("rapidio: update enumerator registration mechanism")
+----------------------------------------------------------------
+16 hotfixes.  2 are cc:stable and the remainder address post-6.14 issues
+or aren't considered necessary for -stable kernels.
 
-rio_unregister_scan() was added in 2013 by commit a11650e11093 ("rapidio:
-make enumeration/discovery configurable") but never used.
+All patches are basically for MM although five are alterations to
+MAINTAINERS.
 
-Remove them.
+----------------------------------------------------------------
+Ahmad Fatoum (1):
+      docs: ABI: replace mcroce@microsoft.com with new Meta address
 
-Link: https://lkml.kernel.org/r/20250419203012.429787-3-linux@treblig.org
-Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Andreas Gruenbacher (1):
+      writeback: fix false warning in inode_to_wb()
 
- drivers/rapidio/rio.c   |  103 --------------------------------------
- drivers/rapidio/rio.h   |    2 
- include/linux/rio_drv.h |    5 -
- 3 files changed, 110 deletions(-)
+Baoquan He (1):
+      mm/gup: fix wrongly calculated returned value in fault_in_safe_writeable()
 
---- a/drivers/rapidio/rio.c~rapidio-remove-unused-functions
-+++ a/drivers/rapidio/rio.c
-@@ -1775,19 +1775,6 @@ struct dma_chan *rio_request_mport_dma(s
- EXPORT_SYMBOL_GPL(rio_request_mport_dma);
- 
- /**
-- * rio_request_dma - request RapidIO capable DMA channel that supports
-- *   specified target RapidIO device.
-- * @rdev: RIO device associated with DMA transfer
-- *
-- * Returns pointer to allocated DMA channel or NULL if failed.
-- */
--struct dma_chan *rio_request_dma(struct rio_dev *rdev)
--{
--	return rio_request_mport_dma(rdev->net->hport);
--}
--EXPORT_SYMBOL_GPL(rio_request_dma);
--
--/**
-  * rio_release_dma - release specified DMA channel
-  * @dchan: DMA channel to release
-  */
-@@ -1834,57 +1821,9 @@ struct dma_async_tx_descriptor *rio_dma_
- }
- EXPORT_SYMBOL_GPL(rio_dma_prep_xfer);
- 
--/**
-- * rio_dma_prep_slave_sg - RapidIO specific wrapper
-- *   for device_prep_slave_sg callback defined by DMAENGINE.
-- * @rdev: RIO device control structure
-- * @dchan: DMA channel to configure
-- * @data: RIO specific data descriptor
-- * @direction: DMA data transfer direction (TO or FROM the device)
-- * @flags: dmaengine defined flags
-- *
-- * Initializes RapidIO capable DMA channel for the specified data transfer.
-- * Uses DMA channel private extension to pass information related to remote
-- * target RIO device.
-- *
-- * Returns: pointer to DMA transaction descriptor if successful,
-- *          error-valued pointer or NULL if failed.
-- */
--struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(struct rio_dev *rdev,
--	struct dma_chan *dchan, struct rio_dma_data *data,
--	enum dma_transfer_direction direction, unsigned long flags)
--{
--	return rio_dma_prep_xfer(dchan,	rdev->destid, data, direction, flags);
--}
--EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg);
--
- #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
- 
- /**
-- * rio_find_mport - find RIO mport by its ID
-- * @mport_id: number (ID) of mport device
-- *
-- * Given a RIO mport number, the desired mport is located
-- * in the global list of mports. If the mport is found, a pointer to its
-- * data structure is returned.  If no mport is found, %NULL is returned.
-- */
--struct rio_mport *rio_find_mport(int mport_id)
--{
--	struct rio_mport *port;
--
--	mutex_lock(&rio_mport_list_lock);
--	list_for_each_entry(port, &rio_mports, node) {
--		if (port->id == mport_id)
--			goto found;
--	}
--	port = NULL;
--found:
--	mutex_unlock(&rio_mport_list_lock);
--
--	return port;
--}
--
--/**
-  * rio_register_scan - enumeration/discovery method registration interface
-  * @mport_id: mport device ID for which fabric scan routine has to be set
-  *            (RIO_MPORT_ANY = set for all available mports)
-@@ -1962,48 +1901,6 @@ err_out:
- EXPORT_SYMBOL_GPL(rio_register_scan);
- 
- /**
-- * rio_unregister_scan - removes enumeration/discovery method from mport
-- * @mport_id: mport device ID for which fabric scan routine has to be
-- *            unregistered (RIO_MPORT_ANY = apply to all mports that use
-- *            the specified scan_ops)
-- * @scan_ops: enumeration/discovery operations structure
-- *
-- * Removes enumeration or discovery method assigned to the specified mport
-- * device. If RIO_MPORT_ANY is specified, removes the specified operations from
-- * all mports that have them attached.
-- */
--int rio_unregister_scan(int mport_id, struct rio_scan *scan_ops)
--{
--	struct rio_mport *port;
--	struct rio_scan_node *scan;
--
--	pr_debug("RIO: %s for mport_id=%d\n", __func__, mport_id);
--
--	if (mport_id != RIO_MPORT_ANY && mport_id >= RIO_MAX_MPORTS)
--		return -EINVAL;
--
--	mutex_lock(&rio_mport_list_lock);
--
--	list_for_each_entry(port, &rio_mports, node)
--		if (port->id == mport_id ||
--		    (mport_id == RIO_MPORT_ANY && port->nscan == scan_ops))
--			port->nscan = NULL;
--
--	list_for_each_entry(scan, &rio_scans, node) {
--		if (scan->mport_id == mport_id) {
--			list_del(&scan->node);
--			kfree(scan);
--			break;
--		}
--	}
--
--	mutex_unlock(&rio_mport_list_lock);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(rio_unregister_scan);
--
--/**
-  * rio_mport_scan - execute enumeration/discovery on the specified mport
-  * @mport_id: number (ID) of mport device
-  */
---- a/drivers/rapidio/rio.h~rapidio-remove-unused-functions
-+++ a/drivers/rapidio/rio.h
-@@ -41,9 +41,7 @@ extern void rio_del_device(struct rio_de
- extern int rio_enable_rx_tx_port(struct rio_mport *port, int local, u16 destid,
- 				 u8 hopcount, u8 port_num);
- extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
--extern int rio_unregister_scan(int mport_id, struct rio_scan *scan_ops);
- extern void rio_attach_device(struct rio_dev *rdev);
--extern struct rio_mport *rio_find_mport(int mport_id);
- extern int rio_mport_scan(int mport_id);
- 
- /* Structures internal to the RIO core code */
---- a/include/linux/rio_drv.h~rapidio-remove-unused-functions
-+++ a/include/linux/rio_drv.h
-@@ -391,13 +391,8 @@ struct rio_dev *rio_dev_get(struct rio_d
- void rio_dev_put(struct rio_dev *);
- 
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
--extern struct dma_chan *rio_request_dma(struct rio_dev *rdev);
- extern struct dma_chan *rio_request_mport_dma(struct rio_mport *mport);
- extern void rio_release_dma(struct dma_chan *dchan);
--extern struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(
--		struct rio_dev *rdev, struct dma_chan *dchan,
--		struct rio_dma_data *data,
--		enum dma_transfer_direction direction, unsigned long flags);
- extern struct dma_async_tx_descriptor *rio_dma_prep_xfer(
- 		struct dma_chan *dchan,	u16 destid,
- 		struct rio_dma_data *data,
-_
+David Hildenbrand (2):
+      fs/dax: fix folio splitting issue by resetting old folio order + _nr_pages
+      mm/memory: move sanity checks in do_wp_page() after mapcount vs. refcount stabilization
 
-Patches currently in -mm which might be from linux@treblig.org are
+Johannes Weiner (2):
+      mm: vmscan: restore high-cpu watermark safety in kswapd
+      mm: vmscan: fix kswapd exit condition in defrag_mode
 
-rapidio-remove-some-dead-defines.patch
-rapidio-remove-unused-functions.patch
+Kirill A. Shutemov (1):
+      mm/page_alloc: fix deadlock on cpu_hotplug_lock in __accept_page()
+
+Liam R. Howlett (1):
+      MAINTAINERS: add mmap trace events to MEMORY MAPPING
+
+Lorenzo Stoakes (3):
+      MAINTAINERS: add memory advice section
+      MAINTAINERS: add Pedro as reviewer to the MEMORY MAPPING section
+      MAINTAINERS: add section for locking of mm's and VMAs
+
+Muchun Song (1):
+      mm: memcontrol: fix swap counter leak from offline cgroup
+
+Oscar Salvador (1):
+      mm, hugetlb: increment the number of pages to be reset on HVO
+
+Vlastimil Babka (2):
+      MAINTAINERS: update SLAB ALLOCATOR maintainers
+      MAINTAINERS: add MM subsection for the page allocator
+
+ CREDITS                                       |  4 +++
+ Documentation/ABI/stable/sysfs-block          |  2 +-
+ Documentation/ABI/testing/sysfs-kernel-reboot | 10 +++---
+ MAINTAINERS                                   | 49 +++++++++++++++++++++++++--
+ fs/dax.c                                      |  1 +
+ include/linux/backing-dev.h                   |  1 +
+ include/linux/mm.h                            | 17 ++++++++++
+ include/linux/mmzone.h                        |  5 +--
+ mm/gup.c                                      |  4 +--
+ mm/hugetlb_vmemmap.c                          |  6 ++--
+ mm/internal.h                                 |  1 +
+ mm/memcontrol-v1.c                            |  2 +-
+ mm/memory.c                                   |  4 +--
+ mm/mm_init.c                                  |  1 +
+ mm/page_alloc.c                               | 40 ++++++++++++++--------
+ mm/vmscan.c                                   | 29 ++++++++++++++--
+ 16 files changed, 141 insertions(+), 35 deletions(-)
 
