@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64985158218
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 21:24:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4570F158218
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 21:24:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745184298; cv=none; b=L9W+OAAqJv+ceu9jbvfGsKMK1q/r6vUbv7hQka/gL7/eEEpAn0pnRTnMrzqgAi7ujlp0AXzOVkKMF6sqw7ZxQHuk5iumtK2HYDsFaK8HqYSr13OOk7t+JoH2vQlOicSigetmRKfPKEi1ly3aZEICfs2W55vL1SgMngKzb7SBK2w=
+	t=1745184300; cv=none; b=gauD9TGE/vlw/PgU3Li8aAz5M1t3yvOb3SxM5mtAAT35hODRQ3Eo0P24ZRW3UlIpXbZHxPvZJV0+7t5jjTuqb/FNtrIA9Pc//muMUFtuWn5SWvhHpYJ0SqdYGxh4ln2uYQNvU/n9NFCqvPbbgY5y9ul7MtFXOyrYknIkRopdXUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745184298; c=relaxed/simple;
-	bh=RYwrP6Zth6ZTXVaZEVAsxuntWrGJ7wChaGbvBcoxQec=;
-	h=Date:To:From:Subject:Message-Id; b=rUexTUXZPXIX+Ugc4Qch1GKZ1qZswmYSaGfbF3Br/+QWlLfx8nHrkX9v4BbJ56VH8Os5uOd1eqy8uGF+m6DCmT3t+DNB20mL5m+e2P97pPnRSNkC2+iMGG+n01uGgHqsgGPSAmAjSWodkSO45O/2VkiLDOLedZcrU/iHR/ruphM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=04IqTcjv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745184300; c=relaxed/simple;
+	bh=U9NtzYJKRx2NwlnUQ49GJlenczrY3URDWQvXUm1gwD8=;
+	h=Date:To:From:Subject:Message-Id; b=HbzWfSEt9SzifFhcP0y4LDjclS83YhI1Bo4jiGUqAqp9I55zVxrFTgHKoW4/03jIxJLGmXhMspwVlNw5FbU7ICJSiQvJ7UivZ1d2jykZbyiyDydNGwkVQY68nwVIvfhY5rs9Ge9VqfFawMknEd1ntcUFoJJ7VYVuGk0Jia+AZLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W1/hrNLR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="04IqTcjv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2E5EC4CEE2;
-	Sun, 20 Apr 2025 21:24:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W1/hrNLR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8B2DC4CEE2;
+	Sun, 20 Apr 2025 21:24:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745184297;
-	bh=RYwrP6Zth6ZTXVaZEVAsxuntWrGJ7wChaGbvBcoxQec=;
+	s=korg; t=1745184299;
+	bh=U9NtzYJKRx2NwlnUQ49GJlenczrY3URDWQvXUm1gwD8=;
 	h=Date:To:From:Subject:From;
-	b=04IqTcjvcSto45RflZIZyV4V59G1r5sWmDv3yA9bjT0UrtKDImrR5CqS2LYvYjuiv
-	 +k6YA1IRtOno4OsgXItrR4S56aSvKUA4RIfbqGFAD7w0iQ9yOpea08SkhZUBl+KojP
-	 Udu3Z7GS4qOHo3MpGso/XCjUn/I6G6MduQkxJXG4=
-Date: Sun, 20 Apr 2025 14:24:57 -0700
+	b=W1/hrNLRxGQ9KUDuv/nZJWn9PrfkpekmddwOmeZLkyB98yEu6302kSTPP8otj9Imw
+	 P2fu+BSzoAY9GbYGlvbUB03EN1s5qKYrBBc3QuISntRbj5iqorDiXg9RB1Nduvkjnd
+	 qYLj2is1RTSbg/JS1e7Rt9lZqEkpiLZb6gC2rMqQ=
+Date: Sun, 20 Apr 2025 14:24:59 -0700
 To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,shivankg@amd.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmallocc-find-the-vmap-of-vmap_nodes-in-reverse-order.patch added to mm-new branch
-Message-Id: <20250420212457.C2E5EC4CEE2@smtp.kernel.org>
+Subject: + mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit.patch added to mm-new branch
+Message-Id: <20250420212459.A8B2DC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc.c: find the vmap of vmap_nodes in reverse order
+     Subject: mm/vmalloc.c: optimize code in decay_va_pool_node() a little bit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmallocc-find-the-vmap-of-vmap_nodes-in-reverse-order.patch
+     mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-find-the-vmap-of-vmap_nodes-in-reverse-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,61 +59,83 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/vmalloc.c: find the vmap of vmap_nodes in reverse order
-Date: Sat, 19 Apr 2025 06:36:50 +0800
+Subject: mm/vmalloc.c: optimize code in decay_va_pool_node() a little bit
+Date: Sat, 19 Apr 2025 06:36:51 +0800
 
-When finding VA in vn->busy, if VA spans several zones and the passed addr
-is not the same as va->va_start, we should scan the vn in reverse odrdr
-because the starting address of VA must be smaller than the passed addr if
-it really resides in the VA.
+When purge lazily freed vmap areas, VA stored in vn->pool[] will also be
+taken away into free vmap tree partially or completely accordingly, that
+is done in decay_va_pool_node().  When doing that, for each pool of node,
+the whole list is detached from the pool for handling.  At this time, that
+pool is empty.  It's not necessary to update the pool size each time when
+one VA is removed and addded into free vmap tree.
 
-E.g on a system nr_vmap_nodes=100,
+Here change code to update the pool size when attaching the pool back.
 
-     <----va---->
- -|-----|-----|-----|-----|-----|-----|-----|-----|-----|-
-    ...   n-1   n    n+1   n+2   ...   100     0     1
-
-VA resides in node 'n' whereas it spans 'n', 'n+1' and 'n+2'.  If passed
-addr is within 'n+2', we should try nodes backwards on 'n+1' and 'n', then
-succeed very soon.
-
-Meanwhile we still need loop around because VA could spans node from 'n'
-to node 100, node 0, node 1.
-
-Anyway, changing to find in reverse order can improve efficiency on many
-CPUs system.
-
-Link: https://lkml.kernel.org/r/20250418223653.243436-3-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20250418223653.243436-4-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Shivank Garg <shivankg@amd.com>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-find-the-vmap-of-vmap_nodes-in-reverse-order
+--- a/mm/vmalloc.c~mm-vmallocc-optimize-code-in-decay_va_pool_node-a-little-bit
 +++ a/mm/vmalloc.c
-@@ -2435,7 +2435,7 @@ struct vmap_area *find_vmap_area(unsigne
+@@ -2149,7 +2149,7 @@ decay_va_pool_node(struct vmap_node *vn,
+ 	LIST_HEAD(decay_list);
+ 	struct rb_root decay_root = RB_ROOT;
+ 	struct vmap_area *va, *nva;
+-	unsigned long n_decay;
++	unsigned long n_decay, pool_len;
+ 	int i;
  
- 		if (va)
- 			return va;
--	} while ((i = (i + 1) % nr_vmap_nodes) != j);
-+	} while ((i = (i + nr_vmap_nodes - 1) % nr_vmap_nodes) != j);
+ 	for (i = 0; i < MAX_VA_SIZE_PAGES; i++) {
+@@ -2163,22 +2163,20 @@ decay_va_pool_node(struct vmap_node *vn,
+ 		list_replace_init(&vn->pool[i].head, &tmp_list);
+ 		spin_unlock(&vn->pool_lock);
  
- 	return NULL;
- }
-@@ -2461,7 +2461,7 @@ static struct vmap_area *find_unlink_vma
+-		if (full_decay)
+-			WRITE_ONCE(vn->pool[i].len, 0);
++		pool_len = n_decay = vn->pool[i].len;
++		WRITE_ONCE(vn->pool[i].len, 0);
  
- 		if (va)
- 			return va;
--	} while ((i = (i + 1) % nr_vmap_nodes) != j);
-+	} while ((i = (i + nr_vmap_nodes - 1) % nr_vmap_nodes) != j);
+ 		/* Decay a pool by ~25% out of left objects. */
+-		n_decay = vn->pool[i].len >> 2;
++		if (!full_decay)
++			n_decay >>= 2;
++		pool_len -= n_decay;
  
- 	return NULL;
- }
+ 		list_for_each_entry_safe(va, nva, &tmp_list, list) {
++			if (!n_decay--)
++				break;
++
+ 			list_del_init(&va->list);
+ 			merge_or_add_vmap_area(va, &decay_root, &decay_list);
+-
+-			if (!full_decay) {
+-				WRITE_ONCE(vn->pool[i].len, vn->pool[i].len - 1);
+-
+-				if (!--n_decay)
+-					break;
+-			}
+ 		}
+ 
+ 		/*
+@@ -2187,9 +2185,10 @@ decay_va_pool_node(struct vmap_node *vn,
+ 		 * can populate the pool therefore a simple list replace
+ 		 * operation takes place here.
+ 		 */
+-		if (!full_decay && !list_empty(&tmp_list)) {
++		if (!list_empty(&tmp_list)) {
+ 			spin_lock(&vn->pool_lock);
+ 			list_replace_init(&tmp_list, &vn->pool[i].head);
++			WRITE_ONCE(vn->pool[i].len, pool_len);
+ 			spin_unlock(&vn->pool_lock);
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
