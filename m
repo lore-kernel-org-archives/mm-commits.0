@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19824184
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 23:32:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB8D7462
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 23:36:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745191936; cv=none; b=qs7FpEfMpKsSpXd27XaLoWSau3I2N4InUZDMvBUSRixNXZw2qjc3HF4DSBxI2K5Cq3e1jgN5rLyCsq4dhOU+9YXPbSzd1hHQiXAW2cs90CiT8LM85PpjNMzMUGzJWQxEKH2iimjdWMa3VEdG4GKc/U2UCaWuN78VurqHneMp8qo=
+	t=1745192196; cv=none; b=VDSlRhEh2/l+CVqwOtlTw0blHP/1rHDB8nj4anQb6Dl/nW8cVmEm2ENMByDVTPGlM8MWBgKaAYciW31t6+i5wCg3krtIJc1GuPoha17Tqqpq87644bYuZMXHbtsxcDDJNcBpzRLtd76pxGIPauWl5+zkaFHAWRWzAGFfl32bORg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745191936; c=relaxed/simple;
-	bh=rrtdhDZ8TIPe7qsV77Uky7xS85wejic8yHht25N/Wzg=;
-	h=Date:To:From:Subject:Message-Id; b=OYSowxazxaLXj+TI80/CuWmIcGcRfPJ2SiCxf0eF6cmV8W0FIti9A3YXLnieJmSnQfTTbxiBMIFfuH3YIJgX1sd7m9Xhj5tIUtmlzMR6NhgNTz1aaYTvzq5MjieMeN5ngPGy2XyuPbTHGy1Yb3EkoNbqiOpjtq+n8FGsoHgxEN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nIdk2XSz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745192196; c=relaxed/simple;
+	bh=s8eelJaaYVTNbAz6hHmvhLYfcu4/iTw/bzUF+/krQjw=;
+	h=Date:To:From:Subject:Message-Id; b=FVyB+r9QFtFRJPTYDoqH2TK0yQ1jiPf1pCCEoj4WaXEhVG8eE67lxtHpQ/EBzDDw2J3NEopfxm9xjVQGv9PwHxnKhPwmT6Ci3UIkKjTE/R7GZKLOY20cjbS/fd+UiRRCpEuWbQCrgWjbf3UgI53SwpheiQBrfj90w61/VC+nJ+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYYz+IYb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nIdk2XSz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A518C4CEE2;
-	Sun, 20 Apr 2025 23:32:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYYz+IYb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98AE9C4CEE2;
+	Sun, 20 Apr 2025 23:36:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745191935;
-	bh=rrtdhDZ8TIPe7qsV77Uky7xS85wejic8yHht25N/Wzg=;
+	s=korg; t=1745192195;
+	bh=s8eelJaaYVTNbAz6hHmvhLYfcu4/iTw/bzUF+/krQjw=;
 	h=Date:To:From:Subject:From;
-	b=nIdk2XSzi45rtMLaPoh4u1BVN47I6GVDYakscYSMSUPQCRGmVKkOEUtz/FeCKgJzv
-	 1Vq7EeAesF/g0/pUoISv5jlKDpkrbPrNpFL74s+MHo/cnnso5ZG7bDMx3qkI0SQz7z
-	 EHwZI3GOeq/Wg1uv7geevdJRTaAY9tJv/KPGJVKs=
-Date: Sun, 20 Apr 2025 16:32:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=WYYz+IYbQNFSPwHYsd1ENYf/zCIhP/PIkhPkFnOvhPncK2icxyk7249iXfqY/biFr
+	 Ia7Q9p2VPO54SNtehvnUbk25zs1DLN4K4yWfrBYAPd2OatZ77MG7L9kUzZ+uWeT6qM
+	 Vq8irecpqep3sXUKdNurc+KOWACj+tRF11ImJYgU=
+Date: Sun, 20 Apr 2025 16:36:34 -0700
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,colin.i.king@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-reverse-mapping-section.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250420233215.6A518C4CEE2@smtp.kernel.org>
+Subject: + crash-fix-spelling-mistake-crahskernel-crashkernel.patch added to mm-nonmm-unstable branch
+Message-Id: <20250420233635.98AE9C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add reverse mapping section
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-reverse-mapping-section.patch
+     Subject: crash: fix spelling mistake "crahskernel" -> "crashkernel"
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash-fix-spelling-mistake-crahskernel-crashkernel.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-reverse-mapping-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-spelling-mistake-crahskernel-crashkernel.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: MAINTAINERS: add reverse mapping section
-Date: Fri, 18 Apr 2025 16:00:52 +0100
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: crash: fix spelling mistake "crahskernel" -> "crashkernel"
+Date: Fri, 18 Apr 2025 13:03:31 +0100
 
-Separate out the reverse mapping part of memory management and assign
-appropriate maintainers and reviewers.
+There is a spelling mistake in a pr_warn message. Fix it.
 
-David has long been invovled in work with the reverse mapping and
-continues to do so, so is well suited to maintain this area of the kernel.
-
-I have a lot of experience working with the anonymous reverse mapping and
-continue to work in this area, and also have good knowledge of the walking
-code and code related to VMAs.
-
-This helps people identify who to ask for help, and also additionally makes
-life easier in review.
-
-Link: https://lkml.kernel.org/r/20250418150052.299220-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250418120331.535086-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ kernel/crash_reserve.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-reverse-mapping-section
-+++ a/MAINTAINERS
-@@ -15491,7 +15491,6 @@ F:	include/linux/mm_*.h
- F:	include/linux/mmzone.h
- F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
--F:	include/linux/rmap.h
- F:	include/trace/events/ksm.h
- F:	mm/
- F:	tools/mm/
-@@ -15531,6 +15530,19 @@ F:	mm/page_alloc.c
- F:	include/linux/gfp.h
- F:	include/linux/compaction.h
- 
-+MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+M:	David Hildenbrand <david@redhat.com>
-+M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-+R:	Rik van Riel <riel@surriel.com>
-+R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Vlastimil Babka <vbabka@suse.cz>
-+R:	Harry Yoo <harry.yoo@oracle.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	include/linux/rmap.h
-+F:	mm/rmap.c
-+
- MEMORY MANAGEMENT - SECRETMEM
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Mike Rapoport <rppt@kernel.org>
+--- a/kernel/crash_reserve.c~crash-fix-spelling-mistake-crahskernel-crashkernel
++++ a/kernel/crash_reserve.c
+@@ -131,7 +131,7 @@ static int __init parse_crashkernel_mem(
+ 			cur++;
+ 			*crash_base = memparse(cur, &tmp);
+ 			if (cur == tmp) {
+-				pr_warn("crahskernel: Memory value expected after '@'\n");
++				pr_warn("crashkernel: Memory value expected after '@'\n");
+ 				return -EINVAL;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
-maintainers-add-reverse-mapping-section.patch
-mm-vma-fix-incorrectly-disallowed-anonymous-vma-merges.patch
-tools-testing-add-procmap_query-helper-functions-in-mm-self-tests.patch
-tools-testing-selftests-assert-that-anon-merge-cases-behave-as-expected.patch
-mm-move-mmap-vma-locking-logic-into-specific-files.patch
+crash-fix-spelling-mistake-crahskernel-crashkernel.patch
 
