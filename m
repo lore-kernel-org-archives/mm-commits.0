@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96CB1F9E8
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 23:19:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D071922F4
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 23:19:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745191159; cv=none; b=fdw0q4okNTSeAwsTRfgmEYkX8Sngl5K0UgzWv62GuF+9P5rxc/s9v4mRFC6SI99t2AJ0lpJddePaGw+pt4UNlGGEN2waVVIcRxmb8f8rXLxNCWSCoJHJzXCrSa/g8x3TRcjI/HndYm4rAYu45EMhoJwYq2CRFaX4HjKB0PHFMgg=
+	t=1745191159; cv=none; b=C5J2FGjTkQNuOVqFtJBcCP8lvt9XTHItPXDN05yCdup5QQAekXhUhEIJrbIUA/Eabkr/NfiRd4N7T5YqaYz+hxFYyIDkyox5yjbuFm5PdKFh7LJhiN+bLz1DM+wCVmrrFoppOhLxtKh4tUbE1quWRr6Z6yMX9D+juCHKbgDeRLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1745191159; c=relaxed/simple;
-	bh=NvWbXLiUCJKp5LwfswM9HjA2LZXIm70yGZ5eD0yweqk=;
-	h=Date:To:From:Subject:Message-Id; b=phHx9YfsJymnd6z+2/HBCZLN2a5X5UONsUYcRRyrk8zcFmTL5zbn02xX9u8fyyUUfpw7pMlhSqSvZf1/WQvbydCFsTmoJHlL3eVcBTpEwvjKVBHiIvyeNjqLJ3+PS9B7Daws46W7+TFia+EK3lt6wE2yF9RqOb1TMATsj0m835A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0B9n+3Ls; arc=none smtp.client-ip=10.30.226.201
+	bh=li2W9myXrxl/H0E3EDsk+FB8yhIHM+1dkIq1VvX9PSY=;
+	h=Date:To:From:Subject:Message-Id; b=goidEM33b/Agqk6HK37z7cLf4fG+kdhHH3N82ixz1k24iOTvmMORVpYFAsLPbErDUlTBd87WIdK661ZuVpmm0nfkbambHxyWVPP6NX/RUb8o9KXa0cSOv8bSKgQzji4mwa0wAMkHT5hvOgTM0z735sS42sUUjoQzgvBGf3r0v/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jvaTCyhR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0B9n+3Ls"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D8C6C4CEE2;
-	Sun, 20 Apr 2025 23:19:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jvaTCyhR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BEFDC4CEE4;
+	Sun, 20 Apr 2025 23:19:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745191157;
-	bh=NvWbXLiUCJKp5LwfswM9HjA2LZXIm70yGZ5eD0yweqk=;
+	s=korg; t=1745191159;
+	bh=li2W9myXrxl/H0E3EDsk+FB8yhIHM+1dkIq1VvX9PSY=;
 	h=Date:To:From:Subject:From;
-	b=0B9n+3LsXcevTYbelKFPLJKMtqHiYeltImMhIYvowx7PCvRCrZtV09wTQCIxbLTZz
-	 Tx9qoqLnKY7PP8ycNNW+2KmAELdHP+mZMZMfqPvLYio1CKlPJrVryg1kL8vg0Fwi11
-	 2QrYFoWiD1u0KNIhD8nuATgP93V1gqts7aUn+rKQ=
-Date: Sun, 20 Apr 2025 16:19:16 -0700
+	b=jvaTCyhRGY8SOwWoPEaxO82GnsolMHZVIpzbV1tqSBzvtmF/Mz8ypmBx9/IA7fy+e
+	 W9YgkWCPFJ3ljTZYwms19lsRxkfBtGyNSccdSo7mmLcvyU1r+dG/EkfXrtIhW2LvVX
+	 93y6nPLCYT8nwfrlnmkAvH6UJ4X9ByMBy5JCZ19Y=
+Date: Sun, 20 Apr 2025 16:19:18 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,sidhartha.kumar@oracle.com,muchun.song@linux.dev,mcgrof@kernel.org,david@redhat.com,dave@stgolabs.net,a.manzanares@samsung.com,fan.ni@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page-v2.patch added to mm-new branch
-Message-Id: <20250420231917.0D8C6C4CEE2@smtp.kernel.org>
+Subject: + mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch added to mm-new branch
+Message-Id: <20250420231919.0BEFDC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page-v2
+     Subject: mm/hugetlb: convert use of struct page to folio in __unmap_hugepage_range()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page-v2.patch
+     mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Fan Ni <fan.ni@samsung.com>
-Subject: mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page-v2
-Date: Fri, 18 Apr 2025 09:57:41 -0700
+Subject: mm/hugetlb: convert use of struct page to folio in __unmap_hugepage_range()
+Date: Fri, 18 Apr 2025 09:57:42 -0700
 
-v2: fixed issue mentioned here:
-https://lore.kernel.org/linux-mm/aAHUluy7T32ZlYg7@debian/T/#m2b9cc1743e1907e52658815b297b9d249474f387
+In __unmap_hugepage_range(), the "page" pointer always points to the first
+page of a huge page, which guarantees there is a folio associating with
+it.  Convert the "page" pointer to use folio.
 
-Link: https://lkml.kernel.org/r/20250418170834.248318-4-nifan.cxl@gmail.com
+Link: https://lkml.kernel.org/r/20250418170834.248318-5-nifan.cxl@gmail.com
 Signed-off-by: Fan Ni <fan.ni@samsung.com>
 Cc: Adam Manzanares <a.manzanares@samsung.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -77,20 +78,81 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-refactor-__unmap_hugepage_range-to-take-folio-instead-of-page-v2
-+++ a/include/linux/hugetlb.h
-@@ -455,7 +455,7 @@ static inline long hugetlb_change_protec
+--- a/mm/hugetlb.c~mm-hugetlb-convert-use-of-struct-page-to-folio-in-__unmap_hugepage_range
++++ a/mm/hugetlb.c
+@@ -5841,7 +5841,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 	pte_t *ptep;
+ 	pte_t pte;
+ 	spinlock_t *ptl;
+-	struct page *page;
++	struct folio *folio;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
+ 	bool adjust_reservation = false;
+@@ -5905,14 +5905,14 @@ void __unmap_hugepage_range(struct mmu_g
+ 			continue;
+ 		}
  
- static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma, unsigned long start,
--			unsigned long end, struct page *ref_page,
-+			unsigned long end, struct folio *ref_folio,
- 			zap_flags_t zap_flags)
- {
- 	BUG();
+-		page = pte_page(pte);
++		folio = page_folio(pte_page(pte));
+ 		/*
+ 		 * If a reference page is supplied, it is because a specific
+ 		 * page is being unmapped, not a range. Ensure the page we
+ 		 * are about to unmap is the actual page of interest.
+ 		 */
+ 		if (ref_folio) {
+-			if (page != folio_page(ref_folio, 0)) {
++			if (folio != ref_folio) {
+ 				spin_unlock(ptl);
+ 				continue;
+ 			}
+@@ -5927,7 +5927,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 		pte = huge_ptep_get_and_clear(mm, address, ptep, sz);
+ 		tlb_remove_huge_tlb_entry(h, tlb, ptep, address);
+ 		if (huge_pte_dirty(pte))
+-			set_page_dirty(page);
++			folio_mark_dirty(folio);
+ 		/* Leave a uffd-wp pte marker if needed */
+ 		if (huge_pte_uffd_wp(pte) &&
+ 		    !(zap_flags & ZAP_FLAG_DROP_MARKER))
+@@ -5935,7 +5935,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 					make_pte_marker(PTE_MARKER_UFFD_WP),
+ 					sz);
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+-		hugetlb_remove_rmap(page_folio(page));
++		hugetlb_remove_rmap(folio);
+ 
+ 		/*
+ 		 * Restore the reservation for anonymous page, otherwise the
+@@ -5944,8 +5944,8 @@ void __unmap_hugepage_range(struct mmu_g
+ 		 * reservation bit.
+ 		 */
+ 		if (!h->surplus_huge_pages && __vma_private_lock(vma) &&
+-		    folio_test_anon(page_folio(page))) {
+-			folio_set_hugetlb_restore_reserve(page_folio(page));
++		    folio_test_anon(folio)) {
++			folio_set_hugetlb_restore_reserve(folio);
+ 			/* Reservation to be adjusted after the spin lock */
+ 			adjust_reservation = true;
+ 		}
+@@ -5969,12 +5969,12 @@ void __unmap_hugepage_range(struct mmu_g
+ 				 * count will not be incremented by free_huge_folio.
+ 				 * Act as if we consumed the reservation.
+ 				 */
+-				folio_clear_hugetlb_restore_reserve(page_folio(page));
++				folio_clear_hugetlb_restore_reserve(folio);
+ 			else if (rc)
+ 				vma_add_reservation(h, vma, address);
+ 		}
+ 
+-		tlb_remove_page_size(tlb, page, huge_page_size(h));
++		tlb_remove_page_size(tlb, folio_page(folio, 0), huge_page_size(h));
+ 		/*
+ 		 * Bail out after unmapping reference page if supplied
+ 		 */
 _
 
 Patches currently in -mm which might be from fan.ni@samsung.com are
