@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8D9D647
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 22:12:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B30647
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 22:12:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745187140; cv=none; b=roOY219dKC+wPazWPRlIXJCtURpgHTavpPb6SJ2eN/Ocj5WL7PvknqTRLQtBaTDVElY0Vw06wMSvwvF8/BSEmUSkVLsk9NYsQnEWcgXqzDUCwe0Jbx+W8A4jsUttoNbuJrAZQH2kn7emjFSCvoDopqvv8kOzJKOMBDjCKKTRhcY=
+	t=1745187143; cv=none; b=Gbpm5ais+m5jMSgFVLY0dvkGifGjUbZ05fc180sINJ5Z9SAQVoI+glK8fzzshv+xLw6T3Sa5Edk3EXnZYPT2mUApA1+a7d5mZWYlIWgKvOC7xwEc/mqjM0i8SpCHFXPd0I5yej/Gp1I0ZmVzCBgfruv9FXoYTKtGGPeLCfXlKHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745187140; c=relaxed/simple;
-	bh=+EVT4nfUUTQB/MfAwnUybX1YJZJZ/h9KPPhy8bBi+/I=;
-	h=Date:To:From:Subject:Message-Id; b=Xe6WrkvR5XSg9cr6fkiUElTFleZDLHifoZ5Saj7G88q000Rg5t5Zlqk/07nn+H4HhJTPR3H+M1qceXPopncMIYhKDILZnwUVlbab9lcxiWJCciEN9Tvz6MGBziBiJdmvKkIEMggXLOuF8p2fhXj8cOCxq1zzi9p1/8L+InGC/ZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ccT3oWrD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745187143; c=relaxed/simple;
+	bh=CHyQlvEuoIxWjiMh3FGGrmu30n3IjJ5dqFPQEe5A0KA=;
+	h=Date:To:From:Subject:Message-Id; b=o+nvqAke2pNZyePtGT0iT6Tjv4B1ZTR+M6ubh1CGsaFf3FNvd79ijrEsdCSz+uaK0f5sR3XzEr+CABOndK2rhjjtrPCbErg/GrsFdn6487mhyviV1wVZRjMoVwCi7LK1q6VXYO95c6Nw2bABddft438Y00R23+qoKlS2t7pxPBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H9T5eFLo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ccT3oWrD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8D7CC4CEE2;
-	Sun, 20 Apr 2025 22:12:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H9T5eFLo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53306C4CEE2;
+	Sun, 20 Apr 2025 22:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745187140;
-	bh=+EVT4nfUUTQB/MfAwnUybX1YJZJZ/h9KPPhy8bBi+/I=;
+	s=korg; t=1745187142;
+	bh=CHyQlvEuoIxWjiMh3FGGrmu30n3IjJ5dqFPQEe5A0KA=;
 	h=Date:To:From:Subject:From;
-	b=ccT3oWrDd7DPjyNBf+CUraidrVSicpIwzvrmXbZIdN7A5jh4oMVSqbnAQe3YVu5cI
-	 abkcj1rQq7a1OPHik5ES3pmIfPkZ4LsiuCWun9XmCPG+DzAbrsoZ+HRHIbAJvVCzL2
-	 QrbxkYy2/qPH165XhicVFMMnEdwHhjrH8GuIl5as=
-Date: Sun, 20 Apr 2025 15:12:19 -0700
+	b=H9T5eFLozM2Mxl2ouqwmykTd/+RXKDNhkSRaJbiDsJL97mc9QHSB1p9O0ndyjh/ES
+	 Cq6wfXwGwmIKckvY9Py6OX3jldHadp3mFCUZ0bzeT3U/9wNzToJ9cdZTTF+t3UQFq0
+	 Rxy/Yx1n7PyVeSvRvywxkQ0MGeDVhdA50hhAddgc=
+Date: Sun, 20 Apr 2025 15:12:21 -0700
 To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mcgrof@kernel.org,david@redhat.com,dave@stgolabs.net,baolin.wang@linux.alibaba.com,a.manzanares@samsung.com,fan.ni@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-refactor-trace_mm_collapse_huge_page_isolate-to-take-folio-instead-of-page.patch added to mm-new branch
-Message-Id: <20250420221219.E8D7CC4CEE2@smtp.kernel.org>
+Subject: + khugepaged-refactor-trace_mm_khugepaged_scan_pmd-to-take-folio-instead-of-page.patch added to mm-new branch
+Message-Id: <20250420221222.53306C4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: refactor trace_mm_collapse_huge_page_isolate() to take folio instead of page
+     Subject: khugepaged: refactor trace_mm_khugepaged_scan_pmd() to take folio instead of page
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-refactor-trace_mm_collapse_huge_page_isolate-to-take-folio-instead-of-page.patch
+     khugepaged-refactor-trace_mm_khugepaged_scan_pmd-to-take-folio-instead-of-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-refactor-trace_mm_collapse_huge_page_isolate-to-take-folio-instead-of-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-refactor-trace_mm_khugepaged_scan_pmd-to-take-folio-instead-of-page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Fan Ni <fan.ni@samsung.com>
-Subject: khugepaged: refactor trace_mm_collapse_huge_page_isolate() to take folio instead of page
-Date: Fri, 18 Apr 2025 11:34:20 -0700
+Subject: khugepaged: refactor trace_mm_khugepaged_scan_pmd() to take folio instead of page
+Date: Fri, 18 Apr 2025 11:34:21 -0700
 
-trace_mm_collapse_huge_page_isolate() is only used in
-__collapse_huge_page_isolate(), which passes in the head page of a folio,
-so refactor it to take folio directly.
+trace_mm_khugepaged_scan_pmd() is only called in
+hpage_collapse_scan_pmd(), where the head page of a folio is passed in, so
+refactor it to take folio directly.
 
-Link: https://lkml.kernel.org/r/20250418183920.273154-1-nifan.cxl@gmail.com
+Link: https://lkml.kernel.org/r/20250418183920.273154-2-nifan.cxl@gmail.com
 Signed-off-by: Fan Ni <fan.ni@samsung.com>
-Reviewed-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Adam Manzanares <a.manzanares@samsung.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Luis Chamberalin <mcgrof@kernel.org>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -83,49 +82,42 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/trace/events/huge_memory.h |    6 +++---
- mm/khugepaged.c                    |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/khugepaged.c                    |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/trace/events/huge_memory.h~khugepaged-refactor-trace_mm_collapse_huge_page_isolate-to-take-folio-instead-of-page
+--- a/include/trace/events/huge_memory.h~khugepaged-refactor-trace_mm_khugepaged_scan_pmd-to-take-folio-instead-of-page
 +++ a/include/trace/events/huge_memory.h
-@@ -116,10 +116,10 @@ TRACE_EVENT(mm_collapse_huge_page,
+@@ -55,10 +55,10 @@ SCAN_STATUS
  
- TRACE_EVENT(mm_collapse_huge_page_isolate,
+ TRACE_EVENT(mm_khugepaged_scan_pmd,
  
--	TP_PROTO(struct page *page, int none_or_zero,
-+	TP_PROTO(struct folio *folio, int none_or_zero,
- 		 int referenced, bool  writable, int status),
+-	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
++	TP_PROTO(struct mm_struct *mm, struct folio *folio, bool writable,
+ 		 int referenced, int none_or_zero, int status, int unmapped),
  
--	TP_ARGS(page, none_or_zero, referenced, writable, status),
-+	TP_ARGS(folio, none_or_zero, referenced, writable, status),
+-	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
++	TP_ARGS(mm, folio, writable, referenced, none_or_zero, status, unmapped),
  
  	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
-@@ -130,7 +130,7 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 	),
+ 		__field(struct mm_struct *, mm)
+@@ -72,7 +72,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
  
  	TP_fast_assign(
+ 		__entry->mm = mm;
 -		__entry->pfn = page ? page_to_pfn(page) : -1;
 +		__entry->pfn = folio ? folio_pfn(folio) : -1;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->referenced = referenced;
  		__entry->writable = writable;
---- a/mm/khugepaged.c~khugepaged-refactor-trace_mm_collapse_huge_page_isolate-to-take-folio-instead-of-page
+ 		__entry->referenced = referenced;
+ 		__entry->none_or_zero = none_or_zero;
+--- a/mm/khugepaged.c~khugepaged-refactor-trace_mm_khugepaged_scan_pmd-to-take-folio-instead-of-page
 +++ a/mm/khugepaged.c
-@@ -696,13 +696,13 @@ next:
- 		result = SCAN_LACK_REFERENCED_PAGE;
- 	} else {
- 		result = SCAN_SUCCEED;
--		trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
-+		trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
- 						    referenced, writable, result);
- 		return result;
+@@ -1435,7 +1435,7 @@ out_unmap:
+ 		*mmap_locked = false;
  	}
  out:
- 	release_pte_pages(pte, _pte, compound_pagelist);
--	trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
-+	trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
- 					    referenced, writable, result);
+-	trace_mm_khugepaged_scan_pmd(mm, &folio->page, writable, referenced,
++	trace_mm_khugepaged_scan_pmd(mm, folio, writable, referenced,
+ 				     none_or_zero, result, unmapped);
  	return result;
  }
 _
