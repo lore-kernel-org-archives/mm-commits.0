@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AADEB3FC7
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 20:38:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9755213BAF1
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 20:56:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745181535; cv=none; b=LLh4YEIB7ircBG0q8AxIvVcSJNdi/CkUdvEZbRj4P7izNo1uSQm3DsDavtZYQOfQTtoNSvIqtdEHRej2XmX6jd7HUaH214KBu9fFoAOgjOmhCX4SR0FvYJOoxgPhH01PP/xPXRpLQtnFeszY/fMC2QfUzDrdTRqfJnSXaU/wMtY=
+	t=1745182584; cv=none; b=lkNTCB2zYGypM01Q8z5EXOW6q2hc9cyn8eJ+JK4bOzD2LsZsHDKtIP5F5C0tfd4Jz9brp33YDFijmehStNnSAo5GfpQiQ2py1OtCwd0K6pCZo2la/rU+8WASk6kwFOMUFygaBL4PjZb0PBk4zolVTd4wXUvKAR3JJDbjJq4hD4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745181535; c=relaxed/simple;
-	bh=OlCZjB3FZXcXzcQOu6SwTfbVZ3N2zAlfLST5/KiOT4E=;
-	h=Date:To:From:Subject:Message-Id; b=n4raia/yfswFZApPImce+8qodTzqudCSmM9krkQWJ9xl503RcJwvloD4VeoLkxhNiuOo2FLBvSDIqNKJm1VIvLLkjU19eg4XPdbLb21vcTUBjbrwilIxgCQTQkbDYmwY/29FsZ+TbiVxzSvoXx8ibAjQuYtm95le1PQ8xpFly+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FzaMpibz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745182584; c=relaxed/simple;
+	bh=UZz4fwX55pERAAgcYU6MJLArdyI3Kya6M19114la+QA=;
+	h=Date:To:From:Subject:Message-Id; b=Bs39y7djl0j7qwzjfI2y+1kDEXTPao9rxv0xhBHpj0Ql79MTe6+BQxpvCh/ChDxUSj7UqvBtZ1w609HiZ6L2jNmOHyyj1dCGuBDH0oaJ7tHyNYFTqyA1EyDr0UlhCuR5CJduA4s0yF5lsjN06DL1VrSBqC9qTzhun9H9BWOgVH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rylrk8c2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FzaMpibz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4FB0C4CEE2;
-	Sun, 20 Apr 2025 20:38:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rylrk8c2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0E3FC4CEE2;
+	Sun, 20 Apr 2025 20:56:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745181535;
-	bh=OlCZjB3FZXcXzcQOu6SwTfbVZ3N2zAlfLST5/KiOT4E=;
+	s=korg; t=1745182584;
+	bh=UZz4fwX55pERAAgcYU6MJLArdyI3Kya6M19114la+QA=;
 	h=Date:To:From:Subject:From;
-	b=FzaMpibz+ropWsp/4CUkoCSBSXqUgOtjtE5hWYoCDSlasVd0QAmFK/P150dTg5qul
-	 Tpz30/hzVwgopS2J9/GE7wMGXnKshKTkAF/oLrt+6M8QXp3pgwb+mTDStgG+2CZHg9
-	 r3i4vdQy8CxsWAN9dA5/bdSWaLPKQbEi/vXKWEMw=
-Date: Sun, 20 Apr 2025 13:38:54 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,gthelen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=rylrk8c2UnSSkJr6H+XJJZQqd5DEJ3AiLYqBeYnDCSdt8Q2dJSdHRrhscaFxM+NI4
+	 BoiyraP8MkMl13/3IFeuMuUCx+TSLI5NWQIYaikSvjGYkED8VCiOTA78Pr5xtd6KXc
+	 vEjUlvOWbebKygiHRrDRreULHwiVejZhmLeQuvAk=
+Date: Sun, 20 Apr 2025 13:56:23 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,lrh2000@pku.edu.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-introduce-non-blocking-limit-setting-option.patch added to mm-new branch
-Message-Id: <20250420203854.E4FB0C4CEE2@smtp.kernel.org>
+Subject: + mm-mm_init-dont-iterate-pages-below-arch_pfn_offset.patch added to mm-unstable branch
+Message-Id: <20250420205623.F0E3FC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: introduce non-blocking limit setting option
-has been added to the -mm mm-new branch.  Its filename is
-     memcg-introduce-non-blocking-limit-setting-option.patch
+     Subject: mm/mm_init: don't iterate pages below ARCH_PFN_OFFSET
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mm_init-dont-iterate-pages-below-arch_pfn_offset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-introduce-non-blocking-limit-setting-option.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-dont-iterate-pages-below-arch_pfn_offset.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,139 +58,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: introduce non-blocking limit setting option
-Date: Sat, 19 Apr 2025 11:35:45 -0700
+From: Ruihan Li <lrh2000@pku.edu.cn>
+Subject: mm/mm_init: don't iterate pages below ARCH_PFN_OFFSET
+Date: Sat, 19 Apr 2025 20:28:01 +0800
 
-Setting the max and high limits can trigger synchronous reclaim and/or
-oom-kill if the usage is higher than the given limit.  This behavior is
-fine for newly created cgroups but it can cause issues for the node
-controller while setting limits for existing cgroups.
+Currently, memmap_init initializes pfn_hole with 0 instead of
+ARCH_PFN_OFFSET. Then init_unavailable_range will start iterating each
+page from the page at address zero to the first available page, but it
+won't do anything for pages below ARCH_PFN_OFFSET because pfn_valid
+won't pass.
 
-In our production multi-tenant and overcommitted environment, we are
-seeing priority inversion when the node controller dynamically adjusts the
-limits of running jobs of different priorities.  Based on the system
-situation, the node controller may reduce the limits of lower priority
-jobs and increase the limits of higher priority jobs.  However we are
-seeing node controller getting stuck for long period of time while
-reclaiming from lower priority jobs while setting their limits and also
-spends a lot of its own CPU.
+If ARCH_PFN_OFFSET is very large (e.g., something like 2^64-2GiB if the
+kernel is used as a library and loaded at a very high address), the
+pointless iteration for pages below ARCH_PFN_OFFSET will take a very
+long time, and the kernel will look stuck at boot time.
 
-One of the workaround we are trying is to fork a new process which sets
-the limit of the lower priority job along with setting an alarm to get
-itself killed if it get stuck in the reclaim for lower priority job. 
-However we are finding it very unreliable and costly.  Either we need a
-good enough time buffer for the alarm to be delivered after setting limit
-and potentialy spend a lot of CPU in the reclaim or be unreliable in
-setting the limit for much shorter but cheaper (less reclaim) alarms.
+This commit sets the initial value of pfn_hole to ARCH_PFN_OFFSET, which
+avoids the problematic and useless iteration mentioned above.
 
-Let's introduce new limit setting option which does not trigger reclaim
-and/or oom-kill and let the processes in the target cgroup to trigger
-reclaim and/or throttling and/or oom-kill in their next charge request. 
-This will make the node controller on multi-tenant overcommitted
-environment much more reliable.
+This problem has existed since commit 907ec5fca3dc ("mm: zero remaining
+unavailable struct pages").
 
-Link: https://lkml.kernel.org/r/20250419183545.1982187-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20250419122801.1752234-1-lrh2000@pku.edu.cn
+Fixes: 907ec5fca3dc ("mm: zero remaining unavailable struct pages")
+Signed-off-by: Ruihan Li <lrh2000@pku.edu.cn>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   14 ++++++++++++++
- mm/memcontrol.c                         |   10 ++++++++--
- 2 files changed, 22 insertions(+), 2 deletions(-)
+ mm/mm_init.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~memcg-introduce-non-blocking-limit-setting-option
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1299,6 +1299,13 @@ PAGE_SIZE multiple when read back.
- 	monitors the limited cgroup to alleviate heavy reclaim
- 	pressure.
+--- a/mm/mm_init.c~mm-mm_init-dont-iterate-pages-below-arch_pfn_offset
++++ a/mm/mm_init.c
+@@ -975,6 +975,15 @@ static void __init memmap_init(void)
+ 	unsigned long hole_pfn = 0;
+ 	int i, j, zone_id = 0, nid;
  
-+        If memory.high is opened with O_NONBLOCK then the synchronous
-+        reclaim is bypassed. This is useful for admin processes that
-+        need to dynamically adjust the job's memory limits without
-+        expending their own CPU resources on memory reclamation. The
-+        job will trigger the reclaim and/or get throttled on its
-+        next charge request.
++#ifdef CONFIG_FLATMEM
++	/*
++	 * Pages below ARCH_PFN_OFFSET are invalid as far as pfn_valid is
++	 * concerned, so don't waste time iterating on them when looking
++	 * for holes.
++	 */
++	hole_pfn = ARCH_PFN_OFFSET;
++#endif
 +
-   memory.max
- 	A read-write single value file which exists on non-root
- 	cgroups.  The default is "max".
-@@ -1316,6 +1323,13 @@ PAGE_SIZE multiple when read back.
- 	Caller could retry them differently, return into userspace
- 	as -ENOMEM or silently ignore in cases like disk readahead.
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		struct pglist_data *node = NODE_DATA(nid);
  
-+        If memory.max is opened with O_NONBLOCK, then the synchronous
-+        reclaim and oom-kill are bypassed. This is useful for admin
-+        processes that need to dynamically adjust the job's memory limits
-+        without expending their own CPU resources on memory reclamation.
-+        The job will trigger the reclaim and/or oom-kill on its next
-+        charge request.
-+
-   memory.reclaim
- 	A write-only nested-keyed file which exists for all cgroups.
- 
---- a/mm/memcontrol.c~memcg-introduce-non-blocking-limit-setting-option
-+++ a/mm/memcontrol.c
-@@ -4252,6 +4252,9 @@ static ssize_t memory_high_write(struct
- 
- 	page_counter_set_high(&memcg->memory, high);
- 
-+	if (of->file->f_flags & O_NONBLOCK)
-+		goto out;
-+
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
- 		unsigned long reclaimed;
-@@ -4274,7 +4277,7 @@ static ssize_t memory_high_write(struct
- 		if (!reclaimed && !nr_retries--)
- 			break;
- 	}
--
-+out:
- 	memcg_wb_domain_size_changed(memcg);
- 	return nbytes;
- }
-@@ -4301,6 +4304,9 @@ static ssize_t memory_max_write(struct k
- 
- 	xchg(&memcg->memory.max, max);
- 
-+	if (of->file->f_flags & O_NONBLOCK)
-+		goto out;
-+
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
- 
-@@ -4328,7 +4334,7 @@ static ssize_t memory_max_write(struct k
- 			break;
- 		cond_resched();
- 	}
--
-+out:
- 	memcg_wb_domain_size_changed(memcg);
- 	return nbytes;
- }
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from lrh2000@pku.edu.cn are
 
-memcg-vmalloc-simplify-memcg_vmalloc-updates.patch
-memcg-vmalloc-simplify-memcg_vmalloc-updates-fix.patch
-memcg-remove-root-memcg-check-from-refill_stock.patch
-memcg-decouple-drain_obj_stock-from-local-stock.patch
-memcg-introduce-memcg_uncharge.patch
-memcg-manually-inline-__refill_stock.patch
-memcg-no-refilling-stock-from-obj_cgroup_release.patch
-memcg-do-obj_cgroup_put-inside-drain_obj_stock.patch
-memcg-use-__mod_memcg_state-in-drain_obj_stock.patch
-memcg-manually-inline-replace_stock_objcg.patch
-memcg-optimize-memcg_rstat_updated.patch
-memcg-multi-memcg-percpu-charge-cache.patch
-memcg-introduce-non-blocking-limit-setting-option.patch
+mm-mm_init-dont-iterate-pages-below-arch_pfn_offset.patch
 
