@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB8D7462
-	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 23:36:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 360E018A6D7
+	for <mm-commits@vger.kernel.org>; Sun, 20 Apr 2025 23:46:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745192196; cv=none; b=VDSlRhEh2/l+CVqwOtlTw0blHP/1rHDB8nj4anQb6Dl/nW8cVmEm2ENMByDVTPGlM8MWBgKaAYciW31t6+i5wCg3krtIJc1GuPoha17Tqqpq87644bYuZMXHbtsxcDDJNcBpzRLtd76pxGIPauWl5+zkaFHAWRWzAGFfl32bORg=
+	t=1745192821; cv=none; b=p99GzTdgmgB5fQxS8F/Xc/h+BmWkYtrF4wM6/5TPevV9CUWllfSLLcvlDFjx83iSjfLdoXlLNzqUff0vJedh/ILqwdyVP2fDJBU2ax07lX64KhdRIhmbKgRojrXJnVCIcDzyoHswIT1qXv+Cgfyd5SQRB0lIir5O0DC+3DZdHsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745192196; c=relaxed/simple;
-	bh=s8eelJaaYVTNbAz6hHmvhLYfcu4/iTw/bzUF+/krQjw=;
-	h=Date:To:From:Subject:Message-Id; b=FVyB+r9QFtFRJPTYDoqH2TK0yQ1jiPf1pCCEoj4WaXEhVG8eE67lxtHpQ/EBzDDw2J3NEopfxm9xjVQGv9PwHxnKhPwmT6Ci3UIkKjTE/R7GZKLOY20cjbS/fd+UiRRCpEuWbQCrgWjbf3UgI53SwpheiQBrfj90w61/VC+nJ+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYYz+IYb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745192821; c=relaxed/simple;
+	bh=RNhncM0V9GpedyLesdhoMoggNSWN3eREndgw8ijXRow=;
+	h=Date:To:From:Subject:Message-Id; b=fQaIYNbgVwIPq7T80Asao6BqOZbCZ0WMy7atMjF55rUPYxIRVbqQIywotxBlytbb3gXpk6FelhWdc/vxAYwKoQB+11C+IMbWJTPTiplUjFxNf6Rd5j+TRyg3hbSmO1kSlszxPBi4vEx9+VcRf4PixycVv59sbqsAT7ZK4FDCJNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fTjYdSAp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYYz+IYb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98AE9C4CEE2;
-	Sun, 20 Apr 2025 23:36:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fTjYdSAp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 913AEC4CEE2;
+	Sun, 20 Apr 2025 23:46:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745192195;
-	bh=s8eelJaaYVTNbAz6hHmvhLYfcu4/iTw/bzUF+/krQjw=;
+	s=korg; t=1745192819;
+	bh=RNhncM0V9GpedyLesdhoMoggNSWN3eREndgw8ijXRow=;
 	h=Date:To:From:Subject:From;
-	b=WYYz+IYbQNFSPwHYsd1ENYf/zCIhP/PIkhPkFnOvhPncK2icxyk7249iXfqY/biFr
-	 Ia7Q9p2VPO54SNtehvnUbk25zs1DLN4K4yWfrBYAPd2OatZ77MG7L9kUzZ+uWeT6qM
-	 Vq8irecpqep3sXUKdNurc+KOWACj+tRF11ImJYgU=
-Date: Sun, 20 Apr 2025 16:36:34 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,colin.i.king@gmail.com,akpm@linux-foundation.org
+	b=fTjYdSApGC5IKH7VdVrrpbyU8uYsEVUODKGGIduLruA0o6ge3eSVGL1Iwu5o7CYNo
+	 9Hcg/xOfOzhU6eFhMv+slxD9//OqyxihObmTtPTJUfDP6Q/8vfjd8Dj2tI3SqcOm1R
+	 kwFoWCu+kCFV//DdoNHzQ4BmNq4OaBmPy7qhXpxc=
+Date: Sun, 20 Apr 2025 16:46:58 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-fix-spelling-mistake-crahskernel-crashkernel.patch added to mm-nonmm-unstable branch
-Message-Id: <20250420233635.98AE9C4CEE2@smtp.kernel.org>
+Subject: + mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch added to mm-unstable branch
+Message-Id: <20250420234659.913AEC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: fix spelling mistake "crahskernel" -> "crashkernel"
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash-fix-spelling-mistake-crahskernel-crashkernel.patch
+     Subject: mm/rmap: fix typo in comment in page_address_in_vma
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-spelling-mistake-crahskernel-crashkernel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: crash: fix spelling mistake "crahskernel" -> "crashkernel"
-Date: Fri, 18 Apr 2025 13:03:31 +0100
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/rmap: fix typo in comment in page_address_in_vma
+Date: Fri, 18 Apr 2025 17:56:00 +0800
 
-There is a spelling mistake in a pr_warn message. Fix it.
+Fix a minor typo in the comment above page_address_in_vma():
+"responsibililty" → "responsibility"
 
-Link: https://lkml.kernel.org/r/20250418120331.535086-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/20250418095600.721989-3-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_reserve.c |    2 +-
+ mm/rmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/crash_reserve.c~crash-fix-spelling-mistake-crahskernel-crashkernel
-+++ a/kernel/crash_reserve.c
-@@ -131,7 +131,7 @@ static int __init parse_crashkernel_mem(
- 			cur++;
- 			*crash_base = memparse(cur, &tmp);
- 			if (cur == tmp) {
--				pr_warn("crahskernel: Memory value expected after '@'\n");
-+				pr_warn("crashkernel: Memory value expected after '@'\n");
- 				return -EINVAL;
- 			}
- 		}
+--- a/mm/rmap.c~mm-rmap-fix-typo-in-comment-in-page_address_in_vma
++++ a/mm/rmap.c
+@@ -774,7 +774,7 @@ static bool should_defer_flush(struct mm
+  * @vma: The VMA we need to know the address in.
+  *
+  * Calculates the user virtual address of this page in the specified VMA.
+- * It is the caller's responsibililty to check the page is actually
++ * It is the caller's responsibility to check the page is actually
+  * within the VMA.  There may not currently be a PTE pointing at this
+  * page, but if a page fault occurs at this address, this is the page
+  * which will be accessed.
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-crash-fix-spelling-mistake-crahskernel-crashkernel.patch
+mm-show_mem-optimize-si_meminfo_node-by-reducing-redundant-code.patch
+mm-page_alloc-simplify-free_page_is_bad-by-removing-free_page_is_bad_report.patch
+fs-proc-page-refactoring-to-reduce-code-duplication.patch
+mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
 
