@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FA481E4110
-	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 19:02:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CA61E4110
+	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 19:02:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745262165; cv=none; b=mJR7lB3+6JrzUXQO8Xi99zZKgSD3YQkCn3QxfS3k/+c0+DUPmfsKlOCMdmkWxI3czWbL3aBgvzISYaPZM3BcBghmmbNe/v7Xp4ZwT84sXN9cY7WE2vsOJGVCN0/9722v1kZzjM6lH/qqxZKfh1ulQny+hkaN4GxZ1VNlcwcQyao=
+	t=1745262166; cv=none; b=WAMkoCkG3kFwH78FI81/l18cznh9nmrkM8/C4AVu16w5F1hqiqR0QhHJq1QRSqOF0H6U2y4J9Ek9KfZgOqji+50WyNMnD/OQuw8f0PHlXPimzbsvY2lA7/Ym8GcqdCZve6JTj1uSVFAKeFt1bj8QR9M5i7aY89APZLPA+zwe4V4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745262165; c=relaxed/simple;
-	bh=s4t0JmhdDbHbL5rr749vp2C404Y93VgUZbx4vGL5wnw=;
-	h=Date:To:From:Subject:Message-Id; b=ArLVpCUKBzCkPyQrPEVzXNMemMj2AIMSwjLAOa/Oib7v/w0jt6AOQtiey5gMwSYEgwTzYLnHrLVQ5ijnfnkM4SizPlXc2MpKDDO6+10EMrmP1FimQJWytPzCjOuHNb8ZvZw35zAcX21Kqg/vbhRGdBmrISwV62r5lJ61J4CM8bI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hFekTb8z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745262166; c=relaxed/simple;
+	bh=PuqpD0ghUW8S2JsguD6d0u1Mn5Zn/BDMhrB6LV3opWY=;
+	h=Date:To:From:Subject:Message-Id; b=mcs5qLoNuUsvv/BFCdxmJswHKqkncG/2DgZjtj113hEQrKQZGGm8SH7Ok1dvC9bh+5+hZ11IN4SwgbDELxo/6nejNluaBbyVdJdzrn6CdjR5ZrdL3HQoFkzuda7bii04e5fOQ79YSCPQfpLg2ROVCdW5oWDsMRhgZ/leZk/recE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=icHK++Yh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hFekTb8z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80C5AC4CEE4;
-	Mon, 21 Apr 2025 19:02:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="icHK++Yh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F1D1C4CEE4;
+	Mon, 21 Apr 2025 19:02:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745262163;
-	bh=s4t0JmhdDbHbL5rr749vp2C404Y93VgUZbx4vGL5wnw=;
+	s=korg; t=1745262165;
+	bh=PuqpD0ghUW8S2JsguD6d0u1Mn5Zn/BDMhrB6LV3opWY=;
 	h=Date:To:From:Subject:From;
-	b=hFekTb8zXjPTfFV63bfaLXez4/neaQz8KE7NCE+XuPZVeDV8TxpX//mHxa0vq5jwB
-	 MM2/MuGNG1qNgU4sgmNe2oKjA2QEPeKEvMODKkHcwpIUlQFq+jEk+7j/mHhewLSKRI
-	 p6+WeUCG6hh3xh2nMDYlYMkzvEpvZp/yRz0bd9N4=
-Date: Mon, 21 Apr 2025 12:02:42 -0700
+	b=icHK++Yhm/VYGBYK0lXdApWAfaTC1Bk3O3mdmBpgRskkoxsWwUsO2hjQJFhNvCC9k
+	 hAfJRrF3cKRxI+bNenbdHBDPjuiDtlfS3kDwLE6obJK1Xu/8ddiVwOY3Z1LE7HX0En
+	 T5nWvv5gszVM7NzrlctaEy2JjscOLyFzgRrEqskk=
+Date: Mon, 21 Apr 2025 12:02:45 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,nao.horiguchi@gmail.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,harry.yoo@oracle.com,david@redhat.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency.patch added to mm-new branch
-Message-Id: <20250421190243.80C5AC4CEE4@smtp.kernel.org>
+Subject: + mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch added to mm-new branch
+Message-Id: <20250421190245.8F1D1C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: rename page__anon_vma to anon_vma for consistency
+     Subject: mm/rmap: fix typo in comment in page_address_in_vma
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency.patch
+     mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-fix-typo-in-comment-in-page_address_in_vma.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,37 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/rmap: rename page__anon_vma to anon_vma for consistency
-Date: Mon, 21 Apr 2025 16:57:28 +0800
+Subject: mm/rmap: fix typo in comment in page_address_in_vma
+Date: Mon, 21 Apr 2025 16:57:29 +0800
 
-Patch series "mm: minor cleanups in rmap", v3.
+Fix a minor typo in the comment above page_address_in_vma():
+"responsibililty" → "responsibility"
 
-Minor cleanups in mm/rmap.c:
-
-- Rename a local variable for consistency
-- Fix a typo in a comment
-
-No functional changes.
-
-
-This patch (of 2):
-
-Rename local variable page__anon_vma in page_address_in_vma() to anon_vma.
-The previous naming convention of using double underscores (__) is
-unnecessary and inconsistent with typical kernel style, which uses single
-underscores to denote local variables.  Also updated comments to reflect
-the new variable name.
-
-Functionality unchanged.
-
-Link: https://lkml.kernel.org/r/20250421085729.127845-1-ye.liu@linux.dev
-Link: https://lkml.kernel.org/r/20250421085729.127845-2-ye.liu@linux.dev
+Link: https://lkml.kernel.org/r/20250421085729.127845-3-ye.liu@linux.dev
 Signed-off-by: Ye Liu <liuye@kylinos.cn>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Liu Ye <liuye@kylinos.cn>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Rik van Riel <riel@surriel.com>
@@ -103,37 +84,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-rmap-rename-page__anon_vma-to-anon_vma-for-consistency
+--- a/mm/rmap.c~mm-rmap-fix-typo-in-comment-in-page_address_in_vma
 +++ a/mm/rmap.c
-@@ -789,13 +789,13 @@ unsigned long page_address_in_vma(const
- 		const struct page *page, const struct vm_area_struct *vma)
- {
- 	if (folio_test_anon(folio)) {
--		struct anon_vma *page__anon_vma = folio_anon_vma(folio);
-+		struct anon_vma *anon_vma = folio_anon_vma(folio);
- 		/*
- 		 * Note: swapoff's unuse_vma() is more efficient with this
- 		 * check, and needs it to match anon_vma when KSM is active.
- 		 */
--		if (!vma->anon_vma || !page__anon_vma ||
--		    vma->anon_vma->root != page__anon_vma->root)
-+		if (!vma->anon_vma || !anon_vma ||
-+		    vma->anon_vma->root != anon_vma->root)
- 			return -EFAULT;
- 	} else if (!vma->vm_file) {
- 		return -EFAULT;
-@@ -803,7 +803,7 @@ unsigned long page_address_in_vma(const
- 		return -EFAULT;
- 	}
- 
--	/* KSM folios don't reach here because of the !page__anon_vma check */
-+	/* KSM folios don't reach here because of the !anon_vma check */
- 	return vma_address(vma, page_pgoff(folio, page), 1);
- }
- 
+@@ -774,7 +774,7 @@ static bool should_defer_flush(struct mm
+  * @vma: The VMA we need to know the address in.
+  *
+  * Calculates the user virtual address of this page in the specified VMA.
+- * It is the caller's responsibililty to check the page is actually
++ * It is the caller's responsibility to check the page is actually
+  * within the VMA.  There may not currently be a PTE pointing at this
+  * page, but if a page fault occurs at this address, this is the page
+  * which will be accessed.
 _
 
 Patches currently in -mm which might be from liuye@kylinos.cn are
