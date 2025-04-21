@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914ED1EEA5D
-	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 18:54:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225061EB180
+	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 18:54:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745261669; cv=none; b=TdyXX7pDos1yjhh0JPQF6TAbA8136pkqlVWwuCMmZcpHJjOwBAg3VtH3TVRDU0noY/PEFZQ+4poM5Zzi2FJyvqb2xGAdyyywFjJl/Nz2gxNKHsFcLYsj+TSmSZLtHgnw6TMgY0SPxmylrbx7j5EfKzwUGDLDP5Kz8VckP5vEYzk=
+	t=1745261671; cv=none; b=gKga4BSfgIXEYyHZAVOIelG+pQvzlH/LmtWj4ugif2BmhiXIydJyb2oVIxbIHQ0TCHMkYOPbpRkGRv4mBinNfhqfdjTmjd8igo4dQuTGY3A9atqFPWA/06BJUgI/J0zMLcytVVekG+jFwU2WURvvYTzscJXVA4D2M3HaN4H4JH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745261669; c=relaxed/simple;
-	bh=3smJEFd42sXucj/uOb0CyVU7ku7bDaK4mG1+CdREoUM=;
-	h=Date:To:From:Subject:Message-Id; b=C4bwLaw1dwM4c9DsnKCrZQolP9UkMRS/pPLvQlwUXks8wtbE3CDF34uUzt1h3UVw5iOUuovAjvp6Q9Zb9wuGaEC1YgRnP0QVQVc/SqMKHaVO5Bco7mXhiHPuKYUXGLh1ALL0ZLo1dspQ4ZO7hpE7RWZZc4ToWR9oIM8wG8r1asU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fcbi05o9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745261671; c=relaxed/simple;
+	bh=45jTyniKzWIdDlQvi96anlylPIS0vHeD1mVGHlOWPS4=;
+	h=Date:To:From:Subject:Message-Id; b=hNhz4ONhGira0/0CNSxHYQ7c5sk507fEaoCAiZ2Dwls/8yB27NlbKlgTUgbe8V2XGdvSV8ST1wQfgZjkEZAVCyML3srrvEZytrHd9OADEbr0Tiws7cpm4IurQIRHESXWkYqXjihmwEYDNmIABMBQfNqkyn49XiaL6/vVlKFz40A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IGgKHhTj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fcbi05o9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA541C4CEE4;
-	Mon, 21 Apr 2025 18:54:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IGgKHhTj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D73A5C4CEE4;
+	Mon, 21 Apr 2025 18:54:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745261668;
-	bh=3smJEFd42sXucj/uOb0CyVU7ku7bDaK4mG1+CdREoUM=;
+	s=korg; t=1745261670;
+	bh=45jTyniKzWIdDlQvi96anlylPIS0vHeD1mVGHlOWPS4=;
 	h=Date:To:From:Subject:From;
-	b=fcbi05o9dl7D+OyXmJfnRADmZ1IOEQDLgdYkyTorjQvMuVWr7pIetZw5MONENqdKH
-	 hAAns1gqJ+miduapYymPe16JtC72TPVMSNd5M4O1bjB5jCSN4RdKojrJVLK1ZwLr9z
-	 wM/Dz2ZticelUWWInG2UgjIWHY5LqxiLPP7LGqoc=
-Date: Mon, 21 Apr 2025 11:54:28 -0700
+	b=IGgKHhTj4ALfRrizYMhY14GdtAJVz5wYBL1N8HTp05zm/a4RDqy04V6vDlnpgm0G8
+	 4XEjgdL2ngIqBY/UQtZv8SOuS6FBg/63Crpd4DCnp3p3eGJQvSYkOBzRdeBblhO5nh
+	 62kV2pZWM2waFn/9bHUIiWALwDTTrQvp3eZfmMJk=
+Date: Mon, 21 Apr 2025 11:54:30 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yosry.ahmed@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-more-comments-about-cache_trim_mode.patch added to mm-new branch
-Message-Id: <20250421185428.DA541C4CEE4@smtp.kernel.org>
+Subject: + mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch added to mm-new branch
+Message-Id: <20250421185430.D73A5C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: add more comments about cache_trim_mode
+     Subject: mm: add max swappiness arg to lru_gen for anonymous memory only
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-add-more-comments-about-cache_trim_mode.patch
+     mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-more-comments-about-cache_trim_mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Subject: mm: vmscan: add more comments about cache_trim_mode
-Date: Mon, 21 Apr 2025 17:13:29 +0800
+Subject: mm: add max swappiness arg to lru_gen for anonymous memory only
+Date: Mon, 21 Apr 2025 17:13:30 +0800
 
-Add more comments for cache_trim_mode, and the annotations provided by
-Johannes Weiner in [1].
+MGLRU already supports reclaiming only from anonymous memory via the
+/sys/kernel/debug/lru_gen interface.  Now, memory.reclaim also supports
+the swappiness=max parameter to enable reclaiming solely from anonymous
+memory.  To unify the semantics of proactive reclaiming from anonymous
+folios, the max parameter is introduced.
 
-Link: https://lore.kernel.org/all/20250314141833.GA1316033@cmpxchg.org/
-Link: https://lkml.kernel.org/r/4baad87ba637f1e6f666e9b99b3fdcb7ab39171b.1745225696.git.hezhongkun.hzk@bytedance.com
+Link: https://lkml.kernel.org/r/65181f7745d657d664d833c26d8a94cae40538b9.1745225696.git.hezhongkun.hzk@bytedance.com
 Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -82,21 +84,60 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/multigen_lru.rst |    5 +++--
+ mm/vmscan.c                                   |   15 ++++++++++++---
+ 2 files changed, 15 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-add-more-comments-about-cache_trim_mode
-+++ a/mm/vmscan.c
-@@ -2591,7 +2591,8 @@ static void get_scan_count(struct lruvec
+--- a/Documentation/admin-guide/mm/multigen_lru.rst~mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only
++++ a/Documentation/admin-guide/mm/multigen_lru.rst
+@@ -151,8 +151,9 @@ generations less than or equal to ``min_
+ ``min_gen_nr`` should be less than ``max_gen_nr-1``, since
+ ``max_gen_nr`` and ``max_gen_nr-1`` are not fully aged (equivalent to
+ the active list) and therefore cannot be evicted. ``swappiness``
+-overrides the default value in ``/proc/sys/vm/swappiness``.
+-``nr_to_reclaim`` limits the number of pages to evict.
++overrides the default value in ``/proc/sys/vm/swappiness`` and the valid
++range is [0-200, max], with max being exclusively used for the reclamation
++of anonymous memory. ``nr_to_reclaim`` limits the number of pages to evict.
  
- 	/*
- 	 * If there is enough inactive page cache, we do not reclaim
--	 * anything from the anonymous working right now.
-+	 * anything from the anonymous working right now to make sure
-+         * a streaming file access pattern doesn't cause swapping.
- 	 */
- 	if (sc->cache_trim_mode) {
- 		scan_balance = SCAN_FILE;
+ A typical use case is that a job scheduler runs this command before it
+ tries to land a new job on a server. If it fails to materialize enough
+--- a/mm/vmscan.c~mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only
++++ a/mm/vmscan.c
+@@ -5587,7 +5587,7 @@ static ssize_t lru_gen_seq_write(struct
+ 	while ((cur = strsep(&next, ",;\n"))) {
+ 		int n;
+ 		int end;
+-		char cmd;
++		char cmd, swap_string[5];
+ 		unsigned int memcg_id;
+ 		unsigned int nid;
+ 		unsigned long seq;
+@@ -5598,13 +5598,22 @@ static ssize_t lru_gen_seq_write(struct
+ 		if (!*cur)
+ 			continue;
+ 
+-		n = sscanf(cur, "%c %u %u %lu %n %u %n %lu %n", &cmd, &memcg_id, &nid,
+-			   &seq, &end, &swappiness, &end, &opt, &end);
++		n = sscanf(cur, "%c %u %u %lu %n %4s %n %lu %n", &cmd, &memcg_id, &nid,
++			   &seq, &end, swap_string, &end, &opt, &end);
+ 		if (n < 4 || cur[end]) {
+ 			err = -EINVAL;
+ 			break;
+ 		}
+ 
++		/* set by userspace for anonymous memory only */
++		if (!strncmp("max", swap_string, sizeof("max"))) {
++			swappiness = SWAPPINESS_ANON_ONLY;
++		} else {
++			err = kstrtouint(swap_string, 0, &swappiness);
++			if (err)
++				break;
++		}
++
+ 		err = run_cmd(cmd, memcg_id, nid, seq, &sc, swappiness, opt);
+ 		if (err)
+ 			break;
 _
 
 Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
