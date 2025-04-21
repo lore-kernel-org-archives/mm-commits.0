@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A2D08BEA
-	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 19:48:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F4D8BEA;
+	Mon, 21 Apr 2025 19:49:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745264932; cv=none; b=UUcBuObK3OSIXqkqPiKCeQ7925+ZWOzR7S9Be6URaAx5ocfxKAWV4bHwzW8Y+jfWe0RxiwkbF0xgl2Jp6aJ0//oxzp4s1hT0Vo1SoQu88ayA7iEzbDce9V7jufEh0xMlOGHHfLv4rZ/KR0/vfgkL5Kfl9jL4jIvZHXkyhhETgJo=
+	t=1745264951; cv=none; b=ciRnQJJO91k6jBcpczkzU2ZyfHIO9p+6vfR9FtGT55JBaojMdJEl+yrmAYD8MdQgZkKj73y0lR/UJwQZROTF0tCKJGh6BtioTHe+qYmuqNqwceLhy6Hrxb9iARETwpLcktOAs92ImwyHQ0OBpotfMmKolggaiOre9XoWVOA/B/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745264932; c=relaxed/simple;
-	bh=kUa/+H5bKaP0seRtBPhNQRW1KABFlni9LYjArtwHTmQ=;
-	h=Date:To:From:Subject:Message-Id; b=l9tKZ85yIsiY+352z2uBAUCPxqnVs9HOEX5A+J4/L+MZiaoWIsFP9fJSAJ8Zi42Ed8Ku/9JXbPj/nkjMUWELTplheRli80qQG2x5GhbhFb0CDCmKsfs9nBuC9CNCA9NFKeqnN919VHhRVhVgfAYqC6qsDTioEqDkPOyCrENxmK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdqHy1Nd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745264951; c=relaxed/simple;
+	bh=ZKwgzBMd2ynxOHDU8094XcyKSAz/RG1KL1e2R/kBuqk=;
+	h=Date:To:From:Subject:Message-Id; b=NC5ZQ1uiCnzD3d1VsGFBTg1oaMbmWv7prcUUZL+q6owSME0Ti0rapn340X5hBePzx0ZQzkMD+oAiqVUU3MFLtfgFZOLkoZbKjcLlkbrZ5TPinX43BtJsSqTN/y5i26LaXecvgO1aHvj78klM6R09g+P4g7GBoPsKa3XI+8nZO1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m1E68Gh7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdqHy1Nd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AC5C4CEE4;
-	Mon, 21 Apr 2025 19:48:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m1E68Gh7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD74C4CEE4;
+	Mon, 21 Apr 2025 19:49:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745264932;
-	bh=kUa/+H5bKaP0seRtBPhNQRW1KABFlni9LYjArtwHTmQ=;
+	s=korg; t=1745264951;
+	bh=ZKwgzBMd2ynxOHDU8094XcyKSAz/RG1KL1e2R/kBuqk=;
 	h=Date:To:From:Subject:From;
-	b=IdqHy1NdEbk7mUJcfbEuBEWRhOoKLHPB4UoETURyOdDhe7dvMV/5O1uof6Jdhs6f1
-	 gvTvx/8NLTIMS1vSOyNmTxxqULii8IPn9XH/8F+0O2nT5bxL2XSNbFOdrHDWlGQQtt
-	 XG0FESBGJySRlR3IDkqeuv11ENMah5v/zd4oGg7g=
-Date: Mon, 21 Apr 2025 12:48:51 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,wangkefeng.wang@huawei.com,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=m1E68Gh7HotD1gV7wsFVRCbaETYjMEZFdgc2Pf95rFqqXNtQXVUi5u0GCxzkZUaEg
+	 SPQiLu2r3VbnP9eEBtgaH4i6byyL4ljMR+mhjkHhQw+vkAedNH3+nzWDdDkhgZ9wTn
+	 0mwKf5dS+trORHKkyw7CthJ9/pmUZ4iH1WwfeXP0=
+Date: Mon, 21 Apr 2025 12:49:10 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-contig_alloc-fix-alloc_contig_range-when-__gfp_comp-and-order-max_order.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250421194852.37AC5C4CEE4@smtp.kernel.org>
+Message-Id: <20250421194910.DFD74C4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -90,6 +90,7 @@ Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
