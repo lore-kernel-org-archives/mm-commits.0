@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9416718DF86;
-	Mon, 21 Apr 2025 18:47:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FEEA1EF09C
+	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 18:54:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745261253; cv=none; b=C/2789qSSmDomMlbLihNt/mCUkKJaN29Y+Qo+MO4YV0OTrxusA+tXHJ5rP0XEM6oBrOISkTA2bXAeQfAgMYjDt+j7fUZNRQYvRD1zlN1CVmehv6bCxaUYGPoN2hx/DByzqSHNXBPugxrgQBUVg0LczxQFSbfupQ1TGk2vs2zraA=
+	t=1745261666; cv=none; b=OpIKFzwRbXwugH7LQHcJgd7wuJNj76lnCChMfDP5le2Bbz5CpRcsnnlcxKpRA2YD2IDiugCeLP0fSt2zepgaTitnrg4A4+GgDvsnuq9/x92PRU7pfpmtJ3ee1maQnNIgFNz83qFL4+umcbWs699a0dHc6YSO/dLD00aXyhIsObU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745261253; c=relaxed/simple;
-	bh=OlJnnN3YRwuWvQxYA7fg4HQKN+3nL1lTR2meGICNBvM=;
-	h=Date:To:From:Subject:Message-Id; b=Muy7PLOm9nVPgX4ADurSJcuNyBvxJFeUfz0IqnNXsSS9Ve5YjxVoA+t40pieSlwEgX0o7TJKJscPXMmuHv1NvBr9dHVnF9ViYKtWjwErZbX6CRYIMCWIjMnnutgz+4CQ9vHUDzJnuE7IzqAt+A+eGPPjWl/K3IzPNOeyfEuH3Qc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wY5zeXHe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745261666; c=relaxed/simple;
+	bh=XZWj1Xe7DYAtcgrna+Lm5wvmvEVubizlH7+4w2V06t4=;
+	h=Date:To:From:Subject:Message-Id; b=D234NC5FxxYjh7oF7sEPJ8ZAiGJzqzUrTtPPLf9b2sjIqO5wAdGMJSyzMIKZC3dj09jKaE3l7+tiRJoOBpedSMz2+wB5VTn68obYpeKYJyfEeCTJVtRWolSUGpYq+Xkkpp9wAdnCOqIVaIo6SKnpgXHuKAnijTcjRoagIYUYFoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QfM9gy6R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wY5zeXHe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07EDAC4CEE4;
-	Mon, 21 Apr 2025 18:47:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QfM9gy6R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C62AC4CEE4;
+	Mon, 21 Apr 2025 18:54:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745261253;
-	bh=OlJnnN3YRwuWvQxYA7fg4HQKN+3nL1lTR2meGICNBvM=;
+	s=korg; t=1745261665;
+	bh=XZWj1Xe7DYAtcgrna+Lm5wvmvEVubizlH7+4w2V06t4=;
 	h=Date:To:From:Subject:From;
-	b=wY5zeXHe+Hsriz1Gj/XfB+8yr+MApskuCDjL/95MVhta8rnN9mYdJXnJbA9LuOnyg
-	 wPN85lEMzCPGZ77ZXTwix9pLkNxZfm7b3hfq7RLPOoyJ9qpXp76Jkl8JHlKjITRe9f
-	 +2KkwZ2ErpWXI63Nu0mTuJPSV0l9ovD2fk6o2BxI=
-Date: Mon, 21 Apr 2025 11:47:32 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,gavinguo@igalia.com,akpm@linux-foundation.org
+	b=QfM9gy6RFJCA6jA3W4bkyNqWNhxepEE0h9QKmqn+nrBU29cTNKVwGCd9OUteq5mPV
+	 D4G9AFZi8W4EZNfrZhWeGRogB+HMpW/JhEJFS5tClPoS56EU9z+2dJbC4a/Pl8R0c4
+	 Ek8RPc0cnTopgKnzfILjsL+/BLM98Q30MYTlxJmw=
+Date: Mon, 21 Apr 2025 11:54:24 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosry.ahmed@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250421184733.07EDAC4CEE4@smtp.kernel.org>
+Subject: + mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim.patch added to mm-new branch
+Message-Id: <20250421185425.8C62AC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
+     Subject: mm: add swappiness=max arg to memory.reclaim for only anon reclaim
+has been added to the -mm mm-new branch.  Its filename is
+     mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,94 +64,170 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gavin Guo <gavinguo@igalia.com>
-Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
-Date: Mon, 21 Apr 2025 19:35:36 +0800
+From: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Subject: mm: add swappiness=max arg to memory.reclaim for only anon reclaim
+Date: Mon, 21 Apr 2025 17:13:28 +0800
 
-When migrating a THP, concurrent access to the PMD migration entry during
-a deferred split scan can lead to an invalid address access, as
-illustrated below.  To prevent this invalid access, it is necessary to
-check the PMD migration entry and return early.  In this context, there is
-no need to use pmd_to_swp_entry and pfn_swap_entry_to_page to verify the
-equality of the target folio.  Since the PMD migration entry is locked, it
-cannot be served as the target.
+Patch series "add max arg to swappiness in memory.reclaim and lru_gen", v4.
 
-Mailing list discussion and explanation from Hugh Dickins: "An anon_vma
-lookup points to a location which may contain the folio of interest, but
-might instead contain another folio: and weeding out those other folios is
-precisely what the "folio != pmd_folio((*pmd)" check (and the "risk of
-replacing the wrong folio" comment a few lines above it) is for."
+This patchset adds max arg to swappiness in memory.reclaim and lru_gen for
+anon only proactive memory reclaim.
 
-BUG: unable to handle page fault for address: ffffea60001db008
-CPU: 0 UID: 0 PID: 2199114 Comm: tee Not tainted 6.14.0+ #4 NONE
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-RIP: 0010:split_huge_pmd_locked+0x3b5/0x2b60
-Call Trace:
-<TASK>
-try_to_migrate_one+0x28c/0x3730
-rmap_walk_anon+0x4f6/0x770
-unmap_folio+0x196/0x1f0
-split_huge_page_to_list_to_order+0x9f6/0x1560
-deferred_split_scan+0xac5/0x12a0
-shrinker_debugfs_scan_write+0x376/0x470
-full_proxy_write+0x15c/0x220
-vfs_write+0x2fc/0xcb0
-ksys_write+0x146/0x250
-do_syscall_64+0x6a/0x120
-entry_SYSCALL_64_after_hwframe+0x76/0x7e
+With commit <68cd9050d871> ("mm: add swappiness= arg to memory.reclaim")
+we can submit an additional swappiness=<val> argument to memory.reclaim. 
+It is very useful because we can dynamically adjust the reclamation ratio
+based on the anonymous folios and file folios of each cgroup.  For
+example,when swappiness is set to 0, we only reclaim from file folios. 
+But we can not relciam memory just from anon folios.
 
-The bug is found by syzkaller on an internal kernel, then confirmed on
-upstream.
+This patchset introduces a new macro, SWAPPINESS_ANON_ONLY, defined as
+MAX_SWAPPINESS + 1, represent the max arg semantics.  It specifically
+indicates that reclamation should occur only from anonymous pages.
 
-Link: https://lkml.kernel.org/r/20250421113536.3682201-1-gavinguo@igalia.com
-Link: https://lore.kernel.org/all/20250414072737.1698513-1-gavinguo@igalia.com/
-Link: https://lore.kernel.org/all/20250418085802.2973519-1-gavinguo@igalia.com/
-Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
-Signed-off-by: Gavin Guo <gavinguo@igalia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Gavin Shan <gshan@redhat.com>
-Cc: Florent Revest <revest@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: <stable@vger.kernel.org>
+Patch 1 adds swappiness=max arg to memory.reclaim suggested-by: Yosry
+Ahmed
+
+Patch 2 add more comments for cache_trim_mode from Johannes Weiner in [1].
+
+Patch 3 add max arg to lru_gen for proactive memory reclaim in MGLRU.  The
+MGLRU already supports reclaiming exclusively from anonymous pages.  This
+patch formalizes that behavior by introducing a max parameter to represent
+the corresponding semantics.
+
+Patch 4 using SWAPPINESS_ANON_ONLY in MGLRU Using SWAPPINESS_ANON_ONLY
+instead of MAX_SWAPPINESS + 1 to indicate reclaiming only from anonymous
+pages makes the code more readable and explicit
+
+Here is the previous discussion:
+https://lore.kernel.org/all/20250314033350.1156370-1-hezhongkun.hzk@bytedance.com/
+https://lore.kernel.org/all/20250312094337.2296278-1-hezhongkun.hzk@bytedance.com/
+https://lore.kernel.org/all/20250318135330.3358345-1-hezhongkun.hzk@bytedance.com/
+
+
+This patch (of 4):
+
+With commit <68cd9050d871> ("mm: add swappiness= arg to memory.reclaim")
+we can submit an additional swappiness=<val> argument to memory.reclaim. 
+It is very useful because we can dynamically adjust the reclamation ratio
+based on the anonymous folios and file folios of each cgroup.  For
+example,when swappiness is set to 0, we only reclaim from file folios.
+
+However,we have also encountered a new issue: when swappiness is set to
+the MAX_SWAPPINESS, it may still only reclaim file folios.
+
+So, we hope to add a new arg 'swappiness=max' in memory.reclaim where
+proactive memory reclaim only reclaims from anonymous folios when
+swappiness is set to max.  The swappiness semantics from a user
+perspective remain unchanged.
+
+For example, something like this:
+
+echo "2M swappiness=max" > /sys/fs/cgroup/memory.reclaim
+
+will perform reclaim on the rootcg with a swappiness setting of 'max' (a
+new mode) regardless of the file folios.  Users have a more comprehensive
+view of the application's memory distribution because there are many
+metrics available.  For example, if we find that a certain cgroup has a
+large number of inactive anon folios, we can reclaim only those and skip
+file folios, because with the zram/zswap, the IO tradeoff that
+cache_trim_mode or other file first logic is making doesn't hold - file
+refaults will cause IO, whereas anon decompression will not.
+
+With this patch, the swappiness argument of memory.reclaim has a new
+mode 'max', means reclaiming just from anonymous folios both in traditional
+LRU and MGLRU.
+
+Link: https://lkml.kernel.org/r/cover.1745225696.git.hezhongkun.hzk@bytedance.com
+Link: https://lore.kernel.org/all/20250314141833.GA1316033@cmpxchg.org/ [1]
+Link: https://lkml.kernel.org/r/519e12b9b1f8c31a01e228c8b4b91a2419684f77.1745225696.git.hezhongkun.hzk@bytedance.com
+Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |    3 +++
+ include/linux/swap.h                    |    4 ++++
+ mm/memcontrol.c                         |    5 +++++
+ mm/vmscan.c                             |    7 +++++++
+ 4 files changed, 19 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry
-+++ a/mm/huge_memory.c
-@@ -3075,6 +3075,8 @@ static void __split_huge_pmd_locked(stru
- void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
- 			   pmd_t *pmd, bool freeze, struct folio *folio)
- {
-+	bool pmd_migration = is_pmd_migration_entry(*pmd);
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1362,6 +1362,9 @@ The following nested keys are defined.
+ 	same semantics as vm.swappiness applied to memcg reclaim with
+ 	all the existing limitations and potential future extensions.
+ 
++	The valid range for swappiness is [0-200, max], setting
++	swappiness=max exclusively reclaims anonymous memory.
 +
- 	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
- 	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
-@@ -3085,9 +3087,12 @@ void split_huge_pmd_locked(struct vm_are
- 	 * require a folio to check the PMD against. Otherwise, there
- 	 * is a risk of replacing the wrong folio.
- 	 */
--	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
--	    is_pmd_migration_entry(*pmd)) {
--		if (folio && folio != pmd_folio(*pmd))
-+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) || pmd_migration) {
-+		/*
-+		 * Do not apply pmd_folio() to a migration entry; and folio lock
-+		 * guarantees that it must be of the wrong folio anyway.
-+		 */
-+		if (folio && (pmd_migration || folio != pmd_folio(*pmd)))
- 			return;
- 		__split_huge_pmd_locked(vma, pmd, address, freeze);
+   memory.peak
+ 	A read-write single value file which exists on non-root cgroups.
+ 
+--- a/include/linux/swap.h~mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim
++++ a/include/linux/swap.h
+@@ -414,6 +414,10 @@ extern unsigned long try_to_free_pages(s
+ #define MEMCG_RECLAIM_PROACTIVE (1 << 2)
+ #define MIN_SWAPPINESS 0
+ #define MAX_SWAPPINESS 200
++
++/* Just recliam from anon folios in proactive memory reclaim */
++#define SWAPPINESS_ANON_ONLY (MAX_SWAPPINESS + 1)
++
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/memcontrol.c~mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim
++++ a/mm/memcontrol.c
+@@ -4457,11 +4457,13 @@ static ssize_t memory_oom_group_write(st
+ 
+ enum {
+ 	MEMORY_RECLAIM_SWAPPINESS = 0,
++	MEMORY_RECLAIM_SWAPPINESS_MAX,
+ 	MEMORY_RECLAIM_NULL,
+ };
+ 
+ static const match_table_t tokens = {
+ 	{ MEMORY_RECLAIM_SWAPPINESS, "swappiness=%d"},
++	{ MEMORY_RECLAIM_SWAPPINESS_MAX, "swappiness=max"},
+ 	{ MEMORY_RECLAIM_NULL, NULL },
+ };
+ 
+@@ -4495,6 +4497,9 @@ static ssize_t memory_reclaim(struct ker
+ 			if (swappiness < MIN_SWAPPINESS || swappiness > MAX_SWAPPINESS)
+ 				return -EINVAL;
+ 			break;
++		case MEMORY_RECLAIM_SWAPPINESS_MAX:
++			swappiness = SWAPPINESS_ANON_ONLY;
++			break;
+ 		default:
+ 			return -EINVAL;
+ 		}
+--- a/mm/vmscan.c~mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim
++++ a/mm/vmscan.c
+@@ -2564,6 +2564,13 @@ static void get_scan_count(struct lruvec
+ 		goto out;
  	}
+ 
++	/* Proactive reclaim initiated by userspace for anonymous memory only */
++	if (swappiness == SWAPPINESS_ANON_ONLY) {
++		WARN_ON_ONCE(!sc->proactive);
++		scan_balance = SCAN_ANON;
++		goto out;
++	}
++
+ 	/*
+ 	 * Do not apply any pressure balancing cleverness when the
+ 	 * system is close to OOM, scan both anon and file equally
 _
 
-Patches currently in -mm which might be from gavinguo@igalia.com are
+Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
 
-mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
+mm-add-swappiness=max-arg-to-memoryreclaim-for-only-anon-reclaim.patch
+mm-vmscan-add-more-comments-about-cache_trim_mode.patch
+mm-add-max-swappiness-arg-to-lru_gen-for-anonymous-memory-only.patch
+mm-using-swappiness_anon_only-in-mglru.patch
 
