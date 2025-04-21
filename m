@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 523AA1E1041
-	for <mm-commits@vger.kernel.org>; Mon, 21 Apr 2025 18:25:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9416718DF86;
+	Mon, 21 Apr 2025 18:47:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745259953; cv=none; b=Q3xB0UlEKqEs3pD/J4XnaWJLekZt8OuaTt0HQB223VWNF+yZZM/psTQvxB8KupBQhfe+yox1Zl7hRlhHhJ5hwtmBvZ61fV20ywdZvyISh7QyRS4JQx5OOVKN8ydMkW/rioC73umE4aD77m0ammI8+NeBv8BZ856RQ77vOPATR1k=
+	t=1745261253; cv=none; b=C/2789qSSmDomMlbLihNt/mCUkKJaN29Y+Qo+MO4YV0OTrxusA+tXHJ5rP0XEM6oBrOISkTA2bXAeQfAgMYjDt+j7fUZNRQYvRD1zlN1CVmehv6bCxaUYGPoN2hx/DByzqSHNXBPugxrgQBUVg0LczxQFSbfupQ1TGk2vs2zraA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745259953; c=relaxed/simple;
-	bh=MWi/xlvRYb8SR1Kgyjl2kxYfITWofMELu2S0VmPO0gw=;
-	h=Date:To:From:Subject:Message-Id; b=uVYWLIRCd4r+grnIrSrHEFGi5NY40cGBjw0yFRxoiaDkrorWfXfb7mQjAXMbCJ/kSsVUHWmnjjbqqqaustHBJ4O3ujrmE1HUcsDrIILmx+y/NYhunOnwM9wvDgMAJ9k5VUt4VoRIixbV1UaEko6ZX0Kj7t5PebWo1duf76De1mA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Evv/MuK7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745261253; c=relaxed/simple;
+	bh=OlJnnN3YRwuWvQxYA7fg4HQKN+3nL1lTR2meGICNBvM=;
+	h=Date:To:From:Subject:Message-Id; b=Muy7PLOm9nVPgX4ADurSJcuNyBvxJFeUfz0IqnNXsSS9Ve5YjxVoA+t40pieSlwEgX0o7TJKJscPXMmuHv1NvBr9dHVnF9ViYKtWjwErZbX6CRYIMCWIjMnnutgz+4CQ9vHUDzJnuE7IzqAt+A+eGPPjWl/K3IzPNOeyfEuH3Qc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wY5zeXHe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Evv/MuK7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEE12C4CEE4;
-	Mon, 21 Apr 2025 18:25:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wY5zeXHe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07EDAC4CEE4;
+	Mon, 21 Apr 2025 18:47:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745259952;
-	bh=MWi/xlvRYb8SR1Kgyjl2kxYfITWofMELu2S0VmPO0gw=;
+	s=korg; t=1745261253;
+	bh=OlJnnN3YRwuWvQxYA7fg4HQKN+3nL1lTR2meGICNBvM=;
 	h=Date:To:From:Subject:From;
-	b=Evv/MuK7zkd1heCN0eI/cTexJxlOTftJXbdm1bMfCdbG9GxbI0eu5nRGrouwSl4UM
-	 lAROCxmHTnhXwltiTcSdP6diki8qC7g6RyLU6UNiJKNxSHZcraILyaRlTfTzKlLztJ
-	 V7DoxLEO3KJlmULuCssMOA5CI5iDnbO8WmHRqsVg=
-Date: Mon, 21 Apr 2025 11:25:51 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,lrh2000@pku.edu.cn,akpm@linux-foundation.org
+	b=wY5zeXHe+Hsriz1Gj/XfB+8yr+MApskuCDjL/95MVhta8rnN9mYdJXnJbA9LuOnyg
+	 wPN85lEMzCPGZ77ZXTwix9pLkNxZfm7b3hfq7RLPOoyJ9qpXp76Jkl8JHlKjITRe9f
+	 +2KkwZ2ErpWXI63Nu0mTuJPSV0l9ovD2fk6o2BxI=
+Date: Mon, 21 Apr 2025 11:47:32 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,revest@google.com,linmiaohe@huawei.com,hughd@google.com,gshan@redhat.com,david@redhat.com,gavinguo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mm_init-dont-iterate-pages-below-arch_pfn_offset.patch removed from -mm tree
-Message-Id: <20250421182552.AEE12C4CEE4@smtp.kernel.org>
+Subject: + mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250421184733.07EDAC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,66 +34,118 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mm_init: don't iterate pages below ARCH_PFN_OFFSET
-has been removed from the -mm tree.  Its filename was
-     mm-mm_init-dont-iterate-pages-below-arch_pfn_offset.patch
+The patch titled
+     Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ruihan Li <lrh2000@pku.edu.cn>
-Subject: mm/mm_init: don't iterate pages below ARCH_PFN_OFFSET
-Date: Sat, 19 Apr 2025 20:28:01 +0800
+From: Gavin Guo <gavinguo@igalia.com>
+Subject: mm/huge_memory: fix dereferencing invalid pmd migration entry
+Date: Mon, 21 Apr 2025 19:35:36 +0800
 
-Currently, memmap_init initializes pfn_hole with 0 instead of
-ARCH_PFN_OFFSET. Then init_unavailable_range will start iterating each
-page from the page at address zero to the first available page, but it
-won't do anything for pages below ARCH_PFN_OFFSET because pfn_valid
-won't pass.
+When migrating a THP, concurrent access to the PMD migration entry during
+a deferred split scan can lead to an invalid address access, as
+illustrated below.  To prevent this invalid access, it is necessary to
+check the PMD migration entry and return early.  In this context, there is
+no need to use pmd_to_swp_entry and pfn_swap_entry_to_page to verify the
+equality of the target folio.  Since the PMD migration entry is locked, it
+cannot be served as the target.
 
-If ARCH_PFN_OFFSET is very large (e.g., something like 2^64-2GiB if the
-kernel is used as a library and loaded at a very high address), the
-pointless iteration for pages below ARCH_PFN_OFFSET will take a very
-long time, and the kernel will look stuck at boot time.
+Mailing list discussion and explanation from Hugh Dickins: "An anon_vma
+lookup points to a location which may contain the folio of interest, but
+might instead contain another folio: and weeding out those other folios is
+precisely what the "folio != pmd_folio((*pmd)" check (and the "risk of
+replacing the wrong folio" comment a few lines above it) is for."
 
-This commit sets the initial value of pfn_hole to ARCH_PFN_OFFSET, which
-avoids the problematic and useless iteration mentioned above.
+BUG: unable to handle page fault for address: ffffea60001db008
+CPU: 0 UID: 0 PID: 2199114 Comm: tee Not tainted 6.14.0+ #4 NONE
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+RIP: 0010:split_huge_pmd_locked+0x3b5/0x2b60
+Call Trace:
+<TASK>
+try_to_migrate_one+0x28c/0x3730
+rmap_walk_anon+0x4f6/0x770
+unmap_folio+0x196/0x1f0
+split_huge_page_to_list_to_order+0x9f6/0x1560
+deferred_split_scan+0xac5/0x12a0
+shrinker_debugfs_scan_write+0x376/0x470
+full_proxy_write+0x15c/0x220
+vfs_write+0x2fc/0xcb0
+ksys_write+0x146/0x250
+do_syscall_64+0x6a/0x120
+entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-This problem has existed since commit 907ec5fca3dc ("mm: zero remaining
-unavailable struct pages").
+The bug is found by syzkaller on an internal kernel, then confirmed on
+upstream.
 
-Link: https://lkml.kernel.org/r/20250419122801.1752234-1-lrh2000@pku.edu.cn
-Fixes: 907ec5fca3dc ("mm: zero remaining unavailable struct pages")
-Signed-off-by: Ruihan Li <lrh2000@pku.edu.cn>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20250421113536.3682201-1-gavinguo@igalia.com
+Link: https://lore.kernel.org/all/20250414072737.1698513-1-gavinguo@igalia.com/
+Link: https://lore.kernel.org/all/20250418085802.2973519-1-gavinguo@igalia.com/
+Fixes: 84c3fc4e9c56 ("mm: thp: check pmd migration entry in common path")
+Signed-off-by: Gavin Guo <gavinguo@igalia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Gavin Shan <gshan@redhat.com>
+Cc: Florent Revest <revest@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/huge_memory.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-dont-iterate-pages-below-arch_pfn_offset
-+++ a/mm/mm_init.c
-@@ -975,6 +975,15 @@ static void __init memmap_init(void)
- 	unsigned long hole_pfn = 0;
- 	int i, j, zone_id = 0, nid;
- 
-+#ifdef CONFIG_FLATMEM
-+	/*
-+	 * Pages below ARCH_PFN_OFFSET are invalid as far as pfn_valid is
-+	 * concerned, so don't waste time iterating on them when looking
-+	 * for holes.
-+	 */
-+	hole_pfn = ARCH_PFN_OFFSET;
-+#endif
+--- a/mm/huge_memory.c~mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry
++++ a/mm/huge_memory.c
+@@ -3075,6 +3075,8 @@ static void __split_huge_pmd_locked(stru
+ void split_huge_pmd_locked(struct vm_area_struct *vma, unsigned long address,
+ 			   pmd_t *pmd, bool freeze, struct folio *folio)
+ {
++	bool pmd_migration = is_pmd_migration_entry(*pmd);
 +
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
- 		struct pglist_data *node = NODE_DATA(nid);
- 
+ 	VM_WARN_ON_ONCE(folio && !folio_test_pmd_mappable(folio));
+ 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
+ 	VM_WARN_ON_ONCE(folio && !folio_test_locked(folio));
+@@ -3085,9 +3087,12 @@ void split_huge_pmd_locked(struct vm_are
+ 	 * require a folio to check the PMD against. Otherwise, there
+ 	 * is a risk of replacing the wrong folio.
+ 	 */
+-	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) ||
+-	    is_pmd_migration_entry(*pmd)) {
+-		if (folio && folio != pmd_folio(*pmd))
++	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd) || pmd_migration) {
++		/*
++		 * Do not apply pmd_folio() to a migration entry; and folio lock
++		 * guarantees that it must be of the wrong folio anyway.
++		 */
++		if (folio && (pmd_migration || folio != pmd_folio(*pmd)))
+ 			return;
+ 		__split_huge_pmd_locked(vma, pmd, address, freeze);
+ 	}
 _
 
-Patches currently in -mm which might be from lrh2000@pku.edu.cn are
+Patches currently in -mm which might be from gavinguo@igalia.com are
 
+mm-huge_memory-fix-dereferencing-invalid-pmd-migration-entry.patch
 
