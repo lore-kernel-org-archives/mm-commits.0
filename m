@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC4EB13C81B
-	for <mm-commits@vger.kernel.org>; Wed, 23 Apr 2025 21:49:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11EF013C81B
+	for <mm-commits@vger.kernel.org>; Wed, 23 Apr 2025 21:49:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745444976; cv=none; b=X8BFAdBZmKgin0h/tkGbF9F8dw1e/jMZ0RyT+B1eKMfUNI9NjOQxAC5eW9G6rQKsfn3QGCy6DkmYG9gs9q1MmCV2RDPIiPd7R0HwZkHG0FkyyNtD+WwHRZdqummxjadOwUpyV4tl+Vsvo5+/M8M4Kx6/qVKfY0L1Od0IAePlH5E=
+	t=1745444977; cv=none; b=WfxoVds5Ok5kw92oSrApzNZBWoqmqImk8S/Np1q9LOXzQO6+GAwYbCAqOpxKwlGwwkSxIP1FABz3p07tHq2Avscox4o7aXm4nGVowOi+44sxP5lpJHl79+odhU933BIAE+rGhxe6lPiV5TO5I893cokg4mFMSq26w4VnJpiz6PE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745444976; c=relaxed/simple;
-	bh=xczgdDtcWAfi6ywfaxjFo0RSiUGrW3P7JGv13+oWZyM=;
-	h=Date:To:From:Subject:Message-Id; b=N3iqNMHuYOXa3Z7HUyhD+cxz1POyWjX9W8CpkPTTgFPDWKBYFUV4qNjNdzVIZ8epa5ASfEjTj15laEJMC3YPzFJEj2Y+LPgvIeiHYupdnLk3+TA3/6kpiHPTDkwXr3hUpDhgpULn4IKslETqiz6TZxz7sqdRrCOmi7mgJNUYbyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=snZdw3wv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745444977; c=relaxed/simple;
+	bh=S9EsBUWTseXnWQq0fYms09WqPqCCGomHDvE/i+/qum0=;
+	h=Date:To:From:Subject:Message-Id; b=MwO06IfJGgkdpphz9vCdqfKBEFO1LmLwACoietrIBRwEBNAC16UtcFjvnO7yGB4gZkeKS8TUMs9bWLLv3/R4Ng2c19qL/jAP/IAl2GF+Cx0M7uxTf+wiOi+EBvAr5x/E+Hi7Y5RJi0RUxCMGtQ7KYgNdG9AFzi4rRU34Cwvnc9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OX0f/h4l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="snZdw3wv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57660C4CEE2;
-	Wed, 23 Apr 2025 21:49:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OX0f/h4l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5FFFC4CEE2;
+	Wed, 23 Apr 2025 21:49:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745444975;
-	bh=xczgdDtcWAfi6ywfaxjFo0RSiUGrW3P7JGv13+oWZyM=;
+	s=korg; t=1745444976;
+	bh=S9EsBUWTseXnWQq0fYms09WqPqCCGomHDvE/i+/qum0=;
 	h=Date:To:From:Subject:From;
-	b=snZdw3wvFPTSi5hbpgz6cDzGnqZoRmTnM9cGTEO1e6JJSkR6sNaos1Go0oAXk8ALm
-	 QjhXakV7uZSs7sUiUxNOKlkPyC7bKfmvhWkoW7IuYUhymSrIO5r0dN/IJglgbU/gxh
-	 PcgvXx6QAKwTEyw86kKbX41PlYJ0ufDCFRVDcu6g=
-Date: Wed, 23 Apr 2025 14:49:34 -0700
+	b=OX0f/h4lRSi33G9Kphtvkttkz7f2GduE9uf7ACZR0yA3facZcKewbJdI+hUzrD6YX
+	 uk7X8dkwYdFtO4MozYxZ/7WtrPD564YPFa0wU263T+bFl3SypwfQsDA+TPgCLVxlbb
+	 X61BzrbQZQZ5Mzan7RP6xhxAmuAvBO9COzJUi+Vc=
+Date: Wed, 23 Apr 2025 14:49:36 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,maz@kernel.org,mark.rutland@arm.com,lrh2000@pku.edu.cn,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,anshuman.khandual@arm.com,dwmw@amazon.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc.patch added to mm-new branch
-Message-Id: <20250423214935.57660C4CEE2@smtp.kernel.org>
+Subject: + mm-x86-use-for_each_valid_pfn-from-__ioremap_check_ram.patch added to mm-new branch
+Message-Id: <20250423214936.C5FFFC4CEE2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, PM: use for_each_valid_pfn() in kernel/power/snapshot.c
+     Subject: mm, x86: use for_each_valid_pfn() from __ioremap_check_ram()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc.patch
+     mm-x86-use-for_each_valid_pfn-from-__ioremap_check_ram.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-x86-use-for_each_valid_pfn-from-__ioremap_check_ram.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,10 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Woodhouse <dwmw@amazon.co.uk>
-Subject: mm, PM: use for_each_valid_pfn() in kernel/power/snapshot.c
-Date: Wed, 23 Apr 2025 14:33:40 +0100
+Subject: mm, x86: use for_each_valid_pfn() from __ioremap_check_ram()
+Date: Wed, 23 Apr 2025 14:33:41 +0100
 
-Link: https://lkml.kernel.org/r/20250423133821.789413-5-dwmw2@infradead.org
+Instead of calling pfn_valid() separately for every single PFN in the
+range, use for_each_valid_pfn() and only look at the ones which are.
+
+Link: https://lkml.kernel.org/r/20250423133821.789413-6-dwmw2@infradead.org
 Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -76,72 +79,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |   44 ++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 23 deletions(-)
+ arch/x86/mm/ioremap.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/kernel/power/snapshot.c~mm-pm-use-for_each_valid_pfn-in-kernel-power-snapshotc
-+++ a/kernel/power/snapshot.c
-@@ -1094,16 +1094,15 @@ static void mark_nosave_pages(struct mem
- 			 ((unsigned long long) region->end_pfn << PAGE_SHIFT)
- 				- 1);
+--- a/arch/x86/mm/ioremap.c~mm-x86-use-for_each_valid_pfn-from-__ioremap_check_ram
++++ a/arch/x86/mm/ioremap.c
+@@ -71,7 +71,7 @@ int ioremap_change_attr(unsigned long va
+ static unsigned int __ioremap_check_ram(struct resource *res)
+ {
+ 	unsigned long start_pfn, stop_pfn;
+-	unsigned long i;
++	unsigned long pfn;
  
--		for (pfn = region->start_pfn; pfn < region->end_pfn; pfn++)
--			if (pfn_valid(pfn)) {
--				/*
--				 * It is safe to ignore the result of
--				 * mem_bm_set_bit_check() here, since we won't
--				 * touch the PFNs for which the error is
--				 * returned anyway.
--				 */
--				mem_bm_set_bit_check(bm, pfn);
--			}
-+		for_each_valid_pfn(pfn, region->start_pfn, region->end_pfn) {
-+			/*
-+			 * It is safe to ignore the result of
-+			 * mem_bm_set_bit_check() here, since we won't
-+			 * touch the PFNs for which the error is
-+			 * returned anyway.
-+			 */
-+			mem_bm_set_bit_check(bm, pfn);
-+		}
+ 	if ((res->flags & IORESOURCE_SYSTEM_RAM) != IORESOURCE_SYSTEM_RAM)
+ 		return 0;
+@@ -79,9 +79,8 @@ static unsigned int __ioremap_check_ram(
+ 	start_pfn = (res->start + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	stop_pfn = (res->end + 1) >> PAGE_SHIFT;
+ 	if (stop_pfn > start_pfn) {
+-		for (i = 0; i < (stop_pfn - start_pfn); ++i)
+-			if (pfn_valid(start_pfn + i) &&
+-			    !PageReserved(pfn_to_page(start_pfn + i)))
++		for_each_valid_pfn(pfn, start_pfn, stop_pfn)
++			if (!PageReserved(pfn_to_page(pfn)))
+ 				return IORES_MAP_SYSTEM_RAM;
  	}
- }
  
-@@ -1255,22 +1254,21 @@ static void mark_free_pages(struct zone
- 	spin_lock_irqsave(&zone->lock, flags);
- 
- 	max_zone_pfn = zone_end_pfn(zone);
--	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
--		if (pfn_valid(pfn)) {
--			page = pfn_to_page(pfn);
--
--			if (!--page_count) {
--				touch_nmi_watchdog();
--				page_count = WD_PAGE_COUNT;
--			}
--
--			if (page_zone(page) != zone)
--				continue;
-+	for_each_valid_pfn(pfn, zone->zone_start_pfn, max_zone_pfn) {
-+		page = pfn_to_page(pfn);
- 
--			if (!swsusp_page_is_forbidden(page))
--				swsusp_unset_page_free(page);
-+		if (!--page_count) {
-+			touch_nmi_watchdog();
-+			page_count = WD_PAGE_COUNT;
- 		}
- 
-+		if (page_zone(page) != zone)
-+			continue;
-+
-+		if (!swsusp_page_is_forbidden(page))
-+			swsusp_unset_page_free(page);
-+	}
-+
- 	for_each_migratetype_order(order, t) {
- 		list_for_each_entry(page,
- 				&zone->free_area[order].free_list[t], buddy_list) {
 _
 
 Patches currently in -mm which might be from dwmw@amazon.co.uk are
