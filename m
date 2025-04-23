@@ -1,109 +1,58 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF940139566
-	for <mm-commits@vger.kernel.org>; Wed, 23 Apr 2025 22:49:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9A0B1FECBD
+	for <mm-commits@vger.kernel.org>; Wed, 23 Apr 2025 22:50:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745448549; cv=none; b=r0IxNHzGPrUuyHd6RWzsEyq5dSouBDqrwDoIbVusABwUJ+/YuV8uvGNVJffNud7CrHKIKBDRU7EqTgQXeQPIkEnIupbj4RpPMlxcdaA4l51888mbxlC3hxqZVdrrecjwRw0Dj6Vg6PXElTHqRGaIOTM4Pnj1FQmNnZMX4+7j90s=
+	t=1745448651; cv=none; b=ilN7vK3MNCZab1ToyC9x9xo9CLMC62E07b4HEorVdBO2kKziGofbOMd5ljN0MIc/qy8Pj08h7EPTr/yIdPpN/eSOCBFR4OdLmwMMlaw7MSvBkaY3amV2asgIqG+GkgUKXfTtDPLt1kvRkKG/wflIUZIDM5EVrDqJ/AUZu2+c7Qs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745448549; c=relaxed/simple;
-	bh=LKX1BQcFU6Wnup5bVFtEs4tsufqll3XNzZOqavTyvkE=;
-	h=Date:To:From:Subject:Message-Id; b=geXfJZYHm5H+u3HlqfJEi5qX0Ppo2IEfA4Ul6RVI3Ctnp8h2K27Rc/jxQmRtTFQ51FHnO3sD4z5wtlnA5Ts6J729h0wd0WMZhI67movAgtx4+T+ot3Jq5YYpewhDDkeeqCQz4JzfQK9qgxkW7prpDdwXd4jFPcXRbgmvaJrlgQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qu3pEK58; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745448651; c=relaxed/simple;
+	bh=68zgmBvZPs8SlEx14y4XeepQ0dKO8hyLSfqvuG+kpPw=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=fec1gUFk2MM/4hE1P6KFlmUQhVewQmMnXSP/A8tWLQ9nj6/YXo1tMj7Iz1hDY159NaYUUD3Xh/OSLvWZsIQm90jz90gXE93lsLO9Nz7v4yrdt4r29CyE8uGs7suIZvOpAoHZJyWuv/26GDndLbUkKC1RT1ma25W1GF1mWOxRCY4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QMELwhW4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qu3pEK58"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54D8AC4CEE2;
-	Wed, 23 Apr 2025 22:49:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QMELwhW4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C57E8C4CEE3;
+	Wed, 23 Apr 2025 22:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745448548;
-	bh=LKX1BQcFU6Wnup5bVFtEs4tsufqll3XNzZOqavTyvkE=;
-	h=Date:To:From:Subject:From;
-	b=Qu3pEK58U7cPXeKTqBSyE8s9OXSmakzF13+FYwA0dsSqRXOXT+vZFRGaUcLBYkMH0
-	 +oo8SeEoPolELCPuqI4nwG6IqfIvH9mjEUir0IGwDHdTqMBJQhDeYrjKuabL8MrCEm
-	 h4v7tvrGRd7M4p/booRSPU7hCBvfD2nnPkNfMVhA=
-Date: Wed, 23 Apr 2025 15:49:07 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,suhui@nfschina.com,akpm@linux-foundation.org
+	s=korg; t=1745448651;
+	bh=68zgmBvZPs8SlEx14y4XeepQ0dKO8hyLSfqvuG+kpPw=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=QMELwhW4AixyFK/jNXDzWof3ZSUPrvXffu6WJNMsJq6fSAUrP19Zs7NRum6Qrz+BV
+	 U5PIyUCFNcYj2aXeT3WdPbJADFCZYAbrKm3lXam1nz1cCaoKs8NjfBTbBcvQouZzI/
+	 jYPBi2iV72RRNOtetSXBjXeNa7WxvgNcwHTkkF5U=
+Date: Wed, 23 Apr 2025 15:50:50 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add.patch added to mm-new branch
-Message-Id: <20250423224908.54D8AC4CEE2@smtp.kernel.org>
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: mm-commits@vger.kernel.org, will@kernel.org, rppt@kernel.org,
+ maz@kernel.org, mark.rutland@arm.com, lrh2000@pku.edu.cn, david@redhat.com,
+ catalin.marinas@arm.com, ardb@kernel.org, anshuman.khandual@arm.com
+Subject: Re: +
+ mm-introduce-for_each_valid_pfn-and-use-it-from-reserve_bootmem_region.patch
+ added to mm-new branch
+Message-Id: <20250423155050.512589fca49a84dcb6db7437@linux-foundation.org>
+In-Reply-To: <a79ce7177da2d8d47e9247f8274503089a2c823c.camel@infradead.org>
+References: <20250423214930.C9D7FC4CEE2@smtp.kernel.org>
+	<a79ce7177da2d8d47e9247f8274503089a2c823c.camel@infradead.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, 23 Apr 2025 23:43:56 +0100 David Woodhouse <dwmw2@infradead.org> wr=
+ote:
 
-The patch titled
-     Subject: mm/damon/sysfs-schemes: use kmalloc_array() and size_add()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add.patch
+> > There are cases where a nave loop over a PFN range, calling pfn_valid()=
+ on
+> > each one, is horribly inefficient.=A0
+>=20
+> Hm, that definitely said 'na=EFve loop' when I sent it=B9.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Su Hui <suhui@nfschina.com>
-Subject: mm/damon/sysfs-schemes: use kmalloc_array() and size_add()
-Date: Mon, 21 Apr 2025 14:24:24 +0800
-
-It's safer to use kmalloc_array() and size_add() because it can prevent
-possible overflow problem.
-
-Link: https://lkml.kernel.org/r/20250421062423.740605-1-suhui@nfschina.com
-Signed-off-by: Su Hui <suhui@nfschina.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/sysfs-schemes.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add
-+++ a/mm/damon/sysfs-schemes.c
-@@ -465,7 +465,8 @@ static ssize_t memcg_path_store(struct k
- {
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
--	char *path = kmalloc(sizeof(*path) * (count + 1), GFP_KERNEL);
-+	char *path = kmalloc_array(size_add(count, 1), sizeof(*path),
-+				   GFP_KERNEL);
- 
- 	if (!path)
- 		return -ENOMEM;
-@@ -2064,7 +2065,7 @@ static int damon_sysfs_memcg_path_to_id(
- 	if (!memcg_path)
- 		return -EINVAL;
- 
--	path = kmalloc(sizeof(*path) * PATH_MAX, GFP_KERNEL);
-+	path = kmalloc_array(PATH_MAX, sizeof(*path), GFP_KERNEL);
- 	if (!path)
- 		return -ENOMEM;
- 
-_
-
-Patches currently in -mm which might be from suhui@nfschina.com are
-
-mm-damon-sysfs-schemes-using-kmalloc_array-and-size_add.patch
-
+I guess one of my eleventy scripts is stuck in the 90's.  I'll take a look.
