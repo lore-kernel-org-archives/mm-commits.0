@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 469712701AC;
-	Thu, 24 Apr 2025 21:31:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F754284667
+	for <mm-commits@vger.kernel.org>; Thu, 24 Apr 2025 21:50:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745530271; cv=none; b=MoBdcGh5rh7JCwVIy77cPPiemkuhG2IVrHh+H6R3tpE+9QhySG8K5IP5fCc7f8lb3d+csKa8abpJQsDRfVYx8uu7IaW2S87s8asAgptysSl7+hXLZ5b8hWoDW2dASC4ZVAHc3wAkZNLRxpFzQCmprXxPuQ0lq+OdPeaRj25GDNo=
+	t=1745531449; cv=none; b=MGnTp3PibmOWLY9ij3cXDkqVapkFt4ic/iUpGjDyxmUlppc3rbvRsDd+LibAcKgUPtWH5ZStQjpQA5tBSdpGZu0UKUrTcnAr13VAz6mKLsRf29VRJgY+zJDCma4iCZX7yFfY82COWTEPBMQyfT/b/kw5hvUOu2KeYZGrVvgeCOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745530271; c=relaxed/simple;
-	bh=Nyl8up2tOsjVm+IjdQA9JUKV7IhTKARROQ82LGEckIE=;
-	h=Date:To:From:Subject:Message-Id; b=q1IKWGx2mmhNU57X/QfnVSve4arfep5j5eADvZ4GuzLL6YylMF0sdmTy/m/yC0tz4miBtABpXWs/v0S+KYLQz2W3PLV1FId6oiHReym4lc2RjtoXi8uCsHOxIqGPd7RH8M0xe/cP1KOUrcb/FOgFfMK8AhP+HhE0GHhjydtBDqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=evglQcw1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745531449; c=relaxed/simple;
+	bh=4Flcf1tdZu2ux2YNP/Qs5n4CB2rI7Cvmng8q9VKRgg0=;
+	h=Date:To:From:Subject:Message-Id; b=qxdiBCyPs2UvV9b5nYhW8F/S4rhzx1g0PnuhYkGcFuIn2Q6ckrhfQVMR8+e0HgAw/udaLUGwvkyFpFzXgoo9vDYKuSS4UgCLLynz08uxD5aSUuJM0/5Semi5W9tDG44JLvmESh71yiJoTYIZ67u3rUtZ+H1cZA9Qo49NdHSGioM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nma0z7Ss; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="evglQcw1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D62AC4CEE3;
-	Thu, 24 Apr 2025 21:31:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nma0z7Ss"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43DA4C4CEEC;
+	Thu, 24 Apr 2025 21:50:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745530270;
-	bh=Nyl8up2tOsjVm+IjdQA9JUKV7IhTKARROQ82LGEckIE=;
+	s=korg; t=1745531448;
+	bh=4Flcf1tdZu2ux2YNP/Qs5n4CB2rI7Cvmng8q9VKRgg0=;
 	h=Date:To:From:Subject:From;
-	b=evglQcw1G95nhgHGgJ1FfPG256fHKPL5zx0ZdqULUhPbeUIwGUR1HMHTZgYqNlB3w
-	 MGHVWNGsCIZ3kbt/6boJVhgqcGBpJE0rUda9oGTNm4ALwL32Rd/djXeh9viZlsygC1
-	 zvBkXRi9aYaBB1G6o58FFJ1DeE3YUoYyarnD/sVs=
-Date: Thu, 24 Apr 2025 14:31:09 -0700
-To: mm-commits@vger.kernel.org,zhanghongchen@loongson.cn,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,mhocko@suse.cz,joern@logfs.org,hughd@google.com,david@redhat.com,christophe.leroy@csgroup.eu,chenhuacai@kernel.org,andrii@kernel.org,wangming01@loongson.cn,akpm@linux-foundation.org
+	b=Nma0z7Ssudu6M2Uiw4jz5PWHn0XBKmpoq1Qy1jGRpXXLEYBvKRgV/Ezn50mZCB/Bw
+	 Zk7n52pCXWif2EXFEK/72k6ZSLBkGpziGfn0qNw/HwBqkmTkP0p/oLlrojILdHH2DZ
+	 43dgsGPpu3LRbmyG7pbKmtyR4NfzeD1Btawkklsg=
+Date: Thu, 24 Apr 2025 14:50:47 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,hannes@cmpxchg.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] smaps-fix-crash-in-smaps_hugetlb_range-for-non-present-hugetlb-entries.patch removed from -mm tree
-Message-Id: <20250424213110.8D62AC4CEE3@smtp.kernel.org>
+Subject: + cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed.patch added to mm-unstable branch
+Message-Id: <20250424215048.43DA4C4CEEC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,114 +34,138 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: smaps: fix crash in smaps_hugetlb_range for non-present hugetlb entries
-has been removed from the -mm tree.  Its filename was
-     smaps-fix-crash-in-smaps_hugetlb_range-for-non-present-hugetlb-entries.patch
+The patch titled
+     Subject: cpuset: rename cpuset_node_allowed to cpuset_current_node_allowed
+has been added to the -mm mm-unstable branch.  Its filename is
+     cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ming Wang <wangming01@loongson.cn>
-Subject: smaps: fix crash in smaps_hugetlb_range for non-present hugetlb entries
-Date: Wed, 23 Apr 2025 09:03:59 +0800
+From: Gregory Price <gourry@gourry.net>
+Subject: cpuset: rename cpuset_node_allowed to cpuset_current_node_allowed
+Date: Thu, 24 Apr 2025 16:28:05 -0400
 
-When reading /proc/pid/smaps for a process that has mapped a hugetlbfs
-file with MAP_PRIVATE, the kernel might crash inside
-pfn_swap_entry_to_page.  This occurs on LoongArch under specific
-conditions.
+Patch series "vmscan: enforce mems_effective during demotion", v5.
 
-The root cause involves several steps:
+Change reclaim to respect cpuset.mems_effective during demotion when
+possible.  Presently, reclaim explicitly ignores cpuset.mems_effective
+when demoting, which may cause the cpuset settings to violated.
 
-1. When the hugetlbfs file is mapped (MAP_PRIVATE), the initial PMD
-   (or relevant level) entry is often populated by the kernel during
-   mmap() with a non-present entry pointing to the architecture's
-   invalid_pte_table On the affected LoongArch system, this address was
-   observed to be 0x90000000031e4000.
+Implement cpuset_node_allowed() to check the cpuset.mems_effective
+associated wih the mem_cgroup of the lruvec being scanned.  This only
+applies to cgroup/cpuset v2, as cpuset exists in a different hierarchy
+than mem_cgroup in v1.
 
-2. The smaps walker (walk_hugetlb_range -> smaps_hugetlb_range) reads
-   this entry.
+This requires renaming the existing cpuset_node_allowed() to be
+cpuset_current_now_allowed() - which is more descriptive anyway - to
+implement the new cpuset_node_allowed() which takes a target cgroup.
 
-3. The generic is_swap_pte() macro checks `!pte_present() &&
-   !pte_none()`.  The entry (invalid_pte_table address) is not present. 
-   Crucially, the generic pte_none() check (`!(pte_val(pte) &
-   ~_PAGE_GLOBAL)`) returns false because the invalid_pte_table address is
-   non-zero.  Therefore, is_swap_pte() incorrectly returns true.
 
-4. The code enters the `else if (is_swap_pte(...))` block.
+This patch (of 2):
 
-5. Inside this block, it checks `is_pfn_swap_entry()`.  Due to a bit
-   pattern coincidence in the invalid_pte_table address on LoongArch, the
-   embedded generic `is_migration_entry()` check happens to return true
-   (misinterpreting parts of the address as a migration type).
+Rename cpuset_node_allowed to reflect that the function checks the current
+task's cpuset.mems.  This allows us to make a new cpuset_node_allowed
+function that checks a target cgroup's cpuset.mems.
 
-6. This leads to a call to pfn_swap_entry_to_page() with the bogus
-   swap entry derived from the invalid table address.
-
-7. pfn_swap_entry_to_page() extracts a meaningless PFN, finds an
-   unrelated struct page, checks its lock status (unlocked), and hits the
-   `BUG_ON(is_migration_entry(entry) && !PageLocked(p))` assertion.
-
-The original code's intent in the `else if` block seems aimed at handling
-potential migration entries, as indicated by the inner
-`is_pfn_swap_entry()` check.  The issue arises because the outer
-`is_swap_pte()` check incorrectly includes the invalid table pointer case
-on LoongArch.
-
-This patch fixes the issue by changing the condition in
-smaps_hugetlb_range() from the broad `is_swap_pte()` to the specific
-`is_hugetlb_entry_migration()`.
-
-The `is_hugetlb_entry_migration()` helper function correctly handles this
-by first checking `huge_pte_none()`.  Architectures like LoongArch can
-provide an override for `huge_pte_none()` that specifically recognizes the
-`invalid_pte_table` address as a "none" state for HugeTLB entries.  This
-ensures `is_hugetlb_entry_migration()` returns false for the invalid
-entry, preventing the code from entering the faulty block.
-
-This change makes the code reflect the likely original intent (handling
-migration) more accurately and leverages architecture-specific helpers
-(`huge_pte_none`) to correctly interpret special PTE/PMD values in the
-HugeTLB context, fixing the crash on LoongArch without altering the
-generic is_swap_pte() behavior.
-
-Link: https://lkml.kernel.org/r/20250423010359.2030576-1-wangming01@loongson.cn
-Fixes: 25ee01a2fca0 ("mm: hugetlb: proc: add hugetlb-related fields to /proc/PID/smaps")
-Co-developed-by: Hongchen Zhang <zhanghongchen@loongson.cn>
-Signed-off-by: Hongchen Zhang <zhanghongchen@loongson.cn>
-Signed-off-by: Ming Wang <wangming01@loongson.cn>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250424202806.52632-1-gourry@gourry.net
+Link: https://lkml.kernel.org/r/20250424202806.52632-2-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Acked-by: Waiman Long <longman@redhat.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cpuset.h |    4 ++--
+ kernel/cgroup/cpuset.c |    4 ++--
+ mm/page_alloc.c        |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/proc/task_mmu.c~smaps-fix-crash-in-smaps_hugetlb_range-for-non-present-hugetlb-entries
-+++ a/fs/proc/task_mmu.c
-@@ -1027,7 +1027,7 @@ static int smaps_hugetlb_range(pte_t *pt
- 	if (pte_present(ptent)) {
- 		folio = page_folio(pte_page(ptent));
- 		present = true;
--	} else if (is_swap_pte(ptent)) {
-+	} else if (is_hugetlb_entry_migration(ptent)) {
- 		swp_entry_t swpent = pte_to_swp_entry(ptent);
+--- a/include/linux/cpuset.h~cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed
++++ a/include/linux/cpuset.h
+@@ -82,11 +82,11 @@ extern nodemask_t cpuset_mems_allowed(st
+ void cpuset_init_current_mems_allowed(void);
+ int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
  
- 		if (is_pfn_swap_entry(swpent))
+-extern bool cpuset_node_allowed(int node, gfp_t gfp_mask);
++extern bool cpuset_current_node_allowed(int node, gfp_t gfp_mask);
+ 
+ static inline bool __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
+ {
+-	return cpuset_node_allowed(zone_to_nid(z), gfp_mask);
++	return cpuset_current_node_allowed(zone_to_nid(z), gfp_mask);
+ }
+ 
+ static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
+--- a/kernel/cgroup/cpuset.c~cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed
++++ a/kernel/cgroup/cpuset.c
+@@ -4164,7 +4164,7 @@ static struct cpuset *nearest_hardwall_a
+ }
+ 
+ /*
+- * cpuset_node_allowed - Can we allocate on a memory node?
++ * cpuset_current_node_allowed - Can current task allocate on a memory node?
+  * @node: is this an allowed node?
+  * @gfp_mask: memory allocation flags
+  *
+@@ -4203,7 +4203,7 @@ static struct cpuset *nearest_hardwall_a
+  *	GFP_KERNEL   - any node in enclosing hardwalled cpuset ok
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
+  */
+-bool cpuset_node_allowed(int node, gfp_t gfp_mask)
++bool cpuset_current_node_allowed(int node, gfp_t gfp_mask)
+ {
+ 	struct cpuset *cs;		/* current cpuset ancestors */
+ 	bool allowed;			/* is allocation in zone z allowed? */
+--- a/mm/page_alloc.c~cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed
++++ a/mm/page_alloc.c
+@@ -3547,7 +3547,7 @@ get_page_from_freelist(gfp_t gfp_mask, u
+ retry:
+ 	/*
+ 	 * Scan zonelist, looking for a zone with enough free.
+-	 * See also cpuset_node_allowed() comment in kernel/cgroup/cpuset.c.
++	 * See also cpuset_current_node_allowed() comment in kernel/cgroup/cpuset.c.
+ 	 */
+ 	no_fallback = alloc_flags & ALLOC_NOFRAGMENT;
+ 	z = ac->preferred_zoneref;
+@@ -4234,7 +4234,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask, unsig
+ 		/*
+ 		 * Ignore cpuset mems for non-blocking __GFP_HIGH (probably
+ 		 * GFP_ATOMIC) rather than fail, see the comment for
+-		 * cpuset_node_allowed().
++		 * cpuset_current_node_allowed().
+ 		 */
+ 		if (alloc_flags & ALLOC_MIN_RESERVE)
+ 			alloc_flags &= ~ALLOC_CPUSET;
 _
 
-Patches currently in -mm which might be from wangming01@loongson.cn are
+Patches currently in -mm which might be from gourry@gourry.net are
 
+memory-implement-memory_block_advise-probe_max_size.patch
+x86-probe-memory-block-size-advisement-value-during-mm-init.patch
+acpisrat-give-memory-block-size-advice-based-on-cfmws-alignment.patch
+cpuset-rename-cpuset_node_allowed-to-cpuset_current_node_allowed.patch
+vmscancgroup-apply-mems_effective-to-reclaim.patch
 
