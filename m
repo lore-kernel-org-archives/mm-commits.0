@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67B4F19F471
-	for <mm-commits@vger.kernel.org>; Thu, 24 Apr 2025 22:03:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9583F1EA84
+	for <mm-commits@vger.kernel.org>; Thu, 24 Apr 2025 22:22:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745532201; cv=none; b=orQfai4EzNGGeruO6I7xrnhF/OlYg9S7BKJnj7cB7cPi83cqvDpRfsm6hsFGq9MSgGsXVR6tbNBFHsHhMG2osxORzeIZYReXsJO1BTendKxqW23AxbUI8kAj25fHMiWR/OWx1bD+TL1KrUu6TTSIyuTNWAvRahl8k1ctPJB0z+E=
+	t=1745533344; cv=none; b=N9rl7ZY1DL4A3Oi7pxBQesX9657DxD2WbjHhHus0yuevI/SPzBe8GIUDcEaw0kS3xOfr4dRyNmYSZF+VB8PVYyEeGHU9yOchqer3TbSR06MV4I0CnPcbUNW4A2wDQkjv6hGZ+KUX5Smq2cggpdGjaQ3nQ5e3980/kwszCI3HHIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745532201; c=relaxed/simple;
-	bh=jXEDmGzARx/F/OFdwHbg0HmtsUvBNGePlIx/q3kXciM=;
-	h=Date:To:From:Subject:Message-Id; b=PpD6S39UDekFx+ZV/lkHsXHz41qjoP7ydp7s6T2XUr2ekCtDnhcS6XQgQVwl0CX4BrtkR9vGg5qymGod3Hgc1fgflNRFDRjX6XFW8Vx+22F8OLvJOSI3f15SZYXweS7R/OFou3Zf81XmPGTPVD4nBfsRVeBn+bSSPOQXbeouIfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukLQRMo8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745533344; c=relaxed/simple;
+	bh=6+4s3kVFBUiFtqdSVQwI0kcX71WpbUHvdrV3LMYg56I=;
+	h=Date:To:From:Subject:Message-Id; b=lRjwo4t3TYm+9W9LChhij+sp1mZ7Uq7HQBuc2LHAdj/4n2gWKbsC54tbq2kuGWiKcO4fR3BXysuTPVWEBZIyHj61L4WcYYcYpYA/+nf/LhjrxA7bdqGhmlj6wKY8HzAfJyxapqon/qpbgSMlFjgcHZHr45fcn/+scXaa+gPwOCE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hmY6b6SR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukLQRMo8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7C4AC4CEE3;
-	Thu, 24 Apr 2025 22:03:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hmY6b6SR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05A1CC4CEE3;
+	Thu, 24 Apr 2025 22:22:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745532200;
-	bh=jXEDmGzARx/F/OFdwHbg0HmtsUvBNGePlIx/q3kXciM=;
+	s=korg; t=1745533344;
+	bh=6+4s3kVFBUiFtqdSVQwI0kcX71WpbUHvdrV3LMYg56I=;
 	h=Date:To:From:Subject:From;
-	b=ukLQRMo8k9yO6GaiO/7Sc3sMzr546o7AW2M7bXNDagif5WYyQgZ9fz+EyNxRgyIlO
-	 F6BaVZMhawgvDJGrPF9PN/6WkobhhsRCiH9OC424hlG4MXgVcAfwayohKJAAIZmgxD
-	 HM9kpXQLgD+i9CJZytd5aSg98JT0GnqUYPBUPk2w=
-Date: Thu, 24 Apr 2025 15:03:20 -0700
-To: mm-commits@vger.kernel.org,mingzhe.yang@ly.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=hmY6b6SRHZ80JwXNVfTH5Bg1DftUsx9APjbSC7M5136sN6mX9UCHcbvwiq4KuFrJK
+	 FA9lfoE+blB7wU1TPZo90g1EzjTaFCbFr3ohQPi79qsC71znNtWpmuFXgj0k4Qu82/
+	 j7vSb+gFCiLSdsLkFaPVc6HGa5SO3CHfZDEtbvpY=
+Date: Thu, 24 Apr 2025 15:22:23 -0700
+To: mm-commits@vger.kernel.org,shi.changkuo@h3c.com,piaojun@huawei.com,m.masimov@mt-integration.ru,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch added to mm-new branch
-Message-Id: <20250424220320.B7C4AC4CEE3@smtp.kernel.org>
+Subject: + ocfs2-switch-osb-disable_recovery-to-enum.patch added to mm-nonmm-unstable branch
+Message-Id: <20250424222224.05A1CC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: inline folio_test_large_maybe_mapped_shared() into callers
-has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
+     Subject: ocfs2: switch osb->disable_recovery to enum
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-switch-osb-disable_recovery-to-enum.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-switch-osb-disable_recovery-to-enum.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,86 +58,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/rmap: inline folio_test_large_maybe_mapped_shared() into callers
-Date: Thu, 24 Apr 2025 23:56:06 +0800
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: switch osb->disable_recovery to enum
+Date: Thu, 24 Apr 2025 15:45:11 +0200
 
-To prevent the function from being used when CONFIG_MM_ID is disabled, we
-intend to inline it into its few callers, which also would help maintain
-the expected code placement.
+Patch series "ocfs2: Fix deadlocks in quota recovery", v3.
 
-Link: https://lkml.kernel.org/r/20250424155606.57488-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Mingzhe Yang <mingzhe.yang@ly.com>
+This implements another approach to fixing quota recovery deadlocks.  We
+avoid grabbing sb->s_umount semaphore from ocfs2_finish_quota_recovery()
+and instead stop quota recovery early in ocfs2_dismount_volume().
+
+
+This patch (of 3):
+
+We will need more recovery states than just pure enable / disable to fix
+deadlocks with quota recovery.  Switch osb->disable_recovery to enum.
+
+Link: https://lkml.kernel.org/r/20250424134301.1392-1-jack@suse.cz
+Link: https://lkml.kernel.org/r/20250424134515.18933-4-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Tested-by: Heming Zhao <heming.zhao@suse.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Murad Masimov <m.masimov@mt-integration.ru>
+Cc: Shichangkuo <shi.changkuo@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |    2 +-
- include/linux/page-flags.h |    4 ----
- include/linux/rmap.h       |    2 +-
- mm/memory.c                |    4 ++--
- 4 files changed, 4 insertions(+), 8 deletions(-)
+ fs/ocfs2/journal.c |   14 ++++++++------
+ fs/ocfs2/ocfs2.h   |    7 ++++++-
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/include/linux/mm.h
-@@ -2111,7 +2111,7 @@ static inline bool folio_maybe_mapped_sh
- 	 */
- 	if (mapcount <= 1)
- 		return false;
--	return folio_test_large_maybe_mapped_shared(folio);
-+	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
- }
+--- a/fs/ocfs2/journal.c~ocfs2-switch-osb-disable_recovery-to-enum
++++ a/fs/ocfs2/journal.c
+@@ -174,7 +174,7 @@ int ocfs2_recovery_init(struct ocfs2_sup
+ 	struct ocfs2_recovery_map *rm;
  
- #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
---- a/include/linux/page-flags.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/include/linux/page-flags.h
-@@ -1230,10 +1230,6 @@ static inline int folio_has_private(cons
- 	return !!(folio->flags & PAGE_FLAGS_PRIVATE);
- }
+ 	mutex_init(&osb->recovery_lock);
+-	osb->disable_recovery = 0;
++	osb->recovery_state = OCFS2_REC_ENABLED;
+ 	osb->recovery_thread_task = NULL;
+ 	init_waitqueue_head(&osb->recovery_event);
  
--static inline bool folio_test_large_maybe_mapped_shared(const struct folio *folio)
--{
--	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
--}
- #undef PF_ANY
- #undef PF_HEAD
- #undef PF_NO_TAIL
---- a/include/linux/rmap.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/include/linux/rmap.h
-@@ -223,7 +223,7 @@ static inline void __folio_large_mapcoun
- 	VM_WARN_ON_ONCE(folio_mm_id(folio, 1) != MM_ID_DUMMY &&
- 			folio->_mm_id_mapcount[1] < 0);
- 	VM_WARN_ON_ONCE(!folio_mapped(folio) &&
--			folio_test_large_maybe_mapped_shared(folio));
-+			test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids));
- }
+@@ -206,7 +206,7 @@ void ocfs2_recovery_exit(struct ocfs2_su
+ 	/* disable any new recovery threads and wait for any currently
+ 	 * running ones to exit. Do this before setting the vol_state. */
+ 	mutex_lock(&osb->recovery_lock);
+-	osb->disable_recovery = 1;
++	osb->recovery_state = OCFS2_REC_DISABLED;
+ 	mutex_unlock(&osb->recovery_lock);
+ 	wait_event(osb->recovery_event, !ocfs2_recovery_thread_running(osb));
  
- static __always_inline void folio_set_large_mapcount(struct folio *folio,
---- a/mm/memory.c~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
-+++ a/mm/memory.c
-@@ -3768,7 +3768,7 @@ static bool __wp_can_reuse_large_anon_fo
- 	 * If all folio references are from mappings, and all mappings are in
- 	 * the page tables of this MM, then this folio is exclusive to this MM.
- 	 */
--	if (folio_test_large_maybe_mapped_shared(folio))
-+	if (test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids))
- 		return false;
+@@ -1582,14 +1582,16 @@ bail:
  
- 	VM_WARN_ON_ONCE(folio_test_ksm(folio));
-@@ -3791,7 +3791,7 @@ static bool __wp_can_reuse_large_anon_fo
- 	folio_lock_large_mapcount(folio);
- 	VM_WARN_ON_ONCE(folio_large_mapcount(folio) < folio_ref_count(folio));
+ void ocfs2_recovery_thread(struct ocfs2_super *osb, int node_num)
+ {
++	int was_set = -1;
++
+ 	mutex_lock(&osb->recovery_lock);
++	if (osb->recovery_state < OCFS2_REC_DISABLED)
++		was_set = ocfs2_recovery_map_set(osb, node_num);
  
--	if (folio_test_large_maybe_mapped_shared(folio))
-+	if (test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids))
- 		goto unlock;
- 	if (folio_large_mapcount(folio) != folio_ref_count(folio))
- 		goto unlock;
+ 	trace_ocfs2_recovery_thread(node_num, osb->node_num,
+-		osb->disable_recovery, osb->recovery_thread_task,
+-		osb->disable_recovery ?
+-		-1 : ocfs2_recovery_map_set(osb, node_num));
++		osb->recovery_state, osb->recovery_thread_task, was_set);
+ 
+-	if (osb->disable_recovery)
++	if (osb->recovery_state == OCFS2_REC_DISABLED)
+ 		goto out;
+ 
+ 	if (osb->recovery_thread_task)
+--- a/fs/ocfs2/ocfs2.h~ocfs2-switch-osb-disable_recovery-to-enum
++++ a/fs/ocfs2/ocfs2.h
+@@ -308,6 +308,11 @@ enum ocfs2_journal_trigger_type {
+ void ocfs2_initialize_journal_triggers(struct super_block *sb,
+ 				       struct ocfs2_triggers triggers[]);
+ 
++enum ocfs2_recovery_state {
++	OCFS2_REC_ENABLED = 0,
++	OCFS2_REC_DISABLED,
++};
++
+ struct ocfs2_journal;
+ struct ocfs2_slot_info;
+ struct ocfs2_recovery_map;
+@@ -370,7 +375,7 @@ struct ocfs2_super
+ 	struct ocfs2_recovery_map *recovery_map;
+ 	struct ocfs2_replay_map *replay_map;
+ 	struct task_struct *recovery_thread_task;
+-	int disable_recovery;
++	enum ocfs2_recovery_state recovery_state;
+ 	wait_queue_head_t checkpoint_event;
+ 	struct ocfs2_journal *journal;
+ 	unsigned long osb_commit_interval;
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
+ocfs2-switch-osb-disable_recovery-to-enum.patch
+ocfs2-implement-handshaking-with-ocfs2-recovery-thread.patch
+ocfs2-stop-quota-recovery-before-disabling-quotas.patch
 
