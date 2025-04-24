@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90B381EDA35
-	for <mm-commits@vger.kernel.org>; Thu, 24 Apr 2025 21:56:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67B4F19F471
+	for <mm-commits@vger.kernel.org>; Thu, 24 Apr 2025 22:03:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745531778; cv=none; b=J5on66w2CC2juin4tC0jZiN5SeVdr9jGm5qBM35FbLfz0LoTCfGZwNnk6CnLirdojfot+S/9982a1cY7uWNMO2rgIUIewmPH8dY9mE2pugFfgTSfKlujp4WQJDTCV6sZKG75GG1IQ8KXPSyJGnxRh1FA4poMe0MvMAV+h1yIdwg=
+	t=1745532201; cv=none; b=orQfai4EzNGGeruO6I7xrnhF/OlYg9S7BKJnj7cB7cPi83cqvDpRfsm6hsFGq9MSgGsXVR6tbNBFHsHhMG2osxORzeIZYReXsJO1BTendKxqW23AxbUI8kAj25fHMiWR/OWx1bD+TL1KrUu6TTSIyuTNWAvRahl8k1ctPJB0z+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745531778; c=relaxed/simple;
-	bh=To/SK4nkJY8nSpqfV0M6Nk892PWBHBRYEeu2AWvqZPs=;
-	h=Date:To:From:Subject:Message-Id; b=IQm0oAdsaamJ0Fsh2KL0E4cYBPI4fEKWXeHnOEMYi2pxftxnLycisbTiN5+5wCl1d1x92kfSCTCH3LWCDoMGT3fvjtM90qtNY5+uroAj/SFDMhx7Rn3EX50QjXyPyNLczLZNL/jiZRlFISfr2gHKfNs7K6Aeb552BUqq9fFo+WY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sLyihegH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745532201; c=relaxed/simple;
+	bh=jXEDmGzARx/F/OFdwHbg0HmtsUvBNGePlIx/q3kXciM=;
+	h=Date:To:From:Subject:Message-Id; b=PpD6S39UDekFx+ZV/lkHsXHz41qjoP7ydp7s6T2XUr2ekCtDnhcS6XQgQVwl0CX4BrtkR9vGg5qymGod3Hgc1fgflNRFDRjX6XFW8Vx+22F8OLvJOSI3f15SZYXweS7R/OFou3Zf81XmPGTPVD4nBfsRVeBn+bSSPOQXbeouIfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukLQRMo8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sLyihegH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03ACAC4CEE4;
-	Thu, 24 Apr 2025 21:56:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukLQRMo8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7C4AC4CEE3;
+	Thu, 24 Apr 2025 22:03:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745531778;
-	bh=To/SK4nkJY8nSpqfV0M6Nk892PWBHBRYEeu2AWvqZPs=;
+	s=korg; t=1745532200;
+	bh=jXEDmGzARx/F/OFdwHbg0HmtsUvBNGePlIx/q3kXciM=;
 	h=Date:To:From:Subject:From;
-	b=sLyihegHOBrO9zZQ9dCJpu9HvdYWoSH2e/TkMtX7r59P0ELrM6ut2nZVr2cjdHU8v
-	 flmLpItc+KWeU+632ia4Af097cgscGUon00bVT2DbjSEPMYfRrvC2GGdc0MkUm73I2
-	 BQNnJeUpfx3L5TkwhguzBBTgh1a3/fKAQGHqq/2M=
-Date: Thu, 24 Apr 2025 14:56:17 -0700
-To: mm-commits@vger.kernel.org,Marc.Herbert@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ukLQRMo8k9yO6GaiO/7Sc3sMzr546o7AW2M7bXNDagif5WYyQgZ9fz+EyNxRgyIlO
+	 F6BaVZMhawgvDJGrPF9PN/6WkobhhsRCiH9OC424hlG4MXgVcAfwayohKJAAIZmgxD
+	 HM9kpXQLgD+i9CJZytd5aSg98JT0GnqUYPBUPk2w=
+Date: Thu, 24 Apr 2025 15:03:20 -0700
+To: mm-commits@vger.kernel.org,mingzhe.yang@ly.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20250424215618.03ACAC4CEE4@smtp.kernel.org>
+Subject: + mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch added to mm-new branch
+Message-Id: <20250424220320.B7C4AC4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+     Subject: mm/rmap: inline folio_test_large_maybe_mapped_shared() into callers
+has been added to the -mm mm-new branch.  Its filename is
+     mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,45 +64,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix
-Date: Thu Apr 24 02:53:15 PM PDT 2025
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/rmap: inline folio_test_large_maybe_mapped_shared() into callers
+Date: Thu, 24 Apr 2025 23:56:06 +0800
 
-regularize comment layout, reflow comment
+To prevent the function from being used when CONFIG_MM_ID is disabled, we
+intend to inline it into its few callers, which also would help maintain
+the expected code placement.
 
-Cc: Marc Herbert <Marc.Herbert@linux.intel.com>
+Link: https://lkml.kernel.org/r/20250424155606.57488-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Mingzhe Yang <mingzhe.yang@ly.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler_types.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/mm.h         |    2 +-
+ include/linux/page-flags.h |    4 ----
+ include/linux/rmap.h       |    2 +-
+ mm/memory.c                |    4 ++--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
 
---- a/include/linux/compiler_types.h~compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix
-+++ a/include/linux/compiler_types.h
-@@ -525,10 +525,11 @@ struct ftrace_likely_data {
- 	 sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
+--- a/include/linux/mm.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
++++ a/include/linux/mm.h
+@@ -2111,7 +2111,7 @@ static inline bool folio_maybe_mapped_sh
+ 	 */
+ 	if (mapcount <= 1)
+ 		return false;
+-	return folio_test_large_maybe_mapped_shared(folio);
++	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
+ }
  
- #ifdef __OPTIMIZE__
--/* #ifdef __OPTIMIZE__ is only a good approximation; for instance "make
-- * CFLAGS_foo.o=-Og" defines __OPTIMIZE__, does not elide the
-- * conditional code and can break compilation with wrong error
-- * message(s). Combine with -U__OPTIMIZE__ when needed.
-+/*
-+ * #ifdef __OPTIMIZE__ is only a good approximation; for instance "make
-+ * CFLAGS_foo.o=-Og" defines __OPTIMIZE__, does not elide the conditional code
-+ * and can break compilation with wrong error message(s). Combine with
-+ * -U__OPTIMIZE__ when needed.
-  */
- # define __compiletime_assert(condition, msg, prefix, suffix)		\
- 	do {								\
+ #ifndef HAVE_ARCH_MAKE_FOLIO_ACCESSIBLE
+--- a/include/linux/page-flags.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
++++ a/include/linux/page-flags.h
+@@ -1230,10 +1230,6 @@ static inline int folio_has_private(cons
+ 	return !!(folio->flags & PAGE_FLAGS_PRIVATE);
+ }
+ 
+-static inline bool folio_test_large_maybe_mapped_shared(const struct folio *folio)
+-{
+-	return test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids);
+-}
+ #undef PF_ANY
+ #undef PF_HEAD
+ #undef PF_NO_TAIL
+--- a/include/linux/rmap.h~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
++++ a/include/linux/rmap.h
+@@ -223,7 +223,7 @@ static inline void __folio_large_mapcoun
+ 	VM_WARN_ON_ONCE(folio_mm_id(folio, 1) != MM_ID_DUMMY &&
+ 			folio->_mm_id_mapcount[1] < 0);
+ 	VM_WARN_ON_ONCE(!folio_mapped(folio) &&
+-			folio_test_large_maybe_mapped_shared(folio));
++			test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids));
+ }
+ 
+ static __always_inline void folio_set_large_mapcount(struct folio *folio,
+--- a/mm/memory.c~mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers
++++ a/mm/memory.c
+@@ -3768,7 +3768,7 @@ static bool __wp_can_reuse_large_anon_fo
+ 	 * If all folio references are from mappings, and all mappings are in
+ 	 * the page tables of this MM, then this folio is exclusive to this MM.
+ 	 */
+-	if (folio_test_large_maybe_mapped_shared(folio))
++	if (test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids))
+ 		return false;
+ 
+ 	VM_WARN_ON_ONCE(folio_test_ksm(folio));
+@@ -3791,7 +3791,7 @@ static bool __wp_can_reuse_large_anon_fo
+ 	folio_lock_large_mapcount(folio);
+ 	VM_WARN_ON_ONCE(folio_large_mapcount(folio) < folio_ref_count(folio));
+ 
+-	if (folio_test_large_maybe_mapped_shared(folio))
++	if (test_bit(FOLIO_MM_IDS_SHARED_BITNUM, &folio->_mm_ids))
+ 		goto unlock;
+ 	if (folio_large_mapcount(folio) != folio_ref_count(folio))
+ 		goto unlock;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-x86-disable-image-size-check-for-test-builds-fix.patch
-x86-disable-image-size-check-for-test-builds-fix-fix.patch
-mm-debug-fix-parameter-passed-to-page_mapcount_is_type-fix.patch
-vmalloc-switch-to-for_each_vmap_node-helper-fix.patch
-mm-add-zblock-allocator-fix.patch
-compiler_typesh-fix-unused-variable-in-__compiletime_assert-fix.patch
+mm-rmap-inline-folio_test_large_maybe_mapped_shared-into-callers.patch
 
