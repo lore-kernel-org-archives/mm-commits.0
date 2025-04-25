@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E22D2C2C9
-	for <mm-commits@vger.kernel.org>; Fri, 25 Apr 2025 00:45:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F6FC35958
+	for <mm-commits@vger.kernel.org>; Fri, 25 Apr 2025 00:53:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745541903; cv=none; b=TE3sTrhmKggjjCLk3mLoDRqJ9BSnmbqWhC9HRkBLkHyyPfpNTvZMzPW3NsYbuvsDjOu6u2z5tK34gK2dJfMWfYLYdw7N+9P6iXgbUux/zDbfT/kqXUn1wEWe8yZH56L/SD5mbBXSNw/DTKcLY0P2GYaSsQEvJEmKVR+z8gXn+h8=
+	t=1745542392; cv=none; b=apli4/85iAXeJ1MHqWLuuzXWLiT8O/y4iKugdFq1eG4xroVOZ8+/TJmtS9nLeXm+SIjkEv4fF+y0ILDejKwcDK6dMefXRDTBCqIpg6on6NyB2O8rpx6eskaCRCrbMHGilIbMpr8ELYdPaClud3VwydvCEWMmwLfvXTdab0GKABc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745541903; c=relaxed/simple;
-	bh=fSip6EXk2gyUOO34dTCLjiIDqKEo5dhrmDbE8kc74MI=;
-	h=Date:To:From:Subject:Message-Id; b=TVgdG+QY9dapXkMQ+sNpnxLHKAUoTCQSRD9L7TeMg4UW/pKQayvfGrvhNgWRu1ezG/TdEmnSsutDsMlBef5O6kaTY4FHIjpQzE2qSnPl9Q+SO1kGk2LRkfeuTVW+jr2o9xD/nPUEQHo3Zg0bzI4SQr6L2R3cmwT4ErecgbELfNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LxqWvkBS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745542392; c=relaxed/simple;
+	bh=wcCoNr0UEBB1BOKDQfaJF7/q0hHzY8+BdwJ/i38qZNY=;
+	h=Date:To:From:Subject:Message-Id; b=mOL2cLxcnnCorg/w5jFdJ/joIxVNyayfMv9EWqL0XycR431g5M84xWkFjSUWLngrAtyyBjm7acb54ambIjae8KdCmXeOowDvBcuTSbwfYZDWVM5n3nvK1M1Eh6Je10KurnpBCjq5yDHvjokyhE2EwVBFfr/vA72wXYOF9KaDwxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L/4AKZ0y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LxqWvkBS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42CB1C4CEE3;
-	Fri, 25 Apr 2025 00:45:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L/4AKZ0y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2D25C4CEE3;
+	Fri, 25 Apr 2025 00:53:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745541902;
-	bh=fSip6EXk2gyUOO34dTCLjiIDqKEo5dhrmDbE8kc74MI=;
+	s=korg; t=1745542391;
+	bh=wcCoNr0UEBB1BOKDQfaJF7/q0hHzY8+BdwJ/i38qZNY=;
 	h=Date:To:From:Subject:From;
-	b=LxqWvkBSWHT20MByrxIUbf6t0utvqxemEik7ZNcqLO/ki+1z2BT71/d4O9cIzD7HD
-	 m8OHWnljI0nfiDrl4Oqt4Kj09GA2Hhatny9G7VRxafPrJPwBlUhLdUE3/0gMqI7D6+
-	 W0VoUSiF1+HYlaA1H9/H8cwpaIsVNiUcvj/ONII4=
-Date: Thu, 24 Apr 2025 17:45:01 -0700
-To: mm-commits@vger.kernel.org,yu.c.chen@intel.com,vineethr@linux.ibm.com,vincent.guittot@linaro.org,venkat88@linux.ibm.com,tj@kernel.org,tim.c.chen@intel.com,sraithal@amd.com,rostedt@goodmis.org,raghavendra.kt@amd.com,peterz@infradead.org,mkoutny@suse.com,mingo@redhat.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,kprateek.nayak@amd.com,juri.lelli@redhat.com,daniel.m.jordan@oracle.com,chris.hyser@oracle.com,libo.chen@oracle.com,akpm@linux-foundation.org
+	b=L/4AKZ0yAXgTaAVPYWrECAmu3yrfWpsvi7tWyWfbCZpMPVDXJ2QWE0wMt0mUqLaa4
+	 wKfik1ZHW0CCZvIGLQRiY9PcpZiTgcPBtEZ+99B4PLHkG9/LjjXAQzPQd/qdy+AUgH
+	 igsUyZTU9GoFwNY2jKXc6ix5OKsxIeMjx9i6owv8=
+Date: Thu, 24 Apr 2025 17:53:11 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,nichen@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch added to mm-new branch
-Message-Id: <20250425004502.42CB1C4CEE3@smtp.kernel.org>
+Subject: + ocfs2-remove-unnecessary-null-check-before-unregister_sysctl_table.patch added to mm-nonmm-unstable branch
+Message-Id: <20250425005311.B2D25C4CEE3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sched/numa: add tracepoint that tracks the skipping of numa balancing due to cpuset memory pinning
-has been added to the -mm mm-new branch.  Its filename is
-     sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch
+     Subject: ocfs2: remove unnecessary NULL check before unregister_sysctl_table()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-remove-unnecessary-null-check-before-unregister_sysctl_table.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-unnecessary-null-check-before-unregister_sysctl_table.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,101 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Libo Chen <libo.chen@oracle.com>
-Subject: sched/numa: add tracepoint that tracks the skipping of numa balancing due to cpuset memory pinning
-Date: Wed, 23 Apr 2025 19:45:23 -0700
+From: Chen Ni <nichen@iscas.ac.cn>
+Subject: ocfs2: remove unnecessary NULL check before unregister_sysctl_table()
+Date: Tue, 22 Apr 2025 15:30:51 +0800
 
-Unlike sched_skip_vma_numa tracepoint which tracks skipped VMAs, this
-tracks the task subjected to cpuset.mems pinning and prints out its
-allowed memory node mask.
+unregister_sysctl_table() checks for NULL pointers internally.  Remove
+unneeded NULL check here.
 
-Link: https://lkml.kernel.org/r/20250424024523.2298272-3-libo.chen@oracle.com
-Signed-off-by: Libo Chen <libo.chen@oracle.com>
-Cc: "Chen, Tim C" <tim.c.chen@intel.com>
-Cc: Chen Yu <yu.c.chen@intel.com>
-Cc: Chris Hyser <chris.hyser@oracle.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: K Prateek Nayak <kprateek.nayak@amd.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Madadi Vineeth Reddy <vineethr@linux.ibm.com>
-Cc: Mel Gorman <mgorman <mgorman@suse.de>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Raghavendra K T <raghavendra.kt@amd.com>
-Cc: Srikanth Aithal <sraithal@amd.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Link: https://lkml.kernel.org/r/20250422073051.1334310-1-nichen@iscas.ac.cn
+Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/sched.h |   33 +++++++++++++++++++++++++++++++++
- kernel/sched/fair.c          |    4 +++-
- 2 files changed, 36 insertions(+), 1 deletion(-)
+ fs/ocfs2/stackglue.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/trace/events/sched.h~sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning
-+++ a/include/trace/events/sched.h
-@@ -745,6 +745,39 @@ TRACE_EVENT(sched_skip_vma_numa,
- 		  __entry->vm_end,
- 		  __print_symbolic(__entry->reason, NUMAB_SKIP_REASON))
- );
-+
-+TRACE_EVENT(sched_skip_cpuset_numa,
-+
-+	TP_PROTO(struct task_struct *tsk, nodemask_t *mem_allowed_ptr),
-+
-+	TP_ARGS(tsk, mem_allowed_ptr),
-+
-+	TP_STRUCT__entry(
-+		__array( char,		comm,		TASK_COMM_LEN		)
-+		__field( pid_t,		pid					)
-+		__field( pid_t,		tgid					)
-+		__field( pid_t,		ngid					)
-+		__array( unsigned long, mem_allowed, BITS_TO_LONGS(MAX_NUMNODES))
-+	),
-+
-+	TP_fast_assign(
-+		memcpy(__entry->comm, tsk->comm, TASK_COMM_LEN);
-+		__entry->pid		 = task_pid_nr(tsk);
-+		__entry->tgid		 = task_tgid_nr(tsk);
-+		__entry->ngid		 = task_numa_group_id(tsk);
-+		BUILD_BUG_ON(sizeof(nodemask_t) != \
-+			     BITS_TO_LONGS(MAX_NUMNODES) * sizeof(long));
-+		memcpy(__entry->mem_allowed, mem_allowed_ptr->bits,
-+		       sizeof(__entry->mem_allowed));
-+	),
-+
-+	TP_printk("comm=%s pid=%d tgid=%d ngid=%d mem_nodes_allowed=%*pbl",
-+		  __entry->comm,
-+		  __entry->pid,
-+		  __entry->tgid,
-+		  __entry->ngid,
-+		  MAX_NUMNODES, __entry->mem_allowed)
-+);
- #endif /* CONFIG_NUMA_BALANCING */
+--- a/fs/ocfs2/stackglue.c~ocfs2-remove-unnecessary-null-check-before-unregister_sysctl_table
++++ a/fs/ocfs2/stackglue.c
+@@ -691,8 +691,7 @@ static void __exit ocfs2_stack_glue_exit
+ 	memset(&locking_max_version, 0,
+ 	       sizeof(struct ocfs2_protocol_version));
+ 	ocfs2_sysfs_exit();
+-	if (ocfs2_table_header)
+-		unregister_sysctl_table(ocfs2_table_header);
++	unregister_sysctl_table(ocfs2_table_header);
+ }
  
- /*
---- a/kernel/sched/fair.c~sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning
-+++ a/kernel/sched/fair.c
-@@ -3333,8 +3333,10 @@ static void task_numa_work(struct callba
- 	 * Memory is pinned to only one NUMA node via cpuset.mems, naturally
- 	 * no page can be migrated.
- 	 */
--	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1)
-+	if (cpusets_enabled() && nodes_weight(cpuset_current_mems_allowed) == 1) {
-+		trace_sched_skip_cpuset_numa(current, &cpuset_current_mems_allowed);
- 		return;
-+	}
- 
- 	if (!mm->numa_next_scan) {
- 		mm->numa_next_scan = now +
+ MODULE_AUTHOR("Oracle");
 _
 
-Patches currently in -mm which might be from libo.chen@oracle.com are
+Patches currently in -mm which might be from nichen@iscas.ac.cn are
 
-sched-numa-skip-vma-scanning-on-memory-pinned-to-one-numa-node-via-cpusetmems.patch
-sched-numa-add-tracepoint-that-tracks-the-skipping-of-numa-balancing-due-to-cpuset-memory-pinning.patch
+mm-memcontrol-remove-unnecessary-null-check-before-free_percpu.patch
+ocfs2-remove-unnecessary-null-check-before-unregister_sysctl_table.patch
 
