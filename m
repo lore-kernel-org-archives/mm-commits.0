@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55B7213B284;
-	Sat, 26 Apr 2025 01:59:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9110F10F9
+	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2025 02:13:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745632785; cv=none; b=kC1D96fZeaCNCtayhlDPFuHkYa/gnjw977o8MO0pvO0qwQsvcXf+hRbI3wVyDwJWW37LhVQenivkkllriHrSdWcPI5/Y9d16xv7RS4CUBV8QWVolygVk/4ILHeyVF4WVi20vwcEiuHUO4MZfMRYpZIo5HD28GySNclJmWFxEkxc=
+	t=1745633633; cv=none; b=B3wZ3ZIxNc7FIRLBUSziRTK0perksg66Z8CYOZhOwAopw0+Q74WATasvft4bkb8po5POLm1gJqtnMiiHZ5N1T0SGUfIzGehOP93Us7iZshRXDK+aDa9AIr/voCvsDy0n9L4LQifUkorxIEgUZ6603hZ5RKaTLSuiD+SZ6kR3SXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745632785; c=relaxed/simple;
-	bh=8Or1dD90mFtgUKp0lVsuOKbDOlgiixo5kCZ7CLMijnA=;
-	h=Date:To:From:Subject:Message-Id; b=WnNwruq/uiCBaQp3p0DYcMzqdJT/UIDeULtMPejuRCVBXWPsnyv5w5D1R4rEmetCWA7KWoZPEl/JdglB2/J3LixLI6vlPrF2AaJv//UJKsSBWg3NsQA3YiDVnI3/K86ems7iaHkncaGzLFg5ROsCDa0JTb9NNCTPPhpMYH1qjSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qmTJiR3H; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745633633; c=relaxed/simple;
+	bh=S9ymbVmXJXj4oOJKozoi+Gmq7hf/pwFolL64tGWCNuU=;
+	h=Date:To:From:Subject:Message-Id; b=jLyiJFtAhJzzLDASUuwMHAiHqL7LLK/MINArpOA5eOF0kon7U5CjQdaouYGaVATpvkWYsBct6DaWyy/8hyYSOrzROAJQ+88tt+r3/QfuMIMzd/sG9V0iMIQEhY8O+xK+M8Ed2d8qp7d5CV8tISbzApvLi36kMa/GKc7NzSnt8Qc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BOrkXqcs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qmTJiR3H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8415C4CEE4;
-	Sat, 26 Apr 2025 01:59:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BOrkXqcs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02FADC4CEE4;
+	Sat, 26 Apr 2025 02:13:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1745632784;
-	bh=8Or1dD90mFtgUKp0lVsuOKbDOlgiixo5kCZ7CLMijnA=;
+	s=korg; t=1745633633;
+	bh=S9ymbVmXJXj4oOJKozoi+Gmq7hf/pwFolL64tGWCNuU=;
 	h=Date:To:From:Subject:From;
-	b=qmTJiR3HRpa21WGwDchuxe2tfnMtDQz4ShSTSVQf6DANN+hP1qeqqfv4P3OF2nqZQ
-	 fTR8qyAEyqkx+GColr9uiDnaiYRoFy/9ZUYXI4iLXDp68B3BPAUUuFkh+yu9b6TeeK
-	 r4czI2wcnRtzXaNqfwzeB6wnOdMpqIRWYApQExoY=
-Date: Fri, 25 Apr 2025 18:59:44 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,stable@vger.kernel.org,mhocko@suse.com,erhard_f@mailbox.org,dakr@kernel.org,kees@kernel.org,akpm@linux-foundation.org
+	b=BOrkXqcsKXN9K/BenSTM6at6D6zSezcn77AFTxslDZ1XHr4ER7Oc7vzxH/TwcQc5i
+	 20jZ2WnBDj/UnbJjPWaNe3SikIV31/uWzui5PvD32RU7qoZwgPXdwbY/kv1+lIA63M
+	 BKc9FZ3BftyiHnUc2rM+GikYZiJKSkMLW2zv8++A=
+Date: Fri, 25 Apr 2025 19:13:52 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-support-more-granular-vrealloc-sizing.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250426015944.B8415C4CEE4@smtp.kernel.org>
+Subject: [to-be-updated] selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch removed from -mm tree
+Message-Id: <20250426021353.02FADC4CEE4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,150 +34,107 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: vmalloc: support more granular vrealloc() sizing
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmalloc-support-more-granular-vrealloc-sizing.patch
+The quilt patch titled
+     Subject: selftests: memcg: Increase error tolerance of child memory.current check in test_memcg_protection()
+has been removed from the -mm tree.  Its filename was
+     selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-support-more-granular-vrealloc-sizing.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kees Cook <kees@kernel.org>
-Subject: mm: vmalloc: support more granular vrealloc() sizing
-Date: Fri, 25 Apr 2025 17:11:07 -0700
+From: Waiman Long <longman@redhat.com>
+Subject: selftests: memcg: Increase error tolerance of child memory.current check in test_memcg_protection()
+Date: Tue, 15 Apr 2025 17:04:15 -0400
 
-Introduce struct vm_struct::requested_size so that the requested
-(re)allocation size is retained separately from the allocated area size. 
-This means that KASAN will correctly poison the correct spans of requested
-bytes.  This also means we can support growing the usable portion of an
-allocation that can already be supported by the existing area's existing
-allocation.
+The test_memcg_protection() function is used for the test_memcg_min and
+test_memcg_low sub-tests. This function generates a set of parent/child
+cgroups like:
 
-Link: https://lkml.kernel.org/r/20250426001105.it.679-kees@kernel.org
-Fixes: 3ddc2fefe6f3 ("mm: vmalloc: implement vrealloc()")
-Signed-off-by: Kees Cook <kees@kernel.org>
-Reported-by: Erhard Furtner <erhard_f@mailbox.org>
-Closes: https://lore.kernel.org/all/20250408192503.6149a816@outsider.home/
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+  parent:  memory.min/low = 50M
+  child 0: memory.min/low = 75M,  memory.current = 50M
+  child 1: memory.min/low = 25M,  memory.current = 50M
+  child 2: memory.min/low = 0,    memory.current = 50M
+
+After applying memory pressure, the function expects the following
+actual memory usages.
+
+  parent:  memory.current ~= 50M
+  child 0: memory.current ~= 29M
+  child 1: memory.current ~= 21M
+  child 2: memory.current ~= 0
+
+In reality, the actual memory usages can differ quite a bit from the
+expected values. It uses an error tolerance of 10% with the values_close()
+helper.
+
+Both the test_memcg_min and test_memcg_low sub-tests can fail
+sporadically because the actual memory usage exceeds the 10% error
+tolerance. Below are a sample of the usage data of the tests runs
+that fail.
+
+  Child   Actual usage    Expected usage    %err
+  -----   ------------    --------------    ----
+    1       16990208         22020096      -12.9%
+    1       17252352         22020096      -12.1%
+    0       37699584         30408704      +10.7%
+    1       14368768         22020096      -21.0%
+    1       16871424         22020096      -13.2%
+
+The current 10% error tolerenace might be right at the time
+test_memcontrol.c was first introduced in v4.18 kernel, but memory
+reclaim have certainly evolved quite a bit since then which may result
+in a bit more run-to-run variation than previously expected.
+
+Increase the error tolerance to 15% for child 0 and 20% for child 1 to
+minimize the chance of this type of failure. The tolerance is bigger
+for child 1 because an upswing in child 0 corresponds to a smaller
+%err than a similar downswing in child 1 due to the way %err is used
+in values_close().
+
+Before this patch, a 100 test runs of test_memcontrol produced the
+following results:
+
+     17 not ok 1 test_memcg_min
+     22 not ok 2 test_memcg_low
+
+After applying this patch, there were no test failure for test_memcg_min
+and test_memcg_low in 100 test runs. However, these tests may still fail
+once in a while if the memory usage goes beyond the newly extended range.
+
+Link: https://lkml.kernel.org/r/20250415210415.13414-3-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 +
- mm/vmalloc.c            |   31 ++++++++++++++++++++++++-------
- 2 files changed, 25 insertions(+), 7 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-support-more-granular-vrealloc-sizing
-+++ a/include/linux/vmalloc.h
-@@ -61,6 +61,7 @@ struct vm_struct {
- 	unsigned int		nr_pages;
- 	phys_addr_t		phys_addr;
- 	const void		*caller;
-+	unsigned long		requested_size;
- };
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-memcg-increase-error-tolerance-of-child-memorycurrent-check-in-test_memcg_protection
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -495,10 +495,10 @@ static int test_memcg_protection(const c
+ 	for (i = 0; i < ARRAY_SIZE(children); i++)
+ 		c[i] = cg_read_long(children[i], "memory.current");
  
- struct vmap_area {
---- a/mm/vmalloc.c~mm-vmalloc-support-more-granular-vrealloc-sizing
-+++ a/mm/vmalloc.c
-@@ -1940,7 +1940,7 @@ static inline void setup_vmalloc_vm(stru
- {
- 	vm->flags = flags;
- 	vm->addr = (void *)va->va_start;
--	vm->size = va_size(va);
-+	vm->size = vm->requested_size = va_size(va);
- 	vm->caller = caller;
- 	va->vm = vm;
- }
-@@ -3133,6 +3133,7 @@ struct vm_struct *__get_vm_area_node(uns
+-	if (!values_close(c[0], MB(29), 10))
++	if (!values_close(c[0], MB(29), 15))
+ 		goto cleanup;
  
- 	area->flags = flags;
- 	area->caller = caller;
-+	area->requested_size = requested_size;
+-	if (!values_close(c[1], MB(21), 10))
++	if (!values_close(c[1], MB(21), 20))
+ 		goto cleanup;
  
- 	va = alloc_vmap_area(size, align, start, end, node, gfp_mask, 0, area);
- 	if (IS_ERR(va)) {
-@@ -4063,6 +4064,8 @@ EXPORT_SYMBOL(vzalloc_node_noprof);
-  */
- void *vrealloc_noprof(const void *p, size_t size, gfp_t flags)
- {
-+	struct vm_struct *vm = NULL;
-+	size_t alloced_size = 0;
- 	size_t old_size = 0;
- 	void *n;
- 
-@@ -4072,15 +4075,17 @@ void *vrealloc_noprof(const void *p, siz
- 	}
- 
- 	if (p) {
--		struct vm_struct *vm;
--
- 		vm = find_vm_area(p);
- 		if (unlikely(!vm)) {
- 			WARN(1, "Trying to vrealloc() nonexistent vm area (%p)\n", p);
- 			return NULL;
- 		}
- 
--		old_size = get_vm_area_size(vm);
-+		alloced_size = get_vm_area_size(vm);
-+		old_size = vm->requested_size;
-+		if (WARN(alloced_size < old_size,
-+			 "vrealloc() has mismatched area vs requested sizes (%p)\n", p))
-+			return NULL;
- 	}
- 
- 	/*
-@@ -4088,14 +4093,26 @@ void *vrealloc_noprof(const void *p, siz
- 	 * would be a good heuristic for when to shrink the vm_area?
- 	 */
- 	if (size <= old_size) {
--		/* Zero out spare memory. */
--		if (want_init_on_alloc(flags))
-+		/* Zero out "freed" memory. */
-+		if (want_init_on_free())
- 			memset((void *)p + size, 0, old_size - size);
-+		vm->requested_size = size;
- 		kasan_poison_vmalloc(p + size, old_size - size);
--		kasan_unpoison_vmalloc(p, size, KASAN_VMALLOC_PROT_NORMAL);
- 		return (void *)p;
- 	}
- 
-+	/*
-+	 * We already have the bytes available in the allocation; use them.
-+	 */
-+	if (size <= alloced_size) {
-+		kasan_unpoison_vmalloc(p + old_size, size - old_size,
-+				       KASAN_VMALLOC_PROT_NORMAL);
-+		/* Zero out "alloced" memory. */
-+		if (want_init_on_alloc(flags))
-+			memset((void *)p + old_size, 0, size - old_size);
-+		vm->requested_size = size;
-+	}
-+
- 	/* TODO: Grow the vm_area, i.e. allocate and map additional pages. */
- 	n = __vmalloc_noprof(size, flags);
- 	if (!n)
+ 	if (c[3] != 0)
 _
 
-Patches currently in -mm which might be from kees@kernel.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-vmalloc-support-more-granular-vrealloc-sizing.patch
+selftests-memcg-allow-low-event-with-no-memorylow-and-memory_recursiveprot-on.patch
 
